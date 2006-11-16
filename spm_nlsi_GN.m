@@ -74,7 +74,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 650 2006-10-16 13:36:04Z karl $
+% $Id: spm_nlsi_GN.m 681 2006-11-16 20:21:15Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -102,7 +102,11 @@ end
 %--------------------------------------------------------------------------
 try
     FS  = fcnchk(M.FS,'y','E');
-    E   = M.E;
+    try
+        E = M.E;
+    catch
+        E = [];
+    end
 catch
     FS  = inline('y','y','E');
     E   = [];

@@ -1,7 +1,6 @@
-function [f] = spm_fx_lfp(x,u,P,s)
+function [f] = spm_fx_lfp(x,u,P)
 % state equations for a neural mass model of erps
 % FORMAT [f] = spm_fx_lfp(x,u,P)
-% FORMAT [f] = spm_fx_lfp(n)
 % x      - state vector
 %   x(:,1)  - voltage (spiny stellate cells)
 %   x(:,2)  - voltage (pyramidal cells)         +ve
@@ -18,9 +17,7 @@ function [f] = spm_fx_lfp(x,u,P,s)
 %
 %   x(:,13) - slow potassium conductance
 %
-% NB: the first state is actually time but this hidden here.
-%
-% f        - dx(t)/dt  = f(x(t))
+% f    - dx(t)/dt  = f(x(t))
 %
 % Fixed parameter scaling [Defaults]
 %
@@ -42,10 +39,9 @@ function [f] = spm_fx_lfp(x,u,P,s)
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-s     = length(x);                  % number of states
-m     = length(u);  				% number of inputs
-n     = length(P.A{1});             % number of sources
-x     = reshape(x,n,s);             % neuronal states
+n     = size(x,1);             % number of sources
+s     = size(x,2);             % number of states
+m     = length(u);             % number of inputs
 
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
@@ -57,13 +53,12 @@ end
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-
-E = [32 16 4];                % extrinsic rates (forward, backward, lateral)
-G = [1 1 1/2 1/2 1/8]*128;    % intrinsic rates (g1, g2 g3, g4)
-D = [2 16];                   % propogation delays (intrinsic, extrinsic)
-H = [4 32];                   % receptor densities (excitatory, inhibitory)
-T = [4 16];                   % synaptic constants (excitatory, inhibitory)
-R = [2 1];                    % parameters of static nonlinearity
+E    = [32 16 4];             % extrinsic rates (forward, backward, lateral)
+G    = [1 1 1/2 1/2 1/8]*128; % intrinsic rates (g1, g2 g3, g4)
+D    = [2 4];                 % propogation delays (intrinsic, extrinsic)
+H    = [4 32];                % receptor densities (excitatory, inhibitory)
+T    = [4 16];                % synaptic constants (excitatory, inhibitory)
+R    = [2 1];                 % parameters of static nonlinearity
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
@@ -75,7 +70,7 @@ G    = exp(P.G)*diag(G);
 
 % intrinsic connectivity and parameters
 %--------------------------------------------------------------------------
-Te  =  T(1)/1000*exp(P.T(:,1));      % excitatory time constants
+Te   = T(1)/1000*exp(P.T(:,1));      % excitatory time constants
 Ti   = T(2)/1000*exp(P.T(:,2));      % inhibitory time constants
 Tk   = 512/1000;                     % slow potassium
 He   = H(1)*exp(P.H);                % excitatory receptor density
@@ -84,15 +79,135 @@ Hi   = H(2);                         % inhibitory receptor density
 % pre-synaptic inputs: s(V) with threshold adaptation
 %--------------------------------------------------------------------------
 R      = R.*exp(P.R);
-S      = x;
-S(:,1) = S(:,1) - x(:,13);
-S      = 1./(1 + exp(-R(1)*(S - R(2)))) - 1./(1 + exp(R(1)*R(2)));
+x      = x';
+X      = x;
+X(1,:) = X(1,:) - X(13,:);
+S      = 1./(1 + exp(-R(1)*(X - R(2)))) - 1./(1 + exp(R(1)*R(2)));
+dSdx   = (R(1)*exp(-R(1)*(X - R(2)))./(1 + exp(-R(1)*(X - R(2)))).^2);
 
 % input
 %--------------------------------------------------------------------------
 U      = C*u;
 
-% State: f(x)
+% State: f(x) and Jacobian dfdx
+%==========================================================================
+
+% intrinsic coupling
+%--------------------------------------------------------------------------
+for i = 1:n
+
+    % synaptic dyanamics
+    %----------------------------------------------------------------------
+    ke    = -2/Te(i);
+    ki    = -2/Ti(i);
+    Ke    = -1/(Te(i)^2);
+    Ki    = -1/(Ti(i)^2);
+    dfdx  = [0   0   0   1   0   0   0   0   0   0   0   0   0
+             0   0   0   0   1   0   0   0   0   0   0   0   0
+             0   0   0   0   0   1   0   0   0   0   0   0   0
+             Ke  0   0   ke  0   0   0   0   0   0   0   0   0
+             0   Ke  0   0   ke  0   0   0   0   0   0   0   0
+             0   0   Ki  0   0   ki  0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   1   0   0   0   0   0
+             0   0   0   0   0   0  Ke   ke  0   0   0   0   0
+             0   0   0   0   1   -1  0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   1   0   0
+             0   0   0   0   0   0   0   0   0  Ki   ki  0   0
+             0   0   0   0   0   0   0   1   0   0  -1   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0  -1/Tk];
+         
+    % intrinsic connections
+    %----------------------------------------------------------------------
+    Ke    = He(i)/Te(i);
+    Ki    = Hi/Ti(i);
+    
+    j1    = Ke*G(i,1);
+    j2    = Ke*G(i,2);
+    j3    = Ke*G(i,3);
+    j4    = Ki*G(i,4);
+    j5    = Ki*G(i,5);
+    dfdS  = [0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   j1  0   0   0   0
+             j2  0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   j4  0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   j3  0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0  j5   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+            4/Tk 0   0   0   0   0   0   0   0   0   0   0   0];
+     
+    % motion and Jacobian
+    %----------------------------------------------------------------------
+    dsdx       = diag(dSdx(:,i));
+    dsdx(1,13) = -dsdx(1,1);
+    dfdu       = sparse(4,1,Ke,s,1);
+     
+    F{i}       = dfdx*x(:,i) + dfdS*S(:,i) + dfdu*U(i);
+    J{i,i}     = dfdx + dfdS*dsdx;
+    
+    % extrinsic connections
+    %----------------------------------------------------------------------
+    for j = 1:n, if i ~= j
+    
+    k1    = Ke*(A{1}(i,j) + A{3}(i,j));
+    k2    = Ke*(A{2}(i,j) + A{3}(i,j));
+    k3    = Ki*(A{2}(i,j) + A{3}(i,j));
+    dfdS  = [0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   k1  0   0   0   0
+             0   0   0   0   0   0   0   0   k2  0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   k3  0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0
+             0   0   0   0   0   0   0   0   0   0   0   0   0];
+         
+    % motion and Jacobian
+    %----------------------------------------------------------------------
+    F{i}   = F{i} + dfdS*S(:,j);
+    J{i,j} = dfdS*diag(dSdx(:,j));
+    
+    end, end
+end
+
+% construct motion and Jacobian
+%--------------------------------------------------------------------------
+for i = 1:n
+    k      = [1:n:s*n] + (i - 1);
+    f(k,1) = F{i};
+    for j  = 1:n
+        l         = [1:n:s*n] + (j - 1);
+        dfdx(k,l) = J{i,j};
+    end    
+end
+
+% extrinsic and intrinsic delays
+%--------------------------------------------------------------------------
+De = D(2).*exp(P.D)/1000;
+Di = D(1).*exp(P.I)/1000;
+De = (eye(n,n) - 1).*De;
+Di = (eye(s,s) - 1)*Di;
+De = kron(ones(s,s),De);
+Di = kron(Di,eye(n,n));
+
+D  = Di + De;
+
+% Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
+%--------------------------------------------------------------------------
+f  = inv(speye(n*s,n*s) - D.*dfdx)*f;
+
+
+return
+
+% Equations of motion
 %==========================================================================
 
 % Supragranular layer (inhibitory interneurons): depolarizing current
@@ -113,10 +228,6 @@ f(:,1)  = x(:,4);
 f(:,4)  = (He.*((A{1} + A{3})*S(:,9) + G(:,1).*S(:,9) + U) ...
            - 2*x(:,4) - x(:,1)./Te)./Te;
        
-% Granular layer (spiny stellate cells): hyperpolarizing current
-%--------------------------------------------------------------------------
-f(:,13) = (4*S(:,1) - x(:,13))./Tk;
-
 % Infra-granular layer (pyramidal cells): depolarizing current
 %--------------------------------------------------------------------------
 f(:,2)  = x(:,5);
@@ -134,93 +245,11 @@ f(:,6)  = (Hi*G(:,4).*S(:,12) ...
 f(:,9)  = x(:,5) - x(:,6);
 f(:,12) = x(:,8) - x(:,11);
 
-% vectorise
+% Granular layer (spiny stellate cells): hyperpolarizing current
 %--------------------------------------------------------------------------
-f  = f(:);
-
-% Delays
-%==========================================================================
-if nargin > 3, return, end
+f(:,13) = (4*S(:,1) - x(:,13))./Tk;
 
 % Jacobian for delays (evaluate numerically for simplicity)
-%--------------------------------------------------------------------------
-dfdx = spm_diff('spm_fx_lfp',x,u,P,1,1);
-
-% extrinsic and intrinsic delays
-%--------------------------------------------------------------------------
-De = D(2).*exp(P.D)/1000;
-Di = D(1)/1000;
-De = (eye(n,n) - 1)*De;
-Di = sparse([4 5 5 6 8 11],[9 1 9 12 9 12],-Di,s,s);
-De = kron(ones(s,s),De);
-Di = kron(Di,eye(n,n));
-
-D  = Di + De;
-
-% Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
-%--------------------------------------------------------------------------
-f  = inv(speye(s,s) - D.*dfdx)*f;
-
-return
-
-
-
-
-
-
-
-% Analytic evaluation of Jacobian: J = df(x)/dx
 %==========================================================================
-dSdx = 1./(1 + exp(-R*x)).^2.*(R*exp(-R*x));
-I    = speye(n,n);
-J    = kron(sparse(s,s),sparse(n,n));
-
-% changes in voltage with current
-%--------------------------------------------------------------------------
-S  = sparse([7 2 1 3 9 10 12],[8 5 4 6 5 11 8],1,s,s); J = J + kron(S,I);
-S  = sparse([9 12],[6 11],-1,s,s);                     J = J + kron(S,I);
-
-% synaptic kernel
-%--------------------------------------------------------------------------
-S  = sparse([8 4 5],[8 4 5],2,s,s);     J = J - kron(S,diag(1./Te));
-S  = sparse([6 11],[6 11],2,s,s);       J = J - kron(S,diag(1./Ti));
-S  = sparse([8 4 5],[7 1 2],1,s,s);     J = J - kron(S,diag(1./(Te.*Te)));
-S  = sparse([6 11],[3 10],1,s,s);       J = J - kron(S,diag(1./(Ti.*Ti)));
-
-% Supragranular layer (inhibitory interneurons)
-%--------------------------------------------------------------------------
-E  = (A{2} + A{3})*diag(dSdx(:,9)) + diag(G(:,3).*dSdx(:,9));
-E  = diag(He./Te)*E;
-S  = sparse(8,9,1,s,s);                 J = J + kron(S,E);
-
-% Granular layer (spiny stellate cells)
-%--------------------------------------------------------------------------
-E  = (A{1} + A{3})*diag(dSdx(:,9)) + diag(G(:,1).*dSdx(:,9));
-E  = diag(He./Te)*E;
-S  = sparse(4,9,1,s,s);                 J = J + kron(S,E);
-
-% Infraranular layer (pyramidal cells)
-%--------------------------------------------------------------------------
-E  = (A{2} + A{3})*diag(dSdx(:,9));
-E  = diag(He./Te)*E;
-S  = sparse(5,9,1,s,s);                 J = J + kron(S,E);
-
-E  = diag(G(:,2).*dSdx(:,1));
-E  = diag(He./Te)*E;
-S  = sparse(5,1,1,s,s);                 J = J + kron(S,E);
-
-% Infra-granular layer (pyramidal cells)
-%--------------------------------------------------------------------------
-E  = diag(G(:,4).*dSdx(:,12));
-E  = diag(Hi./Ti)*E;
-S  = sparse(6,12,1,s,s);                J = J + kron(S,E);
-
-% Suprs-granular layer (inhibitory cells)
-%--------------------------------------------------------------------------
-E  = diag(G(:,5).*dSdx(:,12));
-E  = diag(Hi./Ti)*E;
-S  = sparse(11,12,1,s,s);               J = J + kron(S,E);
-
-dfdx = J;
-
+dfdx = spm_diff('spm_fx_lfp',x,u,P,1,1);
 

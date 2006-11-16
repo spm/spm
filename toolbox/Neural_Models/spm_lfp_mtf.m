@@ -1,6 +1,6 @@
-function [G,f] = spm_lfp_mtf(P,M)
+function [G,f] = spm_lfp_mtf(P,M,U)
 % Modulation transfer function g(f) of a NMM
-% FORMAT [G,f] = spm_lfp_mtf(P,M)
+% FORMAT [G,f] = spm_lfp_mtf(P,M,U)
 %
 % P - parameters
 % M - neural mass model stucture
@@ -12,14 +12,19 @@ function [G,f] = spm_lfp_mtf(P,M)
 
 % compute log-spectral density
 %==========================================================================
-i       = 1;    % i-th input
-j       = 1;    % j-th output
+i     = 1;    % i-th input
+j     = 1;    % j-th output
 
-% frequnecies of interest
+% frequencies of interest
 %--------------------------------------------------------------------------
-N       = 128;
-dt      = 1/N;
-f       = [1:N/2]/(N*dt);
+try
+    f    = M.Hz;
+    dt   = 1/M.fs;
+catch
+    N    = 128;
+    dt   = 1/N;
+    f    = [1:N/2]/(N*dt);
+end
 
 % augment and bi-linearise
 %--------------------------------------------------------------------------
@@ -34,8 +39,21 @@ C         = full(L1(j,2:end));
 [b,a]     = ss2tf(A,B,C,0,i);
 [num,den] = bilinear(b,a,1/dt);
 [S f]     = freqz(num,den,f,1/dt);
-G         = abs(S).^2;
+G         = abs(S).^2;                      % energy from neural mass
 warning on
+
+% spectral density of (AR) noise
+%--------------------------------------------------------------------------
+try                      
+    G   = G + diag(P.L*P.L')*exp(P.a)*f.^(-1)/64;  % energy from 1/f process
+end
+
+% spectral density of IID noise
+%--------------------------------------------------------------------------
+try
+    G   = G + diag(P.L*P.L')*exp(P.b)*(f.^0)/1024; % energy from IID process
+end
+
 
 return
 

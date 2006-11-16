@@ -35,7 +35,7 @@ L     = L(j,:);
 Nb    = D.Nsamples;                              % number of time bins
 Nc    = size(L,1);                               % number of channels
 Ns    = size(L,2);                               % number of sources
-Na    = 512;                                     % number of active sources
+Na    = 1024;                                    % number of active sources
 Nd    = Ns;                                      % number of dipoles
 Nm    = 64;                                      % number of spatial modes
 
@@ -199,7 +199,8 @@ end
 
 % MAP estimates of instantaneous sources
 %==========================================================================
-M     = LCp'*inv(LCp*L' + Ce);
+iC    = inv(LCp*L' + Ce);
+M     = LCp'*iC;
 
 % select the most active dipoles
 %--------------------------------------------------------------------------
@@ -223,7 +224,7 @@ for i = 1:Np
         Cp = Cp + hp(i)*Qp{i}(Is,Is);
     end
 end
-Cq    = inv(L'*inv(Ce)*L + inv(Cp + speye(Na,Na)*exp(-16)));
+Cq    = Cp - Cp*L'*iC*L*Cp;
 Cq    = diag(Cq);
 
 fprintf(' - done\n')

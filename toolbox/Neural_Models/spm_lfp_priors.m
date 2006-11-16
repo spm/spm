@@ -17,7 +17,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    pE.L - Lead field (fixed) OR pE.Lpos - position
+%    pE.L - Lead field or Gain OR pE.Lpos - position
 %                                 pE.Lmon - moment (orientation):
 %    pE.M - contributing states
 %
@@ -27,7 +27,13 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %    pE.B - extrinsic - trial-dependent
 %    pE.C - extrinsic - stimulus input
 %    pE.G - intrinsic
-%    pE.D - delays
+%    pE.D - extrinsic delays
+%    pE.I - intrinsic delays
+%
+% noise parameters
+%--------------------------------------------------------------------------
+%    pE.a - amplitude of AR component
+%    pE.b - amplitude of IID component
 %
 % NB: This is the same as spm_erp_priors but without stimulus parameters 
 % and treating stimulus and experimental inputs in the same way
@@ -67,27 +73,27 @@ warning off
 
 % sigmoid parameters
 %--------------------------------------------------------------------------
-E.R   = [0 0];          V.R = [1 1]/8;
+E.R   = [0 0];             V.R = [1 1]/8;
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(ones(n,2));        V.T = ones(n,2)/8;  % time constants
-E.H   = log(ones(n,1));        V.H = ones(n,1)/8;  % synaptic density
-E.G   = log(ones(n,5));        V.G = ones(n,5)/8;  % intrinsic connections
+E.T   = log(ones(n,2));    V.T = ones(n,2)/8;  % time constants
+E.H   = log(ones(n,1));    V.H = ones(n,1)/8;  % synaptic density
+E.G   = log(ones(n,5));    V.G = ones(n,5)/8;  % intrinsic connections
 
 % set observer parameters
 %--------------------------------------------------------------------------
-E.M   = H;              V.M = H*0;                 % contributing states
+E.M   = H;                 V.M = H*0;          % contributing states
 
 % set observer parameters
 %--------------------------------------------------------------------------
-if ~isstruct(L)                                    % static leadfield
-    E.L    = L;         V.L = L*0;                 % lead field
+if ~isstruct(L)                                % static leadfield
+    E.L    = L;            V.L = L*0;          % lead field
     
 else  % parameterised leadfield based on equivalent current dipoles
 %------------------------------------------------------------------------
-    E.Lpos = L.pos;        V.Lpos = 256*ones(3,n);           % dipole positions
-    E.Lmom = sparse(3,n);  V.Lmom = 256*ones(3,n);           % dipole orientations
+    E.Lpos = L.pos;        V.Lpos =  16*ones(3,n); % dipole positions
+    E.Lmom = sparse(3,n);  V.Lmom = 256*ones(3,n); % dipole orientations
 end
 
 % set extrinsic connectivity
@@ -104,19 +110,24 @@ for i = 1:length(B)
     V.B{i} = ~~B{i}/2;
     Q      = Q | B{i};
 end
-E.C        = log(~~C + eps);                       % where inputs enter
-V.C        = C/2;
+E.C    = log(~~C + eps);                           % where inputs enter
+V.C    = C/2;
+
+% set endogenous noise
+%--------------------------------------------------------------------------
+E.a    = 0;               V.b = 1/2;                % amplitude AR
+E.b    = 0;               V.c = 1/2;                % amplitude IID
 
 % set delay
 %--------------------------------------------------------------------------
-E.D        = sparse(n,n);
-V.D        = Q/8;
+E.D    = sparse(n,n);     V.D    = Q/8;             % extrinsic delays
+E.I    = 0;               V.I    = 1/32;            % intrinsic delays
 
 % vectorize
 %--------------------------------------------------------------------------
-pE         = E;
-pV         = spm_vec(V);
-pC         = diag(sparse(pV));
+pE     = E;
+pV     = spm_vec(V);
+pC     = diag(sparse(pV));
 warning on
 
 % prior momments if two arguments

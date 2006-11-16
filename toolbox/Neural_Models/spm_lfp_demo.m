@@ -209,25 +209,5 @@ xlabel('Frequency')
 ylabel('g(w)')
 
 
-% to Rosalyn again; inversion (in frequency space)
-%==========================================================================
-G          = spm_lfp_mtf(M.pE,M);
-
-% target density (e.g., emprical data)
-%--------------------------------------------------------------------------
-hz         = 8;
-y          = G + max(G)*exp(-(w(:) - hz).^2/16);
-Y.y        = log(y) + randn(64,1)/8;
-Y.dt       = w(2) - w(1);
-Y.X0       = ones(length(y),1);
-
-% specify prediction model (i.e. replace intgrator with a Hz predictor
-%--------------------------------------------------------------------------
-M.IS       = 'spm_lfp_prediction';
-
-% invert
-%--------------------------------------------------------------------------
-[Ep,Cp,S,F] = spm_nlsi_GN(M,[],Y);
-
 
 

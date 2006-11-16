@@ -31,9 +31,9 @@ x  = reshape(x,n,13);
 % parameterised lead field ECD (pre-multiplied by projector M.E)
 %--------------------------------------------------------------------------
 if isfield(P,'Lpos')
-    L  = spm_erp_L(P);
+    L = spm_erp_L(P);
 else
-    L  = P.L;
+    L = P.L;
 end
 y  = L*x(:,9);
 

@@ -47,14 +47,14 @@ Jmax  = abs(sparse(Is,1,Js,Nd,1));
 subplot(2,3,1)
 spm_eeg_inv_render(Jmax,tess_ctx)
 view([180 -90])
-title('esimated response')
+title('estimated response')
 
 % maximum response - time
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 plot(pst,Jt,pst,Jt + ci,':',pst,Jt - ci,':')
 xlabel('time  ms')
-title('esimated response (95% intervals)')
+title('estimated response (95% intervals)')
 axis square
 
 % PPM
@@ -65,7 +65,7 @@ i     = find(Z > 1.64);
 
 spm_mip(Jmax(Is(i)),vert(Is(i),:)',6);
 axis image
-title({'PPM esimated response (95% confidence)'...
+title({'PPM estimated response (95% confidence)'...
        sprintf('Variance explained %.2f (percent)',R2)...
        sprintf('log-evidence = %.3f',F)})
 drawnow

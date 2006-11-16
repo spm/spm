@@ -53,7 +53,7 @@ end
 m     = M.m;					% m inputs
 n     = M.n;					% n states
 l     = M.l;					% l ouputs
-x     = spm_vec(M.x);					% expansion point
+x     = M.x;                    % expansion point
 
 try
     u = spm_vec(M.u);
@@ -87,14 +87,14 @@ dfdu  = spm_diff(funx,x,u,P,2);
 
 % Bilinear operator - M0
 %--------------------------------------------------------------------------
-M0    = spm_cat({0  []    ;
-                 (f0 - dfdx*x) dfdx});
+M0    = spm_cat({0                      []    ;
+                 (f0 - dfdx*spm_vec(x)) dfdx});
 
 % Bilinear operator - M1 = dM0/du
 %--------------------------------------------------------------------------
 for i = 1:m
-    M1{i} = spm_cat({0,                       []        ;
-                    (dfdu(:,i) - dfdxu{i}*x), dfdxu{i}});
+    M1{i} = spm_cat({0,                               []         ;
+                    (dfdu(:,i) - dfdxu{i}*spm_vec(x)), dfdxu{i}});
 end
 
 if nargout < 3, return, end
@@ -102,7 +102,7 @@ if nargout < 3, return, end
 % Output matrices - L1
 %--------------------------------------------------------------------------
 dldx  = spm_diff(funl,x,u,P,1);
-L1    = spm_cat({(l0 - dldx*x), dldx});
+L1    = spm_cat({(l0 - dldx*spm_vec(x)), dldx});
 
 if nargout < 4, return, end
 
