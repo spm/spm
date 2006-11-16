@@ -130,7 +130,7 @@ M.ns  = ns;
 % Feature selection using principal components of channel space
 %--------------------------------------------------------------------------
 try
-    M.E = M.S(:,nm);
+    M.E = M.S(:,[1:nm]);
 catch
     y   = R0*xY.y;
     S   = spm_svd(y'*y);
