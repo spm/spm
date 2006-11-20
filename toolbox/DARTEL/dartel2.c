@@ -1,4 +1,4 @@
-/* $Id: dartel2.c 42 2006-10-27 15:59:46Z john $ */
+/* $Id: dartel2.c 48 2006-11-20 16:29:33Z john $ */
 
 #include "mex.h"
 #include <math.h>
@@ -37,16 +37,17 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     if (mxGetDimensions(prhs[2])[1] != dm[1])
         mexErrMsgTxt("Incompatible 2nd dimension.");
 
-    if (mxGetNumberOfElements(prhs[3]) >8)
-        mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, issym and K.");
+    if (mxGetNumberOfElements(prhs[3]) >9)
+        mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, K & issym.");
     if (mxGetNumberOfElements(prhs[3]) >=1) rtype    = mxGetPr(prhs[3])[0];
     if (mxGetNumberOfElements(prhs[3]) >=2) param[2] = mxGetPr(prhs[3])[1];
     if (mxGetNumberOfElements(prhs[3]) >=3) param[3] = mxGetPr(prhs[3])[2];
     if (mxGetNumberOfElements(prhs[3]) >=4) param[4] = mxGetPr(prhs[3])[3];
     if (mxGetNumberOfElements(prhs[3]) >=5) lmreg    = mxGetPr(prhs[3])[4];
     if (mxGetNumberOfElements(prhs[3]) >=6) cycles   = mxGetPr(prhs[3])[5];
-    if (mxGetNumberOfElements(prhs[3]) >=7) issym    = mxGetPr(prhs[3])[6];
+    if (mxGetNumberOfElements(prhs[3]) >=7) nits     = mxGetPr(prhs[3])[6];
     if (mxGetNumberOfElements(prhs[3]) >=8) k        = mxGetPr(prhs[3])[7];
+    if (mxGetNumberOfElements(prhs[3]) >=9) issym    = mxGetPr(prhs[3])[8];
 
     plhs[0] = mxCreateNumericArray(3,dm, mxDOUBLE_CLASS, mxREAL);
 

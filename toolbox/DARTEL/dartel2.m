@@ -1,5 +1,5 @@
 function dartel2
-% DARTEL 3D image registration stuff
+% DARTEL 2D image registration stuff
 %
 %_______________________________________________________________________
 %

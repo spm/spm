@@ -1,6 +1,6 @@
 function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Perform algebraic functions on images
-% FORMAT Q = spm_imcalc_ui(P,Q,f,flags,Xtra_vars...)
+% FORMAT Q = spm_imcalc_ui(P,Q,f,flags)
 % P             - matrix of input image filenames
 %                 [user prompted to select files if arg missing or empty]
 % Q             - name of output image
@@ -16,7 +16,6 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 %                 [defaults (missing or empty) to 4 - 16 bit signed shorts]
 % hold          - interpolation hold (see spm_slice_vol)
 %                 [defaults (missing or empty) to 0 - nearest neighbour]
-% Xtra_vars...  - additional variables which can be used in expression
 % Q (output)    - full pathname of image written
 % Vo            - structure containing information on output image (see spm_vol)
 %
@@ -89,12 +88,12 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 575 2006-07-28 07:01:25Z volkmar $
+% $Id: spm_imcalc_ui.m 683 2006-11-20 16:36:32Z john $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev: 575 $';
+SCCSid = '$Rev: 683 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])
@@ -160,9 +159,8 @@ Vo = struct(	'fname',	fullfile(p, [n e]),...
 
 %-Call spm_imcalc to handle computations
 %------------------------------------------------------------------
-args = {{dmtx,mask,hold},varargin{:}};
-
-Vo   = spm_imcalc(Vi,Vo,f,args{:});
+args = {dmtx,mask,hold};
+Vo   = spm_imcalc(Vi,Vo,f,args);
 
 %-End
 %------------------------------------------------------------------
