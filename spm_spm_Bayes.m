@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_spm_Bayes.m 685 2006-11-21 17:10:26Z Darren $
 
 
 %-Say hello
@@ -291,10 +291,11 @@ for  z = 1:zdim
     %-------------------------------------------------------------------
     for i = 1:nBeta
 	tmp       = sparse(XYZ(1,U),XYZ(2,U),CrBl(i,:),xdim,ydim);
-    tmp(~tmp) = NaN;
-% The following line results in images with all NaN's (in Matlab R14 or
-% greater) and has been deprecated by DRG.
+%     The following line (and the same code on line 306 below) results in
+%     images with all NaN's (in Matlab R14  or greater). It has been
+%     commented out by DRG, and replaced by the line: tmp(~tmp) = NaN;
 %     tmp       = tmp + NaN*(~tmp);
+    tmp(~tmp) = NaN;
 	Vbeta(i)  = spm_write_plane(Vbeta(i),tmp,z);
     end
 
@@ -302,7 +303,8 @@ for  z = 1:zdim
     %-------------------------------------------------------------------
     for i = 1:nHp
 	tmp       = sparse(XYZ(1,U),XYZ(2,U),CrHp(i,:),xdim,ydim);
-   	tmp       = tmp + NaN*(~tmp);
+%         tmp       = tmp + NaN*(~tmp);
+        tmp(~tmp) = NaN;
 	VHp(i)    = spm_write_plane(VHp(i),tmp,z);
     end
 
