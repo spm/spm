@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_contrasts.m 687 2006-11-21 17:10:50Z Darren $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -181,7 +181,7 @@ for i = 1:length(Ic)
 		case 'P'                                  %-Compute PPM{P} image
 		%---------------------------------------------------------------
         
-        if strcmp(SPM.PPM.xCon(Ic).PSTAT,'T')
+            if all(strcmp({SPM.PPM.xCon(Ic).PSTAT},'T'))
             % Simple contrast - Gaussian distributed
             
 			c     = xCon(ic).c;
