@@ -1,6 +1,7 @@
 /* %Id$ */
 
 #include <math.h>
+#include<mex.h>
 #include "optimizer2d.h"
 
 #define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
@@ -327,11 +328,11 @@ void jac_div_smalldef(int dm[], double sc, double v0[], double J0[])
             om1 = WRAP(j0-1,dm[0])+dm[0]*j1;
             op1 = WRAP(j0+1,dm[0])+dm[0]*j1;
             j00 = (v0[op1]-v0[om1])*sc2 + 1.0;
-            j10 = (v1[op1]-v1[om1])*sc2;
+            j01 = (v1[op1]-v1[om1])*sc2;
 
             om1 = j0+dm[0]*j1m1;
             op1 = j0+dm[0]*j1p1;
-            j01 = (v0[op1]-v0[om1])*sc2;
+            j10 = (v0[op1]-v0[om1])*sc2;
             j11 = (v1[op1]-v1[om1])*sc2 + 1.0;
 
             /*
@@ -348,10 +349,10 @@ void jac_div_smalldef(int dm[], double sc, double v0[], double J0[])
             t10 = -idt*j01;
             t11 =  idt*j00;
 
+
             o   = j0+dm[0]*j1;
             j00 = J0[o  ]; j01 = J0[o+m*2];
             j10 = J0[o+m]; j11 = J0[o+m*3];
-
             J0[o    ] = j00*t00+j01*t10;
             J0[o+m  ] = j10*t00+j11*t10;
             J0[o+m*2] = j00*t01+j01*t11;
