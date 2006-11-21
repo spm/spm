@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 665 2006-10-24 11:51:52Z volkmar $
+% $Id: spm_getSPM.m 686 2006-11-21 17:10:40Z Darren $
 
 
 %-GUI setup
@@ -437,9 +437,9 @@ if isfield(SPM,'PPM')
     end
     
     % Make this one a Bayesian contrast
-    xCon(Ic).STAT='P';
+    [xCon(Ic).STAT]=deal('P');
     
-    if (SPM.PPM.xCon(Ic).PSTAT == 'T') 
+    if all(strcmp([SPM.PPM.xCon(Ic).PSTAT],'T'))
         % Simple contrast
         str           = 'Effect size threshold for PPM';
         if isfield(SPM.PPM,'VB')
@@ -672,8 +672,9 @@ fprintf('\t%-32s: %30s\n','SPM computation','...done')         %-#
 % For Bayesian inference provide (default) option to display contrast values
 if STAT=='P'
     if spm_input('Plot effect-size/statistic',1,'b',{'Yes','No'},[1 0]);
-        CC = spm_get_data(xCon(Ic).Vcon,XYZ); 
-        Z = CC(:,Q);
+        Z = spm_get_data(xCon(Ic).Vcon,XYZ);
+%         CC = spm_get_data(xCon(Ic).Vcon,XYZ); 
+%         Z = CC(:,Q);
     end
 end
 
