@@ -20,13 +20,14 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_powell.m 433 2006-02-09 11:45:02Z john $
+% $Id: spm_powell.m 691 2006-11-22 17:44:19Z john $
 
 
 p     = p(:);
 f     = feval(func,p,varargin{:});
 for iter=1:512,
 	if numel(p)>1, fprintf('iteration %d...\n', iter); end;
+	ibig = numel(p); 
 	pp   = p;
 	fp   = f;
 	del  = 0;
