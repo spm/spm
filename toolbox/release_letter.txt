@@ -1,0 +1,41 @@
+Dear everyone,
+
+In keeping with the proud tradition of e.g. SPM2 we are happy
+to announce the release of the FieldMap toolbox, no more than
+a year or so too late.
+
+It consists of two parts; i) FieldMap which is a tool for 
+creation and unwrapping of fieldmaps to use for distortion
+correction of EPI (fMRI) images. ii) A revised version of 
+Unwarp that combines the estimation of maps of the rate of
+change of the field w.r.t. subject movement with a measured
+fieldmap. This fieldmap could have been created any which
+way as long as the input format is correct, something which
+is automatically guaranteed if FieldMap is used.
+
+FieldMap comes with a graphical user interface that we hope
+shall help users not only to calculate fieldmaps but also 
+gain an understanding of the effects of susceptibility-
+induced distortions and the parameters that affect it. It
+also has a "scripting interface" that will allow users to 
+automate the creation of fieldmaps once a routine has been
+established at the individual site.
+
+This version of Unwarp should also solve the problems that 
+have been reported by Windows users.
+
+We have tried to accomodate the different ways in which 
+fieldmaps (EPI or non-EPI based, real_&_imaginary or 
+phase_&_magnitude etc) and EPI (e.g. different blip
+directions) can be acquired. We have tried or best to test
+and validate all the different combinations, but needless
+to say there will be bugs in the first release. All the 
+usual waivers apply; "We can not be held responsible for
+any damage resulting from the use of...", "We hear voices 
+in our heads and only do as they tell us" etc etc.
+
+The FieldMap toolbox and the updated version can be found
+at http://. There will also be extensive help-files (.man) for
+both and a description how to install then (installation.txt).
+
+Good luck Chloe & Jesper
