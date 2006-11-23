@@ -53,7 +53,7 @@ pm_def.MFLAGS.GRAPHICS = 0; % A larger value helps segmentation to converge
 pm_def.EPI_BASED_FIELDMAPS = 0;        % EPI=1, other=0.
 pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = 1; % +ve k-space = 1, -ve = -1.
 %pm_def.TOTAL_EPI_READOUT_TIME = 32;    % Sonata EPI RO time (500E-6*64)
-pm_def.TOTAL_EPI_READOUT_TIME = 21.0;    % Allegra EPI RO time (330E-6*64)
+pm_def.TOTAL_EPI_READOUT_TIME = 21.1;    % Allegra EPI RO time (330E-6*64)
 
 % Defaults for Unwarping.
 %=======================================================================
@@ -62,7 +62,7 @@ pm_def.DO_JACOBIAN_MODULATION = 0;    % Do jacobian modulation to adjust
                                       % for compression or stretching
                                       % No = 0, Yes = 1
 
-% FIL specific additions
+% FIL specific additions 
 %=======================================================================
 
 global SCANNER
@@ -84,7 +84,7 @@ elseif findstr(SCANNER, 'Sonata') & findstr(SEQUENCE,'Flash');
     pm_def.EPI_BASED_FIELDMAPS = 0;
 
 elseif findstr(SCANNER, 'Allegra') 
-   pm_def.TOTAL_EPI_READOUT_TIME = 21.0;  % Allegra EPI RO time (330E-6*64)
+   pm_def.TOTAL_EPI_READOUT_TIME = 21.1;  % Allegra EPI RO time (330E-6*64)
 
    if findstr(SEQUENCE,'Siemens')
      disp('Using Allegra Siemens parameters');
@@ -102,8 +102,4 @@ elseif findstr(SCANNER, 'Allegra')
       pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = 1; % This is 1 for FLASH and EPI
       pm_def.EPI_BASED_FIELDMAPS = 1;
    end
-else
-   %disp('Using Sonata EPI parameters');
-   disp('Using Allegra Non-EPI fieldmap parameters');
-
 end
