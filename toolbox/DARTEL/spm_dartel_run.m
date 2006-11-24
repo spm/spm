@@ -46,7 +46,7 @@ for i=1:numel(NU),
     if exist(NU(i).dat.fname) == 2,
         u = NU(i).dat(:,:,:,1,:);
         u = single(squeeze(u));
-        y = diffeo3d('Exp',u,[K -1]);
+        y = dartel3('Exp',u,[K -1]);
         clear u
         for j=1:n1,
             vn = NF(j,i).vn;

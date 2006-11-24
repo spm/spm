@@ -9,7 +9,7 @@ for i=1:numel(PU),
     NU = nifti(fullfile(pth1,[nam1,ext1]));
     fprintf('%s: ',nam1);
     u  = single(squeeze(NU.dat(:,:,:,1,:)));
-    y  = diffeo3d('Exp',u,[K 1]);
+    y  = dartel3('Exp',u,[K 1]);
     clear u
     y1 = double(y(:,:,:,1));
     y2 = double(y(:,:,:,2));
