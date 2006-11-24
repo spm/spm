@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 534 2006-05-17 11:07:03Z will $
+% $Id: spm_config_contrasts.m 699 2006-11-24 20:13:20Z volkmar $
 
 
 %_______________________________________________________________________
@@ -17,6 +17,21 @@ spm.num  = [1 1];
 spm.filter  = 'mat';
 spm.ufilter = '^SPM\.mat$';
 spm.help   = {'Select SPM.mat file for contrasts'};
+
+sessrep.type = 'menu';
+sessrep.name = 'Replicate over sessions';
+sessrep.tag  = 'sessrep';
+sessrep.labels = {'Don''t replicate','Replicate','Create per session','Both'};
+sessrep.values = {'none','repl','sess','both'};
+sessrep.val  = {'none'};
+sessrep.help = {['If there are multiple sessions with identical conditions, ' ...
+                 'one might want to specify contrasts which are identical over ',...
+                 'sessions. This can be done automatically based on the contrast '...
+                 'spec for one session.'],...
+                ['Contrasts can be either replicated (thus testing average ' ...
+                 'effects over sessions) or created per session. In both ' ...
+                 'cases, zero padding up to the length of each session ' ...
+                 'and the block effects is done automatically.']};
 
 name.type    = 'entry';
 name.name    = 'Name';
@@ -55,7 +70,7 @@ fconvecs.help = {...
 tcon.type   = 'branch';
 tcon.name   = 'T-contrast';
 tcon.tag    = 'tcon';
-tcon.val    = {name,tconvec};
+tcon.val    = {name,tconvec,sessrep};
 tcon.help = {...
 '* Simple one-dimensional contrasts for an SPM{T}','',[...
 'A simple contrast for an SPM{T} tests the null hypothesis c''B=0 ',...
@@ -91,7 +106,7 @@ tcon.help = {...
 fcon.type   = 'branch';
 fcon.name   = 'F-contrast';
 fcon.tag    = 'fcon';
-fcon.val    = {name,fconvecs};
+fcon.val    = {name,fconvecs,sessrep};
 fcon.help   = {...
 '* Linear constraining matrices for an SPM{F}',...
 '',[...
@@ -378,10 +393,17 @@ consess.help = {[...
 'ess_????.{img,nii} and SPM{T,F}_????.{img,nii} images are not ',...
 'suitable input for a higher level analysis.)']};
 
+delete.type = 'menu';
+delete.name = 'Delete existing contrasts';
+delete.tag  = 'delete';
+delete.labels = {'Yes', 'No'};
+delete.values = {1, 0};
+delete.val    = {0};
+
 con.type = 'branch';
 con.name = 'Contrast Manager';
 con.tag  = 'con';
-con.val = {spm,consess};
+con.val = {spm,consess,delete};
 con.prog   = @setupcon;
 con.help = {'Set up T and F contrasts.'};
 
@@ -408,6 +430,33 @@ end
 tmp=load(job.spmmat{:});
 SPM=tmp.SPM;
 
+if ~strcmp(pth,SPM.swd)
+    warning(['Path to SPM.mat: %s\n and SPM.swd: %s\n differ, using current ' ...
+             'SPM.mat location as new working directory.'], pth, ...
+            SPM.swd);
+    SPM.swd = pth;
+end;
+
+if job.delete && isfield(SPM,'xCon')
+    for k=1:numel(SPM.xCon)
+        [p n e v] = spm_fileparts(SPM.xCon(k).Vcon.fname);
+        switch e,
+            case '.img'
+                spm_unlink([n '.img'],[n '.hdr']);
+            case '.nii'
+                spm_unlink(SPM.xCon(k).Vcon.fname);
+        end;
+        [p n e v] = spm_fileparts(SPM.xCon(k).Vspm.fname);
+        switch e,
+            case '.img'
+                spm_unlink([n '.img'],[n '.hdr']);
+            case '.nii'
+                spm_unlink(SPM.xCon(k).Vspm.fname);
+        end;
+    end;
+    SPM.xCon = [];
+end;
+
 bayes_con=isfield(SPM,'PPM');
 if bayes_con
     if ~isfield(SPM.PPM,'xCon')
@@ -429,7 +478,7 @@ for i = 1:length(job.consess)
             STAT = 'T';
         end
         con  = job.consess{i}.tcon.convec(:)';
-
+        sessrep = job.consess{i}.tcon.sessrep;
     else %fcon
         name = job.consess{i}.fcon.name;
         if bayes_con
@@ -440,37 +489,74 @@ for i = 1:length(job.consess)
             STAT = 'F';
         end
         con  = cat(1,job.consess{i}.fcon.convec{:});
-
+        sessrep = job.consess{i}.fcon.sessrep;
     end
-    % Basic checking of contrast
-    %-------------------------------------------------------------------
-    [c,I,emsg,imsg] = spm_conman('ParseCon',con,SPM.xX.xKXs,STAT);
-    if ~isempty(emsg)
-        disp(emsg);
-        error('Error in contrast specification');
+
+    if isfield(SPM,'Sess') && ~strcmp(sessrep,'none')
+        % assume identical sessions, no check!
+        nc = numel(SPM.Sess(1).U);
+        rcon = zeros(size(con,1),nc);
+        switch sessrep
+            case 'repl',
+                % within-session zero padding, replication over sessions
+                rcon(:,1:size(con,2)) = con;
+                cons{1} = repmat(rcon, 1, numel(SPM.Sess));
+                names{1} = sprintf('%s - All Sessions', name);
+            case 'sess',
+                for k=1:numel(SPM.Sess)
+                    cons{k} = [repmat(rcon, 1, k-1) con];
+                    names{k} = sprintf('%s - Session %d', name, k);
+                end;
+            case 'both'
+                for k=1:numel(SPM.Sess)
+                    cons{k} = [repmat(rcon, 1, k-1) con];
+                    names{k} = sprintf('%s - Session %d', name, k);
+                end;
+                if numel(SPM.Sess) > 1
+                    % within-session zero padding, replication over sessions
+                    rcon(:,1:size(con,2)) = con;
+                    cons{end+1} = repmat(rcon, 1, numel(SPM.Sess));
+                    names{end+1} = sprintf('%s - All Sessions', name);
+                end;
+        end;
     else
-        disp(imsg);
+        cons{1} = con;
+        names{1} = name;
     end;
-    
-    % Fill-in the contrast structure
-    %-------------------------------------------------------------------
-    if all(I)
-        DxCon = spm_FcUtil('Set',name,STAT,'c',c,SPM.xX.xKXs);
-    else
-        DxCon = [];
-    end
-    
-    % Append to SPM.xCon. SPM will automatically save any contrasts that
-    % evaluate successfully.
-    %-------------------------------------------------------------------
-    if isempty(SPM.xCon)
-        SPM.xCon = DxCon;
-    elseif ~isempty(DxCon)
-        SPM.xCon(end+1) = DxCon;
-    end
-    SPM = spm_contrasts(SPM,length(SPM.xCon));
-end
 
+    % Loop over created contrasts
+    %-------------------------------------------------------------------
+    for k=1:numel(cons)
+    
+        % Basic checking of contrast
+        %-------------------------------------------------------------------
+        [c,I,emsg,imsg] = spm_conman('ParseCon',cons{k},SPM.xX.xKXs,STAT);
+        if ~isempty(emsg)
+            disp(emsg);
+            error('Error in contrast specification');
+        else
+            disp(imsg);
+        end;
+    
+        % Fill-in the contrast structure
+        %-------------------------------------------------------------------
+        if all(I)
+            DxCon = spm_FcUtil('Set',names{k},STAT,'c',c,SPM.xX.xKXs);
+        else
+            DxCon = [];
+        end
+    
+        % Append to SPM.xCon. SPM will automatically save any contrasts that
+        % evaluate successfully.
+        %-------------------------------------------------------------------
+        if isempty(SPM.xCon)
+            SPM.xCon = DxCon;
+        elseif ~isempty(DxCon)
+            SPM.xCon(end+1) = DxCon;
+        end
+        SPM = spm_contrasts(SPM,length(SPM.xCon));
+    end
+end;
 % Change back directory
 %-----------------------------------------------------------------------
 fprintf('   Changing back to directory: %s\n', wd);
