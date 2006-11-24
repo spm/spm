@@ -12,7 +12,7 @@ function ret = spm_ov_movie(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m 591 2006-08-14 11:06:49Z volkmar $
+% @(#) $Id: spm_ov_movie.m 696 2006-11-24 20:08:06Z volkmar $
 
 global st;
 if isempty(st)
@@ -20,7 +20,7 @@ if isempty(st)
 end;
 
 if nargin < 2
-  error('movie: Wrong number of arguments. Usage: spm_orthviews(''roi'', cmd, volhandle, varargin)');
+  error('movie: Wrong number of arguments. Usage: spm_orthviews(''movie'', cmd, volhandle, varargin)');
 end;
 
 cmd = lower(varargin{1});
