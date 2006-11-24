@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 509 2006-05-04 06:08:25Z Darren $
+% $Id: spm_graph.m 697 2006-11-24 20:09:06Z volkmar $
 
 
 
@@ -95,120 +95,6 @@ end
 [xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
 spm_XYZreg('SetCoords',xyz,hReg);
 XYZ     = xSPM.XYZ(:,i);		% coordinates
-
-
-%-Extract filtered and whitened data from files
-%==========================================================================
-try
-    y = spm_get_data(SPM.xY.VY,XYZ);
-    y = spm_filter(SPM.xX.K,SPM.xX.W*y);
-catch
-    try
-        % remap files in SPM.xY.P if SPM.xY.VY is no longer valid
-        %------------------------------------------------------------------
-        SPM.xY.VY = spm_vol(SPM.xY.P);
-        y = spm_get_data(SPM.xY.VY,XYZ);
-        y = spm_filter(SPM.xX.K,SPM.xX.W*y);
-
-    catch
-        % data has been moved or renamed
-        %------------------------------------------------------------------
-        y = [];
-        spm('alert!',{'Original data have been moved or renamed',...
-            'Recomendation: please update SPM.xY.P'},...
-            mfilename,0);
-    end
-end
-XYZstr = sprintf(' at [%g, %g, %g]',xyz);
-
-
-%-Compute residuals
-%-----------------------------------------------------------------------
-if isempty(y)
-
-    % make R = NaN so it will not be plotted
-    %----------------------------------------------------------------------
-    R   = NaN*ones(size(SPM.xX.X,1),1);
-
-else
-    % residuals (non-whitened)
-    %----------------------------------------------------------------------
-    R   = spm_sp('r',SPM.xX.xKXs,y);
-
-end
-
-%-Get parameter and hyperparameter estimates
-%==========================================================================
-if xSPM.STAT ~= 'P'
-
-    %-Parameter estimates:   beta = xX.pKX*xX.K*y;
-    %-Residual mean square: ResMS = sum(R.^2)/xX.trRV
-    %----------------------------------------------------------------------
-    beta  = spm_get_data(SPM.Vbeta, XYZ);
-    ResMS = spm_get_data(SPM.VResMS,XYZ);
-    Bcov  = ResMS*SPM.xX.Bcov;
-
-else
-    % or conditional estimates with
-    % Cov(b|y) through Taylor approximation
-    %----------------------------------------------------------------------
-    beta  = spm_get_data(SPM.VCbeta, XYZ);
-
-    if isfield(SPM.PPM,'VB');
-        % Get approximate posterior covariance at ic
-        % using Taylor-series approximation
-
-        % Get posterior SD beta's
-        Nk=size(SPM.xX.X,2);
-        for k=1:Nk,
-            sd_beta(k,:) = spm_get_data(SPM.VPsd(k),XYZ);
-        end
-
-        % Get AR coefficients
-        nsess=length(SPM.Sess);
-        for s=1:nsess,
-            for p=1:SPM.PPM.AR_P
-                Sess(s).a(p,:) = spm_get_data(SPM.PPM.Sess(s).VAR(p),XYZ);
-            end
-            % Get noise SD
-            Sess(s).lambda = spm_get_data(SPM.PPM.Sess(s).VHp,XYZ);
-        end
-
-        % Which slice are we in ?
-        slice_index=XYZ(3,1);
-        Bcov=zeros(Nk,Nk);
-        for s=1:nsess,
-            % Reconstuct approximation to voxel wise correlation matrix
-            post_R=SPM.PPM.Sess(s).slice(slice_index).mean.R;
-            dh=Sess(s).a(:,1)'-SPM.PPM.Sess(s).slice(slice_index).mean.a;
-            dh=[dh Sess(s).lambda(1)-SPM.PPM.Sess(s).slice(slice_index).mean.lambda];
-            for i=1:length(dh),
-                post_R=post_R+SPM.PPM.Sess(s).slice(slice_index).mean.dR(:,:,i)*dh(i);
-            end
-            % Get indexes of regressors specific to this session
-            scol=SPM.Sess(s).col;
-            mean_col_index=SPM.Sess(nsess).col(end)+s;
-            scol=[scol mean_col_index];
-
-            % Reconstuct approximation to voxel wise covariance matrix
-            Bcov(scol,scol) = Bcov(scol,scol) + (sd_beta(scol,1)*sd_beta(scol,1)').*post_R;
-        end
-
-    else
-        Bcov  = SPM.PPM.Cby;
-        for j = 1:length(SPM.PPM.l)
-
-            l    = spm_get_data(SPM.VHp(j),XYZ);
-            Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
-        end
-    end
-end
-CI    = 1.6449;					% = spm_invNcdf(1 - 0.05);
-
-
-%-Colour specifications and index;
-%--------------------------------------------------------------------------
-Col   = [0 0 0; .8 .8 .8; 1 .5 .5];
 
 %-Plot
 %==========================================================================
@@ -280,6 +166,122 @@ switch Cplot
         dt    = SPM.xBF.dt;
 
 end
+
+spm('pointer','watch');
+
+%-Extract filtered and whitened data from files
+%==========================================================================
+try
+    y = spm_get_data(SPM.xY.VY,XYZ);
+    y = spm_filter(SPM.xX.K,SPM.xX.W*y);
+catch
+    try
+        % remap files in SPM.xY.P if SPM.xY.VY is no longer valid
+        %------------------------------------------------------------------
+        SPM.xY.VY = spm_vol(SPM.xY.P);
+        y = spm_get_data(SPM.xY.VY,XYZ);
+        y = spm_filter(SPM.xX.K,SPM.xX.W*y);
+
+    catch
+        % data has been moved or renamed
+        %------------------------------------------------------------------
+        y = [];
+        spm('alert!',{'Original data have been moved or renamed',...
+            'Recomendation: please update SPM.xY.P'},...
+            mfilename,0);
+    end
+end
+XYZstr = sprintf(' at [%g, %g, %g]',xyz);
+
+
+%-Compute residuals
+%-----------------------------------------------------------------------
+if isempty(y)
+
+    % make R = NaN so it will not be plotted
+    %----------------------------------------------------------------------
+    R   = NaN*ones(size(SPM.xX.X,1),1);
+
+else
+    % residuals (non-whitened)
+    %----------------------------------------------------------------------
+    R   = spm_sp('r',SPM.xX.xKXs,y);
+
+end
+
+%-Get parameter and hyperparameter estimates
+%==========================================================================
+if xSPM.STAT ~= 'P'
+
+    %-Parameter estimates:   beta = xX.pKX*xX.K*y;
+    %-Residual mean square: ResMS = sum(R.^2)/xX.trRV
+    %----------------------------------------------------------------------
+    beta  = spm_get_data(SPM.Vbeta, XYZ);
+    ResMS = spm_get_data(SPM.VResMS,XYZ);
+    Bcov  = ResMS*SPM.xX.Bcov;
+
+else
+    % or conditional estimates with
+    % Cov(b|y) through Taylor approximation
+    %----------------------------------------------------------------------
+    beta  = spm_get_data(SPM.VCbeta, XYZ);
+
+    if isfield(SPM.PPM,'VB');
+        % Get approximate posterior covariance at ic
+        % using Taylor-series approximation
+
+        % Get posterior SD beta's
+        Nk=size(SPM.xX.X,2);
+        for k=1:Nk,
+            sd_beta(k,:) = spm_get_data(SPM.VPsd(k),XYZ);
+        end
+
+        % Get AR coefficients
+        nsess=length(SPM.Sess);
+        for ss=1:nsess,
+            for p=1:SPM.PPM.AR_P
+                Sess(ss).a(p,:) = spm_get_data(SPM.PPM.Sess(ss).VAR(p),XYZ);
+            end
+            % Get noise SD
+            Sess(ss).lambda = spm_get_data(SPM.PPM.Sess(ss).VHp,XYZ);
+        end
+
+        % Which slice are we in ?
+        slice_index=XYZ(3,1);
+        Bcov=zeros(Nk,Nk);
+        for ss=1:nsess,
+            % Reconstuct approximation to voxel wise correlation matrix
+            post_R=SPM.PPM.Sess(ss).slice(slice_index).mean.R;
+            dh=Sess(ss).a(:,1)'-SPM.PPM.Sess(ss).slice(slice_index).mean.a;
+            dh=[dh Sess(ss).lambda(1)-SPM.PPM.Sess(ss).slice(slice_index).mean.lambda];
+            for i=1:length(dh),
+                post_R=post_R+SPM.PPM.Sess(ss).slice(slice_index).mean.dR(:,:,i)*dh(i);
+            end
+            % Get indexes of regressors specific to this session
+            scol=SPM.Sess(ss).col;
+            mean_col_index=SPM.Sess(nsess).col(end)+ss;
+            scol=[scol mean_col_index];
+
+            % Reconstuct approximation to voxel wise covariance matrix
+            Bcov(scol,scol) = Bcov(scol,scol) + (sd_beta(scol,1)*sd_beta(scol,1)').*post_R;
+        end
+
+    else
+        Bcov  = SPM.PPM.Cby;
+        for j = 1:length(SPM.PPM.l)
+
+            l    = spm_get_data(SPM.VHp(j),XYZ);
+            Bcov = Bcov + SPM.PPM.dC{j}*(l - SPM.PPM.l(j));
+        end
+    end
+end
+CI    = 1.6449;					% = spm_invNcdf(1 - 0.05);
+
+spm('pointer','arrow');
+
+%-Colour specifications and index;
+%--------------------------------------------------------------------------
+Col   = [0 0 0; .8 .8 .8; 1 .5 .5];
 
 switch Cplot
 
