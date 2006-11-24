@@ -32,7 +32,7 @@ function spm_mip(Z,XYZ,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 652 2006-10-17 16:51:32Z karl $
+% $Id: spm_mip.m 695 2006-11-24 20:07:13Z volkmar $
 
 %-Get GRID value
 %--------------------------------------------------------------------------
@@ -96,6 +96,6 @@ c    = [0 0 0 ;
 c    = c*M(1:3,1:3);
 dim  = [(max(c) - min(c)) size(mip)];
 d    = spm_project(Z,round(XYZ),dim);
-mip  = max(d,mip);
+mip  = max(d,GRID*mip);
 image(rot90((1 - mip)*64)); axis tight; axis off;
 
