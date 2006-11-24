@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 653 2006-10-17 16:59:13Z john $
+% $Id: spm_dicom_headers.m 698 2006-11-24 20:12:08Z volkmar $
 
 
 dict = readdict;
@@ -65,10 +65,6 @@ if ~strcmp(dcm,'DICM'),
 end;
 ret = read_dicom(fp, 'il',dict);
 ret.Filename = fopen(fp);
-if strcmp(ret.SOPClassUID,'1.3.12.2.1107.5.9.1')
-    % try to read ascconv from SIEMENS spectroscopy headers
-    ret.ascconv = read_ascconv(fp);
-end,
 fclose(fp);
 return;
 %_______________________________________________________________________
@@ -510,44 +506,6 @@ for i=1:n,
     end;
 end;
 return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function ret = read_ascconv(fp)
-% In SIEMENS spectroscopy data, there is an ASCII text section with
-% additional information items. This section starts with a code
-% ### ASCCONV BEGIN ###
-% and ends with
-% ### ASCCONV END ###
-% The additional items are assignments in C syntax, here they are just
-% translated according to
-% [] -> ()
-% "  -> '
-% 0xX -> hex2dec('X')
-% and collected in a struct.
-ret=struct;
-
-% read in whole file as uchar
-fseek(fp,0,'bof');
-X=fread(fp,'uchar');
-
-ascstart = findstr(X','### ASCCONV BEGIN ###');
-ascend = findstr(X','### ASCCONV END ###');
-
-if ~isempty(ascstart) && ~isempty(ascend)
-    tokens = textscan(char(X((ascstart+22):(ascend-1))'),'%s', ...
-        'delimiter',char(10));
-    for k = 1:numel(tokens{1})
-        tokens{1}{k}=regexprep(tokens{1}{k},'\[([0-9]*)\]','($1+1)');
-        tokens{1}{k}=regexprep(tokens{1}{k},'"(.*)"','''$1''');
-        tokens{1}{k}=regexprep(tokens{1}{k},'0x([0-9a-fA-F]*)','hex2dec(''$1'')');
-        try
-            eval(['ret.' tokens{1}{k} ';']);
-        catch
-            disp(['AscConv: Error evaluating ''ret.' tokens{1}{k} ''';']);
-        end;
-    end;
-end;
 %_______________________________________________________________________
 
 %_______________________________________________________________________

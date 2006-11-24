@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 670 2006-11-02 11:02:26Z volkmar $
+% $Id: spm_dicom_convert.m 698 2006-11-24 20:12:08Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -1043,4 +1043,42 @@ for g=2:length(pos)
 end;
 cd(opwd);
 return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function ret = read_ascconv(hdr)
+% In SIEMENS data, there is an ASCII text section with
+% additional information items. This section starts with a code
+% ### ASCCONV BEGIN ###
+% and ends with
+% ### ASCCONV END ###
+% It is read by spm_dicom_headers into an entry 'MrProtocol' in CSASeriesHeaderInfo
+% The additional items are assignments in C syntax, here they are just
+% translated according to
+% [] -> ()
+% "  -> '
+% 0xX -> hex2dec('X')
+% and collected in a struct.
+ret=struct;
+
+% get ascconv data
+X=get_numaris4_val(hdr.CSASeriesHeaderInfo,'MrProtocol');
+
+ascstart = findstr(X,'### ASCCONV BEGIN ###');
+ascend = findstr(X,'### ASCCONV END ###');
+
+if ~isempty(ascstart) && ~isempty(ascend)
+    tokens = textscan(char(X((ascstart+22):(ascend-1))),'%s', ...
+        'delimiter',char(10));
+    for k = 1:numel(tokens{1})
+        tokens{1}{k}=regexprep(tokens{1}{k},'\[([0-9]*)\]','($1+1)');
+        tokens{1}{k}=regexprep(tokens{1}{k},'"(.*)"','''$1''');
+        tokens{1}{k}=regexprep(tokens{1}{k},'0x([0-9a-fA-F]*)','hex2dec(''$1'')');
+        try
+            eval(['ret.' tokens{1}{k} ';']);
+        catch
+            disp(['AscConv: Error evaluating ''ret.' tokens{1}{k} ''';']);
+        end;
+    end;
+end;
 %_______________________________________________________________________
