@@ -7,7 +7,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % M.IS - function name or handle f(P,M,U)
 %        This function specifies the nonlinear model: 
 %        y = Y.y = IS(P,M,U) + X0*P0 + e
-%        were e ~ N(0,C).  For dunamic systems this would be an intgration
+%        were e ~ N(0,C).  For dynamic systems this would be an intgration
 %        scheme (e.g. spm_int). spm_int expects the following:
 %
 %     M.f  - f(x,u,P)
@@ -18,7 +18,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % M.FS - function name or handle f(P,M,U,varargin)
 %        This [optional] function perfoms feature selection assuming the
-%        generlised model y = FS(Y,E) = FS(IS(P,M,U)) + e
+%        generalised model y = FS(Y,E) = FS(IS(P,M,U)) + e
 %        where E are the parameters of the selection function
 %
 % M.E  - starting estimates for selection parameters
@@ -51,7 +51,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
-% nonliner model speficied by IS(P,M,U) under Gaussian assumptions. Usually,
+% nonlinear model speficied by IS(P,M,U) under Gaussian assumptions. Usually,
 % IS would be an integrator of a dynamic MIMO input-state-output model 
 %
 %              dx/dt = f(x,u,P)
@@ -68,13 +68,13 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % If the free-energy starts to increase, a Levenburg-Marquardt scheme is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of [Re]ML point estimators of the log-precisions.
-% An option feature slection can be specified with paramers M.E.
+% An optional feature selection can be specified with parameters M.E.
 %
 %--------------------------------------------------------------------------
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 681 2006-11-16 20:21:15Z karl $
+% $Id: spm_nlsi_GN.m 700 2006-11-29 09:52:41Z klaas $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -98,7 +98,7 @@ catch
     IS = fcnchk('spm_int','P','M','U');
 end
 
-% feature slection
+% feature selection
 %--------------------------------------------------------------------------
 try
     FS  = fcnchk(M.FS,'y','E');
