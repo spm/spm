@@ -23,8 +23,12 @@ catch
     % trial type
     c = eye(D.events.Ntypes);
 end
-
-d=zeros(size(D.data,1),size(D.data,2),size(D.data,3),D.events.Ntypes);
+c1=size(D.data,1);
+c2=size(D.data,2);
+c3=size(D.data,3);
+D=rmfield(D,'data');
+pack;
+d=zeros(c1,c2,c3,D.events.Ntypes);
 fh=fopen(fullfile(D.path,D.fnamedat),'r');
 ni=zeros(1,D.events.Ntypes);
 for n=1:D.Nevents
@@ -32,8 +36,8 @@ for n=1:D.Nevents
   
         [m,i]=find(D.events.types==D.events.code(n));  
       
-        data=fread(fh,[1,size(D.data,1)*size(D.data,2)*size(D.data,3)],'short');
-        data=reshape(data,size(D.data,1),size(D.data,2),size(D.data,3),1);
+        data=fread(fh,[1,c1*c2*c3],'short');
+        data=reshape(data,c1,c2,c3,1);
         data=data.*repmat(D.scale(:,1,1,n),[1,D.Nfrequencies, D.Nsamples]);
         d(:,:,:,i)=d(:,:,:,i)+data;
     end

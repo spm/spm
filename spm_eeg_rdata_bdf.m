@@ -19,7 +19,7 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_rdata_bdf.m 701 2006-11-30 12:37:39Z james $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
@@ -379,7 +379,7 @@ for t = 1:Nblocks
                 bytes=flipdim(bytes,2);
                 event=bin2dec(bytes);
 			
-                D.events.code = [D.events.code event];
+                D.events.code = [D.events.code event-128];
                 if i==512
 					lidiffs=1;
 				else

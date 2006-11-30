@@ -14,7 +14,7 @@ function D = spm_eeg_inv_meshing(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 656 2006-10-18 19:00:10Z karl $
+% $Id: spm_eeg_inv_meshing.m 701 2006-11-30 12:37:39Z james $
 
 spm_defaults
 
@@ -63,9 +63,9 @@ end
 
 % Compute the inner-skull and scalp meshes
 %--------------------------------------------------------------------------
-D        = spm_eeg_inv_getmeshes(D);
-D        = spm_eeg_inv_getmasks(D);
 
+D        = spm_eeg_inv_getmasks(D);
+D        = spm_eeg_inv_getmeshes(D);
 
 % Compute the cortex mesh from the template
 %--------------------------------------------------------------------------
