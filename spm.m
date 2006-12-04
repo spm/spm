@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm.m 702 2006-12-04 12:36:33Z john $
 
 
 %=======================================================================
@@ -1461,15 +1461,17 @@ xTB = [];
 for i = 1:length(d)
 	tdir = fullfile(Tdir,d{i});
 	fn   = cellstr(spm_select('List',tdir,['^.*' d{i} '\.m$']));
-	if numel(fn) > 1
-		%-Discard possible config files if ambiguity
-		%---------------------------------------------------------------
-		fn = {fn{cellfun('isempty',regexp(fn,'.*_config_.*'))}};
-	end
+
+	%-Discard possible config files if ambiguity
+	%---------------------------------------------------------------
+	fn = {fn{cellfun('isempty',regexp(fn,'.*_config_.*'))}};
+
 	if numel(fn) == 1
-		xTB(end+1).name = strrep(d{i},'_','');
-		xTB(end).prog   = spm_str_manip(fn{1},'r');
-		xTB(end).dir    = tdir;
+		if ~isempty(fn{1}),
+			xTB(end+1).name = strrep(d{i},'_','');
+			xTB(end).prog   = spm_str_manip(fn{1},'r');
+			xTB(end).dir    = tdir;
+		end;
 	elseif numel(fn) > 1
 		% there's still an ambiguity there....
 	end
