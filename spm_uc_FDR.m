@@ -4,7 +4,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %
 % q     - critical expected False Discovery Rate
 % df    - [df{interest} df{residuals}]
-% STAT  - Statisical field  (see comments below about FWER and EFDR)
+% STAT  - Statistical field  (see comments below about FWER and EFDR)
 %		'Z' - Gaussian field
 %		'T' - T - field
 %		'X' - Chi squared field
@@ -79,7 +79,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_uc_FDR.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_uc_FDR.m 707 2006-12-06 16:42:20Z volkmar $
 
 
 if (nargin<6), Vm = []; end

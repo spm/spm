@@ -3,11 +3,11 @@ function [u] = spm_uc_RF(a,df,STAT,R,n)
 % FORMAT [u] = spm_uc_RF(a,df,STAT,R,n)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{residuals}]
-% STAT  - Statisical feild
-%		'Z' - Gaussian feild
-%		'T' - T - feild
-%		'X' - Chi squared feild
-%		'F' - F - feild
+% STAT  - Statistical field
+%		'Z' - Gaussian field
+%		'T' - T - field
+%		'X' - Chi squared field
+%		'F' - F - field
 % R     - RESEL Count {defining search volume}
 % n     - number of conjoint SPMs
 %
@@ -22,7 +22,7 @@ function [u] = spm_uc_RF(a,df,STAT,R,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_uc_RF.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_uc_RF.m 707 2006-12-06 16:42:20Z volkmar $
 
 
 % find approximate value

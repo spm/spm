@@ -3,11 +3,11 @@ function [u] = spm_u(a,df,STAT)
 % FORMAT [u] = spm_u(a,df,STAT)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{error}]
-% STAT  - Statisical feild
-%               'Z' - Gaussian feild
-%               'T' - T - feild
-%               'X' - Chi squared feild
-%               'F' - F - feild
+% STAT  - Statistical field
+%               'Z' - Gaussian field
+%               'T' - T - field
+%               'X' - Chi squared field
+%               'F' - F - field
 %
 % u     - critical height {uncorrected}
 %___________________________________________________________________________
@@ -17,7 +17,7 @@ function [u] = spm_u(a,df,STAT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_u.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_u.m 707 2006-12-06 16:42:20Z volkmar $
 
 
 if     STAT == 'Z'

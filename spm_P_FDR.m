@@ -4,7 +4,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 %
 % Z     - height (minimum of n statistics)
 % df    - [df{interest} df{error}]
-% STAT  - Statisical field
+% STAT  - Statistical field
 %		'Z' - Gaussian field
 %		'T' - T - field
 %		'X' - Chi squared field
@@ -68,7 +68,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_P_FDR.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_P_FDR.m 707 2006-12-06 16:42:20Z volkmar $
 
 
 

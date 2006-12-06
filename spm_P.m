@@ -6,7 +6,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % k     - extent {RESELS}
 % Z     - height {minimum over n values}
 % df    - [df{interest} df{error}]
-% STAT  - Statisical field
+% STAT  - Statistical field
 %		'Z' - Gaussian field
 %		'T' - T - field
 %		'X' - Chi squared field
@@ -36,7 +36,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_P.m 706 2006-12-06 16:29:32Z volkmar $
+% $Id: spm_P.m 707 2006-12-06 16:42:20Z volkmar $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni
