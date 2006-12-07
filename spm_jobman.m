@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 639 2006-09-28 17:09:17Z volkmar $
+% $Id: spm_jobman.m 708 2006-12-07 16:55:02Z john $
 
 
 if nargin==0
@@ -690,11 +690,11 @@ if isfield(c,'hidden'), return; end;
 n         = n-1;
 if n<0, return; end;
 if n==0,
-    if ~isfield(c,'datacheck'),
-        show_msg('');
-    else
-        show_msg(c.datacheck);
-    end;
+%    if ~isfield(c,'datacheck'),
+%        show_msg('');
+%    else
+%        show_msg(c.datacheck);
+%    end;
     [c,varargout{:}] = feval(fun,c,varargin{:});
 end;
 
@@ -712,16 +712,16 @@ if isfield(c,'expanded') && ~isempty(c.val)
                 end;
             end;
         end;
-        if modify && isfield(c,'check'),
-            if all_set(c),
-                [unused,val] = harvest(c);
-                c.datacheck  = feval(c.check,val);
-            end;
-        end;
-        if isfield(c,'datacheck') && ~isempty(c.datacheck),
-            show_msg(c.datacheck);
-        end;
     end;
+end;
+if modify && isfield(c,'check'),
+    if all_set(c),
+        [unused,val] = harvest(c);
+        c.datacheck  = feval(c.check,val);
+    end;
+end;
+if isfield(c,'datacheck') && ~isempty(c.datacheck),
+    show_msg(c.datacheck);
 end;
 return;
 %------------------------------------------------------------------------
