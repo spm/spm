@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 651 2006-10-17 10:32:23Z john $
+# $Id: Makefile 709 2006-12-13 18:14:04Z john $
 #
 ###############################################################################
 #
@@ -114,6 +114,7 @@ ifndef SUF
     #     http://www.mingw.org/
     # Packages required are mingw-runtime, w32api, binutils, gcc-core and mingw32-make
     SUF       = dll
+    SUF       = mexw32
     CC        = gcc
     CFLAGS    = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
     MEX_BIN   = cmd /c "mex.bat
@@ -128,6 +129,7 @@ ifndef SUF
     # (install the Default configuration, along with the gcc C compiler, 
     # and make from the "Devel" options)   
     SUF       = dll
+    SUF       = mexw32
     CC        = gcc
     # Consider adding either of the following, depending on your platform:
     #       -march=pentium3

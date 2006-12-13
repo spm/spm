@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_preproc_write.m 709 2006-12-13 18:14:04Z john $
 
 
 if nargin==1,
@@ -22,21 +22,6 @@ if numel(p)>0,
 end;
 for i=1:numel(p),
     preproc_apply(p(i),opts,b0);
-end;
-return;
-%=======================================================================
-
-%=======================================================================
-function savefields(fnam,p)
-if length(p)>1, error('Can''t save fields.'); end;
-fn = fieldnames(p);
-for i=1:length(fn),
-    eval([fn{i} '= p.' fn{i} ';']);
-end;
-if spm_matlab_version_chk('7') >= 0,
-    save(fnam,'-V6',fn{:});
-else
-    save(fnam,fn{:});
 end;
 return;
 %=======================================================================
@@ -69,6 +54,7 @@ K   = length(p.flags.mg);
 Kb  = length(p.flags.ngaus);
 
 for k1=1:size(sopts,1),
+    %dat{k1}                = zeros(d(1:3),'uint8');
     dat{k1}                 = uint8(0);
     dat{k1}(d(1),d(2),d(3)) = 0;
     if sopts(k1,3),
@@ -113,7 +99,6 @@ for z=1:length(x3),
         msk        = find(f<p.flags.thresh);
         [t1,t2,t3] = defs(T,z,B1,B2,B3,x1,x2,x3,M);
         q          = zeros([d(1:2) Kb]);
-        bg         = ones(d(1:2));
         bt         = zeros([d(1:2) Kb]);
         for k1=1:Kb,
             bt(:,:,k1) = spm_sample_priors(b0{k1},t1,t2,t3,k1==Kb);
@@ -128,12 +113,14 @@ for z=1:length(x3),
             q(:,:,lkp(k)) = q(:,:,lkp(k)) + p1.*b(:,:,k)./s;
         end;
         sq = sum(q,3)+eps;
+        warning off
         for k1=1:size(sopts,1),
             tmp            = q(:,:,k1);
             tmp(msk)       = 0;
             tmp            = tmp./sq;
             dat{k1}(:,:,z) = uint8(round(255 * tmp));
         end;
+        warning on
     end;
     spm_progress_bar('set',z);
 end;
@@ -191,18 +178,14 @@ return;
 %=======================================================================
 
 %=======================================================================
-function T2 = get_2Dtrans(T3,B,j)
-d   = [size(T3) 1 1 1];
-tmp = reshape(T3,d(1)*d(2),d(3));
-T2  = reshape(tmp*B(j,:)',d(1),d(2));
-return;
-%=======================================================================
-
-%=======================================================================
 function t = transf(B1,B2,B3,T)
-d2 = [size(T) 1];
-t1 = reshape(reshape(T, d2(1)*d2(2),d2(3))*B3', d2(1), d2(2));
-t  = B1*t1*B2';
+if ~isempty(T)
+    d2 = [size(T) 1];
+    t1 = reshape(reshape(T, d2(1)*d2(2),d2(3))*B3', d2(1), d2(2));
+    t  = B1*t1*B2';
+else
+    t = zeros(size(B1,1),size(B2,1),size(B3,1));
+end;
 return;
 %=======================================================================
 
@@ -210,10 +193,9 @@ return;
 function dat = decimate(dat,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
 lim = ceil(2*fwhm);
-s  = fwhm/sqrt(8*log(2));
-x  = [-lim(1):lim(1)]; x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
-y  = [-lim(2):lim(2)]; y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
-z  = [-lim(3):lim(3)]; z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
+x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
+y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
+z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;
