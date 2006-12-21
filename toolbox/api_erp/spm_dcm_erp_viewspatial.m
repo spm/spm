@@ -99,6 +99,7 @@ handles.CLim2 = max(max([handles.yd handles.ym]));
 set(handles.slider1, 'min', 1);
 set(handles.slider1, 'max', handles.Nt);
 set(handles.slider1, 'Value', 1);
+set(handles.slider1, 'Sliderstep', [1/(handles.Nt-1) 10/(handles.Nt-1)]); % moves slider in dt and 10*dt steps
 
 plot_images(hObject, handles);
 plot_modes(hObject, handles);
@@ -184,27 +185,31 @@ drawnow
 %--------------------------------------------------------------------
 function plot_modes(hObject, handles)
 % plot temporal expression of modes
+
 DCM     = handles.DCM;
 Nt      = size(DCM.xY.xy{1}, 1);
 Ntrials = length(DCM.H);
 
-xvalues = kron(ones(1, Ntrials), handles.ms);
+
+ms_all = kron(ones(1, Ntrials), handles.ms);
+
 % data and model prediction, cond 1
 axes(handles.axes3); cla
-plot(handles.y_proj);
+plot(ms_all, handles.y_proj);
 hold on
-plot(cat(1, DCM.H{:}), '--');
+plot(ms_all, cat(1, DCM.H{:}), '--');
+plot([ms_all(handles.T) ms_all(handles.T)], [handles.CLim1_yp handles.CLim2_yp], 'k', 'LineWidth', 3);
 % set(handles.axes3, 'XLim', [0 handles.ms(end)]);
 set(handles.axes3, 'YLim', [handles.CLim1_yp handles.CLim2_yp]);
 xlabel('ms');
-title('temporal expressions of modes', 'FontSize', 16);
+title('Temporal expressions of modes', 'FontSize', 16);
 grid on
 
 %--------------------------------------------------------------------
 function plot_dipoles(hObject, handles)
 
 DCM = handles.DCM;
-Nsources = size(DCM.M.L, 2);
+Nsources = size(DCM.M.Lpos, 2);
 Lpos = handles.DCM.Ep.Lpos;
 Lmom = handles.DCM.Ep.Lmom;
 elc = handles.DCM.M.dipfit.elc;
@@ -239,7 +244,7 @@ axis equal
 function plot_components_space(hObject, handles)
 % plots spatial expression of each dipole
 DCM = handles.DCM;
-Nsources = size(DCM.M.L, 2);
+Nsources = size(DCM.M.Lpos, 2);
 
 lf = NaN*ones(handles.Nchannels, Nsources);
 lfo = NaN*ones(handles.Nchannels, Nsources);
@@ -281,7 +286,7 @@ function plot_components_time(hObject, handles)
 DCM = handles.DCM;
 Lmom = sqrt(sum(DCM.Ep.Lmom).^2);
 
-Nsources = size(DCM.M.L, 2);
+Nsources = size(DCM.M.Lpos, 2);
 
 h = figure;
 set(h, 'Name', 'Effective source amplitudes');

@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_grandmean.m 710 2006-12-21 14:59:04Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -137,6 +137,10 @@ else
         end
     end
 
+    spm_progress_bar('Init', Ntypes, 'Events averaged'); drawnow;
+    if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
+    else, Ibar = [1:Ntypes]; end
+
     for i = 1:Ntypes
         d = zeros(length(D{1}.channels.eeg), D{1}.Nsamples);
 
@@ -159,6 +163,10 @@ else
 		
 		Do.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
 		
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i); drawnow;
+        end
+
 	end
 end
 fclose(fpd);
@@ -168,25 +176,28 @@ Do.data = [];
 Do.fname = [spm_str_manip(Do.fnamedat, 'r') '.mat'];
 
 
-Do.Nchannels = length(D{1}.channels.eeg);
-Do.channels.name = D{1}.channels.name(D{1}.channels.eeg);
-
-% remove eog and ref channels
-
-if isfield(Do.channels, 'heog')
-    Do.channels.order = setdiff(Do.channels.order, Do.channels.heog);
-    Do.channels.heog = 0;
-end
-if isfield(Do.channels, 'veog')
-    
-    Do.channels.order = setdiff(Do.channels.order, Do.channels.veog);
-    
-    Do.channels.veog = 0;
-end
-if isfield(Do.channels, 'reference')
-    
-    Do.channels.reference = 0;
-end
+% Do.Nchannels = length(D{1}.channels.eeg);
+% Do.channels.name = D{1}.channels.name(D{1}.channels.eeg);
+% 
+% % remove eog and ref channels
+% 
+% eog = [];
+% if isfield(Do.channels, 'heog')
+%     eog = [eog Do.channels.heog];
+%     Do.channels.heog = 0;
+% end
+% 
+% if isfield(Do.channels, 'veog')
+%     eog = [eog Do.channels.veog];    
+%     Do.channels.veog = 0;
+% end
+% 
+% Do.channels.order(eog) = [];
+% 
+% if isfield(Do.channels, 'reference')
+%     
+%     Do.channels.reference = 0;
+% end
 D = Do;
 
 D.channels.Bad = find(~any(w'));

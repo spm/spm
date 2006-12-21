@@ -16,7 +16,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_merge.m 710 2006-12-21 14:59:04Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -48,8 +48,13 @@ spm('Pointer', 'Watch');
 Dout = D{1};
 Dout.fnamedat = ['c' spm_str_manip(D{1}.fnamedat, 't')];
 Dout.fname = ['c' spm_str_manip(D{1}.fname, 't')];
+Dout.Nevents = 0;      
+Dout.events.code = [];
+Dout.events.time = [];
+Dout.events.reject = [];
+Dout.channels.Bad = [];
 
-for i = 2:Nfiles
+for i = 1:Nfiles
 
     % checks about same number of channels, Nsamples and Radc
     if D{1}.Nchannels ~= D{i}.Nchannels
@@ -88,8 +93,10 @@ for i = 2:Nfiles
     
     Dout.events.code = [Dout.events.code code_new];
         
-    Dout.events.time = [Dout.events.time [Dtmp.events.time] + Dtmp.Nsamples];
-        
+    if isfield(Dout.events, 'time')
+            Dout.events.time = [Dout.events.time [Dtmp.events.time] + Dtmp.Nsamples];
+    end
+    
 	if isfield(Dout.events, 'reject')
 		Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
     end

@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 568 2006-07-04 17:59:56Z stefan $
+% $Id: spm_eeg_tf.m 710 2006-12-21 14:59:04Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -81,6 +81,22 @@ catch
 	 	spm_input('Select channels', '+1', 'i', num2str([1:D.Nchannels]));
 end
 
+try 
+	pow = S.pow;	% 1 = power, 0 = magnitude
+catch
+	pow = 1;
+end
+
+if length(D.tf.channels)>1
+   try 
+	collchans = S.collchans;	% 1 = collapse across channels, 0 = do not
+   catch
+	collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
+   end
+else
+	collchans = 0;
+end
+
 spm('Pointer', 'Watch'); drawnow;
 
 M = spm_eeg_morlet(D.tf.Mfactor, 1000/D.Radc, D.tf.frequencies);
@@ -94,6 +110,17 @@ D2.fnamedat = ['t2_' fnamedat];
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
 fpd2 = fopen(fullfile(P, D2.fnamedat), 'w');
+
+if collchans
+	D.Nchannels = 1;
+	try S.circularise_phase
+		circularise = S.circularise_phase;
+	catch
+		circularise = 0;
+	end	
+else
+	D.Nchannels = length(D.tf.channels);
+end
 
 D.scale = zeros(length(D.tf.channels), 1, 1, D.Nevents);
 D.datatype = 'int16';
@@ -111,25 +138,42 @@ for k = 1 : D.Nevents
             
             % time shift to remove delay
             tmp = tmp([1:D.Nsamples] + (length(M{i})-1)/2);
-			
+
             % power
-            d(j, i, :) = tmp.*conj(tmp);
-            
+            if pow
+                d(j, i, :) = tmp.*conj(tmp);
+            else
+                d(j, i, :) = abs(tmp);
+            end
+
             % phase
-            d2(j, i, :) = atan2(imag(tmp), real(tmp));
+            % d2(j, i, :) = atan2(imag(tmp), real(tmp));
+            d2(j, i, :) = angle(tmp);
 
 		end
 	end
 	
 	% Remove baseline over frequencies and trials
-	if D.tf.rm_baseline == 1
-		d = spm_eeg_bc(D, d);
+    if D.tf.rm_baseline == 1
+        d = spm_eeg_bc(D, d);
     end
-	D.scale(:, 1, 1, k) = (max(abs(reshape(d, [length(D.tf.channels) D.Nfrequencies*D.Nsamples])'))./32767);
-	d = int16(round(d./repmat(D.scale(:, 1, 1, k), [1 D.Nfrequencies D.Nsamples])));
+
+    if collchans
+        d = mean(d,1);
+
+        if circularise
+            tmp = cos(d2) + sqrt(-1)*sin(d2);
+            d2 = double(abs(mean(tmp,1))./mean(abs(tmp),1));
+        else
+            d2 = mean(d2,1);
+        end
+    end
+
+    D.scale(:, 1, 1, k) = (max(abs(reshape(d, [length(D.tf.channels) D.Nfrequencies*D.Nsamples])'))./32767);
+    d = int16(round(d./repmat(D.scale(:, 1, 1, k), [1 D.Nfrequencies D.Nsamples])));
 
     D2.scale(:, 1, 1, k) = (max(abs(reshape(d2, [length(D2.tf.channels) D2.Nfrequencies*D2.Nsamples])'))./32767);
-	d2 = int16(round(d2./repmat(D2.scale(:, 1, 1, k), [1 D2.Nfrequencies D2.Nsamples])));
+    d2 = int16(round(d2./repmat(D2.scale(:, 1, 1, k), [1 D2.Nfrequencies D2.Nsamples])));
 
 	fwrite(fpd, d, 'int16');	
 	fwrite(fpd2, d2, 'int16');	
@@ -141,9 +185,41 @@ fclose(fpd2);
 
 D.data = [];
 D2.data = [];
+D2.Nchannels = D.Nchannels;
 
-D.Nchannels = length(D.tf.channels);
-D2.Nchannels = length(D2.tf.channels);
+% changes by Rik
+old_chans = D.channels.name;
+if collchans
+	chans=1;	%HACKY (and may crash if first channel is EOG?)!
+%	D.channels.name = {'All'};
+else
+	chans=1:D.Nchannels;
+end
+
+D.channels.name=[];
+for n=1:length(D.tf.channels(chans))
+    D.channels.name{n} = old_chans{D.tf.channels(n)};
+end
+D.channels.order = D.channels.order(D.tf.channels(chans));
+D.channels.eeg = 1:length(D.tf.channels(chans));
+if(~isempty(D.channels.heog)),D.channels.heog=find(D.tf.channels(chans)==D.channels.heog); end
+if(~isempty(D.channels.veog)),D.channels.veog=find(D.tf.channels(chans)==D.channels.veog); end
+D.channels.eeg([D.channels.veog D.channels.veog])=[];
+r2=0;
+for r=1:length(D.channels.reference)
+     rf = find(D.tf.channels(chans)==D.channels.reference(r));
+     if(~isempty(rf))
+	r2=r2+1;
+     	D.channels.reference(r2) = rf;
+     	D.channels.ref_name{r2} = D.channels.refname{r};
+     end
+end
+if isfield(D.channels,'thresholded')
+   D.channels.thresholded = D.channels.thresholded(D.tf.channels(chans));
+end
+D2.channels = D.channels;
+
+% end changes by Rik
 
 D.fname = ['t1_' D.fname];
 D2.fname = ['t2_' D2.fname];

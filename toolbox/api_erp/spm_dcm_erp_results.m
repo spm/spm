@@ -49,24 +49,33 @@ switch(lower(Action))
     
 case{lower('ERPs (channel)')}
     
+        xY    = DCM.xY;
+    n     = length(xY.xy);
+    
+    try
+        t = xY.Time;
+    catch
+        t = xY.dt*[1:n];
+    end
+
+
     % spm_dcm_erp_results(DCM,'ERPs (channel)');
     %--------------------------------------------------------------------
     co = {'b', 'r', 'g', 'm', 'y', 'k'};
     lo = {'-', '--'};
     
-    T    = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
     for i = 1:nc
         subplot(ceil(nc/2),2,i), hold on
         str   = {};
         for j = 1:nt
-            plot(T,DCM.H{j}(:,i), lo{1},...
+            plot(t,DCM.H{j}(:,i), lo{1},...
                 'Color', co{j},...
                 'LineWidth',2);
             str{end + 1} = sprintf('trial %i (predicted)',j);
-            plot(T,DCM.H{j}(:,i) + DCM.R{j}(:,i), lo{2},...
+            plot(t,DCM.H{j}(:,i) + DCM.R{j}(:,i), lo{2},...
                 'Color',co{j});
             str{end + 1} = sprintf('trial %i (observed)',j);
-                        set(gca, 'XLim', [0 T(end)]);
+                        set(gca, 'XLim', [t(1) t(end)]);
 
         end
         hold off
@@ -87,8 +96,15 @@ case{lower('ERPs (sources)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (sources)');
     %--------------------------------------------------------------------
-    T     = [1:size(DCM.H{1},1)]*DCM.xY.dt*1000;
+    xY    = DCM.xY;
+    n     = length(xY.xy);
     
+    try
+        t = xY.Time;
+    catch
+        t = xY.dt*[1:n];
+    end
+
     mx = max(max(cat(2, DCM.K{:})));
     mi = min(min(cat(2, DCM.K{:})));
     
@@ -96,12 +112,12 @@ case{lower('ERPs (sources)')}
         subplot(ceil(ns/2),2,i), hold on
         str   = {};
         for j = 1:nt
-            plot(T,DCM.K{j}(:,i), ...
+            plot(t, DCM.K{j}(:,i), ...
                 'Color',[1 1 1] - j/nt, ...
                 'LineWidth',1);
             str{end + 1} = sprintf('trial %i',j);
         end
-        set(gca, 'YLim', [mi mx]);
+        set(gca, 'YLim', [mi mx], 'XLim', [t(1) t(end)]);
         hold off
         title(DCM.Sname{i})
         grid on
@@ -233,11 +249,19 @@ case{lower('Input')}
     % plot data
     % --------------------------------------------------------------------
     xU   = DCM.xU;
-    t    = xU.dt:xU.dt:xU.dur;
-    U    = spm_erp_u(DCM.Ep,t);
+    tU    = 0:xU.dt:xU.dur;
+    U    = spm_erp_u(DCM.Ep,tU);
     
+    xY    = DCM.xY;
+    n     = length(xY.xy);
+    try
+        t = xY.Time;
+    catch
+        t = xY.dt*[1:n];
+    end
+
     subplot(2,1,1)
-    plot(t*1000,U)
+    plot(t, U)
     xlabel('time (ms)')
     title('input')
     axis square, grid on
@@ -278,7 +302,6 @@ case{lower('Dipoles')}
 
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
     end
-    case{lower('Spatial stuff')}
-        % This routine needs updating %
+    case{lower('Spatial overview')}
         spm_dcm_erp_viewspatial(DCM)
 end

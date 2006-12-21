@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_select_channels.m 710 2006-12-21 14:59:04Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -94,9 +94,10 @@ for i = 1:length(D.channels.order)
         Hpatch{i} = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cdeselect,...
             'EdgeColor', 'none');
     else
-        Hpatch{i} = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cselect,...
+        tmp = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cselect,...
             'EdgeColor', 'none');
     end
+    Hpatch{i};
     xy = get(Hpatch{i}, 'Vertices');
         Htext{i} = text(min(xy(:,1)), max(xy(:,2)), Cnames{D.channels.order(i)});
         set(Htext{i}, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');

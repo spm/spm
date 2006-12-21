@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_filter.m 710 2006-12-21 14:59:04Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -43,17 +43,32 @@ catch
 	 	spm_input('filter type', '+1', 'b', 'butterworth');
 end
 
-try
-    D.filter.band = S.filter.band;
-catch
-    D.filter.band =...
-        spm_input('filterband', '+1', 'lowpass|bandpass');
+if strcmpi(D.filter.type,'butterworth')
+    try
+        D.filter.order = S.filter.order;
+    catch
+        D.filter.order = 5;
+    end
+    try
+        D.filter.para = S.filter.para;
+    catch
+        D.filter.para = [];
+    end
 end
+
+YPos = -1;
+    D.filter.band = cell2mat(...
+        spm_input('filterband', '+1', 'm',...
+        'lowpass|highpass|bandpass|stopband',...
+         {'low','high','bandpass','stop'}));
+     
+end
+
 
 try
     D.filter.PHz = S.filter.PHz;
 catch
-    if strcmp(D.filter.band, 'lowpass')
+    if strcmp(D.filter.band, 'low')
         str = 'Cutoff [Hz]';
         YPos = -1;
         while 1
@@ -64,8 +79,29 @@ catch
             if PHz > 0 & PHz < D.Radc/2, break, end
             str = 'Cutoff must be > 0 & < half sample rate';
         end
-    else
-        % bandpass
+    elseif strcmp(D.filter.band, 'high')
+        str = 'Cutoff [Hz]';
+        YPos = -1;
+        while 1
+            if YPos == -1
+                YPos = '+1';
+            end
+            [PHz, YPos] = spm_input(str, YPos, 'r');
+            if PHz > 0 & PHz < D.Radc/2, break, end
+            str = 'Cutoff must be > 0 & < half sample rate';
+        end
+    elseif strcmp(D.filter.band, 'bandpass')
+        str = 'band [Hz]';
+        YPos = -1;
+        while 1
+            if YPos == -1
+                YPos = '+1';
+            end
+            [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
+            if PHz(1) > 0 & PHz(1) < D.Radc/2 & PHz(1) < PHz(2), break, end
+            str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
+        end
+    elseif strcmp(D.filter.band, 'stop')
         str = 'band [Hz]';
         YPos = -1;
         while 1
@@ -82,12 +118,15 @@ end
 
 if strcmpi(D.filter.type, 'butterworth')
     % butterworth coefficients
-    D.filter.para = [];
-    [B, A] = butter(5, 2*D.filter.PHz/D.Radc);
-    D.filter.para{1} = B;
-    D.filter.para{2} = A;
+    if(isempty(D.filter.para))
+	[B, A] = butter(D.filter.order, 2*D.filter.PHz/D.Radc, D.filter.band);
+    	D.filter.para{1} = B;
+    	D.filter.para{2} = A;
+    elseif(length(D.filter.para)~=2)
+	errordlg('Need two parameters for Butterworth filter');
+    end
 else
-    error('Unknown filter type: %s', D.filter.type);
+    errordlg('Currently unknown filter type: %s', D.filter.type);
 end
 
 spm('Pointer', 'Watch');drawnow;

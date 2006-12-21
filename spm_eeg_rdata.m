@@ -16,7 +16,7 @@ function D = spm_eeg_rdata(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_rdata.m 710 2006-12-21 14:59:04Z stefan $
 
 try
     Fdata = S.Fdata;
@@ -141,47 +141,43 @@ for i = 1:Nchannels
 end
 
 % Read HEOG channel number (but doesn't seem to be stored in header)
-s = fseek(fp, 406, -1);
-D.channels.heog = fread(fp, 1, 'short');
+% s = fseek(fp, 406, -1);
+% D.channels.heog = fread(fp, 1, 'short');
+%
+% % Read VEOG channel number (but doesn't seem to be stored in header)
+% s = fseek(fp, 408, -1);
+% D.channels.veog = fread(fp, 1, 'short');
 
-% Read VEOG channel number (but doesn't seem to be stored in header)
-s = fseek(fp, 408, -1);
-D.channels.veog = fread(fp, 1, 'short');
-
-if D.channels.heog == 0
-	D.channels.heog = find(strncmpi('heog', D.channels.name, 4));
-	if isempty(D.channels.heog)
-		warning(sprintf('No HEOG channel found.'));
-        D.channels.heog = 0;
-	else
-		D.channels.heog = D.channels.heog(1);
-	end
+D.channels.heog = find(strncmpi('heog', D.channels.name, 4));
+if isempty(D.channels.heog)
+    warning(sprintf('No HEOG channel found.'));
+    D.channels.heog = 0;
+else
+    D.channels.heog = D.channels.heog(1);
 end
 
-if D.channels.veog == 0
-	D.channels.veog = find(strncmpi('veog', D.channels.name, 4));
-	if isempty(D.channels.veog)
-		warning(sprintf('No VEOG channel found.'));
-        D.channels.veog = 0;
-	else
-		D.channels.veog = D.channels.veog(1);
-	end
+D.channels.veog = find(strncmpi('veog', D.channels.name, 4));
+if isempty(D.channels.veog)
+    warning(sprintf('No VEOG channel found.'));
+    D.channels.veog = 0;
+else
+    D.channels.veog = D.channels.veog(1);
 end
 
 % Map name of channels to channel order specified in channel template file
 for i = 1:length(D.channels.name)
-	index = [];
-	for j = 1:Csetup.Nchannels
-		if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
-			index = [index j];
-		end
-	end
-    
-	if isempty(index)
-		warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
-	else
-		% take only the first found channel descriptor
-		D.channels.order(i) = index(1);
+    index = [];
+    for j = 1:Csetup.Nchannels
+        if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
+            index = [index j];
+        end
+    end
+
+    if isempty(index)
+        warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
+    else
+        % take only the first found channel descriptor
+        D.channels.order(i) = index(1);
     end
 end
 

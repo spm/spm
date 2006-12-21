@@ -55,6 +55,7 @@ nt     = length(xY.xy);                 % number of trials
 nr     = length(DCM.A{1});                 % number of sources
 nc     = size(xY.xy{1},2);              % number of channels
 ns     = size(xY.xy{1},1);              % number of time bins
+nst    = ns*nt;                         % time bins needed for integrator
 nu     = size(xU.X,2);                  % number of inputs
 nx     = nr*9 + 1;                         % number of states
 
@@ -109,8 +110,7 @@ global M; M = DCM.M;
 
 % prior moments
 %--------------------------------------------------------------------------
-Lpos    = M.dipfit.L.pos;
-[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,Lpos,xU.dur);
+[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
 
 % likelihood model
 %--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ M.pC  = pC;
 M.m   = nu;
 M.n   = nx;
 M.l   = nc;
-M.ns  = ns;
+M.ns  = nst;
 
 % Feature selection using principal components of channel space
 %--------------------------------------------------------------------------

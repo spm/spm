@@ -16,7 +16,7 @@ catch
             Dfile = DCM.M.Dfile;
             DCM.xY.Dfile = Dfile;
         catch
-           [f p] = uigetfile({'*.mat'},'Please data file');
+            [f p] = uigetfile({'*.mat'},'Please select data file');
             DCM.xY.Dfile = fullfile(p,f);
             Dfile = DCM.xY.Dfile;
         end
@@ -63,13 +63,19 @@ if DCM.options.Spatial_type == 1
         end
     else
         try
-            % must be in CTF-space
+            
+            DCM.options.Pol_skip = 0; % don't skip any coordinates (see below)
+
+            % mat-file must contain 2 matrices with fid and sensor
+            % coordinates
             tmp = load(sensorfile, '-mat');
-            xyz = fieldnames(tmp);
-            eval(['xyz = tmp.' xyz{1}]);
-            x   = xyz(:, 1);
-            y   = xyz(:, 2);
-            z   = xyz(:, 3);
+            fid = tmp.fid;
+            sens = tmp.sens;
+            Fname_fid = sprintf('%s_fid', spm_str_manip(sensorfile, 'r'));
+            Fname_sens = sprintf('%s_sens', spm_str_manip(sensorfile, 'r'));
+            Path_sens = fileparts(Fname_sens);
+            save(Fname_sens, 'sens');
+            save(Fname_fid, 'fid');            
         catch
             try
                 DCM.M.dipfit.elc;
@@ -97,7 +103,7 @@ if DCM.options.Spatial_type == 1
 
     % EEG coordinates in MNI space
     %----------------------------------------------------------------------
-    load(sensors_reg);
+    load(fullfile(Path_sens, sensors_reg));
 
     % hard-coded for now (Olivier measured as first 2 channels ear-lobes ->
     % non-standard), and first two channels are (always) CMS and DRL)
@@ -119,7 +125,9 @@ if DCM.options.Spatial_type == 1
         end
     end
     dipfit  = DCM.M.dipfit;
-    sensreg = sensreg(5:end, :);
+    
+    sensreg = sensreg(DCM.options.Pol_skip+1:end, :);
+    
     elc     = sensreg(chansel, :);
 
     % fit origin of outer sphere, with fixed radius, to electrodes
@@ -135,7 +143,7 @@ if DCM.options.Spatial_type == 1
     % compute POL->MNI coordinate transformation, following definition of
     % CTF origin, and axes
     %----------------------------------------------------------------------
-    load(fid_reg);
+    load(fullfile(Path_sens, fid_reg));
 
     % origin in MNI space
     %----------------------------------------------------------------------

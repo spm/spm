@@ -20,7 +20,7 @@ function D = spm_eeg_rereference(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rereference.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_rereference.m 710 2006-12-21 14:59:04Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 
@@ -70,50 +70,67 @@ for i = 1:D.Nevents
 	end
 end
 
-Csetup = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
-
-% delete new reference channel from channel struct
-reference_old = D.channels.reference;
+if ~iscell(D.channels.ref_name) 
+	D.channels.ref_name = {D.channels.ref_name};
+end
 ref_name_old = D.channels.ref_name;
+reference_old = D.channels.reference;
+DNchannels_old = D.Nchannels;
 
-if length(D.reref.newref) == 1
-        
-    D.channels.reference = D.channels.order(D.reref.newref);
-	D.channels.ref_name = D.channels.name{D.reref.newref};
-	
-	if reference_old < length(D.channels.eeg)
-		D.Nchannels = D.Nchannels - 1;
-	end
-    D.channels.order(D.reref.newref) = [];
-    D.channels.name(D.reref.newref) = [];
-    D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog D.channels.Bad]);
-    
-    % re-find EOG channels
-    D.channels.heog = find(strncmpi('heog', D.channels.name, 4));
-    if isempty(D.channels.heog)
-        D.channels.veog = 0;
-    end
-    D.channels.veog = find(strncmpi('veog', D.channels.name, 4));
-    if isempty(D.channels.veog)
-        D.channels.veog = 0;
-    end
-    
-    if isfield(D.channels, 'base')
-        D.channels.base(D.reref.newref) = [];
-        D.channels.sens(D.reref.newref) = [];
-        D.channels.calib(D.reref.newref) = [];
-    end
-else
-    D.channels.reference = 0;
-    D.channels.ref_name = 'NIL';
+
+% Add new reference(s)... (D.channels.reference refers to position in template file)      
+D.channels.reference = D.channels.order(D.reref.newref);
+D.channels.ref_name=[];
+
+for i = 1:length(D.reref.newref)
+    	D.channels.ref_name{i} = D.channels.name{D.reref.newref(i)};
 end
 
-% restore old reference channel, if possible
-if reference_old ~= 0 & reference_old > length(D.channels.eeg)
-    D.Nchannels = D.Nchannels + 1;
-    D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog D.channels.Bad]);
-    D.channels.order(D.Nchannels) = reference_old;
-    D.channels.name(D.Nchannels) = ref_name_old;
+%    if reference_old < length(D.channels.eeg)
+%		D.Nchannels = D.Nchannels - 1;
+%    end
+%    D.channels.order(D.reref.newref) = [];
+%    D.channels.name(D.reref.newref) = [];
+%    D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog D.channels.Bad]);
+%    
+%    % re-find EOG channels
+%    D.channels.heog = find(strncmpi('heog', D.channels.name, 4));
+%    if isempty(D.channels.heog)
+%        D.channels.veog = 0;
+%    end
+%    D.channels.veog = find(strncmpi('veog', D.channels.name, 4));
+%    if isempty(D.channels.veog)
+%        D.channels.veog = 0;
+%    end
+%    
+%    if isfield(D.channels, 'base')
+%        D.channels.base(D.reref.newref) = [];
+%        D.channels.sens(D.reref.newref) = [];
+%        D.channels.calib(D.reref.newref) = [];
+%    end
+%else
+%    D.channels.reference = 0;
+%    D.channels.ref_name = 'NIL';
+%end
+
+% restore old reference(s), if possible
+if reference_old ~= 0
+    for i = 1:length(reference_old)
+        if ~ismember(reference_old(i),D.channels.order)
+            D.Nchannels = D.Nchannels + 1;
+            D.channels.order(D.Nchannels) = reference_old(i);
+            D.channels.name{D.Nchannels} = ref_name_old{i};
+            D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog D.channels.Bad]);
+
+            %Assumes reference channels are same as others...
+            if isfield(D.channels, 'base')
+                D.channels.base(D.Nchannels) = D.channels.base(D.Nchannels-1);
+                D.channels.sens(D.Nchannels) = D.channels.sens(D.Nchannels-1);
+                D.channels.calib(D.Nchannels) = D.channels.calib(D.Nchannels-1);
+                D.channels.thresholded{D.Nchannels} = [];
+            end
+        end
+    end
 end
 
 d = zeros(D.Nchannels, D.Nsamples);
@@ -129,20 +146,11 @@ for i = 1:D.Nevents
     
     d = squeeze(D.data(:, :, i));
     
-    % if old ref channel restored, add it now
-    if reference_old ~= 0 &  D.channels.reference > length(D.channels.eeg)
-        d = [d; zeros(1, size(d, 2))];
-    end
+    d = [d; zeros(D.Nchannels - DNchannels_old, size(d, 2))];
     
     % Subtract new reference time series from other channels
     d(D.channels.eeg, :) = d(D.channels.eeg, :) - repmat(Tref(:,i)', length(D.channels.eeg), 1);
     
-    % remove data of new (single) reference channel potentially causes
-    % problem later on.
-%     if length(D.reref.newref) == 1 
-%         d(D.reref.newref, :) = [];
-%     end
-
     D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);

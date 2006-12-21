@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 607 2006-08-31 12:29:39Z james $
+% $Id: spm_eeg_weight_epochs.m 710 2006-12-21 14:59:04Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -64,16 +64,31 @@ if N_contrasts > 100, Ibar = floor(linspace(1, N_contrasts, 100));
 else, Ibar = [1:N_contrasts]; end
 
 for i = 1:N_contrasts
-
+    
     d = zeros(D.Nchannels, D.Nsamples);
 
     %if D.events.repl(i) == 0
-      %  warning('%s: No trials for contrast %d', D.fname, i);
-      % else
-        for j = 1:D.Nchannels
-            d(j, :) = c(i,:)*squeeze(D.data(j, :, :))';
-        end
+    %  warning('%s: No trials for contrast %d', D.fname, i);
+    % else
+
+    p = find(c(i,:)==1);
+    if ~isempty(p)
+        r = D.events.repl(p);
+        c(i,p) = r/sum(r);
+    end
+
+    p = find(c(i,:)==-1);
+    if ~isempty(p)
+        r = D.events.repl(p);
+        c(i,p) = -r/sum(r);
+    end
+
+    for j = 1:D.Nchannels
+        d(j, :) = c(i,:)*squeeze(D.data(j, :, :))';
+    end
     %end
+
+    D.events.repl(i) = sum(D.events.repl(find(c(i,:)~=0)));
 
     D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 
@@ -98,7 +113,6 @@ D.events.Ntypes = N_contrasts;
 D.data = [];
 D.events.reject = zeros(1, D.Nevents);
 D.events.blinks = zeros(1, D.Nevents);
-D.events. repl = zeros(1, D.Nevents);
 
 D.fname = ['m' D.fname];
 

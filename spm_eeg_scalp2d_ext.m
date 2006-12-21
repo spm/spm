@@ -91,6 +91,8 @@ else
     set(handles.slider1, 'min', handles.ms(1));
     set(handles.slider1, 'max', handles.ms(end));
     set(handles.slider1, 'Value', handles.ms(handles.T));
+    set(handles.slider1, 'Sliderstep',...
+        [1/(length(handles.ms)-1) 10/(length(handles.ms)-1)]); % moves slider in dt and 10*dt steps
 end
 
 % Update handles structure
@@ -122,7 +124,7 @@ function slider1_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
-T = get(handles.slider1, 'Value');
+T = get(handles.slider1, 'Value')
 
 tmp = (T - handles.ms).^2;
 [m, i] = min(tmp);
