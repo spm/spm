@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_dcm_generate.m 712 2007-01-03 14:28:45Z klaas $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -54,7 +54,7 @@ M.ns = v;
 
 % Create P vector for spm_int
 %--------------------------------------------------------------------------
-P=[1; DCM.A(:); DCM.B(:); DCM.C(:); DCM.H(:)];
+P=[0; DCM.A(:); DCM.B(:); DCM.C(:); DCM.H(:)];
 
 
 % Compute hemodynamic response at v sample points
