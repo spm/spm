@@ -60,14 +60,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 636 2006-09-28 14:47:20Z volkmar $
+% $Id: spm_ov_roi.m 711 2007-01-03 10:20:59Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 636 $';
+rev = '$Revision: 711 $';
 
 global st;
 if isempty(st)
@@ -419,10 +419,14 @@ case 'addfile'
     
 case {'save','saveas'}
   if strcmp(cmd,'saveas') | ...
-	exist(st.vols{volhandle}.roi.Vroi.fname)==7
-    st.vols{volhandle}.roi.Vroi.fname = spm_input(...
-	'ROI filename','!+1','s', ...
-	st.vols{volhandle}.roi.Vroi.fname);
+          exist(st.vols{volhandle}.roi.Vroi.fname)==7
+      [name pth] = uiputfile({'*.nii','NIfTI (1 file)';'*.img','NIfTI (2 files)'},...
+                             'Output image');
+      if ~ischar(pth)
+          warning('Save cancelled');
+          return;
+      end;
+      st.vols{volhandle}.roi.Vroi.fname = fullfile(pth,name);
   end;
   spm('pointer','watch');
   spm_write_vol(st.vols{volhandle}.roi.Vroi, ...
