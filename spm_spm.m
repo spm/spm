@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 649 2006-10-16 10:13:12Z volkmar $
+% $Id: spm_spm.m 713 2007-01-15 12:59:58Z volkmar $
 
-SCCSid   = '$Rev: 649 $';
+SCCSid   = '$Rev: 713 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -501,7 +501,7 @@ MAXRES   = defaults.stats.maxres;
 %--------------------------------------------------------------------------
 MAXMEM   = defaults.stats.maxmem;
 nSres    = min(nScan,MAXRES);
-blksz    = ceil(MAXMEM/8/nScan);                %-block size
+blksz    = min(xdim*ydim,ceil(MAXMEM/8/nScan));                %-block size
 nbch     = ceil(xdim*ydim/blksz);               %-# blocks
 
 
@@ -614,8 +614,8 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
 
         %-construct list of voxels in this block
         %------------------------------------------------------------------
-        I     = (1:blksz) + (bch - 1)*blksz;        %-voxel indices
-        I     = I(I <= xdim*ydim);                  %-truncate
+        I     = (1:blksz) + (bch - 1)*blksz;        %-voxel indices, at
+                                                    % most [1:(xdim*ydim)]
         xyz   = [xords(I); yords(I); zords(I)];     %-voxel coordinates
         nVox  = size(xyz,2);                        %-number of voxels
 
