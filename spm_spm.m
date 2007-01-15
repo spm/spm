@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 713 2007-01-15 12:59:58Z volkmar $
+% $Id: spm_spm.m 714 2007-01-15 13:51:35Z volkmar $
 
-SCCSid   = '$Rev: 713 $';
+SCCSid   = '$Rev: 714 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -614,8 +614,8 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
 
         %-construct list of voxels in this block
         %------------------------------------------------------------------
-        I     = (1:blksz) + (bch - 1)*blksz;        %-voxel indices, at
-                                                    % most [1:(xdim*ydim)]
+        I     = (1:blksz) + (bch - 1)*blksz;        %-voxel indices
+        I     = I(I <= xdim*ydim);                  %-truncate
         xyz   = [xords(I); yords(I); zords(I)];     %-voxel coordinates
         nVox  = size(xyz,2);                        %-number of voxels
 
