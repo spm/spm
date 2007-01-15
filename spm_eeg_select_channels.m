@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 710 2006-12-21 14:59:04Z stefan $
+% $Id: spm_eeg_select_channels.m 715 2007-01-15 16:26:36Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -88,19 +88,18 @@ Cdeselect = [0.5 0.5 0.5];
 
 ind = zeros(1,length(D.channels.order));
 ind(D.gfx.channels) = 1;
-    
+tmp = D.channels.order; % if D.channels.order isn't replaced by this variable -> strange error in 7.04
+
 for i = 1:length(D.channels.order)
     if ~ind(i)
-        Hpatch{i} = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cdeselect,...
-            'EdgeColor', 'none');
+        Hpatch{i} = patch(Xrec+Cpos(1,tmp(i)), Yrec+Cpos(2,tmp(i)), Cdeselect, 'EdgeColor', 'none');
     else
-        tmp = patch(Xrec+Cpos(1,D.channels.order(i)), Yrec+Cpos(2,D.channels.order(i)), Cselect,...
-            'EdgeColor', 'none');
+        Hpatch{i} = patch(Xrec+Cpos(1,tmp(i)), Yrec+Cpos(2,tmp(i)), Cselect, 'EdgeColor', 'none');        
     end
     Hpatch{i};
     xy = get(Hpatch{i}, 'Vertices');
-        Htext{i} = text(min(xy(:,1)), max(xy(:,2)), Cnames{D.channels.order(i)});
-        set(Htext{i}, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
+    Htext{i} = text(min(xy(:,1)), max(xy(:,2)), Cnames{D.channels.order(i)});
+    set(Htext{i}, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
 end
 axis square
 axis off

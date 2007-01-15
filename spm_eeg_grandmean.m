@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 710 2006-12-21 14:59:04Z stefan $
+% $Id: spm_eeg_grandmean.m 715 2007-01-15 16:26:36Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -98,10 +98,10 @@ fpd = fopen(fullfile(Do.path, Do.fnamedat), 'w');
 spm('Pointer', 'Watch'); drawnow;
 
 if isfield(D{1}, 'Nfrequencies');
-	Do.scale = zeros(length(D{1}.channels.eeg), 1, 1, D{1}.events.Ntypes);
+	Do.scale = zeros(D{1}.Nchannels, 1, 1, D{1}.events.Ntypes);
 	
 	for i = 1:D{1}.events.Ntypes
-		d = zeros(length(D{1}.channels.eeg), D{1}.Nfrequencies, D{1}.Nsamples);
+		d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
 		for k = 1:length(D)
 			d = d+squeeze(D{k}.data(D{k}.channels.eeg,:,:,i));
 		end
@@ -115,7 +115,7 @@ if isfield(D{1}, 'Nfrequencies');
 	
 else
 
-	Do.scale = zeros(length(D{1}.channels.eeg), 1, D{1}.Nevents);
+	Do.scale = zeros(D{1}.Nchannels, 1, D{1}.Nevents);
 	
     % how many different trial types and bad channels
     types = [];
@@ -126,7 +126,7 @@ else
     Ntypes = length(types);
     
     % for determining bad channels of the grandmean
-    w = zeros(length(D{1}.channels.eeg), Ntypes);
+    w = zeros(D{1}.Nchannels, Ntypes);
     
     % how many repetitons per trial type
     repl = zeros(1, Ntypes);
@@ -142,9 +142,9 @@ else
     else, Ibar = [1:Ntypes]; end
 
     for i = 1:Ntypes
-        d = zeros(length(D{1}.channels.eeg), D{1}.Nsamples);
+        d = zeros(D{1}.Nchannels, D{1}.Nsamples);
 
-        for j = 1:length(D{1}.channels.eeg)
+        for j = 1:D{1}.Nchannels
 
             for k = 1:Nfiles
                 if ~ismember(j, D{k}.channels.Bad)
@@ -216,5 +216,6 @@ else
     save(fullfile(D.path, D.fname), 'D');
 end
 
+spm_progress_bar('Clear');
 
 spm('Pointer', 'Arrow');

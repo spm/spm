@@ -252,6 +252,10 @@ function compute_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% make sure images are not flipped
+global defaults
+defaults.analyze.flip = 0;
+
 con_types = handles.con_types;
 D = handles.D;
 
