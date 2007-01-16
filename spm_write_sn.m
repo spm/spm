@@ -1,6 +1,6 @@
 function VO = spm_write_sn(V,prm,flags,extras)
 % Write Out Warped Images.
-% FORMAT VO = spm_write_sn(V,prm,flags,msk)
+% FORMAT VO = spm_write_sn(V,matname,flags,msk)
 % V         - Images to transform (filenames or volume structure).
 % matname   - Transformation information (filename or structure).
 % flags     - flags structure, with fields...
@@ -26,7 +26,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % NaNs.
 % _______________________________________________________________________
 %
-% FORMAT msk = spm_write_sn(V,prm,flags,'mask')
+% FORMAT msk = spm_write_sn(V,matname,flags,'mask')
 % V         - Images to transform (filenames or volume structure).
 % matname   - Transformation information (filename or structure).
 % flags     - flags structure, with fields...
@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 490 2006-03-31 17:31:26Z john $
+% $Id: spm_write_sn.m 716 2007-01-16 21:13:50Z karl $
 
 
 if isempty(V), return; end;

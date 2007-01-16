@@ -14,6 +14,12 @@ end
 
 % show electrodes
 %--------------------------------------------------------------------------
-if strcmp(D.inv{D.val}.method,'ECD') 
+if strcmp(D.inv{D.val}.method,'ECD')
+    
+    % SPM graphics figure
+    %----------------------------------------------------------------------
+    Fgraph = spm_figure('GetWin','Graphics');
+    spm_figure('Clear',Fgraph)
+
     spm_eeg_inv_displScEl(forward.head(end),forward.electrodes);
 end

@@ -1,149 +1,56 @@
-function [varargout] = spm_eeg_inv_checkmeshes(varargin);
+function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 
 %=======================================================================
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
-% FORMAT D = spm_eeg_inv_checkmeshes(S)
+% FORMAT [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(S)
 % Input:
 % S		    - input data struct (optional)
 % Output:
-% D			- data struct including the new files and parameters
+% h_ctx     - handle to cortex patch
+% h_skl     - handle to skull patch
+% h_slp     - handle to scalp patch
 %
-% FORMAT spm_eeg_inv_checkmeshes(Mcortex, Miskull, Mscalp);
-% Input :
-% Mcortex   - filename of the cortical mesh (.mat file containing faces and vertices variables)
-% Miskull   - inner-skull mesh
-% Mscalp    - scalp mesh
-%
-% FORMAT [h_ctx, h_skl, h_slp] = spm_eeg_inv_checkmeshes(Mcortex, Miskull, Mscalp);
-% Input :
-% Mcortex   - filename of the cortical mesh (.mat file containing faces and vertices variables)
-% Miskull   - inner-skull mesh
-% Mscalp    - scalp mesh
-%
-% Output :
-% h_ctx     - handle for cortex mesh
-% h_skl     - handle for inner-skull mesh
-% h_slp     - handle for scalp mesh
 %==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_checkmeshes.m 716 2007-01-16 21:13:50Z karl $
 
-spm_defaults
 
-Nmeshes = [1 1];
-
-if nargin <= 1
-
-    try
-        D = varargin{1};
-    catch
-        D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-        D = spm_eeg_ldata(D);
-    end
-
-    if ~isfield(D,'inv')
-        error(sprintf('no inverse structure has been created for this data set\n'));
-    end
-
-    try
-        val = D.val;
-    catch
-        val = length(D.inv);
-    end
-
-    if isempty(D.inv{val}.mesh.tess_ctx)
-        Mcortex = spm_select(1,'.mat','Select cortex mesh');
-        D.inv{val}.mesh.tess_ctx = Mcortex;
-    else
-        Mcortex = D.inv{val}.mesh.tess_ctx;
-    end
-
-    if isempty(D.inv{val}.mesh.tess_iskull)
-        try
-            Miskull = spm_select(1,'.mat','Select skull mesh');
-            D.inv{val}.mesh.tess_iskull = Miskull;
-        catch
-            Nmeshes(1) = 0;
-        end
-    else
-        Miskull = D.inv{val}.mesh.tess_iskull;
-    end
-
-    if isempty(D.inv{val}.mesh.tess_scalp)
-        try
-            Mscalp = spm_select(1,'.mat','Select scalp mesh');
-            D.inv{val}.mesh.tess_scalp = Mscalp;
-        catch
-            Nmeshes(2) = 0;
-        end
-    else
-        Mscalp = D.inv{val}.mesh.tess_scalp;
-    end
-
-elseif nargin == 3
-
-    Mcortex = varargin{1};
-    Miskull = varargin{2};
-    Mscalp  = varargin{3};
-
-else
-
-    error(sprintf('Wrong input arguments\n'));
-
+% initialise
+%--------------------------------------------------------------------------
+[D,val] = spm_eeg_inv_check(varargin{:});
+try
+    disp(D.inv{D.val}.mesh);
+    Mctx  = D.inv{val}.mesh.tess_ctx;
+    Mskl  = D.inv{val}.mesh.tess_iskull;
+    Mslp  = D.inv{val}.mesh.tess_scalp;
+catch
+    warndlg('please create meshes')
+    return
 end
 
-
-F = findobj('Tag', 'Graphics');
-
-if isempty(F)
-    F = spm_figure;
-end
-
-figure(F);
-clf
+% SPM graphics figure
+%--------------------------------------------------------------------------
+Fgraph  = spm_figure('GetWin','Graphics'); spm_figure('Clear',Fgraph)
 
 % Cortex Mesh Display
-variabl = load(Mcortex);
-face    = getfield(variabl,'face');
-vert    = getfield(variabl,'vert');
-h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
+%--------------------------------------------------------------------------
+h_ctx   = patch('vertices',Mctx.vert,'faces',Mctx.face,'EdgeColor','b','FaceColor','b');
 hold on
 
 % Inner-skull Mesh Display
-if Nmeshes(1)
-    variabl = load(Miskull);
-    face    = getfield(variabl,'face');
-    vert    = getfield(variabl,'vert');
-    h_skl   = patch('vertices',vert,'faces',face,'EdgeColor','r','FaceColor','none');
-end
+%--------------------------------------------------------------------------
+h_skl   = patch('vertices',Mskl.vert,'faces',Mskl.face,'EdgeColor','r','FaceColor','none');
 
 % Scalp Mesh Display
-if Nmeshes(2)
-    variabl = load(Mscalp);
-    face    = getfield(variabl,'face');
-    vert    = getfield(variabl,'vert');
-    h_slp   = patch('vertices',vert,'faces',face,'EdgeColor','k','FaceColor','none');
-end
+%--------------------------------------------------------------------------
+h_slp   = patch('vertices',Mslp.vert,'faces',Mslp.face,'EdgeColor',[1 .7 .55],'FaceColor','none');
 
-
-axis equal;
-axis off;
-set(gcf,'color','white');
+axis image off;
 view(-135,45);
-zoom(1.5)
 rotate3d
 drawnow
+hold off
 
-
-if nargout == 1
-    varargout{1} = D;
-elseif nargout == 3
-    varargout{1} = h_ctx;
-    varargout{2} = h_skl;
-    varargout{3} = h_slp;
-else
-    return
-end

@@ -11,7 +11,7 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_dcm_priors.m 222 2005-09-07 16:49:37Z karl $
+% $Id: spm_dcm_priors.m 716 2007-01-16 21:13:50Z karl $
  
  
 % number of regions
@@ -49,8 +49,8 @@ pE    = [log(b); A(:); B(:); C(:)];
  
 % HEMODYNAMIC PRIORS
 %==========================================================================
-% P(1) - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(2) ~ 1sec
-% P(2) – auto-regulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(3)) ~ 10 sec
+% P(1) - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(1) ~ 1sec
+% P(2) – auto-regulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(2)) ~ 10 sec
 % P(3) - transit time               (t0)  ~ 1 sec
 % P(4) - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
 % P(5) - resting oxygen extraction  (E0)  ~ range 20 - 50%

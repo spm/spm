@@ -23,7 +23,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,hC);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 666 2006-10-25 14:05:00Z karl $
+% $Id: spm_reml.m 716 2007-01-16 21:13:50Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ try, hP = inv(hC);  catch, hP = 1/4; end
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
-    X = sparse(length(Q{1}),1);
+    X = sparse(length(Q{1}),0);
 else
     X = orth(full(X));
 end

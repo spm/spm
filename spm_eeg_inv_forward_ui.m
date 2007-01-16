@@ -1,34 +1,41 @@
-function D = spm_eeg_inv_forward_ui(S)
+function D = spm_eeg_inv_forward_ui(varargin)
 
-%=======================================================================
+%==========================================================================
 % Forward Solution user-interface routine
 % commands the forward computation for either EEG or MEG data
 % and calls for various types of solutions using BrainStorm functions
 % as well as a realistic sphere solution (for EEG).
 %
-% FORMAT D = spm_eeg_inv_forward_ui(S)
+% FORMAT D = spm_eeg_inv_forward_ui(D,val)
 % Input:
-% S		    - input data struct (optional)
+% D		    - input data struct (optional)
 % Output:
 % D			- same data struct including the forward solution files and variables
-%=======================================================================
+%==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_forward_ui.m 716 2007-01-16 21:13:50Z karl $
 
-spm_defaults
+% initialise
+%--------------------------------------------------------------------------
+[D,val] = spm_eeg_inv_check(varargin{:});
 
-try
-    D = S; 
-    clear S
-catch
-    D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-	D = spm_eeg_ldata(D);
+% get method
+%--------------------------------------------------------------------------
+if strcmp(D.modality,'MEG')
+    method = 'Imaging';
+else
+    method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
+end
+D.inv{D.val}.method = method;
+
+% compute forward model
+%==========================================================================
+if strcmp(method,'Imaging')
+    D = spm_eeg_inv_BSTfwdsol(D);
+else
+    D = spm_eeg_inv_elec_Rsph_ui(D);
 end
 
-D = spm_eeg_inv_BSTfwdsol(D);
-
-save(fullfile(D.path,D.fname),'D');
-
-return
+fprintf('Foward model complete - thank you\n')

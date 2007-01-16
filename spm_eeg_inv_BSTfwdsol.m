@@ -1,117 +1,77 @@
-function D = spm_eeg_inv_BSTfwdsol(S)
+function D = spm_eeg_inv_BSTfwdsol(varargin)
 
 %=======================================================================
-% FORMAT D = spm_eeg_inv_BSTparameters(S)
+% FORMAT D = spm_eeg_inv_BSTparameters(D,val)
 %
 % This function defines the required options for running the BrainStorm
 % forward solution (bst_headmodeler.m)
 %
-% S                 - input struct
+% D                - input struct
 % (optional) fields of S:
-% D                     - filename of EEG/MEG mat-file
+% D                - filename of EEG/MEG mat-file
 %
 % Output:
-% D                     - EEG/MEG data struct (also written to files)
+% D                - EEG/MEG struct with filenames of Gain matrices)
 %
 % See also help lines in bst_headmodeler.m
-%=======================================================================
+%==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_BSTfwdsol.m 716 2007-01-16 21:13:50Z karl $
 
-spm_defaults
+% initialise
+%--------------------------------------------------------------------------
+[D,val] = spm_eeg_inv_check(varargin{:});
+OPTIONS = spm_bst_headmodeler;
 
-
-try
-    D = S;
-    clear S
-catch
-    D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-    D = spm_eeg_ldata(D);
-end
-
-try
-    val = D.val;
-catch
-    val = length(D.inv);
-end
-
-UserDB(1).STUDIES  = D.path;
-UserDB(1).SUBJECTS = D.path;
-UserDB(1).FILELIST = '';
-StudyFile = '';
-% Store this information in Matlab's preferences
-setpref('BrainStorm','UserDataBase',UserDB);
-setpref('BrainStorm','iUserDataBase',1);
-
-
-OPTIONS = bst_headmodeler;
-
-% Forward approach
-OPTIONS.HeadModelFile = '';
-
-if ~isfield(D,'modality')
-    ModFlag = spm_input('Data type?','+1','EEG|MEG',[1 2]);
-else
-    if isempty(D.modality)
-        ModFlag = spm_input('Data type?','+1','EEG|MEG',[1 2]);
-    else
-        ModFlag = D.modality;
-    end
-
-end
-
-switch ModFlag
-    case 1
-        D.modality = 'EEG';
-    case 2
-        D.modality = 'MEG';
-end
-
+% Forward solution
 % NB: overlapping_spheres.m does not exist; so it has been removed as an option
 %--------------------------------------------------------------------------
-if D.modality == 'MEG'
+try
+    OPTIONS.Method = D.inv{val}.forward.method;
+catch
+    if D.modality == 'MEG'
+        str        = {'spherical model'};
+        switch spm_input('Forward model','+1','m',str,[1]);
+            case 1
+                OPTIONS.Method = 'meg_sphere';
+            case 2
+                OPTIONS.Method = 'meg_os';
+        end
 
-    str        = {'1-sphere'};
-    MethodFlag = spm_input('Forward model','+1','m',str,[1]);
-    switch MethodFlag
-        case 1
-            OPTIONS.Method = 'meg_sphere';
-        case 2
-            OPTIONS.Method = 'meg_os';
-    end
-elseif D.modality == 'EEG'
+    elseif D.modality == 'EEG'
 
-    str        = {'1-sphere','3-sphere','3-sphere (Berg)'};
-    MethodFlag = spm_input('Forward model','+1','m',str,[1 2 3]);
-    switch MethodFlag
-        case 1
-            OPTIONS.Method = 'eeg_sphere';
-        case 2
-            OPTIONS.Method = 'eeg_3sphere';
-        case 3
-            OPTIONS.Method = 'eeg_3sphereBerg';
-        case 4
-            OPTIONS.Method = 'eeg_os';
+        str        = {'3 {Berg}','or 1 sphere',};
+        switch spm_input('Forward model','+1','b',str,[2 1]);
+            case 1
+                OPTIONS.Method = 'eeg_sphere';
+            case 2
+                OPTIONS.Method = 'eeg_3sphereBerg';
+            case 3
+                OPTIONS.Method = 'meg_os';
+        end
     end
 end
 
-
 % I/O functions
-[path,nam,ext] = fileparts(D.inv{val}.mesh.sMRI);
-OPTIONS.ImageGridFile = [nam '_BSTGainMatrix.bin'];
-OPTIONS.ImageGridBlockSize = D.inv{val}.mesh.Ctx_Nv + 1;
-OPTIONS.FileNamePrefix = '';
-OPTIONS.Verbose = '0';
-
+%--------------------------------------------------------------------------
+Nvert                      = length(D.inv{val}.mesh.tess_ctx.vert);
+[path,nam,ext]             = fileparts(D.inv{val}.mesh.sMRI);
+OPTIONS.ImageGridBlockSize = Nvert + 1;
+OPTIONS.Verbose            = 0;
 
 % Head Geometry (create tesselation file)
-TessName = fullfile(D.path, [nam '_tesselation.mat']);
+%--------------------------------------------------------------------------
+vert = D.inv{val}.mesh.tess_ctx.vert;
+face = D.inv{val}.mesh.tess_ctx.face;
 
+% normals
+%--------------------------------------------------------------------------
+normal = spm_eeg_inv_normals(vert,face);
 
-load(D.inv{val}.mesh.tess_ctx);
 % convert positions into m
+%--------------------------------------------------------------------------
 if max(max(vert)) > 1 % non m
     if max(max(vert)) < 20 % cm
         vert = vert/100;
@@ -123,17 +83,20 @@ Comment{1}      = 'Cortex Mesh';
 Faces{1}        = face;
 Vertices{1}     = vert';
 Curvature{1}    = [];
-VertConn{1}     = cell(D.inv{val}.mesh.Ctx_Nv,1);
-for i = 1:D.inv{val}.mesh.Ctx_Nv
+VertConn{1}     = cell(Nvert,1);
+for i = 1:Nvert
     [ii,jj]     = find(face == i);
     voi = setdiff(unique(face(ii,:)),i);
     voi = reshape(voi,1,length(voi));
     VertConn{1}{i} = voi;
 end
 
-if ~isempty(D.inv{val}.mesh.tess_iskull)
-    load(D.inv{val}.mesh.tess_iskull);
+if isfield(D.inv{val}.mesh,'tess_iskull')
+    
     % convert positions into m
+    %----------------------------------------------------------------------
+    vert         = D.inv{val}.mesh.tess_iskull.vert;
+    face         = D.inv{val}.mesh.tess_iskull.face;
     if max(max(vert)) > 1 % non m
         if max(max(vert)) < 20 % cm
             vert = vert/100;
@@ -141,19 +104,22 @@ if ~isempty(D.inv{val}.mesh.tess_iskull)
             vert = vert/1000;
         end
     end
-    Comment{2}      = 'Inner Skull Mesh';
-    Faces{2}        = face;
-    Vertices{2}     = vert';
-    Curvature{2}    = [];
-    VertConn{2}     = [];
-    indx = 3;
+    Comment{2}   = 'Inner Skull Mesh';
+    Faces{2}     = face;
+    Vertices{2}  = vert';
+    Curvature{2} = [];
+    VertConn{2}  = [];
+    indx         = 3;
 else
-    indx = 2;
+    indx         = 2;
 end
 
-if ~isempty(D.inv{val}.mesh.tess_scalp)
-    load(D.inv{val}.mesh.tess_scalp);
+if isfield(D.inv{val}.mesh,'tess_scalp')
+    
     % convert positions into m
+    %----------------------------------------------------------------------
+    vert         = D.inv{val}.mesh.tess_scalp.vert;
+    face         = D.inv{val}.mesh.tess_scalp.face;
     if max(max(vert)) > 1 % non m
         if max(max(vert)) < 20 % cm
             vert = vert/100;
@@ -161,50 +127,37 @@ if ~isempty(D.inv{val}.mesh.tess_scalp)
             vert = vert/1000;
         end
     end
-    Comment{indx}      = 'Scalp Mesh';
-    Faces{indx}        = face;
-    Vertices{indx}     = vert';
-    Curvature{indx}    = [];
-    VertConn{indx}     = [];
+    Comment{indx}   = 'Scalp Mesh';
+    Faces{indx}     = face;
+    Vertices{indx}  = vert';
+    Curvature{indx} = [];
+    VertConn{indx}  = [];
 
-    OPTIONS.Scalp.FileName = TessName;
     OPTIONS.Scalp.iGrid    = indx;
 
     % compute the best fitting sphere
-    %     Iz = find( vert(:,3) > (max(vert(:,3)) + 2*min(vert(:,3)))/3 );
-    Iz = 1:length(vert);
-    if isempty(Iz)
-        disp('Error in defining the Scalp Mesh');
-        return
-    end
-    [Center,Radius]    = spm_eeg_inv_BestFitSph(vert(Iz,:));
+    %----------------------------------------------------------------------
+    [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
     OPTIONS.HeadCenter = Center;
     OPTIONS.Radii      = [.88 .93 1]*Radius;
 end
-clear vert face norm;
 
-
-D.inv{val}.forward.bst_tess = TessName;
-if spm_matlab_version_chk('7.1')>=0
-    save(D.inv{val}.forward.bst_tess,'-V6','Comment','Curvature','Faces','VertConn','Vertices');
-else
-    save(D.inv{val}.forward.bst_tess,'Comment','Curvature','Faces','VertConn','Vertices');
-end
+OPTIONS.Cortex.ImageGrid.Comment   = Comment;
+OPTIONS.Cortex.ImageGrid.Curvature = Curvature;
+OPTIONS.Cortex.ImageGrid.Faces     = Faces;
+OPTIONS.Cortex.ImageGrid.VertConn  = VertConn;
+OPTIONS.Cortex.ImageGrid.Vertices  = Vertices;
 
 % Sensor Information
-OPTIONS.ChannelFile = [nam '_BSTChannelFile.mat'];
+%--------------------------------------------------------------------------
 OPTIONS.ChannelType = D.modality;
-if ~isempty(D.inv{val}.datareg.sens_coreg)
-    ChannelLoc = load(D.inv{val}.datareg.sens_coreg);
-else
-    ChannelLoc = load(spm_select(1, '.mat', 'Sensor coordinates in MRI native space'));
-end
-FldName             = fieldnames(ChannelLoc);
-sens                = getfield(ChannelLoc,FldName{1})';
+sens     = D.inv{val}.datareg.sens_coreg;
 if length(sens) ~= size(sens,2) & length(sens) > 3
     sens = sens';
 end
+
 % convert positions into m
+%--------------------------------------------------------------------------
 if max(max(sens)) > 1 % non m
     if max(max(sens)) < 20 % cm
         sens = sens/100;
@@ -212,16 +165,11 @@ if max(max(sens)) > 1 % non m
         sens = sens/1000;
     end
 end
+
 % sensor orientations
+%--------------------------------------------------------------------------
 if (D.modality == 'MEG')
-    if isempty(D.inv{val}.datareg.sens_orient)
-        D.inv{val}.datareg.sens_orient = spm_select(1, '.mat', 'Sensor orientations');
-    end
-    ChannelOrient = load(D.inv{val}.datareg.sens_orient);
-    if ~isempty(ChannelOrient)
-        FldName       = fieldnames(ChannelOrient);
-        orientation   = getfield(ChannelOrient,FldName{1})';
-    end
+    orientation  = D.inv{val}.datareg.sens_orient_coreg';
 end
 for i = 1:length(sens)
     Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
@@ -232,79 +180,37 @@ for i = 1:length(sens)
         Channel(i).Orient = [];
     end
     Channel(i).Comment = num2str(i);
-    Channel(i).Weight = 1;
-    Channel(i).Type = D.modality;
-    Channel(i).Name = [D.modality ' ' num2str(i)];
+    Channel(i).Weight  = 1;
+    Channel(i).Type    = D.modality;
+    Channel(i).Name    = [D.modality ' ' num2str(i)];
 end
-
-save(fullfile(D.path,OPTIONS.ChannelFile),'Channel');
-
-if strcmp(D.modality,'EEG')
-    OPTIONS.ChannelLoc  = [];
-end
-clear sens
-
-D.inv{val}.forward.bst_channel = fullfile(D.path,OPTIONS.ChannelFile);
-
-% Set OPTIONS.EEGRef here !
+OPTIONS.Channel = Channel;
 
 
-% Source Model
-OPTIONS.SourceModel         = -1; % current dipole model
-OPTIONS.Cortex.FileName     = TessName;
-OPTIONS.Cortex.iGrid        = 1;
-load(D.inv{val}.mesh.tess_ctx);
-% convert positions into m
-if max(max(vert)) > 1 % non m
-    if max(max(vert)) < 20 % cm
-        vert = vert/100;
-    elseif max(max(vert)) < 200 % mm
-        vert = vert/1000;
-    end
-end
-OPTIONS.GridLoc             = vert';
-OPTIONS.GridOrient          = normal';
-clear vert face norm
-OPTIONS.ApplyGridOrient     = 1;    % 1 dipole per location (0 : 3 dipoles per location)
-OPTIONS.VolumeSourceGrid    = 0;
-OPTIONS.SourceLoc           = OPTIONS.GridLoc;
-OPTIONS.SourceOrient        = OPTIONS.GridOrient;
-
+% Set OPTIONS: Source Model
+%--------------------------------------------------------------------------
+OPTIONS.SourceModel      = -1; % current dipole model
+OPTIONS.Cortex.iGrid     =  1;
+OPTIONS.GridLoc          = Vertices{1};
+OPTIONS.GridOrient       = normal';
+OPTIONS.ApplyGridOrient  = 1;
+OPTIONS.VolumeSourceGrid = 0;
+OPTIONS.SourceLoc        = OPTIONS.GridLoc;
+OPTIONS.SourceOrient     = OPTIONS.GridOrient;
 
 % Forward computation
-[G,OPTIONS] = bst_headmodeler(OPTIONS);
-% PCA of the gain matrix
-[Gnorm,VectP,ValP] = spm_eeg_inv_PCAgain(G);
+%--------------------------------------------------------------------------
+[G,Gxyz] = spm_bst_headmodeler(OPTIONS);
 
+% Save
+%--------------------------------------------------------------------------
+D.inv{val}.forward.gainmat = fullfile(D.path,[nam '_SPMgainmatrix_' num2str(val) '.mat']);
+D.inv{val}.forward.gainxyz = fullfile(D.path,[nam '_SPMgainmatxyz_' num2str(val) '.mat']);
 
-% Remove big and useless matrices from the bst_otptions structure
-OPTIONS.Channel       = [];
-OPTIONS.ChannelLoc    = [];
-OPTIONS.ChannelOrient = [];
-OPTIONS.GridOrient    = [];
-OPTIONS.SourceLoc     = [];
-OPTIONS.SourceOrient  = [];
-OPTIONS.GridLoc       = [];
-
-
-% Savings
-D.inv{val}.forward.bst_options = OPTIONS;
-D.inv{val}.forward.gainmat     = fullfile(D.path,[nam '_SPMgainmatrix_' num2str(val) '.mat']);
-D.inv{val}.forward.pcagain     = fullfile(D.path,[nam '_SPMgainmatrix_pca_' num2str(val) '.mat']);
 if spm_matlab_version_chk('7.1') >=0
     save(D.inv{val}.forward.gainmat,'-V6','G');
+    save(D.inv{val}.forward.gainxyz,'-V6','Gxyz');
 else
     save(D.inv{val}.forward.gainmat,'G');
-end
-if spm_matlab_version_chk('7.1') >=0
-    save(D.inv{val}.forward.pcagain,'-V6','Gnorm','VectP','ValP');
-else
-    save(D.inv{val}.forward.pcagain,'Gnorm','VectP','ValP');
-end
-clear G Gnorm VectP ValP
-
-if spm_matlab_version_chk('7.1') >= 0
-    save(fullfile(D.path, D.fname), '-V6', 'D');
-else
-    save(fullfile(D.path, D.fname), 'D');
+    save(D.inv{val}.forward.gainxyz,'Gxyz');
 end

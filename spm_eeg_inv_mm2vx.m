@@ -7,19 +7,15 @@ function [pt_vx] = spm_eeg_inv_mm2vx(pt_mm,M);
 % 'M' is the 4x4 affine transformation matrix : from vx to mm
 %=======================================================================
 
-% pt_mm = varargin{1};
-% M = varargin{2};
-	
 if size(pt_mm,1)==3
-    Npt = size(pt_mm,2);
+    Npt   = size(pt_mm,2);
 elseif size(pt_mm,2)==3;
     pt_mm = pt_mm';
-    Npt = size(pt_mm,2);
+    Npt   = size(pt_mm,2);
 else
-    error('Wrong vector format')
+    error('Wrong format')
 end
 	
-pt_vx = M\[pt_mm;ones(1,Npt)];
+pt_vx = M\[pt_mm; ones(1,Npt)];
 pt_vx = pt_vx(1:3,:);
 
-% varargout{1} = pt_vx(1:3,:);

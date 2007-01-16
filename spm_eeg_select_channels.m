@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 715 2007-01-15 16:26:36Z stefan $
+% $Id: spm_eeg_select_channels.m 716 2007-01-16 21:13:50Z karl $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -81,7 +81,7 @@ Xrec = [-0.01 0.01 0.01 -0.01];
 Yrec = [-0.01 -0.01 0.01 0.01];
 
 Hpatch = cell(1, Nchannels);
-Htext = cell(1, Nchannels);
+Htext  = cell(1, Nchannels);
 
 Cselect = [1 1 1];
 Cdeselect = [0.5 0.5 0.5];

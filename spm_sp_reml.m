@@ -35,8 +35,8 @@ try, K; catch, K  = 256; end
 
 % hyperpriors; if not specified
 %--------------------------------------------------------------------------
-try, hE;            catch, hE = 0;   end
-try, hP = inv(hC);  catch, hP = 1/4; end
+try, hE;            catch, hE = 0;                 end
+try, hP = inv(hC);  catch, hP = 1/4; hC = inv(hP); end
 
 % call spm_reml as default
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ end
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
-    X = sparse(length(Q{1}),1);
+    X = sparse(length(Q{1}),0);
 else
     X = orth(full(X));
 end
@@ -107,6 +107,7 @@ end
 
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
+XCXiC = sparse(0);
 for k = 1:K
 
     % compute current estimate of covariance
@@ -121,7 +122,7 @@ for k = 1:K
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
     iCX   = iC*X;
-    Cq    = inv(X'*iCX);
+    Cq    = pinv(X'*iCX);
     XCXiC = X*Cq*iCX';
 
     % M-step: ReML estimate of hyperparameters
@@ -151,7 +152,7 @@ for k = 1:K
     
     % update regulariser
     %----------------------------------------------------------------------
-    L     = speye(m,m)*norm(dFdhh,1)/256;
+    L     = speye(m,m)*norm(dFdhh,1)/512;
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------

@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 715 2007-01-15 16:26:36Z stefan $
+% $Id: spm_eeg_filter.m 716 2007-01-16 21:13:50Z karl $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -57,13 +57,12 @@ if strcmpi(D.filter.type,'butterworth')
 end
 
 try
-    D.filter.band = S.filter.band;
+    D.filter.band  = S.filter.band ;
 catch
     D.filter.band = cell2mat(...
         spm_input('filterband', '+1', 'm',...
         'lowpass|highpass|bandpass|stopband',...
-        {'low','high','bandpass','stop'}));
-    
+         {'low','high','bandpass','stop'}));
 end
 
 

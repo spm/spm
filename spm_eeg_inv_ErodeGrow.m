@@ -3,7 +3,7 @@ function varargout = spm_eeg_inv_ErodeGrow(varargin)
 %=======================================================================
 % FORMAT [Iout/Vout] = spm_eeg_inv_ErodeGrow(Iin/Vin,ne,ng,thr_im)
 % 
-% It erodes then grows an image after thresholding it.
+% This routine erodes then grows an image after thresholding it.
 % Inputs :
 % Iin       - file name of image to erode/grow
 % Vin       - full volume of image (as loaded by spm_read_vols)
@@ -24,7 +24,7 @@ function varargout = spm_eeg_inv_ErodeGrow(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ErodeGrow.m 325 2005-11-29 16:49:24Z john $
+% $Id: spm_eeg_inv_ErodeGrow.m 716 2007-01-16 21:13:50Z karl $
 
 fl_rvol = 0; % Need to load (1) or not (0) the volume from a file
 if nargin<2
@@ -71,13 +71,6 @@ if length(varargin)==4
 else
     disp('Using default erode/grow parameters: ne=1, ng=1, thr=.1 !')
 end
-% p1 = uint8(zeros(1,dim(2),dim(3)));
-% p2 = uint8(zeros(dim(1),1,dim(3)));
-% p3 = uint8(zeros(dim(1),dim(2),1));
-% 
-% p1_3 = uint8(zeros(1,dim(2),dim(3)-1));
-% p2_1 = uint8(zeros(dim(1)-1,1,dim(3)));
-% p3_2 = uint8(zeros(dim(1),dim(2)-1,1));
 
 p1 = zeros(1,dim(2),dim(3));
 p2 = zeros(dim(1),1,dim(3));
@@ -87,9 +80,8 @@ p1_3 = zeros(1,dim(2),dim(3)-1);
 p2_1 = zeros(dim(1)-1,1,dim(3));
 p3_2 = zeros(dim(1),dim(2)-1,1);
 
-% Erosion
-% val = uint8(val>thr_im*double(max(val(:)))) ; 
-val = val>thr_im*double(max(val(:))); 
+% Erosion 
+val  = val>thr_im*double(max(val(:))); 
 Nbin = length(find(val(:)));
 fprintf('\tOriginal number of voxels %d .\n',Nbin)
 for i=1:ne
@@ -109,8 +101,7 @@ for i=1:ne
         + cat(3,p3,cat(1,val(2:end,:,1:end-1),p1_3)) ...
         + cat(3,cat(1,p1_3,val(1:end-1,:,1:end-1)),p3) ...
         + cat(3,cat(1,val(2:end,:,1:end-1),p1_3),p3) ;
-%     val = uint8(temp>17) ;
-    val = temp>17;
+    val  = temp > 17;
     Nbin = length(find(val(:)));
     fprintf('\tErosion step %d , %d voxels left.\n',i,Nbin)
 end
@@ -133,17 +124,14 @@ for i=1:ng
         + cat(3,p3,cat(1,val(2:end,:,1:end-1),p1_3)) ...
         + cat(3,cat(1,p1_3,val(1:end-1,:,1:end-1)),p3) ...
         + cat(3,cat(1,val(2:end,:,1:end-1),p1_3),p3) ;
-%     val = uint8(temp>1) ;
-    val = temp>1;
+    val  = temp>1;
     Nbin = length(find(val(:)));
     fprintf('\tGrowing step %d , %d voxels left.\n',i,Nbin)
 end
 
 if cr_file
-    Vout        = Vin;
-%     val         = val.*uint8(255);
-%     Vout.pinfo  = [1/255 0 0]';
-    Vout.pinfo  = [1 0 0]';
+    Vout       = Vin;
+    Vout.pinfo = [1 0 0]';
     if nIin==1
         Vout.fname = [spm_str_manip(Vin.fname,'r'),'_e',num2str(ne),'g',num2str(ng),'.img'];
     else

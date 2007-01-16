@@ -131,7 +131,7 @@ uicontrol(Fig,'Style','togglebutton','Position',[95 220 125 20].*WS,...
 %--------------------------
 uicontrol(Fig,'Style','Frame','Position',[300 25 180 325].*WS);
 sdip.hdl.hcl = uicontrol(Fig,'Style','pushbutton','Position',[310 320 100 20].*WS, ...
-        'String','Seeds/solutions displayed','CallBack','spm_eeg_inv_ecd_DrawDip(''ClearAll'')');
+        'String','Clear all','CallBack','spm_eeg_inv_ecd_DrawDip(''ClearAll'')');
 
 sdip.hdl.hseed=zeros(sdip.n_seeds,1);
 for ii=1:sdip.n_seeds

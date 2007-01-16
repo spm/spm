@@ -1,22 +1,20 @@
-function D = spm_eeg_inv_elec_Rsph_ui(S)
+function D = spm_eeg_inv_elec_Rsph_ui(varargin)
 
 % Deals with the solution of the forward problem:
 % There are 2 seperate cases:
 % 1. individual head model, based on the subject anatomy
-% 2. standard head model, based on the template
+% 2. standard head model,   based on the template
 %
 % For an individual head model :
-% - project the sensor location, on the scalp surface (EEG), not sure what
-% to do for MEG...
+% - project the sensor location, on the scalp surface (EEG)
 % - Estimate the best fitting spheres, and prepare the realistic sphere
 % approach
 % For a standard head model :
 % - load the head model built on the template in MNI space (actually the single subject
 % canonical image)
 % -select your standard electrode setup
-%
-% To do all this, I use bits of a routine previously written for the DipFit
-% toolbox. I try to render things a bit more coherent...
+% This is not currently implemented but see prgrmamming notes at the end of
+% this script
 %
 % FORMAT D = spm_eeg_inv_elec_Rsph_ui(S)
 % Input:
@@ -29,51 +27,37 @@ function D = spm_eeg_inv_elec_Rsph_ui(S)
 % Christophe Phillips
 % $Id$
 
-if nargin == 0
-    D = spm_eeg_ldata;
-elseif nargin == 1
-    D = S;
-else
-    error(sprintf('Trouble reading the data file\n'));
-end
+% initialise
+%--------------------------------------------------------------------------
+[D,val] = spm_eeg_inv_check(varargin{:});
 
 % compute forward model
-%__________________________________________________________________________
+%==========================================================================
 Mesh    = D.inv{D.val}.mesh;
-Reg     = load(D.inv{D.val}.datareg.sens_coreg);
-el_name = D.channels.name(D.channels.eeg);
+Reg     = D.inv{D.val}.datareg.sens_coreg;
+el_name = D.channels.name(setdiff(D.channels.eeg, D.channels.Bad));
 
-if strcmp(questdlg('Use canonical mesh'),'Yes')
+
+% Enforce the use of a canonical mesh; noting that spm_eeg_inv_model could 
+% generate new meshes at this stage.
+%--------------------------------------------------------------------------
+if 1 % strcmp(questdlg('Use canonical mesh'),'Yes')
     
-    % create head structure from previous tesselation  - inner skull
+    % create head structure from previous tesselation  - skull
     %----------------------------------------------------------------------
-    Vol              = spm_vol(Mesh.msk_iskull);
-    Scalp            = load(Mesh.tess_iskull);
-
-    [ctr, Centre]    = spm_eeg_inv_model('CtrBin',Mesh.msk_iskull);
-
-    head.XYZmm       = Scalp.vert';
-    head.tri         = Scalp.face';
-    head.nr          = [Mesh.Iskull_Nv Mesh.Iskull_Nf];
-    head.M           = Vol.mat;
-    head.info.str    = 'Tess. inner skull';
-    head.info.bin_fn = Vol.fname;
-    head.Centre      = Centre;
+    Tess             = Mesh.tess_iskull;
+    head.XYZmm       = Tess.vert';
+    head.tri         = Tess.face';
+    head.nr          = [length(Tess.vert) length(Tess.face)];
+    head.Centre      = [0 -20 0];
     model.head       = head;
 
     % create head structure from previous tesselation  - scalp
     %----------------------------------------------------------------------
-    Vol              = spm_vol(Mesh.msk_scalp);
-    Scalp            = load(Mesh.tess_scalp);
-    [ctr, Centre]    = spm_eeg_inv_model('CtrBin',Mesh.msk_scalp);
-
-    head.XYZmm       = Scalp.vert';
-    head.tri         = Scalp.face';
-    head.nr          = [Mesh.Scalp_Nv Mesh.Scalp_Nf];
-    head.M           = Vol.mat;
-    head.info.str    = 'Tess. outer scalp';
-    head.info.bin_fn = Vol.fname;
-    head.Centre      = Centre;
+    Tess             = Mesh.tess_scalp;
+    head.XYZmm       = Tess.vert';
+    head.tri         = Tess.face';
+    head.nr          = [length(Tess.vert) length(Tess.face)];
     model.head(2)    = head;
     
 else
@@ -85,19 +69,47 @@ end
 
 % Place the electrodes in the model
 %--------------------------------------------------------------------------
-[electrodes,f_el]    = spm_eeg_inv_model('Elec2Scalp',model.head(2), ...
-                       Reg.sensreg',el_name);
+model.electrodes     = spm_eeg_inv_model('Elec2Scalp',model.head(2),Reg',el_name);
+
+% set the sphere model
+%--------------------------------------------------------------------------
+model.spheres        = spm_eeg_inv_Rsph(model,[]);
+
+% Save in D
+%--------------------------------------------------------------------------
+D.inv{D.val}.forward = model;
+fprintf('Foward model complete - thank you\n')
+
+return
+
+
+
+
+
+% This code will constuct a forward model based on a standard head model & 
+% electrode placement.
+%==========================================================================
+
+% get standard head model
+%--------------------------------------------------------------------------
+load(fullfile(spm('dir'),'EEGcanonical','standard_head_model.mat'))
+
+% Input standard electrode sets
+%--------------------------------------------------------------------------
+[set_Nel,set_name]   = spm_eeg_inv_electrset;
+el_set               = spm_input('Which set of electrodes','+1','m',set_name);
+[el_sphc,el_name]    = spm_eeg_inv_electrset(el_set);
+flags_el.q_RealLoc   = 0;
+flags_el.q_RealNI    = 0;
+[electrodes,f_el]    = spm_eeg_inv_model('Elec2Scalp',model.head(end), ...
+                       el_sphc,el_name,flags_el);
 model.electrodes     = electrodes;
 model.flags.fl_elec  = f_el;
 
+
 % [re]-set the sphere model
 %--------------------------------------------------------------------------
-try, model           = rmfield(model,'spheres'); end
-[spheres,d,L,q,f_Rs] = spm_eeg_inv_Rsph(model,[]);
-model.spheres        = spheres;
-model.flags.fl_RealS = f_Rs;
-
-% Save in D
+model.spheres        = spm_eeg_inv_Rsph(model,[]);
 D.inv{D.val}.forward = model;
 
 

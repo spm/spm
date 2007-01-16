@@ -707,10 +707,6 @@ spm_dcm_erp_results(handles.DCM, Action);
 
 % -------------------------------------------------------------------------
 function initialise_Callback(hObject, eventdata, handles)
-% hObject    handle to initialise (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 [f,p]           = uigetfile('DCM*.mat','please select estimated DCM');
 DCM             = load(fullfile(p,f), '-mat');
 handles.DCM.M.P = DCM.DCM.Ep;

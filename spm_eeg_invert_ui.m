@@ -1,6 +1,6 @@
-function [D] = spm_eeg_invert_ui(D)
+function [D] = spm_eeg_invert_ui(varargin)
 % GUI for ReML inversion of forward model for EEG-EMG
-% FORMAT [D] = spm_eeg_invert_ui(D)
+% FORMAT [D] = spm_eeg_invert_ui(D,val)
 % ReML estimation of regularisation hyperparameters using the
 % spatio-temporal hierarchy implicit in EEG data
 % sets:
@@ -13,29 +13,18 @@ function [D] = spm_eeg_invert_ui(D)
 %__________________________________________________________________________
 
 
-% load data if necessary
+% initialise
 %--------------------------------------------------------------------------
-try
-    D;
-catch
-    D = load(spm_select(1, '.mat','Select EEG/MEG mat file'));
-    D = D.D;
-end
-
-try, val = D.val; catch, val = length(D.inv); end
-
-try
-    D.inv{val}.forward.gainmat;
-catch
-    warndlg('Please create forward model first');
-    return
-end
+[D,val] = spm_eeg_inv_check(varargin{:});
 
 % Get condition or trial type
 %--------------------------------------------------------------------------
 if D.events.Ntypes > 1
-    con = spm_input(sprintf('1:%i Condition or trial',D.events.Ntypes),'+1');
-
+    con   = 1:D.events.Ntypes;
+    for i = con;
+        str{i} = num2str(i);
+    end
+    con = spm_input('Condition or trial','+1','b',str,con,1);
     try
         D.events.types(con);
     catch
@@ -45,21 +34,28 @@ if D.events.Ntypes > 1
 else
     con = 1;
 end
-D.inv{val}.inverse.con = con;
+D.inv{val}.inverse.con    = con;
 
 % Type of analysis
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.type   = spm_input('Type of inversion','+1','MSP|LOR|IID');
+D.inv{val}.inverse.type   = ...
+        spm_input('Type of inversion','+1','MSP|LOR|IID');
 
 % D.inverse.smooth - smoothness of source priors (mm)
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.smooth = spm_input('Smoothness (0-1)','+1','r',0.5);
+D.inv{val}.inverse.smooth = ...
+        spm_input('Smoothness (0-1)','+1','0.2|0.4|0.6',[0.2 0.4 0.6],2);
 
 % Number of sparse priors
 %--------------------------------------------------------------------------
 if strcmp(D.inv{val}.inverse.type,'MSP')
     D.inv{val}.inverse.Np = ...
-    spm_input('Number of MSPs','+1','128|256|512',[128 256 512]);
+        spm_input('Number of MSPs','+1','128|192|256',[128 192 256]);
+
+    if spm_input('Restrict solutions','+1','yes|no',[1 0],2);
+        D.inv{val}.inverse.xyzr = ...
+        spm_input('x,y,z and radius of spheres (mm)','0','r',[0 0 0 64]);
+    end
 end
 
 % invert

@@ -12,7 +12,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % Here are the main options:
 % - Generate scalp/brain vol & tessalate
 % - Tessalate predefined binarized volume
-% - Project electrodes coord (spher or real) on scalp/brain surface
+% - Project electrodes coord (sphere or real) on scalp/brain surface
 % - Define realistic sphere model
 % - The 4 steps at once
 %
@@ -347,8 +347,6 @@ case 'init'
         else
             flag_te.br_only=0;
         end
-%         PMtempl = spm_select(1,'*Mtempl.mat','Affine normalisation matrix ?');
-% NOT VALID ANY MORE
         if ~isempty(PMtempl)
             load(PMtempl)
         else
@@ -473,7 +471,6 @@ case 'init'
     % Project electrodes coord (spher or real) on scalp/brain surface
 		fname_el = ['el_sphc',num2str(size(el_sphc,2))];
 		save(fname_el,'el_sphc','el_name');
-%         if gener==3, load(Pmod); end
         [electrodes,flags_el] = spm_eeg_inv_model('Elec2Scalp',model.head(end), ...
                                                 el_sphc,el_name,flags_el);
         model.electrodes = electrodes ;
@@ -745,8 +742,7 @@ case 'elec2scalp'
     fprintf('%c','='*ones(1,80)), fprintf('\n')
     surf   = varargin{1};
 	el_loc = varargin{2};
-	M      = surf.M;
-	Nel = size(el_loc,2);
+	Nel    = size(el_loc,2);
     if nargin<4
         [set_Nel,set_name] = spm_eeg_inv_electrset;
         try 
@@ -796,13 +792,13 @@ case 'elec2scalp'
 		el_rsc = el_rsc(1:3,:);
     else
         el_rsc = el_loc;
-        cNI = surf.Centre;
+        cNI    = surf.Centre;
     end
     % figure, plot3(el_rsc(1,:)',el_rsc(2,:)',el_rsc(3,:)','*'), axis equal, xlabel('axe x'),ylabel('axe y')
     
 	electrodes.vert = zeros(Nel,1);
 	electrodes.tri  = zeros(Nel,1);
-	pos_el_mm = zeros(3,Nel);
+	pos_el_mm       = zeros(3,Nel);
 
 	% projection of the el_rsc on the scalp surface.
 	% The "closest" point is detemined by the angle between the electrode_i
@@ -869,14 +865,13 @@ case 'elec2scalp'
 	end
 
 	electrodes.XYZmm = pos_el_mm;
-	electrodes.nr	= Nel ;
+	electrodes.nr	 = Nel ;
     if flags.br_only
         electrodes.info	= ['Electr loc projected on brain surface + ',num2str(flags.scbr_w),' mm'];
     else
     	electrodes.info	= 'Electrode location projected on scalp surface' ;
     end
-	electrodes.M 	= M ;
-    electrodes.names = el_name' ;
+    electrodes.names = el_name';
 
 	varargout{1} = electrodes;
     varargout{2} = flags;

@@ -402,7 +402,7 @@ function [varargout] = spm_bst_headmodeler(varargin);
 % Default options settings--------------------------------------------------------------------------------------------------
 DefaultMethod = {'meg_sphere','eeg_3sphereBerg'};
 
-ReducePatchScalpNVerts = 500; % Number of vertices the scalp tessellation will be reduced to in OS computations
+ReducePatchScalpNVerts = 500;
 BEM_defaults = struct(...
     'Basis','linear',...
     'Test','galerkin',...
@@ -445,20 +445,11 @@ Def_OPTIONS = struct(...
     'Verbose', 1 ...
     );
 
-SourceOrderString = {'Current Dipole',...
-    'Unvalid Order (was Magnetic Dipole Moment)',...
-    'Current Multipole Expansion',...
-    'Current Dipole Pairs',...
-    'Unvalid Order (was Magnetic Dipole Moment PAIRS)',...
-    'Current Multipole Expansion Pairs'};
-
 if nargin == 0
     varargout{1} = Def_OPTIONS;
     return
-elseif nargin == 1
-    OPTIONS = varargin{1};
 else
-    errordlg('Uncorrect input parameter type, please check the help file'), varargout = cell(nargout,1);
+    OPTIONS = varargin{1};
 end
 
 % Check field names of passed OPTIONS and fill missing ones with default values
@@ -486,7 +477,6 @@ if isempty(OPTIONS.Conductivity)
 end
 
 clear Def_OPTIONS
-
 
 if isempty(OPTIONS.HeadModelFile) & ~isempty(OPTIONS.ImageGridFile)
     % Force creation of a headmodel file
@@ -702,33 +692,25 @@ end
 
 if EEG
     if isempty(OPTIONS.EEGRef)
-
         % EEG Reference Channel
         EEGREFndx = good_channel(Channel,[],'EEG REF');
         if isempty(EEGREFndx) % Average EEG reference anyway
             [Channel(EEGndx).Comment] = deal('AVERAGE REF');
         end
-
     else % EEG Reference is specified
-
         switch(OPTIONS.EEGRef)
             case 'AVERAGE REF'
                 [Channel(:).Comment] = deal('AVERAGE REF');
-
             otherwise
-
                 EEGREFndx = strmatch(OPTIONS.EEGRef,char(Channel(:).Name));
-                if isempty(EEGREFndx)
+            if isempty(EEGREFndx)
                     errordlg(sprintf(...
                         'No channel named ''%s'' was found amongst available EEG channels. Cannot use it as a reference for EEG.',OPTIONS.EEGRef...
                         ))
-                    return
-                end
-
+                return
+            end
         end
-
     end
-
 end
 
 
@@ -1095,8 +1077,7 @@ if EEG
     end
 
 end
-% --------------------------------------------------------------------------------------------------------
-
+%--------------------------------------------------------------------------
 DIMS = [3 12]; % number of columns for each parametric source model: Current Dipole / Current Multipole
 HeadModel.Param = Param;
 HeadModel.Function = Function;
@@ -1122,7 +1103,7 @@ if ~isempty(OPTIONS.Cortex), % subject has cortical vertices as source supports
     try
         ImageGrid = load(fullfile(User.SUBJECTS,OPTIONS.Cortex.FileName),'Comment','Vertices');
     catch
-        ImageGrid = load(OPTIONS.Cortex.FileName,'Comment','Vertices');
+        ImageGrid = OPTIONS.Cortex.ImageGrid;
     end
 
     if ~isfield(OPTIONS.Cortex,'iGrid')
@@ -1161,92 +1142,77 @@ if ~isempty(OPTIONS.Cortex)
     OPTIONS.Cortex.Name  = ImageGrid.Comment{OPTIONS.Cortex.iGrid};
 end
 
-%for i = 1 % CHEAT - Dipoles only here
+
 for Order = OPTIONS.SourceModel % Compute gain matrices for each requested source models    (-1 0 1)
 
     i = 1; % Index to cell in headmodel cell arrays (MMII convention)
 
     switch(Order)
         case -1
-            SourceOrderString = 'CD'; % Current Dipole
             Dims = DIMS(1);% number of columns per source
-        case 0
-            errordlg(sprintf('Unauthorized Source Model Order %d.',iSrcModel),'Wrong HeadModel parameter assignment')
-            return
-            %SourceOrderString = 'MD'; % Magnetic Dipole  - OBSOLETE
         case 1
-            SourceOrderString = 'CME'; % Current Multipole
             Dims = DIMS(2);% number of columns per source
-        otherwise
-            errordlg(sprintf('Unauthorized Source Model Order %d.',iSrcModel),'Wrong HeadModel parameter assignment')
-            return
     end
 
     if ~isempty(OPTIONS.Cortex) & OPTIONS.ApplyGridOrient % Use cortical grid
         try
             load(OPTIONS.Cortex.FileName,'Faces');
         catch
-            Users = get_user_directory;
-            load(fullfile(Users.SUBJECTS,OPTIONS.Cortex.FileName),'Faces');
+            Faces = ImageGrid.Faces;
         end
 
         Faces = Faces{OPTIONS.Cortex.iGrid};
-
-        ptch = patch('Vertices',GridLoc','Faces',Faces,'Visible','off');
+        ptch  = patch('Vertices',GridLoc','Faces',Faces,'Visible','off');
         set(get(ptch,'Parent'),'Visible','off')
-        clear Faces
-        GridOrient{i} = get(ptch,'VertexNormals')'; % == {1} as of MMII conventions. Most data in HeadModel files are single-cell cell arrays.
-        % Cell array structure kept for backward compatibility with BsT2000.
+        GridOrient{i} = get(ptch,'VertexNormals')';
         delete(ptch);
 
     end
 
-        if isempty(OPTIONS.GridOrient) & isempty(OPTIONS.SourceOrient) % Consider the cortical patch's normals
+    if isempty(OPTIONS.GridOrient) & isempty(OPTIONS.SourceOrient) % Consider the cortical patch's normals
 
-            if isempty(OPTIONS.Cortex)  % Specific source locations in .SourceLoc but nohing in. SourceOrient
-                OPTIONS.ApplyGridOrient = 0; % No source orientation specified: Force computation of full gain matrix
-            else
-                [nrm,GridOrient{i}] = colnorm(GridOrient{i});
-                % Now because some orientations may be ill-set to [0 0 0] with the get(*,'VertexNormals' command)
-                % set these orientation to arbitrary [1 1 1]:
-                izero = find(nrm == 0);clear nrm
-                if ~isempty(izero)
-                    GridOrient{i}(:,izero) = repmat([1 1 1]'/norm([1 1 1]),1,length(izero));
-                end
-                clear izero
-
+        if isempty(OPTIONS.Cortex)  % Specific source locations in .SourceLoc but nohing in. SourceOrient
+            OPTIONS.ApplyGridOrient = 0; % No source orientation specified: Force computation of full gain matrix
+        else
+            [nrm,GridOrient{i}] = colnorm(GridOrient{i});
+            % Now because some orientations may be ill-set to [0 0 0] with the get(*,'VertexNormals' command)
+            % set these orientation to arbitrary [1 1 1]:
+            izero = find(nrm == 0);clear nrm
+            if ~isempty(izero)
+                GridOrient{i}(:,izero) = repmat([1 1 1]'/norm([1 1 1]),1,length(izero));
             end
-
-        elseif ~isempty(OPTIONS.GridOrient) % Apply user-defined cortical source orientations
-
-            if size(OPTIONS.GridOrient,2) == size(GridLoc,2) % Check size integrity
-                GridOrient{i} = OPTIONS.GridOrient;
-                [nrm,GridOrient{i}] = colnorm(GridOrient{i});
-                clear nrm
-            else
-                errordlg(sprintf('The source orientations you have provided are for %0.f sources. Considered cortical surface has %0.f sources. Computation aborted',...
-                    size(OPTIONS.GridOrient,2),size(GridOrient{i},2)));
-                return
-            end
-
-        elseif ~isempty(OPTIONS.SourceOrient) % Apply user-defined specific source orientations
-
-            if size(OPTIONS.SourceOrient,2) == size(GridLoc,2) % Check size integrity
-                GridOrient{i} = OPTIONS.SourceOrient;
-                [nrm,GridOrient{i}] = colnorm(GridOrient{i});
-                clear nrm
-            else
-                errordlg(sprintf('The source orientations you have provided are for %0.f sources. Computation aborted',...
-                    size(OPTIONS.SourceOrient,2)));
-                return
-            end
+            clear izero
 
         end
 
+    elseif ~isempty(OPTIONS.GridOrient) % Apply user-defined cortical source orientations
+
+        if size(OPTIONS.GridOrient,2) == size(GridLoc,2) % Check size integrity
+            GridOrient{i} = OPTIONS.GridOrient;
+            [nrm,GridOrient{i}] = colnorm(GridOrient{i});
+            clear nrm
+        else
+            errordlg(sprintf('The source orientations you have provided are for %0.f sources. Considered cortical surface has %0.f sources. Computation aborted',...
+                size(OPTIONS.GridOrient,2),size(GridOrient{i},2)));
+            return
+        end
+
+    elseif ~isempty(OPTIONS.SourceOrient) % Apply user-defined specific source orientations
+
+        if size(OPTIONS.SourceOrient,2) == size(GridLoc,2) % Check size integrity
+            GridOrient{i} = OPTIONS.SourceOrient;
+            [nrm,GridOrient{i}] = colnorm(GridOrient{i});
+            clear nrm
+        else
+            errordlg(sprintf('The source orientations you have provided are for %0.f sources. Computation aborted',...
+                size(OPTIONS.SourceOrient,2)));
+            return
+        end
+
+    end
+
     nv = size(GridLoc,2); % number of grid points
-
     jj = 0; % Number of OPTIONS.ImageGridBlockSize
-
 
     for j = 1:(OPTIONS.ImageGridBlockSize):nv,
         jj = jj+1;
@@ -1333,7 +1299,7 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
                 G(EEGndx,src) = Geeg(:,k:k+2) * GridOrient{1}(:,src_ind);
             end
         end
-        
+
         % Gain matrix for moments - Gxyz
         %------------------------------------------------------------------
         if MEG
@@ -1393,7 +1359,7 @@ if MEG
 end
 if EEG
     %EEGndx = BEMChanNdx{DataType.EEG};
-    EEGndx = OPTIONS.EEGndx; % EEG sensors (not including EEG reference channel, if any)
+    EEGndx    = OPTIONS.EEGndx; % EEG sensors (not including EEG reference channel, if any)
     EEGREFndx = good_channel(OPTIONS.Channel,[],'EEG REF');
 end
 
@@ -1528,11 +1494,6 @@ if MEG
     end
 
     % Handle MEG reference channels if necessary
-    %     if isfield(OPTIONS.Channel(MEGndx(1)),'irefsens')
-    %         irefsens = OPTIONS.Channel(MEGndx(1)).irefsens;
-    %     else
-    %         irefsens = [];
-    %     end
     irefsens = good_channel(OPTIONS.Channel,[],'MEG REF');
 
     if ~isempty(irefsens)

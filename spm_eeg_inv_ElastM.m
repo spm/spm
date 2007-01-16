@@ -1,6 +1,6 @@
 function ts = spm_eeg_inv_ElastM(ts);
 
-%=======================================================================
+%==========================================================================
 % FORMAT ts = spm_eeg_inv_ElastM(ts);
 %
 % Modify the mesh in order to reduce overlong edges.
@@ -17,23 +17,25 @@ function ts = spm_eeg_inv_ElastM(ts);
 %
 % Output :
 % ts         - tesselated surface with corrected mesh
-%=======================================================================
+%==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ElastM.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_ElastM.m 716 2007-01-16 21:13:50Z karl $
 
-
+% Connection vertex-to-vertex
+%--------------------------------------------------------------------------
 M_con = sparse([ts.tri(1,:)';ts.tri(1,:)';ts.tri(2,:)';ts.tri(3,:)';ts.tri(2,:)';ts.tri(3,:)'], ...
                [ts.tri(2,:)';ts.tri(3,:)';ts.tri(1,:)';ts.tri(1,:)';ts.tri(3,:)';ts.tri(2,:)'], ...
-               ones(ts.nr(2)*6,1),ts.nr(1),ts.nr(1)); % Connection vertex-to-vertex
+               ones(ts.nr(2)*6,1),ts.nr(1),ts.nr(1));
                       
-kpb = .1;                       % Cutt-off frequency
-lam = .5; mu = lam/(lam*kpb-1); % Parameters for elasticity.
-N = 25;                         % Number of smoothing steps, the larger, the smoother
-	
+kpb   = .1;                       % Cutt-off frequency
+lam   = .5; mu = lam/(lam*kpb-1); % Parameters for elasticity.
+N     = 25;                       % Number of smoothing steps, the larger, the smoother
 XYZmm = ts.XYZmm;
 
+% smoothing iterations
+%--------------------------------------------------------------------------
 for j=1:N
 
     XYZmm_o = zeros(3,ts.nr(1)) ;

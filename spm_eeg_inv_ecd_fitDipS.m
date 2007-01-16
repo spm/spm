@@ -126,8 +126,10 @@ if ~MCS_f
     %-------------------------------------------------
     MODEL = model;
     MODEL.sigma = model.param.sigma;
-    rmfield(MODEL,'flags');
-    rmfield(MODEL,'param');
+    try
+       rmfield(MODEL,'flags');
+       rmfield(MODEL,'param');
+    end
     n_surf = length(model.head);
     MODEL.n_dip = n_dip;
     MODEL.Ntb = size(V,2);
@@ -142,15 +144,15 @@ if ~MCS_f
 	% Prepare result files.
 	%----------------------
 	sdip.n_seeds = n_seeds;
-	sdip.n_dip = n_dip;
-	sdip.Sloc = cell(1,n_seeds);
-	sdip.loc = cell(1,n_seeds);
-	sdip.L = cell(1,n_seeds);
-	sdip.j = cell(1,n_seeds);
-	sdip.res = zeros(1,n_seeds);
-	sdip.cost = zeros(1,n_seeds);
-	sdip.M = Vbr.mat;
-	sdip.Mtb = MODEL.Mtb;
+	sdip.n_dip   = n_dip;
+	sdip.Sloc    = cell(1,n_seeds);
+	sdip.loc     = cell(1,n_seeds);
+	sdip.L       = cell(1,n_seeds);
+	sdip.j       = cell(1,n_seeds);
+	sdip.res     = zeros(1,n_seeds);
+	sdip.cost    = zeros(1,n_seeds);
+	sdip.M       = Vbr.mat;
+	sdip.Mtb     = MODEL.Mtb;
 	sdip.fit_opt = fit_opt;
 end
 

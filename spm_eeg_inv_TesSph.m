@@ -18,7 +18,7 @@ function tsph = spm_eeg_inv_TesSph(r,n);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_TesSph.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_TesSph.m 716 2007-01-16 21:13:50Z karl $
 
 if nargin == 0 
     n = 40;
@@ -167,7 +167,7 @@ for i=(n/2+1):n         % lower half
 end
 
 
-ntr_qr=size(ind_qr,2) ; % nbr of triangle per 5th of sphere
+ntr_qr   =size(ind_qr,2) ; % nbr of triangle per 5th of sphere
 [S_i,S_j]=find(ind_qr==1) ;
 [B_i,B_j]=find(ind_qr==npt_sph) ;
 [qs_i,qs_j]=find((ind_qr>(npt_qr+1))&(ind_qr<(3*npt_qr))) ;

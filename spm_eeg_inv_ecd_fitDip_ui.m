@@ -48,7 +48,11 @@ function [sdip,fit_opt,Psave] = spm_eeg_inv_ecd_fitDip_ui(D)
 spm('Clear')
 spm('FigName','Fitting ECD on EEG data') ;
 
+%==========================================================================
 q_model = 2; % At the moment, only consider the spherical model
+Vbr     = spm_vol(D.inv{D.val}.mesh.msk_cortex); % brain volume to constrain sources
+%==========================================================================
+
 if nargin == 0
     % Select the head model 'model'
     % q_model = spm_input('Model type :','+1','realistic BEM|3 fitted sph ',[1,2],2) ;
@@ -96,14 +100,14 @@ end
 
 if q_data == 1
     % Check the data, channels to use, nr of electrodes, etc
-    Use_chan  = D.channels.eeg;
+    Use_chan  = setdiff(D.channels.eeg, D.channels.Bad);
     NUse_chan = length(Use_chan);
     
     order_dat2mod = zeros(1,model.electrodes.nr); missing_chan = [];
     % Map name of channels in data onto channel order specified in model
-    for i = 1:model.electrodes.nr
+    for i = 1:length(model.electrodes.names)
         index = [];
-        for j = 1:D.Nchannels
+        for j = 1:length(D.channels.name)
             if ~isempty(find(strcmpi(D.channels.name{j}, model.electrodes.names{i})))
                 index = [index j];
             end
@@ -117,7 +121,7 @@ if q_data == 1
             order_dat2mod(i) = index(1);
         end
     end
-    %     D.channels.name(order_dat2mod)
+    % D.channels.name(order_dat2mod)
 elseif q_data==2
     warndlg('Assuing the data channels are in same order as model !')
 end
@@ -159,12 +163,12 @@ elseif dNchannels>0
     end
     order_dat2mod(rem_electr) = [];
     % 	% Modifying the electrodes structure
-    model.electrodes.vert(rem_electr) = [];
-    model.electrodes.tri(rem_electr) = [];
+    model.electrodes.vert(rem_electr)    = [];
+    model.electrodes.tri(rem_electr)     = [];
     model.electrodes.XYZmm(:,rem_electr) = [];
     
     model.electrodes.names(rem_electr,:) = [];
-    model.electrodes.nr = NUse_chan;
+    model.electrodes.nr   = NUse_chan;
     model.electrodes.info = [model.electrodes.info,' ; some electrodes removed ''cos of data'];
     
     if q_model==1
@@ -184,20 +188,20 @@ else
     rem_electr = [];
 end
 
-% Window of time used
+% Time window
 flag = 0;
 while ~flag
     if q_data==1
         % Express time window in ms.
         ms_tb = 1000/D.Radc ; % milisecond per time bin
-        b_ms = -D.events.start*ms_tb;
-        e_ms = D.events.stop*ms_tb;
+        b_ms  = -D.events.start*ms_tb;
+        e_ms  = D.events.stop*ms_tb;
         wind_be_ms = spm_input(...
-                ['Time window to use (in ms, [',num2str(ms_tb),'])'], ...
+                sprintf('Time window (ms, [%i])',round(ms_tb)), ...
                 '+1','e',round([b_ms e_ms]));
         wind_be = round((wind_be_ms-b_ms)/ms_tb+1);
     else
-        wind_be = spm_input(['Time window to use'],'+1','e',[1 Dtb]);
+        wind_be = spm_input(['Time window'],'+1','e',round([1 Dtb]));
     end
     if length(wind_be)==1
         if wind_be(1)>0 && wind_be(1)<=Dtb
@@ -214,17 +218,17 @@ end
 % Number of dipoles per set
 flag = 0;
 while ~flag
-    n_dip = spm_input(['Number of dipoles to be used'],'+1','e',1);
+    n_dip = spm_input(['Number of dipoles'],'+1','e',1);
     if n_dip<=floor(DNchan/6), flag=1; end
     if (n_dip<=floor(DNchan/6)) && (n_dip>floor(DNchan/12)),
         spm('alert!',{['You really have a lot of dipoles to fit (',num2str(n_dip),')'] ...
             ['compared to the number of channels (',num2str(DNchan),')'] ...
-            ['Results may be unstable and unreliable']},'Ndipoles warning')
+            ['Results may be unstable']},'Ndipoles warning')
     end
 end
 
 % Number of random seed sets
-n_seeds = spm_input(['Number of random seeding locations to be used (1 for a priori loc.)'],'+1','e',n_dip*20);
+n_seeds = spm_input(['Number of seeds (1 for a priori)'],'+1','e',n_dip*20);
 
 % If only 1 seed, I should define myself the a priori location, and possibly fix these locations.
 % In this last case, I should be able to fix the orientation too.
@@ -252,30 +256,14 @@ end
 
 % Orientation of the dipoles
 if (wind_be(2)-wind_be(1))>1 && ~q_fxd_or
-    text_opt = ['totally free orientation|',...
-                'fixed orientation, weighted (EEG pow) mean of orientations over time|',...
-                'fixed orientation, as at the max of EEG power'];
-    or_opt = spm_input('Dipoles orientation over time?','+1','m',text_opt);
+    text_opt = ['free orientation|',...
+                'fixed orientation; weighted by mean power|',...
+                'fixed orientation; at maximum EEG power'];
+    or_opt = spm_input('Dipole orientation over time?','+1','m',text_opt);
 elseif q_fxd_or
     or_opt = 4;
 else
     or_opt = 1;
-end
-
-% Select obrain volume to constrain sources
-if nargin==0
-    Vbr = spm_vol(spm_select(1,'^.*obrain.*\..*$','Brain mask image'));
-else
-    Vbr = spm_vol(D.inv{D.val}.mesh.msk_iskull);
-    if isempty(Vbr)
-        Vbr = spm_vol(model.flags.fl_bin.Pisk);
-    end
-end
-
-if nargout > 1
-    Psdip = ['S',num2str(n_dip),'dip_',spm_str_manip(Pdata,'rt'), ...
-             '_n',num2str(n_seeds),'_o',num2str(or_opt),'_t',num2str(wind_be(1)),'_',num2str(wind_be(2))];
-    Psave = spm_input(['Save results in'],'+1','s',Psdip);
 end
 
 try
@@ -287,7 +275,7 @@ end
 % Fitting the dipoles !
 %______________________
 % A few options passed into one simple structure.
-fit_opt.q_model = q_model;          % Model used: BEM (1), analytical 3 fitted sph (2)
+fit_opt.q_model = q_model;          % Model used: BEM (1), analytical (3) fitted sph (2)
 fit_opt.or_opt = or_opt;            % Def: 1, free orientation
 fit_opt.rem_electr = rem_electr;    % Def: none
 fit_opt.q_fxd_loc = q_fxd_loc;      % Def: 0
@@ -295,6 +283,9 @@ fit_opt.set_loc_o = set_loc_o;      % Def: none
 fit_opt.q_fxd_or = q_fxd_or;        % Def: 0
 fit_opt.fxd_or = fxd_or;            % Def: none
 
+
+% NB BEM method not supported at present
+%--------------------------------------------------------------------------
 if q_model == 1
     if q_data == 1
         [sdip,fit_opt] = ...
@@ -317,12 +308,6 @@ elseif q_model==2
     end
 end
 sdip.wind_be = wind_be;
-sdip.Pdata = Pdata;
+sdip.Pdata   = Pdata;
 
-% Save results
-%______________
-if nargout > 1
-    sdip.fname = Psave;
-    save(Psave,'sdip','fit_opt')
-end
 

@@ -32,7 +32,7 @@ function spm_mip(Z,XYZ,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 695 2006-11-24 20:07:13Z volkmar $
+% $Id: spm_mip.m 716 2007-01-16 21:13:50Z karl $
 
 %-Get GRID value
 %--------------------------------------------------------------------------
@@ -48,12 +48,13 @@ if size(M,1)   == 1, M   = speye(4,4)*M; end
 
 %-Scale & offset point list values to fit in [0.25,1]
 %==========================================================================
-Z   = Z - min(Z);
-m   = max(Z);
-if isempty(m),
+Z    = Z - min(Z);
+mx   = max(Z);
+Scal = 8;
+if isempty(mx),
     Z = [];
-elseif finite(m),
-    Z = (1 + 3*Z/m)/4;
+elseif finite(mx),
+    Z = (1 + Scal*Z/mx)/(Scal + 1);
 else
     Z = ones(1,length(Z));
 end
@@ -83,7 +84,7 @@ else
 end
 
 %-3d case; Load mip and create maximum intensity projection
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 mip  = mip/max(mip(:));
 c    = [0 0 0 ;
         0 0 1 ;

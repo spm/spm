@@ -82,7 +82,7 @@ end
 % Pm : filename of head model file
 
 if nargin  < 2
-    Pd = spm_select(Inf,'*dipoles*.mat','Dipoles set or nothing');
+    Pd = spm_select(Inf,'*dipoles*.mat','Dipole set or nothing');
     if isempty(Pd)
         flags.calc_dip = 0;
         flags.calc_L = 0;
@@ -160,10 +160,9 @@ if ~isfield(model,'spheres')
     % Define the orientation of the xy plane, defining the upper part of the head
     [yM,iM] = max(eXYZ(2,:));
     [zm,im] = min(eXYZ(3,:));
-    ym  = eXYZ(2,im);
+    ym   = eXYZ(2,im);
     c_th = (eXYZ(3,im)-eXYZ(3,iM))/norm(eXYZ(1:2,im)-eXYZ(1:2,iM));
     s_th = sin(acos(c_th));
-    %     th = acos(c_th)/pi*180
     no = [c_th s_th] ;
     no = no/norm(no);
     if no(2)<0, no = -no; end % Make sure no points upward
@@ -248,10 +247,10 @@ if ~isfield(model,'spheres')
     SseXYZ = [Xes;Yes;Zes] ;
 
 elseif flags.calc_dip
-    centre = model.spheres.centre;
-    SsXYZ = model.spheres.Ss_XYZ;
-    r_s = model.spheres.r_s;
-    R = model.spheres.R;
+    centre   = model.spheres.centre;
+    SsXYZ    = model.spheres.Ss_XYZ;
+    r_s      = model.spheres.r_s;
+    R        = model.spheres.R;
     Ref_surf = model.spheres.Ref_surf;
 else
     disp('I''ve nothing to do here. Thank you for calling...')
@@ -397,12 +396,12 @@ if flags.calc_L
     Or1 = kron(spdiags(dipS.or(1,:)',0,dipS.nr(1),dipS.nr(1)), [1 0 0]') ;
     Or2 = kron(spdiags(dipS.or(2,:)',0,dipS.nr(1),dipS.nr(1)), [0 1 0]') ;
     Or3 = kron(spdiags(dipS.or(3,:)',0,dipS.nr(1),dipS.nr(1)), [0 0 1]') ;
-    Or = Or1+Or2+Or3 ;
-    L = Lan*Or;
+    Or  = Or1+Or2+Or3 ;
+    L   = Lan*Or;
     Lorig = L;
-    L = L - ones(size(L,1),1)*mean(L);
+    L   = L - ones(size(L,1),1)*mean(L);
 else
-    L = 'Not calculated yet.';
+    L   = 'Not calculated yet.';
     Lan = L;
 end
 

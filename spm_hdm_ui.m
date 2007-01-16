@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_hdm_ui.m 716 2007-01-16 21:13:50Z karl $
 
 
 % get figure handles
@@ -95,8 +95,8 @@ spm('FigName','Estimation in progress');
 %
 % y(1) - BOLD                      (y)
 %
-% P(1)       - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(2) ~ 1sec
-% P(2)       - autoregulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(3)) ~ 10 sec
+% P(1)       - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(1) ~ 1sec
+% P(2)       - autoregulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(1)) ~ 10 sec
 % P(3)       - transit time               (t0)  ~ 1 sec
 % P(4)       - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
 % P(5)       - resting oxygen extraction  (E0)  ~ range 20 - 50%

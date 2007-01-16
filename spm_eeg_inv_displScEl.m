@@ -10,8 +10,8 @@ function [p,f] = spm_eeg_inv_displScEl(varargin)
 % Christophe Phillips,
 % $Id$
 
-if nargin<2
-    if nargin==0
+if nargin < 2
+    if nargin == 0
         Pmod = spm_select(1,'^model.*e\d.*\.mat','Select model to display');
         load(Pmod)
     else
@@ -41,10 +41,6 @@ x_sph = x_sph*3 ; y_sph = y_sph*3 ; z_sph = z_sph*3 ;
 c_sph = ones(size(x_sph))*5 ;
 
 colo_skin = [1 .7 .55] ;
-% colo_skin = [NaN NaN NaN] ;
-% colo_skin = [.6 .6 .6] ;
-% colo_skin = [1 .5 .45] ;
-% colo_skin = [1 0 0] ;
 c    = ones(Ntri,1)*colo_skin ;
 hFig = spm_figure('FindWin','Graphics');
 if isempty(hFig)
