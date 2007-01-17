@@ -5,7 +5,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % - SPM_EEG_INV_VISU3D_API(filename) where filename is the eeg/meg .mat file
 % - SPM_EEG_INV_VISU3D_API('callback_name', ...) invoke the named callback.
 %
-% Last Modified by GUIDE v2.5 15-Jan-2007 19:11:41
+% Last Modified by GUIDE v2.5 17-Jan-2007 13:15:47
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 % Jeremie Mattout
 % $Id: $
@@ -705,10 +705,28 @@ spm_eeg_inv_visu3D_api_OpeningFcn(hObject, eventdata, handles)
         
 % --- Executes on button press in VDE.
 %--------------------------------------------------------------------------
-% function VDE_Callback(hObject, eventdata, handles)
-% spm_eeg_inv_vde(handles);
+function Velec_Callback(hObject, eventdata, handles)
+axes(handles.sources_axes);
+try
+    vde = getCursorInfo(handles.location);
+catch
+    vde = [];
+end
+if ~length(vde)
+    handles.location = datacursormode(handles.figure1);
+    set(handles.location,'Enable','on','DisplayStyle','datatip','SnapToDataVertex','on');
+    waitforbuttonpress
+    datacursormode off
+end
+vde = getCursorInfo(handles.location);
+spm_eeg_invert_display(handles.D,vde.Position)
+guidata(hObject,handles);
 
 
-
+% --- Executes on button press in Rot.
+function Rot_Callback(hObject, eventdata, handles)
+%--------------------------------------------------------------------------
+axes(handles.sources_axes);
+rotate3d
 
 

@@ -152,7 +152,7 @@ for k = 1:K
     
     % update regulariser
     %----------------------------------------------------------------------
-    L     = speye(m,m)*norm(dFdhh,1)/512;
+    L     = speye(m,m)*norm(dFdhh,1)/256;
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------

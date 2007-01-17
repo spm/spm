@@ -1,14 +1,20 @@
-function spm_eeg_invert_display(D,PST)
+function spm_eeg_invert_display(D,PST,Ndip)
 % Displays conditional expectation of response (J)
-% FORMAT spm_eeg_invert_display(D,PST)
-% D   - 3D structure (ReML estimation of response (J) )
-% PST - perstimulus time (ms) - defaults to the PST of max abs(J)
-%     - [Start Stop] (ms)     - invokes a movie of CSD
+% FORMAT spm_eeg_invert_display(D,PST,Ndip)
+% FORMAT spm_eeg_invert_display(D,XYZ,Ndip)
+% D    - 3D structure (ReML estimation of response (J) )
+% PST  - perstimulus time (ms) - defaults to the PST of max abs(J)
+%      - [Start Stop] (ms)     - invokes a movie of CSD
+% XYZ  - dipole location of interest
+%
+% Ndip - number of dipole to display (default 512)
 %__________________________________________________________________________
 
+
+% Number of dipoles to display
 %==========================================================================
-Ndip  = 256; % Number of dipoles to display
-%==========================================================================
+try, PST;  catch, PST  = [];  end
+try, Ndip, catch, Ndip = 512; end 
 
 % D - SPM data structure
 %==========================================================================
@@ -18,11 +24,6 @@ try
 catch
     warndlg('please invert model')
     return
-end
-try
-    PST;
-catch
-    PST = [];
 end
 
 % get solution and spatiotemporal basis
@@ -49,7 +50,7 @@ vert   = model.mesh.tess_mni.vert;
 
 % movie
 %--------------------------------------------------------------------------
-if length(PST) > 1
+if length(PST) == 2
     
     
     % get signficant voxels
@@ -85,12 +86,23 @@ if length(PST) > 1
     return
 end
 
-% maximum response and confidence intervals
+% maximum response at XYZ
 %--------------------------------------------------------------------------
-try
+if length(PST) == 3
+    [i js] = min(sum([vert(Is,1) - PST(1), ...
+                      vert(Is,2) - PST(2), ...
+                      vert(Is,3) - PST(3)].^2,2));
+    [i jt] = max(abs(J(js,:)));
+    
+% maximum response at PST
+%--------------------------------------------------------------------------
+elseif length(PST) == 1
     [i jt] = min(abs(pst - PST));
     [i js] = max(abs(J(:,jt)));
-catch
+    
+% maximum response and confidence intervals
+%--------------------------------------------------------------------------
+else
     [i js] = max(max(abs(J),[],2));
     [i jt] = max(abs(J(js,:)));
 end
@@ -115,13 +127,16 @@ axis square
 %==========================================================================
 subplot(2,1,2)
 Z     = abs(Js)./(Nt*sqrt(qC));
-[T j] = sort(-Z);
-i     = j(1:Ndip);
-PP    = fix(100*(1 - spm_Ncdf(T(Ndip))));
+[T i] = sort(-Z);
+try
+    i = i(1:Ndip);
+end
+PP    = fix(100*(1 - spm_Ncdf(T(i(end)))));
 
 spm_mip(Jmax(Is(i)),vert(Is(i),:)',6);
 axis image
-title({sprintf('PPM at %i ms (%i percent)',PST,PP), ...
+title({sprintf('PPM at %i ms (%i percent confidence)',PST,PP), ...
+       sprintf('%i dipoles',length(i)), ...
        sprintf('Variance explained %.2f (percent)',R2), ...
        sprintf('log-evidence = %.1f',F)})
 drawnow
