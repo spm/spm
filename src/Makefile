@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 709 2006-12-13 18:14:04Z john $
+# $Id: Makefile 717 2007-01-17 12:46:33Z john $
 #
 ###############################################################################
 #
@@ -88,17 +88,17 @@ ifndef SUF
     #
     # Patch for gcc 3.x with Matlab 6.5 and 6.5.1 on Mac OS X:
     # http://www.mathworks.com/support/solutions/data/1-1BEIS.html?solution=1-1BEIS
-    SUF       = mexmac
-    CFLAGS    = -DBIGENDIAN
-    MEXOPTS   = -O -DBIGENDIAN
-  endif
-  # mac intel
-  ifeq (Darwin.intel,$(PLATFORM))
-    # See http://en.wikibooks.org/wiki/SPM-Installation_on_Mac_OS
-    #
-    SUF       = mexmaci
-    CFLAGS    = 
-    MEXOPTS   = -O 
+    HARDWARE  = $(shell uname -p)
+    ifeq (i386,$(HARDWARE))
+       SUF       = mexmaci
+       CFLAGS    = 
+       MEXOPTS   = -O
+    endif
+    ifeq (powerpc,$(HARDWARE))
+       SUF       = mexmac
+       CFLAGS    = -DBIGENDIAN
+       MEXOPTS   = -O -DBIGENDIAN
+    endif
   endif
   # See Matthew Brett's web page on mex files for Windows:
   # http://gnumex.sourceforge.net/
@@ -445,14 +445,14 @@ verb.mexa64:
 verb.mexmac:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "        Unix compilation (MacOS X) - using $(CC)"
+	@ echo "        Unix compilation (MacOS X, PowerPC) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
 verb.mexmaci:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "        Unix compilation (MacOS X Intel) - using $(CC)"
+	@ echo "        Unix compilation (MacOS X, Intel) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
