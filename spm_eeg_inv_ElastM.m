@@ -5,8 +5,8 @@ function ts = spm_eeg_inv_ElastM(ts);
 %
 % Modify the mesh in order to reduce overlong edges.
 % The procedure uses an elastic model :
-% At each vertex, the neighbouring triangles and vertices connected directly
-% are considered.
+% At each vertex, the neighbouring triangles and vertices connected 
+% directly are considered.
 % Each edge is considered elastic and can be lengthened or shortened,
 % depending on their length.
 % Refs: G.Taubin, A signal processing approach to fair surface design, 1995
@@ -21,7 +21,7 @@ function ts = spm_eeg_inv_ElastM(ts);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ElastM.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_ElastM.m 719 2007-01-18 11:06:07Z christophe $
 
 % Connection vertex-to-vertex
 %--------------------------------------------------------------------------
