@@ -355,3 +355,4 @@ ql    = QL(:,Ip(64));
 il    = find(ql > 1/64);
 subplot(2,1,1)
 spm_mip(ql(il),vert(il,:)',6);
+axis image

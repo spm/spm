@@ -4,7 +4,7 @@ function spm_eeg_inv_results_display(D)
 %__________________________________________________________________________
 
 %==========================================================================
-Ndip  = 256; % Number of dipoles to display
+Ndip  = 512; % Number of dipoles to display
 %==========================================================================
 
 % SPM data structure
@@ -42,11 +42,12 @@ vert   = model.mesh.tess_mni.vert;
 %--------------------------------------------------------------------------
 subplot(2,1,1)
 [i j]  = sort(-G);
-j      = j(1:Ndip);
+try
+    j  = j(1:Ndip);
+end
 spm_mip(G(j),vert(j,:)',6);
 axis image
-title({'root mean square (energy)',...
-       sprintf('%i voxels',Ndip)})
+title({'root mean square (energy)',sprintf('%i voxels',length(j))})
 
 % contrast
 %--------------------------------------------------------------------------

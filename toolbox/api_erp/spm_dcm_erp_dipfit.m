@@ -23,6 +23,16 @@ catch
     end
 end
 
+% Polhemus file skip
+%==========================================================================
+try
+    Pol_skip = DCM.options.Pol_skip;
+catch
+    Pol_skip = 4;
+    DCM.options.Pol_skip = Pol_skip;
+end
+%==========================================================================
+
 % EEG
 %--------------------------------------------------------------------------
 if DCM.options.Spatial_type == 1
@@ -51,7 +61,7 @@ if DCM.options.Spatial_type == 1
         try
             % returns coordinates of fiducials and sensors (filenames)
             % coordinates are in CTF coordinate system
-            [Fname_fid, Fname_sens] = spm_eeg_inv_ReadPolhemus(sensorfile, 0);
+            [fid, sens] = spm_eeg_inv_ReadPolhemus(sensorfile, Pol_skip);
         catch
             try
                 DCM.M.dipfit.elc;
@@ -63,19 +73,13 @@ if DCM.options.Spatial_type == 1
         end
     else
         try
-            
-            DCM.options.Pol_skip = 0; % don't skip any coordinates (see below)
 
             % mat-file must contain 2 matrices with fid and sensor
             % coordinates
             tmp = load(sensorfile, '-mat');
             fid = tmp.fid;
             sens = tmp.sens;
-            Fname_fid = sprintf('%s_fid', spm_str_manip(sensorfile, 'r'));
-            Fname_sens = sprintf('%s_sens', spm_str_manip(sensorfile, 'r'));
-            Path_sens = fileparts(Fname_sens);
-            save(Fname_sens, 'sens');
-            save(Fname_fid, 'fid');            
+            
         catch
             try
                 DCM.M.dipfit.elc;
@@ -89,48 +93,24 @@ if DCM.options.Spatial_type == 1
 
     % Use approximated MRI fiducials (MNI space)... for now
     %----------------------------------------------------------------------
-    MNI_FID = [[0.0 86 -39];...
-        [-85 -17 -35];...
-        [ 84 -14 -35]];
-    MNI_FID = [[0   86 -42];...
+    mni_fid = [[0   86 -42];...
               [-84 -18 -55];...
               [ 84 -18 -55]];
           
-    save MNI_FID MNI_FID
-    mni_fid = 'MNI_FID';
-
-    % coregistration between EEG and MRI fiducials, and transforms EEG
-    % coordinates to MNI space
-    %----------------------------------------------------------------------
-    [RT, sensors_reg, fid_reg] = spm_eeg_inv_datareg(1,Fname_sens, Fname_fid, mni_fid);
-
+          
     % EEG coordinates in MNI space
     %----------------------------------------------------------------------
-    load(fullfile(Path_sens, sensors_reg));
+    % coregistration between EEG and MRI fiducials
+    [eeg2mri,sensreg,fid_reg] = spm_eeg_inv_datareg(sens, fid, mni_fid);
 
-    % hard-coded for now (Olivier measured as first 2 channels ear-lobes ->
-    % non-standard), and first two channels are (always) CMS and DRL)
-    %----------------------------------------------------------------------
     try
         chansel = DCM.M.dipfit.chansel;
     catch
-        try
-            chansel = DCM.xY.chansel;
-        catch
-            try
-                D = load(DCM.xY.Dfile);
-            catch
-                D = load(DCM.M.Dfile);
-            end
-            chansel = setdiff(D.D.channels.eeg, D.D.channels.Bad);
-            DCM.M.dipfit.chansel = chansel;
-            DCM.xY.chansel       = chansel;
-        end
+        D       = load(DCM.xY.Dfile);
+        chansel = setdiff(D.D.channels.eeg, D.D.channels.Bad);
+        DCM.M.dipfit.chansel = chansel;
     end
     dipfit  = DCM.M.dipfit;
-    
-    sensreg = sensreg(DCM.options.Pol_skip+1:end, :);
-    
     elc     = sensreg(chansel, :);
 
     % fit origin of outer sphere, with fixed radius, to electrodes
@@ -146,13 +126,12 @@ if DCM.options.Spatial_type == 1
     % compute POL->MNI coordinate transformation, following definition of
     % CTF origin, and axes
     %----------------------------------------------------------------------
-    load(fullfile(Path_sens, fid_reg));
 
     % origin in MNI space
     %----------------------------------------------------------------------
-    POLorigin = mean(fideegreg(2:3, :));
-    POLvx = (fideegreg(1, :) - POLorigin)/norm((fideegreg(1, :) - POLorigin));
-    POLvz = cross(POLvx, fideegreg(2, :) - fideegreg(3, :));
+    POLorigin = mean(fid_reg(2:3, :));
+    POLvx = (fid_reg(1, :) - POLorigin)/norm((fid_reg(1, :) - POLorigin));
+    POLvz = cross(POLvx, fid_reg(2, :) - fid_reg(3, :));
     POLvz = POLvz/norm(POLvz);  % Vector normal to the NLR plane, pointing upwards
     POLvy = cross(POLvz,POLvx); POLvy = POLvy/norm(POLvy);
 
@@ -176,9 +155,8 @@ if DCM.options.Spatial_type == 1
     dipfit.Mpol2sphere = Msphere; % in pol-space: translation of origin to zero
     dipfit.Mmni2polsphere = Msphere*inv(dipfit.Mpol2mni); % from MNI-space to pol space (plus translation to origin)
 
-    % projecting channels to outer sphere (remove origin, 
-    % necessary for forward model)
-    dist        = sqrt(sum((elc).^2,2));
+    % projecting channels to outer sphere (remove origin, necessary for forward model)
+    dist = sqrt(sum((elc).^2,2));
     dipfit.elc  = dipfit.vol.r(4) * elc ./[dist dist dist];
 
     % save in M

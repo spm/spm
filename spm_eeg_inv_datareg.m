@@ -44,7 +44,7 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_datareg.m 720 2007-01-18 19:47:42Z karl $
 
 
 % Checks - extract arguments from D
@@ -69,6 +69,10 @@ if nargin < 3
         megorient = D.inv{val}.datareg.megorient;
         template  = D.inv{val}.mesh.template;
     end
+else
+    sensors   = varargin{1};
+    fid_eeg   = varargin{2};
+    fid_mri   = varargin{3};
 end
 
 % spm_eeg_inv_datareg(sensors,fid_eeg,fid_mri,headshape,scalpvert,megorient,template)
@@ -76,10 +80,10 @@ end
 
 % Check input arguments
 %--------------------------------------------------------------------------
-try, headshape; catch, headshape = sparse(0,3); end
-try, scalpvert; catch, scalpvert = sparse(0,3); end
-try, megorient; catch, megorient = sparse(0,3); end
-try, template;  catch, template  = 0;           end
+try, headshape = varargin{4}; catch, headshape = sparse(0,3); end
+try, scalpvert = varargin{5}; catch, scalpvert = sparse(0,3); end
+try, megorient = varargin{6}; catch, megorient = sparse(0,3); end
+try, template  = varargin{7}; catch, template  = 0;           end
 
 % The fiducial coordinates must be in the same order (usually: NZ & LE, RE)
 %--------------------------------------------------------------------------
@@ -184,13 +188,15 @@ megorient = megorient*M1(1:3,1:3)';
 
 % retain valid sensor locations for leadfield computation
 %--------------------------------------------------------------------------
-try
-    sens  = setdiff(D.channels.eeg, D.channels.Bad);
-catch
-    sens  = D.channels.eeg;
-    D.channels.Bad = [];
+if nargin < 3
+    try
+        sens  = setdiff(D.channels.eeg, D.channels.Bad);
+    catch
+        sens  = D.channels.eeg;
+        D.channels.Bad = [];
+    end
+    sensors   = sensors(sens,:);
 end
-sensors   = sensors(sens,:);
 
 % ensure sensors lie outside the scalp
 %--------------------------------------------------------------------------
@@ -222,7 +228,7 @@ else
     varargout{1} = M1;
     varargout{2} = sensors;
     varargout{3} = fid_eeg;
-    varargout{4} = hsp_coreg;
+    varargout{4} = headshape;
     varargout{5} = megorient;
 
 end

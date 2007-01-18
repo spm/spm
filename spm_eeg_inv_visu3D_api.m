@@ -30,6 +30,7 @@ if nargin == 0 || nargin == 1  % LAUNCH GUI
         cla(handles.pred_axes)
     end
     set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
+    set(fig,'Menubar','figure');
     guidata(fig,handles);
     
     if nargout > 0
