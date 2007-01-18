@@ -110,7 +110,7 @@ global M; M = DCM.M;
 
 % prior moments
 %--------------------------------------------------------------------------
-[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,xU.dur);
+[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L.pos,xU.dur);
 
 % likelihood model
 %--------------------------------------------------------------------------
