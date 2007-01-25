@@ -1,0 +1,26 @@
+% SPM Mixture Modelling Toolbox 
+%
+% Bayesian Multivariate mixture modelling [1,2]: spm_mix.m
+% 
+% Robust General Linear Model [3]: spm_rglm.m
+%
+% Kmeans clustering: kmeans.m, kmeans1.m
+%
+% A number of routines are based on NETLAB functions, though NETLAB is not
+% required in your search path.
+% 
+% References:
+%
+% [1] H. Attias (2000) A Variational Bayesian framework for Graphical Models, 
+%     NIPS 12, 209-215, MIT press, 2000.
+%
+% [2] W.D. Penny (2001) Variational Bayes for d-dimensional Gaussian mixture models 
+%     Wellcome Department of Imaging Neuroscience, University College London.
+%
+% [3] W.D. Penny and J. Kilner (2005) Robust Bayesian General Linear
+%     Models. Human Brain Mapping Conference.
+%___________________________________________________________________________
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+
+% Will Penny 
+% $Id$
