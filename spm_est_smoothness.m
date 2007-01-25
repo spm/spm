@@ -37,7 +37,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_est_smoothness.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_est_smoothness.m 722 2007-01-25 14:10:00Z john $
 
 
 % assign input argumants
@@ -57,7 +57,7 @@ end
 
 % intialise
 %-----------------------------------------------------------------------
-if ~isstruct(VM)
+if ~isstruct(V)
 	V     = spm_vol(V);
 end
 if ~isstruct(VM)
