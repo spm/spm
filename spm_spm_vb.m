@@ -1,4 +1,4 @@
-function [SPM] = spm_spm_vb(SPM)
+  function [SPM] = spm_spm_vb(SPM)
 % VB estimation of GLM-AR models with spatial regularisation
 % FORMAT [SPM] = spm_spm_vb(SPM)
 %
@@ -147,7 +147,7 @@ function [SPM] = spm_spm_vb(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_spm_vb.m 724 2007-01-26 12:33:33Z will $
 
 
 %-Get SPM.mat if necessary
@@ -693,7 +693,13 @@ for z = 1:zdim
                 
                 %-Fit model
 				%-------------------------------------------------------
-                slice = spm_vb_glmar(R0Y,slice);
+                switch SPM.PPM.priors.A
+                    case 'Robust',
+                        %k=SPM.PPM.priors.k;
+                        slice = spm_vb_robust(R0Y,slice);
+                    otherwise
+                        slice = spm_vb_glmar(R0Y,slice);
+                end
                 
                 %-Report AR values
 				%-------------------------------------------------------
@@ -703,9 +709,15 @@ for z = 1:zdim
                 end
                 
                 if SPM.PPM.update_F
-                    SPM.PPM.Sess(s).slice(z).F = slice.F;
-                    % Contribution map sums over sessions
-                    Fn = spm_vb_Fn(R0Y,slice);
+                    switch SPM.PPM.priors.A
+                        case 'Robust',
+                            Fn=slice.F;
+                            SPM.PPM.Sess(s).slice(z).F=sum(Fn);
+                        otherwise
+                            SPM.PPM.Sess(s).slice(z).F = slice.F;
+                            % Contribution map sums over sessions
+                            Fn = spm_vb_Fn(R0Y,slice);
+                    end
                     LogEv = LogEv+Fn;
                 end
                 
@@ -743,17 +755,34 @@ for z = 1:zdim
                     end
                 end
                 
-                %-Get slice-wise Taylor approximation to posterior correlation
-                %-------------------------------------------------------
-                slice = spm_vb_taylor_R(R0Y,slice);
-                SPM.PPM.Sess(s).slice(z).mean=slice.mean;
-                SPM.PPM.Sess(s).slice(z).elapsed_seconds=slice.elapsed_seconds;
-                
-                %-Save Coefficient RESELS and number of voxels
-                %-------------------------------------------------------
-                SPM.PPM.Sess(s).slice(z).gamma_tot=slice.gamma_tot;
-                SPM.PPM.Sess(s).slice(z).N=slice.N;
-                
+                switch SPM.PPM.priors.A,
+                    case 'Robust',
+                        % Save voxel data where robust model is favoured
+                        outlier_voxels=find(Fn>0);
+                        N_outliers=length(outlier_voxels);
+                        Y_out=R0Y(:,outlier_voxels);
+                        gamma_out=slice.gamma(:,outlier_voxels);
+                        analysed_xyz=xyz(:,Cm);
+                        outlier_xyz=analysed_xyz(:,outlier_voxels);
+                        
+                        SPM.PPM.Sess(s).slice(z).outlier_voxels=outlier_voxels;
+                        SPM.PPM.Sess(s).slice(z).N_outliers=N_outliers;
+                        SPM.PPM.Sess(s).slice(z).Y_out=Y_out;
+                        SPM.PPM.Sess(s).slice(z).gamma_out=gamma_out;
+                        SPM.PPM.Sess(s).slice(z).outlier_xyz=outlier_xyz;
+                    otherwise
+                        %-Get slice-wise Taylor approximation to posterior correlation
+                        %-------------------------------------------------------
+                        slice = spm_vb_taylor_R(R0Y,slice);
+                        SPM.PPM.Sess(s).slice(z).mean=slice.mean;
+                        SPM.PPM.Sess(s).slice(z).elapsed_seconds=slice.elapsed_seconds;
+                        
+                        %-Save Coefficient RESELS and number of voxels
+                        %-------------------------------------------------------
+                        SPM.PPM.Sess(s).slice(z).gamma_tot=slice.gamma_tot;
+                        SPM.PPM.Sess(s).slice(z).N=slice.N;
+                end
+        
                 %-Save typical structure-specific AR coeffs
                 %-------------------------------------------------------
                 if strcmp(SPM.PPM.priors.A,'Discrete')

@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_config_fmri_est.m 724 2007-01-26 12:33:33Z will $
 
 
 % Define inline types.
@@ -150,7 +150,11 @@ p2=['Previous work has shown that ',...
     'have previously been favoured by Bayesian model comparison.'];
 a_tissue_type.help={p1,sp_text,p2};
 
-a_prior = choice('Noise priors','noise',{a_gmrf,a_loreta,a_tissue_type},'Noise priors');
+a_robust = struct('type','const','name','Robust','tag','Robust','val',{{1}});
+p1=['Robust GLM. Uses Mixture of Gaussians noise model.'];
+a_robust.help={p1};
+
+a_prior = choice('Noise priors','noise',{a_gmrf,a_loreta,a_tissue_type,a_robust},'Noise priors');
 a_prior.val={a_gmrf};
 a_prior.help={'There are three noise prior options here (1) GMRF, (2) LORETA and ',...
         '(3) Tissue-type'};
@@ -497,6 +501,10 @@ elseif isfield(job.method.Bayesian.noise,'LORETA')
 elseif isfield(job.method.Bayesian.noise,'tissue_type')
     SPM.PPM.priors.A  = 'Discrete';
     SPM.PPM.priors.SY = job.method.Bayesian.noise.tissue_type;
+elseif isfield(job.method.Bayesian.noise,'Robust')
+    SPM.PPM.priors.A  = 'Robust';
+    SPM.PPM.AR_P=0;
+    SPM.PPM.update_F=1;
 end
 
 %-Define an empty contrast
