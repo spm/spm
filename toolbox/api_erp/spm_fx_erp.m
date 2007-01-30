@@ -78,8 +78,12 @@ C    = exp(P.C);
 %--------------------------------------------------------------------------
 Te   = T(1)/1000*exp(P.T);           % excitatory time constants
 Ti   = T(2)/1000;                    % inhibitory time constants
-He   = H(1)*exp(P.H);                % excitatory receptor density
 Hi   = H(2);                         % inhibitory receptor density
+
+for i = 1:m
+    P.H = P.H + u(i)*diag(P.B{i});   % modulation of
+end
+He = H(1)*exp(P.H);                  % excitatory receptor density
 
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------

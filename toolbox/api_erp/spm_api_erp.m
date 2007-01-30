@@ -132,7 +132,7 @@ if p ~= 0
     DCM.options.Tdcm(1)      = str2num(get(handles.T1,   'String'));
     DCM.options.Tdcm(2)      = str2num(get(handles.T2,   'String'));
     DCM.options.Spatial_type = get(handles.Spatial_type, 'Value');
-    DCM.options.Nmodes       = get(handles.Nmodes,       'Value');
+    DCM.options.Nmodes       = str2num(get(handles.Nmodes, 'String'));
     DCM.options.h            = get(handles.h,            'Value') - 1;
     DCM.options.D            = get(handles.D,            'Value');
     
@@ -299,7 +299,7 @@ for i = 1:size(tmp, 1)
     end
 end
 Nareas    = length(Sname);
-Nmodes    = get(handles.Nmodes, 'Value');
+Nmodes    = str2num(get(handles.Nmodes, 'String'));
 DCM.Sname = Sname;
 
 % switch for spatial forward model
@@ -525,10 +525,10 @@ for i = 1:n
                 'Style','radiobutton',...
                 'Tag','',...
                 'Callback',str);
-%             % intrinsic modulation
-%             if i == j
-%                 set(B{k}(i,j),'Enable','on')
-%             end
+%             % intrinsic modulation of H_e
+            if i == j
+                set(B{k}(i,j),'Enable','on')
+            end
             try
                 set(B{k}(i,j),'Value',DCM.B{k}(i,j));
             catch
