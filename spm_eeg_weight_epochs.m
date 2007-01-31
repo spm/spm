@@ -23,7 +23,8 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_epochs.m 710 2006-12-21 14:59:04Z stefan $
+% Extended by Rik Henson to handle weighted averages
+% $Id: spm_eeg_weight_epochs.m 726 2007-01-31 16:48:29Z rik $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -45,6 +46,16 @@ try
     c = S.c;
 catch
     c = spm_input('Enter contrasts', '1', 'x', '', inf, eye(D.Nevents));
+end
+
+if all(abs(c(find(c~=0)))==1) & isfield(D.events,'repl')
+  try
+    WeightAve = S.events.WeightAve;
+  catch
+    WeightAve = spm_input('Weighted average?', '+1', 'yes|no', [1 0]);
+  end
+else
+  WeightAve = 0;
 end
 
 % incorporate sanity check of c, later
@@ -71,16 +82,18 @@ for i = 1:N_contrasts
     %  warning('%s: No trials for contrast %d', D.fname, i);
     % else
 
-    p = find(c(i,:)==1);
-    if ~isempty(p)
-        r = D.events.repl(p);
-        c(i,p) = r/sum(r);
-    end
+    if WeightAve
+    	p = find(c(i,:)==1);
+    	if ~isempty(p)
+        	r = D.events.repl(p);
+        	c(i,p) = r/sum(r);
+    	end
 
-    p = find(c(i,:)==-1);
-    if ~isempty(p)
-        r = D.events.repl(p);
-        c(i,p) = -r/sum(r);
+   	p = find(c(i,:)==-1);
+    	if ~isempty(p)
+        	r = D.events.repl(p);
+        	c(i,p) = -r/sum(r);
+    	end
     end
 
     for j = 1:D.Nchannels
@@ -88,7 +101,7 @@ for i = 1:N_contrasts
     end
     %end
 
-    D.events.repl(i) = sum(D.events.repl(find(c(i,:)~=0)));
+    newrepl(i) = sum(D.events.repl(find(c(i,:)~=0)));
 
     D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
 
@@ -105,6 +118,7 @@ fclose(fpd);
 
 D.Nevents = N_contrasts;
 D.events.code = [1:N_contrasts];
+D.events.repl = newrepl;
 
 D.events.time = [];
 D.events.types = D.events.code;
