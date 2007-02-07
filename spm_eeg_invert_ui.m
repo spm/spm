@@ -43,8 +43,13 @@ D.inv{val}.inverse.type   = ...
 
 % D.inverse.smooth - smoothness of source priors (mm)
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.smooth = ...
+
+% RH prompt confusing if IID only
+
+if ~strcmp(D.inv{val}.inverse.type,'IID')
+ D.inv{val}.inverse.smooth = ...
         spm_input('Smoothness (0-1)','+1','0.2|0.4|0.6',[0.2 0.4 0.6],2);
+end
 
 % Number of sparse priors
 %--------------------------------------------------------------------------

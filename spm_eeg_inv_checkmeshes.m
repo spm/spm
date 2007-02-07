@@ -15,14 +15,14 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_checkmeshes.m 730 2007-02-07 12:06:20Z rik $
 
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 try
-    disp(D.inv{D.val}.mesh);
+    disp(D.inv{val}.mesh);
     Mctx  = D.inv{val}.mesh.tess_ctx;
     Mskl  = D.inv{val}.mesh.tess_iskull;
     Mslp  = D.inv{val}.mesh.tess_scalp;

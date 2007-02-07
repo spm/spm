@@ -6,7 +6,7 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 540 2006-05-23 14:01:40Z james $
+% $Id: spm_eeg_robust_averaget.m 730 2007-02-07 12:06:20Z rik $
 if nargin==1
 	ks=3;
 end
@@ -64,7 +64,5 @@ while abs(ores-nres)>sqrt(1E-8)
 	clear res;
 
 end
-figure(1)
-clf
 
 

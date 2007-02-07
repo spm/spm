@@ -13,18 +13,18 @@ function varargout = spm_eeg_inv_getmeshes(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmeshes.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_getmeshes.m 730 2007-02-07 12:06:20Z rik $
 
 
 % checks and defaults
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 Iisk    = D.inv{val}.mesh.msk_iskull;
-Ictx    = D.inv{val}.mesh.msk_iskull;
+Ictx    = D.inv{val}.mesh.msk_cortex;
 Iscl    = D.inv{val}.mesh.msk_scalp;
 Msize   = D.inv{val}.mesh.Msize;
-Nsize   = [3127 4207 5122 7222]
-Nvert   = [2002 2002 Nsize(Msize)];
+Nsize   = [3127 4207 5122 7222];
+Nvert   = [2002 2002 Nsize(Msize)]
 
 [Centre_vx,Centre_mm]     = spm_eeg_inv_CtrBin(Iisk);
 D.inv{val}.mesh.Centre_vx = Centre_vx;
@@ -53,8 +53,8 @@ vert = head(1).XYZmm';
 face = head(1).tri';
 norm = spm_eeg_inv_normals(vert,face);
 D.inv{val}.mesh.tess_iskull.vert = vert;
-D.inv{val}.mesh.tess_iskull.vert = face;
-D.inv{val}.mesh.tess_iskull.vert = norm;
+D.inv{val}.mesh.tess_iskull.face = face;
+D.inv{val}.mesh.tess_iskull.norm = norm;
 D.inv{val}.mesh.Iskull_Nv        = length(vert);
 D.inv{val}.mesh.Iskull_Nf        = length(face);
 
@@ -64,8 +64,8 @@ vert = head(2).XYZmm';
 face = head(2).tri';
 norm = spm_eeg_inv_normals(vert,face);
 D.inv{val}.mesh.tess_scalp.vert = vert;
-D.inv{val}.mesh.tess_scalp.vert = face;
-D.inv{val}.mesh.tess_scalp.vert = norm;
+D.inv{val}.mesh.tess_scalp.face = face;
+D.inv{val}.mesh.tess_scalp.norm = norm;
 D.inv{val}.mesh.Scalp_Nv        = length(vert);
 D.inv{val}.mesh.Scalp_Nf        = length(face);
 
@@ -75,8 +75,8 @@ vert = head(3).XYZmm';
 face = head(3).tri';
 norm = spm_eeg_inv_normals(vert,face);
 D.inv{val}.mesh.tess_ctx.vert  = vert;
-D.inv{val}.mesh.tess_ctx.vert  = face;
-D.inv{val}.mesh.tess_ctx.vert  = norm;
+D.inv{val}.mesh.tess_ctx.face  = face;
+D.inv{val}.mesh.tess_ctx.norm  = norm;
 D.inv{val}.mesh.Ctx_Nv         = length(vert);
 D.inv{val}.mesh.Ctx_Nf         = length(face);
 

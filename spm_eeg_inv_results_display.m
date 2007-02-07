@@ -4,7 +4,7 @@ function spm_eeg_inv_results_display(D)
 %__________________________________________________________________________
 
 %==========================================================================
-Ndip  = 512; % Number of dipoles to display
+Ndip  = 256; % Number of dipoles to display
 %==========================================================================
 
 % SPM data structure
@@ -36,18 +36,24 @@ G    = sqrt(sparse(Is,1,GW,Nd,1));
 Fgraph = spm_figure('GetWin','Graphics');
 clf(Fgraph)
 figure(Fgraph)
-vert   = model.mesh.tess_mni.vert;
+
+%% RH Temp hack to get some display for noncanonical meshes (even if not normalised!)
+if model.mesh.canonical
+	vert   = model.mesh.tess_mni.vert;
+else
+	warndlg('Displaying on subject mesh - may not be in MNI space');
+	vert   = model.mesh.tess_ctx.vert;
+end
 
 % display
 %--------------------------------------------------------------------------
 subplot(2,1,1)
 [i j]  = sort(-G);
-try
-    j  = j(1:Ndip);
-end
+j      = j(1:Ndip);
 spm_mip(G(j),vert(j,:)',6);
 axis image
-title({'root mean square (energy)',sprintf('%i voxels',length(j))})
+title({'root mean square (energy)',...
+       sprintf('%i voxels',Ndip)})
 
 % contrast
 %--------------------------------------------------------------------------
