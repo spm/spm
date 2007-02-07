@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_eeg_inv_imag_api.m 733 2007-02-07 15:39:50Z karl $
 
 
 spm_defaults
@@ -36,7 +36,7 @@ if nargin < 2
     % intialise with D
     %----------------------------------------------------------------------
     try
-        D = varargin{1};
+        D = spm_eeg_inv_check(varargin{1});
         set(handles.DataFile,'String',D.fname);
         set(handles.Exit,'enable','on')
         cd(D.path);

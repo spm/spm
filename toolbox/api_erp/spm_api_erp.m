@@ -4,7 +4,7 @@ function varargout = spm_api_erp(varargin)
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
 
-% Last Modified by GUIDE v2.5 06-Feb-2007 19:47:17
+% Last Modified by GUIDE v2.5 07-Feb-2007 15:21:07
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -47,7 +47,7 @@ end
 %-DCM files and directories: Load and save
 %==========================================================================
 
-% load
+% --- Executes on button press in load.
 % -------------------------------------------------------------------------
 function varargout = load_Callback(hObject, eventdata, handles, varargin)
 try
@@ -123,11 +123,14 @@ try
     set(handles.results,    'Enable','on');
     if handles.DCM.options.type == 3
         set(handles.render, 'Enable','on');
+        set(handles.Imaging,'Enable','on');
+
     end
 catch
     set(handles.results,    'Enable','off');
 end
 
+% --- Executes on button press in save.
 % -------------------------------------------------------------------------
 function handles = save_Callback(hObject, eventdata, handles)
 
@@ -212,7 +215,7 @@ set(handles.Y,     'enable','on')
 guidata(hObject,handles);
 warndlg({'Your design matrix has been re-set'})
 
-%-Display data
+% --- Executes on button press in Y to display data
 %--------------------------------------------------------------------------
 function Y_Callback(hObject, eventdata, handles)
 try
@@ -224,7 +227,7 @@ catch
     warndlg('please specify data and trials');
 end
 
-
+% --- Executes on button press in Uname.
 %--------------------------------------------------------------------------
 function Uname_Callback(hObject, eventdata, handles)
 try
@@ -247,6 +250,7 @@ set(handles.Uname,'string',Uname(:))
 handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
 
+% --- Executes on button press in design.
 %--------------------------------------------------------------------------
 function design_Callback(hObject, eventdata, handles)
 try
@@ -350,7 +354,7 @@ set(handles.connectivity_back,'Enable', 'on');
 handles = connections_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
 
-% Executes on button press in pos.
+% --- Executes on button press in pos.
 %--------------------------------------------------------------------------
 function pos_Callback(hObject, eventdata, handles)
 [f,p]     = uigetfile('*.mat','source (n x 3) location file');
@@ -397,7 +401,7 @@ set(handles.spatial_ok,    'Enable', 'on');
 guidata(hObject, handles);
 
 
-%-Executes on button press in spatial_back.
+% --- Executes on button press in spatial_back.
 %----------------------------------------------------------------------
 function spatial_back_Callback(hObject, eventdata, handles)
 
@@ -421,7 +425,7 @@ set(handles.data_ok,      'Enable', 'on');
 
 guidata(hObject, handles);
 
-%-Executes on button press in plot_dipoles.
+% --- Executes on button press in plot_dipoles.
 %--------------------------------------------------------------------------
 function plot_dipoles_Callback(hObject, eventdata, handles)
 
@@ -447,6 +451,9 @@ spm_eeg_inv_ecd_DrawDip('Init', sdip)
 
 %-Connectivity
 %==========================================================================
+
+% --- Executes on button press in connections.
+%--------------------------------------------------------------------------
 function handles = connections_Callback(hObject, eventdata, handles)
 
 % delete previous connection buttons
@@ -609,7 +616,7 @@ try
 end
 set(handles.connections,'Enable','on')
 
-%-Executes on button press in connectivity_back.
+% --- Executes on button press in connectivity_back.
 %--------------------------------------------------------------------------
 function connectivity_back_Callback(hObject, eventdata, handles)
 
@@ -647,6 +654,7 @@ end
 %-Estimate, initalise and review
 %==========================================================================
 
+% --- Executes on button press in estimate.
 % -------------------------------------------------------------------------
 function varargout = estimate_Callback(hObject, eventdata, handles, varargin)
 set(handles.estimate,'String','Estimating','Foregroundcolor',[1 0 0])
@@ -676,19 +684,23 @@ handles.DCM = spm_dcm_erp(handles.DCM);
 assignin('base','DCM',handles.DCM)
 guidata(hObject, handles);
 
-set(handles.results,   'Enable','on' )
-set(handles.save,      'Enable','on')
-set(handles.estimate,  'String','Estimated','Foregroundcolor',[0 0 0])
+set(handles.results,    'Enable','on' )
+set(handles.save,       'Enable','on')
+set(handles.estimate,   'String','Estimated','Foregroundcolor',[0 0 0])
 if get(handles.Spatial_type,'Value') == 3
-    set(handles.render,'Enable','on' )
+    set(handles.render, 'Enable','on' )
+    set(handles.Imaging,'Enable','on' )
+
 end
 
+% --- Executes on button press in results.
 % -------------------------------------------------------------------------
 function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
 spm_dcm_erp_results(handles.DCM, Action);
 
+% --- Executes on button press in initialise.
 % -------------------------------------------------------------------------
 function initialise_Callback(hObject, eventdata, handles)
 [f,p]           = uigetfile('DCM*.mat','please select estimated DCM');
@@ -696,11 +708,17 @@ DCM             = load(fullfile(p,f), '-mat');
 handles.DCM.M.P = DCM.DCM.Ep;
 guidata(hObject, handles);
 
+% --- Executes on button press in render.
 % -------------------------------------------------------------------------
 function render_Callback(hObject, eventdata, handles)
 spm_eeg_inv_visu3D_api(handles.DCM.xY.Dfile)
 
-% Auxillary functions
+% --- Executes on button press in Imaging.
+% -------------------------------------------------------------------------
+function Imaging_Callback(hObject, eventdata, handles)
+spm_eeg_inv_imag_api(handles.DCM.xY.Dfile)
+
+
 %==========================================================================
 function handles = Xdefault(hObject,handles,m);
 % default design matix
@@ -716,5 +734,8 @@ handles.DCM.xU.name = name;
 set(handles.design,'String',num2str(handles.DCM.xU.X'));
 set(handles.Uname, 'String',handles.DCM.xU.name);
 return
+
+
+
 
 

@@ -27,9 +27,7 @@ try, foi = model.contrast.fboi; catch, foi = 0;        end
 
 % inversion parameters
 %--------------------------------------------------------------------------
-M    = model.inverse.M;                           % MAP projector
 J    = model.inverse.J;                           % Trial average MAP estimate
-V    = model.inverse.qV;                          % temporal correlations
 T    = model.inverse.T;                           % temporal projector
 U    = model.inverse.U;                           % spatial  projector
 R    = model.inverse.R;                           % referencing matrix
@@ -86,7 +84,8 @@ for i = 1:length(Nt)
         
         % get projectors, inversion and data
         %==================================================================
-
+        M     = model.inverse.M;               % MAP projector
+        V     = model.inverse.qV;              % temporal correlations
         MUR   = M*U'*R;
         qC    = model.inverse.qC;
         QC    = qC*trace(TTW'*V*TTW);

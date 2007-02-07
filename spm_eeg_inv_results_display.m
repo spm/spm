@@ -43,9 +43,9 @@ figure(Fgraph)
 
 % get vertices (even if not normalised)
 %--------------------------------------------------------------------------
-if model.mesh.canonical
+try
 	vert   = model.mesh.tess_mni.vert;
-else
+catch
 	warndlg('Displaying on subject mesh - may not be in MNI space');
 	vert   = model.mesh.tess_ctx.vert;
 end
