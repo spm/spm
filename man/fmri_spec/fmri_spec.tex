@@ -177,7 +177,7 @@ Canonical Hemodynamic Response Function (HRF). This is the default option. Contr
 
 Model HRF Derivatives. The canonical HRF combined with time and dispersion derivatives comprise an `informed' basis set, as the shape of the canonical response conforms to the hemodynamic response that is commonly observed. The incorporation of the derivative terms allow for variations in subject-to-subject and voxel-to-voxel responses. The time derivative allows the peak response to vary by plus or minus a second and the dispersion derivative allows the width of the response to vary by a similar amount. 
 
-A positive estimate of the time-derivative regression coefficient implies that the peak hemodynamic response occurs later than usual ie. than would be expected using just the canonical regressor. A positive estimate for the dispersion derivative implies a more dispersed response than usual.
+A positive estimate of the time-derivative regression coefficient implies that the peak hemodynamic response occurs earlier than usual ie. than would be expected using just the canonical regressor. A positive estimate for the dispersion derivative implies a less dispersed response than usual.
 
 The informed basis set requires an SPM{F} for inference. T-contrasts over just the canonical are perfectly valid but assume constant delay/dispersion. The informed basis set compares favourably with eg. FIR bases on many data sets \cite{rnah_basis}.
 
