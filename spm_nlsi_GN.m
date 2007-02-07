@@ -18,17 +18,17 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % M.FS - function name or handle f(P,M,U,varargin)
 %        This [optional] function perfoms feature selection assuming the
-%        generalised model y = FS(Y,E) = FS(IS(P,M,U)) + e
+%        generalised model y = FS(Y,E) = FS(IS(P,M,U)) + X0*P0 + e
 %        where E are the parameters of the selection function
 %
 % M.E  - starting estimates for selection parameters
 % M.P  - starting estimtes for model parameters [optional]
 %
-% M.pE - prior expectation  - E{P}
-% M.pC - prior covariance   - Cov{P}
+% M.pE - prior expectation  - E{P}   of model parameters
+% M.pC - prior covariance   - Cov{P} of model parameters
 %
-% M.hE - prior expectation  - E{h}
-% M.hC - prior covariance   - Cov{h}
+% M.hE - prior expectation  - E{h}   of precision parameters
+% M.hC - prior covariance   - Cov{h} of precision parameters
 %
 % U.u  - inputs
 % U.dt - sampling interval
@@ -74,7 +74,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 700 2006-11-29 09:52:41Z klaas $
+% $Id: spm_nlsi_GN.m 731 2007-02-07 14:31:41Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -171,9 +171,9 @@ pC    = M.pC;
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
-    dgdu = kron(speye(nr,nr),Y.X0);
+    dfdu = kron(speye(nr,nr),Y.X0);
 catch
-    dgdu = sparse(ns*nr,0);
+    dfdu = sparse(ns*nr,0);
 end
 
 % hyperpriors - expectation
@@ -181,7 +181,7 @@ end
 try
     hE = M.hE;
 catch
-    hE = sparse(nh,1) - 4;
+    hE = sparse(nh,1);
 end
 
 % hyperpriors - covariance
@@ -189,13 +189,13 @@ end
 try
     hP = inv(M.hC);
 catch
-    hP = eye(nh,nh)/4;
+    hP = eye(nh,nh);
 end
 
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
-V     = spm_svd(pC,1e-8);
-nu    = size(dgdu,2);                 % number of parameters (confounds)
+V     = spm_svd(pC,exp(-16));
+nu    = size(dfdu,2);                 % number of parameters (confounds)
 np    = size(V,2);                    % number of parameters (effective)
 ip    = [1:np];
 iu    = [1:nu] + np;
@@ -215,38 +215,35 @@ Cp    = pC;
 % EM
 %==========================================================================
 C.F   = -Inf;
-dv    = 1/128;
 t     = 64;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
+warning off
 for k = 1:128
  
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %======================================================================
- 
-    % prediction (of features)
-    %----------------------------------------------------------------------
-    g     = feval(IS,Ep,M,U);
-    g     = feval(FS,g,E);
-    
-    % compute partial derivatives; dgdp
-    %----------------------------------------------------------------------
-    for i = ip
-        dV        = dv*sqrt(Cp(i,i));
-        pi        = spm_unvec(spm_vec(Ep) + V(:,i)*dV,pE);
-        gi        = feval(IS,pi,M,U);
-        dg        = feval(FS,gi,E)  - g;
-        dgdp(:,i) = spm_vec(dg)/dV;
-    end
 
-    % prediction error and gradients
+    % prediction g, and gradients; dgdp
     %----------------------------------------------------------------------
-    e     = spm_vec(y) - spm_vec(g) - dgdu*p(iu);
-    J     = -[dgdp dgdu];
+    [dgdp g] = spm_diff(IS,Ep,M,U,1,{V});
+       
+    % prediction of features
+    %---------------------------------------------------------------------- 
+    f     = feval(FS,g,E);
+    for i = 1:np
+        dfdp(:,i) = spm_vec(feval(FS,spm_unvec(dgdp(:,i),g),E));
+    end
+    
+    % prediction error and full gradients
+    %----------------------------------------------------------------------
+    e     = spm_vec(y) - spm_vec(f) - dfdu*p(iu);
+    J     = -[dfdp dfdu];
+    
  
-    % iterate a Fisher scoring scheme to find h = max{F(p,h)}
-    %----------------------------------------------------------------------
+    % M-step; Fisher scoring scheme to find h = max{F(p,h)}
+    %======================================================================
     for m = 1:16
  
         % precision and conditional covariance
@@ -360,8 +357,8 @@ for k = 1:128
         % subplot prediction
         %----------------------------------------------------------------------
         subplot(2,1,1)
-        plot([1:ns]*Y.dt,g),                      hold on
-        plot([1:ns]*Y.dt,g + spm_unvec(e,g),':'), hold off
+        plot([1:ns]*Y.dt,f),                      hold on
+        plot([1:ns]*Y.dt,f + spm_unvec(e,f),':'), hold off
         xlabel('time')
         title(sprintf('%s: %i','E-Step',k))
         grid on
@@ -389,6 +386,6 @@ end
 Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;
-
+warning on
 
 

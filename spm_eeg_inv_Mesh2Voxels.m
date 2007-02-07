@@ -44,17 +44,12 @@ catch
     D.inv{val}.contrast.smooth = smoothparam;
 end
 
+
 % extract variables
 %----------------------------------------------------------------------
 sMRIfile       = fullfile(spm('dir'),'templates','T2.nii');
 vert           = D.inv{val}.mesh.tess_mni.vert;
 face           = D.inv{val}.mesh.tess_mni.face;
-TextVect       = D.inv{val}.contrast.GW;
-TextVect       = sparse(D.inv{val}.inverse.Is,1,TextVect,D.inv{val}.inverse.Nd,1);
-[PTH,NAME,EXT] = fileparts(D.fname);
-Outputfilename = fullfile(D.path,sprintf( 'w_%s_%.0f.nii',NAME,val));
-Outputsmoothed = fullfile(D.path,sprintf('sw_%s_%.0f.nii',NAME,val));
-
 
 % Get mesh
 %--------------------------------------------------------------------------
@@ -92,48 +87,57 @@ VoxelCoord  = round( spm_eeg_inv_mm2vx(DenseCortex,Vin.mat) )';
 clear DenseCortex
 
 % Interpolate the values in each vertex to compute the values at each
-% sampling point of the triangles
+% sampling point of the triangles (cycle over conditions)
 %--------------------------------------------------------------------------
-InterpOp   = [teta alpha beta];
-SPvalues   = zeros(nf*np,1);
-Vout       = Vin;
-Vout.fname = Outputfilename;
-Vout.dt(1) = spm_type('uint16');
-RECimage   = zeros(Vout.dim);
+[PTH,NAME,EXT] = fileparts(D.fname);
+for c = 1:length(D.inv{val}.contrast.GW)
+    
+    TextVect       = D.inv{val}.contrast.GW{c};
+    TextVect       = sparse(D.inv{val}.inverse.Is,1,TextVect,D.inv{val}.inverse.Nd,1);
+    Outputfilename = fullfile(D.path,sprintf( 'w_%s_%.0f_%.0f.nii',NAME,val,c));
+    Outputsmoothed = fullfile(D.path,sprintf('sw_%s_%.0f_%.0f.nii',NAME,val,c));
+    InterpOp       = [teta alpha beta];
+    SPvalues       = zeros(nf*np,1);
+    Vout           = Vin;
+    Vout.fname     = Outputfilename;
+    Vout.dt(1)     = spm_type('uint16');
+    RECimage       = zeros(Vout.dim);
 
 
-% And interpolate those values into voxels
-%--------------------------------------------------------------------------
-for i = 1:nf
-    TextVal = TextVect(face(i,:));
-    if any(TextVal)
-        ValTemp        = InterpOp*TextVal;
-        SPvalues( (i-1)*np+1 : i*np ) = sum(TextVal)*(ValTemp/sum(ValTemp));
-        Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
-        Val            = SPvalues( (i-1)*np+1 : i*np );
-        [UnVox,I,J]    = unique(Vox,'rows');
-        IndV           = sub2ind(Vin.dim,UnVox(:,1),UnVox(:,2),UnVox(:,3));
-        K              = 1:length(J);
-        MatV           = zeros(max(J),length(J));
-        IndK           = sub2ind(size(MatV),J,K');
-        MatV(IndK)     = Val;
-        SV             = sum(MatV')';
-        RECimage(IndV) = RECimage(IndV) + SV;
+    % And interpolate those values into voxels
+    %--------------------------------------------------------------------------
+    for i = 1:nf
+        TextVal = TextVect(face(i,:));
+        if any(TextVal)
+            ValTemp        = InterpOp*TextVal;
+            SPvalues( (i-1)*np+1 : i*np ) = sum(TextVal)*(ValTemp/sum(ValTemp));
+            Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
+            Val            = SPvalues( (i-1)*np+1 : i*np );
+            [UnVox,I,J]    = unique(Vox,'rows');
+            IndV           = sub2ind(Vin.dim,UnVox(:,1),UnVox(:,2),UnVox(:,3));
+            K              = 1:length(J);
+            MatV           = zeros(max(J),length(J));
+            IndK           = sub2ind(size(MatV),J,K');
+            MatV(IndK)     = Val;
+            SV             = sum(MatV')';
+            RECimage(IndV) = RECimage(IndV) + SV;
+        end
     end
+
+    % Write image (rescale by 10^6)
+    %--------------------------------------------------------------------------
+    RECimage  = RECimage*1e6;
+    Vout      = spm_write_vol(Vout,RECimage);
+
+    % Smoothing
+    %--------------------------------------------------------------------------
+    spm_smooth(Vout,Outputsmoothed,smoothparam);
+    str = 'Summary statisic image (RMS response) written:\n %s\n %s (smoothed)\n';
+    fprintf(str,Outputfilename,Outputsmoothed)
+    D.inv{val}.contrast.Vout{c}  = Vout;
+    D.inv{val}.contrast.fname{c} = Outputsmoothed;
+
 end
-
-% Write image (rescale by 10^6)
-%--------------------------------------------------------------------------
-RECimage  = RECimage*1e6;
-Vout      = spm_write_vol(Vout,RECimage);
-
-% Smoothing
-%--------------------------------------------------------------------------
-spm_smooth(Vout,Outputsmoothed,smoothparam);
-str = 'Summary statisic image (RMS response) written:\n %s\n %s (smoothed)\n';
-fprintf(str,Outputfilename,Outputsmoothed)
-D.inv{val}.contrast.Vout  = Vout;
-D.inv{val}.contrast.fname = Outputsmoothed;
 
 % display
 %==========================================================================

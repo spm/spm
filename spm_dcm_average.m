@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 674 2006-11-03 14:49:52Z klaas $
+% $Id: spm_dcm_average.m 731 2007-02-07 14:31:41Z karl $
 
 
 if nargin <= 1
@@ -133,11 +133,11 @@ else
     % get priors (note: these are the priors of the first model)
     if isfield(M, 'dipfit')
         % model with parameterised leadfield
-        [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L,DCM.xU.dur);
+        [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,DCM.xU.dur);
     else
         % model w/ static leadfield
         L       = xY.S'*DCM.L;
-        [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,L,DCM.xU.dur);
+        [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,DCM.xU.dur);
     end
     % store in DCM data structure
     warning off;

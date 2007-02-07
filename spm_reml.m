@@ -23,7 +23,7 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,hC);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_reml.m 731 2007-02-07 14:31:41Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -31,7 +31,7 @@ try, N; catch, N  = 1;  end
 
 % default number of iterations
 %--------------------------------------------------------------------------
-try, K; catch, K  = 64; end
+try, K; catch, K  = 128; end
 
 % hyperpriors; if not specified
 %--------------------------------------------------------------------------

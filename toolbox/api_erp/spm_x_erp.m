@@ -13,5 +13,11 @@ function [x] = spm_x_erp(P,M,U)
 
 % spiny stellate depolarisation
 %--------------------------------------------------------------------------
-n     = length(P.x0);
-x     = sparse([1:n] + 1,1,P.x0,n*9 + 1,1);
+n     = length(P.A{1});
+try
+    x = sparse([1:n] + 1,1,P.x0,n*9 + 1,1);
+catch
+    x = sparse(n*9 + 1,1);
+end
+
+

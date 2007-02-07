@@ -86,6 +86,7 @@ catch
 end
 du  = sparse(1,M.m);
 D   = speye(M.n,M.n);
+I   = speye(M.n,M.n);
 
 % integrate
 %--------------------------------------------------------------------------
@@ -106,6 +107,7 @@ for i = 1:M.ns
         %------------------------------------------------------------------
         try
             [fx J D]   = feval(f,M.x,u,P);
+            J          = D*J;
         catch
             try
                 [fx J] = feval(f,M.x,u,P);
@@ -116,14 +118,14 @@ for i = 1:M.ns
         
         % approximate (expm(dt*J) - I)*inv(J) (avoiding matrix inversion)
         %------------------------------------------------------------------
-        J     = D*J;
-        T     = D*dt;
+        T     = I*dt;
         Q     = T;
         for j = 2:256
             T = T*dt*J/j;
             Q = Q + T;
             if norm(T,1) < 1e-16, break, end
         end
+        Q     = Q*D;
     end
     
     % dx(t)/dt

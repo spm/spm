@@ -1,13 +1,15 @@
-function [U] = spm_erp_u(P,t)
+function [U,N] = spm_erp_u(P,t)
 % returns the [scalar] input for EEG models
-% FORMAT [U] = spm_erp_u(P,t)
+% FORMAT [U,N] = spm_erp_u(P,t)
 %
 % P      - parameter structure
-%   P.R  - scaling of [Poisson] parameter
-%   P.N  - [DCT] parameter
-%   P.U  - trial duration (seconds)
+%   P.R  - scaling of [Gamma] parameters
+%   P.N  - [DCT] parameter[s]
 %
 % t      - PST (seconds)
+%
+% U   - stimulus-related (subcortical) input
+% N   - non-specifc fluctuations
 %
 % See spm_fx_erp.m and spm_erp_priors.m
 %__________________________________________________________________________
@@ -17,25 +19,21 @@ function [U] = spm_erp_u(P,t)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-global M
-
-% get onset
+% stimulus - subcortical impulse: [Gamma] parameters
 %--------------------------------------------------------------------------
-try
-    onset = M.onset;
-catch
-    onset = 60;                                       % default of 60ms
+U     = 0;
+for i = 1:length(P.ons)
+   magni = P.M(i);
+   shape = P.ons(i)*exp(P.R(i,1));
+   scale = exp(P.R(i,2));
+   U     = U + magni*spm_Gpdf(t*1000,shape,scale)*1000;
 end
-
-% stimulus - subcortical impluse
-%--------------------------------------------------------------------------
-R  = exp(P.R).*[onset 1];                             % [Gamma] parameters
-U  = spm_Gpdf(t*1000,R(1)*R(2),R(2))*1000;            % input
 
 % Endogenous fluctuations (if P.N is specified)
 %--------------------------------------------------------------------------
 try
-   f  = P.N(3);
-   U  = U + P.N(1)*cos(2*pi*f*t) + P.N(2)*sin(2*pi*f*t);
+   for i = 1:size(P.N,1)
+      N(i,:) = P.N(i,1)*cos(2*pi*P.N(i,3)*t) + P.N(i,2)*sin(2*pi*P.N(i,3)*t);
+   end
 end
 

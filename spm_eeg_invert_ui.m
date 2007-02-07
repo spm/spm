@@ -5,11 +5,14 @@ function [D] = spm_eeg_invert_ui(varargin)
 % spatio-temporal hierarchy implicit in EEG data
 % sets:
 %
-%     D.inverse.con    - condition or trial type
-%     D.inverse.smooth - smoothness of source priors (mm)
-%     D.inverse.type   - 'MSP' multiple sparse priors
-%                        'LOR' LORETA-like model
-%                        'IID' LORETA and WMN
+%     D.inv{i}.inverse.trials - indces of D.events.types to invert
+%     D.inv{i}.inverse.con    - condition or trial type
+%     D.inv{i}.inverse.smooth - smoothness of source priors (mm)
+%     D.inv{i}.inverse.type   - 'MSP' multiple sparse priors
+%                               'LOR' LORETA-like model
+%                               'IID' LORETA and WMN
+%     D.inv{i}.inverse.xyz    - (n x 3) locations of spherical VOIs
+%     D.inv{i}.inverse.rad    - radius (mm) of VOIs
 %__________________________________________________________________________
 
 
@@ -17,55 +20,83 @@ function [D] = spm_eeg_invert_ui(varargin)
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-% Get condition or trial type
+
+% check whether to use conventional or DCM temporal priors
 %--------------------------------------------------------------------------
-if D.events.Ntypes > 1
-    con   = 1:D.events.Ntypes;
-    for i = con;
-        str{i} = num2str(i);
-    end
-    con = spm_input('Condition or trial','+1','b',str,con,1);
-    try
-        D.events.types(con);
-    catch
-        warndlg('please select a single trial');
+if spm_input('Reconstruction','+1','b',{'Classical|DCM'},[0 1],1)
+    
+        % record type in D and DCM structures
+        %------------------------------------------------------------------
+        D.inv{val}.inverse.type = 'DCM';
+
+        % exchange filenames
+        %------------------------------------------------------------------
+        DCMfile            = ['DCM_' D.fname];
+        D.inv{val}.DCMfile = DCMfile;
+        DCM.val            = val;
+        DCM.xY.Dfile       = fullfile(D.path,D.fname);
+        DCM.options.type   = 3;
+        DCM.name           = DCMfile;
+        
+        % an call API to specify DCM
+        %------------------------------------------------------------------
+        spm_api_erp(DCM);
         return
+end
+
+% Conventional reconstruction: get conditions or trials
+%==========================================================================
+if D.events.Ntypes > 1
+    if spm_input('All conditions or trial','+1','b',{'yes|no'},[1 0],1)
+        trials = D.events.types;
+    else
+        str    = sprintf('which condition[s] 1:(%i)',length(D.events.types))
+        trials = spm_input(str,'+1','r');
     end
 else
-    con = 1;
+    trials = D.events.types(1);
 end
-D.inv{val}.inverse.con    = con;
+D.inv{val}.inverse.trials = trials;
+D.con = 1;
 
 % Type of analysis
 %--------------------------------------------------------------------------
 D.inv{val}.inverse.type   = ...
         spm_input('Type of inversion','+1','MSP|LOR|IID');
 
+    
 % D.inverse.smooth - smoothness of source priors (mm)
 %--------------------------------------------------------------------------
-
-% RH prompt confusing if IID only
-
-if ~strcmp(D.inv{val}.inverse.type,'IID')
- D.inv{val}.inverse.smooth = ...
+switch D.inv{val}.inverse.type, case{'MSP','LOR'}
+    D.inv{val}.inverse.smooth = ...
         spm_input('Smoothness (0-1)','+1','0.2|0.4|0.6',[0.2 0.4 0.6],2);
 end
 
 % Number of sparse priors
 %--------------------------------------------------------------------------
-if strcmp(D.inv{val}.inverse.type,'MSP')
+switch D.inv{val}.inverse.type, case{'MSP'}
     D.inv{val}.inverse.Np = ...
-        spm_input('Number of MSPs','+1','128|192|256',[128 192 256]);
+        spm_input('MSPs per hemisphere','+1','64|96|128',[64 96 128]);
+end
 
-    if spm_input('Restrict solutions','+1','yes|no',[1 0],2);
-        D.inv{val}.inverse.xyzr = ...
-        spm_input('x,y,z and radius of spheres (mm)','0','r',[0 0 0 64]);
-    end
+% Source space restictions
+%--------------------------------------------------------------------------
+if spm_input('Restrict solutions','+1','yes|no',[1 0],2);
+    
+    [f,p] = uigetfile('*.mat','source (n x 3) location file');
+    xyz   = load(fullfile(p,f));
+    name  = fieldnames(xyz);
+    xyz   = getfield(xyz, name{1});
+    D.inv{val}.inverse.xyz = xyz;
+    D.inv{val}.inverse.rad = ...
+        spm_input('radius of VOI (mm)','+1','r',32);
 end
 
 % invert
-%--------------------------------------------------------------------------
+%==========================================================================
 D = spm_eeg_invert(D);
+
+
 
 
 

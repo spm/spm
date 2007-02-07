@@ -20,14 +20,14 @@ DCM.M.dipfit.sensorfile = fullfile(Pbase, 'olivier_09_03_2004.pol');
 
 % Parameters and options used for setting up model.
 %-------------------------------------------------------
+DCM.options.type    = 1;      % spatial model is ECD/EEG (2: ECD/MEG, 3: fixed)
 DCM.options.trials  = [1 2];  % index of ERPs within ERP/ERF file
 DCM.options.Tdcm(1) = 5;      % start of peri-stimulus time to be modelled
 DCM.options.Tdcm(2) = 150;    % end of peri-stimulus time to be modelled
 DCM.options.Nmodes  = 3;      % nr of modes for data selection
 DCM.options.h       = 0;      % nr of DCT components
-DCM.M.onset         = 60;     % selection of onset (prior mean)
+DCM.options.onset   = 60;     % selection of onset (prior mean)
 
-DCM.options.Spatial_type = 1; % spatial model is ECD/EEG (2: ECD/MEG, 3: fixed)
 
 %----------------------------------------------------------
 % data and spatial model

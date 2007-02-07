@@ -26,10 +26,10 @@ Fgraph  = spm_figure('GetWin','Graphics'); clf(Fgraph), figure(Fgraph)
 %--------------------------------------------------------------------------
 try
     sMRI = D.inv{val}.mesh.wmMRI;
-    wEEG = D.inv{val}.contrast.fname;
+    wEEG = D.inv{val}.contrast.fname{D.con};
 catch
     sMRI = fullfile(spm('dir'),'canonical','single_subj_T1.nii');
-    wEEG = D.inv{val}.contrast.fname;
+    wEEG = D.inv{val}.contrast.fname{D.con};
 end
 
 job{1}.util{1}.checkreg.data{1} = wEEG;

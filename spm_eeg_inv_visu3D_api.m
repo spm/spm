@@ -5,7 +5,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % - SPM_EEG_INV_VISU3D_API(filename) where filename is the eeg/meg .mat file
 % - SPM_EEG_INV_VISU3D_API('callback_name', ...) invoke the named callback.
 %
-% Last Modified by GUIDE v2.5 17-Jan-2007 13:15:47
+% Last Modified by GUIDE v2.5 01-Feb-2007 20:16:13
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 % Jeremie Mattout
 % $Id: $
@@ -14,29 +14,30 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 %--------------------------------------------------------------------------
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
+    
+    % open new api
+    %----------------------------------------------------------------------
     fig         = openfig(mfilename,'new');
     handles     = guihandles(fig);
     handles.fig = fig;
-    
-    try
-       set(handles.DataFile,'String',varargin{1}.fname)
-       set(handles.Contrast,'String',num2str(varargin{1}.val));
-       handles.D = varargin{1};
-    end
-    
-    try  
-        cla(handles.sensors_axes)
-        cla(handles.sources_axes)
-        cla(handles.pred_axes)
-    end
-    set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
-    set(fig,'Menubar','figure');
     guidata(fig,handles);
+    set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
     
+    
+    % load D if possible and try to open
+    %----------------------------------------------------------------------
+    try
+         handles.D = spm_eeg_inv_check(varargin{1});
+         set(handles.DataFile,'String',handles.D.fname)
+         spm_eeg_inv_visu3D_api_OpeningFcn(fig, [], handles)
+    end
+
+    % return figure handle if necessary
+    %----------------------------------------------------------------------
     if nargout > 0
         varargout{1} = fig;
     end
-
+    
 elseif ischar(varargin{1})
 
     try
@@ -70,29 +71,23 @@ end
 if ~isfield(D,'inv')
     error(sprintf('Please specify and invert a foward model\n'));
 end
-
-set(handles.DataFile,'String',D.fname);
-set(handles.Contrast,'String',sprintf('contrast: %i',D.val));
-set(handles.fig,'name',['Source visualisation -' D.fname])
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GET RESULTS (default: current or last analysis)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-try
-    val = D.val;
-catch
-    val = 1;
+figure(handles.fig);
+axes(handles.sensors_axes);
+
+try, val = D.val; catch,  val = 1; D.val = 1; end
+try, con = D.con; catch,  con = 1; D.con = 1; end
+if D.con > length(D.inv{D.val}.inverse.J)
+    con = 1; D.con = 1;
 end
-if val < length(D.inv)
-    set(handles.next,    'Enable','on','Value',1);
-else
-    set(handles.next,    'Enable','off','Value',1);
-end
-if val > 1
-    set(handles.previous,'Enable','on','Value',1);
-else
-    set(handles.previous,'Enable','off','Value',1);
-end
+
+set(handles.DataFile,'String',D.fname);
+set(handles.next,'String',sprintf('model %i',val));
+set(handles.con, 'String',sprintf('condition %i',con));
+set(handles.fig,'name',['Source visualisation -' D.fname])
+
 if strcmp(D.inv{val}.method,'ECD')
     warndlg('Please create an imaging solution');
     guidata(hObject,handles);
@@ -114,32 +109,26 @@ try
     %----------------------------------------------------------------------
     dimT              = 256;
     dimS              = D.inv{val}.inverse.Nd;
-    Cs                = setdiff(D.channels.eeg, D.channels.Bad);
     Is                = D.inv{val}.inverse.Is;
-    Ts                = ceil([1:dimT]*length(D.inv{val}.inverse.pst)/dimT);
     L                 = D.inv{val}.inverse.L;
     U                 = D.inv{val}.inverse.U;
-    R                 = D.inv{val}.inverse.R;
     T                 = D.inv{val}.inverse.T;
+    Y                 = D.inv{val}.inverse.Y{con};
+    Ts                = ceil(linspace(1,size(T,1),dimT));
     
     % source data
     %----------------------------------------------------------------------
     set(handles.Activity,'Value',1);
     J                 = sparse(dimS,dimT);
-    J(Is,:)           = D.inv{val}.inverse.J*T(Ts,:)';
+    J(Is,:)           = D.inv{val}.inverse.J{con}*T(Ts,:)';
     handles.dimT      = dimT;
     handles.dimS      = dimS;
     handles.pst       = D.inv{val}.inverse.pst(Ts);
     handles.srcs_data = J;
-    
+    handles.Nmax      = max(abs(J(:)));
+
     % sensor data
-    %----------------------------------------------------------------------
-    Y     = sparse(0);
-    c     = find(D.events.code == D.events.types(D.inv{val}.inverse.con));
-    for i = 1:length(c)
-        y = U'*R*(squeeze(D.data(Cs,:,c(i)))*T);
-        Y = Y + y;
-    end
+    %----------------------------------------------------------------------   
     handles.sens_data = U*Y*T(Ts,:)';
     handles.pred_data = U*L*J(Is,:);
 
@@ -153,8 +142,8 @@ end
 try
     JW                    = sparse(dimS,1);
     GW                    = sparse(dimS,1);
-    JW(Is,:)              = D.inv{val}.contrast.JW;
-    GW(Is,:)              = D.inv{val}.contrast.GW;
+    JW(Is,:)              = D.inv{val}.contrast.JW{con};
+    GW(Is,:)              = D.inv{val}.contrast.GW{con};
     handles.woi           = D.inv{val}.contrast.woi;
     handles.fboi          = D.inv{val}.contrast.fboi;
     handles.W             = D.inv{val}.contrast.W(Ts,:);
@@ -216,8 +205,8 @@ set(handles.slider_time,  'Min',1,'Max',handles.dimT,'sliderstep',[1/(handles.di
 set(handles.checkbox_absv,'Enable','on','Value',1);
 set(handles.checkbox_norm,'Enable','on','Value',0);
 
-handles.srcs_disp = full(handles.srcs_data(:,1));
-handles.fig1 = patch('vertices',handles.vert,'faces',handles.face,'FaceVertexCData',handles.srcs_disp);
+srcs_disp = full(abs(handles.srcs_data(:,1)));
+handles.fig1 = patch('vertices',handles.vert,'faces',handles.face,'FaceVertexCData',srcs_disp);
 
 % display
 %--------------------------------------------------------------------------
@@ -225,12 +214,12 @@ set(handles.fig1,'FaceColor',[.5 .5 .5],'EdgeColor','none');
 shading interp
 lighting gouraud
 camlight
-cameramenu
+zoom off
 lightangle(0,270);lightangle(270,0),lightangle(0,0),lightangle(90,0);
 material([.1 .1 .4 .5 .4]);
 view(140,15);
 axis image
-UpDate_Display_SRCS(hObject,handles);
+handles.colorbar = colorbar;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LOAD SENSOR FILE
@@ -256,6 +245,7 @@ clear Cnames Rxy Cpos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INITIAL SENSOR LEVEL DISPLAY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+figure(handles.fig)
 axes(handles.sensors_axes);
 cla; axis off
 
@@ -279,6 +269,7 @@ axes(handles.pred_axes); cla;
 disp      = full(handles.pred_data(:,1));
 imagesc(griddata(xp,yp,disp,xm,ym));
 axis image xy off
+drawnow
 
 guidata(hObject,handles);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -291,10 +282,6 @@ guidata(hObject,handles);
 function UpDate_Display_SRCS(hObject,handles)
 axes(handles.sources_axes);
 
-% Adjust the threshold
-%--------------------------------------------------------------------------
-Set_colormap(hObject, [], handles);
-
 if isfield(handles,'fig1')
     ActToDisp = get(handles.Activity,'Value');
     A         = get(handles.checkbox_absv,'Value');
@@ -304,24 +291,23 @@ if isfield(handles,'fig1')
         % case 1: response (J)
         %------------------------------------------------------------------
         case 1
-            TS   = fix(get(handles.slider_time,'Value'));
-            handles.srcs_disp = handles.srcs_data(:,TS);
-            Nmax = max(abs(handles.srcs_data(:)));
-            if A == 0 & N == 0
-                handles.Vmin = min(handles.srcs_disp);
-                handles.Vmax = max(handles.srcs_disp);
-            elseif A == 0 & N == 1
-                handles.Vmin = -Nmax;
-                handles.Vmax =  Nmax;
-                handles.srcs_disp = handles.srcs_disp;
-            elseif A == 1 & N == 0
-                handles.Vmin = 0;
-                handles.Vmax = max(abs(handles.srcs_disp));
-                handles.srcs_disp = abs(handles.srcs_disp);
-            else % A == 1 & N == 1
-                handles.Vmin = 0;
-                handles.Vmax = Nmax;
-                handles.srcs_disp = abs(handles.srcs_disp);
+            TS = fix(get(handles.slider_time,'Value'));            
+            if A
+                srcs_disp = abs(handles.srcs_data(:,TS));
+            else
+                srcs_disp = handles.srcs_data(:,TS);
+            end
+            if N
+                if A
+                    handles.Vmin =  0;
+                    handles.Vmax =  handles.Nmax;
+                else
+                    handles.Vmin = -handles.Nmax;
+                    handles.Vmax =  handles.Nmax;
+                end
+            else
+                handles.Vmin = min(srcs_disp);
+                handles.Vmax = max(srcs_disp);
             end
 
             
@@ -330,29 +316,31 @@ if isfield(handles,'fig1')
         case 2
                 handles.Vmin = min(handles.srcs_data_w);
                 handles.Vmax = max(handles.srcs_data_w);
-                handles.srcs_disp = handles.srcs_data_w;
+                srcs_disp    = handles.srcs_data_w;
 
         % case 3: Evoked power  (JWWJ)
         %------------------------------------------------------------------
         case 3
                 handles.Vmin = min(handles.srcs_data_ev);
                 handles.Vmax = max(handles.srcs_data_ev);
-                handles.srcs_disp = handles.srcs_data_ev;
+                srcs_disp    = handles.srcs_data_ev;
 
         % case 4: Induced power  (JWWJ)
         %------------------------------------------------------------------
         case 4
                 handles.Vmin = min(handles.srcs_data_ind);
                 handles.Vmax = max(handles.srcs_data_ind);
-                handles.srcs_disp = handles.srcs_data_ind;
+                srcs_disp    = handles.srcs_data_ind;
     end
-    set(handles.fig1,'FaceVertexCData',full(handles.srcs_disp));
+    set(handles.fig1,'FaceVertexCData',full(srcs_disp));
     set(handles.sources_axes,'CLim',[handles.Vmin handles.Vmax]);
     set(handles.sources_axes,'CLimMode','manual');
-    colorbar    
+    
 end
-drawnow
-return
+
+% Adjust the threshold
+%--------------------------------------------------------------------------
+Set_colormap(hObject, [], handles);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -406,7 +394,6 @@ if TypOfDisp == 1
         handles.sensor_loc = plot(handles.sens_coord(:,1),handles.sens_coord(:,2),'o','MarkerFaceColor',[1 1 1]/2,'MarkerSize',6);
         hold off
     end
-    guidata(hObject,handles);
 
 % time series
 %--------------------------------------------------------------------------
@@ -424,8 +411,10 @@ elseif TypOfDisp == 2
     axis on tight;
     axes(handles.pred_axes); cla, axis off
 end
-drawnow
-guidata(hObject,handles);
+
+% Adjust the threshold
+%--------------------------------------------------------------------------
+Set_colormap(hObject, [], handles);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -442,12 +431,7 @@ end
 % --- Executes on button press in LoadData.
 function LoadData_Callback(hObject, eventdata, handles)
 S         = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-D         = spm_eeg_ldata(S);
-handles.D = D;
-spm_eeg_inv_visu3D_api_OpeningFcn(hObject, [], handles);
-
-% --- Executes on button press in OpenData.
-function OpenData_Callback(hObject, eventdata, handles)
+handles.D = spm_eeg_ldata(S);
 spm_eeg_inv_visu3D_api_OpeningFcn(hObject, [], handles);
 
 
@@ -643,7 +627,7 @@ if get(handles.Activity,'Value') == 1
     PST = str2num(get(handles.time_bin,'String'));
     spm_eeg_invert_display(handles.D,PST);
 else
-    spm_eeg_inV_results_display(handles.D);
+    spm_eeg_inv_results_display(handles.D);
 end
 
 % --- Outputs from this function are returned to the command line.
@@ -658,7 +642,7 @@ end
 % --- rest threshold
 %--------------------------------------------------------------------------
 function Set_colormap(hObject, eventdata, handles)
-NewMap  = jet(128);
+NewMap  = jet;
 
 % unsigned values
 %--------------------------------------------------------------------------
@@ -685,22 +669,36 @@ else
 
 end
 colormap(NewMap);
+drawnow
 
 
 % --- Executes on button press in next.
 %--------------------------------------------------------------------------
 function next_Callback(hObject, eventdata, handles)
-if handles.D.val < length(handles.D.inv)
-    handles.D.val = handles.D.val + 1;
+if length(handles.D.inv) == 1
+    set(handles.next,'Value',0);
+    return
 end
+handles.D.val = handles.D.val + 1;
+handles.D.con = 1;
+if handles.D.val > length(handles.D.inv)
+    handles.D.val = 1;
+end
+set(handles.next,'String',sprintf('model %d',handles.D.val),'Value',0);
 spm_eeg_inv_visu3D_api_OpeningFcn(hObject, eventdata, handles)
 
 % --- Executes on button press in previous.
 %--------------------------------------------------------------------------
-function previous_Callback(hObject, eventdata, handles)
-if handles.D.val > 1
-    handles.D.val = handles.D.val - 1;
+function con_Callback(hObject, eventdata, handles)
+if length(handles.D.inv{handles.D.val}.inverse.J) == 1
+    set(handles.con,'Value',0);
+    return
 end
+handles.D.con = handles.D.con + 1;
+if handles.D.con > length(handles.D.inv{handles.D.val}.inverse.J)
+    handles.D.con = 1;
+end
+set(handles.con,'String',sprintf('condition %d',handles.D.con),'Value',0);
 spm_eeg_inv_visu3D_api_OpeningFcn(hObject, eventdata, handles)
 
         
@@ -714,7 +712,7 @@ catch
     vde = [];
 end
 if ~length(vde)
-    handles.location = datacursormode(handles.figure1);
+    handles.location = datacursormode(handles.fig);
     set(handles.location,'Enable','on','DisplayStyle','datatip','SnapToDataVertex','on');
     waitforbuttonpress
     datacursormode off
@@ -727,7 +725,6 @@ guidata(hObject,handles);
 % --- Executes on button press in Rot.
 function Rot_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
-axes(handles.sources_axes);
-rotate3d
-
+rotate3d(handles.sources_axes)
+return
 

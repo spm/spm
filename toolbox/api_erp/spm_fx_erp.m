@@ -2,6 +2,7 @@ function [f,J,D] = spm_fx_erp(x,u,P)
 % state equations for a neural mass model of erps
 % FORMAT [f,J,D] = spm_fx_erp(x,u,P)
 % FORMAT [f,D*J] = spm_fx_erp(x,u,P)
+% FORMAT [f]     = spm_fx_erp(x,u,P)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
@@ -19,7 +20,7 @@ function [f,J,D] = spm_fx_erp(x,u,P)
 % J        - df(t)/dx(t)
 % D        - delay operator dx(t)/dt = f(x(t + d))
 %                                    = D(d)*f(x(t))
-% D*J      - delayed Jacobian        = df(t + d)/dx(t)
+% D*J      - delay Jacobian          = df(t + d)/dx(t)
 %
 % Prior fixed parameter scaling [Defaults]
 %
@@ -46,7 +47,7 @@ x     = reshape(x,n,9);             % neuronal states
 
 % dfdx = [] if t exceeds trial duration (invoking a return to initial state)
 %--------------------------------------------------------------------------
-if nargout == 1 & (t - P.U) > 1e-6, f = []; return, end
+if nargout == 1 & (t - P.dur) > 1e-6, f = []; return, end
 
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
@@ -93,7 +94,13 @@ dSdx = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 
 % input
 %--------------------------------------------------------------------------
-U    = C*spm_erp_u(P,t);
+[U N] = spm_erp_u(P,t);
+U     = C*U;
+if size(N,1) == 1
+    U = U + C*N;
+else
+    U = U + N;
+end
 
 % State: f(x)
 %===========================================================================
@@ -194,7 +201,7 @@ D  = blkdiag(0,D);
 %--------------------------------------------------------------------------
 D  = inv(speye(length(J)) - D.*J);
 
-% augment J with delay operator, if D is not requested explicitly
+% augment f or J with delay operator, if D is not requested explicitly
 %--------------------------------------------------------------------------
 if nargout == 2, J = D*J; end
 

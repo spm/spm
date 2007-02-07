@@ -6,15 +6,15 @@ function [D,val] = spm_eeg_inv_check(varargin)
 %
 % FORMAT [D,val] = spm_eeg_inv_check(D,[val])
 % Input:
-% S              - input data struct (optional)
-% val            - Inversion of interest
+% S              - data structure or its filename
+% val            - model of interest (usually 1)
 % Output:
-% D              - data struct including the new files and parameters
-% val            - Inversion of interest D.val
+% D              - data structure
+% val            - model of interest D.val
 %==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Jeremie Mattout
+% Jeremie Mattout, Karl Friston
 % $Id: spm_eeg_inv_check.m 621 2006-09-12 17:22:42Z karl $
 
 
@@ -24,14 +24,27 @@ try
     D = varargin{1};
     D.inv;
 catch
-    D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-    D = spm_eeg_ldata(D);
+    try
+        D = spm_eeg_ldata(D);
+        D.inv;
+    catch
+        D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
+        D = spm_eeg_ldata(D);
+        
+        % Check for inversion
+        %------------------------------------------------------------------
+        if ~isfield(D,'inv')
+            warndlg('No inverse structure has been created yet');
+            return
+        end
+    end
 end
 
-% Check - inversion
+% set val = 1 if only one model
 %--------------------------------------------------------------------------
-if ~isfield(D,'inv')
-    warndlg('No inverse structure has been created yet');
+if length(D.inv) == 1
+    val   = 1;
+    D.val = val;
     return
 end
 
@@ -48,4 +61,5 @@ catch
         val    = eval(val{1});
     end
 end
+D.val = val;
 

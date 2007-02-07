@@ -15,13 +15,16 @@ function [L] = spm_erp_L(P)
 % output
 %==========================================================================
 global M
-n   = size(P.Lpos,2);                                   % number of sources
 
-switch M.Spatial_type
+% % number of sources
+%--------------------------------------------------------------------------
+n = length(P.A{1});
+
+switch M.dipfit.type
 
     % parameterised lead field ECD/EEG
     %----------------------------------------------------------------------
-    case{1}
+    case{'ECD {EEG)'}
 
         % re-compute lead field only if any dipoles changed
         %------------------------------------------------------------------
@@ -58,7 +61,7 @@ switch M.Spatial_type
 
     % parameterised lead field ECD/MEG
     %----------------------------------------------------------------------
-    case{2}
+    case{'ECD {MEG)'}
 
         % re-compute lead field only if any dipoles changed
         %------------------------------------------------------------------
@@ -74,21 +77,22 @@ switch M.Spatial_type
 
         for i = Id
             Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-            M.L(:,:,i) = Lf(M.dipfit.chansel,:)*(10^20);
+            M.L(:,:,i) = Lf(M.dipfit.Ic,:)*(10^20);
         end
         for i = 1:n
             L(:,i) = M.L(:,:,i)*P.Lmom(:,i);
         end
 
-    % fixed lead field {specified in M.L}
+    % Imaging solution {specified in M.dipfit.G}
     %----------------------------------------------------------------------
-    case{3}
-
-        L = M.L;
+    case{'Imaging'}
+        for i = 1:n
+            L(:,i) = M.dipfit.G{i}*P.L(:,i);
+        end
 
     % LFP or sources - no lead feild required
     %----------------------------------------------------------------------
-    case{4}
+    case{'LFP'}
 
         L = speye(n,n); return
 

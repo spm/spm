@@ -57,8 +57,8 @@ handles.output = hObject;
 
 DCM = varargin{1};
 handles.DCM = DCM;
-handles.ms = DCM.xY.Time;
-handles.T = 1;
+handles.ms  = DCM.xY.Time;
+handles.T   = 1;
 
 global M
 M = DCM.M;
@@ -80,7 +80,7 @@ handles.yp = CTF.Cpos(2,:)';
 Nchannels = size(CTF.Cpos, 2);
 handles.Nchannels = Nchannels;
 
-handles.y_proj = DCM.xY.y*DCM.M.E;
+handles.y_proj   = DCM.xY.y*DCM.M.E;
 handles.CLim1_yp = min(min(handles.y_proj));
 handles.CLim2_yp = max(max(handles.y_proj));
 
@@ -89,8 +89,8 @@ handles.Nt = size(handles.y_proj, 1);
 % data and model fit
 handles.yd = NaN*ones(handles.Nt, Nchannels);
 handles.ym = NaN*ones(handles.Nt, Nchannels);
-handles.yd(:, DCM.M.dipfit.chansel) = handles.y_proj*DCM.M.E'; % data (back-projected to channel space)
-handles.ym(:, DCM.M.dipfit.chansel) = cat(1,DCM.Hc{:}); % model fit
+handles.yd(:, DCM.M.dipfit.Ic) = handles.y_proj*DCM.M.E'; % data (back-projected to channel space)
+handles.ym(:, DCM.M.dipfit.Ic) = cat(1,DCM.H{:})*DCM.M.E'; % model fit
 
 handles.CLim1 = min(min([handles.yd handles.ym]));
 handles.CLim2 = max(max([handles.yd handles.ym]));
@@ -105,7 +105,9 @@ plot_images(hObject, handles);
 plot_modes(hObject, handles);
 plot_dipoles(hObject, handles);
 plot_components_space(hObject, handles);
-plot_components_time(hObject, handles);
+try
+    plot_components_time(hObject, handles);
+end
 
 % Update handles structure
 guidata(hObject, handles);
@@ -138,7 +140,6 @@ handles.T = round(get(handles.slider1, 'Value'));
 
 plot_images(hObject, handles);
 plot_modes(hObject, handles);
-% plot_dipoles(hObject, handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -191,7 +192,7 @@ Nt      = size(DCM.xY.xy{1}, 1);
 Ntrials = length(DCM.H);
 
 
-ms_all = kron(ones(1, Ntrials), handles.ms);
+ms_all  = kron(ones(1, Ntrials), handles.ms);
 
 % data and model prediction, cond 1
 axes(handles.axes3); cla
@@ -209,19 +210,33 @@ grid on
 function plot_dipoles(hObject, handles)
 
 DCM = handles.DCM;
-Nsources = size(DCM.M.Lpos, 2);
-Lpos = handles.DCM.Ep.Lpos;
-Lmom = handles.DCM.Ep.Lmom;
-elc = handles.DCM.M.dipfit.elc;
+Nsources = length(DCM.M.pE.A{1});
+% ECD
+%--------------------------------------------------------------------
+try
+    Lpos = handles.DCM.Ep.Lpos;
+    Lmom = handles.DCM.Ep.Lmom;
+    
+% Imaging
+%--------------------------------------------------------------------
+catch
+    Lpos = handles.DCM.M.dipfit.L.pos;
+    Lmom = Lpos*0;
+end
+try
+    elc = handles.DCM.M.dipfit.elc;
+    % transform sensor locations to MNI-space
+    iMt = inv(DCM.M.dipfit.Mmni2polsphere);
+    elc = iMt*[elc'; ones(1, size(elc, 1))];
+    elc = elc(1:3, :)';
+catch
+    elc = sparse(0,3);
+end
 
-% transform sensor locations to MNI-space
-iMt = inv(DCM.M.dipfit.Mmni2polsphere);
-elc = iMt*[elc'; ones(1, size(elc, 1))];
-elc = elc(1:3, :)';
+
 
 axes(handles.axes5);
 for j = 1:Nsources
-    % plot3(Lpos(1,j), Lpos(2,j), Lpos(3,j), '*');
     % plot dipoles using small ellipsoids
     [x, y, z] = ellipsoid(handles.axes5,Lpos(1,j), Lpos(2,j), Lpos(3,j), 4, 4,4);
     surf(x, y, z, 'EdgeColor', 'none', 'FaceColor', 'g');
@@ -229,8 +244,8 @@ for j = 1:Nsources
     
     % plot dipole moments
     plot3([Lpos(1, j) Lpos(1, j) + 5*Lmom(1, j)],...
-        [Lpos(2, j) Lpos(2, j) + 5*Lmom(2, j)],...
-        [Lpos(3, j) Lpos(3, j) + 5*Lmom(3, j)], 'b', 'LineWidth', 4);
+          [Lpos(2, j) Lpos(2, j) + 5*Lmom(2, j)],...
+          [Lpos(3, j) Lpos(3, j) + 5*Lmom(3, j)], 'b', 'LineWidth', 4);
     
     plot3(elc(:,1), elc(:,2), elc(:,3), 'r.','MarkerSize',18);
 
@@ -244,15 +259,15 @@ axis equal
 function plot_components_space(hObject, handles)
 % plots spatial expression of each dipole
 DCM = handles.DCM;
-Nsources = size(DCM.M.Lpos, 2);
+Nsources = length(DCM.M.pE.A{1});
 
 lf = NaN*ones(handles.Nchannels, Nsources);
 lfo = NaN*ones(handles.Nchannels, Nsources);
 
 x = [0 kron([zeros(1, 8) 1], ones(1, Nsources))];
-lf(DCM.M.dipfit.chansel, :)  = DCM.M.E*DCM.M.E'*spm_erp_L(DCM.Ep); % projected leadfield
+lf(DCM.M.dipfit.Ic, :)   = DCM.M.E*DCM.M.E'*spm_erp_L(DCM.Ep); % projected leadfield
 E = DCM.M.E; global M; M = rmfield(DCM.M, 'E'); 
-lfo(DCM.M.dipfit.chansel, :) = spm_erp_L(DCM.Ep); % leadfield not projected
+lfo(DCM.M.dipfit.Ic, :)  = spm_erp_L(DCM.Ep); % leadfield not projected
 M.E = E;
 
 % use subplots in new figure
@@ -285,8 +300,7 @@ function plot_components_time(hObject, handles)
 
 DCM = handles.DCM;
 Lmom = sqrt(sum(DCM.Ep.Lmom).^2);
-
-Nsources = size(DCM.M.Lpos, 2);
+Nsources = length(DCM.M.pE.A{1});
 
 h = figure;
 set(h, 'Name', 'Effective source amplitudes');

@@ -14,11 +14,16 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Number of dipoles to display
 %==========================================================================
 try, PST;  catch, PST  = [];  end
-try, Ndip, catch, Ndip = 512; end 
+try, Ndip, catch, Ndip = 512; end
+
+% get condition
+%--------------------------------------------------------------------------
+try, con = D.con;  catch, con = 1;  end
 
 % D - SPM data structure
 %==========================================================================
 model = D.inv{D.val};
+con   = min(con,length(model.inverse.J));
 try
     disp(model.inverse);
 catch
@@ -30,17 +35,17 @@ end
 %--------------------------------------------------------------------------
 J      = model.inverse.J;
 T      = model.inverse.T;
-qC     = model.inverse.qC;
 Is     = model.inverse.Is;
 Nd     = model.inverse.Nd;
 Nt     = model.inverse.Nt;
 pst    = model.inverse.pst;
 R2     = model.inverse.R2;
 F      = model.inverse.F;
+Ndip   = min(Ndip,length(Is));
 
 % - project J onto pst
 %--------------------------------------------------------------------------
-J      = J*T';
+J      = J{con}*T';
 
 % display
 %==========================================================================
@@ -60,7 +65,7 @@ if length(PST) == 2
     [i j2] = min(abs(pst - PST(2)));
     jt     = fix(linspace(j1,j2,Nb));
     J      = abs(J(:,jt));
-    Z      = max(J,[],2)./(Nt*sqrt(qC));
+    Z      = max(J,[],2);
     [T j]  = sort(-Z);
     js     = j(1:Ndip);
     
@@ -79,7 +84,7 @@ if length(PST) == 2
         figure(Fgraph)
         spm_mip([J(:,j); SCL],XYZ,6);
         axis image
-        title({sprintf('PPM at %i most signficant voxels',Ndip),...
+        title({sprintf('RMS response at %i most active voxels',Ndip),...
                sprintf('from %i to %i ms',fix(PST(1)),fix(PST(2)))})
         drawnow
     end
@@ -100,44 +105,76 @@ elseif length(PST) == 1
     [i jt] = min(abs(pst - PST));
     [i js] = max(abs(J(:,jt)));
     
-% maximum response and confidence intervals
+% maximum response in space and time
 %--------------------------------------------------------------------------
 else
     [i js] = max(max(abs(J),[],2));
     [i jt] = max(abs(J(js,:)));
 end
 Jt    = J(js,:);                     % over time
-ci    = Nt*sqrt(qC(js))*1.64;
 Js    = J(:,jt);                     % over sources
-Jmax  = abs(sparse(Is,1,Js,Nd,1));
 PST   = fix(pst(jt));
 XYZ   = fix(vert(Is(js),:));
+Jmax  = abs(sparse(Is,1,Js,Nd,1));
 
-
-% response over time
-%--------------------------------------------------------------------------
+% plot responses over time
+%==========================================================================
 subplot(2,1,1)
-plot(pst,Jt,pst,Jt + ci,':',pst,Jt - ci,':',[PST PST],[-4 4]*ci)
-xlabel('time  ms')
-title({'estimated response (90% intervals)', ...
+for i = 1:length(model.inverse.J)
+    
+    % i-th trial
+    %----------------------------------------------------------------------
+    J     = model.inverse.J{i};
+    Jt    = J(js,:)*T';
+    maxJ  = max(max(abs(Jt)));
+    if i == con
+        Color = [1 0 0];
+    else
+        Color = [1 1 1]*(1 - 1/4);
+    end
+    
+    % plot confidence intervals is possible
+    %----------------------------------------------------------------------
+    try
+        qC  = model.inverse.qC;
+        ci  = Nt(con)*sqrt(qC(js))*1.64;
+        plot(pst,Jt,pst,Jt + ci,':',pst,Jt - ci,':',...
+            [PST PST],[-1 1]*maxJ,':',...
+            'Color',Color)
+        hold on
+    catch
+        plot(pst,Jt,[PST PST],[-1 1]*maxJ,':','Color',Color)
+        hold on
+    end
+end
+title({sprintf('estimated response - condition %d',con), ...
        sprintf('at %i, %i, %i mm',XYZ(1),XYZ(2),XYZ(3))})
+xlabel('time  ms')
 axis square
+hold off
 
-% PPM
+
+% RMS responses over space
 %==========================================================================
 subplot(2,1,2)
-Z     = abs(Js)./(Nt*sqrt(qC));
-[T i] = sort(-Z);
-try
-    i = i(1:Ndip);
-end
-PP    = fix(100*(1 - spm_Ncdf(T(i(end)))));
-
+[T i]  = sort(-abs(Js));
+i      = i(1:Ndip);
 spm_mip(Jmax(Is(i)),vert(Is(i),:)',6);
 axis image
-title({sprintf('PPM at %i ms (%i percent confidence)',PST,PP), ...
-       sprintf('%i dipoles',length(i)), ...
-       sprintf('Variance explained %.2f (percent)',R2), ...
-       sprintf('log-evidence = %.1f',F)})
+
+% title
+%--------------------------------------------------------------------------
+try
+    Z  = min(Jmax(Is(i))./(Nt(con)*sqrt(qC(i))));
+    PP = fix(100*(1 - spm_Ncdf(Z)));
+    title({sprintf('PPM at %i ms (%i percent confidence)',PST,PP), ...
+           sprintf('%i dipoles',length(i)), ...
+           sprintf('Variance explained %.2f (percent)',full(R2)), ...
+           sprintf('log-evidence = %.1f',full(F))})
+catch
+    title({sprintf('RMS responses at %i dipoles',length(i)), ...
+           sprintf('Variance explained %.2f (percent)',full(R2)), ...
+           sprintf('log-evidence = %.1f',full(F))})
+end
 drawnow
 

@@ -23,12 +23,12 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % estimation proceeds using fairly standard approaches to system
 % identification that rest upon Bayesian inference.
 % 
-%_______________________________________________________________________
-% %W% Karl Friston %E%
+%__________________________________________________________________________
+% %W% Karl Friston %E
 
 
 % get figure handle
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 
 if ~strcmp(lower(Action), 'dipoles')
@@ -44,12 +44,12 @@ try
 end
 
 % switch
-%------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 switch(lower(Action))
     
 case{lower('ERPs (channel)')}
     
-        xY    = DCM.xY;
+    xY    = DCM.xY;
     n     = length(xY.xy);
     
     try
@@ -60,7 +60,7 @@ case{lower('ERPs (channel)')}
 
 
     % spm_dcm_erp_results(DCM,'ERPs (channel)');
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     co = {'b', 'r', 'g', 'm', 'y', 'k'};
     lo = {'-', '--'};
     
@@ -95,7 +95,7 @@ case{lower('ERPs (channel)')}
 case{lower('ERPs (sources)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (sources)');
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     xY    = DCM.xY;
     n     = length(xY.xy);
     
@@ -130,12 +130,12 @@ case{lower('ERPs (sources)')}
 case{lower('Coupling (A)')}
     
     % spm_dcm_erp_results(DCM,'coupling (A)');
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     str = {'Forward','Backward','Lateral'};
     for  i =1:3
         
         % images
-        %-----------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,3,i)
         imagesc(exp(DCM.Ep.A{i}))
         title(str{i},'FontSize',10)
@@ -145,23 +145,23 @@ case{lower('Coupling (A)')}
         ylabel('to','FontSize',8)
         axis square
     
-        % tables
-        %--------------------------------------------------------------------
+        % table
+        %------------------------------------------------------------------
         subplot(4,3,i + 3)
         text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
         axis off,axis square
 
     
-        % images
-        %-----------------------------------------------------------
+        % PPM
+        %------------------------------------------------------------------
         subplot(4,3,i + 6)
-        imagesc(exp(DCM.Pp.A{i}))
+        image(64*DCM.Pp.A{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
         axis square
     
-        % tables
-        %--------------------------------------------------------------------
+        % table
+        %------------------------------------------------------------------
         subplot(4,3,i + 9)
         text(0,1/2,num2str(DCM.Pp.A{i},' %.2f'),'FontSize',8)
         axis off, axis square
@@ -171,10 +171,10 @@ case{lower('Coupling (A)')}
 case{lower('Coupling (C)')}
     
     % spm_dcm_erp_results(DCM,'coupling (C)');
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     
     % images
-    %-----------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,4,1)
     imagesc(exp(DCM.Ep.C))
     title('Factors','FontSize',10)
@@ -182,8 +182,10 @@ case{lower('Coupling (C)')}
     set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname, 'FontSize',8)
     axis square
     
+    % PPM
+    %----------------------------------------------------------------------
     subplot(2,4,3)
-    imagesc(DCM.Pp.C)
+    image(64*DCM.Pp.C)
     title('Factors','FontSize',10)
     set(gca,'XTick',[1:nu],'XTickLabel','Input','FontSize',8)
     set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname, 'FontSize',8)
@@ -198,7 +200,7 @@ case{lower('Coupling (C)')}
     % table
     %--------------------------------------------------------------------
     subplot(2,4,4)
-    text(0,1/2,num2str(DCM.Pp.C,     ' %.2f'),'FontSize',8)
+    text(0,1/2,num2str(DCM.Pp.C,' %.2f'),'FontSize',8)
     axis off
 
  
@@ -227,10 +229,10 @@ case{lower('Coupling (B)')}
         axis off
         axis square
         
-        % images
+        % PPM
         %-----------------------------------------------------------
         subplot(4,nu,i + 2*nu)
-        imagesc(DCM.Pp.B{i})
+        image(64*DCM.Pp.B{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
         axis square
@@ -250,7 +252,7 @@ case{lower('Input')}
     % --------------------------------------------------------------------
     xU   = DCM.xU;
     tU    = 0:xU.dt:xU.dur;
-    U    = spm_erp_u(DCM.Ep,tU);
+    [U N] = spm_erp_u(DCM.Ep,tU);
     
     xY    = DCM.xY;
     n     = length(xY.xy);
@@ -261,11 +263,11 @@ case{lower('Input')}
     end
 
     subplot(2,1,1)
-    plot(t, U)
+    plot(t,U,t,N,':')
     xlabel('time (ms)')
     title('input')
     axis square, grid on
-
+    legend({'input','nonspecific'})
     
 case{lower('Response')}
     
@@ -275,32 +277,43 @@ case{lower('Response')}
     n     = length(xY.xy);
     try
         t = xY.Time;
+        E = DCM.M.E*DCM.M.E';
     catch
         t = xY.dt*[1:n];
+        E = 1;
     end
     
     for i = 1:n
-        subplot(n,1,i)
-        plot(xY.Time,xY.xy{i})
+        subplot(n,2,2*i - 1)
+        plot(xY.Time,xY.xy{i}*E)
         xlabel('time (ms)')
-        title(sprintf('ERP %i',i))
-        axis square, grid on
+        title(sprintf('Observed ERP %i',i))
+        axis square, grid on, A = axis;
+        try
+            if isfield(DCM,'Hc')
+                subplot(n,2,2*i - 0)
+                plot(xY.Time,DCM.Hc{i})
+                xlabel('time (ms)')
+                title(sprintf('Predicted ERP %i',i))
+                axis(A); axis square, grid on
+            end
+        end
     end
 
 case{lower('Dipoles')}
     
-    if DCM.options.Spatial_type ~= 3
+    try
         P = DCM.Ep;        
-
         sdip.n_seeds = 1;
-        sdip.n_dip = ns;
-        sdip.Mtb = 1;
-        sdip.j{1} = full(P.Lmom);
-        sdip.j{1} = sdip.j{1}(:);
+        sdip.n_dip  = ns;
+        sdip.Mtb    = 1;
+        sdip.j{1}   = full(P.Lmom);
+        sdip.j{1}   = sdip.j{1}(:);
         sdip.loc{1} = full(P.Lpos);
-
-
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
+    catch
+        warndlg('spm_eeg_inv_visu3D_api to view results')
+        return
     end
     case{lower('Spatial overview')}
         spm_dcm_erp_viewspatial(DCM)

@@ -1,12 +1,13 @@
-function [varargout] = spm_erp_priors(A,B,C,L,U)
+function [varargout] = spm_erp_priors(A,B,C,dipfit,dur,ons)
 % prior moments for a neural mass model of erps
-% FORMAT [pE,pC] = spm_erp_priors(A,B,C,L,U)
-% FORMAT [M]     = spm_erp_priors(A,B,C,L,U)
-% FORMAT           spm_erp_priors(A,B,C,L,U)
+% FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit,dur,ons)
+% FORMAT [M]     = spm_erp_priors(A,B,C,dipfit,dur,ons)
+% FORMAT           spm_erp_priors(A,B,C,dipfit,dur,ons)
 %
-% A{3},B{m},C    - binary constraints on extrinsic connectivity
-% L              - prior expecation of source locations
-% U              - trial duration (sec)      [default = 1 s]
+% A{3},B{m},C  - binary constraints on extrinsic connections
+% dipfit       - prior forward model structure
+% dur          - trial duration (sec) [default = 1 s]
+% ons          - onset (nsec) [default = 60 ms]
 %
 % pE - prior expectation
 %
@@ -27,10 +28,11 @@ function [varargout] = spm_erp_priors(A,B,C,L,U)
 %    pE.C - stimulus input
 %    pE.D - delays
 %
-% stimulus parameters
+% stimulus and noise parameters
 %--------------------------------------------------------------------------
 %    pE.R - onset and dispersion (Gamma paramters)
-%    pE.N - background fluctuation (3 parameters)
+%    pE.M - magnitude
+%    pE.N - background fluctuations
 %    pE.U - trial dutation (secs)
 %
 % pC - prior covariances: cov(spm_vec(pE))
@@ -55,16 +57,23 @@ if nargin < 3
     C   = 1;
 end
 if nargin < 4
-    L = sparse(3,1);
+    dipfit.L.pos = sparse(3,0);
 end
-if nargin <  5
-    U = 1;
+if nargin < 5
+    dur = 1;
 end
-
-warning off
+if nargin < 6
+    ons = 60;
+end
+try
+    dipfit.type;
+catch
+    dipfit.type = 'ECD';
+end
 
 % disable log zero warning
 %--------------------------------------------------------------------------
+warning off
 n     = size(C,1);                                 % number of sources
 n1    = ones(n,1);
 
@@ -77,10 +86,17 @@ E.H   = log(n1);        V.H = n1/8;                % synaptic density
 %--------------------------------------------------------------------------
 E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 
-% set observer parameters
+% paramters for electromagnetic forward model
 %--------------------------------------------------------------------------
-E.Lpos = L;             V.Lpos =  16*ones(3,n);    % dipole positions
-E.Lmom = sparse(3,n);   V.Lmom = 256*ones(3,n);    % dipole orientations
+if strcmp(dipfit.type,'ECD')
+    
+    E.Lpos = dipfit.L.pos;  V.Lpos =  16*ones(3,n);    % dipole positions
+    E.Lmom = sparse(3,n);   V.Lmom = 256*ones(3,n);    % dipole orientations
+
+else
+    m      = dipfit.Nm;
+    E.L    = sparse(m,n);   V.Lpos =  16*ones(m,n);    % dipole modes
+end
 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
@@ -102,21 +118,26 @@ V.C        = C;
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------
 E.D        = sparse(n,n);
-V.D        = Q/16;
+V.D        = Q/8;
 
 % set initial states (Spiny stellate depolarisarion))
 %--------------------------------------------------------------------------
-E.x0       = sparse(n,1);
-V.x0       = n1;
+% E.x0     = sparse(n,1);
+% V.x0     = n1;
 
-% set stimulus parameters
+% set stimulus parameters onset, dispersion and duration
 %--------------------------------------------------------------------------
-E.R        = [0 0];        V.R = [1 1]/16;         % input [Gamma] parameters
-E.U        = U;            V.U = 0;                % trial duration (s)
+E.dur      = dur;                V.dur = 0;            % trial duration  (ms)
+E.ons      = ons;                V.ons = 0*ons;        % stimulus onsets (ms)
+u          = length(ons);
+E.R        = sparse(u,2);        V.R   = ones(u,2)/8;  % input [Gamma] parameters
+E.M        = sparse(1,1,1,u,1);  V.M   = ones(u,1);    % magnitude
+
+
 
 % background fluctuations
 %--------------------------------------------------------------------------
-E.N        = [0 0 10];     V.N = [1 1 1];          % amplitude and Hz
+E.N        = ones(n,1)*[0 0 12]; V.N   = ones(n,3)*8;  % amplitude and Hz
 
 % vectorize
 %--------------------------------------------------------------------------
@@ -146,19 +167,17 @@ M.pC     = pC;
 M.m      = length(B);
 M.n      = length(M.x);
 M.l      = n;
-M.Spatial_type = 4;
+M.ns     = 128;
+M.dipfit.type = 'LFP';
 
 if nargout == 1, varargout{1} = M; return, end
 
 % compute impulse response
 %--------------------------------------------------------------------------
 clear U
-M.onset = 128;
-N       = 128;
-U.u     = sparse(N,M.m);
-U.dt    = 8/1000;
+U.dt    = 4/1000;
 y       = feval(M.IS,M.pE,M,U);
-plot([1:N]*U.dt*1000,y)
+plot([1:M.ns]*U.dt*1000,y)
 
 
 return
@@ -177,6 +196,7 @@ xlabel('scaling')
 ylabel('density')
 grid on
 hold off
+axis square
 
 
 

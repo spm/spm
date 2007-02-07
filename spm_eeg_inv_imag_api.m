@@ -3,11 +3,11 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    FIG = SPM_EEG_INV_IMAG_API launch spm_eeg_inv_imag_api GUI.
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 
-% Last Modified by GUIDE v2.5 16-Jan-2007 16:58:18
+% Last Modified by GUIDE v2.5 29-Jan-2007 16:52:15
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 720 2007-01-18 19:47:42Z karl $
+% $Id: spm_eeg_inv_imag_api.m 731 2007-02-07 14:31:41Z karl $
 
 
 spm_defaults
@@ -15,11 +15,11 @@ spm('Clear')
 
 % Launch API
 %==========================================================================
-if ~nargin  
+if nargin < 2 
     
     % open figure
     %----------------------------------------------------------------------
-    fig     = openfig(mfilename,'new');
+    fig     = openfig(mfilename,'reuse');
     WS      = spm('WinScale');
     Rect    = spm('WinSize','Menu','raw').*WS;
     set(fig,'units','pixels');
@@ -31,7 +31,19 @@ if ~nargin
     %----------------------------------------------------------------------
     set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
     handles.fig = fig;
-    guidata(fig,handles);    
+    guidata(fig,handles);
+    
+    % intialise with D
+    %----------------------------------------------------------------------
+    try
+        D = varargin{1};
+        set(handles.DataFile,'String',D.fname);
+        set(handles.Exit,'enable','on')
+        cd(D.path);
+        handles.D = D;
+        Reset(fig, [], handles);
+        guidata(fig,handles);
+    end
     
 % INVOKE NAMED SUBFUNCTION OR CALLBACK
 %--------------------------------------------------------------------------
@@ -266,6 +278,24 @@ catch
 end
 set(handles.val, 'Value',val,'string',str);
 
+% condition specification
+%--------------------------------------------------------------------------
+try
+    handles.D.con = max(handles.D.con,1);
+    if handles.D.con > length(handles.D.inv{val}.inverse.J);
+       handles.D.con = 1;
+    end
+catch
+    handles.D.con = 0;
+end
+if handles.D.con
+    str = sprintf('condition %d',handles.D.con);
+    set(handles.con,'String',str,'Enable','on','Value',0)
+else
+    set(handles.con,'Enable','off','Value',0)
+end
+
+
 % check anaylsis buttons
 %--------------------------------------------------------------------------
 set(handles.DataReg, 'enable','off')
@@ -320,6 +350,7 @@ try
         set(handles.PST,'Enable','off');
     end
 end
+
 set(handles.fig,'Pointer','arrow')
 assignin('base','D',handles.D)
 guidata(hObject,handles);
@@ -402,11 +433,28 @@ function CheckImage_Callback(hObject, eventdata, handles)
 spm_eeg_inv_image_display(handles.D)
 Reset(hObject, eventdata, handles);
 
+% --- Executes on button press in con.
+%--------------------------------------------------------------------------
+function con_Callback(hObject, eventdata, handles)
+try
+    handles.D.con = handles.D.con + 1;
+    if handles.D.con > length(handles.D.inverse.J);
+        handles.D.con = 1
+    end
+end
+Reset(hObject, eventdata, handles);
+
+
 
 % --- Executes on button press in help.
 %--------------------------------------------------------------------------
 function help_Callback(hObject, eventdata, handles)
 edit spm_eeg_inv_help
+
+
+
+
+
 
 
 

@@ -9,7 +9,10 @@ Ndip  = 256; % Number of dipoles to display
 
 % SPM data structure
 %==========================================================================
+try, val = D.val; catch, val = 1; end
+try, con = D.con; catch, con = 1; end
 model = D.inv{D.val};
+con   = min(con,length(model.inverse.J));
 try
     disp(model.contrast);
 catch
@@ -22,10 +25,11 @@ end
 Is   = model.inverse.Is;                          % Indices of ARD vertices
 pst  = model.inverse.pst;                         % preistimulus tim (ms)
 Nd   = model.inverse.Nd;                          % number of mesh dipoles
+Ndip = min(Ndip,length(Is));
 
 W    = model.contrast.W;
-JW   = model.contrast.JW;
-GW   = model.contrast.GW;
+JW   = model.contrast.JW{con};
+GW   = model.contrast.GW{con};
 
 % sqrt(energy) (G) = abs(JW) for single trials
 %--------------------------------------------------------------------------
@@ -37,7 +41,8 @@ Fgraph = spm_figure('GetWin','Graphics');
 clf(Fgraph)
 figure(Fgraph)
 
-%% RH Temp hack to get some display for noncanonical meshes (even if not normalised!)
+% get vertices (even if not normalised)
+%--------------------------------------------------------------------------
 if model.mesh.canonical
 	vert   = model.mesh.tess_mni.vert;
 else
@@ -52,8 +57,9 @@ subplot(2,1,1)
 j      = j(1:Ndip);
 spm_mip(G(j),vert(j,:)',6);
 axis image
-title({'root mean square (energy)',...
-       sprintf('%i voxels',Ndip)})
+title({sprintf('Condition %d',con), ...
+       'root mean square (energy)',...
+       sprintf('%i voxels',length(j))})
 
 % contrast
 %--------------------------------------------------------------------------

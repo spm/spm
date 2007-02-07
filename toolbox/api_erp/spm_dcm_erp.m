@@ -18,7 +18,11 @@ function DCM = spm_dcm_erp(DCM)
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.Nmodes       - number of spatial models to invert
-%   options.Spatial_type - EEG-MEG-LFP swtich (see spm_erp_L)
+%   options.type         - 1 - 'ECD (EEG)'
+%                          2 - 'ECD (MEG)'
+%                          3 - 'Imaging'
+%                          4 - 'LFP' 
+%                          (see spm_erp_L)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
@@ -28,14 +32,11 @@ function DCM = spm_dcm_erp(DCM)
 
 % Filename and options
 %--------------------------------------------------------------------------
-try,   DCM.name;                 catch, DCM.name = 'DCM_ERP';  end
-try,   h  = DCM.options.h;       catch, h  = 1;                end
-try,   nm = DCM.options.Nmodes;  catch, nm = 4;                end
+try, DCM.name;                   catch, DCM.name = 'DCM_ERP'; end
+try, h     = DCM.options.h;      catch, h        = 1;         end
+try, nm    = DCM.options.Nmodes; catch, nm       = 8;         end
+try, onset = DCM.options.onset;  catch, onset    = 60;        end
 
-% data type
-%--------------------------------------------------------------------------
-try,   DCM.M.Spatial_type = DCM.options.Spatial_type;
-catch, DCM.M.Spatial_type = 1;                                 end
 
 
 % Data and spatial model
@@ -51,31 +52,50 @@ end
 
 % dimensions
 %--------------------------------------------------------------------------
-nt     = length(xY.xy);                 % number of trials
-nr     = length(DCM.A{1});                 % number of sources
-nc     = size(xY.xy{1},2);              % number of channels
-ns     = size(xY.xy{1},1);              % number of time bins
-nst    = ns*nt;                         % time bins needed for integrator
+Nt     = length(xY.xy);                 % number of trials
+Nr     = length(DCM.A{1});              % number of sources
+Nc     = size(xY.xy{1},2);              % number of channels
+Ns     = size(xY.xy{1},1);              % number of time bins
 nu     = size(xU.X,2);                  % number of inputs
-nx     = nr*9 + 1;                         % number of states
+nx     = Nr*9 + 1;                      % number of states
 
+% check the number of modes is greater or equal to the number of sources
+%--------------------------------------------------------------------------
+nm     = max(nm,Nr);
 
-% confounds - DCT
+% Re-reference matrix (R)
+%--------------------------------------------------------------------------
+[i j]  = min(var(xY.y));                        % minimum variance channel
+R      = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc); % re-referencing matrix
+
+% confounds - DCT: T - an idemptoent matrix spans the interesting temporal
+% space
 %--------------------------------------------------------------------------
 if h == 0
-    X0 = sparse(ns,1);
+    X0 = sparse(Ns,1);
 else
-    X0 = spm_dctmtx(ns,h);
+    X0 = spm_dctmtx(Ns,h);
 end
 warning off
-X0     = kron(speye(nt,nt),X0);
-R0     = speye(ns*nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
+X0     = kron(speye(Nt,Nt),X0);
+T      = speye(Ns*Nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
 xY.X0  = X0;
 warning on
 
+% Feature selection using principal components (U) of channel space
+%--------------------------------------------------------------------------
+try
+    U  = M.S(:,[1:nm]);  % use previous basis (S) if specified
+catch
+    y  = T*xY.y*R';
+    U  = spm_svd(y'*y,0);
+    U  = U(:,[1:nm]);
+end
+
 % assume noise variance is the same over modes
 %--------------------------------------------------------------------------
-xY.Q   = {speye(ns*nt*nm,ns*nt*nm)};
+xY.Q   = {kron(speye(nm),kron(speye(Nt),speye(Ns)))};
+
 
 % Inputs
 %==========================================================================
@@ -91,15 +111,15 @@ catch
     DCM.B = {};
 end
 try
-    xU.u  = kron(xU.X,ones(ns,1));
+    xU.u  = kron(xU.X,ones(Ns,1));
 catch
-    xU.u  = sparse(nt*ns,0);
+    xU.u  = sparse(Nt*Ns,0);
 end
 
 % stimulus parameters
 %--------------------------------------------------------------------------
 xU.dt   = xY.dt;
-xU.dur  = xU.dt*(ns - 1);
+xU.dur  = xU.dt*(Ns - 1);
 
 % model specification and nonlinear system identification
 %==========================================================================
@@ -108,9 +128,14 @@ xU.dur  = xU.dt*(ns - 1);
 %--------------------------------------------------------------------------
 global M; M = DCM.M;
 
+% adjust onset relative to pst
+%--------------------------------------------------------------------------
+dur     = xU.dur;
+ons     = onset - xY.Time(1);
+
 % prior moments
 %--------------------------------------------------------------------------
-[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit.L.pos,xU.dur);
+[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,dur,ons);
 
 % likelihood model
 %--------------------------------------------------------------------------
@@ -124,24 +149,15 @@ M.pE  = pE;
 M.pC  = pC;
 M.m   = nu;
 M.n   = nx;
-M.l   = nc;
-M.ns  = nst;
-
-% Feature selection using principal components of channel space
-%--------------------------------------------------------------------------
-try
-    M.E = M.S(:,[1:nm]);
-catch
-    y   = R0*xY.y;
-    S   = spm_svd(y'*y);
-    M.E = S(:,[1:nm]);
-end
+M.l   = Nc;
+M.ns  = Ns*Nt;
+M.E   = U;
 
 % EM: inversion
 %--------------------------------------------------------------------------
 [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
 
-% Bayesian inference {threshold = 0}
+% Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
 warning off
 dp  = spm_vec(Qp) - spm_vec(pE);
@@ -150,25 +166,25 @@ warning on
 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
-M.Spatial_type = 4;
-x              = feval(M.IS,Qp,M,xU);        % prediction (source space)
-M.Spatial_type = DCM.M.Spatial_type;
-y              = feval(M.IS,Qp,M,xU);        % prediction (sensor space)
-r              = R0*(xY.y - y);              % prediction error
-
+type          = M.dipfit.type;
+M.dipfit.type = 'LFP';
+x             = feval(M.IS,Qp,M,xU);        % prediction (source space)
+M.dipfit.type = type;                       % reset type
+y             = feval(M.IS,Qp,M,xU);        % prediction (sensor space)
+r             = T*(xY.y - y);               % prediction error
+y             = y*M.E*M.E';                 % remove spaital confounds
+r             = r*M.E*M.E';                 % remove spaital confounds
 
 % trial specific respsonses (in mode, channel and source space)
 %--------------------------------------------------------------------------
-L     = spm_erp_L(Qp);
-for i = 1:nt
-    j     = [1:ns] + (i - 1)*ns;
-    H{i}  = x(j,:)*L'*M.E;
+for i = 1:Nt
+    j     = [1:Ns] + (i - 1)*Ns;
+    H{i}  = y(j,:)*M.E;
     E{i}  = r(j,:)*M.E;
-    Hc{i} = x(j,:)*L';
+    Hc{i} = y(j,:);
     Ec{i} = r(j,:);
     K{i}  = x(j,:);
 end
-
 
 % store estimates in DCM
 %--------------------------------------------------------------------------
@@ -186,14 +202,86 @@ DCM.Rc   = Ec;                   % conditional residuals (y), channel space
 DCM.Ce   = Ce;                   % ReML error covariance
 DCM.F    = F;                    % Laplace log evidence
 
+% store estimates in D
+%--------------------------------------------------------------------------
+if strcmp(M.dipfit.type,'Imaging')
+    
+    
+    % Assess accuracy; signal to noise (over sources), SSE and log-evidence
+    %---------------------------------------------------------------------
+    SSR   = sum(var((T*xY.y*U - T*y*U)));
+    SST   = sum(var(T*xY.y*U));
+    R2    = 100*(SST - SSR)/SST;
+    
+    
+    % reconsttuct sources in dipole space
+    %----------------------------------------------------------------------
+    Nd    = M.dipfit.Nd;
+    G     = sparse(Nd,Nr);
+    for i = 1:Nr
+        G(M.dipfit.Ip{i},i) = M.dipfit.U{i}*Qp.L(:,i);
+    end
+    Is    = find(any(G,2));
+    G     = G(Is,:);
+    for i = 1:Nt
+        J{i} = G*K{i}';
+    end
+
+    % get dipole space lead field
+    %----------------------------------------------------------------------
+    L     = load(M.dipfit.gainmat);
+    name  = fieldnames(L);
+    L     = sparse(getfield(L, name{1}));
+    L     = U'*L(:,Is);
+    
+    % reduced data (for each trial
+    %----------------------------------------------------------------------
+    for i = 1:Nt
+        Y{i} = U'*xY.xy{i}'*T;
+    end
+
+    inverse.trials = DCM.options.trials;   % trial or condition
+    inverse.type   = 'DCM';                % inverse model
+
+    inverse.J      = J;                    % Conditional expectation
+    inverse.L      = L;                    % Lead field (reduced)
+    inverse.R      = R;                    % Re-referencing matrix
+    inverse.T      = T;                    % temporal subspace
+    inverse.U      = U;                    % spatial  subspace
+    inverse.Is     = Is;                   % Indices of active dipoles
+    inverse.It     = DCM.xY.It;            % Indices of time bins
+    inverse.Ic     = DCM.xY.Ic;            % Indices of good channels
+    inverse.Y      = Y;                    % reduced data
+    inverse.Nd     = Nd;                   % number of dipoles
+    inverse.Nt     = Nt;                   % numner of trials
+    inverse.pst    = xY.Time;              % pers-stimulus time
+    inverse.F      = DCM.F;                % log-evidence
+    inverse.R2     = R2;                   % variance accounted for (%)
+    inverse.dipfit = M.dipfit;             % forward model for DCM
+
+    % save in struct
+    %----------------------------------------------------------------------
+    try, val = DCM.val;  catch, val = 1; end
+    D        = spm_eeg_ldata(DCM.xY.Dfile);
+    D.inv{val}.inverse = inverse;
+
+    if spm_matlab_version_chk('7.1') >= 0
+        save(fullfile(D.path, D.fname), '-V6', 'D');
+    else
+        save(fullfile(D.path, D.fname), 'D');
+    end
+
+end
+
 % and save
 %--------------------------------------------------------------------------
-save(DCM.name,'DCM');
+if spm_matlab_version_chk('7.1') >= 0
+    save(DCM.name, '-V6', 'DCM');
+else
+    save(DCM.name, 'DCM');
+end
 
 return
-
-
-
 
 
 
