@@ -80,7 +80,7 @@ dct   = (It - 1)/2/dur;                          % DCT frequenices (Hz)
 % Confounds and temporal subspace
 %--------------------------------------------------------------------------
 T     = spm_dctmtx(Nb,Nb);                       % pst subspace
-T     = T(:,find((dct >= 1) & (dct <= 64)));     % 2 - 64 Hz
+T     = T(:,find((dct >= 1) & (dct <= 64)));     % 1 - 64 Hz
 Nr    = size(T,2);                               % number of temporal modes
 Nm    = min(Nm,Nr);
 
@@ -215,6 +215,11 @@ switch(type)
             LQpL{end + 1}.q = L*q;
             
         end
+        
+        % sparse hyperpiors
+        %------------------------------------------------------------------
+        Np = length(Qp);
+        hP = sparse(Np,1) - 4;
 
     case {'LOR'}
 
@@ -227,6 +232,11 @@ switch(type)
         %------------------------------------------------------------------
         Qp{2}   = QG;
         LQpL{2} = L*Qp{2}*L';
+        
+        % hyperpiors
+        %------------------------------------------------------------------
+        Np = length(Qp);
+        hP = sparse(Np,1);
 
 
     case {'IID'}
@@ -235,6 +245,11 @@ switch(type)
         %------------------------------------------------------------------
         Qp{1}   = speye(Ns,Ns);
         LQpL{1} = L*L';
+        
+        % hyperpiors
+        %------------------------------------------------------------------
+        Np = length(Qp);
+        hP = sparse(Np,1);
 
 end
 
@@ -246,8 +261,7 @@ Q     = {Qe{:} LQpL{:}};
 % hyperpriors
 %--------------------------------------------------------------------------
 Ne    = length(Qe);
-Np    = length(Qp);
-hE    = [sparse(Ne,1); (sparse(Np,1) - 4)];
+hE    = [sparse(Ne,1); (hP)];
 
 % ReML
 %--------------------------------------------------------------------------
@@ -354,7 +368,6 @@ model.inverse.pst    = pst;                  % pers-stimulus time
 model.inverse.F      = F;                    % log-evidence
 model.inverse.R2     = R2;                   % variance accounted for (%)
 
-
 % save in struct
 %--------------------------------------------------------------------------
 D.inv{D.val}         = model;
@@ -366,9 +379,9 @@ try
     D.inv{D.val}= rmfield(D.inv{D.val},'contrast');
 end
 
-
 % display
 %==========================================================================
+D.con = 1;
 spm_eeg_invert_display(D);
 
 return
@@ -386,7 +399,6 @@ Cpos  = Y*(T'*diag(pst > 0)*T)*Y' + speye(Nc,Nc)*exp(-8);
 Cpre  = Y*(T'*diag(pst < 0)*T)*Y' + speye(Nc,Nc)*exp(-8);
 [U S] = spm_svd(inv(Cpos)*(Cpre),0);
 U     = U(:,end - Nm + 1:end);
-
 
 
 % display a selected basis function

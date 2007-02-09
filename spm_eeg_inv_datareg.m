@@ -40,14 +40,21 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % fid_reg       - the registered fiduicals coordinates in sMRI space
 % hsp_reg       - the registered headshap point coordinates in sMRI space
 % orient_reg    - the registrated sensor orientations (MEG only)
+%
+% If a template is used, the senor locations are transformed using an
+% affine (rigid body) mapping.  If headshape locations are supplied 
+% this is generalized to a full twelve parameter affine mapping (n.b.
+% this might not be appropriate for MEG data).
 %==========================================================================
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 720 2007-01-18 19:47:42Z karl $
+% $Id: spm_eeg_inv_datareg.m 734 2007-02-09 21:21:02Z karl $
 
+% Check input arguments
+%==========================================================================
 
-% Checks - extract arguments from D
+% % spm_eeg_inv_datareg(D)
 %--------------------------------------------------------------------------
 if nargin < 3
     try
@@ -60,30 +67,22 @@ if nargin < 3
         megorient = D.inv{val}.datareg.megorient;
         template  = D.inv{val}.mesh.template;
     catch
-        D         = spm_eeg_inv_datareg_ui(varargin{:});
-        sensors   = D.inv{val}.datareg.sensors;
-        fid_eeg   = D.inv{val}.datareg.fid_eeg;
-        fid_mri   = D.inv{val}.datareg.fid_mri;
-        headshape = D.inv{val}.datareg.headshape;
-        scalpvert = D.inv{val}.datareg.scalpvert;
-        megorient = D.inv{val}.datareg.megorient;
-        template  = D.inv{val}.mesh.template;
+        D   = spm_eeg_inv_datareg_ui(varargin{:});
+        D   = spm_eeg_inv_datareg(D);
     end
-else
-    sensors   = varargin{1};
-    fid_eeg   = varargin{2};
-    fid_mri   = varargin{3};
-end
 
 % spm_eeg_inv_datareg(sensors,fid_eeg,fid_mri,headshape,scalpvert,megorient,template)
-%==========================================================================
-
-% Check input arguments
 %--------------------------------------------------------------------------
-try, headshape = varargin{4}; catch, headshape = sparse(0,3); end
-try, scalpvert = varargin{5}; catch, scalpvert = sparse(0,3); end
-try, megorient = varargin{6}; catch, megorient = sparse(0,3); end
-try, template  = varargin{7}; catch, template  = 0;           end
+else
+    sensors = varargin{1};
+    fid_eeg = varargin{2};
+    fid_mri = varargin{3};
+    
+    try, headshape = varargin{4}; catch, headshape = sparse(0,3); end
+    try, scalpvert = varargin{5}; catch, scalpvert = sparse(0,3); end
+    try, megorient = varargin{6}; catch, megorient = sparse(0,3); end
+    try, template  = varargin{7}; catch, template  = 0;           end
+end
 
 % The fiducial coordinates must be in the same order (usually: NZ & LE, RE)
 %--------------------------------------------------------------------------
@@ -123,10 +122,8 @@ if template
         M1      = M*M1;
 
     end
-else
-    
-    aff = 0;
-    
+else    
+    aff = 0;   
 end
 
 % assume headshape locations are registered to sensor fiducials

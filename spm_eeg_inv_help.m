@@ -13,13 +13,11 @@
 % step below.
 %--------------------------------------------------------------------------
 D                 = spm_eeg_ldata( '??????????.mat');
-val               = 2;
+val               = 1;
 D.val             = val;
 D.modality        = 'EEG';
 D.inv{val}.method = 'Imaging';
 
- 
- 
 % Compute a head model
 %==========================================================================
 % The next step is to define the head model in terms of s structural MRI (sMRI) 
@@ -96,20 +94,22 @@ D = spm_eeg_inv_BSTfwdsol(D);
  
 % Invert the forward model
 %==========================================================================
-% Next, we invert the forward model using the trial or condition of interest, 
-% specified in the field 'con'.  The full model needs specifying in terms
+% Next, we invert the forward model using the trials or conditions of interest, 
+% specified in the field 'trials'.  The full model needs specifying in terms
 % of its priors, through the fields below.
  
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.con    = 2;          % Trial
+D.inv{val}.inverse.trials = [1 2];      % Trials
 D.inv{val}.inverse.type   = 'MSP';      % Priors on sources MSP, LOR or IID
 D.inv{val}.inverse.smooth = 0.4;        % Smoothness of source priors (mm)
-D.inv{val}.inverse.Np     = 128;        % Number of sparse priors
+D.inv{val}.inverse.Np     = 64;         % Number of sparse priors (x 1/2)
  
 % We can also restrict solutions to bilateral spheres in source space
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.xyzr = [-48 0 0 32]; % x,y,z and radius (mm)
- 
+D.inv{val}.inverse.xyz     = [-48 0 0;
+                               48 0 0]; % x,y,z and radius (mm)
+D.inv{val}.inverse.rad     = [ 32 32]; 
+     
 % and finally, invert
 %--------------------------------------------------------------------------
 D = spm_eeg_invert(D);

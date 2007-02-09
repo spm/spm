@@ -27,7 +27,7 @@ if spm_input('Reconstruction','+1','b',{'Classical|DCM'},[0 1],1)
     
         % record type in D and DCM structures
         %------------------------------------------------------------------
-        D.inv{val}.inverse.type = 'DCM';
+        inverse.type = 'DCM';
 
         % exchange filenames
         %------------------------------------------------------------------
@@ -41,6 +41,7 @@ if spm_input('Reconstruction','+1','b',{'Classical|DCM'},[0 1],1)
         % an call API to specify DCM
         %------------------------------------------------------------------
         spm_api_erp(DCM);
+        D.inv{val}.inverse = inverse;
         return
 end
 
@@ -56,45 +57,42 @@ if D.events.Ntypes > 1
 else
     trials = D.events.types(1);
 end
-D.inv{val}.inverse.trials = trials;
-D.con = 1;
+inverse.trials = trials;
+D.con          = 1;
 
 % Type of analysis
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.type   = ...
-        spm_input('Type of inversion','+1','MSP|LOR|IID');
+inverse.type   = spm_input('Type of inversion','+1','MSP|LOR|IID');
 
     
 % D.inverse.smooth - smoothness of source priors (mm)
 %--------------------------------------------------------------------------
-switch D.inv{val}.inverse.type, case{'MSP','LOR'}
-    D.inv{val}.inverse.smooth = ...
-        spm_input('Smoothness (0-1)','+1','0.2|0.4|0.6',[0.2 0.4 0.6],2);
+switch inverse.type, case{'MSP','LOR'}
+    inverse.smooth = spm_input('Smoothness (0-1)','+1','0.2|0.4|0.6',[0.2 0.4 0.6],2);
 end
 
 % Number of sparse priors
 %--------------------------------------------------------------------------
-switch D.inv{val}.inverse.type, case{'MSP'}
-    D.inv{val}.inverse.Np = ...
-        spm_input('MSPs per hemisphere','+1','64|96|128',[64 96 128]);
+switch inverse.type, case{'MSP'}
+    inverse.Np  = spm_input('MSPs per hemisphere','+1','64|96|128',[64 96 128]);
 end
 
 % Source space restictions
 %--------------------------------------------------------------------------
 if spm_input('Restrict solutions','+1','yes|no',[1 0],2);
     
-    [f,p] = uigetfile('*.mat','source (n x 3) location file');
-    xyz   = load(fullfile(p,f));
-    name  = fieldnames(xyz);
-    xyz   = getfield(xyz, name{1});
-    D.inv{val}.inverse.xyz = xyz;
-    D.inv{val}.inverse.rad = ...
-        spm_input('radius of VOI (mm)','+1','r',32);
+    [f,p]       = uigetfile('*.mat','source (n x 3) location file');
+    xyz         = load(fullfile(p,f));
+    name        = fieldnames(xyz);
+    xyz         = getfield(xyz, name{1});
+    inverse.xyz = xyz;
+    inverse.rad = spm_input('radius of VOI (mm)','+1','r',32);
 end
 
 % invert
 %==========================================================================
-D = spm_eeg_invert(D);
+D.inv{val}.inverse = inverse;
+D                  = spm_eeg_invert(D);
 
 
 
