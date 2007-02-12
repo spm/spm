@@ -85,7 +85,7 @@ if length(PST) == 2
         spm_mip([J(:,j); SCL],XYZ,6);
         axis image
         title({sprintf('RMS response at %i most active voxels',Ndip),...
-               sprintf('from %i to %i ms',fix(PST(1)),fix(PST(2)))})
+               sprintf('at %i ms (from %i to %i ms)',fix(pst(jt(j))),fix(PST(1)),fix(PST(2)))})
         drawnow
     end
     return

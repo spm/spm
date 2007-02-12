@@ -47,66 +47,80 @@ if ~isfield(S,'blinks')
     S.blinks=[];
 end
 
-Pos=1;
-if ~isfield(S.blinks, 'veog_peak')
-    S.blinks.veog_peak =...
-        spm_input('Min VEOG peak for blink (e.g, uV)', Pos, 'i', '200', 1);
-    Pos = Pos+1;
-end
-D.blinks.veog_peak = S.blinks.veog_peak;
-
-if ~isfield(S.blinks, 'veog_width')
-    S.blinks.veog_width = ...
-        spm_input('Max VEOG width for blink (ms)', Pos, 'i', '200', 1);
-    Pos = Pos+1;
-end
-D.blinks.veog_width = S.blinks.veog_width;
-
-if ~isfield(S.blinks, 'blink_sample')
-    suggest = S.blinks.veog_width*D.Radc/(2*1000);
-    S.blinks.blink_sample = ...
-        spm_input('blink sampling points', Pos, 'i', suggest, 1);
-    Pos = Pos+1;
-end
-D.blinks.blink_sample = S.blinks.blink_sample;
-
-if ~isfield(S.blinks, 'filter_para')
-    S.blinks.filter_para =...
-        spm_input('Lowpass filter cutoff (0 none)', Pos, 'r', '20', 1);
-    Pos = Pos+1;
-end
-if S.blinks.filter_para > 0,
-    D.blinks.filter = round( ((0.31*D.Radc / S.blinks.filter_para) - 1 )/2 );
-else
-    D.blinks.filter = 0;
-end
-
-
 % indices of channels without VEOG
 in_no_veog = setdiff([1:D.Nchannels], D.channels.veog);
 
+
 if isfield(D.channels, 'blink_wgts')
-    disp(sprintf('\nUsing these blink weights...\n\n'))
+    disp('Found these blink weights...')
     for c = 1:length(in_no_veog)
         disp(sprintf('%s\t%3.2f', ...
             D.channels.name{in_no_veog(c)},D.channels.blink_wgts(c)))
     end
+    try 
+	Detect_Blinks = S.blinks.Detect_Blinks;
+    catch
+    	Detect_Blinks = 0;
+    end
+else
+    Detect_Blinks = 1;
 end
 
-if ~isfield(S.blinks, 'blink_method')
+
+if Detect_Blinks == 1
+
+ Pos=1;
+ if ~isfield(S.blinks, 'veog_peak')
+    S.blinks.veog_peak =...
+        spm_input('Min VEOG peak for blink (e.g, uV)', Pos, 'i', '200', 1);
+    Pos = Pos+1;
+ end
+ D.blinks.veog_peak = S.blinks.veog_peak;
+
+ if ~isfield(S.blinks, 'veog_width')
+    S.blinks.veog_width = ...
+        spm_input('Max VEOG width for blink (ms)', Pos, 'i', '200', 1);
+    Pos = Pos+1;
+ end
+ D.blinks.veog_width = S.blinks.veog_width;
+
+ if ~isfield(S.blinks, 'blink_sample')
+    suggest = S.blinks.veog_width*D.Radc/(2*1000);
+    S.blinks.blink_sample = ...
+        spm_input('blink sampling points', Pos, 'i', suggest, 1);
+    Pos = Pos+1;
+ end
+ D.blinks.blink_sample = S.blinks.blink_sample;
+
+ if ~isfield(S.blinks, 'filter_para')
+    S.blinks.filter_para =...
+        spm_input('Lowpass filter cutoff (0 none)', Pos, 'r', '20', 1);
+    Pos = Pos+1;
+ end
+
+ if S.blinks.filter_para > 0,
+    D.blinks.filter = round( ((0.31*D.Radc / S.blinks.filter_para) - 1 )/2 );
+else
+    D.blinks.filter = 0;
+ end
+
+ if ~isfield(S.blinks, 'blink_method')
     Ctype = {'Area','Shape'};
     S.blinks.blink_method =...
         spm_input('correction method','+1','m',Ctype);
     Pos = Pos+1;
+ end
+ D.blinks.blink_method = S.blinks.blink_method;
+
 end
-D.blinks.blink_method = S.blinks.blink_method;
+
 
 spm('Pointer', 'Watch');
 
-if isfield(D.channels, 'blink_wgts')
-    Correct_Blinks = 1;
-else
-    Correct_Blinks = 0;		% (Prompted again below!)
+try 
+    Correct_Blinks = S.blinks.Correct_Blinks;
+catch
+    Correct_Blinks = 0;
 end
 
 
@@ -142,6 +156,8 @@ spm('Pointer', 'Watch');
 % 1. Veog blink detection
 %------------------------
 
+if Detect_Blinks
+
 Iblink=[];
 
 Dveog = squeeze(D.data(D.channels.veog,:,:));
@@ -171,7 +187,7 @@ end
 
 D.events.blinks = zeros(1,D.Nevents);
 
-blink_waves=[]; blink_samples=[]; pst_samples=[];
+blink_waves=[]; blink_samples=[]; pst_samples=[]; pst_times=[];
 index=[]; rindex=[];
 
 for n = 1:length(valid_events)
@@ -202,13 +218,15 @@ for n = 1:length(valid_events)
 
                         tsample = bsample + Sblink(b);
 
-                        if(D.Nevents==1)			% non-epoched
+                        if(D.Nevents==1)	% non-epoched
                             pst = find(D.events.time-tsample(1)>0);
                             if(~isempty(pst))
-                                pst_samples=[pst_samples D.events.time(pst(1))-tsample(1)];
+                                pst_samples = [pst_samples D.events.time(pst(1))-tsample(1)];
+			        pst_times = [pst_times 1000*pst_samples(end)/D.Radc];
                             end
                         else
                             pst_samples = [pst_samples tsample(1)];
+			    pst_times = [pst_times (1000*tsample(1)-D.events.start-1)/D.Radc];
                         end
 
                         blink_waves = [blink_waves; blink(bsample)];
@@ -225,7 +243,7 @@ end
 disp(sprintf('Valid Blinks (N=%d): %s',length(index),mat2str(index)))
 disp(sprintf('Invalid "Blinks" (N=%d): %s',length(rindex),mat2str(rindex)))
 
-D.events.blinks(unique(index))=1;
+D.events.blinks = index;
 %D.events.reject(unique(rindex))=1;
 
 
@@ -234,6 +252,11 @@ D.events.blinks(unique(index))=1;
 %------------------------
 
 % Keep HEOG for correlation purposes (do not necessarily correct)
+
+if isempty(index)
+    warning('No blinks detected!') 
+    return;
+end
 
 if ~isfield(D.channels, 'blink_wgts')
 
@@ -249,17 +272,21 @@ if ~isfield(D.channels, 'blink_wgts')
     switch D.blinks.blink_method
 
         case 1				% area (equivalent to mean)
-            b = mean(y)/mean(VEOGwave);
-            cc = b;				
+	    X = VEOGwave - VEOGwave(1);
+	    y = y - kron(ones(size(y,1),1),y(1,:));
+
+%            b = mean(y)/mean(VEOGwave);
+%            cc = b;				
 
         case 2				% shape (linear regression)
             X = detrend(VEOGwave,0);
             y = detrend(y,0);
-            pX = pinv(X);
-            b = pX*y;
-            Y=X*b;
-            cc = sign(b').*diag(y'*Y)./sqrt(diag(y'*y).*diag(Y'*Y));
     end
+
+            pX = pinv(X);
+            b  = pX*y;
+            Y  = X*b;
+            cc = sign(b').*diag(y'*Y)./sqrt(diag(y'*y).*diag(Y'*Y));
 
     h = spm_figure;
     subplot(1,3,1)
@@ -268,15 +295,16 @@ if ~isfield(D.channels, 'blink_wgts')
     ylabel('Amplitude')
     xlabel('Sample Window')
     subplot(1,3,2)
-    plot(b(1,:),cc,'.')
+    plot(b(1,:)',cc,'x')
     title('Weight-Correlation')
     ylabel('Correlation')
     xlabel('Weight')
     subplot(1,3,3)
-    hist(pst_samples)
+    hist(pst_times)
     title('PST Histogram')
     ylabel('No. Blinks')
     xlabel('PST')
+    drawnow
 
     disp('      Cor       Wgt')
     for c = 1:length(in_no_veog)
@@ -286,15 +314,19 @@ if ~isfield(D.channels, 'blink_wgts')
     D.channels.blink_wgts = b(1,:)';
 end
 
+else
+    disp('Using these weights...')
+    disp(sprintf('\nFound these blink weights...\n\n'))
+    for c = 1:length(in_no_veog)
+        disp(sprintf('%s\t%3.2f', ...
+            D.channels.name{in_no_veog(c)},D.channels.blink_wgts(c)))
+    end
+end
+
 
 %-------------------------
 % 3. Veog blink correction
 %-------------------------
-
-
-if ~Correct_Blinks
-    Correct_Blinks = spm_input('Correct Blinks now?',Pos,'yes|no',[1 0]);
-end
 
 if(Correct_Blinks)
 
@@ -329,11 +361,12 @@ if(Correct_Blinks)
 
     D.data = [];
     D.fname = ['b' spm_str_manip(D.fname, 't')];
-    save(D.fname, 'D');
 
 else
     disp('No correction performed')
 end
+
+save(D.fname, 'D');
 
 spm('Pointer', 'Arrow');
 
