@@ -48,17 +48,18 @@ function [t,sts] = spm_select(varargin)
 % cwd      - current working directory [defaut '.']
 % cpath    - conditioned paths, in same format as input path argument
 %
-% FORMAT [files,dirs]=spm_select('List',direc,filt)
+% FORMAT [files,dirs]=spm_select('List',direc,filt,frames)
 % Returns files matching the filter (filt) and directories within dire
 % direc    - directory to search
 % filt     - filter to select files with (see regexp) e.g. '^w.*\.img$'
+% frames   - vector of frames to select (defaults to [], if not specified)
 % files    - files matching 'filt' in directory 'direc'
 % dirs     - subdirectories of 'direc'
 %____________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 676 2006-11-08 11:36:38Z john $
+% $Id: spm_select.m 735 2007-02-12 15:07:42Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -88,7 +89,12 @@ if nargin > 0 && ischar(varargin{1})
                 t = strvcat(t);
             end;
         case 'list'
-            filt    = mk_filter('any',varargin{3},[]);
+	    if nargin > 3
+		frames = varargin{4};
+	    else
+		frames = [];
+	    end;
+            filt    = mk_filter('any',varargin{3},frames);
             [t,sts] = listfiles(varargin{2},filt);
         otherwise 
             error('Inappropriate usage.');
