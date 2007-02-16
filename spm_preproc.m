@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 651 2006-10-17 10:32:23Z john $
+% $Id: spm_preproc.m 739 2007-02-16 17:59:16Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -162,6 +162,8 @@ for z=1:length(z0),
     buf(z).msk = spm_sample_priors(b0{end},x1,y1,z1,1)<(1-1/512);
     fz         = f(:,:,z);
     %buf(z).msk = fz>thresh;
+    buf(z).msk = buf(z).msk & finite(fz) & (fz~=0);
+
     if ~isempty(opts.msk),
         msk = spm_sample_vol(VM,x0,y0,o*z0(z),0);
         buf(z).msk = buf(z).msk & msk;
