@@ -1,5 +1,5 @@
 function DCM = spm_dcm_erp(DCM)   
-% Estimate parameters of a DCM model
+% Estimate parameters of a DCM model (Newton's methods)
 % FORMAT DCM = spm_dcm_erp(DCM)   
 %
 % DCM     
@@ -29,13 +29,14 @@ function DCM = spm_dcm_erp(DCM)
 
 % check options 
 %==========================================================================
+clear spm_erp_L
 
 % Filename and options
 %--------------------------------------------------------------------------
 try, DCM.name;                   catch, DCM.name = 'DCM_ERP'; end
 try, h     = DCM.options.h;      catch, h        = 1;         end
 try, nm    = DCM.options.Nmodes; catch, nm       = 8;         end
-try, onset = DCM.options.onset;  catch, onset    = 60;        end
+try, onset = DCM.options.onset;  catch, onset    = 80;        end
 
 
 
@@ -68,8 +69,7 @@ nm     = max(nm,Nr);
 [i j]  = min(var(xY.y));                        % minimum variance channel
 R      = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc); % re-referencing matrix
 
-% confounds - DCT: T - an idemptoent matrix spans the interesting temporal
-% space
+% confounds - DCT: T - an idempotent matrix spanning temporal subspace
 %--------------------------------------------------------------------------
 if h == 0
     X0 = sparse(Ns,1);
@@ -77,9 +77,9 @@ else
     X0 = spm_dctmtx(Ns,h);
 end
 warning off
-X0     = kron(speye(Nt,Nt),X0);
-T      = speye(Ns*Nt) - X0*inv(X0'*X0)*X0';  % null space of confounds
-xY.X0  = X0;
+Ti     = speye(Ns) - X0*inv(X0'*X0)*X0';         % null space of confounds
+T      = kron(speye(Nt,Nt),Ti);
+xY.X0  = kron(speye(Nt,Nt),X0);
 warning on
 
 % Feature selection using principal components (U) of channel space
@@ -123,10 +123,10 @@ xU.dur  = xU.dt*(Ns - 1);
 
 % model specification and nonlinear system identification
 %==========================================================================
-
-% make model specification a global variable
-%--------------------------------------------------------------------------
-global M; M = DCM.M;
+M       = DCM.M;
+try
+    M   = rmfield(M,'g');
+end
 
 % adjust onset relative to pst
 %--------------------------------------------------------------------------
@@ -135,27 +135,33 @@ ons     = onset - xY.Time(1);
 
 % prior moments
 %--------------------------------------------------------------------------
-[pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,dur,ons);
+[pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(ons));
 
 % likelihood model
 %--------------------------------------------------------------------------
 M.f   = 'spm_fx_erp';
-M.g   = 'spm_gx_erp';
+M.G   = 'spm_lx_erp';
+M.FS  = 'spm_fy_erp';
 M.IS  = 'spm_int_U';
-M.FS  = 'y*E';
-M.x0  = 'spm_x_erp';
 M.x   = sparse(nx,1);
 M.pE  = pE;
 M.pC  = pC;
+M.gE  = gE;
+M.gC  = gC;
 M.m   = nu;
 M.n   = nx;
 M.l   = Nc;
 M.ns  = Ns*Nt;
 M.E   = U;
 
+% and fixed parameters and functional forms
+%--------------------------------------------------------------------------
+M.ons = ons;
+M.dur = dur;
+
 % EM: inversion
 %--------------------------------------------------------------------------
-[Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
+[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
 
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
@@ -166,14 +172,13 @@ warning on
 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
-type          = M.dipfit.type;
-M.dipfit.type = 'LFP';
-x             = feval(M.IS,Qp,M,xU);        % prediction (source space)
-M.dipfit.type = type;                       % reset type
-y             = feval(M.IS,Qp,M,xU);        % prediction (sensor space)
-r             = T*(xY.y - y);               % prediction error
-y             = y*M.E*M.E';                 % remove spaital confounds
-r             = r*M.E*M.E';                 % remove spaital confounds
+L   = feval(M.G, Qg,M);           % get gain matrix
+x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
+y   = x*L';                       % prediction (sensor space)
+r   = T*(xY.y - y);               % prediction error
+y   = y*M.E*M.E';                 % remove spaital confounds
+r   = r*M.E*M.E';                 % remove spaital confounds
+x   = x(:,end - Nr + 1:end);
 
 % trial specific respsonses (in mode, channel and source space)
 %--------------------------------------------------------------------------
@@ -188,19 +193,21 @@ end
 
 % store estimates in DCM
 %--------------------------------------------------------------------------
-DCM.M    = M;                    % model specification
-DCM.xY   = xY;                   % data structure
-DCM.xU   = xU;                   % input structure
-DCM.Ep   = Qp;                   % conditional expectation
-DCM.Cp   = Cp;                   % conditional covariances
-DCM.Pp   = Pp;                   % conditional probability
-DCM.H    = H;                    % conditional responses (y), projected space
-DCM.Hc   = Hc;                   % conditional responses (y), channel space
-DCM.K    = K;                    % conditional responses (x)
-DCM.R    = E;                    % conditional residuals (y)
-DCM.Rc   = Ec;                   % conditional residuals (y), channel space
-DCM.Ce   = Ce;                   % ReML error covariance
-DCM.F    = F;                    % Laplace log evidence
+DCM.M  = M;                    % model specification
+DCM.xY = xY;                   % data structure
+DCM.xU = xU;                   % input structure
+DCM.Ep = Qp;                   % conditional expectation f(x,u,p)
+DCM.Cp = Cp;                   % conditional covariances G(g)
+DCM.Eg = Qg;                   % conditional expectation
+DCM.Cg = Cg;                   % conditional covariances
+DCM.Pp = Pp;                   % conditional probability
+DCM.H  = H;                    % conditional responses (y), projected space
+DCM.Hc = Hc;                   % conditional responses (y), channel space
+DCM.K  = K;                    % conditional responses (x)
+DCM.R  = E;                    % conditional residuals (y)
+DCM.Rc = Ec;                   % conditional residuals (y), channel space
+DCM.Ce = Ce;                   % ReML error covariance
+DCM.F  = F;                    % Laplace log evidence
 
 % store estimates in D
 %--------------------------------------------------------------------------
@@ -219,7 +226,7 @@ if strcmp(M.dipfit.type,'Imaging')
     Nd    = M.dipfit.Nd;
     G     = sparse(Nd,Nr);
     for i = 1:Nr
-        G(M.dipfit.Ip{i},i) = M.dipfit.U{i}*Qp.L(:,i);
+        G(M.dipfit.Ip{i},i) = M.dipfit.U{i}*Qg.L(:,i);
     end
     Is    = find(any(G,2));
     G     = G(Is,:);
@@ -237,7 +244,7 @@ if strcmp(M.dipfit.type,'Imaging')
     % reduced data (for each trial
     %----------------------------------------------------------------------
     for i = 1:Nt
-        Y{i} = U'*xY.xy{i}'*T;
+        Y{i} = U'*xY.xy{i}'*Ti;
     end
 
     inverse.trials = DCM.options.trials;   % trial or condition
@@ -246,7 +253,7 @@ if strcmp(M.dipfit.type,'Imaging')
     inverse.J      = J;                    % Conditional expectation
     inverse.L      = L;                    % Lead field (reduced)
     inverse.R      = R;                    % Re-referencing matrix
-    inverse.T      = T;                    % temporal subspace
+    inverse.T      = Ti;                   % temporal subspace
     inverse.U      = U;                    % spatial  subspace
     inverse.Is     = Is;                   % Indices of active dipoles
     inverse.It     = DCM.xY.It;            % Indices of time bins
@@ -280,39 +287,5 @@ if spm_matlab_version_chk('7.1') >= 0
 else
     save(DCM.name, 'DCM');
 end
-
+assignin('base','DCM',DCM)
 return
-
-
-
-% % Code for generalised SVD feature selection:
-% % Project modelled data onto the principal components of channel space
-% %--------------------------------------------------------------------------
-% y     = R0*xY.y;
-% S     = spm_svd(y'*y);
-% 
-% % EM: This is a loop that will perfom cnaonical feature selection
-% %--------------------------------------------------------------------------
-% ML    = exp(-32);
-% for i = 1:8
-%     
-%     % inversion
-%     %----------------------------------------------------------------------
-%     [Qp,Cp,Ce,F] = spm_nlsi_GN(M,xU,xY);
-%     r            = y - R0*feval(M.IS,Qp,M,xU);
-%     
-%     if F < ML(end), break, end
-% 
-%     % Canonical feature selection
-%     %----------------------------------------------------------------------
-%     M.E   = spm_svd(inv(S'*r'*r*S)*(S'*y'*y*S),0);
-%     M.E   = orth(full(S*M.E(:,1:nm)));
-%     
-%     % reset stating estimates
-%     %----------------------------------------------------------------------
-%     ML(i) = F;
-%     M.P   = Qp;
-%     
-% end
-
-

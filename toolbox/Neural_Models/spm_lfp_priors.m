@@ -137,8 +137,6 @@ if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
 
 % Model specification
 %==========================================================================
-global M
-
 M.f      = 'spm_fx_lfp';
 M.g      = 'spm_gx_lfp';
 M.x      = sparse(N,1);

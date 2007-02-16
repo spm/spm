@@ -1,6 +1,6 @@
-function [f] = spm_fx_HRF(x,u,P)
+function [f] = spm_fx_hdm(x,u,P,M)
 % state equation for the hemodynamic model
-% FORMAT [f] = spm_fx_HRF(x,u,P)
+% FORMAT [f] = spm_fx_hdm(x,u,P,M)
 % x      - state vector
 %   x(1) - vascular signal           (s)
 %   x(2) - rCBF                      (f)
@@ -25,7 +25,7 @@ function [f] = spm_fx_HRF(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_HRF.m 455 2006-02-22 18:40:33Z karl $
+% $Id: spm_fx_hdm.m 740 2007-02-16 20:56:22Z karl $
 
 
 % Fout = f(v) - outflow
@@ -38,7 +38,7 @@ ff     = (1 - (1 - P(5))^(1/x(2)))/P(5);
 
 % implement differential state equation
 %--------------------------------------------------------------------------
-f(1)   = P(6:end)'*u - P(1)*x(1) - P(2)*(x(2) - 1);
+f(1)   = P(6:end)'*u(:) - P(1)*x(1) - P(2)*(x(2) - 1);
 f(2)   = x(1);
 f(3)   = (x(2) - fv)/P(3);
 f(4)   = (ff*x(2) - fv*x(4)/x(3))/P(3);

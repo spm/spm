@@ -54,8 +54,8 @@ hE(end) = 1;
 % model
 %--------------------------------------------------------------------------
 clear H
-H.f     = 'spm_fx_HRF';
-H.g     = 'spm_lambda_HRF';
+H.f     = 'spm_fx_hdm';
+H.g     = 'spm_gx_hdm';
 H.x     = [0 1 1 1]';
 H.pE    = hE;    
 H.pC    = hC;

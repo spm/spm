@@ -148,16 +148,18 @@ end
 [f,p]     = uiputfile(['DCM*.mat'],'DCM file to save',f);
 
 if p
-    
     handles.DCM.name = fullfile(p,f);
     set(handles.name,'String',f);
     DCM              = handles.DCM;
     save(DCM.name,'DCM')
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
-    guidata(hObject,handles);
 end
 
+% assign in base
+%--------------------------------------------------------------------------
+assignin('base','DCM',handles.DCM)
+guidata(hObject,handles);
 
 % store selections in DCM
 % -------------------------------------------------------------------------
@@ -673,15 +675,9 @@ try
     end
 end
 
-% get filename and save
-% -------------------------------------------------------------------------
-handles     = save_Callback(hObject, eventdata, handles);
-
 % invert and save
 % -------------------------------------------------------------------------
 handles.DCM = spm_dcm_erp(handles.DCM);
-
-assignin('base','DCM',handles.DCM)
 guidata(hObject, handles);
 
 set(handles.results,    'Enable','on' )
@@ -690,7 +686,6 @@ set(handles.estimate,   'String','Estimated','Foregroundcolor',[0 0 0])
 if get(handles.Spatial_type,'Value') == 3
     set(handles.render, 'Enable','on' )
     set(handles.Imaging,'Enable','on' )
-
 end
 
 % --- Executes on button press in results.

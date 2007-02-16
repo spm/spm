@@ -90,8 +90,15 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_nlsi.m 740 2007-02-16 20:56:22Z karl $
 
+% check integrator
+%--------------------------------------------------------------------------
+try
+    M.IS;
+catch
+    M.IS = 'spm_int';
+end
 
 % Expansion point (in parameter space) for Bilinear-kernel representations
 %--------------------------------------------------------------------------

@@ -19,7 +19,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_diff.m 740 2007-02-16 20:56:22Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -90,29 +90,16 @@ if length(n) == 1
     %----------------------------------------------------------------------
     elseif ~length(f)
         J = sparse(0,length(xm));
+    end
         
-    % or output is not a column vector
+    % or differentiation of a vector w.r.t. a vector
     %----------------------------------------------------------------------
-    elseif size(f0,2) > 1
-        for i = 1:size(J,2)
-            J{i} = spm_vec(J{i});
-        end
-    end
-
-    % concatenate into a matrix
-    %----------------------------------------------------------------------
-    J = spm_cat(J);
-    
-    % un-vectorise if f is a scalar
-    %----------------------------------------------------------------------
-    if length(f) == 1
-        J = spm_unvec(J(:),x{m});
-    end
-    
-    % un-vectorise x if is a scalar
-    %----------------------------------------------------------------------
-    if length(xm) == 1
-        J = spm_unvec(J(:),f0);
+    if isvector(f0) && isvector(x{m})
+        
+        % concatenate into a matrix
+        %------------------------------------------------------------------
+        J = spm_cat(J);
+        
     end
     
     % assign ouput argument and return

@@ -1,6 +1,6 @@
-function [U,N] = spm_erp_u(P,t)
+function [U,B] = spm_erp_u(t,P,M)
 % returns the [scalar] input for EEG models
-% FORMAT [U,N] = spm_erp_u(P,t)
+% FORMAT [U,B] = spm_erp_u(t,P,M)
 %
 % P      - parameter structure
 %   P.R  - scaling of [Gamma] parameters
@@ -9,7 +9,7 @@ function [U,N] = spm_erp_u(P,t)
 % t      - PST (seconds)
 %
 % U   - stimulus-related (subcortical) input
-% N   - non-specifc fluctuations
+% B   - non-specifc background fluctuations
 %
 % See spm_fx_erp.m and spm_erp_priors.m
 %__________________________________________________________________________
@@ -21,19 +21,22 @@ function [U,N] = spm_erp_u(P,t)
 
 % stimulus - subcortical impulse: [Gamma] parameters
 %--------------------------------------------------------------------------
-U     = 0;
-for i = 1:length(P.ons)
-   magni = P.M(i);
-   shape = P.ons(i)*exp(P.R(i,1));
-   scale = exp(P.R(i,2));
-   U     = U + magni*spm_Gpdf(t*1000,shape,scale)*1000;
+U     = sparse(1,length(t));
+tms   = t*1000;
+for i = 1:length(M.ons)
+   delay = M.ons(i)*exp(P.R(i,2));
+   scale = exp(P.R(i,3))*64;
+   U     = U + 32*P.R(i,1)*exp(-(tms - delay).^2/scale);
 end
 
 % Endogenous fluctuations (if P.N is specified)
 %--------------------------------------------------------------------------
+n     = size(P.N,1);
+B     = sparse(n,length(t));
 try
-   for i = 1:size(P.N,1)
-      N(i,:) = P.N(i,1)*cos(2*pi*P.N(i,3)*t) + P.N(i,2)*sin(2*pi*P.N(i,3)*t);
-   end
+    for i = 1:n
+       w      = exp(j*6.2832*P.N(i,3)*t);
+       B(i,:) = P.N(i,1:2)*[real(w); imag(w)];
+    end
 end
 

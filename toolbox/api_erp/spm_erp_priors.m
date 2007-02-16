@@ -1,15 +1,16 @@
-function [varargout] = spm_erp_priors(A,B,C,dipfit,dur,ons)
-% prior moments for a neural mass model of erps
-% FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit,dur,ons)
-% FORMAT [M]     = spm_erp_priors(A,B,C,dipfit,dur,ons)
-% FORMAT           spm_erp_priors(A,B,C,dipfit,dur,ons)
+function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
+% prior moments for a neural-mass model of erps
+% FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
+% FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
+% FORMAT [M]     = spm_erp_priors(A,B,C,dipfit)
+% FORMAT           spm_erp_priors(A,B,C,dipfit)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 % dipfit       - prior forward model structure
-% dur          - trial duration (sec) [default = 1 s]
-% ons          - onset (nsec) [default = 60 ms]
+% u            - number of input [gamma] components
 %
-% pE - prior expectation
+% pE - prior expectation - f(x,u,P,M)
+% gE - prior expectation - g(x,u,G,M)
 %
 % synaptic parameters
 %--------------------------------------------------------------------------
@@ -18,8 +19,10 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,dur,ons)
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    pE.Lpos - position
-%    pE.Lmon - moment (orientation):
+%    gE.Lpos - position                   - ECD
+%    gE.Lmon - moment (orientation)       - ECD
+%
+% or gE.L    - coeficients of local modes - Imaging
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -30,10 +33,8 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,dur,ons)
 %
 % stimulus and noise parameters
 %--------------------------------------------------------------------------
-%    pE.R - onset and dispersion (Gamma paramters)
-%    pE.M - magnitude
+%    pE.R - magnitude, onset and dispersion
 %    pE.N - background fluctuations
-%    pE.U - trial dutation (secs)
 %
 % pC - prior covariances: cov(spm_vec(pE))
 %
@@ -56,20 +57,8 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
-if nargin < 4
-    dipfit.L.pos = sparse(3,0);
-end
-if nargin < 5
-    dur = 1;
-end
-if nargin < 6
-    ons = 60;
-end
-try
-    dipfit.type;
-catch
-    dipfit.type = 'ECD';
-end
+if nargin < 4, dipfit.type = 'LFP'; end
+if nargin < 5, u = 1;               end
 
 % disable log zero warning
 %--------------------------------------------------------------------------
@@ -88,14 +77,18 @@ E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 
 % paramters for electromagnetic forward model
 %--------------------------------------------------------------------------
-if strcmp(dipfit.type,'ECD')
+switch dipfit.type
     
-    E.Lpos = dipfit.L.pos;  V.Lpos =  16*ones(3,n);    % dipole positions
-    E.Lmom = sparse(3,n);   V.Lmom = 256*ones(3,n);    % dipole orientations
+    case{'ECD (EEG)','ECD (MEG)'}
+    %----------------------------------------------------------------------
+    G.Lpos = dipfit.L.pos;  U.Lpos =   8*ones(3,n);    % dipole positions
+    G.Lmom = sparse(3,n);   U.Lmom = 256*ones(3,n);    % dipole orientations
 
-else
+    case{'Imaging'}
+    %----------------------------------------------------------------------
     m      = dipfit.Nm;
-    E.L    = sparse(m,n);   V.Lpos =  16*ones(m,n);    % dipole modes
+    G.L    = sparse(m,n);   U.Lpos =  16*ones(m,n);    % dipole modes
+    
 end
 
 % set extrinsic connectivity
@@ -125,49 +118,71 @@ V.D        = Q/8;
 % E.x0     = sparse(n,1);
 % V.x0     = n1;
 
-% set stimulus parameters onset, dispersion and duration
+% set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------
-E.dur      = dur;                V.dur = 0;            % trial duration  (ms)
-E.ons      = ons;                V.ons = 0*ons;        % stimulus onsets (ms)
-u          = length(ons);
-E.R        = sparse(u,2);        V.R   = ones(u,2)/8;  % input [Gamma] parameters
-E.M        = sparse(1,1,1,u,1);  V.M   = ones(u,1);    % magnitude
-
-
+E.R        = sparse(1,1,1,u,3);  V.R   = ones(u,1)*[1 1/16 1/16];
 
 % background fluctuations
 %--------------------------------------------------------------------------
-E.N        = ones(n,1)*[0 0 12]; V.N   = ones(n,3)*8;  % amplitude and Hz
+n          = 1;
+E.N        = ones(n,1)*[0 0 10]; V.N   = ones(n,3);    % amplitude and Hz
 
-% vectorize
-%--------------------------------------------------------------------------
-pE         = E;
-pV         = spm_vec(V);
-pC         = diag(sparse(pV));
+
+
 warning on
-
-
 
 % prior momments if two arguments
 %--------------------------------------------------------------------------
-if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
+if nargout == 4
+    varargout{1} = E;
+    varargout{2} = G;
+    varargout{3} = diag(sparse(spm_vec(V)));
+    varargout{4} = diag(sparse(spm_vec(U)));
+    return
+else
+    switch dipfit.type
+
+        case{'ECD (EEG)','ECD (MEG)'}
+            %--------------------------------------------------------------
+            E.Lpos  = G.Lpos;
+            E.Lmom  = G.Lmom;
+            C       = diag(sparse(spm_vec(V,U)));
+
+        case{'Imaging'}
+            %--------------------------------------------------------------
+            E.L     = G.L;
+            C       = diag(sparse(spm_vec(V,U)));
+
+        case{'LFP'}
+            %--------------------------------------------------------------
+            C       = diag(sparse(spm_vec(V)));
+            
+        otherwise
+    end
+
+end
+
+if nargout == 2
+    varargout{1} = E;
+    varargout{2} = C;
+    return
+end
 
 
 % Model specification
 %==========================================================================
-clear global M
-global M
-
-M.IS     = 'spm_int_U';
-M.f      = 'spm_fx_erp';
-M.g      = 'spm_gx_erp';
-M.x      = sparse(n*9 + 1,1);
-M.pE     = pE;
-M.pC     = pC;
-M.m      = length(B);
-M.n      = length(M.x);
-M.l      = n;
-M.ns     = 128;
+M.IS          = 'spm_int_U';
+M.f           = 'spm_fx_erp';
+M.g           = 'spm_gx_erp';
+M.x           = sparse(n*9 + 1,1);
+M.pE          = E;
+M.pC          = C;
+M.m           = length(B);
+M.n           = length(M.x);
+M.l           = n;
+M.ns          = 128;
+M.dur         = 1;
+M.ons         = 80;
 M.dipfit.type = 'LFP';
 
 if nargout == 1, varargout{1} = M; return, end

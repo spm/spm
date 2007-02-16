@@ -175,8 +175,8 @@ switch DCM.M.dipfit.type
         vert   = D.inv{D.val}.mesh.tess_mni.vert;
         for i  = 1:Np
             Ip = find(sum([vert(:,1) - xyz(1,i), ...
-                vert(:,2) - xyz(2,i), ...
-                vert(:,3) - xyz(3,i)].^2,2) < rad^2);
+                           vert(:,2) - xyz(2,i), ...
+                           vert(:,3) - xyz(3,i)].^2,2) < rad^2);
 
             % left hemisphere
             %--------------------------------------------------------------

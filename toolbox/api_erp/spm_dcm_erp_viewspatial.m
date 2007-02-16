@@ -60,7 +60,6 @@ handles.DCM = DCM;
 handles.ms  = DCM.xY.Time;
 handles.T   = 1;
 
-global M
 M = DCM.M;
 
 load(DCM.xY.Dfile); % ----> returns SPM/EEG struct D
@@ -214,8 +213,8 @@ Nsources = length(DCM.M.pE.A{1});
 % ECD
 %--------------------------------------------------------------------
 try
-    Lpos = handles.DCM.Ep.Lpos;
-    Lmom = handles.DCM.Ep.Lmom;
+    Lpos = handles.DCM.Eg.Lpos;
+    Lmom = handles.DCM.Eg.Lmom;
     
 % Imaging
 %--------------------------------------------------------------------
@@ -261,14 +260,15 @@ function plot_components_space(hObject, handles)
 DCM = handles.DCM;
 Nsources = length(DCM.M.pE.A{1});
 
-lf = NaN*ones(handles.Nchannels, Nsources);
+lf  = NaN*ones(handles.Nchannels, Nsources);
 lfo = NaN*ones(handles.Nchannels, Nsources);
+x   = [0 kron([zeros(1, 8) 1], ones(1, Nsources))];
 
-x = [0 kron([zeros(1, 8) 1], ones(1, Nsources))];
-lf(DCM.M.dipfit.Ic, :)   = DCM.M.E*DCM.M.E'*spm_erp_L(DCM.Ep); % projected leadfield
-E = DCM.M.E; global M; M = rmfield(DCM.M, 'E'); 
-lfo(DCM.M.dipfit.Ic, :)  = spm_erp_L(DCM.Ep); % leadfield not projected
-M.E = E;
+% unprojected and projected leadfield
+%--------------------------------------------------------------------
+lfo(DCM.M.dipfit.Ic,:) = spm_erp_L(DCM.Ep,DCM.M);
+lf                     = DCM.M.E*DCM.M.E'*lfo;
+
 
 % use subplots in new figure
 h = figure;
@@ -299,7 +299,7 @@ drawnow
 function plot_components_time(hObject, handles)
 
 DCM = handles.DCM;
-Lmom = sqrt(sum(DCM.Ep.Lmom).^2);
+Lmom = sqrt(sum(DCM.Eg.Lmom).^2);
 Nsources = length(DCM.M.pE.A{1});
 
 h = figure;

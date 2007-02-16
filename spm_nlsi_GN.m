@@ -1,27 +1,26 @@
 function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
-% Bayesian Parameter estimation using a Levenburg-Marquardt/EM algorithm
+% Bayesian inversion of a nonlinear model using a Guass-Newton/EM algorithm
 % FORMAT [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
-% M.IS - function name or handle f(P,M,U)
+% M.IS - function name f(P,M,U) - generative model
 %        This function specifies the nonlinear model: 
 %        y = Y.y = IS(P,M,U) + X0*P0 + e
-%        were e ~ N(0,C).  For dynamic systems this would be an intgration
+%        were e ~ N(0,C).  For dynamic systems this would be an integration
 %        scheme (e.g. spm_int). spm_int expects the following:
 %
-%     M.f  - f(x,u,P)
-%     M.g  - g(x,u,P)
+%     M.f  - f(x,u,P,M)
+%     M.g  - g(x,u,P,M)
 %       x  - state variables
 %       u  - inputs or causes
 %       P  - free parameters
+%       M  - fixed functional forms and parameters in M
 %
-% M.FS - function name or handle f(P,M,U,varargin)
+% M.FS - function name f(y,M)   - feature selection
 %        This [optional] function perfoms feature selection assuming the
-%        generalised model y = FS(Y,E) = FS(IS(P,M,U)) + X0*P0 + e
-%        where E are the parameters of the selection function
+%        generalised model y = FS(y,M) = FS(IS(P,M,U),M) + X0*P0 + e
 %
-% M.E  - starting estimates for selection parameters
 % M.P  - starting estimtes for model parameters [optional]
 %
 % M.pE - prior expectation  - E{P}   of model parameters
@@ -47,20 +46,24 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % log evidence
 %--------------------------------------------------------------------------
-% F       - [-ve] free energy F = log evidence = p(y|f,g,pE,pC) = p(y|m)
+% F   - [-ve] free energy F = log evidence = p(y|f,g,pE,pC) = p(y|m)
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
-% nonlinear model speficied by IS(P,M,U) under Gaussian assumptions. Usually,
+% nonlinear model specified by IS(P,M,U) under Gaussian assumptions. Usually,
 % IS would be an integrator of a dynamic MIMO input-state-output model 
 %
 %              dx/dt = f(x,u,P)
-%              y     = g(x,u,P) + e
+%              y     = g(x,u,P)  + X0*P0 + e
 %
 % A static nonlinear observation model with fixed input or causes u
 % obtains when x = []. i.e.
 %
-%              y     = g(u,P) + e
+%              y     = g([],u,P) + X0*P0e + e
+%
+% but static nonlinear models are specifed more simply using
+%
+%              y     = IS(P,M,U) + X0*P0 + e
 %
 % Priors on the free parameters P are specified in terms of expectation pE
 % and covariance pC. The E-Step uses a Fisher-Scoring scheme and a Laplace
@@ -68,49 +71,64 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % If the free-energy starts to increase, a Levenburg-Marquardt scheme is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of [Re]ML point estimators of the log-precisions.
-% An optional feature selection can be specified with parameters M.E.
+% An optional feature selection can be specified with parameters M.FS
 %
 %--------------------------------------------------------------------------
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_nlsi_GN.m 740 2007-02-16 20:56:22Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
 try
     M.nograph;
-catch
-    if strcmp(get(gcf,'name'),'System identification')
-        Fsi = gcf;
+catch 
+    Fsi = spm_figure('GetWin','SI');
+    if isempty(Fsi)
+       Fsi =  spm_figure('Create','SI','System Identification');
     else
-        Fsi = spm_figure;
-        set(Fsi,'name','System identification')
-        figure(Fsi)
+       clf
     end
 end
 
-% prediction scheme (usually an integrator)
+% check integrator
 %--------------------------------------------------------------------------
 try
-    IS = fcnchk(M.IS,'P','M','U');
+    M.IS;
 catch
-    IS = fcnchk('spm_int','P','M','U');
+    M.IS = 'spm_int_U';
 end
 
-% feature selection
+% composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------
-try
-    FS  = fcnchk(M.FS,'y','E');
+if isfield(M,'FS')
+    
+    % FS(y,M)
+    %----------------------------------------------------------------------
     try
-        E = M.E;
+        y  = feval(M.FS,Y.y,M);
+        IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
+        
+    % FS(y,M)
+    %----------------------------------------------------------------------
     catch
-        E = [];
+        y  = feval(M.FS,Y.y);
+        IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
+
     end
-catch
-    FS  = inline('y','y','E');
-    E   = [];
+else
+    
+    % FS(y) = y
+    %----------------------------------------------------------------------
+    y   = Y.y;
+    IS  = inline([M.IS '(P,M,U)'],'P','M','U');
 end
+
+% data y
+%--------------------------------------------------------------------------
+[ns nr] = size(y);          % number of samples and responses
+M.ns    = ns;               % store in M.ns for integrator
 
 % initial states
 %--------------------------------------------------------------------------
@@ -145,12 +163,6 @@ catch
     Y.dt = 1;
 end
 
- 
-% data y
-%--------------------------------------------------------------------------
-y       = FS(Y.y,E);
-[ns nr] = size(y);          % number of samples and responses
-M.ns    = ns;               % store in M.ns for integrator
 
 % precision components Q
 %--------------------------------------------------------------------------
@@ -225,17 +237,10 @@ for k = 1:128
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %======================================================================
 
-    % prediction g, and gradients; dgdp
+    % prediction f, and gradients; dfdp
     %----------------------------------------------------------------------
-    [dgdp g] = spm_diff(IS,Ep,M,U,1,{V});
+    [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
        
-    % prediction of features
-    %---------------------------------------------------------------------- 
-    f     = feval(FS,g,E);
-    for i = 1:np
-        dfdp(:,i) = spm_vec(feval(FS,spm_unvec(dgdp(:,i),g),E));
-    end
-    
     % prediction error and full gradients
     %----------------------------------------------------------------------
     e     = spm_vec(y) - spm_vec(f) - dfdu*p(iu);

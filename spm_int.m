@@ -20,7 +20,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_int.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_int.m 740 2007-02-16 20:56:22Z karl $
 
 
 % convert U to U.u if necessary
@@ -41,7 +41,7 @@ x = [1; spm_vec(M.x)];
 % add [0] states if not specified
 %--------------------------------------------------------------------------
 if ~isfield(M,'f')
-    M.f = inline('sparse(0,1)','x','u','P');
+    M.f = inline('sparse(0,1)','x','u','P','M');
     M.n = 0;
     M.x = sparse(0,0);
 end
@@ -57,7 +57,7 @@ end
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
 if isfield(M,'g')
-    g  = fcnchk(M.g,'x','u','P');
+    g  = fcnchk(M.g,'x','u','P','M');
 end
 
 % Bilinear approximation (1st order)
@@ -99,7 +99,7 @@ for  i = 1:length(T)
     %----------------------------------------------------------------------
     else
         if isfield(M,'g')
-            y(:,s(i))  = feval(g,x([1:n] + 1),u,P);
+            y(:,s(i))  = feval(g,x([1:n] + 1),u,P,M);
         else
             y(:,s(i))  = L*x;
         end

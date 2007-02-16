@@ -1,6 +1,5 @@
-% Demo routine for local field potoential models
+% Demo routine for inversting local field potoential models
 %==========================================================================
-% addpath 'C:\Documents and Settings\rmoran\Desktop\SPM5';
 
 clear global
 clear
@@ -54,7 +53,7 @@ H     = sparse(9,1,1,13,1);
 [l n] = size(L);
 
 M.IS  = 'spm_lfp_mtf';
-M.FS  = 'log(y)';
+M.FS  = 'log';
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_lfp';
 M.x   = sparse(n,13);

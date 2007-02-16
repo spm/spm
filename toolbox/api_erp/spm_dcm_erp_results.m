@@ -158,6 +158,7 @@ case{lower('Coupling (A)')}
         image(64*DCM.Pp.A{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
+        title('PPM')
         axis square
     
         % table
@@ -190,6 +191,7 @@ case{lower('Coupling (C)')}
     set(gca,'XTick',[1:nu],'XTickLabel','Input','FontSize',8)
     set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname, 'FontSize',8)
     axis square
+    title('PPM')
     
     % table
     %--------------------------------------------------------------------
@@ -235,6 +237,7 @@ case{lower('Coupling (B)')}
         image(64*DCM.Pp.B{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
+        title('PPM')
         axis square
 
         % tables
@@ -250,9 +253,9 @@ case{lower('Input')}
     
     % plot data
     % --------------------------------------------------------------------
-    xU   = DCM.xU;
+    xU    = DCM.xU;
     tU    = 0:xU.dt:xU.dur;
-    [U N] = spm_erp_u(DCM.Ep,tU);
+    [U N] = spm_erp_u(tU,DCM.Ep,DCM.M);
     
     xY    = DCM.xY;
     n     = length(xY.xy);
@@ -290,20 +293,20 @@ case{lower('Response')}
         title(sprintf('Observed ERP %i',i))
         axis square, grid on, A = axis;
         try
-            if isfield(DCM,'Hc')
-                subplot(n,2,2*i - 0)
-                plot(xY.Time,DCM.Hc{i})
-                xlabel('time (ms)')
-                title(sprintf('Predicted ERP %i',i))
-                axis(A); axis square, grid on
-            end
+            subplot(n,2,2*i - 0)
+            plot(xY.Time,DCM.Hc{i})
+            xlabel('time (ms)')
+            title(sprintf('Predicted ERP %i',i))
+            axis(A); axis square, grid on
+        catch
+            delete(gca)
         end
     end
 
 case{lower('Dipoles')}
     
     try
-        P = DCM.Ep;        
+        P = DCM.Eg;        
         sdip.n_seeds = 1;
         sdip.n_dip  = ns;
         sdip.Mtb    = 1;
@@ -315,6 +318,7 @@ case{lower('Dipoles')}
         warndlg('spm_eeg_inv_visu3D_api to view results')
         return
     end
-    case{lower('Spatial overview')}
+    
+case{lower('Spatial overview')}
         spm_dcm_erp_viewspatial(DCM)
 end

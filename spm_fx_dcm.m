@@ -1,6 +1,6 @@
-function [y] = spm_fx_dcm(x,u,P)
+function [y] = spm_fx_dcm(x,u,P,M)
 % state equation for a dynamic [Bilinear/Balloon] model of fMRI responses
-% FORMAT [y] = spm_fx_dcm(x,u,P)
+% FORMAT [y] = spm_fx_dcm(x,u,P,M)
 % x      - state vector
 %   x(:,1) - neuronal acivity
 %   x(:,2) - vascular signal           (s)
@@ -16,7 +16,7 @@ function [y] = spm_fx_dcm(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_dcm.m 271 2005-10-25 18:16:59Z klaas $
+% $Id: spm_fx_dcm.m 740 2007-02-16 20:56:22Z karl $
 
 
 

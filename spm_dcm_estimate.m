@@ -8,7 +8,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 627 2006-09-15 16:53:25Z klaas $
+% $Id: spm_dcm_estimate.m 740 2007-02-16 20:56:22Z karl $
 
  
 if nargin < 1
@@ -48,8 +48,9 @@ X0 = DCM.Y.X0;
 
 % model specification and nonlinear system identification
 %--------------------------------------------------------------------------
+M.IS  = 'spm_int';
 M.f   = 'spm_fx_dcm';
-M.g   = 'spm_lx_dcm';
+M.g   = 'spm_gx_dcm';
 M.x   = sparse(n*5,1);
 M.pE  = pE;
 M.pC  = pC;

@@ -1,6 +1,6 @@
-function [y] = spm_gx_erp(x,u,P)
+function [y] = spm_gx_erp(x,u,P,M)
 % observer for a neural mass model of erps
-% FORMAT [y] = spm_gx_erp(x,u,P)
+% FORMAT [y] = spm_gx_erp(x,u,P,M)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
@@ -20,14 +20,11 @@ function [y] = spm_gx_erp(x,u,P)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-% get dimensions and configure state variables
+% get number of regions
 %--------------------------------------------------------------------------
-x  = x(2:end);
-n  = length(P.A{1});
-x  = reshape(x,n,9);
+n  = length(M.pE.A{1}) - 1;
 
-% parameterised lead field ECD (pre-multiplied by projector M.E)
+% parameterised lead field ECD
 %--------------------------------------------------------------------------
-L  = spm_erp_L(P);
-y  = L*x(:,9);
-
+L  = spm_erp_L(P,M);
+y  = L*x(end - n:end,:);

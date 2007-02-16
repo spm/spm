@@ -1,8 +1,8 @@
-function [f,J,D] = spm_fx_erp(x,u,P)
+function [f,J,D] = spm_fx_erp(x,u,P,M)
 % state equations for a neural mass model of erps
-% FORMAT [f,J,D] = spm_fx_erp(x,u,P)
-% FORMAT [f,D*J] = spm_fx_erp(x,u,P)
-% FORMAT [f]     = spm_fx_erp(x,u,P)
+% FORMAT [f,J,D] = spm_fx_erp(x,u,P,M)
+% FORMAT [f,D*J] = spm_fx_erp(x,u,P,M)
+% FORMAT [f]     = spm_fx_erp(x,u,P,M)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
@@ -37,6 +37,14 @@ function [f,J,D] = spm_fx_erp(x,u,P)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
+% check input u = f(t,P,M)
+%--------------------------------------------------------------------------
+try
+    fu  = M.fu;
+catch
+    fu  = 'spm_erp_u';
+end
+
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
 t     = x(1);                       % peristimulus time (sec)
@@ -47,7 +55,7 @@ x     = reshape(x,n,9);             % neuronal states
 
 % dfdx = [] if t exceeds trial duration (invoking a return to initial state)
 %--------------------------------------------------------------------------
-if nargout == 1 & (t - P.dur) > 1e-6, f = []; return, end
+if nargout == 1 & (t - M.dur) > 1e-6, f = []; return, end
 
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
@@ -62,7 +70,7 @@ end
 
 E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
 G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
-D = [2 16];              % propogation delays (intrinsic, extrinsic)
+D = [2 32];              % propogation delays (intrinsic, extrinsic)
 H = [4 32];              % receptor densities (excitatory, inhibitory)
 T = [8 16];              % synaptic constants (excitatory, inhibitory)
 R = [2 1]/3;             % parameters of static nonlinearity
@@ -94,7 +102,7 @@ dSdx = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 
 % input
 %--------------------------------------------------------------------------
-[U N] = spm_erp_u(P,t);
+[U N] = feval(fu,t,P,M);
 U     = C*U;
 if size(N,1) == 1
     U = U + C*N;
@@ -188,10 +196,10 @@ J  = blkdiag(0,J);
 %==========================================================================
 De = D(2).*exp(P.D)/1000;
 Di = D(1)/1000;
-De = (eye(n,n) - 1).*De;
-Di = (eye(9,9) - 1)*Di;
+De = (speye(n,n) - 1).*De;
+Di = (speye(9,9) - 1)*Di;
 De = kron(ones(9,9),De);
-Di = kron(Di,eye(n,n));
+Di = kron(Di,speye(n,n));
 
 D  = Di + De;
 D  = blkdiag(0,D);

@@ -21,7 +21,7 @@ function [pE,pC] = spm_hdm_priors(m,h)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hdm_priors.m 569 2006-07-05 11:58:36Z karl $
+% $Id: spm_hdm_priors.m 740 2007-02-16 20:56:22Z karl $
 
 
 
@@ -79,8 +79,8 @@ qC    = diag(diag(qC));
 
 % model specification (single node DCM)
 %---------------------------------------------------------------------------
-M.f   = 'spm_fx_HRF';
-M.g  = 'spm_lambda_HRF';
+M.f   = 'spm_fx_hdm';
+M.g   = 'spm_gx_hdm';
 M.x   = [0 1 1 1]';
 M.pE  = [pE(1:5) 1];
 M.m   = 1;

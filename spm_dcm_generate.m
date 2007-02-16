@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 712 2007-01-03 14:28:45Z klaas $
+% $Id: spm_dcm_generate.m 740 2007-02-16 20:56:22Z karl $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ end
 % Create M matrix for spm_int
 %--------------------------------------------------------------------------
 M.f  = 'spm_fx_dcm';
-M.g  = 'spm_lx_dcm';
+M.g  = 'spm_gx_dcm';
 M.x  = sparse(n*5,1);
 M.m  = size(U.u,2);
 M.n  = size(M.x,1);

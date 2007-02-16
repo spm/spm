@@ -1,6 +1,6 @@
-function [y] = spm_gx_lfp(x,u,P,M)
-% observer for a neural mass model of erps
-% FORMAT [y] = spm_gx_lfp(x,u,P,M)
+function [L] = spm_lx_erp(P,M)
+% observer matrix for a neural mass model of erps: y = G*x
+% FORMAT [G] = spm_lx_erp(P,M)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
@@ -12,28 +12,20 @@ function [y] = spm_gx_lfp(x,u,P,M)
 %   x(:,8) - current (inhibitory interneurons) depolarizing
 %   x(:,9) - voltage (pyramidal cells)
 %
-% y        - measured voltage
+% G        - y = G*x
 %__________________________________________________________________________
-%
-% This is a simplified version of spm_gx_erp
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-
-% get dimensions and configure state variables
+% get pyramidal cell indices in x
 %--------------------------------------------------------------------------
-n  = length(P.A{1});
-x  = reshape(x,n,13);
+n  = length(M.pE.A{1});
+i  = [1:n] + M.n - n;
 
-% parameterised lead field ECD (pre-multiplied by projector M.E)
+% parameterised lead field ECD
 %--------------------------------------------------------------------------
-if isfield(P,'Lpos')
-    L = spm_erp_L(P,M);
-else
-    L = P.L;
-end
-y  = L*x(:,9);
-
+L      = sparse(M.l,M.n);
+L(:,i) = spm_erp_L(P,M);

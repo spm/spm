@@ -1,10 +1,10 @@
-function [y] = spm_lambda_HRF(x,u,P)
+function [y] = spm_gx_hdm(x,u,P,M)
 % simulated BOLD response to input
-% FORMAT [y] = spm_lambda_HRF(x,u,P)
+% FORMAT [y] = spm_gx_hdm(x,u,P,M)
 % y    - BOLD response (%) (y)
 %
-% x    - state vector      (see spm_fx_HRF)
-% P    - Parameter vector  (see spm_fx_HRF)
+% x    - state vector      (see spm_fx_hdm)
+% P    - Parameter vector  (see spm_fx_hdm)
 %___________________________________________________________________________
 %
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
@@ -13,7 +13,7 @@ function [y] = spm_lambda_HRF(x,u,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_lambda_HRF.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_gx_hdm.m 740 2007-02-16 20:56:22Z karl $
 
 
 % resting venous volume

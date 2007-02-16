@@ -1,6 +1,6 @@
-function [f] = spm_fx_lfp(x,u,P)
+function [f] = spm_fx_lfp(x,u,P,M)
 % state equations for a neural mass model of erps
-% FORMAT [f] = spm_fx_lfp(x,u,P)
+% FORMAT [f] = spm_fx_lfp(x,u,P,M)
 % x      - state vector
 %   x(:,1)  - voltage (spiny stellate cells)
 %   x(:,2)  - voltage (pyramidal cells)         +ve
