@@ -14,11 +14,7 @@ function [mar,y,y_pred] = spm_mar (X,p,prior)
 % mar.lag(k).a   AR coefficient matrix at lag k
 % mar.noise_cov  Estimated noise covariance
 % mar.F          Free energy of model
-% mar.wmean      All AR coefficients stored in a matrix
-%                The transpose of this matrix is shown in the Hinton diagrams
-%                - see vbmar paper
-%                NOTE: The sign of these coefficients is now consistent with
-%                the signs of mar.lag(k).a (UPDATE: Jan 2001)
+% mar.wmean      MAR coefficients stored in a matrix
 % y              Target values
 % y_pred         Predicted values
 %___________________________________________________________________________

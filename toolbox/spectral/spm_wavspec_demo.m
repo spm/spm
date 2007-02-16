@@ -28,9 +28,8 @@ imagesc(p);
 xlabel('Time/Samples');
 ylabel('Frequency');
 
-% Chrip             
-f0=0;f1=30;
-x=chirp(t,f0,N/fs,f1); 
+% Chirp
+load chirp
 p = spm_wavspec (x,freqs,fs);
 figure
 subplot(2,1,1);
