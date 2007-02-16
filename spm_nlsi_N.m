@@ -1,6 +1,6 @@
-function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_G(M,U,Y)
+function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Bayesian inversion of a nonlinear model of the form G(g)*F(u,p)
-% FORMAT [Ep,Eg,Cp,Cg,S,F]= spm_nlsi_G(M,U,Y)
+% FORMAT [Ep,Eg,Cp,Cg,S,F]= spm_nlsi_N(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
