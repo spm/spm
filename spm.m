@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 715 2007-01-15 16:26:36Z stefan $
+% $Id: spm.m 743 2007-02-22 12:24:08Z will $
 
 
 %=======================================================================
@@ -1033,6 +1033,7 @@ uicontrol(Fmenu,'Style','PopUp',...
 %-----------------------------------------------------------------------
 %-Toolbox pulldown
 xTB = spm('TBs');
+
 if isempty(xTB)
     uicontrol(Fmenu,'String','Toolboxes...',...
 	'Position',[020 054 082 024].*WS,...
@@ -1455,31 +1456,20 @@ else
 	d = {};
 end
 
+
 %-Look for a "main" M-file in each potential directory
 %-----------------------------------------------------------------------
 xTB = [];
 for i = 1:length(d)
-	tdir = fullfile(Tdir,d{i});
-	fn   = cellstr(spm_select('List',tdir,['^.*' d{i} '\.m$']));
+    tdir = fullfile(Tdir,d{i});
+    fn   = cellstr(spm_select('List',tdir,['^.*' d{i} '\.m$']));
 
-	%-Discard possible config files if ambiguity
-	%---------------------------------------------------------------
-	tmp = regexp(fn,'.*_config_.*');
-	if iscell(tmp)
-		fn = {fn{cellfun('isempty',tmp)}};
-	else
-		fn = fn(tmp);
-	end;
+    if ~isempty(fn{1}),
+        xTB(end+1).name = strrep(d{i},'_','');
+        xTB(end).prog   = spm_str_manip(fn{1},'r');
+        xTB(end).dir    = tdir;
+    end;
 
-	if numel(fn) == 1
-		if ~isempty(fn{1}),
-			xTB(end+1).name = strrep(d{i},'_','');
-			xTB(end).prog   = spm_str_manip(fn{1},'r');
-			xTB(end).dir    = tdir;
-		end;
-	elseif numel(fn) > 1
-		% there's still an ambiguity there....
-	end
 end
 
 varargout{1} = xTB;
