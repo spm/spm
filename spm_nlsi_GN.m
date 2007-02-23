@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_nlsi_GN.m 744 2007-02-23 13:51:48Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -244,6 +244,7 @@ for k = 1:128
     % prediction error and full gradients
     %----------------------------------------------------------------------
     e     = spm_vec(y) - spm_vec(f) - dfdu*p(iu);
+    dfdp  = reshape(spm_vec(dfdp),ns*nr,np);
     J     = -[dfdp dfdu];
     
  

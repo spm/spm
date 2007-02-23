@@ -25,7 +25,7 @@ end
 try
     Pol_skip = DCM.options.Pol_skip;
 catch
-    Pol_skip = 4;
+    Pol_skip = 2;
     DCM.options.Pol_skip = Pol_skip;
 end
 %==========================================================================
@@ -60,14 +60,14 @@ switch DCM.M.dipfit.type
             
         catch
 
-            % Get Polhemus file
+            % Get sensor file
             %--------------------------------------------------------------
             try
                 sensorfile = DCM.M.dipfit.sensorfile;
             catch
-                errordlg({'please specify fiducial',...
-                          'and sensor locations'});
-                error('')
+                [f,p]      = uigetfile({'*.mat;*.pol'},'select sensor file');
+                sensorfile = fullfile(p,f);
+                DCM.M.dipfit.sensorfile = sensorfile;
             end
 
             % Polyhmus file
@@ -76,13 +76,13 @@ switch DCM.M.dipfit.type
                 
                 % returns coordinates of fiducials and sensors (filenames)
                 % coordinates are in CTF coordinate system
-                %------------------------------------------------------
+                %----------------------------------------------------------
                 [fid, sens] = spm_eeg_inv_ReadPolhemus(sensorfile, Pol_skip);
                 
             else
  
                 % mat-file must contain 2 matrices with fid and sensor coordinates
-                %------------------------------------------------------
+                %----------------------------------------------------------
                 tmp  = load(sensorfile, '-mat');
                 fid  = tmp.fid;
                 sens = tmp.sens;
@@ -133,11 +133,11 @@ switch DCM.M.dipfit.type
         % D - SPM data structure
         %==================================================================
         D       = spm_eeg_ldata(DCM.xY.Dfile);
-        DCM.val = D.val;
 
         % Load Gain or Lead field matrix
         %------------------------------------------------------------------
         try
+            DCM.val = D.val;
             gainmat = D.inv{D.val}.forward.gainmat;
             L       = load(gainmat);
             name    = fieldnames(L);

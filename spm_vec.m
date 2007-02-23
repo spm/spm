@@ -11,7 +11,7 @@ function [vX] = spm_vec(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_vec.m 279 2005-11-08 19:11:28Z karl $
+% $Id: spm_vec.m 744 2007-02-23 13:51:48Z karl $
 
 % initialise X and vX
 %--------------------------------------------------------------------------
@@ -44,7 +44,7 @@ end
  
 % vectorise numerical arrays
 %--------------------------------------------------------------------------
-if isnumeric(X)
+if isnumeric(X) || islogical(X)
     vX = X(:);
 end
 

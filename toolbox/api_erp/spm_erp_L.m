@@ -23,7 +23,11 @@ persistent LastLpos LastL
 
 % % number of sources
 %--------------------------------------------------------------------------
-n = length(M.pE.A{1});
+try
+    n = M.r;
+catch
+    n = length(M.pE.A{1});
+end
 
 switch M.dipfit.type
 

@@ -222,7 +222,7 @@ uC    = speye(nu,nu)*exp(16);
 ipC   = inv(pC);
 igC   = inv(gC);
 iuC   = inv(uC);
-icC   = spm_cat(diag({igC iuC}));
+icC   = spm_cat(diag({igC,iuC}));
 ibC   = spm_cat(diag({ipC icC}));
 
  
@@ -262,7 +262,8 @@ for k = 1:128
         ey       = spm_vec(y) - spm_vec(yp) - dgdu*Eu;
         ep       = Vp'*(spm_vec(Ep) - spm_vec(pE));
         eg       = Vg'*(spm_vec(Eg) - spm_vec(gE));
-        ec       = [eg;(spm_vec(Eu) - spm_vec(uE))];
+        eu       =      spm_vec(Eu) - spm_vec(uE);
+        ec       = [eg; eu];
 
         % gradients
         %------------------------------------------------------------------
@@ -330,19 +331,22 @@ for k = 1:128
 
         end
         
-        % Gradiants and curvature of free energy
-        %------------------------------------------------------------------
+        % Gradients and curvature of free energy
+        %------------------------------------------------------------------        
         dFdc  =  dgdc'*iS*ey   - icC*ec;
         dFdcc = -dgdc'*iS*dgdc - icC;
         
         % E-Step: Conditional updates of g and u
         %------------------------------------------------------------------
         dc    = spm_dx(dFdcc,dFdc);
-        Eg    = spm_unvec(spm_vec(Eg) + Vg*dc([1:ng]),  Eg);
-        Eu    = spm_unvec(spm_vec(Eu) + dc([1:nu] + ng),Eu);
+        dg    = dc(1:ng);
+        du    = dc([1:nu]+ ng);
+       
+        Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
+        Eu    = spm_unvec(spm_vec(Eu) + du,Eu);
        
         % convergence
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         dF    = dFdc'*dc;
         if dF < 1e-2, break, end
         
@@ -352,11 +356,13 @@ for k = 1:128
     %======================================================================
     F = - ey'*iS*ey/2 ...
         - ep'*ipC*ep/2 ...
-        - ec'*icC*ec/2 ...
+        - eg'*igC*eg/2 ...
+        - eu'*iuC*eu/2 ...
         - ne*log(8*atan(1))/2 ...
         + spm_logdet(iS )/2 ...
         + spm_logdet(ipC)/2 ...
-        + spm_logdet(icC)/2 ...
+        + spm_logdet(igC)/2 ...
+        + spm_logdet(iuC)/2 ...
         + spm_logdet(Cb )/2 ...
         + spm_logdet(Ch )/2;
  
@@ -368,11 +374,13 @@ for k = 1:128
         % update gradients and curvature
         %------------------------------------------------------------------
         dFdp  =  dgdp'*iS*ey   - ipC*ep;
-        dFdpp = -dgdp'*iS*dgdp - ipC;;
+        dFdpp = -dgdp'*iS*dgdp - ipC;
         
         % accept current estimates
         %------------------------------------------------------------------
         C.Ep  = Ep;
+        C.Eg  = Eg;
+        C.Eu  = Eu;
         C.h   = h;
         C.F   = F;
  
@@ -386,6 +394,8 @@ for k = 1:128
         % reset expansion point
         %------------------------------------------------------------------
         Ep    = C.Ep;
+        Eg    = C.Eg;
+        Eu    = C.Eu;
         h     = C.h;
  
         % and increase regularization

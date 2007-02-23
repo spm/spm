@@ -19,7 +19,7 @@ function [U,B] = spm_erp_u(t,P,M)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-% stimulus - subcortical impulse: [Gamma] parameters
+% stimulus - subcortical impulse
 %--------------------------------------------------------------------------
 U     = sparse(1,length(t));
 tms   = t*1000;
