@@ -8,7 +8,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_dcm_estimate.m 745 2007-02-26 10:22:20Z stefan $
 
  
 if nargin < 1
@@ -60,6 +60,7 @@ M.l   = n;
 M.N   = 32;
 M.dt  = 16/M.N;
 M.ns  = size(Y.y,1);
+M.delays = DCM.delays;
 
 [Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
 

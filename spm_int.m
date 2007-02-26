@@ -20,7 +20,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_int.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_int.m 745 2007-02-26 10:22:20Z stefan $
 
 
 % convert U to U.u if necessary
@@ -69,16 +69,31 @@ l          = size(L,1);                       % l outputs
 u          = size(U.u,1);                     % input times
 
 % evaluation time points (when response is sampled or input changes)
-%--------------------------------------------------------------------------
-s      = ceil([1:v]*u/v);                     % output times
-t      = [1 (1 + find(any(diff(U.u),2))')];   % input  times
-[T s]  = sort([s t]);                         % update (input & ouput) times
-dt     = [U.dt*diff(T) 0];                    % update intervals
+%---------------------------------------------------------------------------
+if isfield(M, 'delays')
+    % when delays have been specified
+    % transform delays to time bins
+    delays = max(1, round(M.delays/U.dt));
+    s = [];
+    for j = 1:M.l
+        s = [s ceil([0:v-1]*u/v) + delays(j)];
+    end
+    s = unique(s);
+    s_ind(s) = [1:length(s)]; % index vector from oversampled time to scans
+    Nu = length(s);
+else
+    s      = ceil([1:v]*u/v);			% 'original' output times (last timebin)
+    Nu = v;
+end
+
+t      = [1 (1 + find(any(diff(U.u),2))')];	% input  times
+[T s]  = sort([s t]);				% update (input & ouput) times
+dt     = [U.dt*diff(T) 0];			% update intervals
 
 % Integrate
 %--------------------------------------------------------------------------
-y      = zeros(l,v);
-dy     = zeros(l,v);
+y      = zeros(l,Nu);
+dy     = zeros(l,Nu);
 J      = M0;
 for  i = 1:length(T)
 
@@ -88,7 +103,7 @@ for  i = 1:length(T)
 
     % change in input - update J
     %----------------------------------------------------------------------
-    if s(i) > v
+    if s(i) > Nu
 
         J     = M0;
         for j = 1:m
@@ -111,3 +126,19 @@ for  i = 1:length(T)
 
 end
 y      = real(y');
+
+if isfield(M, 'delays')
+    % down-sample delays
+    u = size(U.u,1);
+    tmp = zeros(v, M.l);
+    dtmp = zeros(v, M.l);
+    for j = 1:M.l
+        % output times for jth area
+        s = ceil([0:v-1]*u/v) + delays(j);
+        tmp(:,j) = y(s_ind(s), j);
+    end
+
+    y = tmp;
+end
+
+
