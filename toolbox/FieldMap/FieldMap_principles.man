@@ -303,24 +303,35 @@
 % Academically the implementations in FieldMap/Unwarp are based on
 % the following papers:
 %
-% 7.a. FieldMap when using the Mark3D (default) or Mark2D options
+% 7.a. The original idea to use fieldmaps for distortion correction:
+% 
+%   Jezzard P & Balaban RS. 1995. Correction for geometric distortion in
+%   echo planar images from Bo field variations. MRM 34:65-73.
 %
-%   Jenkinson M. 2003. Fast, automated, N-dimensional phase-
-%   unwrapping algorithm. MRM 49:193-197.
+% 7.b. There isn't really a paper describing exactly our implementation
+%      of watershed based unwrapping. An example of a paper about
+%      the initial Fieldmap implementation and use of a similar algorithm is:
 %
-% 7.b. FieldMap when using the Huttonish option
-%
-% There isn't really a paper describing exactly our implementation
-% of watershed based unwrapping. An example of a paper about
-% the implementation and use of a similar algorithm is:
 %   Hutton C, Bork A, Josephs O, Deichmann R, Ashburner J,
 %   Turner R. 2002. Image distortion correction in fMRI: A
 %   quantitative evaluation. NeuroImage 16:217-240.
 %
-% 7.c Unwarp (i.e. the Realign & Unwarp option in SPM2)
+% 7.c. FieldMap when using the Mark3D (default) or Mark2D options
+%
+%   Jenkinson M. 2003. Fast, automated, N-dimensional phase-
+%   unwrapping algorithm. MRM 49:193-197.
+%
+% 7.d Unwarp (i.e. the Realign & Unwarp option in SPM2)
 %
 %   Andersson JLR, Hutton C, Ashburner J, Turner R, Friston K.
 %   2001. Modelling geometric deformations in EPI time series.
 %   NeuroImage 13:903-919.
+% 
+% 7.e Combined use of FieldMap and Unwarp (fully implemented in SPM5)
+% 
+%   Hutton C, Deichmann R, Turner R, Andersson JLR. 2004. Combined 
+%   correction for geometric distortion and its interaction with 
+%   head motion in fMRI. Proceedings of ISMRM 12, Kyoto, Japan.
+% 
 % _____________________________________________________________________
 % Good Luck! Jesper Andersson & Chloe Hutton

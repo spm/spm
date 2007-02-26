@@ -29,12 +29,12 @@ function bmask = pm_brain_mask(P,flags)
 % @(#)pm_brain_mask.m	1.0 Chloe Hutton 05/02/26
 
 if nargin < 2 | isempty(flags)
-   flags.template='/local/spm/devel/templates/T1.mnc';
+   flags.template=fullfile(spm('Dir'),'templates','T1.nii');
    flags.fwhm=5;
    flags.nerode=1;
    flags.ndilate=2;
    flags.thresh=0.5;
-   flags.reg = 0.01;
+   flags.reg = 0.02;
    flags.graphics=0;
 end
 

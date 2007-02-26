@@ -10,9 +10,149 @@
 #endif
 
 #ifndef INDX
-#define INDX(f,p,s,dim) (((s)-1)*dim[0]*dim[1]+((p)-1)*dim[0]+((f)-1)) 
+#define INDX(x,y,z,dim) (((z)-1)*dim[0]*dim[1]+((y)-1)*dim[0]+((x)-1)) 
 #endif
  
+/* Functions doing the job. */
+
+void invert_phasemap_dtj_idim1(unsigned int    *dim,
+                               double          *pm,
+                               double          *ipm)
+{
+   unsigned int     i = 0;
+   unsigned int     oi = 0;
+   unsigned int     x=0, y=0, z=0;
+
+   for (z=1; z<=dim[2]; z++)    
+   {
+      for (y=1; y<=dim[1]; y++) 
+      {
+	 oi = 1;
+         for (x=1; x<=dim[0]; x++)
+	 {
+	    for (i=oi; i<=dim[0] && (pm[INDX(i,y,z,dim)]+i)<x; i++) ; /* N.B. */
+            if (i>1 && i<=dim[0])
+	    {
+	       ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) x) + 
+                                      (((double) x)-pm[INDX(i-1,y,z,dim)]-((double) (i-1))) / 
+                                      (pm[INDX(i,y,z,dim)]-pm[INDX(i-1,y,z,dim)]+1.0);
+            }
+            else
+            {
+	       ipm[INDX(x,y,z,dim)] = DBL_MAX;
+            }
+            oi = MAX(1,i-1);
+         }
+
+         for (i=1; i<=dim[0] && ipm[INDX(i,y,z,dim)]==DBL_MAX; i++) ; /* N.B. */
+         for (x=i-1; x>0; x--)
+	 {
+	    ipm[INDX(x,y,z,dim)] = ipm[INDX(i,y,z,dim)];
+	 }
+
+         for (i=dim[0]; i>0 && ipm[INDX(i,y,z,dim)]==DBL_MAX; i--) ; /* N.B. */
+         for (x=i+1; x<=dim[0]; x++)
+	 {
+	    ipm[INDX(x,y,z,dim)] = ipm[INDX(i,y,z,dim)];
+	 }
+      }
+   }
+   return;       
+}
+
+
+void invert_phasemap_dtj_idim2(unsigned int    *dim,
+                               double          *pm,
+                               double          *ipm)
+{
+   unsigned int     i = 0;
+   unsigned int     oi = 0;
+   unsigned int     x=0, y=0, z=0;
+
+   for (z=1; z<=dim[2]; z++)    
+   {
+      for (x=1; x<=dim[0]; x++) 
+      {
+	 oi = 1;
+         for (y=1; y<=dim[1]; y++)
+	 {
+	    for (i=oi; i<=dim[1] && (pm[INDX(x,i,z,dim)]+i)<y; i++) ; /* N.B. */
+            if (i>1 && i<=dim[1])
+	    {
+	       ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) y) + 
+                                      (((double) y)-pm[INDX(x,i-1,z,dim)]-((double) (i-1))) / 
+                                      (pm[INDX(x,i,z,dim)]-pm[INDX(x,i-1,z,dim)]+1.0);
+            }
+            else
+            {
+	       ipm[INDX(x,y,z,dim)] = DBL_MAX;
+            }
+            oi = MAX(1,i-1);
+         }
+
+         for (i=1; i<=dim[1] && ipm[INDX(x,i,z,dim)]==DBL_MAX; i++) ; /* N.B. */
+         for (y=i-1; y>0; y--)
+	 {
+	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,i,z,dim)];
+	 }
+
+         for (i=dim[1]; i>0 && ipm[INDX(x,i,z,dim)]==DBL_MAX; i--) ; /* N.B. */
+         for (y=i+1; y<=dim[1]; y++)
+	 {
+	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,i,z,dim)];
+	 }
+      }
+   }
+   return;       
+}
+
+
+void invert_phasemap_dtj_idim3(unsigned int    *dim,
+                               double          *pm,
+                               double          *ipm)
+{
+   unsigned int     i = 0;
+   unsigned int     oi = 0;
+   unsigned int     x=0, y=0, z=0;
+
+   for (y=1; y<=dim[1]; y++)    
+   {
+      for (x=1; x<=dim[0]; x++) 
+      {
+	 oi = 1;
+         for (z=1; z<=dim[2]; z++)
+	 {
+	    for (i=oi; i<=dim[2] && (pm[INDX(x,y,i,dim)]+i)<z; i++) ; /* N.B. */
+            if (i>1 && i<=dim[2])
+	    {
+	       ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) z) + 
+                                      (((double) z)-pm[INDX(x,y,i-1,dim)]-((double) (i-1))) / 
+                                      (pm[INDX(x,y,i,dim)]-pm[INDX(x,y,i-1,dim)]+1.0);
+            }
+            else
+            {
+	       ipm[INDX(x,y,z,dim)] = DBL_MAX;
+            }
+            oi = MAX(1,i-1);
+         }
+
+         for (i=1; i<=dim[2] && ipm[INDX(x,y,i,dim)]==DBL_MAX; i++) ; /* N.B. */
+         for (z=i-1; z>0; z--)
+	 {
+	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,y,i,dim)];
+	 }
+
+         for (i=dim[2]; i>0 && ipm[INDX(x,y,i,dim)]==DBL_MAX; i--) ; /* N.B. */
+         for (z=i+1; z<=dim[2]; z++)
+	 {
+	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,y,i,dim)];
+	 }
+      }
+   }
+   return;       
+}
+
+
 /* Function doing the job. */
 
 void invert_phasemap_dtj(unsigned int    *dim,
@@ -72,15 +212,12 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 {
    int            i = 0;
    unsigned int   dim[3] = {0, 0, 0};
-   unsigned int   dim_n = 0;
-   unsigned int   dim_m = 0;
-   unsigned int   pm_ndim = 0;
-   unsigned int   pm_dim[3] = {0, 0, 0};
-   double         ddim[3] = {0.0, 0.0, 0.0};
+   unsigned int   ndim = 0;
+   unsigned int   idim = 0;
 
-   if (nrhs == 0) mexErrMsgTxt("usage: ipm = invert_phasemap_dtj(pm,dim)");
-   if (nrhs != 2) mexErrMsgTxt("make_A: 2 input argument required");
-   if (nlhs != 1) mexErrMsgTxt("make_A: 1 output arguments required");
+   if (nrhs == 0) mexErrMsgTxt("usage: ipm = pm_invert_phasemap_dtj(pm,idim)");
+   if (nrhs != 2) mexErrMsgTxt("pm_invert_phasemap: 2 input argument required");
+   if (nlhs != 1) mexErrMsgTxt("pm_invert_phasemap: 1 output arguments required");
 
    /* Get phasemap (deformation field). */
 
@@ -89,29 +226,50 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
       mexErrMsgTxt("invert_phasemap_dtj: pm must be numeric, real, full and double");
    }
 
-   if ((pm_ndim = mxGetNumberOfDimensions(prhs[0])) > 3)
+   if ((ndim = mxGetNumberOfDimensions(prhs[0])) > 3)
    {
       mexErrMsgTxt("invert_phasemap_dtj: pm must be 2 or 3 dimensional");
    }
-   memcpy(pm_dim,mxGetDimensions(prhs[0]),pm_ndim*sizeof(int));
- 
-   /* Note that dim is allways 3 values   */ 
-   /* regardless of dimensionality of pm. */
-  
-   dim_m = mxGetM(prhs[1]);
-   dim_n = mxGetN(prhs[1]);
-   if (!((dim_m==1 && dim_n==3) || (dim_m==3 && dim_n==1)))
+   memcpy(dim,mxGetDimensions(prhs[0]),ndim*sizeof(int));
+   for (i=ndim; i<3; i++)
    {
-      mexErrMsgTxt("invert_phsemap_dtj: dim should be a 1x3 or 3x1 vector");
+      dim[i] = 1;
    }
-   memcpy(ddim,mxGetPr(prhs[1]),3*sizeof(double));
-   for (i=0; i<3; i++) { dim[i] = ((unsigned int) ddim[i]);}
+ 
+   /* Get dimension along which to perform inversion. */
+
+   if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+   {
+      mexErrMsgTxt("invert_phasemap_dtj: idim must be numeric, real, full and double");
+   }
+   if (mxGetM(prhs[1]) != 1 || mxGetN(prhs[1]) != 1)
+   {
+      mexErrMsgTxt("invert_phasemap_dtj: idim must be scalar");
+   }
+   idim = (unsigned int) mxGetScalar(prhs[1]);
+   if (idim < 1 || idim > 3)
+   {
+      mexErrMsgTxt("invert_phasemap_dtj: idim must be in range 1 - 3");
+   }
+
+   
 
    /* Allocate memory for output. */
 
-   plhs[0] = mxCreateNumericArray(pm_ndim,pm_dim,mxDOUBLE_CLASS,mxREAL);
+   plhs[0] = mxCreateNumericArray(ndim,dim,mxDOUBLE_CLASS,mxREAL);
 
-   invert_phasemap_dtj(dim,mxGetPr(prhs[0]),mxGetPr(plhs[0]));
+   if (idim == 1)
+   {
+      invert_phasemap_dtj_idim1(dim,mxGetPr(prhs[0]),mxGetPr(plhs[0]));
+   }
+   else if (idim == 2)
+   {
+      invert_phasemap_dtj_idim2(dim,mxGetPr(prhs[0]),mxGetPr(plhs[0]));
+   }
+   else if (idim == 3)
+   {
+      invert_phasemap_dtj_idim3(dim,mxGetPr(prhs[0]),mxGetPr(plhs[0]));
+   }
       
    return;
 }

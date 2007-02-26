@@ -1,46 +1,84 @@
-function varargout = invert_phasemap(varargin)
+function varargout = pm_invert_phasemap(varargin)
 % Inverting phasemaps (trickier than it sounds).
-% FORMAT ipm = invert_phasemap(pm) or 
-% FORMAT ipm = invert_phasemap(P) or
+% FORMAT ipm = invert_phasemap(pm) 
+% or 
+% FORMAT ipm = invert_phasemap(pm,idim) 
+% or
+% FORMAT ipm = invert_phasemap(P) 
+% or
+% FORMAT ipm = invert_phasemap(P,idim) 
+% or
 % FORMAT invert_phasemap(P,fname)
+% or
+% FORMAT invert_phasemap(P,fname,idim)
 %
-% This is a gateway function to invert_phasemap_dtj 
-% (do the job) which is a mex-file. The job of this
-% routine is to handle some of the basic book-keeping
-% regarding format and file creation.
+% Input:
+% pm      1, 2 or 3D array representing a displacement field that
+%         is to be inverted along one direction.
+% idim    The dimension along which field is to be inverted.
+% P       File-struct or -name containing displacement field.
+% fname   Name of output file.
+%
+% Output:
+% ipm     Displacement-field inverted along requested direction.
+%
+% This is a gateway function to invert_phasemap_dtj (do the job) 
+% which is a mex-file. The job of this routine is to handle some of 
+% the basic book-keeping regarding format and file creation.
 %_______________________________________________________________________
 % Jesper Andersson 10/1-02
+% 
+% Added the possibility to specify along which direction
+% the field should be inverted.
+%_______________________________________________________________________
+% Jesper Andersson 17/3-05
 
+
+%
+% Decode first input parameter.
+%
 if isfield(varargin{1},'dim') | ischar(varargin{1})
    if isfield(varargin{1},'dim')
       P = varargin{1}; 
    elseif ischar(varargin{1})
       P = spm_vol(varargin{1});
    end
-   dim = P.dim(1:3);
    pm = spm_read_vols(P);
 else
    pm = varargin{1};
-   dim = size(pm); 
 end
 
-if length(dim) == 2
-   dim(3) = 1;
-   sz = size(pm);
-   if sz(2) == 1
-      % pm = pm'; % Not needed with mex-version
-      dim(1:2) = dim(2:-1:1);
+%
+% Decode second input parameter.
+%
+if nargin > 1
+   if ~ischar(varargin{2})
+      idim  = varargin{2};
+   else
+      if nargin > 2
+	 idim = varargin{3};
+      else
+         idim = 2;
+      end
+   end
+else
+   idim = 2;
+end
+
+%
+% Take care of the 1D case.
+%
+if nargin == 1 & length(size(pm)) == 2 & any(size(pm) == 1)
+   sz = size(pm)
+   if sz(1) > sz(2)
+      idim = 1;
+   else
+      idim = 2;
    end
 end
 
-%
-% If dfield is a 2D or 3D matrix inversion is going
-% to occurr along the second dimension. If it is a
-% vector (row or column) inversion is done along
-% (predictably) the only non-singelton dimension.
-%
 
-ipm = pm_invert_phasemap_dtj(pm,dim);
+ipm = pm_invert_phasemap_dtj(pm,idim);
 
 %
 % The next (dead) section shows the implementation in

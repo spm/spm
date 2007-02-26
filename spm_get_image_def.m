@@ -42,7 +42,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_get_image_def.m 746 2007-02-26 22:02:58Z chloe $
 
 
 
@@ -108,7 +108,7 @@ end
 %
 if isfield(ds,'sfield')
    if ~isempty(ds.sfield)
-      def = def - ds.sfield;
+      def = def + ds.sfield; % Sign change - JAndersson
    end
 end
 

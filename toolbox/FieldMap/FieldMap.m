@@ -1,9 +1,5 @@
 function varargout=FieldMap(varargin)
 %
-% UPDATE 11/06 
-% Updated version of FieldMap for SPM5.
-%
-% UPDATE 27/01/05
 % FieldMap is an SPM2 Toolbox for creating field maps and unwarping EPI.
 % A full description of the toolbox and a usage manual can be found in 
 % FieldMap.man. This can launched by the toolbox help button or using 
@@ -41,7 +37,6 @@ function varargout=FieldMap(varargin)
 % IP.epifm          : Flag indicating EPI based field map (1) or not (0).
 % IP.blipdir        : Direction of phase-encode blips for k-space traversal
 %                    (1 = positive or -1 = negative)
-% IP.pedir          : Phase-encode direction = 'y' or 'x'.
 % IP.ajm            : Flag indicating if Jacobian modulation should be applied 
 %                    (1) or not (0).
 % IP.tert           : Total epi readout time (ms).
@@ -109,23 +104,24 @@ function varargout=FieldMap(varargin)
 %_______________________________________________________________________
 % Acknowledegments
 % 
+% Wellcome Trust and IBIM Consortium
 %_______________________________________________________________________
-% FieldMap.m               Jesper Andersson and Chloe Hutton 23/03/04 
+% UPDATE 02/07 
+% Updated version of FieldMap for SPM5. 
+%
+% UPDATE 27/01/05
 
-persistent PF FS WS %PM   % GUI related constants
+%_______________________________________________________________________
+% FieldMap.m               Jesper Andersson and Chloe Hutton 17/12/06 
+
+persistent PF FS WS PM   % GUI related constants
 persistent ID            % Image display
 persistent IP            % Input and results
 persistent DGW           % Delete Graphics Window (if we created it)
 global st                % Global for spm_orthviews
-global PM
 
 % SPM5 Update
 global defaults
-
-% Temp change
-%global ID
-%global IP
-
 spm_defaults
 
 if nargin == 0
@@ -152,9 +148,21 @@ switch lower(Action)
 %=======================================================================
 
    case 'welcome'
+              
+      % Unless specified, set visibility to on
+      if nargin==2
+          if ~strcmp(varargin{2},'off') & ~strcmp(varargin{2},'Off')
+            visibility = 'On';
+          else
+            visibility = 'Off';
+          end
+      else
+          visibility = 'On';
+      end
+      
       DGW = 0;
 
-      % Get all default values (these may effect GUI
+      % Get all default values (these may effect GUI)
       IP = FieldMap('Initialise');
       %
       % Since we are using persistent variables we better make sure
@@ -162,6 +170,7 @@ switch lower(Action)
       %
       if ~isempty(PM)
          figure(PM);
+         set(PM,'Visible',visibility);
          return
       end
  
@@ -171,6 +180,7 @@ switch lower(Action)
       PF = spm_platform('fonts');
       rect = [100 100 510 520].*WS;
 
+      
       PM = figure('IntegerHandle','off',...
 	   'Name',sprintf('%s%s','FieldMap Toolbox, beta.ver.2.0',...
                           spm('GetUser',' (%s)')),...
@@ -182,11 +192,11 @@ switch lower(Action)
 	   'Color',[1 1 1]*.8,...
 	   'MenuBar','none',...
            'DefaultTextFontName',PF.helvetica,...
-           'DefaultTextFontSize',FS(12),...
+           'DefaultTextFontSize',FS(10),...
            'DefaultUicontrolFontName',PF.helvetica,...
-           'DefaultUicontrolFontSize',FS(12),...
+           'DefaultUicontrolFontSize',FS(10),...
 	   'HandleVisibility','on',...
-	   'Visible','on',...
+	   'Visible',visibility,...
            'DeleteFcn','FieldMap(''Quit'');');
 
 %-Create phase map controls
@@ -303,22 +313,17 @@ switch lower(Action)
                 'FontName',PF.times,'FontAngle','Italic')
       uicontrol(PM,'Style','Text',...
                 'String','EPI-based field map',...
-	        'Position',[50 212 200 020].*WS,...
-	        'ForegroundColor','k','BackgroundColor',spm('Colour'),...
-                'FontName',PF.times)
-      uicontrol(PM,'Style','Text',...
-                'String','Phase-encode direction',...
-	        'Position',[50 187 200 020].*WS,...
+	        'Position',[50 200 200 020].*WS,...
 	        'ForegroundColor','k','BackgroundColor',spm('Colour'),...
                 'FontName',PF.times)
       uicontrol(PM,'Style','Text',...
                 'String','Polarity of phase-encode blips',...
-	        'Position',[50 162 200 020].*WS,...
+	        'Position',[50 170 200 020].*WS,...
 	        'ForegroundColor','k','BackgroundColor',spm('Colour'),...
                 'FontName',PF.times)
       uicontrol(PM,'Style','Text',...
                 'String','Apply Jacobian modulation',...
-	        'Position',[50 137 200 020].*WS,...
+	        'Position',[50 140 200 020].*WS,...
 	        'ForegroundColor','k','BackgroundColor',spm('Colour'),...
                 'FontName',PF.times)
       uicontrol(PM,'Style','Text',...
@@ -337,58 +342,43 @@ switch lower(Action)
 
       uicontrol(PM,'style','RadioButton',...
           'String','Yes',...
-          'Position',[300 212 60 022].*WS,...
+          'Position',[300 200 60 022].*WS,...
 	  'ToolTipString','Field map is based on EPI data and needs inverting before use',...
 	  'CallBack','FieldMap(''RadioButton'');',...
           'Tag','EPI',...
           'UserData',1);
       uicontrol(PM,'style','RadioButton',...
           'String','No',...
-          'Position',[370 212 60 022].*WS,...
+          'Position',[370 200 60 022].*WS,...
 	  'ToolTipString','Phase-map is based on non-EPI (Flash) data and can be used directly',...
 	  'CallBack','FieldMap(''RadioButton'');',...
           'Tag','EPI',...
           'UserData',2);
 
- uicontrol(PM,'style','RadioButton',...
-          'String','x',...
-          'Position',[300 187 60 022].*WS,...
-	  'ToolTipString','EPI is acquired with phase-encode in x',...
-	  'CallBack','FieldMap(''RadioButton'');',...
-          'Tag','PEDir',...
-          'UserData',2);
-      uicontrol(PM,'style','RadioButton',...
-          'String','y',...
-          'Position',[370 187 60 022].*WS,...
-	  'ToolTipString','EPI is acquired with phase-encode in y',...
-	  'CallBack','FieldMap(''RadioButton'');',...
-          'Tag','PEDir',...
-          'UserData',1);
-
       uicontrol(PM,'style','RadioButton',...
           'String','+ve',...
-          'Position',[300 162 60 022].*WS,...
+          'Position',[370 170 60 022].*WS,...
 	  'ToolTipString','K-space is traversed using positive phase-encode blips',...
 	  'CallBack','FieldMap(''RadioButton'');',...
           'Tag','BlipDir',...
           'UserData',1);
       uicontrol(PM,'style','RadioButton',...
           'String','-ve',...
-          'Position',[370 162 60 022].*WS,...
+          'Position',[300 170 60 022].*WS,...
 	  'ToolTipString','K-space is traversed using negative phase-encode blips',...
 	  'CallBack','FieldMap(''RadioButton'');',...
           'Tag','BlipDir',...
           'UserData',2);
       uicontrol(PM,'style','RadioButton',...
           'String','Yes',...
-          'Position',[300 137 60 022].*WS,...
+          'Position',[300 140 60 022].*WS,...
 	  'ToolTipString','Do Jacobian intensity modulation to compensate for compression/stretching',...
 	  'CallBack','FieldMap(''RadioButton'');',...
           'Tag','Jacobian',...
           'UserData',1);
       uicontrol(PM,'style','RadioButton',...
           'String','No',...
-          'Position',[370 137 60 022].*WS,...
+          'Position',[370 140 60 022].*WS,...
 	  'ToolTipString','Don''t do Jacobian intensity modulation to compensate for compression/stretching',...
 	  'CallBack','FieldMap(''RadioButton'');',...
           'Tag','Jacobian',...
@@ -438,29 +428,94 @@ switch lower(Action)
           'ForegroundColor','r',...
           'Tag','Quit');
 
-%-Apply defaults to button
+     uicontrol(PM,'style','RadioButton',...
+           'String','Yes',...
+           'Position',[123 330 48 022].*WS,...
+	   'ToolTipString','Mask brain using magnitude image before processing',...
+           'CallBack','FieldMap(''MaskBrain'');',...
+           'Tag','MaskBrain',...
+           'UserData',1);
+     uicontrol(PM,'style','RadioButton',...
+           'String','No',...
+           'Position',[173 330 46 022].*WS,...
+	   'ToolTipString','Do not mask brain using magnitude image before processing',...
+	   'CallBack','FieldMap(''MaskBrain'');',...
+           'Tag','MaskBrain',...
+           'UserData',2);
 
-      % Set input format
+
+% Find list of default files and set up menu accordingly
+
+      def_files = FieldMap('GetDefaultFiles');
+      menu_items = FieldMap('DefFiles2MenuItems',def_files);
+      if length(menu_items)==1
+         uicontrol(PM,'String',menu_items{1},...
+		   'Enable','Off',...
+		   'ToolTipString','Site specific default files',...
+		   'Position',[400 480 60 22].*WS);
+      else
+	 uicontrol(PM,'Style','PopUp',...
+		   'String',menu_items,...
+		   'Enable','On',...
+		   'ToolTipString','Site specific default files',...
+	           'Position',[390 480 90 22].*WS,...
+		   'callback','FieldMap(''DefaultFile_Gui'');',...
+	           'UserData',def_files);		   
+      end
+      
+%-Apply defaults to buttons
+
+      FieldMap('SynchroniseButtons');
+
+      %
+      % Disable necessary buttons and parameters until phase-map is finished.
+      %
+      FieldMap('Reset_Gui');
+      
+%=======================================================================
+%
+% Make sure buttons reflect current parameter values
+%
+%=======================================================================
+
+   case 'synchronisebuttons'
+
+    % Set input format
 
       if ~isempty(IP.uflags.iformat)
          if strcmp(IP.uflags.iformat,'RI');
             h = findobj(get(PM,'Children'),'Tag','IFormat','UserData',1);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+	    FieldMap('RadioOn',h);
             IP.uflags.iformat = 'RI';
          else
             h = findobj(get(PM,'Children'),'Tag','IFormat','UserData',2);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+   	    FieldMap('RadioOn',h);
             IP.uflags.iformat = 'PM';
          end
       else % Default to RI
          h = findobj(get(PM,'Children'),'Tag','IFormat','UserData',1);
-         maxv = get(h,'Max');
-         set(h,'Value',maxv);
+ 	 FieldMap('RadioOn',h);
          IP.uflags.iformat = 'RI';
       end
 
+      % Set brain masking defaults
+
+      if ~isempty(IP.maskbrain)
+         if IP.maskbrain == 1
+            h = findobj(get(PM,'Children'),'Tag','MaskBrain','UserData',1);
+ 	        FieldMap('RadioOn',h);
+            IP.maskbrain = 1;
+         else
+            h = findobj(get(PM,'Children'),'Tag','MaskBrain','UserData',2);
+ 	        FieldMap('RadioOn',h);
+            IP.maskbrain = 0;
+         end
+      else % Default to no
+         h = findobj(get(PM,'Children'),'Tag','MaskBrain','UserData',2);
+ 	     FieldMap('RadioOn',h);
+         IP.maskbrain = 0;
+      end
+     
       % Set echo Times
 
       if ~isempty(IP.et{1})
@@ -479,19 +534,16 @@ switch lower(Action)
       if ~isempty(IP.epifm)
          if IP.epifm
             h = findobj(get(PM,'Children'),'Tag','EPI','UserData',1);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+	    FieldMap('RadioOn',h);
             IP.epifm = 1;
          else
             h = findobj(get(PM,'Children'),'Tag','EPI','UserData',2);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+	    FieldMap('RadioOn',h);
             IP.epifm = 0;
          end
       else % Default to yes
          h = findobj(get(PM,'Children'),'Tag','EPI','UserData',1);
-         maxv = get(h,'Max');
-         set(h,'Value',maxv);
+	 FieldMap('RadioOn',h);
          IP.epifm = 1;
       end
 
@@ -500,75 +552,45 @@ switch lower(Action)
       if ~isempty(IP.ajm)
          if IP.ajm
             h = findobj(get(PM,'Children'),'Tag','Jacobian','UserData',1);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+	    FieldMap('RadioOn',h);
             IP.ajm = 1;
          else
             h = findobj(get(PM,'Children'),'Tag','Jacobian','UserData',2);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+	    FieldMap('RadioOn',h);
             IP.ajm = 0;
          end
       else % Default to no
          h = findobj(get(PM,'Children'),'Tag','Jacobian','UserData',2);
-         maxv = get(h,'Max');
-         set(h,'Value',maxv);
+	 FieldMap('RadioOn',h);
          IP.ajm = 0;
       end
             
-      % Set PE direction
-
-      if ~isempty(IP.pedir)
-         if strcmp(IP.pedir,'y')
-            h = findobj(get(PM,'Children'),'Tag','PEDir','UserData',1);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
-            IP.pedir = 'y';
-         else
-            h = findobj(get(PM,'Children'),'Tag','PEDir','UserData',2);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
-            IP.pedir = 'x';
-         end
-      else % Default to 2 = 'y'
-         h = findobj(get(PM,'Children'),'Tag','PEDir','UserData',1);
-         maxv = get(h,'Max');
-         set(h,'Value',maxv);
-         IP.pedir = 'y';
-      end
-
       % Set blip direction
 
       if ~isempty(IP.blipdir)
-         if IP.blipdir
+         if IP.blipdir == 1
             h = findobj(get(PM,'Children'),'Tag','BlipDir','UserData',1);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+ 	    FieldMap('RadioOn',h);
             IP.blipdir = 1;
-         else
+         elseif IP.blipdir == -1
             h = findobj(get(PM,'Children'),'Tag','BlipDir','UserData',2);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
+ 	    FieldMap('RadioOn',h);
             IP.blipdir = -1;
+         else
+            error('Invalid phase-encode direction');
          end
-      else % Default to 1 = positive
+      else % Default to -1 = negative
          h = findobj(get(PM,'Children'),'Tag','BlipDir','UserData',1);
-         maxv = get(h,'Max');
-         set(h,'Value',maxv);
-         IP.blipdir = 1;
+ 	 FieldMap('RadioOn',h);
+         IP.blipdir = -1;
       end
 
       % Set total readout time
 
       if ~isempty(IP.tert)
          h = findobj(get(PM,'Children'),'Tag','ReadTime');
-         set(h,'String',sprintf('%2.1f',IP.tert));
+         set(h,'String',sprintf('%2.2f',IP.tert));
       end
-
-      %
-      % Disable necessary buttons and parameters until phase-map is finished.
-      %
-      FieldMap('Reset_Gui');
 
 %=======================================================================
 %
@@ -602,6 +624,20 @@ switch lower(Action)
             
       FieldMap('IFormat_Gui');
             
+%=======================================================================
+%
+% A new default file has been chosen from the popup menu - gui version.
+%
+%=======================================================================
+
+   case 'defaultfile_gui'
+      m_file = get(gcbo,'UserData');
+      m_file = m_file(get(gcbo,'Value'));
+      m_file = m_file{1}(1:end-2);
+      IP = FieldMap('SetParams',m_file);
+      FieldMap('IFormat_Gui');
+      FieldMap('SynchroniseButtons');
+      
 %=======================================================================
 %
 % Load real or imaginary part of dual echo-time data - gui version.
@@ -673,7 +709,7 @@ switch lower(Action)
          %
          if (FieldMap('GatherVDMData'))
             FieldMap('FM2VDM',IP);
-            FieldMap('ToggleGUI','On',str2mat('LoadEpi','EPI','PEDir',...
+            FieldMap('ToggleGUI','On',str2mat('LoadEpi','EPI',...
                                            'BlipDir','Jacobian','ReadTime'));
          end
       end
@@ -713,7 +749,7 @@ switch lower(Action)
       %
       if (FieldMap('GatherVDMData'))
          FieldMap('FM2VDM',IP);
-         FieldMap('ToggleGUI','On',str2mat('LoadEpi','EPI','PEDir',...
+         FieldMap('ToggleGUI','On',str2mat('LoadEpi','EPI',...
                                            'BlipDir','Jacobian','ReadTime'));
       end
 
@@ -725,7 +761,7 @@ switch lower(Action)
 
    case 'writefieldmap_gui'
   
-      FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Fitted phase map');
+      FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Fitted phase map in Hz');
     
 %=======================================================================
 %
@@ -817,32 +853,11 @@ switch lower(Action)
 %=======================================================================
 
    case 'writeunwarped_gui'
-
-      IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),'Unwarped image');
+       
+      unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
+      IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
       FieldMap('ToggleGUI','On', 'LoadStructural');
       FieldMap('ToggleGUI','Off', 'WriteUnwarped');
-
-%=======================================================================
-%
-% Write out voxel shift map
-%
-%=======================================================================
-
-   case 'writevdm_gui'
-
-      if ~isempty(IP.pP)
-         if IP.epifm == 1
-            FieldMap('Write',IP.pP,IP.vdm.ivdm,'vdm_',4,'Voxel shift map');
-         else
-            FieldMap('Write',IP.pP,IP.vdm.vdm,'vdm_',4,'Voxel shift map');
-         end
-      else
-         if IP.epifm == 1
-            FieldMap('Write',IP.P,IP.vdm.ivdm,'vdm_',4,'Voxel shift map');
-         else
-            FieldMap('Write',IP.P,IP.vdm.vdm,'vdm_',4,'Voxel shift map');
-         end
-      end 
 
 %=======================================================================
 %
@@ -862,15 +877,15 @@ switch lower(Action)
 
    case 'quit'
 
-      Fgraph=spm_figure('FindWin','Graphics');
-      if ~isempty(Fgraph)
-	 if DGW
+     Fgraph=spm_figure('FindWin','Graphics');
+     if ~isempty(Fgraph)
+	    if DGW
             delete(Fgraph);
             Fgraph=[];
-	    DGW = 0;
-	 else
+	        DGW = 0;
+	    else
             spm_figure('Clear','Graphics');
-	 end    
+        end    
       end
       PM=spm_figure('FindWin','FieldMap');
       if ~isempty(PM)
@@ -909,7 +924,7 @@ switch lower(Action)
       FieldMap('ToggleGUI','Off',str2mat('CreateFieldMap','WriteFieldMap',...
                                  'LoadEpi','WriteUnwarped','MatchVDM',...
                                  'LoadStructural','MatchStructural',...
-                                 'EPI','PEDir','BlipDir',...
+                                 'EPI','BlipDir',...
                                  'Jacobian','ReadTime'));
       %
       % A new input image implies all processed data is void.
@@ -966,53 +981,11 @@ switch lower(Action)
 	     'CallBack','FieldMap(''LoadFilePM_Gui'');',...
              'UserData',4,...
              'Tag','LoadPM');
-
-         uicontrol(PM,'style','RadioButton',...
-             'String','Yes',...
-             'Position',[123 330 48 022].*WS,...
-	     'ToolTipString','Mask brain using magnitude image before processing',...
-	     'CallBack','FieldMap(''MaskBrain'');',...
-             'Tag','MaskBrain',...
-             'UserData',1);
-         uicontrol(PM,'style','RadioButton',...
-             'String','No',...
-             'Position',[173 330 46 022].*WS,...
-	     'ToolTipString','Do not mask brain using magnitude image before processing',...
-	     'CallBack','FieldMap(''MaskBrain'');',...
-             'Tag','MaskBrain',...
-             'UserData',2);
-
-      % Set brain masking defaults
-
-      if ~isempty(IP.maskbrain)
-         if IP.maskbrain
-            h = findobj(get(PM,'Children'),'Tag','MaskBrain','UserData',1);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
-            IP.maskbrain = 1;
-         else
-            h = findobj(get(PM,'Children'),'Tag','MaskBrain','UserData',2);
-            maxv = get(h,'Max');
-            set(h,'Value',maxv);
-            IP.maskbrain = 0;
-         end
-      else % Default to no
-         h = findobj(get(PM,'Children'),'Tag','MaskBrain','UserData',2);
-         maxv = get(h,'Max');
-         set(h,'Value',maxv);
-         IP.maskbrain = 0;
-      end
-
       else
 
          % make the objects we don't want invisible
          h=findobj('Tag','LoadPM');
          set(h,'Visible','Off');
-
-         % Make sure IP.maskbrain is set to 0
-         IP.maskbrain=0;
-         h=findobj('Tag','MaskBrain');
-         delete(h);
 
          uicontrol(PM,'String','Load Real',...
              'Position',[125 450 90 022].*WS,...
@@ -1049,17 +1022,16 @@ switch lower(Action)
    case 'maskbrain'
 
       FieldMap('Reset_Gui');
-
       %
       % Enforce radio behaviour.
       %
       index = get(gcbo,'UserData');
       if index==1 
          partner=2; 
-         IP.maskbrain = 1; 
+         IP.maskbrain=1;
       else 
          partner=1; 
-         IP.maskbrain = 0; 
+         IP.maskbrain=0;
       end
       tag = get(gcbo,'Tag');
       value = get(gcbo,'Value');
@@ -1169,7 +1141,25 @@ switch lower(Action)
             FieldMap('ToggleGUI','On',str2mat('WriteUnwarped')); 
          end
       end
-        
+
+%=======================================================================
+%
+% Enforce radio-button behaviour
+%
+%=======================================================================
+
+   case 'radioon'
+      my_gcbo = varargin{2};
+      index = get(my_gcbo,'UserData');
+      if index==1 
+         partner=2; 
+      else 
+         partner=1; 
+      end
+      set(my_gcbo,'Value',get(my_gcbo,'Max'));
+      h = findobj(get(PM,'Children'),'Tag',get(my_gcbo,'Tag'),'UserData',partner);
+      set(h,'Value',get(h,'Min'));      
+      
 %=======================================================================
 %
 % Total readout-time was changed or entered
@@ -1200,7 +1190,7 @@ switch lower(Action)
                                            'Jacobian','ReadTime')); 
       else
          % If readtime is missing switch everything off...
-         FieldMap('ToggleGUI','Off',str2mat('LoadEpi','EPI','PEDir',...
+         FieldMap('ToggleGUI','Off',str2mat('LoadEpi','EPI',...
                                             'BlipDir','Jacobian',...
 	                                  'WriteUnwarped','LoadStructural',...
                                           'MatchStructural', 'MatchVDM'));
@@ -1222,13 +1212,6 @@ switch lower(Action)
       else
          IP.epifm = 0; 
       end
-      h = findobj(get(PM,'Children'),'Tag','PEDir','UserData',2);
-      v = get(h,{'Value','Max'});
-      if v{1} == 1  
-         IP.pedir = 'x'; 
-      else
-         IP.pedir = 'y'; 
-      end     
       h = findobj(get(PM,'Children'),'Tag','BlipDir','UserData',1);
       v = get(h,{'Value','Max'});
       if v{1} == 1 %% CHLOE: Changed 
@@ -1304,7 +1287,7 @@ switch lower(Action)
       Fgraph=spm_figure('FindWin','Graphics');
       if isempty(Fgraph)
          st.fig=spm_figure('Create','Graphics','Graphics');
-	 DGW = 1;
+	     DGW = 1;
       end
 
       if ~isempty(ID{varargin{4}})
@@ -1357,7 +1340,7 @@ switch lower(Action)
           'Position',[340 280 50 020].*WS,...
           'HorizontalAlignment','left',...
           'String','');
-
+      
 %=======================================================================
 %=======================================================================
 %
@@ -1380,7 +1363,7 @@ switch lower(Action)
       %
       % Initialise parameters
       %
-
+      ID = cell(4,1);
       IP.P = cell(1,4);
       IP.pP = [];
       IP.fmagP = [];
@@ -1392,7 +1375,6 @@ switch lower(Action)
       IP.vdm = [];
       IP.et = cell(1,2);
       IP.epifm = [];
-      IP.pedir=[];
       IP.blipdir = [];
       IP.ajm = [];
       IP.tert = [];
@@ -1401,8 +1383,26 @@ switch lower(Action)
       IP.uflags = struct('iformat','','method','','fwhm',[],'bmask',[],'pad',[],'etd',[],'ws',[]);
       IP.mflags = struct('template',[],'fwhm',[],'nerode',[],'ndilate',[],'thresh',[],'reg',[],'graphics',0);
 
-      % Get default parameters
-      pm_defaults;
+      % Initially set brain mask to be empty 
+      IP.uflags.bmask = [];
+
+      % Set parameter values according to defaults
+      FieldMap('SetParams');
+      
+      varargout{1}= IP;
+
+%=======================================================================
+%
+% Sets parameters according to the defaults file that is being passed
+%
+%=======================================================================
+
+   case 'setparams'
+      if nargin == 1
+	 pm_defaults;        % "Default" default file
+      else 
+	 eval(varargin{2});  % Scanner or sequence specific default file
+      end
 
       % Define parameters for fieldmap creation
       IP.et{1} = pm_def.SHORT_ECHO_TIME;
@@ -1416,8 +1416,6 @@ switch lower(Action)
       IP.uflags.pad = pm_def.PAD;
       IP.uflags.ws = pm_def.WS;
       IP.uflags.etd = pm_def.LONG_ECHO_TIME - pm_def.SHORT_ECHO_TIME;     
-      % Initially set brain mask to be empty 
-      IP.uflags.bmask = [];
 
       % Set parameters for brain masking
       IP.mflags.template = pm_def.MFLAGS.TEMPLATE;
@@ -1430,13 +1428,46 @@ switch lower(Action)
 
       % Set parameters for unwarping 
       IP.ajm = pm_def.DO_JACOBIAN_MODULATION;
-      IP.pedir = pm_def.PE_DIRECTION;
       IP.blipdir = pm_def.K_SPACE_TRAVERSAL_BLIP_DIR;
       IP.tert = pm_def.TOTAL_EPI_READOUT_TIME;
       IP.epifm = pm_def.EPI_BASED_FIELDMAPS;
 
       varargout{1}= IP;
 
+%=======================================================================
+%
+% Get a list of all the default files that are present
+%
+%=======================================================================
+
+   case 'getdefaultfiles'
+      fmdir = fullfile(spm('Dir'),'toolbox','FieldMap');
+      defdir = dir(fullfile(fmdir,'pm_defaults*.m'));
+      for i=1:length(defdir)
+	 if defdir(i).name(12) ~= '.' & defdir(i).name(12) ~= '_'
+	    error(sprintf('Error in default file spec: %s',defdir(i).name));
+	 end
+	 defnames{i} = defdir(i).name;
+      end
+      varargout{1} = defnames;
+
+%=======================================================================
+%
+% Get list of menuitems from list of default files
+%
+%=======================================================================
+
+   case 'deffiles2menuitems'
+      for i=1:length(varargin{2})
+	 if strcmp(varargin{2}{i},'pm_defaults.m');
+	    menit{i} = 'Default';
+	 else
+	    endindx = strfind(varargin{2}{i},'.m');
+	    menit{i} = varargin{2}{i}(13:(endindx-1));
+	 end
+      end
+      varargout{1} = menit;
+      
 %=======================================================================
 %
 % Scale a phase map so that max = pi and min =-pi radians.
@@ -1505,6 +1536,15 @@ switch lower(Action)
          %IP.P{index} = spm_vol(spm_get([0 1],'*.img',prompt_string{index}));
          % SPM5 Update
          IP.P{index} = spm_vol(spm_select([0 1],'image',prompt_string{index}));
+         if index==3 & ~isempty(IP.P{index})
+            do=spm_input('Scale this to radians?',1,'b','Yes|No',[1,0]);
+            Finter=spm_figure('FindWin','Interactive');
+            close(Finter);
+            if do==1
+               tmp=FieldMap('Scale',IP.P{index}.fname);
+               IP.P{index} = spm_vol(tmp.fname);
+            end
+          end
       end
       if isfield(IP,'pP') & ~isempty(IP.pP)
 	 IP.pP = [];
@@ -1602,24 +1642,22 @@ switch lower(Action)
       % If no pointer already exist we'll make one.
       %
       if isfield(IP,'vdmP') & ~isempty(IP.vdmP)
-	 if IP.epifm ~= 1
-	    msgbox({'Changing this parameter means that if previously',...
-                    'you matched VDM to EPI, this result may no longer',...
-                    'be optimal. In this case we recommend you redo the',...
-                    'Match VDM to EPI.'},...
-		    'Coregistration notice','warn','modal');
-	 end
+	 msgbox({'Changing this parameter means that if previously',...
+                 'you matched VDM to EPI, this result may no longer',...
+                 'be optimal. In this case we recommend you redo the',...
+                 'Match VDM to EPI.'},...
+		 'Coregistration notice','warn','modal');
       else
          if ~isempty(IP.pP)
             IP.vdmP = struct('dim',    IP.pP.dim(1:3),...
                              'dt',[4 spm_platform('bigend')],...
                              'mat',    IP.pP.mat);
-            IP.vdmP.fname=fullfile(spm_str_manip(IP.pP.fname, 'h'),['vdm_' deblank(spm_str_manip(IP.pP.fname,'t'))]);
+            IP.vdmP.fname=fullfile(spm_str_manip(IP.pP.fname, 'h'),['vdm5_' deblank(spm_str_manip(IP.pP.fname,'t'))]);
          else
             IP.vdmP = struct('dim',    IP.P{1}.dim(1:3),...
                              'dt',[4 spm_platform('bigend')],...
                              'mat',    IP.P{1}.mat);
-            IP.vdmP.fname=fullfile(spm_str_manip(IP.P{1}.fname, 'h'),['vdm_' deblank(spm_str_manip(IP.P{1}.fname,'t'))]);
+            IP.vdmP.fname=fullfile(spm_str_manip(IP.P{1}.fname, 'h'),['vdm5_' deblank(spm_str_manip(IP.P{1}.fname,'t'))]);
          end
       end
 
@@ -1627,17 +1665,21 @@ switch lower(Action)
       IP.vdm.vdm = IP.blipdir*IP.tert*1e-3*IP.fm.fpm;
       IP.vdm.jac = IP.blipdir*IP.tert*1e-3*IP.fm.jac;
 
+      % Chloe added this: 26/02/05
+      % Put fieldmap parameters in descrip field of vdm
+
+      vdm_info=sprintf('Voxel Displacement Map:echo time difference=%2.2fms, EPI readout time=%2.2fms',IP.uflags.etd, IP.tert);    
       if IP.epifm ==1
          spm_progress_bar('Init',3,'Inverting displacement map','');
          spm_progress_bar('Set',1);
          % Invert voxel shift map and multiply by -1...
-         IP.vdm.ivdm = -1*pm_invert_phasemap(IP.vdm.vdm);
-	 IP.vdm.ijac = -1*pm_diff(IP.vdm.ivdm,2);
+         IP.vdm.ivdm = pm_invert_phasemap(-1*IP.vdm.vdm);
+	     IP.vdm.ijac = pm_diff(IP.vdm.ivdm,2); 
          spm_progress_bar('Set',2);
          spm_progress_bar('Clear');
-         FieldMap('Write',IP.vdmP,IP.vdm.ivdm,'',IP.vdmP.dt(1),'Voxel shift map');
+         FieldMap('Write',IP.vdmP,IP.vdm.ivdm,'',IP.vdmP.dt(1),vdm_info);
       else
-         FieldMap('Write',IP.vdmP,IP.vdm.vdm,'',IP.vdmP.dt(1),'Voxel shift map');
+         FieldMap('Write',IP.vdmP,IP.vdm.vdm,'',IP.vdmP.dt(1),vdm_info);
       end
       varargout{1} = IP.vdm;
       varargout{2} = IP.vdmP;
@@ -1758,17 +1800,10 @@ switch lower(Action)
       tvdm = reshape(spm_sample_vol(spm_vol(IP.vdmP.fname),xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
 
-      % Voxel shift map must be subtracted from the x-coordinates or the 
-      % y-coordinates depending on phase-encode direction.
-
-      if strcmp(IP.pedir,'x')
-         uepi = reshape(spm_sample_vol(IP.epiP,xyz(:,1)-tvdm(:),...
-                      xyz(:,2),xyz(:,3),1),IP.epiP.dim(1:3));
-      else
-         uepi = reshape(spm_sample_vol(IP.epiP,xyz(:,1),...
-                      xyz(:,2)-tvdm(:),xyz(:,3),1),IP.epiP.dim(1:3));
-      end
-
+      % Voxel shift map must be added to the y-coordinates. 
+      uepi = reshape(spm_sample_vol(IP.epiP,xyz(:,1),...
+                      xyz(:,2)+tvdm(:),xyz(:,3),1),IP.epiP.dim(1:3));% TEMP CHANGE
+      
       % Sample Jacobian in correct space and apply if required 
       if IP.ajm==1
          if IP.epifm==1 % If EPI, use inverted jacobian
@@ -1848,17 +1883,14 @@ switch lower(Action)
          wfmag = reshape(spm_sample_vol(IP.fmagP,xyz2(:,1),...
                       xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));     
 
-         % Invert voxel shift map since it is a forward warp.
-         vdm = pm_invert_phasemap(IP.vdm.vdm);
-
          % Need to sample voxel shift map in space of EPI to be unwarped
-         tvdm = reshape(spm_sample_vol(vdm,xyz2(:,1),...
-                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));
-
+         tvdm = reshape(spm_sample_vol(IP.vdm.vdm,xyz2(:,1),...
+                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));            
+                      
          % Now apply warps to resampled forward warped magnitude image...
          wfmag = reshape(spm_sample_vol(wfmag,xyz(:,1),xyz(:,2)-tvdm(:),...
                        xyz(:,3),1),IP.epiP.dim(1:3));
-
+              
          % Write out forward warped magnitude image
          IP.wfmagP = struct('dim',  IP.epiP.dim,...
                          'dt',[64 spm_platform('bigend')],...
@@ -1872,19 +1904,19 @@ switch lower(Action)
          % Update the .mat file of the forward warped mag image 
          spm_get_space(deblank(IP.wfmagP.fname),M*IP.wfmagP.mat);
 
-        % Get the original space of the fmap magnitude      
+         % Get the original space of the fmap magnitude      
          MM = IP.fmagP.mat;
       end
 
       % Update .mat file for voxel displacement map
-      IP.vdmP.mat=M*MM;
+      IP.vdmP.mat=M*MM;       
       spm_get_space(deblank(IP.vdmP.fname),M*MM); 
 
       varargout{1} = IP.vdmP; 
 
 %=======================================================================
 %
-% Get fieldmap magnitude image
+% Invert voxel displacement map
 %
 %=======================================================================
 
@@ -1931,8 +1963,7 @@ switch lower(Action)
        do_f = ~isfield(IP, 'fmagP');
        if ~do_f, do_f = isempty(IP.fmagP); end
        if do_f
-         IP.fmagP = spm_vol(spm_get(1,'*.img',['Select field map magnitude' ...
-                   ' image']));
+         IP.fmagP = spm_vol(spm_select(1,'image','Select field map magnitude image'));
        end
 
       end

@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 663 2006-10-23 17:18:32Z john $
+% $Id: spm_config_realign_and_unwarp.m 746 2007-02-26 22:02:58Z chloe $
 
 
 %_______________________________________________________________________
@@ -450,7 +450,7 @@ pmscan.tag  = 'pmscan';
 pmscan.num  = [0 1];
 pmscan.val  = {{}};
 pmscan.filter = 'image';
-pmscan.ufilter = '^vdm_.*';
+pmscan.ufilter = '^vdm5_.*';
 pmscan.help   = {[...
     'Select precalculated phase map, or leave empty for no phase correction. ',...
     'The vdm* file is assumed to be already in alignment with the first scan ',...
