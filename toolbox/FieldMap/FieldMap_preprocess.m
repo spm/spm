@@ -33,23 +33,24 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
 % used at the FIL:
 %
 % Sonata Siemens fieldmap parameters and default EPI fMRI'); 
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,14.76,0,32,1]);
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,14.76,0,32,-1]);
 %
 % Sonata EPI fieldmap parameters and default EPI fMRI
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[25,34.5,1,32,1]);
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[25,34.5,1,32,-1]);
 %
 % Allegra Siemens fieldmap parameters and default EPI fMRI
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,21,1]);
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,21,-1]);
 %
 % Allegra EPI fieldmap parameters and default EPI fMRI
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[19,29,1,21,1]);
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[19,29,1,21,-1]);
 %  
 % It is also possible to switch off the brain masking which is
 % done by default with a siemens field map (set 6th flag to 0) 
 % and the matching of the fieldmap to the EPI (set 7th flag to 0).
 % 
+% Updated for SPM5 - 27/02/07
 %_________________________________________________________________
-% FieldMap_preprocess.m                           Chloe Hutton 23/08/05
+% FieldMap_preprocess.m                           Chloe Hutton 27/02/07
 %
 if nargin < 3
   error('Usage: FieldMap_preprocess(fm_dir,epi_dir,pm_defs)');
@@ -71,17 +72,17 @@ pm_def.K_SPACE_TRAVERSAL_BLIP_DIR=pm_defs(5);
 % If using a non-epi fieldmap, the input format will be 'PM'
 if pm_def.EPI_BASED_FIELDMAPS==1
    pm_def.INPUT_DATA_FORMAT='RI';
-   pm_def.MASK=0;
+   pm_def.MASKBRAIN=0;
 
 % Do brain masking for Siemens fieldmaps unless switched off in pm_defs(6)
 elseif pm_def.EPI_BASED_FIELDMAPS==0
    pm_def.INPUT_DATA_FORMAT='PM';
-   pm_def.MASK=1;
+   pm_def.MASKBRAIN=1;
    if size(pm_defs,1)>5 | size(pm_defs,2)>5
       if pm_defs(6)==1
-         pm_def.MASK=1;
+         pm_def.MASKBRAIN=1;
       elseif pm_defs(6)==0
-         pm_def.MASK=0;
+         pm_def.MASKBRAIN=0;
       end
    end
 else
@@ -100,14 +101,14 @@ end
 %----------------------------------------------------------------------
 % Load epi data from data directory
 %----------------------------------------------------------------------
-epi_img = spm_get('Files',epi_dir,'f*.img');
-epi_img=epi_img(1,:);
+epi_img = spm_select('List',epi_dir,'^f.*\.img$');
+epi_img=fullfile(epi_dir,epi_img(1,:));
 
 %----------------------------------------------------------------------
 % Load field map data from fieldmap directory
 %----------------------------------------------------------------------
 if pm_def.INPUT_DATA_FORMAT=='PM'
-   fm_imgs = spm_get('Files',fm_dir,'s*.img');
+   fm_imgs = spm_select('List',fm_dir,'^s.*\.img$');
    if ~isempty(fm_imgs)
       nfiles=size(fm_imgs,1);
       if nfiles~=3
@@ -118,11 +119,11 @@ if pm_def.INPUT_DATA_FORMAT=='PM'
          % These may have been acquired in either order so need to check for this
          nn=findstr(fm_imgs(1,:),'-');
          if isempty(findstr(fm_imgs(2,:),fm_imgs(1,nn(1):nn(2))))
-            phase=fm_imgs(1,:);
-            mag=fm_imgs(2,:);
+            phase=fullfile(fm_dir,fm_imgs(1,:));
+            mag=fullfile(fm_dir,fm_imgs(2,:));
          else
-            mag=fm_imgs(1,:);
-            phase=fm_imgs(3,:);
+            mag=fullfile(fm_dir,fm_imgs(1,:));
+            phase=fullfile(fm_dir,fm_imgs(3,:));
          end
          scphase=FieldMap('Scale',phase);
          fm_imgs=str2mat(scphase.fname,mag);
@@ -136,7 +137,7 @@ elseif pm_def.INPUT_DATA_FORMAT=='RI'
    % This expects to find six EPI field map files: 
    % 3 short (real, imag and mag) and 3 long (real, imag and mag).
 
-   all_fm_imgs = spm_get('Files',fm_dir,'f*.img');
+   all_fm_imgs = spm_select('List',fm_dir,'^f.*\.img$');
    nfiles=size(all_fm_imgs,1);
    if nfiles~=6
          msg=sprintf('Wrong number of field map (f*.img) images! There should be 6!');

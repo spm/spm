@@ -7,14 +7,16 @@ function VDM=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % 2) Convert fieldmap to a voxel displacement map (vdm_* file).
 % 3) Match vdm_* to an input EPI which should be the first image 
 % that everything else will be realigned/unwarped to.
-% 4) The selected EPI is unwarped and written out with the prefix 'c'.
+% 4) The selected EPI is unwarped and written out with the prefix 'u'.
 % 
 % For details about the FieldMap toolbox, see FieldMap.man. For a 
 % description of the components of the structure IP, see FieldMap.m.
 % For an introduction to the theoretcial and practical principles behind 
 % the toolbox, see principles.man.
+%
+% Updated for SPM5 - 27/02/07
 %_________________________________________________________________
-% FieldMap_create.m                           Chloe Hutton 12/07/05
+% FieldMap_create.m                           Chloe Hutton 27/02/07
   
 if nargin < 3
   error('field map images, epi image and defaults');
@@ -25,7 +27,7 @@ IP = FieldMap('Initialise'); % Gets default params from pm_defaults
 % Define parameters for fieldmap creation
 IP.et{1} = pm_defs.SHORT_ECHO_TIME;
 IP.et{2} = pm_defs.LONG_ECHO_TIME;
-IP.mask = pm_defs.MASK;
+IP.maskbrain = pm_defs.MASKBRAIN;
  
 % Set parameters for unwrapping
 IP.uflags.iformat = pm_defs.INPUT_DATA_FORMAT;
@@ -124,7 +126,8 @@ IP.uepiP = FieldMap('UnwarpEPI',IP);
 % Write unwarped EPI 
 % Outputs -> uNAME-OF-EPI.img
 %----------------------------------------------------------------------
-IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'c',IP.epiP.dim(4),'Unwarped image');
+unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
+IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
 
 VDM=IP.vdmP ;
 return
