@@ -11,11 +11,12 @@ function spm_check_registration(images)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_check_registration.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_check_registration.m 755 2007-02-28 18:15:10Z john $
 
 
 if nargin==0,
 	images = spm_select([1 15],'image','Select images');
+	if size(images,1)<1, return; end;
 	spm_check_registration(images);
 elseif nargin==1,
 	fg = spm_figure('Findwin','Graphics');

@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 367 2005-12-06 19:36:10Z john $
+% $Id: spm_defs.m 755 2007-02-28 18:15:10Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -225,7 +225,7 @@ for i=1:size(fnames,1),
     V = spm_vol(fnames(i,:));
     M = inv(V.mat);
     [pth,nam,ext] = spm_fileparts(fnames(i,:));
-    ofname = ['w',nam,ext];
+    ofname = fullfile(pth,['w',nam,ext]);
     Vo = struct('fname',ofname,...
                 'dim',[size(Def{1},1) size(Def{1},2) size(Def{1},3)],...
                 'dt',V.dt,...
