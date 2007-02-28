@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 698 2006-11-24 20:12:08Z volkmar $
+% $Id: spm_dicom_convert.m 749 2007-02-28 10:51:02Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -946,6 +946,18 @@ function fname = getfilelocation(hdr,root_dir,prefix,format)
 if nargin < 3
     prefix = 'f';
 end;
+
+if strncmp(root_dir,'ice',3)
+    root_dir = root_dir(4:end);
+    imtype = textscan(hdr.ImageType,'%s','delimiter','\\');
+    try
+        imtype = imtype{1}{3};
+    catch
+        imtype = '';
+    end;
+    prefix = [prefix imtype get_numaris4_val(hdr.CSAImageHeaderInfo,'ICE_Dims')];
+end;
+
 if strcmp(root_dir, 'flat')
     % Standard SPM5 file conversion
     %-------------------------------------------------------------------

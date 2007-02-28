@@ -4,7 +4,7 @@ function opts = spm_config_dicom
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_dicom.m 531 2006-05-16 09:17:55Z volkmar $
+% $Id: spm_config_dicom.m 749 2007-02-28 10:51:02Z volkmar $
 
 
 %_______________________________________________________________________
@@ -54,10 +54,38 @@ root.help = {['Choose root directory of converted file tree. The options ' ...
              ['* No directory hierarchy: Convert all files into the output ' ...
               'directory, without sequence/series subdirectories']};
 
+format.type = 'menu';
+format.name = 'Output image format';
+format.tag  = 'format';
+format.labels = {'Two file (img+hdr) NIfTI', 'Single file (nii) NIfTI'};
+format.values = {'img', 'nii'};
+format.val  = {'nii'};
+format.help = {['DICOM conversion can create separate img and hdr files ' ...
+                'or combine them in one file. The single file option will ' ...
+                'help you save space on your harddisk, but may be ' ...
+                'incompatible with programs that are not NIfTI-aware.'],...
+               ['In any case, only 3D image files will be produced.']};
+
+icedims.type = 'menu';
+icedims.name = 'Use ICEDims in filename';
+icedims.tag  = 'icedims';
+icedims.labels = {'No','Yes'};
+icedims.values = {0, 1};
+icedims.val  = {0};
+icedims.help = {['If image sorting fails, one can try using the additional ' ...
+                'SIEMENS ICEDims information to create unique filenames. ' ...
+                'Use this only if there would be multiple volumes with '...
+                'exactly the same file names.']};
+
+convopts.type = 'branch';
+convopts.name = 'Conversion options';
+convopts.tag  = 'convopts';
+convopts.val  = {format,icedims};
+
 opts.type = 'branch';
 opts.name = 'DICOM Import';
 opts.tag  = 'dicom';
-opts.val  = {data,root,outdir};
+opts.val  = {data,root,outdir,convopts};
 opts.prog = @convert_dicom;
 opts.help = {[...
 'DICOM Conversion.  Most scanners produce data in DICOM format. '...
@@ -92,8 +120,14 @@ catch
     error('Failed to change directory. Aborting DICOM import.');
 end
 
+if job.convopts.icedims
+    root_dir = ['ice' job.root];
+else
+    root_dir = job.root;
+end;
+
 hdr = spm_dicom_headers(strvcat(job.data));
-spm_dicom_convert(hdr,'all',job.root);
+spm_dicom_convert(hdr,'all',root_dir,job.convopts.format);
 
 if ~isempty(job.outdir)
     fprintf('   Changing back to directory: %s\n', wd);
