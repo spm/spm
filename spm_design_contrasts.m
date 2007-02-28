@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 351 2005-12-01 12:30:24Z will $
+% $Id: spm_design_contrasts.m 752 2007-02-28 10:58:40Z volkmar $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -46,7 +46,7 @@ for c=1:length(icon),
 end
 
 if isfield(SPM,'Sess')
-    % For first level designs .Sess won't be specified
+    % For 2nd level designs .Sess won't be specified
     % and we don't need to worry about parametric mod/multi-sessions
     
     % Pad out parametric modulation columns with zeros
@@ -69,6 +69,7 @@ if isfield(SPM,'Sess')
     ncon=length(con);
     if nsess>1
         conds=length(SPM.Sess(1).U);
+	covs =zeros(1,nsess);
         for s=1:nsess,
             nconds=length(SPM.Sess(s).U);
             if ~(nconds==conds)
@@ -77,7 +78,11 @@ if isfield(SPM,'Sess')
             end
         end
         for c=1:ncon,
-            con(c).c=kron(ones(1,nsess),con(c).c);
+	    c1 = [con(c).c zeros(1,covs(1))];
+	    for s=2:nsess
+		con = [c1 con(c).c zeros(1,covs(s))];
+	    end;
+	    con(c).c = c1;
         end
     end
     
