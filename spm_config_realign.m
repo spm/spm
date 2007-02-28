@@ -4,7 +4,7 @@ function opts = spm_config_realign
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_realign.m 506 2006-04-27 14:46:29Z volkmar $
+% $Id: spm_config_realign.m 751 2007-02-28 10:56:59Z volkmar $
 
 
 %_______________________________________________________________________
@@ -278,6 +278,7 @@ est.name = 'Realign: Estimate';
 est.tag  = 'estimate';
 est.val  = {data,eoptions};
 est.prog = @estimate;
+est.vfiles = @vfiles_estimate;
 
 p1 = [...
 'This routine realigns a time-series of images acquired from the same ',...
@@ -350,7 +351,7 @@ p2 = [...
 
 estwrit.help = {p1,'',p2};
 estwrit.prog   = @estwrite_fun;
-estwrit.vfiles = @vfiles_reslice;
+estwrit.vfiles = @vfiles_estwrit;
 
 %------------------------------------------------------------------------
 
@@ -456,3 +457,28 @@ if job.roptions.which(2),
     [pth,nam,ext,num] = spm_fileparts(P{1});
     vf = {vf{:}, fullfile(pth,['mean', nam, ext, num])};
 end;
+
+%------------------------------------------------------------------------
+ 
+%------------------------------------------------------------------------
+function vf = vfiles_estimate(job)
+P = job.data;
+vf = {};
+if numel(P) > 0
+    if ~iscell(P{1})
+	P = {P};
+    end;
+    for k = 1:numel(P)
+	[pth,nam,ext,num] = spm_fileparts(P{k}{1});
+	vf{k} = fullfile(pth, sprintf('rp_%s.txt', nam));
+    end;
+end;
+
+%------------------------------------------------------------------------
+ 
+%------------------------------------------------------------------------
+function vf = vfiles_estwrit(job)
+vf1 = vfiles_estimate(job);
+vf2 = vfiles_reslice(job);
+vf = {vf1{:}, vf2{:}};
+
