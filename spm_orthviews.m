@@ -112,7 +112,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 601 2006-08-22 08:34:24Z volkmar $
+% $Id: spm_orthviews.m 750 2007-02-28 10:55:02Z volkmar $
 
 
 
@@ -471,7 +471,10 @@ end;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function addcolouredblobs(handle, xyz, t, mat,colour)
+function addcolouredblobs(handle, xyz, t, mat, colour, name)
+if nargin < 6
+    name = '';
+end;
 global st
 for i=valid_handles(handle),
 	if ~isempty(xyz),
@@ -489,7 +492,9 @@ for i=valid_handles(handle),
 		end;
                 mx = max([eps maxval(vol)]);
                 mn = min([0 minval(vol)]);
-		st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',colour);
+		st.vols{i}.blobs{bset} = struct('vol',vol, 'mat',mat, ...
+                                                'max',mx, 'min',mn, ...
+                                                'colour',colour, 'name',name);
 	end;
 end;
 return;
@@ -551,6 +556,9 @@ end;
 st.vols{vh}.blobs{bh}.cbar = axes('Parent',st.fig,...
           'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
           'Box','on', 'YDir','normal', 'XTickLabel',[], 'XTick',[]);
+if isfield(st.vols{vh}.blobs{bh},'name')
+    ylabel(st.vols{vh}.blobs{bh}.name);
+end;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -1245,6 +1253,9 @@ if isfield(st.vols{vh}.blobs{bh},'cbar')
         'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1)...
                     (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
         'YDir','normal','XTickLabel',[],'XTick',[]);
+    if isfield(st.vols{vh}.blobs{bh},'name')
+        ylabel(st.vols{vh}.blobs{bh}.cbar,st.vols{vh}.blobs{bh}.name);
+    end;
 end;
 %_______________________________________________________________________
 %_______________________________________________________________________
@@ -1751,7 +1762,7 @@ case 'add_c_blobs',
 	c_names   = {'red';'yellow';'green';'cyan';'blue';'magenta'};
         hlabel = sprintf('%s (%s)',VOL.title,c_names{c});
 	for i = 1:length(cm_handles),
-		addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
+		addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:),VOL.title);
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
 		c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
 		ch_c_handle = get(c_handle,'Children');
@@ -1785,7 +1796,7 @@ case 'remove_c_blobs',
                 end;
             end;
             rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
-            delete(findobj(rm_c_menu,'Label',c_names{varargin{3}}));
+            delete(gcbo);
             if isempty(st.vols{cm_handles(i)}.blobs),
                 st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
                 set(rm_c_menu, 'Visible', 'off');
