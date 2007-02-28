@@ -26,7 +26,7 @@ function [argout] = spm_filter(K,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_filter.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_filter.m 753 2007-02-28 10:59:21Z volkmar $
 
 
 
@@ -55,7 +55,7 @@ else
 	%-------------------------------------------------------------------
 	if isstruct(K)
 
-		% ensure requisite feilds are present
+		% ensure requisite fields are present
 		%-----------------------------------------------------------
 		if ~isfield(K(1),'X0')
 			K = spm_filter(K);
