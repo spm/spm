@@ -19,7 +19,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_diff.m 756 2007-03-01 13:29:47Z john $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ if length(n) == 1
         
     % or differentiation of a vector w.r.t. a vector
     %----------------------------------------------------------------------
-    if isvector(f0) && isvector(x{m})
+    if isvec(f0) && isvec(x{m})
         
         % concatenate into a matrix
         %------------------------------------------------------------------
@@ -136,3 +136,16 @@ if iscell(f)
 else
     dfdx  = (f - f0)/dx;
 end
+
+
+
+
+
+%__________________________________________________________________________
+%__________________________________________________________________________
+function is = isvec(v)
+% isvector(v) returns true if v is 1-by-n or n-by-1 where n>=0
+
+% vec if just two dimensions, and one (or both) unity
+is = length(size(v)) == 2 && (size(v,1) == 1 || size(v,2) == 1);
+
