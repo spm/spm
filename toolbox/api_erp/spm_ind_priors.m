@@ -1,9 +1,7 @@
-function [varargout] = spm_ind_priors(A,B,C,dipfit,Nu,Nf)
+function [varargout] = spm_ind_priors(A,B,C,Nf)
 % prior moments for a neural-mass model of erps
 % FORMAT [pE,gE,pC,gC] = spm_ind_priors(A,B,C,dipfit,Nu,Nf)
 % A{2},B{m},C  - binary constraints on extrinsic connections
-% dipfit       - prior forward model structure
-% Nu           - number of input components
 % Nf           - number of frequencies
 
 %
@@ -12,10 +10,7 @@ function [varargout] = spm_ind_priors(A,B,C,dipfit,Nu,Nf)
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    gE.Lpos - position                   - ECD
-%    gE.Lmon - moment (orientation)       - ECD
-%
-% or gE.L    - coeficients of local modes - Imaging
+% or gE.L    - coeficients of local modes - ECD
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -38,44 +33,24 @@ function [varargout] = spm_ind_priors(A,B,C,dipfit,Nu,Nf)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-% defaults
+% orders
 %--------------------------------------------------------------------------
-if nargin < 4, dipfit.type = 'LFP'; end
-if nargin < 5, Nu = 1;              end
-if nargin < 6, Nf = 3;              end
-
-
-% disable log zero warning
-%--------------------------------------------------------------------------
-warning off
-n     = size(C,1);                                 % number of sources
-n1    = ones(n,1);
+n    = size(C,1);                                 % number of sources
+n1   = ones(n,1);
 
 % paramters for electromagnetic forward model
 %--------------------------------------------------------------------------
-switch dipfit.type
-    
-    case{'ECD (EEG)','ECD (MEG)'}
-    %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % dipole positions
-    G.Lmom = G.Lpos/32;     U.Lmom =   2*ones(3,n);    % dipole orientations
-
-    case{'Imaging'}
-    %----------------------------------------------------------------------
-    m      = dipfit.Nm;
-    G.L    = ones(m,n)/16;  U.Lpos =  16*ones(m,n);    % dipole modes
-    
-end
+G.L  = sparse(1,n);  U.L  =  sparse(1,n) + 8;
 
 % Global scaling
 %--------------------------------------------------------------------------
 E.K  = 0;
-V.K  = 1/8;
+V.K  = 1/4;
 
 % set extrinsic connectivity - linear and noninlear (cross frequency)
 %--------------------------------------------------------------------------
 E.A  = kron(speye(Nf,Nf),A{1}/4 - speye(n,n));
-V.A  = kron(speye(Nf,Nf),A{1}) + kron(1 - speye(Nf,Nf),A{2});;
+V.A  = kron(speye(Nf,Nf),A{1}) + kron(1 - speye(Nf,Nf),A{2});
 
 % input-dependent
 %--------------------------------------------------------------------------
@@ -91,8 +66,8 @@ V.C  = E.C > 0;
 
 % set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------
-E.R  = ones(Nu,1)*[1 0 1];
-V.R  = ones(Nu,1)*[1 1/16 1/16];
+E.R  = [0 0 1];
+V.R  = [1/2 1/16 1/16];
 
 % background fluctuations: amplitude and Hz
 %--------------------------------------------------------------------------
@@ -106,5 +81,4 @@ varargout{1} = E;
 varargout{2} = G;
 varargout{3} = diag(sparse(spm_vec(V)));
 varargout{4} = diag(sparse(spm_vec(U)));
-warning on
   

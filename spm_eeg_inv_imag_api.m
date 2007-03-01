@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 733 2007-02-07 15:39:50Z karl $
+% $Id: spm_eeg_inv_imag_api.m 759 2007-03-01 18:22:05Z karl $
 
 
 spm_defaults
@@ -274,7 +274,11 @@ end
 try
     str = sprintf('%i: %s',val,Q.comment{1});
 catch
-    str = sprintf('%i',val);
+    try
+        str = sprintf('%i: %s',val,Q.comment);
+    catch
+        str = sprintf('%i',val);
+    end
 end
 set(handles.val, 'Value',val,'string',str);
 
@@ -350,7 +354,6 @@ try
         set(handles.PST,'Enable','off');
     end
 end
-
 set(handles.fig,'Pointer','arrow')
 assignin('base','D',handles.D)
 guidata(hObject,handles);

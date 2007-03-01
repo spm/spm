@@ -97,11 +97,12 @@ for i = 1:length(Nt)
         % conditional expectation of contrast (J*W) and its energy
         %------------------------------------------------------------------
         for j = 1:Nt(i)
-
-            MYW   = MUR*squeeze(D.data(Ic,It,c(j)))*TTW/Nt(i);
+            fprintf('\nevaluating trial %i, condition %i',j,i)
+            MYW   = MUR*(D.data(Ic,It,c(j))*TTW)/Nt(i);;
             JW{i} = JW{i} + MYW(:,1);
             JWWJ  = JWWJ  + sum(MYW.^2,2);
         end
+       
         
         % conditional expectation of total energy (source space GW)
         %------------------------------------------------------------------

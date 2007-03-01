@@ -4,7 +4,7 @@ function varargout = spm_api_erp(varargin)
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
 
-% Last Modified by GUIDE v2.5 07-Feb-2007 15:21:07
+% Last Modified by GUIDE v2.5 27-Feb-2007 20:10:51
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -186,7 +186,6 @@ guidata(hObject,handles);
 %-Get trials and data
 %--------------------------------------------------------------------------
 function Y1_Callback(hObject, eventdata, handles)
-
 try
     handles.DCM.options.trials = str2num(get(handles.Y1,'String'));
     m  = length(handles.DCM.options.trials);
@@ -552,7 +551,11 @@ end
 
 % string labels
 %--------------------------------------------------------------------------
-constr         = {'A forward' 'A backward' 'A lateral' 'C input'};
+if get(handles.ERP,'Value') == 1
+    constr = {'A forward' 'A backward' 'A lateral' 'C input'};
+else
+    constr = {'A linear' 'A nonlinear' '(not used)' 'C input'};
+end
 nsx            = (n + 1)*sx;
 nsy            = 2*sy;
 for k = 1:4
@@ -660,6 +663,7 @@ end
 % -------------------------------------------------------------------------
 function varargout = estimate_Callback(hObject, eventdata, handles, varargin)
 set(handles.estimate,'String','Estimating','Foregroundcolor',[1 0 0])
+handles = reset_Callback(hObject, eventdata, handles);
 
 % initialise if required
 % -------------------------------------------------------------------------
@@ -677,7 +681,11 @@ end
 
 % invert and save
 % -------------------------------------------------------------------------
-handles.DCM = spm_dcm_erp(handles.DCM);
+if get(handles.ERP,'Value') == 1
+    handles.DCM = spm_dcm_erp(handles.DCM);
+else
+    handles.DCM = spm_dcm_ind(handles.DCM);
+end
 guidata(hObject, handles);
 
 set(handles.results,    'Enable','on' )
@@ -693,7 +701,11 @@ end
 function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
-spm_dcm_erp_results(handles.DCM, Action);
+if get(handles.ERP,'Value') == 1
+    spm_dcm_erp_results(handles.DCM, Action);
+else
+    spm_dcm_ind_results(handles.DCM, Action);
+end
 
 % --- Executes on button press in initialise.
 % -------------------------------------------------------------------------
@@ -731,6 +743,37 @@ set(handles.Uname, 'String',handles.DCM.xU.name);
 return
 
 
+% --- Executes on selection change in ERP.
+%--------------------------------------------------------------------------
+function ERP_Callback(hObject, eventdata, handles)
+if get(handles.ERP,'Value') == 1
+    Action = {
+    'ERPs (channel)',
+    'ERPs (sources)',
+    'coupling (A)',
+    'coupling (B)',
+    'coupling (C)',
+    'Input',
+    'Response',
+    'Dipoles',
+    'Spatial overview'};
+else
+    Action = {
+    'Hz modes'
+    'Time-Hz'
+    'Coupling (A)'
+    'Coupling (B)'
+    'Input (C)'
+    'Input'
+    'Dipoles'};
+
+    if get(handles.Spatial_type,'Value') == 3
+        warndlg('please specify an ECD electromagnetic model')
+    end
+end
+set(handles.results,'String',Action);
+handles = connections_Callback(hObject, eventdata, handles);
+guidata(hObject,handles);
 
 
 

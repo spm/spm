@@ -266,12 +266,19 @@ if strcmp(M.dipfit.type,'Imaging')
     inverse.R2     = R2;                   % variance accounted for (%)
     inverse.dipfit = M.dipfit;             % forward model for DCM
 
-    % save in struct
+    % append DCM results and save in struct
     %----------------------------------------------------------------------
     try, val = DCM.val;  catch, val = 1; end
     D        = spm_eeg_ldata(DCM.xY.Dfile);
-    D.inv{val}.inverse = inverse;
-
+    
+    D.inv{end + 1}      = D.inv{val};
+    D.inv{end}.date     = date;
+    D.inv{end}.comment  = {'DCM'};
+    D.inv{end}.inverse  = inverse;
+    D.val               = length(D.inv);
+    try
+        D.inv{end}      = rmfield(D.inv{end},'contrast');
+    end
     if spm_matlab_version_chk('7.1') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
     else

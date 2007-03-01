@@ -1,37 +1,37 @@
-function DCM = spm_dcm_erp_data(DCM,ERP)
-% prepares structures for forward model (both EEG and MEG)
-% FORMAT DCM = spm_dcm_erp_data(DCM,ERP)
+function DCM = spm_dcm_ind_data(DCM)
+% gets time-frequency amplitude at specified sources for DCM
+% FORMAT DCM = spm_dcm_ind_data(DCM)
 % DCM    -  DCM structure
-% ERP    - 'ERP' or 'Induced' for evoked or induced response 
 % requires
 %
 %    DCM.xY.Dfile
+%    DCM.M.dipfit
 %    DCM.options.trials
 %    DCM.options.Tdcm
-%    DCM.options.D
-%    
+%    DCM.options.D    
 %
 % sets
+%
 %    DCM.xY.Time    - Time [ms] of downsampled data
 %    DCM.xY.dt      - sampling in seconds
-%    DCM.xY.y       - concatenated response
+%    DCM.xY.y       - concatenated induced response over sources
+%    DCM.xY.xf      - induced response over sourcese
 %    DCM.xY.It      - Indices of time bins
 %    DCM.xY.Ic      - Indices of good channels
-%
 %    DCM.xY.Hz      - Frequency bins (for Wavelet transform)
+%    DCM.xY.Mz      - Mean frequnecy response over trial and sources
+%    DCM.xY.Rft     - wavelet coeficient
+%    DCM.xY.Nm      - number of requency modes
+%    DCM.xY.U       - Frequnecy modes
+%    DCM.xY.S       - and their singular values
+%
 %    DCM.options.h
 %__________________________________________________________________________
 % Stefan Kiebel, Karl friston
 % $Id: spm_dcm_erp_data.m 668 2006-10-26 16:35:28Z karl $
 
 % Set defaults and Get D filename
-%--------------------------------------------------------------------------
-try
-    ERP = strcmp(ERP,'ERP');
-catch
-    ERP = 1;
-end
-
+%-------------------------------------------------------------------------
 try
     Dfile = DCM.xY.Dfile;
 catch
@@ -94,74 +94,64 @@ try
     DCM.xY.grad = D.channels.grad;
 end
 
-% get trial averages - ERP
-%--------------------------------------------------------------------------
-for i = 1:length(trial);
-    
-    % trial indices
-    %----------------------------------------------------------------------
-    if isfield(D.events,'reject')
-        c = find(D.events.code == D.events.types(i) & ~D.events.reject);
-    else
-        c = find(D.events.code == D.events.types(i));
-    end
-    Nt    = length(c);
-
-    % ERP
-    %----------------------------------------------------------------------
-    Y     = zeros(Ns,Nc);
-    for j = 1:Nt
-        Y = Y + squeeze(D.data(Ic,It,c(j)))';
-    end
-    DCM.xY.xy{i} = Y/Nt;
-end
-
-% concatenate response and return (unless induced responses are required)
-%--------------------------------------------------------------------------
-if ERP
-    DCM.xY.y    = spm_cat(DCM.xY.xy(:));
-    return
-end
-
-
-
-
 % get induced responses (use previous time-frequency results if possible) 
 %==========================================================================
 try
-    DCM.xY.y  = spm_cat(DCM.xY.xf);
-    return
+     DCM.xY.y  = spm_cat(DCM.xY.xf);
+     return
 end
     
 % get Morelet wavelets
 %--------------------------------------------------------------------------
-DCM.xY.Nm  = 4;                        % number of frequnecy modes
-DCM.xY.Rft = 6;                        % wavelet coeficient
-DCM.xY.Hz  = 4:1:64;                   % Frequencies
-ST         = DCM.xY.dt*1000;           % sampling interval
-Nf         = length(DCM.xY.Hz);
+DCM.options.h = 3;
+DCM.xY.Nm     = 4;                        % number of frequnecy modes
+DCM.xY.Rft    = 6;                        % wavelet coeficient
+DCM.xY.Hz     = 4:1:64;                   % Frequencies
+ST            = DCM.xY.dt*1000;           % sampling interval
+Nf            = length(DCM.xY.Hz);
 
 % high-pass filter
 %--------------------------------------------------------------------------
-h     = 3;
-R     = spm_dctmtx(Ns,h);
-R     = speye(Ns) - R*inv(R'*R)*R';
-DCM.options.h = h;
+h     = DCM.options.h;
+T     = spm_dctmtx(Ns,h);
+T     = speye(Ns,Ns) - T*T';
 
-% create convolution matrices with reflecting boudnaries
+% create convolution matrices with reflecting boudnaries (and filtering)
 %--------------------------------------------------------------------------
-M     = spm_eeg_morlet(DCM.xY.Rft, ST, DCM.xY.Hz, 48);
+M     = spm_eeg_morlet(DCM.xY.Rft, ST, DCM.xY.Hz, 32);
 for i = 1:Nf
     M{i} = convmtx(M{i}',Ns);
     N    = fix((size(M{i},1) - Ns)/2);
-    W    = M{i}([1:Ns] + N,:)*R;
-    W    = diag(1./sqrt(sum(abs(W).^2,2)))*W;
-    M{i} = W;
+    W    = M{i}([1:Ns] + N,:)*T;
+    M{i} = diag(1./sqrt(sum(abs(W).^2,2)))*W;
 end
 
-Y     = zeros(Nf,Ns,Nc);
-for i = 1:length(trial);
+% get gain matrix for source components
+%==========================================================================
 
+% parameterised lead field ECD given positions
+%--------------------------------------------------------------------------
+pos    = DCM.M.dipfit.L.pos;
+mom    = [1  0  0;
+          0  1  0;
+          0  0  1];
+Ng     = size(mom,2);                  % number of moments per source
+Nr     = size(pos,2);                  % number of sources
+G.Lmom = kron(ones(1,Nr),mom);
+G.Lpos = kron(pos,ones(1,Ng));
+L      = spm_erp_L(G,DCM.M);
+MAP    = pinv(L);
+
+% add (spatial filtering) re-referencing to MAP projector
+%--------------------------------------------------------------------------
+R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
+MAP   = MAP*R;
+
+
+% Wavelet amplitudes for each (projected) source
+%==========================================================================
+for i = 1:length(trial);
+    
     % trial indices
     %----------------------------------------------------------------------
     if isfield(D.events,'reject')
@@ -171,57 +161,53 @@ for i = 1:length(trial);
     end
     Nt    = length(c);
 
-    % Wavelet amplitude
-    %----------------------------------------------------------------------
-    spm_progress_bar('Init',Nf)
-    fprintf('Wavelet transform')
-
     % Cycle over frequencies
     %----------------------------------------------------------------------
+    Y     = zeros(Nf,Ns,Nr*3);
     for k = 1:Nf
-        y     = zeros(Ns,Nc);
+        Yk    = zeros(Ns,Nr*3);
         for j = 1:Nt
-            y = y + abs(M{k}*D.data(Ic,It,c(j))');
+            y  = MAP*D.data(Ic,It,c(j));
+            Yk = Yk + abs(M{k}*y');
         end
-        Y(k, :, :) = y;
-        spm_progress_bar('Set',k)
+        Y(k, :, :) = Yk;
+        fprintf('\nevaluating frequency %i, condition %i',k,i)
     end
-
-    spm_progress_bar('Clear')
-    fprintf(' - done\n')
-    xy{i} = Y/Nt;
     
+    % time-frequency repsones for trials and sources (summing over moments)
+    %----------------------------------------------------------------------
+    for j = 1:Nr
+        Yk    = zeros(Ns,Nf);
+        for k = 1:3
+            Yk = Yk + Y(:,:,j + k - 1)'/Nt;
+        end
+        Mz{i,j} = mean(Yk);
+        Yz{i,j} = spm_detrend(Yk);
+    end
 end
 
 
 % reduce to frequnecy modes
 %==========================================================================
 
-% find frequency modes (over time and channels)
+% find frequency modes (over time and sources)
 %--------------------------------------------------------------------------
-for i = 1:length(trial)
-    for j = 1:Nc
-        Hz{i,j} = xy{i}(:,:,j)';
-    end
-end
-Hz        = spm_cat(Hz(:));
-Mf        = mean(Hz);
-Hz        = spm_detrend(Hz);
-[U S]     = spm_svd(Hz'*Hz,0);
-U         = U(:,1:DCM.xY.Nm);
+Y     = spm_cat(Yz(:));
+[U S] = spm_svd(Y'*Y,0);
+U     = U(:,1:DCM.xY.Nm);
 
 % project time-frequnecy data onto modes
 %--------------------------------------------------------------------------
-for i = 1:length(xy)
-    for j = 1:Nc
-        Hc{j} = xy{i}(:,:,j)'*U;
+for i = 1:length(trial)
+    for j = 1:Nr
+        xf{j} = Yz{i,j}*U;
     end
-    DCM.xY.xf(i,:) = spm_cell_swap(Hc)';
+    DCM.xY.xf(i,:) = spm_cell_swap(xf)';
 end
 DCM.xY.y  = spm_cat(DCM.xY.xf);
 DCM.xY.U  = U;
 DCM.xY.S  = S;
-DCM.xY.Mf = Mf;
+DCM.xY.Mz = Mz;
 
 
 

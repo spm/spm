@@ -235,7 +235,9 @@ Eu    = uE;
 % EM
 %==========================================================================
 C.F   = -Inf;
-t     = 128;
+C.G   = -Inf;
+tg    = 128;
+tp    = 128;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 warning off
@@ -331,14 +333,59 @@ for k = 1:128
 
         end
         
-        % Gradients and curvature of free energy
-        %------------------------------------------------------------------        
-        dFdc  =  dgdc'*iS*ey   - icC*ec;
-        dFdcc = -dgdc'*iS*dgdc - icC;
+            % objective function: F(p) (= log-evidence - divergence)
+        %==================================================================
+        F = ...
+        - ey'*iS*ey/2 ...
+        - ep'*ipC*ep/2 ...
+        - eg'*igC*eg/2 ...
+        - eu'*iuC*eu/2 ...
+        - ne*log(8*atan(1))/2 ...
+        + spm_logdet(iS )/2 ...
+        + spm_logdet(ipC)/2 ...
+        + spm_logdet(igC)/2 ...
+        + spm_logdet(iuC)/2 ...
+        + spm_logdet(Cb )/2 ...
+        + spm_logdet(Ch )/2;
+    
+
+        % if F has increased, update gradients and curvatures for E-Step
+        %------------------------------------------------------------------
+        if F > C.G
+
+            % update gradients and curvature
+            %--------------------------------------------------------------
+            dFdc  =  dgdc'*iS*ey   - icC*ec;
+            dFdcc = -dgdc'*iS*dgdc - icC;
+
+            % accept current estimates
+            %--------------------------------------------------------------
+            C.Eg  = Eg;
+            C.Eu  = Eu;
+            C.h   = h;
+            C.G   = F;
+
+            % and decrease regularization
+            %--------------------------------------------------------------
+            tg    = tg*2;
+            
+        else
+
+            % reset expansion point
+            %--------------------------------------------------------------
+            Eg    = C.Eg;
+            Eu    = C.Eu;
+            h     = C.h;
+
+            % and increase regularization
+            %--------------------------------------------------------------
+            tg    = min(tg/2,1);
+
+        end
         
         % E-Step: Conditional updates of g and u
         %------------------------------------------------------------------
-        dc    = spm_dx(dFdcc,dFdc);
+        dc    = spm_dx(dFdcc,dFdc,{tg});
         dg    = dc(1:ng);
         du    = dc([1:nu]+ ng);
        
@@ -386,7 +433,7 @@ for k = 1:128
  
         % and decrease regularization
         %------------------------------------------------------------------
-        t     = t*2;
+        tp    = tp*2;
         str   = 'EM-Step(-)';
  
     else
@@ -400,14 +447,14 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        t     = min(t/2,1);
+        tp    = min(tp/2,1);
         str   = 'EM-Step(+)';
  
     end
  
     % Optimise p: parameters of f(x,u,p)
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,{t});
+    dp    = spm_dx(dFdpp,dFdp,{tp});
     Ep    = spm_unvec(spm_vec(Ep) + Vp*dp,Ep);
 
     % graphics

@@ -36,28 +36,19 @@ if ~strcmp(lower(Action), 'dipoles')
     clf
 end
 
-try
-    nt     = length(DCM.H);          % Nr of trials
-    nu     = length(DCM.B);          % Nr inputs
-    nc     = size(DCM.H{1},2);       % Nr modes
-    ns     = size(DCM.K{1},2);       % Nr of sources
-end
+nt     = length(DCM.H);          % Nr of trials
+nu     = length(DCM.B);          % Nr inputs
+nc     = size(DCM.H{1},2);       % Nr modes
+ns     = size(DCM.K{1},2);       % Nr of sources
+xY     = DCM.xY;
+n      = length(xY.xy);
+t      = xY.Time;
 
 % switch
 %--------------------------------------------------------------------------
 switch(lower(Action))
     
 case{lower('ERPs (channel)')}
-    
-    xY    = DCM.xY;
-    n     = length(xY.xy);
-    
-    try
-        t = xY.Time;
-    catch
-        t = xY.dt*[1:n];
-    end
-
 
     % spm_dcm_erp_results(DCM,'ERPs (channel)');
     %----------------------------------------------------------------------
@@ -96,15 +87,6 @@ case{lower('ERPs (sources)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (sources)');
     %----------------------------------------------------------------------
-    xY    = DCM.xY;
-    n     = length(xY.xy);
-    
-    try
-        t = xY.Time;
-    catch
-        t = xY.dt*[1:n];
-    end
-
     mx = max(max(cat(2, DCM.K{:})));
     mi = min(min(cat(2, DCM.K{:})));
     
@@ -208,7 +190,6 @@ case{lower('Coupling (C)')}
  
 case{lower('Coupling (B)')}
     
-    nu = nt-1; % nr of modulatory inputs
     % spm_dcm_erp_results(DCM,'coupling (B)');
     %--------------------------------------------------------------------
     for i = 1:nu
@@ -256,14 +237,6 @@ case{lower('Input')}
     xU    = DCM.xU;
     tU    = 0:xU.dt:xU.dur;
     [U N] = spm_erp_u(tU,DCM.Ep,DCM.M);
-    
-    xY    = DCM.xY;
-    n     = length(xY.xy);
-    try
-        t = xY.Time;
-    catch
-        t = xY.dt*[1:n];
-    end
 
     subplot(2,1,1)
     plot(t,U,t,N,':')
@@ -275,31 +248,28 @@ case{lower('Input')}
 case{lower('Response')}
     
     % plot data
-    % --------------------------------------------------------------------
-    xY    = DCM.xY;
-    n     = length(xY.xy);
+    % ---------------------------------------------------------------------
     try
-        t = xY.Time;
-        E = DCM.M.E*DCM.M.E';
-    catch
-        t = xY.dt*[1:n];
-        E = 1;
-    end
-    
-    for i = 1:n
-        subplot(n,2,2*i - 1)
-        plot(xY.Time,xY.xy{i}*E)
-        xlabel('time (ms)')
-        title(sprintf('Observed ERP %i',i))
-        axis square, grid on, A = axis;
-        try
-            subplot(n,2,2*i - 0)
-            plot(xY.Time,DCM.Hc{i})
+        for i = 1:n
+            subplot(n,2,2*i - 1)
+            plot(t,DCM.Hc{i} + DCM.Rc{i})
             xlabel('time (ms)')
-            title(sprintf('Predicted ERP %i',i))
+            title(sprintf('Observed response %i',i))
+            axis square, grid on, A = axis;
+
+            subplot(n,2,2*i - 0)
+            plot(t,DCM.Hc{i})
+            xlabel('time (ms)')
+            title(sprintf('Predicted response %i',i))
             axis(A); axis square, grid on
-        catch
-            delete(gca)
+        end
+    catch
+        for i = 1:n
+            subplot(n,1,i)
+            plot(t,xY.xy{i})
+            xlabel('time (ms)')
+            title(sprintf('Observed response %i',i))
+            axis square, grid on, A = axis;
         end
     end
 

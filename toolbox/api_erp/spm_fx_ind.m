@@ -17,7 +17,7 @@ function [f,J] = spm_fx_ind(x,u,P,M)
 try
     fu  = M.fu;
 catch
-    fu  = 'spm_erp_u';
+    fu  = 'spm_ind_u';
 end
 
 % get dimensions and configure state variables
@@ -42,12 +42,7 @@ K     = 16*exp(P.K);
 % input
 %--------------------------------------------------------------------------
 [U N] = feval(fu,t,P,M);
-U     = P.C*U;
-if size(N,1) == 1
-    U = U + P.C*N;
-else
-    U = U + N;
-end
+U     = P.C*(U + N);
 
 % State: f(x)
 %===========================================================================

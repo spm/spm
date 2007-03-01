@@ -13,39 +13,39 @@ function [u] = spm_uc_RF(a,df,STAT,R,n)
 %
 % u     - critical height {corrected}
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_uc returns the corrected critical threshold at a specified significance
-% level (a). If n > 1 a conjunction the probability over the n values of the 
+% level (a). If n > 1 a conjunction the probability over the n values of the
 % statistic is returned.
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_uc_RF.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_uc_RF.m 759 2007-03-01 18:22:05Z karl $
 
 
 % find approximate value
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 u     = spm_u((a/sum(R))^(1/n),df,STAT);
 du    = 1e-6;
 
 % approximate estimate using E{m}
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 d     = 1;
 while abs(d) > 1e-6
-	[P P p] = spm_P_RF(1,0,u,df,STAT,R,n);
-	[P P q] = spm_P_RF(1,0,u + du,df,STAT,R,n);
-        d       = (a - p)/((q - p)/du);
-        u       = u + d;
+    [P P p] = spm_P_RF(1,0,u,df,STAT,R,n);
+    [P P q] = spm_P_RF(1,0,u + du,df,STAT,R,n);
+    d       = (a - p)/((q - p)/du);
+    u       = u + d;
 end
 
 % refined estimate using 1 - exp(-E{m})
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 d     = 1;
 while abs(d) > 1e-6
-        p       = spm_P_RF(1,0,u,df,STAT,R,n);
-	q       = spm_P_RF(1,0,u + du,df,STAT,R,n);
-        d       = (a - p)/((q - p)/du);
-        u       = u + d;
+    p       = spm_P_RF(1,0,u,df,STAT,R,n);
+    q       = spm_P_RF(1,0,u + du,df,STAT,R,n);
+    d       = (a - p)/((q - p)/du);
+    u       = u + d;
 end

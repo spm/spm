@@ -21,12 +21,16 @@ persistent LastLpos LastL
 % output
 %==========================================================================
 
-% % number of sources
+% number of sources - n
 %--------------------------------------------------------------------------
 try
-    n = M.r;
+    n = size(P.Lpos,2);
 catch
-    n = length(M.pE.A{1});
+    try
+        n = size(P.L,2);
+    catch
+        n = length(M.pE.A{1});
+    end
 end
 
 switch M.dipfit.type
@@ -54,8 +58,8 @@ switch M.dipfit.type
         iMt  = M.dipfit.Mmni2polsphere;
         iSt  = iMt; iSt(1:3,4) = 0;
 
-        Lpos = iMt*[P.Lpos; ones(1, size(P.Lpos, 2))];
-        Lmom = iSt*[P.Lmom; ones(1, size(P.Lmom, 2))];
+        Lpos = iMt*[P.Lpos; ones(1,n)];
+        Lmom = iSt*[P.Lmom; ones(1,n)];
         Lpos = Lpos(1:3,:);
         Lmom = Lmom(1:3,:);
 
