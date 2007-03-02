@@ -1,6 +1,6 @@
-function [f] = spm_fx_lfp(x,u,P,M)
+function [f,J] = spm_fx_lfp(x,u,P,M)
 % state equations for a neural mass model of erps
-% FORMAT [f] = spm_fx_lfp(x,u,P,M)
+% FORMAT [f,J] = spm_fx_lfp(x,u,P,M)
 % x      - state vector
 %   x(:,1)  - voltage (spiny stellate cells)
 %   x(:,2)  - voltage (pyramidal cells)         +ve
@@ -17,7 +17,8 @@ function [f] = spm_fx_lfp(x,u,P,M)
 %
 %   x(:,13) - slow potassium conductance
 %
-% f    - dx(t)/dt  = f(x(t))
+% f    = dx(t)/dt  = f(x(t))
+% J    = df/dx
 %
 % Fixed parameter scaling [Defaults]
 %
@@ -202,7 +203,9 @@ D  = Di + De;
 
 % Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
 %--------------------------------------------------------------------------
-f  = inv(speye(n*s,n*s) - D.*dfdx)*f;
+D  = inv(speye(n*s,n*s) - D.*dfdx);
+f  = D*f;
+J  = D*dfdx;
 
 
 return

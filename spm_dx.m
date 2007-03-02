@@ -36,7 +36,6 @@ function [dx] = spm_dx(dfdx,f,t)
 if nargin < 3, t = Inf;              ; end
 if iscell(t),  t = t{1}/normest(dfdx); end
 
-
 % use a [pseudo]inverse if t > 1e8
 %==========================================================================
 if t > 1e8
@@ -46,6 +45,6 @@ end
 
 % augment Jacobian and take matrix exponential
 %==========================================================================
-Jx    = spm_cat({0 []; f dfdx});
+Jx    = spm_cat({0 []; spm_vec(f) dfdx});
 dx    = spm_expm(Jx*t);
-dx    = dx(2:end,1);
+dx    = spm_unvec(dx(2:end,1),f);

@@ -4,7 +4,7 @@ function varargout = spm_api_erp(varargin)
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
 
-% Last Modified by GUIDE v2.5 27-Feb-2007 20:10:51
+% Last Modified by GUIDE v2.5 02-Mar-2007 17:17:17
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -499,8 +499,14 @@ for i = 1:n
                 'Style','radiobutton',...
                 'Tag','',...
                 'Callback',str);
+            
+            % within region, between frequency coupling for 'Induced'
+            %--------------------------------------------------------------
             if i == j
                 set(A{k}(i,j),'Enable','off')
+            end
+            if get(handles.ERP,'value') == 2 && k == 2
+                set(A{k}(i,j),'Enable','on')
             end
             try
                 set(A{k}(i,j),'Value',DCM.A{k}(i,j));
@@ -520,6 +526,7 @@ for i = 1:n
                 'Tag','',...
                 'Callback',str);
             % intrinsic modulation of H_e
+            %--------------------------------------------------------------
             if i == j
                 set(B{k}(i,j),'Enable','on')
             end
@@ -775,5 +782,10 @@ set(handles.results,'String',Action);
 handles = connections_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
 
+
+% --- Executes on button press in BMC.
+%--------------------------------------------------------------------------
+function BMC_Callback(hObject, eventdata, handles)
+spm_api_bmc
 
 

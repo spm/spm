@@ -1,4 +1,4 @@
-% Demo routine for local field potoential models
+% Demo routine for local field potential models
 %==========================================================================
 
 clear global
@@ -38,7 +38,7 @@ H     = sparse(9,1,1,13,1);
 
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_lfp';
-M.x   = sparse(n*13,1);
+M.x   = sparse(n,13);
 M.pE  = pE;
 M.pC  = pC;
 M.m   = length(B);
@@ -174,7 +174,7 @@ title('Frequency')
 
 
 
-% for Rosalyn
+% transfer functions
 %==========================================================================
 
 % compute transfer functions
@@ -186,7 +186,7 @@ plot(w,G)
 axis square
 xlabel('frequency {Hz}')
 
-% and back to Andre
+
 % compute transfer functions for different levels of I-I
 %--------------------------------------------------------------------------
 p       = log([1:35]/4);
