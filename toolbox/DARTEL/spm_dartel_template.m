@@ -1,4 +1,4 @@
-function spm_dartel_run(job)
+function spm_dartel_template(job)
 
 K  = job.param(end).K;
 n1 = numel(job.images);
@@ -21,8 +21,7 @@ end;
 dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
 NU = cat(2,NF(1,:).NI);
-NG = nifti(job.template{1});
-g  = single(NG.dat(:,:,:,1:n1));
+g0 = zeros([dm n1],'single');
 
 for i=1:numel(NU),
     [pth,nam,ext]   = fileparts(NU(i).dat.fname);
@@ -44,11 +43,37 @@ for i=1:numel(NU),
             clear dat
         end;
     end;
-    if exist(NU(i).dat.fname) ~= 2,
+    if exist(NU(i).dat.fname) == 2,
+        u = NU(i).dat(:,:,:,1,:);
+        u = single(squeeze(u));
+        y = dartel3('Exp',u,[K -1]);
+        clear u
+        for j=1:n1,
+            vn = NF(j,i).vn;
+            g0(:,:,:,j) = g0(:,:,:,j) + dartel3('samp',single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
+        end;
+        clear y
+    else
         create(NU(i));
         NU(i).dat(:,:,:,:,:) = 0;
+        for j=1:n1,
+            vn = NF(j,i).vn;
+            g0(:,:,:,j) = g0(:,:,:,j) + NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+        end;
     end;
 end;
+
+g  = single(g0/numel(NU));
+NG = NF(1,1).NI;
+NG.descrip       = sprintf('Avg of %d', n2);
+NG.dat.fname     = 'Template.nii';
+NG.dat.dim       = [dm n1];
+NG.dat.dtype     = 'float32-le';
+NG.dat.scl_slope = 1;
+NG.dat.scl_inter = 0;
+NG.mat0          = NG.mat;
+create(NG);
+NG.dat(:,:,:,:)    = g;
 
 for it=1:numel(job.param),
     param = job.param(it);
@@ -56,6 +81,7 @@ for it=1:numel(job.param),
              param.fmg.cyc, param.fmg.its, param.K, param.sym];
     drawnow
 
+    ng = zeros(size(g),'single');
     for i=1:n2,
         f = zeros([dm n1],'single');
         for j=1:n1,
@@ -70,8 +96,20 @@ for it=1:numel(job.param),
             u = dartel3(u,f,g,prm);
             drawnow
         end;
+
         NU(i).dat(:,:,:,:,:) = reshape(u,[dm 1 3]);
+        y  = dartel3('Exp',u,[param.K -1]);
+        clear u
+        drawnow;
+        for j=1:n1,
+            ng(:,:,:,j) = ng(:,:,:,j) + dartel3('samp',f(:,:,:,j),y);
+            drawnow
+        end;
+        clear y
     end;
+    g  = single(ng/n2);
+    clear ng;
+    NG.dat(:,:,:,:)    = g;
     drawnow
 end;
 

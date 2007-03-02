@@ -8,7 +8,7 @@ function job = spm_config_dartel
 
 if spm_matlab_version_chk('7') < 0,
     job = struct('type','const',...
-                 'name','DARTEL (Need MATLAB 7 onwards)',...
+                 'name','Need MATLAB 7 onwards',...
                  'tag','old_matlab',...
                  'val',...
           {{['This toolbox needs MATLAB 7 or greater.  '...
@@ -195,7 +195,7 @@ params.help = {[...
 'involve updatuing the average(s).']};
 params.num = [1 Inf];
 %------------------------------------------------------------------------
-data = files('Images','images','image',[2 Inf]);
+data = files('Images','images','image',[1 Inf]);
 data.help = {...
 ['Select images of the same modality to be registered by minimising the '...
  'sum of squares difference from their average.']};
@@ -208,8 +208,13 @@ data.help = {...
  'For example, the first set may be a bunch of grey matter images, '...
  'and the second set may be the white matter images of the same subjects.']};
 %------------------------------------------------------------------------
-warp = branch('Run DARTEL','warp',{data,params});
-warp.prog = @spm_dartel_run;
+template = files('Template','template','nifti',[0 1]);
+template.val = {{}};
+template.help = {...
+['Select template.  If empty, then a template will be iteratively generated.']};
+%------------------------------------------------------------------------
+warp = branch('Run DARTEL','warp',{data,template,params});
+warp.prog = @run_dartel;
 warp.help = {'Run the DARTEL nonlinear image registration procedure.'};
 %------------------------------------------------------------------------
 
@@ -338,4 +343,10 @@ function vf = vfiles_initial_import(job)
 vf = {};
 %_______________________________________________________________________
 
+function run_dartel(job)
+if isempty(job.template{1}),
+    spm_dartel_template(job);
+else
+    spm_dartel_run(job);
+end;
 
