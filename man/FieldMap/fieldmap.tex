@@ -2,7 +2,7 @@
 
 \section{Introduction}
 
-This manual describes how to use the FieldMap toolbox\footnote{
+This chapter describes how to use the FieldMap toolbox\footnote{
 FieldMap Version 2.0 can now be downloaded as part SPM5:
 \url{http://www.fil.ion.ucl.ac.uk/spm/software}
 FieldMap Version 1.1 for SPM2 can be downloaded from
@@ -44,9 +44,10 @@ The FieldMap Toolbox GUI is shown on the left Figure \ref{FM1}. It is divided in
 Select the defaults file from which to load default parameters. If necessary, the parameters used to create the field map can be temporarily modified using the GUI. To change the default parameters, edit spm\_defaults.m or create a new file called spm\_defaults\_NAME.m (as described in Section \ref{SPMDEF}).
 
 \subsubsection{Data Input Format}
-PM – The acquired field map images are in phase and magnitude format. There may be a single pair of phase and magnitude images (i.e. 2 images) in which case the phase image has been created by the vendor sequence from two echo times acquisitions. Alternatively there may be two pairs of phase and magnitude images, one for each echo time(ie 4 images). The units for the phase images MUST BE RADIANS BETWEEN +pi and -pi. FieldMap version 1.1 and 2.0 will ask user if this is required when the images are selected.
-RI – The acquired field map images are in real and imaginary format. Two pairs of real and imaginary image volumes, one for a shorter and one for a longer echo time (ie 4 images).
-NB If using SPM2, the data input format can only be changed by editing the spm\_defaults.m file. This is described in Section \ref{SPMDEF}.
+{\bf PM} The acquired field map images are in phase and magnitude format. There may be a single pair of phase and magnitude images (i.e. 2 images) in which case the phase image has been created by the vendor sequence from two echo times acquisitions. Alternatively there may be two pairs of phase and magnitude images, one for each echo time(ie 4 images). The units for the phase images MUST BE RADIANS BETWEEN +pi and -pi. FieldMap version 1.1 and 2.0 will ask user if this is required when the images are selected.
+
+{\bf RI} The acquired field map images are in real and imaginary format. Two pairs of real and imaginary image volumes, one for a shorter and one for a longer echo time (ie 4 images)\footnote{
+NB If using SPM2, the data input format can only be changed by editing the spm\_defaults.m file. This is described in Section \ref{SPMDEF}.}.
 
 \subsubsection{File Selection}
 Select Analyze format images for SPM2 and Nifti format images for SPM5. Generally, the acquired scanner files will be in dicom format which can be correctly converted using the dicom converter in the corresponding version of SPM. DICOM and other image formats can also be converted to using MRIcro\footnote{MRIcro is freely available from \url{http://www.cla.sc.edu/psyc/faculty/rorden/mricro.html}.}.
@@ -82,7 +83,7 @@ Calculate an unwrapped field map in Hz which is stored in memory. This represent
 \item{Smoothing and dilation of the processed fieldmap}
 \end{enumerate}
 
-The processed field map (in Hz) is displayed in the graphics window (top row, right Figure \ref{FM1}) and the field at different points can be explored. The field map in Hz is converted to a VDM (voxel displacement map) using the parameters shown in the FieldMap GUI and saved with the filename vdm\_NAME-OF-FIRST-INPUT-IMAGE.img (or vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img for version 2.0) in the same directory as the acquired field map images. The VDM file is overwritten whenever the field map is recalculated or when any parameters are changed. The resulting VDM file can be used for unwarping the EPI using Realign \& Unwarp in SPM2 or SPM5 (see Section \ref{VDMuse}).
+The processed field map (in Hz) is displayed in the graphics window (top row, right Figure \ref{FM1}) and the field at different points can be explored. The field map in Hz is converted to a VDM (voxel displacement map) using the parameters shown in the FieldMap GUI and saved with the filename vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img (or vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img for version 2.0) in the same directory as the acquired field map images. The VDM file is overwritten whenever the field map is recalculated or when any parameters are changed. The resulting VDM file can be used for unwarping the EPI using Realign \& Unwarp in SPM2 or SPM5 (see Section \ref{VDMuse}).
 
 \subsubsection{Write}
 Write out the processed field map (in Hz) as an Analyze format image in SPM2 or a Nifti format image in SPM5. The image will be saved with the filename fpm\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images.
@@ -96,7 +97,7 @@ Interrogate the value of the field map in Hz at the location specified by the mo
 
 \subsection{Create voxel displacement map (VDM) and unwarp EPI}
 
-When any of the parameters below are changed, a new VDM is created and written out as vdm\_NAME-OF-FIRST-INPUT-IMAGE.img. The vdm\_NAME-OF-FIRST-INPUT-IMAGE.mat file is not updated unless 'Match VDM to EPI' is selected as described in Section \ref{VDMmatch}.
+When any of the parameters below are changed, a new VDM is created and written out as vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img. The vdm5\_NAME-OF-FIRST-INPUT-IMAGE.mat file is not updated unless 'Match VDM to EPI' is selected as described in Section \ref{VDMmatch}.
 
 \subsubsection{EPI-based field map - Yes/No}
 Select Yes if the field map is based on EPI data or No otherwise. Most scanner vendor field map sequences are non-EPI.
@@ -179,10 +180,10 @@ where
 
 NB: FieldMap will match the field map to the first epi image in the time series (after removing the dummy scans). Therefore, epi\_dir must be the directory that contains the epi run that all other images will be realigned to.
 
-The script will create an fpm* file, a vdm* file and an unwarped version of the EPI saved with the prescript ``u''.
+The script will create an fpm* file, a vdm5\_* file and an unwarped version of the EPI saved with the prescript ``u''.
 
 \section{Using the VDM file with Unwarp \label{VDMuse}}
-In SPM, select the Realign + Unwarp option. When requested, select the vdm\_\* or vdm5\_\* file for the subject and/or session. If you acquired more than one session and a field map for each session, select the vdm file for each corresponding session. If you acquired more than one session but only one fieldmap, select the vdm file for the first session and then when asked to select the vdm file for the other sessions, select the first one again. For more information about Unwarp see \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/unwarp}.
+In SPM, select the Realign + Unwarp option. When requested, select the vdm5\_\* or vdm5\_\* file for the subject and/or session. If you acquired more than one session and a field map for each session, select the vdm5\_* file for each corresponding session. If you acquired more than one session but only one fieldmap, select the vdm5\_* file for the first session and then when asked to select the vdm5\_* file for the other sessions, select the first one again. For more information about Unwarp see \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/unwarp}.
 
 \section{Appendices\label{FMAppendix}}
 
@@ -213,7 +214,7 @@ Processing field maps involves a series of steps for which certain parameters in
 }
 \item{Jacobian Modulation can be applied to the unwarped EPI image. This modulates the intensity of the unwarped image so that in regions where voxels were compressed, the intensity is decresed and where voxels were stretched, the intensities are increased slightly. The modulation involves multiplying the unwarped EPI by 1 + the 1-d derivative of the VDM in the phase direction. An intensity adjustment of this nature may improve the coregistration results between an unwarped EPI and an undistorted image. This is specified by spm\_def.DO\_JACOBIAN\_MODULATION = 0 or 1.   
 }
-\item{When any of the above conversion parameters are changed or a new EPI is selected, a new VDM is created and saved with the filename vdm\_NAME-OF-FIRST-INPUT-IMAGE.img. Any previous copy of the .img file is overwritten, but the corresponding .mat file is retained. It is done this way because the VDM may have already been coregiseterd to the EPI (as described below). Then, for an EPI-based VDM, the match between the VDM and the EPI will still be valid even if any of the above parameters have been changed. If the VDM is non-EPI-based and any of the above parameters are changed, the match between the VDM and the EPI may no longer be valid. In this case a warning is given to the user that it may be necessary to perform the coregistration again.
+\item{When any of the above conversion parameters are changed or a new EPI is selected, a new VDM is created and saved with the filename vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img. Any previous copy of the .img file is overwritten, but the corresponding .mat file is retained. It is done this way because the VDM may have already been coregiseterd to the EPI (as described below). Then, for an EPI-based VDM, the match between the VDM and the EPI will still be valid even if any of the above parameters have been changed. If the VDM is non-EPI-based and any of the above parameters are changed, the match between the VDM and the EPI may no longer be valid. In this case a warning is given to the user that it may be necessary to perform the coregistration again.
 }
 \end{enumerate}
  
