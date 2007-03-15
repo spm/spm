@@ -51,7 +51,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 708 2006-12-07 16:55:02Z john $
+% $Id: spm_jobman.m 769 2007-03-15 15:35:56Z volkmar $
 
 
 if nargin==0
@@ -1435,9 +1435,19 @@ c = get(batch_box,'UserData');
 try
 run_struct1(c);
 catch
-        disp('Error running job:');
-        disp(lasterr);
-        setup_ui(job);
+    disp('Error running job:');
+    l = lasterror;
+    disp(l.message);
+    for k = 1:numel(l.stack)
+	fprintf('In file "%s", function "%s" at line %d.\n', ...
+		l.stack(k).file, l.stack(k).name, l.stack(k).line);
+    end;
+    setup_ui(job);
+    if spm_matlab_version_chk('7') >= 0
+       rethrow(l);
+    else
+       disp(lasterr);
+    end;
 end;        
 disp('--------------------------');
 disp('Done.');
