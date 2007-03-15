@@ -4,7 +4,7 @@ function conf = spm_config_fmri_data
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_data.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_config_fmri_data.m 766 2007-03-15 14:09:30Z volkmar $
 
 
 % Define inline types.
@@ -137,5 +137,5 @@ return
 
 %-------------------------------------------------------------------------
 function vf = vfiles_stats(job)
-direc = job.dir{1};
-vf    = {spm_select('CPath','SPM.mat',direc)};
+vf    = job.spmmat;
+
