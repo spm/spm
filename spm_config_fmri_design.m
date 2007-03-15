@@ -4,7 +4,7 @@ function conf = spm_config_fmri_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_design.m 664 2006-10-24 11:50:03Z volkmar $
+% $Id: spm_config_fmri_design.m 764 2007-03-15 13:56:12Z volkmar $
 
 
 % Define inline types.
@@ -113,7 +113,7 @@ ply.help = {[...
 
 %-------------------------------------------------------------------------
 
-pother = branch('Parameter','mod',{name,param,ply},'Custom parameter');
+pother = branch('Parameter','pmod',{name,param,ply},'Custom parameter');
 p1 = [...
     'Model interractions with user specified parameters. ',...
     'This allows nonlinear effects relating to some other measure ',...
@@ -129,8 +129,8 @@ p2 = [...
 pother.help = {p1,'',p2};
 
 %-------------------------------------------------------------------------
-mod      = repeat('Parametric Modulations','mod',{pother},'');
-mod.help = {[...
+pmod      = repeat('Parametric Modulations','pmod',{pother},'');
+pmod.help = {[...
     'The stick function itself can be modulated by some parametric variate ',...
     '(this can be time or some trial-specific variate like reaction time) ',...
     'modeling the interaction between the trial and the variate. ',...
@@ -143,7 +143,7 @@ name.val = {'Trial'};
 
 %-------------------------------------------------------------------------
 
-cond  = branch('Condition','cond',{name,onset,duration,time_mod,mod},...
+cond  = branch('Condition','cond',{name,onset,duration,time_mod,pmod},...
     'Condition');
 cond.check = @cond_check;
 cond.help = {[...
@@ -191,21 +191,50 @@ p4=['Time and Parametric effects can also be included. For time modulation ',...
     'specifies the order of time modulation from 0 = No Time Modulation to ',...
     '6 = 6th Order Time Modulation. eg. tmod{3} = 1, modulates the 3rd condition ',...
     'by a linear time effect.'];
-p5=['For parametric modulation include a structure array (1 x n) called mod. Mod must ',...
-    'have the fields name, param and poly. For example, an empty mod structure ',...
-    'of size 1 x 5 can be setup using either of the following commands:'];
-p6=[' [mod(5)]=deal(struct(''name'','''',''param'',[],''poly'',[]));'];
-p7=['or'];
-p8=[' mod=repmat(struct(''name'','''',''param'',[],''poly'',[]),1,5));'];
-p9=['name is self explanatory. It should be a string; param- is the parametric ',...
-    'variable, and poly- is the order of polynomial expansion from 1 to 6. eg. ',...
-    'mod(2).name=''myParameter'', mod(2).param=[-1 0 1], mod(2).poly=1, ',...
-    'specifies parametric modulation of the second condition by the parameter ',...
-    'myParameter. mod(i).param must be the same size as the ith cell array in ',...
-    'onsets, and should be mean corrected. Unused structs should have all fields ',...
-    'left empty.'];
+p5=['For parametric modulation include a structure array, which is up to 1 x n in size, ',...
+    'called pmod. n must be less than or equal to the number of cells in the ',...
+    'names/onsets/durations cell arrays. The structure array pmod must have the fields: ',...
+    'name, param and poly.  Each of these fields is in turn a cell array to allow the ',...
+    'inclusion of one or more parametric effects per column of the design. The field ',...
+    'name must be a cell array containing strings. The field param is a cell array ',...
+    'containing a vector of parameters. Remember each parameter must be the same length as its ',...
+    'corresponding onsets vector. The field poly is a cell array (for consistency) ',...
+    'with each cell containing a single number specifying the order of the polynomial ',...
+    'expansion from 1 to 6.'];
+p6=['Note that each condition is assigned its corresponding ',...
+    'entry in the structure array (condition 1 parametric modulators are in pmod(1), ',...
+    'condition 2 parametric modulators are in pmod(2), etc. Within a condition ',...
+    'multiple parametric modulators are accessed via each fields cell arrays. ',...
+    'So for condition 1, parametric modulator 1 would be defined in  ',...
+    'pmod(1).name{1}, pmod(1).param{1}, and pmod(1).poly{1}. A second parametric ',...
+    'modulator for condition 1 would be defined as pmod(1).name{2}, pmod(1).param{2} ',...
+    'and pmod(1).poly{2}. If there was also a parametric modulator for condition 2, ',...
+    'then remember the first modulator for that condition is in cell array 1: ',...
+    'pmod(2).name{1}, pmod(2).param{1}, and pmod(2).poly{1}. If some, but not ',...
+    'all conditions are parametrically modulated, then the non-modulated indices ',...
+    'in the pmod structure can be left blank. For example, if conditions 1 and 3 but ',...
+    'not condition 2 are modulated, then specify pmod(1) and pmod(3). ',...
+    'Similarly, if conditions 1 and 2 are modulated but there are 3 conditions ',...
+    'overall, it is only necessary for pmod to be a 1 x 2 structure array.'];
+p7=['EXAMPLE:'];
+p8=['Make an empty pmod structure: '];
+p9=['  pmod = struct(''name'',{''''},''param'',{},''poly'',{});'];
+p10=['Specify one parametric regressor for the first condition: '];
+p11=['  pmod(1).name{1}  = ''regressor1'';'];
+p12=['  pmod(1).param{1} = [1 2 4 5 6];'];
+p13=['  pmod(1).poly{1}  = 1;'];
+p14=['Specify 2 parametric regressors for the second condition: '];
+p15=['  pmod(2).name{1}  = ''regressor2-1'';'];
+p16=['  pmod(2).param{1} = [1 3 5 7]; '];
+p17=['  pmod(2).poly{1}  = 1;'];
+p18=['  pmod(2).name{2}  = ''regressor2-2'';'];
+p19=['  pmod(2).param{2} = [2 4 6 8 10];'];
+p20=['  pmod(2).poly{2}  = 1;'];
+p21=['The parametric modulator should be mean corrected if appropriate. Unused ',...
+    'structure entries should have all fields left empty.'];
     
-multi.help = {p1,sp_text,p2,sp_text,p3,sp_text,p4,sp_text,p5,p6,p7,p8,p9};
+multi.help = {p1,sp_text,p2,sp_text,p3,sp_text,p4,sp_text,p5,sp_text,p6,...
+    sp_text,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20,sp_text,p21};
 multi.val={''};
 
 
@@ -604,10 +633,10 @@ if (numel(job.onset) ~= numel(job.duration)) && (numel(job.duration)~=1),
     t = {sprintf('"%s": Number of event onsets (%d) does not match the number of durations (%d).',...
         job.name, numel(job.onset),numel(job.duration))};
 end;
-for i=1:numel(job.mod),
-    if numel(job.onset) ~= numel(job.mod(i).param),
+for i=1:numel(job.pmod),
+    if numel(job.onset) ~= numel(job.pmod(i).param),
         t = {t{:}, sprintf('"%s" & "%s":Number of event onsets (%d) does not equal the number of parameters (%d).',...
-            job.name, job.mod(i).name, numel(job.onset),numel(job.mod(i).param))};
+            job.name, job.pmod(i).name, numel(job.onset),numel(job.pmod(i).param))};
     end;
 end;
 return;
@@ -747,17 +776,17 @@ for i = 1:numel(job.sess),
     if ~isempty(sess.multi{1})
         try
             multicond = load(sess.multi{1});
-        
+	catch
             error('Cannot load %s',sess.multi{1});
         end
-        try
-            multicond.names;
-            multicond.onsets;
-            multicond.durations;
-        catch
+        if ~all(isfield(multicond,{'names','onsets','durations'})) || ...
+		~all([numel(multicond.names),numel(multicond.onsets), ...
+		      numel(multicond.durations)]==numel(multicond.names))
             error(['Multiple conditions MAT-file ''%s'' is invalid.\n',...
-                'File must contain names, onsets, and durations cell arrays.\n'],sess.multi{1});
+		   'File must contain names, onsets, and durations '...
+		   'cell arrays of equal length.\n'],sess.multi{1});
         end
+	
         %-contains three cell arrays: names, onsets and durations
         for j=1:length(multicond.onsets)
             cond.name     = multicond.names{j};
@@ -765,32 +794,42 @@ for i = 1:numel(job.sess),
             cond.duration = multicond.durations{j};
             
             % ADDED BY DGITELMAN
-            % Mutiple Conditions Time and Parametric Modulation
+            % Mutiple Conditions Time Modulation
             %------------------------------------------------------
+            % initialize the variable.
+            cond.tmod = 0;
             if isfield(multicond,'tmod');
                 try
                     cond.tmod = multicond.tmod{j};
                 catch
                     error('Error specifying time modulation.');
                 end
-            else
-                cond.tmod     = 0;
             end
-            if isfield(multicond,'mod')
-                try
-                    if ~isempty(multicond.mod(j).name)  && ...
-                            ~isempty(multicond.mod(j).param)  && ...
-                            ~isempty(multicond.mod(j).poly)
 
-                        cond.mod = multicond.mod(j);
-                    else
-                        cond.mod = {};
-                    end
+            % Mutiple Conditions Parametric Modulation
+            %------------------------------------------------------
+            % initialize the parametric modulation variable.
+            cond.pmod = [];
+            if isfield(multicond,'pmod')
+                % only access existing modulators
+                try
+                    % check if there is a parametric modulator. this allows
+                    % pmod structures with fewer entries than conditions.
+                    % then check whether any cells are filled in.
+                    if (j <= numel(multicond.pmod)) && ...
+                            ~isempty(multicond.pmod(j).name)
+
+                        % we assume that the number of cells in each
+                        % field of pmod is the same (or should be).
+                        for ii = 1:numel(multicond.pmod(j).name)
+                            cond.pmod(ii).name  = multicond.pmod(j).name{ii};
+                            cond.pmod(ii).param = multicond.pmod(j).param{ii};
+                            cond.pmod(ii).poly  = multicond.pmod(j).poly{ii};
+                        end
+                    end;
                 catch
                     error('Error specifying parametric modulation.');
                 end
-            else
-                cond.mod = {};
             end
             sess.cond(end+1) = cond;
         end
@@ -818,13 +857,15 @@ for i = 1:numel(job.sess),
             P(1).h    = cond.tmod;
             q1        = 1;
         end;
-        for q = 1:numel(cond.mod),
-            % Parametric effects
-            q1 = q1 + 1;
-            P(q1).name = cond.mod(q).name;
-            P(q1).P    = cond.mod(q).param;
-            P(q1).h    = cond.mod(q).poly;
-        end;
+        if ~isempty(cond.pmod)
+            for q = 1:numel(cond.pmod),
+                % Parametric effects
+                q1 = q1 + 1;
+                P(q1).name = cond.pmod(q).name;
+                P(q1).P    = cond.pmod(q).param(:);
+                P(q1).h    = cond.pmod(q).poly;
+            end;
+        end
         if isempty(P)
             P.name = 'none';
             P.h    = 0;
@@ -870,7 +911,6 @@ for i = 1:numel(job.sess),
     end
     SPM.Sess(i).C.C    = C;
     SPM.Sess(i).C.name = Cname;
-
 
 end
 
