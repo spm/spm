@@ -450,7 +450,7 @@ function varargout=spm_conman(varargin)
 %_______________________________________________________________________
 %                                  ConMan: Contrast definition interface
 %
-% To defina a contrast, you must specify:
+% To define a contrast, you must specify:
 %  1) a name
 %  2) the statistic type: "t-contrast" for SPM{T} or "F-contrast" for SPM{F}
 %  3) a valid set of contrast weights
@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_conman.m 765 2007-03-15 13:57:33Z volkmar $
 
 
 %=======================================================================
@@ -635,7 +635,7 @@ function varargout=spm_conman(varargin)
 %              changed. If false, then new contrasts cannot be defined, and
 %              existing contrasts cannot be renamed.
 %
-% I          - Index (or indidies) of contrasts selected
+% I          - Index (or indices) of contrasts selected
 %
 % xCon (out) - Contrast definitions structure array (updated)
 %

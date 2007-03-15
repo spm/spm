@@ -21,11 +21,11 @@ function [strout,R2] = spm_str_manip(strin,options)
 %       ['k' num2str(n)] - produce a string of at most n characters long.
 %                          If the input string is longer than n, then
 %                          it is prefixed with '..' and the last n-2 characters
+%                          are returned.
 %       ['a' num2str(n)] - similar to above - except the leading directories
 %                          are replaced by './'.
 %                          eg. spm_str_manip('/dir1/dir2/file.img','a16') would
 %                          produce '../dir2/file.img'.
-%                          are returned.
 %       'v'              - delete non valid filename characters
 %                          Valid are '.a..zA..Z01..9_-: ' & filesep
 %       'p'              - canonicalise pathname (see spm_select('CPath',strin))
@@ -43,7 +43,7 @@ function [strout,R2] = spm_str_manip(strin,options)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_str_manip.m 434 2006-02-15 13:46:45Z john $
+% $Id: spm_str_manip.m 765 2007-03-15 13:57:33Z volkmar $
 
 
 if nargin<2, options=''; end
