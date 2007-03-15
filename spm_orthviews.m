@@ -58,16 +58,18 @@ function varargout = spm_orthviews(action,varargin)
 % XYZ      - blob voxel locations (currently in millimeters)
 % Z        - blob voxel intensities
 % mat      - matrix from millimeters to voxels of blob.
+% name     - a name for this blob
 % This method only adds one set of blobs, and displays them using a
 % split colour table.
 %
-% FORMAT spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour)
+% FORMAT spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour,name)
 % Adds blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
 % XYZ      - blob voxel locations (currently in millimeters)
 % Z        - blob voxel intensities
 % mat      - matrix from millimeters to voxels of blob.
 % colour   - the 3 vector containing the colour that the blobs should be
+% name     - a name for this blob
 % Several sets of blobs can be added in this way, and it uses full colour.
 % Although it may not be particularly attractive on the screen, the colour
 % blobs print well.
@@ -112,7 +114,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 750 2007-02-28 10:55:02Z volkmar $
+% $Id: spm_orthviews.m 768 2007-03-15 14:19:34Z volkmar $
 
 
 
@@ -326,11 +328,11 @@ case 'register',
 	register(varargin{1});
 
 case 'addblobs',
-	addblobs(varargin{1}, varargin{2},varargin{3},varargin{4});
+	addblobs(varargin{:});
 	% redraw(varargin{1});
 
 case 'addcolouredblobs',
-	addcolouredblobs(varargin{1}, varargin{2},varargin{3},varargin{4},varargin{5});
+	addcolouredblobs(varargin{:});
 	% redraw(varargin{1});
 
 case 'addimage',
@@ -428,8 +430,11 @@ return;
 
 %_______________________________________________________________________
 %_______________________________________________________________________
-function addblobs(handle, xyz, t, mat)
+function addblobs(handle, xyz, t, mat, name)
 global st
+if nargin < 5
+    name = '';
+end;
 for i=valid_handles(handle),
 	if ~isempty(xyz),
 		rcp      = round(xyz);
@@ -446,7 +451,7 @@ for i=valid_handles(handle),
 		end;
 		mx = max([eps max(t)]);
 		mn = min([0 min(t)]);
-		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'max',mx, 'min',mn);
+		st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'max',mx, 'min',mn,'name',name);
 		addcolourbar(handle,1);
 	end;
 end;
