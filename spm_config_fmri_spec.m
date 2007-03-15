@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 742 2007-02-19 03:56:48Z Darren $
+% $Id: spm_config_fmri_spec.m 767 2007-03-15 14:17:18Z volkmar $
 
 
 % Define inline types.
@@ -794,14 +794,15 @@ for i = 1:numel(job.sess),
         catch
             error('Cannot load %s',sess.multi{1});
         end
-        try
-            multicond.names;
-            multicond.onsets;
-            multicond.durations;
-        catch
+        if ~(isfield(multicond,'names')&&isfield(multicond,'onsets')&&...
+	     isfield(multicond,'durations')) || ...
+		~all([numel(multicond.names),numel(multicond.onsets), ...
+		      numel(multicond.durations)]==numel(multicond.names))
             error(['Multiple conditions MAT-file ''%s'' is invalid.\n',...
-                'File must contain names, onsets, and durations cell arrays.\n'],sess.multi{1});
+		   'File must contain names, onsets, and durations '...
+		   'cell arrays of equal length.\n'],sess.multi{1});
         end
+	
         %-contains three cell arrays: names, onsets and durations
         for j=1:length(multicond.onsets)
             cond.name     = multicond.names{j};
@@ -841,7 +842,7 @@ for i = 1:numel(job.sess),
                             cond.pmod(ii).param = multicond.pmod(j).param{ii};
                             cond.pmod(ii).poly  = multicond.pmod(j).poly{ii};
                         end
-                    end
+                    end;
                 catch
                     error('Error specifying parametric modulation.');
                 end

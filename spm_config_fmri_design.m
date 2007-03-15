@@ -4,7 +4,7 @@ function conf = spm_config_fmri_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_design.m 764 2007-03-15 13:56:12Z volkmar $
+% $Id: spm_config_fmri_design.m 767 2007-03-15 14:17:18Z volkmar $
 
 
 % Define inline types.
@@ -779,7 +779,8 @@ for i = 1:numel(job.sess),
 	catch
             error('Cannot load %s',sess.multi{1});
         end
-        if ~all(isfield(multicond,{'names','onsets','durations'})) || ...
+        if ~(isfield(multicond,'names')&&isfield(multicond,'onsets')&&...
+	     isfield(multicond,'durations')) || ...
 		~all([numel(multicond.names),numel(multicond.onsets), ...
 		      numel(multicond.durations)]==numel(multicond.names))
             error(['Multiple conditions MAT-file ''%s'' is invalid.\n',...
