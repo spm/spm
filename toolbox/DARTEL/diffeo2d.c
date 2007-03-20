@@ -209,6 +209,72 @@ void composition_jacobian(int dm[],
     }
 }
 
+void composition_detjac(int dm[],
+                     double *A, double *dA, double *B, double *dB,
+                     double *C, double *dC)
+{
+    double *Ax, *Ay;
+    double *Bx, *By, jb;
+    double *Cx, *Cy;
+    int i, m = dm[0], n = dm[1], mm = m*n;
+    Ax   =   A;
+    Ay   =  &A[mm];
+
+    Bx   =   B;
+    By   =  &B[mm];
+
+    Cx   =   C;
+    Cy   =  &C[mm];
+
+    for(i=0; i<mm; i++)
+    {
+        double x, y;
+        double k11,k12,k21,k22;
+        double dx1, dx2, dy1, dy2;
+        int ix, iy, ix1, iy1, o11,o12,o21,o22;
+
+        x    = Ax[i]-1.0;
+        y    = Ay[i]-1.0;
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        ix   = WRAP(ix,m);
+        iy   = WRAP(iy,n);
+        ix1  = WRAP(ix+1,m);
+        iy1  = WRAP(iy+1,n);
+        o22  = ix  + m*iy;
+        o12  = ix1 + m*iy;
+        o21  = ix  + m*iy1;
+        o11  = ix1 + m*iy1;
+
+        k22  = Bx[o22]-1.0;
+        k12  = Bx[o12]-1.0;
+        k21  = Bx[o21]-1.0;
+        k11  = Bx[o11]-1.0;
+        k12  = k12-floor((k12-k22)/m+0.5)*m;
+        k21  = k21-floor((k21-k22)/m+0.5)*m;
+        k11  = k11-floor((k11-k22)/m+0.5)*m;
+        Cx[i]= (k22*dx2 + k12*dx1)*dy2 + (k21*dx2 + k11*dx1)*dy1 + 1.0;
+
+        k22  = By[o22]-1.0;
+        k12  = By[o12]-1.0;
+        k21  = By[o21]-1.0;
+        k11  = By[o11]-1.0;
+        k12  = k12-floor((k12-k22)/n+0.5)*n;
+        k21  = k21-floor((k21-k22)/n+0.5)*n;
+        k11  = k11-floor((k11-k22)/n+0.5)*n;
+        Cy[i]= (k22*dx2 + k12*dx1)*dy2 + (k21*dx2 + k11*dx1)*dy1 + 1.0;
+
+        k22  = dB[o22];
+        k12  = dB[o12];
+        k21  = dB[o21];
+        k11  = dB[o11];
+        jb   =  (k22*dx2 + k12*dx1)*dy2 + (k21*dx2 + k11*dx1)*dy1;
+
+        dC[i] = jb*dA[i];
+    }
+}
+
+
 double samp(int dm[], double f[], double x, double y)
 {
     int ix, iy, ix1, iy1, o11, o12, o21, o22;
@@ -260,6 +326,75 @@ void expdef(int dm[], int k, double v[], double t0[], double t1[], double J0[], 
         {
             double *tmpp;
             composition_jacobian(dm, t0, J0, t0, J0, t1, J1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+            tmpp = J0; J0   = J1; J1   = tmpp;
+        }
+    }
+    else
+    {
+        for(j=0; j<dm[1]; j++)
+        {
+            for(i=0; i<dm[0]; i++)
+            {
+                int o   = i+dm[0]* j;
+                t0[o  ] = (i+1) + v[o  ]*td;
+                t0[o+m] = (j+1) + v[o+m]*td;
+            }
+        }
+        for(i=0; i<k; i++)
+        {
+            double *tmpp;
+            composition(dm, t0, t0, t1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+        }
+    }
+
+    if (optr != t0)
+    {
+        for(i=0; i<2*m; i++)
+            t1[i] = t0[i];
+
+        if (J0!=(double *)0)
+            for(i=0; i<4*m; i++)
+                J1[i] = J0[i];
+    }
+}
+
+void expdefdet(int dm[], int k, double v[], double t0[], double t1[], double J0[], double J1[])
+{
+    double *optr;
+    double td;
+    int m = dm[0]*dm[1];
+    int i, j;
+
+    optr = t0;
+
+    td = 1;
+    for(i=0; i<k; i++)
+        td = td*2;
+    td = 1.0/td;
+
+    if(J0!=(double *)0)
+    {
+        for(j=0; j<dm[1]; j++)
+        {
+            for(i=0; i<dm[0]; i++)
+            {
+                double j00,j01,j10,j11;
+                int o   = i+dm[0]* j;
+                t0[o  ] = (i+1) + v[o  ]*td;
+                t0[o+m] = (j+1) + v[o+m]*td;
+                j00     = (v[WRAP(i+1,dm[0])+dm[0]*j  ]-v[WRAP(i-1,dm[0])+dm[0]*j  ])*td/2 + 1.0;
+                j10     = (v[WRAP(i+1,dm[0])+dm[0]*j+m]-v[WRAP(i-1,dm[0])+dm[0]*j+m])*td/2;
+                j01     = (v[i+dm[0]*WRAP(j+1,dm[1])  ]-v[i+dm[0]*WRAP(j-1,dm[1])  ])*td/2;
+                j11     = (v[i+dm[0]*WRAP(j+1,dm[1])+m]-v[i+dm[0]*WRAP(j-1,dm[1])+m])*td/2 + 1.0;
+                J0[o]   = j00*j11 - j10*j01;
+            }
+        }
+        for(i=0; i<k; i++)
+        {
+            double *tmpp;
+            composition_detjac(dm, t0, J0, t0, J0, t1, J1);
             tmpp = t0; t0   = t1; t1   = tmpp;
             tmpp = J0; J0   = J1; J1   = tmpp;
         }
@@ -361,10 +496,10 @@ void jac_div_smalldef(int dm[], double sc, double v0[], double J0[])
     }
 }
 
-double initialise_objfun(int dm[], double f[], double g[], double t0[], double J0[], double b[], double A[])
+double initialise_objfun(int dm[], double f[], double g[], double t0[], double J0[], double dj[], double b[], double A[])
 {
     int j, m = dm[0]*dm[1];
-    double ssl = 0.0;
+    double ssl = 0.0, dt = 1.0;
 
     for(j=0; j<m; j++)
     {
@@ -395,14 +530,17 @@ double initialise_objfun(int dm[], double f[], double g[], double t0[], double J
         dx   = J0[j    ]*dx0 + J0[j+  m]*dy0;
         dy   = J0[j+2*m]*dx0 + J0[j+3*m]*dy0;
 
-        A[j    ] = dx*dx;
-        A[j+  m] = dy*dy;
-        A[j+2*m] = dx*dy;
+        if (dj != (double *)0)
+            dt = dj[j];
 
-        b[j  ]   = dx*d;
-        b[j+m]   = dy*d;
+        A[j    ] = dx*dx*dt;
+        A[j+  m] = dy*dy*dt;
+        A[j+2*m] = dx*dy*dt;
 
-        ssl += d*d;
+        b[j  ]   = dx*d*dt;
+        b[j+m]   = dy*d*dt;
+
+        ssl += d*d*dt;
     }
     return(ssl);
 }
@@ -559,7 +697,7 @@ int dartel_scratchsize(int dm[], int issym)
         return(m2);
 }
 
-void dartel(int dm[], int k, double v[], double g[], double f[], int rtype, double param[], double lmreg, int cycles, int nits, int issym, double ov[], double *buf)
+void dartel(int dm[], int k, double v[], double g[], double f[], double dj[], int rtype, double param[], double lmreg, int cycles, int nits, int issym, double ov[], double ll[], double *buf)
 {
     double *sbuf;
     double *b, *A, *b1, *A1;
@@ -589,14 +727,14 @@ void dartel(int dm[], int k, double v[], double g[], double f[], int rtype, doub
 
     expdef(dm, k, v, t0, t1, J0, J1);
     jac_div_smalldef(dm, sc, v, J0);
-    ssl = initialise_objfun(dm, f, g, t0, J0, b, A);
+    ssl = initialise_objfun(dm, f, g, t0, J0, dj, b, A);
     smalldef_jac(dm, -sc, v, t0, J0);
     squaring(dm, k, issym, b, A, t0, t1, J0, J1);
 
     if (issym)
     {
         jac_div_smalldef(dm, -sc, v, J0);
-        ssl += initialise_objfun(dm, g, f, t0, J0, b1, A1);
+        ssl += initialise_objfun(dm, g, f, t0, J0, (float *)0, b1, A1);
         smalldef_jac(dm, sc, v, t0, J0);
         squaring(dm, k, 0, b1, A1, t0, t1, J0, J1);
         for(j=0; j<m*2; j++) b[j] -= b1[j];
@@ -633,7 +771,8 @@ void dartel(int dm[], int k, double v[], double g[], double f[], int rtype, doub
     fmg2(dm, A, b, rtype, param, cycles, nits, sbuf, sbuf+2*m);
 
     for(j=0; j<2*m; j++) ov[j] = v[j] - sbuf[j];
-
-    printf("%g\t+ %g\t = %g\t\t%g\n", ssl,ssp,ssl+ssp, normb);
+    ll[0] = ssl;
+    ll[1] = ssp;
+    ll[2] = normb;
 }
 

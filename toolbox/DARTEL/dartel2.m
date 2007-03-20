@@ -5,8 +5,8 @@ function dartel2
 %
 % FORMAT v = dartel2(v,g,f,param)
 % v     - flow field n1*n2*2
-% g     - first image n1*n2*n3
-% f     - second image n1*n2*n3
+% g     - image    n1*n2*n3
+% f     - template n1*n2*n3
 % param - 9 parameters (settings)
 %         - [1] Regularisation type, can take values of
 %           - 0 Linear elasticity
@@ -44,13 +44,14 @@ function dartel2
 %           - 0 Linear elasticity
 %           - 1 Membrane energy
 %           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
+%         - [2][3] Pixel sizes
+%         - [4][5][6] Regularisation parameters
 %           - For Linear elasticity, the parameters
 %             are mu, lambda, and id
 %           - For membrane and bending energy, the parameters
 %             are lambda, unused and id.
-%         - [5] Tolerance.  Indicates required degree of accuracy.
-%         - [6] Maximum number of iterations.
+%         - [7] Tolerance.  Indicates required degree of accuracy.
+%         - [8] Maximum number of iterations.
 %
 % This is for solving a set of equations using a conjugate gradient
 % solver. This method is less efficient than the Full Multigrid.
@@ -67,13 +68,14 @@ function dartel2
 %           - 0 Linear elasticity
 %           - 1 Membrane energy
 %           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
+%         - [2][3] Pixel sizes
+%         - [4][5][6] Regularisation parameters
 %           - For linear elasticity, the parameters
 %             are mu, lambda, and id
 %           - For membrane and bending energy, the parameters
 %             are lambda, unused and id.
-%         - [5] Number of Full Multigrid cycles
-%         - [6] Number of relaxation iterations per cycle
+%         - [7] Number of Full Multigrid cycles
+%         - [8] Number of relaxation iterations per cycle
 %
 % Solve equations using a Full Multigrid method.  See Press et al
 % for more information.
@@ -97,7 +99,8 @@ function dartel2
 %           - 0 Linear elasticity
 %           - 1 Membrane energy
 %           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
+%         - [2][3] Pixel sizes
+%         - [4][5][6] Regularisation parameters
 %           - For linear elasticity, the parameters
 %             are mu, lambda and id.
 %           - For membrane and bending energy, the parameters

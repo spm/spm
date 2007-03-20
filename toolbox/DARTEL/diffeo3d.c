@@ -438,8 +438,6 @@ void composition_jacobian(int dm[],
         jb[2][2] = ((ptr[o000]*dx2 + ptr[o100]*dx1)*dy2 + (ptr[o010]*dx2 + ptr[o110]*dx1)*dy1)*dz2
                  + ((ptr[o001]*dx2 + ptr[o101]*dx1)*dy2 + (ptr[o011]*dx2 + ptr[o111]*dx1)*dy1)*dz1;
 
-
-
         ja0     = JA00[i];
         ja1     = JA01[i];
         ja2     = JA02[i];
@@ -460,6 +458,135 @@ void composition_jacobian(int dm[],
         JC20[i] = jb[0][0]*ja0 + jb[1][0]*ja1 + jb[2][0]*ja2;
         JC21[i] = jb[0][1]*ja0 + jb[1][1]*ja1 + jb[2][1]*ja2;
         JC22[i] = jb[0][2]*ja0 + jb[1][2]*ja1 + jb[2][2]*ja2;
+    }
+}
+
+/*
+ * Composition operation, along with Jacobian determinants
+ * C(Id)  =  B(A(Id))
+ * JC(Id) = JB(A(Id))*JA(Id)
+ */
+void composition_jacdet(int dm[],
+                     float *A, float *JA, float *B, float *JB,
+                     float *C, float *JC)
+{
+    float *Ax, *Ay, *Az;
+    float *Bx, *By, *Bz, jb;
+    float *Cx, *Cy, *Cz;
+    int i, mm = dm[0]*dm[1]*dm[2];
+
+    Ax   =  A;
+    Ay   =  A+mm;
+    Az   =  A+mm*2;
+    Bx   =  B;
+    By   =  B+mm;
+    Bz   =  B+mm*2;
+    Cx   =  C;
+    Cy   =  C+mm;
+    Cz   =  C+mm*2;
+
+    for(i=0; i<mm; i++)
+    {
+        double x, y, z;
+        double k000, k100, k010, k110, k001, k101, k011, k111;
+        double dx1, dx2, dy1, dy2, dz1, dz2;
+        int ix, iy, iz, ix1, iy1, iz1;
+        int o000, o100, o010, o110, o001, o101, o011, o111;
+        int tmpz, tmpy, n;
+
+        x    = Ax[i]-1.0;
+        y    = Ay[i]-1.0;
+        z    = Az[i]-1.0;
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+        ix   = WRAP(ix  ,dm[0]);
+        iy   = WRAP(iy  ,dm[1]);
+        iz   = WRAP(iz  ,dm[2]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        iz1  = WRAP(iz+1,dm[2]);
+
+        tmpz  = dm[1]*iz;
+        tmpy  = dm[0]*(iy + tmpz);
+        o000  = ix +tmpy;
+        o100  = ix1+tmpy;
+        tmpy  = dm[0]*(iy1 + tmpz);
+        o010  = ix +tmpy;
+        o110  = ix1+tmpy;
+        tmpz  = dm[1]*iz1;
+        tmpy  = dm[0]*(iy + tmpz);
+        o001  = ix +tmpy;
+        o101  = ix1+tmpy;
+        tmpy  = dm[0]*(iy1 + tmpz);
+        o011  = ix +tmpy;
+        o111  = ix1+tmpy;
+
+        k000  = Bx[o000]-1.0;
+        k100  = Bx[o100]-1.0;
+        k010  = Bx[o010]-1.0;
+        k110  = Bx[o110]-1.0;
+        k001  = Bx[o001]-1.0;
+        k101  = Bx[o101]-1.0;
+        k011  = Bx[o011]-1.0;
+        k111  = Bx[o111]-1.0;
+
+        n     = dm[0];
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        Cx[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        k000  = By[o000]-1.0;
+        k100  = By[o100]-1.0;
+        k010  = By[o010]-1.0;
+        k110  = By[o110]-1.0;
+        k001  = By[o001]-1.0;
+        k101  = By[o101]-1.0;
+        k011  = By[o011]-1.0;
+        k111  = By[o111]-1.0;
+
+        n     = dm[1];
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        Cy[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        k000  = Bz[o000]-1.0;
+        k100  = Bz[o100]-1.0;
+        k010  = Bz[o010]-1.0;
+        k110  = Bz[o110]-1.0;
+        k001  = Bz[o001]-1.0;
+        k101  = Bz[o101]-1.0;
+        k011  = Bz[o011]-1.0;
+        k111  = Bz[o111]-1.0;
+
+        n     = dm[0];
+        k100 -= floor((k100-k000)/n+0.5)*n;
+        k010 -= floor((k010-k000)/n+0.5)*n;
+        k110 -= floor((k110-k000)/n+0.5)*n;
+        k001 -= floor((k001-k000)/n+0.5)*n;
+        k101 -= floor((k101-k000)/n+0.5)*n;
+        k011 -= floor((k011-k000)/n+0.5)*n;
+        k111 -= floor((k111-k000)/n+0.5)*n;
+        
+        Cz[i] = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+              + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1 + 1.0;
+
+        jb    = ((JB[o000]*dx2 + JB[o100]*dx1)*dy2 + (JB[o010]*dx2 + JB[o110]*dx1)*dy1)*dz2
+              + ((JB[o001]*dx2 + JB[o101]*dx1)*dy2 + (JB[o011]*dx2 + JB[o111]*dx1)*dy1)*dz1;
+
+        JC[i] = jb * JA[i];
     }
 }
 
@@ -670,6 +797,66 @@ void smalldef_jac(int dm[], double sc, float v0[], float t0[], float J0[])
 }
 
 /*
+ * t0 = Id + v0*sc
+ * J0 = Id + |I+diag(v0)*sc|
+ */
+void smalldef_jacdet(int dm[], double sc, float v0[], float t0[], float J0[])
+{
+    int j0, j1, j2;
+    int m = dm[0]*dm[1]*dm[2];
+    double sc2 = sc/2.0;
+    float *v1 = v0+m, *v2 = v1+m;
+    
+    for(j2=0; j2<dm[2]; j2++)
+    {
+        int j2m1, j2p1;
+        j2m1 = WRAP(j2-1,dm[2]);
+        j2p1 = WRAP(j2+1,dm[2]);
+
+        for(j1=0; j1<dm[1]; j1++)
+        {
+            int j1m1, j1p1;
+            j1m1 = WRAP(j1-1,dm[1]);
+            j1p1 = WRAP(j1+1,dm[1]);
+
+            for(j0=0; j0<dm[0]; j0++)
+            {
+                int o, om1, op1;
+                double j00,j10,j20, j01,j11,j21, j02,j12,j22;
+                
+                o         = j0+dm[0]*(j1+dm[1]*j2);
+                t0[o    ] = (j0+1) + v0[o]*sc;
+                t0[o+m  ] = (j1+1) + v1[o]*sc;
+                t0[o+m*2] = (j2+1) + v2[o]*sc;
+
+                om1 = WRAP(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = WRAP(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                
+                j00 = (v0[op1]-v0[om1])*sc2 + 1.0;
+                j10 = (v1[op1]-v1[om1])*sc2;
+                j20 = (v2[op1]-v2[om1])*sc2;
+
+                om1 = j0+dm[0]*(j1m1+dm[1]*j2);
+                op1 = j0+dm[0]*(j1p1+dm[1]*j2);
+                j01 = (v0[op1]-v0[om1])*sc2;
+                j11 = (v1[op1]-v1[om1])*sc2 + 1.0;
+                j21 = (v2[op1]-v2[om1])*sc2;
+
+                om1 = j0+dm[0]*(j1+dm[1]*j2m1);
+                op1 = j0+dm[0]*(j1+dm[1]*j2p1);
+                j02 = (v0[op1]-v0[om1])*sc2;
+                j12 = (v1[op1]-v1[om1])*sc2;
+                j22 = (v2[op1]-v2[om1])*sc2 + 1.0;
+
+                J0[o] = j00*(j22*j11-j21*j12)
+                      + j01*(j12*j20-j10*j22)
+                      + j02*(j21*j10-j20*j11);
+            }
+        }
+    }
+}
+
+/*
  * J0 := J0*inv(I+diag(v0)*sc)
  */
 void jac_div_smalldef(int dm[], double sc, float v0[], float J0[])
@@ -800,7 +987,50 @@ void expdef(int dm[], int k, double sc, float v[], float t0[], float t1[], float
     }
 }
 
-double smalldef_objfun2(int dm[], float f[], float g[], float v[], double sc, float b[], float A[])
+/*
+ * Exponentiation with Jacobian determinants
+ */
+void expdefdet(int dm[], int k, double sc, float v[], float t0[], float t1[], float J0[], float J1[])
+{
+    float *optr;
+    int m = dm[0]*dm[1]*dm[2];
+    int j;
+
+    optr = t0;
+
+    if(J0!=(float *)0)
+    {
+        smalldef_jacdet(dm, sc/pow2(k), v, t0, J0);
+        for(j=0; j<k; j++)
+        {
+            float *tmpp;
+            composition_jacdet(dm, t0, J0, t0, J0, t1, J1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+            tmpp = J0; J0   = J1; J1   = tmpp;
+        }
+    }
+    else
+    {
+        smalldef(dm, sc/pow2(k), v, t0);
+        for(j=0; j<k; j++)
+        {
+            float *tmpp;
+            composition(dm, t0, t0, t1);
+            tmpp = t0; t0   = t1; t1   = tmpp;
+        }
+    }
+    if (optr != t0)
+    {
+        for(j=0; j<3*m; j++)
+            t1[j] = t0[j];
+
+        if (J0!=(float *)0)
+            for(j=0; j<m; j++)
+                J1[j] = J0[j];
+    }
+}
+
+double smalldef_objfun2(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
     int j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
@@ -814,7 +1044,7 @@ double smalldef_objfun2(int dm[], float f[], float g[], float v[], double sc, fl
         int   ix, iy, iz, ix1, iy1, iz1, k;
         double k000, k100, k010, k110, k001, k101, k011, k111;
         double dx1, dx2, dy1, dy2, dz1, dz2;
-        double d, dx, dy, dz, sd, sdx, sdy, sdz;
+        double d, dx, dy, dz, sd, sdx, sdy, sdz, ss;
         
         x    = j0 + sc*v[j    ];
         y    = j1 + sc*v[j+m  ];
@@ -841,6 +1071,7 @@ double smalldef_objfun2(int dm[], float f[], float g[], float v[], double sc, fl
         b[j+m  ] = 0.0;
         b[j+m*2] = 0.0;
 
+        ss  = 0.0;
         sd  = 0.0;
         sdx = 0.0;
         sdy = 0.0;
@@ -884,7 +1115,7 @@ double smalldef_objfun2(int dm[], float f[], float g[], float v[], double sc, fl
             b[j+m  ] -= dy*d;
             b[j+m*2] -= dz*d;
 
-            ssl += d*d;
+            ss += d*d;
         }
         A[j    ] += sdx*sdx;
         A[j+m  ] += sdy*sdy;
@@ -897,19 +1128,35 @@ double smalldef_objfun2(int dm[], float f[], float g[], float v[], double sc, fl
         b[j+m  ] -= sdy*sd;
         b[j+m*2] -= sdz*sd;
 
-        ssl += sd*sd;
+        ss += sd*sd;
+        
+        if (jd != (float *)0)
+        {
+            double dt = jd[j];
+            A[j    ] *=dt;
+            A[j+m  ] *=dt;
+            A[j+m*2] *=dt;
+            A[j+m*3] *=dt;
+            A[j+m*4] *=dt;
+            A[j+m*5] *=dt;
+            b[j    ] *=dt;
+            b[j+m  ] *=dt;
+            b[j+m*2] *=dt;
+            ss       *=dt;
+        }
+        ssl += ss;
     }
     return(ssl);
 }
 
-double smalldef_objfun(int dm[], float f[], float g[], float v[], double sc, float b[], float A[])
+double smalldef_objfun(int dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
     int j,j0,j1,j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
 
     if (dm[3]>1)
     {
-        return(smalldef_objfun2(dm, f, g, v, sc, b, A));
+        return(smalldef_objfun2(dm, f, g, v, jd, sc, b, A));
     }
 
     j = 0;
@@ -921,7 +1168,7 @@ double smalldef_objfun(int dm[], float f[], float g[], float v[], double sc, flo
         int   ix, iy, iz, ix1, iy1, iz1;
         double k000, k100, k010, k110, k001, k101, k011, k111;
         double dx1, dx2, dy1, dy2, dz1, dz2;
-        double d, dx, dy, dz;
+        double d, dx, dy, dz, dt = 1.0;
         
         x    = j0 + sc*v[j    ];
         y    = j1 + sc*v[j+m  ];
@@ -955,26 +1202,29 @@ double smalldef_objfun(int dm[], float f[], float g[], float v[], double sc, flo
         dz    = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
               - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
         
-        A[j    ] = dx*dx;
-        A[j+m  ] = dy*dy;
-        A[j+m*2] = dz*dz;
-        A[j+m*3] = dx*dy;
-        A[j+m*4] = dx*dz;
-        A[j+m*5] = dy*dz;
+        if (jd != (float *)0)
+            dt = jd[j];
+        A[j    ] = dx*dx*dt;
+        A[j+m  ] = dy*dy*dt;
+        A[j+m*2] = dz*dz*dt;
+        A[j+m*3] = dx*dy*dt;
+        A[j+m*4] = dx*dz*dt;
+        A[j+m*5] = dy*dz*dt;
         
-        b[j    ] = -dx*d;
-        b[j+m  ] = -dy*d;
-        b[j+m*2] = -dz*d;
+        b[j    ] = -dx*d*dt;
+        b[j+m  ] = -dy*d*dt;
+        b[j+m*2] = -dz*d*dt;
         
-        ssl += d*d;
+        ssl += d*d*dt;
     }
     return(ssl);
 }
 
-double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[], float b[], float A[])
+double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
     int j, m = dm[0]*dm[1]*dm[2];
-    double ssl = 0.0;
+    double ssl = 0.0, dt = 1.0;
+    
     for(j=0; j<m; j++)
     {
         double x, y, z;
@@ -982,7 +1232,7 @@ double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[]
         double k000, k100, k010, k110, k001, k101, k011, k111;
         double dx0, dx1, dx2, dy0, dy1, dy2, dz0, dz1, dz2;
         double d, dx, dy, dz;
-        double sd, sdx, sdy, sdz;
+        double sd, sdx, sdy, sdz, ss;
 
         x    = t0[j    ]-1.0;
         y    = t0[j+m  ]-1.0;
@@ -1008,6 +1258,7 @@ double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[]
         b[j+m  ] = 0.0;
         b[j+m*2] = 0.0;
 
+        ss  = 0.0;
         sd  = 0.0;
         sdx = 0.0;
         sdy = 0.0;
@@ -1055,7 +1306,7 @@ double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[]
             b[j+m  ] += dy*d;
             b[j+m*2] += dz*d;
 
-            ssl += d*d;
+            ss += d*d;
         }
         A[j    ] += sdx*sdx;
         A[j+m  ] += sdy*sdy;
@@ -1068,19 +1319,35 @@ double initialise_objfun2(int dm[], float f[], float g[], float t0[], float J0[]
         b[j+m  ] += sdy*sd;
         b[j+m*2] += sdz*sd;
 
-        ssl += sd*sd;
+        ss += sd*sd;
+        
+        if (jd != (float *)0)
+        {
+            double dt = jd[j];
+            A[j    ] *=dt;
+            A[j+m  ] *=dt;
+            A[j+m*2] *=dt;
+            A[j+m*3] *=dt;
+            A[j+m*4] *=dt;
+            A[j+m*5] *=dt;
+            b[j    ] *=dt;
+            b[j+m  ] *=dt;
+            b[j+m*2] *=dt;
+            ss       *=dt;
+        }
+        ssl += ss;
     }
     return(ssl);
 }
 
-double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[], float b[], float A[])
+double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
     int j, m = dm[0]*dm[1]*dm[2];
-    double ssl = 0.0;
+    double ssl = 0.0, dt = 1.0;
 
     if (dm[3]>1)
     {
-        return(initialise_objfun2(dm, f, g, t0, J0, b, A));
+        return(initialise_objfun2(dm, f, g, t0, J0, jd, b, A));
     }
 
     for(j=0; j<m; j++)
@@ -1126,18 +1393,21 @@ double initialise_objfun(int dm[], float f[], float g[], float t0[], float J0[],
         dy   = -(J0[j+3*m]*dx0 + J0[j+4*m]*dy0 + J0[j+5*m]*dz0);
         dz   = -(J0[j+6*m]*dx0 + J0[j+7*m]*dy0 + J0[j+8*m]*dz0);
 
-        A[j    ] = dx*dx;
-        A[j+m  ] = dy*dy;
-        A[j+m*2] = dz*dz;
-        A[j+m*3] = dx*dy;
-        A[j+m*4] = dx*dz;
-        A[j+m*5] = dy*dz;
+        if (jd != (float *)0)
+            dt = jd[j];
 
-        b[j    ] = dx*d;
-        b[j+m  ] = dy*d;
-        b[j+m*2] = dz*d;
+        A[j    ] = dx*dx*dt;
+        A[j+m  ] = dy*dy*dt;
+        A[j+m*2] = dz*dz*dt;
+        A[j+m*3] = dx*dy*dt;
+        A[j+m*4] = dx*dz*dt;
+        A[j+m*5] = dy*dz*dt;
 
-        ssl += d*d;
+        b[j    ] = dx*d*dt;
+        b[j+m  ] = dy*d*dt;
+        b[j+m*2] = dz*d*dt;
+
+        ssl += d*d*dt;
     }
     return(ssl);
 }
@@ -1348,11 +1618,13 @@ int iteration_scratchsize(int dm[], int issym, int k)
     }
 }
 
-void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, double param0[], double lmreg0, int cycles, int its, int issym, float ov[], float *buf)
+void iteration(int dm[], int k, float v[], float g[], float f[], float jd[],
+               int rtype, double param0[], double lmreg0, int cycles, int its, int issym,
+               float ov[], double ll[], float *buf)
 {
     float *sbuf;
     float *b, *A;
-    double ssl, ssp, normb, sc;
+    double ssl, ssp, sc;
     static double param[6] = {1.0,1.0,1.0,1.0,0.0,0.0};
     int m = dm[0]*dm[1]*dm[2];
     int j;
@@ -1377,7 +1649,7 @@ void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, doub
         sc = 1.0/pow2(k);
         expdef(dm, k, 1.0, v, t0, t1, J0, J1);
         jac_div_smalldef(dm, sc, v, J0);
-        ssl = initialise_objfun(dm, f, g, t0, J0, b, A);
+        ssl = initialise_objfun(dm, f, g, t0, J0, jd, b, A);
         smalldef_jac(dm, -sc, v, t0, J0);
         squaring(dm, k, issym, b, A, t0, t1, J0, J1);
         if (issym)
@@ -1386,7 +1658,7 @@ void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, doub
             A1   = buf + 30*m;
             b1   = buf + 36*m;
             jac_div_smalldef(dm, -sc, v, J0);
-            ssl += initialise_objfun(dm, g, f, t0, J0, b1, A1);
+            ssl += initialise_objfun(dm, g, f, t0, J0, (float *)0, b1, A1);
             smalldef_jac(dm, sc, v, t0, J0);
             squaring(dm, k, 0, b1, A1, t0, t1, J0, J1);
             for(j=0; j<m*3; j++) b[j] -= b1[j];
@@ -1396,13 +1668,13 @@ void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, doub
     else
     {
         sc  = 1.0;
-        ssl = smalldef_objfun(dm, f, g, v, 1.0, b, A);
+        ssl = smalldef_objfun(dm, f, g, v, jd, 1.0, b, A);
         if (issym)
         {
             float *b1, *A1;
             A1   = buf + 6*m;
             b1   = buf + 12*m;
-            ssl += smalldef_objfun(dm, g, f, v, -1.0, b1, A1);
+            ssl += smalldef_objfun(dm, g, f, v, (float *)0, -1.0, b1, A1);
             for(j=0; j<m*3; j++) b[j] -= b1[j];
             for(j=0; j<m*6; j++) A[j] += A1[j];
         }
@@ -1426,7 +1698,10 @@ void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, doub
         ssp += sbuf[j]*v[j];
     }
 
-    normb = norm(m*3,b);
+    ll[0] = ssl;
+    ll[1] = ssp;
+    ll[2] = norm(m*3,b);
+    
     for(j=0; j<m*6; j++) A[j] *= sc;
 
     /* Solve equations for Levenberg-Marquardt update:
@@ -1443,7 +1718,5 @@ void iteration(int dm[], int k, float v[], float g[], float f[], int rtype, doub
     
     fmg3(dm, A, b, rtype, param, cycles, its, sbuf, sbuf+3*m); 
     for(j=0; j<m*3; j++) ov[j] = v[j] - sbuf[j];
-
-    (void)printf("%g\t+ %g\t = %g\t\t%g\n", ssl,ssp,ssl+ssp, normb);
 }
 

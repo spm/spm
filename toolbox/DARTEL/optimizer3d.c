@@ -1,10 +1,31 @@
-/* $Id: optimizer3d.c 39 2006-10-23 09:46:44Z john $ */
+/* $Id: optimizer3d.c 61 2007-02-09 21:36:00Z john $ */
 #include<mex.h>
 #include<math.h>
 extern double log(double x);
 
 #include "optimizer3d.h"
-#define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
+
+#ifdef NEUMANN
+    /* Neumann boundary condition */
+    static int neumann(int i, int m)
+    {
+        if (m==1)
+            return(0);
+        else
+        {
+            int m2 = m*2;
+            i = (i<0) ? (-i-m2*((-i)/m2)-1) : (i-m2*(i/m2));
+            if (m<=i)
+                return(m2-i-1);
+            else
+                return(i);
+        }
+    }
+#   define BOUND(i,m) neumann(i,m)
+#else
+    /* circulant boundary condition */
+#   define BOUND(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
+#endif
 
 static void Atimesp1(int dm[], float A[], float p[], float Ap[])
 {
@@ -48,8 +69,8 @@ double sumsq_le(int dm[], float a[], float b[], double s[], float u[])
     for(k=0; k<dm[2]; k++)
     {
         int j, km1,kp1;
-        km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -69,8 +90,8 @@ double sumsq_le(int dm[], float a[], float b[], double s[], float u[])
             paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
             payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
 
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
@@ -78,8 +99,8 @@ double sumsq_le(int dm[], float a[], float b[], double s[], float u[])
                 float *px = pux+i, *py = puy+i, *pz = puz+i;
                 double tmp;
 
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
 
                 tmp = (wx0+paxx[i])*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]
                      + wx1*(px[ip1] + px[im1])
@@ -139,8 +160,8 @@ void LtLf_le(int dm[], float f[], double s[], float g[])
     for(k=0; k<dm[2]; k++)
     {
         int j, km1,kp1;
-        km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -155,16 +176,16 @@ void LtLf_le(int dm[], float f[], double s[], float g[])
             pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
             pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
 
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 int im1,ip1;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
 
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
 
                 pgx[i] = wx0*px[0]
                        + wx1*(px[ip1] + px[im1])
@@ -235,8 +256,8 @@ static void relax_le(int dm[], float a[], float b[], double s[], int nit, float 
         for(k=0; k<dm[2]; k++)
         {
             int j, jstart, km1, kp1;
-            km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
+            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
             jstart = (kstart==(k%2));
             for(j=0; j<dm[1]; j++)
@@ -257,8 +278,8 @@ static void relax_le(int dm[], float a[], float b[], double s[], int nit, float 
                 paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
                 payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
 
-                jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-                jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
                 istart = (jstart==(j%2));
                 for(i=istart; i<dm[0]; i+=2)
@@ -267,8 +288,8 @@ static void relax_le(int dm[], float a[], float b[], double s[], int nit, float 
                     double sux, suy, suz, axx, ayy, azz, axy, axz, ayz, idt;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
-                    im1 = WRAP(i-1,dm[0])-i;
-                    ip1 = WRAP(i+1,dm[0])-i;
+                    im1 = BOUND(i-1,dm[0])-i;
+                    ip1 = BOUND(i+1,dm[0])-i;
 
                     sux = pbx[i] - ((wx0+paxx[i])*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]
                                    + wx1*(px[ip1] + px[im1])
@@ -340,8 +361,8 @@ double sumsq_me(int dm[], float a[], float b[], double s[], float u[])
     for(k=0; k<dm[2]; k++)
     {
         int km1,kp1;
-        km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -361,16 +382,16 @@ double sumsq_me(int dm[], float a[], float b[], double s[], float u[])
             paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
             payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
 
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 float *px = &pux[i], *py = &puy[i], *pz = &puz[i];
                 double tmp;
 
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
 
                 tmp = (w000+paxx[i])*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]
                      + w001*(px[km1] + px[kp1])
@@ -411,8 +432,8 @@ void LtLf_me(int dm[], float f[], double s[], float g[])
 
     for(k=0; k<dm[2]; k++)
     {
-        km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -424,15 +445,15 @@ void LtLf_me(int dm[], float f[], double s[], float g[])
             pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
             pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
 
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
 
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
 
                 pgx[i] = w000*px[0] + w001*(px[km1] + px[kp1]) + w010*(px[jm1] + px[jp1]) + w100*(px[im1] + px[ip1]);
                 pgy[i] = w000*py[0] + w001*(py[km1] + py[kp1]) + w010*(py[jm1] + py[jp1]) + w100*(py[im1] + py[ip1]);
@@ -471,8 +492,8 @@ static void relax_me(int dm[], float a[], float b[], double s[], int nit, float 
         for(k=0; k<dm[2]; k++)
         {
             int km1, kp1;
-            km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
+            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
             jstart = (kstart == (k%2));
             for(j=0; j<dm[1]; j++)
@@ -493,8 +514,8 @@ static void relax_me(int dm[], float a[], float b[], double s[], int nit, float 
                 paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
                 payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
 
-                jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-                jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
                 istart = (jstart == (j%2));
 
@@ -503,8 +524,8 @@ static void relax_me(int dm[], float a[], float b[], double s[], int nit, float 
                     double sux, suy, suz, axx, ayy, azz, axy, axz, ayz, idt;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
-                    im1 = WRAP(i-1,dm[0])-i;
-                    ip1 = WRAP(i+1,dm[0])-i;
+                    im1 = BOUND(i-1,dm[0])-i;
+                    ip1 = BOUND(i+1,dm[0])-i;
 
                     sux = pbx[i]-(w001*(px[km1] + px[kp1]) + w010*(px[jm1] + px[jp1]) + w100*(px[im1] + px[ip1]));
                     suy = pby[i]-(w001*(py[km1] + py[kp1]) + w010*(py[jm1] + py[jp1]) + w100*(py[im1] + py[ip1]));
@@ -568,10 +589,10 @@ double sumsq_be(int dm[], float a[], float b[], double s[], float u[])
     for(k=0; k<dm[2]; k++)
     {
         int j, km2,km1,kp1,kp2;
-        km2 = (WRAP(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (WRAP(k+2,dm[2])-k)*dm[0]*dm[1];
+        km2 = (BOUND(k-2,dm[2])-k)*dm[0]*dm[1];
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+        kp2 = (BOUND(k+2,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -591,10 +612,10 @@ double sumsq_be(int dm[], float a[], float b[], double s[], float u[])
             paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
             payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
 
-            jm2 = (WRAP(j-2,dm[1])-j)*dm[0];
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
-            jp2 = (WRAP(j+2,dm[1])-j)*dm[0];
+            jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+            jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
@@ -602,10 +623,10 @@ double sumsq_be(int dm[], float a[], float b[], double s[], float u[])
                 float *px = pux+i, *py = puy+i, *pz = puz+i;
                 double tmp;
 
-                im2 = WRAP(i-2,dm[0])-i;
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
-                ip2 = WRAP(i+2,dm[0])-i;
+                im2 = BOUND(i-2,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
+                ip2 = BOUND(i+2,dm[0])-i;
 
                 tmp = (w000+paxx[i])*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]
                      + w010*(px[    jm1    ] + px[    jp1    ])
@@ -700,10 +721,10 @@ void LtLf_be(int dm[], float f[], double s[], float g[])
     for(k=0; k<dm[2]; k++)
     {
         int j, km2,km1,kp1,kp2;
-        km2 = (WRAP(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (WRAP(k+2,dm[2])-k)*dm[0]*dm[1];
+        km2 = (BOUND(k-2,dm[2])-k)*dm[0]*dm[1];
+        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+        kp2 = (BOUND(k+2,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -718,20 +739,20 @@ void LtLf_be(int dm[], float f[], double s[], float g[])
             pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
             pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
 
-            jm2 = (WRAP(j-2,dm[1])-j)*dm[0];
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
-            jp2 = (WRAP(j+2,dm[1])-j)*dm[0];
+            jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+            jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 int im2,im1,ip1,ip2;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
 
-                im2 = WRAP(i-2,dm[0])-i;
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
-                ip2 = WRAP(i+2,dm[0])-i;
+                im2 = BOUND(i-2,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
+                ip2 = BOUND(i+2,dm[0])-i;
 
                 pgx[i] = w000* px[0]
                        + w010*(px[    jm1    ] + px[    jp1    ])
@@ -853,10 +874,10 @@ static void relax_be(int dm[], float a[], float b[], double s[], int nit, float 
         for(k=kstart; k!=kend; k+=kskip)
         {
             int km2, km1, kp1, kp2;
-            km2 = (WRAP(k-2,dm[2])-k)*dm[0]*dm[1];
-            km1 = (WRAP(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (WRAP(k+1,dm[2])-k)*dm[0]*dm[1];
-            kp2 = (WRAP(k+2,dm[2])-k)*dm[0]*dm[1];
+            km2 = (BOUND(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (BOUND(k+2,dm[2])-k)*dm[0]*dm[1];
 
             for(j=jstart; j!=jend; j+=jskip)
             {
@@ -876,10 +897,10 @@ static void relax_be(int dm[], float a[], float b[], double s[], int nit, float 
                 paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
                 payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
 
-                jm2 = (WRAP(j-2,dm[1])-j)*dm[0];
-                jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-                jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
-                jp2 = (WRAP(j+2,dm[1])-j)*dm[0];
+                jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
+                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+                jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
 
                 for(i=istart; i!=iend; i+=iskip)
                 {
@@ -887,10 +908,10 @@ static void relax_be(int dm[], float a[], float b[], double s[], int nit, float 
                     double sux, suy, suz, axx, ayy, azz, axy, axz, ayz, idt;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
-                    im2 = WRAP(i-2,dm[0])-i;
-                    im1 = WRAP(i-1,dm[0])-i;
-                    ip1 = WRAP(i+1,dm[0])-i;
-                    ip2 = WRAP(i+2,dm[0])-i;
+                    im2 = BOUND(i-2,dm[0])-i;
+                    im1 = BOUND(i-1,dm[0])-i;
+                    ip1 = BOUND(i+1,dm[0])-i;
+                    ip2 = BOUND(i+2,dm[0])-i;
 
                     sux = pbx[i] - ((w000+paxx[i])*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]
                                   + w010*(px[    jm1    ] + px[    jp1    ])
@@ -967,8 +988,8 @@ static void solve33(float a[], float b[], double t, float u[])
     double a0 = a[0]+t, a1 = a[1]+t, a2 = a[2]+t;
 
     dt  = a0*a2*a1-a0*a[5]*a[5]-a1*a[4]*a[4]-a2*a[3]*a[3]+2*a[5]*a[3]*a[4];
-    if (dt<1e-12*a0*a1*a2)
-        dt = 1e-12*a0*a1*a2;
+    if (dt<1e-64*a0*a1*a2)
+        dt = 1e-64*a0*a1*a2;
     u[0] = (b[0]*(a2*a1-a[5]*a[5])+b[1]*(a[4]*a[5]-a[3]*a2)+b[2]*(a[3]*a[5]-a[4]*a1))/dt;
     u[1] = (b[0]*(a[5]*a[4]-a[3]*a2)+b[1]*(a0*a2-a[4]*a[4])+b[2]*(a[4]*a[3]-a0*a[5]))/dt;
     u[2] = (b[0]*(a[5]*a[3]-a[4]*a1)+b[1]*(a[4]*a[3]-a0*a[5])+b[2]*(a0*a1-a[3]*a[3]))/dt;
@@ -1144,8 +1165,8 @@ static void resized_plane(int na[], float *a, int nc[], float *c, float *b)
     {
         loc = (j+0.5)*s-0.5;
         o   = floor(loc+0.5);
-        om  = WRAP(o-1,na[1])*na[0];
-        op  = WRAP(o+1,na[1])*na[0];
+        om  = BOUND(o-1,na[1])*na[0];
+        op  = BOUND(o+1,na[1])*na[0];
         w   = wt2( o   -loc);
         wp  = wt2((o+1)-loc);
         wm  = wt2((o-1)-loc);
@@ -1158,8 +1179,8 @@ static void resized_plane(int na[], float *a, int nc[], float *c, float *b)
     {
         loc = (i+0.5)*s-0.5;
         o   = floor(loc+0.5);
-        om  = WRAP(o-1,na[0]);
-        op  = WRAP(o+1,na[0]);
+        om  = BOUND(o-1,na[0]);
+        op  = BOUND(o+1,na[0]);
         w   = wt2( o   -loc);
         wp  = wt2((o+1)-loc);
         wm  = wt2((o-1)-loc);
@@ -1185,8 +1206,8 @@ void resize(int na[], float *a, int nc[], float *c, float *b)
         loc    = (k+0.5)*s-0.5;
         oo     = o;
         o      = floor(loc+0.5);
-        om     = WRAP(o-1,na[2]);
-        op     = WRAP(o+1,na[2]);
+        om     = BOUND(o-1,na[2]);
+        op     = BOUND(o+1,na[2]);
 
         if (o==oo)
         {   /* do nothing */
@@ -1377,9 +1398,9 @@ void fmg3(int n0[], float *a0, float *b0, int rtype, double param0[], int c, int
         restrict(3,n[j-1],bo[j-1],n[j],bo[j],rbuf);
         restrict(6,n[j-1],a[j-1],n[j],a[j],rbuf);
 
-        param[j][0] = (double)n[j][0]/n0[0];
-        param[j][1] = (double)n[j][1]/n0[1];
-        param[j][2] = (double)n[j][2]/n0[2];
+        param[j][0] = param0[0]*(double)n[j][0]/n0[0];
+        param[j][1] = param0[1]*(double)n[j][1]/n0[1];
+        param[j][2] = param0[2]*(double)n[j][2]/n0[2];
         param[j][3] = param[0][3];
         param[j][4] = param[0][4];
         param[j][5] = param[0][5];

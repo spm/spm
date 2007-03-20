@@ -21,8 +21,8 @@ end;
 dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
 NU = cat(2,NF(1,:).NI);
-g0 = zeros([dm n1],'single');
-
+g  = zeros([dm n1],'single');
+nd = zeros(dm(1:3),'single');
 for i=1:numel(NU),
     [pth,nam,ext]   = fileparts(NU(i).dat.fname);
     NU(i).dat.fname = fullfile(pth,['u_' nam '.nii']);
@@ -46,24 +46,30 @@ for i=1:numel(NU),
     if exist(NU(i).dat.fname) == 2,
         u = NU(i).dat(:,:,:,1,:);
         u = single(squeeze(u));
-        y = dartel3('Exp',u,[K -1]);
+        [y,dt] = dartel3('Exp',u,[K -1 1]);
+        dt = max(dt,0);
         clear u
         for j=1:n1,
-            vn = NF(j,i).vn;
-            g0(:,:,:,j) = g0(:,:,:,j) + dartel3('samp',single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
+            vn         = NF(j,i).vn;
+            g(:,:,:,j) = g(:,:,:,j) + dt.*dartel3('samp',single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
         end;
-        clear y
+        nd = nd + dt;
+        clear y dt
     else
         create(NU(i));
         NU(i).dat(:,:,:,:,:) = 0;
         for j=1:n1,
-            vn = NF(j,i).vn;
-            g0(:,:,:,j) = g0(:,:,:,j) + NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+            vn         = NF(j,i).vn;
+            g(:,:,:,j) = g(:,:,:,j) + NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
         end;
+        nd = nd + 1;
     end;
 end;
 
-g  = single(g0/numel(NU));
+for j=1:n1,
+    g(:,:,:,j) = g(:,:,:,j)./nd;
+end;
+
 NG = NF(1,1).NI;
 NG.descrip       = sprintf('Avg of %d', n2);
 NG.dat.fname     = 'Template.nii';
@@ -73,7 +79,7 @@ NG.dat.scl_slope = 1;
 NG.dat.scl_inter = 0;
 NG.mat0          = NG.mat;
 create(NG);
-NG.dat(:,:,:,:)    = g;
+NG.dat(:,:,:,:)  = g;
 
 for it=1:numel(job.param),
     param = job.param(it);
@@ -82,6 +88,8 @@ for it=1:numel(job.param),
     drawnow
 
     ng = zeros(size(g),'single');
+    nd = zeros([size(g,1),size(g,2),size(g,3)],'single');
+
     for i=1:n2,
         f = zeros([dm n1],'single');
         for j=1:n1,
@@ -92,22 +100,26 @@ for it=1:numel(job.param),
         u = squeeze(single(NU(i).dat(:,:,:,:,:)));
         drawnow
         for j=1:param.its,
-            fprintf('%d,%d\t', it, i);
-            u = dartel3(u,f,g,prm);
+            [u,ll] = dartel3(u,f,g,prm);
+            fprintf('%d %d\t%g\t%g\t%g\t%g\n',it,i,ll(1),ll(2),ll(1)+ll(2),ll(3));
             drawnow
         end;
 
         NU(i).dat(:,:,:,:,:) = reshape(u,[dm 1 3]);
-        y  = dartel3('Exp',u,[param.K -1]);
+        [y,dt] = dartel3('Exp',u,[param.K -1 1]);
+        dt = max(dt,0);
         clear u
         drawnow;
         for j=1:n1,
-            ng(:,:,:,j) = ng(:,:,:,j) + dartel3('samp',f(:,:,:,j),y);
+            ng(:,:,:,j) = ng(:,:,:,j) + dt.*dartel3('samp',f(:,:,:,j),y);
             drawnow
         end;
-        clear y
+        nd = nd + dt;
+        clear y dt
     end;
-    g  = single(ng/n2);
+    for j=1:n1,
+        g(:,:,:,j) = single(ng(:,:,:,j)./nd);
+    end;
     clear ng;
     NG.dat(:,:,:,:)    = g;
     drawnow

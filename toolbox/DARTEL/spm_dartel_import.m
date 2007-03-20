@@ -1,4 +1,4 @@
-function write_stuff(job)
+function spm_dartel_import(job)
 % Write out VBM preprocessed data
 %____________________________________________________________________________
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience

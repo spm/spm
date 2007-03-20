@@ -45,13 +45,14 @@ function dartel3
 %           - 0 Linear elasticity
 %           - 1 Membrane energy
 %           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
+%         - [2][3][4] Voxel sizes
+%         - [5][6][7] Regularisation parameters
 %           - For Linear elasticity, the parameters
 %             are mu, lambda, and id
 %           - For membrane and bending energy, the parameters
 %             are lambda, unused and id.
-%         - [5] Tolerance.  Indicates required degree of accuracy.
-%         - [6] Maximum number of iterations.
+%         - [8] Tolerance.  Indicates required degree of accuracy.
+%         - [9] Maximum number of iterations.
 %
 % This is for solving a set of equations using a conjugate gradient
 % solver. This method is less efficient than the Full Multigrid.
@@ -69,13 +70,14 @@ function dartel3
 %           - 0 Linear elasticity
 %           - 1 Membrane energy
 %           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
+%         - [2][3][4] Voxel sizes
+%         - [5][6][7] Regularisation parameters
 %           - For linear elasticity, the parameters
 %             are mu, lambda, and id
 %           - For membrane and bending energy, the parameters
 %             are lambda, unused and id.
-%         - [5] Number of Full Multigrid cycles
-%         - [6] Number of relaxation iterations per cycle
+%         - [8] Number of Full Multigrid cycles
+%         - [9] Number of relaxation iterations per cycle
 %
 % Solve equations using a Full Multigrid method.  See Press et al
 % for more information.
@@ -105,7 +107,8 @@ function dartel3
 %           - 0 Linear elasticity
 %           - 1 Membrane energy
 %           - 2 Bending energy
-%         - [2][3][4] Regularisation parameters
+%         - [2][3][4] Voxel sizes
+%         - [5][6][7] Regularisation parameters
 %           - For linear elasticity, the parameters
 %             are mu, lambda and id.
 %           - For membrane and bending energy, the parameters

@@ -344,7 +344,7 @@ vf = {};
 %_______________________________________________________________________
 
 function run_dartel(job)
-if isempty(job.template{1}),
+if isempty(job.template),
     spm_dartel_template(job);
 else
     spm_dartel_run(job);

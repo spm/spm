@@ -1,8 +1,33 @@
-/* $Id: optimizer2d.c 39 2006-10-23 09:46:44Z john $ */
+/* $Id: optimizer2d.c 52 2006-12-08 14:48:28Z john $ */
 
-#define WRAP(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
-#define S 1.0000000001
+#include<mex.h>
 #include<math.h>
+
+#include "optimizer2d.h"
+
+#define S 1.0000000001
+#ifdef NEUMANN
+    /* Neumann boundary conditions */
+    static int neumann(int i, int m)
+    {
+        if (m==1)
+            return(0);
+        else
+        {
+            int m2 = m*2;
+            i = (i<0) ? (-i-m2*((-i)/m2)-1) : (i-m2*(i/m2));
+            if (m<=i)
+                return(m2-i-1);
+            else
+                return(i);
+        }
+    }
+#    define BOUND(i,m) neumann(i,m)
+#else
+     /* Circulant boundary condition */
+#    define BOUND(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
+#endif
+
 
 double sumsq_le(int dm[], double a[], double b[], double s[], double u[])
 {
@@ -32,16 +57,16 @@ double sumsq_le(int dm[], double a[], double b[], double s[], double u[])
         payy = a+dm[0]*(j+dm[1]);
         paxy = a+dm[0]*(j+dm[1]*2);
 
-        jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-        jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+        jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+        jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
         for(i=0; i<dm[0]; i++)
         {
             double *px = &pux[i], *py = &puy[i];
             double tmp;
 
-            im1 = WRAP(i-1,dm[0])-i;
-            ip1 = WRAP(i+1,dm[0])-i;
+            im1 = BOUND(i-1,dm[0])-i;
+            ip1 = BOUND(i+1,dm[0])-i;
 
             tmp = (wx0+paxx[i])*px[0] + paxy[i]*py[0]
                  + wy2*(px[jm1] + px[jp1])
@@ -83,15 +108,15 @@ void LtLf_le(int dm[], double f[], double s[], double g[])
         pfx = f+dm[0]*j;
         pfy = f+dm[0]*(j+dm[1]);
 
-        jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-        jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+        jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+        jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
         for(i=0; i<dm[0]; i++)
         {
             double *px = &pfx[i], *py = &pfy[i];
 
-            im1 = WRAP(i-1,dm[0])-i;
-            ip1 = WRAP(i+1,dm[0])-i;
+            im1 = BOUND(i-1,dm[0])-i;
+            ip1 = BOUND(i+1,dm[0])-i;
 
             pgx[i] = wx0* px[0] + wy2*(px[jm1] + px[jp1]) + wx1*(px[im1] + px[ip1])
                    + wxy*(py[jp1+im1] - py[jp1+ip1] - py[jm1+im1] + py[jm1+ip1]);
@@ -147,8 +172,8 @@ static void relax_le(int dm[], double a[], double b[], double s[], int nit, doub
             payy = a+dm[0]*(j+dm[1]);
             paxy = a+dm[0]*(j+dm[1]*2);
 
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
             istart = (jstart == (j%2));
 
@@ -157,8 +182,8 @@ static void relax_le(int dm[], double a[], double b[], double s[], int nit, doub
                 double sux, suy, axx, ayy, axy, idt;
                 double *px = pux+i, *py = puy+i;
 
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
 
                 sux = pbx[i] - ((wx0+paxx[i])*px[0] + paxy[i]*py[0]
                               + wy2*(px[jm1] + px[jp1]) + wx1*(px[im1] + px[ip1])
@@ -223,16 +248,16 @@ double sumsq_me(int dm[], double a[], double b[], double s[], double u[])
         payy = a+dm[0]*(j+dm[1]);
         paxy = a+dm[0]*(j+dm[1]*2);
 
-        jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-        jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+        jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+        jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
         for(i=0; i<dm[0]; i++)
         {
             double *px = &pux[i], *py = &puy[i];
             double tmp;
 
-            im1 = WRAP(i-1,dm[0])-i;
-            ip1 = WRAP(i+1,dm[0])-i;
+            im1 = BOUND(i-1,dm[0])-i;
+            ip1 = BOUND(i+1,dm[0])-i;
 
             tmp = (w00+paxx[i])*px[0] + paxy[i]*py[0]
                  + w01*(px[jm1] + px[jp1])
@@ -267,15 +292,15 @@ void LtLf_me(int dm[], double f[], double s[], double g[])
         pfx = f+dm[0]*j;
         pfy = f+dm[0]*(j+dm[1]);
 
-        jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-        jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+        jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+        jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
         for(i=0; i<dm[0]; i++)
         {
             double *px = &pfx[i], *py = &pfy[i];
 
-            im1 = WRAP(i-1,dm[0])-i;
-            ip1 = WRAP(i+1,dm[0])-i;
+            im1 = BOUND(i-1,dm[0])-i;
+            ip1 = BOUND(i+1,dm[0])-i;
 
             pgx[i] = w00* px[0] + w01*(px[jm1] + px[jp1]) + w10*(px[im1] + px[ip1]);
             pgy[i] = w00* py[0] + w01*(py[jm1] + py[jp1]) + w10*(py[im1] + py[ip1]);
@@ -320,8 +345,8 @@ static void relax_me(int dm[], double a[], double b[], double s[], int nit, doub
             payy = a+dm[0]*(j+dm[1]);
             paxy = a+dm[0]*(j+dm[1]*2);
 
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
 
             istart = (jstart == (j%2));
 
@@ -330,8 +355,8 @@ static void relax_me(int dm[], double a[], double b[], double s[], int nit, doub
                 double sux, suy, axx, ayy, axy, idt;
                 double *px = pux+i, *py = puy+i;
 
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
 
                 sux = pbx[i]-(w01*(px[jm1] + px[jp1]) + w10*(px[im1] + px[ip1]));
                 suy = pby[i]-(w01*(py[jm1] + py[jp1]) + w10*(py[im1] + py[ip1]));
@@ -394,20 +419,20 @@ double sumsq_be(int dm[], double a[], double b[], double s[], double u[])
         payy = a+dm[0]*(j+dm[1]);
         paxy = a+dm[0]*(j+dm[1]*2);
 
-        jm2 = (WRAP(j-2,dm[1])-j)*dm[0];
-        jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-        jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
-        jp2 = (WRAP(j+2,dm[1])-j)*dm[0];
+        jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
+        jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+        jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+        jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
 
         for(i=0; i<dm[0]; i++)
         {
             double *px = &pux[i], *py = &puy[i];
             double tmp;
 
-            im2 = WRAP(i-2,dm[0])-i;
-            im1 = WRAP(i-1,dm[0])-i;
-            ip1 = WRAP(i+1,dm[0])-i;
-            ip2 = WRAP(i+2,dm[0])-i;
+            im2 = BOUND(i-2,dm[0])-i;
+            im1 = BOUND(i-1,dm[0])-i;
+            ip1 = BOUND(i+1,dm[0])-i;
+            ip2 = BOUND(i+2,dm[0])-i;
 
             tmp = (w00+paxx[i])*px[0] + paxy[i]*py[0]
                  + w01*(px[    jm1] + px[    jp1])
@@ -464,19 +489,19 @@ void LtLf_be(int dm[], double f[], double s[], double g[])
         pfx = f+dm[0]*j;
         pfy = f+dm[0]*(j+dm[1]);
 
-        jm2 = (WRAP(j-2,dm[1])-j)*dm[0];
-        jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-        jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
-        jp2 = (WRAP(j+2,dm[1])-j)*dm[0];
+        jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
+        jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+        jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+        jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
 
         for(i=0; i<dm[0]; i++)
         {
             double *px = &pfx[i], *py = &pfy[i];
 
-            im2 = WRAP(i-2,dm[0])-i;
-            im1 = WRAP(i-1,dm[0])-i;
-            ip1 = WRAP(i+1,dm[0])-i;
-            ip2 = WRAP(i+2,dm[0])-i;
+            im2 = BOUND(i-2,dm[0])-i;
+            im1 = BOUND(i-1,dm[0])-i;
+            ip1 = BOUND(i+1,dm[0])-i;
+            ip2 = BOUND(i+2,dm[0])-i;
 
             pgx[i] = w00* px[0]
                    + w01*(px[    jm1] + px[    jp1])
@@ -560,20 +585,20 @@ static void relax_be(int dm[], double a[], double b[], double s[], int nit, doub
             payy = a+dm[0]*(j+dm[1]);
             paxy = a+dm[0]*(j+dm[1]*2);
 
-            jm2 = (WRAP(j-2,dm[1])-j)*dm[0];
-            jm1 = (WRAP(j-1,dm[1])-j)*dm[0];
-            jp1 = (WRAP(j+1,dm[1])-j)*dm[0];
-            jp2 = (WRAP(j+2,dm[1])-j)*dm[0];
+            jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
+            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
+            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+            jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
 
             for(i=istart; i!=iend; i+=iskip)
             {
                 double sux, suy, axx, ayy, axy, idt;
                 double *px = &pux[i], *py = &puy[i];
 
-                im2 = WRAP(i-2,dm[0])-i;
-                im1 = WRAP(i-1,dm[0])-i;
-                ip1 = WRAP(i+1,dm[0])-i;
-                ip2 = WRAP(i+2,dm[0])-i;
+                im2 = BOUND(i-2,dm[0])-i;
+                im1 = BOUND(i-1,dm[0])-i;
+                ip1 = BOUND(i+1,dm[0])-i;
+                ip2 = BOUND(i+2,dm[0])-i;
 
                 sux = pbx[i] - ((w00+paxx[i])*px[0] + paxy[i]*py[0]
                               + w01*(px[    jm1] + px[    jp1])
@@ -802,8 +827,8 @@ void resize(int na[], double *a, int nc[], double *c, double *b)
     {
         loc = (j+0.5)*s-0.5;
         o   = floor(loc+0.5);
-        om  = WRAP(o-1,na[1])*na[0];
-        op  = WRAP(o+1,na[1])*na[0];
+        om  = BOUND(o-1,na[1])*na[0];
+        op  = BOUND(o+1,na[1])*na[0];
         w   = wt2( o   -loc);
         wp  = wt2((o+1)-loc);
         wm  = wt2((o-1)-loc);
@@ -816,8 +841,8 @@ void resize(int na[], double *a, int nc[], double *c, double *b)
     {
         loc = (i+0.5)*s-0.5;
         o   = floor(loc+0.5);
-        om  = WRAP(o-1,na[0]);
-        op  = WRAP(o+1,na[0]);
+        om  = BOUND(o-1,na[0]);
+        op  = BOUND(o+1,na[0]);
         w   = wt2( o   -loc);
         wp  = wt2((o+1)-loc);
         wm  = wt2((o-1)-loc);
@@ -960,8 +985,8 @@ void fmg2(int n0[], double *a0, double *b0, int rtype, double param0[], int c, i
 
     for(j=1; j<ng; j++)
     {
-        param[j][0] = (double)n[j][0]/n0[0];
-        param[j][1] = (double)n[j][1]/n0[1];
+        param[j][0] = param0[0]*(double)n[j][0]/n0[0];
+        param[j][1] = param0[1]*(double)n[j][1]/n0[1];
         param[j][2] = param[0][2];
         param[j][3] = param[0][3];
         param[j][4] = param[0][4];

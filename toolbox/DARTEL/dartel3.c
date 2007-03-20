@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 43 2006-11-01 11:23:26Z john $ */
+/* $Id: dartel3.c 52 2006-12-08 14:48:28Z john $ */
 
 #include "mex.h"
 #include <math.h>
@@ -9,11 +9,12 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
 {
     int        i, k=10, cycles=4, its=2, rtype=2, issym=0;
     int        dm[5];
-    double     lmreg0=0.0, lmreg1=0.0;
-    float      *v, *g, *f, *ov, *scratch;
+    double     lmreg0=0.0, lmreg1=0.0, *ll;
+    float      *v, *g, *f, *jd = (float *)0, *ov, *scratch;
     static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
-
-    if (nrhs!=4 || nlhs>1)
+    static int nll[] = {1, 3, 1};
+    
+    if ((nrhs!=4 && nrhs!=5) || nlhs>2)
         mexErrMsgTxt("Incorrect usage");
 
     for(i=0; i<3; i++)
@@ -48,8 +49,21 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     if (mxGetDimensions(prhs[2])[2] != dm[2])
         mexErrMsgTxt("Incompatible 3rd dimension.");
 
+    if (nrhs>=5)
+    {
+        if (!mxIsNumeric(prhs[4]) || mxIsComplex(prhs[4]) || mxIsSparse(prhs[4]) || !mxIsSingle(prhs[4]))
+            mexErrMsgTxt("Data must be numeric, real, full and single");
+        if (mxGetNumberOfDimensions(prhs[4])!=3) mexErrMsgTxt("Wrong number of dimensions.");
+        if (mxGetDimensions(prhs[4])[0] != dm[0])
+            mexErrMsgTxt("Incompatible 1st dimension.");
+        if (mxGetDimensions(prhs[4])[1] != dm[1])
+            mexErrMsgTxt("Incompatible 2nd dimension.");
+        if (mxGetDimensions(prhs[4])[2] != dm[2])
+            mexErrMsgTxt("Incompatible 3rd dimension.");
+        jd = (float *)mxGetPr(prhs[2]);
+    }
     if (mxGetNumberOfElements(prhs[3]) >9)
-        mexErrMsgTxt("Fourth argument should contain rtype, param0, param1, param2, LMreg, ncycles, nits, nsamps and issym.");
+        mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, nsamps and issym.");
     if (mxGetNumberOfElements(prhs[3]) >=1) rtype  = mxGetPr(prhs[3])[0];
     if (mxGetNumberOfElements(prhs[3]) >=2) param[3] = mxGetPr(prhs[3])[1];
     if (mxGetNumberOfElements(prhs[3]) >=3) param[4] = mxGetPr(prhs[3])[2];
@@ -61,17 +75,19 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     if (mxGetNumberOfElements(prhs[3]) >=9) issym  = mxGetPr(prhs[3])[8];
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
-
+    plhs[1] = mxCreateNumericArray(2,nll, mxDOUBLE_CLASS, mxREAL);
+    
     v       = (float *)mxGetPr(prhs[0]);
     g       = (float *)mxGetPr(prhs[1]);
     f       = (float *)mxGetPr(prhs[2]);
     ov      = (float *)mxGetPr(plhs[0]);
-
+    ll      = (double*)mxGetPr(plhs[1]);
+    
     scratch = (float *)mxCalloc(iteration_scratchsize((int *)dm, issym,k),sizeof(float));
 
     dm[3] = 1;
     if (mxGetNumberOfDimensions(prhs[1])>=4) dm[3] = mxGetDimensions(prhs[1])[3];
-    iteration(dm, k, v, g, f, rtype, param, lmreg0, cycles, its, issym, ov,scratch);
+    iteration(dm, k, v, g, f, jd, rtype, param, lmreg0, cycles, its, issym, ov, ll, scratch);
     mxFree((void *)scratch);
 }
 
@@ -108,15 +124,18 @@ void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]
 
     if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
         mexErrMsgTxt("Data must be numeric, real, full and double");
-    if (mxGetNumberOfElements(prhs[2]) != 6)
-        mexErrMsgTxt("Third argument should contain rtype, param0, param1, param2, tol and nit.");
+    if (mxGetNumberOfElements(prhs[2]) != 9)
+        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2, param3, tol and nit.");
 
     rtype    = (int)(mxGetPr(prhs[2])[0]);
-    param[3] = mxGetPr(prhs[2])[1];
-    param[4] = mxGetPr(prhs[2])[2];
-    param[5] = mxGetPr(prhs[2])[3];
-    tol      = mxGetPr(prhs[2])[4];
-    nit      = (int)(mxGetPr(prhs[2])[5]);
+    param[0] = 1/mxGetPr(prhs[2])[1];
+    param[1] = 1/mxGetPr(prhs[2])[2];
+    param[2] = 1/mxGetPr(prhs[2])[3];
+    param[3] = mxGetPr(prhs[2])[4];
+    param[4] = mxGetPr(prhs[2])[5];
+    param[5] = mxGetPr(prhs[2])[6];
+    tol      = mxGetPr(prhs[2])[7];
+    nit      = (int)(mxGetPr(prhs[2])[8]);
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
 
@@ -166,15 +185,18 @@ void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]
 
     if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
         mexErrMsgTxt("Data must be numeric, real, full and double");
-    if (mxGetNumberOfElements(prhs[2]) != 6)
-        mexErrMsgTxt("Third argument should contain rtype, param0, param1, param2, ncycles and relax-its.");
-
+    
+    if (mxGetNumberOfElements(prhs[2]) != 9)
+        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2, param3, ncycles and relax-its.");
     rtype    = (int)(mxGetPr(prhs[2])[0]);
-    param[3] = mxGetPr(prhs[2])[1];
-    param[4] = mxGetPr(prhs[2])[2];
-    param[5] = mxGetPr(prhs[2])[3];
-    cyc      = (int)(mxGetPr(prhs[2])[4]);
-    nit      = (int)(mxGetPr(prhs[2])[5]);
+    param[0] = 1/mxGetPr(prhs[2])[1];
+    param[1] = 1/mxGetPr(prhs[2])[2];
+    param[2] = 1/mxGetPr(prhs[2])[3];
+    param[3] = mxGetPr(prhs[2])[4];
+    param[4] = mxGetPr(prhs[2])[5];
+    param[5] = mxGetPr(prhs[2])[6];
+    cyc      = mxGetPr(prhs[2])[7];
+    nit      = (int)(mxGetPr(prhs[2])[8]);
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
 
@@ -235,14 +257,16 @@ void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     if (dm[3]!=3)
         mexErrMsgTxt("4th dimension must be 3.");
 
-    if (mxGetNumberOfElements(prhs[1]) >4)
-        mexErrMsgTxt("Second argument should contain rtype, param1, param2 and param3.");
-    if (mxGetNumberOfElements(prhs[1]) >=1) rtype    = (int)mxGetPr(prhs[1])[0];
-    if (mxGetNumberOfElements(prhs[1]) >=2) param[3] = mxGetPr(prhs[1])[1];
-    if (mxGetNumberOfElements(prhs[1]) >=3) param[4] = mxGetPr(prhs[1])[2];
-    if (mxGetNumberOfElements(prhs[1]) >=4) param[5] = mxGetPr(prhs[1])[3];
-
-
+    if (mxGetNumberOfElements(prhs[2]) != 7)
+        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2 and param3.");
+    rtype    = (int)(mxGetPr(prhs[2])[0]);
+    param[0] = 1/mxGetPr(prhs[2])[1];
+    param[1] = 1/mxGetPr(prhs[2])[2];
+    param[2] = 1/mxGetPr(prhs[2])[3];
+    param[3] = mxGetPr(prhs[2])[4];
+    param[4] = mxGetPr(prhs[2])[5];
+    param[5] = mxGetPr(prhs[2])[6];
+    
     plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
 
     if (rtype==1)
@@ -304,23 +328,45 @@ void comp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]
     {
         float *JA, *JB, *JC;
         nd = mxGetNumberOfDimensions(prhs[2]);
-        if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
-        dm = mxGetDimensions(prhs[2]);
-        if (dm[0]!=n0 || dm[1]!=n1 || dm[2]!=n2 || dm[3]!=3)
-            mexErrMsgTxt("Incompatible dimensions.");
+        if (nd==5)
+        {
+            dm = mxGetDimensions(prhs[2]);
+            if (dm[0]!=n0 || dm[1]!=n1 || dm[2]!=n2 || dm[3]!=3 || dm[4]!=3)
+                mexErrMsgTxt("Incompatible dimensions.");
 
-        nd = mxGetNumberOfDimensions(prhs[3]);
-        if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
-        dm = mxGetDimensions(prhs[3]);
-        if (dm[0]!=n0 || dm[1]!=n1 || dm[2]!=n2 || dm[3]!=3)
-            mexErrMsgTxt("Incompatible dimensions.");
+            nd = mxGetNumberOfDimensions(prhs[3]);
+            if (nd!=5) mexErrMsgTxt("Wrong number of dimensions.");
+            dm = mxGetDimensions(prhs[3]);
+            if (dm[0]!=n0 || dm[1]!=n1 || dm[2]!=n2 || dm[3]!=3 || dm[4]!=3)
+                mexErrMsgTxt("Incompatible dimensions.");
 
-        plhs[1] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
+            plhs[1] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
 
-        JA = (float *)mxGetPr(prhs[2]);
-        JB = (float *)mxGetPr(prhs[3]);
-        JC = (float *)mxGetPr(plhs[1]);
-        composition_jacobian((int *)dm, A, JA, B, JB, C, JC);
+            JA = (float *)mxGetPr(prhs[2]);
+            JB = (float *)mxGetPr(prhs[3]);
+            JC = (float *)mxGetPr(plhs[1]);
+            composition_jacobian((int *)dm, A, JA, B, JB, C, JC);
+        }
+        else if (nd==3)
+        {
+            dm = mxGetDimensions(prhs[2]);
+            if (dm[0]!=n0 || dm[1]!=n1 || dm[2]!=n2)
+                mexErrMsgTxt("Incompatible dimensions.");
+
+            nd = mxGetNumberOfDimensions(prhs[3]);
+            if (nd!=3) mexErrMsgTxt("Wrong number of dimensions.");
+            dm = mxGetDimensions(prhs[3]);
+            if (dm[0]!=n0 || dm[1]!=n1 || dm[2]!=n2)
+                mexErrMsgTxt("Incompatible dimensions.");
+
+            plhs[1] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
+
+            JA = (float *)mxGetPr(prhs[2]);
+            JB = (float *)mxGetPr(prhs[3]);
+            JC = (float *)mxGetPr(plhs[1]);
+            composition_jacdet((int *)dm, A, JA, B, JB, C, JC);
+        }
+        else mexErrMsgTxt("Wrong number of dimensions.");
     }
     unwrap((int *)dm, C);
 }
@@ -381,6 +427,7 @@ void exp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     const int *dm;
     float *v, *t, *t1;
     double sc = 1.0;
+    int flg = 0;
 
     if (((nrhs != 1) && (nrhs != 2)) || (nlhs>2)) mexErrMsgTxt("Incorrect usage.");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
@@ -395,10 +442,11 @@ void exp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
             mexErrMsgTxt("Data must be numeric, real, full and double");
-        if (mxGetNumberOfElements(prhs[1]) > 2)
-            mexErrMsgTxt("Params must contain one or two elements");
-        if (mxGetNumberOfElements(prhs[1]) >= 1) k   = (int)(mxGetPr(prhs[1])[0]);
+        if (mxGetNumberOfElements(prhs[1]) > 3)
+            mexErrMsgTxt("Params must contain one to three elements");
+        if (mxGetNumberOfElements(prhs[1]) >= 1) k   =   (int)(mxGetPr(prhs[1])[0]);
         if (mxGetNumberOfElements(prhs[1]) >= 2) sc  = (float)(mxGetPr(prhs[1])[1]);
+        if (mxGetNumberOfElements(prhs[1]) >= 3) flg =   (int)(mxGetPr(prhs[1])[2]);
     }
 
     v       = (float *)mxGetPr(prhs[0]);
@@ -418,12 +466,22 @@ void exp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         dmj[0]  = dm[0];
         dmj[1]  = dm[1];
         dmj[2]  = dm[2];
-        dmj[3]  = 3;
-        dmj[4]  = 3;
-        plhs[1] = mxCreateNumericArray(5,dmj, mxSINGLE_CLASS, mxREAL);
-        J       = (float *)mxGetPr(plhs[1]);
-        J1      = mxCalloc(dm[0]*dm[1]*dm[2]*3*3,sizeof(float));
-        expdef((int *)dm, k, sc, v, t, t1, J, J1);
+        if (flg==0)
+        {
+            dmj[3]  = 3;
+            dmj[4]  = 3;
+            plhs[1] = mxCreateNumericArray(5,dmj, mxSINGLE_CLASS, mxREAL);
+            J       = (float *)mxGetPr(plhs[1]);
+            J1      = mxCalloc(dm[0]*dm[1]*dm[2]*3*3,sizeof(float));
+            expdef((int *)dm, k, sc, v, t, t1, J, J1);
+        }
+        else
+        {
+            plhs[1] = mxCreateNumericArray(3,dmj, mxSINGLE_CLASS, mxREAL);
+            J       = (float *)mxGetPr(plhs[1]);
+            J1      = mxCalloc(dm[0]*dm[1]*dm[2],sizeof(float));
+            expdefdet((int *)dm, k, sc, v, t, t1, J, J1);
+        }
         mxFree((void *)J1);
     }
     unwrap((int *)dm, t);
@@ -433,7 +491,7 @@ void exp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 void brc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     float *A, *B, *C;
-    int nd, m,n, i;
+    int nd, i;
     const int *dm, *dm1;
 
     if (nrhs == 0) mexErrMsgTxt("Incorrect usage");
