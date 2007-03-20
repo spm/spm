@@ -734,7 +734,7 @@ void dartel(int dm[], int k, double v[], double g[], double f[], double dj[], in
     if (issym)
     {
         jac_div_smalldef(dm, -sc, v, J0);
-        ssl += initialise_objfun(dm, g, f, t0, J0, (float *)0, b1, A1);
+        ssl += initialise_objfun(dm, g, f, t0, J0, (double *)0, b1, A1);
         smalldef_jac(dm, sc, v, t0, J0);
         squaring(dm, k, 0, b1, A1, t0, t1, J0, J1);
         for(j=0; j<m*2; j++) b[j] -= b1[j];

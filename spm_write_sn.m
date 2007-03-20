@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_write_sn.m 771 2007-03-20 14:19:41Z john $
 
 
 if isempty(V), return; end;
@@ -492,4 +492,63 @@ if (LEFTHANDED && det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
 	x   = flipud(x(:))';
 end;
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
+function VO = write_dets(P,bb,vox)
+if nargin==1,
+	job = P;
+	P   = job.P;
+	bb  = job.bb;
+	vox = job.vox;
+end;
+
+spm_progress_bar('Init',numel(P),'Writing','volumes completed');
+
+for i=1:numel(V),
+	prm = load(deblank(P{i}));
+	[x,y,z,mat] = get_xyzmat(prm,bb,vox);
+	[X,Y] = ndgrid(x,y);
+	Tr = prm.Tr;
+	BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
+	BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
+	BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
+	DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
+	DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
+	DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
+
+	[pth,nam,ext] = fileparts(P{i});
+	VO = struct('fname',['jy_' nam '.img'],...
+	            'dim',[numel(x),numel(y),numel(z)],...
+	            'dt',[spm_type('float32') spm_platform('bigend')],...
+	            'pinfo',[1 0 0]',...
+	            'mat',mat,...
+	            'n',1,...
+	            'descrip','Jacobian determinants');
+	VO     = spm_create_vol(VO);
+	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+	Dat    = single(0);
+	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
+
+	for j=1:length(z),   % Cycle over planes
+		% Nonlinear deformations
+                tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
+		ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
+		tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
+
+		%----------------------------------------------------------------------------
+		j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
+		j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
+		j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
+		% The determinant of the Jacobian reflects relative volume changes.
+		%------------------------------------------------------------------
+		dat       = (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
+		Dat(:,:,j) = single(dat);
+		if numel(P)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+	end;
+	VO = spm_write_vol(VO,Dat);
+	spm_progress_bar('Set',i);
+end;
+spm_progress_bar('Clear');
+return;
+%_______________________________________________________________________
