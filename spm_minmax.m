@@ -13,7 +13,7 @@ function [mnv,mxv] = spm_minmax(g)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_minmax.m 709 2006-12-13 18:14:04Z john $
+% $Id: spm_minmax.m 772 2007-03-21 20:07:38Z john $
 
 
 d   = [size(g) 1];
@@ -50,7 +50,11 @@ pr        = distribution(mn,v,mg,(0:255)');
 % Find the lowest intensity above the mean of the first Gaussian
 % where there is more than 50% probability of not being background
 mnd       = find((pr(:,1)./(sum(pr,2)+eps) < 0.5) & (0:255)' >mn(1));
-mnd       = mnd(1)-1;
+if isempty(mnd) || mnd(1)==1 || mn(1)>mn(2),
+    mnd = 1;
+else
+    mnd = mnd(1)-1;
+end
 mnv       = mnd*mxv/255;
 
 % Upper limit should get 99.5% of the intensities of the
