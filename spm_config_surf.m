@@ -4,13 +4,13 @@ function opts = spm_config_surf
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Volkmar Glauche
-% $Id: spm_config_surf.m 660 2006-10-20 12:22:05Z volkmar $
+% $Id: spm_config_surf.m 775 2007-03-26 16:57:01Z john $
 
 data.type = 'files';
 data.name = 'Grey+white matter image';
 data.tag  = 'data';
 data.filter = 'image';
-data.num  = [2];
+data.num  = [1 Inf];
 data.help = {'Images to create rendering/surface from (grey and white matter segments).'};
 
 mode.type = 'menu';
