@@ -8,7 +8,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 773 2007-03-25 15:33:32Z klaas $
+% $Id: spm_dcm_estimate.m 776 2007-03-27 09:40:10Z stefan $
 
  
 if nargin < 1
@@ -60,11 +60,10 @@ M.l   = n;
 M.N   = 32;
 M.dt  = 16/M.N;
 M.ns  = size(Y.y,1);
+
 try
-    % DCM for ERPs
+    % extension to cover fMRI slice time sampling
     M.delays = DCM.delays;
-catch
-    % DCM for fMRI - no delays
 end
 
 [Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);

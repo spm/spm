@@ -20,7 +20,7 @@ function spm_eeg_convertmat2ana(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 644 2006-10-10 14:08:32Z james $
+% $Id: spm_eeg_convertmat2ana.m 776 2007-03-27 09:40:10Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 
@@ -99,6 +99,13 @@ for k = 1:Nsub
             for j = 1 : D{k}.Nsamples % time bins
                 di = ones(n, n)*NaN;                
                 di(sub2ind([n n], x, y)) = griddata(Cel(:,1), Cel(:,2), d(:, j, l),x,y, 'linear');
+                % griddata returns NaN for voxels outside convex hull (can
+                % happen due to bad electrodes at borders of setup.)
+                % Replace these by nearest neighbour interpoltation.
+                tmp = find(isnan(di(sub2ind([n n], x, y))));
+                di(sub2ind([n n], x(tmp), y(tmp))) =...
+                    griddata(Cel(:,1), Cel(:,2), d(:, j, l),x(tmp),y(tmp), 'nearest');
+                
                 N.dat(:,:,1,j) = di;
             end        
             

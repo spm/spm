@@ -7,7 +7,7 @@ function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_locate_channels.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_locate_channels.m 776 2007-03-27 09:40:10Z stefan $
 
 % load channel template file (contains location of channels)
 Ctf = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
@@ -57,6 +57,8 @@ else
     Ic = find(inpolygon(x, y, Cel(Itmp(Cind(ch)), 1), Cel(Itmp(Cind(ch)), 2)));
 end
 
+Cel = Cel(Itmp(Cind), :);
+
 x = x(Ic); y = y(Ic);
 
-Cel = Cel(Itmp(Cind), :);
+
