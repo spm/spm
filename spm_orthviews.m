@@ -114,7 +114,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 768 2007-03-15 14:19:34Z volkmar $
+% $Id: spm_orthviews.m 777 2007-03-28 11:14:57Z volkmar $
 
 
 
@@ -562,7 +562,7 @@ st.vols{vh}.blobs{bh}.cbar = axes('Parent',st.fig,...
           'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
           'Box','on', 'YDir','normal', 'XTickLabel',[], 'XTick',[]);
 if isfield(st.vols{vh}.blobs{bh},'name')
-    ylabel(st.vols{vh}.blobs{bh}.name);
+    ylabel(st.vols{vh}.blobs{bh}.name,'parent',st.vols{vh}.blobs{bh}.cbar);
 end;
 return;
 %_______________________________________________________________________
@@ -1259,7 +1259,7 @@ if isfield(st.vols{vh}.blobs{bh},'cbar')
                     (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
         'YDir','normal','XTickLabel',[],'XTick',[]);
     if isfield(st.vols{vh}.blobs{bh},'name')
-        ylabel(st.vols{vh}.blobs{bh}.cbar,st.vols{vh}.blobs{bh}.name);
+        ylabel(st.vols{vh}.blobs{bh}.name,'parent',st.vols{vh}.blobs{bh}.cbar);
     end;
 end;
 %_______________________________________________________________________
