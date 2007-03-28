@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 461 2006-02-27 17:17:29Z john $
+% $Id: subsasgn.m 779 2007-03-28 14:18:52Z volkmar $
 
 
 if isempty(subs)
@@ -23,7 +23,7 @@ if ~strcmp(subs(1).type,'()'),
         case 'dim',        obj = asgn(obj,@dim,      subs(2:end),dat); %obj = dim(obj,dat);
         case 'scl_slope',  obj = asgn(obj,@scl_slope,subs(2:end),dat); %scl_slope(obj,dat);
         case 'scl_inter',  obj = asgn(obj,@scl_inter,subs(2:end),dat); %scl_inter(obj,dat);
-        otherwise, error(['Reference to non-existent field "' subs.type '".']);
+        otherwise, error(['Reference to non-existent field "' subs.subs '".']);
         end;
         return;
     end;
