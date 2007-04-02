@@ -165,10 +165,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_fMRI_design.m 780 2007-04-02 09:15:20Z will $
 
 
-SCCSid  = '$Rev: 539 $';
+SCCSid  = '$Rev: 780 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -179,6 +179,7 @@ spm_help('!ContextHelp',mfilename)
 if nargin==1
     save_SPM=1;
 end
+
 
 % construct Design matrix {X} - cycle over sessions
 %=======================================================================
@@ -315,6 +316,16 @@ for s = 1:length(SPM.nscan)
 
 		% append mean-corrected regressors and names
 		%-------------------------------------------------------
+        
+        % Check dimensions
+        reg_rows=size(C,1);
+        if ~(reg_rows== k)
+            str1='Error in spm_fMRI_design.m:';
+            str2=sprintf('Session %d has %d scans but regressors have %d entries', s,k,reg_rows);
+            str3='These numbers should match';
+            warndlg({str1; str2; str3});
+            return
+        end
 		X      = [X spm_detrend(C)];
 		Xn     = {Xn{:}   Cname{:}};
 

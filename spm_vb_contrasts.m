@@ -10,7 +10,7 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 234 2005-09-20 09:36:11Z will $
+% $Id: spm_vb_contrasts.m 780 2007-04-02 09:15:20Z will $
 
 
 % Get approximate posterior covariance for ic
@@ -77,6 +77,12 @@ for v=1:Nvoxels,
 		mean_col_index = SPM.Sess(nsess).col(end) + s;
 		scol           = [scol mean_col_index];
         
+        % Revert from voxel-specific to splice-specific R if Taylor-series
+        % approximation produces invalid R
+        if max(max(abs(R))) > 1
+            R=SPM.PPM.Sess(s).slice(slice_index).mean.R;
+        end
+        
 		%-Reconstruct approximation to voxel wise covariance matrix
 		%---------------------------------------------------------------
 		Sigma_post = (sd_beta(scol,v) * sd_beta(scol,v)') .* R;
@@ -86,8 +92,8 @@ for v=1:Nvoxels,
 		CC = c(scol);
 		y  = y + CC' * Sigma_post * CC; 
 		
-	end
-	
+    end
+    
 	Y(XYZ(1,v),XYZ(2,v),XYZ(3,v)) = sqrt(y);
     if rem(v,100)==0
         % update progress bar every 100th voxel

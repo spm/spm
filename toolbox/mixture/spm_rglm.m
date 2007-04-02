@@ -1,6 +1,6 @@
-function [rglm] = spm_rglm (y,X,m,alpha,verbose)
+function [rglm,yclean] = spm_rglm (y,X,m,alpha,verbose)
 % Fit a Robust GLM 
-% FORMAT [rglm] = spm_rglm (y,X,m,alpha,verbose)
+% FORMAT [rglm,yclean] = spm_rglm (y,X,m,alpha,verbose)
 %
 % The noise is modelled with a Mixture of Zero-Mean Gaussians 
 %
@@ -11,6 +11,7 @@ function [rglm] = spm_rglm (y,X,m,alpha,verbose)
 % verbose    0/1 to printout inner workings (default=0)
 %
 % rglm       Returned model 
+% yclean     'Clean' data
 %
 % -------------------------------------------------------
 % The fields in rglm are:
@@ -232,3 +233,12 @@ rglm.posts.variances=1./(b.*c);
 rglm.posts.gamma=gamma;
 rglm.loops=loops;
 
+% Get 'clean' data
+if m > 1
+    [tmp,outlier_class]=min(rglm.posts.pi);
+    e=y-ypred;
+    outlier_error=rglm.posts.gamma(outlier_class,:)'.*e;
+    yclean=ypred+e-outlier_error;
+else
+    yclean=y;
+end
