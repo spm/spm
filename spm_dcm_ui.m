@@ -1,4 +1,4 @@
-function [DCM] = spm_dcm_ui(Action)
+function [DCM] = spm_dcm_ui(Action);
 % User interface for Dynamic Causal Modeling (DCM)
 % FORMAT [DCM] = spm_dcm_ui('specify');
 % FORMAT [DCM] = spm_dcm_ui('estimate');
@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 745 2007-02-26 10:22:20Z stefan $
+% $Id: spm_dcm_ui.m 781 2007-04-02 22:08:29Z klaas $
 
 
 
@@ -831,41 +831,53 @@ case 'compare',
                 for k=1:size(DCM.A,1),
                     nats=-(evidence(ii).region_cost(k)-evidence(jj).region_cost(k));
                     bits=nats/log(2);
-                    disp(sprintf('Region %s: relative cost  = %1.4f, BF= %1.4f',DCM.Y.name{k},bits,2^(-bits)));
+                    disp(sprintf('Region %s: relative cost  = %1.4g, BF= %1.4g',DCM.Y.name{k},bits,2^(-bits)));
                 end
                 % AIC penalty
                 nats=evidence(ii).aic_penalty-evidence(jj).aic_penalty;
                 bits=nats/log(2);
-                disp(sprintf('AIC Penalty = %1.4f, BF = %1.4f',bits,2^(-bits)));
+                disp(sprintf('AIC Penalty = %1.4f, BF = %1.4g',bits,2^(-bits)));
                 % BIC penalty
                 nats=evidence(ii).bic_penalty-evidence(jj).bic_penalty;
                 bits=nats/log(2);
-                disp(sprintf('BIC Penalty = %1.4f, BF = %1.4f',bits,2^(-bits)));
+                disp(sprintf('BIC Penalty = %1.4f, BF = %1.4g',bits,2^(-bits)));
                 % AIC overall
                 nats=-diff*(aic(ii)-aic(jj));
                 bits=nats/log(2);
                 bf_aic=2^(-bits);
-                disp(sprintf('AIC Overall = %1.4f, BF = %1.4f',bits,bf_aic));
+                disp(sprintf('AIC Overall = %1.4f, BF = %1.4g',bits,bf_aic));
                 % BIC overall
                 nats=-diff*(bic(ii)-bic(jj));
                 bits=nats/log(2);
                 bf_bic=2^(-bits);
-                disp(sprintf('BIC Overall = %1.4f, BF = %1.4f',bits,bf_bic));
+                disp(sprintf('BIC Overall = %1.4f, BF = %1.4g',bits,bf_bic));
                 disp(' ');
                 
-                if (bf_bic > exp(1)) & (bf_aic > exp(1))
-                    disp(sprintf('Consistent evidence in favour of model %d',ii));
-                    disp(sprintf('Bayes factor >= %1.4f', min(bf_aic,bf_bic)));
-                    disp(' ');
-                elseif ((1/bf_bic) > exp(1)) & ((1/bf_aic) > exp(1))
-                    disp(sprintf('Consistent evidence in favour of model %d',jj));
-                     disp(sprintf('Bayes factor >= %1.4f', min(1/bf_aic,1/bf_bic)));
-                    disp(' ');
+                % evaluate results
+                if ((bf_bic > 1) & (bf_aic < 1)) | ((bf_bic < 1) & (bf_aic > 1))
+                    % AIC and BIC do not concur
+                    disp('AIC and BIC disagree about which model is superior - no decision can be made.');
                 else
-                    disp('No consistent evidence in favour of either model');
-                    disp(' ');
+                    % AIC and BIC do concur - assign statement according to Raftery classification
+                    raftery_labels = {'Weak','Positive','Strong','Very strong'};
+                    if bf_aic > 1
+                        raftery_thresholds = [3 20 150 inf];
+                        minBF              = min(bf_aic,bf_bic);
+                        posBF              = find(sort([raftery_thresholds minBF])==minBF);
+                        m                  = ii;
+                    else
+                        raftery_thresholds = [0 1/150 1/20 1/3];
+                        minBF              = max(bf_aic,bf_bic);
+                        posBF              = find(sort(-1*[raftery_thresholds minBF])==-minBF);
+                        m                  = jj;
+                    end
+                    label          = raftery_labels{posBF};
+                    disp(sprintf([label ' evidence in favour of model %d'],m));
+                    disp(sprintf('Bayes factor >= %1.4g', minBF));
+                    disp(' ');                  
+                    disp('---------------------------------------------------------------');
+                    
                 end
-                disp('---------------------------------------------------------------');
                 
             end
         end
