@@ -9,18 +9,21 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 %
 % The returned mar will have the following fields specified:
 %
-% .P     Power Spectral Density matrix
-% .C     Coherence
-% .L     Phase
-% .f     Frequencies
+% .P     [Nf x d x d] Power Spectral Density matrix
+% .C     [Nf x d x d] Coherence matrix
+% .dtf   [Nf x d x d] Directed Transfer Function matrix
+% .L     [Nf x d x d] Phase matrix
+% .f     [Nf x 1] Frequency vector
 % .ns    Sample rate
+%
+% dtf(f,i,j) is the DTF at frequency f from signal i to signal j
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
 % $Id$
 
-if nargin < 4  isempty(show)
+if nargin < 4  | isempty(show)
     show=0;
 end
 
@@ -31,7 +34,7 @@ Nf=length(freqs);
 mar.f=freqs;
 w=2*pi*freqs/ns;
 
-% Get power
+% Get Power Spectral Density matrix and DTF
 for ff=1:Nf,
   af_tmp=eye(d);
   for k=1:p,
@@ -39,6 +42,13 @@ for ff=1:Nf,
   end
   iaf_tmp=inv(af_tmp);
   mar.P(ff,:,:) = iaf_tmp * mar.noise_cov * iaf_tmp';
+  
+  % Get DTF
+  for ii=1:d,
+      for j=1:d,
+          mar.dtf(ff,ii,j)=iaf_tmp(ii,j)/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
+      end
+  end
 end
 
 % Get coherence and phase
@@ -79,29 +89,42 @@ if show
     end
     
     h=figure;
-    set(h,'name','Phase');
+    set(h,'name','DTF');
     for k=1:d,
         for j=1:d,
             if ~(k==j)
                 index=(k-1)*d+j;
                 subplot(d,d,index);
-                ph=mar.L(:,k,j);
-                plot(mar.f,ph);
+                dtf=real(mar.dtf(:,k,j)).^2;
+                plot(mar.f,dtf);
             end
         end
     end
     
-    h=figure;
-    set(h,'name','Delay/ms');
-    for k=1:d,
-        for j=1:d,
-            if ~(k==j)
-                index=(k-1)*d+j;
-                subplot(d,d,index);
-                ph=mar.L(:,k,j);
-                plot(mar.f,1000*ph'./(2*pi*mar.f));
-            end
-        end
-    end
+%     h=figure;
+%     set(h,'name','Phase');
+%     for k=1:d,
+%         for j=1:d,
+%             if ~(k==j)
+%                 index=(k-1)*d+j;
+%                 subplot(d,d,index);
+%                 ph=mar.L(:,k,j);
+%                 plot(mar.f,ph);
+%             end
+%         end
+%     end
+%     
+%     h=figure;
+%     set(h,'name','Delay/ms');
+%     for k=1:d,
+%         for j=1:d,
+%             if ~(k==j)
+%                 index=(k-1)*d+j;
+%                 subplot(d,d,index);
+%                 ph=mar.L(:,k,j);
+%                 plot(mar.f,1000*ph'./(2*pi*mar.f));
+%             end
+%         end
+%     end
     
 end

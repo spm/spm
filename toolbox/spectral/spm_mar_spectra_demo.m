@@ -1,22 +1,32 @@
 
 % Demo for MAR spectral estimation
 
-f=10;
-secs=2;
+% This simulation is similar to Cassidy and Brown. Spectral Phase
+% Estimates in the setting of multidirectional coupling
+% J Neurosci Methods. 2003 Aug 1-15;37(3):299.
+
+close all
+noise_dev=0.01;
+
+Nsines=100;
+f=sqrt(0.2)*randn(Nsines,1)+20;
+secs=50;
 ns=100;
 t=[1/ns:1/ns:secs]';
 N=length(t);
-noise_dev=0.1;;
-noise1=noise_dev*randn(N,1);
-noise2=noise_dev*randn(N,1);
+
+y=zeros(N,1);
+for n=1:Nsines,
+    y=y+sin(2*pi*f(n)*t);
+end
+y=y/std(y); % Rescale to unit variance
 
 delay=50; % ms delay
 delay_in_samples=ns*delay/1000;
 
-x1=sin(2*pi*f*t);
-y1=x1+noise1;
-dy1=[y1(delay_in_samples:end);noise_dev*randn(delay_in_samples-1,1)];
-y2=dy1+noise2;
+y1=y+noise_dev*randn(N,1);
+y2=[y1(delay_in_samples:end);zeros(delay_in_samples-1,1)];
+y2=y2+noise_dev*randn(N,1);
 y=[y1,y2];
 
 h=figure;

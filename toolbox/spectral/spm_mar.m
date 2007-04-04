@@ -1,6 +1,6 @@
-function [mar,y,y_pred] = spm_mar (X,p,prior)
+function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 % Bayesian Multivariate Autoregressive Modelling
-% FORMAT [mar,y,y_pred] = spm_mar (X,p,prior)
+% FORMAT [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 %
 % Matrix of AR coefficients are in form
 % x_t = -a_1 x_t-1 + -a_2 x_t-2 + ...... + -a_p x_t-p
@@ -10,6 +10,7 @@ function [mar,y,y_pred] = spm_mar (X,p,prior)
 % X              T-by-d matrix containing d-variate time series
 % p              Order of MAR model
 % prior          Prior on MAR coefficients (see marprior.m)
+% verbose        1 to print out iteration details, 0 otherwise (default=0)
 %
 % mar.lag(k).a   AR coefficient matrix at lag k
 % mar.noise_cov  Estimated noise covariance
@@ -22,6 +23,10 @@ function [mar,y,y_pred] = spm_mar (X,p,prior)
 
 % Will Penny 
 % $Id$
+
+if nargin < 4 | isempty(verbose)
+    verbose=0;
+end
 
 d=size(X,2);    % dimension of time series
 N=size(X,1);    % length of time series
@@ -52,8 +57,6 @@ end
 Nrows=size(x,1);
 x=x(1:Nrows-1,:);
 
-
-
 y=X([p+1:1:N],:);
 
 k=p*d*d;
@@ -63,22 +66,32 @@ if nargin < 3 | isempty(prior)
   prior.group(1).index=ones(1,k);
 end
 
+% Get both pseudo-inverse and approx to inv(x'*x) efficiently
+[ux,dx,vx]=svd(x);
+kk=size(x,2);
+ddx=diag(dx);
+svd_tol=max(ddx)*eps*kk;
+rank_X=sum(ddx > svd_tol);
+ddxm=diag(ones(rank_X,1)./ddx(1:rank_X));
+ddxm2=diag(ones(rank_X,1)./(ddx(1:rank_X).^2));
+xp=vx(:,1:rank_X)*ddxm*ux(:,1:rank_X)';  % Pseudo-inverse
+inv_xtx=vx(:,1:rank_X)*ddxm2*vx(:,1:rank_X)'; % approx to inv(x'*x)
+
 % Compute terms that will be used many times
 xtx=x'*x;
 yty=y'*y;
-inv_xtx=inv(xtx);
 xty=x'*y;
 vec_xty=xty(:);
 
 % Get maximum likelihood solution
-w_ml = pinv(-1*x)*y;
+%w_ml = pinv(-1*x)*y;
+w_ml = -xp*y;
 
 % Swap signs to be consistent with paper (swap back at end !)
 w_ml=-1*w_ml;
 
 y_pred = x*w_ml;
 e=y-y_pred;
-%noise_cov=(e'*e)/(N-k);
 noise_cov=(e'*e)/N;
 sigma_ml=kron(noise_cov,inv_xtx);
 
@@ -135,7 +148,9 @@ for it=1:max_iters,
         w=w_mean;
     else
         change=norm(w(:)-old_w(:))/k;
-        disp(sprintf('Iteration %d Delta_w=%1.6f',it,change));
+        if verbose
+            disp(sprintf('Iteration %d Delta_w=%1.6f',it,change));
+        end
         if change < tol
             break;
         end
@@ -164,8 +179,9 @@ kl_weights=spm_kl_eig_normal(w_mean(:),w_cov,prior_cov);
 lga=spm_lg_gamma(d,0.5*a);
 acc=-0.5*N*log(det(B));
 f_m=acc-kl_weights-kl_alpha+lga;
-disp(sprintf('Iteration %d Acc=%1.3f KL_w=%1.3f KL_alpha=%1.3f LogGena=%1.3f Fm=%1.3f',it,acc,kl_weights,kl_alpha,lga,f_m));
-  
+if verbose
+    disp(sprintf('Iteration %d Acc=%1.3f KL_w=%1.3f KL_alpha=%1.3f LogGena=%1.3f Fm=%1.3f',it,acc,kl_weights,kl_alpha,lga,f_m));
+end
 
 % Load up returning data structure
 mar.p=p;
