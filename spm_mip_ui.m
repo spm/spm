@@ -68,7 +68,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 652 2006-10-17 16:51:32Z karl $
+% $Id: spm_mip_ui.m 783 2007-04-04 12:54:03Z james $
 
 
 %==========================================================================
@@ -77,10 +77,10 @@ function varargout = spm_mip_ui(varargin)
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take.          )
 %
-% FORMAT hMIPax = spm_mip_ui(Z,XYZ,V,F)
-% [ShortCut] Defaults to hMIPax=spm_mip_ui('Display',Z,XYZ,V,F)
+% FORMAT hMIPax = spm_mip_ui(Z,XYZ,V,F,units)
+% [ShortCut] Defaults to hMIPax=spm_mip_ui('Display',Z,XYZ,V,F,units)
 %
-% FORMAT hMIPax = spm_mip_ui('Display',Z,XYZ,M,DIM,F)
+% FORMAT hMIPax = spm_mip_ui('Display',Z,XYZ,M,DIM,F,units)
 % Displays the MIP and sets up cursors
 % Z       - {1 x ?} vector point list of SPM values for MIP
 % XYZ     - {3 x ?} matrix of coordinates of points (Talairach coordinates)
@@ -88,6 +88,7 @@ function varargout = spm_mip_ui(varargin)
 % DIM     - image dimensions {voxels}
 % F       - Handle of figure (or axes) to work in [Defaults to gcf]
 % hMIPax  - handle of MIP axes
+% units   - units of space
 %
 % FORMAT xyz = spm_mip_ui('GetCoords',h)
 % Returns coordinates of current cursor position
@@ -179,7 +180,7 @@ Po(4)  = DXYZ(2)         +CXYZ(1) -2;
 %==========================================================================
 switch lower(varargin{1}), case 'display'
 %==========================================================================
-    % hMIPax = spm_mip_ui('Display',Z,XYZ,M,DIM,F)
+    % hMIPax = spm_mip_ui('Display',Z,XYZ,M,DIM,F,units)
     if nargin<5
         F      = gcf;
         hMIPax = [];
@@ -197,10 +198,15 @@ switch lower(varargin{1}), case 'display'
         end
     end
     if nargin<4, error('Insufficient arguments'), end
-    DIM     = varargin{5};
-    M       = varargin{4};
-    XYZ     = varargin{3};
     Z       = varargin{2};
+    XYZ     = varargin{3};
+    M       = varargin{4};
+    DIM     = varargin{5};
+    try
+        units = varargin{7};
+    catch
+        units = {'mm' 'mm' 'mm'};
+    end
 
     xyz = spm_XYZreg('RoundCoords',[0;0;0],M,DIM);
 
@@ -217,7 +223,7 @@ switch lower(varargin{1}), case 'display'
 
     %-NB: spm_mip's `image` uses a newplot, & screws stuff without the figure.
     figure(F)
-    spm_mip(Z,XYZ,M);
+    spm_mip(Z,XYZ,M,units);
     hMIPim = get(gca,'Children');
 
 

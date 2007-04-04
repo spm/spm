@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 714 2007-01-15 13:51:35Z volkmar $
+% $Id: spm_spm.m 783 2007-04-04 12:54:03Z james $
 
-SCCSid   = '$Rev: 714 $';
+SCCSid   = '$Rev: 783 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -484,7 +484,6 @@ if ~isfield(xVi,'V')
     UF     = spm_invFcdf(1 - UFp,[trMV,trRV]);
 end
 
-
 %-Image dimensions and data
 %==========================================================================
 VY       = SPM.xY.VY;
@@ -492,6 +491,48 @@ M        = VY(1).mat;
 DIM      = VY(1).dim(1:3)';
 xdim     = DIM(1); ydim = DIM(2); zdim = DIM(3);
 YNaNrep  = spm_type(VY(1).dt(1),'nanrep');
+
+%-Adjust volumetrics if this is non-Talairach data
+%=======================================================================
+% Dimensions: X: -68:68, Y: -100:72, Z: -42:82 DIM: [136; 172; 124]
+
+% 3-D case, with arbitrary diimensions
+%-----------------------------------------------------------------------
+q   = M - speye(4,4);
+if ~any(q(:))
+    
+    % map x and y into anatomical space and make z a %
+    %-------------------------------------------------------------------
+    D   = DIM./[136; 172; 100];    % new voxel size
+    C   = D.*[68;  100; 0];        % new origin
+    iM  = [D(1) 0    0    C(1);
+           0    D(2) 0    C(2);
+           0    0    D(3) C(3);
+           0    0    0      1];
+    M   = inv(iM);
+    
+    % reset image volume data in VY
+    %-------------------------------------------------------------------
+    [VY.mat]  = deal(M);
+    SPM.xY.VY = VY;
+    
+    % re-set units
+    %-------------------------------------------------------------------
+    units = {'mm' 'mm' '%'};
+    
+else
+    
+    % else assume mm in standard sapce
+    %-------------------------------------------------------------------
+    units = {'mm' 'mm' 'mm'};
+end
+
+% 2-D case
+%-----------------------------------------------------------------------
+if DIM(3) == 1
+    units = {'mm' 'mm' ''};
+end
+
 
 %-Maximum number of residual images for smoothness estimation
 %--------------------------------------------------------------------------
@@ -934,6 +975,7 @@ SPM.xVol.XYZ   = XYZ(:,1:S);        %-InMask XYZ coords (voxels)
 SPM.xVol.M     = M;                 %-voxels -> mm
 SPM.xVol.iM    = inv(M);            %-mm -> voxels
 SPM.xVol.DIM   = DIM;               %-image dimensions
+SPM.xVol.units = units;             %-image units
 SPM.xVol.FWHM  = FWHM;              %-Smoothness data
 SPM.xVol.R     = R;                 %-Resel counts
 SPM.xVol.S     = S;                 %-Volume (voxels)

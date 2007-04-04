@@ -107,7 +107,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 652 2006-10-17 16:51:32Z karl $
+% $Id: spm_list.m 783 2007-04-04 12:54:03Z james $
 
 
 
@@ -156,10 +156,8 @@ switch lower(varargin{1}), case 'list'                            %-List
         R     = varargin{2}.R;
         FWHM  = varargin{2}.FWHM;
     end
-
     try
-        global defaults
-        units = defaults.units;
+        units = varargin{2}.units;
     catch
         units = {'mm' 'mm' 'mm'};
     end

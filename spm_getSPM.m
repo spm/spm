@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 686 2006-11-21 17:10:40Z Darren $
+% $Id: spm_getSPM.m 783 2007-04-04 12:54:03Z james $
 
 
 %-GUI setup
@@ -184,53 +184,7 @@ catch
 end
 SPM.swd = swd;
 
-%-Get volumetric data from SPM.mat
-%=======================================================================
-% Dimensions: X: -68:68, Y: -100:72, Z: -42:82 DIM: [136; 172; 124]
-
-% adjust volumetrics if this is non-Talairach data
-%-----------------------------------------------------------------------
-global defaults
-
-% voxel-to-space mapping
-%-----------------------------------------------------------------------
-q   = SPM.xVol.M - speye(4,4);
-
-
-% 3-D case
-%-----------------------------------------------------------------------
-if ~any(q(:))
-    
-    % map x and y into anatomical space and make z a %
-    %-------------------------------------------------------------------
-    D   = [136; 172; 100];
-    C   = [68;  100; 0];
-    D   = SPM.xVol.DIM./D;
-    C   = D.*C;
-    iM  = [D(1) 0    0    C(1);
-           0    D(2) 0    C(2);
-           0    0    D(3) C(3);
-           0    0    0      1];
-
-    SPM.xVol.iM = iM;
-    SPM.xVol.M  = inv(iM);
-
-    % re-set units
-    %-------------------------------------------------------------------
-    defaults.units = {'mm' 'mm' '%'};
-else
-    defaults.units = {'mm' 'mm' 'mm'};
-end
-
-% 2-D case
-%-----------------------------------------------------------------------
-if  strcmp(spm('CheckModality'), 'EEG') & SPM.xVol.DIM(3) == 1
-    
-    defaults.units = {'mm' 'mm' ''};
-    
-end
-
-% get volumetrics
+% check the model has been estimated
 %-----------------------------------------------------------------------
 try
     if strcmp(spm('CheckModality'), 'EEG') & isfield(SPM.xX, 'fullrank')
@@ -709,4 +663,6 @@ xSPM   = struct( ...
 
 % RESELS per voxel (density) if it exists
 %-----------------------------------------------------------------------
-if isfield(SPM,'VRpv'), xSPM.VRpv = SPM.VRpv; end
+try, xSPM.VRpv  = SPM.VRpv;       end
+try, xSPM.units = SPM.xVol.units; end
+
