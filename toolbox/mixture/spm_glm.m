@@ -44,7 +44,7 @@ N=length(y);
 p=size(X,2);
 spX=issparse(X);
 
-% Initialise AR coefficients to maximum likelihood solution
+% Initialise regression coefficients to maximum likelihood solution
 if spX
     iX=inv(X'*X);
     w_mean=iX*X'*y;
@@ -117,6 +117,8 @@ end
 rglm.its=it;
 rglm.m=1;
 rglm.fm=f_m;
+rglm.kl_gamm=kl_beta;
+rglm.kl_w=kl_weights;
 rglm.priors.c_0=c_beta_prior;
 rglm.priors.b_0=b_beta_prior;
 rglm.w=w_mean;

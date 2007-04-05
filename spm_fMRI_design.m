@@ -165,10 +165,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 780 2007-04-02 09:15:20Z will $
+% $Id: spm_fMRI_design.m 784 2007-04-05 13:29:19Z will $
 
 
-SCCSid  = '$Rev: 780 $';
+SCCSid  = '$Rev: 784 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -319,7 +319,7 @@ for s = 1:length(SPM.nscan)
         
         % Check dimensions
         reg_rows=size(C,1);
-        if ~(reg_rows== k)
+        if (reg_rows > 0) & ~(reg_rows== k)
             str1='Error in spm_fMRI_design.m:';
             str2=sprintf('Session %d has %d scans but regressors have %d entries', s,k,reg_rows);
             str3='These numbers should match';

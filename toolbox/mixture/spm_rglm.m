@@ -1,13 +1,15 @@
-function [rglm,yclean] = spm_rglm (y,X,m,alpha,verbose)
+function [rglm,yclean] = spm_rglm (y,X,m,priors,verbose)
 % Fit a Robust GLM 
-% FORMAT [rglm,yclean] = spm_rglm (y,X,m,alpha,verbose)
+% FORMAT [rglm,yclean] = spm_rglm (y,X,m,priors,verbose)
 %
 % The noise is modelled with a Mixture of Zero-Mean Gaussians 
 %
 % y          [N x 1] data vector
 % X          [N x p] design matrix
 % m          Number of mixture components
-% alpha      [1 x 1] weight precision (default=0.001)
+% priors     .alpha      [1 x 1] weight precision (default=0.001)
+%            .mean_err   [m x 1] vector of mean error SD
+%            .std_err    [m x 1] vector of dev of error SD
 % verbose    0/1 to printout inner workings (default=0)
 %
 % rglm       Returned model 
@@ -40,8 +42,21 @@ function [rglm,yclean] = spm_rglm (y,X,m,alpha,verbose)
 % Will Penny 
 % $Id$
 
+if nargin < 4 | isempty(priors)
+    mean_alpha=0.001;
+    % Set variance priors
+    b_0=1000*ones(m,1);
+    c_0=0.001*ones(m,1);
+else
+    mean_alpha=priors.alpha;
+    for mm=1:m,
+        b_0(mm)=(priors.std_err(mm)^2)/priors.mean_err(mm);
+        c_0(mm)=priors.mean_err(mm)/b_0(mm);
+    end
+end
+
 if (m==1)
-    rglm=spm_glm(y,X);
+    rglm=spm_glm(y,X,mean_alpha);
     return
 end
 
@@ -54,7 +69,7 @@ N=length(y);
 p=size(X,2);
 spX=issparse(X);
 
-% Initialise AR coefficients to maximum likelihood solution
+% Initialise regression coefficients to maximum likelihood solution
 if spX
     iX=inv(X'*X);
     w_mean=iX*X'*y;
@@ -70,10 +85,6 @@ w_cov = v*iX;
 % Set mixing priors
 lambda_0=5;
 
-% Set variance priors
-b_0=1000;
-c_0=0.001;
-
 % Cluster on absolute difference from mean
 zmix=spm_kmeans1(abs(err-mean(err)),m);
 % Posterior for mixers
@@ -86,13 +97,6 @@ for s=1:m,
       precision=1/zmean(s);
       b(s)=var_precision/precision;
       c(s)=(precision^2)/var_precision;
-end
-
-% Initialise weight precision
-if nargin < 4 | isempty(alpha)
-    mean_alpha=0.001;
-else
-    mean_alpha=alpha;
 end
 
 if verbose
@@ -157,7 +161,7 @@ for loops=1:max_loops,
     kl_dir=spm_kl_dirichlet(lambda,lambda_p,log_tilde_pi);
     kl_gamm=0;
     for s=1:m,
-        kl_gamm=kl_gamm+spm_kl_gamma(b(s),c(s),b_0,c_0);
+        kl_gamm=kl_gamm+spm_kl_gamma(b(s),c(s),b_0(s),c_0(s));
     end
     kl_weights=spm_kl_normald(w_mean,w_cov,zeros(1,p),(1/mean_alpha)*eye(p));
     fm= avg_likelihood - kl_dir - kl_gamm - kl_weights;
@@ -178,8 +182,8 @@ for loops=1:max_loops,
         % Mixers
         lambda(s)=N_bar(s)+lambda_0;
         % Precisions
-        b(s)=1/(0.5*N*var_bar_mu(s)+1/b_0);
-        c(s)=0.5*N_bar(s)+c_0;
+        b(s)=1/(0.5*N*var_bar_mu(s)+1/b_0(s));
+        c(s)=0.5*N_bar(s)+c_0(s);
         mean_beta(s)=c(s)*b(s);
     end
     
@@ -213,6 +217,9 @@ end
 % Put variables into data structure
 rglm.m=m;
 rglm.fm=fm;
+rglm.kl_dir=kl_dir;
+rglm.kl_gamm=kl_gamm;
+rglm.kl_w=kl_weights;
 rglm.priors.lambda_0=lambda_0;
 rglm.priors.c_0=c_0;
 rglm.priors.b_0=b_0;
