@@ -49,13 +49,13 @@ end
 %==========================================================================
 if D.events.Ntypes > 1
     if spm_input('All conditions or trial','+1','b',{'yes|no'},[1 0],1)
-        trials = D.events.types;
+        trials = 1:length(D.events.types);
     else
         str    = sprintf('which condition[s] 1:(%i)',length(D.events.types))
         trials = spm_input(str,'+1','r');
     end
 else
-    trials = D.events.types(1);
+    trials = 1;
 end
 inverse.trials = trials;
 D.con          = 1;

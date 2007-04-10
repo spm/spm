@@ -6,7 +6,7 @@ function [D] = spm_eeg_invert(D)
 % Requires:
 % D.inv{val}.inverse:
 %
-%     inverse.trials - indces of D.events.types to invert
+%     inverse.trials - indices of D.events.types to invert
 %     inverse.smooth - smoothness of source priors (0 to 1)
 %     inverse.Np     - number of sparse priors per hemisphere
 %     inverse.type   - 'MSP' multiple sparse priors
