@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 717 2007-01-17 12:46:33Z john $
+# $Id: Makefile 786 2007-04-13 17:49:01Z john $
 #
 ###############################################################################
 #
@@ -57,6 +57,12 @@ ifndef SUF
     # 'uname -i' may not work
     HARDWARE  = $(shell uname -m)
     ifeq (i386,$(HARDWARE))
+      SUF     = mexglx
+      CC      = gcc
+      CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
+      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
+    endif
+    ifeq (i686,$(HARDWARE))
       SUF     = mexglx
       CC      = gcc
       CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
