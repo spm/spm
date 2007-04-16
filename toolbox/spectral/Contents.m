@@ -1,7 +1,12 @@
-% SPM Spectral Estimation Toolbox 
+% SPM Spectral Estimation Toolbox
+%
+% Installation note: Some of these routines require the SPM Mixture 
+% Modelling Toolbox to be on the search path
 %
 % Bayesian Autoregressive (AR) modelling: spm_ar.m
 % 
+% Bayesian Robust Autoregressive (AR) modelling: spm_rar.m
+%
 % Bayesian Multivariate Autoregressive (MAR) modelling [1,2,3]: spm_mar.m
 %
 % (MAR based) Granger causality [3]: spm_granger.m

@@ -9,6 +9,7 @@ function [ar] = spm_ar (Z,p,verbose)
 %
 % Z             [N x 1] univariate time series 
 % p             (scalar) order of model
+% verbose       1=print out fitting progress (default=0)
 %
 % ar            data structure
 % ----------------------------------
@@ -23,6 +24,11 @@ function [ar] = spm_ar (Z,p,verbose)
 % ar.y          targets
 % ar.y_pred     predictions
 % ar.fm         negative free energy
+%
+% For algorithmic details see:
+%
+% W.D. Penny and S.J. Roberts. Bayesian Methods for Autoregressive Models.
+% In IEEE Workshop on Neural Networks for Signal Processing, Sydney Australia, 2000
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
@@ -35,7 +41,7 @@ if nargin < 2,
 end
 
 if nargin < 3 | isempty(verbose)
-    verbose=1;
+    verbose=0;
 end
 
 Z=Z(:);
@@ -69,11 +75,11 @@ end
 %     a_cov = v*X2;
 %     xtx=X2;
 % else
-    a_mean = pinv(x)*y;
-    y_pred = x*a_mean;
-    v=mean((y-y_pred).^2);
-    xtx=x'*x;
-    a_cov = v*inv(xtx);
+a_mean = pinv(x)*y;
+y_pred = x*a_mean;
+v=mean((y-y_pred).^2);
+xtx=x'*x;
+a_cov = v*inv(xtx);
     
 
 % Setting to these values gives updates for mean_alpha, mean_beta
@@ -84,11 +90,9 @@ mean_alpha_prior=b_alpha_prior*c_alpha_prior;
 b_beta_prior=1000;
 c_beta_prior=0.001;
 
-
 xty=x'*y;
 xt=x';
 yty=y'*y;
-
 
 max_iters=32;
 lik=[];

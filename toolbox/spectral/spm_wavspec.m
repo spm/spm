@@ -11,6 +11,9 @@ function [p] = spm_wavspec (x,freqs,fs,show)
 % Will Penny 
 % $Id$
 
+x=x(:)';
+freqs=freqs(:)';
+
 if nargin < 4 | isempty(show)
     show=0;
 end
