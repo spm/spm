@@ -1,6 +1,6 @@
-function [rar] = spm_rar (Z,p,m,verbose)
+function [rar,yclean] = spm_rar (Z,p,m,verbose)
 % Bayesian autoregressive modelling with zero-mean Gaussian mixture noise
-% function [rar] = spm_rar (Z,p,m,verbose)
+% function [rar,yclean] = spm_rar (Z,p,m,verbose)
 %
 % Z          [N x 1] vector of data points
 % p          Number of AR coefficients
@@ -8,6 +8,7 @@ function [rar] = spm_rar (Z,p,m,verbose)
 % verbose    0/1 to printout inner workings (default=0)
 %
 % rar        Returned model 
+% yclean     'Clean' data (ie. with outlier errors removed)
 %
 % -------------------------------------------------------
 % The fields in rar are:
@@ -252,4 +253,14 @@ rar.variances=1./(b.*c);
 % Pre-pad gamma with zeros to get original length time series
 rar.gamma=[zeros(m,p),gamma];
 
+% Get 'clean' data
+if m > 1
+    [tmp,outlier_class]=min(rar.pi);
+    e=y-ypred;
+    outlier_error=gamma(outlier_class,:)'.*e;
+    yclean=ypred+e-outlier_error;
+    yclean=[Z(1:p);yclean];  % Pre-padding
+else
+    yclean=Z;
+end
 

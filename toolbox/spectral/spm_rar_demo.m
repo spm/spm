@@ -33,7 +33,7 @@ y=y(1:N);
 ar=spm_ar(y,p_true);
 
 % Fit Robust AR model
-rar = spm_rar(y,p_true,m);
+[rar,yclean] = spm_rar(y,p_true,m);
 
 rar3=spm_rar(y,p_true,3);
 rar4=spm_rar(y,p_true,4);
@@ -80,4 +80,5 @@ disp(sprintf('Error for AR=%1.3f',d_ar));
 disp(sprintf('Error for RAR=%1.3f',d_rar));
 disp(sprintf('Ratio E_RAR/E_AR=%1.3f',d_rar/d_ar));
 
-
+% figure;plot(y);hold on;plot(yclean,'r');
+% legend('Original','Clean');
