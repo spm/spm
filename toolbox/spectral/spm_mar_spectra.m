@@ -12,11 +12,16 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % .P     [Nf x d x d] Power Spectral Density matrix
 % .C     [Nf x d x d] Coherence matrix
 % .dtf   [Nf x d x d] Directed Transfer Function matrix
+% .gew   [Nf x d x d] Geweke's frequency domain Granger causality
 % .L     [Nf x d x d] Phase matrix
 % .f     [Nf x 1] Frequency vector
 % .ns    Sample rate
 %
 % dtf(f,i,j) is the DTF at frequency f from signal i to signal j
+% pev(f,i,j) is the proportion of power in signal j at frequency f that can
+%            be predicted by signal i. 
+% gew(f,i,j) is the Granger casuality from signal i to signal j at frequency f.
+%            gew=-log(1-pev)
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
@@ -41,6 +46,7 @@ for ff=1:Nf,
     af_tmp=af_tmp+mar.lag(k).a*exp(-i*w(ff)*k);
   end
   iaf_tmp=inv(af_tmp);
+  H(ff,:,:)=iaf_tmp;  % transfer function
   mar.P(ff,:,:) = iaf_tmp * mar.noise_cov * iaf_tmp';
   
   % Get DTF
@@ -51,7 +57,7 @@ for ff=1:Nf,
   end
 end
 
-% Get coherence and phase
+% Get Coherence and Phase
 for k=1:d,
     for j=1:d,
         rkj=mar.P(:,k,j)./(sqrt(mar.P(:,k,k)).*sqrt(mar.P(:,j,j)));
@@ -59,6 +65,18 @@ for k=1:d,
         
         l=atan(imag(rkj)./real(rkj));
         mar.L(:,k,j)=atan(imag(rkj)./real(rkj));
+    end
+end
+
+% Get Geweke's formulation of Granger Causality in the Frequency domain
+C=mar.noise_cov;
+for j=1:d,
+    for k=1:d,
+        rjk=C(j,j)-(C(j,k)^2)/C(k,k);
+        sk=abs(mar.P(:,k,k));
+        hkj=abs(H(:,k,j)).^2;
+        mar.pve(:,j,k)=rjk*hkj./sk;
+        mar.gew(:,j,k)=-log(1-mar.pve(:,j,k));
     end
 end
 
