@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 699 2006-11-24 20:13:20Z volkmar $
+% $Id: spm_config_contrasts.m 802 2007-04-27 07:47:35Z volkmar $
 
 
 %_______________________________________________________________________
@@ -278,10 +278,117 @@ fcon.help   = {...
 
 
 
+% Column-wise contrast definition for fancy fMRI designs
+%_______________________________________________________________________
+
+conweight.type    = 'entry';
+conweight.name    = 'Contrast weight';
+conweight.tag     = 'conweight';
+conweight.strtype = 'e';
+conweight.num     = [1 1];
+conweight.help    = {'The contrast weight for the selected column.'};
+
+colcond.type    = 'entry';
+colcond.name    = 'Condition #';
+colcond.tag     = 'colcond';
+colcond.strtype = 'e';
+colcond.num     = [1 1];
+colcond.help    = {['Select which condition function set is to be contrasted.']};
+
+colbf.type    = 'entry';
+colbf.name    = 'Basis function #';
+colbf.tag     = 'colbf';
+colbf.strtype = 'e';
+colbf.num     = [1 1];
+colbf.help    = {['Select which basis function from the basis' ...
+		  ' function set is to be contrasted.']};
+
+colmod.type    = 'entry';
+colmod.name    = 'Parametric modulation #';
+colmod.tag     = 'colmod';
+colmod.strtype = 'e';
+colmod.num     = [1 1];
+colmod.help    = {['Select which parametric modulation is to be contrasted.' ...
+		   ' If there is no time/parametric modulation, enter' ...
+		   ' "1". If there are both time and parametric modulations, '...
+		   'then time modulation comes before parametric modulation.']}; 
+
+colmodord.type    = 'entry';
+colmodord.name    = 'Parametric modulation order';
+colmodord.tag     = 'colmodord';
+colmodord.strtype = 'e';
+colmodord.num     = [1 1];
+colmodord.help    = {'Order of parametric modulation to be contrasted. ','', ...
+		     '0 - the basis function itself, 1 - 1st order mod etc'};
+		    
+colconds.type   = 'branch';
+colconds.name   = 'Contrast entry';
+colconds.tag    = 'colconds';
+colconds.val    = {conweight,colcond,colbf,colmod,colmodord};
+
+colcondrep.type   = 'repeat';
+colcondrep.name   = 'T contrast for conditions';
+colcondrep.tag    = 'colcondrep';
+colcondrep.values = {colconds};
+colcondrep.num    = [1 Inf];
+colcondrep.help   = {'Assemble your contrast column by column.'};
+
+colreg = tconvec;
+colreg.name    = 'T contrast for extra regressors';
+colreg.tag     = 'colreg';
+colreg.help    = {...
+['Enter T contrast vector for extra regressors.']};
+
+coltype.type   = 'choice';
+coltype.name   = 'Contrast columns';
+coltype.tag    = 'coltype';
+coltype.values = {colcondrep, colreg};
+coltype.help   = {...
+['Contrasts can be specified either over conditions or over extra regressors.']};
+
+sessions.type    = 'entry';
+sessions.name    = 'Session(s)';
+sessions.tag     = 'sessions';
+sessions.strtype = 'e';
+sessions.num     = [1 Inf];
+sessions.help    = {...
+['Enter session number(s) for which this contrast should be created. If' ...
+ ' more than one session number is specified, the contrast will be an' ...
+ ' average contrast over the specified conditions or regressors from these' ...
+ ' sessions.']};
+
+tconsess.type = 'branch';
+tconsess.name = 'T-contrast (cond/sess based)';
+tconsess.tag  = 'tconsess';
+tconsess.val  = {name,coltype,sessions};
+tconsess.modality = {'FMRI'};
+tconsess.help = {...
+['Define a contrast in terms of conditions or regressors instead of' ...
+ ' columns of the design matrix. This allows to create contrasts automatically' ...
+ ' even if some columns are not always present (e.g. parametric modulations).'], ...
+'', ...
+'Each contrast column can be addressed by specifying', ...
+'* session number', ...
+'* condition number', ...
+'* basis function number', ...
+'* parametric modulation number and', ...
+'* parametric modulation order.', ...
+'', ...
+['If the design is specified without time or parametric modulation, SPM' ...
+ ' creates a "pseudo-modulation" with order zero. To put a contrast weight' ...
+ ' on a basis function one therefore has to enter "1" for parametric' ...
+ ' modulation number and "0" for parametric modulation order.'], ...
+'', ...
+['Time and parametric modulations are not distinguished internally. If' ...
+ ' time modulation is present, it will be parametric modulation "1", and' ...
+ ' additional parametric modulations will be numbered starting with "2".'], ...
+'', ...
+tcon.help{:}};
+
 consess.type = 'repeat';
 consess.name = 'Contrast Sessions';
 consess.tag  = 'consess';
-consess.values  = {tcon,fcon};
+consess.values  = {tcon,fcon,tconsess};
 consess.help = {'contrast'};
 consess.help = {[...
 'For general linear model Y = XB + E with data Y, desgin matrix X, ',...
@@ -479,6 +586,58 @@ for i = 1:length(job.consess)
         end
         con  = job.consess{i}.tcon.convec(:)';
         sessrep = job.consess{i}.tcon.sessrep;
+    elseif isfield(job.consess{i},'tconsess')
+	job.consess{i}.tconsess = job.consess{i}.tconsess; % save some typing
+        name = job.consess{i}.tconsess.name;
+        if bayes_con
+            STAT = 'P';
+            SPM.PPM.xCon(end+1).PSTAT = 'T';
+            SPM.xX.V=[];
+        else
+            STAT = 'T';
+        end
+	if isfield(job.consess{i}.tconsess.coltype,'colconds')
+	    ccond = job.consess{i}.tconsess.coltype.colconds;
+	    con = zeros(1,size(SPM.xX.X,2)); % overall contrast
+	    for cs = job.consess{i}.tconsess.sessions
+		for k=1:numel(ccond)
+		    if SPM.xBF.order < ccond(k).colbf
+			error(['Session-based contrast %d:\n'...
+			       'Basis function order (%d) in design less ' ...
+			       'than specified basis function number (%d).'],... 
+			      i, SPM.xBF.order, ccond(k).colbf);
+		    end;
+		    % Index into columns belonging to the specified
+                    % condition
+		    try
+			cind = ccond(k).colbf + ...
+			       ccond(k).colmodord*SPM.xBF.order ...
+			       *SPM.Sess(cs).U(ccond(k).colcond).P(ccond(k) ...
+								   .colmod).i(ccond(k).colmodord+1);
+			con(SPM.Sess(cs).col(SPM.Sess(cs).Fc(ccond(k).colcond).i(cind))) ...
+			    = ccond(k).conweight;
+		    catch
+			error(['Session-based contrast %d:\n'...
+			       'Column "Cond%d Mod%d Order%d" does not exist.'],...
+			      i, ccond(k).colcond, ccond(k).colmod, ccond(k).colmodord);
+		    end;
+		end;
+	    end;
+	else % convec on extra regressors
+	    con = zeros(1,size(SPM.xX.X,2)); % overall contrast
+	    for cs = job.consess{i}.tconsess.sessions
+		nC = size(SPM.Sess(cs).C.C,2);
+		if nC < numel(job.consess{i}.tconsess.coltype.colreg)
+		    error(['Session-based contrast %d:\n'...
+			   'Contrast vector for extra regressors too long.'],...
+			  i);
+		end;
+		ccols = numel(SPM.Sess(cs).col)-(nC-1)+...
+			[0:numel(job.consess{i}.tconsess.coltype.colreg)-1]; 
+		con(SPM.Sess(cs).col(ccols)) = job.consess{i}.tconsess.coltype.colreg;
+	    end;
+	end;
+        sessrep = 'none';	
     else %fcon
         name = job.consess{i}.fcon.name;
         if bayes_con
