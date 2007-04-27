@@ -4,7 +4,7 @@ function spm_print(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_print.m 267 2005-10-25 11:49:37Z john $
+% $Id: spm_print.m 801 2007-04-27 07:39:53Z volkmar $
 
 
 global defaults
@@ -37,6 +37,11 @@ try,
     opts = {nam1,'-noui','-painters',pd.opt{:}};
     fg = spm_figure('FindWin','Graphics');
     print(fg,opts{:});
+    if isempty(strfind(nam1,filesep))
+	fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
+    else
+	fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
+    end
 catch,
     errstr = lasterr;
     tmp = [find(abs(errstr)==10),length(errstr)+1];

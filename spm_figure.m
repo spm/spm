@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 502 2006-04-25 13:35:36Z volkmar $
+% $Id: spm_figure.m 801 2007-04-27 07:39:53Z volkmar $
 
 
 %=======================================================================
@@ -319,9 +319,10 @@ movegui(F);
 
 case 'print'
 %=======================================================================
-% spm_figure('Print',F)
+% spm_figure('Print',F,fname)
 
 %-Arguments & defaults
+if nargin<3, fname=''; else fname=varargin{3};end
 if nargin<2, F='Graphics'; else F=varargin{2}; end
 
 %-Find window to print, default to gcf if specified figure not found
@@ -355,7 +356,11 @@ end;
 %-Print
 %-----------------------------------------------------------------------
 if ~iPaged
-	spm_print;
+	if ~isempty(fname)
+		spm_print(fname)
+	else
+		spm_print;
+	end
 else
 	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
@@ -374,6 +379,28 @@ else
 end
 if ~isempty(H), set(H,{'Units'},un); end;
 set(0,'CurrentFigure',cF)
+
+
+case 'printto'
+%=======================================================================
+%spm_figure('PrintTo',F)
+
+%-Arguments & defaults
+if nargin<2, F='Graphics'; else F=varargin{2}; end
+
+%-Find window to print, default to gcf if specified figure not found
+% Return if no figures
+F=spm_figure('FindWin',F);
+if isempty(F), F = get(0,'CurrentFigure'); end
+if isempty(F), return, end
+
+[fn pn] = uiputfile('*.ps', 'Print to File');
+if fn == 0
+    return;
+end;
+
+psname = fullfile(fn, pn);
+spm_figure('Print',F,psname);
 
 case 'newpage'
 %=======================================================================
@@ -675,8 +702,11 @@ uimenu(t1,'Label','Invert','CallBack','spm_figure(''ColorMap'',''invert'')');
 uimenu(t1,'Label','Brighten','CallBack','spm_figure(''ColorMap'',''brighten'')');
 uimenu(t1,'Label','Darken','CallBack','spm_figure(''ColorMap'',''darken'')');
 uimenu( F,'Label','Clear','HandleVisibility','off','CallBack','spm_figure(''Clear'',gcbf)');
-%t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off');
-uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+t0=uimenu( F,'Label','SPM-Print','HandleVisibility','off');
+%uimenu( F,'Label','SPM-Print','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+t1=uimenu(t0,'Label','default print file','HandleVisibility','off','CallBack','spm_figure(''Print'',gcbf)');
+t1=uimenu(t0,'Label','other print file','HandleVisibility','off','CallBack','spm_figure(''PrintTo'',spm_figure(''FindWin'',''Graphics''))');
+
 
 % ### CODE FOR SATELLITE FIGURE ###
 % Code checks if there is a satellite window and if results are currently displayed
