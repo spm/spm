@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 760 2007-03-02 15:59:44Z john $
+% $Id: spm_dicom_convert.m 800 2007-04-27 07:35:27Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -191,10 +191,9 @@ for i=1:length(hdr),
     dat           = N.dat;
     dat.scl_slope = [];
     dat.scl_inter = [];
-    for j=1:dim(3),
-        dat(:,:,j) = volume(:,:,j);
-    end;
-
+    % write out volume at once - see spm_write_plane.m for performance comments
+    dat(:,:,:) = volume;
+    
     spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
@@ -576,6 +575,7 @@ N.mat_intent  = 'Scanner';
 N.mat0_intent = 'Scanner';
 N.descrip     = descrip;
 create(N);
+volume = zeros(dim);
 
 for i=1:length(hdr),
     plane = read_image_data(hdr{i});
@@ -586,9 +586,12 @@ for i=1:length(hdr),
     plane = fliplr(plane);
     if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
     %V     = spm_write_plane(V,plane,i);
-    N.dat(:,:,i) = plane;
+    % collect all planes before writing to disk
+    volume(:,:,i) = plane;
     spm_progress_bar('Set',i);
 end;
+% write volume at once - see spm_write_plane for performance comments
+N.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 return;
 %_______________________________________________________________________
@@ -718,6 +721,7 @@ N.mat_intent  = 'Scanner';
 N.mat0_intent = 'Scanner';
 N.descrip     = descrip;
 create(N);
+volume = zeros(dim);
 
 for i=1:length(hdr),
     plane = read_spect_data(hdr{i});
@@ -728,9 +732,12 @@ for i=1:length(hdr),
     plane = fliplr(plane);
     if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
     %V     = spm_write_plane(V,plane,i);
-    N.dat(:,:,i) = plane;
+    % collect all planes before writing to disk
+    volume(:,:,i) = plane;
     spm_progress_bar('Set',i);
 end;
+% write volume at once - see spm_write_plane for performance comments
+N.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 return;
 %_______________________________________________________________________

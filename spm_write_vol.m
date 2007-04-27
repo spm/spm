@@ -8,7 +8,7 @@ function V = spm_write_vol(V,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_vol.m 604 2006-08-25 18:18:04Z john $
+% $Id: spm_write_vol.m 800 2007-04-27 07:35:27Z volkmar $
 
 use_offset = false;
 
@@ -94,6 +94,4 @@ end;
 %-Create and write image
 %-----------------------------------------------------------------------
 V = spm_create_vol(V);
-for p=1:V.dim(3),
-	V = spm_write_plane(V,Y(:,:,p),p);
-end;
+V = spm_write_plane(V,Y,':');
