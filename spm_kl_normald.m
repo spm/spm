@@ -25,7 +25,7 @@ m_p=m_p(:);
 
 if (d1==d2)
     % Full covariances
-    Term1=0.5*log(det(c_p))-0.5*log(det(c_q));
+    Term1=0.5*spm_logdet(c_p)-0.5*spm_logdet(c_q);
     inv_c_p=inv(c_p);
     Term2=0.5*trace(inv_c_p*c_q)+0.5*(m_q-m_p)'*inv_c_p*(m_q-m_p);
 else
