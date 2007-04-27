@@ -5,7 +5,7 @@
 % and Geweke (1982) JASA 77 (378), 304-313.
 
 close all
-noise_dev1=0.01;
+noise_dev1=0.1;
 noise_dev2=0.01;
 
 secs=1;
@@ -16,7 +16,7 @@ N=length(t);
 d=2;
 % f1=10+0.01*[1:N]';
 f1=10;
-y=0.5*sin(2*pi*f1.*t);
+y=0.5*sin(2*pi*f1.*t)+sin(2*pi*15*t);
 y=y/std(y); % Rescale to unit variance
 
 delay=50; % ms delay
