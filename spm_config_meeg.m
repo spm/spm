@@ -32,7 +32,7 @@ ignorelim.help= [...
     {'stimulus times. Choose ''yes'' in this menu to override this'},...
     {'default behavior and ignore the information from the file.'},...
     {'Leave it as ''no'' unless you know well what you are doing.'}];
-   
+
 
 savetrl = struct('type','menu','name','Save TRL to file','tag','savetrl',...
     'labels', {{'Yes', 'No'}}, 'values', {{'yes', 'no'}}, 'val', {{'no'}},...
@@ -229,6 +229,9 @@ S   = struct('type','branch','name','MEEG Preprocessing','tag','meeg',...
 
 function meeg_preprocess(S)
 
+addpath(fullfile(spm('dir'), 'MEEGpreprocessing'), ...
+    fullfile(spm('dir'), 'MEEGfileio'));
+
 cfg.dataset=cell2mat(S.dataset);
 
 switch cell2mat(fieldnames(S.trials))
@@ -250,11 +253,11 @@ switch cell2mat(fieldnames(S.trials))
         end
         cfg.trl=trl;
     case 'loadcont'
-       cfg.trialdef.triallength = Inf;
-       cfg.trialdef.ntrials = 1;
-       cfg.trl=trialfun_spm(cfg); 
+        cfg.trialdef.triallength = Inf;
+        cfg.trialdef.ntrials = 1;
+        cfg.trl=trialfun_spm(cfg);
 end
- 
+
 cfg.precision=S.precision;
 
 
@@ -268,18 +271,18 @@ for ind= 1:length(S.chansubset)
     else
         chansettings=S.chansubset(ind);
     end
-    
+
     cfg1=cfg;
     cfg1.channel=chansettings.channel;
-    
+
     for ind2=1:length(chansettings.filters)
         cfg1=mergestruct(cfg1, jobtree2cfg(chansettings.filters{ind2}));
-        
+
         % This is to add 'yes' for the filter settings that appear in the
         % cfg tree
-        cfg1=setfield(cfg1, cell2mat(fieldnames(chansettings.filters{ind2})), 'yes');              
+        cfg1=setfield(cfg1, cell2mat(fieldnames(chansettings.filters{ind2})), 'yes');
     end
-    
+
     data{ind} = spm_eeg_preprocessing(cfg1); %spm_eeg_preprocessing(cfg1);
 end
 

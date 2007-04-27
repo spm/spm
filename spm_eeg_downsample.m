@@ -1,7 +1,7 @@
 function D = spm_eeg_downsample(S)
 % function used for down-sampling EEG/MEG data
 % FORMAT D = spm_eeg_downsample(S)
-% 
+%
 % S		    - optional input struct
 % (optional) fields of S:
 % D			- filename of EEG mat-file
@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_downsample.m 805 2007-04-27 11:26:53Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -23,9 +23,9 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-	D = spm_eeg_ldata(D);
-catch    
-	error(sprintf('Trouble reading file %s', D));
+    D = spm_eeg_ldata(D);
+catch
+    error(sprintf('Trouble reading file %s', D));
 end
 
 try
@@ -77,8 +77,9 @@ else
     D.scale = zeros(D.Nchannels, 1);
 
     % adjust the timing information
-    D.events.time = round(D.events.time*Radc_new/D.Radc);
-    
+    try
+        D.events.time = round(D.events.time*Radc_new/D.Radc);
+    end
     spm_progress_bar('Init', D.Nchannels, 'Channels downsampled'); drawnow;
     if D.Nchannels > 100, Ibar = floor(linspace(1, D.Nchannels, 100));
     else, Ibar = [1:D.Nchannels]; end
@@ -89,17 +90,17 @@ else
         if i == 1
             data = zeros(D.Nchannels, length(d2));
         end
-        data(i, :) = d2;      
+        data(i, :) = d2;
 
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
-   
+
     end
     D.scale = spm_eeg_write(fpd, data, 2, D.datatype);
     D.Nsamples = size(data, 2);
 
-    
+
 end
 
 spm_progress_bar('Clear');
