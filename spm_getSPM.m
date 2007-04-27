@@ -1,4 +1,4 @@
-function [SPM,xSPM] = spm_getSPM
+function [SPM,xSPM] = spm_getSPM(varargin)
 % computes a specified and thresholded SPM/PPM following parameter estimation
 % FORMAT [SPM,xSPM] = spm_getSPM;
 %
@@ -159,16 +159,30 @@ function [SPM,xSPM] = spm_getSPM
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 783 2007-04-04 12:54:03Z james $
+% $Id: spm_getSPM.m 803 2007-04-27 08:37:16Z volkmar $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
 spm_help('!ContextHelp',mfilename)
 
+%-Get job structure, if available
+%-----------------------------------------------------------------------
+if (nargin > 0) && isstruct(varargin{1})
+    job = varargin{1};
+    batch = 1;
+else
+    batch = 0;
+end;
+
 %-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
-[spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+if batch
+    spmmatfile = job.spmmat{1};
+    sts = 1;
+else
+    [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+end;
 if ~sts, SPM = []; xSPM = []; return; end
 swd = spm_str_manip(spmmatfile,'H');
 
@@ -229,9 +243,22 @@ end
 
 %-Get contrasts
 %-----------------------------------------------------------------------
-[Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
-		'	Select contrasts...',' for conjunction',1);
-
+if (~batch) || isempty(xCon)
+    [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
+			   '	Select contrasts...',' for conjunction',1);
+    % figure out whether new contrasts were defined, but not selected
+    % do this by comparing length of SPM.xCon to xCon, remember added
+    % indices to run spm_contrasts on them as well
+    try
+	noxCon = numel(SPM.xCon);
+    catch
+	noxCon = 0;
+    end;
+    IcAdd = (noxCon+1):numel(xCon);
+else
+    Ic = job.conspec.contrasts;
+    IcAdd = [];
+end;
 
 nc       = length(Ic);  % Number of contrasts
 
@@ -327,17 +354,32 @@ end % if nc>1...
 
 %-Get contrasts for masking
 %-----------------------------------------------------------------------
-if spm_input('mask with other contrast(s)','+1','y/n',[1,0],2)
-	[Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
+if batch
+    domask = ~isempty(job.conspec.mask);
+else
+    domask = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
+end;
+if domask
+        if batch
+	    Im = job.conspec.mask.contrasts;
+	else
+	    [Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
 		'Select contrasts for masking...',' for masking',1);
-
+	end;
 	%-Threshold for mask (uncorrected p-value)
 	%---------------------------------------------------------------
-	pm = spm_input('uncorrected mask p-value','+1','r',0.05,1,[0,1]);
-
+	if batch
+	    pm = job.conspec.mask.thresh;
+	else
+	    pm = spm_input('uncorrected mask p-value','+1','r',0.05,1,[0,1]);
+	end;
 	%-Inclusive or exclusive masking
 	%---------------------------------------------------------------
-	Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
+	if batch
+	    Ex = job.conspec.mask.mtype;
+	else
+	    Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
+	end;
 else
 	Im = [];
 	pm = [];
@@ -347,9 +389,12 @@ end
 
 %-Create/Get title string for comparison
 %-----------------------------------------------------------------------
-if nc == 1
-	str  = xCon(Ic).name;
+if batch && ~isempty(job.conspec.titlestr);
+    titlestr = job.conspec.titlestr;
 else
+    if nc == 1
+	str  = xCon(Ic).name;
+    else
 	str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
 	if n==nc
 	    str = [str ' (global null)'];
@@ -358,23 +403,26 @@ else
 	else
 	    str = [str sprintf(' (Ha: k>=%d)',(nc-n)+1)];
 	end
-end
-if Ex
+    end
+    if Ex
 	mstr = 'masked [excl.] by';
-else
+    else
 	mstr = 'masked [incl.] by';
-end
-if length(Im) == 1
+    end
+    if length(Im) == 1
 	str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
 
-elseif ~isempty(Im)
+    elseif ~isempty(Im)
 	str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
 		sprintf(',%d',Im(2:end)),...
 		sprintf('} at p=%g)',pm)];
-end
-titlestr     = spm_input('title for comparison','+1','s',str);
-
-
+    end
+    if batch
+	titlestr = str;
+    else
+	titlestr     = spm_input('title for comparison','+1','s',str);
+    end;
+end;
 
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
@@ -425,9 +473,9 @@ end
 %=======================================================================
 SPM.xCon = xCon;
 if ~isfield(SPM.xX, 'fullrank')
-    SPM  = spm_contrasts(SPM, unique([Ic, Im]));
+    SPM  = spm_contrasts(SPM, unique([Ic, Im, IcAdd]));
 else
-    SPM  = spm_eeg_contrasts_conv(SPM, unique([Ic, Im]));
+    SPM  = spm_eeg_contrasts_conv(SPM, unique([Ic, Im, IcAdd]));
     xSPM = [];
     return;
 end
@@ -532,28 +580,39 @@ if STAT ~= 'P'
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    str = 'FWE|FDR|none';
-    % str = 'FWE|none';      % Use this line to disable FDR threshold
-    thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
+    if batch
+	thresDesc = job.conspec.threshdesc;
+	u = job.conspec.thresh;
+    else
+	str = 'FWE|FDR|none';
+	% str = 'FWE|none';      % Use this line to disable FDR threshold
+	thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
+    end;
     switch thresDesc
 
 
 	case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
-	u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
-         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+	if ~batch
+	    u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
+	end;
+	thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
 	u  = spm_uc(u,df,STAT,R,n,S);
 
 	case 'FDR' % False discovery rate
 	%---------------------------------------------------------------	
-	u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
-         thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+	if ~batch
+	    u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
+	end;
+	thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
 	u  = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
 
 	otherwise  %-NB: no adjustment
 	% p for conjunctions is p of the conjunction SPM
    	%---------------------------------------------------------------
-	u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
+	if ~batch
+	    u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
+	end;
 	if u <= 1
             thresDesc = ['p<' num2str(u) ' (unc.)'];
             u = spm_u(u^(1/n),df,STAT); 
@@ -592,8 +651,11 @@ if ~isempty(XYZ) & nc == 1
 
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
-    k     = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
-
+    if batch
+	k = job.conspec.extent;
+    else
+	k     = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
+    end;
     %-Calculate extent threshold filtering
     %-------------------------------------------------------------------
     A     = spm_clusters(XYZ);

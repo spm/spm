@@ -6,7 +6,7 @@ function varargout = spm_results_ui(varargin)
 %          (see spm_XYZreg for details)
 % xSPM   - structure containing specific SPM, distribution & filtering details
 %          (see spm_getSPM.m for contents)
-% SDM    - SPM structure containing generic parameters
+% SPM    - SPM structure containing generic parameters
 %          (see spm_spm.m for contents...
 %
 % NB: Results section GUI CallBacks use these data structures by name, which
@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 783 2007-04-04 12:54:03Z james $
+% $Id: spm_results_ui.m 803 2007-04-27 08:37:16Z volkmar $
 
-SCCSid = '$Rev: 783 $';
+SCCSid = '$Rev: 803 $';
 
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -148,6 +148,13 @@ SCCSid = '$Rev: 783 $';
 % locations between various location controls.
 %
 %__________________________________________________________________________
+%
+% FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup')
+% Query SPM and setup GUI. 
+%
+% FORMAT [hreg,xSPM,SPM] = spm_results_ui('Setup',job)
+% Query SPM and setup GUI using a batch job structure. This allows to run
+% results setup without user interaction.
 %
 % FORMAT hReg = spm_results_ui('SetupGUI',M,DIM,xSPM,Finter)
 % Setup results GUI in Interactive window
@@ -260,11 +267,16 @@ switch lower(Action), case 'setup'                         %-Set up results
     spm_figure('clear',hSat);
 
     %-Get thresholded xSPM data and parameters of design
-    %======================================================================
-    [SPM,xSPM] = spm_getSPM;
-    if isempty(xSPM)
-        varargout = {[],[],[]};
-        return;
+    %=======================================================================
+    if (nargin > 1) && isstruct(varargin{2}) % batch mode
+	[SPM,xSPM] = spm_getSPM(varargin{2});
+    else
+	[SPM,xSPM] = spm_getSPM;
+    end;
+
+    if isempty(xSPM) 
+	varargout = {[],[],[]};
+	return;
     end
 
     M         = SPM.xVol.M;
