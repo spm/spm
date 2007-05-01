@@ -1,12 +1,15 @@
-function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N);
-% ReML estimation of covariance components from y*y'
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N);
+function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
+% ReML estimation of covariance components from y*y' - scled components
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,[hE,hC]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
-% Q   - {1 x q} covariance components Q.q = eigenvectors; Q.v = eigen
-%               values
+% Q   - {1 x q} covariance components
 % N   - number of samples
+%
+% hE  - hyperprior expectation in log-space [default = -32]
+% hC  - hyperprior covariance  in log-space [default = 256]
+%     - If specified hE induces log-normal hyperpriors
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -18,43 +21,29 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N);
 % Fc  - complexity (F = Fa - Fc)
 %
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
-% estimates,. using uninformative hyperpriors (this is effectively an ARD
-% scheme)
+% estimates.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_reml.m 731 2007-02-07 14:31:41Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
-try, N; catch, N = 1;   end
+try, N; catch, N  = 1;  end
 
 % default number of iterations
 %--------------------------------------------------------------------------
-try, K; catch, K = 128; end
+try, K; catch, K  = 32; end
 
-% number of hyperparameters
+% initialise h
 %--------------------------------------------------------------------------
-n     = length(YY);
+n     = length(Q{1});
 m     = length(Q);
 h     = zeros(m,1);
 dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
-
-% uniformative hyperpriors
-%--------------------------------------------------------------------------
-hE    = sparse(m,1) - 32;
-hP    = speye(m,m)/256;
-
-
-% call spm_reml as default
-%--------------------------------------------------------------------------
-try
-    [C,h,Ph,F] = spm_reml_sc(YY,X,Q,N,hE,inv(hP));
-    return
-end
 
 % ortho-normalise X
 %--------------------------------------------------------------------------
@@ -65,71 +54,59 @@ else
     X = orth(full(X));
     R = speye(n,n) - X*X';
 end
+
+
+% initialise and specify hyperpriors
+%==========================================================================
+if nargin > 4
+
+    % scale YY
+    %----------------------------------------------------------------------
+    sY = n*trace(YY)/N;
+    YY = YY/sY;
     
-% find bases of Q if necessary
-%--------------------------------------------------------------------------
-for i = 1:m
-    if isstruct(Q{i})
-        try
-            if ~isfield(Q{i},'v');
-                Q{i}.v = ones(size(Q{i}.q,2),1);
-            end
-        catch
-            warndlg('Please specify components with Q.q (basis) and Q.v');
-            return
-        end
-    else
-        [q v] = spm_svd(Q{i},exp(-16));
-        C.q   = q;
-        C.v   = diag(v);
-        Q{i}  = C;
+    % scale Q
+    %----------------------------------------------------------------------
+    for i = 1:m
+        sh(i,1) = n*trace(R*Q{i});
+        Q{i}    = Q{i}/sh(i);
     end
+    
+    % hperpriors
+    %----------------------------------------------------------------------
+    try, hE = hE(:);   catch, hE = -32;   end
+    try, hP = inv(hC); catch, hP = 1/256; end
+
+    % check sise
+    %----------------------------------------------------------------------
+    if length(hE) < m, hE = hE(1)*ones(m,1);  end
+    if length(hP) < m, hP = hP(1)*speye(m,m); end
+    
+else
+    % flat hyperpriors
+    %----------------------------------------------------------------------
+    for i = 1:m
+        h(i) = any(diag(Q{i}));
+    end
+    hE  = sparse(m,1);
+    hP  = speye(m,m)/exp(32);
 end
 
-% scale YY
-%--------------------------------------------------------------------------
-sY    = n*trace(YY)/N;
-YY    = YY/sY;
-
-% scale Q
-%--------------------------------------------------------------------------
-for i = 1:m
-    sh(i,1) = n*trace(Q{i}.q'*R*Q{i}.q*diag(Q{i}.v));
-    Q{i}.q  = Q{i}.q/sqrt(sh(i));
-end
-
-% compute basis and dsdh
-%--------------------------------------------------------------------------
-q     = cell(1,m);
-v     = cell(1,m);
-for i = 1:m
-    q{i} = Q{i}.q;
-    v{i} = Q{i}.v(:);
-end
-q     = spm_cat(q);
-dedh  = spm_cat(diag(v));
-
-
-% pre-comooute bases
-%--------------------------------------------------------------------------
-[n s] = size(q);
-qq    = cell(s,1);
-for i = 1:s
-    qq{i} = q(:,i)*q(:,i)';
-end
 
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 dF    = Inf;
-ard   = 1:m;
 for k = 1:K
 
     % compute current estimate of covariance
     %----------------------------------------------------------------------
     C     = sparse(n,n);
-    e     = dedh*exp(h);
-    for i = 1:s
-        C = C + qq{i}*e(i);
+    for i = 1:m
+        if nargin > 4
+            C = C + Q{i}*exp(h(i));
+        else
+            C = C + Q{i}*h(i);
+        end
     end
     iC    = inv(C + speye(n,n)/exp(32));
 
@@ -145,75 +122,78 @@ for k = 1:K
     % M-step: ReML estimate of hyperparameters
     %======================================================================
 
-    % select relevant patterns
-    %----------------------------------------------------------------------
-    rel   = any(dedh(:,ard),2);
-    
     % Gradient dF/dh (first derivatives)
     %----------------------------------------------------------------------
-    U     = iC - iCX*Cq*iCX';
-    W     = U*(YY/N - C)*U';
-    qr    = q(:,rel);
-    P     = qr'*U*qr;
+    P     = iC - iCX*Cq*iCX';
+    U     = speye(n) - P*YY/N;
+    for i = 1:m
 
-    % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
-    %----------------------------------------------------------------------
-    dFde  =  N/2*sum(qr.*(W*qr))';
-    dFdee = -N/2*P.*P';
+        % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
+        %------------------------------------------------------------------
+        PQ{i}     = P*Q{i};
+        dFdh(i)   = -trace(PQ{i}*U)*N/2;
 
-    % dF/dhh = -trace{P*Q{i}*P*Q{j}}
+    end
+
+    % Expected curvature E{dF/dhh} (second derivatives)
     %----------------------------------------------------------------------
-    dhdh  = dedh(rel,ard)*diag(exp(h(ard)));
-    dFdh  = dhdh'*dFde;
-    dFdhh = dhdh'*dFdee*dhdh;
+    for i = 1:m
+        for j = i:m
+
+            % dF/dhh = -trace{P*Q{i}*P*Q{j}}
+            %--------------------------------------------------------------
+            dFdhh(i,j) = -trace(PQ{i}*PQ{j})*N/2;
+            dFdhh(j,i) =  dFdhh(i,j);
+
+        end
+    end
+
+    % modulate
+    %----------------------------------------------------------------------
+    if nargin > 4
+        dFdh  = dFdh.*exp(h);
+        dFdhh = dFdhh.*(exp(h)*exp(h)');
+    end
     
     % add hyperpriors
     %----------------------------------------------------------------------
     e     = h     - hE;
-    dFdh  = dFdh  - hP(ard,ard)*e(ard);
-    dFdhh = dFdhh - hP(ard,ard);
+    dFdh  = dFdh  - hP*e;
+    dFdhh = dFdhh - hP;
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh     = spm_dx(dFdhh,dFdh)/log(k + 1);
-    h(ard) = h(ard) + dh;
-
+    dh    = spm_dx(dFdhh,dFdh);
+    h     = h + dh;
     
     % Convergence (1% change in log-evidence)
     %======================================================================
-    dF      = dFdh'*dh;
-    fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
     
-    % and ARD
+    % update regulariser
     %----------------------------------------------------------------------
-    if dF < 1e-1
-        break
-    else
-        ard     = h > -16;
-        h(~ard) = hE(~ard);
-        plot(h),drawnow
-    end
+    dF    = dFdh'*dh;
+    fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
+    if dF < 1e-1, break, end
 
 end
 
 
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
-Ph  = hP;
-Ph(ard,ard) = Ph(ard,ard) - dFdhh;
+Ph    = -dFdhh;
 if nargout > 3
     
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
     %----------------------------------------------------------------------
     Ft = trace(hP*inv(Ph)) - length(Ph) - length(Cq);
-            
+    
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
-    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq);
+    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
     
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
-    Fa = Ft/2 - trace(C*U*YY*U')/2 - N*n*log(2*pi)/2 - N*spm_logdet(C)/2;
+    Fa = Ft/2 - trace(C*P*YY*P)/2 - N*n*log(2*pi)/2  - N*spm_logdet(C)/2;
     
     % Free-energy
     %----------------------------------------------------------------------
@@ -221,9 +201,10 @@ if nargout > 3
     
 end
 
-% return exp(h) if log-normal hyperpriors
+% return exp(h) if log-normal hyperpriors and rescale
 %--------------------------------------------------------------------------
-h  = sY*exp(h)./sh;
-C  = sY*C;
-
+if nargin > 4
+    h  = sY*exp(h)./sh;
+    C  = sY*C;
+end
     

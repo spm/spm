@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 744 2007-02-23 13:51:48Z karl $
+% $Id: spm_nlsi_GN.m 808 2007-05-01 19:11:19Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -199,9 +199,9 @@ end
 % hyperpriors - covariance
 %--------------------------------------------------------------------------
 try
-    hP = inv(M.hC);
+    ihC = inv(M.hC);
 catch
-    hP = eye(nh,nh);
+    ihC = eye(nh,nh);
 end
 
 % dimension reduction of parameter space
@@ -281,8 +281,9 @@ for k = 1:128
         
         % add hyperpriors
         %------------------------------------------------------------------
-        dFdh  = dFdh  - hP*(h - hE);
-        dFdhh = dFdhh - hP;
+        d     = h - hE;
+        dFdh  = dFdh  - ihC*d;
+        dFdhh = dFdhh - ihC;
     
         % update ReML estimate
         %------------------------------------------------------------------
@@ -308,11 +309,11 @@ for k = 1:128
     %----------------------------------------------------------------------
     F = - e'*iS*e/2 ...
         - p'*ipC*p/2 ...
+        - d'*ihC*d/2 ...
         - ne*log(8*atan(1))/2 ...
-        + spm_logdet(iS )/2 ...
-        + spm_logdet(ipC)/2 ...
-        + spm_logdet(Cp )/2 ...
-        + spm_logdet(Ch )/2;
+        + spm_logdet(iS)/2 ...
+        + spm_logdet(ipC*Cp)/2 ...
+        + spm_logdet(ihC*Ch)/2;
  
  
     % if F has increased, update gradients and curvatures for E-Step

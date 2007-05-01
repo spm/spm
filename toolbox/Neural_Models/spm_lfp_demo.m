@@ -92,9 +92,9 @@ xlabel('time (ms)')
 %--------------------------------------------------------------------------
 N     = 2048;
 U.dt  = 8/1000;
-U.u   = sparse(128:512,1,1/U.dt,N,M.m) + randn(N,M.m)/U.dt/8;
+U.u   = sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16;
 t     = [1:N]*U.dt;
-LFP   = spm_int(pE,M,U);
+LFP   = spm_int_J(pE,M,U);
 
 
 % LFP
@@ -115,7 +115,7 @@ xlabel('time (s)')
 % Use response to drive a hemodynamic model
 %--------------------------------------------------------------------------
 U.u   = LFP;
-BOLD  = spm_int(hE,H,U);
+BOLD  = spm_int_J(hE,H,U);
 
 subplot(3,1,3)
 plot(t,BOLD)

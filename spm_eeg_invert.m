@@ -40,11 +40,12 @@ model = D.inv{D.val};
 
 % defaults
 %--------------------------------------------------------------------------
-try, type = model.inverse.type;   catch, type = 'MSP';       end
-try, s    = model.inverse.smooth; catch, s    = 0.4;         end
-try, Np   = model.inverse.Np;     catch, Np   = 64;          end
-try, xyz  = model.inverse.xyz;    catch, xyz  = [0 0 0];     end
-try, rad  = model.inverse.rad;    catch, rad  = 128;         end
+try, trial = model.inverse.trials; catch, trial = 1;           end
+try, type  = model.inverse.type;   catch, type  = 'MSP';       end
+try, s     = model.inverse.smooth; catch, s     = 0.6;         end
+try, Np    = model.inverse.Np;     catch, Np    = 128;         end
+try, xyz   = model.inverse.xyz;    catch, xyz   = [0 0 0];     end
+try, rad   = model.inverse.rad;    catch, rad   = 128;         end
 
 
 % Load Gain or Lead field matrix
@@ -99,7 +100,7 @@ iV    = inv(T'*qV*T);
 %--------------------------------------------------------------------------
 Ic    = setdiff(D.channels.eeg, D.channels.Bad);
 YY    = sparse(0);
-for i = model.inverse.trials
+for i = trial
     if isfield(D.events,'reject')
           c = find(D.events.code == D.events.types(i) & ~D.events.reject);
     else
@@ -114,12 +115,6 @@ for i = model.inverse.trials
     end
 end
 
-% scale data and sources
-%--------------------------------------------------------------------------
-Yscal = sqrt(norm(YY,1));
-Lscal = sqrt(norm(L*L',1));
-YY    = YY/(Yscal*Yscal);
-L     = L/Lscal;
 
 % Re-reference matrix (R)
 %--------------------------------------------------------------------------
@@ -242,24 +237,19 @@ switch(type)
 
 end
 
-
 % Inverse solution
 %==========================================================================
-Q     = {Qe{:} LQpL{:}};
 
-% hyperpriors
+% ReML - ARD
 %--------------------------------------------------------------------------
-Ne    = length(Qe);
-Np    = length(Qp);
-hE    = [sparse(Ne,1); (sparse(Np,1) - 4)];
-
-% ReML
-%--------------------------------------------------------------------------
-[Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*sum(Nt),hE);
+Q           = {Qe{:} LQpL{:}};
+[Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*sum(Nt));
 
 
 % Covariances: sensor space - Ce and source space - L*Cp
 %--------------------------------------------------------------------------
+Ne    = length(Qe);
+Np    = length(Qp);
 Ce    = sparse(Nm,Nm);
 LCp   = sparse(Nm,Ns);
 he    = h([1:Ne]);
@@ -305,15 +295,12 @@ for i = 1:Np
     end
 end
 Cq    = Cp - sum(LCp(:,j).*(iC*LCp(:,j)))';
-Cq    = Cq*(Yscal/Lscal)^2;
 
 
 fprintf(' - done\n')
 
 % re-scale and evaluate conditional expectation (of the sum over trials)
 %--------------------------------------------------------------------------
-M     = M/Lscal;
-L     = L*Lscal;
 SSR   = 0;
 SST   = 0;
 for i = 1:length(Y)

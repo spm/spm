@@ -39,7 +39,11 @@ if iscell(t),  t = t{1}/normest(dfdx); end
 % use a [pseudo]inverse if t > 1e8
 %==========================================================================
 if t > 1e8
-    dx = -pinv(full(dfdx))*f;
+    try
+        dx = -inv(dfdx)*f;
+    catch
+        dx = -pinv(full(dfdx))*f;
+    end
     return
 end
 

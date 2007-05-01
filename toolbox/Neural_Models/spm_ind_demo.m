@@ -44,7 +44,6 @@ M.pC  = pC;
 M.m   = length(B);
 M.n   = size(M.x,1);
 M.l   = l;
-M.IS  = 'spm_int';
 
 % Integrate system to see response
 %--------------------------------------------------------------------------

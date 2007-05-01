@@ -1,6 +1,6 @@
-function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,hC);
+function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
 % ReML estimation of covariance components from y*y'
-% FORMAT [C,h,Ph,F] = spm_reml(YY,X,Q,N,[hE,hC]);
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,[hE,hC]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -17,13 +17,16 @@ function [C,h,Ph,F] = spm_reml(YY,X,Q,N,hE,hC);
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q) = ReML objective
 %
+% Fa  - accuracy
+% Fc  - complexity (F = Fa - Fc)
+%
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
 % estimates.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_reml.m 808 2007-05-01 19:11:19Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -33,19 +36,6 @@ try, N; catch, N  = 1;  end
 %--------------------------------------------------------------------------
 try, K; catch, K  = 128; end
 
-% hyperpriors; if not specified
-%--------------------------------------------------------------------------
-try, hE;            catch, hE = 0;   end
-try, hP = inv(hC);  catch, hP = 1/4; end
-
-% ortho-normalise X
-%--------------------------------------------------------------------------
-if isempty(X)
-    X = sparse(length(Q{1}),0);
-else
-    X = orth(full(X));
-end
-
 % initialise h
 %--------------------------------------------------------------------------
 n     = length(Q{1});
@@ -54,26 +44,63 @@ h     = zeros(m,1);
 dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
-L     = zeros(m,m);
 
+% ortho-normalise X
+%--------------------------------------------------------------------------
+if isempty(X)
+    X = sparse(n,0);
+else
+    X = orth(full(X));
+end
 
 % initialise and specify hyperpriors
-%--------------------------------------------------------------------------
+%==========================================================================
 if nargin > 4
-    LY    = log(normest(YY)) - log(N);
+
+    % Lognormal hyperpriors - initialise
+    %----------------------------------------------------------------------
+    LY    = log(trace(YY)) - log(N);
     for i = 1:m
-        h(i) = LY - log(normest(Q{i}));
+        h(i) = LY - log(trace(Q{i}));
     end
+    hE = hE(:);
+    
+    % precision under priors
+    %----------------------------------------------------------------------
+    try
+        hP = inv(hC);
+    catch
+        iC    = speye(n,n)/trace(YY);
+        iCX   = iC*X;
+        if length(X), Cq = inv(X'*iCX); else, Cq = sparse(0); end
+        P     = iC - iCX*Cq*iCX';
+        for i = 1:m
+            PQ{i}   = P*Q{i}*exp(hE(i));
+            hP(i,i) = 8*trace(PQ{i}*PQ{i})*N/2;
+        end
+    end
+    
+    % check sise
+    %----------------------------------------------------------------------
+    if length(hP) < m
+        hP = hP(1)*speye(m,m);
+    end
+    
 else
+    % flat hyperpriors
+    %----------------------------------------------------------------------
     for i = 1:m
         h(i) = any(diag(Q{i}));
     end
+    hE  = sparse(m,1);
     hP  = speye(m,m)/exp(32);
 end
 
 
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
+dF    = Inf;
+t     = 256;
 for k = 1:K
 
     % compute current estimate of covariance
@@ -90,16 +117,19 @@ for k = 1:K
 
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
-    iCX   = iC*X;
-    Cq    = pinv(X'*iCX);
-    XCXiC = X*Cq*iCX';
+    iCX    = iC*X;
+    if length(X)
+        Cq = inv(X'*iCX);
+    else
+        Cq = sparse(0);
+    end
 
     % M-step: ReML estimate of hyperparameters
     %======================================================================
 
     % Gradient dF/dh (first derivatives)
     %----------------------------------------------------------------------
-    P     = iC - iC*XCXiC;
+    P     = iC - iCX*Cq*iCX';
     U     = speye(n) - P*YY/N;
     for i = 1:m
 
@@ -131,20 +161,14 @@ for k = 1:K
     e     = h     - hE;
     dFdh  = dFdh  - hP*e;
     dFdhh = dFdhh - hP;
-    
-    % update regulariser
-    %----------------------------------------------------------------------
-    if ~rem(k,8)
-       L  = speye(m,m)*norm(dFdhh)/128;
-    end
-    
+ 
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    Ph    = -dFdhh;
-    dh    = -pinv(dFdhh - L)*dFdh;
+    dh    = spm_dx(dFdhh,dFdh,{t});
 
     % preclude numerical overflow
     %----------------------------------------------------------------------
+    Ph    = -dFdhh;
     h     = h + dh;
     if nargin > 4
         h = min(h, 32);
@@ -153,9 +177,14 @@ for k = 1:K
     
     % Convergence (1% change in log-evidence)
     %======================================================================
-    dF    = dFdh'*dh;
+    
+    % update regulariser
+    %----------------------------------------------------------------------
+    df    = dFdh'*dh;
+    if df > dF - exp(-4), t = max(2,t/2); end
+    dF    = df;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
-    if dF < 1e-1, break, end
+    if dF < 1e-1, break,                  end
 
 end
 
@@ -163,13 +192,22 @@ end
 %--------------------------------------------------------------------------
 if nargout > 3
     
-    F = - trace(C*P*YY*P)/2 ...
-        - e'*hP*e/2 ...
-        - N*n*log(2*pi)/2 ...
-        - N*spm_logdet(C)/2 ...
-        + N*spm_logdet(Cq)/2 ...
-        -   spm_logdet(Ph)/2 ...
-        +   spm_logdet(hP)/2;
+    % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
+    %----------------------------------------------------------------------
+    Ft = trace(hP*inv(Ph)) - length(Ph) - length(Cq);
+    
+    % complexity - KL(Ph,hP)
+    %----------------------------------------------------------------------
+    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
+    
+    % Accuracy - ln p(Y|h)
+    %----------------------------------------------------------------------
+    Fa = Ft/2 - trace(C*P*YY*P)/2 - N*n*log(2*pi)/2 - N*spm_logdet(C)/2;
+    
+    % Free-energy
+    %----------------------------------------------------------------------
+    F  = Fa - Fc;
+    
 end
 
 % return exp(h) if log-normal hyperpriors

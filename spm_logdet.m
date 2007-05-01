@@ -9,11 +9,11 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_logdet.m 309 2005-11-24 16:24:04Z karl $
+% $Id: spm_logdet.m 808 2007-05-01 19:11:19Z karl $
 
 % assume diagonal form
 %-----------------------------------------------------------------------
-TOL   = 1e-8;                                        % c.f. n*max(s)*eps
+TOL   = 1e-16;                                        % c.f. n*max(s)*eps
 n     = length(C);
 s     = diag(C);
 i     = find(s > TOL & s < 1/TOL);
