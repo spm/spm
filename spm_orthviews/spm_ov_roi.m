@@ -9,6 +9,7 @@ function ret = spm_ov_roi(varargin)
 % middle     Perform ROI tool box selection according to selected edit mode at
 %            crosshair position
 % right      context menu
+% 
 % Menu options and prompts explained:
 % Launch     Initialise ROI tool in current image
 %            'Load existing ROI image? (yes/no)' 
@@ -23,6 +24,11 @@ function ret = spm_ov_roi(varargin)
 %              be read from this image. Thus you can edit a ROI based on a
 %              image with a resolution and slice orientation different from
 %              the underlying displayed image.
+%
+% Once ROI tool is active, the menu consists of three parts: settings,
+% edit operations and load/save operations.
+% Settings
+% --------
 % Edit mode  Operation performed when pressing the middle mouse button.
 %            'Set selection'
 %              The selection made with the following commands will
@@ -32,17 +38,31 @@ function ret = spm_ov_roi(varargin)
 %              be excluded from your ROI.
 % Box size   Set size of box to be (de)selected when pressing the
 %            middle mouse button.
+% Cluster    Set minimum cluster size for "Cleanup clusters" and
+% size       "Connected cluster" operations.
+% Erosion/   During erosion/dilation operations, the binary mask will be
+% dilation   smoothed. At boundaries, this will result in mask values 
+% threshold  that are not exactly zero or one, but somewhere in
+%            between. Whether a mask will be eroded (i.e. be smaller than
+%            the original) or dilated (i.e. grow) depends on this
+%            threshold. A threshold below 0.5 dilates, above 0.5 erodes a
+%            mask. 
+% Edit actions
+% ------------
 % Polygon    Draw an outline on one of the 3 section images. Voxels
 %            within the outline will be added to the ROI. The same
 %            outline can be applied to a user-defined number of
 %            consecutive slices around the current crosshair position.
-% Select connected
-%            Select only voxels that are connected to the voxel at
-%            current crosshair position through the ROI.
 % Threshold  You will be prompted to enter a [min max] threshold. Only
 %            those voxels in the ROI image where the intensities of the
 %            underlying image are within the [min max] range will survive
 %            this operation.
+% Connected  Select only voxels that are connected to the voxel at
+% cluster    current crosshair position through the ROI.
+% Cleanup    Keep only clusters that are larger than a specified cluster 
+% clusters   size.
+% Erode/     Erode or dilate a mask, using the current erosion/dilation
+% Dilate     threshold.
 % Invert     Invert currently defined ROI
 % Clear      Clear ROI, but keep ROI space information
 % Add ROI from file(s)
@@ -51,6 +71,8 @@ function ret = spm_ov_roi(varargin)
 %            cleared. The image files will be resampled and thus do not
 %            need to have the same orientation or voxel size as the
 %            original ROI.
+% Save actions
+% ------------
 % Save       Save ROI image
 % Save As    Save ROI image under a new file name
 % Quit       Quit ROI tool
@@ -60,14 +82,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 711 2007-01-03 10:20:59Z volkmar $
+% $Id: spm_ov_roi.m 809 2007-05-04 13:01:14Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 711 $';
+rev = '$Revision: 809 $';
 
 global st;
 if isempty(st)
