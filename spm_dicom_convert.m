@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 800 2007-04-27 07:35:27Z volkmar $
+% $Id: spm_dicom_convert.m 810 2007-05-07 14:38:54Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -222,7 +222,7 @@ for i=2:length(hdr),
     orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
     xy1    = hdr{i}.ImagePositionPatient*orient;
     match  = 0;
-    if isfield(hdr{i},'CSAImageHeaderInfo')
+    if isfield(hdr{i},'CSAImageHeaderInfo') && isfield(hdr{1}.CSAImageHeaderInfo,'name')
         ice1 = sscanf( ...
             strrep(get_numaris4_val(hdr{i}.CSAImageHeaderInfo,'ICE_Dims'), ...
             'X', '-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
@@ -244,7 +244,7 @@ for i=2:length(hdr),
                 strcmp(vol{j}{1}.Modality,'CT') % Our CT seems to have shears in slice positions
             dist2 = 0;
         end;
-        if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo')
+        if ~isempty(ice1) && isfield(vol{j}{1},'CSAImageHeaderInfo') && isfield(vol{j}{1}.CSAImageHeaderInfo(1),'name')
             % Replace 'X' in ICE_Dims by '-1'
             ice2 = sscanf( ...
                 strrep(get_numaris4_val(vol{j}{1}.CSAImageHeaderInfo,'ICE_Dims'), ...
@@ -265,30 +265,22 @@ for i=2:length(hdr),
                 sum((hdr{i}.ImageOrientationPatient - vol{j}{1}.ImageOrientationPatient).^2)<1e-5 &&...
                 sum((hdr{i}.PixelSpacing            - vol{j}{1}.PixelSpacing).^2)<1e-5 && ...
                 identical_ice_dims && dist2<1e-3;
-            if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber)|| ...
-                    (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
-                match = match && (hdr{i}.AcquisitionNumber == vol{j}{1}.AcquisitionNumber);
-            end;
+            %if (hdr{i}.AcquisitionNumber ~= hdr{i}.InstanceNumber) || ...
+            %   (vol{j}{1}.AcquisitionNumber ~= vol{j}{1}.InstanceNumber)
+            %    match = match && (hdr{i}.AcquisitionNumber == vol{j}{1}.AcquisitionNumber)
+            %end;
             % For raw image data, tell apart real/complex or phase/magnitude
-            if isfield(hdr{i},'ImageType') && isfield(vol{j}{1}, ...
-                    'ImageType')
-                match = match && strcmp(hdr{i}.ImageType, ...
-                    vol{j}{1}.ImageType);
+            if isfield(hdr{i},'ImageType') && isfield(vol{j}{1}, 'ImageType')
+                match = match && strcmp(hdr{i}.ImageType, vol{j}{1}.ImageType);
             end;
-            if isfield(hdr{i},'SequenceName') && isfield(vol{j}{1}, ...
-                    'SequenceName')
-                match = match && strcmp(hdr{i}.SequenceName, ...
-                    vol{j}{1}.SequenceName);
+            if isfield(hdr{i},'SequenceName') && isfield(vol{j}{1}, 'SequenceName')
+                match = match && strcmp(hdr{i}.SequenceName,vol{j}{1}.SequenceName);
             end;
-            if isfield(hdr{i},'SeriesInstanceUID') && isfield(vol{j}{1}, ...
-                    'SeriesInstanceUID')
-                match = match && strcmp(hdr{i}.SeriesInstanceUID, ...
-                    vol{j}{1}.SeriesInstanceUID);
+            if isfield(hdr{i},'SeriesInstanceUID') && isfield(vol{j}{1}, 'SeriesInstanceUID')
+                match = match && strcmp(hdr{i}.SeriesInstanceUID,vol{j}{1}.SeriesInstanceUID);
             end;
-            if isfield(hdr{i},'EchoNumbers')  && isfield(vol{j}{1}, ...
-                    'EchoNumbers')
-                match = match && hdr{i}.EchoNumbers == ...
-                    vol{j}{1}.EchoNumbers;
+            if isfield(hdr{i},'EchoNumbers')  && isfield(vol{j}{1}, 'EchoNumbers')
+                match = match && hdr{i}.EchoNumbers == vol{j}{1}.EchoNumbers;
             end;
         catch
             match = 0;
@@ -302,6 +294,9 @@ for i=2:length(hdr),
         vol{end+1}{1} = hdr{i};
     end;
 end;
+
+dcm = vol;
+save('dicom_headers.mat','dcm');
 
 %
 % Secondly, sort volumes into ascending/descending
@@ -356,8 +351,6 @@ for j=1:length(vol),
         end;
     end;
 end;
-%dcm = vol;
-%save('dicom_headers.mat','dcm');
 return;
 %_______________________________________________________________________
 

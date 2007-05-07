@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 804 2007-04-27 08:42:36Z volkmar $
+ * $Id: mat2file.c 810 2007-05-07 14:38:54Z john $
  */
 
 #include <math.h>
@@ -87,7 +87,7 @@ typedef struct ftype {
 
 long icumprod[MXDIMS], ocumprod[MXDIMS];
 long poff, len;
-#define BLEN 52488 /* 512*512*2, or 64*64*64*2 */
+#define BLEN 131072
 unsigned char wbuf[BLEN], *dptr;
 
 void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[], int indo, int indi, void (*swap)())

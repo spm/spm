@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_get_ons.m 444 2006-02-17 19:43:17Z klaas $
+% $Id: spm_get_ons.m 810 2007-05-07 14:38:54Z john $
 
 
 %-GUI setup
@@ -142,10 +142,10 @@ for i = 1:v
 
 	% peri-stimulus times {seconds}
 	%---------------------------------------------------------------
-	pst   = [1:k]*T*dt - ons(1)*TR;			
+	pst   = [0:(k-1)]*T*dt - ons(1)*TR;			
 	for j = 1:length(ons)
-		w      = [1:k]*T*dt - ons(j)*TR;
-		v      = find(w >= -1);
+		w      = [0:(k-1)]*T*dt - ons(j)*TR;
+		v      = find(w >= 0);
 		pst(v) = w(v);
 	end
 
