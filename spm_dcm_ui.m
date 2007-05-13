@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 781 2007-04-02 22:08:29Z klaas $
+% $Id: spm_dcm_ui.m 811 2007-05-13 12:03:49Z klaas $
 
 
 
@@ -272,6 +272,8 @@ case 'specify'
     % slice timing
     %-------------------------------------------------------------------
 	delays = spm_input('Slice timings [s]', -1, 'r', SPM.xY.RT*ones(1, m), m, [0 SPM.xY.RT]);
+    spm_input('Thank you',1,'d')
+
     
     % confounds (NB: the data have been filtered and whitened)
 	%-------------------------------------------------------------------
