@@ -3,7 +3,7 @@
 
 \section{Introduction}
 
-These examples illustrate multisubject `random effects' analyses or `second-level' models of fMRI data \cite{will_hbf2_rfx}\footnote{This chapter has been largely cannibalised from an earlier document, available from {\sf ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/rfx-multiple.doc}, which describes how to analyse this data using SPM2. 
+These examples illustrate multisubject `random effects' analyses or `second-level' models of fMRI data \cite{will_hbf2_rfx}\footnote{This chapter has been largely cannibalised from an earlier document, available from {\sf htp://www.fil.ion.ucl.ac.uk/spm/data/archive/face-contrasts/rfx-multiple.doc}, which describes how to analyse this data using SPM2. 
 That document additionally describes the analysis of differential effects, which we have omitted here.  }. 
 The examples consist of three basic types of 2nd-level model
 \begin{enumerate}
@@ -35,18 +35,17 @@ to dispersion ("dispersion derivative").
 
 In both first-level models (M1i and M1f), the contrast images (con*.img's) come from session-specific contrasts within a large (multisession) 1st-level Fixed Effects design matrix, with one session per subject. (Note that the resulting con*.img's could equally well have been produced from 12 separate 1st-level models, one per subject.)
 
-For each type of model, two types of 1st-level contrast are examined:
-\begin{enumerate}
-\item{The main effect of faces versus baseline (eg, a [0.5 ... 0.5] contrast for each basis function, or "kron(eye(Nf),[0.5 0.5])" more generally.}
-\item{The differential effect of famous versus nonfamous faces (eg, a [-1 ... 1] contrast for each basis function, or "kron(eye(Nf),[-1 1])" more generally.}
-\end{enumerate}
+For each type of model, the main effect of faces versus baseline (eg, a [0.5 ... 0.5] contrast for each basis function, or "kron(eye(Nf),[0.5 0.5])" more generally) was examined.
 
-The 12 (subjects) x 3 (basis functions) x 2 (contrast-types) con*.imgs from the 1st-level model using the informed basis (M1i) set are in the zipped file
-\newline \verb!ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_informed.zip!.
+The 12 (subjects)  con*.imgs from the 1st-level model using the canonical HRF (M1c) are in the zipped file
+\newline \verb!http://www.fil.ion.ucl.ac.uk/spm/data/archive/face-contrasts/cons_can.zip!.
+
+The 12 (subjects) x 3 (basis functions) con*.imgs from the 1st-level model using the informed basis (M1i) set are in the zipped file
+\newline \verb!http://www.fil.ion.ucl.ac.uk/spm/data/archive/face-contrasts/cons_informed.zip!.
 
 The 12 (subjects) x 12 (basis functions) x 2 (contrast-types) con*.imgs from the 1st-level model using the FIR basis (M1f) set are in the zipped file 
 \newline
-\verb!ftp://ftp.fil.ion.ucl.ac.uk/spm/data/rfx-multiple/cons_fir.zip!.
+\verb!http://www.fil.ion.ucl.ac.uk/spm/data/archive/face-contrasts/cons_fir.zip!.
 
 Each contrast-type is examined in a separate SPM analysis. This 
 chapter just describes analysis of the main effect of 
@@ -63,10 +62,10 @@ proceeds these directories will be filled with job-specification files, design m
 For the main effect versus baseline, these happen to correspond to the contrast images numbered 3-14 in 1st-level model M1i, ie:
 
 \bi
-\item{\verb!con_0003.img!		(canonical HRF, subject 1)}
-\item{\verb!con_0004.img!		(canonical HRF, subject 2)}
+\item{\verb!con_0006.img!		(canonical HRF, subject 1)}
+\item{\verb!con_0007.img!		(canonical HRF, subject 2)}
 \item{...}
-\item{\verb!con_0014.img!		(canonical HRF, subject 12)}
+\item{\verb!con_0017.img!		(canonical HRF, subject 12)}
 \ei
 These images comprise the data for M2c, which is simply a `One-sample t-test'. This can be implemented as follows.
 \bi
