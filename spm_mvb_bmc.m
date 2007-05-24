@@ -1,6 +1,6 @@
-function [F,P] = spm_mvb_bmc(xSPM,SPM,hReg)
+function [F,P] = spm_mvb_bmc
 % multivariate Bayesian model comparison (Baysian decoding of a contrast)
-% FORMAT [F,P] = spm_mvb_bmc(xSPM,SPM,hReg)
+% FORMAT [F,P] = spm_mvb_bmc
 %__________________________________________________________________________
 
 
@@ -16,7 +16,8 @@ end
 % get MVB results
 %--------------------------------------------------------------------------
 mvb  = spm_select(Inf,'mat','please select models',[],pwd,'MVB_*');
-eval(['load ' mvb(1,:)]);
+MVB  = load(deblank(mvb(1,:)));
+MVB  = MVB.MVB;
 
 % display
 %==========================================================================
@@ -34,7 +35,8 @@ if size(mvb,1) > 1
     % check target is the same
     %----------------------------------------------------------------------
     for i = 2:size(mvb,1)
-        eval(['load ' mvb(i,:)]);
+        MVB  = load(deblank(mvb(i,:)));
+        MVB  = MVB.MVB;
         if ~any(X - MVB.X)
             name{end + 1} = MVB.name(5:end);
             F(end + 1)    = max(MVB.M.F);
@@ -46,14 +48,15 @@ if size(mvb,1) > 1
     %----------------------------------------------------------------------
     name{end + 1} = 'null';
     F(end + 1)    = MVB.M(1).F(1);
-    F             = F - min(F) + 3;
+    F             = F - min(F);
     P             = exp(F - mean(F));
     P             = P./sum(P);
     
     % load best (non-null) model
     %----------------------------------------------------------------------
     [p i] = max(P(1:end - 1));
-    eval(['load ' mvb(I(i),:)]);
+    MVB   = load(deblank(mvb(I(i),:)));
+    MVB   = MVB.MVB;
     spm_mvb_display(MVB)
     
     % display model comparison

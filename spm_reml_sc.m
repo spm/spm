@@ -1,6 +1,6 @@
-function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
-% ReML estimation of covariance components from y*y' - scled components
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,[hE,hC]);
+function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC);
+% ReML estimation of covariance components from y*y' - scaled components
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -9,7 +9,6 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
 %
 % hE  - hyperprior expectation in log-space [default = -32]
 % hC  - hyperprior covariance  in log-space [default = 256]
-%     - If specified hE induces log-normal hyperpriors
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -20,8 +19,8 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
 % Fa  - accuracy
 % Fc  - complexity (F = Fa - Fc)
 %
-% Performs a Fisher-Scoring ascent on F to find ReML variance parameter
-% estimates.
+% Performs a Fisher-Scoring ascent on F to find MAP variance parameter
+% estimates.  NB: uses weakly infomrative log-normal hyperpriors.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -58,55 +57,43 @@ end
 
 % initialise and specify hyperpriors
 %==========================================================================
-if nargin > 4
 
-    % scale YY
-    %----------------------------------------------------------------------
-    sY = n*trace(YY)/N;
-    YY = YY/sY;
-    
-    % scale Q
-    %----------------------------------------------------------------------
-    for i = 1:m
-        sh(i,1) = n*trace(R*Q{i});
-        Q{i}    = Q{i}/sh(i);
-    end
-    
-    % hperpriors
-    %----------------------------------------------------------------------
-    try, hE = hE(:);   catch, hE = -32;   end
-    try, hP = inv(hC); catch, hP = 1/256; end
 
-    % check sise
-    %----------------------------------------------------------------------
-    if length(hE) < m, hE = hE(1)*ones(m,1);  end
-    if length(hP) < m, hP = hP(1)*speye(m,m); end
-    
-else
-    % flat hyperpriors
-    %----------------------------------------------------------------------
-    for i = 1:m
-        h(i) = any(diag(Q{i}));
-    end
-    hE  = sparse(m,1);
-    hP  = speye(m,m)/exp(32);
+% scale YY
+%--------------------------------------------------------------------------
+sY = n*trace(YY)/N;
+YY = YY/sY;
+
+% scale Q
+%--------------------------------------------------------------------------
+for i = 1:m
+    sh(i,1) = n*trace(R*Q{i});
+    Q{i}    = Q{i}/sh(i);
 end
+
+% hperpriors
+%--------------------------------------------------------------------------
+try, hE = hE(:);   catch, hE = -32;   end
+try, hP = inv(hC); catch, hP = 1/256; end
+
+% check sise
+%--------------------------------------------------------------------------
+if length(hE) < m, hE = hE(1)*ones(m,1);  end
+if length(hP) < m, hP = hP(1)*speye(m,m); end
+
 
 
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 dF    = Inf;
+as    = 1:m;
 for k = 1:K
 
     % compute current estimate of covariance
     %----------------------------------------------------------------------
     C     = sparse(n,n);
-    for i = 1:m
-        if nargin > 4
-            C = C + Q{i}*exp(h(i));
-        else
-            C = C + Q{i}*h(i);
-        end
+    for i = as
+        C = C + Q{i}*exp(h(i));
     end
     iC    = inv(C + speye(n,n)/exp(32));
 
@@ -126,19 +113,19 @@ for k = 1:K
     %----------------------------------------------------------------------
     P     = iC - iCX*Cq*iCX';
     U     = speye(n) - P*YY/N;
-    for i = 1:m
+    for i = as
 
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
-        PQ{i}     = P*Q{i};
-        dFdh(i)   = -trace(PQ{i}*U)*N/2;
+        PQ{i}   = P*Q{i};
+        dFdh(i) = -trace(PQ{i}*U)*N/2;
 
     end
 
     % Expected curvature E{dF/dhh} (second derivatives)
     %----------------------------------------------------------------------
-    for i = 1:m
-        for j = i:m
+    for i = as
+        for j = as
 
             % dF/dhh = -trace{P*Q{i}*P*Q{j}}
             %--------------------------------------------------------------
@@ -150,30 +137,40 @@ for k = 1:K
 
     % modulate
     %----------------------------------------------------------------------
-    if nargin > 4
-        dFdh  = dFdh.*exp(h);
-        dFdhh = dFdhh.*(exp(h)*exp(h)');
-    end
-    
+    dFdh  = dFdh.*exp(h);
+    dFdhh = dFdhh.*(exp(h)*exp(h)');
+
     % add hyperpriors
     %----------------------------------------------------------------------
     e     = h     - hE;
     dFdh  = dFdh  - hP*e;
     dFdhh = dFdhh - hP;
- 
+
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh,dFdh);
-    h     = h + dh;
+    dh(as) = spm_dx(dFdhh(as,as),dFdh(as));
+    h      = h + dh;
+    
     
     % Convergence (1% change in log-evidence)
     %======================================================================
+    % bar(h);drawnow
     
-    % update regulariser
+    % convergence
     %----------------------------------------------------------------------
     dF    = dFdh'*dh;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
-    if dF < 1e-1, break, end
+    if dF < 1e-1
+        break
+    else
+        % eliminate redundant components (automatic selection)
+        %------------------------------------------------------------------
+        as             = find(h > hE/2);
+        h(~as)         = hE(~as);
+        h(find(h > 1)) = 1;
+        dh             = zeros(m,1);
+        as             = as(:)';
+    end
 
 end
 
@@ -182,29 +179,28 @@ end
 %--------------------------------------------------------------------------
 Ph    = -dFdhh;
 if nargout > 3
-    
+
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
     %----------------------------------------------------------------------
     Ft = trace(hP*inv(Ph)) - length(Ph) - length(Cq);
-    
+
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
     Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
-    
+
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
     Fa = Ft/2 - trace(C*P*YY*P)/2 - N*n*log(2*pi)/2  - N*spm_logdet(C)/2;
-    
+
     % Free-energy
     %----------------------------------------------------------------------
     F  = Fa - Fc - N*n*log(sY)/2;
-    
+
 end
 
 % return exp(h) if log-normal hyperpriors and rescale
 %--------------------------------------------------------------------------
-if nargin > 4
-    h  = sY*exp(h)./sh;
-    C  = sY*C;
-end
-    
+h  = sY*exp(h)./sh;
+C  = sY*C;
+
+

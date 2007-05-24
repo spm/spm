@@ -1,15 +1,11 @@
-function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
-% ReML estimation of covariance components from y*y'
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,[hE,hC]);
+function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
+% ReML estimation of [improper] covariance components from y*y'
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
 % N   - number of samples
-%
-% hE  - hyperprior expectation in log-space [default = 0]
-% hC  - hyperprior covariance  in log-space [default = 4]
-%     - If specified hE induces log-normal hyperpriors
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -26,7 +22,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,hE,hC);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 808 2007-05-01 19:11:19Z karl $
+% $Id: spm_reml.m 817 2007-05-24 19:17:44Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -35,6 +31,15 @@ try, N; catch, N  = 1;  end
 % default number of iterations
 %--------------------------------------------------------------------------
 try, K; catch, K  = 128; end
+
+% catch NaNs
+%--------------------------------------------------------------------------
+W     = Q;
+q     = find(all(finite(YY)));
+YY    = YY(q,q);
+for i = 1:length(Q)
+    Q{i} = Q{i}(q,q);
+end
 
 % initialise h
 %--------------------------------------------------------------------------
@@ -50,51 +55,16 @@ dFdhh = zeros(m,m);
 if isempty(X)
     X = sparse(n,0);
 else
-    X = orth(full(X));
+    X = orth(full(X(q,:)));
 end
 
 % initialise and specify hyperpriors
 %==========================================================================
-if nargin > 4
-
-    % Lognormal hyperpriors - initialise
-    %----------------------------------------------------------------------
-    LY    = log(trace(YY)) - log(N);
-    for i = 1:m
-        h(i) = LY - log(trace(Q{i}));
-    end
-    hE = hE(:);
-    
-    % precision under priors
-    %----------------------------------------------------------------------
-    try
-        hP = inv(hC);
-    catch
-        iC    = speye(n,n)/trace(YY);
-        iCX   = iC*X;
-        if length(X), Cq = inv(X'*iCX); else, Cq = sparse(0); end
-        P     = iC - iCX*Cq*iCX';
-        for i = 1:m
-            PQ{i}   = P*Q{i}*exp(hE(i));
-            hP(i,i) = 8*trace(PQ{i}*PQ{i})*N/2;
-        end
-    end
-    
-    % check sise
-    %----------------------------------------------------------------------
-    if length(hP) < m
-        hP = hP(1)*speye(m,m);
-    end
-    
-else
-    % flat hyperpriors
-    %----------------------------------------------------------------------
-    for i = 1:m
-        h(i) = any(diag(Q{i}));
-    end
-    hE  = sparse(m,1);
-    hP  = speye(m,m)/exp(32);
+for i = 1:m
+    h(i) = any(diag(Q{i}));
 end
+hE  = sparse(m,1);
+hP  = speye(m,m)/exp(32);
 
 
 % ReML (EM/VB)
@@ -107,11 +77,7 @@ for k = 1:K
     %----------------------------------------------------------------------
     C     = sparse(n,n);
     for i = 1:m
-        if nargin > 4
-            C = C + Q{i}*exp(h(i));
-        else
-            C = C + Q{i}*h(i);
-        end
+        C = C + Q{i}*h(i);
     end
     iC    = inv(C + speye(n,n)/exp(32));
 
@@ -135,11 +101,8 @@ for k = 1:K
 
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
-        PQ{i}     = P*Q{i};
-        if nargin > 4
-            PQ{i} = PQ{i}*exp(h(i));
-        end
-        dFdh(i)   = -trace(PQ{i}*U)*N/2;
+        PQ{i}   = P*Q{i};
+        dFdh(i) = -trace(PQ{i}*U)*N/2;
 
     end
 
@@ -165,16 +128,8 @@ for k = 1:K
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
     dh    = spm_dx(dFdhh,dFdh,{t});
-
-    % preclude numerical overflow
-    %----------------------------------------------------------------------
-    Ph    = -dFdhh;
     h     = h + dh;
-    if nargin > 4
-        h = min(h, 32);
-        h = max(h,-32);
-    end
-    
+
     % Convergence (1% change in log-evidence)
     %======================================================================
     
@@ -184,7 +139,17 @@ for k = 1:K
     if df > dF - exp(-4), t = max(2,t/2); end
     dF    = df;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
-    if dF < 1e-1, break,                  end
+    
+    % final esimate of covariance (with missing points)
+    %----------------------------------------------------------------------
+    if dF < 1e-1
+        V     = 0;
+        for i = 1:m
+            V = V + W{i}*h(i);
+        end
+        Ph    = -dFdhh;
+        break
+    end
 
 end
 
@@ -210,9 +175,4 @@ if nargout > 3
     
 end
 
-% return exp(h) if log-normal hyperpriors
-%--------------------------------------------------------------------------
-if nargin > 4
-    h  = exp(h);
-end
     

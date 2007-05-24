@@ -13,6 +13,7 @@ else
     clf
 end
 
+
 %-Get contrast
 %--------------------------------------------------------------------------
 contrast = SPM.xCon(xSPM.Ic).name;
@@ -31,7 +32,9 @@ xyzmm  = spm_results_ui('GetCoords');
 str    = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
 SPACE  = spm_input('Search volume...','0','m',...
 		{['Sphere',str],['Box',str],'Image'},['S','B','I']);
-Q      = ones(1,size(xSPM.XYZmm,2));
+Q      = ones(1,size(SPM.xVol.XYZ,2));
+XYZmm  = SPM.xVol.M*[SPM.xVol.XYZ; Q];
+XYZmm  = XYZmm(1:3,:);
 
 switch SPACE
 
@@ -39,34 +42,33 @@ switch SPACE
 	%---------------------------------------------------------------
 	D     = spm_input('radius of VOI {mm}','!+1');
 	str   = sprintf('%0.1fmm sphere',D);
-	j     = find(sum((xSPM.XYZmm - xyzmm*Q).^2) <= D^2);
+	j     = find(sum((XYZmm - xyzmm*Q).^2) <= D^2);
 
 	case 'B' %-Box
 	%---------------------------------------------------------------
 	D     = spm_input('box dimensions [k l m] {mm}','!+1');
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-	j     = find(all(abs(xSPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
+	j     = find(all(abs(XYZmm - xyzmm*Q) <= D(:)*Q/2));
 
 	case 'I' %-Mask Image
 	%---------------------------------------------------------------
 	Msk   = spm_select(1,'image','Image defining search volume');
 	D     = spm_vol(Msk);
 	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
-	XYZ   = D.mat \ [xSPM.XYZmm; ones(1, size(xSPM.XYZmm, 2))];
+	XYZ   = D.mat \ [XYZmm; Q];
 	j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
 
 end
 
 % get explanatory variables (data)
 %--------------------------------------------------------------------------
-XYZ  = xSPM.XYZmm(:,j);
-Y    = spm_get_data(SPM.xY.VY,xSPM.XYZ(:,j));
+XYZ  = XYZmm(:,j);
+Y    = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
 
 if ~length(Y)
     warndlg({'No voxels in this VOI';'Please use a larger volume'})
     return
 end
-
 
 %-Get model[s]
 %--------------------------------------------------------------------------
@@ -88,14 +90,17 @@ try
 end
 X   = X*c;
 
-% randomise to check specificity
-%--------------------------------------------------------------------------
-% R   = speye(size(X0,1)) - X0*pinv(X0);
-% X   = spm_phase_shuffle(R*X);
-
 % serial correlations
 %--------------------------------------------------------------------------
 V   = SPM.xVi.V;
+
+% randomise to check specificity
+%--------------------------------------------------------------------------
+if 0
+    xBF = SPM.xBF;
+    K   = convmtx(xBF.bf(1:xBF.T:end,1),size(X0,1))*xBF.T;
+    X   = K*randn(size(X)); X  = X(1:size(X0,1),1);
+end
 
 % invert
 %==========================================================================
@@ -113,7 +118,8 @@ MVB.X        = X;
 MVB.Y        = Y;
 MVB.X0       = X0;
 MVB.XYZ      = XYZ;
-MVB.V        = V;
+MVB.V        = SPM.xVi.V;
+MVB.K        = full(SPM.xVi.V)^(-1/2);
 MVB.VOX      = xSPM.M;
 MVB.xyzmm    = xyzmm;
 

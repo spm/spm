@@ -1,5 +1,5 @@
 function U = spm_mvb_U(Y,priors,X0,xyz)
-% Construct patterns U for Multivariate Baysian inversion of a linear model
+% Construct patterns U for Multivariate Bayesian inversion of a linear model
 % FORMAT U = spm_mvb_U(Y,priors,X0,xyz)
 % Y      - date feature matrix
 % priors - 'null'

@@ -1,4 +1,4 @@
-function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N);
+function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % ReML estimation of covariance components from y*y'
 % FORMAT [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N);
 %
@@ -46,7 +46,8 @@ dFdhh = zeros(m,m);
 % uniformative hyperpriors
 %--------------------------------------------------------------------------
 hE    = sparse(m,1) - 32;
-hP    = speye(m,m)/256;
+hC    = speye(m,m)*256;% - 64;
+hP    = inv(hC);
 
 
 % call spm_reml as default
@@ -121,7 +122,7 @@ end
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 dF    = Inf;
-ard   = 1:m;
+as    = 1:m;
 for k = 1:K
 
     % compute current estimate of covariance
@@ -147,7 +148,7 @@ for k = 1:K
 
     % select relevant patterns
     %----------------------------------------------------------------------
-    rel   = any(dedh(:,ard),2);
+    rel   = any(dedh(:,as),2);
     
     % Gradient dF/dh (first derivatives)
     %----------------------------------------------------------------------
@@ -163,24 +164,25 @@ for k = 1:K
 
     % dF/dhh = -trace{P*Q{i}*P*Q{j}}
     %----------------------------------------------------------------------
-    dhdh  = dedh(rel,ard)*diag(exp(h(ard)));
+    dhdh  = dedh(rel,as)*diag(exp(h(as)));
     dFdh  = dhdh'*dFde;
     dFdhh = dhdh'*dFdee*dhdh;
     
     % add hyperpriors
     %----------------------------------------------------------------------
     e     = h     - hE;
-    dFdh  = dFdh  - hP(ard,ard)*e(ard);
-    dFdhh = dFdhh - hP(ard,ard);
+    dFdh  = dFdh  - hP(as,as)*e(as);
+    dFdhh = dFdhh - hP(as,as);
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh     = spm_dx(dFdhh,dFdh)/log(k + 1);
-    h(ard) = h(ard) + dh;
+    dh    = spm_dx(dFdhh,dFdh)/log(k + 1);
+    h(as) = h(as) + dh;
 
     
     % Convergence (1% change in log-evidence)
     %======================================================================
+    % bar(h),drawnow
     dF      = dFdh'*dh;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
     
@@ -189,9 +191,9 @@ for k = 1:K
     if dF < 1e-1
         break
     else
-        ard     = h > -16;
-        h(~ard) = hE(~ard);
-        plot(h),drawnow
+        as            = h > hE/2;
+        h(~as)        = hE(~as);
+        h(find(h > 1)) = 1;
     end
 
 end
@@ -200,7 +202,7 @@ end
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 Ph  = hP;
-Ph(ard,ard) = Ph(ard,ard) - dFdhh;
+Ph(as,as) = Ph(as,as) - dFdhh;
 if nargout > 3
     
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)

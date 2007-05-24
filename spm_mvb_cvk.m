@@ -1,135 +1,129 @@
-function [p,percent] = spm_mvb_cv2(MVB);
+function [p,percent] = spm_mvb_cvk(MVB);
 % Split-half cross validation of a multivariate Bayesian model
-% FORMAT [p_value,percent] = spm_mvb_cv2(MVB);
-%   p_value: binocdf(K,N,1/2)
-%   percent: proproation correct
+% FORMAT [p_value,percent] = spm_mvb_cvk(MVB);
+%   p_value: under a null GLM
+%   percent: proportion correct
 %
 % spm_mvb_cv performs a two-fold cross-validation by trying to predict
-% the target variable using a split halve test sample.  To ensure the test
-% and training features are independent, the target and prediction are
-% decimated
+% the target variable using a split halve test sample.
 %__________________________________________________________________________
-
-
-% cycle over subsets
-%==========================================================================
-k     = 2;
-X     = [];
-qX    = [];
-for i = 1:k
-    [x qx] = mvb_cv2(MVB,i,k);
-    X      = [X; x];
-    qX     = [qX; qx];
+ 
+%-Get figure handles and set title
+%--------------------------------------------------------------------------
+Fmvb = spm_figure('GetWin','MVB');
+if isempty(Fmvb)
+    Fmvb = spm_figure('Create','MVB','Multivariate Bayes');
+    figure(Fmvb)
+else
+    figure(Fmvb);
+    clf
 end
 
-% parameteric inference (with spaced smapling for correlations)
+% get MVB results
 %==========================================================================
-c        = 1 + size(MVB.X0,2);
-c        = sparse(1,1,1,c,1);
-i        = 1:8:length(X);
-[T df]   = spm_ancova([qX(i) MVB.X0(i,:)],[],X(i),c);
-p        = 1 - spm_Tcdf(T,df(2));
+try
+    MVB;
+catch
+    mvb  = spm_select(1,'mat','please select models',[],pwd,'MVB_*');
+    MVB  = load(mvb(1,:));
+    MVB  = MVB.MVB;
+end
 
-% percent correct
+% k=fol cross validation
+%==========================================================================
+k     = 2;
+pX    = 0;
+qX    = 0;
+for i = 1:k
+    [px qx q] = mvb_cv(MVB,i,k);
+    pX        = pX + px;
+    qX        = qX + qx;
+    Q{i}      = q;
+end
+ 
+% parametric inference
+%==========================================================================
+
+% ReML esimate of non-sphericity
 %--------------------------------------------------------------------------
-T        = sign(X - median(X)) == sign(qX - median(qX));
-percent  = 100*sum(T)/length(T);
+X       = [pX MVB.K*MVB.X0];
+V       = spm_reml_sc(qX*qX',X,Q);
+C       = sparse(1,1,1,size(X,2),1);
+[T df]  = spm_ancova(X,V,qX,C);
+p       = 1 - spm_Tcdf(T,df(2));
 
+ 
+% percent correct (after smoothing)
+%--------------------------------------------------------------------------
+S       = inv(MVB.K);
+pX      = S*pX;
+qX      = S*qX;
+T       = sign(pX - median(pX)) == sign(qX - median(qX));
+percent = 100*sum(T)/length(T);
+ 
 % plot
 %--------------------------------------------------------------------------
 subplot(2,1,1)
-s       = 1:length(X);
-plot(s,X,s,qX,'-.')
+s       = 1:length(pX);
+plot(s,pX,s,qX,'-.')
 xlabel('sample')
-ylabel('response (decorrelated)')
+ylabel('response (adjusted)')
 title('Cross validation')
 axis square
-
+ 
 subplot(2,1,2)
-plot(X,qX,'.')
+plot(pX,qX,'.')
 xlabel('true')
 ylabel('predicted')
 title(sprintf('p-value (parametric) = %.5f',p))
 axis square
 
+% displaye and assigin in base memory
+%--------------------------------------------------------------------------
+fprintf('\np-value = %.4f; percent: %.1f\n',p,percent)
+MVB.p_value = p;
+MVB.percent = percent;
+assignin('base','MVB',MVB)
 
+return
 
-function [X,qX] = mvb_cv2(MVB,n,k)
+%==========================================================================
+function [X,qX,Q] = mvb_cv(MVB,n,k)
+%==========================================================================
 % MVB - multivariate structure
 % n   - subset
 % k   - partition
 
-% Train
-%==========================================================================
-
-% unpack MVB
+% unpack MVB and create test subpsace
 %--------------------------------------------------------------------------
-Ns    = length(MVB.X);
-ns    = floor(Ns/k);
-test  = [1:ns] + (n - 1)*ns;
-train = [1:Ns];
-train(test) = [];
-
-% remove confounds
-%--------------------------------------------------------------------------
-X0    = orth(MVB.X0);
-R     = speye(size(X0,1)) - X0*inv(X0'*X0)*X0';
-X     = R*MVB.X;
-Y     = R*MVB.Y;
-
-% de-correlation matrix
-%--------------------------------------------------------------------------
-try
-    Qe = {MVB.V(train,train)};
-catch
-    Qe = {speye(length(train))};
-end
-
-
-
-% MAP estimate of voxel weights (qE)
-%==========================================================================
+V     = MVB.V;
 U     = MVB.M.U;
 G     = MVB.M.G;
-H     = MVB.M.h;
-ns    = length(train);
-nv    = size(Y,2);
-nk    = size(U,2);
 
-% random effects (and serial correlations)
+% whitening matrix
 %--------------------------------------------------------------------------
-Ne    = length(Qe);
-Np    = length(H) - Ne;
-he    = H([1:Ne]);
-hp    = H([1:Np] + Ne);
+K     = MVB.K;
+X     = K*MVB.X;
+Y     = K*MVB.Y;
+X0    = K*MVB.X0;
 
-% Covariances: sensor space - Ce and source space - L*Cp
-%--------------------------------------------------------------------------
-LCp   = sparse(ns,nk);
-Ce    = sparse(ns,ns);
-Cp    = sparse(nk,nk);
-for i = 1:Ne
-    Ce = Ce + he(i)*Qe{i};
-end
-for i = 1:Np
-    Cp = Cp + hp(i)*sparse(diag(G(:,i)));
-end
-L     = Y(train,:)*U;
-LCp   = L*Cp;
-qE    = U'*LCp'*inv(LCp*L' + Ce)*X(train,:);
+Ns    = length(X);
+ns    = floor(Ns/k);
+test  = [1:ns] + (n - 1)*ns;
+tran  = [1:Ns];
+tran(test) = [];
 
+test  = full(sparse(test,test,1,Ns,Ns));
+tran  = full(sparse(tran,tran,1,Ns,Ns)); 
 
-% Test
+% Training - add test space to confounds
 %==========================================================================
-
-% remove confounds
-%--------------------------------------------------------------------------
-X     = X(test,:);
-Y     = Y(test,:);
-qX    = Y*qE;
-
-return
-
-
-
+M     = spm_mvb(X,Y,[X0 test],U,[],8);
+ 
+% Test - add training space to confounds
+%==========================================================================
+R     = speye(Ns) - [X0 tran]*pinv([X0 tran]);
+X     = R*X;
+qX    = R*Y*U*M.qE;
+Q     = test;
 
