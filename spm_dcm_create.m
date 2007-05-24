@@ -21,7 +21,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_dcm_create.m 815 2007-05-24 09:33:34Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -95,14 +95,23 @@ switch upper(source_model)
 
         Ui=spm_get_ons(SPM,1);
 
-        % Change input format to DCM input format
+        % Change input format to DCM input format and correct 32 bin offset that is inserted by spm_get_ons
+        % (NB: for "normal" DCMs this is corrected for in spm_dcm_ui)
         U.name = {};
         U.u    = [];
+        ii     = 0;
         for  i = 1:length(Ui)
-            U.u             = [U.u Ui(i).u((2*SPM.xBF.T):end)];   % remove initial offset of 2 TRs
+            U.u             = [U.u Ui(i).u(33:end,1)];  % correct 32 bin offset that is inserted (as hard coded value!) by spm_get_ons
             U.name{end + 1} = Ui(i).name{1};
+            % any parametric modulators?
+            if size(Ui(i).u,2) > 1
+                for j = 2:size(Ui(i).u,2)
+                    U.u             = [U.u Ui(i).u(33:end,j)];
+                    U.name{end + 1} = Ui(i).P(j-1).name;
+                end
+            end
         end
-        U.dt=Ui(1).dt;
+        U.dt = Ui(1).dt;
 
         % graph connections
         %===================================================================
