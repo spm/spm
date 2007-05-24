@@ -116,7 +116,7 @@ h     = DCM.options.h;
 T     = spm_dctmtx(Ns,h);
 T     = speye(Ns,Ns) - T*T';
 
-% create convolution matrices with reflecting boudnaries (and filtering)
+% create convolution matrices with reflecting boundaries (and filtering)
 %--------------------------------------------------------------------------
 M     = spm_eeg_morlet(DCM.xY.Rft, ST, DCM.xY.Hz, 32);
 for i = 1:Nf
@@ -187,7 +187,7 @@ for i = 1:length(trial);
 end
 
 
-% reduce to frequnecy modes
+% reduce to frequency modes
 %==========================================================================
 
 % find frequency modes (over time and sources)

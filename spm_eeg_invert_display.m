@@ -37,7 +37,6 @@ J      = model.inverse.J;
 T      = model.inverse.T;
 Is     = model.inverse.Is;
 Nd     = model.inverse.Nd;
-Nt     = model.inverse.Nt;
 pst    = model.inverse.pst;
 R2     = model.inverse.R2;
 F      = model.inverse.F;
@@ -85,7 +84,7 @@ if length(PST) == 2
         spm_mip([J(:,j); SCL],XYZ,6);
         axis image
         title({sprintf('RMS response at %i most active voxels',Ndip),...
-               sprintf('at %i ms (from %i to %i ms)',fix(pst(jt(j))),fix(PST(1)),fix(PST(2)))})
+               sprintf('at %i ms (from %i to %i ms)',fix(pst(jt(j))),fix(pst(j1)),fix(pst(j2)))})
         drawnow
     end
     return
@@ -136,8 +135,8 @@ for i = 1:length(model.inverse.J)
     % plot confidence intervals is possible
     %----------------------------------------------------------------------
     try
-        qC  = model.inverse.qC;
-        ci  = Nt(con)*sqrt(qC(js))*1.64;
+        qC  = model.inverse.qC(js).*diag(model.inverse.qV)';
+        ci  = 1.64*sqrt(qC);
         plot(pst,Jt,pst,Jt + ci,':',pst,Jt - ci,':',...
             [PST PST],[-1 1]*maxJ,':',...
             'Color',Color)
@@ -165,8 +164,9 @@ axis image
 % title
 %--------------------------------------------------------------------------
 try
-    Z  = min(Jmax(Is(i))./(Nt(con)*sqrt(qC(i))));
-    PP = fix(100*(1 - spm_Ncdf(Z)));
+    qC = model.inverse.qC(i).*model.inverse.qV(jt,jt);
+    Z  = min(Jmax(Is(i))./sqrt(qC));
+    PP = fix(100*(spm_Ncdf(Z)));
     title({sprintf('PPM at %i ms (%i percent confidence)',PST,PP), ...
            sprintf('%i dipoles',length(i)), ...
            sprintf('Variance explained %.2f (percent)',full(R2)), ...

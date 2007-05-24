@@ -6,29 +6,34 @@ function [D] = spm_eeg_invert(D)
 % Requires:
 % D.inv{val}.inverse:
 %
-%     inverse.trials - indices of D.events.types to invert
+%     inverse.trials - D.events.types to invert
 %     inverse.smooth - smoothness of source priors (0 to 1)
 %     inverse.Np     - number of sparse priors per hemisphere
+%     inverse.Nm     - maximum number of channel modes
 %     inverse.type   - 'MSP' multiple sparse priors
-%                        'LOR' LORETA-like model
-%                        'IID' LORETA and minimum norm
+%                      'LOR' LORETA-like model
+%                      'IID' LORETA and minimum norm
 %     inverse.xyz    - (n x 3) locations of spherical VOIs
 %     inverse.rad    - radius (mm) of VOIs
+%     inverse.lpf    - band-pass filter - low  frequency cutoff (Hz)
+%     inverse.hpf    - band-pass filter - high frequency cutoff (Hz)
+%     inverse.Lap    - switch for Laplace transform
+%     inverse.sdv    - standard devations of Gaussian temporal correlations
 %
 % Evaluates:
 % 
-%     inverse.M      - MAP projector
+%     inverse.M      - MAP projector (reduced)
 %     inverse.J      - Conditional expectation
 %     inverse.L      - Lead field (reduced)
-%     inverse.R      - Rre-referencing matrix
+%     inverse.R      - Re-referencing matrix
 %     inverse.qC     - spatial  covariance
 %     inverse.qV     - temporal correlations
 %     inverse.T      - temporal subspace
 %     inverse.U      - spatial  subspace
 %     inverse.Is     - Indices of active dipoles
 %     inverse.Nd     - number of dipoles
-%     inverse.Nt     - numner of trials
 %     inverse.pst    - pers-stimulus time
+%     inverse.dct    - frequency range
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
@@ -40,17 +45,27 @@ model = D.inv{D.val};
 
 % defaults
 %--------------------------------------------------------------------------
-try, trial = model.inverse.trials; catch, trial = 1;           end
-try, type  = model.inverse.type;   catch, type  = 'MSP';       end
-try, s     = model.inverse.smooth; catch, s     = 0.6;         end
-try, Np    = model.inverse.Np;     catch, Np    = 128;         end
-try, xyz   = model.inverse.xyz;    catch, xyz   = [0 0 0];     end
-try, rad   = model.inverse.rad;    catch, rad   = 128;         end
+try, trial = model.inverse.trials; catch, trial = D.events.types; end
+try, type  = model.inverse.type;   catch, type  = 'GS';           end
+try, s     = model.inverse.smooth; catch, s     = 0.6;            end
+try, Np    = model.inverse.Np;     catch, Np    = 256;            end
+try, Nm    = model.inverse.Nm;     catch, Nm    = 96;             end
+try, xyz   = model.inverse.xyz;    catch, xyz   = [0 0 0];        end
+try, rad   = model.inverse.rad;    catch, rad   = 128;            end
+try, lpf   = model.inverse.lpf;    catch, lpf   = 1;              end
+try, hpf   = model.inverse.hpf;    catch, hpf   = 256;            end
+try, stv   = model.inverse.stv;    catch, stv   = 4;              end
+try, Lap   = model.inverse.Lap;    catch, Lap   = 0;              end
 
 
 % Load Gain or Lead field matrix
 %--------------------------------------------------------------------------
-L     = load(model.forward.gainmat);
+try
+    L     = load(model.forward.gainmat);
+catch
+    [p f] = fileparts(model.forward.gainmat);
+    L     = load(f);
+end
 name  = fieldnames(L);
 L     = sparse(getfield(L, name{1}));
 
@@ -60,8 +75,7 @@ Nb    = D.Nsamples;                              % number of time bins
 Nc    = size(L,1);                               % number of channels
 Na    = 1024;                                    % number of active sources
 Nd    = size(L,2);                               % number of dipoles
-Nm    = 64;                                      % number of spatial modes
-Nv    = size(xyz,1);                              % number of VOI
+Nv    = size(xyz,1);                             % number of VOI
 
 % assume radii are the same for all VBOI
 %--------------------------------------------------------------------------
@@ -78,43 +92,61 @@ pst   = (It - D.events.start)/D.Radc*1000;       % peristimulus time (ms}
 dur   = (pst(end) - pst(1))/1000;                % duration (s)
 dct   = (It - 1)/2/dur;                          % DCT frequenices (Hz)
 
-% Confounds and temporal subspace
-%--------------------------------------------------------------------------
-T     = spm_dctmtx(Nb,Nb);                       % pst subspace
-T     = T(:,find((dct >= 1) & (dct <= 64)));     % 2 - 64 Hz
-Nr    = size(T,2);                               % number of temporal modes
-Nm    = min(Nm,Nr);
-
 % Serial correlations
 %--------------------------------------------------------------------------
-K     = exp(-(pst - pst(1)).^2/(2*16));
+K     = exp(-(pst - pst(1)).^2/(2*stv^2));
 K     = toeplitz(K);
 qV    = sparse(K*K');
-qV    = qV/mean(diag(qV));
-iV    = inv(T'*qV*T);
 
-% get data
-%==========================================================================
-
-% single-trial analysis (or single ERP)
+% Confounds and temporal subspace
 %--------------------------------------------------------------------------
+if Lap
+    T   = spm_eeg_lapmtx(pst);
+else
+    T   = spm_dctmtx(Nb,Nb);
+    i   = (dct > lpf) & (dct < hpf) & (It > 2) & (It < 64);
+    T   = T(:,i);
+    dct = dct(i);
+end
+
+% get data (with temporal reduction)
+%==========================================================================
 Ic    = setdiff(D.channels.eeg, D.channels.Bad);
-YY    = sparse(0);
-for i = trial
-    if isfield(D.events,'reject')
-          c = find(D.events.code == D.events.types(i) & ~D.events.reject);
-    else
- 	  c = find(D.events.code == D.events.types(i));
-    end
-    Nt(i) = length(c);
+Nt    = length(trial);
+for i = 1:Nt
     Y{i}  = sparse(0); 
-    for j = 1:Nt(i)
-        Yi   = squeeze(D.data(Ic,It,c(j)))*T;
-        Y{i} = Y{i} + Yi;
-        YY   = YY + Yi*iV*Yi';
+    if isfield(D.events,'reject')
+        c = find(D.events.code == trial(i) & ~D.events.reject);
+    else
+ 	    c = find(D.events.code == trial(i));
+    end
+    for j = 1:length(c)
+        Y{i} = Y{i} + squeeze(D.data(Ic,It,c(j)))*T;
     end
 end
 
+% temporal covariance
+%--------------------------------------------------------------------------
+YY    = sparse(0);
+for i = 1:Nt
+    YY  = YY + Y{i}'*Y{i};
+end
+
+% eliminate unnecessary temporal modes
+%--------------------------------------------------------------------------
+S     = spm_svd(YY,1/64);
+T     = T*S;
+Nr    = size(T,2);                               % number of temporal modes
+iV    = inv(T'*qV*T);                            % precision (mode space)
+Vq    = T*iV*T';
+
+% Project onto temporal modes (S)
+%--------------------------------------------------------------------------
+YY    = sparse(0);
+for i = 1:Nt
+    Y{i} = Y{i}*S;
+    YY   = YY + Y{i}*iV*Y{i}';
+end
 
 % Re-reference matrix (R)
 %--------------------------------------------------------------------------
@@ -123,10 +155,13 @@ R     = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc);   % re-referencing matrix
 YY    = R*YY*R';
 L     = R*L;
 
-% Project from channel space to modes (U)
+% Project to channel modes (U)
 %--------------------------------------------------------------------------
-U     = spm_svd(YY,0);
-U     = U(:,1:Nm);
+U     = spm_svd(L*L');
+try
+    U = U(:,1:Nm);
+end
+Nm    = size(U,2);
 YY    = U'*YY*U;
 L     = U'*L;
 
@@ -136,10 +171,10 @@ vert  = model.mesh.tess_mni.vert;
 face  = model.mesh.tess_mni.face;
 Is    = sparse(Nd,1);
 for i = 1:Nv
-        Iv    = sum([vert(:,1) - xyz(i,1), ...
-                     vert(:,2) - xyz(i,2), ...
-                     vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
-        Is    = Is | Iv;
+        Iv = sum([vert(:,1) - xyz(i,1), ...
+                  vert(:,2) - xyz(i,2), ...
+                  vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
+        Is = Is | Iv;
 end
 Is    = find(Is);
 vert  = vert(Is,:);
@@ -164,10 +199,9 @@ if ~strcmp(type,'IID')
         Qi = Qi*GL/i;
     end
     clear Qi
-    QG    = QG(Is,Is);
-    QG    = QG*QG;
     QG    = QG.*(QG > exp(-8));
-    QG    = spm_cov2corr(QG);
+    QG    = QG*QG;
+    QG    = QG(Is,Is);
     fprintf(' - done\n')
 end
 
@@ -183,7 +217,7 @@ Qe{1} = U'*R*R'*U;
 %--------------------------------------------------------------------------
 switch(type)
 
-    case {'MSP'}
+    case {'MSP','GS'}
 
         % create MSP spatial basis set in source space
         %------------------------------------------------------------------
@@ -240,39 +274,75 @@ end
 % Inverse solution
 %==========================================================================
 
-% ReML - ARD
+% Greedy search over MSPs
 %--------------------------------------------------------------------------
-Q           = {Qe{:} LQpL{:}};
-[Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*sum(Nt));
-
-
-% Covariances: sensor space - Ce and source space - L*Cp
-%--------------------------------------------------------------------------
-Ne    = length(Qe);
-Np    = length(Qp);
-Ce    = sparse(Nm,Nm);
-LCp   = sparse(Nm,Ns);
-he    = h([1:Ne]);
-hp    = h([1:Np] + Ne);
-for i = 1:Ne
-    try
-        Ce = Ce + he(i)*Qe{i}.q*Qe{i}.q';
-    catch
-        Ce = Ce + he(i)*Qe{i};
+if strcmp(type,'GS')
+    
+    % extract patterns
+    %----------------------------------------------------------------------
+    Np    = length(Qp);
+    Q     = sparse(Ns,Np);
+    for i = 1:Np
+        Q(:,i) = Qp{i}.q;
     end
-end
-for i = 1:Np
-    try
-        LCp = LCp + hp(i)*LQpL{i}.q*Qp{i}.q';
-    catch
-        LCp = LCp + hp(i)*L*Qp{i};
-    end
-end
 
-% MAP estimates of instantaneous sources
-%==========================================================================
-iC    = inv(LCp*L' + Ce);
-M     = LCp'*iC;
+    % Multivariate Bayes
+    %----------------------------------------------------------------------
+    MVB   = spm_mvb(U'*R*[Y{:}],L,[],Q,Qe,4,1/4);
+    M     = MVB.M;
+    Cq    = MVB.qC;
+    F     = max(MVB.F);
+
+else
+    
+    % or ReML - ARD
+    %----------------------------------------------------------------------
+    Q           = {Qe{:} LQpL{:}};
+    [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*Nt);
+
+    % Covariances: sensor space - Ce and source space - L*Cp
+    %----------------------------------------------------------------------
+    Ne    = length(Qe);
+    Np    = length(Qp);
+    Ce    = sparse(Nm,Nm);
+    LCp   = sparse(Nm,Ns);
+    he    = h([1:Ne]);
+    hp    = h([1:Np] + Ne);
+    for i = 1:Ne
+        try
+            Ce = Ce + he(i)*Qe{i}.q*Qe{i}.q';
+        catch
+            Ce = Ce + he(i)*Qe{i};
+        end
+    end
+    for i = 1:Np
+        try
+            LCp = LCp + hp(i)*LQpL{i}.q*Qp{i}.q';
+        catch
+            LCp = LCp + hp(i)*L*Qp{i};
+        end
+    end
+
+    % MAP estimates of instantaneous sources
+    %======================================================================
+    iC    = inv(Cy);
+    M     = LCp'*iC;
+
+    % conditional covariance (leading diagonal)
+    fprintf('Computing conditional covariances:')
+    % Cq    = Cp - Cp*L'*iC*L*Cp;
+    %----------------------------------------------------------------------
+    Cp    = sparse(Ns,1);
+    for i = 1:Np
+        try
+            Cp = Cp + hp(i)*sum(Qp{i}.q.^2,2);
+        catch
+            Cp = Cp + hp(i)*diag(Qp{i});
+        end
+    end
+    Cq    = Cp - sum(LCp.*M')';
+
+end
 
 % select the most 'energetic' dipoles and store their indices in j
 %--------------------------------------------------------------------------
@@ -281,21 +351,7 @@ j     = j(1:Na);
 M     = M(j,:);
 L     = L(:,j);
 Is    = Is(j);
-
-% conditional covariance (leading diagonal)
-fprintf('Computing conditional covariances:')
-% Cq    = Cp - Cp*L'*iC*L*Cp;
-%--------------------------------------------------------------------------
-Cp    = sparse(Na,1);
-for i = 1:Np
-    try
-        Cp = Cp + hp(i)*sum(Qp{i}.q(j,:).^2,2);
-    catch
-        Cp = Cp + hp(i)*diag(Qp{i}(j,j));
-    end
-end
-Cq    = Cp - sum(LCp(:,j).*(iC*LCp(:,j)))';
-
+Cq    = Cq(j);
 
 fprintf(' - done\n')
 
@@ -303,7 +359,7 @@ fprintf(' - done\n')
 %--------------------------------------------------------------------------
 SSR   = 0;
 SST   = 0;
-for i = 1:length(Y)
+for i = 1:Nt
     
     Y{i}  = U'*R*Y{i};
     J{i}  = M*Y{i};
@@ -327,23 +383,25 @@ model.inverse.smooth = s;                    % smoothness (0 - 1)
 model.inverse.xyz    = xyz;                  % VOI (XYZ)
 model.inverse.rad    = rad;                  % VOI (rad)
 
-model.inverse.M      = M;                    % MAP projector
+model.inverse.M      = M;                    % MAP projector (reduced)
 model.inverse.J      = J;                    % Conditional expectation
-model.inverse.Y      = Y;                    % Sensor data (reduced)
-model.inverse.L      = L;                    % Lead field  (reduced)
+model.inverse.Y      = Y;                    % ERP data (reduced)
+model.inverse.L      = L;                    % Lead-field  (reduced)
 model.inverse.R      = R;                    % Re-referencing matrix
 model.inverse.qC     = Cq;                   % spatial  covariance
-model.inverse.qV     = qV;                   % temporal correlations
+model.inverse.qV     = Vq;                   % temporal correlations
 model.inverse.T      = T;                    % temporal subspace
 model.inverse.U      = U;                    % spatial  subspace
 model.inverse.Is     = Is;                   % Indices of active dipoles
 model.inverse.It     = It;                   % Indices of time bins
 model.inverse.Ic     = Ic;                   % Indices of good channels
 model.inverse.Nd     = Nd;                   % number of dipoles
-model.inverse.Nt     = Nt;                   % number of trials
 model.inverse.pst    = pst;                  % pers-stimulus time
+model.inverse.dct    = dct;                  % frequency range
 model.inverse.F      = F;                    % log-evidence
 model.inverse.R2     = R2;                   % variance accounted for (%)
+
+
 
 
 % save in struct
@@ -354,7 +412,7 @@ D.inv{D.val}.method  = 'Imaging';
 % and delete old contrasts
 %--------------------------------------------------------------------------
 try
-    D.inv{D.val}= rmfield(D.inv{D.val},'contrast');
+    D.inv{D.val} = rmfield(D.inv{D.val},'contrast');
 end
 
 

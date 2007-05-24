@@ -5,8 +5,8 @@ function M = spm_eeg_morlet(Rtf, ST, f, ff)
 % Rtf - 'wavelet factor', see [1]
 % ST  - sample time [ms]
 % f   - vector of frequencies [Hz]
-% ff  - frequnecy to fix Gaussin envelope (sigma = Rtf/(2*pi*ff))
-%       Default is ff = f, ie.e, a Morelt transform
+% ff  - frequency to fix Gaussian envelope (sigma = Rtf/(2*pi*ff))
+%       Default is ff = f, ie.e, a Morlet transform
 %       NB: FWHM = sqrt(8*log(2))*sigma_t;
 %
 % M   - cell vector, where each element contains the filter for each
@@ -26,7 +26,7 @@ function M = spm_eeg_morlet(Rtf, ST, f, ff)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_morlet.m 744 2007-02-23 13:51:48Z karl $
+% $Id: spm_eeg_morlet.m 818 2007-05-24 19:18:51Z karl $
 
 
 M = {};

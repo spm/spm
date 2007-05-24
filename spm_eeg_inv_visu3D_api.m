@@ -227,8 +227,12 @@ handles.colorbar = colorbar;
 try
     load(fullfile(spm('dir'),'EEGtemplates',D.channels.ctf));
 catch
-    [f,p] = uigetfile({'*.mat'}, 'EEGtemplate file (Cpos)');
-    load(fullfile(p,f))
+    try
+        Cpos  = D.inv{1}.datareg.sens_coreg(:,[1 2])'; 
+    catch
+        [f,p] = uigetfile({'*.mat'}, 'EEGtemplate file (Cpos)');
+        load(fullfile(p,f))        
+    end
 end
 try
     Cpos = Cpos(:,D.channels.order(Cs));
@@ -237,8 +241,8 @@ catch
 end
 xp       = Cpos(1,:)';
 yp       = Cpos(2,:)';
-x        = min(xp):0.01:max(yp);
-y        = min(yp):0.01:max(yp);
+x        = linspace(min(xp),max(xp),64);
+y        = linspace(min(yp),max(yp),64);
 [xm,ym]  = meshgrid(x,y);
 clear Cnames Rxy Cpos
 
@@ -250,7 +254,7 @@ axes(handles.sensors_axes);
 cla; axis off
 
 disp     = full(handles.sens_data(:,1));
-imagesc(y,x,griddata(xp,yp,disp,xm,ym));
+imagesc(x,y,griddata(xp,yp,disp,xm,ym));
 axis image xy off
 handles.sens_coord_x   = x;
 handles.sens_coord_y   = y;
@@ -267,7 +271,7 @@ hold off
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 axes(handles.pred_axes); cla;
 disp      = full(handles.pred_data(:,1));
-imagesc(griddata(xp,yp,disp,xm,ym));
+imagesc(x,y,griddata(xp,yp,disp,xm,ym));
 axis image xy off
 drawnow
 
@@ -378,12 +382,12 @@ if TypOfDisp == 1
     
     axes(handles.sensors_axes); cla
     disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(sens_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
-    imagesc(handles.sens_coord_y,handles.sens_coord_x,disp);
+    imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
     axis image xy off
 
     axes(handles.pred_axes); cla
     disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(pred_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
-    imagesc(handles.sens_coord_y,handles.sens_coord_x,disp);
+    imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
     axis image xy off
 
     % add sensor locations

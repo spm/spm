@@ -32,10 +32,11 @@ end
 
 % compute conditional probability of DCMs under flat priors.
 %--------------------------------------------------------------------------
-i    =  F < (max(F) - 32);
-F(i) = max(F) - 32;
-F    = F - min(F)
-P    = exp(F);
+i    = F < (max(F) - 32);
+P    = F;
+P(i) = max(F) - 32;
+P    = P - min(P)
+P    = exp(P);
 P    = P/sum(P)
 
    

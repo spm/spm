@@ -3,7 +3,7 @@ function [Y] = spm_get_data(V,XYZ)
 % FORMAT [Y] = spm_get_data(V,XYZ);
 %
 % V    - [1 x n] struct array of file handles (or filename matrix)
-% XYZ  - [4 x m] location matrix (voxel)
+% XYZ  - [4 x m] or [3 x m]location matrix (voxel)
 %
 % Y    - (n x m) double values
 %
@@ -12,7 +12,7 @@ function [Y] = spm_get_data(V,XYZ)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_get_data.m 226 2005-09-12 15:00:59Z karl $
+% $Id: spm_get_data.m 818 2007-05-24 19:18:51Z karl $
 
 
 % ensure V is an array of handle structures
@@ -32,8 +32,8 @@ for i = 1:length(V)
         % check files exists, if not try pwd
     %----------------------------------------------------------------------
     if exist(V(i).fname,'file') ~=2
-        [p,n,e]=fileparts(V(i).fname);
-        V(i).fname = [n e];
+        [p,n,e]    = fileparts(V(i).fname);
+        V(i).fname = fullfile(n,e);
     end
 
 	%-Load mask image within current mask & update mask

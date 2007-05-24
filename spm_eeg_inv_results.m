@@ -16,7 +16,7 @@ fprintf('\ncomputing contrast - please wait\n')
 try
     model = D.inv{D.val};
 catch
-    
+
     model = D.inv{end};
 end
 
@@ -36,7 +36,6 @@ Ic   = model.inverse.Ic;                          % Indices of channels
 It   = model.inverse.It;                          % Indices of time bins
 pst  = model.inverse.pst;                         % preistimulus tim (ms)
 Nd   = model.inverse.Nd;                          % number of mesh dipoles
-Nt   = model.inverse.Nt;                          % number of trials per type
 Nb   = size(T,1);                                 % number of time bins
 Nc   = size(U,1);                                 % number of channels
 
@@ -71,47 +70,51 @@ TTW    = T*TW;
 trial = model.inverse.trials;
 for i = 1:length(Nt)
 
-    % single-trial analysis (or single ERP) - JW
+    % windowed time average
     %----------------------------------------------------------------------
-    if Nt(i) == 1
-        
+    if foi
+
         JW{i} = J{i}*TW(:,1);
         GW{i} = sum((J{i}*TW).^2,2);
-        
-    % multi-trial analysis (induced responses)  - GW
+
+    % energy over frequencies
     %----------------------------------------------------------------------
     else
-        
+
         % get projectors, inversion and data
         %==================================================================
         M     = model.inverse.M;               % MAP projector
         V     = model.inverse.qV;              % temporal correlations
         MUR   = M*U'*R;
-        qC    = model.inverse.qC;
-        QC    = qC*trace(TTW'*V*TTW);
+        qC    = model.inverse.qC*trace(TTW'*V*TTW);
         
         JW{i} = sparse(0);
         JWWJ  = sparse(0);
-        c     = find(D.events.code == D.events.types(trial(i)));
+        if isfield(D.events,'reject')
+            c = find(D.events.code == trial(i) & ~D.events.reject);
+        else
+            c = find(D.events.code == trial(i));
+        end
 
         % conditional expectation of contrast (J*W) and its energy
         %------------------------------------------------------------------
-        for j = 1:Nt(i)
+        Nt    = length(c)
+        for j = 1:Nt
             fprintf('\nevaluating trial %i, condition %i',j,i)
-            MYW   = MUR*(D.data(Ic,It,c(j))*TTW)/Nt(i);;
+            MYW   = MUR*(D.data(Ic,It,c(j))*TTW)/Nt;
             JW{i} = JW{i} + MYW(:,1);
             JWWJ  = JWWJ  + sum(MYW.^2,2);
         end
-       
-        
+
+
         % conditional expectation of total energy (source space GW)
         %------------------------------------------------------------------
-        GW{i}   = JWWJ + QC/Nt(i);
-        
+        GW{i}   = JWWJ + qC/Nt;
+
         % conditional expectation of induced energy (source space IW)
-        % NB: this is zero of Nt(i) = 1
+        % NB: this is zero if Nt = 1
         %--------------------------------------------------------------------------
-        % IW   = GW - sum(JW.^2,2) - QC/(Nt(i)*Nt(i));
+        % IW   = GW - sum(JW.^2,2) - qC/(Nt(i)*Nt(i));
 
     end
 
