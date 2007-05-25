@@ -55,7 +55,8 @@ try, rad   = model.inverse.rad;    catch, rad   = 128;            end
 try, lpf   = model.inverse.lpf;    catch, lpf   = 1;              end
 try, hpf   = model.inverse.hpf;    catch, hpf   = 256;            end
 try, stv   = model.inverse.stv;    catch, stv   = 4;              end
-try, Lap   = model.inverse.Lap;    catch, Lap   = 0;              end
+try, Han   = model.inverse.Han;    catch, Han   = 1;              end
+
 
 
 % Load Gain or Lead field matrix
@@ -100,14 +101,10 @@ qV    = sparse(K*K');
 
 % Confounds and temporal subspace
 %--------------------------------------------------------------------------
-if Lap
-    T   = spm_eeg_lapmtx(pst);
-else
-    T   = spm_dctmtx(Nb,Nb);
-    i   = (dct > lpf) & (dct < hpf) & (It > 2) & (It < 64);
-    T   = T(:,i);
-    dct = dct(i);
-end
+T     = spm_dctmtx(Nb,Nb);
+i     = (dct > lpf) & (dct < hpf) & (It > 2) & (It < 64);
+T     = T(:,i);
+dct   = dct(i);
 
 % get data (with temporal reduction)
 %==========================================================================
@@ -125,16 +122,21 @@ for i = 1:Nt
     end
 end
 
-% temporal covariance
+% temporal covariance (with Hanning if requested)
 %--------------------------------------------------------------------------
 YY    = sparse(0);
+if Han
+    W = T'*diag(hanning(Nb))*T;
+else
+    W = T'*T;
+end
 for i = 1:Nt
-    YY  = YY + Y{i}'*Y{i};
+    YY  = YY + W'*Y{i}'*Y{i}*W;
 end
 
 % eliminate unnecessary temporal modes
 %--------------------------------------------------------------------------
-S     = spm_svd(YY,1/64);
+S     = spm_svd(YY,1/512);
 T     = T*S;
 Nr    = size(T,2);                               % number of temporal modes
 iV    = inv(T'*qV*T);                            % precision (mode space)
@@ -288,7 +290,7 @@ if strcmp(type,'GS')
 
     % Multivariate Bayes
     %----------------------------------------------------------------------
-    MVB   = spm_mvb(U'*R*[Y{:}],L,[],Q,Qe,4,1/4);
+    MVB   = spm_mvb(U'*R*[Y{:}],L,[],Q,Qe,8,1/4);
     M     = MVB.M;
     Cq    = MVB.qC;
     F     = max(MVB.F);

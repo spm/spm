@@ -68,7 +68,7 @@ TTW    = T*TW;
 % cycle over trial types
 %==========================================================================
 trial = model.inverse.trials;
-for i = 1:length(Nt)
+for i = 1:length(J)
 
     % windowed time average
     %----------------------------------------------------------------------
