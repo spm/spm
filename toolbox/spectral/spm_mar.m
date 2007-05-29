@@ -14,7 +14,7 @@ function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 %
 % mar.lag(k).a   AR coefficient matrix at lag k
 % mar.noise_cov  Estimated noise covariance
-% mar.F          Free energy of model
+% mar.fm         Free energy of model
 % mar.wmean      MAR coefficients stored in a matrix
 % y              Target values
 % y_pred         Predicted values

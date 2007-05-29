@@ -1,10 +1,11 @@
-function [p] = spm_wavspec (x,freqs,fs,show)
+function [p] = spm_wavspec (x,freqs,fs,show,rtf)
 % Wavelet based spectrogram
-% FORMAT [p] = spm_wavspec (x,freqs,fs,show)
+% FORMAT [p] = spm_wavspec (x,freqs,fs,show,rtf)
 % x         Data vector
 % freqs     Frequencies to estimate power at
 % fs        sample rate
 % show      1 to plot real part of wavelet basis used (default = 0)
+% rtf       Wavelet factor
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
@@ -17,10 +18,13 @@ freqs=freqs(:)';
 if nargin < 4 | isempty(show)
     show=0;
 end
+if nargin < 5 | isempty(rtf)
+    rtf=7;
+end
 
 Nf=length(freqs);
 Nsamp=length(x);
-M=spm_eeg_morlet(7,1000/fs,freqs);
+M=spm_eeg_morlet(rtf,1000/fs,freqs);
 
 if show
     dim=floor(sqrt(Nf));

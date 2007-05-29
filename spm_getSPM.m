@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 803 2007-04-27 08:37:16Z volkmar $
+% $Id: spm_getSPM.m 821 2007-05-29 10:57:48Z will $
 
 
 %-GUI setup
@@ -438,23 +438,26 @@ if isfield(SPM,'PPM')
        SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
     end
     
-    % Make this one a Bayesian contrast
-    [xCon(Ic).STAT]=deal('P');
+    % Make this one a Bayesian contrast - if first level
+    if isfield(SPM.PPM,'VB')
+        [xCon(Ic).STAT]=deal('P');
+    end
     
     if all(strcmp([SPM.PPM.xCon(Ic).PSTAT],'T'))
         % Simple contrast
         str           = 'Effect size threshold for PPM';
-        if isfield(SPM.PPM,'VB')
+        if isfield(SPM.PPM,'VB') % 1st level Bayes
             % For VB - set default effect size to zero
             Gamma=0;
             xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
-        elseif nc == 1 & isempty(xCon(Ic).Vcon)
+        elseif nc == 1 & isempty(xCon(Ic).Vcon) % 2nd level Bayes
             % con image not yet written
             if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
                 %-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
                 % The default is one conditional s.d. of the contrast
                 Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
                 xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+                xCon(Ic).STAT = 'P';
             end
         end
     else
@@ -564,7 +567,6 @@ end
 %-----------------------------------------------------------------------
 fprintf('\t%-32s: %30s\n','SPM computation','...done')         %-#
 spm('Pointer','Arrow')
-
 
 
 %=======================================================================
