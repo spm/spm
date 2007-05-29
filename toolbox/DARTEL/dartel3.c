@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 52 2006-12-08 14:48:28Z john $ */
+/* $Id: dartel3.c 73 2007-05-10 15:17:14Z john $ */
 
 #include "mex.h"
 #include <math.h>
@@ -7,7 +7,7 @@
 
 void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    int        i, k=10, cycles=4, its=2, rtype=2, issym=0;
+    int        i, k=10, cycles=4, its=2, rtype=2, code=0;
     int        dm[5];
     double     lmreg0=0.0, lmreg1=0.0, *ll;
     float      *v, *g, *f, *jd = (float *)0, *ov, *scratch;
@@ -63,7 +63,7 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
         jd = (float *)mxGetPr(prhs[2]);
     }
     if (mxGetNumberOfElements(prhs[3]) >9)
-        mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, nsamps and issym.");
+        mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, nsamps and code.");
     if (mxGetNumberOfElements(prhs[3]) >=1) rtype  = mxGetPr(prhs[3])[0];
     if (mxGetNumberOfElements(prhs[3]) >=2) param[3] = mxGetPr(prhs[3])[1];
     if (mxGetNumberOfElements(prhs[3]) >=3) param[4] = mxGetPr(prhs[3])[2];
@@ -72,7 +72,7 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     if (mxGetNumberOfElements(prhs[3]) >=6) cycles = mxGetPr(prhs[3])[5];
     if (mxGetNumberOfElements(prhs[3]) >=7) its    = mxGetPr(prhs[3])[6];
     if (mxGetNumberOfElements(prhs[3]) >=8) k      = mxGetPr(prhs[3])[7];
-    if (mxGetNumberOfElements(prhs[3]) >=9) issym  = mxGetPr(prhs[3])[8];
+    if (mxGetNumberOfElements(prhs[3]) >=9) code   = mxGetPr(prhs[3])[8];
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
     plhs[1] = mxCreateNumericArray(2,nll, mxDOUBLE_CLASS, mxREAL);
@@ -83,11 +83,14 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     ov      = (float *)mxGetPr(plhs[0]);
     ll      = (double*)mxGetPr(plhs[1]);
     
-    scratch = (float *)mxCalloc(iteration_scratchsize((int *)dm, issym,k),sizeof(float));
+    scratch = (float *)mxCalloc(iteration_scratchsize((int *)dm, code,k),sizeof(float));
 
     dm[3] = 1;
-    if (mxGetNumberOfDimensions(prhs[1])>=4) dm[3] = mxGetDimensions(prhs[1])[3];
-    iteration(dm, k, v, g, f, jd, rtype, param, lmreg0, cycles, its, issym, ov, ll, scratch);
+    if (mxGetNumberOfDimensions(prhs[1])>=4)
+        dm[3] = mxGetDimensions(prhs[1])[3];
+
+    iteration(dm, k, v, g, f, jd, rtype, param, lmreg0, cycles, its, code,
+              ov, ll, scratch);
     mxFree((void *)scratch);
 }
 
@@ -257,15 +260,15 @@ void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     if (dm[3]!=3)
         mexErrMsgTxt("4th dimension must be 3.");
 
-    if (mxGetNumberOfElements(prhs[2]) != 7)
-        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2 and param3.");
-    rtype    = (int)(mxGetPr(prhs[2])[0]);
-    param[0] = 1/mxGetPr(prhs[2])[1];
-    param[1] = 1/mxGetPr(prhs[2])[2];
-    param[2] = 1/mxGetPr(prhs[2])[3];
-    param[3] = mxGetPr(prhs[2])[4];
-    param[4] = mxGetPr(prhs[2])[5];
-    param[5] = mxGetPr(prhs[2])[6];
+    if (mxGetNumberOfElements(prhs[1]) != 7)
+        mexErrMsgTxt("Parameters should contain rtype, vox1, vox2, vox3, param1, param2 and param3.");
+    rtype    = (int)(mxGetPr(prhs[1])[0]);
+    param[0] = 1/mxGetPr(prhs[1])[1];
+    param[1] = 1/mxGetPr(prhs[1])[2];
+    param[2] = 1/mxGetPr(prhs[1])[3];
+    param[3] = mxGetPr(prhs[1])[4];
+    param[4] = mxGetPr(prhs[1])[5];
+    param[5] = mxGetPr(prhs[1])[6];
     
     plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
 

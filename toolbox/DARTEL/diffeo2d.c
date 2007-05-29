@@ -496,11 +496,90 @@ void jac_div_smalldef(int dm[], double sc, double v0[], double J0[])
     }
 }
 
+/* Similar purpose to objfun, but uses a logistic regression model */
+double initialise_objfun2(int dm[], double f[], double g[], double t0[], double J0[], double dj[], double b[], double A[])
+{
+    int j, m = dm[0]*dm[1];
+    double ssl = 0.0, dt = 1.0;
+
+    for(j=0; j<m; j++)
+    {
+        double x, y;
+        int    ix, iy, ix1, iy1, k;
+        double k11, k12, k21, k22;
+        double dx0, dx1, dx2, dy0, dy1, dy2;
+        double Y[128], dx[128], dy[128], sY;
+        double ta11, ta12, ta22, tb1, tb2, tss;
+
+        x    = t0[j  ]-1.0;
+        y    = t0[j+m]-1.0;
+        ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+        iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+        ix   = WRAP(ix,dm[0]);
+        iy   = WRAP(iy,dm[1]);
+        ix1  = WRAP(ix+1,dm[0]);
+        iy1  = WRAP(iy+1,dm[1]);
+        sY   = 0.0;
+        for(k=0; k<dm[2]; k++)
+        {
+            k22   = f[ix  + dm[0]*iy +m*k];
+            k12   = f[ix1 + dm[0]*iy +m*k];
+            k21   = f[ix  + dm[0]*iy1+m*k];
+            k11   = f[ix1 + dm[0]*iy1+m*k];
+
+            Y[k]  = exp((k11*dx1 + k21*dx2)*dy1 + (k12*dx1 + k22*dx2)*dy2);
+            dx0   =    ((k11     - k21    )*dy1 + (k12     - k22    )*dy2);
+            dy0   =    ((k11*dx1 + k21*dx2)     - (k12*dx1 + k22*dx2)    );
+            sY   += Y[k];
+            dx[k] = J0[j    ]*dx0 + J0[j+  m]*dy0;
+            dy[k] = J0[j+2*m]*dx0 + J0[j+3*m]*dy0;
+        }
+        ta11 = ta22 = ta12 = 0.0;
+        tb1  = tb2  = 0.0;
+        tss  = 0.0;
+        for(k=0; k<dm[2]; k++)
+        {
+            double T = g[j + m*k], wt;
+            int k1;
+            Y[k] /= sY;
+            tss  += log(Y[k])*T;
+            tb1  += (Y[k]-T)*dx[k];
+            tb2  += (Y[k]-T)*dy[k];
+            for(k1=0; k1<k; k1++)
+            {
+                wt    = -Y[k]*Y[k1];
+                ta11 += wt* dx[k]*dx[k1]*2.0;
+                ta22 += wt* dy[k]*dy[k1]*2.0;
+                ta12 += wt*(dx[k]*dy[k1]+dx[k1]*dy[k]);
+            }
+            wt    = Y[k]*(1.0-Y[k]);
+            ta11 += wt*dx[k]*dx[k];
+            ta22 += wt*dy[k]*dy[k];
+            ta12 += wt*dx[k]*dy[k];
+        }
+        if (dj != (double *)0)
+            dt = dj[j];
+
+        A[j    ] = ta11*dt;
+        A[j+  m] = ta22*dt;
+        A[j+2*m] = ta12*dt;
+        b[j  ]   = tb1*dt;
+        b[j+m]   = tb2*dt;
+        ssl     -= tss*dt;
+    }
+    return(ssl);
+}
+
 double initialise_objfun(int dm[], double f[], double g[], double t0[], double J0[], double dj[], double b[], double A[])
 {
     int j, m = dm[0]*dm[1];
     double ssl = 0.0, dt = 1.0;
 
+    if (dm[2]>1)
+    {
+        ssl = initialise_objfun2(dm, f, g, t0, J0, dj, b, A);
+        return(ssl);
+    }
     for(j=0; j<m; j++)
     {
         double x, y;
@@ -542,8 +621,9 @@ double initialise_objfun(int dm[], double f[], double g[], double t0[], double J
 
         ssl += d*d*dt;
     }
-    return(ssl);
+    return(0.5*ssl);
 }
+
 
 /*
  * t0 = Id + v0*sc
@@ -772,7 +852,7 @@ void dartel(int dm[], int k, double v[], double g[], double f[], double dj[], in
 
     for(j=0; j<2*m; j++) ov[j] = v[j] - sbuf[j];
     ll[0] = ssl;
-    ll[1] = ssp;
+    ll[1] = ssp*0.5;
     ll[2] = normb;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: dartel2.c 63 2007-03-13 16:08:26Z john $ */
+/* $Id: dartel2.c 73 2007-05-10 15:17:14Z john $ */
 
 #include "mex.h"
 #include <math.h>
@@ -12,6 +12,7 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     double     lmreg=0.01, *v, *g, *f, *ov, *scratch, *dj = (double *)0, *ll;
     static int nll[] = {1, 3};
     static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0};
+    int dm1[4];
 
     if ((nrhs!=4 && nrhs!=5) || nlhs>2)
         mexErrMsgTxt("Incorrect usage");
@@ -20,23 +21,36 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
         if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) || mxIsSparse(prhs[i]) || !mxIsDouble(prhs[i]))
             mexErrMsgTxt("Data must be numeric, real, full and double");
 
-    if (mxGetNumberOfDimensions(prhs[0])!=3) mexErrMsgTxt("Wrong number of dimensions.");
-    if (mxGetNumberOfDimensions(prhs[1])!=2) mexErrMsgTxt("Wrong number of dimensions.");
-    if (mxGetNumberOfDimensions(prhs[2])!=2) mexErrMsgTxt("Wrong number of dimensions.");
-    dm = mxGetDimensions(prhs[0]);
+    if (mxGetNumberOfDimensions(prhs[0])!=3)
+        mexErrMsgTxt("Wrong number of dimensions.");
+    i = mxGetNumberOfDimensions(prhs[1]);
+    if (i!=2 && i!=3)
+        mexErrMsgTxt("Wrong number of dimensions.");
+    if (mxGetNumberOfDimensions(prhs[2])!=i)
+        mexErrMsgTxt("Wrong number of dimensions.");
+    dm  = mxGetDimensions(prhs[0]);
+    dm1[0] = mxGetDimensions(prhs[1])[0];
+    dm1[1] = mxGetDimensions(prhs[1])[1];
+    if (i>2)
+        dm1[2] = mxGetDimensions(prhs[1])[2];
+    else
+        dm1[2] = 1;
 
     if (mxGetDimensions(prhs[0])[2]!=2)
         mexErrMsgTxt("3rd dimension of 1st arg must be 2.");
 
-    if (mxGetDimensions(prhs[1])[0] != dm[0])
+    if (dm1[0] != dm[0])
         mexErrMsgTxt("Incompatible 1st dimension.");
-    if (mxGetDimensions(prhs[1])[1] != dm[1])
+    if (dm1[1] != dm[1])
         mexErrMsgTxt("Incompatible 2nd dimension.");
 
-    if (mxGetDimensions(prhs[2])[0] != dm[0])
+    if (mxGetDimensions(prhs[2])[0] != dm1[0])
         mexErrMsgTxt("Incompatible 1st dimension.");
-    if (mxGetDimensions(prhs[2])[1] != dm[1])
+    if (mxGetDimensions(prhs[2])[1] != dm1[1])
         mexErrMsgTxt("Incompatible 2nd dimension.");
+
+    if (i>2 && mxGetDimensions(prhs[2])[2] != dm1[2])
+        mexErrMsgTxt("Incompatible 3rd dimension.");
 
     if (mxGetNumberOfElements(prhs[3]) >9)
         mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, K & issym.");
@@ -61,8 +75,8 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
     ov      = mxGetPr(plhs[0]);
     ll      = mxGetPr(plhs[1]);
 
-    scratch = mxCalloc(dartel_scratchsize((int *)dm,issym),sizeof(double));
-    dartel((int *)dm, k, v, g, f, dj, rtype, param, lmreg, cycles, nits, issym, ov,ll, scratch);
+    scratch = mxCalloc(dartel_scratchsize((int *)dm1,issym),sizeof(double));
+    dartel((int *)dm1, k, v, g, f, dj, rtype, param, lmreg, cycles, nits, issym, ov,ll, scratch);
     mxFree((void *)scratch);
 }
 

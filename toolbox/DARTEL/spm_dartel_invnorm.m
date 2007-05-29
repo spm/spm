@@ -1,4 +1,18 @@
 function spm_dartel_invnorm(job)
+% Warp template to match individuals
+% FORMAT spm_dartel_invnorm(job)
+% job.flowfields - Filenames of flowfields
+% job.images     - Filenames of images to warp
+% job.interp     - Interpolation method
+% job.K          - 2^K timesteps are used
+%
+% This function may be useful fo warping labels on to images.
+%_______________________________________________________________________
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
 PU    = job.flowfields;
 PI    = job.images;
 intrp = job.interp;
@@ -8,9 +22,7 @@ for i=1:numel(PU),
     [pth1,nam1,ext1,num1] = spm_fileparts(PU{i});
     NU = nifti(fullfile(pth1,[nam1,ext1]));
     fprintf('%s: ',nam1);
-    u  = single(squeeze(NU.dat(:,:,:,1,:)));
-    y  = dartel3('Exp',u,[K 1]);
-    clear u
+    y  = spm_dartel_integrate(NU.dat,[0 1], K);
     y1 = double(y(:,:,:,1));
     y2 = double(y(:,:,:,2));
     y3 = double(y(:,:,:,3));

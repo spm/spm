@@ -1,4 +1,4 @@
-/* $Id: optimizer3d.c 61 2007-02-09 21:36:00Z john $ */
+/* $Id: optimizer3d.c 73 2007-05-10 15:17:14Z john $ */
 #include<mex.h>
 #include<math.h>
 extern double log(double x);
@@ -239,9 +239,9 @@ static void relax_le(int dm[], float a[], float b[], double s[], int nit, float 
        exceed the sum of the magnitudes of the off diagonal elements of each column or row
        (see e.g. http://www.mathpages.com/home/kmath175/kmath175.htm).
        This should stabilise the relaxation, providing the second derives are positive definite. */
-    regx = (4.0*(wxy+wxz)-2.0*(wx1+wy2+wz2)) - wx0; if (regx<0) regx = 0.0;
-    regy = (4.0*(wxy+wyz)-2.0*(wx2+wy1+wz2)) - wy0; if (regy<0) regy = 0.0;
-    regz = (4.0*(wxz+wyz)-2.0*(wx2+wy2+wz1)) - wz0; if (regz<0) regz = 0.0;
+    regx = (4.0*(wxy+wxz)-2.0*(wx1+wy2+wz2)) - wx0; if (regx<0.0) regx = 0.0;
+    regy = (4.0*(wxy+wyz)-2.0*(wx2+wy1+wz2)) - wy0; if (regy<0.0) regy = 0.0;
+    regz = (4.0*(wxz+wyz)-2.0*(wx2+wy2+wz1)) - wz0; if (regz<0.0) regz = 0.0;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");

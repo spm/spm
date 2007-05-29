@@ -1,7 +1,18 @@
 function spm_dartel_import(job)
-% Write out VBM preprocessed data
+% Import subjects' data for use with DARTEL
+% FORMAT spm_dartel_import(job)
+% job.matnames  - Names of *_seg_sn.mat files to use
+% job.odir      - Output directory
+% job.bb        - Bounding box
+% job.vox       - Voxel sizes
+% job.GM/WM/CSF - Options fo different tissue classes
+% job.image     - Options for resliced original image
+%
+% Rigidly aligned images are generated using info from the seg_sn.mat
+% files.  These can be resliced GM, WM or CSF, but also various resliced
+% forms of the original image (skull-stripped, bias corrected etc).
 %____________________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
 % $Id$
@@ -156,7 +167,9 @@ mm = [
 vx2 = inv(p.VG(1).mat)*[mm ; ones(1,8)];
 
 odim   = abs(round((bb(2,:)-bb(1,:))/vx))+1;
-dimstr = sprintf('%dx%dx%d',odim);
+%dimstr = sprintf('%dx%dx%d',odim);
+dimstr  = '';
+
 vx1 = [
     1       1       1
     odim(1) 1       1
@@ -175,8 +188,7 @@ fwhm = max(vx./sqrt(sum(p.VF.mat(1:3,1:3).^2))-1,0.01);
 for k1=1:numel(opt),
     if opt(k1),
         dat{k1} = decimate(dat{k1},fwhm);
-        fn      = fullfile(odir,['rc', num2str(k1), nam, ext]);
-        VT      = struct('fname',fullfile(odir,['r',dimstr,'c', num2str(k1), nam, ext]),...
+        VT      = struct('fname',fullfile(odir,['r',dimstr,'c', num2str(k1), nam, '.nii']),...
             'dim',  odim,...
             'dt',   [spm_type('uint8') spm_platform('bigend')],...
             'pinfo',[1/255 0]',...
@@ -198,7 +210,7 @@ end;
 
 if iopt,
         %idat = decimate(idat,fwhm);
-        VT      = struct('fname',fullfile(odir,['r',dimstr,nam, ext]),...
+        VT      = struct('fname',fullfile(odir,['r',dimstr,nam, '.nii']),...
             'dim',  odim,...
             'dt',   [spm_type('float32') spm_platform('bigend')],...
             'pinfo',[1 0]',...

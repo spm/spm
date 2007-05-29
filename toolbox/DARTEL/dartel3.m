@@ -23,8 +23,12 @@ function dartel3
 %         - [8] K, such that 2^K time points are used to
 %               generate the deformations.  A value of zero
 %               indicates a small deformation model.
-%         - [9] 0/1, indicating whether or not to use a
-%               symmetric formulation for the objective function.
+%         - [9] code of 0, 1 or 2.
+%               0 - asymmetric sums of squares objective function.
+%               1 -  symmetric sums of squares objective function.
+%               2 - assumes multinomial distribution, where template
+%                   encodes the means and interpolation of temlate
+%                   done using logs and softmax function.
 %
 % This is for performing a single iteration of the DARTEL optimisation.
 % All flow fields and images are represented by single precision floating

@@ -1,7 +1,7 @@
 function job = spm_config_dartel
 % Configuration file for DARTEL jobs
 %_______________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
 % $Id$
@@ -39,6 +39,11 @@ repeat = inline(['struct(''type'',''repeat'',''name'',name,''tag'',tag,'...
          '''values'',{values})'],'name','tag','values');
 %_______________________________________________________________________
 
+
+
+
+% IMPORTING IMAGES FOR USE WITH DARTEL
+%------------------------------------------------------------------------
 matname = files('Parameter Files','matnames','mat',[1 Inf]);
 matname.ufilter = '.*seg_sn\.mat$';
 matname.help = {...
@@ -50,7 +55,7 @@ matname.help = {...
  'either in the output directory, or the current working directory.']};
 %------------------------------------------------------------------------
 odir = files('Output Directory','odir','dir',[1 1]);
-odir.val = {'.'};
+%odir.val = {'.'};
 odir.help = {...
 ['Select the directory where the resliced files should be written.']};
 %------------------------------------------------------------------------
@@ -97,6 +102,10 @@ initial.prog   = @spm_dartel_import;
 initial.vfiles = @vfiles_initial_import;
 %------------------------------------------------------------------------
 
+
+
+
+% RUNNING DARTEL TO MATCH A COMMON MEAN TO THE INDIVIDUAL IMAGES
 %------------------------------------------------------------------------
 iits = mnu('Inner Iterations','its',...
     {'1','2','3','4','5','6','7','8','9','10'},...
@@ -107,16 +116,22 @@ iits.help = {[...
 'outer iteration. After this, new average(s) are created, '...
 'which the individual images are warped to match.']};
 %------------------------------------------------------------------------
-form  = mnu('Form','form',...
-    {'Linear Elastic Energy','Membrane Energy','Bending Energy'},{0,1,2});
-form.val = {0};
-form.help = {...
-'Three different forms of regularisation can currently be used.'};
+% This is unused.  In future, the template will be treated as parameters
+% from a multinomial distribution, and will consist of the sum of
+% Jacobian transformed GM, the sum of Jacobian transformed WM, etc
+% and the sum of Jacobian transformed "other".
+% This will require a different formulation of the template from the
+% existing version, which contains GM, WM etc, with no background, and
+% in which the data are normalised to sum to 1.
+template = files('Template','template','nifti',[0 1]);
+template.val = {{}};
+template.help = {...
+['Select template.  If empty, then a template will be iteratively generated.']};
 %------------------------------------------------------------------------
-param = entry('Reg params','param','e',[1 3]);
-param.val = {[0.1 0.01 0.001]};
-param.help = {...
-['For linear elasticity, the parameters are mu, lambda and id.',...
+rparam = entry('Reg params','rparam','e',[1 3]);
+rparam.val = {[0.1 0.01 0.001]};
+rparam.help = {...
+['For linear elasticity, the parameters are mu, lambda and id. ',...
  'For membrane and bending energy, the parameters are lambda, unused and id.',...
  'id is a term for penalising absolute displacements, '...
  'and should therefore be small.'],...
@@ -124,14 +139,9 @@ param.help = {...
  'are smooth, and then use less for the later ones so that the details can '...
  'be better matched.']};
 %------------------------------------------------------------------------
-reg   = branch('Regularisation','reg',{form,param});
-reg.help = {[...
-'The registration is penalised by some ``energy'''' term.  Here, the form '...
-'of this energy term is specified.']};
-%------------------------------------------------------------------------
 K = mnu('Time Steps','K',{'1','2','4','8','16','32','64','128','256','512'},...
     {0,1,2,3,4,5,6,7,8,9});
-K.val = {4};
+K.val = {6};
 K.help = {...
 ['The number of time points used for solving the '...
  'partial differential equations.  A single time point would be '...
@@ -142,43 +152,44 @@ K.help = {...
  'but later ones should use about 64 '...
  '(or fewer if the deformations are very smooth).']};
 %------------------------------------------------------------------------
-sym = mnu('Symmetry','sym',{'Asymetric','Symetric'},{0,1});
-sym.val = {0};
-sym.help = {...
-['Should the deformations be inverse consistant? '...
- 'For warping to a smooth average template, this is probably not necessary.']};
-%------------------------------------------------------------------------
 lmreg = entry('LM Regularisation','lmreg','e',[1 1]);
 lmreg.val = {0.01};
 lmreg.help = {...
 ['Levenberg-Marquardt regularisation.  Larger values increase the '...
  'the stability of the optimisation, but slow it down.  A value of '...
- 'zero results in a Gauss-Newton strategy, but this does not necessarily '...
- 'ensure convergence because the gradients of the images may not be smooth.']};
+ 'zero results in a Gauss-Newton strategy, but this is not recomended '...
+ 'as it may result in instabilities in the FMG.']};
 %------------------------------------------------------------------------
 cycles = mnu('Cycles','cyc',{'1','2','3','4','5','6','7','8'},...
     {1,2,3,4,5,6,7,8});
 cycles.val = {3};
 cycles.help = {[...
-'Number of cycles used by the full multigrid matrix solver.'...
+'Number of cycles used by the full multigrid matrix solver. '...
+'More cycles result in higher acuracy, but slow down the algorithm. '...
 'See Numerical Recipes for more information on multigrid methods.']};
 %------------------------------------------------------------------------
 its = mnu('Iterations','its',{'1','2','3','4','5','6','7','8'},...
     {1,2,3,4,5,6,7,8});
 its.val = {3};
 its.help = {[...
-'Number of relaxation iterations performed in each cycle. '...
+'Number of relaxation iterations performed in each multigrid cycle. '...
+'More iterations are needed if using "bending energy" regularisation, '...
+'because the relaxation scheme only runs very slowly. '...
 'See the chapter on solving partial differential equations in '...
 'Numerical Recipes for more information about relaxation methods.']};
 %------------------------------------------------------------------------
-fmg = branch('Multigrid Solver','fmg',{cycles,its});
+fmg = branch('Optimisation Settings','optim',{lmreg,cycles,its});
 fmg.help = {[...
-'Parameters for the Full Multigrid solver for obtaining the '...
-'matrix solution at each Gauss-Newton iteration. FMG is described in '...
+'Settings for the optimisation.  If you are unsure about them, '...
+'then leave them at the default values.  '...
+'Optimisation is by repeating a number of Levenberg-Marquardt '...
+'iterations, in which the equations are solved using a '...
+'full multi-grid (FMG) scheme. '...
+'FMG and Levenberg-Marquardt are both described in '...
 'Numerical Recipes (2nd edition).']};
 %------------------------------------------------------------------------
-params = branch('Outer Iteration','param',{iits,reg,K,sym,lmreg,fmg});
-params.help = {...
+param = branch('Outer Iteration','param',{iits,rparam,K});
+param.help = {...
 ['Different parameters can be specified for each '...
  'outer iteration. '...
  'Each of them warps the images to the template, and then regenerates '...
@@ -187,18 +198,43 @@ params.help = {...
  'beginning with a more coarse registration (more regularisation) '...
  'then ending with the more detailed registration (less regularisation).']};
 %------------------------------------------------------------------------
-params = repeat('Outer Iterations','param',{params});
+params = repeat('Outer Iterations','param',{param});
 params.help = {[...
 'The images are averaged, and each individual image is warped to '...
-'match this average.  This is done for each outer iteration. '...
-'Within each of these, are a number of inner iterations, which don''t'...
-'involve updatuing the average(s).']};
+'match this average.  This is repeated a number of times.']};
 params.num = [1 Inf];
+
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [4 2 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+params.val{1} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [2 1 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+params.val{2} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [1 0.5 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+params.val{3} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.5 0.25 1e-6]; % rparam
+param.val{3}.val{1} = 3; % K
+params.val{4} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
+param.val{3}.val{1} = 6; % K
+params.val{5} = param;
+%param.val{1}.val{1} = 3; % iits
+%param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
+%param.val{3}.val{1} = 6; % K
+%params.val{5} = param;
+
 %------------------------------------------------------------------------
 data = files('Images','images','image',[1 Inf]);
+data.ufilter = '^r.*';
 data.help = {...
-['Select images of the same modality to be registered by minimising the '...
- 'sum of squares difference from their average.']};
+['Select imported images of the same modality to be registered by minimising '...
+ 'a measure of difference from their mean.']};
 %------------------------------------------------------------------------
 data = repeat('Images','images',{data});
 data.num = [1 Inf];
@@ -208,16 +244,37 @@ data.help = {...
  'For example, the first set may be a bunch of grey matter images, '...
  'and the second set may be the white matter images of the same subjects.']};
 %------------------------------------------------------------------------
-template = files('Template','template','nifti',[0 1]);
-template.val = {{}};
-template.help = {...
-['Select template.  If empty, then a template will be iteratively generated.']};
+code      = mnu('Objective function','code',{'Sum of squares','Multinomial'},{0,2});
+code.val  = {2};
+code.help = {...
+['The objective function of the registration is specified here. '...
+ 'Multinomial is preferred for matching binary images to an average tissue probability map. '...
+ 'Sums of squares is more appropriate for regular images.']};
 %------------------------------------------------------------------------
-warp = branch('Run DARTEL','warp',{data,template,params});
-warp.prog = @run_dartel;
-warp.help = {'Run the DARTEL nonlinear image registration procedure.'};
+form  = mnu('Regularisation Form','rform',...
+    {'Linear Elastic Energy','Membrane Energy','Bending Energy'},{0,1,2});
+form.val = {0};
+form.help = {...
+'The registration is penalised by some ``energy'''' term.  Here, the form '...
+'form of this energy term is specified. '...
+'Three different forms of regularisation can currently be used.'};
+%------------------------------------------------------------------------
+settings  = branch('Settings','settings',{code,form,params,fmg});
+settings.help = {[...
+'Various settings for the optimisation. '...
+'The default values should work reasonably well for aligning tissue '...
+'class images together.']};
+%------------------------------------------------------------------------
+warp = branch('Run DARTEL','warp',{data,settings});
+warp.prog   = @run_dartel;
+warp.check  = @check_runjob;
+warp.vfiles = @vfiles_runjob;
+warp.help   = {'Run the DARTEL nonlinear image registration procedure.'};
 %------------------------------------------------------------------------
 
+
+
+% WARPING IMAGES TO MATCH TEMPLATES
 %------------------------------------------------------------------------
 ffields = files('Flow fields','flowfields','nifti',[1 Inf]);
 ffields.ufilter = '^u_.*';
@@ -262,17 +319,20 @@ interp.help = {...
 '      there is any region of NaN or Inf in the images. '],...
 };
 %------------------------------------------------------------------------
-modulate = mnu('Modulation','modulate',{'No modulation','Modulation'},...
-               {false,true});
-modulate.val = {false};
-modulate.help = {...
+jactransf = mnu('Modulation','jactransf',...
+    {'No modulation','Modulation','Sqrt Modulation'},...
+    {0,1,0.5});
+jactransf.val = {0};
+jactransf.help = {...
 ['This allows the spatiallly normalised images to be rescaled by the '...
  'Jacobian determinants of the deformations. '...
  'Note that the rescaling is only approximate for deformations generated '...
  'using smaller numbers of time steps.']};
 %------------------------------------------------------------------------
-nrm = branch('Create Warped','crt_warped',{ffields,data,modulate,K,interp});
-nrm.prog = @spm_dartel_norm;
+nrm = branch('Create Warped','crt_warped',{ffields,data,jactransf,K,interp});
+nrm.prog   = @spm_dartel_norm;
+nrm.check  = @check_norm;
+nrm.vfiles = @vfiles_norm;
 nrm.help = {...
 ['This allows spatially normalised images to be generated. '...
  'Note that voxel sizes and bounding boxes can not be adjusted, '...
@@ -280,6 +340,19 @@ nrm.help = {...
  'by the warping.']};
 %------------------------------------------------------------------------
 
+
+
+
+% GENERATING JACOBIAN DETERMINANT FIELDS
+%------------------------------------------------------------------------
+jac = branch('Jacobian determinants','jacdet',{ffields,K});
+jac.help   = {['Create Jacobian determinant fields from flowfields.']};
+jac.prog   = @spm_dartel_jacobian;
+jac.vfiles = @vfiles_jacdet;
+
+
+
+% WARPING TEMPLATES TO MATCH IMAGES
 %------------------------------------------------------------------------
 data = files('Images','images','nifti',[1 Inf]);
 data.help = {...
@@ -288,7 +361,9 @@ data.help = {...
  'warping procedure.']};
 %------------------------------------------------------------------------
 inrm = branch('Create Inverse Warped','crt_iwarped',{ffields,data,K,interp});
-inrm.prog = @spm_dartel_invnorm;
+inrm.prog   = @spm_dartel_invnorm;
+inrm.check  = @check_invnorm;
+inrm.vfiles = @vfiles_invnrm;
 inrm.help = {...
 ['Create inverse normalised versions of some image(s). '...
  'The image that is inverse-normalised should be in alignment with the '...
@@ -298,8 +373,97 @@ inrm.help = {...
  'in their headers.']};
 %------------------------------------------------------------------------
 
+
+
+% KERNEL UTILITIES FOR PATTERN RECOGNITION
 %------------------------------------------------------------------------
-job = repeat('DARTEL Tools','dartel',{initial,warp,nrm,inrm});
+templ   = files('Template','template','nifti',[0 1]);
+templ.ufilter = '^Template.*';
+templ.help = {[...
+    'Residual differences are computed between the '...
+    'warped images and template, and these are scaled by '...
+    'the square root of the Jacobian determinants '...
+    '(such that the sum of squares is the same as would be '...
+    'computed from the difference between the warped template '...
+    'and individual images).']};
+%------------------------------------------------------------------------
+data = files('Images','images','nifti',[1 Inf]);
+data.ufilter = '^r.*c';
+data.help = {...
+['Select tissue class images (one per subject).']};
+
+%------------------------------------------------------------------------
+data = repeat('Images','images',{data});
+data.num = [1 Inf];
+data.help = {...
+['Multiple sets of images are used here. '...
+ 'For example, the first set may be a bunch of grey matter images, '...
+ 'and the second set may be the white matter images of the '...
+ 'same subjects.  The number of sets of images must be the same '...
+ 'as was used to generate the template.']};
+flowfields = files('Flow fields','flowfields','nifti',[1 Inf]);
+flowfields.ufilter = '^u_.*';
+flowfields.help = {[...
+    'Select the flow fields for each subject.']};
+res     = branch('Generate Residuals','resids',{data,flowfields,templ,K});
+res.help = {[...
+    'Generate residual images in a form suitable for computing a '...
+    'Fisher kernel.']};
+res.prog   = @spm_dartel_resids;
+res.check  = @check_resids;
+res.vfiles = @vfiles_resids;
+%------------------------------------------------------------------------
+data = files('Data','images','nifti',[1 Inf]);
+data.help = {['Select images to generate dot-products from.']};
+kname = entry('Dot-product Filename','dotprod','s',[1,Inf]);
+kname.help = {['Enter a filename for results (it will be prefixed by '...
+    '"dp_" and saved in the current directory.']};
+reskern = branch('Kernel from Resids','reskern',{data,kname});
+reskern.help = {['Generate a kernel matrix from residuals.']};
+reskern.prog = @spm_resid_kernel;
+%------------------------------------------------------------------------
+flowfields = files('Flow fields','flowfields','nifti',[1 Inf]);
+flowfields.ufilter = '^u_.*';
+flowfields.help = {[...
+    'Select the flow fields for each subject.']};
+kname = entry('Dot-product Filename','dotprod','s',[1,Inf]);
+kname.help = {['Enter a filename for results (it will be prefixed by '...
+    '"dp_" and saved in the current directory.']};
+rform  = mnu('Regularisation Form','rform',...
+    {'Linear Elastic Energy','Membrane Energy','Bending Energy'},{0,1,2});
+rform.val = {0};
+rform.help = {...
+'The registration is penalised by some ``energy'''' term.  Here, the form '...
+'form of this energy term is specified. '...
+'Three different forms of regularisation can currently be used.'};
+rparam = entry('Reg params','rparam','e',[1 3]);
+rparam.val = {[0.25 0.125 1e-6]};
+rparam.help = {...
+['For linear elasticity, the parameters are mu, lambda and id. ',...
+ 'For membrane and bending energy, the parameters are lambda, unused and id.',...
+ 'id is a term for penalising absolute displacements, '...
+ 'and should therefore be small.']};
+flokern = branch('Kernel from Flows' ,'flokern',{flowfields,rform,rparam,kname});
+flokern.help = {['Generate a kernel from flow fields.']};
+flokern.prog = @spm_dartel_kernel;
+%------------------------------------------------------------------------
+kernfun = repeat('Kernel Utilities','kernfun',{res,reskern,flokern});
+kernfun.help = {[...
+    'DARTEL can be used for generating Fisher kernels for '...
+    'various kernel pattern-recognition procedures. '...
+    'The idea is to use both the flow fields and residuals '...
+    'to generate two seperate Fisher kernels (see the work of '...
+    'Jaakkola and Haussler for more information). '...
+    'Residual images need first to be generated in order to compute '...
+    'the latter kernel, prior to the dot-products being computed.']};
+
+
+
+
+
+% THE ENTRY POINT FOR DARTEL STUFF
+%------------------------------------------------------------------------
+job = repeat('DARTEL Tools','dartel',{initial,warp,nrm,jac,inrm,kernfun});
 job.help = {...
 ['This toolbox is based around the "A Fast Diffeomorphic Registration '...
  'Algorithm" paper, submitted for '...
@@ -340,13 +504,155 @@ return;
 
 %_______________________________________________________________________
 function vf = vfiles_initial_import(job)
+opt  = [job.GM, job.WM, job.CSF];
+odir = job.odir{1};
+matnames = job.matnames;
+
 vf = {};
+for i=1:numel(matnames),
+    vf1 = {};
+    [pth,nam,ext] = fileparts(matnames{i});
+    nam = nam(1:(numel(nam)-7));
+    if job.image,
+        fname = fullfile(odir,['r',nam, '.nii' ',1']);
+        vf1   = {fname};
+    end
+    for k1=1:numel(opt),
+        if opt(k1),
+            fname   = fullfile(odir,['r','c', num2str(k1), nam, '.nii' ',1']);
+            vf1     = {vf1{:},fname};
+        end
+    end
+    vf = {vf{:},vf1{:}};
+end
 %_______________________________________________________________________
 
-function run_dartel(job)
-if isempty(job.template),
-    spm_dartel_template(job);
-else
-    spm_dartel_run(job);
+%_______________________________________________________________________
+function chk = check_runjob(job)
+n1 = numel(job.images);
+n2 = numel(job.images{1});
+chk = '';
+for i=1:n1,
+    if numel(job.images{i}) ~= n2,
+        chk = 'Incompatible number of images';
+        break;
+    end;
 end;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vf = vfiles_runjob(job)
+vf = {};
+n1 = numel(job.images);
+n2 = numel(job.images{1});
+[tdir,nam,ext] = fileparts(job.images{1}{1});
+for it=0:numel(job.settings.param),
+    fname    = fullfile(tdir,['Template' num2str(it) '.nii' ',1']);
+    vf       = {vf{:},fname};
+end
+for j=1:n2,
+    [pth,nam,ext,num] = spm_fileparts(job.images{1}{j});
+    fname             = fullfile(pth,['u_' nam '.nii' ',1']);
+    vf = {vf{:},fname};
+end;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function chk = check_norm(job)
+chk = '';
+PU = job.flowfields;
+PI = job.images;
+n1 = numel(PU);
+for i=1:numel(PI),
+    if numel(PI{i}) ~= n1,
+        chk = 'Incompatible number of images';
+        break;
+    end
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vf = vfiles_norm(job)
+vf = {};
+PU = job.flowfields;
+PI = job.images;
+jactransf = job.jactransf;
+
+for i=1:numel(PU),
+    for m=1:numel(PI),
+        [pth,nam,ext,num] = spm_fileparts(PI{m}{i});
+        if jactransf,
+            fname = fullfile(pth,['mw' nam ext ',1']);
+        else
+            fname = fullfile(pth,['w' nam ext ',1']);
+        end;
+        vf = {vf{:},fname};
+    end
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function chk = check_invnorm(job)
+chk = '';
+if numel(job.flowfields) ~= numel(job.images),
+    chk = 'Incompatible number of images.';
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vf = vfiles_invnorm(job)
+vf = {};
+PU    = job.flowfields;
+PI    = job.images;
+for i=1:numel(PU),
+    [pth1,nam1,ext1,num1] = spm_fileparts(PU{i});
+    for m=1:numel(PI),
+        [pth2,nam2,ext2,num2] = spm_fileparts(PI{m});
+        fname = fullfile(pth1,['w' nam2 '_' nam1 ext2 ',1']);
+        vf = {vf{:},fname};
+    end
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vf = vfiles_jacdet(job)
+vf = {};
+PU = job.flowfields;
+for i=1:numel(PU),
+    [pth,nam,ext] = fileparts(PU{i});
+    fname = fullfile(pth,['jac_' nam(3:end) ext ',1']);
+    vf    = {vf{:},fname};
+end;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function chk = check_resids(job)
+chk = '';
+PU = job.flowfields;
+PI = job.images;
+n1 = numel(PU);
+for i=1:numel(PI),
+    if numel(PI{i}) ~= n1,
+        chk = 'Incompatible number of images';
+        break;
+    end
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vf = vfiles_resids(job)
+vf = {};
+PI = job.images{1};
+for i=1:numel(PI),
+    [pth,nam,ext] = fileparts(PI{i});
+    fname = fullfile(pwd,['resid_' nam '.nii',',1']);
+    vf    = {vf{:},fname};
+end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function run_dartel(job)
+spm_dartel_template(job);
+
+
 

@@ -1,7 +1,20 @@
 function spm_dartel_norm(job)
+% Warp individuals to match template
+% FORMAT spm_dartel_norm(job)
+% job.flowfields - Flow-fields
+% job.images     - Image to warp
+% job.interp     - Interpolation method
+% job.K          - 2^K timesteps are used
+%_______________________________________________________________________
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id$
+
+
 PU = job.flowfields;
 PI = job.images;
-modulate = job.modulate;
+jactransf = job.jactransf;
 intrp    = job.interp;
 K        = job.K;
 
@@ -10,16 +23,14 @@ for i=1:numel(PU),
     NU = nifti(PU{i});
     [pth,nam,ext,num] = spm_fileparts(NU.dat.fname);
     fprintf('%s: ',nam);
-    u  = single(squeeze(NU.dat(:,:,:,1,:)));
-    if modulate,
-        [y,J] = dartel3('Exp',u,[K -1]);
-        J  = double(J);
-        dt = J(:,:,:,1,1).*(J(:,:,:,2,2).*J(:,:,:,3,3)-J(:,:,:,2,3).*J(:,:,:,3,2))...
-            -J(:,:,:,2,1).*(J(:,:,:,1,2).*J(:,:,:,3,3)-J(:,:,:,1,3).*J(:,:,:,3,2))...
-            +J(:,:,:,3,1).*(J(:,:,:,1,2).*J(:,:,:,2,3)-J(:,:,:,1,3).*J(:,:,:,2,2));
-        clear J
+    if jactransf,
+        [y,dt] = spm_dartel_integrate(NU.dat,[1 0], K);
+        dt     = max(dt,eps);
+        if jactransf~=1,
+            dt = dt.^jactransf;
+        end
     else
-        y     = dartel3('Exp',u,[K -1]);
+        y      = spm_dartel_integrate(NU.dat,[1 0], K);
     end;
     y1 = double(y(:,:,:,1));
     y2 = double(y(:,:,:,2));
@@ -29,7 +40,8 @@ for i=1:numel(PU),
         [pth,nam,ext,num] = spm_fileparts(PI{m}{i});
         NI = nifti(fullfile(pth,[nam ext]));
         NO = NI;
-        if modulate,
+        pth = '.';
+        if jactransf,
             NO.dat.fname=fullfile(pth,['mw' nam ext]);
             NO.dat.scl_slope = 1.0;
             NO.dat.scl_inter = 0.0;
@@ -53,7 +65,7 @@ for i=1:numel(PU),
                 ty1 = y1;
                 ty2 = y2;
                 ty3 = y3;
-            else,
+            else
                 mat = NI.mat;
                 if isfield(NI,'extras') && isfield(NI.extras,'mat'),
                     mat1 = NI.extras.mat;
@@ -74,7 +86,7 @@ for i=1:numel(PU),
                         f = spm_bsplinc(f,spl_param);
                     end;
                     f = spm_bsplins(f,ty1,ty2,ty3,spl_param);
-                    if modulate,
+                    if jactransf,
                         NO.dat(:,:,:,j,k,l)=f.*dt;
                     else
                         NO.dat(:,:,:,j,k,l)=f;
