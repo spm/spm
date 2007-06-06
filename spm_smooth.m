@@ -23,14 +23,25 @@ function spm_smooth(P,Q,s,dtype)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 471 2006-03-08 17:46:45Z john $
+% $Id: spm_smooth.m 829 2007-06-06 14:00:59Z john $
 
 
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end
 if nargin<4, dtype = 0; end;
 
-if ischar(P), P = spm_vol(P); end;
+if ischar(P),
+
+    % Peter Stiers' bug fix for 4D data
+    if size(P,1)>1,
+        for j=1:size(P,1),
+            spm_smooth(deblank(P(j,:)),Q,s,dtype);
+        end
+        return;
+    end
+
+    P = spm_vol(P);
+end;
 if isstruct(P),
 	VOX = sqrt(sum(P.mat(1:3,1:3).^2));
 else
