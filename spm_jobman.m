@@ -57,7 +57,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 803 2007-04-27 08:37:16Z volkmar $
+% $Id: spm_jobman.m 830 2007-06-20 11:26:42Z john $
 
 
 if nargin==0
@@ -1420,10 +1420,9 @@ ljobs = get(findobj(0,'tag','load'),'Userdata');
 cll = {'*.mat','Matlab .mat file';'*.m','Matlab script file';'*.xml','XML file'};
 if ~isempty(ljobs) && ischar(ljobs)
     [spwd unused defext] = fileparts(ljobs(1,:));
-    extind = strfind(cll(:,1),defext);
-    ccll = false(1,size(cll,1));
-    for k = 1:size(cll,1)
-        ccll(k) = ~isempty(extind{k});
+    ccll  = false(1,size(cll,1));
+    for k = 1:size(cll,1),
+        ccll(k)   = ~isempty(strfind(cll{k,1},defext));
     end;
     cll = [cll(ccll,:); cll(~ccll,:)];
 else
