@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 830 2007-06-20 11:26:42Z john $
+% $Id: spm.m 831 2007-06-21 11:59:56Z john $
 
 
 %=======================================================================
@@ -384,7 +384,7 @@ delete(spm_figure('FindWin','Menu'))
 Fmenu     = openfig('spm_Menu');
 
 %-Patch up the callback to realign_unwarp
-tmp = findobj(Fmenu,'ToolTipString','realignment','Tag','FMRI')
+tmp = findobj(Fmenu,'ToolTipString','realignment','Tag','FMRI');
 set(tmp,'Callback',@realign_unwarp);
 
 %-Set spm colour
