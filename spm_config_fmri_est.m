@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 724 2007-01-26 12:33:33Z will $
+% $Id: spm_config_fmri_est.m 832 2007-06-22 11:33:31Z will $
 
 
 % Define inline types.
@@ -156,8 +156,8 @@ a_robust.help={p1};
 
 a_prior = choice('Noise priors','noise',{a_gmrf,a_loreta,a_tissue_type,a_robust},'Noise priors');
 a_prior.val={a_gmrf};
-a_prior.help={'There are three noise prior options here (1) GMRF, (2) LORETA and ',...
-        '(3) Tissue-type'};
+a_prior.help={'There are four noise prior options here (1) GMRF, (2) LORETA ',...
+        '(3) Tissue-type and (4) Robust'};
 
 % ANOVA options
 

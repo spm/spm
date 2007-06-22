@@ -147,7 +147,7 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 724 2007-01-26 12:33:33Z will $
+% $Id: spm_spm_vb.m 832 2007-06-22 11:33:31Z will $
 
 
 %-Get SPM.mat if necessary
@@ -770,6 +770,17 @@ for z = 1:zdim
                         SPM.PPM.Sess(s).slice(z).Y_out=Y_out;
                         SPM.PPM.Sess(s).slice(z).gamma_out=gamma_out;
                         SPM.PPM.Sess(s).slice(z).outlier_xyz=outlier_xyz;
+                        
+                        % Get average posterior correlation of regression
+                        % coefficients in that slice
+                        CC=zeros(slice.k,slice.k);
+                        for ii=1:slice.N,
+                            CC=CC+slice.w_cov{ii};
+                        end
+                        CC=CC/slice.N;
+                        DD = diag(CC);
+                        SPM.PPM.Sess(s).slice(z).mean.R=CC./sqrt(DD*DD');
+                        
                     otherwise
                         %-Get slice-wise Taylor approximation to posterior correlation
                         %-------------------------------------------------------
