@@ -349,6 +349,7 @@ set(handles.spatial_back,     'Enable', 'off');
 
 set(handles.connections,      'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
+set(handles.ERP,              'Enable', 'on');
 
 % [re]-set connections
 %--------------------------------------------------------------------------
@@ -766,8 +767,9 @@ if get(handles.ERP,'Value') == 1
     'Spatial overview'};
 else
     Action = {
-    'Hz modes'
-    'Time-Hz'
+    'Frequency modes'
+    'Time-modes'
+    'Time-frequency'
     'Coupling (A)'
     'Coupling (B)'
     'Input (C)'

@@ -35,11 +35,12 @@ if ~strcmp(lower(Action), 'dipoles')
     figure(Fgraph)
     clf
 end
-
-nt     = length(DCM.H);          % Nr of trials
-nu     = length(DCM.B);          % Nr inputs
-nc     = size(DCM.H{1},2);       % Nr modes
-ns     = size(DCM.K{1},2);       % Nr of sources
+try
+    nt = length(DCM.H);          % Nr of trials
+    nu = length(DCM.B);          % Nr inputs
+    nc = size(DCM.H{1},2);       % Nr modes
+    ns = size(DCM.K{1},2);       % Nr of sources
+end
 xY     = DCM.xY;
 n      = length(xY.xy);
 t      = xY.Time;

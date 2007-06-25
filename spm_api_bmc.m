@@ -8,6 +8,10 @@ function spm_api_bmc
 %--------------------------------------------------------------------------
 [f,p]   = uigetfile('*.mat','please select DCM files',...
                      'MultiSelect','on');
+if ~iscell(f)
+    msgbox('please select more than one DCM')
+    return
+end
                  
 % get Free energy approximation to log-evidence
 %--------------------------------------------------------------------------

@@ -227,6 +227,8 @@ end
 
 nx     = sum(cat(1,M.n));            % number of x (hidden states)
 
+
+
 % Hyperparameters and components (causes)
 %==========================================================================
 try, M.Q; catch, M(1).Q = []; end
@@ -234,7 +236,16 @@ try, M.V; catch, M(1).V = []; end
 
 % check hyperpriors hE - [log]hyper-parameters
 %--------------------------------------------------------------------------
-try, M.hE; catch, for i = 1:g, M(i).hE = [];      end, end
+try, M.hE; catch
+    for i = 1:g 
+        if length(M(i).Q)
+            M(i).hE = sparse(length(M(i).Q),1) + 16;
+        else
+            M(i).hE = [];  
+        end
+    end
+end
+
 try, M.h;  catch, for i = 1:g, M(i).h  = M(i).hE; end, end
 
 for i = 1:g
@@ -275,17 +286,22 @@ for i = 1:g
     
 end
 
+
 % check V (expansion point for covariances) and hyperparameters
 %--------------------------------------------------------------------------
 for i = 1:g
  
-    % check V and assume V = 0 if improperly specified
+    % check V and assume high precision if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).V) ~= M(i).l
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
         catch
-            M(i).V = sparse(M(i).l,M(i).l);
+            if length(M(i).hE)
+                M(i).V = sparse(M(i).l,M(i).l);
+            else
+                M(i).V = speye(M(i).l,M(i).l)*exp(16);
+            end
         end
     end
 end
@@ -298,7 +314,7 @@ try, M.hC; catch
     %----------------------------------------------------------------------
     for i = 1:(g - 1)
         h       = length(M(i).hE);
-        M(i).hC = speye(h,h)*32;
+        M(i).hC = speye(h,h)*256;
     end
 end
 
@@ -320,7 +336,7 @@ try, M.W; catch, M(1).W = []; end
 try, M.gE; catch
     for i = 1:g - 1
         if length(M(i).R)
-            M(i).gE = zeros(length(M(i).R),1);
+            M(i).gE = sparse(length(M(i).R),1) + 16;
         else
             M(i).gE = [];  
         end
@@ -374,7 +390,7 @@ for i = 1:g - 1
             if length(M(i).gE)
                 M(i).W = sparse(M(i).n,M(i).n);
             else
-                M(i).W = speye(M(i).n,M(i).n)*exp(8);
+                M(i).W = speye(M(i).n,M(i).n)*exp(16);
             end
         end
     end
@@ -388,7 +404,7 @@ try, M.gC; catch
     %----------------------------------------------------------------------
     for i = 1:g - 1
         g       = length(M(i).gE);
-        M(i).gC = speye(g,g);
+        M(i).gC = speye(g,g)*256;
     end
 end
 

@@ -2,8 +2,9 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Results for induced Dynamic Causal Modeling (DCM)
 % FORMAT spm_dcm_ind_results(DCM,Action);
 % Action:
-% 'Hz modes'
-% 'Time-Hz'
+% 'Frequency modes'
+% 'Time-modes'
+% 'Time-frequency'
 % 'Coupling (A)'
 % 'Coupling (B)'
 % 'Input (C)'
@@ -36,13 +37,13 @@ figure(Fgraph)
 clf
 
 xY     = DCM.xY;
-nt     = size(xY.xf,1);          % Nr of trials
+nt     = size(xY.xf,1);          % Nr of trial types
 nf     = size(xY.xf,2);          % Nr of frequnecy modes
 nc     = size(xY.xf{1},2);       % Nr channels
 ns     = size(xY.xf{1},1);       % Nr channels
 nu     = size(DCM.B,2);          % Nr inputs
-nm     = size(DCM.H{1},2);       % Nr time-frequency modes
-nr     = size(DCM.K{1},2);       % Nr of sources
+nm     = size(DCM.Hc,2);         % Nr time-frequency modes
+nr     = size(DCM.Hc{1},2);      % Nr of sources
 pst    = xY.Time;                % peri-stmulus time
 Hz     = xY.Hz;                  % frequencies
 
@@ -51,9 +52,21 @@ Hz     = xY.Hz;                  % frequencies
 %--------------------------------------------------------------------------
 switch(lower(Action))
     
-case{lower('Hz modes')}
+case{lower('Frequency modes')}
     
-    % spm_dcm_erp_results(DCM,'modes - channel space');
+    % spm_dcm_ind_results(DCM,'Frequency modes')
+    %----------------------------------------------------------------------
+    plot(DCM.xY.Hz,DCM.xY.U)
+    xlabel('Frequnecy (Hz)')
+    xlabel('modes')
+    title('Frequency modes modelled at each source')
+    axis square
+    grid on
+    
+    
+case{lower('Time-modes')}
+    
+    % spm_dcm_ind_results(DCM,'Time-modes');
     %----------------------------------------------------------------------
     co = {'b', 'r', 'g', 'm', 'y', 'k'};
     lo = {'-', '--'};
@@ -62,18 +75,18 @@ case{lower('Hz modes')}
         subplot(ceil(nm/2),2,i), hold on
         str   = {};
         for j = 1:nt
-            plot(pst,DCM.H{j}(:,i), lo{1},...
+            plot(pst,DCM.Hc{j,i}, lo{1},...
                 'Color', co{j},...
                 'LineWidth',2);
             str{end + 1} = sprintf('trial %i (predicted)',j);
-            plot(pst,DCM.H{j}(:,i) + DCM.R{j}(:,i), lo{2},...
+            plot(pst,DCM.Hc{j,i} + DCM.Rc{j,i}, lo{2},...
                 'Color',co{j});
             str{end + 1} = sprintf('trial %i (observed)',j);
                         set(gca, 'XLim', [pst(1) pst(end)]);
 
         end
         hold off
-        title(sprintf('source-frequnecy mode %i',i))
+        title(sprintf('mode %i (all regions)',i))
         grid on
         axis square
         try
@@ -86,7 +99,7 @@ case{lower('Hz modes')}
     legend(str)
 
     
-case{lower('Time-Hz')}
+case{lower('Time-frequency')}
     
     % reconstitute time-frequency and get principle model over channels
     %----------------------------------------------------------------------

@@ -17,7 +17,6 @@ function DCM = spm_dcm_ind(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
-%   options.Nmodes       - number of spatial models to invert
 %   options.type         - 1 - 'ECD (EEG)'
 %                          2 - 'ECD (MEG)'
 %                          3 - 'Imaging'
@@ -34,8 +33,7 @@ clear spm_erp_L
 % Filename and options
 %--------------------------------------------------------------------------
 try, DCM.name;                   catch, DCM.name = 'DCM_ERP'; end
-try, h     = DCM.options.h;      catch, h        = 1;         end
-try, nm    = DCM.options.Nmodes; catch, nm       = 8;         end
+try, h     = DCM.options.h;      catch, h        = 2;         end
 try, onset = DCM.options.onset;  catch, onset    = 80;        end
 
 % Data and spatial model
@@ -52,15 +50,11 @@ end
 % dimensions
 %--------------------------------------------------------------------------
 Nt     = length(xY.xy);                 % number of trials
-Nr     = size(xY.xf{1},2);              % number of cources
+Nr     = size(xY.xf{1},2);              % number of sources
 Ns     = size(xY.xf{1},1);              % number of samples
 Nf     = size(xY.xf,2);                 % number of frequency modes
 nu     = size(xU.X,2);                  % number of inputs
 nx     = Nr*Nf + 1;                     % number of states
-
-% check the number of modes is greater or equal to the number of sources
-%--------------------------------------------------------------------------
-nm     = max(nm,Nr);
 
 % confounds - DCT: T - an idempotent matrix spanning temporal subspace
 %--------------------------------------------------------------------------
@@ -68,17 +62,11 @@ X0     = spm_dctmtx(Ns,1);
 Ti     = speye(Ns) - X0*inv(X0'*X0)*X0';         % null space of confounds
 T      = kron(speye(Nt,Nt),Ti);
 xY.X0  = kron(speye(Nt,Nt),X0);
-
-
-% Feature selection using principal components (U) of channel space
-%--------------------------------------------------------------------------
 y      = T*xY.y;
-U      = spm_svd(y');
-U      = U(:,[1:nm]);
 
 % assume noise variance is the same over modes
 %--------------------------------------------------------------------------
-xY.Q   = {kron(speye(nm),kron(speye(Nt),speye(Ns)))};
+xY.Q   = {kron(speye(Nr*Nf),kron(speye(Nt),speye(Ns)))};
 
 
 % Inputs
@@ -125,7 +113,6 @@ ons   = onset - xY.Time(1);
 %--------------------------------------------------------------------------
 M.f   = 'spm_fx_ind';
 M.G   = 'spm_lx_ind';
-M.FS  = 'spm_fy_erp';
 M.IS  = 'spm_int_U';
 M.fu  = 'spm_ind_u';
 M.x   = sparse(nx,1);
@@ -137,7 +124,6 @@ M.m   = nu;
 M.n   = nx;
 M.l   = Nr*Nf;
 M.ns  = Ns*Nt;
-M.E   = U;
 
 % and fixed parameters and functional forms
 %--------------------------------------------------------------------------
@@ -161,11 +147,9 @@ L   = feval(M.G, Qg,M);           % get gain matrix
 x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
 y   = x*L';                       % prediction (sensor space)
 r   = T*(xY.y - y);               % prediction error
-y   = y*M.E*M.E';                 % remove spaital confounds
-r   = r*M.E*M.E';                 % remove spaital confounds
 x   = x(:,2:end);                 % remove time
 
-% trial specific respsonses (in mode, channel and source space)
+% trial specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for i = 1:Nt
     for j = 1:Nf
@@ -177,8 +161,6 @@ for i = 1:Nt
         Ec{i,j} = r(t,f);
         K{i,j}  = x(t,k);
     end
-    H{i,1}  = y(t,:)*M.E;
-    E{i,1}  = r(t,:)*M.E;
 end
 
 % store estimates in DCM
@@ -191,10 +173,8 @@ DCM.Cp = Cp;                   % conditional covariances G(g)
 DCM.Eg = Qg;                   % conditional expectation
 DCM.Cg = Cg;                   % conditional covariances
 DCM.Pp = Pp;                   % conditional probability
-DCM.H  = H;                    % conditional responses (y), projected space
 DCM.Hc = Hc;                   % conditional responses (y), channel space
 DCM.K  = K;                    % conditional responses (x)
-DCM.R  = E;                    % conditional residuals (y)
 DCM.Rc = Ec;                   % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence

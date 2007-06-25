@@ -21,7 +21,7 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.xY.Hz      - Frequency bins (for Wavelet transform)
 %    DCM.xY.Mz      - Mean frequnecy response over trial and sources
 %    DCM.xY.Rft     - wavelet coeficient
-%    DCM.xY.Nm      - number of requency modes
+%    DCM.xY.Nm      - number of frequency modes
 %    DCM.xY.U       - Frequnecy modes
 %    DCM.xY.S       - and their singular values
 %
@@ -103,8 +103,7 @@ end
     
 % get Morelet wavelets
 %--------------------------------------------------------------------------
-DCM.options.h = 3;
-DCM.xY.Nm     = 4;                        % number of frequnecy modes
+DCM.xY.Nm     = 4;                        % number of frequency modes
 DCM.xY.Rft    = 6;                        % wavelet coeficient
 DCM.xY.Hz     = 4:1:64;                   % Frequencies
 ST            = DCM.xY.dt*1000;           % sampling interval
