@@ -29,7 +29,8 @@ function ret = spm_ov_roi(varargin)
 % edit operations and load/save operations.
 % Settings
 % --------
-% Edit mode  Operation performed when pressing the middle mouse button.
+% Selection  Operation performed when pressing the middle mouse button or
+% mode       by clustering operations.
 %            'Set selection'
 %              The selection made with the following commands will
 %              be included in your ROI.
@@ -38,6 +39,8 @@ function ret = spm_ov_roi(varargin)
 %              be excluded from your ROI.
 % Box size   Set size of box to be (de)selected when pressing the
 %            middle mouse button.
+% Polygon    Set number of adjacent slices selected by one polygon
+% slices     drawing. 
 % Cluster    Set minimum cluster size for "Cleanup clusters" and
 % size       "Connected cluster" operations.
 % Erosion/   During erosion/dilation operations, the binary mask will be
@@ -82,14 +85,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 809 2007-05-04 13:01:14Z volkmar $
+% $Id: spm_ov_roi.m 834 2007-06-26 13:02:50Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 809 $';
+rev = '$Revision: 834 $';
 
 global st;
 if isempty(st)
@@ -161,6 +164,7 @@ switch cmd
   st.vols{volhandle}.roi = struct('Vroi',Vroi, 'xyz',xyz, 'roi',roi,...
 				  'hroi',1, 'fxyz',fxyz,...
 				  'hframe',hframe, 'mode','set',...
+				  'tool', 'box', ...
 				  'thresh',[60 140], 'box',[4 4 4],...
 				  'cb',[], 'polyslices',1, 'csize',5,...
                                   'erothresh',.5);
@@ -179,164 +183,171 @@ switch cmd
   update_roi=1;
 
  case 'edit'
-  spm('pointer','watch');
-  pos = round(inv(st.vols{volhandle}.roi.Vroi.mat)* ...
-	      [spm_orthviews('pos'); 1]); 
-  tmp = round((st.vols{volhandle}.roi.box-1)/2);
-  [sx sy sz] = meshgrid(-tmp(1):tmp(1), -tmp(2):tmp(2), -tmp(3):tmp(3));
-  sel = [sx(:)';sy(:)';sz(:)']+repmat(pos(1:3), 1,prod(2*tmp+1));
-  tochange = sel(:, (all(sel>0) &...
-		     sel(1,:)<=st.vols{volhandle}.roi.Vroi.dim(1) & ...
-		     sel(2,:)<=st.vols{volhandle}.roi.Vroi.dim(2) & ...
-		     sel(3,:)<=st.vols{volhandle}.roi.Vroi.dim(3)));
-  update_roi = 1;
+  switch st.vols{volhandle}.roi.tool
+      case 'box'
+	  spm('pointer','watch');
+	  pos = round(inv(st.vols{volhandle}.roi.Vroi.mat)* ...
+		      [spm_orthviews('pos'); 1]); 
+	  tmp = round((st.vols{volhandle}.roi.box-1)/2);
+	  [sx sy sz] = meshgrid(-tmp(1):tmp(1), -tmp(2):tmp(2), -tmp(3):tmp(3));
+	  sel = [sx(:)';sy(:)';sz(:)']+repmat(pos(1:3), 1,prod(2*tmp+1));
+	  tochange = sel(:, (all(sel>0) &...
+			     sel(1,:)<=st.vols{volhandle}.roi.Vroi.dim(1) & ...
+			     sel(2,:)<=st.vols{volhandle}.roi.Vroi.dim(2) & ...
+			     sel(3,:)<=st.vols{volhandle}.roi.Vroi.dim(3)));
+	  update_roi = 1;
   
- case 'poly'
+      case 'poly'
   
-  % @COPYRIGHT  :
-  %             Copyright 1993,1994 Mark Wolforth and Greg Ward, McConnell
-  %             Brain Imaging Centre, Montreal Neurological Institute, McGill
-  %             University.
-  %             Permission to use, copy, modify, and distribute this software
-  %             and its documentation for any purpose and without fee is
-  %             hereby granted, provided that the above copyright notice
-  %             appear in all copies.  The authors and McGill University make
-  %             no representations about the suitability of this software for
-  %             any purpose.  It is provided "as is" without express or
-  %             implied warranty.
-  axhandle = varargin{3};
-  line_color = [1 1 0];
-  axes(st.vols{volhandle}.ax{axhandle}.ax);
-  
-  hold on;
-  Xlimits = get (st.vols{volhandle}.ax{axhandle}.ax,'XLim');
-  Ylimits = get (st.vols{volhandle}.ax{axhandle}.ax,'YLim');
-  XLimMode = get(st.vols{volhandle}.ax{axhandle}.ax,'XLimMode');
-  set(st.vols{volhandle}.ax{axhandle}.ax,'XLimMode','manual');
-  YLimMode = get(st.vols{volhandle}.ax{axhandle}.ax,'YLimMode');
-  set(st.vols{volhandle}.ax{axhandle}.ax,'YLimMode','manual');
-  ButtonDownFcn = get(st.vols{volhandle}.ax{axhandle}.ax,'ButtonDownFcn');
-  set(st.vols{volhandle}.ax{axhandle}.ax,'ButtonDownFcn','');
-  UIContextMenu = get(st.vols{volhandle}.ax{axhandle}.ax,'UIContextMenu');
-  set(st.vols{volhandle}.ax{axhandle}.ax,'UIContextMenu',[]);
-  set(st.vols{volhandle}.ax{axhandle}.ax,'Selected','on');
-  disp (['Please mark the ROI outline in the highlighted image' ...
-	 ' display.']);
-  disp ('Points outside the ROI image area will be clipped to');
-  disp ('the image boundaries.');
-  disp ('Left-Click on the vertices of the ROI...');
-  disp ('Middle-Click to finish ROI selection...');
-  disp ('Right-Click to cancel...');
-  x=Xlimits(1);
-  y=Ylimits(1);
-  i=1;
-  lineHandle = [];
-  xc = 0; yc = 0; bc = 0;
-  while ~isempty(bc)
-    [xc,yc,bc] = ginput(1);
-    if isempty(xc) | bc > 1
-      if bc == 3
-	x = []; y=[];
-      end;
-      if bc == 2 | bc == 3
-	bc = [];
-	break;
-      end;
-    else
-      if xc > Xlimits(2)
-	xc = Xlimits(2);
-      elseif xc < Xlimits(1)
-	xc = Xlimits(1);
-      end;
-      if yc > Ylimits(2)
-	yc = Ylimits(2);
-      elseif yc < Ylimits(1)
-	yc = Ylimits(1);
-      end;
-      x(i) = xc;
-      y(i) = yc;
-      i=i+1;
-      if ishandle(lineHandle)
-	 delete(lineHandle);
-      end;
-      lineHandle = line (x,y,ones(1,length(x)), ...
-			 'Color',line_color,...
-			 'parent',st.vols{volhandle}.ax{axhandle}.ax,...
-			 'HitTest','off');
-    end;
-  end
-  
-  if ishandle(lineHandle)
-    delete(lineHandle);
-  end;
-  if ~isempty(x)
-    spm('pointer','watch');
-    x(i)=x(1);
-    y(i)=y(1);
-    prms=spm_imatrix(st.vols{volhandle}.roi.Vroi.mat);
-    % Code from spm_orthviews('redraw') for determining image
-    % positions
-    is   = inv(st.Space);
-    cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
-    polyoff = [0 0 0];
-    switch axhandle
-     case 1,
-      M0 = [ 1 0 0 -st.bb(1,1)+1
-	     0 1 0 -st.bb(1,2)+1
-	     0 0 1 -cent(3)
-	     0 0 0 1];
-      polyoff(3) = st.vols{volhandle}.roi.polyslices/2;
-      polythick = prms(9);
-     case 2,
-      M0 = [ 1 0 0 -st.bb(1,1)+1
-	     0 0 1 -st.bb(1,3)+1
-	     0 1 0 -cent(2)
-	     0 0 0 1];
-      polyoff(2) = st.vols{volhandle}.roi.polyslices/2;
-      polythick = prms(8);
-     case 3,
-      if st.mode ==0,
-	M0 = [ 0 0 1 -st.bb(1,3)+1
-	       0 1 0 -st.bb(1,2)+1
-	       1 0 0 -cent(1)
-	       0 0 0 1];
-      else,
-	M0 = [ 0 -1 0 +st.bb(2,2)+1
-	       0  0 1 -st.bb(1,3)+1
-		1  0 0 -cent(1)
-	       0  0 0 1];
-      end;
-      polyoff(1) = st.vols{volhandle}.roi.polyslices/2;
-      polythick = abs(prms(7));
-    end;
-    polvx = inv(st.vols{volhandle}.roi.Vroi.mat)*st.Space*inv(M0)*...
-	    [x(:)';y(:)'; zeros(size(x(:)')); ones(size(x(:)'))];
-    % Bounding volume for polygon in ROI voxel space
-    [xbox ybox zbox] = ndgrid(max(min(floor(polvx(1,:)))-polyoff(1),1):...
-			      min(max(ceil(polvx(1,:)))+polyoff(1),...
-				  st.vols{volhandle}.roi.Vroi.dim(1)),...
-			      max(min(floor(polvx(2,:)))-polyoff(2),1):...
-			      min(max(ceil(polvx(2,:)))+polyoff(2),...
-				  st.vols{volhandle}.roi.Vroi.dim(2)),...
-			      max(min(floor(polvx(3,:)))-polyoff(3),1):...
-			      min(max(ceil(polvx(3,:)))+polyoff(3),...
-				  st.vols{volhandle}.roi.Vroi.dim(3)));
-    % re-transform in polygon plane
-    xyzbox = M0*is*st.vols{volhandle}.roi.Vroi.mat*[xbox(:)';ybox(:)';zbox(:)';...
+	  % @COPYRIGHT  :
+	  %             Copyright 1993,1994 Mark Wolforth and Greg Ward, McConnell
+	  %             Brain Imaging Centre, Montreal Neurological Institute, McGill
+	  %             University.
+	  %             Permission to use, copy, modify, and distribute this software
+	  %             and its documentation for any purpose and without fee is
+	  %             hereby granted, provided that the above copyright notice
+	  %             appear in all copies.  The authors and McGill University make
+	  %             no representations about the suitability of this software for
+	  %             any purpose.  It is provided "as is" without express or
+	  %             implied warranty.
+	  for k = 1:3
+	      if st.vols{volhandle}.ax{k}.ax == gca
+		  axhandle = k;
+		  break;
+	      end;
+	  end;
+	  line_color = [1 1 0];
+	  axes(st.vols{volhandle}.ax{axhandle}.ax);
+	  
+	  hold on;
+	  Xlimits = get (st.vols{volhandle}.ax{axhandle}.ax,'XLim');
+	  Ylimits = get (st.vols{volhandle}.ax{axhandle}.ax,'YLim');
+	  XLimMode = get(st.vols{volhandle}.ax{axhandle}.ax,'XLimMode');
+	  set(st.vols{volhandle}.ax{axhandle}.ax,'XLimMode','manual');
+	  YLimMode = get(st.vols{volhandle}.ax{axhandle}.ax,'YLimMode');
+	  set(st.vols{volhandle}.ax{axhandle}.ax,'YLimMode','manual');
+	  ButtonDownFcn = get(st.vols{volhandle}.ax{axhandle}.ax,'ButtonDownFcn');
+	  set(st.vols{volhandle}.ax{axhandle}.ax,'ButtonDownFcn','');
+	  UIContextMenu = get(st.vols{volhandle}.ax{axhandle}.ax,'UIContextMenu');
+	  set(st.vols{volhandle}.ax{axhandle}.ax,'UIContextMenu',[]);
+	  set(st.vols{volhandle}.ax{axhandle}.ax,'Selected','on');
+	  disp (['Please mark the ROI outline in the highlighted image' ...
+		 ' display.']);
+	  disp ('Points outside the ROI image area will be clipped to');
+	  disp ('the image boundaries.');
+	  disp ('Left-Click on the vertices of the ROI...');
+	  disp ('Middle-Click to finish ROI selection...');
+	  disp ('Right-Click to cancel...');
+	  x=Xlimits(1);
+	  y=Ylimits(1);
+	  i=1;
+	  lineHandle = [];
+	  xc = 0; yc = 0; bc = 0;
+	  while ~isempty(bc)
+	      [xc,yc,bc] = ginput(1);
+	      if isempty(xc) | bc > 1
+		  if bc == 3
+		      x = []; y=[];
+		  end;
+		  if bc == 2 | bc == 3
+		      bc = [];
+		      break;
+		  end;
+	      else
+		  if xc > Xlimits(2)
+		      xc = Xlimits(2);
+		  elseif xc < Xlimits(1)
+		      xc = Xlimits(1);
+		  end;
+		  if yc > Ylimits(2)
+		      yc = Ylimits(2);
+		  elseif yc < Ylimits(1)
+		      yc = Ylimits(1);
+		  end;
+		  x(i) = xc;
+		  y(i) = yc;
+		  i=i+1;
+		  if ishandle(lineHandle)
+		      delete(lineHandle);
+		  end;
+		  lineHandle = line (x,y,ones(1,length(x)), ...
+				     'Color',line_color,...
+				     'parent',st.vols{volhandle}.ax{axhandle}.ax,...
+				     'HitTest','off');
+	      end;
+	  end
+	  
+	  if ishandle(lineHandle)
+	      delete(lineHandle);
+	  end;
+	  if ~isempty(x)
+	      spm('pointer','watch');
+	      x(i)=x(1);
+	      y(i)=y(1);
+	      prms=spm_imatrix(st.vols{volhandle}.roi.Vroi.mat);
+	      % Code from spm_orthviews('redraw') for determining image
+	      % positions
+	      is   = inv(st.Space);
+	      cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
+	      polyoff = [0 0 0];
+	      switch axhandle
+		  case 1,
+		      M0 = [ 1 0 0 -st.bb(1,1)+1
+			     0 1 0 -st.bb(1,2)+1
+			     0 0 1 -cent(3)
+			     0 0 0 1];
+		      polyoff(3) = st.vols{volhandle}.roi.polyslices/2;
+		      polythick = prms(9);
+		  case 2,
+		      M0 = [ 1 0 0 -st.bb(1,1)+1
+			     0 0 1 -st.bb(1,3)+1
+			     0 1 0 -cent(2)
+			     0 0 0 1];
+		      polyoff(2) = st.vols{volhandle}.roi.polyslices/2;
+		      polythick = prms(8);
+		  case 3,
+		      if st.mode ==0,
+			  M0 = [ 0 0 1 -st.bb(1,3)+1
+				 0 1 0 -st.bb(1,2)+1
+				 1 0 0 -cent(1)
+				 0 0 0 1];
+		      else,
+			  M0 = [ 0 -1 0 +st.bb(2,2)+1
+				 0  0 1 -st.bb(1,3)+1
+				 1  0 0 -cent(1)
+				 0  0 0 1];
+		      end;
+		      polyoff(1) = st.vols{volhandle}.roi.polyslices/2;
+		      polythick = abs(prms(7));
+	      end;
+	      polvx = inv(st.vols{volhandle}.roi.Vroi.mat)*st.Space*inv(M0)*...
+		      [x(:)';y(:)'; zeros(size(x(:)')); ones(size(x(:)'))];
+	      % Bounding volume for polygon in ROI voxel space
+	      [xbox ybox zbox] = ndgrid(max(min(floor(polvx(1,:)))-polyoff(1),1):...
+					min(max(ceil(polvx(1,:)))+polyoff(1),...
+					    st.vols{volhandle}.roi.Vroi.dim(1)),...
+					max(min(floor(polvx(2,:)))-polyoff(2),1):...
+					min(max(ceil(polvx(2,:)))+polyoff(2),...
+					    st.vols{volhandle}.roi.Vroi.dim(2)),...
+					max(min(floor(polvx(3,:)))-polyoff(3),1):...
+					min(max(ceil(polvx(3,:)))+polyoff(3),...
+					    st.vols{volhandle}.roi.Vroi.dim(3)));
+	      % re-transform in polygon plane
+	      xyzbox = M0*is*st.vols{volhandle}.roi.Vroi.mat*[xbox(:)';ybox(:)';zbox(:)';...
 		    ones(size(xbox(:)'))];
-    xyzbox = xyzbox(:,abs(xyzbox(3,:))<=.6*polythick*...
-		    st.vols{volhandle}.roi.polyslices); % nearest neighbour to polygon
-    sel = logical(inpolygon(xyzbox(1,:),xyzbox(2,:),x,y));
-    xyz = inv(st.vols{volhandle}.roi.Vroi.mat)*st.Space*inv(M0)*xyzbox(:,sel);
-    if ~isempty(xyz)
-      tochange = round(xyz(1:3,:));
-      update_roi = 1;
-    end;
+	      xyzbox = xyzbox(:,abs(xyzbox(3,:))<=.6*polythick*...
+			      st.vols{volhandle}.roi.polyslices); % nearest neighbour to polygon
+	      sel = logical(inpolygon(xyzbox(1,:),xyzbox(2,:),x,y));
+	      xyz = inv(st.vols{volhandle}.roi.Vroi.mat)*st.Space*inv(M0)*xyzbox(:,sel);
+	      if ~isempty(xyz)
+		  tochange = round(xyz(1:3,:));
+		  update_roi = 1;
+	      end;
+	  end;
+	  set(st.vols{volhandle}.ax{axhandle}.ax,...
+	      'Selected','off', 'XLimMode',XLimMode, 'YLimMode',YLimMode,...
+	      'ButtonDownFcn',ButtonDownFcn, 'UIContextMenu',UIContextMenu);
   end;
-  set(st.vols{volhandle}.ax{axhandle}.ax,...
-      'Selected','off', 'XLimMode',XLimMode, 'YLimMode',YLimMode,...
-      'ButtonDownFcn',ButtonDownFcn, 'UIContextMenu',UIContextMenu);
-  
  case 'thresh'
   spm('pointer','watch');
   rind = find(st.vols{volhandle}.roi.roi);
@@ -392,6 +403,7 @@ case {'connect', 'cleanup'}
         for k=1:numel(sel)
             ind = [ind; find(V(:) == sel(k))];
         end;
+	conn = zeros(3,numel(ind));
         [conn(1,:) conn(2,:) conn(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),ind);
 
         if strcmp(st.vols{volhandle}.roi.mode,'set')
@@ -442,13 +454,17 @@ case 'addfile'
 case {'save','saveas'}
   if strcmp(cmd,'saveas') | ...
           exist(st.vols{volhandle}.roi.Vroi.fname)==7
-      [name pth] = uiputfile({'*.nii','NIfTI (1 file)';'*.img','NIfTI (2 files)'},...
-                             'Output image');
+      flt = {'*.nii','NIfTI (1 file)';'*.img','NIfTI (2 files)'};
+      [name pth idx] = uiputfile(flt, 'Output image');
       if ~ischar(pth)
           warning('Save cancelled');
           return;
       end;
-      st.vols{volhandle}.roi.Vroi.fname = fullfile(pth,name);
+      [p n e v] = spm_fileparts(fullfile(pth,name));
+      if isempty(e)
+	  e = flt{idx,1}(2:end);
+      end;
+      st.vols{volhandle}.roi.Vroi.fname = fullfile(p, [n e v]);
   end;
   spm('pointer','watch');
   spm_write_vol(st.vols{volhandle}.roi.Vroi, ...
@@ -467,75 +483,85 @@ case {'save','saveas'}
   item1 = uimenu(item0, 'Label', 'Launch', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''context_init'', ', ...
 	    num2str(volhandle), ');'], 'Tag', ['ROI_0_', num2str(volhandle)]);
-  item2 = uimenu(item0, 'Label', 'Edit mode', ...
+  item2 = uimenu(item0, 'Label', 'Selection mode', ...
 	  'Visible', 'off', 'Tag', ['ROI_1_', num2str(volhandle)]);
   item2_1a = uimenu(item2, 'Label', 'Set selection', 'Callback', ...
-	    ['feval(''spm_ov_roi'',''context_edit'',', ...
+	    ['feval(''spm_ov_roi'',''context_selection'',', ...
 	      num2str(volhandle), ',''set'');'], ...
-	    'Tag', ['ROI_EDIT_', num2str(volhandle)], 'Checked','on');
+	    'Tag', ['ROI_SELECTION_', num2str(volhandle)], 'Checked','on');
   item2_1b = uimenu(item2, 'Label', 'Clear selection', 'Callback', ...
-	    ['feval(''spm_ov_roi'',''context_edit'',', ...
+	    ['feval(''spm_ov_roi'',''context_selection'',', ...
 	      num2str(volhandle), ',''clear'');'], ...
-	    'Tag', ['ROI_EDIT_', num2str(volhandle)]);
+	    'Tag', ['ROI_SELECTION_', num2str(volhandle)]);
   item3 = uimenu(item0, 'Label', 'Box size', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''context_box'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item4 = uimenu(item0, 'Label', 'Cluster size', 'Callback', ...
+  item4 = uimenu(item0, 'Label', 'Polygon slices', 'Callback', ...
+	  ['feval(''spm_ov_roi'',''context_polyslices'', ', ...
+	    num2str(volhandle), ');'], 'Visible', 'off', ...
+	  'Tag', ['ROI_1_', num2str(volhandle)]);
+  item5 = uimenu(item0, 'Label', 'Cluster size', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''context_csize'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item4 = uimenu(item0, 'Label', 'Erosion/Dilation threshold', 'Callback', ...
+  item6 = uimenu(item0, 'Label', 'Erosion/Dilation threshold', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''context_erothresh'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item5 = uimenu(item0, 'Label', 'Polygon', 'Callback', ...
-                 ['feval(''spm_ov_roi'',''context_poly'', ', ...
-                  num2str(volhandle), ');'], 'Visible', 'off', ...
-                 'Tag', ['ROI_1_', num2str(volhandle)],...
+  item7 = uimenu(item0, 'Label', 'Edit tool', ...
+		 'Visible', 'off', 'Tag', ['ROI_1_', num2str(volhandle)],...
                  'Separator','on');
-  item6 = uimenu(item0, 'Label', 'Threshold', 'Callback', ...
+  item7_1a = uimenu(item7, 'Label', 'Box tool', 'Callback', ...
+	    ['feval(''spm_ov_roi'',''context_edit'',', ...
+	      num2str(volhandle), ',''box'');'], ...
+	    'Tag', ['ROI_EDIT_', num2str(volhandle)], 'Checked','on');
+  item7_1b = uimenu(item7, 'Label', 'Polygon tool', 'Callback', ...
+	    ['feval(''spm_ov_roi'',''context_edit'',', ...
+	      num2str(volhandle), ',''poly'');'], ...
+	    'Tag', ['ROI_EDIT_', num2str(volhandle)]);
+  item8 = uimenu(item0, 'Label', 'Threshold', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''context_thresh'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item7 = uimenu(item0, 'Label', 'Connected cluster', 'Callback', ...
+  item9 = uimenu(item0, 'Label', 'Connected cluster', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''connect'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item8 = uimenu(item0, 'Label', 'Cleanup clusters', 'Callback', ...
+  item10 = uimenu(item0, 'Label', 'Cleanup clusters', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''cleanup'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item8 = uimenu(item0, 'Label', 'Erode/Dilate', 'Callback', ...
+  item11 = uimenu(item0, 'Label', 'Erode/Dilate', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''erodilate'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item8 = uimenu(item0, 'Label', 'Invert', 'Callback', ...
+  item12 = uimenu(item0, 'Label', 'Invert', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''invert'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item10 = uimenu(item0, 'Label', 'Clear', 'Callback', ...
+  item13 = uimenu(item0, 'Label', 'Clear', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''clear'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item11 = uimenu(item0, 'Label', 'Add ROI from file(s)', 'Callback', ...
+  item14 = uimenu(item0, 'Label', 'Add ROI from file(s)', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''addfile'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item12 = uimenu(item0, 'Label', 'Save', 'Callback', ...
+  item15 = uimenu(item0, 'Label', 'Save', 'Callback', ...
                   ['feval(''spm_ov_roi'',''save'', ', ...
                    num2str(volhandle), ');'], 'Visible', 'off', ...
                   'Tag', ['ROI_1_', num2str(volhandle)],...
                   'Separator','on');
-  item13 = uimenu(item0, 'Label', 'Save As', 'Callback', ...
+  item16 = uimenu(item0, 'Label', 'Save As', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''saveas'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item14 = uimenu(item0, 'Label', 'Quit', 'Callback', ...
+  item17 = uimenu(item0, 'Label', 'Quit', 'Callback', ...
 	  ['feval(''spm_ov_roi'',''context_quit'', ', ...
 	    num2str(volhandle), ');'], 'Visible', 'off', ...
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
-  item15 = uimenu(item0, 'Label', 'Help', 'Callback', ...
+  item18 = uimenu(item0, 'Label', 'Help', 'Callback', ...
 	  ['feval(''spm_help'',''' mfilename ''');']);
   return;
     
@@ -559,8 +585,15 @@ case {'save','saveas'}
   spm_input('!DeleteInputObj',Finter);
   return;
     
- case 'context_edit'
+ case 'context_selection'
   st.vols{volhandle}.roi.mode = varargin{3};
+  obj = findobj(0, 'Tag', ['ROI_SELECTION_', num2str(volhandle)]);
+  set(obj, 'Checked', 'off');
+  set(gcbo, 'Checked', 'on');
+  return;
+ 
+ case 'context_edit'
+  st.vols{volhandle}.roi.tool = varargin{3};
   obj = findobj(0, 'Tag', ['ROI_EDIT_', num2str(volhandle)]);
   set(obj, 'Checked', 'off');
   set(gcbo, 'Checked', 'on');
@@ -573,6 +606,15 @@ case {'save','saveas'}
 		   num2str(st.vols{volhandle}.roi.box), [1 3]);
   spm_input('!DeleteInputObj',Finter);
   st.vols{volhandle}.roi.box = box;
+  return;
+    
+ case 'context_polyslices'
+  Finter = spm_figure('FindWin', 'Interactive');
+  spm_input('!DeleteInputObj',Finter);
+  polyslices = spm_input('Polygon: slices around current slice','!+1','e', ...
+		   num2str(st.vols{volhandle}.roi.polyslices), [1 1]);
+  spm_input('!DeleteInputObj',Finter);
+  st.vols{volhandle}.roi.polyslices = polyslices;
   return;
     
 case 'context_csize'
@@ -593,21 +635,6 @@ case 'context_erothresh'
   st.vols{volhandle}.roi.erothresh = erothresh;
   return;
 
-case 'context_poly',
-    for k = 1:3
-      if st.vols{volhandle}.ax{k}.ax == gca
-	axhandle = k;
-	break;
-      end;
-    end;
-    Finter = spm_figure('FindWin', 'Interactive');
-    spm_input('!DeleteInputObj',Finter);
-    st.vols{volhandle}.roi.polyslices = spm_input('#slices around current slice','!+1','e', ...
-	num2str(st.vols{volhandle}.roi.polyslices));
-    spm_input('!DeleteInputObj',Finter);
-    feval('spm_ov_roi', 'poly', volhandle, axhandle);
-    return;
-    
   case 'context_thresh'
     Finter = spm_figure('FindWin', 'Interactive');
     spm_input('!DeleteInputObj',Finter);

@@ -6,13 +6,18 @@ function ret = spm_ov_movie(varargin)
 % resp., it is possible to define custom start and end points (in mm) for
 % oblique trajectories.
 %
+% Displayed movies can be captured and saved using MATLABs getframe and
+% movie2avi commands. One movie per image and axis (i.e. slice display)
+% will be created. Movie resolution is given by the displayed image size,
+% frame rate is MATLAB standard. 
+% 
 % This routine is a plugin to spm_orthviews for SPM5. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m 696 2006-11-24 20:08:06Z volkmar $
+% @(#) $Id: spm_ov_movie.m 834 2007-06-26 13:02:50Z volkmar $
 
 global st;
 if isempty(st)
@@ -61,9 +66,32 @@ switch cmd
     d=mend-mstart;
     l=sqrt(d'*d);
     d=d./l;
-    for k=0:ds:l
-      spm_orthviews('reposition', mstart+k*d);
+    steps = 0:ds:l;
+    if logical(cell2mat(spm_input('Save movie(s)?','!+1', 'b', {'no', ...
+		    'yes'}, {0,1},0)))
+	vh = spm_input('Select image(s)', '!+1', 'e', ...
+		       num2str(spm_orthviews('valid_handles')));
+	prefix = spm_input('Filename prefix','!+1', 's', ...
+			   'movie');
+    else
+	vh = [];
+    end;    
+    for k=1:numel(steps)
+      spm_orthviews('reposition', mstart+steps(k)*d);
+      for ci = 1:numel(vh)
+	  for ca = 1:3
+	      M{ci,ca}(k) = getframe(st.vols{vh(ci)}.ax{ca}.ax);
+	  end;
+      end;
     end;
+    spm('pointer', 'watch');
+    for ci = 1:numel(vh)
+	for ca = 1:3
+	    fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
+	    movie2avi(M{ci,ca},fname);
+	end;
+    end;
+    spm('pointer', 'arrow');
     spm_orthviews('reposition', opos);
     spm_input('!DeleteInputObj',Finter);
   otherwise    
