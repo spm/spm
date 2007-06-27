@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 739 2007-02-16 17:59:16Z john $
+% $Id: spm_preproc.m 835 2007-06-27 12:40:41Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -296,77 +296,79 @@ if finalit, fprintf('Mix: %g\n',ll); end;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Estimate bias
         %------------------------------------------------------------
-        for subit=1:40,
-            % Compute objective function and its 1st and second derivatives
-            Alpha = zeros(prod(d3),prod(d3)); % Second derivatives
-            Beta  = zeros(prod(d3),1); % First derivatives
-            ollrb = llrb;
-            oll   = ll;
-            ll    = llr+llrb;
-            for z=1:length(z0),
-                if ~buf(z).nm, continue; end;
-                bf  = double(buf(z).bf);
-                cr  = double(buf(z).f).*bf;
-                q   = zeros(buf(z).nm,K);
-                for k=1:K,
-                    q(:,k) = double(buf(z).dat(:,lkp(k)))*mg(k);
-                end;
-                s = sum(q,2)+tiny;
-                for k=1:K,
-                    q(:,k) = q(:,k)./s .* exp((cr-mn(k)).^2/(-2*vr(k)))/sqrt(2*pi*vr(k));
-                end;
-                sq    = sum(q,2)+tiny;
-                ll    = ll   + sum(log(sq));
-
-                w1 = zeros(buf(z).nm,1);
-                w2 = zeros(buf(z).nm,1);
-                for k=1:K,
-                    tmp = q(:,k)./sq/vr(k);
-                    w1  = w1 + tmp.*(mn(k) - cr);
-                    w2  = w2 + tmp;
-                end;
-                wt1   = zeros(d(1:2)); wt1(buf(z).msk) = 1 + cr.*w1;
-                wt2   = zeros(d(1:2)); wt2(buf(z).msk) = cr.*(cr.*w2 - w1);
-                b3    = B3bias(z,:)';
-                Beta  = Beta  + kron(b3,spm_krutil(wt1,B1bias,B2bias,0));
-                Alpha = Alpha + kron(b3*b3',spm_krutil(wt2,B1bias,B2bias,1));
-                clear w1 w2 wt1 wt2 b3
-            end;
-if finalit, fprintf('Bia: %g\n',ll); end;
-            if subit > 1 && ~(ll>oll),
-                % Hasn't improved, so go back to previous solution
-                Tbias = oTbias;
-                llrb  = ollrb;
+        if prod(d3)>0,
+            for subit=1:40,
+                % Compute objective function and its 1st and second derivatives
+                Alpha = zeros(prod(d3),prod(d3)); % Second derivatives
+                Beta  = zeros(prod(d3),1); % First derivatives
+                ollrb = llrb;
+                oll   = ll;
+                ll    = llr+llrb;
                 for z=1:length(z0),
                     if ~buf(z).nm, continue; end;
-                    bf        = transf(B1bias,B2bias,B3bias(z,:),Tbias);
-                    buf(z).bf = single(exp(bf(buf(z).msk)));
+                    bf  = double(buf(z).bf);
+                    cr  = double(buf(z).f).*bf;
+                    q   = zeros(buf(z).nm,K);
+                    for k=1:K,
+                        q(:,k) = double(buf(z).dat(:,lkp(k)))*mg(k);
+                    end;
+                    s = sum(q,2)+tiny;
+                    for k=1:K,
+                        q(:,k) = q(:,k)./s .* exp((cr-mn(k)).^2/(-2*vr(k)))/sqrt(2*pi*vr(k));
+                    end;
+                    sq    = sum(q,2)+tiny;
+                    ll    = ll   + sum(log(sq));
+
+                    w1 = zeros(buf(z).nm,1);
+                    w2 = zeros(buf(z).nm,1);
+                    for k=1:K,
+                        tmp = q(:,k)./sq/vr(k);
+                        w1  = w1 + tmp.*(mn(k) - cr);
+                        w2  = w2 + tmp;
+                    end;
+                    wt1   = zeros(d(1:2)); wt1(buf(z).msk) = 1 + cr.*w1;
+                    wt2   = zeros(d(1:2)); wt2(buf(z).msk) = cr.*(cr.*w2 - w1);
+                    b3    = B3bias(z,:)';
+                    Beta  = Beta  + kron(b3,spm_krutil(wt1,B1bias,B2bias,0));
+                    Alpha = Alpha + kron(b3*b3',spm_krutil(wt2,B1bias,B2bias,1));
+                    clear w1 w2 wt1 wt2 b3
                 end;
-                break;
-            else
-                % Accept new solution
-                spm_chi2_plot('Set',ll);
-                oTbias = Tbias;
-                if subit > 1 && ~((ll-oll)>tol1*nm),
-                    % Improvement is only small, so go to next step
-                    break;
-                else
-                    % Use new solution and continue the Levenberg-Marquardt iterations
-                    Tbias  = reshape((Alpha + Cbias + lmRb)\((Alpha+lmRb)*Tbias(:) + Beta),d3);
-                    llrb  = -0.5*Tbias(:)'*Cbias*Tbias(:);
+                if finalit, fprintf('Bia: %g\n',ll); end;
+                if subit > 1 && ~(ll>oll),
+                    % Hasn't improved, so go back to previous solution
+                    Tbias = oTbias;
+                    llrb  = ollrb;
                     for z=1:length(z0),
                         if ~buf(z).nm, continue; end;
                         bf        = transf(B1bias,B2bias,B3bias(z,:),Tbias);
-                        tmp       = bf(buf(z).msk);
-                        llrb      = llrb + sum(tmp);
-                        buf(z).bf = single(exp(tmp));
+                        buf(z).bf = single(exp(bf(buf(z).msk)));
+                    end;
+                    break;
+                else
+                    % Accept new solution
+                    spm_chi2_plot('Set',ll);
+                    oTbias = Tbias;
+                    if subit > 1 && ~((ll-oll)>tol1*nm),
+                        % Improvement is only small, so go to next step
+                        break;
+                    else
+                        % Use new solution and continue the Levenberg-Marquardt iterations
+                        Tbias  = reshape((Alpha + Cbias + lmRb)\((Alpha+lmRb)*Tbias(:) + Beta),d3);
+                        llrb  = -0.5*Tbias(:)'*Cbias*Tbias(:);
+                        for z=1:length(z0),
+                            if ~buf(z).nm, continue; end;
+                            bf        = transf(B1bias,B2bias,B3bias(z,:),Tbias);
+                            tmp       = bf(buf(z).msk);
+                            llrb      = llrb + sum(tmp);
+                            buf(z).bf = single(exp(tmp));
+                        end;
                     end;
                 end;
             end;
+            if ~((ll-ooll)>tol1*nm), break; end;
         end;
-        if ~((ll-ooll)>tol1*nm), break; end;
     end;
-
+    
     if finalit, break; end;
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
