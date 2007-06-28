@@ -126,7 +126,7 @@ end
 %--------------------------------------------------------------------------
 YY    = sparse(0);
 if Han
-    W = T'*diag(hanning(Nb))*T;
+    W = T'*diag(spm_hanning(Nb))*T;
 else
     W = T'*T;
 end

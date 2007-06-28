@@ -79,10 +79,13 @@ D.channels.Bad = [];
 % The rule of thumb of total duration longer than 1 sec is used to
 % distinguish between continuous and ERP.
 if D.Nevents>1 || (ftdata.time(end)-ftdata.time(1))<1
+    % finds the index of the time point closest to zero (will only work if
+    % the baseline has negative time values).
+    [junk zero_ind]=min(abs(ftdata.time));
     % nr of time bins before stimulus onset (this excludes the time bin at zero)
-    D.events.start = length(find(ftdata.time<-eps));
+    D.events.start = zero_ind-1;
     % nr of time bins after stimulus onset (this excludes the time bin at zero)
-    D.events.stop = length(find(ftdata.time>eps));
+    D.events.stop = length(ftdata.time)-zero_ind;
 end
 
 % name of SPM mat file
