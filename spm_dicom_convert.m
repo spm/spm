@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 810 2007-05-07 14:38:54Z john $
+% $Id: spm_dicom_convert.m 836 2007-06-28 08:23:30Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -1006,24 +1006,26 @@ m = sprintf('%02d', floor(rem(hdr.StudyTime/60,60)));
 h = sprintf('%02d', floor(hdr.StudyTime/3600));
 studydate = sprintf('%s_%s-%s', datestr(hdr.StudyDate,'yyyy-mm-dd'), ...
     h,m);
+switch root_dir
+    case 'date_time',
+	id = studydate;
+    case {'patid', 'patid_date', 'patname'},
+	id = strip_unwanted(hdr.PatientID);
+end;
 serdes = strrep(strip_unwanted(hdr.SeriesDescription),...
     strip_unwanted(hdr.ProtocolName),'');
 protname = sprintf('%s%s_%.4d',strip_unwanted(hdr.ProtocolName), ...
     serdes, hdr.SeriesNumber);
 switch root_dir
     case 'date_time',
-        root = pwd;
-        dname = fullfile(root, studydate, protname);
+        dname = fullfile(pwd, id, protname);
     case 'patid',
-        dname = fullfile(pwd, strip_unwanted(hdr.PatientID), ...
-            protname);
+        dname = fullfile(pwd, id, protname);
     case 'patid_date',
-        dname = fullfile(pwd, strip_unwanted(hdr.PatientID), ...
-            studydate, protname);
+        dname = fullfile(pwd, id, studydate, protname);
     case 'patname',
         dname = fullfile(pwd, strip_unwanted(hdr.PatientsName), ...
-            strip_unwanted(hdr.PatientID), ...
-            protname);
+            id, protname);
     otherwise
         error('unknown file root specification');
 end;
@@ -1031,16 +1033,15 @@ if ~exist(dname,'dir'),
     mkdir_rec(dname);
 end;
 
-switch root_dir
-    case 'date_time',
-        fname = sprintf('%s%s-%.5d-%.5d-%d.%s', prefix, studydate, ...
-            hdr.AcquisitionNumber,hdr.InstanceNumber, ...
-            hdr.EchoNumbers,format);
-    case {'patid', 'patid_date', 'patname'},
-        fname = sprintf('%s%s-%.5d-%.5d-%d.%s', prefix, strip_unwanted(hdr.PatientID), ...
-            hdr.AcquisitionNumber,hdr.InstanceNumber, ...
-            hdr.EchoNumbers,format);
-end;
+% some non-product sequences on SIEMENS scanners seem to have problems
+% with image numbering in MOSAICs - doublettes, unreliable ordering
+% etc. To distinguish, always include Acquisition time in image name
+sa = sprintf('%02d', floor(rem(hdr.AcquisitionTime,60)));
+ma = sprintf('%02d', floor(rem(hdr.AcquisitionTime/60,60)));
+ha = sprintf('%02d', floor(hdr.AcquisitionTime/3600));
+fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d.%s', prefix, id, ha, ma, sa, ...
+		hdr.AcquisitionNumber,hdr.InstanceNumber, ...
+		hdr.EchoNumbers,format);
 
 fname = fullfile(dname, fname);
 
