@@ -18,7 +18,10 @@ function [D] = spm_eeg_invert(D)
 %     inverse.lpf    - band-pass filter - low  frequency cutoff (Hz)
 %     inverse.hpf    - band-pass filter - high frequency cutoff (Hz)
 %     inverse.Lap    - switch for Laplace transform
-%     inverse.sdv    - standard devations of Gaussian temporal correlations
+%     inverse.sdv    - standard devations of Gaussian temporal correlation
+%     inverse.Han    - switch for Hanning window
+%     inverse.Na     - number of most energetic dipoles
+%     inverse.woi    - time window of interest ([start stop] in ms)
 %
 % Evaluates:
 % 
@@ -37,7 +40,7 @@ function [D] = spm_eeg_invert(D)
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
-
+% Modified by Rik Henson to allow more arguments to be passed       4/6/07
 
 % D - SPM data structure
 %==========================================================================
@@ -54,10 +57,15 @@ try, xyz   = model.inverse.xyz;    catch, xyz   = [0 0 0];        end
 try, rad   = model.inverse.rad;    catch, rad   = 128;            end
 try, lpf   = model.inverse.lpf;    catch, lpf   = 1;              end
 try, hpf   = model.inverse.hpf;    catch, hpf   = 256;            end
-try, stv   = model.inverse.stv;    catch, stv   = 4;              end
+try, sdv   = model.inverse.sdv;    catch, sdv   = 4;              end
 try, Han   = model.inverse.Han;    catch, Han   = 1;              end
+try, Na    = model.inverse.Na;     catch, Na    = 1024;           end
+try, woi   = model.inverse.woi;    catch, woi   = [];             end
 
-
+% inverse.woi set to empty in 'defaults_eeg_inv.mat', so may exist anyway
+if isempty(woi) 
+    woi   = round([-D.events.start D.events.stop]*1000/D.Radc);
+end
 
 % Load Gain or Lead field matrix
 %--------------------------------------------------------------------------
@@ -70,11 +78,15 @@ end
 name  = fieldnames(L);
 L     = sparse(getfield(L, name{1}));
 
+% Time window of interest
+%--------------------------------------------------------------------------
+It = round(woi*(D.Radc/1000)) + D.events.start + 1;
+It = It(1):It(end);
+
 % parameters
 %==========================================================================
-Nb    = D.Nsamples;                              % number of time bins
+Nb    = length(It);                              % number of time bins
 Nc    = size(L,1);                               % number of channels
-Na    = 1024;                                    % number of active sources
 Nd    = size(L,2);                               % number of dipoles
 Nv    = size(xyz,1);                             % number of VOI
 
@@ -88,21 +100,20 @@ end
 
 % Peri-stimulus time
 %--------------------------------------------------------------------------
-It    = 1:Nb;                                    % bins
-pst   = (It - D.events.start)/D.Radc*1000;       % peristimulus time (ms}
+pst   = (It - D.events.start - 1)/D.Radc*1000;   % peristimulus time (ms)
 dur   = (pst(end) - pst(1))/1000;                % duration (s)
-dct   = (It - 1)/2/dur;                          % DCT frequenices (Hz)
+dct   = (It - It(1))/2/dur;                      % DCT frequenices (Hz)
 
 % Serial correlations
 %--------------------------------------------------------------------------
-K     = exp(-(pst - pst(1)).^2/(2*stv^2));
+K     = exp(-(pst - pst(1)).^2/(2*sdv^2));
 K     = toeplitz(K);
 qV    = sparse(K*K');
 
 % Confounds and temporal subspace
 %--------------------------------------------------------------------------
 T     = spm_dctmtx(Nb,Nb);
-i     = (dct > lpf) & (dct < hpf) & (It > 2) & (It < 64);
+i     = (dct > lpf) & (dct < hpf);
 T     = T(:,i);
 dct   = dct(i);
 
@@ -139,6 +150,7 @@ end
 S     = spm_svd(YY,1/512);
 T     = T*S;
 Nr    = size(T,2);                               % number of temporal modes
+disp([mat2str(Nr) ' temporal modes'])
 iV    = inv(T'*qV*T);                            % precision (mode space)
 Vq    = T*iV*T';
 
@@ -152,10 +164,14 @@ end
 
 % Re-reference matrix (R)
 %--------------------------------------------------------------------------
-[i j] = min(diag(YY));                           % minimum variance channel
-R     = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc);   % re-referencing matrix
-YY    = R*YY*R';
-L     = R*L;
+if strcmp(D.modality,'EEG')
+    [i j] = min(diag(YY));                           % minimum variance channel
+    R     = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc);   % re-referencing matrix
+    YY    = R*YY*R';
+    L     = R*L;
+else
+    R = speye(Nc,Nc);
+end
 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
@@ -164,6 +180,7 @@ try
     U = U(:,1:Nm);
 end
 Nm    = size(U,2);
+disp([mat2str(Nm) ' channel modes'])
 YY    = U'*YY*U;
 L     = U'*L;
 
