@@ -76,9 +76,9 @@ D.Nchannels = length(D.channels.name);
 D.channels.Bad = [];
 
 % If the data is continuous un-epoched (rather than epoched or ERP)
-% The rule of thumb of total duration longer than 1 sec is used to
+% The rule of thumb of total duration longer than 5 sec is used to
 % distinguish between continuous and ERP.
-if D.Nevents>1 || (ftdata.time(end)-ftdata.time(1))<1
+if D.Nevents>1 || (ftdata.time(end)-ftdata.time(1))<5
     % finds the index of the time point closest to zero (will only work if
     % the baseline has negative time values).
     [junk zero_ind]=min(abs(ftdata.time));

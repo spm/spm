@@ -299,7 +299,7 @@ else
         for j=1:length(eventvalue)
 
             if strcmp(trialdef.eventtype, 'gui') || strcmp(eventtype{i}, trialdef.eventtype)
-                if ischar(eventvalue(j)) && ~strcmp(eventvalue(j), 'Inf')
+                if iscell(eventvalue) && ischar(eventvalue{j}) && ~strcmp(eventvalue{j}, 'Inf')
                     settings=[settings; [eventtype(i), eventvalue(j)]];
                 elseif isnumeric(eventvalue(j)) && eventvalue(j)~=Inf
                     settings=[settings; [eventtype(i), {eventvalue(j)}]];
