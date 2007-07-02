@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 697 2006-11-24 20:09:06Z volkmar $
+% $Id: spm_graph.m 839 2007-07-02 08:49:46Z will $
 
 
 
@@ -252,7 +252,11 @@ else
         for ss=1:nsess,
             % Reconstuct approximation to voxel wise correlation matrix
             post_R=SPM.PPM.Sess(ss).slice(slice_index).mean.R;
-            dh=Sess(ss).a(:,1)'-SPM.PPM.Sess(ss).slice(slice_index).mean.a;
+            if SPM.PPM.AR_P > 0
+                dh=Sess(ss).a(:,1)'-SPM.PPM.Sess(ss).slice(slice_index).mean.a;
+            else
+                dh=[];
+            end
             dh=[dh Sess(ss).lambda(1)-SPM.PPM.Sess(ss).slice(slice_index).mean.lambda];
             for i=1:length(dh),
                 post_R=post_R+SPM.PPM.Sess(ss).slice(slice_index).mean.dR(:,:,i)*dh(i);

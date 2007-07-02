@@ -8,7 +8,7 @@ function [slice] = spm_vb_taylor_R (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_vb_taylor_R.m 429 2006-02-06 14:34:05Z will $
+% $Id: spm_vb_taylor_R.m 839 2007-07-02 08:49:46Z will $
 
 % Get mean hyperparameter values
 h0=[];
@@ -26,7 +26,6 @@ if slice.p > 0
     slice.mean.a_cov=a_cov;
     h0=a';
 end
-
 slice.mean.b=mean(slice.b');
 
 lambda=mean(slice.mean_lambda);

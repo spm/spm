@@ -220,6 +220,7 @@ rglm.fm=fm;
 rglm.kl_dir=kl_dir;
 rglm.kl_gamm=kl_gamm;
 rglm.kl_w=kl_weights;
+rglm.mean_alpha=mean_alpha;
 rglm.priors.lambda_0=lambda_0;
 rglm.priors.c_0=c_0;
 rglm.priors.b_0=b_0;

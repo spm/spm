@@ -45,6 +45,7 @@ for i=1:Nv,
     slice.mean_lambda(i)=lambda;
     slice.F(i)=logbf21;
     slice.gamma(:,i)=gamma;
+    slice.b(:,i)=rglm2.mean_alpha*ones(slice.k,1);
 end
 
 slice.N=Nv;

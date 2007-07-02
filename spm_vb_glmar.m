@@ -57,6 +57,8 @@ function [slice] = spm_vb_glmar (Y,slice)
 %          .c_beta    
 %          .mean_beta 
 %
+%          .b              [k x N] prior precision matrix
+%
 %          HYPERPRIORS:
 %
 %          .b_alpha_prior	priors on alpha
@@ -73,7 +75,7 @@ function [slice] = spm_vb_glmar (Y,slice)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 300 2005-11-16 21:05:24Z guillaume $
+% $Id: spm_vb_glmar.m 839 2007-07-02 08:49:46Z will $
 
 
 t0 = clock;

@@ -13,14 +13,15 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % .C     [Nf x d x d] Coherence matrix
 % .dtf   [Nf x d x d] Directed Transfer Function matrix
 % .gew   [Nf x d x d] Geweke's frequency domain Granger causality
+% .pdc   [Nf x d x d] Partial Directed Coherence
 % .L     [Nf x d x d] Phase matrix
 % .f     [Nf x 1] Frequency vector
 % .ns    Sample rate
 %
-% dtf(f,i,j) is the DTF at frequency f from signal i to signal j
-% pev(f,i,j) is the proportion of power in signal j at frequency f that can
-%            be predicted by signal i. 
-% gew(f,i,j) is the Granger casuality from signal i to signal j at frequency f.
+% dtf(f,i,j) is the DTF at frequency f from signal j to signal i
+% pev(f,i,j) is the proportion of power in signal i at frequency f that can
+%            be predicted by signal j. 
+% gew(f,i,j) is the Granger casuality from signal j to signal i at frequency f.
 %            gew=-log(1-pev)
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
@@ -39,6 +40,7 @@ Nf=length(freqs);
 mar.f=freqs;
 w=2*pi*freqs/ns;
 
+prec=diag(1./diag(mar.noise_cov));
 % Get Power Spectral Density matrix and DTF
 for ff=1:Nf,
   af_tmp=eye(d);
@@ -49,10 +51,17 @@ for ff=1:Nf,
   H(ff,:,:)=iaf_tmp;  % transfer function
   mar.P(ff,:,:) = iaf_tmp * mar.noise_cov * iaf_tmp';
   
-  % Get DTF
+  % Get DTF and PDC
   for ii=1:d,
+      prec_ii=1/sqrt(mar.noise_cov(ii,ii));
       for j=1:d,
+          
+          % DTF uses iaf_tmp, PDC uses af_tmp
+          % DTF normalises wrt rows (to), PDC wrt columns (from)
           mar.dtf(ff,ii,j)=iaf_tmp(ii,j)/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
+          
+          a_j=af_tmp(:,j);
+          mar.pdc(ff,ii,j) = real(prec_ii*af_tmp(ii,j)/sqrt(a_j'*prec*a_j));
       end
   end
 end
@@ -62,7 +71,6 @@ for k=1:d,
     for j=1:d,
         rkj=mar.P(:,k,j)./(sqrt(mar.P(:,k,k)).*sqrt(mar.P(:,j,j)));
         mar.C(:,k,j)=abs(rkj);
-        
         l=atan(imag(rkj)./real(rkj));
         mar.L(:,k,j)=atan(imag(rkj)./real(rkj));
     end
@@ -115,6 +123,19 @@ if show
                 subplot(d,d,index);
                 dtf=real(mar.dtf(:,k,j)).^2;
                 plot(mar.f,dtf);
+            end
+        end
+    end
+    
+    h=figure;
+    set(h,'name','PDC');
+    for k=1:d,
+        for j=1:d,
+            if ~(k==j)
+                index=(k-1)*d+j;
+                subplot(d,d,index);
+                pdc=mar.pdc(:,k,j);
+                plot(mar.f,pdc);
             end
         end
     end

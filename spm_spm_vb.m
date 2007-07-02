@@ -18,9 +18,9 @@
 %            Bayesian analysis of single-subject fMRI: SPM implementation.
 %            Technical Report. WDIN, UCL.
 %
-% Paper VB4: W. Penny, G. Flandin and N. Trujillo-Barreto (2005).
+% Paper VB4: W. Penny, G. Flandin and N. Trujillo-Barreto (2007).
 %            Bayesian comparison of spatially regularised general linear
-%            models. Human Brain Mapping. Accepted for publication.
+%            models. Human Brain Mapping 28(4):275-293.
 %
 % Paper VB5: W. Penny and G. Flandin (2005).
 %            Bayesian analysis of fMRI data with spatial priors.
@@ -147,7 +147,7 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 832 2007-06-22 11:33:31Z will $
+% $Id: spm_spm_vb.m 839 2007-07-02 08:49:46Z will $
 
 
 %-Get SPM.mat if necessary
@@ -455,13 +455,6 @@ end
 try 
     SPM.PPM.space_type;
 catch
-%     spm_input('Data to analyse...',1,'d')
-%     Ctype = {
-%         'Volume',...
-%             'Slices'};
-%     str   = 'Select space';
-%     Sel   = spm_input(str,2,'m',Ctype);
-%     SPM.PPM.space_type = Ctype{Sel};
     SPM.PPM.space_type = 'Volume';
 end
 
@@ -771,15 +764,9 @@ for z = 1:zdim
                         SPM.PPM.Sess(s).slice(z).gamma_out=gamma_out;
                         SPM.PPM.Sess(s).slice(z).outlier_xyz=outlier_xyz;
                         
-                        % Get average posterior correlation of regression
-                        % coefficients in that slice
-                        CC=zeros(slice.k,slice.k);
-                        for ii=1:slice.N,
-                            CC=CC+slice.w_cov{ii};
-                        end
-                        CC=CC/slice.N;
-                        DD = diag(CC);
-                        SPM.PPM.Sess(s).slice(z).mean.R=CC./sqrt(DD*DD');
+                        slice = spm_vb_taylor_R(R0Y,slice);
+                        SPM.PPM.Sess(s).slice(z).mean=slice.mean;
+                        SPM.PPM.Sess(s).slice(z).N=slice.N;
                         
                     otherwise
                         %-Get slice-wise Taylor approximation to posterior correlation
