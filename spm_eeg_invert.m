@@ -80,8 +80,8 @@ L     = sparse(getfield(L, name{1}));
 
 % Time window of interest
 %--------------------------------------------------------------------------
-It = round(woi*(D.Radc/1000)) + D.events.start + 1;
-It = It(1):It(end);
+It    = round(woi*(D.Radc/1000)) + D.events.start + 1;
+It    = It(1):It(end);
 
 % parameters
 %==========================================================================

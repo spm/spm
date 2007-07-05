@@ -69,8 +69,8 @@ funl  = fcnchk(M.g,'x','u','P','M');
 
 % f(x(0),0) and l(x(0),0)
 %--------------------------------------------------------------------------
-f0    = feval(funx,x,u,P,M);
-l0    = feval(funl,x,u,P,M);
+f0    = spm_vec(feval(funx,x,u,P,M));
+l0    = spm_vec(feval(funl,x,u,P,M));
 
 
 % Partial derivatives for 1st order Bilinear operators

@@ -13,12 +13,12 @@ n     = 1;
 if n > 1
 A{1}  = diag(ones(n - 1,1),-1);
 else
-    A{1}  = 0;
+    A{1} = 0;
 end
 A{2}  = A{1}';
 A{3}  = sparse(n,n);
 B{1}  = sparse(n,n);
-C     = sparse(1,1,1,n,1);
+C     = sparse(1,1,256,n,1);
 
 % mixture of regions subtending LFP(EEG)
 %--------------------------------------------------------------------------
@@ -26,7 +26,9 @@ L     = ones(1,n);
 
 % mixture of states subtending LFP(EEG)
 %--------------------------------------------------------------------------
-H     = sparse(9,1,1,13,1);
+H      = sparse(13,2);
+H(9,1) = 1;               % pyramidal depolorization
+H(1,2) = 1;               % stellate  depolorization
 
 % get priors
 %--------------------------------------------------------------------------
@@ -41,9 +43,9 @@ M.g   = 'spm_gx_lfp';
 M.x   = sparse(n,13);
 M.pE  = pE;
 M.pC  = pC;
-M.m   = length(B);
-M.n   = size(M.x,1);
-M.l   = l;
+M.m   = size(C,2);
+M.n   = length(M.x(:));
+M.l   = size(H,2);
 M.IS  = 'spm_int';
 
 % create BOLD model
@@ -68,14 +70,14 @@ H.l     = 1;
 
 % augment and bi-linearise
 %--------------------------------------------------------------------------
-[M0,M1,L1] = spm_bireduce(M,M.pE);
+[M0,M1,L1,L2] = spm_bireduce(M,M.pE);
 
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
 N          = 64;
 dt         = 1/1000;
 t          = [1:N]*dt*1000;
-[K0,K1,K2] = spm_kernels(M0,M1,L1,N,dt);
+[K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
 
 subplot(2,1,1)
 plot(t,K1)
@@ -83,7 +85,7 @@ axis square
 xlabel('time (ms)')
 
 subplot(2,1,2)
-imagesc(t,t,K2(1:64,1:64))
+imagesc(t,t,K2(1:64,1:64,1))
 axis square
 xlabel('time (ms)')
 
@@ -92,32 +94,41 @@ xlabel('time (ms)')
 %--------------------------------------------------------------------------
 N     = 2048;
 U.dt  = 8/1000;
-U.u   = sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16;
+U.u   = 32*(sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16);
 t     = [1:N]*U.dt;
 LFP   = spm_int_J(pE,M,U);
 
+% LFP
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+plot(t,U.u)
+axis square
+xlabel('time (s)')
 
 % LFP
 %--------------------------------------------------------------------------
-subplot(3,1,1)
+subplot(2,2,2)
 plot(t,LFP)
 axis square
 xlabel('time (s)')
 
 % time-frequency
 %--------------------------------------------------------------------------
-w     = [1 8]./(256*dt); 
-subplot(3,1,2)
-imagesc(t,w,abs(spm_wft(LFP,1:1/16:8,256)).^2);
+W     = 512;
+w     = 4:1/4:32;
+cpW   = w*W*U.dt;
+subplot(2,2,3)
+imagesc(t,w,abs(spm_wft(LFP(:,1),cpW,W)).^2);
 axis square xy
 xlabel('time (s)')
 
 % Use response to drive a hemodynamic model
 %--------------------------------------------------------------------------
-U.u   = LFP;
+sigmoid = inline('1./(1 + exp(-2*(x - 1))) - 1./(1 + exp(2))','x');
+U.u   = sigmoid(U.u);
 BOLD  = spm_int_J(hE,H,U);
 
-subplot(3,1,3)
+subplot(2,2,4)
 plot(t,BOLD)
 axis square
 xlabel('time (s)')
@@ -125,7 +136,7 @@ xlabel('time (s)')
 
 % Stability analysis (over excitatory and inhibitory time constants)
 %--------------------------------------------------------------------------
-p     = [-8:16]/8;
+p     = [-16:16]/8;
 np    = length(p);
 HZ    = sparse(np,np);
 for i = 1:np
@@ -143,43 +154,49 @@ for i = 1:np
     end
 end
 
-p  = exp([p(1) p(end)]);
+p1  = 4*exp(p);
+p2  = 16*exp(p);
+
 subplot(2,2,1)
-imagesc(p,p,LE)
-axis square xy
-xlabel('inbitory time constant')
-ylabel('excitatory time constant')
+surf(p1,p2,LE')
+shading interp
+axis square
+ylabel('inbitory time constant (ms)')
+xlabel('excitatory time constant (ms)')
 title('stability')
 
 subplot(2,2,2)
-contour(LE,[1 1])
+contour(p2,p1,LE,[0 0])
 axis square
 xlabel('inbitory time constant')
 ylabel('excitatory time constant')
 title('stability')
 
 subplot(2,2,3)
-imagesc(p,p,HZ);
-axis square xy
-xlabel('inbitory time constant')
-ylabel('excitatory time constant')
+surf(p1,p2,HZ')
+shading interp
+axis square
+ylabel('inbitory time constant')
+xlabel('excitatory time constant')
 title('Frequency')
 
 subplot(2,2,4)
-contour(full(HZ),[4 8 14 24 34]);
+contour(p2,p1,full(HZ),[8 12 16 30],'k');
 axis square
 xlabel('inbitory time constant')
 ylabel('excitatory time constant')
 title('Frequency')
 
 
-
 % transfer functions
 %==========================================================================
 
-% compute transfer functions
+% compute transfer functions (switch off noise)
 %--------------------------------------------------------------------------
-[G w] = spm_lfp_mtf(M.pE,M);
+pE    = M.pE;
+pE.a  = -32;
+pE.b  = -32;
+[G w] = spm_lfp_mtf(pE,M);
 
 subplot(2,1,1)
 plot(w,G)
@@ -187,26 +204,60 @@ axis square
 xlabel('frequency {Hz}')
 
 
-% compute transfer functions for different levels of I-I
+% compute transfer functions for different inhibitory time constants
 %--------------------------------------------------------------------------
-p       = log([1:35]/4);
-pE      = M.pE;
-pE.T(2) = log(2);
+p     = log([1:64]/32);
 for i = 1:length(p)
-    Pi        = pE;
-    Pi.G(:,5) = Pi.G(:,5) + p(i);
-    GW(:,i)   = spm_lfp_mtf(Pi,M);
+    Pi      = pE;
+    Pi.T(2) = Pi.T(2) + p(i);
+    GW(:,i) = spm_lfp_mtf(Pi,M);
 end
 
 subplot(2,1,1)
-imagesc(w,exp(p),GW')
-xlabel('Frequency')
-ylabel('I-I scaling')
+imagesc(16*exp(p),w,GW)
+ylabel('Frequency')
+xlabel('Inhibitory time constant (ms)')
 
 subplot(2,1,2)
-plot(w,GW')
+plot(w,GW)
 xlabel('Frequency')
 ylabel('g(w)')
+
+
+
+% Integrate system to see Transient response
+%==========================================================================
+pE.T(2) = log(2);
+N     = 1024;
+U.dt  = 1/1000;
+U.u   = 8*(exp(-([1:N]' - N/4).^2/(2*32^2)) + rand(N,1)/4);
+t     = [1:N]*U.dt;
+LFP   = spm_int_J(pE,M,U);
+
+% LFP
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+plot(t*1000,U.u)
+axis square
+xlabel('time (ms)')
+
+% LFP
+%--------------------------------------------------------------------------
+subplot(2,2,2)
+plot(t*1000,LFP)
+axis square
+xlabel('time (ms)')
+
+% time-frequency
+%--------------------------------------------------------------------------
+W     = 512;
+w     = 4:1/4:32;
+cpW   = w*W*U.dt;
+subplot(2,2,3)
+imagesc(t*1000,w,abs(spm_wft(LFP(:,1),cpW,W)).^2);
+axis square xy
+xlabel('time (ms)')
+
 
 
 

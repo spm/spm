@@ -40,5 +40,9 @@ if isfield(P,'Lpos')
 else
     L = P.L;
 end
-y  = L*x(:,9);
+try
+    y = L*x*P.M;
+catch
+    y = L*x(:,9);
+end
 

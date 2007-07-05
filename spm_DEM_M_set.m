@@ -291,7 +291,7 @@ end
 %--------------------------------------------------------------------------
 for i = 1:g
  
-    % check V and assume high precision if improperly specified
+    % check V and assume unit precision if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).V) ~= M(i).l
         try
@@ -300,7 +300,7 @@ for i = 1:g
             if length(M(i).hE)
                 M(i).V = sparse(M(i).l,M(i).l);
             else
-                M(i).V = speye(M(i).l,M(i).l)*exp(16);
+                M(i).V = speye(M(i).l,M(i).l);
             end
         end
     end

@@ -63,7 +63,7 @@ end
 n   = size(C,1);                                % number of sources
 N   = n*13;                                     % number of states
 if nargin <  4, L = speye(length(C));  end
-if nargin <  5, H = sparse(2,1,1,N,1); end
+if nargin <  5, H = sparse(9,1,1,13,1); end
 
 
 

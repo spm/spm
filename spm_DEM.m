@@ -116,14 +116,13 @@ nx   = sum(cat(1,M.n));                % number of x (hidden states)
 ny   = M(1).l;                         % number of y (inputs)
 nc   = M(end).l;                       % number of c (prior causes)
 nu   = nv*d + nx*n;                    % number of generalised states
-kt   = 1;                              % rate constant for D-Step
 
 % number of iterations
 %--------------------------------------------------------------------------
-try nD = M(1).E.nD; catch nD = 8; end
-try nE = M(1).E.nE; catch nE = 8; end
-try nM = M(1).E.nM; catch nM = 8; end
-try nI = M(1).E.nI; catch nI = 16;end
+try nD = M(1).E.nD; catch nD = 8;  end
+try nE = M(1).E.nE; catch nE = 8;  end
+try nM = M(1).E.nM; catch nM = 8;  end
+try nI = M(1).E.nI; catch nI = 16; end
 
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
@@ -236,16 +235,14 @@ dEdb  = [dEdb; dNdb];
 
 % initialise cell arrays for D-Step; e{i + 1} = (d/dt)^i[e] = e[i]
 %==========================================================================
-qu.x      = cell(n + 1,1);
-qu.v      = cell(n + 1,1);
-qu.y      = cell(n + 1,1);
-qu.u      = cell(n + 1,1);
+qu.x      = cell(n,1);
+qu.v      = cell(n,1);
+qu.y      = cell(n,1);
+qu.u      = cell(n,1);
 [qu.x{:}] = deal(sparse(nx,1));
 [qu.v{:}] = deal(sparse(nv,1));
 [qu.y{:}] = deal(sparse(ny,1));
 [qu.u{:}] = deal(sparse(nc,1));
-
-dq        = {qu.x{1:n} qu.v{1:d} qu.y{1:n} qu.u{1:d}};
  
 % initialise cell arrays for hierarchical structure of x[0] and v[0]
 %--------------------------------------------------------------------------
@@ -275,16 +272,27 @@ for i = 2:n
     Dx{i - 1,i} = speye(nx,nx);
     Dy{i - 1,i} = speye(ny,ny);
 end
-Du        = spm_cat(diag({Dx,Dv}));
-Dy        = spm_cat(Dy);
-Dc        = spm_cat(Dc);
+Du     = spm_cat(diag({Dx,Dv}));
+Dy     = spm_cat(Dy);
+Dc     = spm_cat(Dc);
+
+% Jacobian (mean-field flow)
+%----------------------------------------------------------
+D      = spm_cat({Du [] []  ;
+                  [] Dy []  ;
+                  [] [] Dc});
+             
+dIdy   = sparse(n*ny,1);
+dIdc   = sparse(d*nc,1);              
+dIdyy  = sparse(n*ny,n*ny);
+dIdcc  = sparse(d*nc,d*nc);
 
 % gradients and curvatures for conditional uncertainty
 %--------------------------------------------------------------------------
-dUdu      = sparse(nu,1);
-dUdp      = sparse(nf,1);
-dUduu     = sparse(nu,nu);
-dUdpp     = sparse(nf,nf);
+dUdu   = sparse(nu,1);
+dUdp   = sparse(nf,1);
+dUduu  = sparse(nu,nu);
+dUdpp  = sparse(nf,nf);
 
 % preclude unneceassry iterations
 %--------------------------------------------------------------------------
@@ -300,7 +308,7 @@ for iI = 1:nI
  
     % E-Step: (with embedded D-Step)
     %======================================================================
-    mp     = zeros(nf,1);
+    mp     = 0;
     Fe     = -exp(64);
     for iE = 1:nE
  
@@ -390,27 +398,6 @@ for iI = 1:nI
                 dE.dP  = [dE.dp spm_cat(dEdb)];
                 JCJu   = dE.du*qu.c*dE.du';
                 JCJp   = dE.dP*qp.c*dE.dP';
-          
-                % and evaluate objective function L(t) (for static models)
-                %----------------------------------------------------------
-                if ~nx
-                    
-                    L = - trace(E'*iS*E)/2 ...           % states (u)
-                        - trace(iS*JCJp)/2;              % expectation q(p)
-
-                    % if F is increasing, save expansion point
-                    %------------------------------------------------------
-                    if L > Fd
-                        td  = {min(td{1}*2,256)};
-                        Fd  = L;
-                        save tempD qu dE E JCJu JCJp
-                    else
-                        % otherwise, return to previous expansion point
-                        %--------------------------------------------------
-                        load tempD
-                        td  = {min(td{1}/2,16)};
-                    end
-                end
 
                 % conditional uncertainty about parameters
                 %==========================================================
@@ -444,34 +431,58 @@ for iI = 1:nI
                 dIduy = -dE.du'*iS*dE.dy;
                 dIduc = -dE.du'*iS*dE.dc;
                 
-                % ascent constant
+                % conditional modes
                 %----------------------------------------------------------
-                if nx, kt = exp(16)/normest(dIduu); end
+                u     = {qu.x{1:n} qu.v{1:d} qu.y{1:n} qu.u{1:d}};
                 
                 % gradient
                 %----------------------------------------------------------
-                dFdu  = spm_vec({qu.x(2:n + 1)  ;
-                                 qu.v(2:d + 1)});
-                dFdu  = spm_vec({dFdu     + kt*dIdu ;
-                                 qu.y(2:n + 1)  ;
-                                 qu.u(2:d + 1)});
-                
-                % Jacobian
+                dFdu  = spm_vec({dIdu;  dIdy;  dIdc });         
+                                 
+                % Jacobian (variational flow)
                 %----------------------------------------------------------
-                dFduu = spm_cat({(Du + kt*dIduu) kt*dIduy    kt*dIduc;
-                                  []             Dy          []      ;
-                                  []             []          Dc    });                         
+                dFduu = spm_cat({dIduu  dIduy  dIduc  ;
+                                 []     dIdyy  []     ;
+                                 []     []     dIdcc});
                 
-      
+                
+
+                
+                % and evaluate objective function L(t) (for static models)
+                %----------------------------------------------------------
+                if ~nx
+                    
+                    L = - trace(E'*iS*E)/2 ...           % states (u)
+                        - trace(iS*JCJp)/2;              % expectation q(p)
+
+                    % if F is increasing, save expansion point
+                    %------------------------------------------------------
+                    if L > Fd
+                        td       = {min(td{1}*2,256)};
+                        Fd       = L;
+                        BD.dFduu = dFduu;
+                        BD.dE    = dFdu;
+                        BD.u     = u;
+
+                    else
+                        % otherwise, return to previous expansion point
+                        %--------------------------------------------------
+                        dFduu    = BD.dFduu;
+                        dE       = BD.dFdu;
+                        u        = BD.u;
+                        td       = {min(td{1}/2,16)};
+                    end
+                end
+                
                 % update conditional modes of states
-                %----------------------------------------------------------
-                du    = spm_dx(dFduu,dFdu,td);plot(du);drawnow;pause
-                dq    = spm_unvec(du,dq);
+                %==========================================================
+                du    = spm_dx(dFduu + D,dFdu + D*spm_vec(u),td);                
+                u     = spm_unvec(du,u);
                 for i = 1:n
-                    qu.x{i} = qu.x{i} + dq{i};
+                    qu.x{i} = qu.x{i} + u{i};
                 end
                 for i = 1:d
-                    qu.v{i} = qu.v{i} + dq{i + n};
+                    qu.v{i} = qu.v{i} + u{i + n};
                 end
                 
         
@@ -540,17 +551,21 @@ for iI = 1:nI
         % if F is increasing, save expansion point and dervatives
         %------------------------------------------------------------------
         if L > Fe
-
-            Fe  = L;
-            te  = te*2;
-            save tempE dFdp dFdpp qp mp
-            
+            Fe       = L;
+            te       = te*2;
+            BE.dFdp  = dFdp;
+            BE.dFdpp = dFdpp;
+            BE.qp    = qp;
+            BE.mp    = mp;
         else
             
             % otherwise, return to previous expansion point
             %--------------------------------------------------------------
-            load tempE
-            te  = min(te/2,1/4);
+            dFdp     = BE.dFdp;
+            dFdpp    = BE.dFdpp;
+            qp       = BE.qp;
+            mp       = BE.mp;
+            te       = min(te/2,1/4);
         end
  
         % E-step: update expectation (p)
@@ -562,7 +577,7 @@ for iI = 1:nI
         qp.e = qp.e + dp(ip);
         db   = dp(ib);
         mp   = mp + dp;
-        
+
         % convergence (E-Step)
         %------------------------------------------------------------------
         if (dFdp'*dp < 1e-2) | (norm(dp,1) < TOL), break, end
@@ -632,7 +647,7 @@ for iI = 1:nI
     L   = - trace(iS*EE)/2  ...                % states (u)
           - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
           - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
-          + spm_logdet(C)/2  ...            % entropy q(u)
+          + spm_logdet(C)/2  ...               % entropy q(u)
           + spm_logdet(qp.c)/2  ...            % entropy q(p)
           + spm_logdet(qh.c)/2  ...            % entropy q(h)
           - spm_logdet(pp.c)/2  ...            % entropy - prior p
@@ -671,8 +686,7 @@ for iI = 1:nI
             i       = [1:nv] + nx*n;
             QU.C{t} = qU(t).c(i,i);
         end
-
-        save tempM
+        save temp
 
         % report and break if convergence
         %------------------------------------------------------------------
@@ -705,7 +719,7 @@ for iI = 1:nI
 
         % otherwise, return to previous expansion point and break
         %------------------------------------------------------------------
-        load tempM
+        load temp
         break
     end
 end

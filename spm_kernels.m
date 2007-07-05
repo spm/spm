@@ -29,7 +29,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_kernels.m 579 2006-08-01 18:32:10Z karl $
+% $Id: spm_kernels.m 841 2007-07-05 11:52:50Z karl $
 
 
 % assign inputs
@@ -145,6 +145,4 @@ if nargout > 2
             end
         end
     end
-
-
 end

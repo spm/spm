@@ -93,11 +93,15 @@ U      = C*u;
 % State: f(x) and Jacobian dfdx
 %==========================================================================
 
+% NB: activity-dependent reduction in inhibitory effective time-constant
+%--------------------------------------------------------------------------
+Ti    = 4/1000 + Ti;
+
 % intrinsic coupling
 %--------------------------------------------------------------------------
 for i = 1:n
 
-    % synaptic dyanamics
+    % synaptic dynamics - dfdx
     %----------------------------------------------------------------------
     ke    = -2/Te(i);
     ki    = -2/Ti(i);
@@ -117,7 +121,7 @@ for i = 1:n
              0   0   0   0   0   0   0   1   0   0  -1   0   0
              0   0   0   0   0   0   0   0   0   0   0   0  -1/Tk];
          
-    % intrinsic connections
+    % intrinsic afferents - dfdS
     %----------------------------------------------------------------------
     Ke    = He(i)/Te(i);
     Ki    = Hi/Ti(i);
@@ -150,7 +154,7 @@ for i = 1:n
     F{i}       = dfdx*x(:,i) + dfdS*S(:,i) + dfdu*U(i);
     J{i,i}     = dfdx + dfdS*dsdx;
     
-    % extrinsic connections
+    % extrinsic afferents 
     %----------------------------------------------------------------------
     for j = 1:n, if i ~= j
     

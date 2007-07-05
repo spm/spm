@@ -19,7 +19,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 756 2007-03-01 13:29:47Z john $
+% $Id: spm_diff.m 841 2007-07-05 11:52:50Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -98,8 +98,11 @@ if length(n) == 1
         
         % concatenate into a matrix
         %------------------------------------------------------------------
-        J = spm_cat(J);
-        
+        if size(f0,2) == 1
+            J = spm_cat(J);
+        else
+            J = spm_cat(J')';
+        end
     end
     
     % assign ouput argument and return

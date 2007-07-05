@@ -222,7 +222,9 @@ end
 
 % prediction error (E) - states
 %--------------------------------------------------------------------------
-fe{1} = x{2} - spm_vec(f);
+try
+    fe{1} = x{2} - spm_vec(f);
+end
 for i = 2:n - 1
     fe{i} = x{i + 1} ...                    % generalised motion
           - dfdx{1}*x{i} - dfdv{1}*v{i};    % and prediction

@@ -1,5 +1,5 @@
 function [G,f] = spm_lfp_mtf(P,M,U)
-% Modulation transfer function g(f) of a NMM
+% Spectral response of a NMM (Modulation transfer function plus noise) 
 % FORMAT [G,f] = spm_lfp_mtf(P,M,U)
 %
 % P - parameters
@@ -39,7 +39,7 @@ C         = full(L1(j,2:end));
 [b,a]     = ss2tf(A,B,C,0,i);
 [num,den] = bilinear(b,a,1/dt);
 [S f]     = freqz(num,den,f,1/dt);
-G         = abs(S).^2;                      % energy from neural mass
+G         = abs(S).^2;                             % energy from neural mass
 warning on
 
 % spectral density of (AR) noise
@@ -57,7 +57,7 @@ end
 
 return
 
-% compute modulation transfer function using FFT of the kernels
+% NB: compute modulation transfer function using FFT of the kernels
 %--------------------------------------------------------------------------
 [K0,K1] = spm_kernels(M0,M1,L1,N,dt);
 S       = fft(K1(:,:,i));
