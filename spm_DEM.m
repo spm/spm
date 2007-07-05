@@ -382,10 +382,43 @@ for iI = 1:nI
                 %==========================================================       
                 [E dE] = spm_DEM_eval(M,qu,qp);
                 
-                % and conditional covariance [of states {v}]
+                % conditional covariance [of states {u}]
                 %----------------------------------------------------------
                 qu.c   = inv(dE.du'*iS*dE.du);
                 
+                % and conditional covariance [of parameters {P}]
+                %----------------------------------------------------------
+                dE.dP  = [dE.dp spm_cat(dEdb)];
+                JCJu   = dE.du*qu.c*dE.du';
+                JCJp   = dE.dP*qp.c*dE.dP';
+                
+                % Evaluate objective function L(t) (for static models)
+                %----------------------------------------------------------
+                if ~nx
+                    
+                    L = - trace(E'*iS*E)/2 ...           % states (u)
+                        - trace(iS*JCJp)/2;              % expectation q(p)
+
+                    % if F is increasing, save expansion point
+                    %------------------------------------------------------
+                    if L > Fd
+                        td     = {min(td{1}*2,256)};
+                        Fd     = L;
+                        B.qu   = qu;
+                        B.E    = E;
+                        B.dE   = dE;
+                        B.JCJp = JCJp;
+                    else
+                        % otherwise, return to previous expansion point
+                        %--------------------------------------------------
+                        qu     = B.qu;
+                        E      = B.E;
+                        dE     = B.dE;
+                        JCJp   = B.JCJp;
+                        td     = {min(td{1}/2,16)};
+                    end
+                end
+
                 % save states at qu(t)
                 %----------------------------------------------------------
                 if iD == 1
@@ -393,12 +426,6 @@ for iI = 1:nI
                     qU(iY) = qu; 
                 end
                 
-                % vectorise error
-                %----------------------------------------------------------
-                dE.dP  = [dE.dp spm_cat(dEdb)];
-                JCJu   = dE.du*qu.c*dE.du';
-                JCJp   = dE.dP*qp.c*dE.dP';
-
                 % conditional uncertainty about parameters
                 %==========================================================
                 if np
@@ -445,34 +472,6 @@ for iI = 1:nI
                                  []     dIdyy  []     ;
                                  []     []     dIdcc});
                 
-                
-
-                
-                % and evaluate objective function L(t) (for static models)
-                %----------------------------------------------------------
-                if ~nx
-                    
-                    L = - trace(E'*iS*E)/2 ...           % states (u)
-                        - trace(iS*JCJp)/2;              % expectation q(p)
-
-                    % if F is increasing, save expansion point
-                    %------------------------------------------------------
-                    if L > Fd
-                        td       = {min(td{1}*2,256)};
-                        Fd       = L;
-                        BD.dFduu = dFduu;
-                        BD.dE    = dFdu;
-                        BD.u     = u;
-
-                    else
-                        % otherwise, return to previous expansion point
-                        %--------------------------------------------------
-                        dFduu    = BD.dFduu;
-                        dE       = BD.dFdu;
-                        u        = BD.u;
-                        td       = {min(td{1}/2,16)};
-                    end
-                end
                 
                 % update conditional modes of states
                 %==========================================================
@@ -551,20 +550,20 @@ for iI = 1:nI
         % if F is increasing, save expansion point and dervatives
         %------------------------------------------------------------------
         if L > Fe
-            Fe       = L;
-            te       = te*2;
-            BE.dFdp  = dFdp;
-            BE.dFdpp = dFdpp;
-            BE.qp    = qp;
-            BE.mp    = mp;
+            Fe      = L;
+            te      = te*2;
+            B.dFdp  = dFdp;
+            B.dFdpp = dFdpp;
+            B.qp    = qp;
+            B.mp    = mp;
         else
             
             % otherwise, return to previous expansion point
             %--------------------------------------------------------------
-            dFdp     = BE.dFdp;
-            dFdpp    = BE.dFdpp;
-            qp       = BE.qp;
-            mp       = BE.mp;
+            dFdp     = B.dFdp;
+            dFdpp    = B.dFdpp;
+            qp       = B.qp;
+            mp       = B.mp;
             te       = min(te/2,1/4);
         end
  
@@ -686,7 +685,7 @@ for iI = 1:nI
             i       = [1:nv] + nx*n;
             QU.C{t} = qU(t).c(i,i);
         end
-        save temp
+        save tmp
 
         % report and break if convergence
         %------------------------------------------------------------------
@@ -719,7 +718,7 @@ for iI = 1:nI
 
         % otherwise, return to previous expansion point and break
         %------------------------------------------------------------------
-        load temp
+        load tmp
         break
     end
 end

@@ -94,7 +94,15 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     switch inverse.type, case{'MSP','GS'}
         inverse.Np   = spm_input('MSPs per hemisphere','+1','64|128|256|512',[64 128 256 512],3);
     end
+        
+    % High-pass filter
+    %----------------------------------------------------------------------
+    inverse.lpf = spm_input('High-pass (Hz)','+1','1|8|16',[1 8 16],1);
     
+    % Low-pass filter
+    %----------------------------------------------------------------------
+    inverse.hpf = spm_input('Low-pass (Hz)','+1','64|128|256',[64 128 256],3);
+        
     % Source space restictions
     %----------------------------------------------------------------------
     if spm_input('Restrict solutions','+1','yes|no',[1 0],2);

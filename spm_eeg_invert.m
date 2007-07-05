@@ -62,11 +62,6 @@ try, Han   = model.inverse.Han;    catch, Han   = 1;              end
 try, Na    = model.inverse.Na;     catch, Na    = 1024;           end
 try, woi   = model.inverse.woi;    catch, woi   = [];             end
 
-% inverse.woi set to empty in 'defaults_eeg_inv.mat', so may exist anyway
-if isempty(woi) 
-    woi   = round([-D.events.start D.events.stop]*1000/D.Radc);
-end
-
 % Load Gain or Lead field matrix
 %--------------------------------------------------------------------------
 try
@@ -78,10 +73,13 @@ end
 name  = fieldnames(L);
 L     = sparse(getfield(L, name{1}));
 
-% Time window of interest
+% Time-window of interest
 %--------------------------------------------------------------------------
-It    = round(woi*(D.Radc/1000)) + D.events.start + 1;
-It    = It(1):It(end);
+if isempty(woi) 
+    woi   = round([-D.events.start D.events.stop]*1000/D.Radc);
+end
+It    = round(woi*(D.Radc/1000)) + D.events.start;
+It    = max(1,It(1)):min(It(end),size(D.data,2));
 
 % parameters
 %==========================================================================
