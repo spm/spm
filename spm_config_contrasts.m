@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 802 2007-04-27 07:47:35Z volkmar $
+% $Id: spm_config_contrasts.m 844 2007-07-09 09:50:54Z john $
 
 
 %_______________________________________________________________________
@@ -587,7 +587,7 @@ for i = 1:length(job.consess)
         con  = job.consess{i}.tcon.convec(:)';
         sessrep = job.consess{i}.tcon.sessrep;
     elseif isfield(job.consess{i},'tconsess')
-	job.consess{i}.tconsess = job.consess{i}.tconsess; % save some typing
+        job.consess{i}.tconsess = job.consess{i}.tconsess; % save some typing
         name = job.consess{i}.tconsess.name;
         if bayes_con
             STAT = 'P';
@@ -596,48 +596,48 @@ for i = 1:length(job.consess)
         else
             STAT = 'T';
         end
-	if isfield(job.consess{i}.tconsess.coltype,'colconds')
-	    ccond = job.consess{i}.tconsess.coltype.colconds;
-	    con = zeros(1,size(SPM.xX.X,2)); % overall contrast
-	    for cs = job.consess{i}.tconsess.sessions
-		for k=1:numel(ccond)
-		    if SPM.xBF.order < ccond(k).colbf
-			error(['Session-based contrast %d:\n'...
-			       'Basis function order (%d) in design less ' ...
-			       'than specified basis function number (%d).'],... 
-			      i, SPM.xBF.order, ccond(k).colbf);
-		    end;
-		    % Index into columns belonging to the specified
+        if isfield(job.consess{i}.tconsess.coltype,'colconds')
+            ccond = job.consess{i}.tconsess.coltype.colconds;
+            con = zeros(1,size(SPM.xX.X,2)); % overall contrast
+            for cs = job.consess{i}.tconsess.sessions
+                for k=1:numel(ccond)
+                    if SPM.xBF.order < ccond(k).colbf
+                        error(['Session-based contrast %d:\n'...
+                            'Basis function order (%d) in design less ' ...
+                            'than specified basis function number (%d).'],...
+                            i, SPM.xBF.order, ccond(k).colbf);
+                    end;
+                    % Index into columns belonging to the specified
                     % condition
-		    try
-			cind = ccond(k).colbf + ...
-			       ccond(k).colmodord*SPM.xBF.order ...
-			       *SPM.Sess(cs).U(ccond(k).colcond).P(ccond(k) ...
-								   .colmod).i(ccond(k).colmodord+1);
-			con(SPM.Sess(cs).col(SPM.Sess(cs).Fc(ccond(k).colcond).i(cind))) ...
-			    = ccond(k).conweight;
-		    catch
-			error(['Session-based contrast %d:\n'...
-			       'Column "Cond%d Mod%d Order%d" does not exist.'],...
-			      i, ccond(k).colcond, ccond(k).colmod, ccond(k).colmodord);
-		    end;
-		end;
-	    end;
-	else % convec on extra regressors
-	    con = zeros(1,size(SPM.xX.X,2)); % overall contrast
-	    for cs = job.consess{i}.tconsess.sessions
-		nC = size(SPM.Sess(cs).C.C,2);
-		if nC < numel(job.consess{i}.tconsess.coltype.colreg)
-		    error(['Session-based contrast %d:\n'...
-			   'Contrast vector for extra regressors too long.'],...
-			  i);
-		end;
-		ccols = numel(SPM.Sess(cs).col)-(nC-1)+...
-			[0:numel(job.consess{i}.tconsess.coltype.colreg)-1]; 
-		con(SPM.Sess(cs).col(ccols)) = job.consess{i}.tconsess.coltype.colreg;
-	    end;
-	end;
-        sessrep = 'none';	
+                    try
+                        cind = ccond(k).colbf + ...
+                            ccond(k).colmodord*SPM.xBF.order ...
+                            *SPM.Sess(cs).U(ccond(k).colcond).P(ccond(k) ...
+                            .colmod).i(ccond(k).colmodord+1);
+                        con(SPM.Sess(cs).col(SPM.Sess(cs).Fc(ccond(k).colcond).i(cind))) ...
+                            = ccond(k).conweight;
+                    catch
+                        error(['Session-based contrast %d:\n'...
+                            'Column "Cond%d Mod%d Order%d" does not exist.'],...
+                            i, ccond(k).colcond, ccond(k).colmod, ccond(k).colmodord);
+                    end;
+                end;
+            end;
+        else % convec on extra regressors
+            con = zeros(1,size(SPM.xX.X,2)); % overall contrast
+            for cs = job.consess{i}.tconsess.sessions
+                nC = size(SPM.Sess(cs).C.C,2);
+                if nC < numel(job.consess{i}.tconsess.coltype.colreg)
+                    error(['Session-based contrast %d:\n'...
+                        'Contrast vector for extra regressors too long.'],...
+                        i);
+                end;
+                ccols = numel(SPM.Sess(cs).col)-(nC-1)+...
+                    [0:numel(job.consess{i}.tconsess.coltype.colreg)-1];
+                con(SPM.Sess(cs).col(ccols)) = job.consess{i}.tconsess.coltype.colreg;
+            end;
+        end;
+        sessrep = 'none';
     else %fcon
         name = job.consess{i}.fcon.name;
         if bayes_con
@@ -651,30 +651,38 @@ for i = 1:length(job.consess)
         sessrep = job.consess{i}.fcon.sessrep;
     end
 
+  
     if isfield(SPM,'Sess') && ~strcmp(sessrep,'none')
         % assume identical sessions, no check!
         nc = numel(SPM.Sess(1).U);
+        nsessions=numel(SPM.Sess);
         rcon = zeros(size(con,1),nc);
         switch sessrep
             case 'repl',
                 % within-session zero padding, replication over sessions
-                rcon(:,1:size(con,2)) = con;
-                cons{1} = repmat(rcon, 1, numel(SPM.Sess));
+                cons{1}= zeros(size(con,1),size(SPM.xX.X,2));
+                for sess=1:nsessions
+                    sfirst=SPM.Sess(sess).col(1);
+                    cons{1}(:,sfirst:sfirst+size(con,2)-1)=con;
+                end
                 names{1} = sprintf('%s - All Sessions', name);
             case 'sess',
                 for k=1:numel(SPM.Sess)
-                    cons{k} = [repmat(rcon, 1, k-1) con];
+                    cons{k} = [zeros(size(con,1),SPM.Sess(k).col(1)-1) con];
                     names{k} = sprintf('%s - Session %d', name, k);
                 end;
             case 'both'
                 for k=1:numel(SPM.Sess)
-                    cons{k} = [repmat(rcon, 1, k-1) con];
+                    cons{k} = [zeros(size(con,1),SPM.Sess(k).col(1)-1) con];
                     names{k} = sprintf('%s - Session %d', name, k);
                 end;
                 if numel(SPM.Sess) > 1
                     % within-session zero padding, replication over sessions
-                    rcon(:,1:size(con,2)) = con;
-                    cons{end+1} = repmat(rcon, 1, numel(SPM.Sess));
+                    cons{end+1}= zeros(size(con,1),size(SPM.xX.X,2));
+                    for sess=1:nsessions
+                        sfirst=SPM.Sess(sess).col(1);
+                        cons{end}(:,sfirst:sfirst+size(con,2)-1)=con;
+                    end
                     names{end+1} = sprintf('%s - All Sessions', name);
                 end;
         end;
@@ -686,7 +694,7 @@ for i = 1:length(job.consess)
     % Loop over created contrasts
     %-------------------------------------------------------------------
     for k=1:numel(cons)
-    
+
         % Basic checking of contrast
         %-------------------------------------------------------------------
         [c,I,emsg,imsg] = spm_conman('ParseCon',cons{k},SPM.xX.xKXs,STAT);
@@ -696,7 +704,7 @@ for i = 1:length(job.consess)
         else
             disp(imsg);
         end;
-    
+
         % Fill-in the contrast structure
         %-------------------------------------------------------------------
         if all(I)
@@ -704,7 +712,7 @@ for i = 1:length(job.consess)
         else
             DxCon = [];
         end
-    
+
         % Append to SPM.xCon. SPM will automatically save any contrasts that
         % evaluate successfully.
         %-------------------------------------------------------------------

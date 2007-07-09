@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 810 2007-05-07 14:38:54Z john $
+% $Id: spm_dicom_headers.m 844 2007-07-09 09:50:54Z john $
 
 
 dict = readdict;
@@ -434,7 +434,7 @@ return;
 %_______________________________________________________________________
 function t = decode_csa1(fp,lim)
 n   = fread(fp,1,'uint32');
-if n>128 || n < 0,
+if isempty(n) || n>128 || n < 0,
     fseek(fp,lim-4,'cof');
     t = struct('name','JUNK: Don''t know how to read this damned file format');
     return;
