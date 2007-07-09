@@ -15,6 +15,7 @@
 %  'blockread'  - size of the blocks to read. Default is 1.
 %  'avgref'     - ['yes'|'no'] average reference. Default 'no'.
 %  'avrefchan'  - reference channels. Default none.  
+%  'format'     - 16 or 32. Default 16.
 %
 % Outputs:
 %  cnt          - structure with the continuous data and other informations
@@ -53,6 +54,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_ns_cnt.m,v $
+% Revision 1.6  2007/07/03 16:10:48  roboos
+% added a hack for 32 bit neuroscan format (hdr.nsdf=16|32), this should actually be be done using autodetection
+%
 % Revision 1.5  2005/10/11 08:35:41  roboos
 % close file when only header was read (thanks to Durk)
 % fixed typo in help
@@ -205,26 +209,37 @@ r.event.time(i)=[];
 
 try, ldraw=r.ldraw; catch, ldraw=0; end;
 
+%%%%NEW CHANGE TO READ 32 BIT
+if r.format == 16
+    df = 'short';
+elseif r.format == 32
+    df = 'long';
+end
+
 if ~isempty(ldchan)
    if length(ldchan)==r.nchannels
       % all channels
 
 	  if r.blockread == 1	
-      	  dat=freadat(f, startpos, [r.nchannels ldnsamples], 'short');
+      	  %dat=freadat(f, startpos, [r.nchannels ldnsamples], 'short');
+          dat=freadat(f, startpos, [r.nchannels ldnsamples], df);
  	  else
      	  dat=zeros( length(ldchan), ldnsamples);
-      	  dat(:, 1:r.blockread)=freadat(f, startpos, [r.blockread r.nchannels], 'short')';
+      	  %dat(:, 1:r.blockread)=freadat(f, startpos, [r.blockread r.nchannels], 'short')';
+          dat(:, 1:r.blockread)=freadat(f, startpos, [r.blockread r.nchannels], df)';
 
 		  counter = 1;	
  		  while counter*r.blockread < ldnsamples
-	      	dat(:, counter*r.blockread+1:counter*r.blockread+r.blockread) = freadat(f, [], [40 r.nchannels], 'short')';
+	      	%dat(:, counter*r.blockread+1:counter*r.blockread+r.blockread) = freadat(f, [], [40 r.nchannels], 'short')';
+            dat(:, counter*r.blockread+1:counter*r.blockread+r.blockread) = freadat(f, [], [40 r.nchannels], df)';
 			counter = counter + 1;
 		  end;
 	  end;	
 
       r.dat=zeros( size(dat,2), length(ldchan));
       if ldraw
-         r.dat=int16(dat)';
+         %r.dat=int16(dat)';
+         r.dat=int32(dat)';
       else
          for j=1:length(ldchan)
             baseline=r.chan.baseline(ldchan(j));
@@ -252,7 +267,8 @@ if ~isempty(ldchan)
    else
       r.dat=zeros(ldnsamples, length(ldchan));
       for j=1:length(ldchan)
-         dat=freadat(f, startpos+(ldchan(j)-1)*2, ldnsamples, 'short', (r.nchannels-1)*2);
+         %dat=freadat(f, startpos+(ldchan(j)-1)*2, ldnsamples, 'short', (r.nchannels-1)*2);
+         dat=freadat(f, startpos+(ldchan(j)-1)*2, ldnsamples, df, (r.nchannels-1)*2);
          r.dat(:,j)=r.microvoltscalar(ldchan(j))*(dat'-r.chan.baseline(ldchan(j)));
       end
    end

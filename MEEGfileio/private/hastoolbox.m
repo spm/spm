@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, add_to_path);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.10  2007/05/06 09:10:07  roboos
+% added spm5
+%
 % Revision 1.9  2007/02/26 13:41:07  roboos
 % made small change to fastica detection (suggested by Sameer)
 %
@@ -66,6 +69,7 @@ url = {
   'EEGLAB'     'see http://www.sccn.ucsd.edu/eeglab'
   'NWAY'       'see http://www.models.kvl.dk/source/nwaytoolbox'
   'SPM2'       'see http://www.fil.ion.ucl.ac.uk/spm'
+  'SPM5'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'MEG-PD'     'see http://www.kolumbus.fi/kuutela/programs/meg-pd'
   'MEG-CALC'   'this is a commercial toolbox from Neuromag, see http://www.neuromag.com'
   'BIOSIG'     'see http://biosig.sourceforge.net'
@@ -103,7 +107,9 @@ switch toolbox
   case 'NWAY'
     status = exist('parafac', 'file');
   case 'SPM2'
-    status = (exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise'));
+    status = exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise');
+  case 'SPM5'
+    status = exist('spm_vol') && exist('spm_write_vol') && exist('spm_normalise') && exist('spm_vol_nifti');
   case 'MEG-PD'
     status = (exist('rawdata') && exist('channames'));
   case 'MEG-CALC'

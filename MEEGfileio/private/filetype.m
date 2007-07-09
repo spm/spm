@@ -1,4 +1,4 @@
-function [ftype, detail] = filetype(filename, desired);
+function [ftype, detail] = filetype(filename, desired, varargin);
 
 % FILETYPE determines the filetype of many EEG/MEG/MRI data files by
 % looking at the name, extension and optionally (part of) its contents.
@@ -10,6 +10,7 @@ function [ftype, detail] = filetype(filename, desired);
 % Use as
 %   type = filetype(filename)
 %   type = filetype(dirname)
+%
 % This gives you a descriptive string with the data type, and can be
 % used in a switch-statement. The descriptive string that is returned
 % usually is something like 'XXX_YYY'/ where XXX refers to the
@@ -50,9 +51,28 @@ function [ftype, detail] = filetype(filename, desired);
 %
 % See also READ_XXX_YYY where XXX=manufacturer and YYY=subtype
 
-% Copyright (C) 2003-2006 Robert Oostenveld
+% Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.51  2007/07/04 13:20:51  roboos
+% added support for egi_egis/egia, thanks to Joseph Dien
+%
+% Revision 1.50  2007/06/06 07:10:16  roboos
+% changed detection of BCI streams into using URI scheme
+% changed deterction of BESA source waveform files
+%
+% Revision 1.49  2007/06/04 18:24:49  roboos
+% added nifti
+%
+% Revision 1.48  2007/05/31 09:13:28  roboos
+% added tcpsocket ans serial port
+%
+% Revision 1.47  2007/05/15 14:59:54  roboos
+% try to separate besa *.dat from brainvision *.dat
+%
+% Revision 1.46  2007/04/25 15:27:28  roboos
+% rmoved besa_gen, instead added besa_sb (simple binary), which comes with the *.gen or *.generic ascii header file
+%
 % Revision 1.45  2007/03/21 17:21:30  roboos
 % remove . and .. from the file listing in case of a directory as input
 % removed neuralynx_nte, the correct extension is *.nts
@@ -71,144 +91,19 @@ function [ftype, detail] = filetype(filename, desired);
 % Revision 1.42  2007/01/04 08:12:00  roboos
 % fixed bug for besa_avr, renamed an incorrect tag into plexon_plx
 %
-% Revision 1.41  2006/12/12 21:00:56  roboos
-% fixed bug for neuralynx_cds
-%
-% Revision 1.40  2006/12/12 11:50:19  roboos
-% added support for complete listing of directories, implemented detection of neuralynx_sdma using recursion
-%
-% Revision 1.39  2006/11/30 10:05:22  roboos
-% reinserted support for Yokogawa sqd, as yokogawa_ave
-%
-% Revision 1.38  2006/09/18 21:51:55  roboos
-% implemented support for fcdc_matbin, i.e. a dataset consisting of a matlab file with header and events and a seperate binary datafile
-%
-% Revision 1.37  2006/09/18 14:23:50  roboos
-% added detection of 4D-BTi file formats
-%
-% Revision 1.36  2006/08/28 10:11:19  roboos
-% moved subfunctions check_header and check_extension into seperate files and renamed them
-% changed some | into ||
-%
-% Revision 1.35  2006/06/07 15:09:07  roboos
-% improved the check for matlab, look at the file header
-%
-% Revision 1.34  2006/04/26 08:56:17  roboos
-% added detection of neuralynx_sdma
-%
-% Revision 1.33  2006/04/24 12:18:36  roboos
-% added split DMA log file
-%
-% Revision 1.32  2006/04/19 07:53:43  roboos
-% added *.ima for DICOM
-%
-% Revision 1.31  2006/03/30 07:40:11  roboos
-% added loreta, cleaned up documentation
-%
-% Revision 1.30  2006/03/23 16:42:50  roboos
-% implemented support for neuralynx nse, nts, nvt
-% implemented support for neuralynx_cds, i.e. a combined dataset with seperate directories for lfp, mua and spike channels
-%
-% Revision 1.29  2006/03/16 17:32:57  roboos
-% added besa_swf
-%
-% Revision 1.28  2006/03/14 09:14:33  roboos
-% added neuralynx_tsl, neuralynx_tsh and neuralynx_ttl
-%
-% Revision 1.27  2006/03/09 12:33:37  roboos
-% added support for multiple files in check_extension subfunction
-% improved detection of neuralynx_ds, also when Events.Nev is absent
-%
-% Revision 1.26  2006/02/24 12:50:33  roboos
-% changed strcmp(lower(..)) into strcmpi(..)
-%
-% Revision 1.25  2005/12/16 14:02:20  roboos
-% added (commented out) line for bham_bdf
-%
-% Revision 1.24  2005/12/02 08:38:09  roboos
-% added biosemi_bdf EEG data format
-%
-% Revision 1.23  2005/11/30 11:37:07  roboos
-% added support for ced_son
-%
-% Revision 1.22  2005/09/29 00:48:01  roboos
-% dropped *.sqd and changed from yokogawa_sqd to yokogawa_ave (as suggested by Masahiro Shimogawara)
-% added support for MBFYS tri and ama files
-%
-% Revision 1.21  2005/10/04 16:52:24  roboos
-% added support for MPI Frankfurt *.dap files
-% added check for directory in check_header
-% moved directory listing in case of directory to the beginning of the function
-% some small typo's and help changes
-%
-% Revision 1.20  2005/09/09 09:13:32  roboos
-% added support for neuralynx_dma
-%
-% Revision 1.19  2005/09/06 12:43:41  roboos
-% renamed plextor into plexon (incorrect company name)
-%
-% Revision 1.18  2005/09/02 16:28:00  roboos
-% changed Plexon *.ddt from plexon_nex to plexon_ddt, since they are different formats and not compatible with each other
-%
-% Revision 1.17  2005/09/01 09:24:01  roboos
-% added Yokogawa MEG formats
-% added BESA beamfourmer source reconstruction (besa_src)
-% prevent type-clash between brainvision_dat and besa_src
-%
-% Revision 1.16  2005/08/04 07:43:49  roboos
-% added neuralynx log file
-%
-% Revision 1.15  2005/07/29 11:27:11  roboos
-% added BESA tfc, mul and gen
-%
-% Revision 1.14  2005/05/18 06:49:52  roboos
-% changed single & to double &&
-%
-% Revision 1.13  2005/05/12 07:22:40  roboos
-% added Neuralynx filetypes and dataset directory
-%
-% Revision 1.12  2005/04/27 06:18:57  roboos
-% added support for MEG42RS as a valid CTF res4 subformat
-%
-% Revision 1.11  2005/04/08 06:47:44  roboos
-% added BESA paradigm file *.pdg
-%
-% Revision 1.10  2005/02/16 08:06:32  roboos
-% changed behavior of magic number check: if file cannot be read, give warning (instead of error) and indicate false
-% changed indentation
-%
-% Revision 1.9  2005/02/11 07:53:35  roboos
-% iadded support for Curry, Polhemus, Plexon and  Besa *.eps
-%
-% Revision 1.8  2005/02/07 19:26:19  roboos
-% added Ole Jensen's *.lay fileformat
-%
-% Revision 1.7  2004/10/28 09:42:19  roboos
-% added AFNI brick and head (based on extension)
-%
-% Revision 1.6  2004/08/26 15:57:09  roboos
-% changed file extension check into case insensitive
-% added support for brainvision_marker
-%
-% Revision 1.5  2004/08/26 11:35:30  roboos
-% added MINC based on mnc extension
-%
-% Revision 1.4  2004/03/29 15:14:30  roberto
-% added support for *.dat as brainvision_dat (exported from BVA)
-%
-% Revision 1.3  2004/03/23 14:46:13  roberto
-% fixed bug in eeprobe average, made besa average smarter
-%
-% Revision 1.2  2004/03/10 14:06:41  roberto
-% added Neuromag filetypes, updated and improved help
-%
-% Revision 1.1  2003/12/05 10:59:43  roberto
-% initial submission
-%
 
 if nargin<2
   desired = [];
 end
+
+% % get the optional arguments
+% checkheader = keyval('checkheader', varargin); if isempty(checkheader), checkheader=1; end
+%
+% if ~checkheader
+%   % assume that the header is always ok, e.g when the file does not yet exist
+%   % this replaces the normal function with a function that always returns true
+%   filetype_check_header = @filetype_true;
+% end
 
 if iscell(filename)
   % perform the test for each filename, return a boolean vector
@@ -243,8 +138,30 @@ if isdir(filename)
   end
 end
 
-% known CTF file types
-if filetype_check_extension(filename, '.ds') && isdir(filename)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% start determining the filetype
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% these are some streams for asynchronous BCI
+if filetype_check_uri(filename, 'fifo')
+  ftype        = 'fcdc_fifo';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
+elseif filetype_check_uri(filename, 'tcpsocket')
+  ftype        = 'fcdc_tcpsocket';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
+elseif filetype_check_uri(filename, 'mysql')
+  ftype        = 'fcdc_mysql';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
+elseif filetype_check_uri(filename, 'serial')
+  ftype        = 'fcdc_serial';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
+
+  % known CTF file types
+elseif filetype_check_extension(filename, '.ds') && isdir(filename)
   ftype = 'ctf_ds';
   manufacturer = 'CTF';
   content = 'MEG dataset';
@@ -309,7 +226,7 @@ elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filen
   manufacturer = 'Yokogawa';
   content = 'anatomical MRI';
 
-elseif filetype_check_header(filename, 'E|lk') % I am not sure whether this always applies
+elseif filetype_check_extension(filename, '.pdf') && filetype_check_header(filename, 'E|lk') % I am not sure whether this header always applies
   ftype = '4d_pdf';
   manufacturer = '4D/BTI';
   content = 'raw MEG data (processed data file)';
@@ -405,6 +322,9 @@ elseif filetype_check_extension(filename, '.img')
 elseif filetype_check_extension(filename, '.mnc')
   ftype = 'minc';
   content = 'MRI image data';
+elseif filetype_check_extension(filename, '.nii')
+  ftype = 'nifti';
+  content = 'MRI image data';
 
   % known LORETA file types
 elseif filetype_check_extension(filename, '.lorb')
@@ -415,7 +335,6 @@ elseif filetype_check_extension(filename, '.slor')
   ftype = 'loreta_slor';
   manufacturer = 'sLORETA';
   content = 'source reconstruction';
-
 
   % known AFNI file types
 elseif filetype_check_extension(filename, '.brik') || filetype_check_extension(filename, '.BRIK')
@@ -447,7 +366,7 @@ elseif filetype_check_extension(filename, '.seg')
   ftype = 'brainvision_seg';
   manufacturer = 'BrainProducts';
   content = 'segmented EEG data';
-elseif filetype_check_extension(filename, '.dat') && ~filetype_check_header(filename, 'BESA_SA_IMAGE')
+elseif filetype_check_extension(filename, '.dat') && ~filetype_check_header(filename, 'BESA_SA_IMAGE') && ~(exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
   % WARNING this is a very general name, it could be exported BrainVision
   % data but also a BESA beamformer source reconstruction
   ftype = 'brainvision_dat';
@@ -604,11 +523,7 @@ elseif filetype_check_extension(filename, '.mul')
   ftype = 'besa_mul';
   manufacturer = 'BESA';
   content = 'multiplexed ascii format';
-elseif filetype_check_extension(filename, '.gen')
-  ftype = 'besa_gen';
-  manufacturer = 'BESA';
-  content = 'generic ascii format';
-elseif filetype_check_header(filename, 'BESA_SA_IMAGE')
+elseif filetype_check_extension(filename, '.dat') && filetype_check_header(filename, 'BESA_SA')  % header can start with BESA_SA_IMAGE or BESA_SA_MN_IMAGE
   ftype = 'besa_src';
   manufacturer = 'BESA';
   content = 'beamformer source reconstruction';
@@ -616,6 +531,14 @@ elseif filetype_check_extension(filename, '.swf') && filetype_check_header(filen
   ftype = 'besa_swf';
   manufacturer = 'BESA';
   content = 'beamformer source waveform';
+elseif filetype_check_extension(filename, '.bsa')
+  ftype = 'besa_bsa';
+  manufacturer = 'BESA';
+  content = 'beamformer source locations and orientations';
+elseif exist(fullfile(p, [f '.dat']), 'file') && (exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
+  ftype = 'besa_sb';
+  manufacturer = 'BESA';
+  content = 'simple binary channel data with a seperate generic ascii header';
 
   % files from Pascal Fries' PhD research at the MPI
 elseif filetype_check_extension(filename, '.dap') && filetype_check_header(filename, char(1))
@@ -689,8 +612,18 @@ elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filen
   manufacturer = 'MBFYS';
   content = 'BEM volume conduction model';
 
+  % Electrical Geodesics Incorporated EGIS format
+elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.gave') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(255) char(255)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(255) char(255)]))
+  ftype = 'egi_egia';
+  manufacturer = 'Electrical Geodesics Incorporated';
+  content = 'averaged EEG data';
+elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ses') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(0) char(3)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(0) char(3)]))
+  ftype = 'egi_egis';
+  manufacturer = 'Electrical Geodesics Incorporated';
+  content = 'raw EEG data';
+  
   % some other known file types
-elseif length(filename>4) && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
+elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
   % there is a matlab V6 file with the header and a binary file with the data (multiplexed, ieee-le, double)
   ftype = 'fcdc_matbin';
@@ -723,6 +656,10 @@ elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filen
   content = 'Matlab binary data';
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% finished determining the filetype
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if strcmp(ftype, 'unknown')
   warning(sprintf('could not determine filetype of %s', filename));
 end
@@ -738,8 +675,12 @@ if ~isempty(desired)
 end
 
 % SUBFUNCTION that helps in deciding whether a directory with files should
-% be treated as a "dataset". This function returns a logical 1 (TRUE) if more 
+% be treated as a "dataset". This function returns a logical 1 (TRUE) if more
 % than half of the element of a vector are nonzero number or are logical 1 (TRUE).
 function y = most(x);
 x = x(find(~isnan(x(:))));
 y = sum(x==0)<ceil(length(x)/2);
+
+% SUBFUNCTION that always returns a true value
+function y = filetype_true(varargin);
+y = 1;

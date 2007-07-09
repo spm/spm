@@ -23,11 +23,23 @@ function [hdr] = read_header(filename, varargin);
 % Depending on the file format, additional header information can be
 % returned in the hdr.orig subfield.
 %
-% See also READ_DATA, READ_EVENT
+% See also READ_DATA, READ_EVENT, WRITE_DATA, WRITE_EVENT
 
-% Copyright (C) 2003-2006, Robert Oostenveld, F.C. Donders Centre
+% Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.25  2007/07/04 13:20:51  roboos
+% added support for egi_egis/egia, thanks to Joseph Dien
+%
+% Revision 1.24  2007/07/03 15:53:46  roboos
+% switched from using Cristian Wienbruchs BTi toolbox to a new ascii header reading function (read_bti_m4d)
+%
+% Revision 1.23  2007/06/13 08:06:22  roboos
+% updated help
+%
+% Revision 1.22  2007/06/06 12:39:43  roboos
+% added try-catch for ctf2grad, to allow working with incomplete recordings on the new 275ch system
+%
 % Revision 1.21  2007/04/16 16:06:11  roboos
 % add labels for neuroscan eeg format (thanks to Vladimir)
 %
@@ -180,38 +192,14 @@ end
 switch headerformat
 
   case {'4d_pdf', '4d_m4d', '4d_xyz'}
-    % check that the required low-level toolbox is available
-    hastoolbox('4d-version', 1);
-    orig = read4dhdr(headerfile);
-    hdr.Fs          = orig.samp_rate;
+    orig = read_bti_m4d(filename);
+    hdr.Fs          = orig.SampleFrequency;
     hdr.nChans      = orig.TotalChannels;
-    hdr.nSamples    = orig.TotalSlices;
-    hdr.nSamplesPre = -round(orig.FirstLatency*orig.samp_rate);
+    hdr.nSamples    = orig.SlicesPerEpoch;
+    hdr.nSamplesPre = round(-orig.FirstLatency*orig.SampleFrequency);
     hdr.nTrials     = orig.TotalEpochs;
-    hdr.label = {};
-    % start with intrinsic channel names
-    for i=1:hdr.nChans
-      hdr.label{i} = sprintf('chan%03d', i);
-    end
-    % rename known MEG channels
-    for i=1:length(orig.MegIndexArray)
-      indx = orig.MegIndexArray(i);
-      % hdr.label{indx} = sprintf('MEG %03d', i);
-      hdr.label{indx} = sprintf('A%d', i); % according to BTi convention
-    end
-    % rename known EEG channels
-    for i=1:length(orig.EegIndexArray)
-      indx = orig.EegIndexArray(i);
-      hdr.label{indx} = sprintf('EEG%03d', i);
-    end
-    % rename known trigger channels
-    for i=1:length(orig.TriggerIndex)
-      indx = orig.TriggerIndex(i);
-      hdr.label{indx} = sprintf('TRIG%03d', i);
-    end
-    hdr.label       = hdr.label(:);
-    % add a gradiometer structure for forward and inverse modelling
-    hdr.grad = bti2grad(orig);
+    hdr.label       = orig.ChannelOrder(:);
+    hdr.grad        = orig.grad;
     % remember original header details
     hdr.orig = orig;
 
@@ -314,7 +302,11 @@ switch headerformat
     hdr.nTrials      = orig.nTrials;
     hdr.label        = orig.label;
     % add a gradiometer structure for forward and inverse modelling
-    hdr.grad = ctf2grad(orig);
+    try
+      hdr.grad = ctf2grad(orig);
+    catch
+      warning('could not construct gradiometer definition from the header');
+    end
     % add the original header details
     hdr.orig = orig;
 
@@ -370,6 +362,74 @@ switch headerformat
     hdr.nSamplesPre = 0;
     hdr.nChans      = hdr.nchan;
     hdr.nTrials     = 1;		% it can always be interpreted as continuous data
+
+  case 'egi_egia'
+    [fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename);
+    [p, f, x]       = fileparts(filename);
+
+    if any(chdr(:,4)-chdr(1,4))
+      error('Sample rate not the same for all cells.');
+    end;
+
+    hdr.Fs          = chdr(1,4); %making assumption that sample rate is same for all cells
+    hdr.nChans      = fhdr(19);
+    for i = 1:hdr.nChans
+      hdr.label{i}  = ['e' num2str(i)];
+    end;
+    hdr.nTrials     = fhdr(11)*fhdr(18); %number of trials is numSubjects * numCells
+    hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));
+
+    if any(chdr(:,3)-chdr(1,3))
+      error('Number of samples not the same for all cells.');
+    end;
+
+    hdr.nSamples    = chdr(1,3); %making assumption that number of samples is same for all cells
+
+    % remember the original header details
+    hdr.orig.fhdr   = fhdr;
+    hdr.orig.chdr   = chdr;
+    hdr.orig.ename  = ename;
+    hdr.orig.cnames = cnames;
+    hdr.orig.fcom   = fcom;
+    hdr.orig.ftext  = ftext;
+
+  case 'egi_egis'
+    [fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename);
+    [p, f, x]       = fileparts(filename);
+
+    if any(chdr(:,4)-chdr(1,4))
+      error('Sample rate not the same for all cells.');
+    end;
+
+    hdr.Fs          = chdr(1,4); %making assumption that sample rate is same for all cells
+    hdr.nChans      = fhdr(19);
+    for i = 1:hdr.nChans
+      hdr.label{i}  = ['e' num2str(i)];
+    end;
+    hdr.nTrials     = sum(chdr(:,2));
+    hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));  
+    % assuming that a utility was used to insert the correct baseline
+    % duration into the header since it is normally absent. This slot is
+    % actually allocated to the age of the subject, although NetStation
+    % does not use it when generating an EGIS session file.
+
+    if hdr.nSamplesPre == 0
+      hdr.nSamplesPre = 1; %If baseline was left as zero, then change to "1" to avoid possible issues with software expecting a non-zero baseline.
+    end;
+
+    if any(chdr(:,3)-chdr(1,3))
+      error('Number of samples not the same for all cells.');
+    end;
+
+    hdr.nSamples    = chdr(1,3); %making assumption that number of samples is same for all cells
+
+    % remember the original header details
+    hdr.orig.fhdr   = fhdr;
+    hdr.orig.chdr   = chdr;
+    hdr.orig.ename  = ename;
+    hdr.orig.cnames = cnames;
+    hdr.orig.fcom   = fcom;
+    hdr.orig.ftext  = ftext;
 
   case 'fcdc_matbin'
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header

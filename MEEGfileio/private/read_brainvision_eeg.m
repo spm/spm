@@ -12,6 +12,9 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_eeg.m,v $
+% Revision 1.4  2007/06/13 08:08:19  roboos
+% changed single & into &&
+%
 % Revision 1.3  2004/03/30 11:47:50  roberto
 % dos->unix, fixed bug in multiplexed binary
 %
@@ -23,7 +26,7 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample);
 % formats
 %
 
-if strcmpi(hdr.DataFormat, 'binary') & strcmpi(hdr.DataOrientation, 'multiplexed') & strcmpi(hdr.BinaryFormat, 'int_16')
+if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'int_16')
   fid = fopen(filename, 'rb', 'ieee-le');
   fseek(fid, hdr.nChans*2*(begsample-1), 'cof');
   [dat, siz] = fread(fid, [hdr.nChans, (endsample-begsample+1)], 'int16');
@@ -32,13 +35,13 @@ if strcmpi(hdr.DataFormat, 'binary') & strcmpi(hdr.DataOrientation, 'multiplexed
   res = sparse(diag(hdr.resolution));
   dat = res * dat;
 
-elseif strcmpi(hdr.DataFormat, 'binary') & strcmpi(hdr.DataOrientation, 'multiplexed') & strcmpi(hdr.BinaryFormat, 'ieee_float_32')
+elseif strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'ieee_float_32')
   fid = fopen(filename, 'rb', 'ieee-le');
   fseek(fid, hdr.nChans*4*(begsample-1), 'cof');
   [dat, siz] = fread(fid, [hdr.nChans, (endsample-begsample+1)], 'float32');
   fclose(fid);
 
-elseif strcmpi(hdr.DataFormat, 'binary') & strcmpi(hdr.DataOrientation, 'vectorized') & strcmpi(hdr.BinaryFormat, 'ieee_float_32')
+elseif strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'vectorized') && strcmpi(hdr.BinaryFormat, 'ieee_float_32')
   fid = fopen(filename, 'rb', 'ieee-le');
   fseek(fid, 0, 'eof');
   hdr.nSamples = ftell(fid)/(4*hdr.nChans);
@@ -52,7 +55,7 @@ elseif strcmpi(hdr.DataFormat, 'binary') & strcmpi(hdr.DataOrientation, 'vectori
   end
   fclose(fid);
 
-elseif strcmpi(hdr.DataFormat, 'ascii') & strcmpi(hdr.DataOrientation, 'multiplexed')
+elseif strcmpi(hdr.DataFormat, 'ascii') && strcmpi(hdr.DataOrientation, 'multiplexed')
   fid = fopen(filename, 'rt');
   for line=1:(begsample-1)
     % read first lines and discard the data in them
@@ -68,7 +71,7 @@ elseif strcmpi(hdr.DataFormat, 'ascii') & strcmpi(hdr.DataOrientation, 'multiple
   % transpose the data
   dat = dat';
 
-elseif strcmpi(hdr.DataFormat, 'ascii') & strcmpi(hdr.DataOrientation, 'vectorized')
+elseif strcmpi(hdr.DataFormat, 'ascii') && strcmpi(hdr.DataOrientation, 'vectorized')
   % this is a very inefficient fileformat to read data from, since it requires to
   % read in all the samples of each channel and then select only the samples of interest
   fid = fopen(filename, 'rt');

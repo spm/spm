@@ -6,6 +6,8 @@ function [hdr] = neuralynx_getheader(filename);
 
 fid     = fopen(filename, 'rb', 'ieee-le');
 buf     = fread(fid, 16*1024, 'char');
+fclose(fid);
+
 buf     = buf(:)';
 nl      = find(buf==10);    % determine the new-lines
 cr      = find(buf==13);    % determine the carriage-returns
@@ -44,4 +46,4 @@ for i=1:num
     end
   end
 end
-fclose(fid);
+

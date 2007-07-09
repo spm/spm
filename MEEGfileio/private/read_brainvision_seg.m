@@ -14,6 +14,9 @@ function [dat] = read_brainvision_seg(filename, hdr, begsample, endsample);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_seg.m,v $
+% Revision 1.3  2007/06/13 08:08:19  roboos
+% changed single & into &&
+%
 % Revision 1.2  2004/03/30 08:22:19  roberto
 % fixed bug due to renaming NumberOfChannels -> nChans
 %
@@ -22,7 +25,7 @@ function [dat] = read_brainvision_seg(filename, hdr, begsample, endsample);
 % formats
 %
 
-if strcmpi(hdr.DataFormat, 'binary') & strcmpi(hdr.DataOrientation, 'multiplexed') & strcmpi(hdr.BinaryFormat, 'int_16')
+if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'int_16')
   % this is a fileformat that I understand
   fid = fopen(filename, 'rb', 'ieee-le');
   fseek(fid, hdr.nChans*2*(begsample-1), 'cof');

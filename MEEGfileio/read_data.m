@@ -23,11 +23,23 @@ function [dat] = read_data(filename, varargin);
 % matrix of size Nchans*Nsamples*Ntrials for epoched or trial-based
 % data when begtrial and endtrial are specified.
 %
-% See also READ_HEADER, READ_EVENT
+% See also READ_HEADER, READ_EVENT, WRITE_DATA, WRITE_EVENT
 
-% Copyright (C) 2003-2006, Robert Oostenveld, F.C. Donders Centre
+% Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.19  2007/07/04 13:20:51  roboos
+% added support for egi_egis/egia, thanks to Joseph Dien
+%
+% Revision 1.18  2007/07/03 16:10:48  roboos
+% added a hack for 32 bit neuroscan format (hdr.nsdf=16|32), this should actually be be done using autodetection
+%
+% Revision 1.17  2007/07/03 15:53:46  roboos
+% switched from using Cristian Wienbruchs BTi toolbox to a new ascii header reading function (read_bti_m4d)
+%
+% Revision 1.16  2007/06/13 08:06:21  roboos
+% updated help
+%
 % Revision 1.15  2007/04/16 16:06:50  roboos
 % fixed bug in selection of trials from an epoched file, when samples are requested (thanks to Vladimir)
 %
@@ -267,39 +279,30 @@ end
 switch dataformat
 
   case {'4d_pdf', '4d_m4d', '4d_xyz'}
-    % 4D/BTi MEG data is multiplexed, can be epoched/discontinuous
-    offset        = begsample-1;
-    numsamples    = endsample-begsample+1;
     [fid,message] = fopen(datafile,'rb','ieee-be');
     % determine the type and size of the samples
-    switch hdr.orig.fileformat
-      case 1
+    sampletype = lower(hdr.orig.Format);
+    switch sampletype
+      case 'short'
         samplesize = 2;
-        sampletype = 'short';
-        % FIXME the data probably should be calibrated
-        warning('integer data is not yet calilbrated');
-      case 2
+      case 'long'
         samplesize = 4;
-        sampletype = 'long';
-        % FIXME the data probably should be calibrated
-        warning('integer data is not yet calilbrated');
-      case 3
+      case 'float'
         samplesize = 4;
-        sampletype = 'float';
-        % assume that the data is calibrated
-      case 4
+      case 'double'
         samplesize = 8;
-        sampletype = 'double';
-        % assume that the data is calibrated
       otherwise
         error('unsupported data format');
     end
+    % 4D/BTi MEG data is multiplexed, can be epoched/discontinuous
+    offset        = (begsample-1)*samplesize*hdr.nChans;
+    numsamples    = endsample-begsample+1;
     % jump to the desired data
-    fseek(fid, offset*samplesize, 'cof');
+    fseek(fid, offset, 'cof');
     % read the desired data
     if length(chanindx)==1
       % read only one channel
-      fseek(fid, (chanindx-1)*samplesize, 'cof');                            % seek to begin of channel
+      fseek(fid, (chanindx-1)*samplesize, 'cof');                                  % seek to begin of channel
       dat = fread(fid, numsamples, ['1*' sampletype], (hdr.nChans-1)*samplesize)'; % read one channel, skip the rest
     else
       % read all channels
@@ -316,6 +319,9 @@ switch dataformat
       % select the desired channel(s)
       dat = dat(chanindx,:);
     end
+    % calibrate the data
+    calib = sparse(diag(hdr.orig.ChannelGain(chanindx)));
+    dat   = calib*dat;
 
   case 'besa_avr'
     % BESA average data
@@ -446,6 +452,10 @@ switch dataformat
       dat = dat(chanindx,:);
     end
 
+  case {'egi_egia', 'egi_egis'}
+    dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
+    dimord = 'chans_samples_trials';
+
   case {'mpi_ds', 'mpi_dap'}
     [hdr, dat] = read_mpi_ds(filename);
     dat = dat(chanindx, begsample:endsample); % select the desired channels and samples
@@ -515,7 +525,11 @@ switch dataformat
     % read_ns_cnt originates from the EEGLAB package (loadcnt.m) but is
     % an old version since the new version is not compatible any more
     % all data is read, and only the relevant data is kept.
-    tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan);
+    if ~isfield(hdr, 'nsdf')
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan);
+    else
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'format', hdr.nsdf);
+    end
     dat = tmp.dat(chanoi,:);
 
   case 'ns_eeg'

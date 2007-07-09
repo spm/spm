@@ -14,6 +14,9 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: read_neuralynx_dma.m,v $
+% Revision 1.16  2007/06/13 18:53:07  roboos
+% fixed bug: in the detection of header size and channel count the file was opened but not closed due to missing fclose()
+%
 % Revision 1.15  2007/04/02 15:12:56  roboos
 % fixed detextion of ascii header (>32 should be >31)
 %
@@ -119,6 +122,7 @@ end
 if ~nboards
   error('could not determine the number of boards and channels');
 end
+fclose(fid);
 
 % deal with ascii and numeric input for the channel selection
 if nargin>3 && ~ischar(channel)
@@ -263,3 +267,4 @@ elseif length(chanindx)==1
   end
   fclose(fid);
 end
+

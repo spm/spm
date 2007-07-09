@@ -10,6 +10,7 @@ function [event] = read_event(filename, varargin)
 %
 % Additional options should be specified in key-value pairs and can be
 %   'eventformat'   string
+%   'header'        structure, see READ_HEADER
 %
 % This function returns an event structure with the following fields
 %   event.type      string
@@ -37,11 +38,54 @@ function [event] = read_event(filename, varargin)
 %   t=26; samples_trials = [event(find(strcmp('trial', {event.type}))).sample];
 %   find([event.sample]>samples_trials(t) & [event.sample]<samples_trials(t+1))
 %
-% See also READ_HEADER, READ_DATA
+% See also READ_HEADER, READ_DATA, WRITE_DATA, WRITE_EVENT
 
-% Copyright (C) 2004-2006, Robert Oostenveld
+% Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.26  2007/07/04 13:20:51  roboos
+% added support for egi_egis/egia, thanks to Joseph Dien
+%
+% Revision 1.25  2007/06/13 13:33:54  roboos
+% changed the mysql code to reflect the updated event table structure
+% removed type and subtype from the insert query
+% added a call to filter_event at the end of the function
+%
+% Revision 1.24  2007/06/13 09:57:32  roboos
+% only test for presence of fields if event is not empty
+% fixed bug in mysql, in case event table is empty
+%
+% Revision 1.23  2007/06/13 08:06:21  roboos
+% updated help
+%
+% Revision 1.22  2007/06/12 19:35:52  roboos
+% implemented support for reading events from mysql database
+%
+% Revision 1.21  2007/06/11 13:52:24  roboos
+% split the event reading from neuralynx_dma and neuralynx_ttl
+% read timestamps from tsl/tsh files, optionally use pre-specified header to correct the sample numbers
+%
+% Revision 1.20  2007/06/07 12:44:28  chrhes
+% updated some documentation
+%
+% Revision 1.19  2007/06/06 21:55:37  chrhes
+% fixed a small bug to do with a string comparison
+%
+% Revision 1.18  2007/06/06 18:19:07  chrhes
+% added initial implementation of reading events from the serial port
+%
+% Revision 1.17  2007/06/06 07:12:48  roboos
+% switched to using filetype_check_uri for detection and parsing of filename
+%
+% Revision 1.16  2007/05/31 09:53:21  roboos
+% implemented reading events from a plain matlab file
+%
+% Revision 1.15  2007/05/31 09:15:13  roboos
+% added placeholder for tcpsocket
+%
+% Revision 1.14  2007/05/15 15:01:44  roboos
+% changed handling of the seperate brainvision header and marker file
+%
 % Revision 1.13  2006/12/13 15:40:10  roboos
 % renamed Parallel_in into ttl for neuralynx_dma
 % renamed the function read_neuralynx_event into read_neuralynx_nev (consistent with the file extension)
@@ -88,12 +132,29 @@ function [event] = read_event(filename, varargin)
 % changed compared to the read_fcdc_xxx versions.
 %
 
+% TODO make read_header optional, depends on hdr being passed
+
 % get the options
 eventformat = keyval('eventformat',  varargin);
+hdr         = keyval('header',  varargin);
 
 % determine the filetype
 if isempty(eventformat)
   eventformat = filetype(filename);
+end
+
+switch eventformat
+  case 'brainvision_vhdr'
+    % read the headerfile belonging to the dataset and try to determine the corresponding markerfile
+    eventformat = 'brainvision_vmrk';
+    hdr = read_brainvision_vhdr(filename);
+    % replace the filename with the filename of the markerfile
+    if ~isfield(hdr, 'MarkerFile') || isempty(hdr.MarkerFile)
+      filename = [];
+    else
+      [p, f, e] = fileparts(filename);
+      filename = fullfile(p, hdr.MarkerFile);
+    end
 end
 
 % start with an empty event structure
@@ -174,18 +235,7 @@ switch eventformat
       event(end  ).duration = [];
     end
 
-  case {'brainvision_vhdr', 'brainvision_vmrk'}
-    if filetype(filename, 'brainvision_vhdr')
-      % read the headerfile belonging to the dataset and try to determine the corresponding markerfile
-      hdr = read_brainvision_vhdr(filename);
-      % replace the filename with the filename of the markerfile
-      if ~isfield(hdr, 'MarkerFile') || isempty(hdr.MarkerFile)
-        filename = [];
-      else
-        [p, f, e] = fileparts(filename);
-        filename = fullfile(p, hdr.MarkerFile);
-      end
-    end
+  case 'brainvision_vmrk'
     fid=fopen(filename,'rt');
     if fid==-1,
       error('cannot open BrainVision marker file')
@@ -324,7 +374,7 @@ switch eventformat
 
   case 'eep_avr'
     % check that the required low-level toolbox is available
-    hastoolbox('eeglab', 1);
+    hastoolbox('eeprobe', 1);
     % the headerfile and datafile are the same
     hdr = read_header(filename);
     event(end+1).type     = 'average';
@@ -335,7 +385,7 @@ switch eventformat
 
   case 'eep_cnt'
     % check that the required low-level toolbox is available
-    hastoolbox('eeglab', 1);
+    hastoolbox('eeprobe', 1);
     % try to read external trigger file in EEP format
     trgfile = [filename(1:(end-3)), 'trg'];
     if exist(trgfile, 'file')
@@ -353,12 +403,150 @@ switch eventformat
       warning('no triggerfile was found');
     end
 
+  case 'egi_egis'
+    hdr = read_header(filename);
+    fhdr   = hdr.orig.fhdr;
+    chdr   = hdr.orig.chdr;
+    ename  = hdr.orig.ename;
+    cnames = hdr.orig.cnames;
+    fcom   = hdr.orig.fcom;
+    ftext  = hdr.orig.ftext;
+    eventCount=0;
+    for cell=1:fhdr(18)
+      for trial=1:chdr(cell,2)
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'trial';
+        event(eventCount).sample   = (eventCount-1)*hdr.nSamples + 1;
+        event(eventCount).offset   = -hdr.nSamplesPre;
+        event(eventCount).duration =  hdr.nSamples;
+        event(eventCount).value    =  cnames{cell};
+      end
+    end
+
+  case 'egi_egia'
+    hdr = read_header(filename);
+    fhdr   = hdr.orig.fhdr;
+    chdr   = hdr.orig.chdr;
+    ename  = hdr.orig.ename;
+    cnames = hdr.orig.cnames;
+    fcom   = hdr.orig.fcom;
+    ftext  = hdr.orig.ftext;
+    eventCount=0;
+    for cell=1:fhdr(18)
+      for subject=1:chdr(cell,2)
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'trial';
+        event(eventCount).sample   = (eventCount-1)*hdr.nSamples + 1;
+        event(eventCount).offset   = -hdr.nSamplesPre;
+        event(eventCount).duration =  hdr.nSamples;
+        event(eventCount).value    =  ['S' num2str(subject) cnames{cell}];
+      end
+    end
+
   case 'fcdc_matbin'
-    % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header
+    % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header and event
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file '.mat']);
     % read the events from the Matlab file
-    load(filename, 'event');
+    tmp   = load(filename, 'event');
+    event = tmp.event;
+
+  case 'fcdc_fifo'
+    fifo = filetype_check_uri(filename);
+    fid = fopen(fifo, 'r');
+    msg = fread(fid, inf, 'char=>char');
+    event = msg2struct(msg);
+    % convert the message into event structure
+    fclose(fid);
+
+  case 'fcdc_tcpsocket'
+    % TCP network socket
+    [host, port] = filetype_check_uri(filename);
+    con = pnet('tcpconnect', host, port);
+    if con<0
+      error('problem opening network connection');
+    end
+    % FIXME implementation should be finished
+    keyboard
+
+  case 'fcdc_serial'
+    % serial port on windows or linux platform
+    [port, opt] = filetype_check_uri(filename);
+    % determine whether any serial port objects are already associated with the
+    % target serial port
+    s = [];
+    temp = instrfind;
+    if isa(temp,'instrument')
+      % find all serial ports
+      i1 = strcmp(lower({temp(:).Type}),'serial');
+      if any(i1)
+        % find all serial ports whose name matches that of the specified port
+        i2 = strmatch(lower(port),lower({temp(find(i1)).Name}));
+        % set s to the (first) matching port if present (and open if necessary)
+        if ~isempty(i2)
+          s = temp(i2(1));
+          if ~strcmp(s.Status,'open'), fopen(s); end;
+        end
+      end
+    end
+    % create, configure a serial port object if necessary and open the port
+    if ~isa(s,'serial')
+      s = serial(port);
+      if ~isempty(opt) && iscell(opt), s = set(s,opt); end;
+      fopen(s);
+    end
+    % try to read a message from the serial port
+    msg = [];
+    % FIXME: this currently assumes that all messages are terminated by the
+    % "newline" character (ascii character 10)
+    try
+      msg = fscanf(s,'%s\n'); 
+    end;
+    % convert message to event structure
+    event = msg2struct(msg);
+    
+  case 'fcdc_mysql'
+    persistent prev_filename
+    % read from a MySQL server listening somewhere else on the network
+    % there should be a database named 'fieldtrip' containing the table named 'event'
+    [user, passwd, host, port] = filetype_check_uri(filename);
+    if ~strcmp(filename, prev_filename)
+      % close the database
+      mysql('close');
+      prev_filename = [];
+    end
+    if ~strcmp(filename, prev_filename)
+      % open the database
+      [user, password, server, port] = filetype_check_uri(filename);
+      if ~isempty(port)
+        server = sprintf('%s:%d', server, port);
+      end
+      try
+        mysql('open', server, user, password);
+        prev_filename = filename;
+      catch
+        prev_filename = [];
+      end
+    end
+    cmd = 'SELECT data FROM fieldtrip.event LIMIT 1,1'; % read only the first event
+    cmd = 'SELECT data FROM fieldtrip.event';           % read all events
+    [data] = mysql(cmd);
+
+    % convert the message back into an event structure
+    if length(data)>0
+      event = msg2struct(data{1});
+    else
+      event = [];
+    end
+    % also add the subsequent events to the structure array
+    for i=2:length(data)
+      event(i) = msg2struct(data{i});
+    end
+
+  case 'matlab'
+    % read the events from a normal Matlab file
+    tmp   = load(filename, 'event');
+    event = tmp.event;
 
   case {'mpi_ds', 'mpi_dap'}
     hdr = read_header(filename);
@@ -484,16 +672,10 @@ switch eventformat
       end % if length(stimindx)
     end
 
-  case {'neuralynx_dma', 'neuralynx_ttl'}
-    % only the reading is different for dma and ttl, the rest is the same
+  case 'neuralynx_dma'
     hdr = read_header(filename);
-    if filetype(filename, 'neuralynx_dma')
-      % read the Parallel_in channel from the DMA log file
-      stim = read_neuralynx_dma(filename, 1, hdr.nSamples, 'ttl');
-    elseif filetype(filename, 'neuralynx_ttl')
-      % read the Parallel_in channel from a seperate *.ttl file
-      stim = read_neuralynx_ttl(filename, 1, inf);
-    end
+    % read the Parallel_in channel from the DMA log file
+    stim = read_neuralynx_dma(filename, 1, hdr.nSamples, 'ttl');
     % parallel port provides int32, but word resolution is int16
     stim = stim / (2^16);
     % detect flanks: first sample of all changing values staying >0 for at least trigDuration samples
@@ -508,6 +690,49 @@ switch eventformat
       event(end  ).value    = stim(nev(i));
       event(end  ).offset   = [];
       event(end  ).duration = [];
+    end
+
+  case 'neuralynx_ttl'
+    % read the header from the file (this is actually hardcoded)
+    hdrttl = read_header(filename);
+    % read the Parallel_in channel from a seperate *.ttl file
+    stim = read_neuralynx_ttl(filename, 1, inf);
+    % parallel port provides int32, but word resolution is int16
+    stim = stim / (2^16);
+    % detect flanks: first sample of all changing values staying >0 for at least trigDuration samples
+    trigDuration = round(max([1 floor(hdrttl.Fs/10000)]));  % three samples works fine for 32556Hz, i.e. ~32556/10000
+    flanksAll = find([0 (diff(stim)~=0)]~=0);
+    flankInds = find(([0 diff(flanksAll)>trigDuration]>0));
+    flanks = flanksAll(flankInds-1);
+    nev = flanks(stim(flanks)>0);
+    for i=1:length(nev)
+      event(end+1).type     = 'trigger';
+      event(end  ).sample   =      nev(i) ;  % expressed in the sampling frequency of the dma or ttl file
+      event(end  ).value    = stim(nev(i));
+      event(end  ).offset   = [];
+      event(end  ).duration = [];
+    end
+
+    [p, f, x] = fileparts(filename);
+    if exist(fullfile(p, [f '.tsl'])) && exist(fullfile(p, [f '.tsh']))
+      smp = cell2mat({event.sample});
+      tsl = read_neuralynx_tsl(fullfile(p, [f '.tsl']), 1, max(smp));
+      tsl = tsl(smp);
+      tsh = read_neuralynx_tsh(fullfile(p, [f '.tsh']), 1, max(smp));
+      tsh = tsh(smp);
+      ts  = timestamp_neuralynx(tsl, tsh);
+      for i=1:length(event)
+        event(i).timestamp = ts(i);
+      end
+      if ~isempty(hdr) && isfield(hdr, 'FirstTimeStamp')
+        fprintf('using sample number of the downsampled file to reposition events from the TTL file\n');
+        % convert the timestamps into samples, keeping in mind the FirstTimeStamp and TimeStampPerSample
+        smp = round(double(ts - uint64(hdr.FirstTimeStamp))./hdr.TimeStampPerSample + 1);
+        for i=1:length(event)
+          % update the sample number
+          event(i).sample = smp(i);
+        end
+      end
     end
 
   case 'neuralynx_ds'
@@ -636,17 +861,23 @@ switch eventformat
     error('unsupported data format');
 end
 
-% make sure that all required elements are present
-if ~isfield(event, 'type'),     error('type field not defined for each event');     end
-if ~isfield(event, 'sample'),   error('sample field not defined for each event');   end
-if ~isfield(event, 'value'),    for i=1:length(event), event(i).value = [];    end; end
-if ~isfield(event, 'offset'),   for i=1:length(event), event(i).offset = [];   end; end
-if ~isfield(event, 'duration'), for i=1:length(event), event(i).duration = []; end; end
+if ~isempty(event)
+  % make sure that all required elements are present
+  if ~isfield(event, 'type'),     error('type field not defined for each event');     end
+  if ~isfield(event, 'sample'),   error('sample field not defined for each event');   end
+  if ~isfield(event, 'value'),    for i=1:length(event), event(i).value = [];    end; end
+  if ~isfield(event, 'offset'),   for i=1:length(event), event(i).offset = [];   end; end
+  if ~isfield(event, 'duration'), for i=1:length(event), event(i).duration = []; end; end
+end
 
 if ~isempty(event)
   % sort the events on the sample on which they occur
+  % this has the side effect that events without a sample number are discarded
   [dum, indx] = sort([event.sample]);
   event = event(indx);
 else
   warning(sprintf('no events found in %s', filename));
 end
+
+% apply the optional filters
+event = filter_event(event, varargin{:});
