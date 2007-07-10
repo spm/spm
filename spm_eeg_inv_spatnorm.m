@@ -16,19 +16,16 @@ function varargout = spm_eeg_inv_spatnorm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_spatnorm.m 849 2007-07-10 15:30:31Z rik $
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-% get sMRI file name
-%--------------------------------------------------------------------------
 try
     sMRI = D.inv{val}.mesh.sMRI;
 catch
-    sMRI = spm_select(1,'image','Select subject''s structural MRI');
-    D.inv{val}.mesh.sMRI = sMRI;
+    sMRI = spm_select([1],'image','Select subject''s structural MRI');
 end
 
 disp({'Normalising sMRI and computing mapping from canonical';

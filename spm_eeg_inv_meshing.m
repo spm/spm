@@ -14,16 +14,55 @@ function D = spm_eeg_inv_meshing(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_meshing.m 849 2007-07-10 15:30:31Z rik $
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-% ensure requisite field are specified
+% check template flag
 %--------------------------------------------------------------------------
-if ~isfield(D.inv{val}.mesh,'sMRI')
-    D     = spm_eeg_inv_spatnorm(D);
+try 
+    template = D.inv{val}.mesh.template;
+catch
+    D.inv{val}.mesh.template = 0;
+end
+
+% get sMRI file name (select none if none present, to use template mesh)
+%--------------------------------------------------------------------------
+if ~D.inv{val}.mesh.template & ~isfield(D.inv{val}.mesh,'sMRI')
+    D.inv{val}.mesh.sMRI = spm_select([0 1],'image','Select subject''s structural MRI (Press Done if none)');
+end
+
+if isempty(D.inv{val}.mesh.sMRI)
+    disp('No structural MRI selected; will use template mesh');
+    D.inv{val}.mesh.template = 1;
+end
+
+% set canonical flag (if not specified, determined by modality)
+%--------------------------------------------------------------------------
+
+if ~D.inv{val}.mesh.template
+ try 
+  canonical = D.inv{val}.mesh.canonical;
+ catch
+
+  if strcmp(D.modality,'MEG')		% No ECD yet for MEG!
+	D.inv{val}.method = 'Imaging';
+  end
+
+  if ~isfield(D.inv{val},'method')
+    D.inv{val}.method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
+  end
+
+  if strcmp(D.inv{val}.method,'ECD')	% Use subject-specific mesh for ECD
+    D.inv{val}.mesh.canonical = 0;
+  else
+    D.inv{val}.mesh.canonical = 1;	% Use canonical mesh for Imaging
+  end
+ end
+else
+    D.inv{val}.mesh.canonical = 0;
 end
 
 % get cortical mesh size
@@ -35,32 +74,28 @@ else
     Msize = D.inv{val}.mesh.Msize;
 end
 
-% get or set canonical flag
-%--------------------------------------------------------------------------
-if ~isfield(D.inv{val}.mesh,'canonical')
-    canonical = 1;
-    D.inv{val}.mesh.canonical = canonical;
-else
-    canonical = D.inv{val}.mesh.canonical;
-end
 
-% set template flag
-%--------------------------------------------------------------------------
-D.inv{val}.mesh.template = 0;
+if D.inv{val}.mesh.template
+  D = spm_eeg_inv_template(D);
+else
+
+% Segment and normalise structural
+%==========================================================================
+  D  = spm_eeg_inv_spatnorm(D);
 
 % Compute the masks
 %==========================================================================
-D  = spm_eeg_inv_getmasks(D);
+  D  = spm_eeg_inv_getmasks(D);
 
-% Compute the skull, cortex and scalp meshes de nove, from masks
+% Compute the skull, cortex and scalp meshes de novo, from masks
 %==========================================================================
-if ~canonical
+  if ~D.inv{val}.mesh.canonical
     
     D  = spm_eeg_inv_getmeshes(D);
 
 % or deform canonical meshes
 %--------------------------------------------------------------------------
-else
+  else
 
     % Compute the cortex mesh from the template
     %----------------------------------------------------------------------
@@ -99,6 +134,6 @@ else
     Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
     D.inv{val}.mesh.tess_iskull.vert = Tmesh.vert;
     D.inv{val}.mesh.tess_iskull.face = uint16(Tmesh.face);
-
+  end
 end
 spm('Pointer','Arrow');

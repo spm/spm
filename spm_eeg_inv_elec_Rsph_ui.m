@@ -37,11 +37,15 @@ Mesh    = D.inv{D.val}.mesh;
 Reg     = D.inv{D.val}.datareg.sens_coreg;
 el_name = D.channels.name(setdiff(D.channels.eeg, D.channels.Bad));
 
+try 
+    canonical = D.inv{D.val}.mesh.canonical;
+catch
+    D.inv{D.val}.mesh.canonical = 0;
+end
 
-% Enforce the use of a canonical mesh; noting that spm_eeg_inv_model could 
-% generate new meshes at this stage.
-%--------------------------------------------------------------------------
-if 1 % strcmp(questdlg('Use canonical mesh'),'Yes')
+% Use canonical mesh or generate new meshes
+%------------------------------------------
+if D.inv{D.val}.mesh.canonical
     
     % create head structure from previous tesselation  - skull
     %----------------------------------------------------------------------
@@ -59,9 +63,10 @@ if 1 % strcmp(questdlg('Use canonical mesh'),'Yes')
     head.tri         = Tess.face';
     head.nr          = [length(Tess.vert) length(Tess.face)];
     model.head(2)    = head;
-    
+
 else
-    
+
+% May involve regenerating an existing individual mesh, but hey!
     Pvol             = strvcat(Mesh.msk_iskull,Mesh.msk_scalp);
     model.head       = spm_eeg_inv_model('GenMesh',Pvol);
     
@@ -78,7 +83,7 @@ model.spheres        = spm_eeg_inv_Rsph(model,[]);
 % Save in D
 %--------------------------------------------------------------------------
 D.inv{D.val}.forward = model;
-fprintf('Foward model complete - thank you\n')
+%fprintf('Foward model complete - thank you\n')
 
 return
 

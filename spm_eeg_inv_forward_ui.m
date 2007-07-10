@@ -15,7 +15,7 @@ function D = spm_eeg_inv_forward_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_forward_ui.m 849 2007-07-10 15:30:31Z rik $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -26,7 +26,11 @@ function D = spm_eeg_inv_forward_ui(varargin)
 if strcmp(D.modality,'MEG')
     method = 'Imaging';
 else
-    method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
+    try 
+	method = D.inv{val}.method;
+    catch
+	method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
+    end
 end
 D.inv{D.val}.method = method;
 
