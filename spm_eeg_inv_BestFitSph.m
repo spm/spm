@@ -16,7 +16,7 @@ function    [Center,Radius] = spm_eeg_inv_BestFitSph(points,varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_BestFitSph.m 308 2005-11-23 19:21:56Z jeremie $
+% $Id: spm_eeg_inv_BestFitSph.m 848 2007-07-10 15:25:29Z rik $
 
 if nargin > 2
     disp('Wrong input format');
@@ -24,7 +24,7 @@ if nargin > 2
 elseif nargin == 2
     Gflag = varargin{1};
 else
-    Gflag = 0;
+    Gflag = 1;
 end
 
 TOL = 1e8*eps;
@@ -53,7 +53,7 @@ g  = TOL + 1;
 k  = 0;
 
 if Gflag == 1
-    figure;
+    Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
     plot3(X,Y,Z,'ok');
     set(gcf,'color','white'); axis off; view(-90,0);
     drawnow
@@ -100,3 +100,4 @@ Center = C;
 Radius = R;
 
 disp(['Scalp best fitting sphere computed (in ' num2str(k) ' iterations)']);
+disp(sprintf('Centre = [%5.4f %5.4f %5.4f] (Radius = %5.4f)',C(1),C(2),C(3),R));

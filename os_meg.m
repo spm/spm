@@ -186,7 +186,9 @@ AllWeight = [Channel.Weight];
 AllWeight = reshape(AllWeight(:),NumCoils,length(AllWeight(:))/NumCoils);
 % -- modified from original version: JM 30/10/05 --
 AllCenter = [Param.Center];
-AllCenter = reshape(AllCenter,NumCoils*3,size(AllLocs,2)/NumCoils);
+%AllCenter = reshape(AllCenter,NumCoils*3,size(AllLocs,2)/NumCoils);
+% Bug fix by Rik Henson 6/6/07
+AllCenter = reshape(AllCenter,NumCoils*3,size(AllCenter,2)/NumCoils);
 
 for j = 1:NumCoils,
    P(j).sensor = AllLocs([-2:0]+j*3,:);

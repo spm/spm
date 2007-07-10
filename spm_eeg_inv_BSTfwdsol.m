@@ -1,4 +1,4 @@
-function D = spm_eeg_inv_BSTfwdsol(varargin)
+function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 
 %=======================================================================
 % FORMAT D = spm_eeg_inv_BSTparameters(D,val)
@@ -18,7 +18,11 @@ function D = spm_eeg_inv_BSTfwdsol(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_BSTfwdsol.m 848 2007-07-10 15:25:29Z rik $
+
+% Modified by Rik Henson to handle gradiometers (with two positions/orientations 
+% for component coils) and to allow sphere to be fit to other surfaces, eg
+% inner skull rather than scalp				4/6/07
 
 % initialise
 %--------------------------------------------------------------------------
@@ -54,12 +58,24 @@ catch
     end
 end
 
+% Added by Rik to allow different options for sphere fitting 
+try 
+	sphere2fit = D.inv{val}.forward.sphere2fit;
+catch
+	if isfield(D.inv{val}.mesh,'tess_iskull')
+		sphere2fit = 2;		% Default to inner skull
+	else
+		sphere2fit = 1;		% Cortex 
+	end
+end
+% COULD ADD OPTION TO FIT SPHERE TO POLHEMUS HEAD SHAPE!
+
 % I/O functions
 %--------------------------------------------------------------------------
 Nvert                      = length(D.inv{val}.mesh.tess_ctx.vert);
 [path,nam,ext]             = fileparts(D.inv{val}.mesh.sMRI);
 OPTIONS.ImageGridBlockSize = Nvert + 1;
-OPTIONS.Verbose            = 0;
+OPTIONS.Verbose            = 1;
 
 % Head Geometry (create tesselation file)
 %--------------------------------------------------------------------------
@@ -91,6 +107,14 @@ for i = 1:Nvert
     VertConn{1}{i} = voi;
 end
 
+if sphere2fit == 1
+    % compute the best fitting sphere to CORTEX
+    %----------------------------------------------------------------------
+    [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
+    OPTIONS.HeadCenter = Center;
+    OPTIONS.Radii      = [.88 .93 1]*Radius;
+end
+
 if isfield(D.inv{val}.mesh,'tess_iskull')
     
     % convert positions into m
@@ -110,6 +134,14 @@ if isfield(D.inv{val}.mesh,'tess_iskull')
     Curvature{2} = [];
     VertConn{2}  = [];
     indx         = 3;
+
+    if sphere2fit == 2
+    % compute the best fitting sphere to INNER SKULL
+    %----------------------------------------------------------------------
+        [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
+        OPTIONS.HeadCenter = Center;
+        OPTIONS.Radii      = [.88 .93 1]*Radius;
+    end
 else
     indx         = 2;
 end
@@ -135,11 +167,13 @@ if isfield(D.inv{val}.mesh,'tess_scalp')
 
     OPTIONS.Scalp.iGrid    = indx;
 
-    % compute the best fitting sphere
+    if sphere2fit == 3
+    % compute the best fitting sphere to SCALP
     %----------------------------------------------------------------------
-    [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
-    OPTIONS.HeadCenter = Center;
-    OPTIONS.Radii      = [.88 .93 1]*Radius;
+        [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
+        OPTIONS.HeadCenter = Center;
+        OPTIONS.Radii      = [.88 .93 1]*Radius;
+    end
 end
 
 OPTIONS.Cortex.ImageGrid.Comment   = Comment;
@@ -151,12 +185,12 @@ OPTIONS.Cortex.ImageGrid.Vertices  = Vertices;
 % Sensor Information
 %--------------------------------------------------------------------------
 OPTIONS.ChannelType = D.modality;
-sens     = D.inv{val}.datareg.sens_coreg;
-if length(sens) ~= size(sens,2) & length(sens) > 3
-    sens = sens';
-end
+sens     = D.inv{val}.datareg.sens_coreg';
+%if length(sens) ~= size(sens,2) & length(sens) > 3
+%    sens = sens';
+%end
 
-% convert positions into m
+% convert positions into m (!!!)
 %--------------------------------------------------------------------------
 if max(max(sens)) > 1 % non m
     if max(max(sens)) < 20 % cm
@@ -171,16 +205,44 @@ end
 if (D.modality == 'MEG')
     orientation  = D.inv{val}.datareg.sens_orient_coreg';
 end
+
+ncoil = size(sens,1)/3;	% = 2 at least one gradiometer present (see spm_bst_headmodeler)
+
+if ncoil > 1
+    OPTIONS.HeadCenter = repmat(OPTIONS.HeadCenter,1,ncoil);
+end
+
 for i = 1:length(sens)
     Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
-    Channel(i).Loc = sens(:,i);
+ 
+    Channel(i).Loc = reshape(sens(:,i),3,ncoil);
+
     if exist('orientation') == 1
-        Channel(i).Orient = orientation(:,i);
+        Channel(i).Orient = reshape(orientation(:,i),3,ncoil);
     else
         Channel(i).Orient = [];
     end
+
+    if isfield(D.channels,'Weight')
+	Channel(i).Weight  = D.channels.Weight(i,:);
+    elseif ncoil == 1
+    	Channel(i).Weight  = 1;
+    else		% (currently only handles first-order gradiometers, ie two coils)
+        if all(isfinite(Channel(i).Loc(:,2)))	       % this is a gradiometer
+%        if sum(Channel(i).Loc(:,1) - Channel(i).Loc(:,2))~=0 % this is a gradiometer
+	    Channel(i).Weight  = [1 -1];
+	else						% magnetometer
+    	    Channel(i).Weight  = [1 0];
+	end
+    end
+
+    if ncoil > 1
+      if ~all(isfinite(Channel(i).Loc(:,2)))		% replace mag NaNs
+	Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
+	Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
+      end
+    end
     Channel(i).Comment = num2str(i);
-    Channel(i).Weight  = 1;
     Channel(i).Type    = D.modality;
     Channel(i).Name    = [D.modality ' ' num2str(i)];
 end
@@ -214,3 +276,10 @@ else
     save(D.inv{val}.forward.gainmat,'G');
     save(D.inv{val}.forward.gainxyz,'Gxyz');
 end
+
+varargout{1} = D;
+if nargout > 1
+    varargout{2} = OPTIONS;
+end
+
+return
