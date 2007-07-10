@@ -12,8 +12,9 @@ function spm_eeg_inv_checkdatareg(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_checkdatareg.m 850 2007-07-10 15:43:27Z rik $
 
+% Minor change by Rik to handle sensors consisting of two gradiometer coils 5/6/07
 
 % initialise
 %--------------------------------------------------------------------------
@@ -62,6 +63,14 @@ catch
     return
 end
 
+if size(Lsens,2)==6	% gradiometers, two coils
+    for ch = 1:size(Lsens,1)
+        if all(isfinite(Lsens(ch,4:6)))
+          Lsens(ch,1:3) = (Lsens(ch,1:3)+Lsens(ch,4:6))/2;
+	end
+    end
+    Lsens = Lsens(:,1:3);
+end
 
 % EEG fiducials or MEG coils (coreg.)
 %--------------------------------------------------------------------------
@@ -91,7 +100,7 @@ rotate3d on
 hold off
 zoom(5/3)
 
-% DDISPLAY CHANNELS
+% DISPLAY CHANNELS
 %==========================================================================
 subplot(2,1,2)
 
@@ -114,6 +123,7 @@ axis equal off
 axis([min(Lsens(:,1)), max(Lsens(:,1)), min(Lsens(:,2)),...
       max(Lsens(:,2)), min(Lsens(:,3)), max(Lsens(:,3))])
 view(-140,70)
+rotate3d on
 
 % display field
 %--------------------------------------------------------------------------

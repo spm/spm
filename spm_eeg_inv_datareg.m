@@ -49,7 +49,10 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 734 2007-02-09 21:21:02Z karl $
+% $Id: spm_eeg_inv_datareg.m 850 2007-07-10 15:43:27Z rik $
+
+% Modified by Rik Henson to handle gradiometers (with two positions/orientations 
+% for component coils) 4/6/07
 
 % Check input arguments
 %==========================================================================
@@ -64,7 +67,11 @@ if nargin < 3
         fid_mri   = D.inv{val}.datareg.fid_mri;
         headshape = D.inv{val}.datareg.headshape;
         scalpvert = D.inv{val}.datareg.scalpvert;
-        megorient = D.inv{val}.datareg.megorient;
+	if strcmp(D.modality,'MEG')
+         megorient = D.inv{val}.datareg.megorient;
+        else
+         megorient = sparse(0,3);
+        end
         template  = D.inv{val}.mesh.template;
     catch
         D   = spm_eeg_inv_datareg_ui(varargin{:});
@@ -179,9 +186,20 @@ end
 
 % Update the sensor locations and orientation
 %--------------------------------------------------------------------------
-sensors   = M1*[sensors'; ones(1,size(sensors,1))];
-sensors   = sensors(1:3,:)';
-megorient = megorient*M1(1:3,1:3)';
+if size(sensors,2) == 3		% Only one coil
+    sensors   = M1*[sensors'; ones(1,size(sensors,1))];
+    sensors   = sensors(1:3,:)';
+    megorient = megorient*M1(1:3,1:3)';
+elseif size(sensors,2) == 6	% Two coils (eg gradiometer)
+    tmp1      = M1*[sensors(:,1:3)'; ones(1,size(sensors,1))];
+    tmp2      = M1*[sensors(:,4:6)'; ones(1,size(sensors,1))];
+    sensors   = [tmp1(1:3,:); tmp2(1:3,:)]';
+    tmp1      = megorient(:,1:3)*M1(1:3,1:3)';
+    tmp2      = megorient(:,4:6)*M1(1:3,1:3)';
+    megorient = [tmp1 tmp2];
+else
+    error('Unknown sensor coil locations')
+end
 
 % retain valid sensor locations for leadfield computation
 %--------------------------------------------------------------------------
@@ -193,19 +211,30 @@ if nargin < 3
         D.channels.Bad = [];
     end
     sensors   = sensors(sens,:);
+    if strcmp(D.modality,'MEG')
+     megorient = megorient(sens,:);
+    end
 end
 
 % ensure sensors lie outside the scalp
 %--------------------------------------------------------------------------
-if length(scalpvert)
-    for i = 1:4
-        tri     = delaunayn(scalpvert);
-        j       = dsearchn(scalpvert, tri, sensors);
-        dist    = sqrt(sum(sensors.^2,2)./sum(scalpvert(j,:).^2,2));
-        dist    = min(dist,1);
-        sensors = diag(1./dist)*sensors;
-    end
-end
+%if length(scalpvert)
+%    for i = 1:4
+%        tri     = delaunayn(scalpvert);
+%       	j       = dsearchn(scalpvert, tri, sensors(:,1:3));
+%        dist    = sqrt(sum(sensors(:,1:3).^2,2)./sum(scalpvert(j,:).^2,2));
+%        dist    = min(dist,1);
+%        sensors(:,1:3) = diag(1./dist)*sensors(:,1:3);
+%        if size(sensors,2) == 6		% Second coil
+%            sensors(:,4:6) = diag(1./dist)*sensors(:,4:6);
+%       	    j       = dsearchn(scalpvert, tri, sensors(:,4:6));
+%            dist    = sqrt(sum(sensors(:,4:6).^2,2)./sum(scalpvert(j,:).^2,2));
+%            dist    = min(dist,1);
+%            sensors(:,1:3) = diag(1./dist)*sensors(:,1:3);
+%            sensors(:,4:6) = diag(1./dist)*sensors(:,4:6);
+%        end
+%    end
+%end
 
 % Ouptut arguments
 %--------------------------------------------------------------------------

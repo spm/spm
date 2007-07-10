@@ -26,12 +26,20 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 %--------------------------------------------------------------------------
 [D,val]  = spm_eeg_inv_check(varargin{:});
 
-% didplay flag
+% display flag
 %--------------------------------------------------------------------------
 try
     Disp = D.inv{val}.contrast.display;
 catch
     Disp = 0;
+end
+
+% Scaling factor for images
+%--------------------------------------------------------------------------
+try
+    scalefactor = D.inv{val}.contrast.scalefactor;
+catch
+    scalefactor = 1e6;
 end
 
 % smoothing FWHM (mm)
@@ -124,9 +132,10 @@ for c = 1:length(D.inv{val}.contrast.GW)
         end
     end
 
-    % Write image (rescale by 10^6)
+    % Write image (rescale by 10^6) WHY?
     %--------------------------------------------------------------------------
-    RECimage  = RECimage*1e6;
+%    RECimage  = RECimage*1e6;
+    RECimage  = RECimage*scalefactor;
     Vout      = spm_write_vol(Vout,RECimage);
 
     % Smoothing

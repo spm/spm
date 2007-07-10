@@ -24,6 +24,7 @@ end
 %--------------------------------------------------------------------------
 try, woi = model.contrast.woi;  catch, woi = [80 120]; end
 try, foi = model.contrast.fboi; catch, foi = 0;        end
+try, Han = model.contrast.Han;  catch, Han = 1;        end
 
 % inversion parameters
 %--------------------------------------------------------------------------
@@ -44,10 +45,23 @@ Nc   = size(U,1);                                 % number of channels
 
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
+
 toi  = round(woi*(D.Radc/1000)) + D.events.start + 1;
-fwhm = diff(toi);
-t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
-t    = t/sum(t);
+if toi(1) < It(1) | toi(2) > It(end)
+     errordlg('Contrast timewindow outside range of localised timewindow','Bad timewindow');
+     return;
+else
+     toi = toi - It(1) + 1;
+end
+
+if Han
+    fwhm = diff(toi);
+    t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
+    t    = t/sum(t);
+else
+    t    = toi(1):toi(end);
+    t    = ones(size(t))/length(t);
+end
 
 % get frequency space and put PST subspace into contrast (W -> T*T'*W)
 %--------------------------------------------------------------------------
@@ -98,7 +112,7 @@ for i = 1:length(J)
 
         % conditional expectation of contrast (J*W) and its energy
         %------------------------------------------------------------------
-        Nt    = length(c)
+        Nt    = length(c);
         for j = 1:Nt
             fprintf('\nevaluating trial %i, condition %i',j,i)
             MYW   = MUR*(D.data(Ic,It,c(j))*TTW)/Nt;
