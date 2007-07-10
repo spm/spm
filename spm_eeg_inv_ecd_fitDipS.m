@@ -75,6 +75,23 @@ if nargin<3
 end
 if ~isstruct(Vbr), Vbr = spm_vol(Vbr); end
 
+
+% Ensure repeatable solutions as function of localisation number (ie seed) (RH)
+%------------------------------------------------------------------------------
+try
+    val = D.val;
+catch
+    val = 1;
+    D.val = val;
+end
+rand('state',val)
+
+% Take average reference for EEG data (RH)
+%-----------------------------------------
+% (since leadfield mean-corrected in spm_eeg_inv_ecd_costSd.m)
+
+V = V - repmat(mean(V,1),size(V,1),1);
+
 % Pass the global vars
 %---------------------
 V_BR = Vbr;
