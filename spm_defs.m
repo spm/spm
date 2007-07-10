@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 755 2007-02-28 18:15:10Z john $
+% $Id: spm_defs.m 846 2007-07-10 14:17:17Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -24,7 +24,6 @@ if isempty(job),
 end;
 [Def,mat] = get_job(job{1});
 for i=2:numel(job),
-fprintf('%d\n',i);
     Def1 = Def;
     mat1 = mat;
     [Def,mat] = get_job(job{i});
@@ -39,7 +38,6 @@ fprintf('%d\n',i);
         Def{3}(:,:,j) = single(spm_sample_vol(Def1{3},d{:},[1,NaN]));
 
     end;
-    subplot(3,3,i);imagesc(Def{3}(:,:,20));drawnow;
 end;
 %_______________________________________________________________________
 
@@ -55,6 +53,8 @@ case {'comp'}
     [Def,mat] = get_comp(job.(fn));
 case {'def'}
     [Def,mat] = get_def(job.(fn));
+case {'dartel'}
+    [Def,mat] = get_dartel(job.(fn));    
 case {'sn2def'}
     [Def,mat] = get_sn2def(job.(fn));
 case {'inv'}
@@ -171,6 +171,25 @@ Def{1} = spm_load_float(V(1));
 Def{2} = spm_load_float(V(2));
 Def{3} = spm_load_float(V(3));
 mat    = V(1).mat;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function [Def,mat] = get_dartel(job)
+% Integrate a DARTEL flow field
+N      = nifti(job.flowfield{1});
+y      = spm_dartel_integrate(N.dat,job.times,job.K);
+Def    = cell(3,1);
+if all(job.times == [0 1]),
+    M      = single(N.mat);
+    mat    = N.mat0;
+else
+    M      = single(N.mat0);
+    mat    = N.mat;
+end
+Def{1} = y(:,:,:,1)*M(1,1) + y(:,:,:,2)*M(1,2) + y(:,:,:,3)*M(1,3) + M(1,4);
+Def{2} = y(:,:,:,1)*M(2,1) + y(:,:,:,2)*M(2,2) + y(:,:,:,3)*M(2,3) + M(2,4);
+Def{3} = y(:,:,:,1)*M(3,1) + y(:,:,:,2)*M(3,2) + y(:,:,:,3)*M(3,3) + M(3,4);
+
 %_______________________________________________________________________
 
 %_______________________________________________________________________

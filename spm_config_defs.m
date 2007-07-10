@@ -4,7 +4,7 @@ function conf = spm_config_defs
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_defs.m 365 2005-12-06 18:03:47Z john $
+% $Id: spm_config_defs.m 846 2007-07-10 14:17:17Z john $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -22,6 +22,11 @@ repeat = inline(['struct(''type'',''repeat'',''name'',name,'...
     '''tag'',tag,''values'',{values})'],...
     'name','tag','values');
 
+mnu = inline(['struct(''type'',''menu'',''name'',name,'...
+        '''tag'',tag,''labels'',{labels},''values'',{values},''help'',{{}})'],...
+        'name','tag','labels','values');
+
+%--------------------------------------------------------------------
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
 'They can be loaded, inverted, combined etc, and the results ',...
@@ -117,30 +122,68 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
+if spm_matlab_version_chk('7') <= 0 && exist('spm_dartel_integrate')==2,
+    ffield = files('Flow field','flowfield','nifti',[1 1]);
+    ffield.ufilter = '^u_.*';
+    ffield.help = {...
+    ['The flow field stores the deformation information. '...
+     'The same field can be used for both forward or backward deformations '...
+     '(or even, in principle, half way or exaggerated deformations).']};
+    %------------------------------------------------------------------------
+    forbak = mnu('Forward/Backwards','times',{'Backward','Forward'},{[1 0],[0 1]});
+    forbak.val  = {[1 0]};
+    forbak.help = {[...
+    'The direction of the DARTEL flow.  '...
+    'Note that a backward transform will warp an individual subject''s '...
+    'to match the template (ie maps from template to individual). '...
+    'A forward transform will warp the template image to the individual.']};
+    %------------------------------------------------------------------------
+    K = mnu('Time Steps','K',...
+        {'1','2','4','8','16','32','64','128','256','512'},...
+        {0,1,2,3,4,5,6,7,8,9});
+    K.val = {6};
+    K.help = {...
+    ['The number of time points used for solving the '...
+     'partial differential equations.  A single time point would be '...
+     'equivalent to a small deformation model. '...
+     'Smaller values allow faster computations, '...
+     'but are less accurate in terms '...
+     'of inverse consistancy and may result in the one-to-one mapping '...
+     'breaking down.']};
+    %------------------------------------------------------------------------
+    drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
+    drtl.help = {'Imported DARTEL flow field.'};
+    %------------------------------------------------------------------------
+    other = {sn2def,drtl,def};
+else
+    other = {sn2def,def};
+end
+
 img          = files('Image to base inverse on','space','image',1);
 img.help     = himg;
 
-comp0        = repeat('Composition','comp',{sn2def,def});
+comp0        = repeat('Composition','comp',other);
 comp0.help   = hcomp;
 
 iv0          = branch('Inverse','inv',{comp0,img});
 iv0.help     = hinv;
 
-comp1        = repeat('Composition','comp',{sn2def,def,iv0,comp0});
+comp1        = repeat('Composition','comp',{other{:},iv0,comp0});
 comp1.help   = hcomp;
 comp1.check  = @check;
 
 iv1          = branch('Inverse','inv',{comp1,img});
 iv1.help     = hinv;
 
-comp2        = repeat('Composition','comp',{sn2def,def,iv1,comp1});
+comp2        = repeat('Composition','comp',{other{:},iv1,comp1});
 comp2.help   = hcomp;
 comp2.check  = @check;
 
 iv2          = branch('Inverse','inv',{comp2,img});
 iv2.help     = hinv;
 
-comp         = repeat('Composition','comp',{sn2def,def,iv2,comp2});
+
+comp         = repeat('Composition','comp',{other{:},iv2,comp2});
 comp.help    = hcomp;
 comp.check   = @check;
 
