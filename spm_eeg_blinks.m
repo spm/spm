@@ -114,14 +114,19 @@ else
 
 end
 
-
-spm('Pointer', 'Watch');
-
 try 
     Correct_Blinks = S.blinks.Correct_Blinks;
 catch
     Correct_Blinks = 0;
 end
+
+try 				% EXCLUDE an epoch (eg for continuous data)
+    Epoch = S.blinks.epoch;	% in ms, Eg [-100 600]
+    Epoch = round(Epoch*D.Radc/1000);
+catch
+    Epoch = [];
+end
+
 
 
 % If wanted to check for artefacts before detecting blinks....
@@ -188,7 +193,7 @@ end
 D.events.blinks = zeros(1,D.Nevents);
 
 blink_waves=[]; blink_samples=[]; pst_samples=[]; pst_times=[];
-index=[]; rindex=[];
+index=[]; rindex=[]; rmblink=[];
 
 for n = 1:length(valid_events)
     i = valid_events(n);
@@ -199,7 +204,21 @@ for n = 1:length(valid_events)
 
         dI = find(diff(Iblink)>1);
         Sblink = [Iblink(1); Iblink(dI+1)];			% possible onsets
-        Dblink = [Iblink(dI); Iblink(end)] - Sblink;		% possible durations
+        Eblink = [Iblink(dI); Iblink(end)];			% possible durations
+
+	if(~isempty(Epoch))
+          for b = 1:length(Sblink)				% cannot vectorise?
+	    rels = Sblink(b)-D.events.time;
+	    rele = Eblink(b)-D.events.time;
+	    if(max(rels(find(rels<0))) > Epoch(1) | min(rels(find(rels>0))) < Epoch(2) | max(rele(find(rele<0))) > Epoch(1))
+		rmblink = [rmblink b];
+            end
+          end
+  	end
+	Sblink(rmblink)=[];
+	Eblink(rmblink)=[];
+
+        Dblink = Eblink - Sblink;				% possible durations
 
         for b = 1:length(Sblink)				% cannot vectorise?
 
@@ -253,12 +272,10 @@ D.events.blinks = index;
 
 % Keep HEOG for correlation purposes (do not necessarily correct)
 
-if isempty(index)
-    warning('No blinks detected!') 
-    return;
-end
-
-if ~isfield(D.channels, 'blink_wgts')
+    if isempty(index)
+      warning('No blinks detected!') 
+      return;
+    end
 
     VEOGwave = mean(blink_waves)';
 
@@ -288,7 +305,9 @@ if ~isfield(D.channels, 'blink_wgts')
             Y  = X*b;
             cc = sign(b').*diag(y'*Y)./sqrt(diag(y'*y).*diag(Y'*Y));
 
-    h = spm_figure;
+
+    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG blink detection');
+    spm('Clear',Finter, Fgraph);
     subplot(1,3,1)
     plot(y)
     title('Blink shapes')
@@ -314,21 +333,18 @@ if ~isfield(D.channels, 'blink_wgts')
     D.channels.blink_wgts = b(1,:)';
 end
 
-else
-    disp('Using these weights...')
-    disp(sprintf('\nFound these blink weights...\n\n'))
-    for c = 1:length(in_no_veog)
-        disp(sprintf('%s\t%3.2f', ...
-            D.channels.name{in_no_veog(c)},D.channels.blink_wgts(c)))
-    end
-end
-
 
 %-------------------------
 % 3. Veog blink correction
 %-------------------------
 
 if(Correct_Blinks)
+
+    disp('Using these weights...')
+    for c = 1:length(in_no_veog)
+        disp(sprintf('%s\t%3.2f', ...
+            D.channels.name{in_no_veog(c)},D.channels.blink_wgts(c)))
+    end
 
     D.fnamedat = ['b' spm_str_manip(D.fnamedat, 't')];
 

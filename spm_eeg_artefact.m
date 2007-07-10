@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 540 2006-05-23 14:01:40Z james $
+% $Id: spm_eeg_artefact.m 851 2007-07-10 16:13:04Z rik $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -69,7 +69,7 @@ if D.thresholds.External_list
 	end
 	
 	% Check whether user has specified all trials
-	Iuser = [D.thresholds.out_list D.thresholds.in_list];
+	Iuser = [D.thresholds.out_list; D.thresholds.in_list]; %added ; DE 09/05/07
 	if length(Iuser) == D.Nevents
 		MustDoWork = 0;
 	end
@@ -95,7 +95,7 @@ if Weighted == 1
     Smoothing=round(Smoothing/1000*D.Radc);
 end
 
-spm('Clear',Finter, Fgraph);
+%spm('Clear',Finter, Fgraph);
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
 

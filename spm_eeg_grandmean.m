@@ -24,7 +24,10 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 715 2007-01-15 16:26:36Z stefan $
+% $Id: spm_eeg_grandmean.m 851 2007-07-10 16:13:04Z rik $
+
+% Changed to average all channels (not just eeg)      Rik Henson
+% (progress bar also added, Doris Eckstein)
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -55,7 +58,7 @@ Nfiles = length(D);
 % check dimensionality of data
 dim = []; s = [];
 for i = 1:Nfiles
-    dim(i,:) = [length(D{i}.channels.eeg) size(D{i}.data, [2:length(size(D{i}.data))])];
+    dim(i,:) = [D{1}.Nchannels size(D{i}.data, [2:length(size(D{i}.data))])];
     s(i) = D{i}.Radc;
     
     try
@@ -97,49 +100,61 @@ fpd = fopen(fullfile(Do.path, Do.fnamedat), 'w');
 
 spm('Pointer', 'Watch'); drawnow;
 
-if isfield(D{1}, 'Nfrequencies');
-	Do.scale = zeros(D{1}.Nchannels, 1, 1, D{1}.events.Ntypes);
-	
-	for i = 1:D{1}.events.Ntypes
-		d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
-		for k = 1:length(D)
-			d = d+squeeze(D{k}.data(D{k}.channels.eeg,:,:,i));
-		end
-		d = d./length(D);
-		
-		Do.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
-		d = int16(d./repmat(Do.scale(:, 1, 1, i), [1, Do.Nfrequencies, Do.Nsamples]));
-		fwrite(fpd, d, 'int16');
-        w=[];
-	end
-	
-else
+%% changed RH 21/2/07 so works for TF data too...
 
-	Do.scale = zeros(D{1}.Nchannels, 1, D{1}.Nevents);
-	
-    % how many different trial types and bad channels
-    types = [];
-    for i = 1:Nfiles
+% how many different trial types and bad channels
+types = [];
+for i = 1:Nfiles
         types = unique([types D{i}.events.types]);       
-    end
+end
 
-    Ntypes = length(types);
+Ntypes = length(types);
     
-    % for determining bad channels of the grandmean
-    w = zeros(D{1}.Nchannels, Ntypes);
+% for determining bad channels of the grandmean
+w = zeros(D{1}.Nchannels, Ntypes);
     
-    % how many repetitons per trial type
-    repl = zeros(1, Ntypes);
-    for i = 1:Nfiles
+% how many repetitons per trial type
+repl = zeros(1, Ntypes);
+for i = 1:Nfiles
         for j = 1:D{i}.events.Ntypes
             ind = find(D{i}.events.types(j) == types);
             repl(ind) =  repl(ind) + D{i}.events.repl(j);
         end
-    end
+end
 
-    spm_progress_bar('Init', Ntypes, 'Events averaged'); drawnow;
-    if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
-    else, Ibar = [1:Ntypes]; end
+%% changed DE 13/12/06
+spm_progress_bar('Init', Ntypes, 'Events averaged'); drawnow;
+if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
+else, Ibar = [1:Ntypes]; end
+%% end change
+
+if isfield(D{1}, 'Nfrequencies');
+	Do.scale = zeros(D{1}.Nchannels, 1, 1, D{1}.events.Ntypes);
+	
+	for i = 1:Ntypes
+	    d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
+            for j = 1:D{1}.Nchannels
+     		for k = 1:Nfiles
+                    if ~ismember(j, D{k}.channels.Bad)
+                    	if ismember(types(i), D{k}.events.types)
+                            d(j, :, :) = d(j, :, :) + D{k}.data(j, :, :, find(D{k}.events.types == types(i)));
+                            w(j, i) = w(j, i) + 1;
+                    	end
+		    end
+                end
+
+                if w(j, i) > 0
+                	d(j, :, :) = d(j, :, :)/w(j, i);
+                end
+	    end	
+	
+	    Do.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
+	    d = int16(d./repmat(Do.scale(:, 1, 1, i), [1, Do.Nfrequencies, Do.Nsamples]));
+	    fwrite(fpd, d, 'int16');
+	end
+else
+
+    Do.scale = zeros(D{1}.Nchannels, 1, D{1}.Nevents);
 
     for i = 1:Ntypes
         d = zeros(D{1}.Nchannels, D{1}.Nsamples);
@@ -162,12 +177,15 @@ else
         end
 		
 		Do.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
-		
+        %% changed DE 13/12/06
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;
         end
+        %% end change
 
-	end
+    end
+    %% changed DE 13/12/06
+    spm_progress_bar('Clear');
 end
 fclose(fpd);
 
@@ -176,28 +194,22 @@ Do.data = [];
 Do.fname = [spm_str_manip(Do.fnamedat, 'r') '.mat'];
 
 
-% Do.Nchannels = length(D{1}.channels.eeg);
-% Do.channels.name = D{1}.channels.name(D{1}.channels.eeg);
-% 
-% % remove eog and ref channels
-% 
-% eog = [];
-% if isfield(Do.channels, 'heog')
-%     eog = [eog Do.channels.heog];
-%     Do.channels.heog = 0;
-% end
-% 
-% if isfield(Do.channels, 'veog')
-%     eog = [eog Do.channels.veog];    
-%     Do.channels.veog = 0;
-% end
-% 
-% Do.channels.order(eog) = [];
-% 
-% if isfield(Do.channels, 'reference')
-%     
-%     Do.channels.reference = 0;
-% end
+%Do.Nchannels = length(D{1}.channels.eeg);
+%Do.channels.name = D{1}.channels.name(D{1}.channels.eeg);
+
+% do NOT remove eog and ref channels
+%
+%if isfield(Do.channels, 'heog')
+%    Do.channels.order = setdiff(Do.channels.order, Do.channels.heog);
+%    Do.channels.heog = 0;
+%end
+%if isfield(Do.channels, 'veog')
+%    Do.channels.order = setdiff(Do.channels.order, Do.channels.veog);    
+%    Do.channels.veog = 0;
+%end
+%if isfield(Do.channels, 'reference')   
+%    Do.channels.reference = 0;
+%end
 D = Do;
 
 D.channels.Bad = find(~any(w'));
@@ -216,6 +228,5 @@ else
     save(fullfile(D.path, D.fname), 'D');
 end
 
-spm_progress_bar('Clear');
 
 spm('Pointer', 'Arrow');
