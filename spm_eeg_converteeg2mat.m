@@ -8,7 +8,7 @@ function D = spm_eeg_converteeg2mat(S)
 %    Mname     - char matrix of input file name(s)
 %    Fchannels - String containing name of channel template file
 %_______________________________________________________________________
-% 
+%
 % spm_eeg_converteeg2mat is a user interface to convert EEG-files from their
 % native format to SPM's data format. This function assembles some
 % necessary information before branching to the format-specific conversion
@@ -16,7 +16,7 @@ function D = spm_eeg_converteeg2mat(S)
 % The user has to specify, by either using struct S or the GUI, a 'channel
 % template file' that contains information about the (approximate) spatial
 % positions of the channels.
-% 
+%
 % Output: The converted data are written to files. The header
 % structs, but not the data, are returned in D as a cell vector of structs.
 %_______________________________________________________________________
@@ -27,8 +27,8 @@ function D = spm_eeg_converteeg2mat(S)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Stefan Kiebel 
-% $Id: spm_eeg_converteeg2mat.m 852 2007-07-10 16:17:55Z rik $
+% Stefan Kiebel
+% $Id: spm_eeg_converteeg2mat.m 857 2007-07-11 12:43:27Z vladimir $
 % FIF Added by RH
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG data conversion setup',0);
@@ -41,12 +41,13 @@ catch
     Ctype = {
         'CNT',...
         'BDF',...
-	'EGI-txt',...
-	'CTF275',...
-    	'FIF'};
+        'EGI-txt',...
+        'CTF275',...
+        'FIF',...
+        'Generic conversion'};
     str   = 'Select format';
-	Sel   = spm_input(str, 2, 'm', Ctype);
-	fmt = Ctype{Sel};
+    Sel   = spm_input(str, 2, 'm', Ctype);
+    fmt = Ctype{Sel};
 end
 
 % which files to convert?
@@ -57,21 +58,24 @@ catch
         case {'CNT'}
             str = '\.cnt$';
         case {'BDF'}
-	    str = '\.bdf$';
-	case {'EGI-txt'}
-		str = '\.txt$';
-	case {'CTF275'}
-		str = '\.ds$';
-	case {'FIF'}		
-		str = '\.fif$';
+            str = '\.bdf$';
+        case {'EGI-txt'}
+            str = '\.txt$';
+        case {'CTF275'}
+            str = '\.ds$';
+        case {'FIF'}
+            str = '\.fif$';
+        case {'Generic conversion'}
+            spm_jobman('interactive','', 'jobs.util.meeg');
+            return;
         otherwise
             error(sprintf('Unknown format: %s', fmt));
-	end
-	if strcmp(fmt, 'CTF275')
-		Mname = spm_select(inf, 'dir');
-	else
-		Mname = spm_select(inf, str, sprintf('Select %s-files', str));
-	end
+    end
+    if strcmp(fmt, 'CTF275')
+        Mname = spm_select(inf, 'dir');
+    else
+        Mname = spm_select(inf, str, sprintf('Select %s-files', str));
+    end
 end
 
 % which channel template file
@@ -86,33 +90,33 @@ Nfiles = size(Mname, 1);
 S2.Fchannels = Fchannels;
 
 switch fmt
-	case {'CNT'}
+    case {'CNT'}
         for i = 1:Nfiles
-            S2.Fdata = deblank(Mname(i, :));            
+            S2.Fdata = deblank(Mname(i, :));
             D{i} = spm_eeg_rdata(S2);
         end
-                
+
     case {'BDF'}
         for i = 1:Nfiles
             S2.Fdata = deblank(Mname(i, :));
             D{i} = spm_eeg_rdata_bdf(S2);
         end
-	case {'EGI-txt'}
+    case {'EGI-txt'}
         for i = 1:Nfiles
-            S2.Fdata = deblank(Mname(i, :));            
+            S2.Fdata = deblank(Mname(i, :));
             D{i} = spm_eeg_rdata_egi64(S2);
-		end
-	case {'CTF275'}
-		for i = 1:Nfiles
-			S2.Fdata = deblank(Mname(i, 1:end-1));            
-			D{i} = spm_eeg_rdata_CTF275(S2);
-		end         
-	case {'FIF'}
-		for i = 1:Nfiles
-			S2.Fdata = deblank(Mname(i, :));            
-			D{i} = spm_eeg_rdata_FIF(S2);
-		end         
+        end
+    case {'CTF275'}
+        for i = 1:Nfiles
+            S2.Fdata = deblank(Mname(i, 1:end-1));
+            D{i} = spm_eeg_rdata_CTF275(S2);
+        end
+    case {'FIF'}
+        for i = 1:Nfiles
+            S2.Fdata = deblank(Mname(i, :));
+            D{i} = spm_eeg_rdata_FIF(S2);
+        end
     otherwise
         error('Unknown format');
-        
+
 end
