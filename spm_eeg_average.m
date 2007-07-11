@@ -15,7 +15,9 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 728 2007-02-05 14:34:31Z james $
+% $Id: spm_eeg_average.m 856 2007-07-11 09:39:17Z rik $
+
+% Vector averaging of phase added for PLV (not implemented for weighted averaging) Rik Henson
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -33,6 +35,18 @@ catch
 	error(sprintf('Trouble reading file %s', D));
 end
 
+try
+	circularise = S.circularise_phase;
+catch
+        circularise = 0;
+	try 
+	   phs = D.phs;
+           if phs
+	      circularise = spm_input('Straight or vector (eg PLV) average of phase angles?','+1', 'straight|vector',[0 1], 1);
+           end
+	end
+end	
+
 D.fnamedat = ['m' D.fnamedat];
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
@@ -43,12 +57,21 @@ if isfield(D, 'Nfrequencies');
     D.scale = zeros(D.Nchannels, 1, 1, D.events.Ntypes);
 
     for i = 1:D.events.Ntypes
-        d = mean(D.data(:,:,:, find((D.events.code == D.events.types(i)) & ~D.events.reject)), 4);
-        w = (D.events.code == D.events.types(i) & ~D.events.reject)';
-        ni(i) = length(find(w));
-        D.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
-        d = int16(d./repmat(D.scale(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
-        fwrite(fpd, d, 'int16');
+      clear d
+      w = find((D.events.code == D.events.types(i)) & ~D.events.reject);
+      if ~circularise         		% straight average
+        d = mean(D.data(:,:,:,w), 4);
+      else				% vector average (eg PLV for phase)
+        for c=1:D.Nchannels
+      	   tmp = D.data(c,:,:,w);
+           tmp = cos(tmp) + sqrt(-1)*sin(tmp);
+           d(c,:,:) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
+        end
+      end
+      ni(i) = length(find(w));
+      D.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
+      d = int16(d./repmat(D.scale(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
+      fwrite(fpd, d, 'int16');
     end
     Ntypes = D.events.Ntypes;
 else

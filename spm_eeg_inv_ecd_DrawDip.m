@@ -67,7 +67,7 @@ case 'init'
 % Initialise the variables with GUI
 % e.g. spm_eeg_inv_ecd_DrawDip('Init')
 %------------------------------------------------------------------------
-spm('Clear')
+%spm('Clear')
 
 if nargin < 2
     load(spm_select(1,'^.*S.*dip.*\.mat$','Select dipole file'));

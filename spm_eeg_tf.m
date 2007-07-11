@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 853 2007-07-10 16:22:07Z rik $
+% $Id: spm_eeg_tf.m 856 2007-07-11 09:39:17Z rik $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -187,15 +187,15 @@ fclose(fpd2);
 D.data = [];
 D2.data = [];
 
-% changes by Rik
 old_chans = D.channels.name;
 if collchans
-	chans=1;	%HACKY (and may crash if first channel is EOG?)!
+	chans=1;	% (may crash if first channel is EOG?)!
 %	D.channels.name = {'All'};
 else
 	chans=1:D.Nchannels;
 end
 
+%%% To handle collapsing over channels...
 D.channels.name=[];
 for n=1:length(D.tf.channels(chans))
     D.channels.name{n} = old_chans{D.tf.channels(n)};
@@ -219,18 +219,18 @@ if isfield(D.channels,'thresholded')
 end
 D2.channels = D.channels;
 
-% end changes by Rik
-
 D.fname = ['t1_' D.fname];
 D2.fname = ['t2_' D2.fname];
 D1=D;
 if spm_matlab_version_chk('7') >= 0,
     save(fullfile(P, D.fname), '-V6', 'D');
     D = D2;
+    D.phs = 1;
     save(fullfile(P, D2.fname), '-V6', 'D');
 else
     save(fullfile(P, D.fname), 'D');
     D = D2;
+    D.phs = 1;
     save(fullfile(P, D2.fname), 'D');
 end
 D=D1;
