@@ -13,6 +13,9 @@ function spm_DEM_qH(qH)
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
+try
+    qH = qH.qH;
+end
 c     = [];
 try
     c = sqrt(diag(qH.C))*spm_invNcdf(1 - 0.05);
@@ -22,7 +25,7 @@ end
 %--------------------------------------------------------------------------
 j = length(qH.h);
 subplot(2,1,1)
-bar(full(exp(qH.h)),'c')
+bar(full(qH.h),'c')
 title('hyperparameters');
 grid on
 axis square
@@ -32,7 +35,7 @@ set(gca,'XLim',[0 j + 1])
 %--------------------------------------------------------------------------
 try
     for i = 1:j
-        line([i i],exp([-1 1]*c(i) + qH.h(i)),...
+        line([i i],[-1 1]*c(i) + qH.h(i),...
             'LineWidth',4,...
             'Color','r');
     end

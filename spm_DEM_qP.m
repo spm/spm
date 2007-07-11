@@ -13,6 +13,14 @@ function spm_DEM_qP(qP,M)
 % Karl Friston
 % $Id$
 
+% unpack
+%--------------------------------------------------------------------------
+try
+    M  = qP.M;
+    qP = qP.qP;
+end
+
+
 % time-series specification
 %--------------------------------------------------------------------------
 g     = length(qP.Pi);                                 % order of hierarchy

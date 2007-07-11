@@ -236,17 +236,18 @@ try, M.V; catch, M(1).V = []; end
 
 % check hyperpriors hE - [log]hyper-parameters
 %--------------------------------------------------------------------------
-try, M.hE; catch
-    for i = 1:g 
+for i = 1:g 
+    try, M(i).hE; catch
         if length(M(i).Q)
             M(i).hE = sparse(length(M(i).Q),1) + 16;
         else
             M(i).hE = [];  
         end
     end
+    try, M(i).h;  catch, 
+        M(i).h  = M(i).hE;
+    end
 end
-
-try, M.h;  catch, for i = 1:g, M(i).h  = M(i).hE; end, end
 
 for i = 1:g
  
@@ -273,7 +274,7 @@ for i = 1:g
         errordlg(sprintf('please check: M(%i).hE/Q',i))
     end
     if length(M(i).h) ~= length(M(i).hE)
-        errordlg(sprintf('please check: M(%i).hE/h',i))
+        M(i).h = M(i).hE;
     end
     
     % check sizes
@@ -308,11 +309,11 @@ end
 
 % and prior covariances - h
 %--------------------------------------------------------------------------
-try, M.hC; catch
+for i = 1:g
+    try, M(i).hC*M(i)*hE; catch
     
-    % Assume flat hyperpriors
-    %----------------------------------------------------------------------
-    for i = 1:(g - 1)
+        % Assume flat hyperpriors
+        %------------------------------------------------------------------
         h       = length(M(i).hE);
         M(i).hC = speye(h,h)*256;
     end

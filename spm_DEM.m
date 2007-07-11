@@ -475,7 +475,8 @@ for iI = 1:nI
                 
                 % update conditional modes of states
                 %==========================================================
-                du    = spm_dx(dFduu + D,dFdu + D*spm_vec(u),td);                
+                kt = 1;
+                du    = spm_dx(kt*dFduu + D,kt*dFdu + D*spm_vec(u),td);                
                 u     = spm_unvec(du,u);
                 for i = 1:n
                     qu.x{i} = qu.x{i} + u{i};

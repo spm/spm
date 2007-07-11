@@ -23,6 +23,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 %    gE.Lmon - moment (orientation)       - ECD
 %
 % or gE.L    - coeficients of local modes - Imaging
+%    gE.L    - gain of electrodes         - LFP
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -87,7 +88,11 @@ switch dipfit.type
     case{'Imaging'}
     %----------------------------------------------------------------------
     m      = dipfit.Nm;
-    G.L    = sparse(m,n);   U.Lpos =  16*ones(m,n);    % dipole modes
+    G.L    = sparse(m,n);   U.L    =  16*ones(m,n);    % dipole modes
+    
+    case{'LFP'}
+    %----------------------------------------------------------------------
+    G.L    = ones(1,n);     U.L    = 256*ones(1,n);    % gains
     
 end
 
@@ -148,14 +153,10 @@ else
             E.Lmom  = G.Lmom;
             C       = diag(sparse(spm_vec(V,U)));
 
-        case{'Imaging'}
+        case{'Imaging','LFP'}
             %--------------------------------------------------------------
             E.L     = G.L;
             C       = diag(sparse(spm_vec(V,U)));
-
-        case{'LFP'}
-            %--------------------------------------------------------------
-            C       = diag(sparse(spm_vec(V)));
             
         otherwise
     end

@@ -46,7 +46,11 @@ try
         return
     end
     for i = 1:length(P)
-        M(i).P = spm_unvec(P{i},M(i).P);
+        try
+            M(i).P = spm_unvec(P{i},M(i).pE);
+        catch
+            M(i).P = P{i};
+        end
     end
 end
  

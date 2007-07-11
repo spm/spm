@@ -121,7 +121,7 @@ switch M.dipfit.type
     %----------------------------------------------------------------------
     case{'LFP'}
 
-        L = speye(n,n); return
+        L = sparse(diag(P.L)); return
 
     otherwise
         warndlg('unknown type of lead field')
