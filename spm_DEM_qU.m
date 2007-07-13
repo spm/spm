@@ -22,7 +22,7 @@ if isstruct(varargin{1})
     end
     V     = varargin{1}.v;
     X     = varargin{1}.x;
-    E     = varargin{1}.e;
+    E     = varargin{1}.z;
     try
         C = varargin{1}.C;
         S = varargin{1}.S;

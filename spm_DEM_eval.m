@@ -32,10 +32,10 @@ function [E dE] = spm_DEM_eval(M,qu,qp)
 
 %==========================================================================
 nl   = size(M,2);                       % number of levels
-ne   = sum(cat(1,M.l));                 % number of e (errors)
-nv   = sum(cat(1,M.m));                 % number of v (casual states)
-nx   = sum(cat(1,M.n));                 % number of x (hidden states)
-np   = sum(cat(1,M.p));                 % number of p (parameters)
+ne   = sum(spm_vec(M.l));               % number of e (errors)
+nv   = sum(spm_vec(M.m));               % number of v (casual states)
+nx   = sum(spm_vec(M.n));               % number of x (hidden states)
+np   = sum(spm_vec(M.p));               % number of p (parameters)
 ny   = M(1).l;                          % number of y (inputs)
 nc   = M(end).l;                        % number of c (prior causes)
 
@@ -136,8 +136,8 @@ end
 
 % un-concatenate states {v,x} into hierarchical form
 %--------------------------------------------------------------------------
-x     = qu.x;
 v     = qu.v;
+x     = qu.x;
 y     = qu.y;
 u     = qu.u;
 vi    = spm_unvec(v{1},{M(1 + 1:end).v});
@@ -151,39 +151,40 @@ h     = inline(h,'f','x','v','q','u','p');
 
 % Derivatives at each hierarchical level
 %==========================================================================
-ix    = 1;
-iv    = 1;
 ip    = 1;
 for i = 1:(nl - 1)
 
     % states and parameters for level i
     %----------------------------------------------------------------------
     xvp        = {xi{i},vi{i},qp.p{i},qp.u{i},M(i).pE};
-
+    
+    
+    % d/dP[de/dx], d/dP[de/dv],, ...
+    %----------------------------------------------------------------------
+    [dgdxpj dgdxj gj] =  spm_diff(h,M(i).g,xvp{:},[2 4]);
+    [dgdvpj dgdvj gj] =  spm_diff(h,M(i).g,xvp{:},[3 4]);
+    [dfdxpj dfdxj fj] =  spm_diff(h,M(i).f,xvp{:},[2 4]);
+    [dfdvpj dfdvj fj] =  spm_diff(h,M(i).f,xvp{:},[3 4]);
+    
+    
     % g(x,v) & f(x,v)
     %----------------------------------------------------------------------
-    g{i,1}     = h(M(i).g,xvp{:});
-    f{i,1}     = h(M(i).f,xvp{:});
+    g{i,1}     = gj;
+    f{i,1}     = fj;
 
     % 1st-order partial derivatives
     %----------------------------------------------------------------------
-    dgdxi{i,i} =  spm_diff(h,M(i).g,xvp{:},2);
-    dgdvi{i,i} =  spm_diff(h,M(i).g,xvp{:},3);
-    dgdpi{i,i} =  spm_diff(h,M(i).g,xvp{:},4);
-    dfdxi{i,i} =  spm_diff(h,M(i).f,xvp{:},2);
-    dfdvi{i,i} =  spm_diff(h,M(i).f,xvp{:},3);
-    dfdpi{i,i} =  spm_diff(h,M(i).f,xvp{:},4);
+    dgdxi{i,i} = dgdxj;
+    dgdvi{i,i} = dgdvj;
+    dfdxi{i,i} = dfdxj;
+    dfdvi{i,i} = dfdvj;
+    dfdpi{i,i} = spm_diff(h,M(i).f,xvp{:},4);
+    dgdpi{i,i} = spm_diff(h,M(i).g,xvp{:},4);
+    
 
     % add constant terms
     %----------------------------------------------------------------------
     dgdvi{i + 1,i} = -speye(M(i).m,M(i).m);
-
-    % d/dP[de/dx], d/dP[de/dv],, ...
-    %----------------------------------------------------------------------
-    dgdxpj     =  spm_diff(h,M(i).g,xvp{:},[2 4]);
-    dgdvpj     =  spm_diff(h,M(i).g,xvp{:},[3 4]);
-    dfdxpj     =  spm_diff(h,M(i).f,xvp{:},[2 4]);
-    dfdvpj     =  spm_diff(h,M(i).f,xvp{:},[3 4]);
 
     for j = 1:M(i).p
         dgdxpi{ip}{i,i} = dgdxpj{j};
@@ -212,7 +213,7 @@ for j = 1:np
 end
 
 
-% prediction error (E) - response
+% prediction error (E) - causes
 %--------------------------------------------------------------------------
 ge{1} = [y{1}; v{1}] - [spm_vec(g); u{1}];
 for i = 2:n

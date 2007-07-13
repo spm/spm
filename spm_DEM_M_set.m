@@ -38,8 +38,8 @@ function [M] = spm_DEM_M_set(M)
 %--------------------------------------------------------------------------
 %
 %   M(1).E.s;     = smoothness (seconds)
-%   M(1).E.d;     = approximation order q(v)
-%   M(1).E.n;     = order of embedding (n > d)
+%   M(1).E.d;     = approximation order q(v) (including y)
+%   M(1).E.n;     = approximation order q(x)
 %
 % If the highest level involves any dynamic or static transformation
 % of its inputs a further level is added with flat priors
@@ -56,7 +56,7 @@ g      = length(M);
 % set missing fields
 %==========================================================================
  
-% check for specifiaction of hidden states
+% check for specification of hidden states
 %--------------------------------------------------------------------------
 if isfield(M,'f') && ~isfield(M,'n') && ~isfield(M,'x')
     msgbox('please specify hidden states or their number')
@@ -85,32 +85,18 @@ end
 % consistency and format check on states, parameters and functions
 %==========================================================================
 
-
-% prior expectation of parameters M.pE and initial values M.P
+% prior expectation of parameters M.pE
 %--------------------------------------------------------------------------
 try
     M.pE;
 catch
     % Assume fixed parameters
     %----------------------------------------------------------------------
-    for i = 1:(g - 1)
+    for i = 1:g
         M(i).pE = sparse(0,0);
     end
 end
-try
-    M.P;
-catch
-    % Assume prior expectations
-    %----------------------------------------------------------------------
-    for i = 1:(g - 1)
-        M(i).P = M(i).pE;
-    end
-end
-for i = 1:(g - 1)
-    if length(spm_vec(M(i).P)) ~= length(spm_vec(M(i).pE))
-        errordlg(sprintf('please check: M(%i).pE/P',i))
-    end
-end
+
 
 % and priors covariances - p
 %--------------------------------------------------------------------------
@@ -119,7 +105,7 @@ try
 catch
     % Assume fixed parameters
     %----------------------------------------------------------------------
-    for i = 1:(g - 1)
+    for i = 1:g
         p       = length(spm_vec(M(i).pE));
         M(i).pC = sparse(p,p);
     end
@@ -127,18 +113,18 @@ end
 
 % check pC if user specified
 %--------------------------------------------------------------------------
-for i = 1:(g - 1)
+for i = 1:g
  
     % Assume fixed parameters if not specified
     %----------------------------------------------------------------------
-    if min(size(M(i).pC)) == 0
+    if length(M(i).pC) == 0
         p       = length(spm_vec(M(i).pE));
         M(i).pC = sparse(p,p);
     end
  
     % convert variances to covariances if necessary
     %----------------------------------------------------------------------
-    if min(size(M(i).pC)) == 1
+    if length(M(i).pC) == 1
         M(i).pC = sparse(diag(M(i).pC));
     end
  
@@ -156,7 +142,7 @@ end
 try
     v  = M(g).v;
 catch
-    v  = [];
+    v  = sparse(0,0);
 end
 if ~length(v)
     try
@@ -187,7 +173,7 @@ for i = (g - 1):-1:1
     end
     try
         f       = feval(M(i).f,x,v,M(i).pE);
-        if ~length(spm_vec(x)) == length(spm_vec(f))
+        if length(spm_vec(x)) ~= length(spm_vec(f))
             str = sprintf('please check: M(%i).f(x,v,P)',i);
             msgbox(str)
             error(' ')
@@ -219,79 +205,96 @@ end
 % remove empty levels
 %--------------------------------------------------------------------------
 try
-    g  = min(find(~cat(1,M.m)));
+    g  = min(find(~spm_vec(M.m)));
     M  = M(1:g);
 catch
     errordlg('please specify number of variables')
 end
 
-nx     = sum(cat(1,M.n));            % number of x (hidden states)
+% number of x (hidden states)
+%--------------------------------------------------------------------------
+nx     = sum(spm_vec(M.n));
 
 
-
-% Hyperparameters and components (causes)
+% Hyperparameters and components (causes: Q V and hidden states R, W)
 %==========================================================================
 try, M.Q; catch, M(1).Q = []; end
+try, M.R; catch, M(1).R = []; end
 try, M.V; catch, M(1).V = []; end
+try, M.W; catch, M(1).W = []; end
 
-% check hyperpriors hE - [log]hyper-parameters
+% check hyperpriors hE - [log]hyper-parameters and components
 %--------------------------------------------------------------------------
-for i = 1:g 
-    try, M(i).hE; catch
-        if length(M(i).Q)
-            M(i).hE = sparse(length(M(i).Q),1) + 16;
-        else
-            M(i).hE = [];  
-        end
-    end
-    try, M(i).h;  catch, 
-        M(i).h  = M(i).hE;
-    end
-end
-
 for i = 1:g
- 
-    % check h and corresponding components
-    %----------------------------------------------------------------------
-    M(i).hE = M(i).hE(:);
-    M(i).h  = M(i).h(:);
     
-    % check components ans assume i.i.d if not specified
+    % check hyperpriors
+    %======================================================================
+    
+    % vectorise
+    %----------------------------------------------------------------------
+    M(i).hE = spm_vec(M(i).hE);
+    M(i).gE = spm_vec(M(i).gE);
+    
+    % check hyperpriors (expectations)
+    %----------------------------------------------------------------------
+    try, M(i).hE; catch, M(i).hE = sparse(length(M(i).Q),1); end
+    try, M(i).gE; catch, M(i).gE = sparse(length(M(i).R),1); end
+    
+    % check hyperpriors (covariances)
+    %----------------------------------------------------------------------
+    try, M(i).hC*M(i)*hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
+    try, M(i).gC*M(i)*gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
+    
+    if length(M(i).hC) ~= length(M(i).hE)
+        M(i).hC = M(i).hC(1)*speye(length(M(i).hE));
+    end
+    if length(M(i).gC) ~= length(M(i).gE)
+        M(i).gC = M(i).gC(1)*speye(length(M(i).gE));
+    end
+    
+    % check Q and R (precision components)
+    %======================================================================
+
+    % make sure components are cell arrays
+    %----------------------------------------------------------------------
+    if length(M(i).Q) & ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
+    if length(M(i).R) & ~iscell(M(i).R), M(i).R = {M(i).R}; end 
+    
+    
+    % check components and assume i.i.d if not specified
     %----------------------------------------------------------------------
     if length(M(i).Q) ~= length(M(i).hE)
         M(i).Q = {speye(M(i).l,M(i).l)};
     end
-
-    % make sure components are cell arrays
-    %----------------------------------------------------------------------
-    if length(M(i).Q) & ~iscell(M(i).Q)
-        M(i).Q = {M(i).Q};
+    if length(M(i).R) ~= length(M(i).gE)
+        M(i).R = {speye(M(i).n,M(i).n)};
     end
-    
-    % check consistency
+
+    % check consistency and sizes (Q)
     %----------------------------------------------------------------------
     if length(M(i).Q) ~= length(M(i).hE)
-        errordlg(sprintf('please check: M(%i).hE/Q',i))
+        errordlg(sprintf('please check: M(%i).hE and Q',i))
     end
-    if length(M(i).h) ~= length(M(i).hE)
-        M(i).h = M(i).hE;
-    end
-    
-    % check sizes
-    %----------------------------------------------------------------------
     for j = 1:length(M(i).Q)
         if length(M(i).Q{j}) ~= M(i).l
             errordlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
         end
     end
     
-end
-
-
-% check V (expansion point for covariances) and hyperparameters
-%--------------------------------------------------------------------------
-for i = 1:g
- 
+    % check consistency and sizes (R)
+    %----------------------------------------------------------------------
+    if length(M(i).R) ~= length(M(i).gE)
+        errordlg(sprintf('please check: M(%i).gE and R',i))
+    end
+    for j = 1:length(M(i).R)
+        if length(M(i).R{j}) ~= M(i).n
+            errordlg(sprintf('wrong size; M(%d).R{%d}',i,j))
+        end
+    end
+    
+    % check V and W (expansion point for precisions)
+    %======================================================================
+    
     % check V and assume unit precision if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).V) ~= M(i).l
@@ -305,84 +308,8 @@ for i = 1:g
             end
         end
     end
-end
-
-% and prior covariances - h
-%--------------------------------------------------------------------------
-for i = 1:g
-    try, M(i).hC*M(i)*hE; catch
     
-        % Assume flat hyperpriors
-        %------------------------------------------------------------------
-        h       = length(M(i).hE);
-        M(i).hC = speye(h,h)*256;
-    end
-end
-
-% check size of hC
-%--------------------------------------------------------------------------
-for i = 1:(g - 1)
-    if length(M(i).hC) ~= length(M(i).hE)
-        errordlg(sprintf('please check: M(%i).hC',i))
-    end
-end
-
-% Hyperparameters and components (states)
-%==========================================================================
-try, M.R; catch, M(1).R = []; end
-try, M.W; catch, M(1).W = []; end
-
-% check hyperpriors gE - [log]hyper-parameters
-%--------------------------------------------------------------------------
-try, M.gE; catch
-    for i = 1:g - 1
-        if length(M(i).R)
-            M(i).gE = sparse(length(M(i).R),1) + 16;
-        else
-            M(i).gE = [];  
-        end
-    end
-end
-
-for i = 1:g - 1
- 
-    % check h and corresponding components
-    %----------------------------------------------------------------------
-    M(i).gE = M(i).gE(:);
-    
-    % check components ans assume i.i.d if not specified
-    %----------------------------------------------------------------------
-    if length(M(i).R) ~= length(M(i).gE)
-        M(i).R = {speye(M(i).n,M(i).n)};
-    end
-
-    % make sure components are cell arrays
-    %----------------------------------------------------------------------
-    if length(M(i).R) & ~iscell(M(i).R)
-        M(i).R = {M(i).R};
-    end
-    
-    % check consistency
-    %----------------------------------------------------------------------
-    if length(M(i).R) ~= length(M(i).gE)
-        errordlg(sprintf('please check: M(%i).gE/R',i))
-    end
-
-    % check sizes
-    %----------------------------------------------------------------------
-    for j = 1:length(M(i).R)
-        if length(M(i).R{j}) ~= M(i).n
-            errordlg(sprintf('wrong size; M(%d).R{%d}',i,j))
-        end
-    end
-    
-end
-
-% check W (expansion point for covariances) and hyperparameters
-%--------------------------------------------------------------------------
-for i = 1:g - 1
-
-    % check W and assume high precision if not specified
+    % check W and assume unit precision if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).W) ~= M(i).n
         try
@@ -391,31 +318,13 @@ for i = 1:g - 1
             if length(M(i).gE)
                 M(i).W = sparse(M(i).n,M(i).n);
             else
-                M(i).W = speye(M(i).n,M(i).n)*exp(16);
+                M(i).W = speye(M(i).n,M(i).n);
             end
         end
     end
-end
-
-% and prior covariances - gC
-%--------------------------------------------------------------------------
-try, M.gC; catch
     
-    % Assume informative priors
-    %----------------------------------------------------------------------
-    for i = 1:g - 1
-        g       = length(M(i).gE);
-        M(i).gC = speye(g,g)*256;
-    end
 end
 
-% check size of gC
-%--------------------------------------------------------------------------
-for i = 1:g - 1
-    if length(M(i).gC) ~= length(M(i).gE)
-        errordlg(sprintf('please check: M(%i).gC',i))
-    end
-end
  
 % estimation parameters M(1).E.s, n,...
 %==========================================================================
@@ -430,11 +339,11 @@ try M(1).E.s;  catch, if nx, M(1).E.s = 1; else M(1).E.s = 0;   end, end
  
 % time step
 %--------------------------------------------------------------------------
-try M(1).E.dt; catch M(1).E.dt = 1;   end
+try M(1).E.dt; catch M(1).E.dt = 1;  end
  
 % embedding orders
 %--------------------------------------------------------------------------
-try M(1).E.d;  catch, if nx, M(1).E.d = 2;  else M(1).E.d = 1;  end, end
+try M(1).E.d;  catch, if nx, M(1).E.d = 3;  else M(1).E.d = 1;  end, end
 try M(1).E.n;  catch, if nx, M(1).E.n = 8;  else M(1).E.n = 1;  end, end
  
 % number of iterations
@@ -442,7 +351,7 @@ try M(1).E.n;  catch, if nx, M(1).E.n = 8;  else M(1).E.n = 1;  end, end
 try M(1).E.nD; catch, if nx, M(1).E.nD = 1; else M(1).E.nD = 8; end, end
 try M(1).E.nE; catch, M(1).E.nE = 8;  end
 try M(1).E.nM; catch, M(1).E.nM = 8;  end
-try M(1).E.nI; catch, M(1).E.nI = 16; end
+try M(1).E.nN; catch, M(1).E.nN = 16; end
  
  
  
@@ -453,7 +362,7 @@ try M(1).E.nI; catch, M(1).E.nI = 16; end
 %--------------------------------------------------------------------------
 Q     = ~norm(M(end).V,1);
 for i = 1:(g - 1)
-    P = norm(M(i).pC,1) > 1024;
+    P = norm(M(i).pC,1) > exp(8);
     if P & Q
         warndlg('please use informative priors on causes or parameters')
     end

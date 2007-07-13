@@ -5,8 +5,8 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % Model specification
 %--------------------------------------------------------------------------
-% M.f   - dx/dt = f(x,u,P)  {function string or m-file}
-% M.g   - y     = g(x,u,P)  {function string or m-file}
+% M.f   - dx/dt = f(x,u,P,M)  {function string or m-file}
+% M.g   - y     = g(x,u,P,M)  {function string or m-file}
 %
 % M.pE  - (p x 1)   Prior expectation of p model parameters
 % M.pC  - (p x p)   Prior covariance for p model parameters
@@ -20,7 +20,7 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % System inputs
 %--------------------------------------------------------------------------
-% U.u   - (u x m)   m inputs
+% U.u   - (v x m)   m inputs
 % U.dt  -           sampling interval for inputs
 %
 % System outputs
@@ -90,7 +90,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_nlsi.m 859 2007-07-13 17:53:00Z karl $
 
 % check integrator
 %--------------------------------------------------------------------------

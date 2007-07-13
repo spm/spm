@@ -81,12 +81,6 @@ if N < DEM.M(1).E.n
     return
 end
 
-% ensure parameters and casues are not all zero
-% -------------------------------------------------------------------------
-if ~any(spm_vec(DEM.M.P)) && ~any(spm_vec(DEM.U))
-    warndlg('please intialise parameters or inputs')
-end
-
 % unpack DEM if necessary
 % -------------------------------------------------------------------------
 if nargout == 4

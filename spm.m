@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 831 2007-06-21 11:59:56Z john $
+% $Id: spm.m 859 2007-07-13 17:53:00Z karl $
 
 
 %=======================================================================
@@ -297,6 +297,12 @@ function varargout=spm(varargin)
 %_______________________________________________________________________
 
 
+%-Disable Java if necessary
+%-----------------------------------------------------------------------
+try
+    feature('JavaFigures',0);
+end
+
 %-Parameters
 %-----------------------------------------------------------------------
 Modalities = {'PET','FMRI','EEG'};
@@ -309,16 +315,12 @@ if nargin == 0, Action='Welcome'; else, Action = varargin{1}; end
 %=======================================================================
 switch lower(Action), case 'welcome'             %-Welcome splash screen
 %=======================================================================
-
 spm_defaults;
 global defaults
 if isfield(defaults,'modality'), spm(defaults.modality); return; end;
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
-try
-    feature('JavaFigures',0);
-end
 openfig('spm_Welcome');
 
 

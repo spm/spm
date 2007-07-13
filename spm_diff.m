@@ -19,11 +19,11 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 841 2007-07-05 11:52:50Z karl $
+% $Id: spm_diff.m 859 2007-07-13 17:53:00Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
-f     = fcnchk(varargin{1});
+f     = varargin{1};
 
 % parse input arguments
 %--------------------------------------------------------------------------
