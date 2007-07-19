@@ -25,7 +25,7 @@ function [x,P] = spm_ekf(M,y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ekf.m 476 2006-03-10 12:12:10Z karl $
+% $Id: spm_ekf.m 862 2007-07-19 18:04:51Z karl $
 
 % check model specification
 %--------------------------------------------------------------------------
@@ -38,9 +38,9 @@ end
 
 % INITIALISATION:
 % =========================================================================
-dfdx  = spm_diff(M(1).f,M(1).x,M(2).v,M(1).P,1);
-dfdv  = spm_diff(M(1).f,M(1).x,M(2).v,M(1).P,2);
-dgdx  = spm_diff(M(1).g,M(1).x,M(2).v,M(1).P,1);
+dfdx  = spm_diff(M(1).f,M(1).x,M(2).v,M(1).pE,1);
+dfdv  = spm_diff(M(1).f,M(1).x,M(2).v,M(1).pE,2);
+dgdx  = spm_diff(M(1).g,M(1).x,M(2).v,M(1).pE,1);
 Jx    = spm_expm(dfdx);
 T     = length(y);              % number of time points
 
@@ -59,16 +59,16 @@ for t = 2:T
 
     % PREDICTION STEP:
     %----------------------------------------------------------------------
-    f        = M(1).f(M(1).x,M(2).v,M(1).P);
-    dfdx     = spm_diff(M(1).f,M(1).x,M(2).v,M(1).P,1);
+    f        = M(1).f(M(1).x,M(2).v,M(1).pE);
+    dfdx     = spm_diff(M(1).f,M(1).x,M(2).v,M(1).pE,1);
     xPred    = M(1).x + spm_dx(dfdx,f,dt);
     Jx       = spm_expm(dfdx);
     PPred    = Q + Jx*P{t-1}*Jx';
 
     % CORRECTION STEP:
     %----------------------------------------------------------------------
-    yPred    = M(1).g(xPred,M(2).v,M(1).P);
-    Jy       = spm_diff(M(1).g,xPred,M(2).v,M(1).P,1);
+    yPred    = M(1).g(xPred,M(2).v,M(1).pE);
+    Jy       = spm_diff(M(1).g,xPred,M(2).v,M(1).pE,1);
     K        = PPred*Jy'*inv(R + Jy*PPred*Jy');
     M(1).x   = xPred + K*(y(:,t) - yPred);
     x(:,t)   = M(1).x;

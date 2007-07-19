@@ -218,14 +218,22 @@ nx     = sum(spm_vec(M.n));
 
 % Hyperparameters and components (causes: Q V and hidden states R, W)
 %==========================================================================
-try, M.Q; catch, M(1).Q = []; end
-try, M.R; catch, M(1).R = []; end
-try, M.V; catch, M(1).V = []; end
-try, M.W; catch, M(1).W = []; end
+try, M.Q;  catch, M(1).Q  = []; end
+try, M.R;  catch, M(1).R  = []; end
+try, M.V;  catch, M(1).V  = []; end
+try, M.W;  catch, M(1).W  = []; end
+try, M.hE; catch, M(1).hE = []; end
+try, M.gE; catch, M(1).gE = []; end
 
 % check hyperpriors hE - [log]hyper-parameters and components
 %--------------------------------------------------------------------------
 for i = 1:g
+    
+    
+    % make sure components are cell arrays
+    %----------------------------------------------------------------------
+    if length(M(i).Q) & ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
+    if length(M(i).R) & ~iscell(M(i).R), M(i).R = {M(i).R}; end 
     
     % check hyperpriors
     %======================================================================
@@ -237,44 +245,38 @@ for i = 1:g
     
     % check hyperpriors (expectations)
     %----------------------------------------------------------------------
-    try, M(i).hE; catch, M(i).hE = sparse(length(M(i).Q),1); end
-    try, M(i).gE; catch, M(i).gE = sparse(length(M(i).R),1); end
+    if ~length(M(i).hE), M(i).hE = sparse(length(M(i).Q),1); end
+    if ~length(M(i).gE), M(i).gE = sparse(length(M(i).R),1); end
     
     % check hyperpriors (covariances)
     %----------------------------------------------------------------------
     try, M(i).hC*M(i)*hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
     try, M(i).gC*M(i)*gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
     
-    if length(M(i).hC) ~= length(M(i).hE)
-        M(i).hC = M(i).hC(1)*speye(length(M(i).hE));
-    end
-    if length(M(i).gC) ~= length(M(i).gE)
-        M(i).gC = M(i).gC(1)*speye(length(M(i).gE));
-    end
     
     % check Q and R (precision components)
     %======================================================================
 
-    % make sure components are cell arrays
-    %----------------------------------------------------------------------
-    if length(M(i).Q) & ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
-    if length(M(i).R) & ~iscell(M(i).R), M(i).R = {M(i).R}; end 
-    
     
     % check components and assume i.i.d if not specified
     %----------------------------------------------------------------------
-    if length(M(i).Q) ~= length(M(i).hE)
-        M(i).Q = {speye(M(i).l,M(i).l)};
+    if length(M(i).Q) > length(M(i).hE)
+        M(i).hE = sparse(length(M(i).Q),1);
     end
-    if length(M(i).R) ~= length(M(i).gE)
-        M(i).R = {speye(M(i).n,M(i).n)};
+    if length(M(i).Q) < length(M(i).hE)
+        M(i).Q  = {speye(M(i).l,M(i).l)};
+        M(i).hE = M(i).hE(1);
     end
-
+    if length(M(i).R) > length(M(i).gE)
+        M(i).gE = sparse(length(M(i).R),1);
+    end
+    if length(M(i).R) < length(M(i).gE)
+        M(i).R  = {speye(M(i).n,M(i).n)};
+        M(i).gE = M(i).gE(1);
+    end
+    
     % check consistency and sizes (Q)
     %----------------------------------------------------------------------
-    if length(M(i).Q) ~= length(M(i).hE)
-        errordlg(sprintf('please check: M(%i).hE and Q',i))
-    end
     for j = 1:length(M(i).Q)
         if length(M(i).Q{j}) ~= M(i).l
             errordlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
@@ -283,9 +285,6 @@ for i = 1:g
     
     % check consistency and sizes (R)
     %----------------------------------------------------------------------
-    if length(M(i).R) ~= length(M(i).gE)
-        errordlg(sprintf('please check: M(%i).gE and R',i))
-    end
     for j = 1:length(M(i).R)
         if length(M(i).R{j}) ~= M(i).n
             errordlg(sprintf('wrong size; M(%d).R{%d}',i,j))
@@ -294,34 +293,39 @@ for i = 1:g
     
     % check V and W (expansion point for precisions)
     %======================================================================
-    
+
     % check V and assume unit precision if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).V) ~= M(i).l
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
         catch
-            if length(M(i).hE)
-                M(i).V = sparse(M(i).l,M(i).l);
-            else
-                M(i).V = speye(M(i).l,M(i).l);
-            end
+            M(i).V = speye(M(i).l,M(i).l);
         end
     end
     
+    % remove fixed components if hyperparameters exist
+    %----------------------------------------------------------------------
+    if length(M(i).hE)
+        M(i).V = sparse(M(i).l,M(i).l);
+    end
+                
     % check W and assume unit precision if improperly specified
     %----------------------------------------------------------------------
     if length(M(i).W) ~= M(i).n
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
         catch
-            if length(M(i).gE)
-                M(i).W = sparse(M(i).n,M(i).n);
-            else
-                M(i).W = speye(M(i).n,M(i).n);
-            end
+            M(i).W = speye(M(i).n,M(i).n);
         end
     end
+    
+    % remove fixed components if hyperparameters exist
+    %----------------------------------------------------------------------
+    if length(M(i).gE)
+        M(i).W = sparse(M(i).n,M(i).n);
+    end
+        
     
 end
 

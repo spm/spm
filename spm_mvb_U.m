@@ -1,5 +1,5 @@
 function U = spm_mvb_U(Y,priors,X0,xyz)
-% Construct patterns U for Multivariate Bayesian inversion of a linear model
+% Constructs patterns U for Multivariate Bayesian inversion of a linear model
 % FORMAT U = spm_mvb_U(Y,priors,X0,xyz)
 % Y      - date feature matrix
 % priors - 'null'
@@ -43,26 +43,27 @@ switch priors
 
     case 'smooth'
         %------------------------------------------------------------------
-        s     = 4^2;
-        U     = zeros(nv,nv);
+        s     = 4^2;                              % smoothness fixed at 4mm
+        U     = sparse(nv,nv);
         for i = 1:nv
-            U(i,:) = exp(-sum((xyz - xyz(:,i)*ones(1,nv)).^2)/(2*s));
+            u      = exp(-sum((xyz - xyz(:,i)*ones(1,nv)).^2)/(2*s))
+            U(i,:) = sparse(u.*(u > exp(-8)));
         end
 
     case 'singular'
 
         % get kernel (singular vectors)
         %------------------------------------------------------------------
-        R       = speye(size(X0,1)) - X0*pinv(X0);
-        [u s v] = spm_svd((R*Y),1/4);
+        R       = speye(size(X0,1)) - X0*inv(X0'*X0)*X0';
+        [u s v] = spm_svd((R*Y),1/4);              % c.f., Kiaser criterion
         U       = v/s;
 
     case 'support'
 
-        % get kernel (singular vectors)
+        % get kernel (image vectors)
         %------------------------------------------------------------------
         if nv > ns
-            R  = speye(size(X0,1)) - X0*pinv(X0);
+            R  = speye(size(X0,1)) - X0*inv(X0'*X0)*X0';
             U  = (R*Y)';
         else
             U  = speye(nv,nv);

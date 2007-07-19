@@ -22,7 +22,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 817 2007-05-24 19:17:44Z karl $
+% $Id: spm_reml.m 862 2007-07-19 18:04:51Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -147,7 +147,6 @@ for k = 1:K
         for i = 1:m
             V = V + W{i}*h(i);
         end
-        Ph    = -dFdhh;
         break
     end
 
@@ -155,6 +154,7 @@ end
 
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
+Ph    = -dFdhh;
 if nargout > 3
     
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)

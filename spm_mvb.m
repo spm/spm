@@ -4,6 +4,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % X      - contrast or target vector
 % Y      - date feature matrix
 % X0     - confounds
+% U      - patterns
 % V      - observation noise covariance
 % nG     - number of Greedy iterations (nG = 1 => uniform hyperpriors)
 %        - if not specified, the search will terminate when F falls

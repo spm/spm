@@ -1,4 +1,4 @@
-function [E dE] = spm_DEM_eval(M,qu,qp)
+function [E DE] = spm_DEM_eval(M,qu,qp)
 % evaluates state equations and derivatives for DEM schemes
 % FORMAT [E dE] = spm_DEM_eval(M,qu,qp)
 %
@@ -30,6 +30,12 @@ function [E dE] = spm_DEM_eval(M,qu,qp)
 % Karl Friston
 % $Id$
 
+% persistent variables to avoid redundant evaluations
+%==========================================================================
+persistent Qp dE dgdv dgdx dfdv dfdx dedy dedc dgdvp dgdxp dfdvp dfdxp
+du      = 1;
+try, du = any(spm_vec(qp.p) - spm_vec(Qp.p)) & M(1).E.linear; end
+
 %==========================================================================
 nl   = size(M,2);                       % number of levels
 ne   = sum(spm_vec(M.l));               % number of e (errors)
@@ -44,95 +50,97 @@ nc   = M(end).l;                        % number of c (prior causes)
 d    = M(1).E.d;                        % generalisation order of q(v)
 n    = M(1).E.n;                        % embedding order       (n >= d)
 
-% derivatives: dgdv{i,j} = dDi(e)/dDj(v), ...  Di(e) = (d/dt)^i[e], ...
+% derivatives: dgdp{i,j} = dDi(e)/dp, ...  Di(e) = (d/dt)^i[e], ...
 %--------------------------------------------------------------------------
 fe        = cell(n,1);
 ge        = cell(n,1);
-
-dfdv      = cell(n,d);
-dfdx      = cell(n,n);
 dfdp      = cell(n,1);
-dgdv      = cell(n,d);
-dgdx      = cell(n,n);
 dgdp      = cell(n,1);
-
-dedy      = cell(n,n);
-dedc      = cell(n,d);
-dfdy      = cell(n,n);
-dfdc      = cell(n,d);
+dfdpi     = cell(nl - 1,nl - 1);
+dgdpi     = cell(nl    ,nl - 1);
 
 [fe{:}]   = deal(sparse(nx,1));
 [ge{:}]   = deal(sparse(ne,1));
-
-[dfdv{:}] = deal(sparse(nx,nv));
-[dfdx{:}] = deal(sparse(nx,nx));
 [dfdp{:}] = deal(sparse(nx,np));
-[dgdv{:}] = deal(sparse(ne,nv));
-[dgdx{:}] = deal(sparse(ne,nx));
 [dgdp{:}] = deal(sparse(ne,np));
 
-[dedy{:}] = deal(sparse(ne,ny));
-[dedc{:}] = deal(sparse(ne,nc));
-[dfdy{:}] = deal(sparse(nx,ny));
-[dfdc{:}] = deal(sparse(nx,nc));
-
-% derivatives w.r.t. parameters
-%--------------------------------------------------------------------------
-if np
-    dgdvp = cell(np,1);
-    dgdxp = cell(np,1);
-    dfdvp = cell(np,1);
-    dfdxp = cell(np,1);
-    [dgdvp{:}] = deal(dgdv);
-    [dgdxp{:}] = deal(dgdx);
-    [dfdvp{:}] = deal(dfdv);
-    [dfdxp{:}] = deal(dfdx);
-end
-
-
-% initialise cell arrays for hierarchical structure
-%--------------------------------------------------------------------------
-dfdvi  = cell(nl - 1,nl - 1);
-dfdxi  = cell(nl - 1,nl - 1);
-dfdpi  = cell(nl - 1,nl - 1);
-dgdvi  = cell(nl    ,nl - 1);
-dgdxi  = cell(nl    ,nl - 1);
-dgdpi  = cell(nl    ,nl - 1);
-
-% & fill in hierarchical forms
-%--------------------------------------------------------------------------
 for i = 1:(nl - 1)
-    dgdvi{i + 1,i} = sparse(M(i).m,M(i).m);
-    dgdxi{i + 1,i} = sparse(M(i).m,M(i).n);
     dgdpi{i + 1,i} = sparse(M(i).m,M(i).p);
-    dgdvi{i    ,i} = sparse(M(i).l,M(i).m);
-    dgdxi{i    ,i} = sparse(M(i).l,M(i).n);
     dgdpi{i    ,i} = sparse(M(i).l,M(i).p);
-    dfdvi{i    ,i} = sparse(M(i).n,M(i).m);
-    dfdxi{i    ,i} = sparse(M(i).n,M(i).n);
     dfdpi{i    ,i} = sparse(M(i).n,M(i).p);
 end
 
-if np
-    dgdvpi      = cell(np,1);
-    dgdxpi      = cell(np,1);
-    dfdvpi      = cell(np,1);
-    dfdxpi      = cell(np,1);
-    [dgdvpi{:}] = deal(dgdvi);
-    [dgdxpi{:}] = deal(dgdxi);
-    [dfdvpi{:}] = deal(dfdvi);
-    [dfdxpi{:}] = deal(dfdxi);
-end
-
-% & add constant terms
+% create deriavtice w.r.t. states if du
 %--------------------------------------------------------------------------
-for i = 1:n
-    dedy{i,i}   =  speye(ne,ny);
-end
-for i = 1:d
-    dedc{i,i}   = -flipdim(flipdim(speye(ne,nc),1),2);
-end
+if du
+    dfdv      = cell(n,d);
+    dfdx      = cell(n,n);
+    dgdv      = cell(n,d);
+    dgdx      = cell(n,n);
+    dedy      = cell(n,n);
+    dedc      = cell(n,d);
+    dfdy      = cell(n,n);
+    dfdc      = cell(n,d);
+    [dgdv{:}] = deal(sparse(ne,nv));
+    [dgdx{:}] = deal(sparse(ne,nx));
+    [dfdv{:}] = deal(sparse(nx,nv));
+    [dfdx{:}] = deal(sparse(nx,nx));
+    [dedy{:}] = deal(sparse(ne,ny));
+    [dedc{:}] = deal(sparse(ne,nc));
+    [dfdy{:}] = deal(sparse(nx,ny));
+    [dfdc{:}] = deal(sparse(nx,nc));
 
+    % derivatives w.r.t. parameters
+    %----------------------------------------------------------------------
+    if np
+        dgdvp = cell(np,1);
+        dgdxp = cell(np,1);
+        dfdvp = cell(np,1);
+        dfdxp = cell(np,1);
+        [dgdvp{:}] = deal(dgdv);
+        [dgdxp{:}] = deal(dgdx);
+        [dfdvp{:}] = deal(dfdv);
+        [dfdxp{:}] = deal(dfdx);
+    end
+
+    % initialise cell arrays for hierarchical structure
+    %--------------------------------------------------------------------------
+    dfdvi  = cell(nl - 1,nl - 1);
+    dfdxi  = cell(nl - 1,nl - 1);
+    dgdvi  = cell(nl    ,nl - 1);
+    dgdxi  = cell(nl    ,nl - 1);
+
+    % & fill in hierarchical forms
+    %--------------------------------------------------------------------------
+    for i = 1:(nl - 1)
+        dgdvi{i + 1,i} = sparse(M(i).m,M(i).m);
+        dgdxi{i + 1,i} = sparse(M(i).m,M(i).n);
+        dgdvi{i    ,i} = sparse(M(i).l,M(i).m);
+        dgdxi{i    ,i} = sparse(M(i).l,M(i).n);
+        dfdvi{i    ,i} = sparse(M(i).n,M(i).m);
+        dfdxi{i    ,i} = sparse(M(i).n,M(i).n);
+    end
+
+    if np && du
+        dgdvpi      = cell(np,1);
+        dgdxpi      = cell(np,1);
+        dfdvpi      = cell(np,1);
+        dfdxpi      = cell(np,1);
+        [dgdvpi{:}] = deal(dgdvi);
+        [dgdxpi{:}] = deal(dgdxi);
+        [dfdvpi{:}] = deal(dfdvi);
+        [dfdxpi{:}] = deal(dfdxi);
+    end
+
+    % & add constant terms
+    %--------------------------------------------------------------------------
+    for i = 1:n
+        dedy{i,i}   =  speye(ne,ny);
+    end
+    for i = 1:d
+        dedc{i,i}   = -flipdim(flipdim(speye(ne,nc),1),2);
+    end
+end
 
 % un-concatenate states {v,x} into hierarchical form
 %--------------------------------------------------------------------------
@@ -157,61 +165,67 @@ for i = 1:(nl - 1)
     % states and parameters for level i
     %----------------------------------------------------------------------
     xvp        = {xi{i},vi{i},qp.p{i},qp.u{i},M(i).pE};
-    
-    
-    % d/dP[de/dx], d/dP[de/dv],, ...
+
+    % g(x,v), f(x,v) and 1st-order partial derivatives (parameters)
     %----------------------------------------------------------------------
-    [dgdxpj dgdxj gj] =  spm_diff(h,M(i).g,xvp{:},[2 4]);
-    [dgdvpj dgdvj gj] =  spm_diff(h,M(i).g,xvp{:},[3 4]);
-    [dfdxpj dfdxj fj] =  spm_diff(h,M(i).f,xvp{:},[2 4]);
-    [dfdvpj dfdvj fj] =  spm_diff(h,M(i).f,xvp{:},[3 4]);
-    
-    
-    % g(x,v) & f(x,v)
+    [dfdpj fj] = spm_diff(h,M(i).f,xvp{:},4);
+    [dgdpj gj] = spm_diff(h,M(i).g,xvp{:},4);
+
+    % and place in array
     %----------------------------------------------------------------------
     g{i,1}     = gj;
     f{i,1}     = fj;
+    dfdpi{i,i} = dfdpj;
+    dgdpi{i,i} = dgdpj;
 
-    % 1st-order partial derivatives
-    %----------------------------------------------------------------------
-    dgdxi{i,i} = dgdxj;
-    dgdvi{i,i} = dgdvj;
-    dfdxi{i,i} = dfdxj;
-    dfdvi{i,i} = dfdvj;
-    dfdpi{i,i} = spm_diff(h,M(i).f,xvp{:},4);
-    dgdpi{i,i} = spm_diff(h,M(i).g,xvp{:},4);
-    
+    % if the system is nonlinear or the parameters have changed
+    %======================================================================
+    if du
 
-    % add constant terms
-    %----------------------------------------------------------------------
-    dgdvi{i + 1,i} = -speye(M(i).m,M(i).m);
+        % 1st and 2nd partial derivatives (states)
+        %------------------------------------------------------------------
+        [dgdxpj dgdxj] = spm_diff(h,M(i).g,xvp{:},[2 4]);
+        [dgdvpj dgdvj] = spm_diff(h,M(i).g,xvp{:},[3 4]);
+        [dfdxpj dfdxj] = spm_diff(h,M(i).f,xvp{:},[2 4]);
+        [dfdvpj dfdvj] = spm_diff(h,M(i).f,xvp{:},[3 4]);
 
-    for j = 1:M(i).p
-        dgdxpi{ip}{i,i} = dgdxpj{j};
-        dgdvpi{ip}{i,i} = dgdvpj{j};
-        dfdxpi{ip}{i,i} = dfdxpj{j};
-        dfdvpi{ip}{i,i} = dfdvpj{j};
-        ip              = ip + 1;
+        % place 1st derivatives in array
+        %------------------------------------------------------------------
+        dgdxi{i,i} = dgdxj;
+        dgdvi{i,i} = dgdvj;
+        dfdxi{i,i} = dfdxj;
+        dfdvi{i,i} = dfdvj;
+
+        % and add constant terms
+        %------------------------------------------------------------------
+        dgdvi{i + 1,i} = -speye(M(i).m,M(i).m);
+
+        % place 2nd derivatives in array
+        %------------------------------------------------------------------
+        for j = 1:M(i).p
+            dgdxpi{ip}{i,i} = dgdxpj{j};
+            dgdvpi{ip}{i,i} = dgdvpj{j};
+            dfdxpi{ip}{i,i} = dfdxpj{j};
+            dfdvpi{ip}{i,i} = dfdvpj{j};
+            ip              = ip + 1;
+        end
     end
-
 end
 
 % concatenate hierarchical forms
 %--------------------------------------------------------------------------
-dgdv{1} = spm_cat(dgdvi);
-dgdx{1} = spm_cat(dgdxi);
-dgdp{1} = spm_cat(dgdpi);
-dfdv{1} = spm_cat(dfdvi);
-dfdx{1} = spm_cat(dfdxi);
-dfdp{1} = spm_cat(dfdpi);
-
-for j = 1:np
-    dgdvp{j}{1} = spm_cat(dgdvpi{j});
-    dgdxp{j}{1} = spm_cat(dgdxpi{j});
-    dfdvp{j}{1} = spm_cat(dfdvpi{j});
-    dfdxp{j}{1} = spm_cat(dfdxpi{j});
+if du
+    dgdv{1} = spm_cat(dgdvi);
+    dgdx{1} = spm_cat(dgdxi);
+    dfdv{1} = spm_cat(dfdvi);
+    dfdx{1} = spm_cat(dfdxi);
+    for j = 1:np
+        dgdvp{j}{1} = spm_cat(dgdvpi{j});
+        dgdxp{j}{1} = spm_cat(dgdxpi{j});
+        dfdvp{j}{1} = spm_cat(dfdvpi{j});
+        dfdxp{j}{1} = spm_cat(dfdxpi{j});
+    end
 end
-
 
 % prediction error (E) - causes
 %--------------------------------------------------------------------------
@@ -231,55 +245,65 @@ for i = 2:n - 1
           - dfdx{1}*x{i} - dfdv{1}*v{i};    % and prediction
 end
 
-% generalised temporal derivatives (dE.du) (states)
+% error
 %--------------------------------------------------------------------------
-for i = 2:n
-    dgdx{i,i} = dgdx{1};
-    dfdx{i,i} = dfdx{1};
-    for k = 1:np
-        dgdxp{k}{i,i} = dgdxp{k}{1};
-        dfdxp{k}{i,i} = dfdxp{k}{1};
-    end
-    dfdx{i - 1,i}     = -speye(nx,nx);
-end
-for i = 2:d
-    dgdv{i,i} = dgdv{1};
-    dfdv{i,i} = dfdv{1};
-    for k = 1:np
-        dgdvp{k}{i,i} = dgdvp{k}{1};
-        dfdvp{k}{i,i} = dfdvp{k}{1};
-    end
-end
+E      =  spm_vec({ge, fe});
 
 % dE.dp (parameters)
 %--------------------------------------------------------------------------
+dfdp{1} = spm_cat(dfdpi);
+dgdp{1} = spm_cat(dgdpi);
 for p = 1:np
     for i = 2:n
         dgdp{i}(:,p) = dgdxp{p}{1}*x{i} + dgdvp{p}{1}*v{i};
         dfdp{i}(:,p) = dfdxp{p}{1}*x{i} + dfdvp{p}{1}*v{i};
     end
 end
-
-
-% error
-%--------------------------------------------------------------------------
-E      =  spm_vec({ge,   fe});
-
-% 1st error derivatives
-%--------------------------------------------------------------------------
-dE.du  = -spm_cat({dgdx, dgdv;
-                   dfdx, dfdv});
-dE.dy  =  spm_cat({dedy; dfdy});
-dE.dc  =  spm_cat({dedc; dfdc});
 dE.dp  = -spm_cat({dgdp; dfdp});
 
-% 2nd error derivatives
+% generalised temporal derivatives: dE.du (states)
 %--------------------------------------------------------------------------
-for i = 1:np
-    dE.dup{i} = -spm_cat({dgdxp{i}, dgdvp{i};
-                          dfdxp{i}, dfdvp{i}});
-end
-if np
-    dE.dpu    =  spm_cell_swap(dE.dup);
+if du
+    
+    % Kronecker forms
+    %----------------------------------------------------------------------
+    for i = 2:n
+        dgdx{i,i} = dgdx{1};
+        dfdx{i,i} = dfdx{1};
+        for k = 1:np
+            dgdxp{k}{i,i} = dgdxp{k}{1};
+            dfdxp{k}{i,i} = dfdxp{k}{1};
+        end
+        dfdx{i - 1,i}     = -speye(nx,nx);
+    end
+    for i = 2:d
+        dgdv{i,i} = dgdv{1};
+        dfdv{i,i} = dfdv{1};
+        for k = 1:np
+            dgdvp{k}{i,i} = dgdvp{k}{1};
+            dfdvp{k}{i,i} = dfdvp{k}{1};
+        end
+    end
+
+    % dE.du (states)
+    %----------------------------------------------------------------------
+    dE.du  = -spm_cat({dgdx, dgdv;
+                       dfdx, dfdv});
+    dE.dy  =  spm_cat({dedy; dfdy});
+    dE.dc  =  spm_cat({dedc; dfdc});
+
+    % 2nd error derivatives
+    %----------------------------------------------------------------------
+    for i = 1:np
+        dE.dup{i} = -spm_cat({dgdxp{i}, dgdvp{i};
+                              dfdxp{i}, dfdvp{i}});
+    end
+    if np
+        dE.dpu    =  spm_cell_swap(dE.dup);
+    end
 end
 
+% remeber parameters and derivatives
+%--------------------------------------------------------------------------
+Qp   = qp;
+DE   = dE;

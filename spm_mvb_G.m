@@ -2,7 +2,7 @@ function model = spm_mvb_G(X,Y,X0,U,G,V);
 % Multivariate Bayesian inversion of a linear model
 % FORMAT model = spm_mvb_G(X,Y,X0,U,G,V);
 % X      - contrast or target vector
-% Y      - date feature matrix
+% Y      - data feature matrix
 % X0     - confounds
 % U      - patterns (n x m)
 % G      - pattern subsets (in columns of G) (n x m)
@@ -28,9 +28,9 @@ function model = spm_mvb_G(X,Y,X0,U,G,V);
 if isempty(X0), X0 = zeros(size(X,1),1); end
 if nargin < 6,  V  = speye(size(X,1));   end
 
-
 % null space of confounds
 %--------------------------------------------------------------------------
+X0     = full(X0);
 R      = orth(speye(size(X0,1)) - X0*pinv(X0));
 Y      = R'*Y;
 X      = R'*X;

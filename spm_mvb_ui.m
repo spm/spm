@@ -13,7 +13,6 @@ else
     clf
 end
 
-
 %-Get contrast
 %--------------------------------------------------------------------------
 contrast = SPM.xCon(xSPM.Ic).name;

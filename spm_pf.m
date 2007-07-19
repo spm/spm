@@ -1,6 +1,6 @@
-function [qx,qP] = spm_pf(M,y,U)
+function [qx,qP,qD,xhist] = spm_pf(M,y,U)
 % Particle Filtering for dynamic models
-% FORMAT [x,P] = spm_pf(M,y)
+% FORMAT [qx,qP,qD,xhist] = spm_pf(M,y)
 % M - model specification structure
 % y - output or data (N x T)
 % U - exogenous input
@@ -14,8 +14,9 @@ function [qx,qP] = spm_pf(M,y,U)
 % M(2).v                            % initial process noise
 % M(2).V                            % process noise precision
 %
-% x - conditional expectation of states
-% P - {1 x T} conditional covariance of states
+% qx - conditional expectation of states
+% qP - {1 x T} conditional covariance of states
+% qD - full sample
 %__________________________________________________________________________
 % See notes at the end of this script for details and a demo.  This routine
 % is based on:
@@ -26,7 +27,7 @@ function [qx,qP] = spm_pf(M,y,U)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_pf.m 455 2006-02-22 18:40:33Z karl $
+% $Id: spm_pf.m 862 2007-07-19 18:04:51Z karl $
 
 
 
@@ -52,10 +53,11 @@ R    = M(1).V;
 for i = 1:length(M(1).Q)
     R = R + M(1).Q{i}*exp(M(1).h(i));
 end
-P  = M(1).P;                               % parameters
+P  = M(1).pE;                              % parameters
 Q  = M(2).V.^-.5;                          % root covariance of innovations
 v  = kron(ones(1,N),M(2).v);               % innovations
 x  = kron(ones(1,N),M(1).x);               % hidden states
+v  = v + 128*Q*randn(size(v));
 
 % inputs
 %--------------------------------------------------------------------------
@@ -93,8 +95,18 @@ for t = 1:T
     %----------------------------------------------------------------------
     qx(:,t)  = mean(x,2);
     qP{t}    = cov(x');
+    qX(:,t)  = x(:);
     fprintf('PF: time-step = %i : %i\n',t,T);
+end
 
+% sample density
+%==========================================================================
+if nargout > 3
+    xhist = linspace(min(qX(:)),max(qX(:)),32);
+    for i = 1:T
+        q = hist(qX(:,i),xhist);
+        qD(:,i) = q(:);
+    end
 end
 
 return
@@ -147,7 +159,7 @@ return
 % a model S.M and data S.Y (c.f. van der Merwe et al 2000))
 %
 % The model is   f(x) = dxdt
-%                     = 1 + sin(o.o4*pi*t) - log(2)*x + n
+%                     = 1 + sin(0.04*pi*t) - log(2)*x + n
 %                y    = g(x)
 %                     = (x.^2)/5  : if t < 30
 %                       -2 + x/2  : otherwise
@@ -164,7 +176,7 @@ M(1).x  = [1; 1];                  % initial states
 M(1).f  = inline(f,'x','v','P');   % state equation
 M(1).g  = inline(g,'x','v','P');   % observer equation
 M(1).pE = [log(2) 0.04];           % parameters
-M(1).V  = 1e5;                     % observation noise precision
+M(1).V  = exp(4);                  % observation noise precision
 
 M(2).v  = 0;                       % initial process log(noise)
 M(2).V  = 2.4;                     % process log(noise) precision
