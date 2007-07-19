@@ -48,18 +48,23 @@ function [t,sts] = spm_select(varargin)
 % cwd      - current working directory [defaut '.']
 % cpath    - conditioned paths, in same format as input path argument
 %
-% FORMAT [files,dirs]=spm_select('List',direc,filt,frames)
+% FORMAT [files,dirs]=spm_select('List',direc,filt)
 % Returns files matching the filter (filt) and directories within dire
 % direc    - directory to search
 % filt     - filter to select files with (see regexp) e.g. '^w.*\.img$'
-% frames   - vector of frames to select (defaults to [], if not specified)
 % files    - files matching 'filt' in directory 'direc'
 % dirs     - subdirectories of 'direc'
+% FORMAT [files,dirs]=spm_select('ExtList',direc,filt,frames)
+% As above, but for selecting frames of 4D NIfTI files
+% frames   - vector of frames to select (defaults to 1, if not specified)
+% FORMAT [files,dirs]=spm_select('FPList',direc,filt)
+% FORMAT [files,dirs]=spm_select('ExtFPList',direc,filt,frames)
+% As above, but returns files with full paths (i.e. prefixes direc to each)
 %____________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 735 2007-02-12 15:07:42Z volkmar $
+% $Id: spm_select.m 861 2007-07-19 14:30:23Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -78,7 +83,7 @@ if nargin > 0 && ischar(varargin{1})
         case 'filter'
             filt    = mk_filter(varargin{3:end});
             cs      = iscell(varargin{2});
-            if ~cs 
+            if ~cs
                 t = cellstr(varargin{2});
             else
                 t = varargin{2};
@@ -88,15 +93,38 @@ if nargin > 0 && ischar(varargin{1})
             if ~cs
                 t = strvcat(t);
             end;
-        case 'list'
-	    if nargin > 3
-		frames = varargin{4};
-	    else
-		frames = [];
-	    end;
-            filt    = mk_filter('any',varargin{3},frames);
-            [t,sts] = listfiles(varargin{2},filt);
-        otherwise 
+        case {'list', 'fplist', 'extlist', 'extfplist'}
+            if nargin > 3
+                frames = varargin{4};
+            else
+                frames = 1; % (ignored in listfiles if typ==any)
+            end;
+            if regexpi(varargin{1}, 'ext') % use frames descriptor
+                typ = 'extimage';
+            else
+                typ = 'any';
+            end
+            filt    = mk_filter(typ, varargin{3}, frames);
+            [t sts] = listfiles(varargin{2}, filt); % (sts is subdirs here)
+            if regexpi(varargin{1}, 'fplist') % return full pathnames
+                direc = spm_select('cpath', varargin{2});
+                % remove trailing path separator if present
+                direc = regexprep(direc, [filesep '$'], '');
+                t = strcat(repmat(direc, size(t, 1), 1), filesep, t);
+                if nargout > 1
+                    % subdirs too
+                    nsd = size(sts, 1);
+                    sts = strcat(repmat(direc, nsd, 1), filesep, sts);
+                    % /blah/blah/. and /blah/blah/.. not canonical, fix:
+                    sts = cellstr(sts);
+                    mch = [filesep '\.$'];
+                    sts = regexprep(sts, mch, '');
+                    mch = [filesep '[^' filesep ']+' filesep '\.\.$'];
+                    sts = regexprep(sts, mch, '');
+                    sts = char(sts);
+                end
+            end
+        otherwise
             error('Inappropriate usage.');
     end
 else
