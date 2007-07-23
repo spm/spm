@@ -21,7 +21,7 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 778 2007-03-28 14:16:48Z klaas $
+% $Id: spm_dcm_U.m 863 2007-07-23 13:21:06Z john $
 
 
 load(DCM_filename);
@@ -83,7 +83,7 @@ DCM.U = U;
 % Check inputs and outputs match up (to the nearest DCM.U.dt)
 %--------------------------------------------------------------------------
 % Get input sampling rate from first input
-U.dt          = Sess.U(1).dt;
+DCM.U.dt      = Sess.U(1).dt;
 
 % Use the TR from the SPM data structure
 DCM.Y.dt      = SPM.xY.RT;
