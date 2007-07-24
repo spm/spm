@@ -16,17 +16,19 @@ function [y] = spm_fx_dcm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_dcm.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_fx_dcm.m 864 2007-07-24 17:54:41Z klaas $
 
 
 
 % hemodynamic parameters
 %---------------------------------------------------------------------------
-%   H(1) - signal decay      - d(ds/dt)/ds)
-%   H(2) - autoregulation    - d(ds/dt)/df)
-%   H(3) - transit time                (t0)
-%   H(4) - exponent for Fout(v)     (alpha)
-%   H(5) - resting oxygen extraction   (E0)
+%   H(1) - signal decay                                   d(ds/dt)/ds)
+%   H(2) - autoregulation                                 d(ds/dt)/df)
+%   H(3) - transit time                                   (t0)
+%   H(4) - exponent for Fout(v)                           (alpha)
+%   H(5) - resting oxygen extraction                      (E0)
+%   H(6) - ratio of intra- to extra-vascular components   (epsilon)
+%          of the gradient echo signal   
 
 % get dimensions
 %---------------------------------------------------------------------------

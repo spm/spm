@@ -11,7 +11,7 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_dcm_priors.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_dcm_priors.m 864 2007-07-24 17:54:41Z klaas $
  
  
 % number of regions
@@ -54,7 +54,8 @@ pE    = [log(b); A(:); B(:); C(:)];
 % P(3) - transit time               (t0)  ~ 1 sec
 % P(4) - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
 % P(5) - resting oxygen extraction  (E0)  ~ range 20 - 50%
- 
+% P(6) - ratio of intra- to extravascular components of the gradient echo signal:
+%        epsilon (prior mean = 1, log-normally distributed scaling factor)
 [qE,qC] = spm_hdm_priors(0);
  
  

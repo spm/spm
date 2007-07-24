@@ -8,7 +8,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 776 2007-03-27 09:40:10Z stefan $
+% $Id: spm_dcm_estimate.m 864 2007-07-24 17:54:41Z klaas $
 
  
 if nargin < 1
@@ -40,13 +40,25 @@ xY = DCM.xY;
 n  = DCM.n;
 v  = DCM.v;
 X0 = DCM.Y.X0;
-
+% check whether TE of acquisition has been defined;
+% if not, default to 40 ms
+if ~isfield(DCM,'TE')
+    DCM.TE = 0.04;
+    disp('spm_dcm_estimate: TE not defined.')
+    disp('DCM.TE was set to default of 0.04 s')
+else
+    if (DCM.TE < 0) || (DCM.TE > 0.1)
+        disp('spm_dcm_estimate: Extreme TE value found.')
+        disp('Please check and adjust DCM.TE (note this value must be in seconds!).')
+    end
+end
+TE = DCM.TE;
 
 % priors - expectations
 %--------------------------------------------------------------------------
 [pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
 
-% model specification and nonlinear system identification
+% model specification
 %--------------------------------------------------------------------------
 M.IS  = 'spm_int';
 M.f   = 'spm_fx_dcm';
@@ -60,12 +72,15 @@ M.l   = n;
 M.N   = 32;
 M.dt  = 16/M.N;
 M.ns  = size(Y.y,1);
+M.TE  = TE;
 
 try
     % extension to cover fMRI slice time sampling
     M.delays = DCM.delays;
 end
 
+% nonlinear system identification (nlsi)
+%--------------------------------------------------------------------------
 [Ep,Cp,Ce,H0,H1,H2,M0,M1,L1,L2,F] = spm_nlsi(M,U,Y);
 
 % predicted responses and residuals

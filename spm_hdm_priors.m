@@ -8,20 +8,23 @@ function [pE,pC] = spm_hdm_priors(m,h)
 % pC  - prior covariances
 %
 % (5) biophysical parameters
-%    P(1) - signal decay      - d(ds/dt)/ds)
-%    P(2) - autoregulation    - d(ds/dt)/df)
-%    P(3) - transit time                (t0)
-%    P(4) - exponent for Fout(v)     (alpha)
-%    P(5) - resting oxygen extraction   (E0)
+%    P(1) - signal decay                  d(ds/dt)/ds)
+%    P(2) - autoregulation                d(ds/dt)/df)
+%    P(3) - transit time                  (t0)
+%    P(4) - exponent for Fout(v)          (alpha)
+%    P(5) - resting oxygen extraction     (E0)
+%    P(6) - ratio of intra- to extra-     (epsilon)
+%           vascular components of the
+%           gradient echo signal   
 %
 % plus (m) efficacy priors
-%    P(6) - ....
+%    P(7) - ....
 %
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hdm_priors.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_hdm_priors.m 864 2007-07-24 17:54:41Z klaas $
 
 
 
@@ -51,6 +54,13 @@ e     = [   2.1225    1.2006    0.3519    0.0039    0.0012];
 i     = (h + 1):5;
 e(i)  = 0;
 pC    = v*diag(e)*v';
+
+% append scaling parameter for epsilon
+%---------------------------------------------------------------------------
+% log-normally distributed scaling factor
+pE    = [pE log(1)];
+% prior variance = 0.5, zero prior covariance with the other parameters
+pC     = blkdiag(pC,0.5);
 
 % append m efficacy priors
 %---------------------------------------------------------------------------

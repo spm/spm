@@ -3,7 +3,7 @@ function [A,B,C,H] = spm_dcm_reshape(P,m,n,r)
 % FORMAT [A B C H] = spm_dcm_reshape(P,m,n,[r]);
 % P     - parameter vector
 % m     - number of inputs
-% n     - number of states
+% n     - number of regions
 % [r]   - returns relative connections {without scaling by P(1)}
 %
 % A...  - intrinsic connections
@@ -14,7 +14,7 @@ function [A,B,C,H] = spm_dcm_reshape(P,m,n,r)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_dcm_reshape.m 222 2005-09-07 16:49:37Z karl $
+% $Id: spm_dcm_reshape.m 864 2007-07-24 17:54:41Z klaas $
  
  
 % scale intrinsic connections {A}
@@ -44,10 +44,9 @@ P(j)  = [];
 j     = 1:n*m;
 C     = reshape(P(j),n,m);
 P(j)  = [];
- 
+
 % fill in hemodynamic parameters {H}
 %--------------------------------------------------------------------------
-j     = 1:n*5;
-H     = reshape(P(j),n,5);
-
-
+hp    = 6; % number of free hemodynamic parameters per region
+j     = 1:n*hp;
+H     = reshape(P(j),n,hp);

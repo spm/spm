@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 811 2007-05-13 12:03:49Z klaas $
+% $Id: spm_dcm_ui.m 864 2007-07-24 17:54:41Z klaas $
 
 
 
@@ -272,6 +272,10 @@ case 'specify'
     % slice timing
     %-------------------------------------------------------------------
 	delays = spm_input('Slice timings [s]', -1, 'r', SPM.xY.RT*ones(1, m), m, [0 SPM.xY.RT]);
+
+    % echo time (TE) of data acquisition
+    %-------------------------------------------------------------------
+	TE = spm_input('Echo time, TE [s]');
     spm_input('Thank you',1,'d')
 
     
@@ -295,17 +299,20 @@ case 'specify'
 
 	% error precision components (one for each region) - i.i.d. (because of W)
 	%-------------------------------------------------------------------
-	Y.Q = spm_Ce(ones(1,n)*v);
+	Y.Q        = spm_Ce(ones(1,n)*v);
 
-    DCM.a=a;
-    DCM.b=b;
-    DCM.c=c;
-    DCM.U=U;
-    DCM.Y=Y;
-    DCM.xY=xY;
-    DCM.v=v;
-    DCM.n=n;
+	% store all variables in DCM structure
+	%-------------------------------------------------------------------
+    DCM.a      = a;
+    DCM.b      = b;
+    DCM.c      = c;
+    DCM.U      = U;
+    DCM.Y      = Y;
+    DCM.xY     = xY;
+    DCM.v      = v;
+    DCM.n      = n;
     DCM.delays = delays;
+    DCM.TE     = TE;
     
     %-Save and reset title
 	%-------------------------------------------------------------------
