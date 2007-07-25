@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_filter.m 865 2007-07-25 12:37:25Z christophe $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -28,7 +28,12 @@ catch
     D = spm_select(1, '\.mat$', 'Select EEG mat file');
 end
 
-P = spm_str_manip(D, 'H');
+if ischar(D)
+    P = spm_str_manip(D, 'H');
+else
+    P = D.path;
+end
+
 
 try
 	D = spm_eeg_ldata(D);
