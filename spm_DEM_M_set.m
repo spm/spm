@@ -81,6 +81,14 @@ if ~isfield(M,'f')
     [M.x] = deal(sparse(0,1));
     [M.n] = deal(0);
 end
+for i  = 1:g
+    try
+        fcnchk(M(i).f);
+    catch
+        M(i).f = inline('sparse(0,1)','x','v','P');
+        M(i).x = sparse(0,1);
+    end
+end
  
 % consistency and format check on states, parameters and functions
 %==========================================================================
@@ -156,6 +164,7 @@ if ~length(v)
 end
 M(g).l    = length(spm_vec(v));
 M(g).v    = v;
+
  
 % check functions
 %--------------------------------------------------------------------------
@@ -163,6 +172,9 @@ for i = (g - 1):-1:1
     try
         x = M(i).x;
     catch
+        x = sparse(M(i).n,1);
+    end
+    if ~length(x) && M(i).n
         x = sparse(M(i).n,1);
     end
  
@@ -250,9 +262,11 @@ for i = 1:g
     
     % check hyperpriors (covariances)
     %----------------------------------------------------------------------
-    try, M(i).hC*M(i)*hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
-    try, M(i).gC*M(i)*gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
+    try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
+    try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
     
+    if ~length(M(i).hC), M(i).hC = speye(length(M(i).hE))*256; end
+    if ~length(M(i).gC), M(i).gC = speye(length(M(i).gE))*256; end
     
     % check Q and R (precision components)
     %======================================================================
@@ -326,7 +340,6 @@ for i = 1:g
         M(i).W = sparse(M(i).n,M(i).n);
     end
         
-    
 end
 
  
@@ -352,13 +365,12 @@ try M(1).E.n;  catch, if nx, M(1).E.n = 8;  else M(1).E.n = 1;  end, end
  
 % number of iterations
 %--------------------------------------------------------------------------
-try M(1).E.nD; catch, if nx, M(1).E.nD = 1; else M(1).E.nD = 8; end, end
-try M(1).E.nE; catch, M(1).E.nE = 8;  end
-try M(1).E.nM; catch, M(1).E.nM = 8;  end
-try M(1).E.nN; catch, M(1).E.nN = 16; end
+try M(1).E.nD; catch, if nx, M(1).E.nD = 1;  else M(1).E.nD = 8; end, end
+try M(1).E.nE; catch,        M(1).E.nE = 1;  end
+try M(1).E.nM; catch,        M(1).E.nM = 8;  end
+try M(1).E.nN; catch,        M(1).E.nN = 16; end
  
- 
- 
+
 % checks on estimability
 %==========================================================================
  
@@ -371,3 +383,4 @@ for i = 1:(g - 1)
         warndlg('please use informative priors on causes or parameters')
     end
 end
+

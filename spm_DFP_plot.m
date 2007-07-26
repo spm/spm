@@ -1,6 +1,6 @@
-function spm_DFP_plot(QU)
+function spm_DFP_plot(QU,Nt)
 % plots particles for spm_DFP
-% FORMAT spm_DFP_plot(QU)
+% FORMAT spm_DFP_plot(QU,Nt)
 %--------------------------------------------------------------------------
 % QU{t}(p).x{d}  - ensemble of hidden states
 % QU{t}(p).v{d}  - ensemble of causal states
@@ -17,6 +17,8 @@ nx    = size(QU{1}(1).x{1},1);
 nv    = size(QU{1}(1).v{1},1);
 nt    = length(QU);
 np    = length(QU{1});
+
+try Nt; catch, Nt = nt; end
 
 % unpack states
 %--------------------------------------------------------------------------
@@ -48,7 +50,7 @@ xlabel('time {bins}')
 ylabel('states (a.u.)')
 grid on
 axis square
-set(gca,'XLim',[1 nt])
+set(gca,'XLim',[1 Nt])
 
 
 % hidden states
@@ -68,5 +70,5 @@ xlabel('time {bins}')
 ylabel('states (a.u.)')
 grid on
 axis square
-set(gca,'XLim',[1 nt])
+set(gca,'XLim',[1 Nt])
 drawnow

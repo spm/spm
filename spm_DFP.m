@@ -95,6 +95,11 @@ if isempty(Fdem)
     name = 'Dynamic Expectation Maximisation';
     Fdem = spm_figure('CreateWin','DEM',name,'on');
 end
+Fdfp     = spm_figure('GetWin','DFP');
+if isempty(Fdfp)
+    name = 'Dynamic Fokker-Planck';
+    Fdfp = spm_figure('CreateWin','DFP',name,'on');
+end
 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
@@ -124,7 +129,7 @@ kt   = 1;                              % rate constant for D-Step
 if nx, nD = 1;      else, nD = 8; end
 try nE = M(1).E.nE; catch nE = 1; end
 try nM = M(1).E.nM; catch nM = 8; end
-try nI = M(1).E.nI; catch nI = 8; end
+try nN = M(1).E.nN; catch nN = 8; end
 
 
 % initialise regularisation parameters
@@ -188,12 +193,10 @@ for i = 1:(nl - 1)
     % eigenvector reduction: p <- pE + qp.u*qp.p
     %----------------------------------------------------------------------
     qp.u{i}   = spm_svd(M(i).pC);                    % basis for parameters
-    qp.p{i}   = spm_vec(M(i).P) - spm_vec(M(i).pE);  % initial estimate
-    qp.p{i}   = qp.u{i}'*qp.p{i};                    % projection
+    M(i).p    = size(qp.u{i},2);                     % number of qp.p
+    qp.p{i}   = sparse(M(i).p,1);                    % initial qp.p
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
-    
-    M(i).p    = size(qp.u{i},2);
- 
+
 end
 Up    = spm_cat(diag(qp.u));
  
@@ -212,7 +215,7 @@ pp.ic = inv(pp.c);
 %--------------------------------------------------------------------------
 qp.e  = spm_vec(qp.p);
 qp.c  = sparse(nf,nf);
-qb    = sparse(nn,1 );
+qp.b  = sparse(ny,nb);
 
 % initialise dedb
 %--------------------------------------------------------------------------
@@ -294,12 +297,12 @@ dUdpp     = sparse(nf,nf);
 %--------------------------------------------------------------------------
 if ~nh,        nM = 1; end
 if ~nf,        nE = 1; end
-if ~nf && ~nh, nI = 1; end
+if ~nf && ~nh, nN = 1; end
 
 
 % Iterate DEM
 %==========================================================================
-for iI = 1:nI
+for iN = 1:nN
  
     % E-Step: (with embedded D-Step)
     %======================================================================
@@ -312,16 +315,11 @@ for iI = 1:nI
         dFdp  = zeros(nf,1);
         dFdpp = zeros(nf,nf);
         EE    = sparse(0);
-        JCJ   = sparse(0);
+        ECE   = sparse(0);
         qp.ic = sparse(0);
-        C     = speye(1);
+        qu_c  = speye(1);
  
-        
-        % [re-]set hierarchical parameters
-        %------------------------------------------------------------------
-        qp.p  = spm_unvec(qp.e,qp.p);
-        
-        
+
         % [re-]set precisions using ReML hyperparameter estimates
         %------------------------------------------------------------------
         iS    = Qp;
@@ -331,7 +329,7 @@ for iI = 1:nI
         
         % [re-]adjust for confounds
         %------------------------------------------------------------------
-        Y     = Y - reshape(qb,ny,nb)*X;
+        Y     = Y - qp.b*X;
         
         % [re-]set states & their derivatives
         %------------------------------------------------------------------
@@ -407,9 +405,9 @@ for iI = 1:nI
                     [E dE] = spm_DEM_eval(M,quy,qp);
                     dE.dP  = [dE.dp spm_cat(dEdb)];
 
-                    C      = C*c;
+                    qu_c   = qu_c*c;
                     EE     = E*E'+ EE;
-                    JCJ    = JCJ + dE.du*c*dE.du'+ dE.dP*qp.c*dE.dP';
+                    ECE    = ECE + dE.du*c*dE.du'+ dE.dP*qp.c*dE.dP';
 
                     % save states for qu(iY)
                     %------------------------------------------------------
@@ -425,10 +423,10 @@ for iI = 1:nI
                 % evaluate functions:
                 % e = v - g(x,v), dx/dt = f(x,v) and derivatives dE.dx, ...
                 %==========================================================
-                for iN = 1:N
+                for iP = 1:N
                     
-                    quy.x  = qu(iN).x;
-                    quy.v  = qu(iN).v;
+                    quy.x  = qu(iP).x;
+                    quy.v  = qu(iP).v;
                     quy.y  = qy;
                     quy.u  = qc;
                     [e de] = spm_DEM_eval(M,quy,qp);
@@ -482,25 +480,21 @@ for iI = 1:nI
                     du    = spm_sde_dx(dFduu,dfdw,dFdu,td);
                     dq    = spm_unvec(du,dq);
                     for i = 1:n
-                        qu(iN).x{i} = qu(iN).x{i} + dq{i};
+                        qu(iP).x{i} = qu(iP).x{i} + dq{i};
                     end
                     for i = 1:d
-                        qu(iN).v{i} = qu(iN).v{i} + dq{i + n};
+                        qu(iP).v{i} = qu(iP).v{i} + dq{i + n};
                     end
 
                 end
-                
-                % D-Step: save ensemble density and plot (over D-steps)
-                %----------------------------------------------------------
-                QD{iD}  = qu;
-                spm_DFP_plot(QD)
 
             end % D-Step
             
             % D-Step: save ensemble density and plot (over samples)
             %--------------------------------------------------------------
             QU{iY}  = qu;
-            spm_DFP_plot(QU)
+            figure(Fdfp)
+            spm_DFP_plot(QU,nY)
 
             % Gradients and curvatures for E-Step:
             %==============================================================
@@ -541,9 +535,10 @@ for iI = 1:nI
         %------------------------------------------------------------------
         dp   = spm_dx(dFdpp,dFdp,{te});
         qp.e = qp.e + dp(ip);
-        db   = dp(ib);
+        qp.p = spm_unvec(qp.e,qp.p);
+        qp.b = spm_unvec(dp(ib),qp.b);
         mp   = mp + dp;
-        
+
         % convergence (E-Step)
         %------------------------------------------------------------------
         if (dFdp'*dp < 1e-2) | (norm(dp,1) < TOL), break, end
@@ -565,7 +560,7 @@ for iI = 1:nI
            iS = iS + Q{i}*exp(qh.h(i));
         end
         S     = inv(iS);
-        dS    = JCJ + EE - S*nY;
+        dS    = ECE + EE - S*nY;
          
         % 1st-order derivatives: dFdh = dF/dh
         %------------------------------------------------------------------
@@ -591,16 +586,12 @@ for iI = 1:nI
         % update ReML estimate of parameters
         %------------------------------------------------------------------
         dh    = spm_dx(dFdhh,dFdh);
-        dh    = min(dh, 8);
-        dh    = max(dh,-8);
         qh.h  = qh.h + dh;
         mh    = mh   + dh;
         
         % conditional covariance of hyperparameters
         %------------------------------------------------------------------
-        if iM == 1
-            qh.c = -inv(dFdhh);
-        end
+        qh.c = -inv(dFdhh);
         
         % convergence (M-Step)
         %------------------------------------------------------------------
@@ -610,10 +601,10 @@ for iI = 1:nI
 
     % evaluate objective function (F)
     %======================================================================
-    F(iI) = - trace(iS*EE)/2  ...                % states (u)
+    F(iN) = - trace(iS*EE)/2  ...                % states (u)
             - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
             - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
-            + spm_logdet(C)/2     ...            % entropy q(u)
+            + spm_logdet(qu_c)/2  ...            % entropy q(u)
             + spm_logdet(qp.c)/2  ...            % entropy q(p)
             + spm_logdet(qh.c)/2  ...            % entropy q(h)
             - spm_logdet(pp.c)/2  ...            % entropy - prior p
@@ -632,10 +623,10 @@ for iI = 1:nI
             try
                 Qu.x{i}(:,t) = spm_vec(x{i});
             end
-            Qu.e{i}(:,t)     = spm_vec(e{i});
+            Qu.z{i}(:,t)     = spm_vec(e{i});
         end
         Qu.v{1}(:,t)         = spm_vec(qU(t).y{1} - e{1});
-        Qu.e{nl}(:,t)        = spm_vec(e{nl});
+        Qu.z{nl}(:,t)        = spm_vec(e{nl});
 
         % and conditional covariances
         %--------------------------------------------------------------
@@ -668,8 +659,8 @@ for iI = 1:nI
 
     % report (EM-Steps)
     %------------------------------------------------------------------
-    str{1} = sprintf('DEM: %i (%i:%i:%i)',iI,iD,iE,iM);
-    str{2} = sprintf('F:%.6e',full(F(iI)));
+    str{1} = sprintf('DEM: %i (%i:%i:%i)',iN,iD,iE,iM);
+    str{2} = sprintf('F:%.6e',full(F(iN)));
     str{3} = sprintf('p:%.2e',full(mp'*mp));
     str{4} = sprintf('h:%.2e',full(mh'*mh));
     fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
@@ -684,21 +675,26 @@ end
 
 % conditional moments of model-parameters (rotated into original space)
 %--------------------------------------------------------------------------
-qP.P  = Up*qp.e + spm_vec(M.pE);
-qP.Pi = spm_unvec(qP.P,M.pE);
-qP.C  = Up*qp.c(ip,ip)*Up';
+qP.P   = spm_unvec(Up*qp.e + spm_vec(M.pE),M.pE);
+qP.C   = Up*qp.c(ip,ip)*Up';
+qP.V   = spm_unvec(diag(qP.C),M.pE);
  
 % conditional moments of hyper-parameters (log-transformed)
 %--------------------------------------------------------------------------
-qH.h  = qh.h;
-qH.hi = spm_unvec(qH.h,{M.hE M.gE});
-qH.C  = qh.c;
- 
+qH.h   = spm_unvec(qh.h,{{M.hE} {M.gE}});
+qH.g   = qH.h{2};
+qH.h   = qH.h{1};
+qH.C   = qh.c;
+qH.V   = spm_unvec(diag(qH.C),{{M.hE} {M.gE}});
+qH.W   = qH.V{2};
+qH.V   = qH.V{1};
+
 % assign output variables
 %--------------------------------------------------------------------------
+DEM.M  = M;
 DEM.U  = U;                   % causes
 DEM.X  = X;                   % confounds
-
+ 
 DEM.qU = Qu;                  % conditional moments of model-states
 DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters

@@ -5,7 +5,6 @@
 % particle filtering. Crucially, DEM and particle filtering deal gracefully
 % with nonlinearities, in relation to Kalman filtering.
 %__________________________________________________________________________
-clear functions
 clear M
  
 % temporal correlations
@@ -46,16 +45,7 @@ t_x     = DEM.pU.x{1};
  
 % overlay true values
 %--------------------------------------------------------------------------
-subplot(2,2,2)
-hold on
-plot([1:T],DEM.pU.x{1},'linewidth',2,'color',[1 1 1]/2)
-hold off
- 
-subplot(2,2,3)
-hold on
-plot([1:T],DEM.pU.v{2},'linewidth',2,'color',[1 1 1]/2)
-hold off
- 
+spm_DEM_qU(DEM.qU,DEM.pU)
 drawnow
 
 % EKF
@@ -69,6 +59,7 @@ drawnow
  
 % graphics comparing PF, EKF and DEM
 %--------------------------------------------------------------------------
+spm_figure
 subplot(2,1,1)
 plot([1:T],t_x,'r-',[1:T],d_x,'k-',[1:T],p_x,'k-.',[1:T],e_x,'k:')
 legend({'true','DEM','PF','EKF'})
@@ -76,7 +67,7 @@ axis square
 xlabel('time')
 title('Conditional expectation (hidden states)')
  
-% graphics condotinoal covariance
+% graphics conditional covariance
 %--------------------------------------------------------------------------
 subplot(2,1,2)
 Cd     = spm_cat(DEM.qU.S);

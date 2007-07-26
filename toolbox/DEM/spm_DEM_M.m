@@ -3,11 +3,12 @@ function [M] = spm_dem_M(model,varargin)
 % FORMAT [M] = spm_dem_M(model,l,n)
 % FORMAT [M] = spm_dem_M(model,X1,X2,...)
 %
-% model: "General linear model","GLM"
-%        "Factor analysis","FA"
-%        "Independent component analysis","ICA"
-%        "Sparse coding","SC"
-%        "State space model","SSM"
+% model: 'General linear model','GLM'
+%        'Factor analysis','FA'
+%        'Independent component analysis','ICA'
+%        'Sparse coding',"SC'
+%        'convolution model'
+%        'State space model','SSM'
 %
 % l(i) - number of outputs from level i
 % n(i) - number of hidden states in level i
@@ -51,6 +52,8 @@ switch lower(model)
         if length(varargin);
             pE   = varargin;
         else
+            error('Please specify design matrices');
+            
             global SPM_DATA;
             fig  = spm_data;
             set(fig,'Name','Please specify design matrices using ''next''')
@@ -78,13 +81,13 @@ switch lower(model)
         % Get design matrix
         %------------------------------------------------------------------
         if length(varargin);
-            pE = varargin{1};
+            pE  = varargin{1};
         else
             global SPM_DATA
-            fig  = spm_data;
+            fig = spm_data;
             set(fig,'Name','Please specify a design matrix')
             waitfor(fig)
-            pE   = SPM_DATA;
+            pE  = SPM_DATA;
         end
 
         % This is simply a one-level HLM with flat priors
@@ -99,8 +102,8 @@ switch lower(model)
         % Get orders (this routine will accommodate hierarchical FA)
         %------------------------------------------------------------------
         try
-            l    = varargin{1};
-            l    = l(~~l);
+            l = varargin{1};
+            l = l(~~l);
         catch
             errordlg('please specify number of inputs and ouputs')
         end
@@ -129,22 +132,22 @@ switch lower(model)
         % create basic FA
         %------------------------------------------------------------------
         try
-            l          = varargin{1}(1);
+            l    = varargin{1}(1);
         catch
             msgbox('please specify number of outputs')
             error(' ')
         end
-        M          = spm_DEM_M('fa',[l l]);
-        g          = length(M);
+        M        = spm_DEM_M('fa',[l l]);
+        g        = length(M);
 
         % assume precisely small error at the first level
         %------------------------------------------------------------------
-        M(1).hE    = 8;       
-        M(1).hC    = 1/32;
+        M(1).hE  = 8;       
+        M(1).hC  = 1/32;
 
         % assume unit causes
         %------------------------------------------------------------------
-        M(2).V     = speye(M(2).l,M(2).l);
+        M(2).V   = speye(M(2).l,M(2).l);
 
         % Independent component analysis (static - nonlinear)
         %==================================================================
@@ -152,8 +155,8 @@ switch lower(model)
 
         % create basic FA
         %------------------------------------------------------------------
-        M          = spm_DEM_M('pca',varargin{:});
-        g          = length(M);
+        M        = spm_DEM_M('pca',varargin{:});
+        g        = length(M);
 
         % and add supra-ordinate [nonlinear] level
         %------------------------------------------------------------------
@@ -162,7 +165,7 @@ switch lower(model)
         M(g).g   = 'v-tanh(v)*P';
         M(g).pE  = 0;
         M(g).pC  = 0;
-        M(g).V   = speye(M(2).l,M(2).l)*1e6;
+        M(g).V   = speye(M(2).l,M(2).l)*exp(8);
 
 
         % Sparse coding, pICA (static - nonlinear)
@@ -181,6 +184,33 @@ switch lower(model)
             M(i).V  = sparse(M(i).l,M(i).l);
         end
 
+        % Linear convolution (State-space model)
+        %==================================================================
+    case{'convolution model'}
+        
+        % smoothness
+        %--------------------------------------------------------------------------
+        M(1).E.linear = 1;                          % linear model
+        M(1).E.s      = 1/2;                        % smoothness
+
+        % level 1
+        %--------------------------------------------------------------------------
+        pE.f    = [-1  4   ;                        % the Jacobian for the
+                   -2 -1]/4;                        % hidden sates
+        pE.g    = [spm_dctmtx(4,2)]/4;              % the mixing parameters
+        pE.h    = [1 0]';                           % input parameter
+        M(1).n  = 2;
+        M(1).f  = inline('P.f*x + P.h*v','x','v','P');
+        M(1).g  = inline('P.g*x','x','v','P');
+        M(1).pE = pE;                               % prior expectation
+        M(1).V  = speye(4,4)*exp(8);                % error precision
+        M(1).W  = speye(2,2)*exp(16);               % error precision
+
+        % level 2
+        %--------------------------------------------------------------------------
+        M(2).l  = 1;                                % inputs
+        M(2).V  = 1;                                % with shrinkage priors
+
 
         % Nonlinear [Polynomial] factor analysis (static - nonlinear)
         %==================================================================
@@ -191,26 +221,26 @@ switch lower(model)
         % non-hierarchical linear generative model (dynamic)
         %===========================================================================
     case{'state space model','ssm'}
-
-        % model specification
-        %--------------------------------------------------------------------------
-        f       = '[1; (1 + sin(P(2)*pi*x(1)) - P(1)*x(2) + exp(v))]';
-        g       = '(x(2).^2)/5';
-        M(1).x  = [1; 1];
-        M(1).f  = inline(f,'x','v','P');
-        M(1).g  = inline(g,'x','v','P');
-        M(1).pE = [log(2) 0.04];
-        M(1).V  = 1e4;
-
-        M(2).v  = 0;
-        M(2).V  = 2.4;
-
+        
+        
         % temporal correlations
         %--------------------------------------------------------------------------
-        M(1).E.s  = 1/32;
-        M(1).E.d  = 1;
-        M(1).E.n  = 4;
-        M(1).E.nD = 8;
+        M(1).E.s  = 1/2;
+
+        % model specification - 1st level
+        %--------------------------------------------------------------------------
+        f      = '(16*x/(1 + x^2) - x/2 + v*2)/8';
+        g      = '(x^2)/16';
+        M(1).x = 1;
+        M(1).f = inline(f,'x','v','P');
+        M(1).g = inline(g,'x','v','P');
+        M(1).V = exp(2);
+        M(1).W = exp(16);
+
+        % model specification - 2nd level
+        %--------------------------------------------------------------------------
+        M(2).v = 0;
+        M(2).V = 1/8;
 
 
     otherwise

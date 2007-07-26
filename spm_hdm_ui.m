@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_hdm_ui.m 868 2007-07-26 17:55:53Z karl $
 
 
 % get figure handles
@@ -88,10 +88,10 @@ spm('FigName','Estimation in progress');
 %---------------------------------------------------------------------------
 % u(m) - mth stimulus function     (u)
 %
-% x(1) - vascular signal           (s)
-% x(2) - rCBF                      (f)
-% x(3) - venous volume             (v)
-% x(4) - deoyxHb                   (q)
+% x(1) - vascular signal           log(s)
+% x(2) - rCBF                      log(f)
+% x(3) - venous volume             log(v)
+% x(4) - deoyxHb                   log(q)
 %
 % y(1) - BOLD                      (y)
 %
@@ -112,7 +112,7 @@ m       = size(U.u,2);
 %--------------------------------------------------------------------------
 M.f     = 'spm_fx_hdm';
 M.g     = 'spm_gx_hdm';
-M.x     = [0 1 1 1]';
+M.x     = [0 0 0 0]';
 M.pE    = pE;    
 M.pC    = pC;
 M.m     = m;
@@ -181,10 +181,10 @@ set(gca,'YTickLabel',{	'SIGNAL decay',...
 [H0,H1] = spm_kernels(M0,M1,M.N,M.dt);
 
 subplot(3,2,2)
-plot(t,H1(:,:,j))
+plot(t,exp(H1(:,:,j)))
 axis square
-title({	['1st order kernels for ' U.name{j}];...
-	'state variables: s, f, q and v'},'FontSize',9)
+title({['1st order kernels for ' U.name{j}];...
+	   'state variables'},'FontSize',9)
 ylabel('normalized values')
 legend('s','f','q','v',0);
 grid on

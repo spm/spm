@@ -87,6 +87,7 @@ if length(hP) < m, hP = hP(1)*speye(m,m); end
 %--------------------------------------------------------------------------
 dF    = Inf;
 as    = 1:m;
+ds    = 1:m;
 for k = 1:K
 
     % compute current estimate of covariance
@@ -151,7 +152,6 @@ for k = 1:K
     dh(as) = spm_dx(dFdhh(as,as),dFdh(as));
     h      = h + dh;
     
-    
     % Convergence (1% change in log-evidence)
     %======================================================================
     % bar(h);drawnow
@@ -165,11 +165,9 @@ for k = 1:K
     else
         % eliminate redundant components (automatic selection)
         %------------------------------------------------------------------
-        as             = find(h > hE/2);
-        h(~as)         = hE(~as);
-        h(find(h > 1)) = 1;
-        dh             = zeros(m,1);
-        as             = as(:)';
+        as    = find(h > hE/2);
+        dh    = zeros(m,1);
+        as    = as(:)';
     end
 
 end

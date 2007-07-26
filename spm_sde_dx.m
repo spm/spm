@@ -2,7 +2,7 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 % returns dx(t) = (expm(dfdx*t) - I)*inv(dfdx)*f + w for SDEs
 % FORMAT [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 % dfdx   = df/dx - x: states
-% dfdx   = df/dw - w: i.i.d. Weiner process 
+% dfdw   = df/dw - w: i.i.d. Weiner process 
 % f      = dx/dt
 % t      = integration time: (default t = 1);
 %
@@ -37,21 +37,23 @@ if nargin < 3, t = 1; end
 % compute stochastic terms {E = exp(dfdx*t), e = exp(dfdx*dt)}
 %--------------------------------------------------------------------------
 m     = length(dfdx);
-N     = 32;
+N     = 256;
 dt    = t/N;
 e     = spm_expm(dfdx*dt);
 E     = speye(m,m);
 Q     = sparse(m,m);
-R     = dfdw*dfdw'/2;
+R     = dfdw*dfdw';
+TOL   = trace(E*R*E')/64;
 for i = 1:N
     Q = Q + E*R*E'*dt;
     E = E*e;
+    if trace(E*R*E') < TOL, break, end
 end
 w     = spm_sqrtm(Q)*randn(m,1);
 
 % local linear solution and add stochastic term
 %==========================================================================
-dx    = (E - speye(m,m))*pinv(full(dfdx))*f + w;
+dx    = spm_dx(dfdx,f,t) + w;
 
 
 

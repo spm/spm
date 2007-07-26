@@ -23,7 +23,7 @@ end
 
 % time-series specification
 %--------------------------------------------------------------------------
-g     = length(qP.Pi);                                 % order of hierarchy
+g     = length(qP.P);                                  % depth of hierarchy
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
@@ -44,7 +44,7 @@ for i = 1:(g - 1)
     
     % conditional expectations
     %----------------------------------------------------------------------
-    qi    = spm_vec(qP.Pi{i});
+    qi    = spm_vec(qP.P{i});
     try
         pi = spm_vec(M.pE{i});
     end

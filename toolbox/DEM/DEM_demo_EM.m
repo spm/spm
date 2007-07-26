@@ -1,54 +1,35 @@
+% Dual estimation of parameters and hyperparameters; under known causes:
 % This demo focuses on conditional parameter estimation with DEM and
 % provides a comparative evaluation using EM.  This proceeds by removing
 % uncertainly about the input so that the D-step can be discounted.
 %==========================================================================
 clear M
  
-% basic convolution model
+% get basic convolution model
 %==========================================================================
- 
-% level 1
-%--------------------------------------------------------------------------
-M(1).E.linear = 1;
-
-M(1).E.n  = 8;                                % embedding
-M(1).E.d  = 3;                                % restriction
-M(1).E.s  = 1/2;                              % smoothness
-M(1).E.nE = 1;                                % E-steps
- 
-% level 1
-%--------------------------------------------------------------------------
-P.f     = [-1  4   ;                          % the Jacobian for the
-           -2 -1]/4;                          % hidden sates
-P.g     = [spm_dctmtx(4,2)]/4;                % the mixing parameters
-P.h     = [1; 0];                             % input parameter
-np      = length(spm_vec(P));
-ng      = size(P.g,1);
-nx      = size(P.f,1);
-nv      = size(P.h,2);
+M       = spm_DEM_M('convolution model');
  
 % free parameters
 %--------------------------------------------------------------------------
+P       = M(1).pE;                            % true parameters
 ip      = [2 5];                              % free parameters
 pE      = spm_vec(P);
 pE(ip)  = 0;
+np      = length(pE);
 pE      = spm_unvec(pE,P);
 pC      = sparse(ip,ip,exp(8),np,np);
- 
 M(1).pE = pE;
-M(1).pC = pC;                                 % The prior covariance
+M(1).pC = pC;
  
-M(1).n  = nx;
-M(1).f  = inline('P.f*x + P.h*v','x','v','P');
-M(1).g  = inline('P.g*x','x','v','P');
-M(1).Q  = {speye(ng,ng)};
-M(1).R  = {speye(nx,nx)};
- 
- 
+% free hyperparameters
+%--------------------------------------------------------------------------
+M(1).Q  = {speye(M(1).l,M(1).l)};
+M(1).R  = {speye(M(1).n,M(1).n)};
+
 % level 2
 %--------------------------------------------------------------------------
 M(2).l  = 1;                                  % inputs
-M(2).V  = exp(16);
+M(2).V  = exp(16);                            % very precise causes
  
  
 % and generate data
@@ -67,7 +48,7 @@ spm_DEM_qU(DEM.pU)
 DEM.U   = U;
 DEM     = spm_DEM(DEM);
  
- 
+
 % overlay true values
 %--------------------------------------------------------------------------
 subplot(2,2,2)
@@ -108,7 +89,7 @@ Q     = K*K';
 GY.y  = DEM.Y';
 GY.X0 = DEM.X';
 GY.dt = 1;
-GY.Q  = {kron(speye(ng,ng),Q)};
+GY.Q  = {kron(speye(G.l,G.l),Q)};
  
  
 % EM with a Gauss-Newton-like optimization of free energy
@@ -127,8 +108,9 @@ pP    = pP(ip);
 eP    = spm_vec(Ep);
 eP    = eP(ip);
  
-f = spm_figure;
-subplot(2,1,1)
+f = spm_figure('GetWin','DEM');
+figure(f)
+subplot(2,2,4)
 bar([tP qP eP])
 axis square
 legend('true','DEM','EM')
@@ -142,6 +124,7 @@ for i = 1:length(qP)
     plot([i i] + 1/4, eP(i) + [-1 1]*ce(i),'LineWidth',8,'color','r')
 end
 hold off
+
  
 return
  
@@ -176,8 +159,8 @@ for i = 1:8
     EH(i) = S(1);
 end
  
-figure(f)
-subplot(2,1,2)
+clf
+subplot(2,1,1)
 bar(tP,'FaceColor',[1 1 1]*.9,'EdgeColor',[1 1 1]*.9)
 hold on
 plot([1 2] - 1/8,EP,'r.',[1 2] + 1/4,QP,'k.','Markersize',16)
@@ -186,47 +169,5 @@ axis square
 set(gca,'XLim',[0 3])
 legend('true','EM','DEM')
 title('conditional estimates')
- 
-%Triple estimation
-%==========================================================================
 
-% now repeat but without using the inputs
-%--------------------------------------------------------------------------
-M(2).V    = exp(-8);
-M(1).E.nE = 1;
-M(1).E.nN = 32;
-DEM       = spm_DEM_generate(M,U,{P},{8,32},{32});
-DEM       = spm_DEM(DEM);
-
-% overlay true values
-%--------------------------------------------------------------------------
-subplot(2,2,2)
-hold on
-plot([1:N],DEM.pU.x{1},'linewidth',2,'color',[1 1 1]/2)
-hold off
- 
-subplot(2,2,3)
-hold on
-plot([1:N],DEM.pU.v{2},'linewidth',2,'color',[1 1 1]/2)
-hold off
-
-% parameters
-%--------------------------------------------------------------------------
-qP    = spm_vec(DEM.qP.P);
-qP    = qP(ip);
-tP    = spm_vec(DEM.pP.P);
-tP    = tP(ip);
- 
-subplot(2,2,4)
-bar([tP qP])
-axis square
-legend('true','DEM')
-title('parameters')
- 
-cq    = 1.64*sqrt(diag(DEM.qP.C(ip,ip)));
-hold on
-for i = 1:length(qP)
-    plot([i i] + 1/8,qP(i) + [-1 1]*cq(i),'LineWidth',8,'color','r')
-end
-hold off
 

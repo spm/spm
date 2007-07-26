@@ -1,13 +1,14 @@
-function spm_DEM_qU(varargin)
+function spm_DEM_qU(qU,pU)
 % displays conditional estimates of states (qU)
-% FORMAT spm_DEM_qU(qU);
-% FORMAT spm_DEM_qU(v{i},x{i},e{i});
+% FORMAT spm_DEM_qU(qU,pU);
 %
-% qU.v{i}    - causal states (V{1} = y = response)
+% qU.v{i}    - causal states (V{1} = y = predicted response)
 % qU.x{i}    - hidden states
 % qU.e{i}    - prediction error
 % qU.C{N}    - conditional covariance - [causal states] for N samples
 % qU.S{N}    - conditional covariance - [hidden states] for N samples
+%
+% pU         - optional input for known states
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
@@ -16,21 +17,17 @@ function spm_DEM_qU(varargin)
 
 % unpack
 %--------------------------------------------------------------------------
-if isstruct(varargin{1})
-    try
-        varargin{1} = varargin{1}.qU;
-    end
-    V     = varargin{1}.v;
-    X     = varargin{1}.x;
-    E     = varargin{1}.z;
-    try
-        C = varargin{1}.C;
-        S = varargin{1}.S;
-    end
-elseif nargin == 3
-    V     = varargin{1};
-    X     = varargin{2};
-    E     = varargin{3};
+V      = qU.v;
+X      = qU.x;
+E      = qU.z;
+try
+    C  = qU.C;
+    S  = qU.S;
+end
+
+try
+    pV = pU.v;
+    pX = pU.x;
 end
 
 % time-series specification
@@ -63,7 +60,7 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         t = 1:size(V{i},1);
-        plot(t,full(V{i}),t,full(E{i}),':')
+        plot(t,full(E{i}),'r:',t,full(V{i}))
 
 
         % conditional covariances
@@ -73,7 +70,9 @@ for i = 1:g
             j      = [1:size(V{i},1)];
             y      = ci*c(j,:);
             c(j,:) = [];
-            plot(t,full(V{i} + y),'-.',t,full(V{i} - y),'-.')
+            fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
+                 [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+            plot(t,full(E{i}),'r:',t,full(V{i}))
             hold off
         end
 
@@ -90,13 +89,9 @@ for i = 1:g
         % causal states and error - time series
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
-        plot(t,full(V{i}),t,full(E{i}(:,1:N)),':')
-        title(sprintf('causal states - level %i',i));
-        xlabel('time {bins}')
-        ylabel('states (a.u.)')
-        grid on
-        axis square
+        plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
         set(gca,'XLim',[t(1) t(end)])
+        a   = axis;
 
         % conditional covariances
         %------------------------------------------------------------------
@@ -105,19 +100,28 @@ for i = 1:g
             j      = [1:size(V{i},1)];
             y      = ci*c(j,:);
             c(j,:) = [];
-            plot(t,full(V{i} + y),'-.',t,full(V{i} - y),'-.')
+            fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
+                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+            plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
             hold off
+            
         end
 
         % title and grid
         %------------------------------------------------------------------
-        title(sprintf('causal states - level %i',i));
+        if i == 1
+            title('predicted response and error');
+        else
+            title(sprintf('causal states - level %i',i));
+            try, hold on
+                plot(t,pV{i},'linewidth',2,'color',[1 1 1]/2)
+            end, hold off
+        end
         xlabel('time {bins}')
         ylabel('states (a.u.)')
         grid on
         axis square
-        set(gca,'XLim',[t(1) t(end)])
-  
+        axis(a)
 
         % hidden states
         %------------------------------------------------------------------
@@ -125,10 +129,6 @@ for i = 1:g
  
             subplot(g,2,2*i)
             plot(t,full(X{i}))
-            title('hidden states')
-            xlabel('time {bins}')
-            grid on
-            axis square
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
             
@@ -137,10 +137,25 @@ for i = 1:g
                 j      = [1:size(X{i},1)];
                 y      = ci*s(j,:);
                 s(j,:) = [];
-                plot(t,full(X{i} + y),'-.',t,full(X{i} - y),'-.')
+                fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
+                        [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+                plot(t,full(X{i}))
                 hold off
-                axis(a);
+
             end
+            
+            try, hold on
+                plot(t,pX{i},'linewidth',2,'color',[1 1 1]/2)
+            end, hold off
+            
+            % title and grid
+            %--------------------------------------------------------------
+            title('hidden states')
+            xlabel('time {bins}')
+            grid on
+            axis square
+            axis(a);
+            
         catch
             delete(gca)
         end

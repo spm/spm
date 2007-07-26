@@ -58,7 +58,7 @@ hE(end) = 1;
 clear H
 H.f     = 'spm_fx_hdm';
 H.g     = 'spm_gx_hdm';
-H.x     = [0 1 1 1]';
+H.x     = [0 0 0 0]';
 H.pE    = hE;    
 H.pC    = hC;
 H.m     = 1;

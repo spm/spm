@@ -125,10 +125,10 @@ try nN = M(1).E.nN; catch nN = 16; end
 %--------------------------------------------------------------------------
 if nx
     td = 1/nD;                            % integration time for D-Step
-    te = exp(8);                          % integration time for E-Step
+    te = exp(32);                          % integration time for E-Step
 else
     td = {64};
-    te = exp(8);
+    te = exp(32);
 end
 
 % precision (R) and covariance of generalised errors
@@ -194,9 +194,7 @@ for i = 1:(nl - 1)
     M(i).p    = size(qp.u{i},2);                     % number of qp.p
     qp.p{i}   = sparse(M(i).p,1);                    % initial qp.p
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
-    
-    
- 
+
 end
 Up    = spm_cat(diag(qp.u));
  
@@ -322,7 +320,7 @@ for iN = 1:nN
         dFdp  = zeros(nf,1);
         dFdpp = zeros(nf,nf);
         EE    = sparse(0);
-        JCJ   = sparse(0);
+        ECE   = sparse(0);
         qp.ic = sparse(0);
         qu_c  = speye(1);
         
@@ -389,15 +387,15 @@ for iN = 1:nN
                 % and conditional covariance [of parameters {P}]
                 %----------------------------------------------------------
                 dE.dP  = [dE.dp spm_cat(dEdb)];
-                JCJu   = dE.du*qu.c*dE.du';
-                JCJp   = dE.dP*qp.c*dE.dP';
+                ECEu   = dE.du*qu.c*dE.du';
+                ECEp   = dE.dP*qp.c*dE.dP';
                 
                 % Evaluate objective function L(t) (for static models)
                 %----------------------------------------------------------
                 if ~nx
                     
                     L = - trace(E'*iS*E)/2 ...           % states (u)
-                        - trace(iS*JCJp)/2;              % expectation q(p)
+                        - trace(iS*ECEp)/2;              % expectation q(p)
 
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
@@ -407,14 +405,14 @@ for iN = 1:nN
                         B.qu   = qu;
                         B.E    = E;
                         B.dE   = dE;
-                        B.JCJp = JCJp;
+                        B.ECEp = ECEp;
                     else
                         % otherwise, return to previous expansion point
                         %--------------------------------------------------
                         qu     = B.qu;
                         E      = B.E;
                         dE     = B.dE;
-                        JCJp   = B.JCJp;
+                        ECEp   = B.ECEp;
                         td     = {min(td{1}/2,16)};
                     end
                 end
@@ -434,8 +432,8 @@ for iN = 1:nN
                         CJp(:,i)   = spm_vec(qp.c(ip,ip)*dE.dpu{i}'*iS);
                         dEdpu(:,i) = spm_vec(dE.dpu{i}');
                     end
-                    dWdu  = CJp'*spm_vec(dE.dp');
-                    dWduu = CJp'*dEdpu;
+                    dWdu   = CJp'*spm_vec(dE.dp');
+                    dWduu  = CJp'*dEdpu;
                 end
 
 
@@ -506,8 +504,8 @@ for iN = 1:nN
                     CJu(:,i)   = spm_vec(qu.c*dE.dup{i}'*iS);
                     dEdup(:,i) = spm_vec(dE.dup{i}');
                 end
-                dWdp  = CJu'*spm_vec(dE.du');
-                dWdpp = CJu'*dEdup;
+                dWdp(ip)       = CJu'*spm_vec(dE.du');
+                dWdpp(ip,ip)   = CJu'*dEdup;
             end
 
  
@@ -520,7 +518,7 @@ for iN = 1:nN
             % and quantities for M-Step
             %--------------------------------------------------------------
             EE    = E*E'+ EE;
-            JCJ   = JCJ + JCJu + JCJp;
+            ECE   = ECE + ECEu + ECEp;
             
         end % sequence (nY)
  
@@ -591,7 +589,7 @@ for iN = 1:nN
            iS = iS + Q{i}*exp(qh.h(i));
         end
         S     = inv(iS);
-        dS    = JCJ + EE - S*nY;
+        dS    = ECE + EE - S*nY;
          
         % 1st-order derivatives: dFdh = dF/dh
         %------------------------------------------------------------------
