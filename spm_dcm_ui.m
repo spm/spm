@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 864 2007-07-24 17:54:41Z klaas $
+% $Id: spm_dcm_ui.m 869 2007-07-29 09:01:32Z klaas $
 
 
 
@@ -275,7 +275,19 @@ case 'specify'
 
     % echo time (TE) of data acquisition
     %-------------------------------------------------------------------
-	TE = spm_input('Echo time, TE [s]');
+    TE    = 0;
+    TE_ok = 0;
+    while ~TE_ok
+        TE = spm_input('Echo time, TE [s]');
+        if ~TE | (TE < 0) | (TE > 0.1)
+            str = {	'Extreme value for TE or TE undefined.',...
+                'Please re-enter TE (note this value must be in seconds!).'};
+            spm_input(str,1,'bd','OK',[1],1);
+        else
+            TE_ok = 1;
+        end
+    end
+
     spm_input('Thank you',1,'d')
 
     
@@ -290,9 +302,7 @@ case 'specify'
 	Y.dt  = SPM.xY.RT;
 	Y.X0  = X0;
 	for i = 1:n
-
 		% regional responses
-		%-----------------------------------------------------------
 		Y.y(:,i)  = xY(i).u;
 		Y.name{i} = xY(i).name;
 	end

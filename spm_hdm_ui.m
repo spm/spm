@@ -15,7 +15,7 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 868 2007-07-26 17:55:53Z karl $
+% $Id: spm_hdm_ui.m 869 2007-07-29 09:01:32Z klaas $
 
 
 % get figure handles
@@ -57,7 +57,21 @@ else
 	end
 end
 
-
+% echo time (TE) of data acquisition
+%-------------------------------------------------------------------
+TE    = 0;
+TE_ok = 0;
+while ~TE_ok
+    TE = spm_input('Echo time, TE [s]');
+    if ~TE | (TE < 0) | (TE > 0.1)
+        str = {	'Extreme value for TE or TE undefined.',...
+                'Please re-enter TE (note this value must be in seconds!).'};
+        spm_input(str,1,'bd','OK',[1],1);
+    else
+        TE_ok = 1;
+    end
+end
+    
 % system outputs
 %===========================================================================
 
@@ -84,7 +98,7 @@ spm('Pointer','Watch')
 spm('FigName','Estimation in progress');
 
 
-% Model specification: m input; 4 state; 1 outout; m + 5 parameters
+% Model specification: m input; 4 states; 1 outout; m + 6 parameters
 %---------------------------------------------------------------------------
 % u(m) - mth stimulus function     (u)
 %
@@ -95,12 +109,16 @@ spm('FigName','Estimation in progress');
 %
 % y(1) - BOLD                      (y)
 %
-% P(1)       - signal decay     - d(ds/dt)/ds)  half-life = log(2)/P(1) ~ 1sec
-% P(2)       - autoregulation   - d(ds/dt)/df)  2*pi*sqrt(1/P(1)) ~ 10 sec
-% P(3)       - transit time               (t0)  ~ 1 sec
-% P(4)       - exponent for Fout(v)    (alpha)  c.f. Grubb's exponent (~ 0.38)
-% P(5)       - resting oxygen extraction  (E0)  ~ range 20 - 50%
-% P(5 + 1:m) - input efficacies - d(ds/dt)/du)  ~0.3 per event
+% P(1)       - signal decay               d(ds/dt)/ds)      half-life = log(2)/P(1) ~ 1sec
+% P(2)       - autoregulation             d(ds/dt)/df)      2*pi*sqrt(1/P(1)) ~ 10 sec
+% P(3)       - transit time               (t0)              ~ 1 sec
+% P(4)       - exponent for Fout(v)       (alpha)           c.f. Grubb's exponent (~ 0.38)
+% P(5)       - resting oxygen extraction  (E0)              ~ range 20 - 50%
+% P(6)       - ratio of intra- to extra-  (epsilon)         ~ range 0.5 - 2
+%              vascular components   
+%              of the gradient echo signal   
+
+% P(6 + 1:m) - input efficacies - d(ds/dt)/du)  ~0.3 per event
 %--------------------------------------------------------------------------
 
 % priors (3 modes of hemodynamic variation)
@@ -112,7 +130,9 @@ m       = size(U.u,2);
 %--------------------------------------------------------------------------
 M.f     = 'spm_fx_hdm';
 M.g     = 'spm_gx_hdm';
-M.x     = [0 0 0 0]';
+M.x     = [0 0 0 0]'; 
+% NB: resting value/expansion point of x(1) is -Inf in log space; this is
+% taken into account in spm_fx_hdm.
 M.pE    = pE;    
 M.pC    = pC;
 M.m     = m;
@@ -120,6 +140,7 @@ M.n     = 4;
 M.l     = 1;
 M.N     = 64;
 M.dt    = 24/M.N;
+M.TE    = TE;
 
 % nonlinear system identification
 %--------------------------------------------------------------------------
@@ -135,8 +156,8 @@ set(Fhdm,'name','Hemodynamic Modeling')
 % display input parameters
 %--------------------------------------------------------------------------
 subplot(2,2,1)
-P     = Ep(6:end);
-C     = diag(Cp(6:end,6:end));
+P     = Ep(7:end);
+C     = diag(Cp(7:end,7:end));
 [i j] = max(abs(P));
 spm_barh(P,C)
 axis square
@@ -155,12 +176,12 @@ xlabel('relative efficacy per event/sec')
 % display hemodynamic parameters
 %---------------------------------------------------------------------------
 subplot(2,2,3)
-P     = Ep(1:5);
-pE    = pE(1:5);
-C     = diag(Cp(1:5,1:5));
+P     = Ep(1:6);
+pE    = pE(1:6);
+C     = diag(Cp(1:6,1:6));
 spm_barh(P,C,pE)
 title({	'hemodynamic parameters'},'FontSize',10)
-set(gca,'Ytick',[1:15]/3 + 1/2)
+set(gca,'Ytick',[1:18]/3 + 1/2)
 set(gca,'YTickLabel',{	'SIGNAL decay',...
 			 sprintf('%0.2f per sec',P(1)),'',...
 			'FEEDBACK',...
@@ -170,7 +191,9 @@ set(gca,'YTickLabel',{	'SIGNAL decay',...
 			'EXPONENT',...
 			 sprintf('%0.2f',P(4)),'',...
 			'EXTRACTION',...
-			 sprintf('%0.0f %s',P(5)*100,'%'),''},'FontSize',8)
+			 sprintf('%0.0f %s',P(5)*100,'%'),'',...
+			'SIGNAL RATIO',...
+			 sprintf('%0.0f %s',P(6),'%'),''},'FontSize',8)
 
 
 % get display state kernels (i.e. state dynamics) 

@@ -1,36 +1,59 @@
 function [y] = spm_gx_hdm(x,u,P,M)
-% simulated BOLD response to input
+% Simulated BOLD response to input.  This function implements the BOLD
+% signal model described in Stephan et al. (2007), NeuroImage.
 % FORMAT [y] = spm_gx_hdm(x,u,P,M)
-% y    - BOLD response (%) (y)
-%
-% x    - state vector      (see spm_fx_hdm)
-% P    - Parameter vector  (see spm_fx_hdm)
+% y    - BOLD response (%)
+% x    - state vector     (see spm_fx_dcm)
+% P    - Parameter vector (see spm_fx_dcm)
 %__________________________________________________________________________
 %
-% Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
-% changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
+% References: 
+% 1. Obata T, Liu TT, Miller KL, Luh WM, Wong EC, Frank LR, Buxton RB.
+%    Discrepancies between BOLD and flow dynamics in primary and 
+%    supplementary motor areas: application of the balloon model to the 
+%    interpretation of BOLD transients. NeuroImage 21:144-153 (2004). 
+% 2. Stephan KE, Weiskopf N, Drysdale PM, Robinson PA, Friston KJ.
+%    Comparing hemodynamic models with DCM. NeuroImage (in press)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
-% Karl Friston
-% $Id: spm_gx_hdm.m 868 2007-07-26 17:55:53Z karl $
- 
- 
+% Karl Friston & Klaas Enno Stephan
+% $Id: spm_gx_hdm.m 869 2007-07-29 09:01:32Z klaas $
+
+
+% biophysical constants for 1.5 T (see Obata et al. 2004)
+%---------------------------------------------------------------------------
 % resting venous volume
+V0        = 100*0.02;
+% slope r0 of intravascular relaxation rate R_iv as a function of oxygen 
+% saturation Y:  R_iv = r0*[(1-Y)-(1-Y0)]
+r0        = 25; % [Hz]
+% frequency offset at the outer surface of magnetized vessels
+nu0       = 40.3; % [Hz]
+
+% estimated hemodynamic parameters
 %--------------------------------------------------------------------------
-V0   = 0.04;
+% region-specific resting oxygen extraction fractions
 E0   = P(5); 
+% region-specific ratios of intra- to extravascular components of
+% the gradient echo signal (prior mean = 1, log-normally distributed 
+% scaling factor) 
+epsilon   = exp(P(6));
  
-% coefficients for BOLD signal
+% coefficients in BOLD signal model
 %--------------------------------------------------------------------------
-k1   = 7*E0;
-k2   = 2;
-k3   = 2*E0 - 0.2;
+k1       = 4.3.*nu0.*E0.*M.TE;
+k2       = epsilon.*r0.*E0.*M.TE;
+k3       = 1 - epsilon;
  
-% exponentiation
+% exponentiation of hemodynamic state variables
 %--------------------------------------------------------------------------
-x    = exp(x);
- 
+x   = exp(x); 
+
 % BOLD signal
 %--------------------------------------------------------------------------
-y(1) = 100*V0*(k1*(1 - x(4)) + k2*(1 - x(4)/x(3)) + k3*(1 - x(3)));
+v        = x(3);
+q        = x(4);
+y(1)     = V0*(k1.*(1-q) + k2.*(1-(q./v)) + k3.*(1-v)); 
+
+return

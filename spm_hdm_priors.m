@@ -24,14 +24,14 @@ function [pE,pC] = spm_hdm_priors(m,h)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hdm_priors.m 868 2007-07-26 17:55:53Z karl $
+% $Id: spm_hdm_priors.m 869 2007-07-29 09:01:32Z klaas $
 
 
 
-% default 2 - hemodynamic [eigen]modes
+% default: 3 hemodynamic [eigen]modes
 %---------------------------------------------------------------------------
 if nargin < 2
-	h = 2;
+	h = 3;
 end
 
 % biophysical parameters with prior expectation and
