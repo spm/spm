@@ -27,7 +27,7 @@ function [f] = spm_fx_hdm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_hdm.m 869 2007-07-29 09:01:32Z klaas $
+% $Id: spm_fx_hdm.m 870 2007-07-31 09:08:15Z klaas $
 
 % exponentiation of hemodynamic state variables
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ ff    = (1 - (1 - P(5))^(1/x(2)))/P(5);
 
 % implement differential state equations
 %--------------------------------------------------------------------------
-f(1)  = P(7:end)'*u(:) - P(1)*x(1) - P(2)*(x(2) - 1);
+f(1)  = (P(7:end)'*u(:) - P(1)*x(1) - P(2)*(x(2) - 1))/(x(1)+1);
 f(2)  = x(1)/x(2);
 f(3)  = (x(2) - fv)/(P(3)*x(3));
 f(4)  = (ff*x(2) - fv*x(4)/x(3))/(P(3)*x(4));

@@ -3,10 +3,10 @@ function [y] = spm_fx_dcm(x,u,P,M)
 % FORMAT [y] = spm_fx_dcm(x,u,P,M)
 % x      - state vector
 %   x(:,1) - neuronal acivity
-%   x(:,2) - vascular signal           (s)
-%   x(:,3) - rCBF                      (f)
-%   x(:,4) - venous volume             (v)
-%   x(:,5) - deoyxHb                   (q)
+%   x(:,2) - vascular signal                       (s)
+%   x(:,3) - rCBF                                  (f)
+%   x(:,4) - venous volume                         (v)
+%   x(:,5) - deoyxHb                               (q)
 % y      - dx/dt
 %___________________________________________________________________________
 %
@@ -16,8 +16,7 @@ function [y] = spm_fx_dcm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_dcm.m 864 2007-07-24 17:54:41Z klaas $
-
+% $Id: spm_fx_dcm.m 870 2007-07-31 09:08:15Z klaas $
 
 
 % hemodynamic parameters
@@ -54,7 +53,12 @@ end
 % configure state variables
 %---------------------------------------------------------------------------
 x         = reshape(x,n,5);
-x(:,3:5)  = x(:,3:5) + 1;
+
+% exponentiation of hemodynamic state variables
+%--------------------------------------------------------------------------
+x(:,2:5)   = exp(x(:,2:5)); 
+% Resting value of x(2) is zero; correct for shift due to exponentiation 
+x(:,2) = x(:,2) - 1;
 
 % Fout = f(v) - outflow
 %---------------------------------------------------------------------------
@@ -68,8 +72,10 @@ ff        = (1 - (1 - H(:,5)).^(1./x(:,3)))./H(:,5);
 %---------------------------------------------------------------------------
 y         = zeros(n,5);
 y(:,1)    = A*x(:,1) + C*u;
-y(:,2)    = x(:,1)  - H(:,1).*x(:,2) - H(:,2).*(x(:,3) - 1);
-y(:,3)    = x(:,2);
-y(:,4)    = (x(:,3) - fv)./H(:,3);
-y(:,5)    = (ff.*x(:,3) - fv.*x(:,5)./x(:,4))./H(:,3);
+y(:,2)    = (x(:,1)  - H(:,1).*x(:,2) - H(:,2).*(x(:,3) - 1))./(x(:,2) + 1);
+y(:,3)    = x(:,2)./x(:,3);
+y(:,4)    = (x(:,3) - fv)./(H(:,3).*x(:,4));
+y(:,5)    = (ff.*x(:,3) - fv.*x(:,5)./x(:,4))./(H(:,3).*x(:,5));
 y         = y(:);
+
+return

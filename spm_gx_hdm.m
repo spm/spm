@@ -18,13 +18,13 @@ function [y] = spm_gx_hdm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_hdm.m 869 2007-07-29 09:01:32Z klaas $
+% $Id: spm_gx_hdm.m 870 2007-07-31 09:08:15Z klaas $
 
 
 % biophysical constants for 1.5 T (see Obata et al. 2004)
 %---------------------------------------------------------------------------
 % resting venous volume
-V0        = 100*0.02;
+V0        = 100*0.04;
 % slope r0 of intravascular relaxation rate R_iv as a function of oxygen 
 % saturation Y:  R_iv = r0*[(1-Y)-(1-Y0)]
 r0        = 25; % [Hz]
