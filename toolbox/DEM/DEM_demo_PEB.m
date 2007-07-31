@@ -3,10 +3,9 @@
 % empirical Bayes (spm_PEB). It uses a simple two level model that embodies
 % empirical shrinkage priors on the first-level parameters (c.f.,
 % DEM_demo_GLM, with no empirical priors)
-%==========================================================================
- 
+
 % MFX design
-%--------------------------------------------------------------------------
+%==========================================================================
 X1    = kron(eye(4),kron(ones(2,1),eye(2)));
 X2    = kron(ones(4,1),eye(2));
  
@@ -17,7 +16,7 @@ h     = {log(16) log(8)};                       % precisions
  
 % generate data
 %--------------------------------------------------------------------------
-DEM   = spm_DEM_generate(spm_DEM_M('HLM',X1,X2),N,{},h)
+DEM   = spm_DEM_generate(spm_DEM_M('HLM',X1,X2),N,{},h);
  
 % DEM estimation
 %==========================================================================

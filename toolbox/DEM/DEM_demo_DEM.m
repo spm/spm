@@ -1,20 +1,18 @@
 % Triple estimation of states, parameters and hyperparameters:
-% This demo focuses esimating both the osates and paramters ti furish a
-% compleet systemn idenfication given only the form of the system and its
-% repeonses to unkown input (c.f., DEM_demo_EM, which uses kown inotus)
-%==========================================================================
-
-clear M
+% This demo focuses estimating both the states and parameters to furnish a
+% complete system identification, given only the form of the system and its
+% responses to unknown input (c.f., DEM_demo_EM, which uses known inputs)
  
 % get basic convolution model
 %==========================================================================
 M       = spm_DEM_M('convolution model');
-
+ 
 % free parameters
 %--------------------------------------------------------------------------
 P       = M(1).pE;                            % true parameters
 ip      = [2 5];                              % free parameters
 pE      = spm_vec(P);
+np      = length(pE);
 pE(ip)  = 0;
 pE      = spm_unvec(pE,P);
 pC      = sparse(ip,ip,exp(8),np,np);
@@ -34,19 +32,11 @@ N         = 32;                                % length of data sequence
 U         = exp(-([1:N] - 12).^2/(2.^2));      % this is the Gaussian cause
 DEM       = spm_DEM_generate(M,U,{P},{8,32},{32});
 DEM       = spm_DEM(DEM);
-
+ 
 % overlay true values
 %--------------------------------------------------------------------------
-subplot(2,2,2)
-hold on
-plot([1:N],DEM.pU.x{1},'linewidth',2,'color',[1 1 1]/2)
-hold off
+spm_DEM_qU(DEM.qU,DEM.pU)
  
-subplot(2,2,3)
-hold on
-plot([1:N],DEM.pU.v{2},'linewidth',2,'color',[1 1 1]/2)
-hold off
-
 % parameters
 %--------------------------------------------------------------------------
 qP    = spm_vec(DEM.qP.P);

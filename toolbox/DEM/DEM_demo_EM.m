@@ -2,11 +2,11 @@
 % This demo focuses on conditional parameter estimation with DEM and
 % provides a comparative evaluation using EM.  This proceeds by removing
 % uncertainly about the input so that the D-step can be discounted.
-%==========================================================================
-clear M
+
  
 % get basic convolution model
 %==========================================================================
+f       = spm_figure('GetWin','Graphics');
 M       = spm_DEM_M('convolution model');
  
 % free parameters
@@ -51,15 +51,7 @@ DEM     = spm_DEM(DEM);
 
 % overlay true values
 %--------------------------------------------------------------------------
-subplot(2,2,2)
-hold on
-plot([1:N],DEM.pU.x{1},'linewidth',2,'color',[1 1 1]/2)
-hold off
- 
-subplot(2,2,3)
-hold on
-plot([1:N],DEM.pU.v{2},'linewidth',2,'color',[1 1 1]/2)
-hold off
+spm_DEM_qU(DEM.qU,DEM.pU)
  
 drawnow
  

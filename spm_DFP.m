@@ -85,6 +85,7 @@ function [DEM] = spm_DFP(DEM)
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
+clear functions
 [M Y U X] = spm_DEM_set(DEM);
 
 % find or create a DEM figure

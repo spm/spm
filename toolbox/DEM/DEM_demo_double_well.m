@@ -1,11 +1,11 @@
 % DEMO comparing DEM with particle filtering in the context of a bimodal
 % conditional density.  This demonstrates a shortcoming of DEM in that it
-% fails to represent the true density
-%==========================================================================
-clear M
- 
+% fails to represent the true density.
+
 % phase diagram - to show bimodal energy function
 %==========================================================================
+Fgraph  = spm_figure('GetWin','Graphics');
+
 x       = -32:1/16:32;
 dx      =  x/2 + 25*x./(1 + x.^2);
 dxdt    = -x/2 + 16*x./(1 + x.^2) ;
@@ -54,6 +54,7 @@ tr_x   = DEM.pU.x{1};
  
 % Graphical comparison
 %--------------------------------------------------------------------------
+figure(Fgraph)
 t      = 1:T;
 subplot(2,2,1)
 plot(t,pf_x,t,kf_x,':',t,de_x,t,tr_x)

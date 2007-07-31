@@ -9,6 +9,7 @@ function [M] = spm_dem_M(model,varargin)
 %        'Sparse coding',"SC'
 %        'convolution model'
 %        'State space model','SSM'
+%        'Ornstein_Uhlenbeck','OU'
 %
 % l(i) - number of outputs from level i
 % n(i) - number of hidden states in level i
@@ -189,12 +190,12 @@ switch lower(model)
     case{'convolution model'}
         
         % smoothness
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M(1).E.linear = 1;                          % linear model
         M(1).E.s      = 1/2;                        % smoothness
 
         % level 1
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         pE.f    = [-1  4   ;                        % the Jacobian for the
                    -2 -1]/4;                        % hidden sates
         pE.g    = [spm_dctmtx(4,2)]/4;              % the mixing parameters
@@ -207,7 +208,7 @@ switch lower(model)
         M(1).W  = speye(2,2)*exp(16);               % error precision
 
         % level 2
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M(2).l  = 1;                                % inputs
         M(2).V  = 1;                                % with shrinkage priors
 
@@ -219,16 +220,16 @@ switch lower(model)
  
 
         % non-hierarchical linear generative model (dynamic)
-        %===========================================================================
+        %==================================================================
     case{'state space model','ssm'}
         
         
         % temporal correlations
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M(1).E.s  = 1/2;
 
         % model specification - 1st level
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         f      = '(16*x/(1 + x^2) - x/2 + v*2)/8';
         g      = '(x^2)/16';
         M(1).x = 1;
@@ -238,14 +239,40 @@ switch lower(model)
         M(1).W = exp(16);
 
         % model specification - 2nd level
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M(2).v = 0;
         M(2).V = 1/8;
+        
+        
+        % Ornstein_Uhlenbeck linear generative model (dynamic)
+        %==================================================================
+    case{'Ornstein_Uhlenbeck','ou'}
+        
+        % temporal correlations
+        %------------------------------------------------------------------
+        M(1).E.linear = 1;                          % linear model
+        M(1).E.s  = 1/2;
 
+        % model specification - 1st level
+        %------------------------------------------------------------------
+        f      = '-1/16*x + v';
+        g      = 'x';
+        M(1).x = 0;
+        M(1).f = inline(f,'x','v','P');
+        M(1).g = inline(g,'x','v','P');
+        M(1).V = exp(8);
+        M(1).W = exp(32);
+
+        % model specification - 2nd level
+        %------------------------------------------------------------------
+        M(2).v = 0;
+        M(2).V = exp(-8);
+        
 
     otherwise
 
         errordlg('unknown model; please add to spm_DEM_M')
+        return
 
 end
 

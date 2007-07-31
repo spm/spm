@@ -3,14 +3,11 @@
 % model (DCM) to disclose the input or causes.  It focuses on estimating the
 % causes and hidden states: The notes provide a comparative evaluation with 
 % extended Kalman filtering.
-%==========================================================================
  
-% basic deconvolution
-%==========================================================================
-clear M
  
 % get a simple convolution model
 %==========================================================================
+f       = spm_figure('GetWin','Graphics');
 M       = spm_DEM_M('convolution model');
  
 % and generate data
@@ -50,7 +47,7 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-clf
+figure(f)
 subplot(2,1,1)
 bar(Sv)
 xlabel('n - 1 (d = 2)')

@@ -7,11 +7,10 @@
 % ensemble or conditional density.  We then repeat the inversion using spm_DEM
 % (i.e., under a Laplace assumption) which involves integrating the path of
 % just one particle (i.e., the mode).
-%==========================================================================
  
 % basic deconvolution
 %==========================================================================
-clear M
+f     = spm_figure('GetWin','Graphics');
  
 % get a simple convolution model
 %==========================================================================
@@ -25,7 +24,6 @@ DEM   = spm_DEM_generate(M,U,{},{[] 16});
  
 % display
 %--------------------------------------------------------------------------
-f    = spm_figure;
 spm_DEM_qU(DEM.pU)
  
  

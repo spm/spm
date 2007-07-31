@@ -4,14 +4,15 @@
 % correct starting values of the hidden states; DEM is the only scheme that
 % can re-capture the true trajectory without them.  this is because DEM 
 % represents generalised coordinates, in which the dynamics unfold.
-%__________________________________________________________________________
-clear M
+
  
 % non-hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-M(1).E.n  = 8;
-M(1).E.d  = 3;
-M(1).E.nD = 1;
+Fgraph    = spm_figure('GetWin','Graphics');
+clear M
+
+% correlations
+%--------------------------------------------------------------------------
 M(1).E.s  = 1/8;
  
 % level 1
@@ -54,6 +55,7 @@ px     = spm_pf(DEM.M,DEM.Y);
  
 % graphics
 %--------------------------------------------------------------------------
+figure(Fgraph)
 T      = [1:N];
  
 subplot(2,2,1)

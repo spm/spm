@@ -4,8 +4,10 @@
 % comparative evaluation is provided using extended Kalman filtering and
 % particle filtering. Crucially, DEM and particle filtering deal gracefully
 % with nonlinearities, in relation to Kalman filtering.
-%__________________________________________________________________________
+
+%==========================================================================
 clear M
+Fgraph    = spm_figure('GetWin','Graphics');
  
 % temporal correlations
 %--------------------------------------------------------------------------
@@ -59,7 +61,8 @@ drawnow
  
 % graphics comparing PF, EKF and DEM
 %--------------------------------------------------------------------------
-spm_figure
+figure(Fgraph)
+
 subplot(2,1,1)
 plot([1:T],t_x,'r-',[1:T],d_x,'k-',[1:T],p_x,'k-.',[1:T],e_x,'k:')
 legend({'true','DEM','PF','EKF'})
