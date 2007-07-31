@@ -114,7 +114,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 777 2007-03-28 11:14:57Z volkmar $
+% $Id: spm_orthviews.m 872 2007-07-31 17:38:29Z john $
 
 
 
@@ -386,7 +386,7 @@ case 'addcolourbar',
         
 case 'rmblobs',
 	rmblobs(varargin{1});
-	% redraw(varargin{1});
+	redraw(varargin{1});
 
 case 'addcontext',
 	if nargin == 1,

@@ -68,7 +68,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 783 2007-04-04 12:54:03Z james $
+% $Id: spm_mip_ui.m 872 2007-07-31 17:38:29Z john $
 
 
 %==========================================================================
@@ -350,7 +350,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Tell the registry, if we've not been called by the registry...
         %------------------------------------------------------------------
-        if (~isempty(MD.hReg) & MD.hReg~=hC), spm_XYZreg('SetCoords',xyz,MD.hReg,h); end
+        if ~isempty(MD.hReg) & MD.hReg~=hC, spm_XYZreg('SetCoords',xyz,MD.hReg,h); end
 
         %-Return arguments
         %------------------------------------------------------------------
