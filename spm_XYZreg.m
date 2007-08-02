@@ -320,7 +320,7 @@ function varargout=spm_XYZreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_XYZreg.m 873 2007-08-02 12:45:58Z john $
 
 
 
@@ -459,7 +459,9 @@ case 'setcoords'	% Set co-ordinates & update registered functions
 % d returned empty if didn't check, warning printed if d not asked for & round
 % Don't check if callerhandle specified (speed)
 % If Registry cell array Reg is specified, then only these handles are updated
-if nargin<4, hC=0; else, hC=varargin{4}; end
+hC=0; mfn=''; if nargin>=4
+	if ~ischar(varargin{4}), hC=varargin{4}; else mfn=varargin{4}; end
+end
 hReg = varargin{3};
 
 %-Check validity of hReg registry handle
@@ -515,6 +517,15 @@ end
 
 varargout = {xyz,d};
 
+if ~strcmp(mfn,'spm_graph')
+	sHdl=findobj(0,'Tag','SPMGraphSatelliteFig');
+	axHdl=findobj(sHdl,'Type','axes','Tag','SPMGraphSatelliteAxes');
+	%tag for true axis, as legend is of type axis, too
+	for j=1:length(axHdl)
+		autoinp=get(axHdl(j),'UserData');
+		if ~isempty(autoinp), spm_graph([],[],hReg,axHdl(j)); end
+	end
+end
 
 
 %=======================================================================

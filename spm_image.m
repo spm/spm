@@ -53,14 +53,14 @@ function spm_image(op,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_image.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_image.m 873 2007-08-02 12:45:58Z john $
 
 
 global st
 
 if nargin == 0,
 	spm('FnUIsetup','Display',0);
-	spm('FnBanner',mfilename,'$Rev: 184 $');
+	spm('FnBanner',mfilename,'$Rev: 873 $');
 	spm_help('!ContextHelp',[mfilename,'.m']);
 
 	% get the image's filename {P}
@@ -159,6 +159,7 @@ if strcmp(op,'addblobs'),
 		spm_orthviews('addcolouredblobs',1,VOL.XYZ,VOL.Z,VOL.M,colours(c,:));
 		set(st.blobber,'String','Remove Blobs','Callback','spm_image(''rmblobs'');');
 	end;
+	spm_orthviews('addcontext',1);
 	spm_orthviews('Redraw');
 end;
 
@@ -166,6 +167,8 @@ if strcmp(op,'rmblobs'),
 	% Remove all blobs from the images
 	spm_orthviews('rmblobs',1);
 	set(st.blobber,'String','Add Blobs','Callback','spm_image(''addblobs'');');
+	spm_orthviews('rmcontext',1); 
+	spm_orthviews('Redraw');
 end;
 
 if strcmp(op,'window'),
