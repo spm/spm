@@ -23,6 +23,8 @@ function [ar] = spm_ar (Z,p,verbose)
 % ar.c_alpha
 % ar.y          targets
 % ar.y_pred     predictions
+% ar.r2         proportion of variance explained
+% ar.p          model order
 % ar.fm         negative free energy
 %
 % For algorithmic details see:
@@ -145,6 +147,13 @@ end
 ar.a_mean=-a_mean;
 
 % Load up data structure
+ar.y_pred = x*a_mean;
+ar.y=y;
+vy=std(y)^2;
+ey=std(y-ar.y_pred)^2;
+ar.r2=(vy-ey)/vy; 
+
+ar.p=p;
 ar.a_cov=a_cov;
 ar.mean_beta=mean_beta;
 ar.mean_alpha=mean_alpha;

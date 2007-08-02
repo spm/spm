@@ -11,18 +11,29 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 %
 % .P     [Nf x d x d] Power Spectral Density matrix
 % .C     [Nf x d x d] Coherence matrix
-% .dtf   [Nf x d x d] Directed Transfer Function matrix
+% .dtf   [Nf x d x d] Kaminski's Directed Transfer Function matrix
+% .pev   [Nf x d x d] Geweke's proportion of variance explained
 % .gew   [Nf x d x d] Geweke's frequency domain Granger causality
-% .pdc   [Nf x d x d] Partial Directed Coherence
+% .pdc   [Nf x d x d] Baccala's Partial Directed Coherence
 % .L     [Nf x d x d] Phase matrix
 % .f     [Nf x 1] Frequency vector
 % .ns    Sample rate
 %
 % dtf(f,i,j) is the DTF at frequency f from signal j to signal i
+% pdc(f,i,j) is the PDC at frequency f from signal j to signal i
 % pev(f,i,j) is the proportion of power in signal i at frequency f that can
 %            be predicted by signal j. 
 % gew(f,i,j) is the Granger casuality from signal j to signal i at frequency f.
 %            gew=-log(1-pev)
+%
+% For DTF and PDC see L. Baccala and K. Sameshima (2001) Biol Cyb 84, 463-474.
+% For PEV and GEW see A. Brovelli et al. (2004) PNAS 101(26) 9849-9854.
+%
+% In addition to the definition of PDC in the above paper, in this
+% implementation PDC is also scaled by the observation noise variance
+% (Baccala, personal communication).
+%
+% Also note that PEV and GEW are only valid for d=2 time series
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
@@ -56,12 +67,12 @@ for ff=1:Nf,
       prec_ii=1/sqrt(mar.noise_cov(ii,ii));
       for j=1:d,
           
-          % DTF uses iaf_tmp, PDC uses af_tmp
-          % DTF normalises wrt rows (to), PDC wrt columns (from)
-          mar.dtf(ff,ii,j)=iaf_tmp(ii,j)/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
+          % DTF uses iaf_tmp and normalises wrt rows (to=sink)
+          mar.dtf(ff,ii,j)=abs(iaf_tmp(ii,j))/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
           
-          a_j=af_tmp(:,j);
-          mar.pdc(ff,ii,j) = real(prec_ii*af_tmp(ii,j)/sqrt(a_j'*prec*a_j));
+          % PDC uses af_tmp and normalises wrt columns (from=source)
+          %mar.pdc(ff,ii,j) = real(prec_ii*af_tmp(ii,j)/sqrt(a_j'*prec*a_j));
+          mar.pdc(ff,ii,j) = abs(af_tmp(ii,j))/sqrt(abs(af_tmp(:,j)'*prec*af_tmp(:,j)));
       end
   end
 end
@@ -80,11 +91,11 @@ end
 C=mar.noise_cov;
 for j=1:d,
     for k=1:d,
-        rjk=C(j,j)-(C(j,k)^2)/C(k,k);
+        rkj=C(j,j)-(C(j,k)^2)/C(k,k);
         sk=abs(mar.P(:,k,k));
         hkj=abs(H(:,k,j)).^2;
-        mar.pve(:,j,k)=rjk*hkj./sk;
-        mar.gew(:,j,k)=-log(1-mar.pve(:,j,k));
+        mar.pve(:,k,j)=rkj*hkj./sk;
+        mar.gew(:,k,j)=-log(1-mar.pve(:,k,j));
     end
 end
 
@@ -121,7 +132,7 @@ if show
             if ~(k==j)
                 index=(k-1)*d+j;
                 subplot(d,d,index);
-                dtf=real(mar.dtf(:,k,j)).^2;
+                dtf=mar.dtf(:,k,j);
                 plot(mar.f,dtf);
             end
         end

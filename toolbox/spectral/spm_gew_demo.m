@@ -3,6 +3,8 @@
 %
 % See Brovelli et al. (2004) PNAS 101(26), 9849-9854
 % and Geweke (1982) JASA 77 (378), 304-313.
+% 
+% Note: GEW and PVE to be applied to bivariate data only
 
 close all
 noise_dev1=0.1;
@@ -14,7 +16,6 @@ t=[1/ns:1/ns:secs]';
 N=length(t);
 
 d=2;
-% f1=10+0.01*[1:N]';
 f1=10;
 y=0.5*sin(2*pi*f1.*t)+sin(2*pi*15*t);
 y=y/std(y); % Rescale to unit variance
@@ -52,7 +53,7 @@ for k=1:d,
             index=(k-1)*d+j;
             subplot(d,d,index);
             plot(mar.f,mar.gew(:,k,j));
-            title(sprintf('From %d to %d',k,j));
+            title(sprintf('From %d to %d',j,k));
         end
     end
 end
@@ -65,7 +66,8 @@ for k=1:d,
             index=(k-1)*d+j;
             subplot(d,d,index);
             plot(mar.f,mar.pve(:,k,j));
-            title(sprintf('From %d to %d',k,j));
+            title(sprintf('From %d to %d',j,k));
+            axis([min(mar.f) max(mar.f) 0 1]);
         end
     end
 end
