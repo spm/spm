@@ -12,7 +12,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % .P     [Nf x d x d] Power Spectral Density matrix
 % .C     [Nf x d x d] Coherence matrix
 % .dtf   [Nf x d x d] Kaminski's Directed Transfer Function matrix
-% .pev   [Nf x d x d] Geweke's proportion of variance explained
+% .pve   [Nf x d x d] Geweke's proportion of variance explained
 % .gew   [Nf x d x d] Geweke's frequency domain Granger causality
 % .pdc   [Nf x d x d] Baccala's Partial Directed Coherence
 % .L     [Nf x d x d] Phase matrix
@@ -21,19 +21,19 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 %
 % dtf(f,i,j) is the DTF at frequency f from signal j to signal i
 % pdc(f,i,j) is the PDC at frequency f from signal j to signal i
-% pev(f,i,j) is the proportion of power in signal i at frequency f that can
+% pve(f,i,j) is the proportion of power in signal i at frequency f that can
 %            be predicted by signal j. 
 % gew(f,i,j) is the Granger casuality from signal j to signal i at frequency f.
 %            gew=-log(1-pev)
 %
 % For DTF and PDC see L. Baccala and K. Sameshima (2001) Biol Cyb 84, 463-474.
-% For PEV and GEW see A. Brovelli et al. (2004) PNAS 101(26) 9849-9854.
+% For PVE and GEW see A. Brovelli et al. (2004) PNAS 101(26) 9849-9854.
 %
 % In addition to the definition of PDC in the above paper, in this
 % implementation PDC is also scaled by the observation noise variance
 % (Baccala, personal communication).
 %
-% Also note that PEV and GEW are only valid for d=2 time series
+% Also note that PVE and GEW are only valid for d=2 time series
 %___________________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
