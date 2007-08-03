@@ -49,7 +49,6 @@ end
 
 % Fit model and get spectral estimates
 mar=spm_mar(x,p);
-mar.noise_cov(2,2)=mar.noise_cov(1,1);
 mar=spm_mar_spectra (mar,freqs,ns,0);
 
 h=figure;
