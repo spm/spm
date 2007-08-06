@@ -3,26 +3,34 @@ function [varargout] = spm_DEM_set(DEM)
 % FORMAT [DEM] = spm_DEM_set(DEM)
 %
 % DEM.M  - hierarchical model
-% DEM.Y  - inputs or data
-% DEM.U  - prior expectation of causes
-% DEM.X  - observation confounds
+% DEM.Y  - response varaible, output or data
+% DEM.U  - explanatory variables, inputs or prior expectation of causes
+% DEM.X  - confounds
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
 % $Id$
  
-% check model and data
+% check recognition model
 % -------------------------------------------------------------------------
 try
     DEM.M = spm_DEM_M_set(DEM.M);
 catch
     errordlg('please check your model')
 end
+
+% check data or generative model
+% -------------------------------------------------------------------------
 try
-    N     = size(DEM.Y,2);
+    N = size(DEM.Y,2);
 catch
-    errordlg('please specify data')
+    try
+        DEM.G = spm_DEM_M_set(DEM.G);
+        N     = size(DEM.C,2);
+    catch
+        errordlg('please specify data or inputs')
+    end
 end
 try
     DEM.class;
@@ -32,10 +40,16 @@ end
  
 % ensure model and data dimensions check
 % -------------------------------------------------------------------------
-if size(DEM.Y,1) ~= DEM.M(1).l
-    errordlg('DCM outputs and data are incompatible')
+try
+    if size(DEM.Y,1) ~= DEM.M(1).l
+        errordlg('DCM and data are incompatible')
+    end
+catch
+    if size(DEM.C,1) ~= DEM.M(end).l
+        errordlg('DCM and causes are incompatible')
+    end
 end
- 
+
 % Default priors and confounds
 % -------------------------------------------------------------------------
 n  = DEM.M(end).l;

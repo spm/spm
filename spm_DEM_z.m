@@ -14,16 +14,16 @@ function [z,w] = spm_DEM_z(M,N)
  
 % set model structure
 %--------------------------------------------------------------------------
-M     = spm_DEM_M_set(M);
+M  = spm_DEM_M_set(M);
  
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
-s     = M(1).E.s + eps;
-dt    = M(1).E.dt;
-t     = ([1:N] - 1)*dt;
-K     = toeplitz(exp(-t.^2/(2*s^2)));
-C     = inv(sqrt(diag(diag(K*K'))));
-K     = C*K;
+s  = M(1).E.s + exp(-16);
+dt = M(1).E.dt;
+t  = ([1:N] - 1)*dt;
+K  = toeplitz(exp(-t.^2/(2*s^2)));
+C  = inv(sqrt(diag(diag(K*K'))));
+K  = C*K;
  
 % create innovations z{i} and w{i}
 %--------------------------------------------------------------------------

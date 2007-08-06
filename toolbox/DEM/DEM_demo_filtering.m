@@ -12,8 +12,6 @@ Fgraph    = spm_figure('GetWin','Graphics');
 % temporal correlations
 %--------------------------------------------------------------------------
 M(1).E.s  = 1/32;
-M(1).E.d  = 3;
-M(1).E.n  = 8;
 M(1).E.nD = 4;
  
 % model specification - 1st level

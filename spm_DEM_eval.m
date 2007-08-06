@@ -47,8 +47,8 @@ nc   = M(end).l;                        % number of c (prior causes)
 
 % order parameters (d = n = 1 for static models)
 %==========================================================================
-d    = M(1).E.d;                        % generalisation order of q(v)
-n    = M(1).E.n;                        % embedding order       (n >= d)
+d    = M(1).E.d + 1;                        % generalisation order of q(v)
+n    = M(1).E.n + 1;                        % embedding order       (n >= d)
 
 % derivatives: dgdp{i,j} = dDi(e)/dp, ...  Di(e) = (d/dt)^i[e], ...
 %--------------------------------------------------------------------------

@@ -75,11 +75,6 @@ try
     M.nograph;
 catch 
     Fsi = spm_figure('GetWin','SI');
-    if isempty(Fsi)
-       Fsi =  spm_figure('Create','SI','System Identification');
-    else
-       clf
-    end
 end
 
 % check integrator

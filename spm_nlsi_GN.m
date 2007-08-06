@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 808 2007-05-01 19:11:19Z karl $
+% $Id: spm_nlsi_GN.m 878 2007-08-06 12:21:09Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -85,11 +85,6 @@ try
     M.nograph;
 catch 
     Fsi = spm_figure('GetWin','SI');
-    if isempty(Fsi)
-       Fsi =  spm_figure('Create','SI','System Identification');
-    else
-       clf
-    end
 end
 
 % check integrator

@@ -92,15 +92,7 @@ clear functions
 %--------------------------------------------------------------------------
 warning off
 Fdem     = spm_figure('GetWin','DEM');
-if isempty(Fdem)
-    name = 'Dynamic Expectation Maximisation';
-    Fdem = spm_figure('CreateWin','DEM',name,'on');
-end
 Fdfp     = spm_figure('GetWin','DFP');
-if isempty(Fdfp)
-    name = 'Dynamic Fokker-Planck';
-    Fdfp = spm_figure('CreateWin','DFP',name,'on');
-end
 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
@@ -108,10 +100,14 @@ TOL  = 1e-2;
 
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
-d    = M(1).E.d;                       % truncation order of q(x,v)
-n    = M(1).E.n;                       % truncation order of e (n >= d)
+d    = M(1).E.d + 1;                   % embedding order of q(v)
+n    = M(1).E.n + 1;                   % embedding order of q(x)
 s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
-N    = 16;                             % number of particles
+try
+    N    = M(1).E.N;                   % number of particles
+catch
+    N    = 16;                         % number of particles
+end
 
 % number of states and parameters
 %--------------------------------------------------------------------------

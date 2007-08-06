@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 801 2007-04-27 07:39:53Z volkmar $
+% $Id: spm_figure.m 878 2007-08-06 12:21:09Z karl $
 
 
 %=======================================================================
@@ -251,8 +251,16 @@ F = spm_figure('FindWin',Tag);
 
 if isempty(F)
 	if ischar(Tag)
-		switch Tag, case 'Graphics'
+		switch Tag
+            
+        case 'Graphics'
 			F = spm_figure('Create','Graphics','Graphics');
+        case 'DEM'
+			F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
+        case 'DFP'
+			F = spm_figure('Create','DFP','Variational filtering');
+        case 'SI'
+			F = spm_figure('Create','SI','System Identification');
 		case 'Interactive'
 			F = spm('CreateIntWin');
 		end

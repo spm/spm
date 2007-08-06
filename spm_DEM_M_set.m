@@ -37,9 +37,9 @@ function [M] = spm_DEM_M_set(M)
 % components are assumed (i.e., Q = I, R = I)
 %--------------------------------------------------------------------------
 %
-%   M(1).E.s;     = smoothness (seconds)
-%   M(1).E.d;     = approximation order q(v) (including y)
-%   M(1).E.n;     = approximation order q(x)
+%   M(1).E.s;     = smoothness (s.d. in time bins)
+%   M(1).E.d;     = embedding order q(v)  (i.e., number of derivatives)
+%   M(1).E.n;     = embedding order q(x)
 %
 % If the highest level involves any dynamic or static transformation
 % of its inputs a further level is added with flat priors
@@ -352,16 +352,16 @@ end
  
 % temporal smoothness - s.d. of kernel
 %--------------------------------------------------------------------------
-try M(1).E.s;  catch, if nx, M(1).E.s = 1; else M(1).E.s = 0;   end, end
+try M(1).E.s;  catch, if nx, M(1).E.s = 1/2; else M(1).E.s = 0; end, end
  
 % time step
 %--------------------------------------------------------------------------
-try M(1).E.dt; catch M(1).E.dt = 1;  end
+try M(1).E.dt; catch M(1).E.dt = 1; end
  
 % embedding orders
 %--------------------------------------------------------------------------
-try M(1).E.d;  catch, if nx, M(1).E.d = 3;  else M(1).E.d = 1;  end, end
-try M(1).E.n;  catch, if nx, M(1).E.n = 8;  else M(1).E.n = 1;  end, end
+try M(1).E.d;  catch, if nx, M(1).E.d = 2;  else M(1).E.d = 0;  end, end
+try M(1).E.n;  catch, if nx, M(1).E.n = 6;  else M(1).E.n = 0;  end, end
  
 % number of iterations
 %--------------------------------------------------------------------------

@@ -3,8 +3,8 @@ function [DEM] = spm_DEM(DEM)
 % FORMAT DEM   = spm_DEM(DEM)
 %
 % DEM.M  - hierarchical model
-% DEM.Y  - output or data
-% DEM.U  - inputs or prior expectation of causes
+% DEM.Y  - response varaible, output or data
+% DEM.U  - explanatory variables, inputs or prior expectation of causes
 % DEM.X  - confounds
 %__________________________________________________________________________
 %
@@ -32,7 +32,7 @@ function [DEM] = spm_DEM(DEM)
 %--------------------------------------------------------------------------
 %   qU.x    = Conditional expectation of hidden states
 %   qU.v    = Conditional expectation of causal states
-%   qU.e    = Conditional residuals
+%   qU.z    = Conditional prediction error (causes)
 %   qU.C    = Conditional covariance: cov(v)
 %   qU.S    = Conditional covariance: cov(x)
 %
@@ -89,10 +89,6 @@ function [DEM] = spm_DEM(DEM)
 clear spm_DEM_eval
 warning off;
 Fdem     = spm_figure('GetWin','DEM');
-if isempty(Fdem)
-    name = 'Dynamic Expectation Maximisation';
-    Fdem = spm_figure('CreateWin','DEM',name,'on');
-end
 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
@@ -100,8 +96,8 @@ TOL  = 1e-3;
 
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
-d    = M(1).E.d;                       % truncation order of q(v)
-n    = M(1).E.n;                       % truncation order of q(x) (n >= d)
+d    = M(1).E.d + 1;                   % embedding order of q(v)
+n    = M(1).E.n + 1;                   % embedding order of q(x) (n >= d)
 s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
 
 % number of states and parameters
@@ -116,8 +112,8 @@ nu   = nv*d + nx*n;                    % number of generalised states
 
 % number of iterations
 %--------------------------------------------------------------------------
-try nD = M(1).E.nD; catch nD = 8;  end
-try nE = M(1).E.nE; catch nE = 8;  end
+try nD = M(1).E.nD; catch nD = 1;  end
+try nE = M(1).E.nE; catch nE = 1;  end
 try nM = M(1).E.nM; catch nM = 8;  end
 try nN = M(1).E.nN; catch nN = 16; end
 
@@ -252,49 +248,25 @@ qu.v{1}   = spm_vec(v);
 
 % derivatives for Jacobian of D-step
 %--------------------------------------------------------------------------
-Dx        = cell(n,n);
-Dv        = cell(d,d);
-Dy        = cell(n,n);
-Dc        = cell(d,d);
-[Dx{:}]   = deal(sparse(nx,nx));
-[Dv{:}]   = deal(sparse(nv,nv));
-[Dy{:}]   = deal(sparse(ny,ny));
-[Dc{:}]   = deal(sparse(nc,nc));
- 
-% add constant terms
-%--------------------------------------------------------------------------
-for i = 2:d
-    Dv{i - 1,i} = speye(nv,nv);
-    Dc{i - 1,i} = speye(nc,nc);
-end
-for i = 2:n
-    Dx{i - 1,i} = speye(nx,nx);
-    Dy{i - 1,i} = speye(ny,ny);
-end
-Du     = spm_cat(diag({Dx,Dv}));
-Dy     = spm_cat(Dy);
-Dc     = spm_cat(Dc);
-
-% Jacobian (mean-field flow)
-%--------------------------------------------------------------------------
-D      = spm_cat({Du [] []  ;
-                  [] Dy []  ;
-                  [] [] Dc});
-
+Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
+Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
+Dy    = kron(spm_speye(n,n,1),spm_speye(ny,ny,0));
+Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
+D     = spm_cat(diag({Dx,Dv,Dy,Dc}));
               
 % and null blocks
 %--------------------------------------------------------------------------
-dVdy   = sparse(n*ny,1);
-dVdc   = sparse(d*nc,1);              
-dVdyy  = sparse(n*ny,n*ny);
-dVdcc  = sparse(d*nc,d*nc);
+dVdy  = sparse(n*ny,1);
+dVdc  = sparse(d*nc,1);              
+dVdyy = sparse(n*ny,n*ny);
+dVdcc = sparse(d*nc,d*nc);
 
 % gradients and curvatures for conditional uncertainty
 %--------------------------------------------------------------------------
-dWdu   = sparse(nu,1);
-dWdp   = sparse(nf,1);
-dWduu  = sparse(nu,nu);
-dWdpp  = sparse(nf,nf);
+dWdu  = sparse(nu,1);
+dWdp  = sparse(nf,1);
+dWduu = sparse(nu,nu);
+dWdpp = sparse(nf,nf);
 
 % preclude unneceassry iterations
 %--------------------------------------------------------------------------
@@ -439,22 +411,21 @@ for iN = 1:nN
 
                 % D-step update: of causes v{i}, and hidden states x(i)
                 %==========================================================
+                
                 % conditional modes
                 %----------------------------------------------------------
-                u     = {qu.x{1:n} qu.v{1:d} qu.y{1:n} qu.u{1:d}};
-                vu    = spm_vec(u);
+                q     = {qu.x{1:n} qu.v{1:d} qu.y{1:n} qu.u{1:d}};
+                u     = spm_vec(q);
                 
                 % first-order derivatives
                 %----------------------------------------------------------             
-                dVdu  = -dE.du'*iS*E     - dWdu/2  - Pu*vu(1:nu); 
+                dVdu  = -dE.du'*iS*E     - dWdu/2  - Pu*u(1:nu); 
                 
                 % and second-order derivatives
                 %----------------------------------------------------------
                 dVduu = -dE.du'*iS*dE.du - dWduu/2 - Pu;
                 dVduy = -dE.du'*iS*dE.dy;
                 dVduc = -dE.du'*iS*dE.dc;
-                
-
                 
                 % gradient
                 %----------------------------------------------------------
@@ -469,13 +440,13 @@ for iN = 1:nN
                 
                 % update conditional modes of states
                 %==========================================================
-                du    = spm_dx(dFduu + D,dFdu + D*vu,td);                
-                u     = spm_unvec(vu + du,u);
+                du    = spm_dx(dFduu + D,dFdu + D*u,td);                
+                q     = spm_unvec(u + du,q);
                 
                 % and save them
                 %----------------------------------------------------------
-                qu.x(1:n) = u([1:n]);
-                qu.v(1:d) = u([1:d] + n);
+                qu.x(1:n) = q([1:n]);
+                qu.v(1:d) = q([1:d] + n);
                 
         
                 % D-Step: break if convergence (for static models)

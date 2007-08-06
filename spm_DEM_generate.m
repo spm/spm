@@ -4,7 +4,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % FORMAT [DEM] = spm_DEM_generate(M,U,P,h,g): size(U,2) samples using U
 %
 % M(i)     - HDM
-% U(n x N} - causes or number of casues
+% U(n x N} - causes or number of causes
 % P{i}     - model-parameters for level i (defaults to M.pE)
 % h{i}     - hyper-parameters for level i (defaults to 32 - no noise)
 % g{i}     - hyper-parameters for level i (defaults to 32 - no noise)
@@ -21,7 +21,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % DEM.pH.h
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+ 
 % Karl Friston
 % $Id$
  
@@ -45,7 +45,7 @@ end
 try P; if ~iscell(P), P = {P}; end, catch, P = {M.pE}; end
 try h; if ~iscell(h), h = {h}; end, catch, h = {}; end
 try g; if ~iscell(P), g = {g}; end, catch, g = {}; end
-
+ 
 % transcribe parameters and hyperparameters into prior expectations
 %--------------------------------------------------------------------------
 m     = length(M);
@@ -72,10 +72,10 @@ for i = 1:m
         M(i).gE = (M(i).gE - M(i).gE) + 32;
     end
 end
-
+ 
 % create innovations
 %--------------------------------------------------------------------------
-[z w]      = spm_DEM_z(M,N);
+[z w]    = spm_DEM_z(M,N);
 if length(U) > 1
     z{end} = U + z{end};
 end
@@ -94,7 +94,6 @@ DEM.pU.w = w;
 DEM.pP.P = {M.pE};
 DEM.pH.h = {M.hE};
 DEM.pH.g = {M.gE};
- 
 
  
 
