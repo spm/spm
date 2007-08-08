@@ -20,6 +20,10 @@ function varargout = spm_jobman(varargin)
 % FORMAT spm_jobman('run',job)
 % Runs a job.
 %
+% FORMAT spm_jobman('run_nogui',job)
+% Runs a job without X11 (as long as there is no graphics output from the
+% job itself).
+%
 % FORMAT spm_jobman('help',node)
 %        spm_jobman('help',node,width)
 % Creates a cell array containing help information.  This is justified
@@ -57,7 +61,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 830 2007-06-20 11:26:42Z john $
+% $Id: spm_jobman.m 879 2007-08-08 15:08:44Z volkmar $
 
 
 if nargin==0
@@ -83,6 +87,12 @@ else
             error('Nothing to run');
         end;
         run_job(varargin{2});
+
+    case {'run_nogui'}
+        if nargin<2
+            error('Nothing to run');
+        end;
+        run_job(varargin{2},0);
 
     case {'defaults'},
         setup_ui('defaults');
@@ -462,11 +472,12 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function run_job(job)
+function run_job(job,gui)
 % Run a job. This function is not called via the UI.
+if nargin ==1, gui = 1; end
 c = initialise_struct(job);
 if all_set(c),
-    run_struct1(c);
+    run_struct1(c,gui);
 else
     error('This job is not ready yet');
 end;
@@ -1482,13 +1493,14 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function run_struct(varargin)
+function run_struct(varargin,gui)
 % Get data structure from handle, and run it
 % If an error occured, then return to user interface
+if nargin ==1, gui = 1; end
 c = get(batch_box,'UserData');
 [unused,job] = harvest(c);
 try
-run_struct1(c);
+    run_struct1(c,gui);
 catch
     disp('Error running job:');
     l = lasterror;
@@ -1510,41 +1522,49 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function run_struct1(c)
+function run_struct1(c,gui)
 % Run a batch job from a data structure
+if nargin ==1, gui = 1; end
 
 if isfield(c,'prog')
     prog = c.prog;
     [unused,val] = harvest(c);
     disp('--------------------------');
     disp(['Running "' c.name '"']);
-    [Finter,unused,CmdLine] = spm('FnUIsetup',c.name);
-    spm('Pointer','Watch');
-    spm('FigName',[c.name ': running'],Finter,CmdLine);
-
+    if gui
+        [Finter,unused,CmdLine] = spm('FnUIsetup',c.name);
+        spm('Pointer','Watch');
+        spm('FigName',[c.name ': running'],Finter,CmdLine);
+    end
     if 0
         try
             feval(prog,val);
-            spm('FigName',[c.name ': done'],Finter,CmdLine);
+            if gui
+                spm('FigName',[c.name ': done'],Finter,CmdLine);
+            end
         catch
             disp(['An error occurred when running "' c.name '"']);
             disp( '--------------------------------');
             disp(lasterr);
             disp( '--------------------------------');
-            spm('FigName',[c.name ': failed'],Finter,CmdLine);
+            if gui
+                spm('FigName',[c.name ': failed'],Finter,CmdLine);
+            end
             errordlg({['An error occurred when running "' c.name '"'],lasterr},'SPM Jobs');
         end;
-        spm('Pointer');
+        if gui, spm('Pointer'); end
     else
         feval(prog,val);
-        spm('FigName',[c.name ': done'],Finter,CmdLine);
-        spm('Pointer');
+        if gui
+            spm('FigName',[c.name ': done'],Finter,CmdLine);
+            spm('Pointer');
+        end
     end;
 
 else
     if isfield(c,'val')
         for i=1:length(c.val)
-            run_struct1(c.val{i});
+            run_struct1(c.val{i},gui);
         end;
     end;
 end;
