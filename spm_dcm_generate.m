@@ -15,7 +15,7 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 740 2007-02-16 20:56:22Z karl $
+% $Id: spm_dcm_generate.m 880 2007-08-09 15:51:03Z klaas $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ if max(eigval) >= 0
 end
 
 
-% Create M matrix for spm_int
+% Create model specification for spm_int
 %--------------------------------------------------------------------------
 M.f  = 'spm_fx_dcm';
 M.g  = 'spm_gx_dcm';
@@ -51,6 +51,7 @@ M.m  = size(U.u,2);
 M.n  = size(M.x,1);
 M.l  = n;
 M.ns = v;
+M.TE = DCM.TE;
 
 % Create P vector for spm_int
 %--------------------------------------------------------------------------

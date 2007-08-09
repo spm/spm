@@ -18,11 +18,17 @@ function [y] = spm_gx_dcm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_dcm.m 870 2007-07-31 09:08:15Z klaas $
+% $Id: spm_gx_dcm.m 880 2007-08-09 15:51:03Z klaas $
 
 
 % Biophysical constants for 1.5 T (see Obata et al. 2004)
 %--------------------------------------------------------------------------
+% time to echo (TE)
+try
+    TE = M.TE;
+catch
+    TE = 0.04;
+end
 % resting venous volume
 V0        = 100*0.04;
 % slope r0 of intravascular relaxation rate R_iv as a function of oxygen 
