@@ -256,6 +256,7 @@ switch cell2mat(fieldnames(S.trials))
         cfg.trialdef.triallength = Inf;
         cfg.trialdef.ntrials = 1;
         cfg.trl=trialfun_spm(cfg);
+        cfg.event = read_event(cfg.dataset);
 end
 
 cfg.precision=S.precision;
@@ -273,7 +274,7 @@ for ind= 1:length(S.chansubset)
     end
 
     cfg1=cfg;
-    cfg1.channel=chansettings.channel;
+    cfg1.channel=tokenize(chansettings.channel, ' ');
 
     for ind2=1:length(chansettings.filters)
         cfg1=mergestruct(cfg1, jobtree2cfg(chansettings.filters{ind2}));
@@ -283,7 +284,7 @@ for ind= 1:length(S.chansubset)
         cfg1=setfield(cfg1, cell2mat(fieldnames(chansettings.filters{ind2})), 'yes');
     end
 
-    data{ind} = spm_eeg_preprocessing(cfg1); %spm_eeg_preprocessing(cfg1);
+    data{ind} = spm_eeg_preprocessing(cfg1); 
 end
 
 if length(data)>1
@@ -291,6 +292,8 @@ if length(data)>1
 else
     data=data{1};
 end
+
+
 
 [junk, ctfname] = fileparts(S.sub_savesettings.ctf{:});
 

@@ -75,22 +75,9 @@ D.Nchannels = length(D.channels.name);
 % index vector of bad channels
 D.channels.Bad = [];
 
-% If the data is continuous un-epoched (rather than epoched or ERP)
-% The rule of thumb of total duration longer than 5 sec is used to
-% distinguish between continuous and ERP.
-if D.Nevents>1 || (ftdata.time(end)-ftdata.time(1))<5
-    % finds the index of the time point closest to zero (will only work if
-    % the baseline has negative time values).
-    [junk zero_ind]=min(abs(ftdata.time));
-    % nr of time bins before stimulus onset (this excludes the time bin at zero)
-    D.events.start = zero_ind-1;
-    % nr of time bins after stimulus onset (this excludes the time bin at zero)
-    D.events.stop = length(ftdata.time)-zero_ind;
-end
 
 % name of SPM mat file
 D.fname = filename;
-
 
 
 if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') % MEG
@@ -143,12 +130,23 @@ D.events.types = unique(D.events.code);
 D.events.Ntypes = length(D.events.types);
 
 
-% The if is here because spm_eeg_epochs checks whether there is a previous
-% reject field and does not replace it. So for continuous data there should
-% not be any.
-if D.Nevents>1
+% If the data is  epoched or ERP  (rather than continuous un-epoched)
+% The rule of thumb of total duration longer than 5 sec is used to
+% distinguish between continuous and ERP.
+if D.Nevents>1 || (ftdata.time(end)-ftdata.time(1))<5
+    % finds the index of the time point closest to zero (will only work if
+    % the baseline has negative time values).
+    [junk zero_ind]=min(abs(ftdata.time));
+    % nr of time bins before stimulus onset (this excludes the time bin at zero)
+    D.events.start = zero_ind-1;
+    % nr of time bins after stimulus onset (this excludes the time bin at zero)
+    D.events.stop = length(ftdata.time)-zero_ind;
+
+    % This is here because spm_eeg_epochs checks whether there is a previous
+    % reject field and does not replace it. So for continuous data there should
+    % not be any.
     D.events.reject = zeros(1, D.Nevents);
-end
+end 
 
 D.events.repl=[];
 
