@@ -175,7 +175,7 @@ if ~isempty(badchannel)
   for i=1:length(badchannel)
     badchannel{i} = badchannel{i}(2:end);                 % remove the '-' from the channel label
   end
-  badchannel = channelselection(badchannel, datachannel); % support exclusion of channel groups
+  badchannel = ft_channelselection(badchannel, datachannel); % support exclusion of channel groups
   channel(findbadchannel) = [];                           % remove them from the channels to be processed
 end
 
