@@ -41,9 +41,9 @@ if length(unique_label)~=length(hdr.label)
     hdr.label=hdr.label(ind2);
 end  
      
-% since you want to use the gui, you don't have to replicate all intelligence of channelselection, but you can just pop up the select_channel_list() function
 cfg.channel = ft_channelselection(cfg.channel,    hdr.label);
-chansel = match_str(hdr.label, cfg.channel);
+
+[junk chansel] = match_str(cfg.channel, hdr.label);
 % 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % STEP 2
@@ -57,8 +57,25 @@ chansel = match_str(hdr.label, cfg.channel);
 %   [trl, event] = feval(cfg.trialfun, cfg);
 % end
 
-% ****FIXME****
-padding=0;
+% determine the length in samples to which the data should be padded before filtering is applied
+if cfg.padding>0
+  if strcmp(cfg.lnfilter, 'yes') || ...
+      strcmp(cfg.dftfilter, 'yes') || ...
+      strcmp(cfg.lpfilter, 'yes') || ...
+      strcmp(cfg.hpfilter, 'yes') || ...
+      strcmp(cfg.bpfilter, 'yes') || ...
+      strcmp(cfg.medianfilter, 'yes')
+    padding = round(cfg.padding * hdr.Fs);
+  else
+    % no filtering will be done, hence no padding is neccessary
+    padding = 0;
+  end
+  % update the configuration (in seconds) for external reference
+  cfg.padding = padding / hdr.Fs;
+else
+  % no padding was requested
+  padding = 0;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,6 +144,18 @@ for i=1:size(cfg.trl,1)
     end
   end
 
+    
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % remove the filter padding and do the preprocessing on the remaining trial data
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if begpadding~=0 || endpadding~=0
+      dat = dat(:, (1+begpadding):(end-endpadding));
+      time = time((1+begpadding):(end-endpadding));
+  end
+
+  
+  time = time - cfg.timeshift;
+  
   % do the rest of the preprocessing
   if strcmp(cfg.detrend, 'yes')
     dat = detrend(dat')';

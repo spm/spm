@@ -50,7 +50,6 @@ loadcont=struct('type','const','name','Load continuous data','tag','loadcont', '
 trlfile = struct('type','files','name','Define by TRL file','tag','trlfile',...
     'filter','*', 'num',1, 'help',{{'Select an ASCII or matlab file with TRL structure (see definitrial() help)'}});
 
-
 trials = struct('type','choice','name','Trial definitions','tag','trials',...
     'values',{{sub_trialdef, trlfile, loadcont}}, 'val', {{sub_trialdef}});
 
@@ -58,9 +57,18 @@ trials.help=[...
     {'Choose whether to define trials semi-automatically based on events in the file'}, ...
     {'or using iser defined trl matrix (see definitrial() help)'}];
 
+
+padding = struct('type','entry','name','Padding for filtering','tag','padding',...
+    'strtype', 'r', 'val', {{0}}, 'num', [1 1], 'help', {{'Length (in sec) to which the trials should be padded for filtering'}});
+
+timeshift = struct('type','entry','name','Shift time axis','tag','timeshift',...
+    'strtype', 'r', 'val', {{0}}, 'num', [1 1], 'help', {{'Set the zero of the time axis to this value (relatively to the trigger)'}});
+
+
 forcecont = struct('type','menu','name','Force treating data as continuous','tag','forcecont',...
     'labels', {{'Yes', 'No'}}, 'values', {{'yes', 'no'}}, 'val', {{'no'}},...
     'help', {{'Force preprocessing to read across trial borders.'}});
+
 
 %% ------------ Channels ------------
 
@@ -93,9 +101,6 @@ channel.help = [...
     {'{''all'', ''-POz'', ''-Fp1'', ''-EOG''}'}];
 % ------------ Filters ------------
 
-
-padding = struct('type','entry','name','Filter padding','tag','padding',...
-    'strtype', 'n', 'val', {{0}}, 'num', [1 1], 'help', {{'Length to which the trials are padded for filtering'}});
 
 % Low pass
 
@@ -204,7 +209,6 @@ channelsets = struct('type', 'repeat', 'name', 'Channels', 'tag', 'channelsets',
 precision = struct('type','menu','name','Number precision','tag','precision',...
     'labels', {{'Single', 'Double'}}, 'values', {{'single', 'double'}}, 'val', {{'double'}},  'help', {{'Number precision for data processing'}});
 
-
 % Save settings
 
 ctf = struct('type','files','name','Name of the channel template file','tag','ctf',...
@@ -218,9 +222,8 @@ sub_savesettings = struct('type','branch','name','Save settings','tag','sub_save
     'val',{{savename, ctf}});
 
 S   = struct('type','branch','name','MEEG Preprocessing','tag','meeg',...
-    'val',{{dataset, trials, forcecont, channelsets, precision, sub_savesettings}},'prog',@meeg_preprocess,'modality',{{'EEG'}},...
+    'val',{{dataset, trials, padding, timeshift, forcecont, channelsets, precision, sub_savesettings}},'prog',@meeg_preprocess,'modality',{{'EEG'}},...
     'help',{{'Preprocessing of MEG/EEG data'}});
-
 %%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -239,7 +242,8 @@ switch cell2mat(fieldnames(S.trials))
         cfg.trialdef=jobtree2cfg(S.trials.sub_trialdef);
         % In case the event value is numeric tries to convert it into a number
         try cfg.trialdef.eventvalue=str2num(cfg.trialdef.eventvalue); catch end
-        cfg.trl=trialfun_spm(cfg);
+        trl=trialfun_spm(cfg);
+        cfg.timeshift = S.timeshift;
     case 'trlfile'
         trl=load(cell2mat(S.trials.trlfile));
         if isstruct(trl)
@@ -251,16 +255,22 @@ switch cell2mat(fieldnames(S.trials))
             warning('For SPM the fourth column of TRL matrix should contain event codes. Adding 1s');
             trl=[trl ones(size(trl,1), 1)];
         end
-        cfg.trl=trl;
+
+        cfg.timeshift = S.timeshift;
     case 'loadcont'
         cfg.trialdef.triallength = Inf;
         cfg.trialdef.ntrials = 1;
-        cfg.trl=trialfun_spm(cfg);
+        trl=trialfun_spm(cfg);
         cfg.event = read_event(cfg.dataset);
+
+        timeshift = 0;
 end
+cfg.trl=trl;
+
 
 cfg.precision=S.precision;
 
+cfg.padding=S.padding;
 
 cfg.forcecont=strcmpi(S.forcecont, 'yes');
 
@@ -284,7 +294,7 @@ for ind= 1:length(S.chansubset)
         cfg1=setfield(cfg1, cell2mat(fieldnames(chansettings.filters{ind2})), 'yes');
     end
 
-    data{ind} = spm_eeg_preprocessing(cfg1); 
+    data{ind} = spm_eeg_preprocessing(cfg1);
 end
 
 if length(data)>1
@@ -293,7 +303,7 @@ else
     data=data{1};
 end
 
-
+data.cfg.trl = trl;
 
 [junk, ctfname] = fileparts(S.sub_savesettings.ctf{:});
 

@@ -10,7 +10,7 @@ disp('Converting data to SPM format');
 
 % If preprocessing format
 if iscell(ftdata.time)
-    
+
     if length(ftdata.time)>1
         % Initial checks
         if any(diff(cellfun('length', ftdata.time))~=0)
@@ -22,21 +22,21 @@ if iscell(ftdata.time)
             end
         end
     end
-    
+
     D.Nevents=length(ftdata.trial);
-    
+
     nchan  = size(ftdata.trial{1},1);
     ntime  = size(ftdata.trial{1},2);
-    
+
     data = zeros(nchan, ntime, D.Nevents);
-    
+
     spm_progress_bar('Init', D.Nevents, 'converting data to SPM format'); drawnow;
     for n=1:D.Nevents
         spm_progress_bar('Set', n); drawnow;
         data(:,:,n) = ftdata.trial{n};
     end
     spm_progress_bar('Clear');
-    
+
     ftdata.time  = ftdata.time{1};
 else % timelockanalysis format
     rptind=strmatch('rpt', tokenize(ftdata.dimord, '_'));
@@ -48,10 +48,10 @@ else % timelockanalysis format
     else
         D.Nevents=1;
     end
-    
+
     timeind=strmatch('time', tokenize(ftdata.dimord, '_'));
     chanind=strmatch('chan', tokenize(ftdata.dimord, '_'));
-    
+
     if isfield(ftdata, 'trial')
         data =permute(ftdata.trial, [chanind, timeind, rptind]);
     else
@@ -81,7 +81,7 @@ D.fname = filename;
 
 
 if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') % MEG
-    D.modality = 'MEG'; 
+    D.modality = 'MEG';
     D.units = 'fT';
     % This is a rule of thumb. Look at the distribution of values
     % at one timepoint across channels and trials. Assumes that in MEG
@@ -91,7 +91,7 @@ if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') % MEG
         warning('Detected MEG data and converted to the units to fT');
     end
 else   %EEG
-    D.modality = 'EEG'; 
+    D.modality = 'EEG';
     D.units = '\muV';
     warning('Assuming that units are uV. Units may not be correct for EEG data.');
 end
@@ -103,25 +103,32 @@ D.channels.ref_name = 'NIL';
 
 % In the case of epoched data preprocessed in SPM codes and times are taken
 % from the trl table
-if isfield(ftdata, 'cfg') && isfield(ftdata.cfg, 'trl') && D.Nevents>1
-    D.events.time = ftdata.cfg.trl(:,1)-ftdata.cfg.trl(:,3);
-    if size(ftdata.cfg.trl, 2)<4
+if issubfield(ftdata, 'cfg.trl') && D.Nevents>1
+    trl = getsubfield(ftdata, 'cfg.trl');
+    D.events.time = trl(:,1) - trl(:,3);
+    if size(trl, 2)<4
         D.events.code = ones(size(D.events.time));
     else
-        D.events.code = ftdata.cfg.trl(:,4)';
+        D.events.code = trl(:,4)';
     end
     %If there is no trl (data is continuous or not from SPM GUI)
-elseif isfield(ftdata, 'cfg') && isfield(ftdata.cfg, 'event')
+elseif issubfield(ftdata.cfg, 'cfg.event')
     % If data comes from FT spm codes are added to events
-    if ~isfield(ftdata.cfg.event, 'spmcode')
-        ftdata.cfg.event=spm_eeg_recode_events(ftdata.cfg.event);
+    event = getsubfield(ftdata, 'cfg.event');
+    if ~isfield(event, 'spmcode')
+        event=spm_eeg_recode_events(event);
     end
-    D.events.time = [ftdata.cfg.event.sample];
-    D.events.code = [ftdata.cfg.event.spmcode];
+    D.events.time = [event.sample];
+    D.events.code = [event.spmcode];
 else
     % If there is no information about events the codes are 1s
     warning('No event information found in the FT data');
     D.events.code=ones(1, size(data,3));
+end
+
+% This is for compatibility  with the old conversion
+if isfield(D.events, 'time')
+    D.events.time=D.events.time(:);
 end
 
 % FIXME Support for original events for epoched data can be added.
@@ -146,7 +153,7 @@ if D.Nevents>1 || (ftdata.time(end)-ftdata.time(1))<5
     % reject field and does not replace it. So for continuous data there should
     % not be any.
     D.events.reject = zeros(1, D.Nevents);
-end 
+end
 
 D.events.repl=[];
 
@@ -185,18 +192,18 @@ if Csetup.Nchannels>0
         case {'EEG', 'MEG'}
             % FIXME This is not a generic way for all kinds of EEG data.
             D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog]);
-            
+
             for i = D.channels.eeg
-                
+
                 index = find(strcmpi(D.channels.name{i}, Csetup.Cnames));
-                
+
                 if isempty(index)
                     warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
                 else
                     % take only the first found channel descriptor
                     D.channels.order(i) = index(1);
                 end
-                
+
             end
     end
 end
