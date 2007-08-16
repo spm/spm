@@ -95,9 +95,9 @@ if isfield(D.channels, 'types')
     handles.types=D.channels.types;
 elseif isfield(D.channels, 'eeg')
     if strcmp(handles.D.modality, 'MEG')
-        handles = set_types(handles, 'MEG', num2str(D.channels.eeg(:)'));
+        handles = set_types(handles, 'MEG', D.channels.eeg);
     else
-        handles = set_types(handles, 'EEG', num2str(D.channels.eeg(:)'));
+        handles = set_types(handles, 'EEG', D.channels.eeg);
     end
 else
     handles=set_types_to_default(handles);
@@ -121,7 +121,7 @@ function MEGlist_Callback(hObject, eventdata, handles)
 str = get(handles.MEGlist, 'String');
 
 handles.D.modality = 'MEG';
-handles = set_types(handles, 'MEG', str);
+handles = set_types(handles, 'MEG', eval(['[' str ']']));
 handles=update_list(handles);
 
 % Update handles structure
@@ -140,7 +140,7 @@ function HEOGlist_Callback(hObject, eventdata, handles)
 % retrieve input
 str = get(handles.HEOGlist, 'String');
 
-handles = set_types(handles, 'HEOG', str);
+handles = set_types(handles, 'HEOG', eval(['[' str ']']));
 handles=update_list(handles);
 
 % Update handles structure
@@ -159,7 +159,7 @@ function VEOGlist_Callback(hObject, eventdata, handles)
 % retrieve input
 str = get(handles.VEOGlist, 'String');
 
-handles = set_types(handles, 'VEOG', str);
+handles = set_types(handles, 'VEOG', eval(['[' str ']']));
 handles=update_list(handles);
 
 % Update handles structure
@@ -178,7 +178,7 @@ function Reflist_Callback(hObject, eventdata, handles)
 % retrieve input
 str = get(handles.Reflist, 'String');
 
-handles = set_types(handles, 'Ref', str);
+handles = set_types(handles, 'Ref', eval(['[' str ']']));
 handles=update_list(handles);
 
 % Update handles structure
@@ -197,7 +197,7 @@ function otherlist_Callback(hObject, eventdata, handles)
 % retrieve input
 str = get(handles.otherlist, 'String');
 
-handles = set_types(handles, 'other', str);
+handles = set_types(handles, 'other', eval(['[' str ']']));
 handles=update_list(handles);
 
 
@@ -216,7 +216,7 @@ function newlist_Callback(hObject, eventdata, handles)
 
 str = get(handles.newlist, 'String');
 
-handles = set_types(handles, get(handles.newname, 'String'), str);
+handles = set_types(handles, get(handles.newname, 'String'), eval(['[' str ']']));
 handles=update_list(handles);
 
 % Update handles structure
@@ -232,7 +232,7 @@ function clear_Callback(hObject, eventdata, handles)
 
 if isfield(handles, 'types')
 
-    handles = set_types(handles, '', int2str([1:handles.Nnames]));
+    handles = set_types(handles, '', 1:handles.Nnames);
 
     handles = update_list(handles);
 
@@ -882,7 +882,7 @@ function saveTemplate_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-if all(isfield(handles, {'Cnames', 'Cpos'}))
+if isfield(handles, 'Cnames') && isfield(handles,  'Cpos')
     Cnames=handles.Cnames;
     Cpos=handles.Cpos;
     Nchannels=length(Cnames);
@@ -1024,13 +1024,12 @@ end
 
 %------------------------------------------------------------------------
 
-function handles = set_types(handles, type, str);
+function handles = set_types(handles, type, ind);
 
 
 
 if nargin>1
-    ind = eval(['[' str ']']);
-    for i = ind
+    for i = ind(:)'
         handles.types{i} = type;
     end
 end
@@ -1041,9 +1040,12 @@ if length(handles.types)<length(handles.names)
     handles.types((end+1):length(handles.names)) = {''};
 end
 
-if strcmp(handles.D.modality, 'MEG')
+% MEG takes priority over EEG
+if  ~isempty(strmatch('MEG', handles.types, 'exact'))
+    handles.D.modality='MEG';
     handles.D.channels.eeg = strmatch('MEG', handles.types, 'exact');
 else
+    handles.D.modality='EEG';
     handles.D.channels.eeg = strmatch('EEG', handles.types, 'exact');
 end
 
@@ -1075,11 +1077,11 @@ other_types = {'MEG', 'EMG', 'EOG'};
 handles.types=repmat({''}, length(handles.names), 1);
 
 for i=1:length(eeg_types)
-    handles.types(match_str(handles.names, ft_channelselection(eeg_types(i), handles.names)))={'EEG'};
+    handles=set_types(handles, 'EEG', match_str(handles.names, ft_channelselection(eeg_types(i), handles.names)));
 end
 
-for i=1:length(other_types)
-    handles.types(match_str(handles.names, ft_channelselection(other_types(i), handles.names)))=other_types(i);
+for i=1:length(other_types) 
+    handles=set_types(handles, other_types{i}, match_str(handles.names, ft_channelselection(other_types{i}, handles.names)));
 end
 
 %------------------------------------------------------------------------
@@ -1376,7 +1378,7 @@ if ~strcmp(handles.D.modality, 'MEG')
     handles.D.modality = 'EEG';
 end
 
-handles = set_types(handles, 'EEG', str);
+handles = set_types(handles, 'EEG', eval(['[' str ']']));
 update_list(handles);
 
 % Update handles structure
