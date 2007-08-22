@@ -9,7 +9,7 @@ fmin=min(freqs);
 fmax=max(freqs);
 ns=1;
         
-ex=3;
+ex=2;
 switch ex,
     case 2,
         disp('Baccala Example 2');

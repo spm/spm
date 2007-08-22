@@ -5,7 +5,7 @@ function [G,Psig] = spm_granger (mar)
 % mar            MAR data structure (see spm_mar.m) 
 %
 % G              [d x d] matrix with i,jth entry equal to 1 if
-%                time series i 'Granger causes' time series j. 
+%                time series j 'Granger causes' time series i. 
 %                All other entries set to 0.
 %
 % Psig           [d x d] matrix of corresponding significance values
@@ -28,4 +28,7 @@ for i=1:d,
     end
 end
 
-G=Psig<0.05;
+Psig=Psig';
+G=G';
+
+G=Psig<0.001;

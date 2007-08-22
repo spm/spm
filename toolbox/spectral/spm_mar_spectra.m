@@ -121,22 +121,23 @@ if show
                 subplot(d,d,index);
                 coh=real(mar.C(:,k,j)).^2;
                 plot(mar.f,coh);
+                axis([min(mar.f) max(mar.f) 0 1]);
             end
         end
     end
     
-    h=figure;
-    set(h,'name','DTF');
-    for k=1:d,
-        for j=1:d,
-            if ~(k==j)
-                index=(k-1)*d+j;
-                subplot(d,d,index);
-                dtf=mar.dtf(:,k,j);
-                plot(mar.f,dtf);
-            end
-        end
-    end
+%     h=figure;
+%     set(h,'name','DTF');
+%     for k=1:d,
+%         for j=1:d,
+%             if ~(k==j)
+%                 index=(k-1)*d+j;
+%                 subplot(d,d,index);
+%                 dtf=mar.dtf(:,k,j);
+%                 plot(mar.f,dtf);
+%             end
+%         end
+%     end
     
     h=figure;
     set(h,'name','PDC');
@@ -147,6 +148,7 @@ if show
                 subplot(d,d,index);
                 pdc=mar.pdc(:,k,j);
                 plot(mar.f,pdc);
+                axis([min(mar.f) max(mar.f) 0 1]);
             end
         end
     end
