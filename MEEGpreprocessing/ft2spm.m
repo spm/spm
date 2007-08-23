@@ -80,20 +80,25 @@ D.channels.Bad = [];
 D.fname = filename;
 
 
-if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') % MEG
+if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') && ~isempty(ft_channelselection('MEG', ftdata.label)) % MEG
     D.modality = 'MEG';
     D.units = 'fT';
     % This is a rule of thumb. Look at the distribution of values
     % at one timepoint across channels and trials. Assumes that in MEG
     % datasets most channels will be MEG.
-    if (median(reshape(data(:,fix(end/2),:), 1,[]))<1e-10)
+    if (median(abs(reshape(data(:,fix(end/2),:), 1,[])))<1e-10)
         data=1e15*data;
         warning('Detected MEG data and converted to the units to fT');
     end
 else   %EEG
     D.modality = 'EEG';
     D.units = '\muV';
-    warning('Assuming that units are uV. Units may not be correct for EEG data.');
+    if (median(abs(reshape(data(:,fix(end/2),:), 1,[])))<1e-2)
+        data=1e6*data;
+        warning('Scaled the data for CTF EEG.');
+    else
+        warning('Assuming that units are uV. Units may not be correct for EEG data.');
+    end
 end
 
 
