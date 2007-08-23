@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <string.h>
+
 
 #ifndef MIN
 #define MIN(A,B) ((A) > (B) ? (B) : (A))
@@ -19,7 +21,7 @@ void do_it(double         *iima,
            int            dilate,
            double         *oima);
 
-int index(int            i,
+int index_l(int            i,
           int            j,
           int            k,
           unsigned int   dim[3]);
@@ -44,26 +46,26 @@ void do_it(double         *iima,
       {
 	 for (k=0; k<dim[2]; k++)
 	 {
-	    ndx = index(i,j,k,dim);
+	    ndx = index_l(i,j,k,dim);
 	    for (ki=0; ki<kdim[0]; ki++)
 	    {
 	       for (kj=0; kj<kdim[1]; kj++)
 	       {
 	          for (kk=0; kk<kdim[2]; kk++)
 		  {
-                     kndx = index(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
+                     kndx = index_l(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
  	             if (kndx > -1)
 		     {
 		        if (dilate)
 			{
-			   if (kv=krnl[index(ki,kj,kk,kdim)])
+			   if (kv=krnl[index_l(ki,kj,kk,kdim)])
 			   {
 			      oima[ndx] = MAX(oima[ndx],kv*iima[kndx]);
                            }
                         }
                         else /* erode */
 		        {
-			   if (kv=krnl[index(ki,kj,kk,kdim)])
+			   if (kv=krnl[index_l(ki,kj,kk,kdim)])
 			   {
 			      oima[ndx] = MIN(oima[ndx],kv*iima[kndx]);
                            }
@@ -78,10 +80,10 @@ void do_it(double         *iima,
    return;
 }
 
-/* Utility function that returns index into */
+/* Utility function that returns index_l into */
 /* 1D array with range checking.            */
  
-int index(int            i,
+int index_l(int            i,
           int            j,
           int            k,
           unsigned int   dim[3])

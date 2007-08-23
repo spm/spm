@@ -1,6 +1,7 @@
 #include "mex.h"
 #include <math.h>
 #include <limits.h>
+#include <string.h>
 
 /* Silly little macros. */
 

@@ -221,7 +221,7 @@ if false,
 
     %------------------------------------------------------------
     % More workings related to the use of Fisher kernels
-    % (Jaakkola and Haussler, 1999).  I this example, it is
+    % (Jaakkola and Haussler, 1999).  In this example, it is
     % for a binomial distribution
     %------------------------------------------------------------
     % Eq. 6.32 of PRML (numerically derived)

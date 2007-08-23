@@ -12,7 +12,7 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_mnc2nifti.m 891 2007-08-23 10:45:40Z john $
 
 
 if nargin==1,
@@ -97,8 +97,13 @@ else
         for i5=1:size(idat,5),
             for i4=1:size(idat,4),
                 for i3=1:size(idat,3),
-                    scale1 = scale(:,:,i3,i4,i5,i6);
-                    dcoff1 = dcoff(:,:,i3,i4,i5,i6);
+                    if size(scale,3)==1,
+                        scale1 = scale(:,:,1,i4,i5,i6);
+                        dcoff1 = dcoff(:,:,1,i4,i5,i6);
+                    else
+                        scale1 = scale(:,:,i3,i4,i5,i6);
+                        dcoff1 = dcoff(:,:,i3,i4,i5,i6);
+                    end
                     if numel(scale1)==1,
                         img = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
                     elseif size(scale1,1)>1 && size(scale1,2)>1,
@@ -136,27 +141,32 @@ N.mat  = mat;
 N.mat0 = mat;
 create(N);
 for i6=1:size(idat,6),
-	for i5=1:size(idat,5),
-		for i4=1:size(idat,4),
-			for i3=1:size(idat,3),
-				scale1 = scale(:,:,i3,i4,i5,i6);
-				dcoff1 = dcoff(:,:,i3,i4,i5,i6);
-				if numel(scale1)==1,
-					slice = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
-				elseif size(scale1,1)>1 && size(scale1,2)>1,
-					slice = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
-				elseif size(scale1,1)==1,
-					slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
+    for i5=1:size(idat,5),
+        for i4=1:size(idat,4),
+            for i3=1:size(idat,3),
+                if size(scale,3)==1,
+                    scale1 = scale(:,:,1,i4,i5,i6);
+                    dcoff1 = dcoff(:,:,1,i5,i5,i6);
+                else
+                    scale1 = scale(:,:,i3,i4,i5,i6);
+                    dcoff1 = dcoff(:,:,i3,i4,i5,i6);
+                end
+                if numel(scale1)==1,
+                    slice = double(idat(:,:,i3,i4,i5,i6))*scale1 + dcoff1;
+                elseif size(scale1,1)>1 && size(scale1,2)>1,
+                    slice = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
+                elseif size(scale1,1)==1,
+                    slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
 					                                       repmat(dcoff1,[size(idat,1) 1]);
-				else
-					slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
+                else
+                    slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
 					                                       repmat(dcoff1,[1 size(idat,2)]);
-				end;
-                                if flp, slice = flipud(slice); end;
-                                N.dat(:,:,i3,i4,i5,i6) = slice;
-			end;
-		end;
-	end;
+                end;
+                if flp, slice = flipud(slice); end;
+                N.dat(:,:,i3,i4,i5,i6) = slice;
+            end;
+        end;
+    end;
 end;
 return;
 %_______________________________________________________________________

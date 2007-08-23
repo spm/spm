@@ -3,16 +3,18 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
+#include <string.h>
 
 #ifndef PI
 #define PI 3.14159265358979
 #endif
 
-int ii_cmp(const int  *a,
-           const int  *b);
-
-int jj_cmp(const int  *a,
-           const int  *b);
+/* changed const int * to const void * DMT 8/22/07 */
+int ii_cmp(const void * a,
+           const void * b);
+/* changed const int * to const void * DMT 8/22/07 */
+int jj_cmp(const void * a,
+           const void * b);
 
 void merge_regions(/* Input */
                    int     *nn,   /* Number of bordering voxels per pair of regions. */
@@ -51,20 +53,29 @@ static int     *ii=NULL;
 static int     *jj=NULL;
 static double  *cc=NULL;
 
-int ii_cmp(const int  *a,
-           const int  *b)
+/* changed const int * to const void * DMT 8/22/07 */
+int ii_cmp(const void * a,
+           const void * b)
 {
-   if (ii[((int) *a)] > ii[((int) *b)]) {return(1);}
-   else if (ii[((int) *a)] == ii[((int) *b)]) {return(0);}
+   /*   if (jj[((int) *a)] > jj[((int) *b)]) {return(1);}
+     else if (jj[((int) *a)] == jj[((int) *b)]) {return(0);}
+     else {return(-1);} Replaced DMT 8/22/07 */
+   if (ii[(*(int*)a)] > ii[(*(int*)b)]) {return(1);}
+   else if (ii[(*(int*) a)] == ii[(*(int*) b)]) {return(0);}
    else {return(-1);}
 }
 
-int jj_cmp(const int  *a,
-           const int  *b)
+/* changed const int * to const void * DMT 8/22/07 */
+int jj_cmp(const void * a,
+           const void * b)
 {
-   if (jj[((int) *a)] > jj[((int) *b)]) {return(1);}
-   else if (jj[((int) *a)] == jj[((int) *b)]) {return(0);}
+     /*   if (jj[((int) *a)] > jj[((int) *b)]) {return(1);}
+     else if (jj[((int) *a)] == jj[((int) *b)]) {return(0);}
+     else {return(-1);} Replaced DMT 8/22/07 */
+   if (ii[(*(int*)a)] > ii[(*(int*)b)]) {return(1);}
+   else if (ii[(*(int*) a)] == ii[(*(int*) b)]) {return(0);}
    else {return(-1);}
+
 }
 
 int my_round(double  iv)
