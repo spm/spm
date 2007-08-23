@@ -14,7 +14,7 @@ function [A,B,C,H] = spm_dcm_reshape(P,m,n,r)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_dcm_reshape.m 864 2007-07-24 17:54:41Z klaas $
+% $Id: spm_dcm_reshape.m 895 2007-08-23 21:55:21Z klaas $
  
  
 % scale intrinsic connections {A}
@@ -47,6 +47,8 @@ P(j)  = [];
 
 % fill in hemodynamic parameters {H}
 %--------------------------------------------------------------------------
-hp    = 6; % number of free hemodynamic parameters per region
+% determine how many free hemodynamic parameters were used per region:
+% 5 (classical hemodynamic model) or 6 (revised hemodynamic model)
+hp    = length(P)/n;
 j     = 1:n*hp;
 H     = reshape(P(j),n,hp);
