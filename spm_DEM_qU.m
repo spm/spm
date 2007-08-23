@@ -17,6 +17,7 @@ function spm_DEM_qU(qU,pU)
 
 % unpack
 %--------------------------------------------------------------------------
+clf
 V      = qU.v;
 X      = qU.x;
 E      = qU.z;
@@ -24,10 +25,12 @@ try
     C  = qU.C;
     S  = qU.S;
 end
-
 try
     pV = pU.v;
     pX = pU.x;
+end
+try
+    pA = qU.a;
 end
 
 % time-series specification
@@ -89,7 +92,11 @@ for i = 1:g
         % causal states and error - time series
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
+        try, 
+            plot(t,pV{i},'linewidth',2,'color',[1 1 1]/2)
+        end, hold on
         plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
+        hold off
         set(gca,'XLim',[t(1) t(end)])
         a   = axis;
 
@@ -104,10 +111,9 @@ for i = 1:g
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
             hold off
-            
         end
 
-        % title and grid
+        % title, action, grid and true casues (if available)
         %------------------------------------------------------------------
         if i == 1
             title('predicted response and error');
@@ -115,6 +121,9 @@ for i = 1:g
             title(sprintf('causal states - level %i',i));
             try, hold on
                 plot(t,pV{i},'linewidth',2,'color',[1 1 1]/2)
+            end, hold off
+            try, hold on
+                plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0])
             end, hold off
         end
         xlabel('time {bins}')
@@ -129,6 +138,9 @@ for i = 1:g
  
             subplot(g,2,2*i)
             plot(t,full(X{i}))
+            try, hold on
+                plot(t,pX{i},'linewidth',2,'color',[1 1 1]/2)
+            end, hold off
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
             

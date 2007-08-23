@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 31-Jul-2007 15:08:31
+% Last Modified by GUIDE v2.5 23-Aug-2007 15:32:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -129,4 +129,9 @@ run_demo_Callback(hObject, handles, 'DEM_demo_hdm')
 % --- Executes on button press in pushbutton12.
 function pushbutton12_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'DEM_demo_double_well')
+
+% --- Executes on button press in pushbutton14.
+function pushbutton14_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DFP_demo_double_well')
+
 

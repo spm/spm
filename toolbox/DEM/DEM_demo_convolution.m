@@ -36,7 +36,7 @@ return
 %==========================================================================
 for i = 1:12
     clear functions
-    DEM.M(1).E.n = 1 + i;
+    DEM.M(1).E.n = i;
     DEM.M(1).E.d = 3;
     
     D{i}   = spm_DEM(DEM);
@@ -70,10 +70,10 @@ end
 % and d
 %--------------------------------------------------------------------------
 clf; clear D F Sx Sv
-for i = 1:8
+for i = 1:6
     clear functions
-    DEM.M(1).E.n = 8;
-    DEM.M(1).E.d = i;
+    DEM.M(1).E.n = 15;
+    DEM.M(1).E.d = i - 1;
     
     D{i}   = spm_DEM(DEM);
     F(i)   = D{i}.F;
@@ -85,11 +85,19 @@ end
 % plot
 %--------------------------------------------------------------------------
 clf
-subplot(2,1,1)
+subplot(2,2,1)
 bar(Sx)
-xlabel('d (n = 8)')
+xlabel('d (n = 15)')
 ylabel('sum squared error (hidden states)')
 axis square
+set(gca,'XTickLabel',[0:7])
+
+subplot(2,2,2)
+bar(F - min(F) + 32)
+xlabel('d (n = 15)')
+ylabel('log-evidence')
+axis square
+set(gca,'XTickLabel',[0:7])
  
 d     = [1 4];
 for i = 1:length(d)
@@ -100,7 +108,7 @@ for i = 1:length(d)
     hold off
     axis square
     xlabel('time')
-    title(sprintf('d = %i',d(i)))
+    title(sprintf('d = %i',d(i) - 1))
     if i == 1, a = axis; else, axis(a); end
 end
  

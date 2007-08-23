@@ -200,8 +200,8 @@ np    = sum(spm_vec(M.p));                  % number of model parameters
 nb    = size(X,1);                          % number of confounds
 nn    = nb*ny;                              % number of nuisance parameters
 nf    = np + nn;                            % numer of free parameters
-ip    = [1:np];
-ib    = [1:nn] + np;
+ip    = [1:np]';
+ib    = [1:nn]' + np;
 pp.c  = spm_cat(pp.c);
 pp.ic = inv(pp.c);
  

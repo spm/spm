@@ -85,7 +85,7 @@ function [DEM] = spm_DFP(DEM)
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
-clear functions
+clear spm_DEM_eval
 [M Y U X] = spm_DEM_set(DEM);
 
 % find or create a DEM figure
@@ -214,11 +214,22 @@ qp.e  = spm_vec(qp.p);
 qp.c  = sparse(nf,nf);
 qp.b  = sparse(ny,nb);
 
+
 % initialise dedb
 %--------------------------------------------------------------------------
 for i = 1:nl
     dedbi{i,1} = sparse(M(i).l,nn);
 end
+for i = 1:nl - 1
+    dndbi{i,1} = sparse(M(i).n,nn);
+end
+for i = 1:n
+    dEdb{i,1}  = spm_cat(dedbi);
+end
+for i = 1:n
+    dNdb{i,1}  = spm_cat(dndbi);
+end
+dEdb  = [dEdb; dNdb];
  
  
 % initialise cell arrays for D-Step; e{i + 1} = (d/dt)^i[e] = e[i]
@@ -239,9 +250,12 @@ v         = {M(1 + 1:end).v};
 qu.x{1}   = spm_vec(x);
 qu.v{1}   = spm_vec(v);
 qu(1:N)   = deal(qu);
-for i = 1:N
-    qu(i).x{1} = qu(i).x{1} + randn(nx,1);
-    qu(i).v{1} = qu(i).v{1} + randn(nv,1);
+
+try xp = DEM.M(1).E.xp; catch, xp = 1; end
+try vp = DEM.M(1).E.vp; catch, vp = 1; end
+for i  = 1:N
+    qu(i).x{1} = qu(i).x{1} + randn(nx,1)/xp;
+    qu(i).v{1} = qu(i).v{1} + randn(nv,1)/vp;
 end
 
 dq        = {qu(1).x{1:n} qu(1).v{1:d} qy{1:n} qc{1:d}};
@@ -511,7 +525,7 @@ for iN = 1:nN
  
             % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
             %--------------------------------------------------------------
-            dFdp  = dFdp  - dUdp/2  - dE.dP'*iS*e;
+            dFdp  = dFdp  - dUdp/2  - dE.dP'*iS*E;
             dFdpp = dFdpp - dUdpp/2 - dE.dP'*iS*dE.dP;
             qp.ic = qp.ic           + dE.dP'*iS*dE.dP;
             
@@ -691,7 +705,8 @@ qH.V   = qH.V{1};
 DEM.M  = M;
 DEM.U  = U;                   % causes
 DEM.X  = X;                   % confounds
- 
+
+DEM.QU = QU;                  % sample density of model-states
 DEM.qU = Qu;                  % conditional moments of model-states
 DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters

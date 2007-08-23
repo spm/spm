@@ -27,7 +27,7 @@ function [qx,qP,qD,xhist] = spm_pf(M,y,U)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_pf.m 862 2007-07-19 18:04:51Z karl $
+% $Id: spm_pf.m 894 2007-08-23 18:37:51Z karl $
 
 
 
@@ -67,10 +67,10 @@ end
 
 for t = 1:T
 
-    % PREDICTION STEP: with the transition prior as proposal
+    % PREDICTION STEP: with the (8x) transition prior as proposal
     %----------------------------------------------------------------------
     for i = 1:N
-        v(:,i)     = Q*randn(n,1) + U(:,t);
+        v(:,i)     = 8*Q*randn(n,1) + U(:,t);
         f          = M(1).f(x(:,i),v(:,i),P);
         dfdx       = spm_diff(M(1).f,x(:,i),v(:,i),P,1);
         xPred(:,i) = x(:,i) + spm_dx(dfdx,f,dt);

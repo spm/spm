@@ -2,32 +2,10 @@
 % conditional density.  This demonstrates a shortcoming of DEM in that it
 % fails to represent the true density.
 
-% phase diagram - to show bimodal energy function
-%==========================================================================
-Fgraph  = spm_figure('GetWin','Graphics');
-
-x       = -32:1/16:32;
-dx      =  x/2 + 25*x./(1 + x.^2);
-dxdt    = -x/2 + 16*x./(1 + x.^2) ;
- 
-subplot(2,1,1)                                 
-plot(x,x*0,':',x,dxdt)
-axis square
-xlabel('state')
-ylabel('velocity')
-title('phase diagrmas')
- 
-subplot(2,1,2)
-plot(x,dx,x,x,':')
-axis square
-xlabel('state')
-ylabel('image')
- 
-drawnow
- 
  
 % get nonlinear state-space model
 %==========================================================================
+Fgraph = spm_figure('GetWin','Graphics');
 M      = spm_DEM_M('ssm');
  
 % generate data (output)

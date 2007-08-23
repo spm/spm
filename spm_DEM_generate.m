@@ -75,6 +75,7 @@ end
  
 % create innovations
 %--------------------------------------------------------------------------
+M        = spm_DEM_M_set(M);
 [z w]    = spm_DEM_z(M,N);
 if length(U) > 1
     z{end} = U + z{end};

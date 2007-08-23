@@ -1,6 +1,7 @@
-function spm_DFP_plot(QU,Nt)
+function spm_DFP_plot(QU,pU)
 % plots particles for spm_DFP
 % FORMAT spm_DFP_plot(QU,Nt)
+% FORMAT spm_DFP_plot(QU,pU)
 %--------------------------------------------------------------------------
 % QU{t}(p).x{d}  - ensemble of hidden states
 % QU{t}(p).v{d}  - ensemble of causal states
@@ -10,15 +11,23 @@ function spm_DFP_plot(QU,Nt)
 % Karl Friston
 % $Id$
 
+% defaults for plotting
+%--------------------------------------------------------------------------
+clf
+try
+    pX = pU.x{1};
+    pV = pU.v{2};
+    Nt = length(pX);
+catch
+    try Nt = pU; catch, Nt = length(QU); end
+end
 
 % time-series specification
 %--------------------------------------------------------------------------
 nx    = size(QU{1}(1).x{1},1);
 nv    = size(QU{1}(1).v{1},1);
-nt    = length(QU);
 np    = length(QU{1});
-
-try Nt; catch, Nt = nt; end
+nt    = length(QU);
 
 % unpack states
 %--------------------------------------------------------------------------
@@ -41,8 +50,12 @@ subplot(2,1,1)
 for i = 1:nv
     plot(1:nt,V{i},':','Color',[1 1 1]/(2 + i - 1))
     hold on
-    plot(1:nt,mean(V{i},2),'LineWidth',2)
+    plot(1:nt,mean(V{i},2),'--b','LineWidth',2)
     hold on
+end
+try
+    hold on
+    plot([1:nt] - 1,pV,'r')
 end
 hold off
 title(sprintf('causal states - %i',nv));
@@ -61,8 +74,12 @@ subplot(2,1,2)
 for i = 1:nx
     plot(1:nt,X{i},':','Color',[1 1 1]/(2 + i - 1))
     hold on
-    plot(1:nt,mean(X{i},2),'LineWidth',2)
+    plot(1:nt,mean(X{i},2),'--b','LineWidth',2)
     hold on
+end
+try
+    hold on
+    plot([1:nt] - 1,pX,'r')
 end
 hold off
 title(sprintf('hidden states - %i',nx));

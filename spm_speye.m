@@ -4,6 +4,12 @@ function [D] = spm_speye(m,n,k)
 %
 % returns an m x n matrix with ones along the k-th leading diagonal
 %__________________________________________________________________________
+
+
+% default k = 0
+%--------------------------------------------------------------------------
+if nargin < 3, k = 0; end
+if nargin < 2, n = m; end
  
 % leading diagonal matrix
 %--------------------------------------------------------------------------

@@ -12,10 +12,6 @@ function [z,w] = spm_DEM_z(M,N)
 % Karl Friston
 % $Id$
  
-% set model structure
-%--------------------------------------------------------------------------
-M  = spm_DEM_M_set(M);
- 
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
 s  = M(1).E.s + exp(-16);

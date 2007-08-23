@@ -92,6 +92,13 @@ for t  = 1:nt
         %------------------------------------------------------------------ 
         [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
  
+        % tensor products for Jabobian
+        %------------------------------------------------------------------
+        dgdv = kron(spm_speye(n,n,1),dgdv);
+        dgdx = kron(spm_speye(n,n,1),dgdx);
+        dfdv = kron(spm_speye(n,n,0),dfdv);
+        dfdx = kron(spm_speye(n,n,0),dfdx);
+
         % Save realisation 
         %==================================================================
         vi     = spm_unvec(u.v{1},{M.v});

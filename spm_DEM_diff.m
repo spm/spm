@@ -30,11 +30,6 @@ n     = M(1).E.n + 1;                     % order of embedding
  
 % initialise arrays for hierarchical form
 %--------------------------------------------------------------------------
-vi    = {M.v};
-xi    = {M.x};
-gi    = {M.v};
-fi    = {M.x};
- 
 dfdvi = cell(nl,nl);
 dfdxi = cell(nl,nl);
 dgdvi = cell(nl,nl);
@@ -48,28 +43,35 @@ end
  
 % partition states {x,v,z,w} into distinct vector arrays v{i}, ...
 %------------------------------------------------------------------
-vi    = spm_unvec(u.v{1},vi);
-xi    = spm_unvec(u.x{1},xi);
-zi    = spm_unvec(u.z{1},vi);
-wi    = spm_unvec(u.w{1},xi);
+vi    = spm_unvec(u.v{1},{M.v});
+xi    = spm_unvec(u.x{1},{M.x});
+zi    = spm_unvec(u.z{1},{M.v});
+wi    = spm_unvec(u.w{1},{M.x});
  
 % Derivatives for Jacobian
 %==================================================================
 vi{nl} = zi{nl};
 for  i = (nl - 1):-1:1
  
+    % evaluate
+    %--------------------------------------------------------------
+    [dgdx g] = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,1);
+    [dfdx f] = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,1);
+    dgdv     = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,2);
+    dfdv     = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,2);
+    
     % g(x,v) & f(x,v)
     %--------------------------------------------------------------
-    gi{i}          = feval(M(i).g,xi{i},vi{i + 1},M(i).pE);
-    fi{i}          = feval(M(i).f,xi{i},vi{i + 1},M(i).pE);
-    vi{i}          = gi{i} + zi{i};
- 
+    gi{i}    = g;
+    fi{i}    = f;
+    vi{i}    = gi{i} + zi{i};
+    
     % and partial derivatives
     %--------------------------------------------------------------
-    dgdxi{i,    i} = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,1);
-    dgdvi{i,i + 1} = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,2);
-    dfdxi{i,    i} = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,1);
-    dfdvi{i,i + 1} = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,2);
+    dgdxi{i,    i} = dgdx;
+    dgdvi{i,i + 1} = dgdv;
+    dfdxi{i,    i} = dfdx;
+    dfdvi{i,i + 1} = dfdv;
  
 end
  
@@ -88,10 +90,4 @@ for i = 2:(n - 1)
     u.v{i}     = dgdv*u.v{i} + dgdx*u.x{i} + u.z{i};
     u.x{i + 1} = dfdv*u.v{i} + dfdx*u.x{i} + u.w{i};
 end
- 
-% tensor products for Jabobian
-%------------------------------------------------------------------
-dgdv = kron(spm_speye(n,n,1),dgdv);
-dgdx = kron(spm_speye(n,n,1),dgdx);
-dfdv = kron(spm_speye(n,n,0),dfdv);
-dfdx = kron(spm_speye(n,n,0),dfdx);
+

@@ -1,4 +1,4 @@
-function [E DE] = spm_DEM_eval(M,qu,qp)
+function [E dE] = spm_DEM_eval(M,qu,qp)
 % evaluates state equations and derivatives for DEM schemes
 % FORMAT [E dE] = spm_DEM_eval(M,qu,qp)
 %
@@ -32,14 +32,21 @@ function [E DE] = spm_DEM_eval(M,qu,qp)
 
 % persistent variables to avoid redundant evaluations
 %==========================================================================
-persistent Qp dE dgdv dgdx dfdv dfdx dedy dedc dgdvp dgdxp dfdvp dfdxp
-du      = 1;
-try, du = any(spm_vec(qp.p) - spm_vec(Qp.p)) & M(1).E.linear; end
+persistent Qp dg df
+
+% test for change in parameters and record them
+%--------------------------------------------------------------------------
+try
+    du = any(spm_vec(qp.p) - spm_vec(Qp.p)) & M(1).E.linear;
+catch
+    du = 1;
+end
+Qp   = qp;
 
 %==========================================================================
 nl   = size(M,2);                       % number of levels
 ne   = sum(spm_vec(M.l));               % number of e (errors)
-nv   = sum(spm_vec(M.m));               % number of v (casual states)
+nv   = sum(spm_vec(M.m));               % number of x (causal states)
 nx   = sum(spm_vec(M.n));               % number of x (hidden states)
 np   = sum(spm_vec(M.p));               % number of p (parameters)
 ny   = M(1).l;                          % number of y (inputs)
@@ -54,93 +61,53 @@ n    = M(1).E.n + 1;                        % embedding order       (n >= d)
 %--------------------------------------------------------------------------
 fe        = cell(n,1);
 ge        = cell(n,1);
-dfdp      = cell(n,1);
-dgdp      = cell(n,1);
-dfdpi     = cell(nl - 1,nl - 1);
-dgdpi     = cell(nl    ,nl - 1);
 
 [fe{:}]   = deal(sparse(nx,1));
 [ge{:}]   = deal(sparse(ne,1));
-[dfdp{:}] = deal(sparse(nx,np));
-[dgdp{:}] = deal(sparse(ne,np));
 
+df.dp     = cell(nl - 1,nl - 1);
+dg.dp     = cell(nl    ,nl - 1);
 for i = 1:(nl - 1)
-    dgdpi{i + 1,i} = sparse(M(i).m,M(i).p);
-    dgdpi{i    ,i} = sparse(M(i).l,M(i).p);
-    dfdpi{i    ,i} = sparse(M(i).n,M(i).p);
+    dg.dp{i + 1,i} = sparse(M(i).m,M(i).p);
+    dg.dp{i    ,i} = sparse(M(i).l,M(i).p);
+    df.dp{i    ,i} = sparse(M(i).n,M(i).p);
 end
 
 % create deriavtice w.r.t. states if du
 %--------------------------------------------------------------------------
 if du
-    dfdv      = cell(n,d);
-    dfdx      = cell(n,n);
-    dgdv      = cell(n,d);
-    dgdx      = cell(n,n);
-    dedy      = cell(n,n);
-    dedc      = cell(n,d);
-    dfdy      = cell(n,n);
-    dfdc      = cell(n,d);
-    [dgdv{:}] = deal(sparse(ne,nv));
-    [dgdx{:}] = deal(sparse(ne,nx));
-    [dfdv{:}] = deal(sparse(nx,nv));
-    [dfdx{:}] = deal(sparse(nx,nx));
-    [dedy{:}] = deal(sparse(ne,ny));
-    [dedc{:}] = deal(sparse(ne,nc));
-    [dfdy{:}] = deal(sparse(nx,ny));
-    [dfdc{:}] = deal(sparse(nx,nc));
-
-    % derivatives w.r.t. parameters
-    %----------------------------------------------------------------------
-    if np
-        dgdvp = cell(np,1);
-        dgdxp = cell(np,1);
-        dfdvp = cell(np,1);
-        dfdxp = cell(np,1);
-        [dgdvp{:}] = deal(dgdv);
-        [dgdxp{:}] = deal(dgdx);
-        [dfdvp{:}] = deal(dfdv);
-        [dfdxp{:}] = deal(dfdx);
-    end
 
     % initialise cell arrays for hierarchical structure
     %--------------------------------------------------------------------------
-    dfdvi  = cell(nl - 1,nl - 1);
-    dfdxi  = cell(nl - 1,nl - 1);
-    dgdvi  = cell(nl    ,nl - 1);
-    dgdxi  = cell(nl    ,nl - 1);
+    df.dv  = cell(nl - 1,nl - 1);
+    df.dx  = cell(nl - 1,nl - 1);
+    dg.dv  = cell(nl    ,nl - 1);
+    dg.dx  = cell(nl    ,nl - 1);
 
     % & fill in hierarchical forms
     %--------------------------------------------------------------------------
     for i = 1:(nl - 1)
-        dgdvi{i + 1,i} = sparse(M(i).m,M(i).m);
-        dgdxi{i + 1,i} = sparse(M(i).m,M(i).n);
-        dgdvi{i    ,i} = sparse(M(i).l,M(i).m);
-        dgdxi{i    ,i} = sparse(M(i).l,M(i).n);
-        dfdvi{i    ,i} = sparse(M(i).n,M(i).m);
-        dfdxi{i    ,i} = sparse(M(i).n,M(i).n);
+        dg.dv{i + 1,i} = sparse(M(i).m,M(i).m);
+        dg.dx{i + 1,i} = sparse(M(i).m,M(i).n);
+        dg.dv{i    ,i} = sparse(M(i).l,M(i).m);
+        dg.dx{i    ,i} = sparse(M(i).l,M(i).n);
+        df.dv{i    ,i} = sparse(M(i).n,M(i).m);
+        df.dx{i    ,i} = sparse(M(i).n,M(i).n);
     end
 
-    if np && du
-        dgdvpi      = cell(np,1);
-        dgdxpi      = cell(np,1);
-        dfdvpi      = cell(np,1);
-        dfdxpi      = cell(np,1);
-        [dgdvpi{:}] = deal(dgdvi);
-        [dgdxpi{:}] = deal(dgdxi);
-        [dfdvpi{:}] = deal(dfdvi);
-        [dfdxpi{:}] = deal(dfdxi);
+    if np
+        dg.dvp      = cell(np,1);
+        dg.dxp      = cell(np,1);
+        df.dvp      = cell(np,1);
+        df.dxp      = cell(np,1);
+        [dg.dvp{:}] = deal(dg.dv);
+        [dg.dxp{:}] = deal(dg.dx);
+        [df.dvp{:}] = deal(df.dv);
+        [df.dxp{:}] = deal(df.dx);
     end
 
-    % & add constant terms
-    %--------------------------------------------------------------------------
-    for i = 1:n
-        dedy{i,i}   =  speye(ne,ny);
-    end
-    for i = 1:d
-        dedc{i,i}   = -flipdim(flipdim(speye(ne,nc),1),2);
-    end
 end
+
 
 % un-concatenate states {v,x} into hierarchical form
 %--------------------------------------------------------------------------
@@ -168,15 +135,15 @@ for i = 1:(nl - 1)
 
     % g(x,v), f(x,v) and 1st-order partial derivatives (parameters)
     %----------------------------------------------------------------------
-    [dfdpj fj] = spm_diff(h,M(i).f,xvp{:},4);
-    [dgdpj gj] = spm_diff(h,M(i).g,xvp{:},4);
+    [dfdp fi]  = spm_diff(h,M(i).f,xvp{:},4);
+    [dgdp gi]  = spm_diff(h,M(i).g,xvp{:},4);
 
     % and place in array
     %----------------------------------------------------------------------
-    g{i,1}     = gj;
-    f{i,1}     = fj;
-    dfdpi{i,i} = dfdpj;
-    dgdpi{i,i} = dgdpj;
+    g{i,1}     = gi;
+    f{i,1}     = fi;
+    df.dp{i,i} = dfdp;
+    dg.dp{i,i} = dgdp;
 
     % if the system is nonlinear or the parameters have changed
     %======================================================================
@@ -184,29 +151,29 @@ for i = 1:(nl - 1)
 
         % 1st and 2nd partial derivatives (states)
         %------------------------------------------------------------------
-        [dgdxpj dgdxj] = spm_diff(h,M(i).g,xvp{:},[2 4]);
-        [dgdvpj dgdvj] = spm_diff(h,M(i).g,xvp{:},[3 4]);
-        [dfdxpj dfdxj] = spm_diff(h,M(i).f,xvp{:},[2 4]);
-        [dfdvpj dfdvj] = spm_diff(h,M(i).f,xvp{:},[3 4]);
+        [dgdxp dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4]);
+        [dgdvp dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4]);
+        [dfdxp dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4]);
+        [dfdvp dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4]);
 
         % place 1st derivatives in array
         %------------------------------------------------------------------
-        dgdxi{i,i} = dgdxj;
-        dgdvi{i,i} = dgdvj;
-        dfdxi{i,i} = dfdxj;
-        dfdvi{i,i} = dfdvj;
+        dg.dx{i,i}   = dgdx;
+        dg.dv{i,i}   = dgdv;
+        df.dx{i,i}   = dfdx;
+        df.dv{i,i}   = dfdv;
 
         % and add constant terms
         %------------------------------------------------------------------
-        dgdvi{i + 1,i} = -speye(M(i).m,M(i).m);
+        dg.dv{i + 1,i} = -speye(M(i).m,M(i).m);
 
         % place 2nd derivatives in array
         %------------------------------------------------------------------
-        for j = 1:M(i).p
-            dgdxpi{ip}{i,i} = dgdxpj{j};
-            dgdvpi{ip}{i,i} = dgdvpj{j};
-            dfdxpi{ip}{i,i} = dfdxpj{j};
-            dfdvpi{ip}{i,i} = dfdvpj{j};
+        for j = 1:length(dgdxp)
+            dg.dxp{ip}{i,i} = dgdxp{j};
+            dg.dvp{ip}{i,i} = dgdvp{j};
+            df.dxp{ip}{i,i} = dfdxp{j};
+            df.dvp{ip}{i,i} = dfdvp{j};
             ip              = ip + 1;
         end
     end
@@ -214,25 +181,32 @@ end
 
 % concatenate hierarchical forms
 %--------------------------------------------------------------------------
-if du
-    dgdv{1} = spm_cat(dgdvi);
-    dgdx{1} = spm_cat(dgdxi);
-    dfdv{1} = spm_cat(dfdvi);
-    dfdx{1} = spm_cat(dfdxi);
-    for j = 1:np
-        dgdvp{j}{1} = spm_cat(dgdvpi{j});
-        dgdxp{j}{1} = spm_cat(dgdxpi{j});
-        dfdvp{j}{1} = spm_cat(dfdvpi{j});
-        dfdxp{j}{1} = spm_cat(dfdxpi{j});
-    end
+dgdv  =  spm_cat(dg.dv);
+dgdx  =  spm_cat(dg.dx);
+dfdv  =  spm_cat(df.dv);
+dfdx  =  spm_cat(df.dx);
+dfdp  = {spm_cat(df.dp)};
+dgdp  = {spm_cat(dg.dp)};
+for j = 1:np
+    dgdvp{j} = spm_cat(dg.dvp{j});
+    dgdxp{j} = spm_cat(dg.dxp{j});
+    dfdvp{j} = spm_cat(df.dvp{j});
+    dfdxp{j} = spm_cat(df.dxp{j});
 end
+
+% prediction errors and states
+%==========================================================================
+dfdy  =  sparse(nx,ny);
+dfdc  =  sparse(nx,nc);
+dedy  =  speye(ne,ny);
+dedc  = -flipdim(flipdim(speye(ne,nc),1),2);
 
 % prediction error (E) - causes
 %--------------------------------------------------------------------------
 ge{1} = [y{1}; v{1}] - [spm_vec(g); u{1}];
 for i = 2:n
-    ge{i} = dedy{1}*y{i} + dedc{1}*u{i} ...  % generalised response
-          - dgdx{1}*x{i} - dgdv{1}*v{i};     % and prediction
+    ge{i} = dedy*y{i} + dedc*u{i} ...  % generalised response
+          - dgdx*x{i} - dgdv*v{i};     % and prediction
 end
 
 % prediction error (E) - states
@@ -241,69 +215,63 @@ try
     fe{1} = x{2} - spm_vec(f);
 end
 for i = 2:n - 1
-    fe{i} = x{i + 1} ...                    % generalised motion
-          - dfdx{1}*x{i} - dfdv{1}*v{i};    % and prediction
+    fe{i} = x{i + 1} ...              % generalised motion
+          - dfdx*x{i} - dfdv*v{i};    % and prediction
 end
 
 % error
 %--------------------------------------------------------------------------
 E      =  spm_vec({ge, fe});
 
+
+% Kronecker forms
+%==========================================================================
+
 % dE.dp (parameters)
 %--------------------------------------------------------------------------
-dfdp{1} = spm_cat(dfdpi);
-dgdp{1} = spm_cat(dgdpi);
-for p = 1:np
-    for i = 2:n
-        dgdp{i}(:,p) = dgdxp{p}{1}*x{i} + dgdvp{p}{1}*v{i};
-        dfdp{i}(:,p) = dfdxp{p}{1}*x{i} + dfdvp{p}{1}*v{i};
+for i = 2:n
+    dgdp{i,1} = sparse(ny + nv,np);
+    dfdp{i,1} = sparse(nx,np);
+    for p = 1:np
+        dgdp{i,1}(:,p) = dgdxp{p}*x{i} + dgdvp{p}*v{i};
+        dfdp{i,1}(:,p) = dfdxp{p}*x{i} + dfdvp{p}*v{i};
     end
 end
-dE.dp  = -spm_cat({dgdp; dfdp});
 
 % generalised temporal derivatives: dE.du (states)
 %--------------------------------------------------------------------------
-if du
-    
-    % Kronecker forms
-    %----------------------------------------------------------------------
-    for i = 2:n
-        dgdx{i,i} = dgdx{1};
-        dfdx{i,i} = dfdx{1};
-        for k = 1:np
-            dgdxp{k}{i,i} = dgdxp{k}{1};
-            dfdxp{k}{i,i} = dfdxp{k}{1};
-        end
-        dfdx{i - 1,i}     = -speye(nx,nx);
-    end
-    for i = 2:d
-        dgdv{i,i} = dgdv{1};
-        dfdv{i,i} = dfdv{1};
-        for k = 1:np
-            dgdvp{k}{i,i} = dgdvp{k}{1};
-            dfdvp{k}{i,i} = dfdvp{k}{1};
-        end
-    end
+dedy  = kron(spm_speye(n,n),dedy);
+dedc  = kron(spm_speye(n,d),dedc);
+dfdy  = kron(spm_speye(n,n),dfdy);
+dfdc  = kron(spm_speye(n,d),dfdc);
+dgdx  = kron(spm_speye(n,n),dgdx);
+dgdv  = kron(spm_speye(n,d),dgdv);
+dfdv  = kron(spm_speye(n,d),dfdv);
+dfdx  = kron(spm_speye(n,n),dfdx) - kron(spm_speye(n,n,1),speye(nx,nx));
 
-    % dE.du (states)
-    %----------------------------------------------------------------------
-    dE.du  = -spm_cat({dgdx, dgdv;
-                       dfdx, dfdv});
-    dE.dy  =  spm_cat({dedy; dfdy});
-    dE.dc  =  spm_cat({dedc; dfdc});
-
-    % 2nd error derivatives
-    %----------------------------------------------------------------------
-    for i = 1:np
-        dE.dup{i} = -spm_cat({dgdxp{i}, dgdvp{i};
-                              dfdxp{i}, dfdvp{i}});
-    end
-    if np
-        dE.dpu    =  spm_cell_swap(dE.dup);
-    end
+for k = 1:np
+    dgdxp{k} = kron(spm_speye(n,n),dgdxp{k});
+    dfdxp{k} = kron(spm_speye(n,n),dfdxp{k});
+    dgdvp{k} = kron(spm_speye(n,d),dgdvp{k});
+    dfdvp{k} = kron(spm_speye(n,d),dfdvp{k});
 end
 
-% remeber parameters and derivatives
-%--------------------------------------------------------------------------
-Qp   = qp;
-DE   = dE;
+% 1st error derivatives dE.du (states)
+%----------------------------------------------------------------------
+dE.dy  =  spm_cat({dedy; dfdy});
+dE.dc  =  spm_cat({dedc; dfdc});
+dE.dp  = -spm_cat({dgdp; dfdp});
+dE.du  = -spm_cat({dgdx, dgdv;
+                   dfdx, dfdv});
+
+% 2nd error derivatives
+%----------------------------------------------------------------------
+for i = 1:np
+    dE.dup{i} = -spm_cat({dgdxp{i}, dgdvp{i};
+                          dfdxp{i}, dfdvp{i}});
+end
+if np
+    dE.dpu    =  spm_cell_swap(dE.dup);
+end
+
+
