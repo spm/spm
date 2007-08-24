@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 752 2007-02-28 10:58:40Z volkmar $
+% $Id: spm_design_contrasts.m 896 2007-08-24 07:00:22Z volkmar $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -80,7 +80,7 @@ if isfield(SPM,'Sess')
         for c=1:ncon,
 	    c1 = [con(c).c zeros(1,covs(1))];
 	    for s=2:nsess
-		con = [c1 con(c).c zeros(1,covs(s))];
+		c1 = [c1 con(c).c zeros(1,covs(s))];
 	    end;
 	    con(c).c = c1;
         end
