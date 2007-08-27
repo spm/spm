@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 771 2007-03-20 14:19:41Z john $
+% $Id: spm_write_sn.m 898 2007-08-27 11:43:10Z volkmar $
 
 
 if isempty(V), return; end;
@@ -147,13 +147,9 @@ for i=1:numel(V),
 	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 	if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
 
-	if nargout>0,
-		%Dat= zeros(VO.dim(1:3));
-		Dat = single(0);
-		Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
-	else
-		VO  = spm_create_vol(VO);
-	end;
+	%Dat= zeros(VO.dim(1:3));
+	Dat = single(0);
+	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 
 	C = spm_bsplinc(V(i),d);
 
@@ -163,17 +159,16 @@ for i=1:numel(V),
 		if flags.preserve, dat = dat*detAff; end;
 		dat(msk{j}) = NaN;
 
-		if nargout>0,
-			Dat(:,:,j) = single(dat);
-		else
-			VO = spm_write_plane(VO,dat,j);
-		end;
+		Dat(:,:,j) = single(dat);
+
 		if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 	end;
 	if nargout~=0,
 		VO.pinfo  = [1 0]';
 		VO.dt     = [spm_type('float32') spm_platform('bigend')];
 		VO.dat    = Dat;
+	else
+	    spm_write_vol(VO, Dat);
 	end;
 	spm_progress_bar('Set',i);
 end;
@@ -204,13 +199,10 @@ for i=1:numel(V),
 	end
 	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 
-	if flags.preserve || nargout>0,
-		%Dat= zeros(VO.dim(1:3));
-		Dat = single(0);
-		Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
-	else
-		VO  = spm_create_vol(VO);
-	end;
+	% Accumulate data
+	%Dat= zeros(VO.dim(1:3));
+	Dat = single(0);
+	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 
 	C = spm_bsplinc(V(i),d);
 
@@ -229,11 +221,7 @@ for i=1:numel(V),
 		dat(msk{j}) = NaN;
 
 		if ~flags.preserve,
-			if nargout>0,
-				Dat(:,:,j) = single(dat);
-			else
-				VO = spm_write_plane(VO,dat,j);
-			end;
+		    Dat(:,:,j) = single(dat);
 		else
 			j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
 			j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
@@ -247,9 +235,7 @@ for i=1:numel(V),
 		if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
 	end;
 	if nargout==0,
-		if flags.preserve,
-			VO = spm_write_vol(VO,Dat);
-		end;
+	    VO = spm_write_vol(VO,Dat);
 	else
 		VO.pinfo  = [1 0]';
 		VO.dt     = [spm_type('float32') spm_platform('bigend')];

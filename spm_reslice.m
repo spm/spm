@@ -90,7 +90,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 218 2005-08-26 14:18:37Z john $
+% $Id: spm_reslice.m 898 2007-08-27 11:43:10Z volkmar $
 
 
 
@@ -210,16 +210,6 @@ for i = 1:prod(size(P)),
 	if write_vol | flags.mean,                   read_vol = 1; else   read_vol = 0; end;
 
 	if read_vol,
-		if write_vol,
-			VO         = P(i);
-			VO.fname   = prepend(P(i).fname,'r');
-			VO.dim     = P(1).dim(1:3);
-			VO.dt      = P(i).dt;
-			VO.mat     = P(1).mat;
-			VO.descrip = 'spm - realigned';
-			VO         = spm_create_vol(VO);
-		end;
-
 		if ~finite(flags.interp),
 			v = abs(kspace3d(spm_bsplinc(P(i),[0 0 0 ; 0 0 0]'),P(1).mat\P(i).mat));
 			for x3 = 1:P(1).dim(3),
@@ -228,26 +218,31 @@ for i = 1:prod(size(P)),
 						nan2zero(v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap));
 				end;
 				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
-				if write_vol,
-					VO = spm_write_plane(VO,v(:,:,x3),x3);
-				end;
 			end;
 		else,
 			C = spm_bsplinc(P(i), d);
+			v = zeros(VO.dim);
 			for x3 = 1:P(1).dim(3),
 
 				[tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
-				v              = spm_bsplins(C, y1,y2,y3, d);
+				v(:,:,x3)      = spm_bsplins(C, y1,y2,y3, d);
 				% v(~tmp)        = 0;
 
-				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v); end;
+				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v(:,:,x3)); end;
 
-				if write_vol,
-					if flags.mask, v(msk{x3}) = NaN; end;
-					VO = spm_write_plane(VO,v,x3);
-				end;
+				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
 			end;
 		end;
+		if write_vol,
+			VO         = P(i);
+			VO.fname   = prepend(P(i).fname,'r');
+			VO.dim     = P(1).dim(1:3);
+			VO.dt      = P(i).dt;
+			VO.mat     = P(1).mat;
+			VO.descrip = 'spm - realigned';
+			VO = spm_write_vol(VO,v);
+		end;
+
 		nread = nread + 1;
 	end;
 	spm_progress_bar('Set',nread);
