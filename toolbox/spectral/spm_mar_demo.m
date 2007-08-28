@@ -47,13 +47,13 @@ disp('Lag 1');
 disp('True coefficients');
 disp(A1);
 disp('Estimated coefficients');
-disp(-mar.lag(1).a)
+disp(mar.lag(1).a)
 
 disp('Lag 2');
 disp('True coefficients');
 disp(A2);
 disp('Estimated coefficients');
-disp(-mar.lag(2).a)
+disp(mar.lag(2).a)
 
 disp('Noise covariance');
 disp('True:');
