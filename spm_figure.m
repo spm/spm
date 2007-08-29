@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 878 2007-08-06 12:21:09Z karl $
+% $Id: spm_figure.m 900 2007-08-29 10:18:36Z john $
 
 
 %=======================================================================
@@ -335,9 +335,9 @@ if nargin<2, F='Graphics'; else F=varargin{2}; end
 
 %-Find window to print, default to gcf if specified figure not found
 % Return if no figures
-F=spm_figure('FindWin',F);
-if isempty(F), F = get(0,'CurrentFigure'); end
-if isempty(F), return, end
+if ~isempty(F), F = spm_figure('FindWin',F); end
+if  isempty(F), F = get(0,'CurrentFigure'); end
+if  isempty(F), return, end
 
 %-Note current figure, & switch to figure to print
 cF = get(0,'CurrentFigure');

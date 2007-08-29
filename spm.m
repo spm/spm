@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 859 2007-07-13 17:53:00Z karl $
+% $Id: spm.m 900 2007-08-29 10:18:36Z john $
 
 
 %=======================================================================
@@ -296,6 +296,11 @@ function varargout=spm(varargin)
 % 
 %_______________________________________________________________________
 
+%-Disable warning messages due to dll files still existing
+%-----------------------------------------------------------------------
+if spm_matlab_version_chk('7') >=0,
+    warning('off','MATLAB:dispatcher:ShadowedMEXExtension');
+end
 
 %-Disable Java if necessary
 %-----------------------------------------------------------------------
