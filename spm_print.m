@@ -4,7 +4,7 @@ function spm_print(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_print.m 900 2007-08-29 10:18:36Z john $
+% $Id: spm_print.m 902 2007-08-30 09:29:29Z volkmar $
 
 
 global defaults
@@ -21,7 +21,7 @@ try,
     t   = clock;
     nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d',t(3))];
 
-    if nargin<1,
+    if (nargin<1) || isempty(fname)
         if pd.append,
             nam1 = fullfile(pwd,[nam pd.ext]);
         else

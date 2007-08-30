@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 900 2007-08-29 10:18:36Z john $
+% $Id: spm_figure.m 902 2007-08-30 09:29:29Z volkmar $
 
 
 %=======================================================================
@@ -364,11 +364,7 @@ end;
 %-Print
 %-----------------------------------------------------------------------
 if ~iPaged
-	if ~isempty(fname)
-		spm_print(fname)
-	else
-		spm_print;
-	end
+    spm_print(fname)
 else
 	hPg       = get(hNextPage,'UserData');
 	Cpage     = get(hPageNo,  'UserData');
@@ -379,7 +375,7 @@ else
 		set(hPg{Cpage,1},'Visible','off'), end
 	for p = 1:nPages
 		set(hPg{p,1},'Visible','on');
-		spm_print;
+		spm_print(fname);
 		set(hPg{p,1},'Visible','off')
 	end
 	set(hPg{Cpage,1},'Visible','on')
@@ -407,7 +403,7 @@ if fn == 0
     return;
 end;
 
-psname = fullfile(fn, pn);
+psname = fullfile(pn, fn);
 spm_figure('Print',F,psname);
 
 case 'newpage'
