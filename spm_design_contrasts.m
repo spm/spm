@@ -18,7 +18,7 @@ function [con] = spm_design_contrasts (SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_design_contrasts.m 896 2007-08-24 07:00:22Z volkmar $
+% $Id: spm_design_contrasts.m 901 2007-08-30 07:02:57Z volkmar $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified
@@ -76,6 +76,7 @@ if isfield(SPM,'Sess')
                 disp('Error in spm_design_contrasts: number of conditions must be same in all sessions');
                 return
             end
+	    covs(s) = size(SPM.Sess(s).C.C,2);
         end
         for c=1:ncon,
 	    c1 = [con(c).c zeros(1,covs(1))];
