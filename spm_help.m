@@ -11,9 +11,6 @@ function varargout=spm_help(varargin)
 %
 % SEE ALSO:   spm.man      - "About SPM"
 %
-% There is no 'manual' for SPM; these help routines and the code
-% itself constitute a manual.
-%
 % The "Help" facilities are about software and implementation. The
 % underlying mathematics, concepts and operational equations have been
 % (or will be) published in the peer reviewed literature and the
@@ -121,7 +118,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 900 2007-08-29 10:18:36Z john $
+% $Id: spm_help.m 903 2007-08-31 12:55:32Z john $
 
 
 %=======================================================================

@@ -61,7 +61,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 879 2007-08-08 15:08:44Z volkmar $
+% $Id: spm_jobman.m 903 2007-08-31 12:55:32Z john $
 
 
 if nargin==0
@@ -1502,19 +1502,36 @@ c = get(batch_box,'UserData');
 try
     run_struct1(c,gui);
 catch
-    disp('Error running job:');
     l = lasterror;
-    disp(l.message);
-    for k = 1:numel(l.stack)
-	fprintf('In file "%s", function "%s" at line %d.\n', ...
-		l.stack(k).file, l.stack(k).name, l.stack(k).line);
-    end;
+    fprintf('\nError running job: %si\n', l.message);
+    if isfield(l,'stack'), % Does not always exist
+        for k = 1:numel(l.stack),
+             % Don't blame jobman if some other code crashes
+            if strcmp(l.stack(k).name,'run_struct1'), break; end;
+            try,
+                fp  = fopen(l.stack(k).file,'r');
+                str = fread(fp,Inf,'*uchar');
+                fclose(fp);
+                str = char(str(:)');
+                re  = regexp(str,'\$Id: \w+\.\w+ ([0-9]+) [0-9][0-9][0-9][0-9].*\$','tokens');
+                if numel(re)>0 && numel(re{1})>0,
+                    id = [' (v', re{1}{1}, ')'];
+                else
+                    id = ' (???)';
+                end
+            catch,
+                id = '';
+            end
+            fprintf('In file "%s"%s, function "%s" at line %d.\n', ...
+                l.stack(k).file, id, l.stack(k).name, l.stack(k).line);
+        end
+    end
     setup_ui(job);
-    if spm_matlab_version_chk('7') >= 0
-	rethrow(l);
-    else
-	disp(lasterr);
-    end;
+    %if spm_matlab_version_chk('7') >= 0
+    %   rethrow(l);
+    %else
+    %   disp(lasterr);
+    %end
 end;        
 disp('--------------------------');
 disp('Done.');
