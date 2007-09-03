@@ -18,7 +18,7 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc.m 835 2007-06-27 12:40:41Z john $
+% $Id: spm_preproc.m 904 2007-09-03 17:41:15Z john $
 
 
 [dir,nam,ext]  = fileparts(which(mfilename));
@@ -536,15 +536,6 @@ results.mn     = mn;
 results.vr     = vr;
 results.thresh = 0; %thresh;
 results.ll     = ll;
-return;
-%=======================================================================
-
-%=======================================================================
-function plotll(LX,LL)
-if length(LX>3), LX = LX(3:end); LL = LL(3:end); end;
-x = (1:length(LL));
-plot(x,LL,'k',x(LX==1),LL(LX==1),'r.',x(LX==2),LL(LX==2),'g.',x(LX==3),LL(LX==3),'b.');
-drawnow;
 return;
 %=======================================================================
 
