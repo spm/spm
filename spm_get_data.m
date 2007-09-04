@@ -12,7 +12,7 @@ function [Y] = spm_get_data(V,XYZ)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_get_data.m 818 2007-05-24 19:18:51Z karl $
+% $Id: spm_get_data.m 905 2007-09-04 14:38:28Z guillaume $
 
 
 % ensure V is an array of handle structures
@@ -33,7 +33,7 @@ for i = 1:length(V)
     %----------------------------------------------------------------------
     if exist(V(i).fname,'file') ~=2
         [p,n,e]    = fileparts(V(i).fname);
-        V(i).fname = fullfile(n,e);
+        V(i).fname = [n e];
     end
 
 	%-Load mask image within current mask & update mask
