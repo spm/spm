@@ -36,26 +36,28 @@ if iscell(ftdata.time)
         data(:,:,n) = ftdata.trial{n};
     end
     spm_progress_bar('Clear');
-
+    
     ftdata.time  = ftdata.time{1};
 else % timelockanalysis format
     rptind=strmatch('rpt', tokenize(ftdata.dimord, '_'));
     if isempty(rptind)
-        rptind=strmatch('sbj', tokenize(ftdata.dimord, '_'));
-    end
-    if ~isempty(rptind)
-        D.Nevents = size(ftdata.trial, rptind);
-    else
-        D.Nevents=1;
+        rptind=strmatch('subj', tokenize(ftdata.dimord, '_'));
     end
 
     timeind=strmatch('time', tokenize(ftdata.dimord, '_'));
     chanind=strmatch('chan', tokenize(ftdata.dimord, '_'));
 
-    if isfield(ftdata, 'trial')
-        data =permute(ftdata.trial, [chanind, timeind, rptind]);
+    if ~isempty(rptind)
+        if isfield(ftdata, 'trial')
+            D.Nevents = size(ftdata.trial, rptind);
+            data =permute(ftdata.trial, [chanind, timeind, rptind]);
+        else
+            D.Nevents = size(ftdata.individual, rptind);
+            data =permute(ftdata.individual, [chanind, timeind, rptind]);
+        end
     else
-        data =permute(ftdata.avg, [chanind, timeind, rptind]);
+        D.Nevents=1;
+        data =permute(ftdata.avg, [chanind, timeind]);
     end
 end
 
