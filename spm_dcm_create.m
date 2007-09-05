@@ -21,7 +21,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 815 2007-05-24 09:33:34Z klaas $
+% $Id: spm_dcm_create.m 907 2007-09-05 14:11:58Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -251,6 +251,7 @@ switch upper(source_model)
         DCM.xY  = xY;
         DCM.v   = v;
         DCM.n   = length(DCM.xY);
+        DCM.TE  = 0.04; % default value for TE
 
         
     case 'IMPORT'
