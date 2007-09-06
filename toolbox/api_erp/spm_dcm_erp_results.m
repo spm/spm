@@ -7,6 +7,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (C)');
 % FORMAT spm_dcm_erp_results(DCM,'Input');
 % FORMAT spm_dcm_erp_results(DCM,'Response');
+% FORMAT spm_dcm_erp_results(DCM,'Data');
 %                
 %___________________________________________________________________________
 %
@@ -264,7 +265,10 @@ case{lower('Response')}
             title(sprintf('Predicted response %i',i))
             axis(A); axis square, grid on
         end
-    catch
+    end
+    
+case{lower('Data')}
+    try
         for i = 1:n
             subplot(n,1,i)
             plot(t,xY.xy{i})

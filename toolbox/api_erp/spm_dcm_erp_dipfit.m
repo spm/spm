@@ -123,9 +123,11 @@ switch DCM.M.dipfit.type
         % not much to do because the sensors location/orientations were
         % already read at the time of conversion.
         %------------------------------------------------------------------
+        D                  = spm_eeg_ldata(DCM.xY.Dfile);
         DCM.M.dipfit.vol.r = [85];
         DCM.M.dipfit.vol.o = [0 0 0];
-
+        DCM.M.grad         = D.channels.grad;
+        
         % Imaging (distributed source reconstruction)
         %------------------------------------------------------------------
     case {'Imaging'}

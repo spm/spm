@@ -4,7 +4,7 @@ function varargout = spm_api_erp(varargin)
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
 
-% Last Modified by GUIDE v2.5 02-Mar-2007 17:17:17
+% Last Modified by GUIDE v2.5 04-Sep-2007 19:16:38
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -74,7 +74,7 @@ try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));     end
 try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));     end
 try, set(handles.Spatial_type,'Value', DCM.options.type);         end
 try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);       end
-try, set(handles.h,           'Value', DCM.options.h + 1);        end
+try, set(handles.h,           'Value', DCM.options.h);            end
 try, set(handles.D,           'Value', DCM.options.D);            end
 try, set(handles.design,      'String',num2str(DCM.xU.X'));       end
 try, set(handles.Uname,       'String',DCM.xU.name);              end
@@ -171,8 +171,8 @@ DCM.options.type     = get(handles.Spatial_type,  'Value');
 DCM.options.trials   = str2num(get(handles.Y1,    'String'));
 DCM.options.Tdcm(1)  = str2num(get(handles.T1,    'String'));
 DCM.options.Tdcm(2)  = str2num(get(handles.T2,    'String'));
-DCM.options.Nmodes   = str2num(get(handles.Nmodes,'String'));
-DCM.options.h        = get(handles.h,             'Value') - 1;
+DCM.options.Nmodes   = get(handles.Nmodes,        'Value');
+DCM.options.h        = get(handles.h,             'Value');
 DCM.options.D        = get(handles.D,             'Value');
 DCM.options.onset    = str2num(get(handles.onset, 'String'));
 
@@ -198,17 +198,17 @@ handles = Xdefault(hObject,handles,m);
 %-Get new trial data from file
 %--------------------------------------------------------------------------
 try
-    handles.DCM.xY.Dfile;
+    spm_eeg_ldata(handles.DCM.xY.Dfile);
 catch
     [f,p] = uigetfile({'*.mat'}, 'please select data file');
     handles.DCM.xY.Dfile = fullfile(p,f);
 end
 
+
 % Assemble and display data
 %--------------------------------------------------------------------------
 handles     = reset_Callback(hObject, eventdata, handles);
 handles.DCM = spm_dcm_erp_data(handles.DCM);
-spm_dcm_erp_results(handles.DCM, 'Response');
 
 set(handles.design,'enable','on')
 set(handles.Uname, 'enable','on')
@@ -219,14 +219,14 @@ warndlg({'Your design matrix has been re-set'})
 % --- Executes on button press in Y to display data
 %--------------------------------------------------------------------------
 function Y_Callback(hObject, eventdata, handles)
+handles  = reset_Callback(hObject, eventdata, handles);
 try
-    handles      = reset_Callback(hObject, eventdata, handles);
-    handles.DCM  = spm_dcm_erp_data(handles.DCM);
-    spm_dcm_erp_results(handles.DCM,'Response');
-    guidata(hObject,handles);
+    handles.DCM = spm_dcm_erp_data(handles.DCM);
+    spm_dcm_erp_results(handles.DCM,'Data');
 catch
     warndlg('please specify data and trials');
 end
+guidata(hObject,handles);
 
 % --- Executes on button press in Uname.
 %--------------------------------------------------------------------------
@@ -302,7 +302,7 @@ for i = 1:size(tmp, 1)
     end
 end
 Nareas    = length(Sname);
-Nmodes    = str2num(get(handles.Nmodes, 'String'));
+Nmodes    = get(handles.Nmodes,'Value');
 DCM.Sname = Sname;
 
 % switch for spatial forward model
@@ -347,7 +347,7 @@ set(handles.Sname,            'Enable', 'off');
 set(handles.Slocation,        'Enable', 'off');
 set(handles.spatial_back,     'Enable', 'off');
 
-set(handles.connections,      'Enable', 'on');
+set(handles.con_reset,        'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
 set(handles.ERP,              'Enable', 'on');
 
@@ -376,13 +376,8 @@ catch
     return
 end
 
-% display data
-%--------------------------------------------------------------------------
-spm_dcm_erp_results(handles.DCM, 'Response');
-
 % enable next stage, disable data specification
 %--------------------------------------------------------------------------
-set(handles.Y,             'Enable', 'off');
 set(handles.Y1,            'Enable', 'off');
 set(handles.T1,            'Enable', 'off');
 set(handles.T2,            'Enable', 'off');
@@ -412,7 +407,6 @@ set(handles.spatial_ok,   'Enable', 'off');
 set(handles.Sname,        'Enable', 'off');
 set(handles.Slocation,    'Enable', 'off');
 set(handles.spatial_back, 'Enable', 'off');
-set(handles.plot_dipoles, 'Enable', 'off');
 
 set(handles.Y,            'Enable', 'on');
 set(handles.Y1,           'Enable', 'on');
@@ -454,13 +448,9 @@ spm_eeg_inv_ecd_DrawDip('Init', sdip)
 %-Connectivity
 %==========================================================================
 
-% --- Executes on button press in connections.
+% Draw buttons
 %--------------------------------------------------------------------------
 function handles = connections_Callback(hObject, eventdata, handles)
-
-% delete previous connection buttons
-%--------------------------------------------------------------------------
-con_reset_Callback(hObject, eventdata, handles);
 
 DCM = handles.DCM;
 n   = length(DCM.Sname);    % number of sources
@@ -481,8 +471,8 @@ end
 
 % connection buttons
 %--------------------------------------------------------------------------
-set(handles.connections,'Units','Normalized')
-p  = get(handles.connections,'Position');
+set(handles.con_reset,'Units','Normalized')
+p  = get(handles.con_reset,'Position');
 x0 = p(1);
 y0 = p(2);
 sx = 1/32;
@@ -602,7 +592,7 @@ set(handles.initialise, 'Enable','on');
 
 guidata(hObject,handles)
 
-% remove existing buttons
+% remove existing buttons and set DCM.A,.. to zero
 %--------------------------------------------------------------------------
 function con_reset_Callback(hObject, eventdata, handles)
 try
@@ -610,6 +600,7 @@ try
         for j = 1:length(handles.A{i})
             for k = 1:length(handles.A{i})
                 delete(handles.A{i}(j,k));
+                handles.DCM.A{i}(j,k) = 0;
             end
         end
     end
@@ -617,23 +608,26 @@ try
         for j = 1:length(handles.B{i})
             for k = 1:length(handles.B{i})
                 delete(handles.B{i}(j,k));
+                handles.DCM.B{i}(j,k) = 0;
             end
         end
     end
     for i = 1:length(handles.C)
         delete(handles.C(i));
+        handles.DCM.C(i) = 0;
     end
     for i = 1:length(handles.S)
         delete(handles.S(i));
     end
 end
-set(handles.connections,'Enable','on')
+handles = connections_Callback(hObject, eventdata, handles);
+guidata(hObject,handles)
 
 % --- Executes on button press in connectivity_back.
 %--------------------------------------------------------------------------
 function connectivity_back_Callback(hObject, eventdata, handles)
 
-set(handles.connections,       'Enable', 'off');
+set(handles.con_reset,         'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
 
 set(handles.Spatial_type,      'Enable', 'on');
@@ -765,6 +759,13 @@ if get(handles.ERP,'Value') == 1
     'Response',
     'Dipoles',
     'Spatial overview'};
+    try
+        set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+    catch
+        set(handles.Nmodes, 'Value', 8);
+    end   
+    set(handles.Spatial_type, 'String', {'ECD (EEG)','ECD (MEG)','Imaging'});
+    
 else
     Action = {
     'Frequency modes'
@@ -775,13 +776,18 @@ else
     'Input (C)'
     'Input'
     'Dipoles'};
-
-    if get(handles.Spatial_type,'Value') == 3
-        warndlg('please specify an ECD electromagnetic model')
+    try
+        set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+    catch
+        set(handles.Nmodes, 'Value', 4);
     end
+    set(handles.Spatial_type, 'String', {'ECD (EEG)','ECD (MEG)'});
+    set(handles.Spatial_type, 'Value', 1);
+
+
 end
 set(handles.results,'String',Action);
-handles = connections_Callback(hObject, eventdata, handles);
+handles = reset_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
 
 

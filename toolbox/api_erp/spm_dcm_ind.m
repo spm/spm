@@ -14,6 +14,7 @@ function DCM = spm_dcm_ind(DCM)
 %       B: {[nr x nr double], ...}   Connection constraints
 %       C: [nr x 1 double]
 %
+%   options.Nmodes       - number of frequency modes
 %   options.Tdcm         - [start end] time window in ms
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
@@ -32,9 +33,10 @@ clear spm_erp_L
 
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                   catch, DCM.name = 'DCM_ERP'; end
-try, h     = DCM.options.h;      catch, h        = 2;         end
-try, onset = DCM.options.onset;  catch, onset    = 80;        end
+try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
+try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
+try, h     = DCM.options.h;     catch, h                  = 2;         end
+try, onset = DCM.options.onset; catch, onset              = 80;        end
 
 % Data and spatial model
 %==========================================================================
@@ -58,11 +60,11 @@ nx     = Nr*Nf + 1;                     % number of states
 
 % confounds - DCT: T - an idempotent matrix spanning temporal subspace
 %--------------------------------------------------------------------------
-X0     = spm_dctmtx(Ns,1);
+X0     = spm_dctmtx(Ns,h);
 Ti     = speye(Ns) - X0*inv(X0'*X0)*X0';         % null space of confounds
 T      = kron(speye(Nt,Nt),Ti);
 xY.X0  = kron(speye(Nt,Nt),X0);
-y      = T*xY.y;
+xY.y   = T*xY.y;
 
 % assume noise variance is the same over modes
 %--------------------------------------------------------------------------
@@ -96,18 +98,21 @@ xU.dur = xU.dt*(Ns - 1);
 % model specification and nonlinear system identification
 %==========================================================================
 M     = DCM.M;
-try
-    M = rmfield(M,'g');
-end
+try, M = rmfield(M,'g');  end
+try, M = rmfield(M,'FS'); end
 
 % adjust onset relative to pst
 %--------------------------------------------------------------------------
 dur   = xU.dur;
-ons   = onset - xY.Time(1);
+ons   = onset - xY.pst(1);
 
 % prior moments
 %--------------------------------------------------------------------------
-[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
+A     = DCM.A;
+B     = DCM.B;
+C     = kron(ones(1,length(ons)),DCM.C);
+
+[pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf);
 
 % likelihood model
 %--------------------------------------------------------------------------

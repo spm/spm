@@ -1,12 +1,11 @@
-function [U,B] = spm_ind_u(t,P,M)
+function [U] = spm_ind_u(t,P,M)
 % returns the [scalar] input for EEG models
-% FORMAT [U,B] = spm_ind_u(t,P,M)
+% FORMAT [U] = spm_ind_u(t,P,M)
 %
-% P      - parameter structure
-%   P.R  - scaling of [Gamma] parameters
-%   P.N  - [DCT] parameter[s]
+% P     - parameter structure
+%   P.R - input parameters
 %
-% t      - PST (seconds)
+% t     - PST (seconds)
 %
 % U   - stimulus-related (subcortical) input
 % B   - non-specifc background fluctuations
@@ -21,15 +20,11 @@ function [U,B] = spm_ind_u(t,P,M)
 
 % stimulus - subcortical impulse
 %--------------------------------------------------------------------------
-ampli = exp(P.R(1))*32;
-delay = M.ons(1)*exp(P.R(2));
-scale = exp(P.R(3))*32;
-
-U     = ampli*exp(-(t*1000 - delay).^2/scale);
-
-% Endogenous fluctuations (if P.N is specified)
-%--------------------------------------------------------------------------
-w      = exp(j*6.2832*P.N(3)*t);
-B      = P.N(1:2)*[real(w); imag(w)];
-
-
+ons   = M.ons(:);
+t     = t(:)';
+j     = 1:length(t);
+for i = 1:length(ons)
+    m      = exp(P.R(i,1))*ons(i);
+    v      = exp(P.R(i,2))*1024;
+    U(i,:) = spm_Gpdf(t*1000,m*m/v,m/v);
+end

@@ -1,4 +1,4 @@
-function [varargout] = spm_ind_priors(A,B,C,Nf)
+function [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf)
 % prior moments for a neural-mass model of erps
 % FORMAT [pE,gE,pC,gC] = spm_ind_priors(A,B,C,dipfit,Nu,Nf)
 % A{2},B{m},C  - binary constraints on extrinsic connections
@@ -36,20 +36,21 @@ function [varargout] = spm_ind_priors(A,B,C,Nf)
 % orders
 %--------------------------------------------------------------------------
 n    = size(C,1);                                 % number of sources
+nu   = size(C,2);                                 % number of inputs
 n1   = ones(n,1);
 
 % paramters for electromagnetic forward model
 %--------------------------------------------------------------------------
-G.L  = sparse(1,n);  U.L  =  sparse(1,n) + 8;
+G.L  = sparse(1,n);  U.L  =  ones(1,n)/512;
 
 % Global scaling
 %--------------------------------------------------------------------------
 E.K  = 0;
 V.K  = 1/4;
 
-% set extrinsic connectivity - linear and noninlear (cross frequency)
+% set extrinsic connectivity - linear and nonlinear (cross-frequency)
 %--------------------------------------------------------------------------
-E.A  = kron(speye(Nf,Nf),A{1}/4 - speye(n,n));
+E.A  = kron(speye(Nf,Nf), -speye(n,n));
 V.A  = kron(speye(Nf,Nf),A{1}) + kron(1 - speye(Nf,Nf),A{2});
 
 % input-dependent
@@ -61,24 +62,18 @@ end
 
 % exognenous inputs
 %--------------------------------------------------------------------------
-E.C  = kron(1./[1:Nf]',C);
-V.C  = E.C > 0;
+E.C  = kron(1./[1:Nf]',C)/32;
+V.C  = (E.C > 0)/16;
 
 % set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------
-E.R  = [0 0 1];
-V.R  = [1/2 1/16 1/16];
-
-% background fluctuations: amplitude and Hz
-%--------------------------------------------------------------------------
-E.N  = [0 0 10];
-V.N  = [1 1 1];
-
+E.R  = kron(ones(nu,1),[0 0]);
+V.R  = kron(ones(nu,1),[1/16 1/16]);
 
 % prior momments
 %--------------------------------------------------------------------------
-varargout{1} = E;
-varargout{2} = G;
-varargout{3} = diag(sparse(spm_vec(V)));
-varargout{4} = diag(sparse(spm_vec(U)));
+pE = E;
+gE = G;
+pC = diag(sparse(spm_vec(V)));
+gC = diag(sparse(spm_vec(U)));
   

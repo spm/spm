@@ -88,12 +88,6 @@ catch
     error('')
 end
 
-% if MEG, store grad struct in D.channels
-%--------------------------------------------------------------------------
-try
-    DCM.xY.grad = D.channels.grad;
-end
-
 % get trial averages - ERP
 %--------------------------------------------------------------------------
 for i = 1:length(trial);

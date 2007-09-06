@@ -22,8 +22,8 @@ end
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-t     = x(1);                       % peristimulus time (sec)
-x     = x(2:end);                   % neuronal states
+t  = x(1);                       % peristimulus time (sec)
+x  = x(2:end);                   % neuronal states
 
 % dfdx = [] if t exceeds trial duration (invoking a return to initial state)
 %--------------------------------------------------------------------------
@@ -37,23 +37,23 @@ end
 
 % Global scaling
 %--------------------------------------------------------------------------
-K     = 16*exp(P.K);
+K  = 16*exp(P.K);
 
 % input
 %--------------------------------------------------------------------------
-[U N] = feval(fu,t,P,M);
-U     = P.C*(U + N);
+U  = feval(fu,t,P,M);
+U  = P.C*U;
 
 % State: f(x)
 %===========================================================================
 
-% Supragranular layer (inhibitory interneurons): Voltage & depolarizing current
+% Bilinear form
 %--------------------------------------------------------------------------
-f     = K*(P.A*x + U);
+f  = K*(P.A*x + U);
 
 % augment with time
 %--------------------------------------------------------------------------
-f      = [1; f(:)];
+f  = [1; f(:)];
 
 if nargout == 1, return, end
 

@@ -6,13 +6,14 @@ function DCM = spm_dcm_ind_data(DCM)
 %
 %    DCM.xY.Dfile
 %    DCM.M.dipfit
+%    DCM.options.Nmodes
 %    DCM.options.trials
 %    DCM.options.Tdcm
 %    DCM.options.D    
 %
 % sets
 %
-%    DCM.xY.Time    - Time [ms] of downsampled data
+%    DCM.xY.pst     - Peristimulus Time [ms] of time-frequency data
 %    DCM.xY.dt      - sampling in seconds
 %    DCM.xY.y       - concatenated induced response over sources
 %    DCM.xY.xf      - induced response over sourcese
@@ -55,7 +56,13 @@ DCM.xY.dt       = 1/D.Radc;
 % options
 %--------------------------------------------------------------------------
 try
-    DT   = DCM.options.D;
+    Nm    = DCM.options.Nmodes;
+catch
+    errordlg('Please specify number of frequency modes');
+    error('')
+end
+try
+    DT    = DCM.options.D;
 catch
     errordlg('Please specify down sampling');
     error('')
@@ -66,6 +73,9 @@ catch
     errordlg('please specify trials');
     error('')
 end
+
+% get peristimulus times
+%--------------------------------------------------------------------------
 try
     
     % time window and bins for modelling
@@ -77,52 +87,57 @@ try
     
     % Time [ms] of downsampled data
     %----------------------------------------------------------------------
-    It          = [T1:DT:T2]';
-    Ns          = length(It);                % number of samples
-    DCM.xY.Time = DCM.xY.Time(It);           % Down-sampled pst
-    DCM.xY.dt   = DT/D.Radc;                 % sampling in seconds
-    DCM.xY.It   = It;                        % Indices of time bins
+    DCM.xY.dt  = DT/D.Radc;                 % sampling in seconds
+    B          = fix(0.064/DCM.xY.dt);      % 64ms boundary
+    It         = [T1:DT:T2]';               % indices - bins
+    Ns         = length(It);                % number of bins
+    Nb         = length(It) - B - B;        % number of samples
+    DCM.xY.pst = DCM.xY.Time(It(1 + B:end - B));        % PST
+    DCM.xY.It  = It;                        % Indices of time bins
 
 catch
     errordlg('Please specify time window');
     error('')
 end
 
-% if MEG, store grad struct in D.channels
+% get Morelet wavelets
 %--------------------------------------------------------------------------
-try
-    DCM.xY.grad = D.channels.grad;
-end
+DCM.xY.Nm  = Nm;                       % number of frequency modes
+DCM.xY.Hz  = 4:1:48;                   % Frequencies
+ST         = DCM.xY.dt*1000;           % sampling interval
+Nf         = length(DCM.xY.Hz);        % number of frequencies
+Ne         = length(trial);            % number of ERPs
+Nm         = DCM.xY.Nm;                % number of frequency modes
+DCM.xY.Rft = linspace(5,8,Nf);         % wavelet coeficient
+
 
 % get induced responses (use previous time-frequency results if possible) 
 %==========================================================================
 try
-     DCM.xY.y  = spm_cat(DCM.xY.xf);
-     return
+    if size(DCM.xY.xf,1) == Ne;
+        if size(DCM.xY.xf,2) == Nm;
+            if size(DCM.xY.xf{1},1) == Nb;
+                DCM.xY.y  = spm_cat(DCM.xY.xf);
+                return
+            end
+        end
+    end
 end
-    
-% get Morelet wavelets
-%--------------------------------------------------------------------------
-DCM.xY.Nm     = 4;                        % number of frequency modes
-DCM.xY.Rft    = 6;                        % wavelet coeficient
-DCM.xY.Hz     = 4:1:64;                   % Frequencies
-ST            = DCM.xY.dt*1000;           % sampling interval
-Nf            = length(DCM.xY.Hz);
 
 % high-pass filter
 %--------------------------------------------------------------------------
-h     = DCM.options.h;
+h     = max(DCM.options.h,2);
 T     = spm_dctmtx(Ns,h);
 T     = speye(Ns,Ns) - T*T';
 
-% create convolution matrices with reflecting boundaries (and filtering)
+% create convolution matrices (Eucldian normalised with filtering)
 %--------------------------------------------------------------------------
-M     = spm_eeg_morlet(DCM.xY.Rft, ST, DCM.xY.Hz, 32);
 for i = 1:Nf
-    M{i} = convmtx(M{i}',Ns);
-    N    = fix((size(M{i},1) - Ns)/2);
-    W    = M{i}([1:Ns] + N,:)*T;
-    M{i} = diag(1./sqrt(sum(abs(W).^2,2)))*W;
+    W    = spm_eeg_morlet(DCM.xY.Rft(i), ST, DCM.xY.Hz(i));
+    W    = convmtx(W{1}',Ns);
+    N    = fix((size(W,1) - Nb)/2);
+    W    = W([1:Nb] + N,:);
+    M{i} = W*T;
 end
 
 % get gain matrix for source components
@@ -149,7 +164,7 @@ MAP   = MAP*R;
 
 % Wavelet amplitudes for each (projected) source
 %==========================================================================
-for i = 1:length(trial);
+for i = 1:Ne;
     
     % trial indices
     %----------------------------------------------------------------------
@@ -159,32 +174,39 @@ for i = 1:length(trial);
         c = find(D.events.code == D.events.types(i));
     end
     Nt    = length(c);
-
-    % Cycle over frequencies
+    
+    
+    % Get data
     %----------------------------------------------------------------------
-    Y     = zeros(Nf,Ns,Nr*3);
-    for k = 1:Nf
-        Yk    = zeros(Ns,Nr*3);
-        for j = 1:Nt
-            y  = MAP*D.data(Ic,It,c(j));
-            Yk = Yk + abs(M{k}*y');
+    Ny    = Nb*Nr*3;
+    Y     = zeros(Ny,Nt);
+    for j = 1:Nf
+        f     = [1:Ny] + (j - 1)*Ny;
+        for k = 1:Nt
+            y      = abs(M{j}*D.data(Ic,It,c(k))'*MAP');
+            Y(f,k) = y(:);
         end
-        Y(k, :, :) = Yk;
-        fprintf('\nevaluating frequency %i, condition %i',k,i)
+        fprintf('\nevaluating %i Hz, condition %i',DCM.xY.Hz(j),i)
     end
     
-    % time-frequency repsones for trials and sources (summing over moments)
+    % weight with principal eigenvariate over trials
+    %----------------------------------------------------------------------
+    Y     = Y/normest(Y);
+    u     = spm_svd(Y'*Y);
+    u     = full(u(:,1)*sign(max(u(:,1))));
+    Y     = reshape(Y*u,Nb,Nr*3,Nf);
+    
+    % sum time-frequency response over moments, normalise and remove mean
     %----------------------------------------------------------------------
     for j = 1:Nr
-        Yk    = zeros(Ns,Nf);
+        Yk    = zeros(Nb,Nf);
         for k = 1:3
-            Yk = Yk + Y(:,:,j + k - 1)'/Nt;
+            Yk = Yk + squeeze(Y(:,j + k - 1,:))/Nt;
         end
         Mz{i,j} = mean(Yk);
-        Yz{i,j} = spm_detrend(Yk);
+        Yz{i,j} = Yk - ones(Nb,1)*Mz{i,j};
     end
 end
-
 
 % reduce to frequency modes
 %==========================================================================
@@ -193,11 +215,12 @@ end
 %--------------------------------------------------------------------------
 Y     = spm_cat(Yz(:));
 [U S] = spm_svd(Y'*Y,0);
-U     = U(:,1:DCM.xY.Nm);
+U     = U(:,1:Nm);
 
 % project time-frequnecy data onto modes
 %--------------------------------------------------------------------------
-for i = 1:length(trial)
+DCM.xY.xf = cell(Ne,Nm);
+for i = 1:Ne
     for j = 1:Nr
         xf{j} = Yz{i,j}*U;
     end

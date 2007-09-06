@@ -44,7 +44,7 @@ ns     = size(xY.xf{1},1);       % Nr channels
 nu     = size(DCM.B,2);          % Nr inputs
 nm     = size(DCM.Hc,2);         % Nr time-frequency modes
 nr     = size(DCM.Hc{1},2);      % Nr of sources
-pst    = xY.Time;                % peri-stmulus time
+pst    = xY.pst;                 % peri-stmulus time
 Hz     = xY.Hz;                  % frequencies
 
 
@@ -67,36 +67,23 @@ case{lower('Frequency modes')}
 case{lower('Time-modes')}
     
     % spm_dcm_ind_results(DCM,'Time-modes');
-    %----------------------------------------------------------------------
-    co = {'b', 'r', 'g', 'm', 'y', 'k'};
-    lo = {'-', '--'};
-    
+    %----------------------------------------------------------------------  
     for i = 1:nm
         subplot(ceil(nm/2),2,i), hold on
         str   = {};
         for j = 1:nt
-            plot(pst,DCM.Hc{j,i}, lo{1},...
-                'Color', co{j},...
-                'LineWidth',2);
-            str{end + 1} = sprintf('trial %i (predicted)',j);
-            plot(pst,DCM.Hc{j,i} + DCM.Rc{j,i}, lo{2},...
-                'Color',co{j});
-            str{end + 1} = sprintf('trial %i (observed)',j);
-                        set(gca, 'XLim', [pst(1) pst(end)]);
-
+            plot(pst,DCM.Hc{j,i},'LineWidth',2);
+            plot(pst,DCM.Hc{j,i} + DCM.Rc{j,i},'-.');
+            set(gca, 'XLim', [pst(1) pst(end)]);
         end
         hold off
-        title(sprintf('mode %i (all regions)',i))
+        title({sprintf('mode %i (all regions)',i),'- predicted; -- observed'})
         grid on
         axis square
-        try
-            axis(A);
-        catch
-            A = axis;
-        end
+        xlabel('time (ms)')
+        try, axis(A), catch A = axis; end
     end
-    xlabel('time (ms)')
-    legend(str)
+   
 
     
 case{lower('Time-frequency')}
@@ -168,7 +155,7 @@ case{lower('Coupling (A)')}
     image(64*DCM.Pp.A)
     set(gca,'YTick',[1:nr],'YTickLabel',DCM.Sname,'FontSize',8)
     set(gca,'XTick',[])
-    title('Conditonal probabilities')
+    title('Conditional probabilities')
     axis square
 
     % table
@@ -235,32 +222,36 @@ case{lower('Coupling (B)')}
     
 
 case{lower('Input (C)')}
+   
     
-    % reconstitute time-frequency and get principle model over channels
+    % reconstitute time-frequency and get principal mode over channels
     %----------------------------------------------------------------------
-    for i = 1:nr
-        j = [1:nf]*nr - nr + i;
-        UF(:,i) = DCM.Eg.L(i)*xY.U*DCM.Ep.C(j);
+    Nu    = size(DCM.Ep.C,2);
+    for k = 1:Nu
+        subplot(Nu,1,k)
+        for i = 1:nr
+            j = [1:nf]*nr - nr + i;
+            UF(:,i) = DCM.Eg.L(i)*xY.U*DCM.Ep.C(j,k);
+        end
+        plot(Hz,UF)
+        xlabel('Frequency (Hz)')
+        title(sprintf('frequency response to input %i',k))
+        axis square, grid on
+        legend(DCM.Sname)
     end
-    plot(Hz,UF)
-    xlabel('Frequency (Hz)')
-    title('frequency response to input')
-    axis square, grid on
-    legend(DCM.Sname)
     
     
 case{lower('Input')}
     
     % get input
     % --------------------------------------------------------------------
-    [U N] = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
+    U = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
     
     subplot(2,1,1)
-    plot(pst,U,pst,N,':')
+    plot(pst,U)
     xlabel('time (ms)')
     title('input')
-    axis square, grid on
-    legend({'input','nonspecific'})
+    axis square tight, grid on
     
     
 case{lower('Dipoles')}

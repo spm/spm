@@ -90,7 +90,7 @@ switch M.dipfit.type
 
         for i = Id
             Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-            LastL(:,:,i) = Lf(M.dipfit.Ic,:)*(10^20);
+            LastL(:,:,i) = Lf(M.dipfit.Ic,:)*1e12;
         end
         for i = 1:n
             L(:,i) = LastL(:,:,i)*P.Lmom(:,i);
