@@ -56,7 +56,7 @@ prec=diag(1./diag(mar.noise_cov));
 for ff=1:Nf,
   af_tmp=eye(d);
   for k=1:p,
-    af_tmp=af_tmp-mar.lag(k).a*exp(-i*w(ff)*k);
+    af_tmp=af_tmp+mar.lag(k).a*exp(-i*w(ff)*k);
   end
   iaf_tmp=inv(af_tmp);
   H(ff,:,:)=iaf_tmp;  % transfer function

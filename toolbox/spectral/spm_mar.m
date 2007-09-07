@@ -3,7 +3,7 @@ function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 % FORMAT [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 %
 % Matrix of AR coefficients are in form
-% x_t = a_1 x_t-1 + a_2 x_t-2 + ...... + a_p x_t-p
+% x_t = -a_1 x_t-1 - a_2 x_t-2 + ...... - a_p x_t-p
 % where a_k is a d-by-d matrix of coefficients at lag k and x_t-k's are 
 % vectors of a d-variate time series.
 %
@@ -85,7 +85,10 @@ vec_xty=xty(:);
 
 % Get maximum likelihood solution
 %w_ml = pinv(-1*x)*y;
-w_ml = xp*y;
+w_ml = -xp*y;
+
+% Swap signs to be consistent with paper (swap back at end !)
+w_ml=-1*w_ml;
 
 y_pred = x*w_ml;
 e=y-y_pred;
@@ -199,8 +202,10 @@ for i=1:p,
   start=(i-1)*d+1;
   stop=(i-1)*d+1+(d-1);
   % Transpose and swap signs for compatibility with spectral estimation function
-  mar.lag(i).a=w_mean(start:stop,:)';
+  mar.lag(i).a=-w_mean(start:stop,:)';
 end
+% Swap signs for compatibility with spectral estimation function
+mar.wmean=-w_mean;
 
 % Compute the effective degrees of freedom
 gamma=k;
