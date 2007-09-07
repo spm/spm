@@ -114,7 +114,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 904 2007-09-03 17:41:15Z john $
+% $Id: spm_orthviews.m 910 2007-09-07 13:59:43Z john $
 
 
 
@@ -917,9 +917,9 @@ for i = valid_handles(arg1),
 	end;
 
 	try
-		imgt  = spm_slice_vol(st.vols{i},TM,TD,st.hld);
-		imgc  = spm_slice_vol(st.vols{i},CM,CD,st.hld);
-		imgs  = spm_slice_vol(st.vols{i},SM,SD,st.hld);
+		imgt  = spm_slice_vol(st.vols{i},TM,TD,st.hld)';
+		imgc  = spm_slice_vol(st.vols{i},CM,CD,st.hld)';
+		imgs  = spm_slice_vol(st.vols{i},SM,SD,st.hld)';
 		ok    = true;
 	catch
 		fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
