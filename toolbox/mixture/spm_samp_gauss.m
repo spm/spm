@@ -17,10 +17,17 @@ m = reshape(m, 1, d);   % Ensure that m is a row vector
 
 [evec, eval] = eig(C);
 deig=diag(eval);
-if (~isreal(deig)) | any(deig<0), 
-  warning('Covariance Matrix is not OK, redefined to be positive definite');
-  eval=abs(eval);
-end
 
-proj = randn(N, d)*sqrt(eval);
+imag_e=find(abs(imag(deig))>0);
+neg_e=find(deig<0);
+rem=unique([imag_e;neg_e]);
+
+if (length(rem)>0), 
+  %warning('Covariance Matrix is not OK, redefined to be positive definite');
+  deig(rem)=[];
+  evec(:,rem)=[];
+end
+k=length(deig);
+
+proj = randn(N, k)*diag(sqrt(deig));
 x = ones(N, 1)*m + proj*evec';

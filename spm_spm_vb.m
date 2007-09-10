@@ -147,7 +147,7 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 839 2007-07-02 08:49:46Z will $
+% $Id: spm_spm_vb.m 911 2007-09-10 14:35:23Z will $
 
 
 %-Get SPM.mat if necessary
@@ -953,6 +953,12 @@ SPM.PPM.Gamma  = 1;				% Default threshold for effect size (1 per cent)
 
 SPM.xX         = xX;			%-design structure
 SPM.xM         = xM;			%-mask structure
+
+% Copy contrast structure 
+SPM.PPM.xCon   = SPM.xCon;
+for i=1:length(SPM.PPM.xCon),
+    SPM.PPM.xCon(i).PSTAT='T';
+end
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
