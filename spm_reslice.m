@@ -90,7 +90,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 898 2007-08-27 11:43:10Z volkmar $
+% $Id: spm_reslice.m 913 2007-09-13 06:32:31Z volkmar $
 
 
 
@@ -221,7 +221,7 @@ for i = 1:prod(size(P)),
 			end;
 		else,
 			C = spm_bsplinc(P(i), d);
-			v = zeros(VO.dim);
+			v = zeros(P(1).dim);
 			for x3 = 1:P(1).dim(3),
 
 				[tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
