@@ -19,8 +19,10 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('Reposition',centre)
 % centre   - X, Y & Z coordinates of centre voxel
 %
-% FORMAT spm_orthviews('Space'[,handle])
-% handle   - the view to define the space by
+% FORMAT spm_orthviews('Space'[,handle[,M,dim]])
+% handle   - the view to define the space by, optionally with extra
+%            transformation matrix and dimensions (e.g. one of the blobs
+%            of a view)
 % with no arguments - puts things into mm space
 %
 % FORMAT spm_orthviews('MaxBB')
@@ -114,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 910 2007-09-07 13:59:43Z john $
+% $Id: spm_orthviews.m 916 2007-09-13 14:12:49Z volkmar $
 
 
 
@@ -273,7 +275,7 @@ case 'space',
 		bbox;
 		redraw_all;
 	else
-		space(varargin{1});
+		space(varargin{:});
 		bbox;
 		redraw_all;
 	end;
@@ -686,16 +688,20 @@ bb = [mn ; mx];
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function space(arg1)
+function space(arg1,M,dim)
 global st
 if ~isempty(st.vols{arg1})
 	num = arg1;
-	Mat = st.vols{num}.premul(1:3,1:3)*st.vols{num}.mat(1:3,1:3);
+        if nargin < 2
+	    M = st.vols{num}.mat;
+	    dim = st.vols{num}.dim(1:3);
+	end;
+	Mat = st.vols{num}.premul(1:3,1:3)*M(1:3,1:3);
 	vox = sqrt(sum(Mat.^2));
 	if det(Mat(1:3,1:3))<0, vox(1) = -vox(1); end;
 	Mat = diag([vox 1]);
-	Space = (st.vols{num}.mat)/Mat;
-	bb = [1 1 1;st.vols{num}.dim(1:3)];
+	Space = (M)/Mat;
+	bb = [1 1 1; dim];
 	bb = [bb [1;1]];
 	bb=bb*Mat';
 	bb=bb(:,1:3);
@@ -760,10 +766,6 @@ function addcontexts(handles)
 global st
 for ii = valid_handles(handles),
 	cm_handle = addcontext(ii);
-	for i=1:3,
-		set(st.vols{ii}.ax{i}.ax,'UIcontextmenu',cm_handle);
-		st.vols{ii}.ax{i}.cm = cm_handle;
-	end;
 end;
 spm_orthviews('reposition',spm_orthviews('pos'));
 return;
@@ -1482,6 +1484,11 @@ item7_6   = uimenu(item7,      'Label','Remove colored blobs','Visible','off');
 item7_6_1 = uimenu(item7_6,    'Label','local', 'Visible','on');
 item7_6_2 = uimenu(item7_6,    'Label','global','Visible','on');
 
+for i=1:3,
+    set(st.vols{volhandle}.ax{i}.ax,'UIcontextmenu',item_parent);
+    st.vols{volhandle}.ax{i}.cm = item_parent;
+end;
+
 if ~isempty(st.plugins) % process any plugins
 	for k = 1:numel(st.plugins),
 		feval(['spm_ov_', st.plugins{k}], ...
@@ -1582,17 +1589,23 @@ case 'orientation',
 	end;
 	if varargin{2} == 3,
 		spm_orthviews('Space');
+		for i = 1:length(cm_handles),
+		    z_handle = findobj(cm_handles(i),'label','World space');
+		    set(z_handle,'Checked','on');
+		end;
 	elseif varargin{2} == 2,
 		spm_orthviews('Space',1);
+		for i = 1:length(cm_handles),
+		    z_handle = findobj(cm_handles(i),'label',...
+				       'Voxel space (1st image)');
+		    set(z_handle,'Checked','on');
+		end;
 	else
 		spm_orthviews('Space',get_current_handle);
-		z_handle = get(findobj(st.vols{get_current_handle}.ax{1}.cm,'label','Orientation'),'Children');
-		set(z_handle(1),'Checked','on');
+		z_handle = findobj(st.vols{get_current_handle}.ax{1}.cm, ...
+				       'label','Voxel space (this image)');
+		set(z_handle,'Checked','on');
 		return;
-	end;
-	for i = 1:length(cm_handles),
-		z_handle = get(findobj(cm_handles(i),'label','Orientation'),'Children');
-		set(z_handle(varargin{2}),'Checked','on');
 	end;
 
 case 'snap',

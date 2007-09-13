@@ -85,14 +85,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 834 2007-06-26 13:02:50Z volkmar $
+% $Id: spm_ov_roi.m 916 2007-09-13 14:12:49Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 834 $';
+rev = '$Revision: 916 $';
 
 global st;
 if isempty(st)
@@ -563,6 +563,12 @@ case {'save','saveas'}
 	  'Tag', ['ROI_1_', num2str(volhandle)]);
   item18 = uimenu(item0, 'Label', 'Help', 'Callback', ...
 	  ['feval(''spm_help'',''' mfilename ''');']);
+  % add some stuff outside ROI tool menu
+  iorient = findobj(st.vols{volhandle}.ax{1}.cm, 'Label', 'Orientation');
+  item19 =  uimenu(iorient, 'Label', 'ROI Space', 'Callback', ...
+	  ['feval(''spm_ov_roi'',''context_space'', ', ...
+	    num2str(volhandle), ');'], 'Visible', 'off', ...
+	  'Tag', ['ROI_1_', num2str(volhandle)]);
   return;
     
  case 'context_init'
@@ -635,6 +641,19 @@ case 'context_erothresh'
   st.vols{volhandle}.roi.erothresh = erothresh;
   return;
 
+    case 'context_space'
+	spm_orthviews('space', volhandle, ...
+		      st.vols{volhandle}.roi.Vroi.mat, ...
+		      st.vols{volhandle}.roi.Vroi.dim(1:3));
+	iorient = get(findobj(0,'Label','Orientation'),'children');
+	if iscell(iorient)
+	    iorient = cell2mat(iorient);
+	end;
+	set(iorient, 'Checked', 'Off');
+	ioroi = findobj(iorient, 'Label','ROI space');
+	set(ioroi, 'Checked', 'On');
+	return;
+	
   case 'context_thresh'
     Finter = spm_figure('FindWin', 'Interactive');
     spm_input('!DeleteInputObj',Finter);
