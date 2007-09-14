@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 877 2007-08-06 11:20:11Z john $
+% $Id: spm_dicom_convert.m 917 2007-09-14 09:28:55Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -222,7 +222,7 @@ for i=2:length(hdr),
     orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
     xy1    = hdr{i}.ImagePositionPatient*orient;
     match  = 0;
-    if isfield(hdr{i},'CSAImageHeaderInfo') && isfield(hdr{1}.CSAImageHeaderInfo,'name')
+    if isfield(hdr{i},'CSAImageHeaderInfo') && isfield(hdr{i}.CSAImageHeaderInfo,'name')
         ice1 = sscanf( ...
             strrep(get_numaris4_val(hdr{i}.CSAImageHeaderInfo,'ICE_Dims'), ...
             'X', '-1'), '%i_%i_%i_%i_%i_%i_%i_%i_%i')';
