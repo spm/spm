@@ -56,75 +56,75 @@ function varargout = spm_jobman(varargin)
 % FORMAT [tag, jobs, typ, jobhelps] = spm_jobman('harvest',c)
 % Take a data structure, and extract what is needed to save it
 % as a batch job (for experts only). If c is omitted, use the currently
-% displayed job tree as source. 
+% displayed job tree as source.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 903 2007-08-31 12:55:32Z john $
+% $Id: spm_jobman.m 919 2007-09-18 21:56:22Z darren $
 
 
 if nargin==0
     setup_ui;
 else
     switch lower(varargin{1})
-    case {'interactive'}
-        if nargin>=2
-            setup_ui(varargin{2:nargin});
-        else
-            setup_ui;
-        end;
+        case {'interactive'}
+            if nargin>=2
+                setup_ui(varargin{2:nargin});
+            else
+                setup_ui;
+            end;
 
-    case {'serial'}
-        if nargin>=2,
-            serial(varargin{2:nargin});
-        else
-            serial;
-        end;
+        case {'serial'}
+            if nargin>=2,
+                serial(varargin{2:nargin});
+            else
+                serial;
+            end;
 
-    case {'run'}
-        if nargin<2
-            error('Nothing to run');
-        end;
-        run_job(varargin{2});
+        case {'run'}
+            if nargin<2
+                error('Nothing to run');
+            end;
+            run_job(varargin{2});
 
-    case {'run_nogui'}
-        if nargin<2
-            error('Nothing to run');
-        end;
-        run_job(varargin{2},0);
+        case {'run_nogui'}
+            if nargin<2
+                error('Nothing to run');
+            end;
+            run_job(varargin{2},0);
 
-    case {'defaults'},
-        setup_ui('defaults');
+        case {'defaults'},
+            setup_ui('defaults');
 
-    case {'pulldown'}
-       pulldown;
+        case {'pulldown'}
+            pulldown;
 
-    case {'chmod'}
-        if nargin>1,
-            chmod(varargin{2});
-        end;
+        case {'chmod'}
+            if nargin>1,
+                chmod(varargin{2});
+            end;
 
-    case {'help'}
-        if nargin>=2,
-            varargout{1} = showdoc(varargin{2:nargin});
-        else
-            varargout{1} = showdoc;
-        end;
+        case {'help'}
+            if nargin>=2,
+                varargout{1} = showdoc(varargin{2:nargin});
+            else
+                varargout{1} = showdoc;
+            end;
 
-    case {'jobhelp'}
-        varargout{1} = showjobhelp;
-        
-    case {'harvest'}
-        if nargin == 1
-            args{1} = get(batch_box,'Userdata');
-        else
-            args = varargin(2:nargin);
-        end;
-        [varargout{1:nargout}] = harvest(args{:});
+        case {'jobhelp'}
+            varargout{1} = showjobhelp;
 
-    otherwise
-        error(['"' varargin{1} '" - unknown option']);
+        case {'harvest'}
+            if nargin == 1
+                args{1} = get(batch_box,'Userdata');
+            else
+                args = varargin(2:nargin);
+            end;
+            [varargout{1:nargout}] = harvest(args{:});
+
+        otherwise
+            error(['"' varargin{1} '" - unknown option']);
     end;
 end;
 return;
@@ -212,20 +212,20 @@ cntxtmnu(t);
 
 if spm_matlab_version_chk('7.1')>=0
     t=uibuttongroup('parent',fg,...
-		    'units','normalized', ...
-		    'position',[.02 .27 .5 .03],...
-		    'tag','help_box_switch', ... 
-		    'SelectionChangeFcn',@click_batch_box);
+        'units','normalized', ...
+        'position',[.02 .27 .5 .03],...
+        'tag','help_box_switch', ...
+        'SelectionChangeFcn',@click_batch_box);
     t1=uicontrol('parent',t,...
-		 'style','radio',...
-		 'string','General help', ...
-		 'units','normalized',...
-		 'position',[0 .05 .5 .95]);
+        'style','radio',...
+        'string','General help', ...
+        'units','normalized',...
+        'position',[0 .05 .5 .95]);
     l2=uicontrol('parent',t,...
-		 'style','radio',...
-		 'string','Job specific help', ...
-		 'units','normalized',...
-		 'position',[.5 .05 .5 .95]);
+        'style','radio',...
+        'string','Job specific help', ...
+        'units','normalized',...
+        'position',[.5 .05 .5 .95]);
 end;
 
 t=uicontrol(fg,...
@@ -407,11 +407,11 @@ c         = expopen(get(batch_box,'UserData'));
 str       = get_strings(c);
 fop       = Inf;
 % find 1st open input
-for k=1:numel(str) 
+for k=1:numel(str)
     op        = strfind(str{k},'<-X');
-    if ~isempty(op) 
-        fop=k; 
-        break; 
+    if ~isempty(op)
+        fop=k;
+        break;
     end;
 end;
 if isinf(fop)
@@ -547,14 +547,19 @@ if isfield(c,'expanded') %  && isfield(c,'val') && ~isempty(c.val)
 
     if strcmp(c.type,'repeat') && isfield(c,'num')
         sts = (length(c.val) >= c.num(1)) &&...
-              (length(c.val) <= c.num(2));
+            (length(c.val) <= c.num(2));
         if ~sts
             mrk = ' <-X';
         end;
     end;
 
     if c.expanded
-        str = {[repmat('.   ',1,l) '-' nam]};
+        if numel(c.val) == 0
+            premark = '';
+        else
+            premark = '-';
+        end
+        str = {[repmat('.   ',1,l) premark nam]};
         for i=1:length(c.val)
             [c.val{i},str1,sts1] = get_strings1(c.val{i},l+1);
             sts = sts && sts1;
@@ -563,7 +568,12 @@ if isfield(c,'expanded') %  && isfield(c,'val') && ~isempty(c.val)
             end;
         end;
     else
-        str = {[repmat('.   ',1,l) '+' nam]};
+        if numel(c.val) == 0
+            premark = '';
+        else
+            premark = '+';
+        end
+        str = {[repmat('.   ',1,l) premark nam]};
         for i=1:length(c.val)
             [c.val{i},unused,sts1] = get_strings1(c.val{i},l+1);
             sts = sts && sts1;
@@ -573,39 +583,40 @@ if isfield(c,'expanded') %  && isfield(c,'val') && ~isempty(c.val)
         end;
     end;
     str{1} = [str{1} mrk];
+
 else
     switch c.type
-    case 'files'
-        % If files are selected via "Input to/Output from" shortcuts,
-        % there is no guarantee that an allowed number of files is
-        % specified. This is checked here.
-        cn = c.num;
-        if (numel(cn) == 1)
-                if isfinite(cn) 
-                        cn = [cn cn];
+        case 'files'
+            % If files are selected via "Input to/Output from" shortcuts,
+            % there is no guarantee that an allowed number of files is
+            % specified. This is checked here.
+            cn = c.num;
+            if (numel(cn) == 1)
+                if isfinite(cn)
+                    cn = [cn cn];
                 else
-                        cn = [0 cn];
-                
+                    cn = [0 cn];
+
                 end;
-        end;
-        if isempty(c.val) || (numel(c.val{1}) < cn(1)) || ...
-                    (numel(c.val{1}) > cn(2))
-            mrk = ' <-X';
-            sts = 0;
-        end;
-    case {'menu','entry','const','choice'}
-        if isempty(c.val)
-            mrk = ' <-X';
-            sts = 0;
-        end;
-    case 'repeat' % don't know, whether this ever gets executed
-        if isfield(c,'num')
-            sts = (length(c.val) >= c.num(1)) &&...
-                  (length(c.val) <= c.num(2));
-            if ~sts
-                mrk = ' <-X';
             end;
-        end;
+            if isempty(c.val) || (numel(c.val{1}) < cn(1)) || ...
+                    (numel(c.val{1}) > cn(2))
+                mrk = ' <-X';
+                sts = 0;
+            end;
+        case {'menu','entry','const','choice'}
+            if isempty(c.val)
+                mrk = ' <-X';
+                sts = 0;
+            end;
+        case 'repeat' % don't know, whether this ever gets executed
+            if isfield(c,'num')
+                sts = (length(c.val) >= c.num(1)) &&...
+                    (length(c.val) <= c.num(2));
+                if ~sts
+                    mrk = ' <-X';
+                end;
+            end;
     end;
     str = {[repmat('.   ',1,l) ' ' nam mrk]};
 end;
@@ -626,23 +637,23 @@ end;
 ok = true;
 
 switch c.type
-case {'files','menu','entry','const','choice'}
-    if isempty(c.val)
-        ok = false;
-    end;
-
-case {'branch','repeat'}
-    if strcmp(c.type,'repeat') && isfield(c,'num')
-        ok = ok && (length(c.val) >= c.num(1)) && ...
-                   (length(c.val) <= c.num(2));
-    end;
-    if ok,
-        for i=1:length(c.val),
-            ok1 = all_set(c.val{i});
-            ok  = ok && ok1;
-            if ~ok, break; end;
+    case {'files','menu','entry','const','choice'}
+        if isempty(c.val)
+            ok = false;
         end;
-    end;
+
+    case {'branch','repeat'}
+        if strcmp(c.type,'repeat') && isfield(c,'num')
+            ok = ok && (length(c.val) >= c.num(1)) && ...
+                (length(c.val) <= c.num(2));
+        end;
+        if ok,
+            for i=1:length(c.val),
+                ok1 = all_set(c.val{i});
+                ok  = ok && ok1;
+                if ~ok, break; end;
+            end;
+        end;
 end;
 return;
 %------------------------------------------------------------------------
@@ -704,8 +715,8 @@ if isfield(c,'tag')
     if isempty(node), return; end;
 end;
 if isfield(c,'values') && (~isfield(c,'val') ||...
-   isempty(c.val) || ~iscell(c.val) ||...
-  ~strcmp(gettag(c.val{1}),node{1}))
+        isempty(c.val) || ~iscell(c.val) ||...
+        ~strcmp(gettag(c.val{1}),node{1}))
     for i=1:length(c.values)
         if strcmp(gettag(c.values{i}),node{1})
             c.val = {c.values{i}};
@@ -753,11 +764,11 @@ if isfield(c,'hidden'), return; end;
 n         = n-1;
 if n<0, return; end;
 if n==0,
-%    if ~isfield(c,'datacheck'),
-%        show_msg('');
-%    else
-%        show_msg(c.datacheck);
-%    end;
+    %    if ~isfield(c,'datacheck'),
+    %        show_msg('');
+    %    else
+    %        show_msg(c.datacheck);
+    %    end;
     [c,varargout{:}] = feval(fun,c,varargin{:});
 end;
 
@@ -798,51 +809,51 @@ if ~isempty(opts_box)
     str  = {};
 
     switch c.type
-    case {'const'}
-        % do nothing
+        case {'const'}
+            % do nothing
 
-    case {'files'}
-        spm('pointer','watch');
-        str = {str{:}, 'Specify Files'};
-        dat = {dat{:}, struct('fun',@file_select,'args',{{}},'redraw',1)};
-        addvfiles(c.id,[],c);
-        addinfiles(c);
-        [filestr filedat] = files_select_list('listall');
-        str = {str{:}, filestr{:}};
-        dat = {dat{:}, filedat{:}};
-        spm('pointer','arrow');
-        
-    case {'menu'}
-        str = {str{:}, 'Specify Menu Item'};
-        dat = {dat{:}, struct('fun',@menu_entry,'args',{{}},'redraw',0)};
+        case {'files'}
+            spm('pointer','watch');
+            str = {str{:}, 'Specify Files'};
+            dat = {dat{:}, struct('fun',@file_select,'args',{{}},'redraw',1)};
+            addvfiles(c.id,[],c);
+            addinfiles(c);
+            [filestr filedat] = files_select_list('listall');
+            str = {str{:}, filestr{:}};
+            dat = {dat{:}, filedat{:}};
+            spm('pointer','arrow');
 
-    case {'entry'}
-        str = {str{:}, 'Specify Text'};
-        dat = {dat{:}, struct('fun',@text_entry,'args',{{}},'redraw',1)};
+        case {'menu'}
+            str = {str{:}, 'Specify Menu Item'};
+            dat = {dat{:}, struct('fun',@menu_entry,'args',{{}},'redraw',0)};
 
-    case {'branch','choice','repeat'}
-        if strcmp(c.type,'repeat')
-            for i=1:length(c.values)
-                if ~isfield(c.values{i},'hidden'),
-                    str = {str{:},['New "' c.values{i}.name '"']};
-                    dat = {dat{:}, struct('fun',@series,'args',{{c.values{i}}},'redraw',1)};
+        case {'entry'}
+            str = {str{:}, 'Specify Text'};
+            dat = {dat{:}, struct('fun',@text_entry,'args',{{}},'redraw',1)};
+
+        case {'branch','choice','repeat'}
+            if strcmp(c.type,'repeat')
+                for i=1:length(c.values)
+                    if ~isfield(c.values{i},'hidden'),
+                        str = {str{:},['New "' c.values{i}.name '"']};
+                        dat = {dat{:}, struct('fun',@series,'args',{{c.values{i}}},'redraw',1)};
+                    end;
+                end;
+
+            elseif strcmp(c.type,'choice')
+                for i=1:length(c.values)
+                    if ~isfield(c.values{i},'hidden'),
+                        str = {str{:},['Choose "' c.values{i}.name '"']};
+                        dat = {dat{:}, struct('fun',@choose,'args',{{c.values{i}}},'redraw',1)};
+                    end;
                 end;
             end;
-
-        elseif strcmp(c.type,'choice')
-            for i=1:length(c.values)
-                if ~isfield(c.values{i},'hidden'),
-                    str = {str{:},['Choose "' c.values{i}.name '"']};
-                    dat = {dat{:}, struct('fun',@choose,'args',{{c.values{i}}},'redraw',1)};
-                end;
-            end;
-        end;
     end;
 
     if isfield(c,'removable')
         str = {str{:},['Remove Item "' c.name '"'],['Replicate Item "' c.name '"']};
         dat = {dat{:}, struct('fun',@remove,'args',{{}},'redraw',1),...
-                       struct('fun',@replicate,'args',{{}},'redraw',1)};
+            struct('fun',@replicate,'args',{{}},'redraw',1)};
     end;
 
     if ~same(get(opts_box,'String')',str)
@@ -870,19 +881,19 @@ else
     help_box_switch = find(cat(1,hc.Value));
 end;
 switch help_box_switch
-case 2,
-    if isfield(c,'help'), txt = c.help; end;
-    set(findobj(cntxt,'tag','cntxt_edit_jobhelp'),'Visible','off');
-case 1,
-    if isfield(c,'jobhelp'), txt = c.jobhelp; end;
-    if isempty(findobj(cntxt,'tag','cntxt_edit_jobhelp'))
-        cedit=uimenu('parent',cntxt,...
-                     'Label','Edit help',...
-                     'Callback',@edit_jobhelp,...
-                     'Tag','cntxt_edit_jobhelp');
-    else
-        set(findobj(cntxt,'tag','cntxt_edit_jobhelp'),'Visible','on');
-    end;
+    case 2,
+        if isfield(c,'help'), txt = c.help; end;
+        set(findobj(cntxt,'tag','cntxt_edit_jobhelp'),'Visible','off');
+    case 1,
+        if isfield(c,'jobhelp'), txt = c.jobhelp; end;
+        if isempty(findobj(cntxt,'tag','cntxt_edit_jobhelp'))
+            cedit=uimenu('parent',cntxt,...
+                'Label','Edit help',...
+                'Callback',@edit_jobhelp,...
+                'Tag','cntxt_edit_jobhelp');
+        else
+            set(findobj(cntxt,'tag','cntxt_edit_jobhelp'),'Visible','on');
+        end;
 end;
 help_box = findobj(0,'tag','help_box');
 if ~isempty(help_box)
@@ -963,7 +974,7 @@ try
     [s,ok] = spm_select(c.num,c.filter,c.name,sel,dr,uf);
     if ok, c.val{1} = cellstr(s); end;
     files_select_list('addinfiles', sprintf('Input to "%s"', c.name), ...
-                      c.val{1}, c.id);
+        c.val{1}, c.id);
 catch
 end;
 spm_select('clearvfiles');
@@ -1006,31 +1017,31 @@ cntxtmnu(newstring);
 
 strM='';
 switch lower(c.strtype)
-case 's', TTstr='enter string';
-case 'e', TTstr='enter expression - evaluated';
-case 'n', TTstr='enter expression - natural number(s)';
+    case 's', TTstr='enter string';
+    case 'e', TTstr='enter expression - evaluated';
+    case 'n', TTstr='enter expression - natural number(s)';
         if ~isempty(m), strM=sprintf(' (in [1,%d])',m); TTstr=[TTstr,strM]; end
-case 'w', TTstr='enter expression - whole number(s)';
+    case 'w', TTstr='enter expression - whole number(s)';
         if ~isempty(m), strM=sprintf(' (in [0,%d])',m); TTstr=[TTstr,strM]; end
-case 'i', TTstr='enter expression - integer(s)';
-case 'r', TTstr='enter expression - real number(s)';
+    case 'i', TTstr='enter expression - integer(s)';
+    case 'r', TTstr='enter expression - real number(s)';
         if ~isempty(m), TTstr=[TTstr,sprintf(' in [%g,%g]',min(m),max(m))]; end
-case 'c', TTstr='enter indicator vector e.g. 0101...  or abab...';
+    case 'c', TTstr='enter indicator vector e.g. 0101...  or abab...';
         if ~isempty(m) && isfinite(m), strM=sprintf(' (%d)',m); end
-otherwise, TTstr='enter expression';
+    otherwise, TTstr='enter expression';
 end
 
 if isempty(n), n=NaN; end
 n=n(:); if length(n)==1, n=[n,1]; end; dn=length(n);
 if any(isnan(n)) || (prod(n)==1 && dn<=2) || (dn==2 && min(n)==1 && isinf(max(n)))
     str = '';
-   lstr = '';
+    lstr = '';
 elseif dn==2 && min(n)==1
     str = sprintf('[%d]',max(n));
-   lstr = [str,'-vector: '];
+    lstr = [str,'-vector: '];
 elseif dn==2 && sum(isinf(n))==1
     str = sprintf('[%d]',min(n));
-   lstr = [str,'-vector(s): '];
+    lstr = [str,'-vector(s): '];
 else
     str='';
     for i = 1:dn,
@@ -1040,7 +1051,7 @@ else
             str = sprintf('%s,*',str);
         end
     end
-     str = ['[',str(2:end),']'];
+    str = ['[',str(2:end),']'];
     lstr = [str,'-matrix: '];
 end
 strN = sprintf('%s',lstr);
@@ -1110,84 +1121,84 @@ valtxt = {'<UNDEFINED>'};
 % col    = [1 0 0];
 
 switch c.type
-case {'menu'}
-    if isfield(c,'val') && ~isempty(c.val)
-        if isfield(c,'labels') && isfield(c,'values')
-            val = c.val{1};
-            for i=1:length(c.values)
-                if same(c.values{i},val)
-                    valtxt = c.labels{i};
-                    % col    = [0 0 0];
-                    break;
-                end;
-            end;
-        end;
-    end;
-
-case {'const','entry'}
-    if isfield(c,'val') && ~isempty(c.val)
-        val = c.val{1};
-        if isempty(val)
-            valtxt = '<Empty>';
-        else
-            if isnumeric(val)
-                sz = size(val);
-                if length(sz)>2
-                    valtxt = sprintf('%dx',sz);
-                    valtxt = [valtxt(1:(end-1)) ' Numeric Array'];
-                else
-                    valtxt = cell(size(val,1),1);
-                    for i=1:size(val,1)
-                        valtxt{i} = sprintf('%14.8g ',val(i,:));
+    case {'menu'}
+        if isfield(c,'val') && ~isempty(c.val)
+            if isfield(c,'labels') && isfield(c,'values')
+                val = c.val{1};
+                for i=1:length(c.values)
+                    if same(c.values{i},val)
+                        valtxt = c.labels{i};
+                        % col    = [0 0 0];
+                        break;
                     end;
                 end;
-            elseif(ischar(val))
-                valtxt = val;
-            else
-                valtxt = 'Can not display';
             end;
         end;
-        % col    = [0 0 0];
-    end;
 
-case {'files'}
-    if isfield(c,'val') && ~isempty(c.val)
-        if isempty(c.val{1}) || isempty(c.val{1}{1})
-            valtxt = '<None>';
-        else
-            valtxt = c.val{1};
+    case {'const','entry'}
+        if isfield(c,'val') && ~isempty(c.val)
+            val = c.val{1};
+            if isempty(val)
+                valtxt = '<Empty>';
+            else
+                if isnumeric(val)
+                    sz = size(val);
+                    if length(sz)>2
+                        valtxt = sprintf('%dx',sz);
+                        valtxt = [valtxt(1:(end-1)) ' Numeric Array'];
+                    else
+                        valtxt = cell(size(val,1),1);
+                        for i=1:size(val,1)
+                            valtxt{i} = sprintf('%14.8g ',val(i,:));
+                        end;
+                    end;
+                elseif(ischar(val))
+                    valtxt = val;
+                else
+                    valtxt = 'Can not display';
+                end;
+            end;
+            % col    = [0 0 0];
         end;
-        % col    = [0 0 0];
-    end;
 
-case {'choice'}
-    if isfield(c,'val') && length(c.val)==1
-        valtxt = {'A choice, where',['"' c.val{1}.name '"'], 'is selected.'};
+    case {'files'}
+        if isfield(c,'val') && ~isempty(c.val)
+            if isempty(c.val{1}) || isempty(c.val{1}{1})
+                valtxt = '<None>';
+            else
+                valtxt = c.val{1};
+            end;
+            % col    = [0 0 0];
+        end;
+
+    case {'choice'}
+        if isfield(c,'val') && length(c.val)==1
+            valtxt = {'A choice, where',['"' c.val{1}.name '"'], 'is selected.'};
+            % col    = [0.5 0.5 0.5];
+        else
+            valtxt = {'A choice, with', 'nothing selected.'};
+            % col    = [0.5 0.5 0.5];
+        end;
+
+    case {'repeat'}
+        ln     = length(c.val); s = 's'; if ln==1, s = ''; end;
+        valtxt = ['A series containing ' num2str(length(c.val)) ' item' s '.'];
         % col    = [0.5 0.5 0.5];
-    else
-        valtxt = {'A choice, with', 'nothing selected.'};
+
+    case {'branch'}
+        ln     = length(c.val); s = 's'; if ln==1, s = ''; end;
+        valtxt = {['A branch holding ' num2str(length(c.val)) ' item' s '.']};
+        if isfield(c,'prog'),
+            valtxt = {valtxt{:}, '', '   User specified values',...
+                '   from this branch will be',...
+                '   collected and passed to',...
+                '   an executable function',...
+                '   when the job is run.'};
+        end;
         % col    = [0.5 0.5 0.5];
-    end;
 
-case {'repeat'}
-    ln     = length(c.val); s = 's'; if ln==1, s = ''; end;
-    valtxt = ['A series containing ' num2str(length(c.val)) ' item' s '.'];
-    % col    = [0.5 0.5 0.5];
-
-case {'branch'}
-    ln     = length(c.val); s = 's'; if ln==1, s = ''; end;
-    valtxt = {['A branch holding ' num2str(length(c.val)) ' item' s '.']};
-    if isfield(c,'prog'),
-        valtxt = {valtxt{:}, '', '   User specified values',...
-                                 '   from this branch will be',...
-                                 '   collected and passed to',...
-                                 '   an executable function',...
-                                 '   when the job is run.'};
-    end;
-    % col    = [0.5 0.5 0.5];
-
-otherwise
-    valtxt = 'What on earth is this???';
+    otherwise
+        valtxt = 'What on earth is this???';
 end;
 val_box = findobj(0,'tag','val_box');
 if ~isempty(val_box)
@@ -1235,36 +1246,36 @@ function c = stringval(c,val)
 msg = 'SUCCESS: Values accepted';
 
 switch c.strtype
-case {'s'}
-    c.val{1} = val;
-    show_value(c);
-    remove_string_box;
-
-case {'s+'}
-    msg = 'FAILURE: Cant do s+ yet';
-    beep;
-    remove_string_box;
-
-otherwise
-    n = Inf;
-    if isfield(c,'num')
-        n      = c.num;
-    end;
-    if isfield(c,'extras')
-        [val,msg] = spm_eeval(val,c.strtype,n,c.extras);
-    else
-        [val,msg] = spm_eeval(val,c.strtype,n);
-    end;
-
-    if ischar(val)
-        beep;
-        msg = ['FAILURE: ' msg];
-    else
+    case {'s'}
         c.val{1} = val;
         show_value(c);
         remove_string_box;
-        msg = ['SUCCESS: ' msg];
-    end;
+
+    case {'s+'}
+        msg = 'FAILURE: Cant do s+ yet';
+        beep;
+        remove_string_box;
+
+    otherwise
+        n = Inf;
+        if isfield(c,'num')
+            n      = c.num;
+        end;
+        if isfield(c,'extras')
+            [val,msg] = spm_eeval(val,c.strtype,n,c.extras);
+        else
+            [val,msg] = spm_eeval(val,c.strtype,n);
+        end;
+
+        if ischar(val)
+            beep;
+            msg = ['FAILURE: ' msg];
+        else
+            c.val{1} = val;
+            show_value(c);
+            remove_string_box;
+            msg = ['SUCCESS: ' msg];
+        end;
 end;
 show_msg(msg);
 return;
@@ -1377,37 +1388,37 @@ if ~strcmp(ca,class(b)), t = false; return; end;
 
 % Recurse through data structure
 switch ca
-case {'double','single','sparse','char','int8','uint8',...
-      'int16','uint16','int32','uint32','logical'}
-    msk = ((a==b) | (isnan(a)&isnan(b)));
-    if ~all(msk(:)), t = false; return; end;
+    case {'double','single','sparse','char','int8','uint8',...
+            'int16','uint16','int32','uint32','logical'}
+        msk = ((a==b) | (isnan(a)&isnan(b)));
+        if ~all(msk(:)), t = false; return; end;
 
-case {'struct'}
-    fa = fieldnames(a);
-    fb = fieldnames(b);
-    if length(fa) ~= length(fb), t = false; return; end;
-    for i=1:length(fa)
-        if ~strcmp(fa{i},fb{i}), t = false; return; end;
-        for j=1:length(a)
-            if ~same(a(j).(fa{i}),b(j).(fb{i}))
-                t = false; return;
+    case {'struct'}
+        fa = fieldnames(a);
+        fb = fieldnames(b);
+        if length(fa) ~= length(fb), t = false; return; end;
+        for i=1:length(fa)
+            if ~strcmp(fa{i},fb{i}), t = false; return; end;
+            for j=1:length(a)
+                if ~same(a(j).(fa{i}),b(j).(fb{i}))
+                    t = false; return;
+                end;
             end;
         end;
-    end;
 
-case {'cell'}
-    for j=1:length(a(:))
-        if ~same(a{j},b{j}), t = false; return; end;
-    end;
+    case {'cell'}
+        for j=1:length(a(:))
+            if ~same(a{j},b{j}), t = false; return; end;
+        end;
 
-case {'function_handle'}
-    if ~strcmp(func2str(a),func2str(b))
-        t = false; return;
-    end;
+    case {'function_handle'}
+        if ~strcmp(func2str(a),func2str(b))
+            t = false; return;
+        end;
 
-otherwise
-    warning(['Unknown class "' ca '"']);
-    t = false;
+    otherwise
+        warning(['Unknown class "' ca '"']);
+        t = false;
 end;
 
 return;
@@ -1445,7 +1456,7 @@ cd(spwd);
 cd(opwd);
 if ischar(filename)
     spm('Pointer','Watch');
-    c = get(batch_box,'UserData'); 
+    c = get(batch_box,'UserData');
     [unused,jobs,unused,jobhelps] = harvest(c);
     %eval([tag '=val;']);
     [unused,unused,ext] = fileparts(filename);
@@ -1454,19 +1465,19 @@ if ischar(filename)
         filename = [filename ext];
     end
     switch ext
-    case '.xml',
-        savexml(fullfile(pathname,filename),'jobs','jobhelps');
-    case '.mat',
-        if spm_matlab_version_chk('7') >= 0,
-            save(fullfile(pathname,filename),'-V6','jobs','jobhelps');
-        else
-            save(fullfile(pathname,filename),'jobs','jobhelps');
-        end;
-    case '.m',
+        case '.xml',
+            savexml(fullfile(pathname,filename),'jobs','jobhelps');
+        case '.mat',
+            if spm_matlab_version_chk('7') >= 0,
+                save(fullfile(pathname,filename),'-V6','jobs','jobhelps');
+            else
+                save(fullfile(pathname,filename),'jobs','jobhelps');
+            end;
+        case '.m',
             treelist('jobs','jobhelps',struct('exps',1, 'dval',2, 'fname', ...
-                                   fullfile(pathname,filename)));
-    otherwise
-        questdlg(['Unknown extension (' ext ')'],'Nothing saved','OK','OK');
+                fullfile(pathname,filename)));
+        otherwise
+            questdlg(['Unknown extension (' ext ')'],'Nothing saved','OK','OK');
     end;
 end;
 spm('Pointer');
@@ -1506,7 +1517,7 @@ catch
     fprintf('\nError running job: %si\n', l.message);
     if isfield(l,'stack'), % Does not always exist
         for k = 1:numel(l.stack),
-             % Don't blame jobman if some other code crashes
+            % Don't blame jobman if some other code crashes
             if strcmp(l.stack(k).name,'run_struct1'), break; end;
             try,
                 fp  = fopen(l.stack(k).file,'r');
@@ -1532,7 +1543,7 @@ catch
     %else
     %   disp(lasterr);
     %end
-end;        
+end;
 disp('--------------------------');
 disp('Done.');
 return;
@@ -1591,15 +1602,15 @@ return;
 %------------------------------------------------------------------------
 function harvest_def(c)
 switch c.type,
-case{'const','menu','files','entry'},
-    if isfield(c,'def') && numel(c.val)==1,
-        setdef(c.def,c.val{1});
-    end;
+    case{'const','menu','files','entry'},
+        if isfield(c,'def') && numel(c.val)==1,
+            setdef(c.def,c.val{1});
+        end;
 
-otherwise
-    for i=1:length(c.val),
-        harvest_def(c.val{i});
-    end;
+    otherwise
+        for i=1:length(c.val),
+            harvest_def(c.val{i});
+        end;
 end;
 return;
 %------------------------------------------------------------------------
@@ -1619,81 +1630,81 @@ else
 end;
 
 switch(typ)
-case {'const','menu','files','entry'}
-    tag = gettag(c);
-    if ~isempty(c.val)
-        val = c.val{1};
-    else
-        val = '<UNDEFINED>';
-    end;
-    if isfield(c,'jobhelp')
-        jobhelp = c.jobhelp;
-    end;
-    
-case {'branch'}
-    tag = gettag(c);
-    if isfield(c,'val')
-        val = [];
-        for i=1:length(c.val)
-            [tag1,val1,unused,jobhelp1] = harvest(c.val{i});
-            val.(tag1)  = val1;
-            jobhelp.(tag1)  = jobhelp1;
+    case {'const','menu','files','entry'}
+        tag = gettag(c);
+        if ~isempty(c.val)
+            val = c.val{1};
+        else
+            val = '<UNDEFINED>';
         end;
-    end;
+        if isfield(c,'jobhelp')
+            jobhelp = c.jobhelp;
+        end;
 
-case {'repeat'}
-    tag = gettag(c);
-    if length(c.values)==1 && strcmp(c.values{1}.type,'branch'),
-        cargs = {};
-        for i=1:numel(c.values{1}.val),
-            cargs = {cargs{:},gettag(c.values{1}.val{i}),{}};
-        end;
-        val = struct(cargs{:});
-        jobhelp = struct(cargs{:});
+    case {'branch'}
+        tag = gettag(c);
         if isfield(c,'val')
-            for i=1:length(c.val),
-                [tag1,val1,typ1,jobhelp1] = harvest(c.val{i});
-                val(i) = val1;
-                jobhelp(i) = jobhelp1;
+            val = [];
+            for i=1:length(c.val)
+                [tag1,val1,unused,jobhelp1] = harvest(c.val{i});
+                val.(tag1)  = val1;
+                jobhelp.(tag1)  = jobhelp1;
             end;
         end;
-    else
-        val = {};
-        jobhelp = {};
-        if isfield(c,'val')
-            for i=1:length(c.val),
-                [tag1,val1,typ1,jobhelp1] = harvest(c.val{i});
-                if length(c.values)>1,
-                    if iscell(val1)
-                        val1 = struct(tag1,{val1});
-                    else
-                        val1 = struct(tag1,val1);
-                    end;
-                    if iscell(jobhelp1)
-                        jobhelp1 = struct(tag1,{jobhelp1});
-                    else
-                        jobhelp1 = struct(tag1,jobhelp1);
-                    end;
+
+    case {'repeat'}
+        tag = gettag(c);
+        if length(c.values)==1 && strcmp(c.values{1}.type,'branch'),
+            cargs = {};
+            for i=1:numel(c.values{1}.val),
+                cargs = {cargs{:},gettag(c.values{1}.val{i}),{}};
+            end;
+            val = struct(cargs{:});
+            jobhelp = struct(cargs{:});
+            if isfield(c,'val')
+                for i=1:length(c.val),
+                    [tag1,val1,typ1,jobhelp1] = harvest(c.val{i});
+                    val(i) = val1;
+                    jobhelp(i) = jobhelp1;
                 end;
-                val = {val{:}, val1};
-                jobhelp = {jobhelp{:}, jobhelp1};
+            end;
+        else
+            val = {};
+            jobhelp = {};
+            if isfield(c,'val')
+                for i=1:length(c.val),
+                    [tag1,val1,typ1,jobhelp1] = harvest(c.val{i});
+                    if length(c.values)>1,
+                        if iscell(val1)
+                            val1 = struct(tag1,{val1});
+                        else
+                            val1 = struct(tag1,val1);
+                        end;
+                        if iscell(jobhelp1)
+                            jobhelp1 = struct(tag1,{jobhelp1});
+                        else
+                            jobhelp1 = struct(tag1,jobhelp1);
+                        end;
+                    end;
+                    val = {val{:}, val1};
+                    jobhelp = {jobhelp{:}, jobhelp1};
+                end;
             end;
         end;
-    end;
 
-case {'choice'}
-    if isfield(c,'tag'), tag = gettag(c); end;
-    [tag1,val1,unused,jobhelp1] = harvest(c.val{1});
-    if iscell(val1)
-        val = struct(tag1,{val1});
-    else
-        val = struct(tag1,val1);
-    end;
-    if iscell(jobhelp1)
-        jobhelp = struct(tag1,{jobhelp1});
-    else
-        jobhelp = struct(tag1,jobhelp1);
-    end;
+    case {'choice'}
+        if isfield(c,'tag'), tag = gettag(c); end;
+        [tag1,val1,unused,jobhelp1] = harvest(c.val{1});
+        if iscell(val1)
+            val = struct(tag1,{val1});
+        else
+            val = struct(tag1,val1);
+        end;
+        if iscell(jobhelp1)
+            jobhelp = struct(tag1,{jobhelp1});
+        else
+            jobhelp = struct(tag1,jobhelp1);
+        end;
 end;
 return;
 %------------------------------------------------------------------------
@@ -1720,10 +1731,10 @@ function c0 = cntxtmnu(ob)
 c0 = uicontextmenu('Parent',get(ob,'Parent'));
 set(ob,'uicontextmenu',c0);
 c1 = uimenu('Label','Font', 'Parent',c0);
-     uimenu('Label','Plain',      'Parent',c1,'Callback','set(gco,''FontWeight'',''normal'',''FontAngle'',''normal'');');
-     uimenu('Label','Bold',       'Parent',c1,'Callback','set(gco,''FontWeight'',''bold'',  ''FontAngle'',''normal'');');
-     uimenu('Label','Italic',     'Parent',c1,'Callback','set(gco,''FontWeight'',''normal'',''FontAngle'',''italic'');');
-     uimenu('Label','Bold-Italic','Parent',c1,'Callback','set(gco,''FontWeight'',''bold'',  ''FontAngle'',''italic'');');
+uimenu('Label','Plain',      'Parent',c1,'Callback','set(gco,''FontWeight'',''normal'',''FontAngle'',''normal'');');
+uimenu('Label','Bold',       'Parent',c1,'Callback','set(gco,''FontWeight'',''bold'',  ''FontAngle'',''normal'');');
+uimenu('Label','Italic',     'Parent',c1,'Callback','set(gco,''FontWeight'',''normal'',''FontAngle'',''italic'');');
+uimenu('Label','Bold-Italic','Parent',c1,'Callback','set(gco,''FontWeight'',''bold'',  ''FontAngle'',''italic'');');
 c1 = uimenu('Label','Fontsize','Parent',c0);
 fs = [8 9 10 12 14 16 18]; % [20 24 28 32 36 44 48 54 60 66 72 80 88 96];
 for i=fs,
@@ -1743,7 +1754,7 @@ if (nargin<2)||isempty(c),
     c  = get(batch_box,'UserData');
 end;
 if nargin<3
-        c0 = [];
+    c0 = [];
 end;
 files_select_list('clearvfiles');
 vf =addvfiles1(c,id,{},c0);
@@ -1766,14 +1777,14 @@ if isfield(c,'vfiles'),
             [unused,job] = harvest(c);
             vf1          = feval(c.vfiles,job);
             if ~isempty(c0)
-                    files = filter_files(c0, vf1);
+                files = filter_files(c0, vf1);
             else
-                    files = vf1;
+                files = vf1;
             end;
             if ~isempty(files)
-                    files_select_list('addvfiles', sprintf('Output from "%s"', ...
-                                                           c.name), ...
-                                      files, c.id);
+                files_select_list('addvfiles', sprintf('Output from "%s"', ...
+                    c.name), ...
+                    files, c.id);
             end;
             vf           = {vf{:}, vf1{:}};
         end;
@@ -1784,11 +1795,11 @@ if isfield(c,'vfiles'),
 end;
 
 switch c.type,
-case {'repeat','choice','branch'},
-    for i=1:length(c.val),
-        [vf,sts]=addvfiles1(c.val{i},id,vf,c0);
-        if sts, return; end;
-    end;
+    case {'repeat','choice','branch'},
+        for i=1:length(c.val),
+            [vf,sts]=addvfiles1(c.val{i},id,vf,c0);
+            if sts, return; end;
+        end;
 end;
 
 return;
@@ -1813,37 +1824,37 @@ if ~isstruct(c) || ~isfield(c,'type'),
 end;
 
 if find_id(c,id),
-        sts = 1;
+    sts = 1;
 end;
 
 switch c.type,
-case 'files'
+    case 'files'
         if ~isempty(c.val) && ~isempty(c.val{1})
-                files = filter_files(c0,c.val{1});
-                if ~isempty(files)
-                        files_select_list('addinfiles', ...
-                                          sprintf('Input to "%s->%s"', ...
-                                                  progname, c.name), ...
-                                          files, c.id);
-                end;
+            files = filter_files(c0,c.val{1});
+            if ~isempty(files)
+                files_select_list('addinfiles', ...
+                    sprintf('Input to "%s->%s"', ...
+                    progname, c.name), ...
+                    files, c.id);
+            end;
         end;
-case {'repeat','choice','branch'},
-    if isfield(c,'prog')
+    case {'repeat','choice','branch'},
+        if isfield(c,'prog')
             progname = c.name;
             oldin = files_select_list('getinnum');
-    end;
-    for i=1:length(c.val),
+        end;
+        for i=1:length(c.val),
             sts=addinfiles1(c.val{i},id,progname,c0);
-        if sts, return; end;
-    end;
-    if isfield(c,'prog')
+            if sts, return; end;
+        end;
+        if isfield(c,'prog')
             newin = files_select_list('getinnum');
             if (newin-oldin > 1)
-                    files_select_list('allinfiles', ...
-                                      sprintf('All inputs to %s',progname),...
-                                      oldin+1, newin);
+                files_select_list('allinfiles', ...
+                    sprintf('All inputs to %s',progname),...
+                    oldin+1, newin);
             end;
-    end;
+        end;
 end;
 
 return;
@@ -1852,20 +1863,20 @@ return;
 %------------------------------------------------------------------------
 function ffiles = filter_files(c,files)
 if strcmp(c.filter, 'image')||strcmp(c.filter,'dir')
-        filter = ['ext' c.filter];
+    filter = ['ext' c.filter];
 else
-        filter = c.filter;
+    filter = c.filter;
 end;
 if isfield(c,'ufilter')
-        uf = c.ufilter;
-        if uf(1) == '^' % This will not work with full pathnames
-                uf=uf(2:end);
-        end;
+    uf = c.ufilter;
+    if uf(1) == '^' % This will not work with full pathnames
+        uf=uf(2:end);
+    end;
 else
-        uf = '.*';
+    uf = '.*';
 end;
 ffiles = spm_select('filter', files, ...
-                    filter, uf);
+    filter, uf);
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
@@ -1879,20 +1890,20 @@ persistent indat;
 persistent infiles;
 persistent inid;
 if isstruct(c)
-        switch lower(varargin{1})
+    switch lower(varargin{1})
         case 'getvf'
-                c.val{1} = vffiles{varargin{2}};
+            c.val{1} = vffiles{varargin{2}};
         case 'getin'
-                c.val{1} = infiles{varargin{2}};
-        end;
-        varargout{1} = c;
-        return;
+            c.val{1} = infiles{varargin{2}};
+    end;
+    varargout{1} = c;
+    return;
 end;
 if ~iscell(vfstr) && ~strcmp(lower(c),'init')
-        files_select_list('init');
+    files_select_list('init');
 end;
 switch lower(c)
-case 'init'
+    case 'init'
         vfstr = {};
         vfdat = {};
         vffiles = {};
@@ -1901,40 +1912,40 @@ case 'init'
         indat = {};
         infiles = {};
         inid = [];
-case 'clearvfiles'
+    case 'clearvfiles'
         vfstr = {};
         vfdat = {};
         vffiles = {};
         vfid = [];
-case 'clearinfiles'
+    case 'clearinfiles'
         instr = {};
         indat = {};
         infiles = {};
         inid = [];
-case 'addvfiles'
+    case 'addvfiles'
         nvfind = numel(vfstr)+1;
         vfid(nvfind) = varargin{3};
         vfstr{nvfind} = varargin{1};
         vfdat{nvfind} = struct('fun',@files_select_list,'args',{{'getvf', nvfind}}, ...
-                             'redraw',1);
+            'redraw',1);
         vffiles{nvfind} = varargin{2}(:);
-case 'addinfiles'
+    case 'addinfiles'
         ninind = numel(instr)+1;
         inid(ninind) = varargin{3};
         instr{ninind} = varargin{1};
         indat{ninind} = struct('fun',@files_select_list,'args',{{'getin', ninind}}, ...
-                             'redraw',1);
+            'redraw',1);
         infiles{ninind} = varargin{2}(:);
-case 'allinfiles'
+    case 'allinfiles'
         ninind = numel(instr)+1;
         inid(ninind) = -1;
         instr{ninind} = varargin{1};
         indat{ninind} = struct('fun',@files_select_list,'args',{{'getin', ninind}}, ...
-                             'redraw',1);
-        infiles{ninind} = cat(1,infiles{varargin{2}:varargin{3}});        
-case 'getinnum'
+            'redraw',1);
+        infiles{ninind} = cat(1,infiles{varargin{2}:varargin{3}});
+    case 'getinnum'
         varargout{1} = numel(instr);
-case 'listall'
+    case 'listall'
         varargout{1} = {vfstr{:} instr{:}};
         varargout{2} = {vfdat{:} indat{:}};
 end
@@ -2058,11 +2069,11 @@ for i=1:length(c0.values),
             tag1 = [tag1 '.' c1.tag];
         end;
         if isfield(c1,'prog'),
-             if findcheck(c1),
-                 uimenu(f0,'Label',c1.name,'Enable','off');
-             else
-                 uimenu(f0,'Label',c1.name,'CallBack',@run_serial,'UserData',{'',tag1});
-             end;
+            if findcheck(c1),
+                uimenu(f0,'Label',c1.name,'Enable','off');
+            else
+                uimenu(f0,'Label',c1.name,'CallBack',@run_serial,'UserData',{'',tag1});
+            end;
         else
             f1 = uimenu(f0,'Label',c1.name);
             pulldown2(f1,c1,tag1);
@@ -2198,112 +2209,112 @@ while(1),
     pos = 1;
 
     switch ci.type,
-    case {'const','files','menu','entry'}
-        nnod = nod + 1;
-
-        vl = {'<UNDEFINED>'};
-        if isfield(ci,'def'), vl = getdef(ci.def); end;
-        if numel(vl)~=0 && (~ischar(vl{1}) || ~strcmp(vl{1},'<UNDEFINED>')),
-            getit = 0;
-            if ~isfield(ci,'val') || ~iscell(ci.val) || isempty(ci.val),
-                ci.val = vl;
-            end;
-        else
-            getit = 1;
-        end;
-
-        switch ci.type,
-        case {'const'}
-        case {'files'}
-            num      = ci.num;
-
-            if getit,
-                if ~isempty(ci.val),
-                    sel = ci.val{1};
-                else
-                    sel = '';
-                end;
-                addvfiles(ci.id,c);
-                if isfield(ci,'dir'),
-                    dr = ci.dir;
-                else
-                    dr = pwd;
-                end;
-                if isfield(ci,'ufilter')
-                    uf = ci.ufilter;
-                else
-                    uf = '.*';
-                end;
-                [ci.val{1},ok] = spm_select(num,ci.filter,ci.name,sel,dr,uf);
-                if ~ok,
-                    error('File Selector was deleted.');
-                end;
-                spm_select('clearvfiles');
-                ci.val{1} = cellstr(ci.val{1});
-            end;
-
-        case {'menu'}
-            dv = [];
-            if getit,
-                if isfield(ci,'val') && ~isempty(ci.val),
-                    for i=1:length(ci.values)
-                        if same(ci.values{i},ci.val{1})
-                            dv = i;
-                        end;
-                    end;
-                end;
-                lab = ci.labels{1};
-                for i=2:length(ci.values),
-                    lab = [lab '|' ci.labels{i}];
-                end;
-                if isempty(dv),
-                    ind   = spm_input(ci.name,pos,'m',lab,1:length(ci.values));
-                else
-                    ind   = spm_input(ci.name,pos,'m',lab,1:length(ci.values),dv);
-                end;
-                ci.val = {ci.values{ind}};
-            end;
-
-        case {'entry'}
-            n1  = Inf;
-            if isfield(ci,'num'), n1 = ci.num; end;
-            if getit,
-                val = '';
-                if isfield(ci,'val') && ~isempty(ci.val) && ~strcmp(ci.val{1},'<UNDEFINED>'),
-                    val = ci.val{1};
-                end;
-                if isfield(ci,'extras')
-                    val = spm_input(ci.name,pos,ci.strtype,val,n1,ci.extras);
-                else
-                    val = spm_input(ci.name,pos,ci.strtype,val,n1);
-                end;
-                ci.val{1} = val;
-            end;
-        end;
-
-    case {'repeat'},
-        lab = 'Done';
-        for i=1:length(ci.values)
-            lab = [lab '|New "' ci.values{i}.name '"'];
-        end;
-        tmp = spm_input(ci.name,pos,'m',lab,0:length(ci.values));
-        if tmp,
-            ci.val = {ci.val{:}, uniq_id(ci.values{tmp})};
-            nnod = nod;
-        else
+        case {'const','files','menu','entry'}
             nnod = nod + 1;
-        end;
 
-    case {'choice'}
-        nnod = nod + 1;
-        lab  = ci.values{1}.name;
-        for i=2:length(ci.values)
-            lab = [lab '|' ci.values{i}.name];
-        end;
-        tmp = spm_input(ci.name,pos,'m',lab,1:length(ci.values));
-        ci.val = {uniq_id(ci.values{tmp})};
-    otherwise
-        error('This should not happen.');
+            vl = {'<UNDEFINED>'};
+            if isfield(ci,'def'), vl = getdef(ci.def); end;
+            if numel(vl)~=0 && (~ischar(vl{1}) || ~strcmp(vl{1},'<UNDEFINED>')),
+                getit = 0;
+                if ~isfield(ci,'val') || ~iscell(ci.val) || isempty(ci.val),
+                    ci.val = vl;
+                end;
+            else
+                getit = 1;
+            end;
+
+            switch ci.type,
+                case {'const'}
+                case {'files'}
+                    num      = ci.num;
+
+                    if getit,
+                        if ~isempty(ci.val),
+                            sel = ci.val{1};
+                        else
+                            sel = '';
+                        end;
+                        addvfiles(ci.id,c);
+                        if isfield(ci,'dir'),
+                            dr = ci.dir;
+                        else
+                            dr = pwd;
+                        end;
+                        if isfield(ci,'ufilter')
+                            uf = ci.ufilter;
+                        else
+                            uf = '.*';
+                        end;
+                        [ci.val{1},ok] = spm_select(num,ci.filter,ci.name,sel,dr,uf);
+                        if ~ok,
+                            error('File Selector was deleted.');
+                        end;
+                        spm_select('clearvfiles');
+                        ci.val{1} = cellstr(ci.val{1});
+                    end;
+
+                case {'menu'}
+                    dv = [];
+                    if getit,
+                        if isfield(ci,'val') && ~isempty(ci.val),
+                            for i=1:length(ci.values)
+                                if same(ci.values{i},ci.val{1})
+                                    dv = i;
+                                end;
+                            end;
+                        end;
+                        lab = ci.labels{1};
+                        for i=2:length(ci.values),
+                            lab = [lab '|' ci.labels{i}];
+                        end;
+                        if isempty(dv),
+                            ind   = spm_input(ci.name,pos,'m',lab,1:length(ci.values));
+                        else
+                            ind   = spm_input(ci.name,pos,'m',lab,1:length(ci.values),dv);
+                        end;
+                        ci.val = {ci.values{ind}};
+                    end;
+
+                case {'entry'}
+                    n1  = Inf;
+                    if isfield(ci,'num'), n1 = ci.num; end;
+                    if getit,
+                        val = '';
+                        if isfield(ci,'val') && ~isempty(ci.val) && ~strcmp(ci.val{1},'<UNDEFINED>'),
+                            val = ci.val{1};
+                        end;
+                        if isfield(ci,'extras')
+                            val = spm_input(ci.name,pos,ci.strtype,val,n1,ci.extras);
+                        else
+                            val = spm_input(ci.name,pos,ci.strtype,val,n1);
+                        end;
+                        ci.val{1} = val;
+                    end;
+            end;
+
+        case {'repeat'},
+            lab = 'Done';
+            for i=1:length(ci.values)
+                lab = [lab '|New "' ci.values{i}.name '"'];
+            end;
+            tmp = spm_input(ci.name,pos,'m',lab,0:length(ci.values));
+            if tmp,
+                ci.val = {ci.val{:}, uniq_id(ci.values{tmp})};
+                nnod = nod;
+            else
+                nnod = nod + 1;
+            end;
+
+        case {'choice'}
+            nnod = nod + 1;
+            lab  = ci.values{1}.name;
+            for i=2:length(ci.values)
+                lab = [lab '|' ci.values{i}.name];
+            end;
+            tmp = spm_input(ci.name,pos,'m',lab,1:length(ci.values));
+            ci.val = {uniq_id(ci.values{tmp})};
+        otherwise
+            error('This should not happen.');
     end;
     c = set_node(c,nod,ci);
 end;
@@ -2314,52 +2325,52 @@ function [ci,n,hlp] = get_node(c,n)
 ci  = [];
 hlp = '';
 switch c.type,
-case {'const','files','menu','entry'}
-    n = n-1;
-    if n==0,
-        ci  = c;
-        hlp = {['* ' upper(c.name)],c.help{:},'',''};
-        return;
-    end;
+    case {'const','files','menu','entry'}
+        n = n-1;
+        if n==0,
+            ci  = c;
+            hlp = {['* ' upper(c.name)],c.help{:},'',''};
+            return;
+        end;
 
-case 'choice'
-    n = n-1;
-    if n==0,
-        ci  = c;
-        hlp = {['* ' upper(c.name)],c.help{:},'',''};
-        return;
-    end;
-    [ci,n,hlp] = get_node(c.val{1},n);
-    if ~isempty(ci),
-        hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
-        return;
-    end;
-
-case 'branch',
-    for i=1:numel(c.val),
-        [ci,n,hlp] = get_node(c.val{i},n);
+    case 'choice'
+        n = n-1;
+        if n==0,
+            ci  = c;
+            hlp = {['* ' upper(c.name)],c.help{:},'',''};
+            return;
+        end;
+        [ci,n,hlp] = get_node(c.val{1},n);
         if ~isempty(ci),
             hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
             return;
         end;
-    end;
 
-case 'repeat',
-    for i=1:numel(c.val),
-        [ci,n,hlp] = get_node(c.val{i},n);
-        if ~isempty(ci),
-            hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
+    case 'branch',
+        for i=1:numel(c.val),
+            [ci,n,hlp] = get_node(c.val{i},n);
+            if ~isempty(ci),
+                hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
+                return;
+            end;
+        end;
+
+    case 'repeat',
+        for i=1:numel(c.val),
+            [ci,n,hlp] = get_node(c.val{i},n);
+            if ~isempty(ci),
+                hlp = {hlp{:},repmat('=',1,20),'',['* ' upper(c.name)],c.help{:},'',''};
+                return;
+            end;
+        end;
+        n = n-1;
+        if n==0,
+            ci  = c;
+            hlp = {['* ' upper(c.name)],c.help{:},'',''};
             return;
         end;
-    end;
-    n = n-1;
-    if n==0,
-        ci  = c;
-        hlp = {['* ' upper(c.name)],c.help{:},'',''};
-        return;
-    end;
-otherwise
-    error('This should not happen');
+    otherwise
+        error('This should not happen');
 
 end;
 %------------------------------------------------------------------------
@@ -2367,38 +2378,38 @@ end;
 %------------------------------------------------------------------------
 function [c,n] = set_node(c,n,ci)
 switch c.type,
-case {'const','files','menu','entry'}
-    n = n-1;
-    if n==0,
-        c = ci;
-        return;
-    end;
+    case {'const','files','menu','entry'}
+        n = n-1;
+        if n==0,
+            c = ci;
+            return;
+        end;
 
-case 'choice'
-    n = n-1;
-    if n==0,
-        c = ci;
-        return;
-    end;
-    [c.val{1},n] = set_node(c.val{1},n,ci);
-    if n<0,return; end;
-
-case 'branch',
-    for i=1:numel(c.val),
-        [c.val{i},n] = set_node(c.val{i},n,ci);
+    case 'choice'
+        n = n-1;
+        if n==0,
+            c = ci;
+            return;
+        end;
+        [c.val{1},n] = set_node(c.val{1},n,ci);
         if n<0,return; end;
-    end;
 
-case 'repeat',
-    for i=1:numel(c.val),
-        [c.val{i},n] = set_node(c.val{i},n,ci);
-        if n<0,return; end;
-    end;
-    n = n-1;
-    if n==0,
-        c = ci;
-        return;
-    end;
+    case 'branch',
+        for i=1:numel(c.val),
+            [c.val{i},n] = set_node(c.val{i},n,ci);
+            if n<0,return; end;
+        end;
+
+    case 'repeat',
+        for i=1:numel(c.val),
+            [c.val{i},n] = set_node(c.val{i},n,ci);
+            if n<0,return; end;
+        end;
+        n = n-1;
+        if n==0,
+            c = ci;
+            return;
+        end;
 
 end;
 %------------------------------------------------------------------------
@@ -2422,7 +2433,7 @@ else
     c      = hide_null_jobs(c);
     if nargin>0 && ~isempty(job),
         if ischar(job)||iscellstr(job)
-            % only call fromfile if job(s) are identified by strings 
+            % only call fromfile if job(s) are identified by strings
             [job,jobhelp] = fromfile(job);
         else
             % job structure given, we therefore don't have jobhelp
@@ -2440,30 +2451,30 @@ function [c,defused] = defsub(c,defused)
 if nargin<2, defused = {}; end;
 if isfield(c,'prog'), c = rmfield(c,'prog'); end;
 switch c.type,
-case {'const'}
-    c = [];
-
-case {'menu','entry','files'}
-    if ~isfield(c,'def') || any(strcmp(c.def,defused)),
+    case {'const'}
         c = [];
-    else
-        defused = {defused{:},c.def};
-    end;
 
-case {'branch'}
-    msk = true(1,length(c.val));
-    for i=1:length(c.val),
-        [c.val{i},defused] = defsub(c.val{i},defused);
-        msk(i)   = ~isempty(c.val{i});
-    end;
-    c.val = c.val(msk);
-    if isempty(c.val), c = []; end;
+    case {'menu','entry','files'}
+        if ~isfield(c,'def') || any(strcmp(c.def,defused)),
+            c = [];
+        else
+            defused = {defused{:},c.def};
+        end;
 
-case {'choice','repeat'}
-    c.type = 'branch';
-    c.val  = c.values;
-    c      = rmfield(c,'values');
-    [c,defused] = defsub(c,defused);
+    case {'branch'}
+        msk = true(1,length(c.val));
+        for i=1:length(c.val),
+            [c.val{i},defused] = defsub(c.val{i},defused);
+            msk(i)   = ~isempty(c.val{i});
+        end;
+        c.val = c.val(msk);
+        if isempty(c.val), c = []; end;
+
+    case {'choice','repeat'}
+        c.type = 'branch';
+        c.val  = c.values;
+        c      = rmfield(c,'values');
+        [c,defused] = defsub(c,defused);
 
 end;
 if isfield(c,'vfiles'), c = rmfield(c,'vfiles'); end;
@@ -2473,30 +2484,30 @@ return;
 
 %------------------------------------------------------------------------
 function c = insert_defs(c)
-% Recursively descend through the tree structure, 
+% Recursively descend through the tree structure,
 % and assigning default values.
 if ~isstruct(c) || ~isfield(c,'type'),
     return;
 end;
 switch c.type
-case {'menu','entry','files'}
-    if isfield(c,'def')
-        c.val = getdef(c.def);
-        if strcmp(c.type,'files') && ~isempty(c.val)
-            if ~isempty(c.val{1})
-                c.val = {cellstr(c.val{1})};
-            else
-                c.val = {{}};
+    case {'menu','entry','files'}
+        if isfield(c,'def')
+            c.val = getdef(c.def);
+            if strcmp(c.type,'files') && ~isempty(c.val)
+                if ~isempty(c.val{1})
+                    c.val = {cellstr(c.val{1})};
+                else
+                    c.val = {{}};
+                end;
             end;
         end;
-    end;
 
-case {'repeat','choice'},
-    if isfield(c,'values')
-        for i=1:numel(c.values)
-            c.values{i} = insert_defs(c.values{i});
+    case {'repeat','choice'},
+        if isfield(c,'values')
+            for i=1:numel(c.values)
+                c.values{i} = insert_defs(c.values{i});
+            end;
         end;
-    end;
 end;
 if isfield(c,'val')
     for i=1:numel(c.val)
@@ -2520,132 +2531,132 @@ if ~isfield(c,'help'), c.help = {}; end;
 if ischar(c.help), c.help = {c.help}; end;
 
 switch c.type
-case {'const'}
-    if ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-    if ~isfield(c,'val')
-        disp(c); warning(['No val field for "' c.name '"']);
-        c.val = {'<UNDEFINED>'};
-    end;
-
-case {'menu'}
-    if ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-
-    if ~isfield(c,'labels') || ~isfield(c,'values')
-        disp(c); warning(['No labels and values field for "' c.name '"']);
-        c.labels = {};
-        c.values = {};
-    end;
-    if length(c.labels) ~= length(c.values)
-        disp(c); warning(['Labels and values fields incompatible for "' c.name '"']);
-        c.labels = {};
-        c.values = {};
-    end;
-    if ~isfield(c,'help'), c.help = {'Option selection by menu'}; end;
-
-case {'entry'}
-    if ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-    if ~isfield(c,'strtype')
-        disp(c); warning(['No strtype field for "' c.name '"']);
-        c.strtype = 'e';
-    end;
-    if ~isfield(c,'num')
-        disp(c); warning(['No num field for "' c.name '"']);
-        c.num = [1 1];
-    end;
-    if length(c.num)~=2
-        disp(c); warning(['Num field for "' c.name '" is wrong length']);
-        c.num = [Inf 1];
-    end;
-    if ~isfield(c,'help'), c.help = {'Option selection by text entry'}; end;
-
-case {'files'}
-    if ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-    if ~isfield(c,'filter')
-        disp(c); warning(['No filter field for "' c.name '"']);
-        c.filter = '*';
-    end;
-    if ~isfield(c,'num')
-        disp(c); warning(['No num field for "' c.name '"']);
-        c.num = Inf;
-    end;
-    if length(c.num)~=1 && length(c.num)~=2
-        disp(c); warning(['Num field for "' c.name '" is wrong length']);
-        c.num = Inf;
-    end;
-    if isfield(c,'val') && iscell(c.val) && numel(c.val)>=1,
-        if ischar(c.val{1})
-            c.val{1} = cellstr(c.val{1});
+    case {'const'}
+        if ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
         end;
-    end;
-    if ~isfield(c,'help'), c.help = {'File selection'}; end;
-
-case {'branch'}
-    if ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-    if ~isfield(c,'val')
-        disp(c); warning(['No val field for "' c.name '"']);
-        c.val = {};
-    end;
-
-    c.expanded = false;
-    if ~isfield(c,'help'), c.help = {'Branch structure'}; end;
-
-case {'choice'}
-    if ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-    if ~isfield(c,'values') || ~iscell(c.values)
-        disp(c); error(['Bad values for "' c.name '"']);
-    end;
-    for i=1:length(c.values)
-        c.values{i} = tidy_struct(c.values{i});
-    end;
-    if ~isfield(c,'val') || ~iscell(c.val) || length(c.val) ~= 1
-        c.val = {c.values{1}};
-    end;
-    c.expanded = true;
-    if ~isfield(c,'help'), c.help = {'Choice structure'}; end;
-
-case {'repeat'}
-    if ~isfield(c,'values') || ~iscell(c.values)
-        disp(c); error(['Bad values for "' c.name '"']);
-    end;
-    for i=1:length(c.values)
-        c.values{i} = tidy_struct(c.values{i});
-    end;
-    if length(c.values)>1 && ~isfield(c,'tag')
-        disp(c); warning(['No tag field for "' c.name '"']);
-        c.tag = 'unknown';
-    end;
-    if length(c.values)==1 && isfield(c,'tag')
-    %    disp(c); warning(['"' c.name '" has unused tag']);
-        c = rmfield(c,'tag');
-    end;
-    c.expanded = true;
-    if ~isfield(c,'help'), c.help = {'Repeated structure'}; end;
-
-    if isfield(c,'num') && numel(c.num)==1,
-        if finite(c.num),
-            c.num = [c.num c.num];
-        else
-            c.num = [0 c.num];
+        if ~isfield(c,'val')
+            disp(c); warning(['No val field for "' c.name '"']);
+            c.val = {'<UNDEFINED>'};
         end;
-    end;
+
+    case {'menu'}
+        if ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
+        end;
+
+        if ~isfield(c,'labels') || ~isfield(c,'values')
+            disp(c); warning(['No labels and values field for "' c.name '"']);
+            c.labels = {};
+            c.values = {};
+        end;
+        if length(c.labels) ~= length(c.values)
+            disp(c); warning(['Labels and values fields incompatible for "' c.name '"']);
+            c.labels = {};
+            c.values = {};
+        end;
+        if ~isfield(c,'help'), c.help = {'Option selection by menu'}; end;
+
+    case {'entry'}
+        if ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
+        end;
+        if ~isfield(c,'strtype')
+            disp(c); warning(['No strtype field for "' c.name '"']);
+            c.strtype = 'e';
+        end;
+        if ~isfield(c,'num')
+            disp(c); warning(['No num field for "' c.name '"']);
+            c.num = [1 1];
+        end;
+        if length(c.num)~=2
+            disp(c); warning(['Num field for "' c.name '" is wrong length']);
+            c.num = [Inf 1];
+        end;
+        if ~isfield(c,'help'), c.help = {'Option selection by text entry'}; end;
+
+    case {'files'}
+        if ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
+        end;
+        if ~isfield(c,'filter')
+            disp(c); warning(['No filter field for "' c.name '"']);
+            c.filter = '*';
+        end;
+        if ~isfield(c,'num')
+            disp(c); warning(['No num field for "' c.name '"']);
+            c.num = Inf;
+        end;
+        if length(c.num)~=1 && length(c.num)~=2
+            disp(c); warning(['Num field for "' c.name '" is wrong length']);
+            c.num = Inf;
+        end;
+        if isfield(c,'val') && iscell(c.val) && numel(c.val)>=1,
+            if ischar(c.val{1})
+                c.val{1} = cellstr(c.val{1});
+            end;
+        end;
+        if ~isfield(c,'help'), c.help = {'File selection'}; end;
+
+    case {'branch'}
+        if ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
+        end;
+        if ~isfield(c,'val')
+            disp(c); warning(['No val field for "' c.name '"']);
+            c.val = {};
+        end;
+
+        c.expanded = false;
+        if ~isfield(c,'help'), c.help = {'Branch structure'}; end;
+
+    case {'choice'}
+        if ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
+        end;
+        if ~isfield(c,'values') || ~iscell(c.values)
+            disp(c); error(['Bad values for "' c.name '"']);
+        end;
+        for i=1:length(c.values)
+            c.values{i} = tidy_struct(c.values{i});
+        end;
+        if ~isfield(c,'val') || ~iscell(c.val) || length(c.val) ~= 1
+            c.val = {c.values{1}};
+        end;
+        c.expanded = true;
+        if ~isfield(c,'help'), c.help = {'Choice structure'}; end;
+
+    case {'repeat'}
+        if ~isfield(c,'values') || ~iscell(c.values)
+            disp(c); error(['Bad values for "' c.name '"']);
+        end;
+        for i=1:length(c.values)
+            c.values{i} = tidy_struct(c.values{i});
+        end;
+        if length(c.values)>1 && ~isfield(c,'tag')
+            disp(c); warning(['No tag field for "' c.name '"']);
+            c.tag = 'unknown';
+        end;
+        if length(c.values)==1 && isfield(c,'tag')
+            %    disp(c); warning(['"' c.name '" has unused tag']);
+            c = rmfield(c,'tag');
+        end;
+        c.expanded = true;
+        if ~isfield(c,'help'), c.help = {'Repeated structure'}; end;
+
+        if isfield(c,'num') && numel(c.num)==1,
+            if finite(c.num),
+                c.num = [c.num c.num];
+            else
+                c.num = [0 c.num];
+            end;
+        end;
 
 end;
 
@@ -2690,40 +2701,40 @@ for cf = 1:numel(filenames)
     jobhelps = {[]};
     [p,nam,ext] = fileparts(filenames{cf});
     switch ext
-    case '.xml',
-        spm('Pointer','Watch');
-        try
-            loadxml(filenames{cf},'jobs');
-        catch
-            questdlg('LoadXML failed',filenames{cf},'OK','OK');
-            return;
-        end;
-        try
-            loadxml(filenames{cf},'jobhelps');
-        end;
-        spm('Pointer');
-    case '.mat'
-        try
-            S=load(filenames{cf});
-            jobs = S.jobs;
-            if isfield(S,'jobhelps')
-                jobhelps=S.jobhelps;
+        case '.xml',
+            spm('Pointer','Watch');
+            try
+                loadxml(filenames{cf},'jobs');
+            catch
+                questdlg('LoadXML failed',filenames{cf},'OK','OK');
+                return;
             end;
-        catch
-            questdlg('Load failed',filenames{cf},'OK','OK');
-        end;
-     case '.m'
-        opwd = pwd;
-        try
-            cd(p);
-            eval(nam);
-        catch
-            questdlg('Load failed',filenames{cf},'OK','OK');
-        end;
-        cd(opwd);
-    otherwise
-        questdlg(['Job ' nam ': Unknown extension (' ext ')'],...
-                 'This job not loaded','OK','OK');
+            try
+                loadxml(filenames{cf},'jobhelps');
+            end;
+            spm('Pointer');
+        case '.mat'
+            try
+                S=load(filenames{cf});
+                jobs = S.jobs;
+                if isfield(S,'jobhelps')
+                    jobhelps=S.jobhelps;
+                end;
+            catch
+                questdlg('Load failed',filenames{cf},'OK','OK');
+            end;
+        case '.m'
+            opwd = pwd;
+            try
+                cd(p);
+                eval(nam);
+            catch
+                questdlg('Load failed',filenames{cf},'OK','OK');
+            end;
+            cd(opwd);
+        otherwise
+            questdlg(['Job ' nam ': Unknown extension (' ext ')'],...
+                'This job not loaded','OK','OK');
     end;
     if exist('jobs','var')
         newjobs = {newjobs{:} jobs{:}};
@@ -2758,25 +2769,25 @@ if ~include(c),
 end;
 
 switch c.type,
-case {'repeat','branch','choice'},
-    msk1 = true;
-    msk2 = true;
-    if isfield(c,'val') && ~isempty(c.val),
-        msk1 = true(1,numel(c.val));
-        for i=1:length(c.val)
-            [c.val{i},msk1(i)] = hide_null_jobs1(c.val{i});
+    case {'repeat','branch','choice'},
+        msk1 = true;
+        msk2 = true;
+        if isfield(c,'val') && ~isempty(c.val),
+            msk1 = true(1,numel(c.val));
+            for i=1:length(c.val)
+                [c.val{i},msk1(i)] = hide_null_jobs1(c.val{i});
+            end;
         end;
-    end;
-    if isfield(c,'values') && ~isempty(c.values),
-        msk2 = true(1,numel(c.values));
-        for i=1:length(c.values)
-            [c.values{i},msk2(i)] = hide_null_jobs1(c.values{i});
+        if isfield(c,'values') && ~isempty(c.values),
+            msk2 = true(1,numel(c.values));
+            for i=1:length(c.values)
+                [c.values{i},msk2(i)] = hide_null_jobs1(c.values{i});
+            end;
         end;
-    end;
-    flg = any(msk1) || any(msk2);
-    if ~flg, c.hidden = true; end;
-otherwise
-    flg = true;
+        flg = any(msk1) || any(msk2);
+        if ~flg, c.hidden = true; end;
+    otherwise
+        flg = true;
 end;
 return;
 %------------------------------------------------------------------------
@@ -2796,7 +2807,7 @@ if isfield(c,'modality'),
                 return;
             end;
         end;
-   end;
+    end;
 end;
 return;
 %------------------------------------------------------------------------
@@ -2813,26 +2824,26 @@ if isfield(c,'prog'),
 end;
 
 switch c.type,
-case {'repeat','branch','choice'},
-    flg = 0;
-    msk1 = [];
-    msk2 = [];
-    if isfield(c,'val'),
-        msk1 = ones(1,numel(c.val));
-        for i=1:length(c.val)
-            [c.val{i},msk1(i)] = hide_null_jobs2(c.val{i});
+    case {'repeat','branch','choice'},
+        flg = 0;
+        msk1 = [];
+        msk2 = [];
+        if isfield(c,'val'),
+            msk1 = ones(1,numel(c.val));
+            for i=1:length(c.val)
+                [c.val{i},msk1(i)] = hide_null_jobs2(c.val{i});
+            end;
         end;
-    end;
-    if isfield(c,'values'),
-        msk2 = ones(1,numel(c.values));
-        for i=1:length(c.values)
-            [c.values{i},msk2(i)] = hide_null_jobs2(c.values{i});
+        if isfield(c,'values'),
+            msk2 = ones(1,numel(c.values));
+            for i=1:length(c.values)
+                [c.values{i},msk2(i)] = hide_null_jobs2(c.values{i});
+            end;
         end;
-    end;
-    if (sum(msk1) + sum(msk2))>0, flg = 1; end;
-    if ~flg, c.hidden = 1; end;
-otherwise
-    flg = 0;
+        if (sum(msk1) + sum(msk2))>0, flg = 1; end;
+        if ~flg, c.hidden = 1; end;
+    otherwise
+        flg = 0;
 end;
 return;
 %------------------------------------------------------------------------
@@ -2844,97 +2855,97 @@ if isstruct(c) && isfield(c,'hidden'),
     return;
 end;
 switch c.type
-case {'const','menu','files','entry'}
-    if ~strcmp(gettag(c),tag), return; end;
-    if ischar(job) && strcmp(job,'<UNDEFINED>')
-        c.val = {};
-    else
-        c.val{1} = job;
-    end;
-    c.jobhelp = jobhelp;
-    
-case {'branch'}
-    if ~strcmp(gettag(c),tag), return; end;
-    if ~isstruct(job), return; end;
-    if ~isempty(jobhelp) && isstruct(jobhelp) && isfield(jobhelp, 'jobhelp')
-        c.jobhelp = jobhelp.jobhelp;
-    end;
-    
-    tag = fieldnames(job);
-    for i=1:length(tag)
-        for j=1:length(c.val)
-            if strcmp(gettag(c.val{j}),tag{i})
-                try
-                    c.val{j} = job_to_struct(c.val{j},job.(tag{i}),jobhelp.(tag{i}), ...
-                                             tag{i});
-                catch
-                    c.val{j} = job_to_struct(c.val{j},job.(tag{i}),[], ...
-                                             tag{i});
-                end;
-                break;
-            end;
+    case {'const','menu','files','entry'}
+        if ~strcmp(gettag(c),tag), return; end;
+        if ischar(job) && strcmp(job,'<UNDEFINED>')
+            c.val = {};
+        else
+            c.val{1} = job;
         end;
-    end;
+        c.jobhelp = jobhelp;
 
-case {'choice'}
-    if ~strcmp(gettag(c),tag), return; end;
-    if ~isstruct(job), return; end;
-    tag = fieldnames(job);
-    if length(tag)>1, return; end;
-    tag = tag{1};
-    for j=1:length(c.values)
-        if strcmp(gettag(c.values{j}),tag)
-            try
-                c.val = {job_to_struct(c.values{j},job.(tag),jobhelp.(tag),tag)};
-            catch
-                c.val = {job_to_struct(c.values{j},job.(tag),[],tag)};
-            end;
-        end;
-    end;
-
-case {'repeat'}
-    if ~strcmp(gettag(c),tag), return; end;
-    if length(c.values)==1 && strcmp(c.values{1}.type,'branch')
+    case {'branch'}
+        if ~strcmp(gettag(c),tag), return; end;
         if ~isstruct(job), return; end;
-        for i=1:length(job)
-            if strcmp(gettag(c.values{1}),tag)
-                try
-                    c.val{i} = job_to_struct(c.values{1},job(i),jobhelp(i), tag);
-                catch
-                    c.val{i} = job_to_struct(c.values{1},job(i),[],tag);
-                end;
-                c.val{i}.removable = true;
-            end;
+        if ~isempty(jobhelp) && isstruct(jobhelp) && isfield(jobhelp, 'jobhelp')
+            c.jobhelp = jobhelp.jobhelp;
         end;
-    elseif length(c.values)>1
-        if ~iscell(job), return; end;
-        for i=1:length(job)
-            tag = fieldnames(job{i});
-            if length(tag)>1, return; end;
-            tag = tag{1};
-            for j=1:length(c.values)
-                if strcmp(gettag(c.values{j}),tag)
+
+        tag = fieldnames(job);
+        for i=1:length(tag)
+            for j=1:length(c.val)
+                if strcmp(gettag(c.val{j}),tag{i})
                     try
-                        c.val{i} = job_to_struct(c.values{j},job{i}.(tag),jobhelp{i}.(tag),tag);
+                        c.val{j} = job_to_struct(c.val{j},job.(tag{i}),jobhelp.(tag{i}), ...
+                            tag{i});
                     catch
-                        c.val{i} = job_to_struct(c.values{j}, job{i}.(tag),[],tag);
+                        c.val{j} = job_to_struct(c.val{j},job.(tag{i}),[], ...
+                            tag{i});
                     end;
-                    c.val{i}.removable = true;
                     break;
                 end;
             end;
         end;
-    else
-        if ~iscell(job), return; end;
-        for i=1:length(job)
-            try
-                c.val{i} = job_to_struct(c.values{1},job{i},jobhelp{i},tag);
-            catch
-                c.val{i} = job_to_struct(c.values{1},job{i},[],tag);
+
+    case {'choice'}
+        if ~strcmp(gettag(c),tag), return; end;
+        if ~isstruct(job), return; end;
+        tag = fieldnames(job);
+        if length(tag)>1, return; end;
+        tag = tag{1};
+        for j=1:length(c.values)
+            if strcmp(gettag(c.values{j}),tag)
+                try
+                    c.val = {job_to_struct(c.values{j},job.(tag),jobhelp.(tag),tag)};
+                catch
+                    c.val = {job_to_struct(c.values{j},job.(tag),[],tag)};
+                end;
             end;
-            c.val{i}.removable = true;
         end;
-    end;
+
+    case {'repeat'}
+        if ~strcmp(gettag(c),tag), return; end;
+        if length(c.values)==1 && strcmp(c.values{1}.type,'branch')
+            if ~isstruct(job), return; end;
+            for i=1:length(job)
+                if strcmp(gettag(c.values{1}),tag)
+                    try
+                        c.val{i} = job_to_struct(c.values{1},job(i),jobhelp(i), tag);
+                    catch
+                        c.val{i} = job_to_struct(c.values{1},job(i),[],tag);
+                    end;
+                    c.val{i}.removable = true;
+                end;
+            end;
+        elseif length(c.values)>1
+            if ~iscell(job), return; end;
+            for i=1:length(job)
+                tag = fieldnames(job{i});
+                if length(tag)>1, return; end;
+                tag = tag{1};
+                for j=1:length(c.values)
+                    if strcmp(gettag(c.values{j}),tag)
+                        try
+                            c.val{i} = job_to_struct(c.values{j},job{i}.(tag),jobhelp{i}.(tag),tag);
+                        catch
+                            c.val{i} = job_to_struct(c.values{j}, job{i}.(tag),[],tag);
+                        end;
+                        c.val{i}.removable = true;
+                        break;
+                    end;
+                end;
+            end;
+        else
+            if ~iscell(job), return; end;
+            for i=1:length(job)
+                try
+                    c.val{i} = job_to_struct(c.values{1},job{i},jobhelp{i},tag);
+                catch
+                    c.val{i} = job_to_struct(c.values{1},job{i},[],tag);
+                end;
+                c.val{i}.removable = true;
+            end;
+        end;
 
 end;
 return;
@@ -2992,7 +3003,7 @@ end;
 function doc = showdoc2(c,lev,wid)
 doc = {''};
 if ~isempty(lev) && sum(lev=='.')==1,
-        % doc = {doc{:},repmat('_',1,80),''};
+    % doc = {doc{:},repmat('_',1,80),''};
 end;
 
 if isfield(c,'name'),
@@ -3012,11 +3023,23 @@ if isfield(c,'name'),
     end;
 
     switch (c.type),
-    case {'repeat'},
-        if length(c.values)==1,
-            doc = {doc{:}, '', sprintf('Repeat "%s", any number of times.',c.values{1}.name)};
-        else
-            doc = {doc{:}, '', 'Any of the following options can be chosen, any number of times'};
+        case {'repeat'},
+            if length(c.values)==1,
+                doc = {doc{:}, '', sprintf('Repeat "%s", any number of times.',c.values{1}.name)};
+            else
+                doc = {doc{:}, '', 'Any of the following options can be chosen, any number of times'};
+                i = 0;
+                for ii=1:length(c.values),
+                    if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
+                        i    = i+1;
+                        doc = {doc{:}, sprintf('    %2d) %s', i,c.values{ii}.name)};
+                    end;
+                end;
+            end;
+            doc = {doc{:},''};
+
+        case {'choice'},
+            doc = {doc{:}, '', 'Any one of these options can be selected:'};
             i = 0;
             for ii=1:length(c.values),
                 if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
@@ -3024,61 +3047,49 @@ if isfield(c,'name'),
                     doc = {doc{:}, sprintf('    %2d) %s', i,c.values{ii}.name)};
                 end;
             end;
-        end;
-        doc = {doc{:},''};
+            doc = {doc{:},''};
 
-    case {'choice'},
-        doc = {doc{:}, '', 'Any one of these options can be selected:'};
-        i = 0;
-        for ii=1:length(c.values),
-            if isstruct(c.values{ii}) && isfield(c.values{ii},'name'),
-                i    = i+1;
-                doc = {doc{:}, sprintf('    %2d) %s', i,c.values{ii}.name)};
+        case {'branch'},
+            doc = {doc{:}, '', sprintf('This item contains %d fields:', length(c.val))};
+            i = 0;
+            for ii=1:length(c.val),
+                if isstruct(c.val{ii}) && isfield(c.val{ii},'name'),
+                    i    = i+1;
+                    doc = {doc{:}, sprintf('    %2d) %s', i,c.val{ii}.name)};
+                end;
             end;
-        end;
-        doc = {doc{:},''};
+            doc = {doc{:},''};
 
-    case {'branch'},
-        doc = {doc{:}, '', sprintf('This item contains %d fields:', length(c.val))};
-        i = 0;
-        for ii=1:length(c.val),
-            if isstruct(c.val{ii}) && isfield(c.val{ii},'name'),
-                i    = i+1;
-                doc = {doc{:}, sprintf('    %2d) %s', i,c.val{ii}.name)};
+        case {'menu'},
+            doc = {doc{:}, '', 'One of these values is chosen:'};
+            for k=1:length(c.labels),
+                doc = {doc{:}, sprintf('    %2d) %s', k, c.labels{k})};
             end;
-        end;
-        doc = {doc{:},''};
+            doc = {doc{:},''};
 
-    case {'menu'},
-        doc = {doc{:}, '', 'One of these values is chosen:'};
-        for k=1:length(c.labels),
-            doc = {doc{:}, sprintf('    %2d) %s', k, c.labels{k})};
-        end;
-        doc = {doc{:},''};
+        case {'files'},
+            if length(c.num)==1 && isfinite(c.num(1)) && c.num(1)>=0,
+                tmp = spm_justify(wid,sprintf('A "%s" file is selected by the user.',c.filter));
+            else
+                tmp = spm_justify(wid,sprintf('"%s" files are selected by the user.\n',c.filter));
+            end;
+            doc = {doc{:}, '', tmp{:}, ''};
 
-    case {'files'},
-        if length(c.num)==1 && isfinite(c.num(1)) && c.num(1)>=0,
-            tmp = spm_justify(wid,sprintf('A "%s" file is selected by the user.',c.filter));
-        else
-            tmp = spm_justify(wid,sprintf('"%s" files are selected by the user.\n',c.filter));
-        end;
-        doc = {doc{:}, '', tmp{:}, ''};
-
-    case {'entry'},
-        switch c.strtype,
-        case {'e'},
-            d = 'Evaluated statements';
-        case {'n'},
-            d = 'Natural numbers';
-        case {'r'},
-            d = 'Real numbers';
-        case {'w'},
-            d = 'Whole numbers';
-        otherwise,
-            d = 'Values';
-        end;
-        tmp = spm_justify(wid,sprintf('%s are entered.',d));
-        doc = {doc{:}, '', tmp{:}, ''};
+        case {'entry'},
+            switch c.strtype,
+                case {'e'},
+                    d = 'Evaluated statements';
+                case {'n'},
+                    d = 'Natural numbers';
+                case {'r'},
+                    d = 'Real numbers';
+                case {'w'},
+                    d = 'Whole numbers';
+                otherwise,
+                    d = 'Values';
+            end;
+            tmp = spm_justify(wid,sprintf('%s are entered.',d));
+            doc = {doc{:}, '', tmp{:}, ''};
     end;
 
     i = 0;
@@ -3159,7 +3170,7 @@ end;
 function jobhelp = showjobhelp2(c,lev,wid)
 jobhelp = {''};
 if ~isempty(lev) && sum(lev=='.')==1,
-        % jobhelp = {jobhelp{:},repmat('_',1,80),''};
+    % jobhelp = {jobhelp{:},repmat('_',1,80),''};
 end;
 
 if isfield(c,'name') && isfield(c,'jobhelp'),
@@ -3192,7 +3203,7 @@ else
     col1 = col1{1};
 end;
 set(h,'Style','edit','HorizontalAlignment','left', 'Callback', ...
-      @edit_jobhelp_accept, 'BackgroundColor',col1);
+    @edit_jobhelp_accept, 'BackgroundColor',col1);
 run_in_current_node(@get_jobhelp,0,h);
 %------------------------------------------------------------------------
 
@@ -3215,8 +3226,8 @@ else
 end;
 jobhelp = get(h,'string');
 set(h,'Style','listbox', 'HorizontalAlignment', ...
-      'Center', 'Callback',[], 'BackgroundColor',col2, 'String', ...
-      spm_justify(h,jobhelp));
+    'Center', 'Callback',[], 'BackgroundColor',col2, 'String', ...
+    spm_justify(h,jobhelp));
 run_in_current_node(@set_jobhelp,1,jobhelp);
 %------------------------------------------------------------------------
 
