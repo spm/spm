@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 658 2006-10-19 12:28:44Z volkmar $
+% $Id: spm_config_factorial_design.m 918 2007-09-18 15:10:56Z john $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -1408,7 +1408,7 @@ switch strvcat(fieldnames(job.masking.tm)),
         % Relative
         M_T = job.masking.tm.tmr.rthresh*sqrt(-1);
         % Need to force calculation of globals
-        iGXcalc=3;
+        if iGXcalc~=2, iGXcalc=3; end
     case 'tm_none'
         % None
         M_T = -Inf;
