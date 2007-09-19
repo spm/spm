@@ -397,7 +397,7 @@ void composition_jacobian(int dm[],
         k011  = Bz[o011]-1.0;
         k111  = Bz[o111]-1.0;
 
-        n     = dm[0];
+        n     = dm[2];
         k100 -= floor((k100-k000)/n+0.5)*n;
         k010 -= floor((k010-k000)/n+0.5)*n;
         k110 -= floor((k110-k000)/n+0.5)*n;
@@ -574,7 +574,7 @@ void composition_jacdet(int dm[],
         k011  = Bz[o011]-1.0;
         k111  = Bz[o111]-1.0;
 
-        n     = dm[0];
+        n     = dm[2];
         k100 -= floor((k100-k000)/n+0.5)*n;
         k010 -= floor((k010-k000)/n+0.5)*n;
         k110 -= floor((k110-k000)/n+0.5)*n;
