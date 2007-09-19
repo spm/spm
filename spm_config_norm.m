@@ -4,7 +4,7 @@ function opts = spm_config_norm
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_norm.m 897 2007-08-27 11:42:07Z volkmar $
+% $Id: spm_config_norm.m 920 2007-09-19 05:59:35Z volkmar $
 
 
 %_______________________________________________________________________
@@ -167,7 +167,7 @@ preserve.labels = {'Preserve Concentrations','Preserve Amount'};
 preserve.values = {0,1};
 preserve.def  = 'normalise.write.preserve';
 p1 = ['Preserve Concentrations: ',...
-'Spatially normalised images are not"modulated". The warped images ',...
+'Spatially normalised images are not "modulated". The warped images ',...
 'preserve the intensities of the original images.'];
 p2 = ['Preserve Total: ',...
 'Spatially normalised images are "modulated" in order to preserve the ',...
