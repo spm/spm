@@ -67,7 +67,6 @@ case 'init'
 % Initialise the variables with GUI
 % e.g. spm_eeg_inv_ecd_DrawDip('Init')
 %------------------------------------------------------------------------
-%spm('Clear')
 
 if nargin < 2
     load(spm_select(1,'^.*S.*dip.*\.mat$','Select dipole file'));
@@ -83,16 +82,10 @@ if ~isfield(sdip,'exitflag')
     sdip.exitflag = ones(1,sdip.n_seeds);
 end
 
-Pcanonical = fullfile(spm('dir'),'canonical','avg152T1.nii');
-
-if nargin<3
-	if ~isstruct(st)
-        P = Pcanonical;
-	elseif isempty(st.vols{1})
-        P = Pcanonical;
-	end
-else
+try
     P = varargin{2};
+catch
+    P = fullfile(spm('dir'),'canonical','avg152T1.nii');
 end
 if ischar(P), P = spm_vol(P); end;
 spm_orthviews('Reset');

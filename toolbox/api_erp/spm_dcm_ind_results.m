@@ -2,14 +2,15 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Results for induced Dynamic Causal Modeling (DCM)
 % FORMAT spm_dcm_ind_results(DCM,Action);
 % Action:
-% 'Frequency modes'
-% 'Time-modes'
-% 'Time-frequency'
-% 'Coupling (A)'
-% 'Coupling (B)'
-% 'Input (C)'
-% 'Input'
-% 'Dipoles'
+%     'Frequency modes'
+%     'Time-modes'
+%     'Time-frequency'
+%     'Coupling (A - Hz)'
+%     'Coupling (A - modes)'
+%     'Coupling (B)'
+%     'Input (C - Hz)'
+%     'Input (u - ms)'
+%     'Dipoles'
 %                
 %___________________________________________________________________________
 %
@@ -63,6 +64,10 @@ case{lower('Frequency modes')}
     axis square
     grid on
     
+    for i = 1:nm
+        str{i} = sprintf('mode %i',i);
+    end
+    legend(str)
     
 case{lower('Time-modes')}
     
@@ -83,7 +88,7 @@ case{lower('Time-modes')}
         xlabel('time (ms)')
         try, axis(A), catch A = axis; end
     end
-   
+    legend(DCM.Sname)
 
     
 case{lower('Time-frequency')}
@@ -115,20 +120,40 @@ case{lower('Time-frequency')}
             imagesc(Hz,pst,TF{i,j} + RF{i,j})
             xlabel('frequency')
             ylabel('pst (ms)')
-            title({sprintf('trial %i: source %i ',i,j);
+            title({sprintf('trial %i: %s ',i,DCM.Sname{j});
                   'observed'})
 
             subplot(nt*2,nr,(i - 1)*nr + nr + j)
             imagesc(Hz,pst,TF{i,j})
             xlabel('channel')
             ylabel('pst (ms)')
-            title({sprintf('trial %i: source %i ',i,j);
+            title({sprintf('trial %i',i);
                   'predicted'})
         end
     end
 
+case{lower('Coupling (A - Hz)')}
     
-case{lower('Coupling (A)')}
+    % reconstitute time-frequency and get principal mode over channels
+    %----------------------------------------------------------------------
+    for i = 1:nr
+        for j = 1:nr
+            subplot(nr,nr,i + nr*(j - 1))
+            ii = [1:nf]*nr - nr + i;
+            jj = [1:nf]*nr - nr + j; 
+            A  = xY.U*DCM.Ep.A(ii,jj)*xY.U';
+            imagesc(Hz,Hz,A)
+            axis image
+            
+            % source names
+            %--------------------------------------------------------------
+            if j == 1, title({'from'; DCM.Sname{i}}), end
+            if i == 1, ylabel({'to';  DCM.Sname{j}}), end
+
+        end
+    end
+     
+case{lower('Coupling (A - modes)')}
     
         
     % images
@@ -221,7 +246,7 @@ case{lower('Coupling (B)')}
     end
     
 
-case{lower('Input (C)')}
+case{lower('Input (C - Hz)')}
    
     
     % reconstitute time-frequency and get principal mode over channels
@@ -237,17 +262,17 @@ case{lower('Input (C)')}
         xlabel('Frequency (Hz)')
         title(sprintf('frequency response to input %i',k))
         axis square, grid on
-        legend(DCM.Sname)
     end
+    legend(DCM.Sname)
     
     
-case{lower('Input')}
+case{lower('Input (u - ms)')}
     
     % get input
     % --------------------------------------------------------------------
     U = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
     
-    subplot(2,1,1)
+    subplot(1,1,1)
     plot(pst,U)
     xlabel('time (ms)')
     title('input')

@@ -771,10 +771,11 @@ else
     'Frequency modes'
     'Time-modes'
     'Time-frequency'
-    'Coupling (A)'
+    'Coupling (A - Hz)'
+    'Coupling (A - modes)'
     'Coupling (B)'
-    'Input (C)'
-    'Input'
+    'Input (C - Hz)'
+    'Input (u - ms)'
     'Dipoles'};
     try
         set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);

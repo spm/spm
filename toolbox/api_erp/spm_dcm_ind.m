@@ -68,6 +68,10 @@ xY.y   = T*xY.y;
 
 % assume noise variance is the same over modes
 %--------------------------------------------------------------------------
+V      = DCM.xY.pst;
+V      = V - min(V);
+V      = exp(-V.^2/(2*(32^2)));
+V      = toeplitz(V);
 xY.Q   = {kron(speye(Nr*Nf),kron(speye(Nt),speye(Ns)))};
 
 

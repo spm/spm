@@ -49,7 +49,7 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 850 2007-07-10 15:43:27Z rik $
+% $Id: spm_eeg_inv_datareg.m 924 2007-09-19 16:43:31Z karl $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) 4/6/07
@@ -67,10 +67,10 @@ if nargin < 3
         fid_mri   = D.inv{val}.datareg.fid_mri;
         headshape = D.inv{val}.datareg.headshape;
         scalpvert = D.inv{val}.datareg.scalpvert;
-	if strcmp(D.modality,'MEG')
-         megorient = D.inv{val}.datareg.megorient;
+        if strcmp(D.modality,'MEG')
+            megorient = D.inv{val}.datareg.megorient;
         else
-         megorient = sparse(0,3);
+            megorient = sparse(0,3);
         end
         template  = D.inv{val}.mesh.template;
     catch
@@ -218,23 +218,13 @@ end
 
 % ensure sensors lie outside the scalp
 %--------------------------------------------------------------------------
-%if length(scalpvert)
-%    for i = 1:4
-%        tri     = delaunayn(scalpvert);
-%       	j       = dsearchn(scalpvert, tri, sensors(:,1:3));
-%        dist    = sqrt(sum(sensors(:,1:3).^2,2)./sum(scalpvert(j,:).^2,2));
-%        dist    = min(dist,1);
-%        sensors(:,1:3) = diag(1./dist)*sensors(:,1:3);
-%        if size(sensors,2) == 6		% Second coil
-%            sensors(:,4:6) = diag(1./dist)*sensors(:,4:6);
-%       	    j       = dsearchn(scalpvert, tri, sensors(:,4:6));
-%            dist    = sqrt(sum(sensors(:,4:6).^2,2)./sum(scalpvert(j,:).^2,2));
-%            dist    = min(dist,1);
-%            sensors(:,1:3) = diag(1./dist)*sensors(:,1:3);
-%            sensors(:,4:6) = diag(1./dist)*sensors(:,4:6);
-%        end
-%    end
-%end
+if length(scalpvert) && strcmp(D.modality,'EEG')
+    tri   = delaunayn(scalpvert);
+    j     = dsearchn(scalpvert, tri, sensors(:,1:3));
+    dist  = sqrt(sum(sensors(:,1:3).^2,2)./sum(scalpvert(j,:).^2,2));
+    dist  = min(dist,1);
+    sensors(:,1:3) = diag(1./dist)*sensors(:,1:3);
+end
 
 % Ouptut arguments
 %--------------------------------------------------------------------------

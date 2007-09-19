@@ -45,10 +45,9 @@ Nc   = size(U,1);                                 % number of channels
 
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
-
 toi  = round(woi*(D.Radc/1000)) + D.events.start + 1;
 if toi(1) < It(1) | toi(2) > It(end)
-     errordlg('Contrast timewindow outside range of localised timewindow','Bad timewindow');
+     errordlg('Contrast outside range of sampled window');
      return;
 else
      toi = toi - It(1) + 1;

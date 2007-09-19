@@ -55,9 +55,9 @@ end
 
 % extract variables
 %----------------------------------------------------------------------
-sMRIfile       = fullfile(spm('dir'),'templates','T2.nii');
-vert           = D.inv{val}.mesh.tess_mni.vert;
-face           = D.inv{val}.mesh.tess_mni.face;
+sMRIfile = fullfile(spm('dir'),'templates','T2.nii');
+vert     = D.inv{val}.mesh.tess_mni.vert;
+face     = D.inv{val}.mesh.tess_mni.face;
 
 % Get mesh
 %--------------------------------------------------------------------------
@@ -132,9 +132,8 @@ for c = 1:length(D.inv{val}.contrast.GW)
         end
     end
 
-    % Write image (rescale by 10^6) WHY?
+    % Write (scaled) image
     %--------------------------------------------------------------------------
-%    RECimage  = RECimage*1e6;
     RECimage  = RECimage*scalefactor;
     Vout      = spm_write_vol(Vout,RECimage);
 
