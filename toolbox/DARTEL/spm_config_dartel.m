@@ -444,6 +444,13 @@ res.prog   = @spm_dartel_resids;
 res.check  = @check_resids;
 res.vfiles = @vfiles_resids;
 %------------------------------------------------------------------------
+lam = entry('Reg param','rparam','e',[1 1]);
+lam.val = {[0.1]};
+logodds = branch('Generate LogOdds','LogOdds',{data,flowfields,K,lam});
+logodds.help = {['See Kilian Pohl''s recent work.']};
+logodds.prog = @spm_dartel_logodds;
+
+%------------------------------------------------------------------------
 data = files('Data','images','nifti',[1 Inf]);
 data.help = {['Select images to generate dot-products from.']};
 kname = entry('Dot-product Filename','dotprod','s',[1,Inf]);

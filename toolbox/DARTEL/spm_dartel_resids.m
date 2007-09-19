@@ -54,6 +54,9 @@ for k=1:dm(3),
         end
     end
 
+    % For rotating on to plane
+    R = null(ones(n+1))';
+
     % Convert to a form suited to building a Fisher kernel.
     % See the workings at the bottom of the file in order to
     % understand better.
@@ -65,7 +68,7 @@ for k=1:dm(3),
             s   = diag(s);
             s   = diag(s(1:n).^(-0.5));
             u   = u(:,1:n);
-            tmp = s*u';
+            tmp = R*u*s*u';
             wt(j,i,k,:,:) = reshape(tmp,1,1,1,n,n+1);
         end
     end
@@ -106,7 +109,10 @@ for i=1:numel(PI{1}),
     % Note that the square root of this value is used so that
     % the integral of the variance is conserved after warping,
     % rather than the usual mean.
-    dt = sqrt(dt);
+    % On second thoughts, maybe it should not be square rooted,
+    % as this makes more sense if the residuals are subsequently
+    % smoothed.
+    % dt = sqrt(dt);
  
     f  = zeros([NU.dat.dim(1:3),n+1],'single');
  

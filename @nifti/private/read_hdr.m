@@ -7,13 +7,13 @@ function vol = read_hdr(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_hdr.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: read_hdr.m 922 2007-09-19 15:28:30Z john $
 
 
 persistent d
 if isempty(d), d = getdict; end;
 
-[pth,nam,ext] = fileparts(fname);
+[pth,nam,ext,num] = spm_fileparts(fname);
 switch ext
 case '.hdr'
     hname = fullfile(pth,[nam '.hdr']);

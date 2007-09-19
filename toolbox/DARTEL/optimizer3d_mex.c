@@ -137,16 +137,16 @@ void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     if (dm[3]!=3)
         mexErrMsgTxt("4th dimension must be 3.");
 
-    if (mxGetNumberOfElements(prhs[2]) != 7)
+    if (mxGetNumberOfElements(prhs[1]) != 7)
         mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2 and param3.");
-    rtype    = (int)(mxGetPr(prhs[2])[0]);
-    param[0] = 1/mxGetPr(prhs[2])[1];
-    param[1] = 1/mxGetPr(prhs[2])[2];
-    param[2] = 1/mxGetPr(prhs[2])[3];
-    param[3] = mxGetPr(prhs[2])[4];
-    param[4] = mxGetPr(prhs[2])[5];
-    param[5] = mxGetPr(prhs[2])[6];
-    
+    rtype    = (int)(mxGetPr(prhs[1])[0]);
+    param[0] = 1/mxGetPr(prhs[1])[1];
+    param[1] = 1/mxGetPr(prhs[1])[2];
+    param[2] = 1/mxGetPr(prhs[1])[3];
+    param[3] = mxGetPr(prhs[1])[4];
+    param[4] = mxGetPr(prhs[1])[5];
+    param[5] = mxGetPr(prhs[1])[6];
+
     plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
 
     if (rtype==1)
@@ -192,7 +192,6 @@ void rsz_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    printf("Note that this mex function may not work properly.\n");
 
     if ((nrhs>=1) && mxIsChar(prhs[0]))
     {
