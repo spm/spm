@@ -393,7 +393,6 @@ data.help = {...
 %------------------------------------------------------------------------
 inrm = branch('Create Inverse Warped','crt_iwarped',{ffields,data,K,interp});
 inrm.prog   = @spm_dartel_invnorm;
-inrm.check  = @check_invnorm;
 inrm.vfiles = @vfiles_invnrm;
 inrm.help = {...
 ['Create inverse normalised versions of some image(s). '...
@@ -649,14 +648,6 @@ for i=1:numel(PU),
         end;
         vf = {vf{:},fname};
     end
-end
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function chk = check_invnorm(job)
-chk = '';
-if numel(job.flowfields) ~= numel(job.images),
-    chk = 'Incompatible number of images.';
 end
 %_______________________________________________________________________
 

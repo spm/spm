@@ -1,16 +1,16 @@
-function [sig,a] = spm_dartel_smooth(t,lam,its,vx)
+function [sig,a] = spm_dartel_smooth(t,lam,its,vx,a)
 % A function for smoothing tissue probability maps
-% FORMAT sig = spm_dartel_smooth(t,lam,its,vx)
-%
+% FORMAT [sig,a_new] = spm_dartel_smooth(t,lam,its,vx,a_old)
 %________________________________________________________
 % (c) Wellcome Centre for NeuroImaging (2007)
 
-% 
+% $Id$
+
+if nargin<5, a   = zeros(size(t),'single'); end
 if nargin<4, vx  = [1 1 1]; end;
 if nargin<3, its = 16;      end;
 if nargin<2, lam = 1;       end;
 
-a   = zeros(size(t),'single');
 d   = size(t);
 W   = zeros([d(1:3) round((d(4)*(d(4)+1))/2)],'single');
 s   = sum(t,4);
