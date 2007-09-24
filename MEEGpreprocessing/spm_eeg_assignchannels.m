@@ -570,19 +570,25 @@ D.inv{val}.datareg.headshape = handles.headshape./norm_const;
 
 if isfield(handles, 'sensorient')
     D.inv{val}.datareg.megorient=handles.sensorient;
+    if ~isfield(D, 'modality')
+        D.modality='MEG';
+    end
 else
     D.inv{val}.datareg.megorient=sparse(0,3);
+    if ~isfield(D, 'modality')
+        D.modality='EEG';
+    end
 end
 
-[RT,sensors_reg,fid_reg,headshape_reg,orient_reg] = spm_eeg_inv_datareg(...
-    D.inv{val}.datareg.sensors,...
-    D.inv{val}.datareg.fid_eeg,...
-    D.inv{val}.datareg.fid_mri,...
-    D.inv{val}.datareg.headshape, ...
-    D.inv{val}.datareg.scalpvert,...
-    D.inv{val}.datareg.megorient,...
-    D.inv{val}.mesh.template);
+if ~isfield(D, 'channels') || ~isfield(D.channels, 'eeg') 
+    D.channels.eeg=1:size(handles.sensors, 1);
+end
 
+if  ~isfield(D.channels, 'Bad')
+    D.channels.Bad=[];
+end
+
+[RT,sensors_reg,fid_reg,headshape_reg,orient_reg] = spm_eeg_inv_datareg(D);
 
 % D.channels.sensors = D.inv{val}.datareg.sensors; % original coordinates
 % D.channels.sens_coreg = sensors_reg;
@@ -596,7 +602,7 @@ handles.sensors_reg = sensors_reg;
 handles.fid_reg = fid_reg;
 handles.orient_reg=orient_reg;
 
-if isfield(D, 'channels')
+if isfield(D.channels, 'name')
     spm_eeg_inv_checkdatareg(D);
 end
 
