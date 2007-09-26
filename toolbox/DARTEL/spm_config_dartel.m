@@ -161,6 +161,13 @@ K.help = {...
  'but later ones should use about 64 '...
  '(or fewer if the deformations are very smooth).']};
 %------------------------------------------------------------------------
+slam = mnu('Smoothing Parameter','slam',{'None','0.5','1','2','4','8','16','32'},...
+       {0,0.5,1,2,4,8,16,32});
+slam.val = {1};
+slam.help = {...
+['A LogOdds parameterisation of the template is smoothed using a multigrid '...
+ 'scheme.  The amount of smoothing is determined by this parameter.']};
+%------------------------------------------------------------------------
 lmreg = entry('LM Regularisation','lmreg','e',[1 1]);
 lmreg.val = {0.01};
 lmreg.help = {...
@@ -197,7 +204,7 @@ fmg.help = {[...
 'FMG and Levenberg-Marquardt are both described in '...
 'Numerical Recipes (2nd edition).']};
 %------------------------------------------------------------------------
-param = branch('Outer Iteration','param',{iits,rparam,K});
+param = branch('Outer Iteration','param',{iits,rparam,K,slam});
 param.help = {...
 ['Different parameters can be specified for each '...
  'outer iteration. '...
@@ -216,22 +223,27 @@ params.num = [1 Inf];
 param.val{1}.val{1} = 3; % iits
 param.val{2}.val{1} = [4 2 1e-6]; % rparam
 param.val{3}.val{1} = 0; % K
+param.val{4}.val{1} = 16;
 params.val{1} = param;
 param.val{1}.val{1} = 3; % iits
 param.val{2}.val{1} = [2 1 1e-6]; % rparam
 param.val{3}.val{1} = 0; % K
+param.val{4}.val{1} = 8;
 params.val{2} = param;
 param.val{1}.val{1} = 3; % iits
 param.val{2}.val{1} = [1 0.5 1e-6]; % rparam
 param.val{3}.val{1} = 0; % K
+param.val{4}.val{1} = 4;
 params.val{3} = param;
 param.val{1}.val{1} = 3; % iits
 param.val{2}.val{1} = [0.5 0.25 1e-6]; % rparam
 param.val{3}.val{1} = 3; % K
+param.val{4}.val{1} = 2;
 params.val{4} = param;
 param.val{1}.val{1} = 3; % iits
 param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
 param.val{3}.val{1} = 6; % K
+param.val{4}.val{1} = 1;
 params.val{5} = param;
 %param.val{1}.val{1} = 3; % iits
 %param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
@@ -704,7 +716,7 @@ end
 
 %_______________________________________________________________________
 function run_dartel(job)
-spm_dartel_template(job);
+spm_dartel_template_new(job);
 
 
 

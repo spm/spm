@@ -32,8 +32,7 @@ spm_progress_bar('Init',n2,'Initial mean','Images done');
 dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
 NU = cat(2,NF(1,:).NI);
-g  = zeros([dm n1],'single');
-nd = zeros(dm(1:3),'single');
+t  = zeros([dm n1+1],'single');
 for i=1:n2,
     [pth,nam,ext]   = fileparts(NU(i).dat.fname);
     NU(i).dat.fname = fullfile(pth,['u_' nam '.nii']);
@@ -62,26 +61,35 @@ for i=1:n2,
         clear u
         for j=1:n1,
             vn         = NF(j,i).vn;
-            g(:,:,:,j) = g(:,:,:,j) + dt.*dartel3('samp',single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
+            t(:,:,:,j) = t(:,:,:,j) + dt.*dartel3('samp',single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
         end;
-        nd = nd + dt;
+        t(:,:,:,end) = t(:,:,:,end) + dt;
         clear y dt
     else
         create(NU(i));
         NU(i).dat(:,:,:,:,:) = 0;
         for j=1:n1,
             vn         = NF(j,i).vn;
-            g(:,:,:,j) = g(:,:,:,j) + NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+            t(:,:,:,j) = t(:,:,:,j) + NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
         end;
-        nd = nd + 1;
+        t(:,:,:,end) = t(:,:,:,end) + 1;
     end;
     spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
 
+M  = NF(1,1).NI.mat;
+vx = sqrt(sum(M(1:3,1:3).^2));
 for j=1:n1,
-    g(:,:,:,j) = g(:,:,:,j)./nd;
-end;
+    t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
+end
+if st.param(1).slam,
+    g = spm_dartel_smooth(t,st.param(1).slam*2,8,vx);
+else
+    for j=1:n1,
+        g(:,:,:,j) = t(:,:,:,j)./(t(:,:,:,end)+eps);
+    end
+end
 
 NG = NF(1,1).NI;
 NG.descrip       = sprintf('Avg of %d', n2);
@@ -93,7 +101,7 @@ NG.dat.scl_slope = 1;
 NG.dat.scl_inter = 0;
 NG.mat0          = NG.mat;
 create(NG);
-NG.dat(:,:,:,:)  = g;
+NG.dat(:,:,:,:)  = g(:,:,:,1:n1);
 
 it0 = 0;
 for it=1:numel(st.param),
@@ -104,8 +112,7 @@ for it=1:numel(st.param),
 
     for j=1:param.its,
         it0 = it0 + 1;
-        ng = zeros(size(g),'single');
-        nd = zeros([size(g,1),size(g,2),size(g,3)],'single');
+        t   = zeros([dm n1+1],'single');
 
         for i=1:n2,
             f = zeros([dm n1],'single');
@@ -116,7 +123,7 @@ for it=1:numel(st.param),
             end;
             u = squeeze(single(NU(i).dat(:,:,:,:,:)));
             drawnow
-            [u,ll] = dartel3(u,f,g,prm);
+            [u,ll] = dartel3(u,f,g(:,:,:,1:n1),prm);
             fprintf('%d %d\t%g\t%g\t%g\t%g\n',it0,i,ll(1),ll(2),ll(1)+ll(2),ll(3));
             drawnow
 
@@ -127,19 +134,26 @@ for it=1:numel(st.param),
             clear u
             drawnow;
             for j=1:n1,
-                ng(:,:,:,j) = ng(:,:,:,j) + dartel3('samp',f(:,:,:,j),y).*dt;
+                t(:,:,:,j) = t(:,:,:,j) + dartel3('samp',f(:,:,:,j),y).*dt;
                 drawnow
             end;
-            nd = nd + dt;
+            t(:,:,:,end) = t(:,:,:,end) + dt;
             clear y dt
         end;
         for j=1:n1,
-            g(:,:,:,j)  = single(ng(:,:,:,j)./nd);
-        end;
-        clear ng nd
+            t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
+        end
+        if param.slam,
+            g = spm_dartel_smooth(t,param.slam,8,vx,log(g));
+        else
+            for j=1:n1,
+                g(:,:,:,j) = t(:,:,:,j)./(t(:,:,:,end)+eps);
+            end
+        end
+        clear t
         NG.dat.fname    = fullfile(tdir,['Template' num2str(it) '.nii']);
         create(NG);
-        NG.dat(:,:,:,:) = g;
+        NG.dat(:,:,:,:) = g(:,:,:,1:n1);
         drawnow
     end;
 end;

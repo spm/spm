@@ -14,7 +14,7 @@ if nargin<2, lam = 1;       end;
 d   = size(t);
 W   = zeros([d(1:3) round((d(4)*(d(4)+1))/2)],'single');
 s   = sum(t,4);
-for k=1:d(4), t(:,:,:,k) = t(:,:,:,k)./s; end
+for k=1:d(4), t(:,:,:,k) = t(:,:,:,k)./abs(s+eps); end
 for i=1:its,
     sig = softmax(a);
     gr  = sig - t;
