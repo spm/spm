@@ -18,7 +18,8 @@ ax = axes('Parent',fg,'DeleteFcn',['rotate3d off; set(gcf,''Renderer'',''' ren '
 for i=1:numel(job.Object),
      obj = job.Object(i);
      for j=1:numel(obj.SurfaceFile),
-         FV = load(obj.SurfaceFile{j});
+         FVo = load(obj.SurfaceFile{j});
+         FV  = struct('faces',FVo.faces,'vertices',FVo.vertices);
          p  = patch(FV, 'Parent',ax,...
              'FaceColor', [obj.Color.Red,obj.Color.Green, obj.Color.Blue],...
              'FaceVertexCData', [],...
