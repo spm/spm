@@ -1,6 +1,6 @@
-function [D] = spm_eeg_invert(D)
-% ReML inversion of forward model for EEG-EMG
-% FORMAT [D] = spm_eeg_invert(D)
+function [D] = spm_eeg_invert_group(D)
+% ReML inversion of multiple forward models for EEG-EMG
+% FORMAT [D] = spm_eeg_invertspm_eeg_invert_group(D)
 % ReML estimation of regularisation hyperparameters using the
 % spatio-temporal hierarchy implicit in EEG data
 % Requires:
@@ -82,9 +82,6 @@ for i = 1:Nl
     L{i}   = sparse(getfield(G, name{1}));
     Nc(i)  = size(L{i},1);                         % number of channels
 end
-G     = spm_cat(L(:));
-
-
 
 % Time-window of interest
 %--------------------------------------------------------------------------
@@ -129,7 +126,7 @@ i     = (dct > lpf) & (dct < hpf);
 T     = T(:,i);
 dct   = dct(i);
 
-% get data (with temporal reduction)
+% get data (with temporal filtering)
 %==========================================================================
 Nt    = length(trial);
 for k = 1:Nl
@@ -154,37 +151,35 @@ if Han
 else
     W = T'*T;
 end
-YY = W'*spm_cat(Y(:))'*spm_cat(Y(:))*W;
+YY    = W'*spm_cat(Y(:))'*spm_cat(Y(:))*W;
 
-% eliminate unnecessary temporal modes
+% project onto temporal modes
 %--------------------------------------------------------------------------
-S     = spm_svd(YY,1/512);
-T     = T*S;
+S     = spm_svd(YY,exp(-4));
+T     = T*S;                                     % temporal projector
+iV    = inv(T'*qV*T);                            % precision (mode)
+Vq    = T*iV*T';                                 % precision (time)
 Nr    = size(T,2);                               % number of temporal modes
-iV    = inv(T'*qV*T);                            % precision (mode space)
-Vq    = T*iV*T';
-fprintf('Using %i temporal modes\n',Nr)
-
-
-% Project onto temporal modes (S)
-%--------------------------------------------------------------------------
-YY    = spm_cat(Y)*kron(speye(Nt,Nt),S*iV*S')*spm_cat(Y)';
-
-
-% Re-reference matrix (R) (to minimum variance channel)
-%--------------------------------------------------------------------------
 for i = 1:Nl
-    if strcmp(D{i}.modality,'EEG')
-
-        [m j] = min(sum(Y{i}.^2,2));
-        R{i}  = speye(Nc(i),Nc(i)) - sparse(1:Nc(i),j,1,Nc(i),Nc(i));
-        L{i}  = R{i}*L{i};
-
-    else
-        R{i}  = speye(Nc(i),Nc(i));
+    for j = 1:Nt
+        Y{i,j} = Y{i,j}*S;
     end
 end
-YY    = spm_cat(diag(R))*YY*spm_cat(diag(R))';
+fprintf('Using %i temporal modes\n',Nr)
+
+% sample covariance over time (adjusting for different Lead-fields)
+%--------------------------------------------------------------------------
+G     = L{1};
+AY    = {};
+YY    = sparse(Nc(1),Nc(1));
+for i = 1:Nl
+    A = (G*L{i}')*inv((L{i}*L{i}' + speye(Nc(i),Nc(i))*exp(-8)));
+    for j = 1:Nt
+        AY{end + 1} = A*Y{i,j};
+        YY          = YY + AY{end}*iV*AY{end}';
+    end
+end
+AY    = spm_cat(AY);
 
 
 % Project to channel modes (U)
@@ -194,6 +189,7 @@ try
     U = U(:,1:Nm);
 end
 Nm    = size(U,2);
+AY    = U'*AY;
 YY    = U'*YY*U;
 G     = U'*G;
 fprintf('Using %i spatial modes\n',Nm)
@@ -212,13 +208,14 @@ for i = 1:Nv
 end
 Is    = find(Is);
 vert  = vert(Is,:);
+for i = 1:Nl
+    L{i} = L{i}(:,Is);
+end
 G     = G(:,Is);
 Ns    = length(Is);
-Na    = min(Na,Ns);
 
 % Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
 %==========================================================================
-
 if ~strcmp(type,'IID')
 
     fprintf('Computing Green''s function from graph Laplacian:')
@@ -243,12 +240,9 @@ end
 % covariance components
 %==========================================================================
 
-% sensor noise (accommodating re-reference)
+% sensor noise (accommodating spatial projector)
 %--------------------------------------------------------------------------
-for i = 1:Nl
-    Q{i} = R{i}*R{i}';
-end
-Qe    = {U'*spm_cat(diag(Q))*U};
+Qe    = {U'*U};
 
 % create source compeonts
 %--------------------------------------------------------------------------
@@ -311,13 +305,14 @@ end
 % Inverse solution
 %==========================================================================
 
-% Greedy search over MSPs
+% get source-level hyperparameters (using all subjects)
 %--------------------------------------------------------------------------
 if strcmp(type,'GS')
 
-    % extract patterns
+    % Greedy search over MSPs
     %----------------------------------------------------------------------
     Np    = length(Qp);
+    QP    = sparse(0);
     Q     = sparse(Ns,Np);
     for i = 1:Np
         Q(:,i) = Qp{i}.q;
@@ -325,100 +320,115 @@ if strcmp(type,'GS')
 
     % Multivariate Bayes
     %----------------------------------------------------------------------
-    MVB   = spm_mvb(U'*R*[Y{:}],L,[],Q,Qe,8,1/4);
-    M     = MVB.M;
-    Cq    = MVB.qC;
-    F     = max(MVB.F);
+    MVB   = spm_mvb(AY,G,[],Q,Qe,8,1/4);
+
+    % Spatial priors (QP)
+    %----------------------------------------------------------------------
+    Ne    = length(Qe);
+    Np    = size(MVB.G,2);
+    hp    = MVB.h([1:Np] + Ne);
+    for i = 1:Np
+        if hp(i) > exp(-16)
+            QP = QP + hp(i)*sparse(diag(MVB.G(:,i)));
+        end
+    end
+    QP    = MVB.U*QP*MVB.U';
+
 
 else
 
     % or ReML - ARD
     %----------------------------------------------------------------------
+    QP          = sparse(0);
     Q           = {Qe{:} LQpL{:}};
     [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*Nt);
-    
-end
 
-for i = 1:Nl
-    
-    % Covariances: sensor space - Ce and source space - L*Cp
+    % Spatial priors (QP)
     %----------------------------------------------------------------------
     Ne    = length(Qe);
     Np    = length(Qp);
-    Ce    = sparse(Nc(i),Nc(i));
-    LCp   = sparse(Nc(i),Ns);
-    LCpL  = sparse(Nc(i),Nc(i));
-    he    = h([1:Ne]);
     hp    = h([1:Np] + Ne);
-    for j = 1:Ne
-       Ce = Ce + he(j)*speye(Nc(i),Nc(i));
-    end
-    for j = 1:Np
-        try
-            LCp  = LCp  + hp(j)*L{i}*Qp{j}.q*Qp{j}.q';
-            LCpL = LCpL + hp(j)*L{i}*Qp{j}.q*Qp{j}.q'*L{i}';
-        catch
-            LCp  = LCp  + hp(j)*L{i}*Qp{j};
-            LCpL = LCpL + hp(j)*L{i}*Qp{j}*L{i}';
-
+    for i = 1:Np
+        if hp(i) > exp(-16)
+            try
+                QP  = QP + hp(i)*Qp{i}.q*Qp{i}.q';
+            catch
+                QP  = QP + hp(i)*Qp{i};
+            end
         end
     end
+end
+
+
+% re-estimate (one subject at a time)
+%--------------------------------------------------------------------------
+for i = 1:Nl
+
+    % using spatial priors from group analysis
+    %----------------------------------------------------------------------
+    Qe    = speye(Nc(i),Nc(i));
+    LQpL  = L{i}*QP*L{i}';
+    Q     = {Qe LQpL};
+    YY    = spm_cat(Y{i,:})*kron(speye(Nt,Nt),iV)*spm_cat(Y{i,:})';
+
+    % re-do ReML
+    %----------------------------------------------------------------------
+    [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,Nr*Nt);
+
+    % Covariances: sensor space - Ce and source space - L*Cp
+    %----------------------------------------------------------------------
+    hp    = h(2);
+    LCp   = hp*L{i}*QP;
 
     % MAP estimates of instantaneous sources
     %======================================================================
-    iC    = inv(Ce + LCpL);
-    M{i}  = LCp'*iC;
+    iC    = inv(Cy);
+    M     = LCp'*iC;
 
     % conditional covariance (leading diagonal)
     % Cq    = Cp - Cp*L'*iC*L*Cp;
-    %----------------------------------------------------------------------
-    Cp    = sparse(Ns,1);
-    for j = 1:Np
-        try
-            Cp = Cp + hp(j)*sum(Qp{j}.q.^2,2);
-        catch
-            Cp = Cp + hp(j)*diag(Qp{j});
-        end
-    end
-    Cq{i} = Cp - sum(LCp.*M{i}')';
+    %----------------------------------------------------------------------d
+    Cq    = hp*diag(QP) - sum(LCp.*M')';
 
-    % re-scale and evaluate conditional expectation (of the sum over trials)
-    %----------------------------------------------------------------------  
+    % evaluate conditional expectation (of the sum over trials)
+    %----------------------------------------------------------------------
     SSR   = 0;
     SST   = 0;
     for j = 1:Nt
-
-        Y{i,j}  = R{i}*Y{i,j}*S;
-        J{i,j}  = M{i}*Y{i,j};
+        
+        % trial-type specific source reconstruction
+        %------------------------------------------------------------------
+        J{j}    = M*Y{i,j};
 
         % sum of squares
         %------------------------------------------------------------------
-        SSR   = SSR + sum(var((Y{i,j} - L{i}*J{i,j}),0,2));
+        SSR   = SSR + sum(var((Y{i,j} - L{i}*J{j}),0,2));
         SST   = SST + sum(var(Y{i,j},0,2));
- 
+
     end
 
     % Assess accuracy; signal to noise (over sources)
     %======================================================================
-    R2(i)  = 100*(SST - SSR)/SST;
+    R2   = 100*(SST - SSR)/SST;
     fprintf('Variance explained %.2f (percent)\n',R2)
 
     % Save results
     %======================================================================
-    inverse.type   = type                  % inverse model
+    U              = speye(Nc(i),Nc(i));
+    inverse.type   = type;                 % inverse model
     inverse.smooth = s;                    % smoothness (0 - 1)
     inverse.xyz    = xyz;                  % VOI (XYZ)
     inverse.rad    = rad;                  % VOI (rad)
 
-    inverse.M      = M{i};                    % MAP projector (reduced)
-    inverse.J      = J(i,:);               % Conditional expectation
+    inverse.M      = M;                    % MAP projector (reduced)
+    inverse.J      = J;                    % Conditional expectation
     inverse.Y      = Y(i,:);               % ERP data (reduced)
-    inverse.L      = L{i};                 % Lead-field  (reduced)
-    inverse.R      = R{i};                 % Re-referencing matrix
-    inverse.qC     = Cq{i};                % spatial  covariance
+    inverse.L      = L{i};                 % Lead-field (reduced)
+    inverse.R      = U;                    % Re-referencing matrix
+    inverse.qC     = Cq;                   % spatial  covariance
     inverse.qV     = Vq;                   % temporal correlations
     inverse.T      = T;                    % temporal subspace
-    inverse.U      = speye(Nc(i),Nc(i));   % spatial  subspace
+    inverse.U      = U;                    % spatial  subspace
     inverse.Is     = Is;                   % Indices of active dipoles
     inverse.It     = It;                   % Indices of time bins
     inverse.Ic     = Ic;                   % Indices of good channels
@@ -426,19 +436,18 @@ for i = 1:Nl
     inverse.pst    = pst;                  % pers-stimulus time
     inverse.dct    = dct;                  % frequency range
     inverse.F      = F;                    % log-evidence
-    inverse.R2     = R2(i);                % variance accounted for (%)
+    inverse.R2     = R2;                   % variance accounted for (%)
 
     % save in struct
     %--------------------------------------------------------------------------
     D{i}.inv{D{i}.val}.inverse = inverse;
     D{i}.inv{D{i}.val}.method  = 'Imaging';
-
+    
     % and delete old contrasts
     %--------------------------------------------------------------------------
     try
         D{i}.inv{D{i}.val} = rmfield(D{i}.inv{D{i}.val},'contrast');
     end
-
 
     % display
     %==========================================================================
@@ -447,27 +456,6 @@ for i = 1:Nl
 
 end
 
-if length(D) == 1, D = D{:}; end
+if length(D) == 1, D = D{1}; end
 return
 
-
-
-
-
-% NOTES
-%==========================================================================
-
-% informed spatial basis functions using a generlised eigemode solution
-%--------------------------------------------------------------------------
-Cpos  = Y*(T'*diag(pst > 0)*T)*Y' + speye(Nc,Nc)*exp(-8);
-Cpre  = Y*(T'*diag(pst < 0)*T)*Y' + speye(Nc,Nc)*exp(-8);
-[U S] = spm_svd(inv(Cpos)*(Cpre),0);
-U     = U(:,end - Nm + 1:end);
-
-% display a selected basis function
-%--------------------------------------------------------------------------
-ql    = QG(:,Ip(64));
-il    = find(ql > 1/64);
-subplot(2,1,1)
-spm_mip(ql(il),vert(il,:)',6);
-axis image

@@ -1,6 +1,6 @@
 function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Multivariate Bayesian inversion of a linear model
-% FORMAT model = spm_mvb(X,Y,X0,U,V,nG)
+% FORMAT model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % X      - contrast or target vector
 % Y      - date feature matrix
 % X0     - confounds
@@ -8,7 +8,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % V      - observation noise covariance
 % nG     - number of Greedy iterations (nG = 1 => uniform hyperpriors)
 %        - if not specified, the search will terminate when F falls
-% sG     - size of sucessive subdivisions [default is 1/2)
+% sG     - size of successive subdivisions [default is 1/2)
 %
 % returns model:
 %                F: log-evidence [F(0), F(1),...]
@@ -42,7 +42,7 @@ nk     = size(U,2);                 % number of parameters
 if ~length(X0); X0 = zeros(ns,1);  end
 if ~length(U);  U  = zeros(nv,0);  end
 if ~length(V);  V  = speye(ns,ns); end
-
+ 
  
 % null model
 %--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ for  i = 1:nG
     if ng < 2, break, end
  
 end
-
+ 
 % project pattern weights to feature (voxel) weights
 %==========================================================================
 model.F  = F;

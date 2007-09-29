@@ -12,11 +12,11 @@ function D = spm_eeg_ldata(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_ldata.m 404 2006-01-13 18:42:21Z stefan $
+% $Id: spm_eeg_ldata.m 932 2007-09-29 18:01:16Z karl $
 
 
 try
-    P;
+    P = deblank(P);
 catch
     P = spm_select(1, '\.mat$', 'Select EEG mat file');
 end

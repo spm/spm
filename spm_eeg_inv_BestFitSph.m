@@ -16,7 +16,7 @@ function    [Center,Radius] = spm_eeg_inv_BestFitSph(points,varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_BestFitSph.m 848 2007-07-10 15:25:29Z rik $
+% $Id: spm_eeg_inv_BestFitSph.m 932 2007-09-29 18:01:16Z karl $
 
 if nargin > 2
     disp('Wrong input format');
@@ -64,8 +64,8 @@ if Gflag == 1
         tsph.vert(i,:) = tsph.vert(i,:) + C(i)*ones(1,Nv);
     end
     ph = patch('Vertices',tsph.vert','Faces',tsph.tri,'EdgeColor','r','FaceColor','none');
+    axis image
     drawnow
-    pause(1);
 end
 
 while (g > TOL)    
@@ -92,7 +92,6 @@ while (g > TOL)
         end
         set(ph,'Vertices',tsph.vert','Faces',tsph.tri);
         drawnow
-        pause(1);
     end
 end
 

@@ -108,7 +108,7 @@ ST         = DCM.xY.dt*1000;           % sampling interval
 Nf         = length(DCM.xY.Hz);        % number of frequencies
 Ne         = length(trial);            % number of ERPs
 Nm         = DCM.xY.Nm;                % number of frequency modes
-DCM.xY.Rft = linspace(5,8,Nf);         % wavelet coeficient
+DCM.xY.Rft = linspace(5,5,Nf);         % wavelet coeficient
 
 
 % get induced responses (use previous time-frequency results if possible) 

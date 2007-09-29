@@ -18,9 +18,9 @@ function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 848 2007-07-10 15:25:29Z rik $
+% $Id: spm_eeg_inv_BSTfwdsol.m 932 2007-09-29 18:01:16Z karl $
 
-% Modified by Rik Henson to handle gradiometers (with two positions/orientations 
+% Modified by Rik Henson to handle gradiometers (with two positions/orientations
 % for component coils) and to allow sphere to be fit to other surfaces, eg
 % inner skull rather than scalp				4/6/07
 
@@ -58,15 +58,15 @@ catch
     end
 end
 
-% Added by Rik to allow different options for sphere fitting 
-try 
-	sphere2fit = D.inv{val}.forward.sphere2fit;
+% Added by Rik to allow different options for sphere fitting
+try
+    sphere2fit = D.inv{val}.forward.sphere2fit;
 catch
-	if isfield(D.inv{val}.mesh,'tess_iskull')
-		sphere2fit = 2;		% Default to inner skull
-	else
-		sphere2fit = 1;		% Cortex 
-	end
+    if isfield(D.inv{val}.mesh,'tess_iskull')
+        sphere2fit = 2;		% Default to inner skull
+    else
+        sphere2fit = 1;		% Cortex
+    end
 end
 % COULD ADD OPTION TO FIT SPHERE TO POLHEMUS HEAD SHAPE!
 
@@ -116,7 +116,7 @@ if sphere2fit == 1
 end
 
 if isfield(D.inv{val}.mesh,'tess_iskull')
-    
+
     % convert positions into m
     %----------------------------------------------------------------------
     vert         = D.inv{val}.mesh.tess_iskull.vert;
@@ -136,8 +136,8 @@ if isfield(D.inv{val}.mesh,'tess_iskull')
     indx         = 3;
 
     if sphere2fit == 2
-    % compute the best fitting sphere to INNER SKULL
-    %----------------------------------------------------------------------
+        % compute the best fitting sphere to INNER SKULL
+        %----------------------------------------------------------------------
         [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
         OPTIONS.HeadCenter = Center;
         OPTIONS.Radii      = [.88 .93 1]*Radius;
@@ -147,7 +147,7 @@ else
 end
 
 if isfield(D.inv{val}.mesh,'tess_scalp')
-    
+
     % convert positions into m
     %----------------------------------------------------------------------
     vert         = D.inv{val}.mesh.tess_scalp.vert;
@@ -168,8 +168,8 @@ if isfield(D.inv{val}.mesh,'tess_scalp')
     OPTIONS.Scalp.iGrid    = indx;
 
     if sphere2fit == 3
-    % compute the best fitting sphere to SCALP
-    %----------------------------------------------------------------------
+        % compute the best fitting sphere to SCALP
+        %----------------------------------------------------------------------
         [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
         OPTIONS.HeadCenter = Center;
         OPTIONS.Radii      = [.88 .93 1]*Radius;
@@ -214,7 +214,7 @@ end
 
 for i = 1:length(sens)
     Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
- 
+
     Channel(i).Loc = reshape(sens(:,i),3,ncoil);
 
     if exist('orientation') == 1
@@ -224,23 +224,27 @@ for i = 1:length(sens)
     end
 
     if isfield(D.channels,'Weight')
-	Channel(i).Weight  = D.channels.Weight(i,:);
+        Channel(i).Weight  = D.channels.Weight(i,:);
     elseif ncoil == 1
-    	Channel(i).Weight  = 1;
-    else		% (currently only handles first-order gradiometers, ie two coils)
-        if all(isfinite(Channel(i).Loc(:,2)))	       % this is a gradiometer
-%        if sum(Channel(i).Loc(:,1) - Channel(i).Loc(:,2))~=0 % this is a gradiometer
-	    Channel(i).Weight  = [1 -1];
-	else						% magnetometer
-    	    Channel(i).Weight  = [1 0];
-	end
+        Channel(i).Weight  = 1;
+    % (currently only handles first-order gradiometers, ie two coils)
+    %----------------------------------------------------------------------
+    else
+        % this is a gradiometer
+        if all(isfinite(Channel(i).Loc(:,2)))	       
+            % if sum(Channel(i).Loc(:,1) - Channel(i).Loc(:,2))~=0 % this is a gradiometer
+            Channel(i).Weight  = [1 -1];
+            % magnetometer
+        else
+            Channel(i).Weight  = [1 0];
+        end
     end
 
     if ncoil > 1
-      if ~all(isfinite(Channel(i).Loc(:,2)))		% replace mag NaNs
-	Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
-	Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
-      end
+        if ~all(isfinite(Channel(i).Loc(:,2)))		% replace mag NaNs
+            Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
+            Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
+        end
     end
     Channel(i).Comment = num2str(i);
     Channel(i).Type    = D.modality;

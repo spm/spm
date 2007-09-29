@@ -256,7 +256,7 @@ case{lower('Input (C - Hz)')}
         subplot(Nu,1,k)
         for i = 1:nr
             j = [1:nf]*nr - nr + i;
-            UF(:,i) = DCM.Eg.L(i)*xY.U*DCM.Ep.C(j,k);
+            UF(:,i) = xY.U*DCM.Ep.C(j,k);
         end
         plot(Hz,UF)
         xlabel('Frequency (Hz)')

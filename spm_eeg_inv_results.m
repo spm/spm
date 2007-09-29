@@ -54,7 +54,7 @@ else
 end
 
 if Han
-    fwhm = diff(toi);
+    fwhm = min(diff(toi),8);
     t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
     t    = t/sum(t);
 else

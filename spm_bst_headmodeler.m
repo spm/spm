@@ -452,7 +452,8 @@ else
     OPTIONS = varargin{1};
 end
 
-% Check field names of passed OPTIONS and fill missing ones with default values
+% Check field names of passed OPTIONS and fill missing ones with defaults
+%--------------------------------------------------------------------------
 DefFieldNames = fieldnames(Def_OPTIONS);
 for k = 1:length(DefFieldNames)
     if ~isfield(OPTIONS,DefFieldNames{k}) | strcmp(DefFieldNames{k},'BEM')
@@ -504,7 +505,7 @@ end
 
 
 % Check inputs integrity
-
+%--------------------------------------------------------------------------
 %Source models
 if ~isempty(find(OPTIONS.SourceModel == 0)) | ~isempty(find(abs(OPTIONS.SourceModel) > 1)) % unValid source models
     if ~isempty(DataType.MEG)
@@ -525,13 +526,14 @@ if isempty(OPTIONS.SourceLoc) & ~OPTIONS.VolumeSourceGrid & isempty(OPTIONS.Cort
 end
 
 
-%--------------------------------------------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %
 % HEAD MODELING BEGINS
 %
-%--------------------------------------------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 
-% Get Channel Information ------------------------------------------------------------------------------------------------------------------
+% Get Channel Information 
+%--------------------------------------------------------------------------
 if ~isempty(OPTIONS.Channel)
     Channel = OPTIONS.Channel;
 else
@@ -615,7 +617,8 @@ else
                 end
                 nmes = size(Vertices,1);
 
-                % Run parameters fit --------------------------------------------------------------------------------------------------------------
+                % Run parameter fit 
+                %----------------------------------------------------------
                 mass = mean(Vertices); % center of mass of the scalp vertex locations
                 R0 = mean(norlig(Vertices - ones(nscalp,1)*mass)); % Average distance between the center of mass and the scalp points
                 vec0 = [mass,R0];
@@ -703,12 +706,12 @@ if EEG
                 [Channel(:).Comment] = deal('AVERAGE REF');
             otherwise
                 EEGREFndx = strmatch(OPTIONS.EEGRef,char(Channel(:).Name));
-            if isempty(EEGREFndx)
+                if isempty(EEGREFndx)
                     errordlg(sprintf(...
                         'No channel named ''%s'' was found amongst available EEG channels. Cannot use it as a reference for EEG.',OPTIONS.EEGRef...
                         ))
-                return
-            end
+                    return
+                end
         end
     end
 end

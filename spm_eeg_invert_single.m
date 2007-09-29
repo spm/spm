@@ -162,7 +162,7 @@ end
 
 % Re-reference matrix (R)
 %--------------------------------------------------------------------------
-if strcmp(D.modality,'EEGggggggggg')
+if strcmp(D.modality,'EEG')
     [i j] = min(diag(YY));                           % minimum variance channel
     R     = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc);   % re-referencing matrix
     YY    = R*YY*R';

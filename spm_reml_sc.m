@@ -1,5 +1,5 @@
 function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC);
-% ReML estimation of covariance components from y*y' - scaled components
+% ReML estimation of covariance components from y*y' - proper components
 % FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
@@ -12,7 +12,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC);
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
-% Ph  - (q x q) conditional precision of h [or log(h), if hE(1)]
+% Ph  - (q x q) conditional precision of log(h)
 %
 % F   - [-ve] free energy F = log evidence = p(Y|X,Q) = ReML objective
 %
@@ -20,21 +20,23 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC);
 % Fc  - complexity (F = Fa - Fc)
 %
 % Performs a Fisher-Scoring ascent on F to find MAP variance parameter
-% estimates.  NB: uses weakly infomrative log-normal hyperpriors.
+% estimates.  NB: uses weakly informative log-normal hyperpriors.
+% See also spm_reml for an unconstrained version that allows for negative
+% hyperparameters
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+ 
 % John Ashburner & Karl Friston
 % $Id: spm_reml.m 731 2007-02-07 14:31:41Z karl $
-
+ 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
 try, N; catch, N  = 1;  end
-
+ 
 % default number of iterations
 %--------------------------------------------------------------------------
 try, K; catch, K  = 32; end
-
+ 
 % initialise h
 %--------------------------------------------------------------------------
 n     = length(Q{1});
@@ -43,7 +45,7 @@ h     = zeros(m,1);
 dh    = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
-
+ 
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
@@ -53,43 +55,43 @@ else
     X = orth(full(X));
     R = speye(n,n) - X*X';
 end
-
-
+ 
+ 
 % initialise and specify hyperpriors
 %==========================================================================
-
-
+ 
+ 
 % scale YY
 %--------------------------------------------------------------------------
 sY = n*trace(YY)/N;
 YY = YY/sY;
-
+ 
 % scale Q
 %--------------------------------------------------------------------------
 for i = 1:m
     sh(i,1) = n*trace(R*Q{i});
     Q{i}    = Q{i}/sh(i);
 end
-
-% hperpriors
+ 
+% hyperpriors
 %--------------------------------------------------------------------------
 try, hE = hE(:);   catch, hE = -32;   end
 try, hP = inv(hC); catch, hP = 1/256; end
-
+ 
 % check sise
 %--------------------------------------------------------------------------
 if length(hE) < m, hE = hE(1)*ones(m,1);  end
 if length(hP) < m, hP = hP(1)*speye(m,m); end
-
-
-
+ 
+ 
+ 
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 dF    = Inf;
 as    = 1:m;
 ds    = 1:m;
 for k = 1:K
-
+ 
     % compute current estimate of covariance
     %----------------------------------------------------------------------
     C     = sparse(n,n);
@@ -97,7 +99,7 @@ for k = 1:K
         C = C + Q{i}*exp(h(i));
     end
     iC    = inv(C + speye(n,n)/exp(32));
-
+ 
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
     iCX    = iC*X;
@@ -106,47 +108,47 @@ for k = 1:K
     else
         Cq = sparse(0);
     end
-
+ 
     % M-step: ReML estimate of hyperparameters
     %======================================================================
-
+ 
     % Gradient dF/dh (first derivatives)
     %----------------------------------------------------------------------
     P     = iC - iCX*Cq*iCX';
     U     = speye(n) - P*YY/N;
     for i = as
-
+ 
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
         PQ{i}   = P*Q{i};
         dFdh(i) = -trace(PQ{i}*U)*N/2;
-
+ 
     end
-
+ 
     % Expected curvature E{dF/dhh} (second derivatives)
     %----------------------------------------------------------------------
     for i = as
         for j = as
-
+ 
             % dF/dhh = -trace{P*Q{i}*P*Q{j}}
             %--------------------------------------------------------------
             dFdhh(i,j) = -trace(PQ{i}*PQ{j})*N/2;
             dFdhh(j,i) =  dFdhh(i,j);
-
+ 
         end
     end
-
+ 
     % modulate
     %----------------------------------------------------------------------
     dFdh  = dFdh.*exp(h);
     dFdhh = dFdhh.*(exp(h)*exp(h)');
-
+ 
     % add hyperpriors
     %----------------------------------------------------------------------
     e     = h     - hE;
     dFdh  = dFdh  - hP*e;
     dFdhh = dFdhh - hP;
-
+ 
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
     dh(as) = spm_dx(dFdhh(as,as),dFdh(as));
@@ -169,36 +171,34 @@ for k = 1:K
         dh    = zeros(m,1);
         as    = as(:)';
     end
-
+ 
 end
-
-
+ 
+ 
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 Ph    = -dFdhh;
 if nargout > 3
-
+ 
     % tr(hP*inv(Ph)) - nh + tr(pP*inv(Pp)) - np (pP = 0)
     %----------------------------------------------------------------------
     Ft = trace(hP*inv(Ph)) - length(Ph) - length(Cq);
-
+ 
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
     Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
-
+ 
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
     Fa = Ft/2 - trace(C*P*YY*P)/2 - N*n*log(2*pi)/2  - N*spm_logdet(C)/2;
-
+ 
     % Free-energy
     %----------------------------------------------------------------------
     F  = Fa - Fc - N*n*log(sY)/2;
-
+ 
 end
-
+ 
 % return exp(h) if log-normal hyperpriors and rescale
 %--------------------------------------------------------------------------
 h  = sY*exp(h)./sh;
 C  = sY*C;
-
-
