@@ -1,5 +1,5 @@
 function spm_eeg_inv_group(S);
-% Source reconstcion for a goupf of ERPs or ERFs
+% Source reconstruction for a group ERP or ERF study
 % FORMAT spm_eeg_inv_group
 %
 % S  - matrix of names of EEG/MEG mat files for inversion
@@ -21,10 +21,10 @@ function spm_eeg_inv_group(S);
 %--------------------------------------------------------------------------
 str = questdlg('this will overwrite previous source reconstructions OK?');
 if ~strcmp(str,'Yes'), return, end
-
+ 
 % Load data
 %==========================================================================
-
+ 
 % Gile file names
 %--------------------------------------------------------------------------
 if ~nargin
@@ -33,24 +33,24 @@ end
 Ns    = size(S,1);
 PWD   = pwd;
 val   = 1;
-
+ 
 for i = 1:Ns
-
+ 
     % Load data and set method
     %======================================================================
     D{i}                 = spm_eeg_ldata(S(i,:));
     D{i}.val             = val;
     D{i}.inv{val}.method = 'Imaging';
     cd(D{i}.path);
-
+ 
     % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
     %----------------------------------------------------------------------
     D{i}.inv{val}.mesh.Msize  = 4;
-
+ 
     % use a template head model and associated meshes
     %======================================================================
     D{i} = spm_eeg_inv_template(D{i});
-
+ 
     % get fiducials and sensor locations
     %----------------------------------------------------------------------
     try
@@ -59,12 +59,16 @@ for i = 1:Ns
         sensors = load(uigetfile('*sens*.mat','select sensor locations'));
         name    = fieldnames(sensors);
         sensors = getfield(sensors,name{1});
-
+    end
+    try
+        fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
+    catch
         fid_eeg = load(uigetfile('*fid*.mat','select fiducial locations'));
         name    = fieldnames(fid_eeg);
         fid_eeg = getfield(fid_eeg,name{1});
     end
-
+    
+ 
     % get sensor locations
     %----------------------------------------------------------------------
     if strcmp(D{i}.modality,'EEG')
@@ -75,13 +79,13 @@ for i = 1:Ns
     D{i}.inv{val}.datareg.sensors   = sensors;
     D{i}.inv{val}.datareg.fid_eeg   = fid_eeg;
     D{i}.inv{val}.datareg.headshape = headshape;
-
+ 
     % specify forward model
     %----------------------------------------------------------------------
     D{i}.inv{val}.forward.method = 'eeg_3sphereBerg';
-
+ 
 end
-
+ 
 % Get conditions or trials
 %==========================================================================
 if length(D{1}.events.types) > 1
@@ -99,65 +103,65 @@ if length(D{1}.events.types) > 1
 else
     trials = D{1}.events.types;
 end
-
+ 
 % specify inversion parameters
 %--------------------------------------------------------------------------
 inverse.trials = trials;                      % Trials or conditions
 inverse.type   = 'GS';                        % Priors; GS, MSP, LOR or IID
-
+ 
 % specify time-frequency window contrast
 %==========================================================================
-
+ 
 % get time window
 %--------------------------------------------------------------------------
 woi              = spm_input('Time window (ms)','+1','r',[100 200]);
 woi              = sort(woi);
 contrast.woi     = round([woi(1) woi(end)]);
-
+ 
 % get frequency window
 %--------------------------------------------------------------------------
 fboi             = spm_input('Frequency [band] of interest (Hz)','+1','r',0);
 fboi             = sort(fboi);
 contrast.fboi    = round([fboi(1) fboi(end)]);
 contrast.display = 0;
-
+ 
 % Register and compute a forward model
 %==========================================================================
 for i = 1:Ns
-
+ 
     fprintf('Registering and computing forward model (subject: %i)\n',i)
     D{i}.inv{val}.inverse = inverse;
-
+ 
     % Forward model
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_datareg(D{i});
     D{i} = spm_eeg_inv_BSTfwdsol(D{i});
     
 end
-
+ 
 % Invert the forward model
 %==========================================================================
 D    = spm_eeg_invert_group(D);
-
-
+ 
+ 
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
 for i = 1:Ns
-
+ 
     D{i}.inv{val}.contrast = contrast;
-
+ 
     % evaluate and write image
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_results(D{i});
     D{i} = spm_eeg_inv_Mesh2Voxels(D{i});
-
+ 
 end
-
+ 
 % Save
 %==========================================================================
 S     = D;
 for i = 1:Ns
-
+ 
     % save D
     %----------------------------------------------------------------------
     D = S{i};
@@ -166,6 +170,4 @@ for i = 1:Ns
     else
         save(fullfile(D.path, D.fname), 'D');
     end
-
 end
-

@@ -16,7 +16,6 @@ fprintf('\ncomputing contrast - please wait\n')
 try
     model = D.inv{D.val};
 catch
-
     model = D.inv{end};
 end
 
@@ -24,7 +23,6 @@ end
 %--------------------------------------------------------------------------
 try, woi = model.contrast.woi;  catch, woi = [80 120]; end
 try, foi = model.contrast.fboi; catch, foi = 0;        end
-try, Han = model.contrast.Han;  catch, Han = 1;        end
 
 % inversion parameters
 %--------------------------------------------------------------------------
@@ -46,21 +44,11 @@ Nc   = size(U,1);                                 % number of channels
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
 toi  = round(woi*(D.Radc/1000)) + D.events.start + 1;
-if toi(1) < It(1) | toi(2) > It(end)
-     errordlg('Contrast outside range of sampled window');
-     return;
-else
-     toi = toi - It(1) + 1;
-end
+toi  = toi - It(1) + 1;
+fwhm = max(diff(toi),8);
+t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
+t    = t/sum(t);
 
-if Han
-    fwhm = min(diff(toi),8);
-    t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
-    t    = t/sum(t);
-else
-    t    = toi(1):toi(end);
-    t    = ones(size(t))/length(t);
-end
 
 % get frequency space and put PST subspace into contrast (W -> T*T'*W)
 %--------------------------------------------------------------------------

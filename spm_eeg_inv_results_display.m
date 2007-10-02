@@ -68,6 +68,7 @@ plot(pst,W)
 axis square
 xlabel('PST {ms}')
 ylabel('contrast')
+drawnow
 
 
 

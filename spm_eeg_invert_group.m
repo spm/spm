@@ -130,7 +130,7 @@ dct   = dct(i);
 %==========================================================================
 Nt    = length(trial);
 for k = 1:Nl
-    Ic    = setdiff(D{k}.channels.eeg, D{k}.channels.Bad);
+    Ic{k} = setdiff(D{k}.channels.eeg, D{k}.channels.Bad);
     for i = 1:Nt
         Y{k,i}  = sparse(0);
         if isfield(D{k}.events,'reject')
@@ -139,7 +139,7 @@ for k = 1:Nl
             c = find(D{k}.events.code == trial(i));
         end
         for j = 1:length(c)
-            Y{k,i} = Y{k,i} + squeeze(D{k}.data(Ic,It,c(j)))*T;
+            Y{k,i} = Y{k,i} + squeeze(D{k}.data(Ic{k},It,c(j)))*T;
         end
     end
 end
@@ -234,6 +234,7 @@ if ~strcmp(type,'IID')
     QG    = QG*QG;
     QG    = QG(Is,Is);
     fprintf(' - done\n')
+    
 end
 
 
@@ -431,7 +432,7 @@ for i = 1:Nl
     inverse.U      = U;                    % spatial  subspace
     inverse.Is     = Is;                   % Indices of active dipoles
     inverse.It     = It;                   % Indices of time bins
-    inverse.Ic     = Ic;                   % Indices of good channels
+    inverse.Ic     = Ic{i};                % Indices of good channels
     inverse.Nd     = Nd;                   % number of dipoles
     inverse.pst    = pst;                  % pers-stimulus time
     inverse.dct    = dct;                  % frequency range

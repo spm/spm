@@ -1099,7 +1099,7 @@ if ~isempty(OPTIONS.Cortex), % subject has cortical vertices as source supports
     clear SearchGridLoc SearchGain G
 
     if OPTIONS.Verbose, bst_message_window({...
-            'Computing the Image Gain Matrices (this may take a while). . .'})
+            'Computing Gain Matrix '})
     end
 
     % Find the cortical grid where to compute the forward model in the tessellation file
@@ -1580,9 +1580,8 @@ end
 
 if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
 
-    % Force (re)computation of transfer matrices, even if files exist in current study folder
-
-    %    if OPTIONS.Verbose, bst_message_window('Computing the BEM Transfer Matrix (this may take a while)....'), end
+    % Force (re)computation of transfer matrices, even if files exist in
+    % current study folder
 
     global nfv
     nfv = bem_xfer(R_eeg,R_meg1,O_meg1,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
@@ -1591,8 +1590,6 @@ if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
     if ~isempty(find(flaggrad))
         if OPTIONS.Verbose, bst_message_window({'Gradiometers detected',...
                 'Computing corresponding Gain Matrix. . .'}), end
-
-        %fn_meg_2 = fullfile(pwd,[OPTIONS.rooot,'_megxfer_2.mat']);
         fn_meg_2 = sprintf('%s_megxfer2_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test);
         bem_xfer(R_eeg,R_meg2,O_meg2,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
             Param(1).basis_opt,Param(1).test_opt,Param(1).ISA,fn_eeg,fn_meg_2,Param.Ntess_max,0,OPTIONS.BEM.checksurf); % Verbose = 0
@@ -1600,7 +1597,6 @@ if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
     end
 
     if ~isempty(irefsens) % Do the same for reference channels
-        %fn_meg_REF = fullfile(pwd,[OPTIONS.rooot,'_megxfer_REF.mat']);
         fn_meg_REF = sprintf('%s_megREFxfer_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test);
         bem_xfer(R_eeg,R_meg_REF,O_meg_REF,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
             Param(1).basis_opt,Param(1).test_opt,Param(1).ISA,fn_eeg,fn_meg_REF,Param.Ntess_max,0,OPTIONS.BEM.checksurf);% Verbose = 0
@@ -1609,8 +1605,6 @@ if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
 
             if OPTIONS.Verbose, bst_message_window({'MEG Reference Channels detected',...
                     'Computing corresponding Gain Matrix. . .'}), end
-
-            %fn_meg_REF2 = fullfile(pwd,[OPTIONS.rooot,'_megxfer_REF2.mat']);
             fn_meg_REF2 = sprintf('%s_megREFxfer2_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test);
 
             bem_xfer(R_eeg,R_meg_REF2,O_meg_REF2,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...

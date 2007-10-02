@@ -148,9 +148,10 @@ end
 S     = spm_svd(YY,exp(-4));
 T     = T*S;
 Nr    = size(T,2);                               % number of temporal modes
-disp([mat2str(Nr) ' temporal modes'])
 iV    = inv(T'*qV*T);                            % precision (mode space)
 Vq    = T*iV*T';
+fprintf('Using %i temporal modes\n',Nr)
+
 
 % Project onto temporal modes (S)
 %--------------------------------------------------------------------------
@@ -160,16 +161,9 @@ for i = 1:Nt
     YY   = YY + Y{i}*iV*Y{i}';
 end
 
-% Re-reference matrix (R)
+% Re-reference matrix (R) - disabled
 %--------------------------------------------------------------------------
-if strcmp(D.modality,'EEGggggggggg')
-    [i j] = min(diag(YY));                           % minimum variance channel
-    R     = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc);   % re-referencing matrix
-    YY    = R*YY*R';
-    L     = R*L;
-else
-    R = speye(Nc,Nc);
-end
+R     = speye(Nc,Nc);
 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
@@ -178,9 +172,9 @@ try
     U = U(:,1:Nm);
 end
 Nm    = size(U,2);
-disp([mat2str(Nm) ' channel modes'])
 YY    = U'*YY*U;
 L     = U'*L;
+fprintf('Using %i spatial modes\n',Nm)
 
 % Restrict source space
 %==========================================================================
@@ -220,6 +214,7 @@ if ~strcmp(type,'IID')
     QG    = QG*QG;
     QG    = QG(Is,Is);
     fprintf(' - done\n')
+    
 end
 
 

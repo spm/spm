@@ -3,11 +3,11 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    FIG = SPM_EEG_INV_IMAG_API launch spm_eeg_inv_imag_api GUI.
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 
-% Last Modified by GUIDE v2.5 29-Jan-2007 16:52:15
+% Last Modified by GUIDE v2.5 01-Oct-2007 18:12:59
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 759 2007-03-01 18:22:05Z karl $
+% $Id: spm_eeg_inv_imag_api.m 933 2007-10-02 19:04:49Z karl $
 
 
 spm_defaults
@@ -290,7 +290,11 @@ try
        handles.D.con = 1;
     end
 catch
-    handles.D.con = 0;
+    try 
+       handles.D.con = length(handles.D.inv{val}.inverse.J);
+    catch
+       handles.D.con = 0;
+    end
 end
 if handles.D.con
     str = sprintf('condition %d',handles.D.con);
@@ -447,17 +451,16 @@ try
 end
 Reset(hObject, eventdata, handles);
 
-
-
 % --- Executes on button press in help.
 %--------------------------------------------------------------------------
 function help_Callback(hObject, eventdata, handles)
 edit spm_eeg_inv_help
 
 
-
-
-
+% --- Executes on button press in group.
+%--------------------------------------------------------------------------
+function group_Callback(hObject, eventdata, handles)
+spm_eeg_inv_group
 
 
 
