@@ -18,7 +18,7 @@ function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 932 2007-09-29 18:01:16Z karl $
+% $Id: spm_eeg_inv_BSTfwdsol.m 934 2007-10-05 12:36:29Z karl $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations
 % for component coils) and to allow sphere to be fit to other surfaces, eg
@@ -232,9 +232,8 @@ for i = 1:length(sens)
     else
         % this is a gradiometer
         if all(isfinite(Channel(i).Loc(:,2)))	       
-            % if sum(Channel(i).Loc(:,1) - Channel(i).Loc(:,2))~=0 % this is a gradiometer
             Channel(i).Weight  = [1 -1];
-            % magnetometer
+        % magnetometer
         else
             Channel(i).Weight  = [1 0];
         end

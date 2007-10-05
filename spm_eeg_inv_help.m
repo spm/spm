@@ -137,6 +137,6 @@ D = spm_eeg_inv_results(D);
 % name will correspond to the data name and current inversion (i.e., D.val)
  
 %--------------------------------------------------------------------------
-D.inv{D.val}.contrast.smooth  = 12; % FWHM (mm)
+D.inv{D.val}.contrast.smooth  = 8; % FWHM (mm)
 D.inv{D.val}.contrast.display = 0;
 D = spm_eeg_inv_Mesh2Voxels(D);

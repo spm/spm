@@ -370,7 +370,7 @@ for i = 1:Nl
     Qe    = speye(Nc(i),Nc(i));
     LQpL  = L{i}*QP*L{i}';
     Q     = {Qe LQpL};
-    YY    = spm_cat(Y{i,:})*kron(speye(Nt,Nt),iV)*spm_cat(Y{i,:})';
+    YY    = spm_cat({Y(i,:)})*kron(speye(Nt,Nt),iV)*spm_cat({Y(i,:)})';
 
     % re-do ReML
     %----------------------------------------------------------------------
