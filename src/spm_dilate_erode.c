@@ -1,5 +1,6 @@
 /*
- * $Id: spm_dilate_erode.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_dilate_erode.c 938 2007-10-12 19:09:31Z john $
+ * Jesper Andersson
  */
 
 #include <string.h>

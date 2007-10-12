@@ -1,6 +1,8 @@
 function dartel2
 % DARTEL 2D image registration stuff
 %
+% These functions are useful for testing out new ideas in 2D, but not so
+% helpful for most practical applcations.
 %_______________________________________________________________________
 %
 % FORMAT v = dartel2(v,g,f,param)

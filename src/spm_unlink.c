@@ -1,5 +1,6 @@
 /*
- * $Id: spm_unlink.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_unlink.c 938 2007-10-12 19:09:31Z john $
+ * John Ashburner
  */
 
 /* Do a silent deletion of files on disk */

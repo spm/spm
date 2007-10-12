@@ -1,4 +1,6 @@
 /* $Id: optimizer3d.c 73 2007-05-10 15:17:14Z john $ */
+/* (c) John Ashburner (2007) */
+
 #include<mex.h>
 #include<math.h>
 extern double log(double x);
@@ -972,10 +974,10 @@ void fmg(int n0[], float *a0, float *b0, int rtype, double param0[], int c, int 
     solveNN(n0[3], a[ng-1], bo[ng-1], param0[5], u[ng-1]);
     for(j=ng-2; j>=0; j--)
     {
-        int jcycle;
+        int jc;
         prolong(n0[3],n[j+1],u[j+1],n[j],u[j],rbuf);
         if(j>0) copy(n0[3]*m[j],bo[j],b[j]);
-        for(jcycle=0; jcycle<c; jcycle++)
+        for(jc=0; jc<c; jc++)
         {
             int jj;
             for(jj=j; jj<ng-1; jj++)

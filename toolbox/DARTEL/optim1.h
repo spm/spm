@@ -1,4 +1,5 @@
 /* $Id$ */
+/* (c) John Ashburner (2007) */
 extern void fmg(int n0[], double *a0, double *b0, int rtype, double param[], int c, int nit,
                  double *u0, double *scratch);
 extern void cgs(int dm[], double A[], double b[], int rtype, double param[], double tol, int nit,

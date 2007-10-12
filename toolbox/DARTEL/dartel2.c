@@ -1,4 +1,5 @@
 /* $Id: dartel2.c 73 2007-05-10 15:17:14Z john $ */
+/* (c) John Ashburner */
 
 #include "mex.h"
 #include <math.h>

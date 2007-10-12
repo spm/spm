@@ -61,7 +61,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 919 2007-09-18 21:56:22Z darren $
+% $Id: spm_jobman.m 938 2007-10-12 19:09:31Z john $
 
 
 if nargin==0
@@ -1640,7 +1640,6 @@ switch(typ)
         if isfield(c,'jobhelp')
             jobhelp = c.jobhelp;
         end;
-
     case {'branch'}
         tag = gettag(c);
         if isfield(c,'val')

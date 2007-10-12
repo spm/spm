@@ -1,5 +1,6 @@
 /* 
- * $Id: spm_datatypes.h 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_datatypes.h 938 2007-10-12 19:09:31Z john $
+ * John Ashburner
  */
 
 /* SPM image data types */

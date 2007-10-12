@@ -1,4 +1,5 @@
 /* $Id: optimizer2d.c 52 2006-12-08 14:48:28Z john $ */
+/* (c) John Ashburner (2007) */
 
 #include<mex.h>
 #include<math.h>
@@ -999,10 +1000,10 @@ void fmg2(int n0[], double *a0, double *b0, int rtype, double param0[], int c, i
 
     for(j=ng-2; j>=0; j--)
     {
-        int jcycle;
+        int jc;
         prolong(2,n[j+1],u[j+1],n[j],u[j],rbuf);
         if(j>0) copy(2*m[j],bo[j],b[j]);
-        for(jcycle=0; jcycle<c; jcycle++)
+        for(jc=0; jc<c; jc++)
         {
             int jj;
             for(jj=j; jj<ng-1; jj++)

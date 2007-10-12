@@ -1,5 +1,6 @@
 /*
  * $Id: spm_bsplinc.c 247 2005-10-04 17:20:34Z guillaume $
+ * John Ashburner
  */
  
 /*

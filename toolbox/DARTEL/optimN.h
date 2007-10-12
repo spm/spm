@@ -1,4 +1,5 @@
 /* $Id$ */
+/* (c) John Ashburner (2007) */
 extern void fmg(int n0[], float *a0, float *b0, int rtype, double param[], int c, int nit,
                  float *u0, float *scratch);
 extern void resize(int na[], float *a, int nc[], float *c, float *b);

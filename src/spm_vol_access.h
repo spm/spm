@@ -1,5 +1,6 @@
 /*
- * $Id: spm_vol_access.h 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: spm_vol_access.h 938 2007-10-12 19:09:31Z john $
+ * John Ashburner
  */
  
 /* Matlab independent image access routines */

@@ -143,8 +143,9 @@ for it=1:numel(st.param),
         for j=1:n1,
             t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
         end
+        t(:,:,:,end) = max(t(:,:,:,end),0);
         if param.slam,
-            g = spm_dartel_smooth(t,param.slam,8,vx,log(g));
+            g = spm_dartel_smooth(t,param.slam,8,vx);
         else
             for j=1:n1,
                 g(:,:,:,j) = t(:,:,:,j)./(t(:,:,:,end)+eps);

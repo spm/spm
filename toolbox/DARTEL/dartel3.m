@@ -90,13 +90,17 @@ function dartel3
 %
 %_______________________________________________________________________
 %
-% FORMAT y = dartel3('Exp', v, param)
+% FORMAT [y,J] = dartel3('Exp', v, param)
 % v - flow field
-% param - 2 parameters.
+% J - Jacobian. Usually a tensor field of Jacobian matrices, but can
+%     be a field of Jacobian determinants.
+% param - 2 (or 3) parameters.
 %         [1] K, the number of recursions (squaring steps), such
 %             that exponentiation is done using an Euler-like
 %             integration with 2^K time steps.
 %         [2] a scaling parameter.
+%         If there is a third parameter, and it is set to 1, then
+%         the J will be the Jacobian determinants.
 %
 % A flow field is "exponentiated" to generate a deformation field
 % using a scaling and squaring approach.  See the work of Arsigny
@@ -189,4 +193,6 @@ function dartel3
 
 % John Ashburner
 % $Id$
+
+error('Not compiled for this platform (see make.m).'
 

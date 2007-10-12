@@ -1,5 +1,6 @@
 /*
- * $Id: mat2file.c 810 2007-05-07 14:38:54Z john $
+ * $Id: mat2file.c 938 2007-10-12 19:09:31Z john $
+ * John Ashburner
  */
 
 #include <math.h>

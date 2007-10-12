@@ -1,5 +1,6 @@
 /*
- * $Id: spm_brainwarp.c 574 2006-07-25 17:59:36Z john $
+ * $Id: spm_brainwarp.c 938 2007-10-12 19:09:31Z john $
+ * John Ashburner
  */
 
 #include <math.h>

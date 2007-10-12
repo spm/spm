@@ -1,4 +1,5 @@
 /* $Id: optimizer2d_mex.c 52 2006-12-08 14:48:28Z john $ */
+/* (c) John Ashburner (2007) */
 
 #include "mex.h"
 #include <math.h>

@@ -1,4 +1,5 @@
 /* %Id$ */
+/* (c) John Ashburner (2007) */
 
 #include <math.h>
 #include<mex.h>

@@ -1,4 +1,4 @@
-function spm_resid_kernel(job)
+function spm_dartel_dotprods(job)
 % Generate a kernel from dot-products of images
 % FORMAT spm_resid_kernel(job)
 % job.images  - Images to use

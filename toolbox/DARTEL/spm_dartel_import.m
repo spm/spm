@@ -74,6 +74,8 @@ spm_progress_bar('init',length(x3),['Working on ' nam],'Planes completed');
 M = p.VG(1).mat\p.flags.Affine*p.VF.mat;
 
 if iopt, idat = zeros(d(1:3),'single'); end;
+dat = {zeros(d(1:3),'uint8'),zeros(d(1:3),'uint8'),zeros(d(1:3),'uint8')};
+
 for z=1:length(x3),
 
     % Bias corrected image
@@ -114,8 +116,7 @@ for z=1:length(x3),
 end;
 spm_progress_bar('clear');
 
-%[dat{1},dat{2},dat{3}] = clean_gwc(dat{1},dat{2},dat{3}, 2);
-
+%[dat{1},dat{2},dat{3}] = clean_gwc(dat{1},dat{2},dat{3}, 2); 
 if iopt,
     if bitand(iopt,2),
         nwm = 0;
@@ -247,14 +248,6 @@ return;
 %=======================================================================
 
 %=======================================================================
-function T2 = get_2Dtrans(T3,B,j)
-d   = [size(T3) 1 1 1];
-tmp = reshape(T3,d(1)*d(2),d(3));
-T2  = reshape(tmp*B(j,:)',d(1),d(2));
-return;
-%=======================================================================
-
-%=======================================================================
 function t = transf(B1,B2,B3,T)
 d2 = [size(T) 1];
 t1 = reshape(reshape(T, d2(1)*d2(2),d2(3))*B3', d2(1), d2(2));
@@ -267,9 +260,9 @@ function dat = decimate(dat,fwhm)
 % Convolve the volume in memory (fwhm in voxels).
 lim = ceil(2*fwhm);
 s  = fwhm/sqrt(8*log(2));
-x  = [-lim(1):lim(1)]; x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
-y  = [-lim(2):lim(2)]; y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
-z  = [-lim(3):lim(3)]; z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
+x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
+y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
+z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
 i  = (length(x) - 1)/2;
 j  = (length(y) - 1)/2;
 k  = (length(z) - 1)/2;

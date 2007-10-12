@@ -1,3 +1,4 @@
+/* (c) John Ashburner (2007) */
 extern void composition(int dm[], float *A, float *B, float *C);
 extern void composition_jacobian(int dm[],
                                  float *A, float * JA, float *B, float *JB,

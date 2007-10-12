@@ -20,6 +20,7 @@ PG = job.template{1};
 PI = job.images;
 PU = job.flowfields;
 K  = job.K;
+fwhm = job.fwhm;
 
 N  = nifti(PG);
 dm = size(N.dat);
@@ -177,7 +178,12 @@ for i=1:numel(PI{1}),
             res = res + wt(:,:,:,j,k).*f(:,:,:,k);
             fprintf('.'); drawnow;
         end
-        NO.dat(:,:,:,1,j) = res.*dt; %Jacobian transform
+        res = res.*dt; % Jacobian transform
+        if fwhm>0,
+            vx = sqrt(sum(NO.mat(1:3,1:3).^2));
+            spm_smooth(res,res,fwhm*vx); % Note the abuse of MATLAB
+        end
+        NO.dat(:,:,:,1,j) = res; 
     end
 
     fprintf('\n');
@@ -198,7 +204,7 @@ if false,
     %------------------------------------------------------------
     % Random "tissue classes"
     n = 10000;
-    x = double(rand(n,1)>0.9);
+   %x = double(rand(n,1)>0.9);
     x = rand(n,4).*repmat([0.5 0.5 0.5 0.5],n,1);
     [mx,ind] = max(x,[],2);
     x = zeros(size(x));
@@ -210,7 +216,7 @@ if false,
 
     % Empirically determined covariance matrix
     res=x-repmat(mn,n,1);
-    vr = res'*res/n
+    vr = res'*res/n;
 
 
     % Covariance matrix from means

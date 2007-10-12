@@ -1,4 +1,5 @@
 /* $Id$ */
+/* (c) John Ashburner (2007) */
 
 #include<math.h>
 #include "mex.h"
@@ -827,10 +828,10 @@ void fmg(int n0[], double *a0, double *b0, int rtype, double param0[], int c, in
 
     for(j=ng-2; j>=0; j--)
     {
-        int jcycle;
+        int jc;
         resize(n[j+1],u[j+1],n[j],u[j],rbuf);
         if(j>0) copy(m[j],bo[j],b[j]);
-        for(jcycle=0; jcycle<c; jcycle++)
+        for(jc=0; jc<c; jc++)
         {
             int jj;
             for(jj=j; jj<ng-1; jj++)

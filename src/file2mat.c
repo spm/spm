@@ -1,5 +1,6 @@
 /*
- * $Id: file2mat.c 305 2005-11-23 17:52:16Z john $
+ * $Id: file2mat.c 938 2007-10-12 19:09:31Z john $
+ * John Ashburner
  */
 
 /*
