@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 #
-# $Id: Makefile 786 2007-04-13 17:49:01Z john $
+# $Id: Makefile 935 2007-10-12 13:36:07Z john $
 #
 ###############################################################################
 #
@@ -51,6 +51,13 @@ ifndef SUF
     SUF       = mexsol
     CC        = gcc
     CFLAGS    = -O3 -funroll-loops -DBIGENDIAN -fPIC
+    MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
+  endif
+  ifeq (SunOS64.gcc,$(PLATFORM))
+	# Added mexs64 filename extension (as R2007a requires) and -m64 compiler option
+    SUF       = mexs64
+    CC        = gcc
+    CFLAGS    = -m64 -O3 -funroll-loops -DBIGENDIAN -fPIC
     MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
   endif
   ifeq (Linux,$(PLATFORM))
@@ -466,6 +473,13 @@ verb.mexsol:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (Solaris) - using $(CC)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mexs64:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Unix compilation (Solaris 64 bit) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 

@@ -8,7 +8,7 @@ function [hdr,be] = read_hdr_raw(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: read_hdr_raw.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: read_hdr_raw.m 935 2007-10-12 13:36:07Z john $
 
 
 hdr = [];
@@ -35,7 +35,7 @@ end;
 
 % Sort out endian issues of header
 [unused,unused,mach] = fopen(fp);
-if strcmp(mach,'ieee-be')
+if strcmp(mach,'ieee-be') || strcmp(mach,'ieee-be.l64')
     be = true;
 else
     be = false;
