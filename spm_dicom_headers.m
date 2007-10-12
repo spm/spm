@@ -14,7 +14,7 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 844 2007-07-09 09:50:54Z john $
+% $Id: spm_dicom_headers.m 936 2007-10-12 13:51:02Z john $
 
 
 dict = readdict;
@@ -273,7 +273,7 @@ end;
 
 if flg(2) == 'b',
     [fname,perm,fmt] = fopen(fp);
-    if strcmp(fmt,'ieee-le'),
+    if strcmp(fmt,'ieee-le') || strcmp(fmt,'ieee-le.l64'),
         pos = ftell(fp);
         fclose(fp);
         fp  = fopen(fname,perm,'ieee-be');
@@ -408,7 +408,7 @@ function t = decode_csa(fp,lim)
 % Decode shadow information (0029,1010) and (0029,1020)
 [fname,perm,fmt] = fopen(fp);
 pos = ftell(fp);
-if strcmp(fmt,'ieee-be'),
+if strcmp(fmt,'ieee-be') || strcmp(fmt,'ieee-be.l64'),
     fclose(fp);
     fp  = fopen(fname,perm,'ieee-le');
     fseek(fp,pos,'bof');
@@ -423,7 +423,7 @@ else
     t = decode_csa1(fp,lim);
 end;
 
-if strcmp(fmt,'ieee-be'),
+if strcmp(fmt,'ieee-be') || strcmp(fmt,'ieee-be.l64'),
     fclose(fp);
     fp  = fopen(fname,perm,fmt);
 end;
