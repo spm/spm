@@ -4,7 +4,7 @@ function opts = spm_config_imcalc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_imcalc.m 298 2005-11-14 14:23:31Z john $
+% $Id: spm_config_imcalc.m 940 2007-10-14 16:35:23Z volkmar $
 
  
 %_______________________________________________________________________
@@ -29,7 +29,20 @@ outpt.num  = [1 Inf];
 outpt.val  = {'output.img'};
 outpt.help  = {[...
 'The output image is written to current working directory ',...
-'unless a valid full pathname is given']};
+'unless a valid full pathname is given. If a path name is given here, the ',...
+    'output directory setting will be ignored.']};
+
+outdir.type = 'files';
+outdir.name = 'Output Directory';
+outdir.tag  = 'outdir';
+outdir.filter = 'dir';
+outdir.num = [0 1];
+outdir.val = {''};
+outdir.help = {['Files produced by this function will be written into this ' ...
+		'output directory. If no directory is given, images will be' ...
+		' written to current working directory. If both output' ...
+		' filename and output directory contain a directory, then '...
+		'output filename takes precedence.']};
 
 expr.type = 'entry';
 expr.name = 'Expression';
@@ -123,7 +136,7 @@ options.help = {'Options for image calculator'};
 opts.type = 'branch';
 opts.name = 'Image Calculator';
 opts.tag  = 'imcalc';
-opts.val  = {inpt,outpt,expr,options};
+opts.val  = {inpt,outpt,outdir,expr,options};
 opts.prog = @fun;
 opts.vfiles = @vfiles;
 opts.help = {[...
@@ -137,13 +150,18 @@ return;
 
 function fun(opt)
 flags = {opt.options.dmtx, opt.options.mask, opt.options.dtype, opt.options.interp};
-spm_imcalc_ui(strvcat(opt.input{:}),opt.output,opt.expression,flags);
+outfile = vfiles(opt);
+spm_imcalc_ui(strvcat(opt.input{:}),outfile{1},opt.expression,flags);
 return;
 
 function vf = vfiles(job)
 [p,nam,ext,num] = spm_fileparts(job.output);
 if isempty(p)
-    p=pwd;
+    if isempty(job.outdir{1})
+	p=pwd;
+    else
+	p = job.outdir{1};
+    end;
 end;
 if isempty(strfind(ext,','))
     ext=[ext ',1'];

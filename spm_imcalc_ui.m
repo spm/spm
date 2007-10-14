@@ -88,12 +88,12 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 683 2006-11-20 16:36:32Z john $
+% $Id: spm_imcalc_ui.m 940 2007-10-14 16:35:23Z volkmar $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev: 683 $';
+SCCSid = '$Rev: 940 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])
@@ -141,16 +141,14 @@ end
 
 %-Work out filename for output image
 %------------------------------------------------------------------
-Qdir = spm_str_manip(Q,'Hv');
-Qfil = [spm_str_manip(Q,'stv'), '.', spm_str_manip(Q,'ev')];
-if ~exist(Qdir,'dir')
-	warning('Invalid directory: writing to current directory')
-	Qdir = '.';
-end
-Q = spm_select('CPath',Qfil,Qdir);
 [p n e v] = spm_fileparts(Q);
+e = spm_str_manip(e,'ev'); % Canonicalise extension
+if ~exist(p,'dir')
+	warning('Invalid directory: writing to current directory')
+	p = '.';
+end
 
-Vo = struct(	'fname',	fullfile(p, [n e]),...
+Vo = struct(	'fname',	fullfile(p, [n, '.', e]),...
 		'dim',		Vi(1).dim(1:3),...
 		'dt',		[type spm_platform('bigend')],...
 		'mat',		Vi(1).mat,...
