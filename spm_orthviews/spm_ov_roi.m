@@ -85,14 +85,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 916 2007-09-13 14:12:49Z volkmar $
+% $Id: spm_ov_roi.m 943 2007-10-14 17:03:31Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 916 $';
+rev = '$Revision: 943 $';
 
 global st;
 if isempty(st)
@@ -115,16 +115,21 @@ switch cmd
  case 'init'
   spm('pointer','watch');
   Vroi = spm_vol(varargin{3});
-  if varargin{4} % loadasroi
+  switch varargin{4} % loadasroi
+  case 1,
     roi = spm_read_vols(Vroi)>0;
     [x y z] = ndgrid(1:Vroi.dim(1),1:Vroi.dim(2),1:Vroi.dim(3));
     xyz = [x(roi(:))'; y(roi(:))'; z(roi(:))'];
-  else
+  case {0,2} % ROI space image or SPM mat
     Vroi = rmfield(Vroi,'private');
     roi = zeros(Vroi.dim(1:3));
     Vroi.fname = fileparts(Vroi.fname); % save path
     Vroi.dt(1) = spm_type('uint8');
-    xyz = [];
+    xyz = varargin{5};
+    if ~isempty(xyz)
+	ind = sub2ind(Vroi.dim(1:3),xyz(1,:),xyz(2,:),xyz(3,:));
+	roi(ind) = 1;
+    end;
   end;
   
   clear x y z
@@ -574,16 +579,21 @@ case {'save','saveas'}
  case 'context_init'
   Finter = spm_figure('FindWin', 'Interactive');
   spm_input('!DeleteInputObj',Finter);
-  usefile = spm_input('Load existing ROI image?','!+1','b','yes|no',[1 0],1);
-  if usefile
+  loadasroi = spm_input('Initial ROI','!+1','m',{'ROI image',...
+		    'ROI space definition', 'SPM result'},[1 0 2],1);
+  xyz = [];
+  switch loadasroi
+  case 1,
     imfname = spm_select(1, 'image', 'Select ROI image');
-    loadasroi = 1;
-  else
+  case 0,
     imfname = spm_select(1, 'image', 'Select image defining ROI space');
     [p n e v] = fileparts(imfname);
-    loadasroi = 0;
+  case 2,
+      [SPM, xSPM] = spm_getSPM;
+      xyz = xSPM.XYZ;
+      imfname = SPM.Vbeta(1).fname;
   end;
-  feval('spm_ov_roi','init',volhandle,imfname,loadasroi);
+  feval('spm_ov_roi','init',volhandle,imfname,loadasroi,xyz);
   obj = findobj(0, 'Tag',  ['ROI_1_', num2str(volhandle)]);
   set(obj, 'Visible', 'on');
   obj = findobj(0, 'Tag',  ['ROI_0_', num2str(volhandle)]);
