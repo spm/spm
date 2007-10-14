@@ -64,7 +64,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_select.m 861 2007-07-19 14:30:23Z john $
+% $Id: spm_select.m 941 2007-10-14 17:01:18Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -144,7 +144,7 @@ if nargin<1, n       = [0 Inf]; end;
 ok  = 0;
 if numel(n)==1,   n    = [n n];    end;
 if n(1)>n(2),     n    = n([2 1]); end;
-if ~finite(n(1)), n(1) = 0;        end;
+if ~isfinite(n(1)), n(1) = 0;        end;
 already = strvcat(already);
 
 t = '';
@@ -692,7 +692,7 @@ if length(vlo)>lim1,
     msg(lb,['Retained ' num2str(lim1) '/' num2str(length(vlo))...
         ' of selection.']);
     beep;
-elseif finite(lim(2))
+elseif isfinite(lim(2))
     if lim(1)==lim(2),
         msg(lb,['Selected ' num2str(size(str3,1)) '/' num2str(lim(2)) ' files.']);
     else
@@ -702,7 +702,7 @@ else
     if size(str3,1) == 1, ss = ''; else ss = 's'; end;
     msg(lb,['Selected ' num2str(size(str3,1)) ' file' ss '.']);
 end;
-if ~finite(lim(1)) || size(str3,1)>=lim(1),
+if ~isfinite(lim(1)) || size(str3,1)>=lim(1),
     set(sib(lb,'D'),'Enable','on');
 end;
 
@@ -1144,7 +1144,7 @@ otherwise;
 end
 
 if isempty(regexp(t,mch,'once')),
-    if nargin<2, d = pwd; end;
+    if (nargin<2)||isempty(d), d = pwd; end;
     t = [d fs t];
 end;
 
@@ -1202,7 +1202,7 @@ if numel(str)>lim(2),
     msg(ob,['Retained ' num2str(lim(2)) ' of the ' num2str(numel(str)) ' files.']);
     beep;
     str = str(1:lim(2));
-elseif finite(lim(2)),
+elseif isfinite(lim(2)),
     if lim(1)==lim(2),
         msg(ob,['Specified ' num2str(numel(str)) '/' num2str(lim(2)) ' files.']);
     else
@@ -1212,7 +1212,7 @@ else
     if numel(str) == 1, ss = ''; else ss = 's'; end;
     msg(ob,['Specified ' num2str(numel(str)) ' file' ss '.']);
 end;
-if ~finite(lim(1)) || numel(str)>=lim(1),
+if ~isfinite(lim(1)) || numel(str)>=lim(1),
     set(sib(ob,'D'),'Enable','on');
 else
     set(sib(ob,'D'),'Enable','off');
@@ -1273,7 +1273,7 @@ lim    = get(fb,'Userdata');
 limsel = min(lim(2)-size(already,1),size(sel,1));
 set(findobj(top,'Tag','selected'),'String',strvcat(already,sel(1:limsel,:)),'Value',[]);
 msg(ob,sprintf('Added %d/%d matching files to selection.', limsel, size(sel,1)));
-if ~finite(lim(1)) || size(sel,1)>=lim(1),
+if ~isfinite(lim(1)) || size(sel,1)>=lim(1),
     set(sib(ob,'D'),'Enable','on');
 else
     set(sib(ob,'D'),'Enable','off');

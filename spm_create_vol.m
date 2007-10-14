@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 717 2007-01-17 12:46:33Z john $
+% $Id: spm_create_vol.m 941 2007-10-14 17:01:18Z volkmar $
 
 
 for i=1:numel(V),
@@ -57,8 +57,6 @@ if ~isfield(V,'pinfo'), V.pinfo      = [1 0 0]'; end;
 if size(V.pinfo,1)==2,  V.pinfo(3,:) = 0;        end;
 V.fname       = deblank(V.fname);
 [pth,nam,ext] = fileparts(V.fname);
-if isempty(pth), pth = pwd; end;
-V.fname = fullfile(pth,[nam,ext]);
 
 switch ext,
 case {'.img'}
