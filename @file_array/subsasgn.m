@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: subsasgn.m 779 2007-03-28 14:18:52Z volkmar $
+% $Id: subsasgn.m 945 2007-10-14 18:08:46Z volkmar $
 
 
 if isempty(subs)
@@ -92,7 +92,7 @@ va = varargin;
 dt  = datatypes;
 ind = find(cat(1,dt.code)==sobj.dtype);
 if isempty(ind), error('Unknown datatype'); end;
-if dt(ind).isint, dat(~finite(dat)) = 0; end;
+if dt(ind).isint, dat(~isfinite(dat)) = 0; end;
 
 if ~isempty(sobj.scl_inter),
     inter = sobj.scl_inter;
