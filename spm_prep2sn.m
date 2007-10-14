@@ -10,7 +10,7 @@ function [po,pin] = spm_prep2sn(p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_prep2sn.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_prep2sn.m 944 2007-10-14 17:04:55Z volkmar $
 
 
 if ischar(p), p = load(p); end;
@@ -81,7 +81,6 @@ d          = [size(Y1) 1];
 [x1,x2,o]  = ndgrid(1:d(1),1:d(2),1);
 x3         = 1:d(3);
 Affine     = M2\MT*B(1).mat;
-A          = B(1).mat\inv(MT)*M2;
 A          = inv(Affine);
 
 B1  = spm_dctmtx(d(1),d2(1));
