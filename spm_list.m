@@ -107,7 +107,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 783 2007-04-04 12:54:03Z james $
+% $Id: spm_list.m 946 2007-10-15 16:36:06Z john $
 
 
 
@@ -448,7 +448,7 @@ switch lower(varargin{1}), case 'list'                            %-List
     %-Local maxima p-values & statistics
     %----------------------------------------------------------------------
     HlistXYZ = [];
-    while prod(size(find(finite(Z))))
+    while prod(size(find(isfinite(Z))))
 
         % Paginate if necessary
         %------------------------------------------------------------------

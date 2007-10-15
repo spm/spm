@@ -8,7 +8,7 @@ function V = spm_write_vol(V,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_vol.m 800 2007-04-27 07:35:27Z volkmar $
+% $Id: spm_write_vol.m 946 2007-10-15 16:36:06Z john $
 
 use_offset = false;
 
@@ -36,7 +36,7 @@ mns          = zeros(dim(3),1)+NaN;
 if ~isempty(s),
 	for p=1:dim(3),
 		tmp    = double(Y(:,:,p));
-		tmp    = tmp(finite(tmp));
+		tmp    = tmp(isfinite(tmp));
 		if ~isempty(tmp),
 			mxs(p) = max(tmp);
 			mns(p) = min(tmp);
@@ -47,8 +47,8 @@ if ~isempty(s),
 		for p=1:dim(3),
 			mx = mxs(p);
 			mn = mns(p);
-			if ~finite(mx), mx = 0; end;
-			if ~finite(mn), mn = 0; end;
+			if ~isfinite(mx), mx = 0; end;
+			if ~isfinite(mn), mn = 0; end;
 			if mx~=mn,
 				if use_offset,
 					V.pinfo(1,p) = (mx-mn)/(dmnmx(2)-dmnmx(1));
@@ -68,8 +68,8 @@ if ~isempty(s),
 			end;
 		end;
 	else
-		mx = max(mxs(finite(mxs)));
-		mn = min(mns(finite(mns)));
+		mx = max(mxs(isfinite(mxs)));
+		mn = min(mns(isfinite(mns)));
 		if isempty(mx), mx = 0; end;
 		if isempty(mn), mn = 0; end;
 		if mx~=mn,

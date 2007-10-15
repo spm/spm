@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 898 2007-08-27 11:43:10Z volkmar $
+% $Id: spm_write_sn.m 946 2007-10-15 16:36:06Z john $
 
 
 if isempty(V), return; end;
@@ -92,8 +92,8 @@ else
 	end;
 end;
 
-if ~all(finite(flags.vox(:))), flags.vox = def_flags.vox; end;
-if ~all(finite(flags.bb(:))),  flags.bb  = def_flags.bb;  end;
+if ~all(isfinite(flags.vox(:))), flags.vox = def_flags.vox; end;
+if ~all(isfinite(flags.bb(:))),  flags.bb  = def_flags.bb;  end;
 
 [x,y,z,mat] = get_xyzmat(prm,flags.bb,flags.vox);
 

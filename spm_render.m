@@ -33,13 +33,13 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_render.m 488 2006-03-30 11:59:54Z john $
+% $Id: spm_render.m 946 2007-10-15 16:36:06Z john $
 
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-	SPMid = spm('FnBanner',mfilename,'$Rev: 488 $');
+	SPMid = spm('FnBanner',mfilename,'$Rev: 946 $');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -70,7 +70,7 @@ if nargin < 2,
 	if num==1,
 		brt = spm_input('Style',1,'new|old',[1 NaN], 1);
 	end;
-	if finite(brt),
+	if isfinite(brt),
 		brt = spm_input('Brighten blobs',1,'none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
 	end;
 end;
@@ -164,7 +164,7 @@ for j=1:length(dat),
 		dep = spm_slice_vol(rend{i}.dep,spm_matrix([0 0 1])*inv(M2),d2,1);
 		z1  = dep(round(xyz(1,:))+round(xyz(2,:)-1)*size(dep,1));
 
-		if ~finite(brt), msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
+		if ~isfinite(brt), msk = find(xyz(3,:) < (z1+20) & xyz(3,:) > (z1-5));
 		else,      msk = find(xyz(3,:) < (z1+60) & xyz(3,:) > (z1-5)); end;
 
 		if ~isempty(msk),
@@ -172,13 +172,13 @@ for j=1:length(dat),
 			% generate an image of the integral of the blob values.
 			%-----------------------------------------------
 			xyz = xyz(:,msk);
-			if ~finite(brt), t0  = t(msk);
+			if ~isfinite(brt), t0  = t(msk);
 			else,	dst = xyz(3,:) - z1(msk);
 				dst = max(dst,0);
 				t0  = t(msk).*exp((log(0.5)/10)*dst)';
 			end;
 			X0  = full(sparse(round(xyz(1,:)), round(xyz(2,:)), t0, d2(1), d2(2)));
-			hld = 1; if ~finite(brt), hld = 0; end;
+			hld = 1; if ~isfinite(brt), hld = 0; end;
 			X   = spm_slice_vol(X0,spm_matrix([0 0 1])*M2,size(rend{i}.dep),hld);
 			msk = find(X<0);
 			X(msk) = 0;
@@ -187,7 +187,7 @@ for j=1:length(dat),
 		end;
 
 		% Brighten the blobs
-		if finite(brt), X = X.^brt; end;
+		if isfinite(brt), X = X.^brt; end;
 
 		mx(j) = max([mx(j) max(max(X))]);
 		mn(j) = min([mn(j) min(min(X))]);
@@ -212,7 +212,7 @@ ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible
 image(0,'Parent',ax);
 set(ax,'YTick',[],'XTick',[]);
 
-if ~finite(brt),
+if ~isfinite(brt),
 	% Old style split colourmap display.
 	%---------------------------------------------------------------
 	load Split;

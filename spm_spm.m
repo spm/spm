@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 915 2007-09-13 08:44:12Z volkmar $
+% $Id: spm_spm.m 946 2007-10-15 16:36:06Z john $
 
-SCCSid   = '$Rev: 915 $';
+SCCSid   = '$Rev: 946 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -713,7 +713,7 @@ for z = 1:zdim              %-loop over planes (2D or 3D data)
             fprintf('%s%30s',repmat(sprintf('\b'),1,30),'filtering')
 
             KWY   = spm_filter(xX.K,W*Y);
-            if isfield(xX,'W') && any(~finite(KWY(:))),
+            if isfield(xX,'W') && any(~isfinite(KWY(:))),
                 % Try to find the wierd Matlab 7 bug that I
                 % was getting on my Linux machine -JA
                 fprintf('\n');

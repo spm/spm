@@ -4,7 +4,7 @@ function c = spm_config_3Dto4D(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_3Dto4D.m 245 2005-09-27 14:16:41Z guillaume $
+% $Id: spm_config_3Dto4D.m 946 2007-10-15 16:36:06Z john $
 
 vols.type = 'files';
 vols.name = '3D Volumes';
@@ -33,7 +33,7 @@ mx   = -Inf;
 mn   = Inf;
 for i=1:numel(V),
     dat      = V(i).private.dat(:,:,:,ind(i,1),ind(i,2));
-    dat      = dat(finite(dat));
+    dat      = dat(isfinite(dat));
     mx       = max(mx,max(dat(:)));
     mn       = min(mn,min(dat(:)));
 end;

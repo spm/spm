@@ -142,15 +142,15 @@ if iopt,
     end;
     for z=1:numel(x3),
         tmp               = idat(:,:,z);
-        tmp(~finite(double(tmp))) = 0;
+        tmp(~isfinite(double(tmp))) = 0;
         idat(:,:,z)       = tmp;
     end;
 end;
 
 % Sort out bounding box etc
 [bb1,vx1]       = bbvox_from_V(p.VG(1));
-bb(~finite(bb)) = bb1(~finite(bb));
-if ~finite(vx), vx = abs(prod(vx1))^(1/3); end;
+bb(~isfinite(bb)) = bb1(~isfinite(bb));
+if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
 bb(1,:) = vx*ceil(bb(1,:)/vx);
 bb(2,:) = vx*floor(bb(2,:)/vx);
 

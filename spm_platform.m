@@ -56,7 +56,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_platform.m 651 2006-10-17 10:32:23Z john $
+% $Id: spm_platform.m 946 2007-10-15 16:36:06Z john $
 
 
 
@@ -76,7 +76,7 @@ varargout = {PLATFORM};
 case 'bigend'                      %-Return endian for this architecture
 %=======================================================================
 varargout = {PLATFORM.bigend};
-if ~finite(PLATFORM.bigend),
+if ~isfinite(PLATFORM.bigend),
 	if isnan(PLATFORM.bigend)
 		error(['I don''t know if "',computer,'" is big-endian.'])
 	else

@@ -90,7 +90,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 913 2007-09-13 06:32:31Z volkmar $
+% $Id: spm_reslice.m 946 2007-10-15 16:36:06Z john $
 
 
 
@@ -153,7 +153,7 @@ function reslice_images(P,flags)
 %             subdirectory with the same filename but prefixed with an 'r'.
 %             They are all aligned with the first.
 
-if ~finite(flags.interp), % Use Fourier method
+if ~isfinite(flags.interp), % Use Fourier method
 	% Check for non-rigid transformations in the matrixes
 	for i=1:prod(size(P)),
 		pp = P(1).mat\P(i).mat;
@@ -210,7 +210,7 @@ for i = 1:prod(size(P)),
 	if write_vol | flags.mean,                   read_vol = 1; else   read_vol = 0; end;
 
 	if read_vol,
-		if ~finite(flags.interp),
+		if ~isfinite(flags.interp),
 			v = abs(kspace3d(spm_bsplinc(P(i),[0 0 0 ; 0 0 0]'),P(1).mat\P(i).mat));
 			for x3 = 1:P(1).dim(3),
 				if flags.mean,
@@ -380,7 +380,7 @@ return;
 %_______________________________________________________________________
 function vo = nan2zero(vi)
 vo = vi;
-vo(~finite(vo)) = 0;
+vo(~isfinite(vo)) = 0;
 return;
 %_______________________________________________________________________
 

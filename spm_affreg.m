@@ -38,7 +38,7 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_affreg.m 231 2005-09-14 13:26:28Z john $
+% $Id: spm_affreg.m 946 2007-10-15 16:36:06Z john $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
@@ -127,14 +127,14 @@ if length(VG)==1,
 	[G,dG1,dG2,dG3]  = spm_sample_vol(VG(1),x1,x2,x3,1);
 	if ~isempty(flags.WG),
 		WG = abs(spm_sample_vol(flags.WG,x1,x2,x3,1))+eps;
-		WG(~finite(WG)) = 1;
+		WG(~isfinite(WG)) = 1;
 	end;
 end;
 
 [F,dF1,dF2,dF3]  = spm_sample_vol(VF(1),y1,y2,y3,1);
 if ~isempty(flags.WF),
 	WF = abs(spm_sample_vol(flags.WF,y1,y2,y3,1))+eps;
-	WF(~finite(WF)) = 1;
+	WF(~isfinite(WF)) = 1;
 end;
 % ---------------------------------------------------------------
 n_main_its = 0;
@@ -187,7 +187,7 @@ for iter=1:256,
 				wt = WG(msk);
 			else
 				wt = spm_sample_vol(flags.WF(1), t1,t2,t3,1)+eps;
-				wt(~finite(wt)) = 1;
+				wt(~isfinite(wt)) = 1;
 				if ~isempty(flags.WG), wt = 1./(1./wt + 1./WG(msk)); end;
 			end;
 			wt = sparse(1:length(wt),1:length(wt),wt);
@@ -240,7 +240,7 @@ for iter=1:256,
 				wt = WF(msk);
             else
 				wt = spm_sample_vol(flags.WG(1), t1,t2,t3,1)+eps;
-				wt(~finite(wt)) = 1;
+				wt(~isfinite(wt)) = 1;
 				if ~isempty(flags.WF), wt = 1./(1./wt + 1./WF(msk)); end;
 			end;
 			wt = sparse(1:length(wt),1:length(wt),wt);

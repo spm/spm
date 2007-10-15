@@ -15,7 +15,7 @@ for j=1:n,
     tot = 0;
     for i=1:V(j).dim(3),
         img = spm_slice_vol(V(j),spm_matrix([0 0 i]),V(j).dim(1:2),0);
-        img = img(finite(img));
+        img = img(isfinite(img));
         tot = tot + sum(img(:));
     end;
     gl(j) = tot*abs(det(V(j).mat)/100^3);

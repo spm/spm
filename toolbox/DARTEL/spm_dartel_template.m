@@ -43,7 +43,7 @@ for i=1:n2,
     NU(i).descrip = 'Flow Field';
 
     vn = NF(1,i).vn;
-    tmp = find(~finite(NF(1,i).NI.dat(:,:,:,vn(1),vn(2))));
+    tmp = find(~isfinite(NF(1,i).NI.dat(:,:,:,vn(1),vn(2))));
     if ~isempty(tmp),
         for j=1:n2,
             vn  = NF(j,i).vn;

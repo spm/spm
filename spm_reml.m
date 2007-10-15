@@ -25,7 +25,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 932 2007-09-29 18:01:16Z karl $
+% $Id: spm_reml.m 946 2007-10-15 16:36:06Z john $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ try, K; catch, K  = 128; end
 % catch NaNs
 %--------------------------------------------------------------------------
 W     = Q;
-q     = find(all(finite(YY)));
+q     = find(all(isfinite(YY)));
 YY    = YY(q,q);
 for i = 1:length(Q)
     Q{i} = Q{i}(q,q);

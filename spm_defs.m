@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 846 2007-07-10 14:17:17Z john $
+% $Id: spm_defs.m 946 2007-10-15 16:36:06Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -74,8 +74,8 @@ sn  = load(job.matname{1});
 
 [bb0,vox0] = bbvox_from_V(sn.VG(1));
 
-if any(~finite(vox)), vox = vox0; end;
-if any(~finite(bb)),  bb  = bb0;  end;
+if any(~isfinite(vox)), vox = vox0; end;
+if any(~isfinite(bb)),  bb  = bb0;  end;
 bb  = sort(bb);
 vox = abs(vox);
 

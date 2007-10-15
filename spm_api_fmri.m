@@ -5,7 +5,7 @@ function varargout = spm_api_fmri(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_api_fmri.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_api_fmri.m 946 2007-10-15 16:36:06Z john $
 
 
 % set action
@@ -138,7 +138,7 @@ case {'set'}
         set(h.RT,     'UserData',SPM.xY.RT)
         set(h.iGXcalc,'Value',  ~strcmp(lower(SPM.xGX.iGXcalc),'none'))
         set(h.form,   'Value',  ~strcmp(lower(SPM.xVi.form),'none'))
-        set(h.HParam, 'Value',   finite(SPM.xX.K(1).HParam))
+        set(h.HParam, 'Value',   isfinite(SPM.xX.K(1).HParam))
         
         set(h.UNITS,   'Value',  strcmp(SPM.xBF.UNITS,'secs') + 1)
         set(h.bf_name, 'Value',  SPM.xBF.order)

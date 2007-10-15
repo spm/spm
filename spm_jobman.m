@@ -61,7 +61,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 938 2007-10-12 19:09:31Z john $
+% $Id: spm_jobman.m 946 2007-10-15 16:36:06Z john $
 
 
 if nargin==0
@@ -2650,7 +2650,7 @@ switch c.type
         if ~isfield(c,'help'), c.help = {'Repeated structure'}; end;
 
         if isfield(c,'num') && numel(c.num)==1,
-            if finite(c.num),
+            if isfinite(c.num),
                 c.num = [c.num c.num];
             else
                 c.num = [0 c.num];

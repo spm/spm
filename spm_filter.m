@@ -26,7 +26,7 @@ function [argout] = spm_filter(K,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_filter.m 753 2007-02-28 10:59:21Z volkmar $
+% $Id: spm_filter.m 946 2007-10-15 16:36:06Z john $
 
 
 
@@ -85,7 +85,7 @@ else
 
 	% return filtered data
 	%-------------------------------------------------------------------
-	%if any(~finite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
+	%if any(~isfinite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
 	argout = Y;
 end
 

@@ -12,7 +12,7 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 891 2007-08-23 10:45:40Z john $
+% $Id: spm_mnc2nifti.m 946 2007-10-15 16:36:06Z john $
 
 
 if nargin==1,
@@ -115,7 +115,7 @@ else
                         img = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
                                                              repmat(dcoff1,[1 size(idat,2)]);
                     end;
-                    img = img(finite(img));
+                    img = img(isfinite(img));
                     if ~isempty(img),
                         mx  = max(mx,max(img));
                         mn  = min(mn,min(img));

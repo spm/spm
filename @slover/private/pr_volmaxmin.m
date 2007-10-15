@@ -21,14 +21,14 @@ if ~isstruct(vol)
   error('vol did not result in vol struct');
 end
 if mars_struct('isthere', vol, 'imgdata')
-  tmp = vol.imgdata(finite(vol.imgdata));
+  tmp = vol.imgdata(isfinite(vol.imgdata));
   mx = max(tmp);
   mn = min(tmp);
 else
     mx = -Inf;mn=Inf;
     for i=1:vol.dim(3),
       tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),[0 NaN]);
-      tmp = tmp(find(finite(tmp(:))));
+      tmp = tmp(find(isfinite(tmp(:))));
       if ~isempty(tmp)
 	mx = max([mx; tmp]);
 	mn = min([mn; tmp]);

@@ -10,7 +10,7 @@ function [po,pin] = spm_prep2sn(p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_prep2sn.m 944 2007-10-14 17:04:55Z volkmar $
+% $Id: spm_prep2sn.m 946 2007-10-15 16:36:06Z john $
 
 
 if ischar(p), p = load(p); end;
@@ -95,7 +95,7 @@ for z=1:length(x3),
     y1       = double(Y1(:,:,z));
     y2       = double(Y2(:,:,z));
     y3       = double(Y3(:,:,z));
-    msk      = finite(y1);
+    msk      = isfinite(y1);
     w        = double(msk);
     y1(~msk) = 0;
     y2(~msk) = 0;
@@ -137,7 +137,7 @@ for z=1:length(x3),
     y1         = double(Y1(:,:,z));
     y2         = double(Y2(:,:,z));
     y3         = double(Y3(:,:,z));
-    msk        = find(finite(y1));
+    msk        = find(isfinite(y1));
     w          = spm_sample_vol(B(1),x1(msk),x2(msk),o(msk)*z,0);
     swz        = sum(w(:));
     sw         = sw+swz;
@@ -156,7 +156,7 @@ for z=1:length(x3),
     y1         = double(Y1(:,:,z));
     y2         = double(Y2(:,:,z));
     y3         = double(Y3(:,:,z));
-    msk        = find(finite(y1));
+    msk        = find(isfinite(y1));
     w          = spm_sample_vol(B(1),x1(msk),x2(msk),o(msk)*z,0);
     C = C + [(x1(msk)-c1(1)).*w (x2(msk)-c1(2)).*w (    z-c1(3))*w ]' * ...
             [(y1(msk)-c2(1))    (y2(msk)-c2(2))    (y3(msk)-c2(3)) ];

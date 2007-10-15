@@ -22,7 +22,7 @@ function spm_mask(P1,P2, thresh)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_mask.m 529 2006-05-15 15:25:51Z john $
+% $Id: spm_mask.m 946 2007-10-15 16:36:06Z john $
 
 
 if nargin==0,
@@ -76,12 +76,12 @@ for j=1:dim(3),
 		img = spm_slice_vol(V1(i),M1,dim(1:2),[0 NaN]);
 		if nargin<3
 			if ~spm_type(V1(i).dt(1),'nanrep'),
-				msk = msk + (img~=0 & finite(img));
+				msk = msk + (img~=0 & isfinite(img));
 			else
-				msk = msk + finite(img);
+				msk = msk + isfinite(img);
 			end;
 		else
-			msk = msk + (img>=thresh & finite(img));
+			msk = msk + (img>=thresh & isfinite(img));
 		end;
 	end;
 

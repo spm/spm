@@ -23,7 +23,7 @@ function spm_smooth(P,Q,s,dtype)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 933 2007-10-02 19:04:49Z karl $
+% $Id: spm_smooth.m 946 2007-10-15 16:36:06Z john $
 
 
 %-----------------------------------------------------------------------
@@ -61,11 +61,11 @@ if ischar(Q) && isstruct(P),
 
     if dtype~=0, % Need to figure out some rescaling.
         Q.dt(1) = dtype;
-        if ~finite(spm_type(Q.dt(1),'maxval')),
+        if ~isfinite(spm_type(Q.dt(1),'maxval')),
             Q.pinfo = [1 0 0]'; % float or double, so scalefactor of 1
         else
             % Need to determine the range of intensities
-            if finite(spm_type(P.dt(1),'maxval')),
+            if isfinite(spm_type(P.dt(1),'maxval')),
                 % Integer types have a defined maximum value
                 maxv = spm_type(P.dt(1),'maxval')*P.pinfo(1) + P.pinfo(2);
             else
@@ -74,7 +74,7 @@ if ischar(Q) && isstruct(P),
                 mn =  Inf;
                 for pl=1:P.dim(3),
                     tmp = spm_slice_vol(P,spm_matrix([0 0 pl]),P.dim(1:2),0);
-                    tmp = tmp(finite(tmp));
+                    tmp = tmp(isfinite(tmp));
                     mx  = max(max(tmp),mx);
                     mn  = min(min(tmp),mn);
                 end

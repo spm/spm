@@ -11,7 +11,7 @@ function VO = spm_smoothto8bit(V,fwhm)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_smoothto8bit.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_smoothto8bit.m 946 2007-10-15 16:36:06Z john $
 
 
 if nargin>1 & fwhm>0,
@@ -53,7 +53,7 @@ VO.pinfo  = [];
 for i=1:V.dim(3)+r{3}.s,
 	if i<=V.dim(3),
 		img      = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
-		msk      = find(~finite(img));
+		msk      = find(~isfinite(img));
 		img(msk) = 0;
 		buff(:,:,rem(i-1,r{3}.s*2+1)+1) = ...
 			conv2(conv2(img,r{1}.k,'same'),r{2}.k','same');

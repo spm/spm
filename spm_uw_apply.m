@@ -118,7 +118,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 403 2006-01-13 18:17:18Z john $
+% $Id: spm_uw_apply.m 946 2007-10-15 16:36:06Z john $
 
 tiny = 5e-2;
 
@@ -392,7 +392,7 @@ return;
 %_______________________________________________________________________
 function vo = nan2zero(vi)
 vo = vi;
-vo(~finite(vo)) = 0;
+vo(~isfinite(vo)) = 0;
 return;
 %_______________________________________________________________________
 
