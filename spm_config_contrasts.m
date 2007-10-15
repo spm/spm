@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 844 2007-07-09 09:50:54Z john $
+% $Id: spm_config_contrasts.m 948 2007-10-15 21:37:49Z Darren $
 
 
 %_______________________________________________________________________
@@ -647,7 +647,12 @@ for i = 1:length(job.consess)
         else
             STAT = 'F';
         end
-        con  = cat(1,job.consess{i}.fcon.convec{:});
+        try
+            con  = cat(1,job.consess{i}.fcon.convec{:});
+        catch
+            error('Error concatenating F-contrast vectors. Sizes are:\n %s\n',... 
+                   num2str(cellfun('length',job.consess{i}.fcon.convec)))
+        end
         sessrep = job.consess{i}.fcon.sessrep;
     end
 
