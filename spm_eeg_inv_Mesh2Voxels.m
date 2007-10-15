@@ -153,9 +153,8 @@ for c = 1:length(D.inv{val}.contrast.GW)
     %----------------------------------------------------------------------
     RECimage  = RECimage*scalefactor;
     Vout      = spm_write_vol(Vout,RECimage);
- 
     
- 
+    
     % Smoothing
     %----------------------------------------------------------------------
     spm_smooth(Vout,Outputsmoothed,smoothparam);

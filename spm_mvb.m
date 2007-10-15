@@ -87,7 +87,9 @@ end
  
 % project pattern weights to feature (voxel) weights
 %==========================================================================
+qE       = sum(abs(model.qE),2);
+i        = find(qE > max(qE)/exp(16));
 model.F  = F;
-model.M  = U*model.MAP;
-model.qE = U*model.qE;
-model.qC = sum((U*model.qC).*U,2);
+model.M  = U(:,i)*model.MAP(i,:);
+model.qE = U(:,i)*model.qE(i,:);
+model.qC = sum((U(:,i)*model.qC(i,i)).*U(:,i),2);

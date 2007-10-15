@@ -81,11 +81,13 @@ t          = [1:N]*dt*1000;
 
 subplot(2,1,1)
 plot(t,K1)
+title('1st-order Volterra kernel')
 axis square
 xlabel('time (ms)')
 
 subplot(2,1,2)
 imagesc(t,t,K2(1:64,1:64,1))
+title('2nd-order Volterra kernel')
 axis square
 xlabel('time (ms)')
 
@@ -98,16 +100,18 @@ U.u   = 32*(sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16);
 t     = [1:N]*U.dt;
 LFP   = spm_int_J(pE,M,U);
 
-% LFP
+% input
 %--------------------------------------------------------------------------
 subplot(2,2,1)
 plot(t,U.u)
+title('Exogeneous input')
 axis square
 xlabel('time (s)')
 
 % LFP
 %--------------------------------------------------------------------------
 subplot(2,2,2)
+title('LFP response')
 plot(t,LFP)
 axis square
 xlabel('time (s)')
@@ -119,8 +123,10 @@ w     = 4:1/4:32;
 cpW   = w*W*U.dt;
 subplot(2,2,3)
 imagesc(t,w,abs(spm_wft(LFP(:,1),cpW,W)).^2);
+title('time-frequency response')
 axis square xy
 xlabel('time (s)')
+ylabel('Hz')
 
 % Use response to drive a hemodynamic model
 %--------------------------------------------------------------------------
@@ -130,6 +136,7 @@ BOLD  = spm_int_J(hE,H,U);
 
 subplot(2,2,4)
 plot(t,BOLD)
+title('BOLD response')
 axis square
 xlabel('time (s)')
 
@@ -238,6 +245,7 @@ LFP   = spm_int_J(pE,M,U);
 %--------------------------------------------------------------------------
 subplot(2,2,1)
 plot(t*1000,U.u)
+title('input')
 axis square
 xlabel('time (ms)')
 
@@ -245,6 +253,7 @@ xlabel('time (ms)')
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 plot(t*1000,LFP)
+title('depolarization')
 axis square
 xlabel('time (ms)')
 
@@ -255,6 +264,7 @@ w     = 4:1/4:32;
 cpW   = w*W*U.dt;
 subplot(2,2,3)
 imagesc(t*1000,w,abs(spm_wft(LFP(:,1),cpW,W)).^2);
+title('time-frequency response')
 axis square xy
 xlabel('time (ms)')
 

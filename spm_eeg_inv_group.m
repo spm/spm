@@ -82,8 +82,12 @@ for i = 1:Ns
  
     % specify forward model
     %----------------------------------------------------------------------
-    D{i}.inv{val}.forward.method = 'eeg_3sphereBerg';
- 
+    if strcmp(D{i}.modality,'EEG')
+        D{i}.inv{val}.forward.method = 'eeg_3sphereBerg';
+    else
+        D{i}.inv{val}.forward.method = 'meg_sphere';
+    end
+     
 end
  
 % Get conditions or trials

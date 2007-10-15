@@ -333,8 +333,9 @@ if strcmp(type,'GS')
             QP = QP + hp(i)*sparse(diag(MVB.G(:,i)));
         end
     end
-    QP    = MVB.U*QP*MVB.U';
-
+    pV    = diag(QP);
+    i     = find(pV > max(pV)/512);
+    QP    = MVB.U(:,i)*QP(i,i)*MVB.U(:,i)';
 
 else
 
@@ -360,9 +361,19 @@ else
     end
 end
 
+% eliminate sources with low [empirical] prior variance
+%--------------------------------------------------------------------------
+pV    = diag(QP);
+i     = find(pV > max(pV)/exp(16));
+Is    = Is(i);
+QP    = QP(i,i);
+for j = 1:Nl
+    L{j} = L{j}(:,i);
+end
+Ns    = length(Is);
 
 % re-estimate (one subject at a time)
-%--------------------------------------------------------------------------
+%==========================================================================
 for i = 1:Nl
 
     % using spatial priors from group analysis
@@ -388,7 +399,7 @@ for i = 1:Nl
 
     % conditional covariance (leading diagonal)
     % Cq    = Cp - Cp*L'*iC*L*Cp;
-    %----------------------------------------------------------------------d
+    %----------------------------------------------------------------------
     Cq    = hp*diag(QP) - sum(LCp.*M')';
 
     % evaluate conditional expectation (of the sum over trials)
@@ -440,18 +451,18 @@ for i = 1:Nl
     inverse.R2     = R2;                   % variance accounted for (%)
 
     % save in struct
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     D{i}.inv{D{i}.val}.inverse = inverse;
     D{i}.inv{D{i}.val}.method  = 'Imaging';
     
     % and delete old contrasts
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     try
         D{i}.inv{D{i}.val} = rmfield(D{i}.inv{D{i}.val},'contrast');
     end
 
     % display
-    %==========================================================================
+    %======================================================================
     spm_eeg_invert_display(D{i});
     drawnow
 

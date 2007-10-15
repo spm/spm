@@ -99,15 +99,19 @@ end
  
 % MAP estimates of instantaneous sources
 %==========================================================================
-iC    = inv(Cy);
-MAP   = LCp'*iC;
+MAP   = LCp'*inv(Cy);
 qE    = MAP*X;
  
 % conditional covariance
-% Cq    = Cp - Cp*L'*iC*L*Cp;
+% qC  = Cp - Cp*L'*iC*L*Cp;
 %--------------------------------------------------------------------------
-qC    = Cp - MAP*LCp;
- 
+if nk
+    R  = speye(nk,nk)/exp(16);
+    qC = inv(L'*inv(Ce)*L + inv(Cp + R));
+else
+    qC = Cp - MAP*LCp;
+end
+
 % assemble results (pattern wieghts)
 %==========================================================================
 model.F   = F;
