@@ -229,7 +229,7 @@ Qe{1} = U'*R*R'*U;
 %--------------------------------------------------------------------------
 switch(type)
 
-    case {'MSP','GS'}
+    case {'MSP','GS','ARD'}
 
         % create MSP spatial basis set in source space
         %------------------------------------------------------------------
@@ -261,7 +261,7 @@ switch(type)
             
         end
 
-    case {'LOR'}
+    case {'LOR','COH'}
 
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -274,7 +274,7 @@ switch(type)
         LQpL{2} = L*Qp{2}*L';
 
 
-    case {'IID'}
+    case {'IID','MMN'}
 
         % create minimum norm prior
         %------------------------------------------------------------------

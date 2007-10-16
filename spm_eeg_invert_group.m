@@ -249,7 +249,7 @@ Qe    = {U'*U};
 %--------------------------------------------------------------------------
 switch(type)
 
-    case {'MSP','GS'}
+    case {'MSP','GS','ARD'}
 
         % create MSP spatial basis set in source space
         %------------------------------------------------------------------
@@ -281,7 +281,7 @@ switch(type)
 
         end
 
-    case {'LOR'}
+    case {'LOR','COH'}
 
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -294,7 +294,7 @@ switch(type)
         LQpL{2} = G*Qp{2}*G';
 
 
-    case {'IID'}
+    case {'IID','MMN'}
 
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -335,7 +335,7 @@ if strcmp(type,'GS')
     end
     pV    = diag(QP);
     i     = find(pV > max(pV)/512);
-    QP    = MVB.U(:,i)*QP(i,i)*MVB.U(:,i)';
+    QP    = Q(:,i)*QP(i,i)*Q(:,i)';
 
 else
 

@@ -11,10 +11,10 @@ function model = spm_mvb_G(X,Y,X0,U,G,V);
 % returns model:
 %                F: log-evidence [F(0), F(1),...]
 %                G: pattern switches
-%                U: patterns
 %               qE: conditional expectation of pattern-weights
-%               qC: conditional variance of pattern-weights
-%                h: covariance hyperparameters
+%               Cp: emprical prior covarisnce on pattern-weights
+%                h: covariance hyperparameters (or R and cov(E)
+%              MAP: MAP projector (pattern-weights)
 %__________________________________________________________________________
 %
 % model: X = Y*P + X0*Q + R
@@ -35,10 +35,8 @@ R      = orth(speye(size(X0,1)) - X0*pinv(X0));
 Y      = R'*Y;
 X      = R'*X;
  
-% residual forming matrix
+% orders
 %--------------------------------------------------------------------------
-ns     = size(Y,1);
-nv     = size(Y,2);
 nk     = size(U,2);
  
 % random effects (and serial correlations)
@@ -58,15 +56,15 @@ end
  
 % assemble empirical priors
 %==========================================================================
+Nk    = size(G,1);
 Np    = size(G,2);
 L     = Y*U;
 Qp    = {};
-LQp   = {};
 LQpL  = {};
 for i = 1:Np
-    Qp{i}   = sparse(diag(G(:,i)));
-    LQp{i}  = L*Qp{i};
-    LQpL{i} = LQp{i}*L';
+    j       = find(G(:,i));
+    Qp{i}   = sparse(j,j,1,Nk,Nk);
+    LQpL{i} = L*Qp{i}*L';
 end
  
 % Inverse solution
@@ -82,42 +80,25 @@ end
 [Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2));
  
  
-% Covariances: target space - Ce and source space - L*Cp
+% Covariances: source space
 %--------------------------------------------------------------------------
-LCp   = sparse(ns,nk);
-Ce    = sparse(ns,ns);
-Cp    = sparse(nk,nk);
-he    = h([1:Ne]);
+Cp    = sparse(Nk,Nk);
 hp    = h([1:Np] + Ne);
-for i = 1:Ne
-    Ce = Ce + he(i)*Qe{i};
-end
 for i = 1:Np
     Cp  = Cp  + hp(i)*Qp{i};
-    LCp = LCp + hp(i)*LQp{i};
 end
  
 % MAP estimates of instantaneous sources
 %==========================================================================
-MAP   = LCp'*inv(Cy);
+MAP   = Cp*L'*inv(Cy);
 qE    = MAP*X;
  
-% conditional covariance
-% qC  = Cp - Cp*L'*iC*L*Cp;
-%--------------------------------------------------------------------------
-if nk
-    R  = speye(nk,nk)/exp(16);
-    qC = inv(L'*inv(Ce)*L + inv(Cp + R));
-else
-    qC = Cp - MAP*LCp;
-end
 
 % assemble results (pattern wieghts)
 %==========================================================================
 model.F   = F;
 model.G   = G;
-model.U   = U;
 model.h   = h;
 model.qE  = qE;
-model.qC  = qC;
+model.Cp  = Cp;
 model.MAP = MAP;

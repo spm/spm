@@ -87,9 +87,42 @@ end
  
 % project pattern weights to feature (voxel) weights
 %==========================================================================
+model.U  = U;
 qE       = sum(abs(model.qE),2);
-i        = find(qE > max(qE)/exp(16));
+[i j]    = sort(-qE);
+try
+    i    = j(1:2^11);
+catch
+    i    = j;
+end
+U        = U(:,i);
+
 model.F  = F;
-model.M  = U(:,i)*model.MAP(i,:);
-model.qE = U(:,i)*model.qE(i,:);
-model.qC = sum((U(:,i)*model.qC(i,i)).*U(:,i),2);
+model.M  = U*model.MAP(i,:);
+model.qE = U*model.qE(i,:);
+model.Cp = model.Cp(i,i);
+
+% evaluate conditional variance (qC)
+% conditional covariance: qC  = Cp - Cp*L'*iC*L*Cp;
+%--------------------------------------------------------------------------
+X0       = full(X0);
+R        = orth(speye(size(X0,1)) - X0*pinv(X0));
+L        = R'*Y*U;
+LCp      = L*model.Cp;
+qC       = sum((U*model.Cp).*U,2) ...
+         - sum((U*LCp').*model.M,2);
+model.qC = max(qC,0) + exp(-16);
+
+
+return
+
+% conditional covariance
+% qC  = Cp - Cp*L'*iC*L*Cp;
+%--------------------------------------------------------------------------
+if nk
+    R  = speye(nk,nk)/exp(16);
+    qC = inv(L'*inv(Ce)*L + inv(Cp + R));
+else
+    qC = Cp - MAP*LCp;
+end
+
