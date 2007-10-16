@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_defs.m 951 2007-10-16 18:18:43Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -226,8 +226,8 @@ N.mat  = mat;
 N.mat0 = mat;
 N.mat_intent  = 'Aligned';
 N.mat0_intent = 'Aligned';
-N.intent.code = 'DISPLACEMENT';
-N.intent.name = 'Deformation';
+N.intent.code = 'VECTOR';
+N.intent.name = 'Mapping';
 N.descrip = 'Deformation field';
 create(N);
 N.dat(:,:,:,1,1) = Def{1};
