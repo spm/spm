@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_latex.m 469 2006-03-02 18:01:45Z john $
+% $Id: spm_latex.m 949 2007-10-16 08:19:45Z volkmar $
 
 if nargin==0, c = spm_config; end;
 
@@ -18,7 +18,7 @@ fprintf(fp,'\\usepackage{epsfig,amsmath,pifont,moreverb,minitoc}\n');
 fprintf(fp,'%s\n%s\n%s\n%s\n%s\n%s\n%s\n',...
     '\usepackage[colorlinks=true,',...
     'pdfpagemode=UseOutlines,',...
-    'pdftitle={SPM5b Manual},','pdfauthor={The SPM Team},',...
+    'pdftitle={SPM5 Manual},','pdfauthor={The SPM Team},',...
     'pdfsubject={Statistical Parametric Mapping},',...
     'pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}',...
     ']{hyperref}');
@@ -29,7 +29,7 @@ fprintf(fp,'\\oddsidemargin=0mm\n\\evensidemargin=0mm\n\\topmargin=0mm\n');
 fprintf(fp,'\\headheight=12pt\n\\headsep=10mm\n\\textheight=240mm\n\\textwidth=148mm\n');
 fprintf(fp,'\\marginparsep=5mm\n\\marginparwidth=21mm\n\\footskip=10mm\n\n');
 
-fprintf(fp,'\\title{\\huge{SPM5b (beta version) Manual}}\n');
+fprintf(fp,'\\title{\\huge{SPM5 Manual}}\n');
 fprintf(fp,'\\author{The FIL Methods Group (and honorary members)}\n');
 fprintf(fp,'\\begin{document}\n');
 fprintf(fp,'\\maketitle\n');
@@ -183,4 +183,3 @@ for k = 1:numel(biblist)
     [p n e v] = fileparts(biblist(k).name);
     bibcstr{k}  = fullfile(bibdir,n);
 end;
-
