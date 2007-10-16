@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 918 2007-09-18 15:10:56Z john $
+% $Id: spm_config_factorial_design.m 950 2007-10-16 12:40:45Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -451,7 +451,11 @@ scans.help = {[...
 
 imatrix   = entry('Factor matrix','imatrix','e',[Inf Inf],'');
 imatrix.val = {0};
-
+imatrix.help = {['Specify factor/level matrix as a nscan-by-4 matrix. Note' ...
+		 ' that the first row of I is reserved for the internal' ...
+		 ' replication factor and must not be used for experimental' ...
+		 ' factors.']};
+		 
 specall.type   = 'branch';
 specall.name   = 'Specify all';
 specall.tag    = 'specall';
@@ -461,10 +465,8 @@ p1=['Specify (i) all scans in one go and (ii) all conditions using a ',...
     'I must have four columns and as ',...
     'as many rows as scans. It has the same format as SPM''s internal ',...
     'variable SPM.xX.I. '];
-p2=['The first column of I denotes the replication ',...
-    'number and entries in the other columns denote the levels of each ',...
-    'experimental factor. Columns containing all 1''s indicate the abscence ',...
-    'of a factor. '];
+p2=['The first column of I denotes the replication number and entries in' ...
+    ' the other columns denote the levels of each experimental factor.'];
 p3=['So, for eg. a two-factor design the first column ',...
     'denotes the replication number and columns two and three have entries ',...
     'like 2 3 denoting the 2nd level of the first factor and 3rd level of ',...
@@ -1128,16 +1130,14 @@ case 'fblock',
         nf=length(job.des.fblock.fac);
         subject_factor=0;
         for i=1:nf,
-            if strcmp(job.des.fblock.fac(i).name,'Repl') | ...
-                    strcmp(job.des.fblock.fac(i).name,'repl')
+            if strcmp(lower(job.des.fblock.fac(i).name),'repl')
                     % Copy `replications' column to create explicit `replications' factor 
                     nI=I(:,1:i);
                     nI=[nI,I(:,1)];
                     nI=[nI,I(:,i+1:end)];
                     I=nI;
             end
-            if strcmp(job.des.fblock.fac(i).name,'Subject') | ...
-                    strcmp(job.des.fblock.fac(i).name,'subject')
+            if strcmp(lower(job.des.fblock.fac(i).name),'subject')
                     % Create explicit `subject' factor 
                     nI=I(:,1:i);
                     nI=[nI,subj];
@@ -1182,12 +1182,13 @@ case 'fblock',
         I=job.des.fblock.fsuball.specall.imatrix;
         
         % Get number of factors
-        nf=0;
-        for i=2:4,
-            if length(unique(I(:,i)))>1
-                nf=nf+1;
-            end
-        end
+        nf=length(job.des.fblock.fac);
+%        nf=0;
+%        for i=1:4,
+%            if length(unique(I(:,i)))>1
+%                nf=nf+1;
+%            end
+%        end
         
         P=job.des.fblock.fsuball.specall.scans;
     end
