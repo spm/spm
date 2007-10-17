@@ -25,9 +25,11 @@ function D = spm_eeg_epochs(S)
 % points.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+%
+% Resynch of time zero option allowed RH (S.events.Resynch in ms)
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_epochs.m 956 2007-10-17 15:19:58Z rik $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -55,14 +57,14 @@ try
     D.events.start = S.events.start;
 catch
     D.events.start =...
-        spm_input('start of pres-stimulus time [ms]', '+1', 'r', '', 1);
+        spm_input('start of epoch [ms]', '+1', 'r', '', 1);
 end
 
 try
     D.events.stop = S.events.stop;
 catch
     D.events.stop = ...
-        spm_input('end of post-stimulus time [ms]', '+1', 'r', '', 1);
+        spm_input('end of epoch [ms]', '+1', 'r', '', 1);
 end
 
 try
@@ -70,7 +72,7 @@ try
 catch
 	disp(unique(D.events.code))
 	D.events.types = ...
-	 	spm_input('Event types to be epoched', '+1', 'i');
+	 	spm_input('Event types to epoch', '+1', 'i');
 end
 
 ind = find(ismember(D.events.code,D.events.types));
@@ -89,6 +91,13 @@ if Inewlist
     end
 end
 
+try
+    Resynch = S.events.resynch;
+catch
+    Resynch = 0;
+end
+
+
 spm('Pointer', 'Watch'); drawnow;
 
 D.fnamedat = ['e_' D.fnamedat];
@@ -96,6 +105,9 @@ D.fnamedat = ['e_' D.fnamedat];
 D.datatype = 'int16';
 
 fpd = fopen(fullfile(P, D.fnamedat), 'w');
+
+% Resynch zero time (resynch variable in ms!)
+D.events.time = D.events.time + round(Resynch*D.Radc/1000);
 
 
 % transform ms to samples

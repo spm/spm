@@ -13,7 +13,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_datareg_ui.m 956 2007-10-17 15:19:58Z rik $
 
 % Set-up specfic parameters (POLHEMIUS)
 %==========================================================================
@@ -30,9 +30,18 @@ catch
     D.inv{val}.mesh.template = 0;
 end
 
-% Speccify sensor space (fiducials sensors and scalp surface)
+% For some data formats, fids and headshape encoded in native data formats, 
+% i.e, put into D.channels during data conversion	RH 12/9/07
+try
+    fid_eeg   = D.channels.fid_eeg;
+    headshape = D.channels.headshape;
+    sensors   = D.channels.Loc';
+
+catch
+
+% Specify sensor space (fiducials sensors and scalp surface)
 %==========================================================================
-if strcmp(questdlg('Use Polhemus file?'),'Yes');
+  if strcmp(questdlg('Use Polhemus file?'),'Yes');
 
     % get fiduicials and headshape
     %----------------------------------------------------------------------
@@ -48,7 +57,7 @@ if strcmp(questdlg('Use Polhemus file?'),'Yes');
         name    = fieldnames(sensors);
         sensors = getfield(sensors,name{1});
     end
-else
+  else
 
     % get sensor and fiducial locations
     %----------------------------------------------------------------------
@@ -76,15 +85,19 @@ else
     else
         headshape = sparse(0,3);
     end
+  end
 end
-
         
 % sensor orientations (MEG)
 %--------------------------------------------------------------------------
 if strcmp(D.modality,'MEG')
-    megorient = load(spm_select(1,'.mat','Select MEG sensor orients (N x 3)'));
-    name      = fieldnames(megorient);
-    megorient = getfield(megorient,name{1});
+try
+    megorient   = D.channels.Orient';
+    catch
+        megorient = load(spm_select(1,'.mat','Select MEG sensor orients (N x 3)'));
+        name      = fieldnames(megorient);
+        megorient = getfield(megorient,name{1});
+    end
 else
     megorient = sparse(0,3);
 end
