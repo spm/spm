@@ -452,8 +452,7 @@ else
     OPTIONS = varargin{1};
 end
 
-% Check field names of passed OPTIONS and fill missing ones with defaults
-%--------------------------------------------------------------------------
+% Check field names of passed OPTIONS and fill missing ones with default values
 DefFieldNames = fieldnames(Def_OPTIONS);
 for k = 1:length(DefFieldNames)
     if ~isfield(OPTIONS,DefFieldNames{k}) | strcmp(DefFieldNames{k},'BEM')
@@ -505,7 +504,7 @@ end
 
 
 % Check inputs integrity
-%--------------------------------------------------------------------------
+
 %Source models
 if ~isempty(find(OPTIONS.SourceModel == 0)) | ~isempty(find(abs(OPTIONS.SourceModel) > 1)) % unValid source models
     if ~isempty(DataType.MEG)
@@ -526,14 +525,13 @@ if isempty(OPTIONS.SourceLoc) & ~OPTIONS.VolumeSourceGrid & isempty(OPTIONS.Cort
 end
 
 
-%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------------------------------------------
 %
 % HEAD MODELING BEGINS
 %
-%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------------------------------------------
 
-% Get Channel Information 
-%--------------------------------------------------------------------------
+% Get Channel Information ------------------------------------------------------------------------------------------------------------------
 if ~isempty(OPTIONS.Channel)
     Channel = OPTIONS.Channel;
 else
@@ -617,8 +615,7 @@ else
                 end
                 nmes = size(Vertices,1);
 
-                % Run parameter fit 
-                %----------------------------------------------------------
+                % Run parameters fit --------------------------------------------------------------------------------------------------------------
                 mass = mean(Vertices); % center of mass of the scalp vertex locations
                 R0 = mean(norlig(Vertices - ones(nscalp,1)*mass)); % Average distance between the center of mass and the scalp points
                 vec0 = [mass,R0];
@@ -706,12 +703,12 @@ if EEG
                 [Channel(:).Comment] = deal('AVERAGE REF');
             otherwise
                 EEGREFndx = strmatch(OPTIONS.EEGRef,char(Channel(:).Name));
-                if isempty(EEGREFndx)
+            if isempty(EEGREFndx)
                     errordlg(sprintf(...
                         'No channel named ''%s'' was found amongst available EEG channels. Cannot use it as a reference for EEG.',OPTIONS.EEGRef...
                         ))
-                    return
-                end
+                return
+            end
         end
     end
 end
@@ -925,6 +922,7 @@ if ~isempty(findstr('sphere',[OPTIONS.Method{:}])) % Single or nested-sphere app
 
 end
 
+
 if ~isempty(findstr('bem',[OPTIONS.Method{:}])) % BEM approaches - Compute transfer matrices
 
     if OPTIONS.BEM.Interpolative==0 & OPTIONS.VolumeSourceGrid %& isempty(OPTIONS.Cortex) % User wants volumic grid : force Interpolative approach
@@ -976,7 +974,6 @@ if ~isempty(findstr('bem',[OPTIONS.Method{:}])) % BEM approaches - Compute trans
 
     end
 
-
     OPTIONS = rmfield(OPTIONS,'Param');
 
     ndx = sort([BEMChanNdx{:}]);
@@ -993,8 +990,13 @@ if ~isempty(findstr('bem',[OPTIONS.Method{:}])) % BEM approaches - Compute trans
             SubjectFV.vertices = nfv(end).vertices';
             SubjectFV.faces = nfv(end).faces; clear Faces
         else
-            load(fullfile(User.SUBJECTS,fileparts(OPTIONS.Subject),OPTIONS.BEM.EnvelopeNames{end}.TessFile))
-
+% Changed by Rik 4/10/07 to call from SPM without User files
+            if exist('User')
+               load(fullfile(User.SUBJECTS,fileparts(OPTIONS.Subject),OPTIONS.BEM.EnvelopeNames{end}.TessFile))
+	    else
+               load(OPTIONS.BEM.EnvelopeNames{end}.TessFile)
+            end
+%%%%%%
             idScalp = find(strcmpi(OPTIONS.BEM.EnvelopeNames{end}.TessName,Comment)); clear Comment
             if isempty(idScalp)
                 errodlg(sprintf(...
@@ -1099,7 +1101,7 @@ if ~isempty(OPTIONS.Cortex), % subject has cortical vertices as source supports
     clear SearchGridLoc SearchGain G
 
     if OPTIONS.Verbose, bst_message_window({...
-            'Computing Gain Matrix '})
+            'Computing the Image Gain Matrices. . .'})
     end
 
     % Find the cortical grid where to compute the forward model in the tessellation file
@@ -1349,11 +1351,11 @@ function BEMGaingridFname = bem_GainGrid(DataType,OPTIONS,BEMChanNdx)
 
 % Detect the requested BEM computations: MEG and/or EEG___________________________________
 
-User = get_user_directory;
-if isempty(User)
+%User = get_user_directory;
+%if isempty(User)
     User.STUDIES  = pwd;
     User.SUBJECTS = pwd;
-end
+%end
 
 MEG = ~isempty(BEMChanNdx(DataType.MEG)); %  == 1 if MEG is requested
 EEG = ~isempty(BEMChanNdx(DataType.EEG)); %  == 1 if EEG is requested
@@ -1421,8 +1423,13 @@ end
 for k = 1:length(OPTIONS.BEM.EnvelopeNames)
 
     try
-        load(fullfile(User.SUBJECTS,OPTIONS.subjectpath,OPTIONS.BEM.EnvelopeNames{k}.TessFile),'Comment');
-    catch % Maybe user is using command line call to function with absolute-referenced files OPTIONS.*.TessFile
+% Changed by Rik 4/10/07 to call from SPM without User files
+      load(fullfile(User.SUBJECTS,OPTIONS.subjectpath,OPTIONS.BEM.EnvelopeNames{k}.TessFile),'Comment');
+    catch
+      try
+         load(OPTIONS.BEM.EnvelopeNames{end}.TessFile,'Comment');
+%%%%%%
+      catch % Maybe user is using command line call to function with absolute-referenced files OPTIONS.*.TessFile
         try
             OPTIONS.BEM.EnvelopeNames{k}.TessFile = [OPTIONS.BEM.EnvelopeNames{k}.TessFile,'.mat'];
             load(fullfile(User.SUBJECTS,OPTIONS.subjectpath,OPTIONS.BEM.EnvelopeNames{k}.TessFile),'Comment');
@@ -1430,6 +1437,7 @@ for k = 1:length(OPTIONS.BEM.EnvelopeNames)
             cd(User.SUBJECTS)
             load(OPTIONS.BEM.EnvelopeNames{k}.TessFile,'Comment');
         end
+      end
     end
 
     Comment = strrep(Comment,' ','');
@@ -1580,8 +1588,9 @@ end
 
 if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
 
-    % Force (re)computation of transfer matrices, even if files exist in
-    % current study folder
+    % Force (re)computation of transfer matrices, even if files exist in current study folder
+
+    %    if OPTIONS.Verbose, bst_message_window('Computing the BEM Transfer Matrix (this may take a while)....'), end
 
     global nfv
     nfv = bem_xfer(R_eeg,R_meg1,O_meg1,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
@@ -1590,6 +1599,8 @@ if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
     if ~isempty(find(flaggrad))
         if OPTIONS.Verbose, bst_message_window({'Gradiometers detected',...
                 'Computing corresponding Gain Matrix. . .'}), end
+
+        %fn_meg_2 = fullfile(pwd,[OPTIONS.rooot,'_megxfer_2.mat']);
         fn_meg_2 = sprintf('%s_megxfer2_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test);
         bem_xfer(R_eeg,R_meg2,O_meg2,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
             Param(1).basis_opt,Param(1).test_opt,Param(1).ISA,fn_eeg,fn_meg_2,Param.Ntess_max,0,OPTIONS.BEM.checksurf); % Verbose = 0
@@ -1597,6 +1608,7 @@ if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
     end
 
     if ~isempty(irefsens) % Do the same for reference channels
+        %fn_meg_REF = fullfile(pwd,[OPTIONS.rooot,'_megxfer_REF.mat']);
         fn_meg_REF = sprintf('%s_megREFxfer_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test);
         bem_xfer(R_eeg,R_meg_REF,O_meg_REF,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
             Param(1).basis_opt,Param(1).test_opt,Param(1).ISA,fn_eeg,fn_meg_REF,Param.Ntess_max,0,OPTIONS.BEM.checksurf);% Verbose = 0
@@ -1605,6 +1617,8 @@ if (OPTIONS.BEM.ForceXferComputation | ~test) | OPTIONS.BEM.Interpolative
 
             if OPTIONS.Verbose, bst_message_window({'MEG Reference Channels detected',...
                     'Computing corresponding Gain Matrix. . .'}), end
+
+            %fn_meg_REF2 = fullfile(pwd,[OPTIONS.rooot,'_megxfer_REF2.mat']);
             fn_meg_REF2 = sprintf('%s_megREFxfer2_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test);
 
             bem_xfer(R_eeg,R_meg_REF2,O_meg_REF2,Vertices,Faces,Param(1).Conductivity,Param(1).mode, ...
@@ -1875,7 +1889,9 @@ if 1%OPTIONS.BEM.ForceXferComputation | ~test% Recompute gain matrices when tran
     elseif MEG
 
         meg = load(BEMGaingridFname,'GBEM_grid');
-        GBEM_grid = zeros(length(OPTIONS.Channel),size(GBEM_grid,2));
+% Changed by Rik (to make it work!)
+%        GBEM_grid = zeros(length(OPTIONS.Channel),size(GBEM_grid,2));
+        GBEM_grid = zeros(length(OPTIONS.Channel),size(meg.GBEM_grid,2));
         GBEM_grid(MEGndx,:)= meg.GBEM_grid; clear meg
 
     elseif EEG

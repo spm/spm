@@ -17,22 +17,31 @@ function D = spm_eeg_inv_getmasks(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 716 2007-01-16 21:13:50Z karl $
-
-% flags
-%==========================================================================
-%  - img_norm: normalised image (1) or not (0)
-%  - ne,ng   : number of iterations for erosion and growing
-%  - thr_im  : threhold applied to the binary images
-flags = struct('img_norm',0,'ne',1,'ng',2,'thr_im',[.5 .05]);
-
-%==========================================================================
+% $Id: spm_eeg_inv_getmasks.m 954 2007-10-17 15:12:26Z rik $
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 fprintf('\n\n'), fprintf('%c','='*ones(1,80)), fprintf('\n')
 fprintf(['\tGenerate binary volumes from structural image.\n']);
+
+% flags
+%==========================================================================
+%  - img_norm: normalised image (1) or not (0)
+%  - ne,ng   : number of iterations for erosion and growing
+%  - thr_im  : threhold applied to the binary images
+
+% Modified by Rik to allow other masking flags to be passed
+try 
+  flags = D.inv{val}.mesh.msk_flags;
+  if isempty(flags)
+     flags = struct('img_norm',0,'ne',1,'ng',2,'thr_im',[.5 .05]);
+  end
+catch
+  flags = struct('img_norm',0,'ne',1,'ng',2,'thr_im',[.5 .05]);
+end
+
+%==========================================================================
 
 % flags and filenames
 %--------------------------------------------------------------------------
