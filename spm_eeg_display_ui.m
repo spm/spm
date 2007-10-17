@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_display_ui.m 955 2007-10-17 15:15:09Z rik $
 
 if nargin == 1
     S = varargin{1};
@@ -71,7 +71,8 @@ if nargin == 0 | ~isfield(S, 'rebuild')
 
     % fontsize used troughout
     % (better compute that fontsize)
-    FS1 = spm('FontSize', 14);
+%    FS1 = spm('FontSize', 14);
+    FS1 = spm('FontSize', 8);
 
     figure(F);clf
 
@@ -130,6 +131,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     if isfield (D,'Nfrequencies')
         handles.scalemax = 2*ceil(max(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :,:, 1))))));
     else
+%        handles.scalemax = 2*ceil(max(max(max(abs(D.data(setdiff([1:D.Nchannels], D.channels.Bad), :, :))))));
         handles.scalemax = 2*ceil(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :, 1)))));
     end
     scale = handles.scalemax/2;
@@ -244,9 +246,22 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
     xlabel('ms', 'Interpreter', 'tex', 'FontSize', FS1);
 
-
+    % Added option to specify in advance only subset of channels to display RH
+    % ([] = prompt for channel file; char = load channel file; No error checking yet)
+    try
+    	D.gfx.channels = S.chans;
+        if isempty(S.chans)
+            S.chans = spm_select(1, '\.mat$', 'Select channel mat file');
+	    S.load = load(S.chans);
+    	    D.gfx.channels = S.load.Iselectedchannels;
+        elseif ischar(S.chans)
+	    S.load = load(S.chans);
+    	    D.gfx.channels = S.load.Iselectedchannels;
+	end
+    catch
     % channels to display, initially exclude bad channels
-    D.gfx.channels = setdiff([1:length(D.channels.order)], D.channels.Bad);
+        D.gfx.channels = setdiff([1:length(D.channels.order)], D.channels.Bad);
+    end
 
 else
     % this is a re-display with different set of selected channels, delete plots

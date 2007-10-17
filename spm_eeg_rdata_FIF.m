@@ -450,7 +450,7 @@ D.modality = 'MEG';
 % Hack: assumes any EEG channels are the two EOG channels!!!
 % Hack: if there are two EEG (EOG) channels, it assumes VEOG first!!
 
-B.eogfilt = find(B.chtypes==2 | B.chtypes==202)
+B.eogfilt = find(B.chtypes==2 | B.chtypes==202);
 
 if ~isempty(B.eogfilt)
 
@@ -458,7 +458,22 @@ if ~isempty(B.eogfilt)
    error('Discovered other than 0 or 2 EEG channels???')
   end
 
-  disp(sprintf('Found two EEG channels %s and %s - assuming are VEOG and HEOG respectively!!!',B.chans{B.eogfilt(1)},B.chans{B.eogfilt(2)}))
+  eogchan{1} = B.chans{B.eogfilt(1)};
+  eogchan{2} = B.chans{B.eogfilt(2)};
+
+  disp(sprintf('Found two EEG channels %s and %s',eogchan{1},eogchan{2}))
+
+  try
+     veog = S.veogchan;
+     if(veog~=1 & veog ~=2), error('Veog channel must be 1 or 2'); end
+  catch
+     veog = spm_input('Which one is VEOG?', '+1', sprintf('%s|%s',eogchan{1},eogchan{2}), [1 2]);
+  end
+
+  D.channels.veog = D.Nchannels + veog;
+  D.channels.name{D.channels.veog} = 'VEOG';
+  D.channels.heog = D.Nchannels + (3-veog);
+  D.channels.name{D.channels.heog} = 'HEOG';
 
   if rawflag == 0
    for c = 1:length(conds)
@@ -469,10 +484,6 @@ if ~isempty(B.eogfilt)
     d(D.Nchannels+[1:2],:) = B.data(B.eogfilt,swin(1):swin(2))*10^6;
   end
 
-  D.channels.veog = D.Nchannels+1;
-  D.channels.name{D.channels.veog} = 'VEOG';
-  D.channels.heog = D.Nchannels+2;
-  D.channels.name{D.channels.heog} = 'HEOG';
   D.Nchannels = D.Nchannels+2;
 
   for i = [D.channels.veog D.channels.heog]
@@ -495,18 +506,46 @@ end
 
 %%%%%%%%%%%%%% Write data
 
+spm('Pointer', 'Watch'); drawnow;
+
 D.scale = ones(D.Nchannels, 1, D.Nevents);
 D.datatype  = 'float32';
 
 fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
 
-for e = 1:D.Nevents
-%    dd = squeeze(d(:, :, i));
-%    D.scale(:, 1, i) = spm_eeg_write(fpd, dd, 2, D.datatype);
+if rawflag
+    spm_progress_bar('Init', 100, 'Samples written'); drawnow;
+    Ibar = floor(linspace(1, D.Nsamples, 100));
+
     for s = 1:D.Nsamples	
+	fwrite(fpd, d(:,s), 'float');
+
+        barh = find(Ibar==s);
+        if ~isempty(barh)
+           spm_progress_bar('Set', barh);
+           drawnow;
+        end
+    end
+
+else
+    spm_progress_bar('Init', 100, 'Events written'); drawnow;
+    if length(D.Nevents) > 100, Ibar = floor(linspace(1, D.Nevents,100));
+    else, Ibar = [1:D.Nevents]; end
+
+    for e = 1:D.Nevents
+      for s = 1:D.Nsamples	
 	fwrite(fpd, d(:,s,e), 'float');
+      end
+
+      barh = find(Ibar==e);
+      if ~isempty(barh)
+           spm_progress_bar('Set', barh);
+           drawnow;
+      end
     end
 end
+
+spm_progress_bar('Clear');
 
 fclose(fpd);
 
@@ -519,5 +558,6 @@ end
 spm('Pointer', 'Arrow');
 
 
+rotate3d off
 
 

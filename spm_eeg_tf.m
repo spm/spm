@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 856 2007-07-11 09:39:17Z rik $
+% $Id: spm_eeg_tf.m 955 2007-10-17 15:15:09Z rik $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -72,8 +72,6 @@ catch
         spm_input('Which Morlet wavelet factor?', '+1', 'r', '7', 1);
 end
 
-% NB: D.tf.channels maps directly into the data. To retrieve the position of the channel,
-% use D.channels.order
 try
     D.tf.channels = S.channels;
 catch
@@ -192,7 +190,7 @@ if collchans
 	chans=1;	% (may crash if first channel is EOG?)!
 %	D.channels.name = {'All'};
 else
-	chans=1:D.Nchannels;
+	chans=1:length(D.tf.channels);
 end
 
 %%% To handle collapsing over channels...
@@ -200,20 +198,30 @@ D.channels.name=[];
 for n=1:length(D.tf.channels(chans))
     D.channels.name{n} = old_chans{D.tf.channels(n)};
 end
-D.channels.order = D.channels.order(D.tf.channels(chans));
 D.channels.eeg = 1:length(D.tf.channels(chans));
 if(~isempty(D.channels.heog)),D.channels.heog=find(D.tf.channels(chans)==D.channels.heog); end
 if(~isempty(D.channels.veog)),D.channels.veog=find(D.tf.channels(chans)==D.channels.veog); end
 D.channels.eeg([D.channels.veog D.channels.veog])=[];
-r2=0;
+r2=0; ref_lost = 0;
 for r=1:length(D.channels.reference)
-     rf = find(D.tf.channels(chans)==D.channels.reference(r));
-     if(~isempty(rf))
+     refchan = find(D.channels.order==D.channels.reference(r));
+     if ~isempty(refchan)
+      rf = find(D.tf.channels(chans)==refchan);
+      if(~isempty(rf))
 	r2=r2+1;
-     	D.channels.reference(r2) = rf;
-     	D.channels.ref_name{r2} = D.channels.refname{r};
+     	D.channels.reference(r2) = D.channels.order(rf);
+     	D.channels.ref_name{r2} = D.channels.ref_name{r};
+      else
+        ref_lost = 1;
+      end
      end
 end
+if ref_lost
+     D.channels.reference = [];
+     D.channels.ref_name = 'NIL';
+end
+D.channels.order = D.channels.order(D.tf.channels(chans));
+
 if isfield(D.channels,'thresholded')
    D.channels.thresholded = D.channels.thresholded(D.tf.channels(chans));
 end

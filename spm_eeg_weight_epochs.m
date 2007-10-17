@@ -24,7 +24,7 @@ function D = spm_eeg_weight_epochs(S);
 
 % Stefan Kiebel
 % Extended by Rik Henson to handle weighted averages and TF
-% $Id: spm_eeg_weight_epochs.m 860 2007-07-17 16:50:29Z rik $
+% $Id: spm_eeg_weight_epochs.m 955 2007-10-17 15:15:09Z rik $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -50,9 +50,9 @@ end
 
 if isfield(D.events,'repl')
   try
-    WeightAve = S.events.WeightAve;
+    WeightAve = S.WeightAve;
   catch
-    WeightAve = spm_input('Weight contrast by #replications?', '+1', 'yes|no', [1 0]);
+    WeightAve = spm_input('Weight by num replications?', '+1', 'yes|no', [1 0]);
   end
 else
   WeightAve = 0;
