@@ -18,9 +18,9 @@ function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 934 2007-10-05 12:36:29Z karl $
+% $Id: spm_eeg_inv_BSTfwdsol.m 957 2007-10-17 15:22:09Z rik $
 
-% Modified by Rik Henson to handle gradiometers (with two positions/orientations
+% Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) and to allow sphere to be fit to other surfaces, eg
 % inner skull rather than scalp				4/6/07
 
@@ -42,6 +42,8 @@ catch
                 OPTIONS.Method = 'meg_sphere';
             case 2
                 OPTIONS.Method = 'meg_os';
+            case 3
+                OPTIONS.Method = 'meg_bem';
         end
 
     elseif D.modality == 'EEG'
@@ -52,21 +54,20 @@ catch
                 OPTIONS.Method = 'eeg_sphere';
             case 2
                 OPTIONS.Method = 'eeg_3sphereBerg';
-            case 3
-                OPTIONS.Method = 'meg_os';
         end
     end
 end
+disp(OPTIONS.Method)
 
-% Added by Rik to allow different options for sphere fitting
-try
-    sphere2fit = D.inv{val}.forward.sphere2fit;
+% Added by Rik to allow different options for sphere fitting 
+try 
+	sphere2fit = D.inv{val}.forward.sphere2fit;
 catch
-    if isfield(D.inv{val}.mesh,'tess_iskull')
-        sphere2fit = 2;		% Default to inner skull
-    else
-        sphere2fit = 1;		% Cortex
-    end
+	if isfield(D.inv{val}.mesh,'tess_iskull')
+		sphere2fit = 2;		% Default to inner skull
+	else
+		sphere2fit = 1;		% Cortex 
+	end
 end
 % COULD ADD OPTION TO FIT SPHERE TO POLHEMUS HEAD SHAPE!
 
@@ -116,7 +117,7 @@ if sphere2fit == 1
 end
 
 if isfield(D.inv{val}.mesh,'tess_iskull')
-
+    
     % convert positions into m
     %----------------------------------------------------------------------
     vert         = D.inv{val}.mesh.tess_iskull.vert;
@@ -136,8 +137,8 @@ if isfield(D.inv{val}.mesh,'tess_iskull')
     indx         = 3;
 
     if sphere2fit == 2
-        % compute the best fitting sphere to INNER SKULL
-        %----------------------------------------------------------------------
+    % compute the best fitting sphere to INNER SKULL
+    %----------------------------------------------------------------------
         [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
         OPTIONS.HeadCenter = Center;
         OPTIONS.Radii      = [.88 .93 1]*Radius;
@@ -147,7 +148,7 @@ else
 end
 
 if isfield(D.inv{val}.mesh,'tess_scalp')
-
+    
     % convert positions into m
     %----------------------------------------------------------------------
     vert         = D.inv{val}.mesh.tess_scalp.vert;
@@ -168,8 +169,8 @@ if isfield(D.inv{val}.mesh,'tess_scalp')
     OPTIONS.Scalp.iGrid    = indx;
 
     if sphere2fit == 3
-        % compute the best fitting sphere to SCALP
-        %----------------------------------------------------------------------
+    % compute the best fitting sphere to SCALP
+    %----------------------------------------------------------------------
         [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
         OPTIONS.HeadCenter = Center;
         OPTIONS.Radii      = [.88 .93 1]*Radius;
@@ -214,7 +215,7 @@ end
 
 for i = 1:length(sens)
     Channel(i) = struct('Loc',[],'Orient',[],'Comment','','Weight',[],'Type','','Name','');
-
+ 
     Channel(i).Loc = reshape(sens(:,i),3,ncoil);
 
     if exist('orientation') == 1
@@ -224,26 +225,26 @@ for i = 1:length(sens)
     end
 
     if isfield(D.channels,'Weight')
-        Channel(i).Weight  = D.channels.Weight(i,:);
+	Channel(i).Weight  = D.channels.Weight(i,:);
     elseif ncoil == 1
-        Channel(i).Weight  = 1;
+    	Channel(i).Weight  = 1;
+    else		
     % (currently only handles first-order gradiometers, ie two coils)
     %----------------------------------------------------------------------
-    else
-        % this is a gradiometer
-        if all(isfinite(Channel(i).Loc(:,2)))	       
-            Channel(i).Weight  = [1 -1];
+	% this is a gradiometer
+	if all(isfinite(Channel(i).Loc(:,2)))
+	    Channel(i).Weight  = [1 -1];
+	else						
         % magnetometer
-        else
-            Channel(i).Weight  = [1 0];
-        end
+    	    Channel(i).Weight  = [1 0];
+	end
     end
 
     if ncoil > 1
-        if ~all(isfinite(Channel(i).Loc(:,2)))		% replace mag NaNs
-            Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
-            Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
-        end
+      if ~all(isfinite(Channel(i).Loc(:,2)))		% replace mag NaNs
+	Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
+	Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
+      end
     end
     Channel(i).Comment = num2str(i);
     Channel(i).Type    = D.modality;
@@ -263,9 +264,40 @@ OPTIONS.VolumeSourceGrid = 0;
 OPTIONS.SourceLoc        = OPTIONS.GridLoc;
 OPTIONS.SourceOrient     = OPTIONS.GridOrient;
 
+
+% Hidden BEM option (not offered in GUI), added by Rik 14/9/07
+% NOTE: needs full install of Brainstorm to be on path
+% BEM confined to inner skull
+%--------------------------------------------------------------------------
+if strcmp(OPTIONS.Method,'meg_bem')
+
+ % Write TessFile (rather roundabout way - could pass straight to spm_bst_headmodeler if modify that, but might be nice to have BEM surface stored in a file)
+ D.inv{val}.forward.bemfile = fullfile(D.path,[nam '_BEMfile_' num2str(val) '.mat']);
+ clear Comment  Vertices  Faces
+ Comment{1} = 'iskull'; Vertices{1} = D.inv{val}.mesh.tess_iskull.vert; Faces{1} = D.inv{val}.mesh.tess_iskull.face;
+ save(D.inv{val}.forward.bemfile,'Comment','Vertices','Faces');
+ OPTIONS.BEM.EnvelopeNames{1}.TessFile = D.inv{val}.forward.bemfile;
+ OPTIONS.BEM.EnvelopeNames{1}.TessName = Comment{1};
+
+ D.inv{val}.forward.ctxfile = fullfile(D.path,[nam '_CTXfile_' num2str(val) '.mat']);
+ clear Comment  Vertices  Faces
+ Comment{1} = OPTIONS.Cortex.ImageGrid.Comment{1}; 
+ Vertices{1} = OPTIONS.Cortex.ImageGrid.Vertices{1};
+ Faces{1} = OPTIONS.Cortex.ImageGrid.Faces{1};
+ VertConn{1} = OPTIONS.Cortex.ImageGrid.VertConn{1};
+ Curvature{1} = OPTIONS.Cortex.ImageGrid.Curvature{1};
+ save(D.inv{val}.forward.ctxfile,'Comment','Vertices','Faces','VertConn','Curvature');
+ OPTIONS.Cortex.FileName = D.inv{val}.forward.ctxfile;
+ 
+ OPTIONS.BEM.Interpolative = 0;
+ OPTIONS.BEM.ISA = 0;
+ OPTIONS.rooot = D.path;
+end
+
+
 % Forward computation
 %--------------------------------------------------------------------------
-[G,Gxyz] = spm_bst_headmodeler(OPTIONS);
+[G,Gxyz,OPTIONS] = spm_bst_headmodeler(OPTIONS);
 
 % Save
 %--------------------------------------------------------------------------
@@ -278,6 +310,14 @@ if spm_matlab_version_chk('7.1') >=0
 else
     save(D.inv{val}.forward.gainmat,'G');
     save(D.inv{val}.forward.gainxyz,'Gxyz');
+end
+
+% Tidy up files needed for Brainstorm
+if strcmp(OPTIONS.Method,'meg_bem')
+ delete(D.inv{val}.forward.bemfile)
+ delete(D.inv{val}.forward.ctxfile)
+ delete(sprintf('%s_MEGGainGrid_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test))
+ delete(sprintf('%s_megxfer_%s_%s.mat',OPTIONS.rooot, OPTIONS.BEM.Basis,OPTIONS.BEM.Test));
 end
 
 varargout{1} = D;
