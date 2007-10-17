@@ -357,7 +357,7 @@ if isfield(job.data,'singlespec'),
 elseif isfield(job.data,'multispec'),
 	data = {};
 	for i=1:length(job.data.multispec),
-		data = {data,strvcat(job.data.multispec{i})};
+		data = {data{:},strvcat(job.data.multispec{i})};
 	end;
 end;
 
