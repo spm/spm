@@ -135,7 +135,10 @@ end
 
 % This is for compatibility  with the old conversion
 if isfield(D.events, 'time')
-    D.events.time=D.events.time(:);
+    D.events.time=D.events.time(:)';
+end
+if isfield(D.events, 'code')
+    D.events.code=D.events.code(:)';
 end
 
 % FIXME Support for original events for epoched data can be added.
