@@ -70,13 +70,18 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 869 2007-07-29 09:01:32Z klaas $
+% $Id: spm_dcm_ui.m 962 2007-10-18 20:03:28Z Darren $
 
 
 
 % get figure handles
 %---------------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
+
+% clear Interactive window from any detritus left over by previous
+% spm_dcm_ui sessions
+spm_clf(Finter);
+
 Fgraph = spm_figure('GetWin','Graphics');
 header = get(Finter,'Name');
 set(Finter,'Name','Dynamic Causal Modelling')
