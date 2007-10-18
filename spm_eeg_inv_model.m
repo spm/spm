@@ -754,7 +754,7 @@ case 'elec2scalp'
         el_name = varargin{3};
     end
 
-    def_flags = struct('q_RealLoc',1,'br_only',0,'nasion',[0 80 -46],'inion',[0 -118 -26], ...
+    def_flags = struct('q_RealLoc',1,'br_only',0,'nasion',[0 84 -28],'inion',[0 -118 -26], ...
                         'q_RealNI',0,'scbr_w',[16],'Mtempl',eye(4));
     if nargin<5
         flags = def_flags;
@@ -865,6 +865,7 @@ case 'elec2scalp'
 	end
 
 	electrodes.XYZmm = pos_el_mm;
+    electrodes.el_loc = el_loc;
 	electrodes.nr	 = Nel ;
     if flags.br_only
         electrodes.info	= ['Electr loc projected on brain surface + ',num2str(flags.scbr_w),' mm'];

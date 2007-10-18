@@ -217,6 +217,8 @@ if ~isfield(model,'spheres')
             Rbr = Rsk-flags.sk_sc_th(1);
         end
     end
+    fprintf('Radii for scalp: %3.2f, skull: %3.2f & brain: %3.2f spheres.\n', ...
+            [Rsc Rsk Rbr])
 
     % Scalp(brain) vertices in spherical coordinates
     % (azimuth TH, elevation PHI, and radius R)
@@ -382,24 +384,29 @@ end
 % Estimate the Leadfield, if required
 %=======================
 if flags.calc_L
-    if ~isfield(model,'sigma')
-        model.sigma = [.33 .004 .33];
+    if ~isfield(model.param,'sigma')
+        model.param.sigma = [.33 .004 .33];
         fprintf('\nWarning : conductivity values not defined in the model !\n')
         fprintf(' I set them my self to %1.3g %1.3g %1.3g .',model.sigma)
     end
     % Estimate the leadfield for the "spherical" model & dipoles
     %============================================================
     fprintf('Start Leadfield calculation \n')
-    [Lan,nit] = spm_eeg_inv_Lana(SdXYZ,SseXYZ,Rsc,Rsk,Rbr,model.sigma);
-
-    % Oriented dipoles...
-    Or1 = kron(spdiags(dipS.or(1,:)',0,dipS.nr(1),dipS.nr(1)), [1 0 0]') ;
-    Or2 = kron(spdiags(dipS.or(2,:)',0,dipS.nr(1),dipS.nr(1)), [0 1 0]') ;
-    Or3 = kron(spdiags(dipS.or(3,:)',0,dipS.nr(1),dipS.nr(1)), [0 0 1]') ;
-    Or  = Or1+Or2+Or3 ;
-    L   = Lan*Or;
-    Lorig = L;
-    L   = L - ones(size(L,1),1)*mean(L);
+    [Lan,nit] = spm_eeg_inv_Lana(SdXYZ,SseXYZ,Rsc,Rsk,Rbr,model.param.sigma);
+    if ~isempty(dipS.or)
+        fprintf('Calculating Leadfiled of oriented dipoles.\n')
+        % Oriented dipoles...
+        Or1 = kron(spdiags(dipS.or(1,:)',0,dipS.nr(1),dipS.nr(1)), [1 0 0]') ;
+        Or2 = kron(spdiags(dipS.or(2,:)',0,dipS.nr(1),dipS.nr(1)), [0 1 0]') ;
+        Or3 = kron(spdiags(dipS.or(3,:)',0,dipS.nr(1),dipS.nr(1)), [0 0 1]') ;
+        Or = Or1+Or2+Or3 ;
+        L = Lan*Or;
+%       Lorig = L;
+    else
+        fprintf('No orientation provided for the dipoles.\n')
+        L = Lan;
+    end
+    L = L - ones(size(L,1),1)*mean(L);
 else
     L   = 'Not calculated yet.';
     Lan = L;
