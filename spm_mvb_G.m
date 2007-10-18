@@ -11,33 +11,33 @@ function model = spm_mvb_G(X,Y,X0,U,G,V);
 % returns model:
 %                F: log-evidence [F(0), F(1),...]
 %                G: pattern switches
+%                h: covariance hyperparameters (on R and cov(E))
 %               qE: conditional expectation of pattern-weights
-%               Cp: emprical prior covarisnce on pattern-weights
-%                h: covariance hyperparameters (or R and cov(E)
 %              MAP: MAP projector (pattern-weights)
+%               Cp: prior covariance (pattern space)
 %__________________________________________________________________________
 %
 % model: X = Y*P + X0*Q + R
 %        P = U*E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
 %__________________________________________________________________________
-
-
+ 
+ 
 % defaults
 %--------------------------------------------------------------------------
-if isempty(X0), X0 = zeros(size(X,1),1); end
-if nargin < 6,  V  = speye(size(X,1));   end
-
+Nx    = size(X,1);
+Nk    = size(G,1);
+Np    = size(G,2);
+if isempty(X0), X0 = zeros(Nx,1); end
+if nargin < 6,  V  = speye(Nx);   end
+ 
 % null space of confounds
 %--------------------------------------------------------------------------
-X0     = full(X0);
-R      = orth(speye(size(X0,1)) - X0*pinv(X0));
-Y      = R'*Y;
-X      = R'*X;
- 
-% orders
-%--------------------------------------------------------------------------
-nk     = size(U,2);
+X0    = full(X0);
+R     = orth(speye(size(X0,1)) - X0*pinv(X0));
+Y     = R'*Y;
+X     = R'*X;
+Nx    = size(X,1);
  
 % random effects (and serial correlations)
 %--------------------------------------------------------------------------
@@ -56,8 +56,6 @@ end
  
 % assemble empirical priors
 %==========================================================================
-Nk    = size(G,1);
-Np    = size(G,2);
 L     = Y*U;
 Qp    = {};
 LQpL  = {};
@@ -93,12 +91,12 @@ end
 MAP   = Cp*L'*inv(Cy);
 qE    = MAP*X;
  
-
-% assemble results (pattern wieghts)
+ 
+% assemble results (pattern weights)
 %==========================================================================
 model.F   = F;
 model.G   = G;
 model.h   = h;
 model.qE  = qE;
-model.Cp  = Cp;
 model.MAP = MAP;
+model.Cp  = Cp;

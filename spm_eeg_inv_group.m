@@ -145,7 +145,7 @@ end
  
 % Invert the forward model
 %==========================================================================
-D    = spm_eeg_invert_group(D);
+D    = spm_eeg_invert(D);
  
  
 % Compute conditional expectation of contrast and produce image

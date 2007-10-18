@@ -1101,7 +1101,7 @@ if ~isempty(OPTIONS.Cortex), % subject has cortical vertices as source supports
     clear SearchGridLoc SearchGain G
 
     if OPTIONS.Verbose, bst_message_window({...
-            'Computing the Image Gain Matrices. . .'})
+            'Computing Gain Matrix '})
     end
 
     % Find the cortical grid where to compute the forward model in the tessellation file

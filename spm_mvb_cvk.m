@@ -18,7 +18,7 @@ else
     figure(Fmvb);
     clf
 end
-
+ 
 % get MVB results
 %==========================================================================
 try
@@ -28,8 +28,8 @@ catch
     MVB  = load(mvb(1,:));
     MVB  = MVB.MVB;
 end
-
-% k=fol cross validation
+ 
+% k=fold cross validation
 %==========================================================================
 k     = 2;
 pX    = 0;
@@ -43,15 +43,15 @@ end
  
 % parametric inference
 %==========================================================================
-
-% ReML esimate of non-sphericity
+ 
+% ReML estimate of non-sphericity
 %--------------------------------------------------------------------------
 X       = [pX MVB.K*MVB.X0];
 V       = spm_reml_sc(qX*qX',X,Q);
 C       = sparse(1,1,1,size(X,2),1);
 [T df]  = spm_ancova(X,V,qX,C);
 p       = 1 - spm_Tcdf(T,df(2));
-
+ 
  
 % percent correct (after smoothing)
 %--------------------------------------------------------------------------
@@ -77,53 +77,66 @@ xlabel('true')
 ylabel('predicted')
 title(sprintf('p-value (parametric) = %.5f',p))
 axis square
-
-% displaye and assigin in base memory
+ 
+% display and assign in base memory
 %--------------------------------------------------------------------------
 fprintf('\np-value = %.4f; percent: %.1f\n',p,percent)
 MVB.p_value = p;
 MVB.percent = percent;
 assignin('base','MVB',MVB)
-
+ 
 return
-
+ 
 %==========================================================================
 function [X,qX,Q] = mvb_cv(MVB,n,k)
 %==========================================================================
 % MVB - multivariate structure
 % n   - subset
 % k   - partition
-
-% unpack MVB and create test subpsace
+ 
+% unpack MVB and create test subspace
 %--------------------------------------------------------------------------
 V     = MVB.V;
 U     = MVB.M.U;
-G     = MVB.M.G;
-
+ 
 % whitening matrix
 %--------------------------------------------------------------------------
 K     = MVB.K;
 X     = K*MVB.X;
 Y     = K*MVB.Y;
 X0    = K*MVB.X0;
-
+ 
+% specify indices of training and test data
+%--------------------------------------------------------------------------
 Ns    = length(X);
 ns    = floor(Ns/k);
 test  = [1:ns] + (n - 1)*ns;
 tran  = [1:Ns];
 tran(test) = [];
-
+ 
 test  = full(sparse(test,test,1,Ns,Ns));
 tran  = full(sparse(tran,tran,1,Ns,Ns)); 
-
+ 
 % Training - add test space to confounds
 %==========================================================================
-M     = spm_mvb(X,Y,[X0 test],U,[],8);
+R      = speye(Ns) - [X0 test]*pinv([X0 test]);
+Qe     = speye(Ns);
+Qp     = MVB.M.Cp;
+L      = R*Y*U;
+Q      = {Qe L*Qp*L'};
+ 
+% re-estimate covariance components
+%----------------------------------------------------------------------
+[Cy,h] = spm_reml_sc(R*X*X'*R',[X0 test],Q,size(X,2));
+ 
+% MAP estimates of pattern weights
+%----------------------------------------------------------------------
+MAP    = h(2)*Qp*L'*R'*inv(Cy)*R;
+qE     = MAP*X;
  
 % Test - add training space to confounds
 %==========================================================================
-R     = speye(Ns) - [X0 tran]*pinv([X0 tran]);
-X     = R*X;
-qX    = R*Y*U*M.qE;
-Q     = test;
-
+R      = speye(Ns) - [X0 tran]*pinv([X0 tran]);
+X      = R*X;                                              % test data
+qX     = R*Y*U*qE;                                         % prediction
+Q      = test;                                             % test indices

@@ -148,9 +148,10 @@ end
 S     = spm_svd(YY,exp(-4));
 T     = T*S;
 Nr    = size(T,2);                               % number of temporal modes
-disp([mat2str(Nr) ' temporal modes'])
 iV    = inv(T'*qV*T);                            % precision (mode space)
 Vq    = T*iV*T';
+fprintf('Using %i temporal modes\n',Nr)
+
 
 % Project onto temporal modes (S)
 %--------------------------------------------------------------------------
@@ -160,16 +161,6 @@ for i = 1:Nt
     YY   = YY + Y{i}*iV*Y{i}';
 end
 
-% Re-reference matrix (R)
-%--------------------------------------------------------------------------
-if strcmp(D.modality,'EEG')
-    [i j] = min(diag(YY));                           % minimum variance channel
-    R     = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc);   % re-referencing matrix
-    YY    = R*YY*R';
-    L     = R*L;
-else
-    R = speye(Nc,Nc);
-end
 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
@@ -178,9 +169,9 @@ try
     U = U(:,1:Nm);
 end
 Nm    = size(U,2);
-disp([mat2str(Nm) ' channel modes'])
 YY    = U'*YY*U;
 L     = U'*L;
+fprintf('Using %i spatial modes\n',Nm)
 
 % Restrict source space
 %==========================================================================
@@ -220,6 +211,7 @@ if ~strcmp(type,'IID')
     QG    = QG*QG;
     QG    = QG(Is,Is);
     fprintf(' - done\n')
+    
 end
 
 
@@ -228,13 +220,13 @@ end
 
 % sensor noise (accommodating re-reference)
 %--------------------------------------------------------------------------
-Qe{1} = U'*R*R'*U;
+Qe{1} = U'*U;
 
 % create source compeonts
 %--------------------------------------------------------------------------
 switch(type)
 
-    case {'MSP','GS'}
+    case {'MSP','GS','ARD'}
 
         % create MSP spatial basis set in source space
         %------------------------------------------------------------------
@@ -266,7 +258,7 @@ switch(type)
             
         end
 
-    case {'LOR'}
+    case {'LOR','COH'}
 
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -279,7 +271,7 @@ switch(type)
         LQpL{2} = L*Qp{2}*L';
 
 
-    case {'IID'}
+    case {'IID','MMN'}
 
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -305,7 +297,8 @@ if strcmp(type,'GS')
 
     % Multivariate Bayes
     %----------------------------------------------------------------------
-    MVB   = spm_mvb(U'*R*[Y{:}],L,[],Q,Qe,8,1/4);
+    UY    = U'*spm_cat(Y)*kron(speye(Nt,Nt),sqrtm(iV));
+    MVB   = spm_mvb(UY,L,[],Q,Qe,8,1/4);
     M     = MVB.M;
     Cq    = MVB.qC;
     F     = max(MVB.F);
@@ -378,7 +371,7 @@ SSR   = 0;
 SST   = 0;
 for i = 1:Nt
     
-    Y{i}  = U'*R*Y{i};
+    Y{i}  = U'*Y{i};
     J{i}  = M*Y{i};
 
     % sum of squares
@@ -404,7 +397,7 @@ model.inverse.M      = M;                    % MAP projector (reduced)
 model.inverse.J      = J;                    % Conditional expectation
 model.inverse.Y      = Y;                    % ERP data (reduced)
 model.inverse.L      = L;                    % Lead-field  (reduced)
-model.inverse.R      = R;                    % Re-referencing matrix
+model.inverse.R      = speye(Nc,Nc);         % Re-referencing matrix
 model.inverse.qC     = Cq;                   % spatial  covariance
 model.inverse.qV     = Vq;                   % temporal correlations
 model.inverse.T      = T;                    % temporal subspace

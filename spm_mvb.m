@@ -12,12 +12,13 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %
 % returns model:
 %                F: log-evidence [F(0), F(1),...]
-%               qE: conditional expectation of weights
-%               qC: conditional variance of weights
-%                M: conditional projector
+%                G: covariance partition indices
 %                h: covariance hyperparameters
 %                G: covariance Partition indices
-%               nk: number of patterns
+%                U: patterns
+%               qE: conditional expectation of weights
+%               qC: conditional variance of weights
+%               Cp: prior covariance (pattern space)
 %__________________________________________________________________________
 %
 % model: X = Y*P + X0*Q + R
@@ -87,7 +88,11 @@ end
  
 % project pattern weights to feature (voxel) weights
 %==========================================================================
+model.F  = F;
 model.U  = U;
+
+% remove some patterns if there are too many
+%--------------------------------------------------------------------------
 qE       = sum(abs(model.qE),2);
 [i j]    = sort(-qE);
 try
@@ -95,34 +100,20 @@ try
 catch
     i    = j;
 end
-U        = U(:,i);
+U        = model.U(:,i);
+Cp       = model.Cp(i,i);
+MAP      = U*model.MAP(i,:);
+qE       = U*model.qE(i,:);
 
-model.F  = F;
-model.M  = U*model.MAP(i,:);
-model.qE = U*model.qE(i,:);
-model.Cp = model.Cp(i,i);
-
-% evaluate conditional variance (qC)
 % conditional covariance: qC  = Cp - Cp*L'*iC*L*Cp;
 %--------------------------------------------------------------------------
 X0       = full(X0);
 R        = orth(speye(size(X0,1)) - X0*pinv(X0));
 L        = R'*Y*U;
-LCp      = L*model.Cp;
-qC       = sum((U*model.Cp).*U,2) ...
-         - sum((U*LCp').*model.M,2);
-model.qC = max(qC,0) + exp(-16);
+LCp      = L*Cp;
+qC       = sum((U*Cp).*U,2) - sum((U*LCp').*MAP,2);
+model.M  = MAP;
+model.qE = qE;                                     % conditional expecation
+model.qC = max(qC,exp(-16));                       % conditional variance
 
-
-return
-
-% conditional covariance
-% qC  = Cp - Cp*L'*iC*L*Cp;
-%--------------------------------------------------------------------------
-if nk
-    R  = speye(nk,nk)/exp(16);
-    qC = inv(L'*inv(Ce)*L + inv(Cp + R));
-else
-    qC = Cp - MAP*LCp;
-end
 

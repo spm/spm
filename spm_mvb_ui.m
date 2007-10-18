@@ -46,6 +46,9 @@ switch SPACE
 	case 'B' %-Box
 	%---------------------------------------------------------------
 	D     = spm_input('box dimensions [k l m] {mm}','!+1');
+    if length(D) < 3
+        D = D(1)*[1 1 1];
+    end
 	str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
 	j     = find(all(abs(XYZmm - xyzmm*Q) <= D(:)*Q/2));
 
