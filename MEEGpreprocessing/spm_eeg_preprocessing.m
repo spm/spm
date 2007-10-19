@@ -24,6 +24,7 @@ if ~isfield(cfg, 'derivative'),   cfg.derivative = 'no';        end
 if ~isfield(cfg, 'rectify'),      cfg.rectify = 'no';           end
 if ~isfield(cfg, 'boxcar'),       cfg.boxcar = 'no';            end
 if ~isfield(cfg, 'absdiff'),      cfg.absdiff = 'no';           end
+if ~isfield(cfg, 'timeshift'),    cfg.timeshift = '0';           end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % STEP 1

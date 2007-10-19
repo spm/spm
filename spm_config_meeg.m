@@ -263,7 +263,7 @@ switch cell2mat(fieldnames(S.trials))
         trl=trialfun_spm(cfg);
         cfg.event = read_event(cfg.dataset);
 
-        timeshift = 0;
+        cfg.timeshift = 0;
 end
 cfg.trl=trl;
 
