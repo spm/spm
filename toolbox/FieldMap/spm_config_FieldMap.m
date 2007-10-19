@@ -4,7 +4,7 @@ function job = spm_config_fieldmap
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton
-% $Id$
+% $Id: spm_config_FieldMap.m 964 2007-10-19 16:35:34Z john $
 %_______________________________________________________________________
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
         '''tag'',tag,''strtype'',strtype,''num'',num)'],...

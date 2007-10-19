@@ -1,4 +1,4 @@
-/* $Id: optimizer3d.h 39 2006-10-23 09:46:44Z john $ */
+/* $Id: optimizer3d.h 964 2007-10-19 16:35:34Z john $ */
 /* (c) John Ashburner (2007) */
 extern void fmg3(int n0[], float *a0, float *b0, int rtype, double param[], int c, int nit,
                  float *u0, float *scratch);

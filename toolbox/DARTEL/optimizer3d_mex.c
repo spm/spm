@@ -1,4 +1,4 @@
-/* $Id: optimizer3d_mex.c 52 2006-12-08 14:48:28Z john $ */
+/* $Id: optimizer3d_mex.c 964 2007-10-19 16:35:34Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"

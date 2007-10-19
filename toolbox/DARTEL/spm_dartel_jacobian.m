@@ -10,7 +10,7 @@ function spm_dartel_jacobian(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_dartel_jacobian.m 964 2007-10-19 16:35:34Z john $
 
 PU = job.flowfields;
 K  = job.K;

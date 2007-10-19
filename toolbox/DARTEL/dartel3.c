@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 73 2007-05-10 15:17:14Z john $ */
+/* $Id: dartel3.c 964 2007-10-19 16:35:34Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"

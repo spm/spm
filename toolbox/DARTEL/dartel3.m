@@ -192,7 +192,7 @@ function dartel3
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: dartel3.m 964 2007-10-19 16:35:34Z john $
 
 error('Not compiled for this platform (see make.m).'
 

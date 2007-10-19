@@ -35,7 +35,7 @@ function vdm=Fieldmap_Run(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton & Jesper Andersson
-% $Id$
+% $Id: FieldMap_Run.m 964 2007-10-19 16:35:34Z john $
 %_________________________________________________________________
 
 %

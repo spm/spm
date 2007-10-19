@@ -5,7 +5,7 @@ function [sig,a] = spm_dartel_smooth(t,lam,its,vx,a)
 % (c) Wellcome Centre for NeuroImaging (2007)
 
 % John Ashburner
-% $Id$
+% $Id: spm_dartel_smooth.m 964 2007-10-19 16:35:34Z john $
 
 if nargin<5, a   = zeros(size(t),'single'); end
 if nargin<4, vx  = [1 1 1]; end;
@@ -14,7 +14,7 @@ if nargin<2, lam = 1;       end;
 
 d   = size(t);
 W   = zeros([d(1:3) round((d(4)*(d(4)+1))/2)],'single');
-s   = max(sum(t,4),0);
+s   = max(sum(t,4),single(0));
 for k=1:d(4),
     t(:,:,:,k) = t(:,:,:,k)./abs(s+eps);
 end

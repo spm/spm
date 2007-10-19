@@ -7,7 +7,7 @@ function spm_dartel_warp(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_dartel_warp.m 964 2007-10-19 16:35:34Z john $
 
 st = job.settings;
 n1 = numel(job.images);
@@ -61,7 +61,6 @@ for i=1:n2,
         u = single(squeeze(u));
     else
         u = zeros([dm,3],'single');
-        create(NU);
     end;
 
     it0 = 0;
@@ -86,6 +85,7 @@ for i=1:n2,
             spm_progress_bar('Set',i-1 + it0/numits);
         end
     end
+    create(NU);
     NU.dat(:,:,:,1,:) = reshape(u,[dm 1 3]);
 end;
 spm_progress_bar('Clear');

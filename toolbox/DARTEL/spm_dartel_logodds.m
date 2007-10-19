@@ -12,7 +12,7 @@ function spm_dartel_logodds(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_dartel_logodds.m 964 2007-10-19 16:35:34Z john $
 
 
 PI = job.images;

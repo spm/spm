@@ -4,7 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_dartel.m 964 2007-10-19 16:35:34Z john $
 
 if spm_matlab_version_chk('7') < 0,
     job = struct('type','const',...

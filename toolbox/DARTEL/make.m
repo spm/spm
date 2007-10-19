@@ -1,7 +1,7 @@
 
 % Script to compile C code for DARTEL registration
 
-% $Id$
+% $Id: make.m 964 2007-10-19 16:35:34Z john $
 % John Ashburner
 mex dartel2.c optimizer2d.c diffeo2d.c -O
 mex dartel3.c optimizer3d.c diffeo3d.c -O

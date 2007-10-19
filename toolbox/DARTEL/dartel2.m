@@ -173,5 +173,5 @@ function dartel2
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: dartel2.m 964 2007-10-19 16:35:34Z john $
 

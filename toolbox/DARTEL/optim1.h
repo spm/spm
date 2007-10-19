@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: optim1.h 964 2007-10-19 16:35:34Z john $ */
 /* (c) John Ashburner (2007) */
 extern void fmg(int n0[], double *a0, double *b0, int rtype, double param[], int c, int nit,
                  double *u0, double *scratch);

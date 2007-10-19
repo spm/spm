@@ -1,8 +1,8 @@
-function optimN
-% Full multigrid matrix solver stuff (circulant boundaries)
+function optimNn
+% Full multigrid matrix solver stuff (zero gradient at boundaries)
 %_______________________________________________________________________
 %
-% FORMAT v = optimN('fmg',A, b, param)
+% FORMAT v = optimNn('fmg',A, b, param)
 % v     - the solution n1*n2*n3*n4
 % A     - parameterisation of 2nd derivatives
 %         n1*n2*n3*(n4*(n4+1)/2)
@@ -36,7 +36,7 @@ function optimN
 %
 %_______________________________________________________________________
 %
-% FORMAT m = optimN('vel2mom', v, param)
+% FORMAT m = optimNn('vel2mom', v, param)
 % v     - velocity (flow) field n1*n2*n3*n4.
 % param - 4 parameters (settings)
 %         - [1] Regularisation type, can take values of
@@ -55,15 +55,15 @@ function optimN
 %
 %_______________________________________________________________________
 %
-% Note that the boundary conditions are circulant throughout.
-% For Neumann boundary conditions (zero gradients at the boundaries)
-% use optimNn.
+% Note that the boundary conditions are Neumann (zero gradients at the
+% boundaries) throughout. For circulant boundary conditions, use
+% use optimN.
 %
 %_______________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: optimN.m 964 2007-10-19 16:35:34Z john $
+% $Id: optimNn.m 964 2007-10-19 16:35:34Z john $
 
 error('Not compiled for this platform (see make.m).'
 
