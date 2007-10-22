@@ -1,6 +1,6 @@
-function [D] = spm_eeg_invert_group(D)
+function [D] = spm_eeg_invert(D)
 % ReML inversion of multiple forward models for EEG-EMG
-% FORMAT [D] = spm_eeg_invert_group(D)
+% FORMAT [D] = spm_eeg_invert(D)
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG data
 % Requires:
@@ -158,6 +158,7 @@ YY    = W'*spm_cat(Y(:))'*spm_cat(Y(:))*W;
 S     = spm_svd(YY,exp(-4));
 T     = T*S;                                     % temporal projector
 iV    = inv(T'*qV*T);                            % precision (mode)
+sV    = sqrtm(iV);                               % sqrt (mode)
 Vq    = T*iV*T';                                 % precision (time)
 Nr    = size(T,2);                               % number of temporal modes
 for i = 1:Nl
@@ -175,11 +176,12 @@ YY    = sparse(Nc(1),Nc(1));
 for i = 1:Nl
     A = (G*L{i}')*inv((L{i}*L{i}' + speye(Nc(i),Nc(i))*exp(-8)));
     for j = 1:Nt
-        AY{end + 1} = A*Y{i,j};
-        YY          = YY + AY{end}*iV*AY{end}';
+        AY{end + 1} = A*Y{i,j}*sV;
+        YY          = YY + AY{end}*AY{end}';
+        
     end
 end
-AY    = spm_cat(AY)*kron(speye(Nt,Nt),sqrtm(iV));
+AY    = spm_cat(AY);
  
  
 % Project to channel modes (U)
