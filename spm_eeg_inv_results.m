@@ -12,7 +12,6 @@ function [D] = spm_eeg_inv_results(D)
 
 % SPM data structure
 %==========================================================================
-fprintf('\ncomputing contrast - please wait\n')
 try
     model = D.inv{D.val};
 catch
@@ -24,6 +23,13 @@ end
 try, woi = model.contrast.woi;  catch, woi = [80 120]; end
 try, foi = model.contrast.fboi; catch, foi = 0;        end
 
+% Check contrast woi within inversion woi
+if woi(1) < D.inv{D.val}.inverse.woi(1) | woi(2) > D.inv{D.val}.inverse.woi(2)
+   error(sprintf('Contrast time window, %s, must be within inversion time window, %s',mat2str(woi),mat2str(D.inv{D.val}.inverse.woi)))
+end
+
+fprintf('\ncomputing contrast - please wait\n')
+  
 % inversion parameters
 %--------------------------------------------------------------------------
 J    = model.inverse.J;                           % Trial average MAP estimate
