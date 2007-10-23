@@ -8,7 +8,7 @@ This dataset contains EEG, MEG, functional MRI and structural MRI data on the sa
 
 It can be used to demonstrate, for example, 3D source reconstruction of various electrophysiological measures of face perception, such as the "N170" evoked response (ERP) recorded with EEG, or the analogous "M170" evoked field (ERF) recorded with MEG. These localisations are informed by the anatomy of the brain (from the structural MRI) and possibly by functional activation in the same paradigm (from the functional MRI).
 
-The demonstration below involves localising the N170 using a distributed source method (called an "imaging" solution in SPM) analogous to “weighted minimum L2-norm". The data can also be used to explore further effects, e.g. induced effects (Friston et al, 2006), effects at different latencies, or the effects of adding fMRI constraints on the localisation.
+The demonstration below involves localising the N170 using a distributed source method (called an "imaging" solution in SPM) analogous to "weighted minimum L2-norm". The data can also be used to explore further effects, e.g. induced effects (Friston et al, 2006), effects at different latencies, or the effects of adding fMRI constraints on the localisation.
 
 The EEG data were acquired on a 128 channel ActiveTwo system; the MEG data were acquired on a 151 channel CTF Omega system; the sMRI data were acquired using a phased-array headcoil on a Siemens Sonata 1.5T; the fMRI data were acquired using a gradient-echo EPI sequence on the Sonata. The dataset also includes data from a Polhemus digitizer, which are used to coregister the EEG and the MEG data with the structural MRI.
 
@@ -22,8 +22,10 @@ The basic paradigm involves randomised presentation of at least 86 faces and 86 
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_1}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_1}
 \caption{\em One trial in the experimental paradigm: Trials involved either a Face (F) or Scrambled face (S). \label{fig_32_1}}
+\end{center}
 \end{figure}
 
 \subsection{Structural MRI}
@@ -59,7 +61,7 @@ Other details about the data can be examined by typing:
 \begin{verbatim}
 	D = spm_eeg_ldata
 \end{verbatim}
-and selecting the \verb!e_meg.mat! file. This will show the contents of the structure “D” that is loaded into the Matlab workspace, the various fields of which can be explored. Note that the data values themselves are memory-mapped from the \verb!e_eeg.dat! file to the field D.data (e.g, D.data(1,2,3) returns the field strength in the first sensor at the second sample point during the third trial).
+and selecting the \verb!e_meg.mat! file. This will show the contents of the structure "D" that is loaded into the Matlab workspace, the various fields of which can be explored. Note that the data values themselves are memory-mapped from the \verb!e_eeg.dat! file to the field D.data (e.g, D.data(1,2,3) returns the field strength in the first sensor at the second sample point during the third trial).
 
 You will see that there are 344 events (D.Nevents), consisting of 172 faces (event code 1) and 172 scrambled faces (event code 2), which are randomly intermixed (see D.events.code)\footnote{These data were actually concatenated from two separate runs on the same subject (using spm-eeg-merge), which is why there are twice as many events as with the MEG and fMRI data.}. If you type D.channels.name, you will see the order and the names of the channels.
 
@@ -71,7 +73,7 @@ The EEG data also contains a Polhemus sub-directory with the following files:
 \end{verbatim}
 All files contain matrices, the three columns of which code location in a right-handed 3D space, the axes of which conform to the Talairach space, i.e, the first column is x (left-right), the second is y (anterior-posterior) and the third is z (inferior-superior). The units are mm.
 
-The \verb!eeg_fids.mat! file contains the position of 3 fiducial markers that were placed approximately on the nasion and peri-aricular points and digitised by the Polhemus digitizer. The digitizer was also used to locate the position of each electrode (in the \verb!eeg_sens_loc.mat! file), and to trace out many points along the surface of the subject’s scalp and nose (the “head shape function” in the \verb!eeg_hsf.mat! file). Later, we will coregister the fiducial points and the head shape to map the electrode positions in the "Polhemus space" to the "MRI space".
+The \verb!eeg_fids.mat! file contains the position of 3 fiducial markers that were placed approximately on the nasion and peri-aricular points and digitised by the Polhemus digitizer. The digitizer was also used to locate the position of each electrode (in the \verb!eeg_sens_loc.mat! file), and to trace out many points along the surface of the subject's scalp and nose (the "head shape function" in the \verb!eeg_hsf.mat! file). Later, we will coregister the fiducial points and the head shape to map the electrode positions in the "Polhemus space" to the "MRI space".
 
 \subsection{MEG data \label{meg}}
 
@@ -93,7 +95,7 @@ The MEG data also contains a Polhemus sub-directory with the following files:
 	MEG/Polhemus/meg_sens_or.mat
 	MEG/Polhemus/meg_hsf.mat
 \end{verbatim}
-which are analogous to the corresponding MEG files described in the previous section\footnote{These matrices are transformations from the original CTF / Polhemus files - in which x codes anterior-posterior and y codes left-right - i.e, a 90 degree clockwise rotation about the z-axis.}. More specifically, the \verb!meg_fids.mat! contains the position of 3 "locator coils", positioned close to the fiducials\footnote{Unlike the MRI and EEG data, these fiducials were not precisely the nasion and peri-aricular points. However, given that the coregistration of the MEG and MRI data is based mainly on the headshape (see later), this inaccuracy in the MEG fiducials does not matter.}, the locations of which are measured by the CTF machine, and used to define the coordinates (in "CTF space") for the location of the 151 sensors (in the \verb!meg_sens_loc.mat! file) and their (axial gradiometer) orientations (\verb!meg_sens_or.mat!). The same three locator coils were digitised by a Polhemus digitizer outside the MEG machine, together with the head shape, to define the “Polhemus space". Subsequently, the fiducials in the Polhemus space were coregistered with the fiducials in the CTF space, and the resulting rigid-body transformation applied to the Polhemus head shape. Thus the coordinates in all four files above are in alignment in the CTF space, which will subsequently be transformed into the "MRI space".
+which are analogous to the corresponding MEG files described in the previous section\footnote{These matrices are transformations from the original CTF / Polhemus files - in which x codes anterior-posterior and y codes left-right - i.e, a 90 degree clockwise rotation about the z-axis.}. More specifically, the \verb!meg_fids.mat! contains the position of 3 "locator coils", positioned close to the fiducials\footnote{Unlike the MRI and EEG data, these fiducials were not precisely the nasion and peri-aricular points. However, given that the coregistration of the MEG and MRI data is based mainly on the headshape (see later), this inaccuracy in the MEG fiducials does not matter.}, the locations of which are measured by the CTF machine, and used to define the coordinates (in "CTF space") for the location of the 151 sensors (in the \verb!meg_sens_loc.mat! file) and their (axial gradiometer) orientations (\verb!meg_sens_or.mat!). The same three locator coils were digitised by a Polhemus digitizer outside the MEG machine, together with the head shape, to define the "Polhemus space". Subsequently, the fiducials in the Polhemus space were coregistered with the fiducials in the CTF space, and the resulting rigid-body transformation applied to the Polhemus head shape. Thus the coordinates in all four files above are in alignment in the CTF space, which will subsequently be transformed into the "MRI space".
 
  
 
@@ -118,7 +120,7 @@ and the SPM "Job" files (see Section~\ref{fMRI}):
 
 \section{Getting Started}
 
-You need to start SPM5 and toggle "EEG" as the modality (bottom-right of SPM main window), or start SPM5 with “spm eeg”.
+You need to start SPM5 and toggle "EEG" as the modality (bottom-right of SPM main window), or start SPM5 with \verb!spm eeg!.
 
 You will also need to 1) copy the MEG template file (\verb!CTF151_setup.mat!) to the EEGtemplates sub-directory within your SPM5 installation directory, if it is not already there (see ~section \ref{meg} above), and 2) ensure this EEGtemplates directory is on your Matlab path.
 
@@ -145,8 +147,10 @@ In this case, the Matlab window will show:
 At this point, you may want to look at the data. Press "Display: M/EEG", and select the \verb!ae_eeg.mat! file. After a short delay, the Graphics window should show the mean ERP (for trial 1) at each of the 130 channels (as in Figure\ref{fig_32_2}). You can click on one of the channels (e.g, VEOG, on the top right of the display) to get a new window with the data for that channel expanded. You can alter the scaling or trial number using the sliders on the bottom of the Graphics window, or select a subset of channels to display by pressing the 'Channels' button.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_2}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_2}
 \caption{\em  SPM Display window for trial 5 for all 128 EEG plus 2 EOG channels (top left and top right) in ae-eeg.mat. Trial 5 is marked as an artefact because the VEOG channel (top right) exceeds the user-specified threshold of 200uV, most likely reflecting the onset of a blink towards the end of the epoch. \label{fig_32_2}}
+\end{center}
 \end{figure}
 
 
@@ -165,8 +169,10 @@ At this point, you may want to look at the data. Press "Display: M/EEG", and sel
 You can display the mean ERPs using the "Display: M/EEG" menu option again. Once you have done so, press the "channels" button in the Graphics window, then "Deselect all", and then click only, eg channels 'a1', 'd7', 'a12', 'b9' and 'c7'. (You can save these selections as a file, and use this file to display only a subset of channels in future). After pressing "ok", you will now only see these 5 channels (which will also make the display much faster!). Once you hold SHIFT and select trial-type 2, you should see something like Figure~\ref{fig_32_3}.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_3}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_3}
 \caption{\em SPM Display window for smoothed, average ERPs for faces (blue) and scrambled faces (red) for 5 selected channels in fmae-eeg.mat. \label{fig_32_3}}
+\end{center}
 \end{figure}
 
 * Select "Contrast" from the "Other..." pulldown menu on the SPM window (or type \verb!spm_eeg_weight_epochs! in the Matlab window). This function creates linear contrasts of ERPs/ERFs. Select the \verb!fmae_eeg.mat! file, and enter [1 -1; 1/2 1/2]as the contrasts. Press "no" to the question "weight by num replications". This will create new file \verb!mfmae_eeg.mat!, in which the first trial-type is now the differential ERP between faces and scrambled faces, and the second trial-type is the average ERP for faces and scambled faces.
@@ -174,8 +180,10 @@ You can display the mean ERPs using the "Display: M/EEG" menu option again. Once
 To look at the differential ERP, again press 'Display: M/EEG', and select the \verb!mfmae_eeg.mat! file. After a short delay, the Graphics window should show the ERP for each channel (for trial-type 1). Hold SHIFT and select trial-type 2 to see both conditions superimposed. Then click on one of the channels (e.g, 'B9' on the bottom right of the display) to get a new window with the data for that channel expanded, as in Figure~\ref{fig_32_4}.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_4}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_4}
 \caption{\em  Average (red) and differential (blue) ERPs for faces and scrambled faces at channel B9 in mfmae-eeg.mat. \label{fig_32_4}}
+\end{center}
 \end{figure}
 
 The red line shows the average ERP evoked by faces and scrambled faces (at this occipitotemporal channel). A P1 and N1 are clearly seen. The blue line shows the differential ERP between faces and scrambled faces. This is approx zero around the P1 latency, but negative around the N1 latency. The latter likely corresponds to the "N170" (Henson et al, 2003). We will try to localise the cortical sources of the P1 and N170 in Section~\ref{3D}.
@@ -183,8 +191,10 @@ The red line shows the average ERP evoked by faces and scrambled faces (at this 
 To see the topography of the differential ERP, press the "topography" button in the main graphics window, enter 165ms for the latency, and select "3D", to produce Figure~\ref{fig_32_5}. Choose the rotate3D cursor to surf.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_5}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_5}
 \caption{\em 3D topography for faces minus scrambled faces at 165ms. \label{fig_32_5}}
+\end{center}
 \end{figure}
 
 
@@ -200,8 +210,10 @@ This will take some time as it writes out an image for each trial (except reject
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_6}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_6}
 \caption{\em  3D image for trial 2 of ae-eeg.mat. The bottom image is a square 2D x-y space interpolated from the flattened electrode locations (at one point in time). The two top images are sections through x and y respectively, now expressed over time (vertical (z) dimension). (Colormap changed to 'jet').\label{fig_32_6}}
+\end{center}
 \end{figure}
 
 
@@ -220,8 +232,10 @@ This will reveal "regions" within the 2D sensor space and within the -200ms to 6
 If one had more constrained a priori knowledge about where and when the N170 would appear, one could perform an SVC based on, for example, a box around posterior channels and between 150 and 200ms poststimulus.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_7}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_7}
 \caption{\em 3D sensor-time SPM{F} at $p<.05$ FWE corrected for the amplitude difference between face and scrambled face trials. Note that the brain outline in the MIP should be ignored. The x, y coordinates refer to arbitrary units in the 32x32 electrode plane (origin = [16 16]); the z coordinate refers to peristimulus time in ms (to the nearest sampling of 5ms). \label{fig_32_7}}
+\end{center}
 \end{figure}
 
 \subsection{3D "imaging" reconstruction \label{3D}}
@@ -259,8 +273,10 @@ When coregistration has finished, the field D.inv{1}.datareg will be updated in 
 
 
 \begin{figure}
-\includegraphics[width=70mm]{figures/figure_32_8}
+\begin{center}
+\includegraphics[width=70mm]{multimodal/figures/figure_32_8}
 \caption{\em  Graphical output of Co-registration of EEG data, showing (upper pnael) cortex (blue), inner skull (red) and scalp (black) meshes, electrode locations (green), MRI/Polhemus fiducials (cyan/magneta), and headshape (red dots).\label{fig_32_8}}
+\end{center}
 \end{figure}
 
 \noindent * Press 'Forward Model', and select "3 {Berg}".
@@ -298,8 +314,10 @@ If you press "render" you can get a very neat graphical interface to explore the
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_9}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_9}
 \caption{\em Graphical output of an MSP estimation of the differential ERP between faces and scrambled faces at 165ms. \label{fig_32_9}}
+\end{center}
 \end{figure}
 
 \noindent * Press the "Window" button in the reconstruction window, enter "150 200" as the timewindow of interest and keep "0" as the frequency band of interest (0 means all frequencies). The Graphics window will then show the mean activity for this time/frequency contrast (and the contrast itself; note additional use of a Hanning window).
@@ -342,16 +360,20 @@ This will take a while. The new file produced, \verb!ae_meg.mat!, will contain t
 As before, you can display these data by "Display: M/EEG" and selecting the \verb!fmae_eeg.mat!. Hold SHIFT and select trial-type 2 with the mouse in the bottom right of the window to see both conditions superimposed (as Figure~\ref{fig_32_10}).
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_10}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_10}
 \caption{\em SPM Display window for mean, smoothed ERF (fmae-meg.mat) for all 151 MEG channels. \label{fig_32_10}}
+\end{center}
 \end{figure}
 
 You can also press this 'Channels' button and in the new window, "deselect" all the channels, then select MRT24 and MLT24 (e.g, from the channel names on the right), and press 'ok'. (It will help if you save these selections as a file, which can be used later to display only a subset of channels). You will now only see these two channels in the SPM Graphics Window, which clearly show a difference between faces (trial-type 1, in blue) and scrambled faces (trial-type 2, in red) around approximately 170ms (the "M170"; Figure~\ref{fig_32_11}). The sign of this difference is reversed across left and right hemispheres, as is common for the axial components of the magnetic fields from tangential current sources.
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_11}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_11}
 \caption{\em Two selected MEG channels (MLT24 and MRT24). \label{fig_32_11}}
+\end{center}
 \end{figure}
 
 * Select "Contrast" from the "Other..." pulldown menu on the SPM window (or type \verb!spm_eeg_weight_epochs! in the Matlab window). This function creates linear contrasts of ERPs/ERFs. Select the \verb!fmae_meg.mat! file, and enter [1 -1; 1/2 1/2]as the contrasts. This will create new file \verb!mfmae_meg.mat!, in which the first trial-type is now the differential ERF between faces and scrambled faces, and the second trial-type is the average ERF.
@@ -361,8 +383,10 @@ If you want to see the 2D topography of the differential ERF between faces and s
 You can move the slider left and right to see the development of the M170 over time.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_12}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_12}
 \caption{\em 2D topography of the ERF of faces minus scrambled faces at 165ms\label{fig_32_12}}
+\end{center}
 \end{figure}
 
 \subsection{Time-Frequency Analysis}
@@ -385,9 +409,11 @@ This contains the power spectrum averaged over all trials, and will include both
 The power spectra for each trial-type can be displayed using the usual Display button and selecting the \verb!mt1_e_eeg.mat! file. This will produce a plot of power as a function of frequency (y-axis) and time (x-axis) for Channel MLT34. If you use the "trial" slider to switch between trial(types) 1 and 2, you will see the greater power around 150ms and 10Hz for faces than scrambled faces (click on one channel to get scales for the axes, as in Figure~\ref{fig_32_13}). This corresponds to the M170 again.
 
 \begin{figure}
-\includegraphics[width=60mm]{figures/figure_32_13_L}
-\includegraphics[width=60mm]{figures/figure_32_13_R}
+\begin{center}
+\includegraphics[width=60mm]{multimodal/figures/figure_32_13_L}
+\includegraphics[width=60mm]{multimodal/figures/figure_32_13_R}
 \caption{\em  Total power spectra for faces (left) and scrambled faces (right) for channel MLT34\label{fig_32_13}}
+\end{center}
 \end{figure}
 
 We can also look at evidence of phase-locking of ongoing oscillatory activity by averaging the phase angle information. This time, we do not take the straight (arithmetric) mean, since the data are phase angles, and this average is not particularly meaningful. Instead we calculate their vector mean (when converting the angles to
@@ -404,9 +430,11 @@ If you now display the file \verb!mt2_e_eeg.mat! file, you will see PLV as a fun
 
 
 \begin{figure}
-\includegraphics[width=60mm]{figures/figure_32_14_L}
-\includegraphics[width=60mm]{figures/figure_32_14_R}
+\begin{center}
+\includegraphics[width=60mm]{multimodal/figures/figure_32_14_L}
+\includegraphics[width=60mm]{multimodal/figures/figure_32_14_R}
 \caption{\em Phase-Locking Values for faces (left) and scrambled faces (right) for channel MLT34 \label{fig_32_14}}
+\end{center}
 \end{figure}
 
 \subsection{2D Time-Frequency SPMs}
@@ -418,8 +446,10 @@ Analogous to Section~\ref{3DSPM}, we can also use Random Field Theory to correct
 This will create time-frequency images for each trial of the two types, with dimensions 161x36x1, as for the example shown in Figure~\ref{fig_32_15} from pressing "Display: images" on the main SPM window.
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_15}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_15}
 \caption{\em  3D image for trial 2 of t1-e-eeg.mat. The left section is through time (x) and frequency (y) (the right image is an y-z section, though there is only one value in z, i.e, it is really a 2D image).\label{fig_32_15}}
+\end{center}
 \end{figure}
 
 As in Section~\ref{3DSPM}, we then take these images into an unpaired t-test across trials to compare faces versus scrambled faces. We can then use classical SPM to identify times and frequencies in which a reliable difference occurs, correcting across the multiple comparisons entailed (Kilner et al, 2005).
@@ -434,8 +464,10 @@ This will produce the design matrix for a two-sample t-test.
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_16}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_16}
 \caption{\em  2D time-frequency SPM{T} at $p<.001$ uncorrected for the power difference between face and scrambled faces at Channel MLT34. Note that the brain outline in the MIP should be ignored. The x  coordinates refer to time in ms; the y coordinates refer to frequency in Hz (the z-coordinate is always 1).\label{fig_32_16}}
+\end{center}
 \end{figure}
 
 This will one "region" within the 2D time-frequency space in which faces produce greater power than scrambled faces, having corrected for multiple T-tests across pixels. This has a maximum of  [180 12 1], ie 12 Hz and 180ms post-stimulus.
@@ -443,7 +475,7 @@ This will one "region" within the 2D time-frequency space in which faces produce
 If you repeat the above time-frequency analysis on the \verb!e_meg.mat! file, but this time keep every channel and answer 'yes' to the "average over channels?" question, and then repeat the above statistical analysis of power, you will notice that there is also a reliable decrease in induced high-frequency power (around 400ms and 35 Hz) for faces vs scrambled faces, which could also be source-localised.
 
 
-\subsection{"Imaging” reconstruction of differential power}
+\subsection{"Imaging" reconstruction of differential power}
 
 In Section~\ref{3D} we localised the differential evoked potential difference in EEG data corresponding to the N170.  Here we will localise the total power of faces vs scrambled faces in a timewindow corresponding to that of the M170, ie including potential induced components (see Friston et al, 2000).
 
@@ -472,8 +504,10 @@ When meshing has finished, the field D.inv{1}.mesh field will be updated in matl
 This stage coregisters the MEG sensor positions and orientations (in "MEG" space) with the structural MRI and solution mesh (in "MRI" space). This is done via an approximate matching of the fiducials in the two spaces, followed by a more accurate surface-matching routine that fits the head-shape function (in "MEG" space) to the scalp that was created in the previous meshing stage via segmentation of the MRI. The match will be shown in a window like that in Figure~\ref{fig_32_17}. (Note that the match of the MEG and MRI fiducials is poor because the MEG fiducials did not correspond exactly to the nasion and peri-aricular points (see footnote 3); this does not matter because the coregistration is dominated by the close fit of the digitized headshape to the scalp mesh).
 
 \begin{figure}
-\includegraphics[width=70mm]{figures/figure_32_17}
+\begin{center}
+\includegraphics[width=70mm]{multimodal/figures/figure_32_17}
 \caption{\em  Graphical output of registration of MEG and sMRI data, showing (upper panel) cortex (blue) and scalp (black) meshes, sensor locations (green), MRI and Polhemus fiducials (cyan/magneta), and headshape (red dots).\label{fig_32_17}}
+\end{center}
 \end{figure}
 
 When coregistration has finished, the field D.inv{1}.datareg will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. Finally, a figure like that in Figure~\ref{fig_32_8} will also be produced, which you can rotate with the mouse (using the Rotate3D Matlab Menu option) to check all sensors.
@@ -495,8 +529,10 @@ If you press "render" you can get a very neat graphical interface to explore the
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_18}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_18}
 \caption{\em  Graphic output for MSP-estimated activity at 165ms for faces.\label{fig_32_18}}
+\end{center}
 \end{figure}
 
 * Press the "Window" button in the reconstruction window, enter "150 200" as the timewindow of interest and "5 40" as the frequency band of interest. The Graphics window will show the mean activity for this time/frequency contrast (for faces alone, assuming the condition toggle is showing "condition 1").
@@ -519,8 +555,10 @@ If you want to see where activity (in this time/freq contrast) is greater for fa
 	
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_19}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_19}
 \caption{\em  Display of the smoothed 3D image of the MSP-estimated activity between 150-200ms in the frequency band 5-40Hz for faces, together with the normalised structural. Note large hotspots in bilateral fusiform.\label{fig_32_19}}
+\end{center}
 \end{figure}
 
 You could also explore the other inversion options, like COH and MNM, which you will note give more superficial solutions (a known problem with standard minimum norm; see also Friston et al, in press-a). To do this quickly (without repeating the MRI segmentation, coregistration and forward modelling), press the "new" button in the reconstruction window, which by default will copy these parts from the previous reconstruction.
@@ -556,8 +594,10 @@ as will the movement parameters in the text file:
 
 .
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_20}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_20}
 \caption{\em  Movement parameters from Realignment of the fMRI data. \label{fig_32_20}}
+\end{center}
 \end{figure}
 
 * Press the 'slice-timing' button, select the functional images (filter set to \verb!^rf.*! to avoid the mean image), enter 2.88 as the TR, 2.88*31/32 as the TA, the slice-order as [1:32] (since the first slice in the file is the top slice, and this was the first slice acquired in the descending sequence), and the reference slice to 16. This will write out 215 images arfM*.img, in which the data have been interpolated to match the acquisition time of the middle slice (in space and time, given the sequential acquisition).
@@ -578,8 +618,10 @@ This will produce a design matrix like that in Figure~\ref{fig_32_15}, which is 
 \end{verbatim}
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_21}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_21}
 \caption{\em Design matrix for the fMRI analysis. \label{fig_32_21}}
+\end{center}
 \end{figure}
 
 * Then estimate the parameters of the design matrix by pressing the 'Estimate' button and selecting the SPM.mat file
@@ -592,8 +634,10 @@ If the resulting SPM{F} is thresholded at $p<.05$ FWE corrected, the resulting M
 
 
 \begin{figure}
-\includegraphics[width=100mm]{figures/figure_32_22}
+\begin{center}
+\includegraphics[width=100mm]{multimodal/figures/figure_32_22}
 \caption{\em  SPM{F} for faces vs scrambled faces. Note that the coordinates are in the MRI native space (no normalisation performed) so bear a close, but not exact, relationship with MNI coordinates (affecting brain outline in MIP too).\label{fig_32_22}}
+\end{center}
 \end{figure}
 
 There is some agreement between these fMRI effects and the localised EEG/MEG effects around the 170ms latency - eg in orbitofrontal and right fusiform - though of course the EEG dipoles were bilateral, and there were more extensive posterior occipitotemporal effects in the source-localised MEG data. Note of course that the fMRI data may include differences between faces and scrambled faces that occur at latencies other than the M170 (e.g, later), or differences in "induced" high-frequency M/EEG power that is not phase-locked to stimulus onset (Henson et al, 2005b).
@@ -606,7 +650,7 @@ One could use the unthresholded F-image as an additional continuous prior within
 
 \noindent 1. Friston, K, Daunizeau, J, Kiebel, S, Phillips, C, Trujillo-Barreto, N, Henson, R, Flandin, G, Mattout, J (in press-a). Multiple sparse priors for the M/EEG inverse problem. Neuroimage. \\
 
-\noindent 2. Friston, K, Carlton Chu, Janaina Mourão-Miranda, Oliver Hulme, Geraint Rees, Will Penny and John Ashburner (in press-b). Bayesian decoding of brain images. NeuroImage.\\
+\noindent 2. Friston, K, Carlton Chu, Janaina Mouro-Miranda, Oliver Hulme, Geraint Rees, Will Penny and John Ashburner (in press-b). Bayesian decoding of brain images. NeuroImage.\\
 
 \noindent 3. Friston K, Henson R, Phillips C, and Mattout J. (2006). Bayesian estimation of evoked and induced responses. Human Brain Mapping, 27, 722-735.\\
 
@@ -620,7 +664,7 @@ One could use the unthresholded F-image as an additional continuous prior within
 
 \noindent 8. Josephs, O., Deichmann, R., Turner, R. (2000). Trajectory measurement andgeneralised reconstruction in rectilinear EPI. NeuroImage 11, S543.\\
 
-\noindent 9. Kilner, J., Kiebel, S and Friston, K. J. (2005). Applications of random field theory to electrophysiology. Neuroscience Letters, 374:174–178.\\
+\noindent 9. Kilner, J., Kiebel, S and Friston, K. J. (2005). Applications of random field theory to electrophysiology. Neuroscience Letters, 374:174-178.\\
 
 \noindent 10. Kilner, J. and Penny. W. (2006). Robust Averaging for EEG/MEG. HBM06 Abstract.\\
 
@@ -636,5 +680,5 @@ One could use the unthresholded F-image as an additional continuous prior within
 
 \noindent 16. Phillips, C. M.D. Rugg, M and Friston, K (2002). Systematic Regularization of Linear Inverse Solutions of the EEG Source Localisation Problem. NeuroImage, 17, 287-301.\\
 
-\noindent 17. Spinelli, L, Gonzalez S, Lantz, G, Seeck, M and Michel, C. (2000). Electromagntic inverse solutions in anatomically constrained spherical head models. Brain Topography, 13, 2.\\
+\noindent 17. Spinelli, L, Gonzalez S, Lantz, G, Seeck, M and Michel, C. (2000). Electromagnetic inverse solutions in anatomically constrained spherical head models. Brain Topography, 13, 2.\\
 
