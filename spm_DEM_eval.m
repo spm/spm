@@ -1,4 +1,4 @@
-function [E dE] = spm_DEM_eval(M,qu,qp)
+function [E, dE] = spm_DEM_eval(M,qu,qp)
 % evaluates state equations and derivatives for DEM schemes
 % FORMAT [E dE] = spm_DEM_eval(M,qu,qp)
 %

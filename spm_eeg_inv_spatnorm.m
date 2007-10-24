@@ -16,7 +16,7 @@ function varargout = spm_eeg_inv_spatnorm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 849 2007-07-10 15:30:31Z rik $
+% $Id: spm_eeg_inv_spatnorm.m 972 2007-10-24 11:48:35Z stefan $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -41,8 +41,8 @@ def_name      = [nam '_sn_'     num2str(val) '.mat'];
 isndef_name   = [nam '_inv_sn_' num2str(val) '.mat'];
 D.inv{val}.mesh.def    = fullfile(pth,def_name);
 D.inv{val}.mesh.invdef = fullfile(pth,isndef_name);
-eval(['save ' D.inv{val}.mesh.def    ' -STRUCT '  'sn'])
-eval(['save ' D.inv{val}.mesh.invdef ' -STRUCT ' 'isn'])
+save(D.inv{val}.mesh.def, '-STRUCT', 'sn');
+save(D.inv{val}.mesh.invdef, '-STRUCT', 'isn');
 
 % Writing the segments (subject space)
 %--------------------------------------------------------------------------

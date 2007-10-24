@@ -1,4 +1,4 @@
-function [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
+function [u, dgdv, dgdx, dfdv, dfdx] = spm_DEM_diff(M,u);
 % evaluates a hierarchical model given innovations z{i} and w{i}
 % FORMAT [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
 %
