@@ -444,7 +444,7 @@ for i = 1:Nl
     inverse.dct    = dct;                  % frequency range
     inverse.F      = F;                    % log-evidence
     inverse.R2     = R2;                   % variance accounted for (%)
- 
+    inverse.woi    = woi;		   % timewindow inverted
     % save in struct
     %----------------------------------------------------------------------
     D{i}.inv{D{i}.val}.inverse = inverse;

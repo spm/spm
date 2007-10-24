@@ -1,4 +1,4 @@
-function [D] = spm_eeg_invert(D)
+function [D] = spm_eeg_invert_single(D)
 % ReML inversion of forward model for EEG-EMG
 % FORMAT [D] = spm_eeg_invert(D)
 % ReML estimation of regularisation hyperparameters using the 
@@ -410,6 +410,7 @@ model.inverse.pst    = pst;                  % pers-stimulus time
 model.inverse.dct    = dct;                  % frequency range
 model.inverse.F      = F;                    % log-evidence
 model.inverse.R2     = R2;                   % variance accounted for (%)
+model.inverse.woi    = woi;		     % timewindow inverted
 
 
 
