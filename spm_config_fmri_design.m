@@ -4,7 +4,7 @@ function conf = spm_config_fmri_design
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_design.m 767 2007-03-15 14:17:18Z volkmar $
+% $Id: spm_config_fmri_design.m 973 2007-10-24 13:51:37Z volkmar $
 
 
 % Define inline types.
@@ -647,8 +647,8 @@ return;
 function t = sess_check(sess)
 t = {};
 for i=1:numel(sess.regress),
-    if numel(sess.scans) ~= numel(sess.regress(i).val),
-        t = {t{:}, sprintf('Num scans (%d) ~= Num regress[%d] (%d).',numel(sess.scans),i,numel(sess.regress(i).val))};
+    if sess.nscan ~= numel(sess.regress(i).val),
+        t = {t{:}, sprintf('Num scans (%d) ~= Num regress[%d] (%d).',numel(sess.nscan),i,numel(sess.regress(i).val))};
     end;
 end;
 return;
