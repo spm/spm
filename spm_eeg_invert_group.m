@@ -58,7 +58,7 @@ try, trial = inverse.trials; catch, trial = D{1}.events.types; end
 try, type  = inverse.type;   catch, type  = 'GS';              end
 try, s     = inverse.smooth; catch, s     = 0.6;               end
 try, Np    = inverse.Np;     catch, Np    = 256;               end
-try, Nm    = inverse.Nm;     catch, Nm    = 96;                end
+try, Nm    = inverse.Nm;     catch, Nm    = 128;                end
 try, xyz   = inverse.xyz;    catch, xyz   = [0 0 0];           end
 try, rad   = inverse.rad;    catch, rad   = 128;               end
 try, lpf   = inverse.lpf;    catch, lpf   = 1;                 end
@@ -174,11 +174,11 @@ G     = L{1};
 AY    = {};
 YY    = sparse(Nc(1),Nc(1));
 for i = 1:Nl
-    A = (G*L{i}')*inv((L{i}*L{i}' + speye(Nc(i),Nc(i))*exp(-8)));
+    R = speye(Nc(i),Nc(i))*exp(-32)*norm(L{i}*L{i}',1);
+    A = (G*L{i}')*inv((L{i}*L{i}' + R));
     for j = 1:Nt
         AY{end + 1} = A*Y{i,j}*sV;
         YY          = YY + AY{end}*AY{end}';
-        
     end
 end
 AY    = spm_cat(AY);
@@ -186,7 +186,7 @@ AY    = spm_cat(AY);
  
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
-U     = spm_svd(G*G');
+U     = spm_svd(G*G',exp(-32));
 try
     U = U(:,1:Nm);
 end
@@ -323,13 +323,13 @@ if strcmp(type,'GS')
  
     % Multivariate Bayes
     %----------------------------------------------------------------------
-    MVB   = spm_mvb(AY,G,[],Q,Qe,8,1/4);
+    MVB   = spm_mvb(AY,G,[],Q,Qe,16,1/2);
  
     % Spatial priors (QP); eliminating minor patterns
     %----------------------------------------------------------------------
     QP    = MVB.Cp;
     pV    = diag(QP);
-    i     = find(pV > max(pV)/exp(4));
+    i     = find(pV > max(pV)/128);
     QP    = Q(:,i)*QP(i,i)*Q(:,i)';
  
 else
@@ -346,7 +346,7 @@ else
     Np    = length(Qp);
     hp    = h([1:Np] + Ne);
     for i = 1:Np
-        if hp(i) > exp(-16)
+        if hp(i) > max(hp)/128;
             try
                 QP  = QP + hp(i)*Qp{i}.q*Qp{i}.q';
             catch

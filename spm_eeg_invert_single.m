@@ -52,7 +52,7 @@ try, trial = model.inverse.trials; catch, trial = D.events.types; end
 try, type  = model.inverse.type;   catch, type  = 'GS';           end
 try, s     = model.inverse.smooth; catch, s     = 0.6;            end
 try, Np    = model.inverse.Np;     catch, Np    = 256;            end
-try, Nm    = model.inverse.Nm;     catch, Nm    = 96;             end
+try, Nm    = model.inverse.Nm;     catch, Nm    = 128;             end
 try, xyz   = model.inverse.xyz;    catch, xyz   = [0 0 0];        end
 try, rad   = model.inverse.rad;    catch, rad   = 128;            end
 try, lpf   = model.inverse.lpf;    catch, lpf   = 1;              end
@@ -160,15 +160,17 @@ for i = 1:Nt
     Y{i} = Y{i}*S;
     YY   = YY + Y{i}*iV*Y{i}';
 end
+UY    = spm_cat(Y)*kron(speye(Nt,Nt),sqrtm(iV));
 
 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
-U     = spm_svd(L*L');
+U     = spm_svd(L*L',exp(-32));
 try
     U = U(:,1:Nm);
 end
 Nm    = size(U,2);
+UY    = U'*UY;
 YY    = U'*YY*U;
 L     = U'*L;
 fprintf('Using %i spatial modes\n',Nm)
@@ -297,8 +299,7 @@ if strcmp(type,'GS')
 
     % Multivariate Bayes
     %----------------------------------------------------------------------
-    UY    = U'*spm_cat(Y)*kron(speye(Nt,Nt),sqrtm(iV));
-    MVB   = spm_mvb(UY,L,[],Q,Qe,8,1/4);
+    MVB   = spm_mvb(UY,L,[],Q,Qe,16,1/2);
     M     = MVB.M;
     Cq    = MVB.qC;
     F     = max(MVB.F);

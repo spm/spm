@@ -1,6 +1,6 @@
-function [y] = spm_int_J(P,M,U)
-% integrates a MIMO nonlinear system using the Jacobian
-% FORMAT [y] = spm_int_J(P,M,U)
+function [y] = spm_int_ode(P,M,U)
+% integrates a MIMO nonlinear system (using classical ODE solvers)
+% FORMAT [y] = spm_int_ode(P,M,U)
 % P   - model parameters
 % M   - model structure
 % U   - input structure or matrix
@@ -12,16 +12,19 @@ function [y] = spm_int_J(P,M,U)
 %    dx/dt = f(x,u,P,M)
 %    y     = g(x,u,P,M)
 %
-% using the update scheme:
+% using an Runge-Kutta(4,5) scheme over the times implicit in the input.
+% ode45 is based on an explicit Runge-Kutta (4,5) formula, the Dormand-
+% Prince pair. It is a one-step solver - in computing y(tn), it needs only 
+% the solution at the immediately preceding time point y(tn-1). In general,
+% ode45 is the best function to apply as a "first try" for most problems.
 %
-%    x(t + dt) = x(t) + U*dx(t)/dt
+% ode113 is a variable order Adams-Bashforth-Moulton PECE solver. It may be
+% more efficient than ode45 at stringent tolerances and when the ODE file 
+% function is particularly expensive to evaluate. ode113 is a multi-step 
+% solver - it normally needs the solutions at several preceding time points
+% to compute the current solution
 %
-%            U = (expm(dt*J) - I)*inv(J)
-%            J = df/dx
-%
-% at input times.  This integration scheme evaluates the update matrix (Q)
-% at each time point
-%
+% see also ode45; ode113
 %--------------------------------------------------------------------------
 %
 % SPM solvers or integrators
@@ -46,7 +49,7 @@ function [y] = spm_int_J(P,M,U)
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
 % sparse sampling of the solution and delays in observing outputs
 %--------------------------------------------------------------------------
-
+ 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U)
@@ -62,8 +65,11 @@ try
 catch
     ns = length(U.u);
 end
-
-
+ 
+% sample times
+%--------------------------------------------------------------------------
+tspan = [1:ns]*dt;
+ 
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
 try
@@ -73,7 +79,7 @@ catch
     M.n = 0;
     M.x = sparse(0,0);
 end
-
+ 
 % and output nonlinearity
 %--------------------------------------------------------------------------
 try
@@ -81,14 +87,9 @@ try
 catch
     g   = [];
 end
-
+ 
 % Initial states and inputs
 %--------------------------------------------------------------------------
-try
-    u = U.u(1,:);
-catch
-    u = sparse(1,M.m);
-end
 try
     try
         x = feval(M.x0,P,M,U);
@@ -99,45 +100,30 @@ catch
     x   = sparse(0,1);
     M.x = x;
 end
-du  = sparse(1,M.m);
-I   = speye(M.n,M.n);
-
-
-
-% integrate
+ 
+% ODE45 functional form (note, the third argument of the ODE function is
+% used by ode15i (i.e, yp0).
+%--------------------------------------------------------------------------
+ode   = inline('spm_vec(f(spm_unvec(x,M.x),U.u(ceil(t/U.dt),:),P,M))',...
+               't','x','yp0','P','M','U','f');
+           
+[t x] = ode113(ode,tspan,spm_vec(x),[],P,M,U,f);
+ 
+ 
+% output
 %==========================================================================
 for i = 1:ns
-
-    % input
-    %----------------------------------------------------------------------
-    try
-        u  = U.u(i,:);
-    end
-
-    % dx(t)/dt and Jacobian df/dx
-    %----------------------------------------------------------------------
-    try
-        [fx dfdx] = f(x,u,P,M);
-    catch
-        fx        = f(x,u,P,M);
-        dfdx      = spm_diff(f,x,u,P,M,1);
-    end
-
-    % update dx = (expm(dt*J) - I)*inv(J)*fx
-    %----------------------------------------------------------------------
-    dx = spm_dx(dfdx,fx,dt);
-    x  = x + spm_unvec(dx,x);
-
+ 
     % output - implement g(x)
     %----------------------------------------------------------------------
     if length(g)
-        y(:,i) = spm_vec(g(x,u,P,M));
+        y(:,i) = spm_vec(g(spm_unvec(x(i,:),M.x),U.u(i,:),P,M));
     else
-        y(:,i) = spm_vec(x);
+        y(:,i) = spm_vec(spm_unvec(x(i,:),M.x));
     end
-
+ 
 end
-
+ 
 % transpose
 %--------------------------------------------------------------------------
 y      = real(y');

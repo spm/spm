@@ -56,14 +56,16 @@ for i = 1:Ns
     try
         sensors = D{i}.inv{val}.datareg.sensors;
     catch
-        sensors = load(uigetfile('*sens*.mat','select sensor locations'));
+        [f p]   = uigetfile('*sens*.mat','select sensor locations');
+        sensors = load(fullfile(p,f));
         name    = fieldnames(sensors);
         sensors = getfield(sensors,name{1});
     end
     try
         fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
     catch
-        fid_eeg = load(uigetfile('*fid*.mat','select fiducial locations'));
+        [f p]   = uigetfile('*fid*.mat','select fiducial locations');
+        fid_eeg = load(fullfile(p,f));
         name    = fieldnames(fid_eeg);
         fid_eeg = getfield(fid_eeg,name{1});
     end
@@ -73,12 +75,22 @@ for i = 1:Ns
     %----------------------------------------------------------------------
     if strcmp(D{i}.modality,'EEG')
         headshape = sensors;
+        orient    = sparse(0,3);
     else
         headshape = sparse(0,3);
+        try
+            D{i}.inv{val}.datareg.megorient;
+        catch
+            [f p]   = uigetfile('*or*.mat','select sensor orientations');
+            orient  = load(fullfile(p,f));
+            name    = fieldnames(orient);
+            orient  = getfield(orient,name{1});
+        end
     end
     D{i}.inv{val}.datareg.sensors   = sensors;
     D{i}.inv{val}.datareg.fid_eeg   = fid_eeg;
     D{i}.inv{val}.datareg.headshape = headshape;
+    D{i}.inv{val}.datareg.megorient = orient;
  
     % specify forward model
     %----------------------------------------------------------------------
@@ -146,6 +158,10 @@ end
 % Invert the forward model
 %==========================================================================
 D    = spm_eeg_invert(D);
+
+if ~iscell(D)
+    D = {D};
+end
  
  
 % Compute conditional expectation of contrast and produce image
