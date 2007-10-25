@@ -11,7 +11,8 @@ function [D] = spm_eeg_invert(D)
 %     inverse.Np     - number of sparse priors per hemisphere
 %     inverse.Nm     - maximum number of channel modes
 %     inverse.type   - 'GS' Greedy search on MSPs
-%                      'MSP' multiple sparse priors
+%                      'ARD' ARD search on MSPs
+%                      'MSP' GS and ARD multiple sparse priors
 %                      'LOR' LORETA-like model
 %                      'IID' LORETA and minimum norm
 %     inverse.xyz    - (n x 3) locations of spherical VOIs
@@ -132,7 +133,7 @@ Nt    = length(trial);
 for k = 1:Nl
     Ic{k} = setdiff(D{k}.channels.eeg, D{k}.channels.Bad);
     for i = 1:Nt
-        Y{k,i}  = sparse(0);
+        Y{k,i} = sparse(0);
         if isfield(D{k}.events,'reject')
             c = find(D{k}.events.code == trial(i) & ~D{k}.events.reject);
         else
@@ -155,10 +156,9 @@ YY    = W'*spm_cat(Y(:))'*spm_cat(Y(:))*W;
  
 % project onto temporal modes
 %--------------------------------------------------------------------------
-S     = spm_svd(YY,exp(-4));
+S     = spm_svd(YY,1/16);
 T     = T*S;                                     % temporal projector
 iV    = inv(T'*qV*T);                            % precision (mode)
-sV    = sqrtm(iV);                               % sqrt (mode)
 Vq    = T*iV*T';                                 % precision (time)
 Nr    = size(T,2);                               % number of temporal modes
 for i = 1:Nl
@@ -173,11 +173,12 @@ fprintf('Using %i temporal modes\n',Nr)
 G     = L{1};
 AY    = {};
 YY    = sparse(Nc(1),Nc(1));
+rV    = sqrtm(iV);
 for i = 1:Nl
     R = speye(Nc(i),Nc(i))*exp(-32)*norm(L{i}*L{i}',1);
     A = (G*L{i}')*inv((L{i}*L{i}' + R));
     for j = 1:Nt
-        AY{end + 1} = A*Y{i,j}*sV;
+        AY{end + 1} = A*Y{i,j}*rV;
         YY          = YY + AY{end}*AY{end}';
     end
 end
@@ -186,7 +187,7 @@ AY    = spm_cat(AY);
  
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
-U     = spm_svd(G*G',exp(-32));
+U     = spm_svd(G*G',1/16384);
 try
     U = U(:,1:Nm);
 end
@@ -307,36 +308,46 @@ end
  
 % Inverse solution
 %==========================================================================
+QP    = {};
  
-% get source-level hyperparameters (using all subjects)
+% get source-level priors (using all subjects)
 %--------------------------------------------------------------------------
-if strcmp(type,'GS')
+switch(type)
+    
+    case {'MSP','GS'}
+
+        % Greedy search over MSPs
+        %----------------------------------------------------------------------
+        Np    = length(Qp);
+        Q     = sparse(Ns,Np);
+        for i = 1:Np
+            Q(:,i) = Qp{i}.q;
+        end
+
+        % Multivariate Bayes
+        %----------------------------------------------------------------------
+        MVB   = spm_mvb(AY,G,[],Q,Qe,16,1/2);
+
+        % Spatial priors (QP); eliminating minor patterns
+        %----------------------------------------------------------------------
+        qp    = MVB.Cp;
+        pV    = diag(qp);
+        i     = find(pV > max(pV)/128);
+        qp    = Q(:,i)*qp(i,i)*Q(:,i)';
+        
+        % Accmulate empirical priors
+        %----------------------------------------------------------------------
+        QP{end + 1} = qp;
+        
+end
  
-    % Greedy search over MSPs
-    %----------------------------------------------------------------------
-    Np    = length(Qp);
-    QP    = sparse(0);
-    Q     = sparse(Ns,Np);
-    for i = 1:Np
-        Q(:,i) = Qp{i}.q;
-    end
- 
-    % Multivariate Bayes
-    %----------------------------------------------------------------------
-    MVB   = spm_mvb(AY,G,[],Q,Qe,16,1/2);
- 
-    % Spatial priors (QP); eliminating minor patterns
-    %----------------------------------------------------------------------
-    QP    = MVB.Cp;
-    pV    = diag(QP);
-    i     = find(pV > max(pV)/128);
-    QP    = Q(:,i)*QP(i,i)*Q(:,i)';
- 
-else
+switch(type)
+    
+    case {'MSP','ARD','IID','MMN','LOR','COH'}
  
     % or ReML - ARD
     %----------------------------------------------------------------------
-    QP          = sparse(0);
+    qp          = sparse(0);
     Q           = {Qe{:} LQpL{:}};
     [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*Nt);
  
@@ -348,24 +359,29 @@ else
     for i = 1:Np
         if hp(i) > max(hp)/128;
             try
-                QP  = QP + hp(i)*Qp{i}.q*Qp{i}.q';
+                qp  = qp + hp(i)*Qp{i}.q*Qp{i}.q';
             catch
-                QP  = QP + hp(i)*Qp{i};
+                qp  = qp + hp(i)*Qp{i};
             end
         end
     end
+    
+    % Accmulate empirical priors
+    %----------------------------------------------------------------------
+    QP{end + 1} = qp;
+    
 end
  
 % eliminate sources with low [empirical] prior variance
 %--------------------------------------------------------------------------
-pV    = diag(QP);
-i     = find(pV > max(pV)/exp(16));
-Is    = Is(i);
-QP    = QP(i,i);
-for j = 1:Nl
-    L{j} = L{j}(:,i);
-end
-Ns    = length(Is);
+%pV    = diag(QP);
+%i     = find(pV > max(pV)/exp(16));
+%Is    = Is(i);
+%QP    = QP(i,i);
+%for j = 1:Nl
+%    L{j} = L{j}(:,i);
+%end
+%Ns    = length(Is);
  
 % re-estimate (one subject at a time)
 %==========================================================================
@@ -373,9 +389,14 @@ for i = 1:Nl
  
     % using spatial priors from group analysis
     %----------------------------------------------------------------------
-    Qe    = speye(Nc(i),Nc(i));
-    LQpL  = L{i}*QP*L{i}';
-    Q     = {Qe LQpL};
+    Qe    = {speye(Nc(i),Nc(i))};
+    Ne    = length(Qe);
+    Np    = length(QP);
+    LQpL  = {};
+    for j = 1:Np
+        LQpL{j}  = L{i}*QP{j}*L{i}';
+    end
+    Q     = {Qe{:} LQpL{:}};
     YY    = spm_cat(Y(i,:))*kron(speye(Nt,Nt),iV)*spm_cat(Y(i,:))';
  
     % re-do ReML
@@ -384,8 +405,12 @@ for i = 1:Nl
  
     % Covariances: sensor space - Ce and source space - L*Cp
     %----------------------------------------------------------------------
-    hp    = h(2);
-    LCp   = hp*L{i}*QP;
+    Qp    = sparse(0);
+    hp    = h([1:Np] + Ne);
+    for j = 1:Np
+        Qp = Qp + hp(j)*QP{j};
+    end
+    LCp   = L{i}*Qp;
  
     % MAP estimates of instantaneous sources
     %======================================================================
@@ -395,7 +420,7 @@ for i = 1:Nl
     % conditional covariance (leading diagonal)
     % Cq    = Cp - Cp*L'*iC*L*Cp;
     %----------------------------------------------------------------------
-    Cq    = hp*diag(QP) - sum(LCp.*M')';
+    Cq    = diag(Qp) - sum(LCp.*M')';
  
     % evaluate conditional expectation (of the sum over trials)
     %----------------------------------------------------------------------
