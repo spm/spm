@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_write_sn.m 976 2007-10-25 12:14:47Z john $
 
 
 if isempty(V), return; end;
@@ -70,26 +70,26 @@ if ischar(prm), prm = load(prm);  end;
 if ischar(V),   V   = spm_vol(V); end;
 
 if nargin==3 && ischar(flags) && strcmpi(flags,'modulate'),
-	if nargout==0,
-		modulate(V,prm);
-	else
-		VO = modulate(V,prm);
-	end;
-	return;
+    if nargout==0,
+        modulate(V,prm);
+    else
+        VO = modulate(V,prm);
+    end;
+    return;
 end;
 
 def_flags = struct('interp',1,'vox',NaN,'bb',NaN,'wrap',[0 0 0],'preserve',0);
 [def_flags.bb, def_flags.vox] = bbvox_from_V(prm.VG(1));
 
 if nargin < 3,
-	flags = def_flags;
+    flags = def_flags;
 else
-	fnms = fieldnames(def_flags);
-	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}),
-			flags.(fnms{i}) = def_flags.(fnms{i});
-		end;
-	end;
+    fnms = fieldnames(def_flags);
+    for i=1:length(fnms),
+        if ~isfield(flags,fnms{i}),
+            flags.(fnms{i}) = def_flags.(fnms{i});
+        end;
+    end;
 end;
 
 if ~all(isfinite(flags.vox(:))), flags.vox = def_flags.vox; end;
@@ -98,35 +98,35 @@ if ~all(isfinite(flags.bb(:))),  flags.bb  = def_flags.bb;  end;
 [x,y,z,mat] = get_xyzmat(prm,flags.bb,flags.vox);
 
 if nargin==4,
-	if ischar(extras) && strcmpi(extras,'mask'),
-		VO = get_snmask(V,prm,x,y,z,flags.wrap);
-		return;
-	end;
-	if iscell(extras),
-		msk = extras;
-	end;
+    if ischar(extras) && strcmpi(extras,'mask'),
+        VO = get_snmask(V,prm,x,y,z,flags.wrap);
+        return;
+    end;
+    if iscell(extras),
+        msk = extras;
+    end;
 end;
 
 if nargout>0 && length(V)>8,
-	error('Too many images to save in memory');
+    error('Too many images to save in memory');
 end;
 
 if ~exist('msk','var')
-	msk         = get_snmask(V,prm,x,y,z,flags.wrap);
+    msk         = get_snmask(V,prm,x,y,z,flags.wrap);
 end;
 
 if nargout==0,
-	if isempty(prm.Tr),
-		affine_transform(V,prm,x,y,z,mat,flags,msk);
-	else
-		nonlin_transform(V,prm,x,y,z,mat,flags,msk);
-	end;
+    if isempty(prm.Tr),
+        affine_transform(V,prm,x,y,z,mat,flags,msk);
+    else
+        nonlin_transform(V,prm,x,y,z,mat,flags,msk);
+    end;
 else
-	if isempty(prm.Tr),
-		VO = affine_transform(V,prm,x,y,z,mat,flags,msk);
-	else
-		VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk);
-	end;
+    if isempty(prm.Tr),
+        VO = affine_transform(V,prm,x,y,z,mat,flags,msk);
+    else
+        VO = nonlin_transform(V,prm,x,y,z,mat,flags,msk);
+    end;
 end;
 
 return;
@@ -140,37 +140,37 @@ d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
 for i=1:numel(V),
-	VO     = make_hdr_struct(V(i),x,y,z,mat);
-	if flags.preserve
-		VO.fname = prepend(VO.fname,'m');
-	end
-	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
-	if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
+    VO     = make_hdr_struct(V(i),x,y,z,mat);
+    if flags.preserve
+        VO.fname = prepend(VO.fname,'m');
+    end
+    detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
 
-	%Dat= zeros(VO.dim(1:3));
-	Dat = single(0);
-	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
+    %Dat= zeros(VO.dim(1:3));
+    Dat = single(0);
+    Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 
-	C = spm_bsplinc(V(i),d);
+    C = spm_bsplinc(V(i),d);
 
-	for j=1:length(z),   % Cycle over planes
-		[X2,Y2,Z2]  = mmult(X,Y,z(j),V(i).mat\prm.VF.mat*prm.Affine);
-		dat         = spm_bsplins(C,X2,Y2,Z2,d);
-		if flags.preserve, dat = dat*detAff; end;
-		dat(msk{j}) = NaN;
+    for j=1:length(z),   % Cycle over planes
+        [X2,Y2,Z2]  = mmult(X,Y,z(j),V(i).mat\prm.VF.mat*prm.Affine);
+        dat         = spm_bsplins(C,X2,Y2,Z2,d);
+        if flags.preserve, dat = dat*detAff; end;
+        dat(msk{j}) = NaN;
 
-		Dat(:,:,j) = single(dat);
+        Dat(:,:,j) = single(dat);
 
-		if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-	end;
-	if nargout~=0,
-		VO.pinfo  = [1 0]';
-		VO.dt     = [spm_type('float32') spm_platform('bigend')];
-		VO.dat    = Dat;
-	else
-	    spm_write_vol(VO, Dat);
-	end;
-	spm_progress_bar('Set',i);
+        if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+    end;
+    if nargout~=0,
+        VO.pinfo  = [1 0]';
+        VO.dt     = [spm_type('float32') spm_platform('bigend')];
+        VO.dat    = Dat;
+    else
+        spm_write_vol(VO, Dat);
+    end;
+    spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
 return;
@@ -185,63 +185,63 @@ BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
 BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
 BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
 if flags.preserve,
-	DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
-	DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
-	DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
+    DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
+    DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
+    DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 end;
 d  = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
 for i=1:numel(V),
-	VO     = make_hdr_struct(V(i),x,y,z,mat);
-	if flags.preserve
-		VO.fname = prepend(VO.fname,'m');
-	end
-	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    VO     = make_hdr_struct(V(i),x,y,z,mat);
+    if flags.preserve
+        VO.fname = prepend(VO.fname,'m');
+    end
+    detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
 
-	% Accumulate data
-	%Dat= zeros(VO.dim(1:3));
-	Dat = single(0);
-	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
+    % Accumulate data
+    %Dat= zeros(VO.dim(1:3));
+    Dat = single(0);
+    Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 
-	C = spm_bsplinc(V(i),d);
+    C = spm_bsplinc(V(i),d);
 
-	for j=1:length(z),   % Cycle over planes
-		% Nonlinear deformations
-		%----------------------------------------------------------------------------
-		tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
-		ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
-		tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
-		X1 = X    + BX*tx*BY';
-		Y1 = Y    + BX*ty*BY';
-		Z1 = z(j) + BX*tz*BY';
+    for j=1:length(z),   % Cycle over planes
+        % Nonlinear deformations
+        %----------------------------------------------------------------------------
+        tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
+        ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
+        tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
+        X1 = X    + BX*tx*BY';
+        Y1 = Y    + BX*ty*BY';
+        Z1 = z(j) + BX*tz*BY';
 
-		[X2,Y2,Z2]  = mmult(X1,Y1,Z1,V(i).mat\prm.VF.mat*prm.Affine);
-		dat         = spm_bsplins(C,X2,Y2,Z2,d);
-		dat(msk{j}) = NaN;
+        [X2,Y2,Z2]  = mmult(X1,Y1,Z1,V(i).mat\prm.VF.mat*prm.Affine);
+        dat         = spm_bsplins(C,X2,Y2,Z2,d);
+        dat(msk{j}) = NaN;
 
-		if ~flags.preserve,
-		    Dat(:,:,j) = single(dat);
-		else
-			j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
-			j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
-			j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
+        if ~flags.preserve,
+            Dat(:,:,j) = single(dat);
+        else
+            j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
+            j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
+            j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
 
-			% The determinant of the Jacobian reflects relative volume changes.
-			%------------------------------------------------------------------
-			dat       = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
-			Dat(:,:,j) = single(dat);
-		end;
-		if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-	end;
-	if nargout==0,
-	    VO = spm_write_vol(VO,Dat);
-	else
-		VO.pinfo  = [1 0]';
-		VO.dt     = [spm_type('float32') spm_platform('bigend')];
-		VO.dat    = Dat;
-	end;
-	spm_progress_bar('Set',i);
+            % The determinant of the Jacobian reflects relative volume changes.
+            %------------------------------------------------------------------
+            dat       = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
+            Dat(:,:,j) = single(dat);
+        end;
+        if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+    end;
+    if nargout==0,
+        VO = spm_write_vol(VO,Dat);
+    else
+        VO.pinfo  = [1 0]';
+        VO.dt     = [spm_type('float32') spm_platform('bigend')];
+        VO.dat    = Dat;
+    end;
+    spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
 return;
@@ -252,61 +252,61 @@ function VO = modulate(V,prm)
 
 spm_progress_bar('Init',numel(V),'Modulating','volumes completed');
 for i=1:numel(V),
-	VO          = V(i);
-	VO.fname    = prepend(VO.fname,'m');
-	detAff      = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
-	%Dat        = zeros(VO.dim(1:3));
-	Dat         = single(0);
-	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
-	[bb, vox]   = bbvox_from_V(VO);
-	[x,y,z,mat] = get_xyzmat(prm,bb,vox);
+    VO          = V(i);
+    VO.fname    = prepend(VO.fname,'m');
+    detAff      = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    %Dat        = zeros(VO.dim(1:3));
+    Dat         = single(0);
+    Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
+    [bb, vox]   = bbvox_from_V(VO);
+    [x,y,z,mat] = get_xyzmat(prm,bb,vox);
 
-	if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
+    if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
 
-	Tr = prm.Tr;
+    Tr = prm.Tr;
 
-	if isempty(Tr),
-		for j=1:length(z),   % Cycle over planes
-			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
-			Dat(:,:,j) = single(dat);
-			if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-		end;
-	else
-		BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
-		BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
-		BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
-		DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
-		DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
-		DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
+    if isempty(Tr),
+        for j=1:length(z),   % Cycle over planes
+            dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
+            Dat(:,:,j) = single(dat);
+            if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+        end;
+    else
+        BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
+        BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
+        BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
+        DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
+        DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
+        DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 
-		for j=1:length(z),   % Cycle over planes
+        for j=1:length(z),   % Cycle over planes
 
-			tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
-			ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
-			tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
+            tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
+            ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
+            tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
 
-			j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
-			j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
-			j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
+            j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
+            j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
+            j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
 
-			% The determinant of the Jacobian reflects relative volume changes.
-			%------------------------------------------------------------------
-			dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
-			dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
-			Dat(:,:,j) = single(dat);
+            % The determinant of the Jacobian reflects relative volume changes.
+            %------------------------------------------------------------------
+            dat        = spm_slice_vol(V(i),spm_matrix([0 0 j]),V(i).dim(1:2),0);
+            dat        = dat .* (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
+            Dat(:,:,j) = single(dat);
 
-			if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-		end;
-	end;
+            if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+        end;
+    end;
 
-	if nargout==0,
-		VO = spm_write_vol(VO,Dat);
-	else
-		VO.pinfo  = [1 0]';
-		VO.dt     = [spm_type('float32') spm_platform('bigend')];
-		VO.dat    = Dat;
-	end;
-	spm_progress_bar('Set',i);
+    if nargout==0,
+        VO = spm_write_vol(VO,Dat);
+    else
+        VO.pinfo  = [1 0]';
+        VO.dt     = [spm_type('float32') spm_platform('bigend')];
+        VO.dat    = Dat;
+    end;
+    spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
 return;
@@ -318,7 +318,7 @@ VO            = V;
 VO.fname      = prepend(V.fname,'w');
 VO.mat        = mat;
 VO.dim(1:3)   = [length(x) length(y) length(z)];
-VO.pinfo(3,1) = 0;
+VO.pinfo      = V.pinfo;
 VO.descrip    = 'spm - 3D normalized';
 return;
 %_______________________________________________________________________
@@ -333,7 +333,7 @@ return;
 
 %_______________________________________________________________________
 function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = fileparts(deblank(PI));
+[pth,nm,xt,vr] = spm_fileparts(deblank(PI));
 PO             = fullfile(pth,[pre nm xt vr]);
 return;
 %_______________________________________________________________________
@@ -352,13 +352,13 @@ return;
 %_______________________________________________________________________
 function [X2,Y2,Z2] = mmult(X1,Y1,Z1,Mult)
 if length(Z1) == 1,
-	X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + (Mult(1,3)*Z1 + Mult(1,4));
-	Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + (Mult(2,3)*Z1 + Mult(2,4));
-	Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + (Mult(3,3)*Z1 + Mult(3,4));
+    X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + (Mult(1,3)*Z1 + Mult(1,4));
+    Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + (Mult(2,3)*Z1 + Mult(2,4));
+    Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + (Mult(3,3)*Z1 + Mult(3,4));
 else
-	X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + Mult(1,3)*Z1 + Mult(1,4);
-	Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + Mult(2,3)*Z1 + Mult(2,4);
-	Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + Mult(3,3)*Z1 + Mult(3,4);
+    X2= Mult(1,1)*X1 + Mult(1,2)*Y1 + Mult(1,3)*Z1 + Mult(1,4);
+    Y2= Mult(2,1)*X1 + Mult(2,2)*Y1 + Mult(2,3)*Z1 + Mult(2,4);
+    Z2= Mult(3,1)*X1 + Mult(3,2)*Y1 + Mult(3,3)*Z1 + Mult(3,4);
 end;
 return;
 %_______________________________________________________________________
@@ -370,7 +370,7 @@ if det(V.mat(1:3,1:3))<0, vx(1) = -vx(1); end;
 
 o  = V.mat\[0 0 0 1]';
 o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)]; 
+bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
 return;
 %_______________________________________________________________________
 
@@ -390,36 +390,36 @@ BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
 BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
 
 if numel(V)>1 && any(any(diff(t,1,1))),
-	spm_progress_bar('Init',length(z),'Computing available voxels','planes completed');
-	for j=1:length(z),   % Cycle over planes
-		Count = zeros(length(x),length(y));
-		if isempty(Tr),
-			% Generate a mask for where there is data for all images
-			%----------------------------------------------------------------------------
-			for i=1:numel(V),
-				[X2,Y2,Z2] = mmult(X,Y,z(j),V(i).mat\prm.VF.mat*prm.Affine);
-				Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
-			end;
-		else
-			% Nonlinear deformations
-			%----------------------------------------------------------------------------
-			X1 = X    + BX*get_2Dtrans(Tr(:,:,:,1),BZ,j)*BY';
-			Y1 = Y    + BX*get_2Dtrans(Tr(:,:,:,2),BZ,j)*BY';
-			Z1 = z(j) + BX*get_2Dtrans(Tr(:,:,:,3),BZ,j)*BY';
+    spm_progress_bar('Init',length(z),'Computing available voxels','planes completed');
+    for j=1:length(z),   % Cycle over planes
+        Count = zeros(length(x),length(y));
+        if isempty(Tr),
+            % Generate a mask for where there is data for all images
+            %----------------------------------------------------------------------------
+            for i=1:numel(V),
+                [X2,Y2,Z2] = mmult(X,Y,z(j),V(i).mat\prm.VF.mat*prm.Affine);
+                Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
+            end;
+        else
+            % Nonlinear deformations
+            %----------------------------------------------------------------------------
+            X1 = X    + BX*get_2Dtrans(Tr(:,:,:,1),BZ,j)*BY';
+            Y1 = Y    + BX*get_2Dtrans(Tr(:,:,:,2),BZ,j)*BY';
+            Z1 = z(j) + BX*get_2Dtrans(Tr(:,:,:,3),BZ,j)*BY';
 
-			% Generate a mask for where there is data for all images
-			%----------------------------------------------------------------------------
-			for i=1:numel(V),
-				[X2,Y2,Z2] = mmult(X1,Y1,Z1,V(i).mat\prm.VF.mat*prm.Affine);
-				Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
-			end;
-		end;
-		msk{j} = uint32(find(Count ~= numel(V)));
-		spm_progress_bar('Set',j);
-	end;
-	 spm_progress_bar('Clear');
+            % Generate a mask for where there is data for all images
+            %----------------------------------------------------------------------------
+            for i=1:numel(V),
+                [X2,Y2,Z2] = mmult(X1,Y1,Z1,V(i).mat\prm.VF.mat*prm.Affine);
+                Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
+            end;
+        end;
+        msk{j} = uint32(find(Count ~= numel(V)));
+        spm_progress_bar('Set',j);
+    end;
+    spm_progress_bar('Clear');
 else
-	for j=1:length(z), msk{j} = uint32([]); end;
+    for j=1:length(z), msk{j} = uint32([]); end;
 end;
 return;
 %_______________________________________________________________________
@@ -473,9 +473,9 @@ mat = prm.VG(1).mat*inv(M1)*M2;
 
 LEFTHANDED = true;
 if (LEFTHANDED && det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
-	Flp = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
-	mat = mat*Flp;
-	x   = flipud(x(:))';
+    Flp = [-1 0 0 (length(x)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
+    mat = mat*Flp;
+    x   = flipud(x(:))';
 end;
 return;
 %_______________________________________________________________________
@@ -483,57 +483,56 @@ return;
 %_______________________________________________________________________
 function VO = write_dets(P,bb,vox)
 if nargin==1,
-	job = P;
-	P   = job.P;
-	bb  = job.bb;
-	vox = job.vox;
+    job = P;
+    P   = job.P;
+    bb  = job.bb;
+    vox = job.vox;
 end;
 
 spm_progress_bar('Init',numel(P),'Writing','volumes completed');
 
 for i=1:numel(V),
-	prm = load(deblank(P{i}));
-	[x,y,z,mat] = get_xyzmat(prm,bb,vox);
-	[X,Y] = ndgrid(x,y);
-	Tr = prm.Tr;
-	BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
-	BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
-	BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
-	DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
-	DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
-	DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
+    prm = load(deblank(P{i}));
+    [x,y,z,mat] = get_xyzmat(prm,bb,vox);
+    Tr = prm.Tr;
+    BX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1);
+    BY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1);
+    BZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1);
+    DX = spm_dctmtx(prm.VG(1).dim(1),size(Tr,1),x-1,'diff');
+    DY = spm_dctmtx(prm.VG(1).dim(2),size(Tr,2),y-1,'diff');
+    DZ = spm_dctmtx(prm.VG(1).dim(3),size(Tr,3),z-1,'diff');
 
-	[pth,nam,ext] = fileparts(P{i});
-	VO = struct('fname',['jy_' nam '.img'],...
-	            'dim',[numel(x),numel(y),numel(z)],...
-	            'dt',[spm_type('float32') spm_platform('bigend')],...
-	            'pinfo',[1 0 0]',...
-	            'mat',mat,...
-	            'n',1,...
-	            'descrip','Jacobian determinants');
-	VO     = spm_create_vol(VO);
-	detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
-	Dat    = single(0);
-	Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
+    [pth,nam,ext,nm] = spm_fileparts(P{i});
+    VO = struct('fname',fullfile(pth,['jy_' nam ext nm]),...
+        'dim',[numel(x),numel(y),numel(z)],...
+        'dt',[spm_type('float32') spm_platform('bigend')],...
+        'pinfo',[1 0 0]',...
+        'mat',mat,...
+        'n',1,...
+        'descrip','Jacobian determinants');
+    VO     = spm_create_vol(VO);
+    detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    Dat    = single(0);
+    Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 
-	for j=1:length(z),   % Cycle over planes
-		% Nonlinear deformations
-                tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
-		ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
-		tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
+    for j=1:length(z),   % Cycle over planes
+        % Nonlinear deformations
+        tx = get_2Dtrans(Tr(:,:,:,1),BZ,j);
+        ty = get_2Dtrans(Tr(:,:,:,2),BZ,j);
+        tz = get_2Dtrans(Tr(:,:,:,3),BZ,j);
 
-		%----------------------------------------------------------------------------
-		j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
-		j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
-		j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
-		% The determinant of the Jacobian reflects relative volume changes.
-		%------------------------------------------------------------------
-		dat       = (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
-		Dat(:,:,j) = single(dat);
-		if numel(P)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
-	end;
-	VO = spm_write_vol(VO,Dat);
-	spm_progress_bar('Set',i);
+        %----------------------------------------------------------------------------
+        j11 = DX*tx*BY' + 1; j12 = BX*tx*DY';     j13 = BX*get_2Dtrans(Tr(:,:,:,1),DZ,j)*BY';
+        j21 = DX*ty*BY';     j22 = BX*ty*DY' + 1; j23 = BX*get_2Dtrans(Tr(:,:,:,2),DZ,j)*BY';
+        j31 = DX*tz*BY';     j32 = BX*tz*DY';     j33 = BX*get_2Dtrans(Tr(:,:,:,3),DZ,j)*BY' + 1;
+        % The determinant of the Jacobian reflects relative volume changes.
+        %------------------------------------------------------------------
+        dat       = (j11.*(j22.*j33-j23.*j32) - j21.*(j12.*j33-j13.*j32) + j31.*(j12.*j23-j13.*j22)) * detAff;
+        Dat(:,:,j) = single(dat);
+        if numel(P)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
+    end;
+    VO = spm_write_vol(VO,Dat);
+    spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
 return;

@@ -118,7 +118,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_uw_apply.m 976 2007-10-25 12:14:47Z john $
 
 tiny = 5e-2;
 
@@ -364,7 +364,8 @@ if flags.mean
    Integral   = Integral./Count;
    warning('on');
    PO         = ds(1).P(1);
-   PO.fname   = prepend(ds(1).P(1).fname, 'meanu');
+   [pth,nm,xt,vr] = spm_fileparts(deblank(ds(1).P(1).fname));
+   PO.fname       = fullfile(pth,['meanu' nm xt vr]);
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
    PO.descrip = 'spm - mean undeformed image';
    PO.dt      = [4 spm_platform('bigend')];

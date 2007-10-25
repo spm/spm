@@ -90,7 +90,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_reslice.m 976 2007-10-25 12:14:47Z john $
 
 
 
@@ -235,9 +235,11 @@ for i = 1:prod(size(P)),
 		end;
 		if write_vol,
 			VO         = P(i);
-			VO.fname   = prepend(P(i).fname,'r');
+			[pth,nm,xt,vr] = fileparts(deblank(P(i).fname));
+			VO.fname   = fullfile(pth,['r' nm xt vr]);
 			VO.dim     = P(1).dim(1:3);
 			VO.dt      = P(i).dt;
+			VO.pinfo   = P(i).pinfo;
 			VO.mat     = P(1).mat;
 			VO.descrip = 'spm - realigned';
 			VO = spm_write_vol(VO,v);
@@ -253,7 +255,8 @@ if flags.mean
 	%-----------------------------------------------------------
 	Integral   = Integral./Count;
 	PO         = P(1);
-	PO.fname   = prepend(P(1).fname, 'mean');
+	[pth,nm,xt,vr] = fileparts(deblank(P(1).fname));
+	PO.fname   = fullfile(pth,['mean' nm xt]);
 	PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
 	PO.descrip = 'spm - mean image';
 	PO.dt      = [4 spm_platform('bigend')];
@@ -367,13 +370,6 @@ Mask = logical(ones(size(y1)));
 if ~wrp(1), Mask = Mask & (y1 >= (1-tiny) & y1 <= (dim(1)+tiny)); end;
 if ~wrp(2), Mask = Mask & (y2 >= (1-tiny) & y2 <= (dim(2)+tiny)); end;
 if ~wrp(3), Mask = Mask & (y3 >= (1-tiny) & y3 <= (dim(3)+tiny)); end;
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function PO = prepend(PI,pre)
-[pth,nm,xt,vr] = fileparts(deblank(PI));
-PO             = fullfile(pth,[pre nm xt vr]);
 return;
 %_______________________________________________________________________
 
