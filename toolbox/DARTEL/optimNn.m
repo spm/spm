@@ -63,7 +63,7 @@ function optimNn
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: optimNn.m 964 2007-10-19 16:35:34Z john $
+% $Id: optimNn.m 980 2007-10-25 16:08:54Z john $
 
-error('Not compiled for this platform (see make.m).'
+error('Not compiled for this platform (see make.m).');
 

@@ -1,4 +1,4 @@
-/* $Id: optimN.c 964 2007-10-19 16:35:34Z john $ */
+/* $Id: optimN.c 980 2007-10-25 16:08:54Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -33,9 +33,10 @@ extern double log(double x);
 void choldc(int n, float a[], float p[])
 {
     int i, j, k;
-    double sm;
+    double sm, sm0;
     for(i=0; i<n; i++)
     {
+        sm0 = a[i*n+i]*1e-6 + 1e-9;
         for(j=i; j<n; j++)
         {
             sm = a[i*n+j];
@@ -43,7 +44,7 @@ void choldc(int n, float a[], float p[])
                sm -= a[i*n+k] * a[j*n+k];
             if(i==j)
             {
-                if(sm <= 0.0) sm = 1e-32;
+                if(sm <= sm0) sm = sm0;
                 p[i] = sqrt(sm);
             }
             else
@@ -527,7 +528,7 @@ static void relax_be(int dm[], float a[], float b[], double s[], int nit, float 
        (see e.g. http://www.mathpages.com/home/kmath175/kmath175.htm).
        This is an attempt to stabilise the relaxation
        NOTE: It still isn't completely stable and can diverge as well as converge. */
-    reg = (2.0*(w200+w020+w002)-2.0*(w100+w010+w001)+4.0*(w110+w011+w101)) - w000;
+    reg = 1.0001*(2.0*(w200+w020+w002)-2.0*(w100+w010+w001)+4.0*(w110+w011+w101)) - w000;
     if (reg<0.0) reg = 0.0;
 
 #   ifdef VERBOSE
