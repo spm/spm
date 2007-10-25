@@ -18,7 +18,7 @@ The analysis below is best done in Matlab7, but all mat files should be in a for
 
 \section{Paradigm and Data}
 
-The basic paradigm involves randomised presentation of at least 86 faces and 86 scrambled faces (Figure~\ref{fig_32_1}), based on Phase 1 of a previous study by Henson et al (2003). The scrambled faces were created by 2D Fourier transformation, random phase permutation, inverse transformation and outline-masking of each face. Thus faces and scrambled faces are closely matched for low-level visual properties such spatial frequency power density. Half the faces were famous, but this factor is collapsed in the current analyses. Each face required a four-way, left-right symmetry judgment (mean RTs over a second; judgments roughly orthogonal to conditions; reasons for this task are explained in Henson et al, 2003). The subject was instructed not to blink while the fixation cross was present on the screen.
+The basic paradigm involves randomised presentation of at least 86 faces and 86 scrambled faces (Figure~\ref{fig_32_1}), based on Phase 1 of a previous study by Henson et al (2003). The scrambled faces were created by 2D Fourier transformation, random phase permutation, inverse transformation and outline-masking of each face. Thus faces and scrambled faces are closely matched for low-level visual properties such as spatial frequency power density. Half the faces were famous, but this factor is collapsed in the current analyses. Each face required a four-way, left-right symmetry judgment (mean RTs over a second; judgments roughly orthogonal to conditions; reasons for this task are explained in Henson et al, 2003). The subject was instructed not to blink while the fixation cross was present on the screen.
 
 
 \begin{figure}
@@ -30,7 +30,7 @@ The basic paradigm involves randomised presentation of at least 86 faces and 86 
 
 \subsection{Structural MRI}
 
-The T1-weighted structural MRI of a young male was acquired on a 1.5T Siemens Sonata via an MDEFT sequence with resolution 1 x 1 x 1 mm3 voxels, using a whole-body coil for RF transmission and an 8-element phased array head coil for signal reception.
+The T1-weighted structural MRI of a young male was acquired on a 1.5T Siemens Sonata via an MDEFT sequence with resolution $1 x 1 x 1 mm^3$ voxels, using a whole-body coil for RF transmission and an 8-element phased array head coil for signal reception.
 
 The images are in Analyze format in the sMRI sub-directory, consisting of two files:
 \begin{verbatim}
@@ -65,7 +65,7 @@ and selecting the \verb!e_meg.mat! file. This will show the contents of the stru
 
 You will see that there are 344 events (D.Nevents), consisting of 172 faces (event code 1) and 172 scrambled faces (event code 2), which are randomly intermixed (see D.events.code)\footnote{These data were actually concatenated from two separate runs on the same subject (using spm-eeg-merge), which is why there are twice as many events as with the MEG and fMRI data.}. If you type D.channels.name, you will see the order and the names of the channels.
 
-The EEG data also contains a Polhemus sub-directory with the following files:
+The EEG directory also contains a Polhemus sub-directory with the following files:
 \begin{verbatim}
 	EEG/Polhemus/eeg_fids.mat
 	EEG/Polhemus/eeg_sens_loc.mat
@@ -82,12 +82,11 @@ The MEG data were acquired on a 151 channel CTF Omega system, using second-order
 	MEG/e_meg.mat
 	MEG/e_meg.dat
 \end{verbatim}
-These channel template for these data is also provided:
+The channel template for these data is also provided:
 \begin{verbatim}
 	MEG/CTF151_setup.mat
 \end{verbatim}
 (which may need to be copied to the EEGtemplates sub-directory of your local SPM5 installation directory, if not already there).
-
 The MEG data also contains a Polhemus sub-directory with the following files:
 \begin{verbatim}
 	MEG/Polhemus/meg_fids.mat
@@ -97,7 +96,7 @@ The MEG data also contains a Polhemus sub-directory with the following files:
 \end{verbatim}
 which are analogous to the corresponding MEG files described in the previous section\footnote{These matrices are transformations from the original CTF / Polhemus files - in which x codes anterior-posterior and y codes left-right - i.e, a 90 degree clockwise rotation about the z-axis.}. More specifically, the \verb!meg_fids.mat! contains the position of 3 "locator coils", positioned close to the fiducials\footnote{Unlike the MRI and EEG data, these fiducials were not precisely the nasion and peri-aricular points. However, given that the coregistration of the MEG and MRI data is based mainly on the headshape (see later), this inaccuracy in the MEG fiducials does not matter.}, the locations of which are measured by the CTF machine, and used to define the coordinates (in "CTF space") for the location of the 151 sensors (in the \verb!meg_sens_loc.mat! file) and their (axial gradiometer) orientations (\verb!meg_sens_or.mat!). The same three locator coils were digitised by a Polhemus digitizer outside the MEG machine, together with the head shape, to define the "Polhemus space". Subsequently, the fiducials in the Polhemus space were coregistered with the fiducials in the CTF space, and the resulting rigid-body transformation applied to the Polhemus head shape. Thus the coordinates in all four files above are in alignment in the CTF space, which will subsequently be transformed into the "MRI space".
 
- 
+
 
 \subsection{fMRI data}
 
@@ -121,7 +120,6 @@ and the SPM "Job" files (see Section~\ref{fMRI}):
 \section{Getting Started}
 
 You need to start SPM5 and toggle "EEG" as the modality (bottom-right of SPM main window), or start SPM5 with \verb!spm eeg!.
-
 You will also need to 1) copy the MEG template file (\verb!CTF151_setup.mat!) to the EEGtemplates sub-directory within your SPM5 installation directory, if it is not already there (see ~section \ref{meg} above), and 2) ensure this EEGtemplates directory is on your Matlab path.
 
 
@@ -133,7 +131,7 @@ You will also need to 1) copy the MEG template file (\verb!CTF151_setup.mat!) to
 
 * Press 'Artefacts', select the \verb!e_eeg.mat! file, press 'no' to the 'read own artefact list?' question, 'no' to 'robust average?', 'yes' to 'threshold channels?', and enter 200 for the threshold
 
-This will detect trials in which the signal recorded at any of the channels exceeds 200 microvolts (relative to pre-stimulus baseline). These trials will be marked as artefacts. Most of these artefacts occur on the VEOG channel, and reflect blinks during the critical timewindow\footnote{Channel-specific thresholds can be used by entering 130 thresholds, one per EEG/EOG channel, with a value of Inf for those channels that you do not want to threshold.}. The procedure will also detect channels in which there are a large number of artefacts (which may reflect problems specific to those electrodes, allowing them to be removed from subsequent analyses).
+This will detect trials in which the signal recorded at any of the channels exceeds 200 microvolts (relative to pre-stimulus baseline). These trials will be marked as artefacts. Most of these artefacts occur on the VEOG channel, and reflect blinks during the critical time window\footnote{Channel-specific thresholds can be used by entering 130 thresholds, one per EEG/EOG channel, with a value of Inf for those channels that you do not want to threshold.}. The procedure will also detect channels in which there are a large number of artefacts (which may reflect problems specific to those electrodes, allowing them to be removed from subsequent analyses).
 
 In this case, the Matlab window will show:
 \begin{verbatim}
@@ -144,7 +142,7 @@ In this case, the Matlab window will show:
 \end{verbatim}
 (leaving 299 valid trials). A new file will also be created, \verb!ae_eeg.mat!(in which these artefacts are coded in the fields D.events.reject and D.channels.thresholded).
 
-At this point, you may want to look at the data. Press "Display: M/EEG", and select the \verb!ae_eeg.mat! file. After a short delay, the Graphics window should show the mean ERP (for trial 1) at each of the 130 channels (as in Figure\ref{fig_32_2}). You can click on one of the channels (e.g, VEOG, on the top right of the display) to get a new window with the data for that channel expanded. You can alter the scaling or trial number using the sliders on the bottom of the Graphics window, or select a subset of channels to display by pressing the 'Channels' button.
+At this point, you may want to look at the data. Press "Display: M/EEG", and select the \verb!ae_eeg.mat! file. After a short delay, the Graphics window should show the mean ERP (for trial 1) at each of the 130 channels (as in Figure~\ref{fig_32_2}). You can click on one of the channels (e.g, VEOG, on the top right of the display) to get a new window with the data for that channel expanded. You can alter the scaling or trial number using the sliders on the bottom of the Graphics window, or select a subset of channels to display by pressing the 'Channels' button.
 
 \begin{figure}
 \begin{center}
@@ -175,7 +173,7 @@ You can display the mean ERPs using the "Display: M/EEG" menu option again. Once
 \end{center}
 \end{figure}
 
-* Select "Contrast" from the "Other..." pulldown menu on the SPM window (or type \verb!spm_eeg_weight_epochs! in the Matlab window). This function creates linear contrasts of ERPs/ERFs. Select the \verb!fmae_eeg.mat! file, and enter [1 -1; 1/2 1/2]as the contrasts. Press "no" to the question "weight by num replications". This will create new file \verb!mfmae_eeg.mat!, in which the first trial-type is now the differential ERP between faces and scrambled faces, and the second trial-type is the average ERP for faces and scambled faces.
+* Select "Contrast" from the "Other..." pulldown menu on the SPM window (or type \verb!spm_eeg_weight_epochs! in the Matlab window). This function creates linear contrasts of ERPs/ERFs. Select the \verb!fmae_eeg.mat! file, and enter $[1 -1; 1/2 1/2]$ as the contrast matrix. Press "no" to the question "weight by num replications". This will create new file \verb!mfmae_eeg.mat!, in which the first trial-type is now the differential ERP between faces and scrambled faces, and the second trial-type is the average ERP for faces and scambled faces.
 
 To look at the differential ERP, again press 'Display: M/EEG', and select the \verb!mfmae_eeg.mat! file. After a short delay, the Graphics window should show the ERP for each channel (for trial-type 1). Hold SHIFT and select trial-type 2 to see both conditions superimposed. Then click on one of the channels (e.g, 'B9' on the bottom right of the display) to get a new window with the data for that channel expanded, as in Figure~\ref{fig_32_4}.
 
@@ -202,7 +200,7 @@ To see the topography of the differential ERP, press the "topography" button in 
 
 One novel feature of SPM is the ability to use Random Field Theory to correct for multiple statistical comparisons across N-dimensional spaces. For example, a 2D space representing the scalp data can be constructed by flattening the sensor locations and interpolating between them to create an image of MxM pixels (when M is user-specified, eg M=32). This would allow one to identify locations where, for example, the ERP amplitude in two conditions at a given timepoint differed reliably across subjects, having corrected for the multiple t-tests performed across pixels. That correction uses Random Field Theory, which takes into account the spatial correlation across pixels (i.e, that the tests are not independent). This kind of analysis is described earlier in the SPM manual, where a 1st-level design is used to create the images for a given weighting across timepoints of an ERP/ERF, and a 2nd-level design can then be used to test these images across subjects.
 
-Here, we will consider a 3D example, where the third dimension is time, and test across trials within the single subject. We first create 3D image for each trial of the two types, with dimensions MxMxS, where S=161 is the number of samples. We then take these images into an unpaired t-test across trials (in a 2nd-level model) to compare faces versus scrambled faces. We can then use classical SPM to identify locations in space and time in which a reliable difference occurs, correcting across the multiple comparisons entailed. This would be appropriate if, for example, we had no a priori knowledge where or when the difference between faces and scrambled faces would emerge\footnote{Note that the 2D location in sensor space for EEG will depend on the choice of reference channel.}.
+Here, we will consider a 3D example, where the third dimension is time, and test across trials within the single subject. We first create a 3D image for each trial of the two types, with dimensions MxMxS, where S=161 is the number of samples. We then take these images into an unpaired t-test across trials (in a 2nd-level model) to compare faces versus scrambled faces. We can then use classical SPM to identify locations in space and time in which a reliable difference occurs, correcting across the multiple comparisons entailed. This would be appropriate if, for example, we had no a priori knowledge where or when the difference between faces and scrambled faces would emerge\footnote{Note that the 2D location in sensor space for EEG will depend on the choice of reference channel.}.
 
 * Select the "mat-2-3Dimage" option in the "Other..." menu in the Matlab window, and select the \verb!ae_eeg.mat! file. You will then be prompted for "output image dimensions", for which you can accept the default of 32 (leading to a 32x32 pixel space), and a pixel dimension, which you can change to 5 (this is rather arbitrary, but will make the images easier to view). It will then ask whether you want to interpolate or mask out bad channels, for which you can select interpolate (though it will make no difference here because there are no bad channels).
 
@@ -219,13 +217,13 @@ This will take some time as it writes out an image for each trial (except reject
 
 To perform statistics on these images, first create a new directory, eg. mkdir XYTstats.
 
-* Then press the "specify 2nd level" button,  select "two-sample t-test" (unpaired t-test), and define the images for "group 1" as all those in the subdirectory "trialtype1" (using right mouse, and "select all") and the images for "group 2" as all those in the subdirectory "trialtype2". Finally, specify the new XYZstats directory as the output directory, and press "run"\footnote{Note that we can use the default "nonsphericity" selections, i.e, that the two trial-types may have different variances, but are uncorrelated.}.
+* Then press the "specify 2nd level" button,  select "two-sample t-test" (unpaired t-test), and define the images for "group 1" as all those in the subdirectory "trialtype1" (using right mouse, and "select all") and the images for "group 2" as all those in the subdirectory "trialtype2". Finally, specify the new XYTstats directory as the output directory, and press "run"\footnote{Note that we can use the default "nonsphericity" selections, i.e, that the two trial-types may have different variances, but are uncorrelated.}.
 
 
 
 This will produce the design matrix for a two-sample t-test.
 
-* The press "Estimate", and when it has finished, press "Results" and define a new F-contrast as [1 -1] (for help with these basic SPM functions, see elsewhere in the Manual). Keep the default contrast options, but threshold at $p<.05$ FWE corrected for the whole "image". Then press "volume", and the Graphics window should now look like that in Figure~\ref{fig_32_7} (ignore the outline of the brain in the MIP!).
+* Then press "Estimate", and when it has finished, press "Results" and define a new F-contrast as [1 -1] (for help with these basic SPM functions, see eg. chapter 26). Keep the default contrast options, but threshold at $p<.05$ FWE corrected for the whole "image". Then press "volume", and the Graphics window should now look like that in Figure~\ref{fig_32_7} (ignore the outline of the brain in the MIP!).
 
 This will reveal "regions" within the 2D sensor space and within the -200ms to 600ms epoch in which faces and scrambled faces differ reliably, having corrected for multiple F-tests across pixels/time. There are a number of such regions, but we will concentrate on the first two (largest ones), with cluster maxima of  [25 -55 200] and [10 5 160]. An F-test was used because the sign of the difference reflects the polarity of the ERP difference, which is not of primary interest (and depends on the choice of reference; see footnote 6). Indeed, if you plot the contrast of interest from the cluster maxima, you will see that the difference is negative for the first cluster (which is located posteriorly) but positive for the second cluster (which is more central, close to Cz). This is consistent with the polarity of the differences in Figure~\ref{fig_32_3}\footnote{With a reference similar to the current earlobes, the former likely corresponds to the "N170", while the latter likely corresponds to the "VPP" (though we have no evidence here for a dissociation between them).}.
 
@@ -242,11 +240,11 @@ If one had more constrained a priori knowledge about where and when the N170 wou
 
 Here we will demonstrate a distributed source reconstruction of the N170 differential evoked response between faces and scrambled faces, using a grey-matter mesh extracted from the subject's MRI, and an L2-norm method in which multiple constraints on the solution can be imposed (Phillips et al, 2002; Mattout et al, 2005; Henson et al, 2007; Friston et al, in press-a).
 
-* Press the '3D source reconstruction' button, and press the "load" button at the top of the new window. Select the \verb!mfmae_eeg.mat! file and type a label (eg "N170") for this analysis\footnote{Note that no new M/EEG files are created during each stage of the 3D reconstruction; rather, each step involves updating of the cell-array field D.inv, which will have one entry per analysis performed on that dataset (e.g, D.inv{1} in this case).}.
+* Press the '3D source reconstruction' button, and press the "load" button at the top of the new window. Select the \verb!mfmae_eeg.mat! file and type a label (eg "N170") for this analysis\footnote{Note that no new M/EEG files are created during each stage of the 3D reconstruction; rather, each step involves updating of the cell-array field D.inv, which will have one entry per analysis performed on that dataset (e.g, D.inv\{1\} in this case).}.
 
 * Press the 'MRI' button, select the smri.img file within the sMRI sub-directory, press the "Imaging" button, and select 3000 for the number of vertices in the mesh...
 
-The "imaging" option corresponds to a distributed source localisations, where current sources are estimated at a large number of fixed points (3000 here) within a cortical mesh, rather than approximated by a small number of equivalent dipoles (the ECD option). The imaging or distributed approach is better suited for group analyses and probably latter components; the ECD approach may be better suited for very early sensory components (when only small parts of the brain are active), or for DCM models of a small number of regions (Kiebel et al, 2006).
+The "imaging" option corresponds to a distributed source localisation, where current sources are estimated at a large number of fixed points (3000 here) within a cortical mesh, rather than approximated by a small number of equivalent dipoles (the ECD option). The imaging or distributed approach is better suited for group analyses and probably for later components; the ECD approach may be better suited for very early sensory components (when only small parts of the brain are active), or for DCM models of a small number of regions (Kiebel et al, 2006).
 
 This will take some time while the MRI is segmented (and normalisation parameters determined). This will create the usual files, i.e, c1/c2/c3smri.img/hdr, for grey/white/CSF respectively, msmri.img/hdr for the attentuation-corrected image, and the normalisation and inverse normalisation parameters (\verb!mri_vbm_sn_1.mat! and \verb!smri_vbm_inv_sn_1.mat! respectively) in the sMRI directory (see Chapter 5 for further details).
 
@@ -256,7 +254,7 @@ This process will also create binary images of the cortex, inner skull surface a
 		sMRI/smri_iskull.img
 		sMRI/smri_scalp.img
 \end{verbatim}
-When meshing has finished, the cortex (blue), inner skull (red) and scalp (orange) meshes will also be shown in the Graphics window. The field D.inv{1}.mesh field will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk.
+When meshing has finished, the cortex (blue), inner skull (red) and scalp (orange) meshes will also be shown in the Graphics window. The field D.inv\{1\}.mesh field will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk.
 
 Note that the cortical mesh (and the distances within the mesh) are not created directly from the segmented MRI (like the skull and scalp meshes), but rather are determined from a template cortical mesh in MNI space via inverse spatial normalisation (Mattout et al, in press).
 
@@ -269,19 +267,19 @@ Note that the cortical mesh (and the distances within the mesh) are not created 
 \end{verbatim}
 This stage coregisters the EEG sensor positions with the structural MRI and cortical mesh, via an approximate matching of the fiducials in the two spaces, followed by a more accurate surface-matching routine that fits the head-shape function (measured by Polhemus) to the scalp that was created in the previous meshing stage via segmentation of the MRI.
 
-When coregistration has finished, the field D.inv{1}.datareg will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. Finally, a figure like that in Figure~\ref{fig_32_8} will also be produced, which you can rotate with the mouse (using the Rotate3D Matlab Menu option) to check all sensors.
+When coregistration has finished, the field D.inv\{1\}.datareg will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. Finally, a figure like that in Figure~\ref{fig_32_8} will also be produced, which you can rotate with the mouse (using the Rotate3D Matlab Menu option) to check all sensors.
 
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=70mm]{multimodal/figures/figure_32_8}
-\caption{\em  Graphical output of Co-registration of EEG data, showing (upper pnael) cortex (blue), inner skull (red) and scalp (black) meshes, electrode locations (green), MRI/Polhemus fiducials (cyan/magneta), and headshape (red dots).\label{fig_32_8}}
+\caption{\em  Graphical output of Co-registration of EEG data, showing (upper panel) cortex (blue), inner skull (red) and scalp (black) meshes, electrode locations (green), MRI/Polhemus fiducials (cyan/magneta), and headshape (red dots).\label{fig_32_8}}
 \end{center}
 \end{figure}
 
 \noindent * Press 'Forward Model', and select "3 {Berg}".
 
-This will create a forward model (lead field matrix) based on a three sphere model (using a subset of BrainStorm functions, packaged with SPM5~\footnote{Brainstorm is available from http://neuroimage.usc.edu/ResearchMEGEEGBrainStorm.html}). The Matlab window will output:
+This will create a forward model (lead field matrix) based on a three sphere model (using a subset of BrainStorm functions, packaged with SPM~\footnote{Brainstorm is available from http://neuroimage.usc.edu/ResearchMEGEEGBrainStorm.html}). The Matlab window will output:
 \begin{verbatim}
 	Scalp best fitting sphere computed (in 11 iterations)
 	Centre = [0.0001 -0.0218 0.0027] (Radius = 0.0774)
@@ -441,7 +439,7 @@ If you now display the file \verb!mt2_e_eeg.mat! file, you will see PLV as a fun
 
 Analogous to Section~\ref{3DSPM}, we can also use Random Field Theory to correct for multiple statistical comparisons across the 2-dimensional time-frequency space.
 
-* \verb!spm_eeg_convertmat2ana3Dtf! in the Matlab window, and select the \verb!t1_e_eeg.mat! file.
+* Type \verb!spm_eeg_convertmat2ana3Dtf! in the Matlab window, and select the \verb!t1_e_eeg.mat! file.
 
 This will create time-frequency images for each trial of the two types, with dimensions 161x36x1, as for the example shown in Figure~\ref{fig_32_15} from pressing "Display: images" on the main SPM window.
 
@@ -470,7 +468,7 @@ This will produce the design matrix for a two-sample t-test.
 \end{center}
 \end{figure}
 
-This will one "region" within the 2D time-frequency space in which faces produce greater power than scrambled faces, having corrected for multiple T-tests across pixels. This has a maximum of  [180 12 1], ie 12 Hz and 180ms post-stimulus.
+This will list one "region" within the 2D time-frequency space in which faces produce greater power than scrambled faces, having corrected for multiple T-tests across pixels. This has a maximum of  [180 12 1], ie 12 Hz and 180ms post-stimulus.
 
 If you repeat the above time-frequency analysis on the \verb!e_meg.mat! file, but this time keep every channel and answer 'yes' to the "average over channels?" question, and then repeat the above statistical analysis of power, you will notice that there is also a reliable decrease in induced high-frequency power (around 400ms and 35 Hz) for faces vs scrambled faces, which could also be source-localised.
 
@@ -489,15 +487,15 @@ The choice of the minimum of 3000 vertices in the cortical mesh is simply to red
 
 Note that the cortical mesh (and the distances within the mesh) are not created directly from the segmented MRI (like the skull and scalp meshes), but rather are determined from a template cortical mesh in MNI space via inverse spatial normalisation (Mattout et al, in press).
 
-When meshing has finished, the field D.inv{1}.mesh field will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. The cortex (blue), inner skull (red) and scalp (orange) meshes will also be shown in the Graphics window.
+When meshing has finished, the field D.inv\{1\}.mesh field will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. The cortex (blue), inner skull (red) and scalp (orange) meshes will also be shown in the Graphics window.
 
 * Press the 'Co-register' button, respond "no" to the 'Read Polhemus?' question, and then select the following files in response to each prompt (pressing "yes" to the 'Use headshape file' prompt):
 \begin{verbatim}
   		MEG/Polhemus/meg_sens_loc.mat
    		MEG/Polhemus/meg_fids.mat
-   		MEG/Polhemus/meg_hsf.mat   		
-		  sMRI/smri_fids.mat
-  		MEG/Polhemus/meg_sens_or.mat
+   		MEG/Polhemus/meg_hsf.mat   	
+  		MEG/Polhemus/meg_sens_or.mat	
+		sMRI/smri_fids.mat
 \end{verbatim}
 	(like in Section~\ref{3DSPM}, except now we also need to provide information about the orientation of each MEG sensor, as in the penultimate file here).
 
@@ -510,9 +508,9 @@ This stage coregisters the MEG sensor positions and orientations (in "MEG" space
 \end{center}
 \end{figure}
 
-When coregistration has finished, the field D.inv{1}.datareg will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. Finally, a figure like that in Figure~\ref{fig_32_8} will also be produced, which you can rotate with the mouse (using the Rotate3D Matlab Menu option) to check all sensors.
+When coregistration has finished, the field D.inv\{1\}.datareg will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk. Finally, a figure like that in Figure~\ref{fig_32_17} will also be produced, which you can rotate with the mouse (using the Rotate3D Matlab Menu option) to check all sensors.
 
-* Press the 'Forward Model' button. This assumes the sensors lie on a single best-fitting sphere, which allows analytical computation of the forward model (lead field) that maps each "dipole" in the cortical mesh to each sensor, assuming that the orientation of the dipole at each vertex is normal to the surface of the mesh at that point. This stage uses BrainStorm functions~\footnote{Brainstorm is available from http://neuroimage.usc.edu/ResearchMEGEEGBrainStorm.html!}. The Matlab window will output:
+* Press the 'Forward Model' button. This assumes the sensors lie on a single best-fitting sphere, which allows analytical computation of the forward model (lead field) that maps each "dipole" in the cortical mesh to each sensor, assuming that the orientation of the dipole at each vertex is normal to the surface of the mesh at that point. This stage uses BrainStorm functions~\footnote{Brainstorm is available from http://neuroimage.usc.edu/ResearchMEGEEGBrainStorm.html}. The Matlab window will output:
 \begin{verbatim}
                 Scalp best fitting sphere computed (in 11 iterations)
                 Centre = [0.0001 -0.0218 0.0027] (Radius = 0.0774)
@@ -583,7 +581,7 @@ These can be loaded and run, though of course the location of the files and the 
 
 * Select 'Realign' from the 'Realign and Unwarp' menu, click on 'Data', and select 'New Session'. Double-click on the new Session branch, and click on the 'Images' button, click on the 'specify files' and select all 215 \verb!fM*.img! files in the Scan directory (using the right mouse to 'select all', assuming the filter is set to \verb!^f.*img!).
 
-Realignment will produce a \verb!spm*.ps! postscript file in the current directory, which shows the estimated movement (like in Figure~\ref{fig_32_14}). Importantly, the resliced images will be output as rfM*.img files. A mean image will also be written:
+Realignment will produce a \verb!spm*.ps! postscript file in the current directory, which shows the estimated movement (like in Figure~\ref{fig_32_20}). Importantly, the resliced images will be output as rfM*.img files. A mean image will also be written:
 \begin{verbatim}
 		meanfMS02554-0003-000006.img
 \end{verbatim}
@@ -612,7 +610,7 @@ Note that we will not normalise these images, in order to compare them with the 
 
 * Press the 'specify 1st-level' button, change the microtime onset from 1 to 8, select the 215 'sarfM*img' images, define two new conditions - condition 1 called "faces" with onsets set to onsets{1} and condition 2 called "scrambled faces" with onsets set to onsets{2} (all duration 0) - select the  \verb!rp_fMS02554-0003-000006.txt! file as 'Multiple Regressors' (to covary out some of the residual movement-related effects), and select the fMRI/Stats as the output directory (loading and editing the \verb!stats_job.mat! file provided will save a lot of time here!). Keep the rest of the parameters (e.g, use of a canonical HRF basis function) at their default settings.
 
-This will produce a design matrix like that in Figure~\ref{fig_32_15}, which is stored in the file:
+This will produce a design matrix like that in Figure~\ref{fig_32_21}, which is stored in the file:
 \begin{verbatim}
 		fMRI/Stats/SPM.mat
 \end{verbatim}
@@ -630,7 +628,7 @@ This will produce a design matrix like that in Figure~\ref{fig_32_15}, which is 
 
 This will identify regions in which the parameter estimate for the canonical HRF differs reliably between faces and scrambled faces. This could include regions that show both a "greater" relative response for faces, and regions that show a "greater" relative response for scrambled faces (such a two-tailed test is used because we do not know the precise relationship between haemodynamic changes measured by fMRI and the synchronous current changes measured by EEG/MEG).
 
-If the resulting SPM{F} is thresholded at $p<.05$ FWE corrected, the resulting MIP and table of values should be like that in Figure ~\ref{fig_32_16}. Only two regions survive correction: right fusiform and orbitofrontal cortex (note coordinates refer to native MRI space; not MNI space). These can be displayed on the (attentuation-corrected) structural msmri.nii. They are a subset of the regions identified by the same contrast in a group of 18 subjects in Henson et al (2003). At a lower threshold (e.g, $p<.01$ uncorrected), one can see additional activation in left fusiform, as well as other regions.
+If the resulting SPM{F} is thresholded at $p<.05$ FWE corrected, the resulting MIP and table of values should be like that in Figure ~\ref{fig_32_22}. Only two regions survive correction: right fusiform and orbitofrontal cortex (note coordinates refer to native MRI space; not MNI space). These can be displayed on the (attentuation-corrected) structural msmri.nii. They are a subset of the regions identified by the same contrast in a group of 18 subjects in Henson et al (2003). At a lower threshold (e.g, $p<.01$ uncorrected), one can see additional activation in left fusiform, as well as other regions.
 
 
 \begin{figure}
