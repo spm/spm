@@ -5,7 +5,7 @@ function [sig,a] = spm_dartel_smooth(t,lam,its,vx,a)
 % (c) Wellcome Centre for NeuroImaging (2007)
 
 % John Ashburner
-% $Id: spm_dartel_smooth.m 980 2007-10-25 16:08:54Z john $
+% $Id: spm_dartel_smooth.m 981 2007-10-26 10:19:42Z john $
 
 if nargin<5, a   = zeros(size(t),'single'); end
 if nargin<4, vx  = [1 1 1]; end;
@@ -14,19 +14,19 @@ if nargin<2, lam = 1;       end;
 
 d   = size(t);
 W   = zeros([d(1:3) round((d(4)*(d(4)+1))/2)],'single');
-s   = max(sum(t,4),single(0));
+s   = max(sum(t,4),eps('single'));
 for k=1:d(4),
-    t(:,:,:,k) = t(:,:,:,k)./abs(s+eps);
+    t(:,:,:,k) = max(min(t(:,:,:,k)./s,1-eps('single')),eps('single'));
 end
 for i=1:its,
-    %trnc=log(realmax('single'));
+    %trnc= -log(eps('single'));
     %a   = max(min(a,trnc),-trnc);
     sig = softmax(a);
     gr  = sig - t;
     for k=1:d(4),
         gr(:,:,:,k) = gr(:,:,:,k).*s;
     end
-    gr  = gr + optimN('vel2mom',a,[2 vx lam 0 0]);
+    gr  = gr + optimNn('vel2mom',a,[2 vx lam 0 1e-4]);
     jj  = d(4)+1;
     reg = 2*sqrt(eps('single'))*d(4)^2;
     for j1=1:d(4),
@@ -36,9 +36,9 @@ for i=1:its,
             jj = jj+1;
         end
     end
-    a   = a - optimN(W,gr,[2 vx lam 0 lam*1e-3 1 1]);
+    a   = a - optimNn(W,gr,[2 vx lam 0 1e-4 1 1]);
     %a  = a - mean(a(:)); % unstable
-    a   = a - sum(sum(sum(sum(a))))/numel(a);
+    %a   = a - sum(sum(sum(sum(a))))/numel(a);
     fprintf(' %g,', sum(gr(:).^2)/numel(gr));
     drawnow 
 end;
