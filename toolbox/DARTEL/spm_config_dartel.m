@@ -4,7 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_dartel.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_config_dartel.m 982 2007-10-26 14:01:54Z john $
 
 if spm_matlab_version_chk('7') < 0,
     job = struct('type','const',...
@@ -228,7 +228,7 @@ param.val{4}.val{1} = 8;
 params.val{2} = param;
 param.val{1}.val{1} = 3; % iits
 param.val{2}.val{1} = [1 0.5 1e-6]; % rparam
-param.val{3}.val{1} = 0; % K
+param.val{3}.val{1} = 1; % K
 param.val{4}.val{1} = 4;
 params.val{3} = param;
 param.val{1}.val{1} = 3; % iits

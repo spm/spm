@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 504 2006-04-25 13:44:50Z volkmar $
+% $Id: spm_vol.m 982 2007-10-26 14:01:54Z john $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -56,26 +56,30 @@ if isstruct(P), V = P; return; end;
 
 V = subfunc2(P);
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function V = subfunc2(P)
 if iscell(P),
-	V = cell(size(P));
-	for j=1:numel(P),
-		if iscell(P{j}),
-			V{j} = subfunc2(P{j});
-		else
-			V{j} = subfunc1(P{j});
-		end;
-	end;
+    V = cell(size(P));
+    for j=1:numel(P),
+        if iscell(P{j}),
+            V{j} = subfunc2(P{j});
+        else
+            V{j} = subfunc1(P{j});
+        end;
+    end;
 else
-	V = subfunc1(P);
+    V = subfunc1(P);
 end;
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function V = subfunc1(P)
 if isempty(P),
-	V = [];
-	return;
+    V = [];
+    return;
 end;
 
 counter = 0;
@@ -94,59 +98,76 @@ for i=1:size(P,1),
     for j=1:size(f,1)
         eval(['[V(counter+1:counter+size(v,2),1).' f{j} '] = deal(v.' f{j} ');']);
     end
-	counter = counter + size(v,2);
+    counter = counter + size(v,2);
 end
 
 return;
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function V = subfunc(p)
-V = [];
-p = deblank(p);
-[pth,nam,ext] = fileparts(deblank(p));
-t = find(ext==',');
+[pth,nam,ext,n1] = spm_fileparts(deblank(p));
+p = fullfile(pth,[nam ext]);
+n = str2num(n1);
+if ~exist(p,'file'),
+    existance_error_message(p);
+    error('File "%s" does not exist.', p);
+end
+switch ext,
+    case {'.nii','.NII'},
+        % Do nothing
 
-n = [];
-if ~isempty(t),
-    t = t(1);
-    n1 = ext((t+1):end);
-    if ~isempty(n1),
-        n   = str2num(n1);
-        ext = ext(1:(t-1));
-    end;
-end;
-p = fullfile(pth,[nam   ext]);
-
-if strcmpi(ext,'.nii') || (strcmpi(ext,'.img') && ...
-    (exist(fullfile(pth,[nam '.hdr']),'file') || exist(fullfile(pth,[nam '.HDR']),'file'))),
-	if isempty(n), V = spm_vol_nifti(p);
-	else           V = spm_vol_nifti(p,n); end;
-    
-    if isempty(n) && length(V.private.dat.dim) > 3
-        V0(1) = V;
-        for i = 2:V.private.dat.dim(4)
-            V0(i) = spm_vol_nifti(p, i);
+    case {'.img','.IMG'},
+        if ~exist(fullfile(pth,[nam '.hdr']),'file') && ~exist(fullfile(pth,[nam '.HDR']),'file'),
+            existance_error_message(fullfile(pth,[nam '.hdr'])),
+            error('File "%s" does not exist.', fullfile(pth,[nam '.hdr']));
         end
-        V = V0;
-    end
 
-	if ~isempty(V), return; end;
+    case {'.hdr','.HDR'},
+        ext = '.img';
+        p   = fullfile(pth,[nam ext]);
+        if ~exist(p,'file'),
+            existance_error_message(p),
+            error('File "%s" does not exist.', p);
+        end
 
-else % Try other formats
-    error('%s: Unknown file format.',p);
+    otherwise,
+        error('File "%s" is not of a recognised type.', p);
+end
+
+if isempty(n),
+    V = spm_vol_nifti(p);
+else
+    V = spm_vol_nifti(p,n);
 end;
+    
+if isempty(n) && length(V.private.dat.dim) > 3
+    V0(1) = V;
+    for i = 2:V.private.dat.dim(4)
+        V0(i) = spm_vol_nifti(p, i);
+    end
+    V = V0;
+end
+if ~isempty(V), return; end;
 return;
-
+%_______________________________________________________________________
 
 %_______________________________________________________________________
 function hread_error_message(q)
-
 str = {...
 	'Error reading information on:',...
 	['        ',spm_str_manip(q,'k40d')],...
 	' ',...
 	'Please check that it is in the correct format.'};
-
 spm('alert*',str,mfilename,sqrt(-1));
-
 return;
 %_______________________________________________________________________
+function existance_error_message(q)
+str = {...
+        'Unable to find file:',...
+        ['        ',spm_str_manip(q,'k40d')],...
+        ' ',...
+        'Please check that it exists.'};
+spm('alert*',str,mfilename,sqrt(-1));
+return;
+
