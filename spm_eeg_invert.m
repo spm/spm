@@ -156,7 +156,7 @@ YY    = W'*spm_cat(Y(:))'*spm_cat(Y(:))*W;
  
 % project onto temporal modes
 %--------------------------------------------------------------------------
-S     = spm_svd(YY,1/16);
+[S u] = spm_svd(YY,1/16);
 T     = T*S;                                     % temporal projector
 iV    = inv(T'*qV*T);                            % precision (mode)
 Vq    = T*iV*T';                                 % precision (time)
@@ -167,7 +167,8 @@ for i = 1:Nl
     end
 end
 fprintf('Using %i temporal modes\n',Nr)
- 
+fprintf('accounting for %0.2f percent variance\n',full(100*trace(u)/trace(YY)))
+
 % sample covariance over time (adjusting for different Lead-fields)
 %--------------------------------------------------------------------------
 G     = L{1};
@@ -183,19 +184,6 @@ for i = 1:Nl
     end
 end
 AY    = spm_cat(AY);
- 
- 
-% Project to channel modes (U)
-%--------------------------------------------------------------------------
-U     = spm_svd(G*G',1/16384);
-try
-    U = U(:,1:Nm);
-end
-Nm    = size(U,2);
-AY    = U'*AY;
-YY    = U'*YY*U;
-G     = U'*G;
-fprintf('Using %i spatial modes\n',Nm)
  
  
 % Restrict source space
@@ -219,27 +207,36 @@ Ns    = length(Is);
  
 % Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
 %==========================================================================
-if ~strcmp(type,'IID')
- 
-    fprintf('Computing Green''s function from graph Laplacian:')
-    %----------------------------------------------------------------------
-    A     = spm_eeg_inv_meshdist(vert,face,0);
-    GL    = A - spdiags(sum(A,2),0,Nd,Nd);
-    GL    = GL*s/2;
-    Qi    = speye(Nd,Nd);
-    QG    = sparse(Nd,Nd);
-    for i = 1:8
-        QG = QG + Qi;
-        Qi = Qi*GL/i;
-    end
-    clear Qi
-    QG    = QG.*(QG > exp(-8));
-    QG    = QG*QG;
-    QG    = QG(Is,Is);
-    fprintf(' - done\n')
-    
+
+fprintf('Computing Green''s function from graph Laplacian:')
+%--------------------------------------------------------------------------
+A     = spm_eeg_inv_meshdist(vert,face,0);
+GL    = A - spdiags(sum(A,2),0,Nd,Nd);
+GL    = GL*s/2;
+Qi    = speye(Nd,Nd);
+QG    = sparse(Nd,Nd);
+for i = 1:8
+    QG = QG + Qi;
+    Qi = Qi*GL/i;
 end
- 
+clear Qi
+QG    = QG.*(QG > exp(-8));
+QG    = QG*QG;
+QG    = QG(Is,Is);
+fprintf(' - done\n')
+
+
+% Project to channel modes (U)
+%--------------------------------------------------------------------------
+U     = spm_svd(G*QG*G',exp(-16));
+try
+    U = U(:,1:Nm);
+end
+Nm    = size(U,2);
+AY    = U'*AY;
+YY    = U'*YY*U;
+G     = U'*G;
+fprintf('Using %i spatial modes\n',Nm)
  
 % covariance components
 %==========================================================================
@@ -371,17 +368,7 @@ switch(type)
     QP{end + 1} = qp;
     
 end
- 
-% eliminate sources with low [empirical] prior variance
-%--------------------------------------------------------------------------
-%pV    = diag(QP);
-%i     = find(pV > max(pV)/exp(16));
-%Is    = Is(i);
-%QP    = QP(i,i);
-%for j = 1:Nl
-%    L{j} = L{j}(:,i);
-%end
-%Ns    = length(Is);
+
  
 % re-estimate (one subject at a time)
 %==========================================================================

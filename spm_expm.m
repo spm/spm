@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_expm.m 668 2006-10-26 16:35:28Z karl $
+% $Id: spm_expm.m 984 2007-10-29 19:36:49Z karl $
 
 
 % expm(J) use Pade approximation
@@ -53,6 +53,7 @@ if nargin == 1
 		E = E*E;
 	end
 	x     = E;
+    
 else
 
 	% compute y = expm(J)*x = (1 + J + J*J/2! + J*J*J/3!  + ...)*x

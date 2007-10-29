@@ -1,6 +1,6 @@
-function [y] = spm_int_J(P,M,U)
-% integrates a MIMO nonlinear system using the Jacobian
-% FORMAT [y] = spm_int_J(P,M,U)
+function [y] = spm_int_B(P,M,U)
+% integrates a MIMO nonlinear system using a bilinear Jacobian
+% FORMAT [y] = spm_int_B(P,M,U)
 % P   - model parameters
 % M   - model structure
 % U   - input structure or matrix
@@ -78,17 +78,11 @@ end
 %--------------------------------------------------------------------------
 try
     g   = fcnchk(M.g,'x','u','P','M');
-catch
-    g   = [];
 end
 
 % Initial states and inputs
 %--------------------------------------------------------------------------
-try
-    u = U.u(1,:);
-catch
-    u = sparse(1,M.m);
-end
+u = U.u(1,:);
 try
     try
         x   = feval(M.x0,P,M,U);
@@ -101,37 +95,45 @@ catch
     M.x = x;
 end
 
+% get Jacobian and its derivatives
+%--------------------------------------------------------------------------
+[dJdx J]  = spm_diff(f,x,u,P,M,[1 1]);
+[dJdu J]  = spm_diff(f,x,u,P,M,[1 2]);
 
 
 % integrate
 %==========================================================================
+x0    = spm_vec(M.x);
 for i = 1:ns
 
     % input
     %----------------------------------------------------------------------
-    try
-        u  = U.u(i,:);
-    end
+    u     = U.u(i,:);
+
+    % motion
+    %----------------------------------------------------------------------
+    fx    = f(x,u,P,M);
 
     % dx(t)/dt and Jacobian df/dx
     %----------------------------------------------------------------------
-    try
-        [fx dfdx] = f(x,u,P,M);
-    catch
-        fx        = f(x,u,P,M);
-        dfdx      = spm_diff(f,x,u,P,M,1);
+    dx    = spm_vec(x) - x0;
+    dfdx  = J;
+    for j = 1:length(dJdx)
+        dfdx = dfdx + dJdx{j}*dx(j);
+    end
+    for j = 1:length(dJdu)
+        dfdx = dfdx + dJdx{j}*u(j);
     end
 
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
-    x  = spm_vec(x) + spm_dx(dfdx,fx,dt);
-    x  = spm_unvec(x,M.x);
+    x  = spm_unvec(spm_vec(x) + spm_dx(dfdx,fx,dt),M.x);
 
     % output - implement g(x)
     %----------------------------------------------------------------------
-    if length(g)
+    try
         y(:,i) = spm_vec(g(x,u,P,M));
-    else
+    catch
         y(:,i) = spm_vec(x);
     end
 
