@@ -20,7 +20,7 @@ function [Phi,DPhi] = spm_dartel_integrate(U,t,K)
 %  Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_integrate.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_dartel_integrate.m 983 2007-10-29 15:56:35Z john $
 
 if isa(U,'char'), U = nifti(U); end;
 if isa(U,'nifti'), U = U.dat; end;

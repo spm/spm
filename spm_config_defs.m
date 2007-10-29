@@ -4,7 +4,7 @@ function conf = spm_config_defs
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_defs.m 846 2007-07-10 14:17:17Z john $
+% $Id: spm_config_defs.m 983 2007-10-29 15:56:35Z john $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -122,7 +122,7 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
-if spm_matlab_version_chk('7') <= 0 && exist('spm_dartel_integrate')==2,
+if spm_matlab_version_chk('7') <= 0,
     ffield = files('Flow field','flowfield','nifti',[1 1]);
     ffield.ufilter = '^u_.*';
     ffield.help = {...
