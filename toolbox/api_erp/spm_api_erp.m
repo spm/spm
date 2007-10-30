@@ -671,7 +671,7 @@ handles = reset_Callback(hObject, eventdata, handles);
 % -------------------------------------------------------------------------
 try
     Ep  = handles.DCM.Ep;
-    Str = questdlg('intialise with revious esimates');
+    Str = questdlg('initialize with previous estimates');
     if strcmp(Str,'Yes')
         handles.DCM.M.P = Ep;
     elseif strcmp(Str,'No')

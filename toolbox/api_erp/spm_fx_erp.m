@@ -67,13 +67,16 @@ end
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-
 E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
 G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
 D = [2 32];              % propogation delays (intrinsic, extrinsic)
 H = [4 32];              % receptor densities (excitatory, inhibitory)
 T = [8 16];              % synaptic constants (excitatory, inhibitory)
 R = [2 1]/3;             % parameters of static nonlinearity
+
+% test for free parameters on intrinsic connections
+%--------------------------------------------------------------------------
+try, G = G.*exp(P.G); end
 
 
 % exponential transform to ensure positivity constraints
@@ -104,9 +107,9 @@ dSdx = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 %--------------------------------------------------------------------------
 [U N] = feval(fu,t,P,M);
 U     = C*U;
-if size(N,1) == 1
+try
     U = U + C*N;
-else
+catch
     U = U + N;
 end
 

@@ -1,4 +1,4 @@
-function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
+function [varargout] = spm_sep_priors(A,B,C,dipfit,u)
 % prior moments for a neural-mass model of erps
 % FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
 % FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
@@ -69,8 +69,12 @@ n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/8;                % time constants
+E.T   = log(n1) - 1;    V.T = n1/8;                % time constants
 E.H   = log(n1);        V.H = n1/8;                % synaptic density
+
+% set intrinic [excitatory] connection strengths
+%--------------------------------------------------------------------------
+E.G   = [-1/2 1/4 0 0]; V.G = ones(4,1)/8;    % synaptic density
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
@@ -110,8 +114,8 @@ for i = 1:length(B)
     V.B{i} = B{i};
     Q      = Q | B{i};
 end
-E.C        = log(C + eps);                         % where inputs enter
-V.C        = C;
+E.C        = kron(ones(1,u),log(C + eps));         % where inputs enter
+V.C        = exp(E.C);
 
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------
@@ -120,7 +124,7 @@ V.D        = Q/8;
 
 % set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------
-E.R        = sparse(1,1,1,u,3);  V.R   = ones(u,1)*[1 1/16 1/16];
+E.R        = ones(u,1)*[1 0 -4];  V.R   = ones(u,1)*[1 1/16 1/16];
 
 % background fluctuations
 %--------------------------------------------------------------------------

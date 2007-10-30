@@ -24,9 +24,9 @@ function [U,B] = spm_erp_u(t,P,M)
 U     = sparse(1,length(t));
 tms   = t*1000;
 for i = 1:length(M.ons)
-   delay = M.ons(i)*exp(P.R(i,2));
-   scale = exp(P.R(i,3))*64;
-   U     = U + 32*P.R(i,1)*exp(-(tms - delay).^2/scale);
+   delay  = M.ons(i)*exp(P.R(i,2));
+   scale  = 64*exp(P.R(i,3));
+   U(i,:) = 32*P.R(i,1)*exp(-(tms - delay).^2/scale);
 end
 
 % Endogenous fluctuations (if P.N is specified)
