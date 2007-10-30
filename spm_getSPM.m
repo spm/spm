@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 821 2007-05-29 10:57:48Z will $
+% $Id: spm_getSPM.m 986 2007-10-30 19:04:21Z guillaume $
 
 
 %-GUI setup
@@ -350,7 +350,7 @@ if nc>1 & n>1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
 
     SPM.xCon = xCon;
 end % if nc>1...
-
+SPM.xCon = xCon;
 
 %-Get contrasts for masking
 %-----------------------------------------------------------------------
