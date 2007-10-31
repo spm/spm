@@ -1,4 +1,4 @@
-function dartel3
+function varargout = dartel3(varargin)
 % DARTEL 3D image registration stuff
 %
 %_______________________________________________________________________
@@ -192,7 +192,8 @@ function dartel3
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: dartel3.m 980 2007-10-25 16:08:54Z john $
+% $Id: dartel3.m 988 2007-10-31 16:59:43Z john $
 
-error('Not compiled for this platform (see make.m).');
+error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
+
 

@@ -1,4 +1,4 @@
-function optimN
+function varargout = optimN(varargin)
 % Full multigrid matrix solver stuff (circulant boundaries)
 %_______________________________________________________________________
 %
@@ -63,7 +63,7 @@ function optimN
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: optimN.m 980 2007-10-25 16:08:54Z john $
+% $Id: optimN.m 988 2007-10-31 16:59:43Z john $
 
-error('Not compiled for this platform (see make.m).');
+error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

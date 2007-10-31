@@ -7,7 +7,7 @@ function spm_dartel_template(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_template.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_dartel_template.m 988 2007-10-31 16:59:43Z john $
 
 st = job.settings;
 K  = st.param(1).K;
@@ -33,9 +33,14 @@ dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
 NU = cat(2,NF(1,:).NI);
 t  = zeros([dm n1+1],'single');
+tname = deblank(job.settings.template);
 for i=1:n2,
     [pth,nam,ext]   = fileparts(NU(i).dat.fname);
-    NU(i).dat.fname = fullfile(pth,['u_' nam '.nii']);
+    if ~isempty(tname),
+        NU(i).dat.fname = fullfile(pth,['u_' nam '_' tname '.nii']);
+    else
+        NU(i).dat.fname = fullfile(pth,['u_' nam '.nii']);
+    end
     NU(i).dat.dim   = [dm 1 3];
     NU(i).dat.dtype = 'float32-le';
     NU(i).dat.scl_slope = 1;
@@ -91,17 +96,19 @@ else
     end
 end
 
-NG = NF(1,1).NI;
-NG.descrip       = sprintf('Avg of %d', n2);
-[tdir,nam,ext]   = fileparts(job.images{1}{1});
-NG.dat.fname     = fullfile(tdir,'Template0.nii');
-NG.dat.dim       = [dm n1];
-NG.dat.dtype     = 'float32-le';
-NG.dat.scl_slope = 1;
-NG.dat.scl_inter = 0;
-NG.mat0          = NG.mat;
-create(NG);
-NG.dat(:,:,:,:)  = g(:,:,:,1:n1);
+if ~isempty(tname),
+    NG = NF(1,1).NI;
+    NG.descrip       = sprintf('Avg of %d', n2);
+    [tdir,nam,ext]   = fileparts(job.images{1}{1});
+    NG.dat.fname     = fullfile(tdir,[tname, '_0.nii']);
+    NG.dat.dim       = [dm n1];
+    NG.dat.dtype     = 'float32-le';
+    NG.dat.scl_slope = 1;
+    NG.dat.scl_inter = 0;
+    NG.mat0          = NG.mat;
+    create(NG);
+    NG.dat(:,:,:,:)  = g(:,:,:,1:n1);
+end
 
 it0 = 0;
 for it=1:numel(st.param),
@@ -152,9 +159,11 @@ for it=1:numel(st.param),
             end
         end
         clear t
-        NG.dat.fname    = fullfile(tdir,['Template' num2str(it) '.nii']);
-        create(NG);
-        NG.dat(:,:,:,:) = g(:,:,:,1:n1);
+        if ~isempty(tname),
+            NG.dat.fname    = fullfile(tdir,[tname '_' num2str(it) '.nii']);
+            create(NG);
+            NG.dat(:,:,:,:) = g(:,:,:,1:n1);
+        end
         drawnow
     end;
 end;

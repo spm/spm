@@ -1,4 +1,4 @@
-function optimNn
+function varargout = optimNn(varargin)
 % Full multigrid matrix solver stuff (zero gradient at boundaries)
 %_______________________________________________________________________
 %
@@ -63,7 +63,7 @@ function optimNn
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: optimNn.m 980 2007-10-25 16:08:54Z john $
+% $Id: optimNn.m 988 2007-10-31 16:59:43Z john $
 
-error('Not compiled for this platform (see make.m).');
+error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

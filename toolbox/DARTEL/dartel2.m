@@ -1,4 +1,4 @@
-function dartel2
+function varargout = dartel2(varargin)
 % DARTEL 2D image registration stuff
 %
 % These functions are useful for testing out new ideas in 2D, but not so
@@ -173,5 +173,7 @@ function dartel2
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: dartel2.m 964 2007-10-19 16:35:34Z john $
+% $Id: dartel2.m 988 2007-10-31 16:59:43Z john $
+
+error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 
