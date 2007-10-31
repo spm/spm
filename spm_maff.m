@@ -21,7 +21,7 @@ function [M,h] = spm_maff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff.m 669 2006-10-27 18:19:08Z karl $
+% $Id: spm_maff.m 987 2007-10-31 15:04:29Z john $
 
 [buf,MG] = loadbuf(varargin{1:2});
 M        = affreg(buf, MG, varargin{2:end});
@@ -52,7 +52,7 @@ spm_progress_bar('Clear');
 warning off
 for z=1:length(x3),
     gz         = g(:,:,z);
-    buf(z).msk = gz>mn;
+    buf(z).msk = gz>mn & isfinite(gz);
     buf(z).nm  = sum(buf(z).msk(:));
     gz         = double(gz(buf(z).msk));
     buf(z).g   = uint8(round(gz*(255/mx)));

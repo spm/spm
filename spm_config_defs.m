@@ -4,7 +4,7 @@ function conf = spm_config_defs
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_defs.m 983 2007-10-29 15:56:35Z john $
+% $Id: spm_config_defs.m 987 2007-10-31 15:04:29Z john $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -102,8 +102,13 @@ hmatname = {[...
 'Specify the _sn.mat to be used.']};
 
 himg = {[...
-'Specify the image file on which to base the dimensions, orientation etc ',...
-'of the inverse.']};
+'Specify the image file on which to base the dimensions, orientation etc.']};
+
+hid = {[...
+'This option generates an identity transform, but this can be useful for '...
+'changing the dimensions of the resulting deformation (and any images that '...
+'are generated from it).  Dimensions, orientation etc are derived from '...
+'an image.']};
 
 def          = files('Deformation Field','def','.*y_.*\.nii$',1);
 def.help     = himgr;
@@ -121,6 +126,11 @@ bb.help      = hbb;
 
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
+
+img          = files('Image to base Id on','space','image',1);
+img.help     = himg;
+id           = branch('Identity','id',{img});
+id.help      = hid;
 
 if spm_matlab_version_chk('7') <= 0,
     ffield = files('Flow field','flowfield','nifti',[1 1]);
@@ -154,9 +164,9 @@ if spm_matlab_version_chk('7') <= 0,
     drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
     drtl.help = {'Imported DARTEL flow field.'};
     %------------------------------------------------------------------------
-    other = {sn2def,drtl,def};
+    other = {sn2def,drtl,def,id};
 else
-    other = {sn2def,def};
+    other = {sn2def,def,id};
 end
 
 img          = files('Image to base inverse on','space','image',1);

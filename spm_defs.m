@@ -8,7 +8,7 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 951 2007-10-16 18:18:43Z john $
+% $Id: spm_defs.m 987 2007-10-31 15:04:29Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -59,6 +59,8 @@ case {'sn2def'}
     [Def,mat] = get_sn2def(job.(fn));
 case {'inv'}
     [Def,mat] = get_inv(job.(fn));
+case {'id'}
+    [Def,mat] = get_id(job.(fn));
 otherwise
     error('Unrecognised job type');
 end;
@@ -189,7 +191,20 @@ end
 Def{1} = y(:,:,:,1)*M(1,1) + y(:,:,:,2)*M(1,2) + y(:,:,:,3)*M(1,3) + M(1,4);
 Def{2} = y(:,:,:,1)*M(2,1) + y(:,:,:,2)*M(2,2) + y(:,:,:,3)*M(2,3) + M(2,4);
 Def{3} = y(:,:,:,1)*M(3,1) + y(:,:,:,2)*M(3,2) + y(:,:,:,3)*M(3,3) + M(3,4);
+%_______________________________________________________________________
 
+%_______________________________________________________________________
+function [Def,mat] = get_id(job)
+% Get an identity transform based on an image volume.
+N   = nifti(job.space{1});
+d   = [size(N.dat),1];
+d   = d(1:3);
+mat = N.mat;
+Def = cell(3,1);
+[y1,y2,y3] = ndgrid(1:d(1),1:d(2),1:d(3));
+Def{1} = single(y1*mat(1,1) + y2*mat(1,2) + y3*mat(1,3) + mat(1,4));
+Def{2} = single(y1*mat(2,1) + y2*mat(2,2) + y3*mat(2,3) + mat(2,4));
+Def{3} = single(y1*mat(3,1) + y2*mat(3,2) + y3*mat(3,3) + mat(3,4));
 %_______________________________________________________________________
 
 %_______________________________________________________________________
