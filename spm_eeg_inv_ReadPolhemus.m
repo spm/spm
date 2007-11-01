@@ -27,7 +27,7 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_ReadPolhemus.m 990 2007-11-01 16:08:22Z stefan $
 
 
 
@@ -86,7 +86,7 @@ end
 
 % convert from cm to mm
 %--------------------------------------------------------------------------
-NZ    = mean(NZ); LE = mean(LE); RE = mean(RE);
+NZ    = mean(NZ,1); LE = mean(LE,1); RE = mean(RE,1);
 fid   = 10*[NZ; LE; RE]; 
 
 % read sensor lcoations or headshape locations

@@ -50,13 +50,13 @@ D.inv{val}.mesh.msk_cortex   = fullfile(Cdir,'smri_cortex.img');
 %--------------------------------------------------------------------------
 switch D.inv{val}.mesh.Msize
     case 1
-        Tmesh = load('wmeshTemplate_3004d.mat');
+        Tmesh = load(fullfile(Cdir,'wmeshTemplate_3004d.mat'));
     case 2
-        Tmesh = load('wmeshTemplate_4004d.mat');
+        Tmesh = load(fullfile(Cdir,'wmeshTemplate_4004d.mat'));
     case 3
-        Tmesh = load('wmeshTemplate_5004d.mat');
+        Tmesh = load(fullfile(Cdir,'wmeshTemplate_5004d.mat'));
     case 4
-        Tmesh = load('wmeshTemplate_7204d.mat');
+        Tmesh = load(fullfile(Cdir,'wmeshTemplate_7204d.mat'));
 end
 
 % Canonical cortical mesh
@@ -71,13 +71,13 @@ D.inv{val}.mesh.tess_ctx.face    = uint16(Tmesh.face);
 
 % Scalp mesh from the template
 %----------------------------------------------------------------------
-Tmesh      = load('wmeshTemplate_scalp.mat');
+Tmesh      = load(fullfile(Cdir,'wmeshTemplate_scalp.mat'));
 D.inv{val}.mesh.tess_scalp.vert  = Tmesh.vert;
 D.inv{val}.mesh.tess_scalp.face  = uint16(Tmesh.face);
 
 % Skull mesh from the template
 %----------------------------------------------------------------------
-Tmesh      = load('wmeshTemplate_skull.mat');
+Tmesh      = load(fullfile(Cdir,'wmeshTemplate_skull.mat'));
 D.inv{val}.mesh.tess_iskull.vert = Tmesh.vert;
 D.inv{val}.mesh.tess_iskull.face = uint16(Tmesh.face);
 
