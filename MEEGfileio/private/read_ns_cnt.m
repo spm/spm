@@ -210,11 +210,13 @@ r.event.time(i)=[];
 try, ldraw=r.ldraw; catch, ldraw=0; end;
 
 %%%%NEW CHANGE TO READ 32 BIT
-if r.format == 16
-    df = 'short';
-elseif r.format == 32
+
+if isfield(r, 'format') && r.format == 32
     df = 'long';
+else
+    df = 'short';
 end
+
 
 if ~isempty(ldchan)
    if length(ldchan)==r.nchannels
