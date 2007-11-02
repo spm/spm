@@ -8,11 +8,11 @@ function spm_defs(job)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 987 2007-10-31 15:04:29Z john $
+% $Id: spm_defs.m 991 2007-11-02 14:01:28Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
-apply_def(Def,mat,strvcat(job.fnames));
+apply_def(Def,mat,strvcat(job.fnames),job.interp);
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -252,8 +252,10 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function apply_def(Def,mat,fnames)
+function apply_def(Def,mat,fnames,intrp)
 % Warp an image or series of images according to a deformation field
+
+intrp = [intrp*[1 1 1], 0 0 0];
 
 for i=1:size(fnames,1),
     V = spm_vol(fnames(i,:));
@@ -267,13 +269,14 @@ for i=1:size(fnames,1),
                 'mat',mat,...
                 'n',V.n,...
                 'descrip',V.descrip);
+    C  = spm_bsplinc(V,intrp);
     Vo = spm_create_vol(Vo);
     for j=1:size(Def{1},3)
         d0    = {double(Def{1}(:,:,j)), double(Def{2}(:,:,j)),double(Def{3}(:,:,j))};
         d{1}  = M(1,1)*d0{1}+M(1,2)*d0{2}+M(1,3)*d0{3}+M(1,4);
         d{2}  = M(2,1)*d0{1}+M(2,2)*d0{2}+M(2,3)*d0{3}+M(2,4);
         d{3}  = M(3,1)*d0{1}+M(3,2)*d0{2}+M(3,3)*d0{3}+M(3,4);
-        dat   = spm_sample_vol(V,d{:},1);
+        dat   = spm_bsplins(C,d{:},intrp);
         Vo    = spm_write_plane(Vo,dat,j);
     end;
 end;
