@@ -4,7 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_dartel.m 991 2007-11-02 14:01:28Z john $
+% $Id: spm_config_dartel.m 998 2007-11-07 17:30:45Z john $
 
 if spm_matlab_version_chk('7') < 0,
     job = struct('type','const',...
@@ -342,8 +342,12 @@ for i=1:numel(params1.val),
     params1.val{i}.val{1}.help = hlp1;
     params1.val{i}.help        = hlp;
 end
-settings1 = settings;
-settings1.val{3} = params1;
+settings1  = branch('Settings','settings',{code,form,params1,fmg});
+settings1.help = {[...
+'Various settings for the optimisation. '...
+'The default values should work reasonably well for aligning tissue '...
+'class images together.']};
+
 warp1        = branch('Run DARTEL (existing Templates)','warp1',{data,settings1});
 warp1.prog   = @spm_dartel_warp;
 warp1.check  = @check_runjob;
@@ -564,7 +568,7 @@ rform.help = {[...
 'form of this energy term is specified. '...
 'Three different forms of regularisation can currently be used.']};
 rparam = entry('Reg params','rparam','e',[1 3]);
-rparam.val = {[0.25 0.125 1e-6]};
+rparam.val = {[0.125 0.0625 1e-6]};
 rparam.help = {...
 ['For linear elasticity, the parameters are `mu'', `lambda'' and `id''. ',...
  'For membrane and bending energy, '...
