@@ -91,7 +91,11 @@ switch dtclass
 case {'double', 'logical', 'single', 'uint8', 'uint16', 'uint32', 'uint64', ...
       'int8', 'int16', 'int32', 'int64', 'char'}
     if isempty(dt),
-        dtstr={{'[]'}};
+       if flags.dval <= 1
+           dtstr={{'[]'}};
+       elseif flags.dval == 2
+           dtstr={{''}};
+       end;
     else
         if (flags.dval == 1) || strcmp(dtclass, 'char')
             dtstr=textscan(evalc('format compact;format long g;disp(full(dt));format'), '%s', ...
