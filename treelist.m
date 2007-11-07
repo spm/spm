@@ -56,15 +56,21 @@ function treelist(varargin)
           flags.fid = fopen(flags.fname,'w');
   end;        
   for n=1:nvars,
-    v=evalin('caller',varargin{n});
+      try
+          v = evalin('caller',varargin{n});
+          iname = varargin{n};
+      catch
+          v = varargin{n};
+          iname = inputname(n);
+      end;
     % for documentation, list things twice if creating MATLAB code and
     % writing to a file - first listing the variable structure only
     if flags.dval==2 && flags.fid > 2
             flags1=flags;
             flags1.dval=0;
-            treelistsub(v,varargin{n},'','',flags1);
+            treelistsub(v,iname,'','',flags1);
     end;
-    treelistsub(v,varargin{n},'','',flags);
+    treelistsub(v,iname,'','',flags);
   end
   if flags.fid > 2
           fclose(flags.fid);
@@ -85,11 +91,7 @@ switch dtclass
 case {'double', 'logical', 'single', 'uint8', 'uint16', 'uint32', 'uint64', ...
       'int8', 'int16', 'int32', 'int64', 'char'}
     if isempty(dt),
-	if flags.dval <= 1
-	    dtstr={{'[]'}};
-	elseif flags.dval == 2
-	    dtstr={{''}};
-	end;
+        dtstr={{'[]'}};
     else
         if (flags.dval == 1) || strcmp(dtclass, 'char')
             dtstr=textscan(evalc('format compact;format long g;disp(full(dt));format'), '%s', ...
