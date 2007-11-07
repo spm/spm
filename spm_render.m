@@ -33,13 +33,13 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_render.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_render.m 994 2007-11-07 10:41:18Z volkmar $
 
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-	SPMid = spm('FnBanner',mfilename,'$Rev: 946 $');
+	SPMid = spm('FnBanner',mfilename,'$Rev: 994 $');
 	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
 	num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -72,8 +72,17 @@ if nargin < 2,
 	end;
 	if isfinite(brt),
 		brt = spm_input('Brighten blobs',1,'none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
+		col=eye(3);
+		% ask for custom colors & get rgb values
+		%-----------------------------------------------------------------------		
+		if spm_input('Which colors?','!+1','b',{'RGB','Custom'},[0 1])		    
+		    for i = 1:num,
+			col(i,:) = uisetcolor(sprintf('Color of blob set %d',i),col(i,:));
+		    end;
+		end;
 	end;
 end;
+
 
 
 
@@ -246,10 +255,11 @@ else,
 
 		rgb = zeros([size(ren) 3]);
 		tmp = ren.*max(1-X{1}-X{2}-X{3},0);
-		rgb(:,:,1) = tmp + X{1};
-		rgb(:,:,2) = tmp + X{2};
-		rgb(:,:,3) = tmp + X{3};
-
+		for k = 1:3
+		    rgb(:,:,k) = tmp + X{1}*col(k,1) + X{2}*col(k,2) +X{3}*col(k,3);
+		end
+		rgb(rgb>1) = 1;		    
+		
 		ax=axes('Parent',Fgraph,'units','normalized',...
 			'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
 			'Visible','off');
