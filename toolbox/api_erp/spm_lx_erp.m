@@ -22,8 +22,8 @@ function [L] = spm_lx_erp(P,M)
 
 % get pyramidal cell indices in x
 %--------------------------------------------------------------------------
-n  = length(M.pE.A{1});
-i  = [1:n] + M.n - n;
+n      = length(M.pE.A{1});
+i      = [1:n] + M.n - n;
 
 % parameterised lead field ECD
 %--------------------------------------------------------------------------

@@ -4,21 +4,37 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % requires:
 % 
 %       DCM.xY.Dfile
+%       DCM.xY.Ic
 %       DCM.M.dipfit.sensorfile - 'ECD'
-%       DCM.M.dipfit.type
-%       DCM.M.dipfit.L.pos
+%       DCM.M.dipfit.type       - 'ECD (EEG)','ECD (MEG)','Imaging','LFP'
+%       DCM.M.dipfit.L.pos or DCM.Lpos
 %__________________________________________________________________________
 % Stefan Kiebel, Karl Friston
 % $Id: spm_dcm_erp_dipfit.m 668 2006-10-26 16:35:28Z karl $
 
-% Get data filename
+% Get data filename and good channels
 %--------------------------------------------------------------------------
 try
     DCM.xY.Dfile;
+    DCM.M.dipfit.Ic = DCM.xY.Ic;
 catch
     errordlg('Please specify data');
     error('')
 end
+
+% Get source locations
+%--------------------------------------------------------------------------
+try
+    DCM.M.dipfit.L.pos = DCM.Lpos;
+catch
+    try
+        DCM.Lpos = DCM.M.dipfit.L.pos;
+    catch
+        errordlg({'Please specify source locations',...
+                  'in DCM.Lpos'})
+    end
+end
+
 
 % Polhemus file skip
 %==========================================================================
@@ -30,34 +46,23 @@ catch
 end
 %==========================================================================
 
-% get model type
-%--------------------------------------------------------------------------
-switch DCM.options.type
-    case 1
-        DCM.M.dipfit.type = 'ECD (EEG)';
-    case 2
-        DCM.M.dipfit.type = 'ECD (MEG)';
-    case 3
-        DCM.M.dipfit.type = 'Imaging';
-    case 4
-        DCM.M.dipfit.type = 'LFP';
-    otherwise
-        error('unkown spatial model')
-end
 
-switch DCM.M.dipfit.type
+% D - SPM data structure
+%==========================================================================
+D       = spm_eeg_ldata(DCM.xY.Dfile);
+
+switch DCM.options.type
 
     % EEG - ECD
     %----------------------------------------------------------------------
-    case {'ECD (EEG)'}
+    case 1
+    if strcmp(D.modality,'EEG')
 
         % try to get sen_reg and fid_reg from D.inv
         %------------------------------------------------------------------
         try
-            D       = spm_eeg_ldata(DCM.xY.Dfile);
             sen_reg = D.inv{1}.datareg.sens_coreg;
             fid_reg = D.inv{1}.datareg.fid_coreg;
-            
         catch
 
             % Get sensor file
@@ -113,35 +118,41 @@ switch DCM.M.dipfit.type
 
         % evaluate dipfit and save in M
         %------------------------------------------------------------------
-        DCM.M.dipfit = spm_dipfit(DCM.M.dipfit,sen_reg,fid_reg);
+        DCM.M.dipfit       = spm_dipfit(DCM.M.dipfit,sen_reg,fid_reg);
+        DCM.M.dipfit.type  = 'ECD (EEG)';
+    
 
 
-        % MEG - ECD
-        %------------------------------------------------------------------
-    case {'ECD (MEG)'}
+    % MEG - ECD
+    %----------------------------------------------------------------------
+    else
 
         % not much to do because the sensors location/orientations were
         % already read at the time of conversion.
         %------------------------------------------------------------------
-        D                  = spm_eeg_ldata(DCM.xY.Dfile);
         DCM.M.dipfit.vol.r = [85];
         DCM.M.dipfit.vol.o = [0 0 0];
         DCM.M.grad         = D.channels.grad;
+        DCM.M.dipfit.type  = 'ECD (MEG)';
         
-        % Imaging (distributed source reconstruction)
-        %------------------------------------------------------------------
-    case {'Imaging'}
-
-        % D - SPM data structure
-        %==================================================================
-        D       = spm_eeg_ldata(DCM.xY.Dfile);
+    end
+        
+    % Imaging (distributed source reconstruction)
+    %----------------------------------------------------------------------
+    case 2
 
         % Load Gain or Lead field matrix
         %------------------------------------------------------------------
         try
             DCM.val = D.val;
             gainmat = D.inv{D.val}.forward.gainmat;
-            L       = load(gainmat);
+            try
+                L       = load(gainmat);
+            catch
+                [p,f]   = fileparts(gainmat);
+                L       = load(f);
+                gainmat = fullfile(pwd,f);
+            end
             name    = fieldnames(L);
             L       = sparse(getfield(L, name{1}));
         catch
@@ -152,22 +163,17 @@ switch DCM.M.dipfit.type
 
         % centers
         %------------------------------------------------------------------
-        try
-            xyz = DCM.M.dipfit.L.pos;
-            Np  = size(xyz,2);
-        catch
-            errordlg({'Please specify cortical centres',...
-                      'in DCM.M.dipfit.L.pos'})
-            error('')
-        end
+        xyz = DCM.M.dipfit.L.pos;
+        Np  = size(xyz,2);
+
 
         % parameters
         %==================================================================
 
         % defaults: Nm = 8; number of modes per region
         %------------------------------------------------------------------
-        try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;          end
-        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;           end
+        try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;    end
+        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;     end
 
         % Compute spatial basis (eigenmodes of lead field)
         %==================================================================
@@ -195,7 +201,7 @@ switch DCM.M.dipfit.type
         DCM.M.dipfit.Nm      = Nm;                   % modes per region
         DCM.M.dipfit.Nd      = length(vert);         % number of dipoles
         DCM.M.dipfit.gainmat = gainmat;              % Lead field filename
-
+        DCM.M.dipfit.type    = 'Imaging';
 end
 
 return

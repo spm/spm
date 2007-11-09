@@ -34,7 +34,7 @@ if spm_input('Reconstruction','+1','b',{'Classical|DCM'},[0 1],1)
         D.inv{val}.DCMfile = DCMfile;
         DCM.val            = val;
         DCM.xY.Dfile       = fullfile(D.path,D.fname);
-        DCM.options.type   = 3;
+        DCM.options.type   = 2;
         DCM.name           = DCMfile;
         
         % an call API to specify DCM

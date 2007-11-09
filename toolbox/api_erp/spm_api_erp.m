@@ -4,7 +4,7 @@ function varargout = spm_api_erp(varargin)
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
 
-% Last Modified by GUIDE v2.5 04-Sep-2007 19:16:38
+% Last Modified by GUIDE v2.5 08-Nov-2007 12:12:28
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -37,7 +37,6 @@ elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
     catch
         disp(lasterr);
     end
-
 end
 
 
@@ -54,7 +53,7 @@ try
     DCM         = varargin{1};
     [p,f]       = fileparts(DCM.name);
 catch
-    [f,p]       = uigetfile('*.mat','please select DCM file');
+    [f,p]       = uigetfile('*.mat','please select DCM file'); cd(p)
     name        = fullfile(p,f);
     DCM         = load(name,'-mat');
     DCM         = DCM.DCM;
@@ -63,25 +62,71 @@ catch
     guidata(hObject,handles);
 end
 
+
+% Type of model
+%--------------------------------------------------------------------------
+% 'ERP'    - (linear NMM slow)
+% 'SEP'    - (linear NMM fast)
+% 'NMM'    - (bilinear NMM)
+% 'MFM'    - (bilinear MFM)
+% 'Induced - (linear NMM)
+
+try
+    model = DCM.options.model;
+catch
+    model = get(handles.ERP,'String');
+    model = model{get(handles.ERP,'Value')};
+end
+switch model
+    case{'ERP'},     set(handles.ERP,'Value',1);
+    case{'SEP'},     set(handles.ERP,'Value',2);
+    case{'NMM'},     set(handles.ERP,'Value',3);
+    case{'MFM'},     set(handles.ERP,'Value',4);
+    case{'Induced'}, set(handles.ERP,'Value',5);
+    otherwise
+end
+handles = ERP_Callback(hObject, eventdata, handles);
+
 % Filename
 %--------------------------------------------------------------------------
-try, set(handles.name,'String',f); end
+try, set(handles.name,'String',f);  end
+
+% Source locations
+%--------------------------------------------------------------------------
+try, DCM.Lpos = DCM.M.dipfit.L.pos; end
 
 % enter options from saved options and execute data_ok and spatial_ok
 %--------------------------------------------------------------------------
-try, set(handles.Y1, 'String', num2str(DCM.options.trials));      end
-try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));     end
-try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));     end
-try, set(handles.Spatial_type,'Value', DCM.options.type);         end
-try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);       end
-try, set(handles.h,           'Value', DCM.options.h);            end
-try, set(handles.D,           'Value', DCM.options.D);            end
-try, set(handles.design,      'String',num2str(DCM.xU.X'));       end
-try, set(handles.Uname,       'String',DCM.xU.name);              end
-try, set(handles.onset,       'String',num2str(DCM.options.onset));   end
-try, set(handles.Sname,       'String',strvcat(DCM.Sname));           end
-try, set(handles.Slocation,   'String',num2str(DCM.M.dipfit.L.pos')); end
+try, set(handles.Y1, 'String', num2str(DCM.options.trials));        end
+try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));       end
+try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));       end
+try, set(handles.Hz1,'String', num2str(DCM.options.Fdcm(1)));       end
+try, set(handles.Hz2,'String', num2str(DCM.options.Fdcm(2)));       end
+try, set(handles.Rft,'String', num2str(DCM.options.Rft));           end
+try, set(handles.Spatial_type,'Value', DCM.options.type);           end
+try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);         end
+try, set(handles.h,           'Value', DCM.options.h);              end
+try, set(handles.D,           'Value', DCM.options.D);              end
+try, set(handles.design,      'String',num2str(DCM.xU.X'));         end
+try, set(handles.Uname,       'String',DCM.xU.name);                end
+try, set(handles.onset,       'String',num2str(DCM.options.onset)); end
+try, set(handles.Sname,       'String',strvcat(DCM.Sname));         end
+try, set(handles.Slocation,   'String',num2str(DCM.Lpos'));         end
 
+
+% catch for backwards compatibility
+%--------------------------------------------------------------------------
+if get(handles.Spatial_type,'Value') > length(get(handles.Spatial_type,'String'))
+    set(handles.Spatial_type,'Value',1);
+end
+
+if get(handles.Spatial_type,'Value') == 2
+    set(handles.render, 'Enable','on' )
+    set(handles.Imaging,'Enable','on' )
+else
+    set(handles.render, 'Enable','off' )
+    set(handles.Imaging,'Enable','off' )
+end
 set(handles.data_ok,'enable','on')
 
 handles.DCM = DCM;
@@ -121,7 +166,7 @@ end
 try
     handles.DCM.F;
     set(handles.results,    'Enable','on');
-    if handles.DCM.options.type == 3
+    if handles.DCM.options.type == 2
         set(handles.render, 'Enable','on');
         set(handles.Imaging,'Enable','on');
 
@@ -165,18 +210,24 @@ guidata(hObject,handles);
 % -------------------------------------------------------------------------
 function handles = reset_Callback(hObject, eventdata, handles)
 
-DCM  = handles.DCM;
+handles.DCM.options.trials   = str2num(get(handles.Y1,    'String'));
+handles.DCM.options.Tdcm(1)  = str2num(get(handles.T1,    'String'));
+handles.DCM.options.Tdcm(2)  = str2num(get(handles.T2,    'String'));
+handles.DCM.options.Fdcm(1)  = str2num(get(handles.Hz1,   'String'));
+handles.DCM.options.Fdcm(2)  = str2num(get(handles.Hz2,   'String'));
+handles.DCM.options.Rft      = str2num(get(handles.Rft,   'String'));
+handles.DCM.options.onset    = str2num(get(handles.onset, 'String'));
+handles.DCM.options.Nmodes   = get(handles.Nmodes,        'Value');
+handles.DCM.options.h        = get(handles.h,             'Value');
+handles.DCM.options.D        = get(handles.D,             'Value');
+handles.DCM.options.type     = get(handles.Spatial_type,  'Value');
 
-DCM.options.type     = get(handles.Spatial_type,  'Value');
-DCM.options.trials   = str2num(get(handles.Y1,    'String'));
-DCM.options.Tdcm(1)  = str2num(get(handles.T1,    'String'));
-DCM.options.Tdcm(2)  = str2num(get(handles.T2,    'String'));
-DCM.options.Nmodes   = get(handles.Nmodes,        'Value');
-DCM.options.h        = get(handles.h,             'Value');
-DCM.options.D        = get(handles.D,             'Value');
-DCM.options.onset    = str2num(get(handles.onset, 'String'));
+% save model
+%--------------------------------------------------------------------------
+model = get(handles.ERP,     'String');
+model = model{get(handles.ERP,'Value')};
+handles.DCM.options.model  = model;
 
-handles.DCM = DCM;
 guidata(hObject,handles);
 
 
@@ -210,9 +261,9 @@ end
 handles     = reset_Callback(hObject, eventdata, handles);
 handles.DCM = spm_dcm_erp_data(handles.DCM);
 
-set(handles.design,'enable','on')
-set(handles.Uname, 'enable','on')
-set(handles.Y,     'enable','on')
+set(handles.design,'enable', 'on')
+set(handles.Uname, 'enable', 'on')
+set(handles.Y,     'enable', 'on')
 guidata(hObject,handles);
 warndlg({'Your design matrix has been re-set'})
 
@@ -223,6 +274,8 @@ handles  = reset_Callback(hObject, eventdata, handles);
 try
     handles.DCM = spm_dcm_erp_data(handles.DCM);
     spm_dcm_erp_results(handles.DCM,'Data');
+    set(handles.dt, 'String',sprintf('bins: %.1fms',handles.DCM.xY.dt*1000))
+    set(handles.dt, 'Visible','on')
 catch
     warndlg('please specify data and trials');
 end
@@ -285,6 +338,7 @@ guidata(hObject,handles);
 % Spatial model specification
 %==========================================================================
 function handles = spatial_ok_Callback(hObject, eventdata, handles)
+handles = reset_Callback(hObject, eventdata, handles);
 
 % spatial model
 %--------------------------------------------------------------------------
@@ -334,7 +388,7 @@ end
 
 % set prior expectations about locations
 %--------------------------------------------------------------------------
-DCM.M.dipfit.L.pos = Slocation';
+DCM.Lpos = Slocation';
 
 % forward model (spatial)
 %--------------------------------------------------------------------------
@@ -343,13 +397,17 @@ DCM = spm_dcm_erp_dipfit(DCM);
 handles.DCM = DCM;
 set(handles.Spatial_type,     'Enable', 'off');
 set(handles.spatial_ok,       'Enable', 'off');
+set(handles.onset,            'Enable', 'off');
 set(handles.Sname,            'Enable', 'off');
 set(handles.Slocation,        'Enable', 'off');
 set(handles.spatial_back,     'Enable', 'off');
 
 set(handles.con_reset,        'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
-set(handles.ERP,              'Enable', 'on');
+set(handles.Hz1,              'Enable', 'on');
+set(handles.Hz2,              'Enable', 'on');
+set(handles.Rft,              'Enable', 'on');
+
 
 % [re]-set connections
 %--------------------------------------------------------------------------
@@ -369,12 +427,9 @@ set(handles.Slocation,'String',num2str(Slocation));
 %-Executes on button press in data_ok.
 %--------------------------------------------------------------------------
 function handles = data_ok_Callback(hObject, eventdata, handles)
-try
-    handles      = reset_Callback(hObject, eventdata, handles);
-    handles.DCM  = spm_dcm_erp_data(handles.DCM);
-catch
-    return
-end
+handles      = reset_Callback(hObject, eventdata, handles);
+handles.DCM  = spm_dcm_erp_data(handles.DCM);
+
 
 % enable next stage, disable data specification
 %--------------------------------------------------------------------------
@@ -390,6 +445,7 @@ set(handles.data_ok,       'Enable', 'off');
 
 set(handles.Spatial_type,  'Enable', 'on');
 set(handles.plot_dipoles,  'Enable', 'on');
+set(handles.onset,         'Enable', 'on');
 set(handles.Sname,         'Enable', 'on');
 set(handles.Slocation,     'Enable', 'on');
 set(handles.spatial_back,  'Enable', 'on');
@@ -404,6 +460,7 @@ function spatial_back_Callback(hObject, eventdata, handles)
 
 set(handles.Spatial_type, 'Enable', 'off');
 set(handles.spatial_ok,   'Enable', 'off');
+set(handles.onset,        'Enable', 'off');
 set(handles.Sname,        'Enable', 'off');
 set(handles.Slocation,    'Enable', 'off');
 set(handles.spatial_back, 'Enable', 'off');
@@ -451,10 +508,20 @@ spm_eeg_inv_ecd_DrawDip('Init', sdip)
 % Draw buttons
 %--------------------------------------------------------------------------
 function handles = connections_Callback(hObject, eventdata, handles)
+handles = reset_Callback(hObject, eventdata, handles);
+DCM     = handles.DCM;
+n       = length(DCM.Sname);           % number of sources
+m       = size(DCM.xU.X,2);            % number of experimental inputs
+l       = length(DCM.options.onset);   % number of peristimulus inputs
 
-DCM = handles.DCM;
-n   = length(DCM.Sname);    % number of sources
-m   = size(DCM.xU.X,2);     % number of inputs
+% remove previous objects
+%--------------------------------------------------------------------------
+h = get(handles.SPM,'Children');
+for i = 1:length(h)
+    if strcmp(get(h(i),'Tag'),'tmp')
+        delete(h(i));
+    end
+end
 
 
 % no changes in coupling
@@ -466,7 +533,8 @@ if ~m, B = {}; DCM.B = {}; end
 try
     if length(DCM.A{1}) ~= n, DCM = rmfield(DCM,'A'); end
     if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end
-    if length(DCM.C)    ~= n, DCM = rmfield(DCM,'C'); end
+    if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end
+    if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end
 end
 
 % connection buttons
@@ -488,7 +556,7 @@ for i = 1:n
                 'Units','Normalized',...
                 'Position',[x y sx sy],...
                 'Style','radiobutton',...
-                'Tag','',...
+                'Tag','tmp',...
                 'Callback',str);
             
             % within region, between frequency coupling for 'Induced'
@@ -496,7 +564,10 @@ for i = 1:n
             if i == j
                 set(A{k}(i,j),'Enable','off')
             end
-            if get(handles.ERP,'value') == 2 && k == 2
+            
+            % allow nonlinear self-connections (induced responses)
+            %--------------------------------------------------------------
+            if get(handles.ERP,'value') == 5 && k == 2
                 set(A{k}(i,j),'Enable','on')
             end
             try
@@ -514,7 +585,7 @@ for i = 1:n
                 'Units','Normalized',...
                 'Position',[x y sx sy],...
                 'Style','radiobutton',...
-                'Tag','',...
+                'Tag','tmp',...
                 'Callback',str);
             % intrinsic modulation of H_e
             %--------------------------------------------------------------
@@ -530,26 +601,28 @@ for i = 1:n
     end
 end
 for i = 1:n
-    x          = x0 + (4 - 1)*(n + 1)*sx;
-    y          = y0 - (i + 4)*sy;
-    str        = sprintf('data.DCM.C(%i)',i);
-    str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
-    C(i)       = uicontrol(handles.SPM,...
-        'Units','Normalized',...
-        'Position',[x y sx sy],...
-        'Style','radiobutton',...
-        'Tag','',...
-        'Callback',str);
-    try
-        set(C(i),'Value',DCM.C(i));
-    catch
-        DCM.C(i,1) = get(C(i),'Value');
+    for j = 1:l
+        x          = x0 + (4 - 1)*(n + 1)*sx +(j - 1)*sx;
+        y          = y0 - (i + 4)*sy;
+        str        = sprintf('data.DCM.C(%i,%i)',i,j);
+        str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
+        C(i,j)     = uicontrol(handles.SPM,...
+            'Units','Normalized',...
+            'Position',[x y sx sy],...
+            'Style','radiobutton',...
+            'Tag','tmp',...
+            'Callback',str);
+        try
+            set(C(i,j),'Value',DCM.C(i,j));
+        catch
+            DCM.C(i,j) = get(C(i,j),'Value');
+        end
     end
 end
 
 % string labels
 %--------------------------------------------------------------------------
-if get(handles.ERP,'Value') == 1
+if get(handles.ERP,'Value') ~= 5
     constr = {'A forward' 'A backward' 'A lateral' 'C input'};
 else
     constr = {'A linear' 'A nonlinear' '(not used)' 'C input'};
@@ -566,6 +639,7 @@ for k = 1:4
         'HorizontalAlignment','left',...
         'Style','text',...
         'String',str,...
+        'Tag','tmp',...
         'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 constr         = DCM.xU.name;
@@ -579,6 +653,7 @@ for k = 1:m
         'HorizontalAlignment','left',...
         'Style','text',...
         'String',str,...
+        'Tag','tmp',...
         'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
 end
 handles.S   = S;
@@ -595,30 +670,21 @@ guidata(hObject,handles)
 % remove existing buttons and set DCM.A,.. to zero
 %--------------------------------------------------------------------------
 function con_reset_Callback(hObject, eventdata, handles)
+
+h = get(handles.SPM,'Children');
+for i = 1:length(h)
+    if strcmp(get(h(i),'Tag'),'tmp')
+        delete(h(i));
+    end
+end
 try
-    for i = 1:length(handles.A)
-        for j = 1:length(handles.A{i})
-            for k = 1:length(handles.A{i})
-                delete(handles.A{i}(j,k));
-                handles.DCM.A{i}(j,k) = 0;
-            end
-        end
+    for i = 1:length(handles.DCM.A)
+        handles.DCM.A{i}(:) = 0;
     end
-    for i = 1:length(handles.B)
-        for j = 1:length(handles.B{i})
-            for k = 1:length(handles.B{i})
-                delete(handles.B{i}(j,k));
-                handles.DCM.B{i}(j,k) = 0;
-            end
-        end
+    for i = 1:length(handles.DCM.B)
+        handles.DCM.B{i}(:) = 0;
     end
-    for i = 1:length(handles.C)
-        delete(handles.C(i));
-        handles.DCM.C(i) = 0;
-    end
-    for i = 1:length(handles.S)
-        delete(handles.S(i));
-    end
+    handles.DCM.C(:) = 0;
 end
 handles = connections_Callback(hObject, eventdata, handles);
 guidata(hObject,handles)
@@ -629,9 +695,13 @@ function connectivity_back_Callback(hObject, eventdata, handles)
 
 set(handles.con_reset,         'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
+set(handles.Hz1,               'Enable', 'off');
+set(handles.Hz2,               'Enable', 'off');
+set(handles.Rft,               'Enable', 'off');
 
 set(handles.Spatial_type,      'Enable', 'on');
 set(handles.spatial_ok,        'Enable', 'on');
+set(handles.onset,             'Enable', 'on');
 set(handles.Sname,             'Enable', 'on');
 set(handles.Slocation,         'Enable', 'on');
 set(handles.spatial_back,      'Enable', 'on');
@@ -683,17 +753,17 @@ end
 
 % invert and save
 % -------------------------------------------------------------------------
-if get(handles.ERP,'Value') == 1
-    handles.DCM = spm_dcm_erp(handles.DCM);
-else
+if get(handles.ERP,'Value') == 5
     handles.DCM = spm_dcm_ind(handles.DCM);
+else
+    handles.DCM = spm_dcm_erp(handles.DCM);
 end
 guidata(hObject, handles);
 
 set(handles.results,    'Enable','on' )
 set(handles.save,       'Enable','on')
 set(handles.estimate,   'String','Estimated','Foregroundcolor',[0 0 0])
-if get(handles.Spatial_type,'Value') == 3
+if get(handles.Spatial_type,'Value') == 2
     set(handles.render, 'Enable','on' )
     set(handles.Imaging,'Enable','on' )
 end
@@ -703,10 +773,10 @@ end
 function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
-if get(handles.ERP,'Value') == 1
-    spm_dcm_erp_results(handles.DCM, Action);
-else
+if get(handles.ERP,'Value') == 5
     spm_dcm_ind_results(handles.DCM, Action);
+else
+    spm_dcm_erp_results(handles.DCM, Action);
 end
 
 % --- Executes on button press in initialise.
@@ -729,7 +799,7 @@ spm_eeg_inv_imag_api(handles.DCM.xY.Dfile)
 
 
 %==========================================================================
-function handles = Xdefault(hObject,handles,m);
+function handles = Xdefault(hObject,handles,m)
 % default design matix
 % m - number of trials
 X       = eye(m);
@@ -744,13 +814,20 @@ set(handles.design,'String',num2str(handles.DCM.xU.X'));
 set(handles.Uname, 'String',handles.DCM.xU.name);
 return
 
+% --- Executes on button press in BMC.
+%--------------------------------------------------------------------------
+function BMC_Callback(hObject, eventdata, handles)
+spm_api_bmc
 
 % --- Executes on selection change in ERP.
 %--------------------------------------------------------------------------
-function ERP_Callback(hObject, eventdata, handles)
-if get(handles.ERP,'Value') == 1
+function handles = ERP_Callback(hObject, eventdata, handles)
+
+% get model type
+%--------------------------------------------------------------------------
+if get(handles.ERP,'Value') ~= 5
     Action = {
-    'ERPs (channel)',
+    'ERPs (mode)',
     'ERPs (sources)',
     'coupling (A)',
     'coupling (B)',
@@ -764,7 +841,8 @@ if get(handles.ERP,'Value') == 1
     catch
         set(handles.Nmodes, 'Value', 8);
     end   
-    set(handles.Spatial_type, 'String', {'ECD (EEG)','ECD (MEG)','Imaging'});
+    set(handles.Spatial_type, 'String', {'ECD','Imaging'});
+    set(handles.Wavelet,      'Enable','off');
     
 else
     Action = {
@@ -772,18 +850,21 @@ else
     'Time-modes'
     'Time-frequency'
     'Coupling (A - Hz)'
+    'Coupling (B - Hz)'
     'Coupling (A - modes)'
-    'Coupling (B)'
+    'Coupling (B - modes)'
     'Input (C - Hz)'
     'Input (u - ms)'
     'Dipoles'};
     try
-        set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+        set(handles.Nmodes,   'Value', handles.DCM.options.Nmodes);
     catch
-        set(handles.Nmodes, 'Value', 4);
+        set(handles.Nmodes,   'Value', 4);
     end
-    set(handles.Spatial_type, 'String', {'ECD (EEG)','ECD (MEG)'});
     set(handles.Spatial_type, 'Value', 1);
+    set(handles.Spatial_type, 'String', {'ECD'});
+    set(handles.Wavelet,      'Enable','on');
+
 
 
 end
@@ -791,10 +872,18 @@ set(handles.results,'String',Action);
 handles = reset_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
 
+% --- Executes on button press in Wavelet.
+function Wavelet_Callback(hObject, eventdata, handles)
 
-% --- Executes on button press in BMC.
+% get transform 
 %--------------------------------------------------------------------------
-function BMC_Callback(hObject, eventdata, handles)
-spm_api_bmc
+handles     = reset_Callback(hObject, eventdata, handles);
+handles.DCM = spm_dcm_ind_data(handles.DCM);
+
+% and display
+%--------------------------------------------------------------------------
+spm_dcm_ind_results(handles.DCM,'Wavelet');
+guidata(hObject,handles);
+
 
 

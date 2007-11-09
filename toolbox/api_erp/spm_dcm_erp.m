@@ -4,10 +4,9 @@ function DCM = spm_dcm_erp(DCM)
 %
 % DCM     
 %    name: name string
-%       M:  Forward model
-%              M.dipfit - leadfield specification
-%       xY: data   [1x1 struct]
-%       xU: design [1x1 struct]
+%       Lpos:  Source locations
+%       xY:    data   [1x1 struct]
+%       xU:    design [1x1 struct]
 %
 %   Sname: cell of source name strings
 %       A: {[nr x nr double]  [nr x nr double]  [nr x nr double]}
@@ -33,11 +32,11 @@ clear spm_erp_L
 
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                   catch, DCM.name = 'DCM_ERP'; end
-try, h     = DCM.options.h;      catch, h        = 1;         end
-try, nm    = DCM.options.Nmodes; catch, nm       = 8;         end
-try, onset = DCM.options.onset;  catch, onset    = 80;        end
-
+try, DCM.name;                   catch, DCM.name  = 'DCM_ERP'; end
+try, h     = DCM.options.h;      catch, h         = 1;         end
+try, nm    = DCM.options.Nmodes; catch, nm        = 8;         end
+try, onset = DCM.options.onset;  catch, onset     = 80;        end
+try, model = DCM.options.model;  catch, model     = 'ERP';     end
 
 
 % Data and spatial model
@@ -58,7 +57,6 @@ Nr     = length(DCM.A{1});              % number of sources
 Nc     = size(xY.xy{1},2);              % number of channels
 Ns     = size(xY.xy{1},1);              % number of time bins
 nu     = size(xU.X,2);                  % number of inputs
-nx     = Nr*9 + 1;                      % number of states
 
 % check the number of modes is greater or equal to the number of sources
 %--------------------------------------------------------------------------
@@ -124,40 +122,76 @@ xU.dur  = xU.dt*(Ns - 1);
 % model specification and nonlinear system identification
 %==========================================================================
 M       = DCM.M;
-try
-    M   = rmfield(M,'g');
-end
+try, M  = rmfield(M,'g'); end
 
 % adjust onset relative to pst
 %--------------------------------------------------------------------------
-dur     = xU.dur;
-ons     = onset - xY.Time(1);
+M.dur   = xU.dur;
+M.ons   = onset - xY.Time(1);
 
-% prior moments
-%--------------------------------------------------------------------------
-[pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(ons));
+switch lower(model)
+    
+    % linear David et al model (linear in states)
+    %======================================================================
+    case{'erp'}
+
+        % prior moments on parameters
+        %--------------------------------------------------------------------------
+        [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons));
+
+        % inital states and equations of motion
+        %--------------------------------------------------------------------------
+        M.x  =  spm_x_erp(pE);
+        M.f  = 'spm_fx_erp';
+        M.G  = 'spm_lx_erp';
+        
+    % linear David et al model (linear in states) - fast version for SEPs
+    %======================================================================
+    case{'sep'}
+
+        % prior moments on parameters
+        %--------------------------------------------------------------------------
+        [pE,gE,pC,gC] = spm_sep_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons));
+
+        % inital states
+        %--------------------------------------------------------------------------
+        M.x  = spm_x_erp(pE);
+        M.f  = 'spm_fx_erp';
+        M.G  = 'spm_lx_erp';
+        
+    % Neural mass model (nonlinear in states)
+    %======================================================================
+    case{'nmm'}
+
+        % prior moments on parameters
+        %--------------------------------------------------------------------------
+        [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons));
+
+        % inital states
+        %--------------------------------------------------------------------------
+        M.x  = spm_x_nmm(pE);
+        M.f  = 'spm_fx_nmm';
+        M.G  = 'spm_lx_nmm';      
+        
+    otherwise
+        warndlg('Unknown model')
+end
 
 % likelihood model
 %--------------------------------------------------------------------------
-M.f   = 'spm_fx_erp';
-M.G   = 'spm_lx_erp';
 M.FS  = 'spm_fy_erp';
 M.IS  = 'spm_int_U';
-M.x   = sparse(nx,1);
+M.fu  = 'spm_erp_u';
 M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;
 M.gC  = gC;
 M.m   = nu;
-M.n   = nx;
+M.n   = length(spm_vec(M.x));
 M.l   = Nc;
 M.ns  = Ns*Nt;
 M.E   = U;
 
-% and fixed parameters and functional forms
-%--------------------------------------------------------------------------
-M.ons = ons;
-M.dur = dur;
 
 % EM: inversion
 %--------------------------------------------------------------------------

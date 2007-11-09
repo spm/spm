@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Results for ERP Dynamic Causal Modeling (DCM)
-% FORMAT spm_dcm_erp_results(DCM,'ERPs (channel)');
+% FORMAT spm_dcm_erp_results(DCM,'ERPs (mode)');
 % FORMAT spm_dcm_erp_results(DCM,'ERPs (sources)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (A)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (B)');
@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % get figure handle
 %--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
-
+colormap(gray)
 if ~strcmp(lower(Action), 'dipoles')
     figure(Fgraph)
     clf
@@ -50,9 +50,9 @@ t      = xY.Time;
 %--------------------------------------------------------------------------
 switch(lower(Action))
     
-case{lower('ERPs (channel)')}
+case{lower('ERPs (mode)')}
 
-    % spm_dcm_erp_results(DCM,'ERPs (channel)');
+    % spm_dcm_erp_results(DCM,'ERPs (mode)');
     %----------------------------------------------------------------------
     co = {'b', 'r', 'g', 'm', 'y', 'k'};
     lo = {'-', '--'};
@@ -72,7 +72,7 @@ case{lower('ERPs (channel)')}
 
         end
         hold off
-        title(sprintf('channel %i',i))
+        title(sprintf('mode %i',i))
         grid on
         axis square
         try
@@ -290,7 +290,7 @@ case{lower('Dipoles')}
         sdip.loc{1} = full(P.Lpos);
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
     catch
-        warndlg('spm_eeg_inv_visu3D_api to view results')
+        warndlg('use the render API button to view results')
         return
     end
     

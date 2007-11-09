@@ -111,7 +111,7 @@ for i = 1:length(B)
     Q      = Q | B{i};
 end
 E.C        = log(C + eps);                         % where inputs enter
-V.C        = C;
+V.C        = exp(E.C);
 
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------
@@ -126,8 +126,6 @@ E.R        = sparse(1,1,1,u,3);  V.R   = ones(u,1)*[1 1/16 1/16];
 %--------------------------------------------------------------------------
 n          = 1;
 E.N        = ones(n,1)*[0 0 10]; V.N   = ones(n,3);    % amplitude and Hz
-
-
 
 warning on
 

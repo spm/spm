@@ -76,6 +76,7 @@ R = [2 1]/3;             % parameters of static nonlinearity
 
 % test for free parameters on intrinsic connections
 %--------------------------------------------------------------------------
+G      = kron(ones(n,1),G);
 try, G = G.*exp(P.G); end
 
 
@@ -119,22 +120,22 @@ end
 % Supragranular layer (inhibitory interneurons): Voltage & depolarizing current
 %--------------------------------------------------------------------------
 f(:,7) = x(:,8);
-f(:,8) = (He.*((A{2} + A{3})*S(:,9) + G(3)*S(:,9)) - 2*x(:,8) - x(:,7)./Te)./Te;
+f(:,8) = (He.*((A{2} + A{3})*S(:,9) + G(:,3).*S(:,9)) - 2*x(:,8) - x(:,7)./Te)./Te;
 
 % Granular layer (spiny stellate cells): Voltage & depolarizing current
 %--------------------------------------------------------------------------
 f(:,1) = x(:,4);
-f(:,4) = (He.*((A{1} + A{3})*S(:,9) + G(1)*S(:,9) + U) - 2*x(:,4) - x(:,1)./Te)./Te;
+f(:,4) = (He.*((A{1} + A{3})*S(:,9) + G(:,1).*S(:,9) + U) - 2*x(:,4) - x(:,1)./Te)./Te;
 
 % Infra-granular layer (pyramidal cells): depolarizing current
 %--------------------------------------------------------------------------
 f(:,2) = x(:,5);
-f(:,5) = (He.*((A{2} + A{3})*S(:,9) + G(2).*S(:,1)) - 2*x(:,5) - x(:,2)./Te)./Te;
+f(:,5) = (He.*((A{2} + A{3})*S(:,9) + G(:,2).*S(:,1)) - 2*x(:,5) - x(:,2)./Te)./Te;
 
 % Infra-granular layer (pyramidal cells): hyperpolarizing current
 %--------------------------------------------------------------------------
 f(:,3) = x(:,6);
-f(:,6) = (Hi*G(4)*S(:,7) - 2*x(:,6) - x(:,3)/Ti)/Ti;
+f(:,6) = (Hi*G(:,4).*S(:,7) - 2*x(:,6) - x(:,3)/Ti)/Ti;
 
 % Infra-granular layer (pyramidal cells): Voltage
 %--------------------------------------------------------------------------
@@ -165,13 +166,13 @@ S  = sparse(6,3,1,9,9);             J = J - kron(S,I)/(Ti*Ti);
 
 % Supragranular layer (inhibitory interneurons)
 %--------------------------------------------------------------------------
-E  = (A{2} + A{3})*diag(dSdx(:,9)) + G(3)*diag(dSdx(:,9));
+E  = (A{2} + A{3})*diag(dSdx(:,9)) + diag(G(:,3).*dSdx(:,9));
 E  = diag(He./Te)*E;
 S  = sparse(8,9,1,9,9); J = J + kron(S,E);
 
 % Granular layer (spiny stellate cells)
 %--------------------------------------------------------------------------
-E  = (A{1} + A{3})*diag(dSdx(:,9)) + G(1)*diag(dSdx(:,9));
+E  = (A{1} + A{3})*diag(dSdx(:,9)) + diag(G(:,1).*dSdx(:,9));
 E  = diag(He./Te)*E;
 S  = sparse(4,9,1,9,9); J = J + kron(S,E);
 
@@ -181,13 +182,13 @@ E  = (A{2} + A{3})*diag(dSdx(:,9));
 E  = diag(He./Te)*E;
 S  = sparse(5,9,1,9,9); J = J + kron(S,E);
 
-E  = G(2)*diag(dSdx(:,1));
+E  = diag(G(:,2).*dSdx(:,1));
 E  = diag(He./Te)*E;
 S  = sparse(5,1,1,9,9); J = J + kron(S,E);
 
 % Infra-granular layer (pyramidal cells)
 %--------------------------------------------------------------------------
-E  = G(4)*diag(dSdx(:,7));
+E  = diag(G(:,4).*dSdx(:,7));
 E  = Hi*E/Ti;
 S  = sparse(6,7,1,9,9); J = J + kron(S,E);
 

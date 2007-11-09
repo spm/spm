@@ -57,7 +57,7 @@ V.A  = kron(speye(Nf,Nf),A{1}) + kron(1 - speye(Nf,Nf),A{2});
 %--------------------------------------------------------------------------
 for i = 1:length(B)
     E.B{i} = sparse(n*Nf,n*Nf);
-    V.B{1} = kron(ones(Nf,Nf),B{i});
+    V.B{1} = kron(ones(Nf,Nf),B{i}) & V.A;
 end
 
 % exognenous inputs

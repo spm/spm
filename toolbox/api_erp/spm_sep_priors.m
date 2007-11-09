@@ -64,21 +64,21 @@ if nargin < 5, u = 1;               end
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
-n     = size(C,1);                                 % number of sources
+n     = size(C,1);                                    % number of sources
 n1    = ones(n,1);
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(n1) - 1;    V.T = n1/8;                % time constants
-E.H   = log(n1);        V.H = n1/8;                % synaptic density
+E.T   = log(n1) - 1;       V.T = n1/8;                % time constants
+E.H   = log(n1);           V.H = n1/8;                % synaptic density
 
 % set intrinic [excitatory] connection strengths
 %--------------------------------------------------------------------------
-E.G   = [-1/2 1/4 0 0]; V.G = ones(4,1)/8;    % synaptic density
+E.G   = n1*[0 0 0 0];      V.G = ones(n,4)/8;         % synaptic density
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
+E.S   = [0 0];             V.S = [1 1]/8;             % dispersion & threshold
 
 % paramters for electromagnetic forward model
 %--------------------------------------------------------------------------
@@ -114,7 +114,7 @@ for i = 1:length(B)
     V.B{i} = B{i};
     Q      = Q | B{i};
 end
-E.C        = kron(ones(1,u),log(C + eps));         % where inputs enter
+E.C        = log(C + eps);                         % where inputs enter
 V.C        = exp(E.C);
 
 % set delay (enforcing symmetric delays)
@@ -124,7 +124,7 @@ V.D        = Q/8;
 
 % set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------
-E.R        = ones(u,1)*[1 0 -4];  V.R   = ones(u,1)*[1 1/16 1/16];
+E.R        = ones(u,1)*[1 0 -4];  V.R  = ones(u,1)*[1 1/16 1/16];
 
 % background fluctuations
 %--------------------------------------------------------------------------

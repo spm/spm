@@ -5,11 +5,13 @@ function DCM = spm_dcm_ind_data(DCM)
 % requires
 %
 %    DCM.xY.Dfile
-%    DCM.M.dipfit
+%    DCM.Lpos
 %    DCM.options.Nmodes
 %    DCM.options.trials
 %    DCM.options.Tdcm
-%    DCM.options.D    
+%    DCM.options.Fdcm
+%    DCM.options.D
+%    DCM.options.Rft    
 %
 % sets
 %
@@ -44,14 +46,11 @@ end
 %--------------------------------------------------------------------------
 D = spm_eeg_ldata(Dfile);
 
-% indices of EEG channel (excluding bad channels) and perstimulus times
+% indices of EEG channel (excluding bad channels)
 %--------------------------------------------------------------------------
 Ic              = setdiff(D.channels.eeg, D.channels.Bad);
 Nc              = length(Ic);
-DCM.M.dipfit.Ic = Ic;
 DCM.xY.Ic       = Ic;
-DCM.xY.Time     = 1000*[-D.events.start:D.events.stop]/D.Radc; % ms
-DCM.xY.dt       = 1/D.Radc;
 
 % options
 %--------------------------------------------------------------------------
@@ -73,6 +72,21 @@ catch
     errordlg('please specify trials');
     error('')
 end
+try
+    DCM.xY.Rft = DCM.options.Rft;                                        
+catch
+    % default wavelet number
+    %----------------------------------------------------------------------
+    DCM.xY.Rft = 5;
+end
+
+% check data are not oversampled (< 4ms)
+%--------------------------------------------------------------------------
+if DT/D.Radc < 0.004
+    DT            = ceil(0.004*D.Radc);
+    DCM.options.D = DT;
+end
+
 
 % get peristimulus times
 %--------------------------------------------------------------------------
@@ -80,36 +94,52 @@ try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    T1      = DCM.options.Tdcm(1);
-    T2      = DCM.options.Tdcm(2);
-    [i, T1] = min(abs(DCM.xY.Time - T1));
-    [i, T2] = min(abs(DCM.xY.Time - T2));
+    DCM.xY.Time = 1000*[-D.events.start:D.events.stop]/D.Radc; % ms
+    T1          = DCM.options.Tdcm(1);
+    T2          = DCM.options.Tdcm(2);
+    [i, T1]     = min(abs(DCM.xY.Time - T1));
+    [i, T2]     = min(abs(DCM.xY.Time - T2));
     
     % Time [ms] of downsampled data
     %----------------------------------------------------------------------
-    DCM.xY.dt  = DT/D.Radc;                 % sampling in seconds
-    B          = fix(0.064/DCM.xY.dt);      % 64ms boundary
-    It         = [T1:DT:T2]';               % indices - bins
-    Ns         = length(It);                % number of bins
-    Nb         = length(It) - B - B;        % number of samples
-    DCM.xY.pst = DCM.xY.Time(It(1 + B:end - B));        % PST
-    DCM.xY.It  = It;                        % Indices of time bins
-
+    Ns          = length(DCM.xY.Time);       % number of bins
+    It          = [T1:DT:T2]';               % indices - bins
+    Is          = [1:Ns]';                   % indices - samples
+    DCM.xY.pst  = DCM.xY.Time(It);           % PST
+    DCM.xY.It   = It;                        % Indices of time bins
+    DCM.xY.dt   = DT/D.Radc;                 % sampling in seconds
+    Nb          = length(It);                % number of bins
+    
 catch
     errordlg('Please specify time window');
     error('')
 end
 
+% get frequency range
+%--------------------------------------------------------------------------
+try
+    Hz1     = DCM.options.Fdcm(1);          % lower frequency
+    Hz2     = DCM.options.Fdcm(2);          % upper frequency
+catch
+    pst     = DCM.xY.pst(end) - DCM.xY.pst(1);
+    Hz1     = max(ceil(2*1000/pst),4);
+    if Hz1 < 8;
+        Hz2 = 48;
+    else
+        Hz2 = 128;
+    end
+end
+
+if (Hz2 - Hz1) > 64, HzD = 2; else, HzD = 1; end
+
 % get Morelet wavelets
 %--------------------------------------------------------------------------
+DCM.xY.Hz  = Hz1:HzD:Hz2;              % Frequencies
 DCM.xY.Nm  = Nm;                       % number of frequency modes
-DCM.xY.Hz  = 4:1:48;                   % Frequencies
-ST         = DCM.xY.dt*1000;           % sampling interval
+dt         = 1000/D.Radc;              % sampling interval (ms)
 Nf         = length(DCM.xY.Hz);        % number of frequencies
 Ne         = length(trial);            % number of ERPs
 Nm         = DCM.xY.Nm;                % number of frequency modes
-DCM.xY.Rft = linspace(5,5,Nf);         % wavelet coeficient
-
 
 % get induced responses (use previous time-frequency results if possible) 
 %==========================================================================
@@ -117,26 +147,27 @@ try
     if size(DCM.xY.xf,1) == Ne;
         if size(DCM.xY.xf,2) == Nm;
             if size(DCM.xY.xf{1},1) == Nb;
-                DCM.xY.y  = spm_cat(DCM.xY.xf);
-                return
+                if size(DCM.xY.U,1) == length(DCM.xY.Hz)
+                    DCM.xY.y  = spm_cat(DCM.xY.xf);
+                    return
+                end
             end
         end
     end
 end
 
-% high-pass filter
+% high-pass filter (detrend)
 %--------------------------------------------------------------------------
-h     = max(DCM.options.h,2);
-T     = spm_dctmtx(Ns,h);
+T     = spm_orthpoly(Ns,2);
 T     = speye(Ns,Ns) - T*T';
 
 % create convolution matrices (Eucldian normalised with filtering)
 %--------------------------------------------------------------------------
 for i = 1:Nf
-    W    = spm_eeg_morlet(DCM.xY.Rft(i), ST, DCM.xY.Hz(i));
+    W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i));
+    N    = fix(length(W{1})/2);
     W    = convmtx(W{1}',Ns);
-    N    = fix((size(W,1) - Nb)/2);
-    W    = W([1:Nb] + N,:);
+    W    = W(It + N,:);
     M{i} = W*T;
 end
 
@@ -145,7 +176,11 @@ end
 
 % parameterised lead field ECD given positions
 %--------------------------------------------------------------------------
-pos    = DCM.M.dipfit.L.pos;
+try
+    pos = DCM.Lpos;
+catch
+    pos = DCM.M.dipfit.L.pos;
+end
 mom    = [1  0  0;
           0  1  0;
           0  0  1];
@@ -173,6 +208,10 @@ for i = 1:Ne;
     else
         c = find(D.events.code == D.events.types(i));
     end
+    
+    % use only the first 512 trial
+    %----------------------------------------------------------------------
+    try c = c(1:512); end
     Nt    = length(c);
     
     
@@ -183,13 +222,13 @@ for i = 1:Ne;
     for j = 1:Nf
         f     = [1:Ny] + (j - 1)*Ny;
         for k = 1:Nt
-            y      = abs(M{j}*D.data(Ic,It,c(k))'*MAP');
+            y      = abs(M{j}*D.data(Ic,Is,c(k))'*MAP');
             Y(f,k) = y(:);
         end
-        fprintf('\nevaluating %i Hz, condition %i',DCM.xY.Hz(j),i)
+        fprintf('\nevaluating %i Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
     end
     
-    % weight with principal eigenvariate over trials
+    % weight with principal eigenvariate over trials (c.f., averaging)
     %----------------------------------------------------------------------
     Y     = Y/normest(Y);
     u     = spm_svd(Y'*Y);
@@ -203,7 +242,7 @@ for i = 1:Ne;
         for k = 1:3
             Yk = Yk + squeeze(Y(:,j + k - 1,:))/Nt;
         end
-        Mz{i,j} = mean(Yk);
+        Mz{i,j} = Yk(1,:);
         Yz{i,j} = Yk - ones(Nb,1)*Mz{i,j};
     end
 end

@@ -19,5 +19,3 @@ try
 catch
     x = sparse(n*9 + 1,1);
 end
-
-

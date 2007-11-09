@@ -110,6 +110,8 @@ try, M = rmfield(M,'FS'); end
 dur   = xU.dur;
 ons   = onset - xY.pst(1);
 
+if ons < 0; warndlg('onset time is negative; please increase'); end
+
 % prior moments
 %--------------------------------------------------------------------------
 A     = DCM.A;

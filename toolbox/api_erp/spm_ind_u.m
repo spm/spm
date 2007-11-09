@@ -18,13 +18,14 @@ function [U] = spm_ind_u(t,P,M)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-% stimulus - subcortical impulse
+% stimulus - subcortical impulse - a gamma function
 %--------------------------------------------------------------------------
 ons   = M.ons(:);
+dur   = M.dur*1000;
 t     = t(:)';
 j     = 1:length(t);
 for i = 1:length(ons)
-    m      = exp(P.R(i,1))*ons(i);
-    v      = exp(P.R(i,2))*1024;
+    m      = exp(P.R(i,1))* ons(i);
+    v      = exp(P.R(i,2))*(dur/16)^2;
     U(i,:) = spm_Gpdf(t*1000,m*m/v,m/v);
 end

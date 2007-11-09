@@ -144,11 +144,7 @@ try
 catch
     M.P = M.pE;
 end
-try
-    spm_vec(M.G) - spm_vec(M.gE);
-catch
-    M.G = M.gE;
-end
+
 
 % time-step
 %--------------------------------------------------------------------------
@@ -217,14 +213,14 @@ uC    = speye(nu,nu)*exp(16);
 ipC   = inv(pC);                      % p - state parameters
 igC   = inv(gC);                      % g - observer parameters
 iuC   = inv(uC);                      % u - fixed parameters
-icC   = spm_cat(diag({igC,iuC}));     % c - none-state equaiotn parameters
+icC   = spm_cat(diag({igC,iuC}));     % c - non-state equation parameters
 ibC   = spm_cat(diag({ipC icC}));     % b - all parameters
 
  
 % initialise conditional density
 %--------------------------------------------------------------------------
 Ep    = M.P;
-Eg    = M.G;
+Eg    = M.gE;
 Eu    = uE;
  
 % EM
@@ -286,7 +282,7 @@ for k = 1:128
             S     = inv(iS);
             dLdbb = dgdb'*iS*dgdb + ibC;
             Cb    = inv(dLdbb);
-
+            
             % precision operators for M-Step
             %--------------------------------------------------------------
             for i = 1:nh
@@ -328,8 +324,10 @@ for k = 1:128
             if dF < 1e-2, break, end
 
         end
-        
-            % objective function: F(p) (= log-evidence - divergence)
+
+
+
+        % objective function: F(g) (= log-evidence - divergence)
         %==================================================================
         F = ...
         - ey'*iS*ey/2 ...
@@ -354,6 +352,7 @@ for k = 1:128
 
             % accept current estimates
             %--------------------------------------------------------------
+            C.Cb  = Cb;
             C.Eg  = Eg;
             C.Eu  = Eu;
             C.h   = h;
@@ -367,6 +366,7 @@ for k = 1:128
 
             % reset expansion point
             %--------------------------------------------------------------
+            Cb    = C.Cb;
             Eg    = C.Eg;
             Eu    = C.Eu;
             h     = C.h;
@@ -418,6 +418,7 @@ for k = 1:128
         
         % accept current estimates
         %------------------------------------------------------------------
+        C.Cb  = Cb;
         C.Ep  = Ep;
         C.Eg  = Eg;
         C.Eu  = Eu;
@@ -433,6 +434,7 @@ for k = 1:128
  
         % reset expansion point
         %------------------------------------------------------------------
+        Cb    = C.Cb;
         Ep    = C.Ep;
         Eg    = C.Eg;
         Eu    = C.Eu;
