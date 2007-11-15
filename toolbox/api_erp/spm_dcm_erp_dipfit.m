@@ -182,9 +182,19 @@ switch DCM.options.type
         %------------------------------------------------------------------
         vert   = D.inv{D.val}.mesh.tess_mni.vert;
         for i  = 1:Np
-            Ip = find(sum([vert(:,1) - xyz(1,i), ...
+            Dp = sum([vert(:,1) - xyz(1,i), ...
                            vert(:,2) - xyz(2,i), ...
-                           vert(:,3) - xyz(3,i)].^2,2) < rad^2);
+                           vert(:,3) - xyz(3,i)].^2,2);
+                       
+                           
+            % nearest mesh points
+            %--------------------------------------------------------------
+            Ip = find(Dp < rad^2);
+            if length(Ip) < Nm;
+                [y,Ip] = sort(Dp);
+                Ip     = Ip(1:Nm);
+            end
+            
 
             % left hemisphere
             %--------------------------------------------------------------

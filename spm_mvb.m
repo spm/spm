@@ -76,13 +76,14 @@ for  i = 1:nG
     %----------------------------------------------------------------------
     g            = find(G(:,end));
     ng           = ceil(length(g)*sG);
-    [q j]        = sort(-sum(M.qE(g,:).*2,2));
+    qE           = spm_en(M.qE(g,:));
+    [q j]        = sort(-sum(qE.*2,2));
     q            = g(j(1:ng));
     G(q,end + 1) = 1;
     
     % break if cluster is one
     %----------------------------------------------------------------------
-    if ng < 2, break, end
+    if ng < 1/(1 - sG), break, end
  
 end
  

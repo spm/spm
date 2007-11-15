@@ -31,12 +31,14 @@ end
 
 % Endogenous fluctuations (if P.N is specified)
 %--------------------------------------------------------------------------
-n     = size(P.N,1);
-B     = sparse(n,length(t));
 try
+    n     = size(P.N,1);
+    B     = sparse(n,length(t));
     for i = 1:n
-       w      = exp(j*6.2832*P.N(i,3)*t);
-       B(i,:) = P.N(i,1:2)*[real(w); imag(w)];
+        w      = exp(j*6.2832*P.N(i,3)*t);
+        B(i,:) = P.N(i,1:2)*[real(w); imag(w)];
     end
+catch
+    B     = sparse(1,length(t));
 end
 

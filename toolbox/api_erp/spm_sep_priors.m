@@ -86,17 +86,17 @@ switch dipfit.type
     
     case{'ECD (EEG)','ECD (MEG)'}
     %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =   8*ones(3,n);    % dipole positions
-    G.Lmom = sparse(3,n);   U.Lmom = 256*ones(3,n);    % dipole orientations
+    G.Lpos = dipfit.L.pos;    U.Lpos =   8*ones(3,n);     % dipole location
+    G.Lmom = sparse(3,n + n); U.Lmom = 256*ones(3,n + n); % dipole moments
 
     case{'Imaging'}
     %----------------------------------------------------------------------
     m      = dipfit.Nm;
-    G.L    = sparse(m,n);   U.L    =  16*ones(m,n);    % dipole modes
+    G.L    = sparse(m,n + n);   U.L  =  16*ones(m,n + n); % dipole modes
     
     case{'LFP'}
     %----------------------------------------------------------------------
-    G.L    = ones(1,n);     U.L    = 256*ones(1,n);    % gains
+    G.L    = ones(1,n + n);     U.L  = 256*ones(1,n + n); % gains
     
 end
 
@@ -125,13 +125,6 @@ V.D        = Q/8;
 % set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------
 E.R        = ones(u,1)*[1 0 -4];  V.R  = ones(u,1)*[1 1/16 1/16];
-
-% background fluctuations
-%--------------------------------------------------------------------------
-n          = 1;
-E.N        = ones(n,1)*[0 0 10]; V.N   = ones(n,3);    % amplitude and Hz
-
-
 
 warning on
 

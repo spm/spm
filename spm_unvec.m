@@ -57,7 +57,11 @@ end
 % reshape numerical arrays
 %--------------------------------------------------------------------------
 if isnumeric(X)
-    X(:)  = vX;
+    if length(size(X) > 2)
+        X(:) = full(vX);
+    else
+        X(:) = vX;
+    end
 else
     X     = [];
 end

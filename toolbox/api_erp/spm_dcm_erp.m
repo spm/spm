@@ -74,6 +74,17 @@ if h == 0
 else
     X0 = spm_dctmtx(Ns,h);
 end
+hT = [-12 0];
+if hT(2)
+    i       = find(DCM.xY.Time > hT(1) & DCM.xY.Time < hT(2));
+    Ni      = length(i);
+    Nh      = min(Ni,8);
+    H0      = sparse(Ns,Nh);
+    H0(i,:) = diag(hanning(Ni))*spm_dctmtx(Ni,Nh);
+    X0      = [X0 H0];
+    
+end
+
 warning off
 Ti     = speye(Ns) - X0*inv(X0'*X0)*X0';         % null space of confounds
 T      = kron(speye(Nt,Nt),Ti);
@@ -157,7 +168,7 @@ switch lower(model)
         %--------------------------------------------------------------------------
         M.x  = spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
-        M.G  = 'spm_lx_erp';
+        M.G  = 'spm_lx_sep';
         
     % Neural mass model (nonlinear in states)
     %======================================================================
@@ -212,7 +223,7 @@ y   = x*L';                       % prediction (sensor space)
 r   = T*(xY.y - y);               % prediction error
 y   = y*M.E*M.E';                 % remove spaital confounds
 r   = r*M.E*M.E';                 % remove spaital confounds
-x   = x(:,end - Nr + 1:end);
+x   = x(:,find(any(L)));
 
 % trial specific respsonses (in mode, channel and source space)
 %--------------------------------------------------------------------------
@@ -243,6 +254,11 @@ DCM.Rc = Ec;                   % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 
+DCM.options.h      = h;
+DCM.options.Nmodes = nm;
+DCM.options.onset  = onset;
+DCM.options.model  = model;
+
 % store estimates in D
 %--------------------------------------------------------------------------
 if strcmp(M.dipfit.type,'Imaging')
@@ -261,6 +277,9 @@ if strcmp(M.dipfit.type,'Imaging')
     G     = sparse(Nd,Nr);
     for i = 1:Nr
         G(M.dipfit.Ip{i},i) = M.dipfit.U{i}*Qg.L(:,i);
+        try
+            G(M.dipfit.Ip{i},i + Nr) = M.dipfit.U{i}*Qg.L(:,i + Nr);
+        end
     end
     Is    = find(any(G,2));
     G     = G(Is,:);

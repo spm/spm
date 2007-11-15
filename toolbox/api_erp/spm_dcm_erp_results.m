@@ -36,15 +36,17 @@ if ~strcmp(lower(Action), 'dipoles')
     figure(Fgraph)
     clf
 end
-try
-    nt = length(DCM.H);          % Nr of trials
-    nu = length(DCM.B);          % Nr inputs
-    nc = size(DCM.H{1},2);       % Nr modes
-    ns = size(DCM.K{1},2);       % Nr of sources
-end
-xY     = DCM.xY;
-n      = length(xY.xy);
-t      = xY.Time;
+
+nt  = length(DCM.H);          % Nr of trials
+nu  = length(DCM.B);          % Nr inputs
+nc  = size(DCM.H{1},2);       % Nr modes
+ns  = size(DCM.A{1},2);       % Nr of sources
+np  = size(DCM.K{1},2);       % Nr of population per source
+np  = np/ns;
+
+xY  = DCM.xY;
+n   = length(xY.xy);
+t   = xY.Time;
 
 % switch
 %--------------------------------------------------------------------------
@@ -93,13 +95,21 @@ case{lower('ERPs (sources)')}
     mi = min(min(cat(2, DCM.K{:})));
     
     for i = 1:ns
-        subplot(ceil(ns/2),2,i), hold on
         str   = {};
-        for j = 1:nt
-            plot(t, DCM.K{j}(:,i), ...
-                'Color',[1 1 1] - j/nt, ...
-                'LineWidth',1);
-            str{end + 1} = sprintf('trial %i',j);
+        for j = 1:np
+            subplot(ceil(ns/2),2,i), hold on
+            for k = 1:nt
+                if j == np
+                    plot(t, DCM.K{k}(:,i + ns*(j - 1)), ...
+                        'Color',[1 1 1] - k/nt, ...
+                        'LineWidth',1);
+                else
+                    plot(t, DCM.K{k}(:,i + ns*(j - 1)), ':', ...
+                        'Color',[1 1 1] - k/nt, ...
+                        'LineWidth',1);
+                end
+                str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
+            end
         end
         set(gca, 'YLim', [mi mx], 'XLim', [t(1) t(end)]);
         hold off
@@ -245,7 +255,11 @@ case{lower('Input')}
     xlabel('time (ms)')
     title('input')
     axis square, grid on
-    legend({'input','nonspecific'})
+    for i = 1:length(DCM.M.ons)
+        str{i} = sprintf('input (%i)',i);
+    end
+    str{end + 1} = 'nonspecific';
+    legend(str)
     
 case{lower('Response')}
     
@@ -256,7 +270,7 @@ case{lower('Response')}
             subplot(n,2,2*i - 1)
             plot(t,DCM.Hc{i} + DCM.Rc{i})
             xlabel('time (ms)')
-            title(sprintf('Observed response %i',i))
+            title(sprintf('Observed response (adjusted) %i',i))
             axis square, grid on, A = axis;
 
             subplot(n,2,2*i - 0)
@@ -281,13 +295,14 @@ case{lower('Data')}
 case{lower('Dipoles')}
     
     try
-        P = DCM.Eg;        
+        P            = DCM.Eg;   
+        np           = size(P.Lmom,2)/size(P.Lpos,2);
         sdip.n_seeds = 1;
-        sdip.n_dip  = ns;
-        sdip.Mtb    = 1;
-        sdip.j{1}   = full(P.Lmom);
-        sdip.j{1}   = sdip.j{1}(:);
-        sdip.loc{1} = full(P.Lpos);
+        sdip.n_dip   = np*ns;
+        sdip.Mtb     = 1;
+        sdip.j{1}    = full(P.Lmom);
+        sdip.j{1}    = sdip.j{1}(:);
+        sdip.loc{1}  = kron(ones(1,np),full(P.Lpos));
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
     catch
         warndlg('use the render API button to view results')

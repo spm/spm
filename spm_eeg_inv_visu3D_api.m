@@ -392,13 +392,14 @@ if TypOfDisp == 1
 
     % add sensor locations
     %----------------------------------------------------------------------
-    if get(handles.checkbox_sensloc,'Value') == 1
-        axes(handles.sensors_axes)
-        hold on
-        handles.sensor_loc = plot(handles.sens_coord(:,1),handles.sens_coord(:,2),'o','MarkerFaceColor',[1 1 1]/2,'MarkerSize',6);
-        hold off
-    end
+    axes(handles.sensors_axes)
+    try, delete(handles.sensor_loc); end
+    hold on
+    handles.sensor_loc = plot(handles.sens_coord(:,1),handles.sens_coord(:,2),'o','MarkerFaceColor',[1 1 1]/2,'MarkerSize',6);
+    hold off
 
+    checkbox_sensloc_Callback(hObject, [], handles);
+    
 % time series
 %--------------------------------------------------------------------------
 elseif TypOfDisp == 2
@@ -419,6 +420,7 @@ end
 % Adjust the threshold
 %--------------------------------------------------------------------------
 Set_colormap(hObject, [], handles);
+guidata(hObject,handles);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -542,7 +544,7 @@ UpDate_Display_SRCS(hObject,handles);
 % --- Executes on button press in checkbox_sensloc.
 function checkbox_sensloc_Callback(hObject, eventdata, handles)
 try
-    if get(hObject,'Value')
+    if get(handles.checkbox_sensloc,'Value')
         set(handles.sensor_loc,'Visible','on');
     else
         set(handles.sensor_loc,'Visible','off');
@@ -576,27 +578,46 @@ UpDate_Display_SENS(hObject,handles);
 % --- Executes on button press in movie.
 %--------------------------------------------------------------------------
 function movie_Callback(hObject, eventdata, handles)
+global MOVIE
 for t = 1:length(handles.pst)
     set(handles.slider_time,'Value',t);
     ST  = fix(handles.pst(t));
     set(handles.time_bin,'String',num2str(ST));
     UpDate_Display_SRCS(hObject,handles);
+    
+    % record movie if requested
+    %----------------------------------------------------------------------
+    if MOVIE, M(t) = getframe(handles.sources_axes); end;
 end
 UpDate_Display_SENS(hObject,handles);
+try
+    filename = fullfile(handles.D.path,'SourceMovie');
+    movie2avi(M,filename,'compression','Indeo3','FPS',24)
+end
+
 
 
 % --- Executes on button press in movie_sens.
 %--------------------------------------------------------------------------
 function movie_sens_Callback(hObject, eventdata, handles)
+global MOVIE
 for t = 1:length(handles.pst)
     set(handles.slider_time,'Value',t);
     ST  = fix(handles.pst(t));
     set(handles.time_bin,'String',num2str(ST));
     UpDate_Display_SENS(hObject,handles);
+    
+    % record movie if requested
+    %----------------------------------------------------------------------
+    if MOVIE, M(t) = getframe(handles.sensors_axes); end;
+    
 end
 UpDate_Display_SRCS(hObject,handles);
-
-
+try
+    filename = fullfile(handles.D.path,'SensorMovie');
+    movie2avi(M,filename,'compression','Indeo3','FPS',24)
+end
+       
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TYPE OF SENSOR LEVEL DISPLAY
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

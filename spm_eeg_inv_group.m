@@ -79,7 +79,7 @@ for i = 1:Ns
     else
         headshape = sparse(0,3);
         try
-            D{i}.inv{val}.datareg.megorient;
+            orient  = D{i}.inv{val}.datareg.megorient;
         catch
             [f p]   = uigetfile('*or*.mat','select sensor orientations');
             orient  = load(fullfile(p,f));
@@ -123,8 +123,12 @@ end
 % specify inversion parameters
 %--------------------------------------------------------------------------
 inverse.trials = trials;                      % Trials or conditions
-inverse.type   = 'GS';                        % Priors; GS, MSP, LOR or IID
- 
+if strcmp(D{i}.modality,'EEG')
+    inverse.type   = 'GS';                    % Priors; GS, MSP, LOR or IID
+else
+    inverse.type   = 'MSP';                    % Priors; GS, MSP, LOR or IID
+end
+
 % specify time-frequency window contrast
 %==========================================================================
  

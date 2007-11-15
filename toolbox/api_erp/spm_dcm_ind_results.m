@@ -159,7 +159,7 @@ case{lower('Time-frequency')}
             xlabel('pst (ms)')
             ylabel('frequency')
             title({sprintf('trial %i: %s ',i,DCM.Sname{j});
-                  'observed'})
+                  'observed (adjusted for confounds)'})
 
             subplot(nt*2,nr,(i - 1)*2*nr + nr + j)
             imagesc(pst,Hz,TF{i,j}')
