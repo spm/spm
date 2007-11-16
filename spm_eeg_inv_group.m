@@ -33,15 +33,47 @@ end
 Ns    = size(S,1);
 PWD   = pwd;
 val   = 1;
- 
+
+% Load data and set method
+%==========================================================================
 for i = 1:Ns
- 
-    % Load data and set method
-    %======================================================================
-    D{i}                 = spm_eeg_ldata(S(i,:));
+    [p f]                = fileparts(S(i,:));
+    D{i}                 = spm_eeg_ldata(fullfile(p,f));
+    D{i}.path            = p;
+    D{i}.fname           = f;
     D{i}.val             = val;
     D{i}.inv{val}.method = 'Imaging';
-    cd(D{i}.path);
+end
+
+% Check for consistent Gain matrices
+%--------------------------------------------------------------------------
+try
+    for i = 1:Ns
+        cd(D{i}.path)
+        gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
+        try
+            G     = load(gainmat);
+        catch
+            [p f] = fileparts(gainmat);
+            G     = load(f);
+            D{i}.inv{D{i}.val}.forward.gainmat = fullfile(pwd,f);
+        end
+        name   = fieldnames(G);
+        L      = sparse(getfield(G, name{1}));
+        Nd(i)  = size(L,2);                         % number of dipoles
+    end
+    
+catch
+    Nd = zeros(1,Ns);
+end
+
+
+% use template head model where necessary
+%======================================================================
+NS    = find(Nd ~= 7204);
+for i = NS
+    
+    cd(D{i}.path)
  
     % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
     %----------------------------------------------------------------------
@@ -74,17 +106,17 @@ for i = 1:Ns
     % get sensor locations
     %----------------------------------------------------------------------
     if strcmp(D{i}.modality,'EEG')
-        headshape = sensors;
-        orient    = sparse(0,3);
+        headshape  = sensors;
+        orient     = sparse(0,3);
     else
-        headshape = sparse(0,3);
+        headshape  = sparse(0,3);
         try
-            orient  = D{i}.inv{val}.datareg.megorient;
+            orient = D{i}.inv{val}.datareg.megorient;
         catch
-            [f p]   = uigetfile('*or*.mat','select sensor orientations');
-            orient  = load(fullfile(p,f));
-            name    = fieldnames(orient);
-            orient  = getfield(orient,name{1});
+            [f p]  = uigetfile('*or*.mat','select sensor orientations');
+            orient = load(fullfile(p,f));
+            name   = fieldnames(orient);
+            orient = getfield(orient,name{1});
         end
     end
     D{i}.inv{val}.datareg.sensors   = sensors;
@@ -123,11 +155,8 @@ end
 % specify inversion parameters
 %--------------------------------------------------------------------------
 inverse.trials = trials;                      % Trials or conditions
-if strcmp(D{i}.modality,'EEG')
-    inverse.type   = 'GS';                    % Priors; GS, MSP, LOR or IID
-else
-    inverse.type   = 'MSP';                    % Priors; GS, MSP, LOR or IID
-end
+inverse.type   = 'GS';                        % Priors; GS, MSP, LOR or IID
+
 
 % specify time-frequency window contrast
 %==========================================================================
@@ -147,11 +176,10 @@ contrast.display = 0;
  
 % Register and compute a forward model
 %==========================================================================
-for i = 1:Ns
+for i = 1:NS
  
     fprintf('Registering and computing forward model (subject: %i)\n',i)
-    D{i}.inv{val}.inverse = inverse;
- 
+    
     % Forward model
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_datareg(D{i});
@@ -161,11 +189,11 @@ end
  
 % Invert the forward model
 %==========================================================================
-D    = spm_eeg_invert(D);
-
-if ~iscell(D)
-    D = {D};
+for i = 1:Ns
+    D{i}.inv{val}.inverse = inverse;
 end
+D     = spm_eeg_invert(D);
+if ~iscell(D), D = {D}; end
  
  
 % Compute conditional expectation of contrast and produce image

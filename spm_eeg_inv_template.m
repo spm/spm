@@ -23,9 +23,10 @@ function [D] = spm_eeg_inv_template(varargin);
 % check for mesh size
 %--------------------------------------------------------------------------
 try
-    D.inv{val}.mesh.Msize;
+    mesh.Msize = D.inv{val}.mesh.Msize;
+    D.inv{val}.mesh.Msize = mesh.Msize;
 catch
-    str  = 'Mesh size (vertices)';
+    str   = 'Mesh size (vertices)';
     D.inv{val}.mesh.Msize = spm_input(str,'+1','3000|4000|5000|7200',[1 2 3 4]);
 end
 
@@ -39,11 +40,11 @@ Cdir     = [spm('dir') filesep 'EEGtemplates'];
 
 % head model (sMRI)
 %--------------------------------------------------------------------------
-D.inv{val}.mesh.template  = 1;
-D.inv{val}.mesh.sMRI         = fullfile(Cdir,'smri.img');
-D.inv{val}.mesh.msk_iskull   = fullfile(Cdir,'smri_iskull.img');
-D.inv{val}.mesh.msk_scalp    = fullfile(Cdir,'smri_scalp.img');
-D.inv{val}.mesh.msk_cortex   = fullfile(Cdir,'smri_cortex.img');
+D.inv{val}.mesh.template   = 1;
+D.inv{val}.mesh.sMRI       = fullfile(Cdir,'smri.img');
+D.inv{val}.mesh.msk_iskull = fullfile(Cdir,'smri_iskull.img');
+D.inv{val}.mesh.msk_scalp  = fullfile(Cdir,'smri_scalp.img');
+D.inv{val}.mesh.msk_cortex = fullfile(Cdir,'smri_cortex.img');
 
 
 % meshes
@@ -84,8 +85,9 @@ D.inv{val}.mesh.tess_iskull.face = uint16(Tmesh.face);
 
 % datareg
 %--------------------------------------------------------------------------
-D.inv{val}.datareg.fid_mri   = [0    80   -46;
-                              -79   -12   -63;
-                               79   -12   -63];
-D.inv{val}.datareg.scalpvert = D.inv{val}.mesh.tess_scalp.vert;
+datareg.fid_mri    = [ 0   80  -46;
+                     -79  -12  -63;
+                      79  -12  -63];
+datareg.scalpvert  = D.inv{val}.mesh.tess_scalp.vert;
+D.inv{val}.datareg = datareg;
 

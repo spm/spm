@@ -59,7 +59,7 @@ try, trial = inverse.trials; catch, trial = D{1}.events.types; end
 try, type  = inverse.type;   catch, type  = 'GS';              end
 try, s     = inverse.smooth; catch, s     = 0.6;               end
 try, Np    = inverse.Np;     catch, Np    = 256;               end
-try, Nm    = inverse.Nm;     catch, Nm    = 128;                end
+try, Nm    = inverse.Nm;     catch, Nm    = 128;               end
 try, xyz   = inverse.xyz;    catch, xyz   = [0 0 0];           end
 try, rad   = inverse.rad;    catch, rad   = 128;               end
 try, lpf   = inverse.lpf;    catch, lpf   = 1;                 end
@@ -68,8 +68,13 @@ try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
 try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
 try, woi   = inverse.woi;    catch, woi   = [];                end
- 
-% Load Gain or Lead field matrix
+
+
+%==========================================================================
+% Spatial parameters
+%==========================================================================
+
+% Load Gain or Lead-field matrices
 %--------------------------------------------------------------------------
 for i = 1:Nl
     gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
@@ -77,13 +82,86 @@ for i = 1:Nl
         G     = load(gainmat);
     catch
         [p f] = fileparts(gainmat);
-        G     = load(f);
+        try
+            G = load(f);
+        catch
+            G = load(fullfile(D{i}.path,f));
+        end
     end
     name   = fieldnames(G);
     L{i}   = sparse(getfield(G, name{1}));
     Nc(i)  = size(L{i},1);                         % number of channels
 end
+
+
+% assume radii are the same for all VOI
+%--------------------------------------------------------------------------
+Nd    = size(L{1},2);                              % number of dipoles
+Nv    = size(xyz,1);                               % number of VOI
+if length(rad) ~= Nv
+    rad = rad(1)*ones(Nv,1);
+else
+    rad = rad(:);
+end
+
+% Restrict source space
+%--------------------------------------------------------------------------
+vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
+face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
+Is    = sparse(Nd,1);
+for i = 1:Nv
+    Iv = sum([vert(:,1) - xyz(i,1), ...
+        vert(:,2) - xyz(i,2), ...
+        vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
+    Is = Is | Iv;
+end
+Is    = find(Is);
+vert  = vert(Is,:);
+for i = 1:Nl
+    L{i} = L{i}(:,Is);
+end
+Ns    = length(Is);
+
  
+% Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
+%==========================================================================
+
+fprintf('Computing Green''s function from graph Laplacian:')
+%--------------------------------------------------------------------------
+A     = spm_eeg_inv_meshdist(vert,face,0);
+GL    = A - spdiags(sum(A,2),0,Nd,Nd);
+GL    = GL*s/2;
+Qi    = speye(Nd,Nd);
+QG    = sparse(Nd,Nd);
+for i = 1:8
+    QG = QG + Qi;
+    Qi = Qi*GL/i;
+end
+clear Qi
+QG    = QG.*(QG > exp(-8));
+QG    = QG*QG;
+QG    = QG(Is,Is);
+fprintf(' - done\n')
+
+
+% Project to channel modes (U)
+%--------------------------------------------------------------------------
+U{1}  = spm_svd(L{1}*L{1}',exp(-16));
+Nm    = min(size(U{1},2),Nm);
+U{1}  = U{1}(:,1:Nm);
+UL{1} = U{1}'*L{1};
+for i = 2:Nl
+    U{i}  = spm_svd(L{i}*L{i}',0);
+    U{i}  = U{i}(:,1:Nm);
+    UL{i} = U{i}'*L{i};
+end
+fprintf('Using %i spatial modes\n',Nm)
+
+%==========================================================================
+% Temporal parameters
+%==========================================================================
+
+
 % Time-window of interest
 %--------------------------------------------------------------------------
 if isempty(woi)
@@ -98,21 +176,7 @@ pst   = (It - D{1}.events.start - 1);
 pst   = pst/D{1}.Radc*1000;                      % peristimulus time (ms)
 dur   = (pst(end) - pst(1))/1000;                % duration (s)
 dct   = (It - It(1))/2/dur;                      % DCT frequenices (Hz)
- 
-% parameters
-%==========================================================================
-Nd    = size(L{1},2);                            % number of dipoles
 Nb    = length(It);                              % number of time bins
-Nv    = size(xyz,1);                             % number of VOI
- 
-% assume radii are the same for all VBOI
-%--------------------------------------------------------------------------
-if length(rad) ~= Nv
-    rad = rad(1)*ones(Nv,1);
-else
-    rad = rad(:);
-end
- 
  
 % Serial correlations
 %--------------------------------------------------------------------------
@@ -148,102 +212,52 @@ end
 % temporal covariance (with Hanning if requested)
 %--------------------------------------------------------------------------
 if Han
-    W = T'*diag(spm_hanning(Nb))*T;
+    W  = T'*diag(spm_hanning(Nb))*T;
+    WY = W'*spm_cat(Y(:))';
 else
-    W = T'*T;
+    WY = spm_cat(Y(:))';
 end
-YY    = W'*spm_cat(Y(:))'*spm_cat(Y(:))*W;
- 
-% project onto temporal modes
+
+% project onto temporal modes (at most 6)
 %--------------------------------------------------------------------------
-[S u] = spm_svd(YY,1/16);
+[S u] = spm_svd(WY,1);
+Nr    = min(size(T,2),16);                       % number of temporal modes
+S     = S(:,   1:Nr);
+u     = u(1:Nr,1:Nr);
+VE    = sum(sum(u.^2))/sum(sum(WY.^2));          % variance explained
 T     = T*S;                                     % temporal projector
 iV    = inv(T'*qV*T);                            % precision (mode)
 Vq    = T*iV*T';                                 % precision (time)
-Nr    = size(T,2);                               % number of temporal modes
+rV    = sqrtm(iV);
 for i = 1:Nl
     for j = 1:Nt
         Y{i,j} = Y{i,j}*S;
     end
 end
+
 fprintf('Using %i temporal modes\n',Nr)
-fprintf('accounting for %0.2f percent variance\n',full(100*trace(u)/trace(YY)))
+fprintf('accounting for %0.2f percent variance\n',full(100*VE))
 
 % sample covariance over time (adjusting for different Lead-fields)
 %--------------------------------------------------------------------------
-G     = L{1};
+G     = UL{1};
 AY    = {};
-YY    = sparse(Nc(1),Nc(1));
-rV    = sqrtm(iV);
+YY    = sparse(Nm,Nm);
 for i = 1:Nl
-    R = speye(Nc(i),Nc(i))*exp(-64)*norm(L{i}*L{i}',1);
-    A = (G*L{i}')*inv((L{i}*L{i}' + R));
+    A = (G*UL{i}')*inv(UL{i}*UL{i}');
     for j = 1:Nt
-        AY{end + 1} = A*Y{i,j}*rV;
+        AY{end + 1} = A*U{i}'*Y{i,j}*rV;
         YY          = YY + AY{end}*AY{end}';
     end
 end
 AY    = spm_cat(AY);
- 
- 
-% Restrict source space
-%==========================================================================
-vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
-face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
-Is    = sparse(Nd,1);
-for i = 1:Nv
-    Iv = sum([vert(:,1) - xyz(i,1), ...
-        vert(:,2) - xyz(i,2), ...
-        vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
-    Is = Is | Iv;
-end
-Is    = find(Is);
-vert  = vert(Is,:);
-for i = 1:Nl
-    L{i} = L{i}(:,Is);
-end
-G     = G(:,Is);
-Ns    = length(Is);
- 
-% Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
-%==========================================================================
-
-fprintf('Computing Green''s function from graph Laplacian:')
-%--------------------------------------------------------------------------
-A     = spm_eeg_inv_meshdist(vert,face,0);
-GL    = A - spdiags(sum(A,2),0,Nd,Nd);
-GL    = GL*s/2;
-Qi    = speye(Nd,Nd);
-QG    = sparse(Nd,Nd);
-for i = 1:8
-    QG = QG + Qi;
-    Qi = Qi*GL/i;
-end
-clear Qi
-QG    = QG.*(QG > exp(-8));
-QG    = QG*QG;
-QG    = QG(Is,Is);
-fprintf(' - done\n')
-
-
-% Project to channel modes (U)
-%--------------------------------------------------------------------------
-U     = spm_svd(G*QG*G',exp(-16));
-try
-    U = U(:,1:Nm);
-end
-Nm    = size(U,2);
-AY    = U'*AY;
-YY    = U'*YY*U;
-G     = U'*G;
-fprintf('Using %i spatial modes\n',Nm)
  
 % covariance components
 %==========================================================================
  
 % sensor noise (accommodating spatial projector)
 %--------------------------------------------------------------------------
-Qe    = {U'*U};
+Qe    = {U{1}'*U{1}};
  
 % create source components
 %--------------------------------------------------------------------------
@@ -327,10 +341,14 @@ switch(type)
 
         % Spatial priors (QP); eliminating minor patterns
         %------------------------------------------------------------------
-        qp    = MVB.Cp;
-        pV    = diag(qp);
-        i     = find(pV > max(pV)/128);
-        qp    = Q(:,i)*qp(i,i)*Q(:,i)';
+        pV    = diag(MVB.Cp);
+        for i = 1:8
+            j = find(pV > 2^i*(max(pV)/256));
+            if length(j) < 128
+                break
+            end
+        end
+        qp    = Q(:,j)*MVB.Cp(j,j)*Q(:,j)';
 
         % Accmulate empirical priors
         %------------------------------------------------------------------
@@ -456,7 +474,9 @@ for i = 1:Nl
     inverse.dct    = dct;                  % frequency range
     inverse.F      = F;                    % log-evidence
     inverse.R2     = R2;                   % variance accounted for (%)
-    inverse.woi    = woi;		   % timewindow inverted
+    inverse.VE     = VE;                   % variance explained
+    inverse.woi    = woi;		           % timewindow inverted
+    
     % save in struct
     %----------------------------------------------------------------------
     D{i}.inv{D{i}.val}.inverse = inverse;

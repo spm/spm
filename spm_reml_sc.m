@@ -1,4 +1,4 @@
-function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC);
+function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
 % ReML estimation of covariance components from y*y' - proper components
 % FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC]);
 %
@@ -28,6 +28,10 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC);
  
 % John Ashburner & Karl Friston
 % $Id: spm_reml.m 731 2007-02-07 14:31:41Z karl $
+
+% assume proportional hyperpriors not specified
+%--------------------------------------------------------------------------
+try, A; catch, A  = 0;  end
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -60,7 +64,6 @@ end
 % initialise and specify hyperpriors
 %==========================================================================
  
- 
 % scale YY
 %--------------------------------------------------------------------------
 sY = n*trace(YY)/N;
@@ -68,11 +71,10 @@ YY = YY/sY;
  
 % scale Q
 %--------------------------------------------------------------------------
-for i = 1:m
-    sh(i,1) = n*trace(R*Q{i});
-    Q{i}    = Q{i}/sh(i);
-end
- 
+for i = 1:m, sh(i,1) = n*trace(R*Q{i});    end
+if  A,       sh      = ones(m,1)*mean(sh); end
+for i = 1:m, Q{i}    = Q{i}/sh(i);         end
+
 % hyperpriors
 %--------------------------------------------------------------------------
 try, hE = hE(:);   catch, hE = -32;   end
