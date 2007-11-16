@@ -221,7 +221,7 @@ end
 % project onto temporal modes (at most 6)
 %--------------------------------------------------------------------------
 [S u] = spm_svd(WY,1);
-Nr    = min(size(T,2),16);                       % number of temporal modes
+Nr    = min(size(T,2),8);                        % number of temporal modes
 S     = S(:,   1:Nr);
 u     = u(1:Nr,1:Nr);
 VE    = sum(sum(u.^2))/sum(sum(WY.^2));          % variance explained
