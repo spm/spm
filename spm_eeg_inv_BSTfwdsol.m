@@ -18,7 +18,7 @@ function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 957 2007-10-17 15:22:09Z rik $
+% $Id: spm_eeg_inv_BSTfwdsol.m 1001 2007-11-16 15:25:56Z christophe $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) and to allow sphere to be fit to other surfaces, eg
@@ -113,7 +113,7 @@ if sphere2fit == 1
     %----------------------------------------------------------------------
     [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
     OPTIONS.HeadCenter = Center;
-    OPTIONS.Radii      = [.88 .93 1]*Radius;
+    OPTIONS.Radii      = [.88 .93 1]/.88*Radius;
 end
 
 if isfield(D.inv{val}.mesh,'tess_iskull')
@@ -141,7 +141,7 @@ if isfield(D.inv{val}.mesh,'tess_iskull')
     %----------------------------------------------------------------------
         [Center,Radius]    = spm_eeg_inv_BestFitSph(vert);
         OPTIONS.HeadCenter = Center;
-        OPTIONS.Radii      = [.88 .93 1]*Radius;
+        OPTIONS.Radii      = [.88 .93 1]/.88*Radius;
     end
 else
     indx         = 2;

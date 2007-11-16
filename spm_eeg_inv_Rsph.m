@@ -139,16 +139,16 @@ if ~isfield(model,'spheres')
         end
         rtri = model.head(1).tri;
     end
-    if flags.figs,
-        % Display the scalp/brain surface
-        fvb.vertices = rXYZ'; fvb.faces = rtri';
-        spm_eeg_inv_displTes(fvb,[],1)
-        if flags.use_br
-            title('Brain surface')
-        else
-            title('Scalp surface')
-        end
-    end
+%     if flags.figs,
+%         % Display the scalp/brain surface
+%         fvb.vertices = rXYZ'; fvb.faces = rtri';
+%         spm_eeg_inv_displTes(fvb)
+%         if flags.use_br
+%             title('Brain surface')
+%         else
+%             title('Scalp surface')
+%         end
+%     end
 
     if flags.use_br
         Ref_surf = 2;
@@ -265,7 +265,7 @@ if flags.calc_dip
     % Decide if I'm dealing with a cortical mesh or a regular grid
     if isfield(dipoles,'vert')
         cort_or_grid = 1;   % Cortical mesh
-    elseif isfield(dipoles,'XYZ')
+    elseif isfield(dipoles,'XYZmm')
         cort_or_grid = 2;   % 3D grid
     else
         error('Don''t know this type of dipoles structure')
@@ -342,7 +342,11 @@ if flags.calc_dip
         end
         dipS.or = t_or./( unit'*sqrt(sum((t_or).^2)) );
     else
-        dipS.or = dipoles.or;
+        if isfield(dipoles,'or')
+            dipS.or = dipoles.or;
+        else
+            dipS.or = [];
+        end
     end
 end
 
@@ -365,8 +369,8 @@ if Rbr~=Rb_ch
         Rbr = Rb_ch ; Rsk = Rsk_ch ; Rsc = Rsc_ch ;
     else
         Rsk_ch = (Rsc+Rb_ch)/2;
-        fprintf('\tChanging brain radius from %3.1g to %3.1g,\n',Rbr,Rb_ch)
-        fprintf('\t     and skull radius from %3.1g to %3.1g,\n',Rsk,Rsk_ch)
+        fprintf('\tChanging brain radius from %3.2f to %3.2f,\n',Rbr,Rb_ch)
+        fprintf('\t     and skull radius from %3.2f to %3.2f,\n',Rsk,Rsk_ch)
         Rbr = Rb_ch ; Rsk = Rsk_ch ;
 
     end
@@ -384,10 +388,10 @@ end
 % Estimate the Leadfield, if required
 %=======================
 if flags.calc_L
-    if ~isfield(model.param,'sigma')
+    if ~isfield(model,'param') || ~isfield(model.param,'sigma')
         model.param.sigma = [.33 .004 .33];
         fprintf('\nWarning : conductivity values not defined in the model !\n')
-        fprintf(' I set them my self to %1.3g %1.3g %1.3g .',model.sigma)
+        fprintf(' I set them my self to %1.3g %1.3g %1.3g .\n',model.param.sigma)
     end
     % Estimate the leadfield for the "spherical" model & dipoles
     %============================================================

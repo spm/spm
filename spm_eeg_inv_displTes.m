@@ -1,4 +1,4 @@
-function [p,f] = spm_eeg_inv_displTes(tsurf,c)
+function [p,hFig] = spm_eeg_inv_displTes(tsurf,c)
 % FORMAT [p,f] = spm_eeg_inv_displTes(tsurf,c)
 %
 % Display a tessalated surface, with color c if provided : 

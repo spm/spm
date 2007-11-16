@@ -52,7 +52,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_VOI.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_VOI.m 1001 2007-11-16 15:25:56Z christophe $
 
 
 %-Parse arguments
@@ -99,6 +99,7 @@ switch SPACE
 	case 'B' %-Box
 	%---------------------------------------------------------------
 	D          = spm_input('box dimensions [k l m] {mm}',-2);
+    if length(D)~=3, D = ones(1,3)*D(1); end
 	str        = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
 	j          = find(all(abs(xSPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
 	k          = find(all(abs(     XYZmm - xyzmm*O) <= D(:)*O/2));

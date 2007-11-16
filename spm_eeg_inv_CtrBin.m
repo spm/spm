@@ -19,7 +19,7 @@ Unit   = ones(size(Z));
 	
 c_mm   = zeros(1,3); SI = 0;
 for pp=1:Vp.dim(3)
-     I_pl = double(Vp.dat(:,:,pp)); I_pl = I_pl(:)*ones(1,3);
+     I_pl = double(Vp.dat(:,:,pp)>128); I_pl = I_pl(:)*ones(1,3);
      XYZ  = Vp.mat*[X ; Y ; Z+pp ; Unit];
      c_mm = c_mm + sum(XYZ(1:3,:)'.*I_pl);
      SI   = SI+sum(I_pl(:,1));

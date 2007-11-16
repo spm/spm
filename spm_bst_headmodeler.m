@@ -1289,22 +1289,31 @@ for Order = OPTIONS.SourceModel % Compute gain matrices for each requested sourc
         G    = NaN*zeros(length(OPTIONS.Channel),length(ndx));
         Gxyz = NaN*zeros(length(OPTIONS.Channel),Dims*length(ndx));
 
-        % Gain matrix with fixed orientation - G
-        %------------------------------------------------------------------
-        src = 0;
-        src_ind = 0;
-        for k = 1:Dims:Dims*length(ndx)-2
-            src = src+1;
-            src_ind = src_ind+1;
-            if ~isempty(Gmeg)
-                G(MEGndx,src) = Gmeg(:,k:k+2) * GridOrient{1}(:,src_ind);
-            end
+        if OPTIONS.ApplyGridOrient
+            % Gain matrix with fixed orientation - G
+            %------------------------------------------------------------------
+            src = 0;
+            src_ind = 0;
+            for k = 1:Dims:Dims*length(ndx)-2
+                src = src+1;
+                src_ind = src_ind+1;
+                if ~isempty(Gmeg)
+                    G(MEGndx,src) = Gmeg(:,k:k+2) * GridOrient{1}(:,src_ind);
+                end
 
-            if ~isempty(Geeg) & (i==1)% % Order -1 only
-                G(EEGndx,src) = Geeg(:,k:k+2) * GridOrient{1}(:,src_ind);
+                if ~isempty(Geeg) & (i==1)% % Order -1 only
+                    G(EEGndx,src) = Geeg(:,k:k+2) * GridOrient{1}(:,src_ind);
+                end
+            end
+        else
+            if MEG
+                Gxyz(MEGndx,:) = Gmeg;
+            end
+            if EEG
+                Gxyz(EEGndx,:) = Geeg;
             end
         end
-
+        
         % Gain matrix for moments - Gxyz
         %------------------------------------------------------------------
         if MEG

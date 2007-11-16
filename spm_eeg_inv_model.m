@@ -72,7 +72,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % 
 % Input :
 % - surf    : surface on which the electrodes are projected, 
-%             if its the brain surface, then the scalp-brain width is added
+%             if it's the brain surface, then the scalp-brain width is added
 % - el_loc  : provided electrode coordinates, on a standard sphere or
 %             real coordinates as measured estimated on the patient's head.
 % - el_name : electrode names.

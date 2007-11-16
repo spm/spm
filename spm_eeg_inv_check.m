@@ -2,7 +2,7 @@ function [D,val] = spm_eeg_inv_check(varargin)
 
 %==========================================================================
 % Checks that the EEG/EMG .mat file structure is loaded properly and that
-% the particular inversion of interat has been specified
+% the particular inversion of interest has been specified
 %
 % FORMAT [D,val] = spm_eeg_inv_check(D,[val])
 % Input:
