@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_coreg.m 1004 2007-11-20 15:12:13Z john $
+% $Id: spm_coreg.m 1005 2007-11-20 18:37:15Z john $
 
 
 if nargin>=4,
@@ -235,7 +235,11 @@ for p=1:V.dim(3),
     img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
     img = img(isfinite(img));
     img = round((img+((mx-mn)/(nh-1)-mn))*((nh-1)/(mx-mn)));
-    h   = h + accumarray(img,1,[nh 1]);
+    if spm_matlab_version_chk('7.0')>=0,
+        h = h + accumarray(img,1,[nh 1]);
+    else
+        h = h + full(sparse(ind,1,1,nh,1));
+    end
     spm_progress_bar('Set',p);
 end;
 tmp = [find(cumsum(h)/sum(h)>0.9999); nh];
@@ -245,7 +249,10 @@ spm_progress_bar('Init',V.dim(3),...
 	['Loading ' spm_str_manip(V.fname,'t')],...
 	'Planes loaded');
 
-udat = zeros(V.dim,'uint8');
+%udat = zeros(V.dim,'uint8'); Needs MATLAB 7 onwards
+udat = uint8(0);
+udat(V.dim(1),V.dim(2),V.dim(3)) = 0;
+
 rand('state',100);
 for p=1:V.dim(3),
 	img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
