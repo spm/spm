@@ -24,14 +24,12 @@ end
 % get time window
 %--------------------------------------------------------------------------
 woi    = spm_input('Time window (ms)','+1','r',[100 200]);
-woi    = sort(woi);
-D.inv{val}.contrast.woi = round([woi(1) woi(end)]);
+D.inv{val}.contrast.woi = round([min(woi) max(woi)]);
 
 % get frequency window
 %--------------------------------------------------------------------------
 fboi  = spm_input('Frequency [band] of interest (Hz)','+1','r',0);
-fboi  = sort(fboi);
-D.inv{val}.contrast.fboi = round([fboi(1) fboi(end)]);
+D.inv{val}.contrast.fboi = round([min(fboi) max(fboi)]);
 
 % evaluate contrast
 %--------------------------------------------------------------------------

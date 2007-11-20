@@ -49,9 +49,10 @@ Nc   = size(U,1);                                 % number of channels
 
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
-toi  = round(woi*(D.Radc/1000)) + D.events.start + 1;
+dt   = (D.Radc/1000)
+toi  = round(woi*dt) + D.events.start + 1;
 toi  = toi - It(1) + 1;
-fwhm = max(diff(toi),8);
+fwhm = max(diff(toi),8*dt);
 t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
 t    = t/sum(t);
 
@@ -107,7 +108,7 @@ for i = 1:length(J)
         %------------------------------------------------------------------
         Nt    = length(c);
         for j = 1:Nt
-            fprintf('\nevaluating trial %i, condition %i',j,i)
+            fprintf('evaluating trial %i, condition %i\n',j,i)
             MYW   = MUR*(D.data(Ic,It,c(j))*TTW)/Nt;
             JW{i} = JW{i} + MYW(:,1);
             JWWJ  = JWWJ  + sum(MYW.^2,2);

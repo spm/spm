@@ -14,18 +14,17 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 849 2007-07-10 15:30:31Z rik $
+% $Id: spm_eeg_inv_mesh_ui.m 1006 2007-11-20 19:50:53Z karl $
 
 
 % initialise
 %--------------------------------------------------------------------------
-[D,val] = spm_eeg_inv_check(varargin{:});
-
+[D,val]         = spm_eeg_inv_check(varargin{:});
 D.inv{val}.mesh = [];
 
 % get cortical mesh size and compute meshes
 %--------------------------------------------------------------------------
-D       = spm_eeg_inv_meshing(D);
+D               = spm_eeg_inv_meshing(D);
 
 % check meshes and display
 %--------------------------------------------------------------------------

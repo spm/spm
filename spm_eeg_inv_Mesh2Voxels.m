@@ -37,12 +37,14 @@ catch
     Disp = 0;
 end
  
-% Scaling factor for images
+% Scaling factor for images (scale to within two orders of magnitude)
 %--------------------------------------------------------------------------
 try
     scalefactor = D.inv{val}.contrast.scalefactor;
 catch
-    scalefactor = 1e6;
+    scalefactor = norm(D.inv{val}.contrast.JW{1},1);
+    scalefactor = 100^-round(log10(scalefactor)/2);
+    D.inv{val}.contrast.scalefactor = scalefactor;
 end
  
 % smoothing FWHM (mm)
@@ -98,12 +100,12 @@ clear P1 P2 P3
 VoxelCoord  = round( spm_eeg_inv_mm2vx(DenseCortex,Vin.mat) )';
 clear DenseCortex
  
-% Get Garph Laplacian for smoothing on the cortical surface
+% Get Graph Laplacian for smoothing on the cortical surface
 %--------------------------------------------------------------------------
 A     = spm_eeg_inv_meshdist(vert,face,0);
 GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 
- 
+
 % Interpolate the values in each vertex to compute the values at each
 % sampling point of the triangles (cycle over conditions)
 %==========================================================================
@@ -135,7 +137,7 @@ for c = 1:length(D.inv{val}.contrast.GW)
         TextVal = Contrast(face(i,:));
         if any(TextVal)
             ValTemp        = InterpOp*TextVal;
-            SPvalues( (i-1)*np+1 : i*np ) = sum(TextVal)*(ValTemp/sum(ValTemp));
+            SPvalues((i-1)*np+1:i*np) = sum(TextVal)*(ValTemp/sum(ValTemp));
             Vox            = VoxelCoord( (i-1)*np+1 : i*np , : );
             Val            = SPvalues( (i-1)*np+1 : i*np );
             [UnVox,I,J]    = unique(Vox,'rows');

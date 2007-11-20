@@ -111,8 +111,8 @@ face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
 Is    = sparse(Nd,1);
 for i = 1:Nv
     Iv = sum([vert(:,1) - xyz(i,1), ...
-        vert(:,2) - xyz(i,2), ...
-        vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
+              vert(:,2) - xyz(i,2), ...
+              vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
     Is = Is | Iv;
 end
 Is    = find(Is);
@@ -146,13 +146,15 @@ fprintf(' - done\n')
 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
+Nmax  = Nm;
 U{1}  = spm_svd(L{1}*L{1}',exp(-16));
-Nm    = min(size(U{1},2),Nm);
+Nm    = min(size(U{1},2),Nmax);
 U{1}  = U{1}(:,1:Nm);
 UL{1} = U{1}'*L{1};
 for i = 2:Nl
-    U{i}  = spm_svd(L{i}*L{i}',0);
-    U{i}  = U{i}(:,1:Nm);
+    U{i}  = spm_svd(L{i}*L{i}',exp(-16));
+    Nm(i) = min(size(U{i},2),Nmax);
+    U{i}  = U{i}(:,1:Nm(i));
     UL{i} = U{i}'*L{i};
 end
 fprintf('Using %i spatial modes\n',Nm)
@@ -160,107 +162,103 @@ fprintf('Using %i spatial modes\n',Nm)
 %==========================================================================
 % Temporal parameters
 %==========================================================================
-
-
-% Time-window of interest
-%--------------------------------------------------------------------------
-if isempty(woi)
-    woi = round([-D{1}.events.start D{1}.events.stop]*1000/D{1}.Radc);
-end
-It    = round(woi*(D{1}.Radc/1000)) + D{1}.events.start;
-It    = max(1,It(1)):min(It(end),size(D{1}.data,2));
- 
-% Peri-stimulus time
-%--------------------------------------------------------------------------
-pst   = (It - D{1}.events.start - 1);
-pst   = pst/D{1}.Radc*1000;                      % peristimulus time (ms)
-dur   = (pst(end) - pst(1))/1000;                % duration (s)
-dct   = (It - It(1))/2/dur;                      % DCT frequenices (Hz)
-Nb    = length(It);                              % number of time bins
- 
-% Serial correlations
-%--------------------------------------------------------------------------
-K     = exp(-(pst - pst(1)).^2/(2*sdv^2));
-K     = toeplitz(K);
-qV    = sparse(K*K');
- 
-% Confounds and temporal subspace
-%--------------------------------------------------------------------------
-T     = spm_dctmtx(Nb,Nb);
-i     = (dct > lpf) & (dct < hpf);
-T     = T(:,i);
-dct   = dct(i);
- 
-% get data (with temporal filtering)
-%==========================================================================
 Nt    = length(trial);
-for k = 1:Nl
-    Ic{k} = setdiff(D{k}.channels.eeg, D{k}.channels.Bad);
-    for i = 1:Nt
-        Y{k,i} = sparse(0);
-        if isfield(D{k}.events,'reject')
-            c = find(D{k}.events.code == trial(i) & ~D{k}.events.reject);
-        else
-            c = find(D{k}.events.code == trial(i));
-        end
-        for j = 1:length(c)
-            Y{k,i} = Y{k,i} + squeeze(D{k}.data(Ic{k},It,c(j)))*T;
-        end
-    end
-end
- 
-% temporal covariance (with Hanning if requested)
-%--------------------------------------------------------------------------
-if Han
-    W  = T'*diag(spm_hanning(Nb))*T;
-    WY = W'*spm_cat(Y(:))';
-else
-    WY = spm_cat(Y(:))';
-end
-
-% project onto temporal modes (at most 6)
-%--------------------------------------------------------------------------
-[S u] = spm_svd(WY,1);
-Nr    = min(size(T,2),8);                        % number of temporal modes
-S     = S(:,   1:Nr);
-u     = u(1:Nr,1:Nr);
-VE    = sum(sum(u.^2))/sum(sum(WY.^2));          % variance explained
-T     = T*S;                                     % temporal projector
-iV    = inv(T'*qV*T);                            % precision (mode)
-Vq    = T*iV*T';                                 % precision (time)
-rV    = sqrtm(iV);
-for i = 1:Nl
-    for j = 1:Nt
-        Y{i,j} = Y{i,j}*S;
-    end
-end
-
-fprintf('Using %i temporal modes\n',Nr)
-fprintf('accounting for %0.2f percent variance\n',full(100*VE))
-
-% sample covariance over time (adjusting for different Lead-fields)
-%--------------------------------------------------------------------------
 G     = UL{1};
 AY    = {};
-YY    = sparse(Nm,Nm);
 for i = 1:Nl
-    A = (G*UL{i}')*inv(UL{i}*UL{i}');
-    for j = 1:Nt
-        AY{end + 1} = A*U{i}'*Y{i,j}*rV;
-        YY          = YY + AY{end}*AY{end}';
+
+    % Time-window of interest
+    %----------------------------------------------------------------------
+    if isempty(woi)
+        woi = round([-D{i}.events.start D{i}.events.stop]*1000/D{i}.Radc);
     end
+    It{i}   = round(woi*(D{i}.Radc/1000)) + D{i}.events.start;
+    It{i}   = max(1,It{i}(1)):min(It{i}(end),size(D{i}.data,2));
+
+    % Peri-stimulus time
+    %----------------------------------------------------------------------
+    pst{i}  = (It{i} - D{i}.events.start - 1);
+    pst{i}  = pst{i}/D{i}.Radc*1000;               % peristimulus time (ms)
+    dur     = (pst{i}(end) - pst{i}(1))/1000;      % duration (s)
+    dct{i}  = (It{i} - It{i}(1))/2/dur;            % DCT frequenices (Hz)
+    Nb(i)   = length(It{i});                       % number of time bins
+
+    % Serial correlations
+    %----------------------------------------------------------------------
+    K       = exp(-(pst{i} - pst{i}(1)).^2/(2*sdv^2));
+    K       = toeplitz(K);
+    qV{i}   = sparse(K*K');
+
+    % Confounds and temporal subspace
+    %----------------------------------------------------------------------
+    T       = spm_dctmtx(Nb(i),Nb(i));
+    j       = (dct{i} > lpf) & (dct{i} < hpf);
+    T       = T(:,j);
+    dct{i}  = dct{i}(j);
+
+    % get data (with temporal filtering)
+    %======================================================================
+    Ic{i} = setdiff(D{i}.channels.eeg, D{i}.channels.Bad);
+    for j = 1:Nt
+        Y{i,j} = sparse(0);
+        if isfield(D{i}.events,'reject')
+            c = find(D{i}.events.code == trial(j) & ~D{i}.events.reject);
+        else
+            c = find(D{j}.events.code == trial(j));
+        end
+        Ne    = length(c);
+        for k = 1:Ne
+            Y{i,j} = Y{i,j} + squeeze(D{i}.data(Ic{i},It{i},c(k)))*T/Ne;
+        end
+    end
+
+
+    % Hanning operator (if requested)
+    %----------------------------------------------------------------------
+    if Han
+        W  = T'*sparse(1:Nb(i),1:Nb(i),spm_hanning(Nb(i)))*T;
+        WY = W'*spm_cat(Y(i,:)')';
+    else
+        WY = spm_cat(Y(i,:)')';
+    end
+
+    % temporal projector (at most 8 modes) S = T*v
+    %======================================================================
+    [v u]  = spm_svd(WY,1);                      % temporal modes
+    Nr(i)  = min(size(v,2),8);                   % number of temporal modes
+    v      = v(:,      1:Nr(i));
+    u      = u(1:Nr(i),1:Nr(i));
+    VE(i)  = sum(sum(u.^2))/sum(sum(WY.^2));     % variance explained
+    S{i}   = T*v;                                % temporal projector
+    iV{i}  = inv(S{i}'*qV{i}*S{i});              % precision (mode)
+    Vq{i}  = S{i}*iV{i}*S{i}';                   % precision (time)
+
+    fprintf('Using %i temporal modes\n',Nr)
+    fprintf('accounting for %0.2f percent variance\n',full(100*VE))
+    
+
+    % spatial projector (adjusting for different Lead-fields)
+    %======================================================================
+    A     = (G*UL{i}')*inv(UL{i}*UL{i}')*U{i}';
+
+    % spatially adjusted and temporally whitened data
+    %----------------------------------------------------------------------
+    for j = 1:Nt
+        Y{i,j}      = Y{i,j}*v;
+        AY{end + 1} = A*Y{i,j}*sqrtm(iV{i});
+    end
+
+    % create sensor components (Qe)
+    %----------------------------------------------------------------------
+    Qe{i} = A*A';
+
 end
 AY    = spm_cat(AY);
+YY    = AY*AY';
+
  
-% covariance components
+% create source components (Qp)
 %==========================================================================
- 
-% sensor noise (accommodating spatial projector)
-%--------------------------------------------------------------------------
-Qe    = {U{1}'*U{1}};
- 
-% create source components
-%--------------------------------------------------------------------------
 switch(type)
  
     case {'MSP','GS','ARD'}
@@ -364,7 +362,7 @@ switch(type)
     %----------------------------------------------------------------------
     qp          = sparse(0);
     Q           = {Qe{:} LQpL{:}};
-    [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,Nr*Nt);
+    [Cy,h,Ph,F] = spm_sp_reml(YY,[],Q,sum(Nr)*Nt);
  
     % Spatial priors (QP)
     %----------------------------------------------------------------------
@@ -402,11 +400,11 @@ for i = 1:Nl
         LQpL{j}  = L{i}*QP{j}*L{i}';
     end
     Q     = {Qe{:} LQpL{:}};
-    YY    = spm_cat(Y(i,:))*kron(speye(Nt,Nt),iV)*spm_cat(Y(i,:))';
+    YY    = spm_cat(Y(i,:))*kron(speye(Nt,Nt),iV{i})*spm_cat(Y(i,:))';
  
     % re-do ReML
     %----------------------------------------------------------------------
-    [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,Nr*Nt);
+    [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,sum(Nr)*Nt);
  
     % Covariances: sensor space - Ce and source space - L*Cp
     %----------------------------------------------------------------------
@@ -463,19 +461,19 @@ for i = 1:Nl
     inverse.L      = L{i};                 % Lead-field (reduced)
     inverse.R      = U;                    % Re-referencing matrix
     inverse.qC     = Cq;                   % spatial covariance
-    inverse.qV     = Vq;                   % temporal correlations
-    inverse.T      = T;                    % temporal subspace
+    inverse.qV     = Vq{i};                % temporal correlations
+    inverse.T      = S{i};                 % temporal subspace
     inverse.U      = U;                    % spatial subspace
     inverse.Is     = Is;                   % Indices of active dipoles
-    inverse.It     = It;                   % Indices of time bins
+    inverse.It     = It{i};                % Indices of time bins
     inverse.Ic     = Ic{i};                % Indices of good channels
     inverse.Nd     = Nd;                   % number of dipoles
-    inverse.pst    = pst;                  % peristimulus time
-    inverse.dct    = dct;                  % frequency range
+    inverse.pst    = pst{i};               % peristimulus time
+    inverse.dct    = dct{i};               % frequency range
     inverse.F      = F;                    % log-evidence
     inverse.R2     = R2;                   % variance accounted for (%)
-    inverse.VE     = VE;                   % variance explained
-    inverse.woi    = woi;		           % timewindow inverted
+    inverse.VE     = VE(i);                % variance explained
+    inverse.woi    = woi;                  % timewindow inverted
     
     % save in struct
     %----------------------------------------------------------------------

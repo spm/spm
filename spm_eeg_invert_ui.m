@@ -94,7 +94,13 @@ if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
     switch inverse.type, case{'MSP','GS'}
         inverse.Np   = spm_input('MSPs per hemisphere','+1','64|128|256|512',[64 128 256 512],3);
     end
-        
+    
+    % Time window of interest
+    %----------------------------------------------------------------------
+    woi         = round([-D.events.start D.events.stop]*1000/D.Radc);
+    woi         = spm_input('Time window (ms)','+1','r',woi);
+    inverse.woi = round([min(woi) max(woi)]);
+    
     % High-pass filter
     %----------------------------------------------------------------------
     inverse.lpf = spm_input('High-pass (Hz)','+1','1|8|16',[1 8 16],1);
@@ -119,9 +125,9 @@ end
 
 % invert
 %==========================================================================
-D.con              = 1;
-D.inv{val}.inverse = inverse;
-D                  = spm_eeg_invert(D);
+D.con               = 1;
+D.inv{val}.inverse  = inverse;
+D                   = spm_eeg_invert(D);
 
 
 return
