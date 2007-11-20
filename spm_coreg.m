@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_coreg.m 677 2006-11-09 10:52:54Z john $
+% $Id: spm_coreg.m 1004 2007-11-20 15:12:13Z john $
 
 
 if nargin>=4,
@@ -224,12 +224,28 @@ else
 		spm_progress_bar('Set',p);
 	end;
 end;
+
+% Another pass to find a maximum that allows a few hot-spots in the data.
+spm_progress_bar('Init',V.dim(3),...
+        ['2nd pass max/min of ' spm_str_manip(V.fname,'t')],...
+        'Planes complete');
+nh = 2048;
+h  = zeros(nh,1);
+for p=1:V.dim(3),
+    img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+    img = img(isfinite(img));
+    img = round((img+((mx-mn)/(nh-1)-mn))*((nh-1)/(mx-mn)));
+    h   = h + accumarray(img,1,[nh 1]);
+    spm_progress_bar('Set',p);
+end;
+tmp = [find(cumsum(h)/sum(h)>0.9999); nh];
+mx  = (mn*nh-mx+tmp(1)*(mx-mn))/(nh-1);
+
 spm_progress_bar('Init',V.dim(3),...
 	['Loading ' spm_str_manip(V.fname,'t')],...
 	'Planes loaded');
 
-udat = uint8(0);
-udat(V.dim(1),V.dim(2),V.dim(3))=0;
+udat = zeros(V.dim,'uint8');
 rand('state',100);
 for p=1:V.dim(3),
 	img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
