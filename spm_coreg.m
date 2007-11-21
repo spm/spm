@@ -75,7 +75,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_coreg.m 1005 2007-11-20 18:37:15Z john $
+% $Id: spm_coreg.m 1007 2007-11-21 12:37:33Z john $
 
 
 if nargin>=4,
@@ -238,7 +238,7 @@ for p=1:V.dim(3),
     if spm_matlab_version_chk('7.0')>=0,
         h = h + accumarray(img,1,[nh 1]);
     else
-        h = h + full(sparse(ind,1,1,nh,1));
+        h = h + full(sparse(img,1,1,nh,1));
     end
     spm_progress_bar('Set',p);
 end;
