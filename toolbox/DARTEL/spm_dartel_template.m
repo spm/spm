@@ -7,7 +7,7 @@ function spm_dartel_template(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_template.m 988 2007-10-31 16:59:43Z john $
+% $Id: spm_dartel_template.m 1008 2007-11-23 17:02:08Z john $
 
 st = job.settings;
 K  = st.param(1).K;
@@ -47,14 +47,14 @@ for i=1:n2,
     NU(i).dat.scl_inter = 0;
     NU(i).descrip = 'Flow Field';
 
-    vn = NF(1,i).vn;
+    vn  = NF(1,i).vn;
     tmp = find(~isfinite(NF(1,i).NI.dat(:,:,:,vn(1),vn(2))));
     if ~isempty(tmp),
-        for j=1:n2,
+        for j=1:n1,
             vn  = NF(j,i).vn;
             dat = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
             dat(tmp)    = 0;
-            NF(j,i).NI.dat = dat;
+            NF(j,i).NI.dat(:,:,:,vn(1),vn(2)) = dat;
             clear dat
         end;
     end;
