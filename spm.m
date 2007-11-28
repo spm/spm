@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 1009 2007-11-28 11:12:23Z john $
+% $Id: spm.m 1010 2007-11-28 11:14:16Z john $
 
 
 %=======================================================================
@@ -1146,7 +1146,7 @@ if isempty(regexpi(p,['^' d ':'])) &&...
         'will be unable to find the SPM functions.  You\n'...
         'can use the editpath command in MATLAB to set it up.\n'...
         'For more information, try typing the following:\n'...
-        '    help path\n    help editmath\n']));
+        '    help path\n    help editpath\n']));
 end
 
 % Ensure that the original release - as well as the updates - was installed.
