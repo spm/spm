@@ -16,7 +16,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 851 2007-07-10 16:13:04Z rik $
+% $Id: spm_eeg_merge.m 1015 2007-11-29 18:27:35Z stefan $
 
 % Changed to allow recoding of first file (though obviously makes some of loop redundant!)			Doris Eckstein
 
@@ -55,6 +55,7 @@ Dout.Nevents = 0;
 Dout.events.code = [];
 Dout.events.time = [];
 Dout.events.reject = [];
+Dout.events.repl = [];
 Dout.channels.Bad = [];
 
 %%% Change
@@ -104,6 +105,10 @@ for i = 1:Nfiles
 		Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
     end
     
+    if isfield(Dout.events, 'repl')
+        Dout.events.repl = [Dout.events.repl Dtmp.events.repl];
+    end
+
     Dout.channels.Bad = unique([Dout.channels.Bad Dtmp.channels.Bad]);
 end
 
