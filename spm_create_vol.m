@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_create_vol.m 941 2007-10-14 17:01:18Z volkmar $
+% $Id: spm_create_vol.m 1014 2007-11-29 14:53:20Z volkmar $
 
 
 for i=1:numel(V),
@@ -53,7 +53,7 @@ if strcmp(dt{1},'unknown'),
 end;
 if V.dt(2), dt{2} = 'BE'; else dt{2} = 'LE'; end;
 
-if ~isfield(V,'pinfo'), V.pinfo      = [1 0 0]'; end;
+if ~isfield(V,'pinfo'), V.pinfo      = [Inf Inf 0]'; end;
 if size(V.pinfo,1)==2,  V.pinfo(3,:) = 0;        end;
 V.fname       = deblank(V.fname);
 [pth,nam,ext] = fileparts(V.fname);
