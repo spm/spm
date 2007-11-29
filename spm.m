@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 1012 2007-11-28 19:44:44Z guillaume $
+% $Id: spm.m 1013 2007-11-29 13:04:17Z john $
 
 
 %=======================================================================
@@ -1135,9 +1135,13 @@ function check_installation
 % check the search path
 p=path;
 d=spm('Dir');
-if isempty(regexpi(p,['^' strrep(d,'\','\\') pathsep])) &&...
-   isempty(regexpi(p,[pathsep strrep(d,'\','\\') pathsep])) &&...
-   isempty(regexpi(p,[pathsep strrep(d,'\','\\') '$'])),
+d=strrep(strrep(strrep(strrep(d,'\','\\'),'*','\*'),'.','\.'),'+','\+');
+d=strrep(strrep(strrep(strrep(d,'|','\|'),'?','\?'),'^','\^'),'^','\$');
+d=strrep(strrep(strrep(strrep(d,')','\)'),'(','\('),']','\]'),'[','\[');
+
+if isempty(regexpi(p,['^' d pathsep])) &&...
+   isempty(regexpi(p,[pathsep d pathsep])) &&...
+   isempty(regexpi(p,[pathsep d '$'])) 
     error(sprintf([...
         'You do not appear to have the MATLAB search path\n'...
         'set up to include your SPM5 distribution.  This\n'...
