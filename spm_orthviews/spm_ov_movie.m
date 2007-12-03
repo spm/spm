@@ -17,7 +17,7 @@ function ret = spm_ov_movie(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m 834 2007-06-26 13:02:50Z volkmar $
+% @(#) $Id: spm_ov_movie.m 1017 2007-12-03 12:53:03Z volkmar $
 
 global st;
 if isempty(st)
@@ -67,8 +67,10 @@ switch cmd
     l=sqrt(d'*d);
     d=d./l;
     steps = 0:ds:l;
-    if logical(cell2mat(spm_input('Save movie(s)?','!+1', 'b', {'no', ...
-		    'yes'}, {0,1},0)))
+    domovie = cell2mat(spm_input('Save movie(s)?','!+1', 'm', ...
+				 {'Don''t save', 'Save as image series', ...
+		    'Save as movie'}, {0,1,2},0));
+    if domovie > 0
 	vh = spm_input('Select image(s)', '!+1', 'e', ...
 		       num2str(spm_orthviews('valid_handles')));
 	prefix = spm_input('Filename prefix','!+1', 's', ...
@@ -87,8 +89,16 @@ switch cmd
     spm('pointer', 'watch');
     for ci = 1:numel(vh)
 	for ca = 1:3
-	    fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
-	    movie2avi(M{ci,ca},fname);
+	    if domovie == 1
+		for cf = 1:numel(M{ci,ca})
+		    fname = sprintf('%s-%02d-%1d-%03d.png',prefix,vh(ci),ca, ...
+				    cf);
+		    imwrite(frame2im(M{ci,ca}(cf)), fname, 'png');
+		end;
+	    elseif domovie == 2
+		fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
+		movie2avi(M{ci,ca},fname);
+	    end;
 	end;
     end;
     spm('pointer', 'arrow');
