@@ -4,7 +4,7 @@ function conf = spm_config_fmri_spec
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_spec.m 767 2007-03-15 14:17:18Z volkmar $
+% $Id: spm_config_fmri_spec.m 1016 2007-12-03 12:51:33Z volkmar $
 
 
 % Define inline types.
@@ -435,7 +435,7 @@ bases.help = {[...
 
 %-------------------------------------------------------------------------
 
-volt  = mnu('Model Interactions (Volterra)','volt',{'Do not model Interractions','Model Interractions'},{1,2},'');
+volt  = mnu('Model Interactions (Volterra)','volt',{'Do not model Interactions','Model Interactions'},{1,2},'');
 volt.val = {1};
 p1 = ['Generalized convolution of inputs (U) with basis set (bf).'];
 p2 = [...
