@@ -46,7 +46,7 @@ switch priors
         s     = 4^2;                              % smoothness fixed at 4mm
         U     = sparse(nv,nv);
         for i = 1:nv
-            u      = exp(-sum((xyz - xyz(:,i)*ones(1,nv)).^2)/(2*s))
+            u      = exp(-sum((xyz - xyz(:,i)*ones(1,nv)).^2)/(2*s));
             U(i,:) = sparse(u.*(u > exp(-8)));
         end
  
