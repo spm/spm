@@ -18,7 +18,7 @@ function varargout=spm(varargin)
 % main SPM Menu window using the "Help" button, or directly from the
 % command line using the command `spm_help`.
 %
-% Details of this release are availiable via the "About SPM" help topic
+% Details of this release are available via the "About SPM" help topic
 % (file spm.man), accessible from the SPM splash screen.  (Or type
 % `spm_help spm.man` in the MatLab command window)
 % 
@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm.m 1013 2007-11-29 13:04:17Z john $
+% $Id: spm.m 1019 2007-12-04 17:46:25Z guillaume $
 
 
 %=======================================================================
@@ -1132,16 +1132,10 @@ end
 %=======================================================================
 function check_installation
 %=======================================================================
-% check the search path
-p=path;
-d=spm('Dir');
-d=strrep(strrep(strrep(strrep(d,'\','\\'),'*','\*'),'.','\.'),'+','\+');
-d=strrep(strrep(strrep(strrep(d,'|','\|'),'?','\?'),'^','\^'),'^','\$');
-d=strrep(strrep(strrep(strrep(d,')','\)'),'(','\('),']','\]'),'[','\[');
+d = spm('Dir');
 
-if isempty(regexpi(p,['^' d pathsep])) &&...
-   isempty(regexpi(p,[pathsep d pathsep])) &&...
-   isempty(regexpi(p,[pathsep d '$'])) 
+% check the search path
+if ~ismember(lower(d),lower(strread(path,'%s','delimiter',pathsep)))
     error(sprintf([...
         'You do not appear to have the MATLAB search path\n'...
         'set up to include your SPM5 distribution.  This\n'...
@@ -1175,8 +1169,7 @@ if ~exist(fullfile(d,'spm_showdoc.m')), % This is a file that should not have ch
 end
 
 % Ensure that the files were unpacked correctly
-c = computer;
-if strcmpi(c,'PCWIN') || strcmpi(c,'PCWIN64')
+if ispc
     try
         t = load(fullfile(d,'Split.mat'));
     catch
