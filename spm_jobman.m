@@ -61,7 +61,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_jobman.m 1020 2007-12-06 20:20:31Z john $
 
 
 if nargin==0
@@ -2906,6 +2906,7 @@ switch c.type
         if ~strcmp(gettag(c),tag), return; end;
         if length(c.values)==1 && strcmp(c.values{1}.type,'branch')
             if ~isstruct(job), return; end;
+            c.val = {};
             for i=1:length(job)
                 if strcmp(gettag(c.values{1}),tag)
                     try
@@ -2918,6 +2919,7 @@ switch c.type
             end;
         elseif length(c.values)>1
             if ~iscell(job), return; end;
+            c.val = {};
             for i=1:length(job)
                 tag = fieldnames(job{i});
                 if length(tag)>1, return; end;
@@ -2936,6 +2938,7 @@ switch c.type
             end;
         else
             if ~iscell(job), return; end;
+            c.val = {};
             for i=1:length(job)
                 try
                     c.val{i} = job_to_struct(c.values{1},job{i},jobhelp{i},tag);

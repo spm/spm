@@ -7,8 +7,9 @@ function spm_dartel_template(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1008 2007-11-23 17:02:08Z john $
+% $Id: spm_dartel_template.m 1020 2007-12-06 20:20:31Z john $
 
+code = 2;
 st = job.settings;
 K  = st.param(1).K;
 n1 = numel(job.images);
@@ -114,7 +115,7 @@ it0 = 0;
 for it=1:numel(st.param),
     param = st.param(it);
     prm   = [st.rform, param.rparam, st.optim.lmreg, ...
-             st.optim.cyc, st.optim.its, param.K, st.code];
+             st.optim.cyc, st.optim.its, param.K, code];
     drawnow
 
     for j=1:param.its,

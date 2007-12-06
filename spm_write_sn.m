@@ -61,7 +61,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 976 2007-10-25 12:14:47Z john $
+% $Id: spm_write_sn.m 1020 2007-12-06 20:20:31Z john $
 
 
 if isempty(V), return; end;
@@ -235,6 +235,7 @@ for i=1:numel(V),
         if numel(V)<5, spm_progress_bar('Set',i-1+j/length(z)); end;
     end;
     if nargout==0,
+        if flags.preserve, VO = rmfield(VO,'pinfo'); end
         VO = spm_write_vol(VO,Dat);
     else
         VO.pinfo  = [1 0]';
@@ -253,6 +254,7 @@ function VO = modulate(V,prm)
 spm_progress_bar('Init',numel(V),'Modulating','volumes completed');
 for i=1:numel(V),
     VO          = V(i);
+    VO          = rmfield(VO,'pinfo');
     VO.fname    = prepend(VO.fname,'m');
     detAff      = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
     %Dat        = zeros(VO.dim(1:3));

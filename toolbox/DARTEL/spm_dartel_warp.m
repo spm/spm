@@ -7,8 +7,9 @@ function spm_dartel_warp(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_warp.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_dartel_warp.m 1020 2007-12-06 20:20:31Z john $
 
+code = 2;
 st = job.settings;
 n1 = numel(job.images);
 n2 = numel(job.images{1});
@@ -67,7 +68,7 @@ for i=1:n2,
     for it=1:numel(st.param),
         param = st.param(it);
         prm   = [st.rform, param.rparam, st.optim.lmreg, ...
-                 st.optim.cyc, st.optim.its, param.K, st.code];
+                 st.optim.cyc, st.optim.its, param.K, code];
 
         % Load the template
         NG = nifti(strvcat(param.template{:}));

@@ -127,6 +127,7 @@ for c = 1:length(D.inv{val}.contrast.GW)
     InterpOp       = [teta alpha beta];
     SPvalues       = zeros(nf*np,1);
     Vout           = Vin;
+    Vout           = rmfield(Vout,'pinfo');
     Vout.fname     = Outputfilename;
     Vout.dt(1)     = spm_type('int16');
     RECimage       = zeros(Vout.dim);

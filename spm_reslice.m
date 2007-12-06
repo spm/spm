@@ -90,7 +90,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 976 2007-10-25 12:14:47Z john $
+% $Id: spm_reslice.m 1020 2007-12-06 20:20:31Z john $
 
 
 
@@ -255,6 +255,7 @@ if flags.mean
 	%-----------------------------------------------------------
 	Integral   = Integral./Count;
 	PO         = P(1);
+	PO         = rmfield(PO,'pinfo');
 	[pth,nm,xt,vr] = fileparts(deblank(P(1).fname));
 	PO.fname   = fullfile(pth,['mean' nm xt]);
 	PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';

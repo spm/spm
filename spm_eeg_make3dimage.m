@@ -29,6 +29,7 @@ V=v(1);
 V.fname = fullfile(pathstr,[name '3d.img']);
 V.dim = [v(1).dim(1) v(1).dim(2) length(v)];
 V.mat = eye(4);
-V.pinfo = [1 0 0]';
+%V.pinfo = [1 0 0]';
+V = rmfield(V,'pinfo');
 
 spm_write_vol(V, data); 
