@@ -21,34 +21,41 @@ gui was usually set to be negative, it should now be positive
 and vice versa. This also applies to the default value for 
 pm_def.K_SPACE_TRAVERSAL_BLIP_DIR in the pm_defaults.m file which 
 should be set to -1 if it was +1 previously and vice versa. 
+As before the recommendation is: When you first start using the  
+toolbox USE THE GUI TO ENSURE YOUR DISTORTION CORRECTIONS GO IN 
+THE RIGHT DIRECTION.
+
 2) In the previous version of FieldMap, there was a bug in 
 the application of the Jacobian modulation when using an 
-EPI-based field map. This has now been fixed.
+EPI-based field map. This has now been fixed. Thankyou to 
+Xu Ning who first alerted us to the presence of this bug.
+
 3) The toolbox now allows the user to select a specified 
 defaults file.This means it is possible to have more than one 
 default file containing different sets of parameters relating 
 to different field map and /or EPI sequences. This is 
 particularly useful for sites where more than one sequence is 
 routinely used.
+
 4) The toolbox can be run using the new SPM5 User Interface. 
 This will allow FieldMap jobs to be saved serving as a log about 
 how the data was processed. It will also facilitate scripting 
 and batching jobs.
+
 5) The toolbox now reads and writes files in nifti format 
 (as does SPM5).
+
 6) The toolbox now save a vdm5_* file which will also be expected 
 by Realign & unwarp. If doing Unwarp with multiple sessions, but
 a single vdm5_* file, it will be necessary to select this file 
 for each session. 
 
-All versions of FieldMap and Unwarp are only designed to work 
+7) All versions of FieldMap and Unwarp are only designed to work 
 with images collected with the phase-encode direction in y.
-The FieldMap toolbox and the updated Unwarp routine can be 
-found at http://www.fil.ion.ucl.ac.uk/spm/toolbox/fieldmap/ 
-and a manual at 
-http://www.fil.ion.ucl.ac.uk/spm/toolbox/fieldmap/manual.pdf.
+
 We have tried our best to thoroughly test and validate 
 the toolbox but please report any problems to us. All the 
 usual waivers and disclaimers apply.
 
-Good luck Chloe & Jesper
+Good luck 
+Chloe & Jesper
