@@ -7,7 +7,7 @@ function [] = spm_mix_plot (mix,area,nContLines,LineType,min_p,max_p)
 % nContLines	Number of contour lines; default=10
 % LineType		Plot line type; default='-'
 % min_p/max_p   Values of min and max probability contours
-%___________________________________________________________________________
+%_______________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
@@ -53,4 +53,3 @@ for j=1:mix.m,
         contour(g1,g2,yplot,clevels,LineType);
     end
 end
-

@@ -31,6 +31,12 @@ function [mix] = spm_mix (y,m,verbose)
 % a_0,B_0          Prior precisions, p(Gamma)=W(a_0,B_0)
 % m_0,beta_0       Prior means, p(mu)=N(m_0,beta_0 Gamma_s)
 %
+%_______________________________________________________________________
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+
+% Will Penny 
+% $Id$
+
 % This code implements the algorithm in:
 %
 % See Attias, H. (2000) A Variational
@@ -42,17 +48,12 @@ function [mix] = spm_mix (y,m,verbose)
 % Wellcome Department of Imaging Neuroscience, University College London. 
 %
 % for Negative Free Energy expression and validation.
-%___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
-% Will Penny 
-% $Id$
 
 if nargin < 3
     verbose=1;
 end
 [N,d]=size(y);
-
 
 % Put model info into data structure format
 mix.nin=d;
@@ -104,6 +105,7 @@ if (m==1)
     
     mix.m=m;
     mix.fm=fm;
+    state(1).C=state(1).B/state(1).a;
     mix.state=state;
     
     mix.priors=1;
