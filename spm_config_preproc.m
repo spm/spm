@@ -4,7 +4,7 @@ function job = spm_config_preproc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_config_preproc.m 1024 2007-12-12 15:29:03Z john $
 
 
 %_______________________________________________________________________
@@ -235,8 +235,6 @@ samp.help = {[...
 'is slower.']};
 
 %------------------------------------------------------------------------
-% This field can be added to opts, by replacing a line below, with:
-% opts      = branch('Custom','opts',{priors,ngaus,regtype,warpreg,warpco,biasreg,biasfwhm,samp,msk});
 msk = files('Masking image','msk','image',[0 1]);
 msk.val = {''};
 msk.help = {[...

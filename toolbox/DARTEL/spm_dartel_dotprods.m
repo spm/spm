@@ -7,7 +7,7 @@ function spm_dartel_dotprods(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_dotprods.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_dartel_dotprods.m 1024 2007-12-12 15:29:03Z john $
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.dotprod);
@@ -15,26 +15,55 @@ ofname = fullfile(pwd,['dp_' nam '.mat']);
 
 N = nifti(P);
 n = numel(N);
+dm= size(N(1).dat);
+dat=cell(1,numel(N));
 for i=1:numel(N),
-    dat{i} = reshape(N(i).dat,[prod(size(N(i).dat)) 1]);
+    dat{i} = reshape(N(i).dat,[prod(dm),1]);
 end
 Phi = zeros(n,n);
 
+if isfield(job,'weight') && ~isempty(job.weight{1}),
+    Pmsk = strvcat(job.weight);
+    Nmsk = nifti(Pmsk);
+    msk  = Nmsk.dat;
+    dmsk = size(msk);
+    if any(dmsk(1:3) ~= dm(1:3)),
+        error('Wrong sized weighting image.');
+    end
+    msk = reshape(msk,[prod(dmsk),1]);
+    if numel(dmsk)==3,
+        msk1 = msk;
+        for i=2:prod(dm(4:end)),
+            msk = [msk;msk1];
+        end
+    end
+end
+
 mem = 32*1024*1024;  % Mbytes of RAM to use
 bs  = ceil(mem/8/n); % Block size
-nd  = prod(size(dat{1}));
-nblock = ceil(prod(size(dat{1}))/bs);
+nd  = prod(dm);
+nblock = ceil(prod(dm)/bs);
 spm_progress_bar('Init',nblock,...
                  'Generating kernel','Blocks complete');
 for k=1:nblock,
     o = bs*(k-1)+(1:bs);
     o = o(o<nd);
-    X = zeros(numel(o),numel(dat));
-
-    for i=1:n,
-        X(:,i) = dat{i}(o);
+    if exist('msk','var'),
+        wt  = msk(o);
+        tmp = wt>0;
+        o   = o(tmp);
+        wt  = wt(tmp);
     end
-    Phi    = Phi + X'*X;
+    if ~isempty(o),
+        X = zeros(numel(o),numel(dat));
+        for i=1:n,
+            tmp    = dat{i}(o);
+            if exist('wt','var'), tmp = tmp.*wt; end
+            X(:,i) = tmp;
+        end
+        Phi    = Phi + X'*X;
+        clear X
+    end
     spm_progress_bar('Set',k);
 end
 spm_progress_bar('Clear');
