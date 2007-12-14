@@ -1,6 +1,6 @@
-function U = spm_mvb_U(Y,priors,X0,xyz)
+function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Constructs patterns U for Multivariate Bayesian inversion of a linear model
-% FORMAT U = spm_mvb_U(Y,priors,X0,xyz)
+% FORMAT U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Y      - date filature matrix
 % priors - 'null'
 %        - 'sparse'
@@ -10,6 +10,7 @@ function U = spm_mvb_U(Y,priors,X0,xyz)
 %
 % X0     - confounds
 % xyz    - location in mm for coherent priors
+% vox    - voxel size for coherent priors
 %__________________________________________________________________________
  
 % defaults
@@ -43,12 +44,25 @@ switch priors
  
     case 'smooth'
         %------------------------------------------------------------------
-        s     = 4^2;                              % smoothness fixed at 4mm
-        U     = sparse(nv,nv);
+        sm    = 4;                            % smoothness fixed at 4mm std
+        dlim  = 8;                           % spatial extent fixed at 2*sm
+        s     = sm^2;                                 % Smoothness variance
+        xyz   = xyz';
+        Vvx   = prod(vox);                              % volume of a voxel
+        Vlr   = 4/3*pi*(2*dlim*s)^(3/2);               % voi around a voxel
+        Nlr   = round(Vlr/Vvx*.9);    % estim of # of voxel in voi, keep 90% 
+        U     = spalloc(nv,nv,nv*Nlr);                % pre-allocate memory
+        unit  = ones(nv,1);
+        kk    = floor(nv/4);
+        fprintf('\n0%%')
         for i = 1:nv
-            u      = exp(-sum((xyz - xyz(:,i)*ones(1,nv)).^2)/(2*s));
-            U(i,:) = sparse(u.*(u > exp(-8)));
+            if ~rem(i,kk), fprintf('.....%2i%%',25*i/kk); end
+            u      = exp(-sum((xyz(1:i,:) - ones(i,1)*xyz(i,:)).^2,2)/(2*s));
+            tmp    = zeros(nv,1); tmp(1:i) = u.*(u > exp(-dlim));
+            U(:,i) = sparse(tmp);
         end
+        U = U+U'-speye(nv);
+        fprintf('\n')
  
     case 'singular'
  

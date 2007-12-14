@@ -14,7 +14,6 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %                F: log-evidence [F(0), F(1),...]
 %                G: covariance partition indices
 %                h: covariance hyperparameters
-%                G: covariance Partition indices
 %                U: patterns
 %               qE: conditional expectation of weights
 %               qC: conditional variance of weights

@@ -106,7 +106,7 @@ end
 
 % invert
 %==========================================================================
-U        = spm_mvb_U(Y,priors,X0,XYZ);
+U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
 M        = spm_mvb(X,Y,X0,U,V,8);
 M.priors = priors;
 

@@ -1,11 +1,11 @@
-function [p,percent] = spm_mvb_cvk(MVB);
+function [p,percent] = spm_mvb_cvk(MVB,k)
 % Split-half cross validation of a multivariate Bayesian model
-% FORMAT [p_value,percent] = spm_mvb_cvk(MVB);
+% FORMAT [p_value,percent] = spm_mvb_cvk(MVB,k);
 %   p_value: under a null GLM
 %   percent: proportion correct
 %
-% spm_mvb_cv performs a two-fold cross-validation by trying to predict
-% the target variable using a split halve test sample.
+% spm_mvb_cv performs a k-fold (def. k=2) cross-validation by trying to 
+% predict the target variable using a split-in-k test sample.
 %__________________________________________________________________________
  
 %-Get figure handles and set title
@@ -31,7 +31,9 @@ end
  
 % k=fold cross validation
 %==========================================================================
-k     = 2;
+if nargin<2
+    k     = 2;
+end
 pX    = 0;
 qX    = 0;
 for i = 1:k
