@@ -132,7 +132,12 @@ switch DCM.options.type
         %------------------------------------------------------------------
         DCM.M.dipfit.vol.r = [85];
         DCM.M.dipfit.vol.o = [0 0 0];
-        DCM.M.grad         = D.channels.grad;
+        try
+            % done by coreg in source reconstruction GUI
+            DCM.M.grad         = D.inv{1}.datareg.grad_coreg;            
+        catch
+            DCM.M.grad         = D.channels.grad;
+        end
         DCM.M.dipfit.type  = 'ECD (MEG)';
         
     end
