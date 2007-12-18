@@ -50,8 +50,8 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
-% nonlinear model specified by IS(P,M,U) under Gaussian assumptions. Usually,
-% IS would be an integrator of a dynamic MIMO input-state-output model 
+% nonlinear model specified by IS(P,M,U) under Gaussian assumptions. 
+% Usually, IS is an integrator of a dynamic MIMO input-state-output model 
 %
 %              dx/dt = f(x,u,P)
 %              y     = g(x,u,P)  + X0*P0 + e
@@ -71,13 +71,13 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % If the free-energy starts to increase, a Levenburg-Marquardt scheme is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of [Re]ML point estimators of the log-precisions.
-% An optional feature selection can be specified with parameters M.FS
 %
-%--------------------------------------------------------------------------
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% An optional feature selection can be specified with parameters M.FS
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 878 2007-08-06 12:21:09Z karl $
+% $Id: spm_nlsi_GN.m 1026 2007-12-18 15:25:27Z karl $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -215,14 +215,15 @@ ipC   = inv(spm_cat(diag({pC,uC})));
  
 % initialise conditional density
 %--------------------------------------------------------------------------
-p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); sparse(nu,1)];
+Eu    = inv(dfdu'*dfdu)*(dfdu'*spm_vec(y));
+p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp    = pC;
  
 % EM
 %==========================================================================
 C.F   = -Inf;
-t     = 64;
+t     = 256;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 warning off
@@ -340,7 +341,7 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        t     = min(t/2,1);
+        t     = min(t/2,128);
         str   = 'EM-Step(+)';
  
     end
@@ -354,10 +355,10 @@ for k = 1:128
     % graphics
     %----------------------------------------------------------------------
     try
-        figure(Fsi)
 
         % subplot prediction
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
+        figure(Fsi)
         subplot(2,1,1)
         plot([1:ns]*Y.dt,f),                      hold on
         plot([1:ns]*Y.dt,f + spm_unvec(e,f),':'), hold off
@@ -366,13 +367,14 @@ for k = 1:128
         grid on
 
         % subplot parameters
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,1,2)
         bar(full(V*p(ip)))
         xlabel('parameter')
         title('conditional [minus prior] expectation')
         grid on
         drawnow
+        
     end
 
     % convergence

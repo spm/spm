@@ -62,12 +62,11 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of [Re]ML point estimators of the log-precisions.
 % An optional feature selection can be specified with parameters M.FS
-%
-%--------------------------------------------------------------------------
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_nlsi_N.m 1026 2007-12-18 15:25:27Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -99,26 +98,26 @@ if isfield(M,'FS')
     %----------------------------------------------------------------------
     try
         y  = feval(M.FS,Y.y,M);
-        GM = inline([M.FS '(' M.G '(P,M),M)'],'P','M');
+        FS = inline([M.FS '(y,M)'],'y','M');
 
     % FS(y)
     %----------------------------------------------------------------------
     catch
         y  = feval(M.FS,Y.y);
-        GM = inline([M.FS '(' M.G '(P,M))'],'P','M');
+        FS = inline([M.FS '(y)'],'y');
+
     end
 else
 
     % y
     %----------------------------------------------------------------------
-    y   = Y.y;
-    GM  = inline([M.G '(P,M)'],'P','M');
+    y  = Y.y;
+    FS = inline('y','y');
 end
 
 % data y
 %--------------------------------------------------------------------------
 [ns nr] = size(y);          % number of samples and responses
-M.ns    = ns;               % store in M.ns for integrator
 
 % initial states
 %--------------------------------------------------------------------------
@@ -178,9 +177,9 @@ end
 % hyperpriors - expectation
 %--------------------------------------------------------------------------
 try
-    hE = M.hE;
+    hE  = M.hE;
 catch
-    hE = sparse(nh,1);
+    hE  = sparse(nh,1);
 end
 
 % hyperpriors - covariance
@@ -209,19 +208,20 @@ uE    = sparse(nu,1);
 %--------------------------------------------------------------------------
 pC    = Vp'*M.pC*Vp;
 gC    = Vg'*M.gC*Vg;
-uC    = speye(nu,nu)*exp(16);
+uC    = speye(nu,nu)*exp(64);
 ipC   = inv(pC);                      % p - state parameters
 igC   = inv(gC);                      % g - observer parameters
 iuC   = inv(uC);                      % u - fixed parameters
 icC   = spm_cat(diag({igC,iuC}));     % c - non-state equation parameters
-ibC   = spm_cat(diag({ipC icC}));     % b - all parameters
+ibC   = spm_cat(diag({ipC,icC}));     % b - all parameters
 
  
 % initialise conditional density
 %--------------------------------------------------------------------------
 Ep    = M.P;
 Eg    = M.gE;
-Eu    = uE;
+Eu    = inv(dgdu'*dgdu)*(dgdu'*spm_vec(y));
+
  
 % EM
 %==========================================================================
@@ -247,24 +247,27 @@ for k = 1:128
     %======================================================================
     for l = 1:8
         
-        %  prediction yp = G(g)*x and errors
+        % prediction yp = G(g)*x
         %------------------------------------------------------------------
-        [dGdg G] = spm_diff(GM,Eg,M,1,{Vg});
-        yp       = x*G';
+        [dGdg G] = spm_diff(M.G,Eg,M,1,{Vg});
+        yp       = FS(x*G',M);
         
+        % and errors
+        %------------------------------------------------------------------
         ey       = spm_vec(y) - spm_vec(yp) - dgdu*Eu;
         ep       = Vp'*(spm_vec(Ep) - spm_vec(pE));
         eg       = Vg'*(spm_vec(Eg) - spm_vec(gE));
         eu       =      spm_vec(Eu) - spm_vec(uE);
         ec       = [eg; eu];
+        eb       = [ep; ec];
 
         % gradients
         %------------------------------------------------------------------
         for i = 1:np
-            dgdp(:,i) = spm_vec(dxdp{i}*G');
+            dgdp(:,i) = spm_vec(FS(dxdp{i}*G',M));
         end
         for i = 1:ng
-            dgdg(:,i) = spm_vec(x*dGdg{i}');
+            dgdg(:,i) = spm_vec(FS(x*dGdg{i}',M));
         end
         dgdc  = [dgdg dgdu];
         dgdb  = [dgdp dgdc];  
@@ -294,7 +297,7 @@ for k = 1:128
             %--------------------------------------------------------------
             for i = 1:nh
                 dFdh(i,1)      =  trace(PS{i})/2 - ey'*P{i}*ey/2 ...
-                    -sum(sum(Cb.*(dgdb'*P{i}*dgdb)))/2;
+                                 -sum(sum(Cb.*(dgdb'*P{i}*dgdb)))/2;
 
                 for j = i:nh
                     dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))/2;
@@ -325,8 +328,7 @@ for k = 1:128
 
         end
 
-
-
+        
         % objective function: F(g) (= log-evidence - divergence)
         %==================================================================
         F = ...
@@ -373,7 +375,7 @@ for k = 1:128
 
             % and increase regularization
             %--------------------------------------------------------------
-            tg    = min(tg/2,1);
+            tg    = min(tg/2,128);
 
         end
         
@@ -381,7 +383,7 @@ for k = 1:128
         %------------------------------------------------------------------
         dc    = spm_dx(dFdcc,dFdc,{tg});
         dg    = dc(1:ng);
-        du    = dc([1:nu]+ ng);
+        du    = dc([1:nu] + ng);
        
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
         Eu    = spm_unvec(spm_vec(Eu) + du,Eu);
@@ -442,7 +444,7 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        tp    = min(tp/2,1);
+        tp    = min(tp/2,128);
         str   = 'EM-Step(+)';
  
     end
@@ -452,13 +454,14 @@ for k = 1:128
     dp    = spm_dx(dFdpp,dFdp,{tp});
     Ep    = spm_unvec(spm_vec(Ep) + Vp*dp,Ep);
 
+
     % graphics
     %----------------------------------------------------------------------
     try
-        figure(Fsi)
 
         % subplot prediction
         %------------------------------------------------------------------
+        figure(Fsi)
         subplot(2,1,1)
         plot([1:ns]*Y.dt,yp),                        hold on
         plot([1:ns]*Y.dt,yp + spm_unvec(ey,yp),':'), hold off
@@ -482,6 +485,7 @@ for k = 1:128
         title('conditional [minus prior] expectation')
         grid on
         drawnow
+        
     end
 
     % convergence
@@ -494,7 +498,7 @@ end
  
 % outputs
 %--------------------------------------------------------------------------
-Cp     = Vp*Cb([1:np],[1:np])*Vp';
+Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
 Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
 F      = C.F;
 warning on
