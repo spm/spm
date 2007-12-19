@@ -29,7 +29,7 @@ xyzmm  = spm_results_ui('GetCoords');
 %-Specify search volume
 %--------------------------------------------------------------------------
 str    = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
-SPACE  = spm_input('Search volume...','0','m',...
+SPACE  = spm_input('Search volume...','!+1','m',...
 		{['Sphere',str],['Box',str],'Image'},['S','B','I']);
 Q      = ones(1,size(SPM.xVol.XYZ,2));
 XYZmm  = SPM.xVol.M*[SPM.xVol.XYZ; Q];
@@ -78,6 +78,9 @@ str       = {'sparse','smooth','singular','support'};
 Ip        = spm_input('model (spatial prior)','!+1','m',str);
 priors    = str{Ip};
 
+%-Number of iterations
+%--------------------------------------------------------------------------
+Ni        = spm_input('Number of iterations','!+1','i',8);
 
 % MVB defined
 %==========================================================================
@@ -107,7 +110,7 @@ end
 % invert
 %==========================================================================
 U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
-M        = spm_mvb(X,Y,X0,U,V,8);
+M        = spm_mvb(X,Y,X0,U,V,Ni);
 M.priors = priors;
 
 % assemble results

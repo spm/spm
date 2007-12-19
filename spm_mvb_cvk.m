@@ -29,7 +29,7 @@ catch
     MVB  = MVB.MVB;
 end
  
-% k=fold cross validation
+% k-fold cross validation
 %==========================================================================
 if nargin<2
     k     = 2;
@@ -72,6 +72,7 @@ xlabel('sample')
 ylabel('response (adjusted)')
 title('Cross validation')
 axis square
+legend('true','predicted')
  
 subplot(2,1,2)
 plot(pX,qX,'.')

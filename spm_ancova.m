@@ -1,5 +1,5 @@
 function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
-% esitmation and inference of a linear model
+% estimation and inference of a linear model
 % FORMAT [T,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c);
 %
 % xX    - Design matrix or structure
@@ -25,7 +25,7 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ancova.m 476 2006-03-10 12:12:10Z karl $
+% $Id: spm_ancova.m 1028 2007-12-19 09:53:56Z christophe $
 
 
 

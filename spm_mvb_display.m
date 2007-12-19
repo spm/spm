@@ -61,7 +61,7 @@ title([MVB.name ' (' MVB.contrast ')'])
 % Posterior probabilities
 %--------------------------------------------------------------------------
 P   = 1 - spm_Ncdf(0,abs(M.qE),M.qC);
-str{1,1} = 'Posterior probabilities at maxmia  ';
+str{1,1} = 'Posterior probabilities at maxima  ';
 str{2,1} = '________________________________';
 str{3,1} = 'p(|w| > 0)    location (x,y,z)  weight (w)';
 str{4,1} = '________________________________';
