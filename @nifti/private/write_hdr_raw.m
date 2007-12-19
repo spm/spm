@@ -9,7 +9,7 @@ function ok = write_hdr_raw(fname,hdr,be)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: write_hdr_raw.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: write_hdr_raw.m 1029 2007-12-19 18:30:38Z john $
 
 
 [pth,nam,ext] = fileparts(fname);
@@ -36,15 +36,17 @@ if nargin >=3
 else       mach = 'native';
 end;
 
-ok  = true;
-fp  = fopen(hname,'r+',mach);
-if fp==-1
-    fp  = fopen(hname,'w+',mach);
-    if fp==-1
-        ok  = false;
-        return;
-    end;
-end;
+ok = true;
+if isempty(pth), pth = pwd; end
+if exist(fullfile(pth,hname),'file'),
+    fp = fopen(hname,'r+',mach);
+else
+    fp = fopen(hname,'w+',mach);
+end
+if fp == -1,
+    ok = false;
+    return;
+end
 
 for i=1:length(org)
     if isfield(hdr,org(i).label),
