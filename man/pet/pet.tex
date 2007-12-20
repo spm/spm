@@ -15,16 +15,16 @@ These data come from a 5 subject PET study of a verbal fluency with two alternat
   Subject 5& A & B & A & B& A & B& A & B& A & B& A & B \\ \hline
 \end{tabular}
 \end{center}
-\caption{\em Conditions for PET data: (A) word shadowing and 
+\caption{\em Conditions for PET data: (A) word shadowing and
 (B) word generation. \label{conditions}}
 \end{table}
 The files are named \verb!./p#/snrp#_##.{img,hdr}! and are SPM compatible (Analyze) images following realignment, normalization and smoothing with a 16mm isotropic Gaussian kernel with \verb!#! indicating the subject and \verb!##! the scan. The data set is available from
 \newline \verb!http://www.fil.ion.ucl.ac.uk/spm/data/fluency.html!.
 
-To analyse the data, first create a new directory DIR 
+To analyse the data, first create a new directory DIR
 \newline \verb!eg. c:\home\wpenny\fmri_analysis\pet\!, in which to place the results
-of your analysis. Then create 4 subdirectories (i) \verb!single!, (ii) \verb!subject-condition!, (iii) \verb!subject-time! and (iv)  \verb!multiple!. 
-As the analysis 
+of your analysis. Then create 4 subdirectories (i) \verb!single!, (ii) \verb!subject-condition!, (iii) \verb!subject-time! and (iv)  \verb!multiple!.
+As the analysis
 proceeds these directories will be filled with job-specification files, design matrices and estimated models.
 
 \section{Single subject}
@@ -35,7 +35,7 @@ This can be implemented as follows.
 \item{Start up matlab and type `spm pet' at the prompt}
 \item{Press the `PET' button.}
 \item{Double click on the `+Factorial design specification' text.}
-\item{Choose the `Flexible Factorial' design and open it up.} 
+\item{Choose the `Flexible Factorial' design and open it up.}
 \item{Highlight `Factors' and create a new Factor and enter 'Word' for the name.}
 \item{Then, under 'Specify Subject or all Scans and Factors', highlight `Subjects' and create a new subject.}
 \item{Highlight `Scans', select `Specify Files' and use the SPM file selector
@@ -46,7 +46,7 @@ to choose the 12 images for that subject. This can be most easily achieved by sp
 \item{Under `Global calculation' choose `Mean'}
 \item{Under Global normalisation and Normalisation, choose `Proportional' scaling.\footnote{Normalisation using ANCOVA is advised for multi-subject studies unless differences in global flow are large eg. due to variability in injected tracer dose. Because ANCOVA uses one degree of freedom for each subject/group, proportional scaling may be preferable for single-subject studies.}}
 \item{Under Global normalisation and Overall grand mean scaling, select YES.}
-\item{Highlight Directory, Specify files and select the 
+\item{Highlight Directory, Specify files and select the
 subdirectory `single', to place the design matrix in.}
 \item{Save the job file as eg. \verb!DIR/single_design.mat!}.
 \item{Press the RUN button in the graphics window.}
@@ -58,7 +58,7 @@ SPM will then show you the design matrix shown in Figure~\ref{single_design}. Th
 \caption{\em Design matrix for single-subject data. The first two columns model responses to word shadowing and word generation. The third column models time-varying responses. \label{single_design}}
 \end{center}
 \end{figure}
-Then press `Estimate' and select the SPM.mat file just created. SPM will now estimate the parameters, that is, the size of the population effect at each voxel. 
+Then press `Estimate' and select the SPM.mat file just created. SPM will now estimate the parameters, that is, the size of the population effect at each voxel.
 \bi
 \item{Now press the 'Results' button.}
 \item{Select the SPM.mat file.}
@@ -71,25 +71,25 @@ Then press `Estimate' and select the SPM.mat file just created. SPM will now est
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
 \ei
-You should see a blank MIP as, sadly, we rarely have enough 
-sensitivity to find activations in single subject PET data. This is 
+You should see a blank MIP as, sadly, we rarely have enough
+sensitivity to find activations in single subject PET data. This is
 why we scan multiple subjects.
 
 \section{Multiple subjects}
 
-The data set can be analysed in several ways  which are 
+The data set can be analysed in several ways  which are
 discussed in \cite{stefan_hbf2}.
 
 \subsection{Subject and Condition design}
 
-First we set up a design that allows us to test for the 
+First we set up a design that allows us to test for the
 main effects of `Subject' and `Condition'.
 The design can be set-up as follows.
 \bi
 \item{Start up matlab and type `spm pet' at the prompt}
 \item{Press the `PET' button.}
 \item{Double click on the `+Factorial design specification' text.}
-\item{Under `Design', choose the `Flexible Factorial' design and open it up.} 
+\item{Under `Design', choose the `Flexible Factorial' design and open it up.}
 \item{Highlight `Factors' and create a new Factor.}
 \item{Enter 'Subject' for the name and select 'Equal' under `Variance'.}
 \item{Then create another factor and call it `Word'}
@@ -98,15 +98,15 @@ The design can be set-up as follows.
 to choose the 12 images for the first subject. This can be most easily achieved by specifying `.*snrp1.*' as a filter in the file selector and then using a right click to `select all'.}
 \item{Under `Conditions' enter the vector [1 2 1 2 1 2 1 2 1 2 1 2].}
 \item{Repeat the specification of scans and conditions for each of the four other subjects, remembering that the order of conditions has been balanced across the group (see Table~\ref{conditions}).}
-\item{Under `Main effects and interactions', create two 
+\item{Under `Main effects and interactions', create two
 main effects, the first with factor number 1 (ie. Subject) and the second with factor number 2 (ie. Word).}
-\item{Under Masking, select `Relative' for `Threshold Masking' 
-and accept the default value of 0.8. Voxels with mean value less than 0.8 of the mean are deemed extra-cranial and will be 
+\item{Under Masking, select `Relative' for `Threshold Masking'
+and accept the default value of 0.8. Voxels with mean value less than 0.8 of the mean are deemed extra-cranial and will be
 excluded from the analysis.}
 \item{Under `Global calculation' choose `Mean'}
-\item{Under, Global normalisation, and Normalisation, 
+\item{Under, Global normalisation, and Normalisation,
 select 'ANCOVA'.}
-\item{Highlight Directory, Specify files and select the 
+\item{Highlight Directory, Specify files and select the
 subdirectory `subject-condition', to place the design matrix in.}
 \item{Save the job file as eg. \verb!DIR/sc_design.mat!}.
 \item{Press the RUN button in the graphics window.}
@@ -126,24 +126,24 @@ We now set up a design that allows us to test for the effects of Time (ie. scan 
 \item{Start up matlab and type `spm pet' at the prompt}
 \item{Press the `PET' button.}
 \item{Double click on the `+Factorial design specification' text.}
-\item{Under `Design', choose the `Flexible Factorial' design and open it up.} 
+\item{Under `Design', choose the `Flexible Factorial' design and open it up.}
 \item{Highlight `Factors' and create a new Factor.}
 \item{Enter 'Subject' for the name and select 'Equal' under `Variance'.}
-\item{Then create another factor and call it `repl'. This is our `Replication' factor which for this data extends over time for each subject.}
+\item{Then create another factor and call it `Time'. This factor extends over time for each subject.}
 \item{Then, under 'Specify Subject or all Scans and Factors', highlight `Subjects' and create a 5 new subjects.}
 \item{For the first subject, highlight `Scans', select `Specify Files' and use the SPM file selector
 to choose the 12 images for the first subject. This can be most easily achieved by specifying `.*snrp1.*' as a filter in the file selector and then using a right click to `select all'.}
-\item{Under `Conditions' enter the vector [1 2 1 2 1 2 1 2 1 2 1 2].}
-\item{Repeat the specification of scans and conditions for each of the four other subjects, remembering that the order of conditions has been balanced across the group (see Table~\ref{conditions}).}
-\item{Under `Main effects and interactions', create two 
-main effects, the first with factor number 1 (ie. Subject) and the second with factor number 2 (ie. time or replication).}
-\item{Under Masking, select `Relative' for `Threshold Masking' 
-and accept the default value of 0.8. Voxels with mean value less than 0.8 of the mean are deemed extra-cranial and will be 
+\item{Under `Conditions' enter the vector [1:12].}
+\item{Repeat the specification of scans and conditions for each of the four other subjects.}
+\item{Under `Main effects and interactions', create two
+main effects, the first with factor number 1 (ie. Subject) and the second with factor number 2 (ie. time).}
+\item{Under Masking, select `Relative' for `Threshold Masking'
+and accept the default value of 0.8. Voxels with mean value less than 0.8 of the mean are deemed extra-cranial and will be
 excluded from the analysis.}
 \item{Under `Global calculation' choose `Mean'}
-\item{Under, Global normalisation, and Normalisation, 
+\item{Under, Global normalisation, and Normalisation,
 select 'ANCOVA'.}
-\item{Highlight Directory, Specify files and select the 
+\item{Highlight Directory, Specify files and select the
 subdirectory `subject-condition', to place the design matrix in.}
 \item{Save the job file as eg. \verb!DIR/st_design.mat!}.
 \item{Press the RUN button in the graphics window.}
@@ -158,17 +158,17 @@ SPM will then show you the design matrix shown in Figure~\ref{st_design}. This d
 
 \subsection{Subject by Condition design}
 
-This design models the interacts between `Subject' and `Condition'. It allows effects to be assessed separately for each subject. It will also allow us to implement 
+This design models the interacts between `Subject' and `Condition'. It allows effects to be assessed separately for each subject. It will also allow us to implement
 a conjunction analysis over subjects.
 
-If you have already specified the Subject and Conditions or Subject and Time designs then this design can be more easily specified by editing the \verb!sc_design.mat! or 
+If you have already specified the Subject and Conditions or Subject and Time designs then this design can be more easily specified by editing the \verb!sc_design.mat! or
 \verb!st_design.mat! files (and changing the name of the second factor, removing main effects, adding the interaction term and specifying a new output directory - see below)
 Otherwise, the design can be set-up as follows.
 \bi
 \item{Start up matlab and type `spm pet' at the prompt}
 \item{Press the `PET' button.}
 \item{Double click on the `+Factorial design specification' text.}
-\item{Under `Design', choose the `Flexible Factorial' design and open it up.} 
+\item{Under `Design', choose the `Flexible Factorial' design and open it up.}
 \item{Highlight `Factors' and create a new Factor.}
 \item{Enter 'Subject' for the name and select 'Yes' under ANCOVA, as we will be implementing ANCOVA-by-subject. Select 'Equal' under `Variance'.}
 \item{Then create another factor and call it `Word'}
@@ -178,11 +178,11 @@ to choose the 12 images for the first subject. This can be most easily achieved 
 \item{Under `Conditions' enter the vector [1 2 1 2 1 2 1 2 1 2 1 2].}
 \item{Repeat the specification of scans and conditions for each of the four other subjects, remembering that the order of conditions has been balanced across the group (see Table~\ref{conditions}).}
 \item{Under `Main effects and interactions', create an interaction with factor numbers equal to [1 2]. This will create a block in the design matrix that models interactions between the factors `Subject' and `Word'.}
-\item{Under Masking, select `Relative' for `Threshold Masking' 
-and accept the default value of 0.8. Voxels with mean value less than 0.8 of the mean are deemed extra-cranial and will be 
+\item{Under Masking, select `Relative' for `Threshold Masking'
+and accept the default value of 0.8. Voxels with mean value less than 0.8 of the mean are deemed extra-cranial and will be
 excluded from the analysis.}
 \item{Under `Global calculation' choose `Mean'}
-\item{Highlight Directory, Specify files and select the 
+\item{Highlight Directory, Specify files and select the
 subdirectory `multiple', to place the design matrix in.}
 \item{Save the job file as eg. \verb!DIR/multi_design.mat!}.
 \item{Press the RUN button in the graphics window.}
@@ -191,11 +191,11 @@ SPM will then show you the design matrix shown in Figure~\ref{multi_design}. Thi
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{pet/multi_design}
-\caption{\em Subject by Condition design for multiple-subject data. The first ten columns model interactions between `Subject' and `Word'. The last five columns model out global effects for each subject. Inclusion of these last five regressors implements 
+\caption{\em Subject by Condition design for multiple-subject data. The first ten columns model interactions between `Subject' and `Word'. The last five columns model out global effects for each subject. Inclusion of these last five regressors implements
 a so-called `ANCOVA-by-subject' normalisation. \label{multi_design}}
 \end{center}
 \end{figure}
-Then press `Estimate' and select the SPM.mat file just created. SPM will now estimate the parameters, that is, the size of the effect at each voxel. The rest of this chapter pursues the 
+Then press `Estimate' and select the SPM.mat file just created. SPM will now estimate the parameters, that is, the size of the effect at each voxel. The rest of this chapter pursues the
 `Subject-by-Condition' design.
 
 \subsection{Contrast manager}
@@ -214,8 +214,8 @@ We can then examine relative activations, that is, regions which respond more st
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
 \ei
-This should produce the contrast in Figure~\ref{subject2}. As shown, SPM will automatically pad '0 0 -1 1' with zeros 
-at the end. 
+This should produce the contrast in Figure~\ref{subject2}. As shown, SPM will automatically pad '0 0 -1 1' with zeros
+at the end.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{pet/subject2}
@@ -234,25 +234,25 @@ To examine group effects:
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
 \ei
-Before looking at the results we describe the 
+Before looking at the results we describe the
 masking and thresholding options in more detail.
 
 \subsection{Masking and thresholds}
 
 Masking implies selecting voxels specified by other contrasts. If 'yes', SPM will prompt for (one or more) masking contrasts, the significance level of the mask (default p = 0.05 uncorrected), and will ask whether an inclusive or exclusive mask should be used. Exclusive will remove all voxels which reach the default level of significance in the masking contrast, inclusive will remove all voxels which do not reach the default level of significance in the masking contrast. Masking does not affect p-values of the 'target' contrast.
 
-Selecting a height threshold for examine results uses either a threshold corrected for multiple comparisons ('yes'), or uncorrected ('no'). The latter will produce many false positives (FPs) in the SPM. On average, the number of false positives will be equal to the number of voxels in the volume times the 
-p-value (eg. $50,000 \times 0.001 = 50$). If you correct for multiple comparisons, however, then 
-there will typically be only one FP {\em anywhere} in 20 
-SPMs. Correcting for multiple comparisons is the recommended 
-option. 
+Selecting a height threshold for examine results uses either a threshold corrected for multiple comparisons ('yes'), or uncorrected ('no'). The latter will produce many false positives (FPs) in the SPM. On average, the number of false positives will be equal to the number of voxels in the volume times the
+p-value (eg. $50,000 \times 0.001 = 50$). If you correct for multiple comparisons, however, then
+there will typically be only one FP {\em anywhere} in 20
+SPMs. Correcting for multiple comparisons is the recommended
+option.
 
 Specifying an extent threshold $x$ tells SPM not to plot clusters containing fewer than $x$ voxels. The default, $x=0$ allows single voxel activations to be displayed.
 
 \subsection{MIPs and results tables}
 
-The above contrast specifications should configure the 
-contrast manager to appear as in Figure~\ref{all} and will configure SPM's graphics window to look like Figure~\ref{all_results}. 
+The above contrast specifications should configure the
+contrast manager to appear as in Figure~\ref{all} and will configure SPM's graphics window to look like Figure~\ref{all_results}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{pet/all}
@@ -262,12 +262,12 @@ contrast manager to appear as in Figure~\ref{all} and will configure SPM's graph
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{pet/all_results}
-\caption{\em SPMs graphics window displays (Left) a maximum intensity projection (MIP) on a glass brain in three orthogonal planes. The MIP is surfable: R-clicking in the MIP will activate a pulldown menu, L-clicking  on the red cursor will allow it to be dragged to a new position, (Right)	the design matrix (showing the selected contrast). The design matrix is also surfable: R-clicking will show parameter names, L-clicking will show design matrix values for each scan. 
+\caption{\em SPMs graphics window displays (Left) a maximum intensity projection (MIP) on a glass brain in three orthogonal planes. The MIP is surfable: R-clicking in the MIP will activate a pulldown menu, L-clicking  on the red cursor will allow it to be dragged to a new position, (Right)	the design matrix (showing the selected contrast). The design matrix is also surfable: R-clicking will show parameter names, L-clicking will show design matrix values for each scan.
   \label{all_results}}
 \end{center}
 \end{figure}
-SPM will also produce a number of files: images containing weighted parameter estimates are saved as \verb!con_0002.hdr/img!, \verb!con_0003.hdr/img!, …etc. in the output directory. Images of T-statistics are saved as \verb!spmT_0002.hdr/img!, \verb!spmT_0003.hdr/img! etc., also in the output directory. A number of   
-further options are available from SPM's interactive window 
+SPM will also produce a number of files: images containing weighted parameter estimates are saved as \verb!con_0002.hdr/img!, \verb!con_0003.hdr/img!, …etc. in the output directory. Images of T-statistics are saved as \verb!spmT_0002.hdr/img!, \verb!spmT_0003.hdr/img! etc., also in the output directory. A number of
+further options are available from SPM's interactive window
 shown in Figure~\ref{interactive}.
 \begin{figure}
 \begin{center}
@@ -275,7 +275,7 @@ shown in Figure~\ref{interactive}.
 \caption{\em SPM's interactive window.  \label{interactive}}
 \end{center}
 \end{figure}
-In the SPM Interactive window (lower left panel) a button box appears with various options for displaying statistical results (p-values panel) and creating plots/overlays (visualisation panel). Clicking 'Design' (upper left) will activate a pulldown menu as in the 'Explore design' option. To get a summary of local maxima, press 'volume'. This will produce the table 
+In the SPM Interactive window (lower left panel) a button box appears with various options for displaying statistical results (p-values panel) and creating plots/overlays (visualisation panel). Clicking 'Design' (upper left) will activate a pulldown menu as in the 'Explore design' option. To get a summary of local maxima, press 'volume'. This will produce the table
 shown in Figure~\ref{table}.
 \begin{figure}
 \begin{center}
@@ -303,12 +303,12 @@ Selecting 'cluster' will show coordinates and voxel-level statistics for local m
 \caption{\em SPM results table for a single cluster with p-values corrected for the whole brain.  \label{cluster}}
 \end{center}
 \end{figure}
-Both in the `volume' and `cluster' options, p-values are corrected for the entire search volume. 
+Both in the `volume' and `cluster' options, p-values are corrected for the entire search volume.
 
 \subsection{Small volume correction}
 
-If one has an a priori anatomical hypothesis, eg. in the present example Broca's area will likely be activated during word generation, one may use the small volume correction option. See also Matthew Brett's tutorial at \verb!http://www.mrc-cbu.cam.ac.uk/Imaging/vol_corr.html!. Press the S.V.C. button in SPMs interactive (bottom left) window and select a suitable region, e.g., a 30mm sphere with its centre at 44 16 0. 
-The region can also be defined using mask images derived from previous imaging data. The corrected p-values will change, 
+If one has an a priori anatomical hypothesis, eg. in the present example Broca's area will likely be activated during word generation, one may use the small volume correction option. See also Matthew Brett's tutorial at \verb!http://www.mrc-cbu.cam.ac.uk/Imaging/vol_corr.html!. Press the S.V.C. button in SPMs interactive (bottom left) window and select a suitable region, e.g., a 30mm sphere with its centre at 44 16 0.
+The region can also be defined using mask images derived from previous imaging data. The corrected p-values will change,
 as shown in Figure~\ref{svc}.
 \begin{figure}
 \begin{center}
@@ -325,15 +325,15 @@ To extract a time course for data in this region of interest (this uses the SPM 
 \item{Select ('don't adjust')}
 \item{Specify `Broca' for name of region and 0 for the VOI radius.}
 \ei
-SPM displays a graph of the first eigenvariate of the data in or centered around the chosen voxel, as shown in Figure~\ref{voi}. It also lists the eigenvariate values $Y$ in the Matlab window.  Adjustment is with respect to the null space of a selected contrast. 
+SPM displays a graph of the first eigenvariate of the data in or centered around the chosen voxel, as shown in Figure~\ref{voi}. It also lists the eigenvariate values $Y$ in the Matlab window.  Adjustment is with respect to the null space of a selected contrast.
 This means that any effects not spanned by the chosen contrast
-are removed from the data, before extraction. Adjustment can be 
+are removed from the data, before extraction. Adjustment can be
 omitted by selecting `don't adjust', as above.
 
-SPM extracts the eigenvariate values in a region, rather than the mean values, as the former is more robust to 
-heterogeneity of response within a cluster. The mean value can be thought of as a special case of the eigenvariate if the 
-corresponding eigenvector weights all voxels in a cluster 
-equally. Effectively, the 
+SPM extracts the eigenvariate values in a region, rather than the mean values, as the former is more robust to
+heterogeneity of response within a cluster. The mean value can be thought of as a special case of the eigenvariate if the
+corresponding eigenvector weights all voxels in a cluster
+equally. Effectively, the
 eigenvariate provides a weighted mean where atypical voxels are downweighted.
 
 A file called \verb!VOI_regionname.mat! is created in the working directory containing Y and VOI details (in the data structure xY).
@@ -348,7 +348,7 @@ A file called \verb!VOI_regionname.mat! is created in the working directory cont
 \subsection{Inclusive Masking}
 
 We have so far looked at the {\em average} effect over the five subjects in our group using the `All: Gen $\>$ Shad' contrast.
-To assess condition effects that are {\em common} to all subjects, one can either mask (inclusively) the `All: Gen > Shad' contrast with the individual contrasts, or perform a conjunction analysis. Firstly we'll use the inclusive masking 
+To assess condition effects that are {\em common} to all subjects, one can either mask (inclusively) the `All: Gen > Shad' contrast with the individual contrasts, or perform a conjunction analysis. Firstly we'll use the inclusive masking
 approach.
 \bi
 \item{Press the 'Results' button.}
@@ -391,22 +391,22 @@ To perform a conjunction approach across subjects:
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
 \ei
-SPM checks whether the contrasts are orthogonal and, if not, 
-makes them so. Contrasts are orthogonolized with respect to the first contrast specified. 
+SPM checks whether the contrasts are orthogonal and, if not,
+makes them so. Contrasts are orthogonolized with respect to the first contrast specified.
 
-SPM should produce the MIP and table of results shown in 
-Figure~\ref{conj}. The p-value (corrected or uncorrected) refers to the threshold of the conjunction. SPM will compute corresponding thresholds for individual contrasts. For uncorrected thresholds, the individual threshold will be $p^1/n$, where $p$ is the individual threshold and $n$ is 
+SPM should produce the MIP and table of results shown in
+Figure~\ref{conj}. The p-value (corrected or uncorrected) refers to the threshold of the conjunction. SPM will compute corresponding thresholds for individual contrasts. For uncorrected thresholds, the individual threshold will be $p^1/n$, where $p$ is the individual threshold and $n$ is
 the number of contrasts in the conjunction.
 
-Height, and not extent, is used to specify thresholding because the distributional approximations for the spatial extent of a conjunction SPM are not known (at present), so that inference based on spatial extent is precluded. 
+Height, and not extent, is used to specify thresholding because the distributional approximations for the spatial extent of a conjunction SPM are not known (at present), so that inference based on spatial extent is precluded.
 
-Although the MIP's of the masked group contrast and the conjunction are similar, for the conjunction an intersection SPM or 'minimum T-field' is computed.   This intersection is the same as thresholding a map of the minimum T-values. If the smallest T-value is above the specified threshold then all the T-values associated with the component SPMs are above threshold. 
+Although the MIP's of the masked group contrast and the conjunction are similar, for the conjunction an intersection SPM or 'minimum T-field' is computed.   This intersection is the same as thresholding a map of the minimum T-values. If the smallest T-value is above the specified threshold then all the T-values associated with the component SPMs are above threshold.
 
-Conjunction SPMs are very useful for testing multiple hypotheses (each component hypothesis being specified by a contrast). In this example, we have chosen to use the 
-Global Null Hypothesis. The set of hypotheses tested jointly is that the first subject did not activate, the second subject did not activate and so on.  
+Conjunction SPMs are very useful for testing multiple hypotheses (each component hypothesis being specified by a contrast). In this example, we have chosen to use the
+Global Null Hypothesis. The set of hypotheses tested jointly is that the first subject did not activate, the second subject did not activate and so on.
 
-SPM also provides an option to use the Conjunction Null 
-hypothesis. This can be thought of as enabling an inference that subject 1 activated AND subject 2 activated AND subject 3... etc. For more discussion on this issue, see 
+SPM also provides an option to use the Conjunction Null
+hypothesis. This can be thought of as enabling an inference that subject 1 activated AND subject 2 activated AND subject 3... etc. For more discussion on this issue, see
 \cite{karl_conj_revisit} and \cite{tom_valid}.
 
 Gaussian field theory results are available for SPMs of minimum T- (or F-) statistics and therefore corrected p-values can be computed.  Note that the minimum T-values do not have the usual Student's T-distribution and small minimum T-values can be very significant.
