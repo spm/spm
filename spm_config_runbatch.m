@@ -4,7 +4,7 @@ function opts = spm_config_runbatch
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_runbatch.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_runbatch.m 1032 2007-12-20 14:45:55Z john $
 
 data.type = 'files';
 data.name = 'Batch Files';
@@ -19,7 +19,7 @@ opts.tag  = 'runbatch';
 opts.val  = {data};
 opts.prog = @runbatch;
 opts.help = {[...
-'This facilty allows previously created batch jobs to be run. ',...
+'This facility allows previously created batch jobs to be run. ',...
 'These are simply created by the batch user interface ',...
 '(which you are currently using).']};
 return;

@@ -4,7 +4,7 @@ function opts = spm_config_dicom
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_dicom.m 749 2007-02-28 10:51:02Z volkmar $
+% $Id: spm_config_dicom.m 1032 2007-12-20 14:45:55Z john $
 
 
 %_______________________________________________________________________
@@ -62,7 +62,7 @@ format.values = {'img', 'nii'};
 format.val  = {'nii'};
 format.help = {['DICOM conversion can create separate img and hdr files ' ...
                 'or combine them in one file. The single file option will ' ...
-                'help you save space on your harddisk, but may be ' ...
+                'help you save space on your hard disk, but may be ' ...
                 'incompatible with programs that are not NIfTI-aware.'],...
                ['In any case, only 3D image files will be produced.']};
 

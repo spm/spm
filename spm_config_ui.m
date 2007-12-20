@@ -4,7 +4,7 @@ function opts = spm_config_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_ui.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_ui.m 1032 2007-12-20 14:45:55Z john $
 
 %_______________________________________________________________________
 col1 = struct('type','entry','name','Background Colour 1','tag','colour1',...
@@ -23,7 +23,7 @@ fs   = struct('type','menu','name','Font Size','tag','fs',...
               'values',{{ 8 , 9 , 10 , 12 , 14 , 16 , 18 }});
 
 
-% This is currently unused, but may be unleased when the world is ready for it
+% This is currently unused, but may be unleashed when the world is ready for it
 % a4p       = struct('PaperType','A4',       'dim',[210   297  ],'PaperOrientation','Portrait');
 % usletterp = struct('PaperType','USLetter', 'dim',[215.9 279.4],'PaperOrientation','Portrait');
 % a4l       = struct('PaperType','A4',       'dim',[297   210  ],'PaperOrientation','Landscape');

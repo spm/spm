@@ -17,7 +17,7 @@
 %
 % /TEMPLATES/ DIRECTORY
 % This directory contains images for use as templates for spatially
-% normalizing  images to the same stereotactic space.  The space is
+% normalising  images to the same stereotactic space.  The space is
 % based upon the Talairach system, but does  not  make  assumptions
 % about  brain  symmetry,  and  also  includes the cerebellum.  The
 % stereotactic  space   is  based  on  152   brains  from  Montréal
@@ -42,7 +42,7 @@
 % average rather than the 305 brain average because there are  also
 % T2-,  and  PD-weighted  images of the same subjects.  This should
 % allow  much  more  flexibility  in  the  range  of  different  MR
-% contrasts   that   can   be  spatially  normalized  to  the  same
+% contrasts   that   can   be  spatially  normalised  to  the  same
 % stereotaxic space (by registering  to  a  linear  combination  of
 % template images).
 % _______________________________________________________________________
@@ -78,11 +78,11 @@
 % -------------
 % The image was created from the average of 13 subjects  mean  fMRI
 % images.   The  grey matter was segmented from the original images
-% using the segmentation in SPM.  This was spatially normalized  by
+% using the segmentation in SPM.  This was spatially normalised  by
 % matching  to  the  apriori/grey.nii  file  using  a  12-parameter
 % affine  registration,  followed   by   a nonlinear   registration
 % (using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
-% heavy   regularization).     These    estimated  parameters  were
+% heavy   regularisation).     These    estimated  parameters  were
 % then  applied  to the functional images, which were then averaged
 % and smoothed with an 8mm FWHM Gaussian kernel.  The  EPI   images
 % were  acquired  on  a  Siemens Vision scanner working at 2T.  The
@@ -99,26 +99,26 @@
 % 
 % templates/filT1.nii (no longer exists)
 % -------------------
-% Average of images from 12  subjects  spatially  normalized  to  a
+% Average of images from 12  subjects  spatially  normalised  to  a
 % linear  combination  of  T1.nii,  T2.nii  and  PD.nii using a 12-
 % parameter  affine  transformation,   followed  by   a   nonlinear
 % registration  (using the 7x8x7 lowest frequency DCT coefficients,
-% and medium regularization).  Images acquired on a 2 Tesla Siemens
+% and medium regularisation).  Images acquired on a 2 Tesla Siemens
 % Magnetom  Vision scanner at the FIL,  using a T1 weighted  MPRAGE
 % sequence  (TRel=9.7, TEch=4, TInv=600, Fang=12, SThi=1.5).   Same
 % subjects    were   also    used    for    templates/PET.nii   and
 % templates/Transm.nii.   This image is included  as   it  has  the
 % same  contrast as the T1 weighted images from the FIL  (so we can
-% use it for spatial normalization).
+% use it for spatial normalisation).
 % Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
 % 
 % templates/PET.nii
 % -----------------
-% Average of images from 12 subjects spatially normalized to  ICBM.
+% Average of images from 12 subjects spatially normalised to  ICBM.
 % Images  were  first  registered to the T1-weighted MR images, and
 % spatially transformed using the same transformation.  Images were
 % acquired  on  a  Siemens  ECAT  HR+  at  the FIL, using Oxygen-15
-% labeled water. Averaged images smoothed using 8mm FWHM  Gaussian.
+% labelled water. Averaged images smoothed using 8mm FWHM  Gaussian.
 % Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
 % 
 % templates/Transm.nii
@@ -145,7 +145,7 @@
 % _______________________________________________________________________
 % /APRIORI/ DIRECTORY
 % Images in this directory represent the a priori probabilities of the
-% voxels in a spatially normalized (9-parameter affine) brain image
+% voxels in a spatially normalised (9-parameter affine) brain image
 % belonging to a particular tissue type.
 % _______________________________________________________________________
 % 
@@ -160,7 +160,7 @@
 % probabilities of finding grey matter, white  matter  or  cerebro-
 % spinal  fluid  at  any  point. These volumes are used largely for
 % image segmentation, although they can be used  as  templates  for
-% spatial  normalization.  151  subjects  were  used to create each
+% spatial  normalisation.  151  subjects  were  used to create each
 % volume.
 % 
 % apriori/brainmask
@@ -171,7 +171,7 @@
 % contained ones and zeros, where ones represented voxels that were
 % part of the brain.  It was subsequently  smoothed  using  an  8mm
 % FWHM  Gaussian.   This  volume  can be used to weight the spatial
-% normalization so that the final solution  is  not  influenced  by
+% normalisation so that the final solution  is  not  influenced  by
 % voxels outside the brain.
 % 
 % _______________________________________________________________________
@@ -214,7 +214,7 @@
 % Montreal,     details     of    which    can    be    found    at
 % http://www.bic.mni.mcgill.ca/brainweb The simulator is  described
 % in:   RK-S  Kwan,  AC  Evans,  GB  Pike (1996) "An Extensible MRI
-% Simulator  for  Post-Processing  Evaluation"   Visualization   in
+% Simulator  for  Post-Processing  Evaluation"   Visualisation   in
 % Biomedical   Computing   (VBC'96).   Lecture  Notes  in  Computer
 % Science, vol. 1131. Springer-Verlag. 135-140.  and:  DL  Collins,
 % AP  Zijdenbos,  V  Kollokian,  JG  Sled, NJ Kabani, CJ Holmes, AC
@@ -239,4 +239,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_templates.man 433 2006-02-09 11:45:02Z john $
+% $Id: spm_templates.man 1032 2007-12-20 14:45:55Z john $

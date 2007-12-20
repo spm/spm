@@ -116,9 +116,9 @@
 % eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 % special toolboxes are required).
 % 
-% SPM5 is written for Matlab versions 6.5.1 or 7.0.1 under UNIX, LINUX
-% and Windows. SPM5 may not will not work with versions of Matlab prior
-% to 6.5. Later versions of Matlab (released after SPM5), will probably
+% SPM5 is written for MATLAB versions 6.5.1 to 7.2 under UNIX, LINUX
+% and Windows. SPM5 may not will not work with versions of MATLAB prior
+% to 6.5. Later versions of MATLAB (released after SPM5), will probably
 % need additional patches in order to run.  Once developed, these will 
 % be made available from:
 %     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm5_updates/
@@ -186,7 +186,7 @@
 %
 % EEG/MEG analysis
 %
-% A major new feature of SPM5 is the functionality to analyze epoched
+% A major new feature of SPM5 is the functionality to analyse epoched
 % EEG and MEG data. This functionality can be divided into two
 % components: (i) preprocessing and (ii) statistical analysis.
 % Preprocessing contains the usual steps; e.g. epoching, filtering,
@@ -287,5 +287,5 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % The FIL Methods Group
-% $Id: spm.man 159 2005-05-16 14:00:56Z guillaume $
+% $Id: spm.man 1032 2007-12-20 14:45:55Z john $
 

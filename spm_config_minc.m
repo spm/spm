@@ -4,7 +4,7 @@ function opts = spm_config_minc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_minc.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_minc.m 1032 2007-12-20 14:45:55Z john $
 
 %_______________________________________________________________________
 
@@ -24,7 +24,7 @@ dtype.val = {spm_type('int16')};
 dtype.help = {[...
 'Data-type of output images. '...
 'Note that the number of bits used determines '...
-'the accuracy, and the abount of disk space needed.']};
+'the accuracy, and the amount of disk space needed.']};
 
 ext.type = 'menu';
 ext.name = 'NIFTI Type';
