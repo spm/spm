@@ -118,7 +118,7 @@ function varargout=spm_help(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 903 2007-08-31 12:55:32Z john $
+% $Id: spm_help.m 1034 2007-12-20 17:34:52Z guillaume $
 
 
 %=======================================================================
@@ -267,7 +267,13 @@ Fmenu  = spm_figure('Findwin','Menu');
 C      = get(Fmenu,'Children');
 modality = spm('CheckModality');
 for i = length(C):-1:1
+    units = get(C(i),'Units');
+    funits = get(C(i),'FontUnits');
+    set(C(i),'Units','pixels');
+    set(C(i),'FontUnits','points');
     c = get(C(i));
+    set(C(i),'Units',units);
+    set(C(i),'FontUnits',funits);
 
     % modality-specific help
     if isempty(c.Tag) || strcmp(c.Tag, 'Modality') || ~isempty(strfind(c.Tag, modality))
@@ -287,7 +293,7 @@ for i = length(C):-1:1
                 'FontSize',c.FontSize,...
                 'ForegroundColor',c.ForegroundColor,...
                 'Units',c.Units,...
-                'Position',c.Position + O,...
+                'Position',c.Position + [0 -20 0 0].*WS + O,...
                 'String',c.String,...
                 'Style',c.Style,...
                 'Tag', 'HelpMenu',...
