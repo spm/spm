@@ -1,4 +1,4 @@
-function DCM = spm_dcm_erp_data(DCM)
+function DCM = spm_dcm_erp_data(DCM,h)
 % prepares structures for forward model (both EEG and MEG)
 % FORMAT DCM = spm_dcm_erp_data(DCM)
 % DCM    -  DCM structure
@@ -22,8 +22,10 @@ function DCM = spm_dcm_erp_data(DCM)
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
 %__________________________________________________________________________
-% Stefan Kiebel, Karl friston
-% $Id: spm_dcm_erp_data.m 668 2006-10-26 16:35:28Z karl $
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_dcm_erp_data.m 1040 2007-12-21 20:28:30Z karl $
 
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -33,6 +35,10 @@ catch
     errordlg('Please specify data and trials');
     error('')
 end
+
+% order of drift terms
+%--------------------------------------------------------------------------
+try h; catch h = 0; end
 
 % load D
 %--------------------------------------------------------------------------
@@ -44,10 +50,18 @@ catch
         D            = spm_eeg_ldata(f);
         DCM.xY.Dfile = fullfile(pwd,f);
     catch
-        warndlg([Dfile ' could not be found'])
+        try
+            [f,p]        = uigetfile('*.mat','please select data file'); 
+            name         = fullfile(p,f);
+            D            = spm_eeg_ldata(name);
+            DCM.xY.Dfile = fullfile(name);
+        catch
+            warndlg([Dfile ' could not be found'])
         return
+        end
     end
 end
+
 
 % indices of EEG channel (excluding bad channels) and perstimulus times
 %--------------------------------------------------------------------------
@@ -55,7 +69,7 @@ Ic              = setdiff(D.channels.eeg, D.channels.Bad);
 Nc              = length(Ic);
 DCM.xY.modality = D.modality;
 DCM.xY.Ic       = Ic;
-DCM.xY.Time     = 1000*[-D.events.start:D.events.stop]/D.Radc; % ms
+DCM.xY.Time     = 1000*[-D.events.start:D.events.stop]/D.Radc; % PST (ms)
 DCM.xY.dt       = 1/D.Radc;
 DCM.xY.xy       = {};
 
@@ -103,9 +117,9 @@ for i = 1:length(trial);
     % trial indices
     %----------------------------------------------------------------------
     if isfield(D.events,'reject')
-        c = find(D.events.code == D.events.types(i) & ~D.events.reject);
+        c = find(D.events.code == D.events.types(trial(i)) & ~D.events.reject);
     else
-        c = find(D.events.code == D.events.types(i));
+        c = find(D.events.code == D.events.types(trial(i)));
     end
     Nt    = length(c);
 
@@ -118,6 +132,31 @@ for i = 1:length(trial);
     DCM.xY.xy{i} = Y/Nt;
 end
 
+% condition units of measurement
+%--------------------------------------------------------------------------
+DCM.xY.xy = spm_cond_units(DCM.xY.xy);
+
+
+% confounds - DCT:
+%--------------------------------------------------------------------------
+if h == 0
+    X0 = sparse(Ns,1);
+else
+    X0 = spm_dctmtx(Ns,h);
+end
+R      = speye(Ns) - X0*X0';
+
+% hanning (disabled)
+%--------------------------------------------------------------------------
+% R    = diag(hanning(Ns))*R;
+
+% and hanning
+%--------------------------------------------------------------------------
+for i = 1:length(DCM.xY.xy);
+  DCM.xY.xy{i} = R*DCM.xY.xy{i};
+end
+
 % concatenate response and return (unless induced responses are required)
 %--------------------------------------------------------------------------
 DCM.xY.y    = spm_cat(DCM.xY.xy(:));
+DCM.xY.code = D.events.code(trial);

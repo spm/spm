@@ -76,33 +76,33 @@ R = [2 1]/3;             % parameters of static nonlinearity
 
 % test for free parameters on intrinsic connections
 %--------------------------------------------------------------------------
-G      = kron(ones(n,1),G);
+G      = ones(n,1)*G;
 try, G = G.*exp(P.G); end
 
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1})*E(1);
-A{2} = exp(P.A{2})*E(2);
-A{3} = exp(P.A{3})*E(3);
-C    = exp(P.C);
+A{1}  = exp(P.A{1})*E(1);
+A{2}  = exp(P.A{2})*E(2);
+A{3}  = exp(P.A{3})*E(3);
+C     = exp(P.C);
 
 % intrinsic connectivity and parameters
 %--------------------------------------------------------------------------
-Te   = T(1)/1000*exp(P.T);           % excitatory time constants
-Ti   = T(2)/1000;                    % inhibitory time constants
-Hi   = H(2);                         % inhibitory receptor density
+Te    = T(1)/1000*exp(P.T);           % excitatory time constants
+Ti    = T(2)/1000;                    % inhibitory time constants
+Hi    = H(2);                         % inhibitory receptor density
 
 for i = 1:m
     P.H = P.H + u(i)*diag(P.B{i});   % modulation of
 end
-He = H(1)*exp(P.H);                  % excitatory receptor density
+He    = H(1)*exp(P.H);                  % excitatory receptor density
 
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-R    = R.*exp(P.S);
-S    = 1./(1 + exp(-R(1)*(x - R(2)))) - 1./(1 + exp(R(1)*R(2)));
-dSdx = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
+R     = R.*exp(P.S);
+S     = 1./(1 + exp(-R(1)*(x - R(2)))) - 1./(1 + exp(R(1)*R(2)));
+dSdx  = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 
 % input
 %--------------------------------------------------------------------------

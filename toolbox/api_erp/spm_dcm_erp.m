@@ -13,18 +13,24 @@ function DCM = spm_dcm_erp(DCM)
 %       B: {[nr x nr double], ...}   Connection constraints
 %       C: [nr x 1 double]
 %
+%   options.trials       - indices of trials
+%   options.Lpos         - source location priors
 %   options.Tdcm         - [start end] time window in ms
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.Nmodes       - number of spatial models to invert
+%   options.model        - 'ERP', 'SEP' or 'NMM'
+%   options.onset        - stimulus onset (ms)
 %   options.type         - 1 - 'ECD (EEG)'
 %                          2 - 'ECD (MEG)'
 %                          3 - 'Imaging'
 %                          4 - 'LFP' 
 %                          (see spm_erp_L)
 %__________________________________________________________________________
-% %W% Karl Friston %E%
-
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_dcm_erp.m 1040 2007-12-21 20:28:30Z karl $
 
 % check options 
 %==========================================================================
@@ -35,13 +41,15 @@ clear spm_erp_L
 try, DCM.name;                   catch, DCM.name  = 'DCM_ERP'; end
 try, h     = DCM.options.h;      catch, h         = 1;         end
 try, nm    = DCM.options.Nmodes; catch, nm        = 8;         end
-try, onset = DCM.options.onset;  catch, onset     = 80;        end
+try, onset = DCM.options.onset;  catch, onset     = 60;        end
 try, model = DCM.options.model;  catch, model     = 'ERP';     end
+try, lock  = DCM.options.lock;   catch, lock      = 0;         end
+
 
 
 % Data and spatial model
 %==========================================================================
-DCM    = spm_dcm_erp_data(DCM);
+DCM    = spm_dcm_erp_data(DCM,h);
 DCM    = spm_dcm_erp_dipfit(DCM);
 xY     = DCM.xY;
 try
@@ -62,51 +70,32 @@ nu     = size(xU.X,2);                  % number of inputs
 %--------------------------------------------------------------------------
 nm     = max(nm,Nr);
 
-% Re-reference matrix (R)
+% confounds - DCT:
 %--------------------------------------------------------------------------
-[i j]  = min(var(xY.y));                        % minimum variance channel
-R      = speye(Nc,Nc) - sparse(1:Nc,j,1,Nc,Nc); % re-referencing matrix
-
-% confounds - DCT: T - an idempotent matrix spanning temporal subspace
-%--------------------------------------------------------------------------
+warning off
 if h == 0
     X0 = sparse(Ns,1);
 else
     X0 = spm_dctmtx(Ns,h);
 end
-hT = [-12 0];
-if hT(2)
-    i       = find(DCM.xY.Time > hT(1) & DCM.xY.Time < hT(2));
-    Ni      = length(i);
-    Nh      = min(Ni,8);
-    H0      = sparse(Ns,Nh);
-    H0(i,:) = diag(hanning(Ni))*spm_dctmtx(Ni,Nh);
-    X0      = [X0 H0];
-    
-end
 
-warning off
-Ti     = speye(Ns) - X0*inv(X0'*X0)*X0';         % null space of confounds
-T      = kron(speye(Nt,Nt),Ti);
+% confounds - T: an idempotent matrix spanning temporal subspace
+%--------------------------------------------------------------------------
+T0     = speye(Ns) - X0*inv(X0'*X0)*X0';
+T      = kron(speye(Nt,Nt),T0);
 xY.X0  = kron(speye(Nt,Nt),X0);
 warning on
 
-% Feature selection using principal components (U) of channel space
+% assume noise precision is the same over modes
+%==========================================================================
+
+% Serial correlations (precision components) AR(1) model
 %--------------------------------------------------------------------------
-try
-    U  = M.S(:,[1:nm]);  % use previous basis (S) if specified
-catch
-    y  = T*xY.y*R';
-    U  = spm_svd(y'*y,0);
-    U  = U(:,[1:nm]);
-end
-
-% assume noise variance is the same over modes
-%--------------------------------------------------------------------------
-xY.Q   = {kron(speye(nm),kron(speye(Nt),speye(Ns)))};
+a      = 1/4;
+xY.Q   = {spm_Q(a,Ns,1)};
 
 
-% Inputs
+%-Inputs
 %==========================================================================
 
 % trial effects
@@ -114,7 +103,7 @@ xY.Q   = {kron(speye(nm),kron(speye(Nt),speye(Ns)))};
 try
     if size(xU.X,2) - length(DCM.B)
         warndlg({'please ensure number of trial specific effects', ...
-            'encoded by DCM.xU.X & DCM.B are the same'})
+                 'encoded by DCM.xU.X & DCM.B are the same'})
     end
 catch
     DCM.B = {};
@@ -130,7 +119,8 @@ end
 xU.dt   = xY.dt;
 xU.dur  = xU.dt*(Ns - 1);
 
-% model specification and nonlinear system identification
+
+%-Model specification and nonlinear system identification
 %==========================================================================
 M       = DCM.M;
 try, M  = rmfield(M,'g'); end
@@ -147,11 +137,11 @@ switch lower(model)
     case{'erp'}
 
         % prior moments on parameters
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons));
 
         % inital states and equations of motion
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M.x  =  spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_erp';
@@ -161,11 +151,11 @@ switch lower(model)
     case{'sep'}
 
         % prior moments on parameters
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         [pE,gE,pC,gC] = spm_sep_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons));
 
         % inital states
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M.x  = spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_sep';
@@ -175,11 +165,11 @@ switch lower(model)
     case{'nmm'}
 
         % prior moments on parameters
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons));
 
         % inital states
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         M.x  = spm_x_nmm(pE);
         M.f  = 'spm_fx_nmm';
         M.G  = 'spm_lx_nmm';      
@@ -187,6 +177,34 @@ switch lower(model)
     otherwise
         warndlg('Unknown model')
 end
+
+% lock experimental effects by introducing prior correlations
+%--------------------------------------------------------------------------
+if lock
+    pV    = spm_unvec(diag(pC),pE);
+    for i = 1:nu
+       pB      = pV;
+       pB.B{i} = pB.B{i} - pB.B{i};
+       pB      = spm_vec(pV)  - spm_vec(pB);
+       pB      = sqrt(pB*pB') - diag(pB);
+       pC      = pC + pB;
+    end
+end
+
+
+%-Feature selection using principal components (U) of lead-feild
+%==========================================================================
+
+% Spatial
+%--------------------------------------------------------------------------
+dGdg  = spm_diff(M.G,gE,M,1);
+L     = spm_cat(dGdg);
+U     = spm_svd(L*L',exp(-8));
+try
+    U = U(:,1:nm);
+end
+nm    = size(U,2);
+
 
 % likelihood model
 %--------------------------------------------------------------------------
@@ -205,11 +223,12 @@ M.E   = U;
 
 
 % EM: inversion
-%--------------------------------------------------------------------------
+%==========================================================================
 [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
 
-% Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
-%==========================================================================
+
+% Bayesian inference {threshold = prior; for A,B  and C this is exp(0) = 1)
+%--------------------------------------------------------------------------
 warning off
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
@@ -221,8 +240,8 @@ L   = feval(M.G, Qg,M);           % get gain matrix
 x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
 y   = x*L';                       % prediction (sensor space)
 r   = T*(xY.y - y);               % prediction error
-y   = y*M.E*M.E';                 % remove spaital confounds
-r   = r*M.E*M.E';                 % remove spaital confounds
+y   = y*M.E*M.E';                 % remove spatial confounds
+r   = r*M.E*M.E';                 % remove spatial confounds
 x   = x(:,find(any(L)));
 
 % trial specific respsonses (in mode, channel and source space)
@@ -258,6 +277,7 @@ DCM.options.h      = h;
 DCM.options.Nmodes = nm;
 DCM.options.onset  = onset;
 DCM.options.model  = model;
+DCM.options.lock   = lock;
 
 % store estimates in D
 %--------------------------------------------------------------------------
@@ -292,12 +312,13 @@ if strcmp(M.dipfit.type,'Imaging')
     L     = load(M.dipfit.gainmat);
     name  = fieldnames(L);
     L     = sparse(getfield(L, name{1}));
+    L     = spm_cond_units(L);
     L     = U'*L(:,Is);
     
     % reduced data (for each trial
     %----------------------------------------------------------------------
     for i = 1:Nt
-        Y{i} = U'*xY.xy{i}'*Ti;
+        Y{i} = U'*xY.xy{i}'*T0;
     end
 
     inverse.trials = DCM.options.trials;   % trial or condition
@@ -305,8 +326,8 @@ if strcmp(M.dipfit.type,'Imaging')
 
     inverse.J      = J;                    % Conditional expectation
     inverse.L      = L;                    % Lead field (reduced)
-    inverse.R      = R;                    % Re-referencing matrix
-    inverse.T      = Ti;                   % temporal subspace
+    inverse.R      = speye(Nc,Nc);         % Re-referencing matrix
+    inverse.T      = T0;                   % temporal subspace
     inverse.U      = U;                    % spatial  subspace
     inverse.Is     = Is;                   % Indices of active dipoles
     inverse.It     = DCM.xY.It;            % Indices of time bins

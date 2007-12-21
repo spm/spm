@@ -11,7 +11,8 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.options.Tdcm
 %    DCM.options.Fdcm
 %    DCM.options.D
-%    DCM.options.Rft    
+%    DCM.options.Rft
+%    DCM.options.h    
 %
 % sets
 %
@@ -27,11 +28,11 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.xY.Nm      - number of frequency modes
 %    DCM.xY.U       - Frequnecy modes
 %    DCM.xY.S       - and their singular values
-%
-%    DCM.options.h
 %__________________________________________________________________________
-% Stefan Kiebel, Karl friston
-% $Id: spm_dcm_erp_data.m 668 2006-10-26 16:35:28Z karl $
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_dcm_ind_data.m 1040 2007-12-21 20:28:30Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -58,6 +59,12 @@ try
     Nm    = DCM.options.Nmodes;
 catch
     errordlg('Please specify number of frequency modes');
+    error('')
+end
+try
+    h     = DCM.options.h;
+catch
+    errordlg('Please number of DCT components');
     error('')
 end
 try
@@ -158,7 +165,7 @@ end
 
 % high-pass filter (detrend)
 %--------------------------------------------------------------------------
-T     = spm_orthpoly(Ns,2);
+T     = spm_orthpoly(Ns,h);
 T     = speye(Ns,Ns) - T*T';
 
 % create convolution matrices (Eucldian normalised with filtering)
@@ -204,9 +211,9 @@ for i = 1:Ne;
     % trial indices
     %----------------------------------------------------------------------
     if isfield(D.events,'reject')
-        c = find(D.events.code == D.events.types(i) & ~D.events.reject);
+        c = find(D.events.code == D.events.types(trial(i)) & ~D.events.reject);
     else
-        c = find(D.events.code == D.events.types(i));
+        c = find(D.events.code == D.events.types(trial(i)));
     end
     
     % use only the first 512 trial
@@ -230,12 +237,11 @@ for i = 1:Ne;
     
     % weight with principal eigenvariate over trials (c.f., averaging)
     %----------------------------------------------------------------------
-    Y     = Y/normest(Y);
     u     = spm_svd(Y'*Y);
     u     = full(u(:,1)*sign(max(u(:,1))));
     Y     = reshape(Y*u,Nb,Nr*3,Nf);
     
-    % sum time-frequency response over moments, normalise and remove mean
+    % sum time-frequency response over moments and remove baseline
     %----------------------------------------------------------------------
     for j = 1:Nr
         Yk    = zeros(Nb,Nf);
@@ -252,9 +258,11 @@ end
 
 % find frequency modes (over time and sources)
 %--------------------------------------------------------------------------
-Y     = spm_cat(Yz(:));
-[U S] = spm_svd(Y'*Y,0);
-U     = U(:,1:Nm);
+[Yz scale] = spm_cond_units(Yz);
+Mz         = spm_unvec(spm_vec(Mz)*scale,Mz);
+Y          = spm_cat(Yz(:));
+[U S]      = spm_svd(Y'*Y,0);
+U          = U(:,1:Nm);
 
 % project time-frequnecy data onto modes
 %--------------------------------------------------------------------------
@@ -265,10 +273,11 @@ for i = 1:Ne
     end
     DCM.xY.xf(i,:) = spm_cell_swap(xf)';
 end
-DCM.xY.y  = spm_cat(DCM.xY.xf);
-DCM.xY.U  = U;
-DCM.xY.S  = S;
-DCM.xY.Mz = Mz;
+DCM.xY.y    = spm_cat(DCM.xY.xf);
+DCM.xY.U    = U;
+DCM.xY.S    = S;
+DCM.xY.Mz   = Mz;
+DCM.xY.code = D.events.code(trial);
 
 
 

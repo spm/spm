@@ -49,7 +49,10 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_erp_priors.m 1040 2007-12-21 20:28:30Z karl $
 
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -82,7 +85,7 @@ switch dipfit.type
     
     case{'ECD (EEG)','ECD (MEG)'}
     %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =   8*ones(3,n);    % dipole positions
+    G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % dipole positions
     G.Lmom = sparse(3,n);   U.Lmom = 256*ones(3,n);    % dipole orientations
 
     case{'Imaging'}
@@ -101,17 +104,17 @@ end
 Q     = sparse(n,n);
 for i = 1:length(A)
     E.A{i} = log(A{i} + eps);                      % forward
-    V.A{i} = A{i};                                 % backward
+    V.A{i} = A{i}/16;                              % backward
     Q      = Q | A{i};                             % and lateral connections
 end
 
 for i = 1:length(B)
     E.B{i} = 0*B{i};                               % input-dependent scaling
-    V.B{i} = B{i};
+    V.B{i} = B{i}/16;
     Q      = Q | B{i};
 end
 E.C        = log(C + eps);                         % where inputs enter
-V.C        = exp(E.C);
+V.C        = exp(E.C)/32;
 
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------
@@ -195,7 +198,7 @@ return
 % demo for log-normal pdf
 %--------------------------------------------------------------------------
 x    = [1:64]/16;
-for i = [2 16]
+for i = [2 16 128]
     v = 1/i;
     p = 1./x.*exp(-log(x).^2/(2*v))/sqrt(2*pi*v);
     plot(x,p)

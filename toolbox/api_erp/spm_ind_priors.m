@@ -31,7 +31,10 @@ function [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_ind_priors.m 1040 2007-12-21 20:28:30Z karl $
 
 % orders
 %--------------------------------------------------------------------------
@@ -41,7 +44,7 @@ n1   = ones(n,1);
 
 % paramters for electromagnetic forward model
 %--------------------------------------------------------------------------
-G.L  = sparse(1,n);  U.L  =  ones(1,n)/512;
+G.L  = sparse(1,n);  U.L  = ones(1,n)/32;
 
 % Global scaling
 %--------------------------------------------------------------------------
@@ -62,8 +65,8 @@ end
 
 % exognenous inputs
 %--------------------------------------------------------------------------
-E.C  = kron(1./[1:Nf]',C)/32;
-V.C  = (E.C > 0)/16;
+E.C  = kron(ones(Nf,1),C - C);
+V.C  = kron(ones(Nf,1),C);
 
 % set stimulus parameters: magnitude, onset and dispersion
 %--------------------------------------------------------------------------

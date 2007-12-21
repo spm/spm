@@ -5,6 +5,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (A)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (B)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (C)');
+% FORMAT spm_dcm_erp_results(DCM,'trial-specific effects');
 % FORMAT spm_dcm_erp_results(DCM,'Input');
 % FORMAT spm_dcm_erp_results(DCM,'Response');
 % FORMAT spm_dcm_erp_results(DCM,'Data');
@@ -23,9 +24,11 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % terms, model input-dependent changes in effective connectivity.  Parameter
 % estimation proceeds using fairly standard approaches to system
 % identification that rest upon Bayesian inference.
-% 
 %__________________________________________________________________________
-% %W% Karl Friston %E
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_dcm_erp_results.m 1040 2007-12-21 20:28:30Z karl $
 
 
 % get figure handle
@@ -37,16 +40,71 @@ if ~strcmp(lower(Action), 'dipoles')
     clf
 end
 
-nt  = length(DCM.H);          % Nr of trials
+% trial data
+%--------------------------------------------------------------------------
+xY  = DCM.xY;                   % data
+nt  = length(xY.xy);            % Nr trial types
+ne  = size(xY.xy{1},2);         % Nr electrodes
+nb  = size(xY.xy{1},1);         % Nr time bing
+t   = xY.Time;                  % PST
+
+% plot data 
+%--------------------------------------------------------------------------
+switch(lower(Action))
+case{lower('Data')}
+    try
+        for i = 1:nt
+            
+            % confounds if specified 
+            %--------------------------------------------------------------
+            try
+                X0 = spm_orth(xY.X0(1:nb,:),'norm');
+                R  = speye(nb,nb) - X0*X0';
+            catch
+                R  = speye(nb,nb);
+            end
+            
+            % plot data 
+            %--------------------------------------------------------------
+            subplot(nt,2,(i - 1)*2 + 1)
+            plot(t,R*xY.xy{i})
+            xlabel('time (ms)')
+            try
+                title(sprintf('Observed response (code:%i)',xY.code(i)))
+            catch
+                title(sprintf('Observed response %i',i))
+            end
+            axis square
+            try
+              axis(A);
+            catch
+              A = axis;
+            end
+            
+            % image data 
+            %--------------------------------------------------------------
+            subplot(nt,2,(i - 1)*2 + 2)
+            imagesc([1:ne],t,R*xY.xy{i})
+            xlabel('time (ms)')
+            try
+                title(sprintf('Observed response (code:%i)',xY.code(i)))
+            catch
+                title(sprintf('Observed response %i',i))
+            end
+            
+        end
+    end
+    return
+end
+
+% post inversion parameters
+%--------------------------------------------------------------------------
 nu  = length(DCM.B);          % Nr inputs
 nc  = size(DCM.H{1},2);       % Nr modes
 ns  = size(DCM.A{1},2);       % Nr of sources
 np  = size(DCM.K{1},2);       % Nr of population per source
 np  = np/ns;
 
-xY  = DCM.xY;
-n   = length(xY.xy);
-t   = xY.Time;
 
 % switch
 %--------------------------------------------------------------------------
@@ -188,13 +246,13 @@ case{lower('Coupling (C)')}
     title('PPM')
     
     % table
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,4,2)
     text(0,1/2,num2str(full(exp(DCM.Ep.C)),' %.2f'),'FontSize',8)
     axis off
 
     % table
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,4,4)
     text(0,1/2,num2str(DCM.Pp.C,' %.2f'),'FontSize',8)
     axis off
@@ -203,11 +261,11 @@ case{lower('Coupling (C)')}
 case{lower('Coupling (B)')}
     
     % spm_dcm_erp_results(DCM,'coupling (B)');
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for i = 1:nu
         
         % images
-        %-----------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i)
         imagesc(exp(DCM.Ep.B{i}))
         title(DCM.xU.name{i},'FontSize',10)
@@ -218,14 +276,14 @@ case{lower('Coupling (B)')}
         axis square
 
         % tables
-        %--------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i + nu)
         text(0,1/2,num2str(full(exp(DCM.Ep.B{i})),' %.2f'),'FontSize',8)
         axis off
         axis square
         
         % PPM
-        %-----------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i + 2*nu)
         image(64*DCM.Pp.B{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
@@ -234,7 +292,7 @@ case{lower('Coupling (B)')}
         axis square
 
         % tables
-        %--------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i + 3*nu)
         text(0,1/2,num2str(DCM.Pp.B{i},' %.2f'),'FontSize',8)
         axis off
@@ -242,10 +300,44 @@ case{lower('Coupling (B)')}
         
     end
     
+case{lower('trial-specific effects')}
+    
+    % spm_dcm_erp_results(DCM,'trial-specific effects');
+    %----------------------------------------------------------------------
+    for i = 1:ns
+        for j = 1:ns
+
+            % ensure connection is enabled
+            %--------------------------------------------------------------
+            q     = 0;
+            for k = 1:nu
+                q = q | DCM.B{k}(i,j);
+            end
+
+            % plot trial-specific effects
+            %--------------------------------------------------------------
+            if q
+                B     = zeros(nt,1);
+                for k = 1:nu
+                    B = B + DCM.xU.X(:,k)*DCM.Ep.B{k}(i,j);
+                end
+                
+                subplot(ns,ns,(i - 1)*ns + j)
+                bar(exp(B)*100,'c')
+                title([DCM.Sname{j}, ' to ' DCM.Sname{i}],'FontSize',10)
+                xlabel('trial',  'FontSize',8)
+                ylabel('strength (%)','FontSize',8)
+                set(gca,'XLim',[0 nt + 1])
+                axis square
+
+            end
+        end
+    end
+    
 case{lower('Input')}
     
     % plot data
-    % --------------------------------------------------------------------
+    % ---------------------------------------------------------------------
     xU    = DCM.xU;
     tU    = 0:xU.dt:xU.dur;
     [U N] = spm_erp_u(tU,DCM.Ep,DCM.M);
@@ -266,34 +358,54 @@ case{lower('Response')}
     % plot data
     % ---------------------------------------------------------------------
     try
-        for i = 1:n
-            subplot(n,2,2*i - 1)
+        for i = 1:nt
+            subplot(nt,2,2*i - 1)
             plot(t,DCM.Hc{i} + DCM.Rc{i})
             xlabel('time (ms)')
-            title(sprintf('Observed response (adjusted) %i',i))
+            try
+                title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
+            catch
+                title(sprintf('Observed (adjusted) %i',i))
+            end
             axis square, grid on, A = axis;
 
-            subplot(n,2,2*i - 0)
+            subplot(nt,2,2*i - 0)
             plot(t,DCM.Hc{i})
             xlabel('time (ms)')
-            title(sprintf('Predicted response %i',i))
+            title('Predicted')
             axis(A); axis square, grid on
         end
     end
     
-case{lower('Data')}
+    
+case{lower('Response (image)')}
+    
+    % plot data
+    % ---------------------------------------------------------------------
     try
-        for i = 1:n
-            subplot(n,1,i)
-            plot(t,xY.xy{i})
+        for i = 1:nt
+            subplot(nt,2,2*i - 1)
+            imagesc([1:ne],t,DCM.Hc{i} + DCM.Rc{i})
             xlabel('time (ms)')
-            title(sprintf('Observed response %i',i))
+            try
+                title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
+            catch
+                title(sprintf('Observed (adjusted) %i',i))
+            end
             axis square, grid on, A = axis;
+
+            subplot(nt,2,2*i - 0)
+            imagesc([1:ne],t,DCM.Hc{i})
+            xlabel('time (ms)')
+            title('Predicted')
+            axis(A); axis square, grid on
         end
     end
 
 case{lower('Dipoles')}
     
+    % plot dipoles
+    % ---------------------------------------------------------------------
     try
         P            = DCM.Eg;   
         np           = size(P.Lmom,2)/size(P.Lpos,2);

@@ -24,7 +24,10 @@ function DCM = spm_dcm_ind(DCM)
 %                          4 - 'LFP' 
 %                          (see spm_erp_L)
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_dcm_ind.m 1040 2007-12-21 20:28:30Z karl $
 
 
 % check options 
@@ -35,7 +38,7 @@ clear spm_erp_L
 %--------------------------------------------------------------------------
 try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
 try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
-try, h     = DCM.options.h;     catch, h                  = 2;         end
+try, h     = DCM.options.h;     catch, h                  = 1;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
 
 % Data and spatial model
@@ -58,22 +61,12 @@ Nf     = size(xY.xf,2);                 % number of frequency modes
 nu     = size(xU.X,2);                  % number of inputs
 nx     = Nr*Nf + 1;                     % number of states
 
-% confounds - DCT: T - an idempotent matrix spanning temporal subspace
-%--------------------------------------------------------------------------
-X0     = spm_dctmtx(Ns,h);
-Ti     = speye(Ns) - X0*inv(X0'*X0)*X0';         % null space of confounds
-T      = kron(speye(Nt,Nt),Ti);
-xY.X0  = kron(speye(Nt,Nt),X0);
-xY.y   = T*xY.y;
 
-% assume noise variance is the same over modes
+% assume noise variance is the same over modes:
 %--------------------------------------------------------------------------
-V      = DCM.xY.pst;
-V      = V - min(V);
-V      = exp(-V.^2/(2*(32^2)));
-V      = toeplitz(V);
-xY.Q   = {kron(speye(Nr*Nf),kron(speye(Nt),speye(Ns)))};
-
+a      = 1/5;
+xY.Q   = {spm_Q(a,Ns,1)};
+xY.X0  = sparse(Ns*Nt,0);
 
 % Inputs
 %==========================================================================
@@ -89,9 +82,9 @@ catch
     DCM.B = {};
 end
 try
-    xU.u = kron(xU.X,ones(Ns,1));
+    xU.u  = kron(xU.X,ones(Ns,1));
 catch
-    xU.u = sparse(Nt*Ns,0);
+    xU.u  = sparse(Nt*Ns,0);
 end
 
 % stimulus parameters
@@ -101,24 +94,25 @@ xU.dur = xU.dt*(Ns - 1);
 
 % model specification and nonlinear system identification
 %==========================================================================
-M     = DCM.M;
+M      = DCM.M;
 try, M = rmfield(M,'g');  end
 try, M = rmfield(M,'FS'); end
 
 % adjust onset relative to pst
 %--------------------------------------------------------------------------
-dur   = xU.dur;
-ons   = onset - xY.pst(1);
+dur    = xU.dur;
+ons    = onset - xY.pst(1);
 
 if ons < 0; warndlg('onset time is negative; please increase'); end
 
 % prior moments
 %--------------------------------------------------------------------------
-A     = DCM.A;
-B     = DCM.B;
-C     = kron(ones(1,length(ons)),DCM.C);
+A      = DCM.A;
+B      = DCM.B;
+C      = kron(ones(1,length(ons)),DCM.C);
 
 [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf);
+
 
 % likelihood model
 %--------------------------------------------------------------------------
@@ -157,7 +151,7 @@ warning on
 L   = feval(M.G, Qg,M);           % get gain matrix
 x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
 y   = x*L';                       % prediction (sensor space)
-r   = T*(xY.y - y);               % prediction error
+r   = xY.y - y;                   % prediction error
 x   = x(:,2:end);                 % remove time
 
 % trial specific responses (in mode, channel and source space)

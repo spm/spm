@@ -27,9 +27,11 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % terms, model input-dependent changes in effective connectivity.  Parameter
 % estimation proceeds using fairly standard approaches to system
 % identification that rest upon Bayesian inference.
-% 
 %__________________________________________________________________________
-% %W% Karl Friston %E
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_dcm_ind_results.m 1040 2007-12-21 20:28:30Z karl $
 
 
 % get figure handle
@@ -278,11 +280,11 @@ case{lower('Coupling (A - modes)')}
 case{lower('Coupling (B - modes)')}
     
     % spm_dcm_erp_results(DCM,'coupling (B)');
-    %--------------------------------------------------------------------
+    %----------------------------------------------------------------------
     for i = 1:nu
         
         % images
-        %-----------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i)
         imagesc(DCM.Ep.B{i})
         title(DCM.xU.name{i},'FontSize',10)
@@ -293,14 +295,14 @@ case{lower('Coupling (B - modes)')}
         axis square
 
         % tables
-        %--------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i + nu)
         text(-1/8,1/2,num2str(full(DCM.Ep.B{i}),' %-8.2f'),'FontSize',8)
         axis off
         axis square
         
         % PPM
-        %-----------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i + 2*nu)
         image(64*DCM.Pp.B{i})
         set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
@@ -309,7 +311,7 @@ case{lower('Coupling (B - modes)')}
         axis square
 
         % tables
-        %--------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(4,nu,i + 3*nu)
         text(-1/8,1/2,num2str(DCM.Pp.B{i},' %-8.2f'),'FontSize',8)
         axis off
@@ -341,8 +343,8 @@ case{lower('Input (C - Hz)')}
 case{lower('Input (u - ms)')}
     
     % get input
-    % --------------------------------------------------------------------
-    U = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
+    % ---------------------------------------------------------------------
+    U    = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
     
     subplot(1,1,1)
     plot(pst,U)

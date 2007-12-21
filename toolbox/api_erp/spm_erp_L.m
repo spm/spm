@@ -65,7 +65,7 @@ switch M.dipfit.type
 
         for i = Id
             Lf = fieldtrip_eeg_leadfield4(Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
-            LastL(:,:,i) = Lf*20000;
+            LastL(:,:,i) = Lf*1000;
         end
         for i = 1:n
             L(:,i) = LastL(:,:,i)*Lmom(:,i);
@@ -90,7 +90,7 @@ switch M.dipfit.type
 
         for i = Id
             Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-            LastL(:,:,i) = Lf(M.dipfit.Ic,:)*1e12;
+            LastL(:,:,i) = Lf(M.dipfit.Ic,:)*1000;
         end
         for i = 1:n
             L(:,i) = LastL(:,:,i)*P.Lmom(:,i);
@@ -107,7 +107,6 @@ switch M.dipfit.type
         catch
             Id = 1:n;
         end
-        
         for i = Id
             LastL(:,i) = M.dipfit.G{i}*P.L(:,i);
         end
