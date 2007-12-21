@@ -4,12 +4,18 @@ function d = size(a,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: size.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: size.m 1037 2007-12-21 13:02:53Z john $
 
 
 sa  = struct(a);
-dim = ones(length(sa),32);
-pos = ones(length(sa),32);
+nd  = 0;
+for i=1:numel(sa),
+    nd = max(nd,numel(sa(i).dim));
+end
+nd = nd+1;
+
+dim = ones(length(sa),nd);
+pos = ones(length(sa),nd);
 
 for i=1:length(sa)
     sz = sa(i).dim;
@@ -19,17 +25,19 @@ for i=1:length(sa)
 end
 
 tmp = pos==1;
-for i=1:32
-    ind  = find(all(tmp(:,[1:(i-1) (i+1):32]),2));
+d   = zeros(1,nd);
+for i=1:nd,
+    ind  = all(tmp(:,[1:(i-1) (i+1):nd]),2);
     d(i) = sum(dim(ind,i));
 end;
 lim = max(max(find(d~=1)),2);
 d   = d(1:lim);
 
 if nargin>1,
-	if varargin{1}<=length(d),
-		d = d(varargin{1});
-	else
-		d = 1;
-	end;
+    if varargin{1}<=length(d),
+        d = d(varargin{1});
+    else
+        d = 1;
+    end;
 end;
+
