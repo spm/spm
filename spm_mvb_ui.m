@@ -74,7 +74,7 @@ end
 
 %-Get model[s]
 %--------------------------------------------------------------------------
-str       = {'sparse','smooth','singular','support'};
+str       = {'sparse','smooth','support'};
 Ip        = spm_input('model (spatial prior)','!+1','m',str);
 priors    = str{Ip};
 
@@ -99,14 +99,6 @@ X   = X*c;
 % serial correlations
 %--------------------------------------------------------------------------
 V   = SPM.xVi.V;
-
-% randomise to check specificity
-%--------------------------------------------------------------------------
-if 0
-    xBF = SPM.xBF;
-    K   = convmtx(xBF.bf(1:xBF.T:end,1),size(X0,1))*xBF.T;
-    X   = K*randn(size(X)); X  = X(1:size(X0,1),1);
-end
 
 % invert
 %==========================================================================
