@@ -1,4 +1,4 @@
-function model = spm_mvb_G(X,Y,X0,U,G,V);
+function model = spm_mvb_G(X,Y,X0,U,G,V)
 % Multivariate Bayesian inversion of a linear model
 % FORMAT model = spm_mvb_G(X,Y,X0,U,G,V);
 % X      - contrast or target vector

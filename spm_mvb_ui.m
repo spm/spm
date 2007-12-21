@@ -80,7 +80,8 @@ priors    = str{Ip};
 
 %-Number of iterations
 %--------------------------------------------------------------------------
-Ni        = spm_input('Number of iterations','!+1','i',8);
+Ni        = spm_input('Number of iterations','!+1','i', ...
+                                             max(8,ceil(log2(size(Y,2)))));
 
 % MVB defined
 %==========================================================================
