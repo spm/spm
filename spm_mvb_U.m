@@ -50,7 +50,7 @@ switch priors
         xyz   = xyz';
         Vvx   = prod(vox);                              % volume of a voxel
         Vlr   = 4/3*pi*(2*dlim*s)^(3/2);               % voi around a voxel
-        Nlr   = round(Vlr/Vvx*.9);    % estim of # of voxel in voi, keep 90% 
+        Nlr   = round(Vlr/Vvx*.9);   % estim of # of voxel in voi, keep 90% 
         U     = spalloc(nv,nv,nv*Nlr);                % pre-allocate memory
         unit  = ones(nv,1);
         kk    = floor(nv/4);
@@ -61,7 +61,7 @@ switch priors
             tmp    = zeros(nv,1); tmp(1:i) = u.*(u > exp(-dlim));
             U(:,i) = sparse(tmp);
         end
-        U = U+U'-speye(nv);
+        U = U + U' - speye(nv);
         fprintf('\n')
  
     case 'singular'
