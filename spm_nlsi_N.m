@@ -66,7 +66,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1026 2007-12-18 15:25:27Z karl $
+% $Id: spm_nlsi_N.m 1042 2007-12-21 20:33:07Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -104,7 +104,7 @@ if isfield(M,'FS')
     %----------------------------------------------------------------------
     catch
         y  = feval(M.FS,Y.y);
-        FS = inline([M.FS '(y)'],'y');
+        FS = inline([M.FS '(y)'],'y','M');
 
     end
 else
@@ -112,7 +112,7 @@ else
     % y
     %----------------------------------------------------------------------
     y  = Y.y;
-    FS = inline('y','y');
+    FS = inline('y','y','M');
 end
 
 % data y
@@ -162,7 +162,8 @@ catch
     Q = spm_Ce(ns*ones(1,nr));
 end
 nh    = length(Q);          % number of precision components
-ne    = length(Q{1});       % number of error terms
+nt    = length(Q{1});       % number of time bins
+nq    = nr*ns/nt;           % for compact kronecker form of M-step
 h     = zeros(nh,1);        % initialise hyperparameters
  
 
@@ -179,7 +180,7 @@ end
 try
     hE  = M.hE;
 catch
-    hE  = sparse(nh,1);
+    hE  = sparse(nh,1) - 32;
 end
 
 % hyperpriors - covariance
@@ -187,7 +188,7 @@ end
 try
     ihC = inv(M.hC);
 catch
-    ihC = eye(nh,nh);
+    ihC = speye(nh,nh)/256;
 end
 
 % dimension reduction of parameter space
@@ -245,7 +246,7 @@ for k = 1:128
        
     % Optimise g: parameters of G(g) (and confounds)
     %======================================================================
-    for l = 1:8
+    for l = 1:2
         
         % prediction yp = G(g)*x
         %------------------------------------------------------------------
@@ -278,11 +279,12 @@ for k = 1:128
 
             % precision
             %--------------------------------------------------------------
-            iS    = speye(ne,ne)*1e-8;
+            iS    = speye(nt,nt)*exp(-32);
             for i = 1:nh
                 iS = iS + Q{i}*exp(h(i));
             end
             S     = inv(iS);
+            iS    = kron(speye(nq),iS);
             dLdbb = dgdb'*iS*dgdb + ibC;
             Cb    = inv(dLdbb);
             
@@ -291,23 +293,23 @@ for k = 1:128
             for i = 1:nh
                 P{i}  = Q{i}*exp(h(i));
                 PS{i} = P{i}*S;
+                P{i}  = kron(speye(nq),P{i});
             end
 
             % derivatives: dLdh = dL/dh,...
             %--------------------------------------------------------------
             for i = 1:nh
-                dFdh(i,1)      =  trace(PS{i})/2 - ey'*P{i}*ey/2 ...
+                dFdh(i,1)      =  trace(PS{i})*nq/2 - ey'*P{i}*ey/2 ...
                                  -sum(sum(Cb.*(dgdb'*P{i}*dgdb)))/2;
-
                 for j = i:nh
-                    dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))/2;
+                    dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))*nq/2;
                     dFdhh(j,i) =  dFdhh(i,j);
                 end
             end
 
             % add hyperpriors
             %--------------------------------------------------------------
-            eh    = (h - hE);
+            eh    = h     - hE;
             dFdh  = dFdh  - ihC*eh;
             dFdhh = dFdhh - ihC;
 
@@ -320,6 +322,7 @@ for k = 1:128
             % prevent overflow
             %--------------------------------------------------------------
             h     = max(h,-16);
+            h     = min(h, 16);
 
             % convergence
             %--------------------------------------------------------------
@@ -336,9 +339,9 @@ for k = 1:128
         - ep'*ipC*ep/2 ...
         - eg'*igC*eg/2 ...
         - eu'*iuC*eu/2 ...
-        - eu'*ihC*eu/2 ...
-        - ne*log(8*atan(1))/2 ...
-        + spm_logdet(iS)/2 ...
+        - eh'*ihC*eh/2 ...
+        - ns*nr*log(8*atan(1))/2 ...
+        - nq*spm_logdet(S)/2 ...
         + spm_logdet(ibC*Cb)/2 ...
         + spm_logdet(ihC*Ch)/2;
     
@@ -375,7 +378,7 @@ for k = 1:128
 
             % and increase regularization
             %--------------------------------------------------------------
-            tg    = min(tg/2,128);
+            tg    = min(tg/2,16);
 
         end
         
@@ -402,9 +405,9 @@ for k = 1:128
         - ep'*ipC*ep/2 ...
         - eg'*igC*eg/2 ...
         - eu'*iuC*eu/2 ...
-        - eu'*ihC*eu/2 ...
-        - ne*log(8*atan(1))/2 ...
-        + spm_logdet(iS)/2 ...
+        - eh'*ihC*eh/2 ...
+        - ns*nr*log(8*atan(1))/2 ...
+        - nq*spm_logdet(S)/2 ...
         + spm_logdet(ibC*Cb)/2 ...
         + spm_logdet(ihC*Ch)/2;
  
@@ -444,7 +447,7 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        tp    = min(tp/2,128);
+        tp    = min(tp/2,16);
         str   = 'EM-Step(+)';
  
     end
