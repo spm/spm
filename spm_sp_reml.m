@@ -5,6 +5,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} components Q.q = eigenvectors; Q.v = eigenvalues
+%               or (m x n) matrix of n basis functions
 % N   - number of samples
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
@@ -21,10 +22,10 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % scheme).  The specification of components differs from spm_reml and
 % spm_reml_sc.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
-% John Ashburner & Karl Friston
-% $Id: spm_reml_sc.m 615 2006-09-08 16:16:06Z karl $
+% Karl Friston
+% $Id: spm_sp_reml.m 1045 2007-12-21 20:37:38Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -46,17 +47,9 @@ dFdhh = zeros(m,m);
 % uninformative hyperpriors
 %--------------------------------------------------------------------------
 hE    = sparse(m,1) - 32;
-hC    = speye(m,m)*256;% - 64;
+hC    = speye(m,m)*256;
 hP    = inv(hC);
- 
- 
-% call spm_reml_sc as default
-%--------------------------------------------------------------------------
-try
-    [C,h,Ph,F] = spm_reml_sc(YY,X,Q,N,hE,inv(hP));
-    return
-end
- 
+
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
@@ -65,6 +58,16 @@ if isempty(X)
 else
     X = orth(full(X));
     R = speye(n,n) - X*X';
+end
+
+% convert bssis to struct if necessary
+%--------------------------------------------------------------------------
+if ~iscell(Q)
+    q     = cell(1,m);
+    for i = 1:m
+        q{i}.q = spm_en(Q(:,i));
+    end
+    Q     = q;
 end
     
 % find bases of Q if necessary
