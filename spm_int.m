@@ -44,7 +44,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_int.m 975 2007-10-24 16:20:06Z karl $
+% $Id: spm_int.m 1044 2007-12-21 20:36:08Z karl $
  
  
 % convert U to U.u if necessary
@@ -80,8 +80,11 @@ end
  
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
-if isfield(M,'g')
-    g  = fcnchk(M.g,'x','u','P','M');
+try
+    g   = fcnchk(M.g,'x','u','P','M');
+catch
+    g   = inline('x','x','u','P','M');
+    M.g = g;
 end
  
 % Bilinear approximation (1st order)
