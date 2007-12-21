@@ -232,7 +232,7 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_model.m 1039 2007-12-21 20:20:38Z karl $
 
 % Format of 'model' structure :
 % #############################

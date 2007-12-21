@@ -8,7 +8,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Last Modified by GUIDE v2.5 01-Feb-2007 20:16:13
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 % Jeremie Mattout
-% $Id: $
+% $Id: spm_eeg_inv_visu3D_api.m 1039 2007-12-21 20:20:38Z karl $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------

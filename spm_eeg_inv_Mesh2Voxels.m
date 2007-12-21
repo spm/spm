@@ -23,7 +23,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Jeremie Mattout, Stefan Kiebel & Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 459 2006-02-24 11:55:50Z jeremie $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 1039 2007-12-21 20:20:38Z karl $
  
 % checks
 %--------------------------------------------------------------------------
@@ -37,15 +37,12 @@ catch
     Disp = 0;
 end
  
-% Scaling factor for images (scale to within two orders of magnitude)
+% Scaling factor for images (scale to within three orders of magnitude)
 %--------------------------------------------------------------------------
-try
-    scalefactor = D.inv{val}.contrast.scalefactor;
-catch
-    scalefactor = norm(D.inv{val}.contrast.JW{1},1);
-    scalefactor = 100^-round(log10(scalefactor)/2);
-    D.inv{val}.contrast.scalefactor = scalefactor;
-end
+[y scalefactor] = spm_cond_units(D.inv{val}.contrast.GW{1});
+scalefactor     = scalefactor*D.inv{val}.inverse.Nd;
+D.inv{val}.contrast.scalefactor = scalefactor;
+
  
 % smoothing FWHM (mm)
 %--------------------------------------------------------------------------
@@ -70,6 +67,7 @@ Vin   = spm_vol(sMRIfile);
 nd    = D.inv{val}.inverse.Nd;
 nv    = size(vert,1);
 nf    = size(face,1);
+
  
 % Compute a densely sampled triangular mask
 %--------------------------------------------------------------------------
@@ -129,7 +127,7 @@ for c = 1:length(D.inv{val}.contrast.GW)
     Vout           = Vin;
     Vout           = rmfield(Vout,'pinfo');
     Vout.fname     = Outputfilename;
-    Vout.dt(1)     = spm_type('int16');
+    Vout.dt(1)     = spm_type('int32');
     RECimage       = zeros(Vout.dim);
  
     % And interpolate those values into voxels
@@ -161,7 +159,7 @@ for c = 1:length(D.inv{val}.contrast.GW)
     % Smoothing
     %----------------------------------------------------------------------
     spm_smooth(Vout,Outputsmoothed,smoothparam);
-    str = 'Summary statisic image (RMS response) written:\n %s\n %s (smoothed)\n';
+    str = 'Summary statistic image (RMS response) written:\n %s\n %s (smoothed)\n';
     fprintf(str,Outputfilename,Outputsmoothed)
     D.inv{val}.contrast.Vout{c}  = Vout;
     D.inv{val}.contrast.fname{c} = Outputsmoothed;   

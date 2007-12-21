@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_template(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_template.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_template.m 1039 2007-12-21 20:20:38Z karl $
 
 % checks
 %--------------------------------------------------------------------------

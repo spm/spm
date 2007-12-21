@@ -1,5 +1,5 @@
 function [D] = spm_eeg_invert(D)
-% ReML inversion of multiple forward models for EEG-EMG
+% ReML fusion of multiple forward models for EEG-EMG
 % FORMAT [D] = spm_eeg_invert(D)
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG data
@@ -42,11 +42,8 @@ function [D] = spm_eeg_invert(D)
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Karl Friston: Modified by Rik Henson to allow more arguments to be passed       4/6/07
  
-% Karl Friston
-% $Id: spm_eeg_invert.m 1039 2007-12-21 20:20:38Z karl $
-
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
 if ~iscell(D), D = {D}; end
@@ -229,19 +226,21 @@ for i = 1:Nl
 
     % temporal projector (at most 8 modes) S = T*v
     %======================================================================
-    [v u]  = spm_svd(WY,1);                      % temporal modes
+    [V u]  = spm_svd(WY,1);                      % temporal modes
     Nr(i)  = min(size(v,2),8);                   % number of temporal modes
-    v      = v(:,      1:Nr(i));
+    V      = V(:,      1:Nr(i));
     u      = u(1:Nr(i),1:Nr(i));
     VE(i)  = sum(sum(u.^2))/sum(sum(WY.^2));     % variance explained
-    S{i}   = T*v;                                % temporal projector
+    S{i}   = T*V;                                % temporal projector
     iV{i}  = inv(S{i}'*qV{i}*S{i});              % precision (mode)
     Vq{i}  = S{i}*iV{i}*S{i}';                   % precision (time)
 
-    % spatial projector (adjusting for different Lead-fields)
+    % temproal projectors (adjusting for different PSTs)
     %======================================================================
-    %  (G*UL{i}')*inv(UL{i}*UL{i}')*U{i}';
-    A{i}  = UL{1}*pinv(full(UL{i}))*U{i}';
+    B{i}  = V*S{i}'*pinv(full(S{i}'))*S{1}';
+    for j = 1:Nt
+        AY{i,j}  = U{i}'*Y{i,j}*B{i};
+    end
 
     % spatially adjusted and temporally whitened data
     %----------------------------------------------------------------------
@@ -249,19 +248,34 @@ for i = 1:Nl
         Y{i,j}      = Y{i,j}*v;
         AY{end + 1} = A{i}*Y{i,j}*sqrtm(iV{i});
     end
-
-    % create sensor components (Qe)
-    %----------------------------------------------------------------------
-    Qe{i} = A{i}*A{i}';
-
 end
-[Y scale] = spm_cond_units(Y);
-AY        = spm_cat(AY)*scale;
-YY        = AY*AY';
 
 fprintf('Using %i temporal modes\n',Nr)
 fprintf('accounting for %0.2f percent variance\n',full(100*VE))
-    
+
+% adjusted and sample covariance (whitened)
+%----------------------------------------------------------------------
+for j = 1:Nt
+    UY{1,j}  = spm_cat(AY(:,j))*sqrtm(Vq{1});
+end
+[Y scale] = spm_cond_units(Y);
+UY        = spm_cat(UY)*scale;
+YY        = UY*UY';
+G         = spm_cat(UL(:));
+
+% create sensor components (Qe)
+%==========================================================================
+Qe    = {};
+for i = 1:Nl
+    QE{i,i} = sparse(Nm(i),Nm(i));
+end
+for i = 1:Nl
+    Q      = QE;
+    Q{i,i} = U{i}'*U{i};
+    Qe{end + 1} = spm_cat(Q);
+end
+Ne    = length(Qe);
+
  
 % create source components (Qp)
 %==========================================================================
@@ -341,7 +355,7 @@ switch(type)
 
         % Multivariate Bayes
         %------------------------------------------------------------------
-        MVB   = spm_mvb(AY,G,[],Q,Qe,16);
+        MVB   = spm_mvb(UY,G,[],Q,Qe,16);
 
         % Spatial priors (QP); eliminating minor patterns
         %------------------------------------------------------------------
@@ -391,156 +405,17 @@ switch(type)
     
 end
 
- 
-% re-estimate (one subject at a time)
-%==========================================================================
-for i = 1:Nl
- 
-    % using spatial priors from group analysis
-    %----------------------------------------------------------------------
-    Qe    = {speye(Nc(i),Nc(i))};
-    Ne    = length(Qe);
-    Np    = length(QP);
-    LQpL  = {};
-    for j = 1:Np
-        LQpL{j}  = L{i}*QP{j}*L{i}';
-    end
-    Q     = {Qe{:} LQpL{:}};
-    YY    = spm_cat(Y(i,:))*kron(speye(Nt,Nt),iV{i})*spm_cat(Y(i,:))';
- 
-    % re-do ReML
-    %----------------------------------------------------------------------
-    [Cy,h,Ph,F] = spm_reml_sc(YY,[],Q,Nr(i)*Nt);
- 
-    % Covariances: sensor space - Ce and source space - L*Cp
-    %----------------------------------------------------------------------
-    Qp    = sparse(0);
-    hp    = h([1:Np] + Ne);
-    for j = 1:Np
-        Qp = Qp + hp(j)*QP{j};
-    end
-    LCp   = L{i}*Qp;
- 
-    % MAP estimates of instantaneous sources
-    %======================================================================
-    iC    = inv(Cy);
-    M     = LCp'*iC;
- 
-    % conditional covariance (leading diagonal)
-    % Cq    = Cp - Cp*L'*iC*L*Cp;
-    %----------------------------------------------------------------------
-    Cq    = diag(Qp) - sum(LCp.*M')';
- 
-    % evaluate conditional expectation (of the sum over trials)
-    %----------------------------------------------------------------------
-    SSR   = 0;
-    SST   = 0;
-    for j = 1:Nt
-        
-        % trial-type specific source reconstruction
-        %------------------------------------------------------------------
-        J{j}    = M*Y{i,j};
- 
-        % sum of squares
-        %------------------------------------------------------------------
-        SSR   = SSR + sum(var((Y{i,j} - L{i}*J{j}),0,2));
-        SST   = SST + sum(var(Y{i,j},0,2));
- 
-    end
- 
-    % assess accuracy; signal to noise (over sources)
-    %======================================================================
-    R2   = 100*(SST - SSR)/SST;
-    fprintf('Percent variance explained %.2f (%.2f)\n',R2,R2*VE(i))
- 
-    % Save results
-    %======================================================================
-    inverse.type   = type;                 % inverse model
-    inverse.smooth = s;                    % smoothness (0 - 1)
-    inverse.xyz    = xyz;                  % VOI (XYZ)
-    inverse.rad    = rad;                  % VOI (radius)
-    inverse.scale  = scale;                % scalefactor
- 
-    inverse.M      = M;                    % MAP projector (reduced)
-    inverse.J      = J;                    % Conditional expectation
-    inverse.Y      = Y(i,:);               % ERP data (reduced)
-    inverse.L      = L{i};                 % Lead-field (reduced)
-    inverse.R      = speye(Nc(i),Nc(i));   % Re-referencing matrix
-    inverse.qC     = Cq;                   % spatial covariance
-    inverse.qV     = Vq{i};                % temporal correlations
-    inverse.T      = S{i};                 % temporal subspace
-    inverse.U      = speye(Nc(i),Nc(i));   % spatial subspace
-    inverse.Is     = Is;                   % Indices of active dipoles
-    inverse.It     = It{i};                % Indices of time bins
-    inverse.Ic     = Ic{i};                % Indices of good channels
-    inverse.Nd     = Nd;                   % number of dipoles
-    inverse.pst    = pst{i};               % peristimulus time
-    inverse.dct    = dct{i};               % frequency range
-    inverse.F      = F;                    % log-evidence
-    inverse.R2     = R2;                   % variance accounted for (%)
-    inverse.VE     = VE(i);                % variance explained
-    inverse.woi    = w{i};                 % time-window inverted
-    
-    % save in struct
-    %----------------------------------------------------------------------
-    D{i}.inv{D{i}.val}.inverse = inverse;
-    D{i}.inv{D{i}.val}.method  = 'Imaging';
-    
-    % and delete old contrasts
-    %----------------------------------------------------------------------
-    try
-        D{i}.inv{D{i}.val} = rmfield(D{i}.inv{D{i}.val},'contrast');
-    end
- 
-    % display
-    %======================================================================
-    spm_eeg_invert_display(D{i});
-    drawnow
- 
-end
-
 % re-estimate (all together)
 %==========================================================================
-if 0
+
  
-    % temporal projectors
-    %======================================================================
-    clear AY
-    for i = 1:Nl
-        B{i}  = S{i}'*pinv(full(S{i}'))*S{1}';
-        for j = 1:Nt
-            AY{i,j}  = U{i}'*Y{i,j}*B{i};
-        end
-    end
-    for j = 1:Nt
-        UY{1,j}  = spm_cat(AY(:,j));
-    end
-    
 
-    % create sensor components (Qe)
-    %----------------------------------------------------------------------
-    Qe    = {};
-    for i = 1:Nl
-        QE{i,i} = sparse(Nm(i),Nm(i));
-    end
-    for i = 1:Nl
-        Q      = QE;
-        Q{i,i} = U{i}'*U{i};
-        Qe{end + 1} = spm_cat(Q);
-    end
-    Ne    = length(Qe);
 
-    
-    % sample covariance
-    %----------------------------------------------------------------------
-    YY    = spm_cat(UY)*kron(speye(Nt,Nt),Vq{1})*spm_cat(UY)';
-    
-    
-    
+
+        
     % using spatial priors from group analysis
     %----------------------------------------------------------------------
     LQpL  = {};
-    G     = spm_cat(UL(:));
     Np    = length(QP);
     for j = 1:Np
         LQpL{j}  = G*QP{j}*G';
@@ -598,7 +473,8 @@ if 0
     inverse.smooth = s;                    % smoothness (0 - 1)
     inverse.xyz    = xyz;                  % VOI (XYZ)
     inverse.rad    = rad;                  % VOI (radius)
- 
+    inverse.scale  = scale;                % scalefactor
+
     inverse.M      = M;                    % MAP projector (reduced)
     inverse.J      = J;                    % Conditional expectation
     inverse.Y      = UY;                   % ERP data (reduced)
@@ -637,7 +513,6 @@ if 0
     spm_eeg_invert_display(D{i});
     drawnow
  
-end
 
  
 if length(D) == 1, D = D{1}; end

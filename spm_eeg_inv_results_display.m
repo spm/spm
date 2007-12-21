@@ -57,9 +57,14 @@ subplot(2,1,1)
 j      = j(1:Ndip);
 spm_mip(G(j),vert(j,:)',6);
 axis image
-title({sprintf('Condition %d',con), ...
-       'root mean square (energy)',...
-       sprintf('%i voxels',length(j))})
+
+try
+    str = sprintf('Energy (%s)',model.contrast.type);
+catch
+    str = 'Energy';
+end
+    
+title({sprintf('Condition %d',con), str, sprintf('%i voxels',length(j))})
 
 % contrast
 %--------------------------------------------------------------------------

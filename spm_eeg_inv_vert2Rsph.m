@@ -11,7 +11,7 @@ function varargout = spm_eeg_inv_vert2Rsph(flag,spheres,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_vert2Rsph.m 1039 2007-12-21 20:20:38Z karl $
 
 if flag==1
     vert = varargin{1};

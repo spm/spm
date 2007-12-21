@@ -22,7 +22,7 @@ function [Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_Lana.m 1039 2007-12-21 20:20:38Z karl $
 
 if nargin<6
     sigma = [.33 .004 .33];

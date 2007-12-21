@@ -27,7 +27,7 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 990 2007-11-01 16:08:22Z stefan $
+% $Id: spm_eeg_inv_ReadPolhemus.m 1039 2007-12-21 20:20:38Z karl $
 
 
 
@@ -50,7 +50,11 @@ end
 
 % --- READ Polhemus Sensor + fiducial locations ---
 %==========================================================================
-file = textread(Fname_pol,'%s');
+try
+    file = textread(Fname_pol,'%s');
+catch
+    file = textread(fullfile(pwd,[nam ext]),'%s');
+end
 % remove zeros at the end
 bool = 0;
 while bool == 0

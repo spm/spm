@@ -42,6 +42,12 @@ R2     = model.inverse.R2;
 F      = model.inverse.F;
 Ndip   = min(Ndip,length(Is));
 
+try
+    VE = model.inverse.VE;
+catch
+    VE =1 ;
+end
+
 % - project J onto pst
 %--------------------------------------------------------------------------
 J      = J{con}*T';
@@ -169,7 +175,7 @@ try
     PP = fix(100*(spm_Ncdf(Z)));
     title({sprintf('PPM at %i ms (%i percent confidence)',PST,PP), ...
            sprintf('%i dipoles',length(i)), ...
-           sprintf('Variance explained %.2f (percent)',full(R2)), ...
+           sprintf('Percent variance explained %.2f (%.2f)',full(R2),full(R2*VE)), ...
            sprintf('log-evidence = %.1f',full(F))})
 catch
     title({sprintf('RMS responses at %i dipoles',length(i)), ...

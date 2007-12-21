@@ -5,9 +5,10 @@ function [D] = spm_eeg_inv_results(D)
 %
 %     D.inv{i}.contrast.woi   - time (ms) window of interest
 %     D.inv{i}.contrast.fboi  - frequency window of interest
+%     D.inv{i}.contrast.type  - 'evoked' or 'induced'
 %
 % this routine will create a contrast for each trial type and will compute
-% induced repeonses in terms of power (over trials)
+% induced responses in terms of power (over trials) if fboi is not zero
 %__________________________________________________________________________
 
 % SPM data structure
@@ -20,16 +21,19 @@ end
 
 % defaults
 %--------------------------------------------------------------------------
-try, woi = model.contrast.woi;  catch, woi = [80 120]; end
-try, foi = model.contrast.fboi; catch, foi = 0;        end
+try, woi  = model.contrast.woi;  catch, woi  = [80 120]; end
+try, foi  = model.contrast.fboi; catch, foi  = 0;        end
+try, type = model.contrast.type; catch, type = 'evoked'; end
 
-% Check contrast woi within inversion woi
+
+% Check contrast woi is within inversion woi
+%--------------------------------------------------------------------------
 if woi(1) < D.inv{D.val}.inverse.woi(1) | woi(2) > D.inv{D.val}.inverse.woi(2)
-   error(sprintf('Contrast time window, %s, must be within inversion time window, %s',mat2str(woi),mat2str(D.inv{D.val}.inverse.woi)))
+    error(sprintf('Contrast time-window, %s, must be within inversion time-window, %s',mat2str(woi),mat2str(D.inv{D.val}.inverse.woi)))
 end
 
 fprintf('\ncomputing contrast - please wait\n')
-  
+
 % inversion parameters
 %--------------------------------------------------------------------------
 J    = model.inverse.J;                           % Trial average MAP estimate
@@ -39,17 +43,23 @@ R    = model.inverse.R;                           % referencing matrix
 Is   = model.inverse.Is;                          % Indices of ARD vertices
 Ic   = model.inverse.Ic;                          % Indices of channels
 It   = model.inverse.It;                          % Indices of time bins
-pst  = model.inverse.pst;                         % preistimulus tim (ms)
+pst  = model.inverse.pst;                         % peristimulus time (ms)
 Nd   = model.inverse.Nd;                          % number of mesh dipoles
 Nb   = size(T,1);                                 % number of time bins
 Nc   = size(U,1);                                 % number of channels
+
+try
+    scale = model.inverse.scale;                 % Trial average MAP estimate
+catch
+    scale = 1;
+end
 
 % time-frequency contrast
 %==========================================================================
 
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
-dt   = (D.Radc/1000)
+dt   = (D.Radc/1000);
 toi  = round(woi*dt) + D.events.start + 1;
 toi  = toi - It(1) + 1;
 fwhm = max(diff(toi),8*dt);
@@ -73,57 +83,58 @@ end
 TW     = T'*W;
 TTW    = T*TW;
 
+% MAP projector and conditionoal covariance
+%==========================================================================
+M     = model.inverse.M;
+V     = model.inverse.qV;
+qC    = model.inverse.qC*trace(TTW'*V*TTW);
+qC    = max(qC,0);
+MAP   = M*U'*R;
+
+
 % cycle over trial types
 %==========================================================================
 trial = model.inverse.trials;
 for i = 1:length(J)
 
-    % windowed time average
+    % induced or evoked
     %----------------------------------------------------------------------
-    if foi
+    switch(type)
 
-        JW{i} = J{i}*TW(:,1);
-        GW{i} = sum((J{i}*TW).^2,2);
-
-    % energy over frequencies
-    %----------------------------------------------------------------------
-    else
-
-        % get projectors, inversion and data
-        %==================================================================
-        M     = model.inverse.M;               % MAP projector
-        V     = model.inverse.qV;              % temporal correlations
-        MUR   = M*U'*R;
-        qC    = model.inverse.qC*trace(TTW'*V*TTW);
-        
-        JW{i} = sparse(0);
-        JWWJ  = sparse(0);
-        if isfield(D.events,'reject')
-            c = find(D.events.code == trial(i) & ~D.events.reject);
-        else
-            c = find(D.events.code == trial(i));
-        end
-
-        % conditional expectation of contrast (J*W) and its energy
+        % energy of conditional mean
         %------------------------------------------------------------------
-        Nt    = length(c);
-        for j = 1:Nt
-            fprintf('evaluating trial %i, condition %i\n',j,i)
-            MYW   = MUR*(D.data(Ic,It,c(j))*TTW)/Nt;
-            JW{i} = JW{i} + MYW(:,1);
-            JWWJ  = JWWJ  + sum(MYW.^2,2);
-        end
+        case{'evoked'}
 
+            JW{i} = J{i}*TW(:,1);
+            GW{i} = sum((J{i}*TW).^2,2) + qC;
 
-        % conditional expectation of total energy (source space GW)
+        % mean energy over trials
         %------------------------------------------------------------------
-        GW{i}   = JWWJ + qC/Nt;
+        case{'induced'}
 
-        % conditional expectation of induced energy (source space IW)
-        % NB: this is zero if Nt = 1
-        %--------------------------------------------------------------------------
-        % IW   = GW - sum(JW.^2,2) - qC/(Nt(i)*Nt(i));
+            JW{i} = sparse(0);
+            JWWJ  = sparse(0);
+            if isfield(D.events,'reject')
+                c = find(D.events.code == trial(i) & ~D.events.reject);
+            else
+                c = find(D.events.code == trial(i));
+            end
 
+            % conditional expectation of contrast (J*W) and its energy
+            %------------------------------------------------------------------
+            Nt    = length(c);
+            for j = 1:Nt
+                fprintf('evaluating trial %i, condition %i\n',j,i)
+                Y     = D.data(Ic,It,c(j))*scale;
+                MYW   = MAP*Y*TTW;
+                JW{i} = JW{i} + MYW(:,1);
+                JWWJ  = JWWJ  + sum(MYW.^2,2);
+            end
+
+            % conditional expectation of total energy (source space GW)
+            %--------------------------------------------------------------
+            JW{i} = JW{i}/Nt;
+            GW{i} = JWWJ/Nt + qC;
     end
 
 end
@@ -145,5 +156,3 @@ D.inv{D.val}        = model;
 % Display
 %==========================================================================
 spm_eeg_inv_results_display(D);
-
-

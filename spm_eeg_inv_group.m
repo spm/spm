@@ -18,6 +18,14 @@ function spm_eeg_inv_group(S);
 % conditional estimates of source activity that are constrained to the
 % same subset of voxels.  These would normally be passed to a second-level
 % SPM for classical inference about between-trial effects, over subjects.
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_eeg_inv_group.m 1039 2007-12-21 20:20:38Z karl $
+
+
+% check if to proceed
 %--------------------------------------------------------------------------
 str = questdlg('this will overwrite previous source reconstructions OK?');
 if ~strcmp(str,'Yes'), return, end
@@ -160,19 +168,25 @@ inverse.type   = 'GS';                        % Priors; GS, MSP, LOR or IID
 
 % specify time-frequency window contrast
 %==========================================================================
- 
-% get time window
-%--------------------------------------------------------------------------
-woi              = spm_input('Time window (ms)','+1','r',[100 200]);
-woi              = sort(woi);
-contrast.woi     = round([woi(1) woi(end)]);
- 
-% get frequency window
-%--------------------------------------------------------------------------
-fboi             = spm_input('Frequency [band] of interest (Hz)','+1','r',0);
-fboi             = sort(fboi);
-contrast.fboi    = round([fboi(1) fboi(end)]);
-contrast.display = 0;
+str = questdlg('Would you like to specify a time-frequency contrast?');
+if strcmp(str,'Yes')
+
+    % get time window
+    %----------------------------------------------------------------------
+    woi              = spm_input('Time window (ms)','+1','r',[100 200]);
+    woi              = sort(woi);
+    contrast.woi     = round([woi(1) woi(end)]);
+
+    % get frequency window
+    %----------------------------------------------------------------------
+    fboi             = spm_input('Frequency [band] of interest (Hz)','+1','r',0);
+    fboi             = sort(fboi);
+    contrast.fboi    = round([fboi(1) fboi(end)]);
+    contrast.display = 0;
+
+else
+    contrast = [];
+end
  
 % Register and compute a forward model
 %==========================================================================
@@ -198,15 +212,16 @@ if ~iscell(D), D = {D}; end
  
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
-for i = 1:Ns
- 
-    D{i}.inv{val}.contrast = contrast;
- 
-    % evaluate and write image
-    %----------------------------------------------------------------------
-    D{i} = spm_eeg_inv_results(D{i});
-    D{i} = spm_eeg_inv_Mesh2Voxels(D{i});
- 
+if length(contrast)
+    for i = 1:Ns
+
+        % evaluate contrast and write image
+        %------------------------------------------------------------------
+        D{i}.inv{val}.contrast = contrast;
+        D{i} = spm_eeg_inv_results(D{i});
+        D{i} = spm_eeg_inv_Mesh2Voxels(D{i});
+
+    end
 end
  
 % Save
