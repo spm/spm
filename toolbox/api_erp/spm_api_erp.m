@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_api_erp.m 1055 2007-12-28 19:52:16Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -100,22 +100,22 @@ try, DCM.Lpos = DCM.M.dipfit.L.pos; end
 
 % enter options from saved options and execute data_ok and spatial_ok
 %--------------------------------------------------------------------------
-try, set(handles.Y1, 'String', num2str(DCM.options.trials));        end
-try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));       end
-try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));       end
-try, set(handles.Hz1,'String', num2str(DCM.options.Fdcm(1)));       end
-try, set(handles.Hz2,'String', num2str(DCM.options.Fdcm(2)));       end
-try, set(handles.Rft,'String', num2str(DCM.options.Rft));           end
-try, set(handles.Spatial_type,'Value', DCM.options.type);           end
-try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);         end
-try, set(handles.h,           'Value', DCM.options.h);              end
-try, set(handles.D,           'Value', DCM.options.D);              end
-try, set(handles.lock,        'Value', DCM.options.lock);           end
-try, set(handles.design,      'String',num2str(DCM.xU.X'));         end
-try, set(handles.Uname,       'String',DCM.xU.name);                end
-try, set(handles.onset,       'String',num2str(DCM.options.onset)); end
-try, set(handles.Sname,       'String',strvcat(DCM.Sname));         end
-try, set(handles.Slocation,   'String',num2str(DCM.Lpos'));         end
+try, set(handles.Y1, 'String', num2str(DCM.options.trials,'%7.0f')); end
+try, set(handles.T1, 'String', num2str(DCM.options.Tdcm(1)));        end
+try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));        end
+try, set(handles.Hz1,'String', num2str(DCM.options.Fdcm(1)));        end
+try, set(handles.Hz2,'String', num2str(DCM.options.Fdcm(2)));        end
+try, set(handles.Rft,'String', num2str(DCM.options.Rft));            end
+try, set(handles.Spatial_type,'Value', DCM.options.type);            end
+try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);          end
+try, set(handles.h,           'Value', DCM.options.h);               end
+try, set(handles.D,           'Value', DCM.options.D);               end
+try, set(handles.lock,        'Value', DCM.options.lock);            end
+try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
+try, set(handles.Uname,       'String',DCM.xU.name);                 end
+try, set(handles.onset,       'String',num2str(DCM.options.onset));  end
+try, set(handles.Sname,       'String',strvcat(DCM.Sname));          end
+try, set(handles.Slocation,   'String',num2str(DCM.Lpos','%4.0f'));  end
 
 
 % catch for backwards compatibility
@@ -244,7 +244,9 @@ guidata(hObject,handles);
 %--------------------------------------------------------------------------
 function Y1_Callback(hObject, eventdata, handles)
 try
-    handles.DCM.options.trials = str2num(get(handles.Y1,'String'));
+    trials = str2num(get(handles.Y1,'String'));
+    handles.DCM.options.trials = trials;
+    set(handles.Y1,'String',num2str(trials,'%7.0f'))
     m  = length(handles.DCM.options.trials);
 catch
     m  = 1;
@@ -323,7 +325,7 @@ end
 try
     X  = str2num(get(handles.design,'String'))';
     handles.DCM.xU.X = X(1:m,:);
-    set(handles.design, 'String',num2str(handles.DCM.xU.X'));
+    set(handles.design, 'String',num2str(handles.DCM.xU.X','%7.2f'));
 catch
     handles = Xdefault(hObject,handles,m);
 end
@@ -427,7 +429,7 @@ function pos_Callback(hObject, eventdata, handles)
 Slocation = load(fullfile(p,f));
 name      = fieldnames(Slocation);
 Slocation = getfield(Slocation, name{1});
-set(handles.Slocation,'String',num2str(Slocation));
+set(handles.Slocation,'String',num2str(Slocation,'%4.0f'));
 
 
 %-Executes on button press in data_ok.
@@ -816,7 +818,7 @@ for i = 1:size(X,2)
 end
 handles.DCM.xU.X    = X;
 handles.DCM.xU.name = name;
-set(handles.design,'String',num2str(handles.DCM.xU.X'));
+set(handles.design,'String',num2str(handles.DCM.xU.X','%7.2f'));
 set(handles.Uname, 'String',handles.DCM.xU.name);
 return
 
