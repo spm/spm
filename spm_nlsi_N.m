@@ -66,7 +66,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1042 2007-12-21 20:33:07Z karl $
+% $Id: spm_nlsi_N.m 1054 2007-12-28 19:51:22Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -246,7 +246,7 @@ for k = 1:128
        
     % Optimise g: parameters of G(g) (and confounds)
     %======================================================================
-    for l = 1:2
+    for l = 1:8
         
         % prediction yp = G(g)*x
         %------------------------------------------------------------------
