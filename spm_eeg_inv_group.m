@@ -20,19 +20,19 @@ function spm_eeg_inv_group(S);
 % SPM for classical inference about between-trial effects, over subjects.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_group.m 1052 2007-12-28 19:49:09Z karl $
 
 
 % check if to proceed
 %--------------------------------------------------------------------------
 str = questdlg('this will overwrite previous source reconstructions OK?');
 if ~strcmp(str,'Yes'), return, end
- 
+
 % Load data
 %==========================================================================
- 
+
 % Gile file names
 %--------------------------------------------------------------------------
 if ~nargin
@@ -70,7 +70,7 @@ try
         L      = sparse(getfield(G, name{1}));
         Nd(i)  = size(L,2);                         % number of dipoles
     end
-    
+
 catch
     Nd = zeros(1,Ns);
 end
@@ -80,37 +80,60 @@ end
 %======================================================================
 NS    = find(Nd ~= 7204);
 for i = NS
-    
+
     cd(D{i}.path)
- 
+
     % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
     %----------------------------------------------------------------------
     D{i}.inv{val}.mesh.Msize  = 4;
- 
+
     % use a template head model and associated meshes
     %======================================================================
     D{i} = spm_eeg_inv_template(D{i});
- 
+
     % get fiducials and sensor locations
     %----------------------------------------------------------------------
     try
         sensors = D{i}.inv{val}.datareg.sensors;
     catch
-        [f p]   = uigetfile('*sens*.mat','select sensor locations');
-        sensors = load(fullfile(p,f));
-        name    = fieldnames(sensors);
-        sensors = getfield(sensors,name{1});
+        if strcmp(questdlg('Use Polhemus file?'),'Yes');
+
+            % get fiduicials and headshape
+            %--------------------------------------------------------------
+            pol_skip            = 2;
+            pol_file            = spm_select(1,'.pol','Select Polhemus file');
+            [fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip);
+
+            % get sensor locations
+            %--------------------------------------------------------------
+            if strcmp(D{i}.modality,'EEG')
+                sensors = headshape;
+            else
+                sensors = load(spm_select(1,'.mat','Select MEG sensor file'));
+                name    = fieldnames(sensors);
+                sensors = getfield(sensors,name{1});
+            end
+            
+        else
+            [f p]   = uigetfile('*sens*.mat','select sensor locations');
+            sensors = load(fullfile(p,f));
+            name    = fieldnames(sensors);
+            sensors = getfield(sensors,name{1});
+        end
     end
     try
-        fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
+        fid_eeg;
     catch
-        [f p]   = uigetfile('*fid*.mat','select fiducial locations');
-        fid_eeg = load(fullfile(p,f));
-        name    = fieldnames(fid_eeg);
-        fid_eeg = getfield(fid_eeg,name{1});
+        try
+            fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
+        catch
+            [f p]   = uigetfile('*fid*.mat','select fiducial locations');
+            fid_eeg = load(fullfile(p,f));
+            name    = fieldnames(fid_eeg);
+            fid_eeg = getfield(fid_eeg,name{1});
+        end
     end
-    
- 
+
     % get sensor locations
     %----------------------------------------------------------------------
     if strcmp(D{i}.modality,'EEG')
@@ -131,7 +154,7 @@ for i = NS
     D{i}.inv{val}.datareg.fid_eeg   = fid_eeg;
     D{i}.inv{val}.datareg.headshape = headshape;
     D{i}.inv{val}.datareg.megorient = orient;
- 
+
     % specify forward model
     %----------------------------------------------------------------------
     if strcmp(D{i}.modality,'EEG')
@@ -139,9 +162,9 @@ for i = NS
     else
         D{i}.inv{val}.forward.method = 'meg_sphere';
     end
-     
+
 end
- 
+
 % Get conditions or trials
 %==========================================================================
 if length(D{1}.events.types) > 1
@@ -159,7 +182,7 @@ if length(D{1}.events.types) > 1
 else
     trials = D{1}.events.types;
 end
- 
+
 % specify inversion parameters
 %--------------------------------------------------------------------------
 inverse.trials = trials;                      % Trials or conditions
@@ -187,20 +210,20 @@ if strcmp(str,'Yes')
 else
     contrast = [];
 end
- 
+
 % Register and compute a forward model
 %==========================================================================
-for i = 1:NS
- 
+for i = 1:Ns
+
     fprintf('Registering and computing forward model (subject: %i)\n',i)
-    
+
     % Forward model
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_datareg(D{i});
     D{i} = spm_eeg_inv_BSTfwdsol(D{i});
-    
+
 end
- 
+
 % Invert the forward model
 %==========================================================================
 for i = 1:Ns
@@ -208,8 +231,8 @@ for i = 1:Ns
 end
 D     = spm_eeg_invert(D);
 if ~iscell(D), D = {D}; end
- 
- 
+
+
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
 if length(contrast)
@@ -223,12 +246,12 @@ if length(contrast)
 
     end
 end
- 
+
 % Save
 %==========================================================================
 S     = D;
 for i = 1:Ns
- 
+
     % save D
     %----------------------------------------------------------------------
     D = S{i};

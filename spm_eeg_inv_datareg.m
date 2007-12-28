@@ -49,7 +49,7 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1027 2007-12-18 18:04:35Z stefan $
+% $Id: spm_eeg_inv_datareg.m 1052 2007-12-28 19:49:09Z karl $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) 4/6/07
@@ -201,13 +201,16 @@ else
     error('Unknown sensor coil locations')
 end
 
+% grad - for use of fieldtrip leadfield functions
+%--------------------------------------------------------------------------
 try
-    % for use of fieldtrip leadfield functions
-    grad = D.inv{val}.datareg.grad;
-    grad_coreg.pnt   = M1*[grad.pnt'*10; ones(1,size(grad.pnt,1))];
-    grad_coreg.pnt   = grad_coreg.pnt(1:3,:)'/10;
+    grad           = D.inv{val}.datareg.grad;
+    grad_coreg.pnt = M1*[grad.pnt'*10; ones(1,size(grad.pnt,1))];
+    grad_coreg.pnt = grad_coreg.pnt(1:3,:)'/10;
     grad_coreg.ori = grad.ori*M1(1:3,1:3)';
     grad_coreg.tra = grad.tra;
+catch
+    grad_coreg     = [];
 end
     
 % retain valid sensor locations for leadfield computation
