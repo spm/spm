@@ -7,7 +7,7 @@ function spm_dartel_template(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1020 2007-12-06 20:20:31Z john $
+% $Id: spm_dartel_template.m 1060 2008-01-03 18:16:36Z john $
 
 code = 2;
 st = job.settings;
@@ -86,10 +86,10 @@ spm_progress_bar('Clear');
 
 M  = NF(1,1).NI.mat;
 vx = sqrt(sum(M(1:3,1:3).^2));
-for j=1:n1,
-    t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
-end
 if st.param(1).slam,
+    for j=1:n1,
+        t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
+    end
     g = spm_dartel_smooth(t,st.param(1).slam*2,8,vx);
 else
     for j=1:n1,
@@ -148,11 +148,11 @@ for it=1:numel(st.param),
             t(:,:,:,end) = t(:,:,:,end) + dt;
             clear y dt
         end;
-        for j=1:n1,
-            t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
-        end
-        t(:,:,:,end) = max(t(:,:,:,end),0);
         if param.slam,
+            for j=1:n1,
+                t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
+            end
+            t(:,:,:,end) = max(t(:,:,:,end),0);
             g = spm_dartel_smooth(t,param.slam,8,vx);
         else
             for j=1:n1,
