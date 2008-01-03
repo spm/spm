@@ -9,10 +9,11 @@ function ok = write_hdr_raw(fname,hdr,be)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: write_hdr_raw.m 1029 2007-12-19 18:30:38Z john $
+% $Id: write_hdr_raw.m 1057 2008-01-03 12:19:02Z guillaume $
 
 
 [pth,nam,ext] = fileparts(fname);
+if isempty(pth), pth = pwd; end
 
 if isfield(hdr,'magic')
     org = niftistruc;
@@ -37,8 +38,7 @@ else       mach = 'native';
 end;
 
 ok = true;
-if isempty(pth), pth = pwd; end
-if exist(fullfile(pth,hname),'file'),
+if exist(hname,'file'),
     fp = fopen(hname,'r+',mach);
 else
     fp = fopen(hname,'w+',mach);
