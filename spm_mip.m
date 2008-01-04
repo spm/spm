@@ -34,7 +34,7 @@ function spm_mip(Z,XYZ,M,units)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston et al.
-% $Id: spm_mip.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_mip.m 1062 2008-01-04 12:11:16Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -55,7 +55,7 @@ mx   = max(Z);
 Scal = 8;
 if isempty(mx),
     Z = [];
-elseif isfinite(mx),
+elseif isfinite(mx) && (numel(Z) ~= 1),
     Z = (1 + Scal*Z/mx)/(Scal + 1);
 else
     Z = ones(1,length(Z));
