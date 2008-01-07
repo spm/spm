@@ -52,7 +52,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_erp_priors.m 1069 2008-01-07 18:55:40Z karl $
 
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -83,7 +83,7 @@ E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 %--------------------------------------------------------------------------
 switch dipfit.type
     
-    case{'ECD (EEG)','ECD (MEG)'}
+    case{'ECD (EEG)','ECD (MEG)'}                  % *** switch off Lpos ***
     %----------------------------------------------------------------------
     G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % dipole positions
     G.Lmom = sparse(3,n);   U.Lmom = 256*ones(3,n);    % dipole orientations
@@ -125,10 +125,10 @@ V.D        = Q/8;
 %--------------------------------------------------------------------------
 E.R        = sparse(1,1,1,u,3);  V.R   = ones(u,1)*[1 1/16 1/16];
 
-% background fluctuations
+% background fluctuations - *** switch off ***
 %--------------------------------------------------------------------------
 n          = 1;
-E.N        = ones(n,1)*[0 0 10]; V.N   = ones(n,3);    % amplitude and Hz
+% E.N      = ones(n,1)*[0 0 10]; V.N   = ones(n,3); % amplitude and Hz
 
 warning on
 

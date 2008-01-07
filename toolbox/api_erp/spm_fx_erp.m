@@ -94,9 +94,9 @@ Ti    = T(2)/1000;                    % inhibitory time constants
 Hi    = H(2);                         % inhibitory receptor density
 
 for i = 1:m
-    P.H = P.H + u(i)*diag(P.B{i});   % modulation of
+    P.H = P.H + u(i)*diag(P.B{i});    % modulation of
 end
-He    = H(1)*exp(P.H);                  % excitatory receptor density
+He    = H(1)*exp(P.H);                % excitatory receptor density
 
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
@@ -110,8 +110,6 @@ dSdx  = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 U     = C*U;
 try
     U = U + C*N;
-catch
-    U = U + N;
 end
 
 % State: f(x)
