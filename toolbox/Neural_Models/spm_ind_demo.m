@@ -56,7 +56,7 @@ w     = cpt./(t*U.dt);                % Hz
  
 % input 
 %==========================================================================
-U.u   = sparse(128:512,1,1,N,1)*64 + randn(N,1)*4;          % noisy burst
+U.u   = sparse(128:512,1,1,N,1)*64 + randn(N,1)*4;        % noisy burst
 U.u   = sparse(128:512,1,1,N,1).*sin(2*pi*16*pst(:));     % pure Hz - low
 U.u   = sparse(128:512,1,1,N,1).*sin(2*pi*16*pst(:))*128; % pure Hz - high
  

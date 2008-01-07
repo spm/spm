@@ -40,6 +40,8 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
+x     = spm_unvec(x,M.x);
+u     = spm_vec(u);
 n     = size(x,1);             % number of sources
 s     = size(x,2);             % number of states
 m     = length(u);             % number of inputs
@@ -55,11 +57,11 @@ end
 % [default] fixed parameters
 %--------------------------------------------------------------------------
 E    = [32 16 4];             % extrinsic rates (forward, backward, lateral)
-G    = [1 1 1/2 1/2 1/8]*128; % intrinsic rates (g1, g2 g3, g4)
+G    = [1 1 1/2 1/2 1/32]*128; % intrinsic rates (g1, g2 g3, g4)
 D    = [2 4];                 % propogation delays (intrinsic, extrinsic)
-H    = [4 32];                % receptor densities (excitatory, inhibitory)
+H    = [8 32];                % receptor densities (excitatory, inhibitory)
 T    = [4 16];                % synaptic constants (excitatory, inhibitory)
-R    = [2 1];                 % parameters of static nonlinearity
+R    = [1 2];                 % parameters of static nonlinearity
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------

@@ -46,7 +46,7 @@ M.pC  = pC;
 M.m   = size(C,2);
 M.n   = length(M.x(:));
 M.l   = size(H,2);
-M.IS  = 'spm_int';
+M.IS  = 'spm_int_J';
 
 % create BOLD model
 %--------------------------------------------------------------------------
