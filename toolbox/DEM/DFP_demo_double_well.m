@@ -12,14 +12,14 @@ dxdt    = -x/2 + 16*x./(1 + x.^2);
 V       =  1/4*x.^2 - 8*log(1 + x.^2);
  
 subplot(2,1,1)                                 
-plot(x,x*0,':',x,dxdt)
+plot(x,x*0,':',x,dxdt/8)
 axis square
 xlabel('state','FontSize',12)
 ylabel('velocity','FontSize',12)
 title('phase diagram','FontSize',14)
  
 subplot(2,1,2)
-plot(x,V)
+plot(x,V/8)
 axis square
 xlabel('state','FontSize',12)
 ylabel('potential','FontSize',12)
@@ -30,7 +30,7 @@ title('double well','FontSize',14)
 %==========================================================================
 if ~strcmp(questdlg('proceed with demo'),'Yes'), return, end
 M        = spm_DEM_M('ssm');
-M(1).E.N = 16;
+M(1).E.N = 64;
  
 % generate data (output) and graph
 %--------------------------------------------------------------------------
@@ -61,9 +61,9 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 % Graphical comparison of DFP and true states
 %--------------------------------------------------------------------------
 spm_figure('GetWin','DFP');
-spm_DFP_plot(DFP.QU)
- 
- 
+spm_DFP_plot(DFP.QU,DFP.pU)
+
+
 % Graphical comparison of DFP and PF
 %==========================================================================
 if ~strcmp(questdlg('compare with particle filter'),'Yes'), return, end

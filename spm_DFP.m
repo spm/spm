@@ -481,9 +481,9 @@ for iN = 1:nN
 
                     % Jacobian
                     %------------------------------------------------------
-                    dFduu = spm_cat({(Du + dIduu) dIduy    dIduc;
-                                      []             Dy    []   ;
-                                      []             []    Dc}) ;
+                    dFduu = spm_cat({dIduu dIduy dIduc;
+                                     []    Dy    []   ;
+                                     []    []    Dc}) ;
 
 
                     % update conditional modes of states
