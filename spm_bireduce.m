@@ -48,17 +48,13 @@ if ~isfield(M,'f')
     M.x = sparse(0,0);
 end
 
-% sizes and input
+% expansion pointt
 %--------------------------------------------------------------------------
-m     = M.m;					% m inputs
-n     = M.n;					% n states
-l     = M.l;					% l ouputs
-x     = M.x;                    % expansion point
-
+x     = spm_vec(M.x);           
 try
     u = spm_vec(M.u);
 catch
-    u = sparse(m,1);
+    u = sparse(M.m,1);
 end
 
 % create inline functions
@@ -72,7 +68,6 @@ funl  = fcnchk(M.g,'x','u','P','M');
 f0    = spm_vec(feval(funx,x,u,P,M));
 l0    = spm_vec(feval(funl,x,u,P,M));
 
-
 % Partial derivatives for 1st order Bilinear operators
 %==========================================================================
 
@@ -81,6 +76,11 @@ l0    = spm_vec(feval(funl,x,u,P,M));
 dfdx  = spm_diff(funx,x,u,P,M,1);
 dfdxu = spm_diff(funx,x,u,P,M,[1 2]);
 dfdu  = spm_diff(funx,x,u,P,M,2);
+
+m     = length(dfdxu);          % m inputs
+n     = length(f0);             % n states
+l     = length(l0);             % l ouputs
+
 
 % Bilinear operators
 %==========================================================================

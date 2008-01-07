@@ -19,9 +19,9 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 %
 %              dx(t) = -inv(dfdx)*f
 %
-% for the SDE:  dx = dfdx*x*dt + dfdw*w
+% for the SDE:  dx = dfdx*x*dt + sqrt(2)*dfdw*dw
 %
-% where w is a Wiener process of variance 1/2
+% where w is a standard Wiener process
 %
 % see also spm_dx
 %__________________________________________________________________________
@@ -40,9 +40,9 @@ m     = length(dfdx);
 N     = 256;
 dt    = t/N;
 e     = spm_expm(dfdx*dt);
-E     = speye(m,m);
+E     = e;
 Q     = sparse(m,m);
-R     = dfdw*dfdw';
+R     = dfdw*dfdw'*2;
 TOL   = trace(E*R*E')/64;
 for i = 1:N
     Q = Q + E*R*E'*dt;

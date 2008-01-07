@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_expm.m 984 2007-10-29 19:36:49Z karl $
+% $Id: spm_expm.m 1065 2008-01-07 18:45:46Z karl $
 
 
 % expm(J) use Pade approximation
@@ -23,14 +23,15 @@ if nargin == 1
 	% ensure norm is < 1/2 by scaling by power of 2
 	%-------------------------------------------------------------------
     J     = sparse(J);
+    I     = speye(size(J));
 	[f,e] = log2(norm(J,'inf'));
 	s     = max(0,e+1);
 	J     = J/2^s;
 
 	X     = J; 
 	c     = 1/2;
-	E     = speye(size(J)) + c*J;
-	D     = speye(size(J)) - c*J;
+	E     = I + c*J;
+	D     = I - c*J;
 	q     = 6;
 	p     = 1;
 	for k = 2:q

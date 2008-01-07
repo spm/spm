@@ -19,7 +19,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_diff.m 859 2007-07-13 17:53:00Z karl $
+% $Id: spm_diff.m 1065 2008-01-07 18:45:46Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ else
     error('improper call')
 end
 
-% check trasnform matrices V = dx.dy
+% check transform matrices V = dx.dy
 %--------------------------------------------------------------------------
 for i = 1:length(x)
     try

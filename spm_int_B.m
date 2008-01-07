@@ -7,6 +7,7 @@ function [y] = spm_int_B(P,M,U)
 %
 % y   - (v x l)  response y = g(x,u,P)
 %__________________________________________________________________________
+%
 % Integrates the MIMO system described by
 %
 %    dx/dt = f(x,u,P,M)
@@ -30,23 +31,39 @@ function [y] = spm_int_B(P,M,U)
 % respectively.  They can be used for any ODEs, where the Jacobian is
 % unknown or difficult to compute; however, they may be slow.
 %
-% spm_int_J: uses an explicit Jacobian based update scheme that preserves
-% linearities in the ODE: dx = (expm(dt*J) - I)*inv(J)*f.  If the
+% spm_int_J: uses an explicit Jacobian-based update scheme that preserves
+% nonlinearities in the ODE: dx = (expm(dt*J) - I)*inv(J)*f.  If the
 % equations of motion return J = df/dx, it will be used; otherwise it is
 % evaluated numerically, using spm_diff at each time point.  This scheme is
-% infallible but potentially slow if the Jacobian is not available (calls
+% infallible but potentially slow, if the Jacobian is not available (calls
 % spm_dx).
+%
+% spm_int_E: As for spm_int_J but uses the eigensystem of J(x(0)) to eschew 
+% matrix exponentials and inversion during the integration. It is probably
+% the best compromise, if the Jacobian is not available explicitly.
+%
+% spm_int_B: As for spm_int_J but uses a first-order approximation to J
+% based on J(x(t)) = J(x(0)) + dJdx*x(t).
+%
+% spm_int_L: As for spm_int_B but uses J(x(0)).
 %
 % spm_int_U: like spm_int_J but only evaluates J when the input changes.
 % This can be useful if input changes are sparse (e.g., boxcar functions).
 % spm_int_U also has the facility to integrate delay differential equations
-% if a delay operator is returned [f J D] = f(x,u,P,M)
+% if a delay operator is returned [f J D] = f(x,u,P,M). It is used 
+% primarily for integrating fMRI models
 %
-% spm_int:   Fast integrator that uses a bilinear approximation to the 
+% spm_int:   Fast integrator that uses a bilinear approximation to the
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
-% sparse sampling of the solution and delays in observing outputs
-%--------------------------------------------------------------------------
-
+% sparse sampling of the solution and delays in observing outputs. It is
+% used primarily for integrating fMRI models
+%___________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id:$
+ 
+ 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U)
@@ -62,8 +79,8 @@ try
 catch
     ns = length(U.u);
 end
-
-
+ 
+ 
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
 try
@@ -73,13 +90,13 @@ catch
     M.n = 0;
     M.x = sparse(0,0);
 end
-
+ 
 % and output nonlinearity
 %--------------------------------------------------------------------------
 try
     g   = fcnchk(M.g,'x','u','P','M');
 end
-
+ 
 % Initial states and inputs
 %--------------------------------------------------------------------------
 u = U.u(1,:);
@@ -94,26 +111,26 @@ catch
     x   = sparse(0,1);
     M.x = x;
 end
-
+ 
 % get Jacobian and its derivatives
 %--------------------------------------------------------------------------
-[dJdx J]  = spm_diff(f,x,u,P,M,[1 1]);
-[dJdu J]  = spm_diff(f,x,u,P,M,[1 2]);
-
-
+[dJdx J]  = spm_diff(f,spm_vec(x),u,P,M,[1 1]);
+[dJdu J]  = spm_diff(f,spm_vec(x),u,P,M,[1 2]);
+ 
+ 
 % integrate
 %==========================================================================
 x0    = spm_vec(M.x);
 for i = 1:ns
-
+ 
     % input
     %----------------------------------------------------------------------
     u     = U.u(i,:);
-
+ 
     % motion
     %----------------------------------------------------------------------
     fx    = f(x,u,P,M);
-
+ 
     % dx(t)/dt and Jacobian df/dx
     %----------------------------------------------------------------------
     dx    = spm_vec(x) - x0;
@@ -122,13 +139,13 @@ for i = 1:ns
         dfdx = dfdx + dJdx{j}*dx(j);
     end
     for j = 1:length(dJdu)
-        dfdx = dfdx + dJdx{j}*u(j);
+        dfdx = dfdx + dJdu{j}*u(j);
     end
-
+ 
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
     x  = spm_unvec(spm_vec(x) + spm_dx(dfdx,fx,dt),M.x);
-
+ 
     % output - implement g(x)
     %----------------------------------------------------------------------
     try
@@ -136,9 +153,9 @@ for i = 1:ns
     catch
         y(:,i) = spm_vec(x);
     end
-
+ 
 end
-
+ 
 % transpose
 %--------------------------------------------------------------------------
 y      = real(y');
