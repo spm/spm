@@ -1,5 +1,5 @@
 function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
-% Bayesian inversion of a nonlinear model using a Guass-Newton/EM algorithm
+% Bayesian inversion of a nonlinear model using a Gauss-Newton/EM algorithm
 % FORMAT [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
@@ -18,10 +18,10 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %       M  - fixed functional forms and parameters in M
 %
 % M.FS - function name f(y,M)   - feature selection
-%        This [optional] function perfoms feature selection assuming the
-%        generalised model y = FS(y,M) = FS(IS(P,M,U),M) + X0*P0 + e
+%        This [optional] function performs feature selection assuming the
+%        generalized model y = FS(y,M) = FS(IS(P,M,U),M) + X0*P0 + e
 %
-% M.P  - starting estimtes for model parameters [optional]
+% M.P  - starting estimates for model parameters [optional]
 %
 % M.pE - prior expectation  - E{P}   of model parameters
 % M.pC - prior covariance   - Cov{P} of model parameters
@@ -33,9 +33,9 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % U.dt - sampling interval
 %
 % Y.y  - outputs
-% Y.X0 - Confounds or null space
 % Y.dt - sampling interval for outputs
-% Y.Q  - error precision components
+% Y.X0 - Confounds or null space    (over size(y,1) bins or all vec(y))
+% Y.Q  - error precision components (over size(y,1) bins or all vec(y))
 %
 %
 % Parameter estimates
@@ -61,14 +61,14 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 %              y     = g([],u,P) + X0*P0e + e
 %
-% but static nonlinear models are specifed more simply using
+% but static nonlinear models are specified more simply using
 %
 %              y     = IS(P,M,U) + X0*P0 + e
 %
 % Priors on the free parameters P are specified in terms of expectation pE
 % and covariance pC. The E-Step uses a Fisher-Scoring scheme and a Laplace
 % approximation to estimate the conditional expectation and covariance of P
-% If the free-energy starts to increase, a Levenburg-Marquardt scheme is
+% If the free-energy starts to increase, a Levenberg-Marquardt scheme is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of [Re]ML point estimators of the log-precisions.
 %
@@ -77,8 +77,8 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1026 2007-12-18 15:25:27Z karl $
-
+% $Id: spm_nlsi_GN.m 1068 2008-01-07 18:53:03Z karl $
+ 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
 try
@@ -86,7 +86,7 @@ try
 catch 
     Fsi = spm_figure('GetWin','SI');
 end
-
+ 
 % check integrator
 %--------------------------------------------------------------------------
 try
@@ -94,7 +94,7 @@ try
 catch
     M.IS = 'spm_int_U';
 end
-
+ 
 % composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------
 if isfield(M,'FS')
@@ -110,7 +110,7 @@ if isfield(M,'FS')
     catch
         y  = feval(M.FS,Y.y);
         IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
-
+ 
     end
 else
     
@@ -119,12 +119,17 @@ else
     y   = Y.y;
     IS  = inline([M.IS '(P,M,U)'],'P','M','U');
 end
-
-% data y
+ 
+% size of data (usually samples x channels)
 %--------------------------------------------------------------------------
-[ns nr] = size(y);          % number of samples and responses
-M.ns    = ns;               % store in M.ns for integrator
-
+try
+    ns = M.ns;
+catch
+    ns = size(y,1);
+end
+nr   = length(spm_vec(y))/ns;       % number of samples and responses
+M.ns = ns;                          % store in M.ns for integrator
+ 
 % initial states
 %--------------------------------------------------------------------------
 try
@@ -133,7 +138,7 @@ catch
     if ~isfield(M,'n'), M.n = 0;    end
     M.x = sparse(M.n,1);
 end
-
+ 
 % input
 %--------------------------------------------------------------------------
 try
@@ -141,7 +146,7 @@ try
 catch
     U = [];
 end
-
+ 
 % initial parameters
 %--------------------------------------------------------------------------
 try
@@ -149,7 +154,7 @@ try
 catch
     M.P = M.pE;
 end
-
+ 
 % time-step
 %--------------------------------------------------------------------------
 try
@@ -157,18 +162,20 @@ try
 catch
     Y.dt = 1;
 end
-
-
+ 
+ 
 % precision components Q
 %--------------------------------------------------------------------------
 try
     Q = Y.Q;
+    if isnumeric(Q), Q = {Q}; end
 catch
     Q = spm_Ce(ns*ones(1,nr));
 end
-nh    = length(Q);          % number of precision components
-ne    = length(Q{1});       % number of error terms
-h     = zeros(nh,1);        % initialise hyperparameters
+nh    = length(Q);                  % number of precision components
+nt    = length(Q{1});               % number of time bins
+nq    = nr*ns/nt;                   % for compact kronecker form of M-step
+h     = zeros(nh,1);                % initialise hyperparameters
  
 % prior moments
 %--------------------------------------------------------------------------
@@ -178,11 +185,13 @@ pC    = M.pC;
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
-    dfdu = kron(speye(nr,nr),Y.X0);
+    nb   = size(Y.X0,1);            % number of bins
+    nx   = nr*ns/nb;                % number of blocks
+    dfdu = kron(speye(nx,nx),Y.X0);
 catch
     dfdu = sparse(ns*nr,0);
 end
-
+ 
 % hyperpriors - expectation
 %--------------------------------------------------------------------------
 try
@@ -190,7 +199,7 @@ try
 catch
     hE = sparse(nh,1);
 end
-
+ 
 % hyperpriors - covariance
 %--------------------------------------------------------------------------
 try
@@ -198,7 +207,7 @@ try
 catch
     ihC = eye(nh,nh);
 end
-
+ 
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
 V     = spm_svd(pC,exp(-16));
@@ -213,7 +222,7 @@ pC    = V'*pC*V;
 uC    = speye(nu)/1e-8;
 ipC   = inv(spm_cat(diag({pC,uC})));
  
-% initialise conditional density
+% initialize conditional density
 %--------------------------------------------------------------------------
 Eu    = inv(dfdu'*dfdu)*(dfdu'*spm_vec(y));
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
@@ -232,7 +241,7 @@ for k = 1:128
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %======================================================================
-
+ 
     % prediction f, and gradients; dfdp
     %----------------------------------------------------------------------
     [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
@@ -250,27 +259,32 @@ for k = 1:128
  
         % precision and conditional covariance
         %------------------------------------------------------------------
-        iS    = speye(ne,ne)*1e-8;
+        iS    = speye(nt,nt)*1e-8;
         for i = 1:nh
             iS = iS + Q{i}*exp(h(i));
         end
         S     = inv(iS);
+        iS    = kron(speye(nq),iS);
         Cp    = inv(J'*iS*J + ipC);
+        
+        
  
         % precision operators for M-Step
         %------------------------------------------------------------------
         for i = 1:nh
             P{i}  = Q{i}*exp(h(i));
             PS{i} = P{i}*S;
+            P{i}  = kron(speye(nq),P{i});
         end
- 
+            
+            
         % derivatives: dLdh = dL/dh,...
         %------------------------------------------------------------------
         for i = 1:nh
-            dFdh(i,1)      =  trace(PS{i})/2 - e'*P{i}*e/2 ...
+            dFdh(i,1)      =  trace(PS{i})*nq/2 - e'*P{i}*e/2 ...
                              -sum(sum(Cp.*(J'*P{i}*J)))/2;
             for j = i:nh
-                dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))/2;
+                dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))*nq/2;
                 dFdhh(j,i) =  dFdhh(i,j);
             end
         end
@@ -298,7 +312,7 @@ for k = 1:128
  
     end
  
-    % E-Step with Levenburg-Marquardt regularisation
+    % E-Step with Levenberg-Marquardt regularization
     %======================================================================
  
     % objective function: F(p) (= log evidence - divergence)
@@ -306,8 +320,8 @@ for k = 1:128
     F = - e'*iS*e/2 ...
         - p'*ipC*p/2 ...
         - d'*ihC*d/2 ...
-        - ne*log(8*atan(1))/2 ...
-        + spm_logdet(iS)/2 ...
+        - ns*nr*log(8*atan(1))/2 ...
+        - spm_logdet(S)*nq/2 ...
         + spm_logdet(ipC*Cp)/2 ...
         + spm_logdet(ihC*Ch)/2;
  
@@ -351,11 +365,15 @@ for k = 1:128
     dp    = spm_dx(dFdpp,dFdp,{t});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
-
+ 
     % graphics
     %----------------------------------------------------------------------
     try
-
+ 
+        % reshape prediction if necessary
+        %------------------------------------------------------------------
+        f  = reshape(spm_vec(f),ns,nr);
+        
         % subplot prediction
         %------------------------------------------------------------------
         figure(Fsi)
@@ -365,7 +383,7 @@ for k = 1:128
         xlabel('time')
         title(sprintf('%s: %i','E-Step',k))
         grid on
-
+ 
         % subplot parameters
         %------------------------------------------------------------------
         subplot(2,1,2)
@@ -376,13 +394,13 @@ for k = 1:128
         drawnow
         
     end
-
+ 
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
     fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dF:',full(dF))
     if k > 2 && dF < 1e-2, break, end
-
+ 
 end
  
 % outputs
@@ -391,5 +409,3 @@ Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;
 warning on
-
-
