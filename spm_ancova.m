@@ -25,7 +25,7 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ancova.m 1028 2007-12-19 09:53:56Z christophe $
+% $Id: spm_ancova.m 1071 2008-01-08 15:40:43Z guillaume $
 
 
 
@@ -60,12 +60,12 @@ df            = [trMV^2/trMVMV trRV^2/trRVRV];
 
 % F statistics
 %--------------------------------------------------------------------------
-F     = sum((h*beta).^2)./(ResSS*trMV/trRV);
+F     = sum((h*beta).^2,1)./(ResSS*trMV/trRV);
 
 if size(c,2) == 1
 
 	% T statistics
 	%----------------------------------------------------------------------
-	F = sqrt(F)*sign(c'*beta);
+	F = sqrt(F).*sign(c'*beta);
 
 end 
