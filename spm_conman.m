@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 765 2007-03-15 13:57:33Z volkmar $
+% $Id: spm_conman.m 1073 2008-01-08 21:40:33Z Darren $
 
 
 %=======================================================================
@@ -817,6 +817,11 @@ if (nargin==0) | ~ischar(varargin{1})
         set(0,'PointerLocation',[FRec(1)+FRec(3)/2, FRec(2)+FRec(2)/2])
     end
 
+    % setup tmpSPM for checking if SPM has changed upon returning from
+    % conman. This might happen if contrasts are renamed, for example.
+    %-----------------------------------------------------------------------
+    tmpSPM = SPM;
+    
     %-Wait until filenames have been selected
     hDone = findobj(F,'Tag','Done');
     waitfor(hDone,'UserData')
@@ -831,6 +836,16 @@ if (nargin==0) | ~ischar(varargin{1})
     I        = Q(get(hConList,'Value'));
     SPM      = get(F,'UserData');
     xCon     = SPM.xCon;
+    
+    % Check if SPM has changed. Save only if it has.
+    %-----------------------------------------------------------------------
+    if ~isequal(tmpSPM,SPM)
+        if spm_matlab_version_chk('7') >=0
+            save('SPM', 'SPM', '-V6');
+        else
+            save('SPM', 'SPM');
+        end
+    end
 
     %-Reset and hide SelFileWin
     spm_conman('Initialise','off');
