@@ -57,9 +57,9 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('AddBlobs',handle,XYZ,Z,mat)
 % Adds blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
-% XYZ      - blob voxel locations (currently in millimeters)
+% XYZ      - blob voxel locations
 % Z        - blob voxel intensities
-% mat      - matrix from millimeters to voxels of blob.
+% mat      - matrix from voxels to millimeters of blob.
 % name     - a name for this blob
 % This method only adds one set of blobs, and displays them using a
 % split colour table.
@@ -67,9 +67,9 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour,name)
 % Adds blobs from a pointlist to the image specified by the handle(s).
 % handle   - image number to add blobs to
-% XYZ      - blob voxel locations (currently in millimeters)
+% XYZ      - blob voxel locations
 % Z        - blob voxel intensities
-% mat      - matrix from millimeters to voxels of blob.
+% mat      - matrix from voxels to millimeters of blob.
 % colour   - the 3 vector containing the colour that the blobs should be
 % name     - a name for this blob
 % Several sets of blobs can be added in this way, and it uses full colour.
@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 942 2007-10-14 17:02:18Z volkmar $
+% $Id: spm_orthviews.m 1074 2008-01-09 14:59:57Z volkmar $
 
 
 
