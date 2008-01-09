@@ -31,7 +31,7 @@ function SPM=spm_get_vc(SPM)
 % This code is part of SPM5, which is
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% $Id: spm_get_vc.m 658 2006-10-19 12:28:44Z volkmar $
+% $Id: spm_get_vc.m 1075 2008-01-09 15:02:21Z volkmar $
 
 Iin = SPM.xVi.I;
 [nscan nfactor] = size(Iin);
@@ -100,17 +100,19 @@ for f=1:nfactor
     end;
 end;
 
-% third, sort out rows/columns for real design
+% third, sort out rows/columns for real design & remove all-zero variance
+% components
 [unused ind] = ismember(Iin,Igen,'rows');
+az = false(size(Vi));
 
 for cVi = 1:numel(Vi)
     Vi{cVi} = Vi{cVi}(ind,ind);
+    az(cVi) = full(all(Vi{cVi}(:) == 0));
 end;
+Vi = Vi(~az);
 
-% last, remove dupl & all-zero variance components
-dupl = zeros(size(Vi));
+dupl = false(size(Vi));
 for cVi = 1:numel(Vi)
-    dupl(cVi) = dupl(cVi)||full(all(Vi{cVi}(:) == 0));
     if ~dupl(cVi)
         for cVi1 = (cVi+1):numel(Vi)
             dupl(cVi1) = dupl(cVi1)||full(all(Vi{cVi}(:) == Vi{cVi1}(:)));
