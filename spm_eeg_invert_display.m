@@ -3,23 +3,26 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % FORMAT spm_eeg_invert_display(D,PST,Ndip)
 % FORMAT spm_eeg_invert_display(D,XYZ,Ndip)
 % D    - 3D structure (ReML estimation of response (J) )
-% PST  - perstimulus time (ms) - defaults to the PST of max abs(J)
+% PST  - peristimulus time (ms) - defaults to the PST of max abs(J)
 %      - [Start Stop] (ms)     - invokes a movie of CSD
 % XYZ  - dipole location of interest
 %
 % Ndip - number of dipole to display (default 512)
 %__________________________________________________________________________
-
-
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_eeg_invert_display.m 1076 2008-01-10 19:54:37Z karl $
+ 
 % Number of dipoles to display
 %==========================================================================
 try, PST;  catch, PST  = [];  end
 try, Ndip, catch, Ndip = 512; end
-
+ 
 % get condition
 %--------------------------------------------------------------------------
 try, con = D.con;  catch, con = 1;  end
-
+ 
 % D - SPM data structure
 %==========================================================================
 model = D.inv{D.val};
@@ -30,7 +33,7 @@ catch
     warndlg('please invert model')
     return
 end
-
+ 
 % get solution and spatiotemporal basis
 %--------------------------------------------------------------------------
 J      = model.inverse.J;
@@ -41,29 +44,29 @@ pst    = model.inverse.pst;
 R2     = model.inverse.R2;
 F      = model.inverse.F;
 Ndip   = min(Ndip,length(Is));
-
+ 
 try
     VE = model.inverse.VE;
 catch
     VE =1 ;
 end
-
+ 
 % - project J onto pst
 %--------------------------------------------------------------------------
 J      = J{con}*T';
-
+ 
 % display
 %==========================================================================
 Fgraph = spm_figure('GetWin','Graphics');
 figure(Fgraph);clf
 vert   = model.mesh.tess_mni.vert;
-
+ 
 % movie
 %--------------------------------------------------------------------------
 if length(PST) == 2
     
     
-    % get signficant voxels
+    % get significant voxels
     %----------------------------------------------------------------------
     Nb     = 170;
     [i j1] = min(abs(pst - PST(1)));
@@ -95,7 +98,7 @@ if length(PST) == 2
     end
     return
 end
-
+ 
 % maximum response at XYZ
 %--------------------------------------------------------------------------
 if length(PST) == 3
@@ -121,7 +124,7 @@ Js    = J(:,jt);                     % over sources
 PST   = fix(pst(jt));
 XYZ   = fix(vert(Is(js),:));
 Jmax  = abs(sparse(Is,1,Js,Nd,1));
-
+ 
 % plot responses over time
 %==========================================================================
 subplot(2,1,1)
@@ -157,8 +160,8 @@ title({sprintf('estimated response - condition %d',con), ...
 xlabel('time  ms')
 axis square
 hold off
-
-
+ 
+ 
 % RMS responses over space
 %==========================================================================
 subplot(2,1,2)
@@ -166,7 +169,7 @@ subplot(2,1,2)
 i      = i(1:Ndip);
 spm_mip(Jmax(Is(i)),vert(Is(i),:)',6);
 axis image
-
+ 
 % title
 %--------------------------------------------------------------------------
 try
@@ -183,4 +186,3 @@ catch
            sprintf('log-evidence = %.1f',full(F))})
 end
 drawnow
-

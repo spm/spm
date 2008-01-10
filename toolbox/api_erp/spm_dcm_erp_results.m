@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_dcm_erp_results.m 1076 2008-01-10 19:54:37Z karl $
 
 
 % get figure handle
@@ -151,6 +151,7 @@ case{lower('ERPs (sources)')}
     %----------------------------------------------------------------------
     mx = max(max(cat(2, DCM.K{:})));
     mi = min(min(cat(2, DCM.K{:})));
+    col = {'b','r','g','m','y','c'};
     
     for i = 1:ns
         str   = {};
@@ -159,12 +160,12 @@ case{lower('ERPs (sources)')}
             for k = 1:nt
                 if j == np
                     plot(t, DCM.K{k}(:,i + ns*(j - 1)), ...
-                        'Color',[1 1 1] - k/nt, ...
-                        'LineWidth',1);
+                        'Color',col{k}, ...
+                        'LineWidth',2);
                 else
                     plot(t, DCM.K{k}(:,i + ns*(j - 1)), ':', ...
-                        'Color',[1 1 1] - k/nt, ...
-                        'LineWidth',1);
+                        'Color',col{k}, ...
+                        'LineWidth',2);
                 end
                 str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
             end
@@ -358,6 +359,7 @@ case{lower('Response')}
     % plot data
     % ---------------------------------------------------------------------
     try
+        A     = [];
         for i = 1:nt
             subplot(nt,2,2*i - 1)
             plot(t,DCM.Hc{i} + DCM.Rc{i})
@@ -367,14 +369,25 @@ case{lower('Response')}
             catch
                 title(sprintf('Observed (adjusted) %i',i))
             end
-            axis square, grid on, A = axis;
+            A(end + 1,:) = axis;
 
             subplot(nt,2,2*i - 0)
             plot(t,DCM.Hc{i})
             xlabel('time (ms)')
             title('Predicted')
-            axis(A); axis square, grid on
+            A(end + 1,:) = axis;
         end
+        a(1)  = min(A(:,1));
+        a(2)  = max(A(:,2));
+        a(3)  = min(A(:,3));
+        a(4)  = max(A(:,4));
+        for i = 1:nt
+            subplot(nt,2,2*i - 1)
+            axis(a); axis square, grid on
+            subplot(nt,2,2*i - 0)
+            axis(a); axis square, grid on
+        end
+        
     end
     
     

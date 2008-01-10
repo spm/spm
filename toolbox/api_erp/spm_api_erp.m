@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1055 2007-12-28 19:52:16Z karl $
+% $Id: spm_api_erp.m 1076 2008-01-10 19:54:37Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -109,6 +109,7 @@ try, set(handles.Rft,'String', num2str(DCM.options.Rft));            end
 try, set(handles.Spatial_type,'Value', DCM.options.type);            end
 try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);          end
 try, set(handles.h,           'Value', DCM.options.h);               end
+try, set(handles.han,         'Value', DCM.options.han);             end
 try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
 try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
@@ -223,9 +224,10 @@ handles.DCM.options.Rft      = str2num(get(handles.Rft,   'String'));
 handles.DCM.options.onset    = str2num(get(handles.onset, 'String'));
 handles.DCM.options.Nmodes   = get(handles.Nmodes,        'Value');
 handles.DCM.options.h        = get(handles.h,             'Value');
+handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.type     = get(handles.Spatial_type,  'Value');
-handles.DCM.options.lock     = get(handles.lock,  'Value');
+handles.DCM.options.lock     = get(handles.lock,          'Value');
 
 
 % save model
@@ -895,13 +897,5 @@ handles.DCM = spm_dcm_ind_data(handles.DCM);
 spm_dcm_ind_results(handles.DCM,'Wavelet');
 guidata(hObject,handles);
 
-
-% --- Executes on button press in lock.
-function lock_Callback(hObject, eventdata, handles)
-% hObject    handle to lock (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of lock
 
 

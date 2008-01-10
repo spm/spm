@@ -8,7 +8,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Last Modified by GUIDE v2.5 01-Feb-2007 20:16:13
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_visu3D_api.m 1076 2008-01-10 19:54:37Z karl $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -244,7 +244,8 @@ yp       = Cpos(2,:)';
 x        = linspace(min(xp),max(xp),64);
 y        = linspace(min(yp),max(yp),64);
 [xm,ym]  = meshgrid(x,y);
-clear Cnames Rxy Cpos
+handles.sens_coord = [xp yp];
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % INITIAL SENSOR LEVEL DISPLAY
@@ -253,12 +254,12 @@ figure(handles.fig)
 axes(handles.sensors_axes);
 cla; axis off
 
-disp     = full(handles.sens_data(:,1));
+ic       = 1:length(handles.sens_coord);
+disp     = full(handles.sens_data(ic,1));
 imagesc(x,y,griddata(xp,yp,disp,xm,ym));
 axis image xy off
 handles.sens_coord_x   = x;
 handles.sens_coord_y   = y;
-handles.sens_coord     = [xp yp];
 handles.sens_coord2D_X = xm;
 handles.sens_coord2D_Y = ym;
 hold on
@@ -270,7 +271,7 @@ hold off
 % INITIAL SENSOR LEVEL DISPLAY - PREDICTED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 axes(handles.pred_axes); cla;
-disp      = full(handles.pred_data(:,1));
+disp      = full(handles.pred_data(ic,1));
 imagesc(x,y,griddata(xp,yp,disp,xm,ym));
 axis image xy off
 drawnow
@@ -353,6 +354,8 @@ Set_colormap(hObject, [], handles);
 function UpDate_Display_SENS(hObject,handles)
 TypOfDisp = get(handles.sens_display,'Value');
 ActToDisp = get(handles.Activity,'Value');
+ic        = 1:length(handles.sens_coord);
+
 
 % topography
 %--------------------------------------------------------------------------
@@ -363,8 +366,8 @@ if TypOfDisp == 1
     if ActToDisp == 1
 
         TS = fix(get(handles.slider_time,'Value'));
-        sens_disp = handles.sens_data(:,TS);
-        pred_disp = handles.pred_data(:,TS);
+        sens_disp = handles.sens_data(ic,TS);
+        pred_disp = handles.pred_data(ic,TS);
         
     % contrast
     %----------------------------------------------------------------------

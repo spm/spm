@@ -5,15 +5,15 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % ERP    - 'ERP' or 'Induced' for evoked or induced response 
 % requires
 %
-%    DCM.xY.Dfile
-%    DCM.options.trials
-%    DCM.options.Tdcm
-%    DCM.options.D
+%    DCM.xY.Dfile        - data file
+%    DCM.options.trials  - trial codes
+%    DCM.options.Tdcm    - Peri-stimulus time window
+%    DCM.options.D       - Down-sampling
+%    DCM.options.han     - hanning
 %    
-%
 % sets
 %    DCM.xY.modality - 'MEG' or 'EEG'
-%    DCM.xY.Time     - Time [ms] of downsampled data
+%    DCM.xY.Time     - Time [ms] of down-sampled data
 %    DCM.xY.dt       - sampling in seconds
 %    DCM.xY.y        - concatenated response
 %    DCM.xY.It       - Indices of time bins
@@ -25,8 +25,8 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1040 2007-12-21 20:28:30Z karl $
-
+% $Id: spm_dcm_erp_data.m 1076 2008-01-10 19:54:37Z karl $
+ 
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
 try
@@ -35,11 +35,11 @@ catch
     errordlg('Please specify data and trials');
     error('')
 end
-
+ 
 % order of drift terms
 %--------------------------------------------------------------------------
 try h; catch h = 0; end
-
+ 
 % load D
 %--------------------------------------------------------------------------
 try
@@ -61,9 +61,9 @@ catch
         end
     end
 end
-
-
-% indices of EEG channel (excluding bad channels) and perstimulus times
+ 
+ 
+% indices of EEG channel (excluding bad channels) and peristimulus times
 %--------------------------------------------------------------------------
 Ic              = setdiff(D.channels.eeg, D.channels.Bad);
 Nc              = length(Ic);
@@ -72,7 +72,7 @@ DCM.xY.Ic       = Ic;
 DCM.xY.Time     = 1000*[-D.events.start:D.events.stop]/D.Radc; % PST (ms)
 DCM.xY.dt       = 1/D.Radc;
 DCM.xY.xy       = {};
-
+ 
 % options
 %--------------------------------------------------------------------------
 try
@@ -80,6 +80,11 @@ try
 catch
     errordlg('Please specify down sampling');
     error('')
+end
+try
+    han  = DCM.options.han;
+catch
+    han  = 0;
 end
 try
     trial = DCM.options.trials;
@@ -96,22 +101,22 @@ try
     [i, T1] = min(abs(DCM.xY.Time - T1));
     [i, T2] = min(abs(DCM.xY.Time - T2));
     
-    % Time [ms] of downsampled data
+    % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
     It          = [T1:DT:T2]';
     Ns          = length(It);                % number of samples
-    DCM.xY.Time = DCM.xY.Time(It);           % Down-sampled pst
+    DCM.xY.Time = DCM.xY.Time(It);           % Down-sampled PST
     DCM.xY.dt   = DT/D.Radc;                 % sampling in seconds
     DCM.xY.It   = It;                        % Indices of time bins
-
+ 
 catch
     errordlg('Please specify time window');
     error('')
 end
-
+ 
 % get trial averages - ERP
 %--------------------------------------------------------------------------
-
+ 
 for i = 1:length(trial);
     
     % trial indices
@@ -122,7 +127,7 @@ for i = 1:length(trial);
         c = find(D.events.code == D.events.types(trial(i)));
     end
     Nt    = length(c);
-
+ 
     % ERP
     %----------------------------------------------------------------------
     Y     = zeros(Ns,Nc);
@@ -131,12 +136,12 @@ for i = 1:length(trial);
     end
     DCM.xY.xy{i} = Y/Nt;
 end
-
+ 
 % condition units of measurement
 %--------------------------------------------------------------------------
 DCM.xY.xy = spm_cond_units(DCM.xY.xy);
-
-
+ 
+ 
 % confounds - DCT:
 %--------------------------------------------------------------------------
 if h == 0
@@ -145,17 +150,19 @@ else
     X0 = spm_dctmtx(Ns,h);
 end
 R      = speye(Ns) - X0*X0';
-
-% hanning (disabled)
+ 
+% hanning
 %--------------------------------------------------------------------------
-% R    = diag(hanning(Ns))*R;
-
-% and hanning
+if han
+    R  = R*diag(hanning(Ns))*R;
+end
+ 
+% adjust data
 %--------------------------------------------------------------------------
 for i = 1:length(DCM.xY.xy);
   DCM.xY.xy{i} = R*DCM.xY.xy{i};
 end
-
+ 
 % concatenate response and return (unless induced responses are required)
 %--------------------------------------------------------------------------
 DCM.xY.y    = spm_cat(DCM.xY.xy(:));

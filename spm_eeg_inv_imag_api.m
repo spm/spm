@@ -3,11 +3,11 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    FIG = SPM_EEG_INV_IMAG_API launch spm_eeg_inv_imag_api GUI.
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 
-% Last Modified by GUIDE v2.5 01-Oct-2007 18:12:59
+% Last Modified by GUIDE v2.5 09-Jan-2008 16:12:40
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 933 2007-10-02 19:04:49Z karl $
+% $Id: spm_eeg_inv_imag_api.m 1076 2008-01-10 19:54:37Z karl $
 
 
 spm_defaults
@@ -234,6 +234,9 @@ function Reset(hObject, eventdata, handles)
 
 % Check to see if a new analysis is required
 %--------------------------------------------------------------------------
+try
+    set(handles.DataFile,'String',handles.D.fname);
+end
 if ~isfield(handles.D,'inv')
     new_Callback(hObject, eventdata, handles)
     return
@@ -462,5 +465,11 @@ edit spm_eeg_inv_help
 function group_Callback(hObject, eventdata, handles)
 spm_eeg_inv_group
 
+
+% --- Executes on button press in fusion.
+%--------------------------------------------------------------------------
+function fusion_Callback(hObject, eventdata, handles)
+handles.D = spm_eeg_invert_fuse_ui;
+Reset(hObject, eventdata, handles)
 
 

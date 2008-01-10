@@ -22,14 +22,17 @@ end
 % defaults
 %--------------------------------------------------------------------------
 try, woi  = model.contrast.woi;  catch, woi  = [80 120]; end
-try, foi  = model.contrast.fboi; catch, foi  = 0;        end
+try, foi  = model.contrast.fboi; catch, foi  = [];        end
 try, type = model.contrast.type; catch, type = 'evoked'; end
 
 
 % Check contrast woi is within inversion woi
 %--------------------------------------------------------------------------
 if woi(1) < D.inv{D.val}.inverse.woi(1) | woi(2) > D.inv{D.val}.inverse.woi(2)
-    error(sprintf('Contrast time-window, %s, must be within inversion time-window, %s',mat2str(woi),mat2str(D.inv{D.val}.inverse.woi)))
+    error(sprintf('Contrast, %s, must be within inversion time-window, %s',mat2str(woi),mat2str(D.inv{D.val}.inverse.woi)))
+end
+if ~any(foi)
+    foi = [];
 end
 
 fprintf('\ncomputing contrast - please wait\n')
@@ -59,18 +62,15 @@ end
 
 % get [Gaussian] time window
 %--------------------------------------------------------------------------
-dt   = (D.Radc/1000);
-toi  = round(woi*dt) + D.events.start + 1;
-toi  = toi - It(1) + 1;
-fwhm = max(diff(toi),8*dt);
-t    = exp(-4*log(2)*([1:Nb] - mean(toi)).^2/(fwhm^2));
+fwhm = max(diff(woi),8);
+t    = exp(-4*log(2)*(pst(:) - mean(woi)).^2/(fwhm^2));
 t    = t/sum(t);
 
 
 % get frequency space and put PST subspace into contrast (W -> T*T'*W)
 %--------------------------------------------------------------------------
-if foi
-    wt = 2*pi*[1:Nb]'/D.Radc;
+if length(foi)
+    wt = 2*pi*pst(:)/1000;
     W  = [];
     for f = foi(1):foi(end)
         W = [W sin(f*wt) cos(f*wt)];

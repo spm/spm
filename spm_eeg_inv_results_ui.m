@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_results_ui(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_results_ui.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_results_ui.m 1076 2008-01-10 19:54:37Z karl $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -31,10 +31,14 @@ D.inv{val}.contrast.woi = round([min(woi) max(woi)]);
 fboi  = spm_input('Frequency [band] of interest (Hz)','+1','r',0);
 D.inv{val}.contrast.fboi = round([min(fboi) max(fboi)]);
 
-% induced or evoked?
+% induced or evoked? (not for fusion)
 %--------------------------------------------------------------------------
-str   = {'evoked','induced'};
-type  = spm_input('Power of the energy or mean energy','+1','b',str,[],1);
+if isnumeric(D.inv{val}.inverse.Ic)
+    str  = {'evoked','induced'};
+    type = spm_input('Power of the energy or mean energy','+1','b',str,[],1);
+else
+    type = 'evoked';
+end
 D.inv{val}.contrast.type = type;
 
 % evaluate contrast
