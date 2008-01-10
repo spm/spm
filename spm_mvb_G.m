@@ -1,11 +1,10 @@
-function model = spm_mvb_G(X,Y,X0,U,G,V)
+function model = spm_mvb_G(X,L,X0,G,V)
 % Multivariate Bayesian inversion of a linear model
-% FORMAT model = spm_mvb_G(X,Y,X0,U,G,V);
+% FORMAT model = spm_mvb_G(X,L,X0,G,V);
 % X      - contrast or target vector
-% Y      - data feature matrix
+% L      - pattern matrix (n x m)
 % X0     - confounds
-% U      - patterns (n x m)
-% G      - pattern subsets (in columns of G) (n x m)
+% G      - pattern subsets (in columns of G) (m x h)
 % V      - cell array of observation noise covariance components
 %
 % returns model:
@@ -17,11 +16,14 @@ function model = spm_mvb_G(X,Y,X0,U,G,V)
 %               Cp: prior covariance (pattern space)
 %__________________________________________________________________________
 %
-% model: X = Y*P + X0*Q + R
-%        P = U*E;           
+% model: X = L*P + X0*Q + R
+%        P = E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
 %__________________________________________________________________________
+% Copyright (C) 2006 Wellcome Trust Centre for Neuroimaging
  
+% Karl Friston
+% $Id:$
  
 % defaults
 %--------------------------------------------------------------------------
@@ -29,13 +31,13 @@ Nx    = size(X,1);
 Nk    = size(G,1);
 Np    = size(G,2);
 if isempty(X0), X0 = zeros(Nx,1); end
-if nargin < 6,  V  = speye(Nx);   end
+try, V; catch,  V  = speye(Nx);   end
  
 % null space of confounds
 %--------------------------------------------------------------------------
 X0    = full(X0);
 R     = orth(speye(size(X0,1)) - X0*pinv(X0));
-Y     = R'*Y;
+L     = R'*L;
 X     = R'*X;
 Nx    = size(X,1);
  
@@ -56,7 +58,6 @@ end
  
 % assemble empirical priors
 %==========================================================================
-L     = Y*U;
 Qp    = {};
 LQpL  = {};
 for i = 1:Np
@@ -65,12 +66,12 @@ for i = 1:Np
     LQpL{i} = L*Qp{i}*L';
 end
  
-% Inverse solution
+% inverse solution
 %==========================================================================
  
 % ReML
 %--------------------------------------------------------------------------
-if size(U,2)
+if size(L,2)
     Q  = {Qe{:} LQpL{:}};
 else
     Q  = Qe;
@@ -78,7 +79,7 @@ end
 [Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2));
  
  
-% Covariances: source space
+% prior covariance: source space
 %--------------------------------------------------------------------------
 Cp    = sparse(Nk,Nk);
 hp    = h([1:Np] + Ne);

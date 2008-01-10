@@ -24,6 +24,10 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %        P = U*E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
 %__________________________________________________________________________
+% Copyright (C) 2006 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id:$
  
 % defaults
 %--------------------------------------------------------------------------
@@ -35,7 +39,8 @@ try, sG;         catch, sG = 1/2;       end
 %--------------------------------------------------------------------------
 ns     = size(Y,1);                 % number of samples
 nv     = size(Y,2);                 % number of voxels
-nk     = size(U,2);                 % number of parameters
+np     = size(U,2);                 % number of patterns or parameters
+nh     = length(V);                 % number of error components
  
 % confounds
 %--------------------------------------------------------------------------
@@ -46,18 +51,19 @@ if ~length(V);  V  = speye(ns,ns); end
  
 % null model
 %--------------------------------------------------------------------------
-model  = spm_mvb_G(X,Y,X0,sparse(nv,0),[],V);
-if ~nk, return, end
+model  = spm_mvb_G(X,zeros(ns,0),X0,[],V);
+if ~np, return, end
  
 % Initialise G and greedy search
 %==========================================================================
 F  = model.F;
-G  = ones(nk,1);
+L  = Y*U;
+G  = ones(np,1);
 for  i = 1:nG
  
     % invert
     %----------------------------------------------------------------------
-    M  = spm_mvb_G(X,Y,X0,U,G,V);
+    M  = spm_mvb_G(X,L,X0,G,V);
     
     % record conditional estimates (and terminate automatically if aG)
     %----------------------------------------------------------------------
@@ -67,16 +73,23 @@ for  i = 1:nG
         break
     end
     
-    % record free energy
+    % record free-energy
     %----------------------------------------------------------------------
-    F(i + 1)     = M.F
+    F(i + 1)     = M.F;
     
+    disp('log evidence & hyperparameters:')
+    disp('       '),disp(F),disp(log(M.h'))
+    
+    % eliminate redundant components
+    %----------------------------------------------------------------------
+    j            = find(M.h((nh + 1):(end - 1)) < exp(-16));
+    G(:,j)       = [];
+
     % create new spatial support
     %----------------------------------------------------------------------
     g            = find(G(:,end));
     ng           = ceil(length(g)*sG);
-    qE           = spm_en(M.qE(g,:));
-    [q j]        = sort(-sum(qE.*2,2));
+    [q j]        = sort(-sum(M.qE(g,:).^2,2));
     q            = g(j(1:ng));
     G(q,end + 1) = 1;
     
@@ -90,10 +103,10 @@ end
 %==========================================================================
 model.F  = F;
 model.U  = U;
-
+ 
 % remove some patterns if there are too many
 %--------------------------------------------------------------------------
-qE       = sum(abs(model.qE),2);
+qE       = sum(model.qE.^2,2);
 [i j]    = sort(-qE);
 try
     i    = j(1:2^11);
@@ -104,16 +117,19 @@ U        = model.U(:,i);
 Cp       = model.Cp(i,i);
 MAP      = U*model.MAP(i,:);
 qE       = U*model.qE(i,:);
-
-% conditional covariance: qC  = Cp - Cp*L'*iC*L*Cp;
+ 
+% remove confounds from L = Y*U
 %--------------------------------------------------------------------------
-X0       = full(X0);
-R        = orth(speye(size(X0,1)) - X0*pinv(X0));
-L        = R'*Y*U;
-LCp      = L*Cp;
-qC       = sum((U*Cp).*U,2) - sum((U*LCp').*MAP,2);
+try
+    X0   = spm_orth(X0,1);
+    L    = L - X0*X0'*L;
+end
+ 
+% conditional covariance in voxel space: qC  = U*( Cp - Cp*L'*iC*L*Cp )*U';
+%--------------------------------------------------------------------------
+UCp      = U*Cp;
+qC       = sum((UCp).*U,2) - sum((UCp*L').*MAP,2);
+ 
 model.M  = MAP;
-model.qE = qE;                                     % conditional expecation
+model.qE = qE;                                     % conditional expectation
 model.qC = max(qC,exp(-16));                       % conditional variance
-
-
