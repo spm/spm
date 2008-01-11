@@ -61,7 +61,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 1020 2007-12-06 20:20:31Z john $
+% $Id: spm_jobman.m 1086 2008-01-11 15:11:20Z john $
 
 
 if nargin==0
@@ -1514,7 +1514,7 @@ try
     run_struct1(c,gui);
 catch
     l = lasterror;
-    fprintf('\nError running job: %si\n', l.message);
+    fprintf('\nError running job: %s\n', l.message);
     if isfield(l,'stack'), % Does not always exist
         for k = 1:numel(l.stack),
             % Don't blame jobman if some other code crashes

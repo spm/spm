@@ -15,7 +15,7 @@ function spm_dartel_import(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_import.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_dartel_import.m 1086 2008-01-11 15:11:20Z john $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
@@ -80,6 +80,7 @@ for z=1:length(x3),
 
     % Bias corrected image
     f          = spm_sample_vol(p.VF,x1,x2,o*x3(z),0);
+    msk        = (f==0) | ~isfinite(f);
     cr         = exp(transf(bB1,bB2,bB3(z,:),bsol)).*f;
 
     if iopt,
@@ -110,6 +111,7 @@ for z=1:length(x3),
     for k1=1:3,
         tmp            = q(:,:,k1);
         tmp            = tmp./sq;
+        tmp(msk)       = 0;
         dat{k1}(:,:,z) = uint8(round(255 * tmp));
     end;
     spm_progress_bar('set',z);

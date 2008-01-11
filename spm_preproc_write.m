@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_preproc_write.m 1086 2008-01-11 15:11:20Z john $
 
 
 if nargin==1,
@@ -96,7 +96,7 @@ for z=1:length(x3),
     end;
 
     if any(sopts(:)),
-        msk        = find(f<p.flags.thresh);
+        msk        = (f==0) | ~isfinite(f);
         [t1,t2,t3] = defs(T,z,B1,B2,B3,x1,x2,x3,M);
         q          = zeros([d(1:2) Kb]);
         bt         = zeros([d(1:2) Kb]);
