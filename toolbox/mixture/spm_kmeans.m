@@ -44,6 +44,12 @@ switch lower(method),
         for m=1:k,
             means(m,:)=y(rp(m),:);
         end
+    case 'fixed-points',
+        % Pick first k data points. Use as class means
+        rp=[1:N];
+        for m=1:k,
+            means(m,:)=y(rp(m),:);
+        end
     case 'random',
         mu=mean(y);
         C=cov(y);

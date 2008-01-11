@@ -26,9 +26,9 @@ y=X*beta + noise;
 
 % Fit models
 m=1;
-rglm1 = spm_rglm (y,X,m,1);
+rglm1 = spm_rglm (y,X,m);
 m=2;
-rglm2 = spm_rglm (y,X,m,1);
+rglm2 = spm_rglm (y,X,m);
 w_ml=pinv(X)*y;
 
 % Plot data
