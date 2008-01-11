@@ -9,7 +9,7 @@ function spm_eeg_inv_group(S);
 % under the simple assumption that the [empirical prior] variance on each
 % source can be factorised into source-specific and subject-specific terms.
 % These covariance components are estimated using ReML (a form of Gaussian
-% process modelling to give empirical priors on sources.  Source-specific
+% process modelling) to give empirical priors on sources.  Source-specific
 % covariance parameters are estimated first using the sample covariance
 % matrix in sensor space over subjects and trials using multiple sparse
 % priors (and,  by default, a greedy search).  The subject-specific terms
@@ -22,7 +22,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1052 2007-12-28 19:49:09Z karl $
+% $Id: spm_eeg_inv_group.m 1082 2008-01-11 12:50:15Z karl $
 
 
 % check if to proceed
@@ -53,11 +53,11 @@ for i = 1:Ns
     D{i}.inv{val}.method = 'Imaging';
 end
 
-% Check for consistent Gain matrices
+% Check for existing forward models and consistent Gain matrices
 %--------------------------------------------------------------------------
-try
-    for i = 1:Ns
-        cd(D{i}.path)
+for i = 1:Ns
+    cd(D{i}.path)
+    try
         gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
         try
             G     = load(gainmat);
@@ -68,17 +68,16 @@ try
         end
         name   = fieldnames(G);
         L      = sparse(getfield(G, name{1}));
-        Nd(i)  = size(L,2);                         % number of dipoles
+        Nd(i)  = size(L,2);                             % number of dipoles
+    catch
+        Nd(i)  = 0;
     end
-
-catch
-    Nd = zeros(1,Ns);
 end
 
 
 % use template head model where necessary
-%======================================================================
-NS    = find(Nd ~= 7204);
+%==========================================================================
+NS    = find(Nd ~= 7204);               % subjects to compute forward model
 for i = NS
 
     cd(D{i}.path)
@@ -188,6 +187,10 @@ end
 inverse.trials = trials;                      % Trials or conditions
 inverse.type   = 'GS';                        % Priors; GS, MSP, LOR or IID
 
+% Restrictions (not implemented)
+%--------------------------------------------------------------------------
+
+
 
 % specify time-frequency window contrast
 %==========================================================================
@@ -213,7 +216,7 @@ end
 
 % Register and compute a forward model
 %==========================================================================
-for i = 1:Ns
+for i = NS
 
     fprintf('Registering and computing forward model (subject: %i)\n',i)
 
@@ -236,10 +239,10 @@ if ~iscell(D), D = {D}; end
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
 if length(contrast)
-    for i = 1:Ns
 
-        % evaluate contrast and write image
-        %------------------------------------------------------------------
+    % evaluate contrast and write image
+    %----------------------------------------------------------------------
+    for i = 1:Ns
         D{i}.inv{val}.contrast = contrast;
         D{i} = spm_eeg_inv_results(D{i});
         D{i} = spm_eeg_inv_Mesh2Voxels(D{i});
@@ -251,9 +254,6 @@ end
 %==========================================================================
 S     = D;
 for i = 1:Ns
-
-    % save D
-    %----------------------------------------------------------------------
     D = S{i};
     if spm_matlab_version_chk('7.1') >= 0
         save(fullfile(D.path, D.fname), '-V6', 'D');
