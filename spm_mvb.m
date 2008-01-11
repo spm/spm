@@ -101,8 +101,6 @@ end
  
 % project pattern weights to feature (voxel) weights
 %==========================================================================
-model.F  = F;
-model.U  = U;
  
 % remove some patterns if there are too many
 %--------------------------------------------------------------------------
@@ -113,23 +111,23 @@ try
 catch
     i    = j;
 end
-U        = model.U(:,i);
+L        = L(:,i);
+U        = U(:,i);
 Cp       = model.Cp(i,i);
 MAP      = U*model.MAP(i,:);
 qE       = U*model.qE(i,:);
  
 % remove confounds from L = Y*U
 %--------------------------------------------------------------------------
-try
-    X0   = spm_orth(X0,1);
-    L    = L - X0*X0'*L;
-end
+L        = L - X0*pinv(full(X0))*L;
  
 % conditional covariance in voxel space: qC  = U*( Cp - Cp*L'*iC*L*Cp )*U';
 %--------------------------------------------------------------------------
 UCp      = U*Cp;
-qC       = sum((UCp).*U,2) - sum((UCp*L').*MAP,2);
- 
+qC       = sum(UCp.*U,2) - sum((UCp*L').*MAP,2);
+
+model.F  = F;
+model.U  = U;
 model.M  = MAP;
 model.qE = qE;                                     % conditional expectation
 model.qC = max(qC,exp(-16));                       % conditional variance
