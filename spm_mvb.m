@@ -27,7 +27,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2006 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id:$
+% $Id: spm_mvb.m 1087 2008-01-11 16:24:10Z guillaume $
  
 % defaults
 %--------------------------------------------------------------------------
