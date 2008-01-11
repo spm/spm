@@ -16,9 +16,11 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 1015 2007-11-29 18:27:35Z stefan $
+% $Id: spm_eeg_merge.m 1080 2008-01-11 11:08:51Z guillaume $
 
-% Changed to allow recoding of first file (though obviously makes some of loop redundant!)			Doris Eckstein
+% Changed to allow recoding of first file (though obviously makes some of
+% loop redundant!)			Doris Eckstein
+% Corrected checks for reject, repl and Bad fields         RH 8/1/08
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -101,15 +103,18 @@ for i = 1:Nfiles
         
     Dout.events.time = [Dout.events.time [Dtmp.events.time] + Dtmp.Nsamples];
         
-	if isfield(Dout.events, 'reject')
-		Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
+    if isfield(Dtmp.events, 'reject')
+	Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
     end
     
-    if isfield(Dout.events, 'repl')
+    if isfield(Dtmp.events, 'repl')
         Dout.events.repl = [Dout.events.repl Dtmp.events.repl];
     end
 
-    Dout.channels.Bad = unique([Dout.channels.Bad Dtmp.channels.Bad]);
+    if isfield(Dtmp.channels, 'Bad')
+        Dout.channels.Bad = unique([Dout.channels.Bad Dtmp.channels.Bad]);
+    end
+    
 end
 
 Dout.events.types = unique(Dout.events.code);

@@ -64,6 +64,13 @@ catch
         '+1', 'b', 'Interpolate|Mask out', [1,0]);
 end
 
+try
+    trialtypes = S.trialtypes;
+catch
+    S.trialtypes = [];
+end
+
+
 spm('Pointer', 'Watch'); drawnow
 
 % Load data set into structures
@@ -86,7 +93,11 @@ for k = 1:Nsub
     
     d = (D{k}.data(Cind, :,:));
     
-    for i = 1 : D{k}.events.Ntypes % trial types
+    if isempty(S.trialtypes)
+       trialtypes = [1:D{k}.events.Ntypes];
+    end
+    
+    for i = trialtypes
         
         Itrials = find(D{k}.events.code == D{k}.events.types(i) & ~D{k}.events.reject);
         

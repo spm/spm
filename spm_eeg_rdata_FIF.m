@@ -2,9 +2,9 @@ function D = spm_eeg_rdata_FIF(S)
 % function to read in NeuroMag *.FIF data to SPM5
 % FORMAT Do = spm_eeg_rdata_FIF(S)
 % 
-% S		    - struct (optional)
+% S	    - struct (optional)
 % (optional) fields of S:
-% F			- continuous or averaged FIF file to read
+% Fdata     - continuous or averaged FIF file to read
 % path      - new path for output
 % Pout      - new filename for output
 % Fchannels - channel template file
@@ -15,6 +15,8 @@ function D = spm_eeg_rdata_FIF(S)
 % twin      - time window (ms) to read, relative to start of continuous
 %             data, or event of averaged data
 % trig_chan - trigger channel for continuous data
+% veogchan  - Number of VEOG channel
+% heogchan  - Number of HEOG channel
 %
 %
 % NOTES: 
@@ -31,6 +33,8 @@ function D = spm_eeg_rdata_FIF(S)
 % alternative S.path or S.Pout passed
 %
 % Rik Henson (5/06/07), with thanks to Danny Mitchell and Jason Taylor
+% RH Updated 20/11/07 to handle larger raw files
+% RH Updated 8/1/08 to handle skips in raw files
 
 try
     	Fdata = S.Fdata;
@@ -236,6 +240,74 @@ for i = D.channels.eeg
   end
 end
 
+%%%%%%%%%%%%%% Any EOG?
+
+B.eegfilt = find(B.chtypes==2 | B.chtypes==202);
+
+if ~isempty(B.eegfilt) 
+
+  B.eogfilt = [];
+  eegchan = strvcat(B.chans{B.eegfilt})
+  eegchnums = str2num(eegchan(:,4:end));
+  disp(sprintf('Found %d EEG channels',size(eegchan,1)))
+
+  try
+     veog = S.veogchan;
+  catch
+     veog = -1;
+  end
+  while ~ismember(veog,[0; eegchnums])
+    veog = spm_input('Which is VEOG? [0 for none]', '+1', 'r', 62, 1, [0; eegchnums]);
+  end
+  if veog
+   D.Nchannels = D.Nchannels + 1;
+   D.channels.scaled = [D.channels.scaled; 1];
+   D.channels.veog = D.Nchannels;
+   D.channels.name{D.channels.veog} = 'VEOG';
+   B.eogfilt = [B.eogfilt B.eegfilt(find(eegchnums==veog))];
+   index = [];
+   for j = 1:Csetup.Nchannels
+    if ~isempty(find(strcmpi('VEOG', Csetup.Cnames{j})))
+      index = [index j];
+    end
+   end
+   if isempty(index)
+    warning(sprintf('No VEOG channel found in channel template file'));
+   else
+    % take only the first found channel descriptor
+    D.channels.order(D.channels.veog) = index(1);
+   end
+  end
+
+  try
+     heog = S.heogchan;
+  catch
+     heog = -1;
+  end
+  while ~ismember(heog,[0; eegchnums])
+    heog = spm_input('Which is HEOG? [0 for none]', '+1', 'r', 61, 1, [0; eegchnums]);
+  end
+  if heog
+   D.Nchannels = D.Nchannels + 1;
+   D.channels.scaled = [D.channels.scaled; 1];
+   D.channels.heog = D.Nchannels;
+   D.channels.name{D.channels.heog} = 'HEOG';
+   B.eogfilt = [B.eogfilt; B.eegfilt(find(eegchnums==heog))];
+   index = [];
+   for j = 1:Csetup.Nchannels
+    if ~isempty(find(strcmpi('HEOG', Csetup.Cnames{j})))
+      index = [index j];
+    end
+   end
+   if isempty(index)
+    warning(sprintf('No HEOG channel found in channel template file'));
+   else
+    % take only the first found channel descriptor
+    D.channels.order(D.channels.heog) = index(1);
+   end
+  end
+end
+
 
 if rawflag == 0
 %-----------------------------------
@@ -298,19 +370,60 @@ if rawflag == 0
 
  d = d(reord,:,:);
 
- d = d.*repmat(D.channels.scaled,[1 size(d,2) size(d,3)]);
+ d = d*10^15;		% convert to fT units 
 
-try
+%%%%%%%%%%%%%% Prepare output file
+
+ try
     % option to provide different output file in S.Pout - djm 27/6/07
     [f1, f2, f3] = fileparts(S.Pout);
     D.fname = [f2 '.mat'];      
     D.fnamedat = [f2 '.dat']; 
     if ~isempty(f1); D.path = f1; end;
-catch
+ catch
     [dummy,stem,ext] = fileparts(Fdata);
     D.fname = strcat('me_',stem,'.mat');
     D.fnamedat = strcat('me_',stem,'.dat');
-end
+ end
+
+%%%%%%%%%%%%%% Add EOG data (if any)
+
+ if ~isempty(B.eogfilt)
+   for c = 1:length(conds)
+    d(D.Nchannels-[0:length(B.eogfilt)-1],:,c) = B.data{conds(c)}(B.eogfilt,swin(1):swin(2))*10^6;
+   end
+  % postmultiplier is to convert to uV
+ end
+
+ d = d.*repmat(D.channels.scaled,[1 size(d,2) size(d,3)]);
+
+%%%%%%%%%%%%%% Write average data to *.dat file
+
+ spm('Pointer', 'Watch'); drawnow;
+
+ D.scale = ones(D.Nchannels, 1, D.Nevents);
+ D.datatype  = 'float32';
+
+ fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
+
+ spm_progress_bar('Init', 100, 'Events written'); drawnow;
+ if length(D.Nevents) > 100, Ibar = floor(linspace(1, D.Nevents,100));
+ else, Ibar = [1:D.Nevents]; end
+
+ for e = 1:D.Nevents
+      for s = 1:D.Nsamples	
+	fwrite(fpd, d(:,s,e), 'float');
+      end
+
+      barh = find(Ibar==e);
+      if ~isempty(barh)
+           spm_progress_bar('Set', barh);
+           drawnow;
+      end
+ end
+
+ fclose(fpd);
+
 
 else
 %-----------------------------------
@@ -344,13 +457,19 @@ else
 %%%%%%%%%%%%%% Read events
 
   spm('Pointer', 'Watch'); drawnow;
-  [B.data, D.Radc] = rawchannels(Fdata,trig_chan);
+  [B.data, D.Radc] = rawchannels(Fdata,trig_chan,'noskips');
 
   D.Nsamples = size(B.data,2);
-% If assume trigger onset always positive...
-%  pos = find(B.data>0); trig = find(diff(pos)>1); D.events.time = pos(trig);
-  trig = find(abs(diff(B.data))>0)+1;
-  D.events.time = trig(1:2:end);	% exclude offsets (assumes duration >1 sample)
+
+% If assume trigger onset always positive deflection...
+% (will fail if risetime > 1 sample)
+  D.events.time = find(diff(B.data)>0)+1;
+
+% Below assumes: 1) at least first sample is 0; 2) 0's between triggers,
+% 3) triggers at least two samples
+%  trig = find(abs(diff(B.data))>0)+1;
+%  D.events.time = trig(1:2:end);	% exclude offsets (assumes duration >1 sample)
+
   disp(sprintf('%d triggers found...',length(D.events.time)))
   D.events.code = B.data(D.events.time);
   D.events.types = unique(D.events.code);
@@ -364,7 +483,6 @@ else
   D.Nsamples = size(B.data,2);
   D.events.time = 1;
   D.events.code = 1;
-  D.Nsamples = 0;	% because don't know length yet
  end
 
  spm('Pointer', 'Arrow'); drawnow;
@@ -374,58 +492,23 @@ else
 	twin = S.twin;
  catch
 	swin = [1 D.Nsamples];
-	twin = (swin-1)/D.Radc;
-	twin = spm_input('Sample window? (s)','+1','r',twin,2,twin)';
+	twin = round(1000*(swin-1)/D.Radc);
+	twin = spm_input('Sample window? (ms)','+1','r',twin,2,twin)';
  end
 
 % If want to prespecify all, without precise knowledge of length
  if twin(2) == Inf	
-	swin(1) = round(twin(1)*D.Radc)+1;
+	swin(1) = round(twin(1)*D.Radc/1000)+1;
 	swin(2) = D.Nsamples;
  else
-	swin = round(twin*D.Radc)+1;
+	swin = round(twin*D.Radc/1000)+1;
  end
  
  if length(twin)~=2 | twin(1) < 0 | swin(2) > D.Nsamples
 	error('sample outside range')
  end
 
-%%%%%%%%%%%%%% Read raw data
-
- spm('Pointer', 'Watch'); drawnow;
-
- spm_progress_bar('Init', 100, 'Samples read'); drawnow;
- Ibar = floor(linspace(1, swin(2), 100));
- status=1; lfi=0;
- 
- B.data=[];
- rawdata('any',Fdata);
- while status
-	[b,status] = rawdata('next');
-	B.data = [B.data b];
-	fi = find(Ibar-size(B.data,2) > 0);
-        if isempty(fi)
-	  status = 0;
-	elseif fi(1)>lfi
-	  lfi=fi(1);
-          spm_progress_bar('Set', lfi);
-          drawnow;
-        end
- end
- rawdata('close');
-
- spm_progress_bar('Clear');
-
- D.Nsamples = swin(2) - swin(1) + 1;
- disp(sprintf('%d samples read (%f seconds)',D.Nsamples,D.Nsamples/D.Radc))
-
-%%%%%%%%%%%%%% Reformat data
-
- d = B.data(B.chanfilt,swin(1):swin(2));
-
- d = d(reord,:);
-
- d = d.*repmat(D.channels.scaled,1,size(d,2));
+%%%%%%%%%%%%%% Prepare output file
 
  try
     % option to provide different output file in S.Pout - djm 27/6/07
@@ -438,116 +521,69 @@ else
     D.fname = strcat(stem,'.mat');
     D.fnamedat = strcat(stem,'.dat');
  end
+
+ fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
+
+%%%%%%%%%%%%%% Read and write raw data (in blocks)
+
+ spm('Pointer', 'Watch'); drawnow;
+
+ spm_progress_bar('Init', 100, 'Samples written'); drawnow;
+ Ibar = floor(linspace(1, swin(2), 100));
+ status='ok'; lfi=0;
  
-end
+ dl=0;
+ rawdata('any',Fdata);
+ [d,status] = rawdata('next');
+ while ~(strcmp(status,'eof') | strcmp(status,'error'))
+   if strcmp(status,'ok')
+    di = [1:size(d,2)]+dl;
+    dl = di(end);
+    di = find(di>=swin(1) & di<=swin(2));
+   
+    if ~isempty(di)	
+	d = d([B.chanfilt; B.eogfilt],di);
+        d(1:length(B.chanfilt),:) = d(reord,:)*10^15;
+        d(length(B.chanfilt)+[1:length(B.eogfilt)],:) = d(length(B.chanfilt)+[1:length(B.eogfilt)],:)*10^6;
+        d = d.*repmat(D.channels.scaled,1,size(d,2));
 
-d = d*10^15;
-D.units = 'fT';
-D.modality = 'MEG';
-
-
-%%%%%%%%%%%%%% Any EOG?
-% Hack: assumes any EEG channels are the two EOG channels!!!
-% Hack: if there are two EEG (EOG) channels, it assumes VEOG first!!
-
-B.eogfilt = find(B.chtypes==2 | B.chtypes==202);
-
-if ~isempty(B.eogfilt)
-
-  if length(B.eogfilt)~=2
-   error('Discovered other than 0 or 2 EEG channels???')
-  end
-
-  eogchan{1} = B.chans{B.eogfilt(1)};
-  eogchan{2} = B.chans{B.eogfilt(2)};
-
-  disp(sprintf('Found two EEG channels %s and %s',eogchan{1},eogchan{2}))
-
-  try
-     veog = S.veogchan;
-     if(veog~=1 & veog ~=2), error('Veog channel must be 1 or 2'); end
-  catch
-     veog = spm_input('Which one is VEOG?', '+1', sprintf('%s|%s',eogchan{1},eogchan{2}), [1 2]);
-  end
-
-  D.channels.veog = D.Nchannels + veog;
-  D.channels.name{D.channels.veog} = 'VEOG';
-  D.channels.heog = D.Nchannels + (3-veog);
-  D.channels.name{D.channels.heog} = 'HEOG';
-
-  if rawflag == 0
-   for c = 1:length(conds)
-    d(D.Nchannels+[1:2],:,c) = B.data{conds(c)}(B.eogfilt,swin(1):swin(2))*10^6;
-   end
-  % postmultiplier is to convert to uV
-  else
-    d(D.Nchannels+[1:2],:) = B.data(B.eogfilt,swin(1):swin(2))*10^6;
-  end
-
-  D.Nchannels = D.Nchannels+2;
-
-  for i = [D.channels.veog D.channels.heog]
-   index = [];
-   for j = 1:Csetup.Nchannels
-    if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
-      index = [index j];
-    end
-   end
-   if isempty(index)
-    warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
-   else
-    % take only the first found channel descriptor
-    D.channels.order(i) = index(1);
-   end
-  end
-end
-
-
-
-%%%%%%%%%%%%%% Write data
-
-spm('Pointer', 'Watch'); drawnow;
-
-D.scale = ones(D.Nchannels, 1, D.Nevents);
-D.datatype  = 'float32';
-
-fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
-
-if rawflag
-    spm_progress_bar('Init', 100, 'Samples written'); drawnow;
-    Ibar = floor(linspace(1, D.Nsamples, 100));
-
-    for s = 1:D.Nsamples	
-	fwrite(fpd, d(:,s), 'float');
-
-        barh = find(Ibar==s);
-        if ~isempty(barh)
-           spm_progress_bar('Set', barh);
-           drawnow;
+        for s = 1:length(di)
+	    fwrite(fpd, d(:,s), 'float');
         end
     end
 
-else
-    spm_progress_bar('Init', 100, 'Events written'); drawnow;
-    if length(D.Nevents) > 100, Ibar = floor(linspace(1, D.Nevents,100));
-    else, Ibar = [1:D.Nevents]; end
-
-    for e = 1:D.Nevents
-      for s = 1:D.Nsamples	
-	fwrite(fpd, d(:,s,e), 'float');
-      end
-
-      barh = find(Ibar==e);
-      if ~isempty(barh)
-           spm_progress_bar('Set', barh);
-           drawnow;
-      end
+    fi = find((Ibar-dl) > 0);
+    if isempty(fi)
+	  status = 0;
+    elseif fi(1)>lfi
+	  lfi=fi(1);
+          spm_progress_bar('Set', lfi);
+          drawnow;
     end
+   else
+    disp(sprintf('Encountered a skip at sample %d',dl))
+   end
+
+   [d,status] = rawdata('next');
+ end
+ rawdata('close');
+
+ fclose(fpd);
+
+ D.Nsamples = swin(2) - swin(1) + 1;
+ disp(sprintf('%d samples read (%f seconds)',D.Nsamples,D.Nsamples/D.Radc))
+
+ D.scale = ones(D.Nchannels, 1, D.Nevents);
+ D.datatype  = 'float32';
+
 end
 
-spm_progress_bar('Clear');
+%%%%%%%%%%%%%% save *.mat file (for both ave and raw)
 
-fclose(fpd);
+D.units = 'fT';
+D.modality = 'MEG';
+
+spm_progress_bar('Clear');
 
 if str2num(version('-release'))>=14 
     save(fullfile(D.path, D.fname), '-V6', 'D');
