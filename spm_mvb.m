@@ -27,7 +27,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2006 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 1087 2008-01-11 16:24:10Z guillaume $
+% $Id: spm_mvb.m 1102 2008-01-16 20:54:31Z christophe $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -130,4 +130,5 @@ model.F  = F;
 model.U  = U;
 model.M  = MAP;
 model.qE = qE;                                     % conditional expectation
+model.Cp = Cp;                                     % prior covariance
 model.qC = max(qC,exp(-16));                       % conditional variance
