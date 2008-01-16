@@ -14,7 +14,7 @@ function [Y,XYZ] = spm_read_vols(V,mask)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_read_vols.m 401 2006-01-12 12:10:17Z john $
+% $Id: spm_read_vols.m 1097 2008-01-16 17:49:01Z john $
 
 
 
@@ -23,12 +23,7 @@ function [Y,XYZ] = spm_read_vols(V,mask)
 if nargin<2, mask = 0; end
 if nargin<1, error('insufficient arguments'), end
 
-%-Image dimension, orientation and voxel size checks
-%-----------------------------------------------------------------------
-if length(V)>1 & any(any(diff(cat(1,V.dim),1,1),1))
-	error('images don''t all have the same dimensions'), end
-if any(any(any(diff(cat(3,V.mat),1,3),3)))
-	error('images don''t all have same orientation & voxel size'), end
+spm_check_orientations(V);
 
 %-Read in image data
 %-----------------------------------------------------------------------

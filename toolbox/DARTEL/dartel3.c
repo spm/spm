@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 964 2007-10-19 16:35:34Z john $ */
+/* $Id: dartel3.c 1097 2008-01-16 17:49:01Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -61,7 +61,7 @@ void dartel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs
             mexErrMsgTxt("Incompatible 2nd dimension.");
         if (mxGetDimensions(prhs[4])[2] != dm[2])
             mexErrMsgTxt("Incompatible 3rd dimension.");
-        jd = (float *)mxGetPr(prhs[2]);
+        jd = (float *)mxGetPr(prhs[4]);
     }
     if (mxGetNumberOfElements(prhs[3]) >9)
         mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, nsamps and code.");

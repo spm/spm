@@ -33,6 +33,8 @@ choice = inline(['struct(''type'',''choice'',''name'',name,'...
     'name','tag','values');
 %-----------------------------------------------------------------------
 
+addpath(fullfile(spm('dir'),'toolbox','HDW'));
+
 ref  = files('Reference Image','ref','image',1);
 ref.help = {'This is the reference image, which remains stationary.'};
 
