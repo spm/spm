@@ -118,7 +118,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 1099 2008-01-16 18:27:20Z john $
+% $Id: spm_uw_apply.m 1101 2008-01-16 20:22:32Z john $
 
 tiny = 5e-2;
 
@@ -242,8 +242,8 @@ if flags.mask || flags.mean,
          txyz(:,2) = txyz(:,2) + spm_get_image_def(ds(s).P(i),ds(s),def_array);
          tmp       = false(size(txyz,1),1);
          if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(1)+tiny); end
-         if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(2)+tiny); end
-         if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,1) > (ds(s).P(i).dim(3)+tiny); end
+         if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).P(i).dim(2)+tiny); end
+         if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).P(i).dim(3)+tiny); end
          sess_msk = sess_msk + real(tmp);
          spm_progress_bar('Set',tv);
          tv = tv+1;
@@ -259,8 +259,8 @@ if flags.mask || flags.mean,
          txyz = xyz * T';
          tmp  = false(size(txyz,1),1);
          if ~flags.wrap(1), tmp = tmp | txyz(:,1) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(1)+tiny); end
-         if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(2)+tiny); end
-         if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,1) > (ds(s).sfP.dim(3)+tiny); end
+         if ~flags.wrap(2), tmp = tmp | txyz(:,2) < (1-tiny) | txyz(:,2) > (ds(s).sfP.dim(2)+tiny); end
+         if ~flags.wrap(3), tmp = tmp | txyz(:,3) < (1-tiny) | txyz(:,3) > (ds(s).sfP.dim(3)+tiny); end
          msk = msk + real(tmp);
       end
       if isfield(ds(s),'sfield') && ~isempty(ds(s).sfield)
