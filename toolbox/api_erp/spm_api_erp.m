@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_api_erp.m 1105 2008-01-17 16:29:16Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -269,7 +269,7 @@ end
 % Assemble and display data
 %--------------------------------------------------------------------------
 handles     = reset_Callback(hObject, eventdata, handles);
-handles.DCM = spm_dcm_erp_data(handles.DCM,get(handles.h,'Value'));
+handles.DCM = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
 
 set(handles.design,'enable', 'on')
 set(handles.Uname, 'enable', 'on')
@@ -282,7 +282,7 @@ warndlg({'Your design matrix has been re-set'})
 function Y_Callback(hObject, eventdata, handles)
 handles  = reset_Callback(hObject, eventdata, handles);
 try
-    handles.DCM = spm_dcm_erp_data(handles.DCM,get(handles.h,'Value'));
+    handles.DCM = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
     spm_dcm_erp_results(handles.DCM,'Data');
     set(handles.dt, 'String',sprintf('bins: %.1fms',handles.DCM.xY.dt*1000))
     set(handles.dt, 'Visible','on')
@@ -438,7 +438,7 @@ set(handles.Slocation,'String',num2str(Slocation,'%4.0f'));
 %--------------------------------------------------------------------------
 function handles = data_ok_Callback(hObject, eventdata, handles)
 handles      = reset_Callback(hObject, eventdata, handles);
-handles.DCM  = spm_dcm_erp_data(handles.DCM,get(handles.h,'Value'));
+handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
 
 
 % enable next stage, disable data specification

@@ -25,7 +25,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_dcm_erp_data.m 1105 2008-01-17 16:29:16Z karl $
  
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -112,11 +112,10 @@ try
 catch
     errordlg('Please specify time window');
     error('')
-end
+end              
  
 % get trial averages - ERP
 %--------------------------------------------------------------------------
- 
 for i = 1:length(trial);
     
     % trial indices

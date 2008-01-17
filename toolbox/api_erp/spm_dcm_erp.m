@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_dcm_erp.m 1105 2008-01-17 16:29:16Z karl $
 
 % check options 
 %==========================================================================
@@ -47,7 +47,7 @@ try, lock  = DCM.options.lock;   catch, lock      = 0;         end
 
 
 
-% Data and spatial model
+% Data and spatial model (use h only for detrending data)
 %==========================================================================
 DCM    = spm_dcm_erp_data(DCM,h);
 DCM    = spm_dcm_erp_dipfit(DCM);
@@ -70,14 +70,9 @@ nu     = size(xU.X,2);                  % number of inputs
 %--------------------------------------------------------------------------
 nm     = max(nm,Nr);
 
-% confounds - DCT:
+% confounds - DCT: (force a parameter per channel = activity under x = 0)
 %--------------------------------------------------------------------------
-warning off
-if h == 0
-    X0 = sparse(Ns,1);
-else
-    X0 = spm_dctmtx(Ns,h);
-end
+X0     = spm_dctmtx(Ns,1);
 
 % confounds - T: an idempotent matrix spanning temporal subspace
 %--------------------------------------------------------------------------
