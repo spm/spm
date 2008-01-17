@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1105 2008-01-17 16:29:16Z karl $
+% $Id: spm_dcm_erp.m 1107 2008-01-17 18:49:56Z stefan $
 
 % check options 
 %==========================================================================
@@ -140,9 +140,25 @@ switch lower(model)
         M.x  =  spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_erp';
-        
-    % linear David et al model (linear in states) - fast version for SEPs
-    %======================================================================
+
+        % linear David et al model (linear in states), can employ symmetry
+        % priors
+        %======================================================================
+    case{'erpsymm'}
+
+        % prior moments on parameters
+        %--------------------------------------------------------------------------
+        [pE,gE,pC,gC] = spm_erpsymm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,length(M.ons),M.pC,M.gC);
+
+        % inital states and equations of motion
+        %--------------------------------------------------------------------------
+        M.x  =  spm_x_erp(pE);
+        M.f  = 'spm_fx_erp';
+        M.G  = 'spm_lx_erp';
+
+
+        % linear David et al model (linear in states) - fast version for SEPs
+        %======================================================================
     case{'sep'}
 
         % prior moments on parameters
@@ -187,20 +203,6 @@ if lock
 end
 
 
-%-Feature selection using principal components (U) of lead-feild
-%==========================================================================
-
-% Spatial
-%--------------------------------------------------------------------------
-dGdg  = spm_diff(M.G,gE,M,1);
-L     = spm_cat(dGdg);
-U     = spm_svd(L*L',exp(-8));
-try
-    U = U(:,1:nm);
-end
-nm    = size(U,2);
-
-
 % likelihood model
 %--------------------------------------------------------------------------
 M.FS  = 'spm_fy_erp';
@@ -214,6 +216,19 @@ M.m   = nu;
 M.n   = length(spm_vec(M.x));
 M.l   = Nc;
 M.ns  = Ns*Nt;
+
+%-Feature selection using principal components (U) of lead-feild
+%==========================================================================
+% Spatial
+%--------------------------------------------------------------------------
+dGdg  = spm_diff(M.G,gE,M,1);
+L     = spm_cat(dGdg);
+U     = spm_svd(L*L',exp(-8));
+try
+    U = U(:,1:nm);
+end
+nm    = size(U,2);
+
 M.E   = U;
 
 
