@@ -7,7 +7,7 @@ function spm_dartel_template(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1060 2008-01-03 18:16:36Z john $
+% $Id: spm_dartel_template.m 1103 2008-01-17 12:20:25Z john $
 
 code = 2;
 st = job.settings;
@@ -62,15 +62,34 @@ for i=1:n2,
     if exist(NU(i).dat.fname,'file'),
         u = NU(i).dat(:,:,:,1,:);
         u = single(squeeze(u));
-        [y,dt] = dartel3('Exp',u,[K -1 1]);
-        dt = max(dt,0);
-        clear u
+        y = dartel3('Exp',u,[K 1 1]);
+
+        tmp = cell(1);
         for j=1:n1,
-            vn         = NF(j,i).vn;
-            t(:,:,:,j) = t(:,:,:,j) + dt.*dartel3('samp',single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
-        end;
-        t(:,:,:,end) = t(:,:,:,end) + dt;
-        clear y dt
+            vn = NF(j,i).vn;
+            if j==n1, tmp=cell(1,2); end
+            [tmp{:}] = dartel3('push',...
+                single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
+            t(:,:,:,j) = t(:,:,:,j) + tmp{1};
+        end
+        t(:,:,:,end) = t(:,:,:,end) + tmp{2};
+        clear y tmp
+
+        %end;
+        %t(:,:,:,end) = t(:,:,:,end) + dt;
+        %clear y dt
+
+        %[y,dt] = dartel3('Exp',u,[K -1 1]);
+        %dt = max(dt,0);
+        %clear u
+        %for j=1:n1,
+        %    vn         = NF(j,i).vn;
+        %    t(:,:,:,j) = t(:,:,:,j) + dt.*dartel3('samp',...
+        %                 single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
+        %end;
+        %t(:,:,:,end) = t(:,:,:,end) + dt;
+        %clear y dt
+
     else
         create(NU(i));
         NU(i).dat(:,:,:,:,:) = 0;
@@ -134,19 +153,30 @@ for it=1:numel(st.param),
             [u,ll] = dartel3(u,f,g(:,:,:,1:n1),prm);
             fprintf('%d %d\t%g\t%g\t%g\t%g\n',it0,i,ll(1),ll(2),ll(1)+ll(2),ll(3));
             drawnow
-
             NU(i).dat(:,:,:,:,:) = reshape(u,[dm 1 3]);
-            [y,dt] = dartel3('Exp',u,[param.K -1 1]);
 
-            dt = max(dt,0);
-            clear u
-            drawnow;
+            y = dartel3('Exp',u,[K 1 1]);
+            tmp = cell(1);
             for j=1:n1,
-                t(:,:,:,j) = t(:,:,:,j) + dartel3('samp',f(:,:,:,j),y).*dt;
-                drawnow
-            end;
-            t(:,:,:,end) = t(:,:,:,end) + dt;
-            clear y dt
+                vn = NF(j,i).vn;
+                if j==n1, tmp=cell(1,2); end
+                [tmp{:}] = dartel3('push',...
+                    single(NF(j,i).NI.dat(:,:,:,vn(1),vn(2))),y);
+                t(:,:,:,j) = t(:,:,:,j) + tmp{1};
+            end
+            t(:,:,:,end) = t(:,:,:,end) + tmp{2};
+            clear y tmp
+
+            %[y,dt] = dartel3('Exp',u,[param.K -1 1]);
+            %dt = max(dt,0);
+            %clear u
+            %drawnow;
+            %for j=1:n1,
+            %    t(:,:,:,j) = t(:,:,:,j) + dartel3('samp',f(:,:,:,j),y).*dt;
+            %    drawnow
+            %end;
+            %t(:,:,:,end) = t(:,:,:,end) + dt;
+            %clear y dt
         end;
         if param.slam,
             for j=1:n1,
