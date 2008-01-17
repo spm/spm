@@ -18,10 +18,10 @@ function scales = spm_eeg_write(fpout, d, direc, dtype)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_write.m 317 2005-11-28 18:31:24Z stefan $
+% $Id: spm_eeg_write.m 1109 2008-01-17 18:53:13Z vladimir $
 
 
-if strcmp(dtype, 'float32')
+if strcmp(dtype, 'float32') || strcmp(dtype, 'float64')
     scales = ones(size(d, 3-direc), 1);
 elseif strcmp(dtype, 'int16')
     scales = max(abs(d), [], direc)./32767;

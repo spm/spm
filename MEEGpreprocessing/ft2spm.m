@@ -81,15 +81,15 @@ D.channels.Bad = [];
 % name of SPM mat file
 D.fname = filename;
 
-
-if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') && ~isempty(ft_channelselection('MEG', ftdata.label)) % MEG
+megchans=match_str(ftdata.label, ft_channelselection('MEG', ftdata.label));
+if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad') && ~isempty(megchans) % MEG
     D.modality = 'MEG';
     D.units = 'fT';
     % This is a rule of thumb. Look at the distribution of values
     % at one timepoint across channels and trials. Assumes that in MEG
     % datasets most channels will be MEG.
     if (median(abs(reshape(data(:,fix(end/2),:), 1,[])))<1e-10)
-        data=1e15*data;
+        data(megchans, :, :)=1e15*data(megchans, :, :);
         warning('Detected MEG data and converted to the units to fT');
     end
 else   %EEG
@@ -131,6 +131,7 @@ else
     % If there is no information about events the codes are 1s
     warning('No event information found in the FT data');
     D.events.code=ones(1, size(data,3));
+    D.events.time=nan(1, size(data,3));
 end
 
 % This is for compatibility  with the old conversion
