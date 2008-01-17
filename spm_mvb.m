@@ -14,10 +14,11 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %                F: log-evidence [F(0), F(1),...]
 %                G: covariance partition indices
 %                h: covariance hyperparameters
-%                U: patterns
+%                U: ordered patterns
 %               qE: conditional expectation of weights
 %               qC: conditional variance of weights
-%               Cp: prior covariance (pattern space)
+%               Cp: prior covariance (ordered  pattern space)
+%               cp: prior covariance (original pattern space)
 %__________________________________________________________________________
 %
 % model: X = Y*P + X0*Q + R
@@ -27,7 +28,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2006 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 1102 2008-01-16 20:54:31Z christophe $
+% $Id: spm_mvb.m 1104 2008-01-17 16:26:33Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -76,13 +77,15 @@ for  i = 1:nG
     % record free-energy
     %----------------------------------------------------------------------
     F(i + 1)     = M.F;
+    lnh          = log(M.h');
     
     disp('log evidence & hyperparameters:')
-    disp('       '),disp(F),disp(log(M.h'))
+    disp('       '),disp(F),disp(lnh)
     
     % eliminate redundant components
     %----------------------------------------------------------------------
-    j            = find(M.h((nh + 1):(end - 1)) < exp(-16));
+    lnh          = lnh((nh + 1):end) - lnh(end);
+    j            = find(lnh < -16);
     G(:,j)       = [];
 
     % create new spatial support
@@ -113,7 +116,8 @@ catch
 end
 L        = L(:,i);
 U        = U(:,i);
-Cp       = model.Cp(i,i);
+cp       = model.Cp;
+Cp       = cp(i,i);
 MAP      = U*model.MAP(i,:);
 qE       = U*model.qE(i,:);
  
@@ -129,6 +133,7 @@ qC       = sum(UCp.*U,2) - sum((UCp*L').*MAP,2);
 model.F  = F;
 model.U  = U;
 model.M  = MAP;
-model.qE = qE;                                     % conditional expectation
-model.Cp = Cp;                                     % prior covariance
-model.qC = max(qC,exp(-16));                       % conditional variance
+model.qE = qE;                              % conditional expectation
+model.Cp = Cp;                              % prior covariance (ordered)
+model.cp = cp;                              % prior covariance (original)
+model.qC = max(qC,exp(-16));                % conditional variance

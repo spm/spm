@@ -14,6 +14,7 @@ function spm_eeg_inv_group(S);
 % matrix in sensor space over subjects and trials using multiple sparse
 % priors (and,  by default, a greedy search).  The subject-specific terms
 % are then estimated by pooling over trials for each subject separately.
+% All trials in D.events.types will be inverted in the order specified.
 % The result is a contrast (saved in D.mat) and a 3-D volume of MAP or
 % conditional estimates of source activity that are constrained to the
 % same subset of voxels.  These would normally be passed to a second-level
@@ -22,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1082 2008-01-11 12:50:15Z karl $
+% $Id: spm_eeg_inv_group.m 1104 2008-01-17 16:26:33Z karl $
 
 
 % check if to proceed
@@ -102,7 +103,8 @@ for i = NS
             pol_skip            = 2;
             pol_file            = spm_select(1,'.pol','Select Polhemus file');
             [fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip);
-
+            D{i}.inv{val}.datareg.fid_eeg = fid_eeg;
+            
             % get sensor locations
             %--------------------------------------------------------------
             if strcmp(D{i}.modality,'EEG')
@@ -120,18 +122,16 @@ for i = NS
             sensors = getfield(sensors,name{1});
         end
     end
+
     try
-        fid_eeg;
+        fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
     catch
-        try
-            fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
-        catch
-            [f p]   = uigetfile('*fid*.mat','select fiducial locations');
-            fid_eeg = load(fullfile(p,f));
-            name    = fieldnames(fid_eeg);
-            fid_eeg = getfield(fid_eeg,name{1});
-        end
+        [f p]   = uigetfile('*fid*.mat','select fiducial locations');
+        fid_eeg = load(fullfile(p,f));
+        name    = fieldnames(fid_eeg);
+        fid_eeg = getfield(fid_eeg,name{1});
     end
+
 
     % get sensor locations
     %----------------------------------------------------------------------
@@ -161,36 +161,22 @@ for i = NS
     else
         D{i}.inv{val}.forward.method = 'meg_sphere';
     end
+    
+    % save forward model parameters
+    %----------------------------------------------------------------------
+    spm_eeg_inv_save(D{i})
 
 end
 
-% Get conditions or trials
+% Get inversion parameters
 %==========================================================================
-if length(D{1}.events.types) > 1
-    if spm_input('All conditions or trials','+1','b',{'yes|no'},[1 0],1)
-        trials = D{1}.events.types;
-    else
-        trials = [];
-        for  i = 1:length(D{1}.events.types)
-            str = sprintf('invert %i',D{1}.events.types(i))
-            if spm_input(str,'+1','b',{'yes|no'},[1 0],1);
-                trials(end + 1) = D{1}.events.types(i);
-            end
-        end
-    end
-else
-    trials = D{1}.events.types;
+inverse = spm_eeg_inv_custom_ui(D{1});
+
+% and save them (assume trials = types)
+%--------------------------------------------------------------------------
+for i = 1:Ns
+    D{i}.inv{val}.inverse = inverse;
 end
-
-% specify inversion parameters
-%--------------------------------------------------------------------------
-inverse.trials = trials;                      % Trials or conditions
-inverse.type   = 'GS';                        % Priors; GS, MSP, LOR or IID
-
-% Restrictions (not implemented)
-%--------------------------------------------------------------------------
-
-
 
 % specify time-frequency window contrast
 %==========================================================================
@@ -224,14 +210,15 @@ for i = NS
     %----------------------------------------------------------------------
     D{i} = spm_eeg_inv_datareg(D{i});
     D{i} = spm_eeg_inv_BSTfwdsol(D{i});
+    
+    % save forward model
+    %----------------------------------------------------------------------
+    spm_eeg_inv_save(D{i})
 
 end
 
 % Invert the forward model
 %==========================================================================
-for i = 1:Ns
-    D{i}.inv{val}.inverse = inverse;
-end
 D     = spm_eeg_invert(D);
 if ~iscell(D), D = {D}; end
 
@@ -252,12 +239,6 @@ end
 
 % Save
 %==========================================================================
-S     = D;
 for i = 1:Ns
-    D = S{i};
-    if spm_matlab_version_chk('7.1') >= 0
-        save(fullfile(D.path, D.fname), '-V6', 'D');
-    else
-        save(fullfile(D.path, D.fname), 'D');
-    end
+    spm_eeg_inv_save(D{i})
 end

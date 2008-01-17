@@ -11,7 +11,7 @@ function D = spm_eeg_invert_fuse_ui(S)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_fuse_ui.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_eeg_invert_fuse_ui.m 1104 2008-01-17 16:26:33Z karl $
 
 % Load data
 %==========================================================================
@@ -83,7 +83,8 @@ for i = NS
             pol_skip            = 2;
             pol_file            = spm_select(1,'.pol','Select Polhemus file');
             [fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip);
-
+            D{i}.inv{val}.datareg.fid_eeg = fid_eeg;
+            
             % get sensor locations
             %--------------------------------------------------------------
             if strcmp(D{i}.modality,'EEG')
@@ -101,17 +102,14 @@ for i = NS
             sensors = getfield(sensors,name{1});
         end
     end
+    
     try
-        fid_eeg;
+        fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
     catch
-        try
-            fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
-        catch
-            [f p]   = uigetfile('*fid*.mat','select fiducial locations');
-            fid_eeg = load(fullfile(p,f));
-            name    = fieldnames(fid_eeg);
-            fid_eeg = getfield(fid_eeg,name{1});
-        end
+        [f p]   = uigetfile('*fid*.mat','select fiducial locations');
+        fid_eeg = load(fullfile(p,f));
+        name    = fieldnames(fid_eeg);
+        fid_eeg = getfield(fid_eeg,name{1});
     end
 
     % get sensor locations

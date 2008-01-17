@@ -13,7 +13,10 @@ function [D] = spm_eeg_invert_ui(varargin)
 %     D.inv{i}.inverse.xyz    - (n x 3) locations of spherical VOIs
 %     D.inv{i}.inverse.rad    - radius (mm) of VOIs
 %__________________________________________________________________________
-
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id:$
 
 % initialise
 %--------------------------------------------------------------------------
@@ -61,93 +64,14 @@ if length(D.events.types) > 1
 else
     trials = D.events.types;
 end
-inverse.trials = trials;
 
-
-% Type of analysis
+% Inversion parameters
 %--------------------------------------------------------------------------
-type           = spm_input('Type of inversion','+1','MSP|COH|MNM',{'GS','LOR','IID'},1);
-inverse.type   = type{:};
-
-if spm_input('Model','+1','b',{'Standard|Custom'},[0 1],1)
-
-
-    % D.inverse.smooth - smoothness of source priors (mm)
-    %----------------------------------------------------------------------
-    switch inverse.type, case{'GS','MSP','LOR'}
-        inverse.smooth = spm_input('Spatial smoothness (0-1)','+1','0.2|0.4|0.6',[0.2 0.4 0.6],3);
-    end
-    
-    % D.inverse.sdv    - smoothness of source priors (ms)
-    %----------------------------------------------------------------------
-    inverse.sdv      = spm_input('Temporal smoothness (ms)','+1','1|4|16',[1 4 16],2);
-
-    % Search strategy
-    %----------------------------------------------------------------------
-    switch inverse.type, case{'MSP','GS'}
-        type         = spm_input('Search','+1','Sparse|Greedy',{'MSP','GS'},2);
-        inverse.type = type{:};
-    end
-    
-    % Number of sparse priors
-    %----------------------------------------------------------------------
-    switch inverse.type, case{'MSP','GS'}
-        inverse.Np   = spm_input('MSPs per hemisphere','+1','64|128|256|512',[64 128 256 512],3);
-    end
-    
-    % Time window of interest
-    %----------------------------------------------------------------------
-    woi         = round([-D.events.start D.events.stop]*1000/D.Radc);
-    woi         = spm_input('Time window (ms)','+1','r',woi);
-    inverse.woi = round([min(woi) max(woi)]);
-    
-    % High-pass filter
-    %----------------------------------------------------------------------
-    inverse.lpf = spm_input('High-pass (Hz)','+1','1|8|16',[1 8 16],1);
-    
-    % Low-pass filter
-    %----------------------------------------------------------------------
-    inverse.hpf = spm_input('Low-pass (Hz)','+1','64|128|256',[64 128 256],3);
-        
-    % Source space restictions
-    %----------------------------------------------------------------------
-    if spm_input('Restrict solutions','+1','yes|no',[1 0],2);
-
-        [f,p]       = uigetfile('*.mat','source (n x 3) location file');
-        xyz         = load(fullfile(p,f));
-        name        = fieldnames(xyz);
-        xyz         = getfield(xyz, name{1});
-        inverse.xyz = xyz;
-        inverse.rad = spm_input('radius of VOI (mm)','+1','r',32);
-    end
-
-end
+inverse        = spm_eeg_inv_custom_ui(D);
+inverse.trials = trials;
 
 % invert
 %==========================================================================
 D.con               = 1;
 D.inv{val}.inverse  = inverse;
 D                   = spm_eeg_invert(D);
-
-
-return
-%==========================================================================
-% other GUI options
-
-    % High-pass filter
-    %----------------------------------------------------------------------
-    inverse.Han = spm_input('PST Hanning','+1','yes|no',[1 0],1);
-
-    % Low-pass filter
-    %----------------------------------------------------------------------
-    inverse.hpf = spm_input('Low-pass (Hz)','+1','64|128|256',[64 128 256],3);
-        
-    % High-pass filter
-    %----------------------------------------------------------------------
-    inverse.lpf = spm_input('High-pass (Hz)','+1','1|8|32',[1 8 32],1);
-
-    % Channel modes
-    %----------------------------------------------------------------------
-    inverse.Nm   = spm_input('Channel modes (max)','+1','32|64|128',[32 64 128],2);
-
-

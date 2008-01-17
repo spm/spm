@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(D)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_eeg_invert_fuse.m 1104 2008-01-17 16:26:33Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -83,7 +83,7 @@ try, rad   = inverse.rad;    catch, rad   = 128;               end
 try, lpf   = inverse.lpf;    catch, lpf   = 1;                 end
 try, hpf   = inverse.hpf;    catch, hpf   = 256;               end
 try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
-try, Han   = inverse.Han;    catch, Han   = 0;                 end
+try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
 try, woi   = inverse.woi;    catch, woi   = [];                end
  
@@ -197,7 +197,7 @@ fprintf('Using %i spatial modes\n',Nm)
 % Temporal parameters
 %==========================================================================
 Nt    = length(trial{1});                % number of trial types
-Nr    = 6;                               % number of temporal modes
+Nr    = 8;                               % number of temporal modes
  
 % Peristimulus time-window (common to all data sets)
 %--------------------------------------------------------------------------
@@ -425,14 +425,14 @@ switch(type)
  
         % Spatial priors (QP); eliminating minor patterns
         %------------------------------------------------------------------
-        pV    = diag(MVB.Cp);
+        cp    = diag(MVB.cp);
         for i = 1:8
-            j = find(pV > 2^i*(max(pV)/256));
+            j = find(cp > 2^i*(max(cp)/256));
             if length(j) < 128
                 break
             end
         end
-        qp    = Q(:,j)*MVB.Cp(j,j)*Q(:,j)';
+        qp    = Q(:,j)*MVB.cp(j,j)*Q(:,j)';
  
         % Accumulate empirical priors
         %------------------------------------------------------------------

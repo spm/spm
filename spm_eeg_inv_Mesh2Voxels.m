@@ -1,29 +1,31 @@
 function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
- 
-%======================================================================
+% converts a mesh-representation of M/EEG power into a smoothed image
+% FORMAT [D] = spm_eeg_inv_Mesh2Voxels(D,val)
+% Input:
+% D        - input data struct (optional)
+%
+%     D.inv{val}.contrast.smooth  = smoothing in mm [12]
+%     D.inv{val}.contrast.display = display (spm_image) flag [0]
+%
+% Output:
+% D        - data struct including the new files and parameters and
+%     D.inv{val}.contrast.scalefactor;
+%
+%--------------------------------------------------------------------------
 % Non-linear interpolation of a Mesh contrast into MNI Voxel space
 % This routine is used to produce a 3D image canonical sMRI
 % space (in voxel coordinates) from a cortical mesh (3D surface).
 % This yields a .nifti image of the summary statistics of the cortical
 % activity for the effect of interest. This image can then enter the
 % classical SPM routines for statistical testing.
-% The [non-negative] root mean square contrast is smoothed both on the mesh
+% The [non-negative] mean square contrast is smoothed both on the mesh
 % (using a graph Laplacian and then in voxel-space using a conventional
 % Gaussian filter.
-%
-% FORMAT D = spm_eeg_inv_Mesh2Voxels(D,val)
-% Input:
-% D        - input data struct (optional)
-%     D.inv{val}.contrast.smooth  = smoothing in mm [12]
-%     D.inv{val}.contrast.display = display (spm_image) flag [0]
-% Output:
-% D        - data struct including the new files and parameters
-%
-%==========================================================================
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
-% Jeremie Mattout, Stefan Kiebel & Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 1039 2007-12-21 20:20:38Z karl $
+% Karl Friston
+% $Id: spm_eeg_inv_Mesh2Voxels.m 1104 2008-01-17 16:26:33Z karl $
  
 % checks
 %--------------------------------------------------------------------------
@@ -37,11 +39,12 @@ catch
     Disp = 0;
 end
  
-% Scaling factor for images (scale to within three orders of magnitude)
+% Scale to grand mean power (%)
 %--------------------------------------------------------------------------
-[y scalefactor] = spm_cond_units(D.inv{val}.contrast.GW{1});
-scalefactor     = scalefactor*D.inv{val}.inverse.Nd;
-D.inv{val}.contrast.scalefactor = scalefactor;
+GW       = spm_vec(D.inv{val}.contrast.GW);
+scale    = 1/mean(GW);
+GW       = spm_unvec(GW*scale,D.inv{val}.contrast.GW);
+D.inv{val}.contrast.scalefactor = scale;
 
  
 % smoothing FWHM (mm)
@@ -108,12 +111,12 @@ GL    = speye(nd,nd) + (A - spdiags(sum(A,2),0,nd,nd))/16;
 % sampling point of the triangles (cycle over conditions)
 %==========================================================================
 [PTH,NAME,EXT] = fileparts(D.fname);
-for c = 1:length(D.inv{val}.contrast.GW)
+for c = 1:length(GW)
     
     
     % Smooth on the cortical surface
     %----------------------------------------------------------------------
-    Contrast = D.inv{val}.contrast.GW{c};
+    Contrast = GW{c};
     Contrast = sparse(D.inv{val}.inverse.Is,1,Contrast,nd,1);
     for i = 1:32
         Contrast = GL*Contrast;
@@ -121,13 +124,12 @@ for c = 1:length(D.inv{val}.contrast.GW)
     
     Outputfilename = fullfile(D.path,sprintf(  'w_%s_%.0f_%.0f.nii',NAME,val,c));
     Outputsmoothed = fullfile(D.path,sprintf( 'sw_%s_%.0f_%.0f.nii',NAME,val,c));
-    Outputlog      = fullfile(D.path,sprintf('lsw_%s_%.0f_%.0f.nii',NAME,val,c));
     InterpOp       = [teta alpha beta];
     SPvalues       = zeros(nf*np,1);
     Vout           = Vin;
     Vout           = rmfield(Vout,'pinfo');
     Vout.fname     = Outputfilename;
-    Vout.dt(1)     = spm_type('int32');
+    Vout.dt(1)     = spm_type('int16');
     RECimage       = zeros(Vout.dim);
  
     % And interpolate those values into voxels
@@ -152,9 +154,7 @@ for c = 1:length(D.inv{val}.contrast.GW)
  
     % Write (scaled) image
     %----------------------------------------------------------------------
-    RECimage  = RECimage*scalefactor;
     Vout      = spm_write_vol(Vout,RECimage);
-    
     
     % Smoothing
     %----------------------------------------------------------------------

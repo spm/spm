@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 839 2007-07-02 08:49:46Z will $
+% $Id: spm_graph.m 1104 2008-01-17 16:26:33Z karl $
 
 
 
@@ -102,10 +102,10 @@ XYZ     = xSPM.XYZ(:,i);		% coordinates
 % find out what to plot
 %--------------------------------------------------------------------------
 Cplot = {	'Contrast estimates and 90% C.I.',...
-    'Fitted responses',...
-    'Event-related responses',...
-    'Parametric responses',...
-    'Volterra Kernels'};
+            'Fitted responses',...
+            'Event-related responses',...
+            'Parametric responses',...
+            'Volterra Kernels'};
 
 
 % ensure options are appropriate
