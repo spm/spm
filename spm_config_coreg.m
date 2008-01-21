@@ -4,7 +4,7 @@ function opts = spm_config_coreg
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_coreg.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_coreg.m 1113 2008-01-21 13:26:43Z volkmar $
 
 ref.type = 'files';
 ref.name = 'Reference Image';
@@ -183,10 +183,22 @@ mask.help = {[...
 
 %------------------------------------------------------------------------
 
+prefix.type = 'entry';
+prefix.name = 'Filename Prefix';
+prefix.tag  = 'prefix';
+prefix.strtype = 's';
+prefix.num  = [1 Inf];
+prefix.val  = {'r'};
+prefix.help = {[...
+'Specify the string to be prepended to the filenames of the resliced' ...
+' image file(s). Default prefix is ''r''.']};
+
+%------------------------------------------------------------------------
+
 roptions.type = 'branch';
 roptions.name = 'Reslice Options';
 roptions.tag  = 'roptions';
-roptions.val  = {interp,wrap,mask};
+roptions.val  = {interp,wrap,mask,prefix};
 roptions.help = {'Various reslicing options.'};
 
 %------------------------------------------------------------------------
@@ -302,6 +314,7 @@ flags.mean   = 0;
 flags.interp = job.roptions.interp;
 flags.which  = 1;
 flags.wrap   = job.roptions.wrap;
+flags.prefix = job.roptions.prefix;
 
 spm_reslice(P,flags);
 
@@ -336,6 +349,7 @@ flags.mean   = 0;
 flags.interp = job.roptions.interp;
 flags.which  = 1;
 flags.wrap   = job.roptions.wrap;
+flags.prefix = job.roptions.prefix;
 
 spm_reslice(P,flags);
 
@@ -348,7 +362,7 @@ job = varargin{1};
 vf  = cell(size(job.source));
 for i=1:numel(job.source),
     [pth,nam,ext,num] = spm_fileparts(job.source{i});
-    vf{i} = fullfile(pth,['r', nam, ext, num]);
+    vf{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);
 end;
 %------------------------------------------------------------------------
 
@@ -359,7 +373,7 @@ P   = {job.source{:},job.other{:}};
 vf  = cell(size(P));
 for i=1:numel(P),
     [pth,nam,ext,num] = spm_fileparts(P{i});
-    vf{i} = fullfile(pth,['r', nam, ext, num]);
+    vf{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);
 end;
 
 

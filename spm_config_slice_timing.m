@@ -4,7 +4,7 @@ function opts = spm_config_slice_timing
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_slice_timing.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_slice_timing.m 1113 2008-01-21 13:26:43Z volkmar $
 
 % ---------------------------------------------------------------------
 scans.type = 'files';
@@ -82,12 +82,24 @@ sliceorder.help = {...
  '',...
  'interleaved (top -> down): [nslices:-2:1, nslices-1:-2:1]'};
  
+%------------------------------------------------------------------------
+
+prefix.type = 'entry';
+prefix.name = 'Filename Prefix';
+prefix.tag  = 'prefix';
+prefix.strtype = 's';
+prefix.num  = [1 Inf];
+prefix.val  = {'a'};
+prefix.help = {[...
+'Specify the string to be prepended to the filenames of the smoothed' ...
+' image file(s). Default prefix is ''a''.']};
+
 % ---------------------------------------------------------------------
 
 opts.type = 'branch';
 opts.name = 'Slice Timing';
 opts.tag  = 'st';
-opts.val  = {data,nslices,TR,TA,sliceorder,refslice};
+opts.val  = {data,nslices,TR,TA,sliceorder,refslice,prefix};
 opts.prog = @slicetiming;
 opts.vfiles = @vfiles;
 opts.modality = {'FMRI'};
@@ -167,7 +179,7 @@ timing(1) = TA / (nslices -1);
 
 for i = 1:length(job.scans)
     P   = strvcat(job.scans{i});
-    spm_slice_timing(P,Seq,refslice,timing)
+    spm_slice_timing(P,Seq,refslice,timing,job.prefix)
 end
 return;
 % ---------------------------------------------------------------------
@@ -182,7 +194,7 @@ n   = 1;
 for i=1:numel(job.scans),
     for j = 1:numel(job.scans{i})
     [pth,nam,ext,num] = spm_fileparts(job.scans{i}{j});
-    vf{n} = fullfile(pth,['a', nam, ext, num]);
+    vf{n} = fullfile(pth,[job.prefix, nam, ext, num]);
     n = n+1;
     end
 end;

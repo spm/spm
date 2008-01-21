@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_realign_and_unwarp.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
 %_______________________________________________________________________
@@ -411,6 +411,18 @@ mask.help = {[...
 
 %------------------------------------------------------------------------
 
+prefix.type = 'entry';
+prefix.name = 'Filename Prefix';
+prefix.tag  = 'prefix';
+prefix.strtype = 'u';
+prefix.num  = [1 Inf];
+prefix.val  = {'s'};
+prefix.help = {[...
+'Specify the string to be prepended to the filenames of the smoothed' ...
+' image file(s). Default prefix is ''u''.']};
+
+%------------------------------------------------------------------------
+
 uweoptions.type = 'branch';
 uweoptions.name = 'Unwarp Estimation Options';
 uweoptions.tag  = 'uweoptions';
@@ -422,7 +434,7 @@ uweoptions.help = {'Various registration & unwarping estimation options.'};
 uwroptions.type = 'branch';
 uwroptions.name = 'Unwarp Reslicing Options';
 uwroptions.tag  = 'uwroptions';
-uwroptions.val  = {uwwhich,rinterp,wrap,mask};
+uwroptions.val  = {uwwhich,rinterp,wrap,mask,prefix};
 uwroptions.help = {'Various registration & unwarping estimation options.'};
 %------------------------------------------------------------------------
 
@@ -744,6 +756,7 @@ uwrflags.wrap      = job.uwroptions.wrap;
 uwrflags.mask      = job.uwroptions.mask;
 uwrflags.which     = job.uwroptions.uwwhich(1);
 uwrflags.mean      = job.uwroptions.uwwhich(2);
+uwrflags.prefix    = job.uwroptions.prefix;
 
 if uweflags.jm == 1
     uwrflags.udc = 2;
@@ -811,10 +824,10 @@ switch job.uwroptions.uwwhich(1),
         vf = cell(numel(P),1);
         for i=1:length(vf),
             [pth,nam,ext,num] = spm_fileparts(P{i});
-            vf{i} = fullfile(pth,['u', nam, ext, num]);
+            vf{i} = fullfile(pth,[job.uwroptions.prefix, nam, ext, num]);
         end;
 end;
 if job.uwroptions.uwwhich(2),
     [pth,nam,ext,num] = spm_fileparts(P{1});
-    vf = {vf{:}, fullfile(pth,['meanu', nam, ext, num])};
+    vf = {vf{:}, fullfile(pth,['mean', job.uwroptions.prefix, nam, ext, num])};
 end;

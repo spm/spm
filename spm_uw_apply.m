@@ -111,6 +111,8 @@ function varargout = spm_uw_apply(ds,flags)
 %               2   - Do both unwarping and Jacobian correction.
 %
 %
+%         prefix - Filename prefix for resliced image files. Defaults to 'u'.
+%
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'u'.
 %             They are all aligned with the first.
@@ -118,7 +120,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 1101 2008-01-16 20:22:32Z john $
+% $Id: spm_uw_apply.m 1113 2008-01-21 13:26:43Z volkmar $
 
 tiny = 5e-2;
 
@@ -129,7 +131,8 @@ def_flags = struct('mask',       1,...
                    'interp',     4,...
                    'wrap',       [0 1 0],...
                    'which',      1,...
-                   'udc',        1);
+                   'udc',        1,...
+                   'prefix',     'u');
 
 defnames = fieldnames(def_flags);
 
@@ -331,7 +334,7 @@ for s=1:length(ds)
       %
       if flags.which
          PO         = ds(s).P(i);
-         PO.fname   = prepend(PO.fname,'u');
+         PO.fname   = prepend(PO.fname,flags.prefix);
          PO.mat     = ds(1).P(1).mat;
          PO.descrip = 'spm - undeformed';
 	 ivol       = ima; 
@@ -369,7 +372,7 @@ if flags.mean
    warning('on');
    PO         = ds(1).P(1);
    [pth,nm,xt,vr] = spm_fileparts(deblank(ds(1).P(1).fname));
-   PO.fname       = fullfile(pth,['meanu' nm xt vr]);
+   PO.fname       = fullfile(pth,['mean' flags.prefix nm xt vr]);
    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
    PO.descrip = 'spm - mean undeformed image';
    PO.dt      = [4 spm_platform('bigend')];

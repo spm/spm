@@ -4,7 +4,7 @@ function opts = spm_config_realign
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_realign.m 751 2007-02-28 10:56:59Z volkmar $
+% $Id: spm_config_realign.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
 %_______________________________________________________________________
@@ -230,11 +230,23 @@ mask.help = {[...
 'NaNs are used where possible).']};
  
 %------------------------------------------------------------------------
+
+prefix.type = 'entry';
+prefix.name = 'Filename Prefix';
+prefix.tag  = 'prefix';
+prefix.strtype = 's';
+prefix.num  = [1 Inf];
+prefix.val  = {'r'};
+prefix.help = {[...
+'Specify the string to be prepended to the filenames of the resliced' ...
+' image file(s). Default prefix is ''r''.']};
+
+%------------------------------------------------------------------------
  
 roptions.type = 'branch';
 roptions.name = 'Reslice Options';
 roptions.tag  = 'roptions';
-roptions.val  = {which,interp,wrap,mask};
+roptions.val  = {which,interp,wrap,mask,prefix};
 roptions.help = {'Various reslicing options. If in doubt, simply keep the default values.'};
 
 %------------------------------------------------------------------------
@@ -399,6 +411,7 @@ flags.mean   = job.roptions.which(2);
 flags.interp = job.roptions.interp;
 flags.which  = job.roptions.which(1);
 flags.wrap   = job.roptions.wrap;
+flags.prefix = job.roptions.prefix;
 spm_reslice(P,flags);
 return;
 %------------------------------------------------------------------------
@@ -425,6 +438,7 @@ flags.mean   = job.roptions.which(2);
 flags.interp = job.roptions.interp;
 flags.which  = job.roptions.which(1);
 flags.wrap   = job.roptions.wrap;
+flags.prefix = job.roptions.prefix;
 spm_reslice(P,flags);
 return;
 
@@ -444,13 +458,13 @@ case 1,
     vf = cell(numel(P)-1,1);
     for i=1:length(vf),
         [pth,nam,ext,num] = spm_fileparts(P{i+1});
-        vf{i} = fullfile(pth,['r', nam, ext, num]);
+        vf{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);
     end;
 otherwise,
     vf = cell(numel(P),1);
     for i=1:length(vf),
         [pth,nam,ext,num] = spm_fileparts(P{i});
-        vf{i} = fullfile(pth,['r', nam, ext, num]);
+        vf{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);
     end;
 end;
 if job.roptions.which(2),

@@ -14,6 +14,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 %                      the spatially normalised images so that total
 %                      units are preserved, rather than just
 %                      concentrations.
+%           prefix   - Prefix for normalised images. Defaults to 'w'.
 % msk       - An optional cell array for masking the spatially
 %             normalised images (see below).
 %
@@ -61,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 1020 2007-12-06 20:20:31Z john $
+% $Id: spm_write_sn.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
 if isempty(V), return; end;
@@ -78,7 +79,8 @@ if nargin==3 && ischar(flags) && strcmpi(flags,'modulate'),
     return;
 end;
 
-def_flags = struct('interp',1,'vox',NaN,'bb',NaN,'wrap',[0 0 0],'preserve',0);
+def_flags = struct('interp',1,'vox',NaN,'bb',NaN,'wrap',[0 0 0],'preserve',0,...
+                   'prefix','w');
 [def_flags.bb, def_flags.vox] = bbvox_from_V(prm.VG(1));
 
 if nargin < 3,
@@ -140,7 +142,7 @@ d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
 for i=1:numel(V),
-    VO     = make_hdr_struct(V(i),x,y,z,mat);
+    VO     = make_hdr_struct(V(i),x,y,z,mat, flags.prefix);
     if flags.preserve
         VO.fname = prepend(VO.fname,'m');
     end
@@ -193,7 +195,7 @@ d  = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
 for i=1:numel(V),
-    VO     = make_hdr_struct(V(i),x,y,z,mat);
+    VO     = make_hdr_struct(V(i),x,y,z,mat, flags.prefix);
     if flags.preserve
         VO.fname = prepend(VO.fname,'m');
     end
@@ -315,9 +317,9 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function VO   = make_hdr_struct(V,x,y,z,mat)
+function VO   = make_hdr_struct(V,x,y,z,mat,prefix)
 VO            = V;
-VO.fname      = prepend(V.fname,'w');
+VO.fname      = prepend(V.fname,prefix);
 VO.mat        = mat;
 VO.dim(1:3)   = [length(x) length(y) length(z)];
 VO.pinfo      = V.pinfo;

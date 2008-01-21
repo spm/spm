@@ -1,4 +1,4 @@
-function spm_slice_timing(P, sliceorder, refslice, timing)
+function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % function spm_slice_timing(P, sliceorder, refslice, timing)
 % INPUT:
 % 	P		nimages x ?	Matrix with filenames
@@ -11,6 +11,8 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 %	timing		additional information for sequence timing
 %			timing(1) = time between slices
 %			timing(2) = time between last slices and next volume
+%       prefix          filename prefix for corrected image files,
+%                       defaults to 'a'
 %
 % 	If no input is specified the function serves as a GUI			
 %
@@ -96,10 +98,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: spm_slice_timing.m 671 2006-11-02 12:08:04Z john $
+% $Id: spm_slice_timing.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 671 $');
+SPMid = spm('FnBanner',mfilename,'$Rev: 1113 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
@@ -162,6 +164,9 @@ else,
 	factor = timing(1)/TR;
 end;
 
+if nargin < 5
+    prefix = 'a';
+end;
 
 spm('Pointer','Watch')
 
@@ -181,7 +186,8 @@ for subj = 1:nsubjects
 		Vout 	= Vin;
 		for k=1:nimgo,
 			[pth,nm,xt,vr] = fileparts(deblank(Vin(k).fname));
-			Vout(k).fname  = fullfile(pth,['a' nm xt vr]);
+			Vout(k).fname  = fullfile(pth,[prefix nm xt vr]);
+                        Vout(k).pinfo(1:2,:) = Inf;
 			if isfield(Vout(k),'descrip'),
 				desc = [Vout(k).descrip ' '];
 			else,

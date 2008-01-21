@@ -4,7 +4,7 @@ function opts = spm_config_norm
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_norm.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_norm.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
 %_______________________________________________________________________
@@ -238,10 +238,22 @@ wrap.help = {...
 
 %------------------------------------------------------------------------
 
+prefix.type = 'entry';
+prefix.name = 'Filename Prefix';
+prefix.tag  = 'prefix';
+prefix.strtype = 's';
+prefix.num  = [1 Inf];
+prefix.val  = {'w'};
+prefix.help = {[...
+'Specify the string to be prepended to the filenames of the normalised' ...
+' image file(s). Default prefix is ''w''.']};
+
+%------------------------------------------------------------------------
+
 roptions.type = 'branch';
 roptions.name = 'Writing Options';
 roptions.tag  = 'roptions';
-roptions.val  = {preserve,bb,vox,interp,wrap};
+roptions.val  = {preserve,bb,vox,interp,wrap,prefix};
 roptions.help = {'Various options for writing normalised images.'};
 
 %------------------------------------------------------------------------
@@ -457,7 +469,8 @@ rflags = struct(...
 	'bb',      o.bb,...
 	'vox',     o.vox,...
 	'interp',  o.interp,...
-	'wrap',    o.wrap);
+	'wrap',    o.wrap,...
+        'prefix',  o.prefix);
 
 for i=1:length(job.subj),
 	spm_write_sn(strvcat(job.subj(i).resample{:}),...
@@ -483,7 +496,8 @@ rflags = struct(...
 	'bb',      o.bb,...
 	'vox',     o.vox,...
 	'interp',  o.interp,...
-	'wrap',    o.wrap);
+	'wrap',    o.wrap,...
+        'prefix',  o.prefix);
 
 for i=1:length(job.subj),
     [ pth,nam ] = spm_fileparts(deblank(job.subj(i).source{:}));
@@ -519,7 +533,7 @@ for i=1:length(job.subj),
     vf1 = cell(1,length(res));
     for j=1:length(res),
         [pth,nam,ext,num] = spm_fileparts(res{j});
-        vf1{j} = fullfile(pth,['w', nam, ext, num]);
+        vf1{j} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);
     end;
     vf = {vf{:} vf1{:}};
 end;
@@ -534,7 +548,7 @@ for i=1:length(job.subj),
     vf1 = cell(1,length(res));
     for j=1:length(res),
         [pth,nam,ext,num] = spm_fileparts(res{j});
-        vf1{j} = fullfile(pth,['w', nam, ext, num]);
+        vf1{j} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);
     end;
     vf = {vf{:} vf1{:}};
 end;

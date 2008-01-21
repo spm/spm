@@ -4,7 +4,7 @@ function opts = spm_config_smooth
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_smooth.m 471 2006-03-08 17:46:45Z john $
+% $Id: spm_config_smooth.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
 %_______________________________________________________________________
@@ -17,8 +17,21 @@ data.num  = Inf;
 data.help = {[...
 'Specify the images to smooth. ',...
 'The smoothed images are written to the same subdirectories as the ',...
-'original *.img and are prefixed with a ''s'' (i.e. s*.img).']};
+'original *.img and are prefixed with a ''s'' (i.e. s*.img). The prefix' ...
+' can be changed by an option setting.']};
  
+%------------------------------------------------------------------------
+
+prefix.type = 'entry';
+prefix.name = 'Filename Prefix';
+prefix.tag  = 'prefix';
+prefix.strtype = 's';
+prefix.num  = [1 Inf];
+prefix.val  = {'s'};
+prefix.help = {[...
+'Specify the string to be prepended to the filenames of the smoothed' ...
+' image file(s). Default prefix is ''s''.']};
+
 %------------------------------------------------------------------------
 
 fwhm.type = 'entry';
@@ -49,7 +62,7 @@ dtype.help = {'Data-type of output images.  SAME indicates the same datatype as 
 opts.type = 'branch';
 opts.name = 'Smooth';
 opts.tag  = 'smooth';
-opts.val  = {data,fwhm,dtype};
+opts.val  = {data,fwhm,dtype,prefix};
 opts.prog = @smooth;
 opts.vfiles = @vfiles;
 opts.help = {...
@@ -74,8 +87,8 @@ n     = size(P,1);
 spm_progress_bar('Init',n,'Smoothing','Volumes Complete');
 for i = 1:n
         Q = deblank(P(i,:));
-        [pth,nam,xt,nm] = spm_fileparts(deblank(Q));
-        U = fullfile(pth,['s' nam xt nm]);
+        [pth,nam,ext,num] = spm_fileparts(deblank(Q));
+        U = fullfile(pth,[job.prefix nam ext num]);
         spm_smooth(Q,U,s,dtype);
         spm_progress_bar('Set',i);
 end
@@ -88,6 +101,6 @@ P  = varargin{1}.data;
 vf = cell(size(P));
 for i=1:numel(P),
     [pth,nam,ext,num] = spm_fileparts(P{i});
-    vf{i} = fullfile(pth,['s', nam, ext, num]);
+    vf{i} = fullfile(pth,[varargin{1}.prefix nam ext num]);
 end;
 

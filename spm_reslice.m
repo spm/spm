@@ -35,6 +35,8 @@ function spm_reslice(P,flags)
 %                        necessary to resample it.
 %                  2   - reslice all the images.
 %
+%         prefix - prefix for resliced images. Defaults to 'r'.
+%
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'r'.
 %             They are all aligned with the first.
@@ -90,11 +92,12 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 1020 2007-12-06 20:20:31Z john $
+% $Id: spm_reslice.m 1113 2008-01-21 13:26:43Z volkmar $
 
 
 
-def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]');
+def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]',...
+                   'prefix','r');
 if nargin < 2,
 	flags = def_flags;
 else,
@@ -148,6 +151,8 @@ function reslice_images(P,flags)
 %         wrap - three values of either 0 or 1, representing wrapping in each of
 %                the dimensions.  For fMRI, [1 1 0] would be used.  For PET, it would
 %                be [0 0 0].
+%
+%         prefix - prefix for resliced images. Defaults to 'r'.
 %
 %             The spatially realigned images are written to the orginal
 %             subdirectory with the same filename but prefixed with an 'r'.
@@ -236,7 +241,7 @@ for i = 1:prod(size(P)),
 		if write_vol,
 			VO         = P(i);
 			[pth,nm,xt,vr] = fileparts(deblank(P(i).fname));
-			VO.fname   = fullfile(pth,['r' nm xt vr]);
+			VO.fname   = fullfile(pth,[flags.prefix nm xt vr]);
 			VO.dim     = P(1).dim(1:3);
 			VO.dt      = P(i).dt;
 			VO.pinfo   = P(i).pinfo;
