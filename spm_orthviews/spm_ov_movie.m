@@ -17,7 +17,7 @@ function ret = spm_ov_movie(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m 1017 2007-12-03 12:53:03Z volkmar $
+% @(#) $Id: spm_ov_movie.m 1112 2008-01-21 13:03:37Z volkmar $
 
 global st;
 if isempty(st)
@@ -38,10 +38,10 @@ switch cmd
   case 'context_menu'  
     item0 = uimenu(varargin{3}, 'Label', 'Movie tool');
     item1 = uimenu(item0, 'Label', 'Run', 'Callback', ...
-	['feval(''spm_ov_movie'',''context_init'', ', ...
-	  num2str(volhandle), ');'], 'Tag', ['MOVIE_0_', num2str(volhandle)]);
+                   sprintf('%s(''context_init'', %d);', mfilename, volhandle), ...
+                   'Tag', ['MOVIE_0_', num2str(volhandle)]);
     item1 = uimenu(item0, 'Label', 'Help', 'Callback', ...
-	  ['feval(''spm_help'',''' mfilename ''');']);
+                   sprintf('spm_help('' %s '');', mfilename));
 
   case 'context_init'
     Finter = spm_figure('FindWin', 'Interactive');

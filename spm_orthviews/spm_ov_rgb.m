@@ -11,9 +11,9 @@ function ret = spm_ov_rgb(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_rgb.m 591 2006-08-14 11:06:49Z volkmar $
+% @(#) $Id: spm_ov_rgb.m 1112 2008-01-21 13:03:37Z volkmar $
 
-rev = '$Revision: 591 $';
+rev = '$Revision: 1112 $';
 
 global st;
 if isempty(st)
@@ -34,10 +34,10 @@ switch cmd
   case 'context_menu'  
     item0 = uimenu(varargin{3}, 'Label', 'RGB overlays');
     item1 = uimenu(item0, 'Label', 'Add', 'Callback', ...
-	['feval(''spm_ov_rgb'',''context_init'', ', ...
-	  num2str(volhandle), ');'], 'Tag', ['RGB_0_', num2str(volhandle)]);
+                   sprintf('%s(''context_init'', %d);', mfilename, volhandle), ...
+                   'Tag',['RGB_0_', num2str(volhandle)]);
     item1 = uimenu(item0, 'Label', 'Help', 'Callback', ...
-	  ['feval(''spm_help'',''' mfilename ''');']);
+                   sprintf('spm_help(''%s'');', mfilename));
     
   case 'context_init'
     Finter = spm_figure('FindWin', 'Interactive');

@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 640 2006-09-29 09:53:58Z volkmar $
+% $Id: spm_ov_reorient.m 1112 2008-01-21 13:03:37Z volkmar $
 
-rev = '$Revision: 640 $';
+rev = '$Revision: 1112 $';
 
 global st;
 if isempty(st)
@@ -46,7 +46,7 @@ switch cmd
 		 'Tag', ['REORIENT_1_', num2str(volhandle)], ...
 		 'Visible', 'off');
   item1 = uimenu(item0, 'Label', 'Help', 'Callback', ...
-                 ['feval(''spm_help'',''' mfilename ''');']);
+                 sprintf('spm_help(''%s '');', mfilename));
   ret = item0;
   
  case 'context_init'
