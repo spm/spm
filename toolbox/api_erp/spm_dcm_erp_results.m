@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_dcm_erp_results.m 1114 2008-01-21 19:12:51Z cc $
 
 
 % get figure handle
@@ -85,7 +85,7 @@ case{lower('Data')}
             %--------------------------------------------------------------
             subplot(nt,2,(i - 1)*2 + 2)
             imagesc([1:ne],t,R*xY.xy{i})
-            xlabel('time (ms)')
+            xlabel('channels');ylabel('peri-stimulus time (ms)')
             try
                 title(sprintf('Observed response (code:%i)',xY.code(i)))
             catch
