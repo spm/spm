@@ -98,10 +98,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: spm_slice_timing.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_slice_timing.m 1117 2008-01-23 16:23:37Z guillaume $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 1113 $');
+SPMid = spm('FnBanner',mfilename,'$Rev: 1117 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
@@ -187,7 +187,6 @@ for subj = 1:nsubjects
 		for k=1:nimgo,
 			[pth,nm,xt,vr] = fileparts(deblank(Vin(k).fname));
 			Vout(k).fname  = fullfile(pth,[prefix nm xt vr]);
-                        Vout(k).pinfo(1:2,:) = Inf;
 			if isfield(Vout(k),'descrip'),
 				desc = [Vout(k).descrip ' '];
 			else,
