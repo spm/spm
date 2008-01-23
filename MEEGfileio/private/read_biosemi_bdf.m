@@ -30,6 +30,17 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_biosemi_bdf.m,v $
+% Revision 1.4  2007/10/01 13:44:21  roboos
+% changed a detail in the calibration (in case of one channel the output would remain sparse)
+%
+% Revision 1.3  2007/09/13 09:52:20  roboos
+% removed section of code regarding idx1/2/3 which was slow but unneeded
+% avoid confusion between EDF and hdr.orig
+% implemented much faster reading for a single channel (efficient when reading status channel)
+%
+% Revision 1.2  2007/09/12 12:52:09  roboos
+% calibrate the data
+%
 % Revision 1.1  2006/02/01 08:18:48  roboos
 % new implementation, based on some EEGLAB code and a mex file for the binary part of the data
 %
@@ -177,19 +188,6 @@ if nargin==1
   end;
 
   EDF.AS.spb = sum(EDF.SPR);	% Samples per Block
-  bi=[0;cumsum(EDF.SPR)];
-
-  idx=[];idx2=[];
-  for k=1:EDF.NS,
-    idx2=[idx2, (k-1)*max(EDF.SPR)+(1:EDF.SPR(k))];
-  end;
-  maxspr=max(EDF.SPR);
-  idx3=zeros(EDF.NS*maxspr,1);
-  for k=1:EDF.NS, idx3(maxspr*(k-1)+(1:maxspr))=bi(k)+ceil((1:maxspr)'/maxspr*EDF.SPR(k));end;
-
-  %EDF.AS.bi=bi;
-  EDF.AS.IDX2=idx2;
-  %EDF.AS.IDX3=idx3;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % convert the header to Fieldtrip-style
@@ -201,9 +199,9 @@ if nargin==1
   hdr.nChans      = EDF.NS;
   hdr.label       = cellstr(EDF.Label);
   % it is continuous data, therefore append all records in one trial
-  hdr.nSamples    = EDF.Dur * EDF.SampleRate(1);
+  hdr.nTrials     = 1;
+  hdr.nSamples    = EDF.NRec * EDF.Dur * EDF.SampleRate(1);
   hdr.nSamplesPre = 0;
-  hdr.nTrials     = EDF.NRec;
   hdr.orig        = EDF;
 
   % return the header
@@ -213,26 +211,39 @@ else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % read the data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if nargin<5
-    chanindx = 1:hdr.nChans;
-  end
-
+  % retrieve the original header
+  EDF = hdr.orig;
+  
   % determine the trial containing the begin and end sample
-  epochlength = hdr.nSamples;
+  epochlength = EDF.Dur * EDF.SampleRate(1);
   begepoch    = floor((begsample-1)/epochlength) + 1;
   endepoch    = floor((endsample-1)/epochlength) + 1;
   nepochs     = endepoch - begepoch + 1;
-  dat         = zeros(length(chanindx),nepochs*epochlength);
+  nchans      = EDF.NS;
+  
+  if nargin<5
+    chanindx = 1:nchans;
+  end
+
+  % allocate memory to hold the data
+  dat = zeros(length(chanindx),nepochs*epochlength);
 
   % read and concatenate all required data epochs
   for i=begepoch:endepoch
-    % FIXME: this can be implemented more efficient if only one channel has to be read
-    offset = hdr.orig.HeadLen + (i-1)*hdr.nSamples*hdr.nChans*3;
-    % NOTE: this is the only difference between the bdf and edf implementation
-    % buf  = read_16bit(filename, offset, hdr.nSamples*hdr.nChans);
-    buf    = read_24bit(filename, offset, hdr.nSamples*hdr.nChans);
-    buf    = reshape(buf, hdr.nSamples, hdr.nChans);
-    dat(:,((i-begepoch)*epochlength+1):((i-begepoch+1)*epochlength)) = buf(:,chanindx)';
+    offset = EDF.HeadLen + (i-1)*epochlength*nchans*3;
+    if length(chanindx)==1
+      % this is more efficient if only one channel has to be read, e.g. the status channel
+      offset = offset + (chanindx-1)*epochlength*3;
+      buf = read_24bit(filename, offset, epochlength);
+      dat(:,((i-begepoch)*epochlength+1):((i-begepoch+1)*epochlength)) = buf;
+    else
+      % read the data from all channels and then select the desired channels
+      buf = read_24bit(filename, offset, epochlength*nchans);
+      % this would be the only difference between the bdf and edf implementation
+      % buf = read_16bit(filename, offset, epochlength*nchans);
+      buf = reshape(buf, epochlength, nchans);
+      dat(:,((i-begepoch)*epochlength+1):((i-begepoch+1)*epochlength)) = buf(:,chanindx)';
+    end
   end
 
   % select the desired samples
@@ -240,5 +251,14 @@ else
   endsample = endsample - (begepoch-1)*epochlength;  % correct for the number of bytes that were skipped
   dat = dat(:, begsample:endsample);
 
-  % FIXME: calibrate the data
+  % Calibrate the data
+  if length(chanindx)>1
+    % using a sparse matrix speeds up the multiplication
+    calib = sparse(diag(EDF.Cal(chanindx,:)));
+    dat   = calib * dat;
+  else
+    % in case of one channel the calibration would result in a sparse array
+    calib = diag(EDF.Cal(chanindx,:));
+    dat   = calib * dat;
+  end
 end

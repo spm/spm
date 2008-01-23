@@ -23,6 +23,15 @@ function [varargout] = read_plexon_nex(filename, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_plexon_nex.m,v $
+% Revision 1.7  2007/10/08 12:59:51  roboos
+% give error if no channels present
+%
+% Revision 1.6  2007/07/19 14:41:56  roboos
+% changed indentation and whitespace
+%
+% Revision 1.5  2007/07/19 08:49:34  roboos
+% only give error for multiple continuous segments if specific samples were requested
+%
 % Revision 1.4  2007/03/26 12:42:20  roboos
 % implemented tsonly option to read only the timestamps
 % implemented the selection of begin and endsample for continuous channels
@@ -77,6 +86,9 @@ if isempty(hdr)
   % sizeof(NexFileHeader) = 544
   % sizeof(NexVarHeader) = 208
   hdr.FileHeader = NexFileHeader(fid);
+  if hdr.FileHeader.NumVars<1
+    error('no channels present in file');
+  end
   hdr.VarHeader = NexVarHeader(fid, hdr.FileHeader.NumVars);
 end
 
@@ -116,9 +128,9 @@ for i=1:length(channel)
       % Continuously recorded variables
       buf.ts   = fread(fid, [1 vh.Count], 'int32=>int32');
       buf.indx = fread(fid, [1 vh.Count], 'int32=>int32');
-        if vh.Count>1
-          error('multiple continuous segments are not supported');
-        end
+      if vh.Count>1 && (begsample~=1 || endsample~=inf)
+        error('reading selected samples from multiple AD segments is not supported');
+      end
       if ~tsonly
         numsample = min(endsample - begsample + 1, vh.NPointsWave);
         fseek(fid, (begsample-1)*2, 'cof');

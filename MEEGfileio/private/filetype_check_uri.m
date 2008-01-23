@@ -3,9 +3,11 @@ function varargout = filetype_check_uri(filename, ftyp)
 % FILETYPE_CHECK_URI
 %
 % Supported URIs are
+%   shm://<filename>
 %   fifo://<filename>
 %   tcpsocket://<host>:<port>
 %   mysql://<user>:<password>@<host>:<port>
+%   rfb://<password>@<host>:<port>
 %   serial:<port>?key1=value1&key2=value2&...
 %
 % The URI schemes supproted by these function are not the official schemes.
@@ -17,6 +19,15 @@ function varargout = filetype_check_uri(filename, ftyp)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: filetype_check_uri.m,v $
+% Revision 1.5  2007/11/07 10:45:56  roboos
+% made port optional for mysql
+%
+% Revision 1.4  2007/10/15 16:02:46  roboos
+% added rfb://<password>@<host>:<port>
+%
+% Revision 1.3  2007/07/27 12:18:50  roboos
+% added ctf_shm
+%
 % Revision 1.2  2007/06/19 11:13:59  chrhes
 % small change in how the serial port case is processed to allow for the
 % possibility of no options being passed
@@ -38,6 +49,15 @@ if nargin>1
 else
   % return the full details of this URI scheme
   switch scheme
+    case 'shm'
+      % shm://<filename>
+      % the filename is optional, usually it can and will be read from shared memory 
+      if length(filename)>6
+        varargout{1} = filename(7:end);
+      else
+        varargout{1} = [];
+      end
+
     case 'fifo'
       % fifo://<filename>
       varargout{1} = filename(8:end);
@@ -48,6 +68,14 @@ else
       varargout{1} = tok{1};
       varargout{2} = str2num(tok{2});
 
+    case 'rfb'
+      % rfb://<password>@<host>:<port>
+      tok0 = tokenize(filename(7:end), '@');
+      tok1 = tokenize(tok0{2}, ':');
+      varargout{1} = tok0{1};
+      varargout{2} = tok1{1};
+      varargout{3} = str2num(tok1{2});
+
     case 'mysql'
       % mysql://<user>:<password>@<host>:<port>
       tok0 = tokenize(filename(9:end), '@');
@@ -56,7 +84,11 @@ else
       varargout{1} = tok1{1};
       varargout{2} = tok1{2};
       varargout{3} = tok2{1};
-      varargout{4} = str2num(tok2{2});
+      if length(tok2)>1
+        varargout{4} = str2num(tok2{2});
+      else
+        varargout{4} = [];
+      end
 
     case 'serial'
       % serial:<Port>?key1=value1&key2=value2&... 

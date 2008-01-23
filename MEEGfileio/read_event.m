@@ -11,6 +11,9 @@ function [event] = read_event(filename, varargin)
 % Additional options should be specified in key-value pairs and can be
 %   'eventformat'   string
 %   'header'        structure, see READ_HEADER
+% Furthermore, you can specify optional arguments as key-value pairs for
+% filtering the events, e.g. to select only events of a specific type. See
+% FILTER_EVENT for more details.
 %
 % This function returns an event structure with the following fields
 %   event.type      string
@@ -19,7 +22,7 @@ function [event] = read_event(filename, varargin)
 %   event.offset    expressed in samples
 %   event.duration  expressed in samples
 %
-% Type and sample fields are always defined, other fields can be empty,
+% The event type and sample fields are always defined, other fields can be empty,
 % depending on the type of event file. Events are sorted by the sample on
 % which they occur. After reading the event structure, you can use the
 % following tricks to extract information about those events in which you
@@ -38,11 +41,96 @@ function [event] = read_event(filename, varargin)
 %   t=26; samples_trials = [event(find(strcmp('trial', {event.type}))).sample];
 %   find([event.sample]>samples_trials(t) & [event.sample]<samples_trials(t+1))
 %
-% See also READ_HEADER, READ_DATA, WRITE_DATA, WRITE_EVENT
+% See also READ_HEADER, READ_DATA, WRITE_DATA, WRITE_EVENT, FILTER_EVENT
 
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.50  2007/12/19 15:24:37  roboos
+% fixed typo, ttl should be bin
+%
+% Revision 1.49  2007/12/19 11:25:59  roboos
+% fixed typo, added "(", thanks to Mahdi
+%
+% Revision 1.48  2007/12/19 09:29:29  roboos
+% implmenented events for neuralynx_sdma file, and merged it with the dma, ttl and bin formats
+% cleaned up the consistent handling of the ttl values for dma, ttl and bin formats
+%
+% Revision 1.47  2007/12/18 16:57:35  roboos
+% use value=trigger instead of ttl (which was a change in the previous commit) to avoid breaking Thilo's scripts
+%
+% Revision 1.46  2007/12/18 16:51:34  roboos
+% added some filtering options
+% some minor changes to neuralynx_nev, related to the changes in teh low level function
+% added support for neuralynx_bin, which is treated similar as ttl and dma
+%
+% Revision 1.45  2007/12/17 12:59:52  roboos
+% reimplemented the event detection for ttl and dma after discussion with Thilo, also merged the two implementations
+%
+% Revision 1.44  2007/12/17 08:24:28  roboos
+% added support for nexstim_nxe, thanks to Vladimir
+% the low-level code has not been tested by myself
+%
+% Revision 1.43  2007/12/12 16:51:07  roboos
+% made a faster implementation for a nev file inside a neuralynx_ds dataset directory, but strings are not supported any more
+%
+% Revision 1.42  2007/12/12 11:29:06  roboos
+% chedk for presence of timestamp prior to trying to concatenate events
+%
+% Revision 1.41  2007/12/12 11:10:55  roboos
+% moved declaration of global variable to the begin of the function
+%
+% Revision 1.40  2007/12/12 11:09:22  roboos
+% added selective reading of events for some files (dma, ttl, bdf, 4d, ctf partially)
+%
+% Revision 1.39  2007/11/07 10:49:06  roboos
+% cleaned up the reading and writing from/to mysql database, using db_xxx helper functions (see mysql directory)
+%
+% Revision 1.38  2007/11/05 17:02:07  roboos
+% some cosmetic changes, nothing functional
+%
+% Revision 1.37  2007/10/16 12:34:12  roboos
+% use recursion to read from multiple event sources
+% implemented fcdc_global
+%
+% Revision 1.36  2007/10/02 16:07:13  roboos
+% fixed conversion of negative status values and reasignment of bit24 (thanks to Philip)
+%
+% Revision 1.35  2007/10/02 09:28:06  roboos
+% removed teh double rtepresentatino of trigger for bdf, since STATUS is also good enough
+%
+% Revision 1.34  2007/10/02 09:13:43  roboos
+% biosemi_bdf: make sure that the sign bit is propperly re-inserted as bit24 for the status channel
+%
+% Revision 1.33  2007/10/01 13:43:21  roboos
+% reimplemented the biosemi bdf trigger detection, now also for the status bits
+%
+% Revision 1.32  2007/09/13 09:49:34  roboos
+% moved declaration of persistent variale to beginning
+% added inactive piece of code for bdf (see NICI version)
+%
+% Revision 1.31  2007/08/21 17:00:57  chrhes
+% updated some documentation, removed the commented-out section of code to do
+% with the event filtering options; these are used "as is" in the call to
+% FILTER_EVENT at the end of the function
+%
+% Revision 1.30  2007/08/01 12:24:22  roboos
+% added filename as argument to read_shm_event, added comments, disabled unused 
+% keyval filtering arguments
+%
+% Revision 1.29  2007/08/01 09:57:01  roboos
+% moved all code related to ctf shared memory to seperate functions
+%
+% Revision 1.28  2007/07/30 12:14:59  roboos
+% updated documentation for filtering
+% implemented filtering for ctf_shm
+%
+% Revision 1.27  2007/07/27 12:17:20  roboos
+% fixed big in ctf raw trigger channel, which caused a trigger with value=1 not 
+% to be detected implemented support for ctf_shm
+% reuse the file header if specified as optional input argument and do not read 
+% again
+%
 % Revision 1.26  2007/07/04 13:20:51  roboos
 % added support for egi_egis/egia, thanks to Joseph Dien
 %
@@ -63,7 +151,8 @@ function [event] = read_event(filename, varargin)
 %
 % Revision 1.21  2007/06/11 13:52:24  roboos
 % split the event reading from neuralynx_dma and neuralynx_ttl
-% read timestamps from tsl/tsh files, optionally use pre-specified header to correct the sample numbers
+% read timestamps from tsl/tsh files, optionally use pre-specified header to 
+% correct the sample numbers
 %
 % Revision 1.20  2007/06/07 12:44:28  chrhes
 % updated some documentation
@@ -88,28 +177,33 @@ function [event] = read_event(filename, varargin)
 %
 % Revision 1.13  2006/12/13 15:40:10  roboos
 % renamed Parallel_in into ttl for neuralynx_dma
-% renamed the function read_neuralynx_event into read_neuralynx_nev (consistent with the file extension)
+% renamed the function read_neuralynx_event into read_neuralynx_nev (consistent 
+% with the file extension)
 %
 % Revision 1.12  2006/12/04 10:37:27  roboos
 % added support for ns_avg
 %
 % Revision 1.11  2006/09/18 21:51:38  roboos
-% implemented support for fcdc_matbin, i.e. a dataset consisting of a matlab file with header and events and a seperate binary datafile
+% implemented support for fcdc_matbin, i.e. a dataset consisting of a matlab 
+% file with header and events and a seperate binary datafile
 %
 % Revision 1.10  2006/09/18 14:22:54  roboos
 % implemented support for 4D-BTi dataformat
 %
 % Revision 1.9  2006/08/28 10:13:03  roboos
-% use seperate filetype_check_extension function instead of subfunction, removed subfunction
+% use seperate filetype_check_extension function instead of subfunction, removed 
+% subfunction
 %
 % Revision 1.8  2006/07/26 07:51:33  roboos
-% fixed bug for brainvision_vmrk in case second field is empty (thanks to Stephan Bickel)
+% fixed bug for brainvision_vmrk in case second field is empty (thanks to 
+% Stephan Bickel)
 %
 % Revision 1.7  2006/06/26 08:46:37  roboos
 % read stim channels from CTF as continuous
 %
 % Revision 1.6  2006/06/22 07:54:34  roboos
-% do not read the complete data for ns_cnt but only the header (includes the events), thanks to Gijs
+% do not read the complete data for ns_cnt but only the header (includes the 
+% events), thanks to Gijs
 %
 % Revision 1.5  2006/06/20 11:23:00  roboos
 % fixed bug for ctf, sensSype was moved to hdr.orig
@@ -132,11 +226,32 @@ function [event] = read_event(filename, varargin)
 % changed compared to the read_fcdc_xxx versions.
 %
 
-% TODO make read_header optional, depends on hdr being passed
+global event_queue        % for fcdc_global
+persistent db_blob        % for fcdc_mysql
+if isempty(db_blob)
+  db_blob = 0;
+end
 
+if iscell(filename)
+  % use recursion to read from multiple event sources
+  event = [];
+  for i=1:numel(filename)
+    tmp   = read_event(filename{i}, varargin{:});
+    event = catevent(event(:), tmp(:));
+  end
+  return
+end
+    
 % get the options
-eventformat = keyval('eventformat',  varargin);
-hdr         = keyval('header',  varargin);
+eventformat = keyval('eventformat', varargin);
+hdr         = keyval('header',      varargin);
+% this allows to read only events in a certain range, supported for selected data formats only
+flt_type         = keyval('type',         varargin);  
+flt_value        = keyval('value',        varargin);  
+flt_minsample    = keyval('minsample',    varargin);  
+flt_maxsample    = keyval('maxsample',    varargin);
+flt_mintimestamp = keyval('mintimestamp', varargin);  
+flt_maxtimestamp = keyval('maxtimestamp', varargin);
 
 % determine the filetype
 if isempty(eventformat)
@@ -165,10 +280,13 @@ event = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch eventformat
 
+  case 'fcdc_global'
+    event = event_queue;
+
   case {'4d_pdf', '4d_m4d', '4d_xyz'}
-    % check that the required low-level toolbox is available
-    hastoolbox('4d-version', 1);
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     % add the trials to the event structure
     for i=1:hdr.nTrials
       event(end+1).type     = 'trial';
@@ -177,8 +295,19 @@ switch eventformat
       event(end  ).offset   = -hdr.nSamplesPre;
       event(end  ).duration = hdr.nSamples;
     end
+    % specify the range to search for triggers, default is the complete file
+    if ~isempty(flt_minsample)
+      begsample = flt_minsample;
+    else
+      begsample = 1;
+    end
+    if ~isempty(flt_maxsample)
+      endsample = flt_maxsample;
+    else
+      endsample = hdr.nSamples*hdr.nTrials;
+    end
     % read the data from the trigger channel
-    dat = read_data(filename, 'begsample', 1, 'endsample', hdr.nSamples*hdr.nTrials, 'chanindx', hdr.orig.TriggerIndex);
+    dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', hdr.orig.TriggerIndex);
     for i=1:size(dat,1)
       % detect the flanks in the trigger channel
       % FIXME the trigger channel looks a bit sloppy, i.e. not really sharp transitions
@@ -187,7 +316,7 @@ switch eventformat
       trig = dat(indx);
       for j=1:length(trig)
         event(end+1).type     = hdr.label{hdr.orig.TriggerIndex(i)};
-        event(end  ).sample   = indx(j);
+        event(end  ).sample   = indx(j) + begsample - 1;
         event(end  ).value    = trig(j);
         event(end  ).offset   = 0;
         event(end  ).duration = 0;
@@ -195,7 +324,9 @@ switch eventformat
     end
 
   case {'besa_avr', 'besa_swf'}
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     event(end+1).type     = 'average';
     event(end  ).sample   = 1;
     event(end  ).duration = hdr.nSamples;
@@ -203,36 +334,79 @@ switch eventformat
     event(end  ).value    = [];
 
   case {'biosemi_bdf', 'bham_bdf'}
-    % this uses the openbdf and readbdf functions that I copied from the EEGLAB toolbox
-    % For reference, here are the events logged in the most significant byte of the Status channel in ActiveTwo:
-    % Bit 16 is set high at the beginning of a new "epoch".
-    % Bits 17-19 can be ignored.
-    % Bit 20 encodes the "CM in range" status.   It's a long story, but it essentially tells the user whether the data they are measuring are real data or just noise.  If CM is in range, bit 20 is high; if CM is out of range, bit 20 is low.
-    % Bit 21 can be ignored.
-    % Bit 22 is high when the battery is low.
-    % Bit 23 can be ignored.
-    hdr   = read_header(filename);
+    % read the header, required to determine the stimulus channels and trial specification
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
+    % specify the range to search for triggers, default is the complete file
+    if ~isempty(flt_minsample)
+      begsample = flt_minsample;
+    else
+      begsample = 1;
+    end
+    if ~isempty(flt_maxsample)
+      endsample = flt_maxsample;
+    else
+      endsample = hdr.nSamples*hdr.nTrials;
+    end
+    % find the STATUS channel and read the values from it
     schan = find(strcmp(upper(hdr.label),'STATUS'));
-    sdata = read_data(filename, hdr, 1, hdr.nTrials*hdr.nSamples, schan);
+    sdata = read_data(filename, hdr, begsample, endsample, schan);
+
+    % find indices of negative numbers
+    bit24i = find(sdata < 0);
+    % make number positive and preserve bits 0-22
+    sdata(bit24i) = bitcmp(abs(sdata(bit24i))-1,24);
+    % re-insert the sign bit on its original location, i.e. bit24 
+    sdata(bit24i) = sdata(bit24i)+(2^(24-1));
+    % typecast the data to ensure that the status channel is represented in 32 bits
+    sdata = uint32(sdata);        
+    
     byte1 = 2^8  - 1;
     byte2 = 2^16 - 1 - byte1;
     byte3 = 2^24 - 1 - byte1 - byte2;
-    if any(sdata<0)
-      % the sign bit appears to be set, but I don't know how to interpret it
-      sdata = abs(sdata);
+
+    % get the respective status and trigger bits
+    trigger = bitand(sdata, bitor(byte1, byte2)); %  contained in the lower two bytes
+    epoch   = int8(bitget(sdata, 16+1));
+    cmrange = int8(bitget(sdata, 20+1));
+    battery = int8(bitget(sdata, 22+1));
+
+    % determine when the respective status bits go up or down
+    flank_trigger = diff([0 trigger]);
+    flank_epoch   = diff([0 epoch ]);
+    flank_cmrange = diff([0 cmrange]);
+    flank_battery = diff([0 battery]);
+
+    for i=find(flank_trigger>0)
+      event(end+1).type   = 'STATUS';
+      event(end  ).sample = i + begsample - 1;
+      event(end  ).value  = double(trigger(i));
     end
-    sdata_byte1 = bitand(sdata, byte1);  % mask one byte
-    sdata_byte2 = bitand(sdata, byte2);  % mask one byte
-    sdata_byte3 = bitand(sdata, byte3);  % mask one byte
-    % the lowest byte contains the interesting trigger codes
-    % find the samples with an upgoing flank
-    trig = find(diff([0 sdata_byte1])>0);
-    for i=1:length(trig)
-      event(end+1).type     ='STATUS';
-      event(end  ).sample   = trig(i);
-      event(end  ).value    = sdata_byte1(trig(i));
-      event(end  ).offset   = [];
-      event(end  ).duration = [];
+
+    for i=find(flank_epoch==1)
+      event(end+1).type   = 'Epoch';
+      event(end  ).sample = i;
+    end
+
+    for i=find(flank_cmrange==1)
+      event(end+1).type   = 'CM_in_range';
+      event(end  ).sample = i;
+    end
+
+    for i=find(flank_cmrange==-1)
+      event(end+1).type   = 'CM_out_of_range';
+      event(end  ).sample = i;
+    end
+
+    for i=find(flank_battery==1)
+      event(end+1).type   = 'Battery_low';
+      event(end  ).sample = i;
+    end
+
+    for i=find(flank_battery==-1)
+      event(end+1).type   = 'Battery_ok';
+      event(end  ).sample = i;
     end
 
   case 'brainvision_vmrk'
@@ -290,7 +464,10 @@ switch eventformat
     classfile  = fullfile(path, [name ext], 'ClassFile.cls');
     markerfile = fullfile(path, [name ext], 'MarkerFile.mrk');
 
-    hdr = read_header(headerfile);
+    % read the header, required to determine the stimulus channels and trial specification
+    if isempty(hdr)
+      hdr = read_header(headerfile);
+    end
 
     % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
     % this splits the trigger channel into the lowers and highest 16 bits,
@@ -307,17 +484,29 @@ switch eventformat
       event(end  ).value  = frontpanel(i);
     end
 
+    % specify the range to search for triggers, default is the complete file
+    if ~isempty(flt_minsample)
+      begsample = flt_minsample;
+    else
+      begsample = 1;
+    end
+    if ~isempty(flt_maxsample)
+      endsample = flt_maxsample;
+    else
+      endsample = hdr.nSamples*hdr.nTrials;
+    end
+
     % determine the trigger channels from the header
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
       for i=find(hdr.orig.sensType(:)'==11)
         % read the trigger channel as raw data, can safely assume that it is continuous
-        trig = read_data(datafile, hdr, 1, hdr.nTrials*hdr.nSamples, i, 1);
+        trig = read_data(datafile, hdr, begsample, endsample, i, 1);
         % correct for reading it as signed integer, whereas it should be an unsigned int
         trig(find(trig<0)) = trig(find(trig<0)) + 2^32;
         % convert the trigger into an event with a value at a specific sample
-        for j=find(diff([0 trig(:)'])>1)
+        for j=find(diff([0 trig(:)'])>0)
           event(end+1).type   = hdr.label{i};
-          event(end  ).sample = j;
+          event(end  ).sample = j + begsample - 1;
           event(end  ).value  = trig(j);
         end
       end
@@ -372,11 +561,18 @@ switch eventformat
       end
     end
 
+  case 'ctf_shm'
+    % contact Robert Oostenveld if you are interested in real-time acquisition on the CTF system
+    % read the events from shared memory
+    event = read_shm_event(filename, varargin{:});
+
   case 'eep_avr'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
     % the headerfile and datafile are the same
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     event(end+1).type     = 'average';
     event(end  ).sample   = 1;
     event(end  ).duration = hdr.nSamples;
@@ -389,7 +585,9 @@ switch eventformat
     % try to read external trigger file in EEP format
     trgfile = [filename(1:(end-3)), 'trg'];
     if exist(trgfile, 'file')
-      hdr = read_header(filename);
+      if isempty(hdr)
+        hdr = read_header(filename);
+      end
       tmp = read_eep_trg(trgfile);
       % translate the EEProbe trigger codes to events
       for i=1:length(tmp)
@@ -404,7 +602,9 @@ switch eventformat
     end
 
   case 'egi_egis'
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     fhdr   = hdr.orig.fhdr;
     chdr   = hdr.orig.chdr;
     ename  = hdr.orig.ename;
@@ -424,7 +624,9 @@ switch eventformat
     end
 
   case 'egi_egia'
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     fhdr   = hdr.orig.fhdr;
     chdr   = hdr.orig.chdr;
     ename  = hdr.orig.ename;
@@ -500,47 +702,18 @@ switch eventformat
     % FIXME: this currently assumes that all messages are terminated by the
     % "newline" character (ascii character 10)
     try
-      msg = fscanf(s,'%s\n'); 
+      msg = fscanf(s,'%s\n');
     end;
     % convert message to event structure
     event = msg2struct(msg);
-    
-  case 'fcdc_mysql'
-    persistent prev_filename
-    % read from a MySQL server listening somewhere else on the network
-    % there should be a database named 'fieldtrip' containing the table named 'event'
-    [user, passwd, host, port] = filetype_check_uri(filename);
-    if ~strcmp(filename, prev_filename)
-      % close the database
-      mysql('close');
-      prev_filename = [];
-    end
-    if ~strcmp(filename, prev_filename)
-      % open the database
-      [user, password, server, port] = filetype_check_uri(filename);
-      if ~isempty(port)
-        server = sprintf('%s:%d', server, port);
-      end
-      try
-        mysql('open', server, user, password);
-        prev_filename = filename;
-      catch
-        prev_filename = [];
-      end
-    end
-    cmd = 'SELECT data FROM fieldtrip.event LIMIT 1,1'; % read only the first event
-    cmd = 'SELECT data FROM fieldtrip.event';           % read all events
-    [data] = mysql(cmd);
 
-    % convert the message back into an event structure
-    if length(data)>0
-      event = msg2struct(data{1});
+  case 'fcdc_mysql'
+    % read from a MySQL server listening somewhere else on the network
+    db_open(filename);
+    if db_blob
+      event = db_select_blob('fieldtrip.event', 'msg');
     else
-      event = [];
-    end
-    % also add the subsequent events to the structure array
-    for i=2:length(data)
-      event(i) = msg2struct(data{i});
+      event = db_select('fieldtrip.event', {'type', 'value', 'sample', 'offset', 'duration'});
     end
 
   case 'matlab'
@@ -549,7 +722,9 @@ switch eventformat
     event = tmp.event;
 
   case {'mpi_ds', 'mpi_dap'}
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     % determine the DAP files that compromise this dataset
     if isdir(filename)
       ls = dir(filename);
@@ -584,7 +759,9 @@ switch eventformat
   case 'neuromag_fif'
     % check that the required low-level toolbox is available
     hastoolbox('meg-pd', 1);
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     % add the trials to the event structure
     for i=1:hdr.nTrials
       event(end+1).type     = 'trial';
@@ -672,90 +849,141 @@ switch eventformat
       end % if length(stimindx)
     end
 
-  case 'neuralynx_dma'
-    hdr = read_header(filename);
-    % read the Parallel_in channel from the DMA log file
-    stim = read_neuralynx_dma(filename, 1, hdr.nSamples, 'ttl');
-    % parallel port provides int32, but word resolution is int16
-    stim = stim / (2^16);
-    % detect flanks: first sample of all changing values staying >0 for at least trigDuration samples
-    trigDuration = round(max([1 floor(hdr.Fs/10000)]));  % three samples works fine for 32556Hz, i.e. ~32556/10000
-    flanksAll = find([0 (diff(stim)~=0)]~=0);
-    flankInds = find(([0 diff(flanksAll)>trigDuration]>0));
-    flanks = flanksAll(flankInds-1);
-    nev = flanks(stim(flanks)>0);
-    for i=1:length(nev)
-      event(end+1).type     = 'trigger';
-      event(end  ).sample   =      nev(i) ;  % expressed in the sampling frequency of the dma or ttl file
-      event(end  ).value    = stim(nev(i));
-      event(end  ).offset   = [];
-      event(end  ).duration = [];
+  case {'neuralynx_ttl' 'neuralynx_bin' 'neuralynx_dma' 'neuralynx_sdma'}
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
+    
+    % specify the range to search for triggers, default is the complete file
+    if ~isempty(flt_minsample)
+      begsample = flt_minsample;
+    else
+      begsample = 1;
+    end
+    if ~isempty(flt_maxsample)
+      endsample = flt_maxsample;
+    else
+      endsample = hdr.nSamples*hdr.nTrials;
     end
 
-  case 'neuralynx_ttl'
-    % read the header from the file (this is actually hardcoded)
-    hdrttl = read_header(filename);
-    % read the Parallel_in channel from a seperate *.ttl file
-    stim = read_neuralynx_ttl(filename, 1, inf);
-    % parallel port provides int32, but word resolution is int16
-    stim = stim / (2^16);
-    % detect flanks: first sample of all changing values staying >0 for at least trigDuration samples
-    trigDuration = round(max([1 floor(hdrttl.Fs/10000)]));  % three samples works fine for 32556Hz, i.e. ~32556/10000
-    flanksAll = find([0 (diff(stim)~=0)]~=0);
-    flankInds = find(([0 diff(flanksAll)>trigDuration]>0));
-    flanks = flanksAll(flankInds-1);
-    nev = flanks(stim(flanks)>0);
-    for i=1:length(nev)
-      event(end+1).type     = 'trigger';
-      event(end  ).sample   =      nev(i) ;  % expressed in the sampling frequency of the dma or ttl file
-      event(end  ).value    = stim(nev(i));
-      event(end  ).offset   = [];
-      event(end  ).duration = [];
-    end
-
-    [p, f, x] = fileparts(filename);
-    if exist(fullfile(p, [f '.tsl'])) && exist(fullfile(p, [f '.tsh']))
-      smp = cell2mat({event.sample});
-      tsl = read_neuralynx_tsl(fullfile(p, [f '.tsl']), 1, max(smp));
-      tsl = tsl(smp);
-      tsh = read_neuralynx_tsh(fullfile(p, [f '.tsh']), 1, max(smp));
-      tsh = tsh(smp);
-      ts  = timestamp_neuralynx(tsl, tsh);
-      for i=1:length(event)
-        event(i).timestamp = ts(i);
+    if strcmp(eventformat, 'neuralynx_dma')
+      % read the Parallel_in channel from the DMA log file
+      ttl = read_neuralynx_dma(filename, begsample, endsample, 'ttl');
+    elseif strcmp(eventformat, 'neuralynx_sdma')
+      % determine the seperate files with the trigger and timestamp information
+      [p, f, x] = fileparts(filename);
+      ttlfile = fullfile(filename, [f '.ttl.bin']);
+      tslfile = fullfile(filename, [f '.tsl.bin']);
+      tshfile = fullfile(filename, [f '.tsh.bin']);
+      if ~exist(ttlfile) && ~exist(tslfile) && ~exist(tshfile)
+        % perhaps it is an old splitted dma dataset?
+        ttlfile = fullfile(filename, [f '.ttl']);
+        tslfile = fullfile(filename, [f '.tsl']);
+        tshfile = fullfile(filename, [f '.tsh']);
       end
-      if ~isempty(hdr) && isfield(hdr, 'FirstTimeStamp')
-        fprintf('using sample number of the downsampled file to reposition events from the TTL file\n');
-        % convert the timestamps into samples, keeping in mind the FirstTimeStamp and TimeStampPerSample
-        smp = round(double(ts - uint64(hdr.FirstTimeStamp))./hdr.TimeStampPerSample + 1);
-        for i=1:length(event)
-          % update the sample number
-          event(i).sample = smp(i);
-        end
+      if ~exist(ttlfile) && ~exist(tslfile) && ~exist(tshfile)
+        % these files must be present in a splitted dma dataset
+        error('could not locate the individual ttl, tsl and tsh files');
+      end
+      % read the trigger values from the seperate file
+      ttl = read_neuralynx_bin(ttlfile, begsample, endsample);
+    elseif strcmp(eventformat, 'neuralynx_ttl')
+      % determine the optional files with timestamp information
+      tslfile = [filename(1:(end-4)) '.tsl'];
+      tshfile = [filename(1:(end-4)) '.tsh'];
+      % read the triggers from a seperate *.ttl file
+      ttl = read_neuralynx_ttl(filename, begsample, endsample);
+    elseif strcmp(eventformat, 'neuralynx_bin')
+      % determine the optional files with timestamp information
+      tslfile = [filename(1:(end-8)) '.tsl.bin'];
+      tshfile = [filename(1:(end-8)) '.tsh.bin'];
+      % read the triggers from a seperate *.ttl.bin file
+      ttl = read_neuralynx_bin(filename, begsample, endsample);
+    end
+
+    ttl = int32(ttl / (2^16));    % parallel port provides int32, but word resolution is int16. Shift the bits and typecast to signed integer.
+    d1  = (diff(ttl)~=0);         % determine the flanks, which can be multiple samples long (this looses one sample)
+    d2  = (diff(d1)==1);          % determine the onset of the flanks (this looses one sample)
+    smp = find(d2)+2;             % find the onset of the flanks, add the two samples again
+    val = ttl(smp+5);             % look some samples further for the trigger value, to avoid the flank
+    clear d1 d2 ttl
+    ind = find(val~=0);           % look for triggers tith a non-zero value, this avoids downgoing flanks going to zero
+    smp = smp(ind);               % discard triggers with a value of zero
+    val = val(ind);               % discard triggers with a value of zero
+
+    if ~isempty(smp)
+      % try reading the timestamps
+      if strcmp(eventformat, 'neuralynx_dma')
+        tsl = read_neuralynx_dma(filename, 1, max(smp), 'tsl');
+        tsl = tsl(smp);
+        tsh = read_neuralynx_dma(filename, 1, max(smp), 'tsh');
+        tsh = tsh(smp);
+        ts  = timestamp_neuralynx(tsl, tsh);
+      elseif exist(tslfile) && exist(tshfile)
+        tsl = read_neuralynx_dma(filename, 1, max(smp), 'tsl');
+        tsl = tsl(smp);
+        tsh = read_neuralynx_dma(filename, 1, max(smp), 'tsh');
+        tsh = tsh(smp);
+        ts  = timestamp_neuralynx(tsl, tsh);
+      else
+        ts = [];
+      end
+
+      % reformat the values as cell array, since the struct function can work with those
+      type      = repmat({'trigger'},size(smp));
+      value     = num2cell(val);
+      sample    = num2cell(smp + begsample - 1);
+      duration  = repmat({[]},size(smp));
+      offset    = repmat({[]},size(smp));
+      if ~isempty(ts)
+        value     = num2cell(ts);
+      else
+        timestamp  = repmat({[]},size(smp));
+      end
+      % convert it into a structure array, this can be done in one go
+      event = struct('type', type, 'value', value, 'sample', sample, 'timestamp', timestamp, 'offset', offset, 'duration', duration);
+      clear type value sample timestamp offset duration
+    end
+
+    if (strcmp(filetype, 'neuralynx_bin') || strcmp(filetype, 'neuralynx_ttl')) && isfield(hdr, 'FirstTimeStamp')
+      % the header was obtained from an external dataset which could be at a different sampling rate
+      % use the timestamps to redetermine the sample numbers
+      fprintf('using sample number of the downsampled file to reposition the TTL events\n');
+      % convert the timestamps into samples, keeping in mind the FirstTimeStamp and TimeStampPerSample
+      smp = round(double(ts - uint64(hdr.FirstTimeStamp))./hdr.TimeStampPerSample + 1);
+      for i=1:length(event)
+        % update the sample number
+        event(i).sample = smp(i);
       end
     end
 
   case 'neuralynx_ds'
     % read the header of the dataset
-    hdr = read_header(filename);
-    % the event file is contained in the dataset directory
-    eventfile = fullfile(filename, 'Events.Nev');
-    % read the events
-    nev = read_neuralynx_nev(eventfile);
-    for i=1:length(nev)
-      % add an event containing the string as value
-      event(end+1).type     = 'EventString';
-      event(end  ).sample   = round((nev(i).TimeStamp - hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1);
-      event(end  ).value    = nev(i).EventString;
-      event(end  ).offset   = [];
-      event(end  ).duration = [];
-      % add an event containing the TTL as value
-      event(end+1).type     = 'TTLValue';
-      event(end  ).sample   = round((nev(i).TimeStamp - hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1);
-      event(end  ).value    = nev(i).TTLValue;
-      event(end  ).offset   = [];
-      event(end  ).duration = [];
+    if isempty(hdr)
+      hdr = read_header(filename);
     end
+    % the event file is contained in the dataset directory
+    if     exist(fullfile(filename, 'Events.Nev'))
+      filename = fullfile(filename, 'Events.Nev');
+    elseif exist(fullfile(filename, 'Events.nev'))
+      filename = fullfile(filename, 'Events.nev');
+    elseif exist(fullfile(filename, 'events.Nev'))
+      filename = fullfile(filename, 'events.Nev');
+    elseif exist(fullfile(filename, 'events.nev'))
+      filename = fullfile(filename, 'events.nev');
+    end
+    % read the events, apply filter is applicable
+    nev = read_neuralynx_nev(filename, 'type', flt_type, 'value', flt_value, 'mintimestamp', flt_mintimestamp, 'maxtimestamp', flt_maxtimestamp);
+
+    % now get the values as cell array, since the struct function can work with those
+    value     = {nev.TTLValue};
+    timestamp = {nev.TimeStamp};
+    type      = repmat({'trigger'},size(value));
+    duration  = repmat({[]},size(value));
+    offset    = repmat({[]},size(value));
+    sample    = num2cell(round(double(cell2mat(timestamp) - hdr.FirstTimeStamp)/hdr.TimeStampPerSample + 1));
+    % convert it into a structure array
+    event = struct('type', type, 'value', value, 'sample', sample, 'timestamp', timestamp, 'duration', duration, 'offset', offset);
 
   case 'neuralynx_cds'
     % this is a combined Neuralynx dataset with seperate subdirectories for the LFP, MUA and spike channels
@@ -771,7 +999,9 @@ switch eventformat
     if hasttl
       eventfile = fullfile(filename, dirlist(find(filetype_check_extension({dirlist.name}, 'ttl'))).name);
       % read the header from the combined dataset
-      hdr = read_header(filename);
+      if isempty(hdr)
+        hdr = read_header(filename);
+      end
       % read the events from the *.ttl file
       event = read_event(eventfile);
       % convert the sample numbers from the dma or ttl file to the downsampled dataset
@@ -787,9 +1017,35 @@ switch eventformat
       error('no event file found');
     end
 
+%   The sample number is missingin the code below, since it is not available
+%   without looking in the continuously sampled data files. Therefore
+%   sorting the events (later in this function) based on the sample number
+%   fails and no events can be returned.
+%
+%   case 'neuralynx_nev'
+%     [nev] = read_neuralynx_nev(filename);
+%     % select only the events with a TTL value
+%     ttl = [nev.TTLValue];
+%     sel = find(ttl~=0);
+%     % now get the values as cell array, since teh struct function can work with those
+%     value     = {nev(sel).TTLValue};
+%     timestamp = {nev(sel).TimeStamp};
+%     event = struct('value', value, 'timestamp', timestamp);
+%     for i=1:length(event)
+%       % assign the other fixed elements
+%       event(i).type     = 'trigger';
+%       event(i).offset   = [];
+%       event(i).duration = [];
+%       event(i).sample   = [];
+%     end
+
+  case 'nexstim_nxe'
+    event = read_nexstim_event(filename);
+
   case 'ns_avg'
-    % check that the required low-level toolbox is available
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     event(end+1).type     = 'average';
     event(end  ).sample   = 1;
     event(end  ).duration = hdr.nSamples;
@@ -798,7 +1054,9 @@ switch eventformat
 
   case 'ns_cnt'
     % read the header, the original header includes the event table
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     % translate the event table into known FieldTrip event types
     for i=1:hdr.orig.nevent
       event(i).type     = 'trigger';
@@ -809,7 +1067,9 @@ switch eventformat
     end
 
   case 'ns_eeg'
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     for i=1:hdr.nTrials
       event(end+1).type     = 'trial';
       event(end  ).sample   = (i-1)*hdr.nSamples + 1;
@@ -831,7 +1091,9 @@ switch eventformat
   case 'yokogawa_ave'
     % check that the required low-level toolbox is available
     hastoolbox('yokogawa', 1);
-    hdr = read_header(filename);
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
     event(end+1).type     = 'average';
     event(end  ).sample   = 1;
     event(end  ).duration = hdr.nSamples;
@@ -858,7 +1120,7 @@ switch eventformat
     end
 
   otherwise
-    error('unsupported data format');
+    error('unsupported event format');
 end
 
 if ~isempty(event)
@@ -881,3 +1143,24 @@ end
 
 % apply the optional filters
 event = filter_event(event, varargin{:});
+
+function c = catevent(a, b);
+if isempty(a)
+  c = b(:);
+elseif isempty(b)
+  c = a(:);
+else
+  c = a(:);
+  for i=1:numel(b)
+    c(end+1).type     = b(i).type;
+    c(end  ).sample   = b(i).sample;
+    if isfield(b, 'timestamp')
+      c(end  ).timestamp= b(i).timestamp;
+    end
+    c(end  ).value    = b(i).value;
+    c(end  ).offset   = b(i).offset;
+    c(end  ).duration = b(i).duration;
+  end
+end
+
+

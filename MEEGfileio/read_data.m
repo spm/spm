@@ -28,6 +28,42 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.30  2007/12/17 13:03:52  roboos
+% Vladimir found and fixed some bugs pertaining to the nexstim_nxe format
+%
+% Revision 1.29  2007/12/17 08:24:28  roboos
+% added support for nexstim_nxe, thanks to Vladimir
+% the low-level code has not been tested by myself
+%
+% Revision 1.28  2007/12/12 16:50:15  roboos
+% added support for neuralynx_bin
+%
+% Revision 1.27  2007/11/07 10:49:06  roboos
+% cleaned up the reading and writing from/to mysql database, using db_xxx helper functions (see mysql directory)
+%
+% Revision 1.26  2007/11/05 17:01:42  roboos
+% added implementation for fcdc_mysql, not yet finished
+%
+% Revision 1.25  2007/09/24 15:14:02  roboos
+% fixed bug in calibration of 4D/bti data, which is different for float than for short format data files (thanks to Nathan)
+%
+% Revision 1.24  2007/09/13 09:55:42  roboos
+% use read_biosemi_bdf instead of openbdf/readbdf
+%
+% Revision 1.23  2007/08/01 12:24:40  roboos
+% updated comments
+%
+% Revision 1.22  2007/08/01 09:57:01  roboos
+% moved all code related to ctf shared memory to seperate functions
+%
+% Revision 1.21  2007/07/27 12:24:52  roboos
+% implemented support for ctf_shm
+% removed a double check for the presence of the file
+%
+% Revision 1.20  2007/07/19 14:49:21  roboos
+% switched the default reader for nex files from read_nex_data to read_plexon_nex, the old one is still supported if explicitely mentioned as data/headerformat
+% added support for multiple fragments of continuous AD data in nex files, holes are filled with NaNs
+%
 % Revision 1.19  2007/07/04 13:20:51  roboos
 % added support for egi_egis/egia, thanks to Joseph Dien
 %
@@ -95,8 +131,13 @@ function [dat] = read_data(filename, varargin);
 % changed compared to the read_fcdc_xxx versions.
 %
 
+persistent db_blob       % for fcdc_mysql
+if isempty(db_blob)
+  db_blob = 0;
+end
+
 % test whether the file or directory exists
-if ~exist(filename)
+if ~exist(filename) && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql')
   error(sprintf('file or directory ''%s'' does not exist', filename));
 end
 
@@ -209,11 +250,6 @@ if any(isinf(endsample)) && any(endsample>0)
   endsample = hdr.nSamples*hdr.nTrials;
 end
 
-% test whether the file exists
-if ~exist(filename)
-  error(sprintf('file ''%s'' does not exist', filename));
-end
-
 % test whether the requested channels can be accomodated
 if min(chanindx)<1 || max(chanindx)>hdr.nChans
   error('selected channels are not present in the data');
@@ -319,9 +355,19 @@ switch dataformat
       % select the desired channel(s)
       dat = dat(chanindx,:);
     end
+    % determine the calibrate for the data
+    switch sampletype
+      case {'short', 'long'}
+        % include both the gain values and the integer-to-double conversion in the calibration
+        calib = sparse(diag(hdr.orig.ChannelGain(chanindx) .* hdr.orig.ChannelUnitsPerBit(chanindx)));
+      case {'float', 'double'}
+        % only include the gain values in the calibration
+        calib = sparse(diag(hdr.orig.ChannelGain(chanindx)));
+      otherwise
+        error('unsupported data format');
+    end
     % calibrate the data
-    calib = sparse(diag(hdr.orig.ChannelGain(chanindx)));
-    dat   = calib*dat;
+    dat = calib*dat;
 
   case 'besa_avr'
     % BESA average data
@@ -334,6 +380,10 @@ switch dataformat
     dat  = orig.data(chanindx, begsample:endsample);
 
   case {'biosemi_bdf', 'bham_bdf'}
+    % this uses a mex file for reading the 24 bit data
+    dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
+
+  case {'biosemi_old'}
     % this uses the openbdf and readbdf functions that I copied from the EEGLAB toolbox
     epochlength = hdr.orig.Head.SampleRate(1);
     % it has already been checked in read_header that all channels have the same sampling rate
@@ -391,7 +441,8 @@ switch dataformat
       [p, f, x] = fileparts(filename);
       filename = fullfile(p, [f '.meg4']);
     end
-    % read it using the default CTF importer that originates from CTF and the FCDC
+    % read it using the default CTF importer that originates from CTF and
+    % the FCDC
     dat = read_ctf_meg4(filename, hdr.orig, begsample, endsample, chanindx);
 
   case 'ctf_read_meg4'
@@ -409,6 +460,11 @@ switch dataformat
     dat = cat(3, tmp.data{:});
     % the data is shaped in a 3-D array
     dimord = 'samples_chans_trials';
+
+  case 'ctf_shm'
+    % contact Robert Oostenveld if you are interested in real-time acquisition on the CTF system
+    % read the data from shared memory
+    [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
 
   case 'eep_avr'
     % check that the required low-level toolbos ix available
@@ -450,6 +506,23 @@ switch dataformat
     else
       % select the desired channel(s)
       dat = dat(chanindx,:);
+    end
+    
+  case 'fcdc_mysql'
+    % read from a MySQL server listening somewhere else on the network
+    db_open(filename);
+    if db_blob
+      error('not implemented');
+    else
+      for i=begtrial:endtrial
+        s = db_select('fieldtrip.data', {'nChans', 'nSamples', 'data'}, i);
+        dum{i-begtrial+1} = eval(s.data); % FIXME this is not generic
+      end
+      dat = zeros(length(chanindx), s.nSamples, endtrial-begtrial+1);
+      for i=begtrial:endtrial
+        dat(:,:,i-begtrial+1) = dum{i-begtrial+1}(chanindx,:);
+      end
+      dimord = 'chans_samples_trials';
     end
 
   case {'egi_egia', 'egi_egis'}
@@ -502,11 +575,18 @@ switch dataformat
     % single channel files
     dat = read_neuralynx_ttl(filename, begsample, endsample);
 
+  case 'neuralynx_bin'
+    % single channel files
+    dat = read_neuralynx_bin(filename, begsample, endsample);
+
   case 'neuralynx_ds'
     dat = read_neuralynx_ds(filename, hdr, begsample, endsample, chanindx);
 
   case 'neuralynx_cds'
     dat = read_neuralynx_cds(filename, hdr, begsample, endsample, chanindx);
+
+  case 'nexstim_nxe'
+    dat = read_nexstim_nxe(filename, begsample, endsample, chanindx);
 
   case 'ns_avg'
     % NeuroScan average data
@@ -569,29 +649,50 @@ switch dataformat
     dat = read_plexon_ddt(filename, begsample, endsample);
     dat = dat.data(chanindx,:);
 
-  case {'plexon_nex' 'read_nex_data'} % the default reader for NEX is read_nex_data
+  case {'read_nex_data'} % this is an alternative reader for nex files
     dat = read_nex_data(filename, hdr, begsample, endsample, chanindx);
 
-  case {'read_plexon_nex'} % this is an alternative reader for NEX files
+  case {'read_plexon_nex' 'plexon_nex'} % this is the default reader for nex files
     dat = zeros(length(chanindx), endsample-begsample+1);
     for i=1:length(chanindx)
       if hdr.orig.VarHeader(chanindx(i)).Type==5
         % this is a continuous channel
-        [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 1);
-        % determine the sample offset into this channel
-        offset     = round(double(nex.ts-hdr.FirstTimeStamp)./hdr.TimeStampPerSample);
-        chanbegsmp = begsample - offset;
-        chanendsmp = endsample - offset;
-        if chanbegsmp<1
-          % the first sample of this channel is later than the beginning of the dataset
-          % and we are trying to read the beginning of the dataset
-          [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 0, 'begsample', 1, 'endsample', chanendsmp);
-          % padd the beginning of this channel with NaNs
-          nex.dat = [nan(1,offset) nex.dat];
+        if hdr.orig.VarHeader(chanindx(i)).Count==1
+          [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 1);
+          % the AD channel contains a single fragment
+          % determine the sample offset into this fragment
+          offset     = round(double(nex.ts-hdr.FirstTimeStamp)./hdr.TimeStampPerSample);
+          chanbegsmp = begsample - offset;
+          chanendsmp = endsample - offset;
+          if chanbegsmp<1
+            % the first sample of this channel is later than the beginning of the dataset
+            % and we are trying to read the beginning of the dataset
+            [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 0, 'begsample', 1, 'endsample', chanendsmp);
+            % padd the beginning of this channel with NaNs
+            nex.dat = [nan(1,offset) nex.dat];
+          else
+            [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 0, 'begsample', chanbegsmp, 'endsample', chanendsmp);
+          end
+          % copy the desired samples into the output matrix
+          dat(i,:) = nex.dat;
         else
-          [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 0, 'begsample', chanbegsmp, 'endsample', chanendsmp);
+          % the AD channel contains multiple fragments
+          [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 0);
+          % reconstruct the full AD timecourse with NaNs at all missing samples
+          offset     = round(double(nex.ts-hdr.FirstTimeStamp)./hdr.TimeStampPerSample); % of each fragment, in AD samples
+          nsample    = diff([nex.indx length(nex.dat)]);                                 % of each fragment, in AD samples
+          % allocate memory to hold the complete continuous record
+          cnt = nan(1, offset(end)+nsample(end));
+          for j=1:length(offset)
+            cntbegsmp  = offset(j)   + 1; 
+            cntendsmp  = offset(j)   + nsample(j); 
+            fragbegsmp = nex.indx(j) + 1;
+            fragendsmp = nex.indx(j) + nsample(j);
+            cnt(cntbegsmp:cntendsmp) = nex.dat(fragbegsmp:fragendsmp);
+          end
+          % copy the desired samples into the output matrix
+          dat(i,:) = cnt(begsample:endsample);
         end
-        dat(i,:) = nex.dat;
       elseif any(hdr.orig.VarHeader(chanindx(i)).Type==[0 1 3])
         % it is a neuron(0), event(1) or waveform(3) channel and therefore it has timestamps
         [nex, chanhdr] = read_plexon_nex(filename, 'header', hdr.orig, 'channel', chanindx(i), 'tsonly', 1);
@@ -603,6 +704,9 @@ switch dataformat
           dat(i,j) = dat(i,j) + 1;
         end
       end
+    end
+    if any(isnan(dat(:)))
+      warning('data has been padded with NaNs');
     end
 
   case 'plexon_plx'

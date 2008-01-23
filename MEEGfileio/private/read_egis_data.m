@@ -22,6 +22,12 @@ function dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_data.m,v $
+% Revision 1.3  2007/12/20 08:21:22  roboos
+% changed from returning a 2d to a 3d matrix, thanks to Joseph
+%
+% Revision 1.2  2007/07/16 07:24:40  roboos
+% only read the desired trials, updated documentation
+%
 % Revision 1.1  2007/07/04 13:22:06  roboos
 % initial implementation by Joseph Dien with some corrections by Robert
 %
@@ -62,8 +68,10 @@ else
 end;
 
 fseek(fh, fhdr(3)+((begtrial-1)*hdr.nChans*hdr.nSamples*2), 'bof');
-dat = fread(fh, [hdr.nChans, (endtrial-begtrial+1) *hdr.nSamples],'int16',endian);
-dat=dat(chanindx, :);
+for segment=1:(endtrial-begtrial+1)
+    dat(:,:,segment) = fread(fh, [hdr.nChans, hdr.nSamples],'int16',endian);
+end
+dat=dat(chanindx, :,:);
 
 if fileType == 'ave'
     dat=dat/fhdr(12); %convert to microvolts

@@ -54,6 +54,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_ns_cnt.m,v $
+% Revision 1.7  2007/10/31 16:46:13  roboos
+% revert to short format as default
+%
 % Revision 1.6  2007/07/03 16:10:48  roboos
 % added a hack for 32 bit neuroscan format (hdr.nsdf=16|32), this should actually be be done using autodetection
 %
@@ -210,13 +213,14 @@ r.event.time(i)=[];
 try, ldraw=r.ldraw; catch, ldraw=0; end;
 
 %%%%NEW CHANGE TO READ 32 BIT
-
 if isfield(r, 'format') && r.format == 32
     df = 'long';
+elseif isfield(r, 'format') && r.format == 16
+    df = 'short';
 else
+    % revert to short format as default
     df = 'short';
 end
-
 
 if ~isempty(ldchan)
    if length(ldchan)==r.nchannels

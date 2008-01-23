@@ -7,7 +7,6 @@ function [dat] = read_nex_data(filename, hdr, begsample, endsample, chanindx)
 %
 % See also READ_NEX_HEADER, READ_NEX_EVENT
 
-
 try,
   % work with the original header, not the FieldTrip one
   hdr = hdr.orig;
@@ -32,13 +31,13 @@ for sgnlop=1:length(sgn)
     % read the sample indices at which spikes occurred
     tim = fread(fid,hdr.varheader(sgn(sgnlop)).cnt,'int32');
     % downsample from 40kHz to the A/D sampling frequency
-    tim = (tim ./ hdr.filheader.frequency) * smpfrq;
-    tim = round(tim);
+    tim = (tim ./ hdr.filheader.frequency) * smpfrq + 1;  % add one sample, since ts=0 corresponds to sample=1
+    tim = round(tim);   % needed because of the edges in histc
     % select only samples between the desired begin and end
-    tim = tim(find(tim>=begsample & tim<=endsample));
+    % tim = tim(find(tim>=begsample & tim<=endsample));
     % convert sample indices into a continuous signal
     if ~isempty(tim)
-      dum = histc(tim-begsample+1, 1:nsmp, 1);
+      dum = histc(tim-begsample, 0:(nsmp-1), 1);
       dat(sgnlop,:) = dum(:)';
     end
 

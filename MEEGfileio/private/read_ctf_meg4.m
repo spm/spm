@@ -28,6 +28,9 @@ function [meg] = read_ctf_meg4(fname, hdr, begsample, endsample, chanindx)
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_meg4.m,v $
+% Revision 1.15  2007/09/11 12:18:23  jansch
+% new clean implementation to account for very big datasets > 4GB
+%
 % Revision 1.14  2005/10/04 15:52:09  roboos
 % fixed bug that occured when data is split over more than two files (thanks to flodlan)
 %
@@ -73,154 +76,102 @@ if isempty(fb)
   fb = 0;
 end
 
-if begsample<1
-  error('cannot read before the start of the data');
-end
+nsmp = hdr.nSamples;
+ntrl = hdr.nTrials;
+nchn = hdr.nChans;
 
-if endsample>hdr.nSamples*hdr.nChans*hdr.nTrials
-  error('cannot read beyond the end of the data');
-end
+if begsample<1,              error('cannot read before the start of the data');        end
+if endsample>nsmp*ntrl*nchn, error('cannot read beyond the end of the data');          end
+if begsample>endsample,      error('cannot read a negative number of samples');        end
+if nargin<5,                 chanindx = 1:nchn;                                        end
+if isempty(chanindx),        error('no channels were specified for reading CTF data'); end
 
-if begsample>endsample
-  error('cannot read a negative number of samples');
-end
-
-if nargin<5
-  % select all channels
-  chanindx = 1:hdr.nChans;
-end
-
-if isempty(chanindx)
-  error('no channels were specified for reading CTF data')
-end
-
+%open the .meg4 file
 fid = fopen(fname,'r','ieee-be');
-
-if fid == -1
+if fid == -1, 
   error('could not open datafile');
 end
 
+%check whether it is ctf-format
 CTFformat = setstr(fread(fid,8,'char'))';
 if (strcmp(CTFformat(1,1:7),'MEG41CP')==0),
-    error('datafile is not in CTF MEG4 format')
+  error('datafile is not in CTF MEG4 format')
 end 
 
-% the data is not channel multiplexed, but stored in trials
-% in each trial first all samples for channel 1 are given, then all samples of channel 2 ...
-% this means that we have to read each channel for each trial
-
-begtrial = ceil(begsample/hdr.nSamples);
-endtrial = ceil(endsample/hdr.nSamples);
-
-% this counts the files and offset if the 2GB file size boundary is encountered
-multifilecount  = 0;
-multifileoffset = 0;
+%determine size of .meg4 file
 fseek(fid, 0, 'eof');
-multifilelength = ftell(fid);
+nbytes   = ftell(fid);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% read only the selected data, channel-wise
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if endtrial==begtrial
-  rawbegsample = begsample - (begtrial-1)*hdr.nSamples;
-  rawendsample = endsample - (begtrial-1)*hdr.nSamples;
-  for chan=1:length(chanindx)
-    % jump to the begin of this channel in this trial
-    channeloffset = 8*(multifilecount+1)+(begtrial-1)*hdr.nSamples*4*hdr.nChans+(chanindx(chan)-1)*hdr.nSamples*4-multifileoffset;
-    if channeloffset>=multifilelength
-      % data goes beyond 2GB file boundary, jump to the next file
-      multifileoffset = multifileoffset + floor(channeloffset/multifilelength)*multifilelength;	% remember for the next trial
-      multifilecount  = multifilecount +  floor(channeloffset/multifilelength);% increase the file counter
-      channeloffset   = channeloffset  -  floor(channeloffset/multifilelength)*multifilelength+8;	% change the current offset, keep the header 
-      nextname = sprintf('%s.%d_meg4', fname(1:(end-5)), multifilecount);
-      if fb
-        fprintf('data goes beyond 2GB file boundary, continuing with %s\n', nextname);
-      end
-      fclose(fid);
-      fid = fopen(nextname,'r','ieee-be');
-      fseek(fid, 0, 'eof');
-      multifilelength = ftell(fid);				% determine the length of the current file
+%number of trials per 2GB file FIXME assumes constancy across the .meg4 files
+ntrlfile = round((nbytes-8)/(4*nchn*nsmp));
+%ntrlfile = (nbytes-8)/(4*nchn*nsmp);
+openfile = 0;
+
+%determine which trials have to be read
+begtrial = ceil(begsample/nsmp);
+endtrial = ceil(endsample/nsmp);
+trials   = begtrial:endtrial;
+
+%to ensure correct sample handling in the case of multiple trials
+sumsmp = [(begtrial-1):(endtrial-1)]*nsmp;
+rawbeg = 1;
+
+minchn  = min(chanindx); %to ensure correct channel handling in the case of blockwise reading
+maxchn  = max(chanindx);
+loopchn = length(trials)==1 || (maxchn-minchn+1)<=nchn; %decide whether to read in blockwise, or the specified samples per channel
+
+raw     = zeros(endsample-begsample+1, length(chanindx)); %allocate memory
+for trllop = 1:length(trials)
+  trlnr  = trials(trllop);
+  filenr = floor(trlnr/(ntrlfile+0.1));
+
+  %ensure that the correct .meg4 file is open
+  if filenr~=openfile && filenr>0,
+    fclose(fid);
+    nextname = sprintf('%s.%d_meg4', fname(1:(end-5)), filenr);
+    if fb
+      fprintf('data goes beyond 2GB file boundary, continuing with %s\n', nextname);
     end
-    fseek(fid, channeloffset, 'bof');
-    % jump to the first sample of interest
-    fseek(fid, 4*(rawbegsample-1), 'cof');
-    % read the data from this channel
-    [tmp, count] = fread(fid,[(endsample-begsample+1),1],'int32');
-    raw(:,chan) = tmp;
+    fid = fopen(nextname,'r','ieee-be');
+    fseek(fid, 0, 'eof');
+    openfile = filenr;   
   end
+  
+  %this is relative to the current datafile
+  rawtrl = mod(trlnr-1, ntrlfile) + 1; 
+  offset = 8 + 4*(rawtrl-1)*nsmp*nchn;
+  
+  %begin and endsamples expressed as samples with respect to the current trial
+  tmpbeg = max(begsample-sumsmp(trllop), 1);
+  tmpend = min(endsample-sumsmp(trllop), nsmp);
+  rawend = rawbeg+tmpend-tmpbeg;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% read and concatenate the raw data of all trials
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-else
-  raw = zeros((endtrial-begtrial+1)*hdr.nSamples, length(chanindx));
-  for trial=begtrial:endtrial
-
-    if length(chanindx)==hdr.nChans & all(chanindx(:)'==1:hdr.nChans)
-      % read the data from all channels
-      rawbegsample = (trial-begtrial)*hdr.nSamples + 1;
-      rawendsample = (trial-begtrial)*hdr.nSamples + hdr.nSamples;
-      % jump to the begin of this trial
-      trialoffset = 8*(multifilecount+1)+(trial-1)*hdr.nSamples*4*hdr.nChans-multifileoffset;
-      if trialoffset>=multifilelength
-        % data goes beyond 2GB file boundary, jump to the next file
-        trialoffset   = trialoffset - multifilelength+8;	% change the current offset, keep the header 
-        multifileoffset = multifileoffset + multifilelength;	% remember for the next trial
-        multifilecount  = multifilecount + 1;			% increase the file counter
-        nextname = sprintf('%s.%d_meg4', fname(1:(end-5)), multifilecount);
-        if fb
-          fprintf('data goes beyond 2GB file boundary, continuing with %s\n', nextname);
-        end
-        fclose(fid);
-        fid = fopen(nextname,'r','ieee-be');
-        fseek(fid, 0, 'eof');
-        multifilelength = ftell(fid);				% determine the length of the current file
-      end
-      fseek(fid, trialoffset, 'bof');
-      [tmp, count] = fread(fid,[hdr.nSamples,hdr.nChans],'int32');
-      raw(rawbegsample:rawendsample,:) = tmp;
-    else
-      % read the data from the selected channels
-      rawbegsample = (trial-begtrial)*hdr.nSamples + 1;
-      rawendsample = (trial-begtrial)*hdr.nSamples + hdr.nSamples;
-      for chan=1:length(chanindx)
-        % jump to the begin of this channel in this trial
-        channeloffset = 8*(multifilecount+1)+(trial-1)*hdr.nSamples*4*hdr.nChans+(chanindx(chan)-1)*hdr.nSamples*4-multifileoffset;
-        if channeloffset>=multifilelength
-          % data goes beyond 2GB file boundary, jump to the next file
-          multifileoffset = multifileoffset + floor(channeloffset/multifilelength)*multifilelength; % remember for the next trial
-          multifilecount  = multifilecount  + floor(channeloffset/multifilelength); % increase the file counter
-          channeloffset   = channeloffset   - floor(channeloffset/multifilelength)*multifilelength+8;	% change the current offset, keep the header, multiply with the floor thing in the case of very big datasets 
-          nextname = sprintf('%s.%d_meg4', fname(1:(end-5)), multifilecount);
-          if fb
-            fprintf('data goes beyond 2GB file boundary, continuing with %s\n', nextname);
-          end
-          fclose(fid);
-          fid = fopen(nextname,'r','ieee-be');
-          fseek(fid, 0, 'eof');
-          multifilelength = ftell(fid);				% determine the length of the current file
-        end
-        fseek(fid, channeloffset, 'bof');
-        [tmp, count] = fread(fid,[hdr.nSamples,1],'int32');
-        raw(rawbegsample:rawendsample,chan) = tmp;
-      end %chan
-
-    end %read all channels
-  end %trial
-
-  % select the raw data corresponding to the samples of interest
-  rawoffset    = (begtrial-1)*hdr.nSamples;
-  rawbegsample = begsample - rawoffset;
-  rawendsample = endsample - rawoffset;
-  raw = raw(rawbegsample:rawendsample, :);
+  %either read per channel or read entire trialblock and postselect the channels
+  if loopchn,
+    for chnlop = 1:length(chanindx)
+      %this is relative to the current trial
+      chanoffset = 4*(chanindx(chnlop)-1)*nsmp;
+      sampoffset = 4*(tmpbeg-1);
+      fseek(fid, offset+chanoffset+sampoffset, 'bof');
+      [tmp, count]               = fread(fid,[tmpend-tmpbeg+1,1],'int32');
+      raw(rawbeg:rawend, chnlop) = tmp;
+    end
+  else
+    %this is relative to the current trial
+    chanoffset = 4*(minchn-1)*nsmp;
+    fseek(fid, offset+chanoffset, 'bof');
+    ntmpchn               = maxchn - minchn + 1;
+    [tmp, count]          = fread(fid,[nsmp,length(ntmpchn)],'int32');
+    selchn                = chanindx - minchn + 1; %relative to the first channel to be read
+    raw(rawbeg:rawend, :) = tmp(tmpbeg:tmpend, selchn);
+  end
+  rawbeg = rawend+1;
 end
 fclose(fid);
 
 % multiply the dimensionless values with the calibration value
 gain = hdr.gainV(chanindx);	% only for selected channels
-meg = raw';			% transpose the raw data
+meg  = raw';			% transpose the raw data
 for i=1:size(meg,1)
   meg(i,:) = gain(i)*meg(i,:);
 end
-
-

@@ -12,11 +12,23 @@ function write_brainvision_eeg(filename, hdr, dat);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_brainvision_eeg.m,v $
+% Revision 1.2  2007/07/23 14:37:58  roboos
+% fixed channel count for multi-trial data
+%
 % Revision 1.1  2007/06/13 08:07:32  roboos
 % initial implementation
 %
 
-if hdr.nChans~=size(dat,1)
+if length(size(dat))>2
+  ntrl  = size(dat,1);
+  nchan = size(dat,2);
+  nsmp  = size(dat,3);
+else
+  nchan = size(dat,1);
+  nsmp  = size(dat,2);
+end
+
+if hdr.nChans~=nchan
   error('number of channels in in header does not match with the data');
 end
 
@@ -36,15 +48,10 @@ markerfile = '';
 fid = fopen(datafile, 'wb', 'ieee-le');
 if length(size(dat))>2
   warning('writing segmented data as if it were continuous');
-  ntrl  = size(dat,1);
-  nchan = size(dat,2);
-  nsmp  = size(dat,3);
   for i=1:ntrl
     fwrite(fid, squeeze(dat(i,:,:)), 'float32');
   end
 else
-  nchan = size(dat,1);
-  nsmp  = size(dat,2);
   fwrite(fid, dat, 'float32');
 end
 

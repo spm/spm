@@ -1,4 +1,4 @@
-function [hdr] = read_header(filename, varargin);
+function [hdr] = read_header(filename, varargin)
 
 % READ_HEADER is a wrapper around different EEG/MEG file importers
 % directly supported formats are CTF, Neuromag, EEP, BrainVision,
@@ -25,9 +25,46 @@ function [hdr] = read_header(filename, varargin);
 %
 % See also READ_DATA, READ_EVENT, WRITE_DATA, WRITE_EVENT
 
+% TODO channel renaming should be made a general option (see bham_bdf)
+
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.36  2007/12/17 16:17:16  roboos
+% updated some comments in the code, no functional change
+%
+% Revision 1.35  2007/12/17 08:24:28  roboos
+% added support for nexstim_nxe, thanks to Vladimir
+% the low-level code has not been tested by myself
+%
+% Revision 1.34  2007/12/12 16:50:15  roboos
+% added support for neuralynx_bin
+%
+% Revision 1.33  2007/11/07 10:49:07  roboos
+% cleaned up the reading and writing from/to mysql database, using db_xxx helper functions (see mysql directory)
+%
+% Revision 1.32  2007/11/05 17:01:21  roboos
+% added implementation for fcdc_mysql
+%
+% Revision 1.31  2007/09/13 09:57:03  roboos
+% use read_biosemi_bdf instead of openbdf/readbdf
+% some small changes as sugegsted by the matlab editor (e.g. comma, semicolon)
+%
+% Revision 1.30  2007/08/01 12:24:40  roboos
+% updated comments
+%
+% Revision 1.29  2007/08/01 09:57:01  roboos
+% moved all code related to ctf shared memory to seperate functions
+%
+% Revision 1.28  2007/07/30 12:17:21  roboos
+% ctf_shm: convert number of samples to double, otherwise problems with floor() in read_data
+%
+% Revision 1.27  2007/07/27 12:19:56  roboos
+% added ctf_shm
+%
+% Revision 1.26  2007/07/19 14:49:30  roboos
+% switched the default reader for nex files from read_nex_data to read_plexon_nex, the old one is still supported if explicitely mentioned as data/headerformat
+%
 % Revision 1.25  2007/07/04 13:20:51  roboos
 % added support for egi_egis/egia, thanks to Joseph Dien
 %
@@ -111,8 +148,13 @@ function [hdr] = read_header(filename, varargin);
 % changed compared to the read_fcdc_xxx versions.
 %
 
+persistent db_blob       % for fcdc_mysql
+if isempty(db_blob)
+  db_blob = 0;
+end
+
 % test whether the file or directory exists
-if ~exist(filename)
+if ~exist(filename) && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql')
   error(sprintf('file or directory ''%s'' does not exist', filename));
 end
 
@@ -229,8 +271,25 @@ switch headerformat
     hdr.nSamplesPre = -(hdr.Fs * orig.tsb/1000);   % convert from ms to samples
     hdr.nTrials     = 1;
     hdr.label       = orig.label;
-
+    
   case {'biosemi_bdf', 'bham_bdf'}
+    hdr = read_biosemi_bdf(filename);
+    if any(diff(hdr.orig.SampleRate))
+      error('channels with different sampling rate not supported');
+    end
+    if filetype(filename, 'bham_bdf')
+      % TODO channel renaming should be made a general option
+      % this is for the Biosemi system used at the University of Birmingham
+      labelold = { 'A1' 'A2' 'A3' 'A4' 'A5' 'A6' 'A7' 'A8' 'A9' 'A10' 'A11' 'A12' 'A13' 'A14' 'A15' 'A16' 'A17' 'A18' 'A19' 'A20' 'A21' 'A22' 'A23' 'A24' 'A25' 'A26' 'A27' 'A28' 'A29' 'A30' 'A31' 'A32' 'B1' 'B2' 'B3' 'B4' 'B5' 'B6' 'B7' 'B8' 'B9' 'B10' 'B11' 'B12' 'B13' 'B14' 'B15' 'B16' 'B17' 'B18' 'B19' 'B20' 'B21' 'B22' 'B23' 'B24' 'B25' 'B26' 'B27' 'B28' 'B29' 'B30' 'B31' 'B32' 'C1' 'C2' 'C3' 'C4' 'C5' 'C6' 'C7' 'C8' 'C9' 'C10' 'C11' 'C12' 'C13' 'C14' 'C15' 'C16' 'C17' 'C18' 'C19' 'C20' 'C21' 'C22' 'C23' 'C24' 'C25' 'C26' 'C27' 'C28' 'C29' 'C30' 'C31' 'C32' 'D1' 'D2' 'D3' 'D4' 'D5' 'D6' 'D7' 'D8' 'D9' 'D10' 'D11' 'D12' 'D13' 'D14' 'D15' 'D16' 'D17' 'D18' 'D19' 'D20' 'D21' 'D22' 'D23' 'D24' 'D25' 'D26' 'D27' 'D28' 'D29' 'D30' 'D31' 'D32' 'EXG1' 'EXG2' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'Status'};
+      labelnew = { 'P9' 'PPO9h' 'PO7' 'PPO5h' 'PPO3h' 'PO5h' 'POO9h' 'PO9' 'I1' 'OI1h' 'O1' 'POO1' 'PO3h' 'PPO1h' 'PPO2h' 'POz' 'Oz' 'Iz' 'I2' 'OI2h' 'O2' 'POO2' 'PO4h' 'PPO4h' 'PO6h' 'POO10h' 'PO10' 'PO8' 'PPO6h' 'PPO10h' 'P10' 'P8' 'TPP9h' 'TP7' 'TTP7h' 'CP5' 'TPP7h' 'P7' 'P5' 'CPP5h' 'CCP5h' 'CP3' 'P3' 'CPP3h' 'CCP3h' 'CP1' 'P1' 'Pz' 'CPP1h' 'CPz' 'CPP2h' 'P2' 'CPP4h' 'CP2' 'CCP4h' 'CP4' 'P4' 'P6' 'CPP6h' 'CCP6h' 'CP6' 'TPP8h' 'TP8' 'TPP10h' 'T7' 'FTT7h' 'FT7' 'FC5' 'FCC5h' 'C5' 'C3' 'FCC3h' 'FC3' 'FC1' 'C1' 'CCP1h' 'Cz' 'FCC1h' 'FCz' 'FFC1h' 'Fz' 'FFC2h' 'FC2' 'FCC2h' 'CCP2h' 'C2' 'C4' 'FCC4h' 'FC4' 'FC6' 'FCC6h' 'C6' 'TTP8h' 'T8' 'FTT8h' 'FT8' 'FT9' 'FFT9h' 'F7' 'FFT7h' 'FFC5h' 'F5' 'AFF7h' 'AF7' 'AF5h' 'AFF5h' 'F3' 'FFC3h' 'F1' 'AF3h' 'Fp1' 'Fpz' 'Fp2' 'AFz' 'AF4h' 'F2' 'FFC4h' 'F4' 'AFF6h' 'AF6h' 'AF8' 'AFF8h' 'F6' 'FFC6h' 'FFT8h' 'F8' 'FFT10h' 'FT10'};
+      % rename the channel labels
+      for i=1:length(labelnew)
+        chan = strmatch(labelold(i), hdr.label, 'exact');
+        hdr.label(chan) = labelnew(chan);
+      end
+    end
+
+  case {'biosemi_old'}
     % this uses the openbdf and readbdf functions that I copied from the EEGLAB toolbox
     orig = openbdf(filename);
     if any(orig.Head.SampleRate~=orig.Head.SampleRate(1))
@@ -246,16 +305,6 @@ switch headerformat
     hdr.orig        = orig;
     % close the file between seperate read operations
     fclose(orig.Head.FILE.FID);
-    if filetype(filename, 'bham_bdf')
-      % this is for the Biosemi system used at the University of Birmingham
-      labelold = { 'A1' 'A2' 'A3' 'A4' 'A5' 'A6' 'A7' 'A8' 'A9' 'A10' 'A11' 'A12' 'A13' 'A14' 'A15' 'A16' 'A17' 'A18' 'A19' 'A20' 'A21' 'A22' 'A23' 'A24' 'A25' 'A26' 'A27' 'A28' 'A29' 'A30' 'A31' 'A32' 'B1' 'B2' 'B3' 'B4' 'B5' 'B6' 'B7' 'B8' 'B9' 'B10' 'B11' 'B12' 'B13' 'B14' 'B15' 'B16' 'B17' 'B18' 'B19' 'B20' 'B21' 'B22' 'B23' 'B24' 'B25' 'B26' 'B27' 'B28' 'B29' 'B30' 'B31' 'B32' 'C1' 'C2' 'C3' 'C4' 'C5' 'C6' 'C7' 'C8' 'C9' 'C10' 'C11' 'C12' 'C13' 'C14' 'C15' 'C16' 'C17' 'C18' 'C19' 'C20' 'C21' 'C22' 'C23' 'C24' 'C25' 'C26' 'C27' 'C28' 'C29' 'C30' 'C31' 'C32' 'D1' 'D2' 'D3' 'D4' 'D5' 'D6' 'D7' 'D8' 'D9' 'D10' 'D11' 'D12' 'D13' 'D14' 'D15' 'D16' 'D17' 'D18' 'D19' 'D20' 'D21' 'D22' 'D23' 'D24' 'D25' 'D26' 'D27' 'D28' 'D29' 'D30' 'D31' 'D32' 'EXG1' 'EXG2' 'EXG3' 'EXG4' 'EXG5' 'EXG6' 'EXG7' 'EXG8' 'Status'};
-      labelnew = { 'P9' 'PPO9h' 'PO7' 'PPO5h' 'PPO3h' 'PO5h' 'POO9h' 'PO9' 'I1' 'OI1h' 'O1' 'POO1' 'PO3h' 'PPO1h' 'PPO2h' 'POz' 'Oz' 'Iz' 'I2' 'OI2h' 'O2' 'POO2' 'PO4h' 'PPO4h' 'PO6h' 'POO10h' 'PO10' 'PO8' 'PPO6h' 'PPO10h' 'P10' 'P8' 'TPP9h' 'TP7' 'TTP7h' 'CP5' 'TPP7h' 'P7' 'P5' 'CPP5h' 'CCP5h' 'CP3' 'P3' 'CPP3h' 'CCP3h' 'CP1' 'P1' 'Pz' 'CPP1h' 'CPz' 'CPP2h' 'P2' 'CPP4h' 'CP2' 'CCP4h' 'CP4' 'P4' 'P6' 'CPP6h' 'CCP6h' 'CP6' 'TPP8h' 'TP8' 'TPP10h' 'T7' 'FTT7h' 'FT7' 'FC5' 'FCC5h' 'C5' 'C3' 'FCC3h' 'FC3' 'FC1' 'C1' 'CCP1h' 'Cz' 'FCC1h' 'FCz' 'FFC1h' 'Fz' 'FFC2h' 'FC2' 'FCC2h' 'CCP2h' 'C2' 'C4' 'FCC4h' 'FC4' 'FC6' 'FCC6h' 'C6' 'TTP8h' 'T8' 'FTT8h' 'FT8' 'FT9' 'FFT9h' 'F7' 'FFT7h' 'FFC5h' 'F5' 'AFF7h' 'AF7' 'AF5h' 'AFF5h' 'F3' 'FFC3h' 'F1' 'AF3h' 'Fp1' 'Fpz' 'Fp2' 'AFz' 'AF4h' 'F2' 'FFC4h' 'F4' 'AFF6h' 'AF6h' 'AF8' 'AFF8h' 'F6' 'FFC6h' 'FFT8h' 'F8' 'FFT10h' 'FT10'};
-      % rename the channel labels
-      for i=1:length(labelnew)
-        chan = strmatch(labelold(i), hdr.label, 'exact');
-        hdr.label(chan) = labelnew(chan);
-      end
-    end
 
   case {'brainvision_vhdr', 'brainvision_seg', 'brainvision_eeg', 'brainvision_dat'}
     hdr = read_brainvision_vhdr(filename);
@@ -270,7 +319,7 @@ switch headerformat
     % etc. etc. Here, channels need to have to same properties.
     if length(unique([orig.samplerate]))>1,
       error('channels with different sampling rates are not supported');
-    else,
+    else
       hdr.Fs   = orig(1).samplerate;
     end;
     hdr.nChans = length(orig);
@@ -278,7 +327,7 @@ switch headerformat
     hdr.nSamples    = min([orig.nsamples]);
     hdr.nSamplesPre = 0;
     % only continuous data supported
-    if sum(strcmp(lower({orig.mode}),'continuous')) < hdr.nChans,
+    if sum(strcmpi({orig.mode},'continuous')) < hdr.nChans,
       error('not all channels contain continuous data');
     else,
       hdr.nTrials = 1;
@@ -338,13 +387,18 @@ switch headerformat
     % add the original header details
     hdr.orig = orig;
 
+  case 'ctf_shm'
+    % contact Robert Oostenveld if you are interested in real-time acquisition on the CTF system
+    % read the header information from shared memory
+    hdr = read_shm_header(filename);
+
   case 'eep_avr'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
     % read the whole average and keep only header info (it is a bit silly, but the easiest to do here)
     hdr = read_eep_avr(filename);
     hdr.Fs          = hdr.rate;
-    hdr.nChans      = size(hdr.data,1);;
+    hdr.nChans      = size(hdr.data,1);
     hdr.nSamples    = size(hdr.data,2);
     hdr.nSamplesPre = hdr.xmin*hdr.rate/1000;
     hdr.nTrials     = 1;		% it can always be interpreted as continuous data
@@ -435,18 +489,24 @@ switch headerformat
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header
     load(headerfile, 'hdr');
 
+  case 'fcdc_mysql'
+    % read from a MySQL server listening somewhere else on the network
+    db_open(filename);
+    if db_blob
+      hdr = db_select_blob('fieldtrip.header', 'msg', 1);
+    else
+      hdr = db_select('fieldtrip.header', {'nChans', 'nSamples', 'nSamplesPre', 'Fs', 'label'}, 1);
+      hdr.label = eval(hdr.label);  % FIXME this is not generic
+    end
+
   case {'mpi_ds', 'mpi_dap'}
     hdr = read_mpi_ds(filename);
 
   case 'neuralynx_dma'
     hdr = read_neuralynx_dma(filename);
-    % FIXME add hdr.FirstTimeStamp and hdr.LastTimeStamp
-    % hdr.TimeStampPerSample = (hdr.LastTimeStamp-hdr.FirstTimeStamp)/(hdr.nSamples-1);
 
   case 'neuralynx_sdma'
     hdr = read_neuralynx_sdma(filename);
-    % FIXME add hdr.FirstTimeStamp and hdr.LastTimeStamp
-    % hdr.TimeStampPerSample = (hdr.LastTimeStamp-hdr.FirstTimeStamp)/(hdr.nSamples-1);
 
   case 'neuralynx_ncs'
     ncs = read_neuralynx_ncs(filename, 1, 0);
@@ -477,6 +537,8 @@ switch headerformat
     % FIXME add hdr.FirstTimeStamp and hdr.LastTimeStamp
 
   case {'neuralynx_ttl', 'neuralynx_tsl', 'neuralynx_tsh'}
+    % these are hardcoded, they contain an 8-byte header and int32 values for a single channel 
+    % FIXME this should be done similar as neuralynx_bin, i.e. move the hdr into the function
     hdr             = [];
     hdr.Fs          = 32556;
     hdr.nChans      = 1;
@@ -485,11 +547,17 @@ switch headerformat
     hdr.nTrials     = 1;
     hdr.label       = {headerformat((end-3):end)};
 
+  case 'neuralynx_bin'
+    hdr = read_neuralynx_bin(filename);
+    
   case 'neuralynx_ds'
     hdr = read_neuralynx_ds(filename);
 
   case 'neuralynx_cds'
     hdr = read_neuralynx_cds(filename);
+
+  case 'nexstim_nxe'
+    hdr = read_nexstim_nxe(filename);
 
   case 'neuromag_fif'
     % check that the required low-level toolbox is available
@@ -572,12 +640,12 @@ switch headerformat
     % also remember the original header
     hdr.orig        = orig;
 
-  case {'plexon_nex' 'read_nex_data'} % the default reader for NEX files is read_nex_data
+  case {'read_nex_data'} % this is an alternative reader for nex files
     orig = read_nex_header(filename);
     % assign the obligatory items to the output FCDC header
     numsmp = cell2mat({orig.varheader.numsmp});
     adindx = find(cell2mat({orig.varheader.typ})==5);
-    if length(adindx)==0
+    if isempty(adindx)
       error('file does not contain continuous channels');
     end
     hdr.nChans      = length(orig.varheader);
@@ -589,15 +657,14 @@ switch headerformat
       hdr.label{i} = deblank(char(orig.varheader(i).nam));
     end
     hdr.label = hdr.label(:);
-    % FIXME determine the first and last timestamp
     % also remember the original header details
     hdr.orig = orig;
 
-  case {'read_plexon_nex'} % this is an alternative reader for NEX files
+  case {'read_plexon_nex' 'plexon_nex'} % this is the default reader for nex files
     orig = read_plexon_nex(filename);
     numsmp = cell2mat({orig.VarHeader.NPointsWave});
     adindx = find(cell2mat({orig.VarHeader.Type})==5);
-    if length(adindx)==0
+    if isempty(adindx)
       error('file does not contain continuous channels');
     end
     hdr.nChans      = length(orig.VarHeader);
@@ -680,7 +747,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION to determine the file size in bytes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [siz] = filesize(filename);
+function [siz] = filesize(filename)
 l = dir(filename);
 if l.isdir
   error(sprintf('"%s" is not a file', filename));
@@ -690,7 +757,7 @@ siz = l.bytes;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION to determine the file size in bytes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [hdr] = recursive_read_header(filename);
+function [hdr] = recursive_read_header(filename)
 [p, f, x] = fileparts(filename);
 ls = dir(filename);
 ls = ls(~strcmp({ls.name}, '.'));  % exclude this directory

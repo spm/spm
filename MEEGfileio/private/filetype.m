@@ -54,6 +54,46 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.64  2007/12/19 07:17:26  roboos
+% removed ftc, added txt
+%
+% Revision 1.63  2007/12/17 16:14:44  roboos
+% added neuralynx_bin
+%
+% Revision 1.62  2007/12/17 08:25:04  roboos
+% added nexstim_nxe
+%
+% Revision 1.61  2007/12/12 16:48:20  roboos
+% deal with case of extension for nev/Nev
+% fixed bug: correctly locate the events.nev file in the dataset directory
+%
+% Revision 1.60  2007/12/12 14:39:26  roboos
+% added riff_wave
+%
+% Revision 1.59  2007/12/06 17:05:54  roboos
+% added fcdc_ftc, only on file extension
+%
+% Revision 1.58  2007/10/25 12:47:31  roboos
+% added *.nrd as neuralynx_dma, not sure yet whether this is correct
+%
+% Revision 1.57  2007/10/16 12:35:08  roboos
+% implemented fcdc_global
+%
+% Revision 1.56  2007/10/15 16:02:46  roboos
+% added rfb://<password>@<host>:<port>
+%
+% Revision 1.55  2007/10/04 11:55:40  roboos
+% added the various spass file formats
+%
+% Revision 1.54  2007/09/13 09:46:51  roboos
+% adedd ctf_wts and svl
+%
+% Revision 1.53  2007/08/06 09:07:33  roboos
+% added 4d_hs
+%
+% Revision 1.52  2007/07/27 12:17:47  roboos
+% added ctf_shm
+%
 % Revision 1.51  2007/07/04 13:20:51  roboos
 % added support for egi_egis/egia, thanks to Joseph Dien
 %
@@ -155,10 +195,22 @@ elseif filetype_check_uri(filename, 'mysql')
   ftype        = 'fcdc_mysql';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
+elseif filetype_check_uri(filename, 'rfb')
+  ftype        = 'fcdc_rfb';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
 elseif filetype_check_uri(filename, 'serial')
   ftype        = 'fcdc_serial';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
+elseif filetype_check_uri(filename, 'global')
+  ftype        = 'fcdc_global';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'global variable';
+elseif filetype_check_uri(filename, 'shm')
+  ftype        = 'ctf_shm';
+  manufacturer = 'CTF';
+  content      = 'real-time shared memory buffer';
 
   % known CTF file types
 elseif filetype_check_extension(filename, '.ds') && isdir(filename)
@@ -197,6 +249,14 @@ elseif filetype_check_extension(filename, '.shape_info')
   ftype = 'ctf_shapeinfo';
   manufacturer = 'CTF';
   content = 'headshape information';
+elseif filetype_check_extension(filename, '.wts')
+  ftype = 'ctf_wts';
+  manufacturer = 'CTF';
+  content = 'SAM coefficients, i.e. spatial filter weights';
+elseif filetype_check_extension(filename, '.svl')
+  ftype = 'ctf_svl';
+  manufacturer = 'CTF';
+  content = 'SAM (pseudo-)statistic volumes';
 
   % known Neuromag file types
 elseif filetype_check_extension(filename, '.fif')
@@ -242,6 +302,10 @@ elseif filetype_check_extension(filename, '.xyz') && exist([filename(1:(end-3)) 
   ftype = '4d_xyz';
   manufacturer = '4D/BTI';
   content = 'MEG sensor positions';
+elseif isequal(f, 'hs_file') % the filename is "hs_file"
+  ftype = '4d_hs';
+  manufacturer = '4D/BTI';
+  content = 'head shape';
 
   % known EEProbe file types
 elseif filetype_check_extension(filename, '.cnt') && filetype_check_header(filename, 'RIFF')
@@ -384,7 +448,7 @@ elseif filetype_check_extension(filename, '.pos')
   content = 'electrode positions';
 
   % known Neuralynx file types
-elseif filetype_check_extension(filename, '.nev')
+elseif filetype_check_extension(filename, '.nev') || filetype_check_extension(filename, '.Nev')
   ftype = 'neuralynx_nev';
   manufacturer = 'Neuralynx';
   content = 'event information';
@@ -416,8 +480,12 @@ elseif ~isempty(strfind(lower(f), 'dma')) && strcmpi(x, '.log')  % this is not a
   ftype = 'neuralynx_dma';
   manufacturer = 'Neuralynx';
   content = 'raw aplifier data directly from DMA';
-elseif isdir(filename) && ~isempty(strmatch('Events.Nev', {ls.name}))
-  % a regular Neuralynx dataset directory contains an event file
+elseif filetype_check_extension(filename, '.nrd') % see also above, since Cheetah 5.x the file extension has changed
+  ftype = 'neuralynx_dma';
+  manufacturer = 'Neuralynx';
+  content = 'raw aplifier data directly from DMA';
+elseif isdir(filename) && (any(filetype_check_extension({ls.name}, '.nev')) || any(filetype_check_extension({ls.name}, '.Nev')))
+  % a regular Neuralynx dataset directory that contains an event file
   ftype = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'dataset';
@@ -438,7 +506,7 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
   content = 'spike timestamps';
 
   % these are formally not Neuralynx file formats, but at the FCDC we use them together with Neuralynx
-elseif isdir(filename) && any(filetype_check_extension({ls.name}, '.ttl')) && any(filetype_check_extension({ls.name}, '.crc'))
+elseif isdir(filename) && any(filetype_check_extension({ls.name}, '.ttl')) && any(filetype_check_extension({ls.name}, '.tsl')) && any(filetype_check_extension({ls.name}, '.tsh'))
   % a directory containing the split channels from a DMA logfile
   ftype = 'neuralynx_sdma';
   manufacturer = 'F.C. Donders Centre';
@@ -461,6 +529,10 @@ elseif filetype_check_extension(filename, '.ttl') && filetype_check_header(filen
   ftype = 'neuralynx_ttl';
   manufacturer = 'F.C. Donders Centre';
   content = 'Parallel_in from DMA log file';
+elseif filetype_check_extension(filename, '.bin') && filetype_check_header(filename, {'uint8', 'uint16', 'uint32', 'int8', 'int16', 'int32', 'int64', 'float32', 'float64'})
+  ftype = 'neuralynx_bin';
+  manufacturer = 'F.C. Donders Centre';
+  content = 'single channel continuous data';
 elseif filetype_check_extension(filename, '.sdma') && isdir(filename)
   ftype = 'neuralynx_sdma';
   manufacturer = 'F.C. Donders Centre';
@@ -540,7 +612,7 @@ elseif exist(fullfile(p, [f '.dat']), 'file') && (exist(fullfile(p, [f '.gen']),
   manufacturer = 'BESA';
   content = 'simple binary channel data with a seperate generic ascii header';
 
-  % files from Pascal Fries' PhD research at the MPI
+  % old files from Pascal Fries' PhD research at the MPI
 elseif filetype_check_extension(filename, '.dap') && filetype_check_header(filename, char(1))
   ftype = 'mpi_dap';
   manufacturer = 'MPI Frankfurt';
@@ -548,6 +620,34 @@ elseif filetype_check_extension(filename, '.dap') && filetype_check_header(filen
 elseif isdir(filename) && ~isempty(cell2mat(regexp({ls.name}, '.dap$')))
   ftype = 'mpi_ds';
   manufacturer = 'MPI Frankfurt';
+  content = 'electrophysiological data';
+
+  % Frankfurt SPASS format, which uses the Labview Datalog (DTLG) format
+elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.ana')
+  ftype = 'spass_ana';
+  manufacturer = 'MPI Frankfurt';
+  content = 'electrophysiological data';
+elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.swa')
+  ftype = 'spass_swa';
+  manufacturer = 'MPI Frankfurt';
+  content = 'electrophysiological data';
+elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.spi')
+  ftype = 'spass_spi';
+  manufacturer = 'MPI Frankfurt';
+  content = 'electrophysiological data';
+elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.stm')
+  ftype = 'spass_stm';
+  manufacturer = 'MPI Frankfurt';
+  content = 'electrophysiological data';
+elseif  filetype_check_header(filename, 'DTLG') && filetype_check_extension(filename, '.bhv')
+  ftype = 'spass_bhv';
+  manufacturer = 'MPI Frankfurt';
+  content = 'electrophysiological data';
+
+  % known Nexstim file types
+elseif filetype_check_extension(filename, '.nxe')
+  ftype = 'nexstim_nxe';
+  manufacturer = 'Nexstim';
   content = 'electrophysiological data';
 
   % known Curry V4 file types
@@ -611,7 +711,7 @@ elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filen
   ftype = 'mbfys_ama';
   manufacturer = 'MBFYS';
   content = 'BEM volume conduction model';
-
+  
   % Electrical Geodesics Incorporated EGIS format
 elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.gave') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(255) char(255)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(255) char(255)]))
   ftype = 'egi_egia';
@@ -628,7 +728,7 @@ elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exis
   % there is a matlab V6 file with the header and a binary file with the data (multiplexed, ieee-le, double)
   ftype = 'fcdc_matbin';
   manufacturer = 'F.C. Donders Centre';
-  content = 'multiplexed ielectrophysiology data';
+  content = 'multiplexed electrophysiology data';
 elseif filetype_check_extension(filename, '.lay')
   ftype = 'layout';
   manufacturer = 'Ole Jensen';
@@ -654,6 +754,14 @@ elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filen
   ftype = 'matlab';
   manufacturer = 'Matlab';
   content = 'Matlab binary data';
+elseif filetype_check_header(filename, 'RIFF', 0) && filetype_check_header(filename, 'WAVE', 8)
+  ftype = 'riff_wave';
+  manufacturer = 'Microsoft';
+  content = 'audio';
+elseif filetype_check_extension(filename, '.txt')
+  ftype = 'ascii_txt';
+  manufacturer = '';
+  content = '';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
