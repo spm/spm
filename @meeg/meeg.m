@@ -2,7 +2,7 @@ function D = meeg(varargin)
 % Function for creating meeg objects.
 % FORMAT m = meeg(varargin)
 %
-% SPM8 format consists of a binary memory-mapped data file and a header mat file. 
+% SPM8 format consists of a binary memory - mapped data file and a header mat file. 
 % 
 % The header file will contain an object of class meeg called D. All information other than 
 % data is contained in this object and access to the data is via methods of the object. Also, 
