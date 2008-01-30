@@ -9,10 +9,10 @@ function D = spm_eeg_load(P)
 % spm_eeg_load loads an MEEG file that is in SPM8 format. Importantly, the
 % data is memory mapped and the struct is converted to meeg object.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 1126 2008-01-30 14:07:02Z vladimir $
+% $Id: spm_eeg_load.m 1127 2008-01-30 14:11:22Z vladimir $
 
 
 try
@@ -38,10 +38,6 @@ spm('Pointer', 'Watch');
 if exist('D') ~= 1
     error('%s doesn''t contain SPM M/EEG data', P);
 end
-
-
-dtype = spm_type(D.data.datatype);
-
 
 % save path temporarily in structure
 D.path = Ppath;
