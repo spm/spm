@@ -5,7 +5,7 @@ function res = conditions(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+%$Id: conditions.m 1125 2008-01-30 12:12:18Z vladimir $
 
 if obj.Nsamples>0
     res = unique({obj.trials.label});

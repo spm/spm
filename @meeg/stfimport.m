@@ -5,7 +5,7 @@ function obj = stfimport(obj, stfname)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: stfimport.m 1125 2008-01-30 12:12:18Z vladimir $
 
 if nargin < 2
     P = spm_select(1, '\.mat$', 'Select sensor template file', [], fullfile(spm('dir'), 'EEGtemplates'));

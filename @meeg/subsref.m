@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: subsref.m 1125 2008-01-30 12:12:18Z vladimir $
 
 if isempty(subs)
     return;

@@ -5,6 +5,6 @@ function res = ntrials(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: ntrials.m 1125 2008-01-30 12:12:18Z vladimir $
 
 res = length(obj.trials);

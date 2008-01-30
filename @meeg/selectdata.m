@@ -5,7 +5,7 @@ function res = selectdata(obj, chanlabel, timeborders, condition)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: selectdata.m 1125 2008-01-30 12:12:18Z vladimir $
 
 if obj.Nsamples == 0
     res = [];

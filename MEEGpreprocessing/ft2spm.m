@@ -5,7 +5,7 @@ function ft2spm(ftdata, filename, ctf)
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id$
 
 
 disp('Warning: Converting the data to SPM8 format which is in development and');
@@ -163,7 +163,8 @@ end
 
 fclose(fpd);
 
-D = meeg(D);
+%D = meeg(D);
+D = rmfield(D, 'path');
 
 save(fullfile(filepath, filename), 'D');
 

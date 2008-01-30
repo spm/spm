@@ -5,7 +5,7 @@ function res = chanlabels(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: chanlabels.m 1125 2008-01-30 12:12:18Z vladimir $
 
 if obj.Nsamples>0
     res = {obj.channels.label};
