@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1125 2008-01-30 12:12:18Z vladimir $
+% $Id: checkmeeg.m 1126 2008-01-30 14:07:02Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -87,7 +87,7 @@ else
         meegstruct.data.datatype = 'float32';
     end
 
-    datatype = meegstruct.data.datatype;
+    datatype = spm_type(meegstruct.data.datatype);
 
     if ~isfield(meegstruct.data, 'scale')
         if strcmp(datatype, 'float32') || strcmp(datatype, 'float64')
@@ -196,7 +196,7 @@ if strcmp(option, 'plot2D')
                     0<=X && X<=1 && 0<=Y && Y<=1)
                 meegstruct.channels(i).X_plot2D = NaN;
                 meegstruct.channels(i).X_plot2D = NaN;
-            end                   
+            end
         end
         result = 1;
         return;
