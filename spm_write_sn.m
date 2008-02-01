@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_write_sn.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_write_sn.m 1128 2008-02-01 12:27:39Z john $
 
 
 if isempty(V), return; end;
@@ -146,7 +146,7 @@ for i=1:numel(V),
     if flags.preserve
         VO.fname = prepend(VO.fname,'m');
     end
-    detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    detAff = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
     if flags.preserve, VO.pinfo(1:2,:) = VO.pinfo(1:2,:)/detAff; end;
 
     %Dat= zeros(VO.dim(1:3));
@@ -156,7 +156,7 @@ for i=1:numel(V),
     C = spm_bsplinc(V(i),d);
 
     for j=1:length(z),   % Cycle over planes
-        [X2,Y2,Z2]  = mmult(X,Y,z(j),V(i).mat\prm.VF.mat*prm.Affine);
+        [X2,Y2,Z2]  = mmult(X,Y,z(j),V(i).mat\prm.VF(1).mat*prm.Affine);
         dat         = spm_bsplins(C,X2,Y2,Z2,d);
         if flags.preserve, dat = dat*detAff; end;
         dat(msk{j}) = NaN;
@@ -199,7 +199,7 @@ for i=1:numel(V),
     if flags.preserve
         VO.fname = prepend(VO.fname,'m');
     end
-    detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    detAff = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
 
     % Accumulate data
     %Dat= zeros(VO.dim(1:3));
@@ -218,7 +218,7 @@ for i=1:numel(V),
         Y1 = Y    + BX*ty*BY';
         Z1 = z(j) + BX*tz*BY';
 
-        [X2,Y2,Z2]  = mmult(X1,Y1,Z1,V(i).mat\prm.VF.mat*prm.Affine);
+        [X2,Y2,Z2]  = mmult(X1,Y1,Z1,V(i).mat\prm.VF(1).mat*prm.Affine);
         dat         = spm_bsplins(C,X2,Y2,Z2,d);
         dat(msk{j}) = NaN;
 
@@ -258,7 +258,7 @@ for i=1:numel(V),
     VO          = V(i);
     VO          = rmfield(VO,'pinfo');
     VO.fname    = prepend(VO.fname,'m');
-    detAff      = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    detAff      = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
     %Dat        = zeros(VO.dim(1:3));
     Dat         = single(0);
     Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
@@ -401,7 +401,7 @@ if numel(V)>1 && any(any(diff(t,1,1))),
             % Generate a mask for where there is data for all images
             %----------------------------------------------------------------------------
             for i=1:numel(V),
-                [X2,Y2,Z2] = mmult(X,Y,z(j),V(i).mat\prm.VF.mat*prm.Affine);
+                [X2,Y2,Z2] = mmult(X,Y,z(j),V(i).mat\prm.VF(1).mat*prm.Affine);
                 Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
             end;
         else
@@ -414,7 +414,7 @@ if numel(V)>1 && any(any(diff(t,1,1))),
             % Generate a mask for where there is data for all images
             %----------------------------------------------------------------------------
             for i=1:numel(V),
-                [X2,Y2,Z2] = mmult(X1,Y1,Z1,V(i).mat\prm.VF.mat*prm.Affine);
+                [X2,Y2,Z2] = mmult(X1,Y1,Z1,V(i).mat\prm.VF(1).mat*prm.Affine);
                 Count      = Count + getmask(X2,Y2,Z2,V(i).dim(1:3),wrap);
             end;
         end;
@@ -515,7 +515,7 @@ for i=1:numel(V),
         'n',1,...
         'descrip','Jacobian determinants');
     VO     = spm_create_vol(VO);
-    detAff = det(prm.VF.mat*prm.Affine/prm.VG(1).mat);
+    detAff = det(prm.VF(1).mat*prm.Affine/prm.VG(1).mat);
     Dat    = single(0);
     Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
 

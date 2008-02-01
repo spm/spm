@@ -7,7 +7,7 @@ function spm_dartel_dotprods(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_dartel_dotprods.m 1024 2007-12-12 15:29:03Z john $
+% $Id: spm_dartel_dotprods.m 1128 2008-02-01 12:27:39Z john $
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.dotprod);
@@ -58,6 +58,7 @@ for k=1:nblock,
         X = zeros(numel(o),numel(dat));
         for i=1:n,
             tmp    = dat{i}(o);
+            tmp(~isfinite(tmp)) = 0;
             if exist('wt','var'), tmp = tmp.*wt; end
             X(:,i) = tmp;
         end

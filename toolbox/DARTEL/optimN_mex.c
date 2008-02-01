@@ -1,4 +1,4 @@
-/* $Id: optimN_mex.c 964 2007-10-19 16:35:34Z john $ */
+/* $Id: optimN_mex.c 1128 2008-02-01 12:27:39Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -12,8 +12,9 @@ void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int   cyc=1, nit=1, rtype=0;
     float *A, *b, *x, *scratch;
     static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    double scal[256];
 
-    if (nrhs!=3 || nlhs>1)
+    if ((nrhs!=3 && nrhs!=4) || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
         mexErrMsgTxt("Data must be numeric, real, full and single");
@@ -48,13 +49,29 @@ void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     cyc      = mxGetPr(prhs[2])[7];
     nit      = (int)(mxGetPr(prhs[2])[8]);
 
+    if (nrhs==4)
+    {
+        double *s;
+        if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) || mxIsSparse(prhs[3]) || !mxIsDouble(prhs[3]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[3]) != dm[3])
+            mexErrMsgTxt("Incompatible number of scales.");
+        s = (double *)mxGetPr(prhs[3]);
+        for(i=0; i< dm[3]; i++)
+            scal[i] = s[i];
+    }
+    else
+    {
+        for(i=0; i<dm[3]; i++)
+            scal[i] = 1.0;
+    }
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
 
     A       = (float *)mxGetPr(prhs[0]);
     b       = (float *)mxGetPr(prhs[1]);
     x       = (float *)mxGetPr(plhs[0]);
     scratch = (float *)mxCalloc(fmg_scratchsize((int *)dm),sizeof(float));
-    fmg((int *)dm, A, b, rtype, param, cyc, nit, x, scratch);
+    fmg((int *)dm, A, b, rtype, param, scal, cyc, nit, x, scratch);
     mxFree((void *)scratch);
 }
 
@@ -63,8 +80,9 @@ void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     int nd, i, dm[4];
     int rtype = 0;
     static double param[] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    double scal[256];
 
-    if (nrhs!=2 || nlhs>1)
+    if ((nrhs!=2 && nrhs!=3) || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
         mexErrMsgTxt("Data must be numeric, real, full and single");
@@ -83,13 +101,30 @@ void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     param[3] = mxGetPr(prhs[1])[4];
     param[4] = mxGetPr(prhs[1])[5];
     param[5] = mxGetPr(prhs[1])[6];
+
+    if (nrhs==3)
+    {
+        double *s;
+        if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        if (mxGetNumberOfElements(prhs[2]) != dm[3])
+            mexErrMsgTxt("Incompatible number of scales.");
+        s = (double *)mxGetPr(prhs[2]);
+        for(i=0; i< dm[3]; i++)
+            scal[i] = s[i];
+    }
+    else
+    {
+        for(i=0; i<dm[3]; i++)
+            scal[i] = 1.0;
+    }
  
     plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
 
     if (rtype==1)
-        LtLf_me((int *)dm, (float *)mxGetPr(prhs[0]), param, (float *)mxGetPr(plhs[0]));
+        LtLf_me((int *)dm, (float *)mxGetPr(prhs[0]), param, scal, (float *)mxGetPr(plhs[0]));
     else if (rtype==2)
-        LtLf_be((int *)dm, (float *)mxGetPr(prhs[0]), param, (float *)mxGetPr(plhs[0]));
+        LtLf_be((int *)dm, (float *)mxGetPr(prhs[0]), param, scal, (float *)mxGetPr(plhs[0]));
     else
         mexErrMsgTxt("Regularisation type not recognised.");
 }

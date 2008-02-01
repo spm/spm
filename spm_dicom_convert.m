@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 917 2007-09-14 09:28:55Z volkmar $
+% $Id: spm_dicom_convert.m 1128 2008-02-01 12:27:39Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -296,7 +296,7 @@ for i=2:length(hdr),
 end;
 
 dcm = vol;
-save('dicom_headers.mat','dcm');
+%save('dicom_headers.mat','dcm');
 
 %
 % Secondly, sort volumes into ascending/descending
@@ -748,12 +748,12 @@ for i=1:length(hdr),
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation'),
         disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
         guff = {guff{:},hdr{i}};
-    elseif isfield(hdr{i},'Private_2001_105f'),
-        % This field corresponds to: > Stack Sequence 2001,105F SQ VNAP, COPY
-        % http://www.medical.philips.com/main/company/connectivity/mri/index.html
-        % No documentation about this private field is yet available.
-        disp('Cant yet convert Phillips Intera DICOM.');
-        guff = {guff{:},hdr{i}};
+   %elseif isfield(hdr{i},'Private_2001_105f'),
+   %    % This field corresponds to: > Stack Sequence 2001,105F SQ VNAP, COPY
+   %    % http://www.medical.philips.com/main/company/connectivity/mri/index.html
+   %    % No documentation about this private field is yet available.
+   %    disp('Cant yet convert Phillips Intera DICOM.');
+   %    guff = {guff{:},hdr{i}};
     elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient')||isfield(hdr{i},'Private_0029_1210')),
         disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
         guff = {guff{:},hdr{i}};
