@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_inv_group.m 1132 2008-02-06 14:12:17Z karl $
 
 
 % check if to proceed
@@ -57,21 +57,11 @@ end
 % Check for existing forward models and consistent Gain matrices
 %--------------------------------------------------------------------------
 for i = 1:Ns
-    cd(D{i}.path)
     try
-        gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
-        try
-            G     = load(gainmat);
-        catch
-            [p f] = fileparts(gainmat);
-            G     = load(f);
-            D{i}.inv{D{i}.val}.forward.gainmat = fullfile(pwd,f);
-        end
-        name   = fieldnames(G);
-        L      = sparse(getfield(G, name{1}));
-        Nd(i)  = size(L,2);                             % number of dipoles
+        L     = spm_eeg_lgainmat(D{i});
+        Nd(i) = size(L,2);                             % number of dipoles
     catch
-        Nd(i)  = 0;
+        Nd(i) = 0;
     end
 end
 
@@ -195,7 +185,8 @@ if strcmp(str,'Yes')
     fboi             = sort(fboi);
     contrast.fboi    = round([fboi(1) fboi(end)]);
     contrast.display = 0;
-
+    contrast.smooth  = 8;
+    
 else
     contrast = [];
 end

@@ -1,5 +1,5 @@
 function [varargout] = spm_lfp_priors(A,B,C,L,H)
-% prior moments for a neural mass model of erps
+% prior moments for a neural mass model of ERPs
 % FORMAT [pE,pC] = spm_lfp_priors(A,B,C,L,H)
 % FORMAT [M]     = spm_lfp_priors(A,B,C,L,H)
 % FORMAT           spm_lfp_priors(A,B,C,L,H)
@@ -12,8 +12,8 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %
 % synaptic parameters
 %--------------------------------------------------------------------------
-%    pE.T - syaptic time constants
-%    pE.H - syaptic densities
+%    pE.T - synaptic time constants
+%    pE.H - synaptic densities
 %
 % spatial parameters
 %--------------------------------------------------------------------------
@@ -30,10 +30,12 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %    pE.D - extrinsic delays
 %    pE.I - intrinsic delays
 %
-% noise parameters
+% input and noise parameters
 %--------------------------------------------------------------------------
 %    pE.a - amplitude of AR component
 %    pE.b - amplitude of IID component
+%    pE.c - amplitude of noise (spectral density)
+%    pE.d - amplitude of noise (cross-spectral density)
 %
 % NB: This is the same as spm_erp_priors but without stimulus parameters 
 % and treating stimulus and experimental inputs in the same way
@@ -45,7 +47,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 % parameters are simply scaling coefficients with a prior expectation
 % and variance of one.  After log transform this renders pE = 0 and
 % pC = 1;  The prior expectations of what they scale are specified in
-% spm_lfp_fx or M.fP
+% spm_lfp_fx
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -54,7 +56,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_priors.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_lfp_priors.m 1132 2008-02-06 14:12:17Z karl $
 
 
 % defaults
@@ -68,38 +70,38 @@ n   = size(C,1);                                % number of sources
 N   = n*13;                                     % number of states
 if nargin <  4, L = speye(length(C));  end
 if nargin <  5, H = sparse(9,1,1,13,1); end
-
-
-
+ 
+ 
+ 
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
-
+ 
 % sigmoid parameters
 %--------------------------------------------------------------------------
 E.R   = [0 0];             V.R = [1 1]/8;
-
-% set intrinic [excitatory] time constants
+ 
+% set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(ones(n,2));    V.T = ones(n,2)/8;  % time constants
-E.H   = log(ones(n,1));    V.H = ones(n,1)/8;  % synaptic density
-E.G   = log(ones(n,5));    V.G = ones(n,5)/8;  % intrinsic connections
-
+E.T   = log(ones(n,2));    V.T = ones(n,2)/8;      % time constants
+E.H   = log(ones(n,1));    V.H = ones(n,1)/8;      % synaptic density
+E.G   = log(ones(n,5));    V.G = ones(n,5)/8;      % intrinsic connections
+ 
 % set observer parameters
 %--------------------------------------------------------------------------
-E.M   = H;                 V.M = H*0;          % contributing states
-
+E.M   = H;                 V.M = H*0;              % contributing states
+ 
 % set observer parameters
 %--------------------------------------------------------------------------
-if ~isstruct(L)                                % static leadfield
-    E.L    = L;            V.L = L*0;          % lead field
+if ~isstruct(L)                                    % static lead-field
+    E.L    = L;            V.L = L*0;              % lead field
     
-else  % parameterised leadfield based on equivalent current dipoles
+else  % parameterised lead-field based on equivalent current dipoles
 %------------------------------------------------------------------------
-    E.Lpos = L.pos;        V.Lpos =  16*ones(3,n); % dipole positions
+    E.Lpos = L.pos;        V.Lpos =   0*ones(3,n); % dipole positions
     E.Lmom = sparse(3,n);  V.Lmom = 256*ones(3,n); % dipole orientations
 end
-
+ 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
@@ -108,7 +110,7 @@ for i = 1:length(A)
     V.A{i} = A{i}/2;                               % backward
     Q      = Q | A{i};                             % and lateral connections
 end
-
+ 
 for i = 1:length(B)
     E.B{i} = 0*B{i};                               % input-dependent scaling
     V.B{i} = ~~B{i}/2;
@@ -116,29 +118,29 @@ for i = 1:length(B)
 end
 E.C    = log(~~C + eps);                           % where inputs enter
 V.C    = C/2;
-
+ 
 % set endogenous noise
 %--------------------------------------------------------------------------
-E.a    = 0;               V.a = 1/2;                % amplitude AR
-E.b    = 0;               V.b = 1/2;                % amplitude IID
-
+E.a    = 0;               V.a = 1/32;              % amplitude AR
+E.b    = 0;               V.b = 0;                 % amplitude IID
+ 
 % set delay
 %--------------------------------------------------------------------------
-E.D    = sparse(n,n);     V.D    = Q/8;             % extrinsic delays
-E.I    = 0;               V.I    = 1/32;            % intrinsic delays
-
+E.D    = sparse(n,n);     V.D = Q/8;               % extrinsic delays
+E.I    = 0;               V.I = 1/32;              % intrinsic delays
+ 
 % vectorize
 %--------------------------------------------------------------------------
 pE     = E;
 pV     = spm_vec(V);
 pC     = diag(sparse(pV));
 warning on
-
+ 
 % prior momments if two arguments
 %--------------------------------------------------------------------------
 if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
-
-
+ 
+ 
 % Model specification
 %==========================================================================
 M.f      = 'spm_fx_lfp';
@@ -150,9 +152,9 @@ M.m      = length(B);
 M.n      = size(M.x,1);
 M.l      = size(pE.L,1);
 M.IS     = 'spm_int';
-
+ 
 if nargout == 1, varargout{1} = M; return, end
-
+ 
 % compute impulse response
 %--------------------------------------------------------------------------
 N       = 128;
@@ -160,10 +162,10 @@ U.dt    = 8/1000;
 U.u     = sparse(1,1,1/U.dt,N,M.m);
 y       = feval(M.IS,M.pE,M,U);
 plot([1:N]*U.dt*1000,y)
-
-
+ 
+ 
 return
-
+ 
 % demo for log-normal pdf
 %--------------------------------------------------------------------------
 x    = [1:64]/16;
@@ -178,6 +180,3 @@ xlabel('scaling')
 ylabel('density')
 grid on
 hold off
-
-
-

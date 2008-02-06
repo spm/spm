@@ -4,7 +4,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Input:
 % D        - input data struct (optional)
 %
-%     D.inv{val}.contrast.smooth  = smoothing in mm [12]
+%     D.inv{val}.contrast.smooth  = smoothing in mm [8]
 %     D.inv{val}.contrast.display = display (spm_image) flag [0]
 %
 % Output:
@@ -25,7 +25,7 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 1132 2008-02-06 14:12:17Z karl $
  
 % checks
 %--------------------------------------------------------------------------
@@ -159,7 +159,7 @@ for c = 1:length(GW)
     % Smoothing
     %----------------------------------------------------------------------
     spm_smooth(Vout,Outputsmoothed,smoothparam);
-    str = 'Summary statistic image (RMS response) written:\n %s\n %s (smoothed)\n';
+    str = 'Summary-statistic image written:\n %s\n %s (smoothed)\n';
     fprintf(str,Outputfilename,Outputsmoothed)
     D.inv{val}.contrast.Vout{c}  = Vout;
     D.inv{val}.contrast.fname{c} = Outputsmoothed;   

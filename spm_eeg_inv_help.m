@@ -115,10 +115,10 @@ D.inv{val}.inverse.rad     = [ 32 32];
 D = spm_eeg_invert(D);
 
 
-% Compute conditional expectation of root mean square (RMS) response
+% Compute conditional expectation of mean square (MS) response
 %==========================================================================
 % The penultimate step is to specify a time-frequency window and compute the 
-% conditional expectation of the RMS response.  A simple windowed average 
+% conditional expectation of the MS response.  A simple windowed average 
 % is a special case of this, where the frequency is zero.  In this context, 
 % the RMS is the same as the absolute value of the time-averaged repsone.
  

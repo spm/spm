@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1105 2008-01-17 16:29:16Z karl $
+% $Id: spm_api_erp.m 1132 2008-02-06 14:12:17Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -72,7 +72,8 @@ end
 % 'SEP'    - (linear NMM fast)
 % 'NMM'    - (bilinear NMM)
 % 'MFM'    - (bilinear MFM)
-% 'Induced - (linear NMM)
+% 'SSR'    - (linear NMM for steady-state responses)
+% 'IND'    - (linear NMM for induced responses)
 
 try
     model = DCM.options.model;
@@ -85,7 +86,8 @@ switch model
     case{'SEP'},     set(handles.ERP,'Value',2);
     case{'NMM'},     set(handles.ERP,'Value',3);
     case{'MFM'},     set(handles.ERP,'Value',4);
-    case{'Induced'}, set(handles.ERP,'Value',5);
+    case{'SSR'},     set(handles.ERP,'Value',5);
+    case{'IND'},     set(handles.ERP,'Value',6);
     otherwise
 end
 handles = ERP_Callback(hObject, eventdata, handles);
@@ -179,6 +181,7 @@ try
 catch
     set(handles.results,    'Enable','off');
 end
+guidata(hObject, handles);
 
 % --- Executes on button press in save.
 % -------------------------------------------------------------------------
@@ -577,7 +580,7 @@ for i = 1:n
             
             % allow nonlinear self-connections (induced responses)
             %--------------------------------------------------------------
-            if get(handles.ERP,'value') == 5 && k == 2
+            if get(handles.ERP,'value') == 6 && k == 2
                 set(A{k}(i,j),'Enable','on')
             end
             try
@@ -592,11 +595,12 @@ for i = 1:n
             str        = sprintf('data.DCM.B{%i}(%i,%i)',k,i,j); 
             str        = ['data=guidata(gcbo);' str '=get(gcbo,''Value'');guidata(gcbo,data)'];
             B{k}(i,j)  = uicontrol(handles.SPM,...
-                'Units','Normalized',...
-                'Position',[x y sx sy],...
-                'Style','radiobutton',...
-                'Tag','tmp',...
-                'Callback',str);
+                         'Units','Normalized',...
+                         'Position',[x y sx sy],...
+                         'Style','radiobutton',...
+                         'Tag','tmp',...
+                         'Callback',str);
+            
             % intrinsic modulation of H_e
             %--------------------------------------------------------------
             if i == j
@@ -632,7 +636,7 @@ end
 
 % string labels
 %--------------------------------------------------------------------------
-if get(handles.ERP,'Value') ~= 5
+if get(handles.ERP,'Value') ~= 6
     constr = {'A forward' 'A backward' 'A lateral' 'C input'};
 else
     constr = {'A linear' 'A nonlinear' '(not used)' 'C input'};
@@ -762,12 +766,29 @@ try
 end
 
 % invert and save
-% -------------------------------------------------------------------------
-if get(handles.ERP,'Value') == 5
-    handles.DCM = spm_dcm_ind(handles.DCM);
-else
-    handles.DCM = spm_dcm_erp(handles.DCM);
+%--------------------------------------------------------------------------
+switch handles.DCM.options.model
+
+    % conventional neural-mass and mean-field models
+    %----------------------------------------------------------------------
+    case{'ERP','SEP','NMN','MFM'}
+        handles.DCM = spm_dcm_erp(handles.DCM);
+
+    % Cross-spectral density model (steady-state responses)
+    %----------------------------------------------------------------------
+    case{'SSR'}
+        handles.DCM = spm_dcm_ssr(handles.DCM);
+
+    % Induced responses
+    %----------------------------------------------------------------------
+    case{'IND'}
+        handles.DCM = spm_dcm_ind(handles.DCM);
+
+    otherwise
+        warndlg('unknown model type')
+        return
 end
+
 guidata(hObject, handles);
 
 set(handles.results,    'Enable','on' )
@@ -783,15 +804,34 @@ end
 function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
-if get(handles.ERP,'Value') == 5
-    spm_dcm_ind_results(handles.DCM, Action);
-else
-    spm_dcm_erp_results(handles.DCM, Action);
+
+switch handles.DCM.options.model
+
+    % conventional neural-mass and mean-field models
+    %----------------------------------------------------------------------
+    case{'ERP','SEP','NMM','MFM'}
+        spm_dcm_erp_results(handles.DCM, Action);
+
+    % Cross-spectral density model (steady-state responses)
+    %----------------------------------------------------------------------
+    case{'SSR'}
+        spm_dcm_ssr_results(handles.DCM, Action);
+
+    % Induced responses
+    %----------------------------------------------------------------------
+    case{'IND'}
+        spm_dcm_ind_results(handles.DCM, Action);
+
+    otherwise
+        warndlg('unknown model type')
+        return
 end
+
 
 % --- Executes on button press in initialise.
 % -------------------------------------------------------------------------
 function initialise_Callback(hObject, eventdata, handles)
+
 [f,p]           = uigetfile('DCM*.mat','please select estimated DCM');
 DCM             = load(fullfile(p,f), '-mat');
 handles.DCM.M.P = DCM.DCM.Ep;
@@ -800,11 +840,13 @@ guidata(hObject, handles);
 % --- Executes on button press in render.
 % -------------------------------------------------------------------------
 function render_Callback(hObject, eventdata, handles)
+
 spm_eeg_inv_visu3D_api(handles.DCM.xY.Dfile)
 
 % --- Executes on button press in Imaging.
 % -------------------------------------------------------------------------
 function Imaging_Callback(hObject, eventdata, handles)
+
 spm_eeg_inv_imag_api(handles.DCM.xY.Dfile)
 
 
@@ -835,51 +877,81 @@ function handles = ERP_Callback(hObject, eventdata, handles)
 
 % get model type
 %--------------------------------------------------------------------------
-if get(handles.ERP,'Value') ~= 5
-    Action = {
-    'ERPs (mode)',
-    'ERPs (sources)',
-    'coupling (A)',
-    'coupling (B)',
-    'coupling (C)',
-    'trial-specific effects',
-    'Input',
-    'Response',
-    'Response (image)',
-    'Dipoles',
-    'Spatial overview'};
-    try
-        set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
-    catch
-        set(handles.Nmodes, 'Value', 8);
-    end   
-    set(handles.Spatial_type, 'String', {'ECD','Imaging'});
-    set(handles.Wavelet,      'Enable','off');
-    
-else
-    Action = {
-    'Frequency modes'
-    'Time-modes'
-    'Time-frequency'
-    'Coupling (A - Hz)'
-    'Coupling (B - Hz)'
-    'Coupling (A - modes)'
-    'Coupling (B - modes)'
-    'Input (C - Hz)'
-    'Input (u - ms)'
-    'Dipoles'};
-    try
-        set(handles.Nmodes,   'Value', handles.DCM.options.Nmodes);
-    catch
-        set(handles.Nmodes,   'Value', 4);
-    end
-    set(handles.Spatial_type, 'Value', 1);
-    set(handles.Spatial_type, 'String', {'ECD'});
-    set(handles.Wavelet,      'Enable','on');
+handles = reset_Callback(hObject, eventdata, handles);
+switch handles.DCM.options.model
 
+    % conventional neural-mass and mean-field models
+    %----------------------------------------------------------------------
+    case{'ERP','SEP','NMM','MFM'}
+        Action = {
+            'ERPs (mode)',
+            'ERPs (sources)',
+            'coupling (A)',
+            'coupling (B)',
+            'coupling (C)',
+            'trial-specific effects',
+            'Input',
+            'Response',
+            'Response (image)',
+            'Dipoles',
+            'Spatial overview'};
+        try
+            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+        catch
+            set(handles.Nmodes, 'Value', 8);
+        end
+        set(handles.Spatial_type, 'String', {'ECD','Imaging'});
+        set(handles.Wavelet,      'Enable','off','String','-');
 
+    % Cross-spectral density model (steady-state responses)
+    %----------------------------------------------------------------------
+    case{'SSR'}
+        Action = {
+            'Data',
+            'coupling (A)',
+            'coupling (B)',
+            'coupling (C)',
+            'trial-specific effects',
+            'Input',
+            'Cross-spectral density',
+            'Dipoles'};
+        try
+            set(handles.Nmodes,   'Value', handles.DCM.options.Nmodes);
+        catch
+            set(handles.Nmodes,   'Value', 4);
+        end
+        set(handles.Spatial_type, 'Value', 1);
+        set(handles.Spatial_type, 'String', {'ECD'});
+        set(handles.Wavelet,      'Enable','on','String','Spectral density');
 
+    % Induced responses
+    %----------------------------------------------------------------------
+    case{'IND'}
+        Action = {
+            'Frequency modes'
+            'Time-modes'
+            'Time-frequency'
+            'Coupling (A - Hz)'
+            'Coupling (B - Hz)'
+            'Coupling (A - modes)'
+            'Coupling (B - modes)'
+            'Input (C - Hz)'
+            'Input (u - ms)'
+            'Dipoles'};
+        try
+            set(handles.Nmodes,   'Value', handles.DCM.options.Nmodes);
+        catch
+            set(handles.Nmodes,   'Value', 4);
+        end
+        set(handles.Spatial_type, 'Value', 1);
+        set(handles.Spatial_type, 'String', {'ECD'});
+        set(handles.Wavelet,      'Enable','on','String','Wavelet transform');
+
+    otherwise
+        warndlg('unknown model type')
+        return
 end
+
 set(handles.results,'String',Action);
 handles = reset_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
@@ -887,14 +959,36 @@ guidata(hObject,handles);
 % --- Executes on button press in Wavelet.
 function Wavelet_Callback(hObject, eventdata, handles)
 
-% get transform 
+% get transform
 %--------------------------------------------------------------------------
 handles     = reset_Callback(hObject, eventdata, handles);
-handles.DCM = spm_dcm_ind_data(handles.DCM);
 
-% and display
-%--------------------------------------------------------------------------
-spm_dcm_ind_results(handles.DCM,'Wavelet');
+switch handles.DCM.options.model
+
+    case{'SSR'}
+        
+        % cross-spectral density (if DCM.M.U (eigenspace) exists
+        %------------------------------------------------------------------
+        try
+            handles.DCM = spm_dcm_ssr_data(handles.DCM);
+        end
+
+        % and display
+        %------------------------------------------------------------------
+        spm_dcm_ssr_results(handles.DCM,'Data');
+
+
+    case{'IND'}
+        
+        % wavelet tranform
+        %------------------------------------------------------------------
+        handles.DCM = spm_dcm_ind_data(handles.DCM);
+
+        % and display
+        %------------------------------------------------------------------
+        spm_dcm_ind_results(handles.DCM,'Wavelet');
+
+end
 guidata(hObject,handles);
 
 

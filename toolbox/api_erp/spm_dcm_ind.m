@@ -27,7 +27,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_dcm_ind.m 1132 2008-02-06 14:12:17Z karl $
 
 
 % check options 
@@ -128,7 +128,6 @@ M.gC  = gC;
 M.m   = nu;
 M.n   = nx;
 M.l   = Nr*Nf;
-M.ns  = Ns*Nt;
 
 % and fixed parameters and functional forms
 %--------------------------------------------------------------------------

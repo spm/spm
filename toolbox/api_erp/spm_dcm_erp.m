@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1107 2008-01-17 18:49:56Z stefan $
+% $Id: spm_dcm_erp.m 1132 2008-02-06 14:12:17Z karl $
 
 % check options 
 %==========================================================================
@@ -215,7 +215,6 @@ M.gC  = gC;
 M.m   = nu;
 M.n   = length(spm_vec(M.x));
 M.l   = Nc;
-M.ns  = Ns*Nt;
 
 %-Feature selection using principal components (U) of lead-feild
 %==========================================================================

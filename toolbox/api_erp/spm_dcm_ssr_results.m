@@ -1,14 +1,13 @@
-function [DCM] = spm_dcm_erp_results(DCM,Action)
+function [DCM] = spm_dcm_ssr_results(DCM,Action)
 % Results for ERP Dynamic Causal Modeling (DCM)
-% FORMAT spm_dcm_erp_results(DCM,'ERPs (mode)');
-% FORMAT spm_dcm_erp_results(DCM,'ERPs (sources)');
+% FORMAT spm_dcm_erp_results(DCM,'Data');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (A)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (B)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (C)');
 % FORMAT spm_dcm_erp_results(DCM,'trial-specific effects');
 % FORMAT spm_dcm_erp_results(DCM,'Input');
-% FORMAT spm_dcm_erp_results(DCM,'Response');
-% FORMAT spm_dcm_erp_results(DCM,'Data');
+% FORMAT spm_dcm_erp_results(DCM,'Cross-spectral density');
+% FORMAT spm_dcm_erp_results(DCM,'Dipoles');
 %                
 %___________________________________________________________________________
 %
@@ -28,9 +27,9 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 1132 2008-02-06 14:12:17Z karl $
-
-
+% $Id: spm_dcm_ssr_results.m 1132 2008-02-06 14:12:17Z karl $
+ 
+ 
 % get figure handle
 %--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
@@ -38,153 +37,79 @@ colormap(gray)
 figure(Fgraph)
 clf
 
+
 % trial data
 %--------------------------------------------------------------------------
+DCM = spm_dcm_ssr_data(DCM);
 xY  = DCM.xY;                   % data
-nt  = length(xY.xy);            % Nr trial types
-ne  = size(xY.xy{1},2);         % Nr electrodes
-nb  = size(xY.xy{1},1);         % Nr time bing
-t   = xY.Time;                  % PST
-
-% plot data 
-%--------------------------------------------------------------------------
-switch(lower(Action))
-case{lower('Data')}
-    try
-        for i = 1:nt
-            
-            % confounds if specified 
-            %--------------------------------------------------------------
-            try
-                X0 = spm_orth(xY.X0(1:nb,:),'norm');
-                R  = speye(nb,nb) - X0*X0';
-            catch
-                R  = speye(nb,nb);
-            end
-            
-            % plot data 
-            %--------------------------------------------------------------
-            subplot(nt,2,(i - 1)*2 + 1)
-            plot(t,R*xY.xy{i})
-            xlabel('time (ms)')
-            try
-                title(sprintf('Observed response (code:%i)',xY.code(i)))
-            catch
-                title(sprintf('Observed response %i',i))
-            end
-            axis square
-            try
-              axis(A);
-            catch
-              A = axis;
-            end
-            
-            % image data 
-            %--------------------------------------------------------------
-            subplot(nt,2,(i - 1)*2 + 2)
-            imagesc([1:ne],t,R*xY.xy{i})
-            xlabel('channels');ylabel('peri-stimulus time (ms)')
-            axis square
-            try
-                title(sprintf('Observed response (code:%i)',xY.code(i)))
-            catch
-                title(sprintf('Observed response %i',i))
-            end
-            
-        end
-    end
-    return
-end
-
-% post inversion parameters
-%--------------------------------------------------------------------------
-nu  = length(DCM.B);          % Nr inputs
-nc  = size(DCM.H{1},2);       % Nr modes
-ns  = size(DCM.A{1},2);       % Nr of sources
-np  = size(DCM.K{1},2);       % Nr of population per source
-np  = np/ns;
-
+nt  = length(xY.y);             % Nr trial types
+nf  = size(xY.y{1},1);          % Nr frequency bins
+nm  = size(xY.y{1},2);          % Nr spatial modes
+Hz  = xY.Hz;                    % PST
 
 % switch
 %--------------------------------------------------------------------------
-switch(lower(Action))
+switch(lower(Action))    
     
-case{lower('ERPs (mode)')}
-
-    % spm_dcm_erp_results(DCM,'ERPs (mode)');
+case{lower('Data')}
+    
+    % spm_dcm_ssr_results(DCM,'Data');
     %----------------------------------------------------------------------
-    co = {'b', 'r', 'g', 'm', 'y', 'k'};
-    lo = {'-', '--'};
+    co = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
+    Hz = xY.Hz;
+    q  = max(spm_vec(xY.y));
+    nm = min(nm,4);
     
-    for i = 1:nc
-        subplot(ceil(nc/2),2,i), hold on
-        str   = {};
-        for j = 1:nt
-            plot(t,DCM.H{j}(:,i), lo{1},...
-                'Color', co{j},...
-                'LineWidth',2);
-            str{end + 1} = sprintf('trial %i (predicted)',j);
-            plot(t,DCM.H{j}(:,i) + DCM.R{j}(:,i), lo{2},...
-                'Color',co{j});
-            str{end + 1} = sprintf('trial %i (observed)',j);
-                        set(gca, 'XLim', [t(1) t(end)]);
-
-        end
-        hold off
-        title(sprintf('mode %i',i))
-        grid on
-        axis square
-        try
-            axis(A);
-        catch
-            A = axis;
-        end
+    for k = 1:nt
+        str{k} = sprintf('trial %i',k);
     end
-    xlabel('time (ms)')
-    legend(str)
     
-    
-case{lower('ERPs (sources)')}
-    
-    % spm_dcm_erp_results(DCM,'ERPs (sources)');
-    %----------------------------------------------------------------------
-    mx = max(max(cat(2, DCM.K{:})));
-    mi = min(min(cat(2, DCM.K{:})));
-    col = {'b','r','g','m','y','c'};
-    
-    for i = 1:ns
-        str   = {};
-        for j = 1:np
-            subplot(ceil(ns/2),2,i), hold on
+    for i = 1:nm
+        for j = i:nm
+ 
+            % for each trial type
+            %--------------------------------------------------------------
+            subplot(nm,nm,(i - 1)*nm + j),cla
             for k = 1:nt
-                if j == np
-                    plot(t, DCM.K{k}(:,i + ns*(j - 1)), ...
-                        'Color',col{k}, ...
-                        'LineWidth',2);
-                else
-                    plot(t, DCM.K{k}(:,i + ns*(j - 1)), ':', ...
-                        'Color',col{k}, ...
-                        'LineWidth',2);
-                end
-                str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
+                plot(Hz,xY.y{k}(:,i,j),'color',co{k}), hold on
+                set(gca,'YLim',[0 q])
             end
         end
-        set(gca, 'YLim', [mi mx], 'XLim', [t(1) t(end)]);
-        hold off
-        title(DCM.Sname{i})
-        grid on
-        axis square
+ 
+        % spectral density
+        %------------------------------------------------------------------
+        subplot(2,2,3)
+        for k = 1:nt
+            plot(Hz,xY.y{k}(:,i,i),'color',co{i}), hold on
+            set(gca,'YLim',[0 q])
+        end
     end
-    xlabel('time (ms)')
-    legend(str)
     
+    title('spectral density over modes')
+    xlabel('Frequency (Hz)')
+    ylabel('CSD')
+    axis square
+    return
+    
+end
+ 
+% post inversion parameters
+%--------------------------------------------------------------------------
+nu  = length(DCM.B);          % Nr experimental inputs
+ns  = size(DCM.A{1},2);       % Nr of sources
+ 
+ 
+ 
+% switch
+%--------------------------------------------------------------------------
+switch(lower(Action))    
     
 case{lower('Coupling (A)')}
     
-    % spm_dcm_erp_results(DCM,'coupling (A)');
+    % spm_dcm_ssr_results(DCM,'coupling (A)');
     %----------------------------------------------------------------------
     str = {'Forward','Backward','Lateral'};
-    for  i =1:3
+    for  i = 1:3
         
         % images
         %------------------------------------------------------------------
@@ -202,7 +127,7 @@ case{lower('Coupling (A)')}
         subplot(4,3,i + 3)
         text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
         axis off,axis square
-
+ 
     
         % PPM
         %------------------------------------------------------------------
@@ -223,7 +148,7 @@ case{lower('Coupling (A)')}
     
 case{lower('Coupling (C)')}
     
-    % spm_dcm_erp_results(DCM,'coupling (C)');
+    % spm_dcm_ssr_results(DCM,'coupling (C)');
     %----------------------------------------------------------------------
     
     % images
@@ -250,17 +175,17 @@ case{lower('Coupling (C)')}
     subplot(2,4,2)
     text(0,1/2,num2str(full(exp(DCM.Ep.C)),' %.2f'),'FontSize',8)
     axis off
-
+ 
     % table
     %----------------------------------------------------------------------
     subplot(2,4,4)
     text(0,1/2,num2str(DCM.Pp.C,' %.2f'),'FontSize',8)
     axis off
-
+ 
  
 case{lower('Coupling (B)')}
     
-    % spm_dcm_erp_results(DCM,'coupling (B)');
+    % spm_dcm_ssr_results(DCM,'coupling (B)');
     %----------------------------------------------------------------------
     for i = 1:nu
         
@@ -274,7 +199,7 @@ case{lower('Coupling (B)')}
         xlabel('from','FontSize',8)
         ylabel('to','FontSize',8)
         axis square
-
+ 
         % tables
         %------------------------------------------------------------------
         subplot(4,nu,i + nu)
@@ -290,7 +215,7 @@ case{lower('Coupling (B)')}
         set(gca,'XTick',[])
         title('PPM')
         axis square
-
+ 
         % tables
         %------------------------------------------------------------------
         subplot(4,nu,i + 3*nu)
@@ -302,18 +227,18 @@ case{lower('Coupling (B)')}
     
 case{lower('trial-specific effects')}
     
-    % spm_dcm_erp_results(DCM,'trial-specific effects');
+    % spm_dcm_ssr_results(DCM,'trial-specific effects');
     %----------------------------------------------------------------------
     for i = 1:ns
         for j = 1:ns
-
+ 
             % ensure connection is enabled
             %--------------------------------------------------------------
             q     = 0;
             for k = 1:nu
                 q = q | DCM.B{k}(i,j);
             end
-
+ 
             % plot trial-specific effects
             %--------------------------------------------------------------
             if q
@@ -329,97 +254,77 @@ case{lower('trial-specific effects')}
                 ylabel('strength (%)','FontSize',8)
                 set(gca,'XLim',[0 nt + 1])
                 axis square
-
+ 
             end
         end
     end
     
 case{lower('Input')}
     
-    % plot data
+    % spectrum of innovations or noise (Gu)
+    %----------------------------------------------------------------------
+    Gu   = exp(DCM.Ep.a)*xY.Hz.^(-1)*2;    % spectral density of (AR) input
+    Gu   = Gu + exp(DCM.Ep.b);             % spectral density of IID input
+ 
+    % plot spectral density of innovations
     % ---------------------------------------------------------------------
-    xU    = DCM.xU;
-    tU    = 0:xU.dt:xU.dur;
-    [U N] = spm_erp_u(tU,DCM.Ep,DCM.M);
-
     subplot(2,1,1)
-    plot(t,U,t,N,':')
-    xlabel('time (ms)')
-    title('input')
+    plot(xY.Hz,Gu)
+    xlabel('frquency (Hz)')
+    title('pectrum of innovations or noise')
     axis square, grid on
-    for i = 1:length(DCM.M.ons)
-        str{i} = sprintf('input (%i)',i);
+    
+case{lower('Cross-spectral density')}
+    
+    % spm_dcm_ssr_results(DCM,'Cross-spectral density');
+    %----------------------------------------------------------------------
+    co = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
+    Hz = xY.Hz;
+    q  = max(spm_vec(DCM.Hc));
+    nm = min(nm,4);
+    
+    for k = 1:nt
+        str{k} = sprintf('trial %i',k);
     end
-    str{end + 1} = 'nonspecific';
+    
+    for i = 1:nm
+        for j = i:nm
+ 
+            % for each trial type
+            %--------------------------------------------------------------
+            subplot(nm,nm,(i - 1)*nm + j),cla
+            for k = 1:nt
+                plot(Hz,DCM.Hc{k}(:,i,j),'color',co{k}), hold on
+                plot(Hz,DCM.Hc{k}(:,i,j) + DCM.Rc{k}(:,i,j),':','color',co{k})
+                set(gca,'YLim',[0 q])
+            end
+        end
+ 
+        % spectral density
+        %------------------------------------------------------------------
+        subplot(2,2,3)
+        for k = 1:nt
+            plot(Hz,DCM.Hc{k}(:,i,i),'color',co{i}), hold on
+            plot(Hz,DCM.Hc{k}(:,i,i) + DCM.Rc{k}(:,i,i),':','color',co{i})
+            set(gca,'YLim',[0 q])
+        end
+    end
+    
+    title('spectral density over modes')
+    xlabel('Frequency (Hz)')
+    ylabel('root CSD')
+    axis square
+    
+    subplot(nm,nm,nm*nm)
     legend(str)
     
-case{lower('Response')}
     
-    % plot data
-    % ---------------------------------------------------------------------
-    try
-        A     = [];
-        for i = 1:nt
-            subplot(nt,2,2*i - 1)
-            plot(t,DCM.Hc{i} + DCM.Rc{i})
-            xlabel('time (ms)')
-            try
-                title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
-            catch
-                title(sprintf('Observed (adjusted) %i',i))
-            end
-            A(end + 1,:) = axis;
-
-            subplot(nt,2,2*i - 0)
-            plot(t,DCM.Hc{i})
-            xlabel('time (ms)')
-            title('Predicted')
-            A(end + 1,:) = axis;
-        end
-        a(1)  = min(A(:,1));
-        a(2)  = max(A(:,2));
-        a(3)  = min(A(:,3));
-        a(4)  = max(A(:,4));
-        for i = 1:nt
-            subplot(nt,2,2*i - 1)
-            axis(a); axis square, grid on
-            subplot(nt,2,2*i - 0)
-            axis(a); axis square, grid on
-        end
-        
-    end
-    
-    
-case{lower('Response (image)')}
-    
-    % plot data
-    % ---------------------------------------------------------------------
-    try
-        for i = 1:nt
-            subplot(nt,2,2*i - 1)
-            imagesc([1:ne],t,DCM.Hc{i} + DCM.Rc{i})
-            xlabel('time (ms)')
-            try
-                title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
-            catch
-                title(sprintf('Observed (adjusted) %i',i))
-            end
-            axis square, grid on, A = axis;
-
-            subplot(nt,2,2*i - 0)
-            imagesc([1:ne],t,DCM.Hc{i})
-            xlabel('time (ms)')
-            title('Predicted')
-            axis(A); axis square, grid on
-        end
-    end
-
 case{lower('Dipoles')}
     
     % plot dipoles
     % ---------------------------------------------------------------------
     try
-        P            = DCM.Eg;   
+        P            = DCM.Ep;   
         np           = size(P.Lmom,2)/size(P.Lpos,2);
         sdip.n_seeds = 1;
         sdip.n_dip   = np*ns;
@@ -432,7 +337,5 @@ case{lower('Dipoles')}
         warndlg('use the render API button to view results')
         return
     end
-    
-case{lower('Spatial overview')}
-        spm_dcm_erp_viewspatial(DCM)
+ 
 end

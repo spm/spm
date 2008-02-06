@@ -20,7 +20,7 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_cat.m 859 2007-07-13 17:53:00Z karl $
+% $Id: spm_cat.m 1132 2008-02-06 14:12:17Z karl $
  
 % check x is not already a matrix
 %--------------------------------------------------------------------------
@@ -80,8 +80,6 @@ for i = 1:n
 for j = 1:m
     if ~length(x{i,j})
         x{i,j} = sparse(I(i),J(j));
-    else
-        x{i,j} = x{i,j};
     end
 end
 end
@@ -91,4 +89,8 @@ end
 for i = 1:n
     y{i,1} = cat(2,x{i,:});
 end
-x     = sparse(cat(1,y{:}));
+try
+    x = sparse(cat(1,y{:}));
+catch
+    x = cat(1,y{:});
+end

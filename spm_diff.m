@@ -1,5 +1,5 @@
 function [varargout] = spm_diff(varargin)
-% matrix high-order numerical differentiiation
+% matrix high-order numerical differentiation
 % FORMAT [dfdx] = spm_diff(f,x,...,n,[V])
 %
 % f      - [inline] function f(x{1},...)
@@ -9,22 +9,22 @@ function [varargout] = spm_diff(varargin)
 % dfdx          - df/dx{i}                     ; n =  i
 % dfdx{p}...{q} - df/dx{i}dx{j}(q)...dx{k}(p)  ; n = [i j ... k]
 %
-% V      - cell array of matices that allow for differentiation w.r.t.
-% to a linear trasnformation of the parameters: i.e., returns
+% V      - cell array of matrices that allow for differentiation w.r.t.
+% to a linear transformation of the parameters: i.e., returns
 % 
 % df/dy{i};    x = V{i}y{i};    V = dx(i)/dy(i)
 %
 % - a cunning recursive routine
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+ 
 % Karl Friston
-% $Id: spm_diff.m 1065 2008-01-07 18:45:46Z karl $
-
+% $Id: spm_diff.m 1132 2008-02-06 14:12:17Z karl $
+ 
 % create inline object
 %--------------------------------------------------------------------------
 f     = varargin{1};
-
+ 
 % parse input arguments
 %--------------------------------------------------------------------------
 if iscell(varargin{end})
@@ -38,8 +38,8 @@ elseif isnumeric(varargin{end})
 else
     error('improper call')
 end
-
-% check transform matrices V = dx.dy
+ 
+% check transform matrices V = dxdy
 %--------------------------------------------------------------------------
 for i = 1:length(x)
     try
@@ -51,18 +51,18 @@ for i = 1:length(x)
         V{i} = speye(length(spm_vec(x{i})));
     end
 end
-
+ 
 % initialise
 %--------------------------------------------------------------------------
 m     = n(end);
 xm    = spm_vec(x{m});
 dx    = exp(-8);
 J     = cell(1,size(V{m},2));
-
+ 
 % proceed to derivatives
 %==========================================================================
 if length(n) == 1
-
+ 
     % dfdx
     %----------------------------------------------------------------------
     f0    = feval(f,x{:});
@@ -76,16 +76,16 @@ if length(n) == 1
     
     % return numeric array for first order derivatives
     %======================================================================
-
+ 
     % vectorise f
     %----------------------------------------------------------------------
     f  = spm_vec(f0);
-
+ 
     % if there are no arguments to differentiate w.r.t. ...
     %----------------------------------------------------------------------
     if ~length(xm)
         J = sparse(length(f),0);
-
+ 
     % or there are no arguments to differentiate
     %----------------------------------------------------------------------
     elseif ~length(f)
@@ -105,13 +105,13 @@ if length(n) == 1
         end
     end
     
-    % assign ouput argument and return
+    % assign output argument and return
     %----------------------------------------------------------------------
     varargout{1} = J;
     varargout{2} = f0;
-
+ 
 else
-
+ 
     % dfdxdxdx....
     %----------------------------------------------------------------------
     f0        = cell(1,length(n));
@@ -126,8 +126,8 @@ else
     end
     varargout = {J f0{:}};
 end
-
-
+ 
+ 
 function dfdx = spm_dfdx(f,f0,dx)
 % cell subtraction
 %--------------------------------------------------------------------------
@@ -139,16 +139,13 @@ if iscell(f)
 else
     dfdx  = (f - f0)/dx;
 end
-
-
-
-
-
-%__________________________________________________________________________
-%__________________________________________________________________________
+ 
+ 
 function is = isvec(v)
 % isvector(v) returns true if v is 1-by-n or n-by-1 where n>=0
-
+%__________________________________________________________________________
+ 
 % vec if just two dimensions, and one (or both) unity
-is = length(size(v)) == 2 && (size(v,1) == 1 || size(v,2) == 1);
-
+%--------------------------------------------------------------------------
+is = length(size(v)) == 2 && isnumeric(v);
+is = is && (size(v,1) == 1 || size(v,2) == 1);

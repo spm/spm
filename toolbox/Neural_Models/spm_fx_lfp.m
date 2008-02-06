@@ -24,7 +24,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 %
 %  E = [32 16 4];             % extrinsic rates (forward, backward, lateral)
 %  G = [1 1 1/2 1/2 1/8]*128; % intrinsic rates (g1, g2 g3, g4, g5)
-%  D = [2 16];                % propogation delays (intrinsic, extrinsic)
+%  D = [2 16];                % propagation delays (intrinsic, extrinsic)
 %  H = [4 32];                % receptor densities (excitatory, inhibitory)
 %  T = [4 16];                % synaptic constants (excitatory, inhibitory)
 %  R = [2 1];                 % parameters of static nonlinearity
@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_fx_lfp.m 1132 2008-02-06 14:12:17Z karl $
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -47,25 +47,27 @@ x     = spm_unvec(x,M.x);
 u     = spm_vec(u);
 n     = size(x,1);             % number of sources
 s     = size(x,2);             % number of states
-m     = length(u);             % number of inputs
-
+m     = size(P.C,2);           % number of exogenous inputs
+X     = u(m + 1:end);          % trial-specific effects
+ 
+ 
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
-for i = 1:m
-      P.A{1} = P.A{1} + u(i)*P.B{i};              % forward  connections
-      P.A{2} = P.A{2} + u(i)*P.B{i};              % backward connections
-      P.A{3} = P.A{3} + u(i)*P.B{i};              % lateral  connections
+for i = 1:length(X)
+      P.A{1} = P.A{1} + X(i)*P.B{i};              % forward  connections
+      P.A{2} = P.A{2} + X(i)*P.B{i};              % backward connections
+      P.A{3} = P.A{3} + X(i)*P.B{i};              % lateral  connections
 end
-
+ 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E    = [32 16 4];             % extrinsic rates (forward, backward, lateral)
+E    = [32 16 4];              % extrinsic rates (forward, backward, lateral)
 G    = [1 1 1/2 1/2 1/32]*128; % intrinsic rates (g1, g2 g3, g4)
-D    = [2 4];                 % propogation delays (intrinsic, extrinsic)
-H    = [8 32];                % receptor densities (excitatory, inhibitory)
-T    = [4 16];                % synaptic constants (excitatory, inhibitory)
-R    = [1 2];                 % parameters of static nonlinearity
-
+D    = [2 4];                  % propagation delays (intrinsic, extrinsic)
+H    = [8 32];                 % receptor densities (excitatory, inhibitory)
+T    = [4 16];                 % synaptic constants (excitatory, inhibitory)
+R    = [1 2];                  % parameters of static nonlinearity
+ 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
 A{1} = exp(P.A{1})*E(1);
@@ -73,7 +75,7 @@ A{2} = exp(P.A{2})*E(2);
 A{3} = exp(P.A{3})*E(3);
 C    = exp(P.C);
 G    = exp(P.G)*diag(G);
-
+ 
 % intrinsic connectivity and parameters
 %--------------------------------------------------------------------------
 Te   = T(1)/1000*exp(P.T(:,1));      % excitatory time constants
@@ -81,7 +83,7 @@ Ti   = T(2)/1000*exp(P.T(:,2));      % inhibitory time constants
 Tk   = 512/1000;                     % slow potassium
 He   = H(1)*exp(P.H);                % excitatory receptor density
 Hi   = H(2);                         % inhibitory receptor density
-
+ 
 % pre-synaptic inputs: s(V) with threshold adaptation
 %--------------------------------------------------------------------------
 R      = R.*exp(P.R);
@@ -90,22 +92,22 @@ X      = x;
 X(1,:) = X(1,:) - X(13,:);
 S      = 1./(1 + exp(-R(1)*(X - R(2)))) - 1./(1 + exp(R(1)*R(2)));
 dSdx   = (R(1)*exp(-R(1)*(X - R(2)))./(1 + exp(-R(1)*(X - R(2)))).^2);
-
+ 
 % input
 %--------------------------------------------------------------------------
 U      = C*u;
-
+ 
 % State: f(x) and Jacobian dfdx
 %==========================================================================
-
+ 
 % NB: activity-dependent reduction in inhibitory effective time-constant
 %--------------------------------------------------------------------------
 Ti    = 4/1000 + Ti;
-
+ 
 % intrinsic coupling
 %--------------------------------------------------------------------------
 for i = 1:n
-
+ 
     % synaptic dynamics - dfdx
     %----------------------------------------------------------------------
     ke    = -2/Te(i);
@@ -187,7 +189,7 @@ for i = 1:n
     
     end, end
 end
-
+ 
 % construct motion and Jacobian
 %--------------------------------------------------------------------------
 for i = 1:n
@@ -198,7 +200,7 @@ for i = 1:n
         dfdx(k,l) = J{i,j};
     end    
 end
-
+ 
 % extrinsic and intrinsic delays
 %--------------------------------------------------------------------------
 De = D(2).*exp(P.D)/1000;
@@ -207,21 +209,21 @@ De = (eye(n,n) - 1).*De;
 Di = (eye(s,s) - 1)*Di;
 De = kron(ones(s,s),De);
 Di = kron(Di,eye(n,n));
-
+ 
 D  = Di + De;
-
+ 
 % Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
 %--------------------------------------------------------------------------
 D  = inv(speye(n*s,n*s) - D.*dfdx);
 f  = D*f;
 J  = D*dfdx;
-
-
+ 
+ 
 return
-
+ 
 % Equations of motion
 %==========================================================================
-
+ 
 % Supragranular layer (inhibitory interneurons): depolarizing current
 %--------------------------------------------------------------------------
 f(:,7)  = x(:,8);
@@ -233,7 +235,7 @@ f(:,8)  = (He.*((A{2} + A{3})*S(:,9) + G(:,3).*S(:,9)) ...
 f(:,10) = x(:,11);
 f(:,11) = (Hi*G(:,5).*S(:,12) ...
            - 2*x(:,11) - x(:,10)./Ti)./Ti;
-
+ 
 % Granular layer (spiny stellate cells): depolarizing current
 %--------------------------------------------------------------------------
 f(:,1)  = x(:,4);
@@ -245,23 +247,22 @@ f(:,4)  = (He.*((A{1} + A{3})*S(:,9) + G(:,1).*S(:,9) + U) ...
 f(:,2)  = x(:,5);
 f(:,5)  = (He.*((A{2} + A{3})*S(:,9) + G(:,2).*S(:,1)) ...
            - 2*x(:,5) - x(:,2)./Te)./Te;
-
+ 
 % Infra-granular layer (pyramidal cells): hyperpolarizing current
 %--------------------------------------------------------------------------
 f(:,3)  = x(:,6);
 f(:,6)  = (Hi*G(:,4).*S(:,12) ...
            - 2*x(:,6) - x(:,3)./Ti)./Ti;
-
+ 
 % Surpa and Infra-granular layer (pyramidal cells): Voltage
 %--------------------------------------------------------------------------
 f(:,9)  = x(:,5) - x(:,6);
 f(:,12) = x(:,8) - x(:,11);
-
+ 
 % Granular layer (spiny stellate cells): hyperpolarizing current
 %--------------------------------------------------------------------------
 f(:,13) = (4*S(:,1) - x(:,13))./Tk;
-
+ 
 % Jacobian for delays (evaluate numerically for simplicity)
 %==========================================================================
 dfdx = spm_diff('spm_fx_lfp',x,u,P,1,1);
-

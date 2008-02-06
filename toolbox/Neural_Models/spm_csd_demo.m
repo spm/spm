@@ -48,7 +48,7 @@ M.pE  = pE;
 M.pC  = pC;
 M.m   = n;
 M.l   = nc;
-M.Hz  = [1:64]';                          % frequencies
+M.Hz  = [1:64]';
  
  
 % simulate spectral data directly
