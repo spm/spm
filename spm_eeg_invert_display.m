@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_eeg_invert_display.m 1133 2008-02-06 14:13:19Z karl $
  
 % Number of dipoles to display
 %==========================================================================
@@ -92,7 +92,7 @@ if length(PST) == 2
         figure(Fgraph)
         spm_mip([J(:,j); SCL],XYZ,6);
         axis image
-        title({sprintf('RMS response at %i most active voxels',Ndip),...
+        title({sprintf('Response at %i most active voxels',Ndip),...
                sprintf('at %i ms (from %i to %i ms)',fix(pst(jt(j))),fix(pst(j1)),fix(pst(j2)))})
         drawnow
     end
@@ -162,7 +162,7 @@ axis square
 hold off
  
  
-% RMS responses over space
+% Mean square responses over space
 %==========================================================================
 subplot(2,1,2)
 [T i]  = sort(-abs(Js));
@@ -181,7 +181,7 @@ try
            sprintf('Percent variance explained %.2f (%.2f)',full(R2),full(R2*VE)), ...
            sprintf('log-evidence = %.1f',full(F))})
 catch
-    title({sprintf('RMS responses at %i dipoles',length(i)), ...
+    title({sprintf('Responses at %i dipoles',length(i)), ...
            sprintf('Variance explained %.2f (percent)',full(R2)), ...
            sprintf('log-evidence = %.1f',full(F))})
 end

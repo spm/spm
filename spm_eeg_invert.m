@@ -46,7 +46,7 @@ function [D] = spm_eeg_invert(D)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_invert.m 1133 2008-02-06 14:13:19Z karl $
 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -78,33 +78,19 @@ try, woi   = inverse.woi;    catch, woi   = [];                end
 % Spatial parameters
 %==========================================================================
 
-% Load Gain or Lead-field matrices
+% Check gain or lead-field matrices
 %--------------------------------------------------------------------------
 for i = 1:Nl
-    gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
-    try
-        G     = load(gainmat);
-    catch
-        [p f] = fileparts(gainmat);
-        try
-            G = load(f);
-        catch
-            G = load(fullfile(D{i}.path,f));
-        end
-    end
-    name  = fieldnames(G);
-    L{i}  = sparse(getfield(G, name{1}));
-    L{i}  = spm_cond_units(L{i});
-    Nc(i) = size(L{i},1);                          % number of channels
-    Nd(i) = size(L{i},2);                          % number of dipoles
+    L     = spm_eeg_lgainmat(D{i});
+    Nc(i) = size(L,1);                             % number of channels
+    Nd(i) = size(L,2);                             % number of dipoles
 end
 if any(diff(Nd))
     warndlg('please ensure the number of dipoles is the same')
     return
 end
 
-
-% assume radii are the same for all VOI
+% chaeck restriction; assume radii are the same for all VOI
 %--------------------------------------------------------------------------
 Nd    = Nd(1);                                     % number of dipoles
 Nv    = size(xyz,1);                               % number of VOI
@@ -114,30 +100,14 @@ else
     rad = rad(:);
 end
 
-% Restrict source space
-%--------------------------------------------------------------------------
-vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
-face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
-Is    = sparse(Nd,1);
-for i = 1:Nv
-    Iv = sum([vert(:,1) - xyz(i,1), ...
-              vert(:,2) - xyz(i,2), ...
-              vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
-    Is = Is | Iv;
-end
-Is    = find(Is);
-vert  = vert(Is,:);
-for i = 1:Nl
-    L{i} = L{i}(:,Is);
-end
-Ns    = length(Is);
 
- 
 % Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
 %==========================================================================
 
 fprintf('Computing Green''s function from graph Laplacian:')
 %--------------------------------------------------------------------------
+vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
+face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
 A     = spm_eeg_inv_meshdist(vert,face,0);
 GL    = A - spdiags(sum(A,2),0,Nd,Nd);
 GL    = GL*s/2;
@@ -150,25 +120,43 @@ end
 clear Qi
 QG    = QG.*(QG > exp(-8));
 QG    = QG*QG;
-QG    = QG(Is,Is);
 fprintf(' - done\n')
+
+
+% Restrict source space
+%--------------------------------------------------------------------------
+Is    = sparse(Nd,1);
+for i = 1:Nv
+    Iv = sum([vert(:,1) - xyz(i,1), ...
+              vert(:,2) - xyz(i,2), ...
+              vert(:,3) - xyz(i,3)].^2,2) < rad(i)^2;
+    Is = Is | Iv;
+end
+Is    = find(Is);
+vert  = vert(Is,:);
+QG    = QG(Is,Is);
+Ns    = length(Is);
 
 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
 TOL   = 16;
 Nmax  = Nm;
-U{1}  = spm_svd(L{1}*L{1}',exp(-TOL));
+L     = spm_eeg_lgainmat(D{1},Is);
+U{1}  = spm_svd(L*L',exp(-TOL));
 Nm    = min(size(U{1},2),Nmax);
 U{1}  = U{1}(:,1:Nm);
-UL{1} = U{1}'*L{1};
+UL{1} = U{1}'*L;
 for i = 2:Nl
-    U{i}  = spm_svd(L{i}*L{i}',exp(-TOL));
+    L     = spm_eeg_lgainmat(D{i});
+    U{i}  = spm_svd(L*L',exp(-TOL));
     Nm(i) = min(size(U{i},2),Nmax);
     U{i}  = U{i}(:,1:Nm(i));
-    UL{i} = U{i}'*L{i};
+    UL{i} = U{i}'*L;
 end
 fprintf('Using %i spatial modes\n',Nm)
+
+
 
 %==========================================================================
 % Temporal parameters
@@ -425,12 +413,13 @@ for i = 1:Nl
  
     % using spatial priors from group analysis
     %----------------------------------------------------------------------
+    L     = spm_eeg_lgainmat(D{i},Is);
     Qe    = {speye(Nc(i),Nc(i))};
     Ne    = length(Qe);
     Np    = length(QP);
     LQpL  = {};
     for j = 1:Np
-        LQpL{j}  = L{i}*QP{j}*L{i}';
+        LQpL{j}  = L*QP{j}*L';
     end
     Q     = {Qe{:} LQpL{:}};
     YY    = spm_cat(Y(i,:))*kron(speye(Nt(i),Nt(i)),iV{i})*spm_cat(Y(i,:))';
@@ -446,7 +435,7 @@ for i = 1:Nl
     for j = 1:Np
         Qp = Qp + hp(j)*QP{j};
     end
-    LCp   = L{i}*Qp;
+    LCp   = L*Qp;
  
     % MAP estimates of instantaneous sources
     %======================================================================
@@ -470,7 +459,7 @@ for i = 1:Nl
  
         % sum of squares
         %------------------------------------------------------------------
-        SSR   = SSR + sum(var((Y{i,j} - L{i}*J{j}),0,2));
+        SSR   = SSR + sum(var((Y{i,j} - L*J{j}),0,2));
         SST   = SST + sum(var(Y{i,j},0,2));
  
     end
@@ -491,7 +480,7 @@ for i = 1:Nl
     inverse.M      = M;                    % MAP projector (reduced)
     inverse.J      = J;                    % Conditional expectation
     inverse.Y      = Y(i,:);               % ERP data (reduced)
-    inverse.L      = L{i};                 % Lead-field (reduced)
+    inverse.L      = L;                    % Lead-field (reduced)
     inverse.R      = speye(Nc(i),Nc(i));   % Re-referencing matrix
     inverse.qC     = Cq;                   % spatial covariance
     inverse.qV     = Vq{i};                % temporal correlations
