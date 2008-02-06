@@ -17,7 +17,7 @@ function orig_coord = get_orig_coord5(coord, matname,PU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: get_orig_coord5.m 1140 2008-02-06 19:24:05Z spm $
 
 t  = load(matname);
 if size(coord,2)~=3, error('coord must be an N x 3 matrix'); end;

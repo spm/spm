@@ -86,19 +86,19 @@ end
 D.channels.eeg = setdiff([1:D.Nchannels], [D.channels.veog D.channels.heog]);
 
 for i = D.channels.eeg
-	index = [];
-	for j = 1:Csetup.Nchannels
-		if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
-			index = [index j];
-		end
-	end
+    index = [];
+    for j = 1:Csetup.Nchannels
+        if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
+            index = [index j];
+        end
+    end
     
-	if isempty(index)
-		warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
-	else
-		% take only the first found channel descriptor
-		D.channels.order(i) = index(1);
-	end
+    if isempty(index)
+        warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
+    else
+        % take only the first found channel descriptor
+        D.channels.order(i) = index(1);
+    end
 
 end
 
@@ -109,7 +109,7 @@ fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
 
 for i = 1:D.Nevents
     d = squeeze(data(:, :, i));
-    D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);        						
+    D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);                                
 end
 
 

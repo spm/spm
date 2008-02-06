@@ -18,12 +18,12 @@ Dpath = spm_select(Nsub, 'dir', 'Select subject directories');
 Nsub = size(Dpath, 1);
 
 for i = 1:Nsub
-	
-	clear S
+    
+    clear S
     
     S.Fchannels = fullfile(spm('dir'), 'EEGtemplates', 'bdf_setup.mat');
     S.Fdata = deblank(Dpath(i, :));
-	D = spm_eeg_rdata_bdf(S);
+    D = spm_eeg_rdata_bdf(S);
 
 
     % epoch

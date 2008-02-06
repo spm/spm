@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: spm_def2det.c 1140 2008-02-06 19:24:05Z spm $
  * John Ashburner
  */
 
