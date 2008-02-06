@@ -39,7 +39,7 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_imcalc.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -59,15 +59,15 @@ if isempty(dmtx), dmtx=0; end
 %-Process any additional variables
 %-----------------------------------------------------------------------
 if nargin>4
-	reserved = {'Vi','Vo','f','flags','hold','mask','dmtx','varargin',...
-			'reserved','n','Y','p','B','X','i','M','d','sf'};
-	for i=5:nargin
-		if any(strcmp(inputname(i),reserved))
-			error(['additional parameter (',inputname(i),...
-				') clashes with internal variable'])
-		end
-		eval([inputname(i),' = varargin{i-4};'])
-	end
+    reserved = {'Vi','Vo','f','flags','hold','mask','dmtx','varargin',...
+            'reserved','n','Y','p','B','X','i','M','d','sf'};
+    for i=5:nargin
+        if any(strcmp(inputname(i),reserved))
+            error(['additional parameter (',inputname(i),...
+                ') clashes with internal variable'])
+        end
+        eval([inputname(i),' = varargin{i-4};'])
+    end
 end
 
 
@@ -76,7 +76,7 @@ end
 %=======================================================================
 n   = numel(Vi);                %-#images
 if n==0, error('no input images specified'), end
-Y   = zeros(Vo.dim(1:3));		%-result of calculations
+Y   = zeros(Vo.dim(1:3));       %-result of calculations
 
 
 %-Start progress plot
@@ -87,24 +87,24 @@ spm_progress_bar('Init',Vo.dim(3),f,'planes completed');
 %-Loop over planes computing result Y
 %-----------------------------------------------------------------------
 for p = 1:Vo.dim(3),
-	B = spm_matrix([0 0 -p 0 0 0 1 1 1]);
+    B = spm_matrix([0 0 -p 0 0 0 1 1 1]);
 
-	if dmtx, X=zeros(n,prod(Vo.dim(1:2))); end
-	for i = 1:n
-		M = inv(B*inv(Vo.mat)*Vi(i).mat);
-		d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),[hold,NaN]);
-		if (mask<0), d(isnan(d))=0; end;
-		if (mask>0) && ~spm_type(Vi(i).dt(1),'nanrep'), d(d==0)=NaN; end
-		if dmtx, X(i,:) = d(:)'; else eval(['i',num2str(i),'=d;']); end
-	end
+    if dmtx, X=zeros(n,prod(Vo.dim(1:2))); end
+    for i = 1:n
+        M = inv(B*inv(Vo.mat)*Vi(i).mat);
+        d = spm_slice_vol(Vi(i),M,Vo.dim(1:2),[hold,NaN]);
+        if (mask<0), d(isnan(d))=0; end;
+        if (mask>0) && ~spm_type(Vi(i).dt(1),'nanrep'), d(d==0)=NaN; end
+        if dmtx, X(i,:) = d(:)'; else eval(['i',num2str(i),'=d;']); end
+    end
 
-	eval(['Yp = ' f ';'],['error([''Can''''t evaluate "'',f,''".'']);']);
-	if prod(Vo.dim(1:2)) ~= numel(Yp),
-		error(['"',f,'" produced incompatible image.']); end
-	if (mask<0), Yp(isnan(Yp))=0; end
-	Y(:,:,p) = reshape(Yp,Vo.dim(1:2));
+    eval(['Yp = ' f ';'],['error([''Can''''t evaluate "'',f,''".'']);']);
+    if prod(Vo.dim(1:2)) ~= numel(Yp),
+        error(['"',f,'" produced incompatible image.']); end
+    if (mask<0), Yp(isnan(Yp))=0; end
+    Y(:,:,p) = reshape(Yp,Vo.dim(1:2));
 
-	spm_progress_bar('Set',p);
+    spm_progress_bar('Set',p);
 end
 
 

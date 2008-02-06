@@ -17,7 +17,7 @@ function [v] = spm_mar_gen (w,A,C,n,ndisc)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_mar_gen.m 1131 2008-02-06 11:17:09Z spm $
 
 m       = size(C,1);                  % dimension of state vectors 
 p       = size(A,2)/m;                % order of process
@@ -57,7 +57,7 @@ if any(w)
     %  Process has nonzero mean    mval = inv(B)*w'    where 
     %             B = eye(m) - A1 -... - Ap; 
     %  Assemble B
-    B 	 = eye(m);
+    B    = eye(m);
     for j=1:p
         B = B - A(:, (j-1)*m+1:j*m);
     end

@@ -1,6 +1,4 @@
 function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
-
-%=======================================================================
 % FORMAT ts = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 %
 % Generate a mesh covering a binary volume
@@ -17,11 +15,11 @@ function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 %
 % Output :
 % ts         - tesselation structure
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_TesBin.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_inv_TesBin.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin > 4
     error('Wrong input arguments for ''TesBin''.') ;
@@ -50,15 +48,15 @@ vert = spm_matrix([ctr_vol 0 pi/2 0])*vert;   % Rotate the sphere by 90deg aroun
 vert = vert(1:3,:) ;                          % All this in mm. Leave them as a 3xNvert matrix.
 
 srf_vert = zeros(3,tsph.nr(1)) ; % vertices at the surface of brain, in vx !
-spm_progress_bar('Init',tsph.nr(1),	['Generate ',info ],'Vertices projected');
+spm_progress_bar('Init',tsph.nr(1), ['Generate ',info ],'Vertices projected');
 
 for i = 1:tsph.nr(1)
-	or       = ctr_vol'-vert(:,i) ; or = or/norm(or) ; % direction from the point toward the centre
-	line     = vert(:,i)*unit + or*d_li;
+    or       = ctr_vol'-vert(:,i) ; or = or/norm(or) ; % direction from the point toward the centre
+    line     = vert(:,i)*unit + or*d_li;
     line_vx  = spm_eeg_inv_mm2vx(line,Vv.mat);
     val_line = spm_sample_vol(Vv,line_vx(1,:),line_vx(2,:),line_vx(3,:),ho);
-	srf_vert(:,i) = line_vx(:,min(find(val_line>trsh_vol))); % first point to intercept the surface
-   	spm_progress_bar('Set',i);
+    srf_vert(:,i) = line_vx(:,min(find(val_line>trsh_vol))); % first point to intercept the surface
+    spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');
 

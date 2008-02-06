@@ -36,7 +36,10 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_fx_lfp.m 1131 2008-02-06 11:17:09Z spm $
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -49,7 +52,7 @@ m     = length(u);             % number of inputs
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
 for i = 1:m
-	  P.A{1} = P.A{1} + u(i)*P.B{i};              % forward  connections
+      P.A{1} = P.A{1} + u(i)*P.B{i};              % forward  connections
       P.A{2} = P.A{2} + u(i)*P.B{i};              % backward connections
       P.A{3} = P.A{3} + u(i)*P.B{i};              % lateral  connections
 end

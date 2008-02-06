@@ -1,3 +1,4 @@
+function H = spm_hist2(G,F,M,s)
 % Create 2D scatter-plot of two images after affine transformation
 % FORMAT H = spm_hist2(G,F,M,s)
 % G  - unsigned 8 bit 3D array representing the first volume
@@ -19,5 +20,5 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_hist2.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_hist2.m 1131 2008-02-06 11:17:09Z spm $
 

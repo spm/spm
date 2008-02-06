@@ -46,7 +46,7 @@ function f = spm_Tpdf(x,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Tpdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Tpdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -55,12 +55,12 @@ if nargin<2, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))];    ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))];    ];
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) & any(diff(as(xa,:)))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 
 %-Computation
@@ -71,7 +71,7 @@ f = zeros(rs);
 %-Only defined for v>0. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0 );
 if any(~md(:)), f(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Compute where defined
 Q  = find( md );
@@ -81,4 +81,4 @@ if xa(2), Qv=Q; else Qv=1; end
 
 %-Compute
 f(Q) = ( (1+x(Qx).^2./v(Qv)).^(-(v(Qv)+1)/2) ) ./ ...
-	 (sqrt(v(Qv)).*beta(v(Qv)/2,1/2));
+     (sqrt(v(Qv)).*beta(v(Qv)/2,1/2));

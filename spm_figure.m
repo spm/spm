@@ -30,13 +30,13 @@ function varargout=spm_figure(varargin)
 % * gray-hot, etc: Creates a 'split' colormap {128 x 3 matrix}.
 %          The lower half is a gray scale and the upper half
 %          is 'hot metal' or 'pink'.  This color map is used for
-% 	   viewing 'rendered' SPMs on a PET, MRI or other background images
+%      viewing 'rendered' SPMs on a PET, MRI or other background images
 %
 % Colormap effects:
 % * Invert: Inverts (flips) the current color map.
 % * Brighten and Darken: Brighten and Darken the current colourmap
-% 	   using the MatLab BRIGHTEN command, with  beta's of +0.2 and -0.2
-% 	   respectively.
+%      using the MatLab BRIGHTEN command, with  beta's of +0.2 and -0.2
+%      respectively.
 %
 % Editing: Right button ('alt' button) cancels operations
 % * Cut  : Deletes the graphics object next selected (if deletable)
@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_figure.m 902 2007-08-30 09:29:29Z volkmar $
+% $Id: spm_figure.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %=======================================================================
@@ -94,45 +94,45 @@ function varargout=spm_figure(varargin)
 % Create a full length WhiteBg figure 'Tag'ed Tag (if specified),
 % with a ToolBar and background context menu.
 % Equivalent to spm_figure('CreateWin','Tag') and spm_figure('CreateBar')
-% Tag	  - 'Tag' string for figure.
+% Tag     - 'Tag' string for figure.
 % Name    - Name for window
 % Visible - 'on' or 'off'
-% F	  - Figure used
+% F   - Figure used
 %
 % FORMAT F = spm_figure('FindWin',F)
 % Finds window with 'Tag' or figure numnber F - returns empty F if not found
-% F	- (Input)  Figure to use [Optional] - 'Tag' string or figure number.
-%	- Defaults to 'Graphics'
-% F	- (Output) Figure number (if found) or empty (if not).
+% F - (Input)  Figure to use [Optional] - 'Tag' string or figure number.
+%   - Defaults to 'Graphics'
+% F - (Output) Figure number (if found) or empty (if not).
 %
 % FORMAT F = spm_figure('GetWin',Tag)
 % Like spm_figure('FindWin',Tag), except that if 'Tag' is 'Graphics' or
 % 'Interactive' and no such 'Tag'ged figure is found, one is created. Further,
 % the "got" window is made current.
-% Tag	- Figure 'Tag' to get, defaults to 'Graphics'
-% F	- Figure number (if found/created) or empty (if not).
+% Tag   - Figure 'Tag' to get, defaults to 'Graphics'
+% F - Figure number (if found/created) or empty (if not).
 %
 % FORMAT F = spm_figure('ParentFig',h)
 % Finds window containing the object whose handle is specified
-% h	- Handle of object whose parent figure is required
-%	- If a vector, then first object handle is used
-% F	- Number or parent figure
+% h - Handle of object whose parent figure is required
+%   - If a vector, then first object handle is used
+% F - Number or parent figure
 %
 % FORMAT spm_figure('Clear',F,Tags)
 % Clears figure, leaving ToolBar (& other objects with invisible handles)
 % Optional third argument specifies 'Tag's of objects to delete.
 % If figure F is 'Tag'ged 'Interactive' (SPM usage), then the window
 % name and pointer are reset.
-% F	- 'Tag' string or figure number of figure to clear, defaults to gcf
+% F - 'Tag' string or figure number of figure to clear, defaults to gcf
 % Tags  - 'Tag's (string matrix or cell array of strings) of objects to delete
 %         *regardless* of 'HandleVisibility'. Only these objects are deleted.
 %         '!all' denotes all objects
 %
 %
 % FORMAT spm_figure('Print',F)
-% F	- [Optional] Figure to print. ('Tag' or figure number)
-%	  Defaults to figure 'Tag'ed as 'Graphics'.
-%	  If none found, uses CurrentFigure if avaliable.
+% F - [Optional] Figure to print. ('Tag' or figure number)
+%     Defaults to figure 'Tag'ed as 'Graphics'.
+%     If none found, uses CurrentFigure if avaliable.
 % If objects 'Tag'ed 'NextPage' and 'PrevPage' are found, then the
 % pages are shown and printed in order. In breif, pages are held as
 % seperate axes, with ony one 'Visible' at any one time. The handles of
@@ -143,7 +143,7 @@ function varargout=spm_figure(varargin)
 % FORMAT [hNextPage, hPrevPage, hPageNo] = spm_figure('NewPage',hPage)
 % SPM pagination function: Makes objects with handles hPage paginated
 % Creates pagination buttons if necessary.
-% hPage	                        - Handles of objects to stick to this page
+% hPage                         - Handles of objects to stick to this page
 % hNextPage, hPrevPage, hPageNo - Handles of pagination controls
 %
 % FORMAT spm_figure('TurnPage',move,F)
@@ -151,7 +151,7 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT spm_figure('DeletePageControls',F)
 % SPM pagination function: Deletes page controls
-% F	- [Optional] Figure in which to attempt to turn the page
+% F - [Optional] Figure in which to attempt to turn the page
 %         Defaults to 'Graphics' 'Tag'ged window
 %
 % FORMAT n = spm_figure('#page')
@@ -159,7 +159,7 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT spm_figure('WaterMark',F,str,Tag,Angle,Perm)
 % Adds watermark to figure windows.
-% F	- Figure for watermark. Defaults to gcf
+% F - Figure for watermark. Defaults to gcf
 % str   - Watermark string. Defaults (missing or empty) to SPM
 % Tag   - Tag for watermark axes. Defaults to ''
 % Angle - Angle for watermark. Defaults to -45
@@ -167,8 +167,8 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT F = spm_figure('CreateWin',Tag,Name,Visible)
 % Creates a full length WhiteBg figure 'Tag'ged Tag (if specified).
-% F	  - Figure created
-% Tag	  - Tag for window
+% F   - Figure created
+% Tag     - Tag for window
 % Name    - Name for window
 % Visible - 'on' or 'off'
 %
@@ -226,19 +226,19 @@ case 'findwin'
 if nargin<2, F='Graphics'; else F=varargin{2}; end
 
 if isempty(F)
-	% Leave F empty
+    % Leave F empty
 elseif ischar(F)
-	% Finds Graphics window with 'Tag' string - delete multiples
-	Tag=F;
-	F = findobj(get(0,'Children'),'Flat','Tag',Tag);
-	if length(F) > 1
-		% Multiple Graphics windows - close all but most recent
-		close(F(2:end))
-		F = F(1);
-	end
+    % Finds Graphics window with 'Tag' string - delete multiples
+    Tag=F;
+    F = findobj(get(0,'Children'),'Flat','Tag',Tag);
+    if length(F) > 1
+        % Multiple Graphics windows - close all but most recent
+        close(F(2:end))
+        F = F(1);
+    end
 else
-	% F is supposed to be a figure number - check it
-	if ~any(F==get(0,'Children')), F=[]; end
+    % F is supposed to be a figure number - check it
+    if ~any(F==get(0,'Children')), F=[]; end
 end
 varargout = {F};
 
@@ -250,23 +250,23 @@ if nargin<2, Tag='Graphics'; else Tag=varargin{2}; end
 F = spm_figure('FindWin',Tag);
 
 if isempty(F)
-	if ischar(Tag)
-		switch Tag
+    if ischar(Tag)
+        switch Tag
             
         case 'Graphics'
-			F = spm_figure('Create','Graphics','Graphics');
+            F = spm_figure('Create','Graphics','Graphics');
         case 'DEM'
-			F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
+            F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
         case 'DFP'
-			F = spm_figure('Create','DFP','Variational filtering');
+            F = spm_figure('Create','DFP','Variational filtering');
         case 'SI'
-			F = spm_figure('Create','SI','System Identification');
-		case 'Interactive'
-			F = spm('CreateIntWin');
-		end
-	end
+            F = spm_figure('Create','SI','System Identification');
+        case 'Interactive'
+            F = spm('CreateIntWin');
+        end
+    end
 else
-	set(0,'CurrentFigure',F);
+    set(0,'CurrentFigure',F);
 end
 varargout = {F};
 
@@ -293,33 +293,33 @@ if isempty(F), return, end
 %-Clear figure
 %-----------------------------------------------------------------------
 if isempty(Tags)
-	%-Clear figure of objects with 'HandleVisibility' 'on'
-	pos = get(F,'Position');
-	delete(findobj(get(F,'Children'),'flat','HandleVisibility','on'));
-	drawnow
-	set(F,'Position',pos);
+    %-Clear figure of objects with 'HandleVisibility' 'on'
+    pos = get(F,'Position');
+    delete(findobj(get(F,'Children'),'flat','HandleVisibility','on'));
+    drawnow
+    set(F,'Position',pos);
 
-	%-Reset figures callback functions
-	set(F,'KeyPressFcn','',...
-		'WindowButtonDownFcn','',...
-		'WindowButtonMotionFcn','',...
-		'WindowButtonUpFcn','')
-	%-If this is the 'Interactive' window, reset name & UserData
-	if strcmp(get(F,'Tag'),'Interactive')
-		set(F,'Name','','UserData',[]), end
+    %-Reset figures callback functions
+    set(F,'KeyPressFcn','',...
+        'WindowButtonDownFcn','',...
+        'WindowButtonMotionFcn','',...
+        'WindowButtonUpFcn','')
+    %-If this is the 'Interactive' window, reset name & UserData
+    if strcmp(get(F,'Tag'),'Interactive')
+        set(F,'Name','','UserData',[]), end
 else
-	%-Clear specified objects from figure
-	cSHH = get(0,'ShowHiddenHandles');
-	set(0,'ShowHiddenHandles','on')
-	if ischar(Tags); Tags=cellstr(Tags); end
-	if any(strcmp(Tags(:),'!all'))
-		delete(get(F,'Children'))
-	else
-	    for tag = Tags(:)'
-		delete(findobj(get(F,'Children'),'flat','Tag',tag{:}));
-	    end
-	end	
-	set(0,'ShowHiddenHandles',cSHH)
+    %-Clear specified objects from figure
+    cSHH = get(0,'ShowHiddenHandles');
+    set(0,'ShowHiddenHandles','on')
+    if ischar(Tags); Tags=cellstr(Tags); end
+    if any(strcmp(Tags(:),'!all'))
+        delete(get(F,'Children'))
+    else
+        for tag = Tags(:)'
+        delete(findobj(get(F,'Children'),'flat','Tag',tag{:}));
+        end
+    end 
+    set(0,'ShowHiddenHandles',cSHH)
 end
 set(F,'Pointer','Arrow')
 movegui(F);
@@ -366,20 +366,20 @@ end;
 if ~iPaged
     spm_print(fname)
 else
-	hPg       = get(hNextPage,'UserData');
-	Cpage     = get(hPageNo,  'UserData');
-	nPages    = size(hPg,1);
+    hPg       = get(hNextPage,'UserData');
+    Cpage     = get(hPageNo,  'UserData');
+    nPages    = size(hPg,1);
 
-	set([hNextPage,hPrevPage,hPageNo],'Visible','off')
-	if Cpage~=1
-		set(hPg{Cpage,1},'Visible','off'), end
-	for p = 1:nPages
-		set(hPg{p,1},'Visible','on');
-		spm_print(fname);
-		set(hPg{p,1},'Visible','off')
-	end
-	set(hPg{Cpage,1},'Visible','on')
-	set([hNextPage,hPrevPage,hPageNo],'Visible','on')
+    set([hNextPage,hPrevPage,hPageNo],'Visible','off')
+    if Cpage~=1
+        set(hPg{Cpage,1},'Visible','off'), end
+    for p = 1:nPages
+        set(hPg{p,1},'Visible','on');
+        spm_print(fname);
+        set(hPg{p,1},'Visible','off')
+    end
+    set(hPg{Cpage,1},'Visible','on')
+    set([hNextPage,hPrevPage,hPageNo],'Visible','on')
 end
 if ~isempty(H), set(H,{'Units'},un); end;
 set(0,'CurrentFigure',cF)
@@ -422,8 +422,8 @@ hPageNo   = findobj(F,'Tag','PageNo');
 %-Create pagination widgets if required
 %-----------------------------------------------------------------------
 if isempty(hNextPage)
-	WS = spm('WinScale');
-	FS = spm('FontSizes');
+    WS = spm('WinScale');
+    FS = spm('FontSizes');
     SatFig = findobj('Tag','Satellite');
     if ~isempty(SatFig)
         SatFigPos    = get(SatFig,'Position');
@@ -436,33 +436,33 @@ if isempty(hNextPage)
         hPageNo      = [550 005 060 015].*WS;
     end
     
-	hNextPage = uicontrol(F,'Style','Pushbutton',...
-		'HandleVisibility','on',...
-		'String','>','FontSize',FS(10),...
-		'ToolTipString','next page',...
-		'Callback','spm_figure(''TurnPage'',''+1'',gcbf)',...
-		'Position',hNextPagePos,...
-		'ForegroundColor',[0 0 0],...
-		'Tag','NextPage','UserData',[]);
-	hPrevPage = uicontrol(F,'Style','Pushbutton',...
-		'HandleVisibility','on',...
-		'String','<','FontSize',FS(10),...
-		'ToolTipString','previous page',...
-		'Callback','spm_figure(''TurnPage'',''-1'',gcbf)',...
-		'Position',hPrevPagePos,...
-		'Visible','on',...
-		'Enable','off',...
-		'Tag','PrevPage');
-	hPageNo = uicontrol(F,'Style','Text',...
-		'HandleVisibility','on',...
-		'String','1',...
-		'FontSize',FS(6),...
-		'HorizontalAlignment','center',...
-		'BackgroundColor','w',...
-		'Position',hPageNo,...
-		'Visible','on',...
-		'UserData',1,...
-		'Tag','PageNo','UserData',1);
+    hNextPage = uicontrol(F,'Style','Pushbutton',...
+        'HandleVisibility','on',...
+        'String','>','FontSize',FS(10),...
+        'ToolTipString','next page',...
+        'Callback','spm_figure(''TurnPage'',''+1'',gcbf)',...
+        'Position',hNextPagePos,...
+        'ForegroundColor',[0 0 0],...
+        'Tag','NextPage','UserData',[]);
+    hPrevPage = uicontrol(F,'Style','Pushbutton',...
+        'HandleVisibility','on',...
+        'String','<','FontSize',FS(10),...
+        'ToolTipString','previous page',...
+        'Callback','spm_figure(''TurnPage'',''-1'',gcbf)',...
+        'Position',hPrevPagePos,...
+        'Visible','on',...
+        'Enable','off',...
+        'Tag','PrevPage');
+    hPageNo = uicontrol(F,'Style','Text',...
+        'HandleVisibility','on',...
+        'String','1',...
+        'FontSize',FS(6),...
+        'HorizontalAlignment','center',...
+        'BackgroundColor','w',...
+        'Position',hPageNo,...
+        'Visible','on',...
+        'UserData',1,...
+        'Tag','PageNo','UserData',1);
 end
 
 %-Add handles for this page to UserData of hNextPage
@@ -472,10 +472,10 @@ mVis    = strcmp('on',get(h,'Visible'));
 mHit    = strcmp('on',get(h,'HitTest'));
 hPg     = get(hNextPage,'UserData');
 if isempty(hPg)
-	hPg = {h(mVis), h(~mVis), h(mHit), h(~mHit)};
+    hPg = {h(mVis), h(~mVis), h(mHit), h(~mHit)};
 else
-	hPg = [hPg; {h(mVis), h(~mVis), h(mHit), h(~mHit)}];
-	set(h(mVis),'Visible','off');
+    hPg = [hPg; {h(mVis), h(~mVis), h(mHit), h(~mHit)}];
+    set(h(mVis),'Visible','off');
         set(h(mHit),'HitTest','off');
 end
 set(hNextPage,'UserData',hPg)
@@ -512,9 +512,9 @@ set(hPg{Npage,3},'HitTest','on');
 set(hPageNo,'UserData',Npage,'String',sprintf('%d / %d',Npage,nPages))
 
 for k = 1:length(hPg{Npage,1}) % VG
-	if strcmp(get(hPg{Npage,1}(k),'Type'),'axes')
-		axes(hPg{Npage,1}(k));
-	end;
+    if strcmp(get(hPg{Npage,1}(k),'Type'),'axes')
+        axes(hPg{Npage,1}(k));
+    end;
 end;
 
 %-Disable appropriate page turning control if on first/last page (for neatness)
@@ -548,9 +548,9 @@ if isempty(F), error('No Graphics window'), end
 
 hNextPage = findobj(F,'Tag','NextPage');
 if isempty(hNextPage)
-	n = 1;
+    n = 1;
 else
-	n = size(get(hNextPage,'UserData'),1)+1;
+    n = size(get(hNextPage,'UserData'),1)+1;
 end
 varargout = {n};
 
@@ -580,23 +580,23 @@ set(0,'CurrentFigure',F)
 Units=get(F,'Units');
 set(F,'Units','normalized');
 h = axes('Position',[0.45,0.5,0.1,0.1],...
-	'Units','normalized',...
-	'Visible','off',...
-	'Tag',Tag);
+    'Units','normalized',...
+    'Visible','off',...
+    'Tag',Tag);
 set(F,'Units',Units)
 text(0.5,0.5,str,...
-	'FontSize',spm('FontSize',80),...
-	'FontWeight','Bold',...
-	'FontName',spm_platform('Font','times'),...
-	'Rotation',Angle,...
-	'HorizontalAlignment','Center',...
-	'VerticalAlignment','middle',...
-	'EraseMode','normal',...
-	'Color',Colour,...
-	'ButtonDownFcn',[...
-		'if strcmp(get(gcbf,''SelectionType''),''open''),',...
-			'delete(get(gcbo,''Parent'')),',...
-		'end'])
+    'FontSize',spm('FontSize',80),...
+    'FontWeight','Bold',...
+    'FontName',spm_platform('Font','times'),...
+    'Rotation',Angle,...
+    'HorizontalAlignment','Center',...
+    'VerticalAlignment','middle',...
+    'EraseMode','normal',...
+    'Color',Colour,...
+    'ButtonDownFcn',[...
+        'if strcmp(get(gcbf,''SelectionType''),''open''),',...
+            'delete(get(gcbo,''Parent'')),',...
+        'end'])
 set(h,'HandleVisibility',HVis)
 set(0,'CurrentFigure',cF)
 
@@ -611,43 +611,43 @@ if nargin<4 || isempty(varargin{4}), Visible='on'; else Visible=varargin{4}; end
 if nargin<3, Name=''; else Name = varargin{3}; end
 if nargin<2, Tag='';  else Tag  = varargin{2}; end
 
-WS   = spm('WinScale');				%-Window scaling factors
-FS   = spm('FontSizes');			%-Scaled font sizes
-PF   = spm_platform('fonts');			%-Font names (for this platform)
-Rect = spm('WinSize','Graphics','raw').*WS;	%-Graphics window rectangle
+WS   = spm('WinScale');             %-Window scaling factors
+FS   = spm('FontSizes');            %-Scaled font sizes
+PF   = spm_platform('fonts');           %-Font names (for this platform)
+Rect = spm('WinSize','Graphics','raw').*WS; %-Graphics window rectangle
 
 F    = figure(...
-	'Tag',Tag,...
-	'Position',Rect,...
-	'Resize','off',...
-	'Color','w',...
-	'ColorMap',gray(64),...
-	'DefaultTextColor','k',...
-	'DefaultTextInterpreter','none',...
-	'DefaultTextFontName',PF.helvetica,...
-	'DefaultTextFontSize',FS(10),...
-	'DefaultAxesColor','w',...
-	'DefaultAxesXColor','k',...
-	'DefaultAxesYColor','k',...
-	'DefaultAxesZColor','k',...
-	'DefaultAxesFontName',PF.helvetica,...
-	'DefaultPatchFaceColor','k',...
-	'DefaultPatchEdgeColor','k',...
-	'DefaultSurfaceEdgeColor','k',...
-	'DefaultLineColor','k',...
-	'DefaultUicontrolFontName',PF.helvetica,...
-	'DefaultUicontrolFontSize',FS(10),...
-	'DefaultUicontrolInterruptible','on',...
-	'PaperType','A4',...
-	'PaperUnits','normalized',...
-	'PaperPosition',[.0726 .0644 .854 .870],...
-	'InvertHardcopy','off',...
-	'Renderer','painters',...
-	'Visible','off',...
-	'Toolbar','none');
+    'Tag',Tag,...
+    'Position',Rect,...
+    'Resize','off',...
+    'Color','w',...
+    'ColorMap',gray(64),...
+    'DefaultTextColor','k',...
+    'DefaultTextInterpreter','none',...
+    'DefaultTextFontName',PF.helvetica,...
+    'DefaultTextFontSize',FS(10),...
+    'DefaultAxesColor','w',...
+    'DefaultAxesXColor','k',...
+    'DefaultAxesYColor','k',...
+    'DefaultAxesZColor','k',...
+    'DefaultAxesFontName',PF.helvetica,...
+    'DefaultPatchFaceColor','k',...
+    'DefaultPatchEdgeColor','k',...
+    'DefaultSurfaceEdgeColor','k',...
+    'DefaultLineColor','k',...
+    'DefaultUicontrolFontName',PF.helvetica,...
+    'DefaultUicontrolFontSize',FS(10),...
+    'DefaultUicontrolInterruptible','on',...
+    'PaperType','A4',...
+    'PaperUnits','normalized',...
+    'PaperPosition',[.0726 .0644 .854 .870],...
+    'InvertHardcopy','off',...
+    'Renderer','painters',...
+    'Visible','off',...
+    'Toolbar','none');
 if ~isempty(Name)
-	set(F,'Name',sprintf('%s%s: %s',spm('ver'),...
-		spm('GetUser',' (%s)'),Name),'NumberTitle','off')
+    set(F,'Name',sprintf('%s%s: %s',spm('ver'),...
+        spm('GetUser',' (%s)'),Name),'NumberTitle','off')
 end
 set(F,'Visible',Visible)
 varargout = {F};
@@ -685,11 +685,11 @@ if isempty(t0), t0 = uimenu( F,'Label','&Help'); end;
 
 set(findobj(t0,'Position',1),'Separator','on');
 uimenu(t0,'Position',1,...
-	'Label','SPM web',...
-	'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
+    'Label','SPM web',...
+    'CallBack','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
 uimenu(t0,'Position',1,...
-	'Label','SPM help','ForegroundColor',[0 1 0],...
-	'CallBack','spm_help');
+    'Label','SPM help','ForegroundColor',[0 1 0],...
+    'CallBack','spm_help');
 
 t0=uimenu( F,'Label','Colours','HandleVisibility','off');
 t1=uimenu(t0,'Label','ColorMap');
@@ -743,11 +743,11 @@ case 'figcontextmenu'
 %=======================================================================
 % h = spm_figure('FigContextMenu',F)
 if nargin<2
-	F = get(0,'CurrentFigure');
-	if isempty(F), error('no figure'), end
+    F = get(0,'CurrentFigure');
+    if isempty(F), error('no figure'), end
 else
-	F = spm_figure('FindWin',varargin{2});
-	if isempty(F), error('no such figure'), end
+    F = spm_figure('FindWin',varargin{2});
+    if isempty(F), error('no such figure'), end
 end
 h       = uicontextmenu('Parent',F,'HandleVisibility','CallBack');
 cSHH = get(0,'ShowHiddenHandles');
@@ -765,34 +765,34 @@ if nargin<3, h=[]; else h=varargin{3}; end
 if nargin<2, ColAction='gray'; else ColAction=varargin{2}; end
 
 switch lower(ColAction), case 'gray'
-	colormap(gray(64))
+    colormap(gray(64))
 case 'hot'
-	colormap(hot(64))
+    colormap(hot(64))
 case 'pink'
-	colormap(pink(64))
+    colormap(pink(64))
 case 'jet'
-	colormap(jet(64))
+    colormap(jet(64))
 case 'gray-hot'
-	tmp = hot(64 + 16);  tmp = tmp((1:64) + 16,:);
-	colormap([gray(64); tmp]);
+    tmp = hot(64 + 16);  tmp = tmp((1:64) + 16,:);
+    colormap([gray(64); tmp]);
 case 'gray-cool'
-	cool = [zeros(10,1) zeros(10,1) linspace(0.5,1,10)';
-	        zeros(31,1) linspace(0,1,31)' ones(31,1);
-	        linspace(0,1,23)' ones(23,1) ones(23,1) ];
-	colormap([gray(64); cool]);
+    cool = [zeros(10,1) zeros(10,1) linspace(0.5,1,10)';
+            zeros(31,1) linspace(0,1,31)' ones(31,1);
+            linspace(0,1,23)' ones(23,1) ones(23,1) ];
+    colormap([gray(64); cool]);
 case 'gray-pink'
-	tmp = pink(64 + 16); tmp = tmp((1:64) + 16,:);
-	colormap([gray(64); tmp]);
+    tmp = pink(64 + 16); tmp = tmp((1:64) + 16,:);
+    colormap([gray(64); tmp]);
 case 'gray-jet'
-	colormap([gray(64); jet(64)]);
+    colormap([gray(64); jet(64)]);
 case 'invert'
-	colormap(flipud(colormap));
+    colormap(flipud(colormap));
 case 'brighten'
-	colormap(brighten(colormap, 0.2));
+    colormap(brighten(colormap, 0.2));
 case 'darken'
-	colormap(brighten(colormap, -0.2));
+    colormap(brighten(colormap, -0.2));
 otherwise
-	error('Illegal ColAction specification');
+    error('Illegal ColAction specification');
 end
 
 case 'graphicshandle'
@@ -803,7 +803,7 @@ if isempty(F), return, end
 
 tmp = get(F,'Name');
 set(F,'Name',...
-	'Handle: Select item to identify, MiddleMouse=parent, RightMouse=cancel...');
+    'Handle: Select item to identify, MiddleMouse=parent, RightMouse=cancel...');
 set(F,'Pointer','CrossHair')
 waitforbuttonpress;
 h        = gco(F);
@@ -812,22 +812,22 @@ SelnType = get(gcf,'SelectionType');
 set(F,'Pointer','Arrow','Name',tmp)
 
 if ~strcmp(SelnType,'alt') && ~isempty(h) && gcf==F
-	str = sprintf('Selected (%s) object',get(h,'Type'));
-	if strcmp(SelnType,'normal')
-		str = sprintf('%s: handle',str);
-	else
-		h = get(h,'Parent');
-		str = sprintf('%s: handle of parent (%s) object',str,get(h,'Type'));
-	end
-	if nargout==0
-		assignin('base','ans',h)
-		fprintf('\n%s: \n',str)
-		ans = h
-	else
-		varargout={h};
-	end
+    str = sprintf('Selected (%s) object',get(h,'Type'));
+    if strcmp(SelnType,'normal')
+        str = sprintf('%s: handle',str);
+    else
+        h = get(h,'Parent');
+        str = sprintf('%s: handle of parent (%s) object',str,get(h,'Type'));
+    end
+    if nargout==0
+        assignin('base','ans',h)
+        fprintf('\n%s: \n',str)
+        ans = h
+    else
+        varargout={h};
+    end
 else
-	varargout={[]};
+    varargout={[]};
 end
 
 
@@ -846,13 +846,13 @@ function copy_menu(F,G)
 handles = findobj(get(F,'Children'),'Flat','Type','uimenu','Visible','on');
 if isempty(handles), return; end;
 for F1=handles',
-	if ~strcmp(get(F1,'Label'),'&Window'),
-		G1 = uimenu(G,'Label',get(F1,'Label'),...
-			'CallBack',get(F1,'CallBack'),...
-			'Position',get(F1,'Position'),...
-			'Separator',get(F1,'Separator'));
-		copy_menu(F1,G1);
-	end;
+    if ~strcmp(get(F1,'Label'),'&Window'),
+        G1 = uimenu(G,'Label',get(F1,'Label'),...
+            'CallBack',get(F1,'CallBack'),...
+            'Position',get(F1,'Position'),...
+            'Separator',get(F1,'Separator'));
+        copy_menu(F1,G1);
+    end;
 end;
 return;
 %=======================================================================

@@ -20,7 +20,7 @@ function [K] = spm_sptop(sigma,q,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_sptop.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_sptop.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % if sigma = 0, return identity matrix; if q = 1, return 1.
@@ -31,16 +31,16 @@ if q == 1;      K = 1;        return; end
 % otherwise get kernel function
 %-----------------------------------------------------------------------
 if length(sigma) == 1
-	E  = ceil(3*sigma);
-	x  = [-E:E];
-	k  = exp(-x.^2/(2*sigma^2));
+    E  = ceil(3*sigma);
+    x  = [-E:E];
+    k  = exp(-x.^2/(2*sigma^2));
 else
-	if nargin < 3
-		c = length(sigma)/2;
-	end
-	E  = length(sigma);
-	x  = [1:E] - fix(c);
-	k  = sigma;
+    if nargin < 3
+        c = length(sigma)/2;
+    end
+    E  = length(sigma);
+    x  = [1:E] - fix(c);
+    k  = sigma;
 end
 
 % and create convolution matrix

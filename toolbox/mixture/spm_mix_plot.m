@@ -4,14 +4,14 @@ function [] = spm_mix_plot (mix,area,nContLines,LineType,min_p,max_p)
 %
 % mix           Mixture model data structure
 % area          [xmin,xmax,ymin,ymax]
-% nContLines	Number of contour lines; default=10
-% LineType		Plot line type; default='-'
+% nContLines    Number of contour lines; default=10
+% LineType      Plot line type; default='-'
 % min_p/max_p   Values of min and max probability contours
 %_______________________________________________________________________
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_mix_plot.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 2 | isempty(area), area=[0 10 0 10]; end
 if nargin < 3 | isempty(nContLines), nContLines=10; end
@@ -44,7 +44,7 @@ for j=1:mix.m,
     % Plot proby contours
     yplot = reshape(y,d+1,d+1);
     dp=(max_p-min_p)/nContLines;
-    clevels=[min_p:dp:max_p]*max(y);		
+    clevels=[min_p:dp:max_p]*max(y);        
     
     clevels=clevels(1:nContLines);
     if nContLines==1

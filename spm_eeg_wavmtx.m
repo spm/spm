@@ -29,17 +29,17 @@ function [W, Nres] = spm_eeg_wavmtx(n, wname, order)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_wavmtx.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_wavmtx.m 1131 2008-02-06 11:17:09Z spm $
 
 
 switch wname
-	case 'db4'
-		w = 1/(4*sqrt(2))*[(1 + sqrt(3)) (3 + sqrt(3)) (3 - sqrt(3)) (1 - sqrt(3))];
-	    c1 = [w(1) w(2); w(4) -w(3)];
-	    c2 = [w(3) w(4); w(2) -w(1)];
+    case 'db4'
+        w = 1/(4*sqrt(2))*[(1 + sqrt(3)) (3 + sqrt(3)) (3 - sqrt(3)) (1 - sqrt(3))];
+        c1 = [w(1) w(2); w(4) -w(3)];
+        c2 = [w(3) w(4); w(2) -w(1)];
         
-	otherwise
-		disp('Unknown wavelet name');
+    otherwise
+        disp('Unknown wavelet name');
 
 end
 
@@ -54,10 +54,10 @@ for i = 1:order
     k = lw - 2;
     cm2 = ceil(m/2);
     
-	% generate transformation matrix C
-	C1 = [kron(speye(cm2), c1) sparse(2*cm2, k)];
-	C2 = kron(spdiags(ones(cm2+1,1), 1, cm2, cm2+1), c2);
-	C = C1 + C2;
+    % generate transformation matrix C
+    C1 = [kron(speye(cm2), c1) sparse(2*cm2, k)];
+    C2 = kron(spdiags(ones(cm2+1,1), 1, cm2, cm2+1), c2);
+    C = C1 + C2;
     
     k = k/2;
     r = 2*cm2;
@@ -69,10 +69,10 @@ for i = 1:order
     
     C = blkdiag(C, speye(size(W,1) - size(C,2)));
     
-	% generate permutation matrix P
-	P = sparse([1:cm2 cm2+1:2*cm2], [1:2:2*cm2 2:2:2*cm2], 1, 2*cm2,2*cm2);
+    % generate permutation matrix P
+    P = sparse([1:cm2 cm2+1:2*cm2], [1:2:2*cm2 2:2:2*cm2], 1, 2*cm2,2*cm2);
     P = blkdiag(P, speye(size(C,1) - size(P,2)));
-	W = P*C*W;
+    W = P*C*W;
     
     m = cm2;
 

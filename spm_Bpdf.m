@@ -46,7 +46,7 @@ function f = spm_Bpdf(x,v,w)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Bpdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Bpdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -56,13 +56,13 @@ if nargin<3, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v);ndims(w)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))];...
-	[size(w),ones(1,rd-ad(3))]     ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))];...
+    [size(w),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -73,7 +73,7 @@ f = zeros(rs);
 % Return NaN if undefined.
 md = ( x>=0  &  x<=1  &  v>0  &  w>0 );
 if any(~md(:)), f(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Special cases: x=0 & x=1
 f(md & x==0 & v<1) = Inf;

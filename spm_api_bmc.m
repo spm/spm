@@ -2,7 +2,10 @@ function spm_api_bmc
 % API to slect and compare DCMs using Bayesian model comparison
 % FORMAT spm_api_bmc
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_api_bmc.m 1131 2008-02-06 11:17:09Z spm $
 
 % get DCM.mat files
 %--------------------------------------------------------------------------

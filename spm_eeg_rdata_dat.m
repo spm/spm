@@ -4,7 +4,7 @@ function D = spm_eeg_rdata_dat(S)
 %
 % S       - struct (optional)
 % (optional) fields of S:
-% Fdata		  - filename of ASCII dat-file
+% Fdata       - filename of ASCII dat-file
 % events      - struct with the following (optional) fields
 %    start    - number of samples before stimulus onset
 %    stop     - number of samples after stimulus onset
@@ -12,13 +12,13 @@ function D = spm_eeg_rdata_dat(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_dat.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_rdata_dat.m 1131 2008-02-06 11:17:09Z spm $
 
 
 try
     Fdata = S.Fdata;
 catch
-	Fdata = spm_select(1, '\.dat$', 'Select dat neuroscan-file');
+    Fdata = spm_select(1, '\.dat$', 'Select dat neuroscan-file');
 end
 
 % Read dat-file into cell vector of strings
@@ -83,18 +83,18 @@ end
 Csetup = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
 % Map name of channels to channel order specified in CTF
 for i = 1:length(D.channels.name)
-	index = [];
-	for j = 1:Csetup.Nchannels
-		if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
-			index = [index j];
-		end
-	end
-	if isempty(index)
-		warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
-	else
-		% take only the first found channel descriptor
-		D.channels.order(i) = index(1);
-	end
+    index = [];
+    for j = 1:Csetup.Nchannels
+        if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
+            index = [index j];
+        end
+    end
+    if isempty(index)
+        warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
+    else
+        % take only the first found channel descriptor
+        D.channels.order(i) = index(1);
+    end
 
 end
 

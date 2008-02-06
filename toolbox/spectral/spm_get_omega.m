@@ -12,7 +12,7 @@ function [Omega] = spm_get_omega (p,d,w_cov,xtx)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_get_omega.m 1131 2008-02-06 11:17:09Z spm $
 
 Omega=zeros(d,d);
 % Submatrix size

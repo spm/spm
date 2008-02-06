@@ -27,7 +27,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_reml_sc.m 1131 2008-02-06 11:17:09Z spm $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------

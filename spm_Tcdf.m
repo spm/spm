@@ -61,7 +61,7 @@ function F = spm_Tcdf(x,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Tcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Tcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -70,12 +70,12 @@ if nargin<2, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(v)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))]     ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) & any(diff(as(xa,:)))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 
 %-Computation
@@ -86,7 +86,7 @@ F = zeros(rs);
 %-Only defined for strictly positive v. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0 );
 if any(~md(:)), F(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Special case: f is 0.5 when x=0 (where betainc involves log of zero)
 F( md  &  x==0 ) = 0.5;

@@ -8,6 +8,11 @@ function [I,P,H,Hnames] = spm_set_factorial_design (job)
 % P         List of scans
 % H         Component of design matrix describing conditions
 % Hnames    Condition names
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Will Penny
+% $Id: spm_set_factorial_design.m 1131 2008-02-06 11:17:09Z spm $
 
 % Get number of factors, names and levels
 sF{1}='Repl'; % - first `factor' (for I) is always replication

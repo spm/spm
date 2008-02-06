@@ -1,6 +1,4 @@
 function    [Center,Radius] = spm_eeg_inv_BestFitSph(points,varargin);
-
-%=======================================================================
 % FORMAT [Center,Radius] = spm_eeg_inv_BestFitSph(points,face)
 % 
 % This function computes the Center location and Radius (in mm) of the Sphere
@@ -12,11 +10,11 @@ function    [Center,Radius] = spm_eeg_inv_BestFitSph(points,varargin);
 % Uses a Least-Square approach:
 %   - first compute an initial estimate of the radius and center
 %   - then iterate a Gauss-Newton scheme to optimize the two values
-%=======================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_BestFitSph.m 932 2007-09-29 18:01:16Z karl $
+% $Id: spm_eeg_inv_BestFitSph.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin > 2
     disp('Wrong input format');

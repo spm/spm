@@ -2,9 +2,9 @@ function [priors,means,covs,post] = spm_kmeans (y,k,method,return_cov)
 % K-means clustering
 % FORMAT [priors,means,covs,post] = spm_kmeans (y,k,method,return_cov)
 %
-% y     		[N x d] data matrix containing N samples of d-dim data
-% k     		number of clusters
-% method		'uniform', 'points' or 'random' (default) seeding
+% y             [N x d] data matrix containing N samples of d-dim data
+% k             number of clusters
+% method        'uniform', 'points' or 'random' (default) seeding
 % return_cov    Set to 1 to return class covariances. Zero otherwise.
 %               (default is 1).
 %
@@ -17,7 +17,7 @@ function [priors,means,covs,post] = spm_kmeans (y,k,method,return_cov)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_kmeans.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 3 | isempty(method)
    method='random';
@@ -74,8 +74,8 @@ for n = 1:niters
   
   % Calculate posteriors based on existing means
   d2 = (ones(nmeans, 1) * sum((data.^2)', 1))' + ...
-  		ones(ndata, 1) * sum((means.^2)',1) - ...
-  		2.*(data*(means'));
+        ones(ndata, 1) * sum((means.^2)',1) - ...
+        2.*(data*(means'));
   % Assign each point to nearest centre
   [minvals, index] = min(d2', [], 1);
   post = id(index,:);

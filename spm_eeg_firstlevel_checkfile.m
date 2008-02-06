@@ -11,6 +11,11 @@ function [status, Iimg, Limg] = spm_eeg_firstlevel_checkfile(filenames, Nt)
 % status: 0, if length of responses not consistent, otherwise length of ith response
 % Iimg: If status 0, index of (first) offending image.
 % Limg: If status 0, length of offending response.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Stefan Kiebel
+% $Id: spm_eeg_firstlevel_checkfile.m 1131 2008-02-06 11:17:09Z spm $
 
 Iimg = 0; Limg = 0;
 

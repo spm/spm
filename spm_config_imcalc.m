@@ -4,7 +4,7 @@ function opts = spm_config_imcalc
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_imcalc.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_imcalc.m 1131 2008-02-06 11:17:09Z spm $
 
  
 %_______________________________________________________________________
@@ -39,10 +39,10 @@ outdir.filter = 'dir';
 outdir.num = [0 1];
 outdir.val = {''};
 outdir.help = {['Files produced by this function will be written into this ' ...
-		'output directory. If no directory is given, images will be' ...
-		' written to current working directory. If both output' ...
-		' filename and output directory contain a directory, then '...
-		'output filename takes precedence.']};
+        'output directory. If no directory is given, images will be' ...
+        ' written to current working directory. If both output' ...
+        ' filename and output directory contain a directory, then '...
+        'output filename takes precedence.']};
 
 expr.type = 'entry';
 expr.name = 'Expression';
@@ -158,9 +158,9 @@ function vf = vfiles(job)
 [p,nam,ext,num] = spm_fileparts(job.output);
 if isempty(p)
     if isempty(job.outdir{1})
-	p=pwd;
+    p=pwd;
     else
-	p = job.outdir{1};
+    p = job.outdir{1};
     end;
 end;
 if isempty(strfind(ext,','))

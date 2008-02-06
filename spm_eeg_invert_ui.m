@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id:$
+% $Id: spm_eeg_invert_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 % initialise
 %--------------------------------------------------------------------------

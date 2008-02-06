@@ -4,13 +4,13 @@ function D = spm_eeg_filter(S)
 % 
 % S       - struct (optional)
 % (optional) fields of S:
-% D		  - filename of EEG-data file or EEG data struct
+% D       - filename of EEG-data file or EEG data struct
 % filter  - struct with the following fields:
-%    type		- type of filter, currently only 'butterworth'
+%    type       - type of filter, currently only 'butterworth'
 %    PHz        - cutoff [Hz]
-%    parameter	- filter coefficients
+%    parameter  - filter coefficients
 % 
-% D			- EEG data struct (also written to files)
+% D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 % 
 % spm_eeg_filter low-pass filters EEG/MEG epoched data.
@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 865 2007-07-25 12:37:25Z christophe $
+% $Id: spm_eeg_filter.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -36,16 +36,16 @@ end
 
 
 try
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 catch    
-	error(sprintf('Trouble reading file %s', D));
+    error(sprintf('Trouble reading file %s', D));
 end
-	
+    
 try
     D.filter.type = S.filter.type;
 catch
-	D.filter.type =...
-	 	spm_input('filter type', '+1', 'b', 'butterworth');
+    D.filter.type =...
+        spm_input('filter type', '+1', 'b', 'butterworth');
 end
 
 if strcmpi(D.filter.type,'butterworth')
@@ -125,11 +125,11 @@ end
 if strcmpi(D.filter.type, 'butterworth')
     % butterworth coefficients
     if(isempty(D.filter.para))
-	[B, A] = butter(D.filter.order, 2*D.filter.PHz/D.Radc, D.filter.band);
-    	D.filter.para{1} = B;
-    	D.filter.para{2} = A;
+    [B, A] = butter(D.filter.order, 2*D.filter.PHz/D.Radc, D.filter.band);
+        D.filter.para{1} = B;
+        D.filter.para{2} = A;
     elseif(length(D.filter.para)~=2)
-	errordlg('Need two parameters for Butterworth filter');
+    errordlg('Need two parameters for Butterworth filter');
     end
 else
     errordlg('Currently unknown filter type: %s', D.filter.type);

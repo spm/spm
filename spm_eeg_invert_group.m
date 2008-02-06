@@ -41,8 +41,11 @@ function [D] = spm_eeg_invert_group(D)
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
-% Karl Friston: Modified by Rik Henson to allow more arguments to be passed       4/6/07
- 
+ % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_eeg_invert_group.m 1131 2008-02-06 11:17:09Z spm $
+
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
 if ~iscell(D), D = {D}; end
@@ -444,7 +447,7 @@ for i = 1:Nl
     inverse.dct    = dct;                  % frequency range
     inverse.F      = F;                    % log-evidence
     inverse.R2     = R2;                   % variance accounted for (%)
-    inverse.woi    = woi;		   % timewindow inverted
+    inverse.woi    = woi;          % timewindow inverted
  
     % save in struct
     %----------------------------------------------------------------------

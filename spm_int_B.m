@@ -61,7 +61,7 @@ function [y] = spm_int_B(P,M,U)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id:$
+% $Id: spm_int_B.m 1131 2008-02-06 11:17:09Z spm $
  
  
 % convert U to U.u if necessary

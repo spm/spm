@@ -4,7 +4,10 @@ function [y,scalefactor] = spm_cond_units(y,n)
 %   y - y*scalefactor;
 %   n - default 3
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
 % Karl Friston
+% $Id: spm_cond_units.m 1131 2008-02-06 11:17:09Z spm $
  
 % default n = 3
 %--------------------------------------------------------------------------

@@ -12,11 +12,11 @@ function varargout = spm_nlsi(M,U,Y)
 % M.pC  - (p x p)   Prior covariance for p model parameters
 %
 % M.x   - (n x 1)   intial state x(0)
-% M.m   - m			number of inputs
-% M.n   - n			number of states
-% M.l   - l			number of outputs
-% M.N	-           kernel depth
-% M.dt	-           kernel resolution {secs}
+% M.m   - m         number of inputs
+% M.n   - n         number of states
+% M.l   - l         number of outputs
+% M.N   -           kernel depth
+% M.dt  -           kernel resolution {secs}
 %
 % System inputs
 %--------------------------------------------------------------------------
@@ -32,9 +32,9 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % Model Parameter estimates - conditional moments
 %--------------------------------------------------------------------------
-% Ep    - (p x 1)         	conditional expectation  E{P|y}
-% Cp    - (p x p)        	conditional covariance   Cov{P|y}
-% Ce    - (v x v)        	ReML estimate of         Cov{e}
+% Ep    - (p x 1)           conditional expectation  E{P|y}
+% Cp    - (p x p)           conditional covariance   Cov{P|y}
+% Ce    - (v x v)           ReML estimate of         Cov{e}
 %
 % System identification     - Volterra kernels
 %--------------------------------------------------------------------------
@@ -44,10 +44,10 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % System identification     - Bilinear approximation
 %--------------------------------------------------------------------------
-% M0    - (n x n)     		df/dq
-% M1    - {m}(n x n) 		d2f/dqdu
-% L1    - (l x n)     		dg/dq
-% L2    - {l}(n x n)     	d2g/dqdq
+% M0    - (n x n)           df/dq
+% M1    - {m}(n x n)        d2f/dqdu
+% L1    - (l x n)           dg/dq
+% L2    - {l}(n x n)        d2g/dqdq
 %
 %__________________________________________________________________________
 %
@@ -64,12 +64,12 @@ function varargout = spm_nlsi(M,U,Y)
 % representations of the Bilinear approximation are provided.
 % The Bilinear approximation to (1), evaluated at x(0) = x and u = 0 is:
 %
-%		dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
-%		 y(i) = L1(i,:)*q + q'*L2{i}*q;
+%       dq/dt = M0*q + u(1)*M1{1}*q + u(2)*M1{2}*q + ....
+%        y(i) = L1(i,:)*q + q'*L2{i}*q;
 %
 % where the states are augmented with a constant
 %
-%		 q(t) = [1; x(t) - x(0)]
+%        q(t) = [1; x(t) - x(0)]
 %
 % The associated kernels are derived using closed form expressions based
 % on the bilinear approximation.
@@ -90,7 +90,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_nlsi.m 859 2007-07-13 17:53:00Z karl $
+% $Id: spm_nlsi.m 1131 2008-02-06 11:17:09Z spm $
 
 % check integrator
 %--------------------------------------------------------------------------
@@ -104,16 +104,16 @@ end
 %--------------------------------------------------------------------------
 if nargin == 3
 
-	% Gauss-Newton/Bayesian/EM estimation
-	%======================================================================
-	[Ep,Cp,Ce,F] = spm_nlsi_GN(M,U,Y);
+    % Gauss-Newton/Bayesian/EM estimation
+    %======================================================================
+    [Ep,Cp,Ce,F] = spm_nlsi_GN(M,U,Y);
 
-	if nargout < 4, varargout = {Ep,Cp,Ce}; return, end
+    if nargout < 4, varargout = {Ep,Cp,Ce}; return, end
 
 else
-	% Use prior expectation to expand around
-	%----------------------------------------------------------------------
-	Ep         = M.pE;
+    % Use prior expectation to expand around
+    %----------------------------------------------------------------------
+    Ep         = M.pE;
     
 end
 
@@ -129,15 +129,15 @@ end
 % time bins (if not specified)
 %--------------------------------------------------------------------------
 try 
-	dt   = M.dt;
-	N    = M.N;
+    dt   = M.dt;
+    N    = M.N;
 catch
-	s    = real(eig(full(M0)));
-	s    = max(s(find(s < 0)));
-	N    = 32;
-	dt   = -4/(s*N);
-	M.dt = dt;
-	M.N  = N;
+    s    = real(eig(full(M0)));
+    s    = max(s(find(s < 0)));
+    N    = 32;
+    dt   = -4/(s*N);
+    M.dt = dt;
+    M.N  = N;
 end
 
 % get kernels
@@ -148,30 +148,30 @@ end
 %==========================================================================
 if length(dbstack) < 2
 
-	subplot(2,1,1)
-	plot([1:N]*dt,K1(:,:,1))
-	xlabel('time')
-	ylabel('response')
-	title('1st-order kernel')
-	grid on
+    subplot(2,1,1)
+    plot([1:N]*dt,K1(:,:,1))
+    xlabel('time')
+    ylabel('response')
+    title('1st-order kernel')
+    grid on
 
-	subplot(2,1,2)
-	imagesc([1:N]*dt,[1:N]*dt,K2(:,:,1,1,1))
-	xlabel('time')
-	ylabel('time')
-	title('2nd-order kernel')
-	grid on
-	axis image
-	drawnow
+    subplot(2,1,2)
+    imagesc([1:N]*dt,[1:N]*dt,K2(:,:,1,1,1))
+    xlabel('time')
+    ylabel('time')
+    title('2nd-order kernel')
+    grid on
+    axis image
+    drawnow
 end
 
 
 % output arguments
 %--------------------------------------------------------------------------
 if nargin == 3
-	varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2,F};
+    varargout = {Ep,Cp,Ce,K0,K1,K2,M0,M1,L1,L2,F};
 else
-	varargout = {K0,K1,K2,M0,M1,L1,L2};
+    varargout = {K0,K1,K2,M0,M1,L1,L2};
 end
 
 
@@ -188,12 +188,12 @@ return
 %--------------------------------------------------------------------------
 M.f  = inline('1./(1 + exp(-P*x)) + [u; 0]','x','u','P');
 M.g  = inline('x','x','u','P');
-M.pE = [-1 .3;.5 -1];			% Prior expectation of parameters
-M.pC = speye(4,4);			% Prior covariance for parameters
-M.x  = zeros(2,1)			% intial state x(0)
-M.m  = 1;				% number of inputs
-M.n  = 2;				% number of states
-M.l  = 2;				% number of outputs
+M.pE = [-1 .3;.5 -1];           % Prior expectation of parameters
+M.pC = speye(4,4);          % Prior covariance for parameters
+M.x  = zeros(2,1)           % intial state x(0)
+M.m  = 1;               % number of inputs
+M.n  = 2;               % number of states
+M.l  = 2;               % number of outputs
 
 % characterise M in terms of Volterra kernels and Bilinear matrices:
 %--------------------------------------------------------------------------

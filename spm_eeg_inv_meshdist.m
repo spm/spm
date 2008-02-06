@@ -9,8 +9,11 @@ function [Mdist] = spm_eeg_inv_meshdist(vert,face,order)
 % Inspired by function mesh_laplacian.m by Darren Weber
 % from the bioelectromagnetism matlab toolbox
 % see http://eeg.sourceforge.net/
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-%==========================================================================
+% Jeremie Mattout
+% $Id: spm_eeg_inv_meshdist.m 1131 2008-02-06 11:17:09Z spm $
 
 % default order is 2nd
 %--------------------------------------------------------------------------

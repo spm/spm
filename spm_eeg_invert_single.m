@@ -40,7 +40,10 @@ function [D] = spm_eeg_invert_single(D)
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
-% Modified by Rik Henson to allow more arguments to be passed       4/6/07
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_eeg_invert_single.m 1131 2008-02-06 11:17:09Z spm $
 
 % D - SPM data structure
 %==========================================================================
@@ -124,7 +127,7 @@ for i = 1:Nt
     if isfield(D.events,'reject')
         c = find(D.events.code == trial(i) & ~D.events.reject);
     else
- 	    c = find(D.events.code == trial(i));
+        c = find(D.events.code == trial(i));
     end
     for j = 1:length(c)
         Y{i} = Y{i} + squeeze(D.data(Ic,It,c(j)))*T;
@@ -411,7 +414,7 @@ model.inverse.pst    = pst;                  % pers-stimulus time
 model.inverse.dct    = dct;                  % frequency range
 model.inverse.F      = F;                    % log-evidence
 model.inverse.R2     = R2;                   % variance accounted for (%)
-model.inverse.woi    = woi;		     % timewindow inverted
+model.inverse.woi    = woi;          % timewindow inverted
 
 
 

@@ -25,7 +25,10 @@ function [y] = spm_gx_lfp(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_gx_lfp.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % get dimensions and configure state variables

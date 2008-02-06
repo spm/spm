@@ -4,7 +4,7 @@ function D = spm_eeg_rdata(S)
 % 
 % S       - struct (optional)
 % (optional) fields of S:
-% Fdata		  - filename of CNT-file
+% Fdata       - filename of CNT-file
 % Fchannels   - filename of channel template
 % reference   - name of reference channel(s)
 %_______________________________________________________________________
@@ -16,12 +16,12 @@ function D = spm_eeg_rdata(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata.m 710 2006-12-21 14:59:04Z stefan $
+% $Id: spm_eeg_rdata.m 1131 2008-02-06 11:17:09Z spm $
 
 try
     Fdata = S.Fdata;
 catch
-	Fdata = spm_select(1, '\.cnt$', 'Select cont. neuroscan-file');
+    Fdata = spm_select(1, '\.cnt$', 'Select cont. neuroscan-file');
 end
 
 try
@@ -90,31 +90,31 @@ Nevents = fread(fp, 1, 'int');
 
 % read events from cnt-file
 if Tevents == 1
-	Nevents = Nevents/8;
+    Nevents = Nevents/8;
 else 
-	Nevents = Nevents/19;
+    Nevents = Nevents/19;
 end
 
 Et = zeros(1, Nevents);
 Ec = zeros(1, Nevents);
 for i = 1:Nevents
-	if Tevents == 1
-		fseek(fp, Oevent + 9 + 8*(i-1), -1);
-	else
-		fseek(fp, Oevent + 9 + 19*(i-1), -1);
-	end
-	
-	Ec(i) = fread(fp, 1, 'uchar');
+    if Tevents == 1
+        fseek(fp, Oevent + 9 + 8*(i-1), -1);
+    else
+        fseek(fp, Oevent + 9 + 19*(i-1), -1);
+    end
+    
+    Ec(i) = fread(fp, 1, 'uchar');
 
-	if Tevents == 1
-		fseek(fp, Oevent + 9 + 8*(i-1) + 4, -1);
-	else
-		fseek(fp, Oevent + 9 + 19*(i-1) + 4, -1);
-	end
-	
-	offset = fread(fp, 1, 'int');
-	
-	Et(i) = (offset - 900 - 75*Nchannels)/(2*Nchannels);
+    if Tevents == 1
+        fseek(fp, Oevent + 9 + 8*(i-1) + 4, -1);
+    else
+        fseek(fp, Oevent + 9 + 19*(i-1) + 4, -1);
+    end
+    
+    offset = fread(fp, 1, 'int');
+    
+    Et(i) = (offset - 900 - 75*Nchannels)/(2*Nchannels);
 end
 
 % Number of expected samples
@@ -133,11 +133,11 @@ D.channels.ctf = spm_str_manip(Fchannels, 't');
 
 % Read the electrode names
 for i = 1:Nchannels
-	fseek(fp, 900 + 75*(i-1), -1);
-	tmp = char(fread(fp, 10, 'uchar'))';
-	
-	D.channels.name{i} = deblank(tmp);
-	
+    fseek(fp, 900 + 75*(i-1), -1);
+    tmp = char(fread(fp, 10, 'uchar'))';
+    
+    D.channels.name{i} = deblank(tmp);
+    
 end
 
 % Read HEOG channel number (but doesn't seem to be stored in header)
@@ -203,15 +203,15 @@ D.channels.Bad = [];
 D.channels.eeg = setdiff(1:length(D.channels.order), [D.channels.heog D.channels.veog]);
 
 % Read baseline, sensitivity and calibration to convert to microvolts.
-for i = 1:Nchannels	
-	fseek(fp, 900 + 75*(i-1) + 47, -1);
-	D.channels.base(i) = fread(fp, 1, 'short')';
+for i = 1:Nchannels 
+    fseek(fp, 900 + 75*(i-1) + 47, -1);
+    D.channels.base(i) = fread(fp, 1, 'short')';
 
-	fseek(fp, 900 + 75*(i-1) + 59, -1);
-	D.channels.sens(i) = fread(fp, 1, 'float')';
-		
-	fseek(fp, 900 + 75*(i-1) + 71, -1);
-	D.channels.calib(i) = fread(fp, 1, 'float')';
+    fseek(fp, 900 + 75*(i-1) + 59, -1);
+    D.channels.sens(i) = fread(fp, 1, 'float')';
+        
+    fseek(fp, 900 + 75*(i-1) + 71, -1);
+    D.channels.calib(i) = fread(fp, 1, 'float')';
 end
 
 % Read data
@@ -221,7 +221,7 @@ fseek(fp, 900 + 75*Nchannels, -1);
 D.scale = zeros(Nchannels, 1);
 
 % if any(D.channels.base~=0)
-% 	error('base is unequal zero');
+%   error('base is unequal zero');
 % end
 
 % Conversion to microvolt saved as scalefactor
@@ -233,8 +233,8 @@ if Nsamples > 100, Ibar = floor(linspace(1, Nsamples,100));
 else, Ibar = [1:Nsamples]; end
 
 for i = 1:Nsamples
-	d = int16(fread(fp, Nchannels, 'short'));
-	fwrite(fpd, d, 'int16');
+    d = int16(fread(fp, Nchannels, 'short'));
+    fwrite(fpd, d, 'int16');
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);

@@ -10,6 +10,7 @@ function C = spm_orthpoly(N,K)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
+% $Id: spm_orthpoly.m 1131 2008-02-06 11:17:09Z spm $
 
 %--------------------------------------------------------------------------
 if nargin == 1, K = N; end;

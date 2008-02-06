@@ -4,7 +4,7 @@ function opts = spm_config_coreg
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_coreg.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_config_coreg.m 1131 2008-02-06 11:17:09Z spm $
 
 ref.type = 'files';
 ref.name = 'Reference Image';
@@ -295,10 +295,10 @@ M  = inv(spm_matrix(x));
 PO = strvcat(strvcat(job.source),strvcat(job.other));
 MM = zeros(4,4,size(PO,1));
 for j=1:size(PO,1),
-	MM(:,:,j) = spm_get_space(deblank(PO(j,:)));
+    MM(:,:,j) = spm_get_space(deblank(PO(j,:)));
 end;
 for j=1:size(PO,1),
-	spm_get_space(deblank(PO(j,:)), M*MM(:,:,j));
+    spm_get_space(deblank(PO(j,:)), M*MM(:,:,j));
 end;
 
 return;

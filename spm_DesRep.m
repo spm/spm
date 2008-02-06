@@ -116,7 +116,7 @@ function varargout = spm_DesRep(varargin)
 % of the bar-graphs, or anywhere in an image, and dragging, dynamically
 % reports the contrast weight depicted under the cursor. The format of
 % the report string is:
-%	#{T/F}: <name> (ij) = <weight>
+%   #{T/F}: <name> (ij) = <weight>
 % ...where # is the contrast number, T/F indicates the type of
 % contrast, <name> the name given to the contrast, ij the index into
 % the contrast vector/matrix weight under the cursor, and <weight> the
@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 521 2006-05-05 11:24:38Z volkmar $
+% $Id: spm_DesRep.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -276,50 +276,50 @@ case 'desrepui'                                    %-Design reporting UI
 %-Load design data from file if not passed as argument
 %-----------------------------------------------------------------------
 if nargin < 2
-	[spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-	if ~sts, return; end
-	swd = spm_str_manip(spmmatfile,'H');
-	try
-		load(fullfile(swd,'SPM.mat'));
-	catch
-		error(['Cannot read ' fullfile(swd,'SPM.mat')]);
-	end
-	SPM.swd = swd;
+    [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, return; end
+    swd = spm_str_manip(spmmatfile,'H');
+    try
+        load(fullfile(swd,'SPM.mat'));
+    catch
+        error(['Cannot read ' fullfile(swd,'SPM.mat')]);
+    end
+    SPM.swd = swd;
 else
-	SPM     = varargin{2};
+    SPM     = varargin{2};
 end
 
 %-Canonicalise data
 %=======================================================================
 %-Work out where design configuration has come from!
 if ~isfield(SPM,'cfg')
-	if     isfield(SPM.xX,'V'),		cfg = 'SPMest';
-	elseif isfield(SPM.xY,'VY'), 		cfg = 'SPMdata';
-	elseif isfield(SPM,'Sess'),		cfg = 'SPMcfg';
-	else, error('Can''t fathom origin!')
-	end
-	SPM.cfg = cfg;
+    if     isfield(SPM.xX,'V'),     cfg = 'SPMest';
+    elseif isfield(SPM.xY,'VY'),        cfg = 'SPMdata';
+    elseif isfield(SPM,'Sess'),     cfg = 'SPMcfg';
+    else, error('Can''t fathom origin!')
+    end
+    SPM.cfg = cfg;
 end
 
 %-Work out what modality this is!
 %-----------------------------------------------------------------------
 try
-	SPM.Sess(1);
-	SPM.modality = 'fMRI';
+    SPM.Sess(1);
+    SPM.modality = 'fMRI';
 catch
-	try
-		SPM.xC;
-	catch
-		SPM.xC = {};
-	end
-	SPM.modality = 'PET';
+    try
+        SPM.xC;
+    catch
+        SPM.xC = {};
+    end
+    SPM.modality = 'PET';
 end
 
 
 %-Add a scaled design matrix to the design data structure
 %-----------------------------------------------------------------------
 if ~isfield(SPM.xX,'nKX')
-	SPM.xX.nKX = spm_DesMtx('Sca',SPM.xX.X,SPM.xX.name);
+    SPM.xX.nKX = spm_DesMtx('Sca',SPM.xX.X,SPM.xX.name);
 end
 
 
@@ -334,10 +334,10 @@ delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
 %-Draw top level menu
 %-----------------------------------------------------------------------
 hC      = uimenu(Finter,'Label','Design',...
-		'Separator','on',...
-		'Tag','DesRepUI',...
-		'UserData',SPM,...
-		'HandleVisibility','on');
+        'Separator','on',...
+        'Tag','DesRepUI',...
+        'UserData',SPM,...
+        'HandleVisibility','on');
 
 %-Generic CallBack code
 %-----------------------------------------------------------------------
@@ -346,21 +346,21 @@ cb      = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
 %-DesMtx
 %-----------------------------------------------------------------------
 hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
-		'CallBack',[cb,...
-		'spm_DesRep(''DesMtx'',tmp.xX,',...
-			'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),tmp.xsDes)'],...
-		'UserData',hC,...
-		'HandleVisibility','off');
+        'CallBack',[cb,...
+        'spm_DesRep(''DesMtx'',tmp.xX,',...
+            'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),tmp.xsDes)'],...
+        'UserData',hC,...
+        'HandleVisibility','off');
 
 if strcmp(SPM.cfg,'SPMcfg'), set(hDesMtx,'Enable','off'), end
 
 %-Design matrix orthogonality
 %-----------------------------------------------------------------------
 h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
-		'CallBack',[cb,...
-		'spm_DesRep(''DesOrth'',tmp.xX)'],...
-		'UserData',hC,...
-		'HandleVisibility','off');
+        'CallBack',[cb,...
+        'spm_DesRep(''DesOrth'',tmp.xX)'],...
+        'UserData',hC,...
+        'HandleVisibility','off');
 
 %-Explore design
 %-----------------------------------------------------------------------
@@ -368,19 +368,19 @@ hExplore = uimenu(hC,'Label','Explore','HandleVisibility','off');
 
 switch SPM.modality
 case 'PET'
-	hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','F',...
-		'CallBack',[cb,...
-		'spm_DesRep(''Files&Factors'',',...
-			'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),',...
-			'tmp.xX.I,tmp.xC,tmp.xX.sF,tmp.xsDes)'],...
-		'UserData',hC,...
-		'HandleVisibility','off');
-	hCovs = uimenu(hExplore,'Label','Covariates','Accelerator','C',...
-		'CallBack',[cb,...
-		'spm_DesRep(''Covs'',tmp.xX,tmp.xC)'],...
-		'UserData',hC,...
-		'HandleVisibility','off');
-	if isempty(SPM.xC), set(hCovs,'Enable','off'), end
+    hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','F',...
+        'CallBack',[cb,...
+        'spm_DesRep(''Files&Factors'',',...
+            'reshape({tmp.xY.VY.fname},size(tmp.xY.VY)),',...
+            'tmp.xX.I,tmp.xC,tmp.xX.sF,tmp.xsDes)'],...
+        'UserData',hC,...
+        'HandleVisibility','off');
+    hCovs = uimenu(hExplore,'Label','Covariates','Accelerator','C',...
+        'CallBack',[cb,...
+        'spm_DesRep(''Covs'',tmp.xX,tmp.xC)'],...
+        'UserData',hC,...
+        'HandleVisibility','off');
+    if isempty(SPM.xC), set(hCovs,'Enable','off'), end
 case 'fMRI'
     for j = 1:length(SPM.Sess)
         h = uimenu(hExplore,'Label',sprintf('Session %.0f ',j),...
@@ -403,11 +403,11 @@ if ~isfield(SPM,'xVi') | (isfield(SPM.xVi,'iid') & SPM.xVi.iid) | ...
 %-Clear, Quit, Help
 %-----------------------------------------------------------------------
 uimenu(hC,'Label','Clear','Accelerator','L','Separator','on',...
-	'CallBack','spm_results_ui(''Clear'')',...
-	'HandleVisibility','off');
+    'CallBack','spm_results_ui(''Clear'')',...
+    'HandleVisibility','off');
 uimenu(hC,'Label','Help','Separator','on',...
-	'CallBack','spm_help(''spm_DesRep'')',...
-	'HandleVisibility','off');
+    'CallBack','spm_help(''spm_DesRep'')',...
+    'HandleVisibility','off');
 
 %-Pop open 'Interactive' window
 %-----------------------------------------------------------------------
@@ -427,11 +427,11 @@ fnames  = varargin{2};
 I       = varargin{3};
 xC      = varargin{4};
 sF      = varargin{5};
-if nargin<6, xs=[]; else, xs = varargin{6}; end	%-Structure of strings
+if nargin<6, xs=[]; else, xs = varargin{6}; end %-Structure of strings
 
-[fnames,CPath] = spm_str_manip(fnames,'c');	%-extract common path component
-nScan          = size(I,1);			%-#images
-bL             = any(diff(I,1),1); 		%-Multiple factor levels?
+[fnames,CPath] = spm_str_manip(fnames,'c'); %-extract common path component
+nScan          = size(I,1);         %-#images
+bL             = any(diff(I,1),1);      %-Multiple factor levels?
 
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
@@ -441,13 +441,13 @@ FS     = spm('FontSizes');
 %-Display header information
 %-----------------------------------------------------------------------
 hTax = axes('Position',[0.03,0.85,0.94,0.1],...
-	'DefaultTextFontSize',FS(9),...
-	'XLim',[0,1],'YLim',[0,1],...
-	'Visible','off');
+    'DefaultTextFontSize',FS(9),...
+    'XLim',[0,1],'YLim',[0,1],...
+    'Visible','off');
 
 text(0.5,1,'Statistical analysis: Image files & covariates...',...
-	'Fontsize',FS(14),'Fontweight','Bold',...
-	'HorizontalAlignment','center')
+    'Fontsize',FS(14),'Fontweight','Bold',...
+    'HorizontalAlignment','center')
 
 dx1 = 0.05;
 dx2 = 0.08;
@@ -459,12 +459,12 @@ if bL(2), x=x+dx1; text(x+.01,.1,sF{2},'Rotation',90), end
 if bL(1), x=x+dx1; text(x+.01,.1,sF{1},'Rotation',90), end
 
 for j = 1:length(xC)
-	n = size(xC(j).rc,2);
-	if n>1, tmp=xC(j).cname; else, tmp={xC(j).rcname}; end
-	for k=1:n
-		x=x+dx2;
-		text(x,.1,tmp{k},'Rotation',90,'Interpreter','TeX')
-	end
+    n = size(xC(j).rc,2);
+    if n>1, tmp=xC(j).cname; else, tmp={xC(j).rcname}; end
+    for k=1:n
+        x=x+dx2;
+        text(x,.1,tmp{k},'Rotation',90,'Interpreter','TeX')
+    end
 end
 
 x=x+dx2;
@@ -477,47 +477,47 @@ line('XData',[0 1],'YData',[0 0],'LineWidth',3,'Color','r')
 %-Tabulate file & covariate information
 %-----------------------------------------------------------------------
 hAx = axes('Position',[0.03,0.05,0.94,0.8],...
-	'DefaultTextFontSize',FS(8),...
-	'Units','points',...
-	'Visible','off');
+    'DefaultTextFontSize',FS(8),...
+    'Units','points',...
+    'Visible','off');
 AxPos = get(hAx,'Position'); set(hAx,'YLim',[0,AxPos(4)])
 
 dy = FS(9); y0 = floor(AxPos(4)) -dy; y  = y0;
 
 for i = 1:nScan
 
-	%-Scan indices
-	x = 0; text(x,y,sprintf('%03d',i))
-	if bL(4), x=x+dx1; text(x,y,sprintf('%02d',I(i,4))), end
-	if bL(3), x=x+dx1; text(x,y,sprintf('%02d',I(i,3))), end
-	if bL(2), x=x+dx1; text(x,y,sprintf('%02d',I(i,2))), end
-	if bL(1), x=x+dx1; text(x,y,sprintf('%02d',I(i,1))), end
+    %-Scan indices
+    x = 0; text(x,y,sprintf('%03d',i))
+    if bL(4), x=x+dx1; text(x,y,sprintf('%02d',I(i,4))), end
+    if bL(3), x=x+dx1; text(x,y,sprintf('%02d',I(i,3))), end
+    if bL(2), x=x+dx1; text(x,y,sprintf('%02d',I(i,2))), end
+    if bL(1), x=x+dx1; text(x,y,sprintf('%02d',I(i,1))), end
 
-	%-Covariates
-	for j = 1:length(xC)
-		for k=1:size(xC(j).rc,2)
-			x=x+dx2;
-			text(x,y,sprintf('%6g',xC(j).rc(i,k)),...
-				'HorizontalAlignment','Center')
-		end
-	end
+    %-Covariates
+    for j = 1:length(xC)
+        for k=1:size(xC(j).rc,2)
+            x=x+dx2;
+            text(x,y,sprintf('%6g',xC(j).rc(i,k)),...
+                'HorizontalAlignment','Center')
+        end
+    end
 
-	%-Filename tail(s) - could be multivariate
-	x=x+dx2;
-	text(x,y,fnames{i})
-	y=y-dy;
+    %-Filename tail(s) - could be multivariate
+    x=x+dx2;
+    text(x,y,fnames{i})
+    y=y-dy;
 
-	%-Paginate if necessary
-	if y<dy
-		text(0.5,0,sprintf('Page %d',spm_figure('#page')),...
-			'FontSize',FS(8),'FontAngle','italic')
-		spm_figure('NewPage',[hAx;get(hAx,'Children')])
-		hAx = axes('Units','points','Position',AxPos,...
-			'DefaultTextFontSize',FS(8),'YLim',[0,AxPos(4)],...
-			'Visible','off');
-		y = y0;
-		text(y,0,'continued...','FontAngle','Italic')
-	end
+    %-Paginate if necessary
+    if y<dy
+        text(0.5,0,sprintf('Page %d',spm_figure('#page')),...
+            'FontSize',FS(8),'FontAngle','italic')
+        spm_figure('NewPage',[hAx;get(hAx,'Children')])
+        hAx = axes('Units','points','Position',AxPos,...
+            'DefaultTextFontSize',FS(8),'YLim',[0,AxPos(4)],...
+            'Visible','off');
+        y = y0;
+        text(y,0,'continued...','FontAngle','Italic')
+    end
 end
 
 line('XData',[0 1],'YData',[y y],'LineWidth',3,'Color','r')
@@ -527,25 +527,25 @@ line('XData',[0 1],'YData',[y y],'LineWidth',3,'Color','r')
 % (At bottom of current page - hope there's enough room!)
 %-----------------------------------------------------------------------
 if ~isempty(xs)
-	y = y - 2*dy;
-	for sf = fieldnames(xs)'
-		text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
-			'HorizontalAlignment','Right','FontWeight','Bold',...
-			'FontSize',FS(9))
-		s = getfield(xs,sf{1});
-		if ~iscellstr(s), s={s}; end
-		for i=1:prod(size(s))
-			text(0.31,y,s{i},'FontSize',FS(9))
-			y=y-dy;
-		end
-	end
+    y = y - 2*dy;
+    for sf = fieldnames(xs)'
+        text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
+            'HorizontalAlignment','Right','FontWeight','Bold',...
+            'FontSize',FS(9))
+        s = getfield(xs,sf{1});
+        if ~iscellstr(s), s={s}; end
+        for i=1:prod(size(s))
+            text(0.31,y,s{i},'FontSize',FS(9))
+            y=y-dy;
+        end
+    end
 end
 
 %-Register last page if paginated
 if spm_figure('#page')>1
-	text(0.5,0,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
-		'FontSize',FS(8),'FontAngle','italic')
-	spm_figure('NewPage',[hAx;get(hAx,'Children')])
+    text(0.5,0,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
+        'FontSize',FS(8),'FontAngle','italic')
+    spm_figure('NewPage',[hAx;get(hAx,'Children')])
 end
 
 %-Pop up the Graphics window
@@ -638,19 +638,19 @@ spm_figure('NewPage',[hCovMtx;get(hCovMtx,'Children');hPEstAx;get(hPEstAx,'Child
 %-Show components of covariance matrix
 %-----------------------------------------------------------------------
 if isfield(varargin{2},'Vi')
-	for k = 1:length(varargin{2}.Vi)
-		%-Display covariance component xVi.Vi{k}
-		%-----------------------------------------------------------------------
-		hCovMtx(k+1) = axes('Position',[.07 .4 .6 .4]);
-		hCovMtxIm(k+1) = imagesc(varargin{2}.Vi{k});
-		xlabel(sprintf('Covariance component Vi{%d}', k));
-		if k<length(varargin{2}.Vi)
-			spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
-		end
-	end
-	if spm_figure('#page')>1
-		spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
-	end
+    for k = 1:length(varargin{2}.Vi)
+        %-Display covariance component xVi.Vi{k}
+        %-----------------------------------------------------------------------
+        hCovMtx(k+1) = axes('Position',[.07 .4 .6 .4]);
+        hCovMtxIm(k+1) = imagesc(varargin{2}.Vi{k});
+        xlabel(sprintf('Covariance component Vi{%d}', k));
+        if k<length(varargin{2}.Vi)
+            spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+        end
+    end
+    if spm_figure('#page')>1
+        spm_figure('NewPage',[hCovMtx(k+1);get(hCovMtx(k+1),'Children')])
+    end
 end
 
 %=======================================================================
@@ -669,34 +669,34 @@ desmtx = strcmp(lower(varargin{1}),'desmtx');
 %-Locate DesMtx (X), scaled DesMtx (nX) & get parameter names (Xnames)
 %-----------------------------------------------------------------------
 if isfield(varargin{2},'xKXs') & ...
-		~isempty(varargin{2}.xKXs) & isstruct(varargin{2}.xKXs)
-	iX = 1;
-	[nScan,nPar] = size(varargin{2}.xKXs.X);
+        ~isempty(varargin{2}.xKXs) & isstruct(varargin{2}.xKXs)
+    iX = 1;
+    [nScan,nPar] = size(varargin{2}.xKXs.X);
 elseif isfield(varargin{2},'X') & ~isempty(varargin{2}.X)
-	iX = 0;
-	[nScan,nPar] = size(varargin{2}.X);
+    iX = 0;
+    [nScan,nPar] = size(varargin{2}.X);
 else
-	error('Can''t find DesMtx in this structure!')
+    error('Can''t find DesMtx in this structure!')
 end
 
 if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
-	inX = 1; else, inX = 0; end
+    inX = 1; else, inX = 0; end
 
 if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
-	Xnames = varargin{2}.name; else, Xnames = {}; end
+    Xnames = varargin{2}.name; else, Xnames = {}; end
 
 
 %-Compute design orthogonality matrix if DesOrth
 %-----------------------------------------------------------------------
 if ~desmtx
     if iX
-	tmp  = sqrt(sum(varargin{2}.xKXs.X.^2));
-	O    = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
-    	tmp  = sum(varargin{2}.xKXs.X);
+    tmp  = sqrt(sum(varargin{2}.xKXs.X.^2));
+    O    = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
+        tmp  = sum(varargin{2}.xKXs.X);
     else
-	tmp  = sqrt(sum(varargin{2}.X.^2));
-	O    = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
-    	tmp  = sum(varargin{2}.X);
+    tmp  = sqrt(sum(varargin{2}.X.^2));
+    O    = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
+        tmp  = sum(varargin{2}.X);
     end
     tmp = abs(tmp)<eps*1e5;
     bC  = kron(tmp',tmp);
@@ -716,174 +716,174 @@ FS = spm('FontSizes');
 %-Title
 %-----------------------------------------------------------------------
 hTax = axes('Position',[0.03,0,0.94,1],...
-	'DefaultTextFontSize',FS(9),...
-	'XLim',[0,1],'YLim',[0,1],...
-	'Visible','off');
+    'DefaultTextFontSize',FS(9),...
+    'XLim',[0,1],'YLim',[0,1],...
+    'Visible','off');
 
 str='Statistical analysis: Design'; if ~desmtx, str=[str,' orthogonality']; end
 text(0.5,0.95,str,'Fontsize',FS(14),'Fontweight','Bold',...
-	'HorizontalAlignment','center')
+    'HorizontalAlignment','center')
 
 line('Parent',hTax,...
-	'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
+    'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
 
 
 %-Display design matrix
 %-----------------------------------------------------------------------
 hDesMtx = axes('Position',[.07 .4 .6 .4]);
-if inX		%-Got a scaled DesMtx
-	hDesMtxIm = image((varargin{2}.nKX + 1)*32);
-elseif iX	%-No scaled DesMtx, DesMtx in .xKXs structure
-	hDesMtxIm = image((spm_DesMtx('sca',varargin{2}.xKXs.X,Xnames) + 1)*32);
-else		%-No scaled DesMtx, no .xKXs, DesMtx in .X
-	hDesMtxIm = image((spm_DesMtx('sca',varargin{2}.X,     Xnames) + 1)*32);
+if inX      %-Got a scaled DesMtx
+    hDesMtxIm = image((varargin{2}.nKX + 1)*32);
+elseif iX   %-No scaled DesMtx, DesMtx in .xKXs structure
+    hDesMtxIm = image((spm_DesMtx('sca',varargin{2}.xKXs.X,Xnames) + 1)*32);
+else        %-No scaled DesMtx, no .xKXs, DesMtx in .X
+    hDesMtxIm = image((spm_DesMtx('sca',varargin{2}.X,     Xnames) + 1)*32);
 end
 
 STick = spm_DesRep('ScanTick',nScan,32);
 PTick = spm_DesRep('ScanTick',nPar,32);
 
 set(hDesMtx,'TickDir','out',...
-	'XTick',PTick,'XTickLabel','',...
-	'YTick',STick,'YTickLabel','')
+    'XTick',PTick,'XTickLabel','',...
+    'YTick',STick,'YTickLabel','')
 if desmtx
-	xlabel('parameters'), ylabel('images')
+    xlabel('parameters'), ylabel('images')
 else
-	set(get(hDesMtx,'Xlabel'),...
-		'Position',get(get(hDesMtx,'Ylabel'),'Position'),...
-		'Rotation',90')
-	xlabel('design matrix')
+    set(get(hDesMtx,'Xlabel'),...
+        'Position',get(get(hDesMtx,'Ylabel'),'Position'),...
+        'Rotation',90')
+    xlabel('design matrix')
 end
 
 %-Parameter names
 if ~isempty(Xnames)
-	axes('Position',[.07 .8 .6 .1],'Visible','off',...
-		'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
-		'XLim',[0,nPar]+0.5)
-	for i=PTick, text(i,.05,Xnames{i},'Rotation',90), end
+    axes('Position',[.07 .8 .6 .1],'Visible','off',...
+        'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
+        'XLim',[0,nPar]+0.5)
+    for i=PTick, text(i,.05,Xnames{i},'Rotation',90), end
 end
 
 %-Filenames
 % ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
 % ( down to <32 items. Always show last item so #images is indicated.   )     
 if desmtx & ~isempty(fnames)
-	axes('Position',[.68 .4 .3 .4],'Visible','off',...
-		'DefaultTextFontSize',FS(8),...
-		'YLim',[0,nScan]+0.5,'YDir','Reverse')
-	for i = STick
-		try
-			str  = fnames(i,:);
-		catch
-			str  = fnames{i};
-		end
-		text(0,i,spm_str_manip(str,'Ca35'));
-	end
+    axes('Position',[.68 .4 .3 .4],'Visible','off',...
+        'DefaultTextFontSize',FS(8),...
+        'YLim',[0,nScan]+0.5,'YDir','Reverse')
+    for i = STick
+        try
+            str  = fnames(i,:);
+        catch
+            str  = fnames{i};
+        end
+        text(0,i,spm_str_manip(str,'Ca35'));
+    end
 end
 
 %-Setup callbacks to allow interrogation of design matrix
 %-----------------------------------------------------------------------
-if iX, 	set(hDesMtxIm,'UserData',...
-	struct('X',varargin{2}.xKXs.X,'Xnames',{Xnames},'fnames',{fnames}))
-else, 	set(hDesMtxIm,'UserData',...
-	struct('X',varargin{2}.X,     'Xnames',{Xnames},'fnames',{fnames}))
+if iX,  set(hDesMtxIm,'UserData',...
+    struct('X',varargin{2}.xKXs.X,'Xnames',{Xnames},'fnames',{fnames}))
+else,   set(hDesMtxIm,'UserData',...
+    struct('X',varargin{2}.X,     'Xnames',{Xnames},'fnames',{fnames}))
 end
 set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
 
 if desmtx
-	%-Parameter estimability/uniqueness
-	%---------------------------------------------------------------
-	hPEstAx   = axes('Position',[.07 .315 .6 .025],...
-			'DefaultTextInterpreter','TeX');
-	if iX,	est = spm_SpUtil('IsCon',varargin{2}.xKXs);
-	else,	est = spm_SpUtil('IsCon',varargin{2}.X); end
-	hParEstIm = image((est+1)*32);
-	set(hPEstAx,...
-		'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
-		'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
-		'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
-	xlabel('parameter estimability')
-	text((nPar+0.5 + nPar/30),1,...
-		'(gray \rightarrow \beta not uniquely specified)',...
-		'Interpreter','TeX','FontSize',FS(8))
-	set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
-	set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
+    %-Parameter estimability/uniqueness
+    %---------------------------------------------------------------
+    hPEstAx   = axes('Position',[.07 .315 .6 .025],...
+            'DefaultTextInterpreter','TeX');
+    if iX,  est = spm_SpUtil('IsCon',varargin{2}.xKXs);
+    else,   est = spm_SpUtil('IsCon',varargin{2}.X); end
+    hParEstIm = image((est+1)*32);
+    set(hPEstAx,...
+        'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
+        'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
+        'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
+    xlabel('parameter estimability')
+    text((nPar+0.5 + nPar/30),1,...
+        '(gray \rightarrow \beta not uniquely specified)',...
+        'Interpreter','TeX','FontSize',FS(8))
+    set(hParEstIm,'UserData',struct('est',est,'Xnames',{Xnames}))
+    set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 else
-	%-Design orthogonality
-	%---------------------------------------------------------------
-	hDesO   = axes('Position',[.07 .18 .6 .2]);
-	tmp = 1-abs(O); tmp(logical(tril(ones(nPar),-1))) = 1;
-	hDesOIm = image(tmp*64);
-	
-	set(hDesO,'Box','off','TickDir','out',...
-		'XaxisLocation','top','XTick',PTick,'XTickLabel','',...
-		'YaxisLocation','right','YTick',PTick,'YTickLabel','',...
-		'YDir','reverse')
-	tmp = [1,1]'*[[0:nPar]+0.5];
-	line('Xdata',tmp(1:end-1)','Ydata',tmp(2:end)')
+    %-Design orthogonality
+    %---------------------------------------------------------------
+    hDesO   = axes('Position',[.07 .18 .6 .2]);
+    tmp = 1-abs(O); tmp(logical(tril(ones(nPar),-1))) = 1;
+    hDesOIm = image(tmp*64);
+    
+    set(hDesO,'Box','off','TickDir','out',...
+        'XaxisLocation','top','XTick',PTick,'XTickLabel','',...
+        'YaxisLocation','right','YTick',PTick,'YTickLabel','',...
+        'YDir','reverse')
+    tmp = [1,1]'*[[0:nPar]+0.5];
+    line('Xdata',tmp(1:end-1)','Ydata',tmp(2:end)')
 
-	xlabel('design orthogonality')
-	set(get(hDesO,'Xlabel'),'Position',[0.5,nPar,0],...
-		'HorizontalAlignment','left',...
-		'VerticalAlignment','top')
-	set(hDesOIm,...
-		'UserData',struct('O',O,'bC',bC,'Xnames',{Xnames}),...
-		'ButtonDownFcn','spm_DesRep(''SurfDesO_CB'')')
+    xlabel('design orthogonality')
+    set(get(hDesO,'Xlabel'),'Position',[0.5,nPar,0],...
+        'HorizontalAlignment','left',...
+        'VerticalAlignment','top')
+    set(hDesOIm,...
+        'UserData',struct('O',O,'bC',bC,'Xnames',{Xnames}),...
+        'ButtonDownFcn','spm_DesRep(''SurfDesO_CB'')')
 
-	if ~isempty(Xnames)
-		axes('Position',[.69 .18 0.01 .2],'Visible','off',...
-			'DefaultTextFontSize',FS(10),...
-			'DefaultTextInterpreter','TeX',...
-			'YDir','reverse','YLim',[0,nPar]+0.5)
-		for i=PTick
-			text(0,i,Xnames{i},'HorizontalAlignment','left')
-		end
-	end
+    if ~isempty(Xnames)
+        axes('Position',[.69 .18 0.01 .2],'Visible','off',...
+            'DefaultTextFontSize',FS(10),...
+            'DefaultTextInterpreter','TeX',...
+            'YDir','reverse','YLim',[0,nPar]+0.5)
+        for i=PTick
+            text(0,i,Xnames{i},'HorizontalAlignment','left')
+        end
+    end
 
 end
 
 %-Design descriptions
 %-----------------------------------------------------------------------
 if desmtx
-	str = 'Design description...';
-	line('Parent',hTax,...
-		'XData',[0.3 0.7],'YData',[0.28 0.28],'LineWidth',3,'Color','r')
-	hAx = axes('Position',[0.03,0.05,0.94,0.22],'Visible','off');
+    str = 'Design description...';
+    line('Parent',hTax,...
+        'XData',[0.3 0.7],'YData',[0.28 0.28],'LineWidth',3,'Color','r')
+    hAx = axes('Position',[0.03,0.05,0.94,0.22],'Visible','off');
 else
-	str = '';
-	line('Parent',hTax,...
-		'XData',[0.3 0.7],'YData',[0.14 0.14],'LineWidth',3,'Color','r')
-	hAx = axes('Position',[0.03,0.05,0.94,0.08],'Visible','off');
-	xs = struct('Measure',	['abs. value of cosine of angle between ',...
-				 'columns of design matrix'],...
-		    'Scale',	{{	'black - colinear (cos=+1/-1)';...
-					'white - orthogonal (cos=0)';...
-					'gray  - not orthogonal or colinear'}});
+    str = '';
+    line('Parent',hTax,...
+        'XData',[0.3 0.7],'YData',[0.14 0.14],'LineWidth',3,'Color','r')
+    hAx = axes('Position',[0.03,0.05,0.94,0.08],'Visible','off');
+    xs = struct('Measure',  ['abs. value of cosine of angle between ',...
+                 'columns of design matrix'],...
+            'Scale',    {{  'black - colinear (cos=+1/-1)';...
+                    'white - orthogonal (cos=0)';...
+                    'gray  - not orthogonal or colinear'}});
 end
 
 
 if ~isempty(xs)
-	set(hAx,'Units','points');
-	AxPos = get(hAx,'Position');
-	set(hAx,'YLim',[0,AxPos(4)])
-	
-	dy = FS(9); y0 = floor(AxPos(4)) -dy; y = y0;
+    set(hAx,'Units','points');
+    AxPos = get(hAx,'Position');
+    set(hAx,'YLim',[0,AxPos(4)])
+    
+    dy = FS(9); y0 = floor(AxPos(4)) -dy; y = y0;
 
-	text(0.3,y,str,...
-		'HorizontalAlignment','Center',...
-		'FontWeight','Bold','FontSize',FS(11))
-	y=y-2*dy;
-	
-	for sf = fieldnames(xs)'
-		text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
-			'HorizontalAlignment','Right','FontWeight','Bold',...
-			'FontSize',FS(9))
-		s = getfield(xs,sf{1});
-		if ~iscellstr(s), s={s}; end
-		for i=1:prod(size(s))
-			text(0.31,y,s{i},'FontSize',FS(9))
-			y=y-dy;
-		end
-	end
+    text(0.3,y,str,...
+        'HorizontalAlignment','Center',...
+        'FontWeight','Bold','FontSize',FS(11))
+    y=y-2*dy;
+    
+    for sf = fieldnames(xs)'
+        text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
+            'HorizontalAlignment','Right','FontWeight','Bold',...
+            'FontSize',FS(9))
+        s = getfield(xs,sf{1});
+        if ~iscellstr(s), s={s}; end
+        for i=1:prod(size(s))
+            text(0.31,y,s{i},'FontSize',FS(9))
+            y=y-dy;
+        end
+    end
 end
 
 %-Pop up the Graphics window
@@ -896,7 +896,7 @@ case 'covs'                %-Plot and describe covariates (one per page)
 %=======================================================================
 % spm_DesRep('Covs',xX,xC)
 if nargin<3, error('insufficient arguments'), end
-xC     = varargin{3};	%-Struct array of covariate information
+xC     = varargin{3};   %-Struct array of covariate information
 if ~isstruct(varargin{2}), error('design matrix structure required'), end
 
 if ~length(xC), spm('alert!','No covariates!',mfilename), return, end
@@ -909,16 +909,16 @@ FS = spm('FontSizes');
 %-Title
 %-----------------------------------------------------------------------
 hTax = axes('Position',[0.03,0,0.94,1],...
-	'DefaultTextFontSize',FS(9),...
-	'XLim',[0,1],'YLim',[0,1],...
-	'Visible','off');
+    'DefaultTextFontSize',FS(9),...
+    'XLim',[0,1],'YLim',[0,1],...
+    'Visible','off');
 
 text(0.5,0.95,'Statistical analysis: Covariates',...
-	'Fontsize',FS(14),'Fontweight','Bold',...
-	'HorizontalAlignment','center')
+    'Fontsize',FS(14),'Fontweight','Bold',...
+    'HorizontalAlignment','center')
 
 text(0.5,0.82,'(covariates plotted over transposed design matrix)',...
-	'FontSize',FS(8),'HorizontalAlignment','center')
+    'FontSize',FS(8),'HorizontalAlignment','center')
 
 line('XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
 line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
@@ -928,23 +928,23 @@ line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
 %-----------------------------------------------------------------------
 [nScan,nPar]   = size(varargin{2}.X);
 if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
-	Xnames = varargin{2}.name; else, Xnames = {}; end
+    Xnames = varargin{2}.name; else, Xnames = {}; end
 
 %-Design matrix
 hDesMtx = axes('Position',[.1 .5 .7 .3]);
 if isfield(varargin{2},'nKX') & ~isempty(varargin{2}.nKX)
-	image(varargin{2}.nKX'*32+32)
+    image(varargin{2}.nKX'*32+32)
 elseif isfield(varargin{2},'xKXs') & ~isempty(varargin{2}.xKXs)
-	image(spm_DesMtx('sca',varargin{2}.xKXs.X,Xnames)*32+32)
+    image(spm_DesMtx('sca',varargin{2}.xKXs.X,Xnames)*32+32)
 else
-	image(spm_DesMtx('sca',varargin{2}.X,Xnames)*32+32)
+    image(spm_DesMtx('sca',varargin{2}.X,Xnames)*32+32)
 end
 set(hDesMtx,'Visible','off')
 
 %-Parameter names
 hParAx = axes('Position',[.8 .5 .2 .3],'Visible','off',...
-	'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
-	'YLim',[0.5,nPar+0.5],'YDir','Reverse');
+    'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
+    'YLim',[0.5,nPar+0.5],'YDir','Reverse');
 hPNames = zeros(nPar,1);
 for i = 1:nPar, hPNames(i) = text(.05,i,Xnames{i}); end
 
@@ -953,104 +953,104 @@ for i = 1:nPar, hPNames(i) = text(.05,i,Xnames{i}); end
 %-----------------------------------------------------------------------
 for i = 1:length(xC)
 
-	%-Title
-	%---------------------------------------------------------------
-	hSTitle = text(0.5,0.87,sprintf('%d : %s',i,xC(i).rcname),...
-			'Parent',hTax,...
-			'HorizontalAlignment','center',...
-			'FontSize',FS(13),'FontWeight','Bold');
+    %-Title
+    %---------------------------------------------------------------
+    hSTitle = text(0.5,0.87,sprintf('%d : %s',i,xC(i).rcname),...
+            'Parent',hTax,...
+            'HorizontalAlignment','center',...
+            'FontSize',FS(13),'FontWeight','Bold');
 
-	%-Plot
-	%---------------------------------------------------------------
-	hAx = axes('Position',[.1 .5 .7 .3],...
-			'TickDir','out','Box','off','Color','none',...
-			'NextPlot','add',...
-			'XLim',[0,nScan]+0.5);
-	plot(xC(i).rc,'LineWidth',2)
-	if nScan<48, plot(xC(i).rc,'.k','MarkerSize',20); end
-	xlabel('image #')
-	ylabel('covariate value')
-
-
-	%-Descriptions
-	%---------------------------------------------------------------
-	hDAx = axes('Position',[0.03,0.1,0.94,0.30],'Visible','off');
-	
-	set(hDAx,'Units','points');
-	tmp = get(hDAx,'Position');
-	set(hDAx,'YLim',[0,tmp(4)])
-	
-	dy = FS(9); y0 = floor(tmp(4)) -dy; y = y0;
-
-	%-Description strings from xC(i).descrip
-	text(0.3,y,'Details :',...
-		'HorizontalAlignment','Right',...
-		'FontWeight','Bold','FontSize',FS(9))
-	s = xC(i).descrip;
-	if ~iscellstr(s), s={s}; end
-	for j=1:prod(size(s))
-		text(0.31,y,s{j},'FontSize',FS(9))
-		y=y-dy;
-	end
-	y=y-dy;
-
-	%-Key (if block of covariates entered)
-	%---------------------------------------------------------------
-	if size(xC(i).rc,2)>1
-		ColorOrder = get(hAx,'ColorOrder');
-		text(0.3,y,'Key :',...
-			'HorizontalAlignment','Right',...
-			'FontWeight','Bold','FontSize',FS(9))
-		for j = 1:size(xC(i).rc,2)
-			color = ColorOrder(mod(j-1,size(ColorOrder,1))+1,:);
-			if size(xC(i).rc,2)==length(xC(i).cname)
-				str = xC(i).cname{j};
-			else
-				str = sprintf('column %d',j);
-			end
-			text(0.31,y,str,'FontSize',FS(9),...
-				'Color',color)
-			text(0.5,xC(i).rc(1,j),[str,' \rightarrow'],...
-				'Parent',hAx,...
-				'FontSize',FS(8),'FontWeight','Bold',...
-				'HorizontalAlignment','Right',...
-				'Interpreter','TeX',...
-				'Color',color)
-			y=y-dy;
-		end
-		y=y-dy;
-	end
+    %-Plot
+    %---------------------------------------------------------------
+    hAx = axes('Position',[.1 .5 .7 .3],...
+            'TickDir','out','Box','off','Color','none',...
+            'NextPlot','add',...
+            'XLim',[0,nScan]+0.5);
+    plot(xC(i).rc,'LineWidth',2)
+    if nScan<48, plot(xC(i).rc,'.k','MarkerSize',20); end
+    xlabel('image #')
+    ylabel('covariate value')
 
 
-	%-Associated parameters
-	%---------------------------------------------------------------
-	text(0.3,y,'Design matrix columns :',...
-		'HorizontalAlignment','Right',...
-		'FontWeight','Bold','FontSize',FS(9))
-	if isempty(xC(i).cols)
-		text(0.31,y,'(none)','FontSize',FS(9))
-	else
-		for j = xC(i).cols
-			text(0.31,y,sprintf('%d : %s',j,Xnames{j}),...
-				'FontSize',FS(9),'Interpreter','TeX')
-			y=y-dy;
-		end
-	end
-	y=y-dy;
+    %-Descriptions
+    %---------------------------------------------------------------
+    hDAx = axes('Position',[0.03,0.1,0.94,0.30],'Visible','off');
+    
+    set(hDAx,'Units','points');
+    tmp = get(hDAx,'Position');
+    set(hDAx,'YLim',[0,tmp(4)])
+    
+    dy = FS(9); y0 = floor(tmp(4)) -dy; y = y0;
+
+    %-Description strings from xC(i).descrip
+    text(0.3,y,'Details :',...
+        'HorizontalAlignment','Right',...
+        'FontWeight','Bold','FontSize',FS(9))
+    s = xC(i).descrip;
+    if ~iscellstr(s), s={s}; end
+    for j=1:prod(size(s))
+        text(0.31,y,s{j},'FontSize',FS(9))
+        y=y-dy;
+    end
+    y=y-dy;
+
+    %-Key (if block of covariates entered)
+    %---------------------------------------------------------------
+    if size(xC(i).rc,2)>1
+        ColorOrder = get(hAx,'ColorOrder');
+        text(0.3,y,'Key :',...
+            'HorizontalAlignment','Right',...
+            'FontWeight','Bold','FontSize',FS(9))
+        for j = 1:size(xC(i).rc,2)
+            color = ColorOrder(mod(j-1,size(ColorOrder,1))+1,:);
+            if size(xC(i).rc,2)==length(xC(i).cname)
+                str = xC(i).cname{j};
+            else
+                str = sprintf('column %d',j);
+            end
+            text(0.31,y,str,'FontSize',FS(9),...
+                'Color',color)
+            text(0.5,xC(i).rc(1,j),[str,' \rightarrow'],...
+                'Parent',hAx,...
+                'FontSize',FS(8),'FontWeight','Bold',...
+                'HorizontalAlignment','Right',...
+                'Interpreter','TeX',...
+                'Color',color)
+            y=y-dy;
+        end
+        y=y-dy;
+    end
 
 
-	%-Highlight parameter names
-	%---------------------------------------------------------------
-	hCurPNames = hPNames(xC(i).cols);
-	set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(8))
+    %-Associated parameters
+    %---------------------------------------------------------------
+    text(0.3,y,'Design matrix columns :',...
+        'HorizontalAlignment','Right',...
+        'FontWeight','Bold','FontSize',FS(9))
+    if isempty(xC(i).cols)
+        text(0.31,y,'(none)','FontSize',FS(9))
+    else
+        for j = xC(i).cols
+            text(0.31,y,sprintf('%d : %s',j,Xnames{j}),...
+                'FontSize',FS(9),'Interpreter','TeX')
+            y=y-dy;
+        end
+    end
+    y=y-dy;
 
 
-	%-Paginate (if more than one covariate)
-	%---------------------------------------------------------------
-	if length(xC)>1
-		spm_figure('NewPage',[hSTitle; hAx; get(hAx,'Children');...
-			hCurPNames; hDAx; get(hDAx,'Children')]);
-	end
+    %-Highlight parameter names
+    %---------------------------------------------------------------
+    hCurPNames = hPNames(xC(i).cols);
+    set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(8))
+
+
+    %-Paginate (if more than one covariate)
+    %---------------------------------------------------------------
+    if length(xC)>1
+        spm_figure('NewPage',[hSTitle; hAx; get(hAx,'Children');...
+            hCurPNames; hDAx; get(hDAx,'Children')]);
+    end
 
 end
 
@@ -1085,21 +1085,21 @@ case {'surfdesmtx_cb','surfdesmtxmo_cb','surfdesmtxup_cb'} %-Surf DesMtx
 h    = get(gca,'Xlabel');
 
 if strcmp(lower(varargin{1}),'surfdesmtxup_cb')
-	UD = get(h,'UserData');
-	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
-		'UserData',UD.UserData)
-	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
-	return
+    UD = get(h,'UserData');
+    set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+        'UserData',UD.UserData)
+    set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+    return
 end
 
 
 if strcmp(lower(varargin{1}),'surfdesmtx_cb')
-	UD = struct(	'String',	get(h,'String'),...
-			'Interpreter',	get(h,'Interpreter'),...
-			'UserData',	get(h,'UserData'));
-	set(h,'UserData',UD)
-	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesMtxMo_CB'')',...
-		 'WindowButtonUpFcn',    'spm_DesRep(''SurfDesMtxUp_CB'')')
+    UD = struct(    'String',   get(h,'String'),...
+            'Interpreter',  get(h,'Interpreter'),...
+            'UserData', get(h,'UserData'));
+    set(h,'UserData',UD)
+    set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesMtxMo_CB'')',...
+         'WindowButtonUpFcn',    'spm_DesRep(''SurfDesMtxUp_CB'')')
 end
 
 mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
@@ -1109,30 +1109,30 @@ ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
 istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
-	try, str = sprintf('X(%d,%d) = %g',ij(1),ij(2),...
-		subsref(get(gco,'UserData'),...
-		struct('type',{'.','()'},'subs',{'X',{ij(1),ij(2)}})));
-	catch, str='(no cached design matrix to surf)'; end
+    try, str = sprintf('X(%d,%d) = %g',ij(1),ij(2),...
+        subsref(get(gco,'UserData'),...
+        struct('type',{'.','()'},'subs',{'X',{ij(1),ij(2)}})));
+    catch, str='(no cached design matrix to surf)'; end
 case 'extend'
-	try, str = sprintf('Image %d: %s',ij(1),...
-		spm_str_manip(...
-		subsref(get(gco,'UserData'),...
-		struct('type',{'.','()'},...
-			'subs',{'fnames',{ij(1),':'}})),'Ca40'));
-	catch, str='(no cached image filenames to surf)'; end
+    try, str = sprintf('Image %d: %s',ij(1),...
+        spm_str_manip(...
+        subsref(get(gco,'UserData'),...
+        struct('type',{'.','()'},...
+            'subs',{'fnames',{ij(1),':'}})),'Ca40'));
+    catch, str='(no cached image filenames to surf)'; end
 case 'alt'
-	try, str = sprintf('Parameter %d: %s',ij(2),...
-		subsref(get(gco,'UserData'),...
-		struct('type',{'.','{}'},'subs',{'Xnames',{ij(2)}})));
-		istr = 'tex';
-	catch, str='(no cached parameter names to surf)'; end
+    try, str = sprintf('Parameter %d: %s',ij(2),...
+        subsref(get(gco,'UserData'),...
+        struct('type',{'.','{}'},'subs',{'Xnames',{ij(2)}})));
+        istr = 'tex';
+    catch, str='(no cached parameter names to surf)'; end
 case 'open'
-	try,	assignin('base','ans',subsref(get(gco,'UserData'),...
-			struct('type',{'.'},'subs',{'X'})))
-		evalin('base','ans')
-	catch,	fprintf('%s GUI: can''t find design matrix\n',mfilename)
-	end
-	return
+    try,    assignin('base','ans',subsref(get(gco,'UserData'),...
+            struct('type',{'.'},'subs',{'X'})))
+        evalin('base','ans')
+    catch,  fprintf('%s GUI: can''t find design matrix\n',mfilename)
+    end
+    return
 end
 
 set(h,'String',str,'Interpreter',istr)
@@ -1148,20 +1148,20 @@ case {'surfestim_cb','surfestimmo_cb','surfestimup_cb'}  %-Surf ParEstIm
 h    = get(gca,'Xlabel');
 
 if strcmp(lower(varargin{1}),'surfestimup_cb')
-	UD = get(h,'UserData');
-	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
-		'UserData',UD.UserData)
-	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
-	return
+    UD = get(h,'UserData');
+    set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+        'UserData',UD.UserData)
+    set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+    return
 end
 
 if strcmp(lower(varargin{1}),'surfestim_cb')
-	UD = struct(	'String',	get(h,'String'),...
-			'Interpreter',	get(h,'Interpreter'),...
-			'UserData',	get(h,'UserData'));
-	set(h,'UserData',UD)
-	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfEstImMo_CB'')',...
-		 'WindowButtonUpFcn',    'spm_DesRep(''SurfEstImUp_CB'')')
+    UD = struct(    'String',   get(h,'String'),...
+            'Interpreter',  get(h,'Interpreter'),...
+            'UserData', get(h,'UserData'));
+    set(h,'UserData',UD)
+    set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfEstImMo_CB'')',...
+         'WindowButtonUpFcn',    'spm_DesRep(''SurfEstImUp_CB'')')
 end
 
 mm  = [get(gca,'XLim')]+[.5,-.5];
@@ -1171,26 +1171,26 @@ i   = round(min(max(i(1,1),mm(1)),mm(2)));
 istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
-	try, tmp = {' (not unique)',' (unique)'};
-	str = sprintf('Parameter %d : %s%s',...
-		i,...
-		subsref(get(gco,'UserData'),...
-			struct('type',{'.','{}'},'subs',{'Xnames',{i}})),...
-		tmp{subsref(get(gco,'UserData'),...
-			struct('type',{'.','()'},'subs',{'est',{i}}))+1});
-		istr = 'tex';
-	catch, str='(no cached data to surf)'; end
+    try, tmp = {' (not unique)',' (unique)'};
+    str = sprintf('Parameter %d : %s%s',...
+        i,...
+        subsref(get(gco,'UserData'),...
+            struct('type',{'.','{}'},'subs',{'Xnames',{i}})),...
+        tmp{subsref(get(gco,'UserData'),...
+            struct('type',{'.','()'},'subs',{'est',{i}}))+1});
+        istr = 'tex';
+    catch, str='(no cached data to surf)'; end
 case {'extend','alt'}
-	return
+    return
 case 'open'
-	try,	UD = get(gco,'UserData');
-		assignin('base','ans',...
-			subsref(get(gco,'UserData'),...
-				struct('type',{'.'},'subs',{'est'})))
-		evalin('base','ans')
-	catch,	fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
-	end
-	return
+    try,    UD = get(gco,'UserData');
+        assignin('base','ans',...
+            subsref(get(gco,'UserData'),...
+                struct('type',{'.'},'subs',{'est'})))
+        evalin('base','ans')
+    catch,  fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
+    end
+    return
 end
 
 set(h,'String',str,'Interpreter',istr)
@@ -1207,20 +1207,20 @@ case {'surfdeso_cb','surfdesomo_cb','surfdesoup_cb'}    %-Surf DesOrthIm
 h    = get(gca,'Xlabel');
 
 if strcmp(lower(varargin{1}),'surfdesoup_cb')
-	UD = get(h,'UserData');
-	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
-		'UserData',UD.UserData)
-	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
-	return
+    UD = get(h,'UserData');
+    set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+        'UserData',UD.UserData)
+    set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+    return
 end
 
 if strcmp(lower(varargin{1}),'surfdeso_cb')
-	UD = struct(	'String',	get(h,'String'),...
-			'Interpreter',	get(h,'Interpreter'),...
-			'UserData',	get(h,'UserData'));
-	set(h,'UserData',UD)
-	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesOMo_CB'')',...
-		 'WindowButtonUpFcn',    'spm_DesRep(''SurfDesOUp_CB'')')
+    UD = struct(    'String',   get(h,'String'),...
+            'Interpreter',  get(h,'Interpreter'),...
+            'UserData', get(h,'UserData'));
+    set(h,'UserData',UD)
+    set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfDesOMo_CB'')',...
+         'WindowButtonUpFcn',    'spm_DesRep(''SurfDesOUp_CB'')')
 end
 
 mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
@@ -1231,34 +1231,34 @@ if ij(1)>ij(2), return, end
 istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
-	try
-		UD = get(gco,'UserData');
-		if abs(abs(UD.O(ij(1),ij(2)))-1) < eps*1e1
-		 	str = '{\bf colinear}';
-		elseif abs(UD.O(ij(1),ij(2))) < eps*1e1
-			str = '{\bf orthogonal}';
-		else
-			str = '{\bf not orthogonal}';
-		end
-		if ~diff(ij), str=[str,' {\it(same column)}']; end
-		if UD.bC(ij(1),ij(2)), tmp=' ={\it r}'; else, tmp=''; end
-		str = {	sprintf('{\\bf %s} (col %d) & {\\bf %s} (col %d)',...
-				UD.name{ij(1)},ij(1),...
-				UD.name{ij(2)},ij(2)),...
-			sprintf('cos(\\theta)%s = %1.2f',...
-				tmp,UD.O(ij(1),ij(2))),...
-			['\rightarrow ',str]};
-		istr = 'tex';
-	catch, str='(no cached data to surf)'; end
+    try
+        UD = get(gco,'UserData');
+        if abs(abs(UD.O(ij(1),ij(2)))-1) < eps*1e1
+            str = '{\bf colinear}';
+        elseif abs(UD.O(ij(1),ij(2))) < eps*1e1
+            str = '{\bf orthogonal}';
+        else
+            str = '{\bf not orthogonal}';
+        end
+        if ~diff(ij), str=[str,' {\it(same column)}']; end
+        if UD.bC(ij(1),ij(2)), tmp=' ={\it r}'; else, tmp=''; end
+        str = { sprintf('{\\bf %s} (col %d) & {\\bf %s} (col %d)',...
+                UD.name{ij(1)},ij(1),...
+                UD.name{ij(2)},ij(2)),...
+            sprintf('cos(\\theta)%s = %1.2f',...
+                tmp,UD.O(ij(1),ij(2))),...
+            ['\rightarrow ',str]};
+        istr = 'tex';
+    catch, str='(no cached data to surf)'; end
 case {'extend','alt'}
-	return
+    return
 case 'open'
-	try,	UD = get(gco,'UserData');
-		assignin('base','ans',UD.O)
-		evalin('base','ans')
-	catch,	fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
-	end
-	return
+    try,    UD = get(gco,'UserData');
+        assignin('base','ans',UD.O)
+        evalin('base','ans')
+    catch,  fprintf('%s GUI: can''t find design orthogonality\n',mfilename)
+    end
+    return
 end
 
 set(h,'String',str,'Interpreter',istr)
@@ -1273,25 +1273,25 @@ case {'surfcon_cb','surfconmo_cb','surfconup_cb'}        %-Surf Contrast
 
 cUD = get(gco,'UserData');
 if ~isstruct(cUD) | ~isfield(cUD,'h')
-	warning('contrast GUI objects setup incorrectly'), return
+    warning('contrast GUI objects setup incorrectly'), return
 end
 h    = cUD.h;
 
 if strcmp(lower(varargin{1}),'surfconup_cb')
-	UD = get(h,'UserData');
-	set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
-		'UserData',UD.UserData)
-	set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
-	return
+    UD = get(h,'UserData');
+    set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
+        'UserData',UD.UserData)
+    set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
+    return
 end
 
 if strcmp(lower(varargin{1}),'surfcon_cb')
-	UD = struct(	'String',	get(h,'String'),...
-			'Interpreter',	get(h,'Interpreter'),...
-			'UserData',	get(h,'UserData'));
-	set(h,'UserData',UD)
-	set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfConMo_CB'')',...
-		 'WindowButtonUpFcn',    'spm_DesRep(''SurfConUp_CB'')')
+    UD = struct(    'String',   get(h,'String'),...
+            'Interpreter',  get(h,'Interpreter'),...
+            'UserData', get(h,'UserData'));
+    set(h,'UserData',UD)
+    set(gcbf,'WindowButtonMotionFcn','spm_DesRep(''SurfConMo_CB'')',...
+         'WindowButtonUpFcn',    'spm_DesRep(''SurfConUp_CB'')')
 end
 
 mm  = [get(gca,'YLim')',get(gca,'XLim')']+[.5,.5;-.5,-.5];
@@ -1301,29 +1301,29 @@ ij  = round(min(max(ij(1,[2,1]),mm(1,:)),mm(2,:)));
 istr = 'none';
 switch get(gcbf,'SelectionType')
 case 'normal'
-	try
-		if cUD.i>0, str = sprintf('%d',cUD.i); else, str = ''; end
-		switch get(gco,'Type')
-		case 'image'
-			str = sprintf('%s\\{F\\}: {\\bf%s} (%d,%d) = %.2f',...
-				str,cUD.xCon.name,ij(2),ij(1),...
-				cUD.xCon.c(ij(2),ij(1)));
-		case 'patch'
-			str = sprintf('%s\\{T\\}: {\\bf%s} (%d) = %.2f',...
-				str,cUD.xCon.name,ij(2),...
-				cUD.xCon.c(ij(2)));
-		otherwise, error('unexpected object type')
-		end
-		istr = 'TeX';
-	catch, str='(no cached data to surf)'; end
+    try
+        if cUD.i>0, str = sprintf('%d',cUD.i); else, str = ''; end
+        switch get(gco,'Type')
+        case 'image'
+            str = sprintf('%s\\{F\\}: {\\bf%s} (%d,%d) = %.2f',...
+                str,cUD.xCon.name,ij(2),ij(1),...
+                cUD.xCon.c(ij(2),ij(1)));
+        case 'patch'
+            str = sprintf('%s\\{T\\}: {\\bf%s} (%d) = %.2f',...
+                str,cUD.xCon.name,ij(2),...
+                cUD.xCon.c(ij(2)));
+        otherwise, error('unexpected object type')
+        end
+        istr = 'TeX';
+    catch, str='(no cached data to surf)'; end
 case {'alt','extend'}
-	return
+    return
 case 'open'
-	try,	assignin('base','ans',cUD.xCon.c')
-		evalin('base','ans')
-	catch,	fprintf('%s GUI: can''t find contrast\n',mfilename)
-	end
-	return
+    try,    assignin('base','ans',cUD.xCon.c')
+        evalin('base','ans')
+    catch,  fprintf('%s GUI: can''t find contrast\n',mfilename)
+    end
+    return
 end
 
 set(h,'String',str,'Interpreter',istr)
@@ -1362,41 +1362,41 @@ istr = 'none';
 
 switch get(gcbf,'SelectionType')
 case 'normal'
-	try
-		str = sprintf('V(%d,%d) = %g',ij(1),ij(2),...
-			  subsref(get(gco,'UserData'),...
-			  struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}})));
-	catch
-		str = '(no cached covariance matrix to surf)';
-	end
+    try
+        str = sprintf('V(%d,%d) = %g',ij(1),ij(2),...
+              subsref(get(gco,'UserData'),...
+              struct('type',{'.','()'},'subs',{'V',{ij(1),ij(2)}})));
+    catch
+        str = '(no cached covariance matrix to surf)';
+    end
 case 'extend'
-	try
-		ind = 1:length(subsref(get(gco,'Userdata'),...
-			struct('type','.','subs','h')));
-		isel = logical(zeros(size(ind)));
-		for k = 1:length(ind)
-			isel(k) = subsref(get(gco,'UserData'),...
-				struct('type',{'.','{}','()'},'subs',{'Vi',{k},{ij(1),ij(2)}})) ~= 0;
-		end
-		if any(isel)
-			str = [sprintf('V(%d,%d): ',ij(1),ij(2)) sprintf('Vi{%d}',ind(isel))];
-		else
-			str = sprintf('no Vi at (%d,%d)',ij(1),ij(2));
-		end
-	catch
-	    return
-	end
+    try
+        ind = 1:length(subsref(get(gco,'Userdata'),...
+            struct('type','.','subs','h')));
+        isel = logical(zeros(size(ind)));
+        for k = 1:length(ind)
+            isel(k) = subsref(get(gco,'UserData'),...
+                struct('type',{'.','{}','()'},'subs',{'Vi',{k},{ij(1),ij(2)}})) ~= 0;
+        end
+        if any(isel)
+            str = [sprintf('V(%d,%d): ',ij(1),ij(2)) sprintf('Vi{%d}',ind(isel))];
+        else
+            str = sprintf('no Vi at (%d,%d)',ij(1),ij(2));
+        end
+    catch
+        return
+    end
 case 'alt'
-	return
+    return
 case 'open'
-	try
-		assignin('base','ans',subsref(get(gco,'UserData'),...
-			struct('type',{'.'},'subs',{'V'})));
-		evalin('base','ans');
-	catch
-		fprintf('%s GUI: can''t find covariance matrix\n',mfilename)
-	end
-	return
+    try
+        assignin('base','ans',subsref(get(gco,'UserData'),...
+            struct('type',{'.'},'subs',{'V'})));
+        evalin('base','ans');
+    catch
+        fprintf('%s GUI: can''t find covariance matrix\n',mfilename)
+    end
+    return
 end
 
 set(h,'String',str,'Interpreter',istr)

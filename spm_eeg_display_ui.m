@@ -3,20 +3,20 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Heeg = spm_eeg_display_ui(varargin)
 %
 % optional argument:
-% S		    - struct
+% S         - struct
 %    fields of S:
-%     D 	  - EEG struct
-%     Hfig	  - Figure (or axes) to work in (Defaults to SPM graphics window)
+%     D       - EEG struct
+%     Hfig    - Figure (or axes) to work in (Defaults to SPM graphics window)
 %     rebuild - indicator variable: if defined spm_eeg_display_ui has been
 %                                   called after channel selection
 %
 % output:
-%     Heeg		- Handle of resulting figure
+%     Heeg      - Handle of resulting figure
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 955 2007-10-17 15:15:09Z rik $
+% $Id: spm_eeg_display_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin == 1
     S = varargin{1};
@@ -249,15 +249,15 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     % Added option to specify in advance only subset of channels to display RH
     % ([] = prompt for channel file; char = load channel file; No error checking yet)
     try
-    	D.gfx.channels = S.chans;
+        D.gfx.channels = S.chans;
         if isempty(S.chans)
             S.chans = spm_select(1, '\.mat$', 'Select channel mat file');
-	    S.load = load(S.chans);
-    	    D.gfx.channels = S.load.Iselectedchannels;
+        S.load = load(S.chans);
+            D.gfx.channels = S.load.Iselectedchannels;
         elseif ischar(S.chans)
-	    S.load = load(S.chans);
-    	    D.gfx.channels = S.load.Iselectedchannels;
-	end
+        S.load = load(S.chans);
+            D.gfx.channels = S.load.Iselectedchannels;
+    end
     catch
     % channels to display, initially exclude bad channels
         D.gfx.channels = setdiff([1:length(D.channels.order)], D.channels.Bad);

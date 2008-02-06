@@ -24,7 +24,7 @@ function pdf = spm_Npdf(z,Mu,V)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_mvNpdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_mvNpdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Condition arguments
@@ -50,13 +50,13 @@ if any(size(V)~=[d,d]), error('V wrong dimension'),   end
 %-Computation
 %-----------------------------------------------------------------------
 if d==1
-	%-Simpler computation for univariate normal
-	%---------------------------------------------------------------
-	pdf = exp(-(z - Mu).^2/(2*V))./sqrt(2*pi*V);
+    %-Simpler computation for univariate normal
+    %---------------------------------------------------------------
+    pdf = exp(-(z - Mu).^2/(2*V))./sqrt(2*pi*V);
 else
-	if size(z,1) ~= d, error('z wrong dimension'), end
-	z   = z - Mu(:)*ones(1,size(z,2));
-	pdf = exp(-0.5*sum((sqrtm(inv(V))*z).^2))/((2*pi)^(d/2)*sqrt(det(V)));
+    if size(z,1) ~= d, error('z wrong dimension'), end
+    z   = z - Mu(:)*ones(1,size(z,2));
+    pdf = exp(-0.5*sum((sqrtm(inv(V))*z).^2))/((2*pi)^(d/2)*sqrt(det(V)));
 end
 
 return

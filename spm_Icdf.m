@@ -68,7 +68,7 @@ function F = spm_Icdf(x,n,p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Icdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Icdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -78,13 +78,13 @@ if nargin<3, p=0.5; end
 if nargin<2, error('Insufficient arguments'), end
 ad = [ndims(x);ndims(n);ndims(p)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(n),ones(1,rd-ad(2))];...
-	[size(p),ones(1,rd-ad(3))]     ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(n),ones(1,rd-ad(2))];...
+    [size(p),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -94,7 +94,7 @@ F = zeros(rs);
 %-Only defined for whole n, and for p in [0,1]. Return NaN if undefined.
 md = ( ones(size(x))  &  n==floor(n)  &  n>=0  &  p>=0  &  p<=1 );
 if any(~md(:)), F(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-F is 1 where x>=n, or (p=0 & x>=0) (where betainc involves log of zero)
 m1 = ( x>=n  |  (p==0 & x>=0) );

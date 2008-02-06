@@ -24,4 +24,4 @@
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: Contents.m 1131 2008-02-06 11:17:09Z spm $

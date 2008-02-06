@@ -16,12 +16,11 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % This function is very much like spm_dcm_ui('specify') 
 % but inputs etc. are specified either via the user interface or from an
 % existing model.
-%
-%
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 907 2007-09-05 14:11:58Z klaas $
+% $Id: spm_dcm_create.m 1131 2008-02-06 11:17:09Z spm $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -257,14 +256,14 @@ switch upper(source_model)
     case 'IMPORT'
         % Import existing model - prompt user to choose it
         %=================================================
-    	P     = spm_select(1,'^DCM.*\.mat$','Select source DCM_???.mat');
-    	load(P{:})
+        P     = spm_select(1,'^DCM.*\.mat$','Select source DCM_???.mat');
+        load(P{:})
 
         
     otherwise
         % Import existing model (directly specified by directory & name)
         %==============================================================
-    	try
+        try
             load(source_model)
         catch
             disp('Source model does not exist - wrong directory or file name?');

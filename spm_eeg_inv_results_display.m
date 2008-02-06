@@ -2,6 +2,10 @@ function spm_eeg_inv_results_display(D)
 % Displays contrast of evoked responses and power
 % FORMAT spm_eeg_inv_results_display((D)
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_eeg_inv_results_display.m 1131 2008-02-06 11:17:09Z spm $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -44,10 +48,10 @@ figure(Fgraph)
 % get vertices (even if not normalised)
 %--------------------------------------------------------------------------
 try
-	vert   = model.mesh.tess_mni.vert;
+    vert   = model.mesh.tess_mni.vert;
 catch
-	warndlg('Displaying on subject mesh - may not be in MNI space');
-	vert   = model.mesh.tess_ctx.vert;
+    warndlg('Displaying on subject mesh - may not be in MNI space');
+    vert   = model.mesh.tess_ctx.vert;
 end
 
 % display

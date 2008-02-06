@@ -1,8 +1,5 @@
 function varargout = spm_jobman(varargin)
 % UI/Batching stuff
-%_______________________________________________________________________
-% This code is based on an earlier version by Philippe Ciuciu and
-% Guillaume Flandin of Orsay, France.
 %
 % FORMAT spm_jobman
 %        spm_jobman('interactive')
@@ -58,10 +55,13 @@ function varargout = spm_jobman(varargin)
 % as a batch job (for experts only). If c is omitted, use the currently
 % displayed job tree as source.
 %_______________________________________________________________________
+% This code is based on an earlier version by Philippe Ciuciu and
+% Guillaume Flandin of Orsay, France.
+%_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_jobman.m 1086 2008-01-11 15:11:20Z john $
+% $Id: spm_jobman.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==0

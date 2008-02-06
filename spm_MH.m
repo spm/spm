@@ -18,7 +18,7 @@ function [P,F] = spm_MH(L,B,y,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_MH.m 456 2006-02-22 18:46:29Z karl $
+% $Id: spm_MH.m 1131 2008-02-06 11:17:09Z spm $
 
 % initialise parameters
 %--------------------------------------------------------------------------

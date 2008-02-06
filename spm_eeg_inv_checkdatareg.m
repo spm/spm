@@ -1,18 +1,16 @@
 function spm_eeg_inv_checkdatareg(varargin);
-
-%=========================================================================
 % Display of the coregistred meshes and sensor locations in MRI space for
 % quality check by eye.
 % Fiducials which were used for rigid registration are also displayed
 %
 % FORMAT spm_eeg_inv_checkdatareg(D,[val])
 % Input:
-% D		    - input data struct (optional)
-%==========================================================================
+% D         - input data struct (optional)
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 850 2007-07-10 15:43:27Z rik $
+% $Id: spm_eeg_inv_checkdatareg.m 1131 2008-02-06 11:17:09Z spm $
 
 % Minor change by Rik to handle sensors consisting of two gradiometer coils 5/6/07
 
@@ -63,11 +61,11 @@ catch
     return
 end
 
-if size(Lsens,2)==6	% gradiometers, two coils
+if size(Lsens,2)==6 % gradiometers, two coils
     for ch = 1:size(Lsens,1)
         if all(isfinite(Lsens(ch,4:6)))
           Lsens(ch,1:3) = (Lsens(ch,1:3)+Lsens(ch,4:6))/2;
-	end
+    end
     end
     Lsens = Lsens(:,1:3);
 end

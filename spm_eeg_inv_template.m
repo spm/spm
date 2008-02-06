@@ -1,20 +1,18 @@
 function [D] = spm_eeg_inv_template(varargin);
-
-%==========================================================================
 % Fill in mesh fields from saved template files:  This cicumvents the 
 % need for a structural MRI and asumes the subject has, roughly the same
 % shaped head as the template head.
 %
 % FORMAT D = spm_eeg_inv_template(D,[val])
 % Input:
-% D		    - input data struct (optional)
+% D         - input data struct (optional)
 % Output:
-% D			- same data struct including the forward solution files and variables
-%==========================================================================
+% D         - same data struct including the forward solution files and variables
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_template.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_template.m 1131 2008-02-06 11:17:09Z spm $
 
 % checks
 %--------------------------------------------------------------------------

@@ -18,7 +18,7 @@ function [F,P] = spm_MH_reml(YY,X,Q,N,hE);
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_reml.m 456 2006-02-22 18:46:29Z karl $
+% $Id: spm_MH_reml.m 1131 2008-02-06 11:17:09Z spm $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

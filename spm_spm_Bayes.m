@@ -33,11 +33,11 @@ function [SPM] = spm_spm_Bayes(SPM)
 %                           ----------------
 %
 %
-%	SPM.PPM.l      = session-specific hyperparameter means
-%	SPM.PPM.Cb     = empirical prior parameter covariances
-%	SPM.PPM.C      = conditional covariances of parameters
-%	SPM.PPM.dC{i}  = dC/dl;
-%	SPM.PPM.ddC{i} = ddC/dldl
+%   SPM.PPM.l      = session-specific hyperparameter means
+%   SPM.PPM.Cb     = empirical prior parameter covariances
+%   SPM.PPM.C      = conditional covariances of parameters
+%   SPM.PPM.dC{i}  = dC/dl;
+%   SPM.PPM.ddC{i} = ddC/dldl
 %
 % The derivatives are used to compute the conditional variance of various
 % contrasts in spm_getSPM, using a Taylor expansion about the hyperparameter
@@ -46,8 +46,8 @@ function [SPM] = spm_spm_Bayes(SPM)
 %
 %                           ----------------
 %
-%	SPM.VCbeta     - Handles of conditional parameter estimates
-%	SPM.VHp        - Handles of hyperparameter estimates
+%   SPM.VCbeta     - Handles of conditional parameter estimates
+%   SPM.VHp        - Handles of hyperparameter estimates
 %
 %                           ----------------
 %
@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 685 2006-11-21 17:10:26Z Darren $
+% $Id: spm_spm_Bayes.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Say hello
@@ -78,21 +78,21 @@ Finter = spm('FigName','Stats: Bayesian estimation...');
 %-Select SPM.mat & change directory
 %-----------------------------------------------------------------------
 if ~nargin
-	swd = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
-	load(fullfile(swd,'SPM.mat'))
-	cd(swd)
+    swd = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+    load(fullfile(swd,'SPM.mat'))
+    cd(swd)
 end
 
 try
-	M      = SPM.xVol.M;
-	DIM    = SPM.xVol.DIM;
-	xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
-	XYZ    = SPM.xVol.XYZ;
+    M      = SPM.xVol.M;
+    DIM    = SPM.xVol.DIM;
+    xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
+    XYZ    = SPM.xVol.XYZ;
 catch
-	helpdlg({	'Please do a ML estimation first',...
-			'This identifies the voxels to analyse'});
-	spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-	return
+    helpdlg({   'Please do a ML estimation first',...
+            'This identifies the voxels to analyse'});
+    spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
+    return
 end
 
 
@@ -109,39 +109,39 @@ fprintf('%-40s: %30s','Output images','...initialising')             %-#
 xX             = SPM.xX;
 [nScan nBeta]  = size(xX.X);
 Vbeta(1:nBeta) = deal(struct(...
-			'fname',	[],...
-			'dim',		DIM',...
-			'dt',		[spm_type('float32'), spm_platform('bigend')],...
-			'mat',		M,...
-			'pinfo',	[1 0 0]',...
-			'descrip',	''));
+            'fname',    [],...
+            'dim',      DIM',...
+            'dt',       [spm_type('float32'), spm_platform('bigend')],...
+            'mat',      M,...
+            'pinfo',    [1 0 0]',...
+            'descrip',  ''));
 for i = 1:nBeta
-	Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
-	Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.name{i});
-	spm_unlink(Vbeta(i).fname)
+    Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
+    Vbeta(i).descrip = sprintf('Cond. beta (%04d) - %s',i,xX.name{i});
+    spm_unlink(Vbeta(i).fname)
 end
 Vbeta = spm_create_vol(Vbeta);
 
 %-Intialise ReML hyperparameter image files
 %-----------------------------------------------------------------------
 try
-	nHp       = length(SPM.nscan);
+    nHp       = length(SPM.nscan);
 catch
-	nHp       = nScan;
-	SPM.nscan = nScan;
+    nHp       = nScan;
+    SPM.nscan = nScan;
 end
 
 VHp(1:nHp)        = deal(struct(...
-			'fname',	[],...
-			'dim',		DIM',...
-			'dt',		[spm_type('float64'), spm_platform('bigend')],...
-			'mat',		M,...
-			'pinfo',	[1 0 0]',...
-			'descrip',	''));
+            'fname',    [],...
+            'dim',      DIM',...
+            'dt',       [spm_type('float64'), spm_platform('bigend')],...
+            'mat',      M,...
+            'pinfo',    [1 0 0]',...
+            'descrip',  ''));
 for i = 1:nHp
-	VHp(i).fname   = sprintf('Hp_%04d.img',i);
-	VHp(i).descrip = sprintf('Hyperparameter (%04d)',i);
-	spm_unlink(VHp(i).fname)
+    VHp(i).fname   = sprintf('Hp_%04d.img',i);
+    VHp(i).descrip = sprintf('Hyperparameter (%04d)',i);
+    spm_unlink(VHp(i).fname)
 end
 VHp   = spm_create_vol(VHp);
 
@@ -157,69 +157,69 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimating priors')   %-#
 %----------------------------------------------------------------------
 s      = nHp;
 if isfield(SPM,'Sess')
-	for i = 1:s
-		 u{i} = SPM.Sess(i).row;
-		 v{i} = SPM.Sess(i).col;
-		v0{i} = xX.iB(i);
-	end
+    for i = 1:s
+         u{i} = SPM.Sess(i).row;
+         v{i} = SPM.Sess(i).col;
+        v0{i} = xX.iB(i);
+    end
 else
-	 u{1} = [1:nScan];
-	 v{1} = [xX.iH xX.iC];
-	v0{1} = [xX.iB xX.iG];
+     u{1} = [1:nScan];
+     v{1} = [xX.iH xX.iC];
+    v0{1} = [xX.iB xX.iG];
 end
 
 % cycle over separarable partitions
 %-----------------------------------------------------------------------
 for i = 1:s
 
-	% Get design X and confounds X0
-	%---------------------------------------------------------------
-	fprintf('%-30s- %i\n','  ReML Session',i);
-	X     = xX.X(u{i}, v{i});
-	X0    = xX.X(u{i},v0{i});
-	[m n] = size(X);
+    % Get design X and confounds X0
+    %---------------------------------------------------------------
+    fprintf('%-30s- %i\n','  ReML Session',i);
+    X     = xX.X(u{i}, v{i});
+    X0    = xX.X(u{i},v0{i});
+    [m n] = size(X);
 
-	% add confound in 'filter'
-	%---------------------------------------------------------------
-	if isstruct(xX.K)
-		X0 = full([X0 xX.K(i).X0]);
-	end
+    % add confound in 'filter'
+    %---------------------------------------------------------------
+    if isstruct(xX.K)
+        X0 = full([X0 xX.K(i).X0]);
+    end
 
-	% orthogonalize X w.r.t. X0
-	%---------------------------------------------------------------
-	X     = X - X0*(pinv(X0)*X);
+    % orthogonalize X w.r.t. X0
+    %---------------------------------------------------------------
+    X     = X - X0*(pinv(X0)*X);
 
-	% covariance components induced by parameter variations {Q}
-	%---------------------------------------------------------------
-	for j = 1:n
-		Q{j} = X*sparse(j,j,1,n,n)*X';
-	end
+    % covariance components induced by parameter variations {Q}
+    %---------------------------------------------------------------
+    for j = 1:n
+        Q{j} = X*sparse(j,j,1,n,n)*X';
+    end
 
-	% covariance components induced by error non-sphericity {V}
-	%---------------------------------------------------------------
-	Q{n + 1} = SPM.xVi.V(u{i},u{i});
+    % covariance components induced by error non-sphericity {V}
+    %---------------------------------------------------------------
+    Q{n + 1} = SPM.xVi.V(u{i},u{i});
 
-	% ReML covariance component estimation
-	%---------------------------------------------------------------
-	[C h]   = spm_reml(SPM.xVi.CY,X0,Q);
+    % ReML covariance component estimation
+    %---------------------------------------------------------------
+    [C h]   = spm_reml(SPM.xVi.CY,X0,Q);
 
-	% check for negative variance components
-	%---------------------------------------------------------------
-	h       = abs(h);
+    % check for negative variance components
+    %---------------------------------------------------------------
+    h       = abs(h);
 
-	% 2-level model for this partition using prior variances sP(i)
-	% treat confounds as fixed (i.e. infinite prior variance)
-	%---------------------------------------------------------------
-	n0      = size(X0,2);
-	Cb      = blkdiag(diag(h(1:n)),speye(n0,n0)*1e8);
-	P{1}.X  = [X X0];
-	P{1}.C  = {SPM.xVi.V};
-	P{2}.X  = sparse(size(P{1}.X,2),1);
-	P{2}.C  = Cb;
+    % 2-level model for this partition using prior variances sP(i)
+    % treat confounds as fixed (i.e. infinite prior variance)
+    %---------------------------------------------------------------
+    n0      = size(X0,2);
+    Cb      = blkdiag(diag(h(1:n)),speye(n0,n0)*1e8);
+    P{1}.X  = [X X0];
+    P{1}.C  = {SPM.xVi.V};
+    P{2}.X  = sparse(size(P{1}.X,2),1);
+    P{2}.C  = Cb;
 
-	sP(i).P = P;
-	sP(i).u = u{:};
-	sP(i).v = [v{:} v0{:}];
+    sP(i).P = P;
+    sP(i).u = u{:};
+    sP(i).v = [v{:} v0{:}];
 end
 
 
@@ -238,48 +238,48 @@ spm('Pointer','Watch')
 global defaults
 MAXMEM = defaults.stats.maxmem;
 blksz  = ceil(MAXMEM/8/nScan);
-SHp    = 0;				% sum of hyperparameters
+SHp    = 0;             % sum of hyperparameters
 for  z = 1:zdim
 
     % current plane-specific parameters
     %-------------------------------------------------------------------
     U       = find(XYZ(3,:) == z);
     nbch    = ceil(length(U)/blksz);
-    CrBl    = zeros(nBeta,length(U));	%-conditional parameter estimates
-    CrHp    = zeros(nHp,  length(U));	%-ReML hyperparameter estimates
-    for bch = 1:nbch			%-loop over bunches of lines (planks)
+    CrBl    = zeros(nBeta,length(U));   %-conditional parameter estimates
+    CrHp    = zeros(nHp,  length(U));   %-ReML hyperparameter estimates
+    for bch = 1:nbch            %-loop over bunches of lines (planks)
 
-	%-construct list of voxels in this block
-	%---------------------------------------------------------------
-	I     = [1:blksz] + (bch - 1)*blksz;
-	I     = I(I <= length(U));
-	xyz   = XYZ(:,U(I));
-	nVox  = size(xyz,2);
+    %-construct list of voxels in this block
+    %---------------------------------------------------------------
+    I     = [1:blksz] + (bch - 1)*blksz;
+    I     = I(I <= length(U));
+    xyz   = XYZ(:,U(I));
+    nVox  = size(xyz,2);
 
-	%-Get response variable
-	%---------------------------------------------------------------
-	Y     = spm_get_data(SPM.xY.VY,xyz);
+    %-Get response variable
+    %---------------------------------------------------------------
+    Y     = spm_get_data(SPM.xY.VY,xyz);
 
-	%-Conditional estimates (per partition, per voxel)
-	%---------------------------------------------------------------
-	beta  = zeros(nBeta,nVox);
-	Hp    = zeros(nHp,  nVox);
-	for j = 1:s
-		P     = sP(j).P;
-		u     = sP(j).u;
-		v     = sP(j).v;
-		for i = 1:nVox
-			[C P]      = spm_PEB(Y(u,i),P);
-			beta(v,i)  = C{2}.E(1:length(v));
-			Hp(j,i)    = C{1}.h;
-		end
-	end
+    %-Conditional estimates (per partition, per voxel)
+    %---------------------------------------------------------------
+    beta  = zeros(nBeta,nVox);
+    Hp    = zeros(nHp,  nVox);
+    for j = 1:s
+        P     = sP(j).P;
+        u     = sP(j).u;
+        v     = sP(j).v;
+        for i = 1:nVox
+            [C P]      = spm_PEB(Y(u,i),P);
+            beta(v,i)  = C{2}.E(1:length(v));
+            Hp(j,i)    = C{1}.h;
+        end
+    end
 
-	%-Save for current plane in memory as we go along
-	%---------------------------------------------------------------
-	CrBl(:,I) = beta;
-	CrHp(:,I) = Hp;
-	SHp       = SHp + sum(Hp,2);
+    %-Save for current plane in memory as we go along
+    %---------------------------------------------------------------
+    CrBl(:,I) = beta;
+    CrHp(:,I) = Hp;
+    SHp       = SHp + sum(Hp,2);
 
     end % (bch)
 
@@ -290,22 +290,22 @@ for  z = 1:zdim
     %-Write conditional beta images
     %-------------------------------------------------------------------
     for i = 1:nBeta
-	tmp       = sparse(XYZ(1,U),XYZ(2,U),CrBl(i,:),xdim,ydim);
+    tmp       = sparse(XYZ(1,U),XYZ(2,U),CrBl(i,:),xdim,ydim);
 %     The following line (and the same code on line 306 below) results in
 %     images with all NaN's (in Matlab R14  or greater). It has been
 %     commented out by DRG, and replaced by the line: tmp(~tmp) = NaN;
 %     tmp       = tmp + NaN*(~tmp);
     tmp(~tmp) = NaN;
-	Vbeta(i)  = spm_write_plane(Vbeta(i),tmp,z);
+    Vbeta(i)  = spm_write_plane(Vbeta(i),tmp,z);
     end
 
     %-Write hyperparameter images
     %-------------------------------------------------------------------
     for i = 1:nHp
-	tmp       = sparse(XYZ(1,U),XYZ(2,U),CrHp(i,:),xdim,ydim);
+    tmp       = sparse(XYZ(1,U),XYZ(2,U),CrHp(i,:),xdim,ydim);
 %         tmp       = tmp + NaN*(~tmp);
         tmp(~tmp) = NaN;
-	VHp(i)    = spm_write_plane(VHp(i),tmp,z);
+    VHp(i)    = spm_write_plane(VHp(i),tmp,z);
     end
 
 
@@ -335,17 +335,17 @@ l     = SHp/SPM.xVol.S;
 n     = size(xX.X,2);
 PPM.l = l;
 for i = 1:s
-	PPM.dC{i}  = sparse(n,n);
-	PPM.ddC{i} = sparse(n,n);
+    PPM.dC{i}  = sparse(n,n);
+    PPM.ddC{i} = sparse(n,n);
 end
 for i = 1:s
 
-	P     = sP(i).P;
-	u     = sP(i).u;
-	v     = sP(i).v;
+    P     = sP(i).P;
+    u     = sP(i).u;
+    v     = sP(i).v;
 
-	% derivatives of conditional covariance w.r.t. hyperparameters
-	%---------------------------------------------------------------
+    % derivatives of conditional covariance w.r.t. hyperparameters
+    %---------------------------------------------------------------
     if spm_matlab_version_chk('6.5.1') < 0
         % MATLAB 6.5.0 R13 has a bug in dealing with sparse matrices so revert to full matrices
         fprintf('%-40s','MATLAB 6.5.0 R13: must use full matrices - this could cause memory problems...');
@@ -363,8 +363,8 @@ for i = 1:s
         ddC   = 2*(dC/(l(i)^2) - Cby/(l(i)^3))*d;
     end
 
-	% place in output structure
-	%---------------------------------------------------------------
+    % place in output structure
+    %---------------------------------------------------------------
     if spm_matlab_version_chk('6.5.1') < 0,
         % MATLAB 6.5.0 R13: revert to full matrices
         j               = 1:length(v);
@@ -389,14 +389,14 @@ fprintf('%-40s: %30s','Saving results','...writing')                 %-#
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
-SPM.VCbeta = Vbeta;			% Filenames - parameters
-SPM.VHp    = VHp;			% Filenames - hyperparameters
-SPM.PPM    = PPM;			% PPM structure
+SPM.VCbeta = Vbeta;         % Filenames - parameters
+SPM.VHp    = VHp;           % Filenames - hyperparameters
+SPM.PPM    = PPM;           % PPM structure
 
 if spm_matlab_version_chk('7') >=0
-	save('SPM', 'SPM', '-V6');
+    save('SPM', 'SPM', '-V6');
 else
-	save('SPM', 'SPM');
+    save('SPM', 'SPM');
 end;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#

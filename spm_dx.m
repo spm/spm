@@ -29,7 +29,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dx.m 253 2005-10-13 15:31:34Z karl $
+% $Id: spm_dx.m 1131 2008-02-06 11:17:09Z spm $
 
 % defaults
 %--------------------------------------------------------------------------

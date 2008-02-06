@@ -4,28 +4,28 @@ function D = spm_eeg_blinks(S);
 % 
 % S       - struct (optional)
 % (optional) fields of S:
-% D	  - filename of EEG-data file or EEG data struct
+% D   - filename of EEG-data file or EEG data struct
 % blinks  - struct with the following fields:
-%		veog_peak - minimum amplitude for a blink (eg 200uV)
-%		veog_width - maximum width for a blink (eg 200ms)
-% 		blink_sample - number of sample points for blink (eg 50)
-%		filter_para - if want to smooth before detecting blinks
-%		blink_wgts - if have already calculated weights
-%		blink_method - blink shape or blink area
+%       veog_peak - minimum amplitude for a blink (eg 200uV)
+%       veog_width - maximum width for a blink (eg 200ms)
+%       blink_sample - number of sample points for blink (eg 50)
+%       filter_para - if want to smooth before detecting blinks
+%       blink_wgts - if have already calculated weights
+%       blink_method - blink shape or blink area
 %
-% D	   - EEG data struct (also written to files)
+% D    - EEG data struct (also written to files)
 %_______________________________________________________________________
 % 
-% spm_eeg_blinks	simple method for blink correction
+% spm_eeg_blinks    simple method for blink correction
 %
-% Three basic stages:	1. Detect blinks (using peak,width,filter)
-%			2. Calculate correction weights
-%			3. Subtract weighted VEOG from EEG channels
+% Three basic stages:   1. Detect blinks (using peak,width,filter)
+%           2. Calculate correction weights
+%           3. Subtract weighted VEOG from EEG channels
 %______________________________________________________________________
-%
-% Created Rik Henson, 2003
-% Updated for SPM5 by Doris Eckstein, 2006
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% Rik Henson, Doris Eckstein
+% $Id: spm_eeg_blinks.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -58,9 +58,9 @@ if isfield(D.channels, 'blink_wgts')
             D.channels.name{in_no_veog(c)},D.channels.blink_wgts(c)))
     end
     try 
-	Detect_Blinks = S.blinks.Detect_Blinks;
+    Detect_Blinks = S.blinks.Detect_Blinks;
     catch
-    	Detect_Blinks = 0;
+        Detect_Blinks = 0;
     end
 else
     Detect_Blinks = 1;
@@ -120,8 +120,8 @@ catch
     Correct_Blinks = 0;
 end
 
-try 				% EXCLUDE an epoch (eg for continuous data)
-    Epoch = S.blinks.epoch;	% in ms, Eg [-100 600]
+try                 % EXCLUDE an epoch (eg for continuous data)
+    Epoch = S.blinks.epoch; % in ms, Eg [-100 600]
     Epoch = round(Epoch*D.Radc/1000);
 catch
     Epoch = [];
@@ -133,15 +133,15 @@ end
 %
 %Pos = 1;
 %if ~isfield(S.blinks, 'deblock')
-%	S.blinks.deblock = ...
-%	 	spm_input_ui('Deblock min sampling points', Pos, 'i', '', 1);
-%	Pos = Pos + 1;
+%   S.blinks.deblock = ...
+%       spm_input_ui('Deblock min sampling points', Pos, 'i', '', 1);
+%   Pos = Pos + 1;
 %end
 %
 %if ~isfield(S.blinks, 'saturation')
-%	S.blinks.saturation = ...
-%	 	spm_input_ui('Saturation in bits (eg 12 bit)', Pos, 'i', '', 1);
-%	Pos = Pos+1;
+%   S.blinks.saturation = ...
+%       spm_input_ui('Saturation in bits (eg 12 bit)', Pos, 'i', '', 1);
+%   Pos = Pos+1;
 %end
 %
 % In digitisation points plus safety buffer
@@ -167,11 +167,11 @@ Iblink=[];
 
 Dveog = squeeze(D.data(D.channels.veog,:,:));
 
-if(size(D.data,3)==1) 		% only one epoch
+if(size(D.data,3)==1)       % only one epoch
     Dveog = Dveog(:);
 end
 
-if D.blinks.filter > 0			% '2-step' digital filter kernel
+if D.blinks.filter > 0          % '2-step' digital filter kernel
     LF = fix(D.blinks.filter);
     F = ones(1, 2*D.blinks.filter+1)./(2*D.blinks.filter+1);
     F = conv(F,F);
@@ -182,7 +182,7 @@ if D.blinks.filter > 0			% '2-step' digital filter kernel
     end
 end
 
-blink_max_width = D.blinks.veog_width * D.Radc/1000;	% in sample points
+blink_max_width = D.blinks.veog_width * D.Radc/1000;    % in sample points
 
 if(isfield(D.events,'reject'))
     valid_events = find(~D.events.reject);
@@ -198,29 +198,29 @@ index=[]; rindex=[]; rmblink=[];
 for n = 1:length(valid_events)
     i = valid_events(n);
 
-    Iblink = find(Dveog(:,i) > D.blinks.veog_peak/2);	% possible blinks
+    Iblink = find(Dveog(:,i) > D.blinks.veog_peak/2);   % possible blinks
 
     if(~isempty(Iblink))
 
         dI = find(diff(Iblink)>1);
-        Sblink = [Iblink(1); Iblink(dI+1)];			% possible onsets
-        Eblink = [Iblink(dI); Iblink(end)];			% possible durations
+        Sblink = [Iblink(1); Iblink(dI+1)];         % possible onsets
+        Eblink = [Iblink(dI); Iblink(end)];         % possible durations
 
-	if(~isempty(Epoch))
-          for b = 1:length(Sblink)				% cannot vectorise?
-	    rels = Sblink(b)-D.events.time;
-	    rele = Eblink(b)-D.events.time;
-	    if(max(rels(find(rels<0))) > Epoch(1) | min(rels(find(rels>0))) < Epoch(2) | max(rele(find(rele<0))) > Epoch(1))
-		rmblink = [rmblink b];
+    if(~isempty(Epoch))
+          for b = 1:length(Sblink)              % cannot vectorise?
+        rels = Sblink(b)-D.events.time;
+        rele = Eblink(b)-D.events.time;
+        if(max(rels(find(rels<0))) > Epoch(1) | min(rels(find(rels>0))) < Epoch(2) | max(rele(find(rele<0))) > Epoch(1))
+        rmblink = [rmblink b];
             end
           end
-  	end
-	Sblink(rmblink)=[];
-	Eblink(rmblink)=[];
+    end
+    Sblink(rmblink)=[];
+    Eblink(rmblink)=[];
 
-        Dblink = Eblink - Sblink;				% possible durations
+        Dblink = Eblink - Sblink;               % possible durations
 
-        for b = 1:length(Sblink)				% cannot vectorise?
+        for b = 1:length(Sblink)                % cannot vectorise?
 
             blink = Dveog((Sblink(b) : (Sblink(b)+Dblink(b)-1) ),i)';
 
@@ -228,7 +228,7 @@ for n = 1:length(valid_events)
 
             if (Mblink > D.blinks.veog_peak)
 
-                if (length(find(blink > Mblink/2)) < blink_max_width)	% max FWHM
+                if (length(find(blink > Mblink/2)) < blink_max_width)   % max FWHM
 
                     bsample = [(Pblink(1)-D.blinks.blink_sample) : ...
                                (Pblink(1)+D.blinks.blink_sample)];
@@ -237,22 +237,22 @@ for n = 1:length(valid_events)
 
                         tsample = bsample + Sblink(b);
 
-                        if(D.Nevents==1)	% non-epoched
+                        if(D.Nevents==1)    % non-epoched
                             pst = find(D.events.time-tsample(1)>0);
                             if(~isempty(pst))
                                 pst_samples = [pst_samples D.events.time(pst(1))-tsample(1)];
-			        pst_times = [pst_times 1000*pst_samples(end)/D.Radc];
+                    pst_times = [pst_times 1000*pst_samples(end)/D.Radc];
                             end
                         else
                             pst_samples = [pst_samples tsample(1)];
-			    pst_times = [pst_times (1000*tsample(1)-D.events.start-1)/D.Radc];
+                pst_times = [pst_times (1000*tsample(1)-D.events.start-1)/D.Radc];
                         end
 
                         blink_waves = [blink_waves; blink(bsample)];
                         blink_samples = [blink_samples; tsample];
                         index = [index i];
                     end
-                else			% reject: VEOG exceeds peak, but too long
+                else            % reject: VEOG exceeds peak, but too long
                     rindex = [rindex i];
                 end
             end
@@ -288,14 +288,14 @@ D.events.blinks = index;
 
     switch D.blinks.blink_method
 
-        case 1				% area (equivalent to mean)
-	    X = VEOGwave - VEOGwave(1);
-	    y = y - kron(ones(size(y,1),1),y(1,:));
+        case 1              % area (equivalent to mean)
+        X = VEOGwave - VEOGwave(1);
+        y = y - kron(ones(size(y,1),1),y(1,:));
 
 %            b = mean(y)/mean(VEOGwave);
-%            cc = b;				
+%            cc = b;                
 
-        case 2				% shape (linear regression)
+        case 2              % shape (linear regression)
             X = detrend(VEOGwave,0);
             y = detrend(y,0);
     end
@@ -352,7 +352,7 @@ if(Correct_Blinks)
     d = zeros(D.Nchannels, D.Nsamples);
     D.scale = zeros(D.Nchannels, 1, D.Nevents);
 
-    if(size(D.data,3)==1) 					% only one epoch
+    if(size(D.data,3)==1)                   % only one epoch
 
         d = squeeze(D.data(:, :,1));
 

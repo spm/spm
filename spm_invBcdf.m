@@ -50,7 +50,7 @@ function x = spm_invBcdf(F,v,w,tol)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_invBcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_invBcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -66,13 +66,13 @@ if nargin<3, error('Insufficient arguments'), end
 
 ad = [ndims(F);ndims(v);ndims(w)];
 rd = max(ad);
-as = [	[size(F),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))];...
-	[size(w),ones(1,rd-ad(3))]     ];
+as = [  [size(F),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))];...
+    [size(w),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation - Undefined and special cases
 %-----------------------------------------------------------------------
@@ -83,7 +83,7 @@ x = zeros(rs);
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  v>0  &  w>0 );
 if any(~md(:)), x(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Special cases: x=0 when F=0, x=1 when F=1
 x(md & F==1) = 1;
@@ -106,13 +106,13 @@ xQ = a+1/2;
 QQ = 1:length(Q);
 
 while length(QQ) &  i<maxIt
-	fxQQ        = betainc(xQ(QQ),vQ(QQ),wQ(QQ))-FQ(QQ);
-	mQQ         = fa(QQ).*fxQQ > 0;
-	a(QQ(mQQ))  = xQ(QQ(mQQ));   fa(QQ(mQQ))  = fxQQ(mQQ);
-	b(QQ(~mQQ)) = xQ(QQ(~mQQ));  fb(QQ(~mQQ)) = fxQQ(~mQQ);
-	xQ(QQ)      = a(QQ) + (b(QQ)-a(QQ))/2;
-	QQ          = QQ( (b(QQ)-a(QQ))>tol );
-	i           = i+1;
+    fxQQ        = betainc(xQ(QQ),vQ(QQ),wQ(QQ))-FQ(QQ);
+    mQQ         = fa(QQ).*fxQQ > 0;
+    a(QQ(mQQ))  = xQ(QQ(mQQ));   fa(QQ(mQQ))  = fxQQ(mQQ);
+    b(QQ(~mQQ)) = xQ(QQ(~mQQ));  fb(QQ(~mQQ)) = fxQQ(~mQQ);
+    xQ(QQ)      = a(QQ) + (b(QQ)-a(QQ))/2;
+    QQ          = QQ( (b(QQ)-a(QQ))>tol );
+    i           = i+1;
 end
 
 if i==maxIt, warning('convergence criteria not reached - maxIt reached'), end

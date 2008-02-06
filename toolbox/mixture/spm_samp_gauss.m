@@ -10,7 +10,7 @@ function [x] = spm_samp_gauss (m, C, N)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_samp_gauss.m 1131 2008-02-06 11:17:09Z spm $
 
 d = size(C, 1);
 m = reshape(m, 1, d);   % Ensure that m is a row vector

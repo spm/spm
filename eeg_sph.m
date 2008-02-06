@@ -35,7 +35,7 @@ function G = eeg_sph(L,Channel,Param,Order,Verbose,varargin);
 % Subfunctions in this file, in order of occurrence in file:
 %   G = gainp_sph6x(Rq,Re,R,sigma,nmax,method,mu_berg_in,lam_berg_in)
 %
-% At Check-in: $Author: Mosher $  $Revision: 24 $  $Date: 6/27/05 8:59a $
+% At Check-in: $Author: Mosher $  $Revision: 1131 $  $Date: 6/27/05 8:59a $
 %
 % This software is part of BrainStorm Toolbox Version 27-June-2005  
 % 

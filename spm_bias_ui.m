@@ -65,14 +65,14 @@ function spm_bias_ui(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_bias_ui.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_bias_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 
 global defaults
 
 if nargin==1 && strcmpi(P,'defaults');
-	defaults.bias = edit_defaults(defaults.bias);
-	return;
+    defaults.bias = edit_defaults(defaults.bias);
+    return;
 end;
 bias_ui(defaults.bias);
 return;
@@ -81,20 +81,20 @@ return;
 %=======================================================================
 function bias_ui(flags)
 % User interface for nonuniformity correction
-spm('FnBanner',mfilename,'$Rev: 184 $');
+spm('FnBanner',mfilename,'$Rev: 1131 $');
 [Finter,unused,CmdLine] = spm('FnUIsetup','Flatten');
 spm_help('!ContextHelp',mfilename);
 PP = spm_select(Inf, 'image', 'Scans to correct');
 spm('Pointer','Watch');
 for i=1:size(PP,1),
-	spm('FigName',['Flatten: working on scan ' num2str(i)],Finter,CmdLine);
-	drawnow;
-	P              = deblank(PP(i,:));
-	T              = spm_bias_estimate(P,flags);
-	[pth,nm,xt,vr] = fileparts(P);
-	S              = fullfile(pth,['bias_' nm '.mat']);
-	%S             = ['bias_' nm '.mat'];
-	spm_bias_apply(P,S);
+    spm('FigName',['Flatten: working on scan ' num2str(i)],Finter,CmdLine);
+    drawnow;
+    P              = deblank(PP(i,:));
+    T              = spm_bias_estimate(P,flags);
+    [pth,nm,xt,vr] = fileparts(P);
+    S              = fullfile(pth,['bias_' nm '.mat']);
+    %S             = ['bias_' nm '.mat'];
+    spm_bias_apply(P,S);
 end;
 if 0,
 fg = spm_figure('FindWin','Interactive');
@@ -120,19 +120,19 @@ tmp = find(rg == flags.reg);
 if isempty(tmp), tmp = 4; end;
 flags.reg = spm_input('Regularisation?','+1','m',...
         ['no regularisation (0)|extremely light regularisation (0.00001)|'...
-	 'very light regularisation (0.0001)|light regularisation (0.001)|',...
-	 'medium regularisation (0.01)|heavy regularisation (0.1)|'...
-	 'very heavy regularisation (1)|extremely heavy regularisation (10)'],...
+     'very light regularisation (0.0001)|light regularisation (0.001)|',...
+     'medium regularisation (0.01)|heavy regularisation (0.1)|'...
+     'very heavy regularisation (1)|extremely heavy regularisation (10)'],...
          rg, tmp);
 
 co  = [20 25 30 35 40 45 50 60 70 80 90 100];
 tmp = find(co == flags.cutoff);
 if isempty(tmp), tmp = 4; end;
 flags.cutoff =  spm_input('Cutoff?','+1','m',...
-	[' 20mm cutoff| 25mm cutoff| 30mm cutoff| 35mm cutoff| 40mm cutoff|'...
-	 ' 45mm cutoff| 50mm cutoff| 60mm cutoff| 70mm cutoff| 80mm cutoff|'...
-	 ' 90mm cutoff|100mm cutoff'],...
-	co, tmp);
+    [' 20mm cutoff| 25mm cutoff| 30mm cutoff| 35mm cutoff| 40mm cutoff|'...
+     ' 45mm cutoff| 50mm cutoff| 60mm cutoff| 70mm cutoff| 80mm cutoff|'...
+     ' 90mm cutoff|100mm cutoff'],...
+    co, tmp);
 
 return;
 %=======================================================================

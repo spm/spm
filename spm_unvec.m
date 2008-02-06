@@ -13,7 +13,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_vec.m 184 2005-05-31 13:23:32Z karl $
+% $Id: spm_unvec.m 1131 2008-02-06 11:17:09Z spm $
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------

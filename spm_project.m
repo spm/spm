@@ -1,8 +1,8 @@
 function varargout = spm_project(varargin)
 % forms maximium intensity projections - a compiled routine
 % FORMAT spm_project(X,L,dims)
-% X	-	a matrix of voxel values
-% L	- 	a matrix of locations in Talairach et Tournoux (1988) space
+% X -   a matrix of voxel values
+% L -   a matrix of locations in Talairach et Tournoux (1988) space
 % dims  -       assorted dimensions.
 %               dims(1:3) - the sizes of the projected rectangles.
 %               dims(4:5) - the dimensions of the mip image.
@@ -18,8 +18,8 @@ function varargout = spm_project(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-%
-% $Id: spm_project.m 159 2005-05-16 14:00:56Z guillaume $
+% John Ashburner
+% $Id: spm_project.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-This is merely the help file for the compiled routine

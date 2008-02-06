@@ -15,7 +15,7 @@ function [SPM] = spm_eeg_design(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_design.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_design.m 1131 2008-02-06 11:17:09Z spm $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -130,7 +130,7 @@ SPM.xBF.UNITS = 'millisecs';
 % How many design components
 %-----------------------------------------------------------------------
 try
-	SPM.eeg.Ncomp_d;
+    SPM.eeg.Ncomp_d;
 catch
     if Ilevel ~= 1
         SPM.eeg.Ncomp_d = spm_input(['How many design partitions?'], '+1');

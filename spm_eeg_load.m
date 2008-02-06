@@ -2,8 +2,8 @@ function D = spm_eeg_load(P)
 % read an EEG file in SPM format. 
 % FORMAT D = spm_eeg_ldata(P)
 %
-% P 		- filename of EEG-data file
-% D			- MEEG object 
+% P         - filename of EEG-data file
+% D         - MEEG object 
 %_______________________________________________________________________
 % 
 % spm_eeg_load loads an MEEG file that is in SPM8 format. Importantly, the
@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 1127 2008-01-30 14:11:22Z vladimir $
+% $Id: spm_eeg_load.m 1131 2008-02-06 11:17:09Z spm $
 
 
 try
@@ -27,9 +27,9 @@ if strcmp('.', Ppath) | strcmp('..', Ppath)
 end
 
 try
-	load(P);
+    load(P);
 catch    
-	error(sprintf('Trouble reading file %s', P));
+    error(sprintf('Trouble reading file %s', P));
 end
 
 spm('Pointer', 'Watch');

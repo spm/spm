@@ -120,19 +120,19 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_normalise.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_normalise.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin<2, error('Incorrect usage.'); end;
 if ischar(VF), VF = spm_vol(VF); end;
 if ischar(VG), VG = spm_vol(VG); end;
 if nargin<3,
-	if nargout==0,
-		[pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
-		matname        = fullfile(pth,[nm '_sn.mat']);
+    if nargout==0,
+        [pth,nm,xt,vr] = fileparts(deblank(VF(1).fname));
+        matname        = fullfile(pth,[nm '_sn.mat']);
     else
-		matname = '';
-	end;
+        matname = '';
+    end;
 end;
 if nargin<4, VWG = ''; end;
 if nargin<5, VWF = ''; end;
@@ -141,16 +141,16 @@ if ischar(VWF), VWF=spm_vol(VWF); end;
 
 
 def_flags = struct('smosrc',8,'smoref',0,'regtype','mni',...
-	'cutoff',30,'nits',16,'reg',0.1,'graphics',1);
+    'cutoff',30,'nits',16,'reg',0.1,'graphics',1);
 if nargin < 6,
-	flags = def_flags;
+    flags = def_flags;
 else
-	fnms  = fieldnames(def_flags);
-	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}),
+    fnms  = fieldnames(def_flags);
+    for i=1:length(fnms),
+        if ~isfield(flags,fnms{i}),
             flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
         end;
-	end;
+    end;
 end;
 
 fprintf('Smoothing by %g & %gmm..\n', flags.smoref, flags.smosrc);
@@ -167,7 +167,7 @@ end;
 %-----------------------------------------------------------------------
 fprintf('Coarse Affine Registration..\n');
 aflags    = struct('sep',max(flags.smoref,flags.smosrc), 'regtype',flags.regtype,...
-	'WG',[],'WF',[],'globnorm',0);
+    'WG',[],'WF',[],'globnorm',0);
 aflags.sep = max(aflags.sep,max(sqrt(sum(VG(1).mat(1:3,1:3).^2))));
 aflags.sep = max(aflags.sep,max(sqrt(sum(VF(1).mat(1:3,1:3).^2))));
 
@@ -187,14 +187,14 @@ spm_chi2_plot('Clear');
 %-----------------------------------------------------------------------
 fov = VF1(1).dim(1:3).*sqrt(sum(VF1(1).mat(1:3,1:3).^2));
 if any(fov<15*flags.smosrc/2 & VF1(1).dim(1:3)<15),
-	fprintf('Field of view too small for nonlinear registration\n');
-	Tr = [];
+    fprintf('Field of view too small for nonlinear registration\n');
+    Tr = [];
 elseif isfinite(flags.cutoff) && flags.nits && ~isinf(flags.reg),
         fprintf('3D CT Norm...\n');
-	Tr = snbasis(VG1,VF1,VWG,VWF,Affine,...
-		max(flags.smoref,flags.smosrc),flags.cutoff,flags.nits,flags.reg);
+    Tr = snbasis(VG1,VF1,VWG,VWF,Affine,...
+        max(flags.smoref,flags.smosrc),flags.cutoff,flags.nits,flags.reg);
 else
-	Tr = [];
+    Tr = [];
 end;
 clear VF1 VG1
 
@@ -210,12 +210,12 @@ if flags.graphics, spm_normalise_disp(params,VF); end;
 if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
 if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
 if ~isempty(matname),
-	fprintf('Saving Parameters..\n');
+    fprintf('Saving Parameters..\n');
     if spm_matlab_version_chk('7') >= 0,
-		save(matname,'-V6','Affine','Tr','VF','VG','flags');
-	else
-		save(matname,'Affine','Tr','VF','VG','flags');
-	end;
+        save(matname,'-V6','Affine','Tr','VF','VG','flags');
+    else
+        save(matname,'Affine','Tr','VF','VG','flags');
+    end;
 end;
 return;
 %_______________________________________________________________________
@@ -269,12 +269,12 @@ if 1,
         % Estimate a suitable sparse diagonal inverse covariance matrix for
         % the parameters (IC0).
         %-----------------------------------------------------------------------
-	IC0 = (1*kron(kz.^2,kron(ky.^0,kx.^0)) +...
-	       1*kron(kz.^0,kron(ky.^2,kx.^0)) +...
-	       1*kron(kz.^0,kron(ky.^0,kx.^2)) +...
-	       2*kron(kz.^1,kron(ky.^1,kx.^0)) +...
-	       2*kron(kz.^1,kron(ky.^0,kx.^1)) +...
-	       2*kron(kz.^0,kron(ky.^1,kx.^1)) );
+    IC0 = (1*kron(kz.^2,kron(ky.^0,kx.^0)) +...
+           1*kron(kz.^0,kron(ky.^2,kx.^0)) +...
+           1*kron(kz.^0,kron(ky.^0,kx.^2)) +...
+           2*kron(kz.^1,kron(ky.^1,kx.^0)) +...
+           2*kron(kz.^1,kron(ky.^0,kx.^1)) +...
+           2*kron(kz.^0,kron(ky.^1,kx.^1)) );
         IC0 = reg*IC0*stabilise^6;
         IC0 = [IC0*vx2(1)^4 ; IC0*vx2(2)^4 ; IC0*vx2(3)^4 ; zeros(prod(size(VG))*4,1)];
         IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
@@ -296,13 +296,13 @@ T(s1+(1:4:numel(VG)*4)) = 1;
 
 pVar = Inf;
 for iter=1:nits,
-	fprintf(' iteration %2d: ', iter);
-	[Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VWG, VWF);
-	if Var>pVar, scal = pVar/Var ; Var = pVar; else scal = 1; end;
-	pVar = Var;
-	T = (Alpha + IC0*scal)\(Alpha*T + Beta);
-	fwhm(2) = min([fw fwhm(2)]);
-	fprintf(' FWHM = %6.4g Var = %g\n', fw,Var);
+    fprintf(' iteration %2d: ', iter);
+    [Alpha,Beta,Var,fw] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,dbasX,dbasY,dbasZ,T,fwhm,VWG, VWF);
+    if Var>pVar, scal = pVar/Var ; Var = pVar; else scal = 1; end;
+    pVar = Var;
+    T = (Alpha + IC0*scal)\(Alpha*T + Beta);
+    fwhm(2) = min([fw fwhm(2)]);
+    fprintf(' FWHM = %6.4g Var = %g\n', fw,Var);
 end;
 
 % Values of the 3D-DCT - for some bizarre reason, this needs to be done

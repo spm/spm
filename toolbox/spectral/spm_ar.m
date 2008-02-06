@@ -35,7 +35,7 @@ function [ar] = spm_ar (Z,p,verbose)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_ar.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 2, 
    disp('spm_ar.m needs at least two arguments'); 

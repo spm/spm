@@ -3,7 +3,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % FORMAT [Y y beta Bcov] = spm_graph(xSPM,SPM,hReg)
 %
 % xSPM   - structure containing SPM, distributional & filtering details
-%	       about the excursion set
+%          about the excursion set
 % SPM    - structure containing generic details about the analysis
 % hReg   - handle of MIP register
 %
@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_graph.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_graph.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -94,14 +94,14 @@ end
 
 [xyz,i] = spm_XYZreg('NearestXYZ',spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
 spm_XYZreg('SetCoords',xyz,hReg);
-XYZ     = xSPM.XYZ(:,i);		% coordinates
+XYZ     = xSPM.XYZ(:,i);        % coordinates
 
 %-Plot
 %==========================================================================
 
 % find out what to plot
 %--------------------------------------------------------------------------
-Cplot = {	'Contrast estimates and 90% C.I.',...
+Cplot = {   'Contrast estimates and 90% C.I.',...
             'Fitted responses',...
             'Event-related responses',...
             'Parametric responses',...
@@ -279,7 +279,7 @@ else
         end
     end
 end
-CI    = 1.6449;					% = spm_invNcdf(1 - 0.05);
+CI    = 1.6449;                 % = spm_invNcdf(1 - 0.05);
 
 spm('pointer','arrow');
 
@@ -359,7 +359,7 @@ switch Cplot
 
         % get ordinates
         %------------------------------------------------------------------
-        Xplot = {	'an explanatory variable',...
+        Xplot = {   'an explanatory variable',...
             'scan or time',...
             'a user specified ordinate'};
         Cx    = spm_input('plot against','!+1','m',Xplot);
@@ -426,7 +426,7 @@ switch Cplot
 
         % get plot type
         %--------------------------------------------------------------
-        Rplot   = {	'fitted response and PSTH',...
+        Rplot   = { 'fitted response and PSTH',...
             'fitted response and 90% C.I.',...
             'fitted response and adjusted data'};
 

@@ -54,7 +54,7 @@ function [z,t1,z1] = spm_t2z(t,df,Tol)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_t2z.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_t2z.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Initialisation
@@ -92,19 +92,19 @@ mQb   = abs(t(Q)) > t1;
 %-t->z using Tcdf & invNcdf for abs(t)<=t1 
 %===========================================================================
 if any(~mQb)
-	QQnb = find(~mQb);
+    QQnb = find(~mQb);
 
-	%-Compute (smaller) tail probability
-	%-Chunk up to avoid convergence problems for long vectors in betacore
-	p   = zeros(size(QQnb));
-	tmp = [1,[501:500:length(QQnb)],length(QQnb)+1];
-	for i = 1:length(tmp)-1
-	    p(tmp(i):tmp(i+1)-1) = ...
-	       betainc(df./(df + t(Q(QQnb(tmp(i):tmp(i+1)-1))).^2),df/2,.5)/2;
-	end
-	
-	%-Compute standard normal deviate lower tail prob equal to p
-	z(Q(QQnb)) = sqrt(2)*erfinv(2*p - 1);
+    %-Compute (smaller) tail probability
+    %-Chunk up to avoid convergence problems for long vectors in betacore
+    p   = zeros(size(QQnb));
+    tmp = [1,[501:500:length(QQnb)],length(QQnb)+1];
+    for i = 1:length(tmp)-1
+        p(tmp(i):tmp(i+1)-1) = ...
+           betainc(df./(df + t(Q(QQnb(tmp(i):tmp(i+1)-1))).^2),df/2,.5)/2;
+    end
+    
+    %-Compute standard normal deviate lower tail prob equal to p
+    z(Q(QQnb)) = sqrt(2)*erfinv(2*p - 1);
 end
 
 
@@ -114,31 +114,31 @@ end
 % the (computable) t2z relationship.
 %===========================================================================
 if any(mQb)
-	z1          =-sqrt(2)*erfinv(2*Tol-1);
-	t2          =t1-[1:5]/10;
-	z2          =spm_t2z(t2,df);
-	%-least squares line through ([f1,t2],[z1,z2]) : z = m*f + c
-	mc          = [[t1,t2]',ones(length([t1,t2]),1)] \ [z1,z2]';
+    z1          =-sqrt(2)*erfinv(2*Tol-1);
+    t2          =t1-[1:5]/10;
+    z2          =spm_t2z(t2,df);
+    %-least squares line through ([f1,t2],[z1,z2]) : z = m*f + c
+    mc          = [[t1,t2]',ones(length([t1,t2]),1)] \ [z1,z2]';
 
-	%-------------------------------------------------------------------
-	%-Logarithmic extrapolation
-	%-------------------------------------------------------------------
-	l0=1/mc(1);
-	%-Perform logarithmic extrapolation, negate z for positive t-values
-	QQ    = Q(mQb); % positions of t-values left to process
-	z(QQ) = - ( log( (2*(t(QQ)>0)-1).*t(QQ) -t1 + l0 ) + (z1-log(l0)) );
-	%-------------------------------------------------------------------
+    %-------------------------------------------------------------------
+    %-Logarithmic extrapolation
+    %-------------------------------------------------------------------
+    l0=1/mc(1);
+    %-Perform logarithmic extrapolation, negate z for positive t-values
+    QQ    = Q(mQb); % positions of t-values left to process
+    z(QQ) = - ( log( (2*(t(QQ)>0)-1).*t(QQ) -t1 + l0 ) + (z1-log(l0)) );
+    %-------------------------------------------------------------------
 
-%	%-------------------------------------------------------------------
-%	%-Linear extrapolation
-%	%-------------------------------------------------------------------
-%	%-adjust c for line through (t1,z1)
-%	mc(2)       = z1-mc(1)*t1;
+%   %-------------------------------------------------------------------
+%   %-Linear extrapolation
+%   %-------------------------------------------------------------------
+%   %-adjust c for line through (t1,z1)
+%   mc(2)       = z1-mc(1)*t1;
 %
-%	%-Perform extrapolation, negate positive t-values
-%	QQ    = Q(mQb); % positions of t-values left to process
-%	z(QQ) = - ( (2*(t(QQ)>0)-1).*t(QQ)*mc(1) + mc(2) );
-%	%-------------------------------------------------------------------
+%   %-Perform extrapolation, negate positive t-values
+%   QQ    = Q(mQb); % positions of t-values left to process
+%   z(QQ) = - ( (2*(t(QQ)>0)-1).*t(QQ)*mc(1) + mc(2) );
+%   %-------------------------------------------------------------------
 
 end
 

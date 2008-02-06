@@ -120,7 +120,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_uw_apply.m 1131 2008-02-06 11:17:09Z spm $
 
 tiny = 5e-2;
 
@@ -337,18 +337,18 @@ for s=1:length(ds)
          PO.fname   = prepend(PO.fname,flags.prefix);
          PO.mat     = ds(1).P(1).mat;
          PO.descrip = 'spm - undeformed';
-	 ivol       = ima; 
+     ivol       = ima; 
          if flags.mask
-	    ivol(msk) = NaN;
+        ivol(msk) = NaN;
          end
          ivol = reshape(ivol,PO.dim(1:3));
          PO   = spm_create_vol(PO);
          for ii=1:PO.dim(3),
              PO = spm_write_plane(PO,ivol(:,:,ii),ii);
          end;
-	 if nargout > 0
-	    oP{s}(i) = PO;
-	 end
+     if nargout > 0
+        oP{s}(i) = PO;
+     end
       end
       %
       % Build up mean image if so required.

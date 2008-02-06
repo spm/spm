@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_peb_ppi.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % set up the graphical interface
@@ -99,9 +99,9 @@ NT     = RT/dt;
 % Ask whether to perform physiophysiologic or psychophysiologic interactions
 %--------------------------------------------------------------------------
 set(Finter,'name','PPI Setup')
-ppiflag    = {	'simple deconvolution',...
-		'psychophysiologic interaction',...
-		'physiophysiologic interaction'};
+ppiflag    = {  'simple deconvolution',...
+        'psychophysiologic interaction',...
+        'physiophysiologic interaction'};
 i          = spm_input('Analysis type?',1,'m',ppiflag);
 ppiflag    = ppiflag{i};
 
@@ -170,7 +170,7 @@ PPI.name    = spm_input('Name of PPI',3,'s','PPI');
 % Setup variables
 %-------------------------------------------------------------------------
 N     = length(xY(1).u);
-k     = 1:NT:N*NT;  			% microtime to scan time indices
+k     = 1:NT:N*NT;              % microtime to scan time indices
 
 
 % create basis functions and hrf in scan time and microtime
@@ -224,9 +224,9 @@ W      = SPM.xX.W(Sess.row,Sess.row);
 
 % create structure for spm_PEB
 %-------------------------------------------------------------------------
-P{1}.X = [W*Hxb X0];		% Design matrix for lowest level
-P{1}.C = speye(N,N)/4;		% i.i.d assumptions
-P{2}.X = sparse(N + M,1);	% Design matrix for parameters (0's)
+P{1}.X = [W*Hxb X0];        % Design matrix for lowest level
+P{1}.C = speye(N,N)/4;      % i.i.d assumptions
+P{2}.X = sparse(N + M,1);   % Design matrix for parameters (0's)
 P{2}.C = Q;
 
 
@@ -340,7 +340,7 @@ case  'psychophysiologic interaction'
     
     % convolve and resample at each scan for bold signal
     %---------------------------------------------------------------------
-    ppi	    = conv(PSYxn,hrf);
+    ppi     = conv(PSYxn,hrf);
     ppi     = ppi(k);
     
     % similarly for psychological effect

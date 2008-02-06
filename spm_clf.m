@@ -1,7 +1,7 @@
 function spm_clf(F)
 % Clear specified figure of objects with visible handles
 % FORMAT spm_clf(F)
-% F	- Figure number, or 'Tag' string of figure(s) to clear
+% F - Figure number, or 'Tag' string of figure(s) to clear
 %___________________________________________________________________________
 %
 % Clears the specified figure, deleting all objects with visible
@@ -18,13 +18,13 @@ function spm_clf(F)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_clf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_clf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Call spm_figure
 %---------------------------------------------------------------------------
 if nargin==0
-	spm_figure('Clear')
+    spm_figure('Clear')
 else
-	spm_figure('Clear',F)
+    spm_figure('Clear',F)
 end

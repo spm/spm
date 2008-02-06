@@ -2,18 +2,18 @@ function D = spm_eeg_epochs(S)
 % function used for epoching continuous EEG/MEG data
 % FORMAT D = spm_eeg_epochs(S)
 % 
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file with continuous data
+% D         - filename of EEG mat-file with continuous data
 % events    - struct with various entries:
 %    start     - pre-stimulus start of epoch [ms]
-%    stop	   - post-stimulus end of epoch [ms]
-%    types	   - events to extract (vector of event types)
+%    stop      - post-stimulus end of epoch [ms]
+%    types     - events to extract (vector of event types)
 %    Inewlist  - switch (0/1) to have new list of event codes
 %    Ec        - list of new event codes
 %
 % Output:
-% D			- EEG data struct (also written to files)
+% D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 %
 % spm_eeg_epochs extracts single trials from continuous EEG/MEG data. The
@@ -25,11 +25,9 @@ function D = spm_eeg_epochs(S)
 % points.
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-%
-% Resynch of time zero option allowed RH (S.events.Resynch in ms)
 
-% Stefan Kiebel
-% $Id: spm_eeg_epochs.m 956 2007-10-17 15:19:58Z rik $
+% Stefan Kiebel, Rik Henson
+% $Id: spm_eeg_epochs.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -44,15 +42,15 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 catch    
-	error(sprintf('Trouble reading file %s', D));
+    error(sprintf('Trouble reading file %s', D));
 end
 
 if ~isfield(D, 'events')
     D.events = [];
 end
-	
+    
 try 
     D.events.start = S.events.start;
 catch
@@ -70,9 +68,9 @@ end
 try
     D.events.types = S.events.types;
 catch
-	disp(unique(D.events.code))
-	D.events.types = ...
-	 	spm_input('Event types to epoch', '+1', 'i');
+    disp(unique(D.events.code))
+    D.events.types = ...
+        spm_input('Event types to epoch', '+1', 'i');
 end
 
 ind = find(ismember(D.events.code,D.events.types));
@@ -138,30 +136,30 @@ else, Ibar = [1:length(D.events.time)]; end
 
 index = [];
 for i = 1:length(D.events.time)
-	if any(D.events.code(i) == D.events.types)
+    if any(D.events.code(i) == D.events.types)
         
-        if	D.events.time(i) - D.events.start < 1 |...
+        if  D.events.time(i) - D.events.start < 1 |...
                 D.events.time(i) + D.events.stop > size(D.data, 2)
             % skip this trial
             warning(sprintf('%s: Event %d not extracted because not enough sample points', D.fname, i));
-		else
+        else
 
-   		    if Inewlist
-			    D.events.code(i) = Ec(k); 
+            if Inewlist
+                D.events.code(i) = Ec(k); 
             end
 
             d = D.data(:, D.events.time(i) - D.events.start :...
-					D.events.time(i) + D.events.stop, 1);
+                    D.events.time(i) + D.events.stop, 1);
                 
             % baseline subtraction
             
             d = d - repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
             
             D.scale(:, 1, k) = spm_eeg_write(fpd, d, 2, D.datatype);
-            						
-			index(k) = i;
-			k = k +1;
-		end
+                                    
+            index(k) = i;
+            k = k +1;
+        end
     end
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);
@@ -187,7 +185,7 @@ end
 
 
 if Inewlist & D.Nevents ~= length(Ec)
-	warning('Not all events in event list used!')
+    warning('Not all events in event list used!')
 end
 
 D.fname = ['e_' D.fname];

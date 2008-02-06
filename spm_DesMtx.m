@@ -7,8 +7,8 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 %        - set of arguments specifying a portion of design matrix (see below)
 %        - FCnames parameter, or Constraint and FCnames parameters, are optional
 %        - a list of multiple <FCLevels-Constraint-FCnames> triples can be
-% 	   specified, where FCnames or Constraint-FCnames may be omitted
-% 	   within any triple. The program then works recursively.
+%      specified, where FCnames or Constraint-FCnames may be omitted
+%      within any triple. The program then works recursively.
 %
 % X      - design matrix
 % Pnames - paramater names as (constructed from FCnames) - a cellstr
@@ -250,7 +250,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_DesMtx.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -259,31 +259,31 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 if nargin==0 error('Insufficient arguments'), end
 
 if ischar(varargin{1})
-	%-Non-recursive action string usage
-	Constraint=varargin{1};
+    %-Non-recursive action string usage
+    Constraint=varargin{1};
 elseif nargin>=2 & ~(ischar(varargin{2}) | iscell(varargin{2}))
-	[X1,Pnames1]=spm_DesMtx(varargin{1});
-	[X2,Pnames2]=spm_DesMtx(varargin{2:end});
-	X=[X1,X2]; Pnames=[Pnames1;Pnames2];
-	return
+    [X1,Pnames1]=spm_DesMtx(varargin{1});
+    [X2,Pnames2]=spm_DesMtx(varargin{2:end});
+    X=[X1,X2]; Pnames=[Pnames1;Pnames2];
+    return
 elseif nargin>=3 & ~(ischar(varargin{3}) | iscell(varargin{3}))
-	[X1,Pnames1]=spm_DesMtx(varargin{1:2});
-	[X2,Pnames2]=spm_DesMtx(varargin{3:end});
-	X=[X1,X2]; Pnames=[Pnames1;Pnames2];
-	return
+    [X1,Pnames1]=spm_DesMtx(varargin{1:2});
+    [X2,Pnames2]=spm_DesMtx(varargin{3:end});
+    X=[X1,X2]; Pnames=[Pnames1;Pnames2];
+    return
 elseif nargin>=4
-	[X1,Pnames1]=spm_DesMtx(varargin{1:3});
-	[X2,Pnames2]=spm_DesMtx(varargin{4:end});
-	X=[X1,X2]; Pnames=[Pnames1;Pnames2];
-	return
+    [X1,Pnames1]=spm_DesMtx(varargin{1:3});
+    [X2,Pnames2]=spm_DesMtx(varargin{4:end});
+    X=[X1,X2]; Pnames=[Pnames1;Pnames2];
+    return
 else
-	%-If I is a vector, make it a column vector
-	I=varargin{1}; if size(I,1)==1, I=I'; end
-	%-Sort out constraint and Factor/Covariate name parameters
-	if nargin<2, Constraint='-'; else, Constraint=varargin{2}; end
-	if isempty(I), Constraint='mt'; end
-	if nargin<3, FCnames={}; else, FCnames=varargin{3}; end
-	if char(FCnames), FCnames=cellstr(FCnames); end
+    %-If I is a vector, make it a column vector
+    I=varargin{1}; if size(I,1)==1, I=I'; end
+    %-Sort out constraint and Factor/Covariate name parameters
+    if nargin<2, Constraint='-'; else, Constraint=varargin{2}; end
+    if isempty(I), Constraint='mt'; end
+    if nargin<3, FCnames={}; else, FCnames=varargin{3}; end
+    if char(FCnames), FCnames=cellstr(FCnames); end
 end
 
 
@@ -304,18 +304,18 @@ X = I;
 %-Construct parameter name index
 %-----------------------------------------------------------------------
 if isempty(FCnames)
-	if strcmp(Constraint,'C'), FCnames={'<Cov>'}; else, FCnames={'<X>'}; end
+    if strcmp(Constraint,'C'), FCnames={'<Cov>'}; else, FCnames={'<X>'}; end
 end
 
 if length(FCnames)==1 & size(X,2)>1
-	Pnames = cell(size(X,2),1);
-	for i=1:size(X,2)
-		Pnames{i} = sprintf('%s [%d]',FCnames{1},i);
-	end
+    Pnames = cell(size(X,2),1);
+    for i=1:size(X,2)
+        Pnames{i} = sprintf('%s [%d]',FCnames{1},i);
+    end
 elseif length(FCnames)~=size(X,2)
-	error('FCnames doesn''t match covariate/X matrix')
+    error('FCnames doesn''t match covariate/X matrix')
 else
-	Pnames = FCnames;
+    Pnames = FCnames;
 end
 
 
@@ -334,17 +334,17 @@ nXrows = size(I,1);
 % Sort out unique factor levels - ignore zero level in '~(1)' usage
 %-----------------------------------------------------------------------
 if Constraint(1)~='~'
-	[Index,idx,jdx] = unique(I');
-	kdx = [1:nXrows];
+    [Index,idx,jdx] = unique(I');
+    kdx = [1:nXrows];
 else
-	[Index,idx,jdx] = unique(I(I~=0)');
-	kdx             = find(I~=0)';
-	if isempty(Index)
-		X=[]; Pnames={}; Index=[];
-		warning(['factor has only zero level - ',...
-			'returning empty DesMtx partition'])
-		return
-	end
+    [Index,idx,jdx] = unique(I(I~=0)');
+    kdx             = find(I~=0)';
+    if isempty(Index)
+        X=[]; Pnames={}; Index=[];
+        warning(['factor has only zero level - ',...
+            'returning empty DesMtx partition'])
+        return
+    end
 end
 
 %-Set up unconstrained X matrix & construct parameter name index
@@ -354,11 +354,11 @@ nXcols = length(Index);
 %-Columns in ascending order of corresponding factor level
 X      = zeros(nXrows,nXcols);
 Pnames = cell(nXcols,1);
-for ii=1:nXcols			%-ii indexes i in Index
-	X(:,ii) = I==Index(ii);
-	%-Can't use: for i=Index, X(:,i) = I==i; end
-	% in case Index has holes &/or doesn't start at 1!
-	Pnames{ii} = sprintf('%s_{%d}',FCnames{1},Index(ii));
+for ii=1:nXcols         %-ii indexes i in Index
+    X(:,ii) = I==Index(ii);
+    %-Can't use: for i=Index, X(:,i) = I==i; end
+    % in case Index has holes &/or doesn't start at 1!
+    Pnames{ii} = sprintf('%s_{%d}',FCnames{1},Index(ii));
 end
 %-Don't append effect level if only one level
 if nXcols==1, Pnames=FCnames; end
@@ -367,9 +367,9 @@ if nXcols==1, Pnames=FCnames; end
 case {'-','~'}     %-Main effect / interaction ('~' ignores zero levels)
 %=======================================================================
 if size(I,2)==1
-	%-Main effect - process directly
-	[X,Pnames,Index,idx,jdx,kdx] = spm_DesMtx(I,[Constraint,'(1)'],FCnames);
-	return
+    %-Main effect - process directly
+    [X,Pnames,Index,idx,jdx,kdx] = spm_DesMtx(I,[Constraint,'(1)'],FCnames);
+    return
 end
 
 if any((I(:))~=floor(I(:))), error('Non-integer indicator vector'), end
@@ -384,13 +384,13 @@ rIndex = sum(nI.*(ones(size(I,1),1)*tmp),2)+1;
 
 %-Ignore combinations where any factor has level zero in '~' usage
 if Constraint(1)=='~'
-	rIndex(any(I==0,2))=0;
-	if all(rIndex==0)
-		X=[]; Pnames={}; Index=[];
-		warning(['no non-zero factor level combinations - ',...
-			'returning empty DesMtx partition'])
-		return
-	end
+    rIndex(any(I==0,2))=0;
+    if all(rIndex==0)
+        X=[]; Pnames={}; Index=[];
+        warning(['no non-zero factor level combinations - ',...
+            'returning empty DesMtx partition'])
+        return
+    end
 end
 
 %-Build design matrix based on unique factor combinations
@@ -402,17 +402,17 @@ Index = I(kdx(idx),:)';
 %-Construct parameter name index
 %-----------------------------------------------------------------------
 if isempty(FCnames)
-	tmp = ['<Fac1>',sprintf('*<Fac%d>',2:size(I,2))];
+    tmp = ['<Fac1>',sprintf('*<Fac%d>',2:size(I,2))];
 elseif length(FCnames)==size(I,2)
-	tmp = [FCnames{1},sprintf('*%s',FCnames{2:end})];
+    tmp = [FCnames{1},sprintf('*%s',FCnames{2:end})];
 else
-	error('#FCnames mismatches #Factors in interaction')
+    error('#FCnames mismatches #Factors in interaction')
 end
 
 Pnames = cell(size(Index,2),1);
 for c = 1:size(Index,2)
     Pnames{c} = ...
-	[sprintf('%s_{%d',tmp,Index(1,c)),sprintf(',%d',Index(2:end,c)),'}'];
+    [sprintf('%s_{%d',tmp,Index(1,c)),sprintf(',%d',Index(2:end,c)),'}'];
 end
 
 
@@ -428,22 +428,22 @@ F = I(:,1:end-1);
 C = I(:,end);
 
 if ~all(all(F==floor(F),1),2)
-	error('non-integer indicies in F partition of FxC'), end
+    error('non-integer indicies in F partition of FxC'), end
 
 if isempty(FCnames)
-	Fnames = '';
-	Cnames = '<Cov>';
+    Fnames = '';
+    Cnames = '<Cov>';
 elseif length(FCnames)==size(I,2)
-	Fnames = FCnames(1:end-1);
-	Cnames = FCnames{end};
+    Fnames = FCnames(1:end-1);
+    Cnames = FCnames{end};
 else
-	error('#FCnames mismatches #Factors+#Cov in FxC')
+    error('#FCnames mismatches #Factors+#Cov in FxC')
 end
 
 %-Set up design matrix X & names matrix - ignore zero levels if '~FxC' use
 %-----------------------------------------------------------------------
-if Constraint(1)~='~',	[X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
-	else,		[X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
+if Constraint(1)~='~',  [X,Pnames,Index] = spm_DesMtx(F,'-',Fnames);
+    else,       [X,Pnames,Index] = spm_DesMtx(F,'~',Fnames); end
 X = X.*(C*ones(1,size(X,2)));
 Pnames = cellstr([repmat([Cnames,'@'],size(Index,2),1),char(Pnames)]);
 
@@ -464,19 +464,19 @@ if size(I,2)~=1, error('Simple main effect requires vector index'), end
 nXcols = size(X,2);
 zCol   = find(Index==0);
 if nXcols==1 & ~strcmp(Constraint,'.0')
-	error('only one level: can''t constrain')
+    error('only one level: can''t constrain')
 elseif strcmp(Constraint,'.')
-	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
+    X(:,nXcols)=[]; Pnames(nXcols)=[]; Index(nXcols)=[];
 elseif strcmp(Constraint,'.0')
-	zCol = find(Index==0);
-	if isempty(zCol),	warning('no zero level to constrain')
-	elseif nXcols==1,	error('only one level: can''t constrain'), end
-	X(:,zCol)=[];	Pnames(zCol)=[]; Index(zCol)=[];
+    zCol = find(Index==0);
+    if isempty(zCol),   warning('no zero level to constrain')
+    elseif nXcols==1,   error('only one level: can''t constrain'), end
+    X(:,zCol)=[];   Pnames(zCol)=[]; Index(zCol)=[];
 elseif strcmp(Constraint,'+0')
-	X(find(X(:,nXcols)),:)=-1;
-	X(:,nXcols)=[];	Pnames(nXcols)=[]; Index(nXcols)=[];
+    X(find(X(:,nXcols)),:)=-1;
+    X(:,nXcols)=[]; Pnames(nXcols)=[]; Index(nXcols)=[];
 elseif strcmp(Constraint,'+0m')
-	X = X - 1/nXcols;
+    X = X - 1/nXcols;
 end
 
 
@@ -491,109 +491,109 @@ if size(I,2)~=2, error('Two way interaction requires Nx2 index'), end
 %-Implicit sum to zero
 %-----------------------------------------------------------------------
 if any(strcmp(Constraint,{'+i0m','+j0m'}))
-	SumIToZero = strcmp(Constraint,'+i0m');
-	SumJToZero = strcmp(Constraint,'+j0m');
+    SumIToZero = strcmp(Constraint,'+i0m');
+    SumJToZero = strcmp(Constraint,'+j0m');
 
-	if SumIToZero	%-impose implicit SumIToZero constraints
-		Js = sort(Index(2,:)); Js = Js([1,1+find(diff(Js))]);
-		for j = Js
-			rows = find(I(:,2)==j);
-			cols = find(Index(2,:)==j);
-			if length(cols)==1
-			   error('Only one level: Can''t constrain')
-			end
-			X(rows,cols) = X(rows,cols) - 1/length(cols);
-		end
-	end
+    if SumIToZero   %-impose implicit SumIToZero constraints
+        Js = sort(Index(2,:)); Js = Js([1,1+find(diff(Js))]);
+        for j = Js
+            rows = find(I(:,2)==j);
+            cols = find(Index(2,:)==j);
+            if length(cols)==1
+               error('Only one level: Can''t constrain')
+            end
+            X(rows,cols) = X(rows,cols) - 1/length(cols);
+        end
+    end
 
-	if SumJToZero	%-impose implicit SumJToZero constraints
-		Is = sort(Index(1,:)); Is = Is([1,1+find(diff(Is))]);
-		for i = Is
-			rows = find(I(:,1)==i);
-			cols = find(Index(1,:)==i);
-			if length(cols)==1
-			   error('Only one level: Can''t constrain')
-			end
-			X(rows,cols) = X(rows,cols) - 1/length(cols);
-		end
-	end
+    if SumJToZero   %-impose implicit SumJToZero constraints
+        Is = sort(Index(1,:)); Is = Is([1,1+find(diff(Is))]);
+        for i = Is
+            rows = find(I(:,1)==i);
+            cols = find(Index(1,:)==i);
+            if length(cols)==1
+               error('Only one level: Can''t constrain')
+            end
+            X(rows,cols) = X(rows,cols) - 1/length(cols);
+        end
+    end
 
 %-Explicit sum to zero
 %-----------------------------------------------------------------------
 elseif any(strcmp(Constraint,{'+i0','+j0','+ij0'}))
-	SumIToZero = any(strcmp(Constraint,{'+i0','+ij0'}));
-	SumJToZero = any(strcmp(Constraint,{'+j0','+ij0'}));
+    SumIToZero = any(strcmp(Constraint,{'+i0','+ij0'}));
+    SumJToZero = any(strcmp(Constraint,{'+j0','+ij0'}));
 
-	if SumIToZero	%-impose explicit SumIToZero constraints
-		i = max(Index(1,:));
-		if i==min(Index(1,:))
-			error('Only one i level: Can''t constrain'), end
-		cols = find(Index(1,:)==i); %-columns to delete
-		for c=cols
-			j=Index(2,c);
-			t_cols=find(Index(2,:)==j);
-			t_rows=find(X(:,c));
-			%-This ij equals -sum(ij) over other i
-			% (j fixed for this col c).
-			%-So subtract weight of this ij factor from
-			% weights for all other ij factors for this j
-			% to impose the constraint.
-			X(t_rows,t_cols) = X(t_rows,t_cols)...
-			    -X(t_rows,c)*ones(1,length(t_cols));
+    if SumIToZero   %-impose explicit SumIToZero constraints
+        i = max(Index(1,:));
+        if i==min(Index(1,:))
+            error('Only one i level: Can''t constrain'), end
+        cols = find(Index(1,:)==i); %-columns to delete
+        for c=cols
+            j=Index(2,c);
+            t_cols=find(Index(2,:)==j);
+            t_rows=find(X(:,c));
+            %-This ij equals -sum(ij) over other i
+            % (j fixed for this col c).
+            %-So subtract weight of this ij factor from
+            % weights for all other ij factors for this j
+            % to impose the constraint.
+            X(t_rows,t_cols) = X(t_rows,t_cols)...
+                -X(t_rows,c)*ones(1,length(t_cols));
 %-( Next line would do it, but only first time round, when all          )
 % ( weights are 1, and only one weight per row for this j.              )
 % X(t_rows,t_cols)=-1*ones(length(t_rows),length(t_cols));
-		end
-		%-delete columns
-		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
-	end
+        end
+        %-delete columns
+        X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
+    end
 
-	if SumJToZero	%-impose explicit SumJToZero constraints
-		j = max(Index(2,:));
-		if j==min(Index(2,:))
-			error('Only one j level: Can''t constrain'), end
-		cols=find(Index(2,:)==j);
-		for c=cols
-			i=Index(1,c);
-			t_cols=find(Index(1,:)==i);
-			t_rows=find(X(:,c));
-			X(t_rows,t_cols) = X(t_rows,t_cols)...
-			    -X(t_rows,c)*ones(1,length(t_cols));
-		end
-		%-delete columns
-		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
-	end
+    if SumJToZero   %-impose explicit SumJToZero constraints
+        j = max(Index(2,:));
+        if j==min(Index(2,:))
+            error('Only one j level: Can''t constrain'), end
+        cols=find(Index(2,:)==j);
+        for c=cols
+            i=Index(1,c);
+            t_cols=find(Index(1,:)==i);
+            t_rows=find(X(:,c));
+            X(t_rows,t_cols) = X(t_rows,t_cols)...
+                -X(t_rows,c)*ones(1,length(t_cols));
+        end
+        %-delete columns
+        X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
+    end
 
 %-Corner point constraints
 %-----------------------------------------------------------------------
 elseif any(strcmp(Constraint,{'.i','.i0','.j','.j0','.ij','.ij0'}))
-	CornerPointI = any(strcmp(Constraint,{'.i','.i0','.ij','.ij0'}));
-	CornerPointJ = any(strcmp(Constraint,{'.j','.j0','.ij','.ij0'}));
+    CornerPointI = any(strcmp(Constraint,{'.i','.i0','.ij','.ij0'}));
+    CornerPointJ = any(strcmp(Constraint,{'.j','.j0','.ij','.ij0'}));
 
-	if CornerPointI	%-impose CornerPointI constraints
-		if Constraint(end)~='0',	i = max(Index(1,:));
-			else,			i = 0; end
-		cols=find(Index(1,:)==i); %-columns to delete
-		if isempty(cols)
-			warning('no zero i level to constrain')
-		elseif all(Index(1,:)==i)
-			error('only one i level: can''t constrain')
-		end
-		%-delete columns
-		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
-	end
+    if CornerPointI %-impose CornerPointI constraints
+        if Constraint(end)~='0',    i = max(Index(1,:));
+            else,           i = 0; end
+        cols=find(Index(1,:)==i); %-columns to delete
+        if isempty(cols)
+            warning('no zero i level to constrain')
+        elseif all(Index(1,:)==i)
+            error('only one i level: can''t constrain')
+        end
+        %-delete columns
+        X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
+    end
 
-	if CornerPointJ	%-impose CornerPointJ constraints
-		if Constraint(end)~='0',	j = max(Index(2,:));
-			else,			j = 0; end
-		cols=find(Index(2,:)==j);
-		if isempty(cols)
-			warning('no zero j level to constrain')
-		elseif all(Index(2,:)==j)
-			error('only one j level: can''t constrain')
-		end
-		X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
-	end
+    if CornerPointJ %-impose CornerPointJ constraints
+        if Constraint(end)~='0',    j = max(Index(2,:));
+            else,           j = 0; end
+        cols=find(Index(2,:)==j);
+        if isempty(cols)
+            warning('no zero j level to constrain')
+        elseif all(Index(2,:)==j)
+            error('only one j level: can''t constrain')
+        end
+        X(:,cols)=[]; Pnames(cols)=[]; Index(:,cols)=[];
+    end
 end
 
 
@@ -605,7 +605,7 @@ if nargin<3, m=1; else, m=varargin{3}; end
 if nargin<2, varargout={[]}, return, else, v=varargin{2}; end
 if any([size(n),size(m)])>1, error('n & m must be scalars'), end
 if any(([m,n]~=floor([m,n]))|([m,n]<1))
-	error('n & m must be natural numbers'), end
+    error('n & m must be natural numbers'), end
 if sum(size(v)>1)>1, error('v must be a vector'), end
 
 %-Computation
@@ -624,80 +624,80 @@ nX   = []; nPnames = {}; Carg = 2;
 while(Carg <= nargin)
     rX = varargin{Carg}; Carg=Carg+1;
     if Carg<=nargin & ~isempty(varargin{Carg}) & ...
-    		(ischar(varargin{Carg}) | iscellstr(varargin{Carg}))
-	rPnames = char(varargin{Carg}); Carg=Carg+1;
-    else	%-No names to work out blocks from - normalise by column
-	rPnames = repmat('<UnSpec>',size(rX,2),1);
+            (ischar(varargin{Carg}) | iscellstr(varargin{Carg}))
+    rPnames = char(varargin{Carg}); Carg=Carg+1;
+    else    %-No names to work out blocks from - normalise by column
+    rPnames = repmat('<UnSpec>',size(rX,2),1);
     end
     %-Pad out rPnames with 20 spaces to permit looking past line ends
     rPnames = [rPnames,repmat(' ',size(rPnames,1),20)];
 
 
     while(~isempty(rX))
-	if size(rX,2)>1 & max([1,find(rPnames(1,:)=='(')]) < ...
-					max([0,find(rPnames(1,:)==')')])
-	%-Non-specific block: find the rest & column normalise round zero
-	%===============================================================
-		c1 = max(find(rPnames(1,:)=='('));
-		d  = any(diff(abs(rPnames(:,1:c1))),2)...
-			| ~any(rPnames(2:end,c1+1:end)==')',2);
-		t  = min(find([d;1]));
+    if size(rX,2)>1 & max([1,find(rPnames(1,:)=='(')]) < ...
+                    max([0,find(rPnames(1,:)==')')])
+    %-Non-specific block: find the rest & column normalise round zero
+    %===============================================================
+        c1 = max(find(rPnames(1,:)=='('));
+        d  = any(diff(abs(rPnames(:,1:c1))),2)...
+            | ~any(rPnames(2:end,c1+1:end)==')',2);
+        t  = min(find([d;1]));
 
-		%-Normalise columns of block around zero
-		%-------------------------------------------------------
-		tmp = size(nX,2);
-		nX  = [nX, zeros(size(rX,1),t)];
-		for i=1:t, nX(:,tmp+i) = rX(:,i)/max(abs(rX(:,i))); end
-		nPnames   = [nPnames; cellstr(rPnames(1:t,:))];
-		rX(:,1:t) = []; rPnames(1:t,:)=[];
-
-
-	elseif size(rX,2)>1 & max([1,find(rPnames(1,:)=='[')]) < ...
-					max([0,find(rPnames(1,:)==']')])
-	%-Block: find the rest & normalise together
-	%===============================================================
-		c1 = max(find(rPnames(1,:)=='['));
-		d  = any(diff(abs(rPnames(:,1:c1))),2)...
-			| ~any(rPnames(2:end,c1+1:end)==']',2);
-		t  = min(find([d;1]));
-
-		%-Normalise block
-		%-------------------------------------------------------
-		nX = [nX,sf_tXsca(rX(:,1:t))];
-		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
-		rX(:,1:t) = []; rPnames(1:t,:)=[];
+        %-Normalise columns of block around zero
+        %-------------------------------------------------------
+        tmp = size(nX,2);
+        nX  = [nX, zeros(size(rX,1),t)];
+        for i=1:t, nX(:,tmp+i) = rX(:,i)/max(abs(rX(:,i))); end
+        nPnames   = [nPnames; cellstr(rPnames(1:t,:))];
+        rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-	elseif size(rX,2)>1 & max([1,findstr(rPnames(1,:),'_{')]) < ...
-					max([0,find(rPnames(1,:)=='}')])
-	%-Factor, interaction of factors, or FxC: find the rest...
-	%===============================================================
-		c1 = max(findstr(rPnames(1,:),'_{'));
-		d  = any(diff(abs(rPnames(:,1:c1+1))),2)...
-			| ~any(rPnames(2:end,c1+2:end)=='}',2);
-		t  = min(find([d;1]));
+    elseif size(rX,2)>1 & max([1,find(rPnames(1,:)=='[')]) < ...
+                    max([0,find(rPnames(1,:)==']')])
+    %-Block: find the rest & normalise together
+    %===============================================================
+        c1 = max(find(rPnames(1,:)=='['));
+        d  = any(diff(abs(rPnames(:,1:c1))),2)...
+            | ~any(rPnames(2:end,c1+1:end)==']',2);
+        t  = min(find([d;1]));
 
-		%-Normalise block
-		%-------------------------------------------------------
-		tX = rX(:,1:t);
-		if any(rPnames(1,1:c1)=='@')	%-FxC interaction
-			C         = tX(tX~=0);
-			tX(tX~=0) = 2*(C-min(C))/max(C-min(C))-1;
-			nX        = [nX,tX];
-		else				%-Straight interaction
-			nX = [nX,sf_tXsca(tX)];
-		end
-		nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
-		rX(:,1:t) = []; rPnames(1:t,:)=[];
+        %-Normalise block
+        %-------------------------------------------------------
+        nX = [nX,sf_tXsca(rX(:,1:t))];
+        nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
+        rX(:,1:t) = []; rPnames(1:t,:)=[];
 
 
-	else                              %-Dunno! Just column normalise
-	%===============================================================
-		nX       = [nX,sf_tXsca(rX(:,1))];
-		nPnames  = [nPnames; cellstr(rPnames(1,:))];
-		rX(:,1)  = []; rPnames(1,:)=[];
+    elseif size(rX,2)>1 & max([1,findstr(rPnames(1,:),'_{')]) < ...
+                    max([0,find(rPnames(1,:)=='}')])
+    %-Factor, interaction of factors, or FxC: find the rest...
+    %===============================================================
+        c1 = max(findstr(rPnames(1,:),'_{'));
+        d  = any(diff(abs(rPnames(:,1:c1+1))),2)...
+            | ~any(rPnames(2:end,c1+2:end)=='}',2);
+        t  = min(find([d;1]));
 
-	end
+        %-Normalise block
+        %-------------------------------------------------------
+        tX = rX(:,1:t);
+        if any(rPnames(1,1:c1)=='@')    %-FxC interaction
+            C         = tX(tX~=0);
+            tX(tX~=0) = 2*(C-min(C))/max(C-min(C))-1;
+            nX        = [nX,tX];
+        else                %-Straight interaction
+            nX = [nX,sf_tXsca(tX)];
+        end
+        nPnames  = [nPnames; cellstr(rPnames(1:t,:))];
+        rX(:,1:t) = []; rPnames(1:t,:)=[];
+
+
+    else                              %-Dunno! Just column normalise
+    %===============================================================
+        nX       = [nX,sf_tXsca(rX(:,1))];
+        nPnames  = [nPnames; cellstr(rPnames(1,:))];
+        rX(:,1)  = []; rPnames(1,:)=[];
+
+    end
     end
 end
 
@@ -711,16 +711,16 @@ case {'Fnames','fnames'}     %-Turn parameter names into valid filenames
 if nargin<2, varargout={''}; return, end
 Fnames = varargin{2};
 for i=1:prod(size(Fnames))
-	str = Fnames{i};
-	str(str==',')='x';			%-',' to 'x'
-	str(str=='*')='-';			%-'*' to '-'
-	str(str=='@')='-';			%-'@' to '-'
-	str(str==' ')='_';			%-' ' to '_'
-	str(str=='/')='';			%- delete '/'
-	str(str=='.')='';			%- delete '.'
-	Fnames{i} = str;
+    str = Fnames{i};
+    str(str==',')='x';          %-',' to 'x'
+    str(str=='*')='-';          %-'*' to '-'
+    str(str=='@')='-';          %-'@' to '-'
+    str(str==' ')='_';          %-' ' to '_'
+    str(str=='/')='';           %- delete '/'
+    str(str=='.')='';           %- delete '.'
+    Fnames{i} = str;
 end
-Fnames = spm_str_manip(Fnames,'v');		%- retain only legal characters
+Fnames = spm_str_manip(Fnames,'v');     %- retain only legal characters
 X = Fnames;
 
 
@@ -730,10 +730,10 @@ case {'TeXnames','texnames'}   %-Remove '@' & '*' for TeX interpretation
 if nargin<2, varargout={''}; return, end
 TPnames = varargin{2};
 for i=1:prod(size(TPnames))
-	str = TPnames{i};
-	str(str=='*')='';			%- delete '*'
-	str(str=='@')='';			%- delete '@'
-	TPnames{i} = str;
+    str = TPnames{i};
+    str(str=='*')='';           %- delete '*'
+    str(str=='@')='';           %- delete '@'
+    TPnames{i} = str;
 end
 X = TPnames;
 
@@ -741,23 +741,23 @@ X = TPnames;
 case {'ParMap','parmap'}          %-Parameter mappings: greek to english
 %=======================================================================
 % Map = spm_DesMtx('ParMap',aMap)
-Map = {	'\mu',		'const';...
-	'\theta',	'repl';...
-	'\alpha',	'cond';...
-	'\gamma',	'subj';...
-	'\rho',		'covint';...
-	'\zeta',	'global';...
-	'\epsilon',	'error'};
+Map = { '\mu',      'const';...
+    '\theta',   'repl';...
+    '\alpha',   'cond';...
+    '\gamma',   'subj';...
+    '\rho',     'covint';...
+    '\zeta',    'global';...
+    '\epsilon', 'error'};
 if nargin<2, aMap={}; else, aMap = varargin{2}; end
 if isempty(aMap), X=Map; return, end
 if ~(iscellstr(aMap) & ndims(aMap)==2), error('aMap must be an nx2 cellstr'), end
 for i=1:size(aMap,1)
-	j = find(strcmp(aMap{i,1},Map(:,1)));
-	if isempty(j)
-		Map=[aMap(i,:); Map];
-	else
-		Map(j,2) = aMap(i,2);
-	end
+    j = find(strcmp(aMap{i,1},Map(:,1)));
+    if isempty(j)
+        Map=[aMap(i,:); Map];
+    else
+        Map(j,2) = aMap(i,2);
+    end
 end
 X = Map;
 
@@ -770,7 +770,7 @@ if nargin<3, aMap={}; else, aMap = varargin{3}; end
 Map = spm_DesMtx('ParMap',aMap);
 EPnames = varargin{2};
 for i=1:size(Map,1)
-	EPnames = strrep(EPnames,Map{i,1},Map{i,2});
+    EPnames = strrep(EPnames,Map{i,1},Map{i,2});
 end
 X = EPnames;
 
@@ -778,9 +778,9 @@ X = EPnames;
 otherwise                              %-Mis-specified arguments - ERROR
 %=======================================================================
 if ischar(varargin{1})
-	error('unrecognised action string')
+    error('unrecognised action string')
 else
-	error('unrecognised constraint type')
+    error('unrecognised constraint type')
 end
 
 %=======================================================================
@@ -794,11 +794,11 @@ end
 function nX = sf_tXsca(tX)
 if nargin==0, nX=[]; return, end
 if abs(max(abs(tX(:)))-0.7)<(.3+1e-10)
-	nX = tX;
+    nX = tX;
 elseif all(tX(:)==tX(1))
-	nX = ones(size(tX));
+    nX = ones(size(tX));
 elseif max(abs(tX(:)))<1e-10
-	nX = zeros(size(tX));
+    nX = zeros(size(tX));
 else
-	nX = 2*(tX-min(tX(:)))/max(tX(:)-min(tX(:)))-1;
+    nX = 2*(tX-min(tX(:)))/max(tX(:)-min(tX(:)))-1;
 end

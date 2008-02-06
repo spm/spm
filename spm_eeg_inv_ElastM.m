@@ -1,6 +1,4 @@
 function ts = spm_eeg_inv_ElastM(ts);
-
-%==========================================================================
 % FORMAT ts = spm_eeg_inv_ElastM(ts);
 %
 % Modify the mesh in order to reduce overlong edges.
@@ -17,11 +15,11 @@ function ts = spm_eeg_inv_ElastM(ts);
 %
 % Output :
 % ts         - tesselated surface with corrected mesh
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ElastM.m 719 2007-01-18 11:06:07Z christophe $
+% $Id: spm_eeg_inv_ElastM.m 1131 2008-02-06 11:17:09Z spm $
 
 % Connection vertex-to-vertex
 %--------------------------------------------------------------------------
@@ -47,7 +45,7 @@ for j=1:N
         w_i = d_i/sum(d_i);
         XYZmm_o(:,i) = XYZmm(:,i) + ...
             lam * sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).*(ones(3,1)*w_i),2);
-	end
+    end
 
     for i=1:ts.nr(1)
         ln = find(M_con(:,i));

@@ -13,11 +13,11 @@ function [evidence] = spm_dcm_evidence (DCM)
 %            .aic_overall           The overall AIC value
 %
 %            All of the above are in units of NATS (not bits)
-%
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_evidence.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_dcm_evidence.m 1131 2008-02-06 11:17:09Z spm $
 
 
 v=DCM.v;

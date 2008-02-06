@@ -1,12 +1,11 @@
 function [sdip,fit_opt] = spm_eeg_inv_ecd_fitDipS(V,model,Vbr,n_dip,n_seeds,fit_opt,disp_f,MCS_f)
-
+% Fit  moving dipoles on EEG data
 % FORMAT [sdip,set_loc_o] = spm_eeg_inv_ecd_fitDipS(V,model,Vbr,n_dip,n_seeds,fit_opt,disp_f,MCS_f)
 %
-% Fit  moving dipoles on EEG data
 % Input :
 %   - V:     EEG data (n_el x n_tbin)
 %   - model: head model structure with: tessalated surfaces, electrodes setup,
-%					conductivity values, spheres defintion.
+%                   conductivity values, spheres defintion.
 %   - Vbr:   brain mask to limit the dipoles location.
 %   - n_dip: nr of dipoles to be fitted.
 %   - n_seeds: nr of random starting locations to be considered.
@@ -45,7 +44,7 @@ function [sdip,fit_opt] = spm_eeg_inv_ecd_fitDipS(V,model,Vbr,n_dip,n_seeds,fit_
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_ecd_fitDipS.m 1131 2008-02-06 11:17:09Z spm $
 
 
 global MODEL V_BR V_EEG OR_OPT FXD_OR sdip
@@ -158,28 +157,28 @@ if ~MCS_f
     end
     
     
-	% Prepare result files.
-	%----------------------
-	sdip.n_seeds = n_seeds;
-	sdip.n_dip   = n_dip;
-	sdip.Sloc    = cell(1,n_seeds);
-	sdip.loc     = cell(1,n_seeds);
-	sdip.L       = cell(1,n_seeds);
-	sdip.j       = cell(1,n_seeds);
-	sdip.res     = zeros(1,n_seeds);
-	sdip.cost    = zeros(1,n_seeds);
-	sdip.M       = Vbr.mat;
-	sdip.Mtb     = MODEL.Mtb;
-	sdip.fit_opt = fit_opt;
+    % Prepare result files.
+    %----------------------
+    sdip.n_seeds = n_seeds;
+    sdip.n_dip   = n_dip;
+    sdip.Sloc    = cell(1,n_seeds);
+    sdip.loc     = cell(1,n_seeds);
+    sdip.L       = cell(1,n_seeds);
+    sdip.j       = cell(1,n_seeds);
+    sdip.res     = zeros(1,n_seeds);
+    sdip.cost    = zeros(1,n_seeds);
+    sdip.M       = Vbr.mat;
+    sdip.Mtb     = MODEL.Mtb;
+    sdip.fit_opt = fit_opt;
 end
 
 % Optimization bit
 %-----------------
 if ~fit_opt.q_fxd_loc && ~fit_opt.q_fxd_or % Both localisation and orientation have to be optimized
     sdip.exitflag = zeros(1,n_seeds);
-	opts = optimset('MaxIter',1000*n_dip,'MaxFunEvals',5000*n_dip);
-	% opts = optimset('MaxIter',2000,'MaxFunEvals',10000,'Display','iter','Diagnostics','on')
-	for ii=1:n_seeds
+    opts = optimset('MaxIter',1000*n_dip,'MaxFunEvals',5000*n_dip);
+    % opts = optimset('MaxIter',2000,'MaxFunEvals',10000,'Display','iter','Diagnostics','on')
+    for ii=1:n_seeds
         if disp_f, fprintf('\nSeed # %i\n',ii); end
         [sdip.Sloc{ii},fval,sdip.exitflag(ii),outp] = fminsearch('spm_eeg_inv_ecd_costSd',...
                 fit_opt.set_loc_o(:,ii+(1:n_dip)-1),opts) ;
@@ -190,7 +189,7 @@ if ~fit_opt.q_fxd_loc && ~fit_opt.q_fxd_or % Both localisation and orientation h
             fprintf('\t Source or: %4.2f %4.2f %4.2f , residual: %4.2f \n', ...
                 [sdip.j{ii}(:,sdip.Mtb)'/norm(sdip.j{ii}(:,sdip.Mtb)) sdip.res(ii)])
         end
-	end
+    end
 elseif fit_opt.q_fxd_loc && ~fit_opt.q_fxd_or % Localisation is fixed but not the orientation
     sdip.Sloc{1} = fit_opt.set_loc_o;
     [sdip.cost(1),sdip.L{1},sdip.j{1},sdip.res(1)] = spm_eeg_inv_ecd_costSd(sdip.Sloc{1}) ;

@@ -1,7 +1,11 @@
 function S = spm_config_meeg
 % configuration file for MEEG preprocessing
 %_______________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Vladimir Litvak
+% $Id: spm_config_meeg.m 1131 2008-02-06 11:17:09Z spm $
+
 
 %% ------------ Files ------------
 dataset = struct('type','files','name','Select the dataset file','tag','dataset',...

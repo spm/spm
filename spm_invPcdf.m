@@ -46,7 +46,7 @@ function x = spm_invPcdf(F,l)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_invPcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_invPcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -57,12 +57,12 @@ if nargin<1, error('Insufficient arguments'), end
 
 ad = [ndims(F);ndims(l)];
 rd = max(ad);
-as = [	[size(F),ones(1,rd-ad(1))];...
-	[size(l),ones(1,rd-ad(2))];    ];
+as = [  [size(F),ones(1,rd-ad(1))];...
+    [size(l),ones(1,rd-ad(2))];    ];
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) & any(diff(as(xa,:)))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 
 %-Computation
@@ -73,7 +73,7 @@ x = zeros(rs);
 %-Only defined for F in [0,1] & l>0 & . Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  l>0 );
 if any(~md(:)), x(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Infinite where defined but F=1
 mi = ( F==1 ); x(md&mi) = Inf;
@@ -88,8 +88,8 @@ if xa(2), Ql=Q; else Ql=1; end
 tx  = 0;
 Ftx = spm_Ppdf(tx,l(Ql));
 while any(F(QF)>Ftx)
-	tx      = tx+1;
-	i       = find(Ftx<F(QF));
-	x(Q(i)) = x(Q(i)) + 1;
-	Ftx     = Ftx + spm_Ppdf(tx,l(Ql));
+    tx      = tx+1;
+    i       = find(Ftx<F(QF));
+    x(Q(i)) = x(Q(i)) + 1;
+    Ftx     = Ftx + spm_Ppdf(tx,l(Ql));
 end

@@ -3,6 +3,12 @@ function gl = spm_get_volumes(P)
 % FORMAT gl = spm_get_volumes(P)
 % gl - a vector of volumes (in litres)
 % P  - a matrix of image filenames
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% John Ashburner
+% $Id: spm_get_volumes.m 1131 2008-02-06 11:17:09Z spm $
+
 
 if nargin<1,
     P = spm_select(Inf,'image','Select images');

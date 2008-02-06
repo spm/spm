@@ -4,7 +4,7 @@ function D = spm_eeg_rdata_egi64(S)
 % 
 % S       - struct (optional)
 % (optional) fields of S:
-% Fdata		  - filename of bdf-file
+% Fdata       - filename of bdf-file
 % Fchannels   - filename of channel template
 % exg_name    - cell vector that code type of exogeneous channels. Allowed
 %               types are 'heog', 'veog', 'reference' and 'other' 
@@ -19,18 +19,18 @@ function D = spm_eeg_rdata_egi64(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_egi64.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_rdata_egi64.m 1131 2008-02-06 11:17:09Z spm $
 
 try
-	Fdata = S.Fdata;
+    Fdata = S.Fdata;
 catch
-	Fdata = spm_select(1, '\.txt$', 'Select egitxt-file');
+    Fdata = spm_select(1, '\.txt$', 'Select egitxt-file');
 end
 
 try
-	Fchannels = S.Fchannels;
+    Fchannels = S.Fchannels;
 catch
-	Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
+    Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
 
 
@@ -46,11 +46,11 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 
 fh=fopen([Fdata],'r');
 if fh==-1
-	error('wrong filename')
+    error('wrong filename')
 end
 %read eeg txt file plus labels
 for junk=1:3
-	line=fgetl(fh);
+    line=fgetl(fh);
 end
 D.events.start=fgetl(fh);;
 D.events.start=str2num( D.events.start(7:end))-1;
@@ -69,14 +69,14 @@ n=0;
 D.events.types=[];
 D.events.code=[];
 for t=1:D.events.Ntypes
-	junk=fgetl(fh);
-	D.events.types=[D.events.types,str2num(junk(end))];
-	junk=fgetl(fh);
-	n=str2num(junk(end-1:end));
-	D.events.code=[D.events.code,ones(1,n)*D.events.types(t)];
-	junk=fgetl(fh);
-	D.Radc=fgetl(fh);
-	D.Radc=str2num(D.Radc(end-3:end));
+    junk=fgetl(fh);
+    D.events.types=[D.events.types,str2num(junk(end))];
+    junk=fgetl(fh);
+    n=str2num(junk(end-1:end));
+    D.events.code=[D.events.code,ones(1,n)*D.events.types(t)];
+    junk=fgetl(fh);
+    D.Radc=fgetl(fh);
+    D.Radc=str2num(D.Radc(end-3:end));
 end
 try 
     D.events.start = S.events.start;
@@ -89,7 +89,7 @@ D.events.stop = D.Nsamples-D.events.start-1;
 D.Nevents=length(D.events.code);
 D.channels.Bad=[];
 for n=1:D.Nchannels
-	D.channels.name{n}=num2str(n);
+    D.channels.name{n}=num2str(n);
 
 end
 D.channels.eeg=1:D.Nchannels;
@@ -124,23 +124,23 @@ else, Ibar = [1:D.Nevents]; end
 
 D.events.time=[];
 for n=1:D.Nevents
-	d=zeros(D.Nsamples,D.Nchannels);
-	if ismember(n, Ibar)
-		spm_progress_bar('Set', n);
-		drawnow;
-	end
-	for time_pt=1:D.Nsamples
-		tempdata=fgetl(fh);
-		tempdata=str2num(tempdata(13:end));
-		tempdata=(tempdata-zero_no).*(400./gain); %corrects for offset and gain
-		tempdata(1,65)=0;
-		d(time_pt,:)=tempdata;
-		
-		
-	end
-	D.events.time=[D.events.time,(n-1)*D.Nsamples+1];
-	D.scale(:, 1, n) = spm_eeg_write(fpd, d', 2, D.datatype);
-	fgetl(fh);
+    d=zeros(D.Nsamples,D.Nchannels);
+    if ismember(n, Ibar)
+        spm_progress_bar('Set', n);
+        drawnow;
+    end
+    for time_pt=1:D.Nsamples
+        tempdata=fgetl(fh);
+        tempdata=str2num(tempdata(13:end));
+        tempdata=(tempdata-zero_no).*(400./gain); %corrects for offset and gain
+        tempdata(1,65)=0;
+        d(time_pt,:)=tempdata;
+        
+        
+    end
+    D.events.time=[D.events.time,(n-1)*D.Nsamples+1];
+    D.scale(:, 1, n) = spm_eeg_write(fpd, d', 2, D.datatype);
+    fgetl(fh);
 end
 
 D.events.reject=zeros(1,D.Nevents);
@@ -153,9 +153,9 @@ D.units = '\muV';
 D.fname = [F '.mat'];
 D.fname = ['e_' D.fname];
 if spm_matlab_version_chk('7') >= 0
-	save(fullfile(P, D.fname), '-V6', 'D');
+    save(fullfile(P, D.fname), '-V6', 'D');
 else
-	save(fullfile(P, D.fname), 'D');
+    save(fullfile(P, D.fname), 'D');
 end
 
 spm_progress_bar('Clear');

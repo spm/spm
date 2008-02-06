@@ -27,9 +27,8 @@ function D = spm_eeg_converteeg2mat(S)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Stefan Kiebel
-% $Id: spm_eeg_converteeg2mat.m 857 2007-07-11 12:43:27Z vladimir $
-% FIF Added by RH
+% Stefan Kiebel, Rik Henson
+% $Id: spm_eeg_converteeg2mat.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG data conversion setup',0);
 

@@ -8,7 +8,7 @@ function [p,hFig] = spm_eeg_inv_displTes(tsurf,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_displTes.m 1131 2008-02-06 11:17:09Z spm $
 
 % mono_c = 1/0 uses monocolor or provided c
 % tri_c = 1/0 , color specified on triangles or vertices
@@ -45,23 +45,23 @@ colo_skin = [1 0 0] ;
 
 mono_c = 0 ;
 if nargin<2
-	c = ones(Ntri,1)*colo_skin ;
-	mono_c = 1 ;
-	tri_c = 1 ;
+    c = ones(Ntri,1)*colo_skin ;
+    mono_c = 1 ;
+    tri_c = 1 ;
 elseif nargin==2
-	if (size(c,1)==1) & ((size(c,2)==1)|(size(c,2)==3))
-		mono_c = 1 ;
-	elseif size(c,1)==tsurf.nr(2)
-		tri_c = 1 ;
-		c3 = apply_colormap(c) ;
-		c = c3 ;
-	elseif size(c,1)==tsurf.nr(1)
-		tri_c = 0 ;
-		c3 = apply_colormap(c) ;
-		c = c3 ;
-	else
-		error('Wrong colour specification') ;
-	end
+    if (size(c,1)==1) & ((size(c,2)==1)|(size(c,2)==3))
+        mono_c = 1 ;
+    elseif size(c,1)==tsurf.nr(2)
+        tri_c = 1 ;
+        c3 = apply_colormap(c) ;
+        c = c3 ;
+    elseif size(c,1)==tsurf.nr(1)
+        tri_c = 0 ;
+        c3 = apply_colormap(c) ;
+        c = c3 ;
+    else
+        error('Wrong colour specification') ;
+    end
 end
 
 hFig = spm_figure('FindWin');
@@ -76,28 +76,28 @@ figure(hFig) ;
 % set(f,'Render','OpenGL')
 set(hFig,'Render','zbuffer')
 if mono_c
-	p = patch('Vertices',vert,'Faces',tri,'FaceColor',colo_skin) ;
-%	p = patch('Vertices',vert,'Faces',tri,'FaceColor',[ 0.3 0.8 0.8 ]) ;
-%	p = patch('Vertices',vert,'Faces',tri,'FaceVertexCData',c) ;
-%	set(p,'FaceLighting','phong','SpecularStrength',.1,...
-%		'AmbientStrength',.45,'EdgeColor','none') ;
-		% ,'FaceColor','interp') ;
-%	set(p,'FaceLighting','phong','SpecularStrength',.001,...
-%		'AmbientStrength',.2,'EdgeColor','none',...
-%		'DiffuseStrength',.6,'SpecularExponent',20) ;
-		% ,'FaceColor','interp') ;
+    p = patch('Vertices',vert,'Faces',tri,'FaceColor',colo_skin) ;
+%   p = patch('Vertices',vert,'Faces',tri,'FaceColor',[ 0.3 0.8 0.8 ]) ;
+%   p = patch('Vertices',vert,'Faces',tri,'FaceVertexCData',c) ;
+%   set(p,'FaceLighting','phong','SpecularStrength',.1,...
+%       'AmbientStrength',.45,'EdgeColor','none') ;
+        % ,'FaceColor','interp') ;
+%   set(p,'FaceLighting','phong','SpecularStrength',.001,...
+%       'AmbientStrength',.2,'EdgeColor','none',...
+%       'DiffuseStrength',.6,'SpecularExponent',20) ;
+        % ,'FaceColor','interp') ;
 else
-	if tri_c
-		p = patch('Vertices',vert,'Faces',tri,'FaceVertexCData',c)
-		set(p,'FaceLighting','phong','SpecularStrength',.1,...
-			'AmbientStrength',.45,'EdgeColor','none',...
-			'FaceColor','interp') ;
-	else
-		p = patch('Vertices',vert,'Faces',tri,'FaceVertexCData',c)
-		set(p,'FaceLighting','phong','SpecularStrength',.1,...
-			'AmbientStrength',.45,'EdgeColor','none',...
-			'FaceColor','interp') ;
-	end
+    if tri_c
+        p = patch('Vertices',vert,'Faces',tri,'FaceVertexCData',c)
+        set(p,'FaceLighting','phong','SpecularStrength',.1,...
+            'AmbientStrength',.45,'EdgeColor','none',...
+            'FaceColor','interp') ;
+    else
+        p = patch('Vertices',vert,'Faces',tri,'FaceVertexCData',c)
+        set(p,'FaceLighting','phong','SpecularStrength',.1,...
+            'AmbientStrength',.45,'EdgeColor','none',...
+            'FaceColor','interp') ;
+    end
 end
 
 view(3)

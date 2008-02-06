@@ -3,9 +3,9 @@ function spm_eeg_convertmat2ana(S)
 % onto the scalp surface
 % FORMAT spm_eeg_convertmat2ana(S)
 %
-% S		    - optinal input struct
+% S         - optinal input struct
 % (optional) fields of S:
-% Fname		- matrix of EEG mat-files
+% Fname     - matrix of EEG mat-files
 % n         - size of quadratic output image (size: n x n x 1)
 %_______________________________________________________________________
 %
@@ -20,7 +20,7 @@ function spm_eeg_convertmat2ana(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 776 2007-03-27 09:40:10Z stefan $
+% $Id: spm_eeg_convertmat2ana.m 1131 2008-02-06 11:17:09Z spm $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 

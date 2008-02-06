@@ -1,7 +1,9 @@
 function [B,Wf]=robust_average(data);
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_average.m 204 2005-07-27 08:51:55Z james $
+% $Id: spm_eeg_robust_average.m 1131 2008-02-06 11:17:09Z spm $
 
 data=data';
 %figure(1)
@@ -23,29 +25,29 @@ ores=1;
 nres=10;
 n=0;
 while abs(ores-nres)>sqrt(1E-8)
-	abs(ores-nres);
-	ores=nres;
-	n=n+1;
-	B=((Xs'*Wis*Xs)^-1)*Xs'*Wis*ndata;
-	if sum(isnan(B))>0
-		break
-	end
-	if n>500
-		break
-	end
-	res=ndata-Xs*B;
-	mad=median(abs(res-median(res)));
-	res=(res)./mad;
-	res=res.*h;	
-	res=reshape(res,s2,s1);
-	res=repmat((mean(abs(res)).*sign(sum(res))),[s2,1]);
-	res=reshape(res,s1*s2,1);
-	res=abs(res)-2;
-	res(res<0)=0;
-	nres=(sum(res.^2));
-	Wf=(((abs(res)<1) .* (1 - res.^2).^2));
-	clear res;
-	Wis=spdiags(Wf,0,Wis);
+    abs(ores-nres);
+    ores=nres;
+    n=n+1;
+    B=((Xs'*Wis*Xs)^-1)*Xs'*Wis*ndata;
+    if sum(isnan(B))>0
+        break
+    end
+    if n>500
+        break
+    end
+    res=ndata-Xs*B;
+    mad=median(abs(res-median(res)));
+    res=(res)./mad;
+    res=res.*h; 
+    res=reshape(res,s2,s1);
+    res=repmat((mean(abs(res)).*sign(sum(res))),[s2,1]);
+    res=reshape(res,s1*s2,1);
+    res=abs(res)-2;
+    res(res<0)=0;
+    nres=(sum(res.^2));
+    Wf=(((abs(res)<1) .* (1 - res.^2).^2));
+    clear res;
+    Wis=spdiags(Wf,0,Wis);
 
 
 end
@@ -59,41 +61,41 @@ end
 % res=reshape(res,s1*s2,1);
 % mad=median(abs(res-median(res)));
 % res=res./mad;
-% res=res.*h;	
+% res=res.*h;   
 % res=abs(res)-1;
 % res(res<0)=0;
 % nres=(sum(res.^2));
 % n=0;
 % while abs(ores-nres)>sqrt(1E-8)
-% 	n=n+1;
-% 	figure(10)
-% 	plot(n,abs(ores-nres),'.')
-% 	hold on
-% 	ores=nres;
-% 	
-% 	
-% 	if n>50
-% 		break
-% 	end
-% 	
-% 	
-% 	B=((Xs'*Wis*Xs)^-1)*Xs'*Wis*ndata;
-% 	res=ndata-Xs*B;
-% 	mad=median(abs(res-median(res)));
-% 	res=(res)./mad;
-% 	res=res.*h;	
-% 	res=reshape(res,s2,s1);
-% 	[df,inds]=(max(abs(res)));
-% 	y=1:length(inds);
-% 	res=repmat(diag(squeeze(res(inds,y)))',[s2,1]);
-% 	res=reshape(res,s1*s2,1);
+%   n=n+1;
+%   figure(10)
+%   plot(n,abs(ores-nres),'.')
+%   hold on
+%   ores=nres;
+%   
+%   
+%   if n>50
+%       break
+%   end
+%   
+%   
+%   B=((Xs'*Wis*Xs)^-1)*Xs'*Wis*ndata;
+%   res=ndata-Xs*B;
+%   mad=median(abs(res-median(res)));
+%   res=(res)./mad;
+%   res=res.*h; 
+%   res=reshape(res,s2,s1);
+%   [df,inds]=(max(abs(res)));
+%   y=1:length(inds);
+%   res=repmat(diag(squeeze(res(inds,y)))',[s2,1]);
+%   res=reshape(res,s1*s2,1);
 % 
-% 	res=abs(res)-1;
-% 	res(res<0)=0;
-% 	nres=(sum(res.^2));
-% 	Wf=(((abs(res)<1) .* (1 - res.^2).^2));
-% 	clear res;
-% 	Wis=spdiags(Wf,0,Wis);
+%   res=abs(res)-1;
+%   res(res<0)=0;
+%   nres=(sum(res.^2));
+%   Wf=(((abs(res)<1) .* (1 - res.^2).^2));
+%   clear res;
+%   Wis=spdiags(Wf,0,Wis);
 % 
 % 
 % end

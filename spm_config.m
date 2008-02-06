@@ -199,7 +199,7 @@ function vals = spm_config
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config.m 1115 2008-01-22 15:58:01Z guillaume $
+% $Id: spm_config.m 1131 2008-02-06 11:17:09Z spm $
 
 ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
 
@@ -241,8 +241,8 @@ ft = {}; dt = {};
 for i=1:length(d)
     d2 = fullfile(tbxdir,d{i});
     di = dir(d2); di = {di(~[di.isdir]).name};
-	f2 = regexp(di,'.*_config_.*\.m$');
-	if ~iscell(f2), f2 = {f2}; end
+    f2 = regexp(di,'.*_config_.*\.m$');
+    if ~iscell(f2), f2 = {f2}; end
     fi = {di{~cellfun('isempty',f2)}};
     ft = {ft{:} fi{:}};
     dt(end+1:end+length(fi)) = deal({d2});
@@ -256,21 +256,21 @@ if ~isempty(ft)
     'but remember to try to keep the function names unique (to reduce ',...
     'clashes with other toolboxes).  See spm_config.m for information about ',...
     'the form of SPM''s configuration files.']};
-	% The toolbox developer MUST add path to his/her toolbox in his/her 'prog'
-	% function, with a command line like:
-	% >> addpath(fullfile(spm('Dir'),'toolbox','mytoolbox'),'-end');
+    % The toolbox developer MUST add path to his/her toolbox in his/her 'prog'
+    % function, with a command line like:
+    % >> addpath(fullfile(spm('Dir'),'toolbox','mytoolbox'),'-end');
     tools      = struct('type','repeat','tag','tools','name','Tools','values',{{ob}});
     tools.help = {'Other tools'};
     cwd = pwd;
-	j = 1;
+    j = 1;
     for i=1:length(ft)
-		try
-		    cd(dt{i});
-        	tools.values{j+1} = feval(strtok(ft{i},'.'));
-			j = j + 1;
-		catch
-			disp(['Loading of toolbox ' fullfile(dt{i},ft{i}) ' failed.']);
-		end
+        try
+            cd(dt{i});
+            tools.values{j+1} = feval(strtok(ft{i},'.'));
+            j = j + 1;
+        catch
+            disp(['Loading of toolbox ' fullfile(dt{i},ft{i}) ' failed.']);
+        end
     end
     cd(cwd);
     vals.values = {vals.values{:},tools};
@@ -307,15 +307,15 @@ p4 = [...
 
 if spm_matlab_version_chk('7.1') >= 0
     p5 = [...
-	'This panel provides information about the meaning of the current item. ' ...
-	'Branches and editable items may hold 2 kinds of help information: "General '...
-	'help", which is read-only, and "Job specific help", which you may edit by '...
-	'selecting "Edit help" from the context menu. There you can put in ' ...
-	'annotations that describe your batch workflow. They will be saved & loaded with ' ...
-	'your batch and thus allow to document the intentions of the batch.'];
+    'This panel provides information about the meaning of the current item. ' ...
+    'Branches and editable items may hold 2 kinds of help information: "General '...
+    'help", which is read-only, and "Job specific help", which you may edit by '...
+    'selecting "Edit help" from the context menu. There you can put in ' ...
+    'annotations that describe your batch workflow. They will be saved & loaded with ' ...
+    'your batch and thus allow to document the intentions of the batch.'];
 else
     p5 = [...
-	'This panel provides information about the meaning of the current item. '];
+    'This panel provides information about the meaning of the current item. '];
 end;
 
 fg = [...

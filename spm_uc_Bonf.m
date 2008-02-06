@@ -4,10 +4,10 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{residuals}]
 % STAT  - Statistical field
-%		'Z' - Gaussian field
-%		'T' - T - field
-%		'X' - Chi squared field
-%		'F' - F - field
+%       'Z' - Gaussian field
+%       'T' - T - field
+%       'X' - Chi squared field
+%       'F' - F - field
 % S     - Voxel count
 % n     - number of conjoint SPMs
 %
@@ -22,7 +22,7 @@ function [u] = spm_uc_Bonf(a,df,STAT,S,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_uc_Bonf.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_uc_Bonf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 u   = spm_u((a/S).^(1/n),df,STAT);

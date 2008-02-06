@@ -21,7 +21,7 @@ function T = spm_bias_estimate(V,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_bias_estimate.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_bias_estimate.m 1131 2008-02-06 11:17:09Z spm $
 
 
 def_flags = struct('nbins',256,'reg',0.01,'cutoff',30);
@@ -63,51 +63,51 @@ plt      = zeros(64,2);
 
 for iter = 1:128,
 
-	[Alpha,Beta,ll, h, n] = spm_bias_mex(V,B1,B2,B3,T,[mx nh]);
-	T     = T(:);
-	T     = T(2:end);
-	Alpha = Alpha(2:end,2:end)/n;
-	Beta  = Beta(2:end)/n;
-	ll    = ll/n;
-	lp    = offset + 0.5*(T'*IC0*T);
-	lpp   = lp+ll;
-	T     = (Alpha + IC0)\(Alpha*T - Beta);
-	T     = reshape([0 ; T],nbas);
+    [Alpha,Beta,ll, h, n] = spm_bias_mex(V,B1,B2,B3,T,[mx nh]);
+    T     = T(:);
+    T     = T(2:end);
+    Alpha = Alpha(2:end,2:end)/n;
+    Beta  = Beta(2:end)/n;
+    ll    = ll/n;
+    lp    = offset + 0.5*(T'*IC0*T);
+    lpp   = lp+ll;
+    T     = (Alpha + IC0)\(Alpha*T - Beta);
+    T     = reshape([0 ; T],nbas);
 
-	[pth,nm] = fileparts(deblank(V.fname));
-	S        = fullfile(pth,['bias_' nm '.mat']);
-	%S       = ['bias_' nm '.mat'];
-	save(S,'V','T','h');
-	fprintf('%g %g\n', ll, lp);
+    [pth,nm] = fileparts(deblank(V.fname));
+    S        = fullfile(pth,['bias_' nm '.mat']);
+    %S       = ['bias_' nm '.mat'];
+    save(S,'V','T','h');
+    fprintf('%g %g\n', ll, lp);
 
-	if iter==1,
-		fg = spm_figure('FindWin','Interactive');
-		if ~isempty(fg),
-			spm_figure('Clear',fg);
-			ax1 = axes('Position', [0.15 0.1 0.8 0.35],...
-				'Box', 'on','Parent',fg);
-			ax2 = axes('Position', [0.15 0.6 0.8 0.35],...
-				'Box', 'on','Parent',fg);
-		end;
-		h0 = h;
-	end;
-	if ~isempty(fg),
-		plt(iter,1) = ll;
-		plt(iter,2) = lpp;
-		plot((1:iter)',plt(1:iter,:),'Parent',ax1,'LineWidth',2);
-		set(get(ax1,'Xlabel'),'string','Iteration','FontSize',10);
-		set(get(ax1,'Ylabel'),'string','Negative Log-Likelihood','FontSize',10);
-		set(ax1,'Xlim',[1 iter+1]);
+    if iter==1,
+        fg = spm_figure('FindWin','Interactive');
+        if ~isempty(fg),
+            spm_figure('Clear',fg);
+            ax1 = axes('Position', [0.15 0.1 0.8 0.35],...
+                'Box', 'on','Parent',fg);
+            ax2 = axes('Position', [0.15 0.6 0.8 0.35],...
+                'Box', 'on','Parent',fg);
+        end;
+        h0 = h;
+    end;
+    if ~isempty(fg),
+        plt(iter,1) = ll;
+        plt(iter,2) = lpp;
+        plot((1:iter)',plt(1:iter,:),'Parent',ax1,'LineWidth',2);
+        set(get(ax1,'Xlabel'),'string','Iteration','FontSize',10);
+        set(get(ax1,'Ylabel'),'string','Negative Log-Likelihood','FontSize',10);
+        set(ax1,'Xlim',[1 iter+1]);
 
-		plot(x,h0,'r', x,h,'b', 'Parent',ax2);
-		set(ax2,'Xlim',[0 x(end)]);
-		set(get(ax2,'Xlabel'),'string','Intensity','FontSize',10);
-		set(get(ax2,'Ylabel'),'string','Frequency','FontSize',10);
-		drawnow;
-	end;
+        plot(x,h0,'r', x,h,'b', 'Parent',ax2);
+        set(ax2,'Xlim',[0 x(end)]);
+        set(get(ax2,'Xlabel'),'string','Intensity','FontSize',10);
+        set(get(ax2,'Ylabel'),'string','Frequency','FontSize',10);
+        drawnow;
+    end;
 
-	if olpp-lpp < 1e-5, delete([ax1 ax2]); break; end;
-	olpp = lpp;
+    if olpp-lpp < 1e-5, delete([ax1 ax2]); break; end;
+    olpp = lpp;
 end;
 return;
 %=======================================================================
@@ -116,8 +116,8 @@ return;
 function mx = get_max(V)
 mx = 0;
 for i=1:V.dim(3),
-	img = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
-	mx  = max([mx max(img(:))]);
+    img = spm_slice_vol(V,spm_matrix([0 0 i]),V.dim(1:2),0);
+    mx  = max([mx max(img(:))]);
 end;
 return;
 %=======================================================================

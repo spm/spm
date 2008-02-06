@@ -49,7 +49,7 @@ end
 %--------------------------------------------------------------------------
 t     = x(1);                       % peristimulus time (sec)
 x     = x(2:end);                   % neuronal states
-m     = length(u);  				% number of inputs
+m     = length(u);                  % number of inputs
 n     = length(P.A{1});             % number of sources
 x     = reshape(x,n,9);             % neuronal states
 
@@ -60,7 +60,7 @@ if nargout == 1 & (t - M.dur) > 1e-6, f = []; return, end
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
 for i = 1:m
-	  P.A{1} = P.A{1} + u(i)*P.B{i};              % forward  connections
+      P.A{1} = P.A{1} + u(i)*P.B{i};              % forward  connections
       P.A{2} = P.A{2} + u(i)*P.B{i};              % backward connections
       P.A{3} = P.A{3} + u(i)*P.B{i};              % lateral  connections
 end

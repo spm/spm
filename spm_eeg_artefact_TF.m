@@ -3,8 +3,8 @@ function D = spm_eeg_artefact_TF(S)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-%Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 265 2005-10-19 17:24:54Z james $
+% Stefan Kiebel, Rik Henson & James Kilner
+% $Id: spm_eeg_artefact_TF.m 1131 2008-02-06 11:17:09Z spm $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -64,7 +64,7 @@ if MustDoWork
         
         trials = find(D.events.code == D.events.types(i));
         for nf=1:D.Nfrequencies
-           for j = tloops %loop across electrodes	
+           for j = tloops %loop across electrodes   
          
                 if ismember((i-1)*length(tloops)+j, Ibar)
                     spm_progress_bar('Set', (i-1)*length(tloops)+j);

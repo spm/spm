@@ -9,7 +9,7 @@ function [Ishortcut, SPM] = spm_eeg_shortcut(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_shortcut.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_shortcut.m 1131 2008-02-06 11:17:09Z spm $
 
 Ishortcut = 0;
 
@@ -29,7 +29,7 @@ if all(size(SPM.xX.X) == size(X1))
         SPM.xVol.DIM = SPM.xY.VY(1).dim(1:3)';
         
         % instead of: 
-        % SPM.xX.xKXs = spm_sp('Set', spm_filter(1, SPM.xX.X));		% KWX
+        % SPM.xX.xKXs = spm_sp('Set', spm_filter(1, SPM.xX.X));     % KWX
         n = size(SPM.xX.X, 1);
         xKXs.X = SPM.xX.X;
         xKXs.ds = ones(n, 1);

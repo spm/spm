@@ -1,7 +1,11 @@
 function opts = spm_config_vbm
 % Configuration file for VBM jobs
 %_______________________________________________________________________
-% %W% %E%
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
+% John Ashburner
+% $Id: spm_config_vbm.m.unused 1131 2008-02-06 11:17:09Z spm $
+
 
 %_______________________________________________________________________
 
@@ -247,17 +251,17 @@ return;
 %------------------------------------------------------------------------
 function do_series(job)
 if isfield(job.data,'multispec'),
-	dat = job.data.multispec;
+    dat = job.data.multispec;
 else,
-	dat = job.data.singlespec;
+    dat = job.data.singlespec;
 end;
 for i=1:length(dat)
-	prm = do_norm_estimate(dat(i),job.norm.estimate,job.priors);
-	nrm = do_norm_write(prm,dat(i),job.norm.write);
-	seg = do_segment(nrm,job.segment,job.priors);
-	clear nrm
-	do_modulate(seg,prm,job.mod);
-	clear seg
+    prm = do_norm_estimate(dat(i),job.norm.estimate,job.priors);
+    nrm = do_norm_write(prm,dat(i),job.norm.write);
+    seg = do_segment(nrm,job.segment,job.priors);
+    clear nrm
+    do_modulate(seg,prm,job.mod);
+    clear seg
 end;
 return;
 %------------------------------------------------------------------------
@@ -269,52 +273,52 @@ dat           = strvcat(dat{:});
 matname       = fullfile(pth,[nam '_sn.mat']);
 
 if isfield(opts,'regular'),
-	opts          = opts.regular;
-	nopts.smosrc  = opts.smosrc;
-	nopts.smoref  = opts.smoref;
-	nopts.regtype = opts.regtype;
-	nopts.weight  = strvcat(opts.weight);
-	nopts.cutoff  = opts.cutoff;
-	nopts.nits    = opts.nits;
-	nopts.reg     = opts.reg;
-	nopts.wtsrc   = 0;
-	V             = spm_vol(dat(1,:));
-	VG            = spm_vol(strvcat(opts.template));
-	VW            = spm_vol(nopts.weight);
-	nopts.graphics= 0;
-	prm           = spm_normalise(VG,V,matname,VW,'',opts);
-	return;
+    opts          = opts.regular;
+    nopts.smosrc  = opts.smosrc;
+    nopts.smoref  = opts.smoref;
+    nopts.regtype = opts.regtype;
+    nopts.weight  = strvcat(opts.weight);
+    nopts.cutoff  = opts.cutoff;
+    nopts.nits    = opts.nits;
+    nopts.reg     = opts.reg;
+    nopts.wtsrc   = 0;
+    V             = spm_vol(dat(1,:));
+    VG            = spm_vol(strvcat(opts.template));
+    VW            = spm_vol(nopts.weight);
+    nopts.graphics= 0;
+    prm           = spm_normalise(VG,V,matname,VW,'',opts);
+    return;
 else,
-	if isfield(opts,'optimised_gm'),
-		opts  = opts.optimised_gm;
-		part  = 1;
-	elseif isfield(opts,'optimised_wm'),
-		opts  = opts.optimised_wm;
-		part  = 2;
-	else,
-		error('Unknown spatial normalisation strategy');
-	end;
+    if isfield(opts,'optimised_gm'),
+        opts  = opts.optimised_gm;
+        part  = 1;
+    elseif isfield(opts,'optimised_wm'),
+        opts  = opts.optimised_wm;
+        part  = 2;
+    else,
+        error('Unknown spatial normalisation strategy');
+    end;
 
-	sopts.estimate.affreg.smosrc  = opts.affreg.smosrc;
-	sopts.estimate.affreg.regtype = opts.affreg.regtype;
-	sopts.estimate.affreg.weight  = strvcat(opts.affreg.weight);
-	sopts.estimate.priors         = strvcat(priors);
-	sopts.estimate.reg            = opts.segment.bias.reg;
-	sopts.estimate.cutoff         = opts.segment.bias.cutoff;
-	sopts.estimate.samp           = opts.segment.custom.samp;
-	sopts.estimate.bb             = opts.segment.custom.bb;
-	sopts.write.cleanup           = opts.segment.cleanup;
-	sopts.write.wrt_cor           = 0;
-	sopts.graphics                = 0;
-	V              = spm_vol(strvcat(dat));
-	VG             = spm_vol(strvcat(opts.affreg.template));
-	V              = spm_segment(V,VG,sopts);
-	V              = V(part);
-	VG             = spm_vol(priors{part});
-	VW             = spm_vol(strvcat(opts.nonlin.weight));
-	opts.nonlin.graphics = 0;
-	prm            = spm_normalise(VG,V,matname,VW,'',opts.nonlin);
-	return;
+    sopts.estimate.affreg.smosrc  = opts.affreg.smosrc;
+    sopts.estimate.affreg.regtype = opts.affreg.regtype;
+    sopts.estimate.affreg.weight  = strvcat(opts.affreg.weight);
+    sopts.estimate.priors         = strvcat(priors);
+    sopts.estimate.reg            = opts.segment.bias.reg;
+    sopts.estimate.cutoff         = opts.segment.bias.cutoff;
+    sopts.estimate.samp           = opts.segment.custom.samp;
+    sopts.estimate.bb             = opts.segment.custom.bb;
+    sopts.write.cleanup           = opts.segment.cleanup;
+    sopts.write.wrt_cor           = 0;
+    sopts.graphics                = 0;
+    V              = spm_vol(strvcat(dat));
+    VG             = spm_vol(strvcat(opts.affreg.template));
+    V              = spm_segment(V,VG,sopts);
+    V              = V(part);
+    VG             = spm_vol(priors{part});
+    VW             = spm_vol(strvcat(opts.nonlin.weight));
+    opts.nonlin.graphics = 0;
+    prm            = spm_normalise(VG,V,matname,VW,'',opts.nonlin);
+    return;
 end;
 return;
 %------------------------------------------------------------------------

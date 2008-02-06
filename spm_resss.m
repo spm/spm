@@ -75,7 +75,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes & John Ashburner
-% $Id: spm_resss.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_resss.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -84,7 +84,7 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 if nargin<4, flags=''; end, if isempty(flags), flags='-'; end
 mask = any(flags=='m');
 if nargin<3, error('insufficient arguments'); end
-ni = size(R,2);					%-ni = #images
+ni = size(R,2);                 %-ni = #images
 if ni~=prod(size(Vi)), error('incompatible dimensions'); end
 if Vo.dt(1)~=16, error('only float output images supported'), end
 
@@ -97,33 +97,33 @@ if ~samef, disp(char(msg)),error('Cannot use images'),end;
 %=======================================================================
 % - C O M P U T A T I O N
 %=======================================================================
-fprintf('%-14s%16s',['(',mfilename,')'],'...initialising')	     %-#
+fprintf('%-14s%16s',['(',mfilename,')'],'...initialising')       %-#
 
-Y  = zeros([Vo.dim(1:2),ni]);				%-PlaneStack data
+Y  = zeros([Vo.dim(1:2),ni]);               %-PlaneStack data
 
 im = logical(zeros(ni,1));
-for j=1:ni, im(j)=~spm_type(Vi(j).dt(1),'NaNrep'); end	%-Images without NaNrep
+for j=1:ni, im(j)=~spm_type(Vi(j).dt(1),'NaNrep'); end  %-Images without NaNrep
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)
-	fprintf('%s%16s',repmat(sprintf('\b'),1,16),...
-		sprintf('...plane %3d/%-3d',p,Vo.dim(3)))       %-#
+    fprintf('%s%16s',repmat(sprintf('\b'),1,16),...
+        sprintf('...plane %3d/%-3d',p,Vo.dim(3)))       %-#
 
-	M = spm_matrix([0 0 p]);			%-Sampling matrix
+    M = spm_matrix([0 0 p]);            %-Sampling matrix
 
-	%-Read plane data
-	for j=1:ni, Y(:,:,j) = spm_slice_vol(Vi(j),M,Vi(j).dim(1:2),0); end
+    %-Read plane data
+    for j=1:ni, Y(:,:,j) = spm_slice_vol(Vi(j),M,Vi(j).dim(1:2),0); end
 
-	%-Apply implicit zero mask for image types without a NaNrep
-	if mask, Y(Y(:,:,im)==0)=NaN; end
+    %-Apply implicit zero mask for image types without a NaNrep
+    if mask, Y(Y(:,:,im)==0)=NaN; end
 
-	e  = R*reshape(Y,prod(Vi(1).dim(1:2)),ni)';	%-residuals as DataMtx
-	ss = reshape(sum(e.^2,1),Vi(1).dim(1:2));	%-ResSS plane
-	Vo = spm_write_plane(Vo,ss,p);			%-Write plane
+    e  = R*reshape(Y,prod(Vi(1).dim(1:2)),ni)'; %-residuals as DataMtx
+    ss = reshape(sum(e.^2,1),Vi(1).dim(1:2));   %-ResSS plane
+    Vo = spm_write_plane(Vo,ss,p);          %-Write plane
 end
 
 
 %-End
 %-----------------------------------------------------------------------
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-	sprintf('...written %s',spm_str_manip(Vo.fname,'t')))        %-#
+    sprintf('...written %s',spm_str_manip(Vo.fname,'t')))        %-#

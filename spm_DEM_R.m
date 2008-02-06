@@ -15,7 +15,11 @@ function [R,V,D] = spm_DEM_R(n,s,dt)
 % R    - (n x n)     E*V*E: precision of n derivatives
 % V    - (n x n)     V:    covariance of n derivatives
 % D    - (n x n)     D:    projector:   Y(t) <- D*y[:]
-%==========================================================================
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_DEM_R.m 1131 2008-02-06 11:17:09Z spm $
 
 % if no serial dependencies 
 %--------------------------------------------------------------------------

@@ -2,6 +2,10 @@ function [F,P] = spm_mvb_bmc
 % multivariate Bayesian model comparison (Baysian decoding of a contrast)
 % FORMAT [F,P] = spm_mvb_bmc
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_mvb_bmc.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Get figure handles and set title

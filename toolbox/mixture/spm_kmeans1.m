@@ -19,7 +19,7 @@ function [mix1] = spm_kmeans1 (y,k)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_kmeans1.m 1131 2008-02-06 11:17:09Z spm $
 
 y=y(:)';
 N=length(y);

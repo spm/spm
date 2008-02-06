@@ -14,7 +14,7 @@ function [psig,chi2] = spm_mar_conn (mar,conn)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_mar_conn.m 1131 2008-02-06 11:17:09Z spm $
 
 pmat=eye(mar.p);
 for i=1:mar.p,

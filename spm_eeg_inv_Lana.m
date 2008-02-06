@@ -1,5 +1,4 @@
 function [Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
-
 % FUNCTION Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr)
 % Calculates the leadfield in a 3-shell sphere head model for a set of
 % distributed dipoles. As this is a spherical model, the solution is analytical
@@ -22,7 +21,7 @@ function [Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_Lana.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_Lana.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin<6
     sigma = [.33 .004 .33];
@@ -38,11 +37,11 @@ nit =zeros(1,Ndip) ;
 % aff=1000 ;
 % fprintf('\n')
 for ii=1:Ndip
-	%	disp(['ii = ',num2str(ii)])
-% 	if rem(ii,aff)==0
+    %   disp(['ii = ',num2str(ii)])
+%   if rem(ii,aff)==0
 %         fprintf(' %3.1f%% calculated. \n',ii/Ndip*100)
 %     end
-	xyz_d = XYZmm(:,ii) ;
+    xyz_d = XYZmm(:,ii) ;
     % This is not the same spherical coordinates as produced by cart2sph !!!
     % azimuth is expressed as:
     % - in here: phi = angle betwee e_x and proj of point on 'oxy' plane
@@ -52,40 +51,40 @@ for ii=1:Ndip
     % - in cartsph : *phi* = angle between point and 'oxy' plane
     %                i.e. *phi* = pi/2 - thet
     
-	no = norm(xyz_d) ;
-	b=no/Rsc ; % eccentricity
-	if no==0
-		thet=0 ;
-	else
-		thet=acos(xyz_d(3)/no) ;
-	end
-	phi = atan2(xyz_d(2),xyz_d(1)) ;
+    no = norm(xyz_d) ;
+    b=no/Rsc ; % eccentricity
+    if no==0
+        thet=0 ;
+    else
+        thet=acos(xyz_d(3)/no) ;
+    end
+    phi = atan2(xyz_d(2),xyz_d(1)) ;
 
-	% Rotation matrix in order to bring the point (i.e. dipole) on e_z
+    % Rotation matrix in order to bring the point (i.e. dipole) on e_z
     rotyz = [cos(phi)*cos(thet) sin(phi)*cos(thet) -sin(thet) ;...
-		     -sin(phi)          cos(phi)            0 ;...
-		     cos(phi)*sin(thet) sin(phi)*sin(thet) cos(thet)] ;
+             -sin(phi)          cos(phi)            0 ;...
+             cos(phi)*sin(thet) sin(phi)*sin(thet) cos(thet)] ;
 
     % Apply the same rotation on electrode locations
-	Pt_m = rotyz * SseXYZ  ;
+    Pt_m = rotyz * SseXYZ  ;
     % and get their spherical coordinates.
-	alpha_p = acos(Pt_m(3,:)/Rsc)' ;
-	beta_p = atan2(Pt_m(2,:),Pt_m(1,:))' ;
+    alpha_p = acos(Pt_m(3,:)/Rsc)' ;
+    beta_p = atan2(Pt_m(2,:),Pt_m(1,:))' ;
 
-	mx = [ cos(phi)*cos(thet) -sin(phi) sin(thet)*cos(phi) ] ;
-	my = [ sin(phi)*cos(thet) cos(phi) sin(thet)*sin(phi)] ;
-	mz = [ -sin(thet) 0 cos(thet) ] ;
+    mx = [ cos(phi)*cos(thet) -sin(phi) sin(thet)*cos(phi) ] ;
+    my = [ sin(phi)*cos(thet) cos(phi) sin(thet)*sin(phi)] ;
+    mz = [ -sin(thet) 0 cos(thet) ] ;
     
     % All data are prepared proceed to main calculation for all electrodes at once.
-	[VR,VT,nit(ii)] = V1dip(Rsc,f1,f2,e,sigma(1),b,alpha_p) ;
+    [VR,VT,nit(ii)] = V1dip(Rsc,f1,f2,e,sigma(1),b,alpha_p) ;
     y  = cos(beta_p) ; yy = sin(beta_p) ;
     
     % the source orientation (after rotation) m_xyz is combined here
     % with the potential V for tangent (VT) and radial (VR) dipole
     % and electrodes location beta_p).
-	Lan(:,3*ii-2) = mx(1)*y.*VT + mx(2)*yy.*VT + mx(3)*VR ;
-	Lan(:,3*ii-1) = my(1)*y.*VT + my(2)*yy.*VT + my(3)*VR ;
-	Lan(:,3*ii) = mz(1)*y.*VT + mz(3)*VR ;
+    Lan(:,3*ii-2) = mx(1)*y.*VT + mx(2)*yy.*VT + mx(3)*VR ;
+    Lan(:,3*ii-1) = my(1)*y.*VT + my(2)*yy.*VT + my(3)*VR ;
+    Lan(:,3*ii) = mz(1)*y.*VT + mz(3)*VR ;
 end
 % fprintf('\n')
 return
@@ -123,25 +122,25 @@ n=3 ; diR=10 ; diT=10 ;
 
 while ((max(abs(diR))>lim) & (max(abs(diT))>lim) & (n<nlim))
     % Update Legendre polynome.
-	Pn  = (2*n-1)/n*x.*Pn_1-(n-1)/n*Pn_2 ;
-	P1n = -(2*n-1)/(1-n)*x.*P1n_1+n/(1-n)*P1n_2 ;
+    Pn  = (2*n-1)/n*x.*Pn_1-(n-1)/n*Pn_2 ;
+    P1n = -(2*n-1)/(1-n)*x.*P1n_1+n/(1-n)*P1n_2 ;
     % Equation (2a) as in paper
-	dn =  ( (n+1)*e + n )*( (n*e)/(n+1) + 1 ) ...
-		+ (1-e)*( (n+1)*e + n ) * ( f1^(2*n+1) - f2^(2*n+1) )...
-		- n*(1-e)^2*(f1/f2)^(2*n+1) ;
-	wn = b^(n-1) * e * (2*n+1)^3 / dn / (n+1) / n ;
+    dn =  ( (n+1)*e + n )*( (n*e)/(n+1) + 1 ) ...
+        + (1-e)*( (n+1)*e + n ) * ( f1^(2*n+1) - f2^(2*n+1) )...
+        - n*(1-e)^2*(f1/f2)^(2*n+1) ;
+    wn = b^(n-1) * e * (2*n+1)^3 / dn / (n+1) / n ;
 
-	VtempR = VtempR_1 + wn*n*Pn ;
-	VtempT = VtempT_1 + wn*P1n ;
+    VtempR = VtempR_1 + wn*n*Pn ;
+    VtempT = VtempT_1 + wn*P1n ;
 
-	diR=(VtempR-VtempR_1) ; % ./ VtempR_1 ;
-	diT=(VtempT-VtempT_1) ; % ./ VtempT_1 ;
+    diR=(VtempR-VtempR_1) ; % ./ VtempR_1 ;
+    diT=(VtempT-VtempT_1) ; % ./ VtempT_1 ;
 
-	n=n+1 ;
-	Pn_2 = Pn_1 ; P1n_2 = P1n_1 ;
-	Pn_1 = Pn   ; P1n_1 = P1n ;
-	VtempR_1 = VtempR ;
-	VtempT_1 = VtempT ;
+    n=n+1 ;
+    Pn_2 = Pn_1 ; P1n_2 = P1n_1 ;
+    Pn_1 = Pn   ; P1n_1 = P1n ;
+    VtempR_1 = VtempR ;
+    VtempT_1 = VtempT ;
 end
 
 VR = VtempR / (4*pi*sig1*R^2) ;

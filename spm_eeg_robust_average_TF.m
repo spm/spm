@@ -3,8 +3,8 @@ function D = spm_eeg_robust_average_TF(S)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-%James Kilner
-% $Id: spm_eeg_artefact.m 265 2005-10-19 17:24:54Z james $
+% James Kilner
+% $Id: spm_eeg_robust_average_TF.m 1131 2008-02-06 11:17:09Z spm $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -88,7 +88,7 @@ for n=1:D.events.Ntypes
     dat = int16(dat./repmat(D.scale(:, 1, 1, n), [1, D.Nfrequencies, D.Nsamples]));
     fwrite(fpd, dat, 'int16');
 end
-fclose (fh)	;
+fclose (fh) ;
 
 fclose(fpd);
 D.Nevents = size(c, 2);

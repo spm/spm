@@ -27,9 +27,7 @@ function [qx,qP,qD,xhist] = spm_pf(M,y,U)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_pf.m 894 2007-08-23 18:37:51Z karl $
-
-
+% $Id: spm_pf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % check model specification

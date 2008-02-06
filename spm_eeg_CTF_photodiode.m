@@ -1,11 +1,18 @@
 function D = spm_eeg_CTF_photodiode(S)
-%%%% function to read in CTF data to Matlab
+% function to read in CTF data to Matlab
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% James Kilner
+% $Id: spm_eeg_CTF_photodiode.m 1131 2008-02-06 11:17:09Z spm $
+
+
 Mname = spm_select(inf, 'dir');
 S.Fdata = deblank(Mname(1, 1:end-1));
 try
-	timewindow = S.tw;
+    timewindow = S.tw;
 catch
-	timewindow = spm_input('do you want to read in all the data','+1','yes|no',[1 0]);
+    timewindow = spm_input('do you want to read in all the data','+1','yes|no',[1 0]);
 end
 if timewindow ==1 
     timeperiod='all';

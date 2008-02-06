@@ -55,7 +55,7 @@ function f = spm_Fpdf(x,v,w)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Fpdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Fpdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -64,30 +64,30 @@ if nargin<2, error('Insufficient arguments'), end
 
 %-Unpack degrees of freedom v & w from single df parameter (v)
 if nargin<3
-	vs = size(v);
-	if prod(vs)==2
-		%-DF is a 2-vector
-		w = v(2); v = v(1);
-	elseif vs(end)==2
-		%-DF has last dimension 2 - unpack v & w
-		nv = prod(vs);
-		w  = reshape(v(nv/2+1:nv),vs(1:end-1));
-		v  = reshape(v(1:nv/2)   ,vs(1:end-1));
-	else
-		error('Can''t unpack both df components from single argument')
-	end
+    vs = size(v);
+    if prod(vs)==2
+        %-DF is a 2-vector
+        w = v(2); v = v(1);
+    elseif vs(end)==2
+        %-DF has last dimension 2 - unpack v & w
+        nv = prod(vs);
+        w  = reshape(v(nv/2+1:nv),vs(1:end-1));
+        v  = reshape(v(1:nv/2)   ,vs(1:end-1));
+    else
+        error('Can''t unpack both df components from single argument')
+    end
 end
 
 %-Check argument sizes
 ad = [ndims(x);ndims(v);ndims(w)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))];...
-	[size(w),ones(1,rd-ad(3))]     ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))];...
+    [size(w),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -97,7 +97,7 @@ f = zeros(rs);
 %-Only defined for strictly positive v & w. Return NaN if undefined.
 md = ( ones(size(x))  &  v>0  &  w>0 );
 if any(~md(:)), f(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Non-zero where defined and x>0
 Q  = find( md  &  x>0 );
@@ -108,5 +108,5 @@ if xa(3), Qw=Q; else Qw=1; end
 
 %-Compute
 f(Q) = (v(Qv)./w(Qw)).^(v(Qv)/2) .* x(Qx).^(v(Qv)/2-1) ./ ...
-	(1+(v(Qv)./w(Qw)).*x(Qx)).^((v(Qv)+w(Qw))/2) ./ ...
-		beta(v(Qv)/2,w(Qw)/2);
+    (1+(v(Qv)./w(Qw)).*x(Qx)).^((v(Qv)+w(Qw))/2) ./ ...
+        beta(v(Qv)/2,w(Qw)/2);

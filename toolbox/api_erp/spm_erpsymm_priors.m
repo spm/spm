@@ -52,7 +52,7 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1069 2008-01-07 18:55:40Z karl $
+% $Id: spm_erpsymm_priors.m 1131 2008-02-06 11:17:09Z spm $
 
 % default: a single source model
 %--------------------------------------------------------------------------

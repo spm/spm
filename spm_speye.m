@@ -4,6 +4,10 @@ function [D] = spm_speye(m,n,k)
 %
 % returns an m x n matrix with ones along the k-th leading diagonal
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_speye.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % default k = 0

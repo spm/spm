@@ -31,7 +31,7 @@ function varargout = spm_eeg_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_conman.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_conman.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % Begin initialization code - DO NOT EDIT
@@ -94,14 +94,14 @@ colour.background = [0.7 0.7 0.7];
 set(handles.conman_eeg, 'Color', colour.background);
 
 % code for re-sizing to actual screen size
-WS = spm('WinScale');				%-Window scaling factors
-FS = spm('FontSizes');				%-Scaled font sizes
-PF = spm_platform('fonts');			%-Font names (for this platform)
-if spm_matlab_version_chk('7') >= 0		%-Screen size
-	S0 = get(0, 'MonitorPosition');
-	S0 = S0(1,:);
+WS = spm('WinScale');               %-Window scaling factors
+FS = spm('FontSizes');              %-Scaled font sizes
+PF = spm_platform('fonts');         %-Font names (for this platform)
+if spm_matlab_version_chk('7') >= 0     %-Screen size
+    S0 = get(0, 'MonitorPosition');
+    S0 = S0(1,:);
 else
-	S0 = get(0,'ScreenSize');
+    S0 = get(0,'ScreenSize');
 end;
 
 names = fieldnames(handles);

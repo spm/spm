@@ -253,9 +253,9 @@ function varargout=spm_XYZreg(varargin)
 % F = figure;
 % %-Create an object to hold the registry
 % hReg = uicontrol(F,'Style','Text','String','hReg',...
-% 	'Position',[100 200 100 025],...
-% 	'FontName','Times','FontSize',14,'FontWeight','Bold',...
-% 	'HorizontalAlignment','Center');
+%   'Position',[100 200 100 025],...
+%   'FontName','Times','FontSize',14,'FontWeight','Bold',...
+%   'HorizontalAlignment','Center');
 % %-Setup M & D
 % V = [65;87;26;02;02;04;33;53;08];
 % M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3) ,1]];
@@ -275,8 +275,8 @@ function varargout=spm_XYZreg(varargin)
 % % (spm_XYZreg_Ex1 called, and prints co-ordinates and handles)
 % %-Have a peek at the registry information
 % RD = get(hReg,'UserData')
-% RD.xyz	%-The current point according to the registry
-% RD.Reg	%-The nx2 cell array of handle/function pairs
+% RD.xyz    %-The current point according to the registry
+% RD.Reg    %-The nx2 cell array of handle/function pairs
 %
 % %-Create an example GUI XYZ control, using spm_XYZreg_Ex2.m
 % hB = spm_XYZreg_Ex2('Create',M,D,xyz);
@@ -320,7 +320,7 @@ function varargout=spm_XYZreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 873 2007-08-02 12:45:58Z john $
+% $Id: spm_XYZreg.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -331,14 +331,14 @@ switch lower(varargin{1}), case 'roundcoords'
 % [xyz,d] = spm_XYZreg('RoundCoords',xyz,V)
 if nargin<3, error('Insufficient arguments'), end
 if nargin<4
-	V = varargin{3};
-	M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3) ,1]];
-	D = V(1:3);
+    V = varargin{3};
+    M = [ [diag(V(4:6)), -(V(7:9).*V(4:6))]; [zeros(1,3) ,1]];
+    D = V(1:3);
 else
-	M = varargin{3};
-	D = varargin{4};
+    M = varargin{3};
+    D = varargin{4};
 end
-	
+    
 %-Round xyz to coordinates of actual voxel centre
 %-Do rounding in voxel coordinates & ensure within image size
 %-Watch out for infinities!
@@ -363,7 +363,7 @@ case 'findxyz'
 if nargin<3, error('Insufficient arguments'), end
 XYZ = varargin{3};
 xyz = varargin{2};
-	
+    
 %-Find XYZ = xyz
 %-----------------------------------------------------------------------
 i = find(all([XYZ(1,:)==xyz(1);XYZ(2,:)==xyz(2);XYZ(3,:)==xyz(3)],1));
@@ -377,7 +377,7 @@ case 'nearestxyz'
 %=======================================================================
 % [xyz,i,d] = spm_XYZreg('NearestXYZ',xyz,XYZ)
 if nargin<3, error('Insufficient arguments'), end
-	
+    
 %-Find in XYZ nearest point to coordinates xyz (Euclidean distance) 
 %-----------------------------------------------------------------------
 [d,i] = min(spm_XYZreg('Edist',varargin{2},varargin{3}));
@@ -390,17 +390,17 @@ case 'edist'
 %=======================================================================
 % d = spm_XYZreg('Edist',xyz,XYZ)
 if nargin<3, error('Insufficient arguments'), end
-	
+    
 %-Calculate (Euclidean) distances from pointlist co-ords to xyz
 %-----------------------------------------------------------------------
-varargout = {sqrt(sum([	(varargin{3}(1,:) - varargin{2}(1));...
-			(varargin{3}(2,:) - varargin{2}(2));...
-			(varargin{3}(3,:) - varargin{2}(3))	].^2))};
+varargout = {sqrt(sum([ (varargin{3}(1,:) - varargin{2}(1));...
+            (varargin{3}(2,:) - varargin{2}(2));...
+            (varargin{3}(3,:) - varargin{2}(3)) ].^2))};
 
 
 
 %=======================================================================
-case 'initreg'		% Initialise registry in handle h
+case 'initreg'      % Initialise registry in handle h
 %=======================================================================
 % [hReg,xyz] = spm_XYZreg('InitReg',hReg,M,D,xyz)
 if nargin<5, xyz=[0;0;0]; else, xyz=varargin{5}; end
@@ -432,7 +432,7 @@ varargout = {hReg,xyz};
 
 
 %=======================================================================
-case 'uninitreg'	% UnInitialise registry in handle hReg
+case 'uninitreg'    % UnInitialise registry in handle hReg
 %=======================================================================
 % spm_XYZreg('UnInitReg',hReg)
 hReg = varargin{2};
@@ -442,7 +442,7 @@ set(hReg,'Tag','','UserData',[])
 
 
 %=======================================================================
-case 'getcoords'	% Get current co-ordinates
+case 'getcoords'    % Get current co-ordinates
 %=======================================================================
 % xyz = spm_XYZreg('GetCoords',hReg)
 if nargin<2, hReg=spm_XYZreg('FindReg'); else, hReg=varargin{2}; end
@@ -453,14 +453,14 @@ varargout = {getfield(get(hReg,'UserData'),'xyz')};
 
 
 %=======================================================================
-case 'setcoords'	% Set co-ordinates & update registered functions
+case 'setcoords'    % Set co-ordinates & update registered functions
 %=======================================================================
 % [xyz,d] = spm_XYZreg('SetCoords',xyz,hReg,hC,Reg)
 % d returned empty if didn't check, warning printed if d not asked for & round
 % Don't check if callerhandle specified (speed)
 % If Registry cell array Reg is specified, then only these handles are updated
 hC=0; mfn=''; if nargin>=4
-	if ~ischar(varargin{4}), hC=varargin{4}; else mfn=varargin{4}; end
+    if ~ischar(varargin{4}), hC=varargin{4}; else mfn=varargin{4}; end
 end
 hReg = varargin{3};
 
@@ -470,14 +470,14 @@ hReg = varargin{3};
 if isempty(hReg), return, end
 %-Check validity of hReg registry handle, correct calling objects if necc.
 if ~ishandle(hReg)
-	str = sprintf('%s: Invalid registry handle (%.4f)',mfilename,hReg);
-	if hC>0
-		%-Remove hReg from caller
-		spm_XYZreg('SetReg',hC,[])
-		str = [str,sprintf('\n\t\t\t...removed from caller (%.4f)',hC)];
-	end
-	warning(str)
-	return
+    str = sprintf('%s: Invalid registry handle (%.4f)',mfilename,hReg);
+    if hC>0
+        %-Remove hReg from caller
+        spm_XYZreg('SetReg',hC,[])
+        str = [str,sprintf('\n\t\t\t...removed from caller (%.4f)',hC)];
+    end
+    warning(str)
+    return
 end
 xyz  = varargin{2};
 
@@ -486,50 +486,50 @@ RD      = get(hReg,'UserData');
 %-Check validity of coords only when called without a caller handle
 %-----------------------------------------------------------------------
 if hC<=0
-	[xyz,d] = spm_XYZreg('RoundCoords',xyz,RD.M,RD.D);
-	if d>0 & nargout<2, warning(sprintf(...
-	    '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
-		mfilename,d)), end
+    [xyz,d] = spm_XYZreg('RoundCoords',xyz,RD.M,RD.D);
+    if d>0 & nargout<2, warning(sprintf(...
+        '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
+        mfilename,d)), end
 else
-	d = 0;
+    d = 0;
 end
 
 %-Sort out valid handles, eliminate caller handle, update co-ords with
 % registered handles via their functions
 %-----------------------------------------------------------------------
 if nargin<5
-	RD.Reg = spm_XYZreg('VReg',RD.Reg);
-	Reg    = RD.Reg;
+    RD.Reg = spm_XYZreg('VReg',RD.Reg);
+    Reg    = RD.Reg;
 else
-	Reg = spm_XYZreg('VReg',varargin{5});
+    Reg = spm_XYZreg('VReg',varargin{5});
 end
 if hC>0 & length(Reg), Reg(find([Reg{:,1}]==varargin{4}),:) = []; end
 for i = 1:size(Reg,1)
-	feval(Reg{i,2},'SetCoords',xyz,Reg{i,1},hReg);
+    feval(Reg{i,2},'SetCoords',xyz,Reg{i,1},hReg);
 end
 
 %-Update registry (if using hReg) with location & cleaned Reg cellarray
 %-----------------------------------------------------------------------
 if nargin<5
-	RD.xyz  = xyz;
-	set(hReg,'UserData',RD)
+    RD.xyz  = xyz;
+    set(hReg,'UserData',RD)
 end
 
 varargout = {xyz,d};
 
 if ~strcmp(mfn,'spm_graph')
-	sHdl=findobj(0,'Tag','SPMGraphSatelliteFig');
-	axHdl=findobj(sHdl,'Type','axes','Tag','SPMGraphSatelliteAxes');
-	%tag for true axis, as legend is of type axis, too
-	for j=1:length(axHdl)
-		autoinp=get(axHdl(j),'UserData');
-		if ~isempty(autoinp), spm_graph([],[],hReg,axHdl(j)); end
-	end
+    sHdl=findobj(0,'Tag','SPMGraphSatelliteFig');
+    axHdl=findobj(sHdl,'Type','axes','Tag','SPMGraphSatelliteAxes');
+    %tag for true axis, as legend is of type axis, too
+    for j=1:length(axHdl)
+        autoinp=get(axHdl(j),'UserData');
+        if ~isempty(autoinp), spm_graph([],[],hReg,axHdl(j)); end
+    end
 end
 
 
 %=======================================================================
-case 'xreg'		% Cross register object handles & functions
+case 'xreg'     % Cross register object handles & functions
 %=======================================================================
 % nReg = spm_XYZreg('XReg',hReg,{h,Fcn}pairs)
 if nargin<4, error('Insufficient arguments'), end
@@ -537,8 +537,8 @@ hReg = varargin{2};
 
 %-Quick check of registry handle
 %-----------------------------------------------------------------------
-if isempty(hReg),	warning('Empty registry handle'), return, end
-if ~ishandle(hReg),	warning('Invalid registry handle'), return, end
+if isempty(hReg),   warning('Empty registry handle'), return, end
+if ~ishandle(hReg), warning('Invalid registry handle'), return, end
 
 %-Condition nReg cell array & check validity of handles to be registered
 %-----------------------------------------------------------------------
@@ -550,7 +550,7 @@ nReg = spm_XYZreg('VReg',nReg,'Warn');
 %-Set hReg registry link for registry candidates (Back registration)
 %-----------------------------------------------------------------------
 for i = 1:size(nReg,1)
-	spm_XYZreg('SetReg',nReg{i,1},hReg);
+    spm_XYZreg('SetReg',nReg{i,1},hReg);
 end
 
 %-Append registry candidates to existing registry & write back to hReg
@@ -570,7 +570,7 @@ varargout = {Reg};
 
 
 %=======================================================================
-case 'add2reg'		% Add handle(s) & function(s) to registry
+case 'add2reg'      % Add handle(s) & function(s) to registry
 %=======================================================================
 % nReg = spm_XYZreg('Add2Reg',hReg,{h,Fcn}pairs)
 if nargin<4, error('Insufficient arguments'), end
@@ -578,8 +578,8 @@ hReg = varargin{2};
 
 %-Quick check of registry handle
 %-----------------------------------------------------------------------
-if isempty(hReg),	warning('Empty registry handle'), return, end
-if ~ishandle(hReg),	warning('Invalid registry handle'), return, end
+if isempty(hReg),   warning('Empty registry handle'), return, end
+if ~ishandle(hReg), warning('Invalid registry handle'), return, end
 
 %-Condition nReg cell array & check validity of handles to be registered
 %-----------------------------------------------------------------------
@@ -601,7 +601,7 @@ varargout = {Reg};
 
 
 %=======================================================================
-case 'setreg'			%-Set registry field of object's UserData
+case 'setreg'           %-Set registry field of object's UserData
 %=======================================================================
 % spm_XYZreg('SetReg',h,hReg)
 if nargin<3, error('Insufficient arguments'), end
@@ -610,7 +610,7 @@ hReg = varargin{3};
 if ( ~ishandle(h) | h==0 ), return, end
 UD = get(h,'UserData');
 if ~isstruct(UD) | ~any(strcmp(fieldnames(UD),'hReg'))
-	error('No UserData structure with hReg field for this object')
+    error('No UserData structure with hReg field for this object')
 end
 UD.hReg = hReg;
 set(h,'UserData',UD)
@@ -618,7 +618,7 @@ set(h,'UserData',UD)
 
 
 %=======================================================================
-case 'unxreg'		% Un-cross register object handles & functions
+case 'unxreg'       % Un-cross register object handles & functions
 %=======================================================================
 % nReg = spm_XYZreg('unXReg',hReg,hD1,hD2,hD3,...)
 if nargin<3, error('Insufficient arguments'), end
@@ -646,7 +646,7 @@ set(hReg,'UserData',RD)
 %-UnSet hReg registry link for hD's still existing (Back un-registration)
 %-----------------------------------------------------------------------
 for i = 1:size(dReg,1)
-	spm_XYZreg('SetReg',dReg{i,1},[]);
+    spm_XYZreg('SetReg',dReg{i,1},[]);
 end
 
 varargout = {Reg};
@@ -654,7 +654,7 @@ varargout = {Reg};
 
 
 %=======================================================================
-case 'del2reg'		% Delete handle(s) & function(s) from registry
+case 'del2reg'      % Delete handle(s) & function(s) from registry
 %=======================================================================
 % nReg = spm_XYZreg('Del2Reg',hReg,hD)
 if nargin<3, error('Insufficient arguments'), end
@@ -683,7 +683,7 @@ varargout = {Reg};
 
 
 %=======================================================================
-case 'unsetreg'			%-Unset registry field of object's UserData
+case 'unsetreg'         %-Unset registry field of object's UserData
 %=======================================================================
 % spm_XYZreg('UnSetReg',h)
 if nargin<2, error('Insufficient arguments'), end
@@ -692,7 +692,7 @@ spm_XYZreg('SetReg',varargin{2},[])
 
 
 %=======================================================================
-case 'cleanreg'		% Clean invalid handles from registry
+case 'cleanreg'     % Clean invalid handles from registry
 %=======================================================================
 % spm_XYZreg('CleanReg',hReg)
 %if ~strcmp(get(hReg,'Tag'),'hReg'), error('Not a registry'), end
@@ -704,7 +704,7 @@ varargout = {Reg};
 
 
 %=======================================================================
-case 'vreg'		% Prune invalid handles from registry cell array
+case 'vreg'     % Prune invalid handles from registry cell array
 %=======================================================================
 % Reg = spm_XYZreg('VReg',Reg,Warn)
 if nargin<3, Warn=0; else, Warn=1; end
@@ -713,15 +713,15 @@ if isempty(Reg), varargout={Reg}; return, end
 i = find(~ishandle([Reg{:,1}]));
 %-***check existance of handling functions : exist('','file')?
 if Warn & length(i), warning([...
-	sprintf('%s: Disregarding invalid registry handles:\n\t',...
-		mfilename),sprintf('%.4f',Reg{i,1})]), end
+    sprintf('%s: Disregarding invalid registry handles:\n\t',...
+        mfilename),sprintf('%.4f',Reg{i,1})]), end
 Reg(i,:)  = [];
 varargout = {Reg};
 
 
 
 %=======================================================================
-case 'findreg'			% Find/check registry object
+case 'findreg'          % Find/check registry object
 %=======================================================================
 % hReg = spm_XYZreg('FindReg',h)
 if nargin<2, h=get(0,'CurrentFigure'); else, h=varargin{2}; end

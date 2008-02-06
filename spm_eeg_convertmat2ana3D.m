@@ -4,9 +4,9 @@ function spm_eeg_convertmat2ana3D(S)
 % onto the scalp surface
 % FORMAT spm_eeg_convertmat2ana3D(S)
 %
-% S		    - optinal input struct
+% S         - optinal input struct
 % (optional) fields of S:
-% Fname		- matrix of EEG mat-files
+% Fname     - matrix of EEG mat-files
 % n         - size of quadratic output image (size: n x n x 1)
 %_______________________________________________________________________
 %
@@ -21,14 +21,14 @@ function spm_eeg_convertmat2ana3D(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 644 2006-10-10 14:08:32Z james $
+% $Id: spm_eeg_convertmat2ana3D.m 1131 2008-02-06 11:17:09Z spm $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 
 % select matfiles to convert
 
 
-% Changed to add time as 3rd rather than 4th dimension		Rik Henson
+% Changed to add time as 3rd rather than 4th dimension      Rik Henson
 % Image orientation matrix includes correct dimensions and origin for time
 % Pixel dimensions added as option (so coordinates could be meaningful in future? (and images "nicer" to dsiplay!!!))
 
@@ -117,10 +117,10 @@ for k = 1:Nsub
             N = nifti;
             N.dat = dat;
 %            N.mat = eye(4);
-            N.mat = [	pixsize 0 0 		 -n*pixsize/2;
-			0 pixsize 0		 -n*pixsize/2;
-			0 0 1000/D{k}.Radc  -D{k}.events.start*1000/D{k}.Radc;
-			0 0 0		 1];
+            N.mat = [   pixsize 0 0          -n*pixsize/2;
+            0 pixsize 0      -n*pixsize/2;
+            0 0 1000/D{k}.Radc  -D{k}.events.start*1000/D{k}.Radc;
+            0 0 0        1];
             N.mat_intent = 'Aligned';
             create(N);
                         

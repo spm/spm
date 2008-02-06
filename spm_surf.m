@@ -27,9 +27,9 @@ function spm_surf(P,mode,thresh)
 %    p  = patch(FV, 'Parent',ax,...
 %           'FaceColor', [0.8 0.7 0.7], 'FaceVertexCData', [],...
 %           'EdgeColor', 'none',...
-%	    'FaceLighting', 'phong',...
+%       'FaceLighting', 'phong',...
 %           'SpecularStrength' ,0.7, 'AmbientStrength', 0.1,...
-%	    'DiffuseStrength', 0.7, 'SpecularExponent', 10);
+%       'DiffuseStrength', 0.7, 'SpecularExponent', 10);
 %    set(0,'CurrentFigure',fg);
 %    set(fg,'CurrentAxes',ax);
 %    l  = camlight(-40, 20); 
@@ -43,20 +43,20 @@ function spm_surf(P,mode,thresh)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_surf.m 660 2006-10-20 12:22:05Z volkmar $
+% $Id: spm_surf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==0,
         [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
-	SPMid = spm('FnBanner',mfilename,'$Rev: 660 $');
-	spm_help('!ContextHelp',mfilename);
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1131 $');
+    spm_help('!ContextHelp',mfilename);
 
-	P    = spm_select([1 Inf],'image','Select images');
+    P    = spm_select([1 Inf],'image','Select images');
 
-	mode = spm_input('Save','+1','m',...
-		['Save Rendering|Save Extracted Surface|'...
-		 'Save Rendering and Surface|Save Surface as OBJ format'],[1 2 3 4],3);
+    mode = spm_input('Save','+1','m',...
+        ['Save Rendering|Save Extracted Surface|'...
+         'Save Rendering and Surface|Save Surface as OBJ format'],[1 2 3 4],3);
 else
     CmdLine = 0;
     Finter = spm_figure('GetWin','Interactive');
@@ -81,13 +81,13 @@ spm('Pointer','Watch')
 V  = spm_vol(P);
 br = zeros(V(1).dim(1:3));
 for i=1:V(1).dim(3),
-	B         = spm_matrix([0 0 i]);
-	tmp       = spm_slice_vol(V(1),B,V(1).dim(1:2),1);
-	for j=2:length(V),
-		M   = V(j).mat\V(1).mat*B;
-		tmp = tmp + spm_slice_vol(V(j),M,V(1).dim(1:2),1);
-	end;
-	br(:,:,i) = tmp;
+    B         = spm_matrix([0 0 i]);
+    tmp       = spm_slice_vol(V(1),B,V(1).dim(1:2),1);
+    for j=2:length(V),
+        M   = V(j).mat\V(1).mat*B;
+        tmp = tmp + spm_slice_vol(V(j),M,V(1).dim(1:2),1);
+    end;
+    br(:,:,i) = tmp;
 end;
 
 % Build a 3x3x3 seperable smoothing kernel and smooth
@@ -102,17 +102,17 @@ spm_conv_vol(br,br,kx,ky,kz,-[1 1 1]);
 [pth,nam,ext] = fileparts(V(1).fname);
 
 if any(mode==[1 3]),
-	% Produce rendering
-	%-----------------------------------------------------------------------
-	matname = fullfile(pth,['render_' nam '.mat']);
-	tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
-	renviews(tmp,matname);
+    % Produce rendering
+    %-----------------------------------------------------------------------
+    matname = fullfile(pth,['render_' nam '.mat']);
+    tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
+    renviews(tmp,matname);
 end;
 
 if any(mode==[2 3 4]),
-	% Produce extracted surface
-	%-----------------------------------------------------------------------
-	tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
+    % Produce extracted surface
+    %-----------------------------------------------------------------------
+    tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
         for k=1:numel(thresh)
             [faces,vertices] = isosurface(br,thresh(k));
 
@@ -126,22 +126,22 @@ if any(mode==[2 3 4]),
                 nam1 = sprintf('%s-%d',nam,k);
             end;
             if any(mode==[2 3]),
-		matname = fullfile(pth,['surf_' nam1 '.mat']);
-		if spm_matlab_version_chk('7.0') >=0,
+        matname = fullfile(pth,['surf_' nam1 '.mat']);
+        if spm_matlab_version_chk('7.0') >=0,
                     save(matname,'-V6','faces','vertices');
-		else
+        else
                     save(matname,'faces','vertices');
-		end;
+        end;
             end;
             if any(mode==[4]),
-		fname = fullfile(pth,[nam1 '.obj']);
-		fid   = fopen(fname,'w');
-		fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 660 $',date);
-		fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
-		fprintf(fid,'g Cortex\n'); % Group Cortex
-		fprintf(fid,'f %d %d %d\n',faces');
-		fprintf(fid,'g\n');
-		fclose(fid);
+        fname = fullfile(pth,[nam1 '.obj']);
+        fid   = fopen(fname,'w');
+        fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 1131 $',date);
+        fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
+        fprintf(fid,'g Cortex\n'); % Group Cortex
+        fprintf(fid,'f %d %d %d\n',faces');
+        fprintf(fid,'g\n');
+        fclose(fid);
             end;
         end;
 end;
@@ -183,9 +183,9 @@ linfun('Rendering: Coronal 2..');       rend{6} = make_struct(V,[pi/2 pi/2 pi]);
 
 linfun('Rendering: Save..');
 if spm_matlab_version_chk('7') >=0
-	save(oname,'-V6','rend');
+    save(oname,'-V6','rend');
 else
-	save(oname,'rend');
+    save(oname,'rend');
 end;
 linfun('                 ');
 disp_renderings(rend);
@@ -195,9 +195,9 @@ return;
 
 %_______________________________________________________________________
 function str = make_struct(V,thetas)
-	[D,M]     = matdim(V.dim(1:3),V.mat,thetas);
-	[ren,dep] = make_pic(V,M*V.mat,D);
-	str       = struct('M',M,'ren',ren,'dep',dep);
+    [D,M]     = matdim(V.dim(1:3),V.mat,thetas);
+    [ren,dep] = make_pic(V,M*V.mat,D);
+    str       = struct('M',M,'ren',ren,'dep',dep);
 return;
 %_______________________________________________________________________
 
@@ -250,14 +250,14 @@ image(0,'Parent',ax);
 set(ax,'YTick',[],'XTick',[]);
 
 for i=1:length(rend),
-	ren = rend{i}.ren;
-	ax=axes('Parent',Fgraph,'units','normalized',...
-		'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
-		'Visible','off');
-	image(ren*64,'Parent',ax);
-	set(ax,'DataAspectRatio',[1 1 1], ...
-		'PlotBoxAspectRatioMode','auto',...
-		'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
+    ren = rend{i}.ren;
+    ax=axes('Parent',Fgraph,'units','normalized',...
+        'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+        'Visible','off');
+    image(ren*64,'Parent',ax);
+    set(ax,'DataAspectRatio',[1 1 1], ...
+        'PlotBoxAspectRatioMode','auto',...
+        'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
 end;
 drawnow;
 return;

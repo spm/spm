@@ -13,11 +13,11 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 %               DCM.contrast().con_vec
 %               DCM.contrast().con_mat
 %               DCM.contrast().con_type ('A', 'B' or 'C')
-%
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_contrasts.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_dcm_contrasts.m 1131 2008-02-06 11:17:09Z spm $
 
 
 Finter = spm_figure('GetWin','Interactive');

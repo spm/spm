@@ -4,7 +4,7 @@ function con = spm_config_contrasts
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman
-% $Id: spm_config_contrasts.m 948 2007-10-15 21:37:49Z Darren $
+% $Id: spm_config_contrasts.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %_______________________________________________________________________
@@ -301,7 +301,7 @@ colbf.tag     = 'colbf';
 colbf.strtype = 'e';
 colbf.num     = [1 1];
 colbf.help    = {['Select which basis function from the basis' ...
-		  ' function set is to be contrasted.']};
+          ' function set is to be contrasted.']};
 
 colmod.type    = 'entry';
 colmod.name    = 'Parametric modulation #';
@@ -309,9 +309,9 @@ colmod.tag     = 'colmod';
 colmod.strtype = 'e';
 colmod.num     = [1 1];
 colmod.help    = {['Select which parametric modulation is to be contrasted.' ...
-		   ' If there is no time/parametric modulation, enter' ...
-		   ' "1". If there are both time and parametric modulations, '...
-		   'then time modulation comes before parametric modulation.']}; 
+           ' If there is no time/parametric modulation, enter' ...
+           ' "1". If there are both time and parametric modulations, '...
+           'then time modulation comes before parametric modulation.']}; 
 
 colmodord.type    = 'entry';
 colmodord.name    = 'Parametric modulation order';
@@ -319,8 +319,8 @@ colmodord.tag     = 'colmodord';
 colmodord.strtype = 'e';
 colmodord.num     = [1 1];
 colmodord.help    = {'Order of parametric modulation to be contrasted. ','', ...
-		     '0 - the basis function itself, 1 - 1st order mod etc'};
-		    
+             '0 - the basis function itself, 1 - 1st order mod etc'};
+            
 colconds.type   = 'branch';
 colconds.name   = 'Contrast entry';
 colconds.tag    = 'colconds';

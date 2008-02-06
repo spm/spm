@@ -14,7 +14,7 @@ function [x,t,xi] = spm_boxcars(T,fs,len)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_boxcars.m 1131 2008-02-06 11:17:09Z spm $
 
 N=T*fs;
 t=[1/fs:1/fs:T];

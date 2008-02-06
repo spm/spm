@@ -4,7 +4,7 @@ function opts = spm_config_surf
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Volkmar Glauche
-% $Id: spm_config_surf.m 775 2007-03-26 16:57:01Z john $
+% $Id: spm_config_surf.m 1131 2008-02-06 11:17:09Z spm $
 
 data.type = 'files';
 data.name = 'Grey+white matter image';
@@ -51,7 +51,7 @@ vfiles={};
 [pth,nam,ext] = fileparts(varargin{1}.data{1});
 
 if any(varargin{1}.mode==[1 3]),
-	vfiles{1} = fullfile(pth,['render_' nam '.mat']);
+    vfiles{1} = fullfile(pth,['render_' nam '.mat']);
 end;
 
 if any(varargin{1}.mode==[2 3 4]),
@@ -61,11 +61,11 @@ if any(varargin{1}.mode==[2 3 4]),
         else
             nam1 = sprintf('%s-%d', nam, k);
         end;
-	if any(varargin{1}.mode==[2 3]),
-		vfiles{end+1} = fullfile(pth,['surf_' nam1 '.mat']);
+    if any(varargin{1}.mode==[2 3]),
+        vfiles{end+1} = fullfile(pth,['surf_' nam1 '.mat']);
         end;
         if any(varargin{1}.mode==[4]),
-		vfiles{end+1} = fullfile(pth,[nam1 '.obj']);
+        vfiles{end+1} = fullfile(pth,[nam1 '.obj']);
         end;
     end;
 end

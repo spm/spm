@@ -10,7 +10,7 @@ function [varargout] = spm_DEM_set(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id$
+% $Id: spm_DEM_set.m 1131 2008-02-06 11:17:09Z spm $
  
 % check recognition model
 % -------------------------------------------------------------------------

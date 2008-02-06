@@ -1,10 +1,15 @@
 function D = spm_eeg_rdata_CTF275(S)
-%%%% function to read in CTF data to Matlab
+% function to read in CTF data to Matlab
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% James Kilner
+% $Id: spm_eeg_rdata_CTF275.m 1131 2008-02-06 11:17:09Z spm $
 
 try
-	timewindow = S.tw;
+    timewindow = S.tw;
 catch
-	timewindow = spm_input('do you want to read in all the data','+1','yes|no',[1 0]);
+    timewindow = spm_input('do you want to read in all the data','+1','yes|no',[1 0]);
 end
 if timewindow ==1 
     timeperiod='all';
@@ -108,9 +113,9 @@ D.scale = ones(D.Nchannels, 1, D.Nevents);
 fpd = fopen(fullfile(D.path, D.fnamedat), 'w');
 for ev=1:D.Nevents
     for n=1:D.Nsamples
-	
-		fwrite(fpd, pre_data.data(n,sens,ev).*1e15, 'float');
-	
+    
+        fwrite(fpd, pre_data.data(n,sens,ev).*1e15, 'float');
+    
     end
 end
 
@@ -223,7 +228,7 @@ D.units = 'femto T';
 if spm_matlab_version_chk('7') >= 0
     save(fullfile(D.path, D.fname), '-V6', 'D');
 else
-	save(fullfile(D.path, D.fname), 'D');
+    save(fullfile(D.path, D.fname), 'D');
 end
 
 % find file name if truncated or with uppercase extension

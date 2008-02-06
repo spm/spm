@@ -19,56 +19,56 @@ function savexml(filename, varargin)
 %  See also SAVE, MAT2XML, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  $Revision: 112 $  $Date: 2003/07/10 13:50 $
+%  $Revision: 1131 $  $Date: 2003/07/10 13:50 $
 
-%  $Id: savexml.m 112 2005-05-04 18:20:52Z john $
+%  $Id: savexml.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin == 0
-	filename = 'matlab.xml';
-	fprintf('\nSaving to: %s\n\n',filename);
+    filename = 'matlab.xml';
+    fprintf('\nSaving to: %s\n\n',filename);
 else
-	if ~ischar(filename)
-		error('[SAVEXML] Argument must contain a string.');
-	end
-	[pathstr,name,ext] = fileparts(filename);
-	if isempty(ext)
-		filename = [filename '.xml'];
-	end
+    if ~ischar(filename)
+        error('[SAVEXML] Argument must contain a string.');
+    end
+    [pathstr,name,ext] = fileparts(filename);
+    if isempty(ext)
+        filename = [filename '.xml'];
+    end
 end
 if nargin <= 1, varargin = {'*'}; end
 
 if nargout > 0
-	error('[SAVEXML] Too many output arguments.');
+    error('[SAVEXML] Too many output arguments.');
 end
 
 if strcmpi(varargin{end},'-append')
-	if length(varargin) > 1
-		varargin = varargin(1:end-1);
-	else
-		varargin = {'*'};
-	end
-	if exist(filename,'file')
-		% TODO % No need to parse the whole tree ? detect duplicate variables ?
-		t = xmltree(filename);
-	else
-		error(sprintf(...
-		'[SAVEXML] Unable to write file %s: file does not exist.',filename));
-	end
+    if length(varargin) > 1
+        varargin = varargin(1:end-1);
+    else
+        varargin = {'*'};
+    end
+    if exist(filename,'file')
+        % TODO % No need to parse the whole tree ? detect duplicate variables ?
+        t = xmltree(filename);
+    else
+        error(sprintf(...
+        '[SAVEXML] Unable to write file %s: file does not exist.',filename));
+    end
 else
-	t = xmltree('<matfile/>');
+    t = xmltree('<matfile/>');
 end
 
 for i=1:length(varargin)
-	v = evalin('caller',['whos(''' varargin{i} ''')']);
-	if isempty(v)
-		error(['[SAVEXML] Variable ''' varargin{i} ''' not found.']);
-	end
-	for j=1:length(v)
-		[t, uid] = add(t,root(t),'element',v(j).name);
-		t = attributes(t,'add',uid,'type',v(j).class);
-		t = attributes(t,'add',uid,'size',xml_num2str(v(j).size));
-		t = xml_var2xml(t,evalin('caller',v(j).name),uid);
-	end
+    v = evalin('caller',['whos(''' varargin{i} ''')']);
+    if isempty(v)
+        error(['[SAVEXML] Variable ''' varargin{i} ''' not found.']);
+    end
+    for j=1:length(v)
+        [t, uid] = add(t,root(t),'element',v(j).name);
+        t = attributes(t,'add',uid,'type',v(j).class);
+        t = attributes(t,'add',uid,'size',xml_num2str(v(j).size));
+        t = xml_var2xml(t,evalin('caller',v(j).name),uid);
+    end
 end
 
 save(t,filename);
@@ -76,64 +76,64 @@ save(t,filename);
 %=======================================================================
 function t = xml_var2xml(t,v,uid)
 
-	switch class(v)
-		case 'double'
-			t = add(t,uid,'chardata',xml_num2str(v));
-		case 'sparse'
-			[i,j,s] = find(v);
-			[t, uid2] = add(t,uid,'element','row');
-			t = attributes(t,'add',uid2,'size',xml_num2str(size(i)));
-			t = add(t,uid2,'chardata',xml_num2str(i));
-			[t, uid2] = add(t,uid,'element','col');
-			t = attributes(t,'add',uid2,'size',xml_num2str(size(j)));
-			t = add(t,uid2,'chardata',xml_num2str(j));
-			[t, uid2] = add(t,uid,'element','val');
-			t = attributes(t,'add',uid2,'size',xml_num2str(size(s)));
-			t = add(t,uid2,'chardata',xml_num2str(s));
-		case 'struct'
-			names = fieldnames(v);
-			for j=1:prod(size(v))
-				for i=1:length(names)
-					[t, uid2] = add(t,uid,'element',names{i});
-					t = attributes(t,'add',uid2,'index',num2str(j));
-					t = attributes(t,'add',uid2,'type',...
-						class(getfield(v(j),names{i})));
-					t = attributes(t,'add',uid2,'size', ...
-						xml_num2str(size(getfield(v(j),names{i}))));
-					t = xml_var2xml(t,getfield(v(j),names{i}),uid2);
-				end
-			end
-		case 'cell'
-			for i=1:prod(size(v))
-				[t, uid2] = add(t,uid,'element','cell'); 
-				% TODO % special handling of cellstr ?
-				t = attributes(t,'add',uid2,'index',num2str(i));
-				t = attributes(t,'add',uid2,'type',class(v{i}));
-				t = attributes(t,'add',uid2,'size',xml_num2str(size(v{i})));
-				t = xml_var2xml(t,v{i},uid2);
-			end
-		case 'char'
-			% TODO % char values should be in CData
-			t = add(t,uid,'chardata',v);
-		case {'int8','uint8','int16','uint16','int32','uint32'}
-			[t, uid] = add(t,uid,'element',class(v));
-			% TODO % Handle integer formats (cannot use sprintf or num2str)
-		otherwise
-			if ismember('serialize',methods(class(v)))
-				% TODO % is CData necessary for class output ?
-				t = add(t,uid,'cdata',serialize(v));
-			else
-				warning(sprintf(...
-				'[SAVEXML] Cannot convert from %s to XML.',class(v)));
-			end
-	end
+    switch class(v)
+        case 'double'
+            t = add(t,uid,'chardata',xml_num2str(v));
+        case 'sparse'
+            [i,j,s] = find(v);
+            [t, uid2] = add(t,uid,'element','row');
+            t = attributes(t,'add',uid2,'size',xml_num2str(size(i)));
+            t = add(t,uid2,'chardata',xml_num2str(i));
+            [t, uid2] = add(t,uid,'element','col');
+            t = attributes(t,'add',uid2,'size',xml_num2str(size(j)));
+            t = add(t,uid2,'chardata',xml_num2str(j));
+            [t, uid2] = add(t,uid,'element','val');
+            t = attributes(t,'add',uid2,'size',xml_num2str(size(s)));
+            t = add(t,uid2,'chardata',xml_num2str(s));
+        case 'struct'
+            names = fieldnames(v);
+            for j=1:prod(size(v))
+                for i=1:length(names)
+                    [t, uid2] = add(t,uid,'element',names{i});
+                    t = attributes(t,'add',uid2,'index',num2str(j));
+                    t = attributes(t,'add',uid2,'type',...
+                        class(getfield(v(j),names{i})));
+                    t = attributes(t,'add',uid2,'size', ...
+                        xml_num2str(size(getfield(v(j),names{i}))));
+                    t = xml_var2xml(t,getfield(v(j),names{i}),uid2);
+                end
+            end
+        case 'cell'
+            for i=1:prod(size(v))
+                [t, uid2] = add(t,uid,'element','cell'); 
+                % TODO % special handling of cellstr ?
+                t = attributes(t,'add',uid2,'index',num2str(i));
+                t = attributes(t,'add',uid2,'type',class(v{i}));
+                t = attributes(t,'add',uid2,'size',xml_num2str(size(v{i})));
+                t = xml_var2xml(t,v{i},uid2);
+            end
+        case 'char'
+            % TODO % char values should be in CData
+            t = add(t,uid,'chardata',v);
+        case {'int8','uint8','int16','uint16','int32','uint32'}
+            [t, uid] = add(t,uid,'element',class(v));
+            % TODO % Handle integer formats (cannot use sprintf or num2str)
+        otherwise
+            if ismember('serialize',methods(class(v)))
+                % TODO % is CData necessary for class output ?
+                t = add(t,uid,'cdata',serialize(v));
+            else
+                warning(sprintf(...
+                '[SAVEXML] Cannot convert from %s to XML.',class(v)));
+            end
+    end
 
 %=======================================================================
 function s = xml_num2str(n)
-	% TODO % use format ?
-	if isempty(n)
-		s = '[]';
-	else
-		s = ['[' sprintf('%g ',n(1:end-1))];
-		s = [s num2str(n(end)) ']'];
-	end
+    % TODO % use format ?
+    if isempty(n)
+        s = '[]';
+    else
+        s = ['[' sprintf('%g ',n(1:end-1))];
+        s = [s num2str(n(end)) ']'];
+    end

@@ -1,14 +1,14 @@
 function Dout = spm_eeg_merge(S);
 % FORMAT D = spm_eeg_merge(S)
 %
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file with continuous data
+% D         - filename of EEG mat-file with continuous data
 % recode    - a cell vector with one cell for each file. A vector in each cell
 %             codes the new event type. This allows to either recode events
 %             or keep their old codes.
 % Output:
-% D			- EEG data struct (also written to files)
+% D         - EEG data struct (also written to files)
 
 % concatenates epoched single trial files
 % concatenated file overwrites first file selected
@@ -16,10 +16,10 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 1080 2008-01-11 11:08:51Z guillaume $
+% $Id: spm_eeg_merge.m 1131 2008-02-06 11:17:09Z spm $
 
 % Changed to allow recoding of first file (though obviously makes some of
-% loop redundant!)			Doris Eckstein
+% loop redundant!)          Doris Eckstein
 % Corrected checks for reject, repl and Bad fields         RH 8/1/08
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
@@ -38,7 +38,7 @@ try
     end
     D = F;
 catch
-	error('Trouble reading files');
+    error('Trouble reading files');
 end
 
 Nfiles = length(D);
@@ -77,9 +77,9 @@ for i = 1:Nfiles
         error(sprintf('Data don''t have the same sampling rate.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname));
     end
 
-	Dtmp = D{i};
+    Dtmp = D{i};
 
-	Dout.Nevents = Dout.Nevents + Dtmp.Nevents;
+    Dout.Nevents = Dout.Nevents + Dtmp.Nevents;
 
     % recode event types!
     try
@@ -104,7 +104,7 @@ for i = 1:Nfiles
     Dout.events.time = [Dout.events.time [Dtmp.events.time] + Dtmp.Nsamples];
         
     if isfield(Dtmp.events, 'reject')
-	Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
+    Dout.events.reject = [Dout.events.reject Dtmp.events.reject];
     end
     
     if isfield(Dtmp.events, 'repl')

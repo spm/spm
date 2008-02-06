@@ -37,7 +37,7 @@ function V = spm_vol(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_vol.m 982 2007-10-26 14:01:54Z john $
+% $Id: spm_vol.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -85,10 +85,10 @@ end;
 counter = 0;
 for i=1:size(P,1),
     v = subfunc(P(i,:));
-	[V(counter+1:counter+size(v, 2),1).fname] = deal('');
-	[V(counter+1:counter+size(v, 2),1).mat] = deal([0 0 0 0]);
-	[V(counter+1:counter+size(v, 2),1).mat] = deal(eye(4));
-	[V(counter+1:counter+size(v, 2),1).mat] = deal([1 0 0]');
+    [V(counter+1:counter+size(v, 2),1).fname] = deal('');
+    [V(counter+1:counter+size(v, 2),1).mat] = deal([0 0 0 0]);
+    [V(counter+1:counter+size(v, 2),1).mat] = deal(eye(4));
+    [V(counter+1:counter+size(v, 2),1).mat] = deal([1 0 0]');
     if isempty(v),
         hread_error_message(P(i,:));
         error(['Can''t get volume information for ''' P(i,:) '''']);
@@ -155,10 +155,10 @@ return;
 %_______________________________________________________________________
 function hread_error_message(q)
 str = {...
-	'Error reading information on:',...
-	['        ',spm_str_manip(q,'k40d')],...
-	' ',...
-	'Please check that it is in the correct format.'};
+    'Error reading information on:',...
+    ['        ',spm_str_manip(q,'k40d')],...
+    ' ',...
+    'Please check that it is in the correct format.'};
 spm('alert*',str,mfilename,sqrt(-1));
 return;
 %_______________________________________________________________________

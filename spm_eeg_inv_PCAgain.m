@@ -1,14 +1,12 @@
-function varargout = PCAgain(varargin)
-
-%=======================================================================
+function varargout = spm_eeg_inv_PCAgain(varargin)
 % Compute the PCA and the normalisation of the gain matrix.
 % This step is a prerequisite to Multivariate Source Prelocalisation
 %
 % FORMAT [Gnorm,VectP,ValP] = spm_eeg_inv_meshing(G)
 % Input:
-% G		    - gain matrix (Nsens x Nsour)
+% G         - gain matrix (Nsens x Nsour)
 % Output:
-% Gnorm		- gain matrix with normalized columns
+% Gnorm     - gain matrix with normalized columns
 %             (each lead-field has been normalized to one)
 % VectP     - matrix containing the eigenvectors of Gnorm
 % ValP      - diagonal matrix containing the eigenvalues of Gnorm
@@ -25,11 +23,11 @@ function varargout = PCAgain(varargin)
 % fname_in  - .mat file containing the gain matrix
 % Output:
 % the output variables are saved in a .mat file whose name is derived from the input file
-%=======================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_PCAgain.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_PCAgain.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % Input
@@ -79,14 +77,14 @@ elseif nargout == 1
     if spm_matlab_version_chk('7') >=0
         save(varargout{1},'-V6','Gnorm','VectP','ValP');
     else
-    	save(varargout{1},'Gnorm','VectP','ValP');
+        save(varargout{1},'Gnorm','VectP','ValP');
     end
 else
     fname_out = fullfile(pth,[nam '_pca.mat']);
 if spm_matlab_version_chk('7') >= 0
         save(fname_out,'-V6','Gnorm','VectP','ValP');
     else
-    	save(fname_out,'Gnorm','VectP','ValP');
+        save(fname_out,'Gnorm','VectP','ValP');
     end
     if nargout ~= 0
         disp('Wrong output format');

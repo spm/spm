@@ -10,6 +10,7 @@ function [T] = spm_eeg_lapmtx(pst)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
+% $Id: spm_eeg_lapmtx.m 1131 2008-02-06 11:17:09Z spm $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

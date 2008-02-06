@@ -2,13 +2,13 @@ function D = spm_eeg_weight_epochs(S);
 % computes contrasts over trials or trial types.
 % FORMAT D = spm_eeg_weight_epochs(S)
 %
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file with epoched data
+% D         - filename of EEG mat-file with epoched data
 % c         - contrast matrix, each row computes a contrast of the data
 %
 % Output:
-% D			- EEG data struct (also written to files)
+% D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 %
 % spm_eeg_weight_epochs computes contrasts of data, over epochs of data. The
@@ -22,9 +22,8 @@ function D = spm_eeg_weight_epochs(S);
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Stefan Kiebel
-% Extended by Rik Henson to handle weighted averages and TF
-% $Id: spm_eeg_weight_epochs.m 955 2007-10-17 15:15:09Z rik $
+% Stefan Kiebel, Rik Henson
+% $Id: spm_eeg_weight_epochs.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -82,22 +81,22 @@ else, Ibar = [1:N_contrasts]; end
 for i = 1:N_contrasts
     
   if WeightAve
-    	p = find(c(i,:)==1);
-    	if ~isempty(p)
-        	r = D.events.repl(p);
-        	c(i,p) = r/sum(r);
-    	end
+        p = find(c(i,:)==1);
+        if ~isempty(p)
+            r = D.events.repl(p);
+            c(i,p) = r/sum(r);
+        end
 
-   	p = find(c(i,:)==-1);
-    	if ~isempty(p)
-        	r = D.events.repl(p);
-        	c(i,p) = -r/sum(r);
-    	end
+    p = find(c(i,:)==-1);
+        if ~isempty(p)
+            r = D.events.repl(p);
+            c(i,p) = -r/sum(r);
+        end
   end
   disp(['Contrast ',mat2str(i),': ',mat2str(c(i,:),3)])
 
   if isfield(D, 'Nfrequencies')
-	
+    
     d = zeros(D.Nchannels, D.Nfrequencies, D.Nsamples);
 
     % Could be made faster!!!
@@ -112,7 +111,7 @@ for i = 1:N_contrasts
 
 %    D.scale(:, 1, 1, i) = (max(abs(reshape(d, [D.Nchannels D.Nfrequencies*D.Nsamples])'))./32767);
 %    d = int16(round(d./repmat(D.scale(:, 1, 1, i), [1 D.Nfrequencies D.Nsamples])));
-    fwrite(fpd, d, 'int16');	
+    fwrite(fpd, d, 'int16');    
 
   else
 

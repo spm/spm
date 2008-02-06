@@ -4,7 +4,7 @@ function D = spm_eeg_rdata_bdf(S)
 % 
 % S       - struct (optional)
 % (optional) fields of S:
-% Fdata		  - filename of bdf-file
+% Fdata       - filename of bdf-file
 % Fchannels   - filename of channel template
 % exg_name    - cell vector that code type of exogeneous channels. Allowed
 %               types are 'heog', 'veog', 'reference' and 'other' 
@@ -19,14 +19,14 @@ function D = spm_eeg_rdata_bdf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_bdf.m 701 2006-11-30 12:37:39Z james $
+% $Id: spm_eeg_rdata_bdf.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','read BDF data setup',0);
 
 try
     Fdata = S.Fdata;
 catch
-	Fdata = spm_select(1, '\.bdf$', 'Select bdf-file');
+    Fdata = spm_select(1, '\.bdf$', 'Select bdf-file');
 end
 
 try
@@ -141,19 +141,19 @@ end
 % Map name of channels (EEG only) to channel order specified in channel
 % template file. EOG channels will be added further below!
 for i = D.channels.eeg
-	index = [];
-	for j = 1:Csetup.Nchannels
-		if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
-			index = [index j];
-		end
-	end
+    index = [];
+    for j = 1:Csetup.Nchannels
+        if ~isempty(find(strcmpi(D.channels.name{i}, Csetup.Cnames{j})))
+            index = [index j];
+        end
+    end
     
-	if isempty(index)
-		warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
-	else
-		% take only the first found channel descriptor
-		D.channels.order(i) = index(1);
-	end
+    if isempty(index)
+        warning(sprintf('No channel named %s found in channel template file.', D.channels.name{i}));
+    else
+        % take only the first found channel descriptor
+        D.channels.order(i) = index(1);
+    end
 
 end
 
@@ -347,7 +347,7 @@ for t = 1:Nblocks
     if ~isempty(Echannel)
         diffs=diff(data.Record(Echannel,:));
         idiffs=find(diffs~=0);
-		idiffs=idiffs+1;
+        idiffs=idiffs+1;
         
         % safe-guard against some unexplained zeroing of Echannel
         if data.Record(Echannel, 1) == 0
@@ -355,37 +355,37 @@ for t = 1:Nblocks
             Ezero = 1;
             break;
         end
-		bytes=dec2bin(data.Record(Echannel,1));
-		bytes=bytes(end-7:end);
-		bytes=flipdim(bytes,2);
-		test_event=bin2dec(bytes);
-		if test_event~=lastevent
-			idiffs=[1,idiffs];
-		end
-		idsf=find(diff(idiffs)==1);
-		if ~isempty(idsf)
-			idiffs(idsf)='';
+        bytes=dec2bin(data.Record(Echannel,1));
+        bytes=bytes(end-7:end);
+        bytes=flipdim(bytes,2);
+        test_event=bin2dec(bytes);
+        if test_event~=lastevent
+            idiffs=[1,idiffs];
+        end
+        idsf=find(diff(idiffs)==1);
+        if ~isempty(idsf)
+            idiffs(idsf)='';
         end
         
 
         if ~isempty(idiffs)
-			if idiffs(1)==1 & lidiffs==1
-				D.events.code=D.events.code(1,1:end-1);
-				D.events.time=D.events.time(1,1:end-1);
-			end
+            if idiffs(1)==1 & lidiffs==1
+                D.events.code=D.events.code(1,1:end-1);
+                D.events.time=D.events.time(1,1:end-1);
+            end
             for i = idiffs
                 bytes=dec2bin(data.Record(Echannel,i));
                 bytes=bytes(end-7:end);
                 bytes=flipdim(bytes,2);
                 event=bin2dec(bytes);
-			
+            
                 D.events.code = [D.events.code event-128];
                 if i==512
-					lidiffs=1;
-				else
-					lidiffs=0;
-				end
-				lastevent=event;
+                    lidiffs=1;
+                else
+                    lidiffs=0;
+                end
+                lastevent=event;
             end
             D.events.time = [D.events.time idiffs+(t-1)*Nsamples];
         end

@@ -64,7 +64,7 @@ function x = spm_invTcdf(F,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_invTcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_invTcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -73,12 +73,12 @@ if nargin<2, error('Insufficient arguments'), end
 
 ad = [ndims(F);ndims(v)];
 rd = max(ad);
-as = [	[size(F),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))]     ];
+as = [  [size(F),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) & any(diff(as(xa,:)))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 
 %-Computation
@@ -90,7 +90,7 @@ x = zeros(rs);
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  v>0 );
 if any(~md(:)), x(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Special case: x is 0 when F=0.5, -Inf when F=0, +Inf when F=1
 x(md & F==0) = -Inf;

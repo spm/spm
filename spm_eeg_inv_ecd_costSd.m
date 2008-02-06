@@ -1,5 +1,4 @@
 function [c,L,j,res] = spm_eeg_ip_costSd(loc) 
-
 % Cost function for the dipoles fitting routine.
 % A "realistic sphere" model is used.
 %
@@ -8,8 +7,8 @@ function [c,L,j,res] = spm_eeg_ip_costSd(loc)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Christophe Phillips,
-% $Id$
+% Christophe Phillips
+% $Id: spm_eeg_inv_ecd_costSd.m 1131 2008-02-06 11:17:09Z spm $
 
 global MODEL V_EEG V_BR OR_OPT FXD_OR
 

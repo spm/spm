@@ -1,23 +1,23 @@
 function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % function spm_slice_timing(P, sliceorder, refslice, timing)
 % INPUT:
-% 	P		nimages x ?	Matrix with filenames
+%   P       nimages x ? Matrix with filenames
 %                       can also be a cell array of the above (multiple subj).
-%	sliceorder	slice acquisition order, a vector of integers, each
+%   sliceorder  slice acquisition order, a vector of integers, each
 %                       integer referring the slice number in the image file
-%			(1=first), and the order of integers representing their
-%			temporal acquisition order
-%	refslice	slice for time 0
-%	timing		additional information for sequence timing
-%			timing(1) = time between slices
-%			timing(2) = time between last slices and next volume
+%           (1=first), and the order of integers representing their
+%           temporal acquisition order
+%   refslice    slice for time 0
+%   timing      additional information for sequence timing
+%           timing(1) = time between slices
+%           timing(2) = time between last slices and next volume
 %       prefix          filename prefix for corrected image files,
 %                       defaults to 'a'
 %
-% 	If no input is specified the function serves as a GUI			
+%   If no input is specified the function serves as a GUI           
 %
 % OUTPUT:
-%	None
+%   None
 %
 %   Slice-time corrected files are prepended with an 'a'
 %
@@ -83,9 +83,9 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Based (in large part) on ACQCORRECT.PRO from Geoff Aguirre and
 % Eric Zarahn at U. Penn.
 %
-% v1.0	07/04/98	DRG
-% v1.1  07/09/98	DRG	fixed code to reflect 1-based indices
-%				of matlab vs. 0-based of pvwave
+% v1.0  07/04/98    DRG
+% v1.1  07/09/98    DRG fixed code to reflect 1-based indices
+%               of matlab vs. 0-based of pvwave
 %
 % Modified by R Henson, C Buechel and J Ashburner, FIL, to
 % handle different reference slices and memory mapping.
@@ -97,11 +97,11 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-%
-% $Id: spm_slice_timing.m 1117 2008-01-23 16:23:37Z guillaume $
+% Darren Gitelman
+% $Id: spm_slice_timing.m 1131 2008-02-06 11:17:09Z spm $
 
 
-SPMid = spm('FnBanner',mfilename,'$Rev: 1117 $');
+SPMid = spm('FnBanner',mfilename,'$Rev: 1131 $');
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Slice timing');
 spm_help('!ContextHelp',mfilename);
 
@@ -113,55 +113,55 @@ if nargin < 1,
                 return;
         end
 
-	for i = 1:nsubjects,
-		% Choose the images
-		PP = [];
-		PP = spm_select(Inf,'image',...
-			['Select images to acquisition correct for subject ' num2str(i)]);
-		P{i} = PP;
-	end;
+    for i = 1:nsubjects,
+        % Choose the images
+        PP = [];
+        PP = spm_select(Inf,'image',...
+            ['Select images to acquisition correct for subject ' num2str(i)]);
+        P{i} = PP;
+    end;
 end;
 
 if iscell(P),
-	nsubjects = length(P);
+    nsubjects = length(P);
 else,
-	nsubjects = 1;
-	P = {P};
+    nsubjects = 1;
+    P = {P};
 end;
 
-Vin 	= spm_vol(P{1}(1,:));
-nslices	= Vin(1).dim(3);
+Vin     = spm_vol(P{1}(1,:));
+nslices = Vin(1).dim(3);
 
-% Modified (simplified) by R. Henson	03/06/25
+% Modified (simplified) by R. Henson    03/06/25
 if nargin < 2,
-  	sliceorder=[];
-	while length(sliceorder)~=nslices | max(sliceorder)>nslices | ...
-		min(sliceorder)<1 | any(diff(sort(sliceorder))~=1),
-		sliceorder = spm_input(...
-		   'Acquisition order? (1=first slice in image)','!+0','e');
-	end;
+    sliceorder=[];
+    while length(sliceorder)~=nslices | max(sliceorder)>nslices | ...
+        min(sliceorder)<1 | any(diff(sort(sliceorder))~=1),
+        sliceorder = spm_input(...
+           'Acquisition order? (1=first slice in image)','!+0','e');
+    end;
 end;
 % End of modification by R. Henson
 
 if nargin < 3,
-	% Choose reference slice (in Analyze format, slice 1 = bottom)
-	% Note: no checking that 1 < refslice < no.slices (default = middle slice)
-	refslice = spm_input('Reference slice? (1=first slice in image)','!+0','e',floor(Vin(1).dim(3)/2));
+    % Choose reference slice (in Analyze format, slice 1 = bottom)
+    % Note: no checking that 1 < refslice < no.slices (default = middle slice)
+    refslice = spm_input('Reference slice? (1=first slice in image)','!+0','e',floor(Vin(1).dim(3)/2));
 end;
 
 if nargin < 4,
-	TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3);
-	TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR-TR/nslices);
-	while TA > TR | TA <= 0,
-		TA = spm_input('Acquisition Time (TA) {secs}','!+0','e',TA);
-	end;
-	timing(2) = TR - TA;
-	timing(1) = TA / (nslices -1);
-	factor = timing(1)/TR;
+    TR = spm_input('Interscan interval (TR) {secs}','!+1','e',3);
+    TA = spm_input('Acquisition Time (TA) {secs}','!+1','e',TR-TR/nslices);
+    while TA > TR | TA <= 0,
+        TA = spm_input('Acquisition Time (TA) {secs}','!+0','e',TA);
+    end;
+    timing(2) = TR - TA;
+    timing(1) = TA / (nslices -1);
+    factor = timing(1)/TR;
 else,
-	TR 	= (nslices-1)*timing(1)+timing(2);
-	fprintf('Your TR is %1.1f\n',TR);
-	factor = timing(1)/TR;
+    TR  = (nslices-1)*timing(1)+timing(2);
+    fprintf('Your TR is %1.1f\n',TR);
+    factor = timing(1)/TR;
 end;
 
 if nargin < 5
@@ -171,104 +171,104 @@ end;
 spm('Pointer','Watch')
 
 for subj = 1:nsubjects
-	task = ['Slice timing: working on session ' num2str(subj)];
-	spm('FigName',task,Finter,CmdLine);
-	PP      = P{subj};
-	Vin 	= spm_vol(PP);
-	nimgo	= numel(Vin);
-	nimg	= 2^(floor(log2(nimgo))+1);
-	nslices_t= Vin(1).dim(3);
-	if nslices_t ~= nslices,
-		fprintf('Number of slices differ! %d %\n', nimg);
-	else
+    task = ['Slice timing: working on session ' num2str(subj)];
+    spm('FigName',task,Finter,CmdLine);
+    PP      = P{subj};
+    Vin     = spm_vol(PP);
+    nimgo   = numel(Vin);
+    nimg    = 2^(floor(log2(nimgo))+1);
+    nslices_t= Vin(1).dim(3);
+    if nslices_t ~= nslices,
+        fprintf('Number of slices differ! %d %\n', nimg);
+    else
 
-		% create new header files
-		Vout 	= Vin;
-		for k=1:nimgo,
-			[pth,nm,xt,vr] = fileparts(deblank(Vin(k).fname));
-			Vout(k).fname  = fullfile(pth,[prefix nm xt vr]);
-			if isfield(Vout(k),'descrip'),
-				desc = [Vout(k).descrip ' '];
-			else,
-				desc = '';
-			end;
-			Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
-		end;
-		Vout = spm_create_vol(Vout);
+        % create new header files
+        Vout    = Vin;
+        for k=1:nimgo,
+            [pth,nm,xt,vr] = fileparts(deblank(Vin(k).fname));
+            Vout(k).fname  = fullfile(pth,[prefix nm xt vr]);
+            if isfield(Vout(k),'descrip'),
+                desc = [Vout(k).descrip ' '];
+            else,
+                desc = '';
+            end;
+            Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
+        end;
+        Vout = spm_create_vol(Vout);
 
-		% Set up large matrix for holding image info
-		% Organization is time by voxels
-		slices = zeros([Vout(1).dim(1:2) nimgo]);
-		stack  = zeros([nimg Vout(1).dim(1)]);
+        % Set up large matrix for holding image info
+        % Organization is time by voxels
+        slices = zeros([Vout(1).dim(1:2) nimgo]);
+        stack  = zeros([nimg Vout(1).dim(1)]);
 
-		spm_progress_bar('Init',nslices,'Correcting acquisition delay','planes complete');
+        spm_progress_bar('Init',nslices,'Correcting acquisition delay','planes complete');
 
-		% For loop to read data slice by slice do correction and write out
-		% In analzye format, the first slice in is the first one in the volume.
+        % For loop to read data slice by slice do correction and write out
+        % In analzye format, the first slice in is the first one in the volume.
 
-		rslice = find(sliceorder==refslice);
-		for k = 1:nslices,
+        rslice = find(sliceorder==refslice);
+        for k = 1:nslices,
 
-			% Set up time acquired within slice order
-			shiftamount  = (find(sliceorder==k) - rslice) * factor;
+            % Set up time acquired within slice order
+            shiftamount  = (find(sliceorder==k) - rslice) * factor;
 
-			% Read in slice data
-			B  = spm_matrix([0 0 k]);
-			for m=1:nimgo,
-				slices(:,:,m) = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
-			end;
+            % Read in slice data
+            B  = spm_matrix([0 0 k]);
+            for m=1:nimgo,
+                slices(:,:,m) = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
+            end;
 
-			% set up shifting variables
-			len     = size(stack,1);
-			phi     = zeros(1,len);
+            % set up shifting variables
+            len     = size(stack,1);
+            phi     = zeros(1,len);
 
-			% Check if signal is odd or even -- impacts how Phi is reflected
-			%  across the Nyquist frequency. Opposite to use in pvwave.
-			OffSet  = 0;
-			if rem(len,2) ~= 0, OffSet = 1; end;
+            % Check if signal is odd or even -- impacts how Phi is reflected
+            %  across the Nyquist frequency. Opposite to use in pvwave.
+            OffSet  = 0;
+            if rem(len,2) ~= 0, OffSet = 1; end;
 
-			% Phi represents a range of phases up to the Nyquist frequency
-			% Shifted phi 1 to right.
-			for f = 1:len/2,
-				phi(f+1) = -1*shiftamount*2*pi/(len/f);
-			end;
+            % Phi represents a range of phases up to the Nyquist frequency
+            % Shifted phi 1 to right.
+            for f = 1:len/2,
+                phi(f+1) = -1*shiftamount*2*pi/(len/f);
+            end;
 
-			% Mirror phi about the center
-			% 1 is added on both sides to reflect Matlab's 1 based indices
-			% Offset is opposite to program in pvwave again because indices are 1 based
-			phi(len/2+1+1-OffSet:len) = -fliplr(phi(1+1:len/2+OffSet));
-	
-			% Transform phi to the frequency domain and take the complex transpose
-			shifter = [cos(phi) + sin(phi)*sqrt(-1)].';
-			shifter = shifter(:,ones(size(stack,2),1)); % Tony's trick
+            % Mirror phi about the center
+            % 1 is added on both sides to reflect Matlab's 1 based indices
+            % Offset is opposite to program in pvwave again because indices are 1 based
+            phi(len/2+1+1-OffSet:len) = -fliplr(phi(1+1:len/2+OffSet));
+    
+            % Transform phi to the frequency domain and take the complex transpose
+            shifter = [cos(phi) + sin(phi)*sqrt(-1)].';
+            shifter = shifter(:,ones(size(stack,2),1)); % Tony's trick
 
-			% Loop over columns
-			for i=1:Vout(1).dim(2),
+            % Loop over columns
+            for i=1:Vout(1).dim(2),
 
-				% Extract columns from slices
-				stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
+                % Extract columns from slices
+                stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
 
-				% fill in continous function to avoid edge effects
-				for g=1:size(stack,2),
-					stack(nimgo+1:end,g) = linspace(stack(nimgo,g),...
-						stack(1,g),nimg-nimgo)';
-				end;
+                % fill in continous function to avoid edge effects
+                for g=1:size(stack,2),
+                    stack(nimgo+1:end,g) = linspace(stack(nimgo,g),...
+                        stack(1,g),nimg-nimgo)';
+                end;
 
-				% shift the columns
-				stack = real(ifft(fft(stack,[],1).*shifter,[],1));
+                % shift the columns
+                stack = real(ifft(fft(stack,[],1).*shifter,[],1));
 
-				% Re-insert shifted columns
-				slices(:,i,:) = reshape(stack(1:nimgo,:)',[Vout(1).dim(1) 1 nimgo]);
-			end;
+                % Re-insert shifted columns
+                slices(:,i,:) = reshape(stack(1:nimgo,:)',[Vout(1).dim(1) 1 nimgo]);
+            end;
 
-			% write out the slice for all volumes
-			for p = 1:nimgo,
-				Vout(p) = spm_write_plane(Vout(p),slices(:,:,p),k);
-			end;
-			spm_progress_bar('Set',k);
-		end;
-		spm_progress_bar('Clear');
-	end
+            % write out the slice for all volumes
+            for p = 1:nimgo,
+                Vout(p) = spm_write_plane(Vout(p),slices(:,:,p),k);
+            end;
+            spm_progress_bar('Set',k);
+        end;
+        spm_progress_bar('Clear');
+    end
 end
 
 spm('FigName','Slice timing: done',Finter,CmdLine);

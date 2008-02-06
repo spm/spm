@@ -6,7 +6,7 @@ function spm_srender(job)
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_srender.m 1131 2008-02-06 11:17:09Z spm $
 
 
 fg  = spm_figure('GetWin','Graphics');

@@ -31,7 +31,7 @@ function varargout = spm_matx(matfile,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_matx.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_matx.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -51,10 +51,10 @@ M = load(matfile);
 %-----------------------------------------------------------------------
 varargout = cell(1,nargout);
 for i=1:min(max(1,nargout),nargin-1)
-	if isfield(M,varargin{i})
-		varargout{i} = getfield(M,varargin{i});
-	else
-		warning(['variable "',varargin{i},'" not found in mat-file: ',...
-				matfile])
-	end
+    if isfield(M,varargin{i})
+        varargout{i} = getfield(M,varargin{i});
+    else
+        warning(['variable "',varargin{i},'" not found in mat-file: ',...
+                matfile])
+    end
 end

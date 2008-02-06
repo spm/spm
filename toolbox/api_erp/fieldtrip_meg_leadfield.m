@@ -10,9 +10,9 @@ function [lf] = fieldtrip_meg_leadfield(pos, grad, vol);
 % [lf] = meg_leadfield(pos, grad, vol);
 %
 % with input arguments
-%   pos		position dipole (1x3 or Nx3)
-%   grad	magnetometer/gradiometer definition
-%   vol	volume conductor definition
+%   pos     position dipole (1x3 or Nx3)
+%   grad    magnetometer/gradiometer definition
+%   vol volume conductor definition
 
 % Copyright (C) 2003, Robert Oostenveld
 %

@@ -16,7 +16,7 @@ function [y] = spm_fx_dcm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fx_dcm.m 870 2007-07-31 09:08:15Z klaas $
+% $Id: spm_fx_dcm.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % hemodynamic parameters
@@ -38,7 +38,7 @@ m         = size(u,1);                  % number of inputs
 if size(x,2) > size(x,1)                % make sure x is a column vector
     x = x';
 end
-n         = size(x,1)/5;  				% number of regions
+n         = size(x,1)/5;                % number of regions
 
 % reshape parameters
 %---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ n         = size(x,1)/5;  				% number of regions
 % effective intrinsic connectivity
 %---------------------------------------------------------------------------
 for i = 1:m
-	  A = A + u(i)*B(:,:,i);
+      A = A + u(i)*B(:,:,i);
 end
 
 % configure state variables

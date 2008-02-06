@@ -1,19 +1,17 @@
 function D = spm_eeg_inv_datareg_ui(varargin)
-
-%==========================================================================
 % Data registration user-interface routine
 % commands the EEG/MEG data co-registration within original sMRI space
 %
 % FORMAT D = spm_eeg_inv_mesh_ui(D,[val])
 % Input:
-% S		    - input data struct (optional)
+% S         - input data struct (optional)
 % Output:
-% D			- same data struct including the new required files and variables
-%==========================================================================
+% D         - same data struct including the new required files and variables
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 956 2007-10-17 15:19:58Z rik $
+% $Id: spm_eeg_inv_datareg_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 % Set-up specfic parameters (POLHEMIUS)
 %==========================================================================
@@ -31,7 +29,7 @@ catch
 end
 
 % For some data formats, fids and headshape encoded in native data formats, 
-% i.e, put into D.channels during data conversion	RH 12/9/07
+% i.e, put into D.channels during data conversion   RH 12/9/07
 try
     fid_eeg   = D.channels.fid_eeg;
     headshape = D.channels.headshape;

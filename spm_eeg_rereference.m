@@ -2,14 +2,14 @@ function D = spm_eeg_rereference(S);
 % rereference EEG data to new reference channel(s)
 % FORMAT D = spm_eeg_rereference(S)
 %
-% S		    - struct (optional)
+% S         - struct (optional)
 % (optional) fields of S:
-% D			- filename of EEG-file with continuous data
+% D         - filename of EEG-file with continuous data
 % Nnewref   - number of new reference channels
 % newref    - new reference channels
 %
 % Output:
-% D			- EEG data struct (also written to files)
+% D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 % 
 % spm_eeg_rereference references all data to a new channel or average of
@@ -20,7 +20,7 @@ function D = spm_eeg_rereference(S);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_rereference.m 710 2006-12-21 14:59:04Z stefan $
+% $Id: spm_eeg_rereference.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 
@@ -33,15 +33,15 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 catch    
-	error(sprintf('Trouble reading file %s', D));
+    error(sprintf('Trouble reading file %s', D));
 end
 
 D.fnamedat = ['R' D.fnamedat];
 
 if ~isfield(D, 'reref')
-	D.reref = [];
+    D.reref = [];
 end
 
 % type all channel names and their indices in matlab window
@@ -52,7 +52,7 @@ end
 try
     D.reref.newref = S.newref;
 catch
-	D.reref.newref = ...
+    D.reref.newref = ...
         spm_input('New reference channel(s)', '+1', 'n', '');
 end
 
@@ -63,15 +63,15 @@ end
 % get time course of new reference for all events
 Tref = zeros(D.Nsamples, D.Nevents);
 for i = 1:D.Nevents
-	if length(D.reref.newref) > 1
-		Tref(:,i) = mean(squeeze(D.data(D.reref.newref, :, i)))';
-	else
-		Tref(:,i) = squeeze(D.data(D.reref.newref, :, i))';
-	end
+    if length(D.reref.newref) > 1
+        Tref(:,i) = mean(squeeze(D.data(D.reref.newref, :, i)))';
+    else
+        Tref(:,i) = squeeze(D.data(D.reref.newref, :, i))';
+    end
 end
 
 if ~iscell(D.channels.ref_name) 
-	D.channels.ref_name = {D.channels.ref_name};
+    D.channels.ref_name = {D.channels.ref_name};
 end
 ref_name_old = D.channels.ref_name;
 reference_old = D.channels.reference;
@@ -83,11 +83,11 @@ D.channels.reference = D.channels.order(D.reref.newref);
 D.channels.ref_name=[];
 
 for i = 1:length(D.reref.newref)
-    	D.channels.ref_name{i} = D.channels.name{D.reref.newref(i)};
+        D.channels.ref_name{i} = D.channels.name{D.reref.newref(i)};
 end
 
 %    if reference_old < length(D.channels.eeg)
-%		D.Nchannels = D.Nchannels - 1;
+%       D.Nchannels = D.Nchannels - 1;
 %    end
 %    D.channels.order(D.reref.newref) = [];
 %    D.channels.name(D.reref.newref) = [];

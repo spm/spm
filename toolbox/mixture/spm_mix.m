@@ -35,7 +35,7 @@ function [mix] = spm_mix (y,m,verbose)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_mix.m 1131 2008-02-06 11:17:09Z spm $
 
 % This code implements the algorithm in:
 %

@@ -37,7 +37,7 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_est_smoothness.m 722 2007-01-25 14:10:00Z john $
+% $Id: spm_est_smoothness.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % assign input argumants
@@ -45,33 +45,33 @@ function [fwhm,VRpv] = spm_est_smoothness(varargin)
 if nargin > 0, V  = varargin{1}; end
 if nargin > 1, VM = varargin{2}; end
 if nargin > 2
-	spm('alert!', 'spm_est_smoothness: Wrong number of arguments');
-	return;
+    spm('alert!', 'spm_est_smoothness: Wrong number of arguments');
+    return;
 end
 if nargin < 1
-	V   = spm_select(inf, '^ResI.*\.img$', 'Select residual images');
+    V   = spm_select(inf, '^ResI.*\.img$', 'Select residual images');
 end
 if nargin < 2
-	VM  = spm_select(1, 'mask.img', 'Select mask image');
+    VM  = spm_select(1, 'mask.img', 'Select mask image');
 end
 
 % intialise
 %-----------------------------------------------------------------------
 if ~isstruct(V)
-	V     = spm_vol(V);
+    V     = spm_vol(V);
 end
 if ~isstruct(VM)
-	VM    = spm_vol(VM);
+    VM    = spm_vol(VM);
 end
 
 %-Intialise RESELS per voxel image
 %-----------------------------------------------------------------------
 VRpv  = struct('fname','RPV.img',...
-			'dim',		VM.dim(1:3),...
-			'dt',		[spm_type('float64') spm_platform('bigend')],...
-			'mat',		VM.mat,...
-			'pinfo',	[1 0 0]',...
-			'descrip',	'spm_spm: resels per voxel');
+            'dim',      VM.dim(1:3),...
+            'dt',       [spm_type('float64') spm_platform('bigend')],...
+            'mat',      VM.mat,...
+            'pinfo',    [1 0 0]',...
+            'descrip',  'spm_spm: resels per voxel');
 VRpv  = spm_create_vol(VRpv);
 
 
@@ -79,8 +79,8 @@ VRpv  = spm_create_vol(VRpv);
 %-----------------------------------------------------------------------
 N     = 3 - sum(VM.dim(1:3) == 1);
 if N == 0
-	fwhm = [Inf Inf Inf];
-	return
+    fwhm = [Inf Inf Inf];
+    return
 end
 
 % find voxels within mask
@@ -88,12 +88,12 @@ end
 [x,y] = ndgrid(1:VM.dim(1), 1:VM.dim(2));
 I     = []; Ix = []; Iy = []; Iz = [];
 for i = 1:VM.dim(3)
-	z  = i*ones(size(x));
-	d  = spm_sample_vol(VM, x, y, z, 0);
-	I  = find(d);
-	Ix = [Ix; x(I)];
-	Iy = [Iy; y(I)];
-	Iz = [Iz; z(I)];
+    z  = i*ones(size(x));
+    d  = spm_sample_vol(VM, x, y, z, 0);
+    I  = find(d);
+    Ix = [Ix; x(I)];
+    Iy = [Iy; y(I)];
+    Iz = [Iz; z(I)];
 end
 
 % compute variance of normalized derivatives in all directions
@@ -105,16 +105,16 @@ spm_progress_bar('Init',100,'smoothness estimation','');
 v     = zeros(size(Ix,1),N);
 ssq   = zeros(size(Ix,1),1);
 for i = 1:length(V) % for all residual images
-	
-	[d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, 1);
-	
-	if N >= 1. v(:, 1) = v(:, 1) + dx.^2;  end
-	if N >= 2. v(:, 2) = v(:, 2) + dy.^2;  end
-	if N >= 3, v(:, 3) = v(:, 3) + dz.^2;  end
+    
+    [d, dx, dy, dz] = spm_sample_vol(V(i), Ix, Iy, Iz, 1);
+    
+    if N >= 1. v(:, 1) = v(:, 1) + dx.^2;  end
+    if N >= 2. v(:, 2) = v(:, 2) + dy.^2;  end
+    if N >= 3, v(:, 3) = v(:, 3) + dz.^2;  end
 
-	ssq  = ssq + d.^2;
+    ssq  = ssq + d.^2;
 
-	spm_progress_bar('Set',100*i/length(V));
+    spm_progress_bar('Set',100*i/length(V));
 
 end
 spm_progress_bar('Clear')
@@ -122,7 +122,7 @@ spm_progress_bar('Clear')
 % normalise derivatives
 %-----------------------------------------------------------------------
 for i = 1:N
-	v(:,i)     = v(:,i)./ssq;
+    v(:,i)     = v(:,i)./ssq;
 end
 
 % eliminate zero variance voxels
@@ -141,12 +141,12 @@ fprintf('\r%-40s: %30s\n',str,'...writing resels/voxel image')  %-#
 fwhm   = sqrt(v./(4*log(2)));
 resel  = prod(fwhm,2);
 for  i = 1:VM.dim(3)
-	d  = NaN*ones(VM.dim(1:2));
-	I  = find(Iz == i);
-	if ~isempty(I)
-		d(sub2ind(VM.dim(1:2), Ix(I), Iy(I))) = resel(I);
-	end
-	VRpv = spm_write_plane(VRpv, d, i);
+    d  = NaN*ones(VM.dim(1:2));
+    I  = find(Iz == i);
+    if ~isempty(I)
+        d(sub2ind(VM.dim(1:2), Ix(I), Iy(I))) = resel(I);
+    end
+    VRpv = spm_write_plane(VRpv, d, i);
 end
 
 % global equivalent FWHM {prod(1/FWHM) = (unbiased) RESEL estimator}

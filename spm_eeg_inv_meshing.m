@@ -1,20 +1,18 @@
 function D = spm_eeg_inv_meshing(varargin)
-
-%==========================================================================
 % Apply the inverse spatial deformation to the template mesh
 % to obtain the individual cortical mesh
 % save the individual .mat tesselation of the chosen size
 %
 % FORMAT D = spm_eeg_inv_meshing(D,val)
 % Input:
-% D		   - input data struct (optional)
+% D        - input data struct (optional)
 % Output:
-% D		   - same data struct including the new files and parameters
-%==========================================================================
+% D        - same data struct including the new files and parameters
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 934 2007-10-05 12:36:29Z karl $
+% $Id: spm_eeg_inv_meshing.m 1131 2008-02-06 11:17:09Z spm $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -46,7 +44,7 @@ if ~D.inv{val}.mesh.template
         canonical = D.inv{val}.mesh.canonical;
     catch
 
-        if strcmp(D.modality,'MEG')		    % No ECD yet for MEG!
+        if strcmp(D.modality,'MEG')         % No ECD yet for MEG!
             D.inv{val}.method = 'Imaging';
         end
 
@@ -54,10 +52,10 @@ if ~D.inv{val}.mesh.template
             D.inv{val}.method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
         end
 
-        if strcmp(D.inv{val}.method,'ECD')	% Use subject-specific mesh for ECD
+        if strcmp(D.inv{val}.method,'ECD')  % Use subject-specific mesh for ECD
             D.inv{val}.mesh.canonical = 0;
         else
-            D.inv{val}.mesh.canonical = 1;	% Use canonical mesh for Imaging
+            D.inv{val}.mesh.canonical = 1;  % Use canonical mesh for Imaging
         end
     end
 else

@@ -16,7 +16,7 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 %
 % spm_ancova uses a General Linear Model of the form:
 %
-%	Y  = X*beta + K*e
+%   Y  = X*beta + K*e
 %
 % to compute the parameter estimates (beta) and make inferences (T or F)
 % where V = K*K' represents the correlation structure. If c has only one
@@ -25,17 +25,17 @@ function [F,df,beta,xX,xCon] = spm_ancova(xX,V,Y,c)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ancova.m 1071 2008-01-08 15:40:43Z guillaume $
+% $Id: spm_ancova.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
 % create design matrix structure if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(xX)
-	xX    = spm_sp('Set',xX);
+    xX    = spm_sp('Set',xX);
 end
 if ~isfield(xX,'pX')
-	xX.pX = spm_sp('x-',xX);
+    xX.pX = spm_sp('x-',xX);
 end
 
 % esitmate parameters and sum of squared residuals
@@ -64,8 +64,8 @@ F     = sum((h*beta).^2,1)./(ResSS*trMV/trRV);
 
 if size(c,2) == 1
 
-	% T statistics
-	%----------------------------------------------------------------------
-	F = sqrt(F).*sign(c'*beta);
+    % T statistics
+    %----------------------------------------------------------------------
+    F = sqrt(F).*sign(c'*beta);
 
 end 

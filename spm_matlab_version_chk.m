@@ -54,9 +54,9 @@ function [status, fieldsUsed] = spm_matlab_version_chk(chk,tbx)
 
 %__________________________________________________________________________
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
-%
+
 % Darren Gitelman
-% $Id: spm_matlab_version_chk.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_matlab_version_chk.m 1131 2008-02-06 11:17:09Z spm $
 
 % output variable
 %--------------------------------------------------------------------------

@@ -55,12 +55,12 @@ function [xVi] = spm_non_sphericity(xVi)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_non_sphericity.m 628 2006-09-18 13:33:26Z karl $
+% $Id: spm_non_sphericity.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % create covariance components Q{:}
 %===========================================================================
-[n f] = size(xVi.I);			% # observations, % # Factors
+[n f] = size(xVi.I);            % # observations, % # Factors
 l     = max(xVi.I);                     % levels
 
 % if var(i): add variance component for each level of factor i,

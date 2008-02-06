@@ -13,7 +13,7 @@ function [G,Psig] = spm_granger (mar)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_granger.m 1131 2008-02-06 11:17:09Z spm $
 
 d=size(mar.noise_cov,1);
 

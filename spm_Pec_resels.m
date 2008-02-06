@@ -11,7 +11,7 @@ function R = spm_Pec_resels(L,W)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_Pec_resels.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Pec_resels.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % Resel Counts
@@ -39,19 +39,19 @@ for i = 1:P
     d  =     any(~any([x - L(1,i) - 0;y - L(2,i) - 1;z - L(3,i) - 0]));
     d  = d & any(~any([x - L(1,i) - 1;y - L(2,i) - 1;z - L(3,i) - 0]));
     if d
-	Fxy = Fxy + 1;
-	d   =     any(~any([x - L(1,i) - 0;y - L(2,i) - 0;z - L(3,i) - 1]));
-	d   = d & any(~any([x - L(1,i) - 1;y - L(2,i) - 0;z - L(3,i) - 1]));
-	d   = d & any(~any([x - L(1,i) - 1;y - L(2,i) - 1;z - L(3,i) - 1]));
-	d   = d & any(~any([x - L(1,i) - 0;y - L(2,i) - 1;z - L(3,i) - 1]));
-	if d
-		C = C + 1;
-	end
+    Fxy = Fxy + 1;
+    d   =     any(~any([x - L(1,i) - 0;y - L(2,i) - 0;z - L(3,i) - 1]));
+    d   = d & any(~any([x - L(1,i) - 1;y - L(2,i) - 0;z - L(3,i) - 1]));
+    d   = d & any(~any([x - L(1,i) - 1;y - L(2,i) - 1;z - L(3,i) - 1]));
+    d   = d & any(~any([x - L(1,i) - 0;y - L(2,i) - 1;z - L(3,i) - 1]));
+    if d
+        C = C + 1;
+    end
     end
     d  =     any(~any([x - L(1,i) - 0;y - L(2,i) - 0;z - L(3,i) - 1]));
     d  = d & any(~any([x - L(1,i) - 1;y - L(2,i) - 0;z - L(3,i) - 1]));
     if d
-	Fxz = Fxz + 1;
+    Fxz = Fxz + 1;
     end
   end
   d = any(~any([x - L(1,i) - 0;y - L(2,i) - 1;z - L(3,i) - 0]));
@@ -60,7 +60,7 @@ for i = 1:P
     d  =     any(~any([x - L(1,i) - 0;y - L(2,i) - 0;z - L(3,i) - 1]));
     d  = d & any(~any([x - L(1,i) - 0;y - L(2,i) - 1;z - L(3,i) - 1]));
     if d
-	Fyz = Fyz + 1;
+    Fyz = Fyz + 1;
     end
   end
   d = any(~any([x - L(1,i) - 0;y - L(2,i) - 0;z - L(3,i) - 1]));

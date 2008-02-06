@@ -6,7 +6,7 @@ function [M,Mi,i] = spm_meanby(Y,I)
 %    - Multi-column I are treated as multiple factors to be interacted, 
 %      and means are computed within each unique combination of the factor levels
 % M  - Matrix of same size as Y, with observations replaced by the
-%	  appropriate group mean
+%     appropriate group mean
 % Mi - Mean for observations in each group, one column for each column of Y,
 %      one row for each group (or unique factor level combination)
 % i  - Group indicator values corresponding to rows of Mi
@@ -18,7 +18,7 @@ function [M,Mi,i] = spm_meanby(Y,I)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_meanby.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_meanby.m 1131 2008-02-06 11:17:09Z spm $
 
 
 

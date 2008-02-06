@@ -1,6 +1,4 @@
 function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
-
-%=======================================================================
 % Reads Polhemus files:
 %   either sensor file or headshape file or both
 %
@@ -23,11 +21,11 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
 % channels; the skip variable allows these to be skipped if necessary.
 % The fiducial locations are flaged with the strings 'NZ','LE' and 'RE'; 
 % indicating the Nasion, left and right eare respectively
-%=======================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_ReadPolhemus.m 1131 2008-02-06 11:17:09Z spm $
 
 
 

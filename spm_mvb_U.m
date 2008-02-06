@@ -12,6 +12,10 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % xyz    - location in mm for coherent priors
 % vox    - voxel size for coherent priors
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_mvb_U.m 1131 2008-02-06 11:17:09Z spm $
  
 % defaults
 %--------------------------------------------------------------------------

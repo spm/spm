@@ -19,7 +19,7 @@ function [U] = spm_ind_u(t,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id$
+% $Id: spm_ind_u.m 1131 2008-02-06 11:17:09Z spm $
 
 % stimulus - subcortical impulse - a gamma function
 %--------------------------------------------------------------------------

@@ -1,6 +1,4 @@
 function [D,val] = spm_eeg_inv_check(varargin)
-
-%==========================================================================
 % Checks that the EEG/EMG .mat file structure is loaded properly and that
 % the particular inversion of interest has been specified
 %
@@ -11,11 +9,11 @@ function [D,val] = spm_eeg_inv_check(varargin)
 % Output:
 % D              - data structure
 % val            - model of interest D.val
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout, Karl Friston
-% $Id: spm_eeg_inv_check.m 621 2006-09-12 17:22:42Z karl $
+% $Id: spm_eeg_inv_check.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % Check - prompt for file if necessary

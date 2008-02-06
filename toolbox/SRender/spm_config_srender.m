@@ -4,7 +4,7 @@ function c = spm_config_render
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_srender.m 1131 2008-02-06 11:17:09Z spm $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
         '''tag'',tag,''strtype'',strtype,''num'',num,''help'',{{}})'],...

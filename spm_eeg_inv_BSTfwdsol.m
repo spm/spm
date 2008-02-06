@@ -1,6 +1,4 @@
 function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
-
-%=======================================================================
 % FORMAT D = spm_eeg_inv_BSTparameters(D,val)
 %
 % This function defines the required options for running the BrainStorm
@@ -14,15 +12,15 @@ function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 % D                - EEG/MEG struct with filenames of Gain matrices)
 %
 % See also help lines in bst_headmodeler.m
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 1001 2007-11-16 15:25:56Z christophe $
+% $Id: spm_eeg_inv_BSTfwdsol.m 1131 2008-02-06 11:17:09Z spm $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) and to allow sphere to be fit to other surfaces, eg
-% inner skull rather than scalp				4/6/07
+% inner skull rather than scalp             4/6/07
 
 % initialise
 %--------------------------------------------------------------------------
@@ -61,13 +59,13 @@ disp(OPTIONS.Method)
 
 % Added by Rik to allow different options for sphere fitting 
 try 
-	sphere2fit = D.inv{val}.forward.sphere2fit;
+    sphere2fit = D.inv{val}.forward.sphere2fit;
 catch
-	if isfield(D.inv{val}.mesh,'tess_iskull')
-		sphere2fit = 2;		% Default to inner skull
-	else
-		sphere2fit = 1;		% Cortex 
-	end
+    if isfield(D.inv{val}.mesh,'tess_iskull')
+        sphere2fit = 2;     % Default to inner skull
+    else
+        sphere2fit = 1;     % Cortex 
+    end
 end
 % COULD ADD OPTION TO FIT SPHERE TO POLHEMUS HEAD SHAPE!
 
@@ -207,7 +205,7 @@ if (D.modality == 'MEG')
     orientation  = D.inv{val}.datareg.sens_orient_coreg';
 end
 
-ncoil = size(sens,1)/3;	% = 2 at least one gradiometer present (see spm_bst_headmodeler)
+ncoil = size(sens,1)/3; % = 2 at least one gradiometer present (see spm_bst_headmodeler)
 
 if ncoil > 1
     OPTIONS.HeadCenter = repmat(OPTIONS.HeadCenter,1,ncoil);
@@ -225,25 +223,25 @@ for i = 1:length(sens)
     end
 
     if isfield(D.channels,'Weight')
-	Channel(i).Weight  = D.channels.Weight(i,:);
+    Channel(i).Weight  = D.channels.Weight(i,:);
     elseif ncoil == 1
-    	Channel(i).Weight  = 1;
-    else		
+        Channel(i).Weight  = 1;
+    else        
     % (currently only handles first-order gradiometers, ie two coils)
     %----------------------------------------------------------------------
-	% this is a gradiometer
-	if all(isfinite(Channel(i).Loc(:,2)))
-	    Channel(i).Weight  = [1 -1];
-	else						
+    % this is a gradiometer
+    if all(isfinite(Channel(i).Loc(:,2)))
+        Channel(i).Weight  = [1 -1];
+    else                        
         % magnetometer
-    	    Channel(i).Weight  = [1 0];
-	end
+            Channel(i).Weight  = [1 0];
+    end
     end
 
     if ncoil > 1
-      if ~all(isfinite(Channel(i).Loc(:,2)))		% replace mag NaNs
-	Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
-	Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
+      if ~all(isfinite(Channel(i).Loc(:,2)))        % replace mag NaNs
+    Channel(i).Loc(:,2) = Channel(i).Loc(:,1);
+    Channel(i).Orient(:,2) = Channel(i).Orient(:,1);
       end
     end
     Channel(i).Comment = num2str(i);

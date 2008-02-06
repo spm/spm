@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 256 2005-10-17 18:57:24Z guillaume $
+% $Id: spm_defaults.m 1131 2008-02-06 11:17:09Z spm $
 
 
 global defaults
@@ -99,9 +99,9 @@ defaults.normalise.write.wrap       = [0 0 0];
 % Segmentation defaults
 %=======================================================================
 defaults.segment.estimate.priors = char(...
-	fullfile(spm('Dir'),'apriori','grey.nii'),...
-	fullfile(spm('Dir'),'apriori','white.nii'),...
-	fullfile(spm('Dir'),'apriori','csf.nii'));
+    fullfile(spm('Dir'),'apriori','grey.nii'),...
+    fullfile(spm('Dir'),'apriori','white.nii'),...
+    fullfile(spm('Dir'),'apriori','csf.nii'));
 defaults.segment.estimate.reg    = 0.01;
 defaults.segment.estimate.cutoff = 30;
 defaults.segment.estimate.samp   = 3;
@@ -116,9 +116,9 @@ defaults.segment.write.wrt_brV   = 1;
 
 % Bias field estimation defaults (UNUSED)
 %=======================================================================
-defaults.bias.nbins  = 256;	% Number of histogram bins
-defaults.bias.reg    = 0.01;	% Regularisation
-defaults.bias.cutoff = 30;	% DCT frequency cutoff (mm)
+defaults.bias.nbins  = 256; % Number of histogram bins
+defaults.bias.reg    = 0.01;    % Regularisation
+defaults.bias.cutoff = 30;  % DCT frequency cutoff (mm)
 
 % VBM Preprocessing defaults
 %=======================================================================

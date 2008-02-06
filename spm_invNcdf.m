@@ -62,7 +62,7 @@ function x = spm_invNcdf(F,u,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_invNcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_invNcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -73,13 +73,13 @@ if nargin<2, u=0; end
 if nargin<1, x=[]; return, end
 ad = [ndims(F);ndims(u);ndims(v)];
 rd = max(ad);
-as = [	[size(F),ones(1,rd-ad(1))];...
-	[size(u),ones(1,rd-ad(2))];...
-	[size(v),ones(1,rd-ad(3))]     ];
+as = [  [size(F),ones(1,rd-ad(1))];...
+    [size(u),ones(1,rd-ad(2))];...
+    [size(v),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -90,7 +90,7 @@ x = zeros(rs);
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  ones(size(u))  &  v>0 );
 if any(~md(:)), x(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Compute where defined
 Q  = find( md );

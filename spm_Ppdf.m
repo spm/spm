@@ -54,7 +54,7 @@ function f = spm_Ppdf(x,l)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Ppdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Ppdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -64,12 +64,12 @@ if nargin<1, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(l)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(l),ones(1,rd-ad(2))];    ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(l),ones(1,rd-ad(2))];    ];
 rs = max(as);
 xa = prod(as,2)>1;
 if all(xa) & any(diff(as(xa,:)))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 
 %-Computation
@@ -80,7 +80,7 @@ f = zeros(rs);
 %-Only defined for l>0. Return NaN if undefined.
 md = ( ones(size(x))  &  l>0 );
 if any(~md(:)), f(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Non-zero only where defined and x is whole
 Q  = find( md  &  x>=0  &  x==floor(x) );

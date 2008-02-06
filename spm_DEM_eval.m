@@ -28,7 +28,7 @@ function [E, dE] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_DEM_eval.m 1131 2008-02-06 11:17:09Z spm $
 
 % persistent variables to avoid redundant evaluations
 %==========================================================================

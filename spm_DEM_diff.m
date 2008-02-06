@@ -16,7 +16,7 @@ function [u, dgdv, dgdx, dfdv, dfdx] = spm_DEM_diff(M,u);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id$
+% $Id: spm_DEM_diff.m 1131 2008-02-06 11:17:09Z spm $
  
 % number of states and parameters
 %--------------------------------------------------------------------------

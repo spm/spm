@@ -10,9 +10,9 @@ function [X] = spm_en(X)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_en.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_en.m 1131 2008-02-06 11:17:09Z spm $
 
 
 for i = 1:size(X,2)
-	X(:,i) = X(:,i)/sqrt(sum(X(:,i).^2));
+    X(:,i) = X(:,i)/sqrt(sum(X(:,i).^2));
 end

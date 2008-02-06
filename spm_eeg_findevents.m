@@ -2,18 +2,18 @@ function D = spm_eeg_findevents(S)
 % function used for epoching continuous EEG/MEG data
 % FORMAT D = spm_eeg_epochs(S)
 % 
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file with continuous data
+% D         - filename of EEG mat-file with continuous data
 % events    - struct with various entries:
 %    start     - pre-stimulus start of epoch [ms]
-%    stop	   - post-stimulus end of epoch [ms]
-%    types	   - events to extract (vector of event types)
+%    stop      - post-stimulus end of epoch [ms]
+%    types     - events to extract (vector of event types)
 %    Inewlist  - switch (0/1) to have new list of event codes
 %    Ec        - list of new event codes
 %
 % Output:
-% D			- EEG data struct (also written to files)
+% D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 %
 % spm_eeg_epochs extracts single trials from continuous EEG/MEG data. The
@@ -27,7 +27,7 @@ function D = spm_eeg_findevents(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_findevents.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -42,15 +42,15 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 catch    
-	error(sprintf('Trouble reading file %s', D));
+    error(sprintf('Trouble reading file %s', D));
 end
 
 if ~isfield(D, 'events')
     D.events = [];
 end
-	
+    
 
 
 

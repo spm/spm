@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_DEM_qU.m 1131 2008-02-06 11:17:09Z spm $
 
 % unpack
 %--------------------------------------------------------------------------

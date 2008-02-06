@@ -1,5 +1,4 @@
 function [p,f] = spm_eeg_inv_displScEl(varargin)
-
 % p = spm_eeg_inv_displScEl(scalp,electr) or spm_eeg_inv_displScEl(model)
 %
 % Display a tessalated surface, in color, with the electrodes on top.
@@ -8,7 +7,7 @@ function [p,f] = spm_eeg_inv_displScEl(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_displScEl.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 2
     if nargin == 0
@@ -55,15 +54,15 @@ figure(hFig);
 set(hFig,'Render','zbuffer')
 p = patch('Vertices',vert,'Faces',tri,'FaceColor',colo_skin) ;
 set(p,'FaceLighting','phong','SpecularStrength',.1,...
-	'AmbientStrength',.45,'EdgeColor','none'); %,'FaceColor','interp') ;
+    'AmbientStrength',.45,'EdgeColor','none'); %,'FaceColor','interp') ;
 
 el_coord = electr.XYZmm ;
 
 hold on
 for ii=1:electr.nr
-	s = surf(x_sph+el_coord(1,ii),y_sph+el_coord(2,ii),...
-		z_sph+el_coord(3,ii),c_sph) ;
-	set(s,'EdgeColor','none') ;
+    s = surf(x_sph+el_coord(1,ii),y_sph+el_coord(2,ii),...
+        z_sph+el_coord(3,ii),c_sph) ;
+    set(s,'EdgeColor','none') ;
 end
 caxis([0 5])
 

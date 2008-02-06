@@ -5,10 +5,10 @@ function P = spm_P_Bonf(Z,df,STAT,S,n)
 % Z     - height {minium over n values}
 % df    - [df{interest} df{error}]
 % STAT  - Statistical field
-%		'Z' - Gaussian field
-%		'T' - T - field
-%		'X' - Chi squared field
-%		'F' - F - field
+%       'Z' - Gaussian field
+%       'T' - T - field
+%       'X' - Chi squared field
+%       'F' - F - field
 % n     - number of conjoint SPMs
 % S     - Voxel count
 %
@@ -26,7 +26,7 @@ function P = spm_P_Bonf(Z,df,STAT,S,n)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_P_Bonf.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_P_Bonf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if      STAT == 'Z'

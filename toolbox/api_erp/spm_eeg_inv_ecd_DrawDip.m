@@ -45,7 +45,7 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 1131 2008-02-06 11:17:09Z spm $
 
 global st
 global defaults
@@ -85,13 +85,13 @@ end
 Pcanonical = fullfile(spm('dir'),'canonical','avg152T1.nii');
 
 if nargin<3
-	if ~isstruct(st)
+    if ~isstruct(st)
 %         P = spm_select(1,'image','Image to display dipoles on');
         P = Pcanonical;
-	elseif isempty(st.vols{1})
+    elseif isempty(st.vols{1})
 %         P = spm_select(1,'image','Image to display dipoles on');
         P = Pcanonical;
-	end
+    end
 else
     P = varargin{2};
 end
@@ -112,9 +112,9 @@ uicontrol(Fig,'Style','Frame','Position',[60 25 200 325].*WS,'DeleteFcn','spm_im
 uicontrol(Fig,'Style','Frame','Position',[70 250 180 90].*WS);
 uicontrol(Fig,'Style','Text', 'Position',[75 320 170 016].*WS,'String','Crosshair Position');
 uicontrol(Fig,'Style','PushButton', 'Position',[75 316 170 006].*WS,...
-	'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
+    'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
 % uicontrol(fg,'Style','PushButton', 'Position',[75 315 170 020].*WS,'String','Crosshair Position',...
-%	'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
+%   'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
 uicontrol(Fig,'Style','Text', 'Position',[75 295 35 020].*WS,'String','mm:');
 uicontrol(Fig,'Style','Text', 'Position',[75 275 35 020].*WS,'String','vx:');
 uicontrol(Fig,'Style','Text', 'Position',[75 255 75 020].*WS,'String','Img Intens.:');
@@ -125,7 +125,7 @@ st.in = uicontrol(Fig,'Style','Text', 'Position',[150 255  85 020].*WS,'String',
 
 c = 'if get(gco,''Value'')==1, spm_orthviews(''Xhairs'',''off''), else, spm_orthviews(''Xhairs'',''on''); end;';
 uicontrol(Fig,'Style','togglebutton','Position',[95 220 125 20].*WS,...
-	'String','Hide Crosshairs','Callback',c,'ToolTipString','show/hide crosshairs');
+    'String','Hide Crosshairs','Callback',c,'ToolTipString','show/hide crosshairs');
 
 % Dipoles/seeds selection:
 %--------------------------
@@ -175,8 +175,8 @@ l_conv = find(sdip.exitflag==1);
 if isempty(l_conv)
     error('No seed converged towards a stable solution, nothing to be displayed !')
 else
-	spm_eeg_inv_ecd_DrawDip('DrawDip',l_conv,1)
-	set(sdip.hdl.hseed(l_conv),'Value',1); % toggle all buttons
+    spm_eeg_inv_ecd_DrawDip('DrawDip',l_conv,1)
+    set(sdip.hdl.hseed(l_conv),'Value',1); % toggle all buttons
 end
     
 % get(sdip.hdl.hseed(1),'Value')
@@ -243,7 +243,7 @@ if size(i_seed,2)==1, i_seed=i_seed'; end
 loc_mm = sdip.loc{i_seed(1)}(:,i_dip);
 if length(i_seed)>1
 %     unit = ones(1,sdip.n_dip);
-	for ii = i_seed(2:end)
+    for ii = i_seed(2:end)
         loc_mm = loc_mm + sdip.loc{ii}(:,i_dip);
     end
     loc_mm = loc_mm/length(i_seed);
@@ -274,8 +274,8 @@ end
 % % if i_seed = set, Are there other dipoles close enough ?
 % tabl_seed_dip=[i_seed(1) i_dip]; % table summarising which set & dip to use.
 % if length(i_seed)>1
-% 	unit = ones(1,sdip.n_dip);
-% 	for ii = i_seed(2:end)'
+%   unit = ones(1,sdip.n_dip);
+%   for ii = i_seed(2:end)'
 %         d2 = sqrt(sum((sdip.loc{ii}-loc_mm*unit).^2));
 %         l_cl = find(d2<=lim_cl);
 %         if ~isempty(l_cl)
@@ -283,7 +283,7 @@ end
 %                 tabl_seed_dip = [tabl_seed_dip ; [ii jj]];
 %             end
 %         end
-% 	end
+%   end
 % end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -499,7 +499,7 @@ if seed_i==0 % removes everything
     end
     for ii=sdip.tabl_seed_dip(:,1)
         set(sdip.hdl.hseed(ii),'BackgroundColor',[.7 .7 .7]);
-	end
+    end
     sdip = rmfield(sdip,'tabl_seed_dip');
     sdip = rmfield(sdip,'ax');    
 elseif seed_i<=Nax % remove one seed only
@@ -518,7 +518,7 @@ st.vols{1}.sdip = sdip;
 
 %________________________________________________________________________
 otherwise,
-	warning('Unknown action string')
+    warning('Unknown action string')
 end;
 
 return;
@@ -575,6 +575,6 @@ ls = sort(tabl_seed_dip(:,1));
 if length(ls)==1
     pr_seed = ls;
 else
-	pr_seed = ls([find(diff(ls)) ; length(ls)]);
+    pr_seed = ls([find(diff(ls)) ; length(ls)]);
 end
 

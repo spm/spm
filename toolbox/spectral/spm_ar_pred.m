@@ -12,7 +12,7 @@ function [y_pred,y,r2] = spm_ar_pred (Z,ar)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_ar_pred.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 2, 
    disp('spm_ar_pred.m needs at least two arguments'); 

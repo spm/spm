@@ -12,7 +12,7 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_mnc2nifti.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==1,
@@ -41,23 +41,23 @@ idat.offset = img.begin;
 
 
 if img.nc_type <=4,
-	tmp = findvar(img.vatt_array,'valid_range');
-	if isempty(tmp),
-		disp(['Can''t get valid_range for "' fname '" - having to guess']);
-	else
-		range = tmp.val;
-	end;
+    tmp = findvar(img.vatt_array,'valid_range');
+    if isempty(tmp),
+        disp(['Can''t get valid_range for "' fname '" - having to guess']);
+    else
+        range = tmp.val;
+    end;
 
-	fp   = fopen(fname,'r','ieee-be');
-	imax = get_imax(fp, cdf, 'image-max', fname, 1, idat.dim);
-	imin = get_imax(fp, cdf, 'image-min', fname, 0, idat.dim);
-	fclose(fp);
+    fp   = fopen(fname,'r','ieee-be');
+    imax = get_imax(fp, cdf, 'image-max', fname, 1, idat.dim);
+    imin = get_imax(fp, cdf, 'image-min', fname, 0, idat.dim);
+    fclose(fp);
 
-	scale = (imax-imin)/(range(2)-range(1));
-	dcoff = imin-range(1)*scale;
+    scale = (imax-imin)/(range(2)-range(1));
+    dcoff = imin-range(1)*scale;
 else
-	scale = 1;
-	dcoff = 0;
+    scale = 1;
+    dcoff = 0;
 end;
 
 
@@ -67,14 +67,14 @@ step  = [1 1 1];
 start = [0 0 0]';
 dircos = eye(3);
 for j=1:3,
-	nam    = cdf.dim_array(img.dimid(nd+1-j)).name;
-	space  = findvar(cdf.var_array,nam);
-	tmp    = findvar(space.vatt_array,'step');
-	if ~isempty(tmp), step(j) = tmp.val; end;
-	tmp    = findvar(space.vatt_array,'start');
-	if ~isempty(tmp), start(j) = tmp.val; else  start(j) = -dim(j)/2*step(j); end;
-	tmp    = findvar(space.vatt_array,'direction_cosines');
-	if ~isempty(tmp), dircos(:,j) = tmp.val; end;
+    nam    = cdf.dim_array(img.dimid(nd+1-j)).name;
+    space  = findvar(cdf.var_array,nam);
+    tmp    = findvar(space.vatt_array,'step');
+    if ~isempty(tmp), step(j) = tmp.val; end;
+    tmp    = findvar(space.vatt_array,'start');
+    if ~isempty(tmp), start(j) = tmp.val; else  start(j) = -dim(j)/2*step(j); end;
+    tmp    = findvar(space.vatt_array,'direction_cosines');
+    if ~isempty(tmp), dircos(:,j) = tmp.val; end;
 end;
 shiftm = [1 0 0 -1; 0 1 0 -1; 0 0 1 -1; 0 0 0 1];
 mat    = [[dircos*diag(step) dircos*start] ; [0 0 0 1]] * shiftm;
@@ -157,10 +157,10 @@ for i6=1:size(idat,6),
                     slice = double(idat(:,:,i3,i4,i5,i6)).*scale1 + dcoff1;
                 elseif size(scale1,1)==1,
                     slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[size(idat,1) 1]) +...
-					                                       repmat(dcoff1,[size(idat,1) 1]);
+                                                           repmat(dcoff1,[size(idat,1) 1]);
                 else
                     slice = double(idat(:,:,i3,i4,i5,i6)).*repmat(scale1,[1 size(idat,2)]) +...
-					                                       repmat(dcoff1,[1 size(idat,2)]);
+                                                           repmat(dcoff1,[1 size(idat,2)]);
                 end;
                 if flp, slice = flipud(slice); end;
                 N.dat(:,:,i3,i4,i5,i6) = slice;
@@ -176,10 +176,10 @@ function var = findvar(varlist, name)
 % Finds the structure in a list of structures that has a name element
 % matching the second argument.
 for i=1:numel(varlist)
-	if strcmp(varlist(i).name,name)
-		var = varlist(i);
-		return;
-	end;
+    if strcmp(varlist(i).name,name)
+        var = varlist(i);
+        return;
+    end;
 end;
 var = [];
 %error(['Can''t find "' name '".']);
@@ -200,14 +200,14 @@ dim  = fliplr(dim);
 str  = findvar(cdf.var_array,strng);
 
 if ~isempty(str) && str.nc_type == 6,
-	fseek(fp,str.begin,'bof');
-	nel  = str.vsize/(spm_type(dtypestr(str.nc_type),'bits')/8);
-	imax = fread(fp,nel,dtypestr(str.nc_type))';
-	resh = ones(1,numel(dim));
-	resh(numel(dim)+1-str.dimid) = dim(str.dimid);
-	imax = reshape(imax,resh);
+    fseek(fp,str.begin,'bof');
+    nel  = str.vsize/(spm_type(dtypestr(str.nc_type),'bits')/8);
+    imax = fread(fp,nel,dtypestr(str.nc_type))';
+    resh = ones(1,numel(dim));
+    resh(numel(dim)+1-str.dimid) = dim(str.dimid);
+    imax = reshape(imax,resh);
 else
-	imax = def;
+    imax = def;
 end;
 return;
 

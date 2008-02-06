@@ -1,6 +1,4 @@
 function orig_coord = spm_get_orig_coord(coord, matname,PU)
-
-%=======================================================================
 % Determine corresponding co-ordinate in un-normalised image.
 % FORMAT orig_coord = get_orig_coord2(coord, matname,PU)
 % coord      - [x1 y1 z1 ; x2 y2 z2 ; etc] in MNI space (mm).
@@ -14,11 +12,11 @@ function orig_coord = spm_get_orig_coord(coord, matname,PU)
 % matname    - File containing transformation information (_sn.mat).
 %            - or the structure containing the transformation.
 % orig_coord - Original co-ordinate (mm).
-%=======================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_get_orig_coord.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_get_orig_coord.m 1131 2008-02-06 11:17:09Z spm $
 
 if ischar(matname)
     t = load(matname);
@@ -38,12 +36,12 @@ Affine = t.Affine;
 d   = t.VG(1).dim(1:3);
 
 if nargin>2,
-	VU   = spm_vol(PU);
-	Mult = VU.mat\t.VF.mat*Affine;
-% 	disp('Output co-ordinates are in voxels');
+    VU   = spm_vol(PU);
+    Mult = VU.mat\t.VF.mat*Affine;
+%   disp('Output co-ordinates are in voxels');
 else
-	Mult = t.VF.mat*Affine;
-% 	disp('Output co-ordinates are in mm');
+    Mult = t.VF.mat*Affine;
+%   disp('Output co-ordinates are in mm');
 end;
 
 if (prod(size(Tr)) == 0),
@@ -59,23 +57,23 @@ else,
 end;
 
 if affine_only,
-	xyz2 = Mult(1:3,:)*[xyz ; ones(1,size(xyz,2))];
+    xyz2 = Mult(1:3,:)*[xyz ; ones(1,size(xyz,2))];
 else,
-	for i=1:size(xyz,2),
-		bx = basX(i,:);
-		by = basY(i,:);
-		bz = basZ(i,:);
-		tx = reshape(...
-			reshape(Tr(:,:,:,1),size(Tr,1)*size(Tr,2),size(Tr,3))...
-			*bz', size(Tr,1), size(Tr,2) );
-		ty = reshape(...
-			reshape(Tr(:,:,:,2),size(Tr,1)*size(Tr,2),size(Tr,3))...
-			*bz', size(Tr,1), size(Tr,2) );
-		tz =  reshape(...
-			reshape(Tr(:,:,:,3),size(Tr,1)*size(Tr,2),size(Tr,3))...
-			*bz', size(Tr,1), size(Tr,2) );
-		xyz2(:,i) = Mult(1:3,:)*[xyz(:,i) + [bx*tx*by' ; bx*ty*by' ; bx*tz*by']; 1];
-	end;
+    for i=1:size(xyz,2),
+        bx = basX(i,:);
+        by = basY(i,:);
+        bz = basZ(i,:);
+        tx = reshape(...
+            reshape(Tr(:,:,:,1),size(Tr,1)*size(Tr,2),size(Tr,3))...
+            *bz', size(Tr,1), size(Tr,2) );
+        ty = reshape(...
+            reshape(Tr(:,:,:,2),size(Tr,1)*size(Tr,2),size(Tr,3))...
+            *bz', size(Tr,1), size(Tr,2) );
+        tz =  reshape(...
+            reshape(Tr(:,:,:,3),size(Tr,1)*size(Tr,2),size(Tr,3))...
+            *bz', size(Tr,1), size(Tr,2) );
+        xyz2(:,i) = Mult(1:3,:)*[xyz(:,i) + [bx*tx*by' ; bx*ty*by' ; bx*tz*by']; 1];
+    end;
 end;
 orig_coord = xyz2';
 

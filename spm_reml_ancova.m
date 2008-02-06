@@ -31,30 +31,30 @@ function [F,df,xX,xCon,beta,V] = spm_reml_ancova(y,P,Fc)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_reml_ancova.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_reml_ancova.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
 % get ReML hyperparameter estimates
 %---------------------------------------------------------------------------
 [C P] = spm_PEB(y,P);
-L     = P{1}.h;			% ReML Hyperparemter estimates
-W     = P{1}.W;			% ReML precisions = ddln(p(y|h)/dhdh
+L     = P{1}.h;         % ReML Hyperparemter estimates
+W     = P{1}.W;         % ReML precisions = ddln(p(y|h)/dhdh
 
 % check covariance constraints - assume i.i.d. errors conforming to X{i}
 %---------------------------------------------------------------------------
 for i = 1:length(P)
-	if ~isfield(P{i},'C')
-		[n m] = size(P{i}.X);
-		if i == 1
-			P{i}.C            = {speye(n,n)};
-		else
-			for j = 1:m
-				k         = find(P{i}.X(:,j));
-				P{i}.C{j} = sparse(k,k,1,n,n);
-			end
-		end
-	end
+    if ~isfield(P{i},'C')
+        [n m] = size(P{i}.X);
+        if i == 1
+            P{i}.C            = {speye(n,n)};
+        else
+            for j = 1:m
+                k         = find(P{i}.X(:,j));
+                P{i}.C{j} = sparse(k,k,1,n,n);
+            end
+        end
+    end
 end
 
 % form non-hierachical model
@@ -62,16 +62,16 @@ end
 X     = 1;
 Q     = {};
 for i = 1:length(P)
-	
-	% covariance components
-	%-------------------------------------------------------------------
-	for j = 1:length(P{i}.C)
-		Q{end + 1} = X*P{i}.C{j}*X';
-	end
+    
+    % covariance components
+    %-------------------------------------------------------------------
+    for j = 1:length(P{i}.C)
+        Q{end + 1} = X*P{i}.C{j}*X';
+    end
 
-	% design matrix
-	%-------------------------------------------------------------------
-	X   = X*P{i}.X;
+    % design matrix
+    %-------------------------------------------------------------------
+    X   = X*P{i}.X;
 end
 
 
@@ -98,8 +98,8 @@ X1o   = spm_FcUtil('X1o',xCon,xX);
 V     = sparse(0);
 T     = sparse(1,length(Q));
 for i = 1:length(Q);
-	V     = V + L(i)*Q{i};
-	T(i)  = trace(h*xX.pX*Q{i}*xX.pX'*h');
+    V     = V + L(i)*Q{i};
+    T(i)  = trace(h*xX.pX*Q{i}*xX.pX'*h');
 end
 V     = V*length(V)/trace(V);
 TL    = T*L;
@@ -112,12 +112,12 @@ df            = [trMV^2/trMVMV (TL)^2/(T*inv(W)*T')];
 
 if size(Fc,2) == 1
 
-	% T statistics
-	%-------------------------------------------------------------------
-	F     = h*beta./sqrt(TL);
+    % T statistics
+    %-------------------------------------------------------------------
+    F     = h*beta./sqrt(TL);
 else
-	% F statistics
-	%-------------------------------------------------------------------
-	F     = sum((h*beta).^2)./TL;
+    % F statistics
+    %-------------------------------------------------------------------
+    F     = sum((h*beta).^2)./TL;
 
 end 

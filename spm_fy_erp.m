@@ -3,6 +3,10 @@ function [f] = spm_fy_erp(y,M)
 % FORMAT [f] = spm_fy_erp(y,M)
 % f = y*M.E;
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_fy_erp.m 1131 2008-02-06 11:17:09Z spm $
 
 % projectors
 %--------------------------------------------------------------------------

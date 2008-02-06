@@ -2,15 +2,15 @@ function D = spm_eeg_downsample(S)
 % function used for down-sampling EEG/MEG data
 % FORMAT D = spm_eeg_downsample(S)
 %
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file
+% D         - filename of EEG mat-file
 % Radc_new  - new sampling rate
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 805 2007-04-27 11:26:53Z vladimir $
+% $Id: spm_eeg_downsample.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 

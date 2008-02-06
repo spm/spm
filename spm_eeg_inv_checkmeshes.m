@@ -1,21 +1,19 @@
 function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
-
-%=======================================================================
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
 % FORMAT [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(S)
 % Input:
-% S		    - input data struct (optional)
+% S         - input data struct (optional)
 % Output:
 % h_ctx     - handle to cortex patch
 % h_skl     - handle to skull patch
 % h_slp     - handle to scalp patch
 %
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 850 2007-07-10 15:43:27Z rik $
+% $Id: spm_eeg_inv_checkmeshes.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % initialise

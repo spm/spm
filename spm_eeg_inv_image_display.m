@@ -1,17 +1,15 @@
 function spm_eeg_inv_image_display(varargin)
-
-%======================================================================
 % spm_orthviews of an interpolated 3D image of a contrast or window
 %
 % FORMAT D = spm_eeg_inv_image_display(D,val)
 % Input:
-% D		   - input data struct (optional)
+% D        - input data struct (optional)
 %
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout, Stefan Kiebel & Karl Friston
-% $Id: spm_eeg_inv_image_display.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_image_display.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % checks

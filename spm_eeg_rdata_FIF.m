@@ -2,7 +2,7 @@ function D = spm_eeg_rdata_FIF(S)
 % function to read in NeuroMag *.FIF data to SPM5
 % FORMAT Do = spm_eeg_rdata_FIF(S)
 % 
-% S	    - struct (optional)
+% S     - struct (optional)
 % (optional) fields of S:
 % Fdata     - continuous or averaged FIF file to read
 % path      - new path for output
@@ -31,38 +31,39 @@ function D = spm_eeg_rdata_FIF(S)
 %
 % Will put SPM5 *.mat file in same directory as FIF file unless 
 % alternative S.path or S.Pout passed
-%
-% Rik Henson (5/06/07), with thanks to Danny Mitchell and Jason Taylor
-% RH Updated 20/11/07 to handle larger raw files
-% RH Updated 8/1/08 to handle skips in raw files
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Rik Henson (thanks to Danny Mitchell and Jason Taylor)
+% $Id: spm_eeg_rdata_FIF.m 1131 2008-02-06 11:17:09Z spm $
 
 try
-    	Fdata = S.Fdata;
+        Fdata = S.Fdata;
 catch
-    	Fdata = spm_select(1, '\.fif$', 'Select FIF file');
+        Fdata = spm_select(1, '\.fif$', 'Select FIF file');
 end
 P = spm_str_manip(Fdata, 'H');
 
 try
-    	D.path = S.path;
+        D.path = S.path;
 catch
-    	D.path = P;
+        D.path = P;
 end
 
 if exist(Fdata)==2
     if loadfif(Fdata,'sets')==0
-	rawflag = 1;
+    rawflag = 1;
     else
-	rawflag = 0;
+    rawflag = 0;
     end
 else
     error('Failed to find %s',Fdata);
 end
 
 try
-    	Fchannels = S.Fchannels;
+        Fchannels = S.Fchannels;
 catch
-    	Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
+        Fchannels = spm_select(1, '\.mat$', 'Select channel template file', {}, fullfile(spm('dir'), 'EEGtemplates'));
 end
 D.channels.ctf = spm_str_manip(Fchannels, 't');
 
@@ -110,17 +111,17 @@ end
 
 if sclchan
     try
-	sf = S.sclfact(:);
+    sf = S.sclfact(:);
         if length(sf) ~= D.Nchannels
-	    error(sprintf('Only %d scale factors supplied; %d expected',length(sf),D.Nchannels))
-	else
-	    disp('Reordering scale factors by mags then grds')
-	    D.channels.scaled = sf(reord);
-	end
+        error(sprintf('Only %d scale factors supplied; %d expected',length(sf),D.Nchannels))
+    else
+        disp('Reordering scale factors by mags then grds')
+        D.channels.scaled = sf(reord);
+    end
      catch
-	disp('Using weights from channel file to scale data')
-     	D.channels.scaled = D.channels.Weight(:,1);
-	D.channels.Weight = D.channels.Weight./repmat(D.channels.scaled,1,size(D.channels.Weight,2));
+    disp('Using weights from channel file to scale data')
+        D.channels.scaled = D.channels.Weight(:,1);
+    D.channels.Weight = D.channels.Weight./repmat(D.channels.scaled,1,size(D.channels.Weight,2));
      end
      disp('Will rescale channel data by...')
      disp(D.channels.scaled')
@@ -196,9 +197,9 @@ D.channels.fid_coils = 1000*co(:,find(ki==2))';
 D.channels.headshape = 1000*co(:,find(ki==4))';
 
 try 
-	pflag = S.pflag
+    pflag = S.pflag
 catch
-	pflag = 1;
+    pflag = 1;
 end
 if pflag
  xyz = D.channels.pos3D;
@@ -317,9 +318,9 @@ if rawflag == 0
  disp(B.comments)
 
  try
-	conds = S.conds;
+    conds = S.conds;
  catch
-	conds = spm_input(sprintf('Which conditions? (1-%d)',B.totconds),'+1','r',[1:B.totconds]);
+    conds = spm_input(sprintf('Which conditions? (1-%d)',B.totconds),'+1','r',[1:B.totconds]);
  end
 
  D.Nevents = length(conds);
@@ -327,11 +328,11 @@ if rawflag == 0
  D.events.Ntypes = length(D.events.types);
  D.events.code = [1:D.Nevents];
  D.events.reject = zeros(1, D.events.Ntypes);
- D.events.repl = ones(1, D.events.Ntypes);	% (lost original number of trials?)
+ D.events.repl = ones(1, D.events.Ntypes);  % (lost original number of trials?)
 
 %%%%%%%%%%%%%% Read data
 
- for c = conds			% Currently assumes B.t0 same for all conds
+ for c = conds          % Currently assumes B.t0 same for all conds
   [B.data{c},B.sfreq,B.t0] = loadfif(Fdata,c-1,'any');
   elen(c) = size(B.data{c},2);
  end
@@ -341,20 +342,20 @@ if rawflag == 0
 
 %%%%%%%%%%%%%% Define epoch (S.twin, if specified, is eg [-100 300])
 
- B.t0 = round(B.t0*1000);	% convert to ms  % added round. djm 27/6/07. 
- try	
-	twin = S.twin;
+ B.t0 = round(B.t0*1000);   % convert to ms  % added round. djm 27/6/07. 
+ try    
+    twin = S.twin;
  catch
-	swin = [1 min(elen)];
-	twin = round((swin-1)*1000/D.Radc + B.t0);
-	if any(diff(elen))
-	  twin = spm_input('Sample window? (ms)','+1','r',twin,2,twin)';
-	end
+    swin = [1 min(elen)];
+    twin = round((swin-1)*1000/D.Radc + B.t0);
+    if any(diff(elen))
+      twin = spm_input('Sample window? (ms)','+1','r',twin,2,twin)';
+    end
  end
-	
+    
  swin = round((twin-B.t0)*D.Radc/1000)+1;
  if length(twin)~=2 | twin(1) < B.t0 |  twin(1) > -1 | swin(2) > min(elen)
-	error('twin outside range for all conditions')
+    error('twin outside range for all conditions')
  end
 
  D.Nsamples = swin(2) - swin(1) + 1;
@@ -370,7 +371,7 @@ if rawflag == 0
 
  d = d(reord,:,:);
 
- d = d*10^15;		% convert to fT units 
+ d = d*10^15;       % convert to fT units 
 
 %%%%%%%%%%%%%% Prepare output file
 
@@ -411,8 +412,8 @@ if rawflag == 0
  else, Ibar = [1:D.Nevents]; end
 
  for e = 1:D.Nevents
-      for s = 1:D.Nsamples	
-	fwrite(fpd, d(:,s,e), 'float');
+      for s = 1:D.Nsamples  
+    fwrite(fpd, d(:,s,e), 'float');
       end
 
       barh = find(Ibar==e);
@@ -433,9 +434,9 @@ else
 
  D.Nevents = 1;
  try 
-	trig_chan = S.trig_chan;
+    trig_chan = S.trig_chan;
  catch
-	trig_chan = spm_input('Trigger channel name?(0=none)','+1','s','STI101');
+    trig_chan = spm_input('Trigger channel name?(0=none)','+1','s','STI101');
  end
  disp(sprintf('Trigger channel %s',trig_chan))
 
@@ -444,13 +445,13 @@ else
   while isempty(k)
    c = 1;
    while isempty(k) & c <= size(B.chans,1)
-	k = findstr(B.chans{c},trig_chan);
-	c = c+1;
+    k = findstr(B.chans{c},trig_chan);
+    c = c+1;
    end
    if c > size(B.chans,1)
-	disp(B.chans)
-	disp('Channel not found...')
-	trig_chan = spm_input('Trigger channel name?(0=none)?','+1','s','STI101');
+    disp(B.chans)
+    disp('Channel not found...')
+    trig_chan = spm_input('Trigger channel name?(0=none)?','+1','s','STI101');
    end
   end
 
@@ -468,7 +469,7 @@ else
 % Below assumes: 1) at least first sample is 0; 2) 0's between triggers,
 % 3) triggers at least two samples
 %  trig = find(abs(diff(B.data))>0)+1;
-%  D.events.time = trig(1:2:end);	% exclude offsets (assumes duration >1 sample)
+%  D.events.time = trig(1:2:end);   % exclude offsets (assumes duration >1 sample)
 
   disp(sprintf('%d triggers found...',length(D.events.time)))
   D.events.code = B.data(D.events.time);
@@ -488,24 +489,24 @@ else
  spm('Pointer', 'Arrow'); drawnow;
 
 %%%%%%%%%%%%%% Select sample
- try	
-	twin = S.twin;
+ try    
+    twin = S.twin;
  catch
-	swin = [1 D.Nsamples];
-	twin = round(1000*(swin-1)/D.Radc);
-	twin = spm_input('Sample window? (ms)','+1','r',twin,2,twin)';
+    swin = [1 D.Nsamples];
+    twin = round(1000*(swin-1)/D.Radc);
+    twin = spm_input('Sample window? (ms)','+1','r',twin,2,twin)';
  end
 
 % If want to prespecify all, without precise knowledge of length
- if twin(2) == Inf	
-	swin(1) = round(twin(1)*D.Radc/1000)+1;
-	swin(2) = D.Nsamples;
+ if twin(2) == Inf  
+    swin(1) = round(twin(1)*D.Radc/1000)+1;
+    swin(2) = D.Nsamples;
  else
-	swin = round(twin*D.Radc/1000)+1;
+    swin = round(twin*D.Radc/1000)+1;
  end
  
  if length(twin)~=2 | twin(1) < 0 | swin(2) > D.Nsamples
-	error('sample outside range')
+    error('sample outside range')
  end
 
 %%%%%%%%%%%%%% Prepare output file
@@ -541,22 +542,22 @@ else
     dl = di(end);
     di = find(di>=swin(1) & di<=swin(2));
    
-    if ~isempty(di)	
-	d = d([B.chanfilt; B.eogfilt],di);
+    if ~isempty(di) 
+    d = d([B.chanfilt; B.eogfilt],di);
         d(1:length(B.chanfilt),:) = d(reord,:)*10^15;
         d(length(B.chanfilt)+[1:length(B.eogfilt)],:) = d(length(B.chanfilt)+[1:length(B.eogfilt)],:)*10^6;
         d = d.*repmat(D.channels.scaled,1,size(d,2));
 
         for s = 1:length(di)
-	    fwrite(fpd, d(:,s), 'float');
+        fwrite(fpd, d(:,s), 'float');
         end
     end
 
     fi = find((Ibar-dl) > 0);
     if isempty(fi)
-	  status = 0;
+      status = 0;
     elseif fi(1)>lfi
-	  lfi=fi(1);
+      lfi=fi(1);
           spm_progress_bar('Set', lfi);
           drawnow;
     end

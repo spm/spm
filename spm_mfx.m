@@ -72,9 +72,9 @@ function [SPM] = spm_mfx(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_mfx.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_mfx.m 1131 2008-02-06 11:17:09Z spm $
 
-SCCSid = '$Rev: 539 $';
+SCCSid = '$Rev: 1131 $';
 
 %-Say hello
 %-----------------------------------------------------------------------
@@ -84,18 +84,18 @@ Finter = spm('FigName','MFX specification...'); spm('Pointer','Arrow')
 %-Get SPM.mat if necessary
 %-----------------------------------------------------------------------
 if nargin ==0
-	load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
+    load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
 end
 swd   = SPM.swd;
 
 %-Check this is a repeated measures design
 %-----------------------------------------------------------------------
-n     = length(SPM.Sess);			% number of sessions
+n     = length(SPM.Sess);           % number of sessions
 for i = 1:n
-	if length(SPM.Sess(i).col) ~= length(SPM.Sess(1).col)
-		error('this is not a repeated measures design')
-		return
-	end
+    if length(SPM.Sess(i).col) ~= length(SPM.Sess(1).col)
+        error('this is not a repeated measures design')
+        return
+    end
 end
 
 % Build MFX design specification
@@ -105,14 +105,14 @@ end
 %=======================================================================
 iX1      = [SPM.xX.iH SPM.xX.iC];
 iX0      = [SPM.xX.iB SPM.xX.iG];
-nY       = length(iX1);				% number of B1
-nP       = nY/n;				% number of B2
+nY       = length(iX1);             % number of B1
+nP       = nY/n;                % number of B2
 
 % change relative filenames to full
 %-----------------------------------------------------------------------
 S.xY.VY  = SPM.Vbeta(iX1);
 for i = 1:nY
-	S.xY.VY(i).fname = fullfile(swd,S.xY.VY(i).fname);
+    S.xY.VY(i).fname = fullfile(swd,S.xY.VY(i).fname);
 end
 
 % design matrices
@@ -124,9 +124,9 @@ X1    = SPM.xX.X(:,iX1);
 X0    = SPM.xX.X(:,iX0);
 K0    = sparse(0,0);
 try
-	for i = 1:n
-		K0 = blkdiag(K0, SPM.xX.K(i).X0);
-	end
+    for i = 1:n
+        K0 = blkdiag(K0, SPM.xX.K(i).X0);
+    end
 end
 X0    = [X0 K0];
 
@@ -144,7 +144,7 @@ c        = ones(n,1);
 xCon     = spm_FcUtil('Set','one-sample t-test','F','c',c, sX);
 xX.xKXs  = sX;
 for    i = 1:n
-	xX.name{i}  = sprintf('Session %i',i);
+    xX.name{i}  = sprintf('Session %i',i);
 end
 [I,xCon] = spm_conman(xX,xCon,'F',1,'2nd-level contrast','',1);
 X2       = xCon(I).c;
@@ -160,7 +160,7 @@ spm('FigName','Stats: MFX-ReML',Finter); spm('Pointer','Watch')
 
 xsDes.Design = '2nd-level MFX analysis';
 xsDes.Name   = xCon.name;
-S.xsDes	     = xsDes;		% description
+S.xsDes      = xsDes;       % description
 
 
 % names for nC contrasts in X2 and nP parameters
@@ -168,7 +168,7 @@ S.xsDes	     = xsDes;		% description
 name  = {};
 for i = 1:nC
 for j = 1:nP
-	name{end + 1} = sprintf('contrast %i parameter %i',i,j);
+    name{end + 1} = sprintf('contrast %i parameter %i',i,j);
 end
 end
 
@@ -176,7 +176,7 @@ sF    = {'parameter','session','',''};
 I     = [];
 for i = 1:n
 for j = 1:nP
-	I(end + 1,:)  = [j i 1 1];
+    I(end + 1,:)  = [j i 1 1];
 end
 end
 
@@ -198,9 +198,9 @@ S.xX.sF   = sF;
 % 1st-level covariance components 
 %-----------------------------------------------------------------------
 try
-	Q = SPM.xVi.Vi;
+    Q = SPM.xVi.Vi;
 catch
-	Q = {SPM.xVi.V};
+    Q = {SPM.xVi.V};
 end
 
 
@@ -208,20 +208,20 @@ end
 %-----------------------------------------------------------------------
 for i = 1:nP
 
-	% unequal variances
-	%---------------------------------------------------------------
-	s          = zeros(nP,nP);
-	s(i,i)     = 1;
-	Q{end + 1} = X1*kron(speye(n,n),s)*X1';
+    % unequal variances
+    %---------------------------------------------------------------
+    s          = zeros(nP,nP);
+    s(i,i)     = 1;
+    Q{end + 1} = X1*kron(speye(n,n),s)*X1';
 
-	% correlations
-	%---------------------------------------------------------------
-	for  j = (i + 1):nP
-		s          = zeros(nP,nP);
-		s(i,j)     = 1;
-		s(j,i)     = 1;
-		Q{end + 1} = X1*kron(speye(n,n),s)*X1';
-	end
+    % correlations
+    %---------------------------------------------------------------
+    for  j = (i + 1):nP
+        s          = zeros(nP,nP);
+        s(i,j)     = 1;
+        s(j,i)     = 1;
+        Q{end + 1} = X1*kron(speye(n,n),s)*X1';
+    end
 end
 
 % 1st-level non-sphericity - ReML estimates, restricted to the Null
@@ -241,7 +241,7 @@ M1       = pX1(iX1,:)*spm_filter(K,W);
 V2    = M1*V1*M1';
 V2    = V2*length(V2)/trace(V2);
 for i = 1:length(Q);
-	Vi{i} = M1*Q{i}*M1';
+    Vi{i} = M1*Q{i}*M1';
 end
 
 S.xVi.V  = sparse(V2);
@@ -258,18 +258,18 @@ S.xVol   = SPM.xVol;
 SPM      = S;
 cd(swd)
 try
-	mkdir mfx;
+    mkdir mfx;
 end
 try
-	cd mfx
-	SPM.swd = pwd;
+    cd mfx
+    SPM.swd = pwd;
     if spm_matlab_version_chk('7') >= 0,
-		save('SPM', 'SPM', '-V6');
-	else
-		save('SPM', 'SPM');
-	end;
+        save('SPM', 'SPM', '-V6');
+    else
+        save('SPM', 'SPM');
+    end;
 catch
-	warning('could not save SPM.mat in mfx')
+    warning('could not save SPM.mat in mfx')
 end
 
 %=======================================================================

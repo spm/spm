@@ -74,8 +74,8 @@ function varargout = spm_SpUtil(varargin)
 % tol is the tolerance applied when searching for zero residuals.
 %
 % Christensen R (1996)
-%	"Plane Answers to Complex Questions"
-%	 2nd Ed. Springer-Verlag, New York
+%   "Plane Answers to Complex Questions"
+%    2nd Ed. Springer-Verlag, New York
 %
 % Andrade A, Paradis AL, Rouquette S and Poline JB, NeuroImage 9, 1999
 %                           ----------------
@@ -144,7 +144,7 @@ function varargout = spm_SpUtil(varargin)
 %
 %                           ----------------
 % 
-% case {'x0->c'}				%- 
+% case {'x0->c'}                %- 
 % FORMAT c = spm_SpUtil('X0->c',sX,X0)
 %                           ----------------
 %
@@ -256,14 +256,14 @@ function varargout = spm_SpUtil(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes Jean-Baptiste Poline
-% $Id: spm_SpUtil.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_SpUtil.m 1131 2008-02-06 11:17:09Z spm $
 
 % (frobenius norm trick by S. Rouquette)
 
 %-Format arguments
 %-----------------------------------------------------------------------
 if nargin==0, error('do what? no arguments given...')
-	else, action = varargin{1}; end
+    else, action = varargin{1}; end
 
 
 switch lower(action), 
@@ -276,31 +276,31 @@ if nargin==1,
    varargout={[]}; warning('isCon : no contrast specified'); return; 
 end;
 if ~spm_sp('isspc',varargin{2})
-	sX = spm_sp('Set',varargin{2});
+    sX = spm_sp('Set',varargin{2});
 else,   sX = varargin{2}; end
 if nargin==2, c=eye(spm_sp('size',sX,2)); else, c=varargin{3}; end;
 if isempty(c), varargout={[]}; return, end
 
 switch lower(action)
-	case 'iscon'
-		varargout = { spm_sp('eachinspp',sX,c) };
-	case 'allcon'
-		varargout = {spm_sp('isinspp',sX,c)};
-	case 'conr'
-		if size(c,1) ~= spm_sp('size',sX,2) 
-			error('Contrast not of the right size'), end
-		%-Compute inner products of data weight vectors
-		% (c'b = c'*pinv(X)*Y = w'*Y
-		% (=> w*w' = c'*pinv(X)*pinv(X)'*c == c'*pinv(X'*X)*c
-		r   = c'*spm_sp('XpX-',sX)*c;
-		%-normalize by "cov(r)" to get correlations
-		r   = r./(sqrt(diag(r))*sqrt(diag(r))');
-		r(abs(r) < sX.tol)=0;		%-set near-zeros to zero
-		varargout = {r};				%-return r
-	case 'cono'
-		%-This is the same as ~spm_SpUtil('ConR',x,c), and so returns
-		% the contrast orthogonality (though not their corelations).
-		varargout = { abs(c'* spm_sp('XpX',sX) *c) < sX.tol};
+    case 'iscon'
+        varargout = { spm_sp('eachinspp',sX,c) };
+    case 'allcon'
+        varargout = {spm_sp('isinspp',sX,c)};
+    case 'conr'
+        if size(c,1) ~= spm_sp('size',sX,2) 
+            error('Contrast not of the right size'), end
+        %-Compute inner products of data weight vectors
+        % (c'b = c'*pinv(X)*Y = w'*Y
+        % (=> w*w' = c'*pinv(X)*pinv(X)'*c == c'*pinv(X'*X)*c
+        r   = c'*spm_sp('XpX-',sX)*c;
+        %-normalize by "cov(r)" to get correlations
+        r   = r./(sqrt(diag(r))*sqrt(diag(r))');
+        r(abs(r) < sX.tol)=0;       %-set near-zeros to zero
+        varargout = {r};                %-return r
+    case 'cono'
+        %-This is the same as ~spm_SpUtil('ConR',x,c), and so returns
+        % the contrast orthogonality (though not their corelations).
+        varargout = { abs(c'* spm_sp('XpX',sX) *c) < sX.tol};
 end
 
 
@@ -319,7 +319,7 @@ if sX.rk == 0, error('c->Tsp null rank sX == 0'); end;
 if ~isempty(c) & spm_sp('size',sX,2) ~= size(c,1), 
    error(' c->TSp matrix & contrast dimensions don''t match');   
 end
-%--------- end argument check ---------------------------------	
+%--------- end argument check --------------------------------- 
 
 %- project c onto the space of  X' if needed 
 %-------------------------------------------
@@ -350,13 +350,13 @@ case {0,1}
 case 2
    if ~isempty(c) & any(any(c))         %- not empty and not null
       if cukFlag,
-         varargout = {	
-	    spm_sp('cukxp-:',sX,c), ...				%- X1o
-	    spm_sp('cukx',sX,spm_sp('r',spm_sp('set',c))) };    %- X0
+         varargout = {  
+        spm_sp('cukxp-:',sX,c), ...             %- X1o
+        spm_sp('cukx',sX,spm_sp('r',spm_sp('set',c))) };    %- X0
       else
-         varargout = {	
-	    spm_sp(':',sX, spm_sp('xp-:',sX,c)), ...            %- X1o
-	    spm_sp(':',sX, ...
+         varargout = {  
+        spm_sp(':',sX, spm_sp('xp-:',sX,c)), ...            %- X1o
+        spm_sp(':',sX, ...
                spm_sp('x',sX)*spm_sp('r',spm_sp('set',c))) };   %- X0
       end
    else            
@@ -399,7 +399,7 @@ else
 end
 
 
-case {'i0->c'}			       %- 
+case {'i0->c'}                 %- 
 %=======================================================================
 % c = spm_SpUtil('i0->c',sX,i0)
 %
@@ -419,12 +419,12 @@ if nargin<3, error('Insufficient arguments'),
 else, sX = varargin{2}; i0 = varargin{3}; end;
 if ~spm_sp('isspc',sX),  sX = spm_sp('set',varargin{2}); end;
 if spm_sp('rk',sX) == 0, error('i0->c null rank sX == 0'); end;
-sL	= spm_sp('size',sX,2);
-i0 	= sf_check_i0(i0,sL);
+sL  = spm_sp('size',sX,2);
+i0  = sf_check_i0(i0,sL);
 %--------- end argument check ---------------------------------- 
 
-c0	= eye(sL); c0 = c0(:,i0);
-c1	= eye(sL); c1 = c1(:,setdiff(1:sL,i0));
+c0  = eye(sL); c0 = c0(:,i0);
+c1  = eye(sL); c1 = c1(:,setdiff(1:sL,i0));
 
 %- try to avoid the matlab error when doing svd of matrices with
 %- high multiplicities. (svd convergence pb)
@@ -442,14 +442,14 @@ if ~isempty(c1)
 
    else varargout = { spm_sp('xpx',sX) }; end;
 else
-   varargout = { [] };	%- not zeros(sL,1) : this is return when  
-			%- appropriate
+   varargout = { [] };  %- not zeros(sL,1) : this is return when  
+            %- appropriate
 end
 
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-case {'+x0->c','x0->c'}				%- 
+case {'+x0->c','x0->c'}             %- 
 %=======================================================================
 % c = spm_SpUtil('X0->c',sX,X0)
 % c = spm_SpUtil('+X0->c',sX,cukX0)
@@ -499,7 +499,7 @@ error(' Obsolete : Use F-contrast utilities  ''H'' or ''Hsqr''... ');
 
 %=======================================================================
 %=======================================================================
-%		trace part
+%       trace part
 %=======================================================================
 %=======================================================================
 %
@@ -517,56 +517,56 @@ rk = spm_sp('rk',sX);
 sL = spm_sp('size',sX,1);
 
 if  sL == 0,
-	warning('space with no dimension '); 	
-	if nargout==1, varargout = {[]};
-	else varargout = {[], []}; end
+    warning('space with no dimension ');    
+    if nargout==1, varargout = {[]};
+    else varargout = {[], []}; end
 else, 
 
-   if nargin > 2 & ~isempty(varargin{3})	
+   if nargin > 2 & ~isempty(varargin{3})    
 
-	V = varargin{3};
-	u = sX.u(:,1:rk);
-	clear sX;
-	if nargout==1
-		%-only trRV needed
-		if rk==0 | isempty(rk),  trMV = 0; 
-		else,	trMV = sum(sum( u .* (V*u) ));
-		end;
-		varargout = { trace(V) - trMV};
-	else
-		%-trRVRV is needed as well
-		if rk==0 | isempty(rk),  
-			trMV = 0; 
-			trRVRV = (norm(V,'fro'))^2;
+    V = varargin{3};
+    u = sX.u(:,1:rk);
+    clear sX;
+    if nargout==1
+        %-only trRV needed
+        if rk==0 | isempty(rk),  trMV = 0; 
+        else,   trMV = sum(sum( u .* (V*u) ));
+        end;
+        varargout = { trace(V) - trMV};
+    else
+        %-trRVRV is needed as well
+        if rk==0 | isempty(rk),  
+            trMV = 0; 
+            trRVRV = (norm(V,'fro'))^2;
          trV = trace(V);
          clear V u
-		else 
-		   Vu = V*u;
-		   trV = trace(V);
-		   trRVRV = (norm(V,'fro'))^2;
+        else 
+           Vu = V*u;
+           trV = trace(V);
+           trRVRV = (norm(V,'fro'))^2;
                    clear V; 
-		   trRVRV = trRVRV - 2*(norm(Vu,'fro'))^2;
-		   trRVRV = trRVRV + (norm(u'*Vu,'fro'))^2;
-		   trMV = sum(sum( u .* Vu ));
+           trRVRV = trRVRV - 2*(norm(Vu,'fro'))^2;
+           trRVRV = trRVRV + (norm(u'*Vu,'fro'))^2;
+           trMV = sum(sum( u .* Vu ));
                    clear u Vu
-		end
-		varargout = {(trV - trMV), trRVRV};
-	end
-		   
+        end
+        varargout = {(trV - trMV), trRVRV};
+    end
+           
    else  %- nargin == 2 | isempty(varargin{3})
 
-	if nargout==1
-		if rk==0 | isempty(rk), varargout = {sL}; 
-		else, varargout = {sL - rk}; 
-		end;
-	else
-		if rk==0 | isempty(rk),  varargout = {sL,sL};
-		else, varargout = {sL - rk, sL - rk};
-		end;	
-	end
+    if nargout==1
+        if rk==0 | isempty(rk), varargout = {sL}; 
+        else, varargout = {sL - rk}; 
+        end;
+    else
+        if rk==0 | isempty(rk),  varargout = {sL,sL};
+        else, varargout = {sL - rk, sL - rk};
+        end;    
+    end
 
     end
-end	
+end 
 
 
 case 'trmv'                     %-Traces for (effective) Fdf calculation
@@ -582,42 +582,42 @@ if ~spm_sp('isspc',sX), sX = spm_sp('Set',sX); end;
 rk = spm_sp('rk',sX);
 
 if isempty(rk)
-	warning('Rank is empty'); 	
-	if nargout==1, varargout = {[]};
-	else varargout = {[], []}; end
-	return; 
+    warning('Rank is empty');   
+    if nargout==1, varargout = {[]};
+    else varargout = {[], []}; end
+    return; 
 elseif  rk==0, warning('Rank is null in spm_SpUtil trMV ');
-	if nargout==1, varargout = {0};
-	else varargout = {0, 0}; end
-	return; 
+    if nargout==1, varargout = {0};
+    else varargout = {0, 0}; end
+    return; 
 end;
 
 if nargin > 2 & ~isempty(varargin{3}) %- V provided, and assumed correct !
 
-	V = varargin{3};
-	u = sX.u(:,1:rk);
-	clear sX;
+    V = varargin{3};
+    u = sX.u(:,1:rk);
+    clear sX;
 
-	if nargout==1
-		%-only trMV needed
-		trMV = sum(sum(u' .* (u'*V) ));
-		varargout = {trMV};
-	else 
-		%-trMVMV is needed as well
-		Vu = V*u;
+    if nargout==1
+        %-only trMV needed
+        trMV = sum(sum(u' .* (u'*V) ));
+        varargout = {trMV};
+    else 
+        %-trMVMV is needed as well
+        Vu = V*u;
                 clear V
-		trMV = sum(sum( u .* Vu ));
-		trMVMV = (norm(u'*Vu,'fro'))^2;
-	        clear u Vu
-		varargout = {trMV, trMVMV};
-	end
+        trMV = sum(sum( u .* Vu ));
+        trMVMV = (norm(u'*Vu,'fro'))^2;
+            clear u Vu
+        varargout = {trMV, trMVMV};
+    end
 
 else  % nargin == 2 | isempty(varargin{3}) %-no V specified: trMV == trMVMV
-	if nargout==1
-		varargout = {rk};
-	else
-		varargout = {rk, rk};
-	end
+    if nargout==1
+        varargout = {rk};
+    else
+        varargout = {rk, rk};
+    end
 end
  
 
@@ -630,7 +630,7 @@ case {'i0->edf','edf'}                  %-Effective F degrees of freedom
 if nargin<3, error('insufficient arguments'),
 else, i0 = varargin{3}; sX = varargin{2}; end
 if ~spm_sp('isspc',sX), sX = spm_sp('Set',sX); end;
-i0 	= sf_check_i0(i0,spm_sp('size',sX,2));
+i0  = sf_check_i0(i0,spm_sp('size',sX,2));
 if nargin == 4, V=varargin{4}; else, V = eye(spm_sp('size',sX,1)); end;
 if nargin>4, error('Too many input arguments'), end;
 %--------- end argument check ------------------------------------------ 
@@ -644,7 +644,7 @@ varargout = {trMpV^2/trMpVMpV, trRV^2/trRVRV};
 
 %=======================================================================
 %=======================================================================
-% 		Utilities
+%       Utilities
 %=======================================================================
 %=======================================================================
 
@@ -658,20 +658,20 @@ if nargin<2, error('insufficient arguments'), end
 
 if isstruct(varargin{2})
    if isfield(varargin{2},'X')
-	sz = size(varargin{2}.X);
-   else, error('no X field'); end;	
+    sz = size(varargin{2}.X);
+   else, error('no X field'); end;  
 else
-	sz = size(varargin{2});
+    sz = size(varargin{2});
 end
 
 if ~isempty(dim)
-	if dim>length(sz), sz = 1; else, sz = sz(dim); end
-	varargout = {sz};
+    if dim>length(sz), sz = 1; else, sz = sz(dim); end
+    varargout = {sz};
 elseif nargout>1
-	varargout = cell(1,min(nargout,length(sz)));
-	for i=1:min(nargout,length(sz)), varargout{i} = sz(i); end
+    varargout = cell(1,min(nargout,length(sz)));
+    for i=1:min(nargout,length(sz)), varargout{i} = sz(i); end
 else
-	varargout = {sz};
+    varargout = {sz};
 end
 
 
@@ -702,7 +702,7 @@ function i0c = sf_check_i0(i0,sL)
 
 if all(ismember(i0,[0,1])) & length(i0(:))==sL, i0c=find(i0); 
 elseif ~isempty(i0) & any(floor(i0)~=i0) | any(i0<1) | any(i0>sL)
-	error('logical mask or vector of column indices required')
+    error('logical mask or vector of column indices required')
 else, i0c = i0; end
 
 %=======================================================================

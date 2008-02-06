@@ -10,11 +10,11 @@ function [] = spm_dcm_voi (DCM_filename,voi_filenames)
 % This function can be used, for example, to replace subject X's data by subject Y's.
 % The model can then be re-estimated without having to go through
 % model specification again.
-%
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_voi.m 615 2006-09-08 16:16:06Z karl $
+% $Id: spm_dcm_voi.m 1131 2008-02-06 11:17:09Z spm $
 
 
 load(DCM_filename);

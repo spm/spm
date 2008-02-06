@@ -51,7 +51,7 @@ function F = spm_Ncdf(x,u,v)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Ncdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Ncdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -61,13 +61,13 @@ if nargin<2, u=0; end
 if nargin<1, F=[]; return, end
 ad = [ndims(x);ndims(u);ndims(v)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(u),ones(1,rd-ad(2))];...
-	[size(v),ones(1,rd-ad(3))]     ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(u),ones(1,rd-ad(2))];...
+    [size(v),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -77,7 +77,7 @@ F = zeros(rs);
 %-Only defined for strictly positive variance v. Return NaN if undefined.
 md = ( ones(size(x))  &  ones(size(u))  &  v>0 );
 if any(~md(:)), F(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Non-zero where defined
 Q  = find( md );

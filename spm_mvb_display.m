@@ -3,6 +3,10 @@ function spm_mvb_display(MVB)
 % FORMAT spm_mvb_display(MVB)
 % MVB  - multivariate Bayes structure
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_mvb_display.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % get figure

@@ -11,7 +11,7 @@ function [kl] = spm_kl_wishart (q,Q,p,P)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_kl_wishart.m 1131 2008-02-06 11:17:09Z spm $
 
 logdetQ=log(det(Q));
 logdetP=log(det(P));

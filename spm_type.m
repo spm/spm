@@ -4,11 +4,11 @@ function T = spm_type(x, arg)
 % x    - specifier
 % T    - type
 % arg  - optional string argument, can be
-%	 - 'maxval'  - return maximum allowed value.
-%	 - 'minval'  - return minimum allowed value.
-%	 - 'nanrep'  - return 1 if there is a NaN representation.
-%	 - 'bits'    - return the number of bits per voxel.
-%	 - 'intt'    - return 1 if values rounded to nearest integer.
+%    - 'maxval'  - return maximum allowed value.
+%    - 'minval'  - return minimum allowed value.
+%    - 'nanrep'  - return 1 if there is a NaN representation.
+%    - 'bits'    - return the number of bits per voxel.
+%    - 'intt'    - return 1 if values rounded to nearest integer.
 %_______________________________________________________________________
 %
 % Format specifiers are based on NIFTI-1.  If the input is
@@ -22,7 +22,7 @@ function T = spm_type(x, arg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_type.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_type.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -35,38 +35,38 @@ bits    = [    8     16     32   32   64     8     16     32];
 intt    = [    1      1      1    0    0     1      1      1];
 
 if nargin==0,
-	T=types;
-	return;
+    T=types;
+    return;
 end;
 
 if ischar(x),
-	sel = [];
-	for i=1:numel(types),
-		if strcmpi(deblank(prec(i,:)),deblank(x)), 
-			sel = i;
-			break;
-		end;
-	end;
+    sel = [];
+    for i=1:numel(types),
+        if strcmpi(deblank(prec(i,:)),deblank(x)), 
+            sel = i;
+            break;
+        end;
+    end;
 else,
-	sel = find(types == x);
+    sel = find(types == x);
 end;
 if nargin == 1,
-	if ischar(x),
-		if isempty(sel), T = NaN;
-		else, T = types(sel); end;
-	else,
-		if isempty(sel), T = 'unknown';
-		else, T = deblank(prec(sel,:)); end;
-	end;
+    if ischar(x),
+        if isempty(sel), T = NaN;
+        else, T = types(sel); end;
+    else,
+        if isempty(sel), T = 'unknown';
+        else, T = deblank(prec(sel,:)); end;
+    end;
 elseif isempty(sel),
-	T = NaN;
+    T = NaN;
 else,
-	switch lower(arg)
-	case 'maxval',  T = maxval(sel);
-	case 'minval',  T = minval(sel);
-	case 'nanrep',  T = nanrep(sel);
-	case 'bits',    T = bits(sel);
-	case 'intt',    T = intt(sel);
-	otherwise,      T = NaN;
-	end;
+    switch lower(arg)
+    case 'maxval',  T = maxval(sel);
+    case 'minval',  T = minval(sel);
+    case 'nanrep',  T = nanrep(sel);
+    case 'bits',    T = bits(sel);
+    case 'intt',    T = intt(sel);
+    otherwise,      T = NaN;
+    end;
 end;

@@ -358,7 +358,7 @@ function [varargout] = spm_bst_headmodeler(varargin);
 %   BEMGaingridFname = bem_GainGrid(DataType,OPTIONS,BEMChanNdx)
 %   g = gterm_constant(r,rq)
 %
-% At Check-in: $Author: Silvin $  $Revision: 68 $  $Date: 12/15/05 4:14a $
+% At Check-in: $Author: Silvin $  $Revision: 1131 $  $Date: 12/15/05 4:14a $
 %
 % This software is part of BrainStorm Toolbox Version 27-June-2005
 %
@@ -993,7 +993,7 @@ if ~isempty(findstr('bem',[OPTIONS.Method{:}])) % BEM approaches - Compute trans
 % Changed by Rik 4/10/07 to call from SPM without User files
             if exist('User')
                load(fullfile(User.SUBJECTS,fileparts(OPTIONS.Subject),OPTIONS.BEM.EnvelopeNames{end}.TessFile))
-	    else
+        else
                load(OPTIONS.BEM.EnvelopeNames{end}.TessFile)
             end
 %%%%%%

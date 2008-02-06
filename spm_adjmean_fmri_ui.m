@@ -157,42 +157,42 @@ function spm_adjmean_fmri_ui
 % rGX           raw global means (before any scaling)
 % GX            Global means after scaling
 %
-% P		String matrix of filenames
-% iCond		Condition indicator vector
-% iGloNorm	Global normalisation option
-% sGloNorm	Global normalisation description
-% iGMsca	Grand mean scaling option
-% sGMsca	Grand mean scaling description
-% HPFc		High pass filter cut-off period (s)
-% HPF		High pass filter
-% sHPF		Description of high-pass filter
-% rC		raw C partition of design matrix, prior to orthogonalisation
-% C		C (covariates of interest) partition of design matrix
-% Cnames	Names of parameters corresponding to columns of C
-% B		B (block) partition of the design matrix
-% Bnames	Names of parameters corresponding to columns of B
-% G		G (confounding covariates) partition of design matrix
-% Gnames	Names of parameters corresponding to columns of G
-% rX		raw design matrix, prior to orthogonalisation of C partition
-% X		design matrix (=[C,B,G])
-% nrX		raw design matrix, normalised for display
-% nX		design matrix, normalised for display
-% c		Matrix of contrasts, contrasts in rows
-% cNames	Names associated with contrasts
-% W		Weights for images corresponding to contrasts
-% CWD		Current Working Directory (when run)
-% Fnames	Filenames of adjusted mean images written
-% rGX		raw global means (before any scaling)
-% gSF		Image scale factors for global scaling (inc. grand mean scaling)
-% GX		Global means after scaling
-% GM		Grans Mean used for scaling
+% P     String matrix of filenames
+% iCond     Condition indicator vector
+% iGloNorm  Global normalisation option
+% sGloNorm  Global normalisation description
+% iGMsca    Grand mean scaling option
+% sGMsca    Grand mean scaling description
+% HPFc      High pass filter cut-off period (s)
+% HPF       High pass filter
+% sHPF      Description of high-pass filter
+% rC        raw C partition of design matrix, prior to orthogonalisation
+% C     C (covariates of interest) partition of design matrix
+% Cnames    Names of parameters corresponding to columns of C
+% B     B (block) partition of the design matrix
+% Bnames    Names of parameters corresponding to columns of B
+% G     G (confounding covariates) partition of design matrix
+% Gnames    Names of parameters corresponding to columns of G
+% rX        raw design matrix, prior to orthogonalisation of C partition
+% X     design matrix (=[C,B,G])
+% nrX       raw design matrix, normalised for display
+% nX        design matrix, normalised for display
+% c     Matrix of contrasts, contrasts in rows
+% cNames    Names associated with contrasts
+% W     Weights for images corresponding to contrasts
+% CWD       Current Working Directory (when run)
+% Fnames    Filenames of adjusted mean images written
+% rGX       raw global means (before any scaling)
+% gSF       Image scale factors for global scaling (inc. grand mean scaling)
+% GX        Global means after scaling
+% GM        Grans Mean used for scaling
 %
 %
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_adjmean_fmri_ui.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_adjmean_fmri_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -225,8 +225,8 @@ Conds = unique(eCond);
 eLen   = [];
 guiPos = spm_input('!NextPos');
 while any(~eLen) | sum(eLen) ~= nScan
-	eLen = spm_input('#scans/epoch Eg 8 or 8 6 8... ',guiPos);
-	if length(eLen)==1, eLen=eLen*ones(1,length(eCond)); end
+    eLen = spm_input('#scans/epoch Eg 8 or 8 6 8... ',guiPos);
+    if length(eLen)==1, eLen=eLen*ones(1,length(eCond)); end
 end
 eLen    = eLen(:)';
 
@@ -254,10 +254,10 @@ hrf = spm_hrf(RT);
 %-Convolve with hemodynamic response function, if requested
 bHRFconv = spm_input('Conv. box-cars w/ approx HRF?','+1','y/n',[1,0],1);
 if bHRFconv
-	d = length(hrf);
-	C = [ones(d,1)*C(1,:); C];
-	C = spm_sptop(hrf,nScan + d,1)*C;
-	C = C([1:nScan]+d,:);
+    d = length(hrf);
+    C = [ones(d,1)*C(1,:); C];
+    C = spm_sptop(hrf,nScan + d,1)*C;
+    C = C([1:nScan]+d,:);
 end
 
 
@@ -277,39 +277,39 @@ G = []; Gnames = '';
 %-----------------------------------------------------------------------
 bHPF = spm_input('Use high pass filter?','+1','y/n',[1 0],1);
 if bHPF
-	HPFc=nScan;
-	for i=Conds', HPFc = min([HPFc,max(diff(eOns(eCond==i)))]); end
-	HPFc=spm_input('HPF cut-off period {in seconds}','0','e',2*HPFc*RT);
-	%-Find max order for discrete cosine set, HPFk
-	% (from period>HPFc, period=nScan*RT/(k/2) for order k; k<nScan/2)
-	HPFk = fix(min(2*(nScan*RT)/HPFc,nScan/2));
-	HPF = []; HPFnames = '';
-	for k = 1:HPFk
-		HPF = [HPF, cos(k*pi*([1:nScan]-1)'/(nScan-1))];
-		HPFnames = ...
-			strvcat(HPFnames,sprintf('LowHz (%4.0fs)',2*RT*nScan/k));
-	end
-	HPF = HPF - ones(nScan,1)*mean(HPF);	%-Mean correct (by column)
-	sHPF = sprintf('High-pass filter of %d components, cut off = %ds',...
-		HPFk,HPFc);
+    HPFc=nScan;
+    for i=Conds', HPFc = min([HPFc,max(diff(eOns(eCond==i)))]); end
+    HPFc=spm_input('HPF cut-off period {in seconds}','0','e',2*HPFc*RT);
+    %-Find max order for discrete cosine set, HPFk
+    % (from period>HPFc, period=nScan*RT/(k/2) for order k; k<nScan/2)
+    HPFk = fix(min(2*(nScan*RT)/HPFc,nScan/2));
+    HPF = []; HPFnames = '';
+    for k = 1:HPFk
+        HPF = [HPF, cos(k*pi*([1:nScan]-1)'/(nScan-1))];
+        HPFnames = ...
+            strvcat(HPFnames,sprintf('LowHz (%4.0fs)',2*RT*nScan/k));
+    end
+    HPF = HPF - ones(nScan,1)*mean(HPF);    %-Mean correct (by column)
+    sHPF = sprintf('High-pass filter of %d components, cut off = %ds',...
+        HPFk,HPFc);
 
-	G = [G, HPF]; Gnames = strvcat(Gnames,HPFnames);
+    G = [G, HPF]; Gnames = strvcat(Gnames,HPFnames);
 else
-	HPFc=0; HPF=[]; sHPF='No high-pass filter';
+    HPFc=0; HPF=[]; sHPF='No high-pass filter';
 end
 
 %-Global normalization options
 %-----------------------------------------------------------------------
 sGloNorm = strvcat('None','Proportional scaling','AnCova');
 iGloNorm = spm_input('Select global normalisation',...
-	'+1','m',sGloNorm,[],2);
+    '+1','m',sGloNorm,[],2);
 sGloNorm = deblank(sGloNorm(iGloNorm,:));
 
 
 %-Grand mean scaling
 %-----------------------------------------------------------------------
 sGMsca = strvcat('None','Scaling of overall Grand Mean',...
-	'(Implicitly via PropSca global normalisation)');
+    '(Implicitly via PropSca global normalisation)');
 if iGloNorm==2, iGMsca=3; else, iGMsca=2; end
 sGMsca = deblank(sGMsca(iGMsca,:));
 GM = 100;
@@ -354,26 +354,26 @@ fprintf('\b - done)\n')
 %-----------------------------------------------------------------------
 rGX = GX;
 if iGloNorm==2
-	%-Proportional scaling global normalisation
-	gSF = GM./GX;
-	GX  = GM*ones(nScan,1);
-	sGloNorm = sprintf('%s, to %g',sGloNorm,GM);
+    %-Proportional scaling global normalisation
+    gSF = GM./GX;
+    GX  = GM*ones(nScan,1);
+    sGloNorm = sprintf('%s, to %g',sGloNorm,GM);
 elseif iGMsca==2
-	%-Grand mean scaling (overall)
-	gSF = GM/mean(GX);
-	GX  = GX*gSF;
-	sGMsca = sprintf('%s, to %g',sGMsca,GM);
-else	%-No scaling
-	gSF = ones(nScan,1);
+    %-Grand mean scaling (overall)
+    gSF = GM/mean(GX);
+    GX  = GX*gSF;
+    sGMsca = sprintf('%s, to %g',sGMsca,GM);
+else    %-No scaling
+    gSF = ones(nScan,1);
 end
 
 
 %-AnCova options: Construct Global covariates of no interest partition
 %-----------------------------------------------------------------------
 if iGloNorm==3
-	G      = [G, GX-mean(GX)];
-	Gnames = strvcat(Gnames,'Global');
-	sGloNorm = [sGloNorm,', to Grand Mean'];
+    G      = [G, GX-mean(GX)];
+    Gnames = strvcat(Gnames,'Global');
+    sGloNorm = [sGloNorm,', to Grand Mean'];
 end
 
 %-Design matrix - raw & with effects of interest orthogonalised wirit G
@@ -382,13 +382,13 @@ rC = C;
 rX = [rC B G];
 [nrX,Xnames] = spm_DesMtx('sca',C,Cnames,B,Bnames,G,Gnames);
 if size(G,2)
-	C  = C - G*pinv(G)*C;
+    C  = C - G*pinv(G)*C;
 end
 X  = [C B G];
 nX = spm_DesMtx('sca',X,Xnames);
 EXnames = spm_DesMtx('ETeXNames',Xnames);
-iX = struct(	'H',	[],		'C',	[1:size(C,2)],...
-		'B',	size(C,2)+1,	'G',	size(C,2) +1 +[1:size(G,2)]);
+iX = struct(    'H',    [],     'C',    [1:size(C,2)],...
+        'B',    size(C,2)+1,    'G',    size(C,2) +1 +[1:size(G,2)]);
 
 %-Temporal smoothing?
 %-----------------------------------------------------------------------
@@ -408,9 +408,9 @@ c      = [eye(nc), ones(nc,size(B,2)), zeros(nc,size(G,2))];
 cNames = spm_DesMtx('Fnames',EXnames(iX.C));
 %-if we have a null condition, then constant *is* null condition effect
 if any(Conds==0)
-	c      = [zeros(1,nc), 1, zeros(1,size(G,2)); c];
-	cNames = [{'baseline'};cNames];
-	nc     = nc+1;
+    c      = [zeros(1,nc), 1, zeros(1,size(G,2)); c];
+    cNames = [{'baseline'};cNames];
+    nc     = nc+1;
 end
 
 W   = c * pX;
@@ -452,11 +452,11 @@ set(gca,'Visible','off')
 
 axes('Position',[0.1,0.5,0.8,0.3])
 if iGloNorm==2
-	plot(rGX)
-	ylabel('global mean (pre-scaling)')
+    plot(rGX)
+    ylabel('global mean (pre-scaling)')
 else
-	plot(GX)
-	ylabel('global mean (post-scaling)')
+    plot(GX)
+    ylabel('global mean (post-scaling)')
 end
 set(gca,'XLim',[0.5,nScan+0.5],'Color','none')
 xlabel('scan index')
@@ -468,7 +468,7 @@ spm_print
 %=======================================================================
 spm_clf(Fgraph); axes('Position',[0 0 1 .95],'Visible','off')
 text(.2,1,'Design Matrix, contrasts & contrast files',...
-	'Fontsize',16,'Fontweight','Bold');
+    'Fontsize',16,'Fontweight','Bold');
 
 %-Image scaled design matrix, label the effects, add filenames (if <=32)
 %-----------------------------------------------------------------------
@@ -481,19 +481,19 @@ axes('Position',[.07 .8 .6 .1],'Visible','off')
 dx    = 1/size(nX,2);
 tXnames = spm_DesMtx('TeXnames',Xnames);
 for i = 1:size(nX,2)
-	text((i - .5)*dx+.01,.3,EXnames{i},'Fontsize',9,'Rotation',90)
-	if ~strcmp(Xnames{i},EXnames{i})
-		text((i - .5)*dx,.1,tXnames{i},'Fontsize',10,'Interpreter','TeX')
-	end
+    text((i - .5)*dx+.01,.3,EXnames{i},'Fontsize',9,'Rotation',90)
+    if ~strcmp(Xnames{i},EXnames{i})
+        text((i - .5)*dx,.1,tXnames{i},'Fontsize',10,'Interpreter','TeX')
+    end
 end
 if nScan<=32
-	set(hDesMtx,'YTick',1:nScan)
-	axes('Position',[.68 .5 .3 .3],'Visible','off')
-	dy = 1/nScan;
-	tP = spm_str_manip(P,'k40');
-	for i=1:nScan
-		text(0,(nScan-i+0.5)*dy,tP{i},'FontSize',8)
-	end
+    set(hDesMtx,'YTick',1:nScan)
+    axes('Position',[.68 .5 .3 .3],'Visible','off')
+    dy = 1/nScan;
+    tP = spm_str_manip(P,'k40');
+    for i=1:nScan
+        text(0,(nScan-i+0.5)*dy,tP{i},'FontSize',8)
+    end
 end
 
 %-Depict contrasts and associated (preliminary) filenames
@@ -501,19 +501,19 @@ end
 dy = .4/nc;
 axes('Position',[.025 .05 .05 .4],'Visible','off')
 text(0,.5,'contrasts','HorizontalAlignment','Center','Rotation',90,...
-	'FontSize',14,'FontWeight','Bold')
+    'FontSize',14,'FontWeight','Bold')
 axes('Position',[.6 .44 .40 .02],'Visible','off')
 text(0,1,'Contrast files...','FontSize',10,'FontWeight','Bold')
 text(0,0,sprintf('...in %s',pwd),'FontSize',8)
 hFnames = zeros(1,nc);
 for i = 1:nc
-	axes('Position',[.1 (.45 -dy*i) .6 .9*dy])
-	h = bar(c(i,:),1);
-	set(h,'FaceColor',[1 1 1]*.8)
-	set(gca,'XLim',[.5,size(c,2)+.5],'Visible','off')
-	text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10)
-	hFnames(i) = text(size(c,2)+.55,.1,Fnames{i},'FontSize',10,...
-		'Color',[1 1 1]*.5,'FontAngle','Italic');
+    axes('Position',[.1 (.45 -dy*i) .6 .9*dy])
+    h = bar(c(i,:),1);
+    set(h,'FaceColor',[1 1 1]*.8)
+    set(gca,'XLim',[.5,size(c,2)+.5],'Visible','off')
+    text(0,0,num2str(i),'HorizontalAlignment','Right','FontSize',10)
+    hFnames(i) = text(size(c,2)+.55,.1,Fnames{i},'FontSize',10,...
+        'Color',[1 1 1]*.5,'FontAngle','Italic');
 end
 
 
@@ -525,9 +525,9 @@ fprintf('\tspecify filenames for contrast images...\n')
 spm('Pointer');
 guiPos = spm_input('!NextPos');
 for i = 1:nc
-	Fnames{i} = spm_input(sprintf('Contrast %d: filename?',i),...
-			guiPos,'s',Fnames{i});
-	set(hFnames(i),'string',Fnames{i},'Color','k','FontAngle','Normal')
+    Fnames{i} = spm_input(sprintf('Contrast %d: filename?',i),...
+            guiPos,'s',Fnames{i});
+    set(hFnames(i),'string',Fnames{i},'Color','k','FontAngle','Normal')
 end
 spm_print
 
@@ -541,31 +541,31 @@ spm('Pointer','Watch');
 % will be zero at voxels where *any* of the input images are zero.
 
 %-Create handle template for output images as 16bit Int16's
-Vo = struct(	'fname',	'',...
-		'dim',		V(1).dim(1:3),...
-		'dt',           [4 spm_platform('bigend')],...
-		'mat',		V(1).mat,...
-		'pinfo'	,	[1,0,0]',...
-		'descrip',	'');
+Vo = struct(    'fname',    '',...
+        'dim',      V(1).dim(1:3),...
+        'dt',           [4 spm_platform('bigend')],...
+        'mat',      V(1).mat,...
+        'pinfo' ,   [1,0,0]',...
+        'descrip',  '');
 
 %-Loop over contrasts
 for i = 1:nc
-	fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
-	%-Implement weighted sum by weighting scalefactors in image handles
-	w  = W(i,:).*gSF';
-	Q  = find(abs(w)>0);
-	w  = w(Q); wV = V(Q);
-	for j=1:length(Q), wV(j).pinfo(1:2,:)=wV(j).pinfo(1:2,:)*w(j); end
-	%-Write header
-	Vo.fname   = [Fnames{i},'.img'];
-	Vo.descrip = sprintf('Adjusted mean (spm_adjmean_fmri) - %s',Fnames{i});
-	Vo.pinfo   = [1,0,0]';
-	Vo         = spm_create_vol(Vo);
-	%-Compute & rewrite header scalefactor
-	Vo.pinfo(1)  = spm_add(wV,Vo,'m');
-	Vo           = spm_create_vol(Vo);
+    fprintf('\t...writing image %d/%d: %-20s',i,nc,Fnames{i})
+    %-Implement weighted sum by weighting scalefactors in image handles
+    w  = W(i,:).*gSF';
+    Q  = find(abs(w)>0);
+    w  = w(Q); wV = V(Q);
+    for j=1:length(Q), wV(j).pinfo(1:2,:)=wV(j).pinfo(1:2,:)*w(j); end
+    %-Write header
+    Vo.fname   = [Fnames{i},'.img'];
+    Vo.descrip = sprintf('Adjusted mean (spm_adjmean_fmri) - %s',Fnames{i});
+    Vo.pinfo   = [1,0,0]';
+    Vo         = spm_create_vol(Vo);
+    %-Compute & rewrite header scalefactor
+    Vo.pinfo(1)  = spm_add(wV,Vo,'m');
+    Vo           = spm_create_vol(Vo);
 
-	fprintf(' (done)\n')
+    fprintf(' (done)\n')
 end
 
 %-Prepend PWD to Fnames
@@ -576,31 +576,31 @@ Fnames = cellstr([repmat([pwd,filesep],nc,1),char(Fnames)]);
 %-----------------------------------------------------------------------
 %-Pack design parameters up in a structure
 Des = struct(...
-		'DesName',	'Single sess. fMRI box-cars',...
-		'HForm',	[],...
-		'iSubj',	[],...
-		'iCond',	iCond,...
-		'iGloNorm',	iGloNorm,...
-		'sGloNorm',	sGloNorm,...
-		'iGMsca',	iGMsca,...
-		'sGMsca',	sGMsca,...
-		'GM',		GM,...
-		'gSF',		gSF,...
-		'iAdjTo',	[],...
-		'sAdjTo',	[],...
-		'aGM',		[],...
-		'X',		X,...
-		'nX',		nX,...
-		'Xnames',	Xnames,...
-		'aPMap',	[],...
-		'EXnames',	EXnames,...
-		'iX',		iX		);
+        'DesName',  'Single sess. fMRI box-cars',...
+        'HForm',    [],...
+        'iSubj',    [],...
+        'iCond',    iCond,...
+        'iGloNorm', iGloNorm,...
+        'sGloNorm', sGloNorm,...
+        'iGMsca',   iGMsca,...
+        'sGMsca',   sGMsca,...
+        'GM',       GM,...
+        'gSF',      gSF,...
+        'iAdjTo',   [],...
+        'sAdjTo',   [],...
+        'aGM',      [],...
+        'X',        X,...
+        'nX',       nX,...
+        'Xnames',   Xnames,...
+        'aPMap',    [],...
+        'EXnames',  EXnames,...
+        'iX',       iX      );
 if spm_matlab_version_chk('7') >= 0
-	save('SPMadj','-V6',...
-		'SPMid','Des','V','c','cNames','W','Fnames','HPFc','HPF','sHPF','rX','nrX','rGX','GX');
+    save('SPMadj','-V6',...
+        'SPMid','Des','V','c','cNames','W','Fnames','HPFc','HPF','sHPF','rX','nrX','rGX','GX');
 else
-	save('SPMadj',...
-		'SPMid','Des','V','c','cNames','W','Fnames','HPFc','HPF','sHPF','rX','nrX','rGX','GX');
+    save('SPMadj',...
+        'SPMid','Des','V','c','cNames','W','Fnames','HPFc','HPF','sHPF','rX','nrX','rGX','GX');
 end;
 
 

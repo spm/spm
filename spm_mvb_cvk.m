@@ -7,7 +7,11 @@ function [p,percent] = spm_mvb_cvk(MVB,k)
 % spm_mvb_cv performs a k-fold (def. k=2) cross-validation by trying to 
 % predict the target variable using a split-in-k test sample.
 %__________________________________________________________________________
- 
+ % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_mvb_cvk.m 1131 2008-02-06 11:17:09Z spm $
+
 %-Get figure handles and set title
 %--------------------------------------------------------------------------
 Fmvb = spm_figure('GetWin','MVB');

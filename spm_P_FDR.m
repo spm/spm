@@ -5,11 +5,11 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Z     - height (minimum of n statistics)
 % df    - [df{interest} df{error}]
 % STAT  - Statistical field
-%		'Z' - Gaussian field
-%		'T' - T - field
-%		'X' - Chi squared field
-%		'F' - F - field
-%		'P' - P - value
+%       'Z' - Gaussian field
+%       'T' - T - field
+%       'X' - Chi squared field
+%       'F' - F - field
+%       'P' - P - value
 % n     - Conjunction number
 % Ps    - Vector of sorted (ascending) p-values in search volume
 %
@@ -68,7 +68,7 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_P_FDR.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_P_FDR.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -107,15 +107,15 @@ Qs    = Ps*S./(1:S)'*cV;
 P     = zeros(size(Z));
 for i = 1:length(Z)
 
-	% Find PZ(i) in Ps, or smallest Ps(j) s.t. Ps(j) >= PZ(i)
-	%---------------------------------------------------------------
-	I = min(find(Ps>=PZ(i)));  
+    % Find PZ(i) in Ps, or smallest Ps(j) s.t. Ps(j) >= PZ(i)
+    %---------------------------------------------------------------
+    I = min(find(Ps>=PZ(i)));  
 
-	% -"Adjusted" p-values
-	%---------------------------------------------------------------
-	if isempty(I)
-		P(i) = 1;
-	else
-		P(i) = min(Qs(I:S));
-	end
+    % -"Adjusted" p-values
+    %---------------------------------------------------------------
+    if isempty(I)
+        P(i) = 1;
+    else
+        P(i) = min(Qs(I:S));
+    end
 end

@@ -1,7 +1,4 @@
 function [result,Pres] = spm_eeg_inv_ecd_sDipRes(sdip)
-
-%____________________________________________________________________________
-%
 % FORMAT [result,Pres] = spm_eeg_inv_ecd_sDipRes(sdip)
 %
 % This function summarizes the result of the dipole fitting routines.
@@ -45,7 +42,7 @@ function [result,Pres] = spm_eeg_inv_ecd_sDipRes(sdip)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_ecd_sDipRes.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 1
     Pdip = spm_select(1,'^S.*dip.*\.mat$','Select dipole file');

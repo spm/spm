@@ -6,7 +6,7 @@ function opts = spm_config_reorient
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Volkmar Glauche
-% $Id: spm_config_movefile.m 549 2006-06-07 12:37:29Z volkmar $
+% $Id: spm_config_reorient.m 1131 2008-02-06 11:17:09Z spm $
 
 %_______________________________________________________________________
 

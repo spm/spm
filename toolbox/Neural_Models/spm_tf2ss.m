@@ -57,7 +57,7 @@ if nnum > n
     else
         error('MATLAB:tf2ss:DenomInvalidOrder',...
               ['Order of denominator must be greater than or equal to ',...
-	      'order of numerator.']);
+          'order of numerator.']);
     end
 end
 

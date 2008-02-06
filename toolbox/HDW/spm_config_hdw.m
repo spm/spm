@@ -4,7 +4,7 @@ function job = spm_config_hdw
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id$
+% $Id: spm_config_hdw.m 1131 2008-02-06 11:17:09Z spm $
 
 % Define inline types.
 %-----------------------------------------------------------------------

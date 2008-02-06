@@ -56,7 +56,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Matthew Brett
-% $Id: spm_platform.m 983 2007-10-29 15:56:35Z john $
+% $Id: spm_platform.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -77,12 +77,12 @@ case 'bigend'                      %-Return endian for this architecture
 %=======================================================================
 varargout = {PLATFORM.bigend};
 if ~isfinite(PLATFORM.bigend),
-	if isnan(PLATFORM.bigend)
-		error(['I don''t know if "',computer,'" is big-endian.'])
-	else
-		error(['I don''t think that "',computer,...
-			'" uses IEEE floating point ops.'])
-	end
+    if isnan(PLATFORM.bigend)
+        error(['I don''t know if "',computer,'" is big-endian.'])
+    else
+        error(['I don''t think that "',computer,...
+            '" uses IEEE floating point ops.'])
+    end
 end
 
 case 'filesys'                                      %-Return file system
@@ -110,7 +110,7 @@ case 'tempdir'                              %-Return temporary directory
 %=======================================================================
 twd = getenv('SPMTMP');
 if isempty(twd)
-	twd = tempdir;
+    twd = tempdir;
 end 
 varargout = {twd};
 
@@ -120,16 +120,16 @@ case {'font','fonts'}    %-Map default font names to platform font names
 if nargin<2, varargout={PLATFORM.font}; return, end
 switch lower(varargin{2})
 case 'times'
-	varargout = {PLATFORM.font.times};
+    varargout = {PLATFORM.font.times};
 case 'courier'
-	varargout = {PLATFORM.font.courier};
+    varargout = {PLATFORM.font.courier};
 case 'helvetica'
-	varargout = {PLATFORM.font.helvetica};
+    varargout = {PLATFORM.font.helvetica};
 case 'symbol'
-	varargout = {PLATFORM.font.symbol};
+    varargout = {PLATFORM.font.symbol};
 otherwise
-	warning(['Unknown font ',varargin{2},', using default'])
-	varargout = {PLATFORM.font.helvetica};
+    warning(['Unknown font ',varargin{2},', using default'])
+    varargout = {PLATFORM.font.helvetica};
 end
 
 otherwise                                        %-Unknown Action string
@@ -152,25 +152,25 @@ if nargin<1, comp=computer; end
 
 %-Platform definitions
 %-----------------------------------------------------------------------
-PDefs = {	'PCWIN',	'win',	0;...
-		'PCWIN64',	'win',  0;...
-		'MAC',		'unx',	1;...
-		'MACI',		'unx',	0;...
-		'SUN4',		'unx',	1;...
-		'SOL2',		'unx',	1;...
-		'SOL64',	'unx',	1;...
-		'HP700',	'unx',	1;...
-		'SGI',		'unx',	1;...
-		'SGI64',	'unx',	1;...
-		'IBM_RS',	'unx',	1;...
-		'ALPHA',	'unx',	0;...
-		'AXP_VMSG',	'vms',	Inf;...
-		'AXP_VMSIEEE',	'vms',	0;...
-		'LNX86',	'unx',	0;...
-		'GLNX86',	'unx',  0;...
-		'GLNXA64',      'unx',  0;...
-		'VAX_VMSG',	'vms',	Inf;...
-		'VAX_VMSD',	'vms',	Inf	};
+PDefs = {   'PCWIN',    'win',  0;...
+        'PCWIN64',  'win',  0;...
+        'MAC',      'unx',  1;...
+        'MACI',     'unx',  0;...
+        'SUN4',     'unx',  1;...
+        'SOL2',     'unx',  1;...
+        'SOL64',    'unx',  1;...
+        'HP700',    'unx',  1;...
+        'SGI',      'unx',  1;...
+        'SGI64',    'unx',  1;...
+        'IBM_RS',   'unx',  1;...
+        'ALPHA',    'unx',  0;...
+        'AXP_VMSG', 'vms',  Inf;...
+        'AXP_VMSIEEE',  'vms',  0;...
+        'LNX86',    'unx',  0;...
+        'GLNX86',   'unx',  0;...
+        'GLNXA64',      'unx',  0;...
+        'VAX_VMSG', 'vms',  Inf;...
+        'VAX_VMSD', 'vms',  Inf };
 
 PDefs = cell2struct(PDefs,{'computer','filesys','endian'},2);
 
@@ -199,18 +199,18 @@ PLATFORM.filesys = PDefs(ci).filesys;
 %-(mouse button labels?)
 switch (PLATFORM.filesys)
 case 'unx'
-	PLATFORM.sepchar = '/';
-	PLATFORM.rootlen = 1;
-	PLATFORM.user    = getenv('USER');
+    PLATFORM.sepchar = '/';
+    PLATFORM.rootlen = 1;
+    PLATFORM.user    = getenv('USER');
 case 'win'
-	PLATFORM.sepchar = '\';
-	PLATFORM.rootlen = 3;
-	PLATFORM.user    = getenv('USERNAME');
-	if isempty(PLATFORM.user)
-		PLATFORM.user = 'anon';
-	end
+    PLATFORM.sepchar = '\';
+    PLATFORM.rootlen = 3;
+    PLATFORM.user    = getenv('USERNAME');
+    if isempty(PLATFORM.user)
+        PLATFORM.user = 'anon';
+    end
 otherwise
-	error(['Don''t know filesystem ',PLATFORM.filesys])
+    error(['Don''t know filesystem ',PLATFORM.filesys])
 end
 
 %-Drives
@@ -228,19 +228,19 @@ end
 %-Fonts
 %-----------------------------------------------------------------------
 switch comp
-case {'SOL2'}	%-Some Sol2 platforms give segmentation violations with Helvetica
-	PLATFORM.font.helvetica = 'Lucida';
-	PLATFORM.font.times     = 'Times';
-	PLATFORM.font.courier   = 'Courier';
-	PLATFORM.font.symbol    = 'Symbol';
+case {'SOL2'}   %-Some Sol2 platforms give segmentation violations with Helvetica
+    PLATFORM.font.helvetica = 'Lucida';
+    PLATFORM.font.times     = 'Times';
+    PLATFORM.font.courier   = 'Courier';
+    PLATFORM.font.symbol    = 'Symbol';
 case {'SUN4','SOL2','SOL64','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLNXA64','MAC','MACI'}
-	PLATFORM.font.helvetica = 'Helvetica';
-	PLATFORM.font.times     = 'Times';
-	PLATFORM.font.courier   = 'Courier';
-	PLATFORM.font.symbol    = 'Symbol';
+    PLATFORM.font.helvetica = 'Helvetica';
+    PLATFORM.font.times     = 'Times';
+    PLATFORM.font.courier   = 'Courier';
+    PLATFORM.font.symbol    = 'Symbol';
 case {'PCWIN','PCWIN64'}
-	PLATFORM.font.helvetica = 'Arial Narrow';
-	PLATFORM.font.times     = 'Times New Roman';
-	PLATFORM.font.courier   = 'Courier New';
-	PLATFORM.font.symbol    = 'Symbol';
+    PLATFORM.font.helvetica = 'Arial Narrow';
+    PLATFORM.font.times     = 'Times New Roman';
+    PLATFORM.font.courier   = 'Courier New';
+    PLATFORM.font.symbol    = 'Symbol';
 end

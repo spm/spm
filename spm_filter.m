@@ -26,7 +26,7 @@ function [argout] = spm_filter(K,Y)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_filter.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_filter.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -34,58 +34,58 @@ function [argout] = spm_filter(K,Y)
 %---------------------------------------------------------------------------
 if nargin == 1 && isstruct(K)
 
-	% set K.X0
-	%-------------------------------------------------------------------
-	for s = 1:length(K)
+    % set K.X0
+    %-------------------------------------------------------------------
+    for s = 1:length(K)
 
-		% make high pass filter
-		%-----------------------------------------------------------
-		k       = length(K(s).row);
-		n       = fix(2*(k*K(s).RT)/K(s).HParam + 1);
-		X0      = spm_dctmtx(k,n);
-		K(s).X0 = X0(:,2:end);
-	end
+        % make high pass filter
+        %-----------------------------------------------------------
+        k       = length(K(s).row);
+        n       = fix(2*(k*K(s).RT)/K(s).HParam + 1);
+        X0      = spm_dctmtx(k,n);
+        K(s).X0 = X0(:,2:end);
+    end
 
-	% return structure
-	%-------------------------------------------------------------------
-	argout = K;
+    % return structure
+    %-------------------------------------------------------------------
+    argout = K;
 
 else
-	% apply
-	%-------------------------------------------------------------------
-	if isstruct(K)
+    % apply
+    %-------------------------------------------------------------------
+    if isstruct(K)
 
-		% ensure requisite fields are present
-		%-----------------------------------------------------------
-		if ~isfield(K(1),'X0')
-			K = spm_filter(K);
-		end
+        % ensure requisite fields are present
+        %-----------------------------------------------------------
+        if ~isfield(K(1),'X0')
+            K = spm_filter(K);
+        end
 
-		for s = 1:length(K)
+        for s = 1:length(K)
 
-			% select data
-			%---------------------------------------------------
-			y = Y(K(s).row,:);
+            % select data
+            %---------------------------------------------------
+            y = Y(K(s).row,:);
 
-			% apply high pass filter
-			%---------------------------------------------------
-			y = y - K(s).X0*(K(s).X0'*y);
+            % apply high pass filter
+            %---------------------------------------------------
+            y = y - K(s).X0*(K(s).X0'*y);
 
-			% reset filtered data in Y
-			%---------------------------------------------------
-			Y(K(s).row,:) = y;
+            % reset filtered data in Y
+            %---------------------------------------------------
+            Y(K(s).row,:) = y;
 
-		end
+        end
 
-	% K is simply a filter matrix
-	%-------------------------------------------------------------------
-	else
-		Y = K*Y;
-	end
+    % K is simply a filter matrix
+    %-------------------------------------------------------------------
+    else
+        Y = K*Y;
+    end
 
-	% return filtered data
-	%-------------------------------------------------------------------
-	%if any(~isfinite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
-	argout = Y;
+    % return filtered data
+    %-------------------------------------------------------------------
+    %if any(~isfinite(Y)), warning('Found non-finite values in Y (could be the data).'); end;
+    argout = Y;
 end
 

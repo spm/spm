@@ -13,7 +13,7 @@ function [f,J] = spm_fx_ind(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_ind.m 1040 2007-12-21 20:28:30Z karl $
+% $Id: spm_fx_ind.m 1131 2008-02-06 11:17:09Z spm $
 
 % check input u = f(t,P,M)
 %--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ if nargout == 1 & (t - M.dur) > 1e-6, f = []; return, end
 % effective extrinsic connectivity
 %--------------------------------------------------------------------------
 for i = 1:M.m
-	  P.A = P.A + u(i)*P.B{i};
+      P.A = P.A + u(i)*P.B{i};
 end
 
 % Global scaling

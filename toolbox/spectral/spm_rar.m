@@ -42,7 +42,7 @@ function [rar,yclean] = spm_rar (Z,p,m,verbose)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_rar.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 3 | isempty(m)
     m=2;

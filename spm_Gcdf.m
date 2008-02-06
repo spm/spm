@@ -59,7 +59,7 @@ function F = spm_Gcdf(x,h,l)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_Gcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_Gcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -68,13 +68,13 @@ if nargin<3, error('Insufficient arguments'), end
 
 ad = [ndims(x);ndims(h);ndims(l)];
 rd = max(ad);
-as = [	[size(x),ones(1,rd-ad(1))];...
-	[size(h),ones(1,rd-ad(2))];...
-	[size(l),ones(1,rd-ad(3))]     ];
+as = [  [size(x),ones(1,rd-ad(1))];...
+    [size(h),ones(1,rd-ad(2))];...
+    [size(l),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -84,7 +84,7 @@ F = zeros(rs);
 %-Only defined for strictly positive h & l. Return NaN if undefined.
 md = ( ones(size(x))  &  h>0  &  l>0 );
 if any(~md(:)), F(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Non-zero where defined and x>0
 Q  = find( md  &  x>0 );

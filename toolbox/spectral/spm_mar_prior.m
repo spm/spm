@@ -12,7 +12,7 @@ function [prior] = spm_mar_prior (d,p,type)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_mar_prior.m 1131 2008-02-06 11:17:09Z spm $
 
 k=p*d*d;
 switch type,

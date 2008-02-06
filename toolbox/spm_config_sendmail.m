@@ -4,7 +4,7 @@ function c = spm_config_sendmail(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Guillaume Flandin
-% $Id: spm_config_sendmail.m 302 2005-11-16 21:42:45Z guillaume $
+% $Id: spm_config_sendmail.m 1131 2008-02-06 11:17:09Z spm $
 
 to.type = 'entry';
 to.name = 'Recipient';
@@ -44,7 +44,7 @@ smtpserver.tag  = 'smtp';
 smtpserver.strtype = 's';
 smtpserver.num  = [1 1];
 try
-	smtpserver.val = {getpref('Internet','SMTP_Server')};
+    smtpserver.val = {getpref('Internet','SMTP_Server')};
 end
 smtpserver.help = {'Your SMTP server. If not specified, look for sendmail help.'};
 
@@ -54,7 +54,7 @@ email.tag  = 'email';
 email.strtype = 's';
 email.num  = [1 1];
 try
-	email.val = {getpref('Internet','E_mail')};
+    email.val = {getpref('Internet','E_mail')};
 end
 email.help = {'Your e-mail address. Look in sendmail help how to store it.'};
 
@@ -93,24 +93,24 @@ c.help = {['Send a mail message (attachments optionals) to an ',...
 function spm_sendmail(job)
 
 try
-	setpref('Internet','SMTP_Server',job.params.smtp);
-	setpref('Internet','E_mail',job.params.email);
+    setpref('Internet','SMTP_Server',job.params.smtp);
+    setpref('Internet','E_mail',job.params.email);
 
-	subj = strrep(job.subject,'%DATE%',datestr(now));
-	mesg = strrep(job.message,'%DATE%',datestr(now));
-	mesg = [mesg 10 10 '-- ' 10 10 'Statistical Parametric Mapping']; 
+    subj = strrep(job.subject,'%DATE%',datestr(now));
+    mesg = strrep(job.message,'%DATE%',datestr(now));
+    mesg = [mesg 10 10 '-- ' 10 10 'Statistical Parametric Mapping']; 
 
-	if ~isempty(job.attachments)
-		if strcmpi(job.params.zip,'Yes')
-			zipfile = fullfile(tempdir,'spm_sendmail.zip');
-			zip(zipfile,job.attachments);
-			job.attachments = {zipfile};
-		end
-		sendmail(job.recipient,subj,mesg,job.attachments);
-	else
-		sendmail(job.recipient,subj,mesg);
-	end
+    if ~isempty(job.attachments)
+        if strcmpi(job.params.zip,'Yes')
+            zipfile = fullfile(tempdir,'spm_sendmail.zip');
+            zip(zipfile,job.attachments);
+            job.attachments = {zipfile};
+        end
+        sendmail(job.recipient,subj,mesg,job.attachments);
+    else
+        sendmail(job.recipient,subj,mesg);
+    end
 catch
-	%- not an error to prevent an analysis to crash because of just that...
-	fprintf('Sendmail failed...\n');
+    %- not an error to prevent an analysis to crash because of just that...
+    fprintf('Sendmail failed...\n');
 end

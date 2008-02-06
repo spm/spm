@@ -13,32 +13,32 @@ function [y] = spm_detrend(x,p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_detrend.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_detrend.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % defaults
 %---------------------------------------------------------------------------
 [m n] = size(x);
 if ~n
-	y = [];
-	return
+    y = [];
+    return
 end
 if nargin == 1
-	p = 0;
+    p = 0;
 end
 
 % centre columns
 %---------------------------------------------------------------------------
 if ~p
-	y = x - ones(m,1)*mean(x);
-	return
+    y = x - ones(m,1)*mean(x);
+    return
 end
 
 % polynomial adjustment
 %---------------------------------------------------------------------------
 G     = [];
 for i = 0:p
-	d = (1:m).^i;
-	G = [G d(:)];
+    d = (1:m).^i;
+    G = [G d(:)];
 end
 y     = x - G*(pinv(G)*x);

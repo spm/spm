@@ -107,7 +107,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_list.m 1077 2008-01-10 19:57:37Z karl $
+% $Id: spm_list.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -126,8 +126,8 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     %-Parse arguments and set maxima number and separation
     %----------------------------------------------------------------------
-    if nargin < 2,	error('insufficient arguments'),     end
-    if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
+    if nargin < 2,  error('insufficient arguments'),     end
+    if nargin < 3,  hReg = []; else, hReg = varargin{3}; end
 
 
     %-Get current location (to highlight selected voxel in table)
@@ -164,25 +164,25 @@ switch lower(varargin{1}), case 'list'                            %-List
     units{1} = [units{1} ' '];
     units{2} = [units{2} ' '];
 
-    DIM   = DIM > 1;				% dimensions
-    VOX   = VOX(DIM);				% scaling
+    DIM   = DIM > 1;                % dimensions
+    VOX   = VOX(DIM);               % scaling
 
     if STAT~='P'
-        FWHM  = FWHM(DIM);			% Full width at max/2
-        FWmm  = FWHM.*VOX; 			% FWHM {units}
-        v2r   = 1/prod(FWHM);		% voxels to resels
-        k     = k*v2r;				% extent threshold in resels
-        R(find(~DIM) + 1) = [];		% eliminate null resel counts
+        FWHM  = FWHM(DIM);          % Full width at max/2
+        FWmm  = FWHM.*VOX;          % FWHM {units}
+        v2r   = 1/prod(FWHM);       % voxels to resels
+        k     = k*v2r;              % extent threshold in resels
+        R(find(~DIM) + 1) = [];     % eliminate null resel counts
     end
 
-    QPs   = sort(QPs(:));			% Needed for FDR
+    QPs   = sort(QPs(:));           % Needed for FDR
 
 
     %-get number and separation for maxima to be reported
     %----------------------------------------------------------------------
     if length(varargin) > 3
-        Num    = varargin{4};		% number of maxima per cluster
-        Dis    = varargin{5};		% distance among clusters (mm)
+        Num    = varargin{4};       % number of maxima per cluster
+        Dis    = varargin{5};       % distance among clusters (mm)
     else
         Num    = 3;
         Dis    = 8;
@@ -203,8 +203,8 @@ switch lower(varargin{1}), case 'list'                            %-List
         Fgraph = spm_figure('GetWin','Graphics');
     end
     spm_results_ui('Clear',Fgraph)
-    FS    = spm('FontSizes');			%-Scaled font sizes
-    PF    = spm_platform('fonts');	    %-Font names (for this platform)
+    FS    = spm('FontSizes');           %-Scaled font sizes
+    PF    = spm_platform('fonts');      %-Font names (for this platform)
 
 
     %-Table header & footer
@@ -239,24 +239,24 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     Hc = [];
     Hp = [];
-    h  = text(0.01,y,	'set-level','FontSize',FS(9)); Hc = [Hc,h];
-    h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');	Hc = [Hc,h];
-    h  = text(0.08,y-9*dy/8,	'\itc ');			   Hc = [Hc,h];
-    h  = text(0.02,y-9*dy/8,	'\itp ');			   Hc = [Hc,h];
+    h  = text(0.01,y,   'set-level','FontSize',FS(9)); Hc = [Hc,h];
+    h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r'); Hc = [Hc,h];
+    h  = text(0.08,y-9*dy/8,    '\itc ');              Hc = [Hc,h];
+    h  = text(0.02,y-9*dy/8,    '\itp ');              Hc = [Hc,h];
     Hp = [Hp,h];
-    text(0.22,y,		'cluster-level','FontSize',FS(9));
+    text(0.22,y,        'cluster-level','FontSize',FS(9));
     line([0.15,0.41],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
-    h  = text(0.16,y-9*dy/8,	'\itp \rm_{corrected}');	Hp = [Hp,h];
-    h  = text(0.33,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
-    h  = text(0.26,y-9*dy/8,	'\itk \rm_E');
+    h  = text(0.16,y-9*dy/8,    '\itp \rm_{corrected}');    Hp = [Hp,h];
+    h  = text(0.33,y-9*dy/8,    '\itp \rm_{uncorrected}');  Hp = [Hp,h];
+    h  = text(0.26,y-9*dy/8,    '\itk \rm_E');
 
-    text(0.60,y,		'voxel-level','FontSize',FS(9));
+    text(0.60,y,        'voxel-level','FontSize',FS(9));
     line([0.46,0.86],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
-    h  = text(0.46,y-9*dy/8,	'\itp \rm_{FWE-corr}');		Hp = [Hp,h];
-    h  = text(0.55,y-9*dy/8,        '\itp \rm_{FDR-corr}');		Hp = [Hp,h];
-    h  = text(0.79,y-9*dy/8,	'\itp \rm_{uncorrected}');	Hp = [Hp,h];
-    h  = text(0.64,y-9*dy/8,	 sprintf('\\it%c',STAT));
-    h  = text(0.72,y-9*dy/8,	'(\itZ\rm_\equiv)');
+    h  = text(0.46,y-9*dy/8,    '\itp \rm_{FWE-corr}');     Hp = [Hp,h];
+    h  = text(0.55,y-9*dy/8,        '\itp \rm_{FDR-corr}');     Hp = [Hp,h];
+    h  = text(0.79,y-9*dy/8,    '\itp \rm_{uncorrected}');  Hp = [Hp,h];
+    h  = text(0.64,y-9*dy/8,     sprintf('\\it%c',STAT));
+    h  = text(0.72,y-9*dy/8,    '(\itZ\rm_\equiv)');
 
     text(0.93,y - dy/2,[units{:}],'Fontsize',FS(8));
 
@@ -264,29 +264,29 @@ switch lower(varargin{1}), case 'list'                            %-List
     %-Headers for text table...
     %-----------------------------------------------------------------------
     TabDat.tit = Title;
-    TabDat.hdr = {	'set',		'c';...
-        'set',		'p';...
-        'cluster',	'p(cor)';...
-        'cluster',	'equivk';...
-        'cluster',	'p(unc)';...
-        'voxel',	'p(FWE-cor)';...
-        'voxel',	'p(FDR-cor)';...
-        'voxel',	 STAT;...
-        'voxel',	'equivZ';...
-        'voxel',	'p(unc)';...
-        '',		'x,y,z {mm}'}';...
+    TabDat.hdr = {  'set',      'c';...
+        'set',      'p';...
+        'cluster',  'p(cor)';...
+        'cluster',  'equivk';...
+        'cluster',  'p(unc)';...
+        'voxel',    'p(FWE-cor)';...
+        'voxel',    'p(FDR-cor)';...
+        'voxel',     STAT;...
+        'voxel',    'equivZ';...
+        'voxel',    'p(unc)';...
+        '',     'x,y,z {mm}'}';...
 
-    TabDat.fmt = {	'%-0.3f','%g',...				           %-Set
-        '%0.3f', '%0.0f', '%0.3f',...			               %-Cluster
-        '%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...	       %-Voxel
-        '%3.0f %3.0f %3.0f'};				                   %-XYZ
+    TabDat.fmt = {  '%-0.3f','%g',...                          %-Set
+        '%0.3f', '%0.0f', '%0.3f',...                          %-Cluster
+        '%0.3f', '%0.3f', '%6.2f', '%5.2f', '%0.3f',...        %-Voxel
+        '%3.0f %3.0f %3.0f'};                                  %-XYZ
 
     %-Column Locations
     %----------------------------------------------------------------------
-    tCol = [ 0.00      0.07 ...				                   %-Set
-             0.16      0.26      0.34 ...			           %-Cluster
+    tCol = [ 0.00      0.07 ...                                %-Set
+             0.16      0.26      0.34 ...                      %-Cluster
              0.46      0.55      0.62      0.71      0.80 ...  %-Voxel
-            0.92];						                       %-XYZ
+            0.92];                                             %-XYZ
 
     % move to next vertial postion marker
     %----------------------------------------------------------------------
@@ -422,7 +422,7 @@ switch lower(varargin{1}), case 'list'                            %-List
 
     %-Set-level p values {c} - do not display if reporting a single cluster
     %----------------------------------------------------------------------
-    c     = max(A);					                   %-Number of clusters
+    c     = max(A);                                    %-Number of clusters
     if STAT ~= 'P'
         Pc    = spm_P(c,k,u,df,STAT,R,n,S);            %-Set-level p-value
     else
@@ -441,8 +441,8 @@ switch lower(varargin{1}), case 'list'                            %-List
         set(Hc,'Visible','off')
     end
 
-    TabDat.dat = {Pc,c};			%-Table data
-    TabLin     = 1;					%-Table data line
+    TabDat.dat = {Pc,c};            %-Table data
+    TabLin     = 1;                 %-Table data line
 
 
     %-Local maxima p-values & statistics
@@ -468,14 +468,14 @@ switch lower(varargin{1}), case 'list'                            %-List
 
         %-Find largest remaining local maximum
         %------------------------------------------------------------------
-        [U,i]   = max(Z);			% largest maxima
-        j       = find(A == A(i));		% maxima in cluster
+        [U,i]   = max(Z);           % largest maxima
+        j       = find(A == A(i));      % maxima in cluster
 
 
         %-Compute cluster {k} and voxel-level {u} p values for this cluster
         %-------------------------------------------------------------------
         if STAT~='P'
-            Nv= N(i)/v2r;			% extent {voxels}
+            Nv= N(i)/v2r;           % extent {voxels}
         else
             Nv =N(i);
         end
@@ -486,17 +486,17 @@ switch lower(varargin{1}), case 'list'                            %-List
             Qu      = spm_P_FDR(   U,df,STAT,n,QPs);  % FDR-corrected {based on Z)
             [Pk Pn] = spm_P(1,N(i),u,df,STAT,R,n,S);  % [un]corrected {based on k)
 
-            if Pz < tol				                  % Equivalent Z-variate
-                Ze  = Inf;	 			              % (underflow => can't compute)
+            if Pz < tol                               % Equivalent Z-variate
+                Ze  = Inf;                            % (underflow => can't compute)
             else
                 Ze  = spm_invNcdf(1 - Pz);
             end
         else
-            Pz	= [];
+            Pz  = [];
             Pu      = [];
             Qu      = [];
-            Pk	= [];
-            Pn	= [];
+            Pk  = [];
+            Pn  = [];
             Ze      = spm_invNcdf(U);
         end
 
@@ -555,7 +555,7 @@ switch lower(varargin{1}), case 'list'                            %-List
 
         %-Print Num secondary maxima (> Dis mm apart)
         %------------------------------------------------------------------
-        [l q] = sort(-Z(j));				% sort on Z value
+        [l q] = sort(-Z(j));                % sort on Z value
         D     = i;
         for i = 1:length(q)
             d = j(q(i));
@@ -641,8 +641,8 @@ switch lower(varargin{1}), case 'list'                            %-List
                 end
             end
         end
-        Z(j) = NaN;		% Set local maxima to NaN
-    end				% end region
+        Z(j) = NaN;     % Set local maxima to NaN
+    end             % end region
 
 
     %-Number and register last page (if paginated)
@@ -696,16 +696,16 @@ switch lower(varargin{1}), case 'list'                            %-List
 
         %-Parse arguments
         %------------------------------------------------------------------
-        if nargin < 2,	error('insufficient arguments'),     end
-        if nargin < 3,	hReg = []; else, hReg = varargin{3}; end
+        if nargin < 2,  error('insufficient arguments'),     end
+        if nargin < 3,  hReg = []; else, hReg = varargin{3}; end
         SPM    = varargin{2};
 
         %-get number and separation for maxima to be reported
         %------------------------------------------------------------------
         if length(varargin) > 3
 
-            Num    = varargin{4};		% number of maxima per cluster
-            Dis    = varargin{5};		% distance among clusters (mm)
+            Num    = varargin{4};       % number of maxima per cluster
+            Dis    = varargin{5};       % distance among clusters (mm)
         else
             Num    = 32;
             Dis    = 4;

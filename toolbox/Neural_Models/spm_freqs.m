@@ -19,8 +19,8 @@ function [h,ww] = freqs(b,a,w)
 %
 %   See also LOGSPACE, POLYVAL, INVFREQS, and FREQZ.
 
-% 	Author(s): J.N. Little, 6-26-86
-%   	   T. Krauss, 3-19-93, default plots and frequency vector
+%   Author(s): J.N. Little, 6-26-86
+%          T. Krauss, 3-19-93, default plots and frequency vector
 %   Copyright 1988-2004 The MathWorks, Inc.
 %   $Revision: 1.12.4.2 $  $Date: 2004/12/26 22:15:54 $
 
@@ -79,11 +79,11 @@ function w=freqint(a,b,c,d,npts)
 
 na = size(a, 1);
 
-if (nargin==3) && (na==1),		% Transfer function form.
+if (nargin==3) && (na==1),      % Transfer function form.
   npts=c;
   ep=roots(b);
   tz=roots(a);
-else				% State space form
+else                % State space form
   if nargin==3, npts=c; [a,b,c,d] = spm_tf2ss(a,b); end
   ep=eig(a);
   tz=tzero(a,b,c,d);

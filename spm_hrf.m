@@ -4,15 +4,15 @@ function [hrf,p] = spm_hrf(RT,P);
 % RT   - scan repeat time
 % p    - parameters of the response function (two gamma functions)
 %
-%							defaults
-%							(seconds)
-%	p(1) - delay of response (relative to onset)	   6
-%	p(2) - delay of undershoot (relative to onset)    16
-%	p(3) - dispersion of response			   1
-%	p(4) - dispersion of undershoot			   1
-%	p(5) - ratio of response to undershoot		   6
-%	p(6) - onset (seconds)				   0
-%	p(7) - length of kernel (seconds)		  32
+%                           defaults
+%                           (seconds)
+%   p(1) - delay of response (relative to onset)       6
+%   p(2) - delay of undershoot (relative to onset)    16
+%   p(3) - dispersion of response              1
+%   p(4) - dispersion of undershoot            1
+%   p(5) - ratio of response to undershoot         6
+%   p(6) - onset (seconds)                 0
+%   p(7) - length of kernel (seconds)         32
 %
 % hrf  - hemodynamic response function
 % p    - parameters of the response function
@@ -20,16 +20,16 @@ function [hrf,p] = spm_hrf(RT,P);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_hrf.m 387 2005-12-17 18:31:23Z klaas $
+% $Id: spm_hrf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % global parameter
 %-----------------------------------------------------------------------
 global defaults
 try
-	fMRI_T = defaults.stats.fmri.t;
+    fMRI_T = defaults.stats.fmri.t;
 catch
-	fMRI_T = 16;
+    fMRI_T = 16;
 end;
 
 % default parameters

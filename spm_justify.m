@@ -24,11 +24,11 @@ function out = spm_justify(varargin)
 %    'in software that is called SPM']});
 %    strvcat(out{:})
 %
-%------------------------------------------------------------------------
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_justify.m 491 2006-03-31 17:36:45Z john $
+% $Id: spm_justify.m 1131 2008-02-06 11:17:09Z spm $
 
 out = {};
 

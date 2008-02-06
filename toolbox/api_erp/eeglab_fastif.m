@@ -40,8 +40,8 @@
 function res = eeglab_fastif(s1, s2, s3);
 
 if s1
-	res = s2;
+    res = s2;
 else
-	res = s3;
+    res = s3;
 end;
 return;

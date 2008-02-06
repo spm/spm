@@ -1,5 +1,4 @@
 function [sdip,fit_opt,Psave] = spm_eeg_inv_ecd_fitDip_ui(D)
-
 % FORMAT [sdip,set_loc_o,Psave] = spm_eeg_inv_ecd_fitDip_ui(D)
 %
 % 'spm_eeg_inv_ecd_fitDip_ui' provides the GUI for the dipole fitting 
@@ -41,7 +40,7 @@ function [sdip,fit_opt,Psave] = spm_eeg_inv_ecd_fitDip_ui(D)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id$
+% $Id: spm_eeg_inv_ecd_fitDip_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 % Loading various bits
 %_____________________
@@ -162,7 +161,7 @@ elseif dNchannels>0
         end
     end
     order_dat2mod(rem_electr) = [];
-    % 	% Modifying the electrodes structure
+    %   % Modifying the electrodes structure
     model.electrodes.vert(rem_electr)    = [];
     model.electrodes.tri(rem_electr)     = [];
     model.electrodes.XYZmm(:,rem_electr) = [];

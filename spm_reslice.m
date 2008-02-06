@@ -92,21 +92,21 @@ function spm_reslice(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_reslice.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_reslice.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
 def_flags = struct('interp',1,'mask',1,'mean',1,'which',2,'wrap',[0 0 0]',...
                    'prefix','r');
 if nargin < 2,
-	flags = def_flags;
+    flags = def_flags;
 else,
-	fnms = fieldnames(def_flags);
-	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}),
-			flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
-		end;
-	end;
+    fnms = fieldnames(def_flags);
+    for i=1:length(fnms),
+        if ~isfield(flags,fnms{i}),
+            flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
+        end;
+    end;
 end;
 
 if iscell(P), P = strvcat(P{:}); end;
@@ -159,45 +159,45 @@ function reslice_images(P,flags)
 %             They are all aligned with the first.
 
 if ~isfinite(flags.interp), % Use Fourier method
-	% Check for non-rigid transformations in the matrixes
-	for i=1:prod(size(P)),
-		pp = P(1).mat\P(i).mat;
-		if any(abs(svd(pp(1:3,1:3))-1)>1e-7),
-			fprintf('\n  Zooms  or shears  appear to  be needed');
-			fprintf('\n  (probably due to non-isotropic voxels).');
-			fprintf('\n  These  can not yet be  done  using  the');
-			fprintf('\n  Fourier reslicing method.  Switching to');
-			fprintf('\n  7th degree B-spline interpolation instead.\n\n');
-			flags.interp = 7;
-			break;
-		end;
-	end;
+    % Check for non-rigid transformations in the matrixes
+    for i=1:prod(size(P)),
+        pp = P(1).mat\P(i).mat;
+        if any(abs(svd(pp(1:3,1:3))-1)>1e-7),
+            fprintf('\n  Zooms  or shears  appear to  be needed');
+            fprintf('\n  (probably due to non-isotropic voxels).');
+            fprintf('\n  These  can not yet be  done  using  the');
+            fprintf('\n  Fourier reslicing method.  Switching to');
+            fprintf('\n  7th degree B-spline interpolation instead.\n\n');
+            flags.interp = 7;
+            break;
+        end;
+    end;
 end;
 
 if flags.mask | flags.mean,
-	spm_progress_bar('Init',P(1).dim(3),'Computing available voxels','planes completed');
-	x1    = repmat((1:P(1).dim(1))',1,P(1).dim(2));
-	x2    = repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);
-	if flags.mean,
-		Count    = zeros(P(1).dim(1:3));
-		Integral = zeros(P(1).dim(1:3));
-	end;
-	if flags.mask, msk = cell(P(1).dim(3),1);  end;
-	for x3 = 1:P(1).dim(3),
-		tmp = zeros(P(1).dim(1:2));
-		for i = 1:prod(size(P)),
-			tmp = tmp + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
-		end;
-		if flags.mask, msk{x3} = find(tmp ~= prod(size(P))); end;
-		if flags.mean, Count(:,:,x3) = tmp; end;
-		spm_progress_bar('Set',x3);
-	end;
+    spm_progress_bar('Init',P(1).dim(3),'Computing available voxels','planes completed');
+    x1    = repmat((1:P(1).dim(1))',1,P(1).dim(2));
+    x2    = repmat( 1:P(1).dim(2)  ,P(1).dim(1),1);
+    if flags.mean,
+        Count    = zeros(P(1).dim(1:3));
+        Integral = zeros(P(1).dim(1:3));
+    end;
+    if flags.mask, msk = cell(P(1).dim(3),1);  end;
+    for x3 = 1:P(1).dim(3),
+        tmp = zeros(P(1).dim(1:2));
+        for i = 1:prod(size(P)),
+            tmp = tmp + getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
+        end;
+        if flags.mask, msk{x3} = find(tmp ~= prod(size(P))); end;
+        if flags.mean, Count(:,:,x3) = tmp; end;
+        spm_progress_bar('Set',x3);
+    end;
 end;
 
 nread = prod(size(P));
 if ~flags.mean,
-	if flags.which == 1, nread = nread - 1; end;
-	if flags.which == 0, nread = 0; end;
+    if flags.which == 1, nread = nread - 1; end;
+    if flags.which == 0, nread = 0; end;
 end;
 spm_progress_bar('Init',nread,'Reslicing','volumes completed');
 
@@ -211,62 +211,62 @@ d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 
 for i = 1:prod(size(P)),
 
-	if (i>1 & flags.which==1) | flags.which==2, write_vol = 1; else, write_vol = 0; end;
-	if write_vol | flags.mean,                   read_vol = 1; else   read_vol = 0; end;
+    if (i>1 & flags.which==1) | flags.which==2, write_vol = 1; else, write_vol = 0; end;
+    if write_vol | flags.mean,                   read_vol = 1; else   read_vol = 0; end;
 
-	if read_vol,
-		if ~isfinite(flags.interp),
-			v = abs(kspace3d(spm_bsplinc(P(i),[0 0 0 ; 0 0 0]'),P(1).mat\P(i).mat));
-			for x3 = 1:P(1).dim(3),
-				if flags.mean,
-					Integral(:,:,x3) = Integral(:,:,x3) + ...
-						nan2zero(v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap));
-				end;
-				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
-			end;
-		else,
-			C = spm_bsplinc(P(i), d);
-			v = zeros(P(1).dim);
-			for x3 = 1:P(1).dim(3),
+    if read_vol,
+        if ~isfinite(flags.interp),
+            v = abs(kspace3d(spm_bsplinc(P(i),[0 0 0 ; 0 0 0]'),P(1).mat\P(i).mat));
+            for x3 = 1:P(1).dim(3),
+                if flags.mean,
+                    Integral(:,:,x3) = Integral(:,:,x3) + ...
+                        nan2zero(v(:,:,x3).*getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap));
+                end;
+                if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
+            end;
+        else,
+            C = spm_bsplinc(P(i), d);
+            v = zeros(P(1).dim);
+            for x3 = 1:P(1).dim(3),
 
-				[tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
-				v(:,:,x3)      = spm_bsplins(C, y1,y2,y3, d);
-				% v(~tmp)        = 0;
+                [tmp,y1,y2,y3] = getmask(inv(P(1).mat\P(i).mat),x1,x2,x3,P(i).dim(1:3),flags.wrap);
+                v(:,:,x3)      = spm_bsplins(C, y1,y2,y3, d);
+                % v(~tmp)        = 0;
 
-				if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v(:,:,x3)); end;
+                if flags.mean, Integral(:,:,x3) = Integral(:,:,x3) + nan2zero(v(:,:,x3)); end;
 
-				if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
-			end;
-		end;
-		if write_vol,
-			VO         = P(i);
-			[pth,nm,xt,vr] = fileparts(deblank(P(i).fname));
-			VO.fname   = fullfile(pth,[flags.prefix nm xt vr]);
-			VO.dim     = P(1).dim(1:3);
-			VO.dt      = P(i).dt;
-			VO.pinfo   = P(i).pinfo;
-			VO.mat     = P(1).mat;
-			VO.descrip = 'spm - realigned';
-			VO = spm_write_vol(VO,v);
-		end;
+                if flags.mask, tmp = v(:,:,x3); tmp(msk{x3}) = NaN; v(:,:,x3) = tmp; end;
+            end;
+        end;
+        if write_vol,
+            VO         = P(i);
+            [pth,nm,xt,vr] = fileparts(deblank(P(i).fname));
+            VO.fname   = fullfile(pth,[flags.prefix nm xt vr]);
+            VO.dim     = P(1).dim(1:3);
+            VO.dt      = P(i).dt;
+            VO.pinfo   = P(i).pinfo;
+            VO.mat     = P(1).mat;
+            VO.descrip = 'spm - realigned';
+            VO = spm_write_vol(VO,v);
+        end;
 
-		nread = nread + 1;
-	end;
-	spm_progress_bar('Set',nread);
+        nread = nread + 1;
+    end;
+    spm_progress_bar('Set',nread);
 end;
 
 if flags.mean
-	% Write integral image (16 bit signed)
-	%-----------------------------------------------------------
-	Integral   = Integral./Count;
-	PO         = P(1);
-	PO         = rmfield(PO,'pinfo');
-	[pth,nm,xt,vr] = fileparts(deblank(P(1).fname));
-	PO.fname   = fullfile(pth,['mean' nm xt]);
-	PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
-	PO.descrip = 'spm - mean image';
-	PO.dt      = [4 spm_platform('bigend')];
-	spm_write_vol(PO,Integral);
+    % Write integral image (16 bit signed)
+    %-----------------------------------------------------------
+    Integral   = Integral./Count;
+    PO         = P(1);
+    PO         = rmfield(PO,'pinfo');
+    [pth,nm,xt,vr] = fileparts(deblank(P(1).fname));
+    PO.fname   = fullfile(pth,['mean' nm xt]);
+    PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
+    PO.descrip = 'spm - mean image';
+    PO.dt      = [4 spm_platform('bigend')];
+    spm_write_vol(PO,Integral);
 end
 
 spm_figure('Clear','Interactive');
@@ -299,38 +299,38 @@ function v = kspace3d(v,M)
 d  = [size(v) 1 1 1];
 g = 2.^ceil(log2(d));
 if any(g~=d),
-	tmp = v;
-	v   = zeros(g);
-	v(1:d(1),1:d(2),1:d(3)) = tmp;
-	clear tmp;
+    tmp = v;
+    v   = zeros(g);
+    v(1:d(1),1:d(2),1:d(3)) = tmp;
+    clear tmp;
 end;
 
 % XY-shear
 tmp1 = -sqrt(-1)*2*pi*([0:((g(3)-1)/2) 0 (-g(3)/2+1):-1])/g(3);
 for j=1:g(2),
-	t        = reshape( exp((j*S3(3,2) + S3(3,1)*(1:g(1)) + S3(3,4)).'*tmp1) ,[g(1) 1 g(3)]);
-	v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
+    t        = reshape( exp((j*S3(3,2) + S3(3,1)*(1:g(1)) + S3(3,4)).'*tmp1) ,[g(1) 1 g(3)]);
+    v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
 end;
 
 % XZ-shear
 tmp1 = -sqrt(-1)*2*pi*([0:((g(2)-1)/2) 0 (-g(2)/2+1):-1])/g(2);
 for k=1:g(3),
-	t        = exp( (k*S2(2,3) + S2(2,1)*(1:g(1)) + S2(2,4)).'*tmp1);
-	v(:,:,k) = real(ifft(fft(v(:,:,k),[],2).*t,[],2));
+    t        = exp( (k*S2(2,3) + S2(2,1)*(1:g(1)) + S2(2,4)).'*tmp1);
+    v(:,:,k) = real(ifft(fft(v(:,:,k),[],2).*t,[],2));
 end;
 
 % YZ-shear
 tmp1 = -sqrt(-1)*2*pi*([0:((g(1)-1)/2) 0 (-g(1)/2+1):-1])/g(1);
 for k=1:g(3),
-	t        = exp( tmp1.'*(k*S1(1,3) + S1(1,2)*(1:g(2)) + S1(1,4)));
-	v(:,:,k) = real(ifft(fft(v(:,:,k),[],1).*t,[],1));
+    t        = exp( tmp1.'*(k*S1(1,3) + S1(1,2)*(1:g(2)) + S1(1,4)));
+    v(:,:,k) = real(ifft(fft(v(:,:,k),[],1).*t,[],1));
 end;
 
 % XY-shear
 tmp1 = -sqrt(-1)*2*pi*([0:((g(3)-1)/2) 0 (-g(3)/2+1):-1])/g(3);
 for j=1:g(2),
-	t        = reshape( exp( (j*S0(3,2) + S0(3,1)*(1:g(1)) + S0(3,4)).'*tmp1) ,[g(1) 1 g(3)]);
-	v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
+    t        = reshape( exp( (j*S0(3,2) + S0(3,1)*(1:g(1)) + S0(3,4)).'*tmp1) ,[g(1) 1 g(3)]);
+    v(:,j,:) = real(ifft(fft(v(:,j,:),[],3).*t,[],3));
 end;
 
 if any(g~=d), v = v(1:d(1),1:d(2),1:d(3)); end;

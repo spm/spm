@@ -8,7 +8,7 @@ function spm_barh(E,C,P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_barh.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_barh.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -18,7 +18,7 @@ n     = length(E);
 H     = zeros(2*n + 1,64);
 x     = linspace(min(E - 4*sqrt(C)),max(E + 4*sqrt(C)),64);
 for i = 1:n
-	H(2*i,:) = exp(-[x - E(i)].^2/(2*C(i)));
+    H(2*i,:) = exp(-[x - E(i)].^2/(2*C(i)));
 end
 imagesc(x,[0:n]+ 0.5,1 - H)
 set(gca,'Ytick',[1:n])
@@ -27,11 +27,11 @@ grid on
 % confidence intervals based on conditional variance
 %---------------------------------------------------------------------------
 for i = 1:n
-	z           = spm_invNcdf(0.05)*sqrt(C(i));
-	line([-z z] + E(i),[i i],'LineWidth',4);
-	if nargin == 3
-		line([P(i) P(i)],[-.4 .4] + i,'LineWidth',2,'Color','r');
-	end
+    z           = spm_invNcdf(0.05)*sqrt(C(i));
+    line([-z z] + E(i),[i i],'LineWidth',4);
+    if nargin == 3
+        line([P(i) P(i)],[-.4 .4] + i,'LineWidth',2,'Color','r');
+    end
 end
 
 

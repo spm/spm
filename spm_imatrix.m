@@ -7,7 +7,7 @@ function P = spm_imatrix(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Stefan Kiebel
-% $Id: spm_imatrix.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_imatrix.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % Translations and zooms
@@ -33,12 +33,12 @@ R1        = R/R0;
 
 P(5) = asin(rang(R1(1,3)));
 if (abs(P(5))-pi/2)^2 < 1e-9,
-	P(4) = 0;
-	P(6) = atan2(-rang(R1(2,1)), rang(-R1(3,1)/R1(1,3)));
+    P(4) = 0;
+    P(6) = atan2(-rang(R1(2,1)), rang(-R1(3,1)/R1(1,3)));
 else
-	c    = cos(P(5));
-	P(4) = atan2(rang(R1(2,3)/c), rang(R1(3,3)/c));
-	P(6) = atan2(rang(R1(1,2)/c), rang(R1(1,1)/c));
+    c    = cos(P(5));
+    P(4) = atan2(rang(R1(2,3)/c), rang(R1(3,3)/c));
+    P(6) = atan2(rang(R1(1,2)/c), rang(R1(1,1)/c));
 end;
 return;
 

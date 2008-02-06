@@ -4,10 +4,10 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 % a     - critical probability - {alpha}
 % df    - [df{interest} df{residuals}]
 % STAT  - Statistical field
-%		'Z' - Gaussian field
-%		'T' - T - field
-%		'X' - Chi squared field
-%		'F' - F - field
+%       'Z' - Gaussian field
+%       'T' - T - field
+%       'X' - Chi squared field
+%       'F' - F - field
 % R     - RESEL Count {defining search volume}
 % n     - number of conjoint SPMs
 % S     - Voxel count
@@ -28,7 +28,7 @@ function [u] = spm_uc(a,df,STAT,R,n,S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_uc.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_uc.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni.

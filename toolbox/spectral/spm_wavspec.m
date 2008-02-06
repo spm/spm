@@ -10,7 +10,7 @@ function [p] = spm_wavspec (x,freqs,fs,show,rtf)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_wavspec.m 1131 2008-02-06 11:17:09Z spm $
 
 x=x(:)';
 freqs=freqs(:)';

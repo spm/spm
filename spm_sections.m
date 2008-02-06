@@ -16,11 +16,11 @@ function spm_sections(SPM,hReg,spms)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_sections.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_sections.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin < 3 | isempty(spms)
-	spms   = spm_select(1,'image','select image for rendering on');
+    spms   = spm_select(1,'image','select image for rendering on');
 end
 
 Fgraph = spm_figure('FindWin','Graphics');

@@ -76,12 +76,11 @@ function [DEM] = spm_DFP(DEM)
 % in generlised co-ordinates.  This means DEM can deconvolve online and can
 % represents an alternative to Kalman filtering or alternative Bayesian 
 % update procedures.
-%
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_DFP.m 1131 2008-02-06 11:17:09Z spm $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------

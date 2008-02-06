@@ -7,11 +7,11 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % Z     - height {minimum over n values}
 % df    - [df{interest} df{error}]
 % STAT  - Statistical field
-%		'Z' - Gaussian field
-%		'T' - T - field
-%		'X' - Chi squared field
-%		'F' - F - field
-%		'P' - Posterior probability
+%       'Z' - Gaussian field
+%       'T' - T - field
+%       'X' - Chi squared field
+%       'F' - F - field
+%       'P' - Posterior probability
 % R     - RESEL Count {defining search volume}
 % n     - number of component SPMs in conjunction
 % S     - Voxel count
@@ -36,7 +36,7 @@ function [P,p,Em,En,EN] = spm_P(c,k,Z,df,STAT,R,n,S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Thomas Nichols
-% $Id: spm_P.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_P.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % set global var NOBONF to 1 to turn off Bonferroni

@@ -14,7 +14,7 @@ function [Y,XYZ] = spm_read_vols(V,mask)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_read_vols.m 1097 2008-01-16 17:49:01Z john $
+% $Id: spm_read_vols.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -27,21 +27,21 @@ spm_check_orientations(V);
 
 %-Read in image data
 %-----------------------------------------------------------------------
-n  = prod(size(V));			%-#images
-Y = zeros([V(1).dim(1:3),n]);		%-image data matrix
+n  = prod(size(V));         %-#images
+Y = zeros([V(1).dim(1:3),n]);       %-image data matrix
 
 for i=1:n, for p=1:V(1).dim(3)
-	Y(:,:,p,i) = spm_slice_vol(V(i),spm_matrix([0 0 p]),V(i).dim(1:2),0);
+    Y(:,:,p,i) = spm_slice_vol(V(i),spm_matrix([0 0 p]),V(i).dim(1:2),0);
 end, end
 
 %-Apply implicit zero mask for image datatypes without a NaNrep
 %-----------------------------------------------------------------------
 if mask
-	%-Work out images without NaNrep
-	im = logical(zeros(n,1));
-	for i=1:n, im(i)=~spm_type(V(i).dt(1),'NaNrep'); end
-	%-Mask
-	Y(Y(:,:,:,im)==0)=NaN;
+    %-Work out images without NaNrep
+    im = logical(zeros(n,1));
+    for i=1:n, im(i)=~spm_type(V(i).dt(1),'NaNrep'); end
+    %-Mask
+    Y(Y(:,:,:,im)==0)=NaN;
 end
 
 %-Return as 3D matrix if single image
@@ -51,9 +51,9 @@ if n==1; Y=Y(:,:,:,1); end
 %-Compute XYZ co-ordinates (if required)
 %-----------------------------------------------------------------------
 if nargout>1
-	[R,C,P]=ndgrid(1:V(1).dim(1),1:V(1).dim(2),1:V(1).dim(3));
-	RCP = [R(:)';C(:)';P(:)'];
-	clear R C P
-	RCP(4,:)=1;
-	XYZ = V(1).mat(1:3,:)*RCP;
+    [R,C,P]=ndgrid(1:V(1).dim(1),1:V(1).dim(2),1:V(1).dim(3));
+    RCP = [R(:)';C(:)';P(:)'];
+    clear R C P
+    RCP(4,:)=1;
+    XYZ = V(1).mat(1:3,:)*RCP;
 end

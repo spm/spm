@@ -12,7 +12,7 @@ function [model] = spm_vb_models(SPM,factor)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_vb_models.m 300 2005-11-16 21:05:24Z guillaume $
+% $Id: spm_vb_models.m 1131 2008-02-06 11:17:09Z spm $
 
 %-Number of factors
 %-----------------------------------------------------------------------
@@ -24,7 +24,7 @@ k1 = factor(1).levels;
 if nf==2
     k2 = factor(2).levels;
 else
-	k2 = 1;
+    k2 = 1;
 end
 
 %-Number of conditions
@@ -138,5 +138,5 @@ if nf == 2
         model(5).U(i) = model(4).U(k);
         i = i + 1;
     end
-	
+    
 end

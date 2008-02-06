@@ -1,6 +1,4 @@
 function [varargout] = spm_eeg_inv_datareg(varargin)
-
-%==========================================================================
 % Rigid registration of the EEG/MEG data and sMRI spaces
 %
 % FORMAT D = spm_eeg_inv_datareg(S)
@@ -45,11 +43,11 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % affine (rigid body) mapping.  If headshape locations are supplied 
 % this is generalized to a full twelve parameter affine mapping (n.b.
 % this might not be appropriate for MEG data).
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1052 2007-12-28 19:49:09Z karl $
+% $Id: spm_eeg_inv_datareg.m 1131 2008-02-06 11:17:09Z spm $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) 4/6/07
@@ -186,11 +184,11 @@ end
 
 % Update the sensor locations and orientation
 %--------------------------------------------------------------------------
-if size(sensors,2) == 3		% Only one coil
+if size(sensors,2) == 3     % Only one coil
     sensors   = M1*[sensors'; ones(1,size(sensors,1))];
     sensors   = sensors(1:3,:)';
     megorient = megorient*M1(1:3,1:3)';
-elseif size(sensors,2) == 6	% Two coils (eg gradiometer)
+elseif size(sensors,2) == 6 % Two coils (eg gradiometer)
     tmp1      = M1*[sensors(:,1:3)'; ones(1,size(sensors,1))];
     tmp2      = M1*[sensors(:,4:6)'; ones(1,size(sensors,1))];
     sensors   = [tmp1(1:3,:); tmp2(1:3,:)]';

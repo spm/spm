@@ -4,7 +4,7 @@ function spm_sextract(job)
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_sextract.m 1131 2008-02-06 11:17:09Z spm $
 
 images = job.images;
 Vi     = spm_vol(strvcat(images));

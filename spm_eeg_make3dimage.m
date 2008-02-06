@@ -1,16 +1,16 @@
-
 function D = spm_eeg_make3dimage(S)
 % function for converting 2D images to 3D volumes for ERPs
 % FORMAT D = spm_eeg_downsample(S)
 % 
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file
+% D         - filename of EEG mat-file
 
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % James Kilner
+% $Id: spm_eeg_make3dimage.m 1131 2008-02-06 11:17:09Z spm $
 
 try
     D = S.D;

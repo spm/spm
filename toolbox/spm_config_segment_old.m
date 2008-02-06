@@ -4,7 +4,7 @@ function opts = spm_config_segment_old
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_segment_old.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_config_segment_old.m 1131 2008-02-06 11:17:09Z spm $
 
 %_______________________________________________________________________
 
@@ -349,29 +349,29 @@ flags.write.wrt_cor = job.bias.wrt_cor;
 
 data = {{}};
 if isfield(job.data,'singlespec'),
-	data = {};
-	singlespec = job.data.singlespec;
-	for i=1:length(singlespec),
-		data = {data{:},deblank(singlespec{i})};
-	end;
+    data = {};
+    singlespec = job.data.singlespec;
+    for i=1:length(singlespec),
+        data = {data{:},deblank(singlespec{i})};
+    end;
 elseif isfield(job.data,'multispec'),
-	data = {};
-	for i=1:length(job.data.multispec),
-		data = {data{:},strvcat(job.data.multispec{i})};
-	end;
+    data = {};
+    for i=1:length(job.data.multispec),
+        data = {data{:},strvcat(job.data.multispec{i})};
+    end;
 end;
 
 if isfield(job.overlay,'unnecessary'),
-	VG = eye(4);
+    VG = eye(4);
 else
-	VG = spm_vol(strvcat(job.overlay.affreg.template));
-	flags.estimate.affreg.smosrc  = job.overlay.affreg.smosrc;
-	flags.estimate.affreg.regtype = job.overlay.affreg.regtype;
-	flags.estimate.affreg.weight  = strvcat(job.overlay.affreg.weight);
+    VG = spm_vol(strvcat(job.overlay.affreg.template));
+    flags.estimate.affreg.smosrc  = job.overlay.affreg.smosrc;
+    flags.estimate.affreg.regtype = job.overlay.affreg.regtype;
+    flags.estimate.affreg.weight  = strvcat(job.overlay.affreg.weight);
 end;
 
 for i=1:length(data),
-	spm_segment(data{i},VG,flags);
+    spm_segment(data{i},VG,flags);
 end;
 %------------------------------------------------------------------------
 

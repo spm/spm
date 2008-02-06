@@ -37,7 +37,7 @@ function c = spm_nCr(n,r)
 % nCr as (ln(n!)-ln(r!)-ln((n-r)!), using the log-gamma special
 % function gammaln:
 %
-%	nCr = exp( gammaln(n+1) - gammaln(r+1) - gammaln(n-r+1) )
+%   nCr = exp( gammaln(n+1) - gammaln(r+1) - gammaln(n-r+1) )
 %
 % The result is rounded to cope with roundoff error for smaller values
 % of n & r. See Press et al., Sec6.1 for further details.
@@ -45,22 +45,22 @@ function c = spm_nCr(n,r)
 % References
 %-----------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
-%	"Statistical Distributions"
-%	 2nd Ed. Wiley, New York
+%   "Statistical Distributions"
+%    2nd Ed. Wiley, New York
 %
 % Abramowitz M, Stegun IA, (1964)
-%	"Handbook of Mathematical Functions"
-%	 US Government Printing Office
+%   "Handbook of Mathematical Functions"
+%    US Government Printing Office
 %
 % Press WH, Teukolsky SA, Vetterling AT, Flannery BP (1992)
-%	"Numerical Recipes in C"
-%	 Cambridge
+%   "Numerical Recipes in C"
+%    Cambridge
 %
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_nCr.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_nCr.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -68,8 +68,8 @@ function c = spm_nCr(n,r)
 %-----------------------------------------------------------------------
 ad = [ndims(n);ndims(r)];
 dc = max(ad);
-as = [	[size(n),ones(1,dc-ad(1))];...
-	[size(r),ones(1,dc-ad(2))]     ];
+as = [  [size(n),ones(1,dc-ad(1))];...
+    [size(r),ones(1,dc-ad(2))]     ];
 sc = max(as);
 xa = prod(as,2)>1;
 if (sum(xa)==2 & any(diff(as))), error('non-scalar args must match in size'), end
@@ -99,9 +99,9 @@ return
 % The following cunning direct computation is faster than using log
 % gammas, but is rather difficult to vectorise.
 %if r<n/2
-%	%-better for small r (less terms), append 1's for 0!
-%	c = prod([n:-1:n-r+1,1]./[r:-1:1,1]);
-%else	
-%	%-better for large r (less terms), append 1's for 0!
-%	c = prod([n:-1:r+1,1]./[n-r:-1:1,1]);
+%   %-better for small r (less terms), append 1's for 0!
+%   c = prod([n:-1:n-r+1,1]./[r:-1:1,1]);
+%else   
+%   %-better for large r (less terms), append 1's for 0!
+%   c = prod([n:-1:r+1,1]./[n-r:-1:1,1]);
 %end

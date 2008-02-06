@@ -80,21 +80,21 @@ function P = spm_realign(P,flags)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_realign.m 1030 2007-12-20 11:43:12Z john $
+% $Id: spm_realign.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==0, return; end;
 
 def_flags = struct('quality',1,'fwhm',5,'sep',4,'interp',2,'wrap',[0 0 0],'rtm',0,'PW','','graphics',1,'lkp',1:6);
 if nargin < 2,
-	flags = def_flags;
+    flags = def_flags;
 else
-	fnms = fieldnames(def_flags);
-	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}),
-			flags.(fnms{i}) = def_flags.(fnms{i});
-		end;
-	end;
+    fnms = fieldnames(def_flags);
+    for i=1:length(fnms),
+        if ~isfield(flags,fnms{i}),
+            flags.(fnms{i}) = def_flags.(fnms{i});
+        end;
+    end;
 end;
 
 if ~iscell(P), tmp = cell(1); tmp{1} = P; P = tmp; end;
@@ -105,42 +105,42 @@ if ~isempty(flags.PW) && ischar(flags.PW), flags.PW = spm_vol(flags.PW); end;
 PN = {};
 j  = 1;
 for i=1:length(P),
-	if ~isempty(P{i}), PN{j} = P{i}; j = j+1; end;
+    if ~isempty(P{i}), PN{j} = P{i}; j = j+1; end;
 end;
 P = PN;
 
 if isempty(P), warning('Nothing to do'); return; end;
 
 if length(P)==1,
-	P{1} = realign_series(P{1},flags);
-	if nargout==0, save_parameters(P{1}); end;
+    P{1} = realign_series(P{1},flags);
+    if nargout==0, save_parameters(P{1}); end;
 else
-	Ptmp = P{1}(1);
-	for s=2:numel(P),
-		Ptmp = [Ptmp ; P{s}(1)];
-	end;
-	Ptmp = realign_series(Ptmp,flags);
-	for s=1:numel(P),
-		M  = Ptmp(s).mat*inv(P{s}(1).mat);
-		for i=1:numel(P{s}),
-			P{s}(i).mat = M*P{s}(i).mat;
-		end;
-	end;
+    Ptmp = P{1}(1);
+    for s=2:numel(P),
+        Ptmp = [Ptmp ; P{s}(1)];
+    end;
+    Ptmp = realign_series(Ptmp,flags);
+    for s=1:numel(P),
+        M  = Ptmp(s).mat*inv(P{s}(1).mat);
+        for i=1:numel(P{s}),
+            P{s}(i).mat = M*P{s}(i).mat;
+        end;
+    end;
 
-	for s=1:numel(P),
-		P{s} = realign_series(P{s},flags);
-		if nargout==0, save_parameters(P{s}); end;
-	end;
+    for s=1:numel(P),
+        P{s} = realign_series(P{s},flags);
+        if nargout==0, save_parameters(P{s}); end;
+    end;
 end;
 
 if nargout==0, 
-	% Save Realignment Parameters
-	%---------------------------------------------------------------------------
-	for s=1:numel(P),
-		for i=1:numel(P{s}),
-			spm_get_space([P{s}(i).fname ',' num2str(P{s}(i).n)], P{s}(i).mat);
-		end;
-	end;
+    % Save Realignment Parameters
+    %---------------------------------------------------------------------------
+    for s=1:numel(P),
+        for i=1:numel(P{s}),
+            spm_get_space([P{s}(i).fname ',' num2str(P{s}(i).n)], P{s}(i).mat);
+        end;
+    end;
 end;
 
 if flags.graphics, plot_parameters(P); end;
@@ -168,15 +168,15 @@ d    = P(1).dim(1:3);
 lkp = flags.lkp;
 rand('state',0); % want the results to be consistant.
 if d(3) < 3,
-	lkp = [1 2 6];
-	[x1,x2,x3] = ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3));
-	x1   = x1 + rand(size(x1))*0.5;
-	x2   = x2 + rand(size(x2))*0.5;
+    lkp = [1 2 6];
+    [x1,x2,x3] = ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3));
+    x1   = x1 + rand(size(x1))*0.5;
+    x2   = x2 + rand(size(x2))*0.5;
 else
-	[x1,x2,x3]=ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3)-.5);
-	x1   = x1 + rand(size(x1))*0.5;
-	x2   = x2 + rand(size(x2))*0.5;
-	x3   = x3 + rand(size(x3))*0.5; 
+    [x1,x2,x3]=ndgrid(1:skip(1):d(1)-.5, 1:skip(2):d(2)-.5, 1:skip(3):d(3)-.5);
+    x1   = x1 + rand(size(x1))*0.5;
+    x2   = x2 + rand(size(x2))*0.5;
+    x3   = x3 + rand(size(x3))*0.5; 
 end;
 
 x1   = x1(:);
@@ -186,15 +186,15 @@ x3   = x3(:);
 % Possibly mask an area of the sample volume.
 %-----------------------------------------------------------------------
 if ~isempty(flags.PW),
-	[y1,y2,y3]=coords([0 0 0  0 0 0],P(1).mat,flags.PW.mat,x1,x2,x3);
-	wt  = spm_sample_vol(flags.PW,y1,y2,y3,1);
-	msk = find(wt>0.01);
-	x1  = x1(msk);
-	x2  = x2(msk);
-	x3  = x3(msk);
-	wt  = wt(msk);
+    [y1,y2,y3]=coords([0 0 0  0 0 0],P(1).mat,flags.PW.mat,x1,x2,x3);
+    wt  = spm_sample_vol(flags.PW,y1,y2,y3,1);
+    msk = find(wt>0.01);
+    x1  = x1(msk);
+    x2  = x2(msk);
+    x3  = x3(msk);
+    wt  = wt(msk);
 else
-	wt = [];
+    wt = [];
 end;
 
 % Compute rate of change of chi2 w.r.t changes in parameters (matrix A)
@@ -211,97 +211,97 @@ if ~isempty(wt), b = b.*wt; end;
 
 %-----------------------------------------------------------------------
 if numel(P) > 2,
-	% Remove voxels that contribute very little to the final estimate.
-	% Simulated annealing or something similar could be used to
-	% eliminate a better choice of voxels - but this way will do for
-	% now. It basically involves removing the voxels that contribute
-	% least to the determinant of the inverse covariance matrix.
+    % Remove voxels that contribute very little to the final estimate.
+    % Simulated annealing or something similar could be used to
+    % eliminate a better choice of voxels - but this way will do for
+    % now. It basically involves removing the voxels that contribute
+    % least to the determinant of the inverse covariance matrix.
 
-	spm_chi2_plot('Init','Eliminating Unimportant Voxels',...
-		      'Relative quality','Iteration');
-	Alpha = spm_atranspa([A0 b]);
-	det0  = det(Alpha);
-	det1  = det0;
-	spm_chi2_plot('Set',det1/det0);
-	while det1/det0 > flags.quality,
-		dets  = zeros(size(A0,1),1);
-		for i=1:size(A0,1),
-			dets(i) = det(Alpha - spm_atranspa([A0(i,:) b(i)]));
-		end;
-		[junk,msk] = sort(det1-dets);
-		msk        = msk(1:round(length(dets)/10));
-		 A0(msk,:) = [];   b(msk,:) = [];   G(msk,:) = [];
-		 x1(msk,:) = [];  x2(msk,:) = [];  x3(msk,:) = [];
-		dG1(msk,:) = []; dG2(msk,:) = []; dG3(msk,:) = [];
-		if ~isempty(wt),  wt(msk,:) = []; end;
-		Alpha = spm_atranspa([A0 b]);
-		det1  = det(Alpha);
-		spm_chi2_plot('Set',single(det1/det0));
-	end;
-	spm_chi2_plot('Clear');
+    spm_chi2_plot('Init','Eliminating Unimportant Voxels',...
+              'Relative quality','Iteration');
+    Alpha = spm_atranspa([A0 b]);
+    det0  = det(Alpha);
+    det1  = det0;
+    spm_chi2_plot('Set',det1/det0);
+    while det1/det0 > flags.quality,
+        dets  = zeros(size(A0,1),1);
+        for i=1:size(A0,1),
+            dets(i) = det(Alpha - spm_atranspa([A0(i,:) b(i)]));
+        end;
+        [junk,msk] = sort(det1-dets);
+        msk        = msk(1:round(length(dets)/10));
+         A0(msk,:) = [];   b(msk,:) = [];   G(msk,:) = [];
+         x1(msk,:) = [];  x2(msk,:) = [];  x3(msk,:) = [];
+        dG1(msk,:) = []; dG2(msk,:) = []; dG3(msk,:) = [];
+        if ~isempty(wt),  wt(msk,:) = []; end;
+        Alpha = spm_atranspa([A0 b]);
+        det1  = det(Alpha);
+        spm_chi2_plot('Set',single(det1/det0));
+    end;
+    spm_chi2_plot('Clear');
 end;
 %-----------------------------------------------------------------------
 
 
 if flags.rtm,
-	count = ones(size(b));
-	ave   = G;
-	grad1 = dG1;
-	grad2 = dG2;
-	grad3 = dG3;
+    count = ones(size(b));
+    ave   = G;
+    grad1 = dG1;
+    grad2 = dG2;
+    grad3 = dG3;
 end;
 
 spm_progress_bar('Init',length(P)-1,'Registering Images');
 % Loop over images
 %-----------------------------------------------------------------------
 for i=2:length(P),
-	V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
-	d  = [size(V) 1 1];
-	d  = d(1:3);
-	ss = Inf;
-	countdown = -1;
-	for iter=1:64,
-		[y1,y2,y3] = coords([0 0 0  0 0 0],P(1).mat,P(i).mat,x1,x2,x3);
-		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
-		if length(msk)<32, error_message(P(i)); end;
+    V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+    d  = [size(V) 1 1];
+    d  = d(1:3);
+    ss = Inf;
+    countdown = -1;
+    for iter=1:64,
+        [y1,y2,y3] = coords([0 0 0  0 0 0],P(1).mat,P(i).mat,x1,x2,x3);
+        msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
+        if length(msk)<32, error_message(P(i)); end;
 
-		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
-		if ~isempty(wt), F = F.*wt(msk); end;
+        F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
+        if ~isempty(wt), F = F.*wt(msk); end;
 
-		A          = A0(msk,:);
-		b1         = b(msk);
-		sc         = sum(b1)/sum(F);
-		b1         = b1-F*sc;
-		soln       = spm_atranspa(A)\(A'*b1);
+        A          = A0(msk,:);
+        b1         = b(msk);
+        sc         = sum(b1)/sum(F);
+        b1         = b1-F*sc;
+        soln       = spm_atranspa(A)\(A'*b1);
 
-		p          = [0 0 0  0 0 0  1 1 1  0 0 0];
-		p(lkp)     = p(lkp) + soln';
-		P(i).mat   = inv(spm_matrix(p))*P(i).mat;
+        p          = [0 0 0  0 0 0  1 1 1  0 0 0];
+        p(lkp)     = p(lkp) + soln';
+        P(i).mat   = inv(spm_matrix(p))*P(i).mat;
 
-		pss        = ss;
-		ss         = sum(b1.^2)/length(b1);
-		if (pss-ss)/pss < 1e-8 && countdown == -1, % Stopped converging.
-			countdown = 2;
-		end;
-		if countdown ~= -1,
-			if countdown==0, break; end;
-			countdown = countdown -1;
-		end;
-	end;
-	if flags.rtm,
-		% Generate mean and derivatives of mean
-		tiny = 5e-2; % From spm_vol_utils.c
-		msk        = find((y1>=(1-tiny) & y1<=(d(1)+tiny) &...
-		                   y2>=(1-tiny) & y2<=(d(2)+tiny) &...
-		                   y3>=(1-tiny) & y3<=(d(3)+tiny)));
-		count(msk) = count(msk) + 1;
-		[G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),deg);
-		ave(msk)   = ave(msk)   +   G*sc;
-		grad1(msk) = grad1(msk) + dG1*sc;
-		grad2(msk) = grad2(msk) + dG2*sc;
-		grad3(msk) = grad3(msk) + dG3*sc;
-	end;
-	spm_progress_bar('Set',i-1);
+        pss        = ss;
+        ss         = sum(b1.^2)/length(b1);
+        if (pss-ss)/pss < 1e-8 && countdown == -1, % Stopped converging.
+            countdown = 2;
+        end;
+        if countdown ~= -1,
+            if countdown==0, break; end;
+            countdown = countdown -1;
+        end;
+    end;
+    if flags.rtm,
+        % Generate mean and derivatives of mean
+        tiny = 5e-2; % From spm_vol_utils.c
+        msk        = find((y1>=(1-tiny) & y1<=(d(1)+tiny) &...
+                           y2>=(1-tiny) & y2<=(d(2)+tiny) &...
+                           y3>=(1-tiny) & y3<=(d(3)+tiny)));
+        count(msk) = count(msk) + 1;
+        [G,dG1,dG2,dG3] = spm_bsplins(V,y1(msk),y2(msk),y3(msk),deg);
+        ave(msk)   = ave(msk)   +   G*sc;
+        grad1(msk) = grad1(msk) + dG1*sc;
+        grad2(msk) = grad2(msk) + dG2*sc;
+        grad3(msk) = grad3(msk) + dG3*sc;
+    end;
+    spm_progress_bar('Set',i-1);
 end;
 spm_progress_bar('Clear');
 
@@ -318,40 +318,40 @@ clear ave grad1 grad2 grad3
 %-----------------------------------------------------------------------
 spm_progress_bar('Init',length(P),'Registering Images to Mean');
 for i=1:length(P),
-	V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
-	d  = [size(V) 1 1 1];
-	ss = Inf;
-	countdown = -1;
-	for iter=1:64,
-		[y1,y2,y3] = coords([0 0 0  0 0 0],M,P(i).mat,x1,x2,x3);
-		msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
-		if length(msk)<32, error_message(P(i)); end;
+    V  = smooth_vol(P(i),flags.interp,flags.wrap,flags.fwhm);
+    d  = [size(V) 1 1 1];
+    ss = Inf;
+    countdown = -1;
+    for iter=1:64,
+        [y1,y2,y3] = coords([0 0 0  0 0 0],M,P(i).mat,x1,x2,x3);
+        msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
+        if length(msk)<32, error_message(P(i)); end;
 
-		F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
-		if ~isempty(wt), F = F.*wt(msk); end;
+        F          = spm_bsplins(V, y1(msk),y2(msk),y3(msk),deg);
+        if ~isempty(wt), F = F.*wt(msk); end;
 
-		A          = A0(msk,:);
-		b1         = b(msk);
-		sc         = sum(b1)/sum(F);
-		b1         = b1-F*sc;
-		soln       = spm_atranspa(A)\(A'*b1);
+        A          = A0(msk,:);
+        b1         = b(msk);
+        sc         = sum(b1)/sum(F);
+        b1         = b1-F*sc;
+        soln       = spm_atranspa(A)\(A'*b1);
 
-		p          = [0 0 0  0 0 0  1 1 1  0 0 0];
-		p(lkp)     = p(lkp) + soln';
-		P(i).mat   = inv(spm_matrix(p))*P(i).mat;
+        p          = [0 0 0  0 0 0  1 1 1  0 0 0];
+        p(lkp)     = p(lkp) + soln';
+        P(i).mat   = inv(spm_matrix(p))*P(i).mat;
 
-		pss        = ss;
-		ss         = sum(b1.^2)/length(b1);
-		if (pss-ss)/pss < 1e-8 && countdown == -1 % Stopped converging.
-			% Do three final iterations to finish off with
-			countdown = 2;
-		end;
-		if countdown ~= -1
-			if countdown==0, break; end;
-			countdown = countdown -1;
-		end;
-	end;
-	spm_progress_bar('Set',i);
+        pss        = ss;
+        ss         = sum(b1.^2)/length(b1);
+        if (pss-ss)/pss < 1e-8 && countdown == -1 % Stopped converging.
+            % Do three final iterations to finish off with
+            countdown = 2;
+        end;
+        if countdown ~= -1
+            if countdown==0, break; end;
+            countdown = countdown -1;
+        end;
+    end;
+    spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
 
@@ -361,7 +361,7 @@ spm_progress_bar('Clear');
 %-----------------------------------------------------------------------
 M = M/P(1).mat;
 for i=1:length(P)
-	P(i).mat   = M*P(i).mat;
+    P(i).mat   = M*P(i).mat;
 end
 
 return;
@@ -406,29 +406,29 @@ function A = make_A(M,x1,x2,x3,dG1,dG2,dG3,wt,lkp)
 p0 = [0 0 0  0 0 0  1 1 1  0 0 0];
 A  = zeros(numel(x1),length(lkp));
 for i=1:length(lkp)
-	pt         = p0;
-	pt(lkp(i)) = pt(i)+1e-6;
-	[y1,y2,y3] = coords(pt,M,M,x1,x2,x3);
-	tmp        = sum([y1-x1 y2-x2 y3-x3].*[dG1 dG2 dG3],2)/(-1e-6);
-	if ~isempty(wt), A(:,i) = tmp.*wt;
-	else A(:,i) = tmp; end
+    pt         = p0;
+    pt(lkp(i)) = pt(i)+1e-6;
+    [y1,y2,y3] = coords(pt,M,M,x1,x2,x3);
+    tmp        = sum([y1-x1 y2-x2 y3-x3].*[dG1 dG2 dG3],2)/(-1e-6);
+    if ~isempty(wt), A(:,i) = tmp.*wt;
+    else A(:,i) = tmp; end
 end
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
 function error_message(P)
-str = {	'There is not enough overlap in the images',...
-	'to obtain a solution.',...
-	' ',...
-	'Offending image:',...
-	 P.fname,...
-	' ',...
-	'Please check that your header information is OK.',...
-	'The Check Reg utility will show you the initial',...
-	'alignment between the images, which must be',...
-	'within about 4cm and about 15 degrees in order',...
-	'for SPM to find the optimal solution.'};
+str = { 'There is not enough overlap in the images',...
+    'to obtain a solution.',...
+    ' ',...
+    'Offending image:',...
+     P.fname,...
+    ' ',...
+    'Please check that your header information is OK.',...
+    'The Check Reg utility will show you the initial',...
+    'alignment between the images, which must be',...
+    'within about 4cm and about 15 degrees in order',...
+    'for SPM to find the optimal solution.'};
 spm('alert*',str,mfilename,sqrt(-1));
 error('insufficient image overlap')
 %_______________________________________________________________________
@@ -437,49 +437,49 @@ error('insufficient image overlap')
 function plot_parameters(P)
 fg=spm_figure('FindWin','Graphics');
 if ~isempty(fg),
-	P = cat(1,P{:});
-	if length(P)<2, return; end;
-	Params = zeros(numel(P),12);
-	for i=1:numel(P),
-		Params(i,:) = spm_imatrix(P(i).mat/P(1).mat);
-	end
+    P = cat(1,P{:});
+    if length(P)<2, return; end;
+    Params = zeros(numel(P),12);
+    for i=1:numel(P),
+        Params(i,:) = spm_imatrix(P(i).mat/P(1).mat);
+    end
 
-	% display results
-	% translation and rotation over time series
-	%-------------------------------------------------------------------
-	spm_figure('Clear','Graphics');
-	ax=axes('Position',[0.1 0.65 0.8 0.2],'Parent',fg,'Visible','off');
-	set(get(ax,'Title'),'String','Image realignment','FontSize',16,'FontWeight','Bold','Visible','on');
-	x     =  0.1;
-	y     =  0.9;
-	for i = 1:min([numel(P) 12])
-		text(x,y,[sprintf('%-4.0f',i) P(i).fname],'FontSize',10,'Interpreter','none','Parent',ax);
-		y = y - 0.08;
-	end
-	if numel(P) > 12
-		text(x,y,'................ etc','FontSize',10,'Parent',ax); end
+    % display results
+    % translation and rotation over time series
+    %-------------------------------------------------------------------
+    spm_figure('Clear','Graphics');
+    ax=axes('Position',[0.1 0.65 0.8 0.2],'Parent',fg,'Visible','off');
+    set(get(ax,'Title'),'String','Image realignment','FontSize',16,'FontWeight','Bold','Visible','on');
+    x     =  0.1;
+    y     =  0.9;
+    for i = 1:min([numel(P) 12])
+        text(x,y,[sprintf('%-4.0f',i) P(i).fname],'FontSize',10,'Interpreter','none','Parent',ax);
+        y = y - 0.08;
+    end
+    if numel(P) > 12
+        text(x,y,'................ etc','FontSize',10,'Parent',ax); end
 
-	ax=axes('Position',[0.1 0.35 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
-	plot(Params(:,1:3),'Parent',ax)
-	s = ['x translation';'y translation';'z translation'];
-	%text([2 2 2], Params(2, 1:3), s, 'Fontsize',10,'Parent',ax)
-	legend(ax, s, 0)
-	set(get(ax,'Title'),'String','translation','FontSize',16,'FontWeight','Bold');
-	set(get(ax,'Xlabel'),'String','image');
-	set(get(ax,'Ylabel'),'String','mm');
+    ax=axes('Position',[0.1 0.35 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
+    plot(Params(:,1:3),'Parent',ax)
+    s = ['x translation';'y translation';'z translation'];
+    %text([2 2 2], Params(2, 1:3), s, 'Fontsize',10,'Parent',ax)
+    legend(ax, s, 0)
+    set(get(ax,'Title'),'String','translation','FontSize',16,'FontWeight','Bold');
+    set(get(ax,'Xlabel'),'String','image');
+    set(get(ax,'Ylabel'),'String','mm');
 
 
-	ax=axes('Position',[0.1 0.05 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
-	plot(Params(:,4:6)*180/pi,'Parent',ax)
-	s = ['pitch';'roll ';'yaw  '];
-	%text([2 2 2], Params(2, 4:6)*180/pi, s, 'Fontsize',10,'Parent',ax)
-	legend(ax, s, 0)
-	set(get(ax,'Title'),'String','rotation','FontSize',16,'FontWeight','Bold');
-	set(get(ax,'Xlabel'),'String','image');
-	set(get(ax,'Ylabel'),'String','degrees');
+    ax=axes('Position',[0.1 0.05 0.8 0.2],'Parent',fg,'XGrid','on','YGrid','on');
+    plot(Params(:,4:6)*180/pi,'Parent',ax)
+    s = ['pitch';'roll ';'yaw  '];
+    %text([2 2 2], Params(2, 4:6)*180/pi, s, 'Fontsize',10,'Parent',ax)
+    legend(ax, s, 0)
+    set(get(ax,'Title'),'String','rotation','FontSize',16,'FontWeight','Bold');
+    set(get(ax,'Xlabel'),'String','image');
+    set(get(ax,'Ylabel'),'String','degrees');
 
-	% print realigment parameters
-	spm_print
+    % print realigment parameters
+    spm_print
 end
 return;
 %_______________________________________________________________________
@@ -490,8 +490,8 @@ fname = [spm_str_manip(prepend(V(1).fname,'rp_'),'s') '.txt'];
 n = length(V);
 Q = zeros(n,6);
 for j=1:n,
-	qq     = spm_imatrix(V(j).mat/V(1).mat);
-	Q(j,:) = qq(1:6);
+    qq     = spm_imatrix(V(j).mat/V(1).mat);
+    Q(j,:) = qq(1:6);
 end;
 save(fname,'Q','-ascii');
 return;

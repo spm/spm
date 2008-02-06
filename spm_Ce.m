@@ -13,13 +13,13 @@ function [C] = spm_Ce(v,a)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_Ce.m 1043 2007-12-21 20:34:45Z karl $
+% $Id: spm_Ce.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin == 1,	a = []; end
+if nargin == 1, a = []; end
 
 % create blocks
 %--------------------------------------------------------------------------
@@ -28,25 +28,25 @@ l    = length(v);
 n    = sum(v);
 k    = 0;
 if l > 1
-	for i = 1:l
-		dCda  = spm_Ce(v(i),a);
-		for j = 1:length(dCda)
-			[x y q]    = find(dCda{j});
-			x          = x    + k;
-			y          = y    + k;
-			C{end + 1} = sparse(x,y,q,n,n);
-		end
-		k          = v(i) + k;
+    for i = 1:l
+        dCda  = spm_Ce(v(i),a);
+        for j = 1:length(dCda)
+            [x y q]    = find(dCda{j});
+            x          = x    + k;
+            y          = y    + k;
+            C{end + 1} = sparse(x,y,q,n,n);
+        end
+        k          = v(i) + k;
     end
 else
     
-	% dCda
-	%----------------------------------------------------------------------
-	C{1}  = spm_Q(a,v);
-	dCda  = spm_diff('spm_Q',a,v,1);
-	for i = 1:length(a)
+    % dCda
+    %----------------------------------------------------------------------
+    C{1}  = spm_Q(a,v);
+    dCda  = spm_diff('spm_Q',a,v,1);
+    for i = 1:length(a)
             try
-		C{i + 1} = dCda{i};
+        C{i + 1} = dCda{i};
             catch
                 C{i + 1} = dCda;
             end

@@ -13,28 +13,28 @@ function [DCM] = spm_dcm_ui(Action);
 %
 % saves DCM_???.mat
 %
-%	DCM.M      - model  specification structure (see spm_nlsi)
-%	DCM.Y      - output specification structure (see spm_nlsi)
-%	DCM.U      - input  specification structure (see spm_nlsi)
-%	DCM.Ep     - posterior expectations (see spm_nlsi)
-%	DCM.Cp     - posterior covariances (see spm_nlsi)
-%	DCM.A      - intrinsic connection matrix
-%	DCM.B      - input-dependent connection matrix
-%	DCM.C      - input connection matrix
-%	DCM.pA     - pA - posterior probabilities
-%	DCM.pB     - pB - posterior probabilities
-%	DCM.pC     - pC - posterior probabilities
-%	DCM.vA     - vA - variance of parameter estimates
-%	DCM.vB     - vB - variance of parameter estimates
-%	DCM.vC     - vC - variance of parameter estimates
-%	DCM.H1     - 1st order Volterra Kernels - hemodynamic
-%	DCM.H2     - 1st order Volterra Kernels - hemodynamic
-%	DCM.K1     - 1st order Volterra Kernels - neuronal
-%	DCM.K1     - 1st order Volterra Kernels - neuronal
-%	DCM.R      - residuals
-%	DCM.y      - predicted responses
-%	DCM.xY     - original response variable structures
-%	DCM.T      - threshold for inference based on posterior p.d.f
+%   DCM.M      - model  specification structure (see spm_nlsi)
+%   DCM.Y      - output specification structure (see spm_nlsi)
+%   DCM.U      - input  specification structure (see spm_nlsi)
+%   DCM.Ep     - posterior expectations (see spm_nlsi)
+%   DCM.Cp     - posterior covariances (see spm_nlsi)
+%   DCM.A      - intrinsic connection matrix
+%   DCM.B      - input-dependent connection matrix
+%   DCM.C      - input connection matrix
+%   DCM.pA     - pA - posterior probabilities
+%   DCM.pB     - pB - posterior probabilities
+%   DCM.pC     - pC - posterior probabilities
+%   DCM.vA     - vA - variance of parameter estimates
+%   DCM.vB     - vB - variance of parameter estimates
+%   DCM.vC     - vC - variance of parameter estimates
+%   DCM.H1     - 1st order Volterra Kernels - hemodynamic
+%   DCM.H2     - 1st order Volterra Kernels - hemodynamic
+%   DCM.K1     - 1st order Volterra Kernels - neuronal
+%   DCM.K1     - 1st order Volterra Kernels - neuronal
+%   DCM.R      - residuals
+%   DCM.y      - predicted responses
+%   DCM.xY     - original response variable structures
+%   DCM.T      - threshold for inference based on posterior p.d.f
 %   DCM.Ce     - Estimated observation noise covariance
 %   DCM.v      - Number of scans
 %   DCM.n      - Number of regions
@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 1118 2008-01-24 17:33:17Z guillaume $
+% $Id: spm_dcm_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -92,7 +92,7 @@ WS     = spm('WinScale');
 %---------------------------------------------------------------------------
 if ~nargin
     % Use pull-down menu
-	str      = 'Action: ';
+    str      = 'Action: ';
     Actions  = {'specify','estimate','review','compare','average','quit'};
     selected = spm_input(str,1,'m',Actions);
     Action   = Actions{selected};
@@ -105,129 +105,129 @@ switch Action
 %---------------------------------------------------------------------------
 case 'specify'
 
-	% get design and directory
-	%===================================================================
-	swd   = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
-	load(fullfile(swd,'SPM.mat'))
-	cd(swd)
+    % get design and directory
+    %===================================================================
+    swd   = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+    load(fullfile(swd,'SPM.mat'))
+    cd(swd)
 
-	% name
-	%===================================================================
-	name  = spm_input('name for DCM_???.mat','+1','s');
+    % name
+    %===================================================================
+    name  = spm_input('name for DCM_???.mat','+1','s');
 
-	% outputs
-	%===================================================================
+    % outputs
+    %===================================================================
 
-	% get cell array of region structures
-	%-------------------------------------------------------------------
-	P     = spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'});
-	m     = size(P,1);
-	for i = 1:m
-		p     = load(deblank(P(i,:)),'xY','-mat');
-		xY(i) = p.xY;
-	end
+    % get cell array of region structures
+    %-------------------------------------------------------------------
+    P     = spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'});
+    m     = size(P,1);
+    for i = 1:m
+        p     = load(deblank(P(i,:)),'xY','-mat');
+        xY(i) = p.xY;
+    end
 
-	% inputs
-	%===================================================================
+    % inputs
+    %===================================================================
 
-	% get 'causes' or inputs U
-	%-------------------------------------------------------------------
-	spm_input('Input specification:...  ',1,'d');
-	Sess   = SPM.Sess(xY(1).Sess);
-	U.dt   = Sess.U(1).dt;
-	u      = length(Sess.U);
-	U.name = {};
-	U.u    = [];
-	for  i = 1:u
-	for  j = 1:length(Sess.U(i).name)
-		str   = ['include ' Sess.U(i).name{j} '?'];
-		if spm_input(str,2,'y/n',[1 0])
-			U.u             = [U.u Sess.U(i).u(33:end,j)];
-			U.name{end + 1} = Sess.U(i).name{j};
-		end
-	end
-	end
+    % get 'causes' or inputs U
+    %-------------------------------------------------------------------
+    spm_input('Input specification:...  ',1,'d');
+    Sess   = SPM.Sess(xY(1).Sess);
+    U.dt   = Sess.U(1).dt;
+    u      = length(Sess.U);
+    U.name = {};
+    U.u    = [];
+    for  i = 1:u
+    for  j = 1:length(Sess.U(i).name)
+        str   = ['include ' Sess.U(i).name{j} '?'];
+        if spm_input(str,2,'y/n',[1 0])
+            U.u             = [U.u Sess.U(i).u(33:end,j)];
+            U.name{end + 1} = Sess.U(i).name{j};
+        end
+    end
+    end
 
 
-	% graph connections
-	%===================================================================
-	n     = size(U.u,2);
-	a     = zeros(m,m);
-	c     = zeros(m,n);
-	b     = zeros(m,m,n);
-	d     = uicontrol(Finter,'String','done',...
+    % graph connections
+    %===================================================================
+    n     = size(U.u,2);
+    a     = zeros(m,m);
+    c     = zeros(m,n);
+    b     = zeros(m,m,n);
+    d     = uicontrol(Finter,'String','done',...
           'Position',[300 100 060 020].*WS);
-	dx    = 20;
+    dx    = 20;
 
 
-	%-intrinsic connections
-	%-------------------------------------------------------------------
-	spm_input('Specify intrinsic connections from',1,'d')
-	spm_input('to',3,'d')
+    %-intrinsic connections
+    %-------------------------------------------------------------------
+    spm_input('Specify intrinsic connections from',1,'d')
+    spm_input('to',3,'d')
 
-	for i = 1:m
-		str    = sprintf('%s %i',xY(i).name,i);
-		h1(i)  = uicontrol(Finter,'String',str,...
-				'Style','text',...
-				'HorizontalAlignment','right',...
-				'Position',[080 356-dx*i 080 020].*WS);
-		h2(i)  = uicontrol(Finter,'String',sprintf('%i',i),...
-				'Style','text',...
-				'Position',[180+dx*i 356 020 020].*WS);
-	end
-	for i = 1:m
-		for j = 1:m
-			h3(i,j) = uicontrol(Finter,...
-				'Position',[180+dx*j 360-dx*i 020 020].*WS,...
-				'Style','radiobutton');
-			if i == j
-				set(h3(i,j),'Value',1,...
-					'enable','off',...
-					'BackgroundColor',[0.5 0.5 0.5]);
-			end
-			
-		end
-	end
-	drawnow
+    for i = 1:m
+        str    = sprintf('%s %i',xY(i).name,i);
+        h1(i)  = uicontrol(Finter,'String',str,...
+                'Style','text',...
+                'HorizontalAlignment','right',...
+                'Position',[080 356-dx*i 080 020].*WS);
+        h2(i)  = uicontrol(Finter,'String',sprintf('%i',i),...
+                'Style','text',...
+                'Position',[180+dx*i 356 020 020].*WS);
+    end
+    for i = 1:m
+        for j = 1:m
+            h3(i,j) = uicontrol(Finter,...
+                'Position',[180+dx*j 360-dx*i 020 020].*WS,...
+                'Style','radiobutton');
+            if i == j
+                set(h3(i,j),'Value',1,...
+                    'enable','off',...
+                    'BackgroundColor',[0.5 0.5 0.5]);
+            end
+            
+        end
+    end
+    drawnow
 
-	% wait for 'done'
-	%-----------------------------------------------------------
-	while(1)
-		pause(0.01)
-		if strcmp(get(gco,'Type'),'uicontrol')
-			if strcmp(get(gco,'String'),'done')
-				for i = 1:m
-				for j = 1:m
-					a(i,j) = get(h3(i,j),'Value');
-				end
-				end
-				delete([h1(:); h2(:); h3(:)])
-				break
-			end
-		end
-	end
+    % wait for 'done'
+    %-----------------------------------------------------------
+    while(1)
+        pause(0.01)
+        if strcmp(get(gco,'Type'),'uicontrol')
+            if strcmp(get(gco,'String'),'done')
+                for i = 1:m
+                for j = 1:m
+                    a(i,j) = get(h3(i,j),'Value');
+                end
+                end
+                delete([h1(:); h2(:); h3(:)])
+                break
+            end
+        end
+    end
 
 
-	%-effects of causes
-	%-------------------------------------------------------------------
-	for k = 1:n
+    %-effects of causes
+    %-------------------------------------------------------------------
+    for k = 1:n
 
-		% buttons and labels
-		%-----------------------------------------------------------
-		str   = sprintf(...
-			'Effects of %-12s on regions... and connections',...
-			 U.name{k});
-		spm_input(str,1,'d');
+        % buttons and labels
+        %-----------------------------------------------------------
+        str   = sprintf(...
+            'Effects of %-12s on regions... and connections',...
+             U.name{k});
+        spm_input(str,1,'d');
         
-		dx    = 20;
-		for i = 1:m
-			h1(i)  = uicontrol(Finter,'String',xY(i).name,...
-				'Style','text',...
-				'Position',[080 356-dx*i 080 020].*WS);
-			h2(i)  = uicontrol(Finter,...
-				'Position',[160 360-dx*i 020 020].*WS,...
-				'Style','radiobutton');
-		end
+        dx    = 20;
+        for i = 1:m
+            h1(i)  = uicontrol(Finter,'String',xY(i).name,...
+                'Style','text',...
+                'Position',[080 356-dx*i 080 020].*WS);
+            h2(i)  = uicontrol(Finter,...
+                'Position',[160 360-dx*i 020 020].*WS,...
+                'Style','radiobutton');
+        end
         for i = 1:m
             for j = 1:m
                 if a(i,j)==1
@@ -239,24 +239,24 @@ case 'specify'
                 end
             end
         end
-		drawnow
+        drawnow
 
-		% wait for 'done'
-		%-----------------------------------------------------------
-		set(gcf,'CurrentObject',h2(1))
-		while(1)
-			pause(0.01)
-			if strcmp(get(gco,'Type'),'uicontrol')
-			if strcmp(get(gco,'String'),'done')
+        % wait for 'done'
+        %-----------------------------------------------------------
+        set(gcf,'CurrentObject',h2(1))
+        while(1)
+            pause(0.01)
+            if strcmp(get(gco,'Type'),'uicontrol')
+            if strcmp(get(gco,'String'),'done')
 
-			% get c
-			%--------------------------------------------------
-			for i = 1:m
-				c(i,k)   = get(h2(i)  ,'Value');
-			end
+            % get c
+            %--------------------------------------------------
+            for i = 1:m
+                c(i,k)   = get(h2(i)  ,'Value');
+            end
 
-			% get b allowing any 2nd order effects 
-			%--------------------------------------------------
+            % get b allowing any 2nd order effects 
+            %--------------------------------------------------
             for i = 1:m
                 for j = 1:m
                     if a(i,j)==1
@@ -264,19 +264,19 @@ case 'specify'
                     end
                 end
             end
-			delete([h1(:); h2(:); h3(find(a==1))])
-			spm_input('Thank you',1,'d')
-			break
+            delete([h1(:); h2(:); h3(find(a==1))])
+            spm_input('Thank you',1,'d')
+            break
 
-			end
-			end
-		end
-	end
-	delete(d)
+            end
+            end
+        end
+    end
+    delete(d)
 
     % slice timing
     %-------------------------------------------------------------------
-	delays = spm_input('Slice timings [s]', -1, 'r', SPM.xY.RT*ones(1, m), m, [0 SPM.xY.RT]);
+    delays = spm_input('Slice timings [s]', -1, 'r', SPM.xY.RT*ones(1, m), m, [0 SPM.xY.RT]);
 
     % echo time (TE) of data acquisition
     %-------------------------------------------------------------------
@@ -285,7 +285,7 @@ case 'specify'
     while ~TE_ok
         TE = spm_input('Echo time, TE [s]');
         if ~TE | (TE < 0) | (TE > 0.1)
-            str = {	'Extreme value for TE or TE undefined.',...
+            str = { 'Extreme value for TE or TE undefined.',...
                 'Please re-enter TE (note this value must be in seconds!).'};
             spm_input(str,1,'bd','OK',[1],1);
         else
@@ -297,27 +297,27 @@ case 'specify'
 
     
     % confounds (NB: the data have been filtered and whitened)
-	%-------------------------------------------------------------------
-	v     = size(xY(1).u,1);
-	X0    = xY(1).X0;
+    %-------------------------------------------------------------------
+    v     = size(xY(1).u,1);
+    X0    = xY(1).X0;
 
-	% response variables
-	%-------------------------------------------------------------------
-	n     = length(xY);
-	Y.dt  = SPM.xY.RT;
-	Y.X0  = X0;
-	for i = 1:n
-		% regional responses
-		Y.y(:,i)  = xY(i).u;
-		Y.name{i} = xY(i).name;
-	end
+    % response variables
+    %-------------------------------------------------------------------
+    n     = length(xY);
+    Y.dt  = SPM.xY.RT;
+    Y.X0  = X0;
+    for i = 1:n
+        % regional responses
+        Y.y(:,i)  = xY(i).u;
+        Y.name{i} = xY(i).name;
+    end
 
-	% error precision components (one for each region) - i.i.d. (because of W)
-	%-------------------------------------------------------------------
-	Y.Q        = spm_Ce(ones(1,n)*v);
+    % error precision components (one for each region) - i.i.d. (because of W)
+    %-------------------------------------------------------------------
+    Y.Q        = spm_Ce(ones(1,n)*v);
 
-	% store all variables in DCM structure
-	%-------------------------------------------------------------------
+    % store all variables in DCM structure
+    %-------------------------------------------------------------------
     DCM.a      = a;
     DCM.b      = b;
     DCM.c      = c;
@@ -330,352 +330,352 @@ case 'specify'
     DCM.TE     = TE;
     
     %-Save and reset title
-	%-------------------------------------------------------------------
+    %-------------------------------------------------------------------
     if spm_matlab_version_chk('7') >= 0
-		save(fullfile(swd,['DCM_' name]),'-V6','DCM');
-	else
-		save(fullfile(swd,['DCM_' name]),'DCM');
-	end;
-	spm('FigName',header);
-	spm('Pointer','Arrow')
-	return
+        save(fullfile(swd,['DCM_' name]),'-V6','DCM');
+    else
+        save(fullfile(swd,['DCM_' name]),'DCM');
+    end;
+    spm('FigName',header);
+    spm('Pointer','Arrow')
+    return
     
 case 'estimate',
-	
+    
     
     spm_dcm_estimate;
 
-	return
+    return
 
 
 % review results
 %---------------------------------------------------------------------------
 case 'review'
 
-	%-display model details
-	%-------------------------------------------------------------------
-	set(Finter,'name','Dynamic Causal Modeling')
+    %-display model details
+    %-------------------------------------------------------------------
+    set(Finter,'name','Dynamic Causal Modeling')
 
-	%-get results
-	%-------------------------------------------------------------------
-	P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
-	load(P);
-	m     = DCM.M.m;
-	n     = DCM.M.n;
-	l     = DCM.M.l;
+    %-get results
+    %-------------------------------------------------------------------
+    P     = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
+    load(P);
+    m     = DCM.M.m;
+    n     = DCM.M.n;
+    l     = DCM.M.l;
 
-	%-get threshold and recompute posterior probabilities
-	%-------------------------------------------------------------------
-	str        = 'Threshold {Hz}';
-	DCM.T      = spm_input(str,1,'e',0,[1 1]);
+    %-get threshold and recompute posterior probabilities
+    %-------------------------------------------------------------------
+    str        = 'Threshold {Hz}';
+    DCM.T      = spm_input(str,1,'e',0,[1 1]);
     warning off;
-	pp         = 1 - spm_Ncdf(DCM.T,abs(DCM.Ep),diag(DCM.Cp));
+    pp         = 1 - spm_Ncdf(DCM.T,abs(DCM.Ep),diag(DCM.Cp));
     warning on;
-	[pA pB pC] = spm_dcm_reshape(pp,m,l,1);
-	DCM.pA     = pA;
-	DCM.pB     = pB;
-	DCM.pC     = pC;
+    [pA pB pC] = spm_dcm_reshape(pp,m,l,1);
+    DCM.pA     = pA;
+    DCM.pB     = pB;
+    DCM.pC     = pC;
 
-	while(1)
-	% get options
-	%-------------------------------------------------------------------
-	str   = {};
-	for i = 1:m
-		str{i} = ['    Effects of ' DCM.U.name{i} '    '];
-	end
+    while(1)
+    % get options
+    %-------------------------------------------------------------------
+    str   = {};
+    for i = 1:m
+        str{i} = ['    Effects of ' DCM.U.name{i} '    '];
+    end
 
-	str   = {str{:}		'    Intrinsic connections',...
-				'Contrast of connections',...
-				'location of regions',...
-				'Inputs',...
-				'Outputs',...
-				'1st order Kernels',...
-				'quit'};
+    str   = {str{:}     '    Intrinsic connections',...
+                'Contrast of connections',...
+                'location of regions',...
+                'Inputs',...
+                'Outputs',...
+                '1st order Kernels',...
+                'quit'};
 
-	OPT   = spm_input('display',2,'m',str);
-	figure(Fgraph)
-	spm_figure('Clear',Fgraph)
-
-
-	% Inputs
-	%-------------------------------------------------------------------
-	if OPT <= m 
-
-		% input effects
-		%-----------------------------------------------------------
-		subplot(2,1,1)
-		i        = OPT;
-		b        = DCM.pB(:,:,i);
-		b(:,:,2) = DCM.B(:,:,i);
-		c        = DCM.pC(:,i);
-		c(:,2)   = DCM.C(:,i);
-		spm_dcm_display(DCM.xY,b,c)
-		title({	str{OPT};...
-			sprintf('P(|connection| > %0.2f)',DCM.T);...
-			'connection strength'},'FontSize',12)
+    OPT   = spm_input('display',2,'m',str);
+    figure(Fgraph)
+    spm_figure('Clear',Fgraph)
 
 
-		% direct effects - connections
-		%-----------------------------------------------------------
-		subplot(4,2,5)
-		bar(DCM.C(:,i))
-		title('C - direct effects {Hz}','FontSize',12)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		axis square
-		grid on
+    % Inputs
+    %-------------------------------------------------------------------
+    if OPT <= m 
 
-		% direct effects - probabilities
-		%-----------------------------------------------------------
-		subplot(4,2,6)
-		bar(DCM.pC(:,i))
-		title('C {probabilities}','FontSize',12)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		ylabel(sprintf('P(A > %0.2f)',DCM.T))
-		axis square
-		grid on
-
-		% modulatory effects - connections
-		%-----------------------------------------------------------
-		subplot(4,2,7)
-		bar3(DCM.B(:,:,i),0.4)
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		title('B - modulatory effects {Hz}','FontSize',12)
-		xlabel('from')
-		ylabel('to')
-		axis square
-
-		% modulatory effects - probabilities
-		%-----------------------------------------------------------
-		subplot(4,2,8)
-		bar3(DCM.pB(:,:,i),0.4)
-		title('B {probabilities}','FontSize',12)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		xlabel('from')
-		ylabel('to')
-		zlabel(sprintf('P(A > %0.2f)',DCM.T))
-		axis square
-		grid on
+        % input effects
+        %-----------------------------------------------------------
+        subplot(2,1,1)
+        i        = OPT;
+        b        = DCM.pB(:,:,i);
+        b(:,:,2) = DCM.B(:,:,i);
+        c        = DCM.pC(:,i);
+        c(:,2)   = DCM.C(:,i);
+        spm_dcm_display(DCM.xY,b,c)
+        title({ str{OPT};...
+            sprintf('P(|connection| > %0.2f)',DCM.T);...
+            'connection strength'},'FontSize',12)
 
 
-	% Intrinsic connections
-	%-------------------------------------------------------------------
-	elseif OPT == 1 + m
+        % direct effects - connections
+        %-----------------------------------------------------------
+        subplot(4,2,5)
+        bar(DCM.C(:,i))
+        title('C - direct effects {Hz}','FontSize',12)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        axis square
+        grid on
 
-		% Intrinsic effects
-		%-----------------------------------------------------------
-		subplot(2,1,1)
-		a        = DCM.pA;
-		a(:,:,2) = DCM.A;
-		spm_dcm_display(DCM.xY,a)
-		title({	str{OPT};...
-			sprintf('P(|connection| > %0.2f)',DCM.T);...
-			'connection strength'},'FontSize',10)
+        % direct effects - probabilities
+        %-----------------------------------------------------------
+        subplot(4,2,6)
+        bar(DCM.pC(:,i))
+        title('C {probabilities}','FontSize',12)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        ylabel(sprintf('P(A > %0.2f)',DCM.T))
+        axis square
+        grid on
 
-		% intrinsic interactions
-		%-----------------------------------------------------------
-		subplot(2,2,3)
-		bar3(DCM.A,0.4)
-		title('A - Intrinsic connections','FontSize',12)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		xlabel('from')
-		ylabel('to')
-		grid on
-		axis square
+        % modulatory effects - connections
+        %-----------------------------------------------------------
+        subplot(4,2,7)
+        bar3(DCM.B(:,:,i),0.4)
+        set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        title('B - modulatory effects {Hz}','FontSize',12)
+        xlabel('from')
+        ylabel('to')
+        axis square
 
-		% intrinsic interactions - probabilities
-		%-----------------------------------------------------------
-		subplot(2,2,4)
-		bar3(DCM.pA,0.4)
-		title('A {probabilities}','FontSize',12)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		xlabel('from')
-		ylabel('to')
-		zlabel(sprintf('P(A > %0.2f)',DCM.T))
-		grid on
-		axis square
+        % modulatory effects - probabilities
+        %-----------------------------------------------------------
+        subplot(4,2,8)
+        bar3(DCM.pB(:,:,i),0.4)
+        title('B {probabilities}','FontSize',12)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+        xlabel('from')
+        ylabel('to')
+        zlabel(sprintf('P(A > %0.2f)',DCM.T))
+        axis square
+        grid on
 
 
-	% contrast
-	%-------------------------------------------------------------------
-	elseif OPT == 2 + m
+    % Intrinsic connections
+    %-------------------------------------------------------------------
+    elseif OPT == 1 + m
 
-		%-get contrast
-		%-----------------------------------------------------------
-		str     = 'contrast for';
-		D       = spm_input(str,1,'b',{'A','B','C'});
+        % Intrinsic effects
+        %-----------------------------------------------------------
+        subplot(2,1,1)
+        a        = DCM.pA;
+        a(:,:,2) = DCM.A;
+        spm_dcm_display(DCM.xY,a)
+        title({ str{OPT};...
+            sprintf('P(|connection| > %0.2f)',DCM.T);...
+            'connection strength'},'FontSize',10)
 
-		switch D
+        % intrinsic interactions
+        %-----------------------------------------------------------
+        subplot(2,2,3)
+        bar3(DCM.A,0.4)
+        title('A - Intrinsic connections','FontSize',12)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+        xlabel('from')
+        ylabel('to')
+        grid on
+        axis square
 
-			case 'A' % intrinsic connections
-			%---------------------------------------------------
+        % intrinsic interactions - probabilities
+        %-----------------------------------------------------------
+        subplot(2,2,4)
+        bar3(DCM.pA,0.4)
+        title('A {probabilities}','FontSize',12)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+        xlabel('from')
+        ylabel('to')
+        zlabel(sprintf('P(A > %0.2f)',DCM.T))
+        grid on
+        axis square
+
+
+    % contrast
+    %-------------------------------------------------------------------
+    elseif OPT == 2 + m
+
+        %-get contrast
+        %-----------------------------------------------------------
+        str     = 'contrast for';
+        D       = spm_input(str,1,'b',{'A','B','C'});
+
+        switch D
+
+            case 'A' % intrinsic connections
+            %---------------------------------------------------
             C       = spm_dcm_contrasts(P(:),'A');
-			i       = find(C); j = 1;
-			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
+            i       = find(C); j = 1;
+            C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
             
-			case 'B' % modulatory inputs
-			%---------------------------------------------------
+            case 'B' % modulatory inputs
+            %---------------------------------------------------
             C       = spm_dcm_contrasts(P(:),'B');
-			i       = find(C); j = 1 + l*l;
-			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
+            i       = find(C); j = 1 + l*l;
+            C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
-			case 'C' % direct (driving) inputs
-			%---------------------------------------------------
+            case 'C' % direct (driving) inputs
+            %---------------------------------------------------
             C       = spm_dcm_contrasts(P(:),'C');
-			i       = find(C); j = 1 + l*l + l*l*m;
-			C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
+            i       = find(C); j = 1 + l*l + l*l*m;
+            C       = sparse(i + j,1,C(i),length(DCM.Ep),1);
 
-		end
+        end
 
-		%-posterior density and inference
-		%-----------------------------------------------------------
-		c    = C'*DCM.Ep;
-		v    = C'*DCM.Cp*C;
-		x    = c + [-32:32]*sqrt(v)*6/32;
-		p    = full(1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v)));  % conversion to full necessary to account for sparse matrices bug in MATLAB 6.5.0 R13 
+        %-posterior density and inference
+        %-----------------------------------------------------------
+        c    = C'*DCM.Ep;
+        v    = C'*DCM.Cp*C;
+        x    = c + [-32:32]*sqrt(v)*6/32;
+        p    = full(1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v)));  % conversion to full necessary to account for sparse matrices bug in MATLAB 6.5.0 R13 
         warning off
-		PP   = 1 - spm_Ncdf(DCM.T,c,v);
+        PP   = 1 - spm_Ncdf(DCM.T,c,v);
         warning on
         
-		figure(Fgraph)
-		subplot(2,1,1)
-		plot(x,p,[1 1]*DCM.T,[0 max(p)],'-.');
-		title({'Posterior density of contrast',...
-		sprintf('P(contrast > %0.2f) = %.1f%s',DCM.T,PP*100,'%')},...
-			'FontSize',12)
-		xlabel('contrast')
-		ylabel('probability density')
+        figure(Fgraph)
+        subplot(2,1,1)
+        plot(x,p,[1 1]*DCM.T,[0 max(p)],'-.');
+        title({'Posterior density of contrast',...
+        sprintf('P(contrast > %0.2f) = %.1f%s',DCM.T,PP*100,'%')},...
+            'FontSize',12)
+        xlabel('contrast')
+        ylabel('probability density')
 
-		i    = find(x >= DCM.T);
-		hold on
-		fill([x(i) fliplr(x(i))],[i*0 fliplr(p(i))],[1 1 1]*.8)
-		axis square, grid on
-		hold off
+        i    = find(x >= DCM.T);
+        hold on
+        fill([x(i) fliplr(x(i))],[i*0 fliplr(p(i))],[1 1 1]*.8)
+        axis square, grid on
+        hold off
 
-		%-contrast
-		%-----------------------------------------------------------
-		[A B C] = spm_dcm_reshape(C,m,l,1);
-		subplot(4,2,5)
-		imagesc(A)
-		title('contrast {A}','FontSize',12)
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-		axis image
+        %-contrast
+        %-----------------------------------------------------------
+        [A B C] = spm_dcm_reshape(C,m,l,1);
+        subplot(4,2,5)
+        imagesc(A)
+        title('contrast {A}','FontSize',12)
+        set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+        set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+        axis image
 
-		subplot(4,2,6)
-		imagesc(C)
-		title('contrast {C}','FontSize',12)
-		set(gca,'XTick',[1:m],'XTickLabel',DCM.U.name)
-		set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-		axis image
+        subplot(4,2,6)
+        imagesc(C)
+        title('contrast {C}','FontSize',12)
+        set(gca,'XTick',[1:m],'XTickLabel',DCM.U.name)
+        set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+        axis image
 
-		for i = 1:m
-			subplot(4,m,i + 3*m)
-			imagesc(B(:,:,i))
-			title(['contrast {B}-' DCM.U.name{i}],'FontSize',12)
-			set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
-			set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
-			axis image
-		end
-
-
-
- 	% location of regions
-	%-------------------------------------------------------------------
-	elseif OPT == 3 + m
+        for i = 1:m
+            subplot(4,m,i + 3*m)
+            imagesc(B(:,:,i))
+            title(['contrast {B}-' DCM.U.name{i}],'FontSize',12)
+            set(gca,'XTick',[1:l],'XTickLabel',DCM.Y.name)
+            set(gca,'YTick',[1:l],'YTickLabel',DCM.Y.name)
+            axis image
+        end
 
 
-		% transverse
-		%-----------------------------------------------------------
-		subplot(2,2,3)
-		title('transverse')
-		u = [[0 1 0];[-1 0 0]]';
-		spm_dcm_display(DCM.xY,[],[],u,32);
 
-		% sagittal
-		%-----------------------------------------------------------
-		subplot(2,2,1)
-		title('sagittal')
-		u = [[0 1 0];[0 0 1]]';
-		spm_dcm_display(DCM.xY,[],[],u,32);
-
-		% coronal
-		%-----------------------------------------------------------
-		subplot(2,2,2)
-		title('coronal')
-		u = [[1 0 0];[0 0 1]]';
-		spm_dcm_display(DCM.xY,[],[],u,32);
-
-		% table
-		%-----------------------------------------------------------
-		subplot(2,2,4)
-		title(str{OPT},'FontSize',12)
-		y = 0;
-		line([0 4],[y y])
-		y = y - 1;
-		text(0.0,y,['Name'],    'FontSize',10)
-		text(1.0,y,['Voxels'],  'FontSize',10)
-		text(2.0,y,['Location (mm)'],'FontSize',10)
-		y = y - 1;
-		line([0 4],[y y],'LineWidth',4)
-		y = y - 1;
-		for i = 1:length(DCM.xY)
-			name = DCM.xY(i).name;
-			N    = length(DCM.xY(i).s);
-			L    = DCM.xY(i).xyz;
-			r    = DCM.xY(i).spec;
-			text(0,y,name,                      	   'FontSize',8)
-			text(1,y,sprintf('%0.0f',N),               'FontSize',8)
-			text(2,y,sprintf('%-4.0f %-4.0f %-4.0f',L),'FontSize',8)
-			y = y - 1;
-		end
-		line([0 4],[y y])
-		axis off square
+    % location of regions
+    %-------------------------------------------------------------------
+    elseif OPT == 3 + m
 
 
- 	% inputs
-	%-------------------------------------------------------------------
-	elseif OPT == 4 + m
+        % transverse
+        %-----------------------------------------------------------
+        subplot(2,2,3)
+        title('transverse')
+        u = [[0 1 0];[-1 0 0]]';
+        spm_dcm_display(DCM.xY,[],[],u,32);
 
-		% graph
-		%-----------------------------------------------------------
-		x     = [1:length(full(DCM.U.u))]*DCM.U.dt;
-		for i = 1:m
-			subplot(m,1,i)
-			plot(x,full(DCM.U.u(:,i)))
-			title(['Input - ' DCM.U.name{i}],'FontSize',12)
-			%axis tight
-			ylabel('event density {Hz}')
-			if i==m	
-				xlabel('time {seconds}')
-			end
-			%axis square tight
-			grid on
+        % sagittal
+        %-----------------------------------------------------------
+        subplot(2,2,1)
+        title('sagittal')
+        u = [[0 1 0];[0 0 1]]';
+        spm_dcm_display(DCM.xY,[],[],u,32);
+
+        % coronal
+        %-----------------------------------------------------------
+        subplot(2,2,2)
+        title('coronal')
+        u = [[1 0 0];[0 0 1]]';
+        spm_dcm_display(DCM.xY,[],[],u,32);
+
+        % table
+        %-----------------------------------------------------------
+        subplot(2,2,4)
+        title(str{OPT},'FontSize',12)
+        y = 0;
+        line([0 4],[y y])
+        y = y - 1;
+        text(0.0,y,['Name'],    'FontSize',10)
+        text(1.0,y,['Voxels'],  'FontSize',10)
+        text(2.0,y,['Location (mm)'],'FontSize',10)
+        y = y - 1;
+        line([0 4],[y y],'LineWidth',4)
+        y = y - 1;
+        for i = 1:length(DCM.xY)
+            name = DCM.xY(i).name;
+            N    = length(DCM.xY(i).s);
+            L    = DCM.xY(i).xyz;
+            r    = DCM.xY(i).spec;
+            text(0,y,name,                             'FontSize',8)
+            text(1,y,sprintf('%0.0f',N),               'FontSize',8)
+            text(2,y,sprintf('%-4.0f %-4.0f %-4.0f',L),'FontSize',8)
+            y = y - 1;
+        end
+        line([0 4],[y y])
+        axis off square
+
+
+    % inputs
+    %-------------------------------------------------------------------
+    elseif OPT == 4 + m
+
+        % graph
+        %-----------------------------------------------------------
+        x     = [1:length(full(DCM.U.u))]*DCM.U.dt;
+        for i = 1:m
+            subplot(m,1,i)
+            plot(x,full(DCM.U.u(:,i)))
+            title(['Input - ' DCM.U.name{i}],'FontSize',12)
+            %axis tight
+            ylabel('event density {Hz}')
+            if i==m 
+                xlabel('time {seconds}')
+            end
+            %axis square tight
+            grid on
             % Change axis so we can see boxcars properly
             u_min=min(full(DCM.U.u(:,i)));
             u_max=max(full(DCM.U.u(:,i)));
             u_range=u_max-u_min;
             axis([0 max(x) u_min-0.1*u_range u_max*1.1]);
-		end
+        end
 
 
-	% outputs
-	%-------------------------------------------------------------------
-	elseif OPT == 5 + m
+    % outputs
+    %-------------------------------------------------------------------
+    elseif OPT == 5 + m
 
-		% graph
-		%-----------------------------------------------------------
-		x  = [1:length(DCM.y)]*DCM.Y.dt;;
-		for i = 1:l
+        % graph
+        %-----------------------------------------------------------
+        x  = [1:length(DCM.y)]*DCM.Y.dt;;
+        for i = 1:l
             subplot(l,1,i);
             plot(x,DCM.Y.y(:,i));
             if i==l
-		xlabel('time {seconds}');
-	    end
- 			grid on
+        xlabel('time {seconds}');
+        end
+            grid on
             hold on
             X0=DCM.Y.X0;
             
@@ -703,69 +703,69 @@ case 'review'
         disp(' ');
         
         
-	% Kernels
-	%-------------------------------------------------------------------
-	elseif OPT == 6 + m
+    % Kernels
+    %-------------------------------------------------------------------
+    elseif OPT == 6 + m
 
-		% input effects
-		%-----------------------------------------------------------
-		x     = [1:DCM.M.N]*DCM.M.dt;
-		d     = 2/DCM.M.dt;
-		for i = 1:m
+        % input effects
+        %-----------------------------------------------------------
+        x     = [1:DCM.M.N]*DCM.M.dt;
+        d     = 2/DCM.M.dt;
+        for i = 1:m
 
-			% input effects - neuronal
-			%---------------------------------------------------
-			y     = DCM.K1(:,:,i);
-			subplot(m,2,2*(i - 1) + 1)
-			plot(x,y)
-			set(gca,'XLim',[0 16])
-			axis square
-			title(['neuronal responses to ' DCM.U.name{i}])
-			grid on
-			xlabel('time {seconds}')
-			for j = 1:l
-				text(x(j*d),y(j*d,j),DCM.Y.name{j},...
-					'FontSize',8,...
-					'HorizontalAlignment','Center')
-			end
+            % input effects - neuronal
+            %---------------------------------------------------
+            y     = DCM.K1(:,:,i);
+            subplot(m,2,2*(i - 1) + 1)
+            plot(x,y)
+            set(gca,'XLim',[0 16])
+            axis square
+            title(['neuronal responses to ' DCM.U.name{i}])
+            grid on
+            xlabel('time {seconds}')
+            for j = 1:l
+                text(x(j*d),y(j*d,j),DCM.Y.name{j},...
+                    'FontSize',8,...
+                    'HorizontalAlignment','Center')
+            end
 
-			% input effects - hemodynamic
-			%---------------------------------------------------
-			y     = DCM.K1(:,:,i);
-			k     = DCM.H1(:,:,i);
-			subplot(m,2,2*(i - 1) + 2)
-			plot(x,k,x,y,':')
-			set(gca,'XLim',[0 16])
-			axis square
-			title('hemodynamic responses')
-			grid on
-			xlabel('time {seconds}')
-			for j = 1:l
-				text(x(j*d),k(j*d,j),DCM.Y.name{j},...
-					'FontSize',8,...
-					'HorizontalAlignment','Center')
-			end
-		end
+            % input effects - hemodynamic
+            %---------------------------------------------------
+            y     = DCM.K1(:,:,i);
+            k     = DCM.H1(:,:,i);
+            subplot(m,2,2*(i - 1) + 2)
+            plot(x,k,x,y,':')
+            set(gca,'XLim',[0 16])
+            axis square
+            title('hemodynamic responses')
+            grid on
+            xlabel('time {seconds}')
+            for j = 1:l
+                text(x(j*d),k(j*d,j),DCM.Y.name{j},...
+                    'FontSize',8,...
+                    'HorizontalAlignment','Center')
+            end
+        end
 
-	% quit
-	%-------------------------------------------------------------------
-	elseif OPT == 7 + m
+    % quit
+    %-------------------------------------------------------------------
+    elseif OPT == 7 + m
 
-		%-Reset title and delete figure
-		%-----------------------------------------------------------
-		spm_clf
-		spm('FigName',header);
-		spm('Pointer','Arrow')
-		spm_input('Thank you',1,'d')
-		return
+        %-Reset title and delete figure
+        %-----------------------------------------------------------
+        spm_clf
+        spm('FigName',header);
+        spm('Pointer','Arrow')
+        spm_input('Thank you',1,'d')
+        return
 
-	%-end if OPT
-	%-------------------------------------------------------------------
-	end
+    %-end if OPT
+    %-------------------------------------------------------------------
+    end
 
-	%-end while
-	%-------------------------------------------------------------------
-	end
+    %-end while
+    %-------------------------------------------------------------------
+    end
     
 
 % compare different models
@@ -773,7 +773,7 @@ case 'review'
 case 'compare',
     
     num_models = spm_input('Number of DCM models to compare','+1','r',[],1);
-	P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
+    P     = spm_select(num_models,'^DCM.*\.mat$','select DCM*.mat files');
     
     % load all models and compute their evidence
     for model_index=1:num_models,
@@ -781,7 +781,7 @@ case 'compare',
         % check that none of the models is an averaged DCM
         if isfield(DCM,'averaged')
             if DCM.averaged
-                str = {	['Model ' deblank(P(model_index,:)) ' is an averaged DCM. ',...
+                str = { ['Model ' deblank(P(model_index,:)) ' is an averaged DCM. ',...
                             'Please note that model comparison is not valid for averaged DCMs. ',...
                             'Procedure aborted.']};
                 spm_input(str,1,'bd','OK',[1],1);
@@ -802,10 +802,10 @@ case 'compare',
     % check that all models refer to the same set of VOIs
     for model_index=1:num_models,
         if ~strcmp(model_VOIs{1}, model_VOIs{model_index})
-        	str = {	'Selected models contain different sets of VOIs! ',...
-            		'Please note that model comparison is only valid for models with identical time series (VOIs). ',...
+            str = { 'Selected models contain different sets of VOIs! ',...
+                    'Please note that model comparison is only valid for models with identical time series (VOIs). ',...
                     'Procedure aborted.'};
-	        spm_input(str,1,'bd','OK',[1],1);
+            spm_input(str,1,'bd','OK',[1],1);
             return
         end
     end

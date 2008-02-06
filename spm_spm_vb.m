@@ -52,7 +52,7 @@
 %         xM.TH - nVar x nScan matrix of analysis thresholds, one per image
 %         xM.I  - Implicit masking (0=>none, 1 => implicit zero/NaN mask)
 %         xM.VM - struct array of mapped explicit mask image volumes
-% 		- (empty if no explicit masks)
+%       - (empty if no explicit masks)
 %               - Explicit mask images are >0 for valid voxels to assess.
 %               - Mask images can have any orientation, voxel size or 
 %                 data type. They are interpolated using nearest neighbour
@@ -64,7 +64,7 @@
 %
 % spm_spm_vb adds the following fields to SPM:
 %
-%	SPM.VCbeta - Handles of posterior parameter estimates 
+%   SPM.VCbeta - Handles of posterior parameter estimates 
 %                (Cbeta_????)
 %   SPM.VPsd   - Handles of SD of posterior parameter estimates
 %                (SDbeta_????)
@@ -93,7 +93,7 @@
 %
 % For each session the following fields are also specified:
 %
-%	SPM.PPM.Sess(s).VHp  - Handle of standard deviation of the error
+%   SPM.PPM.Sess(s).VHp  - Handle of standard deviation of the error
 %                          (Sess%s%_SDerror)
 %   SPM.PPM.Sess(s).VAR  - Handles of AR coefficient images
 %                          (Sess%s%_AR_????)
@@ -147,7 +147,7 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 911 2007-09-10 14:35:23Z will $
+% $Id: spm_spm_vb.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Get SPM.mat if necessary
@@ -181,10 +181,10 @@ end
 %-Change to SPM.swd if specified
 %-----------------------------------------------------------------------
 try
-	changed_dir = pwd;
-	cd(SPM.swd);
+    changed_dir = pwd;
+    cd(SPM.swd);
 catch
-	changed_dir = '';
+    changed_dir = '';
 end
 
 %-Delete files from previous analyses
@@ -264,12 +264,12 @@ XYZ   = zeros(3,xdim*ydim*zdim);
 %-Initialise conditional estimate image files
 %-----------------------------------------------------------------------
 Vbeta(1:nBeta) = deal(struct(...
-            'fname',	'',...
-			'dim',		DIM',...
-            'dt',		[spm_type('float32') spm_platform('bigend')],...   
-			'mat',		M,...
-			'pinfo',	[1 0 0]',...
-            'descrip',	''));
+            'fname',    '',...
+            'dim',      DIM',...
+            'dt',       [spm_type('float32') spm_platform('bigend')],...   
+            'mat',      M,...
+            'pinfo',    [1 0 0]',...
+            'descrip',  ''));
         
 for i = 1:nBeta
     Vbeta(i).fname   = sprintf('Cbeta_%04d.img',i);
@@ -286,10 +286,10 @@ VPsd(1:nPsd) = deal(struct(...
     'mat',      M,...
     'pinfo',    [1 0 0]',...
     'descrip',  ''));
-	
+    
 for i = 1:nPsd
-	VPsd(i).fname   = sprintf('SDbeta_%04d.img',i);
-	VPsd(i).descrip = sprintf('Posterior SD of beta (%04d)',i);
+    VPsd(i).fname   = sprintf('SDbeta_%04d.img',i);
+    VPsd(i).descrip = sprintf('Posterior SD of beta (%04d)',i);
 end
 VPsd = spm_create_vol(VPsd);
 
@@ -297,12 +297,12 @@ VPsd = spm_create_vol(VPsd);
 %-----------------------------------------------------------------------
 for s = 1:nsess
     SPM.PPM.Sess(s).VHp = struct(...
-        'fname',	[],...
-        'dim',		DIM',...
-        'dt',		[spm_type('float32') spm_platform('bigend')],... 
-        'mat',		M,...
-        'pinfo',	[1 0 0]',...
-        'descrip',	'');
+        'fname',    [],...
+        'dim',      DIM',...
+        'dt',       [spm_type('float32') spm_platform('bigend')],... 
+        'mat',      M,...
+        'pinfo',    [1 0 0]',...
+        'descrip',  '');
     
     SPM.PPM.Sess(s).VHp.fname   = sprintf('Sess%d_SDerror.img',s);
     SPM.PPM.Sess(s).VHp.descrip = sprintf('Sess%d Error SD',s);
@@ -331,9 +331,9 @@ for s=1:nsess
             'n',        1,...
             'private',  []);
         SPM.PPM.Sess(s).VAR(i).fname   = ...
-			sprintf('Sess%d_AR_%04d.img',s,i);
+            sprintf('Sess%d_AR_%04d.img',s,i);
         SPM.PPM.Sess(s).VAR(i).descrip = ...
-			sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
+            sprintf('Sess%d Autoregressive coefficient (%04d)',s,i);
     end
     if SPM.PPM.AR_P > 0
         SPM.PPM.Sess(s).VAR = spm_create_vol(SPM.PPM.Sess(s).VAR);
@@ -353,13 +353,13 @@ end
 
 if SPM.PPM.update_F
     SPM.PPM.LogEv = struct(...
-        'fname',	'LogEv.img',...
-    	'dim',		DIM',...
-        'dt',		[spm_type('float32') spm_platform('bigend')],... 
-        'mat',		M,...
-        'pinfo',	[1 0 0]',...
-        'descrip',	'Map of contribution to log-evidence');
-		
+        'fname',    'LogEv.img',...
+        'dim',      DIM',...
+        'dt',       [spm_type('float32') spm_platform('bigend')],... 
+        'mat',      M,...
+        'pinfo',    [1 0 0]',...
+        'descrip',  'Map of contribution to log-evidence');
+        
     SPM.PPM.LogEv = spm_create_vol(SPM.PPM.LogEv);
 end
 
@@ -391,9 +391,9 @@ end
 %-If xM is not a structure then assumme it's a vector of thresholds
 %-----------------------------------------------------------------------
 try
-	xM = SPM.xM;
+    xM = SPM.xM;
 catch
-	xM = repmat(-Inf,nScan,1);
+    xM = repmat(-Inf,nScan,1);
 end
 
 if ~isstruct(xM)
@@ -408,12 +408,12 @@ end
 %-Intialise the name of the new mask : current mask & conditions on voxels
 %-----------------------------------------------------------------------
 VM = struct(...
-	'fname',    'mask.img',...
-	'dim',      DIM',...
-	'dt',       [spm_type('uint8') spm_platform('bigend')],...
-	'mat',      M,...
-	'pinfo',    [1 0 0]',...
-	'descrip',  'spm_spm:resultant analysis mask');
+    'fname',    'mask.img',...
+    'dim',      DIM',...
+    'dt',       [spm_type('uint8') spm_platform('bigend')],...
+    'mat',      M,...
+    'pinfo',    [1 0 0]',...
+    'descrip',  'spm_spm:resultant analysis mask');
 VM = spm_create_vol(VM);
 
 %=======================================================================
@@ -442,7 +442,7 @@ if strcmp(SPM.PPM.priors.A,'Discrete')
         SPM.PPM.priors.SY;
     catch
         SPM.PPM.priors.SY = spm_select([1 Inf],'image',...
-			'Select structural images eg. brain or grey/white/CSF'); 
+            'Select structural images eg. brain or grey/white/CSF'); 
     end
     SPM.PPM.priors.Sin = length(SPM.PPM.priors.SY,1);
     for j=1:SPM.PPM.priors.Sin
@@ -467,8 +467,8 @@ switch lower(SPM.PPM.space_type)
         catch
             SPM.PPM.AN_slices = spm_input(['Enter slice numbers eg. 3 14 2'],'+1');
         end
-	otherwise
-		error('Unknown analysis space.');
+    otherwise
+        error('Unknown analysis space.');
 end
 
 [xords,yords] = ndgrid(1:xdim,1:ydim);
@@ -545,11 +545,11 @@ for z = 1:zdim
     % current plane-specific parameters
     %-------------------------------------------------------------------
     zords = repmat(z,1,xdim*ydim); %-plane Z coordinates
-    CrBl  = [];	%-conditional parameter estimates
-    CrPsd = [];	% 
+    CrBl  = []; %-conditional parameter estimates
+    CrPsd = []; % 
     for s=1:nsess
-        Sess(s).CrAR = [];	% AR estimates
-        Sess(s).CrHp = [];	% 
+        Sess(s).CrAR = [];  % AR estimates
+        Sess(s).CrHp = [];  % 
     end
     Cr_con     = [];  % Contrasts
     Cr_con_var = [];  % Contrast variances
@@ -571,7 +571,7 @@ for z = 1:zdim
         %-Get data & construct analysis mask
         %---------------------------------------------------------------
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...read & mask data');%-#
-        Cm    = logical(ones(1,nVox));			     %-current mask
+        Cm    = logical(ones(1,nVox));               %-current mask
         
         %-Compute explicit mask
         % (note that these may not have same orientations)
@@ -596,11 +596,11 @@ for z = 1:zdim
             
             %-Load data in mask
             %-----------------------------------------------------------
-            if ~any(Cm), break, end			    %-Break if empty mask
+            if ~any(Cm), break, end             %-Break if empty mask
             Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
             
-            Cm(Cm)   = Y(i,Cm) > xM.TH(i);		%-Threshold (& NaN) mask
-            if xM.I & xM.TH(i) < 0	%-Use implicit mask
+            Cm(Cm)   = Y(i,Cm) > xM.TH(i);      %-Threshold (& NaN) mask
+            if xM.I & xM.TH(i) < 0  %-Use implicit mask
                 Cm(Cm) = abs(Y(i,Cm)) > eps;
             end
         end
@@ -608,12 +608,12 @@ for z = 1:zdim
         %-Mask out voxels where data is constant
         %---------------------------------------------------------------
         Cm(Cm) = any(diff(Y(:,Cm),1));
-        CrS    = sum(Cm);				      %-Number of current voxels
+        CrS    = sum(Cm);                     %-Number of current voxels
         
         if CrS
             
             CrS = sum(Cm);
-            Y   = Y(:,Cm);				      %-Data within mask
+            Y   = Y(:,Cm);                    %-Data within mask
             
             %-Conditional estimates (per partition, per voxel)
             %-----------------------------------------------------------
@@ -681,11 +681,11 @@ for z = 1:zdim
                 slice = spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
                 
                 %-Filter data to remove low frequencies
-				%-------------------------------------------------------
+                %-------------------------------------------------------
                 R0Y = hpf(s).R0*Y(SPM.Sess(s).row,:);
                 
                 %-Fit model
-				%-------------------------------------------------------
+                %-------------------------------------------------------
                 switch SPM.PPM.priors.A
                     case 'Robust',
                         %k=SPM.PPM.priors.k;
@@ -695,7 +695,7 @@ for z = 1:zdim
                 end
                 
                 %-Report AR values
-				%-------------------------------------------------------
+                %-------------------------------------------------------
                 if SPM.PPM.AR_P > 0
                     % session specific 
                     Sess(s).AR(1:SPM.PPM.AR_P,:) = slice.ap_mean;
@@ -824,17 +824,17 @@ for z = 1:zdim
     end % loop over slices
 
     %-Write Mask image
-	%-------------------------------------------------------------------
-	j  = sparse(xdim,ydim);
-	if length(Q), j(Q) = 1; end
-	VM = spm_write_plane(VM, j, z);
+    %-------------------------------------------------------------------
+    j  = sparse(xdim,ydim);
+    if length(Q), j(Q) = 1; end
+    VM = spm_write_plane(VM, j, z);
 
     %-Write conditional beta images
     %-------------------------------------------------------------------
     j  = repmat(NaN,xdim,ydim);
     for i = 1:nBeta
         if length(Q), j(Q) = CrBl(i,:); end
-	    Vbeta(i)  = spm_write_plane(Vbeta(i),j,z);
+        Vbeta(i)  = spm_write_plane(Vbeta(i),j,z);
     end
 
     %-Write SD error images
@@ -849,8 +849,8 @@ for z = 1:zdim
     %-------------------------------------------------------------------
     j  = repmat(NaN,xdim,ydim);
     for i = 1:nPsd
-	    if length(Q), j(Q) = CrPsd(i,:); end
-	    VPsd(i) = spm_write_plane(VPsd(i),j,z);
+        if length(Q), j(Q) = CrPsd(i,:); end
+        VPsd(i) = spm_write_plane(VPsd(i),j,z);
     end
     
     %-Write AR images
@@ -877,12 +877,12 @@ for z = 1:zdim
         j   = repmat(NaN,xdim,ydim);
         for ic=1:ncon
             if length(Q), j(Q) = Cr_con(ic,:); end
-	        SPM.xCon(ic).Vcon  = spm_write_plane(SPM.xCon(ic).Vcon,j,z);
+            SPM.xCon(ic).Vcon  = spm_write_plane(SPM.xCon(ic).Vcon,j,z);
         end
         j   = repmat(NaN,xdim,ydim);
         for ic=1:ncon
             if length(Q), j(Q)  = sqrt(Cr_con_var(ic,:)); end
-	        SPM.PPM.Vcon_sd(ic) = spm_write_plane(SPM.PPM.Vcon_sd(ic),j,z);
+            SPM.PPM.Vcon_sd(ic) = spm_write_plane(SPM.PPM.Vcon_sd(ic),j,z);
         end
     end
     
@@ -912,12 +912,12 @@ if S == 0, warning('No inmask voxels - empty analysis!'), end
 %=======================================================================
 Fcname     = 'effects of interest';
 try
-	iX0    = [xX.iB xX.iG];
+    iX0    = [xX.iB xX.iG];
 catch
-	iX0    = [];
+    iX0    = [];
 end
 
-xX.xKXs = spm_sp('Set',spm_filter(xX.K,xX.X));		% ** Not Whitened **
+xX.xKXs = spm_sp('Set',spm_filter(xX.K,xX.X));      % ** Not Whitened **
 xX.erdf = size(xX.X,1); % Just set to number of scans so, when 
                         % we assess the results, spm_getSPM is happy
 xX.W= eye(size(xX.X,1)); % Set whitening matrix to identity -
@@ -935,24 +935,24 @@ fprintf('%-40s: %30s','Saving results','...writing')                    %-#
 
 %-place fields in SPM
 %-----------------------------------------------------------------------
-SPM.xVol.XYZ   = XYZ(:,1:S);	%-InMask XYZ coords (voxels)
-SPM.xVol.M     = M;				%-voxels -> mm
-SPM.xVol.iM    = inv(M);		%-mm -> voxels
-SPM.xVol.DIM   = DIM;			%-image dimensions
-SPM.xVol.S     = S;				%-Volume (voxels)
-SPM.xVol.R     = 100;			% Set R - number of RESELS - to arbitrary value
-								% as, if R not set, SPM will think model has not 
-								% been estimated
-SPM.xVol.FWHM  = 10;			% Set to arbitrary value so spm_getSPM is happy
+SPM.xVol.XYZ   = XYZ(:,1:S);    %-InMask XYZ coords (voxels)
+SPM.xVol.M     = M;             %-voxels -> mm
+SPM.xVol.iM    = inv(M);        %-mm -> voxels
+SPM.xVol.DIM   = DIM;           %-image dimensions
+SPM.xVol.S     = S;             %-Volume (voxels)
+SPM.xVol.R     = 100;           % Set R - number of RESELS - to arbitrary value
+                                % as, if R not set, SPM will think model has not 
+                                % been estimated
+SPM.xVol.FWHM  = 10;            % Set to arbitrary value so spm_getSPM is happy
                               
-SPM.VCbeta     = Vbeta;			% Filenames - parameters
-SPM.VPsd       = VPsd;			% Filenames - hyperparameters
-SPM.VM         = VM;			%-Filehandle - Mask
+SPM.VCbeta     = Vbeta;         % Filenames - parameters
+SPM.VPsd       = VPsd;          % Filenames - hyperparameters
+SPM.VM         = VM;            %-Filehandle - Mask
 
-SPM.PPM.Gamma  = 1;				% Default threshold for effect size (1 per cent)
+SPM.PPM.Gamma  = 1;             % Default threshold for effect size (1 per cent)
 
-SPM.xX         = xX;			%-design structure
-SPM.xM         = xM;			%-mask structure
+SPM.xX         = xX;            %-design structure
+SPM.xM         = xM;            %-mask structure
 
 % Copy contrast structure 
 SPM.PPM.xCon   = SPM.xCon;
@@ -963,9 +963,9 @@ end
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
 if spm_matlab_version_chk('7') >=0
-	save('SPM', 'SPM', '-V6');
+    save('SPM', 'SPM', '-V6');
 else
-	save('SPM', 'SPM');
+    save('SPM', 'SPM');
 end;
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
@@ -973,7 +973,7 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 %-Change back to initial directory
 %-----------------------------------------------------------------------
 if ~isempty(changed_dir)
-	cd(changed_dir);
+    cd(changed_dir);
 end
 
 if SPM.PPM.window

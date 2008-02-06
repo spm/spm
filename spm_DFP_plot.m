@@ -9,7 +9,7 @@ function spm_DFP_plot(QU,pU)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_DFP_plot.m 1131 2008-02-06 11:17:09Z spm $
 
 % defaults for plotting
 %--------------------------------------------------------------------------

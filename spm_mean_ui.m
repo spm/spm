@@ -15,9 +15,9 @@ function spm_mean_ui
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_mean_ui.m 1097 2008-01-16 17:49:01Z john $
+% $Id: spm_mean_ui.m 1131 2008-02-06 11:17:09Z spm $
 
-SCCSid = '$Rev: 1097 $';
+SCCSid = '$Rev: 1131 $';
 
 
 %-Say hello
@@ -41,16 +41,16 @@ spm_check_orientations(Vi);
 %-Compute mean and write headers etc.
 %-----------------------------------------------------------------------
 fprintf(' ...computing')
-Vo = struct(	'fname',	'mean.img',...
-		'dim',		Vi(1).dim(1:3),...
-		'dt',           [4, spm_platform('bigend')],...
-		'mat',		Vi(1).mat,...
-		'pinfo',	[1.0,0,0]',...
-		'descrip',	'spm - mean image');
+Vo = struct(    'fname',    'mean.img',...
+        'dim',      Vi(1).dim(1:3),...
+        'dt',           [4, spm_platform('bigend')],...
+        'mat',      Vi(1).mat,...
+        'pinfo',    [1.0,0,0]',...
+        'descrip',  'spm - mean image');
 
 %-Adjust scalefactors by 1/n to effect mean by summing
 for i=1:prod(size(Vi))
-	Vi(i).pinfo(1:2,:) = Vi(i).pinfo(1:2,:)/n; end;
+    Vi(i).pinfo(1:2,:) = Vi(i).pinfo(1:2,:)/n; end;
 
 Vo            = spm_create_vol(Vo);
 Vo.pinfo(1,1) = spm_add(Vi,Vo);

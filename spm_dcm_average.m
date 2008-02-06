@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 731 2007-02-07 14:31:41Z karl $
+% $Id: spm_dcm_average.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin <= 1
@@ -111,7 +111,7 @@ DCM.Cp(cwsel,cwsel) = Cp;
 if mtype
     % DCM for fMRI
     [ A  B  C] = spm_dcm_reshape(DCM.Ep,m,n,1);
-    T          = 0;			
+    T          = 0;         
     warning off;
     pp         = 1 - spm_Ncdf(T,abs(DCM.Ep),diag(DCM.Cp));
     warning on;

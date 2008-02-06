@@ -25,17 +25,17 @@ function varargout = spm_sp(varargin)
 %                           ----------------
 %
 % The structure is:
-%	x = struct(...
-%		'X',	[],...		% Mtx
-%		'tol',	[],...		% tolerance
-%		'ds',	[],...		% vectors of singular values 
-%		'u',	[],...		% u as in X = u*diag(ds)*v'
-%		'v',	[],...		% v as in X = u*diag(ds)*v'
-%		'rk',	[],...		% rank
-%		'oP',	[],...		% orthogonal projector on X
-%		'oPp',	[],...		% orthogonal projector on X'
-%		'ups',	[],...		% space in which this one is embeded
-%		'sus',	[]);		% subspace
+%   x = struct(...
+%       'X',    [],...      % Mtx
+%       'tol',  [],...      % tolerance
+%       'ds',   [],...      % vectors of singular values 
+%       'u',    [],...      % u as in X = u*diag(ds)*v'
+%       'v',    [],...      % v as in X = u*diag(ds)*v'
+%       'rk',   [],...      % rank
+%       'oP',   [],...      % orthogonal projector on X
+%       'oPp',  [],...      % orthogonal projector on X'
+%       'ups',  [],...      % space in which this one is embeded
+%       'sus',  []);        % subspace
 %
 % The basic required fields are X, tol, ds, u, v, rk.
 %
@@ -179,24 +179,24 @@ function varargout = spm_sp(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jean-Baptiste Poline
-% $Id: spm_sp.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_sp.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==0
-	error('Do what? no arguments given...')
+    error('Do what? no arguments given...')
 else
-	action = varargin{1};
+    action = varargin{1};
 end
 
 %- check the very basics arguments
 
 switch lower(action), 
 case {'create','set','issetspc','isspc'}
-	%- do nothing
+    %- do nothing
 otherwise,
-	if nargin==1, error('No space : can''t do much!'), end
-	[ok,str] = spm_sp('issetspc',varargin{2}); 
-	if ~ok, error(str), else, sX = varargin{2}; end;
+    if nargin==1, error('No space : can''t do much!'), end
+    [ok,str] = spm_sp('issetspc',varargin{2}); 
+    if ~ok, error(str), else, sX = varargin{2}; end;
 end;
 
 
@@ -228,10 +228,10 @@ varargout = {sf_set(X)};
 case {'p', 'transp'}   %-Transpose space of X
 %=======================================================================
 switch nargin
-case 2	
-	varargout = {sf_transp(sX)};
+case 2  
+    varargout = {sf_transp(sX)};
 otherwise
-	error('too many input argument in spm_sp');
+    error('too many input argument in spm_sp');
 
 end % switch nargin
 
@@ -245,8 +245,8 @@ case {'op', 'op:'}   %-Orthogonal projectors on space of X
 %-----------------------------------------------------------------------
 
 switch nargin
-case 2	
-  switch lower(action), 		
+case 2  
+  switch lower(action),         
   case 'op'
      varargout = {sf_op(sX)};
   case 'op:'
@@ -279,11 +279,11 @@ case {'opp', 'opp:'}   %-Orthogonal projectors on space of X'
 %-----------------------------------------------------------------------
 
 switch nargin
-case 2	
-   switch lower(action), 		
-	case 'opp'
+case 2  
+   switch lower(action),        
+    case 'opp'
        varargout = {sf_opp(sX)};
-	case 'opp:'
+    case 'opp:'
        varargout = {sf_tol(sf_opp(sX),sX.tol)};
    end %- switch lower(action), 
 
@@ -310,8 +310,8 @@ case {'x-','x-:'}                        %-Pseudo-inverse of X - pinv(X)
 %  = spm_sp('x-',x) 
 
 switch nargin
-case 2	
-   switch lower(action), 		
+case 2  
+   switch lower(action),        
       case {'x-'}
          varargout = { sf_pinv(sX) };
       case {'x-:'}
@@ -319,12 +319,12 @@ case 2
    end
 
 case 3
-   %- check dimensions of Y	
+   %- check dimensions of Y 
    Y = varargin{3};
    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
    if size(Y,1) ~= sf_s1(sX), error(['Dim dont match ' action]); end
 
-   switch lower(action), 		
+   switch lower(action),        
       case {'x-'}
          varargout = { sf_pinv(sX)*Y };
       case {'x-:'}
@@ -342,8 +342,8 @@ case {'xp-','xp-:','x-p','x-p:'}                 %- Pseudo-inverse of X'
 % pX = spm_sp('xp-',x) 
 
 switch nargin
-case 2	
-   switch lower(action), 		
+case 2  
+   switch lower(action),        
       case {'xp-','x-p'}
          varargout = { sf_pinvxp(sX) };
       case {'xp-:','x-p:'}
@@ -351,12 +351,12 @@ case 2
    end
 
 case 3
-   %- check dimensions of Y	
+   %- check dimensions of Y 
    Y = varargin{3};
    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
    if size(Y,1) ~= sf_s2(sX), error(['Dim dont match ' action]); end
 
-   switch lower(action), 		
+   switch lower(action),        
       case {'xp-','x-p'}
          varargout = { sf_pinvxp(sX)*Y };
       case {'xp-:','x-p:'}
@@ -374,8 +374,8 @@ case {'cukxp-','cukxp-:'}   %- Coordinates of pinv(X') in the base of uk
 % pX = spm_sp('cukxp-',x) 
 
 switch nargin
-case 2	
-   switch lower(action), 		
+case 2  
+   switch lower(action),        
       case {'cukxp-'}
          varargout = { sf_cukpinvxp(sX) };
       case {'cukxp-:'}
@@ -383,12 +383,12 @@ case 2
    end
 
 case 3
-   %- check dimensions of Y	
+   %- check dimensions of Y 
    Y = varargin{3};
    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
    if size(Y,1) ~= sf_s2(sX), error(['Dim dont match ' action]); end
 
-   switch lower(action), 		
+   switch lower(action),        
       case {'cukxp-'}
          varargout = { sf_cukpinvxp(sX)*Y };
       case {'cukxp-:'}
@@ -408,8 +408,8 @@ case {'cukx','cukx:'}                %- Coordinates of X in the base of uk
 % pX = spm_sp('cukx',x)
 
 switch nargin
-case 2	
-   switch lower(action), 		
+case 2  
+   switch lower(action),        
       case {'cukx'}
          varargout = { sf_cukx(sX) };
       case {'cukx:'}
@@ -417,12 +417,12 @@ case 2
    end
 
 case 3
-   %- check dimensions of Y	
+   %- check dimensions of Y 
    Y = varargin{3};
    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
    if size(Y,1) ~= sf_s2(sX), error(['Dim dont match ' action]); end
 
-   switch lower(action), 		
+   switch lower(action),        
       case {'cukx'}
          varargout = { sf_cukx(sX)*Y };
       case {'cukx:'}
@@ -492,8 +492,8 @@ warning('can''t you use ox ?');
 
 switch nargin
 
-case 2	
-   switch lower(action), 		
+case 2  
+   switch lower(action),        
       case {'uk'}
          varargout = { sf_uk(sX) };
       case {'uk:'}
@@ -501,12 +501,12 @@ case 2
    end
 
 case 3
-   %- check dimensions of Y	
+   %- check dimensions of Y 
    Y = varargin{3};
    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
    if size(Y,1) ~= sf_rk(sX), error(['Dim dont match ' action]); end
 
-   switch lower(action),		
+   switch lower(action),        
       case {'uk'}
          varargout = { sf_uk(sX)*Y };
       case {'uk:'}
@@ -526,24 +526,24 @@ case {'pinvxpx', 'xpx-', 'pinvxpx:', 'xpx-:',}    %- Pseudo-inv of (X'X)
 % pXpX = spm_sp('pinvxpx',x [,Y]) 
 
 switch nargin
-case 2	
-   switch lower(action), 		
-	case {'xpx-','pinvxpx'}
-		varargout = {sf_pinvxpx(sX)};
-	case {'xpx-:','pinvxpx:'}
+case 2  
+   switch lower(action),        
+    case {'xpx-','pinvxpx'}
+        varargout = {sf_pinvxpx(sX)};
+    case {'xpx-:','pinvxpx:'}
       varargout = {sf_tol(sf_pinvxpx(sX),sX.tol)};
    end %- 
 
 case 3
-   %- check dimensions of Y	
+   %- check dimensions of Y 
    Y = varargin{3};
    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
    if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'xpx-','pinvxpx'}
-	   varargout = {sf_pinvxpx(sX)*Y};
-	case {'xpx-:','pinvxpx:'}
+   switch lower(action),        
+    case {'xpx-','pinvxpx'}
+       varargout = {sf_pinvxpx(sX)*Y};
+    case {'xpx-:','pinvxpx:'}
            varargout = {sf_tol(sf_pinvxpx(sX)*Y,sX.tol)};
    end %-
 
@@ -558,24 +558,24 @@ case {'xpx','xpx:'}              %-Computation of (X'*X)
 % XpX = spm_sp('xpx',x [,Y])
 
 switch nargin
-case 2	
-   switch lower(action), 		
-	case {'xpx'}
-		varargout = {sf_xpx(sX)};
-	case {'xpx:'}
+case 2  
+   switch lower(action),        
+    case {'xpx'}
+        varargout = {sf_xpx(sX)};
+    case {'xpx:'}
       varargout = {sf_tol(sf_xpx(sX),sX.tol)};
    end %- 
 
 case 3
-	%- check dimensions of Y	
-	Y = varargin{3};
-	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
-	if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
+    %- check dimensions of Y    
+    Y = varargin{3};
+    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+    if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'xpx'}
-		varargout = {sf_xpx(sX)*Y};
-	case {'xpx:'}
+   switch lower(action),        
+    case {'xpx'}
+        varargout = {sf_xpx(sX)*Y};
+    case {'xpx:'}
       varargout = {sf_tol(sf_xpx(sX)*Y,sX.tol)};
    end %-
 
@@ -593,24 +593,24 @@ case {'cx->cu','cx->cu:'}    %-coordinates in the basis of X -> basis u
 % returns cu such that sX.X*cx == sX.u*cu 
 
 switch nargin
-case 2	
-   switch lower(action), 		
-	case {'cx->cu'}
-		varargout = {sf_cxtwdcu(sX)};
-	case {'cx->cu:'}
+case 2  
+   switch lower(action),        
+    case {'cx->cu'}
+        varargout = {sf_cxtwdcu(sX)};
+    case {'cx->cu:'}
       varargout = {sf_tol(sf_cxtwdcu(sX),sX.tol)};
    end %- 
 
 case 3
-	%- check dimensions of Y	
-	Y = varargin{3};
-	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
-	if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
+    %- check dimensions of Y    
+    Y = varargin{3};
+    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+    if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'cx->cu'}
-		varargout = {sf_cxtwdcu(sX)*Y};
-	case {'cx->cu:'}
+   switch lower(action),        
+    case {'cx->cu'}
+        varargout = {sf_cxtwdcu(sX)*Y};
+    case {'cx->cu:'}
       varargout = {sf_tol(sf_cxtwdcu(sX)*Y,sX.tol)};
    end %-
 
@@ -627,24 +627,24 @@ case {'xxp-','xxp-:','pinvxxp','pinvxxp:'}    %-Pseudo-inverse of (XX')
 % pXXp = spm_sp('pinvxxp',x [,Y])
 
 switch nargin
-case 2	
-   switch lower(action), 		
-	case {'xxp-','pinvxxp'}
-		varargout = {sf_pinvxxp(sX)};
-	case {'xxp-:','pinvxxp:'}
+case 2  
+   switch lower(action),        
+    case {'xxp-','pinvxxp'}
+        varargout = {sf_pinvxxp(sX)};
+    case {'xxp-:','pinvxxp:'}
       varargout = {sf_tol(sf_pinvxxp(sX),sX.tol)};
    end %- 
 
 case 3
-	%- check dimensions of Y	
-	Y = varargin{3};
-	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
-	if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
+    %- check dimensions of Y    
+    Y = varargin{3};
+    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+    if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'xxp-','pinvxxp'}
-		varargout = {sf_pinvxxp(sX)*Y};
-	case {'xxp-:','pinvxxp:'}
+   switch lower(action),        
+    case {'xxp-','pinvxxp'}
+        varargout = {sf_pinvxxp(sX)*Y};
+    case {'xxp-:','pinvxxp:'}
       varargout = {sf_tol(sf_pinvxxp(sX)*Y,sX.tol)};
    end %-
 
@@ -652,7 +652,7 @@ otherwise
    error('too many input argument in spm_sp');
 
 end % switch nargin
-	
+    
 
 case {'xxp','xxp:'}                         %-Computation of (X*X')
 %=======================================================================
@@ -660,24 +660,24 @@ case {'xxp','xxp:'}                         %-Computation of (X*X')
 
 
 switch nargin
-case 2	
-   switch lower(action), 		
-	case {'xxp'}
-		varargout = {sf_xxp(sX)};
-	case {'xxp:'}
+case 2  
+   switch lower(action),        
+    case {'xxp'}
+        varargout = {sf_xxp(sX)};
+    case {'xxp:'}
       varargout = {sf_tol(sf_xxp(sX),sX.tol)};
    end %- 
 
 case 3
-	%- check dimensions of Y	
-	Y = varargin{3};
-	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
-	if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
+    %- check dimensions of Y    
+    Y = varargin{3};
+    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+    if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'xxp'}
-		varargout = {sf_xxpY(sX,Y)};
-	case {'xxp:'}
+   switch lower(action),        
+    case {'xxp'}
+        varargout = {sf_xxpY(sX,Y)};
+    case {'xxp:'}
       varargout = {sf_tol(sf_xxpY(sX,Y),sX.tol)};
    end %-
 
@@ -692,27 +692,27 @@ case {'^p','^p:'}                %-Computation of v*(diag(s.^n))*v'
 
 switch nargin
 case {2,3}
-	if nargin==2, n = 1; else n = varargin{3}; end;
-	if ~isnumeric(n), error('~isnumeric(n)'), end;
+    if nargin==2, n = 1; else n = varargin{3}; end;
+    if ~isnumeric(n), error('~isnumeric(n)'), end;
 
-   switch lower(action), 		
-	case {'^p'}
-		varargout = {sf_jbp(sX,n)};
-	case {'^p:'}
+   switch lower(action),        
+    case {'^p'}
+        varargout = {sf_jbp(sX,n)};
+    case {'^p:'}
       varargout = {sf_tol(sf_jbp(sX,n),sX.tol)};
    end %- 
 
 case 4
-	n = varargin{3};
-	if ~isnumeric(n), error('~isnumeric(n)'), end;
-	Y = varargin{4};
-	if isempty(Y), varargout = {spm_sp(action,sX,n)}; return, end
-	if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
+    n = varargin{3};
+    if ~isnumeric(n), error('~isnumeric(n)'), end;
+    Y = varargin{4};
+    if isempty(Y), varargout = {spm_sp(action,sX,n)}; return, end
+    if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'^p'}
-		varargout = {sf_jbp(sX,n)*Y};
-	case {'^p:'}
+   switch lower(action),        
+    case {'^p'}
+        varargout = {sf_jbp(sX,n)*Y};
+    case {'^p:'}
       varargout = {sf_tol(sf_jbp(sX,n)*Y,sX.tol)};
    end %- 
 
@@ -728,27 +728,27 @@ case {'^','^:'}                %-Computation of v*(diag(s.^n))*v'
 
 switch nargin
 case {2,3}
-	if nargin==2, n = 1; else n = varargin{3}; end;
-	if ~isnumeric(n), error('~isnumeric(n)'), end;
+    if nargin==2, n = 1; else n = varargin{3}; end;
+    if ~isnumeric(n), error('~isnumeric(n)'), end;
 
-   switch lower(action), 		
-	case {'^'}
-		varargout = {sf_jb(sX,n)};
-	case {'^:'}
+   switch lower(action),        
+    case {'^'}
+        varargout = {sf_jb(sX,n)};
+    case {'^:'}
       varargout = {sf_tol(sf_jb(sX,n),sX.tol)};
    end %- 
 
 case 4
-	n = varargin{3};
-	if ~isnumeric(n), error('~isnumeric(n)'), end;
-	Y = varargin{4};
-	if isempty(Y), varargout = {spm_sp(action,sX,n)}; return, end
-	if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
+    n = varargin{3};
+    if ~isnumeric(n), error('~isnumeric(n)'), end;
+    Y = varargin{4};
+    if isempty(Y), varargout = {spm_sp(action,sX,n)}; return, end
+    if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'^'}
-		varargout = {sf_jbY(sX,n,Y)};
-	case {'^:'}
+   switch lower(action),        
+    case {'^'}
+        varargout = {sf_jbY(sX,n,Y)};
+    case {'^:'}
       varargout = {sf_tol(sf_jbY(sX,n,Y),sX.tol)};
    end %- 
 
@@ -763,8 +763,8 @@ case {'n'}    %-Null space of sX
 %=======================================================================
 
 switch nargin
-case 2	
-	varargout = {sf_n(sX)};
+case 2  
+    varargout = {sf_n(sX)};
 otherwise
    error('too many input argument in spm_sp');
 end % switch nargin
@@ -774,8 +774,8 @@ case {'np'}    %-Null space of sX'
 %=======================================================================
 
 switch nargin
-case 2	
-	varargout = {sf_n(sf_transp(sX))};
+case 2  
+    varargout = {sf_n(sf_transp(sX))};
 otherwise
    error('too many input argument in spm_sp');
 end % switch nargin
@@ -789,29 +789,29 @@ case {'nop', 'nop:'}    %- project(or)(ion) into null space
 
 switch nargin
 
-case 2	
-   switch lower(action), 		
-	case {'nop'}
-		n = sf_n(sX);
-		varargout = {n*n'};
-	case {'nop:'}
-		n = sf_n(sX);
-		varargout = {sf_tol(n*n',sX.tol)};
+case 2  
+   switch lower(action),        
+    case {'nop'}
+        n = sf_n(sX);
+        varargout = {n*n'};
+    case {'nop:'}
+        n = sf_n(sX);
+        varargout = {sf_tol(n*n',sX.tol)};
    end %-
 
 case 3
-	%- check dimensions of Y	
-	Y = varargin{3};
-	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
-	if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
+    %- check dimensions of Y    
+    Y = varargin{3};
+    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+    if size(Y,1) ~= sf_s2(sX), error('Dim dont match'); end;
 
-   switch lower(action), 		
-	case {'nop'}
-		n = sf_n(sX);
-		varargout = {n*(n'*Y)};
-	case {'nop:'}
-		n = sf_n(sX);
-		varargout = {sf_tol(n*(n'*Y),sX.tol)};
+   switch lower(action),        
+    case {'nop'}
+        n = sf_n(sX);
+        varargout = {n*(n'*Y)};
+    case {'nop:'}
+        n = sf_n(sX);
+        varargout = {sf_tol(n*(n'*Y),sX.tol)};
    end %-
 
 otherwise
@@ -828,20 +828,20 @@ case {'nopp', 'nopp:'}    %- projector(ion) into null space of X'
 
 switch nargin
 
-case 2	
-	switch lower(action), 		
-	case {'nopp'}
-		varargout = {spm_sp('nop',sf_transp(sX))};
-	case {'nopp:'}
-		varargout = {spm_sp('nop:',sf_transp(sX))};
-	end %-
-case 3	
-	switch lower(action), 		
-	case {'nopp'}
-		varargout = {spm_sp('nop',sf_transp(sX),varargin{3})};
-	case {'nopp:'}
-		varargout = {spm_sp('nop:',sf_transp(sX),varargin{3})};
-	end %-
+case 2  
+    switch lower(action),       
+    case {'nopp'}
+        varargout = {spm_sp('nop',sf_transp(sX))};
+    case {'nopp:'}
+        varargout = {spm_sp('nop:',sf_transp(sX))};
+    end %-
+case 3  
+    switch lower(action),       
+    case {'nopp'}
+        varargout = {spm_sp('nop',sf_transp(sX),varargin{3})};
+    case {'nopp:'}
+        varargout = {spm_sp('nop:',sf_transp(sX),varargin{3})};
+    end %-
 otherwise
    error('too many input argument in spm_sp');
 
@@ -858,26 +858,26 @@ case {'res', 'r','r:'}             %-Residual formaing matrix / residuals
 
 switch nargin
 
-case 2	
-	switch lower(action) 
-	case {'r','res'} 
-		varargout = {sf_r(sX)};
-	case {'r:','res:'} 
-		varargout = {sf_tol(sf_r(sX),sX.tol)};
-	end %-
+case 2  
+    switch lower(action) 
+    case {'r','res'} 
+        varargout = {sf_r(sX)};
+    case {'r:','res:'} 
+        varargout = {sf_tol(sf_r(sX),sX.tol)};
+    end %-
 case 3
 
-	%- check dimensions of Y	
-	Y = varargin{3};
-	if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
-	if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
-	
-	switch lower(action) 
-	case {'r','res'} 
-		varargout = {sf_rY(sX,Y)};
-	case {'r:','res:'} 
-		varargout = {sf_tol(sf_rY(sX,Y),sX.tol)};
-	end %-
+    %- check dimensions of Y    
+    Y = varargin{3};
+    if isempty(Y), varargout = {spm_sp(action,sX)}; return, end
+    if size(Y,1) ~= sf_s1(sX), error('Dim dont match'); end;
+    
+    switch lower(action) 
+    case {'r','res'} 
+        varargout = {sf_rY(sX,Y)};
+    case {'r:','res:'} 
+        varargout = {sf_tol(sf_rY(sX,Y),sX.tol)};
+    end %-
 
 otherwise
    error('too many input argument in spm_sp');
@@ -892,21 +892,21 @@ case {':'}
 %- Sets Y and tol according to arguments
 
 if nargin > 4
-	error('too many input argument in spm_sp'); 
+    error('too many input argument in spm_sp'); 
 
 else
-	if nargin > 3
-		if isnumeric(varargin{4}), tol = varargin{4}; 
-		else error('tol must be numeric'); 
-		end
-	else
-		tol = sX.tol;
-	end
-	if nargin > 2
-		Y = varargin{3}; %- if isempty, returns empty, end
-	else
-		Y = sX.X;	
-	end
+    if nargin > 3
+        if isnumeric(varargin{4}), tol = varargin{4}; 
+        else error('tol must be numeric'); 
+        end
+    else
+        tol = sX.tol;
+    end
+    if nargin > 2
+        Y = varargin{3}; %- if isempty, returns empty, end
+    else
+        Y = sX.X;   
+    end
 end
 
 varargout = {sf_tol(Y,tol)};
@@ -931,20 +931,20 @@ if nargin<4, tol=sX.tol; else, tol = varargin{4}; end
 switch lower(action)
 
 case 'isinsp'
-	%-Check dimensions
-	if size(sX.X,1) ~= size(c,1) 
-		warning('Vector dim don''t match col. dim : not in space !'); 
-		varargout = { 0 }; return;
-	end
-	varargout = {all(all( abs(sf_op(sX)*c - c) <= tol ))};
+    %-Check dimensions
+    if size(sX.X,1) ~= size(c,1) 
+        warning('Vector dim don''t match col. dim : not in space !'); 
+        varargout = { 0 }; return;
+    end
+    varargout = {all(all( abs(sf_op(sX)*c - c) <= tol ))};
 
 case 'isinspp'
-	%- check dimensions
-	if size(sX.X,2) ~= size(c,1) 
-		warning('Vector dim don''t match row dim : not in space !'); 
-		varargout = { 0 }; return;
-	end
-	varargout = {all(all( abs(sf_opp(sX)*c - c) <= tol ))};
+    %- check dimensions
+    if size(sX.X,2) ~= size(c,1) 
+        warning('Vector dim don''t match row dim : not in space !'); 
+        varargout = { 0 }; return;
+    end
+    varargout = {all(all( abs(sf_opp(sX)*c - c) <= tol ))};
 end
 
 
@@ -967,27 +967,27 @@ if nargin<4, tol=sX.tol; else, tol = varargin{4}; end
 switch lower(action)
 
 case 'eachinsp'
-	%-Check dimensions
-	if size(sX.X,1) ~= size(c,1) 
-		warning('Vector dim don''t match col. dim : not in space !'); 
-		varargout = { 0 }; return;
-	end
-	varargout = {all( abs(sf_op(sX)*c - c) <= tol )};
+    %-Check dimensions
+    if size(sX.X,1) ~= size(c,1) 
+        warning('Vector dim don''t match col. dim : not in space !'); 
+        varargout = { 0 }; return;
+    end
+    varargout = {all( abs(sf_op(sX)*c - c) <= tol )};
 
 case 'eachinspp'
-	%- check dimensions
-	if size(sX.X,2) ~= size(c,1) 
-		warning('Vector dim don''t match row dim : not in space !'); 
-		varargout = { 0 }; return;
-	end
-	varargout = {all( abs(sf_opp(sX)*c - c) <= tol )};
+    %- check dimensions
+    if size(sX.X,2) ~= size(c,1) 
+        warning('Vector dim don''t match row dim : not in space !'); 
+        varargout = { 0 }; return;
+    end
+    varargout = {all( abs(sf_opp(sX)*c - c) <= tol )};
 end
 
 
 
 
 
-case '=='		% test wether two spaces are the same
+case '=='       % test wether two spaces are the same
 %=======================================================================
 % b = spm_sp('==',x1,X2)
 if nargin~=3, error('too few/many input arguments - need 3');
@@ -996,19 +996,19 @@ else X2 = varargin{3}; end;
 if isempty(sX.X)
    if isempty(X2), 
       warning('Both spaces empty');
-		varargout = { 1 };
+        varargout = { 1 };
    else 
       warning('one space empty');
-		varargout = { 0 }; 
-	end;
+        varargout = { 0 }; 
+    end;
 
 else 
-	x2 = spm_sp('Set',X2);
-	maxtol = max(sX.tol,x2.tol);
-	varargout = { all( spm_sp('isinsp',sX,X2,maxtol)) & ...
-   	all( spm_sp('isinsp',x2,sX.X,maxtol) ) };
+    x2 = spm_sp('Set',X2);
+    maxtol = max(sX.tol,x2.tol);
+    varargout = { all( spm_sp('isinsp',sX,X2,maxtol)) & ...
+    all( spm_sp('isinsp',x2,sX.X,maxtol) ) };
 
-	%- I have encountered one case where the max of tol was needed.
+    %- I have encountered one case where the max of tol was needed.
 
 end;
 
@@ -1028,12 +1028,12 @@ if ~isstruct(varargin{2}), varargout={0}; return, end
 b       = 1;
 fnames  = fieldnames(varargin{2});
 for str = fieldnames(sf_create)'
-	b = b & any(strcmp(str,fnames));
-	if ~b, break, end
+    b = b & any(strcmp(str,fnames));
+    if ~b, break, end
 end
 if nargout > 1, 
-	if b, str = 'ok'; else, str = 'not a space'; end;
-	varargout = {b,str};
+    if b, str = 'ok'; else, str = 'not a space'; end;
+    varargout = {b,str};
 else, varargout = {b}; end;
 
 
@@ -1042,15 +1042,15 @@ case 'issetspc'                   %-Is this a completed space structure?
 % [b,e] = spm_sp('issetspc',x)
 if nargin~=2, error('too few/many input arguments - need 2'), end
 if ~spm_sp('isspc',varargin{2})
-	varargout = {0,'not a space structure (wrong fieldnames)'};
+    varargout = {0,'not a space structure (wrong fieldnames)'};
 elseif ~sf_isset(varargin{2})
-	%-Basic fields aren't filled in
-	varargout = {0,'space not defined (use ''set'')'};
+    %-Basic fields aren't filled in
+    varargout = {0,'space not defined (use ''set'')'};
 else
-	varargout = {1,'OK!'};
+    varargout = {1,'OK!'};
 end
 
-case 'size'                   	                 %- gives the size of sX
+case 'size'                                      %- gives the size of sX
 %=======================================================================
 % size = spm_sp('size',x,dim)
 %
@@ -1096,16 +1096,16 @@ function x = sf_create
 %=======================================================================
 
 x = struct(...
-	'X',	[],...		   % Matrix
-	'tol',	[],...		% tolerance
-	'ds',	[],...		   % vectors of singular values 
-	'u',	[],...		   % u as in X = u*diag(ds)*v'
-	'v',	[], ...		   % v as in X = u*diag(ds)*v'
-	'rk',	[],...		   % rank
-	'oP', 	[],...		% orthogonal projector on X
-	'oPp',	[],...		% orthogonal projector on X'
-	'ups',	[],...		% space in which this one is embeded
-	'sus',	[]);		   % subspace 
+    'X',    [],...         % Matrix
+    'tol',  [],...      % tolerance
+    'ds',   [],...         % vectors of singular values 
+    'u',    [],...         % u as in X = u*diag(ds)*v'
+    'v',    [], ...        % v as in X = u*diag(ds)*v'
+    'rk',   [],...         % rank
+    'oP',   [],...      % orthogonal projector on X
+    'oPp',  [],...      % orthogonal projector on X'
+    'ups',  [],...      % space in which this one is embeded
+    'sus',  []);           % subspace 
 
 
 
@@ -1121,9 +1121,9 @@ x.X = X;
 %- if more column that lines, performs on X'
 
 if size(X,1) < size(X,2)
-	[x.v, s, x.u] = svd(full(X'),0);
+    [x.v, s, x.u] = svd(full(X'),0);
 else  
-	[x.u, s, x.v] = svd(full(X),0);
+    [x.u, s, x.v] = svd(full(X),0);
 end
 
 x.ds = diag(s); clear s;
@@ -1141,26 +1141,26 @@ function x = sf_transp(x)
 %- Tranpspose the space : note that tmp is not touched, therefore
 %- only contains the address, no duplication of data is performed.
 
-x.X 	= x.X';
+x.X     = x.X';
 
-tmp 	= x.v;
-x.v 	= x.u;
-x.u 	= tmp;
+tmp     = x.v;
+x.v     = x.u;
+x.u     = tmp;
 
-tmp 	= x.oP;
-x.oP 	= x.oPp;
+tmp     = x.oP;
+x.oP    = x.oPp;
 x.oPp   = tmp;
 clear   tmp;
 
 
 function b = sf_isset(x)
 %=======================================================================
-b = ~(	isempty(x.X) 	|...
-	isempty(x.u) 	|...
-	isempty(x.v) 	|...
-	isempty(x.ds)	|...
-	isempty(x.tol)	|...
-	isempty(x.rk)	);
+b = ~(  isempty(x.X)    |...
+    isempty(x.u)    |...
+    isempty(x.v)    |...
+    isempty(x.ds)   |...
+    isempty(x.tol)  |...
+    isempty(x.rk)   );
 
 
 
@@ -1204,9 +1204,9 @@ x(abs(x) < t) = 0;
 function op = sf_op(sX)
 %=======================================================================
 if sX.rk > 0 
-	op = sX.u(:,[1:sX.rk])*sX.u(:,[1:sX.rk])';
+    op = sX.u(:,[1:sX.rk])*sX.u(:,[1:sX.rk])';
 else  
-	op = zeros( size(sX.X,1) ); 
+    op = zeros( size(sX.X,1) ); 
 end;
 
 %!!!! to implement : a clever version of sf_opY (see sf_rY)
@@ -1215,9 +1215,9 @@ end;
 function opp = sf_opp(sX)
 %=======================================================================
 if sX.rk > 0 
-	opp = sX.v(:,[1:sX.rk])*sX.v(:,[1:sX.rk])';
+    opp = sX.v(:,[1:sX.rk])*sX.v(:,[1:sX.rk])';
 else  
-	opp = zeros( size(sX.X,2) ); 
+    opp = zeros( size(sX.X,2) ); 
 end;
 
 %!!!! to implement : a clever version of sf_oppY (see sf_rY)
@@ -1227,54 +1227,54 @@ function px = sf_pinv(sX)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	px = sX.v(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.u(:,1:r)';
+    px = sX.v(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.u(:,1:r)';
 else 
-	px = zeros(size(sX.X,2),size(sX.X,1));
+    px = zeros(size(sX.X,2),size(sX.X,1));
 end
 
 function px = sf_pinvxp(sX)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	px = sX.u(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.v(:,1:r)';
+    px = sX.u(:,1:r)*diag( ones(r,1)./sX.ds(1:r) )*sX.v(:,1:r)';
 else 
-	px = zeros(size(sX.X));
+    px = zeros(size(sX.X));
 end
 
 function px = sf_pinvxpx(sX)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	px = sX.v(:,1:r)*diag( sX.ds(1:r).^(-2) )*sX.v(:,1:r)';
+    px = sX.v(:,1:r)*diag( sX.ds(1:r).^(-2) )*sX.v(:,1:r)';
 else
-	px = zeros(size(sX.X,2));
+    px = zeros(size(sX.X,2));
 end
 
 function px = sf_jbp(sX,n)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	px = sX.v(:,1:r)*diag( sX.ds(1:r).^(n) )*sX.v(:,1:r)';
+    px = sX.v(:,1:r)*diag( sX.ds(1:r).^(n) )*sX.v(:,1:r)';
 else
-	px = zeros(size(sX.X,2));
+    px = zeros(size(sX.X,2));
 end
 
 function x = sf_jb(sX,n)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	x = sX.u(:,1:r)*diag( sX.ds(1:r).^(n) )*sX.u(:,1:r)';
+    x = sX.u(:,1:r)*diag( sX.ds(1:r).^(n) )*sX.u(:,1:r)';
 else
-	x = zeros(size(sX.X,1));
+    x = zeros(size(sX.X,1));
 end
 
 function y = sf_jbY(sX,n,Y)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	y = ( sX.u(:,1:r)*diag(sX.ds(1:r).^n) )*(sX.u(:,1:r)'*Y);
+    y = ( sX.u(:,1:r)*diag(sX.ds(1:r).^n) )*(sX.u(:,1:r)'*Y);
 else
-	y = zeros(size(sX.X,1),size(Y,2));
+    y = zeros(size(sX.X,1),size(Y,2));
 end
 %!!!! to implement : a clever version of sf_jbY (see sf_rY)
 
@@ -1293,9 +1293,9 @@ function x = sf_cukpinvxp(sX)
 
 r = sX.rk;
 if r > 0 
-	x = diag( ones(r,1)./sX.ds(1:r) )*sX.v(:,1:r)';
+    x = diag( ones(r,1)./sX.ds(1:r) )*sX.v(:,1:r)';
 else 
-	x = zeros( size(sX.X,2) );
+    x = zeros( size(sX.X,2) );
 end
 
 function x = sf_cukx(sX) 
@@ -1304,9 +1304,9 @@ function x = sf_cukx(sX)
 
 r = sX.rk;
 if r > 0 
-	x = diag( sX.ds(1:r) )*sX.v(:,1:r)';
+    x = diag( sX.ds(1:r) )*sX.v(:,1:r)';
 else 
-	x = zeros( size(sX.X,2) );
+    x = zeros( size(sX.X,2) );
 end
 
 
@@ -1314,36 +1314,36 @@ function x = sf_xpx(sX)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	x = sX.v(:,1:r)*diag( sX.ds(1:r).^2 )*sX.v(:,1:r)';
+    x = sX.v(:,1:r)*diag( sX.ds(1:r).^2 )*sX.v(:,1:r)';
 else
-	x = zeros(size(sX.X,2));
+    x = zeros(size(sX.X,2));
 end
 
 function x = sf_xxp(sX)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	x = sX.u(:,1:r)*diag( sX.ds(1:r).^2 )*sX.u(:,1:r)';
+    x = sX.u(:,1:r)*diag( sX.ds(1:r).^2 )*sX.u(:,1:r)';
 else
-	x = zeros(size(sX.X,1));
+    x = zeros(size(sX.X,1));
 end
 
 function x = sf_xxpY(sX,Y)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	x = sX.u(:,1:r)*diag( sX.ds(1:r).^2 )*(sX.u(:,1:r)'*Y);
+    x = sX.u(:,1:r)*diag( sX.ds(1:r).^2 )*(sX.u(:,1:r)'*Y);
 else
-	x = zeros(size(sX.X,1),size(Y,2));
+    x = zeros(size(sX.X,1),size(Y,2));
 end
 
 function x = sf_pinvxxp(sX)
 %=======================================================================
 r = sX.rk;
 if r > 0 
-	x = sX.u(:,1:r)*diag( sX.ds(1:r).^(-2) )*sX.u(:,1:r)';
+    x = sX.u(:,1:r)*diag( sX.ds(1:r).^(-2) )*sX.u(:,1:r)';
 else
-	x = zeros(size(sX.X,1));
+    x = zeros(size(sX.X,1));
 end
 
 function n = sf_n(sX)
@@ -1355,24 +1355,24 @@ function n = sf_n(sX)
 r = sX.rk;
 [q p]= size(sX.X);
 if r > 0
-	if q >= p  %- the null space is entirely in v
-		if r == p, n = zeros(p,1); else, n = sX.v(:,r+1:p); end
-	else %- only part of n is in v: same as computing the null sp of sX'
+    if q >= p  %- the null space is entirely in v
+        if r == p, n = zeros(p,1); else, n = sX.v(:,r+1:p); end
+    else %- only part of n is in v: same as computing the null sp of sX'
 
-		n = null(sX.X); 
+        n = null(sX.X); 
 %----- BUG !!!! in that part ----------------------------------------
-%-		v = zeros(p,p-q); j = 1; i = 1; z = zeros(p,1);
-%-		while i <= p
-%-			o = z; o(i) = 1; vpoi = [sX.v(i,:) v(i,1:j-1)]';
-%-			o = sf_tol(o - [sX.v v(:,1:j-1)]*vpoi,sX.tol);
-%-			if any(o), v(:,j) = o/((o'*o)^(1/2)); j = j + 1; end;
-%-			i = i + 1; %- if i>p, error('gramm shmidt error'); end;
-%-		end
-%-		n = [sX.v(:,r+1:q) v];
+%-      v = zeros(p,p-q); j = 1; i = 1; z = zeros(p,1);
+%-      while i <= p
+%-          o = z; o(i) = 1; vpoi = [sX.v(i,:) v(i,1:j-1)]';
+%-          o = sf_tol(o - [sX.v v(:,1:j-1)]*vpoi,sX.tol);
+%-          if any(o), v(:,j) = o/((o'*o)^(1/2)); j = j + 1; end;
+%-          i = i + 1; %- if i>p, error('gramm shmidt error'); end;
+%-      end
+%-      n = [sX.v(:,r+1:q) v];
 %--------------------------------------------------------------------
-	end
+    end
 else 
-	n = eye(p);
+    n = eye(p);
 end
 
 
@@ -1397,18 +1397,18 @@ r = sX.rk;
 [q p]= size(sX.X);
 
 if r > 0 %- else returns the input;
-	
-	if r < q-r %- we better do I - u*u' 
-		Y = Y - sX.u(:,[1:r])*(sX.u(:,[1:r])'*Y); % warning('route1');
-	else
-		%- is it worth computing the n ortho basis ? 
-		if size(Y,2) < 5*q
-			Y = sf_r(sX)*Y;            % warning('route2');
-		else 
-			n = sf_n(sf_transp(sX));   % warning('route3');
-			Y = n*(n'*Y);
-		end
-	end
+    
+    if r < q-r %- we better do I - u*u' 
+        Y = Y - sX.u(:,[1:r])*(sX.u(:,[1:r])'*Y); % warning('route1');
+    else
+        %- is it worth computing the n ortho basis ? 
+        if size(Y,2) < 5*q
+            Y = sf_r(sX)*Y;            % warning('route2');
+        else 
+            n = sf_n(sf_transp(sX));   % warning('route3');
+            Y = n*(n'*Y);
+        end
+    end
 
 end
 

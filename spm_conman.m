@@ -444,7 +444,7 @@ function varargout=spm_conman(varargin)
 %
 %   - crash out: this bails out of the contrast manager in a nice way!
 %   - rename:    This permits a single contrast to be re-named. You
-% 	         must select the contrast to be renamed before pulling
+%            must select the contrast to be renamed before pulling
 %                up the context menu for this option to be available.
 %
 %_______________________________________________________________________
@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_conman.m 1073 2008-01-08 21:40:33Z Darren $
+% $Id: spm_conman.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %=======================================================================
@@ -782,8 +782,8 @@ function varargout=spm_conman(varargin)
 
 %-Parameters
 %=======================================================================
-COLOUR   = [.8,.8,1];	%-Question background colour
-PJump    = 1;		%-Jumping of pointer to ConMan window
+COLOUR   = [.8,.8,1];   %-Question background colour
+PJump    = 1;       %-Jumping of pointer to ConMan window
 
 
 if (nargin==0) | ~ischar(varargin{1})
@@ -880,16 +880,16 @@ switch lower(varargin{1}), case 'initialise'
     %-Recover ConMan figure number (if it exists)
     F  = findobj(get(0,'Children'),'Flat','Tag','ConMan');
 
-    cF = get(0,'CurrentFigure');				%-Save current figure
+    cF = get(0,'CurrentFigure');                %-Save current figure
 
     switch lower(Vis), case 'close'
         close(F)
         varargout = {[],cF};
         return
         case {'off','reset'}
-            varargout = {F,cF};				%-Return figure handles
-            if isempty(F), return, end			%-Return if no ConMan win
-            set(F,'Visible','off')				%-Make window Invisible
+            varargout = {F,cF};             %-Return figure handles
+            if isempty(F), return, end          %-Return if no ConMan win
+            set(F,'Visible','off')              %-Make window Invisible
             if strcmp(lower(Vis),'reset')
                 set(findobj(F,'Tag','Done'),'UserData',-1)
             end
@@ -912,9 +912,9 @@ switch lower(varargin{1}), case 'initialise'
 
             %-Create/find ConMan window
             %---------------------------------------------------------------
-            if isempty(F)					%-Create ConMan win
+            if isempty(F)                   %-Create ConMan win
                 [F,H] = spm_conman('CreateFig');
-            else						%-Get handles
+            else                        %-Get handles
                 H.hDesMtxAx = findobj(F,'Tag','DesMtxAx');
                 H.hParEstAx = findobj(F,'Tag','ParEstAx');
                 H.hConList  = findobj(F,'Tag','ConList');
@@ -928,32 +928,32 @@ switch lower(varargin{1}), case 'initialise'
                 set(findobj('Tag', 'components'), 'Visible', 'off');
             end
 
-            varargout = {F,cF};				%-Return figure handles
+            varargout = {F,cF};             %-Return figure handles
 
             
             %-Store required parameters in UserData of various objects
             %---------------------------------------------------------------
-            set(F,			'UserData',SPM)
-            set(H.hStatLin,		'UserData',Mcstr)	%-**
+            set(F,          'UserData',SPM)
+            set(H.hStatLin,     'UserData',Mcstr)   %-**
 
             %-Initialise interface
             %---------------------------------------------------------------
-            set(findobj(F,'Tag','Done'),'UserData',0)	%-Init. Done UserData
-            STAT = spm_conman('TFA',F,'',STATmode);		%-Init. TFA buttons
-            set(H.hPrompt,'String',Prompt,'UserData',n)	%-Set prompt
-            spm_conman('ImDesMtx',xX,H.hDesMtxAx)		%-Depict DesMtx
-            spm_conman('ImParEst',xX,H.hParEstAx)		%-Parameter estimability
-            spm_conman('ListCon',H.hConList,xCon,STAT,[])	%-List contrasts
-            if OK2chg, tmp='on'; else, tmp='off'; end	%-OK to change xCon?
-            set(H.hNew,'Enable',tmp)			%-En/dis-able change UI
-            %-****	if isempty(xCon), spm_conman(); end		%-Go straight to DNewUI
+            set(findobj(F,'Tag','Done'),'UserData',0)   %-Init. Done UserData
+            STAT = spm_conman('TFA',F,'',STATmode);     %-Init. TFA buttons
+            set(H.hPrompt,'String',Prompt,'UserData',n) %-Set prompt
+            spm_conman('ImDesMtx',xX,H.hDesMtxAx)       %-Depict DesMtx
+            spm_conman('ImParEst',xX,H.hParEstAx)       %-Parameter estimability
+            spm_conman('ListCon',H.hConList,xCon,STAT,[])   %-List contrasts
+            if OK2chg, tmp='on'; else, tmp='off'; end   %-OK to change xCon?
+            set(H.hNew,'Enable',tmp)            %-En/dis-able change UI
+            %-****  if isempty(xCon), spm_conman(); end     %-Go straight to DNewUI
 
             %-Popup figure, retaining CurrentFigure
             %---------------------------------------------------------------
             set(get(findobj(F,'Tag','DefineNew'),'UserData'),'Visible','off')
             %-Hide define UI
-            figure(F)					%-PopUp figure
-            set(0,'CurrentFigure',cF)			%-Return to prev. figure
+            figure(F)                   %-PopUp figure
+            set(0,'CurrentFigure',cF)           %-Return to prev. figure
             return
 
         otherwise
@@ -977,8 +977,8 @@ switch lower(varargin{1}), case 'initialise'
             hDesMtxIm = image(...
                 (spm_DesMtx('sca',varargin{2}.xKXs.X,varargin{2}.name)+1)*32);
         end
-        set(h,'YTick',[],'XTick',[])			%-No Tick marks
-        set(h,'Tag','DesMtxAx','UserData',varargin{2})	%-Reset axis UserData after image
+        set(h,'YTick',[],'XTick',[])            %-No Tick marks
+        set(h,'Tag','DesMtxAx','UserData',varargin{2})  %-Reset axis UserData after image
         xlabel('Design matrix')
         set(hDesMtxIm,'UserData',...
             struct('X',varargin{2}.xKXs.X,'Xnames',{varargin{2}.name}))
@@ -1000,11 +1000,11 @@ switch lower(varargin{1}), case 'initialise'
         nPar = length(est);
 
         hParEstIm = image((est+1)*32);
-        set(h,	'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
+        set(h,  'XLim',[0,nPar]+.5,'XTick',[1:nPar-1]+.5,'XTickLabel','',...
             'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
             'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
         xlabel('parameter estimability')
-        set(h,'Tag','ParEstAx')			%-Reset 'Tag' after image cleared it
+        set(h,'Tag','ParEstAx')         %-Reset 'Tag' after image cleared it
         set(hParEstIm,'UserData',struct('est',est,'Xnames',{xX.name}))
         set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 
@@ -1074,8 +1074,8 @@ switch lower(varargin{1}), case 'initialise'
         if isempty(F), F=spm_figure('FindWin','ConMan'); end
         if isempty(F), error('can''t find ConMan win'), end
 
-        cF = get(0,'CurrentFigure');		%-Save current figure
-        set(0,'CurrentFigure',F);		%-Make F current
+        cF = get(0,'CurrentFigure');        %-Save current figure
+        set(0,'CurrentFigure',F);       %-Make F current
 
         delete(findobj(F,'Tag','ConGrphAx'));
 
@@ -1112,29 +1112,29 @@ switch lower(varargin{1}), case 'initialise'
                     set(gca,'Tag','ConGrphAx',...
                         'Box','off','TickDir','out',...
                         'XTick',[],...
-                        'XLim',	[0,nPar],...
+                        'XLim', [0,nPar],...
                         'YTick',[-1,0,+1],'YTickLabel','',...
-                        'YLim',	[min(xCon(i).c),max(xCon(i).c)] + ...
-                        [-1 +1] * max(abs(xCon(i).c))/10	)
+                        'YLim', [min(xCon(i).c),max(xCon(i).c)] + ...
+                        [-1 +1] * max(abs(xCon(i).c))/10    )
                 else
                     %-F-contrast - image
                     h = image((xCon(i).c'/max(abs(xCon(i).c(:)))+1)*32);
                     set(gca,'Tag','ConGrphAx',...
                         'Box','on','TickDir','out',...
                         'XTick',[],...
-                        'XLim',	[0,nPar]+0.5,...
+                        'XLim', [0,nPar]+0.5,...
                         'YTick',[0:size(xCon(i).c,2)]+0.5,'YTickLabel','',...
-                        'YLim',	[0,size(xCon(i).c,2)]+0.5	)
+                        'YLim', [0,size(xCon(i).c,2)]+0.5   )
                 end
                 if I(ii)>0, ylabel(num2str(i)), end
                 set(h,'ButtonDownFcn','spm_DesRep(''SurfCon_CB'')',...
-                    'UserData',	struct(	'i',		I(ii),...
-                    'h',		htxt,...
-                    'xCon',		xCon(i)))
+                    'UserData', struct( 'i',        I(ii),...
+                    'h',        htxt,...
+                    'xCon',     xCon(i)))
             end
         end
 
-        set(0,'CurrentFigure',cF)		%-Reset CurrentFigure to previous figure
+        set(0,'CurrentFigure',cF)       %-Reset CurrentFigure to previous figure
 
 
         %=======================================================================
@@ -1142,8 +1142,8 @@ switch lower(varargin{1}), case 'initialise'
         %=======================================================================
         % spm_conman('StatusLine',F,str,col)
 
-        if nargin<2,	F = findobj(get(0,'Children'),'Flat','Tag','ConMan');
-        else,	F = varargin{2}; end
+        if nargin<2,    F = findobj(get(0,'Children'),'Flat','Tag','ConMan');
+        else,   F = varargin{2}; end
 
         if nargin<3
             n = get(findobj(F,'Tag','Prompt'),'UserData');
@@ -1241,7 +1241,7 @@ switch lower(varargin{1}), case 'initialise'
         % STAT = spm_conman('TFA',F,STAT)
         % STAT = spm_conman('TFA',F,STAT,STATmode)
 
-        D = strcmp(lower(varargin{1}),'d_tf');		%-Handling DefineNew UI?
+        D = strcmp(lower(varargin{1}),'d_tf');      %-Handling DefineNew UI?
 
         if nargin<2, F = gcbf; else, F=varargin{2}; end
 
@@ -1273,30 +1273,30 @@ switch lower(varargin{1}), case 'initialise'
 
         %-Check STATmode & STAT, set temporary STATmode & STAT indicies
         %-----------------------------------------------------------------------
-        STATinfo = struct(...					%-STAT info structure
-            'mode',		{ 'T',  'F',  'T|F',    'T&F'},...
-            'vSTAT',	{{'T'},{'F'},{'T','F'},{'T','F',''}},...
-            'defSTAT',	{ 'T',  'F',  'T',      ''},...
-            'Enable',	{	{'on', 'off','off'},...
+        STATinfo = struct(...                   %-STAT info structure
+            'mode',     { 'T',  'F',  'T|F',    'T&F'},...
+            'vSTAT',    {{'T'},{'F'},{'T','F'},{'T','F',''}},...
+            'defSTAT',  { 'T',  'F',  'T',      ''},...
+            'Enable',   {   {'on', 'off','off'},...
             {'off','on' ,'off'},...
             {'on', 'on', 'off'},...
-            {'on', 'on', 'on' }}	);
-        i        = find(strcmp(STATmode,{STATinfo.mode}));	%-STATmode index
-        if isempty(i), error('unknown STATmode'), end		%-Check STATmode valid
-        if D & i==4, i=3; end					%-Treat 'T&F' as 'T|F'?
-        if isempty(STAT), STAT=STATinfo(i).defSTAT; end		%-Set STAT as default(?)
-        j        = find(strcmp(STAT,{'T','F',''}));		%-STAT index
-        if isempty(j), error('unknown STAT'); end		%-Check known STAT
-        if ~any(strcmp(STAT,STATinfo(i).vSTAT))			%-Check STAT is
-            error('Invalid STAT for this STATmode')		% valid for
-        end							% this STATmode
+            {'on', 'on', 'on' }}    );
+        i        = find(strcmp(STATmode,{STATinfo.mode}));  %-STATmode index
+        if isempty(i), error('unknown STATmode'), end       %-Check STATmode valid
+        if D & i==4, i=3; end                   %-Treat 'T&F' as 'T|F'?
+        if isempty(STAT), STAT=STATinfo(i).defSTAT; end     %-Set STAT as default(?)
+        j        = find(strcmp(STAT,{'T','F',''}));     %-STAT index
+        if isempty(j), error('unknown STAT'); end       %-Check known STAT
+        if ~any(strcmp(STAT,STATinfo(i).vSTAT))         %-Check STAT is
+            error('Invalid STAT for this STATmode')     % valid for
+        end                         % this STATmode
 
 
         %-Set STAT buttons (& Dis/Enable according to STATmode if b_setEnable)
         %-----------------------------------------------------------------------
         if ~D, Tag='TFA'; else, Tag='D_TF'; end
         H = flipud(findobj(F,'Tag',Tag));
-        set(H(j),			'Value',1)
+        set(H(j),           'Value',1)
         set(H(setdiff([1:length(H)],j)),'Value',0)
         if b_set
             %-Set RadioButton 'Enable' & store STATmode
@@ -1542,12 +1542,12 @@ switch lower(varargin{1}), case 'initialise'
             str = strvcat(str,num2str(I(ok)));
             msg = strvcat(msg,'  <-  (OK)');
         end
-        tmp = ( I<1 | I>mx );			%-Out of range
+        tmp = ( I<1 | I>mx );           %-Out of range
         if any(tmp)
             str = strvcat(str,num2str(I(tmp)));
             msg = strvcat(msg,sprintf('  <-  (ignored - not in [1:%d]',mx));
         end
-        tmp = ( ~tmp & ~ok );			%-Non integer in range
+        tmp = ( ~tmp & ~ok );           %-Non integer in range
         if any(tmp)
             str = strvcat(str,num2str(I(tmp)));
             msg = strvcat(msg,'  <-  (ignored - non-integer)');
@@ -1580,17 +1580,17 @@ switch lower(varargin{1}), case 'initialise'
         STAT     = get(findobj(F,'Tag','TFA','Value',1),'UserData');
         STATmode = get(findobj(F,'Tag','STATmode'),'UserData');
 
-        set(F,'UIContextMenu',[])				%-Disable Fig ContextMenu
-        H = get(findobj(F,'Tag','DefineNew'),'UserData');	%-Get define UI handles
-        set(findobj(H,'flat','Tag','D_name'),'String','')	%-Clear name
-        %set(findobj(H,'flat','Tag','D_ConMtx'),'UserData',[])	%-Clear con definition
-        set(H,'Visible','on')					%-Show UI
+        set(F,'UIContextMenu',[])               %-Disable Fig ContextMenu
+        H = get(findobj(F,'Tag','DefineNew'),'UserData');   %-Get define UI handles
+        set(findobj(H,'flat','Tag','D_name'),'String','')   %-Clear name
+        %set(findobj(H,'flat','Tag','D_ConMtx'),'UserData',[])  %-Clear con definition
+        set(H,'Visible','on')                   %-Show UI
         SPM = get(F, 'UserData');
         if ~isfield(SPM, 'eeg')
             set(findobj('Tag', 'components'), 'Visible', 'off');
         end
 
-        spm_conman('D_TF',F,STAT,STATmode);			%-Setup rest of define UI
+        spm_conman('D_TF',F,STAT,STATmode);         %-Setup rest of define UI
 
 
         %=======================================================================
@@ -1670,7 +1670,7 @@ switch lower(varargin{1}), case 'initialise'
             [iX0,I,emsg,imsg] = spm_conman('ParseIStr',str,nPar);
 
             if I
-                try	%-try-catch block for any errors in spm_FcUtil!
+                try %-try-catch block for any errors in spm_FcUtil!
                     DxCon = spm_FcUtil('Set','',STAT,'iX0',iX0,xX.xKXs);
                     if STAT=='T' & size(DxCon.c,2)>1
                         I = 0; emsg = {'! t-contrasts must be vectors'};
@@ -1688,13 +1688,13 @@ switch lower(varargin{1}), case 'initialise'
         set(findobj(F,'Tag','D_ConErrs'),'String',emsg,'Value',[])
         set(findobj(F,'Tag','D_ConInfo'),'String',imsg,'Value',[])
         if all(I)
-            set(hD_ConMtx,'UserData',DxCon);		%-Store contrast
-            spm_conman('GraphCons',DxCon,-1,F)		%-Depict contrast
+            set(hD_ConMtx,'UserData',DxCon);        %-Store contrast
+            spm_conman('GraphCons',DxCon,-1,F)      %-Depict contrast
         else
-            set(hD_ConMtx,'UserData',[]);			%-Clear contrast store
-            spm_conman('GraphCons',[],[],F)			%-Clear contrast plot
+            set(hD_ConMtx,'UserData',[]);           %-Clear contrast store
+            spm_conman('GraphCons',[],[],F)         %-Clear contrast plot
         end
-        spm_conman('D_Status',F)				%-Set StatusLine
+        spm_conman('D_Status',F)                %-Set StatusLine
 
 
         %=======================================================================
@@ -1703,9 +1703,9 @@ switch lower(varargin{1}), case 'initialise'
         % spm_conman('D_Reset_CB')
 
         STAT = get(findobj(gcbf,'Tag','TFA','Value',1),'UserData');
-        set(findobj(gcbf,'Tag','D_name'),'String','')		%-Clear name
-        set(findobj(gcbf,'Tag','D_ConMtx'),'UserData',[])	%-Contrast definition
-        spm_conman('D_TF',gcbf,STAT);				%-Setup rest of define UI
+        set(findobj(gcbf,'Tag','D_name'),'String','')       %-Clear name
+        set(findobj(gcbf,'Tag','D_ConMtx'),'UserData',[])   %-Contrast definition
+        spm_conman('D_TF',gcbf,STAT);               %-Setup rest of define UI
 
 
         %=======================================================================
@@ -1735,7 +1735,7 @@ switch lower(varargin{1}), case 'initialise'
 
         if ~(dNam & dCon)
             spm('Beep')
-            str = {	'contrast name not defined!','',...
+            str = { 'contrast name not defined!','',...
                 'no valid contrast defined!',''};
             msgbox(str([dNam+1,dCon+3]),...
                 sprintf('%s%s: %s...',spm('ver'),...
@@ -1786,8 +1786,8 @@ switch lower(varargin{1}), case 'initialise'
         % n        = get(findobj(F,'Tag','Prompt'),'UserData');
         % if abs(n)>1, I=[I,length(xCon)]; else, I=length(xCon); end
 
-        spm_conman('TFA',F,xCon(end).STAT);			%-Set STAT
-        spm_conman('ListCon',hConList,xCon,xCon(end).STAT,I)	%-ListCon
+        spm_conman('TFA',F,xCon(end).STAT);         %-Set STAT
+        spm_conman('ListCon',hConList,xCon,xCon(end).STAT,I)    %-ListCon
 
         %-Hide the DefineNew UI
         %-----------------------------------------------------------------------
@@ -1810,7 +1810,7 @@ switch lower(varargin{1}), case 'initialise'
         spm_conman('StatusLine',F,...
             sprintf('name%s defined, contrast%s defined',str{dNam+1},str{dCon+1}),...
             col)
-        %set(findobj(F,'Tag','D_OK'),'Enable',ok)		%-Enable "OK" button?
+        %set(findobj(F,'Tag','D_OK'),'Enable',ok)       %-Enable "OK" button?
 
 
         %=======================================================================
@@ -1819,14 +1819,14 @@ switch lower(varargin{1}), case 'initialise'
         % [F,H] = spm_conman('CreateFig')
         % Handle Structure - H.{hConList,hDesMtxAx,hPrompt,hSTATmode,hStatLin,hNew}
 
-        cF = get(0,'CurrentFigure');		%-Save current figure
+        cF = get(0,'CurrentFigure');        %-Save current figure
 
         %-Create window, compute scaling for screen size
         %-----------------------------------------------------------------------
-        WS = spm('WinScale');				%-Window scaling factors
-        FS = spm('FontSizes');				%-Scaled font sizes
-        PF = spm_platform('fonts');			%-Font names (for this platform)
-        if spm_matlab_version_chk('7') >= 0, 	%-Screen size
+        WS = spm('WinScale');               %-Window scaling factors
+        FS = spm('FontSizes');              %-Scaled font sizes
+        PF = spm_platform('fonts');         %-Font names (for this platform)
+        if spm_matlab_version_chk('7') >= 0,    %-Screen size
             S0 = get(0, 'MonitorPosition');
 
             % Monitor containing the pointer (thanks to Brian Lenoski)
@@ -2010,7 +2010,7 @@ switch lower(varargin{1}), case 'initialise'
 
         %-Draw contrast definition GUI
         %-----------------------------------------------------------------------
-        H = [];				%-Save handles for visibility switching
+        H = [];             %-Save handles for visibility switching
 
         h = uicontrol(F,'Style','Frame','Tag','DefineNew',...
             'Position',[010 045 300 350].*WS);
@@ -2223,13 +2223,13 @@ switch lower(varargin{1}), case 'initialise'
         %-Finish up
         %-----------------------------------------------------------------------
         set(0,'CurrentFigure',cF)
-        varargout = {F,struct(	'hConList',	hConList,...
-            'hDesMtxAx',	hDesMtxAx,...
-            'hParEstAx',	hParEstAx,...
-            'hPrompt',	hPrompt,...
-            'hSTATmode',	hSTATmode,...
-            'hStatLin',	hStatLin,...
-            'hNew',		hNew	)};
+        varargout = {F,struct(  'hConList', hConList,...
+            'hDesMtxAx',    hDesMtxAx,...
+            'hParEstAx',    hParEstAx,...
+            'hPrompt',  hPrompt,...
+            'hSTATmode',    hSTATmode,...
+            'hStatLin', hStatLin,...
+            'hNew',     hNew    )};
 
 
         %=======================================================================

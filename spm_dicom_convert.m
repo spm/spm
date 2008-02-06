@@ -26,7 +26,7 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1128 2008-02-01 12:27:39Z john $
+% $Id: spm_dicom_convert.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin<2, opts = 'all'; end;
@@ -77,9 +77,9 @@ for i=1:length(hdr),
     % Apparently, this is not the right way of doing it.
     %np = read_AcquisitionMatrixText(hdr{i});
     %if rem(nc, np(1)) || rem(nr, np(2)),
-    %	warning('%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
-    %		np(1), np(2), nc,nr);
-    %	return;
+    %   warning('%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
+    %       np(1), np(2), nc,nr);
+    %   return;
     %end;
     %dim    = [np read_NumberOfImagesInMosaic(hdr{i})];
 
@@ -159,10 +159,10 @@ for i=1:length(hdr),
     end;
 
     %if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1,
-    %	volume = volume*hdr{i}.RescaleSlope;
+    %   volume = volume*hdr{i}.RescaleSlope;
     %end;
     %if isfield(hdr{i},'RescaleIntercept') && hdr{i}.RescaleIntercept ~= 0,
-    %	volume = volume + hdr{i}.RescaleIntercept;
+    %   volume = volume + hdr{i}.RescaleIntercept;
     %end;
     %V = struct('fname',fname, 'dim',dim, 'dt',dt, 'mat',mat, 'descrip',descrip);
     %spm_write_vol(V,volume);
@@ -1008,9 +1008,9 @@ studydate = sprintf('%s_%s-%s', datestr(hdr.StudyDate,'yyyy-mm-dd'), ...
     h,m);
 switch root_dir
     case 'date_time',
-	id = studydate;
+    id = studydate;
     case {'patid', 'patid_date', 'patname'},
-	id = strip_unwanted(hdr.PatientID);
+    id = strip_unwanted(hdr.PatientID);
 end;
 serdes = strrep(strip_unwanted(hdr.SeriesDescription),...
     strip_unwanted(hdr.ProtocolName),'');
@@ -1040,8 +1040,8 @@ sa = sprintf('%02d', floor(rem(hdr.AcquisitionTime,60)));
 ma = sprintf('%02d', floor(rem(hdr.AcquisitionTime/60,60)));
 ha = sprintf('%02d', floor(hdr.AcquisitionTime/3600));
 fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d.%s', prefix, id, ha, ma, sa, ...
-		hdr.AcquisitionNumber,hdr.InstanceNumber, ...
-		hdr.EchoNumbers,format);
+        hdr.AcquisitionNumber,hdr.InstanceNumber, ...
+        hdr.EchoNumbers,format);
 
 fname = fullfile(dname, fname);
 

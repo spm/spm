@@ -2,8 +2,8 @@ function D = spm_eeg_ldata(P)
 % read an EEG file in SPM format. 
 % FORMAT D = spm_eeg_ldata(P)
 %
-% P 		- filename of EEG-data file
-% D			- EEG data struct 
+% P         - filename of EEG-data file
+% D         - EEG data struct 
 %_______________________________________________________________________
 % 
 % spm_eeg_ldata loads an EEG file that is in SPM format. Importantly, the
@@ -12,7 +12,7 @@ function D = spm_eeg_ldata(P)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_ldata.m 932 2007-09-29 18:01:16Z karl $
+% $Id: spm_eeg_ldata.m 1131 2008-02-06 11:17:09Z spm $
 
 
 try
@@ -27,9 +27,9 @@ if strcmp('.', Ppath) | strcmp('..', Ppath)
 end
 
 try
-	load(P);
+    load(P);
 catch    
-	error(sprintf('Trouble reading file %s', P));
+    error(sprintf('Trouble reading file %s', P));
 end
 
 spm('Pointer', 'Watch');
@@ -74,11 +74,11 @@ end
 % memory map the data
 if isfield(D, 'Nfrequencies')
     % time-frequency data
-	D.data = file_array(fullfile(Ppath, D.fnamedat), [D.Nchannels D.Nfrequencies D.Nsamples D.Nevents],...
-		dtype, 0, D.scale);
+    D.data = file_array(fullfile(Ppath, D.fnamedat), [D.Nchannels D.Nfrequencies D.Nsamples D.Nevents],...
+        dtype, 0, D.scale);
 else
-	D.data = file_array(fullfile(Ppath, D.fnamedat), [D.Nchannels D.Nsamples D.Nevents],...
-	dtype, 0, D.scale);
+    D.data = file_array(fullfile(Ppath, D.fnamedat), [D.Nchannels D.Nsamples D.Nevents],...
+    dtype, 0, D.scale);
 end
 
 spm('Pointer', 'Arrow');

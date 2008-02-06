@@ -3,7 +3,8 @@ function conf = spm_config_results
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% $Id: spm_config_results.m 803 2007-04-27 08:37:16Z volkmar $
+% Volkmar Glauche
+% $Id: spm_config_results.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-------------------------------------------------------------------------
@@ -51,7 +52,7 @@ titlestr.tag     = 'titlestr';
 titlestr.strtype = 's';
 titlestr.num     = [1 1];
 titlestr.help    = {['Heading on results page - determined automatically if' ...
-		 ' left empty']};
+         ' left empty']};
 titlestr.val     = {''};
 
 contrasts.type    = 'entry';
@@ -60,11 +61,11 @@ contrasts.tag     = 'contrasts';
 contrasts.strtype = 'e';
 contrasts.num     = [1 Inf];
 contrasts.help    = {['Index of contrast(s). If more than one number is' ...
-		    ' entered, analyse a conjunction hypothesis.'], ...
-		    '',...
-		    ['If only one number is entered, and this number is' ...
-		    ' "Inf", then results are printed for all contrasts' ...
-		    ' found in the SPM.mat file.']};
+            ' entered, analyse a conjunction hypothesis.'], ...
+            '',...
+            ['If only one number is entered, and this number is' ...
+            ' "Inf", then results are printed for all contrasts' ...
+            ' found in the SPM.mat file.']};
 
 %-------------------------------------------------------------------------
 
@@ -122,23 +123,23 @@ cspec = job.conspec;
 for k = 1:numel(cspec)
     job.conspec=cspec(k);
     if (numel(cspec(k).contrasts) == 1) && isinf(cspec(k).contrasts)
-	tmp=load(job.spmmat{1});
-	for l=1:numel(tmp.SPM.xCon)
-	    cspec1(l) = cspec(k);
-	    cspec1(l).contrasts = l;
-	end;
-	job1=job;
-	job1.print = 1;
-	job1.conspec = cspec1;
-	run_results(job1);
+    tmp=load(job.spmmat{1});
+    for l=1:numel(tmp.SPM.xCon)
+        cspec1(l) = cspec(k);
+        cspec1(l).contrasts = l;
+    end;
+    job1=job;
+    job1.print = 1;
+    job1.conspec = cspec1;
+    run_results(job1);
     else
-	[hReg xSPM SPM]=spm_results_ui('Setup',job);
-	if job.print
-	    spm_list('List',xSPM,hReg);
-	    spm_figure('Print');
-	end;
-	assignin('base','hReg',hReg);
-	assignin('base','xSPM',xSPM);
-	assignin('base','SPM',SPM);
+    [hReg xSPM SPM]=spm_results_ui('Setup',job);
+    if job.print
+        spm_list('List',xSPM,hReg);
+        spm_figure('Print');
+    end;
+    assignin('base','hReg',hReg);
+    assignin('base','xSPM',xSPM);
+    assignin('base','SPM',SPM);
     end;
 end;

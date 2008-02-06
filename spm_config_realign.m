@@ -4,7 +4,7 @@ function opts = spm_config_realign
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_realign.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_config_realign.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %_______________________________________________________________________
@@ -389,7 +389,7 @@ function estimate(varargin)
 job           = varargin{1};
 P             = {};
 for i=1:length(job.data),
-	P{i}  = strvcat(job.data{i});
+    P{i}  = strvcat(job.data{i});
 end;
 flags.quality = job.eoptions.quality;
 flags.fwhm    = job.eoptions.fwhm;
@@ -480,11 +480,11 @@ P = job.data;
 vf = {};
 if numel(P) > 0
     if ~iscell(P{1})
-	P = {P};
+    P = {P};
     end;
     for k = 1:numel(P)
-	[pth,nam,ext,num] = spm_fileparts(P{k}{1});
-	vf{k} = fullfile(pth, sprintf('rp_%s.txt', nam));
+    [pth,nam,ext,num] = spm_fileparts(P{k}{1});
+    vf{k} = fullfile(pth, sprintf('rp_%s.txt', nam));
     end;
 end;
 

@@ -20,7 +20,8 @@ function VO = spm_add2(VI,VO,flg)
 %_______________________________________________________________________
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
-% $Id: spm_add2.m 594 2006-08-16 16:22:34Z john $
+% John Ashburner
+% $Id: spm_add2.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin>2 && any(flg=='m'), msk = true;
 else msk = false; end;

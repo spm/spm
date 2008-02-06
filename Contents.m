@@ -27,7 +27,7 @@
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% $Id: Contents.m 123 2005-05-06 12:15:13Z john $
+% $Id: Contents.m 1131 2008-02-06 11:17:09Z spm $
 
 %=======================================================================
 % PROGRAMMERS NOTE:
@@ -41,7 +41,7 @@
 %=======================================================================
 %%% Extract LastRevision number from 'Id' tag in SPM files
 % mext = {'.m','.c','.h','.man','.xml', ...       %- source code
-%   	  '.dll','.mexmac','.mexsol','.mexglx'};  %- MEX
+%         '.dll','.mexmac','.mexsol','.mexglx'};  %- MEX
 % spmdir = spm('Dir');
 % d = dir(fullfile(spmdir,'*'));
 % f = {d(~[d.isdir]).name};
@@ -51,17 +51,17 @@
 % for i=1:length(f)
 %     [pathstr, name, ext] = fileparts(f{i});
 %     if ismember(ext,mext)
-%   	  fid = fopen(fullfile(spmdir,f{i}),'r');
-%   	  if fid == -1, continue; end
-%   	  V = 'none';
-%   	  while 1
-%   		  tline = fgetl(fid);
-%   		  if ~ischar(tline), break, end
-%   		  tok = regexp(tline, pat, 'tokens');
-%   		  if ~isempty(tok), V = tok{1}{2}; break; end
-%   	  end
-%   	  fclose(fid);
-%   	  fprintf('%% %s %s%s\n',f{i},blanks(L-length(f{i})),V);
+%         fid = fopen(fullfile(spmdir,f{i}),'r');
+%         if fid == -1, continue; end
+%         V = 'none';
+%         while 1
+%             tline = fgetl(fid);
+%             if ~ischar(tline), break, end
+%             tok = regexp(tline, pat, 'tokens');
+%             if ~isempty(tok), V = tok{1}{2}; break; end
+%         end
+%         fclose(fid);
+%         fprintf('%% %s %s%s\n',f{i},blanks(L-length(f{i})),V);
 %     end
 % end
 %=======================================================================

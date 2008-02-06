@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 986 2007-10-30 19:04:21Z guillaume $
+% $Id: spm_getSPM.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-GUI setup
@@ -192,9 +192,9 @@ swd = spm_str_manip(spmmatfile,'H');
 %-Load SPM.mat
 %-----------------------------------------------------------------------
 try
-	load(fullfile(swd,'SPM.mat'));
+    load(fullfile(swd,'SPM.mat'));
 catch
-	error(['Cannot read ' fullfile(swd,'SPM.mat')]);
+    error(['Cannot read ' fullfile(swd,'SPM.mat')]);
 end
 SPM.swd = swd;
 
@@ -204,24 +204,24 @@ try
     if strcmp(spm('CheckModality'), 'EEG') & isfield(SPM.xX, 'fullrank')
         Vbeta = SPM.Vbeta;
     else
-        xX   = SPM.xX;				    %-Design definition structure
-        XYZ  = SPM.xVol.XYZ;			%-XYZ coordinates
-        S    = SPM.xVol.S;			    %-search Volume {voxels}
-        R    = SPM.xVol.R;			    %-search Volume {resels}
-        M    = SPM.xVol.M(1:3,1:3);		%-voxels to mm matrix
-        VOX  = sqrt(diag(M'*M))';		%-voxel dimensions
+        xX   = SPM.xX;                  %-Design definition structure
+        XYZ  = SPM.xVol.XYZ;            %-XYZ coordinates
+        S    = SPM.xVol.S;              %-search Volume {voxels}
+        R    = SPM.xVol.R;              %-search Volume {resels}
+        M    = SPM.xVol.M(1:3,1:3);     %-voxels to mm matrix
+        VOX  = sqrt(diag(M'*M))';       %-voxel dimensions
     end
 catch
     
-	% check the model has been estimated
-	%-------------------------------------------------------------------
-	str = {	'This model has not been estimated.';...
-		    'Would you like to estimate it now?'};
-	if spm_input(str,1,'bd','yes|no',[1,0],1)
-		[SPM] = spm_spm(SPM);
-	else
-		return
-	end
+    % check the model has been estimated
+    %-------------------------------------------------------------------
+    str = { 'This model has not been estimated.';...
+            'Would you like to estimate it now?'};
+    if spm_input(str,1,'bd','yes|no',[1,0],1)
+        [SPM] = spm_spm(SPM);
+    else
+        return
+    end
 end
 
 
@@ -231,9 +231,9 @@ end
 %-Load contrast definitions (if available)
 %-----------------------------------------------------------------------
 try
-	xCon = SPM.xCon;
+    xCon = SPM.xCon;
 catch
-	xCon = {};
+    xCon = {};
 end
 
 
@@ -245,14 +245,14 @@ end
 %-----------------------------------------------------------------------
 if (~batch) || isempty(xCon)
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
-			   '	Select contrasts...',' for conjunction',1);
+               '    Select contrasts...',' for conjunction',1);
     % figure out whether new contrasts were defined, but not selected
     % do this by comparing length of SPM.xCon to xCon, remember added
     % indices to run spm_contrasts on them as well
     try
-	noxCon = numel(SPM.xCon);
+    noxCon = numel(SPM.xCon);
     catch
-	noxCon = 0;
+    noxCon = 0;
     end;
     IcAdd = (noxCon+1):numel(xCon);
 else
@@ -305,27 +305,27 @@ if nc>1 & n>1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
     %-------------------------------------------------------------------
     i = 1; while(i < nc), i = i + 1;
     
-	%-Orthogonalise (subspace spanned by) contrast i wirit previous
-	%---------------------------------------------------------------
-	oxCon = spm_FcUtil('|_',xCon(Ic(i)), xX.xKXs, xCon(Ic(1:i-1)));
+    %-Orthogonalise (subspace spanned by) contrast i wirit previous
+    %---------------------------------------------------------------
+    oxCon = spm_FcUtil('|_',xCon(Ic(i)), xX.xKXs, xCon(Ic(1:i-1)));
     
-	%-See if this orthogonalised contrast has already been entered
-	% or is colinear with a previous one. Define a new contrast if
-	% neither is the case.
-	%---------------------------------------------------------------
-	d     = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
+    %-See if this orthogonalised contrast has already been entered
+    % or is colinear with a previous one. Define a new contrast if
+    % neither is the case.
+    %---------------------------------------------------------------
+    d     = spm_FcUtil('In',oxCon,xX.xKXs,xCon);
 
-	if spm_FcUtil('0|[]',oxCon,xX.xKXs)
+    if spm_FcUtil('0|[]',oxCon,xX.xKXs)
 
-	    %-Contrast was colinear with a previous one - drop it
-	    %-----------------------------------------------------------
-	    Ic(i) = [];
-	    i     = i - 1;
+        %-Contrast was colinear with a previous one - drop it
+        %-----------------------------------------------------------
+        Ic(i) = [];
+        i     = i - 1;
 
-	elseif any(d)
+    elseif any(d)
 
-	    %-Contrast unchanged or already defined - note index
-	    %-----------------------------------------------------------
+        %-Contrast unchanged or already defined - note index
+        %-----------------------------------------------------------
             Ic(i) = min(d);
 
         else
@@ -345,7 +345,7 @@ if nc>1 & n>1 & ~spm_FcUtil('|_?',xCon(Ic), xX.xKXs)
     
     if OrthWarn
       warning(sprintf(['Contrasts changed!  %d contrasts orthogonalized ',...
-		      'to allow conjunction inf.'], OrthWarn))
+              'to allow conjunction inf.'], OrthWarn))
     end
 
     SPM.xCon = xCon;
@@ -361,29 +361,29 @@ else
 end;
 if domask
         if batch
-	    Im = job.conspec.mask.contrasts;
-	else
-	    [Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
-		'Select contrasts for masking...',' for masking',1);
-	end;
-	%-Threshold for mask (uncorrected p-value)
-	%---------------------------------------------------------------
-	if batch
-	    pm = job.conspec.mask.thresh;
-	else
-	    pm = spm_input('uncorrected mask p-value','+1','r',0.05,1,[0,1]);
-	end;
-	%-Inclusive or exclusive masking
-	%---------------------------------------------------------------
-	if batch
-	    Ex = job.conspec.mask.mtype;
-	else
-	    Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
-	end;
+        Im = job.conspec.mask.contrasts;
+    else
+        [Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
+        'Select contrasts for masking...',' for masking',1);
+    end;
+    %-Threshold for mask (uncorrected p-value)
+    %---------------------------------------------------------------
+    if batch
+        pm = job.conspec.mask.thresh;
+    else
+        pm = spm_input('uncorrected mask p-value','+1','r',0.05,1,[0,1]);
+    end;
+    %-Inclusive or exclusive masking
+    %---------------------------------------------------------------
+    if batch
+        Ex = job.conspec.mask.mtype;
+    else
+        Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
+    end;
 else
-	Im = [];
-	pm = [];
-	Ex = [];
+    Im = [];
+    pm = [];
+    Ex = [];
 end
 
 
@@ -393,34 +393,34 @@ if batch && ~isempty(job.conspec.titlestr);
     titlestr = job.conspec.titlestr;
 else
     if nc == 1
-	str  = xCon(Ic).name;
+    str  = xCon(Ic).name;
     else
-	str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
-	if n==nc
-	    str = [str ' (global null)'];
-	elseif n==1
-	    str = [str ' (conj. null)'];
-	else
-	    str = [str sprintf(' (Ha: k>=%d)',(nc-n)+1)];
-	end
+    str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
+    if n==nc
+        str = [str ' (global null)'];
+    elseif n==1
+        str = [str ' (conj. null)'];
+    else
+        str = [str sprintf(' (Ha: k>=%d)',(nc-n)+1)];
+    end
     end
     if Ex
-	mstr = 'masked [excl.] by';
+    mstr = 'masked [excl.] by';
     else
-	mstr = 'masked [incl.] by';
+    mstr = 'masked [incl.] by';
     end
     if length(Im) == 1
-	str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
+    str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
 
     elseif ~isempty(Im)
-	str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
-		sprintf(',%d',Im(2:end)),...
-		sprintf('} at p=%g)',pm)];
+    str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
+        sprintf(',%d',Im(2:end)),...
+        sprintf('} at p=%g)',pm)];
     end
     if batch
-	titlestr = str;
+    titlestr = str;
     else
-	titlestr     = spm_input('title for comparison','+1','s',str);
+    titlestr     = spm_input('title for comparison','+1','s',str);
     end;
 end;
 
@@ -490,8 +490,8 @@ VspmSv   = cat(1,xCon(Ic).Vspm);
 %-Check conjunctions - Must be same STAT w/ same df
 %-----------------------------------------------------------------------
 if (nc > 1) & (any(diff(double(cat(1,xCon(Ic).STAT)))) | ...
-	      any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
-	error('illegal conjunction: can only conjoin SPMs of same STAT & df')
+          any(abs(diff(cat(1,xCon(Ic).eidf))) > 1))
+    error('illegal conjunction: can only conjoin SPMs of same STAT & df')
 end
 
 
@@ -499,22 +499,22 @@ end
 %-----------------------------------------------------------------------
 df          = [xCon(Ic(1)).eidf xX.erdf];
 if nc>1
-	if n>1
-	    str = sprintf('^{%d \\{Ha:k\\geq%d\\}}',nc,(nc-n)+1);
-	else
-	    str = sprintf('^{%d \\{Ha:k=%d\\}}',nc,(nc-n)+1);
-	end
+    if n>1
+        str = sprintf('^{%d \\{Ha:k\\geq%d\\}}',nc,(nc-n)+1);
+    else
+        str = sprintf('^{%d \\{Ha:k=%d\\}}',nc,(nc-n)+1);
+    end
 else
-	str = '';
+    str = '';
 end
 
 switch STAT
 case 'T'
-	STATstr = sprintf('%c%s_{%.0f}','T',str,df(2));
+    STATstr = sprintf('%c%s_{%.0f}','T',str,df(2));
 case 'F'
-	STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,df(1),df(2));
+    STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,df(1),df(2));
 case 'P'
-	STATstr = sprintf('%s^{%0.2f}','PPM',df(1));
+    STATstr = sprintf('%s^{%0.2f}','PPM',df(1));
 end
 
 
@@ -527,40 +527,40 @@ fprintf('\t%-32s: %30s\n','SPM computation','...initialising')         %-#
 %-----------------------------------------------------------------------
 Z         = Inf;
 for i     = Ic
-	Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
+    Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
 end
 
 % P values for False Discovery FDR rate computation (all search voxels)
 %=======================================================================
 switch STAT
 case 'T'
-	Ps = (1 - spm_Tcdf(Z,df(2))).^n;
+    Ps = (1 - spm_Tcdf(Z,df(2))).^n;
 case 'P'
-	Ps = (1 - Z).^n;
+    Ps = (1 - Z).^n;
 case 'F'
-	Ps = (1 - spm_Fcdf(Z,df)).^n;
+    Ps = (1 - spm_Fcdf(Z,df)).^n;
 end
 
 
 %-Compute mask and eliminate masked voxels
 %-----------------------------------------------------------------------
 for i = Im
-	fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')
+    fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')
 
-	Mask = spm_get_data(xCon(i).Vspm,XYZ);
-	um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
-	if Ex
-		Q = Mask <= um;
-	else
-		Q = Mask >  um;
-	end
-	XYZ       = XYZ(:,Q);
-	Z         = Z(Q);
-	if isempty(Q)
-		fprintf('\n')                                           %-#
-    		warning(sprintf('No voxels survive masking at p=%4.2f',pm))
-		break
-	end
+    Mask = spm_get_data(xCon(i).Vspm,XYZ);
+    um   = spm_u(pm,[xCon(i).eidf,xX.erdf],xCon(i).STAT);
+    if Ex
+        Q = Mask <= um;
+    else
+        Q = Mask >  um;
+    end
+    XYZ       = XYZ(:,Q);
+    Z         = Z(Q);
+    if isempty(Q)
+        fprintf('\n')                                           %-#
+            warning(sprintf('No voxels survive masking at p=%4.2f',pm))
+        break
+    end
 end
 
 %-clean up interface
@@ -583,39 +583,39 @@ if STAT ~= 'P'
     %-Get height threshold
     %-------------------------------------------------------------------
     if batch
-	thresDesc = job.conspec.threshdesc;
-	u = job.conspec.thresh;
+    thresDesc = job.conspec.threshdesc;
+    u = job.conspec.thresh;
     else
-	str = 'FWE|FDR|none';
-	% str = 'FWE|none';      % Use this line to disable FDR threshold
-	thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
+    str = 'FWE|FDR|none';
+    % str = 'FWE|none';      % Use this line to disable FDR threshold
+    thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
     end;
     switch thresDesc
 
 
-	case 'FWE' % family-wise false positive rate
+    case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
-	if ~batch
-	    u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
-	end;
-	thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-	u  = spm_uc(u,df,STAT,R,n,S);
+    if ~batch
+        u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
+    end;
+    thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+    u  = spm_uc(u,df,STAT,R,n,S);
 
-	case 'FDR' % False discovery rate
-	%---------------------------------------------------------------	
-	if ~batch
-	    u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
-	end;
-	thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
-	u  = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
+    case 'FDR' % False discovery rate
+    %---------------------------------------------------------------    
+    if ~batch
+        u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
+    end;
+    thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
+    u  = spm_uc_FDR(u,df,STAT,n,VspmSv,0);
 
-	otherwise  %-NB: no adjustment
-	% p for conjunctions is p of the conjunction SPM
-   	%---------------------------------------------------------------
-	if ~batch
-	    u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
-	end;
-	if u <= 1
+    otherwise  %-NB: no adjustment
+    % p for conjunctions is p of the conjunction SPM
+    %---------------------------------------------------------------
+    if ~batch
+        u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
+    end;
+    if u <= 1
             thresDesc = ['p<' num2str(u) ' (unc.)'];
             u = spm_u(u^(1/n),df,STAT); 
         else
@@ -643,7 +643,7 @@ Q      = find(Z > u);
 Z      = Z(:,Q);
 XYZ    = XYZ(:,Q);
 if isempty(Q)
-	warning(sprintf('No voxels survive height threshold u=%0.2g',u))
+    warning(sprintf('No voxels survive height threshold u=%0.2g',u))
 end
 
 
@@ -654,9 +654,9 @@ if ~isempty(XYZ) & nc == 1
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
     if batch
-	k = job.conspec.extent;
+    k = job.conspec.extent;
     else
-	k     = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
+    k     = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
     end;
     %-Calculate extent threshold filtering
     %-------------------------------------------------------------------
@@ -672,7 +672,7 @@ if ~isempty(XYZ) & nc == 1
     Z     = Z(:,Q);
     XYZ   = XYZ(:,Q);
     if isempty(Q)
-	warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
+    warning(sprintf('No voxels survive extent threshold k=%0.2g',k))
     end
 
 else
@@ -699,30 +699,30 @@ end
 %-Assemble output structures of unfiltered data
 %=======================================================================
 xSPM   = struct( ...
-        'swd',		swd,...
-		'title',	titlestr,...
-		'Z',		Z,...
-		'n',		n,...
-		'STAT',		STAT,...
-		'df',		df,...
-		'STATstr',	STATstr,...
-		'Ic',		Ic,...
-		'Im',		Im,...
-		'pm',		pm,...
-		'Ex',		Ex,...
-		'u',		u,...
-		'k',		k,...
-		'XYZ',		XYZ,...
-		'XYZmm',	SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
-		'S',		SPM.xVol.S,...
-		'R',		SPM.xVol.R,...
-		'FWHM',		SPM.xVol.FWHM,...
-		'M',		SPM.xVol.M,...
-		'iM',		SPM.xVol.iM,...
-		'DIM',		SPM.xVol.DIM,...
-		'VOX',		VOX,...
-		'Vspm',		VspmSv,...
-		'Ps',		Ps,...
+        'swd',      swd,...
+        'title',    titlestr,...
+        'Z',        Z,...
+        'n',        n,...
+        'STAT',     STAT,...
+        'df',       df,...
+        'STATstr',  STATstr,...
+        'Ic',       Ic,...
+        'Im',       Im,...
+        'pm',       pm,...
+        'Ex',       Ex,...
+        'u',        u,...
+        'k',        k,...
+        'XYZ',      XYZ,...
+        'XYZmm',    SPM.xVol.M(1:3,:)*[XYZ; ones(1,size(XYZ,2))],...
+        'S',        SPM.xVol.S,...
+        'R',        SPM.xVol.R,...
+        'FWHM',     SPM.xVol.FWHM,...
+        'M',        SPM.xVol.M,...
+        'iM',       SPM.xVol.iM,...
+        'DIM',      SPM.xVol.DIM,...
+        'VOX',      VOX,...
+        'Vspm',     VspmSv,...
+        'Ps',       Ps,...
         'thresDesc',thresDesc);
 
 % RESELS per voxel (density) if it exists

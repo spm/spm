@@ -10,7 +10,7 @@ function [slice] = spm_vb_robust (Y,slice)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_vb_robust.m 1131 2008-02-06 11:17:09Z spm $
 
 [T,Nv]=size(Y);
 X=slice.X;

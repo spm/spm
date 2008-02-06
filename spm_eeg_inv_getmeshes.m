@@ -1,20 +1,16 @@
 function varargout = spm_eeg_inv_getmeshes(varargin);
-
-%==========================================================================
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
 % FORMAT D = spm_eeg_inv_getmeshes(D)
 % Input:
-% D		    - input data struct (optional)
+% D         - input data struct (optional)
 % Output:
-% D			- data struct with the tessellation fields
-%
-%==========================================================================
+% D         - data struct with the tessellation fields
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Jeremie Mattout & Christophe Phillips
-% Modified by Rik if want only, eg, skull, scalp meshes
-% $Id: spm_eeg_inv_getmeshes.m 954 2007-10-17 15:12:26Z rik $
+% Jeremie Mattout, Christophe Phillips, Rik Henson
+% $Id: spm_eeg_inv_getmeshes.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin == 2
   num_mesh = varargin{2};
@@ -22,7 +18,7 @@ if nargin == 2
     error('number of meshes must lie between 1 and 3')
   end
 else
-  num_mesh = 3;		% Do all by default (skull, scalp, cortex)
+  num_mesh = 3;     % Do all by default (skull, scalp, cortex)
 end
 
 % checks and defaults

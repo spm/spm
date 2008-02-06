@@ -6,9 +6,11 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % - SPM_EEG_INV_VISU3D_API('callback_name', ...) invoke the named callback.
 %
 % Last Modified by GUIDE v2.5 01-Feb-2007 20:16:13
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_eeg_inv_visu3D_api.m 1131 2008-02-06 11:17:09Z spm $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------

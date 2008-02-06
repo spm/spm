@@ -4,7 +4,7 @@ function spm_print(fname)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_print.m 902 2007-08-30 09:29:29Z volkmar $
+% $Id: spm_print.m 1131 2008-02-06 11:17:09Z spm $
 
 
 global defaults
@@ -42,9 +42,9 @@ try,
     end;
     print(fg,opts{:});
     if isempty(strfind(nam1,filesep))
-	fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
+    fprintf('\nPrinting Graphics Windows to\n%s%s%s\n',pwd,filesep,nam1);
     else
-	fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
+    fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
     end
 catch,
     errstr = lasterr;

@@ -69,7 +69,7 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % (for hold, mask & type), or to pre-specify images (P), output
 % filename (Q), or expression (f). Pass empty matrices for arguments
 % not to be set.
-% E.g.	Q = spm_imcalc_ui({},'test','',{[],[],[],1})
+% E.g.  Q = spm_imcalc_ui({},'test','',{[],[],[],1})
 %       ... pre-specifies the output filename as 'test.img' in the current
 % working directory, and sets the interpolation hold to tri-linear.
 %
@@ -88,12 +88,12 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 940 2007-10-14 16:35:23Z volkmar $
+% $Id: spm_imcalc_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev: 940 $';
+SCCSid = '$Rev: 1131 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])
@@ -130,12 +130,12 @@ if isempty(Vi), error('no input images specified'), end
 %-Check for consistency of image dimensions and orientation / voxel size
 %-----------------------------------------------------------------------
 if length(Vi)>1 && any(any(diff(cat(1,Vi.dim),1,1),1))
-	warning(['images don''t all have same dimensions',...
-		' - using those of 1st image']);
+    warning(['images don''t all have same dimensions',...
+        ' - using those of 1st image']);
 end
 if any(any(any(diff(cat(3,Vi.mat),1,3),3)))
-	warning(['images don''t all have same orientation & voxel size',...
-		' - using 1st image']);
+    warning(['images don''t all have same orientation & voxel size',...
+        ' - using 1st image']);
 end
 
 
@@ -144,15 +144,15 @@ end
 [p n e v] = spm_fileparts(Q);
 e = spm_str_manip(e,'ev'); % Canonicalise extension
 if ~exist(p,'dir')
-	warning('Invalid directory: writing to current directory')
-	p = '.';
+    warning('Invalid directory: writing to current directory')
+    p = '.';
 end
 
-Vo = struct(	'fname',	fullfile(p, [n, '.', e]),...
-		'dim',		Vi(1).dim(1:3),...
-		'dt',		[type spm_platform('bigend')],...
-		'mat',		Vi(1).mat,...
-		'descrip',	'spm - algebra');
+Vo = struct(    'fname',    fullfile(p, [n, '.', e]),...
+        'dim',      Vi(1).dim(1:3),...
+        'dt',       [type spm_platform('bigend')],...
+        'mat',      Vi(1).mat,...
+        'descrip',  'spm - algebra');
 
 
 %-Call spm_imcalc to handle computations

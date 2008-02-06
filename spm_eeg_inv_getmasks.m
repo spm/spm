@@ -1,23 +1,21 @@
 function D = spm_eeg_inv_getmasks(varargin);
-
-%=======================================================================
 % Generate the binary images (masks) of skull and scalp surfaces
 %
 % FORMAT [D] = spm_eeg_inv_getmasks(D,val);
 % Input:
-% D		    - input data struct (optional)
+% D         - input data struct (optional)
 % Output:
-% D			- same data struct including the new files and parameters
+% D         - same data struct including the new files and parameters
 % D.inv{val}.mesh.msk_iskull;
 % D.inv{val}.mesh.msk_cortex;
 % D.inv{val}.mesh.msk_scalp;
 % D.inv{val}.mesh.msk_flags;
 %
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 954 2007-10-17 15:12:26Z rik $
+% $Id: spm_eeg_inv_getmasks.m 1131 2008-02-06 11:17:09Z spm $
 
 % initialise
 %--------------------------------------------------------------------------

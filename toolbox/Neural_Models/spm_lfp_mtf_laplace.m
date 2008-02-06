@@ -10,10 +10,10 @@ function [G,f] = spm_lfp_mtf_laplace(P,M,U)
 %                - for N frequencies in M.Hz [default 1:64Hz]
 %                  
 %__________________________________________________________________________
-% Copyright (C) 2007 Wellcme Department of Imaging Neuroscienceo
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rosalyn Moran
-% $Id$
+% $Id: spm_lfp_mtf_laplace.m 1131 2008-02-06 11:17:09Z spm $
  
 % compute log-spectral density
 %==========================================================================

@@ -14,8 +14,8 @@ function GX = spm_global(V)
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-% Anon
-% $Id: spm_global.m 159 2005-05-16 14:00:56Z guillaume $
+% Anonymous
+% $Id: spm_global.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-This is merely the help file for the compiled routine

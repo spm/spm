@@ -1,6 +1,4 @@
 function varargout = spm_eeg_inv_spatnorm(varargin)
-
-%==========================================================================
 % Spatial Normalization (using a unified model - SPM5)
 % transforms individual sMRI into MNI T1 space and
 % saves the [inverse] deformations (...vbm_inv_sn.mat)
@@ -12,11 +10,11 @@ function varargout = spm_eeg_inv_spatnorm(varargin)
 % Output:
 % D        - same data struct including the inverse deformation .mat file
 %            and filename of noramlised (bias correctd) sMRI
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 972 2007-10-24 11:48:35Z stefan $
+% $Id: spm_eeg_inv_spatnorm.m 1131 2008-02-06 11:17:09Z spm $
 
 % initialise
 %--------------------------------------------------------------------------

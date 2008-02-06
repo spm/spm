@@ -1,9 +1,11 @@
-
 function D=spm_eeg_average_TF(S)
-%%% function to average induced TF data if standard average does not work because of out of memeory issues
+% function to average induced TF data if standard average does not work 
+% because of out of memory issues
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id$
+% $Id: spm_eeg_average_TF.m 1131 2008-02-06 11:17:09Z spm $
 
 try
     D = S.D;
@@ -55,7 +57,7 @@ for n=1:D.events.Ntypes
     dat = int16(dat./repmat(D.scale(:, 1, 1, n), [1, D.Nfrequencies, D.Nsamples]));
     fwrite(fpd, dat, 'int16');
 end
-fclose (fh)	;
+fclose (fh) ;
 
 fclose(fpd);
 D.Nevents = size(c, 2);

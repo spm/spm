@@ -1,5 +1,4 @@
 function [Channel,B] = spm_eeg_rdata_FIF_channels(Fdata);
-
 % Function that returns channel info for various types of Neuromag coils
 % in BrainStorm format (made separate from spm_eeg_rdata_FIF in case 
 % such channel info is needed for Brainstorm directly, without using SPM)
@@ -12,8 +11,11 @@ function [Channel,B] = spm_eeg_rdata_FIF_channels(Fdata);
 %      http://www.kolumbus.fi/~w132276/programs/meg-pd/
 %    - Fiff Access does not handle long int, so may need to convert 
 %      to short int or float first (eg using MaxFilter)
-%
-% Rik Henson (5/06/07)
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Rik Henson
+% $Id: spm_eeg_rdata_FIF_channels.m 1131 2008-02-06 11:17:09Z spm $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This cell array of structures contain the information on every type of 
@@ -99,30 +101,30 @@ for c = 1:nchan
     if size(Channel(chan).CoilLoc,2) == 2
 % Hack for planar gradiometers
 
-	Channel(chan).SensType = 'Gradiometer';
-	Channel(chan).Loc = [Channel(chan).CoilLoc(:,1); Channel(chan).CoilLoc(:,2)];
-	Channel(chan).Weight = Channel(chan).CoilWeight;
+    Channel(chan).SensType = 'Gradiometer';
+    Channel(chan).Loc = [Channel(chan).CoilLoc(:,1); Channel(chan).CoilLoc(:,2)];
+    Channel(chan).Weight = Channel(chan).CoilWeight;
 
-	% This is orientation of COIL (ie loop)
-        Channel(chan).Orient = [Channel(chan).CoilOrient(:,1); Channel(chan).CoilOrient(:,2)];		
+    % This is orientation of COIL (ie loop)
+        Channel(chan).Orient = [Channel(chan).CoilOrient(:,1); Channel(chan).CoilOrient(:,2)];      
 
-	% This is orientation of (planar) GRADIENT (ie difference measured by coils, which is X-direction)
-	Channel(chan).GradOrient = T{chan}*[[1 0 0]' * ones(1,Coil{CoilType(chan)}.n); zeros(1,Coil{CoilType(chan)}.n)];
-	Channel(chan).GradOrient = Channel(chan).GradOrient(1:3,1);		
+    % This is orientation of (planar) GRADIENT (ie difference measured by coils, which is X-direction)
+    Channel(chan).GradOrient = T{chan}*[[1 0 0]' * ones(1,Coil{CoilType(chan)}.n); zeros(1,Coil{CoilType(chan)}.n)];
+    Channel(chan).GradOrient = Channel(chan).GradOrient(1:3,1);     
 
     elseif size(Channel(chan).CoilLoc,2) == 4
 % Hack for magnetometers
-	Channel(chan).SensType = 'Magnetometer';
+    Channel(chan).SensType = 'Magnetometer';
 
 % Comments in spm_bst_headmodeler require NaN for "second coil" of 
 % magnetometers (though spm_eeg_inv_BSTfwdsol actually handles this)
-	Channel(chan).Loc = [mean(Channel(chan).CoilLoc,2); ones(3,1)*NaN];
-	Channel(chan).Orient = [Channel(chan).CoilOrient(1:3,1); ones(3,1)*NaN];
-	Channel(chan).Weight = [sum(Channel(chan).CoilWeight) 0];
-	Channel(chan).GradOrient = Channel(chan).Orient(1:3);		
+    Channel(chan).Loc = [mean(Channel(chan).CoilLoc,2); ones(3,1)*NaN];
+    Channel(chan).Orient = [Channel(chan).CoilOrient(1:3,1); ones(3,1)*NaN];
+    Channel(chan).Weight = [sum(Channel(chan).CoilWeight) 0];
+    Channel(chan).GradOrient = Channel(chan).Orient(1:3);       
 
     else
-	error(sprintf('Sensor %d: Unknown coil type',chan))
+    error(sprintf('Sensor %d: Unknown coil type',chan))
     end
 end
 

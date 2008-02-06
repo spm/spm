@@ -11,7 +11,7 @@ function [y] = spm_MNpdf (m, C, x)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_MNpdf.m 1131 2008-02-06 11:17:09Z spm $
 
 ic = inv(C);
 [n, d] = size(x);

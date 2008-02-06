@@ -52,16 +52,16 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_VOI.m 1001 2007-11-16 15:25:56Z christophe $
+% $Id: spm_VOI.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Parse arguments
 %-----------------------------------------------------------------------
 if nargin < 2,   error('insufficient arguments'), end
-if nargin < 3,	 hReg = []; end
+if nargin < 3,   hReg = []; end
 
-Num      = 16;			% maxima per cluster
-Dis      = 04;			% distance among maxima (mm)
+Num      = 16;          % maxima per cluster
+Dis      = 04;          % distance among maxima (mm)
 
 %-Title
 %-----------------------------------------------------------------------
@@ -75,7 +75,7 @@ xyzmm    = spm_results_ui('GetCoords');
 %-----------------------------------------------------------------------
 str      = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
 SPACE    = spm_input('Search volume...',-1,'m',...
-		{['Sphere',str],['Box',str],'Image'},['S','B','I']);
+        {['Sphere',str],['Box',str],'Image'},['S','B','I']);
 
 % voxels in entire search volume {mm}
 %-----------------------------------------------------------------------
@@ -87,36 +87,36 @@ FWHM     = xSPM.FWHM;
 
 switch SPACE
 
-	case 'S' %-Sphere
-	%---------------------------------------------------------------
-	D          = spm_input('radius of VOI {mm}',-2);
-	str        = sprintf('%0.1fmm sphere',D);
-	j          = find(sum((xSPM.XYZmm - xyzmm*Q).^2) <= D^2);
-	k          = find(sum((     XYZmm - xyzmm*O).^2) <= D^2);
-	D          = D./xSPM.VOX;
+    case 'S' %-Sphere
+    %---------------------------------------------------------------
+    D          = spm_input('radius of VOI {mm}',-2);
+    str        = sprintf('%0.1fmm sphere',D);
+    j          = find(sum((xSPM.XYZmm - xyzmm*Q).^2) <= D^2);
+    k          = find(sum((     XYZmm - xyzmm*O).^2) <= D^2);
+    D          = D./xSPM.VOX;
 
 
-	case 'B' %-Box
-	%---------------------------------------------------------------
-	D          = spm_input('box dimensions [k l m] {mm}',-2);
+    case 'B' %-Box
+    %---------------------------------------------------------------
+    D          = spm_input('box dimensions [k l m] {mm}',-2);
     if length(D)~=3, D = ones(1,3)*D(1); end
-	str        = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
-	j          = find(all(abs(xSPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
-	k          = find(all(abs(     XYZmm - xyzmm*O) <= D(:)*O/2));
-	D          = D./xSPM.VOX;
+    str        = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
+    j          = find(all(abs(xSPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
+    k          = find(all(abs(     XYZmm - xyzmm*O) <= D(:)*O/2));
+    D          = D./xSPM.VOX;
 
 
-	case 'I' %-Mask Image
-	%---------------------------------------------------------------
-	Msk   = spm_select(1,'image','Image defining search volume');
-	D     = spm_vol(Msk);
-	str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
-	VOX   = sqrt(sum(D.mat(1:3,1:3).^2));
-	FWHM  = FWHM.*(xSPM.VOX./VOX);
-	XYZ   = D.mat \ [xSPM.XYZmm; ones(1, size(xSPM.XYZmm, 2))];
-	j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
-	XYZ   = D.mat \ [     XYZmm; ones(1, size(    XYZmm, 2))];
-	k     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
+    case 'I' %-Mask Image
+    %---------------------------------------------------------------
+    Msk   = spm_select(1,'image','Image defining search volume');
+    D     = spm_vol(Msk);
+    str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
+    VOX   = sqrt(sum(D.mat(1:3,1:3).^2));
+    FWHM  = FWHM.*(xSPM.VOX./VOX);
+    XYZ   = D.mat \ [xSPM.XYZmm; ones(1, size(xSPM.XYZmm, 2))];
+    j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
+    XYZ   = D.mat \ [     XYZmm; ones(1, size(    XYZmm, 2))];
+    k     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
 
 end
 
@@ -131,7 +131,7 @@ xSPM.Ps    = xSPM.Ps(k);
 %-----------------------------------------------------------------------
 str       = sprintf('search volume: %s',str);
 if any(strcmp(SPACE,{'S','B'}))
-	str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
+    str = sprintf('%s at [%.0f,%.0f,%.0f]',str,xyzmm(1),xyzmm(2),xyzmm(3));
 end
 
 TabDat    = spm_list('List',xSPM,hReg,Num,Dis,str);

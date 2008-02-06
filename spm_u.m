@@ -17,27 +17,27 @@ function [u] = spm_u(a,df,STAT)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_u.m 707 2006-12-06 16:42:20Z volkmar $
+% $Id: spm_u.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if     STAT == 'Z'
 
-	u   = spm_invNcdf(1 - a      );
+    u   = spm_invNcdf(1 - a      );
 
 elseif STAT == 'T'
 
-	u   = spm_invTcdf(1 - a,df(2));
+    u   = spm_invTcdf(1 - a,df(2));
 
 elseif STAT == 'X'
 
-	u   = spm_invXcdf(1 - a,df(2));
+    u   = spm_invXcdf(1 - a,df(2));
 
 elseif STAT == 'F'
 
-	u   = spm_invFcdf(1 - a,df   );
+    u   = spm_invFcdf(1 - a,df   );
 
 elseif STAT == 'P'
 
-	u   = a;
+    u   = a;
 
 end

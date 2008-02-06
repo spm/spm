@@ -4,9 +4,9 @@ function spm_eeg_convertmat2ana3Dtf(S)
 % onto the scalp surface
 % FORMAT spm_eeg_convertmat2ana3D(S)
 %
-% S		    - optinal input struct
+% S         - optinal input struct
 % (optional) fields of S:
-% Fname		- matrix of EEG mat-files
+% Fname     - matrix of EEG mat-files
 % n         - size of quadratic output image (size: n x n x 1)
 %_______________________________________________________________________
 %
@@ -21,14 +21,14 @@ function spm_eeg_convertmat2ana3Dtf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 644 2006-10-10 14:08:32Z james $
+% $Id: spm_eeg_convertmat2ana3Dtf.m 1131 2008-02-06 11:17:09Z spm $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 
 % select matfiles to convert
 
 
-% Modification of spm_eeg_convertmat2ana3D to convert a 4D TF mat file with one channel to a 2D image (in 4D nifti) 			Rik Henson
+% Modification of spm_eeg_convertmat2ana3D to convert a 4D TF mat file with one channel to a 2D image (in 4D nifti)             Rik Henson
 
 try
     Fname = S.Fname;
@@ -47,7 +47,7 @@ for i = 1:Nsub
     D{i} = spm_eeg_ldata(deblank(Fname(i,:)));
 
     if ~isfield(D{i},'Nfrequencies') | D{i}.Nchannels>1
-	error('Only works for TF files with one channel!')
+    error('Only works for TF files with one channel!')
     end
 end
 
@@ -80,18 +80,18 @@ for k = 1:Nsub
             N = nifti;
             N.dat = dat;
 %            N.mat = eye(4);
-%            N.mat = [  1 0 0		    min(D{k}.tf.frequencies);
-%			0 1000/D{k}.Radc 0  -D{k}.events.start*1000/D{k}.Radc;
-%			0 0 1		    0;
-%			0 0 0		    1];
-            N.mat = [	1000/D{k}.Radc 0 0  -D{k}.events.start*1000/D{k}.Radc;
-			0 1 0		    min(D{k}.tf.frequencies);
-			0 0 1		    0;
-			0 0 0		    1];
+%            N.mat = [  1 0 0           min(D{k}.tf.frequencies);
+%           0 1000/D{k}.Radc 0  -D{k}.events.start*1000/D{k}.Radc;
+%           0 0 1           0;
+%           0 0 0           1];
+            N.mat = [   1000/D{k}.Radc 0 0  -D{k}.events.start*1000/D{k}.Radc;
+            0 1 0           min(D{k}.tf.frequencies);
+            0 0 1           0;
+            0 0 0           1];
             N.mat_intent = 'Aligned';
             create(N);
               
-%	    N.dat = shiftdim(shiftdim(d(:,:,l),-1));          
+%       N.dat = shiftdim(shiftdim(d(:,:,l),-1));          
             for j = 1 : D{k}.Nsamples % time bins
                 N.dat(j,:,1,1) = d(:,j,l)';
             end        

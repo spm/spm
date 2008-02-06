@@ -45,7 +45,12 @@ function [y] = spm_int_J(P,M,U)
 % spm_int:   Fast integrator that uses a bilinear approximation to the 
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
 % sparse sampling of the solution and delays in observing outputs
-%--------------------------------------------------------------------------
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_int_J.m 1131 2008-02-06 11:17:09Z spm $
+
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------

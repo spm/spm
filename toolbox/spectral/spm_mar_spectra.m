@@ -38,7 +38,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_mar_spectra.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 4  | isempty(show)
     show=0;

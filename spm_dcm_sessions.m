@@ -22,12 +22,11 @@ function [] = spm_dcm_sessions ()
 % is 1-p. As usual, only the random effects procedures allow 
 % you to make an inference about the population from which the 
 % data (eg. subjects) are drawn.
-%
-% -------------------------------------------------------
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_sessions.m 507 2006-05-04 05:44:19Z Darren $
+% $Id: spm_dcm_sessions.m 1131 2008-02-06 11:17:09Z spm $
 
 
 Finter = spm_figure('GetWin','Interactive');

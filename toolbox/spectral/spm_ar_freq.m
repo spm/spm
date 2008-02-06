@@ -11,7 +11,7 @@ function [p] = spm_ar_freq (ar, freq, fs)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_ar_freq.m 1131 2008-02-06 11:17:09Z spm $
 
 Nf=length(freq);
 Np=length(ar.a_mean);

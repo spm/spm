@@ -3,15 +3,15 @@ function D = spm_eeg_weight_time(S)
 % time-specific weighting function
 % FORMAT D = spm_eeg_weight_time(S)
 % 
-% S		    - optional input struct
+% S         - optional input struct
 % (optional) fields of S:
-% D			- filename of EEG mat-file
+% D         - filename of EEG mat-file
 % weight    - weigthing function
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_weight_time.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_weight_time.m 1131 2008-02-06 11:17:09Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG weighting setup',0);
 
@@ -24,9 +24,9 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 catch    
-	error(sprintf('Trouble reading file %s', D));
+    error(sprintf('Trouble reading file %s', D));
 end
 
 try

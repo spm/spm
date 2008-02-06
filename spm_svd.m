@@ -12,18 +12,18 @@ function [U,S,V] = spm_svd(X,U,T)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_svd.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_svd.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
 % default thresholds
 %---------------------------------------------------------------------------
 if nargin < 2
-	U = 1e-6;
+    U = 1e-6;
 end
 
 if nargin < 3
-	T = 0;
+    T = 0;
 end
 
 % deal with sparse matrices
@@ -39,53 +39,53 @@ X     = X(p,q);
 [m n]   = size(X);
 if any(i - j)
 
-	% off-leading diagonal elements - full SVD
-	%-------------------------------------------------------------------
-	X     = full(X);
-	if m > n
+    % off-leading diagonal elements - full SVD
+    %-------------------------------------------------------------------
+    X     = full(X);
+    if m > n
 
-		[v S v] = svd(spm_atranspa(X),0);
-		S       = sparse(S);
-		s       = diag(S);
-		j       = find(s*length(s)/sum(s) >= U & s >= T);
-		v       = v(:,j);
-		u       = spm_en(X*v);
-		S       = sqrt(S(j,j));
+        [v S v] = svd(spm_atranspa(X),0);
+        S       = sparse(S);
+        s       = diag(S);
+        j       = find(s*length(s)/sum(s) >= U & s >= T);
+        v       = v(:,j);
+        u       = spm_en(X*v);
+        S       = sqrt(S(j,j));
 
-	elseif m < n
+    elseif m < n
 
-		[u S u] = svd(spm_atranspa(X'),0);
-		S       = sparse(S);
-		s       = diag(S);
-		j       = find(s*length(s)/sum(s) >= U & s >= T);
-		u       = u(:,j);
-		v       = spm_en(X'*u);
-		S       = sqrt(S(j,j));
+        [u S u] = svd(spm_atranspa(X'),0);
+        S       = sparse(S);
+        s       = diag(S);
+        j       = find(s*length(s)/sum(s) >= U & s >= T);
+        u       = u(:,j);
+        v       = spm_en(X'*u);
+        S       = sqrt(S(j,j));
 
-	else
+    else
 
-		[u S v] = svd(X,0);
-		S       = sparse(S);
-		s       = diag(S).^2;
-  		j       = find(s*length(s)/sum(s) >= U & s >= T);
-		v       = v(:,j);
-		u       = u(:,j);
-		S       = S(j,j);
-	end
+        [u S v] = svd(X,0);
+        S       = sparse(S);
+        s       = diag(S).^2;
+        j       = find(s*length(s)/sum(s) >= U & s >= T);
+        v       = v(:,j);
+        u       = u(:,j);
+        S       = S(j,j);
+    end
 
 else
-	S     = sparse(1:n,1:n,s,m,n);
-	u     = speye(m,n);
-	v     = speye(m,n);
-	[i j] = sort(-s);
-	S     = S(j,j);
-	v     = v(:,j);
-	u     = u(:,j);
-	s     = diag(S).^2;
- 	j     = find(s*length(s)/sum(s) >= U & s >= T);
-	v     = v(:,j);
-	u     = u(:,j);
-	S     = S(j,j);
+    S     = sparse(1:n,1:n,s,m,n);
+    u     = speye(m,n);
+    v     = speye(m,n);
+    [i j] = sort(-s);
+    S     = S(j,j);
+    v     = v(:,j);
+    u     = u(:,j);
+    s     = diag(S).^2;
+    j     = find(s*length(s)/sum(s) >= U & s >= T);
+    v     = v(:,j);
+    u     = u(:,j);
+    S     = S(j,j);
 
 end
 

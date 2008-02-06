@@ -47,7 +47,7 @@ function r = spm_invIcdf(F,n,p)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_invIcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_invIcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 
@@ -57,13 +57,13 @@ if nargin<3, p=0.5; end
 if nargin<2, error('Insufficient arguments'), end
 ad = [ndims(F);ndims(n);ndims(p)];
 rd = max(ad);
-as = [	[size(F),ones(1,rd-ad(1))];...
-	[size(n),ones(1,rd-ad(2))];...
-	[size(p),ones(1,rd-ad(3))]     ];
+as = [  [size(F),ones(1,rd-ad(1))];...
+    [size(n),ones(1,rd-ad(2))];...
+    [size(p),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -73,7 +73,7 @@ r = zeros(rs);
 %-Only defined for whole n, p&F in [0,1]. Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  n==floor(n)  &  n>=0  &  p>=0  &  p<=1 );
 if any(~md(:)), r(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Non-zero only where defined, & F>0
 Q  = find( md  &  F>0 );
@@ -86,8 +86,8 @@ if xa(3), Qp=Q; else Qp=1; end
 tr  = 0;
 Ftr = spm_Ipdf(tr,n(Qn),p(Qp));
 while any(F(QF)>Ftr) & any(n(Qn)>tr)
-	tr      = tr+1;
-	i       = find(Ftr<F(QF));
-	r(Q(i)) = r(Q(i)) + 1;
-	Ftr     = Ftr + spm_Ipdf(tr,n(Qn),p(Qp));
+    tr      = tr+1;
+    i       = find(Ftr<F(QF));
+    r(Q(i)) = r(Q(i)) + 1;
+    Ftr     = Ftr + spm_Ipdf(tr,n(Qn),p(Qp));
 end

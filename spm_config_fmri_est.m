@@ -4,7 +4,7 @@ function conf = spm_config_fmri_est
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_est.m 832 2007-06-22 11:33:31Z will $
+% $Id: spm_config_fmri_est.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % Define inline types.
@@ -397,7 +397,7 @@ if isfield(job.method,'Classical'),
     %-------------------------------------------------------------------
     if isfield(SPM,'factor')
         if SPM.factor(1).levels > 1
-		% don't both if you've only got 1 level and 1 factor
+        % don't both if you've only got 1 level and 1 factor
             cons = spm_design_contrasts(SPM);
         
             %-Create F-contrasts

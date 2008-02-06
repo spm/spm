@@ -47,7 +47,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_DEM_M_set.m 1131 2008-02-06 11:17:09Z spm $
 
 % order
 %--------------------------------------------------------------------------

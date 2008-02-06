@@ -4,6 +4,10 @@ function [y] = spm_phase_shuffle(x,n)
 % x   - dtate matrix (time-series in columns)
 % n   - optinal window length for windowed shuffling
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_phase_shuffle.m 1131 2008-02-06 11:17:09Z spm $
 
 
 try

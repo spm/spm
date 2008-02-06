@@ -40,7 +40,7 @@ function [rglm,yclean] = spm_rglm (y,X,m,priors,verbose)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_rglm.m 1131 2008-02-06 11:17:09Z spm $
 
 if nargin < 4 | isempty(priors)
     mean_alpha=0.001;

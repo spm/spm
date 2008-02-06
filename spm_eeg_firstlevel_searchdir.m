@@ -1,6 +1,11 @@
 function [flist] = spm_eeg_firstlevel_searchdir(Dname, flist)
 % searches through directory recursively and adds mat-files to a list.
 % the mat-files must fullfill certain criteria.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Stefan Kiebel
+% $Id: spm_eeg_firstlevel_searchdir.m 1131 2008-02-06 11:17:09Z spm $
 
 D = dir(Dname);
 p = Dname;

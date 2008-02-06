@@ -5,7 +5,7 @@ function ft2spm(ftdata, filename, ctf)
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id$
+% $Id: ft2spm.m 1131 2008-02-06 11:17:09Z spm $
 
 
 disp('Warning: Converting the data to SPM8 format which is in development and');

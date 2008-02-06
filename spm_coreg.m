@@ -75,45 +75,45 @@ function x = spm_coreg(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_coreg.m 1007 2007-11-21 12:37:33Z john $
+% $Id: spm_coreg.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin>=4,
-	x = optfun(varargin{:});
-	return;
+    x = optfun(varargin{:});
+    return;
 end;
 
 def_flags = struct('sep',[4 2],'params',[0 0 0  0 0 0], 'cost_fun','nmi','fwhm',[7 7],...
-	'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001],'graphics',1);
+    'tol',[0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001],'graphics',1);
 if nargin < 3,
-	flags = def_flags;
+    flags = def_flags;
 else
-	flags = varargin{3};
-	fnms  = fieldnames(def_flags);
-	for i=1:length(fnms),
-		if ~isfield(flags,fnms{i}), flags.(fnms{i}) = def_flags.(fnms{i}); end;
-	end;
+    flags = varargin{3};
+    fnms  = fieldnames(def_flags);
+    for i=1:length(fnms),
+        if ~isfield(flags,fnms{i}), flags.(fnms{i}) = def_flags.(fnms{i}); end;
+    end;
 end;
 %disp(flags)
 
 if nargin < 1,
-	VG = spm_vol(spm_select(1,'image','Select reference image'));
+    VG = spm_vol(spm_select(1,'image','Select reference image'));
 else
-	VG = varargin{1};
-	if ischar(VG), VG = spm_vol(VG); end;
+    VG = varargin{1};
+    if ischar(VG), VG = spm_vol(VG); end;
 end;
 if nargin < 2,
-	VF = spm_vol(spm_select(Inf,'image','Select moved image(s)'));
+    VF = spm_vol(spm_select(Inf,'image','Select moved image(s)'));
 else
-	VF = varargin{2};
-	if ischar(VF) || iscellstr(VF), VF = spm_vol(strvcat(VF)); end;
+    VF = varargin{2};
+    if ischar(VF) || iscellstr(VF), VF = spm_vol(strvcat(VF)); end;
 end;
 
 if ~isfield(VG, 'uint8'),
-	VG.uint8 = loaduint8(VG);
-	vxg      = sqrt(sum(VG.mat(1:3,1:3).^2));
-	fwhmg    = sqrt(max([1 1 1]*flags.sep(end)^2 - vxg.^2, [0 0 0]))./vxg;
-	VG       = smooth_uint8(VG,fwhmg); % Note side effects
+    VG.uint8 = loaduint8(VG);
+    vxg      = sqrt(sum(VG.mat(1:3,1:3).^2));
+    fwhmg    = sqrt(max([1 1 1]*flags.sep(end)^2 - vxg.^2, [0 0 0]))./vxg;
+    VG       = smooth_uint8(VG,fwhmg); % Note side effects
 end;
 
 sc = flags.tol(:)'; % Required accuracy
@@ -121,22 +121,22 @@ sc = sc(1:length(flags.params));
 xi = diag(sc*20);
 
 for k=1:numel(VF),
-	VFk = VF(k);
-	if ~isfield(VFk, 'uint8'),
-		VFk.uint8 = loaduint8(VFk);
-		vxf       = sqrt(sum(VFk.mat(1:3,1:3).^2));
-		fwhmf     = sqrt(max([1 1 1]*flags.sep(end)^2 - vxf.^2, [0 0 0]))./vxf;
-		VFk       = smooth_uint8(VFk,fwhmf); % Note side effects
-	end;
+    VFk = VF(k);
+    if ~isfield(VFk, 'uint8'),
+        VFk.uint8 = loaduint8(VFk);
+        vxf       = sqrt(sum(VFk.mat(1:3,1:3).^2));
+        fwhmf     = sqrt(max([1 1 1]*flags.sep(end)^2 - vxf.^2, [0 0 0]))./vxf;
+        VFk       = smooth_uint8(VFk,fwhmf); % Note side effects
+    end;
 
-	xk  = flags.params(:);
-	for samp=flags.sep(:)',
-		xk     = spm_powell(xk(:), xi,sc,mfilename,VG,VFk,samp,flags.cost_fun,flags.fwhm);
-		x(k,:) = xk(:)';
-	end;
-	if flags.graphics,
-		display_results(VG(1),VFk(1),xk(:)',flags);
-	end;
+    xk  = flags.params(:);
+    for samp=flags.sep(:)',
+        xk     = spm_powell(xk(:), xi,sc,mfilename,VG,VFk,samp,flags.cost_fun,flags.fwhm);
+        x(k,:) = xk(:)';
+    end;
+    if flags.graphics,
+        display_results(VG(1),VFk(1),xk(:)',flags);
+    end;
 end;
 return;
 %_______________________________________________________________________
@@ -167,40 +167,40 @@ s1 = sum(H,1);
 s2 = sum(H,2);
 
 switch lower(cf)
-	case 'mi',
-		% Mutual Information:
-		H   = H.*log2(H./(s2*s1));
-		mi  = sum(H(:));
-		o   = -mi;
-	case 'ecc',
-		% Entropy Correlation Coefficient of:
-		% Maes, Collignon, Vandermeulen, Marchal & Suetens (1997).
-		% "Multimodality image registration by maximisation of mutual
-		% information". IEEE Transactions on Medical Imaging 16(2):187-198
-		H   = H.*log2(H./(s2*s1));
-		mi  = sum(H(:));
-		ecc = -2*mi/(sum(s1.*log2(s1))+sum(s2.*log2(s2)));
-		o   = -ecc;
-	case 'nmi',
-		% Normalised Mutual Information of:
-		% Studholme,  Hill & Hawkes (1998).
-		% "A normalized entropy measure of 3-D medical image alignment".
-		% in Proc. Medical Imaging 1998, vol. 3338, San Diego, CA, pp. 132-143.
-		nmi = (sum(s1.*log2(s1))+sum(s2.*log2(s2)))/sum(sum(H.*log2(H)));
-		o   = -nmi;
-	case 'ncc',
-		% Normalised Cross Correlation
-		i     = 1:size(H,1);
-		j     = 1:size(H,2);
-		m1    = sum(s2.*i');
-		m2    = sum(s1.*j);
-		sig1  = sqrt(sum(s2.*(i'-m1).^2));
-		sig2  = sqrt(sum(s1.*(j -m2).^2));
-		[i,j] = ndgrid(i-m1,j-m2);
-		ncc   = sum(sum(H.*i.*j))/(sig1*sig2);
-		o     = -ncc;
-	otherwise,
-		error('Invalid cost function specified');
+    case 'mi',
+        % Mutual Information:
+        H   = H.*log2(H./(s2*s1));
+        mi  = sum(H(:));
+        o   = -mi;
+    case 'ecc',
+        % Entropy Correlation Coefficient of:
+        % Maes, Collignon, Vandermeulen, Marchal & Suetens (1997).
+        % "Multimodality image registration by maximisation of mutual
+        % information". IEEE Transactions on Medical Imaging 16(2):187-198
+        H   = H.*log2(H./(s2*s1));
+        mi  = sum(H(:));
+        ecc = -2*mi/(sum(s1.*log2(s1))+sum(s2.*log2(s2)));
+        o   = -ecc;
+    case 'nmi',
+        % Normalised Mutual Information of:
+        % Studholme,  Hill & Hawkes (1998).
+        % "A normalized entropy measure of 3-D medical image alignment".
+        % in Proc. Medical Imaging 1998, vol. 3338, San Diego, CA, pp. 132-143.
+        nmi = (sum(s1.*log2(s1))+sum(s2.*log2(s2)))/sum(sum(H.*log2(H)));
+        o   = -nmi;
+    case 'ncc',
+        % Normalised Cross Correlation
+        i     = 1:size(H,1);
+        j     = 1:size(H,2);
+        m1    = sum(s2.*i');
+        m2    = sum(s1.*j);
+        sig1  = sqrt(sum(s2.*(i'-m1).^2));
+        sig2  = sqrt(sum(s1.*(j -m2).^2));
+        [i,j] = ndgrid(i-m1,j-m2);
+        ncc   = sum(sum(H.*i.*j))/(sig1*sig2);
+        o     = -ncc;
+    otherwise,
+        error('Invalid cost function specified');
 end;
 
 return;
@@ -210,19 +210,19 @@ return;
 function udat = loaduint8(V)
 % Load data from file indicated by V into an array of unsigned bytes.
 if size(V.pinfo,2)==1 && V.pinfo(1) == 2,
-	mx = 255*V.pinfo(1) + V.pinfo(2);
-	mn = V.pinfo(2);
+    mx = 255*V.pinfo(1) + V.pinfo(2);
+    mn = V.pinfo(2);
 else
-	spm_progress_bar('Init',V.dim(3),...
-		['Computing max/min of ' spm_str_manip(V.fname,'t')],...
-		'Planes complete');
-	mx = -Inf; mn =  Inf;
-	for p=1:V.dim(3),
-		img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
-		mx  = max([max(img(:))+paccuracy(V,p) mx]);
-		mn  = min([min(img(:)) mn]);
-		spm_progress_bar('Set',p);
-	end;
+    spm_progress_bar('Init',V.dim(3),...
+        ['Computing max/min of ' spm_str_manip(V.fname,'t')],...
+        'Planes complete');
+    mx = -Inf; mn =  Inf;
+    for p=1:V.dim(3),
+        img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+        mx  = max([max(img(:))+paccuracy(V,p) mx]);
+        mn  = min([min(img(:)) mn]);
+        spm_progress_bar('Set',p);
+    end;
 end;
 
 % Another pass to find a maximum that allows a few hot-spots in the data.
@@ -246,8 +246,8 @@ tmp = [find(cumsum(h)/sum(h)>0.9999); nh];
 mx  = (mn*nh-mx+tmp(1)*(mx-mn))/(nh-1);
 
 spm_progress_bar('Init',V.dim(3),...
-	['Loading ' spm_str_manip(V.fname,'t')],...
-	'Planes loaded');
+    ['Loading ' spm_str_manip(V.fname,'t')],...
+    'Planes loaded');
 
 %udat = zeros(V.dim,'uint8'); Needs MATLAB 7 onwards
 udat = uint8(0);
@@ -255,29 +255,29 @@ udat(V.dim(1),V.dim(2),V.dim(3)) = 0;
 
 rand('state',100);
 for p=1:V.dim(3),
-	img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
-	acc = paccuracy(V,p);
-	if acc==0,
-		udat(:,:,p) = uint8(max(min(round((img-mn)*(255/(mx-mn))),255),0));
-	else
-		% Add random numbers before rounding to reduce aliasing artifact
-		r = rand(size(img))*acc;
-		udat(:,:,p) = uint8(max(min(round((img+r-mn)*(255/(mx-mn))),255),0));
-	end;
-	spm_progress_bar('Set',p);
+    img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+    acc = paccuracy(V,p);
+    if acc==0,
+        udat(:,:,p) = uint8(max(min(round((img-mn)*(255/(mx-mn))),255),0));
+    else
+        % Add random numbers before rounding to reduce aliasing artifact
+        r = rand(size(img))*acc;
+        udat(:,:,p) = uint8(max(min(round((img+r-mn)*(255/(mx-mn))),255),0));
+    end;
+    spm_progress_bar('Set',p);
 end;
 spm_progress_bar('Clear');
 return;
 
 function acc = paccuracy(V,p)
 if ~spm_type(V.dt(1),'intt'),
-	acc = 0;
+    acc = 0;
 else
-	if size(V.pinfo,2)==1,
-		acc = abs(V.pinfo(1,1));
-	else
-		acc = abs(V.pinfo(1,p));
-	end;
+    if size(V.pinfo,2)==1,
+        acc = abs(V.pinfo(1,1));
+    else
+        acc = abs(V.pinfo(1,p));
+    end;
 end;
 %_______________________________________________________________________
 
@@ -338,18 +338,18 @@ spm_figure('Clear','Graphics');
 
 %txt = 'Information Theoretic Coregistration';
 switch lower(flags.cost_fun)
-	case 'mi',  txt = 'Mutual Information Coregistration';
-	case 'ecc', txt = 'Entropy Correlation Coefficient Registration';
-	case 'nmi', txt = 'Normalised Mutual Information Coregistration';
-	case 'ncc', txt = 'Normalised Cross Correlation';
-	otherwise, error('Invalid cost function specified');
+    case 'mi',  txt = 'Mutual Information Coregistration';
+    case 'ecc', txt = 'Entropy Correlation Coefficient Registration';
+    case 'nmi', txt = 'Normalised Mutual Information Coregistration';
+    case 'ncc', txt = 'Normalised Cross Correlation';
+    otherwise, error('Invalid cost function specified');
 end;
 
 % Display text
 %-----------------------------------------------------------------------
 ax = axes('Position',[0.1 0.8 0.8 0.15],'Visible','off','Parent',fig);
 text(0.5,0.7, txt,'FontSize',16,...
-	'FontWeight','Bold','HorizontalAlignment','center','Parent',ax);
+    'FontWeight','Bold','HorizontalAlignment','center','Parent',ax);
 
 Q = inv(VF.mat\spm_matrix(x(:)')*VG.mat);
 text(0,0.5, sprintf('X1 = %0.3f*X %+0.3f*Y %+0.3f*Z %+0.3f',Q(1,:)),'Parent',ax);
@@ -363,8 +363,8 @@ H   = spm_hist2(VG.uint8,VF.uint8,VF.mat\VG.mat,[1 1 1]);
 tmp = log(H+1);
 image(tmp*(64/max(tmp(:))),'Parent',ax');
 set(ax,'DataAspectRatio',[1 1 1],...
-	'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
-	'XTick',[],'YTick',[]);
+    'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
+    'XTick',[],'YTick',[]);
 title('Original Joint Histogram','Parent',ax);
 xlabel(spm_str_manip(VG.fname,'k22'),'Parent',ax);
 ylabel(spm_str_manip(VF.fname,'k22'),'Parent',ax);
@@ -374,8 +374,8 @@ ax  = axes('Position',[0.6 0.5 0.35 0.3],'Visible','off','Parent',fig);
 tmp = log(H+1);
 image(tmp*(64/max(tmp(:))),'Parent',ax');
 set(ax,'DataAspectRatio',[1 1 1],...
-	'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
-	'XTick',[],'YTick',[]);
+    'PlotBoxAspectRatioMode','auto','XDir','normal','YDir','normal',...
+    'XTick',[],'YTick',[]);
 title('Final Joint Histogram','Parent',ax);
 xlabel(spm_str_manip(VG.fname,'k22'),'Parent',ax);
 ylabel(spm_str_manip(VF.fname,'k22'),'Parent',ax);

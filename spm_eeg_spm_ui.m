@@ -10,7 +10,7 @@ function [SPM] = spm_eeg_spm_ui(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel, Karl Friston
-% $Id: spm_eeg_spm_ui.m 539 2006-05-19 17:59:30Z Darren $
+% $Id: spm_eeg_spm_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -21,28 +21,28 @@ spm_help('!ContextHelp', mfilename)
 % get design matrix and/or data
 %=======================================================================
 if ~nargin
-	str = 'specify design or data';
-	if spm_input(str, 1, 'b', {'design','data'}, [1 0]);
-		% specify a design
-		%-------------------------------------------------------
-		if sf_abort, spm_clf(Finter), return, end
+    str = 'specify design or data';
+    if spm_input(str, 1, 'b', {'design','data'}, [1 0]);
+        % specify a design
+        %-------------------------------------------------------
+        if sf_abort, spm_clf(Finter), return, end
         
         % choose either normal design specification or shortcut
         Oanalysis = spm_input('Choose design options', 1,'m',{'all options', 'ERP/ERF'}, [0 1]);
         SPM.eeg.Oanalysis = Oanalysis;
 
-		SPM = spm_eeg_design(SPM);
+        SPM = spm_eeg_design(SPM);
 
-		return
-	else
-		% get design
-		%-------------------------------------------------------
-		load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
-	end
+        return
+    else
+        % get design
+        %-------------------------------------------------------
+        load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
+    end
 else
-	% get design matrix
-	%---------------------------------------------------------------
-	SPM = spm_eeg_design(SPM);
+    % get design matrix
+    %---------------------------------------------------------------
+    SPM = spm_eeg_design(SPM);
 end
 
 % check data are specified
@@ -53,7 +53,7 @@ try
         SPM.xY = rmfield(SPM.xY, 'P');
     end
     
-	SPM.xY.P;
+    SPM.xY.P;
     
 catch
     if SPM.eeg.Oanalysis == 1
@@ -89,9 +89,9 @@ catch
             P = strvcat(P, q);
         end
     end
-	% place in data field
-	%---------------------------------------------------------------
-	SPM.xY.P = P;
+    % place in data field
+    %---------------------------------------------------------------
+    SPM.xY.P = P;
 
 end
 
@@ -112,9 +112,9 @@ spm('Pointer','Watch');
 
 %-Map files
 %-----------------------------------------------------------------------
-fprintf('%-40s: ','Mapping files')                          	     %-#
+fprintf('%-40s: ','Mapping files')                                   %-#
 VY    = spm_vol(SPM.xY.P);
-fprintf('%30s\n','...done')                                 	     %-#
+fprintf('%30s\n','...done')                                          %-#
 
 %-check internal consistency of images
 %-----------------------------------------------------------------------
@@ -126,19 +126,19 @@ SPM.xY.VY = VY;
 
 %-Only implicit mask
 %=======================================================================
-SPM.xM        = struct('T',	ones(length(VY), 1),...
-			'TH',	-inf*ones(length(VY), 1),...
-			'I',	0,...
-			'VM',	{[]},...
-			'xs',	struct('Masking','analysis threshold'));
-	
+SPM.xM        = struct('T', ones(length(VY), 1),...
+            'TH',   -inf*ones(length(VY), 1),...
+            'I',    0,...
+            'VM',   {[]},...
+            'xs',   struct('Masking','analysis threshold'));
+    
 %-Design description - for saving and display
 %=======================================================================
 % SPM.xsDes = struct(...
-% 	'Basis_functions',	SPM.xBF.name,...
-% 	'Number_of_ERPs',	sprintf('%d', sum(SPM.eeg.Nsub)*SPM.eeg.Ntypes),...
-% 	'Sampling_frequency',	sprintf('%0.2f {s}',SPM.xY.RT)...
-% 	);
+%   'Basis_functions',  SPM.xBF.name,...
+%   'Number_of_ERPs',   sprintf('%d', sum(SPM.eeg.Nsub)*SPM.eeg.Ntypes),...
+%   'Sampling_frequency',   sprintf('%0.2f {s}',SPM.xY.RT)...
+%   );
 % 
 
 %-Save SPM.mat
@@ -175,12 +175,12 @@ fprintf('\n\n')
 function abort = sf_abort
 %=======================================================================
 if exist(fullfile('.','SPM.mat'))
-	str = {	'Current directory contains existing SPM file:',...
-		'Continuing will overwrite existing file!'};
+    str = { 'Current directory contains existing SPM file:',...
+        'Continuing will overwrite existing file!'};
 
-	abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
-	if abort, fprintf('%-40s: %30s\n\n',...
-		'Abort...   (existing SPM files)',spm('time')), end
+    abort = spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+    if abort, fprintf('%-40s: %30s\n\n',...
+        'Abort...   (existing SPM files)',spm('time')), end
 else
-	abort = 0;
+    abort = 0;
 end

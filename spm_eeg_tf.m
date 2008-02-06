@@ -2,14 +2,14 @@ function D = spm_eeg_tf(S)
 % compute instantaneous power and phase in peri-stimulus time and frequency
 % FORMAT D = spm_eeg_tf(S)
 % 
-% D		- filename of EEG-data file or EEG data struct
+% D     - filename of EEG-data file or EEG data struct
 % stored in struct D.events:
-% fmin			- minimum frequency
-% fmax			- maximum frequency
-% rm_baseline	- baseline removal (1/0) yes/no
+% fmin          - minimum frequency
+% fmax          - maximum frequency
+% rm_baseline   - baseline removal (1/0) yes/no
 % Mfactor       - Morlet wavelet factor (can not be accessed by GUI)
 % 
-% D				- EEG data struct with time-frequency data (also written to files)
+% D             - EEG data struct with time-frequency data (also written to files)
 %_______________________________________________________________________
 %
 % spm_eeg_tf estimates instantaneous power and phase of data using the
@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 955 2007-10-17 15:15:09Z rik $
+% $Id: spm_eeg_tf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -32,28 +32,28 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-	D = spm_eeg_ldata(D);
+    D = spm_eeg_ldata(D);
 catch    
-	error(sprintf('Trouble reading file %s', D));
+    error(sprintf('Trouble reading file %s', D));
 end
 
 % Check for arguments in D
 if ~isfield(D, 'tf')
-	D.tf = [];
+    D.tf = [];
 end
 
 try
     D.tf.frequencies = S.frequencies;
 catch
     D.tf.frequencies = ...
-	 	spm_input('Frequencies (Hz)', '+1', 'r', '', [1, inf]);
+        spm_input('Frequencies (Hz)', '+1', 'r', '', [1, inf]);
 end
 
 try
     D.tf.rm_baseline = S.rm_baseline;
 catch
     D.tf.rm_baseline = ...
-		spm_input('Removal of baseline', '+1', 'y/n', [1,0], 2);
+        spm_input('Removal of baseline', '+1', 'y/n', [1,0], 2);
 end
 
 if D.tf.rm_baseline
@@ -76,23 +76,23 @@ try
     D.tf.channels = S.channels;
 catch
     D.tf.channels = ...
-	 	spm_input('Select channels', '+1', 'i', num2str([1:D.Nchannels]));
+        spm_input('Select channels', '+1', 'i', num2str([1:D.Nchannels]));
 end
 
 try 
-	pow = S.pow;	% 1 = power, 0 = magnitude
+    pow = S.pow;    % 1 = power, 0 = magnitude
 catch
-	pow = 1;
+    pow = 1;
 end
 
 if length(D.tf.channels)>1
    try 
-	collchans = S.collchans;	% 1 = collapse across channels, 0 = do not
+    collchans = S.collchans;    % 1 = collapse across channels, 0 = do not
    catch
-	collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
+    collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
    end
 else
-	collchans = 0;
+    collchans = 0;
 end
 
 spm('Pointer', 'Watch'); drawnow;
@@ -110,14 +110,14 @@ fpd = fopen(fullfile(P, D.fnamedat), 'w');
 fpd2 = fopen(fullfile(P, D2.fnamedat), 'w');
 
 if collchans
-	D.Nchannels = 1;
-	try S.circularise_phase
-		circularise = S.circularise_phase;
-	catch
-		circularise = 0;
-	end	
+    D.Nchannels = 1;
+    try S.circularise_phase
+        circularise = S.circularise_phase;
+    catch
+        circularise = 0;
+    end 
 else
-	D.Nchannels = length(D.tf.channels);
+    D.Nchannels = length(D.tf.channels);
 end
 D2.Nchannels = D.Nchannels;
 
@@ -129,11 +129,11 @@ D2.datatype = 'int16';
 
 for k = 1 : D.Nevents
     
-	d = zeros(length(D.tf.channels), D.Nfrequencies, D.Nsamples);
-	d2 = zeros(length(D.tf.channels), D.Nfrequencies, D.Nsamples);
-	for j = 1 : length(D.tf.channels)
-		for i = 1 : D.Nfrequencies
-			tmp = conv(squeeze(D.data(D.tf.channels(j),:,k)), M{i});
+    d = zeros(length(D.tf.channels), D.Nfrequencies, D.Nsamples);
+    d2 = zeros(length(D.tf.channels), D.Nfrequencies, D.Nsamples);
+    for j = 1 : length(D.tf.channels)
+        for i = 1 : D.Nfrequencies
+            tmp = conv(squeeze(D.data(D.tf.channels(j),:,k)), M{i});
             
             % time shift to remove delay
             tmp = tmp([1:D.Nsamples] + (length(M{i})-1)/2);
@@ -149,10 +149,10 @@ for k = 1 : D.Nevents
             % d2(j, i, :) = atan2(imag(tmp), real(tmp));
             d2(j, i, :) = angle(tmp);
 
-		end
-	end
-	
-	% Remove baseline over frequencies and trials
+        end
+    end
+    
+    % Remove baseline over frequencies and trials
     if D.tf.rm_baseline == 1
         d = spm_eeg_bc(D, d);
     end
@@ -174,9 +174,9 @@ for k = 1 : D.Nevents
     D2.scale(:, 1, 1, k) = (max(abs(reshape(d2, [D2.Nchannels D2.Nfrequencies*D2.Nsamples])'))./32767);
     d2 = int16(round(d2./repmat(D2.scale(:, 1, 1, k), [1 D2.Nfrequencies D2.Nsamples])));
 
-	fwrite(fpd, d, 'int16');	
-	fwrite(fpd2, d2, 'int16');	
-		
+    fwrite(fpd, d, 'int16');    
+    fwrite(fpd2, d2, 'int16');  
+        
 end
 
 fclose(fpd);
@@ -187,10 +187,10 @@ D2.data = [];
 
 old_chans = D.channels.name;
 if collchans
-	chans=1;	% (may crash if first channel is EOG?)!
-%	D.channels.name = {'All'};
+    chans=1;    % (may crash if first channel is EOG?)!
+%   D.channels.name = {'All'};
 else
-	chans=1:length(D.tf.channels);
+    chans=1:length(D.tf.channels);
 end
 
 %%% To handle collapsing over channels...
@@ -208,9 +208,9 @@ for r=1:length(D.channels.reference)
      if ~isempty(refchan)
       rf = find(D.tf.channels(chans)==refchan);
       if(~isempty(rf))
-	r2=r2+1;
-     	D.channels.reference(r2) = D.channels.order(rf);
-     	D.channels.ref_name{r2} = D.channels.ref_name{r};
+    r2=r2+1;
+        D.channels.reference(r2) = D.channels.order(rf);
+        D.channels.ref_name{r2} = D.channels.ref_name{r};
       else
         ref_lost = 1;
       end

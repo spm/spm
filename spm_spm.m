@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_spm.m 1131 2008-02-06 11:17:09Z spm $
 
-SCCSid   = '$Rev: 946 $';
+SCCSid   = '$Rev: 1131 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -849,17 +849,17 @@ if ~isfield(xVi,'V')
     if ~s
         spm('FigName','Stats: no sign voxels',Finter); spm('Pointer','Arrow')
         figure(Finter);
-	if isfield(SPM.xGX,'rg')&&~isempty(SPM.xGX.rg)
-	    plot(SPM.xGX.rg)
-	    errordlg({'Please check your data'; ...
-		     'There are no significant voxels';...
-		     'The globals are plotted for diagnosis'});
-	else
-	    errordlg({'Please check your data'; ...
-		     'There are no significant voxels'});	    
-	end;
-	error('Please check your data: There are no significant voxels.');
-	return
+    if isfield(SPM.xGX,'rg')&&~isempty(SPM.xGX.rg)
+        plot(SPM.xGX.rg)
+        errordlg({'Please check your data'; ...
+             'There are no significant voxels';...
+             'The globals are plotted for diagnosis'});
+    else
+        errordlg({'Please check your data'; ...
+             'There are no significant voxels'});       
+    end;
+    error('Please check your data: There are no significant voxels.');
+    return
     end
 
     %-REML estimate of residual correlations through hyperparameters (h)

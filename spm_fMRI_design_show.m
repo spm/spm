@@ -8,13 +8,13 @@ function spm_fMRI_design_show(SPM,s,i)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_fMRI_design_show.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_fMRI_design_show.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % SPM
 %-----------------------------------------------------------------------
 if nargin == 0
-	load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
+    load(spm_select(1,'^SPM\.mat$','Select SPM.mat'));
 end
 
 Sess  = SPM.Sess;
@@ -31,35 +31,35 @@ end
 %-Defaults: Setup GUI if not called by spm_DesRep (with s and i)
 %-----------------------------------------------------------------------
 if nargin < 3
-	s = 1;
-	i = 1;
+    s = 1;
+    i = 1;
 
-	%-Get Interactive window and delete any previous DesRepUI menu
-	%---------------------------------------------------------------
-	Finter = spm_figure('GetWin','Interactive');
-	delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
+    %-Get Interactive window and delete any previous DesRepUI menu
+    %---------------------------------------------------------------
+    Finter = spm_figure('GetWin','Interactive');
+    delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
 
-	%-Create menu
-	%---------------------------------------------------------------
-	hC     = uimenu(Finter,'Label','Explore fMRI design',...
-		'Separator','on',...
-		'Tag','DesRepUI',...
-		'UserData',SPM,...
-		'HandleVisibility','on');
-	for j = 1:length(Sess)
-		h     = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
-			'HandleVisibility','off');
-		for k = 1:length(Sess(j).Fc)
-			cb = ['tmp = get(get(gcbo,''UserData''),',...
-					         '''UserData''); ',...
-				sprintf(['spm_fMRI_design_show(',...
-					'tmp,%d,%d);'],j,k)];
-			uimenu(h,'Label',Sess(j).Fc(k).name,...
-	     	   	         'CallBack',cb,...
-	     	   	         'UserData',hC,...
-	     	   	         'HandleVisibility','off')
-		end
-	end
+    %-Create menu
+    %---------------------------------------------------------------
+    hC     = uimenu(Finter,'Label','Explore fMRI design',...
+        'Separator','on',...
+        'Tag','DesRepUI',...
+        'UserData',SPM,...
+        'HandleVisibility','on');
+    for j = 1:length(Sess)
+        h     = uimenu(hC,'Label',sprintf('Session %.0f ',j),...
+            'HandleVisibility','off');
+        for k = 1:length(Sess(j).Fc)
+            cb = ['tmp = get(get(gcbo,''UserData''),',...
+                             '''UserData''); ',...
+                sprintf(['spm_fMRI_design_show(',...
+                    'tmp,%d,%d);'],j,k)];
+            uimenu(h,'Label',Sess(j).Fc(k).name,...
+                         'CallBack',cb,...
+                         'UserData',hC,...
+                         'HandleVisibility','off')
+        end
+    end
 end
 
 
@@ -106,38 +106,38 @@ axis tight
 %-----------------------------------------------------------------------
 if length(Sess(s).U) >= i
 
-	% Basis set and peristimulus sampling
-	%---------------------------------------------------------------
-	subplot(2,2,3)
-	dt   = Sess(s).U(i).dt;
-	RT   = SPM.xY.RT;
-	t    = [1:size(SPM.xBF.bf,1)]*dt;
-	pst  = Sess(s).U(i).pst;
-	plot(t,SPM.xBF.bf,pst,0*pst,'.','MarkerSize',16)
-	str  = sprintf('TR = %0.2fsecs',RT);
-	xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*dt)})
-	title({'Basis set and peristimulus sampling' SPM.xBF.name})
-	axis tight
-	grid on
+    % Basis set and peristimulus sampling
+    %---------------------------------------------------------------
+    subplot(2,2,3)
+    dt   = Sess(s).U(i).dt;
+    RT   = SPM.xY.RT;
+    t    = [1:size(SPM.xBF.bf,1)]*dt;
+    pst  = Sess(s).U(i).pst;
+    plot(t,SPM.xBF.bf,pst,0*pst,'.','MarkerSize',16)
+    str  = sprintf('TR = %0.2fsecs',RT);
+    xlabel({'time (secs)' str sprintf('%0.0fms time bins',1000*dt)})
+    title({'Basis set and peristimulus sampling' SPM.xBF.name})
+    axis tight
+    grid on
 
-	% if a paramteric variate is specified
-	%---------------------------------------------------------------
-	for p = 1:length(Sess(s).U(i).P)
+    % if a paramteric variate is specified
+    %---------------------------------------------------------------
+    for p = 1:length(Sess(s).U(i).P)
 
-	    if Sess(s).U(i).P(p).h
+        if Sess(s).U(i).P(p).h
 
-		% onsets and parametric modulation
-		%-------------------------------------------------------
-		subplot(2,2,4)
-		ons = Sess(s).U(i).ons;
-		plot(ons,Sess(s).U(i).P(p).P,'.','MarkerSize',8)
-		xlabel('time {secs}')
-		title('parameters')
-		grid on
-		hold on
+        % onsets and parametric modulation
+        %-------------------------------------------------------
+        subplot(2,2,4)
+        ons = Sess(s).U(i).ons;
+        plot(ons,Sess(s).U(i).P(p).P,'.','MarkerSize',8)
+        xlabel('time {secs}')
+        title('parameters')
+        grid on
+        hold on
 
-	    end
-	end
+        end
+    end
 end
 
 %-Pop up Graphics figure window

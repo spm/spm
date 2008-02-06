@@ -1,5 +1,4 @@
 function D = spm_eeg_inv_elec_Rsph_ui(varargin)
-
 % Deals with the solution of the forward problem:
 % There are 2 seperate cases:
 % 1. individual head model, based on the subject anatomy
@@ -18,14 +17,14 @@ function D = spm_eeg_inv_elec_Rsph_ui(varargin)
 %
 % FORMAT D = spm_eeg_inv_elec_Rsph_ui(S)
 % Input:
-% S		    - input data struct (optional)
+% S         - input data struct (optional)
 % Output:
-% D			- same data struct including the meshing files and variables
-%=======================================================================
+% D         - same data struct including the meshing files and variables
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips
-% $Id$
+% $Id: spm_eeg_inv_elec_Rsph_ui.m 1131 2008-02-06 11:17:09Z spm $
 
 % initialise
 %--------------------------------------------------------------------------

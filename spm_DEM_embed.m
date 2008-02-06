@@ -12,7 +12,7 @@ function [y] = spm_DEM_embed(Y,n,t,dt)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id$
+% $Id: spm_DEM_embed.m 1131 2008-02-06 11:17:09Z spm $
 
 % defaults
 %--------------------------------------------------------------------------

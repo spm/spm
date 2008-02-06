@@ -4,11 +4,10 @@ function [] = spm_dcm_estimate (DCM_filename)
 %
 % DCM_filename  - the DCM model
 %__________________________________________________________________________
-%
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 864 2007-07-24 17:54:41Z klaas $
+% $Id: spm_dcm_estimate.m 1131 2008-02-06 11:17:09Z spm $
 
  
 if nargin < 1

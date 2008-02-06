@@ -1,6 +1,11 @@
 function spm_eeg_inv_checkforward(D)
 % checks forward model
 % FORMAT spm_eeg_inv_checkforward(D)
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jeremie Mattout
+% $Id: spm_eeg_inv_checkforward.m 1131 2008-02-06 11:17:09Z spm $
 
 % SPM data structure
 %==========================================================================

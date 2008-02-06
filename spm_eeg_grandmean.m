@@ -2,14 +2,14 @@ function Do = spm_eeg_grandmean(S)
 % average over multiple data sets
 % FORMAT Do = spm_eeg_grandmean(S)
 % 
-% S		    - struct (optional)
+% S         - struct (optional)
 % (optional) fields of S:
-% P			- filenames (char matrix) of EEG mat-file containing epoched
+% P         - filenames (char matrix) of EEG mat-file containing epoched
 %             data  
 % Pout      - filename (with or without path) of output file
 % 
 % Output:
-% Do		- EEG data struct, result files are saved in the same
+% Do        - EEG data struct, result files are saved in the same
 %                 directory as first input file.
 %_______________________________________________________________________
 % 
@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 851 2007-07-10 16:13:04Z rik $
+% $Id: spm_eeg_grandmean.m 1131 2008-02-06 11:17:09Z spm $
 
 % Changed to average all channels (not just eeg)      Rik Henson
 % (progress bar also added, Doris Eckstein)
@@ -129,29 +129,29 @@ else, Ibar = [1:Ntypes]; end
 %% end change
 
 if isfield(D{1}, 'Nfrequencies');
-	Do.scale = zeros(D{1}.Nchannels, 1, 1, D{1}.events.Ntypes);
-	
-	for i = 1:Ntypes
-	    d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
+    Do.scale = zeros(D{1}.Nchannels, 1, 1, D{1}.events.Ntypes);
+    
+    for i = 1:Ntypes
+        d = zeros(D{1}.Nchannels, D{1}.Nfrequencies, D{1}.Nsamples);
             for j = 1:D{1}.Nchannels
-     		for k = 1:Nfiles
+            for k = 1:Nfiles
                     if ~ismember(j, D{k}.channels.Bad)
-                    	if ismember(types(i), D{k}.events.types)
+                        if ismember(types(i), D{k}.events.types)
                             d(j, :, :) = d(j, :, :) + D{k}.data(j, :, :, find(D{k}.events.types == types(i)));
                             w(j, i) = w(j, i) + 1;
-                    	end
-		    end
+                        end
+            end
                 end
 
                 if w(j, i) > 0
-                	d(j, :, :) = d(j, :, :)/w(j, i);
+                    d(j, :, :) = d(j, :, :)/w(j, i);
                 end
-	    end	
-	
-	    Do.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
-	    d = int16(d./repmat(Do.scale(:, 1, 1, i), [1, Do.Nfrequencies, Do.Nsamples]));
-	    fwrite(fpd, d, 'int16');
-	end
+        end 
+    
+        Do.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
+        d = int16(d./repmat(Do.scale(:, 1, 1, i), [1, Do.Nfrequencies, Do.Nsamples]));
+        fwrite(fpd, d, 'int16');
+    end
 else
 
     Do.scale = zeros(D{1}.Nchannels, 1, D{1}.Nevents);
@@ -175,8 +175,8 @@ else
             end
 
         end
-		
-		Do.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
+        
+        Do.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, Do.datatype);
         %% changed DE 13/12/06
         if ismember(i, Ibar)
             spm_progress_bar('Set', i); drawnow;

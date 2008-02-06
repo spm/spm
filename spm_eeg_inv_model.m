@@ -1,5 +1,4 @@
 function varargout = spm_eeg_inv_model(action,varargin)
-
 % spm_eeg_inv_model is a multi-purpose routine that deals with the generation
 % of the head model for the solution of the forward problem.
 %
@@ -198,8 +197,8 @@ function varargout = spm_eeg_inv_model(action,varargin)
 %   r : radius of the sphere
 % Output : 
 %   tsph .vert : vertices coordinates (3 x Nvert)
-%		 .tri  : triangle patches (3 x Ntri)
-%		 .info : info string
+%        .tri  : triangle patches (3 x Ntri)
+%        .info : info string
 %__________________________________________________________________________
 %
 % FORMAT [Pout/val] = spm_eeg_inv_model('ErodeGrow',P/val,ne,ng,thr_im)
@@ -232,63 +231,69 @@ function varargout = spm_eeg_inv_model(action,varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_model.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_model.m 1131 2008-02-06 11:17:09Z spm $
 
 % Format of 'model' structure :
 % #############################
 %
 % model.
-%	head		: structure of head surfaces (1x3)
-%	electrodes	: structure for electrodes
+%   head        : structure of head surfaces (1x3)
+%   electrodes  : structure for electrodes
 %   Mtempl      : affine transformation from the patient into the template space
-%	sigma		: conductivity values (1x3)
-%	(IFS		: cells containing Intermediate Forward Solution (1x3),
-%			      these do NOT depend on the dipoles grid.)
+%   sigma       : conductivity values (1x3)
+%   (IFS        : cells containing Intermediate Forward Solution (1x3),
+%                 these do NOT depend on the dipoles grid.)
 %                 Only used for the BEM solution !
 %
 % 'head' sub-structure format
 % ===========================
-% .head(i)		: i=1,2,3 for brain, skull & scalp surfaces
-%	XYZmm		: coordinates of vertices (3xNv)
-%	tri		: indices of vertices in triangles (3xNt)
-%	M		: voxel-to-mm space transformation matrix
-%	nr		: [nr_of_vertices (Nv) & nr_of_triangles (Nt)]
-%	pt4.XYZvx	: coord of projected triangle centre (3xNt)
-%	edges.		: triangles edges information structure
-%		ed	: edges length, vertices indices and triangles indices
-%		nr	: [nr_edges mean_length std_length]
-%	info		: informations
+% .head(i)      : i=1,2,3 for brain, skull & scalp surfaces
+%   XYZmm       : coordinates of vertices (3xNv)
+%   tri     : indices of vertices in triangles (3xNt)
+%   M       : voxel-to-mm space transformation matrix
+%   nr      : [nr_of_vertices (Nv) & nr_of_triangles (Nt)]
+%   pt4.XYZvx   : coord of projected triangle centre (3xNt)
+%   edges.      : triangles edges information structure
+%       ed  : edges length, vertices indices and triangles indices
+%       nr  : [nr_edges mean_length std_length]
+%   info        : informations
 %
 %
-%	Format of .edges :
-%	------------------
-%	.edges.ed :					
-% 		ed(:,1) = length,
-%		ed(:,[2 3]) = indices of 2 vertices, e.g ind. of a and c	
-%		ed(:,[4 5]) = indices of 2 triangles, e.g ind. of I and II
+%   Format of .edges :
+%   ------------------
+%   .edges.ed :                 
+%       ed(:,1) = length,
+%       ed(:,[2 3]) = indices of 2 vertices, e.g ind. of a and c    
+%       ed(:,[4 5]) = indices of 2 triangles, e.g ind. of I and II
 %
-%		  length	    a x------x b
-%		 _______	     /\  I  /
-%		'       `	    /  o   /
-%		x---o---x	   / II \ /
-%				    d x------x c
+%         length        a x------x b
+%        _______         /\  I  /
+%       '       `       /  o   /
+%       x---o---x      / II \ /
+%                   d x------x c
 %
-%	.edges.nr :
-%		nr(1) : number of edges,
-%		nr([2 3]) : mean and std of edges length.
+%   .edges.nr :
+%       nr(1) : number of edges,
+%       nr([2 3]) : mean and std of edges length.
 %
 % 'electrodes' sub-structure format
 % =================================
-% .electrodes.		: structure for electrodes
-%	vert	: index of the closest vertex (Nel x 1)
-%	tri		: index of the triangle beneath each electrode
-%	nr		: nr of electrodes
-%	XYZmm	: coord. of electrodes on the scalp (in voxel)
-%	M		: voxel-to-mm space transformation matrix
-%	Cnames	: electrodes names
-%	info	:
+% .electrodes.      : structure for electrodes
+%   vert    : index of the closest vertex (Nel x 1)
+%   tri     : index of the triangle beneath each electrode
+%   nr      : nr of electrodes
+%   XYZmm   : coord. of electrodes on the scalp (in voxel)
+%   M       : voxel-to-mm space transformation matrix
+%   Cnames  : electrodes names
+%   info    :
 %   nasion  :
 %   inion   :
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jeremie Mattout
+% $Id: spm_eeg_inv_model.m 1131 2008-02-06 11:17:09Z spm $
+
 
 spm('FigName','Realistic head model');
 
@@ -301,7 +306,7 @@ case 'init'
 %------------------------------------------------------------------------
 % Use a GUI.
 %------------------------------------------------------------------------
-	pos = 1 ;
+    pos = 1 ;
 
     % Select the operation through the GUI or from passed variable
     if nargin==2 && isnumeric(varargin{1})
@@ -311,13 +316,13 @@ case 'init'
             warning('Wrong options for model, I assume "generate all at once"');
         end
     else
-		text_opt = [...
+        text_opt = [...
             'Generate scalp/brain vol & tessalate|',...
             'Tessalate predefined binarized volume|',...
-			'Project electrodes coord (spher or real) on scalp/brain surface|',...
-			'Define realistic sphere model|',...
+            'Project electrodes coord (spher or real) on scalp/brain surface|',...
+            'Define realistic sphere model|',...
             'The 4 steps at once'];
-		gener = spm_input('Generate what ?',pos,'m',text_opt);
+        gener = spm_input('Generate what ?',pos,'m',text_opt);
     end
 
     % Load required inputs
@@ -340,7 +345,7 @@ case 'init'
         
     if gener==2
     % Tessalate predefined binarized volume only.
-		Pvol = spm_select(Inf,'*_o*.img','1-2-3 bin images to tessalate (br-sk-sc)');
+        Pvol = spm_select(Inf,'*_o*.img','1-2-3 bin images to tessalate (br-sk-sc)');
         flag_te.Nvol = size(Pvol,1);
         if flag_te.Nvol==1
             flag_te.br_only = spm_input('Is this the brain bin volume ?','+1','y/n',[1,0],0);
@@ -357,13 +362,13 @@ case 'init'
     if gener==1 || gener==2 || gener==5
     % Generate scalp/brain vol & tessalate binarized volume
         if flag_te.Nvol>1 || flag_te.br_only
-%     		Npt = spm_input('Approx. nr of vertices on brain surf','+1','e',4000);
-    		Npt = 4000; % 4000 seems a "good" number for the inner skull surface
+%           Npt = spm_input('Approx. nr of vertices on brain surf','+1','e',4000);
+            Npt = 4000; % 4000 seems a "good" number for the inner skull surface
             flag_te.n = zeros(1,3); flag_te.n(1) = 2*round((sqrt((Npt-2)*4/5))/2);
         end
         if ~flag_te.br_only 
-%     		Npt = spm_input('Approx. nr of vertices on sk/sc surf','+1','e',2000);
-    		Npt = 4000; % Use also about 4000 vertices for the scalp surface
+%           Npt = spm_input('Approx. nr of vertices on sk/sc surf','+1','e',2000);
+            Npt = 4000; % Use also about 4000 vertices for the scalp surface
             if flag_te.Nvol>1 
                 flag_te.n(2:3) = 2*round((sqrt((Npt-2)*4/5))/2);
             else
@@ -374,9 +379,9 @@ case 'init'
         flag_te.q_elast_m  = 1 ; % of course do the "surface smoothing".
         [pth,fn,ext,nr] = spm_fileparts(Pvol);
         Pmod = fullfile(pth,['model_head_',fn,'.mat']);
-	end
+    end
 
-	if gener==3 || gener==5
+    if gener==3 || gener==5
     % Project electrodes coord (spher or real) on scalp/brain surface
         if gener==3
             Pmod = spm_select(1,'^model.*\.mat$','Head model file');
@@ -410,9 +415,9 @@ case 'init'
         if q_StdElec
             % Select standard electrode set, as defined in 'spm_eeg_inv_electrset'
             [set_Nel,set_name] = spm_eeg_inv_electrset;
-			el_set = spm_input('Which set of electrodes', ...
-					'+1','m',set_name);
-     		[el_sphc,el_name] = spm_eeg_inv_electrset(el_set) ;
+            el_set = spm_input('Which set of electrodes', ...
+                    '+1','m',set_name);
+            [el_sphc,el_name] = spm_eeg_inv_electrset(el_set) ;
             flags_el.q_RealLoc = 0;
         else
             % Enter user defined electrode set.
@@ -427,7 +432,7 @@ case 'init'
                 flags_el.inion  = spm_input('Inion coordinates (in mm)','+1','e',[],3);
             end
         end
-	end
+    end
 
     if gener==4
     % Define realistic sphere
@@ -469,15 +474,15 @@ case 'init'
         
     if gener==3 || gener==5
     % Project electrodes coord (spher or real) on scalp/brain surface
-		fname_el = ['el_sphc',num2str(size(el_sphc,2))];
-		save(fname_el,'el_sphc','el_name');
+        fname_el = ['el_sphc',num2str(size(el_sphc,2))];
+        save(fname_el,'el_sphc','el_name');
         [electrodes,flags_el] = spm_eeg_inv_model('Elec2Scalp',model.head(end), ...
                                                 el_sphc,el_name,flags_el);
         model.electrodes = electrodes ;
         model.flags.fl_elec = flags_el ;
-		Pmod_s = [spm_str_manip(Pmod,'s'),'_e', ...
-				num2str(model.electrodes.nr),'.mat'] ;
-		save(Pmod_s,'model')
+        Pmod_s = [spm_str_manip(Pmod,'s'),'_e', ...
+                num2str(model.electrodes.nr),'.mat'] ;
+        save(Pmod_s,'model')
         varargout{1} = model ;    
     end
     
@@ -492,8 +497,8 @@ case 'init'
         [spheres,a,b,c,flags_Rs] = spm_eeg_inv_Rsph(model,[],flags_Rs);
         model.spheres = spheres;
         model.flags.fl_RealS = flags_Rs;
-		Pmod_Rs = [spm_str_manip(Pmod,'s'),'_Rs.mat'] ;
-		save(Pmod_Rs,'model')
+        Pmod_Rs = [spm_str_manip(Pmod,'s'),'_Rs.mat'] ;
+        save(Pmod_Rs,'model')
         varargout{1} = model ;  
     end
 
@@ -529,11 +534,11 @@ case 'genbin'
     else
         flags = varargin{2};
         fnms  = fieldnames(def_flags);
-		for i=1:length(fnms),
-			if ~isfield(flags,fnms{i}),
+        for i=1:length(fnms),
+            if ~isfield(flags,fnms{i}),
                 flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
             end
-		end
+        end
     end
     
     load('defaults_eeg_mesh.mat');
@@ -568,31 +573,31 @@ case 'genbin'
 %   and write the *_iskull img on disk
     Parg = strvcat(Pisk,Pisk);
     ne   = flags.ne(1); ng = flags.ng(1); thr_im = flags.thr_im(1);
-	[Pout] = spm_eeg_inv_model('ErodeGrow',Parg,ne,ng,thr_im);
+    [Pout] = spm_eeg_inv_model('ErodeGrow',Parg,ne,ng,thr_im);
 
     if flags.img_type==1
 % 4.Generate the outer-scalp volume, if possible
         Pvolc   = fullfile(pth,['m',nam,ext]);
-		Vsc     = spm_vol(Pvolc);
-		Vsc.dat = spm_loaduint8(Vsc);
+        Vsc     = spm_vol(Pvolc);
+        Vsc.dat = spm_loaduint8(Vsc);
 %         [mnv,mxv] = spm_minmax(Vsc.dat)
-		ne = flags.ne(end); ng = flags.ng(end); thr_im = flags.thr_im(end);
-		Vsc.dat = spm_eeg_inv_model('ErodeGrow',Vsc.dat,ne,ng,thr_im);
-		
+        ne = flags.ne(end); ng = flags.ng(end); thr_im = flags.thr_im(end);
+        Vsc.dat = spm_eeg_inv_model('ErodeGrow',Vsc.dat,ne,ng,thr_im);
+        
         % The bottom part of the image needs to be masked out, in MNI space.
-% 		p1 = [0 85 -50]'; % point below on the nose
-% 		p2 = [0 -55 -70]'; % point below the bottom of cerebellum (mm)
-		p1 = [0 110 -105]'; % point below on the nose
-		p2 = [0 -55 -110]'; % point below the bottom of cerebellum (mm)
-		c = [p2(1:2)' ((p1(2)-p2(2))^2+p1(3)^2-p2(3)^2)/(2*(-p2(3)+p1(3)))];
-		R2 = (p2(3)-c(3))^2;
-		% center and radius of sphere to chop off bottom of the head
-		
-		X = (1:Vsc.dim(1))'*ones(1,Vsc.dim(2)); X =X(:)';
-		Y = ones(Vsc.dim(1),1)*(1:Vsc.dim(2)); Y = Y(:)';
-		Z = zeros(Vsc.dim(1),Vsc.dim(2)); Z = Z(:)'; 
-		Unit = ones(size(Z));
-		% X,Y,X coordinates in vox in original image
+%       p1 = [0 85 -50]'; % point below on the nose
+%       p2 = [0 -55 -70]'; % point below the bottom of cerebellum (mm)
+        p1 = [0 110 -105]'; % point below on the nose
+        p2 = [0 -55 -110]'; % point below the bottom of cerebellum (mm)
+        c = [p2(1:2)' ((p1(2)-p2(2))^2+p1(3)^2-p2(3)^2)/(2*(-p2(3)+p1(3)))];
+        R2 = (p2(3)-c(3))^2;
+        % center and radius of sphere to chop off bottom of the head
+        
+        X = (1:Vsc.dim(1))'*ones(1,Vsc.dim(2)); X =X(:)';
+        Y = ones(Vsc.dim(1),1)*(1:Vsc.dim(2)); Y = Y(:)';
+        Z = zeros(Vsc.dim(1),Vsc.dim(2)); Z = Z(:)'; 
+        Unit = ones(size(Z));
+        % X,Y,X coordinates in vox in original image
         isn_tmp = isn; isn_tmp.Tr = []; % using the simple affine transform should be enough
 
         for pp = 1:Vsc.dim(3)
@@ -602,20 +607,20 @@ case 'genbin'
             val_pp = Vsc.dat(:,:,pp);
             val_pp(lz) = 0;
             Vsc.dat(:,:,pp) = val_pp;
-		end
-		
+        end
+        
         % Write the file
         Vsc.fname = fullfile(pth,[nam,'_scalp',ext]);
         Vsc.dt = [2 0];
         Vsc.pinfo = [1/255 0 0]';
-		Vsc = spm_create_vol(Vsc);
-		spm_progress_bar('Init',Vsc.dim(3),'Writing Outer-scalp','planes completed');
-		for pp=1:Vsc.dim(3),
-			Vsc = spm_write_plane(Vsc,double(Vsc.dat(:,:,pp)),pp);
+        Vsc = spm_create_vol(Vsc);
+        spm_progress_bar('Init',Vsc.dim(3),'Writing Outer-scalp','planes completed');
+        for pp=1:Vsc.dim(3),
+            Vsc = spm_write_plane(Vsc,double(Vsc.dat(:,:,pp)),pp);
                 % No need to divide by 255 as output from Erode grow is [0 1].
-			spm_progress_bar('Set',pp);
-		end;
-		spm_progress_bar('Clear');
+            spm_progress_bar('Set',pp);
+        end;
+        spm_progress_bar('Clear');
         varargout{1} = strvcat(Pisk,Vsc.fname);
     end
     Pinv_sn = strvcat(Pinv_isn,Pinv_sn);
@@ -633,20 +638,20 @@ case 'vx2mm'
 % according to the transformation matrix 'M'.
 % 'M' is the 4x4 affine transformation matrix : from vx to mm
 %------------------------------------------------------------------------
-	pt_vx = varargin{1} ;
-	M = varargin{2} ;
-	
-	if size(pt_vx,1)==3
+    pt_vx = varargin{1} ;
+    M = varargin{2} ;
+    
+    if size(pt_vx,1)==3
         Npt = size(pt_vx,2);
-	elseif size(pt_vx,2)==3;
+    elseif size(pt_vx,2)==3;
         pt_vx = pt_vx';
         Npt = size(pt_vx,2);
-	else
+    else
         error('Wrong vectors format !')
-	end
-	
-	pt_mm = M*[pt_vx;ones(1,Npt)];
-	varargout{1} = pt_mm(1:3,:);
+    end
+    
+    pt_mm = M*[pt_vx;ones(1,Npt)];
+    varargout{1} = pt_mm(1:3,:);
 %________________________________________________________________________
 case 'mm2vx'
 %------------------------------------------------------------------------
@@ -655,47 +660,47 @@ case 'mm2vx'
 % according to the transformation matrix 'M'.
 % 'M' is the 4x4 affine transformation matrix : from vx to mm
 %------------------------------------------------------------------------
-	pt_mm = varargin{1} ;
-	M = varargin{2} ;
-	
-	if size(pt_mm,1)==3
+    pt_mm = varargin{1} ;
+    M = varargin{2} ;
+    
+    if size(pt_mm,1)==3
         Npt = size(pt_mm,2);
-	elseif size(pt_mm,2)==3;
+    elseif size(pt_mm,2)==3;
         pt_mm = pt_mm';
         Npt = size(pt_mm,2);
-	else
+    else
         error('Wrong vectors format !')
-	end
-	
-	pt_vx = M\[pt_mm;ones(1,Npt)];
-	varargout{1} = pt_vx(1:3,:);
+    end
+    
+    pt_vx = M\[pt_mm;ones(1,Npt)];
+    varargout{1} = pt_vx(1:3,:);
 %________________________________________________________________________
 case 'ctrbin'
 %------------------------------------------------------------------------
 % FORMAT [Centre,c_mm]=spm_eeg_inv_model('CtrBin',P);
 % Determine the "centre of mass" (vx and mm) of a bin image.
 %------------------------------------------------------------------------
-	if nargin<2
-		P = spm_select(1,'o*.img','Bin image to use');
+    if nargin<2
+        P = spm_select(1,'o*.img','Bin image to use');
     else
         P = varargin{1};
-	end
-	Vp = spm_vol(P) ;
+    end
+    Vp = spm_vol(P) ;
 
-	Vp.dat = spm_loaduint8(Vp);
-	X = (1:Vp.dim(1))'*ones(1,Vp.dim(2)); X =X(:)';
-	Y = ones(Vp.dim(1),1)*(1:Vp.dim(2)); Y = Y(:)';
-	Z = zeros(Vp.dim(1),Vp.dim(2)); Z = Z(:)'; 
-	Unit = ones(size(Z));
-	
-	c_mm = zeros(1,3); SI = 0;
-	for pp=1:Vp.dim(3)
+    Vp.dat = spm_loaduint8(Vp);
+    X = (1:Vp.dim(1))'*ones(1,Vp.dim(2)); X =X(:)';
+    Y = ones(Vp.dim(1),1)*(1:Vp.dim(2)); Y = Y(:)';
+    Z = zeros(Vp.dim(1),Vp.dim(2)); Z = Z(:)'; 
+    Unit = ones(size(Z));
+    
+    c_mm = zeros(1,3); SI = 0;
+    for pp=1:Vp.dim(3)
         I_pl = double(Vp.dat(:,:,pp)); I_pl = I_pl(:)*ones(1,3);
         XYZ = Vp.mat*[X ; Y ; Z+pp ; Unit];
         c_mm = c_mm + sum(XYZ(1:3,:)'.*I_pl);
         SI = SI+sum(I_pl(:,1));
-	end
-	c_mm = c_mm/SI;
+    end
+    c_mm = c_mm/SI;
     Centre = spm_eeg_inv_model('mm2vx',c_mm,Vp.mat)';
     varargout{1} = Centre;
     varargout{2} = c_mm;
@@ -737,12 +742,12 @@ case 'elec2scalp'
 %
 % The electrodes substructure is created at the end.
 %------------------------------------------------------------------------
-	fprintf('\n'), fprintf('%c','='*ones(1,80)), fprintf('\n')
+    fprintf('\n'), fprintf('%c','='*ones(1,80)), fprintf('\n')
     fprintf(['Placing electrodes on the scalp surface.\n']);
     fprintf('%c','='*ones(1,80)), fprintf('\n')
     surf   = varargin{1};
-	el_loc = varargin{2};
-	Nel    = size(el_loc,2);
+    el_loc = varargin{2};
+    Nel    = size(el_loc,2);
     if nargin<4
         [set_Nel,set_name] = spm_eeg_inv_electrset;
         try 
@@ -761,11 +766,11 @@ case 'elec2scalp'
     else
         flags = varargin{4};
         fnms  = fieldnames(def_flags);
-		for i=1:length(fnms),
-			if ~isfield(flags,fnms{i}),
+        for i=1:length(fnms),
+            if ~isfield(flags,fnms{i}),
                 flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
             end
-		end
+        end
     end
     
     if ~flags.q_RealLoc
@@ -774,107 +779,107 @@ case 'elec2scalp'
         % => need to use nasion and inion to orient them properly.
 
         % Centre translation, scaling factor and pitch angle
-	    % 	-> afine transformation, correcting for the pitch ONLY!
+        %   -> afine transformation, correcting for the pitch ONLY!
         [na_mm] = flags.nasion;
         [in_mm] = flags.inion;
-    	cNI = (na_mm+in_mm)/2 ;
-    	s = norm(cNI-na_mm) ;
-    	theta = acos( (na_mm(2)-cNI(2))/s ) ; % pitch angle to apply
+        cNI = (na_mm+in_mm)/2 ;
+        s = norm(cNI-na_mm) ;
+        theta = acos( (na_mm(2)-cNI(2))/s ) ; % pitch angle to apply
         if flags.q_RealNI
-        	Tr = spm_matrix([cNI theta 0 0 s s s]) ; % apply pitch correction
+            Tr = spm_matrix([cNI theta 0 0 s s s]) ; % apply pitch correction
         else
-        	Tr = inv(flags.Mtempl) * spm_matrix([cNI theta 0 0 s s s]) ;
+            Tr = inv(flags.Mtempl) * spm_matrix([cNI theta 0 0 s s s]) ;
             % same but takes into account the mapping with template space.
         end            
 
-		% Electrodes: "realistic" sphere coordinates...
-		el_rsc = Tr * [el_loc ; ones(1,Nel)] ;
-		el_rsc = el_rsc(1:3,:);
+        % Electrodes: "realistic" sphere coordinates...
+        el_rsc = Tr * [el_loc ; ones(1,Nel)] ;
+        el_rsc = el_rsc(1:3,:);
     else
         el_rsc = el_loc;
         cNI    = surf.Centre;
     end
     % figure, plot3(el_rsc(1,:)',el_rsc(2,:)',el_rsc(3,:)','*'), axis equal, xlabel('axe x'),ylabel('axe y')
     
-	electrodes.vert = zeros(Nel,1);
-	electrodes.tri  = zeros(Nel,1);
-	pos_el_mm       = zeros(3,Nel);
+    electrodes.vert = zeros(Nel,1);
+    electrodes.tri  = zeros(Nel,1);
+    pos_el_mm       = zeros(3,Nel);
 
-	% projection of the el_rsc on the scalp surface.
-	% The "closest" point is detemined by the angle between the electrode_i
-	% and the scalp vertices from the centre
-	% Then the supporting triangle is found, such that the electrode_i falls
-	% within the traingle and the "exact" coord of electrode_i is obtained.
-	XYZmm = surf.XYZmm ;
-	v_sv = XYZmm-(cNI'*ones(1,size(XYZmm,2))) ;
-	v_sv = v_sv./( ones(3,1)*sqrt(sum(v_sv.^2)) ) ; % direction of surf vertices from cNI
-	for ii=1:Nel
-		v_el = (el_rsc(:,ii)-cNI')/norm(el_rsc(:,ii)-cNI') ;
-			% orient vect. of electrode_i
-			% orient vect. of scalp vertices
-		alpha = acos(v_el'*v_sv) ;
-		[m_a,ind_v] = min(abs(alpha)) ; % Find the vertex with closest orientation
-		list_t = find( (surf.tri(1,:)==ind_v) | ...
-				(surf.tri(2,:)==ind_v) | ...
-				(surf.tri(3,:)==ind_v) ) ; % Triangles linked to that vertex.
-		Nlist = length(list_t) ;
-		is_in = zeros(Nlist,1) ;
-		proj_el = zeros(3,Nlist) ;
-		for j=1:Nlist
-			v1 = XYZmm(:,surf.tri(1,list_t(j))) ;
-			v2 = XYZmm(:,surf.tri(2,list_t(j))) ;
-			v3 = XYZmm(:,surf.tri(3,list_t(j))) ;
-			v13 = v3-v1 ; v12 = v2-v1 ;
-			A = [v13 v12 v_el] ;
-			b = el_rsc(:,ii) - v1;
-			x = A\b ;
-			proj_el(:,j) = el_rsc(:,ii) - x(3)*v_el ;
+    % projection of the el_rsc on the scalp surface.
+    % The "closest" point is detemined by the angle between the electrode_i
+    % and the scalp vertices from the centre
+    % Then the supporting triangle is found, such that the electrode_i falls
+    % within the traingle and the "exact" coord of electrode_i is obtained.
+    XYZmm = surf.XYZmm ;
+    v_sv = XYZmm-(cNI'*ones(1,size(XYZmm,2))) ;
+    v_sv = v_sv./( ones(3,1)*sqrt(sum(v_sv.^2)) ) ; % direction of surf vertices from cNI
+    for ii=1:Nel
+        v_el = (el_rsc(:,ii)-cNI')/norm(el_rsc(:,ii)-cNI') ;
+            % orient vect. of electrode_i
+            % orient vect. of scalp vertices
+        alpha = acos(v_el'*v_sv) ;
+        [m_a,ind_v] = min(abs(alpha)) ; % Find the vertex with closest orientation
+        list_t = find( (surf.tri(1,:)==ind_v) | ...
+                (surf.tri(2,:)==ind_v) | ...
+                (surf.tri(3,:)==ind_v) ) ; % Triangles linked to that vertex.
+        Nlist = length(list_t) ;
+        is_in = zeros(Nlist,1) ;
+        proj_el = zeros(3,Nlist) ;
+        for j=1:Nlist
+            v1 = XYZmm(:,surf.tri(1,list_t(j))) ;
+            v2 = XYZmm(:,surf.tri(2,list_t(j))) ;
+            v3 = XYZmm(:,surf.tri(3,list_t(j))) ;
+            v13 = v3-v1 ; v12 = v2-v1 ;
+            A = [v13 v12 v_el] ;
+            b = el_rsc(:,ii) - v1;
+            x = A\b ;
+            proj_el(:,j) = el_rsc(:,ii) - x(3)*v_el ;
             % In fact, el_rsc(:,ii) = v1 + v13*x(1) + v12*x(2) + v_el*x(3)
             % and proj_el(:,j) = el_rsc(:,i) - x(3)*v_el
             % or proj_el(:,j) = v1 + v13*x(1) + v12*x(2)
 
-			v1_pel = v1-proj_el(:,j); no(1) = norm(v1_pel);
-			v2_pel = v2-proj_el(:,j); no(2) = norm(v2_pel);
-			v3_pel = v3-proj_el(:,j); no(3) = norm(v3_pel);
+            v1_pel = v1-proj_el(:,j); no(1) = norm(v1_pel);
+            v2_pel = v2-proj_el(:,j); no(2) = norm(v2_pel);
+            v3_pel = v3-proj_el(:,j); no(3) = norm(v3_pel);
             if all(no>1e-7) % This is in case one electrode falls exactly on the vertex
                 v1_pel = v1_pel/no(1);
                 v2_pel = v2_pel/no(2);
                 v3_pel = v3_pel/no(3);
-				sum_angle = real(acos(v1_pel'*v2_pel) + ...
-						 acos(v2_pel'*v3_pel) + ...
-						 acos(v3_pel'*v1_pel)) ;
-				if abs(sum_angle-2*pi)<1e-7
-					is_in(j)=1 ;
-				end
+                sum_angle = real(acos(v1_pel'*v2_pel) + ...
+                         acos(v2_pel'*v3_pel) + ...
+                         acos(v3_pel'*v1_pel)) ;
+                if abs(sum_angle-2*pi)<1e-7
+                    is_in(j)=1 ;
+                end
             else
                 is_in(j)=1;
-			end
+            end
         end
-		which_tri = find(is_in==1) ;
-		% if the projected electr. location is exactly on an edge, it is in 2 triangles
-		%	=> keep the 1st one
+        which_tri = find(is_in==1) ;
+        % if the projected electr. location is exactly on an edge, it is in 2 triangles
+        %   => keep the 1st one
 
-		electrodes.vert(ii) = ind_v ;
-		electrodes.tri(ii) = list_t(which_tri(1)) ;
+        electrodes.vert(ii) = ind_v ;
+        electrodes.tri(ii) = list_t(which_tri(1)) ;
         if flags.br_only
             % need to add the br_sc width here
             pos_el_mm(:,ii) = proj_el(:,which_tri(1))+v_el*flags.scbr_w;
         else
-    		pos_el_mm(:,ii) = proj_el(:,which_tri(1)) ;
+            pos_el_mm(:,ii) = proj_el(:,which_tri(1)) ;
         end
-	end
+    end
 
-	electrodes.XYZmm = pos_el_mm;
+    electrodes.XYZmm = pos_el_mm;
     electrodes.el_loc = el_loc;
-	electrodes.nr	 = Nel ;
+    electrodes.nr    = Nel ;
     if flags.br_only
-        electrodes.info	= ['Electr loc projected on brain surface + ',num2str(flags.scbr_w),' mm'];
+        electrodes.info = ['Electr loc projected on brain surface + ',num2str(flags.scbr_w),' mm'];
     else
-    	electrodes.info	= 'Electrode location projected on scalp surface' ;
+        electrodes.info = 'Electrode location projected on scalp surface' ;
     end
     electrodes.names = el_name';
 
-	varargout{1} = electrodes;
+    varargout{1} = electrodes;
     varargout{2} = flags;
 %________________________________________________________________________
 case 'genmesh'
@@ -906,11 +911,11 @@ case 'genmesh'
     else
         flags = varargin{2};
         fnms  = fieldnames(def_flags);
-		for i=1:length(fnms),
-			if ~isfield(flags,fnms{i}),
+        for i=1:length(fnms),
+            if ~isfield(flags,fnms{i}),
                 flags = setfield(flags,fnms{i},getfield(def_flags,fnms{i}));
             end
-		end
+        end
     end
 
     [Centre_vx,Centre_mm]=spm_eeg_inv_model('CtrBin',Pvol(1,:));
@@ -932,20 +937,20 @@ case 'genmesh'
         end
     end
     if flags.q_elast_m
-    	fprintf(['\t\tCorrect position of vertices\n']);
+        fprintf(['\t\tCorrect position of vertices\n']);
         for ii=Nbin:-1:1
             head(ii) = spm_eeg_inv_model('ElastM',head(ii),Pvol(ii,:));
         end
     end
     if flags.q_meased
-    	fprintf(['\t\tMeasure the edges length\n']);
+        fprintf(['\t\tMeasure the edges length\n']);
         head(1).edges = struct('ed',[],'nr',[]);
         for ii=Nbin:-1:1
             head(ii) = spm_eeg_inv_model('MeasEd',head(ii));
         end
     end
     if flags.q_4thpt
-		fprintf(['\t\tDetermine triangle''s "4th point"\n']);
+        fprintf(['\t\tDetermine triangle''s "4th point"\n']);
         head(1).pt4 = [];
         for ii=Nbin:-1:1
             head(ii) = spm_eeg_inv_model('Tr4thPt',head(ii),Pvol(ii,:));
@@ -973,82 +978,82 @@ case 'tesbin'
 %   P:      filename of bin volume
 %   info:   information string
 %------------------------------------------------------------------------
-	if nargin==1
+    if nargin==1
         n = 32;
         P = spm_select(1,'outer*.img','Bin image to tessalate');
-		[ctr_vol_vx,ctr_vol] = spm_eeg_inv_model('CtrBin',P) ;
-		info = 'realistic model' ;
-	elseif nargin==2
+        [ctr_vol_vx,ctr_vol] = spm_eeg_inv_model('CtrBin',P) ;
+        info = 'realistic model' ;
+    elseif nargin==2
         n = varargin{1};
         P = spm_select(1,'outer*.img','Bin image to tessalate');
-		[ctr_vol_vx,ctr_vol] = spm_eeg_inv_model('CtrBin',P) ;
-		info = 'realistic model' ;
-	elseif nargin==3
+        [ctr_vol_vx,ctr_vol] = spm_eeg_inv_model('CtrBin',P) ;
+        info = 'realistic model' ;
+    elseif nargin==3
         n = varargin{1};
         ctr_vol = varargin{2};
         P = spm_select(1,'outer.img','Bin image to tessalate');
-		info = 'realistic model' ;
-	elseif nargin==4
+        info = 'realistic model' ;
+    elseif nargin==4
         n = varargin{1};
         ctr_vol = varargin{2};
         P = varargin{3};
-		info = 'realistic model' ;
-	elseif nargin==5
+        info = 'realistic model' ;
+    elseif nargin==5
         n = varargin{1};
         ctr_vol = varargin{2};
         P = varargin{3};
-		info = varargin{4} ;
-	elseif nargin>5
-		error('Wrong input arguments for ''TesBin''.') ;
+        info = varargin{4} ;
+    elseif nargin>5
+        error('Wrong input arguments for ''TesBin''.') ;
     end
     
-	% Load volume information
-	%------------------------
-	Vv    = spm_vol(P);
+    % Load volume information
+    %------------------------
+    Vv    = spm_vol(P);
     VOX   = sqrt(sum(Vv.mat(1:3,1:3).^2));
     
-	% A few defintions
-	%-----------------
-	ho = 1 ; % Trilinear interpolation shoud be enough
-	n_div = 1000; % # of sample in the radial direction
-	trsh_vol = .9; % Thershold for surface detection
-	rad = round(4/3*max(Vv.dim(1:3).*VOX/2)); % Radius (mm) of original sphere
-	dr = rad/n_div; % size of sampling step (mm)
-	d_li = 0:dr:rad; % Sampling location on radius (mm)
-	nd_li = length(d_li); unit = ones(1,nd_li);
+    % A few defintions
+    %-----------------
+    ho = 1 ; % Trilinear interpolation shoud be enough
+    n_div = 1000; % # of sample in the radial direction
+    trsh_vol = .9; % Thershold for surface detection
+    rad = round(4/3*max(Vv.dim(1:3).*VOX/2)); % Radius (mm) of original sphere
+    dr = rad/n_div; % size of sampling step (mm)
+    d_li = 0:dr:rad; % Sampling location on radius (mm)
+    nd_li = length(d_li); unit = ones(1,nd_li);
     
-	% Create a tessalated sphere
-	%---------------------------
-	tsph = spm_eeg_inv_model('TesSph',n,rad);    % tesselated sphere of radius rad,
+    % Create a tessalated sphere
+    %---------------------------
+    tsph = spm_eeg_inv_model('TesSph',n,rad);    % tesselated sphere of radius rad,
     vert = [tsph.vert ; ones(1,tsph.nr(1))] ;    % centered around [0 0 0]
-	vert = spm_matrix([ctr_vol 0 pi/2 0])*vert ;        
-	vert = vert(1:3,:) ;                                
+    vert = spm_matrix([ctr_vol 0 pi/2 0])*vert ;        
+    vert = vert(1:3,:) ;                                
     % Rotate the sphere by 90deg around y axis and centre sphere around the "centre" of the brain, 
     % All this in mm. Leave them as a 3xNvert matrix.
-	
-	srf_vert = zeros(3,tsph.nr(1)) ; % vertices at the surface of brain, in vx !
-    spm_progress_bar('Init',tsph.nr(1),	['Generate ',info ],'Vertices projected');
+    
+    srf_vert = zeros(3,tsph.nr(1)) ; % vertices at the surface of brain, in vx !
+    spm_progress_bar('Init',tsph.nr(1), ['Generate ',info ],'Vertices projected');
 
-	for i = 1:tsph.nr(1)
-		or = ctr_vol'-vert(:,i) ; or = or/norm(or) ; % direction from the point toward the centre
-		line = vert(:,i)*unit + or*d_li;
+    for i = 1:tsph.nr(1)
+        or = ctr_vol'-vert(:,i) ; or = or/norm(or) ; % direction from the point toward the centre
+        line = vert(:,i)*unit + or*d_li;
         line_vx = spm_eeg_inv_model('mm2vx',line,Vv.mat);
-		val_line = spm_sample_vol(Vv,line_vx(1,:),line_vx(2,:),line_vx(3,:),ho) ;
-		srf_vert(:,i) = line_vx(:,min(find(val_line>trsh_vol))) ;
+        val_line = spm_sample_vol(Vv,line_vx(1,:),line_vx(2,:),line_vx(3,:),ho) ;
+        srf_vert(:,i) = line_vx(:,min(find(val_line>trsh_vol))) ;
                     % first point to intercept the surface
-    	spm_progress_bar('Set',i);
+        spm_progress_bar('Set',i);
     end
     spm_progress_bar('Clear');
 
-	srf_vert_mm      = spm_eeg_inv_model('vx2mm',srf_vert,Vv.mat);
-	surf.XYZmm       = srf_vert_mm(1:3,:);
-	surf.tri         = tsph.tri;
-	surf.nr          = tsph.nr;
-	surf.M           = Vv.mat;
-	surf.info.str    = info;
+    srf_vert_mm      = spm_eeg_inv_model('vx2mm',srf_vert,Vv.mat);
+    surf.XYZmm       = srf_vert_mm(1:3,:);
+    surf.tri         = tsph.tri;
+    surf.nr          = tsph.nr;
+    surf.M           = Vv.mat;
+    surf.info.str    = info;
     surf.info.bin_fn = P;
     surf.Centre      = ctr_vol;
-	varargout{1}     = surf;
+    varargout{1}     = surf;
 
 %________________________________________________________________________
 case 'elastm'
@@ -1071,37 +1076,37 @@ case 'elastm'
 %------------------------------------------------------------------------
     ts = varargin{1};
 
-	M_con = sparse([ts.tri(1,:)';ts.tri(1,:)';ts.tri(2,:)';ts.tri(3,:)';ts.tri(2,:)';ts.tri(3,:)'], ...
+    M_con = sparse([ts.tri(1,:)';ts.tri(1,:)';ts.tri(2,:)';ts.tri(3,:)';ts.tri(2,:)';ts.tri(3,:)'], ...
                 [ts.tri(2,:)';ts.tri(3,:)';ts.tri(1,:)';ts.tri(1,:)';ts.tri(3,:)';ts.tri(2,:)'], ...
                 ones(ts.nr(2)*6,1),ts.nr(1),ts.nr(1));
             % Connection vertex-to-vertex
                       
-	kpb = .1; % Cutt-off frequency
-	lam = .5; mu = lam/(lam*kpb-1); % Parameters for elasticity.
-	N = 25; % Number of smoothing steps, the larger, the smoother
-	
-	XYZmm = ts.XYZmm;
-	for j=1:N
+    kpb = .1; % Cutt-off frequency
+    lam = .5; mu = lam/(lam*kpb-1); % Parameters for elasticity.
+    N = 25; % Number of smoothing steps, the larger, the smoother
+    
+    XYZmm = ts.XYZmm;
+    for j=1:N
         XYZmm_o = zeros(3,ts.nr(1)) ;
-		XYZmm_o2 = zeros(3,ts.nr(1)) ;
-		for i=1:ts.nr(1)
-		    ln = find(M_con(:,i));
+        XYZmm_o2 = zeros(3,ts.nr(1)) ;
+        for i=1:ts.nr(1)
+            ln = find(M_con(:,i));
             d_i = sqrt(sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).^2));
             w_i = d_i/sum(d_i);
             XYZmm_o(:,i) = XYZmm(:,i) + ...
                 lam * sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).*(ones(3,1)*w_i),2);
-		end
-		for i=1:ts.nr(1)
-		    ln = find(M_con(:,i));
+        end
+        for i=1:ts.nr(1)
+            ln = find(M_con(:,i));
             d_i = sqrt(sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).^2));
             w_i = d_i/sum(d_i);
             XYZmm_o2(:,i) = XYZmm_o(:,i) + ...
                 mu * sum((XYZmm_o(:,ln)-XYZmm_o(:,i)*ones(1,length(ln))).*(ones(3,1)*w_i),2);
-		end
+        end
         XYZmm = XYZmm_o2;
-	end
-	varargout{1} = ts;
-	varargout{1}.XYZmm = XYZmm;
+    end
+    varargout{1} = ts;
+    varargout{1}.XYZmm = XYZmm;
 %________________________________________________________________________
 case 'meased'
 %------------------------------------------------------------------------
@@ -1112,42 +1117,42 @@ case 'meased'
 %   Output : ts with measured edges
 %
 % Format of the '.edges.' sub-structure :
-% 	ts.edges.ed :
-% 		ed(:,1) = length,
-%		ed(:,[2 3]) = indexes of 2 points,
-%		ed(:,[4 5]) = indexes of 2 triangles.
-%	ts.edges.nr :
-%		nr(1) : number of edges,
-%		nr([2 3]) : mean and std of edges length.
+%   ts.edges.ed :
+%       ed(:,1) = length,
+%       ed(:,[2 3]) = indexes of 2 points,
+%       ed(:,[4 5]) = indexes of 2 triangles.
+%   ts.edges.nr :
+%       nr(1) : number of edges,
+%       nr([2 3]) : mean and std of edges length.
 %------------------------------------------------------------------------
 
 ts = varargin{1}; XYZmm = ts.XYZmm;
 Ned = 3*ts.nr(2)/2; edges = zeros(Ned,5); i_ed = 1 ;
 for i=1:ts.nr(2) % Go through all the triangles
-	e1 = ts.tri(1:2,i); % 3 edges of the ith triangle (counter-clock wise)
-	e2 = ts.tri(2:3,i);
-	e3 = ts.tri([3 1],i);
-	p1 = find((edges(:,2)==e1(2)) && (edges(:,3)==e1(1))); % check if edge was already seen.
-	p2 = find((edges(:,2)==e2(2)) && (edges(:,3)==e2(1)));
-	p3 = find((edges(:,2)==e3(2)) && (edges(:,3)==e3(1)));
-	if isempty(p1) % new edge
-		edges(i_ed,:) = [norm(XYZmm(:,e1(1))-XYZmm(:,e1(2))) e1' i 0] ;
-		i_ed = i_ed+1;
-	else % 2nd triangle for this edge
-		edges(p1,5) = i;
-	end
-	if isempty(p2)
-		edges(i_ed,:) = [norm(XYZmm(:,e2(1))-XYZmm(:,e2(2))) e2' i 0] ;
-		i_ed = i_ed+1 ;
-	else
-		edges(p2,5) = i;
-	end
-	if isempty(p3)
-		edges(i_ed,:) = [norm(XYZmm(:,e3(1))-XYZmm(:,e3(2))) e3' i 0] ;
-		i_ed = i_ed+1 ;
-	else
-		edges(p3,5) = i;
-	end
+    e1 = ts.tri(1:2,i); % 3 edges of the ith triangle (counter-clock wise)
+    e2 = ts.tri(2:3,i);
+    e3 = ts.tri([3 1],i);
+    p1 = find((edges(:,2)==e1(2)) && (edges(:,3)==e1(1))); % check if edge was already seen.
+    p2 = find((edges(:,2)==e2(2)) && (edges(:,3)==e2(1)));
+    p3 = find((edges(:,2)==e3(2)) && (edges(:,3)==e3(1)));
+    if isempty(p1) % new edge
+        edges(i_ed,:) = [norm(XYZmm(:,e1(1))-XYZmm(:,e1(2))) e1' i 0] ;
+        i_ed = i_ed+1;
+    else % 2nd triangle for this edge
+        edges(p1,5) = i;
+    end
+    if isempty(p2)
+        edges(i_ed,:) = [norm(XYZmm(:,e2(1))-XYZmm(:,e2(2))) e2' i 0] ;
+        i_ed = i_ed+1 ;
+    else
+        edges(p2,5) = i;
+    end
+    if isempty(p3)
+        edges(i_ed,:) = [norm(XYZmm(:,e3(1))-XYZmm(:,e3(2))) e3' i 0] ;
+        i_ed = i_ed+1 ;
+    else
+        edges(p3,5) = i;
+    end
 end
 ts.edges.ed = edges; ts.edges.nr = [Ned mean(edges(:,1)) std(edges(:,1))];
 varargout{1} = ts;
@@ -1169,18 +1174,18 @@ case 'tr4thpt'
 % Output :
 %   ts:     tesselated surface with 4th point at each triangle
 %------------------------------------------------------------------------
-	if nargin==1
+    if nargin==1
         error('Wrong input. You should pass a tess. surface')
-	end
+    end
     ts = varargin{1};
-	T_con = sparse([ts.edges.ed(:,4),ts.edges.ed(:,5)],[ts.edges.ed(:,5),ts.edges.ed(:,4)], ...
+    T_con = sparse([ts.edges.ed(:,4),ts.edges.ed(:,5)],[ts.edges.ed(:,5),ts.edges.ed(:,4)], ...
                 ones(ts.edges.nr(1)*2,1),ts.nr(2),ts.nr(2),ts.edges.nr(1)*2);
             % Connection Triangle-to-triangle
-	
-	XYZmm = ts.XYZmm;
-	
-	ts.pt4.XYZmm = zeros(3,ts.nr(2)) ;
-	for i=1:ts.nr(2)
+    
+    XYZmm = ts.XYZmm;
+    
+    ts.pt4.XYZmm = zeros(3,ts.nr(2)) ;
+    for i=1:ts.nr(2)
         l_tr = find(T_con(:,i));
         l_vt = ts.tri(:,l_tr); l_vt = sort(l_vt(:));
         l_vt = [l_vt(find(diff(l_vt)));l_vt(end)]; % Remov vertices listed twice.
@@ -1204,58 +1209,58 @@ case 'tessph'
 %   r : radius of the sphere
 % Output : 
 %   tsph .vert : vertices coordinates (3 x Nvert)
-%		 .tri  : triangle patches (3 x Ntri)
-%		 .info : info string
-% 		8  -> 82   points -> 160 triangles
-% 		10 -> 127  points -> 250 triangles
-% 		12 -> 182  points -> 360 triangles
-% 		14 -> 247  points -> 490 triangles
-% 		16 -> 322  points -> 640 triangles
-% 		18 -> 407  points -> 810 triangles
-% 		20 -> 502  points -> 1000 triangles
-% 		22 -> 607  points -> 1210 triangles
-% 		24 -> 722  points -> 1440 triangles
-% 		26 -> 847  points -> 1690 triangles
-% 		28 -> 982  points -> 1960 triangles
-% 		30 -> 1127 points -> 2250 triangles
-% 		32 -> 1282 points -> 2560 triangles
-% 		34 -> 1447 points -> 2890 triangles
-% 		36 -> 1622 points -> 3240 triangles
-% 		40 -> 2002 points -> 4000 triangles
-% 		42 -> 2207 points -> 4410 triangles
-% 		44 -> 2422 points -> 4840 triangles
-% 		46 -> 2647 points -> 5290 triangles
-% 		48 -> 2882 points -> 5760 triangles
-% 		54 -> 3647 points -> 7290 triangles
-% 		56 -> 3922 points -> 7840 triangles
-% 		58 -> 4207 points -> 8410 triangles
-% 		60 -> 4502 points -> 9000 triangles
-% 		62 -> 4807 points -> 9610 triangles
-% 		64 -> 5122 points -> 10240 triangles.
+%        .tri  : triangle patches (3 x Ntri)
+%        .info : info string
+%       8  -> 82   points -> 160 triangles
+%       10 -> 127  points -> 250 triangles
+%       12 -> 182  points -> 360 triangles
+%       14 -> 247  points -> 490 triangles
+%       16 -> 322  points -> 640 triangles
+%       18 -> 407  points -> 810 triangles
+%       20 -> 502  points -> 1000 triangles
+%       22 -> 607  points -> 1210 triangles
+%       24 -> 722  points -> 1440 triangles
+%       26 -> 847  points -> 1690 triangles
+%       28 -> 982  points -> 1960 triangles
+%       30 -> 1127 points -> 2250 triangles
+%       32 -> 1282 points -> 2560 triangles
+%       34 -> 1447 points -> 2890 triangles
+%       36 -> 1622 points -> 3240 triangles
+%       40 -> 2002 points -> 4000 triangles
+%       42 -> 2207 points -> 4410 triangles
+%       44 -> 2422 points -> 4840 triangles
+%       46 -> 2647 points -> 5290 triangles
+%       48 -> 2882 points -> 5760 triangles
+%       54 -> 3647 points -> 7290 triangles
+%       56 -> 3922 points -> 7840 triangles
+%       58 -> 4207 points -> 8410 triangles
+%       60 -> 4502 points -> 9000 triangles
+%       62 -> 4807 points -> 9610 triangles
+%       64 -> 5122 points -> 10240 triangles.
 %------------------------------------------------------------------------
     if nargin==1 
-		n = 20 ;
-		r = 1 ;
-		disp(['default values : n=',num2str(n),' , r=',num2str(r)]) ;
-	elseif nargin==2
+        n = 20 ;
+        r = 1 ;
+        disp(['default values : n=',num2str(n),' , r=',num2str(r)]) ;
+    elseif nargin==2
             n = varargin{1}
             r = 1 ;
-		    disp(['default value :  r=',num2str(r)]) ;
-	elseif nargin==3
+            disp(['default value :  r=',num2str(r)]) ;
+    elseif nargin==3
             n = varargin{1};
             r = varargin{2};
-	else
+    else
         error('Wrong input format 2')
-	end
-	
-	[X_sp,Y_sp,Z_sp,npt_tr,npt_qr,npt_sph] = point(n,r) ;
-	[ind_tr] = tri(npt_tr,npt_qr,npt_sph) ;
-	
-	tsph.vert = [X_sp ; Y_sp ; Z_sp] ;
-	tsph.tri = ind_tr ;
-	tsph.nr = [length(X_sp) size(ind_tr,2)] ;
-	tsph.info = ['Tes sph : n=',num2str(n),', r=',num2str(r)] ;
-	varargout{1} = tsph;
+    end
+    
+    [X_sp,Y_sp,Z_sp,npt_tr,npt_qr,npt_sph] = point(n,r) ;
+    [ind_tr] = tri(npt_tr,npt_qr,npt_sph) ;
+    
+    tsph.vert = [X_sp ; Y_sp ; Z_sp] ;
+    tsph.tri = ind_tr ;
+    tsph.nr = [length(X_sp) size(ind_tr,2)] ;
+    tsph.info = ['Tes sph : n=',num2str(n),', r=',num2str(r)] ;
+    varargout{1} = tsph;
 %__________________________________________________________________________
 case 'erodegrow'    
 %------------------------------------------------------------------------
@@ -1408,7 +1413,7 @@ end
 
 %________________________________________________________________________
 otherwise,
-	warning('Unknown action string')
+    warning('Unknown action string')
 end;
 
 return;
@@ -1433,39 +1438,39 @@ X_qr=[] ; Y_qr=[] ; Z_qr=[] ; X_sp=[] ; Y_sp=[] ; Z_sp=[] ;
 
 % Coord of pts on a 5th of sphere WITHOUT the top and bottom points
 for i=1:n/2         % Upper part
-	the = i*dth ;
-	cth = cos(the) ; sth = sin(the) ;
-	dphi = 72/i*d_r ;
-	for j=1:i
-		phi = (j-1)*dphi ;
-		cph = cos(phi) ; sph = sin(phi) ;
-		X_qr = [X_qr sth*cph] ;
-		Y_qr = [Y_qr sth*sph] ;
-		Z_qr = [Z_qr cth] ;
-	end
+    the = i*dth ;
+    cth = cos(the) ; sth = sin(the) ;
+    dphi = 72/i*d_r ;
+    for j=1:i
+        phi = (j-1)*dphi ;
+        cph = cos(phi) ; sph = sin(phi) ;
+        X_qr = [X_qr sth*cph] ;
+        Y_qr = [Y_qr sth*sph] ;
+        Z_qr = [Z_qr cth] ;
+    end
 end
 for i=(n/2+1):(n-1) % Lower part
-	the = i*dth ;
-	cth = cos(the) ; sth = sin(the) ;
-	ii = n-i ;
-	dphi = 72/ii*d_r ;
-	for j=1:ii
-		phi = (j-1)*dphi ;
-		cph = cos(phi) ; sph = sin(phi) ;
-		X_qr = [X_qr sth*cph] ;
-		Y_qr = [Y_qr sth*sph] ;
-		Z_qr = [Z_qr cth] ;
-	end
+    the = i*dth ;
+    cth = cos(the) ; sth = sin(the) ;
+    ii = n-i ;
+    dphi = 72/ii*d_r ;
+    for j=1:ii
+        phi = (j-1)*dphi ;
+        cph = cos(phi) ; sph = sin(phi) ;
+        X_qr = [X_qr sth*cph] ;
+        Y_qr = [Y_qr sth*sph] ;
+        Z_qr = [Z_qr cth] ;
+    end
 end
 % Each part is copied with a 72deg shift
 dphi=-72*d_r ;
 for i=0:4
-	phi=i*dphi ;
-	cph=cos(phi) ;
-	sph=sin(phi) ;
-	X_sp=[X_sp cph*X_qr+sph*Y_qr] ;
-	Y_sp=[Y_sp -sph*X_qr+cph*Y_qr] ;
-	Z_sp=[Z_sp Z_qr] ;
+    phi=i*dphi ;
+    cph=cos(phi) ;
+    sph=sin(phi) ;
+    X_sp=[X_sp cph*X_qr+sph*Y_qr] ;
+    Y_sp=[Y_sp -sph*X_qr+cph*Y_qr] ;
+    Z_sp=[Z_sp Z_qr] ;
 end
 % add top and bottom points
 X_sp=[0 X_sp 0]*r ;
@@ -1491,60 +1496,60 @@ n = sqrt(4/5*(npt_sph-2)) ;
 
 % First 5th of sphere only
 for i=0:(n/2-1)         % upper half
-	if i==0		    	% 1st triangle at the top
-		ind_qr=[1 2 2+npt_qr]' ;
-	else		    	% other triangles
-		for j=0:npt_tr(i+1)
-			if j==npt_tr(i+1)-1			% last but 1 pt on slice
-				x1=sum(npt_tr(1:i))+j+2 ;
-				x12=x1+npt_tr(i+1) ;
-				x13=x12+1 ;
-				x22=x13 ;
-				x23=sum(npt_tr(1:i))+2+npt_qr ;
-				ind_qr=[ind_qr [x1 x12 x13]' [x1 x22 x23]'] ;
-			elseif j==npt_tr(i+1)		% last pt on slice
-				x1=sum(npt_tr(1:i))+2+npt_qr ;
-				x2=sum(npt_tr(1:(i+1)))+j+2 ;
-				x3=x1+npt_tr(i+1) ;
-				ind_qr=[ind_qr [x1 x2 x3]'] ;
-			else        			% other pts on slice
-				x1=sum(npt_tr(1:i))+j+2 ;
-				x12=x1+npt_tr(i+1) ;
-				x13=x12+1 ;
-				x22=x13 ;
-				x23=x1+1 ;
-				ind_qr=[ind_qr [x1 x12 x13]' [x1 x22 x23]'] ;
-			end
-		end
-	end
+    if i==0             % 1st triangle at the top
+        ind_qr=[1 2 2+npt_qr]' ;
+    else                % other triangles
+        for j=0:npt_tr(i+1)
+            if j==npt_tr(i+1)-1         % last but 1 pt on slice
+                x1=sum(npt_tr(1:i))+j+2 ;
+                x12=x1+npt_tr(i+1) ;
+                x13=x12+1 ;
+                x22=x13 ;
+                x23=sum(npt_tr(1:i))+2+npt_qr ;
+                ind_qr=[ind_qr [x1 x12 x13]' [x1 x22 x23]'] ;
+            elseif j==npt_tr(i+1)       % last pt on slice
+                x1=sum(npt_tr(1:i))+2+npt_qr ;
+                x2=sum(npt_tr(1:(i+1)))+j+2 ;
+                x3=x1+npt_tr(i+1) ;
+                ind_qr=[ind_qr [x1 x2 x3]'] ;
+            else                    % other pts on slice
+                x1=sum(npt_tr(1:i))+j+2 ;
+                x12=x1+npt_tr(i+1) ;
+                x13=x12+1 ;
+                x22=x13 ;
+                x23=x1+1 ;
+                ind_qr=[ind_qr [x1 x12 x13]' [x1 x22 x23]'] ;
+            end
+        end
+    end
 end
 for i=(n/2+1):n         % lower half
-	if i==n	        	% last triangle at the bottom
-		ind_qr=[ind_qr [5*npt_qr+2 2*npt_qr+1 npt_qr+1]' ] ;
-	else            	% other triangles
-		for j=0:npt_tr(i+1)
-			if j==npt_tr(i+1)-1			% last but 1 pt on slice
-				x1=sum(npt_tr(1:i))+j+2 ;
-				x12=x1-npt_tr(i) ;
-				x13=x12+1 ;
-				x22=x13 ;
-				x23=sum(npt_tr(1:i))+2+npt_qr ;
-				ind_qr=[ind_qr [x1 x13 x12]' [x1 x23 x22]'] ;
-			elseif j==npt_tr(i+1)		% last pt on slice
-				x1=sum(npt_tr(1:i))+2+npt_qr ;
-				x2=sum(npt_tr(1:(i-1)))+j+2 ;
-				x3=x1-npt_tr(i) ;
-				ind_qr=[ind_qr [x1 x3 x2]'] ;
-			else            			% other pts on slice
-				x1=sum(npt_tr(1:i))+j+2 ;
-				x12=x1-npt_tr(i) ;
-				x13=x12+1 ;
-				x22=x13 ;
-				x23=x1+1 ;
-				ind_qr=[ind_qr [x1 x13 x12]' [x1 x23 x22]'] ;
-			end
-		end
-	end
+    if i==n             % last triangle at the bottom
+        ind_qr=[ind_qr [5*npt_qr+2 2*npt_qr+1 npt_qr+1]' ] ;
+    else                % other triangles
+        for j=0:npt_tr(i+1)
+            if j==npt_tr(i+1)-1         % last but 1 pt on slice
+                x1=sum(npt_tr(1:i))+j+2 ;
+                x12=x1-npt_tr(i) ;
+                x13=x12+1 ;
+                x22=x13 ;
+                x23=sum(npt_tr(1:i))+2+npt_qr ;
+                ind_qr=[ind_qr [x1 x13 x12]' [x1 x23 x22]'] ;
+            elseif j==npt_tr(i+1)       % last pt on slice
+                x1=sum(npt_tr(1:i))+2+npt_qr ;
+                x2=sum(npt_tr(1:(i-1)))+j+2 ;
+                x3=x1-npt_tr(i) ;
+                ind_qr=[ind_qr [x1 x3 x2]'] ;
+            else                        % other pts on slice
+                x1=sum(npt_tr(1:i))+j+2 ;
+                x12=x1-npt_tr(i) ;
+                x13=x12+1 ;
+                x22=x13 ;
+                x23=x1+1 ;
+                ind_qr=[ind_qr [x1 x13 x12]' [x1 x23 x22]'] ;
+            end
+        end
+    end
 end
 
 
@@ -1556,16 +1561,16 @@ ind_tr=[] ;
 
 % shift all indices to cover the sphere
 for i=0:4
-	ind_tr = [ind_tr (ind_qr+i*npt_qr)] ;
-	ind_tr(S_i,S_j+i*ntr_qr) = 1 ;
-	ind_tr(B_i,B_j+i*ntr_qr) = npt_sph ;
+    ind_tr = [ind_tr (ind_qr+i*npt_qr)] ;
+    ind_tr(S_i,S_j+i*ntr_qr) = 1 ;
+    ind_tr(B_i,B_j+i*ntr_qr) = npt_sph ;
 end
 for i=1:size(qs_i,1)
-	ind_tr(qs_i(i),qs_j(i)+4*ntr_qr) = ...
-		ind_tr(qs_i(i),(qs_j(i)+4*ntr_qr))-5*npt_qr ;
+    ind_tr(qs_i(i),qs_j(i)+4*ntr_qr) = ...
+        ind_tr(qs_i(i),(qs_j(i)+4*ntr_qr))-5*npt_qr ;
 end
 ntr_sph = size(ind_tr,2) ;% nbr of triangles on the sphere
-	% or = 5/2*n^2
+    % or = 5/2*n^2
 return
 
 % %________________________________________________________________________
@@ -1578,38 +1583,38 @@ return
 % % Load data from file indicated by V into an array of unsigned bytes.
 % 
 % if size(V.pinfo,2)==1 && V.pinfo(1) == 2,
-% 	mx = 255*V.pinfo(1) + V.pinfo(2);
-% 	mn = V.pinfo(2);
+%   mx = 255*V.pinfo(1) + V.pinfo(2);
+%   mn = V.pinfo(2);
 % else,
-% 	spm_progress_bar('Init',V.dim(3),...
-% 		['Computing max/min of ' spm_str_manip(V.fname,'t')],...
-% 		'Planes complete');
-% 	mx = -Inf; mn =  Inf;
-% 	for p=1:V.dim(3),
-% 		img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
-% 		mx  = max([max(img(:))+paccuracy(V,p) mx]);
-% 		mn  = min([min(img(:)) mn]);
-% 		spm_progress_bar('Set',p);
-% 	end;
+%   spm_progress_bar('Init',V.dim(3),...
+%       ['Computing max/min of ' spm_str_manip(V.fname,'t')],...
+%       'Planes complete');
+%   mx = -Inf; mn =  Inf;
+%   for p=1:V.dim(3),
+%       img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+%       mx  = max([max(img(:))+paccuracy(V,p) mx]);
+%       mn  = min([min(img(:)) mn]);
+%       spm_progress_bar('Set',p);
+%   end;
 % end;
 % spm_progress_bar('Init',V.dim(3),...
-% 	['Loading ' spm_str_manip(V.fname,'t')],...
-% 	'Planes loaded');
+%   ['Loading ' spm_str_manip(V.fname,'t')],...
+%   'Planes loaded');
 % 
 % udat = uint8(0);
 % udat(V.dim(1),V.dim(2),V.dim(3))=0;
 % rand('state',100);
 % for p=1:V.dim(3),
-% 	img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
-% 	acc = paccuracy(V,p);
-% 	if acc==0,
-% 		udat(:,:,p) = uint8(round((img-mn)*(255/(mx-mn))));
-% 	else,
-% 		% Add random numbers before rounding to reduce aliasing artifact
-% 		r = rand(size(img))*acc;
-% 		udat(:,:,p) = uint8(round((img+r-mn)*(255/(mx-mn))));
-% 	end;
-% 	spm_progress_bar('Set',p);
+%   img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+%   acc = paccuracy(V,p);
+%   if acc==0,
+%       udat(:,:,p) = uint8(round((img-mn)*(255/(mx-mn))));
+%   else,
+%       % Add random numbers before rounding to reduce aliasing artifact
+%       r = rand(size(img))*acc;
+%       udat(:,:,p) = uint8(round((img+r-mn)*(255/(mx-mn))));
+%   end;
+%   spm_progress_bar('Set',p);
 % end;
 % spm_progress_bar('Clear');
 % return;
@@ -1617,13 +1622,13 @@ return
 % function acc = paccuracy(V,p)
 % % if ~spm_type(V.dim(4),'intt'),
 % if ~spm_type(V.dt(1),'intt'),
-% 	acc = 0;
+%   acc = 0;
 % else,
-% 	if size(V.pinfo,2)==1,
-% 		acc = abs(V.pinfo(1,1));
-% 	else,
-% 		acc = abs(V.pinfo(1,p));
-% 	end;
+%   if size(V.pinfo,2)==1,
+%       acc = abs(V.pinfo(1,1));
+%   else,
+%       acc = abs(V.pinfo(1,p));
+%   end;
 % end;
 %________________________________________________________________________
 % FORMAT savefields(fnam,p)

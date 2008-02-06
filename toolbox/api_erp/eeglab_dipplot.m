@@ -1104,7 +1104,7 @@ function [outsources, XX, YY, ZZ, XO, YO, ZO] = dipplot( sourcesori, varargin )
                   [ 'dipplot(gcbf);' ] );
     h = uicontrol( 'unit', 'normalized', 'position', [0 0.8 .15 .05], 'tag', 'tmp', ...
                    'style', 'pushbutton', 'string', 'Plot one', 'callback', ...
-             	    [ 'for tmpi = 1:' nbsrc ',' ...
+                    [ 'for tmpi = 1:' nbsrc ',' ...
                    '   set(findobj(''parent'', gca, ''tag'', [ ''dipole'' int2str(tmpi) ]), ''visible'', ''off'');' ...
                    'end; clear tmpi;' ...
                    'dipplot(gcbf);' ]);
@@ -1328,7 +1328,7 @@ function updatedipplot(fig)
    end;
    plotimgs( dat, [indx indy indz]);
    %end;
-   	
+    
 % plot images
 % -----------
 function plotimgs(dat, index);
@@ -1389,8 +1389,8 @@ function plotimgs(dat, index);
     rotate3d on 
 
 function index = minpos(vals);
-	vals(find(vals < 0)) = inf;
-	[tmp index] = min(vals);
+    vals(find(vals < 0)) = inf;
+    [tmp index] = min(vals);
 
 function scalegca(factor)
     xl = xlim; xf = ( xl(2) - xl(1) ) * factor;

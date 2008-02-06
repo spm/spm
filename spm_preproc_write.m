@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write.m 1086 2008-01-11 15:11:20Z john $
+% $Id: spm_preproc_write.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==1,
@@ -75,7 +75,7 @@ if opts.biascor,
                 'dt',      [spm_type('float32') spm_platform('bigend')],...
                 'pinfo',   [1 0 0]',...
                 'mat',     p.VF.mat,...
-		        'n',       [1 1],...
+                'n',       [1 1],...
                 'descrip', 'Bias Corrected');
     VB = spm_create_vol(VB);
 end;

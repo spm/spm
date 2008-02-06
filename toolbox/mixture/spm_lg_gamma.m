@@ -8,7 +8,7 @@ function [lng] = spm_lg_gamma (p,b)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_lg_gamma.m 1131 2008-02-06 11:17:09Z spm $
 
 if ~(b > 0.5*(p-1))
    disp('Warning in log_gen_gamma: parameter out of range');

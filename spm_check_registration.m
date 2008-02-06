@@ -11,39 +11,39 @@ function spm_check_registration(images)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_check_registration.m 755 2007-02-28 18:15:10Z john $
+% $Id: spm_check_registration.m 1131 2008-02-06 11:17:09Z spm $
 
 
 if nargin==0,
-	images = spm_select([1 15],'image','Select images');
-	if size(images,1)<1, return; end;
-	spm_check_registration(images);
+    images = spm_select([1 15],'image','Select images');
+    if size(images,1)<1, return; end;
+    spm_check_registration(images);
 elseif nargin==1,
-	fg = spm_figure('Findwin','Graphics');
-	if isempty(fg),
-		fg=spm_figure('Create','Graphics');
-		if isempty(fg),
-			error('Cant create graphics window');
-		end;
+    fg = spm_figure('Findwin','Graphics');
+    if isempty(fg),
+        fg=spm_figure('Create','Graphics');
+        if isempty(fg),
+            error('Cant create graphics window');
+        end;
     else
-		spm_figure('Clear','Graphics');
-	end;
-	if ischar(images), images=spm_vol(images); end;
-	spm_orthviews('Reset');
-	mn = length(images);
-	n  = round(mn^0.4);
-	m  = ceil(mn/n);
-	w  = 1/n;
-	h  = 1/m;
-	ds = (w+h)*0.02;
-	for ij=1:mn,
-		i  = 1-h*(floor((ij-1)/n)+1);
-		j  = w*rem(ij-1,n);
-		handle(ij) = spm_orthviews('Image', images(ij),...
-			[j+ds/2 i+ds/2 w-ds h-ds]);
-		if ij==1, spm_orthviews('Space'); end;
-		spm_orthviews('AddContext',handle(ij));
-	end;
+        spm_figure('Clear','Graphics');
+    end;
+    if ischar(images), images=spm_vol(images); end;
+    spm_orthviews('Reset');
+    mn = length(images);
+    n  = round(mn^0.4);
+    m  = ceil(mn/n);
+    w  = 1/n;
+    h  = 1/m;
+    ds = (w+h)*0.02;
+    for ij=1:mn,
+        i  = 1-h*(floor((ij-1)/n)+1);
+        j  = w*rem(ij-1,n);
+        handle(ij) = spm_orthviews('Image', images(ij),...
+            [j+ds/2 i+ds/2 w-ds h-ds]);
+        if ij==1, spm_orthviews('Space'); end;
+        spm_orthviews('AddContext',handle(ij));
+    end;
 else
-	error('Incorrect Usage');
+    error('Incorrect Usage');
 end;

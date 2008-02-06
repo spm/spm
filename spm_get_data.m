@@ -12,16 +12,16 @@ function [Y] = spm_get_data(V,XYZ)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_get_data.m 905 2007-09-04 14:38:28Z guillaume $
+% $Id: spm_get_data.m 1131 2008-02-06 11:17:09Z spm $
 
 
 % ensure V is an array of handle structures
 %--------------------------------------------------------------------------
 if ~isstruct(V)
-	V = spm_vol(V);
-	try
-		V = cat(2,V{:});
-	end
+    V = spm_vol(V);
+    try
+        V = cat(2,V{:});
+    end
 end
 
 % get data
@@ -36,8 +36,8 @@ for i = 1:length(V)
         V(i).fname = [n e];
     end
 
-	%-Load mask image within current mask & update mask
-	%----------------------------------------------------------------------
-	Y(i,:) = spm_sample_vol(V(i),XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
+    %-Load mask image within current mask & update mask
+    %----------------------------------------------------------------------
+    Y(i,:) = spm_sample_vol(V(i),XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
 end
 

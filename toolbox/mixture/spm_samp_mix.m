@@ -11,11 +11,11 @@ function [x,label] = spm_samp_mix (mix, N)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id$
+% $Id: spm_samp_mix.m 1131 2008-02-06 11:17:09Z spm $
 
 priors = rand(1, N);
-cum_prior = 0;		
-total_samples = 0;	
+cum_prior = 0;      
+total_samples = 0;  
 label = zeros(N, 1);
 for j=1:mix.m,
     num_samples = sum(priors >= cum_prior & ...

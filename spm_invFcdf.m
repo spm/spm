@@ -61,7 +61,7 @@ function x = spm_invFcdf(F,v,w)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_invFcdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_invFcdf.m 1131 2008-02-06 11:17:09Z spm $
 
 
 %-Format arguments, note & check sizes
@@ -70,30 +70,30 @@ if nargin<2, error('Insufficient arguments'), end
 
 %-Unpack degrees of freedom v & w from single df parameter (v)
 if nargin<3
-	vs = size(v);
-	if prod(vs)==2
-		%-DF is a 2-vector
-		w = v(2); v = v(1);
-	elseif vs(end)==2
-		%-DF has last dimension 2 - unpack v & w
-		nv = prod(vs);
-		w  = reshape(v(nv/2+1:nv),vs(1:end-1));
-		v  = reshape(v(1:nv/2)   ,vs(1:end-1));
-	else
-		error('Can''t unpack both df components from single argument')
-	end
+    vs = size(v);
+    if prod(vs)==2
+        %-DF is a 2-vector
+        w = v(2); v = v(1);
+    elseif vs(end)==2
+        %-DF has last dimension 2 - unpack v & w
+        nv = prod(vs);
+        w  = reshape(v(nv/2+1:nv),vs(1:end-1));
+        v  = reshape(v(1:nv/2)   ,vs(1:end-1));
+    else
+        error('Can''t unpack both df components from single argument')
+    end
 end
 
 %-Check argument sizes
 ad = [ndims(F);ndims(v);ndims(w)];
 rd = max(ad);
-as = [	[size(F),ones(1,rd-ad(1))];...
-	[size(v),ones(1,rd-ad(2))];...
-	[size(w),ones(1,rd-ad(3))]     ];
+as = [  [size(F),ones(1,rd-ad(1))];...
+    [size(v),ones(1,rd-ad(2))];...
+    [size(w),ones(1,rd-ad(3))]     ];
 rs = max(as);
 xa = prod(as,2)>1;
 if sum(xa)>1 & any(any(diff(as(xa,:)),1))
-	error('non-scalar args must match in size'), end
+    error('non-scalar args must match in size'), end
 
 %-Computation
 %-----------------------------------------------------------------------
@@ -104,7 +104,7 @@ x = zeros(rs);
 % Return NaN if undefined.
 md = ( F>=0  &  F<=1  &  v>0  &  w>0 );
 if any(~md(:)), x(~md) = NaN;
-	warning('Returning NaN for out of range arguments'), end
+    warning('Returning NaN for out of range arguments'), end
 
 %-Special cases: x=0 when F=0, x=Inf when F=1
 x(md & F==1) = Inf;

@@ -3,8 +3,8 @@ function S = spm_config_eeg_filter
 %_______________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
-%
-% $Id: spm_config_eeg_filter.m 112 2005-05-04 18:20:52Z john $
+% Stefan Kiebel
+% $Id: spm_config_eeg_filter.m 1131 2008-02-06 11:17:09Z spm $
 
 
 D = struct('type','files','name','File Name','tag','D',...
