@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1068 2008-01-07 18:53:03Z karl $
+% $Id: spm_nlsi_GN.m 1134 2008-02-06 14:14:42Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -122,9 +122,9 @@ end
  
 % size of data (usually samples x channels)
 %--------------------------------------------------------------------------
-try
-    ns = M.ns;
-catch
+if iscell(y)
+    ns = size(y{1},1);
+else
     ns = size(y,1);
 end
 nr   = length(spm_vec(y))/ns;       % number of samples and responses
@@ -232,7 +232,7 @@ Cp    = pC;
 % EM
 %==========================================================================
 C.F   = -Inf;
-t     = 256;
+v     = sparse(np + nu,1) - 8;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 warning off
@@ -340,14 +340,24 @@ for k = 1:128
         %------------------------------------------------------------------
         dFdp  = -J'*iS*e - ipC*p;
         dFdpp = -J'*iS*J - ipC;
- 
-        % decrease regularization
+        
+        % intialise regularization
         %------------------------------------------------------------------
-        t     = t*2;
-        str   = 'EM-Step(-)';
- 
+        if k == 1
+            dp  = norm(spm_dx(dFdpp,dFdp));
+            while norm(spm_dx(dFdpp,dFdp,exp(v)),1) < dp/32;
+                v = v + 1;
+            end
+            
+        % decrease regularization
+        %--------------------------------------------------------------
+        else
+            v = v + sign(dp.*dFdp);
+        end
+        str = 'EM-(+)';
+        
     else
- 
+
         % reset expansion point
         %------------------------------------------------------------------
         p     = C.p;
@@ -355,14 +365,14 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        t     = min(t/2,128);
-        str   = 'EM-Step(+)';
- 
+        v   = v - 2;
+        str = 'EM-(-)';
+        
     end
  
     % E-Step: update
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,{t});
+    dp    = spm_dx(dFdpp,dFdp,exp(v));
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
  
@@ -377,19 +387,35 @@ for k = 1:128
         % subplot prediction
         %------------------------------------------------------------------
         figure(Fsi)
+        x    = [1:ns]*Y.dt;
+        xLab = 'time (seconds)';
+        try
+            if length(Y.Hz) == ns
+                x    = Y.Hz;
+                xLab = 'Frequency (Hz)';
+            end
+        end
+        
         subplot(2,1,1)
-        plot([1:ns]*Y.dt,f),                      hold on
-        plot([1:ns]*Y.dt,f + spm_unvec(e,f),':'), hold off
-        xlabel('time')
+        plot(x,f),                      hold on
+        plot(x,f + spm_unvec(e,f),':'), hold off
+        xlabel(xLab)
         title(sprintf('%s: %i','E-Step',k))
         grid on
  
         % subplot parameters
         %------------------------------------------------------------------
-        subplot(2,1,2)
+        subplot(2,2,3)
         bar(full(V*p(ip)))
         xlabel('parameter')
         title('conditional [minus prior] expectation')
+        grid on
+        drawnow
+        
+        subplot(2,2,4)
+        bar(full(V*v(ip)))
+        xlabel('parameter')
+        title('log (rate of gradient ascent)')
         grid on
         drawnow
         
