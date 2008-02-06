@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bsplins.c 247 2005-10-04 17:20:34Z guillaume $
+ * $Id: bsplins.c 1137 2008-02-06 15:58:21Z spm $
  * John Ashburner
  */
 

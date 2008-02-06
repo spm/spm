@@ -1,4 +1,4 @@
-/* $Id: optim1_mex.c 964 2007-10-19 16:35:34Z john $ */
+/* $Id: optim1_mex.c 1137 2008-02-06 15:58:21Z spm $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"

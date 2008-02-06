@@ -241,9 +241,9 @@
 % This basic approach using summary measures is pretty standard. A good
 % introductory paper (albeit for clinical trials) is:
 %         Frisson L & Pocock SJ (1992)
-% 	"Repeated measures in clinical trials: Analysis using mean 
-% 	 summary statistics and its implications for design"
-% 	Statistics in Medicine 11:1685-1704 
+%   "Repeated measures in clinical trials: Analysis using mean 
+%    summary statistics and its implications for design"
+%   Statistics in Medicine 11:1685-1704 
 %
 %                           ----------------
 %
@@ -274,9 +274,9 @@
 % summary images confers.
 %
 %         Worsley KJ, Marrett S, Neelin P, Evans AC (1992)
-% 	"A three-dimensional statistical analysis for CBF 
-% 	 activation studies in human brain"
-% 	Journal of Cerebral Blood Flow and Metabolism, 12:900-918
+%   "A three-dimensional statistical analysis for CBF 
+%    activation studies in human brain"
+%   Journal of Cerebral Blood Flow and Metabolism, 12:900-918
 %
 %
 %=======================================================================
@@ -334,4 +334,4 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes
-% $Id: spm_RandFX.man 127 2005-05-09 10:13:35Z guillaume $
+% $Id: spm_RandFX.man 1137 2008-02-06 15:58:21Z spm $

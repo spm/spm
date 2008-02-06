@@ -658,7 +658,7 @@ S110:
 
 /***=====================================================================***/
 static double bfrac(double *a,double *b,double *x,double *y,double *lambda,
-	     double *eps)
+         double *eps)
 /*
 -----------------------------------------------------------------------
      CONTINUED FRACTION EXPANSION FOR IX(A,B) WHEN A,B .GT. 1.
@@ -727,7 +727,7 @@ S20:
 
 /***=====================================================================***/
 static void bgrat(double *a,double *b,double *x,double *y,double *w,
-	   double *eps,int *ierr)
+       double *eps,int *ierr)
 /*
 -----------------------------------------------------------------------
      ASYMPTOTIC EXPANSION FOR IX(A,B) WHEN A IS LARGER THAN B.
@@ -911,7 +911,7 @@ S110:
 
 /***=====================================================================***/
 static void bratio(double *a,double *b,double *x,double *y,double *w,
-	    double *w1,int *ierr)
+        double *w1,int *ierr)
 /*
 -----------------------------------------------------------------------
 
@@ -1509,7 +1509,7 @@ S70:
 
 /***=====================================================================***/
 static void cdfbet(int *which,double *p,double *q,double *x,double *y,
-	    double *a,double *b,int *status,double *bound)
+        double *a,double *b,int *status,double *bound)
 /**********************************************************************
 
       void cdfbet(int *which,double *p,double *q,double *x,double *y,
@@ -1885,7 +1885,7 @@ S540:
 
 /***=====================================================================***/
 static void cdfbin(int *which,double *p,double *q,double *s,double *xn,
-	    double *pr,double *ompr,int *status,double *bound)
+        double *pr,double *ompr,int *status,double *bound)
 /**********************************************************************
 
       void cdfbin(int *which,double *p,double *q,double *s,double *xn,
@@ -2256,7 +2256,7 @@ S560:
 
 /***=====================================================================***/
 static void cdfchi(int *which,double *p,double *q,double *x,double *df,
-	    int *status,double *bound)
+        int *status,double *bound)
 /**********************************************************************
 
       void cdfchi(int *which,double *p,double *q,double *x,double *df,
@@ -2542,7 +2542,7 @@ S380:
 
 /***=====================================================================***/
 static void cdfchn(int *which,double *p,double *q,double *x,double *df,
-	    double *pnonc,int *status,double *bound)
+        double *pnonc,int *status,double *bound)
 /**********************************************************************
 
       void cdfchn(int *which,double *p,double *q,double *x,double *df,
@@ -2817,7 +2817,7 @@ S280:
 
 /***=====================================================================***/
 static void cdff(int *which,double *p,double *q,double *f,double *dfn,
-	  double *dfd,int *status,double *bound)
+      double *dfd,int *status,double *bound)
 /**********************************************************************
 
       void cdff(int *which,double *p,double *q,double *f,double *dfn,
@@ -3135,7 +3135,7 @@ S420:
 
 /***=====================================================================***/
 static void cdffnc(int *which,double *p,double *q,double *f,double *dfn,
-	    double *dfd,double *phonc,int *status,double *bound)
+        double *dfd,double *phonc,int *status,double *bound)
 /**********************************************************************
 
       void cdffnc(int *which,double *p,double *q,double *f,double *dfn,
@@ -3461,7 +3461,7 @@ S350:
 
 /***=====================================================================***/
 static void cdfgam(int *which,double *p,double *q,double *x,double *shape,
-	    double *scale,int *status,double *bound)
+        double *scale,int *status,double *bound)
 /**********************************************************************
 
       void cdfgam(int *which,double *p,double *q,double *x,double *shape,
@@ -3761,7 +3761,7 @@ S310:
 
 /***=====================================================================***/
 static void cdfnbn(int *which,double *p,double *q,double *s,double *xn,
-	    double *pr,double *ompr,int *status,double *bound)
+        double *pr,double *ompr,int *status,double *bound)
 /**********************************************************************
 
       void cdfnbn(int *which,double *p,double *q,double *s,double *xn,
@@ -4134,7 +4134,7 @@ S540:
 
 /***=====================================================================***/
 static void cdfnor(int *which,double *p,double *q,double *x,double *mean,
-	    double *sd,int *status,double *bound)
+        double *sd,int *status,double *bound)
 /**********************************************************************
 
       void cdfnor(int *which,double *p,double *q,double *x,double *mean,
@@ -4340,7 +4340,7 @@ S160:
 
 /***=====================================================================***/
 static void cdfpoi(int *which,double *p,double *q,double *s,double *xlam,
-	    int *status,double *bound)
+        int *status,double *bound)
 /**********************************************************************
 
       void cdfpoi(int *which,double *p,double *q,double *s,double *xlam,
@@ -4598,7 +4598,7 @@ S330:
 
 /***=====================================================================***/
 static void cdft(int *which,double *p,double *q,double *t,double *df,
-	  int *status,double *bound)
+      int *status,double *bound)
 /**********************************************************************
 
       void cdft(int *which,double *p,double *q,double *t,double *df,
@@ -4851,7 +4851,7 @@ S310:
 
 /***=====================================================================***/
 static void cumbet(double *x,double *y,double *a,double *b,double *cum,
-	    double *ccum)
+        double *ccum)
 /*
 **********************************************************************
 
@@ -4929,7 +4929,7 @@ S20:
 
 /***=====================================================================***/
 static void cumbin(double *s,double *xn,double *pr,double *ompr,
-	    double *cum,double *ccum)
+        double *cum,double *ccum)
 /*
 **********************************************************************
 
@@ -5049,7 +5049,7 @@ static double a,xx;
 
 /***=====================================================================***/
 static void cumchn(double *x,double *df,double *pnonc,double *cum,
-	    double *ccum)
+        double *ccum)
 /*
 **********************************************************************
 
@@ -5350,7 +5350,7 @@ S10:
 
 /***=====================================================================***/
 static void cumfnc(double *f,double *dfn,double *dfd,double *pnonc,
-	    double *cum,double *ccum)
+        double *cum,double *ccum)
 /*
 **********************************************************************
 
@@ -5583,7 +5583,7 @@ S10:
 
 /***=====================================================================***/
 static void cumnbn(double *s,double *xn,double *pr,double *ompr,
-	    double *cum,double *ccum)
+        double *cum,double *ccum)
 /*
 **********************************************************************
 
@@ -6225,9 +6225,9 @@ S40:
 
 /***=====================================================================***/
 static void E0000(int IENTRY,int *status,double *x,double *fx,
-		  unsigned long *qleft,unsigned long *qhi,double *zabsst,
-		  double *zabsto,double *zbig,double *zrelst,
-		  double *zrelto,double *zsmall,double *zstpmu)
+          unsigned long *qleft,unsigned long *qhi,double *zabsst,
+          double *zabsto,double *zbig,double *zrelst,
+          double *zrelto,double *zsmall,double *zstpmu)
 {
 #define qxmon(zx,zy,zz) (int)((zx) <= (zy) && (zy) <= (zz))
 static double absstp,abstol,big,fbig,fsmall,relstp,reltol,small,step,stpmul,xhi,
@@ -6432,7 +6432,7 @@ S310:
 
 /***=====================================================================***/
 static void dinvr(int *status,double *x,double *fx,
-	   unsigned long *qleft,unsigned long *qhi)
+       unsigned long *qleft,unsigned long *qhi)
 /*
 **********************************************************************
 
@@ -6499,8 +6499,8 @@ static void dinvr(int *status,double *x,double *fx,
 
 /***=====================================================================***/
 static void dstinv(double *zsmall,double *zbig,double *zabsst,
-	    double *zrelst,double *zstpmu,double *zabsto,
-	    double *zrelto)
+        double *zrelst,double *zstpmu,double *zabsto,
+        double *zrelto)
 /*
 **********************************************************************
       void dstinv(double *zsmall,double *zbig,double *zabsst,
@@ -7096,9 +7096,9 @@ S30:
 
 /***=====================================================================***/
 static void E0001(int IENTRY,int *status,double *x,double *fx,
-		  double *xlo,double *xhi,unsigned long *qleft,
-		  unsigned long *qhi,double *zabstl,double *zreltl,
-		  double *zxhi,double *zxlo)
+          double *xlo,double *xhi,unsigned long *qleft,
+          unsigned long *qhi,double *zabstl,double *zreltl,
+          double *zxhi,double *zxlo)
 {
 #define ftol(zx) (0.5e0*fifdmax1(abstol,reltol*fabs((zx))))
 static double a,abstol,b,c,d,fa,fb,fc,fd,fda,fdb,m,mb,p,q,reltol,tol,w,xxhi,xxlo;
@@ -7256,7 +7256,7 @@ S280:
 
 /***=====================================================================***/
 static void dzror(int *status,double *x,double *fx,double *xlo,
-	   double *xhi,unsigned long *qleft,unsigned long *qhi)
+       double *xhi,unsigned long *qleft,unsigned long *qhi)
 /*
 **********************************************************************
 
@@ -7740,7 +7740,7 @@ S50:
 
 /***=====================================================================***/
 static void gaminv(double *a,double *x,double *x0,double *p,double *q,
-	    int *ierr)
+        int *ierr)
 /*
  ----------------------------------------------------------------------
             INVERSE INCOMPLETE GAMMA RATIO FUNCTION
@@ -8360,7 +8360,7 @@ S120:
 
 /***=====================================================================***/
 static void grat1(double *a,double *x,double *r,double *p,double *q,
-	   double *eps)
+       double *eps)
 {
 static int K2 = 0;
 static double a2n,a2nm1,am0,an,an0,b2n,b2nm1,c,cma,g,h,j,l,sum,t,tol,w,z,T1,T3;

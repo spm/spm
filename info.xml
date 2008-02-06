@@ -1,4 +1,4 @@
-<!-- $Id: info.xml 247 2005-10-04 17:20:34Z guillaume $ -->
+<!-- $Id: info.xml 1137 2008-02-06 15:58:21Z spm $ -->
 <productinfo
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://www.mathworks.com/namespace/info/v1/info.xsd">
@@ -28,7 +28,7 @@
       <icon>$toolbox/matlab/icons/book_mat.gif</icon>
     </listitem>
 
-	<listitem>
+    <listitem>
       <label>SPM Wiki</label>
       <callback>web http://en.wikibooks.org/wiki/SPM -browser;</callback>
       <icon>$toolbox/matlab/icons/demoicon.gif</icon>

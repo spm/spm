@@ -17,7 +17,7 @@ function ret = spm_ov_movie(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m 1112 2008-01-21 13:03:37Z volkmar $
+% @(#) $Id: spm_ov_movie.m 1137 2008-02-06 15:58:21Z spm $
 
 global st;
 if isempty(st)
@@ -48,7 +48,7 @@ switch cmd
     opos=spm_orthviews('pos');
     spm_input('!DeleteInputObj',Finter);
     dir=logical(cell2mat(spm_input('Select movie direction', '!+1', 'b', 'x|y|z|custom', ...
-	{[1 0 0], [0 1 0], [0 0 1], 0}, 1)));
+    {[1 0 0], [0 1 0], [0 0 1], 0}, 1)));
     if all(dir==0)
       mstart=spm_input('First point (mm)', '!+1', 'e', num2str(opos'), [3 1]);
       mend  =spm_input('Final point (mm)', '!+1', 'e', num2str(opos'), [3 1]);
@@ -58,7 +58,7 @@ switch cmd
       bb = st.Space*[st.bb'; 1 1];
       dirs='XYZ';
       tmp=spm_input([dirs(dir) ' intervall (mm)'], '!+1', 'e', ...
-	  num2str(bb(dir,:), '%.1f %.1f'), 2);
+      num2str(bb(dir,:), '%.1f %.1f'), 2);
       mstart(dir)=tmp(1);
       mend(dir)=tmp(2);
     end;
@@ -68,38 +68,38 @@ switch cmd
     d=d./l;
     steps = 0:ds:l;
     domovie = cell2mat(spm_input('Save movie(s)?','!+1', 'm', ...
-				 {'Don''t save', 'Save as image series', ...
-		    'Save as movie'}, {0,1,2},0));
+                 {'Don''t save', 'Save as image series', ...
+            'Save as movie'}, {0,1,2},0));
     if domovie > 0
-	vh = spm_input('Select image(s)', '!+1', 'e', ...
-		       num2str(spm_orthviews('valid_handles')));
-	prefix = spm_input('Filename prefix','!+1', 's', ...
-			   'movie');
+    vh = spm_input('Select image(s)', '!+1', 'e', ...
+               num2str(spm_orthviews('valid_handles')));
+    prefix = spm_input('Filename prefix','!+1', 's', ...
+               'movie');
     else
-	vh = [];
+    vh = [];
     end;    
     for k=1:numel(steps)
       spm_orthviews('reposition', mstart+steps(k)*d);
       for ci = 1:numel(vh)
-	  for ca = 1:3
-	      M{ci,ca}(k) = getframe(st.vols{vh(ci)}.ax{ca}.ax);
-	  end;
+      for ca = 1:3
+          M{ci,ca}(k) = getframe(st.vols{vh(ci)}.ax{ca}.ax);
+      end;
       end;
     end;
     spm('pointer', 'watch');
     for ci = 1:numel(vh)
-	for ca = 1:3
-	    if domovie == 1
-		for cf = 1:numel(M{ci,ca})
-		    fname = sprintf('%s-%02d-%1d-%03d.png',prefix,vh(ci),ca, ...
-				    cf);
-		    imwrite(frame2im(M{ci,ca}(cf)), fname, 'png');
-		end;
-	    elseif domovie == 2
-		fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
-		movie2avi(M{ci,ca},fname);
-	    end;
-	end;
+    for ca = 1:3
+        if domovie == 1
+        for cf = 1:numel(M{ci,ca})
+            fname = sprintf('%s-%02d-%1d-%03d.png',prefix,vh(ci),ca, ...
+                    cf);
+            imwrite(frame2im(M{ci,ca}(cf)), fname, 'png');
+        end;
+        elseif domovie == 2
+        fname = sprintf('%s-%02d-%1d.avi',prefix,vh(ci),ca);
+        movie2avi(M{ci,ca},fname);
+        end;
+    end;
     end;
     spm('pointer', 'arrow');
     spm_orthviews('reposition', opos);

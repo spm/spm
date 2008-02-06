@@ -1,4 +1,4 @@
-/* $Id: dartel3.c 1103 2008-01-17 12:20:25Z john $ */
+/* $Id: dartel3.c 1137 2008-02-06 15:58:21Z spm $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"
@@ -399,7 +399,7 @@ void samp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]
     if (nd>4) mexErrMsgTxt("Wrong number of dimensions.");
     dmf[0] = dmf[1] = dmf[2] = dmf[3] = 1;
     for(i=0; i<nd; i++)
-    	dmf[i] = mxGetDimensions(prhs[0])[i];
+        dmf[i] = mxGetDimensions(prhs[0])[i];
 
     nd = mxGetNumberOfDimensions(prhs[1]);
     if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");

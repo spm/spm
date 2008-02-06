@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 1112 2008-01-21 13:03:37Z volkmar $
+% $Id: spm_ov_reorient.m 1137 2008-02-06 15:58:21Z spm $
 
-rev = '$Revision: 1112 $';
+rev = '$Revision: 1137 $';
 
 global st;
 if isempty(st)
@@ -34,17 +34,17 @@ switch cmd
   % Context menu and callbacks
  case 'context_menu'  
   item0 = uimenu(varargin{3}, 'Label', 'Reorient image(s)',...
-		 'Tag', ['REORIENT_M_', num2str(volhandle)]);
+         'Tag', ['REORIENT_M_', num2str(volhandle)]);
   item1 = uimenu(item0, 'Label', 'All images', 'Callback', ...
-		 ['spm_orthviews(''reorient'',''context_init'', 0);'],...
-		 'Tag', ['REORIENT_0_', num2str(volhandle)]);
+         ['spm_orthviews(''reorient'',''context_init'', 0);'],...
+         'Tag', ['REORIENT_0_', num2str(volhandle)]);
   item2 = uimenu(item0, 'Label', 'Current image', 'Callback', ...
-		 ['spm_orthviews(''reorient'',''context_init'', ', ...
-		  num2str(volhandle), ');'],...
-		 'Tag', ['REORIENT_0_', num2str(volhandle)]);
+         ['spm_orthviews(''reorient'',''context_init'', ', ...
+          num2str(volhandle), ');'],...
+         'Tag', ['REORIENT_0_', num2str(volhandle)]);
   item3 = uimenu(item0, 'Label', 'Quit Reorient image', ...
-		 'Tag', ['REORIENT_1_', num2str(volhandle)], ...
-		 'Visible', 'off');
+         'Tag', ['REORIENT_1_', num2str(volhandle)], ...
+         'Visible', 'off');
   item1 = uimenu(item0, 'Label', 'Help', 'Callback', ...
                  sprintf('spm_help(''%s '');', mfilename));
   ret = item0;
@@ -56,10 +56,10 @@ switch cmd
   spm_input('!DeleteInputObj',Finter);
   handles = spm_orthviews('valid_handles');
   labels = {'right  {mm}', 'forward  {mm}', 'up  {mm}',...
-	    'pitch  {rad}', 'roll  {rad}', 'yaw  {rad}',...
-	    'resize  {x}', 'resize  {y}', 'resize {z}'};
+        'pitch  {rad}', 'roll  {rad}', 'yaw  {rad}',...
+        'resize  {x}', 'resize  {y}', 'resize {z}'};
   tooltips = {'translate', 'translate', 'translate', 'rotate', 'rotate', ...
-	      'rotate', 'zoom', 'zoom', 'zoom',''};
+          'rotate', 'zoom', 'zoom', 'zoom',''};
   hpos = [240:-20:60];
   % get initial parameter values from st.vols{volhandle}.premul
   if volhandle == 0 
@@ -70,10 +70,10 @@ switch cmd
     prms(10) = 3; % default #contour lines
     labels{end+1} = '#contour lines';
     st.vols{volhandle(1)}.reorient.b(1) = uicontrol(...
-	Finter, 'Style','PushButton', 'Position',[75 30 165 025], ...
-	'String','Apply to image(s)', ...
-	'Callback',['spm_orthviews(''reorient'',''apply'',',...
-		    num2str(volhandle), ');']);
+    Finter, 'Style','PushButton', 'Position',[75 30 165 025], ...
+    'String','Apply to image(s)', ...
+    'Callback',['spm_orthviews(''reorient'',''apply'',',...
+            num2str(volhandle), ');']);
   end;
   for k = handles
     obj = findobj(Fgraph, 'Tag',  ['REORIENT_M_', num2str(k)]);
@@ -82,8 +82,8 @@ switch cmd
       objs = findobj(obj, 'Tag', ['REORIENT_1_', num2str(k)]);
       set(objh,'Visible','off');
       set(objs, 'Callback', ...
-	       ['spm_orthviews(''reorient'',''context_quit'', [', ...
-		num2str(volhandle), ']);'],'Visible','on');
+           ['spm_orthviews(''reorient'',''context_quit'', [', ...
+        num2str(volhandle), ']);'],'Visible','on');
       st.vols{k}.reorient.oldpremul = st.vols{k}.premul;
     else
       set(obj, 'Visible', 'off');
@@ -91,14 +91,14 @@ switch cmd
   end;
   for k = 1:numel(labels)
     st.vols{volhandle(1)}.reorient.l(k)=uicontrol(...
-	Finter, 'Style','Text', ...
-	'Position',[75 hpos(k) 100 016], 'String',labels{k});
+    Finter, 'Style','Text', ...
+    'Position',[75 hpos(k) 100 016], 'String',labels{k});
     st.vols{volhandle(1)}.reorient.e(k) = uicontrol(...
-	Finter, 'Style','edit', ...
-	'Callback',['spm_orthviews(''reorient'',''reorient'',[',...
-		    num2str(volhandle),'])'], ... 
-	'Position',[175 hpos(k) 065 020], 'String',num2str(prms(k)), ...
-	'ToolTipString',tooltips{k});
+    Finter, 'Style','edit', ...
+    'Callback',['spm_orthviews(''reorient'',''reorient'',[',...
+            num2str(volhandle),'])'], ... 
+    'Position',[175 hpos(k) 065 020], 'String',num2str(prms(k)), ...
+    'ToolTipString',tooltips{k});
   end;
   spm_orthviews('redraw');
   
@@ -151,8 +151,8 @@ switch cmd
     spm_progress_bar('Clear');
     st.vols{volhandle}.reorient.oldpremul = eye(4);
     qu=questdlg({'Image positions are changed!', ...
-		 'To make sure images are displayed correctly, it is recommended to quit and restart spm_orthviews now.', ... 
-		 'Do you want to quit?'},'Reorient done','Yes','No','Yes');
+         'To make sure images are displayed correctly, it is recommended to quit and restart spm_orthviews now.', ... 
+         'Do you want to quit?'},'Reorient done','Yes','No','Yes');
     if strcmp(lower(qu), 'yes')
       spm_orthviews('reset');
       return;
@@ -167,7 +167,7 @@ switch cmd
   end;
   for k = volhandle
     st.vols{k}.premul = spm_matrix(prms)* ...
-	st.vols{k}.reorient.oldpremul;
+    st.vols{k}.reorient.oldpremul;
   end;
   spm_orthviews('redraw');
   
@@ -175,7 +175,7 @@ switch cmd
   if numel(st.vols{volhandle}.reorient.e)==10
     if isfield(st.vols{volhandle}.reorient,'lh')
       if ~isempty(st.vols{volhandle}.reorient.lh)
-	delete(cat(1,st.vols{volhandle}.reorient.lh{:}));
+    delete(cat(1,st.vols{volhandle}.reorient.lh{:}));
       end;
     end;
     st.vols{volhandle}.reorient.lh = {};
@@ -183,15 +183,15 @@ switch cmd
     if ncl > 0
       todraw=spm_orthviews('valid_handles');
       for d = 1:3
-	CData = sqrt(sum(get(st.vols{volhandle}.ax{d}.d,'CData').^2, ...
-			 3));
-	for h = todraw
-	  if h ~= volhandle
-	    axes(st.vols{h}.ax{d}.ax);
-	    hold on;
-	    [C st.vols{volhandle}.reorient.lh{end+1}]=contour(CData,ncl,'r-');
-	  end;
-	end;
+    CData = sqrt(sum(get(st.vols{volhandle}.ax{d}.d,'CData').^2, ...
+             3));
+    for h = todraw
+      if h ~= volhandle
+        axes(st.vols{h}.ax{d}.ax);
+        hold on;
+        [C st.vols{volhandle}.reorient.lh{end+1}]=contour(CData,ncl,'r-');
+      end;
+    end;
       end;
       set(cat(1,st.vols{volhandle}.reorient.lh{:}),'HitTest','off');
     end;

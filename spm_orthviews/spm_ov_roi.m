@@ -85,14 +85,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 1112 2008-01-21 13:03:37Z volkmar $
+% $Id: spm_ov_roi.m 1137 2008-02-06 15:58:21Z spm $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 1112 $';
+rev = '$Revision: 1137 $';
 
 global st;
 if isempty(st)
@@ -205,16 +205,16 @@ switch cmd
             case 'poly'
                 
                 % @COPYRIGHT  :
-	  %             Copyright 1993,1994 Mark Wolforth and Greg Ward, McConnell
-	  %             Brain Imaging Centre, Montreal Neurological Institute, McGill
-	  %             University.
-	  %             Permission to use, copy, modify, and distribute this software
-	  %             and its documentation for any purpose and without fee is
-	  %             hereby granted, provided that the above copyright notice
-	  %             appear in all copies.  The authors and McGill University make
-	  %             no representations about the suitability of this software for
-	  %             any purpose.  It is provided "as is" without express or
-	  %             implied warranty.
+      %             Copyright 1993,1994 Mark Wolforth and Greg Ward, McConnell
+      %             Brain Imaging Centre, Montreal Neurological Institute, McGill
+      %             University.
+      %             Permission to use, copy, modify, and distribute this software
+      %             and its documentation for any purpose and without fee is
+      %             hereby granted, provided that the above copyright notice
+      %             appear in all copies.  The authors and McGill University make
+      %             no representations about the suitability of this software for
+      %             any purpose.  It is provided "as is" without express or
+      %             implied warranty.
                 for k = 1:3
                     if st.vols{volhandle}.ax{k}.ax == gca
                         axhandle = k;
@@ -223,7 +223,7 @@ switch cmd
                 end;
                 line_color = [1 1 0];
                 axes(st.vols{volhandle}.ax{axhandle}.ax);
-	  
+      
                 hold on;
                 Xlimits = get (st.vols{volhandle}.ax{axhandle}.ax,'XLim');
                 Ylimits = get (st.vols{volhandle}.ax{axhandle}.ax,'YLim');
@@ -638,12 +638,12 @@ switch cmd
         return;
         
     case 'context_space'
-	spm_orthviews('space', volhandle, ...
-		      st.vols{volhandle}.roi.Vroi.mat, ...
-		      st.vols{volhandle}.roi.Vroi.dim(1:3));
-	iorient = get(findobj(0,'Label','Orientation'),'children');
-	if iscell(iorient)
-	    iorient = cell2mat(iorient);
+    spm_orthviews('space', volhandle, ...
+              st.vols{volhandle}.roi.Vroi.mat, ...
+              st.vols{volhandle}.roi.Vroi.dim(1:3));
+    iorient = get(findobj(0,'Label','Orientation'),'children');
+    if iscell(iorient)
+        iorient = cell2mat(iorient);
         end;
         set(iorient, 'Checked', 'Off');
         ioroi = findobj(iorient, 'Label','ROI space');

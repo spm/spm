@@ -11,9 +11,9 @@ function ret = spm_ov_rgb(varargin)
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_rgb.m 1112 2008-01-21 13:03:37Z volkmar $
+% @(#) $Id: spm_ov_rgb.m 1137 2008-02-06 15:58:21Z spm $
 
-rev = '$Revision: 1112 $';
+rev = '$Revision: 1137 $';
 
 global st;
 if isempty(st)
@@ -58,18 +58,18 @@ switch cmd
       [p n e v]=fileparts(Vq(k).fname);
       sel = 2*isempty(Vmask)+isempty(Vfa);
       switch(sel)
-	case 0, %both Vmask and Vfa set
-	  Vamq(k).fname=fullfile(p,['abs_msk_fa_' n e v]);
-	  spm_imcalc([Vq(k) Vfa Vmask],Vamq(k),'abs(i1.*i2.*i3)',{[],1,[]});
-	case 1, %only Vmask set
-	  Vamq(k).fname=fullfile(p,['abs_msk_' n e v]);
-	  spm_imcalc([Vq(k) Vmask],Vamq(k),'abs(i1.*i2)',{[],1,[]});
-	case 2, %only Vfa set
-	  Vamq(k).fname=fullfile(p,['abs_fa_' n e v]);
-	  spm_imcalc([Vq(k) Vfa],Vamq(k),'abs(i1.*i2)',{[],1,[]});
-	case 3, %nothing set
-	  Vamq(k).fname=fullfile(p,['abs_' n e v]);
-	  spm_imcalc(Vq(k),Vamq(k),'abs(i1)',{[],1,[]});
+    case 0, %both Vmask and Vfa set
+      Vamq(k).fname=fullfile(p,['abs_msk_fa_' n e v]);
+      spm_imcalc([Vq(k) Vfa Vmask],Vamq(k),'abs(i1.*i2.*i3)',{[],1,[]});
+    case 1, %only Vmask set
+      Vamq(k).fname=fullfile(p,['abs_msk_' n e v]);
+      spm_imcalc([Vq(k) Vmask],Vamq(k),'abs(i1.*i2)',{[],1,[]});
+    case 2, %only Vfa set
+      Vamq(k).fname=fullfile(p,['abs_fa_' n e v]);
+      spm_imcalc([Vq(k) Vfa],Vamq(k),'abs(i1.*i2)',{[],1,[]});
+    case 3, %nothing set
+      Vamq(k).fname=fullfile(p,['abs_' n e v]);
+      spm_imcalc(Vq(k),Vamq(k),'abs(i1)',{[],1,[]});
       end;
     end;
     spm_orthviews('addcolouredimage',volhandle,Vamq(1).fname,[1 0 0]);

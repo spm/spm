@@ -78,5 +78,5 @@
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id$
+% $Id: Contents.m 1137 2008-02-06 15:58:21Z spm $
 
