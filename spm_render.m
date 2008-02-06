@@ -33,13 +33,13 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_render.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_render.m 1139 2008-02-06 17:50:13Z volkmar $
 
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1131 $');
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1139 $');
     [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -258,7 +258,7 @@ else,
         rgb = zeros([size(ren) 3]);
         tmp = ren.*max(1-X{1}-X{2}-X{3},0);
         for k = 1:3
-            rgb(:,:,k) = tmp + X{1}*col(k,1) + X{2}*col(k,2) +X{3}*col(k,3);
+            rgb(:,:,k) = tmp + X{1}*col(1,k) + X{2}*col(2,k) +X{3}*col(3,k);
         end
         rgb(rgb>1) = 1;         
         
