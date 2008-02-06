@@ -159,7 +159,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_getSPM.m 1141 2008-02-06 19:54:23Z guillaume $
 
 
 %-GUI setup
@@ -197,6 +197,10 @@ catch
     error(['Cannot read ' fullfile(swd,'SPM.mat')]);
 end
 SPM.swd = swd;
+
+%-Change directory so that relative filenames are valid
+%----------------------------------------------------------------------
+cd(SPM.swd);
 
 % check the model has been estimated
 %-----------------------------------------------------------------------
