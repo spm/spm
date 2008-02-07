@@ -4,17 +4,15 @@ function varargout=spm_platform(varargin)
 % FORMAT ans = spm_platform(arg)
 % arg  - optional string argument, can be
 %        - 'bigend'  - return whether this architecture is bigendian
-%                      - Inf - is not IEEE floating point
-%                      - 0   - is little end
-%                      - 1   - big end
+%                      - 0   - is little endian
+%                      - 1   - is big endian
 %        - 'filesys' - type of filesystem
 %                      - 'unx' - UNIX
 %                      - 'win' - DOS
 %                      - 'mac' - Macintosh
-%                      - 'vms' - VMS
 %        - 'sepchar' - returns directory separator
-%        - 'rootlen' - returns number of chars in root directory name
 %        - 'user'    - returns username
+%        - 'host'    - returns system's host name
 %        - 'tempdir' - returns name of temp directory
 %        - 'drives'  - returns string containing valid drive letters
 %
@@ -28,69 +26,60 @@ function varargout=spm_platform(varargin)
 % FORMAT PLATFORM = spm_platform('init',comp)
 % Initialises platform specific parameters in persistent PLATFORM
 % (External gateway to init_platform(comp) subfunction)
-% comp         - computer to use [defaults to MatLab's `computer`]
+% comp         - computer to use [defaults to MATLAB's `computer`]
 % PLATFORM - copy of persistent PLATFORM
 %
 % FORMAT spm_platform
 % Initialises platform specific parameters in persistent PLATFORM
 % (External gateway to init_platform(computer) subfunction)
 %
-%                           ----------------
+%                              ----------------
 % SUBFUNCTIONS:
 %
 % FORMAT init_platform(comp)
 % Initialise platform specific parameters in persistent PLATFORM
-% comp         - computer to use [defaults to MatLab's `computer`]
+% comp         - computer to use [defaults to MATLAB's `computer`]
 %
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %
 % Since calls to spm_platform will be made frequently, most platform
 % specific parameters are stored as a structure in the persistent variable
 % PLATFORM. Subsequent calls use the information from this persistent
 % variable, if it exists.
 %
-% Platform specific difinitions are contained in the data structures at
+% Platform specific definitions are contained in the data structures at
 % the beginning of the init_platform subfunction at the end of this
 % file.
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_platform.m 1144 2008-02-07 19:56:54Z guillaume $
 
 
 %-Initialise
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 persistent PLATFORM
 if isempty(PLATFORM), PLATFORM = init_platform; end
 
 if nargin==0, return, end
 
 
-switch lower(varargin{1}), case 'init'                  %-(re)initialise
-%=======================================================================
-init_platform(varargin{2:end})
+switch lower(varargin{1}), case 'init'                     %-(re)initialise
+%==========================================================================
+init_platform(varargin{2:end});
 varargout = {PLATFORM};
    
-case 'bigend'                      %-Return endian for this architecture
-%=======================================================================
+case 'bigend'                         %-Return endian for this architecture
+%==========================================================================
 varargout = {PLATFORM.bigend};
-if ~isfinite(PLATFORM.bigend),
-    if isnan(PLATFORM.bigend)
-        error(['I don''t know if "',computer,'" is big-endian.'])
-    else
-        error(['I don''t think that "',computer,...
-            '" uses IEEE floating point ops.'])
-    end
-end
 
-case 'filesys'                                      %-Return file system
-%=======================================================================
+case 'filesys'                                         %-Return file system
+%==========================================================================
 varargout = {PLATFORM.filesys};
 
-case 'sepchar'                         %-Return file separator character
-%=======================================================================
+case 'sepchar'                            %-Return file separator character
+%==========================================================================
 warning('use filesep instead (supported by MathWorks)')
 varargout = {PLATFORM.sepchar};
 
@@ -98,149 +87,156 @@ case 'rootlen'           %-Return length in chars of root directory name
 %=======================================================================
 varargout = {PLATFORM.rootlen};
 
-case 'user'                                         %-Return user string
-%=======================================================================
+case 'user'                                            %-Return user string
+%==========================================================================
 varargout = {PLATFORM.user};
 
-case 'drives'                                            %-Return drives
-%=======================================================================
+case 'host'                                               %-Return hostname
+%==========================================================================
+varargout = {PLATFORM.host};
+
+case 'drives'                                               %-Return drives
+%==========================================================================
 varargout = {PLATFORM.drives};
 
-case 'tempdir'                              %-Return temporary directory
-%=======================================================================
+case 'tempdir'                                 %-Return temporary directory
+%==========================================================================
 twd = getenv('SPMTMP');
 if isempty(twd)
     twd = tempdir;
 end 
 varargout = {twd};
 
-
-case {'font','fonts'}    %-Map default font names to platform font names
-%=======================================================================
+case {'font','fonts'}       %-Map default font names to platform font names
+%==========================================================================
 if nargin<2, varargout={PLATFORM.font}; return, end
 switch lower(varargin{2})
-case 'times'
-    varargout = {PLATFORM.font.times};
-case 'courier'
-    varargout = {PLATFORM.font.courier};
-case 'helvetica'
-    varargout = {PLATFORM.font.helvetica};
-case 'symbol'
-    varargout = {PLATFORM.font.symbol};
-otherwise
-    warning(['Unknown font ',varargin{2},', using default'])
-    varargout = {PLATFORM.font.helvetica};
+    case 'times'
+        varargout = {PLATFORM.font.times};
+    case 'courier'
+        varargout = {PLATFORM.font.courier};
+    case 'helvetica'
+        varargout = {PLATFORM.font.helvetica};
+    case 'symbol'
+        varargout = {PLATFORM.font.symbol};
+    otherwise
+        warning(['Unknown font ',varargin{2},', using default'])
+        varargout = {PLATFORM.font.helvetica};
 end
 
-otherwise                                        %-Unknown Action string
-%=======================================================================
+    otherwise                                       %-Unknown Action string
+%==========================================================================
 error('Unknown Action string')
 
-%=======================================================================
+%==========================================================================
 end
 
 
 
-%=======================================================================
+%==========================================================================
 %- S U B - F U N C T I O N S
-%=======================================================================
+%==========================================================================
 
 
-function PLATFORM = init_platform(comp)             %-Initialise platform variables
-%=======================================================================
+function PLATFORM = init_platform(comp)     %-Initialise platform variables
+%==========================================================================
 if nargin<1, comp=computer; end
 
 %-Platform definitions
-%-----------------------------------------------------------------------
-PDefs = {   'PCWIN',    'win',  0;...
-        'PCWIN64',  'win',  0;...
-        'MAC',      'unx',  1;...
-        'MACI',     'unx',  0;...
-        'SUN4',     'unx',  1;...
-        'SOL2',     'unx',  1;...
-        'SOL64',    'unx',  1;...
-        'HP700',    'unx',  1;...
-        'SGI',      'unx',  1;...
-        'SGI64',    'unx',  1;...
-        'IBM_RS',   'unx',  1;...
-        'ALPHA',    'unx',  0;...
-        'AXP_VMSG', 'vms',  Inf;...
-        'AXP_VMSIEEE',  'vms',  0;...
-        'LNX86',    'unx',  0;...
-        'GLNX86',   'unx',  0;...
-        'GLNXA64',      'unx',  0;...
-        'VAX_VMSG', 'vms',  Inf;...
-        'VAX_VMSD', 'vms',  Inf };
+%--------------------------------------------------------------------------
+PDefs = {'PCWIN',     'win',   0;...
+         'PCWIN64',   'win',   0;...
+         'MAC',       'unx',   1;...
+         'MACI',      'unx',   0;...
+         'SOL2',      'unx',   1;...
+         'SOL64',     'unx',   1;...
+         'GLNX86',    'unx',   0;...
+         'GLNXA64',   'unx',   0};
 
 PDefs = cell2struct(PDefs,{'computer','filesys','endian'},2);
 
 
 %-Which computer?
-%-----------------------------------------------------------------------
-ci = find(strcmp({PDefs.computer},comp));
-if isempty(ci), error([comp,' not supported architecture for SPM']), end
+%--------------------------------------------------------------------------
+[issup, ci] = ismember(comp,{PDefs.computer});
+if ~issup
+    error([comp ' not supported architecture for ' spm('Ver')]);
+end
 
 
-%-Set bigend
-%-----------------------------------------------------------------------
+%-Set byte ordering
+%--------------------------------------------------------------------------
 PLATFORM.bigend = PDefs(ci).endian;
 
 
-%-Set filesys
-%-----------------------------------------------------------------------
+%-Set filesystem type
+%--------------------------------------------------------------------------
 PLATFORM.filesys = PDefs(ci).filesys;
 
 
-%-Set filesystem dependent stuff
-%-----------------------------------------------------------------------
-%-File separators character
-%-Length of root directory strings
-%-User name finding
-%-(mouse button labels?)
-switch (PLATFORM.filesys)
-case 'unx'
-    PLATFORM.sepchar = '/';
-    PLATFORM.rootlen = 1;
-    PLATFORM.user    = getenv('USER');
-case 'win'
-    PLATFORM.sepchar = '\';
-    PLATFORM.rootlen = 3;
-    PLATFORM.user    = getenv('USERNAME');
-    if isempty(PLATFORM.user)
-        PLATFORM.user = 'anon';
-    end
-otherwise
-    error(['Don''t know filesystem ',PLATFORM.filesys])
+%-File separator character
+%--------------------------------------------------------------------------
+PLATFORM.sepchar = filesep;
+
+
+%-Username
+%--------------------------------------------------------------------------
+switch PLATFORM.filesys
+    case 'unx'
+        PLATFORM.user = getenv('USER');
+    case 'win'
+        PLATFORM.user = getenv('USERNAME');
+    otherwise
+        error(['Don''t know filesystem ',PLATFORM.filesys])
 end
+if isempty(PLATFORM.user), PLATFORM.user = 'anonymous'; end
+
+
+%-Hostname
+%--------------------------------------------------------------------------
+[sts, Host]  = system('hostname');
+if sts
+    if strcmp(PLATFORM.filesys,'win')
+        Host = getenv('COMPUTERNAME');
+    else
+        Host = getenv('HOSTNAME'); 
+    end
+    Host = regexp(Host,'(.*?)\.','tokens','once');
+else
+    Host = Host(1:end-1);
+end
+PLATFORM.host = Host;
+
 
 %-Drives
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 PLATFORM.drives = '';
-if strcmp(comp,'PCWIN') || strcmp(comp,'PCWIN64'),
+if strcmp(PLATFORM.filesys,'win')
     driveLett = cellstr(char(('C':'Z')'));
-    for i=1:numel(driveLett),
-        if exist([driveLett{i} ':\']) == 7,
+    for i=1:numel(driveLett)
+        if exist([driveLett{i} ':\'],'dir')
             PLATFORM.drives = [PLATFORM.drives driveLett{i}];
         end
     end
 end
 
+
 %-Fonts
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 switch comp
-case {'SOL2'}   %-Some Sol2 platforms give segmentation violations with Helvetica
-    PLATFORM.font.helvetica = 'Lucida';
-    PLATFORM.font.times     = 'Times';
-    PLATFORM.font.courier   = 'Courier';
-    PLATFORM.font.symbol    = 'Symbol';
-case {'SUN4','SOL2','SOL64','HP700','SGI','SGI64','IBM_RS','ALPHA','LNX86','GLNX86','GLNXA64','MAC','MACI'}
-    PLATFORM.font.helvetica = 'Helvetica';
-    PLATFORM.font.times     = 'Times';
-    PLATFORM.font.courier   = 'Courier';
-    PLATFORM.font.symbol    = 'Symbol';
-case {'PCWIN','PCWIN64'}
-    PLATFORM.font.helvetica = 'Arial Narrow';
-    PLATFORM.font.times     = 'Times New Roman';
-    PLATFORM.font.courier   = 'Courier New';
-    PLATFORM.font.symbol    = 'Symbol';
+    case {'SOL2'}   %-Some Sol2 platforms give segmentation violations with Helvetica
+        PLATFORM.font.helvetica = 'Lucida';
+        PLATFORM.font.times     = 'Times';
+        PLATFORM.font.courier   = 'Courier';
+        PLATFORM.font.symbol    = 'Symbol';
+    case {'SOL64','GLNX86','GLNXA64','MAC','MACI'}
+        PLATFORM.font.helvetica = 'Helvetica';
+        PLATFORM.font.times     = 'Times';
+        PLATFORM.font.courier   = 'Courier';
+        PLATFORM.font.symbol    = 'Symbol';
+    case {'PCWIN','PCWIN64'}
+        PLATFORM.font.helvetica = 'Arial Narrow';
+        PLATFORM.font.times     = 'Times New Roman';
+        PLATFORM.font.courier   = 'Courier New';
+        PLATFORM.font.symbol    = 'Symbol';
 end
