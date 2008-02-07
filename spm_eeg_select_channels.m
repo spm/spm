@@ -25,10 +25,10 @@ function varargout = spm_eeg_select_channels(varargin)
 % Last Modified by GUIDE v2.5 13-Jul-2005 14:18:07
 
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 716 2007-01-16 21:13:50Z karl $
+% $Id: spm_eeg_select_channels.m 1143 2008-02-07 19:33:33Z spm $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;

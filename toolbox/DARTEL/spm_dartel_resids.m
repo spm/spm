@@ -10,10 +10,10 @@ function spm_dartel_resids(job)
 % Fisher kernels.  See  Bishop's PRML or the work of Jaakkola and
 % Haussler for more information.
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_resids.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_dartel_resids.m 1143 2008-02-07 19:33:33Z spm $
 
 
 PG = job.template{1};

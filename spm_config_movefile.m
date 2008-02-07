@@ -1,10 +1,10 @@
 function opts = spm_config_movefile
 % Configuration file for move file function
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_config_movefile.m 549 2006-06-07 12:37:29Z volkmar $
+% $Id: spm_config_movefile.m 1143 2008-02-07 19:33:33Z spm $
 
 %_______________________________________________________________________
 

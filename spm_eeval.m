@@ -49,10 +49,10 @@ function [p,msg] = spm_eeval(str,Type,n,m)
 % msg   - Explanation of why it didn't work
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_eeval.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeval.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin<4, m=[]; end

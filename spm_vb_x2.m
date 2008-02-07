@@ -7,10 +7,10 @@ function [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 % xCon - contrast info
 % ic   - contrast number
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_x2.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_vb_x2.m 1143 2008-02-07 19:33:33Z spm $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation

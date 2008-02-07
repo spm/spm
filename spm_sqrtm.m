@@ -6,10 +6,10 @@ function [K] = spm_sqrtm(V)
 % computationally expedient approximation that can handle sparse
 % matrices
  %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sqrtm.m 289 2005-11-10 17:15:04Z guillaume $
+% $Id: spm_sqrtm.m 1143 2008-02-07 19:33:33Z spm $
 
 %--------------------------------------------------------------------------
 n     = length(V);

@@ -5,10 +5,10 @@ function [p,hFig] = spm_eeg_inv_displTes(tsurf,c)
 % if c is not provided, it uses 1 color for all surface.
 % 'spm_eeg_inv_displTes' returns handle to patch & figure
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_displTes.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_displTes.m 1143 2008-02-07 19:33:33Z spm $
 
 % mono_c = 1/0 uses monocolor or provided c
 % tri_c = 1/0 , color specified on triangles or vertices

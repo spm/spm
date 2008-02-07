@@ -1,10 +1,10 @@
 function job = spm_config_fieldmap
 % Configuration file for FieldMap jobs
 %_______________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: spm_config_FieldMap.m 964 2007-10-19 16:35:34Z john $
+% $Id: spm_config_FieldMap.m 1143 2008-02-07 19:33:33Z spm $
 %_______________________________________________________________________
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
         '''tag'',tag,''strtype'',strtype,''num'',num)'],...

@@ -1,10 +1,10 @@
 function d = size(a,varargin)
 % overloaded size function for file_array objects.
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: size.m 1037 2007-12-21 13:02:53Z john $
+% $Id: size.m 1143 2008-02-07 19:33:33Z spm $
 
 
 sa  = struct(a);

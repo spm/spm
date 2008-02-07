@@ -40,16 +40,16 @@ function spm_surf(P,mode,thresh)
 % The surface can also be save as OBJ format, as used by Alias|Wavefront.
 % See e.g. http://www.nada.kth.se/~asa/Ray/matlabobj.html
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_surf.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin==0,
         [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1131 $');
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1143 $');
     spm_help('!ContextHelp',mfilename);
 
     P    = spm_select([1 Inf],'image','Select images');
@@ -136,7 +136,7 @@ if any(mode==[2 3 4]),
             if any(mode==[4]),
         fname = fullfile(pth,[nam1 '.obj']);
         fid   = fopen(fname,'w');
-        fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 1131 $',date);
+        fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 1143 $',date);
         fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
         fprintf(fid,'g Cortex\n'); % Group Cortex
         fprintf(fid,'f %d %d %d\n',faces');

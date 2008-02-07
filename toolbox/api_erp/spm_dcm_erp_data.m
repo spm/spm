@@ -22,10 +22,10 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1105 2008-01-17 16:29:16Z karl $
+% $Id: spm_dcm_erp_data.m 1143 2008-02-07 19:33:33Z spm $
  
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------

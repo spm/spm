@@ -13,10 +13,10 @@ function D = spm_eeg_rdata(S)
 % in struct D and saves struct D to mat-file. The data is stored separately
 % in a dat-file.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_rdata.m 1143 2008-02-07 19:33:33Z spm $
 
 try
     Fdata = S.Fdata;

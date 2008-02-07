@@ -65,10 +65,10 @@ function varargout = spm_brainwarp(varargin)
 % 
 % The vector b contains [diag(w)*(f - diag(g1)*s1 - diag(g1)*x*s2 - ...)].
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_brainwarp.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_brainwarp.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-This is merely the help file for the compiled routine

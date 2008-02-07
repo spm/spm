@@ -31,10 +31,10 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 %        y(i) = L1(i,:)*q + q'*L2{i}*q/2;
 %
 %--------------------------------------------------------------------------
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_bireduce.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % set up

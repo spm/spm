@@ -24,10 +24,10 @@ function [qx,qP,qD,xhist] = spm_pf(M,y,U)
 % var der Merwe R, Doucet A, de Freitas N and Wan E (2000). The
 % unscented particle filter.  Technical Report CUED/F-INFENG/TR 380
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_pf.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_pf.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % check model specification

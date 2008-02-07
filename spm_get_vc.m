@@ -29,10 +29,10 @@ function SPM=spm_get_vc(SPM)
 %_______________________________________________________________________
 % Copyright (C) 2006 Freiburg Brain Imaging 
 % This code is part of SPM5, which is
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_get_vc.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_get_vc.m 1143 2008-02-07 19:33:33Z spm $
 
 Iin = SPM.xVi.I;
 [nscan nfactor] = size(Iin);

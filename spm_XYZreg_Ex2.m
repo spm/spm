@@ -31,10 +31,10 @@ function varargout=spm_XYZreg_Ex2(varargin)
 % as one of it's entries! (I think?)
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_XYZreg_Ex2.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_XYZreg_Ex2.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %=======================================================================

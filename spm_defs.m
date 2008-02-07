@@ -5,10 +5,10 @@ function spm_defs(job)
 %
 % See spm_config_defs.m for more information.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_defs.m 991 2007-11-02 14:01:28Z john $
+% $Id: spm_defs.m 1143 2008-02-07 19:33:33Z spm $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));

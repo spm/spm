@@ -30,10 +30,10 @@ function ima = spm_erode(varargin)
 % The actual job is done by spm_dilate_erode.c that serves both
 % spm_dilate.m and op_erode.m
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_erode.m 159 2005-05-16 14:00:56Z guillaume $
+% $Id: spm_erode.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if exist('spm_dilate_erode')~=3 

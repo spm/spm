@@ -24,10 +24,10 @@ function D = spm_eeg_epochs(S)
 % i.e. a subtraction of the average pre-stimulus average from all time
 % points.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_epochs.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_epochs.m 1143 2008-02-07 19:33:33Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 

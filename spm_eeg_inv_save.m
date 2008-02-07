@@ -7,10 +7,10 @@ function spm_eeg_inv_save(D)
 %
 % Ensures matlab version backwards compatibility
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_save.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_eeg_inv_save.m 1143 2008-02-07 19:33:33Z spm $
 
 % save D
 %--------------------------------------------------------------------------

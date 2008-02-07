@@ -9,10 +9,10 @@ function [s,ds1,ds2,ds3] = spm_sample_priors(b,x1,x2,x3,bg)
 % s           - sampled values
 % ds1,ds2,ds3 - spatial derivatives of sampled values
 %____________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sample_priors.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_sample_priors.m 1143 2008-02-07 19:33:33Z spm $
 
 
 deg = 3;

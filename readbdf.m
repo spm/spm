@@ -34,10 +34,10 @@ function [DAT,S]=readbdf(DAT,Records,Mode)
 % was changed from readedf to readbdf
 % T.S. Lorig Sept 6, 2002
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: readbdf.m 112 2005-05-04 18:20:52Z john $
+% $Id: readbdf.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin<3 Mode=0; end;

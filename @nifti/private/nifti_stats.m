@@ -27,10 +27,10 @@ function varargout = nifti_stats(varargin)
 %_______________________________________________________________________
 % 99.99% of the work by RW Cox - SSCC/NIMH/NIH/DHHS/USA/EARTH - March 2004
 %  0.01% of the work (the mex wrapper) by John Ashburner - FIL/ION/UCL
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti_stats.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: nifti_stats.m 1143 2008-02-07 19:33:33Z spm $
 
 
 fprintf('******************************************\n');

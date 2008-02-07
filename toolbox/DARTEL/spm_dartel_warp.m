@@ -4,10 +4,10 @@ function spm_dartel_warp(job)
 %
 % The outputs are flow fields.
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_warp.m 1020 2007-12-06 20:20:31Z john $
+% $Id: spm_dartel_warp.m 1143 2008-02-07 19:33:33Z spm $
 
 code = 2;
 st = job.settings;

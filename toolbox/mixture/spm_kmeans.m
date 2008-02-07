@@ -14,10 +14,10 @@ function [priors,means,covs,post] = spm_kmeans (y,k,method,return_cov)
 %               matrix is empty if return_covs=0
 % post          [N x k] matrix of class labels
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kmeans.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_kmeans.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 3 | isempty(method)
    method='random';

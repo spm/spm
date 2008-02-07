@@ -15,10 +15,10 @@ function [con] = spm_design_contrasts (SPM)
 % con(c).c      Contrast matrix
 %       .name   Name
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_contrasts.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_design_contrasts.m 1143 2008-02-07 19:33:33Z spm $
 
 if isempty(SPM.factor)
     % Can't create contrasts if factorial design has not been specified

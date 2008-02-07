@@ -196,10 +196,10 @@ function vals = spm_config
 % The easiest way to figure this stuff out is to look at working
 % examples in the spm_config_*.m files.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_config.m 1143 2008-02-07 19:33:33Z spm $
 
 ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
 

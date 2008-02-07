@@ -8,10 +8,10 @@ function D = spm_eeg_invert_fuse_ui(S)
 % This is the user interface for spm_eeg_invert_fuse and will save a new
 % D.mat strcutre with the fused MAP esimates of source activity.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_fuse_ui.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_invert_fuse_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 % Load data
 %==========================================================================

@@ -20,10 +20,10 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % DEM.pP.P
 % DEM.pH.h
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_DEM_generate.m 1143 2008-02-07 19:33:33Z spm $
  
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------

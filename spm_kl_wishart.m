@@ -8,10 +8,10 @@ function [kl] = spm_kl_wishart (q,Q,p,P)
 % q,Q      Parameters of first density
 % p,P      Parameters of first density
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_wishart.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_kl_wishart.m 1143 2008-02-07 19:33:33Z spm $
 
 logdetQ=log(det(Q));
 logdetP=log(det(P));

@@ -39,10 +39,10 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 %              coordinates.
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 746 2007-02-26 22:02:58Z chloe $
+% $Id: spm_get_image_def.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

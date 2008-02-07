@@ -35,10 +35,10 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 %
 % Also note that PVE and GEW are only valid for d=2 time series
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_mar_spectra.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 4  | isempty(show)
     show=0;

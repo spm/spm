@@ -22,10 +22,10 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % scheme).  The specification of components differs from spm_reml and
 % spm_reml_sc.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 1045 2007-12-21 20:37:38Z karl $
+% $Id: spm_sp_reml.m 1143 2008-02-07 19:33:33Z spm $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

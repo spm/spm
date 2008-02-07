@@ -39,10 +39,10 @@ function [result,Pres] = spm_eeg_inv_ecd_sDipRes(sdip)
 % Fields 'n_seeds', 'n_dip', 'exitflag', 'Mtb', 'M' are added so that I can display
 % the 'result' with draw_sdip
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_sDipRes.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_ecd_sDipRes.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 1
     Pdip = spm_select(1,'^S.*dip.*\.mat$','Select dipole file');

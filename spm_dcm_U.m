@@ -18,10 +18,10 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % model specification again.
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 863 2007-07-23 13:21:06Z john $
+% $Id: spm_dcm_U.m 1143 2008-02-07 19:33:33Z spm $
 
 
 load(DCM_filename);

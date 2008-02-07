@@ -56,10 +56,10 @@ function [spheres,dipoles,L,Lan,flags] = spm_eeg_inv_Rsph(model,dipoles,flags)
 % Electromagntic inverse solutions in anatomically constrained spherical head models
 % Brain Topography, vol. 13, 2 2000
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_Rsph.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_Rsph.m 1143 2008-02-07 19:33:33Z spm $
 
 def_flags = struct('br_only',0,'use_br',0,'figs',0,'sk_sc_th',[8 8],...
     'calc_dip',0,'calc_L',0);

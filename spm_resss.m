@@ -72,10 +72,10 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % or to combine the global scaling factors in the residual forming
 % matrix.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes & John Ashburner
-% $Id: spm_resss.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_resss.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

@@ -12,10 +12,10 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % K2     - 2nd order kernels
 %          (see main body of routine for details of model specification)
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_hdm_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % get figure handles

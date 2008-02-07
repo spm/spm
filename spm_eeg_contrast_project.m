@@ -19,10 +19,10 @@ function c = spm_eeg_contrast_project(SPM, i, c_in)
 % for event-related potentials (II): a hierarchical temporal model.
 % Neuroimage, 22: 503-520
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_contrast_project.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_eeg_contrast_project.m 1143 2008-02-07 19:33:33Z spm $
 
 
 Fname = SPM.eeg.factor{i};

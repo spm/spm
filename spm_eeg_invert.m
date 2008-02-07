@@ -43,10 +43,10 @@ function [D] = spm_eeg_invert(D)
 %     inverse.F      - log-evidence
 %     inverse.R2     - variance accounted for (%)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1133 2008-02-06 14:13:19Z karl $
+% $Id: spm_eeg_invert.m 1143 2008-02-07 19:33:33Z spm $
 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------

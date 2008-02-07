@@ -14,10 +14,10 @@ function [vxyz] = spm_vb_neighbors (xyz,vol)
 %          are N1, N2 and N3
 %
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_neighbors.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_neighbors.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin<2
     vol=0;

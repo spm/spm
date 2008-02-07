@@ -11,10 +11,10 @@ function [A,B,C,H] = spm_dcm_reshape(P,m,n,r)
 % C     - direct connections
 % H     - hemodynamic parameters
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_reshape.m 895 2007-08-23 21:55:21Z klaas $
+% $Id: spm_dcm_reshape.m 1143 2008-02-07 19:33:33Z spm $
  
  
 % scale intrinsic connections {A}

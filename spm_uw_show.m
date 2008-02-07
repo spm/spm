@@ -10,10 +10,10 @@ function spm_graphwip(mode,p1,p2,p3,p4,p5,p6)
 % FORMAT spm_graphwip('FinIter',SS,beta,fot,sot,ref,q)
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_uw_show.m 1143 2008-02-07 19:33:33Z spm $
 
 
 persistent iter;

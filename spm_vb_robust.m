@@ -7,10 +7,10 @@ function [slice] = spm_vb_robust (Y,slice)
 % slice -  data structure containing fields described in spm_vb_glmar.m
 %
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_robust.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_vb_robust.m 1143 2008-02-07 19:33:33Z spm $
 
 [T,Nv]=size(Y);
 X=slice.X;

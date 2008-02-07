@@ -8,10 +8,10 @@ function spm_check_registration(images)
 % the bottom right.  The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_check_registration.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin==0,

@@ -2,10 +2,10 @@ function varargout=subsref(obj,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
 % _________________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 315 2005-11-28 16:48:59Z john $
+% $Id: subsref.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if isempty(subs)

@@ -26,10 +26,10 @@ function SPM = spm_eeg_get_vc(SPM);
 % any number of factors and is more general, because it can cope with
 % different number of observations under different levels of a factor.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_get_vc.m 213 2005-08-22 12:43:29Z stefan $
+% $Id: spm_eeg_get_vc.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

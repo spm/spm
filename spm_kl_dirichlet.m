@@ -10,10 +10,10 @@ function [d] = spm_kl_dirichlet (lambda_q,lambda_p,log_tilde_pi)
 % log_tilde_pi  <log (pi)> where avg is over Q. If this argument
 %               isn't passed the routine will calculate it
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_dirichlet.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_kl_dirichlet.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 3
  m=length(lambda_q);

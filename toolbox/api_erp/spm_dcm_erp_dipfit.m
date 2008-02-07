@@ -15,10 +15,10 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 %       DCM.M.dipfit.type       - 'ECD (EEG)','ECD (MEG)','Imaging','LFP'
 %       DCM.M.dipfit. ...
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1053 2007-12-28 19:50:46Z karl $
+% $Id: spm_dcm_erp_dipfit.m 1143 2008-02-07 19:33:33Z spm $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------

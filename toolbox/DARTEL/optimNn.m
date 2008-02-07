@@ -60,10 +60,10 @@ function varargout = optimNn(varargin)
 % use optimN.
 %
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: optimNn.m 988 2007-10-31 16:59:43Z john $
+% $Id: optimNn.m 1143 2008-02-07 19:33:33Z spm $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

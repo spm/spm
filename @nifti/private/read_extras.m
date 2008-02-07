@@ -1,10 +1,10 @@
 function extras = read_extras(fname)
 % Read extra bits of information
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: read_extras.m 443 2006-02-17 16:44:54Z john $
+% $Id: read_extras.m 1143 2008-02-07 19:33:33Z spm $
 
 
 extras = struct;

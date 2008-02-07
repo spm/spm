@@ -1,10 +1,10 @@
 function [pos, name] = spm_eeg_elec_pos3d
 % returns positions and names of electrodes in biosemi-setup.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_elec_pos3d.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_elec_pos3d.m 1143 2008-02-07 19:33:33Z spm $
 
 inter_ring_dist=2;
 pos=zeros(128,4); %x and y coordinates for each electrode

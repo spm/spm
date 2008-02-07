@@ -9,10 +9,10 @@ function a = file_array(varargin)
 % scl_slope - scalefactor (default = 1)
 % scl_inter - DC offset, such that dat = raw*scale + inter (default = 0)
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: file_array.m 315 2005-11-28 16:48:59Z john $
+% $Id: file_array.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin==1

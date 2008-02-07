@@ -58,10 +58,10 @@ function [D] = spm_eeg_invert_fuse(D)
 % Under empirical priors on J{1,...,t} for n data-sets with t trial types.
 %
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_invert_fuse.m 1143 2008-02-07 19:33:33Z spm $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------

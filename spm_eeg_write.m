@@ -15,10 +15,10 @@ function scales = spm_eeg_write(fpout, d, direc, dtype)
 % scales. The only reason for writing to a format like int16 is to save
 % disk space.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_write.m 1109 2008-01-17 18:53:13Z vladimir $
+% $Id: spm_eeg_write.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if strcmp(dtype, 'float32') || strcmp(dtype, 'float64')

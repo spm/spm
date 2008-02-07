@@ -12,9 +12,9 @@ function [y] = spm_digamma(x)
 %   ACM Transactions on Mathematical Software, 1983.
 %   Obtained from NETLIB: http://www.netlib.org/toms/610.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_digamma.m 159 2005-05-16 14:00:56Z guillaume $
+% $Id: spm_digamma.m 1143 2008-02-07 19:33:33Z spm $
 
 error('spm_digamma.c not compiled - see Makefile')

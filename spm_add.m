@@ -17,10 +17,10 @@ function varargout = spm_add(varargin)
 % VI (see spm_mean_ui for an example). A weighted sum can be effected by
 % using different weightings for image scalefactors.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_add.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_add.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-This is merely the help file for the compiled routine

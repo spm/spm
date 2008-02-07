@@ -11,10 +11,10 @@ function hdr = spm_dicom_headers(P)
 % extremely complicated "standard".
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 936 2007-10-12 13:51:02Z john $
+% $Id: spm_dicom_headers.m 1143 2008-02-07 19:33:33Z spm $
 
 
 dict = readdict;

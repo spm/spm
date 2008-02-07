@@ -25,10 +25,10 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 %
 % vxyz      locations of voxels 
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_set_priors.m 209 2005-08-02 17:09:13Z will $
+% $Id: spm_vb_set_priors.m 1143 2008-02-07 19:33:33Z spm $
 
 if ~isfield(slice,'verbose')
     slice.verbose=0;

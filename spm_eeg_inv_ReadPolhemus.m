@@ -22,10 +22,10 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
 % The fiducial locations are flaged with the strings 'NZ','LE' and 'RE'; 
 % indicating the Nasion, left and right eare respectively
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_ReadPolhemus.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

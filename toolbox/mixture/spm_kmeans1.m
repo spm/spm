@@ -16,10 +16,10 @@ function [mix1] = spm_kmeans1 (y,k)
 % nloops           Number of iterations used
 % assign           Which class data points are assigned to
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kmeans1.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_kmeans1.m 1143 2008-02-07 19:33:33Z spm $
 
 y=y(:)';
 N=length(y);

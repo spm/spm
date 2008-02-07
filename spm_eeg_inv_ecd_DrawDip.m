@@ -37,10 +37,10 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 %            cell{1,n_seeds}(3*n_dip x Ntimebins)
 %       + Mtb: index of maximum power in EEG time series used
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 1143 2008-02-07 19:33:33Z spm $
 
 global st
 global defaults

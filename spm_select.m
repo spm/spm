@@ -61,10 +61,10 @@ function [t,sts] = spm_select(varargin)
 % FORMAT [files,dirs]=spm_select('ExtFPList',direc,filt,frames)
 % As above, but returns files with full paths (i.e. prefixes direc to each)
 %____________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 941 2007-10-14 17:01:18Z volkmar $
+% $Id: spm_select.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})

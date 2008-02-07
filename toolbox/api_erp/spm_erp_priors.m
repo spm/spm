@@ -49,10 +49,10 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1069 2008-01-07 18:55:40Z karl $
+% $Id: spm_erp_priors.m 1143 2008-02-07 19:33:33Z spm $
 
 % default: a single source model
 %--------------------------------------------------------------------------

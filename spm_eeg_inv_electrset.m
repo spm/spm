@@ -13,10 +13,10 @@ function [el_sphc,el_name] = spm_eeg_inv_electrset(el_set)
 % So the coordinates need to be adapted for any (semi-)realistic head
 % model!
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_electrset.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_electrset.m 1143 2008-02-07 19:33:33Z spm $
 
 set_name = strvcat('10-20 system with 23 electrodes.', ...
     '10-20 system with 19 electrodes.', ...

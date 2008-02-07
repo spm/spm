@@ -1,10 +1,10 @@
 function extras = write_extras(fname,extras)
 % Write extra bits of information
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_extras.m 473 2006-03-08 18:11:59Z john $
+% $Id: write_extras.m 1143 2008-02-07 19:33:33Z spm $
 
 
 [pth,nam,ext] = fileparts(fname);

@@ -170,12 +170,12 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 0:00-00
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Jean-Baptiste Poline & Christian Buchel
-% $Id: spm_fmri_spm_ui.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_fmri_spm_ui.m 1143 2008-02-07 19:33:33Z spm $
 
-SCCSid  = '$Rev: 1131 $';
+SCCSid  = '$Rev: 1143 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------

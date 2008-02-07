@@ -8,10 +8,10 @@ function [] = spm_mix_plot (mix,area,nContLines,LineType,min_p,max_p)
 % LineType      Plot line type; default='-'
 % min_p/max_p   Values of min and max probability contours
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix_plot.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_mix_plot.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 2 | isempty(area), area=[0 10 0 10]; end
 if nargin < 3 | isempty(nContLines), nContLines=10; end

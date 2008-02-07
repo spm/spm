@@ -22,10 +22,10 @@ function [N,Z,M,A] = spm_max(X,L)
 % The programming interface is identical to the old to avoid having
 % to recode any routines calling spm_max or spm_clusters.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_max.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_max.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % Ensure that L contains exactly integers

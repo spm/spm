@@ -1,10 +1,10 @@
 function opts = spm_config_ui
 % Configuration file for User Interface
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_ui.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 %_______________________________________________________________________
 col1 = struct('type','entry','name','Background Colour 1','tag','colour1',...

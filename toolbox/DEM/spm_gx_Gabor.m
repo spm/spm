@@ -11,10 +11,10 @@ function [g] = spm_gx_Gabor(x,u,P)
 %   u(3) - width (forcing)
 % f      - dx/dt
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gx_Gabor.m 1135 2008-02-06 14:15:16Z karl $
+% $Id: spm_gx_Gabor.m 1143 2008-02-07 19:33:33Z spm $
 
 % exponentiation of hemodynamic state variables
 %--------------------------------------------------------------------------

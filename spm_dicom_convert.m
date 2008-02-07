@@ -23,10 +23,10 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 %                All images will contain a single 3D dataset, 4D images
 %                will not be created.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_dicom_convert.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin<2, opts = 'all'; end;

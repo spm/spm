@@ -10,10 +10,10 @@ function [R1,...] = spm_FCN(P1,...)
 % Long description of function, including i/o details, algorithms and refs.
 %
 %_______________________________________________________________________
-% Copyright (C) YEAR Wellcome Department of Imaging Neuroscience
+% Copyright (C) YEAR Wellcome Trust Centre for Neuroimaging
 
 % AUTHOR
-% $Id: spm_FcnTpl.txt 112 2005-05-04 18:20:52Z john $
+% $Id: spm_FcnTpl.txt 1143 2008-02-07 19:33:33Z spm $
 
 %=======================================================================
 % - B A N N E R   S E C T I O N   H E A D I N G

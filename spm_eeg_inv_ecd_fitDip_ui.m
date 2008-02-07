@@ -37,10 +37,10 @@ function [sdip,fit_opt,Psave] = spm_eeg_inv_ecd_fitDip_ui(D)
 %   - set_loc_o: set of starting location priors, used as seeds.
 %   - Psave: file name of saved file.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_fitDip_ui.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_ecd_fitDip_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 % Loading various bits
 %_____________________

@@ -17,10 +17,10 @@ function [hrf,p] = spm_hrf(RT,P);
 % hrf  - hemodynamic response function
 % p    - parameters of the response function
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hrf.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_hrf.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % global parameter

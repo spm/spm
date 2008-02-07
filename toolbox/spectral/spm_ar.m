@@ -32,10 +32,10 @@ function [ar] = spm_ar (Z,p,verbose)
 % W.D. Penny and S.J. Roberts. Bayesian Methods for Autoregressive Models.
 % In IEEE Workshop on Neural Networks for Signal Processing, Sydney Australia, 2000
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_ar.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_ar.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 2, 
    disp('spm_ar.m needs at least two arguments'); 

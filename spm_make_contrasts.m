@@ -17,10 +17,10 @@ function [Con] = spm_make_contrasts (k)
 % Con(c).c      Contrast matrix
 %       .name   Name
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_make_contrasts.m 137 2005-05-10 15:46:04Z will $
+% $Id: spm_make_contrasts.m 1143 2008-02-07 19:33:33Z spm $
     
 % See section 5 of 
 % http://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf

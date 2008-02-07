@@ -23,10 +23,10 @@ function P = spm_P_Bonf(Z,df,STAT,S,n)
 % is returned
 %
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_P_Bonf.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_P_Bonf.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if      STAT == 'Z'

@@ -22,10 +22,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % (using a graph Laplacian and then in voxel-space using a conventional
 % Gaussian filter.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 1132 2008-02-06 14:12:17Z karl $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 1143 2008-02-07 19:33:33Z spm $
  
 % checks
 %--------------------------------------------------------------------------

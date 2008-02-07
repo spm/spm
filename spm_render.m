@@ -30,16 +30,16 @@ function spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 1139 2008-02-06 17:50:13Z volkmar $
+% $Id: spm_render.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1139 $');
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1143 $');
     [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);

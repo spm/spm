@@ -16,10 +16,10 @@ function D = spm_eeg_rdata_egi64(S)
 % There are calls to openbdf and readbdf, which are distributed under the
 % GNU-license.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_rdata_egi64.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_rdata_egi64.m 1143 2008-02-07 19:33:33Z spm $
 
 try
     Fdata = S.Fdata;

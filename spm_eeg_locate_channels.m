@@ -4,10 +4,10 @@ function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 % Locates channels and generates mask for converting EEG data to analyze
 % format on the scalp
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_locate_channels.m 776 2007-03-27 09:40:10Z stefan $
+% $Id: spm_eeg_locate_channels.m 1143 2008-02-07 19:33:33Z spm $
 
 % load channel template file (contains location of channels)
 Ctf = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));

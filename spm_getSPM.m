@@ -156,10 +156,10 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 1141 2008-02-06 19:54:23Z guillaume $
+% $Id: spm_getSPM.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-GUI setup

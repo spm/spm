@@ -4,10 +4,10 @@ function dat = spm_load_float(V)
 % V   - handle from spm_vol
 % dat - a 3D floating point array
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_load_float.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_load_float.m 1143 2008-02-07 19:33:33Z spm $
 
 
 dim = V(1).dim(1:3);

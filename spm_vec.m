@@ -8,10 +8,10 @@ function [vX] = spm_vec(varargin)
 % e.g.:
 % spm_vec({eye(2) 3}) = [1 0 0 1 3]'
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_vec.m 744 2007-02-23 13:51:48Z karl $
+% $Id: spm_vec.m 1143 2008-02-07 19:33:33Z spm $
 
 % initialise X and vX
 %--------------------------------------------------------------------------

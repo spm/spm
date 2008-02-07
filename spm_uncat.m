@@ -8,10 +8,10 @@ function [a] = spm_uncat(x,a)
 %
 % see also spm_vec and spm_unvec
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_uncat.m 258 2005-10-18 18:21:07Z karl $
+% $Id: spm_uncat.m 1143 2008-02-07 19:33:33Z spm $
 
 % fill in varargout
 %--------------------------------------------------------------------------

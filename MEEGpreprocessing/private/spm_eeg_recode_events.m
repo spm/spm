@@ -13,7 +13,7 @@ function [event, recoded_events ]=spm_eeg_recode_events(event)
 % previous code with the same value and assigning a new code in the
 % unlikely event that happens.
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 
 recoded_events=[];

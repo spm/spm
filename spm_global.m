@@ -12,10 +12,10 @@ function GX = spm_global(V)
 % using a criteria of greater than > (global mean)/8
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Anonymous
-% $Id: spm_global.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_global.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-This is merely the help file for the compiled routine

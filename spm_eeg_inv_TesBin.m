@@ -16,10 +16,10 @@ function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 % Output :
 % ts         - tesselation structure
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_TesBin.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_TesBin.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin > 4
     error('Wrong input arguments for ''TesBin''.') ;

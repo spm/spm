@@ -15,10 +15,10 @@ function [y] = spm_gx_dcm(x,u,P,M)
 % 2. Stephan KE, Weiskopf N, Drysdale PM, Robinson PA, Friston KJ.
 %    Comparing hemodynamic models with DCM. NeuroImage (in press)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_dcm.m 880 2007-08-09 15:51:03Z klaas $
+% $Id: spm_gx_dcm.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % Biophysical constants for 1.5 T (see Obata et al. 2004)

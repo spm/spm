@@ -26,9 +26,9 @@ function varargout = spm_eeg_inv_vde(varargin)
 
 % Last Modified by GUIDE v2.5 05-Dec-2006 09:07:07
 
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % Jeremie Mattout
-% $Id: spm_eeg_inv_vde.m 1039 2007-12-21 20:20:38Z karl $
+% $Id: spm_eeg_inv_vde.m 1143 2008-02-07 19:33:33Z spm $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;

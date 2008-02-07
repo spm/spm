@@ -37,10 +37,10 @@ function varargout = spm_bsplins(varargin)
 %   "Interpolation Revisited"
 %   IEEE Transactions on Medical Imaging 19(7):739-758 (2000).
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_bsplins.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_bsplins.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-This is merely the help file for the compiled routine

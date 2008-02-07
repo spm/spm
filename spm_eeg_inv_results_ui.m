@@ -6,10 +6,10 @@ function [D] = spm_eeg_inv_results_ui(varargin)
 %     D.contrast.woi   - time (ms) window of interest
 %     D.contrast.fboi  - freq (Hz) window of interest
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results_ui.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_inv_results_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 % initialise
 %--------------------------------------------------------------------------

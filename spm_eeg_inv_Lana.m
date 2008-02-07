@@ -18,10 +18,10 @@ function [Lan,nit]=spm_eeg_inv_Lana(XYZmm,SseXYZ,Rsc,Rsk,Rbr,sigma)
 % and scalp thicknesses
 % IEEE TBME, 28-6, 447452, 1981
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_Lana.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_Lana.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin<6
     sigma = [.33 .004 .33];

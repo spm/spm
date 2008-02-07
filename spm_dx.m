@@ -34,10 +34,10 @@ function [dx] = spm_dx(dfdx,f,t)
 % bound on the rate of convergence (c.f., a Lyapunov exponent of the
 % ascent)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 1136 2008-02-06 14:18:16Z karl $
+% $Id: spm_dx.m 1143 2008-02-07 19:33:33Z spm $
 
 % defaults
 %--------------------------------------------------------------------------

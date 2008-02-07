@@ -4,10 +4,10 @@ function spm_dartel_template(job)
 %
 % The outputs are flow fields, and a series of Template images.
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1103 2008-01-17 12:20:25Z john $
+% $Id: spm_dartel_template.m 1143 2008-02-07 19:33:33Z spm $
 
 code = 2;
 st = job.settings;

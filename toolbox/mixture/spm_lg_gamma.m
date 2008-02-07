@@ -5,10 +5,10 @@ function [lng] = spm_lg_gamma (p,b)
 % p          dimension parameter
 % b          degrees of freedom type parameter
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_lg_gamma.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_lg_gamma.m 1143 2008-02-07 19:33:33Z spm $
 
 if ~(b > 0.5*(p-1))
    disp('Warning in log_gen_gamma: parameter out of range');

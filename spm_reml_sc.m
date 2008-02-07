@@ -24,10 +24,10 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
 % See also spm_reml for an unconstrained version that allows for negative
 % hyperparameters
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml_sc.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_reml_sc.m 1143 2008-02-07 19:33:33Z spm $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------

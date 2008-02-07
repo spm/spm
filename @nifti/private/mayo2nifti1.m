@@ -1,10 +1,10 @@
 function hdr = mayo2nifti1(ohdr,mat)
 % Convert from an ANALYZE to a NIFTI-1 header
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: mayo2nifti1.m 594 2006-08-16 16:22:34Z john $
+% $Id: mayo2nifti1.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if isfield(ohdr,'magic'),

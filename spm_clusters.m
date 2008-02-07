@@ -18,10 +18,10 @@ function A = spm_clusters(L)
 % version has the same functionality, but because it is not recursive 
 % it will (hopefully) not crash.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_clusters.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_clusters.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %

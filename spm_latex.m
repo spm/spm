@@ -5,10 +5,10 @@ function spm_latex(c)
 % does under Matlab 6.x.  This is primarily because of the slightly
 % different usage of the 'regexp' function.
 %____________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex.m 949 2007-10-16 08:19:45Z volkmar $
+% $Id: spm_latex.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin==0, c = spm_config; end;
 

@@ -7,10 +7,10 @@ function x = spm_orth(X,OPT)
 %
 % serial orthogionalization starting with the first column
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_orth.m 1083 2008-01-11 14:12:46Z karl $
+% $Id: spm_orth.m 1143 2008-02-07 19:33:33Z spm $
 
 % recursive GM orthogonlisation
 %--------------------------------------------------------------------------

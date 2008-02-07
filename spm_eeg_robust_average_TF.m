@@ -1,10 +1,10 @@
 function D = spm_eeg_robust_average_TF(S)
 % robust averaging TF data based on weights calculated on ERP of same data.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_average_TF.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_robust_average_TF.m 1143 2008-02-07 19:33:33Z spm $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);

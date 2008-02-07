@@ -1,10 +1,10 @@
 function c = spm_config_3Dto4D(varargin)
 % Configuration file for concatenation jobs
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_3Dto4D.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_config_3Dto4D.m 1143 2008-02-07 19:33:33Z spm $
 
 vols.type = 'files';
 vols.name = '3D Volumes';

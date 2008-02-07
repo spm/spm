@@ -1,10 +1,10 @@
 function opts = spm_config_checkreg
 % Configuration file for check-reg jobs
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_checkreg.m 171 2005-05-20 19:20:10Z john $
+% $Id: spm_config_checkreg.m 1143 2008-02-07 19:33:33Z spm $
 
 data.type = 'files';
 data.name = 'Images to Display';

@@ -17,10 +17,10 @@ function [Phi,DPhi] = spm_dartel_integrate(U,t,K)
 % though the none of the official DARTEL tools can generate them
 % yet.
 % _______________________________________________________________________
-%  Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+%  Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_integrate.m 983 2007-10-29 15:56:35Z john $
+% $Id: spm_dartel_integrate.m 1143 2008-02-07 19:33:33Z spm $
 
 if isa(U,'char'), U = nifti(U); end;
 if isa(U,'nifti'), U = U.dat; end;

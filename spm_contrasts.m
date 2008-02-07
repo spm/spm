@@ -5,10 +5,10 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % SPM - SPM data structure
 % Ic  - indices of xCon to compute
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_contrasts.m 1143 2008-02-07 19:33:33Z spm $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is

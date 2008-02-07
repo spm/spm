@@ -6,10 +6,10 @@ function [H] = spm_logdet(C)
 % spm_logdet is a computationally efficient operator that can deal with
 % sparse matrices
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_logdet.m 808 2007-05-01 19:11:19Z karl $
+% $Id: spm_logdet.m 1143 2008-02-07 19:33:33Z spm $
 
 % assume diagonal form
 %-----------------------------------------------------------------------

@@ -16,10 +16,10 @@ function [varargout] = spm_diff(varargin)
 %
 % - a cunning recursive routine
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_diff.m 1132 2008-02-06 14:12:17Z karl $
+% $Id: spm_diff.m 1143 2008-02-07 19:33:33Z spm $
  
 % create inline object
 %--------------------------------------------------------------------------

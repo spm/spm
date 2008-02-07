@@ -7,10 +7,10 @@ function [p] = spm_wavspec (x,freqs,fs,show,rtf)
 % show      1 to plot real part of wavelet basis used (default = 0)
 % rtf       Wavelet factor
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_wavspec.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_wavspec.m 1143 2008-02-07 19:33:33Z spm $
 
 x=x(:)';
 freqs=freqs(:)';

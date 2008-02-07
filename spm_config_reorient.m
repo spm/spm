@@ -3,10 +3,10 @@ function opts = spm_config_reorient
 % Apply a given transformation matrix or reorientation parameters by
 % left-multiplying the original image orientation with it.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_config_reorient.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_config_reorient.m 1143 2008-02-07 19:33:33Z spm $
 
 %_______________________________________________________________________
 

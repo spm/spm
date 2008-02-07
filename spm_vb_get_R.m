@@ -7,10 +7,10 @@ function [R] = spm_vb_get_R (slice,h0)
 % 
 % R         posterior correlation matrix of regression coefficients
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_get_R.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_get_R.m 1143 2008-02-07 19:33:33Z spm $
 
 
 lambda=h0(end);

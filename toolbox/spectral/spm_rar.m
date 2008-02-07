@@ -39,10 +39,10 @@ function [rar,yclean] = spm_rar (Z,p,m,verbose)
 % S.J. Roberts and W.D. Penny. Variational Bayes for Generalised Autoregressive 
 % models. IEEE Transactions on Signal Processing, 50(9):2245-2257, 2002
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_rar.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_rar.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 3 | isempty(m)
     m=2;

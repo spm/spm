@@ -3,10 +3,10 @@ function varargout = spm_api_erp(varargin)
 %    FIG = SPM_API_ERP launch spm_api_erp GUI.
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1132 2008-02-06 14:12:17Z karl $
+% $Id: spm_api_erp.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 

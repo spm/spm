@@ -3,10 +3,10 @@ function spm_srender(job)
 % FORMAT spm_render(job)
 % job - a job structure (see spm_config_render.m)
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_srender.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_srender.m 1143 2008-02-07 19:33:33Z spm $
 
 
 fg  = spm_figure('GetWin','Graphics');

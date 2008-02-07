@@ -1,10 +1,10 @@
 function conf = spm_config_fmri_data
 % Configuration file for specification of fMRI model
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_data.m 766 2007-03-15 14:09:30Z volkmar $
+% $Id: spm_config_fmri_data.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % Define inline types.

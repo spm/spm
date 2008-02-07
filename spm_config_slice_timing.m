@@ -1,10 +1,10 @@
 function opts = spm_config_slice_timing
 % configuration file for slice timing
 %____________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_config_slice_timing.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_config_slice_timing.m 1143 2008-02-07 19:33:33Z spm $
 
 % ---------------------------------------------------------------------
 scans.type = 'files';

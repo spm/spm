@@ -325,7 +325,7 @@
 % to our faces!).
 %
 % _____________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson & Chloe Hutton
-% $Id: spm_uw_estimate.man 115 2005-05-05 10:14:15Z guillaume $
+% $Id: spm_uw_estimate.man 1143 2008-02-07 19:33:33Z spm $

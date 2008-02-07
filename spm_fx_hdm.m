@@ -24,10 +24,10 @@ function [f] = spm_fx_hdm(x,u,P,M)
 % Ref Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
 % changes during brain activation: The Balloon model. MRM 39:855-864 (1998)
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_hdm.m 871 2007-07-31 17:34:56Z karl $
+% $Id: spm_fx_hdm.m 1143 2008-02-07 19:33:33Z spm $
 
 % exponentiation of hemodynamic state variables
 %--------------------------------------------------------------------------

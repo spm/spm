@@ -3,10 +3,10 @@ function N = spm_ecat2nifti(fname,opts)
 % FORMAT N = spm_ecat2nifti(fname)
 %  fname     - name of ECAT file
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Roger Gunn
-% $Id: spm_ecat2nifti.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_ecat2nifti.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin==1,

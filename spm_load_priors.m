@@ -4,10 +4,10 @@ function b0 = spm_load_priors(B)
 % B  - structures of image volume information (or filenames)
 % b0 - a cell array of tissue probabilities
 %____________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_load_priors.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_load_priors.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % deg = 3;

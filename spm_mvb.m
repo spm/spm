@@ -25,10 +25,10 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %        P = U*E;           
 %   cov(E) = h1*diag(G(:,1)) + h2*diag(G(:,2)) + ...
 %__________________________________________________________________________
-% Copyright (C) 2006 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_mvb.m 1143 2008-02-07 19:33:33Z spm $
  
 % defaults
 %--------------------------------------------------------------------------

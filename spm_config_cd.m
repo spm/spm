@@ -1,10 +1,10 @@
 function opts = spm_config_cd
 % Configuration file for changing directory function
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_config_cd.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_config_cd.m 1143 2008-02-07 19:33:33Z spm $
 
 data.type = 'files';
 data.name = 'Select a directory';

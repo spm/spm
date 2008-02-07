@@ -1,10 +1,10 @@
 function opts = spm_config_runbatch
 % Configuration file for running batched jobs
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_config_runbatch.m 1032 2007-12-20 14:45:55Z john $
+% $Id: spm_config_runbatch.m 1143 2008-02-07 19:33:33Z spm $
 
 data.type = 'files';
 data.name = 'Batch Files';

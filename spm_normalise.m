@@ -117,10 +117,10 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Nonlinear Spatial Normalization using Basis Functions.
 % Human Brain Mapping 7(4):in press (1999)
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_normalise.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin<2, error('Incorrect usage.'); end;

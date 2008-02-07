@@ -66,10 +66,10 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 %
 % is assigned in base workspace for plots of contrasts and their error
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_graph.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

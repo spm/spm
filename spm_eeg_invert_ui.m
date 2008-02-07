@@ -13,10 +13,10 @@ function [D] = spm_eeg_invert_ui(varargin)
 %     D.inv{i}.inverse.xyz    - (n x 3) locations of spherical VOIs
 %     D.inv{i}.inverse.rad    - radius (mm) of VOIs
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_invert_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 % initialise
 %--------------------------------------------------------------------------

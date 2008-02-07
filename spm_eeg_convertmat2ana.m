@@ -17,10 +17,10 @@ function spm_eeg_convertmat2ana(S)
 % images, i.e. the data of each single trial or ERP is contained in one
 % image file.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_convertmat2ana.m 1143 2008-02-07 19:33:33Z spm $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 % 

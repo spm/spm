@@ -34,10 +34,10 @@ function V = spm_vol(P)
 % This is a replacement for the spm_map_vol and spm_unmap_vol stuff of
 % MatLab4 SPMs (SPM94-97), which is now obsolete.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_vol.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin==0,
     V   = struct('fname', {},...

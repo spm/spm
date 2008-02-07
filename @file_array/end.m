@@ -1,10 +1,10 @@
 function en = end(a,k,n)
 % Overloaded end function for file_array objects.
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: end.m 1137 2008-02-06 15:58:21Z spm $
+% $Id: end.m 1143 2008-02-07 19:33:33Z spm $
 
 dim = size(a);
 if k>length(dim)

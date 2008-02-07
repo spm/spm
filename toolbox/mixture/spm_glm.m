@@ -30,10 +30,10 @@ function [rglm] = spm_glm (y,X,alpha,verbose)
 %                  Mean posterior values:
 % variances        variances (1./(b.*c))
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_glm.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_glm.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin < 4 | isempty(verbose)
   verbose=0;

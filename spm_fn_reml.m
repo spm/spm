@@ -19,10 +19,10 @@ function [C,h,Ph,F] = spm_fn_reml(YY,X,Q,N,hE,K);
 % Performs a Fisher-Scoring ascent on F to find ReML variance parameter
 % estimates.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_fn_reml.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_fn_reml.m 1143 2008-02-07 19:33:33Z spm $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

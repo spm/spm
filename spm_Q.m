@@ -22,10 +22,10 @@ function [Q] = spm_Q(a,n,q)
 % at the beginning and end of the sequence.  These are resolved with a
 % Toeplitz form
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Q.m 1043 2007-12-21 20:34:45Z karl $
+% $Id: spm_Q.m 1143 2008-02-07 19:33:33Z spm $
 
 % default
 %--------------------------------------------------------------------------

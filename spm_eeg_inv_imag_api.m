@@ -4,10 +4,10 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 %    SPM_EEG_INV_IMAG_API('callback_name', ...) invoke the named callback.
 
 % Last Modified by GUIDE v2.5 09-Jan-2008 16:12:40
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1076 2008-01-10 19:54:37Z karl $
+% $Id: spm_eeg_inv_imag_api.m 1143 2008-02-07 19:33:33Z spm $
 
 
 spm_defaults

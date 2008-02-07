@@ -31,10 +31,10 @@ function spm_mip(Z,XYZ,M,units)
 % in Talairach mm.
 %
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 1062 2008-01-04 12:11:16Z guillaume $
+% $Id: spm_mip.m 1143 2008-02-07 19:33:33Z spm $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------

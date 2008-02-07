@@ -13,10 +13,10 @@ function Heeg = spm_eeg_display_ui(varargin)
 % output:
 %     Heeg      - Handle of resulting figure
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_display_ui.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin == 1
     S = varargin{1};

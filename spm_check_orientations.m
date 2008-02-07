@@ -4,10 +4,10 @@ function spm_check_orientations(V)
 %
 % V - a structure as returned by spm_vol.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_orientations.m 982 2007-10-26 14:01:54Z john $
+% $Id: spm_check_orientations.m 1143 2008-02-07 19:33:33Z spm $
 
 if numel(V)<=1, return; end;
 

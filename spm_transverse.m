@@ -32,10 +32,10 @@ function spm_transverse(varargin)
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_transverse.m 1143 2008-02-07 19:33:33Z spm $
 
 
 switch lower(varargin{1})

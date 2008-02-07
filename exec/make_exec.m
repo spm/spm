@@ -15,10 +15,10 @@ function make_exec
 % startup.m file.  See the following link for more information:
 % http://www.mathworks.com/support/solutions/data/1-QXFMQ.html?1-QXFMQ
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: make_exec.m 812 2007-05-14 12:30:03Z john $ 
+% $Id: make_exec.m 1143 2008-02-07 19:33:33Z spm $ 
 
 mcc('-m','-v','-o',['spm_'    computer],'exec_spm.m'   ,'spm_load.m', '-I',spm('Dir'),'-R','-nojvm')
 mcc('-m','-v','-o',['jobman_' computer],'exec_jobman.m','spm_load.m', '-I',spm('Dir'),'-R','-nojvm')

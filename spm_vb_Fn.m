@@ -14,10 +14,10 @@ function [F,L,KL] = spm_vb_Fn (Y,slice)
 % KL.alpha      Scalar
 % KL.beta       Scalar
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_Fn.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_Fn.m 1143 2008-02-07 19:33:33Z spm $
 
 T=slice.T;
 p=slice.p;

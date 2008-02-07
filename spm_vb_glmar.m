@@ -72,10 +72,10 @@ function [slice] = spm_vb_glmar (Y,slice)
 %
 %          There are other fields that are used internally
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_vb_glmar.m 1143 2008-02-07 19:33:33Z spm $
 
 
 t0 = clock;

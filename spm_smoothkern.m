@@ -16,10 +16,10 @@ function krn = spm_smoothkern(fwhm,x,t)
 % function (by default). A Gaussian convolved with a hat
 % function (0th degree B-spline) can also be returned.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_smoothkern.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_smoothkern.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin<3, t = 1; end;

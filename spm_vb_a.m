@@ -6,10 +6,10 @@ function [slice] = spm_vb_a (Y,slice)
 % slice         data structure 
 %
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_a.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vb_a.m 1143 2008-02-07 19:33:33Z spm $
 
 if slice.verbose
     disp('Updating a');

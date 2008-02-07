@@ -22,10 +22,10 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % see also: spm_reml_sc for the equivalent scheme using log-normal
 % hyperpriors
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 946 2007-10-15 16:36:06Z john $
+% $Id: spm_reml.m 1143 2008-02-07 19:33:33Z spm $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------

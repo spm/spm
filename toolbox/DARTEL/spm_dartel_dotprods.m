@@ -4,10 +4,10 @@ function spm_dartel_dotprods(job)
 % job.images  - Images to use
 % job.dotprod - Part of filename for results
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_dotprods.m 1128 2008-02-01 12:27:39Z john $
+% $Id: spm_dartel_dotprods.m 1143 2008-02-07 19:33:33Z spm $
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.dotprod);

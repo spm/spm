@@ -11,10 +11,10 @@ function [D] = spm_eeg_inv_results(D)
 % induced responses in terms of power (over trials) if requested; otherwise
 % the power in D.inv{i}.contrast.GW corresponds to the evoked power
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 1104 2008-01-17 16:26:33Z karl $
+% $Id: spm_eeg_inv_results.m 1143 2008-02-07 19:33:33Z spm $
  
 % SPM data structure
 %==========================================================================

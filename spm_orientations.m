@@ -45,10 +45,10 @@ function spm_orientations(P)
 %       viewed from the left.
 
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_orientations.m 324 2005-11-29 16:36:00Z john $
+% $Id: spm_orientations.m 1143 2008-02-07 19:33:33Z spm $
 
 if nargin<1,
     P = spm_select(Inf,'image','Select the images...');

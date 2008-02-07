@@ -8,10 +8,10 @@ function [samef, msg, chgf] = spm_vol_check(varargin)
 % msg              - cell array containing helpful message if not
 % chgf             - logical Nx2 array of difference flags
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_vol_check.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_vol_check.m 1143 2008-02-07 19:33:33Z spm $
 
 
 [fnames samef msg] = deal({},1,{});

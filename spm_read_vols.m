@@ -11,10 +11,10 @@ function [Y,XYZ] = spm_read_vols(V,mask)
 % implicit zero masking can be used. If mask is set, then zeros are
 % treated as masked, and returned as NaN.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_read_vols.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_read_vols.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

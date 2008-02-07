@@ -13,10 +13,10 @@ function V = spm_write_plane(V,dat,n)
 %       modify scalefactors (for example).
 %
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_plane.m 800 2007-04-27 07:35:27Z volkmar $
+% $Id: spm_write_plane.m 1143 2008-02-07 19:33:33Z spm $
 
 % For performance reasons, on network filesystems one should write
 % out as large contiguous blocks data as possible at once. Therefore,

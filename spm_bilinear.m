@@ -23,10 +23,10 @@ function [H0,H1,H2] = spm_bilinear(A,B,C,D,x0,N,dt)
 %  y(t) = x(t)
 %
 %---------------------------------------------------------------------------
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston 
-% $Id: spm_bilinear.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_bilinear.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % Volterra kernels for bilinear systems

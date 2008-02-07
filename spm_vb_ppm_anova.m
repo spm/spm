@@ -26,10 +26,10 @@ function spm_vb_ppm_anova(SPM)
 % corresponds to a posterior effect probability of [exp(4.6)] = 0.999. 
 % See paper VB4 for more details.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_vb_ppm_anova.m 300 2005-11-16 21:05:24Z guillaume $
+% $Id: spm_vb_ppm_anova.m 1143 2008-02-07 19:33:33Z spm $
 
     
 disp('Warning: spm_vb_ppm_anova only works for single session data.');

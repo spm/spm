@@ -17,10 +17,10 @@ function [p,f] = spm_powell(p,xi,tolsc,func,varargin)
 % Method is based on Powell's optimisation method described in
 % Numerical Recipes (Press, Flannery, Teukolsky & Vetterling).
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_powell.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_powell.m 1143 2008-02-07 19:33:33Z spm $
 
 
 p     = p(:);

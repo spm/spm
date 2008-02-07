@@ -9,10 +9,10 @@ function [d] = spm_kl_normal (m_q,c_q,m_p,c_p)
 % m_q, c_q    Mean and covariance of first Normal density
 % m_p, c_p    Mean and covariance of second Normal density
 %___________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_normal.m 807 2007-04-27 12:23:22Z will $
+% $Id: spm_kl_normal.m 1143 2008-02-07 19:33:33Z spm $
 
 d=length(m_q);
 m_q=m_q(:);

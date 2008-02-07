@@ -6,10 +6,10 @@ function ok = write_hdr_raw(fname,hdr,be)
 % be    - whether big-endian or not
 % ok    - status (1=good, 0=bad)
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 1057 2008-01-03 12:19:02Z guillaume $
+% $Id: write_hdr_raw.m 1143 2008-02-07 19:33:33Z spm $
 
 
 [pth,nam,ext] = fileparts(fname);

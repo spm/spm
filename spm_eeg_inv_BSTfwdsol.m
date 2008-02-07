@@ -13,10 +13,10 @@ function [varargout] = spm_eeg_inv_BSTfwdsol(varargin)
 %
 % See also help lines in bst_headmodeler.m
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_BSTfwdsol.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_BSTfwdsol.m 1143 2008-02-07 19:33:33Z spm $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) and to allow sphere to be fit to other surfaces, eg

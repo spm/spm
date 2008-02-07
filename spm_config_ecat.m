@@ -1,10 +1,10 @@
 function opts = spm_config_ecat
 % Configuration file for ecat import jobs
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_ecat.m 512 2006-05-05 08:14:50Z volkmar $
+% $Id: spm_config_ecat.m 1143 2008-02-07 19:33:33Z spm $
 
 %_______________________________________________________________________
 

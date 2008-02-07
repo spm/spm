@@ -5,10 +5,10 @@ function [c,L,j,res] = spm_eeg_ip_costSd(loc)
 % 'loc' represents the location of the n_dip dipoles considered 
 % in a 3xn_dip matrix. It is expressed in mm !!!
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_ecd_costSd.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_ecd_costSd.m 1143 2008-02-07 19:33:33Z spm $
 
 global MODEL V_EEG V_BR OR_OPT FXD_OR
 

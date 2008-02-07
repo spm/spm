@@ -22,10 +22,10 @@ function D = spm_eeg_blinks(S);
 %           2. Calculate correction weights
 %           3. Subtract weighted VEOG from EEG channels
 %______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson, Doris Eckstein
-% $Id: spm_eeg_blinks.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_blinks.m 1143 2008-02-07 19:33:33Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 

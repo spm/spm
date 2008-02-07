@@ -19,10 +19,10 @@ function [u] = spm_uc_RF(a,df,STAT,R,n)
 % level (a). If n > 1 a conjunction the probability over the n values of the
 % statistic is returned.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_uc_RF.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_uc_RF.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % find approximate value

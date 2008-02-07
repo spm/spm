@@ -11,10 +11,10 @@ function [d] = spm_kl_normald (m_q,c_q,m_p,c_p)
 % If c_q and c_p are diagonal, pass them as vectors, and KL will
 % be computed more efficiently. Both must be full or both must be diagonal
 %___________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_normald.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_kl_normald.m 1143 2008-02-07 19:33:33Z spm $
 
 dd=length(m_q);
 

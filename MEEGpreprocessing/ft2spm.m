@@ -2,10 +2,10 @@ function ft2spm(ftdata, filename, ctf)
 % Converter from Fieldtrip (http://www.ru.nl/fcdonders/fieldtrip/)
 % data structures to SPM8 file format
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ft2spm.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: ft2spm.m 1143 2008-02-07 19:33:33Z spm $
 
 
 disp('Warning: Converting the data to SPM8 format which is in development and');

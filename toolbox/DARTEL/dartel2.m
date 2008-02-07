@@ -170,10 +170,10 @@ function varargout = dartel2(varargin)
 % Interpolation is trilinear, except for the resize function
 % which uses a 2nd degree B-spline (without first deconvolving).
 %_______________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: dartel2.m 988 2007-10-31 16:59:43Z john $
+% $Id: dartel2.m 1143 2008-02-07 19:33:33Z spm $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

@@ -17,10 +17,10 @@ function D = spm_eeg_rereference(S);
 % is deleted from the data and, if possible, replaced by the old reference. If
 % the new reference is an average of channels, no channels are deleted.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_rereference.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_rereference.m 1143 2008-02-07 19:33:33Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG rereference setup',0);
 

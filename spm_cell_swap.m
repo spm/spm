@@ -3,10 +3,10 @@ function [y] = spm_cell_swap(x)
 % FORMAT [y] = spm_cell_swap(x)
 % y{i}(:,j) = x{j}(:,i);
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cell_swap.m 272 2005-10-25 20:05:27Z guillaume $
+% $Id: spm_cell_swap.m 1143 2008-02-07 19:33:33Z spm $
 
 % return if empty
 %-----------------------------------------------------------------------

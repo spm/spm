@@ -18,10 +18,10 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip)
 % It is intended for writing out filtered SPM's from the results
 % section of SPM, but can be used freestanding.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_write_filtered.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %-Parse arguments

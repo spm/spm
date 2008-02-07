@@ -5,10 +5,10 @@ function V = spm_vol_nifti(fname,n)
 %  n - volume id (a 1x2 array, e.g. [3,1])
 %  V - a structure containing the image volume information.
 %____________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol_nifti.m 112 2005-05-04 18:20:52Z john $
+% $Id: spm_vol_nifti.m 1143 2008-02-07 19:33:33Z spm $
 
 
 if nargin<2,  n = [1 1];      end;

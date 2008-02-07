@@ -52,10 +52,10 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Ref: Dempster A.P., Rubin D.B. and Tsutakawa R.K. (1981) Estimation in
 % covariance component models.  J. Am. Stat. Assoc. 76;341-353
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 587 2006-08-07 04:38:22Z Darren $
+% $Id: spm_PEB.m 1143 2008-02-07 19:33:33Z spm $
 
 % set default
 %--------------------------------------------------------------------------

@@ -7,10 +7,10 @@ function [L] = spm_MH_reml_likelihood(h,Y,M);
 %
 % L - likelihood p(Y,P)
 %__________________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH_reml_likelihood.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_MH_reml_likelihood.m 1143 2008-02-07 19:33:33Z spm $
 
 % likelihood function
 %--------------------------------------------------------------------------

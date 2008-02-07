@@ -12,10 +12,10 @@ function spm_dartel_import(job)
 % files.  These can be resliced GM, WM or CSF, but also various resliced
 % forms of the original image (skull-stripped, bias corrected etc).
 %____________________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 1086 2008-01-11 15:11:20Z john $
+% $Id: spm_dartel_import.m 1143 2008-02-07 19:33:33Z spm $
 
 matnames = job.matnames;
 for i=1:numel(matnames),

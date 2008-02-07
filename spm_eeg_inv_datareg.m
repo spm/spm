@@ -44,10 +44,10 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % this is generalized to a full twelve parameter affine mapping (n.b.
 % this might not be appropriate for MEG data).
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_datareg.m 1143 2008-02-07 19:33:33Z spm $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) 4/6/07

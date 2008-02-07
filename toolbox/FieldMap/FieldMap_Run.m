@@ -32,10 +32,10 @@ function vdm=Fieldmap_Run(job)
 %        longimag - name of long imaginary image for real/imaginary job
 %
 %_______________________________________________________________________
-% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 964 2007-10-19 16:35:34Z john $
+% $Id: FieldMap_Run.m 1143 2008-02-07 19:33:33Z spm $
 %_________________________________________________________________
 
 %

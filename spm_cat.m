@@ -17,10 +17,10 @@ function [x] = spm_cat(x,d)
 %     0     0     1     1
 %     0     0     1     1
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 1132 2008-02-06 14:12:17Z karl $
+% $Id: spm_cat.m 1143 2008-02-07 19:33:33Z spm $
  
 % check x is not already a matrix
 %--------------------------------------------------------------------------

@@ -75,8 +75,8 @@
 % imagesc(M.dat(:,:,12));
 %
 % _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: Contents.m 1137 2008-02-06 15:58:21Z spm $
+% $Id: Contents.m 1143 2008-02-07 19:33:33Z spm $
 

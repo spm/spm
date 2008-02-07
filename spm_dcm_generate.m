@@ -12,10 +12,10 @@ function [] = spm_dcm_generate(syn_model,source_model,SNR)
 %           Y.Q     Components of error precision
 %
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 907 2007-09-05 14:11:58Z klaas $
+% $Id: spm_dcm_generate.m 1143 2008-02-07 19:33:33Z spm $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------

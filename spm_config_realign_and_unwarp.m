@@ -1,10 +1,10 @@
 function opts = spm_config_realign_and_unwarp
 % Configuration file for realign and unwarping jobs
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 1113 2008-01-21 13:26:43Z volkmar $
+% $Id: spm_config_realign_and_unwarp.m 1143 2008-02-07 19:33:33Z spm $
 
 
 %_______________________________________________________________________

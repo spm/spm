@@ -42,10 +42,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % the same as the [adjusted] data returned by the plotting routine
 % (spm_graph.m) for the same contrast.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_regions.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

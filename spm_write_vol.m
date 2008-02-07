@@ -9,10 +9,10 @@ function V = spm_write_vol(V,Y)
 % max and min values from the data and use these to automatically determine
 % scalefactors.  If 'pinfo' exists, then the scalefactor in this is used.
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_vol.m 1020 2007-12-06 20:20:31Z john $
+% $Id: spm_write_vol.m 1143 2008-02-07 19:33:33Z spm $
 
 use_offset = false;
 

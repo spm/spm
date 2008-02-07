@@ -28,10 +28,10 @@ function varargout = spm_eeg_conman(varargin)
 % Edit the above text to modify the response to help spm_eeg_conman
 % Last Modified by GUIDE v2.5 18-Dec-2003 14:21:19
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_conman.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_conman.m 1143 2008-02-07 19:33:33Z spm $
 
 
 % Begin initialization code - DO NOT EDIT

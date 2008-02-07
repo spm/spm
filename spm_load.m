@@ -4,10 +4,10 @@ function [x] = spm_load(f)
 % f  - file {ascii file containing a regular array of numbers
 % x  - corresponding data matrix
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_load.m 184 2005-05-31 13:23:32Z john $
+% $Id: spm_load.m 1143 2008-02-07 19:33:33Z spm $
 
 
 

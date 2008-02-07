@@ -6,10 +6,10 @@ function [Ishortcut, SPM] = spm_eeg_shortcut(SPM)
 %    Ishortcut: 0/1 indicator whether shortcut could be taken
 %    SPM: SPM struct with updated elements if shortcut was taken
 %_______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_shortcut.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_shortcut.m 1143 2008-02-07 19:33:33Z spm $
 
 Ishortcut = 0;
 
