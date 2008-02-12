@@ -26,7 +26,7 @@ function varargout = spm_eeg_scalp2d_ext(varargin)
 
 % Last Modified by GUIDE v2.5 22-Nov-2005 17:06:20
 
-% Colon removed so that times output to Matlab window   Doris Eckstein
+% Colon removed so that times output to Matlab window	Doris Eckstein
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -64,8 +64,8 @@ handles.T = varargin{2}; % input in peri-stimulus time (ms)
 handles.ms = [-handles.D.events.start:handles.D.events.stop]*1000/handles.D.Radc;
 
 for i = 1:length(handles.T)
-    tmp = (handles.T(i) - handles.ms).^2;
-    [m, ind(i)] = min(tmp);
+	tmp = (handles.T(i) - handles.ms).^2;
+	[m, ind(i)] = min(tmp);
 end
 
 handles.T = ind;
@@ -73,7 +73,7 @@ handles.T = ind;
 % locations
 CTF = load(fullfile(spm('dir'), 'EEGtemplates', handles.D.channels.ctf));
 %CTF.Cpos = CTF.Cpos(:, handles.D.channels.order(handles.D.channels.eeg));
-handles.D.gfx.channels = intersect(handles.D.gfx.channels,handles.D.channels.eeg);  % to ensure EOG not included
+handles.D.gfx.channels = intersect(handles.D.gfx.channels,handles.D.channels.eeg);	% to ensure EOG not included
 CTF.Cpos = CTF.Cpos(:, handles.D.channels.order(handles.D.gfx.channels));
 
 handles.x = min(CTF.Cpos(1,:)):0.005:max(CTF.Cpos(1,:));
@@ -155,7 +155,6 @@ event = handles.event;
 
 % data
 if length(T) == 1
-%From here on, D.channels.eeg was replaced with D.gfx.channels by RH
     d = squeeze(D.data(D.gfx.channels, T, event));
     
     if ~isfield(handles, 'Colourbar')
@@ -163,10 +162,14 @@ if length(T) == 1
         handles.CLim2 = max(max(D.data(setdiff(D.gfx.channels, D.channels.Bad), :, event)));
     end
 else
-    d = squeeze(mean(D.data(D.gfx.channels, T, event), 2));
+	d = squeeze(mean(D.data(D.gfx.channels, T, event), 2));
 end
 
-d(D.channels.Bad) = NaN;
+%Exclude bad channels
+badchan = intersect(D.gfx.channels,D.channels.Bad);
+if ~isempty(badchan)
+        d(badchan) = NaN;
+end
 
 z = griddata(handles.xp, handles.yp, d, handles.x1, handles.y1);
 
