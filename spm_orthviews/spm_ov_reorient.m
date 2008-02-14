@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 1137 2008-02-06 15:58:21Z spm $
+% $Id: spm_ov_reorient.m 1149 2008-02-14 14:29:04Z volkmar $
 
-rev = '$Revision: 1137 $';
+rev = '$Revision: 1149 $';
 
 global st;
 if isempty(st)
@@ -58,36 +58,49 @@ switch cmd
   labels = {'right  {mm}', 'forward  {mm}', 'up  {mm}',...
         'pitch  {rad}', 'roll  {rad}', 'yaw  {rad}',...
         'resize  {x}', 'resize  {y}', 'resize {z}'};
-  tooltips = {'translate', 'translate', 'translate', 'rotate', 'rotate', ...
-          'rotate', 'zoom', 'zoom', 'zoom',''};
-  hpos = [240:-20:60];
-  % get initial parameter values from st.vols{volhandle}.premul
-  if volhandle == 0 
-    volhandle = handles;
-    prms(7:9) = 1;
+  tooltips = {'translate', 'translate', 'translate', ...
+              'rotate', 'rotate', 'rotate', ...
+              'zoom', 'zoom', 'zoom', ...
+              '# of contour lines to draw on other images'};
+  hpos = [270:-20:90];
+  if volhandle == 0
+      % Reorient all images
+      volhandle = handles;
+      prms(7:9) = 1;
   else
-    prms = spm_imatrix(st.vols{volhandle}.premul);
-    prms(10) = 3; % default #contour lines
-    labels{end+1} = '#contour lines';
-    st.vols{volhandle(1)}.reorient.b(1) = uicontrol(...
-    Finter, 'Style','PushButton', 'Position',[75 30 165 025], ...
-    'String','Apply to image(s)', ...
-    'Callback',['spm_orthviews(''reorient'',''apply'',',...
-            num2str(volhandle), ');']);
+      % get initial parameter values from st.vols{volhandle}.premul
+      prms = spm_imatrix(st.vols{volhandle}.premul);
+      prms(10) = 3; % default #contour lines
+      labels{end+1} = '#contour lines';
   end;
+  st.vols{volhandle(1)}.reorient.order = uicontrol(...
+      Finter, 'Style','PopupMenu', 'Position', [75 60 330 025], ...
+      'String',{'Translation(1) Rotation(2) Zoom(3)', ...
+                'Zoom(1) Translation(2) Rotation(3)', ...
+                'Zoom(1) Rotation(2) Translation(3)'},...
+      'Callback',['spm_orthviews(''reorient'',''reorient'',[',...
+      num2str(volhandle),']);']);
+  st.vols{volhandle(1)}.reorient.b(1) = uicontrol(...
+      Finter, 'Style','PushButton', 'Position',[75 30 165 025], ...
+      'String','Apply to image(s)', ...
+      'Callback',['spm_orthviews(''reorient'',''apply'',',...
+                  num2str(volhandle(1)), ');']);
   for k = handles
-    obj = findobj(Fgraph, 'Tag',  ['REORIENT_M_', num2str(k)]);
-    if any(k == volhandle)
-      objh = findobj(obj, 'Tag', ['REORIENT_0_', num2str(k)]);
-      objs = findobj(obj, 'Tag', ['REORIENT_1_', num2str(k)]);
-      set(objh,'Visible','off');
-      set(objs, 'Callback', ...
-           ['spm_orthviews(''reorient'',''context_quit'', [', ...
-        num2str(volhandle), ']);'],'Visible','on');
-      st.vols{k}.reorient.oldpremul = st.vols{k}.premul;
-    else
-      set(obj, 'Visible', 'off');
-    end;
+      % Find context menu handles
+      obj = findobj(Fgraph, 'Tag',  ['REORIENT_M_', num2str(k)]);
+      if any(k == volhandle)
+          % Show 'Quit Reorient' for images being reoriented
+          objh = findobj(obj, 'Tag', ['REORIENT_0_', num2str(k)]);
+          objs = findobj(obj, 'Tag', ['REORIENT_1_', num2str(k)]);
+          set(objh,'Visible','off');
+          set(objs, 'Callback', ...
+                    ['spm_orthviews(''reorient'',''context_quit'', [', ...
+                     num2str(volhandle), ']);'],'Visible','on');
+          st.vols{k}.reorient.oldpremul = st.vols{k}.premul;
+      else
+          % Do not show 'Reorient Images' context menu in other images
+          set(obj, 'Visible', 'off');
+      end;
   end;
   for k = 1:numel(labels)
     st.vols{volhandle(1)}.reorient.l(k)=uicontrol(...
@@ -165,8 +178,16 @@ switch cmd
   for k=1:9
     prms(k) = str2num(get(st.vols{volhandle(1)}.reorient.e(k),'string'));
   end;
+  switch get(st.vols{volhandle(1)}.reorient.order, 'value')
+      case 1,
+          order = 'Z*S*R*T';
+      case 2,
+          order = 'R*T*Z*S';
+      case 3,
+          order = 'T*R*Z*S';
+  end;
   for k = volhandle
-    st.vols{k}.premul = spm_matrix(prms)* ...
+    st.vols{k}.premul = spm_matrix(prms,order)* ...
     st.vols{k}.reorient.oldpremul;
   end;
   spm_orthviews('redraw');
