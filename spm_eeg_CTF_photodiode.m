@@ -4,7 +4,7 @@ function D = spm_eeg_CTF_photodiode(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_CTF_photodiode.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_CTF_photodiode.m 1150 2008-02-14 16:16:42Z guillaume $
 
 
 Mname = spm_select(inf, 'dir');
@@ -40,7 +40,7 @@ catch
 end
 
 
-I = STRMATCH('UPPT0',pre_data.sensor.label)
+I = strmatch('UPPT0',pre_data.sensor.label)
 if isempty(I)
     error(sprintf('No parallel port channel was found in the CTF file'))
 end
@@ -70,13 +70,13 @@ D.eventtypes=unique(D.events.code);
 D.events.time=D.events.time(I);
 D.events.code=D.events.code(I);
 D.Radc=pre_data.setup.sample_rate;
-I = STRMATCH('UADC0',pre_data.sensor.label)
+I = strmatch('UADC0',pre_data.sensor.label)
 if isempty(I)
     error(sprintf('No ADC channel was found in the CTF file'))
 end
 photodiode=pre_data.data(:,I);
-[B,A] = BUTTER(3,40/(D.Radc/2));
-photodiode=FILTFILT(B, A, photodiode);
+[B,A] = butter(3,40/(D.Radc/2));
+photodiode=filtfilt(B, A, photodiode);
 clear pre_data;
 xax=0:1:50;
 xax=xax*1000/D.Radc;
