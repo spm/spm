@@ -40,11 +40,11 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 1154 2008-02-15 16:08:15Z guillaume $
 
 global st
 global defaults
-warning off
+sw = warning('off');
 
 Fig     = spm_figure('GetWin','Graphics');
 colors  = strvcat('y','b','g','r','c','m');              % 6 possible colors
@@ -507,8 +507,8 @@ st.vols{1}.sdip = sdip;
 otherwise,
     warning('Unknown action string')
 end;
-warning on
-return;
+warning(sw);
+return
 
 %________________________________________________________________________
 %________________________________________________________________________

@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ui.m 1154 2008-02-15 16:08:15Z guillaume $
 
 
 
@@ -368,9 +368,9 @@ case 'review'
     %-------------------------------------------------------------------
     str        = 'Threshold {Hz}';
     DCM.T      = spm_input(str,1,'e',0,[1 1]);
-    warning off;
+    sw = warning('off','SPM:negativeVariance');
     pp         = 1 - spm_Ncdf(DCM.T,abs(DCM.Ep),diag(DCM.Cp));
-    warning on;
+    warning(sw);
     [pA pB pC] = spm_dcm_reshape(pp,m,l,1);
     DCM.pA     = pA;
     DCM.pB     = pB;
@@ -536,9 +536,9 @@ case 'review'
         v    = C'*DCM.Cp*C;
         x    = c + [-32:32]*sqrt(v)*6/32;
         p    = full(1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v)));  % conversion to full necessary to account for sparse matrices bug in MATLAB 6.5.0 R13 
-        warning off
+        sw = warning('off','SPM:negativeVariance');
         PP   = 1 - spm_Ncdf(DCM.T,c,v);
-        warning on
+        warning(sw);
         
         figure(Fgraph)
         subplot(2,1,1)

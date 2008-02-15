@@ -66,7 +66,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_nlsi_N.m 1154 2008-02-15 16:08:15Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -238,7 +238,7 @@ vc    = sparse(ng + nu,1) - 8;
 vp    = sparse(np     ,1) - 8;
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-warning off
+sw = warning('off','all');
  
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
@@ -546,4 +546,4 @@ end
 Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
 Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
 F      = C.F;
-warning on
+warning(sw);

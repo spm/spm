@@ -120,7 +120,7 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uw_apply.m 1154 2008-02-15 16:08:15Z guillaume $
 
 tiny = 5e-2;
 
@@ -367,9 +367,9 @@ end
 if flags.mean
    % Write integral image (16 bit signed)
    %-----------------------------------------------------------
-   warning('off'); % Shame on me!
+   sw = warning('off','MATLAB:divideByZero'); 
    Integral   = Integral./Count;
-   warning('on');
+   warning(sw);
    PO         = ds(1).P(1);
    [pth,nm,xt,vr] = spm_fileparts(deblank(ds(1).P(1).fname));
    PO.fname       = fullfile(pth,['mean' flags.prefix nm xt vr]);

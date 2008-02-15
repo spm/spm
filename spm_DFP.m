@@ -80,7 +80,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DFP.m 1154 2008-02-15 16:08:15Z guillaume $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ clear spm_DEM_eval
 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-warning off
+sw = warning('off');
 Fdem     = spm_figure('GetWin','DEM');
 Fdfp     = spm_figure('GetWin','DFP');
 
@@ -712,4 +712,4 @@ DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
 
-warning on
+warning(sw);

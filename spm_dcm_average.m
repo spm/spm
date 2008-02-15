@@ -25,7 +25,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_average.m 1154 2008-02-15 16:08:15Z guillaume $
 
 
 if nargin <= 1
@@ -112,9 +112,9 @@ if mtype
     % DCM for fMRI
     [ A  B  C] = spm_dcm_reshape(DCM.Ep,m,n,1);
     T          = 0;         
-    warning off;
+    sw = warning('off','SPM:negativeVariance');
     pp         = 1 - spm_Ncdf(T,abs(DCM.Ep),diag(DCM.Cp));
-    warning on;
+    warning(sw);
     [pA pB pC] = spm_dcm_reshape(pp,m,n,1);
     vv         = diag(DCM.Cp);
     [vA vB vC] = spm_dcm_reshape(vv,m,n,1);
@@ -140,9 +140,9 @@ else
         [pE,pC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,DCM.xU.dur);
     end
     % store in DCM data structure
-    warning off;
+    sw = warning('off','SPM:negativeVariance');
     Pp = 1 - spm_Ncdf(0,abs(spm_vec(DCM.Ep) - spm_vec(pE)),diag(DCM.Cp));
-    warning on;    
+    warning(sw);
     DCM.Pp = spm_unvec(Pp,pE);
     DCM.Qp = DCM.Ep;
     DCM.averaged = 1;

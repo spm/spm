@@ -12,7 +12,7 @@ function F = spm_Ncdf(x,u,v)
 % the Normal (Gaussian) family of distributions.
 %
 % Definition:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF F(x) of a Normal distribution with mean u and variance v is
 % the probability that a random realisation X from this distribution
 % will be less than x. F(x)=Pr(X<=x) for X~N(u,v). See Evans et al.,
@@ -25,16 +25,16 @@ function F = spm_Ncdf(x,u,v)
 % approximation \Phi(z) \approx exp(-z^2/2)/(z*sqrt(2*pi)) may be useful.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % The CDF for a standard N(0,1) Normal distribution, \Phi(z), is
 % related to the error function by: (Abramowitz & Stegun, 26.2.29)
 %
 %       \Phi(z) = 0.5 + erf(z/sqrt(2))/2
 %
-% MatLab's implementation of the error function is used for computation.
+% MATLAB's implementation of the error function is used for computation.
 %
 % References:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %       "Statistical Distributions"
 %        2nd Ed. Wiley, New York
@@ -51,11 +51,11 @@ function F = spm_Ncdf(x,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Ncdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_Ncdf.m 1154 2008-02-15 16:08:15Z guillaume $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin<3, v=1; end
 if nargin<2, u=0; end
 if nargin<1, F=[]; return, end
@@ -70,14 +70,16 @@ if sum(xa)>1 & any(any(diff(as(xa,:)),1))
     error('non-scalar args must match in size'), end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 F = zeros(rs);
 
 %-Only defined for strictly positive variance v. Return NaN if undefined.
 md = ( ones(size(x))  &  ones(size(u))  &  v>0 );
-if any(~md(:)), F(~md) = NaN;
-    warning('Returning NaN for out of range arguments'), end
+if any(~md(:))
+    F(~md) = NaN;
+    warning('SPM:negativeVariance','Returning NaN for out of range arguments.');
+end
 
 %-Non-zero where defined
 Q  = find( md );

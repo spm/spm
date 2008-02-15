@@ -13,19 +13,19 @@ function [mnv,mxv] = spm_minmax(g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_minmax.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_minmax.m 1154 2008-02-15 16:08:15Z guillaume $
 
 
 d   = [size(g) 1];
 mxv = double(max(g(:)));
 h   = zeros(256,1);
 spm_progress_bar('Init',d(3),'Initial histogram','Planes loaded');
-warning off
+sw = warning('off','all');
 for i=1:d(3)
     h = h + spm_hist(uint8(round(g(:,:,i)*(255/mxv))),ones(d(1)*d(2),1));
     spm_progress_bar('Set',i);
 end;
-warning on
+warning(sw);
 spm_progress_bar('Clear');
 
 % Occasional problems with partially masked data because the first Gaussian

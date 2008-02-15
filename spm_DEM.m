@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM.m 1154 2008-02-15 16:08:15Z guillaume $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ function [DEM] = spm_DEM(DEM)
 % find or create a DEM figure
 %--------------------------------------------------------------------------
 clear spm_DEM_eval
-warning off;
+sw = warning('off');
 Fdem     = spm_figure('GetWin','DEM');
 
 % tolerance for changes in norm
@@ -720,4 +720,4 @@ DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
 
-warning on
+warning(sw);

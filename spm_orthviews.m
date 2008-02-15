@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_orthviews.m 1154 2008-02-15 16:08:15Z guillaume $
 
 
 
@@ -969,11 +969,11 @@ for i = valid_handles(arg1),
                   mn = 0;
                   mx = 1;
                  case 'loghisteq',
-                  warning('off','MATLAB:log:logOfZero'); % messy - but it may avoid extra queries
+                  sw = warning('off','MATLAB:log:logOfZero');
                   imgt = log(imgt-min(imgt(:)));
                   imgc = log(imgc-min(imgc(:)));
                   imgs = log(imgs-min(imgs(:)));
-                  warning('on','MATLAB:log:logOfZero');
+                  warning(sw);
                   imgt(~isfinite(imgt)) = 0;
                   imgc(~isfinite(imgc)) = 0;
                   imgs(~isfinite(imgs)) = 0;

@@ -7,7 +7,7 @@ function [] = spm_dcm_estimate (DCM_filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_estimate.m 1154 2008-02-15 16:08:15Z guillaume $
 
  
 if nargin < 1
@@ -96,9 +96,9 @@ L          = sparse(1:n,[1:n] + 1,1,n,length(M0));
 % Bayesian inference and reshape {default threshold T = 0}
 %--------------------------------------------------------------------------
 T          = 0;
-warning off; % switch off NaN-related warning of spm_Ncdf
+sw = warning('off','SPM:negativeVariance'); % switch off NaN-related warning of spm_Ncdf
 pp         = 1 - spm_Ncdf(T,abs(Ep),diag(Cp));
-warning on;
+warning(sw);
 [ A  B  C] = spm_dcm_reshape(Ep,M.m,n,1);
 [pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
 

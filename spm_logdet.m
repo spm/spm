@@ -9,7 +9,7 @@ function [H] = spm_logdet(C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_logdet.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_logdet.m 1154 2008-02-15 16:08:15Z guillaume $
 
 % assume diagonal form
 %-----------------------------------------------------------------------
@@ -22,15 +22,14 @@ H     = sum(log(diag(C)));
 
 % invoke det if non-diagonal
 %-----------------------------------------------------------------------
-w     = warning;
-warning off
+sw    = warning('off','all');
 [i j] = find(C);
 if any(i ~= j)
       n = length(C);
       a = exp(H/n);
       H = H + log(det(C/a));           
 end
-warning(w)
+warning(sw)
 
 % invoke svd is rank deficient
 %-----------------------------------------------------------------------

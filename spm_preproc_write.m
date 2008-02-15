@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_preproc_write.m 1154 2008-02-15 16:08:15Z guillaume $
 
 
 if nargin==1,
@@ -113,14 +113,14 @@ for z=1:length(x3),
             q(:,:,lkp(k)) = q(:,:,lkp(k)) + p1.*b(:,:,k)./s;
         end;
         sq = sum(q,3)+eps;
-        warning off
+        sw = warning('off','MATLAB:divideByZero');
         for k1=1:size(sopts,1),
             tmp            = q(:,:,k1);
             tmp(msk)       = 0;
             tmp            = tmp./sq;
             dat{k1}(:,:,z) = uint8(round(255 * tmp));
         end;
-        warning on
+        warning(sw);
     end;
     spm_progress_bar('set',z);
 end;
