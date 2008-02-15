@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_realign_and_unwarp.m 1152 2008-02-15 12:36:50Z john $
 
 
 %_______________________________________________________________________
@@ -414,9 +414,9 @@ mask.help = {[...
 prefix.type = 'entry';
 prefix.name = 'Filename Prefix';
 prefix.tag  = 'prefix';
-prefix.strtype = 'u';
+prefix.strtype = 's';
 prefix.num  = [1 Inf];
-prefix.val  = {'s'};
+prefix.val  = {'u'};
 prefix.help = {[...
 'Specify the string to be prepended to the filenames of the smoothed' ...
 ' image file(s). Default prefix is ''u''.']};

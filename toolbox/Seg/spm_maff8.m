@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_maff8.m 1152 2008-02-15 12:36:50Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -229,7 +229,7 @@ R = zeros(12,12);
 M0 = MF\P2M(P)*MG;
 M0 = M0(1:3,:);
 for i=1:12
-    dp     = 0.000000001;
+    dp     = 0.0000001;
     P1     = P;
     P1(i)  = P1(i) + dp;
     M1     = MF\P2M(P1)*MG;
