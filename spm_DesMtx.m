@@ -250,7 +250,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DesMtx.m 1157 2008-02-19 11:34:58Z guillaume $
 
 
 
@@ -647,7 +647,13 @@ while(Carg <= nargin)
         %-------------------------------------------------------
         tmp = size(nX,2);
         nX  = [nX, zeros(size(rX,1),t)];
-        for i=1:t, nX(:,tmp+i) = rX(:,i)/max(abs(rX(:,i))); end
+        for i=1:t
+            if ~any(rX(:,i))
+                nX(:,tmp+i) = 0;
+            else
+                nX(:,tmp+i) = rX(:,i)/max(abs(rX(:,i)));
+            end
+        end
         nPnames   = [nPnames; cellstr(rPnames(1:t,:))];
         rX(:,1:t) = []; rPnames(1:t,:)=[];
 

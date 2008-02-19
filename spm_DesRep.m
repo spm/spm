@@ -128,7 +128,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DesRep.m 1157 2008-02-19 11:34:58Z guillaume $
 
 
 
@@ -689,15 +689,17 @@ if isfield(varargin{2},'name') & ~isempty(varargin{2}.name)
 %-Compute design orthogonality matrix if DesOrth
 %-----------------------------------------------------------------------
 if ~desmtx
+    sw = warning('off','MATLAB:divideByZero');
     if iX
-    tmp  = sqrt(sum(varargin{2}.xKXs.X.^2));
-    O    = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
+        tmp  = sqrt(sum(varargin{2}.xKXs.X.^2));
+        O    = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
         tmp  = sum(varargin{2}.xKXs.X);
     else
-    tmp  = sqrt(sum(varargin{2}.X.^2));
-    O    = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
+        tmp  = sqrt(sum(varargin{2}.X.^2));
+        O    = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
         tmp  = sum(varargin{2}.X);
     end
+    warning(sw);
     tmp = abs(tmp)<eps*1e5;
     bC  = kron(tmp',tmp);
 end
