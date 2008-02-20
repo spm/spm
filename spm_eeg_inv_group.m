@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_group.m 1158 2008-02-20 14:52:08Z guillaume $
 
 
 % check if to proceed
@@ -49,7 +49,7 @@ for i = 1:Ns
     [p f]                = fileparts(S(i,:));
     D{i}                 = spm_eeg_ldata(fullfile(p,f));
     D{i}.path            = p;
-    D{i}.fname           = f;
+    D{i}.fname           = deblank(f);
     D{i}.val             = val;
     D{i}.inv{val}.method = 'Imaging';
 end
