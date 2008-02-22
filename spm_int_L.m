@@ -1,5 +1,5 @@
 function [y] = spm_int_L(P,M,U)
-% integrates a MIMO nonlinear system using a fixed Jacobian: J(x(0)
+% integrates a MIMO nonlinear system using a fixed Jacobian: J(x(0))
 % FORMAT [y] = spm_int_L(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -48,9 +48,7 @@ function [y] = spm_int_L(P,M,U)
 %
 % spm_int_U: like spm_int_J but only evaluates J when the input changes.
 % This can be useful if input changes are sparse (e.g., boxcar functions).
-% spm_int_U also has the facility to integrate delay differential equations
-% if a delay operator is returned [f J D] = f(x,u,P,M). It is used 
-% primarily for integrating fMRI models
+% It is used primarily for integrating EEG models
 %
 % spm_int:   Fast integrator that uses a bilinear approximation to the
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
@@ -60,24 +58,14 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_int_L.m 1162 2008-02-22 12:21:33Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U)
-    U.u = U;
-end
-try
-    dt = U.dt;
-catch
-    dt = 1;
-end
-try
-    ns = M.ns;
-catch
-    ns = length(U.u);
-end
+if ~isstruct(U), U.u = U; end
+try, dt = U.dt; catch, dt = 1; end
+try, ns = M.ns; catch, ns = length(U.u); end
  
  
 % state equation; add [0] states if not specified
@@ -116,7 +104,14 @@ catch
     x   = sparse(0,1);
     M.x = x;
 end
- 
+
+% check for delay operator
+%--------------------------------------------------------------------------
+try
+    [fx dfdx D] = f(x,u,P,M);
+catch
+    D = 1;
+end
  
 % dx(t)/dt and Jacobian df/dx
 %--------------------------------------------------------------------------
@@ -129,7 +124,7 @@ dfdx  = full(dfdx);
 p     = max(abs(real(eig(dfdx))));
 N     = ceil(max(1,dt*p*2));
 n     = length(spm_vec(x));
-Q     = (spm_expm(dt*dfdx/N) - speye(n,n))*pinv(dfdx);
+Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*pinv(dfdx);
  
 % integrate
 %==========================================================================

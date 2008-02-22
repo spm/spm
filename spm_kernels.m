@@ -29,7 +29,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_kernels.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_kernels.m 1162 2008-02-22 12:21:33Z karl $
 
 
 % assign inputs
@@ -60,6 +60,7 @@ elseif nargin == 6
 end
 
 
+
 % Volterra kernels for bilinear systems
 %==========================================================================
 
@@ -72,6 +73,7 @@ end
 
 % parameters
 %--------------------------------------------------------------------------
+N     = fix(N);                     % kernel depth
 n     = size(M0,1);                 % state variables
 m     = size(M1,2);                 % inputs
 l     = size(L1,1);                 % ouputs

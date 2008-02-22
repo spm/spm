@@ -49,9 +49,7 @@ function [y] = spm_int_B(P,M,U)
 %
 % spm_int_U: like spm_int_J but only evaluates J when the input changes.
 % This can be useful if input changes are sparse (e.g., boxcar functions).
-% spm_int_U also has the facility to integrate delay differential equations
-% if a delay operator is returned [f J D] = f(x,u,P,M). It is used 
-% primarily for integrating fMRI models
+% It is used primarily for integrating EEG models
 %
 % spm_int:   Fast integrator that uses a bilinear approximation to the
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
@@ -61,25 +59,15 @@ function [y] = spm_int_B(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_B.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_int_B.m 1162 2008-02-22 12:21:33Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U)
-    U.u = U;
-end
-try
-    dt = U.dt;
-catch
-    dt = 1;
-end
-try
-    ns = M.ns;
-catch
-    ns = length(U.u);
-end
- 
+if ~isstruct(U), U.u = U; end
+try, dt = U.dt; catch, dt = 1; end
+try, ns = M.ns; catch, ns = length(U.u); end
+
  
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
@@ -111,12 +99,19 @@ catch
     x   = sparse(0,1);
     M.x = x;
 end
+
+% check for delay operator
+%--------------------------------------------------------------------------
+try
+    [fx dfdx D] = f(x,u,P,M);
+catch
+    D = 1;
+end
  
 % get Jacobian and its derivatives
 %--------------------------------------------------------------------------
 [dJdx J]  = spm_diff(f,spm_vec(x),u,P,M,[1 1]);
 [dJdu J]  = spm_diff(f,spm_vec(x),u,P,M,[1 2]);
- 
  
 % integrate
 %==========================================================================
@@ -144,7 +139,7 @@ for i = 1:ns
  
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
-    x  = spm_unvec(spm_vec(x) + spm_dx(dfdx,fx,dt),M.x);
+    x  = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
  
     % output - implement g(x)
     %----------------------------------------------------------------------

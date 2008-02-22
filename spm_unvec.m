@@ -13,7 +13,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_unvec.m 1162 2008-02-22 12:21:33Z karl $
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------
@@ -26,6 +26,10 @@ if length(varargin) == 1
 else
     X = varargin;
 end
+
+% vectorise first argument
+%--------------------------------------------------------------------------
+vX    = spm_vec(vX);
 
 % fill in structure arrays
 %--------------------------------------------------------------------------

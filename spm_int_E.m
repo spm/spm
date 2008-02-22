@@ -49,9 +49,6 @@ function [y] = spm_int_E(P,M,U)
 %
 % spm_int_U: like spm_int_J but only evaluates J when the input changes.
 % This can be useful if input changes are sparse (e.g., boxcar functions).
-% spm_int_U also has the facility to integrate delay differential equations
-% if a delay operator is returned [f J D] = f(x,u,P,M). It is used 
-% primarily for integrating fMRI models
 %
 % spm_int:   Fast integrator that uses a bilinear approximation to the
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
@@ -61,7 +58,7 @@ function [y] = spm_int_E(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_E.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_int_E.m 1162 2008-02-22 12:21:33Z karl $
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
@@ -111,6 +108,14 @@ catch
     M.x = x;
 end
 
+% check for delay operator
+%--------------------------------------------------------------------------
+try
+    [fx dfdx D] = f(x,u,P,M);
+catch
+    D = 1;
+end
+
 % get Jacobian and its derivatives
 %--------------------------------------------------------------------------
 [dJdx J] = spm_diff(f,spm_vec(x),u,P,M,[1 1]);
@@ -118,17 +123,17 @@ end
 
 % eigensytem
 %--------------------------------------------------------------------------
-[V D] = eig(full(J));
-i     = find(diag(abs(real(D))) > exp(-16));
+[V S] = eig(full(D*J));
+i     = find(diag(abs(real(S))) > exp(-16));
 V     = V(:,i);
-D     = D(i,i);
+S     = S(i,i);
 iV    = pinv(V);
-J     = diag(D);
+J     = diag(S);
 for i = 1:length(dJdx)
-    dJdx{i} = diag(iV*dJdx{i}*V);
+    dJdx{i} = diag(iV*D*dJdx{i}*V);
 end
 for i = 1:length(dJdu)
-    dJdu{i} = diag(iV*dJdu{i}*V);
+    dJdu{i} = diag(iV*D*dJdu{i}*V);
 end
 
 
@@ -159,7 +164,7 @@ for i = 1:ns
 
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
-    dx = V*diag( (exp(dfdx*dt) - 1)./dfdx )*iV*fx;
+    dx = V*diag( (exp(dfdx*dt) - 1)./dfdx )*iV*D*fx;
     x  = spm_unvec(spm_vec(x) + real(dx),x);
 
     % output - implement g(x)
