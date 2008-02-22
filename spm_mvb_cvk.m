@@ -1,17 +1,32 @@
-function [p,percent] = spm_mvb_cvk(MVB,k)
+function [p,percent] = spm_mvb_cvk(MVB,k);
 % Split-half cross validation of a multivariate Bayesian model
-% FORMAT [p_value,percent] = spm_mvb_cvk(MVB,k);
-%   p_value: under a null GLM
-%   percent: proportion correct
+% FORMAT [p_value,percent] = spm_mvb_cvk(MVB)
 %
-% spm_mvb_cv performs a k-fold (def. k=2) cross-validation by trying to 
-% predict the target variable using a split-in-k test sample.
+% MVB - Multivariate Bays structure
+% k   - k-fold cross-validation
+%
+% p   - p_value: under a null GLM
+% percent: proportion correct (median threshold)
+%
+% spm_mvb_cvk performs a k-fold cross-validation by trying to predict
+% the target variable using trinaing and test partitions on orthogonal 
+% mixtures of data (from null space of confounds)
 %__________________________________________________________________________
- % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1131 2008-02-06 11:17:09Z spm $
-
+% $Id: spm_mvb_cvk.m 1161 2008-02-22 12:18:05Z karl $
+ 
+ 
+%-partition order
+%--------------------------------------------------------------------------
+try
+    k;
+catch
+    str   = 'k-fold cross-validation';
+    k     = spm_input(str,'!+1','b',{'2','4','8'},[2 4 8]);
+end
+ 
 %-Get figure handles and set title
 %--------------------------------------------------------------------------
 Fmvb = spm_figure('GetWin','MVB');
@@ -33,37 +48,68 @@ catch
     MVB  = MVB.MVB;
 end
  
-% k-fold cross validation
+% check under null hypothesis
+%--------------------------------------------------------------------------
+% MVB.Y = randn(size(MVB.Y));
+
+% whiten target and predictor (X) variables (Y) (i.e., remove correlations)
+%--------------------------------------------------------------------------
+K     = MVB.K;
+X     = K*MVB.X;
+Y     = K*MVB.Y;
+X0    = K*MVB.X0;
+U     = MVB.M.U;
+
+ 
+% create orthonormal projection to remove confounds
+%--------------------------------------------------------------------------
+Ns    = length(X);
+X0    = orth(X0);
+R     = speye(Ns) - X0*X0';
+R     = orth(R);
+X     = R'*X;
+Y     = R'*Y;
+V     = R'*R;
+
+
+% k-fold cross-validation
 %==========================================================================
-if nargin<2
-    k     = 2;
-end
-pX    = 0;
-qX    = 0;
+Ns    = length(X);
+qX    = sparse(Ns,1);
 for i = 1:k
-    [px qx q] = mvb_cv(MVB,i,k);
-    pX        = pX + px;
-    qX        = qX + qx;
-    Q{i}      = q;
+ 
+    % specify indices of training and test data
+    %----------------------------------------------------------------------
+    ns     = floor(Ns/k);
+    test   = [1:ns] + (i - 1)*ns;
+ 
+    % orthogonalise test and training partition
+    %----------------------------------------------------------------------
+    tran       = [1:Ns];
+    tran(test) = [];
+ 
+    % Training
+    %======================================================================
+    M        = spm_mvb(X(tran,:),Y(tran,:),[],U,[],16);
+ 
+    % Test
+    %======================================================================
+    qX(test) = qX(test) + Y(test,:)*M.qE;
+ 
 end
  
 % parametric inference
 %==========================================================================
  
-% ReML estimate of non-sphericity
+% test correlation
 %--------------------------------------------------------------------------
-X       = [pX MVB.K*MVB.X0];
-V       = spm_reml_sc(qX*qX',X,Q);
-C       = sparse(1,1,1,size(X,2),1);
-[T df]  = spm_ancova(X,V,qX,C);
+[T df]  = spm_ancova(X,V,qX,1);
 p       = 1 - spm_Tcdf(T,df(2));
  
- 
-% percent correct (after smoothing)
+% percent correct (after projection)
 %--------------------------------------------------------------------------
-S       = inv(MVB.K);
-pX      = S*pX;
-qX      = S*qX;
+pX      = R*X;
+qX      = R*qX;
 T       = sign(pX - median(pX)) == sign(qX - median(qX));
 percent = 100*sum(T)/length(T);
  
@@ -74,9 +120,8 @@ s       = 1:length(pX);
 plot(s,pX,s,qX,'-.')
 xlabel('sample')
 ylabel('response (adjusted)')
-title('Cross validation')
+title('cross-validation')
 axis square
-legend('true','predicted')
  
 subplot(2,1,2)
 plot(pX,qX,'.')
@@ -93,57 +138,3 @@ MVB.percent = percent;
 assignin('base','MVB',MVB)
  
 return
- 
-%==========================================================================
-function [X,qX,Q] = mvb_cv(MVB,n,k)
-%==========================================================================
-% MVB - multivariate structure
-% n   - subset
-% k   - partition
- 
-% unpack MVB and create test subspace
-%--------------------------------------------------------------------------
-V     = MVB.V;
-U     = MVB.M.U;
- 
-% whitening matrix
-%--------------------------------------------------------------------------
-K     = MVB.K;
-X     = K*MVB.X;
-Y     = K*MVB.Y;
-X0    = K*MVB.X0;
- 
-% specify indices of training and test data
-%--------------------------------------------------------------------------
-Ns    = length(X);
-ns    = floor(Ns/k);
-test  = [1:ns] + (n - 1)*ns;
-tran  = [1:Ns];
-tran(test) = [];
- 
-test  = full(sparse(test,test,1,Ns,Ns));
-tran  = full(sparse(tran,tran,1,Ns,Ns)); 
- 
-% Training - add test space to confounds
-%==========================================================================
-R      = speye(Ns) - [X0 test]*pinv([X0 test]);
-Qe     = speye(Ns);
-Qp     = MVB.M.Cp;
-L      = R*Y*U;
-Q      = {Qe L*Qp*L'};
- 
-% re-estimate covariance components
-%----------------------------------------------------------------------
-[Cy,h] = spm_reml_sc(R*X*X'*R',[X0 test],Q,size(X,2));
- 
-% MAP estimates of pattern weights
-%----------------------------------------------------------------------
-MAP    = h(2)*Qp*L'*R'*inv(Cy)*R;
-qE     = MAP*X;
- 
-% Test - add training space to confounds
-%==========================================================================
-R      = speye(Ns) - [X0 tran]*pinv([X0 tran]);
-X      = R*X;                                              % test data
-qX     = R*Y*U*qE;                                         % prediction
-Q      = test;                                             % test indices

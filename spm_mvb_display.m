@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_mvb_display.m 1161 2008-02-22 12:18:05Z karl $
 
 
 % get figure
@@ -15,6 +15,7 @@ Fmvb = spm_figure('GetWin','MVB');
 if isempty(Fmvb)
     Fmvb = spm_figure('Create','MVB','Multivariate Bayes');
 end
+clf
 
 % display specified model
 %==========================================================================
@@ -46,7 +47,7 @@ grid on
 title({'log-evidence';sprintf('maximum p = %.2f%s',100*max(P),'%')})
 
 subplot(3,2,2)
-hist(M.qE)
+hist(M.qE,64)
 xlabel('voxel-weight')
 ylabel('frequency')
 axis square
@@ -85,6 +86,13 @@ subplot(3,2,4)
 text(0,1/2,str,'FontSize',10)
 axis off
 
+% maximium intensity projection
+%--------------------------------------------------------------------------
+subplot(3,2,3)
+i  = P > .5;
+spm_mip(P(i),XYZ(1:3,i),VOX)
+axis image
+title(['PPM: ' MVB.name ' (' MVB.contrast ')'])
 
 % residual forming matrix
 %--------------------------------------------------------------------------

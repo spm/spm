@@ -23,11 +23,20 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
 % estimates.  NB: uses weakly informative log-normal hyperpriors.
 % See also spm_reml for an unconstrained version that allows for negative
 % hyperparameters
+%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% SPM ReML routines:
+%
+%      spm_reml:    no positivity constraints on covariance parameters
+%      spm_reml_sc: positivity constraints on covariance parameters
+%      spm_sp_reml: for sparse patterns (c.f., ARD)
+%
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
-% John Ashburner & Karl Friston
-% $Id: spm_reml_sc.m 1143 2008-02-07 19:33:33Z spm $
+% Karl Friston
+% $Id: spm_reml_sc.m 1161 2008-02-22 12:18:05Z karl $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
@@ -77,15 +86,17 @@ for i = 1:m, Q{i}    = Q{i}/sh(i);         end
 
 % hyperpriors
 %--------------------------------------------------------------------------
-try, hE = hE(:);   catch, hE = -32;   end
-try, hP = inv(hC); catch, hP = 1/256; end
+try, hE = hE(:);   catch, hE = -32;        end
+try, hP = inv(hC); catch, hP = 1/256;      end
  
 % check sise
 %--------------------------------------------------------------------------
-if length(hE) < m, hE = hE(1)*ones(m,1);  end
-if length(hP) < m, hP = hP(1)*speye(m,m); end
- 
- 
+if length(hE) < m, hE = hE(1)*ones(m,1);   end
+if length(hP) < m, hP = hP(1)*speye(m,m);  end
+
+% omit shrinkage hyperpriors on first component (usually observation error)
+%--------------------------------------------------------------------------
+hE(1) = 0;
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
@@ -153,8 +164,8 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh(as) = spm_dx(dFdhh(as,as),dFdh(as));
-    h      = h + dh;
+    dh    = spm_dx(dFdhh(as,as),dFdh(as))/log(k + 2);
+    h(as) = h(as) + dh;
     
     % Convergence (1% change in log-evidence)
     %======================================================================
@@ -162,21 +173,19 @@ for k = 1:K
     
     % convergence
     %----------------------------------------------------------------------
-    dF    = dFdh'*dh;
+    dF    = dFdh(as)'*dh;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
-    if dF < 1e-1
+    if dF < 1e-2
         break
     else
         % eliminate redundant components (automatic selection)
         %------------------------------------------------------------------
-        as    = find(h > hE/2);
-        dh    = zeros(m,1);
-        as    = as(:)';
+        as  = find(h > -16);
+        as  = as(:)';
     end
  
 end
- 
- 
+
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
 %--------------------------------------------------------------------------
 Ph    = -dFdhh;
@@ -199,8 +208,9 @@ if nargout > 3
     F  = Fa - Fc - N*n*log(sY)/2;
  
 end
- 
-% return exp(h) if log-normal hyperpriors and rescale
+
+
+% return exp(h) hyperpriors and rescale
 %--------------------------------------------------------------------------
 h  = sY*exp(h)./sh;
 C  = sY*C;

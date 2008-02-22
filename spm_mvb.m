@@ -15,8 +15,8 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 %                G: covariance partition indices
 %                h: covariance hyperparameters
 %                U: ordered patterns
-%               qE: conditional expectation of weights
-%               qC: conditional variance of weights
+%               qE: conditional expectation of voxel weights
+%               qC: conditional variance of voxel weights
 %               Cp: prior covariance (ordered  pattern space)
 %               cp: prior covariance (original pattern space)
 %__________________________________________________________________________
@@ -28,27 +28,33 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mvb.m 1161 2008-02-22 12:18:05Z karl $
  
-% defaults
+% defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------
-try, V;          catch, V  = [];        end
-try, nG; aG = 0; catch, nG = 8; aG = 1; end
-try, sG;         catch, sG = 1/2;       end
+try, V;          catch, V  = [];             end
+try, nG; aG = 0; catch, nG = 8; aG = 1;      end
+try, sG;         catch, sG = spm_Ncdf(-1)*2; end
  
 % get orders
 %--------------------------------------------------------------------------
 ns     = size(Y,1);                 % number of samples
 nv     = size(Y,2);                 % number of voxels
 np     = size(U,2);                 % number of patterns or parameters
-nh     = length(V);                 % number of error components
  
 % confounds
 %--------------------------------------------------------------------------
-if ~length(X0); X0 = zeros(ns,1);  end
-if ~length(U);  U  = zeros(nv,0);  end
-if ~length(V);  V  = speye(ns,ns); end
- 
+if ~length(X0), X0 = zeros(ns,1);  end
+if ~length(U),  U  = zeros(nv,0);  end
+if ~length(V),  V  = speye(ns,ns); end
+
+% number of error components
+%--------------------------------------------------------------------------
+if iscell(V)
+    nh = length(V);
+else
+    nh = 1;
+end
  
 % null model
 %--------------------------------------------------------------------------

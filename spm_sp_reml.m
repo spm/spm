@@ -21,11 +21,20 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % estimates,. using uninformative hyperpriors (this is effectively an ARD
 % scheme).  The specification of components differs from spm_reml and
 % spm_reml_sc.
+%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% SPM ReML routines:
+%
+%      spm_reml:    no positivity constraints on covariance parameters
+%      spm_reml_sc: positivity constraints on covariance parameters
+%      spm_sp_reml: for sparse patterns (c.f., ARD)
+%
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_sp_reml.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_sp_reml.m 1161 2008-02-22 12:18:05Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -179,7 +188,7 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh,dFdh)/log(k + 1);
+    dh    = spm_dx(dFdhh,dFdh)/log(k + 2);
     h(as) = h(as) + dh;
  
     
@@ -191,11 +200,11 @@ for k = 1:K
     
     % and ARD
     %----------------------------------------------------------------------
-    if dF < 1e-1
+    if dF < 1e-2
         break
     else
-        as            = h > hE/2;
-        h(~as)        = hE(~as);
+        as             = h > -16;
+        h(~as)         = hE(~as);
         h(find(h > 1)) = 1;
     end
  

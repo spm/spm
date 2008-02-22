@@ -5,7 +5,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_mvb_ui.m 1161 2008-02-22 12:18:05Z karl $
 
 
 %-Get figure handles and set title
@@ -68,9 +68,11 @@ end
 
 % get explanatory variables (data)
 %--------------------------------------------------------------------------
-XYZ  = XYZmm(:,j);
-Y    = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
+XYZ    = XYZmm(:,j);
+Y      = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
 
+% check there are intracranial voxels
+%--------------------------------------------------------------------------
 if ~length(Y)
     warndlg({'No voxels in this VOI';'Please use a larger volume'})
     return
@@ -78,14 +80,14 @@ end
 
 %-Get model[s]
 %--------------------------------------------------------------------------
-str       = {'sparse','smooth','support'};
-Ip        = spm_input('model (spatial prior)','!+1','m',str);
-priors    = str{Ip};
+str    = {'sparse','smooth','support'};
+Ip     = spm_input('model (spatial prior)','!+1','m',str);
+priors = str{Ip};
 
 %-Number of iterations
 %--------------------------------------------------------------------------
-Ni        = spm_input('Number of iterations','!+1','i', ...
-                                             max(8,ceil(log2(size(Y,2)))));
+str    = 'Greedy search steps';
+% Ni   = spm_input(str,'!+1','i',max(8,ceil(log2(size(Y,2)))));
 
 % MVB defined
 %==========================================================================
@@ -107,7 +109,7 @@ V   = SPM.xVi.V;
 % invert
 %==========================================================================
 U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
-M        = spm_mvb(X,Y,X0,U,V,Ni);
+M        = spm_mvb(X,Y,X0,U,V,8);
 M.priors = priors;
 
 % assemble results

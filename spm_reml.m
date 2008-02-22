@@ -22,10 +22,18 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % see also: spm_reml_sc for the equivalent scheme using log-normal
 % hyperpriors
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% SPM ReML routines:
+%
+%      spm_reml:    no positivity constraints on covariance parameters
+%      spm_reml_sc: positivity constraints on covariance parameters
+%      spm_sp_reml: for sparse patterns (c.f., ARD)
+%
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_reml.m 1161 2008-02-22 12:18:05Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -73,7 +81,7 @@ hP  = speye(m,m)/exp(32);
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
 dF    = Inf;
-t     = 256;
+t     = 2;
 for k = 1:K
  
     % compute current estimate of covariance
@@ -130,7 +138,7 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh,dFdh,{t});
+    dh    = spm_dx(dFdhh,dFdh)/log(k + 2);
     h     = h + dh;
  
     % Convergence (1% change in log-evidence)
@@ -138,12 +146,10 @@ for k = 1:K
     
     % update regulariser
     %----------------------------------------------------------------------
-    df    = dFdh'*dh;
-    if df > dF - exp(-4), t = max(2,t/2); end
-    dF    = df;
+    dF    = dFdh'*dh;
     fprintf('%-30s: %i %30s%e\n','  ReML Iteration',k,'...',full(dF));
     
-    % final estimate of covariance (with missing points)
+    % final estimate of covariance (with missing data points)
     %----------------------------------------------------------------------
     if dF < 1e-1
         V     = 0;
