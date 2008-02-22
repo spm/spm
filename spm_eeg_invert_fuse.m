@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_invert_fuse.m 1164 2008-02-22 12:26:36Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -304,7 +304,7 @@ for i = 1:Nl
     V{i}  = v;
     VE(i) = sum(sum(u.^2))/sum(sum(WY{i}.^2));     % variance explained
 end
-V   = spm_orth(spm_cat(V),1);
+V   = orth(full(spm_cat(V)));
 VE  = mean(VE);
  
 fprintf('Using %i temporal modes\n',Nr)

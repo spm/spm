@@ -34,7 +34,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_bireduce.m 1164 2008-02-22 12:26:36Z karl $
 
 
 % set up
@@ -46,6 +46,13 @@ if ~isfield(M,'f')
     M.f = inline('sparse(0,1)','x','u','P','M');
     M.n = 0;
     M.x = sparse(0,0);
+end
+
+% add observer if not specified
+%--------------------------------------------------------------------------
+if ~isfield(M,'g')
+    M.g = inline('x','x','u','P','M');
+    M.l = M.n;
 end
 
 % expansion pointt

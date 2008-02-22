@@ -7,12 +7,14 @@ function D = spm_eeg_ldata(P)
 %__________________________________________________________________________
 % 
 % spm_eeg_ldata loads an EEG file that is in SPM format. Importantly, the
-% data is memory mapped and made accessible under D.data.
+% data is memory mapped and made accessible under D.data, if 
+% isfield(D,'fnamedat'), otherwise the D is assumed to conform to the SPM
+% format
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Stefan Kiebel
-% $Id: spm_eeg_ldata.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_ldata.m 1164 2008-02-22 12:26:36Z karl $
  
 % check filename
 %--------------------------------------------------------------------------
@@ -43,6 +45,11 @@ if exist('D') ~= 1
     error('%s doesn''t contain SPM M/EEG data', P);
 end
  
+% return D if not an EEG or MEG file
+%--------------------------------------------------------------------------
+if ~isfield(D,'fnamedat'), return, end
+
+
 % compatibility with old spm_file_array
 %--------------------------------------------------------------------------
 if ~isfield(D, 'datatype')

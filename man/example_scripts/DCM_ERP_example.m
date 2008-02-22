@@ -20,7 +20,7 @@ DCM.M.dipfit.sensorfile = fullfile(Pbase, 'olivier_09_03_2004.pol');
 
 % Parameters and options used for setting up model.
 %-------------------------------------------------------
-DCM.options.type    = 1;      % spatial model is ECD (2: imaging, 3: fixed)
+DCM.options.type    = 1;      % spatial model is ECD (2: imaging)
 DCM.options.trials  = [1 2];  % index of ERPs within ERP/ERF file
 DCM.options.Tdcm(1) = 5;      % start of peri-stimulus time to be modelled
 DCM.options.Tdcm(2) = 150;    % end of peri-stimulus time to be modelled
