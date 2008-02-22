@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_DEM.m 1163 2008-02-22 12:24:06Z karl $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -120,11 +120,11 @@ try nN = M(1).E.nN; catch nN = 16; end
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 if nx
-    td = 1/nD;                            % integration time for D-Step
-    te = exp(32);                          % integration time for E-Step
+    td = 1/nD;                         % integration time for D-Step
+    te = 2;                            % integration time for E-Step
 else
-    td = {64};
-    te = exp(32);
+    td = {-1};
+    te = 2;
 end
 
 % precision (R) and covariance of generalised errors
@@ -372,20 +372,22 @@ for iN = 1:nN
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
                     if L > Fd
-                        td     = {min(td{1}*2,256)};
+                        td     = {td{1} + 1/2};
                         Fd     = L;
                         B.qu   = qu;
                         B.E    = E;
                         B.dE   = dE;
                         B.ECEp = ECEp;
+                        
                     else
+                        
                         % otherwise, return to previous expansion point
                         %--------------------------------------------------
                         qu     = B.qu;
                         E      = B.E;
                         dE     = B.dE;
                         ECEp   = B.ECEp;
-                        td     = {min(td{1}/2,16)};
+                        td     = {td{1} - 1};
                     end
                 end
 
@@ -511,7 +513,7 @@ for iN = 1:nN
         if L > Fe
             
             Fe      = L;
-            te      = te*2;
+            te      = te + 1/2;
             B.dFdp  = dFdp;
             B.dFdpp = dFdpp;
             B.qp    = qp;
@@ -525,7 +527,7 @@ for iN = 1:nN
             dFdpp   = B.dFdpp;
             qp      = B.qp;
             mp      = B.mp;
-            te      = min(te/2,1/4);
+            te      = te - 1;
         end
  
         % E-step: update expectation (p)

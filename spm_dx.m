@@ -4,7 +4,8 @@ function [dx] = spm_dx(dfdx,f,t)
 % dfdx   = df/dx
 % f      = dx/dt
 % t      = integration time: (default t = Inf);
-%          if t is a cell (i.e., {t}) then t is set to t{1}/norm(dfdx)
+%          if t is a cell (i.e., {t}) then t is set ti:
+%          exp(t - log(diag(-dfdx))
 %
 % dx     = x(t) - x(0)
 %--------------------------------------------------------------------------
@@ -37,16 +38,23 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dx.m 1163 2008-02-22 12:24:06Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 3, t = Inf;              ; end
-if iscell(t),  t = t{1}/normest(dfdx); end
+if nargin < 3, t = Inf;                        ; end
 
-% use a [pseudo]inverse if all t > 1e8
+% t is a regulariser
+%--------------------------------------------------------------------------
+if iscell(t)
+   t  = min(max(t{:},-6),6);
+   t  = exp(t - log(diag(-dfdx)));
+end
+
+
+% use a [pseudo]inverse if all t > TOL
 %==========================================================================
-if min(t) > 1e8
+if min(t) > exp(16)
     try
         dx = -inv(dfdx)*f;
     catch

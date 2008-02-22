@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_nlsi_GN.m 1163 2008-02-22 12:24:06Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -210,7 +210,7 @@ end
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
-V     = spm_svd(pC,exp(-16));
+V     = spm_svd(pC,exp(-32));
 nu    = size(dfdu,2);                 % number of parameters (confounds)
 np    = size(V,2);                    % number of parameters (effective)
 ip    = [1:np];
@@ -218,6 +218,7 @@ iu    = [1:nu] + np;
  
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
+warning off
 pC    = V'*pC*V;
 uC    = speye(nu)/1e-8;
 ipC   = inv(spm_cat(diag({pC,uC})));
@@ -228,14 +229,15 @@ Eu    = inv(dfdu'*dfdu)*(dfdu'*spm_vec(y));
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp    = pC;
+warning on
+
  
 % EM
 %==========================================================================
-C.F   = -Inf;
-v     = sparse(np + nu,1) - 8;
+C.F   = -Inf;                                   % free energy
+v     = -1;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-sw = warning('off','all');
 for k = 1:128
  
  
@@ -303,7 +305,7 @@ for k = 1:128
  
         % prevent overflow
         %------------------------------------------------------------------
-        h     = max(h,-16);
+        h     = min(max(h,-16),16);
         
         % convergence
         %------------------------------------------------------------------
@@ -341,20 +343,11 @@ for k = 1:128
         dFdp  = -J'*iS*e - ipC*p;
         dFdpp = -J'*iS*J - ipC;
         
-        % intialise regularization
-        %------------------------------------------------------------------
-        if k == 1
-            dp  = norm(spm_dx(dFdpp,dFdp));
-            while norm(spm_dx(dFdpp,dFdp,exp(v)),1) < dp/32;
-                v = v + 1;
-            end
-            
         % decrease regularization
-        %--------------------------------------------------------------
-        else
-            v = v + sign(dp.*dFdp);
-        end
-        str = 'EM-(+)';
+        %------------------------------------------------------------------
+        v     = v + 1/2;
+        v     = min(max(v,-6),6);
+        str   = 'EM-(+)';
         
     else
 
@@ -365,14 +358,14 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        v   = v - 2;
+        v   = v - 1;
         str = 'EM-(-)';
         
     end
  
     % E-Step: update
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,exp(v));
+    dp    = spm_dx(dFdpp,dFdp,{v});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
  
@@ -405,17 +398,10 @@ for k = 1:128
  
         % subplot parameters
         %------------------------------------------------------------------
-        subplot(2,2,3)
+        subplot(2,1,2)
         bar(full(V*p(ip)))
         xlabel('parameter')
         title('conditional [minus prior] expectation')
-        grid on
-        drawnow
-        
-        subplot(2,2,4)
-        bar(full(V*v(ip)))
-        xlabel('parameter')
-        title('log (rate of gradient ascent)')
         grid on
         drawnow
         
@@ -434,4 +420,4 @@ end
 Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;
-warning(sw);
+
