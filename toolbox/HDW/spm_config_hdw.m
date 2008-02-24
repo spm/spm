@@ -4,7 +4,7 @@ function job = spm_config_hdw
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_hdw.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_hdw.m 1167 2008-02-24 19:51:13Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -35,10 +35,10 @@ choice = inline(['struct(''type'',''choice'',''name'',name,'...
 
 addpath(fullfile(spm('dir'),'toolbox','HDW'));
 
-ref  = files('Reference Image','ref','image',1);
+ref  = files('Reference Image','ref','image',[1 1]);
 ref.help = {'This is the reference image, which remains stationary.'};
 
-mov  = files('Moved Image','mov','image',1);
+mov  = files('Moved Image','mov','image',[1 1]);
 mov.help = {'This is the moved image, which is warped to match the reference.'};
 fles = branch('Subject','data',{ref,mov});
 fles.help = {[...

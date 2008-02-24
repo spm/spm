@@ -4,7 +4,7 @@ function job = spm_config_preproc8
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_config_preproc8.m 1167 2008-02-24 19:51:13Z volkmar $
 
 
 %_______________________________________________________________________
@@ -129,7 +129,7 @@ data.help = {[...
 
 %------------------------------------------------------------------------
 
-tpm = files('Tissue probability map','tpm','image',1);
+tpm = files('Tissue probability map','tpm','image',[1 1]);
 tpm.help = {...
 [...
 'Select the tissue probability image for this class. '...

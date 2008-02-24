@@ -4,7 +4,7 @@ function job = spm_config_fieldmap
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: spm_config_FieldMap.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_FieldMap.m 1167 2008-02-24 19:51:13Z volkmar $
 %_______________________________________________________________________
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
         '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -231,10 +231,13 @@ data.values = {subj};
 data.num  = [1 Inf];
 data.help = {'List of subjects.'};
 
+% clear previous instance of fieldmap
+clear precalcfieldmap
 precalcfieldmap.type = 'branch';
 precalcfieldmap.name = 'Precalculated FieldMap (in Hz)';
 precalcfieldmap.tag  = 'precalcfieldmap';
 precalcfieldmap.val  = {data};
+precalcfieldmap.prog = @fieldmap_precalcfieldmap;
 precalcfieldmap.help = {[...
 'Calculate a voxel displacement map from a precalculated fieldmap. This option ',...
 'expects a processed fieldmap (ie phase unwrapped, masked if necessary and scaled to Hz). ',...
@@ -258,6 +261,7 @@ phasemag.type = 'branch';
 phasemag.name = 'Phase and Magnitude Data';
 phasemag.tag  = 'phasemag';
 phasemag.val  = {data};
+phasemag.prog = @fieldmap_phasemag;
 phasemag.help = {[...
 'Calculate a voxel displacement map from double phase and magnitude fieldmap data.'...
 'This option expects two phase and magnitude pairs of data of two different ',...
@@ -283,6 +287,7 @@ presubphasemag.type = 'branch';
 presubphasemag.name = 'Presubtracted Phase and Magnitude Data';
 presubphasemag.tag  = 'presubphasemag';
 presubphasemag.val  = {data};
+presubphasemag.prog = @fieldmap_presubphasemag;
 presubphasemag.help = {[...
 'Calculate a voxel displacement map from presubtracted phase and magnitude fieldmap data. ',...
 'This option expects a single magnitude image and a single phase image resulting from the ',...
@@ -307,6 +312,7 @@ realimag.type = 'branch';
 realimag.name = 'Real and Imaginary Data';
 realimag.tag  = 'realimag';
 realimag.val  = {data};
+realimag.prog = @fieldmap_realimag;
 realimag.help = {[...
 'Calculate a voxel displacement map from real and imaginary fieldmap data. ',...
 'This option expects two real and imaginary pairs of data of two different ',...
@@ -317,7 +323,6 @@ realimag.help = {[...
 job.type = 'choice';
 job.name = 'FieldMap';
 job.tag  = 'fieldmap';
-job.prog = @fieldmap_job;
 job.values = {presubphasemag,realimag,phasemag,precalcfieldmap};
 p1 = [...
 'The FieldMap toolbox generates unwrapped fieldmaps which are converted to ',...
@@ -330,17 +335,18 @@ p1 = [...
 job.help = {p1,''};
 
 %------------------------------------------------------------------------
-function fieldmap_job(job)
+function fieldmap_presubphasemag(job)
+FieldMap_Run(job.subj);
+%------------------------------------------------------------------------
+function fieldmap_realimag(job)
+FieldMap_Run(job.subj);
+%------------------------------------------------------------------------
+function fieldmap_phasemag(job)
+Fieldmap_Run(job.subj);
+%------------------------------------------------------------------------
+function fieldmap_precalcfieldmap(job)
+FieldMap_Run(job.subj);
 
-if isfield(job,'presubphasemag')
-    FieldMap_Run(job.presubphasemag.subj);
-elseif isfield(job,'realimag')
-    FieldMap_Run(job.realimag.subj);
-elseif isfield(job,'phasemag')
-    Fieldmap_Run(job.phasemag.subj);
-elseif isfield(job,'precalcfieldmap')
-    FieldMap_Run(job.precalcfieldmap.subj);
-end
         
 
 
