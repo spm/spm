@@ -4,7 +4,7 @@ function opts = spm_config_ecat
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_ecat.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_ecat.m 1166 2008-02-24 19:50:18Z volkmar $
 
 %_______________________________________________________________________
 
@@ -13,7 +13,7 @@ data.name = 'ECAT files';
 data.tag  = 'data';
 data.ufilter = '.*v';
 data.filter = 'any';
-data.num  = Inf;
+data.num  = [1 Inf];
 data.help = {'Select the ECAT files to convert.'};
 
 dtype.type = 'menu';

@@ -174,7 +174,7 @@ function conf = spm_config_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_config_factorial_design.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_factorial_design.m 1166 2008-02-24 19:50:18Z volkmar $
 
 % Define inline types.
 %-----------------------------------------------------------------------
@@ -809,7 +809,7 @@ globalm.help={p0,sp_text,p1,sp_text,p2,sp_text,p3,sp_text};
 %-------------------------------------------------------------------------
 % Directory
 
-cdir = files('Directory','dir','dir',1,'');
+cdir = files('Directory','dir','dir',[1 1],'');
 cdir.help = {[...
     'Select a directory where the SPM.mat file containing the ',...
     'specified design matrix will be written.']};
@@ -818,7 +818,7 @@ cdir.help = {[...
 % Main routine
 
 conf = branch('Factorial design specification','factorial_design',...
-    {des,covs,masking,globalc,globalm,cdir},'');
+    {cdir,des,covs,masking,globalc,globalm},'');
 p1=['This interface is used for setting up analyses of PET data. It is also ',...
     'used for ''2nd level'' or ''random effects'' analysis which allow ',...
     'one to make a population inference. First level models can be used to produce ',...

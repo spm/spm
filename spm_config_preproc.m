@@ -4,7 +4,7 @@ function job = spm_config_preproc
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_preproc.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_preproc.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 %_______________________________________________________________________
@@ -37,7 +37,7 @@ data.help = {[...
 
 %------------------------------------------------------------------------
 
-priors = files('Tissue probability maps','tpm','image',3);
+priors = files('Tissue probability maps','tpm','image',[3 3]);
 priors.def = 'preproc.tpm';
 priors.dir = fullfile(spm('Dir'),'tpm');
 priors.help = {...

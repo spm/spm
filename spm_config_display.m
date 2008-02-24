@@ -4,7 +4,7 @@ function opts = spm_config_display
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_display.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_display.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 %_______________________________________________________________________
@@ -13,7 +13,7 @@ data.type = 'files';
 data.name = 'Image to Display';
 data.tag  = 'data';
 data.filter = 'image';
-data.num  = 1;
+data.num  = [1 1];
 data.help = {'Image to display.'};
 
 opts.type = 'branch';

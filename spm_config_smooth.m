@@ -4,7 +4,7 @@ function opts = spm_config_smooth
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_smooth.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_smooth.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 %_______________________________________________________________________
@@ -13,7 +13,7 @@ data.type = 'files';
 data.name = 'Images to Smooth';
 data.tag  = 'data';
 data.filter = 'image';
-data.num  = Inf;
+data.num  = [0 Inf];
 data.help = {[...
 'Specify the images to smooth. ',...
 'The smoothed images are written to the same subdirectories as the ',...

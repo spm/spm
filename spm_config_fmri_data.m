@@ -4,7 +4,7 @@ function conf = spm_config_fmri_data
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_data.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_fmri_data.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 % Define inline types.
@@ -60,7 +60,7 @@ mask.help={p1};
 
 %-------------------------------------------------------------------------
 
-spmmat = files('Select SPM.mat','spmmat','mat',1,'');
+spmmat = files('Select SPM.mat','spmmat','mat',[1 1],'');
 spmmat.help = {[...
     'Select the SPM.mat file containing the ',...
     'specified design matrix.']};

@@ -4,7 +4,7 @@ function conf = spm_config_fmri_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman and Will Penny
-% $Id: spm_config_fmri_design.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_fmri_design.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 % Define inline types.
@@ -458,7 +458,7 @@ volt.help = {p1,'',p2,p3};
 
 %-------------------------------------------------------------------------
 
-cdir = files('Directory','dir','dir',1,'');
+cdir = files('Directory','dir','dir',[1 1],'');
 cdir.help = {[...
     'Select a directory where the SPM.mat file containing the ',...
     'specified design matrix will be written.']};

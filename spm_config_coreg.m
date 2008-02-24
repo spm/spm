@@ -4,13 +4,13 @@ function opts = spm_config_coreg
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_coreg.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_coreg.m 1166 2008-02-24 19:50:18Z volkmar $
 
 ref.type = 'files';
 ref.name = 'Reference Image';
 ref.tag  = 'ref';
 ref.filter = 'image';
-ref.num  = 1;
+ref.num  = [1 1];
 ref.help = {[...
 'This is the image that is assumed to remain stationary (sometimes ',...
 'known as the target or template image), while the source image ',...
@@ -22,7 +22,7 @@ source.type = 'files';
 source.name = 'Source Image';
 source.tag  = 'source';
 source.filter = 'image';
-source.num  = 1;
+source.num  = [1 1];
 source.help = {...
 'This is the image that is jiggled about to best match the reference.'};
 
@@ -234,7 +234,7 @@ ref.type = 'files';
 ref.name = 'Image Defining Space';
 ref.tag  = 'ref';
 ref.filter = 'image';
-ref.num  = 1;
+ref.num  = [1 1];
 ref.help = {[...
 'This is analogous to the reference image.  Images are resliced to match ',...
 'this image (providing they have been coregistered first).']};
@@ -245,7 +245,7 @@ source.type = 'files';
 source.name = 'Images to Reslice';
 source.tag  = 'source';
 source.filter = 'image';
-source.num  = Inf;
+source.num  = [0 Inf];
 source.help = {[...
 'These images are resliced to the same dimensions, voxel sizes, ',...
 'orientation etc as the space defining image.']};

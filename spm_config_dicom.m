@@ -4,7 +4,7 @@ function opts = spm_config_dicom
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_dicom.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_dicom.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 %_______________________________________________________________________
@@ -13,14 +13,14 @@ data.type   = 'files';
 data.name   = 'DICOM files';
 data.tag    = 'data';
 data.filter = '.*';
-data.num    = Inf;
+data.num    = [1 Inf];
 data.help   = {'Select the DICOM files to convert.'};
 
 outdir.type   = 'files';
 outdir.name   = 'Output directory';
 outdir.tag    = 'outdir';
 outdir.filter = 'dir';
-outdir.num    = 1;
+outdir.num    = [1 1];
 outdir.val    = {''};
 outdir.help   = {[...
 'Select a directory where files are written. '...

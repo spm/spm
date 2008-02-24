@@ -4,7 +4,7 @@ function conf = spm_config_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_defs.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config_defs.m 1166 2008-02-24 19:50:18Z volkmar $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
     '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -110,7 +110,7 @@ hid = {[...
 'are generated from it).  Dimensions, orientation etc are derived from '...
 'an image.']};
 
-def          = files('Deformation Field','def','.*y_.*\.nii$',1);
+def          = files('Deformation Field','def','.*y_.*\.nii$',[1 1]);
 def.help     = himgr;
 
 matname      = files('Parameter File','matname','.*_sn\.mat$',[1 1]);
@@ -127,7 +127,7 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
-img          = files('Image to base Id on','space','image',1);
+img          = files('Image to base Id on','space','image',[1 1]);
 img.help     = himg;
 id           = branch('Identity','id',{img});
 id.help      = hid;
@@ -169,7 +169,7 @@ else
     other = {sn2def,def,id};
 end
 
-img          = files('Image to base inverse on','space','image',1);
+img          = files('Image to base inverse on','space','image',[1 1]);
 img.help     = himg;
 
 comp0        = repeat('Composition','comp',other);

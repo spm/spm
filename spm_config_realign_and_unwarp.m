@@ -4,7 +4,7 @@ function opts = spm_config_realign_and_unwarp
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_config_realign_and_unwarp.m 1152 2008-02-15 12:36:50Z john $
+% $Id: spm_config_realign_and_unwarp.m 1166 2008-02-24 19:50:18Z volkmar $
 
 
 %_______________________________________________________________________
@@ -230,7 +230,7 @@ sot.name    = 'Second-order effects';
 sot.tag     = 'sot';
 sot.strtype = 'e';
 sot.num     = [1 Inf];
-sot.val     = {[]};
+sot.val     = {};
 p1          = [...
     'List of second order terms to model second derivatives of. This is entered ',...
     'as  a vector of movement parameters similar to first order effects, or leave blank for NONE'];
