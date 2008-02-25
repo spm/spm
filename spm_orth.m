@@ -11,7 +11,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 1162 2008-02-22 12:21:33Z karl $
+% $Id: spm_orth.m 1168 2008-02-25 12:14:51Z guillaume $
  
 % default
 %--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ end
  
 % recursive GM orthogonalisation
 %--------------------------------------------------------------------------
-warning off
+sw = warning('off','all');
 [n m] = size(X);
 i     = any(X);
 X     = X(:,i);
@@ -37,15 +37,15 @@ try
         end
     end
 catch
-    x     = sparse(n,0);
+    x     = zeros(n,0);
 end
-warning on
+warning(sw);
  
 % and normalisation, if requested
 %--------------------------------------------------------------------------
 switch OPT
     case{'pad'}
-        X = sparse(n,m);
+        X = zeros(n,m);
         X(:,1:size(x,2)) = x;
     otherwise
         X = spm_en(x);
