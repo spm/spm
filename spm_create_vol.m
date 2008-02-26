@@ -6,7 +6,7 @@ function V = spm_create_vol(V,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_create_vol.m 1169 2008-02-26 14:53:43Z volkmar $
 
 
 for i=1:numel(V),
@@ -88,7 +88,7 @@ try
 
     % Just overwrite if both are single volume files.
     tmp = [N0.dat.dim ones(1,5)];
-    if prod(tmp(4:end))==1 && prod(dim(4:end)==1)
+    if prod(tmp(4:end))==1 && prod(dim(4:end))==1
         N0 = [];
     end;
 catch
