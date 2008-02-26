@@ -1,6 +1,6 @@
-function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
+function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % ReML estimation of covariance components from y*y' - proper components
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC]);
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC,A,K]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -9,6 +9,8 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
 %
 % hE  - hyperprior expectation in log-space [default = -32]
 % hC  - hyperprior covariance  in log-space [default = 256]
+% A   - proportional hyperpriors [default = 0, yes]
+% K   - number of iterations [default = 32]
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -36,7 +38,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_reml_sc.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_reml_sc.m 1170 2008-02-26 17:56:14Z christophe $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
@@ -96,7 +98,9 @@ if length(hP) < m, hP = hP(1)*speye(m,m);  end
 
 % omit shrinkage hyperpriors on first component (usually observation error)
 %--------------------------------------------------------------------------
-hE(1) = 0;
+% hE(1) = 0;
+% Not very useful. It doesn't really change the final results but slows
+% down the convergence.
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
@@ -164,7 +168,7 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh(as,as),dFdh(as))/log(k + 2);
+    dh    = spm_dx(dFdhh(as,as),dFdh(as))*exp(-k/(K/2));
     h(as) = h(as) + dh;
     
     % Convergence (1% change in log-evidence)
@@ -183,7 +187,6 @@ for k = 1:K
         as  = find(h > -16);
         as  = as(:)';
     end
- 
 end
 
 % log evidence = ln p(y|X,Q) = ReML objective = F = trace(R'*iC*R*YY)/2 ...
