@@ -16,11 +16,13 @@ function [x] = spm_cat(x,d)
 %     0     1     0     0
 %     0     0     1     1
 %     0     0     1     1
+%
+% If called with a dimension argument; a cell array is returned
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_cat.m 1172 2008-02-27 20:14:47Z karl $
  
 % check x is not already a matrix
 %--------------------------------------------------------------------------
