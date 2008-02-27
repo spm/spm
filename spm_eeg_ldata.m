@@ -14,7 +14,7 @@ function D = spm_eeg_ldata(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Stefan Kiebel
-% $Id: spm_eeg_ldata.m 1164 2008-02-22 12:26:36Z karl $
+% $Id: spm_eeg_ldata.m 1175 2008-02-27 20:23:16Z karl $
  
 % check filename
 %--------------------------------------------------------------------------
@@ -36,8 +36,7 @@ try
 catch    
     error(sprintf('Trouble reading file %s', P));
 end
- 
-spm('Pointer', 'Watch');
+
  
 % check whether there is a struct D
 %--------------------------------------------------------------------------
@@ -95,5 +94,4 @@ else
     D.data = file_array(fullfile(Ppath, D.fnamedat), [D.Nchannels D.Nsamples D.Nevents],...
     dtype, 0, D.scale);
 end
- 
-spm('Pointer', 'Arrow');
+

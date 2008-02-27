@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1158 2008-02-20 14:52:08Z guillaume $
+% $Id: spm_eeg_inv_group.m 1175 2008-02-27 20:23:16Z karl $
 
 
 % check if to proceed
@@ -46,12 +46,27 @@ val   = 1;
 % Load data and set method
 %==========================================================================
 for i = 1:Ns
-    [p f]                = fileparts(S(i,:));
+    [p f]                = fileparts(deblank(S(i,:)));
     D{i}                 = spm_eeg_ldata(fullfile(p,f));
     D{i}.path            = p;
-    D{i}.fname           = deblank(f);
-    D{i}.val             = val;
-    D{i}.inv{val}.method = 'Imaging';
+    D{i}.fname           = f;
+    D{i}.val             = 1;
+    D{i}.inv{1}.method = 'Imaging';
+    
+    % clear redundant models
+    %----------------------------------------------------------------------
+    D{i}.inv = D{i}.inv(1);
+    
+    
+    % clear previous inversions
+    %----------------------------------------------------------------------
+    try, D{i}.inv{1} = rmfield(D{i}.inv{1},'inverse' ); end
+    try, D{i}.inv{1} = rmfield(D{i}.inv{1},'contrast'); end
+    
+    % save forward model parameters
+    %----------------------------------------------------------------------
+    spm_eeg_inv_save(D{i})
+    
 end
 
 % Check for existing forward models and consistent Gain matrices
