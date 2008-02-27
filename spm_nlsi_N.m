@@ -68,7 +68,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1163 2008-02-22 12:24:06Z karl $
+% $Id: spm_nlsi_N.m 1173 2008-02-27 20:16:11Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -244,8 +244,7 @@ warning on
 %==========================================================================
 C.F   = -Inf;                                 % free-energy: f(x,u,p)
 C.G   = -Inf;                                 % free-energy: dg/gx
-vp    = -1;                                   % ascent rate: f(x,u,p)
-vc    = -1;                                   % ascent rate: dg/gx
+v     = 0;                                    % ascent rate: f(x,u,p)
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 sw = warning('off','all');
@@ -289,7 +288,7 @@ for ip = 1:64
         dgdc  = [dgdg dgdu];
         dgdb  = [dgdp dgdc];  
  
-        % Optimize h: parameters of iS(h)
+        % Optimize F(h): parameters of iS(h)
         %==================================================================
         for ih = 1:8
  
@@ -332,7 +331,7 @@ for ip = 1:64
             % M-Step: update ReML estimate of h
             %--------------------------------------------------------------
             Ch    = inv(-dFdhh);
-            dh    = Ch*dFdh;
+            dh    = Ch*dFdh/log(2 + ih);
             h     = h  + dh;
  
             % prevent overflow
@@ -345,67 +344,24 @@ for ip = 1:64
  
         end
  
-        
-        % objective function: F(g) (= log-evidence - divergence)
+        % optimise F(g,u)
         %==================================================================
-        F = ...
-        - ey'*iS*ey/2 ...
-        - ep'*ipC*ep/2 ...
-        - eg'*igC*eg/2 ...
-        - eu'*iuC*eu/2 ...
-        - eh'*ihC*eh/2 ...
-        - ns*nr*log(8*atan(1))/2 ...
-        - nq*spm_logdet(S)/2 ...
-        + spm_logdet(ibC*Cb)/2 ...
-        + spm_logdet(ihC*Ch)/2;
-    
- 
-        % if F has increased, update gradients and curvatures for E-Step
+
+        % update gradients and curvature
         %------------------------------------------------------------------
-        if F > C.G
+        dFdc  =  dgdc'*iS*ey   - icC*ec;
+        dFdcc = -dgdc'*iS*dgdc - icC;
 
-            % update gradients and curvature
-            %--------------------------------------------------------------
-            dFdc  =  dgdc'*iS*ey   - icC*ec;
-            dFdcc = -dgdc'*iS*dgdc - icC;
 
-            % decrease regularization
-            %--------------------------------------------------------------
-            vc    = vc + 1/2;
-            vc    = min(max(vc,-6),6);
-
-            % accept current estimates
-            %--------------------------------------------------------------
-            C.Cb  = Cb;
-            C.Eg  = Eg;
-            C.Eu  = Eu;
-            C.h   = h;
-            C.G   = F;
-
-        else
-
-            % reset expansion point
-            %--------------------------------------------------------------
-            Cb    = C.Cb;
-            Eg    = C.Eg;
-            Eu    = C.Eu;
-            h     = C.h;
- 
-            % and increase regularization
-            %--------------------------------------------------------------
-            vc    = vc - 1;
-            
-        end
-        
         % E-Step: Conditional updates of g and u
         %------------------------------------------------------------------
-        dc    = spm_dx(dFdcc,dFdc,{vc});
+        dc    = spm_dx(dFdcc,dFdc)/log(2 + ig);
         dg    = dc([1:ng]);
         du    = dc([1:nu] + ng);
-       
+
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
-        Eu    = spm_unvec(spm_vec(Eu) + du,Eu);
-       
+        Eu    = spm_unvec(spm_vec(Eu) + spm_vec(du),Eu);
+
         % convergence
         %------------------------------------------------------------------
         dG    = dFdc'*dc;
@@ -413,7 +369,7 @@ for ip = 1:64
         
     end
     
-    % objective function: F(p) (= log-evidence - divergence)
+    % optimise objective function: F(p) = log-evidence - divergence
     %======================================================================
     F = ...
         - ey'*iS*ey/2 ...
@@ -438,8 +394,7 @@ for ip = 1:64
 
         % decrease regularization
         %------------------------------------------------------------------
-        vp    = vp + 1/2;
-        vp    = min(max(vp,-6),6);
+        v     = min(v + 1,32);
         str   = 'EM(+)';
  
         % accept current estimates
@@ -463,7 +418,7 @@ for ip = 1:64
  
         % and increase regularization
         %------------------------------------------------------------------
-        vp    = vp - 1;
+        v     = min(v - 2,4);
         str   = 'EM(-)';
  
        
@@ -471,7 +426,7 @@ for ip = 1:64
  
     % Optimize p: parameters of f(x,u,p)
     %======================================================================
-    dp    = spm_dx(dFdpp,dFdp,{vp});
+    dp    = spm_dx(dFdpp,dFdp,{v});
     Ep    = spm_unvec(spm_vec(Ep) + Vp*dp,Ep);
 
      
@@ -481,11 +436,19 @@ for ip = 1:64
  
         % subplot prediction
         %------------------------------------------------------------------
+        try
+            yt = size(yp,1)/length(Y.Time);
+            yt = kron(ones(yt,1),Y.Time(:));
+        catch
+            yt = [1:size(yp,1)]*Y.dt;
+        end
+        
         figure(Fsi)
         subplot(2,1,1)
-        plot([1:size(yp,1)]*Y.dt,yp),                        hold on
-        plot([1:size(yp,1)]*Y.dt,yp + spm_unvec(ey,yp),':'), hold off
+        plot(yt,yp),                        hold on
+        plot(yt,yp + spm_unvec(ey,yp),':'), hold off
         xlabel('time')
+        set(gca,'XLim',[yt(1) yt(end)])
         title(sprintf('%s: %i','E-Step',ip))
         grid on
  

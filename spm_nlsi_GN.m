@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1163 2008-02-22 12:24:06Z karl $
+% $Id: spm_nlsi_GN.m 1173 2008-02-27 20:16:11Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -235,7 +235,7 @@ warning on
 % EM
 %==========================================================================
 C.F   = -Inf;                                   % free energy
-v     = -1;                                     % log ascent rate
+v     = 0;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 for k = 1:128
@@ -345,8 +345,7 @@ for k = 1:128
         
         % decrease regularization
         %------------------------------------------------------------------
-        v     = v + 1/2;
-        v     = min(max(v,-6),6);
+        v     = min(v + 1,32);
         str   = 'EM-(+)';
         
     else
@@ -358,7 +357,7 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        v   = v - 1;
+        v   = min(v - 2,2);
         str = 'EM-(-)';
         
     end

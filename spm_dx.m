@@ -38,7 +38,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 1163 2008-02-22 12:24:06Z karl $
+% $Id: spm_dx.m 1173 2008-02-27 20:16:11Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -47,8 +47,7 @@ if nargin < 3, t = Inf;                        ; end
 % t is a regulariser
 %--------------------------------------------------------------------------
 if iscell(t)
-   t  = min(max(t{:},-6),6);
-   t  = exp(t - log(diag(-dfdx)));
+   t  = exp(t{:} - log(diag(-dfdx)));
 end
 
 
