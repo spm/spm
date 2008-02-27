@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_erp_results.m 1174 2008-02-27 20:22:30Z karl $
 
 
 % get figure handle
@@ -51,6 +51,7 @@ t   = xY.Time;                  % PST
 switch(lower(Action))
 case{lower('Data')}
     try
+        A = [0 0];
         for i = 1:nt
             
             % confounds if specified 
@@ -73,11 +74,9 @@ case{lower('Data')}
                 title(sprintf('Observed response %i',i))
             end
             axis square
-            try
-              axis(A);
-            catch
-              A = axis;
-            end
+            a    = axis;
+            A(1) = min(A(1),a(3));
+            A(2) = max(A(2),a(4));
             
             % image data 
             %--------------------------------------------------------------
@@ -90,7 +89,13 @@ case{lower('Data')}
             catch
                 title(sprintf('Observed response %i',i))
             end
-            
+        end
+        
+        % set axis
+        %------------------------------------------------------------------
+        for i = 1:nt
+            subplot(nt,2,(i - 1)*2 + 1)
+            set(gca,'YLim',A)
         end
     end
     return
@@ -114,7 +119,7 @@ case{lower('ERPs (mode)')}
     % spm_dcm_erp_results(DCM,'ERPs (mode)');
     %----------------------------------------------------------------------
     co = {'b', 'r', 'g', 'm', 'y', 'k'};
-    lo = {'-', '--'};
+    lo = {'-', '--'}; A = [0 0];
     
     for i = 1:nc
         subplot(ceil(nc/2),2,i), hold on
@@ -134,24 +139,25 @@ case{lower('ERPs (mode)')}
         title(sprintf('mode %i',i))
         grid on
         axis square
-        try
-            axis(A);
-        catch
-            A = axis;
-        end
+        a    = axis;
+        A(1) = min(A(1),a(3));
+        A(2) = max(A(2),a(4));
     end
     xlabel('time (ms)')
     legend(str)
     
-    
-case{lower('ERPs (sources)')}
+    % set axis
+    %----------------------------------------------------------------------
+    for i = 1:nc
+        subplot(ceil(nc/2),2,i)
+        set(gca,'YLim',A)
+    end
+
+    case{lower('ERPs (sources)')}
     
     % spm_dcm_erp_results(DCM,'ERPs (sources)');
     %----------------------------------------------------------------------
-    mx = max(max(cat(2, DCM.K{:})));
-    mi = min(min(cat(2, DCM.K{:})));
-    col = {'b','r','g','m','y','c'};
-    
+    col   = {'b','r','g','m','y','c'}; A = [0 0];
     for i = 1:ns
         str   = {};
         for j = 1:np
@@ -169,15 +175,23 @@ case{lower('ERPs (sources)')}
                 str{end + 1} = sprintf('trial %i (pop. %i)',k,j);
             end
         end
-        set(gca, 'YLim', [mi mx], 'XLim', [t(1) t(end)]);
         hold off
         title(DCM.Sname{i})
         grid on
         axis square
+        a    = axis;
+        A(1) = min(A(1),a(3));
+        A(2) = max(A(2),a(4));
     end
     xlabel('time (ms)')
     legend(str)
     
+    % set axis
+    %----------------------------------------------------------------------
+    for i = 1:ns
+        subplot(ceil(ns/2),2,i)
+        axis([t(1) t(end) A(1) A(2)]);
+    end
     
 case{lower('Coupling (A)')}
     
@@ -339,21 +353,28 @@ case{lower('Input')}
     % plot data
     % ---------------------------------------------------------------------
     xU    = DCM.xU;
-    tU    = 0:xU.dt:xU.dur;
-    [U N] = spm_erp_u(tU,DCM.Ep,DCM.M);
+    tU    = (DCM.xY.Time - DCM.xY.Time(1))/1000;
+    U     = spm_erp_u(tU,DCM.Ep,DCM.M);
 
     subplot(2,1,1)
-    plot(t,U,t,N,':')
+    plot(t,U)
     xlabel('time (ms)')
     title('input')
     axis square, grid on
     for i = 1:length(DCM.M.ons)
         str{i} = sprintf('input (%i)',i);
     end
-    str{end + 1} = 'nonspecific';
     legend(str)
     
 case{lower('Response')}
+    
+    % get spatial projector
+    % ---------------------------------------------------------------------
+    try
+        U = DCM.M.E';
+    catch
+        U = 1;
+    end
     
     % plot data
     % ---------------------------------------------------------------------
@@ -361,7 +382,7 @@ case{lower('Response')}
         A     = [];
         for i = 1:nt
             subplot(nt,2,2*i - 1)
-            plot(t,DCM.Hc{i} + DCM.Rc{i})
+            plot(t,(DCM.H{i} + DCM.R{i})*U)
             xlabel('time (ms)')
             try
                 title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
@@ -371,7 +392,7 @@ case{lower('Response')}
             A(end + 1,:) = axis;
 
             subplot(nt,2,2*i - 0)
-            plot(t,DCM.Hc{i})
+            plot(t,DCM.H{i}*U)
             xlabel('time (ms)')
             title('Predicted')
             A(end + 1,:) = axis;
@@ -392,12 +413,21 @@ case{lower('Response')}
     
 case{lower('Response (image)')}
     
+    % get spatial projector
+    % ---------------------------------------------------------------------
+    try
+        U = DCM.M.E';
+    catch
+        U = 1;
+    end
+   
+    
     % plot data
     % ---------------------------------------------------------------------
     try
         for i = 1:nt
             subplot(nt,2,2*i - 1)
-            imagesc([1:ne],t,DCM.Hc{i} + DCM.Rc{i})
+            imagesc([1:ne],t,(DCM.H{i} + DCM.R{i})*U)
             xlabel('time (ms)')
             try
                 title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
@@ -407,7 +437,7 @@ case{lower('Response (image)')}
             axis square, grid on, A = axis;
 
             subplot(nt,2,2*i - 0)
-            imagesc([1:ne],t,DCM.Hc{i})
+            imagesc([1:ne],t,DCM.H{i}*U)
             xlabel('time (ms)')
             title('Predicted')
             axis(A); axis square, grid on
@@ -416,23 +446,35 @@ case{lower('Response (image)')}
 
 case{lower('Dipoles')}
     
+    
+    % return if LFP
+    % ---------------------------------------------------------------------
+    if strcmp(lower(DCM.xY.modality),'lfp')
+        warndlg('There are no ECDs for these LFP data')
+        return
+    end
+    
     % plot dipoles
     % ---------------------------------------------------------------------
     try
-        P            = DCM.Eg;   
-        np           = size(P.Lmom,2)/size(P.Lpos,2);
+        P            = DCM.Eg;
+        P.L          = spm_cat(P.L);
+        np           = size(P.L,2)/size(P.Lpos,2);
         sdip.n_seeds = 1;
         sdip.n_dip   = np*ns;
         sdip.Mtb     = 1;
-        sdip.j{1}    = full(P.Lmom);
+        sdip.j{1}    = full(P.L);
         sdip.j{1}    = sdip.j{1}(:);
         sdip.loc{1}  = kron(ones(1,np),full(P.Lpos));
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
+        
     catch
         warndlg('use the render API button to view results')
         return
     end
     
 case{lower('Spatial overview')}
+    try
         spm_dcm_erp_viewspatial(DCM)
+    end
 end

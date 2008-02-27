@@ -28,24 +28,15 @@ function [y] = spm_gx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_lfp.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_gx_lfp.m 1174 2008-02-27 20:22:30Z karl $
 
 
-% get dimensions and configure state variables
+% configure state variables
 %--------------------------------------------------------------------------
-n  = length(P.A{1});
-x  = reshape(x,n,13);
+x  = spm_unvec(x,M.x);
 
-% parameterised lead field ECD (pre-multiplied by projector M.E)
+% parameterised lead field
 %--------------------------------------------------------------------------
-if isfield(P,'Lpos')
-    L = spm_erp_L(P,M);
-else
-    L = P.L;
-end
-try
-    y = L*x*P.M;
-catch
-    y = L*x(:,9);
-end
+L  = spm_erp_L(P,M);
+y  = L*x*P.J;
 

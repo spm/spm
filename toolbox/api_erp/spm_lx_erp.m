@@ -12,7 +12,7 @@ function [L] = spm_lx_erp(P,M)
 %   x(:,8) - current (inhibitory interneurons) depolarizing
 %   x(:,9) - voltage (pyramidal cells)
 %
-% G        - y = G*x
+% G        - where y = G*x; G = dy/dx
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -20,12 +20,6 @@ function [L] = spm_lx_erp(P,M)
 %__________________________________________________________________________
 % %W% Karl Friston %E%
 
-% get pyramidal cell indices in x
+% parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------
-n      = length(M.pE.A{1});
-i      = [1:n] + M.n - n;
-
-% parameterised lead field ECD
-%--------------------------------------------------------------------------
-L      = sparse(M.l,M.n);
-L(:,i) = spm_erp_L(P,M);
+L = kron(P.J,spm_erp_L(P,M));

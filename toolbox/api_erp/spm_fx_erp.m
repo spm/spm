@@ -1,7 +1,7 @@
-function [f,J,D] = spm_fx_erp(x,u,P,M)
+function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % state equations for a neural mass model of erps
 % FORMAT [f,J,D] = spm_fx_erp(x,u,P,M)
-% FORMAT [f,D*J] = spm_fx_erp(x,u,P,M)
+% FORMAT [f,J]   = spm_fx_erp(x,u,P,M)
 % FORMAT [f]     = spm_fx_erp(x,u,P,M)
 % x      - state vector
 %   x(:,1) - voltage (spiny stellate cells)
@@ -14,13 +14,10 @@ function [f,J,D] = spm_fx_erp(x,u,P,M)
 %   x(:,8) - current (inhibitory interneurons) depolarizing
 %   x(:,9) - voltage (pyramidal cells)
 %
-% NB: the first state is actually time but this hidden here.
-%
 % f        - dx(t)/dt  = f(x(t))
 % J        - df(t)/dx(t)
-% D        - delay operator dx(t)/dt = f(x(t + d))
+% D        - delay operator dx(t)/dt = f(x(t - d))
 %                                    = D(d)*f(x(t))
-% D*J      - delay Jacobian          = df(t + d)/dx(t)
 %
 % Prior fixed parameter scaling [Defaults]
 %
@@ -34,51 +31,33 @@ function [f,J,D] = spm_fx_erp(x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%__________________________________________________________________________
-% %W% Karl Friston %E%
+%___________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_fx_erp.m 1174 2008-02-27 20:22:30Z karl $
 
-% check input u = f(t,P,M)
-%--------------------------------------------------------------------------
-try
-    fu  = M.fu;
-catch
-    fu  = 'spm_erp_u';
-end
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-t     = x(1);                       % peristimulus time (sec)
-x     = x(2:end);                   % neuronal states
-m     = length(u);                  % number of inputs
-n     = length(P.A{1});             % number of sources
-x     = reshape(x,n,9);             % neuronal states
-
-% dfdx = [] if t exceeds trial duration (invoking a return to initial state)
-%--------------------------------------------------------------------------
-if nargout == 1 & (t - M.dur) > 1e-6, f = []; return, end
-
-% effective extrinsic connectivity
-%--------------------------------------------------------------------------
-for i = 1:m
-      P.A{1} = P.A{1} + u(i)*P.B{i};              % forward  connections
-      P.A{2} = P.A{2} + u(i)*P.B{i};              % backward connections
-      P.A{3} = P.A{3} + u(i)*P.B{i};              % lateral  connections
-end
+n  = length(P.A{1});             % number of sources
+x  = reshape(x,n,9);             % neuronal states
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
-G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
-D = [2 32];              % propogation delays (intrinsic, extrinsic)
-H = [4 32];              % receptor densities (excitatory, inhibitory)
-T = [8 16];              % synaptic constants (excitatory, inhibitory)
-R = [2 1]/3;             % parameters of static nonlinearity
+E  = [32 16 4];           % extrinsic rates (forward, backward, lateral)
+G  = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
+D  = [2 32];              % propogation delays (intrinsic, extrinsic)
+H  = [4 32];              % receptor densities (excitatory, inhibitory)
+T  = [8 16];              % synaptic constants (excitatory, inhibitory)
+R  = [2 1]/3;             % parameters of static nonlinearity
 
 % test for free parameters on intrinsic connections
 %--------------------------------------------------------------------------
-G      = ones(n,1)*G;
-try, G = G.*exp(P.G); end
-
+G     = ones(n,1)*G;
+try
+    G = G.*exp(P.G);
+end
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
@@ -92,10 +71,6 @@ C     = exp(P.C);
 Te    = T(1)/1000*exp(P.T);           % excitatory time constants
 Ti    = T(2)/1000;                    % inhibitory time constants
 Hi    = H(2);                         % inhibitory receptor density
-
-for i = 1:m
-    P.H = P.H + u(i)*diag(P.B{i});    % modulation of
-end
 He    = H(1)*exp(P.H);                % excitatory receptor density
 
 % pre-synaptic inputs: s(V)
@@ -104,16 +79,13 @@ R     = R.*exp(P.S);
 S     = 1./(1 + exp(-R(1)*(x - R(2)))) - 1./(1 + exp(R(1)*R(2)));
 dSdx  = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
 
-% input
-%--------------------------------------------------------------------------
-[U N] = feval(fu,t,P,M);
-U     = C*U;
-try
-    U = U + C*N;
-end
+% exogenous input
+%==========================================================================
+U     = C*u(:);
+
 
 % State: f(x)
-%===========================================================================
+%==========================================================================
 
 % Supragranular layer (inhibitory interneurons): Voltage & depolarizing current
 %--------------------------------------------------------------------------
@@ -139,11 +111,10 @@ f(:,6) = (Hi*G(:,4).*S(:,7) - 2*x(:,6) - x(:,3)/Ti)/Ti;
 %--------------------------------------------------------------------------
 f(:,9) = x(:,5) - x(:,6);
 
-% augment with time
-%--------------------------------------------------------------------------
-f      = [1; f(:)];
+f      = f(:);
 
-if nargout == 1, return, end
+if nargout == 1; return, end
+
 
 % Jacobian: J = df(x)/dx
 %===========================================================================
@@ -190,30 +161,35 @@ E  = diag(G(:,4).*dSdx(:,7));
 E  = Hi*E/Ti;
 S  = sparse(6,7,1,9,9); J = J + kron(S,E);
 
-% augment with time
-%--------------------------------------------------------------------------
-J  = blkdiag(0,J);
+if nargout == 2; return, end
+
 
 % delays
 %==========================================================================
+% Delay differential equations can be integrated efficiently (but 
+% approximately) by absorbing the delay operator into the Jacobian
+%
+%    dx(t)/dt     = f(x(t - d))
+%                 = Q(d)f(x(t))
+%
+%    J(d)         = Q(d)df/dx
+%--------------------------------------------------------------------------
 De = D(2).*exp(P.D)/1000;
 Di = D(1)/1000;
 De = (speye(n,n) - 1).*De;
 Di = (speye(9,9) - 1)*Di;
 De = kron(ones(9,9),De);
 Di = kron(Di,speye(n,n));
-
 D  = Di + De;
-D  = blkdiag(0,D);
 
-% Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
-%                     = D*f = D*J*x(t)
-%--------------------------------------------------------------------------
-D  = inv(speye(length(J)) - D.*J);
 
-% augment f or J with delay operator, if D is not requested explicitly
+% Implement: dx(t)/dt = f(x(t - d)) = inv(1 - D.*dfdx)*f(x(t))
+%                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-if nargout == 2, J = D*J; end
+Q  = inv(speye(length(J)) - D.*J);
+
+
+
 
 
 

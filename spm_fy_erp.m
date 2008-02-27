@@ -6,17 +6,27 @@ function [f] = spm_fy_erp(y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fy_erp.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_fy_erp.m 1174 2008-02-27 20:22:30Z karl $
 
 % projectors
 %--------------------------------------------------------------------------
 try, M.E; catch, M.E = 1; end      % spatial
 try, M.S; catch, M.S = 1; end      % temporal
 
-% projection
+% spatial (E) and temporal (S) projection
 %--------------------------------------------------------------------------
-try
-    f = M.S'*y*M.E;
-catch
-    f = M.E*y*M.S';
+if isnumeric(y)
+    try
+        f = M.S'*y*M.E;
+    catch
+        f = M.E*y*M.S';
+    end
+else
+    for i = 1:length(y)
+        try
+            f{i} = M.S'*y{i}*M.E;
+        catch
+            f{i} = M.E*y{i}*M.S';
+        end
+    end
 end

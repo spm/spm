@@ -20,7 +20,7 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
 % spatial parameters
 %--------------------------------------------------------------------------
 %    gE.Lpos - position                   - ECD
-%    gE.Lmon - moment (orientation)       - ECD
+%    gE.L    - moment (orientation)       - ECD
 %
 % or gE.L    - coeficients of local modes - Imaging
 %    gE.L    - gain of electrodes         - LFP
@@ -52,7 +52,7 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erpsymm_priors.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_erpsymm_priors.m 1174 2008-02-27 20:22:30Z karl $
 
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -61,14 +61,42 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
-if nargin < 4, dipfit.type = 'LFP'; end
-if nargin < 5, u = 1;               end
+if nargin < 5, u = 1; end
 
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
 n     = size(C,1);                                 % number of sources
 n1    = ones(n,1);
+
+% paramters for electromagnetic forward model
+%==========================================================================
+try,   type = dipfit.type; catch, type = 'LFP'; end
+switch type
+    
+    case{'ECD (EEG)','ECD (MEG)'}
+    %----------------------------------------------------------------------
+    G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % positions
+    G.L    = sparse(3,n);   U.L    = 256*ones(3,n);    % orientations
+
+    case{'Imaging'}
+    %----------------------------------------------------------------------
+    m      = dipfit.Nm;
+    G.L    = sparse(m,n);   U.L    =  16*ones(m,n);    % modes
+    
+    case{'LFP'}
+    %----------------------------------------------------------------------
+    G.L    = ones(1,n);     U.L    = 256*ones(1,n);    % gains
+    
+end
+
+% source contribution to ECD
+%--------------------------------------------------------------------------
+G.J   = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);
+U.J   = G.J/128;
+
+% parameters for neural-mass forward model
+%==========================================================================
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
@@ -79,25 +107,6 @@ E.H   = log(n1);        V.H = n1/8;                % synaptic density
 %--------------------------------------------------------------------------
 E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 
-% paramters for electromagnetic forward model
-%--------------------------------------------------------------------------
-switch dipfit.type
-    
-    case{'ECD (EEG)','ECD (MEG)'}                  % *** switch off Lpos ***
-    %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % dipole positions
-    G.Lmom = sparse(3,n);   U.Lmom = 256*ones(3,n);    % dipole orientations
-
-    case{'Imaging'}
-    %----------------------------------------------------------------------
-    m      = dipfit.Nm;
-    G.L    = sparse(m,n);   U.L    =  16*ones(m,n);    % dipole modes
-    
-    case{'LFP'}
-    %----------------------------------------------------------------------
-    G.L    = ones(1,n);     U.L    = 256*ones(1,n);    % gains
-    
-end
 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
@@ -121,14 +130,9 @@ V.C        = exp(E.C)/32;
 E.D        = sparse(n,n);
 V.D        = Q/8;
 
-% set stimulus parameters: magnitude, onset and dispersion
+% set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
-E.R        = sparse(1,1,1,u,3);  V.R   = ones(u,1)*[1 1/16 1/16];
-
-% background fluctuations - *** switch off ***
-%--------------------------------------------------------------------------
-n          = 1;
-% E.N      = ones(n,1)*[0 0 10]; V.N   = ones(n,3); % amplitude and Hz
+E.R        = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
 
 warning on
 
@@ -137,17 +141,19 @@ warning on
 if nargout == 4
     varargout{1} = E;
     varargout{2} = G;
+    
     % replace covariance matrices by carfully constructed input
+    %----------------------------------------------------------------------
     varargout{3} = ppC;
     varargout{4} = pgC;
     return
 else
-    switch dipfit.type
+    switch type
 
         case{'ECD (EEG)','ECD (MEG)'}
             %--------------------------------------------------------------
             E.Lpos  = G.Lpos;
-            E.Lmom  = G.Lmom;
+            E.L     = G.L;
             C       = diag(sparse(spm_vec(V,U)));
 
         case{'Imaging','LFP'}
@@ -165,52 +171,3 @@ if nargout == 2
     varargout{2} = C;
     return
 end
-
-
-% Model specification
-%==========================================================================
-M.IS          = 'spm_int_U';
-M.f           = 'spm_fx_erp';
-M.g           = 'spm_gx_erp';
-M.x           = sparse(n*9 + 1,1);
-M.pE          = E;
-M.pC          = C;
-M.m           = length(B);
-M.n           = length(M.x);
-M.l           = n;
-M.ns          = 128;
-M.dur         = 1;
-M.ons         = 80;
-M.dipfit.type = 'LFP';
-
-if nargout == 1, varargout{1} = M; return, end
-
-% compute impulse response
-%--------------------------------------------------------------------------
-clear U
-U.dt    = 1/1000;
-M.ns    = 256;
-y       = feval(M.IS,M.pE,M,U);
-plot([1:M.ns]*U.dt*1000,y)
-
-
-return
-
-% demo for log-normal pdf
-%--------------------------------------------------------------------------
-x    = [1:64]/16;
-for i = [2 16 128]
-    v = 1/i;
-    p = 1./x.*exp(-log(x).^2/(2*v))/sqrt(2*pi*v);
-    plot(x,p)
-    text(x(16),p(16),sprintf('variance = 1/%i',1/v))
-    hold on
-end
-xlabel('scaling')
-ylabel('density')
-grid on
-hold off
-axis square
-
-
-

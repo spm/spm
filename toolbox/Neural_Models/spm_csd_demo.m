@@ -18,28 +18,17 @@ nc    = 2; % number of channels
 A{1}  = tril(ones(n,n),-1);                % a forward connection
 A{2}  = triu(ones(n,n),+1);                % a backward connection
 A{3}  = sparse(n,n);                       % lateral connections
-for i = 1:n
-    B{i} = sparse(n,n);                    % input-specific modulation
-end                                        % not used in this context
+B     = {};                                % trial-specific modulation
 C     = speye(n,n);                        % sources receiving innovations
- 
- 
-% mixture of states subtending LFP(EEG) from each source
-%--------------------------------------------------------------------------
-H     = sparse(9,1,1,13,1);
- 
-% mixture of sources subtending LFP(EEG); c.f., a lead field
-%--------------------------------------------------------------------------
-L     = speye(nc,n);
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(A,B,C,L,H);
+[pE,pC] = spm_lfp_priors(A,B,C);
  
 % create LFP model
 %--------------------------------------------------------------------------
 M.IS  = 'spm_lfp_mtf';
-M.FS  = 'spm_lfp_log';
+M.FS  = 'spm_lfp_sqrt';
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_lfp';
 M.x   = sparse(n,13);
@@ -66,7 +55,7 @@ N     = 512;
 U.dt  = 8/1000;
 U.u   = randn(N,M.m)/16;
 U.u   = sqrt(spm_Q(1/16,N))*U.u;
-LFP   = spm_int_J(P,M,U);
+LFP   = spm_int_L(P,M,U);
  
 % and estimate spectral features under a MAR model
 %--------------------------------------------------------------------------
@@ -84,6 +73,11 @@ plot(M.Hz,abs(CSD(:,1,1)),M.Hz,abs(CSD(:,1,2)),':')
 xlabel('frequency')
 title('[cross]-spectral density')
 axis square
+
+
+% re-scale
+%--------------------------------------------------------------------------
+CSD    = spm_cond_units({CSD});
  
  
 % inversion (in frequency space)
@@ -92,8 +86,7 @@ axis square
 % data and confounds
 %--------------------------------------------------------------------------
 Y.y    = CSD;
-nf     = size(Y.y,1);                     % number of frequency bins
-Y.X0   = ones(nc*nc*nf,1);                % confounds (mean in log space)
+nf     = size(Y.y{1},1);                  % number of frequency bins
 Y.Q    = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
  
 % invert
@@ -106,11 +99,10 @@ Y.Q    = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
 %==========================================================================
 [G w] = spm_lfp_mtf(Ep,M);
  
-% detrend
-%------------------------------------------------------------------
-g = spm_unvec(exp(spm_detrend(log(spm_vec(G)))),G);
-y = spm_unvec(exp(spm_detrend(log(spm_vec(Y.y)))),G);
-        
+% plot
+%--------------------------------------------------------------------------
+g = G{1};
+y = CSD{1};
 for i = 1:nc
     for j = 1:nc
         

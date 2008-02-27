@@ -2,23 +2,23 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % prepares structures for ECD forward model (both EEG and MEG)
 % FORMAT DCM = spm_dcm_erp_dipfit(DCM)
 % requires:
-% 
+%
 % needs:
 %       DCM.xY.Dfile
 %       DCM.xY.Ic
 %       DCM.Lpos
-%       DCM.options.type
-%       DCM.M.dipfit.sensorfile - 'ECD'
-%
+%       DCM.options.type        - 1 - ECD
+%                               - 2 - imaging
+%       DCM.M.dipfit.sensorfile - (for ECD models)
 % fills in:
-%       
+%
 %       DCM.M.dipfit.type       - 'ECD (EEG)','ECD (MEG)','Imaging','LFP'
 %       DCM.M.dipfit. ...
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_erp_dipfit.m 1174 2008-02-27 20:22:30Z karl $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -30,17 +30,34 @@ catch
     error('')
 end
 
-% Get source locations
+% D - SPM data structure
 %--------------------------------------------------------------------------
-try
-    DCM.M.dipfit.L.pos = DCM.Lpos;
-catch
-    try
-        DCM.Lpos = DCM.M.dipfit.L.pos;
-    catch
-        errordlg({'Please specify source locations',...
-                  'in DCM.Lpos'})
-    end
+D   = spm_eeg_ldata(DCM.xY.Dfile);
+
+% Get source locations if MEG or EEG
+%--------------------------------------------------------------------------
+switch D.modality
+
+    % get source priors for EEG or MEG
+    %----------------------------------------------------------------------
+    case{'EEG','MEG'}
+        try
+            DCM.M.dipfit.L.pos = DCM.Lpos;
+        catch
+            try
+                DCM.Lpos = DCM.M.dipfit.L.pos;
+            catch
+                errordlg({'Please specify source locations','in DCM.Lpos'})
+            end
+        end
+        
+    % othrerwise assume LFP
+    %----------------------------------------------------------------------
+    otherwise
+        
+        DCM.M.dipfit.type  = 'LFP';
+        DCM.M.dipfit.L     = 1;
+        return
 end
 
 
@@ -55,105 +72,114 @@ end
 %==========================================================================
 
 
-% D - SPM data structure
-%==========================================================================
-D       = spm_eeg_ldata(DCM.xY.Dfile);
-
 switch DCM.options.type
 
-    % EEG - ECD
-    %----------------------------------------------------------------------
+    % ECD model
+    %======================================================================
     case 1
-    if strcmp(D.modality,'EEG')
 
-        % try to get sen_reg and fid_reg from D.inv
-        %------------------------------------------------------------------
-        try
-            sen_reg = D.inv{1}.datareg.sens_coreg;
-            fid_reg = D.inv{1}.datareg.fid_coreg;
-        catch
-
-            % Get sensor file
+        switch D.modality
+            
+            % ECD - EEG
             %--------------------------------------------------------------
-            try
-                sensorfile = DCM.M.dipfit.sensorfile;
-            catch
-                [f,p]      = uigetfile({'*.mat;*.pol'},'select sensor file');
-                sensorfile = fullfile(p,f);
-                DCM.M.dipfit.sensorfile = sensorfile;
-            end
+            case{'EEG'}
 
-            % Polyhmus file
-            %--------------------------------------------------------------
-            if strcmpi('pol', spm_str_manip(sensorfile, 'e'))
-                
-                % returns coordinates of fiducials and sensors (filenames)
-                % coordinates are in CTF coordinate system
+                % try to get sen_reg and fid_reg from D.inv
                 %----------------------------------------------------------
-                [fid, sens] = spm_eeg_inv_ReadPolhemus(sensorfile, Pol_skip);
-                
-            else
- 
-                % mat-file must contain 2 matrices with fid and sensor coordinates
+                try
+                    sen_reg = D.inv{1}.datareg.sens_coreg;
+                    fid_reg = D.inv{1}.datareg.fid_coreg;
+                catch
+
+                    % Get sensor file
+                    %------------------------------------------------------
+                    try
+                        sensorfile = DCM.M.dipfit.sensorfile;
+                    catch
+                        [f,p]      = uigetfile({'*.mat;*.pol'},'select sensor file');
+                        sensorfile = fullfile(p,f);
+                        DCM.M.dipfit.sensorfile = sensorfile;
+                    end
+
+                    % Polyhmus file
+                    %------------------------------------------------------
+                    if strcmpi('pol', spm_str_manip(sensorfile, 'e'))
+
+                        % returns coordinates of fiducials and sensors
+                        % coordinates are in CTF coordinate system
+                        %--------------------------------------------------
+                        [fid, sens] = spm_eeg_inv_ReadPolhemus(sensorfile, Pol_skip);
+
+                    else
+
+                        % mat-file with fid and sensor coordinates
+                        %--------------------------------------------------
+                        tmp  = load(sensorfile, '-mat');
+                        fid  = tmp.fid;
+                        sens = tmp.sens;
+                    end
+
+                    % Use approximated MRI fiducials (MNI space)... for now
+                    %------------------------------------------------------
+                    mni_fid = [[0   86 -42];...
+                        [-84 -18 -55];...
+                        [ 84 -18 -55]];
+
+
+                    % EEG coordinates in MNI space
+                    % coregistration between EEG and MRI fiducials
+                    %------------------------------------------------------
+                    [eeg2mri,sen_reg,fid_reg] = ...
+                        spm_eeg_inv_datareg(sens, fid, mni_fid);
+
+                    try
+                        Ic = DCM.M.dipfit.Ic;
+                    catch
+                        D  = spm_eeg_ldata(DCM.xY.Dfile);
+                        Ic = setdiff(D.channels.eeg, D.channels.Bad);
+                        DCM.M.dipfit.Ic = Ic;
+                    end
+                    sen_reg  = sen_reg(Ic, :);
+
+                end
+
+                % evaluate dipfit and save in M
                 %----------------------------------------------------------
-                tmp  = load(sensorfile, '-mat');
-                fid  = tmp.fid;
-                sens = tmp.sens;
-            end
+                DCM.M.dipfit       = spm_dipfit(DCM.M.dipfit,sen_reg,fid_reg);
+                DCM.M.dipfit.type  = 'ECD (EEG)';
 
-            % Use approximated MRI fiducials (MNI space)... for now
+
+
+            % MEG - ECD
             %--------------------------------------------------------------
-            mni_fid = [[0   86 -42];...
-                      [-84 -18 -55];...
-                      [ 84 -18 -55]];
+            case{'MEG'}
 
 
-            % EEG coordinates in MNI space
-            % coregistration between EEG and MRI fiducials
+                % not much to do because the sensors location/orientations were
+                % already read at the time of conversion.
+                %----------------------------------------------------------
+                DCM.M.dipfit.vol.r = [85];
+                DCM.M.dipfit.vol.o = [0 0 0];
+
+                % done by coreg during source reconstruction
+                %----------------------------------------------------------
+                try
+                    DCM.M.grad         = D.inv{1}.datareg.grad_coreg;
+                catch
+                    DCM.M.grad         = D.channels.grad;
+                end
+                DCM.M.dipfit.type  = 'ECD (MEG)';
+
+            % LFP - ECD
             %--------------------------------------------------------------
-            [eeg2mri,sen_reg,fid_reg] = spm_eeg_inv_datareg(sens, fid, mni_fid);
-
-            try
-                Ic = DCM.M.dipfit.Ic;
-            catch
-                D  = spm_eeg_ldata(DCM.xY.Dfile);
-                Ic = setdiff(D.channels.eeg, D.channels.Bad);
-                DCM.M.dipfit.Ic = Ic;
-            end
-            sen_reg  = sen_reg(Ic, :);
-
+            case{'LFP'}
+                
+                DCM.M.dipfit.type  = 'LFP';
+                DCM.M.dipfit.L     = 1;
         end
 
-        % evaluate dipfit and save in M
-        %------------------------------------------------------------------
-        DCM.M.dipfit       = spm_dipfit(DCM.M.dipfit,sen_reg,fid_reg);
-        DCM.M.dipfit.type  = 'ECD (EEG)';
-    
-
-
-    % MEG - ECD
-    %----------------------------------------------------------------------
-    else
-
-        % not much to do because the sensors location/orientations were
-        % already read at the time of conversion.
-        %------------------------------------------------------------------
-        DCM.M.dipfit.vol.r = [85];
-        DCM.M.dipfit.vol.o = [0 0 0];
-        
-        % done by coreg during source reconstruction
-        %------------------------------------------------------------------
-        try
-            DCM.M.grad         = D.inv{1}.datareg.grad_coreg;            
-        catch
-            DCM.M.grad         = D.channels.grad;
-        end
-        DCM.M.dipfit.type  = 'ECD (MEG)';
-                
-    end
-        
     % Imaging (distributed source reconstruction)
-    %----------------------------------------------------------------------
+    %======================================================================
     case 2
 
         % Load Gain or Lead field matrix
@@ -173,7 +199,7 @@ switch DCM.options.type
             L       = spm_cond_units(L);
         catch
             errordlg({'Please create and save a foward model',...
-                      'using spm_eeg_inv_imag_api'})
+                'using spm_eeg_inv_imag_api'})
             error('')
         end
 
@@ -199,10 +225,10 @@ switch DCM.options.type
         vert   = D.inv{D.val}.mesh.tess_mni.vert;
         for i  = 1:Np
             Dp = sum([vert(:,1) - xyz(1,i), ...
-                           vert(:,2) - xyz(2,i), ...
-                           vert(:,3) - xyz(3,i)].^2,2);
-                       
-                           
+                vert(:,2) - xyz(2,i), ...
+                vert(:,3) - xyz(3,i)].^2,2);
+
+
             % nearest mesh points
             %--------------------------------------------------------------
             Ip = find(Dp < rad^2);
@@ -210,7 +236,7 @@ switch DCM.options.type
                 [y,Ip] = sort(Dp);
                 Ip     = Ip(1:Nm);
             end
-            
+
 
             % left hemisphere
             %--------------------------------------------------------------
@@ -294,7 +320,8 @@ return
 %==========================================================================
 function x = d_elc_sphere(x, elc, r)
 
-% returns sum of squares of distances between sensors elc and sphere.
+% returns sum of squares of distances between sensors elc and sphere
+%--------------------------------------------------------------------------
 Nelc = size(elc, 1);
 d    = sqrt(sum((elc - repmat(x, Nelc, 1)).^2, 2));
 x    = sum((d - r).^2);

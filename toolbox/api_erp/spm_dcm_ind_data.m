@@ -19,7 +19,7 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.xY.pst     - Peristimulus Time [ms] of time-frequency data
 %    DCM.xY.dt      - sampling in seconds
 %    DCM.xY.y       - concatenated induced response over sources
-%    DCM.xY.xf      - induced response over sourcese
+%    DCM.xY.xf      - induced response over sources
 %    DCM.xY.It      - Indices of time bins
 %    DCM.xY.Ic      - Indices of good channels
 %    DCM.xY.Hz      - Frequency bins (for Wavelet transform)
@@ -28,11 +28,20 @@ function DCM = spm_dcm_ind_data(DCM)
 %    DCM.xY.Nm      - number of frequency modes
 %    DCM.xY.U       - Frequnecy modes
 %    DCM.xY.S       - and their singular values
+%
+%    DCM.xY.y{i}(k,l)    = l-th region X frequency mode (fast over regions)
+%                          k-th time-bin
+%                          i-th trial
+%
+%    DCM.xY.xf{i,j}(k,l) = l-th frequnecy mode
+%                          k-th time-bin
+%                          j-th region
+%                          i-th trial
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ind_data.m 1174 2008-02-27 20:22:30Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -145,6 +154,7 @@ DCM.xY.Hz  = Hz1:HzD:Hz2;              % Frequencies
 DCM.xY.Nm  = Nm;                       % number of frequency modes
 dt         = 1000/D.Radc;              % sampling interval (ms)
 Nf         = length(DCM.xY.Hz);        % number of frequencies
+Nr         = size(DCM.C,1);            % number of sources
 Ne         = length(trial);            % number of ERPs
 Nm         = DCM.xY.Nm;                % number of frequency modes
 
@@ -152,11 +162,13 @@ Nm         = DCM.xY.Nm;                % number of frequency modes
 %==========================================================================
 try
     if size(DCM.xY.xf,1) == Ne;
-        if size(DCM.xY.xf,2) == Nm;
+        if size(DCM.xY.xf,2) == Nr;
             if size(DCM.xY.xf{1},1) == Nb;
-                if size(DCM.xY.U,1) == length(DCM.xY.Hz)
-                    DCM.xY.y  = spm_cat(DCM.xY.xf);
-                    return
+                if size(DCM.xY.xf{1},2) == Nm;
+                    if size(DCM.xY.U,1) == length(DCM.xY.Hz)
+                        DCM.xY.y = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
+                        return
+                    end
                 end
             end
         end
@@ -193,7 +205,7 @@ mom    = [1  0  0;
           0  0  1];
 Ng     = size(mom,2);                  % number of moments per source
 Nr     = size(pos,2);                  % number of sources
-G.Lmom = kron(ones(1,Nr),mom);
+G.L    = kron(ones(1,Nr),mom);
 G.Lpos = kron(pos,ones(1,Ng));
 L      = spm_erp_L(G,DCM.M);
 MAP    = pinv(L);
@@ -258,25 +270,21 @@ end
 
 % find frequency modes (over time and sources)
 %--------------------------------------------------------------------------
-[Yz scale] = spm_cond_units(Yz);
-Mz         = spm_unvec(spm_vec(Mz)*scale,Mz);
 Y          = spm_cat(Yz(:));
 [U S]      = spm_svd(Y'*Y,0);
 U          = U(:,1:Nm);
 
-% project time-frequnecy data onto modes
+% project time-frequency data onto modes
 %--------------------------------------------------------------------------
-DCM.xY.xf = cell(Ne,Nm);
+DCM.xY.xf = cell(Ne,Nr);
 for i = 1:Ne
     for j = 1:Nr
-        xf{j} = Yz{i,j}*U;
+        DCM.xY.xf{i,j} = Yz{i,j}*U;
     end
-    DCM.xY.xf(i,:) = spm_cell_swap(xf)';
 end
-DCM.xY.y    = spm_cat(DCM.xY.xf);
+DCM.xY.y    = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
 DCM.xY.U    = U;
 DCM.xY.S    = S;
-DCM.xY.Mz   = Mz;
 DCM.xY.code = D.events.code(trial);
 
 

@@ -12,12 +12,13 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.options.han     - hanning
 %    
 % sets
-%    DCM.xY.modality - 'MEG' or 'EEG'
+%    DCM.xY.modality - 'MEG','EEG' or 'LFP'
 %    DCM.xY.Time     - Time [ms] of down-sampled data
 %    DCM.xY.dt       - sampling in seconds
-%    DCM.xY.y        - concatenated response
-%    DCM.xY.It       - Indices of time bins
-%    DCM.xY.Ic       - Indices of good channels
+%    DCM.xY.y        - response variable for DCM
+%    DCM.xY.xy       - cell array of trial-speficic response {[ns x nc]}
+%    DCM.xY.It       - Indices of (ns) time bins
+%    DCM.xY.Ic       - Indices of (nc) good channels
 %
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
@@ -25,7 +26,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_erp_data.m 1174 2008-02-27 20:22:30Z karl $
  
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -96,10 +97,10 @@ try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    T1      = DCM.options.Tdcm(1);
-    T2      = DCM.options.Tdcm(2);
-    [i, T1] = min(abs(DCM.xY.Time - T1));
-    [i, T2] = min(abs(DCM.xY.Time - T2));
+    T1          = DCM.options.Tdcm(1);
+    T2          = DCM.options.Tdcm(2);
+    [i, T1]     = min(abs(DCM.xY.Time - T1));
+    [i, T2]     = min(abs(DCM.xY.Time - T2));
     
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
@@ -135,12 +136,8 @@ for i = 1:length(trial);
     end
     DCM.xY.xy{i} = Y/Nt;
 end
- 
-% condition units of measurement
-%--------------------------------------------------------------------------
-DCM.xY.xy = spm_cond_units(DCM.xY.xy);
- 
- 
+
+
 % confounds - DCT:
 %--------------------------------------------------------------------------
 if h == 0
@@ -162,7 +159,7 @@ for i = 1:length(DCM.xY.xy);
   DCM.xY.xy{i} = R*DCM.xY.xy{i};
 end
  
-% concatenate response and return (unless induced responses are required)
+% condition units of measurement
 %--------------------------------------------------------------------------
-DCM.xY.y    = spm_cat(DCM.xY.xy(:));
+DCM.xY.y    = spm_cond_units(DCM.xY.xy);
 DCM.xY.code = D.events.code(trial);

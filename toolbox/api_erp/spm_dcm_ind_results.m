@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ind_results.m 1174 2008-02-27 20:22:30Z karl $
 
 
 % get figure handle
@@ -42,11 +42,11 @@ figure(Fgraph)
 clf
 
 xY     = DCM.xY;
-nt     = size(xY.xf,1);          % Nr of trial types
-nf     = size(xY.xf,2);          % Nr of frequency modes
-nr     = size(xY.xf{1},2);       % Nr of sources
-ns     = size(xY.xf{1},1);       % Nr of time bins
-nu     = size(DCM.B,2);          % Nr of experimental effects
+nt     = length(xY.y);           % Nr of trial types
+nr     = length(DCM.C);          % Nr of sources
+nu     = length(DCM.B);          % Nr of experimental effects
+nf     = size(xY.U,2);           % Nr of frequency modes
+ns     = size(xY.y{1},1);        % Nr of time bins
 pst    = xY.pst;                 % peri-stmulus time
 Hz     = xY.Hz;                  % frequencies
 
@@ -70,9 +70,7 @@ switch(lower(Action))
     end
     for i = 1:nt
         for j = 1:nr
-            for k = 1:nf
-                TF{i,j} = TF{i,j} + xY.xf{i,k}(:,j)*xY.U(:,k)';
-            end
+            TF{i,j} = TF{i,j} + xY.xf{i,j}*xY.U';
         end
     end
     
@@ -115,8 +113,8 @@ case{lower('Time-modes')}
         subplot(ceil(nf/2),2,i), hold on
         str   = {};
         for j = 1:nt
-            plot(pst,DCM.Hc{j,i},'LineWidth',2);
-            plot(pst,DCM.Hc{j,i} + DCM.Rc{j,i},'-.');
+            plot(pst,DCM.H{j,i},'LineWidth',2);
+            plot(pst,DCM.H{j,i} + DCM.R{j,i},'-.');
             set(gca, 'XLim', [pst(1) pst(end)]);
         end
         hold off
@@ -143,8 +141,8 @@ case{lower('Time-frequency')}
     for i = 1:nt
         for j = 1:nr
             for k = 1:nf
-                TF{i,j} = TF{i,j} + DCM.Hc{i,k}(:,j)*xY.U(:,k)';
-                RF{i,j} = RF{i,j} + DCM.Rc{i,k}(:,j)*xY.U(:,k)';
+                TF{i,j} = TF{i,j} + DCM.H{i,k}(:,j)*xY.U(:,k)';
+                RF{i,j} = RF{i,j} + DCM.R{i,k}(:,j)*xY.U(:,k)';
             end
         end
     end

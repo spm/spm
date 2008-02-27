@@ -79,7 +79,7 @@ handles.yp = CTF.Cpos(2,:)';
 Nchannels = size(CTF.Cpos, 2);
 handles.Nchannels = Nchannels;
 
-handles.y_proj   = DCM.xY.y*DCM.M.E;
+handles.y_proj   = spm_cat(DCM.xY.y)*DCM.M.E;
 handles.CLim1_yp = min(min(handles.y_proj));
 handles.CLim2_yp = max(max(handles.y_proj));
 
@@ -214,7 +214,8 @@ Nsources = length(DCM.M.pE.A{1});
 %--------------------------------------------------------------------
 try
     Lpos = handles.DCM.Eg.Lpos;
-    Lmom = handles.DCM.Eg.Lmom;
+    Lmom = handles.DCM.Eg.L;
+    Lmom = spm_cat(Lmom);
     
 % Imaging
 %--------------------------------------------------------------------
@@ -266,7 +267,7 @@ x   = [0 kron([zeros(1, 8) 1], ones(1, Nsources))];
 
 % unprojected and projected leadfield
 %--------------------------------------------------------------------
-lfo(DCM.M.dipfit.Ic,:) = spm_erp_L(DCM.Ep,DCM.M);
+lfo(DCM.M.dipfit.Ic,:) = spm_erp_L(DCM.Eg,DCM.M);
 lf                     = DCM.M.E*DCM.M.E'*lfo;
 
 
@@ -299,7 +300,7 @@ drawnow
 function plot_components_time(hObject, handles)
 
 DCM = handles.DCM;
-Lmom = sqrt(sum(DCM.Eg.Lmom).^2);
+Lmom = sqrt(sum(spm_cat(DCM.Eg.L)).^2);
 Nsources = length(DCM.M.pE.A{1});
 
 h = figure;

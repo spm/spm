@@ -1,5 +1,5 @@
 function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
-% prior moments for a neural-mass model of erps
+% prior moments for a neural-mass model of ERPs
 % FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
 % FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
 % FORMAT [M]     = spm_erp_priors(A,B,C,dipfit)
@@ -7,7 +7,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 % dipfit       - prior forward model structure
-% u            - number of input [gamma] components
+% u            - number of neuronal inputs
 %
 % pE - prior expectation - f(x,u,P,M)
 % gE - prior expectation - g(x,u,G,M)
@@ -16,14 +16,19 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 %--------------------------------------------------------------------------
 %    pE.T - syaptic time constants
 %    pE.H - syaptic densities
+%    pE.S - activation function parameters
 %
 % spatial parameters
 %--------------------------------------------------------------------------
 %    gE.Lpos - position                   - ECD
-%    gE.Lmon - moment (orientation)       - ECD
+%    gE.L    - orientation
 %
-% or gE.L    - coeficients of local modes - Imaging
+% or gE.L    - coefficients of local modes - Imaging
 %    gE.L    - gain of electrodes         - LFP
+%
+% source contribution to ECD
+%--------------------------------------------------------------------------
+%    gE.J    - contribution
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -34,8 +39,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 %
 % stimulus and noise parameters
 %--------------------------------------------------------------------------
-%    pE.R - magnitude, onset and dispersion
-%    pE.N - background fluctuations
+%    pE.R - onset and dispersion
 %
 % pC - prior covariances: cov(spm_vec(pE))
 %
@@ -52,8 +56,8 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_erp_priors.m 1174 2008-02-27 20:22:30Z karl $
+ 
 % default: a single source model
 %--------------------------------------------------------------------------
 if nargin < 3
@@ -61,79 +65,85 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
-if nargin < 4, dipfit.type = 'LFP'; end
-if nargin < 5, u = 1;               end
-
+if nargin < 5, u = 1; end
+ 
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
-n     = size(C,1);                                 % number of sources
+n     = size(C,1);                                   % number of sources
 n1    = ones(n,1);
-
-% set intrinic [excitatory] time constants
-%--------------------------------------------------------------------------
-E.T   = log(n1);        V.T = n1/8;                % time constants
-E.H   = log(n1);        V.H = n1/8;                % synaptic density
-
-% set intrinic [excitatory] time constants
-%--------------------------------------------------------------------------
-E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
-
+ 
 % paramters for electromagnetic forward model
-%--------------------------------------------------------------------------
-switch dipfit.type
+%==========================================================================
+try,   type = dipfit.type; catch, type = 'LFP'; end
+switch type
     
-    case{'ECD (EEG)','ECD (MEG)'}                  % *** switch off Lpos ***
+    case{'ECD (EEG)','ECD (MEG)'}
     %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % dipole positions
-    G.Lmom = sparse(3,n);   U.Lmom = 256*ones(3,n);    % dipole orientations
-
+    G.Lpos = dipfit.L.pos;  U.Lpos =      0*ones(3,n);    % positions
+    G.L    = sparse(3,n);   U.L    = exp(8)*ones(3,n);    % orientations
+ 
     case{'Imaging'}
     %----------------------------------------------------------------------
     m      = dipfit.Nm;
-    G.L    = sparse(m,n);   U.L    =  16*ones(m,n);    % dipole modes
+    G.L    = sparse(m,n);   U.L    = exp(8)*ones(m,n);    % modes
     
     case{'LFP'}
     %----------------------------------------------------------------------
-    G.L    = ones(1,n);     U.L    = 256*ones(1,n);    % gains
+    G.L    = ones(1,n);     U.L    = exp(8)*ones(1,n);    % gains
     
 end
-
+ 
+% source contribution to ECD
+%--------------------------------------------------------------------------
+G.J   = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);
+U.J   = G.J/128;
+ 
+% parameters for neural-mass forward model
+%==========================================================================
+ 
+% set intrinsic [excitatory] time constants
+%--------------------------------------------------------------------------
+E.T   = log(n1);        V.T = n1/8;                % time constants
+E.H   = log(n1);        V.H = n1/32;               % synaptic density
+ 
+% set parameter of activation function
+%--------------------------------------------------------------------------
+E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
+ 
+ 
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
-    E.A{i} = log(A{i} + eps);                      % forward
+      A{i} = ~~A{i};
+    E.A{i} = A{i}*32 - 32;                         % forward
     V.A{i} = A{i}/16;                              % backward
     Q      = Q | A{i};                             % and lateral connections
 end
-
+ 
 for i = 1:length(B)
+      B{i} = ~~B{i};
     E.B{i} = 0*B{i};                               % input-dependent scaling
     V.B{i} = B{i}/16;
     Q      = Q | B{i};
 end
-E.C        = log(C + eps);                         % where inputs enter
-V.C        = exp(E.C)/32;
-
+C      = ~~C;
+E.C    = C*32 - 32;                                % where inputs enter
+V.C    = C/32;
+ 
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------
 E.D        = sparse(n,n);
-V.D        = Q/8;
-
-% set stimulus parameters: magnitude, onset and dispersion
+V.D        = Q/16;
+ 
+% set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
-E.R        = sparse(1,1,1,u,3);  V.R   = ones(u,1)*[1 1/16 1/16];
-
-% background fluctuations - *** switch off ***
-%--------------------------------------------------------------------------
-n          = 1;
-% E.N      = ones(n,1)*[0 0 10]; V.N   = ones(n,3); % amplitude and Hz
-
+E.R        = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
 warning on
-
-% prior momments if two arguments
-%--------------------------------------------------------------------------
+ 
+% prior moments if two arguments
+%==========================================================================
 if nargout == 4
     varargout{1} = E;
     varargout{2} = G;
@@ -141,14 +151,14 @@ if nargout == 4
     varargout{4} = diag(sparse(spm_vec(U)));
     return
 else
-    switch dipfit.type
-
+    switch ype
+ 
         case{'ECD (EEG)','ECD (MEG)'}
             %--------------------------------------------------------------
             E.Lpos  = G.Lpos;
-            E.Lmom  = G.Lmom;
+            E.L     = G.L   ;
             C       = diag(sparse(spm_vec(V,U)));
-
+ 
         case{'Imaging','LFP'}
             %--------------------------------------------------------------
             E.L     = G.L;
@@ -156,16 +166,16 @@ else
             
         otherwise
     end
-
+ 
 end
-
+ 
 if nargout == 2
     varargout{1} = E;
     varargout{2} = C;
     return
 end
-
-
+ 
+ 
 % Model specification
 %==========================================================================
 M.IS          = 'spm_int_U';
@@ -178,12 +188,11 @@ M.m           = length(B);
 M.n           = length(M.x);
 M.l           = n;
 M.ns          = 128;
-M.dur         = 1;
 M.ons         = 80;
 M.dipfit.type = 'LFP';
-
+ 
 if nargout == 1, varargout{1} = M; return, end
-
+ 
 % compute impulse response
 %--------------------------------------------------------------------------
 clear U
@@ -191,12 +200,12 @@ U.dt    = 1/1000;
 M.ns    = 256;
 y       = feval(M.IS,M.pE,M,U);
 plot([1:M.ns]*U.dt*1000,y)
-
-
+ 
+ 
 return
-
+ 
 % demo for log-normal pdf
-%--------------------------------------------------------------------------
+%==========================================================================
 x    = [1:64]/16;
 for i = [2 16 128]
     v = 1/i;
@@ -210,6 +219,3 @@ ylabel('density')
 grid on
 hold off
 axis square
-
-
-

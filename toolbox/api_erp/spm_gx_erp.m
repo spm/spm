@@ -18,13 +18,17 @@ function [y] = spm_gx_erp(x,u,P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_gx_erp.m 1174 2008-02-27 20:22:30Z karl $
 
-% get number of regions
+% configure state variables
 %--------------------------------------------------------------------------
-n  = length(M.pE.A{1}) - 1;
+x  = spm_unvec(x,M.x);
 
-% parameterised lead field ECD
+% parameterised lead field
 %--------------------------------------------------------------------------
 L  = spm_erp_L(P,M);
-y  = L*x(end - n:end,:);
+y  = L*x*P.J;
+

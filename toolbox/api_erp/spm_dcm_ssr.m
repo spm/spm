@@ -1,5 +1,5 @@
 function DCM = spm_dcm_ssr(DCM)   
-% Estimate parameters of a DCM model of cross spectral density of responses
+% Estimate parameters of a DCM of cross-spectral density
 % FORMAT DCM = spm_dcm_ssr(DCM)   
 %
 % DCM     
@@ -18,16 +18,13 @@ function DCM = spm_dcm_ssr(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.Fdcm         - [start end] Frequency window in Hz
 %   options.D            - time bin decimation       (usually 1 or 2)
-%   options.type         - 1 - 'ECD (EEG)'
-%                          2 - 'ECD (MEG)'
-%                          3 - 'Imaging'
-%                          4 - 'LFP' 
-%                          (see spm_erp_L)
+%   options.type         - 1 - ECD
+%                          2 - Imaging (see spm_erp_L)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ssr.m 1174 2008-02-27 20:22:30Z karl $
  
  
 % check options 
@@ -38,72 +35,84 @@ clear spm_erp_L
 %--------------------------------------------------------------------------
 try, DCM.name;                  catch, DCM.name           = 'DCM_SSR'; end
 try, Nm = DCM.options.Nmodes;   catch, DCM.options.Nmodes = 8; Nm = 8; end
-try, h  = DCM.options.h;        catch, h                  = 1;         end
- 
+
 % Spatial model
 %==========================================================================
-DCM     = spm_dcm_erp_dipfit(DCM);
- 
+DCM  = spm_dcm_erp_data(DCM);
+DCM  = spm_dcm_erp_dipfit(DCM);
+
 % Neural mass model
 %==========================================================================
-H       = sparse(9,1,1,13,1);   % mixture of states subtending LFP(EEG)
-L       = DCM.M.dipfit.L;       % mixture of sources subtending LFP(EEG)
  
 % get priors (ensuring C is a diagonal matrix - an input for each source
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(DCM.A,DCM.B,diag(sum(DCM.C,2)),L,H);
- 
- 
+[pE,pC]  = spm_lfp_priors(DCM.A,DCM.B,diag(sum(DCM.C,2)),DCM.M.dipfit);
+
 % create DCM
 %--------------------------------------------------------------------------
-ns        = size(DCM.C,1);
-DCM.M.IS  = 'spm_lfp_mtf';
-DCM.M.FS  = 'spm_lfp_sqrt';
-DCM.M.f   = 'spm_fx_lfp';
-DCM.M.g   = 'spm_gx_lfp';
-DCM.M.x   = sparse(ns,13);
-DCM.M.n   = ns*13;
-DCM.M.pE  = pE;
-DCM.M.pC  = pC;
-DCM.M.m   = ns;
+ns       =  size(DCM.C,1);                         % number of sources
+DCM.M.IS = 'spm_lfp_mtf';
+DCM.M.FS = 'spm_lfp_sqrt';
+DCM.M.f  = 'spm_fx_lfp';
+DCM.M.g  = 'spm_gx_lfp';
+DCM.M.x  = sparse(ns,13);
+DCM.M.n  = ns*13;
+DCM.M.pE = pE;
+DCM.M.pC = pC;
+DCM.M.m  = ns;
  
 %-Feature selection using principal components (U) of lead-feild
 %==========================================================================
- 
-% Get spatial modes from lead-field
-%--------------------------------------------------------------------------
-L     = 0;
-dGdg  = spm_diff('spm_erp_L',pE,DCM.M,1);
-for i = 1:length(dGdg)
-    L = L + pC(i,i)*dGdg{i}*dGdg{i}';
-end
 
-% eigenspace
+% get eigen-space of sources
 %--------------------------------------------------------------------------
-U     = spm_svd(L,exp(-8));
-try
-   DCM.M.U = U(:,1:Nm);
+switch DCM.xY.modality
+
+    case{'EEG','MEG'}
+
+        % Get spatial modes from lead-field
+        %------------------------------------------------------------------
+        L     = 0;
+        dGdg  = spm_diff('spm_erp_L',pE,DCM.M,1);
+        for i = 1:length(dGdg)
+            L = L + pC(i,i)*dGdg{i}*dGdg{i}';
+        end
+
+        % eigenspace
+        %------------------------------------------------------------------
+        U     = spm_svd(L,exp(-8));
+        try
+            DCM.M.U = U(:,1:Nm);
+        end
+
+    otherwise
+        
+        % assume a sufficiently small number of LFP channels
+        %------------------------------------------------------------------
+        DCM.M.U = speye(ns,ns);
 end
-Nm    = size(DCM.M.U,2);
  
-% get data (in reduced eigen-space) & assume i.i.d noise over CSDs
+% get data-features (in reduced eigen-space)
 %--------------------------------------------------------------------------
-DCM   = spm_dcm_ssr_data(DCM);
+DCM  = spm_dcm_ssr_data(DCM);
 
 
 % complete model specification and invert
 %========================================================================== 
-Nt        = size(DCM.xY.y,1);              % number of trials
-Nf        = size(DCM.xY.y{1},1);           % number of frequency bins
-DCM.xY.X0 = ones(Nf*Nm*Nm,1);              % confounds (mean in log space)
-DCM.xY.Q  = spm_Q(1/2,Nf,1);               % precision of noise AR(1/2)
-DCM.M.l   = Nm;
-DCM.M.Hz  = DCM.xY.Hz;
+Nm       = size(DCM.M.U,2);               % number of spatial modes
+Nt       = size(DCM.xY.y,1);              % number of trials
+Nf       = size(DCM.xY.y{1},1);           % number of frequency bins
+DCM.M.l  = Nm;
+DCM.M.Hz = DCM.xY.Hz;
+
+% precision of noise: AR(1/2)
+%--------------------------------------------------------------------------
+DCM.xY.Q  = spm_Q(1/2,Nf,1);
+DCM.xY.X0 = sparse(Nf,0);
 
 % EM: inversion
 %--------------------------------------------------------------------------
 [Qp,Cp,Ce,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
-
 
  
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
@@ -117,7 +126,7 @@ warning on
 %--------------------------------------------------------------------------
 Hc  = feval(DCM.M.IS,Qp,DCM.M,DCM.xU);                   % prediction 
 Ec  = spm_unvec(spm_vec(DCM.xY.y) - spm_vec(Hc),Hc);     % prediction error
- 
+
  
 % store estimates in DCM
 %--------------------------------------------------------------------------
@@ -129,9 +138,11 @@ DCM.Rc = Ec;                   % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
  
- 
+
 % and save
 %--------------------------------------------------------------------------
+DCM.options.Nmodes = Nm;
+
 if spm_matlab_version_chk('7.1') >= 0
     save(DCM.name, '-V6', 'DCM');
 else

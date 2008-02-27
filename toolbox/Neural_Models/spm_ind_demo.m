@@ -17,24 +17,16 @@ else
 end
 A{2}  = A{1}';
 A{3}  = sparse(n,n);
-B{1}  = sparse(n,n);
+B     = {};
 C     = sparse(1,1,1,n,1);
- 
-% mixture of regions subtending LFP(EEG)
-%--------------------------------------------------------------------------
-L     = ones(1,n);
- 
-% mixture of states subtending LFP(EEG)
-%--------------------------------------------------------------------------
-H     = sparse(9,1,1,13,1);
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(A,B,C,L,H);
+[pE,pC] = spm_lfp_priors(A,B,C);
  
 % create LFP model
 %--------------------------------------------------------------------------
-[l n] = size(L);
+[l n] = size(pE.L);
  
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_lfp';

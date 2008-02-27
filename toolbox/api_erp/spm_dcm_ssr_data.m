@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ssr_data.m 1174 2008-02-27 20:22:30Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -36,7 +36,7 @@ catch
     errordlg('Please specify data and trials');
     error('')
 end
- 
+
 % load D
 %--------------------------------------------------------------------------
 D         = spm_eeg_ldata(Dfile);
@@ -47,7 +47,7 @@ Ic        = setdiff(D.channels.eeg, D.channels.Bad);
 Nc        = length(Ic);
 Nm        = size(DCM.M.U,2);
 DCM.xY.Ic = Ic;
- 
+
 % options
 %--------------------------------------------------------------------------
 try
@@ -119,7 +119,7 @@ Ne         = length(trial);            % number of ERPs
 % get induced responses (use previous CSD results if possible) 
 %==========================================================================
 try
-    if size(DCM.xY.csd,1) == Ne;
+    if size(DCM.xY.csd,2) == Ne;
         if size(DCM.xY.csd{1},1) == Nf;
             if size(DCM.xY.csd{1},2) == Nm;
                 DCM.xY.y  = spm_cond_units(DCM.xY.csd);

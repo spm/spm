@@ -2,7 +2,6 @@ function [f,J] = spm_fx_ind(x,u,P,M)
 % state equations for a neural mass model of erps
 % FORMAT [f,J] = spm_fx_erp(x,u,P,M)
 %   x(i,j) - power in the i-th region and j-th frequency mode
-%             NB: the first state is actually time but this hidden here.
 %
 % f        - dx(t)/dt  = f(x(t))
 % J        - df(t)/dx(t)
@@ -13,50 +12,23 @@ function [f,J] = spm_fx_ind(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_ind.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_fx_ind.m 1174 2008-02-27 20:22:30Z karl $
 
-% check input u = f(t,P,M)
-%--------------------------------------------------------------------------
-try
-    fu  = M.fu;
-catch
-    fu  = 'spm_ind_u';
-end
 
-% get dimensions and configure state variables
-%--------------------------------------------------------------------------
-t  = x(1);                       % peristimulus time (sec)
-x  = x(2:end);                   % neuronal states
-
-% dfdx = [] if t exceeds trial duration (invoking a return to initial state)
-%--------------------------------------------------------------------------
-if nargout == 1 & (t - M.dur) > 1e-6, f = []; return, end
-
-% effective extrinsic connectivity
-%--------------------------------------------------------------------------
-for i = 1:M.m
-      P.A = P.A + u(i)*P.B{i};
-end
+% State: f(x)
+%==========================================================================
 
 % Global scaling
 %--------------------------------------------------------------------------
 K  = 16*exp(P.K);
 
-% input
+% neuronal input
 %--------------------------------------------------------------------------
-U  = feval(fu,t,P,M);
-U  = 32*P.C*U;
-
-% State: f(x)
-%==========================================================================
+U  = 32*P.C*u;
 
 % Bilinear form
 %--------------------------------------------------------------------------
-f  = K*(P.A*x + U);
-
-% augment with time
-%--------------------------------------------------------------------------
-f  = [1; f(:)];
+f  = K*(P.A*x(:) + U);
 
 if nargout == 1, return, end
 
@@ -65,7 +37,7 @@ if nargout == 1, return, end
 
 % augment with time
 %--------------------------------------------------------------------------
-J  = blkdiag(0,K*P.A);
+J  = K*P.A;
 
 
 

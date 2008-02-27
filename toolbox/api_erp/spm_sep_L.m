@@ -5,12 +5,8 @@ function [L] = spm_sep_L(P,M)
 % M  - model specification
 % L  - lead field
 %__________________________________________________________________________
-% For ECD solutions:
-% This routine will automatically place the lead field in M.L and record the
-% parameters in M.Lpos and M.Lmon.  This enables spm_sep_L to compute a new
-% lead field only when necessary (i.e., when the parameters change)
 %
-% This routine is the same as spm_erp_L, with the expectation that two sets
+% This routine is the same as spm_erp_L, with the exception that two sets
 % of lead fields are produced; one for the spiny stellate cells and the
 % other for pyramidal cells
 %
@@ -55,7 +51,7 @@ switch M.dipfit.type
         iSt  = iMt; iSt(1:3,4) = 0;
 
         Lpos = iMt*[P.Lpos; ones(1,n)];
-        Lmom = iSt*[P.Lmom; ones(1,n + n)];
+        Lmom = iSt*[P.L   ; ones(1,n + n)];
         Lpos = Lpos(1:3,:);
         Lmom = Lmom(1:3,:);
 

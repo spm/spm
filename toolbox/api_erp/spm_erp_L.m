@@ -1,18 +1,34 @@
 function [L] = spm_erp_L(P,M)
-% returns [projected] lead field L as a function of position and momments
+% returns [projected] lead field L as a function of position and moments
 % FORMAT [L] = spm_erp_L(P,M)
 % P  - model parameters
 % M  - model specification
 % L  - lead field
 %__________________________________________________________________________
-% For ECD solutions:
-% This routine will autmatically place the lead field in M.L and record the
-% paramters in M.Lpos and M.Lmon.  This enables spm_erp_L to compute a new
-% lead field only when necessary (i.e., when the parameters change)
+%
+% The lead field (L) is constructed using the specific parameters in P and,
+% where necessary information in the dipole structure M.dipfit. For ECD
+% models P.Lpos and P.L encode the position and moments of the ECD. The
+% field M.dipfit.type:
+%
+%    'ECD (EEG)'
+%    'ECD (EEG)'
+%    'Imaging'
+%    'LFP'
+%
+% determines whether the data are MEG or EEG. For imaging reconstructions
+% the paramters P.L are a (m x n) matrix of coefficients that scale the
+% contrition of n sources to m = M.dipfit.Nm modes encoded in M.dipfit.G.
+%
+% For LFP models (the default) P.L (1 x n) vector simply encodes the
+% electrode gain for each of n sources.
 %
 % see; Kiebel et al. (2006) NeuroImage
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: spm_erp_L.m 1174 2008-02-27 20:22:30Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -28,12 +44,19 @@ try
 catch
     try
         n = size(P.L,2);
-    catch
-        n = length(M.pE.A{1});
     end
 end
 
-switch M.dipfit.type
+% type of spatial model
+%--------------------------------------------------------------------------
+try
+    type = M.dipfit.type;
+catch
+    type = 'LFP';
+end
+
+
+switch type
 
     % parameterised lead field ECD/EEG
     %----------------------------------------------------------------------
@@ -59,7 +82,7 @@ switch M.dipfit.type
         iSt  = iMt; iSt(1:3,4) = 0;
 
         Lpos = iMt*[P.Lpos; ones(1,n)];
-        Lmom = iSt*[P.Lmom; ones(1,n)];
+        Lmom = iSt*[P.L   ; ones(1,n)];
         Lpos = Lpos(1:3,:);
         Lmom = Lmom(1:3,:);
 
@@ -93,7 +116,7 @@ switch M.dipfit.type
             LastL(:,:,i) = Lf(M.dipfit.Ic,:)*1000;
         end
         for i = 1:n
-            L(:,i) = LastL(:,:,i)*P.Lmom(:,i);
+            L(:,i) = LastL(:,:,i)*P.L(:,i);
         end
 
     % Imaging solution {specified in M.dipfit.G}
@@ -120,7 +143,7 @@ switch M.dipfit.type
     %----------------------------------------------------------------------
     case{'LFP'}
 
-        L = sparse(diag(P.L)); return
+        L = sparse(diag(P.L));
 
     otherwise
         warndlg('unknown type of lead field')

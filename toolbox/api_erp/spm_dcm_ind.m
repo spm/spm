@@ -18,16 +18,13 @@ function DCM = spm_dcm_ind(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
-%   options.type         - 1 - 'ECD (EEG)'
-%                          2 - 'ECD (MEG)'
-%                          3 - 'Imaging'
-%                          4 - 'LFP' 
-%                          (see spm_erp_L)
+%   options.type         - 1 - ECD
+%                          2 - Imaging (see spm_erp_L)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ind.m 1174 2008-02-27 20:22:30Z karl $
 
 
 % check options 
@@ -46,51 +43,38 @@ try, onset = DCM.options.onset; catch, onset              = 80;        end
 DCM    = spm_dcm_erp_dipfit(DCM);
 DCM    = spm_dcm_ind_data(DCM);
 xY     = DCM.xY;
-try
-    xU = DCM.U;
-catch
-    xU = DCM.xU;
-end
+xU     = DCM.xU;
+xU.dt  = xY.dt;
 
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.xy);                 % number of trials
-Nr     = size(xY.xf{1},2);              % number of sources
-Ns     = size(xY.xf{1},1);              % number of samples
-Nf     = size(xY.xf,2);                 % number of frequency modes
-nu     = size(xU.X,2);                  % number of inputs
-nx     = Nr*Nf + 1;                     % number of states
+Nt     = length(xY.y);                  % number of trials
+Nr     = length(DCM.C);                 % number of sources
+Nf     = size(xY.U,2);                  % number of frequency modes
+Ns     = size(xY.y{1},1);               % number of samples
+Nu     = size(xU.X,2);                  % number of trial-specific effects
+nu     = length(onset);                 % number of neuronal inputs
+nx     = Nr*Nf;                         % number of states
 
 
-% assume noise variance is the same over modes:
+% assume noise precision is the same over modes:
 %--------------------------------------------------------------------------
-a      = 1/5;
-xY.Q   = {spm_Q(a,Ns,1)};
-xY.X0  = sparse(Ns*Nt,0);
+xY.Q   = {spm_Q(1/2,Ns,1)};
+xY.X0  = sparse(Ns,0);
 
 % Inputs
 %==========================================================================
 
-% trial effects
+% trial-specific effects
 %--------------------------------------------------------------------------
 try
-    if size(xU.X,2) - length(DCM.B)
+    if length(DCM.B) ~= Nu;
         warndlg({'please ensure number of trial specific effects', ...
                  'encoded by DCM.xU.X & DCM.B are the same'})
     end
 catch
     DCM.B = {};
 end
-try
-    xU.u  = kron(xU.X,ones(Ns,1));
-catch
-    xU.u  = sparse(Nt*Ns,0);
-end
-
-% stimulus parameters
-%--------------------------------------------------------------------------
-xU.dt  = xY.dt;
-xU.dur = xU.dt*(Ns - 1);
 
 % model specification and nonlinear system identification
 %==========================================================================
@@ -98,27 +82,20 @@ M      = DCM.M;
 try, M = rmfield(M,'g');  end
 try, M = rmfield(M,'FS'); end
 
-% adjust onset relative to pst
-%--------------------------------------------------------------------------
-dur    = xU.dur;
-ons    = onset - xY.pst(1);
-
-if ons < 0; warndlg('onset time is negative; please increase'); end
-
 % prior moments
 %--------------------------------------------------------------------------
 A      = DCM.A;
 B      = DCM.B;
-C      = kron(ones(1,length(ons)),DCM.C);
+C      = kron(ones(1,nu),DCM.C);
 
 [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf);
 
 
 % likelihood model
 %--------------------------------------------------------------------------
+M.IS  = 'spm_gen_ind';
 M.f   = 'spm_fx_ind';
 M.G   = 'spm_lx_ind';
-M.IS  = 'spm_int_U';
 M.fu  = 'spm_ind_u';
 M.x   = sparse(nx,1);
 M.pE  = pE;
@@ -128,11 +105,9 @@ M.gC  = gC;
 M.m   = nu;
 M.n   = nx;
 M.l   = Nr*Nf;
+M.ns  = Ns;
+M.ons = onset - xY.pst(1);
 
-% and fixed parameters and functional forms
-%--------------------------------------------------------------------------
-M.ons = ons;
-M.dur = dur;
 
 % EM: inversion
 %--------------------------------------------------------------------------
@@ -149,21 +124,22 @@ warning on
 %--------------------------------------------------------------------------
 L   = feval(M.G, Qg,M);           % get gain matrix
 x   = feval(M.IS,Qp,M,xU);        % prediction (source space)
-y   = x*L';                       % prediction (sensor space)
-r   = xY.y - y;                   % prediction error
-x   = x(:,2:end);                 % remove time
 
-% trial specific responses (in mode, channel and source space)
+% trial-specific respsonses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for i = 1:Nt
+    
+    s  = x{i};                   % prediction (source space)
+    y  = s*L';                   % prediction (sensor space)
+    r  = xY.y{i} - y;            % residuals  (sensor space)
+    
+    % parse frequency modes
+    %----------------------------------------------------------------------
     for j = 1:Nf
-        t = [1:Ns] + (i - 1)*Ns;
-        f = [1:Nr] + (j - 1)*Nr;
-        k = [1:Nr] + (j - 1)*Nr;
-        
-        Hc{i,j} = y(t,f);
-        Ec{i,j} = r(t,f);
-        K{i,j}  = x(t,k);
+        f      = [1:Nr] + (j - 1)*Nr;
+        H{i,j} = y(:,f);
+        R{i,j} = r(:,f);
+        K{i,j} = s(:,f);
     end
 end
 
@@ -177,9 +153,9 @@ DCM.Cp = Cp;                   % conditional covariances G(g)
 DCM.Eg = Qg;                   % conditional expectation
 DCM.Cg = Cg;                   % conditional covariances
 DCM.Pp = Pp;                   % conditional probability
-DCM.Hc = Hc;                   % conditional responses (y), channel space
+DCM.H  = H;                    % conditional responses (y), channel space
 DCM.K  = K;                    % conditional responses (x)
-DCM.Rc = Ec;                   % conditional residuals (y), channel space
+DCM.R  = R;                    % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 

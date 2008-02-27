@@ -17,8 +17,8 @@ else
 end
 A{2}  = A{1}';
 A{3}  = sparse(n,n);
-B{1}  = sparse(n,n);
-C     = sparse(1,1,256,n,1);
+B     = {};
+C     = sparse(1,1,1,n,1);
 
 % mixture of regions subtending LFP(EEG)
 %--------------------------------------------------------------------------
@@ -36,8 +36,6 @@ H(1,2) = 1;               % stellate  depolorization
 
 % create LFP model
 %--------------------------------------------------------------------------
-[l n] = size(L);
-
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_lfp';
 M.x   = sparse(n,13);
@@ -46,7 +44,7 @@ M.pC  = pC;
 M.m   = size(C,2);
 M.n   = length(M.x(:));
 M.l   = size(H,2);
-M.IS  = 'spm_int_J';
+M.IS  = 'spm_int_L';
 
 % create BOLD model
 %--------------------------------------------------------------------------
@@ -98,7 +96,7 @@ N     = 2048;
 U.dt  = 8/1000;
 U.u   = 32*(sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16);
 t     = [1:N]*U.dt;
-LFP   = spm_int_J(pE,M,U);
+LFP   = spm_int_L(pE,M,U);
 
 % input
 %--------------------------------------------------------------------------
@@ -201,12 +199,10 @@ title('Frequency')
 % compute transfer functions (switch off noise)
 %--------------------------------------------------------------------------
 pE    = M.pE;
-pE.a  = -32;
-pE.b  = -32;
 [G w] = spm_lfp_mtf(pE,M);
 
 subplot(2,1,1)
-plot(w,G)
+plot(w,G{1}(:,1,1),w,G{1}(:,2,2),w,G{1}(:,1,2),':')
 axis square
 xlabel('frequency {Hz}')
 
@@ -217,7 +213,8 @@ p     = log([1:64]/32);
 for i = 1:length(p)
     Pi      = pE;
     Pi.T(2) = Pi.T(2) + p(i);
-    GW(:,i) = spm_lfp_mtf(Pi,M);
+    G       = spm_lfp_mtf(Pi,M);
+    GW(:,i) = G{1}(:,1,1);
 end
 
 subplot(2,1,1)

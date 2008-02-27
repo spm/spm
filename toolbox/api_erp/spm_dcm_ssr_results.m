@@ -27,7 +27,7 @@ function [DCM] = spm_dcm_ssr_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_results.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_ssr_results.m 1174 2008-02-27 20:22:30Z karl $
  
  
 % get figure handle
@@ -97,8 +97,7 @@ end
 %--------------------------------------------------------------------------
 nu  = length(DCM.B);          % Nr experimental inputs
 ns  = size(DCM.A{1},2);       % Nr of sources
- 
- 
+
  
 % switch
 %--------------------------------------------------------------------------
@@ -271,7 +270,7 @@ case{lower('Input')}
     subplot(2,1,1)
     plot(xY.Hz,Gu)
     xlabel('frquency (Hz)')
-    title('pectrum of innovations or noise')
+    title('spectrum of innovations or noise')
     axis square, grid on
     
 case{lower('Cross-spectral density')}
@@ -283,8 +282,15 @@ case{lower('Cross-spectral density')}
     q  = max(spm_vec(DCM.Hc));
     nm = min(nm,4);
     
+    tstr = {};
+    mstr = {};
     for k = 1:nt
-        str{k} = sprintf('trial %i',k);
+        tstr{end + 1} = sprintf('predicted: trial %i',k);
+        tstr{end + 1} = sprintf('observed: trial %i',k);
+    end
+    for k = 1:nm
+        mstr{end + 1} = sprintf('predicted: mode %i',k);
+        mstr{end + 1} = sprintf('observed: mode %i',k);
     end
     
     for i = 1:nm
@@ -300,6 +306,12 @@ case{lower('Cross-spectral density')}
             end
         end
  
+        % legend
+        %------------------------------------------------------------------      
+        if i == nm && j == nm
+            legend(tstr)
+        end
+        
         % spectral density
         %------------------------------------------------------------------
         subplot(2,2,3)
@@ -309,33 +321,36 @@ case{lower('Cross-spectral density')}
             set(gca,'YLim',[0 q])
         end
     end
-    
+   
     title('spectral density over modes')
     xlabel('Frequency (Hz)')
     ylabel('root CSD')
     axis square
+    legend(mstr)
     
-    subplot(nm,nm,nm*nm)
-    legend(str)
     
     
 case{lower('Dipoles')}
+    
+    % return if LFP
+    % ---------------------------------------------------------------------
+    if strcmp(lower(DCM.xY.modality),'lfp')
+        warndlg('There are no ECDs for these LFP data')
+        return
+    end
     
     % plot dipoles
     % ---------------------------------------------------------------------
     try
         P            = DCM.Ep;   
-        np           = size(P.Lmom,2)/size(P.Lpos,2);
+        np           = size(P.L,2)/size(P.Lpos,2);
         sdip.n_seeds = 1;
         sdip.n_dip   = np*ns;
         sdip.Mtb     = 1;
-        sdip.j{1}    = full(P.Lmom);
+        sdip.j{1}    = full(P.L);
         sdip.j{1}    = sdip.j{1}(:);
         sdip.loc{1}  = kron(ones(1,np),full(P.Lpos));
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
-    catch
-        warndlg('use the render API button to view results')
-        return
     end
  
 end

@@ -24,22 +24,9 @@ function [y] = spm_int_U(P,M,U)
 % If f returns the Jacobian (i.e. [fx J] = feval(f,M.x,u,P,M) it will
 % be used.  Otherwise it is evaluated numerically.
 %
-% Delay differential equations can be integrated efficiently (but 
-% approximately) by absorbing the delay operator into the Jacobian
-%
-%    dx(t)/dt     = f(x(t - d))
-%                 = D(d)f(x(t))
-%
-%    J(d)         = D(d)df/dx
-%
-% To invoke this simply delay scheme, f must return D (i.e. [fx J D] =
-% feval(f,M.x,u,P,M);
-%
 % spm_int will also handle static observation models by evaluating
 % g(x,u,P,M)
 %
-% NB: if f returns [] the system is re-set to its initial states.
-% This can be useful for implementing boundary conditions.
 %
 %--------------------------------------------------------------------------
 %
@@ -49,38 +36,41 @@ function [y] = spm_int_U(P,M,U)
 % respectively.  They can be used for any ODEs, where the Jacobian is
 % unknown or difficult to compute; however, they may be slow.
 %
-% spm_int_J: uses an explicit Jacobian based update scheme that preserves
-% linearities in the ODE: dx = (expm(dt*J) - I)*inv(J)*f.  If the
+% spm_int_J: uses an explicit Jacobian-based update scheme that preserves
+% nonlinearities in the ODE: dx = (expm(dt*J) - I)*inv(J)*f.  If the
 % equations of motion return J = df/dx, it will be used; otherwise it is
 % evaluated numerically, using spm_diff at each time point.  This scheme is
-% infallible but potentially slow if the Jacobian is not available (calls
+% infallible but potentially slow, if the Jacobian is not available (calls
 % spm_dx).
+%
+% spm_int_E: As for spm_int_J but uses the eigensystem of J(x(0)) to eschew 
+% matrix exponentials and inversion during the integration. It is probably
+% the best compromise, if the Jacobian is not available explicitly.
+%
+% spm_int_B: As for spm_int_J but uses a first-order approximation to J
+% based on J(x(t)) = J(x(0)) + dJdx*x(t).
+%
+% spm_int_L: As for spm_int_B but uses J(x(0)).
 %
 % spm_int_U: like spm_int_J but only evaluates J when the input changes.
 % This can be useful if input changes are sparse (e.g., boxcar functions).
-% spm_int_U also has the facility to integrate delay differential equations
-% if a delay operator is returned [f J D] = f(x,u,P,M)
+% It is used primarily for integrating EEG models
 %
-% spm_int:   Fast integrator that uses a bilinear approximation to the 
+% spm_int:   Fast integrator that uses a bilinear approximation to the
 % Jacobian evaluated using spm_bireduce. This routine will also allow for
-% sparse sampling of the solution and delays in observing outputs
-%--------------------------------------------------------------------------
+% sparse sampling of the solution and delays in observing outputs. It is
+% used primarily for integrating fMRI models
+%___________________________________________________________________________
+% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_int_U.m 1174 2008-02-27 20:22:30Z karl $
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U)
-    U.u = U;
-end
-try
-    dt = U.dt;
-catch
-    dt = 1;
-end
-try
-    ns = M.ns;
-catch
-    ns = length(U.u);
-end
+if ~isstruct(U), U.u = U; end
+try, dt = U.dt; catch, dt = 1; end
+try, ns = M.ns; catch, ns = length(U.u); end
  
  
 % state equation; add [0] states if not specified
@@ -118,9 +108,14 @@ catch
     x   = sparse(0,1);
     M.x = x;
 end
-du  = sparse(1,M.m);
-D   = speye(M.n,M.n);
-I   = speye(M.n,M.n);
+
+% check for delay operator
+%--------------------------------------------------------------------------
+try
+    [fx dfdx D] = f(x,u,P,M);
+catch
+    D = 1;
+end
  
 % integrate
 %--------------------------------------------------------------------------
@@ -136,50 +131,20 @@ for i = 1:ns
     % re-compute Jacobian if input changes
     %----------------------------------------------------------------------
     if i == 1 | du*du' > 1e-6
-        
-        % Jacobian dfdx (evaluated at expansion point)
-        %------------------------------------------------------------------
         try
-            [fx J D]   = feval(f,M.x,u,P,M);
-            J          = D*J;
+            [fx dfdx] = feval(f,x,u,P,M);
         catch
-            try
-                [fx J] = feval(f,M.x,u,P,M);
-            catch
-                J      = spm_diff(f,M.x,u,P,M,1);
-            end
+            dfdx = spm_diff(f,x,u,P,M,1);
         end
-        
-        % approximate (expm(dt*J) - I)*inv(J) (avoiding matrix inversion)
-        %------------------------------------------------------------------
-        T     = I*dt;
-        Q     = T;
-        for j = 2:256
-            T = T*dt*J/j;
-            Q = Q + T;
-            if norm(T,1) < dt/256, break, end
-        end
-        Q     = Q*D;
     end
     
     % dx(t)/dt
     %----------------------------------------------------------------------
     fx = f(x,u,P,M);
     
-    % reset x(0) if fx = []
-    %----------------------------------------------------------------------
-    if ~length(fx)
-        try
-            x = feval(M.x0,P,M,U);
-        catch
-            x = M.x;
-        end
-        fx = f(x,u,P,M);
-    end
-    
     % update dx = (expm(dt*J) - I)*inv(J)*fx = Q*fx;
     %----------------------------------------------------------------------
-    x  = x + spm_unvec(Q*fx,x);
+    x  = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
     
     % output - implement g(x)
     %----------------------------------------------------------------------

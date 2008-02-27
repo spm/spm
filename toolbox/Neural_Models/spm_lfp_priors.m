@@ -1,12 +1,12 @@
-function [varargout] = spm_lfp_priors(A,B,C,L,H)
+function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % prior moments for a neural mass model of ERPs
-% FORMAT [pE,pC] = spm_lfp_priors(A,B,C,L,H)
-% FORMAT [M]     = spm_lfp_priors(A,B,C,L,H)
-% FORMAT           spm_lfp_priors(A,B,C,L,H)
+% FORMAT [pE,pC] = spm_lfp_priors(A,B,C,L,J)
+% FORMAT [M]     = spm_lfp_priors(A,B,C,L,J)
+% FORMAT           spm_lfp_priors(A,B,C,L,J)
 %
 % A{3},B{m},C    - binary constraints on extrinsic connectivity
-% L              - lead field matrix    [default = I]
-% H              - contributing states  [default = x(9) - pyramidal]
+% L              - lead field structure
+% J              - contributing sources
 %
 % pE - prior expectation
 %
@@ -14,12 +14,13 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %--------------------------------------------------------------------------
 %    pE.T - synaptic time constants
 %    pE.H - synaptic densities
+%    pE.R - activation function parameters
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    pE.L - Lead field or Gain OR pE.Lpos - position
-%                                 pE.Lmon - moment (orientation):
-%    pE.M - contributing states
+%    pE.Lpos - position
+%    pE.L    - moment (orientation), mode or gain parameters:
+%    pE.J    - contributing states
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -35,10 +36,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 %    pE.a - amplitude of AR component
 %    pE.b - amplitude of IID component
 %    pE.c - amplitude of noise (spectral density)
-%    pE.d - amplitude of noise (cross-spectral density)
 %
-% NB: This is the same as spm_erp_priors but without stimulus parameters 
-% and treating stimulus and experimental inputs in the same way
 %--------------------------------------------------------------------------
 %
 % pC - prior covariances: cov(spm_vec(pE))
@@ -54,11 +52,10 @@ function [varargout] = spm_lfp_priors(A,B,C,L,H)
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_lfp_priors.m 1132 2008-02-06 14:12:17Z karl $
-
-
+% $Id: spm_lfp_priors.m 1174 2008-02-27 20:22:30Z karl $
+ 
 % defaults
 %--------------------------------------------------------------------------
 if nargin <  3                                  % a single source model
@@ -68,14 +65,44 @@ if nargin <  3                                  % a single source model
 end
 n   = size(C,1);                                % number of sources
 N   = n*13;                                     % number of states
-if nargin <  4, L = speye(length(C));  end
-if nargin <  5, H = sparse(9,1,1,13,1); end
- 
- 
  
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
+ 
+ 
+% parameters for electromagnetic forward model
+%==========================================================================
+try,   type = L.type; catch, type = 'LFP'; end
+switch type
+    
+    case{'ECD (EEG)','ECD (MEG)'}
+    %----------------------------------------------------------------------
+    E.Lpos = L.L.pos;       V.Lpos =      0*ones(3,n);    % positions
+    E.L    = sparse(3,n);   V.L    = exp(8)*ones(3,n);    % orientations
+ 
+    case{'Imaging'}
+    %----------------------------------------------------------------------
+    m      = L.Nm;
+    E.L    = sparse(m,n);   V.L    = exp(8)*ones(m,n);    % modes
+    
+    case{'LFP'}
+    %----------------------------------------------------------------------
+    E.L    = ones(1,n);     V.L    = exp(8)*ones(1,n);    % gains
+    
+end
+ 
+% source-specific contribution to LFP
+%--------------------------------------------------------------------------
+try, J; catch, J  = sparse([1 7 9],1,[0.2 0.2 0.6],13,1); end
+ 
+% source-specific contribution to LFP
+%--------------------------------------------------------------------------
+E.J   = J;                 V.J = J/64;             % contributing states
+ 
+ 
+% parameters for neural-mass forward model
+%==========================================================================
  
 % sigmoid parameters
 %--------------------------------------------------------------------------
@@ -84,49 +111,42 @@ E.R   = [0 0];             V.R = [1 1]/8;
 % set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
 E.T   = log(ones(n,2));    V.T = ones(n,2)/8;      % time constants
-E.H   = log(ones(n,1));    V.H = ones(n,1)/8;      % synaptic density
-E.G   = log(ones(n,5));    V.G = ones(n,5)/8;      % intrinsic connections
- 
-% set observer parameters
+E.H   = log(ones(n,1));    V.H = ones(n,1)/16;     % synaptic density
+
+% set intrinsic connections
 %--------------------------------------------------------------------------
-E.M   = H;                 V.M = H*0;              % contributing states
+E.G   = log(ones(n,5));    V.G = ones(n,5)/16;     % intrinsic connections
  
-% set observer parameters
-%--------------------------------------------------------------------------
-if ~isstruct(L)                                    % static lead-field
-    E.L    = L;            V.L = L*0;              % lead field
-    
-else  % parameterised lead-field based on equivalent current dipoles
-%------------------------------------------------------------------------
-    E.Lpos = L.pos;        V.Lpos =   0*ones(3,n); % dipole positions
-    E.Lmom = sparse(3,n);  V.Lmom = 256*ones(3,n); % dipole orientations
-end
  
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
-    E.A{i} = log(~~A{i} + eps);                    % forward
+      A{i} = ~~A{i};
+    E.A{i} = log(A{i} + eps);                      % forward
     V.A{i} = A{i}/2;                               % backward
     Q      = Q | A{i};                             % and lateral connections
 end
  
 for i = 1:length(B)
+      B{i} = ~~B{i};
     E.B{i} = 0*B{i};                               % input-dependent scaling
-    V.B{i} = ~~B{i}/2;
+    V.B{i} = B{i}/2;
     Q      = Q | B{i};
 end
-E.C    = log(~~C + eps);                           % where inputs enter
-V.C    = C/2;
+C      = ~~C;
+E.C    = C*32 - 32;                                % where inputs enter
+V.C    = C/32;
  
 % set endogenous noise
 %--------------------------------------------------------------------------
-E.a    = 0;               V.a = 1/32;              % amplitude AR
+E.a    = 0;               V.a = 1/16;              % amplitude AR
 E.b    = 0;               V.b = 0;                 % amplitude IID
+E.c    = 0;               V.c = 1/2;               % amplitude noise
  
 % set delay
 %--------------------------------------------------------------------------
-E.D    = sparse(n,n);     V.D = Q/8;               % extrinsic delays
+E.D    = sparse(n,n);     V.D = Q/16;              % extrinsic delays
 E.I    = 0;               V.I = 1/32;              % intrinsic delays
  
 % vectorize
@@ -136,7 +156,7 @@ pV     = spm_vec(V);
 pC     = diag(sparse(pV));
 warning on
  
-% prior momments if two arguments
+% prior moments if two arguments
 %--------------------------------------------------------------------------
 if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
  

@@ -31,7 +31,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 %
 %__________________________________________________________________________
 %
-% This is a simplified version of spm_gx_erp
+% This is a simplified version of spm_fx_erp
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
@@ -39,26 +39,20 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 1132 2008-02-06 14:12:17Z karl $
+% $Id: spm_fx_lfp.m 1174 2008-02-27 20:22:30Z karl $
+
+% check if intrinsic connections are free parameters
+%--------------------------------------------------------------------------
+try, P.G; catch, P.G = 0; end
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-x     = spm_unvec(x,M.x);
-u     = spm_vec(u);
-n     = size(x,1);             % number of sources
-s     = size(x,2);             % number of states
-m     = size(P.C,2);           % number of exogenous inputs
-X     = u(m + 1:end);          % trial-specific effects
- 
- 
-% effective extrinsic connectivity
-%--------------------------------------------------------------------------
-for i = 1:length(X)
-      P.A{1} = P.A{1} + X(i)*P.B{i};              % forward  connections
-      P.A{2} = P.A{2} + X(i)*P.B{i};              % backward connections
-      P.A{3} = P.A{3} + X(i)*P.B{i};              % lateral  connections
-end
- 
+x    = spm_unvec(x,M.x);
+u    = spm_vec(u);
+n    = size(x,1);              % number of sources
+s    = size(x,2);              % number of states
+m    = size(P.C,2);            % number of exogenous inputs
+
 % [default] fixed parameters
 %--------------------------------------------------------------------------
 E    = [32 16 4];              % extrinsic rates (forward, backward, lateral)
@@ -83,7 +77,8 @@ Ti   = T(2)/1000*exp(P.T(:,2));      % inhibitory time constants
 Tk   = 512/1000;                     % slow potassium
 He   = H(1)*exp(P.H);                % excitatory receptor density
 Hi   = H(2);                         % inhibitory receptor density
- 
+
+
 % pre-synaptic inputs: s(V) with threshold adaptation
 %--------------------------------------------------------------------------
 R      = R.*exp(P.R);

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_api_erp.m 1174 2008-02-27 20:22:30Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -233,11 +233,26 @@ handles.DCM.options.type     = get(handles.Spatial_type,  'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
 
 
-% save model
+% Check model type
 %--------------------------------------------------------------------------
 model = get(handles.ERP,     'String');
 model = model{get(handles.ERP,'Value')};
 handles.DCM.options.model  = model;
+
+% Check data modality
+%--------------------------------------------------------------------------
+try
+    switch handles.DCM.xY.modality
+
+        case {'EEG','MEG'}
+            set(handles.Slocation,     'Visable', 'on');
+            set(handles.plot_dipoles,  'Enable',  'on');
+
+        otherwise
+            set(handles.Slocation,     'Visable', 'off');
+            set(handles.plot_dipoles,  'Enable',  'off');
+    end
+end
 
 guidata(hObject,handles);
 
@@ -353,7 +368,7 @@ guidata(hObject,handles);
 function handles = spatial_ok_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 
-% spatial model
+% spatial model - source names
 %--------------------------------------------------------------------------
 DCM = handles.DCM;
 tmp = deblank(get(handles.Sname, 'String'));
@@ -372,36 +387,47 @@ Nareas    = length(Sname);
 Nmodes    = get(handles.Nmodes,'Value');
 DCM.Sname = Sname;
 
-% switch for spatial forward model
+% switch for spatial forward model (for EEG or MEG)
 %--------------------------------------------------------------------------
 DCM.options.type = get(handles.Spatial_type,'Value');
+switch DCM.xY.modality
+    case {'EEG','MEG'}
 
-% read location coordinates
-%--------------------------------------------------------------------------
-Slocation = zeros(Nareas, 3);
-tmp       = get(handles.Slocation, 'String');
-if ~isempty(tmp) & size(tmp,1) == Nareas
-    for i = 1:Nareas
-        tmp2 = str2num(tmp(i, :));
-        if length(tmp2) ~= 3
-            errordlg(sprintf('coordinates of area %d not valid',i)); 
-            return;
+        % read location coordinates
+        %------------------------------------------------------------------
+        Slocation = zeros(Nareas, 3);
+        tmp       = get(handles.Slocation, 'String');
+        if ~isempty(tmp) & size(tmp,1) == Nareas
+            for i = 1:Nareas
+                tmp2 = str2num(tmp(i, :));
+                if length(tmp2) ~= 3
+                    errordlg(sprintf('coordinates of area %d not valid',i));
+                    return;
+                else
+                    Slocation(i, :) = tmp2;
+                end
+            end
+            if size(Slocation, 1) ~= Nareas
+                errordlg('Number of source names and locations must correspond');
+                return;
+            end
         else
-            Slocation(i, :) = tmp2;
+            errordlg(sprintf('Please specify %d source locations.', Nareas));
+            return
         end
-    end
-    if size(Slocation, 1) ~= Nareas
-        errordlg('Number of source names and locations must correspond'); 
-        return;
-    end
-else
-    errordlg(sprintf('Please specify %d source locations.', Nareas)); 
-    return
-end
 
-% set prior expectations about locations
-%--------------------------------------------------------------------------
-DCM.Lpos = Slocation';
+        % set prior expectations about locations
+        %------------------------------------------------------------------
+        DCM.Lpos = Slocation';
+        
+    otherwise
+        
+        % for LFP
+        %------------------------------------------------------------------
+        DCM.Lpos = zeros(3,0);
+        set(handles.Slocation, 'String', '');
+
+end
 
 % forward model (spatial)
 %--------------------------------------------------------------------------
@@ -543,12 +569,11 @@ if ~m, B = {}; DCM.B = {}; end
 
 % check DCM.A, DCM.B, ...
 %--------------------------------------------------------------------------
-try
-    if length(DCM.A{1}) ~= n, DCM = rmfield(DCM,'A'); end
-    if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end
-    if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end
-    if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end
-end
+try, if length(DCM.A{1}) ~= n, DCM = rmfield(DCM,'A'); end, end
+try, if length(DCM.B{1}) ~= n, DCM = rmfield(DCM,'B'); end, end
+try, if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end, end
+try, if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end, end
+try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
 
 % connection buttons
 %--------------------------------------------------------------------------
@@ -952,6 +977,7 @@ switch handles.DCM.options.model
         return
 end
 
+set(handles.results,'Value',1);
 set(handles.results,'String',Action);
 handles = reset_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);

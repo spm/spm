@@ -7,29 +7,38 @@ function [L] = spm_lx_sep(P,M)
 %   x(:,3) - voltage (pyramidal cells) -ve
 %   x(:,4) - current (spiny stellate cells)    depolarizing
 %   x(:,5) - current (pyramidal cells)         depolarizing
-%   x(:,6) - current (pyramidal cells)         hyerpolarizing
+%   x(:,6) - current (pyramidal cells)         hyperpolarizing
 %   x(:,7) - voltage (inhibitory interneurons)
 %   x(:,8) - current (inhibitory interneurons) depolarizing
 %   x(:,9) - voltage (pyramidal cells)
 %
 % G        - y = G*x
 %
-% where spiny stellate cells and pyramidal cells contribute
+% This is like spm_erp_lx but allows each subpopulation within a source to
+% have its own lead field
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
-
-% get stellate and pyramidal cell indices
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_lx_sep.m 1174 2008-02-27 20:22:30Z karl $
+ 
+% parameterised lead field ECD for each population
 %--------------------------------------------------------------------------
-n      = length(M.pE.A{1});
-is     = [1:n] + 1;
-ip     = [1:n] + M.n - n;
-i      = [is ip];
-
-% parameterised lead field ECD
+J      = [1 7 9];                            % contributing states
+nc     = M.l;                                % number of channels
+ns     = M.n/9;                              % number of sources
+L      = cell(1,9);
+[L{:}] = deal(sparse(nc,ns));
+for  i = 1:length(P.L)
+    Q       = P;
+    Q.L     = P.L{i};
+    L{J(i)} = spm_erp_L(Q,M);
+end
+ 
+% concatenate
 %--------------------------------------------------------------------------
-L      = sparse(M.l,M.n);
-L(:,i) = spm_sep_L(P,M);
+L = spm_cat(L);
