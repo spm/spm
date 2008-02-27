@@ -15,12 +15,12 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_U.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_mvb_U.m 1171 2008-02-27 14:34:38Z christophe $
  
 % defaults
 %--------------------------------------------------------------------------
-try, X0;  catch, X0  = [];   end
-try, xyz; catch, xyz = [];   end
+try X0;  catch X0  = [];   end %#ok<VUNUS>
+try xyz; catch xyz = [];   end %#ok<VUNUS>
  
 % get orders
 %--------------------------------------------------------------------------
@@ -49,29 +49,33 @@ switch priors
     case 'smooth'
         %------------------------------------------------------------------
         sm    = 4;                            % smoothness fixed at 4mm std
-        dlim  = 16^2;                         % spatial limit (mm)^2
+        dlim  = (4*sm)^2;                     % spatial limit (mm)^2
         s     = sm^2;                         % Smoothness variance
         xyz   = xyz';
         nlim  = 256;                          % voxel limit
-        iv    = 1:4:nv;
-        nu    = length(iv);
-        U     = spalloc(nv,nu,nu*nlim);       % pre-allocate memory
-        l     = 1;
+        Vvx   = prod(vox);                    % volume of a voxel
+        Vlr   = 4/3*pi*dlim^(3/2);            % voi around a voxel
+        Nlr   = round(Vlr/Vvx*.85);  % estim of # of voxel in voi, keep 85% 
+        U     = spalloc(nv,nv,nv*Nlr);        % pre-allocate memory
         fprintf('Creating smooth patterns - please wait\n')
-        for i = iv
-            u      =        (xyz(:,1) - xyz(i,1)).^2;
-            j      =   find(u    < dlim);
+        kk    = floor(nv/4);
+        fprintf('\n0%%')
+        for i = 1:nv
+            if ~rem(i,kk), fprintf('.....%2i%%',25*i/kk); end
+            u      = (xyz(:,1) - xyz(i,1)).^2;
+            j      = find(u < dlim);
             u(j)   = u(j) + (xyz(j,2) - xyz(i,2)).^2;
-            j      = j(find(u(j) < dlim));
+            j      = j((u(j) < dlim));
             u(j)   = u(j) + (xyz(j,3) - xyz(i,3)).^2;
-            j      = j(find(u(j) < dlim));
-            [q k]  = sort(u(j));
-            try,k  = k(1:nlim); end
-            j      = j(k);
-            U(j,l) = exp(-u(j)/(2*s));
-            l      = l + 1;
+            j      = j((u(j) < dlim));
+            if length(j)>nlim
+                [q k]  = sort(u(j));
+                k      = k(1:nlim);
+                j      = j(k);
+            end
+            U(j,i) = exp(-u(j)/(2*s));
         end
-        fprintf('Thank you\n')
+        fprintf('\nThank you\n')
  
     case 'singular'
  
