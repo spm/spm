@@ -28,13 +28,13 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_mvb.m 1179 2008-02-28 15:39:28Z karl $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------
 try, V;          catch, V  = [];             end
 try, nG; aG = 0; catch, nG = 8; aG = 1;      end
-try, sG;         catch, sG = spm_Ncdf(-1)*2; end
+try, sG;         catch, sG = 1/2;            end
  
 % get orders
 %--------------------------------------------------------------------------
@@ -86,7 +86,9 @@ for  i = 1:nG
     lnh          = log(M.h');
     
     disp('log evidence & hyperparameters:')
-    disp('       '),disp(F),disp(lnh)
+    fprintf('% 8.2f',F-F(1)),fprintf('\n')
+    fprintf('% 8.2f',lnh),fprintf('\n\n')
+    
     
     % eliminate redundant components
     %----------------------------------------------------------------------

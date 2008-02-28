@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_mvb_display.m 1179 2008-02-28 15:39:28Z karl $
 
 
 % get figure
@@ -53,14 +53,6 @@ ylabel('frequency')
 axis square
 grid on
 title({'distribution of weights'})
-
-
-% maximium intensity projection
-%--------------------------------------------------------------------------
-subplot(3,2,3)
-spm_mip(M.qE,XYZ(1:3,:),VOX)
-axis image
-title([MVB.name ' (' MVB.contrast ')'])
 
 
 % Posterior probabilities

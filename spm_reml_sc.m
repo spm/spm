@@ -38,7 +38,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_reml_sc.m 1170 2008-02-26 17:56:14Z christophe $
+% $Id: spm_reml_sc.m 1179 2008-02-28 15:39:28Z karl $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
@@ -96,11 +96,6 @@ try, hP = inv(hC); catch, hP = 1/256;      end
 if length(hE) < m, hE = hE(1)*ones(m,1);   end
 if length(hP) < m, hP = hP(1)*speye(m,m);  end
 
-% omit shrinkage hyperpriors on first component (usually observation error)
-%--------------------------------------------------------------------------
-% hE(1) = 0;
-% Not very useful. It doesn't really change the final results but slows
-% down the convergence.
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------

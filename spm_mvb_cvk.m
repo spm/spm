@@ -15,7 +15,7 @@ function [p,percent] = spm_mvb_cvk(MVB,k);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_mvb_cvk.m 1179 2008-02-28 15:39:28Z karl $
  
  
 %-partition order
@@ -24,7 +24,7 @@ try
     k;
 catch
     str   = 'k-fold cross-validation';
-    k     = spm_input(str,'!+1','b',{'2','4','8'},[2 4 8]);
+    k     = spm_input(str,'!+1','b',{'2','4','8','loo'},[2 4 8 0]);
 end
  
 %-Get figure handles and set title
@@ -71,11 +71,14 @@ X     = R'*X;
 Y     = R'*Y;
 V     = R'*R;
 
+% leave-one-out
+%--------------------------------------------------------------------------
+Ns    = length(X);
+qX    = sparse(Ns,1);
+if ~k, k = Ns - 1; end
 
 % k-fold cross-validation
 %==========================================================================
-Ns    = length(X);
-qX    = sparse(Ns,1);
 for i = 1:k
  
     % specify indices of training and test data
@@ -95,6 +98,14 @@ for i = 1:k
     % Test
     %======================================================================
     qX(test) = qX(test) + Y(test,:)*M.qE;
+    
+    % record feature wieghts
+    %----------------------------------------------------------------------
+    qE(:,i)  = M.qE;
+    
+    % and posterior probabilities
+    %----------------------------------------------------------------------
+    P(:,i)   = 1 - spm_Ncdf(0,abs(M.qE),M.qC);
  
 end
  
@@ -103,38 +114,59 @@ end
  
 % test correlation
 %--------------------------------------------------------------------------
-[T df]  = spm_ancova(X,V,qX,1);
-p       = 1 - spm_Tcdf(T,df(2));
+[T df] = spm_ancova(X,V,qX,1);
+p      = 1 - spm_Tcdf(T,df(2));
  
 % percent correct (after projection)
 %--------------------------------------------------------------------------
-pX      = R*X;
-qX      = R*qX;
-T       = sign(pX - median(pX)) == sign(qX - median(qX));
-percent = 100*sum(T)/length(T);
- 
-% plot
+pX     = R*X;
+qX     = R*qX;
+T      = sign(pX - median(pX)) == sign(qX - median(qX));
+pc     = 100*sum(T)/length(T);
+R2     = corrcoef(pX,qX);
+R2     = 100*(R2(1,2)^2);
+
+
+% plot validation
 %--------------------------------------------------------------------------
-subplot(2,1,1)
-s       = 1:length(pX);
+subplot(2,2,1)
+s      = 1:length(pX);
 plot(s,pX,s,qX,'-.')
 xlabel('sample')
 ylabel('response (adjusted)')
 title('cross-validation')
 axis square
  
-subplot(2,1,2)
+subplot(2,2,2)
 plot(pX,qX,'.')
 xlabel('true')
 ylabel('predicted')
 title(sprintf('p-value (parametric) = %.5f',p))
 axis square
+
+
+% plot feature wietghts
+%--------------------------------------------------------------------------
+subplot(2,2,3)
+imagesc(corrcoef(qE))
+colorbar
+xlabel('biparititon (k)')
+title({'correlations among';'k-fold feature wieghts'})
+axis square
+
+subplot(2,2,4)
+spm_mip(prod(P,2),MVB.XYZ(1:3,:),MVB.VOX)
+title({[MVB.name ' (' MVB.contrast ')'];'prod( P(|weigths| > 0) )'})
+axis square
+
  
 % display and assign in base memory
 %--------------------------------------------------------------------------
-fprintf('\np-value = %.4f; percent: %.1f\n',p,percent)
+fprintf('\np-value = %.4f; classification: %.1f%s; R-squared %.1f%s\n',p,pc,'%',R2,'%')
 MVB.p_value = p;
-MVB.percent = percent;
+MVB.percent = pc;
+MVB.R2      = R2;
+
 assignin('base','MVB',MVB)
  
 return
