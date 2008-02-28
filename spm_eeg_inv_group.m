@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1175 2008-02-27 20:23:16Z karl $
+% $Id: spm_eeg_inv_group.m 1177 2008-02-28 13:55:07Z karl $
 
 
 % check if to proceed
@@ -200,7 +200,7 @@ if strcmp(str,'Yes')
     fboi             = sort(fboi);
     contrast.fboi    = round([fboi(1) fboi(end)]);
     contrast.display = 0;
-    contrast.smooth  = 8;
+    contrast.smooth  = 4;
     
 else
     contrast = [];
@@ -228,6 +228,13 @@ end
 D     = spm_eeg_invert(D);
 if ~iscell(D), D = {D}; end
 
+% Save
+%==========================================================================
+for i = 1:Ns
+    spm_eeg_inv_save(D{i})
+end
+clear D
+
 
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
@@ -236,15 +243,11 @@ if length(contrast)
     % evaluate contrast and write image
     %----------------------------------------------------------------------
     for i = 1:Ns
-        D{i}.inv{val}.contrast = contrast;
-        D{i} = spm_eeg_inv_results(D{i});
-        D{i} = spm_eeg_inv_Mesh2Voxels(D{i});
-
+        [p f] = fileparts(deblank(S(i,:)));
+        D     = spm_eeg_ldata(fullfile(p,f));
+        D.inv{val}.contrast = contrast;
+        D     = spm_eeg_inv_results(D);
+        D     = spm_eeg_inv_Mesh2Voxels(D);
     end
 end
 
-% Save
-%==========================================================================
-for i = 1:Ns
-    spm_eeg_inv_save(D{i})
-end
