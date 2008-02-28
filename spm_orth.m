@@ -11,7 +11,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 1172 2008-02-27 20:14:47Z karl $
+% $Id: spm_orth.m 1178 2008-02-28 13:58:13Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ warning(sw);
 %--------------------------------------------------------------------------
 switch OPT
     case{'pad'}
-        X      = sparse(n,m);
+        X      = zeros(n,m);
         X(:,j) = x;
     otherwise
         X      = spm_en(x);
