@@ -52,7 +52,7 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erpsymm_priors.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_erpsymm_priors.m 1176 2008-02-28 13:29:29Z karl $
 
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -76,17 +76,17 @@ switch type
     
     case{'ECD (EEG)','ECD (MEG)'}
     %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =   0*ones(3,n);    % positions
-    G.L    = sparse(3,n);   U.L    = 256*ones(3,n);    % orientations
-
+    G.Lpos = dipfit.L.pos;  U.Lpos =      0*ones(3,n);    % positions
+    G.L    = sparse(3,n);   U.L    = exp(8)*ones(3,n);    % orientations
+ 
     case{'Imaging'}
     %----------------------------------------------------------------------
     m      = dipfit.Nm;
-    G.L    = sparse(m,n);   U.L    =  16*ones(m,n);    % modes
+    G.L    = sparse(m,n);   U.L    = exp(8)*ones(m,n);    % modes
     
     case{'LFP'}
     %----------------------------------------------------------------------
-    G.L    = ones(1,n);     U.L    = 256*ones(1,n);    % gains
+    G.L    = ones(1,n);     U.L    = exp(8)*ones(1,n);    % gains
     
 end
 
@@ -112,18 +112,21 @@ E.S   = [0 0];          V.S = [1 1]/8;             % dispersion & threshold
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
-    E.A{i} = log(A{i} + eps);                      % forward
+      A{i} = ~~A{i};
+    E.A{i} = A{i}*32 - 32;                         % forward
     V.A{i} = A{i}/16;                              % backward
     Q      = Q | A{i};                             % and lateral connections
 end
-
+ 
 for i = 1:length(B)
+      B{i} = ~~B{i};
     E.B{i} = 0*B{i};                               % input-dependent scaling
     V.B{i} = B{i}/16;
     Q      = Q | B{i};
 end
-E.C        = log(C + eps);                         % where inputs enter
-V.C        = exp(E.C)/32;
+C      = ~~C;
+E.C    = C*32 - 32;                                % where inputs enter
+V.C    = C/32;
 
 % set delay (enforcing symmetric delays)
 %--------------------------------------------------------------------------

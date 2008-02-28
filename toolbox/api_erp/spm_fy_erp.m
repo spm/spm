@@ -6,7 +6,7 @@ function [f] = spm_fy_erp(y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fy_erp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_fy_erp.m 1176 2008-02-28 13:29:29Z karl $
 
 % projectors
 %--------------------------------------------------------------------------
