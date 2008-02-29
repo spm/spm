@@ -1,14 +1,16 @@
-% SPM5 UPDATE 14/11/06
+% SPM5 UPDATE 17/12/06
 % UPDATE 27/01/05
 % Sets the default values for the FieldMap toolbox
 %
-% FORMAT pm_defaults_Sonata
+% FORMAT pm_defaults_Allegra_OFC
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% on the Sonata scanner at the FIL.
+% on the Allegra scanner at the FIL and the new EPI sequence with
+% extended FOV and optimised for imaging the orbital frontal cortex.
+% nw_mepi_v3d_OFC
 %_______________________________________________________________________
-% pm_defaults_Sonata Chloe Hutton, Jesper Andersson 17/12/06
+% pm_defaults_Allegra_OFC  Chloe Hutton, Jesper Andersson 28/02/08
 
 global pm_def
 
@@ -20,8 +22,8 @@ pm_def.INPUT_DATA_FORMAT = 'PM';      % 'RI' = load two real and
                                       % 'PM' = load one or two
                                       % phase and magnitude image
                                       % pairs.
-pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Sonata
-pm_def.LONG_ECHO_TIME = 14.76;        % Long echo time in ms for Sonata
+pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Allegra
+pm_def.LONG_ECHO_TIME = 12.46;        % Long echo time in ms for Allegra
 pm_def.MASKBRAIN = 1;                 % Do brain masking (1 or 0,
 				      % 0 for EPI fieldmaps)
 
@@ -39,22 +41,23 @@ pm_def.WS = 1;                        % Weighted or normal smoothing.
 % Flags for brain extraction
 %=======================================================================
 pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'templates','T1.nii');
-pm_def.MFLAGS.FWHM = 5; % In mm
-pm_def.MFLAGS.NERODE = 1;% In voxels
-pm_def.MFLAGS.NDILATE = 2; % In voxels
+pm_def.MFLAGS.FWHM = 5;     % In mm
+pm_def.MFLAGS.NERODE = 1;   % In voxels
+pm_def.MFLAGS.NDILATE = 2;  % In voxels
 pm_def.MFLAGS.THRESH = 0.5;
-pm_def.MFLAGS.REG = 0.02; % A larger value helps segmentation to converge
+pm_def.MFLAGS.REG = 0.02;   % A larger value helps segmentation to converge
 pm_def.MFLAGS.GRAPHICS = 0; % A larger value helps segmentation to converge
 
 % Defaults for converting field map to voxel displacement map.
 %=======================================================================
 pm_def.EPI_BASED_FIELDMAPS = 0;         % EPI=1, other=0.
 pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = -1; % +ve k-space = 1, -ve = -1.
-pm_def.TOTAL_EPI_READOUT_TIME = 32;     % Sonata EPI RO time (500E-6*64)
+pm_def.TOTAL_EPI_READOUT_TIME = 40.32   % Allegra EPI RO time (560E-6*72)
 
 % Defaults for Unwarping.
 %=======================================================================
 pm_def.DO_JACOBIAN_MODULATION = 0;    % Do jacobian modulation to adjust 
                                       % for compression or stretching
                                       % No = 0, Yes = 1
-
+				      
+				      

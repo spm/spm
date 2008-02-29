@@ -1,4 +1,4 @@
-function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
+function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 %
 % Function to prepare fieldmap data for processing
 % 
@@ -6,7 +6,13 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
 % fm_dir    - name of directory containing fieldmap images
 % epi_dir   - name of directory containing epi images (needs first epi in time
 %             series to match the fieldmap to).
-%
+%             This can also be a cell array of directory names for creating
+%             session-specific versions of a vdm file where each vdm file
+%             is matched to the first image of each EPI directory specified.
+%             Each session specific vdm file will be saved with the name
+%             vdm5_XXXX_'sessname'N.img where 'sessname is 'session' by
+%             default or another name if specified by the user as the fourth
+%             argument to the script.
 % pm_defs   - vector containing following values (optional flags in brackets): 
 %             [te1,te2,epifm,tert,kdir,(mask),(match)];
 %
@@ -19,8 +25,11 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
 %             (only if non-epi fieldmap)
 % match     - (optional flag, default=1) Match fieldmap to epi or not
 %
-% VDM       - file pointer to the VDM file (voxel displacement map) required
-%             for the Unwarping process. This will be written to the
+% sessname  - (optional string, default='session') This will be the name
+%             extension followed by an incremented integer for session specific vdm files.
+%
+% VDM       - cell array of file pointers to the VDM file(s) (voxel displacement map) 
+%             required for the Unwarping process. This will be written to the
 %             same directory as the fieldmap data.
 %
 % NB:
@@ -35,20 +44,22 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
 % Sonata Siemens fieldmap parameters and default EPI fMRI'); 
 % VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,14.76,0,32,-1]);
 %
-% Sonata EPI fieldmap parameters and default EPI fMRI
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[25,34.5,1,32,-1]);
-%
 % Allegra Siemens fieldmap parameters and default EPI fMRI
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,21,-1]);
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,21.12,-1]);
 %
-% Allegra EPI fieldmap parameters and default EPI fMRI
-% VDM=FieldMap_preprocess(fm_dir,epi_dir,[19,29,1,21,-1]);
+% Allegra Siemens fieldmap parameters and extended FOV EPI fMRI
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,23.76,-1]);
+%
+% Allegra Siemens fieldmap parameters and 128 EPI fMRI
+% VDM=FieldMap_preprocess(fm_dir,epi_dir,[10.0,12.46,0,71.68,-1]);
 %  
 % It is also possible to switch off the brain masking which is
 % done by default with a siemens field map (set 6th flag to 0) 
 % and the matching of the fieldmap to the EPI (set 7th flag to 0).
 % 
-% Updated for SPM5 - 27/02/07
+% 27/02/07 - Updated for SPM5.
+% 20/02/08 - Updated to generate session specific versions of the 
+% vdm file that have been matched to the first image of each session.
 %_________________________________________________________________
 % FieldMap_preprocess.m                           Chloe Hutton 27/02/07
 %
@@ -61,6 +72,11 @@ if size(pm_defs,1)<5 & size(pm_defs,2)<5
 end
 
 pm_defaults;
+if nargin<4
+  pm_def.sessname='session';
+else
+  pm_def.sessname=sessname;
+end
 
 % Update default parameters
 pm_def.SHORT_ECHO_TIME= pm_defs(1);
@@ -89,7 +105,9 @@ else
    error('Sorry the parameter epifm must be 0 or 1');
 end
 
+%----------------------------------------------------------------------
 % Match the VDM to EPI unless unless switched off in pm_defs(7)
+%----------------------------------------------------------------------
 pm_def.match_vdm=1;
 if size(pm_defs,1)>6 | size(pm_defs,2)>6
    if pm_defs(7)==0
@@ -97,12 +115,21 @@ if size(pm_defs,1)>6 | size(pm_defs,2)>6
    end
 end
 
-
 %----------------------------------------------------------------------
-% Load epi data from data directory
+% Load epi data from data directory for each session if necessary
 %----------------------------------------------------------------------
-epi_img = spm_select('List',epi_dir,'^f.*\.img$');
-epi_img=fullfile(epi_dir,epi_img(1,:));
+if iscell(epi_dir)
+   nsessions = size(epi_dir,2);
+   for sessnum=1:nsessions
+      epi_all = spm_select('List',epi_dir{sessnum},'^f.*\.img$');
+      epi_img{sessnum}=fullfile(epi_dir{sessnum},epi_all(1,:));
+   end
+elseif isstr(epi_dir)
+   nsessions=1;
+   sessnum=1;
+   epi_all = spm_select('List',epi_dir,'^f.*\.img$');
+   epi_img{sessnum}=fullfile(epi_dir,epi_all(1,:));
+end
 
 %----------------------------------------------------------------------
 % Load field map data from fieldmap directory
@@ -111,6 +138,19 @@ if pm_def.INPUT_DATA_FORMAT=='PM'
    fm_imgs = spm_select('List',fm_dir,'^s.*\.img$');
    if ~isempty(fm_imgs)
       nfiles=size(fm_imgs,1);
+      % Added the next few lines so the scaled fieldmap files aren't picked
+      % up
+      if nfiles>3
+          nnfiles=0;
+          for filenum=1:nfiles        
+              if ~strncmp(deblank(fm_imgs(filenum,:)),'sc',2)
+                  nfm_imgs(nnfiles+1,:)=fm_imgs(filenum,:);
+                  nnfiles=nnfiles+1;
+              end
+          end
+          nfiles=nnfiles;
+          fm_imgs=nfm_imgs;
+      end
       if nfiles~=3
          msg=sprintf('Wrong number of field map (s*.img) images! There should be 3!');
          error(msg);

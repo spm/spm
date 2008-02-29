@@ -1,20 +1,23 @@
 function VDM=FieldMap_create(fm_imgs,epi_img,pm_defs)
 %
-% Function to create VDM file from fieldmap images.
+% Function to create VDM file from fieldmap images and can be called
+% using FieldMap_preprocess.m
 % 
 % This function uses routines from the FieldMap toolbox to:
-% 1) Create a single field map from inout filedmap data.
+% 1) Create a single field map from input fieldmap data.
 % 2) Convert fieldmap to a voxel displacement map (vdm_* file).
-% 3) Match vdm_* to an input EPI which should be the first image 
-% that everything else will be realigned/unwarped to.
-% 4) The selected EPI is unwarped and written out with the prefix 'u'.
+% 3) Match vdm_* to input EPI(s) which should be the first image 
+% that each session will be realigned/unwarped to. Writes out matched vdm
+% file with name extension 'session' or a user-specified name.
+% 4) Each selected EPI is unwarped and written out with the prefix 'u'.
 % 
 % For details about the FieldMap toolbox, see FieldMap.man. For a 
 % description of the components of the structure IP, see FieldMap.m.
 % For an introduction to the theoretcial and practical principles behind 
 % the toolbox, see principles.man.
 %
-% Updated for SPM5 - 27/02/07
+% 27/02/07 - Updated for SPM5.
+% 20/02/08 - Updated to work with multiple sessions
 %_________________________________________________________________
 % FieldMap_create.m                           Chloe Hutton 27/02/07
   
@@ -102,34 +105,86 @@ FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Smoothed phase map');
 % Select an EPI to unwarp
 %----------------------------------------------------------------------
 
-if ischar(epi_img), epi_img = spm_vol(epi_img); end
-IP.epiP = epi_img;
+if ischar(epi_img)
+    nsessions = 1;
+    epi_img{1} = epi_img;
+elseif iscell(epi_img)
+    nsessions=size(epi_img,2);
+end
 
 %----------------------------------------------------------------------
 % Match voxel displacement map to image
 % Outputs -> mag_NAME-OF-FIRST-INPUT-IMAGE.img
 %----------------------------------------------------------------------
+if nsessions==1
+    IP.epiP = spm_vol(epi_img{1}(1,:));
+    if isfield(pm_defs, 'match_vdm')
+      if pm_defs.match_vdm
+          IP.vdmP = FieldMap('MatchVDM',IP);
+      end
+    end
+   
+    %----------------------------------------------------------------------
+   % Unwarp EPI
+   %----------------------------------------------------------------------
 
-if isfield(pm_defs, 'match_vdm')
-  if pm_defs.match_vdm
-    IP.vdmP = FieldMap('MatchVDM',IP);
-  end
+   IP.uepiP = FieldMap('UnwarpEPI',IP);
+   
+   %----------------------------------------------------------------------
+   % Write unwarped EPI 
+   % Outputs -> uNAME-OF-EPI.img
+   %----------------------------------------------------------------------
+   unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
+   IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+   VDM{1}=IP.vdmP;
+   
+else
+% If multiple sessions, does match to first image of each session
+% Copies the written file to 
+%----------------------------------------------------------------------
+   orig_vdm=IP.vdmP;
+
+   % get session specific fieldmap name
+   if isfield(pm_defs,'sessname')
+      sessname=pm_defs.sessname;
+   else
+      sessname='session';
+   end
+
+   for sessnum=1:nsessions
+      IP.vdmP=orig_vdm; % Make sure we start with original for each session
+      IP.epiP = spm_vol(epi_img{sessnum});
+      if isfield(pm_defs, 'match_vdm')
+         if pm_defs.match_vdm
+            msg=sprintf('Matching session %d...\n',sessnum);
+            disp(msg);
+            IP.vdmP = FieldMap('MatchVDM',IP);
+         end
+         % Now copy this file to a session specific file
+         session_vdm = spm_vol(IP.vdmP.fname);
+         vol=spm_read_vols(session_vdm);
+         vdm_info=sprintf('Voxel Displacement Map:echo time difference=%2.2fms, EPI readout time=%2.2fms',IP.uflags.etd, IP.tert);    
+         newname=sprintf('%s_%s%d.img',spm_str_manip(IP.vdmP.fname,'r'),sessname,sessnum);
+         Ovdm=struct('fname',newname,'mat',session_vdm.mat,'dim',session_vdm.dim,'dt',session_vdm.dt,'descrip',vdm_info);
+         spm_write_vol(Ovdm,vol);
+         IP.vdmP=Ovdm;
+      end
+  
+      %----------------------------------------------------------------------
+      % Unwarp EPI
+      %----------------------------------------------------------------------
+
+      IP.uepiP = FieldMap('UnwarpEPI',IP);
+
+      %----------------------------------------------------------------------
+      % Write unwarped EPI 
+      % Outputs -> uNAME-OF-EPI.img
+      %----------------------------------------------------------------------
+      unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
+      IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+      VDM{sessnum}=IP.vdmP ;
+   end  
 end
-
-%----------------------------------------------------------------------
-% Unwarp EPI
-%----------------------------------------------------------------------
-
-IP.uepiP = FieldMap('UnwarpEPI',IP);
-
-%----------------------------------------------------------------------
-% Write unwarped EPI 
-% Outputs -> uNAME-OF-EPI.img
-%----------------------------------------------------------------------
-unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
-IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
-
-VDM=IP.vdmP ;
 return
 
 
