@@ -42,7 +42,7 @@ function [pE,pC] = spm_mfm_priors(A,B,C,L,J)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfm_priors.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_mfm_priors.m 1183 2008-03-03 18:26:05Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -65,38 +65,35 @@ warning off
 %--------------------------------------------------------------------------
 try, J; catch, J  = sparse([1 7 9],1,[0.2 0.2 0.6],13,1); end
 
-% source-specific contribution to LFP
-%--------------------------------------------------------------------------
-E.J   = J;                 V.J = J/128;            % contributing states
+E.J   = J;                 V.J = J/64;            % contributing states
 
-% lead field parameters
+% lead-field parameters
 %--------------------------------------------------------------------------
 try,   type = L.type; catch, type = 'LFP'; end
 switch type
     
     case{'ECD (EEG)','ECD (MEG)'}
     %----------------------------------------------------------------------
-    E.Lpos = L.L.pos;       V.Lpos =   0*ones(3,n);    % positions
-    E.L    = sparse(3,n);   V.L    = 256*ones(3,n);    % orientations
-
+    E.Lpos = L.L.pos;       V.Lpos =      0*ones(3,n);    % positions
+    E.L    = sparse(3,n);   V.L    = exp(8)*ones(3,n);    % orientations
+ 
     case{'Imaging'}
     %----------------------------------------------------------------------
     m      = L.Nm;
-    E.L    = sparse(m,n);   V.L    =  16*ones(m,n);    % modes
+    E.L    = sparse(m,n);   V.L    = exp(8)*ones(m,n);    % modes
     
     case{'LFP'}
     %----------------------------------------------------------------------
-    E.L    = ones(1,n);     V.L    = 256*ones(1,n);    % gains
+    E.L    = ones(1,n);     V.L    = exp(8)*ones(1,n);    % gains
     
 end
-
 
 % parameters for neural-mass forward model
 %==========================================================================
 
 % sigmoid parameters
 %--------------------------------------------------------------------------
-E.R   = [0 0];             V.R = [1 1]/8;
+E.S   = [0 0];             V.S = [1 1]/8;
 
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
@@ -107,18 +104,21 @@ E.G   = log(ones(n,2));    V.G = ones(n,2)/8;      % intrinsic connections
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
-    E.A{i} = log(~~A{i} + eps);                    % forward
+      A{i} = ~~A{i};
+    E.A{i} = log(A{i} + eps);                      % forward
     V.A{i} = A{i}/2;                               % backward
     Q      = Q | A{i};                             % and lateral connections
 end
-
+ 
 for i = 1:length(B)
+      B{i} = ~~B{i};
     E.B{i} = 0*B{i};                               % input-dependent scaling
-    V.B{i} = ~~B{i}/2;
+    V.B{i} = B{i}/2;
     Q      = Q | B{i};
 end
-E.C    = log(~~C + eps);                           % where inputs enter
-V.C    = C/2;
+C      = ~~C;
+E.C    = C*32 - 32;                                % where inputs enter
+V.C    = C/32;
 
 % vectorize
 %--------------------------------------------------------------------------

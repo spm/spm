@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_ind_data.m 1183 2008-03-03 18:26:05Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -177,38 +177,59 @@ end
 
 % high-pass filter (detrend)
 %--------------------------------------------------------------------------
-T     = spm_orthpoly(Ns,h);
-T     = speye(Ns,Ns) - T*T';
+if Ns < 256
+    T = spm_orthpoly(Ns,h);
+    T = speye(Ns,Ns) - T*T';
+else
+    T = 1;
+end
 
 % create convolution matrices (Eucldian normalised with filtering)
 %--------------------------------------------------------------------------
 for i = 1:Nf
+    fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
+    
     W    = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz(i));
     N    = fix(length(W{1})/2);
-    W    = convmtx(W{1}',Ns);
+    W    = W{1}.*(abs(W{1}) > exp(-8));
+    W    = spm_convmtx(W',Ns);
     W    = W(It + N,:);
     M{i} = W*T;
+    
 end
 
-% get gain matrix for source components
+% get MAP projector matrix for source components
 %==========================================================================
 
-% parameterised lead field ECD given positions
+% parameterised lead field ECD given positions or LFP data
 %--------------------------------------------------------------------------
-try
-    pos = DCM.Lpos;
-catch
-    pos = DCM.M.dipfit.L.pos;
+switch DCM.M.dipfit.type
+
+    case{'ECD (EEG)','ECD (MEG)'}
+        
+        try
+            pos = DCM.Lpos;
+        catch
+            pos = DCM.M.dipfit.L.pos;
+        end
+        
+        % number of moments per source
+        %------------------------------------------------------------------
+        Ng     = 3;   
+        G.L    = kron(ones(1,Nr),speye(Ng,Ng));
+        G.Lpos = kron(pos,ones(1,Ng));
+        L      = spm_erp_L(G,DCM.M);
+        MAP    = pinv(L);
+
+    case{'LFP'}
+        Ng     = 1;
+        MAP    = speye(Nr,Nr);
+        
+    otherwise
+        warndlg('DCM for induced responses requires an ECD model')
+        return
 end
-mom    = [1  0  0;
-          0  1  0;
-          0  0  1];
-Ng     = size(mom,2);                  % number of moments per source
-Nr     = size(pos,2);                  % number of sources
-G.L    = kron(ones(1,Nr),mom);
-G.Lpos = kron(pos,ones(1,Ng));
-L      = spm_erp_L(G,DCM.M);
-MAP    = pinv(L);
+
 
 % add (spatial filtering) re-referencing to MAP projector
 %--------------------------------------------------------------------------
@@ -228,7 +249,7 @@ for i = 1:Ne;
         c = find(D.events.code == D.events.types(trial(i)));
     end
     
-    % use only the first 512 trial
+    % use only the first 512 trials
     %----------------------------------------------------------------------
     try c = c(1:512); end
     Nt    = length(c);
@@ -236,8 +257,8 @@ for i = 1:Ne;
     
     % Get data
     %----------------------------------------------------------------------
-    Ny    = Nb*Nr*3;
-    Y     = zeros(Ny,Nt);
+    Ny    = Nb*Nr*Ng;
+    Y     = zeros(Ny*Nf,Nt);
     for j = 1:Nf
         f     = [1:Ny] + (j - 1)*Ny;
         for k = 1:Nt
@@ -251,17 +272,16 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     u     = spm_svd(Y'*Y);
     u     = full(u(:,1)*sign(max(u(:,1))));
-    Y     = reshape(Y*u,Nb,Nr*3,Nf);
+    Y     = reshape(Y*u,Nb,Nr*Ng,Nf);
     
     % sum time-frequency response over moments and remove baseline
     %----------------------------------------------------------------------
     for j = 1:Nr
         Yk    = zeros(Nb,Nf);
-        for k = 1:3
+        for k = 1:Ng
             Yk = Yk + squeeze(Y(:,j + k - 1,:))/Nt;
         end
-        Mz{i,j} = Yk(1,:);
-        Yz{i,j} = Yk - ones(Nb,1)*Mz{i,j};
+        Yz{i,j} = Yk - ones(Nb,1)*Yk(1,:);
     end
 end
 

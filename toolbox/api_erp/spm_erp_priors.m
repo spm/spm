@@ -1,4 +1,4 @@
-function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
+function [varargout] = spm_erp_priors(A,B,C,dipfit)
 % prior moments for a neural-mass model of ERPs
 % FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
 % FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
@@ -7,7 +7,6 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 % dipfit       - prior forward model structure
-% u            - number of neuronal inputs
 %
 % pE - prior expectation - f(x,u,P,M)
 % gE - prior expectation - g(x,u,G,M)
@@ -56,7 +55,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_erp_priors.m 1183 2008-03-03 18:26:05Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -65,12 +64,12 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
-if nargin < 5, u = 1; end
  
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
 n     = size(C,1);                                   % number of sources
+u     = size(C,2);                                   % number of inputs
 n1    = ones(n,1);
  
 % paramters for electromagnetic forward model
@@ -151,17 +150,19 @@ if nargout == 4
     varargout{4} = diag(sparse(spm_vec(U)));
     return
 else
-    switch ype
+    switch type
  
         case{'ECD (EEG)','ECD (MEG)'}
             %--------------------------------------------------------------
             E.Lpos  = G.Lpos;
-            E.L     = G.L   ;
+            E.L     = G.L;
+            E.J     = G.J;
             C       = diag(sparse(spm_vec(V,U)));
  
         case{'Imaging','LFP'}
             %--------------------------------------------------------------
             E.L     = G.L;
+            E.J     = G.J;
             C       = diag(sparse(spm_vec(V,U)));
             
         otherwise
@@ -178,14 +179,14 @@ end
  
 % Model specification
 %==========================================================================
-M.IS          = 'spm_int_U';
+M.IS          = 'spm_int_L';
 M.f           = 'spm_fx_erp';
 M.g           = 'spm_gx_erp';
-M.x           = sparse(n*9 + 1,1);
+M.x           = sparse(n,9);
 M.pE          = E;
 M.pC          = C;
 M.m           = length(B);
-M.n           = length(M.x);
+M.n           = n*9;
 M.l           = n;
 M.ns          = 128;
 M.ons         = 80;
@@ -196,8 +197,8 @@ if nargout == 1, varargout{1} = M; return, end
 % compute impulse response
 %--------------------------------------------------------------------------
 clear U
-U.dt    = 1/1000;
-M.ns    = 256;
+U.dt    = 2/1000;
+U.u     = sparse(1,1,1/U.dt,M.ns,1);
 y       = feval(M.IS,M.pE,M,U);
 plot([1:M.ns]*U.dt*1000,y)
  

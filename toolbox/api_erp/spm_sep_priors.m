@@ -1,13 +1,10 @@
-function [varargout] = spm_sep_priors(A,B,C,dipfit,u)
+function [varargout] = spm_sep_priors(A,B,C,dipfit)
 % prior moments for a neural-mass model of erps
-% FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
-% FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
-% FORMAT [M]     = spm_erp_priors(A,B,C,dipfit)
-% FORMAT           spm_erp_priors(A,B,C,dipfit)
+% FORMAT [pE,gE,pC,gC] = spm_sep_priors(A,B,C,dipfit)
+% FORMAT [pE,pC]       = spm_sep_priors(A,B,C,dipfit)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 % dipfit       - forward model structure
-% u            - number of exogenous inputs
 %
 % pE - prior expectation - f(x,u,P,M)
 % gE - prior expectation - g(x,u,G,M)
@@ -60,7 +57,7 @@ function [varargout] = spm_sep_priors(A,B,C,dipfit,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sep_priors.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_sep_priors.m 1183 2008-03-03 18:26:05Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -69,12 +66,12 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
-if nargin < 5, u = 1; end
  
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
-n     = size(C,1);                                    % number of sources
+n     = size(C,1);                                   % number of sources
+u     = size(C,2);                                   % number of inputs
 n1    = ones(n,1);
  
  

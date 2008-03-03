@@ -15,7 +15,7 @@ else
 end
 A{2}  = A{1}';
 A{3}  = sparse(n,n);
-B{1}  = sparse(n,n);
+B     = {};
 C     = sparse(1,1,1,n,1);
 
 
@@ -31,24 +31,15 @@ M.pE  = pE;
 M.pC  = pC;
 M.m   = size(C,2);
 M.n   = length(spm_vec(M.x));
-M.l   = size(L,1);
-
-% solve for fixed point 
-%--------------------------------------------------------------------------
-U.u   = sparse(128,1);
-U.dt  = 4/1000;
-x     = spm_int_ode(pE,M,U);
-x     = spm_unvec(x(end,:),M.x);
-M.x   = x;
-
+M.l   = length(pE.L);
 
 % Integrate system to see Transient response
 %==========================================================================
-%M.g   = 'spm_gx_erp';
-N     = 256;
-U.u   = 8*(exp(-([1:N]' - N/4).^2/(2*4^2)) + rand(N,1)/exp(32));
+N     = 64;
+U.dt  = 4/1000;
+U.u   = 8*(exp(-([1:N]' - N/4).^2/8) + rand(N,1)/exp(32));
 t     = [1:N]*U.dt;
-LFP   = spm_int_B(pE,M,U);
+LFP   = spm_int_L(pE,M,U);
 
 % LFP
 %--------------------------------------------------------------------------
@@ -91,7 +82,7 @@ return
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
 N          = 64;
-dt         = 1/1000;
+dt         = 3/1000;
 t          = [1:N]*dt*1000;
 [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
 

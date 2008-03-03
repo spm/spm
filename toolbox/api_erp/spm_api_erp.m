@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_api_erp.m 1183 2008-03-03 18:26:05Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -116,8 +116,8 @@ try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
 try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
 try, set(handles.Uname,       'String',DCM.xU.name);                 end
+try, set(handles.Sname,       'String',DCM.Sname);                   end
 try, set(handles.onset,       'String',num2str(DCM.options.onset));  end
-try, set(handles.Sname,       'String',strvcat(DCM.Sname));          end
 try, set(handles.Slocation,   'String',num2str(DCM.Lpos','%4.0f'));  end
 
 
@@ -370,27 +370,18 @@ handles = reset_Callback(hObject, eventdata, handles);
 
 % spatial model - source names
 %--------------------------------------------------------------------------
-DCM = handles.DCM;
-tmp = deblank(get(handles.Sname, 'String'));
-if size(tmp,1) == 0
-    errordlg('Please specify the source names'); 
-    return
-end
-k = 1;
-for i = 1:size(tmp, 1)
-    if ~isempty(deblank(tmp(i,:)))
-        Sname{k} = deblank(tmp(i,:));
-        k = k + 1;
-    end
-end
+Sname     = get(handles.Sname,'String');
 Nareas    = length(Sname);
 Nmodes    = get(handles.Nmodes,'Value');
-DCM.Sname = Sname;
+
 
 % switch for spatial forward model (for EEG or MEG)
 %--------------------------------------------------------------------------
+DCM       = handles.DCM;
+DCM.Sname = Sname;
 DCM.options.type = get(handles.Spatial_type,'Value');
 switch DCM.xY.modality
+    
     case {'EEG','MEG'}
 
         % read location coordinates
@@ -420,12 +411,21 @@ switch DCM.xY.modality
         %------------------------------------------------------------------
         DCM.Lpos = Slocation';
         
-    otherwise
+    case{'LFP'}
         
         % for LFP
         %------------------------------------------------------------------
+        if length(DCM.xY.Ic) ~= Nareas
+            errordlg('Number of source names and channels must correspond');
+            return;
+        end
         DCM.Lpos = zeros(3,0);
-        set(handles.Slocation, 'String', '');
+        set(handles.Slocation, 'String', '');    
+     
+    otherwise
+        warndlg('Unknown data modlaity')
+        return
+        
 
 end
 
@@ -489,6 +489,17 @@ set(handles.Sname,         'Enable', 'on');
 set(handles.Slocation,     'Enable', 'on');
 set(handles.spatial_back,  'Enable', 'on');
 set(handles.spatial_ok,    'Enable', 'on');
+
+% assume source and channel names are the same for LPF data
+%--------------------------------------------------------------------------
+if strcmp(handles.DCM.xY.modality,'LFP')
+    Ic = handles.DCM.xY.Ic;
+    if length(get(handles.Sname,'String')) ~= length(Ic);
+        Sname = handles.DCM.xY.name;
+        set(handles.Sname,'String',Sname)
+        handles.DCM.Sname = Sname;
+    end
+end
 
 guidata(hObject, handles);
 
@@ -796,7 +807,7 @@ switch handles.DCM.options.model
 
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
-    case{'ERP','SEP','NMN','MFM'}
+    case{'ERP','SEP','NMM','MFM'}
         handles.DCM = spm_dcm_erp(handles.DCM);
 
     % Cross-spectral density model (steady-state responses)

@@ -54,7 +54,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_lfp_priors.m 1183 2008-03-03 18:26:05Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -64,7 +64,6 @@ if nargin <  3                                  % a single source model
     C   = 1;
 end
 n   = size(C,1);                                % number of sources
-N   = n*13;                                     % number of states
  
 % disable log zero warning
 %--------------------------------------------------------------------------
@@ -165,20 +164,20 @@ if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
 %==========================================================================
 M.f      = 'spm_fx_lfp';
 M.g      = 'spm_gx_lfp';
-M.x      = sparse(N,1);
+M.x      = sparse(n,13);
 M.pE     = pE;
 M.pC     = pC;
 M.m      = length(B);
-M.n      = size(M.x,1);
+M.n      = n*13;
 M.l      = size(pE.L,1);
-M.IS     = 'spm_int';
+M.IS     = 'spm_int_L';
  
 if nargout == 1, varargout{1} = M; return, end
  
 % compute impulse response
 %--------------------------------------------------------------------------
 N       = 128;
-U.dt    = 8/1000;
+U.dt    = 2/1000;
 U.u     = sparse(1,1,1/U.dt,N,M.m);
 y       = feval(M.IS,M.pE,M,U);
 plot([1:N]*U.dt*1000,y)

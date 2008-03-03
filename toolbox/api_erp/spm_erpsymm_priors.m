@@ -1,4 +1,4 @@
-function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
+function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,ppC,pgC)
 % prior moments for a neural-mass model of erps
 % FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
 % FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
@@ -7,7 +7,6 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 % dipfit       - prior forward model structure
-% u            - number of input [gamma] components
 %
 % pE - prior expectation - f(x,u,P,M)
 % gE - prior expectation - g(x,u,G,M)
@@ -52,7 +51,7 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,u, ppC, pgC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erpsymm_priors.m 1176 2008-02-28 13:29:29Z karl $
+% $Id: spm_erpsymm_priors.m 1183 2008-03-03 18:26:05Z karl $
 
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -61,12 +60,12 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
-if nargin < 5, u = 1; end
 
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning off
-n     = size(C,1);                                 % number of sources
+n     = size(C,1);                                   % number of sources
+u     = size(C,2);                                   % number of inputs
 n1    = ones(n,1);
 
 % paramters for electromagnetic forward model

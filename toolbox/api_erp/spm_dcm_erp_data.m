@@ -19,6 +19,8 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.xY.xy       - cell array of trial-speficic response {[ns x nc]}
 %    DCM.xY.It       - Indices of (ns) time bins
 %    DCM.xY.Ic       - Indices of (nc) good channels
+%    DCM.xY.name     - names of(nc) channels
+
 %
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
@@ -26,7 +28,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_erp_data.m 1183 2008-03-03 18:26:05Z karl $
  
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -68,6 +70,7 @@ end
 %--------------------------------------------------------------------------
 Ic              = setdiff(D.channels.eeg, D.channels.Bad);
 Nc              = length(Ic);
+DCM.xY.name     = D.channels.name(Ic);
 DCM.xY.modality = D.modality;
 DCM.xY.Ic       = Ic;
 DCM.xY.Time     = 1000*[-D.events.start:D.events.stop]/D.Radc; % PST (ms)

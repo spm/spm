@@ -18,7 +18,10 @@ function [L] = spm_lx_erp(P,M)
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
-% %W% Karl Friston %E%
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: spm_lx_erp.m 1183 2008-03-03 18:26:05Z karl $
 
 % parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------

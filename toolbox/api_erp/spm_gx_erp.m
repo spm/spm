@@ -21,7 +21,7 @@ function [y] = spm_gx_erp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_erp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_gx_erp.m 1183 2008-03-03 18:26:05Z karl $
 
 % configure state variables
 %--------------------------------------------------------------------------
@@ -30,5 +30,5 @@ x  = spm_unvec(x,M.x);
 % parameterised lead field
 %--------------------------------------------------------------------------
 L  = spm_erp_L(P,M);
-y  = L*x*P.J;
+y  = L*x*P.J';
 

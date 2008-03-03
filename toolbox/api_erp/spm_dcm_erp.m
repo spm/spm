@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_erp.m 1183 2008-03-03 18:26:05Z karl $
  
 % check options 
 %==========================================================================
@@ -54,12 +54,12 @@ M      = DCM.M;
  
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.xy);                 % number of trials
-Nr     = length(DCM.A{1});              % number of sources
-Nc     = size(xY.xy{1},2);              % number of channels
+Nt     = length(xY.xy);                  % number of trials
+Nr     = size(DCM.C,1);                 % number of sources
+Nu     = size(DCM.C,2);                 % number of exogenous inputs
 Ns     = size(xY.xy{1},1);              % number of time bins
+Nc     = size(xY.xy{1},2);              % number of channels
 Nx     = size(xU.X,2);                  % number of trial-specific effects
-Nu     = length(onset);                 % number of trial-specific effects
  
 % check the number of modes is greater or equal to the number of sources
 %--------------------------------------------------------------------------
@@ -108,7 +108,7 @@ switch lower(model)
  
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit,Nu);
+        [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
  
         % inital states and equations of motion
         %------------------------------------------------------------------
@@ -123,7 +123,7 @@ switch lower(model)
  
         % prior moments on parameters
         %--------------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_erpsymm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,Nu,M.pC,M.gC);
+        [pE,gE,pC,gC] = spm_erpsymm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,M.pC,M.gC);
  
         % inital states and equations of motion
         %--------------------------------------------------------------------------
@@ -138,7 +138,7 @@ switch lower(model)
  
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_sep_priors(DCM.A,DCM.B,DCM.C,M.dipfit,Nu);
+        [pE,gE,pC,gC] = spm_sep_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
  
         % inital states
         %------------------------------------------------------------------
@@ -152,13 +152,13 @@ switch lower(model)
  
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,Nu);
+        [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
  
         % inital states
         %------------------------------------------------------------------
         M.x  = spm_x_nmm(pE);
         M.f  = 'spm_fx_nmm';
-        M.G  = 'spm_lx_nmm';      
+        M.G  = 'spm_lx_erp';      
         
     otherwise
         warndlg('Unknown model')
@@ -182,7 +182,6 @@ end
 %--------------------------------------------------------------------------
 M.FS  = 'spm_fy_erp';
 M.IS  = 'spm_gen_erp';
-M.fu  = 'spm_erp_u';
 M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;

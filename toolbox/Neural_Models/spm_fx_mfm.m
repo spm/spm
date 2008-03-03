@@ -18,7 +18,7 @@ function [f] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_fx_mfm.m 1183 2008-03-03 18:26:05Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -36,8 +36,8 @@ C    = exp(P.C);
 
 % time constants (ns x np) (excitatory, inhibitory)
 %--------------------------------------------------------------------------
-TE   =  4/1000*exp(P.T(:,1));                 % excitatory time constants
-TI   = 16/1000*exp(P.T(:,2));                 % inhibitory time constants
+TE   = 4/1000*exp(P.T(:,1));                 % excitatory time constants
+TI   = 8/1000*exp(P.T(:,2));                 % inhibitory time constants
 TE   = kron([1 1 1],TE);
 TI   = kron([1 1 1],TI);
 
@@ -46,44 +46,44 @@ TI   = kron([1 1 1],TI);
 VL    = -32;
 VE    =  16;
 VI    = -128;
-VR    = exp(P.R(1));
-S2    = exp(P.R(2))*256;
+VR    = exp(P.S(1));
+S2    = exp(P.S(2))*64;
 for i = 1:ns
     for j = 1:np
-        m(i,j) = spm_Ncdf(x{i,j}.V,VR,128);
+        m(i,j) = spm_Ncdf_jdw(x{i,j}.V,VR,S2);
     end
 end
 
 % external input (to first population x{:,1})
 %--------------------------------------------------------------------------
-U     = kron([1 0 0],C*u);
+U     = kron(sparse(1,1,1,1,np),C*u);
 
 % G - switches on extrinsic connections (np x nc)
 %--------------------------------------------------------------------------
 SE    = exp(P.G(:,1));
 SI    = exp(P.G(:,2));
-G     = [1 0 1;
-         0 1 1;
-         0 1 1];
+G     = sparse([1 0 1;
+                0 1 1;
+                0 1 1]);
 
 % G - switches on intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
-GE    = [0 0 1;
-         0 0 1;
-         1 0 0];
+GE    = sparse([0 0 1;
+                0 0 1;
+                1 0 0]);
 
      
 % G - switches on intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-GI    = [0 0 0;
-         0 0 0;
-         0 1 0];
+GI    = sparse([0 0 0;
+                0 0 0;
+                0 1 0]);
 
 
 % flow
 %==========================================================================
-c     = 2/1000;
-gL    = 1/32;
+TV    = 1/1000;
+gL    = 1/16;
 f     = x;
 for i = 1:ns
     for j = 1:np
@@ -111,7 +111,7 @@ for i = 1:ns
                    x{i,j}.gE*(VE - x{i,j}.V) + ...
                    x{i,j}.gI*(VI - x{i,j}.V) + U(i,j);
 
-        f{i,j}.V = f{i,j}.V/c;
+        f{i,j}.V = f{i,j}.V/TV;
 
         % Conductances
         %------------------------------------------------------------------
