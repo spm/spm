@@ -68,7 +68,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1173 2008-02-27 20:16:11Z karl $
+% $Id: spm_nlsi_N.m 1182 2008-03-03 18:25:04Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -253,6 +253,10 @@ sw = warning('off','all');
 %==========================================================================
 for ip = 1:64
  
+    % expansion point
+    %----------------------------------------------------------------------
+    x0 = ones(size(y,1),1)*spm_vec(M.x)';
+    
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
@@ -266,7 +270,7 @@ for ip = 1:64
         % prediction yp = G(g)*x
         %------------------------------------------------------------------
         [dGdg G] = spm_diff(M.G,Eg,M,1,{Vg});
-        yp       = FS(x*G',M);
+        yp       = FS((x - x0)*G',M);
         
         % and errors
         %------------------------------------------------------------------
@@ -429,20 +433,23 @@ for ip = 1:64
     dp    = spm_dx(dFdpp,dFdp,{v});
     Ep    = spm_unvec(spm_vec(Ep) + Vp*dp,Ep);
 
-     
+    
+    
+    % subplot times
+    %----------------------------------------------------------------------
+    try
+        yt = size(yp,1)/length(Y.pst);
+        yt = kron(ones(yt,1),Y.pst(:));
+    catch
+        yt = [1:size(yp,1)]*Y.dt;
+    end
+
     % graphics
     %----------------------------------------------------------------------
     try
  
         % subplot prediction
         %------------------------------------------------------------------
-        try
-            yt = size(yp,1)/length(Y.Time);
-            yt = kron(ones(yt,1),Y.Time(:));
-        catch
-            yt = [1:size(yp,1)]*Y.dt;
-        end
-        
         figure(Fsi)
         subplot(2,1,1)
         plot(yt,yp),                        hold on

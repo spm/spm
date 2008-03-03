@@ -58,7 +58,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 1162 2008-02-22 12:21:33Z karl $
+% $Id: spm_int_J.m 1182 2008-03-03 18:25:04Z karl $
 
 
 % convert U to U.u if necessary
@@ -129,7 +129,7 @@ for i = 1:ns
         [fx dfdx] = f(x,u,P,M);
     catch
         fx        = f(x,u,P,M);
-        dfdx      = spm_diff(f,x,u,P,M,1);
+        dfdx      = spm_diff(f,spm_vec(x),u,P,M,1);
     end
 
     % update dx = (expm(dt*J) - I)*inv(J)*fx

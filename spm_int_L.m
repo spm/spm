@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 1162 2008-02-22 12:21:33Z karl $
+% $Id: spm_int_L.m 1182 2008-03-03 18:25:04Z karl $
  
  
 % convert U to U.u if necessary
@@ -118,7 +118,7 @@ end
 try
     [fx dfdx] = f(x,u,P,M);
 catch
-    dfdx      = spm_diff(f,x,u,P,M,1);
+    dfdx      = spm_cat(spm_diff(f,x,u,P,M,1));
 end
 dfdx  = full(dfdx);
 p     = max(abs(real(eig(dfdx))));

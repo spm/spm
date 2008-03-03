@@ -1,21 +1,22 @@
-function [p,percent] = spm_mvb_cvk(MVB,k);
+function [p,pc,R2] = spm_mvb_cvk(MVB,k);
 % Split-half cross validation of a multivariate Bayesian model
-% FORMAT [p_value,percent] = spm_mvb_cvk(MVB)
+% FORMAT [p_value,percent,R2] = spm_mvb_cvk(MVB)
 %
 % MVB - Multivariate Bays structure
 % k   - k-fold cross-validation
 %
 % p   - p_value: under a null GLM
 % percent: proportion correct (median threshold)
+% R2  - coeficient of determination
 %
 % spm_mvb_cvk performs a k-fold cross-validation by trying to predict
-% the target variable using trinaing and test partitions on orthogonal 
+% the target variable using training and test partitions on orthogonal 
 % mixtures of data (from null space of confounds)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1179 2008-02-28 15:39:28Z karl $
+% $Id: spm_mvb_cvk.m 1182 2008-03-03 18:25:04Z karl $
  
  
 %-partition order
@@ -51,7 +52,7 @@ end
 % check under null hypothesis
 %--------------------------------------------------------------------------
 % MVB.Y = randn(size(MVB.Y));
-
+ 
 % whiten target and predictor (X) variables (Y) (i.e., remove correlations)
 %--------------------------------------------------------------------------
 K     = MVB.K;
@@ -59,7 +60,7 @@ X     = K*MVB.X;
 Y     = K*MVB.Y;
 X0    = K*MVB.X0;
 U     = MVB.M.U;
-
+ 
  
 % create orthonormal projection to remove confounds
 %--------------------------------------------------------------------------
@@ -70,13 +71,13 @@ R     = orth(R);
 X     = R'*X;
 Y     = R'*Y;
 V     = R'*R;
-
+ 
 % leave-one-out
 %--------------------------------------------------------------------------
 Ns    = length(X);
 qX    = sparse(Ns,1);
 if ~k, k = Ns - 1; end
-
+ 
 % k-fold cross-validation
 %==========================================================================
 for i = 1:k
@@ -99,7 +100,7 @@ for i = 1:k
     %======================================================================
     qX(test) = qX(test) + Y(test,:)*M.qE;
     
-    % record feature wieghts
+    % record feature weights
     %----------------------------------------------------------------------
     qE(:,i)  = M.qE;
     
@@ -125,8 +126,8 @@ T      = sign(pX - median(pX)) == sign(qX - median(qX));
 pc     = 100*sum(T)/length(T);
 R2     = corrcoef(pX,qX);
 R2     = 100*(R2(1,2)^2);
-
-
+ 
+ 
 % plot validation
 %--------------------------------------------------------------------------
 subplot(2,2,1)
@@ -143,22 +144,22 @@ xlabel('true')
 ylabel('predicted')
 title(sprintf('p-value (parametric) = %.5f',p))
 axis square
-
-
+ 
+ 
 % plot feature wietghts
 %--------------------------------------------------------------------------
 subplot(2,2,3)
 imagesc(corrcoef(qE))
 colorbar
 xlabel('biparititon (k)')
-title({'correlations among';'k-fold feature wieghts'})
+title({'correlations among';'k-fold feature weights'})
 axis square
-
+ 
 subplot(2,2,4)
 spm_mip(prod(P,2),MVB.XYZ(1:3,:),MVB.VOX)
-title({[MVB.name ' (' MVB.contrast ')'];'prod( P(|weigths| > 0) )'})
+title({[MVB.name ' (' MVB.contrast ')'];'prod( P(|weights| > 0) )'})
 axis square
-
+ 
  
 % display and assign in base memory
 %--------------------------------------------------------------------------
@@ -166,7 +167,5 @@ fprintf('\np-value = %.4f; classification: %.1f%s; R-squared %.1f%s\n',p,pc,'%',
 MVB.p_value = p;
 MVB.percent = pc;
 MVB.R2      = R2;
-
-assignin('base','MVB',MVB)
  
-return
+assignin('base','MVB',MVB)
