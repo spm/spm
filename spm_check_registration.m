@@ -11,7 +11,7 @@ function spm_check_registration(images)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_check_registration.m 1185 2008-03-04 16:31:21Z volkmar $
 
 
 if nargin==0,
@@ -28,7 +28,9 @@ elseif nargin==1,
     else
         spm_figure('Clear','Graphics');
     end;
-    if ischar(images), images=spm_vol(images); end;
+    if isstruct(images) && isfield(images,'data')
+        images = spm_vol(strvcat(images.data));
+    elseif ischar(images), images=spm_vol(images); end;
     spm_orthviews('Reset');
     mn = length(images);
     n  = round(mn^0.4);

@@ -84,16 +84,44 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % the vector c as an additional variable (you'll be prompted to select
 % the n images).
 %
+% FORMAT out = spm_imcalc_ui(job)
+% Input:
+% job - a job structure.
+% Output:
+% out.files{1} - file name of output image.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_imcalc_ui.m 1185 2008-03-04 16:31:21Z volkmar $
 
+%-Decompose job structure and run with arguments
+%-----------------------------------------------------------------------
+if nargin == 1 && isstruct(P) && isfield(P, 'input')
+    job = P;
+    flags = {job.options.dmtx, job.options.mask, job.options.dtype, job.options.interp};
+    [p,nam,ext,num] = spm_fileparts(job.output);
+    if isempty(p)
+        if isempty(job.outdir{1})
+            p=pwd;
+        else
+            p = job.outdir{1};
+        end;
+    end;
+    if isempty(strfind(ext,','))
+        ext=[ext ',1'];
+    end;
+    out.files{1} = fullfile(p,[nam ext num]);
+    spm_imcalc_ui(strvcat(job.input{:}),out.files{1},job.expression, ...
+                  flags);
+    % return out as 1st output argument
+    Q = out;
+    return;
+end;
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev: 1143 $';
+SCCSid = '$Rev: 1185 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])

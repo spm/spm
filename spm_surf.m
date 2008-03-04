@@ -1,4 +1,4 @@
-function spm_surf(P,mode,thresh)
+function varargout = spm_surf(P,mode,thresh)
 % Surface extraction.
 % FORMAT spm_surf
 %
@@ -36,6 +36,18 @@ function spm_surf(P,mode,thresh)
 %    axis image;
 %    rotate3d on;
 %
+% FORMAT out = spm_surf(job)
+% 
+% Input
+% A job structure with fields
+% .data   - cell array of filenames
+% .mode   - operation mode
+% .thresh - thresholds for extraction
+% Output
+% A struct with fields (depending on operation mode)
+% .rendfile - cellstring containing render filename
+% .surffile - cellstring containing surface filename(s)
+% .objfile  - cellstring containing surface obj filename(s)
 %
 % The surface can also be save as OBJ format, as used by Alias|Wavefront.
 % See e.g. http://www.nada.kth.se/~asa/Ray/matlabobj.html
@@ -43,13 +55,13 @@ function spm_surf(P,mode,thresh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_surf.m 1185 2008-03-04 16:31:21Z volkmar $
 
 
 if nargin==0,
         [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1143 $');
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1185 $');
     spm_help('!ContextHelp',mfilename);
 
     P    = spm_select([1 Inf],'image','Select images');
@@ -57,24 +69,39 @@ if nargin==0,
     mode = spm_input('Save','+1','m',...
         ['Save Rendering|Save Extracted Surface|'...
          'Save Rendering and Surface|Save Surface as OBJ format'],[1 2 3 4],3);
+    thresh = .5;
 else
+    % Called with arguments
+    if isstruct(P)
+        % called with job argument
+        job    = P;
+        P      = strvcat(job.data);
+        mode   = job.mode;
+        thresh = job.thresh;
+    else
+        if nargin < 2
+            mode = 1;
+        end;
+        if nargin < 3
+            thresh = .5;
+        end;
+    end;
     CmdLine = 0;
     Finter = spm_figure('GetWin','Interactive');
 end;
 
-if nargin < 3
-    thresh = .5;
-end;
-
 spm('FigName','Surface: working',Finter,CmdLine);
-do_it(P,mode,thresh);
+out = do_it(P,mode,thresh);
+if nargout > 0
+    varargout{1} = out;
+end;
 spm('FigName','Surface: done',Finter,CmdLine);
 
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function do_it(P,mode,thresh)
+function out = do_it(P,mode,thresh)
 
 spm('Pointer','Watch')
 
@@ -104,9 +131,9 @@ spm_conv_vol(br,br,kx,ky,kz,-[1 1 1]);
 if any(mode==[1 3]),
     % Produce rendering
     %-----------------------------------------------------------------------
-    matname = fullfile(pth,['render_' nam '.mat']);
+    out.rendfile{1} = fullfile(pth,['render_' nam '.mat']);
     tmp     = struct('dat',br,'dim',size(br),'mat',V(1).mat);
-    renviews(tmp,matname);
+    renviews(tmp,out.rendfile{1});
 end;
 
 if any(mode==[2 3 4]),
@@ -126,17 +153,17 @@ if any(mode==[2 3 4]),
                 nam1 = sprintf('%s-%d',nam,k);
             end;
             if any(mode==[2 3]),
-        matname = fullfile(pth,['surf_' nam1 '.mat']);
+        out.surffile{k} = fullfile(pth,['surf_' nam1 '.mat']);
         if spm_matlab_version_chk('7.0') >=0,
-                    save(matname,'-V6','faces','vertices');
+                    save(out.surffile{k},'-V6','faces','vertices');
         else
-                    save(matname,'faces','vertices');
+                    save(out.surffile{k},'faces','vertices');
         end;
             end;
             if any(mode==[4]),
-        fname = fullfile(pth,[nam1 '.obj']);
-        fid   = fopen(fname,'w');
-        fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 1143 $',date);
+        out.objfile{k} = fullfile(pth,[nam1 '.obj']);
+        fid   = fopen(out.objfile{k},'w');
+        fprintf(fid,'# Created with SPM5 (%s v %s) on %s\n', mfilename,'$Rev: 1185 $',date);
         fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
         fprintf(fid,'g Cortex\n'); % Group Cortex
         fprintf(fid,'f %d %d %d\n',faces');

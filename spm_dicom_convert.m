@@ -1,6 +1,7 @@
-function spm_dicom_convert(hdr,opts,root_dir,format)
+function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Convert DICOM images into something that SPM can use
 % FORMAT spm_dicom_convert(hdr,opts,root_dir,format)
+% Inputs:
 % hdr  - a cell array of DICOM headers from spm_dicom_headers
 % opts - options
 %        'all'      - all DICOM files (default)
@@ -22,11 +23,15 @@ function spm_dicom_convert(hdr,opts,root_dir,format)
 %          'nii' Single file NIfTI format
 %                All images will contain a single 3D dataset, 4D images
 %                will not be created.
+% Output:
+% out - a struct with a single field .files. out.files contains a
+%       cellstring with filenames of created files. If no files are
+%       created, a cell with an empty string {''} is returned.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dicom_convert.m 1185 2008-03-04 16:31:21Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -38,26 +43,31 @@ if nargin<4, format='img';end;
 [mosaic,standard] = select_mosaic_images(images);
 
 if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic),
-    convert_mosaic(mosaic,root_dir,format);
+    fmos = convert_mosaic(mosaic,root_dir,format);
 end;
 if (strcmp(opts,'all') || strcmp(opts,'standard')) && ~isempty(standard),
-    convert_standard(standard,root_dir,format);
+    fstd = convert_standard(standard,root_dir,format);
 end;
 if (strcmp(opts,'all') || strcmp(opts,'spect')) && ~isempty(spect),
-    convert_spectroscopy(spect,root_dir,format);
+    fspe = convert_spectroscopy(spect,root_dir,format);
+end;
+
+out.files = {fmos{:} fstd{:} fspe{}};
+if isempty(out.files)
+    out.files = {''};
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_mosaic(hdr,root_dir,format)
+function fnames = convert_mosaic(hdr,root_dir,format)
 spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
 
 for i=1:length(hdr),
 
     % Output filename
     %-------------------------------------------------------------------
-    fname = getfilelocation(hdr{i},root_dir,'f',format);
+    fnames{i} = getfilelocation(hdr{i},root_dir,'f',format);
 
     % Image dimensions and data
     %-------------------------------------------------------------------
@@ -179,7 +189,7 @@ for i=1:length(hdr),
         RescaleIntercept = hdr{i}.RescaleIntercept;
     end;
     N      = nifti;
-    N.dat  = file_array(fname,dim,dt,0,RescaleSlope,RescaleIntercept);
+    N.dat  = file_array(fnames{i},dim,dt,0,RescaleSlope,RescaleIntercept);
     N.mat  = mat;
     N.mat0 = mat;
     N.mat_intent  = 'Scanner';
@@ -201,10 +211,10 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_standard(hdr,root_dir,format)
+function fnames = convert_standard(hdr,root_dir,format)
 hdr = sort_into_volumes(hdr);
 for i=1:length(hdr),
-    write_volume(hdr{i},root_dir,format);
+    fnames{i} = write_volume(hdr{i},root_dir,format);
 end;
 return;
 %_______________________________________________________________________
@@ -458,7 +468,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function write_volume(hdr,root_dir,format)
+function fname = write_volume(hdr,root_dir,format)
 
 % Output filename
 %-------------------------------------------------------------------
@@ -590,16 +600,16 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function convert_spectroscopy(hdr,root_dir,format)
+function fnames = convert_spectroscopy(hdr,root_dir,format)
 
 for i=1:length(hdr),
-    write_spectroscopy_volume(hdr(i),root_dir,format);
+    fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format);
 end;
 return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function write_spectroscopy_volume(hdr,root_dir,format)
+function fname = write_spectroscopy_volume(hdr,root_dir,format)
 % Output filename
 %-------------------------------------------------------------------
 fname = getfilelocation(hdr{1}, root_dir,'S',format);
