@@ -1,0 +1,116 @@
+function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
+
+% Generate code to recreate a generic item. This code should be suitable
+% for all derived classes. Derived classes that add their own fields should
+% first call this code and then add code to recreate their additional
+% fields. This code does not deal with arrays of cfg_items, such a
+% configuration should not exist with the current definition of a
+% configuration tree.
+%
+% Traversal options
+% struct with fields
+% stopspec - match spec to stop code generation
+% dflag    - (not used here)
+% clvl     - current level in tree
+% mlvl     - maximum level to generate - range 1 (top level only) to
+%            Inf (all levels)
+% cnt      - item count - used for unique tags
+% mcnt     - (not evaluated here)
+%
+% This code is part of a batch job configuration system for MATLAB. See 
+%      help matlabbatch
+% for a general overview.
+%_______________________________________________________________________
+% Copyright (C) 2007 Freiburg Brain Imaging
+
+% Volkmar Glauche
+% $Id: gencode.m 1184 2008-03-04 16:27:57Z volkmar $
+
+rev = '$Rev: 1184 $';
+
+%% Class of item
+% Check whether to generate code
+if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec)))
+    % Stopping - tag based on stoptag, and tag of item
+    if isempty(tag)
+        tag = genvarname(sprintf('%s_%s', stoptag, item.tag));
+    else
+        tag = genvarname(sprintf('%s_%s', stoptag, tag));
+    end;
+    str = {};
+    cind = [];
+    ccnt = 0;
+    return;
+else
+    % Tag based on tag of item and item count
+    if isempty(tag)
+        tag = genvarname(sprintf('%s', item.tag));
+    end;
+end;
+% Item count
+ccnt = 1;
+% Generate generic object
+str{1} = '% ---------------------------------------------------------------------';
+str{2} = sprintf('%% %s %s', item.tag, item.name);
+str{3} = '% ---------------------------------------------------------------------';
+str{4} = sprintf('%s         = %s;', tag, class(item));
+% save position of class definition (needs to be overwritten if derived
+% items call this generic function on their cfg_item field)
+cind = 4;
+%% Tag and Name
+% Set basic fields
+str{end+1} = sprintf('%s.tag     = ''%s'';', tag, item.tag);
+% Add three spaces to name tag - this will align equal signs
+% Works only because gencode does not produce subscripts for strings
+str1 = gencode(item.name, sprintf('%s.name   ', tag), stoptag, tropts);
+str = {str{:} str1{:}};
+%% Val
+% Generate val field
+if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
+    % Traverse val{:} tree, if items are cfg_items
+    cstr = {};
+    % Update clvl
+    tropts.clvl = tropts.clvl + 1;
+    tropts.cnt  = tropts.cnt + ccnt;
+    ctag = {};
+    for k = 1:numel(item.val)
+        % tags are used as variable names and need to be unique in the
+        % context of this .val tag. This includes the item's tag itself
+        % and the tags of its immediate children.
+        ctag{k} = genvarname(subsref(item.val{k}, substruct('.','tag')), ...
+                             {ctag{:} tag});
+        [ccstr ctag{k} ccind cccnt] = gencode(item.val{k}, ctag{k}, stoptag, tropts);
+        if ~isempty(ccstr)
+            % Child has returned code
+            cstr = {cstr{:} ccstr{:}};
+            ccnt = ccnt + cccnt;
+            tropts.cnt = tropts.cnt + cccnt;
+        end;
+    end;
+    % Update position of class definition
+    cind = cind+numel(cstr);
+    % Prepend code of children
+    str = {cstr{:} str{:}};
+    str{end+1} = sprintf('%s.val     = {%s};' ,tag, sprintf('%s ', ctag{:}));
+elseif numel(item.val) > 0 && ~isa(item.val{1}, 'cfg_item')
+    str1 = gencode(item.val, sprintf('%s.val', tag), stoptag, tropts);
+    str = {str{:} str1{:}};
+end;
+%% Check
+% Generate check field
+if ~isempty(item.check)
+    % Add two spaces to check tag - this will align equal signs
+    % Works only because gencode does not produce subscripts for function
+    % strings
+    str1 = gencode(item.check, sprintf('%s.check  ', tag), stoptag, tropts);
+    str = {str{:} str1{:}};
+end    
+%% Help
+% Generate help field
+if numel(item.help) > 0
+    % Add three spaces to help tag - this will align equal signs
+    % Works only because gencode does not produce subscripts for cellstrings
+    str1 = gencode(item.help, sprintf('%s.help   ', tag), stoptag, tropts);
+    str = {str{:} str1{:}};
+end;
+
