@@ -18,7 +18,7 @@ function [u] = spm_ind_u(t,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_u.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_ind_u.m 1186 2008-03-05 12:52:57Z karl $
 
 % stimulus - subcortical impulse
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ t     = t*1000;
 % Gaussian form
 %--------------------------------------------------------------------------
 for i = 1:nu
-   delay  = exp(P.R(i,1))*M.ons(i);
+   delay  = M.ons(i) + P.R(i,1)*128;
    scale  = exp(P.R(i,2))*2048;
    u(:,i) = exp(-(t - delay).^2/scale);
 end
@@ -42,7 +42,7 @@ return
 % stimulus - subcortical impulse - a gamma function
 %--------------------------------------------------------------------------
 for i = 1:nu
-    m      = exp(P.R(i,1))*M.ons(i);
+    m      = P.R(i,1) + M.ons(i);
     v      = exp(P.R(i,2))*1024;
     u(:,i) = Gpdf(t,m*m/v,m/v);
 end

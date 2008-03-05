@@ -59,7 +59,7 @@ function [y] = spm_int_B(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_B.m 1162 2008-02-22 12:21:33Z karl $
+% $Id: spm_int_B.m 1186 2008-03-05 12:52:57Z karl $
  
  
 % convert U to U.u if necessary
@@ -110,8 +110,8 @@ end
  
 % get Jacobian and its derivatives
 %--------------------------------------------------------------------------
-[dJdx J]  = spm_diff(f,spm_vec(x),u,P,M,[1 1]);
-[dJdu J]  = spm_diff(f,spm_vec(x),u,P,M,[1 2]);
+[dJdx J]  = spm_diff(f,x,u,P,M,[1 1]);
+[dJdu J]  = spm_diff(f,x,u,P,M,[1 2]);
  
 % integrate
 %==========================================================================

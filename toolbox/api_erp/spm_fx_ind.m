@@ -12,7 +12,7 @@ function [f,J] = spm_fx_ind(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_ind.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_fx_ind.m 1186 2008-03-05 12:52:57Z karl $
 
 
 % State: f(x)
@@ -24,7 +24,7 @@ K  = 16*exp(P.K);
 
 % neuronal input
 %--------------------------------------------------------------------------
-U  = 32*P.C*u;
+U  = 32*P.C*u(:);
 
 % Bilinear form
 %--------------------------------------------------------------------------

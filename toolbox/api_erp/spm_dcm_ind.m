@@ -24,7 +24,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_ind.m 1186 2008-03-05 12:52:57Z karl $
 
 
 % check options 
@@ -49,11 +49,11 @@ xU.dt  = xY.dt;
 % dimensions
 %--------------------------------------------------------------------------
 Nt     = length(xY.y);                  % number of trials
-Nr     = length(DCM.C);                 % number of sources
+Nr     = size(DCM.C,1);                 % number of sources
+nu     = size(DCM.C,2);                 % number of neuronal inputs
 Nf     = size(xY.U,2);                  % number of frequency modes
 Ns     = size(xY.y{1},1);               % number of samples
 Nu     = size(xU.X,2);                  % number of trial-specific effects
-nu     = length(onset);                 % number of neuronal inputs
 nx     = Nr*Nf;                         % number of states
 
 
@@ -84,11 +84,7 @@ try, M = rmfield(M,'FS'); end
 
 % prior moments
 %--------------------------------------------------------------------------
-A      = DCM.A;
-B      = DCM.B;
-C      = kron(ones(1,nu),DCM.C);
-
-[pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf);
+[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
 
 
 % likelihood model
@@ -96,7 +92,6 @@ C      = kron(ones(1,nu),DCM.C);
 M.IS  = 'spm_gen_ind';
 M.f   = 'spm_fx_ind';
 M.G   = 'spm_lx_ind';
-M.fu  = 'spm_ind_u';
 M.x   = sparse(nx,1);
 M.pE  = pE;
 M.pC  = pC;
