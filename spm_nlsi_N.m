@@ -15,6 +15,9 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 %        This [optional] function performs feature selection assuming the
 %        generalized model y = FS(y,M) = FS(G*x,M) + X0*P0 + e
 %
+% M.x0 - function name f(P)
+%        This [optional] function returns the expansion point for the
+%        states M.x as a function of the parameters
 %
 % M.P  - starting estimtes for model parameters [optional]
 %
@@ -68,7 +71,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1186 2008-03-05 12:52:57Z karl $
+% $Id: spm_nlsi_N.m 1188 2008-03-05 17:14:43Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -139,10 +142,18 @@ M.ns = ns;                               % store in M.ns for integrator
 try
     M.x;
 catch
-    if ~isfield(M,'n'), M.n = 0;    end
-    M.x = sparse(M.n,1);
+    try
+        M.x = feval(M.x0,Ep);
+    catch
+        try
+            M.n;
+        catch
+            M.n = 0;
+        end
+        M.x = sparse(M.n,1);
+    end
 end
- 
+
 % input
 %--------------------------------------------------------------------------
 try
@@ -234,8 +245,7 @@ uC    = speye(nu,nu)*exp(32);
 ipC   = inv(pC);                      % p - state parameters
 igC   = inv(gC);                      % g - observer parameters
 iuC   = inv(uC);                      % u - fixed parameters
-icC   = spm_cat(diag({igC,iuC}));     % c - non-state equation parameters
-ibC   = spm_cat(diag({ipC,icC}));     % b - all parameters
+ibC   = spm_cat(diag({ipC,igC,iuC})); % b - all parameters
 
  
 % initialize conditional density
@@ -248,11 +258,10 @@ warning on
 % EM
 %==========================================================================
 C.F   = -Inf;                                 % free-energy: f(x,u,p)
-C.G   = -Inf;                                 % free-energy: dg/gx
 v     = 0;                                    % ascent rate: f(x,u,p)
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-sw = warning('off','all');
+sw    = warning('off','all');
  
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
@@ -260,15 +269,17 @@ for ip = 1:64
  
     % expansion point
     %----------------------------------------------------------------------
-    x0 = ones(size(y,1),1)*spm_vec(M.x)';
-    
+    try,
+       M.x = feval(M.x0,Ep);
+    end
+    x0     = ones(size(y,1),1)*spm_vec(M.x)';
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
     [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
     
        
-    % Optimize g: parameters of G(g) (and confounds)
+    % Optimize g: parameters of G(g)
     %======================================================================
     for ig = 1:8
         
@@ -277,14 +288,41 @@ for ip = 1:64
         [dGdg G] = spm_diff(M.G,Eg,M,1,{Vg});
         yp       = FS((x - x0)*G',M);
         
-        % and errors
+        
+        % Optimize g: parameters confounds
+        %==================================================================
+        for iu = 1:8
+            
+            % prediction errors
+            %--------------------------------------------------------------
+            ey    = spm_vec(y)  - spm_vec(yp) - dgdu*Eu;
+            eu    = spm_vec(Eu) - spm_vec(uE);
+
+            % update gradients and curvature
+            %--------------------------------------------------------------
+            dFdu  =  dgdu'*ey   - iuC*eu;
+            dFduu = -dgdu'*dgdu - iuC;
+
+            % Conditional updates of  u
+            %--------------------------------------------------------------
+            du    = spm_dx(dFduu,dFdu);
+            Eu    = Eu + du;
+
+            % convergence
+            %--------------------------------------------------------------
+            dG    = dFdu'*du;
+            if dG < 1e-1, break, end
+
+        end
+
+        
+        % prediction errors
         %------------------------------------------------------------------
         ey       = spm_vec(y) - spm_vec(yp) - dgdu*Eu;
         ep       = Vp'*(spm_vec(Ep) - spm_vec(pE));
         eg       = Vg'*(spm_vec(Eg) - spm_vec(gE));
         eu       =      spm_vec(Eu) - spm_vec(uE);
-        ec       = [eg; eu];
-        eb       = [ep; ec];
+        eb       = [ep; eg; eu];
  
         % gradients
         %------------------------------------------------------------------
@@ -294,8 +332,7 @@ for ip = 1:64
         for i = 1:ng
             dgdg(:,i) = spm_vec(FS(x*dGdg{i}',M));
         end
-        dgdc  = [dgdg dgdu];
-        dgdb  = [dgdp dgdc];  
+        dgdb  = [dgdp dgdg dgdu];  
  
         % Optimize F(h): parameters of iS(h)
         %==================================================================
@@ -309,8 +346,8 @@ for ip = 1:64
             end
             S     = inv(iS);
             iS    = kron(speye(nq),iS);
-            dLdbb = dgdb'*iS*dgdb + ibC;
-            Cb    = inv(dLdbb);
+            dFdbb = dgdb'*iS*dgdb + ibC;
+            Cb    = inv(dFdbb);
             
             % precision operators for M-Step
             %--------------------------------------------------------------
@@ -336,12 +373,12 @@ for ip = 1:64
             eh    = h     - hE;
             dFdh  = dFdh  - ihC*eh;
             dFdhh = dFdhh - ihC;
- 
+            Ch    = inv(-dFdhh);
+            
             % M-Step: update ReML estimate of h
             %--------------------------------------------------------------
-            Ch    = inv(-dFdhh);
-            dh    = Ch*dFdh/log(2 + ih);
-            h     = h  + dh;
+            dh    = spm_dx(dFdhh,dFdh);
+            h     = h + dh;
  
             % prevent overflow
             %--------------------------------------------------------------
@@ -349,7 +386,7 @@ for ip = 1:64
  
             % convergence
             %--------------------------------------------------------------
-            if dFdh'*dh < 1e-2, break, end
+            if dFdh'*dh < 1e-1, break, end
  
         end
  
@@ -358,23 +395,18 @@ for ip = 1:64
 
         % update gradients and curvature
         %------------------------------------------------------------------
-        dFdc  =  dgdc'*iS*ey   - icC*ec;
-        dFdcc = -dgdc'*iS*dgdc - icC;
+        dFdg  =  dgdg'*iS*ey   - igC*eg;
+        dFdgg = -dgdg'*iS*dgdg - igC;
 
-
-        % E-Step: Conditional updates of g and u
+        % E-step: Conditional updates of g and u
         %------------------------------------------------------------------
-        dc    = spm_dx(dFdcc,dFdc)/log(2 + ig);
-        dg    = dc([1:ng]);
-        du    = dc([1:nu] + ng);
-
+        dg    = spm_dx(dFdgg,dFdg);
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
-        Eu    = spm_unvec(spm_vec(Eu) + spm_vec(du),Eu);
 
         % convergence
         %------------------------------------------------------------------
-        dG    = dFdc'*dc;
-        if dG < 1e-2, break, end
+        dG    = dFdg'*dg;
+        if dG < 1e-1, break, end
         
     end
     
@@ -430,7 +462,6 @@ for ip = 1:64
         v     = min(v - 2,4);
         str   = 'EM(-)';
  
-       
     end
  
     % Optimize p: parameters of f(x,u,p)
@@ -456,17 +487,25 @@ for ip = 1:64
         % subplot prediction
         %------------------------------------------------------------------
         figure(Fsi)
-        subplot(2,1,1)
+        
+        subplot(3,1,1)
+        plot(yt,x)
+        xlabel('time')
+        set(gca,'XLim',[yt(1) yt(end)])
+        title(sprintf('%s: %i','E-Step: hidden states',ip))
+        grid on
+        
+        subplot(3,1,2)
         plot(yt,yp),                        hold on
         plot(yt,yp + spm_unvec(ey,yp),':'), hold off
         xlabel('time')
         set(gca,'XLim',[yt(1) yt(end)])
-        title(sprintf('%s: %i','E-Step',ip))
+        title('E-Step: response amd prediction')
         grid on
  
         % subplot parameters - f(P)
         %------------------------------------------------------------------
-        subplot(2,2,3)
+        subplot(3,2,5)
         bar(full(Vp*ep))
         xlabel('parameter f(x)')
         title('conditional [minus prior] expectation')
@@ -474,7 +513,7 @@ for ip = 1:64
         
         % subplot parameters - g(G)
         %------------------------------------------------------------------
-        subplot(2,2,4)
+        subplot(3,2,6)
         bar(full(Vg*eg))
         xlabel('parameter (g(x))')
         title('conditional [minus prior] expectation')
@@ -486,7 +525,7 @@ for ip = 1:64
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i (%i,%i) %6s %e %6s %e\n',str,ip,ig,ih,'F:',C.F,'dF:',full(dF))
+    fprintf('%-6s: %i (%i,%i,%i) %6s %e %6s %e\n',str,ip,ig,ih,iu,'F:',C.F,'dF:',full(dF))
     if ip > 2 && dF < 1e-2, break, end
  
 end
@@ -504,7 +543,7 @@ return
 
 % notes
 %==========================================================================
-        Up    = spm_svd(dFdpp,0);
-        dFdp  = Up'*dFdp;
-        dFdpp = Up'*dFdpp*Up;
-        Vp    = Vp*Up;
+Up    = spm_svd(dFdpp,0);
+dFdp  = Up'*dFdp;
+dFdpp = Up'*dFdpp*Up;
+Vp    = Vp*Up;

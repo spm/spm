@@ -59,7 +59,7 @@ function [y] = spm_int_B(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_B.m 1186 2008-03-05 12:52:57Z karl $
+% $Id: spm_int_B.m 1188 2008-03-05 17:14:43Z karl $
  
  
 % convert U to U.u if necessary
@@ -89,12 +89,7 @@ end
 %--------------------------------------------------------------------------
 u = U.u(1,:);
 try
-    try
-        x   = feval(M.x0,P,M,U);
-        M.x = x;
-    catch
-        x   = M.x;
-    end
+    x   = M.x;
 catch
     x   = sparse(0,1);
     M.x = x;

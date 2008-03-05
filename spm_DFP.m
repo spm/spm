@@ -80,7 +80,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 1163 2008-02-22 12:24:06Z karl $
+% $Id: spm_DFP.m 1188 2008-03-05 17:14:43Z karl $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
@@ -131,7 +131,7 @@ try nN = M(1).E.nN; catch nN = 8; end
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 td    = 1/nD;                          % integration time for D-Step
-te    = 4;                             % integration time for E-Step
+te    = 8;                             % integration time for E-Step
 
 %  Precision (R) and covariance of generalised errors
 %--------------------------------------------------------------------------
@@ -363,7 +363,7 @@ for iN = 1:nN
                 
                 % sampling time
                 %----------------------------------------------------------
-                ts      = (iY + (iD - 1)/nD);
+                ts      = iY + (iD - 1)/nD;
                 
                 % derivatives of responses and inputs
                 %----------------------------------------------------------
@@ -645,8 +645,6 @@ for iN = 1:nN
         i       = [1:nv] + nx*n;
         Qu.C{t} = qU(t).c(i,i);
     end
-
-    save tempM
 
     % report and break if convergence
     %------------------------------------------------------------------

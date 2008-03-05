@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1163 2008-02-22 12:24:06Z karl $
+% $Id: spm_DEM.m 1188 2008-03-05 17:14:43Z karl $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -123,7 +123,7 @@ if nx
     td = 1/nD;                         % integration time for D-Step
     te = 2;                            % integration time for E-Step
 else
-    td = {-1};
+    td = {2};
     te = 2;
 end
 
@@ -372,7 +372,7 @@ for iN = 1:nN
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
                     if L > Fd
-                        td     = {td{1} + 1/2};
+                        td     = {max(td{1} + 1,32)};
                         Fd     = L;
                         B.qu   = qu;
                         B.E    = E;
@@ -387,7 +387,7 @@ for iN = 1:nN
                         E      = B.E;
                         dE     = B.dE;
                         ECEp   = B.ECEp;
-                        td     = {td{1} - 1};
+                        td     = {min(td{1} - 2,4)};
                     end
                 end
 
@@ -513,7 +513,7 @@ for iN = 1:nN
         if L > Fe
             
             Fe      = L;
-            te      = te + 1/2;
+            te      = min(te + 1,32);
             B.dFdp  = dFdp;
             B.dFdpp = dFdpp;
             B.qp    = qp;
@@ -527,7 +527,7 @@ for iN = 1:nN
             dFdpp   = B.dFdpp;
             qp      = B.qp;
             mp      = B.mp;
-            te      = te - 1;
+            te      = min(te - 2,4);
         end
  
         % E-step: update expectation (p)

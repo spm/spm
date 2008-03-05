@@ -53,7 +53,7 @@ function [y] = spm_int_ode(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_int_ode.m 1188 2008-03-05 17:14:43Z karl $
 
 
 % convert U to U.u if necessary
@@ -97,11 +97,7 @@ end
 % Initial states and inputs
 %--------------------------------------------------------------------------
 try
-    try
-        x = feval(M.x0,P,M,U);
-    catch
-        x = M.x;
-    end
+    x   = M.x;
 catch
     x   = sparse(0,1);
     M.x = x;
