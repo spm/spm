@@ -18,7 +18,7 @@ function [u] = spm_erp_u(t,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_u.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_erp_u.m 1189 2008-03-05 17:19:26Z karl $
 
 
 % stimulus - subcortical impulse
@@ -27,7 +27,7 @@ nu    = length(M.ons);
 u     = sparse(length(t),nu);
 t     = t*1000;
 for i = 1:nu
-   delay  = exp(P.R(i,1))*M.ons(i);
+   delay  = M.ons(i) + P.R(i,1)*128;
    scale  = exp(P.R(i,2))*64;
    u(:,i) = exp(-(t - delay).^2/scale)*32;
 end

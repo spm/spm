@@ -1,6 +1,6 @@
-function [x] = spm_x_erp(P,M,U)
+function [x] = spm_x_erp(P)
 % returns the initial state of a neural mass model of erps
-% FORMAT [x] = spm_x_erp(P,M,U)
+% FORMAT [x] = spm_x_erp(P)
 % M - model structure
 % P - parameters
 %
@@ -12,14 +12,11 @@ function [x] = spm_x_erp(P,M,U)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_erp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_x_erp.m 1189 2008-03-05 17:19:26Z karl $
 
-% P.x0 = spiny stellate depolarisation
+% array of states
 %--------------------------------------------------------------------------
-n     = length(P.A{1});                       % number of sources
-m     = 9;                                    % number of states
-try
-    x = sparse([1:n],1,P.x0,n,m);
-catch
-    x = sparse(n,m);
-end
+n  = length(P.A{1});                          % number of sources
+m  = 9;                                       % number of states
+x  = sparse(n,m);
+

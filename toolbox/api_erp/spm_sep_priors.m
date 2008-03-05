@@ -57,7 +57,7 @@ function [varargout] = spm_sep_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sep_priors.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_sep_priors.m 1189 2008-03-05 17:19:26Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -78,14 +78,10 @@ n1    = ones(n,1);
 % parameters for electromagnetic forward model 
 %==========================================================================
  
-% number of states (1 7 9) per source contribution to ECD
-%--------------------------------------------------------------------------
-nj    = 3;
- 
-% source contribution to ECD of each states
+% source contribution to ECD of each state (1 7 9)
 %--------------------------------------------------------------------------
 try,   type = dipfit.type; catch, type = 'LFP'; end
-for i = 1:nj
+for i = 1:3
     switch type
  
         case{'ECD (EEG)','ECD (MEG)'}

@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_dcm_erp.m 1189 2008-03-05 17:19:26Z karl $
  
 % check options 
 %==========================================================================
@@ -92,7 +92,7 @@ end
  
 % within-trial effects: adjust onset relative to PST
 %--------------------------------------------------------------------------
-M.ons  = onset - xY.Time(1);
+M.ons  = onset - xY.pst(1);
 xU.dt  = xY.dt;
  
  
@@ -116,24 +116,23 @@ switch lower(model)
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_erp';
  
-        % linear David et al model (linear in states), can employ symmetry
-        % priors
-        %======================================================================
+   % linear David et al model (linear in states), can employ symmetrypriors
+   %=======================================================================
     case{'erpsymm'}
  
         % prior moments on parameters
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         [pE,gE,pC,gC] = spm_erpsymm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,M.pC,M.gC);
  
         % inital states and equations of motion
-        %--------------------------------------------------------------------------
+        %-------------------------------------------------------------------
         M.x  =  spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_erp';
  
  
-        % linear David et al model (linear in states) - fast version for SEPs
-        %======================================================================
+    % linear David et al model (linear in states) - fast version for SEPs
+    %======================================================================
     case{'sep'}
  
         % prior moments on parameters
@@ -158,7 +157,22 @@ switch lower(model)
         %------------------------------------------------------------------
         M.x  = spm_x_nmm(pE);
         M.f  = 'spm_fx_nmm';
-        M.G  = 'spm_lx_erp';      
+        M.G  = 'spm_lx_erp';
+        
+            % Neural mass model (nonlinear in states)
+    %======================================================================
+    case{'mfm'}
+ 
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
+ 
+        % inital states
+        %------------------------------------------------------------------
+        M.x0 = 'spm_x_mfm';
+        M.f  = 'spm_fx_mfm';
+        M.G  = 'spm_lx_erp';  
+        
         
     otherwise
         warndlg('Unknown model')
@@ -177,6 +191,12 @@ if lock
     end
 end
  
+% expansion point for states
+%--------------------------------------------------------------------------
+try 
+    M.x = feval(M.x0,pE);
+end
+
  
 % likelihood model
 %--------------------------------------------------------------------------
@@ -220,6 +240,12 @@ warning on
  
 % neuronal and sensor responses (x and y)
 %==========================================================================
+
+% expansion point for states
+%--------------------------------------------------------------------------
+try 
+    M.x = feval(M.x0,Qp);
+end
 L   = feval(M.G, Qg,M);                 % get gain matrix
 x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
  
@@ -323,7 +349,7 @@ if strcmp(M.dipfit.type,'Imaging')
     inverse.Y      = Y;                    % reduced data
     inverse.Nd     = Nd;                   % number of dipoles
     inverse.Nt     = Nt;                   % number of trials
-    inverse.pst    = xY.Time;              % peri-stimulus time
+    inverse.pst    = xY.pst;               % peri-stimulus time
     inverse.F      = DCM.F;                % log-evidence
     inverse.R2     = R2;                   % variance accounted for (%)
     inverse.dipfit = M.dipfit;             % forward model for DCM

@@ -21,23 +21,18 @@ C     = sparse(1,1,1,n,1);
 
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_mfm_priors(A,B,C);
+[pE,pC] = spm_nmm_priors(A,B,C);
 
 % create LFP model
 %--------------------------------------------------------------------------
-M.f   = 'spm_fx_mfm';
-M.x   = spm_x_mfm(pE);
-M.pE  = pE;
-M.pC  = pC;
-M.m   = size(C,2);
-M.n   = length(spm_vec(M.x));
-M.l   = length(pE.L);
+[x M] = spm_x_mfm(pE);
+
 
 % Integrate system to see Transient response
 %==========================================================================
 N     = 64;
 U.dt  = 4/1000;
-U.u   = 8*(exp(-([1:N]' - N/4).^2/8) + rand(N,1)/exp(32));
+U.u   = 32*(exp(-([1:N]' - N/4).^2/8) + rand(N,1)/exp(32));
 t     = [1:N]*U.dt;
 LFP   = spm_int_L(pE,M,U);
 

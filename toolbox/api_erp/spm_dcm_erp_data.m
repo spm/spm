@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_dcm_erp_data.m 1189 2008-03-05 17:19:26Z karl $
  
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -109,7 +109,7 @@ try
     %----------------------------------------------------------------------
     It          = [T1:DT:T2]';
     Ns          = length(It);                % number of samples
-    DCM.xY.Time = DCM.xY.Time(It);           % Down-sampled PST
+    DCM.xY.pst  = DCM.xY.Time(It);           % Down-sampled PST
     DCM.xY.dt   = DT/D.Radc;                 % sampling in seconds
     DCM.xY.It   = It;                        % Indices of time bins
  

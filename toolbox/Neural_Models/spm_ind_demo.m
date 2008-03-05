@@ -29,7 +29,7 @@ C     = sparse(1,1,1,n,1);
 [l n] = size(pE.L);
  
 M.f   = 'spm_fx_lfp';
-M.g   = 'spm_gx_lfp';
+M.g   = 'spm_gx_erp';
 M.x   = sparse(n,13);
 M.pE  = pE;
 M.pC  = pC;

@@ -64,7 +64,7 @@ function [y] = spm_int_U(P,M,U)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_U.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_int_U.m 1189 2008-03-05 17:19:26Z karl $
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
@@ -94,16 +94,12 @@ end
 % Initial states and inputs
 %--------------------------------------------------------------------------
 try
-    u = U.u(1,:);
+    u   = U.u(1,:);
 catch
-    u = sparse(1,M.m);
+    u   = sparse(1,M.m);
 end
 try
-    try
-        x = feval(M.x0,P,M,U);
-    catch
-        x = M.x;
-    end
+    x   = M.x;
 catch
     x   = sparse(0,1);
     M.x = x;

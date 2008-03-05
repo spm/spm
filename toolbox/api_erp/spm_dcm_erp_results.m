@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_erp_results.m 1189 2008-03-05 17:19:26Z karl $
 
 
 % get figure handle
@@ -44,7 +44,7 @@ xY  = DCM.xY;                   % data
 nt  = length(xY.xy);            % Nr trial types
 ne  = size(xY.xy{1},2);         % Nr electrodes
 nb  = size(xY.xy{1},1);         % Nr time bing
-t   = xY.Time;                  % PST
+t   = xY.pst;                   % PST
 
 % plot data 
 %--------------------------------------------------------------------------
@@ -353,8 +353,8 @@ case{lower('Input')}
     % plot data
     % ---------------------------------------------------------------------
     xU    = DCM.xU;
-    tU    = (DCM.xY.Time - DCM.xY.Time(1))/1000;
-    U     = spm_erp_u(tU,DCM.Ep,DCM.M);
+    tU    = t - t(1);
+    U     = spm_erp_u(tU/1000,DCM.Ep,DCM.M);
 
     subplot(2,1,1)
     plot(t,U)

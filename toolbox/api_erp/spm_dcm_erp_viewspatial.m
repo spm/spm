@@ -57,7 +57,7 @@ handles.output = hObject;
 
 DCM = varargin{1};
 handles.DCM = DCM;
-handles.ms  = DCM.xY.Time;
+handles.ms  = DCM.xY.pst;
 handles.T   = 1;
 
 M = DCM.M;

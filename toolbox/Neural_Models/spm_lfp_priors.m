@@ -54,7 +54,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_lfp_priors.m 1189 2008-03-05 17:19:26Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ end
  
 % source-specific contribution to LFP
 %--------------------------------------------------------------------------
-try, J; catch, J  = sparse([1 7 9],1,[0.2 0.2 0.6],13,1); end
+try, J; catch, J  = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13); end
  
 % source-specific contribution to LFP
 %--------------------------------------------------------------------------
@@ -163,7 +163,7 @@ if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
 % Model specification
 %==========================================================================
 M.f      = 'spm_fx_lfp';
-M.g      = 'spm_gx_lfp';
+M.g      = 'spm_gx_erp';
 M.x      = sparse(n,13);
 M.pE     = pE;
 M.pC     = pC;

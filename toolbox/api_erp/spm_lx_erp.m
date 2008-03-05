@@ -21,8 +21,11 @@ function [L] = spm_lx_erp(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_erp.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_lx_erp.m 1189 2008-03-05 17:19:26Z karl $
 
 % parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------
-L = kron(P.J,spm_erp_L(P,M));
+L       = spm_erp_L(P,M);                    % lead field per source
+n       = M.n/size(L,2);                     % states per source
+[i j J] = find(P.J);                         % contribution of states
+L       = kron(sparse(i,j,J,1,n),L);         % lead-field per state

@@ -37,7 +37,7 @@ H(1,2) = 1;               % stellate  depolorization
 % create LFP model
 %--------------------------------------------------------------------------
 M.f   = 'spm_fx_lfp';
-M.g   = 'spm_gx_lfp';
+M.g   = 'spm_gx_erp';
 M.x   = sparse(n,13);
 M.pE  = pE;
 M.pC  = pC;

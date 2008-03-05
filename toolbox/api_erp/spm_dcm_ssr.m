@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_ssr.m 1189 2008-03-05 17:19:26Z karl $
  
  
 % check options 
@@ -54,7 +54,7 @@ ns       =  size(DCM.C,1);                         % number of sources
 DCM.M.IS = 'spm_lfp_mtf';
 DCM.M.FS = 'spm_lfp_sqrt';
 DCM.M.f  = 'spm_fx_lfp';
-DCM.M.g  = 'spm_gx_lfp';
+DCM.M.g  = 'spm_gx_erp';
 DCM.M.x  = sparse(ns,13);
 DCM.M.n  = ns*13;
 DCM.M.pE = pE;
