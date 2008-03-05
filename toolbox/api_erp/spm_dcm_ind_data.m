@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_dcm_ind_data.m 1187 2008-03-05 15:17:37Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -221,6 +221,11 @@ switch DCM.M.dipfit.type
         L      = spm_erp_L(G,DCM.M);
         MAP    = pinv(L);
 
+        % add (spatial filtering) re-referencing to MAP projector
+        %--------------------------------------------------------------------------
+        R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
+        MAP   = MAP*R;
+
     case{'LFP'}
         Ng     = 1;
         MAP    = speye(Nr,Nr);
@@ -229,12 +234,6 @@ switch DCM.M.dipfit.type
         warndlg('DCM for induced responses requires an ECD model')
         return
 end
-
-
-% add (spatial filtering) re-referencing to MAP projector
-%--------------------------------------------------------------------------
-R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
-MAP   = MAP*R;
 
 
 % Wavelet amplitudes for each (projected) source
