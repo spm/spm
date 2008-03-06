@@ -47,7 +47,7 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_datareg.m 1191 2008-03-06 12:11:38Z karl $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) 4/6/07
@@ -198,18 +198,6 @@ elseif size(sensors,2) == 6 % Two coils (eg gradiometer)
 else
     error('Unknown sensor coil locations')
 end
-
-% grad - for use of fieldtrip leadfield functions
-%--------------------------------------------------------------------------
-try
-    grad           = D.inv{val}.datareg.grad;
-    grad_coreg.pnt = M1*[grad.pnt'*10; ones(1,size(grad.pnt,1))];
-    grad_coreg.pnt = grad_coreg.pnt(1:3,:)'/10;
-    grad_coreg.ori = grad.ori*M1(1:3,1:3)';
-    grad_coreg.tra = grad.tra;
-catch
-    grad_coreg     = [];
-end
     
 % retain valid sensor locations for leadfield computation
 %--------------------------------------------------------------------------
@@ -222,7 +210,7 @@ if nargin < 3
     end
     sensors   = sensors(sens,:);
     if strcmp(D.modality,'MEG')
-     megorient = megorient(sens,:);
+        megorient = megorient(sens,:);
     end
 end
 
@@ -235,6 +223,13 @@ if length(scalpvert) && strcmp(D.modality,'EEG')
     dist  = min(dist,1);
     sensors(:,1:3) = diag(1./dist)*sensors(:,1:3);
 end
+
+% grad - for use of fieldtrip lead-field functions
+%--------------------------------------------------------------------------
+grad_coreg.pnt = sensors;
+grad_coreg.ori = megorient;
+grad_coreg.tra = speye(length(sensors));
+
 
 % Ouptut arguments
 %--------------------------------------------------------------------------

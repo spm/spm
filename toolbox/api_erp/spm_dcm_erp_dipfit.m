@@ -18,7 +18,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_erp_dipfit.m 1191 2008-03-06 12:11:38Z karl $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -155,8 +155,8 @@ switch DCM.options.type
             case{'MEG'}
 
 
-                % not much to do because the sensors location/orientations were
-                % already read at the time of conversion.
+                % not much to do because the sensors location/orientations 
+                % were read at the time of conversion.
                 %----------------------------------------------------------
                 DCM.M.dipfit.vol.r = [85];
                 DCM.M.dipfit.vol.o = [0 0 0];
@@ -166,8 +166,18 @@ switch DCM.options.type
                 try
                     DCM.M.grad         = D.inv{1}.datareg.grad_coreg;
                 catch
-                    DCM.M.grad         = D.channels.grad;
+                    
+                    % check data have been registered
+                    %------------------------------------------------------
+                    try
+                        DCM.M.grad.pnt = D.inv{1}.datareg.sens_coreg;
+                        DCM.M.grad.ori = D.inv{1}.datareg.sens_orient_coreg;
+                        DCM.M.grad.tra = speye(length(DCM.M.grad.pnt));
+                    catch
+                        warndlg('Please co-register using 3D source reconstruction');
+                    end
                 end
+
                 DCM.M.dipfit.type  = 'ECD (MEG)';
 
             % LFP - ECD
