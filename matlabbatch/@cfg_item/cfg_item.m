@@ -12,7 +12,8 @@ function item = cfg_item(varargin)
 %    * check - (optional) function handle to implement configuration
 %              specific checks based on the harvested subtree rooted at
 %              this node. It will be evaluated during harvest if all
-%              dependencies in the harvested subtree are resolved. 
+%              dependencies in the harvested subtree are resolved and all
+%              val's are set. 
 %              This function should return an empty string on success and
 %              a string explaining why it failed otherwise. 
 %    * help  - help text
@@ -52,9 +53,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_item.m 1195 2008-03-07 21:51:49Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1195 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

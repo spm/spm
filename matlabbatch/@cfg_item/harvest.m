@@ -27,9 +27,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: harvest.m 1195 2008-03-07 21:51:49Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1195 $';
 
 typ = class(item);
 tag = item.tag;
@@ -60,20 +60,6 @@ if ~isempty(item.val)
     end;
 end;
 chk = chk && isempty(dep);
-if chk && ~isempty(item.check)
-    % Call content dependent check function, if it is present and
-    % dependencies are to be resolved
-    try
-        cstr = feval(item.check, val);
-        chk  = isempty(cstr);
-    catch
-        cstr = sprintf('Check function ''%s'' failed.', ...
-                       func2str(item.check));
-        chk  = false;
-    end;
-    if ~chk
-        warning('matlabbatch:harvest:check', ...
-                'Contents of ''%s'' does not meet check criteria: ''%s''', ...
-                tag, cstr);
-    end;
+if chk
+    chk = docheck(item, val);
 end;

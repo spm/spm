@@ -71,10 +71,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_getfile.m 1195 2008-03-07 21:51:49Z volkmar $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_getfile.m 1195 2008-03-07 21:51:49Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -467,6 +467,7 @@ uicontrol(fg,...
 
 resize_fun(fg);
 update(sel,wd)
+set(fg,'windowstyle', 'modal');
 
 waitfor(dne);
 drawnow;

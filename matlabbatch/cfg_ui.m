@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_ui.m 1195 2008-03-07 21:51:49Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1195 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -960,12 +960,11 @@ if isempty(udmodule)
     return;
 end;
 if udmodule.oldvalue ~= value
-    % emulate double click behaviour - open MenuEdit window only if item
-    % already selected
     udmodule.oldvalue = value;
     set(hObject, 'Userdata', udmodule);
     local_showvaledit(hObject);
-else
+end;
+if strcmp(get(handles.cfg_ui,'SelectionType'),'open')
     % open modal MenuEdit window, do editing
     % Unfortunately, MATLAB focus behaviour makes it impossible to do this
     % in the existing valshow object - if this object looses focus, it will
