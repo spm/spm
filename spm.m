@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm.m 1194 2008-03-07 18:31:53Z volkmar $
 
 
 %=======================================================================
@@ -361,6 +361,7 @@ spm_defaults;                                              fprintf('.');
 %-----------------------------------------------------------------------
 addpath(fullfile(spm('Dir'),'matlabbatch'));
 addpath(fullfile(spm('Dir'),'config'));
+cfg_util('initcfg');
 cfg_util('addapp',spm_cfg,spm_def);
 spm_select('prevdirs',spm('Dir'));
 
