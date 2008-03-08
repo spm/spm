@@ -187,7 +187,7 @@ for k = 1:numel(job)
 end;
 
 if comp
-    mljob{1}.spm = job;
+    mljob{1}.spmjobs = job;
 else
     mljob = job;
 end;
