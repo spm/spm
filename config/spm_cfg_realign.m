@@ -4,7 +4,7 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_realign.m 1197 2008-03-08 13:27:25Z volkmar $
 
 % ---------------------------------------------------------------------
 % data Session
@@ -661,7 +661,7 @@ for k=1:numel(job.data)
     end;
 end;
 if job.roptions.which(2),
-    if exist(dep)
+    if exist('dep','var')
         dep(end+1) = cfg_dep;
     else
         dep = cfg_dep;
