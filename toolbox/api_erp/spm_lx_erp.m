@@ -19,13 +19,18 @@ function [L] = spm_lx_erp(P,M)
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_lx_erp.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_lx_erp.m 1201 2008-03-11 15:15:29Z rosalyn $
 
 % parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------
 L       = spm_erp_L(P,M);                    % lead field per source
 n       = M.n/size(L,2);                     % states per source
-[i j J] = find(P.J);                         % contribution of states
-L       = kron(sparse(i,j,J,1,n),L);         % lead-field per state
+
+% contribution of states
+%--------------------------------------------------------------------------
+J       = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13).*exp(P.J);  
+[i j J] = find(J);
+
+L       = kron(sparse(i,j,J,1,n),L);    % lead-field per state
