@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_ssr_data.m 1202 2008-03-11 15:17:27Z rosalyn $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -80,7 +80,6 @@ try
     T2          = DCM.options.Tdcm(2);
     [i, T1]     = min(abs(DCM.xY.Time - T1));
     [i, T2]     = min(abs(DCM.xY.Time - T2));
-    
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
     It          = [T1:DT:T2]';               % indices - bins
@@ -132,7 +131,7 @@ end
 % Cross spectral density for each trial type
 %==========================================================================
 for i = 1:Ne;
-    
+   
     % trial indices
     %----------------------------------------------------------------------
     if isfield(D.events,'reject')
@@ -145,6 +144,7 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     try c = c(1:512); end
     Nt    = length(c);
+
     
     % Get data
     %----------------------------------------------------------------------
@@ -152,21 +152,22 @@ for i = 1:Ne;
     for j = 1:Nt
         
         fprintf('\nevaluating condition %i (trial %i)',i,j)
- 
         Y   = D.data(Ic,It,c(j))'*DCM.M.U;
         mar = spm_mar(Y,8);
         mar = spm_mar_spectra(mar,DCM.xY.Hz,1/DCM.xY.dt);
-        P   = P + abs(mar.P)/Nt;
+        P   = P + abs(mar.P);
     end
-    
+       P   = P/Nt;
+  
     % store
     %----------------------------------------------------------------------
     DCM.xY.csd{i} = P;
+   
     
 end
  
 % place cross-spectral density in xY.y
 %==========================================================================
-DCM.xY.y    = spm_cond_units(DCM.xY.csd);
+DCM.xY.y    =spm_cond_units(DCM.xY.csd); 
 DCM.xY.U    = DCM.M.U;
 DCM.xY.code = D.events.code(trial);
