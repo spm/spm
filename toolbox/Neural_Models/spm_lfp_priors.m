@@ -54,7 +54,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_lfp_priors.m 1200 2008-03-11 15:14:02Z rosalyn $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -93,11 +93,12 @@ end
  
 % source-specific contribution to LFP
 %--------------------------------------------------------------------------
-try, J; catch, J  = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13); end
+try, J; catch, J = log(ones(1,13)); end
+
  
 % source-specific contribution to LFP
 %--------------------------------------------------------------------------
-E.J   = J;                 V.J = J/64;             % contributing states
+E.J   = J;                 V.J = ones(1,13)/64;         % contributing states
  
  
 % parameters for neural-mass forward model
@@ -105,16 +106,17 @@ E.J   = J;                 V.J = J/64;             % contributing states
  
 % sigmoid parameters
 %--------------------------------------------------------------------------
-E.R   = [0 0];             V.R = [1 1]/8;
+E.R   = [0 0];             V.R = [1 1]/8; 
  
 % set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
-E.T   = log(ones(n,2));    V.T = ones(n,2)/8;      % time constants
-E.H   = log(ones(n,1));    V.H = ones(n,1)/16;     % synaptic density
+E.T   = log(ones(n,2));    V.T = ones(n,2)/8;      % time constants 
+ 
+E.H   = log(ones(n,1));    V.H = ones(n,1)/16;    % synaptic density
 
 % set intrinsic connections
 %--------------------------------------------------------------------------
-E.G   = log(ones(n,5));    V.G = ones(n,5)/16;     % intrinsic connections
+E.G   = log(ones(n,5));    V.G = zeros(n,5)/16;    % intrinsic connections
  
  
 % set extrinsic connectivity
@@ -142,6 +144,7 @@ V.C    = C/32;
 E.a    = 0;               V.a = 1/16;              % amplitude AR
 E.b    = 0;               V.b = 0;                 % amplitude IID
 E.c    = 0;               V.c = 1/2;               % amplitude noise
+
  
 % set delay
 %--------------------------------------------------------------------------
