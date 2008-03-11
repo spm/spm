@@ -174,8 +174,8 @@ function [mljob comp] = canonicalise_job(job)
 % Check whether job is a SPM5 or matlabbatch job. In the first case, all
 % items in job{:} should have a fieldname of either 'temporal', 'spatial',
 % 'stats', 'tools' or 'util'. If this is the case, then job will be
-% assigned to mljob{1}.spm, which is the tag of the SPM root configuration
-% item.
+% assigned to mljob{1}.spmjobs, which is the tag of the SPM root
+% configuration item.
 
 comp = true;
 for k = 1:numel(job)

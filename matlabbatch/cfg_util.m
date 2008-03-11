@@ -289,9 +289,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_util.m 1198 2008-03-11 12:32:10Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1198 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -440,7 +440,8 @@ switch lower(cmd),
         varargout{1} = isstruct(varargin{1}) && ...
             all(isfield(varargin{1}, {'type','subs'}));
     case 'ismod_job_id'
-        varargout{1} = isnumeric(varargin{1});
+        varargout{1} = isnumeric(varargin{1}) && varargin{1} <= numel(cjid2subs) ...
+            && ~isempty(cjid2subs{varargin{1}});
     case {'listcfg','listcfgall'}
         % could deal with hidden/modality fields here
         if strcmpi(cmd(end-2:end), 'all')
