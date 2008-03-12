@@ -4,7 +4,37 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-02-28 02:53:36.
+% Created at 2008-03-12 09:23:12.
+% ---------------------------------------------------------------------
+% files Files to move/delete
+% ---------------------------------------------------------------------
+files         = cfg_files;
+files.tag     = 'files';
+files.name    = 'Files to move/delete';
+files.help    = {'These files will be moved/deleted.'};
+files.filter = 'any';
+files.ufilter = '.*';
+files.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% target Target Directory
+% ---------------------------------------------------------------------
+target         = cfg_files;
+target.tag     = 'target';
+target.name    = 'Target Directory';
+target.help    = {'Files will be moved to the specified directory. If no directory is specified, then files will be deleted instead.'};
+target.filter = 'dir';
+target.ufilter = '.*';
+target.num     = [0 1];
+% ---------------------------------------------------------------------
+% file_move Move/Delete Files
+% ---------------------------------------------------------------------
+file_move         = cfg_exbranch;
+file_move.tag     = 'file_move';
+file_move.name    = 'Move/Delete Files';
+file_move.val     = {files target };
+file_move.help    = {'Move or delete files.'};
+file_move.prog = @cfg_run_file_move;
+file_move.vout = @cfg_vout_move_file;
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -132,6 +162,35 @@ cfg_named_file.help    = {
 }';
 cfg_named_file.prog = @cfg_run_named_file;
 cfg_named_file.vout = @cfg_vout_named_file;
+% ---------------------------------------------------------------------
+% dir Directory
+% ---------------------------------------------------------------------
+dir         = cfg_files;
+dir.tag     = 'dir';
+dir.name    = 'Directory';
+dir.help    = {'Directory to select files from.'};
+dir.filter = 'dir';
+dir.ufilter = '.*';
+dir.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% filter Filter
+% ---------------------------------------------------------------------
+filter         = cfg_entry;
+filter.tag     = 'filter';
+filter.name    = 'Filter';
+filter.help    = {'A regular expression to filter files (applied after filtering for ''Typ'').'};
+filter.strtype = 's';
+filter.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% file_fplist File Selector (Batch Mode)
+% ---------------------------------------------------------------------
+file_fplist         = cfg_exbranch;
+file_fplist.tag     = 'file_fplist';
+file_fplist.name    = 'File Selector (Batch Mode)';
+file_fplist.val     = {dir filter };
+file_fplist.help    = {'Select files from a directory using cfg_getfile(''FPList'',...).'};
+file_fplist.prog = @cfg_run_file_fplist;
+file_fplist.vout = @cfg_vout_file_fplist;
 % ---------------------------------------------------------------------
 % files Files
 % ---------------------------------------------------------------------
@@ -370,42 +429,12 @@ cfg_assignin.help    = {
 }';
 cfg_assignin.prog = @cfg_run_assignin;
 % ---------------------------------------------------------------------
-% files Files to move/delete
-% ---------------------------------------------------------------------
-files         = cfg_files;
-files.tag     = 'files';
-files.name    = 'Files to move/delete';
-files.help    = {'These files will be moved/deleted.'};
-files.filter = 'any';
-files.ufilter = '.*';
-files.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% target Target Directory
-% ---------------------------------------------------------------------
-target         = cfg_files;
-target.tag     = 'target';
-target.name    = 'Target Directory';
-target.help    = {'Files will be moved to the specified directory. If no directory is specified, then files will be deleted instead.'};
-target.filter = 'dir';
-target.ufilter = '.*';
-target.num     = [0 1];
-% ---------------------------------------------------------------------
-% file_move Move/Delete Files
-% ---------------------------------------------------------------------
-file_move         = cfg_exbranch;
-file_move.tag     = 'file_move';
-file_move.name    = 'Move/Delete Files';
-file_move.val     = {files target };
-file_move.help    = {'Move or delete files.'};
-file_move.prog = @cfg_run_file_move;
-file_move.vout = @cfg_vout_move_file;
-% ---------------------------------------------------------------------
 % cfg_basicio BasicIO
 % ---------------------------------------------------------------------
 cfg_basicio         = cfg_repeat;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
-cfg_basicio.values  = {cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_filter cfg_file_split cfg_named_input cfg_save_vars cfg_assignin file_move };
+cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input cfg_save_vars cfg_assignin };
 cfg_basicio.num     = [0 Inf];
 cfg_basicio.forcestruct = true;
