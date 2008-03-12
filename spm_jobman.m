@@ -338,5 +338,6 @@ switch cmclass,
             val = cellstr(t);
         else
             val = {};
+            error('File selector was closed.');
         end;
 end;
