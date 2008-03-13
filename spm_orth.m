@@ -1,5 +1,5 @@
 function X = spm_orth(X,OPT)
-% recursive orthogonalisation of basis functions
+% recursive Gram–Schmidt orthogonalisation of basis functions
 % FORMAT X = spm_orth(X,OPT)
 %
 % X   - matrix
@@ -7,11 +7,15 @@ function X = spm_orth(X,OPT)
 %     - 'pad'  for zero padding of null space [default]
 %
 % serial orthogonalisation starting with the first column
+%
+% refs:
+% Golub, Gene H. & Van Loan, Charles F. (1996), Matrix Computations (3rd
+% ed.), Johns Hopkins, ISBN 978-0-8018-5414-9.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 1178 2008-02-28 13:58:13Z karl $
+% $Id: spm_orth.m 1206 2008-03-13 20:56:00Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -21,7 +25,7 @@ catch
     OPT = 'pad';
 end
  
-% recursive GM orthogonalisation
+% recursive Gram–Schmidt orthogonalisation
 %--------------------------------------------------------------------------
 sw = warning('off','all');
 [n m] = size(X);

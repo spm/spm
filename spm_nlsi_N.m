@@ -71,7 +71,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1188 2008-03-05 17:14:43Z karl $
+% $Id: spm_nlsi_N.m 1206 2008-03-13 20:56:00Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -473,11 +473,10 @@ for ip = 1:64
     
     % subplot times
     %----------------------------------------------------------------------
-    try
-        yt = size(yp,1)/length(Y.pst);
-        yt = kron(ones(yt,1),Y.pst(:));
-    catch
-        yt = [1:size(yp,1)]*Y.dt;
+    if length(Y.pst) == size(yp,1)
+        yt = Y.pst;
+    else
+        yt = [1:size(yp,1)]*Y.dt*1000;
     end
 
     % graphics
@@ -490,7 +489,7 @@ for ip = 1:64
         
         subplot(3,1,1)
         plot(yt,x)
-        xlabel('time')
+        xlabel('time (ms)')
         set(gca,'XLim',[yt(1) yt(end)])
         title(sprintf('%s: %i','E-Step: hidden states',ip))
         grid on
@@ -498,7 +497,7 @@ for ip = 1:64
         subplot(3,1,2)
         plot(yt,yp),                        hold on
         plot(yt,yp + spm_unvec(ey,yp),':'), hold off
-        xlabel('time')
+        xlabel('time (ms)')
         set(gca,'XLim',[yt(1) yt(end)])
         title('E-Step: response amd prediction')
         grid on

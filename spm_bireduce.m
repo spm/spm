@@ -34,7 +34,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 1164 2008-02-22 12:26:36Z karl $
+% $Id: spm_bireduce.m 1206 2008-03-13 20:56:00Z karl $
 
 
 % set up
@@ -51,13 +51,13 @@ end
 % add observer if not specified
 %--------------------------------------------------------------------------
 if ~isfield(M,'g')
-    M.g = inline('x','x','u','P','M');
+    M.g = inline('spm_vec(x)','x','u','P','M');
     M.l = M.n;
 end
 
 % expansion pointt
 %--------------------------------------------------------------------------
-x     = spm_vec(M.x);           
+x     = M.x;           
 try
     u = spm_vec(M.u);
 catch

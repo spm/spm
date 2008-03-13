@@ -8,7 +8,7 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 %
 % dx     = x(t) - x(0)
 %--------------------------------------------------------------------------
-% Integration of stochastic differential euquation using local linearization. 
+% Integration of stochastic differential equations using local linearization. 
 % This scheme accommodates nonlinearities in the state equation by using a 
 % functional of f(x) = dx/dt.  This uses the equality
 %
@@ -26,35 +26,43 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 % see also spm_dx
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_sde_dx.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_sde_dx.m 1206 2008-03-13 20:56:00Z karl $
+ 
 % defaults
 %--------------------------------------------------------------------------
 if nargin < 3, t = 1; end
-
+ 
 % compute stochastic terms {E = exp(dfdx*t), e = exp(dfdx*dt)}
 %--------------------------------------------------------------------------
 m     = length(dfdx);
 N     = 256;
 dt    = t/N;
-e     = spm_expm(dfdx*dt);
-E     = e;
+eJdt  = spm_expm(dfdx*dt);
+eJt   = eJdt;
 Q     = sparse(m,m);
 R     = dfdw*dfdw'*2;
-TOL   = trace(E*R*E')/64;
+dQ    = eJt*R*eJt';
+TOL   = trace(dQ)/64;
 for i = 1:N
-    Q = Q + E*R*E'*dt;
-    E = E*e;
-    if trace(E*R*E') < TOL, break, end
+    
+    % integrate and update exp(dfdx*t)
+    %----------------------------------------------------------------------
+    Q   = Q + dQ*dt;
+    eJt = eJt*eJdt;
+    dQ  = eJt*R*eJt';
+    
+    % convergence
+    %----------------------------------------------------------------------
+    if trace(dQ) < TOL, break, end
+    
 end
+ 
+% scaled [Wiener] innovation
+%--------------------------------------------------------------------------
 w     = spm_sqrtm(Q)*randn(m,1);
-
-% local linear solution and add stochastic term
+ 
+% local linear solution plus stochastic term
 %==========================================================================
-dx    = spm_dx(dfdx,f,t) + w;
-
-
-
-
+dx    = (eJt - speye(m,m))*spm_pinv(dfdx)*f + w;

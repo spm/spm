@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1188 2008-03-05 17:14:43Z karl $
+% $Id: spm_DEM.m 1206 2008-03-13 20:56:00Z karl $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -372,7 +372,7 @@ for iN = 1:nN
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
                     if L > Fd
-                        td     = {max(td{1} + 1,32)};
+                        td     = {min(td{1} + 1,32)};
                         Fd     = L;
                         B.qu   = qu;
                         B.E    = E;
