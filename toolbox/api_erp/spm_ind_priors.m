@@ -33,13 +33,12 @@ function [pE,gE,pC,gC] = spm_ind_priors(A,B,C,Nf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_priors.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_ind_priors.m 1208 2008-03-13 20:59:12Z karl $
  
 % orders
 %--------------------------------------------------------------------------
 n    = size(C,1);                                 % number of sources
 nu   = size(C,2);                                 % number of inputs
-n1   = ones(n,1);
  
 % parameters for electromagnetic forward model
 %--------------------------------------------------------------------------
@@ -59,7 +58,7 @@ V.A  = kron(speye(Nf,Nf),A{1}) + kron(1 - speye(Nf,Nf),A{2});
 %--------------------------------------------------------------------------
 for i = 1:length(B)
     E.B{i} = sparse(n*Nf,n*Nf);
-    V.B{1} = kron(ones(Nf,Nf),B{i}) & V.A;
+    V.B{i} = kron(ones(Nf,Nf),B{i}) & V.A;
 end
  
 % exogenous inputs

@@ -24,13 +24,13 @@ function [x,M] = spm_x_mfm(P)
 ns   = size(P.A{1},1);                           % number of sources
 np   = 3;                                        % number of populations
 
-% create (initlaise voltage at -8mV)
+% create (initlaise voltage at -32mV)
 %--------------------------------------------------------------------------
 x{1}        = zeros(ns,np,3);
 x{1}(:,:,1) = -32;
 x{2}        = zeros(3,3,ns,np);
 for i = 1:ns
-    for j = np
+    for j = 1:np
         x{2}(:,:,i,j) = eye(3,3)/128;
     end
 end
@@ -51,7 +51,7 @@ M.l   = size(P.C,1);
 %--------------------------------------------------------------------------
 U.u   = sparse(64,1);
 U.dt  = 8/1000;
-x     = spm_int_ode(P,M,U);
+x     = spm_int_ode(P,M,U);plot(x)
 x     = spm_unvec(x(end,:),M.x);
 M.x   = x;
 

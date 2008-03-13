@@ -18,7 +18,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1191 2008-03-06 12:11:38Z karl $
+% $Id: spm_dcm_erp_dipfit.m 1208 2008-03-13 20:59:12Z karl $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -122,8 +122,8 @@ switch DCM.options.type
                     % Use approximated MRI fiducials (MNI space)... for now
                     %------------------------------------------------------
                     mni_fid = [[0   86 -42];...
-                        [-84 -18 -55];...
-                        [ 84 -18 -55]];
+                              [-84 -18 -55];...
+                              [ 84 -18 -55]];
 
 
                     % EEG coordinates in MNI space
@@ -209,7 +209,7 @@ switch DCM.options.type
             L       = spm_cond_units(L);
         catch
             errordlg({'Please create and save a foward model',...
-                'using spm_eeg_inv_imag_api'})
+                      'using spm_eeg_inv_imag_api'})
             error('')
         end
 

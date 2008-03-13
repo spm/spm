@@ -14,7 +14,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % sets
 %
 %    DCM.xY.pst     - Peristimulus Time [ms] sampled
-%    DCM.xY.dt      - sampling in seconds (down-sampled)
+%    DCM.xY.dt      - sampling in seconds [s] (down-sampled)
 %    DCM.xY.U       - channel subspace
 %    DCM.xY.y       - cross spectral density over sources
 %    DCM.xY.csd     - cross spectral density over sources
@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 1202 2008-03-11 15:17:27Z rosalyn $
+% $Id: spm_dcm_ssr_data.m 1208 2008-03-13 20:59:12Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------

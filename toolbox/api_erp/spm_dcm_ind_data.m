@@ -17,7 +17,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % sets
 %
 %    DCM.xY.pst     - Peristimulus Time [ms] of time-frequency data
-%    DCM.xY.dt      - sampling in seconds
+%    DCM.xY.dt      - sampling in seconds [s]
 %    DCM.xY.y       - concatenated induced response over sources
 %    DCM.xY.xf      - induced response over sources
 %    DCM.xY.It      - Indices of time bins
@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1187 2008-03-05 15:17:37Z vladimir $
+% $Id: spm_dcm_ind_data.m 1208 2008-03-13 20:59:12Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -254,7 +254,7 @@ for i = 1:Ne;
     Nt    = length(c);
     
     
-    % Get data
+    % Get data: log(spectral magnitude)
     %----------------------------------------------------------------------
     Ny    = Nb*Nr*Ng;
     Y     = zeros(Ny*Nf,Nt);
@@ -262,7 +262,7 @@ for i = 1:Ne;
         f     = [1:Ny] + (j - 1)*Ny;
         for k = 1:Nt
             y      = abs(M{j}*D.data(Ic,Is,c(k))'*MAP');
-            Y(f,k) = y(:);
+            Y(f,k) = log(y(:));
         end
         fprintf('\nevaluating %i Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
     end

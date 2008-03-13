@@ -12,7 +12,7 @@ function [y] = spm_gen_ind(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_ind.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_gen_ind.m 1208 2008-03-13 20:59:12Z karl $
 
 
 % within-trial inputs
@@ -36,23 +36,24 @@ U.u = feval(fu,t,P,M);
 %==========================================================================
 try, X = U.X; catch, X = sparse(1,0); end
 
-% baseline parameters
-%--------------------------------------------------------------------------
-Q  = P;
 
 % cycle over trials
 %--------------------------------------------------------------------------
 for  c = 1:size(X,1)
+    
+    % baseline parameters
+    %----------------------------------------------------------------------
+    Q  = P;
 
     % trial-specific inputs
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-          P.A = Q.A + X(c,i)*Q.B{i};
+          Q.A = Q.A + X(c,i)*Q.B{i};
     end
 
     % integrate DCM for this trial
     %----------------------------------------------------------------------
-    y{c,1} = spm_int_L(P,M,U);
+    y{c,1} = spm_int_L(Q,M,U);
 
 end
 

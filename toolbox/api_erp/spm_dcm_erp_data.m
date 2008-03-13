@@ -13,8 +13,9 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    
 % sets
 %    DCM.xY.modality - 'MEG','EEG' or 'LFP'
-%    DCM.xY.Time     - Time [ms] of down-sampled data
-%    DCM.xY.dt       - sampling in seconds
+%    DCM.xY.Time     - Time [ms] data
+%    DCM.xY.pst      - Time [ms] of down-sampled data
+%    DCM.xY.dt       - sampling in seconds (s)
 %    DCM.xY.y        - response variable for DCM
 %    DCM.xY.xy       - cell array of trial-speficic response {[ns x nc]}
 %    DCM.xY.It       - Indices of (ns) time bins
@@ -28,7 +29,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_dcm_erp_data.m 1208 2008-03-13 20:59:12Z karl $
  
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------

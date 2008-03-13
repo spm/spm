@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_dcm_erp.m 1208 2008-03-13 20:59:12Z karl $
  
 % check options 
 %==========================================================================
@@ -54,7 +54,7 @@ M      = DCM.M;
  
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.xy);                  % number of trials
+Nt     = length(xY.xy);                 % number of trials
 Nr     = size(DCM.C,1);                 % number of sources
 Nu     = size(DCM.C,2);                 % number of exogenous inputs
 Ns     = size(xY.xy{1},1);              % number of time bins
