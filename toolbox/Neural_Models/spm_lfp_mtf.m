@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
  % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_lfp_mtf.m 1207 2008-03-13 20:57:56Z karl $
 
  
 % compute log-spectral density
@@ -48,9 +48,6 @@ Gn   = exp(P.c)/8;
 %==========================================================================
 try, X = U.X; catch, X = sparse(1,0); end
 
-% basline parameters
-%--------------------------------------------------------------------------
-Q  = P;
 
 % cycle over trials
 %--------------------------------------------------------------------------
@@ -59,20 +56,24 @@ for  c = 1:size(X,1)
     % exogenous (neuronal) inputs
     %----------------------------------------------------------------------
     M.u  = sparse(length(P.C),1);
+    
+    % basline parameters
+    %----------------------------------------------------------------------
+    Q  = P;
 
     % trial-specific effective connectivity
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-        P.A{1} = Q.A{1} + X(c,i)*P.B{i};         % forward   connections
-        P.A{2} = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
-        P.A{3} = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
+        Q.A{1} = Q.A{1} + X(c,i)*P.B{i};         % forward   connections
+        Q.A{2} = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
+        Q.A{3} = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
 
-        P.H    = Q.H + X(c,i)*diag(P.B{i});      % intrinsic connections
+        Q.H    = Q.H + X(c,i)*diag(P.B{i});      % intrinsic connections
     end
 
     % augment and bi-linearise
     %----------------------------------------------------------------------
-    [M0,M1,L] = spm_bireduce(M,P);
+    [M0,M1,L] = spm_bireduce(M,Q);
     
     % project onto spatial modes
     %----------------------------------------------------------------------

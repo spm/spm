@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_figure.m 1207 2008-03-13 20:57:56Z karl $
 
 
 %=======================================================================
@@ -261,6 +261,8 @@ if isempty(F)
             F = spm_figure('Create','DFP','Variational filtering');
         case 'SI'
             F = spm_figure('Create','SI','System Identification');
+        case 'MFM'
+            F = spm_figure('Create','MFM','Mean-field and neural mass models');
         case 'Interactive'
             F = spm('CreateIntWin');
         end

@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_fx_lfp.m 1207 2008-03-13 20:57:56Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -47,8 +47,7 @@ try, P.G; catch, P.G = 0; end
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-x    = spm_unvec(x,M.x);
-u    = spm_vec(u);
+u    = spm_vec(u);             % input
 n    = size(x,1);              % number of sources
 s    = size(x,2);              % number of states
 m    = size(P.C,2);            % number of exogenous inputs
@@ -212,7 +211,6 @@ D  = Di + De;
 D  = inv(speye(n*s,n*s) - D.*dfdx);
 f  = D*f;
 J  = D*dfdx;
- 
  
 return
  
