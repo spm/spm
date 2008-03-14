@@ -111,8 +111,9 @@ function varargout=FieldMap(varargin)
 %
 % UPDATE 27/01/05
 
-%_______________________________________________________________________
-% FieldMap.m               Jesper Andersson and Chloe Hutton 17/12/06 
+
+% Jesper Andersson and Chloe Hutton
+% $Id: FieldMap.m 1210 2008-03-14 16:34:46Z chloe $
 
 persistent PF FS WS PM   % GUI related constants
 persistent ID            % Image display
