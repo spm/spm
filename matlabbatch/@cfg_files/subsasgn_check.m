@@ -12,16 +12,14 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1215 2008-03-14 21:32:25Z volkmar $
+% $Id: subsasgn_check.m 1216 2008-03-14 21:52:32Z volkmar $
 
-rev = '$Rev: 1215 $';
+rev = '$Rev: 1216 $';
 
 sts = true;
 switch subs(1).subs
     case {'num'}
 	sts = subsasgn_check_num(val);
     case {'val'}
-        if ~isa(val, 'cfg_dep')
-            sts = iscell(val) && (isempty(val) || iscellstr(val{1}));
-        end;
+        sts = iscell(val) && (isempty(val) || isa(val{1}, 'cfg_dep') || iscellstr(val{1}));
 end;
