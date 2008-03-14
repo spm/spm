@@ -17,7 +17,7 @@ function spmjobs = spm_def
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_def.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_def.m 1213 2008-03-14 20:03:45Z volkmar $
 
 spm_defaults;
 global defaults;
@@ -111,7 +111,7 @@ spmjobs.spatial.preproc.output.WM = double([0 0 1]);
 spmjobs.spatial.preproc.output.CSF = double([0 0 0]);
 spmjobs.spatial.preproc.output.biascor = double(1);
 spmjobs.spatial.preproc.output.cleanup = double(0);
-spmjobs.spatial.preproc.opts.tpm = defaults.preproc.tpm;
+spmjobs.spatial.preproc.opts.tpm = cellstr(defaults.preproc.tpm);
 spmjobs.spatial.preproc.opts.ngaus = defaults.preproc.ngaus;
 spmjobs.spatial.preproc.opts.regtype = defaults.preproc.regtype;
 spmjobs.spatial.preproc.opts.warpreg = defaults.preproc.warpreg;
