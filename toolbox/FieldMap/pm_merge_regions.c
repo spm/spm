@@ -72,8 +72,8 @@ int jj_cmp(const void * a,
      /*   if (jj[((int) *a)] > jj[((int) *b)]) {return(1);}
      else if (jj[((int) *a)] == jj[((int) *b)]) {return(0);}
      else {return(-1);} Replaced DMT 8/22/07 */
-   if (ii[(*(int*)a)] > ii[(*(int*)b)]) {return(1);}
-   else if (ii[(*(int*) a)] == ii[(*(int*) b)]) {return(0);}
+   if (jj[(*(int*)a)] > jj[(*(int*)b)]) {return(1);}
+   else if (jj[(*(int*) a)] == jj[(*(int*) b)]) {return(0);}
    else {return(-1);}
 
 }
