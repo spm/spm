@@ -24,7 +24,7 @@ function [f] = spm_fx_mfm_ensemble(x,u,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm_ensemble.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_fx_mfm_ensemble.m 1212 2008-03-14 19:08:47Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -42,8 +42,8 @@ nc   = length(P.A);                             % number of connection types
 A{1} = exp(P.A{1})/8;                         % forward
 A{2} = exp(P.A{2})/16;                        % backward
 A{3} = exp(P.A{3})/64;                        % lateral
-C    = exp(P.C)/32;                           % subcortical
-
+C    = exp(P.C);                              % subcortical
+ 
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
 SA   = sparse([1 0 1;
@@ -53,39 +53,38 @@ SA   = sparse([1 0 1;
 % intrinsic connection strengths
 %==========================================================================
 G    = exp(P.G);
-
-% switches on intrinsic connections (np x np) - excitatory
+ 
+% intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
 SE   = sparse([0   0   1/2;
-               0   0   1/4;
-               1   0   0]);
+               0   0   1;
+               1   0   0  ]);
      
-% switches on intrinsic connections (np x np) - inhibitory
+% intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-SI   = sparse([0   0   0;
+SI   = sparse([0   1/2 0;
                0   0   0;
-               0   1/2 0]);
+               0   2   0]);
                 
-
+ 
 % rate constants (ns x np) (excitatory 8ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = exp(-P.T)*1000/8;                     % excitatory time constants
+KE   = exp(-P.T)*1000/4;                     % excitatory time constants
 KI   = 1000/16;                              % inhibitory time constants
-
-% internal input
+ 
+% Voltages
 %--------------------------------------------------------------------------
-VL   = -32;                                 % reversal  potential leak
-VE   =  16;                                 % reversal  potential excite
-VI   = -128;                                % reversal  potential inhib
-VR   =  0;                                  % threshold potential
-VP   = exp(P.S)/exp(32);                    % population variance (mV^2)
-
-CV   = 1/1000;                              % membrane capacitance
-GL   = 1/16;                                % leak condunctance  
+VL   = -70;                                  % reversal  potential leak (K)
+VE   =  60;                                  % reversal  potential excite (Na)
+VI   = -90;                                  % reversal  potential inhib (Cl)
+VR   = -40;                                  % threshold potential
+ 
+CV   = 8/1000;                               % membrane capacitance
+GL   = 1;                                    % leak conductance
 
 % mean population firing rate
 %--------------------------------------------------------------------------
-m    = mean(spm_Ncdf_jdw(x(:,:,:,1),VR,VP),1);
+m    = mean(spm_Ncdf_jdw(x(:,:,:,1),VR,exp(-8)),1);
 m    = squeeze(m);
 m    = reshape(m,ns,np);
 

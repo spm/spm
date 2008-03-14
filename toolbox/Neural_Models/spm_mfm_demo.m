@@ -42,7 +42,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfm_demo.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_mfm_demo.m 1212 2008-03-14 19:08:47Z karl $
  
  
 % number of regions in coupled map lattice
@@ -78,7 +78,7 @@ dt    = 2;
 t     = [1:dt:256]';
 N     = length(t);
 U.dt  = dt/1000;
-U.u   = 256*(exp(-(t - 64).^2/8) + rand(N,1)/exp(32));
+U.u   = 128*(exp(-(t - 64).^2/8) + rand(N,1)/exp(32));
  
  
 % Integrate system to see Transient response - ensemble
@@ -93,8 +93,10 @@ end
  
 % diffusion
 %--------------------------------------------------------------------------
-D    = diag([1 1/32 1/128]);
+D    = diag([1/32 1 1]);
 dfdw = kron(spm_sqrtm(D/2),speye(np*n*3));
+
+
  
 % integrate ensemble Y(time, particle, source, population, state)
 %==========================================================================
@@ -124,10 +126,11 @@ end
 % input
 %--------------------------------------------------------------------------
 pop   = {'stellate', 'interneurons', 'pyramidal'};
-state = {'Voltage', 'excitatory current', 'inhibitory current'};
+state = {'Voltage', 'excitatory conductance', 'inhibitory conductance'};
 
-p  = 3;
-T  = t;
+p  = 3;                                    % default population (pyramidal)
+T  = t;                                    % perstimulus time (ms)
+c  = [1 1 1]*.9;                           % default colour for plots
 subplot(3,1,1)
 plot(T,U.u)
 title('input')
@@ -137,20 +140,19 @@ xlabel('time (ms)')
 % plot
 %--------------------------------------------------------------------------
 subplot(3,1,2)
-plot(T,squeeze(Y(:,:,1,p,1)),':')
+plot(t,squeeze(Y(:,:,1,p,1)),':')
 title('Pyramidal depolarisation')
 axis square
 xlabel('time (ms)')
  
 % plot moments
 %--------------------------------------------------------------------------
-subplot(3,1,3)
-c   = [1 1 1]*.9;
 m   = mean(Y(:,:,1,p,1),2)';
 s   = std(Y(:,:,1,p,1),0,2)'*1.64;
-plot(T,m*0,'k:'),hold on
-patch([T(:)' fliplr(T(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
-plot(T,m,'r','LineWidth',2), hold off
+subplot(3,1,3)
+plot(t,m*0,'k:'),hold on
+patch([t(:)' fliplr(t(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
+plot(t,m,'r','LineWidth',2), hold off
 title('Pyramidal depolarisation')
 axis square
 xlabel('time (ms)')
@@ -164,7 +166,7 @@ spm_demo_proceed
 for i = 1:3
     for j = 1:3
         subplot(3,3,(i - 1)*3 + j)
-        plot(T,squeeze(Y(:,:,1,i,j)),'-','color',[1 1 1]*.7)
+        plot(t,squeeze(Y(:,:,1,i,j)),'-','color',[1 1 1]*.7)
         title([pop{i} ': ' state{j}])
         xlabel('time (ms)')
     end
@@ -174,14 +176,6 @@ drawnow
 spm_demo_proceed
 
  
-% re-create exogenous inputs for neural mass and mean-field models
-%==========================================================================
-dt    = 2;
-t     = [1:dt:256]';
-N     = length(t);
-U.dt  = dt/1000;
-U.u   = 284*(exp(-(t - 64).^2/8) + randn(N,1)*exp(-16));
- 
  
 % Integrate system to see Transient response - MFM
 %==========================================================================
@@ -189,40 +183,41 @@ NM    = M;                              % neural mass model
 NM.x  = M.x{1};                         % remove second-order moments
 MFM   = spm_int_B(pE,M, U);
 NMM   = spm_int_B(pE,NM,U);
- 
- 
+
 % LFP - ensemble
 %--------------------------------------------------------------------------
-subplot(3,1,1)
 m   = mean(Y(:,:,1,p,1),2)';
 s   =  std(Y(:,:,1,p,1),0,2)'*1.64;
-plot(T,m*0,'k:'),hold on
-patch([T(:)' fliplr(T(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
+subplot(3,1,1)
+plot(t,m*0,'k:'),hold on
+patch([t(:)' fliplr(t(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
 plot(T,m,'r','LineWidth',2), hold off
 title([pop{p} ': Ensemble'])
 axis square
 xlabel('time (ms)')
- 
+
+
 % LFP - MFM
 %--------------------------------------------------------------------------
 subplot(3,1,2)
 m   = MFM(:,p)';
-s   = sqrt(MFM(:,p*3 + (p - 1)*9 + 1)')*1.64;
-plot(T,m*0,'k:'),hold on
-patch([T(:)' fliplr(T(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
-plot(T,m,'r','LineWidth',2), hold off
+s   = sqrt(MFM(:,p*9 + 1)')*1.64;
+plot(t,m*0,'k:'),hold on
+patch([t(:)' fliplr(t(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
+plot(t,m,'r','LineWidth',2), hold off
 title([pop{p} ': MFM'])
 axis square
 xlabel('time (ms)')
+
  
 % LFP - NMM
 %--------------------------------------------------------------------------
 subplot(3,1,3)
 m   = NMM(:,p)';
 s   = sqrt(64)*1.64;
-plot(T,m*0,'k:'),hold on
-patch([T(:)' fliplr(T(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
-plot(T,m,'r','LineWidth',2), hold off
+plot(t,m*0,'k:'),hold on
+patch([t(:)' fliplr(t(:)')],[(m(:)' - s(:)') fliplr(m(:)' + s(:)')],c)
+plot(t,m,'r','LineWidth',2), hold off
 title([pop{p} ': NNM'])
 axis square
 xlabel('time (ms)')
@@ -234,7 +229,7 @@ spm_demo_proceed
 % create exogenous inputs for responses to transient and sustained input
 %==========================================================================
 dt    = 2;
-t     = [1:dt:256]';
+t     = [1:dt:512]';
 N     = length(t);
 U.dt  = dt/1000;
  
@@ -242,8 +237,8 @@ U.dt  = dt/1000;
 % responses to different inputs - spikes
 %==========================================================================
 clear YMF YNM
-p     = 1;                                                 % stellate cells
-u     = 128:8:512;
+p     = 3;                                               % pyramidal cells
+u     = [1:64]*2;
 for i = 1:length(u)
     
     % create exogenous inputs
@@ -273,17 +268,17 @@ imagesc(u,t,squeeze(YNM(:,p,:)))
 xlabel('input amplitude (spike)')
 ylabel('time (ms)')
 title([pop{p} ': NMM'])
+drawnow
  
  
 % responses to different inputs - sustained
 %--------------------------------------------------------------------------
 clear YMF YNM
-u     = [0:32]*128;
 for i = 1:length(u)
     
     % create exogenous inputs (after 64 ms)
     %----------------------------------------------------------------------
-    U.u   = u(i)*(t  > 64);
+    U.u   = u(i)*(t > 64);
  
     % Integrate systems
     %----------------------------------------------------------------------
@@ -345,10 +340,11 @@ ylabel('Frequency (Hz)')
 title([pop{p} ': MFM'])
  
 subplot(2,2,2)
-plot(Hz,FMF,'color',[1 1 1]*.5)
+plot(Hz,FMF(:,[16 32]))
 xlabel('Frequency (Hz)')
 ylabel('frequency response')
 title([pop{p} ': MFM'])
+legend({sprintf('input amplitude %i',u(16)) sprintf('input amplitude %i',u(32))})
  
 subplot(2,2,3)
 plot(u,mean(SMF),'k')

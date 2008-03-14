@@ -18,13 +18,15 @@ function [f] = spm_fx_mfm(x,u,P,M)
 %--------------------------------------------------------------------------
 % refs:
 %
-% Marreiros et al (2008) Population dynamics under the Laplace assumption 
+% Marreiros et al (2008) Population dynamics under the Laplace assumption
+%
+% http://courses.washington.edu/conj/membpot/equilpot.htm
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_fx_mfm.m 1212 2008-03-14 19:08:47Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -47,7 +49,7 @@ nc   = length(P.A);                             % number of connections
 A{1} = exp(P.A{1})/8;                         % forward
 A{2} = exp(P.A{2})/16;                        % backward
 A{3} = exp(P.A{3})/64;                        % lateral
-C    = exp(P.C)/32;                           % subcortical
+C    = exp(P.C);                              % subcortical
  
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
@@ -62,30 +64,30 @@ G    = exp(P.G);
 % intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
 SE   = sparse([0   0   1/2;
-               0   0   1/4;
+               0   0   1;
                1   0   0  ]);
      
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-SI   = sparse([0   0   0;
+SI   = sparse([0   1/2 0;
                0   0   0;
-               0   1/2 0]);
+               0   2   0]);
                 
  
 % rate constants (ns x np) (excitatory 8ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = exp(-P.T)*1000/8;                     % excitatory time constants
+KE   = exp(-P.T)*1000/4;                     % excitatory time constants
 KI   = 1000/16;                              % inhibitory time constants
  
 % Voltages
 %--------------------------------------------------------------------------
-VL   = -32;                                  % reversal  potential leak
-VE   =  16;                                  % reversal  potential excite
-VI   = -128;                                 % reversal  potential inhib
-VR   =  0;                                   % threshold potential
+VL   = -70;                                  % reversal  potential leak (K)
+VE   =  60;                                  % reversal  potential excite (Na)
+VI   = -90;                                  % reversal  potential inhib (Cl)
+VR   = -40;                                  % threshold potential
  
-CV   = 1/1000;                               % membrane capacitance
-GL   = 1/16;                                 % leak conductance
+CV   = 8/1000;                               % membrane capacitance
+GL   = 1;                                    % leak conductance
 fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
  
 % mean-field effects
@@ -95,16 +97,16 @@ if mfm
     Vx  = squeeze(x{2}(1,1,:,:));            % population variance (mV^2)
     Vx  = reshape(Vx,ns,np);                 % of voltage
  
-    D   = sparse(diag([1 1/32 1/128]));     % diffusion
+    D   = sparse(diag([1/32 1 1]));     % diffusion
     D   = exp(P.S)*D;
     
 else
     
     % neural-mass approximation to covariance of states
     %----------------------------------------------------------------------
-    Cx = [70.3798    0.0661    0.0335;
-           0.0661    0.0002         0;
-           0.0335    0         0.0001];
+    Cx = [   75.3843    0.1746    0.7487;
+             0.1746     0.0040         0;
+             0.7487          0    0.0160];
     Cx = exp(P.S)*Cx;
     Vx = Cx(1,1);  
     

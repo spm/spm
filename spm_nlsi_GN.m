@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1173 2008-02-27 20:16:11Z karl $
+% $Id: spm_nlsi_GN.m 1212 2008-03-14 19:08:47Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -382,7 +382,7 @@ for k = 1:128
         x    = [1:ns]*Y.dt;
         xLab = 'time (seconds)';
         try
-            if length(Y.Hz) == ns
+            if length(M.Hz) == ns
                 x    = Y.Hz;
                 xLab = 'Frequency (Hz)';
             end

@@ -48,7 +48,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_csd_demo.m 1212 2008-03-14 19:08:47Z karl $
  
 clear global
 clear
@@ -121,7 +121,8 @@ plot(M.Hz,abs(CSD(:,1,1)),M.Hz,abs(CSD(:,1,2)),':')
 xlabel('frequency')
 title('[cross]-spectral density')
 axis square
- 
+
+spm_demo_proceed
  
 % re-scale
 %--------------------------------------------------------------------------
@@ -141,7 +142,8 @@ Y.Q    = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
 %--------------------------------------------------------------------------
 [Ep,Cp,S,F] = spm_nlsi_GN(M,[],Y);
  
- 
+
+spm_demo_proceed
  
 % plot spectral density
 %==========================================================================

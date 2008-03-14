@@ -34,11 +34,22 @@ function [dx] = spm_dx(dfdx,f,t)
 % regularization would be t = 32/norm(dfdx).  norm(dfdx) represents an upper
 % bound on the rate of convergence (c.f., a Lyapunov exponent of the
 % ascent)
+%
+% references:
+% 
+% Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W. (2007).
+% Variational free energy and the Laplace approximation. NeuroImage.
+% 34(1):220-34
+% 
+% Ozaki T (1992) A bridge between nonlinear time-series models and
+% nonlinear stochastic dynamical systems: A local linearization approach.
+% Statistica Sin. 2:113-135.
+% 
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 1173 2008-02-27 20:16:11Z karl $
+% $Id: spm_dx.m 1212 2008-03-14 19:08:47Z karl $
 
 % defaults
 %--------------------------------------------------------------------------

@@ -27,7 +27,7 @@ np   = 3;                                        % number of populations
 % create (initlaise voltage at -32mV)
 %--------------------------------------------------------------------------
 x{1}        = zeros(ns,np,3);
-x{1}(:,:,1) = -32;
+x{1}(:,:,1) = -70;
 x{2}        = zeros(3,3,ns,np);
 for i = 1:ns
     for j = 1:np
@@ -49,7 +49,7 @@ M.l   = size(P.C,1);
 
 % solve for fixed point 
 %--------------------------------------------------------------------------
-U.u   = sparse(64,1);
+U.u   = sparse(16,1);
 U.dt  = 8/1000;
 x     = spm_int_ode(P,M,U);plot(x)
 x     = spm_unvec(x(end,:),M.x);

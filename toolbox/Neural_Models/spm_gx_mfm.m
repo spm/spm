@@ -11,7 +11,7 @@ function [m] = spm_gx_erp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_mfm.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_gx_mfm.m 1212 2008-03-14 19:08:47Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ np   = size(x{1},2);                            % number of populations
  
 % Voltages
 %--------------------------------------------------------------------------
-VR   =  0;                                   % threshold potential
+VR   =  -40;                                   % threshold potential
  
 % mean-field effects
 %==========================================================================
@@ -39,9 +39,9 @@ else
     
     % neural-mass approximation to covariance of states
     %----------------------------------------------------------------------
-    Cx = [70.3798    0.0661    0.0335;
-           0.0661    0.0002         0;
-           0.0335    0         0.0001];
+    Cx = [   75.3843    0.1746    0.7487;
+             0.1746     0.0040         0;
+             0.7487          0    0.0160];
     Cx = exp(P.S)*Cx;
     Vx = Cx(1,1);  
     
