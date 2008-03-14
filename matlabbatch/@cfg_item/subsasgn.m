@@ -29,9 +29,9 @@ function item = subsasgn(item, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsasgn.m 1215 2008-03-14 21:32:25Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1215 $';
 
 if numel(item) ~= 1
     error('matlabbatch:subsasgn:numel', ...
@@ -124,11 +124,18 @@ else
         return;
     end;
     it1 = subsasgn_rec(it1, subs(2:end), val);
-    try
+    %    try
         % do we need this?
+        %    it = builtin('subsasgn', it, subs(1), it1);
+        %catch
+    if isobject(it)
+        try
+            % try to use class subsasgn
+            it = subsasgn(it,subs(1), it1);
+        catch
+            it = builtin('subsasgn', it, subs(1), it1);
+        end;
+    else
         it = builtin('subsasgn', it, subs(1), it1);
-    catch
-        % try to use class subsasgn
-        it = subsasgn(it,subs(1), it1);
     end;
 end;
