@@ -1,37 +1,37 @@
-function varargout=subsref(obj,subs)
+function varargout=subsref(this,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
 % _________________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: subsref.m 1125 2008-01-30 12:12:18Z vladimir $
+% $Id: subsref.m 1219 2008-03-17 17:35:12Z vladimir $
 
 if isempty(subs)
     return;
 end;
 
-if obj.Nsamples == 0
+if this.Nsamples == 0
     error('Attempt to reference a field of an empty meeg object.');
 end;
 
 switch subs(1).type
     case '()'
         if numel(subs)~= 1, error('Expression too complicated');end;
-        varargout = {subsref(obj.data.y, subs)};
+        varargout = {subsref(this.data.y, subs)};
     case '{}'
     case '.'
-        if ismethod(obj, subs(1).subs)
+        if ismethod(this, subs(1).subs)
             switch numel(subs)
                 case 1
-                    varargout = {feval(subs(1).subs, obj)};
+                    varargout = {feval(subs(1).subs, this)};
                 case 2
-                    varargout = {feval(subs(1).subs, obj, subs(2).subs{:})};
+                    varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
                 otherwise
                     error('Expression too complicated');
             end
-        elseif isfield(obj.other, subs(1).subs)
-            field = getfield(obj.other, subs(1).subs);
+        elseif isfield(this.other, subs(1).subs)
+            field = getfield(this.other, subs(1).subs);
             if numel(subs)==1
                 varargout = {field};
             else
