@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1126 2008-01-30 14:07:02Z vladimir $
+% $Id: checkmeeg.m 1220 2008-03-17 17:50:41Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -68,7 +68,7 @@ else
     end
     if ~isfield(meegstruct.channels, 'type')
         disp('checkmeeg: no channel type, assigning default');
-        [meegstruct.channels.bad] = deal('Other');
+        [meegstruct.channels.type] = deal('Other');
     end
 end
 
