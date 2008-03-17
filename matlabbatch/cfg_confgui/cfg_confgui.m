@@ -12,9 +12,9 @@ function menu_cfg = cfg_cfg
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_confgui.m 1218 2008-03-17 12:39:36Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1218 $';
 
 %% Declaration of fields
 
@@ -62,9 +62,8 @@ conf_val.help    = {'Val of configuration item.', 'A collection of cfg_item obje
 conf_check         = cfg_entry;
 conf_check.name    = 'Check';
 conf_check.tag     = 'check';
-conf_check.strtype = 'e'; % TODO: This should really be a function handle type
+conf_check.strtype = 'f';
 conf_check.num     = [0 Inf];
-conf_check.check   = @cfg_cfg_funhandle;
 conf_check.help    = {'Check function (handle).', 'This function will be called during all_set, before a job can be run. It receives the harvested configuration tree rooted at the current item as input. Its output should be a boolean decision whether all inputs are correct and consistent. Note that no dependencies are resolved here. The check function should assume that dependencies will be ok.'};
 
 % Help paragraph
@@ -200,9 +199,8 @@ conf_extras.help    = {'Extras field.', 'Extra information that may be used to e
 conf_prog         = cfg_entry;
 conf_prog.name    = 'Prog';
 conf_prog.tag     = 'prog';
-conf_prog.strtype = 'e'; % TODO: This should really be a function handle type
+conf_prog.strtype = 'f';
 conf_prog.num     = [1 Inf];
-conf_prog.check   = @cfg_cfg_funhandle;
 conf_prog.help    = {'Prog function (handle).', 'This function will be called to run a job. It receives the harvested configuration tree rooted at the current item as input. If it produces output, this should be a single variable. This variable can be a struct, cell or whatever is appropriate. To pass references to it a ''vout'' function has to be implemented that describes the virtual outputs.'};
 
 % Vout
@@ -210,9 +208,8 @@ conf_prog.help    = {'Prog function (handle).', 'This function will be called to
 conf_vout         = cfg_entry;
 conf_vout.name    = 'Vout';
 conf_vout.tag     = 'vout';
-conf_vout.strtype = 'e'; % TODO: This should really be a function handle type
+conf_vout.strtype = 'f';
 conf_vout.num     = [0 Inf];
-conf_vout.check   = @cfg_cfg_funhandle;
 conf_vout.help    = {'Vout function (handle).', 'This function will be called during harvest, if all inputs to a job are set. It receives the harvested configuration tree rooted at the current item as input. Its output should be an array of cfg_dep objects, containing subscript indices into the output variable that would result when running this job. Note that no dependencies are resolved here.'};
 
 %% Declaration of item classes
@@ -482,18 +479,6 @@ function out = cfg_cfg_pass(varargin)
 % just pass input to output
 out = varargin{1};
 
-function str = cfg_cfg_funhandle(varargin)
-% This is a poor workaround for a not yet existing strtype for
-% function(handles).
-if isempty(varargin{1}) || isa(varargin{1}, 'function_handle') || ...
-        (ischar(varargin{1}) && (any(exist(varargin{1}) == 2:6) || ...
-                                 strcmp(varargin{1},'<UNDEFINED>'))) || ...
-        isa(varargin{1}, 'cfg_dep')
-    str = '';
-else
-    str = 'Value is not a MATLAB function or function handle.';
-end;
-
 function str = cfg_cfg_labels_values(varargin)
 % Check whether a menu has the same number of labels and values items
 if numel(varargin{1}.labels) == numel(varargin{1}.values)
@@ -503,7 +488,7 @@ else
 end;
 
 function vout = cfg_cfg_vout(varargin)
-% cfg_struct2cfg returns its output immediately, so a subscript '(1)' is a
+% cfg_struct2cfg returns its output immediately, so a subscript '(1)' is
 % appropriate.
 
 vout = cfg_dep;

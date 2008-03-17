@@ -11,15 +11,22 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1217 2008-03-17 09:20:02Z volkmar $
+% $Id: subsasgn_check.m 1218 2008-03-17 12:39:36Z volkmar $
 
-rev = '$Rev: 1217 $';
+rev = '$Rev: 1218 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
 switch subs(1).subs
     case {'num'}
-        sts = subsasgn_check_num(val);
+        % special num treatment - num does describe the dimensions of
+        % input in cfg_entry items, not a min/max number
+        sts = isnumeric(val) && numel(val)>=2 && all(val(:) >= 0);
+        if ~sts
+             warning('matlabbatch:cfg_entry:subsasgn_check:num', ...
+                     '%s: Value must be a vector of non-negative numbers', ...
+                     checkstr);
+        end;
     case {'val'}
         % perform validity checks - subsasgn_check should be called with
         % a cell containing one item
@@ -51,7 +58,16 @@ if ~isa(val,'cfg_dep')
             end;
         case {'s+'}
             warning('matlabbatch:cfg_entry:subsasgn_check:strtype', '%s: FAILURE: Cant do s+ yet', checkstr);
-
+        case {'f'}
+            % test whether val is a function handle or a name of an
+            % existing function
+            sts = isempty(val) || isa(val, 'function_handle') || ...
+                  (ischar(val) && any(exist(val) == 2:6));
+            if ~sts
+                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                        '%s: Item must be a function handle or function name.', ...
+                        checkstr);
+            end;
         otherwise
             ind = item.num>0 & isfinite(item.num);
             csz = size(val);

@@ -18,7 +18,13 @@ function item = cfg_entry(varargin)
 %    * hidden
 % All fields above are inherited from the generic configuration item class.
 %    * strtype
-%    * num
+%    * num     - A 1-by-ndims vector of non-negative numbers, describing
+%                the expected dimensions of the input. Dimensions with a
+%                .num value of 0 or Inf can have an arbitrary number of
+%                elements. In case of 2 dimensions, .val inputs will be
+%                tried to match in un-transposed order first. If this
+%                does not work, then .val inputs will be transposed and
+%                matched again.
 %    * def
 %    * extras
 %
@@ -41,6 +47,7 @@ function item = cfg_entry(varargin)
 %   's'   string
 %   'e'   evaluated expression - this can be any expression, even a struct
 %          or cell
+%   'f'   function or function handle
 %   'n'   natural number (1..n)
 %   'w'   whole number (0..n)
 %   'i'   integer
@@ -63,9 +70,9 @@ function item = cfg_entry(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_entry.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_entry.m 1218 2008-03-17 12:39:36Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1218 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
