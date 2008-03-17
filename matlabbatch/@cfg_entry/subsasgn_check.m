@@ -11,9 +11,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsasgn_check.m 1217 2008-03-17 09:20:02Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1217 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -21,42 +21,23 @@ switch subs(1).subs
     case {'num'}
         sts = subsasgn_check_num(val);
     case {'val'}
-        % perform validity checks
-        if numel(subs) == 1
-            % pass a cell of items
-            if ~iscell(val)
-                warning('matlabbatch:cfg_entry:subsasgn_check:iscell', '%s: Value must be a cell.', checkstr);
-                sts = false;
-                return;
-            end;
-            if numel(val) > 1
-                warning('matlabbatch:cfg_entry:subsasgn_check:iscell', '%s: Value must be a single cell.', checkstr);
-                sts = false;
-                return;
-            end;
-            if isempty(val)
-                val = {};
-            else
-                % check whether val{1} is a valid element
-                sts = valcheck(item,val{1});
-            end;
-        elseif numel(subs) == 2
-            % pass either a cell of items or a single item
-            if numel(subs(2).subs) > 1 || subs(2).subs{1} > 1
-                warning('matlabbatch:cfg_entry:subsasgn_check:iscell', '%s: Value must be a single item assigned to val{1}.', checkstr);
-                sts = false;
-                return;
-            end;
-            switch(subs(2).type)
-                case {'()'}
-                    sts = valcheck(item,val{1});
-                case {'{}'}
-                    sts = valcheck(item,val);
-            end;
+        % perform validity checks - subsasgn_check should be called with
+        % a cell containing one item
+        if ~iscell(val)
+            warning('matlabbatch:cfg_entry:subsasgn_check:iscell', '%s: Value must be a cell.', checkstr);
+            sts = false;
+            return;
+        end;
+        if isempty(val)
+            val = {};
+        else
+            % check whether val{1} is a valid element
+            [sts vtmp] = valcheck(item,val{1});
+            val{1} = vtmp;
         end;
 end;
 
-function sts = valcheck(item,val)
+function [sts val] = valcheck(item,val)
 % taken from spm_jobman/stringval
 % spm_eeval goes into GUI
 sts = true;
@@ -85,10 +66,19 @@ if ~isa(val,'cfg_dep')
                 sts = false;
                 return;
             end;
-            if any(item.num(ind)-csz(ind)) && any(item.num(ind)-cszt(ind))
-                warning('matlabbatch:cfg_entry:subsasgn_check:notsize', '%s: Size mismatch (required [%s], present [%s]).', checkstr, num2str(item.num), num2str(csz))
-                sts = false;
-                return
+            if any(item.num(ind)-csz(ind))
+                if any(item.num(ind)-cszt(ind))
+                    warning('matlabbatch:cfg_entry:subsasgn_check:notsize', ...
+                            '%s: Size mismatch (required [%s], present [%s]).', ...
+                            checkstr, num2str(item.num), num2str(csz));
+                    sts = false;
+                    return
+                else
+                    val = val';
+                    warning('matlabbatch:cfg_entry:subsasgn_check:transp', ...
+                            '%s: Value transposed to match required size [%s].', ...
+                            checkstr, num2str(item.num));
+                end;
             end;
     end;
 end;
