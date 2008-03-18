@@ -5,7 +5,7 @@ function ft2spm(ftdata, filename, ctf)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ft2spm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: ft2spm.m 1226 2008-03-18 15:51:56Z vladimir $
 
 
 disp('Warning: Converting the data to SPM8 format which is in development and');
@@ -130,7 +130,7 @@ if issubfield(ftdata, 'cfg.trl') && Ntrials>1
         end
     end
     %If there is no trl (data is continuous or not from SPM GUI)
-elseif issubfield(ftdata.cfg, 'cfg.event')
+elseif isfield(ftdata, 'cfg') && issubfield(ftdata.cfg, 'cfg.event')
     % If data comes from FT spm codes are added to events
     event = getsubfield(ftdata, 'cfg.event');
     if ~isfield(event, 'spmcode')
