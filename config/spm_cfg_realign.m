@@ -4,7 +4,7 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1197 2008-03-08 13:27:25Z volkmar $
+% $Id: spm_cfg_realign.m 1223 2008-03-18 11:45:10Z volkmar $
 
 % ---------------------------------------------------------------------
 % data Session
@@ -605,7 +605,7 @@ if job.roptions.which(1) > 0
     dep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
 end;
 if job.roptions.which(2),
-    if exist(dep)
+    if exist('dep','var')
         dep(end+1) = cfg_dep;
     else
         dep = cfg_dep;
