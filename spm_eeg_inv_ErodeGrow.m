@@ -5,9 +5,9 @@ function varargout = spm_eeg_inv_ErodeGrow(varargin)
 % Inputs :
 % Iin       - file name of image to erode/grow
 % Vin       - full volume of image (as loaded by spm_read_vols)
-% ne        - # of erosion steps (default = 3)
-% ng        - # of growing steps (default = 6)
-% thr_im    - threshold value to apply (default .8)
+% ne        - # of erosion steps [default = 1]
+% ng        - # of growing steps [default = 1]
+% thr_im    - threshold value to apply [default .1]
 %             (compared to the maximal value of image)
 % Output :
 % Iout      - generated image file name
@@ -22,7 +22,7 @@ function varargout = spm_eeg_inv_ErodeGrow(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ErodeGrow.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_ErodeGrow.m 1227 2008-03-18 16:16:36Z christophe $
 
 fl_rvol = 0; % Need to load (1) or not (0) the volume from a file
 if nargin<2

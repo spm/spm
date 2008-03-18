@@ -5,7 +5,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_mvb_ui.m 1227 2008-03-18 16:16:36Z christophe $
 
 
 %-Get figure handles and set title
@@ -86,8 +86,10 @@ priors = str{Ip};
 
 %-Number of iterations
 %--------------------------------------------------------------------------
+str    = 'size of successive subdivisions';
+sg   = spm_input(str,'!+1','e',.5);
 str    = 'Greedy search steps';
-% Ni   = spm_input(str,'!+1','i',max(8,ceil(log2(size(Y,2)))));
+Ni   = spm_input(str,'!+1','i',max(8,ceil(log(size(Y,2))/log(1/sg))));
 
 % MVB defined
 %==========================================================================
@@ -98,7 +100,14 @@ spm('Pointer','Watch')
 X   = SPM.xX.X;
 X0  = X*(speye(length(c)) - c*pinv(c));
 try
-    X0 = [X0 SPM.xX.K.X0];
+    % account for multiple sessions
+    tmpX0 = [];
+    for ii=1:length(SPM.xX.K)
+        tmp = zeros(sum(SPM.nscan),size(SPM.xX.K(ii).X0,2));
+        tmp(SPM.xX.K(ii).row,:) = SPM.xX.K(ii).X0;
+        tmpX0 = [tmpX0 tmp];
+    end
+    X0 = [X0 tmpX0];
 end
 X   = X*c;
 
@@ -109,7 +118,7 @@ V   = SPM.xVi.V;
 % invert
 %==========================================================================
 U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
-M        = spm_mvb(X,Y,X0,U,V,8);
+M        = spm_mvb(X,Y,X0,U,V,Ni,sg);
 M.priors = priors;
 
 % assemble results
@@ -126,7 +135,8 @@ MVB.V        = SPM.xVi.V;
 MVB.K        = full(SPM.xVi.V)^(-1/2);
 MVB.VOX      = xSPM.M;
 MVB.xyzmm    = xyzmm;
-
+MVB.Space    = SPACE;
+MVB.Sp_info  = D;
 
 % display
 %==========================================================================

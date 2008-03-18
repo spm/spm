@@ -23,7 +23,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mvb_G.m 1227 2008-03-18 16:16:36Z christophe $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -62,8 +62,8 @@ Qp    = {};
 LQpL  = {};
 for i = 1:Np
     j       = find(G(:,i));
-    Qp{i}   = sparse(j,j,1,Nk,Nk);
-    LQpL{i} = L*Qp{i}*L';
+    Qp{i}   = sparse(j,j,1,Nk,Nk); %#ok<AGROW>
+    LQpL{i} = L*Qp{i}*L'; %#ok<AGROW>
 end
  
 % inverse solution
@@ -77,7 +77,6 @@ else
     Q  = Qe;
 end
 [Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2));
- 
  
 % prior covariance: source space
 %--------------------------------------------------------------------------

@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 1179 2008-02-28 15:39:28Z karl $
+% $Id: spm_mvb_display.m 1227 2008-03-18 16:16:36Z christophe $
 
 
 % get figure
@@ -65,7 +65,7 @@ str{4,1} = '________________________________';
 while length(str) < 16  || ~any(P)
     
     [p i]  = max(P);
-    str{end + 1,1} = sprintf('p = %.3f   %i,%i,%imm   q = %.4f;',...
+    str{end + 1,1} = sprintf('p = %.3f   %2.1f,%2.1f,%2.1fmm   q = %.4f;',...
                  p,XYZ(1,i),XYZ(2,i),XYZ(3,i),M.qE(i));
     P      = P.*(((XYZ(1,:) - XYZ(1,i)).^2 + ...
                   (XYZ(2,:) - XYZ(2,i)).^2 + ...

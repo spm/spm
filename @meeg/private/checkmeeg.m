@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1220 2008-03-17 17:50:41Z vladimir $
+% $Id: checkmeeg.m 1227 2008-03-18 16:16:36Z christophe $
 
 if nargin==1
     option = 'basic';
@@ -76,7 +76,7 @@ if ~isfield(meegstruct, 'data') && (Nsamples~=0)
     disp('checkmeeg: no data field');
     return;
 elseif (Nsamples==0)  % This is to enable creation of empty meeg objects
-    meegstruct.data = struct([]);;
+    meegstruct.data = struct([]);
 else
     if ~isfield(meegstruct.data, 'fnamedat')
         disp('checkmeeg: data file name missing');

@@ -1,6 +1,6 @@
 function D = spm_eeg_load(P)
 % read an EEG file in SPM format. 
-% FORMAT D = spm_eeg_ldata(P)
+% FORMAT D = spm_eeg_load(P)
 %
 % P         - filename of EEG-data file
 % D         - MEEG object 
@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_load.m 1227 2008-03-18 16:16:36Z christophe $
 
 
 try

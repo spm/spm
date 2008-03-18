@@ -1,4 +1,4 @@
-function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
+function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag)
 % Reads Polhemus files:
 %   either sensor file or headshape file or both
 %
@@ -6,7 +6,7 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
 % Input:
 % Fname_pol - Polhemus ASCII file containing sensor locations (cm)
 %             (headshape can also be considered here instead of sensors)
-% skip      - channels to skip
+% skip      - first channels to skip
 % figflag   - display the point locations (1) or not (0) (default: 0)
 %
 % Output:
@@ -25,7 +25,7 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_ReadPolhemus.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_ReadPolhemus.m 1227 2008-03-18 16:16:36Z christophe $
 
 
 
@@ -91,7 +91,7 @@ end
 NZ    = mean(NZ,1); LE = mean(LE,1); RE = mean(RE,1);
 fid   = 10*[NZ; LE; RE]; 
 
-% read sensor lcoations or headshape locations
+% read sensor locations or headshape locations
 %--------------------------------------------------------------------------
 sens  = [];
 start = nl + skip*3;
