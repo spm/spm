@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_dcm_ssr.m 1228 2008-03-18 21:28:04Z karl $
  
  
 % check options 
@@ -94,7 +94,7 @@ end
  
 % get data-features (in reduced eigen-space)
 %--------------------------------------------------------------------------
-DCM  = spm_dcm_ssr_data(DCM);
+DCM      = spm_dcm_ssr_data(DCM);
 
 
 % complete model specification and invert
@@ -117,10 +117,11 @@ DCM.xY.X0 = sparse(Nf,0);
  
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
-warning off
+warning('off','SPM:negativeVariance');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-warning on
+warning('on', 'SPM:negativeVariance');
+
  
 % predictions and error (source space)
 %--------------------------------------------------------------------------

@@ -22,7 +22,7 @@ function F = spm_Ncdf_jdw(x,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Ncdf_jdw.m 1206 2008-03-13 20:56:00Z karl $
+% $Id: spm_Ncdf_jdw.m 1228 2008-03-18 21:28:04Z karl $
 
 
 %-Format arguments
@@ -34,6 +34,5 @@ if nargin < 2, u = 0; end
 %--------------------------------------------------------------------------
 x   = (x - u)./sqrt(v);
 s   = sign(x);
-x   = abs(x);
 F   = sqrt(1 - exp(-(2/pi)*x.^2))/2;
 F   = 1/2 + F.*s;

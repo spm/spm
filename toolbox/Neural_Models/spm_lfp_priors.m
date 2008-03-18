@@ -54,7 +54,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_lfp_priors.m 1228 2008-03-18 21:28:04Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ n   = size(C,1);                                % number of sources
  
 % disable log zero warning
 %--------------------------------------------------------------------------
-warning off
+warning('off','MATLAB:log:logOfZero');
  
  
 % parameters for electromagnetic forward model
@@ -137,11 +137,13 @@ C      = ~~C;
 E.C    = C*32 - 32;                                % where inputs enter
 V.C    = C/32;
  
-% set endogenous noise
+% set endogenous inputs (neuronal) and noise
 %--------------------------------------------------------------------------
-E.a    = 0;               V.a = 1/16;              % amplitude AR
-E.b    = 0;               V.b = 0;                 % amplitude IID
-E.c    = 0;               V.c = 1/2;               % amplitude noise
+E.a    = 0;               V.a = 1/16;              % amplitude input AR
+E.b    = 0;               V.b = 0;                 % amplitude input IID
+E.c    = [0 0];           V.c = [1/16 1/16];       % amplitude noise AR
+E.d    = [0 0];           V.d = [1/16 1/16];       % amplitude noise IID
+                                                   % specific and common
  
 % set delay
 %--------------------------------------------------------------------------
@@ -153,10 +155,11 @@ E.I    = 0;               V.I = 1/32;              % intrinsic delays
 pE     = E;
 pV     = spm_vec(V);
 pC     = diag(sparse(pV));
-warning on
  
 % prior moments if two arguments
 %--------------------------------------------------------------------------
+warning('on','MATLAB:log:logOfZero');
+
 if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
  
  

@@ -28,7 +28,7 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sde_dx.m 1206 2008-03-13 20:56:00Z karl $
+% $Id: spm_sde_dx.m 1228 2008-03-18 21:28:04Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ if nargin < 3, t = 1; end
 m     = length(dfdx);
 N     = 256;
 dt    = t/N;
-eJdt  = spm_expm(dfdx*dt);
+eJdt  = expm(full(dfdx*dt));
 eJt   = eJdt;
 Q     = sparse(m,m);
 R     = dfdw*dfdw'*2;

@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_dcm_erp.m 1228 2008-03-18 21:28:04Z karl $
  
 % check options 
 %==========================================================================
@@ -155,9 +155,13 @@ switch lower(model)
  
         % inital states
         %------------------------------------------------------------------
-        M.x  = spm_x_nmm(pE);
-        M.f  = 'spm_fx_nmm';
-        M.G  = 'spm_lx_erp';
+        [x N] = spm_x_nmm(pE);
+        M.x   = x;
+        M.GE  = N.GE;
+        M.GI  = N.GI;
+        M.Cx  = N.Cx;
+        M.f   = 'spm_fx_mfm';
+        M.G   = 'spm_lx_erp';
         
             % Neural mass model (nonlinear in states)
     %======================================================================
@@ -169,9 +173,12 @@ switch lower(model)
  
         % inital states
         %------------------------------------------------------------------
-        M.x0 = 'spm_x_mfm';
-        M.f  = 'spm_fx_mfm';
-        M.G  = 'spm_lx_erp';  
+        [x N] = spm_x_mfm(pE);
+        M.x   = x;
+        M.GE  = N.GE;
+        M.GI  = N.GI;
+        M.f   = 'spm_fx_mfm';
+        M.G   = 'spm_lx_erp'; 
         
         
     otherwise
@@ -191,12 +198,6 @@ if lock
     end
 end
  
-% expansion point for states
-%--------------------------------------------------------------------------
-try 
-    M.x = feval(M.x0,pE);
-end
-
  
 % likelihood model
 %--------------------------------------------------------------------------
@@ -233,19 +234,16 @@ M.E   = U;
  
 % Bayesian inference {threshold = prior; for A,B  and C this is exp(0) = 1)
 %--------------------------------------------------------------------------
-warning off
+warning('off','MATLAB:divideByZero');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-warning on
+warning('on','MATLAB:divideByZero');
  
 % neuronal and sensor responses (x and y)
 %==========================================================================
 
 % expansion point for states
 %--------------------------------------------------------------------------
-try 
-    M.x = feval(M.x0,Qp);
-end
 L   = feval(M.G, Qg,M);                 % get gain matrix
 x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
  

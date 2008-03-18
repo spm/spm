@@ -29,55 +29,57 @@ function [dx] = spm_dx(dfdx,f,t)
 %                      expm(0*k*dfdx)*inv(dfdx)*f(0)
 %
 % When f = dF/dx (and dfdx = dF/dxdx), dx represents the update from a
-% Gauss-Newton ascent on F.  This can be regularised by specifying a finite
-% t, A heavy regularization corresponds to t = 1/norm(dfdx) and a light
-% regularization would be t = 32/norm(dfdx).  norm(dfdx) represents an upper
-% bound on the rate of convergence (c.f., a Lyapunov exponent of the
-% ascent)
+% Gauss-Newton ascent on F.  This can be regularised by specifying {t}
+% A heavy regularization corresponds to t = -4 and a light
+% regularization would be t = 4. This version of spm_dx uses an augmented
+% system and the Pade approximation to compute requisite matrix
+% exponentials
 %
 % references:
-% 
+%
 % Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W. (2007).
 % Variational free energy and the Laplace approximation. NeuroImage.
 % 34(1):220-34
-% 
+%
 % Ozaki T (1992) A bridge between nonlinear time-series models and
 % nonlinear stochastic dynamical systems: A local linearization approach.
 % Statistica Sin. 2:113-135.
-% 
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 1212 2008-03-14 19:08:47Z karl $
+% $Id: spm_dx.m 1228 2008-03-18 21:28:04Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
-if nargin < 3, t = Inf;                        ; end
+
+if nargin < 3, t = Inf; end
 
 % t is a regulariser
 %--------------------------------------------------------------------------
+warning('off','MATLAB:log:logOfZero');
 if iscell(t)
-   t  = exp(t{:} - log(diag(-dfdx)));
+    t  = exp(t{:} - log(diag(-dfdx)));
 end
-
+warning('on', 'MATLAB:log:logOfZero');
 
 % use a [pseudo]inverse if all t > TOL
 %==========================================================================
 if min(t) > exp(16)
-    try
-        dx = -inv(dfdx)*f;
-    catch
-        dx = -pinv(full(dfdx))*f;
-    end
-    return
+
+    dx = -spm_pinv(dfdx)*spm_vec(f);
+    dx =  spm_unvec(dx,f);
+
+else
+    
+    % ensure t is a scalar or matrix
+    %----------------------------------------------------------------------
+    if isvector(t), t = diag(t); end
+
+    % augment Jacobian and take matrix exponential
+    %======================================================================
+    dx = expm(full(spm_cat({0 []; t*spm_vec(f) t*dfdx})));
+    dx = spm_unvec(dx(2:end,1),f);
 end
 
-% ensure t is a scalar or matrix
-%--------------------------------------------------------------------------
-if isvector(t), t = diag(t); end
-
-% augment Jacobian and take matrix exponential
-%==========================================================================
-dx    = spm_expm(spm_cat({0 []; t*spm_vec(f) t*dfdx}));
-dx    = spm_unvec(dx(2:end,1),f);

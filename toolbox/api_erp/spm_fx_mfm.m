@@ -20,13 +20,31 @@ function [f] = spm_fx_mfm(x,u,P,M)
 %
 % Marreiros et al (2008) Population dynamics under the Laplace assumption
 %
-% http://courses.washington.edu/conj/membpot/equilpot.htm
+% See also:
+%
+% Friston KJ.
+% The labile brain. I. Neuronal transients and nonlinear coupling. Philos
+% Trans R Soc Lond B Biol Sci. 2000 Feb 29;355(1394):215-36. 
+% 
+% McCormick DA, Connors BW, Lighthall JW, Prince DA.
+% Comparative electrophysiology of pyramidal and sparsely spiny stellate
+% neurons of the neocortex. J Neurophysiol. 1985 Oct;54(4):782-806.
+% 
+% Brunel N, Wang XJ.
+% What determines the frequency of fast network oscillations with irregular
+% neural discharges? I. Synaptic dynamics and excitation-inhibition
+% balance. J Neurophysiol. 2003 Jul;90(1):415-30.
+% 
+% Brunel N, Wang XJ.
+% Effects of neuromodulation in a cortical network model of object working
+% memory dominated by recurrent inhibition. J Comput Neurosci. 2001
+% Jul-Aug;11(1):63-85.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 1212 2008-03-14 19:08:47Z karl $
+% $Id: spm_fx_mfm.m 1228 2008-03-18 21:28:04Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -60,18 +78,27 @@ SA   = sparse([1 0 1;
 % intrinsic connection strengths
 %==========================================================================
 G    = exp(P.G);
- 
-% intrinsic connections (np x np) - excitatory
-%--------------------------------------------------------------------------
-SE   = sparse([0   0   1/2;
-               0   0   1;
-               1   0   0  ]);
-     
-% intrinsic connections (np x np) - inhibitory
-%--------------------------------------------------------------------------
-SI   = sparse([0   1/2 0;
-               0   0   0;
-               0   2   0]);
+try
+    
+    % get intrinsic connections from model structure
+    %----------------------------------------------------------------------
+    GE = M.GE;
+    GI = M.GI;
+    
+catch
+
+    % intrinsic connections (np x np) - excitatory
+    %----------------------------------------------------------------------
+    GE   = [0   0   1/2;
+            0   0   1;
+            1   0   0  ];
+
+    % intrinsic connections (np x np) - inhibitory
+    %----------------------------------------------------------------------
+    GI   = [0   1/2 0;
+            0   0   0;
+            0   2   0];
+end
                 
  
 % rate constants (ns x np) (excitatory 8ms, inhibitory 16ms)
@@ -94,19 +121,23 @@ fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
 %==========================================================================
 if mfm
     
-    Vx  = squeeze(x{2}(1,1,:,:));            % population variance (mV^2)
+    Vx  = shiftdim(x{2}(1,1,:,:));           % population variance (mV^2)
     Vx  = reshape(Vx,ns,np);                 % of voltage
  
-    D   = sparse(diag([1/32 1 1]));     % diffusion
+    D   = sparse(diag([1/32 1 1]));          % diffusion
     D   = exp(P.S)*D;
     
 else
     
     % neural-mass approximation to covariance of states
     %----------------------------------------------------------------------
-    Cx = [   75.3843    0.1746    0.7487;
-             0.1746     0.0040         0;
-             0.7487          0    0.0160];
+    try
+        Cx = M.Cx;
+    catch
+        Cx = [75    0.2    0.8;
+              0.2   0.004  0  ;
+              0.8   0      0.02];
+    end
     Cx = exp(P.S)*Cx;
     Vx = Cx(1,1);  
     
@@ -119,10 +150,9 @@ for k = 1:nc
     a(:,k) = A{k}*m(:,end);
 end
  
-% external input (to first population x{:,1})
+% Exogenous input (to first population x{:,1})
 %--------------------------------------------------------------------------
-U     = kron(sparse(1,1,1,1,np),C*u);
- 
+U     = C*u;
  
 % flow and dispersion over every (ns x np) subpopulation
 %==========================================================================
@@ -135,8 +165,8 @@ for i = 1:ns
         
         % intrinsic coupling
         %------------------------------------------------------------------
-        E = G(i)*SE(j,:)*m(i,:)';
-        I =      SI(j,:)*m(i,:)';
+        E = G(i)*GE(j,:)*m(i,:)';
+        I =      GI(j,:)*m(i,:)';
         
         % extrinsic coupling (excitatory only)
         %------------------------------------------------------------------
@@ -146,7 +176,13 @@ for i = 1:ns
         %------------------------------------------------------------------
         f{1}(i,j,1) =         (GL*(VL - x{1}(i,j,1)) + ...
                       x{1}(i,j,2)*(VE - x{1}(i,j,1)) + ...
-                      x{1}(i,j,3)*(VI - x{1}(i,j,1)) + U(i,j))/CV;   
+                      x{1}(i,j,3)*(VI - x{1}(i,j,1)) )/CV;
+                  
+        % Exogenous input (U/)
+        %------------------------------------------------------------------
+        if j == 1
+            f{1}(i,j,1) = f{1}(i,j,1) + U(i)/CV;
+        end
  
         % Conductances
         %------------------------------------------------------------------

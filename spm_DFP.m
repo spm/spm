@@ -80,7 +80,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 1188 2008-03-05 17:14:43Z karl $
+% $Id: spm_DFP.m 1228 2008-03-18 21:28:04Z karl $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
@@ -89,7 +89,6 @@ clear spm_DEM_eval
 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
-sw = warning('off');
 Fdem     = spm_figure('GetWin','DEM');
 Fdfp     = spm_figure('GetWin','DFP');
 
@@ -131,7 +130,7 @@ try nN = M(1).E.nN; catch nN = 8; end
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 td    = 1/nD;                          % integration time for D-Step
-te    = 8;                             % integration time for E-Step
+te    = 2;                             % integration time for E-Step
 
 %  Precision (R) and covariance of generalised errors
 %--------------------------------------------------------------------------
@@ -175,7 +174,7 @@ nh    = length(Q);                         % number of hyperparameters
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE; M.gE});             % prior expectation of h
 ph.c  = spm_cat(diag({M.hC M.gC}));        % prior covariances of h
-ph.ic = inv(ph.c);                         % prior precision
+ph.ic = spm_pinv(ph.c);                    % prior precision
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
  
@@ -205,7 +204,7 @@ nf    = np + nn;                            % numer of free parameters
 ip    = [1:np];
 ib    = [1:nn] + np;
 pp.c  = spm_cat(pp.c);
-pp.ic = inv(pp.c);
+pp.ic = spm_pinv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
@@ -535,7 +534,7 @@ for iN = 1:nN
         dFdp(ip)     = dFdp(ip)     - pp.ic*qp.e;
         dFdpp(ip,ip) = dFdpp(ip,ip) - pp.ic;
         qp.ic(ip,ip) = qp.ic(ip,ip) + pp.ic;
-        qp.c         = inv(qp.ic);
+        qp.c         = spm_pinv(qp.ic);
         
         
         % E-step: update expectation (p)
@@ -601,7 +600,7 @@ for iN = 1:nN
         
         % conditional covariance of hyperparameters
         %------------------------------------------------------------------
-        qh.c = -inv(dFdhh);
+        qh.c = -spm_pinv(dFdhh);
         
         % convergence (M-Step)
         %------------------------------------------------------------------
@@ -709,5 +708,3 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
-
-warning(sw);

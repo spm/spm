@@ -24,7 +24,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 1186 2008-03-05 12:52:57Z karl $
+% $Id: spm_dcm_ind.m 1228 2008-03-18 21:28:04Z karl $
 
 
 % check options 
@@ -110,10 +110,11 @@ M.ons = onset - xY.pst(1);
 
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
-warning off
+warning('off','MATLAB:divideByZero');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-warning on
+warning('on','MATLAB:divideByZero');
+
 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------

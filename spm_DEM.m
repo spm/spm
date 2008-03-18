@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1206 2008-03-13 20:56:00Z karl $
+% $Id: spm_DEM.m 1228 2008-03-18 21:28:04Z karl $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -87,8 +87,7 @@ function [DEM] = spm_DEM(DEM)
 % find or create a DEM figure
 %--------------------------------------------------------------------------
 clear spm_DEM_eval
-sw = warning('off');
-Fdem     = spm_figure('GetWin','DEM');
+Fdem = spm_figure('GetWin','DEM');
 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
@@ -123,7 +122,7 @@ if nx
     td = 1/nD;                         % integration time for D-Step
     te = 2;                            % integration time for E-Step
 else
-    td = {2};
+    td = {8};
     te = 2;
 end
 
@@ -176,7 +175,7 @@ ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
 ph.c  = spm_cat(diag({M.hC M.gC}));        % prior covariances of h
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
-ph.ic = inv(ph.c);                         % prior precision 
+ph.ic = spm_pinv(ph.c);                    % prior precision 
 
 % priors on parameters (in reduced parameter space)
 %==========================================================================
@@ -203,7 +202,7 @@ nf    = np + nn;                            % numer of free parameters
 ip    = [1:np];
 ib    = [1:nn] + np;
 pp.c  = spm_cat(pp.c);
-pp.ic = inv(pp.c);
+pp.ic = spm_pinv(pp.c);
  
 % initialise conditional density q(p) (for D-Step)
 %--------------------------------------------------------------------------
@@ -372,7 +371,7 @@ for iN = 1:nN
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
                     if L > Fd
-                        td     = {min(td{1} + 1,32)};
+                        td     = {min(td{1} + 1,16)};
                         Fd     = L;
                         B.qu   = qu;
                         B.E    = E;
@@ -387,7 +386,7 @@ for iN = 1:nN
                         E      = B.E;
                         dE     = B.dE;
                         ECEp   = B.ECEp;
-                        td     = {min(td{1} - 2,4)};
+                        td     = {min(td{1} - 1,0)};
                     end
                 end
 
@@ -500,7 +499,7 @@ for iN = 1:nN
         dFdp(ip)     = dFdp(ip)     - pp.ic*qp.e;
         dFdpp(ip,ip) = dFdpp(ip,ip) - pp.ic;
         qp.ic(ip,ip) = qp.ic(ip,ip) + pp.ic;
-        qp.c         = inv(qp.ic);
+        qp.c         = spm_pinv(qp.ic);
              
         % evaluate objective function <L(t)>
         %==================================================================
@@ -513,7 +512,7 @@ for iN = 1:nN
         if L > Fe
             
             Fe      = L;
-            te      = min(te + 1,32);
+            te      = min(te + 1,8);
             B.dFdp  = dFdp;
             B.dFdpp = dFdpp;
             B.qp    = qp;
@@ -527,7 +526,7 @@ for iN = 1:nN
             dFdpp   = B.dFdpp;
             qp      = B.qp;
             mp      = B.mp;
-            te      = min(te - 2,4);
+            te      = min(te - 1,0);
         end
  
         % E-step: update expectation (p)
@@ -593,7 +592,7 @@ for iN = 1:nN
         
         % conditional covariance of hyperparameters
         %------------------------------------------------------------------
-        qh.c = -inv(dFdhh);
+        qh.c  = -spm_pinv(dFdhh);
  
         % convergence (M-Step)
         %------------------------------------------------------------------
@@ -722,4 +721,3 @@ DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
 
-warning(sw);

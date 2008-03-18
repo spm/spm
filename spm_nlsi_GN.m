@@ -77,10 +77,11 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1212 2008-03-14 19:08:47Z karl $
+% $Id: spm_nlsi_GN.m 1228 2008-03-18 21:28:04Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
+warning('off','all');
 try
     M.nograph;
 catch 
@@ -92,7 +93,7 @@ end
 try
     M.IS;
 catch
-    M.IS = 'spm_int_U';
+    M.IS = 'spm_int_L';
 end
  
 % composition of feature selection and prediction (usually an integrator)
@@ -218,27 +219,25 @@ iu    = [1:nu] + np;
  
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
-warning off
 pC    = V'*pC*V;
 uC    = speye(nu)/1e-8;
 ipC   = inv(spm_cat(diag({pC,uC})));
  
 % initialize conditional density
 %--------------------------------------------------------------------------
-Eu    = inv(dfdu'*dfdu)*(dfdu'*spm_vec(y));
+Eu    = spm_pinv(dfdu)*spm_vec(y);
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp    = pC;
-warning on
 
  
 % EM
 %==========================================================================
 C.F   = -Inf;                                   % free energy
-v     = 0;                                     % log ascent rate
+v     = 0;                                      % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-for k = 1:128
+for k = 1:64
  
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
@@ -269,7 +268,6 @@ for k = 1:128
         iS    = kron(speye(nq),iS);
         Cp    = inv(J'*iS*J + ipC);
         
-        
  
         % precision operators for M-Step
         %------------------------------------------------------------------
@@ -296,11 +294,11 @@ for k = 1:128
         d     = h - hE;
         dFdh  = dFdh  - ihC*d;
         dFdhh = dFdhh - ihC;
-    
+        Ch    = inv(-dFdhh); 
+        
         % update ReML estimate
         %------------------------------------------------------------------
-        Ch    = inv(-dFdhh);
-        dh    = Ch*dFdh;
+        dh    = spm_dx(dFdhh,dFdh);
         h     = h  + dh;
  
         % prevent overflow
@@ -345,7 +343,7 @@ for k = 1:128
         
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1,32);
+        v     = min(v + 1,8);
         str   = 'EM-(+)';
         
     else
@@ -357,7 +355,7 @@ for k = 1:128
  
         % and increase regularization
         %------------------------------------------------------------------
-        v   = min(v - 2,2);
+        v   = min(v - 1,0);
         str = 'EM-(-)';
         
     end
@@ -416,6 +414,8 @@ end
  
 % outputs
 %--------------------------------------------------------------------------
+warning('on','all');
+
 Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;

@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
  % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_lfp_mtf.m 1228 2008-03-18 21:28:04Z karl $
 
  
 % compute log-spectral density
@@ -23,16 +23,16 @@ function [y,w] = spm_lfp_mtf(P,M,U)
 % frequencies of interest
 %--------------------------------------------------------------------------
 try
-    dt   = 1/(2*round(M.Hz(end)));
-    N    = 1/dt;
-    If   = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
+    dt = 1/(2*round(M.Hz(end)));
+    N  = 1/dt;
+    If = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
 catch
     N  = 128;
     dt = 1/N;
     If = 1:N/2;
 end
-f    = [1:N/2]';
-w    = f(If);
+f      = [1:N/2]';
+w      = f(If);
  
  
 % spectrum of innovations (Gu)
@@ -40,9 +40,11 @@ w    = f(If);
 Gu   = exp(P.a)*f.^(-1)*2;                % spectral density of (AR) input      
 Gu   = Gu + exp(P.b);                     % spectral density of IID input
 
-% channel noise
+% channel noise (specific and non-specific)
 %--------------------------------------------------------------------------
-Gn   = exp(P.c)/8;
+Gs   = (exp(P.c(1))*f.^(-1) + exp(P.d(1)))/8;
+Gn   = (exp(P.c(2))*f.^(-1) + exp(P.d(2)))/16;
+
  
 % trial-specific effects
 %==========================================================================
@@ -93,7 +95,7 @@ for  c = 1:size(X,1)
     for i = 1:nc
         for j = i:nc
             
-            % exogenous components
+            % cross-spectral density from neuronal interactions
             %--------------------------------------------------------------
             for k = 1:nu
                 Si       = fft(K1(:,i,k));
@@ -104,10 +106,12 @@ for  c = 1:size(X,1)
                 G(:,j,i) = G(:,j,i) + Gij;
             end
             
-            % endogenous components
+            % cross-spectral density from channel noise
             %--------------------------------------------------------------
+            G(:,j,i) = G(:,j,i) + Gn;            % common noise
+            G(:,i,j) = G(:,i,j) + Gn;
             if i == j
-                G(:,j,i) = G(:,j,i) + Gn;
+                G(:,i,i) = G(:,i,i) + Gs;        % and channel specifc
             end
             
             

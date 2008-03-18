@@ -1,10 +1,11 @@
-function [x] = spm_x_nmm(P)
-% intialises a state structure for a mean field model
-% FORMAT [x] = spm_x_nmm(P)
+function [x] = spm_x_nmm(P,GE,GI)
+% initialises a state structure for a mean field model
+% FORMAT [x] = spm_x_nmm(P,GE,GI)
 %
 % P - parameter structure
-% x - state array
-
+% GE - extrinsic connections (excitatory)
+% GI - extrinsic connections (inhibitory)
+%
 % x        - array of states
 % x(i,j,k) - k-th state of j-th population on i-th source
 %
@@ -16,33 +17,36 @@ function [x] = spm_x_nmm(P)
 %               2 gE - conductance (excitatory)
 %               3 gI - conductance (inhibitory)
 %__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% dimensions
-%--------------------------------------------------------------------------
-ns   = size(P.A{1},1);                           % number of sources
-np   = 3;                                        % number of populations
-
-% create (initlaise voltage at -8mV)
-%--------------------------------------------------------------------------
-x        = zeros(ns,np,3);
-x(:,:,1) = -8;
-
-
-% steady-state solution 
+% Karl Friston
+% $Id: spm_x_nmm.m 1228 2008-03-18 21:28:04Z karl $
+ 
+% intrinsic connections (specifying the number of populations per source)
 %==========================================================================
-
-% create LFP model
+try, GE; catch
+ 
+    % intrinsic connections (np x np) - excitatory
+    %----------------------------------------------------------------------
+    GE   = [0   0   1/2;
+            0   0   1;
+            1   0   0];
+end
+try, GI; catch
+ 
+    % intrinsic connections (np x np) - inhibitory
+    %----------------------------------------------------------------------
+    GI   = [0   1/2 0;
+            0   0   0;
+            0   2   0];
+end
+ 
+% get initialisation from full mean-field model
 %--------------------------------------------------------------------------
-M.f   = 'spm_fx_nmm';
-M.x   = x;
-M.pE  = P;
-M.n   = length(spm_vec(x));
-M.m   = size(P.C,2);
-M.l   = size(P.C,1);
-
-% solve for fixed point 
+[x M] = spm_x_mfm(P,GE,GI);
+ 
+% remove dispersion and fix the covariance of the states (Cx)
 %--------------------------------------------------------------------------
-U.u   = sparse(64,1);
-U.dt  = 8/1000;
-x     = spm_int_L(P,M,U);
-x     = spm_unvec(x(end,:),M.x);
+M.x   = x{1};
+M.Cx  = x{2}(:,:,1,1);
+x     = x{1};

@@ -51,7 +51,7 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 1190 2008-03-05 17:20:23Z karl $
+% $Id: spm_nmm_priors.m 1228 2008-03-18 21:28:04Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -63,7 +63,8 @@ end
  
 % disable log zero warning
 %--------------------------------------------------------------------------
-warning off
+warning('off','MATLAB:log:logOfZero');
+
 n     = size(C,1);                                   % number of sources
 u     = size(C,2);                                   % number of inputs
  
@@ -129,7 +130,8 @@ V.C    = C;
 % set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
 E.R        = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
-warning on
+warning('on','MATLAB:log:logOfZero');
+
  
 % prior moments if two arguments
 %==========================================================================

@@ -15,9 +15,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 %        This [optional] function performs feature selection assuming the
 %        generalized model y = FS(y,M) = FS(G*x,M) + X0*P0 + e
 %
-% M.x0 - function name f(P)
-%        This [optional] function returns the expansion point for the
-%        states M.x as a function of the parameters
+% M.x  - The expansion point for the states (i.e., the fixed point)
 %
 % M.P  - starting estimtes for model parameters [optional]
 %
@@ -71,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1206 2008-03-13 20:56:00Z karl $
+% $Id: spm_nlsi_N.m 1228 2008-03-18 21:28:04Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -143,15 +141,11 @@ try
     M.x;
 catch
     try
-        M.x = feval(M.x0,Ep);
+        M.n;
     catch
-        try
-            M.n;
-        catch
-            M.n = 0;
-        end
-        M.x = sparse(M.n,1);
+        M.n = 0;
     end
+    M.x = sparse(M.n,1);
 end
 
 % input
@@ -252,7 +246,7 @@ ibC   = spm_cat(diag({ipC,igC,iuC})); % b - all parameters
 %--------------------------------------------------------------------------
 Ep    = M.P;
 Eg    = M.gE;
-Eu    = inv(dgdu'*dgdu)*dgdu'*spm_vec(y);
+Eu    = spm_pinv(dgdu)*spm_vec(y);
 warning on
 
 % EM
@@ -263,16 +257,16 @@ dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 sw    = warning('off','all');
  
+
+% expansion point
+%--------------------------------------------------------------------------
+x0     = ones(size(y,1),1)*spm_vec(M.x)';
+
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
-for ip = 1:64
+for ip = 1:8
  
-    % expansion point
-    %----------------------------------------------------------------------
-    try,
-       M.x = feval(M.x0,Ep);
-    end
-    x0     = ones(size(y,1),1)*spm_vec(M.x)';
+
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
@@ -291,38 +285,29 @@ for ip = 1:64
         
         % Optimize g: parameters confounds
         %==================================================================
-        for iu = 1:8
-            
-            % prediction errors
-            %--------------------------------------------------------------
-            ey    = spm_vec(y)  - spm_vec(yp) - dgdu*Eu;
-            eu    = spm_vec(Eu) - spm_vec(uE);
-
-            % update gradients and curvature
-            %--------------------------------------------------------------
-            dFdu  =  dgdu'*ey   - iuC*eu;
-            dFduu = -dgdu'*dgdu - iuC;
-
-            % Conditional updates of  u
-            %--------------------------------------------------------------
-            du    = spm_dx(dFduu,dFdu);
-            Eu    = Eu + du;
-
-            % convergence
-            %--------------------------------------------------------------
-            dG    = dFdu'*du;
-            if dG < 1e-1, break, end
-
-        end
-
         
         % prediction errors
         %------------------------------------------------------------------
-        ey       = spm_vec(y) - spm_vec(yp) - dgdu*Eu;
-        ep       = Vp'*(spm_vec(Ep) - spm_vec(pE));
-        eg       = Vg'*(spm_vec(Eg) - spm_vec(gE));
-        eu       =      spm_vec(Eu) - spm_vec(uE);
-        eb       = [ep; eg; eu];
+        ey    = spm_vec(y)  - spm_vec(yp) - dgdu*Eu;
+        eu    = spm_vec(Eu) - spm_vec(uE);
+
+        % update gradients and curvature
+        %------------------------------------------------------------------
+        dFdu  =  dgdu'*ey   - iuC*eu;
+        dFduu = -dgdu'*dgdu - iuC;
+
+        % Conditional updates of  u
+        %------------------------------------------------------------------
+        du    = spm_dx(dFduu,dFdu);
+        Eu    = Eu + du;
+
+        % recompute prediction errors
+        %------------------------------------------------------------------
+        ey    = spm_vec(y) - spm_vec(yp) - dgdu*Eu;
+        ep    = Vp'*(spm_vec(Ep) - spm_vec(pE));
+        eg    = Vg'*(spm_vec(Eg) - spm_vec(gE));
+        eu    =      spm_vec(Eu) - spm_vec(uE);
+        eb    = [ep; eg; eu];
  
         % gradients
         %------------------------------------------------------------------
@@ -435,7 +420,7 @@ for ip = 1:64
 
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1,32);
+        v     = min(v + 1,8);
         str   = 'EM(+)';
  
         % accept current estimates
@@ -459,7 +444,7 @@ for ip = 1:64
  
         % and increase regularization
         %------------------------------------------------------------------
-        v     = min(v - 2,4);
+        v     = min(v - 1,0);
         str   = 'EM(-)';
  
     end
