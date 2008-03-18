@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1195 2008-03-07 21:51:49Z volkmar $
+% $Id: cfg_ui.m 1225 2008-03-18 13:39:33Z volkmar $
 
-rev = '$Rev: 1195 $';
+rev = '$Rev: 1225 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -387,7 +387,7 @@ if ~isempty(udmodlist)
     % set help box to module help
     [id stop help] = cfg_util('listmod', cid, [], cfg_findspec, ...
                               cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-    set(handles.helpbox, 'String', help{1}{1}, 'Value', 1);
+    set(handles.helpbox, 'String', spm_justify(handles.helpbox, help{1}{1}), 'Value', 1);
     udmodlist.oldvalue = cmod;
     set(handles.modlist, 'userdata', udmodlist);
     local_showvaledit(obj);

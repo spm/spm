@@ -18,9 +18,9 @@ function [val sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: resolve_deps.m 1225 2008-03-18 13:39:33Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1225 $';
 
 try
     val1 = cell(size(item.val{1}));
@@ -64,9 +64,14 @@ if sts
 end;
 % all collected, check subsasgn validity
 if sts
-    [sts val] = subsasgn_check(item, substruct('.','val','{}',{1}), val);
+    % subsasgn_check only accepts single subscripts
+    [sts val] = subsasgn_check(item, substruct('.','val'), {val});
 end;
-if ~sts
-    warning('matlabbatch:resolve_deps:subsasgn','Item ''%s'': Dependencies resolved, but not suitable for this item.', subsref(item, substruct('.','name')));
+if sts
+    % dereference val after subsasgn_check
+    val = val{1};
+else
+    warning('matlabbatch:resolve_deps:subsasgn',...
+            'Item ''%s'': Dependencies resolved, but not suitable for this item.', subsref(item, substruct('.','name')));
     return;
 end;
