@@ -31,7 +31,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1221 2008-03-18 10:55:04Z volkmar $
+% $Id: spm_dicom_convert.m 1222 2008-03-18 11:09:58Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -42,6 +42,9 @@ if nargin<4, format='img';end;
 [spect,images]    = select_spectroscopy_images(images);
 [mosaic,standard] = select_mosaic_images(images);
 
+fmos = {};
+fstd = {};
+fspe = {};
 if (strcmp(opts,'all') || strcmp(opts,'mosaic')) && ~isempty(mosaic),
     fmos = convert_mosaic(mosaic,root_dir,format);
 end;
