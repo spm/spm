@@ -11,7 +11,7 @@ function cls = spm_preproc_write(res,bf,tc)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_preproc_write8.m 1230 2008-03-19 14:23:20Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -97,20 +97,18 @@ mg  = res.mg;
 mn  = res.mn;
 vr  = res.vr;
 
-do_defs = do_cls;
+do_defs = do_cls | do_defs;
 if true,
     [pth,nam,ext1]=fileparts(res.image(1).fname);
-    for n=1:3,
-        VY(n) = struct('fname',   fullfile(pth,['y_', nam1, '.nii']),...
-                       'dim',     res.image(1).dim(1:3),...
-                       'dt',      [spm_type('float32') spm_platform('bigend')],...
-                       'pinfo',   [1 0 0]',...
-                       'mat',     res.image(1).mat,...
-                       'n',       [1 n],...
-                       'descrip', 'Deformation');
-    end
-    VY = spm_create_vol(VY);
-    do_defs = true;
+    Ndef      = nifti;
+    Ndef.dat  = file_array(fullfile(pth,['iy_', nam1, '.nii']),...
+                                      [res.image(1).dim(1:3),1,3],...
+                                      [spm_type('float32') spm_platform('bigend')],...
+                                      0,1,0);
+    Ndef.mat  = res.image(1).mat;
+    Ndef.mat0 = res.image(1).mat;
+    Ndef.descrip = ['Deformation'];
+    create(Ndef);
 end
 
 spm_progress_bar('init',length(x3),['Working on ' nam],'Planes completed');
@@ -137,14 +135,20 @@ for z=1:length(x3),
 
     if do_defs,
         [t1,t2,t3] = defs(C,z,res.MT,prm,x1,x2,x3,M);
-        if true,
+        if exist('Ndef','var'),
             M1 = tpm.M;
             tmp = M1(1,1)*t1 + M1(1,2)*t2 + M1(1,3)*t3 + M1(1,4);
-            spm_write_plane(VY(1),tmp,z);
+            Ndef.dat(:,:,z,1,1) = tmp;
             tmp = M1(2,1)*t1 + M1(2,2)*t2 + M1(2,3)*t3 + M1(2,4);
-            spm_write_plane(VY(2),tmp,z);
+            Ndef.dat(:,:,z,1,2) = tmp;
             tmp = M1(3,1)*t1 + M1(3,2)*t2 + M1(3,3)*t3 + M1(3,4);
-            spm_write_plane(VY(3),tmp,z);
+            Ndef.dat(:,:,z,1,3) = tmp;
+        end
+
+        if exist('y','var'),
+            y(:,:,z,1) = t1;
+            y(:,:,z,2) = t2;
+            y(:,:,z,3) = t3;
         end
 
         if do_cls,
@@ -175,6 +179,73 @@ for z=1:length(x3),
     spm_progress_bar('set',z);
 end
 spm_progress_bar('clear');
+
+NY = nifti(PY);
+NT = nifti(PT);
+
+y0 = NY.dat;
+d0 = size(y0);d0 = d0(1:3);
+M0 = NY.mat;
+
+d1 = size(NT.dat); d1 = d1(1:3);
+M1 = NT.mat;
+
+% y maps from individual to mm coordinates in the template.  Change
+% this so that it maps to voxel indices in the template instead.
+y      = affind(squeeze(single(y0(:,:,:,:,:))),inv(M1));
+
+% Generate a grid of mm coordinates for each voxel within the
+% individual's image.
+x      = affind(rgrid(d0(1:3)),M0);
+
+% These mm coordinates are pushed to their new locations according
+% to the original mapping (y).  Note that the resulting y is scaled
+% at each point by the number of voxels that are mapped (w).
+[y,w]  = dartel3('push',x,y,d1(1:3));
+
+% Generate another grid of mm indices at each voxel in the template.
+x      = affind(rgrid(d1(1:3)),M1);
+
+% Fit a the closest affine transform through the mapping.
+M      = getaff(x,y,w);
+
+% Multiply the mm indices by this affine transform.  This transform
+% is subtracted from the nonlinear warp so that a smooth displacement
+% field can be determined.  The transform is then re-added to the
+% displacement field.
+x      = affind(x,M);
+vx     = sqrt(sum(M1(1:3,1:3).^2));
+for m=1:3,
+    % Essentially, divide (y-x*w) by w but avoid divisions by zero by
+    % biasing the result to be spatially smooth.
+    y(:,:,:,m) = optimNn(w,y(:,:,:,m)-x(:,:,:,m).*w,[1  vx  0.001 0 0  2 1]) + x(:,:,:,m);
+end
+
+
+
+
+N      = nifti;
+N.dat  = file_array('iy_junk.nii',[d1,1,3],'float32-be',0,1,0);
+N.mat  = M1;
+N.mat0 = M1;
+N.descrip = 'Inverse Warp';
+create(N);
+N.dat(:,:,:,:,:) = reshape(y,[d1,1,3]);
+
+
+P  = 'c1sMT04-0003-00001-000176-01_A.nii';
+NC = nifti(P);
+c  = single(NC.dat(:,:,:));
+
+y      = affind(squeeze(single(y0(:,:,:,:,:))),inv(M1));
+c  = single(NC.dat(:,:,:));
+
+[c,w]  = dartel3('push',c,y,d1(1:3));
+c      = optimNn(w,c,[2  vx  100 0 0  2 2]);
+
+imagesc(c(:,:,35)'); axis image xy
+
+
 return;
 %=======================================================================
 
@@ -220,54 +291,6 @@ return;
 %=======================================================================
 
 %=======================================================================
-function [g,w,c] = clean_gwc(g,w,c, level)
-if nargin<4, level = 1; end;
-
-b    = w;
-b(1) = w(1);
-
-% Build a 3x3x3 seperable smoothing kernel
-%-----------------------------------------------------------------------
-kx=[0.75 1 0.75];
-ky=[0.75 1 0.75];
-kz=[0.75 1 0.75];
-sm=sum(kron(kron(kz,ky),kx))^(1/3);
-kx=kx/sm; ky=ky/sm; kz=kz/sm;
-
-th1 = 0.15;
-if level==2, th1 = 0.2; end;
-% Erosions and conditional dilations
-%-----------------------------------------------------------------------
-niter = 32;
-spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
-for j=1:niter,
-        if j>2, th=th1; else th=0.6; end; % Dilate after two its of erosion.
-        for i=1:size(b,3),
-                gp = double(g(:,:,i));
-                wp = double(w(:,:,i));
-                bp = double(b(:,:,i))/255;
-                bp = (bp>th).*(wp+gp);
-                b(:,:,i) = uint8(round(bp));
-        end;
-        spm_conv_vol(b,b,kx,ky,kz,-[1 1 1]);
-        spm_progress_bar('Set',j);
-end;
-th = 0.05;
-for i=1:size(b,3),
-        gp       = double(g(:,:,i))/255;
-        wp       = double(w(:,:,i))/255;
-        cp       = double(c(:,:,i))/255;
-        bp       = double(b(:,:,i))/255;
-        bp       = ((bp>th).*(wp+gp))>th;
-        g(:,:,i) = uint8(round(255*gp.*bp./(gp+wp+cp+eps)));
-        w(:,:,i) = uint8(round(255*wp.*bp./(gp+wp+cp+eps)));
-        c(:,:,i) = uint8(round(255*(cp.*bp./(gp+wp+cp+eps)+cp.*(1-bp))));
-end;
-spm_progress_bar('Clear');
-return;
-%=======================================================================
-
-%=======================================================================
 function p = likelihoods(f,bf,mg,mn,vr)
 K  = numel(mg);
 N  = numel(f);
@@ -290,4 +313,97 @@ p = p + 1024*eps;
 %=======================================================================
 
 %=======================================================================
+function y1 = affind(y0,M);
+y1 = zeros(size(y0),'single');
+for d=1:3,
+    y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
+end
+%=======================================================================
+
+%=======================================================================
+function y1 = reweight(y0,w)
+y1 = zeros(size(y0),'single');
+for d=1:size(y0,4),
+    y1(:,:,:,d) = y0(:,:,:,d).*w;
+end
+%=======================================================================
+
+%=======================================================================
+function x = rgrid(d);
+x       = zeros([d(1:3),3],'single');
+[x1,x2] = ndgrid(1:d(1),1:d(2));
+for k=1:d(3),
+    x(:,:,k,1) = x1;
+    x(:,:,k,2) = x2;
+    x(:,:,k,3) = k;
+end
+%=======================================================================
+
+%=======================================================================
+function [M,R] = getaff(x,y,w1,w2)
+% Determine the affine (and rigid) transform mapping x to y
+% FORMAT [M,R] = getaff(X,Y,W1,W2)
+% X  - n1*n2*n3*3 array of floats representing coordinates.
+% Y  - n1*n2*n3*3 array of floats representing coordinates.
+% W1 - n1*n2*n3   array of floats representing weights.
+% W2 - n1*n2*n3   array of floats representing weights.
+%
+% M  - an affine transform
+% R  - a rigid-body transform
+%
+% The code treats X and Y as reshaped versions (n1*n2*n3) x 3,
+% and W1 and W2 as column vectors.
+%
+% It generates XX = [diag(W1)*X W1]'*diag(W2)*[diag(W1)*X W1]
+% and          XY = [diag(W1)*X W1]'*diag(W2)*[Y W1]
+%
+% These can then be used to compute an affine transform (M),
+% by M = (XX\XY)'
+% A weighted procrustes decomposition is also performed,
+% so that a rigid-body transform matrix (R) is returned.
+%
+% If W1 or W2 are empty or not passed, then they are assumed
+% to be all ones.
+
+XX = zeros(4);
+XY = zeros(4);
+d  = size(x);
+o  = ones(d(1)*d(2),1);
+for k=1:size(x,3),
+    xk  = reshape(x(:,:,k,:),[d(1)*d(2),3]);
+    if nargin<3 && isempty(w1) && isempty(w2),
+        ox = o;
+        oy = o;
+    else
+        if nargin>=4 && ~isempty(w1) && ~isempty(w2),
+            oy = reshape(wx(:,:,k), [d(1)*d(2),1]);
+            ox = reshape( w(:,:,k), [d(1)*d(2),1]).*oy;
+        elseif nargin>=3 && ~isempty(w1),
+            ox = reshape(wx(:,:,k), [d(1)*d(2),1]);
+            oy = ox;
+        elseif nargin>=4 && ~isempty(w2),
+            ox = reshape(wx(:,:,k), [d(1)*d(2),1]);
+        end
+        xk(:,1) = xk(:,1).*ox;
+        xk(:,2) = xk(:,2).*ox;
+        xk(:,3) = xk(:,3).*ox;
+    end
+    yk  = reshape(y(:,:,k,:),[d(1)*d(2),3]);
+    msk = find(all(isfinite(xk),2) & all(isfinite(yk),2));
+    X   = [xk(msk,:), ox(msk)];
+    Y   = [yk(msk,:), oy(msk)];
+    XX  = XX + double(X'*X);
+    XY  = XY + double(X'*Y);
+end
+M = (XX\XY)';
+
+% Procrustes decomposition
+XX1 = XX - XX(:,4)*XX(:,4)'/XX(4,4);
+XY1 = XY - XY(:,4)*XY(4,:) /XY(4,4);
+Z   = (XX1(1:3,1:3)\XY1(1:3,1:3))';
+[U,S,V] = svd(Z); % Decompose into rotate, zoom and rotate.
+R   = [U*V' zeros(3,1);0 0 0 1];    % Rotation
+T1  = [eye(4,3) -XY(:,4) /XY(4,4)]; % Initial translation of centre of mass to origin.
+T2  = [eye(4,3) -XY(4,:)'/XY(4,4)]; % Final translation of origin to centre of mass.
+R   = T2 * R * T1;
 
