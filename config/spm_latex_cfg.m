@@ -1,5 +1,7 @@
-function spm_latex(c)
-% Convert a job configuration structure into a series of LaTeX documents
+function spm_latex_cfg(c)
+% Convert a job configuration tree into a series of LaTeX documents
+%
+% Quick and dirty adapted to new batch configuration structure. 
 %
 % Note that this function works rather better in Matlab 7.x, than it
 % does under Matlab 6.x.  This is primarily because of the slightly
@@ -8,11 +10,9 @@ function spm_latex(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex.m 1229 2008-03-19 13:51:57Z volkmar $
+% $Id: spm_latex.m 1143 2008-02-07 19:33:33Z spm $
 
-warning(['To produce documentation for the new batch system, please use ' ...
-         '''spm_latex_cfg'' instead of ''spm_latex''.']);
-if nargin==0, c = spm_config; end;
+if nargin==0, c = spm_cfg; end;
 
 fp = fopen('spm_manual.tex','w');
 fprintf(fp,'\\documentclass[a4paper,titlepage]{book}\n');
@@ -39,9 +39,10 @@ fprintf(fp,'\\dominitoc\\tableofcontents\n\n');
 fprintf(fp,'\\newpage\n\\section*{The SPM5 User Interface}\n');
 write_help(c,fp);
 for i=1:numel(c.values),
-   if isfield(c.values{i},'tag'),
+   % this is always false, and each cfg_item has a tag
+   %if isfield(c.values{i},'tag'),
        part(c.values{i},fp);
-   end;
+   %end;
 end;
 %fprintf(fp,'\\parskip=0mm\n\\bibliography{methods_macros,methods_group,external}\n\\end{document}\n\n');
 fprintf(fp,'\\parskip=0mm\n');
@@ -62,18 +63,19 @@ fclose(fp);
 return;
 
 function part(c,fp)
-if isstruct(c) && isfield(c,'tag'),
+% this is always false, and each cfg_item has a tag
+%if isstruct(c) && isfield(c,'tag'),
     fprintf(fp,'\\part{%s}\n',texify(c.name));
     % write_help(c,fp);
-    if isfield(c,'values'),
+    if isa(c,'cfg_repeat')||isa(c,'cfg_choice')||isa(c,'cfg_menu'),
         for i=1:numel(c.values),
-            if isfield(c.values{i},'tag'),
+            %if isfield(c.values{i},'tag'),
                 fprintf(fp,'\\include{%s}\n',c.values{i}.tag);
                 chapter(c.values{i});
-            end;
+            %end;
         end;
     end;
-    if isfield(c,'val'),
+    %if isfield(c,'val'),
         for i=1:numel(c.val),
             if isfield(c.val{i},'tag'),
                 if chapter(c.val{i}),
@@ -81,8 +83,8 @@ if isstruct(c) && isfield(c,'tag'),
                 end;
             end;
         end;
-    end;
-end;
+    %end;
+%end;
 return;
 
 function sts = chapter(c)
@@ -92,12 +94,12 @@ if fp==-1, sts = false; return; end;
 fprintf(fp,'\\chapter{%s  \\label{Chap:%s}}\n\\minitoc\n\n\\vskip 1.5cm\n\n',texify(c.name),c.tag);
 write_help(c,fp);
 
-switch c.type,
-case {'branch'},
+switch class(c),
+case {'cfg_branch','cfg_exbranch'},
     for i=1:numel(c.val),
         section(c.val{i},fp);
     end;
-case {'repeat','choice'},
+case {'cfg_repeat','cfg_choice'},
     for i=1:numel(c.values),
         section(c.values{i},fp);
     end;
@@ -112,12 +114,12 @@ sec = {'section','subsection','subsubsection','paragraph','subparagraph'};
 if lev<=5,
     fprintf(fp,'\n\\%s{%s}\n',sec{lev},texify(c.name));
     write_help(c,fp);
-    switch c.type,
-    case {'branch'},
+    switch class(c),
+    case {'cfg_branch','cfg_exbranch'},
         for i=1:numel(c.val),
             section(c.val{i},fp,lev+1);
         end;
-    case {'repeat','choice'},
+    case {'cfg_repeat','cfg_choice'},
         for i=1:numel(c.values),
             section(c.values{i},fp,lev+1);
         end;
@@ -128,8 +130,8 @@ end;
 return;
 
 function write_help(hlp,fp)
-if isstruct(hlp),
-    if isfield(hlp,'help'),
+if isa(hlp, 'cfg_item'),
+    if ~isempty(hlp.help),
        hlp = hlp.help;
     else
         return;
