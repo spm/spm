@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1203 $)
+% Job configuration created by cfg_util (rev $Rev: 1233 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/delete';
@@ -694,7 +694,7 @@ matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Input Variable';
 matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.tag = 'input';
 matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.strtype = 'e';
 matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = double([]);
-matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([1 Inf]);
+matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([Inf Inf]);
 matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.check = double([]);
 matlabbatch{31}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'Enter a MATLAB variable. This can be a variable in the MATLAB workspace, or any other valid MATLAB statement which evaluates to a single variable.'};
 matlabbatch{32}.menu_cfg{1}.menu_struct{1}.conf_exbranch.type = 'cfg_exbranch';

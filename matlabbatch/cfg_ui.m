@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1225 2008-03-18 13:39:33Z volkmar $
+% $Id: cfg_ui.m 1233 2008-03-20 15:04:40Z volkmar $
 
-rev = '$Rev: 1225 $';
+rev = '$Rev: 1233 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 04-Jan-2008 01:20:01
+% Last Modified by GUIDE v2.5 20-Mar-2008 15:52:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -397,7 +397,9 @@ else
     set(findobj(handles.cfg_ui,'-regexp','Tag','^MenuEditVal.*'), 'Enable', 'off');
     set(handles.valshow, 'String','', 'Visible','off');
     set(handles.valshowLabel, 'Visible','off');
-    set(handles.helpbox, 'String','No item selected');
+    % set help box to matlabbatch top node help
+    [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'help'});
+    set(handles.helpbox, 'String', spm_justify(handles.helpbox, help{1}{1}), 'Value', 1);
 end;
 
 %% Show Item
@@ -455,13 +457,111 @@ else
 end;
 [id stop help] = cfg_util('listmod', cmid, udmodule.id{value}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-set(handles.helpbox, 'string', textwrap(handles.helpbox, help{1}{1}));
+set(handles.helpbox, 'string', spm_justify(handles.helpbox, help{1}{1}));
 
 %% Value edit dialogues
 % --------------------------------------------------------------------
 
 function local_valedit_edit(hObject)
+% Normal mode. Depending on strtype, put '' or [] around entered
+% input. If input has ndims > 2, isn't numeric or char, proceed with
+% expert dialogue.
+handles = guidata(hObject);
+if strcmp(get(findobj(handles.cfg_ui,'Tag','MenuEditExpertEdit'), ...
+              'checked'),'on')
+    local_valedit_expert_edit(hObject);
+    return;
+end;
+value = get(handles.module, 'Value');
+udmodule = get(handles.module, 'Userdata');
+cmod = get(handles.modlist, 'Value');
+udmodlist = get(handles.modlist, 'Userdata');
+val = udmodule.contents{2}{value};
+if isfield(udmodlist, 'defid')
+    cmid = udmodlist.defid{cmod};
+else
+    cmid = udmodlist.id{cmod};
+end;
+[id stop strtype] = cfg_util('listmod', cmid, udmodule.id{value}, cfg_findspec, ...
+                             cfg_tropts(cfg_findspec,1,1,1,1,false), {'strtype'});
+if isempty(val)
+    if strtype{1}{1} == 's'
+        val = {''};
+    else
+        val = {[]};
+    end;
+end;
+% If we can't handle this, use expert mode
+if ndims(val{1}) > 2 || ~(ischar(val{1}) || isnumeric(val{1}))
+    local_valedit_expert_edit(hObject);
+    return;
+end
+if strtype{1}{1} == 's'
+    instr = val;
+    encl  = '''''';
+else
+    try
+        instr = {num2str(val{1})};
+        encl  = '[]';
+    catch
+        local_valedit_expert_edit(hObject);
+        return;
+    end;
+end;
+sts = false;
+while ~sts
+    % estimate size of input field based on instr
+    % Maximum widthxheight 140x20, minium 60x2
+    szi = size(instr{1});
+    mxwidth = 140;
+    rdup = ceil(szi(2)/mxwidth)+3;
+    szi = max(min([szi(1)*rdup szi(2)],[20 140]),[2,60]);
+    str = inputdlg(strvcat('Enter a value.', ...
+                           ' ', ...
+                           'To clear a value, clear the input field and accept.', ...
+                           ' ', ...
+                           ['Accept input with CTRL-RETURN, cancel with ' ...
+                        'ESC.']), ...
+                   udmodule.contents{1}{value}, ...
+                   szi,instr);
+    if iscell(str) && isempty(str)
+        % User has hit cancel button
+        return;
+    end;
+    % save instr in case of evaluation error
+    instr = str;
+    % str{1} is a multiline char array
+    % 1) cellify it
+    % 2) add newline to each string
+    % 3) concatenate into one string
+    cstr = cellstr(str{1});
+    str = strcat(cstr, {char(10)});
+    str = cat(2, str{:});
+    % Evaluation is encapsulated to avoid users compromising this function
+    % context
+    [val sts] = local_eval_valedit(str);
+    if ~sts
+        % try with matching value enclosure
+        if strtype{1}{1} == 's'
+            str = strcat({encl(1)}, cstr, {encl(2)}, {char(10)});
+        else
+            cestr = {encl(1) cstr{:} encl(2)};
+            str = strcat(cestr, {char(10)});
+        end;
+        str = cat(2, str{:});
+        % Evaluation is encapsulated to avoid users compromising this function
+        % context
+        [val sts] = local_eval_valedit(str);
+        if ~sts
+            uiwait(msgbox(sprintf('Input could not be evaluated.'),'Evaluation error','modal'));
+        end;
+    end;
+end;
+% This code will only be reached if a new value has been set
+local_setvaledit(hObject, val);
 
+function local_valedit_expert_edit(hObject)
+% Expert mode, use full flexibility of evaluated expressions.
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
@@ -1063,3 +1163,16 @@ function BtnValReplItem_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 local_valedit_ReplItem(hObject);
+
+
+% --------------------------------------------------------------------
+function MenuEditExpertEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuEditExpertEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if strcmp(get(gcbo,'checked'),'on')
+    set(gcbo, 'checked', 'off');
+else
+    set(gcbo, 'checked', 'on');
+end;

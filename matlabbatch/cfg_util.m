@@ -289,9 +289,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1198 2008-03-11 12:32:10Z volkmar $
+% $Id: cfg_util.m 1233 2008-03-20 15:04:40Z volkmar $
 
-rev = '$Rev: 1198 $';
+rev = '$Rev: 1233 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -828,12 +828,7 @@ end;
 function [c0 cj cjid2subs] = local_initcfg
 
 % initial config
-c0      = cfg_repeat;
-c0.name = 'MATLAB Batch System';
-c0.tag  = 'matlabbatch';
-c0.num  = [0 Inf];
-c0.forcestruct = true;
-c0.help = {'This is the root node of the MATLAB Batch System configuration tree. All applications are added as children to this node.'};
+c0 = cfg_mlbatch_root;
 cj      = c0;
 cjid2subs = {};
 

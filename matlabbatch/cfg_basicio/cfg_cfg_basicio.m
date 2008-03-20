@@ -308,7 +308,7 @@ input.tag     = 'input';
 input.name    = 'Input Variable';
 input.help    = {'Enter a MATLAB variable. This can be a variable in the MATLAB workspace, or any other valid MATLAB statement which evaluates to a single variable.'};
 input.strtype = 'e';
-input.num     = [1 Inf];
+input.num     = [Inf Inf];
 % ---------------------------------------------------------------------
 % cfg_named_input Named Input
 % ---------------------------------------------------------------------
