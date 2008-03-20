@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1227 2008-03-18 16:16:36Z christophe $
+% $Id: checkmeeg.m 1234 2008-03-20 16:48:43Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -113,7 +113,12 @@ else
             [Nchannels Nsamples Ntrials], datatype, 0, meegstruct.data.scale);
     end
 
-    if any(size(meegstruct.data.y) ~= [Nchannels Nsamples Ntrials])
+    if Ntrials>1
+        expected_size = [Nchannels Nsamples Ntrials];
+    else
+        expected_size = [Nchannels Nsamples];
+    end
+    if any(size(meegstruct.data.y) ~= expected_size)
         disp('checkmeeg: data size does not match the header');
         return;
     end
