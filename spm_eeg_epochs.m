@@ -26,12 +26,10 @@ function D = spm_eeg_epochs(S)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_epochs.m 1143 2008-02-07 19:33:33Z spm $
+% Stefan Kiebel
+% $Id: spm_eeg_epochs.m 1236 2008-03-20 18:15:33Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
-
-
 
 try
     D = S.D;
@@ -42,38 +40,34 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-    D = spm_eeg_ldata(D);
+    D = spm_eeg_load(D);
 catch    
     error(sprintf('Trouble reading file %s', D));
 end
-
-if ~isfield(D, 'events')
-    D.events = [];
-end
     
 try 
-    D.events.start = S.events.start;
+    events.start = S.events.start;
 catch
-    D.events.start =...
+    events.start =...
         spm_input('start of epoch [ms]', '+1', 'r', '', 1);
 end
 
 try
-    D.events.stop = S.events.stop;
+    events.stop = S.events.stop;
 catch
-    D.events.stop = ...
+    events.stop = ...
         spm_input('end of epoch [ms]', '+1', 'r', '', 1);
 end
 
 try
-    D.events.types = S.events.types;
+    events.types = S.events.types;
 catch
-    disp(unique(D.events.code))
-    D.events.types = ...
+    disp(unique(events.code))
+    events.types = ...
         spm_input('Event types to epoch', '+1', 'i');
 end
 
-ind = find(ismember(D.events.code,D.events.types));
+ind = find(ismember(events.code,events.types));
 
 try
     Inewlist = S.events.Inewlist;
@@ -89,112 +83,81 @@ if Inewlist
     end
 end
 
-try
-    Resynch = S.events.resynch;
-catch
-    Resynch = 0;
-end
-
-
 spm('Pointer', 'Watch'); drawnow;
 
-D.fnamedat = ['e_' D.fnamedat];
-
-D.datatype = 'int16';
-
-fpd = fopen(fullfile(P, D.fnamedat), 'w');
-
-% Resynch zero time (resynch variable in ms!)
-D.events.time = D.events.time + round(Resynch*D.Radc/1000);
 
 
 % transform ms to samples
-D.events.start = ceil(-D.events.start*D.Radc/1000);
-D.events.stop = ceil(D.events.stop*D.Radc/1000);
-if D.events.start <= 1
+events.start = ceil(-events.start*D.Radc/1000);
+events.stop = ceil(events.stop*D.Radc/1000);
+
+if events.start <= 1
     error('Start of pre-stimulus time must be less than %f ms', floor(-D.Radc/1000));
 end
 
-if D.events.stop <= 1
+if events.stop <= 1
     error('End of post-stimulus time must be more than %f ms', ceil(D.Radc/1000));
 end
 
-% Allocate space for epoched data
+% two passes
 
-D.Nsamples = D.events.stop + D.events.start+1;
-d = zeros(D.Nchannels, D.Nsamples);
-
-% Assemble epochs
-k = 1;
-
-D.scale = zeros(D.Nchannels, 1, D.Nevents);
-D.datatype  = 'int16';
-
-spm_progress_bar('Init', length(D.events.time), 'Events read'); drawnow;
-if length(D.events.time) > 100, Ibar = floor(linspace(1, length(D.events.time),100));
-else, Ibar = [1:length(D.events.time)]; end
-
-index = [];
-for i = 1:length(D.events.time)
+% 1st pass: Count the number of trials to be epoched to know the
+% dimensions of the resulting data array
+ind = [];
+for i = 1:length(events.time)
     if any(D.events.code(i) == D.events.types)
-        
-        if  D.events.time(i) - D.events.start < 1 |...
-                D.events.time(i) + D.events.stop > size(D.data, 2)
+        if  D.events.time(i) - events.start < 1 || ...
+                D.events.time(i) + events.stop > D.nsamples
             % skip this trial
             warning(sprintf('%s: Event %d not extracted because not enough sample points', D.fname, i));
         else
-
-            if Inewlist
-                D.events.code(i) = Ec(k); 
-            end
-
-            d = D.data(:, D.events.time(i) - D.events.start :...
-                    D.events.time(i) + D.events.stop, 1);
-                
-            % baseline subtraction
-            
-            d = d - repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
-            
-            D.scale(:, 1, k) = spm_eeg_write(fpd, d, 2, D.datatype);
-                                    
-            index(k) = i;
-            k = k +1;
+            ind = [ind i];
         end
     end
+end
+
+% 2nd pass: do the epoching
+
+% generate new meeg object with new filenames
+Dnew = newdata(D, ['e' fnamedat(D)], [D.nchannels D.nsamples D.ntrials], dtype(D));
+
+Dnew.nsamples = events.stop + events.start+1;
+Dnew.ntrials = length(ind);
+
+spm_progress_bar('Init', Dnew.ntrials, 'Events read'); drawnow;
+if Dnew.ntrials > 100, Ibar = floor(linspace(1, Dnew.ntrials, 100));
+else Ibar = [1:Dnew.ntrials]; end
+
+for i = 1:Dnew.ntrials
+        
+    k = ind(i);
+    if Inewlist
+        D.events.code(i) = Ec(k);
+    end
+
+    d = D(:, events.time(i) - events.start :...
+        events.time(i) + events.stop, 1);
+                
+    % baseline subtraction        
+    d = d - repmat(mean(d(:, [1:abs(events.start)+1]),2), 1, D.nsamples);
+    Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, i, d);
+                                    
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);
         drawnow;
     end
 end
 
+events.types = unique(events.code(index));
 
-fclose(fpd);
-
-D.events.types = unique(D.events.code(index));
-
-D.data = [];
-D.events.Ntypes = length(D.events.types);
-D.events.code = D.events.code(index);
-D.events.time = D.events.time(index);
-D.Nevents = k-1;
-
-% in case there is already some information about rejected trials
-if ~isfield(D.events, 'reject')
-    D.events.reject = zeros(1, D.Nevents);
-end
-
+events.code = events.code(index);
+events.time = events.time(index);
 
 if Inewlist & D.Nevents ~= length(Ec)
     warning('Not all events in event list used!')
 end
 
-D.fname = ['e_' D.fname];
-
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(P, D.fname), '-V6', 'D');
-else
-    save(fullfile(P, D.fname), 'D');
-end
+save(Dnew);
 
 spm_progress_bar('Clear');
 

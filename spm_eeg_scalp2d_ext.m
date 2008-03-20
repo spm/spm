@@ -61,27 +61,26 @@ handles.output = hObject;
 handles.D = varargin{1};
 handles.T = varargin{2}; % input in peri-stimulus time (ms)
 
-handles.ms = [-handles.D.events.start:handles.D.events.stop]*1000/handles.D.Radc;
-
+D = handles.D;
 for i = 1:length(handles.T)
-	tmp = (handles.T(i) - handles.ms).^2;
+	tmp = (handles.T(i) - D.time(1:D.nsamples, 'ms')).^2;
 	[m, ind(i)] = min(tmp);
 end
 
 handles.T = ind;
 
 % locations
-CTF = load(fullfile(spm('dir'), 'EEGtemplates', handles.D.channels.ctf));
-%CTF.Cpos = CTF.Cpos(:, handles.D.channels.order(handles.D.channels.eeg));
-handles.D.gfx.channels = intersect(handles.D.gfx.channels,handles.D.channels.eeg);	% to ensure EOG not included
-CTF.Cpos = CTF.Cpos(:, handles.D.channels.order(handles.D.gfx.channels));
+gfx = getcache(D, 'gfx');
+gfx.channels = intersect(gfx.channels, D.meegchannels);	% to ensure EOG not included
+D = putcache(D, gfx);
+xy = D.coor2D(gfx.channels);
 
-handles.x = min(CTF.Cpos(1,:)):0.005:max(CTF.Cpos(1,:));
-handles.y = min(CTF.Cpos(2,:)):0.005:max(CTF.Cpos(2,:));
+handles.x = min(xy(1,:)):0.005:max(xy(1,:));
+handles.y = min(xy(2,:)):0.005:max(xy(2,:));
 
 [handles.x1, handles.y1] = meshgrid(handles.x, handles.y);
-handles.xp = CTF.Cpos(1,:)';
-handles.yp = CTF.Cpos(2,:)';
+handles.xp = xy(1,:)';
+handles.yp = xy(2,:)';
 
 handles.event = varargin{3};
 
@@ -91,9 +90,9 @@ if length(handles.T) > 1
     set(handles.text2, 'Visible', 'off');
 else
     % set slider's range and initial value
-    set(handles.slider1, 'min', handles.ms(1));
-    set(handles.slider1, 'max', handles.ms(end));
-    set(handles.slider1, 'Value', handles.ms(handles.T));
+    set(handles.slider1, 'min', D.time(1, 'ms'));
+    set(handles.slider1, 'max', D.time(D.nsamples, 'ms'));
+    set(handles.slider1, 'Value', D.time(handles.T, 'ms'));
 end
 
 % Update handles structure
@@ -125,9 +124,9 @@ function slider1_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
-T = get(handles.slider1, 'Value')
+T = get(handles.slider1, 'Value');
 
-tmp = (T - handles.ms).^2;
+tmp = (T - handles.D.time(1:handles.D.nsamples, 'ms')).^2;
 [m, i] = min(tmp);
 
 handles.T = i;
@@ -152,21 +151,22 @@ function plot_spatial(hObject, handles)
 T = handles.T;
 D = handles.D;
 event = handles.event;
+gfx = getcache(D, 'gfx');
 
 % data
 if length(T) == 1
-    d = squeeze(D.data(D.gfx.channels, T, event));
+    d = squeeze(D(gfx.channels, T, event));
     
     if ~isfield(handles, 'Colourbar')
-        handles.CLim1 = min(min(D.data(setdiff(D.gfx.channels, D.channels.Bad), :, event)));
-        handles.CLim2 = max(max(D.data(setdiff(D.gfx.channels, D.channels.Bad), :, event)));
+        handles.CLim1 = min(min(D(setdiff(gfx.channels, D.badchannels), :, event)));
+        handles.CLim2 = max(max(D(setdiff(gfx.channels, D.badchannels), :, event)));
     end
 else
-	d = squeeze(mean(D.data(D.gfx.channels, T, event), 2));
+	d = squeeze(mean(D(gfx.channels, T, event), 2));
 end
 
 %Exclude bad channels
-badchan = intersect(D.gfx.channels,D.channels.Bad);
+badchan = intersect(gfx.channels,D.badchannels);
 if ~isempty(badchan)
         d(badchan) = NaN;
 end
@@ -174,7 +174,7 @@ end
 z = griddata(handles.xp, handles.yp, d, handles.x1, handles.y1);
 
 if length(T) == 1
-    set(handles.text1, 'String', sprintf('%d ms', round(handles.ms(T))));
+    set(handles.text1, 'String', sprintf('%d ms', round(handles.D.time(T, 'ms'))));
 else
     set(handles.text1, 'String', 'average');
 end

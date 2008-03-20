@@ -1,5 +1,5 @@
 function D = spm_eeg_filter(S)
-% low-pass filter EEG data
+% filter M/EEG data
 % FORMAT D = spm_eeg_filter(S)
 % 
 % S       - struct (optional)
@@ -13,12 +13,12 @@ function D = spm_eeg_filter(S)
 % D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 % 
-% spm_eeg_filter low-pass filters EEG/MEG epoched data.
+% spm_eeg_filter filters M/EEG data.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_filter.m 1236 2008-03-20 18:15:33Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -36,35 +36,35 @@ end
 
 
 try
-    D = spm_eeg_ldata(D);
+    D = spm_eeg_load(D);
 catch    
     error(sprintf('Trouble reading file %s', D));
 end
     
 try
-    D.filter.type = S.filter.type;
+    filter.type = S.filter.type;
 catch
-    D.filter.type =...
+    filter.type =...
         spm_input('filter type', '+1', 'b', 'butterworth');
 end
 
-if strcmpi(D.filter.type,'butterworth')
+if strcmpi(filter.type,'butterworth')
     try
-        D.filter.order = S.filter.order;
+        filter.order = S.filter.order;
     catch
-        D.filter.order = 5;
+        filter.order = 5;
     end
     try
-        D.filter.para = S.filter.para;
+        filter.para = S.filter.para;
     catch
-        D.filter.para = [];
+        filter.para = [];
     end
 end
 
 try
-    D.filter.band  = S.filter.band ;
+    filter.band  = S.filter.band ;
 catch
-    D.filter.band = cell2mat(...
+    filter.band = cell2mat(...
         spm_input('filterband', '+1', 'm',...
         'lowpass|highpass|bandpass|stopband',...
          {'low','high','bandpass','stop'}));
@@ -72,9 +72,9 @@ end
 
 
 try
-    D.filter.PHz = S.filter.PHz;
+    filter.PHz = S.filter.PHz;
 catch
-    if strcmp(D.filter.band, 'low')
+    if strcmp(filter.band, 'low')
         str = 'Cutoff [Hz]';
         YPos = -1;
         while 1
@@ -82,10 +82,10 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r');
-            if PHz > 0 & PHz < D.Radc/2, break, end
+            if PHz > 0 && PHz < D.fsample/2, break, end
             str = 'Cutoff must be > 0 & < half sample rate';
         end
-    elseif strcmp(D.filter.band, 'high')
+    elseif strcmp(filter.band, 'high')
         str = 'Cutoff [Hz]';
         YPos = -1;
         while 1
@@ -93,10 +93,10 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r');
-            if PHz > 0 & PHz < D.Radc/2, break, end
+            if PHz > 0 && PHz < D.fsample/2, break, end
             str = 'Cutoff must be > 0 & < half sample rate';
         end
-    elseif strcmp(D.filter.band, 'bandpass')
+    elseif strcmp(filter.band, 'bandpass')
         str = 'band [Hz]';
         YPos = -1;
         while 1
@@ -104,10 +104,10 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
-            if PHz(1) > 0 & PHz(1) < D.Radc/2 & PHz(1) < PHz(2), break, end
+            if PHz(1) > 0 && PHz(1) < D.fsample/2 && PHz(1) < PHz(2), break, end
             str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
         end
-    elseif strcmp(D.filter.band, 'stop')
+    elseif strcmp(filter.band, 'stop')
         str = 'band [Hz]';
         YPos = -1;
         while 1
@@ -115,117 +115,58 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
-            if PHz(1) > 0 & PHz(1) < D.Radc/2 & PHz(1) < PHz(2), break, end
+            if PHz(1) > 0 && PHz(1) < D.fsample/2 && PHz(1) < PHz(2), break, end
             str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
         end
     end
-    D.filter.PHz = PHz;
+    filter.PHz = PHz;
 end
 
-if strcmpi(D.filter.type, 'butterworth')
+if strcmpi(filter.type, 'butterworth')
     % butterworth coefficients
-    if(isempty(D.filter.para))
-    [B, A] = butter(D.filter.order, 2*D.filter.PHz/D.Radc, D.filter.band);
-        D.filter.para{1} = B;
-        D.filter.para{2} = A;
-    elseif(length(D.filter.para)~=2)
+    if(isempty(filter.para))
+    [B, A] = butter(filter.order, 2*filter.PHz/D.fsample, filter.band);
+        filter.para{1} = B;
+        filter.para{2} = A;
+    elseif(length(filter.para)~=2)
     errordlg('Need two parameters for Butterworth filter');
     end
 else
-    errordlg('Currently unknown filter type: %s', D.filter.type);
+    errordlg('Currently unknown filter type: %s', filter.type);
 end
 
 spm('Pointer', 'Watch');drawnow;
 
+% generate new meeg object with new filenames
+Dnew = newdata(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials], dtype(D));
 
-% treat continuous and epoched data differently because of different
-% scaling method
+spm_progress_bar('Init', D.ntrials, 'Events filtered'); drawnow;
+if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+else Ibar = [1:D.ntrials]; end
 
-if size(D.data, 3) > 1
-    % epoched
+for i = 1:D.ntrials
 
-    % Prepare for writing data
-    D.fnamedat = ['f' D.fnamedat];
-    fpd = fopen(fullfile(P, D.fnamedat), 'w');
+    d = squeeze(D(:, :, i));
 
-    d = zeros(D.Nchannels, D.Nsamples);
-    D.scale = zeros(D.Nchannels, 1, D.Nevents);
-    
-    spm_progress_bar('Init', D.Nevents, 'Events filtered'); drawnow;
-    if D.Nevents > 100, Ibar = floor(linspace(1, D.Nevents,100));
-    else, Ibar = [1:D.Nevents]; end
-
-    for i = 1:D.Nevents
-
-        d = squeeze(D.data(:, :, i));
-
-        for j = 1:D.Nchannels
-            if strcmpi(D.filter.type, 'butterworth')
-                d(j,:) = filtfilt(D.filter.para{1}, D.filter.para{2}, d(j,:));
-            end
+    for j = 1:D.nchannels
+        if strcmpi(filter.type, 'butterworth')
+            d(j,:) = filtfilt(filter.para{1}, filter.para{2}, d(j,:));
         end
-        
-        % base line correction
-        d = d - repmat(mean(d(:,[1:abs(D.events.start)+1]),2), 1, D.Nsamples);
-
-        D.scale(:, 1, i) = spm_eeg_write(fpd, d, 2, D.datatype);
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
-
-    end
-    
-    fclose(fpd);
-
-else
-    % continuous
-
-    % make copy of the original file
-    if ~copyfile(fullfile(P, D.fnamedat), fullfile(P, ['f' D.fnamedat]));
-        error('Could not copy continuous file to %s', fullfile(P, ['f' D.fnamedat]));
     end
 
-    % save existing matfile
-    D.data = [];
-    D.fnamedat = ['f' D.fnamedat];
-    save(fullfile(P, ['f' D.fname]), 'D');
+    % base line correction
+    d = d - repmat(mean(d(:, 1:indsample(D,0)), 2), 1, D.nsamples);
+    Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, i, d);
 
-    % reload copied file
-    D = spm_eeg_ldata(fullfile(P, ['f' D.fname]));
-    
-
-    D.scale = zeros(D.Nchannels, 1);
-
-    spm_progress_bar('Init', D.Nchannels, 'Channels filtered'); drawnow;
-    if D.Nchannels > 100, Ibar = floor(linspace(1, D.Nchannels, 100));
-    else, Ibar = [1:D.Nchannels]; end
-
-    for i = 1:D.Nchannels
-        if strcmpi(D.filter.type, 'butterworth')
-            d = filtfilt(D.filter.para{1}, D.filter.para{2}, squeeze(D.data(i, :, 1)));
-        end
-
-        D.scale(i) = spm_eeg_write(-1, d, 2, D.datatype);
-        D.data(i, :) = d;
-
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
-
+    if ismember(i, Ibar)
+        spm_progress_bar('Set', i); drawnow;
     end
 
 end
+
 
 spm_progress_bar('Clear');
 
-
-D.data = [];
-
-D.fname = ['f' D.fname];
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(P, D.fname), '-V6', 'D');
-else
-    save(fullfile(P, D.fname), 'D');
-end
+save(Dnew);
 
 spm('Pointer', 'Arrow');

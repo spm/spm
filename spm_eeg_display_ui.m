@@ -5,7 +5,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % optional argument:
 % S         - struct
 %    fields of S:
-%     D       - EEG struct
+%     D       - MEEG object
 %     Hfig    - Figure (or axes) to work in (Defaults to SPM graphics window)
 %     rebuild - indicator variable: if defined spm_eeg_display_ui has been
 %                                   called after channel selection
@@ -16,37 +16,28 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_display_ui.m 1236 2008-03-20 18:15:33Z stefan $
 
 if nargin == 1
     S = varargin{1};
 end
 
-if nargin == 0 | ~isfield(S, 'rebuild')
+if nargin == 0 || ~isfield(S, 'rebuild')
     try
         D = S.D;
     catch
         D = spm_select(1, '\.mat$', 'Select EEG mat file');
         try
-            D = spm_eeg_ldata(D);
+            D = spm_eeg_load(D);
+            sD = struct(D); % transform to struct for access to some fields
         catch
             error(sprintf('Trouble reading file %s', D));
         end
     end
 
-    if ~isfield(D.channels, 'Bad')
-        D.channels.Bad = [];
-    end
-
-
-    if D.Nevents == 1 & ~isfield(D.events, 'start')
+    if D.ntrials == 1
         errordlg({'Continuous data cannot be displayed (yet).', 'Epoch first please.'});
         return;
-    end
-
-    % units, default EEG
-    if ~isfield(D, 'units')
-        D.units = '\muV';
     end
 
     try
@@ -65,13 +56,13 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     handles = guihandles(F);
 
     handles.colour = {[0 0 1], [1 0 0], [0 1 0], [1 0 1]};
+    handles.badchannels = D.badchannels;
 
     % variable needed to store current trial listbox selection
     handles.Tselection = 1;
 
     % fontsize used troughout
     % (better compute that fontsize)
-%    FS1 = spm('FontSize', 14);
     FS1 = spm('FontSize', 8);
 
     figure(F);clf
@@ -82,7 +73,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
 
     % Slider for trial number
     %------------------------
-    if D.Nevents > 1
+    if D.ntrials > 1
 
         % text above slider
         uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
@@ -92,15 +83,15 @@ if nargin == 0 | ~isfield(S, 'rebuild')
             'BackgroundColor', 'w');
 
         handles.trialslider = uicontrol(F, 'Tag', 'trialslider', 'Style', 'slider',...
-            'Min', 1, 'Max', D.Nevents, 'Value', 1, 'Units',...
+            'Min', 1, 'Max', D.ntrials, 'Value', 1, 'Units',...
             'normalized', 'Position', [0.05 0.045 0.25 0.03],...
-            'SliderStep', [1/(D.Nevents-1) min(D.Nevents-1, 10/(D.Nevents-1))],...
+            'SliderStep', [1/(D.ntrials-1) min(D.ntrials-1, 10/(D.ntrials-1))],...
             'TooltipString', 'Choose trial number',...
             'Callback', @trialslider_update,...
             'Parent', F, 'Interruptible', 'off');
 
         % frame for trialslider text
-        uicontrol(F, 'Style','Frame','BackgroundColor',spm('Colour'), 'Units',...
+        uicontrol(F, 'Style','Frame','BackgroundColor', spm('Colour'), 'Units',...
             'normalized', 'Position',[0.05 0.019 0.25 0.031]);
 
         % trials slider texts
@@ -118,7 +109,7 @@ if nargin == 0 | ~isfield(S, 'rebuild')
             'BackgroundColor', spm('Colour'));
 
         uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
-            'String', mat2str(D.Nevents),...
+            'String', mat2str(D.ntrials),...
             'Position',[0.23 0.02 0.06 0.029],...
             'HorizontalAlignment', 'right', 'FontSize', FS1,...
             'BackgroundColor', spm('Colour'));
@@ -128,12 +119,11 @@ if nargin == 0 | ~isfield(S, 'rebuild')
     % Scaling slider
     %-----------------
     % estimate of maximum scaling value
-    if isfield (D,'Nfrequencies')
-        handles.scalemax = 2*ceil(max(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :,:, 1))))));
-    else
-%        handles.scalemax = 2*ceil(max(max(max(abs(D.data(setdiff([1:D.Nchannels], D.channels.Bad), :, :))))));
-        handles.scalemax = 2*ceil(max(max(abs(D.data(setdiff(D.channels.eeg, D.channels.Bad), :, 1)))));
-    end
+    %     if isfield (sD.other,'tf')
+    %         handles.scalemax = 2*ceil(max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,:, 1))))));
+    %     else
+    handles.scalemax = 2*ceil(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1)))));
+    %     end
     scale = handles.scalemax/2;
 
     % text above slider
@@ -153,14 +143,14 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         'Parent', F);
 
     % frame for text
-    uicontrol(F, 'Style','Frame','BackgroundColor',spm('Colour'), 'Units',...
+    uicontrol(F, 'Style','Frame','BackgroundColor', spm('Colour'), 'Units',...
         'normalized', 'Position',[0.35 0.019 0.25 0.031]);
 
     % text
     uicontrol(F, 'Style', 'text', 'Units', 'normalized', 'String', '1',...
         'Position',[0.36 0.02 0.07 0.029],...
         'HorizontalAlignment', 'left', 'FontSize', FS1,...
-        'BackgroundColor',spm('Colour'));
+        'BackgroundColor', spm('Colour'));
 
     handles.scaletext = uicontrol(F, 'Style', 'text', 'Tag', 'scaletext',...
         'Units', 'normalized',...
@@ -210,12 +200,12 @@ if nargin == 0 | ~isfield(S, 'rebuild')
         'Parent', F);
 
     % trial listbox
-    if D.Nevents > 1
+    if D.ntrials > 1
         trialnames = {};
-        for i = 1:D.Nevents
-            trialnames{i} = [sprintf('%-12s', sprintf('trial %d', i))  sprintf('%-4s', sprintf('%d', D.events.code(i)))];
-            if D.events.reject(i)
-                trialnames{i} = [trialnames{i} sprintf('%-8s', 'reject')];
+        for i = 1:D.ntrials
+            trialnames{i} = [sprintf('%-12s', sprintf('trial %d', i))  sprintf('%-4s', strvcat(D.conditions(i)))];
+            if D.reject(i)
+                trialnames{i} = [trialnames{i} ' reject'];
             end
         end
         handles.trialnames = trialnames;
@@ -236,32 +226,33 @@ if nargin == 0 | ~isfield(S, 'rebuild')
 
     % axes with scaling and ms display
     axes('Position', [0.05 0.15 0.2 0.07]);
-    set(gca, 'YLim', [-scale scale], 'XLim', [1 D.Nsamples],...
+    set(gca, 'YLim', [-scale scale], 'XLim', [1 D.nsamples],...
         'XTick', [], 'YTick', [], 'LineWidth', 2);
-    handles.scaletexttop = text(0, scale, sprintf(' %d', 2*scale), 'Interpreter', 'Tex',...
+    handles.scaletexttop = text('Position', [0, scale], 'String', sprintf(' %d', 2*scale), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'VerticalAlignment', 'top',...
         'Tag', 'scaletext2');
-    ylabel(D.units, 'Interpreter', 'tex', 'FontSize', FS1);
-    text(D.Nsamples, -scale, sprintf('%d', round((D.Nsamples-1)*1000/D.Radc)), 'Interpreter', 'Tex',...
+    ylabel(D.allunits(1), 'Interpreter', 'tex', 'FontSize', FS1);
+    text('Position', [D.nsamples, -scale], 'String', sprintf('%d', round((D.nsamples-1)*1000/D.fsample)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
     xlabel('ms', 'Interpreter', 'tex', 'FontSize', FS1);
 
     % Added option to specify in advance only subset of channels to display RH
     % ([] = prompt for channel file; char = load channel file; No error checking yet)
     try
-        D.gfx.channels = S.chans;
+        S.gfx.channels = S.chans;
         if isempty(S.chans)
             S.chans = spm_select(1, '\.mat$', 'Select channel mat file');
-        S.load = load(S.chans);
-            D.gfx.channels = S.load.Iselectedchannels;
+            S.load = load(S.chans);
+            S.gfx.channels = S.load.Iselectedchannels;
         elseif ischar(S.chans)
-        S.load = load(S.chans);
-            D.gfx.channels = S.load.Iselectedchannels;
-    end
+            S.load = load(S.chans);
+            S.gfx.channels = S.load.Iselectedchannels;
+        end
     catch
-    % channels to display, initially exclude bad channels
-        D.gfx.channels = setdiff([1:length(D.channels.order)], D.channels.Bad);
+        % channels to display, initially exclude bad channels
+        S.gfx.channels = setdiff(D.meegchannels, D.badchannels);
     end
+    gfx = S.gfx; D = putcache(D,gfx);
 
 else
     % this is a re-display with different set of selected channels, delete plots
@@ -288,16 +279,11 @@ Pos = [0.03 0.23 0.95 0.75];
 
 % Compute width of display boxes
 %-------------------------------
-Csetup = load(fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf));
 
 % indices of displayed channels (in order of data)
-handles.Cselection2 = D.gfx.channels;
-
-% indices of displayed channels (in order of the channel template file)
-handles.Cselection = D.channels.order(handles.Cselection2);
-
-p = Csetup.Cpos(:, handles.Cselection);
-Rxy = Csetup.Rxy; % ratio of x- to y-axis lengths
+handles.Cselection = S.gfx.channels;
+p = coor2D(D, handles.Cselection);
+Rxy = 1.5; % ratio of x- to y-axis lengths
 
 Npos = size(p, 2); % number of positions
 
@@ -372,14 +358,14 @@ for i = 1:Npos
 
     % uicontextmenus for axes
     Heegmenus(i) = uicontextmenu;
-    if ismember(i, D.channels.Bad)
+    if ismember(i, D.badchannels)
         labelstring = 'Declare as good';
     else
         labelstring = 'Declare as bad';
     end
 
     uimenu(Heegmenus(i), 'Label',...
-        sprintf('%s (%d)', D.channels.name{handles.Cselection2(i)}, handles.Cselection2(i)));
+        sprintf('%s (%d)', D.chanlabels(handles.Cselection(i)), handles.Cselection(i)));
     uimenu(Heegmenus(i), 'Separator', 'on');
     uimenu(Heegmenus(i), 'Label', labelstring,...
         'CallBack', {@switch_bad, i});
@@ -389,42 +375,37 @@ for i = 1:Npos
         'ButtonDownFcn', {@windowplot, i},...
         'NextPlot', 'add',...
         'Parent', F,...
-        'UIContextMenu', Heegmenus(i));
+        'UIContextMenu', Heegmenus(i),...
+        'YLim', [-scale scale],...
+        'XLim', [D.time(1) D.time(end)],...
+        'XTick', [], 'YTick', [], 'Box', 'off');
 
-    % make axes current
-    axes(handles.Heegaxes(i));
 
     for j = 1:length(handles.Tselection)
 
-        if isfield(D,'Nfrequencies')
-            h = imagesc(squeeze(D.data(handles.Cselection2(i), :,:, handles.Tselection(j))));
-            set(h, 'ButtonDownFcn', {@windowplot, i},...
-                'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
-        else
-            h = plot([-D.events.start:D.events.stop]*1000/D.Radc,...
-                D.data(handles.Cselection2(i), :, handles.Tselection(j)),...
-                'Color', handles.colour{j});
-            set(h, 'ButtonDownFcn', {@windowplot, i},...
-                'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
-        end
+        %         if isfield(D,'Nfrequencies')
+        %             h = imagesc(squeeze(D(handles.Cselection(i), :,:, handles.Tselection(j))));
+        %             set(h, 'ButtonDownFcn', {@windowplot, i},...
+        %                 'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
+        %         else
+        h = plot(handles.Heegaxes(i), D.time,...
+            D(handles.Cselection(i), :, handles.Tselection(j)),...
+            'Color', handles.colour{j},...
+            'ButtonDownFcn', {@windowplot, i},...
+            'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
     end
-    if isfield(D,'Nfrequencies')
-        set(gca, 'ZLim', [-scale scale],...
-            'XLim', [1 D.Nsamples], 'YLim',  [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-        caxis([-scale scale])
-        colormap('jet')
-    else
-        if Lxrec > 0.1
-            % boxes are quite large
-            set(gca, 'YLim', [-scale scale],...
-                'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'off', 'Xgrid', 'on');
-        else
-            % otherwise remove tickmarks
-            set(gca, 'YLim', [-scale scale],...
-                'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'XTick', [], 'YTick', [], 'Box', 'off');
-        end
+    %     if isfield(D,'Nfrequencies')
+    %         set(gca, 'ZLim', [-scale scale],...
+    %             'XLim', [1 D.nsamples], 'YLim',  [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+    %         caxis([-scale scale])
+    %         colormap('jet')
+    %     else
+    if Lxrec > 0.1
+        % boxes are quite large
+        set(handles.Heegaxes(i), 'Xgrid', 'on');
     end
 end
+% end
 
 
 handles.Lxrec = Lxrec;
@@ -441,20 +422,19 @@ function switch_bad(hObject, events, ind)
 
 handles = guidata(hObject);
 
-% ind1 = handles.Cselection(ind);
-ind2 = handles.Cselection2(ind);
+ind = handles.Cselection(ind);
 
-if ismember(ind2, handles.D.channels.Bad)
-    handles.D.channels.Bad = setdiff(handles.D.channels.Bad, ind2);
+if ismember(ind, handles.badchannels)
+    handles.badchannels = setdiff(handles.badchannels, ind);
 else
-    handles.D.channels.Bad = unique([handles.D.channels.Bad ind2]);
+    handles.badchannels = unique([handles.badchannels, ind]);
 end
 
 Heegmenu = uicontextmenu;
-if ismember(ind, handles.D.channels.Bad)
-    labelstring = sprintf('Declare %s as good', handles.D.channels.name{ind2});
+if ismember(ind, handles.badchannels)
+    labelstring = sprintf('Declare %s as good', handles.D.chanlabels(ind));
 else
-    labelstring = sprintf('Declare %s as bad', handles.D.channels.name{ind2});
+    labelstring = sprintf('Declare %s as bad', handles.D.chanlabels(ind));
 end
 
 uimenu(Heegmenu, 'Label', labelstring,...
@@ -538,38 +518,35 @@ set(handles.scaletexttop, 'String', sprintf(' %d', 2*scale));
 % rescale plots
 for i = 1:length(handles.Heegaxes)
 
-    % make ith subplot current
-    axes(handles.Heegaxes(i));
 
-    if isfield(D,'Nfrequencies')
-        set(gca, 'ZLim', [0 scale],...
-            'XLim', [1 D.Nsamples], 'YLim', [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-        caxis([-scale scale])
+    %     if isfield(D,'Nfrequencies')
+    %         set(gca, 'ZLim', [0 scale],...
+    %             'XLim', [1 D.nsamples], 'YLim', [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+    %         caxis([-scale scale])
+    %     else
+    if handles.Lxrec > 0.1
+        % boxes are quite large
+        set(handles.Heegaxes(i), 'YLim', [-scale scale],...
+            'XLim',[D.time(1) D.time(end)], 'Box', 'off', 'Xgrid', 'on');
     else
-        if handles.Lxrec > 0.1
-            % boxes are quite large
-            set(gca, 'YLim', [-scale scale],...
-                'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'off', 'Xgrid', 'on');
-        else
-            % otherwise remove tickmarks
-            set(gca, 'YLim', [-scale scale],...
-                'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'XTick', [], 'YTick', [], 'Box', 'off');
-        end
+        % otherwise remove tickmarks
+        set(handles.Heegaxes(i), 'YLim', [-scale scale],...
+            'XLim', [D.time(1) D.time(end)], 'XTick', [], 'YTick', [], 'Box', 'off');
     end
+    %     end
 end
 
 % rescale separate windows (if there are any)
 for i = 1:length(handles.Heegfigures)
     if ~isempty(handles.Heegfigures{i})
 
-        axes(handles.Heegaxes2{i});
 
         if isfield(D,'Nfrequencies')
 
-            caxis([-scale scale])
+%             caxis([-scale scale])
         else
-            set(gca, 'YLim', [-scale scale],...
-                'XLim', [-D.events.start D.events.stop]*1000/D.Radc);
+            set(handles.Heegaxes2{i}, 'YLim', [-scale scale],...
+                'XLim', [D.time(1) D.time(end)]);
         end
 
 
@@ -590,24 +567,19 @@ scale = round(get(handles.scaleslider, 'Value'));
 
 for i = 1:length(handles.Heegaxes)
 
-    % make ith subplot current
-    axes(handles.Heegaxes(i));
-
-    cla
-    set(handles.Heegaxes(i), 'NextPlot', 'add');
+    cla(handles.Heegaxes(i));
 
     for j = 1:length(ind)
-        if isfield(D,'Nfrequencies')
-            h = imagesc(squeeze(D.data(handles.Cselection2(i), :,:, ind(j))));
-            set(h, 'ButtonDownFcn', {@windowplot, i},...
-                'Clipping', 'off');
-        else
-            h = plot([-D.events.start:D.events.stop]*1000/D.Radc,...
-                D.data(handles.Cselection2(i), :, ind(j)),...
-                'Color', handles.colour{j});
-            set(h, 'ButtonDownFcn', {@windowplot, i},...
-                'Clipping', 'off');
-        end
+        %         if isfield(D,'Nfrequencies')
+        %             h = imagesc(squeeze(D.data(handles.Cselection2(i), :,:, ind(j))));
+        %             set(h, 'ButtonDownFcn', {@windowplot, i},...
+        %                 'Clipping', 'off');
+        %         else
+        h = plot(handles.Heegaxes(i), D.time,...
+            D(handles.Cselection(i), :, ind(j)),...
+            'Color', handles.colour{j},'ButtonDownFcn', {@windowplot, i},...
+            'Clipping', 'off');
+        %         end
     end
 end
 
@@ -633,57 +605,58 @@ if ~isempty(w)
 
     % delete the existing window
     delete(w);
+    handles.Heegaxes2{ind} = [];
     handles.Heegfigures{ind} = [];
 else
     handles.Heegfigures{ind} = figure;
     set(gcf,...
-        'Name', (sprintf('Channel %s', D.channels.name{handles.Cselection2(ind)})),...
+        'Name', (sprintf('Channel %s', D.chanlabels(handles.Cselection(ind)))),...
         'NumberTitle', 'off',...
         'DeleteFcn', {@delete_Heegwindows, ind});
 
     handles.Heegaxes2{ind} = gca;
     set(handles.Heegaxes2{ind}, 'NextPlot', 'add');
 
-    if isfield(D,'Nfrequencies')
-        xlabel('ms', 'FontSize', 16);
-        ylabel('Hz', 'FontSize', 16, 'Interpreter', 'Tex')
+    %     if isfield(D,'Nfrequencies')
+    %         xlabel('ms', 'FontSize', 16);
+    %         ylabel('Hz', 'FontSize', 16, 'Interpreter', 'Tex')
+    %
+    %         for i = 1:length(handles.Tselection)
+    %
+    %             imagesc([-D.events.start:D.events.stop]*1000/D.Radc,D.tf.frequencies,squeeze(D.data(handles.Cselection2(ind), :,:, handles.Tselection(i))));
+    %
+    %         end
+    %
+    %         scale = get(handles.scaleslider, 'Value');
+    %         set(gca, 'ZLim', [-scale scale],...
+    %             'XLim',  [-D.events.start D.events.stop]*1000/D.Radc, 'YLim', [min(D.tf.frequencies) max(D.tf.frequencies)], 'Box', 'on');
+    %         colormap('jet')
+    %         caxis([-scale scale])
+    %
+    %     else
+    xlabel('ms', 'FontSize', 16);
+    ylabel(D.units(handles.Cselection(ind)), 'FontSize', 16, 'Interpreter', 'Tex')
 
-        for i = 1:length(handles.Tselection)
-
-            imagesc([-D.events.start:D.events.stop]*1000/D.Radc,D.tf.frequencies,squeeze(D.data(handles.Cselection2(ind), :,:, handles.Tselection(i))));
-
-        end
-
-        scale = get(handles.scaleslider, 'Value');
-        set(gca, 'ZLim', [-scale scale],...
-            'XLim',  [-D.events.start D.events.stop]*1000/D.Radc, 'YLim', [min(D.tf.frequencies) max(D.tf.frequencies)], 'Box', 'on');
-        colormap('jet')
-        caxis([-scale scale])
-
-    else
-        xlabel('ms', 'FontSize', 16);
-        ylabel(D.units, 'FontSize', 16, 'Interpreter', 'Tex')
-
-        for i = 1:length(handles.Tselection)
-            plot([-D.events.start:D.events.stop]*1000/D.Radc,...
-                D.data(handles.Cselection2(ind), :, handles.Tselection(i)),...
-                'Color', handles.colour{i}, 'LineWidth', 2);
-        end
-
-        scale = get(handles.scaleslider, 'Value');
-
-        set(gca, 'YLim', [-scale scale],...
-            'XLim', [-D.events.start D.events.stop]*1000/D.Radc, 'Box', 'on');
-        grid on
+    for i = 1:length(handles.Tselection)
+        plot(D.time,...
+            D(handles.Cselection(ind), :, handles.Tselection(i)),...
+            'Color', handles.colour{i}, 'LineWidth', 2);
     end
-    title(sprintf('%s (%d)', D.channels.name{handles.Cselection2(ind)}, handles.Cselection2(ind)), 'FontSize', 16);
 
-    if D.Nevents > 1
+    scale = get(handles.scaleslider, 'Value');
+
+    set(gca, 'YLim', [-scale scale],...
+        'XLim', [D.time(1) D.time(end)], 'Box', 'on');
+    grid on
+
+    title(sprintf('%s (%d)', D.chanlabels(handles.Cselection(ind)), handles.Cselection(ind)), 'FontSize', 16);
+
+    if D.ntrials > 1
         legend(handles.trialnames{handles.Tselection}, 0);
     end
-
     % save handles structure to new figure
     guidata(handles.Heegaxes2{ind}, handles);
+    % end
 end
 
 guidata(hObject, handles);
@@ -713,14 +686,7 @@ D = handles.D;
 
 spm('Pointer', 'Watch');
 
-% remove gfx struct
-D = rmfield(D, 'gfx');
-
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(D.path, D.fname), '-V6', 'D');
-else
-    save(fullfile(D.path, D.fname), 'D');
-end
+save(D);
 
 spm('Pointer', 'Arrow');
 
@@ -739,15 +705,15 @@ if ind > 1
     ind = ind(1);
 end
 
-if D.events.reject(ind) == 0
+if D.reject(ind) == 0
     % reject this trial
-    tmp = [sprintf('%-12s', sprintf('trial %d', ind))  sprintf('%-4s', sprintf('%d', D.events.code(ind)))];
-    tmp = [tmp sprintf('%-8s', 'reject')];
-    D.events.reject(ind) = 1;
+    tmp = [sprintf('%-12s', sprintf('trial %d', ind))  sprintf('%s', D.conditions(ind))...
+        sprintf(' %s', 'reject')];
+    D = putreject(D, ind, 1);
 else
     % un-reject this trial
-    tmp = [sprintf('%-12s', sprintf('trial %d', ind))  sprintf('%-4s', sprintf('%d', D.events.code(ind)))];
-    D.events.reject(ind) = 0;
+    tmp = [sprintf('%-12s', sprintf('trial %d', ind))  sprintf('%s', D.conditions(ind))];
+    D = putreject(D, ind, 0);
 end
 handles.trialnames{ind} = tmp;
 
@@ -762,9 +728,11 @@ handles = guidata(hObject);
 D = handles.D;
 
 ind = spm_eeg_select_channels(D);
+gfx.channels = ind;
 
-D.gfx.channels = ind;
+D = putcache(D, gfx);
 S.D = D;
+S.gfx = gfx;
 S.rebuild = 1;
 S.Hfig = handles.Graphics;
 
@@ -786,9 +754,9 @@ while ~ok
     t = answer{1};
     s = answer{2};
     for n=1:length(t)
-        if t(n) >= -D.events.start*1000/D.Radc...
-                & t(n) <= D.events.stop*1000/D.Radc...
-                & (strcmpi(s, '2d') | strcmpi(s, '3d'))
+        if t(n) >= D.time(1,'ms')...
+                && t(n) <= D.time(D.nsamples, 'ms')...
+                && (strcmpi(s, '2d') || strcmpi(s, '3d'))
             ok = 1;
         end
     end
@@ -800,20 +768,20 @@ spm('Pointer', 'Watch');drawnow;
 if strcmpi(s, '2d')
     spm_eeg_scalp2d_ext(D, t, handles.Tselection(1));
 else
-    % change time for james' function
-    t=round(t/1000*D.Radc)+D.events.start+1;
-    if length(t) == 1
-        d = squeeze(D.data(D.channels.eeg, t, handles.Tselection(1)));
-    else
-        d = squeeze(mean(D.data(D.channels.eeg, t, handles.Tselection(1)), 2));
-    end
-    if strmatch(D.channels.ctf,'bdf_setup.mat')
-        spm_eeg_scalp3d(d);
-    else
-        errordlg({'This can only be used for 128 channel BDF data at the moment'});
-        return;
-    end
-
+    %     % change time for james' function
+    %     t=round(t/1000*D.Radc)+D.events.start+1;
+    %     if length(t) == 1
+    %         d = squeeze(D.data(D.channels.eeg, t, handles.Tselection(1)));
+    %     else
+    %         d = squeeze(mean(D.data(D.channels.eeg, t, handles.Tselection(1)), 2));
+    %     end
+    %     if strmatch(D.channels.ctf,'bdf_setup.mat')
+    %         spm_eeg_scalp3d(d);
+    %     else
+    %         errordlg({'This can only be used for 128 channel BDF data at the moment'});
+    %         return;
+    %     end
+    %
 
 end
 spm('Pointer', 'Arrow');drawnow;

@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_select_channels.m 1236 2008-03-20 18:15:33Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,63 +64,58 @@ handles.output = hObject;
 
 % display graph of channels
 D = varargin{1};
-P = fullfile(spm('dir'), 'EEGtemplates', D.channels.ctf);
-load(P)
-
-% correct Cnames (channel template file entries can have more than one
-% entry per channel)
-for i = 1:Nchannels
-    if iscell(Cnames{i})
-        Cnames{i} = Cnames{i}{1};
-    end
-end
 
 figure(handles.figure1);
 
 Xrec = [-0.01 0.01 0.01 -0.01];
 Yrec = [-0.01 -0.01 0.01 0.01];
 
-Hpatch = cell(1, Nchannels);
-Htext  = cell(1, Nchannels);
+Hpatch = cell(1, D.nchannels);
+Htext  = cell(1, D.nchannels);
 
 Cselect = [1 1 1];
 Cdeselect = [0.5 0.5 0.5];
 
-ind = zeros(1,length(D.channels.order));
-ind(D.gfx.channels) = 1;
-tmp = D.channels.order; % if D.channels.order isn't replaced by this variable -> strange error in 7.04
+gfx = getcache(D, 'gfx');
 
-for i = 1:length(D.channels.order)
+ind = zeros(D.nchannels, 1);
+ind(gfx.channels) = 1;
+xy = D.coor2D;
+
+for i = 1:length(ind)
+    
     if ~ind(i)
-        Hpatch{i} = patch(Xrec+Cpos(1,tmp(i)), Yrec+Cpos(2,tmp(i)), Cdeselect, 'EdgeColor', 'none');
+        Hpatch{i} = patch(Xrec+xy(1,i), Yrec+xy(2,i), Cdeselect, 'EdgeColor', 'none');
     else
-        Hpatch{i} = patch(Xrec+Cpos(1,tmp(i)), Yrec+Cpos(2,tmp(i)), Cselect, 'EdgeColor', 'none');        
+        Hpatch{i} = patch(Xrec+xy(1,i), Yrec+xy(2,i), Cselect, 'EdgeColor', 'none');        
     end
+    
     Hpatch{i};
-    xy = get(Hpatch{i}, 'Vertices');
-    Htext{i} = text(min(xy(:,1)), max(xy(:,2)), Cnames{D.channels.order(i)});
+    XY = get(Hpatch{i}, 'Vertices');
+    Htext{i} = text(min(XY(:,1)), max(XY(:,2)), D.chanlabels(i));
     set(Htext{i}, 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'left');
 end
+
 axis square
 axis off
 
 % listbox
-set(handles.listbox1, 'String', Cnames(D.channels.order([1:length(ind)])));
+set(handles.listbox1, 'String', D.chanlabels);
 set(handles.listbox1, 'Value', find(ind));
 
 handles.D = D;
 handles.ind = ind;
-handles.Cnames = Cnames;
-handles.Cpos = Cpos;
-handles.Nchannels = Nchannels;
+handles.Cnames = D.chanlabels(gfx.channels);
+handles.Cpos = xy(gfx.channels);
+handles.Nchannels = D.nchannels;
 handles.Hpatch = Hpatch;
 handles.Htext = Htext;
 handles.Cselect = Cselect;
 handles.Cdeselect = Cdeselect;
 
-for i = 1:length(D.gfx.channels)
+for i = 1:length(gfx.channels)
     % callbacks for patches and text
-    if D.gfx.channels(i) ~=0
+    if gfx.channels(i) ~=0
         set(Hpatch{i}, 'ButtonDownFcn', {@patch_select, handles, i});
         set(Htext{i}, 'ButtonDownFcn', {@patch_select, handles, i});
     end
