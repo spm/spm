@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1233 2008-03-20 15:04:40Z volkmar $
+% $Id: cfg_ui.m 1235 2008-03-20 16:54:53Z volkmar $
 
-rev = '$Rev: 1233 $';
+rev = '$Rev: 1235 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -169,9 +169,9 @@ local_showjob(gcbo);
 % --------------------------------------------------------------------
 function local_loaddefs(varargin)
 appid = get(gcbo, 'Userdata');
-[file path] = uigetfile({'*.m','MATLAB .m file'}, 'Load Defaults from');
-if ischar(file)
-    cfg_util('initdef', appid, fullfile(path, file));
+[file sts] = cfg_getfile(1, '.*\.m$','Load Defaults from');
+if sts
+    cfg_util('initdef', appid, file);
 end;
 % --------------------------------------------------------------------
 function local_savedefs(varargin)
@@ -428,14 +428,15 @@ switch(udmodule.contents{5}{value})
         end;
         set(handles.valshow,'String', str, 'Visible','on', 'Value', 1);
         set(handles.valshowLabel, 'Visible','on');
-        set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
-            'Visible','on', 'Enable','on');
         if ~isfield(udmodlist, 'defid')
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddDep$'), ...
                 'Visible','on', 'Enable','on');
         end;
         if strcmp(udmodule.contents{5}{value},'cfg_files')
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*SelectFiles$'), ...
+                'Visible','on', 'Enable','on');
+        else
+            set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
                 'Visible','on', 'Enable','on');
         end
     case {'cfg_choice','cfg_menu'}
@@ -857,15 +858,11 @@ function MenuFileLoad_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[files path idx] = uigetfile({'*.m;*.mat;*.xml','Batch file(s)'}, 'Load Job', 'MultiSelect','on');
-if isnumeric(files) && files == 0
-    return;
+[files sts] = cfg_getfile(Inf, '.*\.m$', 'Load Job File(s)');
+if sts
+    cfg_util('initjob', cellstr(files));
+    local_showjob(hObject);
 end;
-if ischar(files)
-    files = {files};
-end;
-cfg_util('initjob', strcat(path, files));
-local_showjob(hObject);
 
 % --------------------------------------------------------------------
 function MenuFileSave_Callback(hObject, eventdata, handles)
