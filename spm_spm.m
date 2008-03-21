@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_spm.m 1237 2008-03-21 14:54:07Z stefan $
 
-SCCSid   = '$Rev: 1143 $';
+SCCSid   = '$Rev: 1237 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -306,27 +306,6 @@ end
 try
     cd(SPM.swd);
 end
-
-% added to make it work for SPM/ERP 1st level, conventional designs
-%--------------------------------------------------------------------------
-if strcmp(spm('CheckModality'), 'EEG')
-    [Ishortcut, SPM] = spm_eeg_shortcut(SPM);
-
-    if Ishortcut
-        if spm_matlab_version_chk('7') >=0
-            save('SPM', 'SPM', '-V6');
-        else
-            save('SPM', 'SPM');
-        end;
-        fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')
-        spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
-        fprintf('%-40s: %30s\n','Completed',spm('time'))
-        fprintf('...use the results section for assessment\n\n')
-
-        return;
-    end
-end
-
 
 %-Ensure data are assigned
 %--------------------------------------------------------------------------

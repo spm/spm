@@ -6,4 +6,4 @@ function obj = putfnamedat(obj, fnamedat)
 
 % Stefan Kiebel
 
-obj.data.y.fname = fullfile(obj.path, fnamedat);
+obj.data.fnamedat = fullfile(obj.path, fnamedat);

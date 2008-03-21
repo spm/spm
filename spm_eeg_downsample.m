@@ -5,12 +5,12 @@ function D = spm_eeg_downsample(S)
 % S         - optional input struct
 % (optional) fields of S:
 % D         - filename of EEG mat-file
-% Radc_new  - new sampling rate
+% fsample_new  - new sampling rate
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_downsample.m 1237 2008-03-21 14:54:07Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -23,13 +23,13 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-    D = spm_eeg_ldata(D);
+    D = spm_eeg_load(D);
 catch
     error(sprintf('Trouble reading file %s', D));
 end
 
 try
-    Radc_new = S.Radc_new;
+    fsample_new = S.fsample_new;
 catch
     str = 'New sampling rate';
     YPos = -1;
@@ -37,84 +37,46 @@ catch
         if YPos == -1
             YPos = '+1';
         end
-        [Radc_new, YPos] = spm_input(str, YPos, 'r');
-        if Radc_new < D.Radc, break, end
-        str = sprintf('Sampling rate must be less than original (%d)', round(D.Radc));
+        [fsample_new, YPos] = spm_input(str, YPos, 'r');
+        if fsample_new < D.fsample, break, end
+        str = sprintf('Sampling rate must be less than original (%d)', round(D.fsample));
     end
 end
 
 spm('Pointer', 'Watch');drawnow;
 
-% Prepare for writing data
-D.fnamedat = ['d' D.fnamedat];
-fpd = fopen(fullfile(P, D.fnamedat), 'w');
+% two passes
 
-% treat continuous and epoched data differently because of different
-% scaling method
+% 1st: Determine new D.nsamples
+d = squeeze(D(:, :, 1));
+d2 = resample(d', fsample_new, D.fsample)';
+nsamples_new = size(d2, 2);
 
-if size(D.data, 3) > 1
-    % epoched
-    D.scale = zeros(D.Nchannels, 1, D.Nevents);
+% generate new meeg object with new filenames
+Dnew = newdata(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials], dtype(D));
 
-    spm_progress_bar('Init', D.Nevents, 'Events downsampled'); drawnow;
-    if D.Nevents > 100, Ibar = floor(linspace(1, D.Nevents,100));
-    else, Ibar = [1:D.Nevents]; end
+% 2nd: resample all
+spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
+if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+else Ibar = [1:D.ntrials]; end
 
-    for i = 1:D.Nevents
-        d = squeeze(D.data(:, :, i));
-        d2 = resample(d', Radc_new, D.Radc)';
-        D.scale(:, 1, i) = spm_eeg_write(fpd, d2, 2, D.datatype);
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
-
+for i = 1:D.ntrials
+    d = squeeze(D(:, :, i));
+    d2 = resample(d', fsample_new, D.fsample)';
+    
+    Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:nsamples_new, i, d2);
+    if ismember(i, Ibar)
+        spm_progress_bar('Set', i); drawnow;
     end
-    D.events.start = round(D.events.start*Radc_new/D.Radc);
-    D.events.stop = size(d2, 2) - D.events.start - 1;
-    D.Nsamples = size(d2, 2);
-else
-    % continuous
-    D.scale = zeros(D.Nchannels, 1);
-
-    % adjust the timing information
-    try
-        D.events.time = round(D.events.time*Radc_new/D.Radc);
-    end
-    spm_progress_bar('Init', D.Nchannels, 'Channels downsampled'); drawnow;
-    if D.Nchannels > 100, Ibar = floor(linspace(1, D.Nchannels, 100));
-    else, Ibar = [1:D.Nchannels]; end
-
-    for i = 1:D.Nchannels
-        d = squeeze(D.data(i, :, :));
-        d2 = resample(d, Radc_new, D.Radc);
-        if i == 1
-            data = zeros(D.Nchannels, length(d2));
-        end
-        data(i, :) = d2;
-
-        if ismember(i, Ibar)
-            spm_progress_bar('Set', i); drawnow;
-        end
-
-    end
-    D.scale = spm_eeg_write(fpd, data, 2, D.datatype);
-    D.Nsamples = size(data, 2);
-
 
 end
+
 
 spm_progress_bar('Clear');
 
-fclose(fpd);
+Dnew = putfsample(Dnew, fsample_new);
+Dnew = putnsample(Dnew, nsamples_new);
 
-D.Radc = Radc_new;
-D.data = [];
-D.fname = ['d' D.fname];
-
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(P, D.fname), '-V6', 'D');
-else
-    save(fullfile(P, D.fname), 'D');
-end
+save(Dnew);
 
 spm('Pointer', 'Arrow');

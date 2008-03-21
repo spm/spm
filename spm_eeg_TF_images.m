@@ -1,10 +1,10 @@
 function D = spm_eeg_TF_images(S)
 % User interface for conversion of EEG-files to SPM's data structure
-% FORMAT D = spm_eeg_converteeg2mat(S)
+% FORMAT D = spm_eeg_TF_images(S)
 %
 % struct S is optional and has the following (optional) fields:
 %    fmt       - string that determines type of input file. Currently, this
-%                string can be either 'CNT' or 'BDF'
+%                string can be 'electrodes' or 'frequency'
 %    Mname     - char matrix of input file name(s)
 %    Fchannels - String containing name of channel template file
 %_______________________________________________________________________
@@ -27,8 +27,8 @@ function D = spm_eeg_TF_images(S)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% James Kilner 
-% $Id: spm_eeg_TF_images.m 1143 2008-02-07 19:33:33Z spm $
+% James Kilner, Stefan Kiebel 
+% $Id: spm_eeg_TF_images.m 1237 2008-03-21 14:54:07Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -40,7 +40,7 @@ end
 P = spm_str_manip(D, 'H');
 
 try
-    D = spm_eeg_ldata(D);
+    D = spm_eeg_load(D);
 catch    
     error(sprintf('Trouble reading file %s', D));
 end
@@ -61,88 +61,96 @@ if isfield(D, 'Nfrequencies');
     switch fmt
         case {'electrodes'}
             try
-                D.electrodes_of_interest = S.thresholds.elecs;
+                electrodes_of_interest = S.thresholds.elecs;
             catch 
                 str = 'electrodes[s]';
                 Ypos = -1;
                 
                 while 1
                     if Ypos == -1   
-                        [D.electrodes_of_interest, Ypos] = spm_input(str, '+1', 'r', [], [1 Inf]);
+                        [electrodes_of_interest, Ypos] = spm_input(str, '+1', 'r', [], [1 Inf]);
                     else
-                        D.electrodes_of_interest = spm_input(str, Ypos, 'r', [], [1 Inf]);
+                        electrodes_of_interest = spm_input(str, Ypos, 'r', [], [1 Inf]);
                     end
                     
                     
-                    t=1:D.Nchannels;
-                    tmp=[];
-                    for en=D.electrodes_of_interest;
-                        if isempty(find(t==en))
-                            tmp=[tmp,en];
+                    t = 1:D.nchannels;
+                    
+                    tmp = [];
+                    for en = electrodes_of_interest;
+                        if isempty(find(t == en))
+                            tmp=[tmp, en];
                         end
                     end
                     if isempty(tmp) break, end
                 end
             end
+            
             try
-                D.Nregion = S.region_no;
+                Nregion = S.region_no;
             catch 
                 str = 'region number';
                 Ypos = -1;
                 
                 while 1
                     if Ypos == -1   
-                        [D.Nregion, Ypos] = spm_input(str, '+1', 'r', [], [1 Inf]);
+                        [Nregion, Ypos] = spm_input(str, '+1', 'r', [], [1 Inf]);
                     else
-                        D.Nregion = spm_input(str, Ypos, 'r', [], [1 Inf]);
+                        Nregion = spm_input(str, Ypos, 'r', [], [1 Inf]);
                     end
-                    if ~isempty(D.Nregion) break, end
+                    if ~isempty(Nregion) break, end
                     str = 'No data';
                 end
                 
             end
             
-            for i = 1 : D.events.Ntypes
-                Itrials = find(D.events.code == D.events.types(i) & ~D.events.reject);
+            cl = cellstr(D{k}.conditionlabels);
+
+            for i = 1 : D.nconditions
+                Itrials = intersect(pickconditions(D{k}, cl(i)), find(~D{k}.reject))';
+                
                 cd(D.path)
-                dname = sprintf('%dROI_TF_trialtype%d', D.Nregion, D.events.types(i));
+                dname = sprintf('%dROI_TF_trialtype_%s', Nregion, D.conditionlabels(i));
                 [m, sta] = mkdir(dname);
                 cd(dname);
                 
                 for l = Itrials
-                    % if single trial data make new directory for single trials,
-                    % otherwise just write images to trialtype directory
-                    if D.Nevents ~= D.events.Ntypes
-                        % single trial data
-                        dname = sprintf('trial%d.img', l);
-                        fname = dname;
-                        [m, sta] = mkdir(dname);
-                        cd(dname);
-                    else
-                        fname = 'average.img';
-                    end
-                    data=squeeze(mean(D.data(D.electrodes_of_interest,:,:,i),1));   
-                    V.fname = fname;
-                    V.dim = [D.Nfrequencies D.Nsamples  1 ];
-                    V.dt=[spm_type('float64') 0]; %%%check later with john
-                    V.mat = eye(4);
-                    V.pinfo = [1 0 0]';
+
+					% if single trial data make new directory for single trials,
+					% otherwise just write images to trialtype directory
+					if D.Nevents ~= D.events.Ntypes
+						% single trial data
+						dname = sprintf('trial%d.img', l);
+						fname = dname;
+						[m, sta] = mkdir(dname);
+						cd(dname);
+					else
+						fname = 'average.img';
+					end
+
+                    dat = file_array(fname,...
+                        [D.nfrequencies D.nsamples], 'FLOAT64');
+                    dat(:,:) = squeeze(mean(D(electrodes_of_interest, :, :, i), 1));
                     
-                    spm_write_vol(V, data); % d is data
+                    N = nifti;
+                    N.dat = dat;
+                    N.mat = eye(4);
+                    N.mat_intent = 'Aligned';
+                    create(N);
                 end
                 
             end
             
         case {'frequency'}
             try
-                D.Frequency_window = S.freqs;
+                Frequency_window = S.freqs;
                 Ypos = -1;
                 while 1
                     if Ypos == -1
                         Ypos = '+1';
                     end
                     
-                    inds=find(D.tf.frequencies>=D.Frequency_window(1) & D.tf.frequencies<=D.Frequency_window(2))
+                    inds = find(D.tf.frequencies >= Frequency_window(1) & D.tf.frequencies <= Frequency_window(2));
                     if ~isempty(inds) break, end
                     str = 'No data in range';
                 end
@@ -156,36 +164,31 @@ if isfield(D, 'Nfrequencies');
                     end
                     [D.Frequency_window, Ypos] = spm_input(str, Ypos, 'r', [], 2);
                     
-                    inds=find(D.tf.frequencies>=D.Frequency_window(1) & D.tf.frequencies<=D.Frequency_window(2))
+                    inds = find(D.tf.frequencies >= Frequency_window(1) & D.tf.frequencies <= Frequency_window(2));
                     if ~isempty(inds) break, end
                     str = 'No data in range';
                 end
             end
-            data=squeeze(mean(D.data(:,inds,:,:),2));
-            D.fnamedat = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fnamedat];
-            fpd = fopen(fullfile(P, D.fnamedat), 'w');
-            for i=1:D.Nevents;
-                D.scale(:,1,i) = spm_eeg_write(fpd, squeeze(data(:,:,i)), 2, D.datatype);
-            end
-            fclose(fpd);
+            
+            % generate new meeg object with new filenames
+            fnamedat = ['F' num2str(Frequency_window(1)) '_' num2str(Frequency_window(2)) '_' D.fnamedat];
+            Dnew = newdata(D, fnamedat, [D.nchannels D.nsamples D.ntrials], dtype(D));
+            
+            Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, Dnew.ntrials,... 
+                squeeze(mean(D(:, inds, :, :), 2)));
+
            
             D=rmfield(D,'Nfrequencies');
             D=rmfield(D,'tf');
-            D.fname = ['F' num2str(D.Frequency_window(1)) '_' num2str(D.Frequency_window(2)) '_' D.fname];
-            D.data = [];
-            cd(D.path)
-            if spm_matlab_version_chk('7') >= 0,
-                save(fullfile(P, D.fname), '-V6', 'D');
-            else
-                save(fullfile(P, D.fname), 'D');
-            end
-            S.Fname=D.fname;
+
+            save(D);
+            S.D = fullfile(D.path, D.fname);
             
             try
                 n = S.n;
             catch
                 S.n = spm_input('Output image dimension', '+1', 'n', '32', 1);
-                n=S.n;
+                n = S.n;
             end
             
             if length(n) > 1

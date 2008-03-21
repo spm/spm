@@ -88,11 +88,16 @@ function D = meeg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 1125 2008-01-30 12:12:18Z vladimir $
+% $Id: meeg.m 1237 2008-03-21 14:54:07Z stefan $
 
 if nargin==1
     if isstruct(varargin{1})
         [result D] = checkmeeg(varargin{1}, 'basic');
+        
+        if result ~= 1
+            error('Faulty meeg object in file %s!', D.fname);
+            return;
+        end
         D = class(D, 'meeg');
         return;
     elseif isa(varargin{1},'meeg'),

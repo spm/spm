@@ -171,7 +171,7 @@ if ~isempty(badchan)
         d(badchan) = NaN;
 end
 
-z = griddata(handles.xp, handles.yp, d, handles.x1, handles.y1);
+z = griddata(handles.xp, handles.yp, double(d), handles.x1, handles.y1);
 
 if length(T) == 1
     set(handles.text1, 'String', sprintf('%d ms', round(handles.D.time(T, 'ms'))));

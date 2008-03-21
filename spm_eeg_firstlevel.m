@@ -259,7 +259,7 @@ defaults.analyze.flip = 0;
 con_types = handles.con_types;
 D = handles.D;
 
-ms = 1000/D.Radc*[-D.events.start:D.events.stop];
+ms = D.time;
 
 % assemble contrast vectors into matrix
 for i = 1:size(handles.con_types, 1)
@@ -355,21 +355,21 @@ function Dfile_Callback(hObject, eventdata, handles)
 [filename, pathname, filterindex] = uigetfile('*.mat', 'Select a SPM M/EEG file');
 
 try
-    D = spm_eeg_ldata(fullfile(pathname, filename));
+    D = spm_eeg_load(fullfile(pathname, filename));
 catch
     errordlg('Selected file isn''t a valid SPM M/EEG file.')
     return;
 end
 
 try
-    D.Nsamples;
+    D.nsamples;
 catch
     errordlg('Selected file isn''t a valid SPM M/EEG file.')
     return;
 end
 
-if D.Nsamples ~= handles.Nt
-    errordlg(sprintf('Number of time points (%d) different from images (%d).', D.Nsamples, handles.Nt))
+if D.nsamples ~= handles.Nt
+    errordlg(sprintf('Number of time points (%d) different from images (%d).', D.nsamples, handles.Nt))
     return;
 end
 
@@ -380,11 +380,11 @@ set(handles.listbox2, 'Enable', 'on');
 set(handles.addcontrast, 'Enable', 'on');
 set(handles.removecontrast, 'Enable', 'on');
 set(handles.clearcontrasts, 'Enable', 'on');
-handles.ms = 1000/D.Radc*[-D.events.start D.events.stop];
+handles.ms = D.time;
 set(handles.mstext, 'Enable', 'on');
 set(handles.mstext, 'String', ...
     sprintf('%d to %d ms, %d time points, %.2f ms steps', ...
-    handles.ms(1), handles.ms(2), handles.Nt, 1000/D.Radc));
+    handles.ms(1), handles.ms(2), handles.Nt, 1000/D.fsample));
 set(handles.Dfile, 'String', handles.Dfilename);
     
 % Update handles structure

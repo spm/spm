@@ -3,28 +3,25 @@ function spm_eeg_convertmat2ana(S)
 % onto the scalp surface
 % FORMAT spm_eeg_convertmat2ana(S)
 %
-% S         - optinal input struct
+% S         - optional input struct
 % (optional) fields of S:
 % Fname     - matrix of EEG mat-files
 % n         - size of quadratic output image (size: n x n x 1)
 %_______________________________________________________________________
 %
-% spm_eeg_convertmat2ana converts EEG/MEG data from the SPM format to the
-% scalp format. The channel data is interpolated to voxel-space using a
-% spline interpolation. The electrodes' locations are specified by the
+% spm_eeg_convertmat2ana converts EEG/MEG data from the SPM M/EEG format to
+% nifti format. The channel data are interpolated to voxel-space using a
+% trilinear interpolation. The electrodes' locations are specified by the
 % channel template file. Each channel's data will be found in an individual
-% voxel given that n is big enough. The data is written to 4-dim analyze
-% images, i.e. the data of each single trial or ERP is contained in one
-% image file.
+% voxel given that n is big enough. The data is written to 4-dim nifti
+% images.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_convertmat2ana.m 1237 2008-03-21 14:54:07Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
-% 
-% select matfiles to convert
 
 try
     Fname = S.Fname;
@@ -41,7 +38,7 @@ catch
 end
 
 if length(n) > 1
-    error('n must be scalar');
+    error('n must be a scalar.');
 end
 
 try
@@ -56,66 +53,67 @@ spm('Pointer', 'Watch'); drawnow
 % Load data set into structures
 clear D
 for i = 1:Nsub
-    D{i} = spm_eeg_ldata(deblank(Fname(i,:)));
+    D{i} = spm_eeg_load(deblank(Fname(i,:)));
 end
 
 for k = 1:Nsub
 
     [Cel, Cind, x, y] = spm_eeg_locate_channels(D{k}, n, interpolate_bad);
 
-    % nr of (good) channels
+    % nr of channels
     Nel = length(Cel);
     
     % generate data directory into which converted data goes
     [P, F] = fileparts(spm_str_manip(Fname(k, :), 'r'));
-     [m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
+    [m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
     cd(fullfile(P, spm_str_manip(Fname(k, :), 'tr')));
     
-    d = (D{k}.data(Cind, :,:));
+    d = (D{k}(Cind, :,:));
+    cl = cellstr(D{k}.conditionlabels);
     
-    for i = 1 : D{k}.events.Ntypes % trial types
+    for i = 1 : D{k}.nconditions
         
-        Itrials = find(D{k}.events.code == D{k}.events.types(i) & ~D{k}.events.reject);
+        Itrials = intersect(pickconditions(D{k}, cl(i)), find(~D{k}.reject))';
         
-        dname = sprintf('trialtype%d', D{k}.events.types(i));
+        dname = sprintf('type_%s', D{k}.conditionlabels(i));
         [m, sta] = mkdir(dname);
         cd(dname);
         
         for l = Itrials
-            if D{k}.Nevents ~= D{k}.events.Ntypes
-                % single trial data
-                fname = sprintf('trial%d.img', l);
+            % single trial data
+            if l < 10
+                tmp = '000';
+            elseif l <100
+                tmp = '00';
+            elseif l < 1000
+                tmp = '0';
             else
-                fname = 'average.img';
+                tmp = [];
             end
+
+            fname = sprintf('trial%s%d.img', tmp, l);
             
-            dat = file_array(fname,[n n 1 D{k}.Nsamples],'FLOAT32');
+            dat = file_array(fname,[n n 1 D{k}.nsamples],'FLOAT32');
             N = nifti;
             N.dat = dat;
             N.mat = eye(4);
             N.mat_intent = 'Aligned';
             create(N);
                         
-            for j = 1 : D{k}.Nsamples % time bins
+            for j = 1 : D{k}.nsamples % time bins
                 di = ones(n, n)*NaN;                
-                di(sub2ind([n n], x, y)) = griddata(Cel(:,1), Cel(:,2), d(:, j, l),x,y, 'linear');
-                % griddata returns NaN for voxels outside convex hull (can
+                di(sub2ind([n n], x, y)) = griddata(Cel(:,1), Cel(:,2), d(:, j, l), x, y, 'linear');
+                % griddata returns NaN for voxels outside convex hull (this can
                 % happen due to bad electrodes at borders of setup.)
                 % Replace these by nearest neighbour interpoltation.
                 tmp = find(isnan(di(sub2ind([n n], x, y))));
                 di(sub2ind([n n], x(tmp), y(tmp))) =...
-                    griddata(Cel(:,1), Cel(:,2), d(:, j, l),x(tmp),y(tmp), 'nearest');
+                    griddata(Cel(:,1), Cel(:,2), d(:, j, l), x(tmp), y(tmp), 'nearest');
                 
                 N.dat(:,:,1,j) = di;
             end        
             
-            if D{k}.Nevents ~= D{k}.events.Ntypes
-                % single trial data
-                disp(sprintf('Subject %d, type %d, trial %d', k, i, l))
-            else
-                % averaged data
-                disp(sprintf('Subject %d, type %d', k, i))
-            end
+                disp(sprintf('File %d, type %d, trial %d', k, i, l))
             
         end
         cd ..

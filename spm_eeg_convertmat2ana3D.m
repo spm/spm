@@ -21,16 +21,9 @@ function spm_eeg_convertmat2ana3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2ana3D.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_convertmat2ana3D.m 1237 2008-03-21 14:54:07Z stefan $
 
-% [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
-% 
-% select matfiles to convert
-
-
-% Changed to add time as 3rd rather than 4th dimension      Rik Henson
-% Image orientation matrix includes correct dimensions and origin for time
-% Pixel dimensions added as option (so coordinates could be meaningful in future? (and images "nicer" to dsiplay!!!))
+[Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
 
 try
@@ -70,13 +63,11 @@ catch
     S.trialtypes = [];
 end
 
-
 spm('Pointer', 'Watch'); drawnow
 
-% Load data set into structures
 clear D
 for i = 1:Nsub
-    D{i} = spm_eeg_ldata(deblank(Fname(i,:)));
+    D{i} = spm_eeg_load(deblank(Fname(i,:)));
 end
 
 for k = 1:Nsub
@@ -91,52 +82,37 @@ for k = 1:Nsub
     [m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
     cd(fullfile(P, spm_str_manip(Fname(k, :), 'tr')));
     
-    d = (D{k}.data(Cind, :,:));
-    
-    if isempty(S.trialtypes)
-       trialtypes = [1:D{k}.events.Ntypes];
-    end
-    
-    for i = trialtypes
+    d = (D{k}(Cind, :,:));
+    cl = cellstr(D{k}.conditionlabels);
+
+    for i = 1 : D{k}.nconditions
         
-        Itrials = find(D{k}.events.code == D{k}.events.types(i) & ~D{k}.events.reject);
-        
-        dname = sprintf('trialtype%d', D{k}.events.types(i));
+        Itrials = intersect(pickconditions(D{k}, cl(i)), find(~D{k}.reject))';
+
+        dname = sprintf('type_%s', D{k}.conditionlabels(i));
         [m, sta] = mkdir(dname);
         cd(dname);
         
         for l = Itrials
-            if D{k}.Nevents ~= D{k}.events.Ntypes
-                % single trial data
-                fname = sprintf('trial%d.img', l);
-            else
-                fname = 'average.img';
-            end
-            
-            dat = file_array(fname,[n n D{k}.Nsamples 1],'FLOAT32');
+            fname = sprintf('trial%d.img', l);
+                               
+            dat = file_array(fname,[n n D{k}.nsamples 1],'FLOAT32');
             N = nifti;
             N.dat = dat;
-%            N.mat = eye(4);
-            N.mat = [   pixsize 0 0          -n*pixsize/2;
-            0 pixsize 0      -n*pixsize/2;
-            0 0 1000/D{k}.Radc  -D{k}.events.start*1000/D{k}.Radc;
-            0 0 0        1];
+            N.mat = [   pixsize 0 0          -n*pixsize/2;...
+                0 pixsize 0      -n*pixsize/2;...
+                0 0 1000/D{k}.fsample  time(D{k}, 1, 'ms');...
+                0 0 0        1];
             N.mat_intent = 'Aligned';
             create(N);
                         
-            for j = 1 : D{k}.Nsamples % time bins
+            for j = 1 : D{k}.nsamples % time bins
                 di = ones(n, n)*NaN;                
                 di(sub2ind([n n], x, y)) = griddata(Cel(:,1), Cel(:,2), d(:, j, l),x,y, 'linear');
                 N.dat(:,:,j,1) = di;
             end        
             
-            if D{k}.Nevents ~= D{k}.events.Ntypes
-                % single trial data
-                disp(sprintf('Subject %d, type %d, trial %d', k, i, l))
-            else
-                % averaged data
-                disp(sprintf('Subject %d, type %d', k, i))
-            end
+            disp(sprintf('File %d, type %d, trial %d', k, i, l))
             
         end
         cd ..

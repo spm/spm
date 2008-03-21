@@ -18,5 +18,6 @@ d(end,end,end) = 0;
 % link into meeg object
 obj.data.y = d;
 
-% change filename for mat-file
+% change filenames
 obj.fname = [spm_str_manip(fnamedat, 'r') '.mat'];
+obj.data.fnamedat = fnamedat;
