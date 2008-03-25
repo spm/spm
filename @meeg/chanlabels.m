@@ -5,7 +5,7 @@ function res = chanlabels(obj, ind)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chanlabels.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: chanlabels.m 1239 2008-03-25 15:28:16Z vladimir $
 
 if obj.Nsamples>0
     res = {obj.channels.label};
@@ -21,4 +21,4 @@ if nargin > 1
     end
 end
 
-res = strvcat(res);
+% res = strvcat(res);

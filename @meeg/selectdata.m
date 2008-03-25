@@ -5,7 +5,7 @@ function res = selectdata(obj, chanlabel, timeborders, condition)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectdata.m 1125 2008-01-30 12:12:18Z vladimir $
+% $Id: selectdata.m 1239 2008-03-25 15:28:16Z vladimir $
 
 if obj.Nsamples == 0
     res = [];
@@ -22,7 +22,7 @@ else
     if ischar(chanlabel)
         chanlabel = {chanlabel};
     end
-    [junk, chanind] = match_str(chanlabel, chanlabels(obj));
+    [junk, chanind] = spm_match_str(chanlabel, chanlabels(obj));
 end
 
 if isempty(timeborders)
@@ -41,7 +41,7 @@ else
     if ischar(condition)
         condition = {condition};
     end
-    [junk, trialind] = match_str(condition, {obj.trials.label});
+    [junk, trialind] = spm_match_str(condition, {obj.trials.label});
 end
 
 res = obj.data.y(chanind, timeind, trialind);

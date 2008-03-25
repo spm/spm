@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1234 2008-03-20 16:48:43Z vladimir $
+% $Id: checkmeeg.m 1239 2008-03-25 15:28:16Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -87,10 +87,9 @@ else
         meegstruct.data.datatype = 'float32';
     end
 
-    datatype = spm_type(meegstruct.data.datatype);
-
     if ~isfield(meegstruct.data, 'scale')
-        if strcmp(datatype, 'float32') || strcmp(datatype, 'float64')
+        if strcmp(meegstruct.data.datatype, 'float32') || ...
+                strcmp(meegstruct.data.datatype, 'float64')
             disp('checkmeeg: data scale missing, assigning default');
             meegstruct.data.scale = ones(Nchannels, 1, Ntrials);
         else
@@ -107,10 +106,11 @@ else
         if isfield(meegstruct, 'path')
             filepath = meegstruct.path;
         else
-            filepath = [];
+            filepath = '';
         end
         meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-            [Nchannels Nsamples Ntrials], datatype, 0, meegstruct.data.scale);
+            [Nchannels Nsamples Ntrials], spm_type(meegstruct.data.datatype), ...
+            0, meegstruct.data.scale);
     end
 
     if Ntrials>1
@@ -176,7 +176,7 @@ fieldnames_order = {
     'cache'
     'other'};
 
-[sel1, sel2] = match_str(fieldnames_order, fieldnames(meegstruct));
+[sel1, sel2] = spm_match_str(fieldnames_order, fieldnames(meegstruct));
 tempcell = struct2cell(meegstruct);
 meegstruct = cell2struct(tempcell(sel2), fieldnames_order, 1);
 
