@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: spm_eeg_artefact.m 1243 2008-03-25 23:02:44Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -177,10 +177,10 @@ if MustDoWork
     % report on command line
     if isempty(ind)
         disp(sprintf('There isn''t a bad channel.'));
-        D = putbadchannel(D, [1:D.meegchannels], zeros(length(D.meegchannels), 1));
+        D = badchannels(D, [1:D.meegchannels], zeros(length(D.meegchannels), 1));
     else
         disp(['Bad channels: ', sprintf('%s ', D.chanlabels(ind)')])    
-        D = putbadchannel(D, ind, ones(length(ind), 1));
+        D = badchannels(D, ind, ones(length(ind), 1));
     end
     
     cl = conditionlabels(D);
@@ -263,29 +263,29 @@ if MustDoWork
             
         end
         
-        D = putother(D, thresholded);
+        D.thresholded = thresholded;
 
         spm_progress_bar('Clear');
         disp(sprintf('%d rejected trials: %s', length(index), mat2str(index)))
         
-        D = putreject(D, index, 1);
+        D = reject(D, index, 1);
     end
     
 end % MustDoWork
 
 % User-specified lists override any artefact classification
 if artefact.External_list
-    D = putreject(D, artefact.out_list, 1);
-    D = putreject(D, artefact.in_list, 0);
+    D = reject(D, artefact.out_list, 1);
+    D = reject(D, artefact.in_list, 0);
 end
 
 % Save the data
 copyfile(fullfile(D.path, D.fnamedat), fullfile(D.path, ['a' D.fnamedat]));
-putfnamedat(D, ['a' D.fnamedat]);
+D = fnamedat(D, ['a' D.fnamedat]);
 
 spm_progress_bar('Clear');
 
-D = putfname(D, ['a' D.fname]);
+D = fname(D, ['a' D.fname]);
 
 save(D);
 

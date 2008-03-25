@@ -1,6 +1,6 @@
-function res = fname(obj, name)
+function res = fname(this, name)
 % Method for getting/setting file name
-% FORMAT res = fname(obj)
+% FORMAT res = fname(this, name)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
@@ -15,8 +15,8 @@ switch nargin
     otherwise
 end
 
-function res = getfnamedat(this)
+function res = getfname(this)
 res = this.fname;
 
-function this = setfnamedat(this, name)
+function this = setfname(this, name)
 this.fname = name;

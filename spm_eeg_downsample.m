@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_eeg_downsample.m 1243 2008-03-25 23:02:44Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -48,12 +48,12 @@ spm('Pointer', 'Watch');drawnow;
 % two passes
 
 % 1st: Determine new D.nsamples
-d = squeeze(D(:, :, 1));
+d = double(squeeze(D(:, :, 1)));
 d2 = resample(d', fsample_new, D.fsample)';
 nsamples_new = size(d2, 2);
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials], dtype(D));
+Dnew = newdata(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials], D.dtype);
 
 % 2nd: resample all
 spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
@@ -61,10 +61,10 @@ if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
 else Ibar = [1:D.ntrials]; end
 
 for i = 1:D.ntrials
-    d = squeeze(D(:, :, i));
+    d = double(squeeze(D(:, :, i)));
     d2 = resample(d', fsample_new, D.fsample)';
     
-    Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:nsamples_new, i, d2);
+    Dnew(1:Dnew.nchannels, 1:nsamples_new, i) = d2;
     if ismember(i, Ibar)
         spm_progress_bar('Set', i); drawnow;
     end
@@ -75,7 +75,7 @@ end
 spm_progress_bar('Clear');
 
 Dnew = putfsample(Dnew, fsample_new);
-Dnew = putnsample(Dnew, nsamples_new);
+Dnew = putnsamples(Dnew, nsamples_new);
 
 save(Dnew);
 

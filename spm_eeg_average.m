@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: spm_eeg_average.m 1243 2008-03-25 23:02:44Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -72,12 +72,12 @@ spm('Pointer', 'Watch'); drawnow;
 % else
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions], dtype(D));
+Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions], D.dtype);
         
-artefact = getother(D, 'artefact');
+try artefact = D.artefact; catch artefact = []; end
 if ~isempty(artefact)
     weights = artefact.weights;
-    thresholded = getother(D, 'thresholded');
+    try thresholded = D.thresholded; catch thresholded = []; end
 end
 cl = conditionlabels(D);
 
@@ -149,7 +149,7 @@ else
                 d(j, :) = w*squeeze(D(j, :, :))';
             end
         end
-        Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, i, d);
+        Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
 
         if ismember(i, Ibar)
             spm_progress_bar('Set', i);

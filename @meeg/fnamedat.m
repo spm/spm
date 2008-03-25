@@ -1,6 +1,6 @@
-function res = fnamedat(obj, name)
+function res = fnamedat(this, name)
 % Method for getting/setting file name of data file
-% FORMAT res = fnamedat(obj)
+% FORMAT res = fnamedat(this, name)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
@@ -17,7 +17,7 @@ switch nargin
 end
 
 function res = getfnamedat(this)
-res = obj.data.fnamedat;
+res = this.data.fnamedat;
 
 function this = setfnamedat(this, name)
-this.data.fnamedat = fnamedat;
+this.data.fnamedat = name;

@@ -1,6 +1,6 @@
-function res = path(obj, name)
+function res = path(this, name)
 % Method for getting/setting path
-% FORMAT res = path(obj)
+% FORMAT res = path(this, name)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
@@ -17,7 +17,7 @@ end
 
 function res = getpath(this)
 try
-    res = obj.path;
+    res = this.path;
 catch
     res = '';
 end

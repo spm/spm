@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: spm_eeg_select_channels.m 1243 2008-03-25 23:02:44Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -279,7 +279,7 @@ D = handles.D;
 
 s = get(handles.listbox1, 'Value');
 
-s = setdiff(s, D.channels.Bad);
+s = setdiff(s, D.badchannels);
 
 set(handles.listbox1, 'Value', s);
 

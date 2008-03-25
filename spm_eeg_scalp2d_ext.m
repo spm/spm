@@ -72,7 +72,7 @@ handles.T = ind;
 % locations
 gfx = getcache(D, 'gfx');
 gfx.channels = intersect(gfx.channels, D.meegchannels);	% to ensure EOG not included
-D = putcache(D, gfx);
+D = cache(D, gfx);
 xy = D.coor2D(gfx.channels);
 
 handles.x = min(xy(1,:)):0.005:max(xy(1,:));

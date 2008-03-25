@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_dcm_erp.m 1243 2008-03-25 23:02:44Z stefan $
  
 % check options 
 %==========================================================================
@@ -67,7 +67,12 @@ Nm     = max(Nm,Nr);
  
 % confounds - DCT: (force a parameter per channel = activity under x = 0)
 %--------------------------------------------------------------------------
-X0     = spm_dctmtx(Ns,1);
+% X0     = spm_dctmtx(Ns,1);
+if h == 0
+    X0 = zeros(Ns, h);
+else
+    X0     = spm_dctmtx(Ns, h);
+end
 T0     = speye(Ns) - X0*inv(X0'*X0)*X0';
 xY.X0  = X0;
  
@@ -217,15 +222,16 @@ M.ns  = Ns;
  
 % Spatial modes
 %--------------------------------------------------------------------------
-dGdg  = spm_diff(M.G,gE,M,1);
-L     = spm_cat(dGdg);
-U     = spm_svd(L*L',exp(-8));
-try
-    U = U(:,1:Nm);
+if ~isfield(M, 'E')
+    dGdg  = spm_diff(M.G,gE,M,1);
+    L     = spm_cat(dGdg);
+    U     = spm_svd(L*L',exp(-8));
+    try
+        U = U(:,1:Nm);
+    end
+    Nm    = size(U,2);
+    M.E   = U;
 end
-Nm    = size(U,2);
-M.E   = U;
- 
  
 % EM: inversion
 %==========================================================================

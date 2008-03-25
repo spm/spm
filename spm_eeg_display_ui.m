@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_eeg_display_ui.m 1243 2008-03-25 23:02:44Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -252,7 +252,7 @@ if nargin == 0 || ~isfield(S, 'rebuild')
         % channels to display, initially exclude bad channels
         S.gfx.channels = setdiff(D.meegchannels, D.badchannels);
     end
-    gfx = S.gfx; D = putcache(D,gfx);
+    gfx = S.gfx; D = cache(D,gfx);
 
 else
     % this is a re-display with different set of selected channels, delete plots
@@ -365,7 +365,7 @@ for i = 1:Npos
     end
 
     uimenu(Heegmenus(i), 'Label',...
-        sprintf('%s (%d)', D.chanlabels(handles.Cselection(i)), handles.Cselection(i)));
+        sprintf('%s (%d)', strvcat(D.chanlabels(handles.Cselection(i))), handles.Cselection(i)));
     uimenu(Heegmenus(i), 'Separator', 'on');
     uimenu(Heegmenus(i), 'Label', labelstring,...
         'CallBack', {@switch_bad, i});
@@ -610,7 +610,7 @@ if ~isempty(w)
 else
     handles.Heegfigures{ind} = figure;
     set(gcf,...
-        'Name', (sprintf('Channel %s', D.chanlabels(handles.Cselection(ind)))),...
+        'Name', (sprintf('Channel %s', strvcat(D.chanlabels(handles.Cselection(ind))))),...
         'NumberTitle', 'off',...
         'DeleteFcn', {@delete_Heegwindows, ind});
 
@@ -649,7 +649,7 @@ else
         'XLim', [D.time(1) D.time(end)], 'Box', 'on');
     grid on
 
-    title(sprintf('%s (%d)', D.chanlabels(handles.Cselection(ind)), handles.Cselection(ind)), 'FontSize', 16);
+    title(sprintf('%s (%d)', strvcat(D.chanlabels(handles.Cselection(ind))), handles.Cselection(ind)), 'FontSize', 16);
 
     if D.ntrials > 1
         legend(handles.trialnames{handles.Tselection}, 0);
@@ -709,11 +709,11 @@ if D.reject(ind) == 0
     % reject this trial
     tmp = [sprintf('%-12s', sprintf('trial %d', ind))  sprintf('%s', D.conditions(ind))...
         sprintf(' %s', 'reject')];
-    D = putreject(D, ind, 1);
+    D = reject(D, ind, 1);
 else
     % un-reject this trial
     tmp = [sprintf('%-12s', sprintf('trial %d', ind))  sprintf('%s', D.conditions(ind))];
-    D = putreject(D, ind, 0);
+    D = reject(D, ind, 0);
 end
 handles.trialnames{ind} = tmp;
 
@@ -730,7 +730,7 @@ D = handles.D;
 ind = spm_eeg_select_channels(D);
 gfx.channels = ind;
 
-D = putcache(D, gfx);
+D = cache(D, gfx);
 S.D = D;
 S.gfx = gfx;
 S.rebuild = 1;

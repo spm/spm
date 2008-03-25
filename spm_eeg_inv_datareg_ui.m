@@ -11,7 +11,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_datareg_ui.m 1243 2008-03-25 23:02:44Z stefan $
 
 % Set-up specfic parameters (POLHEMIUS)
 %==========================================================================
@@ -100,7 +100,12 @@ else
     megorient = sparse(0,3);
 end
 
-
+% put grad structure aboard as well (used by MEG fieldtrip leadfield
+% function)
+try
+    grad = D.channels.grad;
+end
+    
 % Speccify anatomical space (fiducials and scalp surface)
 %==========================================================================
 
@@ -136,7 +141,9 @@ D.inv{val}.datareg.fid_mri   = fid_mri;
 D.inv{val}.datareg.headshape = headshape;
 D.inv{val}.datareg.scalpvert = scalpvert;
 D.inv{val}.datareg.megorient = megorient;
-
+try
+    D.inv{val}.datareg.grad = grad;
+end
 %--------------------------------------------------------------------------
 D = spm_eeg_inv_datareg(D);
 

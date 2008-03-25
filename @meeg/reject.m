@@ -1,6 +1,6 @@
-function res = reject(obj, ind, flag)
+function res = reject(this, ind, flag)
 % Method for getting/setting rejection flags
-% FORMAT res = reject(obj, ind, flag)
+% FORMAT res = reject(this, ind, flag)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
@@ -11,18 +11,18 @@ switch nargin
     case 1
         res = getreject(this);        
     case 2
-        res = getreject(this, ind)
+        res = getreject(this, ind);
     case 3
         res = setreject(this, ind, flag);
     otherwise
 end
 
 function res = getreject(this, ind)
-if obj.Nsamples>0
-    if isfield(obj.trials(1), 'reject')
-        res = cat(1,obj.trials.reject);
+if this.Nsamples>0
+    if isfield(this.trials(1), 'reject')
+        res = cat(1,this.trials.reject);
     else
-        res = zeros(length(obj.trials),1);
+        res = zeros(length(this.trials),1);
     end
 else
     res = [];
@@ -35,7 +35,7 @@ end
 function this = setreject(this, ind, flag)
 
 % include check for datasource!
-if obj.Nsamples>0
+if this.Nsamples>0
     if ~isfield(this.trials(1), 'reject')
         % initialize
         [this.trials.reject] = deal(0);

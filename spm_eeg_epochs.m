@@ -27,7 +27,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: spm_eeg_epochs.m 1243 2008-03-25 23:02:44Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -62,12 +62,13 @@ end
 try
     events.types = S.events.types;
 catch
-    disp(unique(events.code))
+    disp(D.conditionlabels)
     events.types = ...
-        spm_input('Event types to epoch', '+1', 'i');
+        spm_input('Event types to epoch', '+1', 's+');
 end
 
-ind = find(ismember(events.code,events.types));
+% returns indices of chosen conditions
+ind = pickconditions(D, events.types);
 
 try
     Inewlist = S.events.Inewlist;
@@ -88,15 +89,15 @@ spm('Pointer', 'Watch'); drawnow;
 
 
 % transform ms to samples
-events.start = ceil(-events.start*D.Radc/1000);
-events.stop = ceil(events.stop*D.Radc/1000);
+events.start = indsample(D, events.start);
+events.stop = indsample(D, events.stop);
 
 if events.start <= 1
-    error('Start of pre-stimulus time must be less than %f ms', floor(-D.Radc/1000));
+    error('Start of pre-stimulus time must be less than %f ms', floor(-D.fsample/1000));
 end
 
 if events.stop <= 1
-    error('End of post-stimulus time must be more than %f ms', ceil(D.Radc/1000));
+    error('End of post-stimulus time must be more than %f ms', ceil(D.fsample/1000));
 end
 
 % two passes

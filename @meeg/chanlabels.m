@@ -1,10 +1,10 @@
 function res = chanlabels(this, ind)
 % Method for getting/setting the channel labels
-% FORMAT res = chanlabels(obj)
+% FORMAT res = chanlabels(this, ind)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Litvak
+% Vladimir Litvak, Stefan Kiebel
 % $Id$
 
 switch nargin
@@ -25,7 +25,7 @@ else
 end
 
 if nargin > 1
-    if all(ind > 0 & ind <= nchannels(obj))
+    if all(ind > 0 & ind <= subsref(this, substruct('.','nchannels')))
         res = res(ind);
     else
         error('Indexed channels do not exist.');

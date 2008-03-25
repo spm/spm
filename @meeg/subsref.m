@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 1242 2008-03-25 20:51:08Z stefan $
+% $Id: subsref.m 1243 2008-03-25 23:02:44Z stefan $
 
 if isempty(subs)
     return;
@@ -21,16 +21,7 @@ switch subs(1).type
         varargout = {subsref(this.data.y, subs)};
     case '{}'
     case '.'
-        if ismethod(this, subs(1).subs)
-            switch numel(subs)
-                case 1
-                    varargout = {feval(subs(1).subs, this)};
-                case 2
-                    varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
-                otherwise
-                    error('Expression too complicated');
-            end            
-        elseif isfield(this.other, subs(1).subs)
+        if isfield(this.other, subs(1).subs)
             field = getfield(this.other, subs(1).subs);
             if numel(subs)==1
                 varargout = {field};
@@ -44,22 +35,31 @@ switch subs(1).type
                 case 'nconditions'
                     varargout = {size(unique(conditions(this), 'rows'),1)};
                 case 'nsamples'
-                    varargout = {this.Nsamples};                            
+                    varargout = {this.Nsamples};
                 case 'dtype';
                     % returns datatype of embedded file_array object
                     varargout = {this.data.y.dtype};
-                case 'fsample';
+                case 'fsample'
                     varargout = {this.Fsample};
-                case 'meegchannels';
+                case 'meegchannels'
                     type = cat(1, this.channels(:).type);
-                    vargout = {unique([find(strmatch('EEG', type)) find(strmatch('MEG', type))])};
+                    varargout = {unique([find(strmatch('EEG', type)) find(strmatch('MEG', type))])};
                 case 'ntrials'
                     varargout = {length(this.trials)};
-                    
 
-                    
                 otherwise
-                    error('Reference to non-existent or private meeg method or field.');
+                    if ismethod(this, subs(1).subs)
+                        switch numel(subs)
+                            case 1
+                                varargout = {feval(subs(1).subs, this)};
+                            case 2
+                                varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
+                            otherwise
+                                error('Expression too complicated');
+                        end
+                    else
+                        error('Reference to non-existent or private meeg method or field.');
+                    end
             end
         end
     otherwise
