@@ -1,4 +1,4 @@
-function S = spm_config_eeg_filter8
+function S = spm_cfg_eeg_filter8
 % configuration file for EEG Filtering
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
@@ -21,17 +21,25 @@ typ.values = {1};
 typ.val = {1};
 typ.help = {'Select the filter type.'};
 
+band = cfg_menu;
+band.tag = 'band';
+band.name = 'Filter band';
+band.labels = {'lowpass', 'highpass', 'bandpass', 'stopband'};
+band.values = {1 2 3 4};
+band.val = {1 2 3 4};
+band.help = {'Select the filter band.'};
+
 PHz = cfg_entry;
 PHz.tag = 'cutoff';
 PHz.name = 'Cutoff';
 PHz.strtype = 'r';
-PHz.num = [1 1];
+PHz.num = [1 inf];
 PHz.help = {'Enter the filter cutoff'};
 
 flt = cfg_branch;
 flt.tag = 'filter';
 flt.name = 'Filter';
-flt.val = {typ PHz};
+flt.val = {typ band PHz};
 
 S = cfg_exbranch;
 S.tag = 'eeg_filter';
@@ -42,7 +50,28 @@ S.prog = @eeg_filter;
 S.modality = {'EEG'};
 
 function eeg_filter(job)
-disp('hello')
+% construct the S struct
+S.D = job.D{1};
+switch(job.filter.type)
+    case 1
+        S.filter.type = 'butterworth';
+    otherwise
+        error('Unknown filter');        
+end
 
-% S.D = strvcat(S.D{:});
-% spm_eeg_filter(S)
+switch(job.filter.band)
+    case 1
+        S.filter.band = 'low';
+    case 2
+        S.filter.band = 'high';
+    case 3
+        S.filter.band = 'bandpass';
+    case 4
+        S.filter.band = 'stop';
+    otherwise
+        error('Unknown band');        
+end
+
+S.filter.PHz = job.filter.cutoff;
+
+spm_eeg_filter(S);
