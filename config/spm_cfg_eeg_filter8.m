@@ -17,20 +17,20 @@ typ = cfg_menu;
 typ.tag = 'type';
 typ.name = 'Filter type';
 typ.labels = {'Butterworth'};
-typ.values = {1};
-typ.val = {1};
+typ.values = {'butterworth'};
+typ.val = {'butterworth'};
 typ.help = {'Select the filter type.'};
 
 band = cfg_menu;
 band.tag = 'band';
 band.name = 'Filter band';
 band.labels = {'lowpass', 'highpass', 'bandpass', 'stopband'};
-band.values = {1 2 3 4};
-band.val = {1 2 3 4};
+band.values = {'low' 'high' 'bandpass' 'stop'};
+band.val = {'low'};
 band.help = {'Select the filter band.'};
 
 PHz = cfg_entry;
-PHz.tag = 'cutoff';
+PHz.tag = 'PHz';
 PHz.name = 'Cutoff';
 PHz.strtype = 'r';
 PHz.num = [1 inf];
@@ -47,31 +47,21 @@ S.name = 'EEG Filter';
 S.val = {D flt};
 S.help = {'Low-pass filters EEG/MEG epoched data.'};
 S.prog = @eeg_filter;
+S.vout = @vout_eeg_filter;
 S.modality = {'EEG'};
 
-function eeg_filter(job)
+function out = eeg_filter(job)
 % construct the S struct
 S.D = job.D{1};
-switch(job.filter.type)
-    case 1
-        S.filter.type = 'butterworth';
-    otherwise
-        error('Unknown filter');        
-end
+S.filter = job.filter;
 
-switch(job.filter.band)
-    case 1
-        S.filter.band = 'low';
-    case 2
-        S.filter.band = 'high';
-    case 3
-        S.filter.band = 'bandpass';
-    case 4
-        S.filter.band = 'stop';
-    otherwise
-        error('Unknown band');        
-end
+out.D = spm_eeg_filter(S);
 
-S.filter.PHz = job.filter.cutoff;
-
-spm_eeg_filter(S);
+function dep = vout_eeg_filter(job)
+% Output is always in field "D", no matter how job is structured
+dep = cfg_dep;
+dep.sname = 'Filtered Data';
+% reference field "D" from output
+dep.src_output = substruct('.','D');
+% this can be entered into any evaluated input
+dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
