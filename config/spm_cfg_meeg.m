@@ -4,7 +4,7 @@ function meeg = spm_cfg_meeg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_meeg.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_meeg.m 1246 2008-03-26 10:45:13Z volkmar $
 
 % ---------------------------------------------------------------------
 % dataset Select the dataset file
@@ -25,7 +25,7 @@ eventtype.name    = 'Event type';
 eventtype.val = {'gui'};
 eventtype.help    = {'Type of the event for trial selection'};
 eventtype.strtype = 's';
-eventtype.num     = [1 1];
+eventtype.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % eventvalue Event value
 % ---------------------------------------------------------------------
@@ -35,7 +35,7 @@ eventvalue.name    = 'Event value';
 eventvalue.val = {'gui'};
 eventvalue.help    = {'Value of the event for trial selection'};
 eventvalue.strtype = 's';
-eventvalue.num     = [1 1];
+eventvalue.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % prestim Pre-trigger time
 % ---------------------------------------------------------------------
@@ -127,7 +127,7 @@ eventtype.name    = 'Event type';
 eventtype.val = {'gui'};
 eventtype.help    = {'Type of the event for trial selection'};
 eventtype.strtype = 's';
-eventtype.num     = [1 1];
+eventtype.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % eventvalue Event value
 % ---------------------------------------------------------------------
@@ -137,7 +137,7 @@ eventvalue.name    = 'Event value';
 eventvalue.val = {'gui'};
 eventvalue.help    = {'Value of the event for trial selection'};
 eventvalue.strtype = 's';
-eventvalue.num     = [1 1];
+eventvalue.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % prestim Pre-trigger time
 % ---------------------------------------------------------------------
@@ -283,7 +283,7 @@ channel.help    = {
                    '{''all'', ''-POz'', ''-Fp1'', ''-EOG''}'
 }';
 channel.strtype = 's';
-channel.num     = [1 1];
+channel.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % lpfreq LP frequency
 % ---------------------------------------------------------------------
@@ -618,7 +618,7 @@ savename.tag     = 'savename';
 savename.name    = 'Name of the output file';
 savename.help    = {'Name of the file in which the data will be saved.'};
 savename.strtype = 's';
-savename.num     = [1 1];
+savename.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % ctf Name of the channel template file
 % ---------------------------------------------------------------------

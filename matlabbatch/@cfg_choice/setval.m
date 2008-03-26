@@ -10,12 +10,12 @@ function item = setval(item, val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: setval.m 1246 2008-03-26 10:45:13Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1246 $';
 
 if iscell(val) && isempty(val)
-    item.val = {};
+    item = subsasgn(item, substruct('.','val'), {});
 else
     val = item.values{val};
     item = subsasgn(item, substruct('.','val', '{}',{1}), val);

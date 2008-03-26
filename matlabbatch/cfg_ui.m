@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1235 2008-03-20 16:54:53Z volkmar $
+% $Id: cfg_ui.m 1246 2008-03-26 10:45:13Z volkmar $
 
-rev = '$Rev: 1235 $';
+rev = '$Rev: 1246 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 20-Mar-2008 15:52:10
+% Last Modified by GUIDE v2.5 25-Mar-2008 19:32:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -247,7 +247,9 @@ else
     udmodlist = get(handles.modlist, 'userdata');
     if isempty(udmodlist)
         cmod = 1;
+        udmodlist.cjob = cfg_util('getcjob');
     else
+        cfg_util('setcjob', udmodlist.cjob);
         cmod = min(get(handles.modlist,'value'), numel(str));
         if udmodlist.oldvalue ~= cmod
             set(handles.module, 'Userdata',[]);
@@ -439,8 +441,19 @@ switch(udmodule.contents{5}{value})
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
                 'Visible','on', 'Enable','on');
         end
-    case {'cfg_choice','cfg_menu'}
+        set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
+            'Visible','on', 'Enable','on');
+    case 'cfg_menu'
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), 'Visible','on', 'Enable','on');
+        set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
+            'Visible','on', 'Enable','on');
+    case 'cfg_choice'
+        if ~isfield(udmodlist, 'defid')
+            set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
+                'Visible','on', 'Enable','on');
+            set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
+                'Visible','on', 'Enable','on');
+        end;
     case {'cfg_repeat'}
         if ~isfield(udmodlist, 'defid')
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddItem$'), ...
@@ -448,6 +461,8 @@ switch(udmodule.contents{5}{value})
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*ReplItem$'), ...
                 'Visible','on', 'Enable','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*DelItem$'), ...
+                'Visible','on', 'Enable','on');
+            set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
                 'Visible','on', 'Enable','on');
         end;
 end;
@@ -566,8 +581,14 @@ function local_valedit_expert_edit(hObject)
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
+val = udmodule.contents{2}{value};
 sts = false;
-instr = {strvcat(get(handles.valshow, 'String'))};
+if ~isempty(val) && isa(val{1}, 'cfg_dep')
+    local_valedit_AddDep(hObject);
+    return;
+else
+    instr = {strvcat(get(handles.valshow, 'String'))};
+end;
 while ~sts
     % estimate size of input field based on instr
     % Maximum widthxheight 140x20, minium 60x2
@@ -664,13 +685,13 @@ udmodlist = get(handles.modlist, 'Userdata');
 cmod = get(handles.modlist, 'Value');
 udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
-if isfield(udmodlist, 'id')
+if isfield(udmodlist, 'defid')
+    cfg_util('setdef', udmodlist.defid{cmod}, udmodule.id{citem}, val);
+    local_showmod(obj);
+else
     cfg_util('setval', udmodlist.id{cmod}, udmodule.id{citem}, val);
     cfg_util('harvest', udmodlist.id{cmod});
     local_showjob(obj);
-else
-    cfg_util('setdef', udmodlist.defid{cmod}, udmodule.id{citem}, val);
-    local_showmod(obj);
 end;
 
 %% Button/Menu callbacks
@@ -703,12 +724,15 @@ function local_valedit_EditValue(hObject)
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
-cval = -1;
 if any(strcmp(udmodule.contents{5}{value},{'cfg_choice','cfg_menu'}))
     local_valedit_list(hObject);
 else
     local_valedit_edit(hObject);
 end;
+
+% --------------------------------------------------------------------
+function local_valedit_ClearVal(hObject)
+local_setvaledit(hObject, {});
 
 % --------------------------------------------------------------------
 function local_valedit_AddDep(hObject)
@@ -849,7 +873,10 @@ function MenuFileNew_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-cfg_util('initjob');
+udmodlist = get(handles.modlist, 'userdata');
+cfg_util('deljob',udmodlist.cjob);
+udmodlist.cjob = cfg_util('initjob');
+set(handles.modlist, 'userdata', udmodlist);
 local_showjob(hObject);
 
 % --------------------------------------------------------------------
@@ -860,7 +887,10 @@ function MenuFileLoad_Callback(hObject, eventdata, handles)
 
 [files sts] = cfg_getfile(Inf, '.*\.m$', 'Load Job File(s)');
 if sts
-    cfg_util('initjob', cellstr(files));
+    udmodlist = get(handles.modlist, 'userdata');
+    cfg_util('deljob',udmodlist.cjob);
+    udmodlist.cjob = cfg_util('initjob', cellstr(files));
+    set(handles.modlist, 'userdata', udmodlist);
     local_showjob(hObject);
 end;
 
@@ -882,7 +912,18 @@ function MenuFileRun_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 set(get(0,'Children'),'Pointer','watch');
-cfg_util('run');
+udmodlist = get(handles.modlist, 'userdata');
+cfg_util('run',udmodlist.cjob);
+set(get(0,'Children'),'Pointer','arrow');
+
+% --------------------------------------------------------------------
+function MenuFileRunSerial_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuFileRunSerial (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(get(0,'Children'),'Pointer','watch');
+udmodlist = get(handles.modlist, 'userdata');
+cfg_util('runserial',udmodlist.cjob);
 set(get(0,'Children'),'Pointer','arrow');
 
 % --------------------------------------------------------------------
@@ -1173,3 +1214,13 @@ if strcmp(get(gcbo,'checked'),'on')
 else
     set(gcbo, 'checked', 'on');
 end;
+
+
+% --------------------------------------------------------------------
+function MenuEditValClearVal_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuEditValClearVal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+local_valedit_ClearVal(hObject);
+

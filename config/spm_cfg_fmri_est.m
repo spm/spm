@@ -4,7 +4,7 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_fmri_est.m 1246 2008-03-26 10:45:13Z volkmar $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -227,7 +227,7 @@ name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Name of contrast eg. ''Positive Effect'''};
 name.strtype = 's';
-name.num     = [1 1];
+name.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % convec Contrast vector
 % ---------------------------------------------------------------------

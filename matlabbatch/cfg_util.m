@@ -61,6 +61,10 @@ function varargout = cfg_util(cmd, varargin)
 %
 % Delete a module from a job.
 %
+%  cfg_util('deljob', job_id)
+%
+% Delete job with job_id from the job list. 
+%
 %  cfg_util('gencode', fname, apptag|cfg_id[, tropts])
 %
 % Generate code from default configuration structure, suitable for
@@ -70,6 +74,10 @@ function varargout = cfg_util(cmd, varargin)
 % will be split at the nodes matching tropts.stopspec. Each of these nodes will
 % generate code in a new file with filename fname_<tag of node>, and the
 % nodes up to tropts.stopspec will be saved into fname.
+%
+%  job_id = cfg_util('getcjob')
+%
+% Get job_id of current job.
 %
 %  [tag val] = cfg_util('harvest'[, mod_job_id])
 %
@@ -119,10 +127,17 @@ function varargout = cfg_util(cmd, varargin)
 % have been loaded. Saved jobs and modules already present in the current
 % job will not be changed.
 %
-%  mod_job_idlist = cfg_util('initjob'[, job])
+%  [job_id mod_job_idlist] = cfg_util('initjob'[, job])
 %
-% If job is specified, the job tree structure will be loaded with data from
-% the struct/cell array job and a cell list of job ids will be returned.
+% Initialise a new job. 
+% If job is given as input argument, the job tree structure will be
+% loaded with data from the struct/cell array job and a cell list of job
+% ids will be returned. Otherwise, a new job without modules will be
+% created.
+% The new job will be appended to an internal list of jobs. Other
+% cfg_util commands will always operate on the current job. To make
+% another job current or delete a job, use cfg_util('setcjob',...) and
+% cfg_util('delcjob',...) resp.
 %
 %  sts = cfg_util('ismod_cfg_id', mod_cfg_id)
 %  sts = cfg_util('ismod_job_id', mod_job_id)
@@ -186,11 +201,13 @@ function varargout = cfg_util(cmd, varargin)
 % val(2) must be the index into item.val that should be replicated. All
 % values are copied to the replicated entry.
 %
-%  cfg_util('run'[, job])
+%  cfg_util('run'[, job|job_id])
 %
-% Run the currently configured job. If job is supplied as argument, then
-% cfg_util('initjob', job) will be called first and the current job will be
-% replaced by this job. 
+% Run the currently configured job. If job is supplied as argument and is
+% a harvested job, then cfg_util('initjob', job) will be called first. If
+% job_id is supplied and is a valid job_id, the job with this job id will
+% be run.
+%
 % The job is harvested and dependencies are resolved if possible. All
 % modules without unresolved dependencies will be run in arbitrary order.
 % Then the remaining modules are harvested again and run, if their
@@ -218,6 +235,11 @@ function varargout = cfg_util(cmd, varargin)
 % based on gencode (part of this MATLAB batch system) for all standard
 % MATLAB types. For objects to be supported, they must implement their own
 % gencode method.
+%
+%  job_id = cfg_util('setcjob', job_id)
+%
+% Set the current job to the specified job_id. If this id is not valid, then
+% the last job in the job list will be made current.
 %
 %  sts = cfg_util('setval', mod_job_id, item_mod_id, val)
 %
@@ -289,9 +311,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1233 2008-03-20 15:04:40Z volkmar $
+% $Id: cfg_util.m 1246 2008-03-26 10:45:13Z volkmar $
 
-rev = '$Rev: 1233 $';
+rev = '$Rev: 1246 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -299,12 +321,20 @@ rev = '$Rev: 1233 $';
 % generic configuration structure
 persistent c0;
 % job specific configuration structure
-persistent cj;
-% cell array that maps ids to substructs into the job tree - ids do not
-% change for a cfg_util life time, while the actual position of a module
-% in cj may change due to adding/removing modules. This would also allow to
-% reorder modules in cj without changing their id.
-persistent cjid2subs;
+% This will be initialised to a struct (array) with fields cj and
+% id2subs. When initialising a new job, it will be appended to this
+% array. Jobs in this array may be cleared by setting cj and id2subs to
+% [].
+% field cj:
+% configuration tree of this job.
+% field cjid2subs:
+% cell array that maps ids to substructs into the configuration tree -
+% ids do not change for a cfg_util life time, while the actual position
+% of a module in cj may change due to adding/removing modules. This would
+% also allow to reorder modules in cj without changing their id.
+persistent jobs;
+% index of current job in jobs.
+persistent cjob;
 
 if isempty(c0) && ~strcmp(cmd,'initcfg')
     % init, if not yet done
@@ -315,33 +345,29 @@ end;
 % evaluate commands
 switch lower(cmd),
     case 'addapp',
-        [c0 cj] = local_addapp(c0, cj, varargin{:});
+        [c0 jobs] = local_addapp(c0, jobs, varargin{:});
     case 'addtojob',
-        [cj, cjid2subs, id] = local_addtojob(c0, cj, cjid2subs, varargin{:});
+        [jobs(cjob), id] = local_addtojob(c0, jobs(cjob), varargin{:});
         varargout{1} = id;
     case 'compactjob',
-        [cj cjid2subs n2oid] = local_compactjob(cj, cjid2subs);
-        varargout{1} = mat2cell(1:numel(cjid2subs), 1, ones(1,numel(cjid2subs)));
+        [jobs(cjob), n2oid] = local_compactjob(jobs(cjob));
+        varargout{1} = mat2cell(1:numel(jobs(cjob).cjid2subs), 1, ones(1,numel(jobs(cjob).cjid2subs)));
         varargout{2} = n2oid;
+    case 'deljob',
+        if varargin{1} == numel(jobs) && varargin{1} > 1
+            jobs = jobs(1:end-1);
+        else
+            jobs(varargin{1}).cj = c0;
+            jobs(varargin{1}).cjid2subs = {};
+        end;
+        if cjob == varargin{1}
+            cjob = numel(jobs);
+        end;
     case 'delfromjob',
-        [cj, cjid2subs] = local_delfromjob(cj, cjid2subs, varargin{:});
+        jobs(cjob) = local_delfromjob(jobs(cjob), varargin{:});
     case 'gencode',
         fname = varargin{1};
-        % This code could use tag2cfg_id - duplicated in harvestdef
-        if cfg_util('ismod_cfg_id', varargin{2})
-            % This should better test something like 'iscfg_id'
-            id{1} = varargin{2};
-        else
-            % find application root
-            root = cfg_findspec({{'tag',varargin{2}}});
-            tropts = cfg_tropts(cfg_findspec, 1, 2, 0, 1, true);
-            [id stop] = list(c0, root, tropts);
-            if numel(id) ~= 1 || isempty(id{1})
-                error('matlabbatch:cfg_util:harvestdef', ...
-                      'Application with tag ''%s'' not found.', varargin{2});
-            end;
-        end;
-        cm = subsref(c0, id{1});
+        cm = local_getcm(c0, varargin{2});
         if nargin > 3
             tropts = varargin{3};
         else
@@ -349,14 +375,18 @@ switch lower(cmd),
             tropts = cfg_tropts(cfg_findspec, 1, 2, 0, Inf, true);
         end;
         local_gencode(cm, fname, tropts);
+    case 'getcjob',
+        varargout{1} = cjob;
     case 'harvest',
         if nargin == 1
             % harvest entire job
             % do not resolve dependencies
-            cj1 = local_compactjob(cj, cjid2subs);
-            [tag val] = harvest(cj1, cj1, false, false);
+            cj1 = local_compactjob(jobs(cjob));
+            [tag val] = harvest(cj1.cj, cj1.cj, false, false);
         else
-            [tag val u3 u4 u5 cj] = harvest(subsref(cj, cjid2subs{varargin{1}}), cj, false, true);
+            [tag val u3 u4 u5 jobs(cjob).cj] = harvest(subsref(jobs(cjob).cj, ...
+                                                              jobs(cjob).cjid2subs{varargin{1}}), ...
+                                                       jobs(cjob).cj, false, true);
         end;
         varargout{1} = tag;
         varargout{2} = val;
@@ -365,51 +395,29 @@ switch lower(cmd),
             % harvest all applications
             cm = c0;
         else
-            % This code could use tag2cfg_id - duplicated in initdef
-            if cfg_util('ismod_cfg_id', varargin{1})
-                % This should better test something like 'iscfg_id'
-                id{1} = varargin{1};
-            else
-                % find application root
-                root = cfg_findspec({{'tag',varargin{1}}});
-                tropts = cfg_tropts(cfg_findspec, 1, 2, 0, 1, true);
-                [id stop] = list(c0, root, tropts);
-                if numel(id) ~= 1 || isempty(id{1})
-                    error('matlabbatch:cfg_util:harvestdef', ...
-                          'Application with tag ''%s'' not found.', varargin{1});
-                end;
-            end;
-            cm = subsref(c0, id{1});
+            cm = local_getcm(c0, varargin{1});
         end;
         [tag defval] = harvest(cm, cm, true, false);
         varargout{1} = tag;
         varargout{2} = defval;
     case 'initcfg',
-        [c0 cj cjid2subs] = local_initcfg;
+        [c0 jobs cjob] = local_initcfg;
         local_initapps;
     case 'initdef',
-        % This code could use tag2cfg_id - duplicated in harvestdef
-        if cfg_util('ismod_cfg_id', varargin{1})
-            % This should better test something like 'iscfg_id'
-            id{1} = varargin{1};
-        else
-            % find application root
-            root = cfg_findspec({{'tag',varargin{1}}});
-            tropts = cfg_tropts(cfg_findspec, 1, 2, 0, 1, true);
-            [id stop] = list(c0, root, tropts);
-            if numel(id) ~= 1 || isempty(id{1})
-                error('matlabbatch:cfg_util:harvestdef', ...
-                      'Application with tag ''%s'' not found.', varargin{1});
-            end;
-        end;
-        cm = subsref(c0, id{1});
+        cm = local_getcm(c0, varargin{1});
         cm = local_initdef(cm, varargin{2});
         c0 = subsasgn(c0, id{1}, cm);
     case 'initjob'
+        if isempty(jobs(end).cjid2subs)
+            cjob = numel(jobs);
+        else
+            cjob = numel(jobs)+1;
+        end;
         if nargin == 1
-            cj =c0;
-            cjid2subs = {};
-            varargout{1} = {};
+            jobs(cjob).cj =c0;
+            jobs(cjob).cjid2subs = {};
+            varargout{1} = cjob;
+            varargout{2} = {};
             return;
         elseif iscellstr(varargin{1})
             job = {};
@@ -431,8 +439,9 @@ switch lower(cmd),
             % try to initialise single job
             job{1} = varargin{1};
         end;
-        [cj cjid2subs mod_job_idlist] = local_initjob(c0, job);
-        varargout{1} = mod_job_idlist;
+        [jobs(cjob) mod_job_idlist] = local_initjob(c0, job);
+        varargout{1} = cjob;
+        varargout{2} = mod_job_idlist;
     case 'isitem_mod_id'
         varargout{1} = isstruct(varargin{1}) && ...
             all(isfield(varargin{1}, {'type','subs'}));
@@ -440,8 +449,9 @@ switch lower(cmd),
         varargout{1} = isstruct(varargin{1}) && ...
             all(isfield(varargin{1}, {'type','subs'}));
     case 'ismod_job_id'
-        varargout{1} = isnumeric(varargin{1}) && varargin{1} <= numel(cjid2subs) ...
-            && ~isempty(cjid2subs{varargin{1}});
+        varargout{1} = isnumeric(varargin{1}) && ...
+            varargin{1} <= numel(jobs(cjob).cjid2subs) ...
+            && ~isempty(jobs(cjob).cjid2subs{varargin{1}});
     case {'listcfg','listcfgall'}
         % could deal with hidden/modality fields here
         if strcmpi(cmd(end-2:end), 'all')
@@ -482,9 +492,9 @@ switch lower(cmd),
         % could deal with hidden/modality fields here
         if cfg_util('ismod_job_id', varargin{1})
             if isempty(varargin{2})
-                cm = subsref(cj, cjid2subs{varargin{1}});
+                cm = subsref(jobs(cjob).cj, jobs(cjob).cjid2subs{varargin{1}});
             else
-                cm = subsref(cj, [cjid2subs{varargin{1}} varargin{2}]);
+                cm = subsref(jobs(cjob).cj, [jobs(cjob).cjid2subs{varargin{1}} varargin{2}]);
             end;
         else
             if isempty(varargin{2})
@@ -518,37 +528,47 @@ switch lower(cmd),
         end
     case 'match'
         if isempty(varargin{2})
-            cm = subsref(cj, cjid2subs{varargin{1}});
+            cm = subsref(jobs(cjob).cj, jobs(cjob).cjid2subs{varargin{1}});
         else
-            cm = subsref(cj, [cjid2subs{varargin{1}} varargin{2}]);
+            cm = subsref(jobs(cjob).cj, [jobs(cjob).cjid2subs{varargin{1}} varargin{2}]);
         end;
         varargout{1} = match(cm, varargin{3});
     case 'replicate'
         if nargin == 2
             % replicate module
-            [cj cjid2subs id] = local_replmod(cj, cjid2subs, varargin{1});
+            [jobs(cjob) id] = local_replmod(jobs(cjob), varargin{1});
         elseif nargin == 4
             % replicate val entry of cfg_repeat, use setval with sanity
             % check
-            cm = subsref(cj, [cjid2subs{varargin{1}}, varargin{2}]);
+            cm = subsref(jobs(cjob).cj, [jobs(cjob).cjid2subs{varargin{1}}, varargin{2}]);
             if isa(cm, 'cfg_repeat')
                 cm = setval(cm, varargin{3});
-                cj = subsasgn(cj, [cjid2subs{varargin{1}}, varargin{2}], cm);
+                jobs(cjob).cj = subsasgn(jobs(cjob).cj, ...
+                                         [jobs(cjob).cjid2subs{varargin{1}}, varargin{2}], cm);
             end;
         end;
-    case 'run'
+    case {'run','runserial'}
+        rjob = cjob;
+        dflag = false;
         if nargin > 1
-            cfg_util('initjob',varargin{1});
+            if isstruct(varargin{1})
+                rjob = cfg_util('initjob',varargin{1});
+                dflag = true;
+            else
+                rjob = varargin{1};
+            end;
         end;
-        cjrun = local_runcj(cj, cjid2subs,true);
-    case 'runserial'
-        if nargin > 1
-            cfg_util('initjob',varargin{1});
+        if strcmpi(cmd, 'run')
+            jobrun = local_runcj(jobs(rjob), false);
+        else
+            jobrun = local_runcj(jobs(rjob), true);
         end;
-        cjrun = local_runcj(cj, cjid2subs,false);
+        if dflag
+            cfg_util('deljob', rjob);
+        end;
     case 'savejob'
-        [scj scjid2subs] = local_compactjob(cj, cjid2subs);
-        [tag job] = harvest(scj, scj, false, false);
+        sjob = local_compactjob(jobs(cjob));
+        [tag job] = harvest(sjob.cj, sjob.cj, false, false);
         jobstr = gencode(job, tag);
         [p n e v] = fileparts(varargin{1});
         fid = fopen(fullfile(p, [n '.m']),'w');
@@ -559,21 +579,25 @@ switch lower(cmd),
             fprintf(fid, '%s\n', jobstr{k});
         end;
         fclose(fid);
+    case 'setcjob',
+        cjob = min(numel(jobs), varargin{1});
     case 'setdef',
         cm = subsref(c0, [varargin{1}, varargin{2}]);
         cm = setval(cm, varargin{3});
         c0 = subsasgn(c0, [varargin{1}, varargin{2}], cm);
     case 'setval',
-        cm = subsref(cj, [cjid2subs{varargin{1}}, varargin{2}]);
+        cm = subsref(jobs(cjob).cj, [jobs(cjob).cjid2subs{varargin{1}}, varargin{2}]);
         cm = setval(cm, varargin{3});
-        cj = subsasgn(cj, [cjid2subs{varargin{1}}, varargin{2}], cm);
+        jobs(cjob).cj = subsasgn(jobs(cjob).cj, [jobs(cjob).cjid2subs{varargin{1}}, varargin{2}], cm);
         varargout{1} = all_set_item(cm);
     case 'showjob',
         if nargin > 1
             id = varargin{1};
-            [unused str sts dep sout] = local_showjob(cj, subsref(cjid2subs, substruct('{}', varargin{1})));
+            [unused str sts dep sout] = local_showjob(jobs(cjob).cj, ...
+                                                      subsref(jobs(cjob).cjid2subs, ...
+                                                              substruct('{}', varargin{1})));
         else
-            [id str sts dep sout] = local_showjob(cj, cjid2subs);
+            [id str sts dep sout] = local_showjob(jobs(cjob).cj, jobs(cjob).cjid2subs);
         end;
         varargout{1} = id;
         varargout{2} = str;
@@ -598,11 +622,11 @@ return;
 
 %% Local functions
 % These are the internal implementations of commands.
+%-----------------------------------------------------------------------
 
-function [c0 cj] = local_addapp(c0, cj, cfg, varargin)
-
-% Add configuration data to c0 and cj
-% function c0 = local_addapp(c0, cj, cjid2subs, cfg, def)
+%-----------------------------------------------------------------------
+function [c0 jobs] = local_addapp(c0, jobs, cfg, varargin)
+% Add configuration data to c0 and all jobs
 % Input
 % * cfg - Function name, function handle or cfg_item tree. If a
 %         function is passed, this will be evaluated with no arguments and
@@ -630,16 +654,18 @@ if nargin > 3
 end;
 fprintf('%s: Added application ''%s''\n', mfilename, c1.name);
 c0.values{end+1} = c1;
-cj.values{end+1} = c1;
+for k = 1:numel(jobs)
+    jobs(k).cj.values{end+1} = c1;
+end;
+%-----------------------------------------------------------------------
 
-function [cj, cjid2subs, id] = local_addtojob(c0, cj, cjid2subs, c0subs)
-
-% Add module subsref(c0, c0subs) to cj, append its subscript to cjid2subs
-% and return the index into cjid2subs to the caller.
+%-----------------------------------------------------------------------
+function [job, id] = local_addtojob(c0, job, c0subs)
+% Add module subsref(c0, c0subs) to job.cj, append its subscript to
+% job.cjid2subs and return the index into job.cjid2subs to the caller.
 % The module will be added in a 'degenerated' branch of a cfg tree, where
 % it is the only exbranch that can be reached on the 'val' path.
-
-id = numel(cj.val)+1;
+id = numel(job.cj.val)+1;
 cjsubs = c0subs;
 for k = 1:2:numel(cjsubs)
     % assume subs is [.val(ues){X}]+ and there are only choice/repeats
@@ -655,62 +681,64 @@ for k = 1:2:numel(cjsubs)
         end;
     end;
     % add path to module to cj
-    cj = subsasgn(cj, cjsubs(1:(k+1)), subsref(c0, c0subs(1:(k+1))));
+    job.cj = subsasgn(job.cj, cjsubs(1:(k+1)), subsref(c0, c0subs(1:(k+1))));
 end;
 % set id in module    
-cj = subsasgn(cj, [cjsubs substruct('.', 'id')], cjsubs);
-cjid2subs{id} = cjsubs;
+job.cj = subsasgn(job.cj, [cjsubs substruct('.', 'id')], cjsubs);
+job.cjid2subs{id} = cjsubs;
+%-----------------------------------------------------------------------
 
-function [cj cjid2subs n2oid] = local_compactjob(ocj, ocjid2subs)
-
+%-----------------------------------------------------------------------
+function [job n2oid] = local_compactjob(ojob)
 % Remove placeholders from cj and recursively update dependencies to fit
 % new ids. Warning: this will invalidate mod_job_ids!
 
-cj = ocj;
-cj.val = {};
-cjid2subs = {};
+job.cj = ojob.cj;
+job.cj.val = {};
+job.cjid2subs = {};
 
 oid = {};
 nid = 1;
 n2oid = [];
-for k = 1:numel(ocjid2subs)
-    if ~isempty(ocjid2subs{k})
-        cjsubs = ocjid2subs{k};
-        oid{nid} = ocjid2subs{k};
+for k = 1:numel(ojob.cjid2subs)
+    if ~isempty(ojob.cjid2subs{k})
+        cjsubs = ojob.cjid2subs{k};
+        oid{nid} = ojob.cjid2subs{k};
         cjsubs(2).subs = {nid};
-        cjid2subs{nid} = cjsubs;
+        job.cjid2subs{nid} = cjsubs;
         for l = 1:2:numel(cjsubs)
             % subs is [.val(ues){X}]+
             % add path to module to cj
-            cj = subsasgn(cj, cjid2subs{nid}(1:(l+1)), ...
-                          subsref(ocj, ocjid2subs{k}(1:(l+1))));
+            job.cj = subsasgn(job.cj, job.cjid2subs{nid}(1:(l+1)), ...
+                          subsref(ojob.cj, ojob.cjid2subs{k}(1:(l+1))));
         end;
         n2oid(nid) = k;
         nid = nid + 1;
     end;
 end;
-cj = update_deps(cj, oid, cjid2subs);
+job.cj = update_deps(job.cj, oid, job.cjid2subs);
+%-----------------------------------------------------------------------
 
-function [cj, cjid2subs] = local_delfromjob(cj, cjid2subs, id)
-
-% Remove module subsref(cj, cjid2subs{id}) from cj. All target and source
-% dependencies between the module and other modules in cj are removed.
-% Corresponding entries in cj and cjid2subs are set to {} in order to keep
-% relationships within the tree consistent and in order to keep other ids
-% valid. A rebuild of cj and an update of changed subsrefs would be
-% possible (and needs to be done before e.g. saving the job).
-
-if isempty(cjid2subs) || isempty(cjid2subs{id}) || numel(cjid2subs) < id
+%-----------------------------------------------------------------------
+function job = local_delfromjob(job, id)
+% Remove module subsref(job.cj, job.cjid2subs{id}) from job.cj. All
+% target and source dependencies between the module and other modules in
+% job.cj are removed. Corresponding entries in job.cj and job.cjid2subs
+% are set to {} in order to keep relationships within the tree consistent
+% and in order to keep other ids valid. A rebuild of job.cj and an update
+% of changed subsrefs would be possible (and needs to be done before
+% e.g. saving the job). 
+if isempty(job.cjid2subs) || isempty(job.cjid2subs{id}) || numel(job.cjid2subs) < id
     warning('matlabbatch:cfg_util:local_delfromjob:invid', ...
             'Invalid id %d.', id);
     return;
 end;
-cm = subsref(cj, cjid2subs{id});
+cm = subsref(job.cj, job.cjid2subs{id});
 if ~isempty(cm.tdeps)
-    cj = del_in_source(cm.tdeps, cj);
+    job.cj = del_in_source(cm.tdeps, job.cj);
 end;
 if ~isempty(cm.sdeps)
-    cj = del_in_target(cm.sdeps, cj);
+    job.cj = del_in_target(cm.sdeps, job.cj);
 end;
 % replace module with placeholder
 cp = cfg_const;
@@ -718,11 +746,13 @@ cp.tag = 'deleted_item';
 cp.val = {''};
 cp.hidden = true;
 % replace deleted module at top level, not at branch level
-cj = subsasgn(cj, cjid2subs{id}(1:2), cp);
-cjid2subs{id} = struct([]);
+job.cj = subsasgn(job.cj, job.cjid2subs{id}(1:2), cp);
+job.cjid2subs{id} = struct([]);
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function matlabbatch = local_eval(varargin)
-
+% Evaluate a matlab expression or script
 opwd = pwd;
 try
     cd(varargin{2});
@@ -737,14 +767,14 @@ catch
     cd(opwd);
     error('cfg_util:initjob:local_eval', 'Load failed.');
 end;
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function local_gencode(c0, fname, tropts)
-
 % Generate code, split at nodes matching stopspec (if stopspec is not
 % empty). fname will be overwritten if tropts is empty (i.e. for single
 % file output or subtrees). Note that some manual fixes may be required
 % (function handles, variable/function names).
-
 if isempty(tropts)
     tropts(1).clvl = 1;
     tropts(1).mlvl = Inf;
@@ -790,11 +820,11 @@ else
         end;
     end;
 end;
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function [cj cjid2subs] = local_getcjid2subs(cjin)
-
 % Find ids of exbranches. 
-
 % find ids
 exspec = cfg_findspec({{'class', 'cfg_exbranch'}});
 tropts = cfg_tropts({{'class', 'cfg_exbranch'}}, 1, Inf, 0, Inf, false);
@@ -824,14 +854,37 @@ for k = 1:numel(cjid2subs)
     % set ids in exbranches
     cj = subsasgn(cj, [cjid2subs{k} substruct('.', 'id')], cjid2subs{k});
 end;
+%-----------------------------------------------------------------------
 
-function [c0 cj cjid2subs] = local_initcfg
+%-----------------------------------------------------------------------
+function cm = local_getcm(c0, cfg_id)
+% This code could use tag2cfg_id
+if cfg_util('ismod_cfg_id', cfg_id)
+    % This should better test something like 'iscfg_id'
+    id{1} = cfg_id;
+else
+    % find application root
+    root = cfg_findspec({{'tag',cfg_id}});
+    tropts = cfg_tropts(cfg_findspec, 1, 2, 0, 1, true);
+    [id stop] = list(c0, root, tropts);
+    if numel(id) ~= 1 || isempty(id{1})
+        error('matlabbatch:cfg_util:harvestdef', ...
+              'Application with tag ''%s'' not found.', varargin{2});
+    end;
+end;
+cm = subsref(c0, id{1});
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
+function [c0 jobs cjob] = local_initcfg
 % initial config
-c0 = cfg_mlbatch_root;
-cj      = c0;
-cjid2subs = {};
+c0   = cfg_mlbatch_root;
+cjob = 1;
+jobs(cjob).cj        = c0;
+jobs(cjob).cjid2subs = {};
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function c1 = local_initdef(c1, defspec)
 if subsasgn_check_funhandle(defspec)
     opwd = pwd;
@@ -850,7 +903,9 @@ end;
 if ~isempty(def)
     c1 = initialise(c1, def, true);
 end;
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function local_initapps
 % add application data
 appcfgs = which('cfg_mlbatch_appcfg','-all');
@@ -872,9 +927,10 @@ for k = 1:numel(appcfgs)
     end;
 end;
 cd(cwd);
+%-----------------------------------------------------------------------
 
-function [cj cjid2subs mod_job_idlist] = local_initjob(c0, job)
-
+%-----------------------------------------------------------------------
+function [cjob mod_job_idlist] = local_initjob(c0, job)
 % Initialise a cell array of jobs
 for n = 1:numel(job)
     % init job
@@ -885,10 +941,10 @@ for n = 1:numel(job)
     % harvest, keeping dependencies
     [u1 u2 u3 u4 u5 cj1] = harvest(cj1, cj1, false, false);
     if n == 1
-        cj = cj1;
-        cjid2subs = cjid2subs1;
+        cjob.cj = cj1;
+        cjob.cjid2subs = cjid2subs1;
     else
-        cjidoffset = numel(cjid2subs);
+        cjidoffset = numel(cjob.cjid2subs);
         cjid2subs2 = cjid2subs1;
         for k = 1:numel(cjid2subs2)
             % update id subscripts
@@ -922,43 +978,44 @@ for n = 1:numel(job)
             cj1 = subsasgn(cj1, [cjid2subs1{k}, substruct('.','sdeps')], []);
         end;
         % concatenate configs
-        cjid2subs = {cjid2subs{:} cjid2subs2{:}};
+        cjob.cjid2subs = {cjob.cjid2subs{:} cjid2subs2{:}};
         for k = 1:numel(cj1.val)
-            cj.val{end+1} = cj1.val{k};
+            cjob.cj.val{end+1} = cj1.val{k};
         end;
     end;
 end;
 % harvest, update dependencies
-[u1 u2 u3 u4 u5 cj] = harvest(cj, cj, false, false);
-mod_job_idlist = mat2cell(1:numel(cjid2subs),1,ones(1,numel(cjid2subs)));
+[u1 u2 u3 u4 u5 cjob.cj] = harvest(cjob.cj, cjob.cj, false, false);
+mod_job_idlist = mat2cell(1:numel(cjob.cjid2subs),1,ones(1,numel(cjob.cjid2subs)));
+%-----------------------------------------------------------------------
 
-function [cj, cjid2subs, id] = local_replmod(cj, cjid2subs, oid)
-
-% Replicate module subsref(cj,cjid2subs{oid}) by adding it to the end of
+%-----------------------------------------------------------------------
+function [job, id] = local_replmod(job, oid)
+% Replicate module subsref(job.cj,job.cjid2subs{oid}) by adding it to the end of
 % the job list. Update id in module and delete links to dependent modules,
 % these dependencies are the ones of the original module, not of the
 % replica.
-
-id = numel(cj.val)+1;
+id = numel(job.cj.val)+1;
 % subsref of original module
-ocjsubs = cjid2subs{oid};
+ocjsubs = job.cjid2subs{oid};
 % subsref of replica module
 rcjsubs = ocjsubs;
 rcjsubs(2).subs = {id};
 for k = 1:2:numel(ocjsubs)
     % Add path to replica module, copying items from original path
-    cj = subsasgn(cj, rcjsubs(1:(k+1)), subsref(cj, ocjsubs(1:(k+1))));
+    job.cj = subsasgn(job.cj, rcjsubs(1:(k+1)), subsref(job.cj, ocjsubs(1:(k+1))));
 end;
 % set id in module, delete copied sdeps and tdeps
-cj = subsasgn(cj, [rcjsubs substruct('.', 'id')], rcjsubs);
-cj = subsasgn(cj, [rcjsubs substruct('.', 'sdeps')], []);
-cj = subsasgn(cj, [rcjsubs substruct('.', 'tdeps')], []);
+job.cj = subsasgn(job.cj, [rcjsubs substruct('.', 'id')], rcjsubs);
+job.cj = subsasgn(job.cj, [rcjsubs substruct('.', 'sdeps')], []);
+job.cj = subsasgn(job.cj, [rcjsubs substruct('.', 'tdeps')], []);
 % re-harvest to update tdeps and outputs
-[u1 u2 u3 u4 u5 cj] = harvest(subsref(cj, rcjsubs), cj, false, false);
-cjid2subs{id} = rcjsubs;
+[u1 u2 u3 u4 u5 job.cj] = harvest(subsref(job.cj, rcjsubs), job.cj, false, false);
+job.cjid2subs{id} = rcjsubs;
+%-----------------------------------------------------------------------
 
-function cjrun = local_runcj(cj, cjid2subs, pflag)
-
+%-----------------------------------------------------------------------
+function cjrun = local_runcj(job, pflag)
 % Matlab uses a copy-on-write policy with very high granularity - if
 % modified, only parts of a struct or cell array are copied.
 % However, forward resolution may lead to high memory consumption if
@@ -974,7 +1031,9 @@ function cjrun = local_runcj(cj, cjid2subs, pflag)
 % If a job with pre-set module outputs .jout is passed in cj, the
 % corresponding modules will not be run again. This feature is currently unused.
 
-[cj cjid2subs] = local_compactjob(cj, cjid2subs);
+job = local_compactjob(job);
+cj = job.cj;
+cjid2subs = job.cjid2subs;
 [u1 jobs u3 u4 u5 cjrun] = harvest(cj, cj, false, true);
 % get subscripts of all exbranches into harvested job structure
 for k = 1:numel(cjid2subs)
@@ -1071,11 +1130,11 @@ else
         fprintf('%s\n', subsref(cj, [cjid2subsfailed{k} substruct('.','name')]));
     end;
 end;
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function [id str sts dep sout] = local_showjob(cj, cjid2subs)
-
 % Return name, all_set status and id of internal job representation
-
 id  = {};
 str = {};
 sts = [];
@@ -1093,7 +1152,9 @@ for k = 1:numel(cjid2subs)
         cmod = cmod + 1;
     end;
 end;
+%-----------------------------------------------------------------------
 
+%-----------------------------------------------------------------------
 function [mod_cfg_id item_mod_id] = local_tag2cfg_id(c0, tagstr, splitspec)
 
 tags = textscan(tagstr, '%s', 'delimiter', '.');

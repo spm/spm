@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_defaults.m 1246 2008-03-26 10:45:13Z volkmar $
 
 
 global defaults
@@ -126,7 +126,7 @@ defaults.preproc.tpm     = char(...
     fullfile(spm('Dir'),'tpm','grey.nii'),...
     fullfile(spm('Dir'),'tpm','white.nii'),...
     fullfile(spm('Dir'),'tpm','csf.nii')); % Prior probability maps
-defaults.preproc.ngaus    = [2 2 2 4];     % Gaussians per class
+defaults.preproc.ngaus    = [2 2 2 4]';     % Gaussians per class
 defaults.preproc.warpreg  = 1;             % Warping Regularisation
 defaults.preproc.warpco   = 25;            % Warp Frequency Cutoff
 defaults.preproc.biasreg  = 0.0001;        % Bias regularisation

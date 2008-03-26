@@ -4,7 +4,7 @@ function results = spm_cfg_results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_results.m 1246 2008-03-26 10:45:13Z volkmar $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -25,7 +25,7 @@ titlestr.name    = 'Results Title';
 titlestr.val = {''};
 titlestr.help    = {'Heading on results page - determined automatically if left empty'};
 titlestr.strtype = 's';
-titlestr.num     = [1 1];
+titlestr.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % contrasts Contrast(s)
 % ---------------------------------------------------------------------

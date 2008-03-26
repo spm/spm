@@ -24,7 +24,13 @@ function item = cfg_entry(varargin)
 %                elements. In case of 2 dimensions, .val inputs will be
 %                tried to match in un-transposed order first. If this
 %                does not work, then .val inputs will be transposed and
-%                matched again.
+%                matched again. If num is an empty matrix, no dimension
+%                and size checks will be performed.
+%                If strtype is 's' and num has 2 elements, these 2
+%                elements code the min/max length of a string. This is a
+%                workaround - in future versions num may be changed to a
+%                2-by-ndims array encoding min/max values for each
+%                dimension.
 %    * def
 %    * extras
 %
@@ -70,9 +76,9 @@ function item = cfg_entry(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_entry.m 1218 2008-03-17 12:39:36Z volkmar $
+% $Id: cfg_entry.m 1246 2008-03-26 10:45:13Z volkmar $
 
-rev = '$Rev: 1218 $';
+rev = '$Rev: 1246 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

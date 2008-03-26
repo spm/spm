@@ -79,7 +79,9 @@ else
     switch lower(varargin{1})
         case {'interactive','serial'}
             if nargin==1
-                % uncomment to clear current job
+                % uncomment to add a new job to cfg_util before opening
+                % GUI. Done automatically in serial mode or if a job
+                % argument is given.
                 % cfg_util('initjob');
             elseif nargin==2 || (nargin==3 && ~isempty(varargin{2}))
                 % do not consider node if job is given

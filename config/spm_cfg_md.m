@@ -4,7 +4,7 @@ function md = spm_cfg_md
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_md.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_md.m 1246 2008-03-26 10:45:13Z volkmar $
 
 % ---------------------------------------------------------------------
 % basedir Select a base directory
@@ -24,7 +24,7 @@ name.tag     = 'name';
 name.name    = 'Enter a directory name';
 name.help    = {'Enter a directory name'};
 name.strtype = 's';
-name.num     = [1 1];
+name.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % md Make Directory
 % ---------------------------------------------------------------------

@@ -7,6 +7,9 @@ function cfg_serial(guifcn, job, varargin)
 % guifcn is a function handle, then this function will be called to enter
 % unspecified inputs. Otherwise, the first argument will be ignored and
 % inputs will be assigned from the argument list only.
+% During job completion and execution, this interface may interfere with
+% cfg_ui. However, after the job is executed, it will be removed from the
+% job list.
 %
 % cfg_serial(guifcn, job[, input1, input2, ...inputN])
 % Ask for missing inputs in a job. Job should be a matlabbatch job as
@@ -73,9 +76,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1198 2008-03-11 12:32:10Z volkmar $
+% $Id: cfg_serial.m 1246 2008-03-26 10:45:13Z volkmar $
 
-rev = '$Rev: 1198 $';
+rev = '$Rev: 1246 $';
 
 % close any cfg_ui instance
 close(cfg_ui);
@@ -86,16 +89,16 @@ if ischar(job)
     if cfg_util('ismod_cfg_id', mod_cfg_id)
         % tag string points to somewhere in an cfg_exbranch
         % initialise new job
-        cfg_util('initjob');
+        cjob = cfg_util('initjob');
         % add mod_cfg_id
         cfg_util('addtojob', mod_cfg_id);
     else
         % tag string points to somewhere above cfg_branch
-        local_addtojob(job);
+        cjob = local_addtojob(job);
     end;
 else
     % assume job to be a saved job structure
-    cfg_util('initjob', job);
+    cjob = cfg_util('initjob', job);
 end;
 % varargin{:} is a list of input items
 in = varargin;
@@ -107,11 +110,12 @@ for cm = 1:numel(mod_job_idlist)
         in = local_fillmod(guifcn, mod_job_idlist{cm}, in);
     end;
 end;
-cfg_util('run');
+cfg_util('run',cjob);
+cfg_util('deljob',cjob);
 
 %% local functions
 
-function local_addtojob(job)
+function cjob = local_addtojob(job)
 % traverse tree down to cfg_exbranch level, add selected modules to job
 error('matlabbatch:cfg_serial:notimplemented', ...
       'Menu traversal not yet implemented.');

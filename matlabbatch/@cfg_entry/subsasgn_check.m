@@ -11,9 +11,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1218 2008-03-17 12:39:36Z volkmar $
+% $Id: subsasgn_check.m 1246 2008-03-26 10:45:13Z volkmar $
 
-rev = '$Rev: 1218 $';
+rev = '$Rev: 1246 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -21,10 +21,10 @@ switch subs(1).subs
     case {'num'}
         % special num treatment - num does describe the dimensions of
         % input in cfg_entry items, not a min/max number
-        sts = isnumeric(val) && numel(val)>=2 && all(val(:) >= 0);
+        sts = isnumeric(val) && (isempty(val) || numel(val)>=2 && all(val(:) >= 0));
         if ~sts
              warning('matlabbatch:cfg_entry:subsasgn_check:num', ...
-                     '%s: Value must be a vector of non-negative numbers', ...
+                     '%s: Value must be empty or a vector of non-negative numbers with at least 2 elements', ...
                      checkstr);
         end;
     case {'val'}
@@ -55,6 +55,8 @@ if ~isa(val,'cfg_dep')
             if ~ischar(val)
                 warning('matlabbatch:cfg_entry:subsasgn_check:strtype', '%s: Item must be a string.', checkstr);
                 sts = false;
+            else
+                [sts val] = numcheck(item,val);
             end;
         case {'s+'}
             warning('matlabbatch:cfg_entry:subsasgn_check:strtype', '%s: FAILURE: Cant do s+ yet', checkstr);
@@ -69,32 +71,51 @@ if ~isa(val,'cfg_dep')
                         checkstr);
             end;
         otherwise
-            ind = item.num>0 & isfinite(item.num);
-            csz = size(val);
-            if numel(csz) == 2
-                % also try transpose for 2D arrays
-                cszt = size(val');
-            else
-                cszt = csz;
-            end;
-            if numel(item.num) ~= numel(csz)
-                warning('matlabbatch:cfg_entry:subsasgn_check:notdim', '%s: Dimension mismatch (required %d, present %d).', checkstr, numel(item.num), numel(csz));
+            % only do size check for other strtypes
+            [sts val] = numcheck(item,val);
+    end;
+end;
+
+function [sts val] = numcheck(item,val)
+checkstr = sprintf('Item ''%s'', field ''val''', subsref(item,substruct('.','name')));
+% allow arbitrary size, if num field is empty
+sts = true;
+if ~isempty(item.num)
+    if item.strtype == 's' && numel(item.num) == 2
+        % interpret num field as [min max] # elements
+        sts = item.num(1) <= numel(val) && numel(val) <= item.num(2);
+        if ~sts
+            warning('matlabbatch:cfg_entry:subsasgn_check:notsize', ...
+                    '%s: Size mismatch (required [%s], present [%s]).', ...
+                    checkstr, num2str(item.num), num2str(csz));
+        end;
+    else
+        ind = item.num>0 & isfinite(item.num);
+        csz = size(val);
+        if numel(csz) == 2
+            % also try transpose for 2D arrays
+            cszt = size(val');
+        else
+            cszt = csz;
+        end;
+        if numel(item.num) ~= numel(csz)
+            warning('matlabbatch:cfg_entry:subsasgn_check:notdim', '%s: Dimension mismatch (required %d, present %d).', checkstr, numel(item.num), numel(csz));
+            sts = false;
+            return;
+        end;
+        if any(item.num(ind)-csz(ind))
+            if any(item.num(ind)-cszt(ind))
+                warning('matlabbatch:cfg_entry:subsasgn_check:notsize', ...
+                        '%s: Size mismatch (required [%s], present [%s]).', ...
+                        checkstr, num2str(item.num), num2str(csz));
                 sts = false;
-                return;
+                return
+            else
+                val = val';
+                warning('matlabbatch:cfg_entry:subsasgn_check:transp', ...
+                        '%s: Value transposed to match required size [%s].', ...
+                        checkstr, num2str(item.num));
             end;
-            if any(item.num(ind)-csz(ind))
-                if any(item.num(ind)-cszt(ind))
-                    warning('matlabbatch:cfg_entry:subsasgn_check:notsize', ...
-                            '%s: Size mismatch (required [%s], present [%s]).', ...
-                            checkstr, num2str(item.num), num2str(csz));
-                    sts = false;
-                    return
-                else
-                    val = val';
-                    warning('matlabbatch:cfg_entry:subsasgn_check:transp', ...
-                            '%s: Value transposed to match required size [%s].', ...
-                            checkstr, num2str(item.num));
-                end;
-            end;
+        end;
     end;
 end;
