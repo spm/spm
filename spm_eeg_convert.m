@@ -24,9 +24,7 @@ function spm_eeg_convert(S)
 %               for which the events are saved with the trial (to let the
 %               user keep and use for analysis events which are outside
 %               trial borders). Default - 0.
-% S.conditionlabel - label that is used for all the trials if the data
-%               unless defined differently in the trial definition file
-%               Default - 'Undefined'
+% S.conditionlabels - labels for the trials in the data Default - 'Undefined'
 % S.blocksize - size of blocks used internally to split large files
 %               default ~100Mb.
 % S.checkboundary - 1 - check if there are breaks in the file and do not read
@@ -36,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1240 2008-03-25 16:34:30Z vladimir $
+% $Id: spm_eeg_convert.m 1252 2008-03-26 18:19:58Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -100,8 +98,6 @@ end
 
 D = [];
 D.Fsample = hdr.Fs;
-D.timeOnset = -hdr.nSamplesPre./hdr.Fs;
-D.Nsamples = hdr.nSamples;
 
 %--------- Select channels
 
@@ -129,6 +125,9 @@ end
 %--------- Preparations specific to reading mode (continuous/epoched)
 
 if S.continuous
+
+    D.timeOnset = -hdr.nSamplesPre./hdr.Fs;
+    D.Nsamples = hdr.nSamples;
 
     if isempty(S.timewindow)
         segmentbounds = [1 hdr.nSamples];
@@ -168,7 +167,11 @@ if S.continuous
 
 else % Read by trials
     if ~S.usetrials
-        trl = getfield(load(S.trlfile, 'trl'), 'trl');
+        if ~isfield(S, 'trl')
+            trl = getfield(load(S.trlfile, 'trl'), 'trl');
+        else
+            trl = S.trl;
+        end
         if size(trl, 2) >= 3
             D.timeOnset = unique(trl(:, 3))./D.Fsample;
             trl = trl(:, 1:2);
@@ -176,14 +179,15 @@ else % Read by trials
             D.timeOnset = 0;
         end
 
-        if length(D.timeOnset) > 1 || length(nsampl) > 1
-            error('All trials should have identical lengths and baseline');
+        if length(D.timeOnset) > 1
+            error('All trials should have identical baseline');
         end
-        try
+        if isfield(S, 'conditionlabels')
+            conditionlabels = S.conditionlabels;
+        else
             conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
-        catch
-            conditionlabels = {S.conditionlabel};
         end
+
         if numel(conditionlabels) == 1
             conditionlabels = repmat(conditionlabels, 1, size(trl, 1));
         end
@@ -198,7 +202,7 @@ else % Read by trials
             trl = [trl  trl+[event(trialind).duration]'-1];
 
             try
-                offset = unique(event(trialind).offset);
+                offset = unique([event(trialind).offset]);
             catch
                 offset = [];
             end
@@ -234,17 +238,19 @@ else % Read by trials
                 readbytrials = 1;
             end
         end
-
-        if readbytrials
-            nsampl = hdr.nSamples;
-            ntrial = hdr.nTrials;
-            trl = zeros(ntrial, 2);
-            conditionlabels = repmat({S.conditionlabel}, 1, ntrial);
-        else
-            nsampl = unique(diff(trl, [], 2))+1;
+    end
+    if readbytrials
+        nsampl = hdr.nSamples;
+        ntrial = hdr.nTrials;
+        trl = zeros(ntrial, 2);
+        conditionlabels = repmat({S.conditionlabel}, 1, ntrial);
+    else
+        nsampl = unique(diff(trl, [], 2))+1;
+        if length(nsampl) > 1
+            error('All trials should have identical lengths');
         end
     end
-
+    D.Nsamples = nsampl;
     event = rmfield(event, 'sample');
 end
 

@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1240 2008-03-25 16:34:30Z vladimir $
+% $Id: spm_eeg_convert_ui.m 1252 2008-03-26 18:19:58Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -34,10 +34,19 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
             S.timewindow = spm_input('Input time window ([start end] in sec)', '+1', 'r');
         end
     else
-        S.usetrials = spm_input('Where to look for trials?','+1','data|file',[1 0], 1);
+        res = spm_input('Where to look for trials?','+1','data|define|file',[1 2 3], 1);
 
-        if  ~S.usetrials && ~isfield(S, 'trlfile')
-            S.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
+        switch res
+            case 1
+                S.usetrials = 1;
+            case 2
+                S.usetrials = 0;
+                [S.trl, S.conditionlabels] = spm_eeg_definetrial(S);
+            case 3
+                S.usetrials = 0;
+                if  ~isfield(S, 'trlfile')
+                    S.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
+                end
         end
     end
 
