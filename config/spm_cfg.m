@@ -4,7 +4,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_cfg.m 1248 2008-03-26 11:17:25Z stefan $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -43,7 +43,6 @@ util         = cfg_repeat;
 util.tag     = 'util';
 util.name    = 'Util';
 util.help    = {'Various useful tools.'};
-% util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_runbatch spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_defs spm_cfg_ui spm_cfg_meeg spm_cfg_cat cfg_struct2cfg(spm_config_eeg_filter)};
 util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_runbatch spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_defs spm_cfg_ui spm_cfg_meeg spm_cfg_cat spm_config_eeg_filter8};
 util.forcestruct = true;
 util.num     = [0 Inf];
