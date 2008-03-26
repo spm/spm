@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: subsref.m 1244 2008-03-26 09:08:39Z stefan $
 
 if isempty(subs)
     return;
@@ -28,39 +28,17 @@ switch subs(1).type
             else
                 varargout ={subsref(field, subs(2:end))};
             end
-        else
-            switch(subs(1).subs)
-                case 'nchannels'
-                    varargout = {length(this.channels)};
-                case 'nconditions'
-                    varargout = {size(unique(conditions(this), 'rows'),1)};
-                case 'nsamples'
-                    varargout = {this.Nsamples};
-                case 'dtype';
-                    % returns datatype of embedded file_array object
-                    varargout = {this.data.y.dtype};
-                case 'fsample'
-                    varargout = {this.Fsample};
-                case 'meegchannels'
-                    type = cat(1, this.channels(:).type);
-                    varargout = {unique([find(strmatch('EEG', type)) find(strmatch('MEG', type))])};
-                case 'ntrials'
-                    varargout = {length(this.trials)};
-
+        elseif ismethod(this, subs(1).subs)
+            switch numel(subs)
+                case 1
+                    varargout = {feval(subs(1).subs, this)};
+                case 2
+                    varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
                 otherwise
-                    if ismethod(this, subs(1).subs)
-                        switch numel(subs)
-                            case 1
-                                varargout = {feval(subs(1).subs, this)};
-                            case 2
-                                varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
-                            otherwise
-                                error('Expression too complicated');
-                        end
-                    else
-                        error('Reference to non-existent or private meeg method or field.');
-                    end
+                    error('Expression too complicated');
             end
+        else
+            error('Reference to non-existent or private meeg method or field.');
         end
     otherwise
         error('Unfamiliar referencing type');
