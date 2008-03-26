@@ -17,8 +17,8 @@ function item = cfg_menu(varargin)
 %    * expanded
 %    * hidden
 % All fields above are inherited from the generic configuration item class.
-%    * labels
-%    * values
+%    * labels - cell array of label strings
+%    * values - cell array of values
 %    * def
 %
 % Public Methods
@@ -51,9 +51,9 @@ function item = cfg_menu(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_menu.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_menu.m 1245 2008-03-26 10:32:25Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1245 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
