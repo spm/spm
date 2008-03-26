@@ -4,7 +4,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 1249 2008-03-26 14:47:52Z stefan $
+% $Id: spm_cfg.m 1253 2008-03-26 21:28:33Z stefan $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -37,13 +37,24 @@ stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cf
 stats.forcestruct = true;
 stats.num     = [0 Inf];
 % ---------------------------------------------------------------------
+% meeg Meeg
+% ---------------------------------------------------------------------
+meeg         = cfg_repeat;
+meeg.tag     = 'meeg';
+meeg.name    = 'M/EEG';
+meeg.help    = {'M/EEG functions.'};
+meeg.values  = { spm_cfg_eeg_filter spm_cfg_eeg_epochs spm_cfg_eeg_artefact spm_cfg_eeg_average spm_cfg_eeg_downsample spm_cfg_eeg_merge};
+meeg.forcestruct = true;
+meeg.num     = [0 Inf];
+
+% ---------------------------------------------------------------------
 % util Util
 % ---------------------------------------------------------------------
 util         = cfg_repeat;
 util.tag     = 'util';
 util.name    = 'Util';
 util.help    = {'Various useful tools.'};
-util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_runbatch spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_defs spm_cfg_ui spm_cfg_meeg spm_cfg_cat spm_cfg_eeg_filter8};
+util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_runbatch spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_defs spm_cfg_ui spm_cfg_meeg spm_cfg_cat};
 util.forcestruct = true;
 util.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -171,6 +182,6 @@ spmjobs.help    = {
                 'This panel provides information about the meaning of the current item.'
                 '/*\begin{figure} \begin{center} \includegraphics[width=70mm]{images/batch_ui1} \includegraphics[width=70mm]{images/batch_ui2} \includegraphics[width=70mm]{images/ui3} \includegraphics[width=70mm]{images/ui4}\end{center} \caption{The SPM5 user interface. \emph{Top left:} The usual user-interface.  \emph{Top right:} The Defaults user-interface. \emph{Bottom left:} The file selector (click the (?) button for more information about filtering filenames, or selecting individual volumes within a 4D file). \emph{Bottom right:} more online help can be obtained via the main help button.} \end{figure} */'
 }';
-spmjobs.values  = { temporal spatial stats util tools};
+spmjobs.values  = { temporal spatial stats meeg util tools};
 spmjobs.forcestruct = true;
 spmjobs.num     = [0 Inf];

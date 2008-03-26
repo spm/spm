@@ -1,4 +1,4 @@
-function D = spm_eeg_average(S);
+function D = spm_eeg_average(S)
 % averages each channel over trials or trial types.
 % FORMAT D = spm_eeg_average(S)
 %
@@ -15,7 +15,7 @@ function D = spm_eeg_average(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_eeg_average.m 1253 2008-03-26 21:28:33Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -136,7 +136,9 @@ else
     for i = 1:D.nconditions
 
         w = intersect(pickconditions(D, deblank(cl(i,:))), find(~D.reject))';
-
+        c = zeros(1, D.ntrials);
+        c(w) = 1;
+        
         ni(i) = length(w);
 
         d = zeros(D.nchannels, D.nsamples);
@@ -144,9 +146,9 @@ else
         if ni(i) == 0
             warning('%s: No trials for trial type %d', D.fname, conditionlabels(D, i));
         else
-            w = w./sum(w); % vector of trial-wise weights
+            c = c./sum(c); % vector of trial-wise weights
             for j = 1:D.nchannels
-                d(j, :) = w*squeeze(D(j, :, :))';
+                d(j, :) = c*squeeze(D(j, :, :))';
             end
         end
         Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
@@ -172,7 +174,7 @@ sD.trials = rmfield(sD.trials ,'onset');
 try sD.trials = rmfield(sD.trials,'reject'); end
 sD.trials = sD.trials(1:D.nconditions);
 
-sD.trials.repl = ni;
+for i = 1:D.nconditions, sD.trials(i).repl = ni(i); end
 if isfield(sD.other, 'artefact');
     sD.other=rmfield(sD.other, 'artefact');
 end

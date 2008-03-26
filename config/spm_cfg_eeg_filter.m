@@ -43,7 +43,7 @@ flt.val = {typ band PHz};
 
 S = cfg_exbranch;
 S.tag = 'eeg_filter';
-S.name = 'EEG Filter';
+S.name = 'M/EEG Filter';
 S.val = {D flt};
 S.help = {'Low-pass filters EEG/MEG epoched data.'};
 S.prog = @eeg_filter;
