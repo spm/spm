@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: cfg_ui.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1260 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -273,8 +273,10 @@ str = cellstr(cat(2,strvcat(str), strvcat(mrk)));
 set(handles.modlist, 'string', str, 'userdata',udmodlist, 'value', cmod);
 if ~isempty(sts) && all(sts)
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRun$'),'Enable','on');
+    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRunSerial$'),'Enable','on');
 else
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRun$'),'Enable','off');
+    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRunSerial$'),'Enable','off');
 end    
 local_showmod(obj);
 

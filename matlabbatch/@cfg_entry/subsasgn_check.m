@@ -11,9 +11,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1260 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -42,6 +42,14 @@ switch subs(1).subs
             [sts vtmp] = valcheck(item,val{1});
             val{1} = vtmp;
         end;
+    case {'strtype'}
+        strtypes = {'s','e','f','n','w','i','r','c','x','p'};
+        sts = isempty(val) || (ischar(val) && ...
+                               any(strcmp(val, strtypes)));
+        if ~sts
+            warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                    '%s: Value must be a valid strtype.', checkstr);
+        end;
 end;
 
 function [sts val] = valcheck(item,val)
@@ -53,13 +61,15 @@ if ~isa(val,'cfg_dep')
     switch item.strtype
         case {'s'}
             if ~ischar(val)
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', '%s: Item must be a string.', checkstr);
+                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                        '%s: Item must be a string.', checkstr);
                 sts = false;
             else
                 [sts val] = numcheck(item,val);
             end;
         case {'s+'}
-            warning('matlabbatch:cfg_entry:subsasgn_check:strtype', '%s: FAILURE: Cant do s+ yet', checkstr);
+            warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                    '%s: FAILURE: Cant do s+ yet', checkstr);
         case {'f'}
             % test whether val is a function handle or a name of an
             % existing function
@@ -70,6 +80,44 @@ if ~isa(val,'cfg_dep')
                         '%s: Item must be a function handle or function name.', ...
                         checkstr);
             end;
+        case {'n'}
+            tol = 4*eps;
+            sts = isempty(val) || (isnumeric(val) && all(val(:) >= 1) && ...
+                                   all(abs(round(val(:))-val(:)) <= tol));
+            if ~sts
+                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                        '%s: Item must be an array of natural numbers.', checkstr);
+                return;
+            end;
+            [sts val] = numcheck(item,val);
+        case {'i'}
+            tol = 4*eps;
+            sts = isempty(val) || (isnumeric(val) && ...
+                                   all(abs(round(val(:))-val(:)) <= tol));
+            if ~sts
+                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                        '%s: Item must be an array of integers.', checkstr);
+                return;
+            end;
+            [sts val] = numcheck(item,val);
+        case {'r'}
+            sts = isempty(val) || (isnumeric(val) && all(isreal(val(:))));
+            if ~sts
+                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                        '%s: Item must be an array of real numbers.', checkstr);
+                return;
+            end;
+            [sts val] = numcheck(item,val);
+        case {'w'}
+            tol = 4*eps;
+            sts = isempty(val) || (isnumeric(val) && all(val(:) >= 0) && ...
+                                   all(abs(round(val(:))-val(:)) <= tol));
+            if ~sts
+                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                        '%s: Item must be an array of whole numbers.', checkstr);
+                return;
+            end;
+            [sts val] = numcheck(item,val);
         otherwise
             % only do size check for other strtypes
             [sts val] = numcheck(item,val);

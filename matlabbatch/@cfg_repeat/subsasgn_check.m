@@ -9,9 +9,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1260 $';
 sts = true;
 switch subs(1).subs
     case {'num'}
@@ -19,7 +19,7 @@ switch subs(1).subs
     case {'values'}
 	sts = subsasgn_check_valcfg(subs,val,[0 Inf]);
     case {'val'}
-	% Check maximum number of elements
+	% Check maximum number of elements - don't limit minimum number
 	sts = subsasgn_check_valcfg(subs,val,[0 item.num(2)]);
 	% Could also check whether added element is one from 'values' list
 end;

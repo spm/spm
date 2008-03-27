@@ -11,7 +11,11 @@ function [sts val] = subsasgn_check(item,subs,val)
 % 
 % This routine is a both a check for cfg_item fields and a fallback
 % placeholder in cfg_item if a derived class does not implement its own
-% checks. In this case it always returns true.
+% checks. In this case it always returns true. A derived class may also
+% check assignments to cfg_item fields (e.g. to enforce specific validity
+% checks for .val fields). subsasgn_check of the derived class is called
+% before this generic subsasgn_check is called and both checks need to be
+% passed.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -20,9 +24,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1260 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);

@@ -9,9 +9,9 @@ function sts = subsasgn_check_valcfg(subs,val,num)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_valcfg.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsasgn_check_valcfg.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1260 $';
 
 sts = true;
 
@@ -40,6 +40,7 @@ if numel(subs) == 1
     end;
 
 elseif numel(subs) == 2
+    % This else should never be called from subsasgn
     % pass either a cell of items or a single item
     if max(subs(2).subs{1}) > num(2)
         warning('matlabbatch:subsasgn_check_valcfg:numel', 'Number of values must be in range [%d %d].', num(1), ...

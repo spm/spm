@@ -63,11 +63,11 @@ function cfg_serial(guifcn, job, varargin)
 %     num - 2-vector of min/max number of required files
 %
 % Interaction between cfg_ui and cfg_serial
-% Currently, cfg_util can only hold one job at any time. If cfg_ui is
-% open and cfg_serial is called in between, then the current job is
-% cleared. Instead of sending a notification to cfg_ui, it will simply be
-% closed. This will change, once cfg_util is able to hold more than one
-% job context.
+% Currently, cfg_util can hold multiple jobs, but only one of them is
+% active. If cfg_ui is open and cfg_serial is called in between, then the
+% current job is set to the job specified in cfg_serial. Therefore,
+% cfg_ui will be closed once cfg_serial is called. This will change, once
+% cfg_util is able to hold more than one active job context.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -76,9 +76,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: cfg_serial.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1260 $';
 
 % close any cfg_ui instance
 close(cfg_ui);

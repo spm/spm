@@ -58,6 +58,8 @@ function item = cfg_entry(varargin)
 %   'w'   whole number (0..n)
 %   'i'   integer
 %   'r'   real number
+%   The following types are supported too, but there are no special
+%   checks for validity of contents 
 %   'c'   indicator vector (e.g., 0101... or abab...)
 %   'x'   contrast matrix
 %   'p'   permutation
@@ -76,9 +78,9 @@ function item = cfg_entry(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_entry.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: cfg_entry.m 1260 2008-03-27 21:56:55Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1260 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
