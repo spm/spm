@@ -3,36 +3,48 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1143 2008-02-07 19:33:33Z spm $
+# $Id: Makefile 1256 2008-03-27 20:42:31Z guillaume $
 #
 ###############################################################################
 #
-# This Makefile has been tested under Linux, SunOS and Windows (at the FIL).
+# This Makefile has been tested under Linux, Windows, MacOS and SunOS.
 # 
 # If you have to tweak this Makefile to compile the SPM mex-files for your 
-# platform, please send the details to <spm-authors@fil.ion.ucl.ac.uk> so they 
-# can be included here. 
+# platform, please send the details to <spm@fil.ion.ucl.ac.uk> so they can be 
+# included here. 
 #
 # You can specify a particular platform with the following syntax:
 #    make PLATFORM=Your_Platform
 # The standard targets are 'all', 'clean', 'distclean' and 'install'.
 #
 # For a list of compatible compilers, see
-# http://www.mathworks.com/support/tech-notes/1600/1601.html
+#    http://www.mathworks.com/support/compilers/current_release/
+#
+# You can find some more help online on the SPM wikibook:
+#  * Linux:
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_Linux
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux 
+#  * Windows:
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_Windows
+#      MinGW: http://www.mingw.org/
+#      Gnumex: http://gnumex.sourceforge.net/
+#  * SunOS:
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_SunOS
+#  * MacOS:
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS
+#      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
 #
 ###############################################################################
 
 SHELL         = /bin/sh
-MEX_BIN       = mex
+MEXBIN        = mex
 MEXOPTS       = -O
 MEXEND        = 
 CC            = cc
 CFLAGS        = 
 MOSUF         = o # mex output object suffix
 CHMODIT       = chmod 644
-ADDED_OBS     = 
 AR            = ar rcs
-RANLIB        = ranlib
 COPY          = cp -f
 DEL           = rm -f
 MOVE          = mv -f
@@ -43,25 +55,17 @@ ifndef SUF
   endif
   ifeq (SunOS,$(PLATFORM))
     SUF       = mexsol
-    CFLAGS    = -xO5 -DBIGENDIAN
-    MEXOPTS   = COPTIMFLAGS='-xO5 -DBIGENDIAN'
-  endif
-  ifeq (SunOS.gcc,$(PLATFORM))
-    # See http://en.wikibooks.org/wiki/SPM-Installation_on_SunOS
-    SUF       = mexsol
     CC        = gcc
     CFLAGS    = -O3 -funroll-loops -DBIGENDIAN -fPIC
     MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
   endif
-  ifeq (SunOS64.gcc,$(PLATFORM))
-	# Added mexs64 filename extension (as R2007a requires) and -m64 compiler option
+  ifeq (SunOS64,$(PLATFORM))
     SUF       = mexs64
     CC        = gcc
     CFLAGS    = -m64 -O3 -funroll-loops -DBIGENDIAN -fPIC
     MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
   endif
   ifeq (Linux,$(PLATFORM))
-    # 'uname -i' may not work
     HARDWARE  = $(shell uname -m)
     ifeq (i386,$(HARDWARE))
       SUF     = mexglx
@@ -76,14 +80,8 @@ ifndef SUF
       MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
     endif
     ifeq (x86_64,$(HARDWARE))
-      # See http://en.wikibooks.org/wiki/SPM-Installation_on_64bit_Linux 
       SUF     = mexa64
       CC      = gcc
-      # The '-fPIC' option is necessary to allow the linking process to complete. 
-      # '-march=x86-64' provides generic optimisations for both Opteron and 64bit Xeon.
-      # If the code is running on a 64bit Xeon you can change '-march=x86-64' to 
-      # '-march=nocona', when running on an Opteron, change it to '-march=opteron'.
-      # Also possibly use '-march=k8' for 64 bit Athlon.
       CFLAGS  = -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse
       MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'
     endif
@@ -91,16 +89,7 @@ ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
     endif
   endif
-  ifeq (HP-UX,$(PLATFORM))
-    SUF       = mexphux
-    CFLAGS    = -O +z -Ae +DAportable -DBIGENDIAN
-    MEXOPTS   = -O -DBIGENDIAN
-  endif
   ifeq (Darwin,$(PLATFORM))
-    # See http://en.wikibooks.org/wiki/SPM-Installation_on_Mac_OS
-    #
-    # Patch for gcc 3.x with Matlab 6.5 and 6.5.1 on Mac OS X:
-    # http://www.mathworks.com/support/solutions/data/1-1BEIS.html?solution=1-1BEIS
     HARDWARE  = $(shell uname -p)
     ifeq (i386,$(HARDWARE))
        SUF       = mexmaci
@@ -113,44 +102,16 @@ ifndef SUF
        MEXOPTS   = -O -DBIGENDIAN
     endif
   endif
-  # See Matthew Brett's web page on mex files for Windows:
-  # http://gnumex.sourceforge.net/
-  #
-  # New extension .mexw32 for MEX-files on 32-bit versions of Windows in Matlab 7.1:
-  # http://www.mathworks.com/access/helpdesk/help/techdoc/rn/r14sp3_external_upgrade.html
   ifeq (windows,$(PLATFORM))
-    # Assume a Cygwin/MinGW Windows compilation
-    override PLATFORM = CYGWIN
+    override PLATFORM = MINGW32
   endif
   ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
-    # MinGW (Minimalist GNU for Windows) can be obtained from:
-    #     http://www.mingw.org/
-    # Packages required are mingw-runtime, w32api, binutils, gcc-core and mingw32-make
-    SUF       = dll
     SUF       = mexw32
     CC        = gcc
     CFLAGS    = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
-    MEX_BIN   = cmd /c "mex.bat
+    MEXBIN    = cmd /c "mex.bat
     MEXOPTS   = -O -DSPM_WIN32
     MEXEND    = "
-    MOSUF     = obj
-    CHMODIT   = chmod 755
-  endif
-  ifeq (CYGWIN,$(word 1,$(subst _, ,$(PLATFORM))))
-    # Cygwin packages can be obtained from:
-    #     http://www.cygwin.com/
-    # (install the Default configuration, along with the gcc C compiler, 
-    # and make from the "Devel" options)   
-    SUF       = dll
-    SUF       = mexw32
-    CC        = gcc
-    # Consider adding either of the following, depending on your platform:
-    #       -march=pentium3
-    #       -march=pentium4
-    # Consider also: -mfpmath=sse and: -mno-cygwin
-    CFLAGS    = -mno-cygwin -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
-    MEX_BIN   = mex.bat
-    MEXOPTS   = -O -DSPM_WIN32
     MOSUF     = obj
     CHMODIT   = chmod 755
   endif
@@ -159,7 +120,7 @@ ifndef SUF
   endif
 endif
 
-MEX           = $(MEX_BIN) $(MEXOPTS)
+MEX           = $(MEXBIN) $(MEXOPTS)
 
 ###############################################################################
 # Objects to go in the archive and mexfiles
@@ -173,7 +134,7 @@ OBS    =\
 	utils_ushort_s.$(SUF).o utils_uint_s.$(SUF).o\
 	utils_float_s.$(SUF).o utils_double_s.$(SUF).o\
 	spm_make_lookup.$(SUF).o spm_getdata.$(SUF).o spm_vol_access.$(SUF).o\
-	spm_mapping.$(SUF).o $(ADDED_OBS)
+	spm_mapping.$(SUF).o
 
 SPMMEX =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
@@ -433,11 +394,17 @@ spm_unlink.$(SUF): spm_unlink.c
 # Assorted architecture dependent messages
 ###############################################################################
 
-verb.dll verb.mexw32:
+verb.mexw32:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "        Windows compilation - using $(CC)/`uname`"
-	@ echo "        see http://gnumex.sourceforge.net/"
+	@ echo "     Windows compilation (32 bit) - using $(CC)/`uname`"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mexw64:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "     Windows compilation (64 bit) - using $(CC)/`uname`"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
@@ -472,7 +439,7 @@ verb.mexmaci:
 verb.mexsol:
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "        Unix compilation (Solaris) - using $(CC)"
+	@ echo "        Unix compilation (Solaris 32 bit) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 
@@ -480,12 +447,5 @@ verb.mexs64:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (Solaris 64 bit) - using $(CC)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-
-verb.hpux:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (HP-UX) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
