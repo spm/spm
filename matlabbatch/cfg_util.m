@@ -19,9 +19,6 @@ function varargout = cfg_util(cmd, varargin)
 % return id(s) of unspecified type. If necessary, these id(s) should be
 % stored in cell arrays in a calling application, since their internal
 % format may change.
-% Currently, cfg_util is not re-entrant, because a new call to
-% cfg_util('initjob') will clear its previous cj or even c0. This means,
-% that a job can not run another job since the original job would be lost.
 %
 % The commands to manipulate these structures are described below in
 % alphabetical order.
@@ -223,10 +220,10 @@ function varargout = cfg_util(cmd, varargin)
 % do not depend on this module. An error message will be logged and the
 % module will be reported as 'failed to run' in the MATLAB command window.
 %
-%  cfg_util('runserial'[, job])
+%  cfg_util('runserial'[, job|job_id])
 %
 % Like 'run', but force cfg_util to run the job as if each module was
-% dependent of its predecessor.
+% dependent on its predecessor.
 %
 %  cfg_util('savejob', filename)
 %
@@ -311,9 +308,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: cfg_util.m 1259 2008-03-27 21:42:04Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1259 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -445,6 +442,10 @@ switch lower(cmd),
     case 'isitem_mod_id'
         varargout{1} = isstruct(varargin{1}) && ...
             all(isfield(varargin{1}, {'type','subs'}));
+    case 'isjob_id'
+        varargout{1} = isnumeric(varargin{1}) && ...
+            varargin{1} <= numel(jobs) ...
+            && ~isempty(jobs(varargin{1}).cjid2subs);            
     case 'ismod_cfg_id'
         varargout{1} = isstruct(varargin{1}) && ...
             all(isfield(varargin{1}, {'type','subs'}));
@@ -551,11 +552,11 @@ switch lower(cmd),
         rjob = cjob;
         dflag = false;
         if nargin > 1
-            if isstruct(varargin{1})
+            if cfg_util('isjob_id',varargin{1})
+                rjob = varargin{1};
+            else
                 rjob = cfg_util('initjob',varargin{1});
                 dflag = true;
-            else
-                rjob = varargin{1};
             end;
         end;
         if strcmpi(cmd, 'run')
