@@ -1,41 +1,41 @@
 
-% Welcome to SPM5
+% Welcome to SPM8
 %_______________________________________________________________________
 %
-% Please refer to this version as "SPM5" in papers and communications.
-%
-%                           ----------------
-%
-% Although SPM5 will read image files from previous versions of SPM,
-% there are differences in the algorithms, templates and models used.
-% Therefore, we recommend you use a single SPM version for any given
-% project.
-%
-% Please take time to review the (mostly updated) help, in
-% particular the "About SPM" topic (spm.man), which lists new features
-% of SPM5.
-%
-% Further information may be found at the SPMweb site:
-%                  http://www.fil.ion.ucl.ac.uk/spm/
-% ...where details of the SPM email discussion list can be found:
-%                  http://www.fil.ion.ucl.ac.uk/spm/support/
+% Please refer to this version as "SPM8" in papers and communications.
 %
 %                           ----------------
 %
 % SPM is developed under the auspices of Functional Imaging Laboratory
-% (FIL) The Wellcome Department of Imaging Neuroscience, in the Institute
-% of Neurology at University College London (UCL), UK.
+% (FIL), The Wellcome Trust Centre for NeuroImaging, in the Institute of
+% Neurology at University College London (UCL), UK.
 %
 %                           ----------------
 %
-% SPM (being the collection of files given in the manifest in the
-% Contents.m file) is free but copyright software, distributed under
-% the terms of the GNU General Public Licence as published by the Free
-% Software Foundation (either version 2, as given in file spm_LICENCE.man,
+% Although SPM8 will read image files from previous versions of SPM,
+% there are differences in the algorithms, templates and models used.
+% Therefore, we recommend you use a single SPM version for any given
+% project.
+%
+% Please take time to review the help, in particular the "About SPM" 
+% topic (spm.man), which lists new features of SPM8.
+%
+% Further information may be found at the SPMweb site:
+%            http://www.fil.ion.ucl.ac.uk/spm/
+% where details of the SPM email discussion list can be found:
+%            http://www.fil.ion.ucl.ac.uk/spm/support/
+% A PDF manual is also available in the 'man' folder of SPM and online:
+%            http://www.fil.ion.ucl.ac.uk/spm/doc/manual.pdf
+%
+%                           ----------------
+%
+% SPM is free but copyright software, distributed under the terms of
+% the GNU General Public Licence as published by the Free Software 
+% Foundation (either version 2, as given in file spm_LICENCE.man,
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm_motd.man 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_motd.man 1257 2008-03-27 20:45:08Z guillaume $
