@@ -21,7 +21,7 @@ function [trl conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1252 2008-03-26 18:19:58Z vladimir $
+% $Id: spm_eeg_definetrial.m 1254 2008-03-27 18:41:42Z vladimir $
 
 if nargin == 0
     S = [];
@@ -39,6 +39,8 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
     event = read_event(S.dataset);
     hdr = read_header(S.dataset);
     S.fsample = hdr.Fs;
+else
+    event = S.event;
 end
 
 if ~isfield(event, 'time')
@@ -80,7 +82,7 @@ if ~(isfield(S, 'trialdef'))
             if isempty(conditionlabel) || isempty(selected)
                 pos = '-1';
             else
-                for j = size(selected, 1);
+                for j = 1:size(selected, 1);
                     S.trialdef(j).conditionlabel = conditionlabel;
                     S.trialdef(j).eventtype = selected{j, 1};
                     S.trialdef(j).eventvalue = selected{j, 2};
@@ -140,7 +142,7 @@ if S.review
 
     eventstrings=cell(size(trl,1),1);
     for i=1:size(trl,1)
-        eventstrings{i}=['Label: ' conditionlabels{i} ' Time (sec): ' num2str((trl(i, 1)- trl(i, 3))./S.fsample)];
+        eventstrings{i}=[num2str(i) ' Label: ' conditionlabels{i} ' Time (sec): ' num2str((trl(i, 1)- trl(i, 3))./S.fsample)];
     end
 
     selected = find(trl(:,1)>0);

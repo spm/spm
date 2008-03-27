@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1239 2008-03-25 15:28:16Z vladimir $
+% $Id: checkmeeg.m 1254 2008-03-27 18:41:42Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -30,10 +30,7 @@ elseif (Nsamples==0)  % This is to enable creation of empty meeg objects
     meegstruct.Fsample = 0;
 end
 
-if ~isfield(meegstruct, 'timeOnset') && (Nsamples~=0)
-    disp('checkmeeg: peristimulus time onset is missing');
-    return;
-elseif (Nsamples==0)  % This is to enable creation of empty meeg objects
+if ~isfield(meegstruct, 'timeOnset') 
     meegstruct.timeOnset = 0;
 end
 

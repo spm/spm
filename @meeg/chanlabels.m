@@ -1,41 +1,32 @@
-function res = chanlabels(this, ind)
+function res = chanlabels(this, varargin)
 % Method for getting/setting the channel labels
-% FORMAT res = chanlabels(this, ind)
+% FORMAT res = chanlabels(this, ind, label)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Litvak, Stefan Kiebel
-% $Id$
+% Vladimir Litvak
+% $Id $
 
-switch nargin
-    case 1
-        res = getlabels(this);        
-    case 2
-        res = getlabels(this, ind);
-    case 3
-        res = setlabels(this, ind, name);
-    otherwise
-end
-
-function res = getlabels(this, ind)
-if this.Nsamples>0
-    res = {this.channels.label};
-else
-    res = [];
-end
-
-if nargin > 1
-    if all(ind > 0 & ind <= subsref(this, substruct('.','nchannels')))
-        res = res(ind);
-    else
-        error('Indexed channels do not exist.');
+if nargin == 3
+    ind = varargin{1};
+    label = varargin{2};
+    
+    if iscell(label) && length(label)>1
+        if ~isempty(ind) && length(ind)~=length(label)
+            error('Indices and values do not match');
+        end
+        
+        if length(label)>1
+            for i = 1:length(label)
+                for j = (i+1):length(label)
+                    if strcmp(label{i}, label{j})
+                        error('All labels must be different');
+                    end
+                end
+            end
+        end
+        
     end
 end
 
-
-function this = setlabels(this, ind, name)
-if iscell(label)
-    [this.trials(ind).label] = deal(name);
-else
-    [this.trials(ind).label] = deal(cellstr(name));
-end
+res = getset(this, 'channels', 'label', varargin{:});

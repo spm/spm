@@ -2,16 +2,14 @@ function D = spm_eeg_epochs(S)
 % function used for epoching continuous EEG/MEG data
 % FORMAT D = spm_eeg_epochs(S)
 %
-% S         - optional input struct
+% S  - filename or input struct (optional)
 % (optional) fields of S:
-% D         - filename of EEG mat-file with continuous data
-% events    - struct with various entries:
-%    start     - pre-stimulus start of epoch [ms]
-%    stop      - post-stimulus end of epoch [ms]
-%    types     - events to extract (vector of event types)
-%    Inewlist  - switch (0/1) to have new list of event codes
-%    Ec        - list of new event codes
-%
+% S.D         - filename of EEG mat-file with continuous data
+% S.trl - Nx2 or Nx3 matrix (N - number of trials) [start end offset]
+% S.conditionlabels - one label or cell array of N labels 
+% S.eventpadding - in sec - the additional time period around each trial
+%               for which the events are saved with the trial (to let the
+%               user keep and use for analysis events which are outside
 % Output:
 % D         - EEG data struct (also written to files)
 %_______________________________________________________________________
@@ -19,142 +17,105 @@ function D = spm_eeg_epochs(S)
 % spm_eeg_epochs extracts single trials from continuous EEG/MEG data. The
 % length of an epoch is determined by the samples before and after stimulus
 % presentation. One can limit the extracted trials to specific trial types.
-% Also, it is possible to re-number trial types, see above.
-% Note that epoching includes a baseline correction of each single trial,
-% i.e. a subtraction of the average pre-stimulus average from all time
-% points.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1247 2008-03-26 11:08:36Z stefan $
+% $Id: spm_eeg_epochs.m 1254 2008-03-27 18:41:42Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
-try
+if nargin == 0
+    S =[];
+end
+
+if ischar(S)
+    temp = S;
+    S=[];
+    S.D = temp;
+end
+
+if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;    end
+
+if isfield(S, 'D')
     D = S.D;
-catch
+else
     D = spm_select(1, '\.mat$', 'Select EEG mat file');
 end
 
-P = spm_str_manip(D, 'H');
 
-try
-    D = spm_eeg_load(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
-end
-
-try
-    events.start = S.events.start;
-catch
-    events.start =...
-        spm_input('start of epoch [ms]', '+1', 'r', '', 1);
-end
-
-try
-    events.stop = S.events.stop;
-catch
-    events.stop = ...
-        spm_input('end of epoch [ms]', '+1', 'r', '', 1);
-end
-
-% convert to struct
-sD = struct(D);
-ev = cat(2, sD.trials.events(:).value);
-values = unique(ev);
-
-try
-    events.types = S.events.types;
-catch
-    disp(sprintf('Nr: Available events (#occurences): '))
-    for i = 1:length(values)
-        Nevents(i) = sum(values(i) == ev);
-        disp(sprintf('%d:   %d (%d)', i, values(i), Nevents(i)))
-
-    end
-    events.types = ...
-        spm_input('Event nrs. to epoch)', '+1', 'n', '', inf, length(values));
-end
-
-
-
-% returns indices of chosen trial types
-selected = find(ismember(ev, values(events.types)));
-
-try
-    Inewlist = S.events.Inewlist;
-catch
-    Inewlist = spm_input('Read new event list?', '+1', 'yes|no', [1 0]);
-end
-
-if Inewlist
+if isa(D, 'char')
     try
-        Ec = S.events.Ec;
+        D = spm_eeg_load(D);
     catch
-        Ec = spm_input('Input event vector', '+1', 'w', [], length(values));
+        error(sprintf('Trouble reading file %s', D));
     end
 end
 
-try
-    events.newlabels = S.events.newlabels;
-catch
-    events.newlabels = ...
-        spm_input('New labels', '+1', 's+', '', length(events.types));
+if ntrials(D)>1
+    warning('The file is already epoched');
+    return;
 end
 
-events.labels(events.types) = events.newlabels;
+if ~(isfield(S, 'trl') & isfield(S, 'conditionlabels'))
+    S.event = D.events;
+    if isempty(S.event)
+        S.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
+        S.trl = getfield(load(S.trlfile, 'trl'), 'trl');
+        S.conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
+    end
+    S.fsample = D.fsample;
+    S.timeonset = D.trialonset;
+    [S.trl, S.conditionlabels] = spm_eeg_definetrial(S);
+end
+
+trl = S.trl;
+conditionlabels = S.conditionlabels;
+
+if size(trl, 2) >= 3
+    timeOnset = unique(trl(:, 3))./D.fsample;
+    trl = trl(:, 1:2);
+else
+    timeOnset = 0;
+end
+
+if length(timeOnset) > 1
+    error('All trials should have identical baseline');
+end
+
+nsampl = unique(diff(trl, [], 2))+1;
+if length(nsampl) > 1 || nsampl<1
+    error('All trials should have identical and positive lengths');
+end
 
 spm('Pointer', 'Watch'); drawnow;
 
-% transform ms to samples
-events.startsample = ceil(-events.start*D.fsample/1000);
-events.stopsample = ceil(events.stop*D.fsample/1000);
+inbounds = (trl(:,1)>1 & trl(:, 2)<=D.nsamples);
 
-if events.startsample >= events.stopsample
-    error('Start time must be less than stop time.');
+rejected = find(~inbounds);
+
+if ~isempty(rejected)
+    trl = trl(find(inbounds), :);
+    warning([D.fname ': Events ' num2str(rejected) ' not extracted - out of bounds']);
 end
 
-% two passes
-
-% 1st pass: Count the number of trials to be epoched to know the
-% dimensions of the resulting data array
-ind = [];
-t = round(cat(1, sD.trials.events(:).time)*D.fsample); % sample time
-for i = selected
-    if  t(i) - events.startsample < 1 || t(i) + events.stopsample > D.nsamples
-        % skip this trial
-        warning(sprintf('%s: Event %d not extracted because not enough sample points', D.fname, i));
-    else
-        ind = [ind i];
-    end
-end
-
-% 2nd pass: do the epoching
-
-nsamples = events.stopsample + events.startsample+1;
-ntrials = length(ind);
+ntrial = size(trl, 1);
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['e' fnamedat(D)], [D.nchannels nsamples ntrials], D.dtype);
+Dnew = clone(D, ['e' fnamedat(D)], [D.nchannels nsampl, ntrial]);
 
-spm_progress_bar('Init', ntrials, 'Events read'); drawnow;
-if ntrials > 100, Ibar = floor(linspace(1, ntrials, 100));
-else Ibar = [1:ntrials]; end
+spm_progress_bar('Init', ntrial, 'Events read'); drawnow;
+if ntrial > 100, Ibar = floor(linspace(1, ntrial, 100));
+else Ibar = [1:ntrial]; end
 
-for i = 1:ntrials
+for i = 1:ntrial
 
-    k = ind(i);
-    if Inewlist
-        ev(i) = Ec(k);
-    end
+    d = D(:, trl(i, 1):trl(i, 2), 1);
 
-    d = D(:, t(k) - events.startsample : t(k) + events.stopsample, 1);
+    Dnew(:, :, i) = d;
 
-    % baseline subtraction
-    d = d - repmat(mean(d(:, [1:abs(events.startsample)+1]), 2), 1, nsamples);
-
-    Dnew(1:Dnew.nchannels, 1:nsamples, i) = d;
+    Dnew = events(Dnew, i, select_events(D.events, ...
+        [trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);
@@ -162,22 +123,24 @@ for i = 1:ntrials
     end
 end
 
-sDnew = struct(Dnew);
-sDnew.Nsamples = nsamples;
-trials = sDnew.trials;
-sDnew = rmfield(sDnew, 'trials');
-
-for i = 1: ntrials
-    sDnew.trials(i) = struct('onset', t(ind(i))/D.fsample, 'label', num2str(events.labels{find(ev(ind(i)) == values)}));
-end
-Dnew = meeg(sDnew);
-
-if Inewlist && D.ntrials ~= length(Ec)
-    warning('Not all events in event list used!')
-end
+Dnew = conditions(Dnew, [], conditionlabels);
+Dnew = trialonset(Dnew, [], trl(i, 1)./D.fsample+D.trialonset);
+Dnew = timeonset(Dnew, timeOnset);
 
 save(Dnew);
 
 spm_progress_bar('Clear');
 
 spm('Pointer', 'Arrow');
+
+function event = select_events(event, timeseg)
+% Utility function to select events according to time segment
+% FORMAT event = select_events(event, timeseg)
+
+if ~isempty(event)
+    [time ind] = sort([event(:).time]);
+
+    selectind = ind(time>=timeseg(1) & time<=timeseg(2));
+
+    event = event(selectind);
+end

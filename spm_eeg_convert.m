@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1252 2008-03-26 18:19:58Z vladimir $
+% $Id: spm_eeg_convert.m 1254 2008-03-27 18:41:42Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -298,7 +298,7 @@ for i = 1:ntrial
         datafile(:, :, i) = dat;
         D.trials(i).label = conditionlabels{i};
         D.trials(i).onset = trl(i, 1)./D.Fsample;
-        D.trials(i).event = select_events(event, ...
+        D.trials(i).events = select_events(event, ...
             [ trl(i, 1)./D.Fsample-S.eventpadding  trl(i, 2)./D.Fsample+S.eventpadding]);
     end
 
@@ -320,7 +320,10 @@ D = meeg(D);
 D = setchantype(D);
 save(D);
 
+
 function event = select_events(event, timeseg)
+% Utility function to select events according to time segment
+% FORMAT event = select_events(event, timeseg)
 
 if ~isempty(event)
     [time ind] = sort([event(:).time]);
@@ -329,5 +332,3 @@ if ~isempty(event)
 
     event = event(selectind);
 end
-
-

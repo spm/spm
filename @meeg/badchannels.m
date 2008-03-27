@@ -1,4 +1,4 @@
-function res = badchannels(this, ind, flag)
+function res = badchannels(this, varargin)
 % Method for getting/setting bad channels 
 % FORMAT res = badchannels(obj)
 % _______________________________________________________________________
@@ -7,16 +7,4 @@ function res = badchannels(this, ind, flag)
 % Stefan Kiebel
 % $Id$
 
-switch nargin
-    case 1
-        res = getbadchannels(this);        
-    case 3
-        res = setbadchannels(this, ind, flag);
-    otherwise
-end
-
-function res = getbadchannels(this)
-res = find(cat(1, this.channels(:).bad));
-
-function this = setbadchannels(this, ind, flag)
-[this.channels(ind).bad] = deal(flag);
+res = getset(this, 'channels', 'bad', varargin{:});

@@ -1,20 +1,10 @@
-function res = conditions(obj, ind)
+function res = conditions(this, varargin)
 % Method for getting condition labels, over trials
-% FORMAT res = conditions(obj)
+% FORMAT res = conditions(this, ind, conditionlabels)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-%$Id$
+%$Id $
 
-if obj.Nsamples>0
-    res = {obj.trials.label};
-else
-    res = [];
-end
-
-if nargin > 1
-    res = res(ind);
-end
-
-res = strvcat(res);
+res = getset(this, 'trials', 'label', varargin{:});
