@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1256 2008-03-27 20:42:31Z guillaume $
+# $Id: Makefile 1258 2008-03-27 20:48:05Z john $
 #
 ###############################################################################
 #
@@ -141,7 +141,7 @@ SPMMEX =\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
 	spm_bsplinc.$(SUF) spm_bsplins.$(SUF) spm_bias_mex.$(SUF)\
-	spm_atranspa.$(SUF) spm_unlink.$(SUF) spm_hist.$(SUF)\
+	spm_unlink.$(SUF) spm_hist.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
@@ -340,10 +340,6 @@ file2mat.$(SUF): file2mat.c
 
 mat2file.$(SUF): mat2file.c
 	$(MEX) mat2file.c $(MEXEND)
-	@ $(CHMODIT) $@
-
-spm_atranspa.$(SUF): spm_atranspa.c 
-	$(MEX) spm_atranspa.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_bsplins.$(SUF): spm_bsplins.c
