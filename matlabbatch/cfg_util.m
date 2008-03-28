@@ -308,9 +308,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1266 2008-03-28 12:00:56Z volkmar $
+% $Id: cfg_util.m 1275 2008-03-28 16:25:56Z volkmar $
 
-rev = '$Rev: 1266 $';
+rev = '$Rev: 1275 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -561,11 +561,7 @@ switch lower(cmd),
                 dflag = true;
             end;
         end;
-        if strcmpi(cmd, 'run')
-            jobrun = local_runcj(jobs(rjob), false);
-        else
-            jobrun = local_runcj(jobs(rjob), true);
-        end;
+        jobrun = local_runcj(jobs(rjob), strcmpi(cmd, 'run'));
         if dflag
             cfg_util('deljob', rjob);
         end;
