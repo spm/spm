@@ -4,7 +4,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 1253 2008-03-26 21:28:33Z stefan $
+% $Id: spm_cfg.m 1262 2008-03-28 09:28:42Z stefan $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -43,7 +43,7 @@ meeg         = cfg_repeat;
 meeg.tag     = 'meeg';
 meeg.name    = 'M/EEG';
 meeg.help    = {'M/EEG functions.'};
-meeg.values  = { spm_cfg_eeg_filter spm_cfg_eeg_epochs spm_cfg_eeg_artefact spm_cfg_eeg_average spm_cfg_eeg_downsample spm_cfg_eeg_merge};
+meeg.values  = { spm_cfg_eeg_filter spm_cfg_eeg_epochs spm_cfg_eeg_artefact spm_cfg_eeg_average spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_grandmean};
 meeg.forcestruct = true;
 meeg.num     = [0 Inf];
 

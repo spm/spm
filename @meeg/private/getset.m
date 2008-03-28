@@ -1,16 +1,21 @@
 function res = getset(this, parent, fieldname, ind, values)
 % Generic method for getting and setting multiple fields of meeg struct
-% FORMAT res = conditions(this, ind, conditionlabels)
+% FORMAT res = getset(this, parent, fieldname, ind, values)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-%$Id $
+% $Id: getset.m 1262 2008-03-28 09:28:42Z stefan $
 
 this = struct(this);
 
 if nargin == 3 || isempty(ind)
-    ind = 1:numel(getfield(struct(this), parent));
+    try
+        ind = 1:numel(getfield(struct(this), parent));
+    catch
+        res = [];
+        return;
+    end
 end
 
 % Get

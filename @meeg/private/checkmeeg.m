@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1254 2008-03-27 18:41:42Z vladimir $
+% $Id: checkmeeg.m 1262 2008-03-28 09:28:42Z stefan $
 
 if nargin==1
     option = 'basic';
@@ -121,6 +121,13 @@ else
     end
 end
 
+if ~isfield(meegstruct, 'type') && (Nsamples~=0)
+    disp('checkmeeg: data type is missing');
+    return;
+elseif (Nsamples==0)  % This is to enable creation of empty meeg objects
+    meegstruct.type = 'continuous'; % can be: continuous, single, evoked, grandmean
+end
+
 if ~isfield(meegstruct, 'fname')
     meegstruct.fname = '';
 end
@@ -153,6 +160,11 @@ if ~isfield(meegstruct, 'other')
     meegstruct.other = struct([]);
 end
 
+if ~isfield(meegstruct, 'transform')
+    meegstruct.transform = struct('ID', 'time');
+end
+
+
 
 % This makes sure the order of the fields in the struct is right. This
 % seems to matter to the class function.
@@ -164,6 +176,7 @@ fieldnames_order = {
     'trials'
     'channels'
     'data'
+    'type'
     'fname'
     'path'
     'sensors'
@@ -171,7 +184,8 @@ fieldnames_order = {
     'artifacts'
     'history'
     'cache'
-    'other'};
+    'other'
+    'transform'};
 
 [sel1, sel2] = spm_match_str(fieldnames_order, fieldnames(meegstruct));
 tempcell = struct2cell(meegstruct);

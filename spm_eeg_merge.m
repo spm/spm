@@ -15,7 +15,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_merge.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_eeg_merge.m 1262 2008-03-28 09:28:42Z stefan $
 
 % Changed to allow recoding of first file (though obviously makes some of
 % loop redundant!)          Doris Eckstein
@@ -50,10 +50,10 @@ spm('Pointer', 'Watch');
 
 Dout = D{1};
 
-% Determine number of new number of trial types
+% Check input and determine number of new number of trial types
 Ntrials = [];
 for i = 1:Nfiles
-    % ascertain same number of channels, Nsamples and Radc
+    % ascertain same number of channels, Nsamples and fsample
     if D{1}.nchannels ~= D{i}.nchannels
         error('Data don''t have the same number of channels.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
     end

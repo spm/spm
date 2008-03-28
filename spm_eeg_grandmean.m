@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_eeg_grandmean.m 1262 2008-03-28 09:28:42Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -52,28 +52,21 @@ end
 
 Nfiles = length(D);
 
-% check dimensionality of data
-dim = []; s = [];
+% check input
 for i = 1:Nfiles
-    dim(i,:) = [D{i}.nchannels D{i}.nsamples D{i}.ntrials];
-    s(i) = D{i}.fsample;
-end
+    % ascertain same number of channels, Nsamples and fsample
+    if D{1}.nchannels ~= D{i}.nchannels
+        error('Data don''t have the same number of channels.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
+    end
 
-if ~all(dim(:,1) == dim(1,1))
-    ind = find(dim(1,1) ~= dim(:,1));
-    error('Data don''t have the same number of channels.\nThere s a difference between files %s and %s.', D{1}.fname, D{ind(1)}.fname);
-end
+    if D{1}.nsamples ~= D{i}.nsamples
+        error('Data don''t have the same number of time points.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
+    end
 
-if ~all(dim(:,2) == dim(1,2))
-    ind = find(dim(1,2) ~= dim(:,2));
-    error('Data don''t have the same number of time points.\nThere is a difference between files %s and %s.', D{1}.fname, D{ind(1)}.fname);
+    if D{1}.fsample ~= D{i}.fsample
+        error('Data don''t have the same sampling rate.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
+    end
 end
-
-if ~all(s == s(1))
-    ind = find(s(1) ~= s);
-    error('Data don''t have the same sampling rates.\nThere is a difference between files %s and %s.', D{1}.fname, D{ind(1)}.fname);
-end
-
 % output
 Do = D{1};
 
@@ -135,7 +128,7 @@ for i = 1:Ntypes
 
     end
 
-    Do = putdata(Do, 1:Do.nchannels, 1:Do.nsamples, i, d);
+    Do(1:Do.nchannels, 1:Do.nsamples, i) = d;
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i); drawnow;
@@ -145,8 +138,7 @@ end
 
 spm_progress_bar('Clear');
 
-
-putbadchannels(Do, find(~any(w')), 1);
+badchannels(Do, find(~any(w')), 1);
 % jump to struct to make a few changes
 sD = struct(Do);
 for i = 1:Ntypes

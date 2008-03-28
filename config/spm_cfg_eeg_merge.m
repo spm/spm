@@ -4,11 +4,11 @@ function S = spm_cfg_eeg_merge
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_merge.m 1253 2008-03-26 21:28:33Z stefan $
+% $Id: spm_cfg_eeg_merge.m 1262 2008-03-28 09:28:42Z stefan $
 
 D = cfg_files;
 D.tag = 'D';
-D.name = 'File Name';
+D.name = 'File Names';
 D.filter = 'mat';
 D.num = [1 inf];
 D.help = {'Select the M/EEG mat file.'};
