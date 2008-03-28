@@ -18,13 +18,12 @@ function DCM = spm_dcm_ind(DCM)
 %   options.Tdcm         - [start end] time window in ms
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
-%   options.type         - 1 - ECD
-%                          2 - Imaging (see spm_erp_L)
+%   options.type         - 'ECD' (1) or 'Imaging' (2) (see spm_erp_L)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_dcm_ind.m 1277 2008-03-28 18:36:49Z karl $
 
 
 % check options 
@@ -110,10 +109,10 @@ M.ons = onset - xY.pst(1);
 
 % Bayesian inference {threshold = prior} NB Prior on A,B  and C = exp(0) = 1
 %==========================================================================
-warning('off','MATLAB:divideByZero');
+warning('off','SPM:negativeVariance');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-warning('on','MATLAB:divideByZero');
+warning('on','SPM:negativeVariance');
 
 
 % neuronal and sensor responses (x and y)

@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_nlsi_N.m 1277 2008-03-28 18:36:49Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -264,7 +264,7 @@ x0     = ones(size(y,1),1)*spm_vec(M.x)';
 
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
-for ip = 1:8
+for ip = 1:64
  
 
     
@@ -509,7 +509,7 @@ for ip = 1:8
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i (%i,%i,%i) %6s %e %6s %e\n',str,ip,ig,ih,iu,'F:',C.F,'dF:',full(dF))
+    fprintf('%-6s: %i (%i,%i) %6s %e %6s %e\n',str,ip,ig,ih,'F:',C.F,'dF:',full(dF))
     if ip > 2 && dF < 1e-2, break, end
  
 end

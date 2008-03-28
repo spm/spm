@@ -21,13 +21,12 @@ function DCM = spm_dcm_erp(DCM)
 %   options.Nmodes       - number of spatial models to invert
 %   options.model        - 'ERP', 'SEP' or 'NMM'
 %   options.onset        - stimulus onset (ms)
-%   options.type         - 1 - ECD
-%                          2 - Imaging
+%   options.type         - 'ECD' or 'Imaging'
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_dcm_erp.m 1277 2008-03-28 18:36:49Z karl $
  
 % check options 
 %==========================================================================
@@ -240,10 +239,10 @@ end
  
 % Bayesian inference {threshold = prior; for A,B  and C this is exp(0) = 1)
 %--------------------------------------------------------------------------
-warning('off','MATLAB:divideByZero');
+warning('off','SPM:negativeVariance');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-warning('on','MATLAB:divideByZero');
+warning('on','SPM:negativeVariance');
  
 % neuronal and sensor responses (x and y)
 %==========================================================================

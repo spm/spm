@@ -42,7 +42,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfm_demo.m 1212 2008-03-14 19:08:47Z karl $
+% $Id: spm_mfm_demo.m 1277 2008-03-28 18:36:49Z karl $
  
  
 % number of regions in coupled map lattice
@@ -238,7 +238,7 @@ U.dt  = dt/1000;
 %==========================================================================
 clear YMF YNM
 p     = 3;                                               % pyramidal cells
-u     = [1:64]*2;
+u     = [1:32];                                          % peak input
 for i = 1:length(u)
     
     % create exogenous inputs
@@ -340,7 +340,7 @@ ylabel('Frequency (Hz)')
 title([pop{p} ': MFM'])
  
 subplot(2,2,2)
-plot(Hz,FMF(:,[16 32]))
+plot(Hz,FMF(:,[8 16]))
 xlabel('Frequency (Hz)')
 ylabel('frequency response')
 title([pop{p} ': MFM'])

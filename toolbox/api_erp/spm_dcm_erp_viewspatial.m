@@ -220,7 +220,7 @@ try
 % Imaging
 %--------------------------------------------------------------------
 catch
-    Lpos = handles.DCM.M.dipfit.L.pos;
+    Lpos = handles.DCM.M.dipfit.Lpos;
     Lmom = Lpos*0;
 end
 try

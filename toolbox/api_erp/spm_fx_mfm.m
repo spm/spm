@@ -44,7 +44,7 @@ function [f] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_fx_mfm.m 1277 2008-03-28 18:36:49Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -64,9 +64,9 @@ nc   = length(P.A);                             % number of connections
  
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1})/8;                         % forward
-A{2} = exp(P.A{2})/16;                        % backward
-A{3} = exp(P.A{3})/64;                        % lateral
+A{1} = exp(P.A{1})/2;                         % forward
+A{2} = exp(P.A{2})/4;                         % backward
+A{3} = exp(P.A{3})/4;                         % lateral
 C    = exp(P.C);                              % subcortical
  
 % switches on extrinsic afferent connections (np x nc)

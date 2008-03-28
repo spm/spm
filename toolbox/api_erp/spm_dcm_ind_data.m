@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_dcm_ind_data.m 1277 2008-03-28 18:36:49Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -201,16 +201,16 @@ end
 % get MAP projector matrix for source components
 %==========================================================================
 
-% parameterised lead field ECD given positions or LFP data
+% parameterised lead field ECD given positions (or LFP data)
 %--------------------------------------------------------------------------
 switch DCM.M.dipfit.type
 
-    case{'ECD (EEG)','ECD (MEG)'}
+    case{'ECD'}
         
         try
             pos = DCM.Lpos;
         catch
-            pos = DCM.M.dipfit.L.pos;
+            pos = DCM.M.dipfit.Lpos;
         end
         
         % number of moments per source

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1183 2008-03-03 18:26:05Z karl $
+% $Id: spm_api_erp.m 1277 2008-03-28 18:36:49Z karl $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -98,7 +98,7 @@ try, set(handles.name,'String',f);  end
 
 % Source locations
 %--------------------------------------------------------------------------
-try, DCM.Lpos = DCM.M.dipfit.L.pos; end
+try, DCM.Lpos = DCM.M.dipfit.Lpos; end
 
 % enter options from saved options and execute data_ok and spatial_ok
 %--------------------------------------------------------------------------
@@ -207,6 +207,7 @@ if p
     save(DCM.name,'DCM')
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
+    cd(p)
 end
 
 % assign in base
@@ -260,6 +261,15 @@ guidata(hObject,handles);
 % Data selection and design
 %==========================================================================
 
+% --- Executes on button press in Datafile.
+%--------------------------------------------------------------------------
+function Datafile_Callback(hObject, eventdata, handles)
+
+[f,p] = uigetfile({'*.mat'}, 'please select data file'); cd(p)
+handles.DCM.xY.Dfile = fullfile(p,f);
+Y1_Callback(hObject, eventdata, handles);
+
+
 %-Get trials and data
 %--------------------------------------------------------------------------
 function Y1_Callback(hObject, eventdata, handles)
@@ -292,8 +302,10 @@ handles.DCM = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
 set(handles.design,'enable', 'on')
 set(handles.Uname, 'enable', 'on')
 set(handles.Y,     'enable', 'on')
+
+handles     = reset_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
-warndlg({'Your design matrix has been re-set'})
+
 
 % --- Executes on button press in Y to display data
 %--------------------------------------------------------------------------
@@ -319,7 +331,7 @@ catch
     handles = Xdefault(hObject,handles,1);
     return
 end
-Str   = get(handles.Uname,'String');
+Str   = cellstr(get(handles.Uname,'String'));
 n     = size(handles.DCM.xU.X,2);
 for i = 1:n
     try
@@ -328,7 +340,7 @@ for i = 1:n
         Uname{i} = sprintf('effect %i',i);
     end
 end
-set(handles.Uname,'string',Uname(:))
+set(handles.Uname,'string',Uname)
 handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
 
@@ -358,7 +370,7 @@ for i = 1:n
         Uname{i} = sprintf('effect %i',i);
     end
 end
-set(handles.Uname,'string',Uname(:))
+set(handles.Uname,'string',Uname)
 handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
 
@@ -370,7 +382,7 @@ handles = reset_Callback(hObject, eventdata, handles);
 
 % spatial model - source names
 %--------------------------------------------------------------------------
-Sname     = get(handles.Sname,'String');
+Sname     = cellstr(get(handles.Sname,'String'));
 Nareas    = length(Sname);
 Nmodes    = get(handles.Nmodes,'Value');
 
@@ -494,7 +506,7 @@ set(handles.spatial_ok,    'Enable', 'on');
 %--------------------------------------------------------------------------
 if strcmp(handles.DCM.xY.modality,'LFP')
     Ic = handles.DCM.xY.Ic;
-    if length(get(handles.Sname,'String')) ~= length(Ic);
+    if length(cellstr(get(handles.Sname,'String'))) ~= length(Ic);
         Sname = handles.DCM.xY.name;
         set(handles.Sname,'String',Sname)
         handles.DCM.Sname = Sname;

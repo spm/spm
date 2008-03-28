@@ -55,7 +55,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_erp_priors.m 1277 2008-03-28 18:36:49Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -68,39 +68,26 @@ end
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning('off','MATLAB:log:logOfZero');
-
 n     = size(C,1);                                   % number of sources
 u     = size(C,2);                                   % number of inputs
-n1    = ones(n,1);
- 
-% paramters for electromagnetic forward model
+
+% parameters for electromagnetic forward model
 %==========================================================================
-try,   type = dipfit.type; catch, type = 'LFP'; end
-switch type
-    
-    case{'ECD (EEG)','ECD (MEG)'}
-    %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =      0*ones(3,n);    % positions
-    G.L    = sparse(3,n);   U.L    = exp(8)*ones(3,n);    % orientations
- 
-    case{'Imaging'}
-    %----------------------------------------------------------------------
-    m      = dipfit.Nm;
-    G.L    = sparse(m,n);   U.L    = exp(8)*ones(m,n);    % modes
-    
-    case{'LFP'}
-    %----------------------------------------------------------------------
-    G.L    = ones(1,n);     U.L    = exp(8)*ones(1,n);    % gains
-    
+try
+    [G,U] = spm_L_priors(dipfit);
+catch
+    [G,U] = spm_L_priors(n);
 end
  
-% source contribution to ECD
+% contribution of states to ECD
 %--------------------------------------------------------------------------
 G.J   = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);
-U.J   = G.J/128;
+U     = spm_cat( diag({U, diag(G.J/128)}) );
+
  
 % parameters for neural-mass forward model
 %==========================================================================
+n1    = ones(n,1);
  
 % set intrinsic [excitatory] time constants
 %--------------------------------------------------------------------------
@@ -143,39 +130,32 @@ E.R        = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
 warning('on','MATLAB:log:logOfZero');
 
  
-% prior moments if two arguments
+% covariance of neural parameters
 %==========================================================================
+V     = diag(sparse(spm_vec(V)));
+
+% format output arguments
+%--------------------------------------------------------------------------
 if nargout == 4
+    
     varargout{1} = E;
     varargout{2} = G;
-    varargout{3} = diag(sparse(spm_vec(V)));
-    varargout{4} = diag(sparse(spm_vec(U)));
+    varargout{3} = V;
+    varargout{4} = U;
     return
-else
-    switch type
  
-        case{'ECD (EEG)','ECD (MEG)'}
-            %--------------------------------------------------------------
-            E.Lpos  = G.Lpos;
-            E.L     = G.L;
-            E.J     = G.J;
-            C       = diag(sparse(spm_vec(V,U)));
+elseif nargout == 2
  
-        case{'Imaging','LFP'}
-            %--------------------------------------------------------------
-            E.L     = G.L;
-            E.J     = G.J;
-            C       = diag(sparse(spm_vec(V,U)));
-            
-        otherwise
-    end
+    % transcribe spatial parameters
+    %----------------------------------------------------------------------
+    E.Lpos  = G.Lpos;
+    E.L     = G.L;
+    E.J     = G.J;
  
-end
- 
-if nargout == 2
     varargout{1} = E;
-    varargout{2} = C;
+    varargout{2} = spm_cat(diag({V,U}));
     return
+    
 end
  
  

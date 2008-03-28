@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
  % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_lfp_mtf.m 1277 2008-03-28 18:36:49Z karl $
 
  
 % compute log-spectral density
@@ -103,21 +103,22 @@ for  c = 1:size(X,1)
                 Gij      = Si.*conj(Sj);
                 Gij      = abs(Gij([1:N/2] + 1)).*Gu;
                 G(:,i,j) = G(:,i,j) + Gij;
-                G(:,j,i) = G(:,j,i) + Gij;
             end
             
             % cross-spectral density from channel noise
             %--------------------------------------------------------------
-            G(:,j,i) = G(:,j,i) + Gn;            % common noise
-            G(:,i,j) = G(:,i,j) + Gn;
+            G(:,i,j) = G(:,i,j) + Gn;            % common noise
             if i == j
                 G(:,i,i) = G(:,i,i) + Gs;        % and channel specifc
+                
+            else
+                % fill in lower half of CSD matrix
+                %------------------------------------------------------
+                G(:,j,i) = G(:,i,j);
             end
-            
-            
         end
     end
- 
+    
     % save frequencies of interest
     %----------------------------------------------------------------------
     y{c} = G(If,:,:);

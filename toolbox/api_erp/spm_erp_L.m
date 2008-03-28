@@ -11,12 +11,11 @@ function [L] = spm_erp_L(P,M)
 % models P.Lpos and P.L encode the position and moments of the ECD. The
 % field M.dipfit.type:
 %
-%    'ECD (EEG)'
-%    'ECD (EEG)'
+%    'ECD'
 %    'Imaging'
 %    'LFP'
 %
-% determines whether the data are MEG or EEG. For imaging reconstructions
+% determines whether the model is ECD or not. For imaging reconstructions
 % the paramters P.L are a (m x n) matrix of coefficients that scale the
 % contrition of n sources to m = M.dipfit.Nm modes encoded in M.dipfit.G.
 %
@@ -28,7 +27,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_erp_L.m 1277 2008-03-28 18:36:49Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -39,90 +38,90 @@ persistent LastLpos LastL
 
 % number of sources - n
 %--------------------------------------------------------------------------
-try
-    n = size(P.Lpos,2);
-catch
-    try
-        n = size(P.L,2);
-    end
-end
+n  = size(P.L,2);
 
-% type of spatial model
+% type of spatial model and modality
 %--------------------------------------------------------------------------
-try
-    type = M.dipfit.type;
-catch
-    type = 'LFP';
-end
-
+try, type     = M.dipfit.type;     catch, type     = 'LFP'; end
+try, modality = M.dipfit.modality; catch, modality = 'LFP'; end
 
 switch type
 
-    % parameterised lead field ECD/EEG
+    % parameterised lead field - ECD
     %----------------------------------------------------------------------
-    case{'ECD (EEG)'}
+    case{'ECD'}
 
-        % re-compute lead field only if any dipoles changed
-        %------------------------------------------------------------------
-        try
-            Id = find(any(LastLpos ~= P.Lpos));
-        catch
-            Id = 1:n;
-        end
+        switch modality
 
-        % record new spatial parameters
-        %--------------------------------------------------------------
-        LastLpos = P.Lpos;
+            % EEG
+            %--------------------------------------------------------------
+            case{'EEG'}
 
-        % note that in all DCM code, EEG coordinates are in MNI
-        % space-orientation. Transform here to POL space and add
-        % translation to relate coordinates to centre of sphere
-        %--------------------------------------------------------------
-        iMt  = M.dipfit.Mmni2polsphere;
-        iSt  = iMt; iSt(1:3,4) = 0;
+                % re-compute lead field only if any dipoles changed
+                %----------------------------------------------------------
+                try
+                    Id = find(any(LastLpos ~= P.Lpos));
+                catch
+                    Id = 1:n;
+                end
 
-        Lpos = iMt*[P.Lpos; ones(1,n)];
-        Lmom = iSt*[P.L   ; ones(1,n)];
-        Lpos = Lpos(1:3,:);
-        Lmom = Lmom(1:3,:);
+                % record new spatial parameters
+                %----------------------------------------------------------
+                LastLpos = P.Lpos;
 
-        for i = Id
-            Lf = fieldtrip_eeg_leadfield4(Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
-            LastL(:,:,i) = Lf*1000;
-        end
-        for i = 1:n
-            L(:,i) = LastL(:,:,i)*Lmom(:,i);
-        end
+                % note that in all DCM code, EEG coordinates are in MNI
+                % space-orientation. Transform here to POL space and add
+                % translation to relate coordinates to centre of sphere
+                %----------------------------------------------------------
+                iMt  = M.dipfit.Mmni2polsphere;
+                iSt  = iMt; iSt(1:3,4) = 0;
+
+                Lpos = iMt*[P.Lpos; ones(1,n)];
+                Lmom = iSt*[P.L   ; ones(1,n)];
+                Lpos = Lpos(1:3,:);
+                Lmom = Lmom(1:3,:);
+
+                for i = Id
+                    Lf = fieldtrip_eeg_leadfield4(Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
+                    LastL(:,:,i) = Lf;
+                end
+                G    = spm_cond_units(LastL);
+                for i = 1:n
+                    L(:,i) = G(:,:,i)*Lmom(:,i);
+                end
 
 
-    % parameterised lead field ECD/MEG
-    %----------------------------------------------------------------------
-    case{'ECD (MEG)'}
+            % MEG
+            %--------------------------------------------------------------
+            case{'MEG'}
 
-        % re-compute lead field only if any dipoles changed
-        %------------------------------------------------------------------
-        try
-            Id = find(any(LastLpos ~= P.Lpos));
-        catch
-            Id = 1:n;
-        end
+                % re-compute lead field only if any dipoles changed
+                %----------------------------------------------------------
+                try
+                    Id = find(any(LastLpos ~= P.Lpos));
+                catch
+                    Id = 1:n;
+                end
 
-        % record new locations and compute new lead field components
-        %------------------------------------------------------------------
-        LastLpos = P.Lpos;
+                % record new locations and compute new lead field components
+                %----------------------------------------------------------
+                LastLpos = P.Lpos;
 
-        for i = Id
-            Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-            LastL(:,:,i) = Lf(M.dipfit.Ic,:)*1000;
-        end
-        for i = 1:n
-            L(:,i) = LastL(:,:,i)*P.L(:,i);
+                for i = Id
+                    Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
+                    LastL(:,:,i) = Lf;
+                end
+                G    = spm_cond_units(LastL);
+                for i = 1:n
+                    L(:,i) = G(:,:,i)*P.L(:,i);
+                end
+
         end
 
     % Imaging solution {specified in M.dipfit.G}
     %----------------------------------------------------------------------
     case{'Imaging'}
-        
+
         % re-compute lead field only if any coeficients have changed
         %------------------------------------------------------------------
         try
@@ -133,9 +132,9 @@ switch type
         for i = Id
             LastL(:,i) = M.dipfit.G{i}*P.L(:,i);
         end
-        
+
         % record new spatial parameters
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         LastLpos = P.L;
         L        = LastL;
 
@@ -146,6 +145,6 @@ switch type
         L = sparse(diag(P.L));
 
     otherwise
-        warndlg('unknown type of lead field')
+        warndlg('unknown type of model')
 end
 

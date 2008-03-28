@@ -37,9 +37,9 @@ DCM  = spm_dcm_erp_dipfit(DCM);
 
 % location priors for dipoles
 %----------------------------------------------------------
-DCM.M.dipfit.L.pos = [[-45; -25; 35] [-50; -20; 5] [50; -20; 5]];
+DCM.M.dipfit.Lpos  = [[-45; -25; 35] [-50; -20; 5] [50; -20; 5]];
 DCM.Sname = {'left SI', 'left SII', 'right SII'};
-Nareas    = size(DCM.M.dipfit.L.pos,2);
+Nareas    = size(DCM.M.dipfit.Lpos,2);
 
 %----------------------------------------------------------
 % specify connectivity model

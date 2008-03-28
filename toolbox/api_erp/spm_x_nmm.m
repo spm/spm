@@ -1,6 +1,6 @@
-function [x] = spm_x_nmm(P,GE,GI)
+function [x,M] = spm_x_nmm(P,GE,GI)
 % initialises a state structure for a mean field model
-% FORMAT [x] = spm_x_nmm(P,GE,GI)
+% FORMAT [x,M] = spm_x_nmm(P,GE,GI)
 %
 % P - parameter structure
 % GE - extrinsic connections (excitatory)
@@ -16,11 +16,15 @@ function [x] = spm_x_nmm(P,GE,GI)
 %        state: 1 V  - voltage
 %               2 gE - conductance (excitatory)
 %               3 gI - conductance (inhibitory)
+%
+% M - model structure
+%
+% see also: spm_x_mfm
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_nmm.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_x_nmm.m 1277 2008-03-28 18:36:49Z karl $
  
 % intrinsic connections (specifying the number of populations per source)
 %==========================================================================

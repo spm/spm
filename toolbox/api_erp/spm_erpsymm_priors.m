@@ -51,7 +51,7 @@ function [varargout] = spm_erpsymm_priors(A,B,C,dipfit,ppC,pgC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erpsymm_priors.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_erpsymm_priors.m 1277 2008-03-28 18:36:49Z karl $
 
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -74,9 +74,9 @@ n1    = ones(n,1);
 try,   type = dipfit.type; catch, type = 'LFP'; end
 switch type
     
-    case{'ECD (EEG)','ECD (MEG)'}
+    case{'ECD'}
     %----------------------------------------------------------------------
-    G.Lpos = dipfit.L.pos;  U.Lpos =      0*ones(3,n);    % positions
+    G.Lpos = dipfit.Lpos;   U.Lpos =      0*ones(3,n);    % positions
     G.L    = sparse(3,n);   U.L    = exp(8)*ones(3,n);    % orientations
  
     case{'Imaging'}
@@ -154,7 +154,7 @@ if nargout == 4
 else
     switch type
 
-        case{'ECD (EEG)','ECD (MEG)'}
+        case{'ECD'}
             %--------------------------------------------------------------
             E.Lpos  = G.Lpos;
             E.L     = G.L;

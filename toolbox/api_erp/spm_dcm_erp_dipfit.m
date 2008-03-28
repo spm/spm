@@ -7,18 +7,23 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 %       DCM.xY.Dfile
 %       DCM.xY.Ic
 %       DCM.Lpos
-%       DCM.options.type        - 1 - ECD
-%                               - 2 - imaging
+%       DCM.options.type        - 'ECD' (1) or 'imaging' (2)
 %       DCM.M.dipfit.sensorfile - (for ECD models)
 % fills in:
 %
-%       DCM.M.dipfit.type       - 'ECD (EEG)','ECD (MEG)','Imaging','LFP'
-%       DCM.M.dipfit. ...
+%       DCM.M.dipfit
+%
+%    dipfit.modality - 'EEG', 'MEG'     or 'LFP'
+%    dipfit.type     - 'ECD', 'Imaging' or 'LFP'
+%    dipfit.symm     - distance (mm) for symmetry constraints (ECD)
+%    dipfit.Lpos     - x,y,z source positions (mm)            (ECD)
+%    dipfit.Nm       - number of modes                        (Imaging)
+%    dipfit.Ns       - number of sources    
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_dcm_erp_dipfit.m 1277 2008-03-28 18:36:49Z karl $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -32,7 +37,7 @@ end
 
 % D - SPM data structure
 %--------------------------------------------------------------------------
-D   = spm_eeg_ldata(DCM.xY.Dfile);
+D    = spm_eeg_ldata(DCM.xY.Dfile);
 
 % Get source locations if MEG or EEG
 %--------------------------------------------------------------------------
@@ -42,21 +47,23 @@ switch D.modality
     %----------------------------------------------------------------------
     case{'EEG','MEG'}
         try
-            DCM.M.dipfit.L.pos = DCM.Lpos;
+            DCM.M.dipfit.Lpos = DCM.Lpos;
         catch
             try
-                DCM.Lpos = DCM.M.dipfit.L.pos;
+                DCM.Lpos = DCM.M.dipfit.Lpos;
             catch
                 errordlg({'Please specify source locations','in DCM.Lpos'})
             end
         end
+        DCM.M.dipfit.modality  = D.modality;
+        DCM.M.dipfit.Ns        = size(DCM.Lpos,2);
         
     % othrerwise assume LFP
     %----------------------------------------------------------------------
     otherwise
-        
-        DCM.M.dipfit.type  = 'LFP';
-        DCM.M.dipfit.L     = 1;
+        DCM.M.dipfit.modality  = 'LFP';
+        DCM.M.dipfit.type      = 'LFP';
+        DCM.M.dipfit.Ns        = size(DCM.C,1);
         return
 end
 
@@ -78,7 +85,7 @@ switch DCM.options.type
     %======================================================================
     case 1
 
-        switch D.modality
+        switch DCM.M.dipfit.modality
             
             % ECD - EEG
             %--------------------------------------------------------------
@@ -146,14 +153,13 @@ switch DCM.options.type
                 % evaluate dipfit and save in M
                 %----------------------------------------------------------
                 DCM.M.dipfit       = spm_dipfit(DCM.M.dipfit,sen_reg,fid_reg);
-                DCM.M.dipfit.type  = 'ECD (EEG)';
+                DCM.M.dipfit.type  = 'ECD';
 
 
 
             % MEG - ECD
             %--------------------------------------------------------------
             case{'MEG'}
-
 
                 % not much to do because the sensors location/orientations 
                 % were read at the time of conversion.
@@ -172,20 +178,13 @@ switch DCM.options.type
                     try
                         DCM.M.grad.pnt = D.inv{1}.datareg.sens_coreg;
                         DCM.M.grad.ori = D.inv{1}.datareg.sens_orient_coreg;
-                        DCM.M.grad.tra = speye(length(DCM.M.grad.pnt));
                     catch
                         warndlg('Please co-register using 3D source reconstruction');
                     end
                 end
 
-                DCM.M.dipfit.type  = 'ECD (MEG)';
+                DCM.M.dipfit.type  = 'ECD';
 
-            % LFP - ECD
-            %--------------------------------------------------------------
-            case{'LFP'}
-                
-                DCM.M.dipfit.type  = 'LFP';
-                DCM.M.dipfit.L     = 1;
         end
 
     % Imaging (distributed source reconstruction)
@@ -215,7 +214,7 @@ switch DCM.options.type
 
         % centers
         %------------------------------------------------------------------
-        xyz = DCM.M.dipfit.L.pos;
+        xyz = DCM.M.dipfit.Lpos;
         Np  = size(xyz,2);
 
 

@@ -5,7 +5,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % FORMAT           spm_lfp_priors(A,B,C,L,J)
 %
 % A{3},B{m},C    - binary constraints on extrinsic connectivity
-% L              - lead field structure
+% L              - lead field structure or number of sources
 % J              - contributing sources
 %
 % pE - prior expectation
@@ -54,16 +54,19 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_lfp_priors.m 1277 2008-03-28 18:36:49Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
-if nargin <  3                                  % a single source model
+if nargin < 3                                       % a single source model
     A   = {0 0 0};
     B   = {0};
     C   = 1;
 end
-n   = size(C,1);                                % number of sources
+n   = size(C,1);                                    % number of sources
+if nargin < 4
+    L   = n;
+end
  
 % disable log zero warning
 %--------------------------------------------------------------------------
@@ -72,24 +75,7 @@ warning('off','MATLAB:log:logOfZero');
  
 % parameters for electromagnetic forward model
 %==========================================================================
-try,   type = L.type; catch, type = 'LFP'; end
-switch type
-    
-    case{'ECD (EEG)','ECD (MEG)'}
-    %----------------------------------------------------------------------
-    E.Lpos = L.L.pos;       V.Lpos =      0*ones(3,n);    % positions
-    E.L    = sparse(3,n);   V.L    = exp(8)*ones(3,n);    % orientations
- 
-    case{'Imaging'}
-    %----------------------------------------------------------------------
-    m      = L.Nm;
-    E.L    = sparse(m,n);   V.L    = exp(8)*ones(m,n);    % modes
-    
-    case{'LFP'}
-    %----------------------------------------------------------------------
-    E.L    = ones(1,n);     V.L    = exp(8)*ones(1,n);    % gains
-    
-end
+[E pC] = spm_L_priors(L);
  
 % source-specific contribution to LFP
 %--------------------------------------------------------------------------
@@ -97,7 +83,7 @@ try, J; catch, J  = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13); end
  
 % source-specific contribution to LFP
 %--------------------------------------------------------------------------
-E.J   = J;                 V.J = J/64;             % contributing states
+E.J   = J;                 V.J = J/64;               % contributing states
  
  
 % parameters for neural-mass forward model
@@ -150,11 +136,12 @@ E.d    = [0 0];           V.d = [1/16 1/16];       % amplitude noise IID
 E.D    = sparse(n,n);     V.D = Q/16;              % extrinsic delays
 E.I    = 0;               V.I = 1/32;              % intrinsic delays
  
-% vectorize
+% prior covariances
 %--------------------------------------------------------------------------
 pE     = E;
 pV     = spm_vec(V);
-pC     = diag(sparse(pV));
+pV     = diag(sparse(pV));
+pC     = spm_cat(diag({pC,pV}));
  
 % prior moments if two arguments
 %--------------------------------------------------------------------------
