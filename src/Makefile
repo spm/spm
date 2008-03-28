@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1258 2008-03-27 20:48:05Z john $
+# $Id: Makefile 1276 2008-03-28 18:29:19Z guillaume $
 #
 ###############################################################################
 #
@@ -144,8 +144,7 @@ SPMMEX =\
 	spm_unlink.$(SUF) spm_hist.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	spm_digamma.$(SUF) mat2file.$(SUF) file2mat.$(SUF)\
-	spm_invdef.$(SUF)
+	mat2file.$(SUF) file2mat.$(SUF) spm_invdef.$(SUF)
 
 ###############################################################################
 # The main ways to run make
@@ -348,10 +347,6 @@ spm_bsplins.$(SUF): spm_bsplins.c
 	
 spm_bwlabel.$(SUF): spm_bwlabel.c
 	$(MEX) spm_bwlabel.c $(MEXEND)
-	@ $(CHMODIT) $@
-
-spm_digamma.$(SUF): spm_digamma.c
-	$(MEX) spm_digamma.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 spm_dilate_erode.$(SUF): spm_dilate_erode.c

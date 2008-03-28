@@ -15,7 +15,7 @@ function [F,Lav,KL] = spm_vb_F (Y,slice)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_F.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_F.m 1276 2008-03-28 18:29:19Z guillaume $
 
 if slice.verbose
     disp('Updating F');
@@ -68,7 +68,7 @@ for n=1:slice.N,
         Lav_term=Lav_term+slice.mean_lambda(n)*Gn;
     end
 
-    C1  = C1 + spm_digamma(slice.c_lambda(n)) + log(slice.b_lambda(n));
+    C1  = C1 + psi(slice.c_lambda(n)) + log(slice.b_lambda(n));
     KL_lambda=KL_lambda+spm_kl_gamma(slice.b_lambda(n),slice.c_lambda(n),slice.b_lambda_prior(n),slice.c_lambda_prior(n));
     
     tr_B_qcov=tr_B_qcov+trace(B(block_n,block_n)*slice.w_cov{n});

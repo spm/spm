@@ -11,7 +11,7 @@ function [kl] = spm_kl_wishart (q,Q,p,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_wishart.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_kl_wishart.m 1276 2008-03-28 18:29:19Z guillaume $
 
 logdetQ=log(det(Q));
 logdetP=log(det(P));
@@ -21,13 +21,13 @@ d=size(Q,1);
 
 LqQ=0;
 for i=1:d,
-  LqQ=LqQ+spm_digamma((q+1-i)/2);
+  LqQ=LqQ+psi((q+1-i)/2);
 end  
 LqQ=LqQ+d*log(2)-logdetQ;
 
 LpP=0;
 for i=1:d,
-  LpP=LpP+spm_digamma((p+1-i)/2);
+  LpP=LpP+psi((p+1-i)/2);
 end  
 LpP=LpP+d*log(2)-logdetP;
 

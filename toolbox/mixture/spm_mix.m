@@ -35,7 +35,7 @@ function [mix] = spm_mix (y,m,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mix.m 1276 2008-03-28 18:29:19Z guillaume $
 
 % This code implements the algorithm in:
 %
@@ -82,7 +82,7 @@ mix.prior.B_0=B_0;
 
 sd=0;
 for i=1:d,
-  sd=sd+spm_digamma((a_0+1-i)/2);
+  sd=sd+psi((a_0+1-i)/2);
 end
 log_tilde_gamma_0=sd-log(det(B_0))+d*log(2);
    
@@ -143,10 +143,10 @@ for loops=1:max_loops,
     lambda_tot=sum(lambda);
     for s=1:m,
         state(s).bar_gamma=state(s).a*inv(state(s).B);
-        log_tilde_pi(s)=spm_digamma(lambda(s))-spm_digamma(lambda_tot);
+        log_tilde_pi(s)=psi(lambda(s))-psi(lambda_tot);
         sd=0;
         for i=1:d,
-            sd=sd+spm_digamma((state(s).a+1-i)/2);
+            sd=sd+psi((state(s).a+1-i)/2);
         end
         log_tilde_gamma(s)=sd-log(det(state(s).B))+d*log(2);
         
@@ -204,7 +204,7 @@ for loops=1:max_loops,
         f4(s)=N_bar(s)*log_tilde_pi(s)-sum(gamma(s,:).*log(gamma(s,:)+eps));
         LaB=0;
         for i=1:d,
-            LaB=LaB+spm_digamma((state(s).a+1-i)/2);
+            LaB=LaB+psi((state(s).a+1-i)/2);
         end  
         LaB=LaB+d*log(2)-log(det(state(s).B));
         f5(s)=0.5*N_bar(s)*(-d*log(2*pi)+LaB-trace(state(s).bar_gamma*state(s).bar_sigma)-(d/state(s).beta));

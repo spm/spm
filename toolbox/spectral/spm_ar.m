@@ -35,7 +35,7 @@ function [ar] = spm_ar (Z,p,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_ar.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_ar.m 1276 2008-03-28 18:29:19Z guillaume $
 
 if nargin < 2, 
    disp('spm_ar.m needs at least two arguments'); 
@@ -122,7 +122,7 @@ for it=1:max_iters,
   a_mean=mean_beta*a_cov*xty;
   
   % Calculate f_m (negative free energy)
-  l_av=0.5*N*(spm_digamma(c_beta)+log(b_beta))-0.5*N;
+  l_av=0.5*N*(psi(c_beta)+log(b_beta))-0.5*N;
   kl_weights=spm_kl_normal(a_mean,a_cov,zeros(1,p),(1/mean_alpha)*eye(p));
   kl_alpha=spm_kl_gamma(b_alpha,c_alpha,b_alpha_prior,c_alpha_prior);
   kl_beta=spm_kl_gamma(b_beta,c_beta,b_beta_prior,c_beta_prior);

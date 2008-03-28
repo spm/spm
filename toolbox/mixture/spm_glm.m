@@ -33,7 +33,7 @@ function [rglm] = spm_glm (y,X,alpha,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_glm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_glm.m 1276 2008-03-28 18:29:19Z guillaume $
 
 if nargin < 4 | isempty(verbose)
   verbose=0;
@@ -92,7 +92,7 @@ for it=1:max_iters,
   w_mean=mean_beta*w_cov*xty;
   
   % Calculate f_m (negative free energy)
-  l_av=0.5*N*(spm_digamma(c_beta)+log(b_beta))-mean_beta*E_d_av;
+  l_av=0.5*N*(psi(c_beta)+log(b_beta))-mean_beta*E_d_av;
   kl_weights=spm_kl_normald(w_mean,w_cov,zeros(1,p),(1/mean_alpha)*eye(p));
   kl_beta=spm_kl_gamma(b_beta,c_beta,b_beta_prior,c_beta_prior);
   f_m=l_av-kl_weights-kl_beta;

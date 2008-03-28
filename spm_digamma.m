@@ -6,15 +6,16 @@ function [y] = spm_digamma(x)
 % y - gamma function evaluated at each value x
 %
 %                    digamma(x) = d(log(gamma(x)))/dx
-%
-% Reference:
-%   Mex file derived from a FORTRAN program by D. E. Amos,
-%   ACM Transactions on Mathematical Software, 1983.
-%   Obtained from NETLIB: http://www.netlib.org/toms/610.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_digamma.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_digamma.m 1276 2008-03-28 18:29:19Z guillaume $
 
-error('spm_digamma.c not compiled - see Makefile')
+persistent runonce
+if isempty(runonce)
+    warning('spm_digamma is deprecated. Use PSI instead.');
+    runonce = 1;
+end
+
+y = psi(x);

@@ -10,9 +10,9 @@ function [d] = spm_kl_gamma (b_q,c_q,b_p,c_p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_gamma.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_kl_gamma.m 1276 2008-03-28 18:29:19Z guillaume $
 
-digamma_c_q=spm_digamma(c_q);
+digamma_c_q=psi(c_q);
 d=(c_q-1)*digamma_c_q-log(b_q)-c_q-gammaln(c_q);
 d=d+gammaln(c_p)+c_p*log(b_p)-(c_p-1)*(digamma_c_q+log(b_q));
 d=d+b_q*c_q/b_p;

@@ -40,7 +40,7 @@ function [rglm,yclean] = spm_rglm (y,X,m,priors,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_rglm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_rglm.m 1276 2008-03-28 18:29:19Z guillaume $
 
 if nargin < 4 | isempty(priors)
     mean_alpha=0.001;
@@ -123,8 +123,8 @@ for loops=1:max_loops,
     tv=y2-2*ypred.*y+y_err'+ypred2;
     tv=tv';
     for s=1:m,
-        log_tilde_pi(s)=spm_digamma(lambda(s))-spm_digamma(lambda_tot);
-        log_tilde_beta(s)=spm_digamma(c(s))+log(b(s));
+        log_tilde_pi(s)=psi(lambda(s))-psi(lambda_tot);
+        log_tilde_beta(s)=psi(c(s))+log(b(s));
         tilde_pi(s)=exp(log_tilde_pi(s));
         tilde_beta(s)=exp(log_tilde_beta(s));
         mean_beta(s)=c(s)*b(s);

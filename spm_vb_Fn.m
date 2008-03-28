@@ -17,7 +17,7 @@ function [F,L,KL] = spm_vb_Fn (Y,slice)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_Fn.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_Fn.m 1276 2008-03-28 18:29:19Z guillaume $
 
 T=slice.T;
 p=slice.p;
@@ -72,7 +72,7 @@ for n=1:slice.N,
     end
     
     L(n)=-0.5*slice.mean_lambda(n)*Gn;
-    L(n)=L(n) + 0.5*(T-p)*(spm_digamma(slice.c_lambda(n)) + log(slice.b_lambda(n)));
+    L(n)=L(n) + 0.5*(T-p)*(psi(slice.c_lambda(n)) + log(slice.b_lambda(n)));
     L(n)=L(n)-0.5*slice.C2/slice.N;
 
     KL.lam(n)=spm_kl_gamma(slice.b_lambda(n),slice.c_lambda(n),slice.b_lambda_prior(n),slice.c_lambda_prior(n));

@@ -13,14 +13,14 @@ function [d] = spm_kl_dirichlet (lambda_q,lambda_p,log_tilde_pi)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_kl_dirichlet.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_kl_dirichlet.m 1276 2008-03-28 18:29:19Z guillaume $
 
 if nargin < 3
  m=length(lambda_q);
  lambda_tot=sum(lambda_q);
- dglt=spm_digamma(lambda_tot);
+ dglt=psi(lambda_tot);
  for s=1:m,
-   log_tilde_pi(s)=spm_digamma(lambda_q(s))-dglt;
+   log_tilde_pi(s)=psi(lambda_q(s))-dglt;
  end
 end
 
