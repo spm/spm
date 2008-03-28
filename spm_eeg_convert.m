@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1254 2008-03-27 18:41:42Z vladimir $
+% $Id: spm_eeg_convert.m 1267 2008-03-28 12:12:14Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -193,7 +193,6 @@ else % Read by trials
         end
 
         readbytrials = 0;
-        ntrial = size(trl, 1);
     else
         try
             trialind = find(strcmpi('trial', {event.type}));
@@ -225,11 +224,9 @@ else % Read by trials
             end
             if  hdr.nTrials>1 && size(trl, 1)~=hdr.nTrials
                 warning('Mismatch between trial definition in events and in data. Ignoring events');
-                readbytrials = 1;
-            else
-                ntrial = size(trl, 1);
             end
-
+            
+            readbytrials = 1;           
             event = event(setdiff(1:numel(event), trialind));
         catch
             if hdr.nTrials == 1
@@ -249,9 +246,20 @@ else % Read by trials
         if length(nsampl) > 1
             error('All trials should have identical lengths');
         end
+
+        inbounds = (trl(:,1)>1 & trl(:, 2)<=hdr.nSamples);
+
+        rejected = find(~inbounds);
+
+        if ~isempty(rejected)
+            trl = trl(find(inbounds), :);
+            warning([S.dataset ': Trials ' num2str(rejected) ' not read - out of bounds']);
+        end
+        
+        ntrial = size(trl, 1);
     end
     D.Nsamples = nsampl;
-    event = rmfield(event, 'sample');
+    event = rmfield(event, 'sample');     
 end
 
 %--------- Prepare for reading the data
@@ -310,14 +318,21 @@ end
 spm_progress_bar('Clear');
 spm('Pointer', 'Arrow');drawnow;
 
-
 %--------- Create meeg object
 D.history(1).fun = 'spm_eeg_convert';
 D.history(1).args = {S};
 D.fname = [S.outfile '.mat'];
 
 D = meeg(D);
-D = setchantype(D);
+
+D = chantype(D, [], []);
+
+if S.continuous
+    D = type(D, 'continuous');
+else
+    D = type(D, 'single');
+end
+
 save(D);
 
 

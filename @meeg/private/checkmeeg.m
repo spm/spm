@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1262 2008-03-28 09:28:42Z stefan $
+% $Id: checkmeeg.m 1267 2008-03-28 12:12:14Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -30,7 +30,7 @@ elseif (Nsamples==0)  % This is to enable creation of empty meeg objects
     meegstruct.Fsample = 0;
 end
 
-if ~isfield(meegstruct, 'timeOnset') 
+if ~isfield(meegstruct, 'timeOnset')
     meegstruct.timeOnset = 0;
 end
 
@@ -121,11 +121,18 @@ else
     end
 end
 
-if ~isfield(meegstruct, 'type') && (Nsamples~=0)
-    disp('checkmeeg: data type is missing');
-    return;
-elseif (Nsamples==0)  % This is to enable creation of empty meeg objects
-    meegstruct.type = 'continuous'; % can be: continuous, single, evoked, grandmean
+if ~isfield(meegstruct, 'type')
+    disp('checkmeeg: data type is missing, assigning default');
+    % rule of thumb - 10 sec
+    if Nsamples == 0
+        meegstruct.type = 'continuous';
+    elseif Ntrials==1 && (Nsamples/meegstruct.Fsample) > 10
+        meegstruct.type = 'continuous';
+    elseif Ntrials==1
+        meegstruct.type = 'evoked';
+    else
+        meegstruct.type = 'single';
+    end
 end
 
 if ~isfield(meegstruct, 'fname')
@@ -148,6 +155,14 @@ if ~isfield(meegstruct, 'artifacts')
     meegstruct.artifacts = struct([]);
 end
 
+if ~isfield(meegstruct, 'transform')
+    meegstruct.transform = struct('ID', 'time');
+end
+
+if ~isfield(meegstruct, 'other')
+    meegstruct.other = struct([]);
+end
+
 if ~isfield(meegstruct, 'history')
     meegstruct.history = struct([]);
 end
@@ -156,36 +171,26 @@ if ~isfield(meegstruct, 'cache')
     meegstruct.cache = struct([]);
 end
 
-if ~isfield(meegstruct, 'other')
-    meegstruct.other = struct([]);
-end
-
-if ~isfield(meegstruct, 'transform')
-    meegstruct.transform = struct('ID', 'time');
-end
-
-
-
 % This makes sure the order of the fields in the struct is right. This
 % seems to matter to the class function.
 
 fieldnames_order = {
+    'type'
     'Nsamples'
     'Fsample'
     'timeOnset'
     'trials'
     'channels'
     'data'
-    'type'
     'fname'
     'path'
     'sensors'
     'fiducials'
     'artifacts'
-    'history'
-    'cache'
+    'transform'
     'other'
-    'transform'};
+    'history'
+    'cache'};
 
 [sel1, sel2] = spm_match_str(fieldnames_order, fieldnames(meegstruct));
 tempcell = struct2cell(meegstruct);
