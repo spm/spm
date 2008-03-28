@@ -21,7 +21,7 @@ function [trl conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1254 2008-03-27 18:41:42Z vladimir $
+% $Id: spm_eeg_definetrial.m 1272 2008-03-28 15:12:36Z vladimir $
 
 if nargin == 0
     S = [];
@@ -201,24 +201,29 @@ for i=1:Neventtype
     if ~isempty(numind)
         numvalue = unique([event(sel(numind)).value]);
         for j=1:length(numvalue)
-            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' num2str(numvalue(j))]}];
+            ninstances = sum([event(sel(numind)).value] == numvalue(j));
+            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' num2str(numvalue(j)) ... 
+                ' ; ' num2str(ninstances) ' instances']}];
             settings=[settings; [eventtype(i), {numvalue(j)}]];
         end
     end
 
     if ~isempty(charind)
-        charvalue = unique([event(sel(charind)).value]);
+        charvalue = unique({event(sel(charind)).value});
         if ~iscell(charvalue)
             charvalue = {charvalue};
         end
         for j=1:length(charvalue)
-            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' charvalue{j}]}];
+            ninstances = length(strmatch(charvalue{j}, {event(sel(charind)).value}));
+            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' charvalue{j}... 
+                ' ; ' num2str(ninstances) ' instances']}];
             settings=[settings; [eventtype(i), charvalue(j)]];
         end
     end
 
     if ~isempty(emptyind)
-        strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ']}];
+        strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ; ' ...
+            num2str(length(emptyind)) ' instances']}];
         settings=[settings; [eventtype(i), {[]}]];
     end
 end
