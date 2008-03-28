@@ -5,15 +5,15 @@ function [trl conditionlabels] = spm_eeg_definetrial(S)
 % Fields of S:
 %   S.event - event struct  (optional)
 %   S.fsample - sampling rate
-%   S.dataset - raw dataset (events and fsample can be read from there if absent)  
+%   S.dataset - raw dataset (events and fsample can be read from there if absent)
 %   S.timeonset - time of the first sample in the data (default - 0)
 %   S.pretrig - pre-trigger time in ms
-%   S.posttrig - post-trigger time in ms. 
+%   S.posttrig - post-trigger time in ms.
 %   S.trialdef - structure array for trial definition with fields
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype  - string
 %       S.trialdef.eventvalue  - string, numeric or empty
-%   S.review - 1 - review individual trials after selection (0 - not) 
+%   S.review - 1 - review individual trials after selection (0 - not)
 % OUTPUT:
 %   trl - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
@@ -21,7 +21,7 @@ function [trl conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1272 2008-03-28 15:12:36Z vladimir $
+% $Id: spm_eeg_definetrial.m 1273 2008-03-28 16:17:04Z vladimir $
 
 if nargin == 0
     S = [];
@@ -62,7 +62,7 @@ if ~isfield(event, 'sample')
         end
     end
 end
-    
+
 if ~isfield(S, 'pretrig')
     S.pretrig = spm_input('Pre-trigger time [ms]', '+1', 'r', '', 1);
 end
@@ -72,6 +72,7 @@ if ~isfield(S, 'posttrig')
 end
 
 if ~(isfield(S, 'trialdef'))
+    S.trialdef = [];
     ncond = spm_input('How many conditions?', '+1', 'n', '1');
     for i = 1:ncond
         OK = 0;
@@ -82,10 +83,11 @@ if ~(isfield(S, 'trialdef'))
             if isempty(conditionlabel) || isempty(selected)
                 pos = '-1';
             else
-                for j = 1:size(selected, 1);
-                    S.trialdef(j).conditionlabel = conditionlabel;
-                    S.trialdef(j).eventtype = selected{j, 1};
-                    S.trialdef(j).eventvalue = selected{j, 2};
+                for j = 1:size(selected, 1)
+                    S.trialdef = [S.trialdef ...
+                        struct('conditionlabel', conditionlabel, ...
+                        'eventtype', selected{j, 1}, ...
+                        'eventvalue', selected{j, 2})];
                     OK=1;
                 end
             end
@@ -202,7 +204,7 @@ for i=1:Neventtype
         numvalue = unique([event(sel(numind)).value]);
         for j=1:length(numvalue)
             ninstances = sum([event(sel(numind)).value] == numvalue(j));
-            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' num2str(numvalue(j)) ... 
+            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' num2str(numvalue(j)) ...
                 ' ; ' num2str(ninstances) ' instances']}];
             settings=[settings; [eventtype(i), {numvalue(j)}]];
         end
@@ -215,7 +217,7 @@ for i=1:Neventtype
         end
         for j=1:length(charvalue)
             ninstances = length(strmatch(charvalue{j}, {event(sel(charind)).value}));
-            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' charvalue{j}... 
+            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' charvalue{j}...
                 ' ; ' num2str(ninstances) ' instances']}];
             settings=[settings; [eventtype(i), charvalue(j)]];
         end
