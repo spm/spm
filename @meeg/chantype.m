@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 1267 2008-03-28 12:12:14Z vladimir $
+% $Id: chantype.m 1279 2008-03-28 18:43:17Z vladimir $
 
 
 if length(varargin)>=2
@@ -20,7 +20,7 @@ if length(varargin)>=2
     if isempty(ind)
         ind = 1:nchannels(this);
     end
-    
+
     if isempty(type)
         if exist('channelselection') == 2
             eeg_types = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGBHAM', 'EEGREF'};
@@ -48,7 +48,10 @@ if length(varargin)>=2
         if ~isempty(ind)
             this = chantype(this, ind, 'Other');
         end
-    end
+
+        res = this;       
+        return
+    end    
 end
 
 res = getset(this, 'channels', 'type', varargin{:});
