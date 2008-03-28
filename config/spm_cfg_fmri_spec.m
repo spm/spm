@@ -4,7 +4,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_cfg_fmri_spec.m 1264 2008-03-28 11:11:21Z volkmar $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -74,7 +74,7 @@ fmri_t0.num     = [1 1];
 timing         = cfg_branch;
 timing.tag     = 'timing';
 timing.name    = 'Timing parameters';
-timing.val     = { units RT fmri_t fmri_t0};
+timing.val     = {units RT fmri_t fmri_t0 };
 timing.help    = {
                   'Specify various timing parameters needed to construct the design matrix. This includes the units of the design specification and the interscan interval.'
                   '                                                                                                            '
@@ -149,13 +149,13 @@ tmod.values{7} = double(6);
 % ---------------------------------------------------------------------
 % name Name
 % ---------------------------------------------------------------------
-name         = cfg_entry;
-name.tag     = 'name';
-name.name    = 'Name';
-name.val = {'Param'};
-name.help    = {'Enter a name for this parameter.'};
-name.strtype = 's';
-name.num     = [1 Inf];
+name1         = cfg_entry;
+name1.tag     = 'name';
+name1.name    = 'Name';
+name1.val = {'Param'};
+name1.help    = {'Enter a name for this parameter.'};
+name1.strtype = 's';
+name1.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % param Values
 % ---------------------------------------------------------------------
@@ -193,7 +193,7 @@ poly.values{6} = double(6);
 pmod         = cfg_branch;
 pmod.tag     = 'pmod';
 pmod.name    = 'Parameter';
-pmod.val     = { name param poly};
+pmod.val     = {name1 param poly };
 pmod.help    = {
                 'Model interractions with user specified parameters. This allows nonlinear effects relating to some other measure to be modelled in the design matrix.'
                 ''
@@ -202,30 +202,30 @@ pmod.help    = {
 % ---------------------------------------------------------------------
 % generic Parametric Modulations
 % ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'Parametric Modulations';
-generic.help    = {'The stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate. The events can be modulated by zero or more parameters.'};
-generic.values  = { pmod};
-generic.num     = [0 Inf];
+generic2         = cfg_repeat;
+generic2.tag     = 'generic';
+generic2.name    = 'Parametric Modulations';
+generic2.help    = {'The stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate. The events can be modulated by zero or more parameters.'};
+generic2.values  = {pmod };
+generic2.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % cond Condition
 % ---------------------------------------------------------------------
 cond         = cfg_branch;
 cond.tag     = 'cond';
 cond.name    = 'Condition';
-cond.val     = { name onset duration tmod generic};
+cond.val     = {name onset duration tmod generic2 };
 cond.check   = @cond_check;
 cond.help    = {'An array of input functions is contructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.'};
 % ---------------------------------------------------------------------
 % generic Conditions
 % ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'Conditions';
-generic.help    = {'You are allowed to combine both event- and epoch-related responses in the same model and/or regressor. Any number of condition (event or epoch) types can be specified.  Epoch and event-related responses are modeled in exactly the same way by specifying their onsets [in terms of onset times] and their durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration.For factorial designs, one can later associate these experimental conditions with the appropriate levels of experimental factors. '};
-generic.values  = { cond};
-generic.num     = [0 Inf];
+generic1         = cfg_repeat;
+generic1.tag     = 'generic';
+generic1.name    = 'Conditions';
+generic1.help    = {'You are allowed to combine both event- and epoch-related responses in the same model and/or regressor. Any number of condition (event or epoch) types can be specified.  Epoch and event-related responses are modeled in exactly the same way by specifying their onsets [in terms of onset times] and their durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration.For factorial designs, one can later associate these experimental conditions with the appropriate levels of experimental factors. '};
+generic1.values  = {cond };
+generic1.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % multi Multiple conditions
 % ---------------------------------------------------------------------
@@ -291,17 +291,17 @@ val.num     = [Inf 1];
 regress         = cfg_branch;
 regress.tag     = 'regress';
 regress.name    = 'Regressor';
-regress.val     = { name val};
+regress.val     = {name val };
 regress.help    = {'regressor'};
 % ---------------------------------------------------------------------
 % generic Regressors
 % ---------------------------------------------------------------------
-generic1         = cfg_repeat;
-generic1.tag     = 'generic';
-generic1.name    = 'Regressors';
-generic1.help    = {'Regressors are additional columns included in the design matrix, which may model effects that would not be convolved with the haemodynamic response.  One such example would be the estimated movement parameters, which may confound the data.'};
-generic1.values  = { regress};
-generic1.num     = [0 Inf];
+generic2         = cfg_repeat;
+generic2.tag     = 'generic';
+generic2.name    = 'Regressors';
+generic2.help    = {'Regressors are additional columns included in the design matrix, which may model effects that would not be convolved with the haemodynamic response.  One such example would be the estimated movement parameters, which may confound the data.'};
+generic2.values  = {regress };
+generic2.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % multi_reg Multiple regressors
 % ---------------------------------------------------------------------
@@ -335,7 +335,7 @@ hpf.num     = [1 1];
 sess         = cfg_branch;
 sess.tag     = 'sess';
 sess.name    = 'Subject/Session';
-sess.val     = { scans generic multi generic1 multi_reg hpf};
+sess.val     = {scans generic1 multi generic2 multi_reg hpf };
 sess.check   = @sess_check;
 sess.help    = {'The design matrix for fMRI data consists of one or more separable, session-specific partitions.  These partitions are usually either one per subject, or one per fMRI scanning session for that subject.'};
 % ---------------------------------------------------------------------
@@ -349,7 +349,7 @@ generic.help    = {
                    ''
                    'This allows you to build design matrices with separable session-specific partitions.  Each partition may be the same (in which case it is only necessary to specify it once) or different.  Responses can be either event- or epoch related, where the latter model involves prolonged and possibly time-varying responses to state-related changes in experimental conditions.  Event-related response are modelled in terms of responses to instantaneous events.  Mathematically they are both modelled by convolving a series of delta (stick) or box-car functions, encoding the input or stimulus function. with a set of hemodynamic basis functions.'
 }';
-generic.values  = { sess};
+generic.values  = {sess };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % name Name
@@ -375,7 +375,7 @@ levels.num     = [Inf 1];
 fact         = cfg_branch;
 fact.tag     = 'fact';
 fact.name    = 'Factor';
-fact.val     = { name levels};
+fact.val     = {name levels };
 fact.help    = {'Add a new factor to your experimental design'};
 % ---------------------------------------------------------------------
 % generic Factorial design
@@ -392,7 +392,7 @@ generic1.help    = {
                     '                                                                                                            '
                     'For example, if you have 2-by-3 design  your contingency table has two rows and three columns where the the first factor spans the rows, and the second factor the columns. The numbers of the conditions are 1,2,3 for the first row and 4,5,6 for the second. '
 }';
-generic1.values  = { fact};
+generic1.values  = {fact };
 generic1.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % derivs Model derivatives
@@ -416,7 +416,7 @@ derivs.values{3} = double([1 1]);
 hrf         = cfg_branch;
 hrf.tag     = 'hrf';
 hrf.name    = 'Canonical HRF';
-hrf.val     = { derivs};
+hrf.val     = {derivs };
 hrf.help    = {'Canonical Hemodynamic Response Function. This is the default option. Contrasts of these effects have a physical interpretation and represent a parsimonious way of characterising event-related responses. This option is also useful if you wish to look separately at activations and deactivations (this is implemented using a t-contrast with a +1 or -1 entry over the canonical regressor). '};
 % ---------------------------------------------------------------------
 % length Window length
@@ -442,7 +442,7 @@ order.num     = [1 1];
 fourier         = cfg_branch;
 fourier.tag     = 'fourier';
 fourier.name    = 'Fourier Set';
-fourier.val     = { length order};
+fourier.val     = {length order };
 fourier.help    = {'Fourier basis functions. This option requires an SPM{F} for inference.'};
 % ---------------------------------------------------------------------
 % length Window length
@@ -468,7 +468,7 @@ order.num     = [1 1];
 fourier_han         = cfg_branch;
 fourier_han.tag     = 'fourier_han';
 fourier_han.name    = 'Fourier Set (Hanning)';
-fourier_han.val     = { length order};
+fourier_han.val     = {length order };
 fourier_han.help    = {'Fourier basis functions with Hanning Window - requires SPM{F} for inference.'};
 % ---------------------------------------------------------------------
 % length Window length
@@ -494,7 +494,7 @@ order.num     = [1 1];
 gamma         = cfg_branch;
 gamma.tag     = 'gamma';
 gamma.name    = 'Gamma Functions';
-gamma.val     = { length order};
+gamma.val     = {length order };
 gamma.help    = {'Gamma basis functions - requires SPM{F} for inference.'};
 % ---------------------------------------------------------------------
 % length Window length
@@ -520,7 +520,7 @@ order.num     = [1 1];
 fir         = cfg_branch;
 fir.tag     = 'fir';
 fir.name    = 'Finite Impulse Response';
-fir.val     = { length order};
+fir.val     = {length order };
 fir.help    = {'Finite impulse response - requires SPM{F} for inference.'};
 % ---------------------------------------------------------------------
 % derivs Model derivatives
@@ -544,7 +544,7 @@ derivs.values{3} = double([1 1]);
 hrf         = cfg_branch;
 hrf.tag     = 'hrf';
 hrf.name    = 'Canonical HRF';
-hrf.val     = { derivs};
+hrf.val     = {derivs };
 hrf.help    = {'Canonical Hemodynamic Response Function. This is the default option. Contrasts of these effects have a physical interpretation and represent a parsimonious way of characterising event-related responses. This option is also useful if you wish to look separately at activations and deactivations (this is implemented using a t-contrast with a +1 or -1 entry over the canonical regressor). '};
 % ---------------------------------------------------------------------
 % bases Basis Functions
@@ -552,9 +552,9 @@ hrf.help    = {'Canonical Hemodynamic Response Function. This is the default opt
 bases         = cfg_choice;
 bases.tag     = 'bases';
 bases.name    = 'Basis Functions';
-bases.val     = { hrf};
+bases.val     = {hrf };
 bases.help    = {'The most common choice of basis function is the Canonical HRF with or without time and dispersion derivatives. '};
-bases.values  = { hrf fourier fourier_han gamma fir};
+bases.values  = {hrf fourier fourier_han gamma fir };
 % ---------------------------------------------------------------------
 % volt Model Interactions (Volterra)
 % ---------------------------------------------------------------------
@@ -629,7 +629,7 @@ cvi.values = {
 fmri_spec         = cfg_exbranch;
 fmri_spec.tag     = 'fmri_spec';
 fmri_spec.name    = 'fMRI model specification';
-fmri_spec.val     = { dir timing generic generic1 bases volt xGlobal mask cvi};
+fmri_spec.val     = {dir timing generic generic1 bases volt xGlobal mask cvi };
 fmri_spec.help    = {
                      'Statistical analysis of fMRI data uses a mass-univariate approach based on General Linear Models (GLMs). It comprises the following steps (1) specification of the GLM design matrix, fMRI data files and filtering (2) estimation of GLM paramaters using classical or Bayesian approaches and (3) interrogation of results using contrast vectors to produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs).'
                      ''

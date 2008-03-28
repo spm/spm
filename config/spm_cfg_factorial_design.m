@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1264 2008-03-28 11:11:21Z volkmar $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -32,7 +32,7 @@ scans.num     = [1 Inf];
 t1         = cfg_branch;
 t1.tag     = 't1';
 t1.name    = 'One-sample t-test';
-t1.val     = { scans};
+t1.val     = {scans };
 t1.help    = {''};
 % ---------------------------------------------------------------------
 % scans1 Group 1 scans
@@ -144,7 +144,7 @@ ancova.values{2} = double(1);
 t2         = cfg_branch;
 t2.tag     = 't2';
 t2.name    = 'Two-sample t-test';
-t2.val     = { scans1 scans2 dept variance gmsca ancova};
+t2.val     = {scans1 scans2 dept variance gmsca ancova };
 t2.help    = {''};
 % ---------------------------------------------------------------------
 % scans Scans [1,2]
@@ -162,7 +162,7 @@ scans.num     = [1 2];
 pair         = cfg_branch;
 pair.tag     = 'pair';
 pair.name    = 'Pair';
-pair.val     = { scans};
+pair.val     = {scans };
 pair.help    = {'Add a new pair of scans to your experimental design'};
 % ---------------------------------------------------------------------
 % generic Pairs
@@ -174,7 +174,7 @@ generic.help    = {
                    '  '
                    '                                                                                                            '
 }';
-generic.values  = { pair};
+generic.values  = {pair };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % dept Independence
@@ -266,7 +266,7 @@ ancova.values{2} = double(1);
 pt         = cfg_branch;
 pt.tag     = 'pt';
 pt.name    = 'Paired t-test';
-pt.val     = { generic dept variance gmsca ancova};
+pt.val     = {generic dept variance gmsca ancova };
 pt.help    = {''};
 % ---------------------------------------------------------------------
 % scans Scans
@@ -316,7 +316,7 @@ iCC.values{2} = double(5);
 mcov         = cfg_branch;
 mcov.tag     = 'mcov';
 mcov.name    = 'Covariate';
-mcov.val     = { c cname iCC};
+mcov.val     = {c cname iCC };
 mcov.help    = {'Add a new covariate to your experimental design'};
 % ---------------------------------------------------------------------
 % generic Covariates
@@ -325,7 +325,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Covariates';
 generic.help    = {'Covariates'};
-generic.values  = { mcov};
+generic.values  = {mcov };
 generic.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % mreg Multiple regression
@@ -333,7 +333,7 @@ generic.num     = [0 Inf];
 mreg         = cfg_branch;
 mreg.tag     = 'mreg';
 mreg.name    = 'Multiple regression';
-mreg.val     = { scans generic};
+mreg.val     = {scans generic };
 mreg.help    = {''};
 % ---------------------------------------------------------------------
 % name Name
@@ -443,7 +443,7 @@ ancova.values{2} = double(1);
 fact         = cfg_branch;
 fact.tag     = 'fact';
 fact.name    = 'Factor';
-fact.val     = { name levels dept variance gmsca ancova};
+fact.val     = {name levels dept variance gmsca ancova };
 fact.help    = {'Add a new factor to your experimental design'};
 % ---------------------------------------------------------------------
 % generic Factors
@@ -455,7 +455,7 @@ generic.help    = {
                    'Specify your design a factor at a time. '
                    '                                                                                                            '
 }';
-generic.values  = { fact};
+generic.values  = {fact };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % levels Levels
@@ -487,7 +487,7 @@ scans.num     = [1 Inf];
 icell         = cfg_branch;
 icell.tag     = 'icell';
 icell.name    = 'Cell';
-icell.val     = { levels scans};
+icell.val     = {levels scans };
 icell.help    = {'Enter data for a cell in your design'};
 % ---------------------------------------------------------------------
 % generic Specify cells
@@ -499,7 +499,7 @@ generic1.help    = {
                     'Enter the scans a cell at a time'
                     '                                                                                                            '
 }';
-generic1.values  = { icell};
+generic1.values  = {icell };
 generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % fd Full factorial
@@ -507,7 +507,7 @@ generic1.num     = [1 Inf];
 fd         = cfg_branch;
 fd.tag     = 'fd';
 fd.name    = 'Full factorial';
-fd.val     = { generic generic1};
+fd.val     = {generic generic1 };
 fd.help    = {
               'This option is best used when you wish to test for all main effects and interactions in one-way, two-way or three-way ANOVAs. Design specification proceeds in 2 stages. Firstly, by creating new factors and specifying the number of levels and name for each. Nonsphericity, ANOVA-by-factor and scaling options can also be specified at this stage. Secondly, scans are assigned separately to each cell. This accomodates unbalanced designs.'
               '                                                                                                            '
@@ -615,7 +615,7 @@ ancova.values{2} = double(1);
 fac         = cfg_branch;
 fac.tag     = 'fac';
 fac.name    = 'Factor';
-fac.val     = { name dept variance gmsca ancova};
+fac.val     = {name dept variance gmsca ancova };
 fac.help    = {
                'Add a new factor to your design.'
                '                                                                                                            '
@@ -634,7 +634,7 @@ generic.help    = {
                    'Specify your design a factor at a time.'
                    '                                                                                                            '
 }';
-generic.values  = { fac};
+generic.values  = {fac };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % scans Scans
@@ -661,16 +661,16 @@ conds.num     = [Inf Inf];
 fsubject         = cfg_branch;
 fsubject.tag     = 'fsubject';
 fsubject.name    = 'Subject';
-fsubject.val     = { scans conds};
+fsubject.val     = {scans conds };
 fsubject.help    = {'Enter data and conditions for a new subject'};
 % ---------------------------------------------------------------------
 % generic Subjects
 % ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'Subjects';
-generic.values  = { fsubject};
-generic.num     = [1 Inf];
+generic1         = cfg_repeat;
+generic1.tag     = 'generic';
+generic1.name    = 'Subjects';
+generic1.values  = {fsubject };
+generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % scans Scans
 % ---------------------------------------------------------------------
@@ -697,7 +697,7 @@ imatrix.num     = [Inf Inf];
 specall         = cfg_branch;
 specall.tag     = 'specall';
 specall.name    = 'Specify all';
-specall.val     = { scans imatrix};
+specall.val     = {scans imatrix };
 specall.help    = {
                    'Specify (i) all scans in one go and (ii) all conditions using a factor matrix, I. This option is for ''power users''. The matrix I must have four columns and as as many rows as scans. It has the same format as SPM''s internal variable SPM.xX.I. '
                    '                                                                                                            '
@@ -730,24 +730,24 @@ conds.num     = [Inf Inf];
 fsubject         = cfg_branch;
 fsubject.tag     = 'fsubject';
 fsubject.name    = 'Subject';
-fsubject.val     = { scans conds};
+fsubject.val     = {scans conds };
 fsubject.help    = {'Enter data and conditions for a new subject'};
 % ---------------------------------------------------------------------
 % generic Subjects
 % ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'Subjects';
-generic.values  = { fsubject};
-generic.num     = [1 Inf];
+generic1         = cfg_repeat;
+generic1.tag     = 'generic';
+generic1.name    = 'Subjects';
+generic1.values  = {fsubject };
+generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % fsuball Specify Subjects or all Scans & Factors
 % ---------------------------------------------------------------------
 fsuball         = cfg_choice;
 fsuball.tag     = 'fsuball';
 fsuball.name    = 'Specify Subjects or all Scans & Factors';
-fsuball.val     = { generic};
-fsuball.values  = { generic specall};
+fsuball.val     = {generic1 };
+fsuball.values  = {generic1 specall };
 % ---------------------------------------------------------------------
 % fnum Factor number
 % ---------------------------------------------------------------------
@@ -763,7 +763,7 @@ fnum.num     = [Inf 1];
 fmain         = cfg_branch;
 fmain.tag     = 'fmain';
 fmain.name    = 'Main effect';
-fmain.val     = { fnum};
+fmain.val     = {fnum };
 fmain.help    = {'Add a main effect to your design matrix'};
 % ---------------------------------------------------------------------
 % fnums Factor numbers
@@ -780,7 +780,7 @@ fnums.num     = [2 1];
 inter         = cfg_branch;
 inter.tag     = 'inter';
 inter.name    = 'Interaction';
-inter.val     = { fnums};
+inter.val     = {fnums };
 inter.help    = {'Add an interaction to your design matrix'};
 % ---------------------------------------------------------------------
 % maininters Main effects & Interactions
@@ -788,7 +788,7 @@ inter.help    = {'Add an interaction to your design matrix'};
 maininters         = cfg_repeat;
 maininters.tag     = 'maininters';
 maininters.name    = 'Main effects & Interactions';
-maininters.values  = { fmain inter};
+maininters.values  = {fmain inter };
 maininters.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % fblock Flexible factorial
@@ -796,7 +796,7 @@ maininters.num     = [1 Inf];
 fblock         = cfg_branch;
 fblock.tag     = 'fblock';
 fblock.name    = 'Flexible factorial';
-fblock.val     = { generic fsuball maininters};
+fblock.val     = {generic fsuball maininters };
 fblock.help    = {
                   'Create a design matrix a block at a time by specifying which main effects and interactions you wish to be included.'
                   '                                                                                                            '
@@ -825,7 +825,7 @@ scans.num     = [1 Inf];
 t1         = cfg_branch;
 t1.tag     = 't1';
 t1.name    = 'One-sample t-test';
-t1.val     = { scans};
+t1.val     = {scans };
 t1.help    = {''};
 % ---------------------------------------------------------------------
 % des Design
@@ -833,9 +833,9 @@ t1.help    = {''};
 des         = cfg_choice;
 des.tag     = 'des';
 des.name    = 'Design';
-des.val     = { t1};
+des.val     = {t1 };
 des.help    = {''};
-des.values  = { t1 t2 pt mreg fd fblock};
+des.values  = {t1 t2 pt mreg fd fblock };
 % ---------------------------------------------------------------------
 % c Vector
 % ---------------------------------------------------------------------
@@ -910,7 +910,7 @@ iCC.values{8} = double(8);
 cov         = cfg_branch;
 cov.tag     = 'cov';
 cov.name    = 'Covariate';
-cov.val     = { c cname iCFI iCC};
+cov.val     = {c cname iCFI iCC };
 cov.help    = {'Add a new covariate to your experimental design'};
 % ---------------------------------------------------------------------
 % generic Covariates
@@ -922,7 +922,7 @@ generic.help    = {
                    'This option allows for the specification of covariates and nuisance variables. Unlike SPM94/5/6, where the design was partitioned into effects of interest and nuisance effects for the computation of adjusted data and the F-statistic (which was used to thresh out voxels where there appeared to be no effects of interest), SPM5 does not partition the design in this way. The only remaining distinction between effects of interest (including covariates) and nuisance effects is their location in the design matrix, which we have retained for continuity.  Pre-specified design matrix partitions can be entered. '
                    '                                                                                                            '
 }';
-generic.values  = { cov};
+generic.values  = {cov };
 generic.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % tm_none None
@@ -951,7 +951,7 @@ athresh.num     = [1 1];
 tma         = cfg_branch;
 tma.tag     = 'tma';
 tma.name    = 'Absolute';
-tma.val     = { athresh};
+tma.val     = {athresh };
 tma.help    = {
                'Images are thresholded at a given value and only voxels at which all images exceed the threshold are included. '
                '                                                                                                            '
@@ -977,7 +977,7 @@ rthresh.num     = [1 1];
 tmr         = cfg_branch;
 tmr.tag     = 'tmr';
 tmr.name    = 'Relative';
-tmr.val     = { rthresh};
+tmr.val     = {rthresh };
 tmr.help    = {
                'Images are thresholded at a given value and only voxels at which all images exceed the threshold are included. '
                '                                                                                                            '
@@ -998,12 +998,12 @@ tm_none.help    = {'No threshold masking'};
 tm         = cfg_choice;
 tm.tag     = 'tm';
 tm.name    = 'Threshold masking';
-tm.val     = { tm_none};
+tm.val     = {tm_none };
 tm.help    = {
               'Images are thresholded at a given value and only voxels at which all images exceed the threshold are included. '
               '                                                                                                            '
 }';
-tm.values  = { tm_none tma tmr};
+tm.values  = {tm_none tma tmr };
 % ---------------------------------------------------------------------
 % im Implicit Mask
 % ---------------------------------------------------------------------
@@ -1051,7 +1051,7 @@ em.num     = [0 1];
 masking         = cfg_branch;
 masking.tag     = 'masking';
 masking.name    = 'Masking';
-masking.val     = { tm im em};
+masking.val     = {tm im em };
 masking.help    = {
                    'The mask specifies the voxels within the image volume which are to be assessed. SPM supports three methods of masking (1) Threshold, (2) Implicit and (3) Explicit. The volume analysed is the intersection of all masks.'
                    '                                                                                                            '
@@ -1083,7 +1083,7 @@ global_uval.num     = [Inf 1];
 g_user         = cfg_branch;
 g_user.tag     = 'g_user';
 g_user.name    = 'User';
-g_user.val     = { global_uval};
+g_user.val     = {global_uval };
 g_user.help    = {
                   'User defined  global effects (enter your own '
                   'vector of global values)'
@@ -1115,14 +1115,14 @@ g_omit.help    = {'Omit'};
 globalc         = cfg_choice;
 globalc.tag     = 'globalc';
 globalc.name    = 'Global calculation';
-globalc.val     = { g_omit};
+globalc.val     = {g_omit };
 globalc.help    = {
                    'This option is only used for PET data.'
                    '                                                                                                            '
                    'There are three methods for estimating global effects (1) Omit (assumming no other options requiring the global value chosen) (2) User defined (enter your own vector of global values) (3) Mean: SPM standard mean voxel value (within per image fullmean/8 mask) '
                    '                                                                                                            '
 }';
-globalc.values  = { g_omit g_user g_mean};
+globalc.values  = {g_omit g_user g_mean };
 % ---------------------------------------------------------------------
 % gmsca_no No
 % ---------------------------------------------------------------------
@@ -1150,7 +1150,7 @@ gmscv.num     = [Inf 1];
 gmsca_yes         = cfg_branch;
 gmsca_yes.tag     = 'gmsca_yes';
 gmsca_yes.name    = 'Yes';
-gmsca_yes.val     = { gmscv};
+gmsca_yes.val     = {gmscv };
 gmsca_yes.help    = {
                      'Scaling of the overall grand mean simply scales all the data by a common factor such that the mean of all the global values is the value specified. For qualitative data, this puts the data into an intuitively accessible scale without altering the statistics. '
                      '                                                                                                            '
@@ -1169,7 +1169,7 @@ gmsca_no.help    = {'No overall grand mean scaling'};
 gmsca         = cfg_choice;
 gmsca.tag     = 'gmsca';
 gmsca.name    = 'Overall grand mean scaling';
-gmsca.val     = { gmsca_no};
+gmsca.val     = {gmsca_no };
 gmsca.help    = {
                  'Scaling of the overall grand mean simply scales all the data by a common factor such that the mean of all the global values is the value specified. For qualitative data, this puts the data into an intuitively accessible scale without altering the statistics. '
                  '                                                                                                            '
@@ -1178,7 +1178,7 @@ gmsca.help    = {
                  'When using AnCova or no global normalisation, with data from different subjects or sessions, an intermediate situation may be appropriate, and you may be given the option to scale group, session or subject grand means separately. '
                  '                                                                                                            '
 }';
-gmsca.values  = { gmsca_no gmsca_yes};
+gmsca.values  = {gmsca_no gmsca_yes };
 % ---------------------------------------------------------------------
 % glonorm Normalisation
 % ---------------------------------------------------------------------
@@ -1208,7 +1208,7 @@ glonorm.values{3} = double(3);
 globalm         = cfg_branch;
 globalm.tag     = 'globalm';
 globalm.name    = 'Global normalisation';
-globalm.val     = { gmsca glonorm};
+globalm.val     = {gmsca glonorm };
 globalm.help    = {
                    'This option is only used for PET data.'
                    '                                                                                                            '
@@ -1225,7 +1225,7 @@ globalm.help    = {
 factorial_design         = cfg_exbranch;
 factorial_design.tag     = 'factorial_design';
 factorial_design.name    = 'Factorial design specification';
-factorial_design.val     = { dir des generic masking globalc globalm};
+factorial_design.val     = {dir des generic masking globalc globalm };
 factorial_design.help    = {
                             'This interface is used for setting up analyses of PET data. It is also used for ''2nd level'' or ''random effects'' analysis which allow one to make a population inference. First level models can be used to produce appropriate summary data, which can then be used as raw data for a second-level analysis. For example, a simple t-test on contrast images from the first-level turns out to be a random-effects analysis with random subject effects, inferring for the population based on a particular sample of subjects.'
                             '                                                                                                            '

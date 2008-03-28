@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_preproc.m 1264 2008-03-28 11:11:21Z volkmar $
 
 % ---------------------------------------------------------------------
 % data Data
@@ -164,9 +164,9 @@ tpm         = cfg_files;
 tpm.tag     = 'tpm';
 tpm.name    = 'Tissue probability maps';
 tpm.val{1} = {
-              '/export/toolbox/spm/trunk/tpm/grey.nii'
-              '/export/toolbox/spm/trunk/tpm/white.nii'
-              '/export/toolbox/spm/trunk/tpm/csf.nii'
+              fullfile(spm('dir'),'tpm','grey.nii')
+              fullfile(spm('dir'),'tpm','white.nii')
+              fullfile(spm('dir'),'tpm','csf.nii')
 };
 tpm.help    = {
                'Select the tissue probability images. These should be maps of grey matter, white matter and cerebro-spinal fluid probability. A nonlinear deformation field is estimated that best overlays the tissue probability maps on the individual subjects'' image. The default tissue probability maps are modified versions of the ICBM Tissue Probabilistic Atlases.These tissue probability maps are kindly provided by the International Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga. http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html. The original data are derived from 452 T1-weighted scans, which were aligned with an atlas space, corrected for scan inhomogeneities, and classified into grey matter, white matter and cerebrospinal fluid. These data were then affine registered to the MNI space and downsampled to 2mm resolution.'
@@ -176,7 +176,7 @@ tpm.help    = {
                'The model is refined further by allowing the tissue probability maps to be deformed according to a set of estimated parameters. This allows spatial normalisation and segmentation to be combined into the same model. This implementation uses a low-dimensional approach, which parameterises the deformations by a linear combination of about a thousand cosine transform bases. This is not an especially precise way of encoding deformations, but it can model the variability of overall brain shape. Evaluations by Hellier et al have shown that this simple model can achieve a registration accuracy comparable to other fully automated methods with many more parameters.'
 }';
 tpm.filter = 'image';
-tpm.dir = '/export/toolbox/spm/trunk/tpm';
+tpm.dir = fullfile(spm('dir'),'tpm');
 tpm.ufilter = '.*';
 tpm.num     = [3 3];
 % ---------------------------------------------------------------------
