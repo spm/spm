@@ -1,4 +1,4 @@
-function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
+function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 
 % Generate code to recreate a cfg_repeat item. This code does not deal with
 % arrays of cfg_items, such a configuration should not exist with the
@@ -21,13 +21,14 @@ function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: gencode.m 1266 2008-03-28 12:00:56Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1266 $';
 
 %% Parent object
 % Generate generic object
-[str tag cind ccnt] = gencode(item.cfg_item, tag, stoptag, tropts);
+[str tag cind ccnt] = gencode(item.cfg_item, tag, tagctx, stoptag, tropts);
+tagctx = {tagctx{:} tag};
 % Check whether to generate code - ccnt == 0 means that generic object did
 % not return code
 if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec))) || ccnt == 0
@@ -46,14 +47,16 @@ if numel(item.values) > 0
     % Update clvl
     tropts.clvl = tropts.clvl + 1;
     tropts.cnt  = tropts.cnt + ccnt;
-    ctag = {};
+    ctag = cell(size(item.values));
     for k = 1:numel(item.values)
         % tags are used as variable names and need to be unique in the
         % context of this .values tag. This includes the item's tag itself
-        % and the tags of its immediate children.
+        % and the tags of its children.
         ctag{k} = genvarname(subsref(item.values{k}, substruct('.','tag')), ...
-                             {ctag{:} tag});
-        [ccstr ctag{k} ccind cccnt] = gencode(item.values{k}, ctag{k}, stoptag, tropts);
+                             tagctx);
+        [ccstr ctag{k} ccind cccnt] = gencode(item.values{k}, ctag{k}, ...
+                                              tagctx, stoptag, tropts);
+        tagctx = {tagctx{:} ctag{k}};
         if ~isempty(ccstr)
             % Child has returned code
             cstr = {cstr{:} ccstr{:}};

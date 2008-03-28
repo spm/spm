@@ -308,9 +308,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1261 2008-03-28 07:19:21Z volkmar $
+% $Id: cfg_util.m 1266 2008-03-28 12:00:56Z volkmar $
 
-rev = '$Rev: 1261 $';
+rev = '$Rev: 1266 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -403,7 +403,7 @@ switch lower(cmd),
         [c0 jobs cjob] = local_initcfg;
         local_initapps;
     case 'initdef',
-        cm = local_getcm(c0, varargin{1});
+        [cm id] = local_getcm(c0, varargin{1});
         cm = local_initdef(cm, varargin{2});
         c0 = subsasgn(c0, id{1}, cm);
     case 'initjob'
@@ -783,7 +783,7 @@ if isempty(tropts)
     tropts(1).mlvl = Inf;
     tropts(1).cnt  = 1;
     [p funcname e v] = fileparts(fname);
-    [cstr tag] = gencode(c0, '', funcname, tropts);
+    [cstr tag] = gencode(c0, '', {}, funcname, tropts);
     funcname = [funcname '_' tag];
     fname = fullfile(p, [funcname e v]);
     unpostfix = '';
@@ -805,7 +805,7 @@ if isempty(tropts)
 else
     % generate root level code
     [p funcname e v] = fileparts(fname);
-    [cstr tag] = gencode(c0, 'jobs', funcname, tropts);
+    [cstr tag] = gencode(c0, 'jobs', {}, funcname, tropts);
     fid = fopen(fname,'w');
     fprintf(fid, 'function %s = %s\n', tag, funcname);
     for k = 1:numel(cstr)
@@ -860,7 +860,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function cm = local_getcm(c0, cfg_id)
+function [cm id] = local_getcm(c0, cfg_id)
 % This code could use tag2cfg_id
 if cfg_util('ismod_cfg_id', cfg_id)
     % This should better test something like 'iscfg_id'
@@ -872,7 +872,7 @@ else
     [id stop] = list(c0, root, tropts);
     if numel(id) ~= 1 || isempty(id{1})
         error('matlabbatch:cfg_util:harvestdef', ...
-              'Application with tag ''%s'' not found.', varargin{2});
+              'Application with tag ''%s'' not found.', cfg_id);
     end;
 end;
 cm = subsref(c0, id{1});

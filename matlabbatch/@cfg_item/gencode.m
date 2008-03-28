@@ -1,4 +1,4 @@
-function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
+function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 
 % Generate code to recreate a generic item. This code should be suitable
 % for all derived classes. Derived classes that add their own fields should
@@ -24,18 +24,18 @@ function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: gencode.m 1266 2008-03-28 12:00:56Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1266 $';
 
 %% Class of item
 % Check whether to generate code
 if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec)))
     % Stopping - tag based on stoptag, and tag of item
     if isempty(tag)
-        tag = genvarname(sprintf('%s_%s', stoptag, item.tag));
+        tag = genvarname(sprintf('%s_%s', stoptag, item.tag), tagctx);
     else
-        tag = genvarname(sprintf('%s_%s', stoptag, tag));
+        tag = genvarname(sprintf('%s_%s', stoptag, tag), tagctx);
     end;
     str = {};
     cind = [];
@@ -44,9 +44,10 @@ if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropt
 else
     % Tag based on tag of item and item count
     if isempty(tag)
-        tag = genvarname(sprintf('%s', item.tag));
+        tag = genvarname(sprintf('%s', item.tag), tagctx);
     end;
 end;
+tagctx = {tagctx{:} tag};
 % Item count
 ccnt = 1;
 % Generate generic object
@@ -72,14 +73,15 @@ if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
     % Update clvl
     tropts.clvl = tropts.clvl + 1;
     tropts.cnt  = tropts.cnt + ccnt;
-    ctag = {};
+    ctag = cell(size(item.val));
     for k = 1:numel(item.val)
         % tags are used as variable names and need to be unique in the
         % context of this .val tag. This includes the item's tag itself
-        % and the tags of its immediate children.
+        % and the tags of its children.
         ctag{k} = genvarname(subsref(item.val{k}, substruct('.','tag')), ...
-                             {ctag{:} tag});
-        [ccstr ctag{k} ccind cccnt] = gencode(item.val{k}, ctag{k}, stoptag, tropts);
+                             tagctx);
+        [ccstr ctag{k} ccind cccnt] = gencode(item.val{k}, ctag{k}, tagctx, stoptag, tropts);
+        tagctx = {tagctx{:} ctag{k}};
         if ~isempty(ccstr)
             % Child has returned code
             cstr = {cstr{:} ccstr{:}};

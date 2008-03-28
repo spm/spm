@@ -1,4 +1,4 @@
-function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
+function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 
 % Generate code to recreate a cfg_exbranch item. This code first generates
 % code for the parent cfg_branch item and adds code for its own fields.
@@ -24,13 +24,13 @@ function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: gencode.m 1266 2008-03-28 12:00:56Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1266 $';
 
 %% Parent object
 % Generate branch object
-[str tag cind ccnt] = gencode(item.cfg_branch, tag, stoptag, tropts);
+[str tag cind ccnt] = gencode(item.cfg_branch, tag, tagctx, stoptag, tropts);
 % Check whether to generate code - ccnt == 0 means that generic object did
 % not return code
 if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec))) || ccnt == 0
