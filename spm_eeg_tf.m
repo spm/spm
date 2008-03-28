@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 1262 2008-03-28 09:28:42Z stefan $
+% $Id: spm_eeg_tf.m 1263 2008-03-28 10:30:10Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -111,26 +111,27 @@ M = spm_eeg_morlet(tf.Mfactor, 1000/D.fsample, tf.frequencies);
 if tf.collchans
     Nchannels = 1;
 else
-    Nchannels = length(D.tf.channels);
+    Nchannels = length(tf.channels);
 end
 
 Nfrequencies = length(tf.frequencies);
 
 % still have to change newdata
-D = newdata(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials], D.dtype);
+D = clone(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
 
 if tf.phase == 1
-    D2 = newdata(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials], D.dtype);
+    D2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
 end
 
 for k = 1:D.ntrials
     
-    d = zeros(length(D.tf.channels), Nfrequencies, D.nsamples);
+    d = zeros(length(tf.channels), Nfrequencies, D.nsamples);
+    
     if tf.phase
-        d2 = zeros(length(D.tf.channels), Nfrequencies, D.nsamples);
+        d2 = zeros(length(tf.channels), Nfrequencies, D.nsamples);
     end
     
-    for j = 1:length(D.tf.channels)
+    for j = 1:length(tf.channels)
         for i = 1 : Nfrequencies
             tmp = conv(squeeze(D(tf.channels(j), :, k)), M{i});
             

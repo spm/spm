@@ -5,9 +5,9 @@ function D = spm_eeg_epochs(S)
 % S  - filename or input struct (optional)
 % (optional) fields of S:
 % S.D         - filename of EEG mat-file with continuous data
-% S.trl - Nx2 or Nx3 matrix (N - number of trials) [start end offset]
-% S.conditionlabels - one label or cell array of N labels 
-% S.eventpadding - in sec - the additional time period around each trial
+% S.events.trl - Nx2 or Nx3 matrix (N - number of trials) [start end offset]
+% S.events.conditionlabels - one label or cell array of N labels 
+% S.events.padding - in sec - the additional time period around each trial
 %               for which the events are saved with the trial (to let the
 %               user keep and use for analysis events which are outside
 % Output:
@@ -21,7 +21,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1254 2008-03-27 18:41:42Z vladimir $
+% $Id: spm_eeg_epochs.m 1263 2008-03-28 10:30:10Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -29,49 +29,65 @@ if nargin == 0
     S =[];
 end
 
-if ischar(S)
-    temp = S;
-    S=[];
-    S.D = temp;
+try
+    S.events.padding
+catch
+    S.events.padding = 0;
 end
 
-if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;    end
-
-if isfield(S, 'D')
+try
     D = S.D;
-else
-    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+catch
+    D = spm_select(1, 'mat', 'Select M/EEG mat file');
 end
 
+try
+    D = spm_eeg_load(D);
+catch
+    error(sprintf('Trouble reading file %s', D));
+end
 
-if isa(D, 'char')
+if ~strncmpi(D.type, 'cont', 4)
+    warning('The file must contain continuous data.');
+    return
+end
+
+try
+    DS.dataset = fullfile(D.path, D.fname);
+    [S.events.trl, S.events.conditionlabels] = spm_eeg_definetrial(DS);
+catch
     try
-        D = spm_eeg_load(D);
+        events.trlfile = S.events.trlfile;
     catch
-        error(sprintf('Trouble reading file %s', D));
+        events.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
     end
 end
 
-if ntrials(D)>1
-    warning('The file is already epoched');
-    return;
-end
-
-if ~(isfield(S, 'trl') & isfield(S, 'conditionlabels'))
-    S.event = D.events;
-    if isempty(S.event)
-        S.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
-        S.trl = getfield(load(S.trlfile, 'trl'), 'trl');
-        S.conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
+try
+    events.trl = S.events.trl;
+catch
+    try
+        events.trl = getfield(load(S.events.trlfile, 'trl'), 'trl');
+    catch
+        error('Trouble reading trl file.');
     end
-    S.fsample = D.fsample;
-    S.timeonset = D.trialonset;
-    [S.trl, S.conditionlabels] = spm_eeg_definetrial(S);
+end
+    
+    
+try
+    events.conditionlabels = S.events.conditionlabels;
+catch
+    try
+        events.conditionlabels = getfield(load(events.trlfile, 'conditionlabels'), 'conditionlabels');
+    catch
+        error('Trouble reading trl file.');
+    end
 end
 
-trl = S.trl;
-conditionlabels = S.conditionlabels;
+trl = events.trl;
+conditionlabels = events.conditionlabels;
 
+% checks on input
 if size(trl, 2) >= 3
     timeOnset = unique(trl(:, 3))./D.fsample;
     trl = trl(:, 1:2);
@@ -115,7 +131,7 @@ for i = 1:ntrial
     Dnew(:, :, i) = d;
 
     Dnew = events(Dnew, i, select_events(D.events, ...
-        [trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
+        [trl(i, 1)/D.fsample-events.padding  trl(i, 2)/D.fsample+events.padding]));
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);
