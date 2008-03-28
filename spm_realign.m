@@ -80,7 +80,7 @@ function P = spm_realign(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_realign.m 1265 2008-03-28 11:45:04Z john $
 
 
 if nargin==0, return; end;
@@ -219,22 +219,26 @@ if numel(P) > 2,
 
     spm_chi2_plot('Init','Eliminating Unimportant Voxels',...
               'Relative quality','Iteration');
-    Alpha = spm_atranspa([A0 b]);
+    Alpha = [A0 b];
+    Alpha = Alpha'*Alpha;
     det0  = det(Alpha);
     det1  = det0;
     spm_chi2_plot('Set',det1/det0);
     while det1/det0 > flags.quality,
         dets  = zeros(size(A0,1),1);
         for i=1:size(A0,1),
-            dets(i) = det(Alpha - spm_atranspa([A0(i,:) b(i)]));
+            tmp     = [A0(i,:) b(i)];
+            dets(i) = det(Alpha - tmp'*tmp);
         end;
+        clear tmp
         [junk,msk] = sort(det1-dets);
         msk        = msk(1:round(length(dets)/10));
          A0(msk,:) = [];   b(msk,:) = [];   G(msk,:) = [];
          x1(msk,:) = [];  x2(msk,:) = [];  x3(msk,:) = [];
         dG1(msk,:) = []; dG2(msk,:) = []; dG3(msk,:) = [];
         if ~isempty(wt),  wt(msk,:) = []; end;
-        Alpha = spm_atranspa([A0 b]);
+        Alpha = [A0 b];
+        Alpha = Alpha'*Alpha;
         det1  = det(Alpha);
         spm_chi2_plot('Set',single(det1/det0));
     end;
@@ -272,7 +276,7 @@ for i=2:length(P),
         b1         = b(msk);
         sc         = sum(b1)/sum(F);
         b1         = b1-F*sc;
-        soln       = spm_atranspa(A)\(A'*b1);
+        soln       = (A'*A)\(A'*b1);
 
         p          = [0 0 0  0 0 0  1 1 1  0 0 0];
         p(lkp)     = p(lkp) + soln';
@@ -334,7 +338,7 @@ for i=1:length(P),
         b1         = b(msk);
         sc         = sum(b1)/sum(F);
         b1         = b1-F*sc;
-        soln       = spm_atranspa(A)\(A'*b1);
+        soln       = (A'*A)\(A'*b1);
 
         p          = [0 0 0  0 0 0  1 1 1  0 0 0];
         p(lkp)     = p(lkp) + soln';

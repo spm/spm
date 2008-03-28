@@ -170,7 +170,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uw_estimate.m 1265 2008-03-28 11:45:04Z john $
 
 
 global defaults
@@ -752,7 +752,7 @@ dz             =  dz.*msk;
 
 % Re-estimate (or rather nudge) movement parameters.
 if rem ~= 0
-   iDtD = inv(spm_atranspa(D));
+   iDtD = inv(D'*D);
    for i=2:length(P)
       P(i).mat = inv(spm_matrix((iDtD*Dty{i})'))*P(i).mat;
    end

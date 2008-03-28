@@ -12,7 +12,7 @@ function [U,S,V] = spm_svd(X,U,T)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_svd.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_svd.m 1265 2008-03-28 11:45:04Z john $
 
 
 
@@ -44,7 +44,7 @@ if any(i - j)
     X     = full(X);
     if m > n
 
-        [v S v] = svd(spm_atranspa(X),0);
+        [v S v] = svd(X'*X,0);
         S       = sparse(S);
         s       = diag(S);
         j       = find(s*length(s)/sum(s) >= U & s >= T);
@@ -54,7 +54,7 @@ if any(i - j)
 
     elseif m < n
 
-        [u S u] = svd(spm_atranspa(X'),0);
+        [u S u] = svd(X*X',0);
         S       = sparse(S);
         s       = diag(S);
         j       = find(s*length(s)/sum(s) >= U & s >= T);

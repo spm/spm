@@ -38,7 +38,7 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affreg.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_affreg.m 1265 2008-03-28 11:45:04Z john $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
@@ -497,7 +497,7 @@ for i=1:ceil(lm/chunk),
         n     = n   + trace(wt1);
         clear wt1
     else
-        AA    = AA  + spm_atranspa(A1);
+        AA    = AA  + A1'*A1;
         %Ab   = Ab  + A1'*b1;
         Ab    = Ab  + (b1'*A1)';
         ss    = ss  + b1'*b1;

@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_regions.m 1265 2008-03-28 11:45:04Z john $
 
 
 
@@ -234,12 +234,12 @@ xY.X0   = xY.X0(:,~~any(xY.X0));
 %-----------------------------------------------------------------------
 [m n]   = size(y);
 if m > n
-    [v s v] = svd(spm_atranspa(y));
+    [v s v] = svd(y'*y);
     s       = diag(s);
     v       = v(:,1);
     u       = y*v/sqrt(s(1));
 else
-    [u s u] = svd(spm_atranspa(y'));
+    [u s u] = svd(y*y');
     s       = diag(s);
     u       = u(:,1);
     v       = y'*u/sqrt(s(1));

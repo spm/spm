@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 1152 2008-02-15 12:36:50Z john $
+% $Id: spm_maff8.m 1265 2008-03-28 11:45:04Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -164,7 +164,7 @@ for iter=1:200
                  dmi1.*x2m dmi2.*x2m dmi3.*x2m...
                  dmi1 *x3m dmi2 *x3m dmi3 *x3m...
                  dmi1      dmi2      dmi3];
-            Alpha = Alpha + spm_atranspa(A);
+            Alpha = Alpha + A'*A;
             Beta  = Beta  + sum(A,1)';
         end
     end

@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1230 2008-03-19 14:23:20Z john $
+% $Id: spm.m 1265 2008-03-28 11:45:04Z john $
 
 
 %=======================================================================
@@ -1177,7 +1177,7 @@ end
 %-Check the mex files
 %-----------------------------------------------------------------------
 try
-    feval(@spm_atranspa,1);
+    feval(@spm_bsplinc,1,ones(1,6));
 catch
     error([...
         'SPM uses a number of "mex" files, which are compiled functions.\n'...
