@@ -7,4 +7,4 @@ function res = nconditions(obj)
 % Vladimir Litvak
 % $Id: nconditions.m 1236 2008-03-20 18:15:33Z stefan $
 
-res = size(unique(conditions(obj), 'rows'),1);
+res = length(unique(conditions(obj)));

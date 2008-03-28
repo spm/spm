@@ -7,4 +7,9 @@ function res = badchannels(this, varargin)
 % Stefan Kiebel
 % $Id$
 
+    
 res = getset(this, 'channels', 'bad', varargin{:});
+
+if isempty(varargin)
+    res = find(res);
+end

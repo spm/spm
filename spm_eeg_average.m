@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1253 2008-03-26 21:28:33Z stefan $
+% $Id: spm_eeg_average.m 1278 2008-03-28 18:38:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -72,14 +72,14 @@ spm('Pointer', 'Watch'); drawnow;
 % else
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions], D.dtype);
+Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions]);
         
 try artefact = D.artefact; catch artefact = []; end
 if ~isempty(artefact)
     weights = artefact.weights;
     try thresholded = D.thresholded; catch thresholded = []; end
 end
-cl = conditionlabels(D);
+cl = unique(conditions(D));
 
 if isfield(D, 'weights');
     d = zeros(D.nchannels, D.nsamples);
@@ -163,15 +163,16 @@ end
 
 spm_progress_bar('Clear');
 
+Dnew = type(Dnew, 'evoked');
+
 % jump outside methods to reorganise trial structure
 sD = struct(Dnew);
 
 [sD.trials.label] = deal([]);
 for i = 1:D.nconditions
-    sD.trials(i).label = deblank(cl(i,:));
+    sD.trials(i).label = cl{i};
 end
-sD.trials = rmfield(sD.trials ,'onset');
-try sD.trials = rmfield(sD.trials,'reject'); end
+
 sD.trials = sD.trials(1:D.nconditions);
 
 for i = 1:D.nconditions, sD.trials(i).repl = ni(i); end
@@ -181,10 +182,12 @@ end
 
 Dnew = meeg(sD);
 
+cl = unique(D.conditions);
+
 disp(sprintf('%s: Number of replications per contrast:', Dnew.fname))
 s = [];
 for i = 1:D.nconditions
-    s = [s sprintf('average %s: %d trials', conditionlabels(Dnew, i), ni(i))];
+    s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
     if i < D.nconditions
         s = [s sprintf(', ')];
     else

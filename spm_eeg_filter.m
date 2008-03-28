@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_eeg_filter.m 1278 2008-03-28 18:38:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -137,7 +137,7 @@ end
 spm('Pointer', 'Watch');drawnow;
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials], D.dtype);
+Dnew = clone(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials]);
 
 spm_progress_bar('Init', D.ntrials, 'Events filtered'); drawnow;
 if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
@@ -155,7 +155,7 @@ for i = 1:D.ntrials
 
     % base line correction
     d = d - repmat(mean(d(:, 1:indsample(D,0)), 2), 1, D.nsamples);
-    %     Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, i, d);
+
     Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
 
     if ismember(i, Ibar)

@@ -14,12 +14,8 @@ function Dout = spm_eeg_merge(S);
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: spm_eeg_merge.m 1262 2008-03-28 09:28:42Z stefan $
-
-% Changed to allow recoding of first file (though obviously makes some of
-% loop redundant!)          Doris Eckstein
-% Corrected checks for reject, repl and Bad fields         RH 8/1/08
+% Stefan Kiebel, Doris Eckstein, Rik Henson
+% $Id: spm_eeg_merge.m 1278 2008-03-28 18:38:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -51,8 +47,12 @@ spm('Pointer', 'Watch');
 Dout = D{1};
 
 % Check input and determine number of new number of trial types
-Ntrials = [];
+Ntrials = 0;
 for i = 1:Nfiles
+    if ~strcmp(D{i}.transformtype, 'time')
+        error('can only be used for time-series data');
+    end
+    
     % ascertain same number of channels, Nsamples and fsample
     if D{1}.nchannels ~= D{i}.nchannels
         error('Data don''t have the same number of channels.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
@@ -70,16 +70,17 @@ for i = 1:Nfiles
 end
 
 % generate new meeg object with new filenames
-Dout = newdata(Dout, ['c' fnamedat(Dout)], [Dout.nchannels Dout.nsamples sum(Ntrials)], dtype(Dout));
+Dout = clone(Dout, ['c' fnamedat(Dout)], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
+sDout = struct(Dout);
 
 
 for i = 1:Nfiles
 
     clear Dtmp;
     Dtmp = D{i};
+    cl = unique(Dtmp.conditions);
 
     % go to struct
-    sDout = struct(Dout);
     sDtmp = struct(Dtmp);
 
     % recode trial types
@@ -87,11 +88,10 @@ for i = 1:Nfiles
         S.recode{i};
     catch
         S.recode{i} = spm_input(sprintf('Labels: %s', spm_str_manip(Dtmp.fname, 'r')),...
-            '+1', 's+', sprintf('%s ', Dtmp.conditionlabels), Dtmp.nconditions);
+            '+1', 's+', sprintf('%s ', cl{:}), Dtmp.nconditions);
     end
 
     % recode labels
-    cl = cellstr(Dtmp.conditionlabels);
     code_new = {};
     for j = 1:Dtmp.nconditions
         [code_new(pickconditions(Dtmp, cl{j}))] = deal(S.recode{1});
@@ -99,14 +99,14 @@ for i = 1:Nfiles
 
     [sDtmp.trials.label] = deal(code_new{:});
 
-    if i > 1
-        ind = [1:Ntrials(i)] + sum(Ntrials(i-1));
+    ind = [1:Ntrials(i+1)] + sum(Ntrials(1:i));
 
-        [sDout.trials(ind).label] = deal(sDtmp.trials.label);
-        % update onset timings: only relevant for continuous data?
-        try [sDout.trials(ind).onset] = deal(sDtmp.trials.onset + Dtmp.fsample/1000*Dtmp.nsamples); end
-        try [sDout.trials(ind).repl] = deal(sDtmp.trials.repl); end
-    end
+    [sDout.trials(ind).label] = deal(sDtmp.trials.label);
+    
+    % ignore updating onset timings
+    try [sDout.trials(ind).onset] = deal(sDtmp.trials.onset); end
+    try [sDout.trials(ind).repl] = deal(sDtmp.trials.repl); end
+
 end
 
 Dout = meeg(sDout);
@@ -121,12 +121,12 @@ else Ibar = [1:Nfiles]; end
 k = 0;
 for i = 1:Nfiles
 
-    Dout = putbadchannels(Dout, intersect(Dout.badchannels, D{i}.badchannels), 1);
+    Dout = badchannels(Dout, intersect(Dout.badchannels, D{i}.badchannels), 1);
 
     % write trial-wise to avoid memory mapping error
     for j = 1:D{i}.ntrials
         k = k + 1;
-        Dout = putdata(Dout, 1:Dout.nchannels, 1:Dout.nsamples, k, D{i}(:,:,j));
+        Dout(1:Dout.nchannels, 1:Dout.nsamples, k) =  D{i}(:,:,j);
     end
 
     if ismember(i, Ibar)

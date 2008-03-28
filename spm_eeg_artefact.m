@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_eeg_artefact.m 1278 2008-03-28 18:38:11Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -183,7 +183,7 @@ if MustDoWork
         D = badchannels(D, ind, ones(length(ind), 1));
     end
     
-    cl = conditionlabels(D);
+    cl = unique(conditions(D));
     
     if artefact.Weighted == 1
         % weighted averaging by J Kilner
@@ -226,7 +226,7 @@ if MustDoWork
         spm_progress_bar('Clear');
         
         artefact.weights = allWf;
-        D = putother(D, artefact);
+        D = other(D, artefact);
         
     else
         

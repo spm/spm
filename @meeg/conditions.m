@@ -8,3 +8,7 @@ function res = conditions(this, varargin)
 %$Id $
 
 res = getset(this, 'trials', 'label', varargin{:});
+
+if nargin ==1 & ~iscell(res)
+    res = {res};
+end

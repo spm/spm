@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 1263 2008-03-28 10:30:10Z stefan $
+% $Id: spm_eeg_tf.m 1278 2008-03-28 18:38:11Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -56,7 +56,7 @@ if tf.rm_baseline
         tf.Sbaseline = S.tf.Sbaseline;
     catch
         tf.Sbaseline = ...
-            spm_input('Start and stop of baseline (samples)', '+1', 'i', '', 2);
+            spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
     end
 end
 
@@ -117,10 +117,13 @@ end
 Nfrequencies = length(tf.frequencies);
 
 % still have to change newdata
-D = clone(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
+Dtf = clone(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
+Dtf = frequencies(Dtf, tf.frequencies);
+
 
 if tf.phase == 1
-    D2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
+    Dtf2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
+    Dtf2 = frequencies(Dtf, tf.frequencies);
 end
 
 for k = 1:D.ntrials
@@ -166,21 +169,24 @@ for k = 1:D.ntrials
         end
     end
 
-    D(j, i, :, k) = d;
+    Dtf(:, :, :, k) = d;
     
     if tf.phase
-        D2(j, i, :, k) = d2;
+        Dtf2(:, :, :, k) = d2;
     end
         
 end
 
-% Remove baseline over frequencies and trials (do later)
-% if tf.rm_baseline == 1
-%     D = spm_eeg_bc(D, [time(1), );
-% end
-% 
 
-save(D);
-save(D2);
+% Remove baseline over frequencies and trials (do later)
+if tf.rm_baseline == 1
+    Dtf = spm_eeg_bc(Dtf, tf.Sbaseline);
+end
+
+
+save(Dtf);
+if tf.phase
+    save(Dtf2);
+end
 
 spm('Pointer', 'Arrow');

@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 1262 2008-03-28 09:28:42Z stefan $
+% $Id: spm_eeg_grandmean.m 1278 2008-03-28 18:38:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -81,9 +81,9 @@ end
 spm('Pointer', 'Watch'); drawnow;
 
 % how many different trial types and bad channels
-types = [];
+types = {};
 for i = 1:Nfiles
-    types = unique([strvcat(types, D{i}.conditionlabels)], 'rows');
+    types = unique([types, D{i}.conditions]);
 end
 
 Ntypes = size(types, 1);
@@ -91,15 +91,15 @@ Ntypes = size(types, 1);
 % how many repetitons per trial type
 repl = zeros(1, Ntypes);
 for i = 1:Nfiles
+    cl{i} = D{i}.conditions;
     for j = 1:D{i}.nconditions
-        ind = strmatch(D{i}.conditionlabels(j), types);
+        ind = strmatch(cl{i}{j}, types);
         repl(ind) =  repl(ind) + D{i}.repl(j);
     end
 end
 
 % generate new meeg object with new filenames
-Do = newdata(Do, [spm_str_manip(S.Pout, 'tr') '.dat'],...
-    [Do.nchannels Do.nsamples Ntypes], dtype(Do));
+Do = clone(Do, [spm_str_manip(S.Pout, 'tr') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
 
 % for determining bad channels of the grandmean
 w = zeros(Do.nchannels, Ntypes);
@@ -108,6 +108,7 @@ spm_progress_bar('Init', Ntypes, 'EPs averaged'); drawnow;
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end
 
+
 for i = 1:Ntypes
     d = zeros(D{1}.nchannels, D{1}.nsamples);
 
@@ -115,8 +116,9 @@ for i = 1:Ntypes
 
         for k = 1:Nfiles
             if ~ismember(j, D{k}.badchannels)
-                if ~isempty(strmatch(types(i), D{k}.conditionlabels))
-                    d(j, :) = d(j, :) + D{k}(j, :, strmatch(types(i), D{k}.conditionlabels));
+                ind = strmatch(types(i), cl{k}(:));
+                if ~isempty(ind)
+                    d(j, :) = d(j, :) + D{k}(j, :, ind);
                     w(j, i) = w(j, i) + 1;
                 end
             end
@@ -137,6 +139,8 @@ for i = 1:Ntypes
 end
 
 spm_progress_bar('Clear');
+
+Do = type(Do, 'grandmean');
 
 badchannels(Do, find(~any(w')), 1);
 % jump to struct to make a few changes

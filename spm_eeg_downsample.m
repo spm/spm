@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_eeg_downsample.m 1278 2008-03-28 18:38:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -53,7 +53,7 @@ d2 = resample(d', fsample_new, D.fsample)';
 nsamples_new = size(d2, 2);
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials], D.dtype);
+Dnew = clone(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
 
 % 2nd: resample all
 spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
