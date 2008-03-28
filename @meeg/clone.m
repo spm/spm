@@ -6,7 +6,7 @@ function new = clone(this, fnamedat, dim)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 1263 2008-03-28 10:30:10Z stefan $
+% $Id: clone.m 1270 2008-03-28 14:35:16Z stefan $
 
 if nargin < 3
     dim = [nchannels(this), nsamples(this), ntrials(this)];
@@ -22,7 +22,7 @@ if length(dim) == 3
     d(end, end, end) = 0;
     nsampl = dim(2);
     ntrial = dim(3);
-elseif length(dim) == 2
+elseif length(dim) == 4
     d(end, end, end, end) = 0;
     nsampl = dim(3);
     ntrial = dim(4);

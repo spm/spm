@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1267 2008-03-28 12:12:14Z vladimir $
+% $Id: checkmeeg.m 1270 2008-03-28 14:35:16Z stefan $
 
 if nargin==1
     option = 'basic';
@@ -69,6 +69,21 @@ else
     end
 end
 
+try 
+    meegstruct.transform.ID;
+catch
+    meegstruct.transform.ID = 'time';
+    disp('checkmeeg: transform type missing, assigning default');
+end
+
+if strcmp(meegstruct.transform.ID, 'TF')
+    try
+        Nfrequencies = length(meegstruct.transform.frequencies);
+    catch
+        error('Information about frequencies missing');
+    end
+end
+
 if ~isfield(meegstruct, 'data') && (Nsamples~=0)
     disp('checkmeeg: no data field');
     return;
@@ -105,16 +120,46 @@ else
         else
             filepath = '';
         end
-        meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-            [Nchannels Nsamples Ntrials], spm_type(meegstruct.data.datatype), ...
-            0, meegstruct.data.scale);
+        switch(meegstruct.transform.ID)
+            % note: scale no longer used, must insure data is in some float
+            % format
+            case 'time'
+                meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
+                    [Nchannels Nsamples Ntrials], spm_type(meegstruct.data.datatype));
+
+            case 'TF'
+                meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
+                    [Nchannels Nfrequencies Nsamples Ntrials], spm_type(meegstruct.data.datatype));
+                if Ntrials>1
+                    expected_size = [Nchannels Nfrequencies Nsamples Ntrials];
+                else
+                    expected_size = [Nchannels Nfrequencies Nsamples];
+                end
+
+            otherwise
+                error('Unknown transform type');
+        end
+
     end
 
-    if Ntrials>1
-        expected_size = [Nchannels Nsamples Ntrials];
-    else
-        expected_size = [Nchannels Nsamples];
+    switch(meegstruct.transform.ID)
+        case 'time'
+            if Ntrials>1
+                expected_size = [Nchannels Nsamples Ntrials];
+            else
+                expected_size = [Nchannels Nsamples];
+            end
+        case 'TF'
+            if Ntrials>1
+                expected_size = [Nchannels Nfrequencies Nsamples Ntrials];
+            else
+                expected_size = [Nchannels Nfrequencies Nsamples];
+            end
+
+        otherwise
+            error('Unknown transform type');
     end
+
     if any(size(meegstruct.data.y) ~= expected_size)
         disp('checkmeeg: data size does not match the header');
         return;
