@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1264 2008-03-28 11:11:21Z volkmar $
+% $Id: spm_cfg_preproc.m 1269 2008-03-28 13:14:11Z volkmar $
 
 % ---------------------------------------------------------------------
 % data Data
@@ -358,7 +358,15 @@ opts  = job.output;
 % This depends on job contents, which may not be present when virtual
 % outputs are calculated.
 sopts = [opts.GM;opts.WM;opts.CSF];
-for i=1:numel(job.data),
+if iscellstr(job.data)
+    nsub = numel(job.data);
+else
+    warning('spm_cfg_preproc:nsub', ...
+            ['Segment: Can not determine #subjects - assuming single ' ...
+             'subject']);
+    nsub = 1;
+end;
+for i=1:numel(nsub),
     cdep(1)            = cfg_dep;
     cdep(1).sname      = sprintf('Norm Params File Subj->MNI (Subj %d)',i);
     cdep(1).src_output = substruct('()',{i}, '.','snfile');
