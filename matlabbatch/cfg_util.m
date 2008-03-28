@@ -308,9 +308,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1259 2008-03-27 21:42:04Z volkmar $
+% $Id: cfg_util.m 1261 2008-03-28 07:19:21Z volkmar $
 
-rev = '$Rev: 1259 $';
+rev = '$Rev: 1261 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -351,14 +351,16 @@ switch lower(cmd),
         varargout{1} = mat2cell(1:numel(jobs(cjob).cjid2subs), 1, ones(1,numel(jobs(cjob).cjid2subs)));
         varargout{2} = n2oid;
     case 'deljob',
-        if varargin{1} == numel(jobs) && varargin{1} > 1
-            jobs = jobs(1:end-1);
-        else
-            jobs(varargin{1}).cj = c0;
-            jobs(varargin{1}).cjid2subs = {};
-        end;
-        if cjob == varargin{1}
-            cjob = numel(jobs);
+        if cfg_util('isjob_id', varargin{1})
+            if varargin{1} == numel(jobs) && varargin{1} > 1
+                jobs = jobs(1:end-1);
+            else
+                jobs(varargin{1}).cj = c0;
+                jobs(varargin{1}).cjid2subs = {};
+            end;
+            if cjob == varargin{1}
+                cjob = numel(jobs);
+            end;
         end;
     case 'delfromjob',
         jobs(cjob) = local_delfromjob(jobs(cjob), varargin{:});
