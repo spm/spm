@@ -5,11 +5,24 @@ function D = spm_eeg_epochs(S)
 % S  - filename or input struct (optional)
 % (optional) fields of S:
 % S.D         - filename of EEG mat-file with continuous data
-% S.events.trl - Nx2 or Nx3 matrix (N - number of trials) [start end offset]
-% S.events.conditionlabels - one label or cell array of N labels 
-% S.events.padding - in sec - the additional time period around each trial
+% 
+% Either (to use a ready-made trial definition): 
+% S.epochinfo.trl - Nx2 or Nx3 matrix (N - number of chantype) [start end offset]
+% S.epochinfo.conditionlabels - one label or cell array of N labels 
+% S.epochinfo.padding - in sec - the additional time period around each trial
 %               for which the events are saved with the trial (to let the
 %               user keep and use for analysis events which are outside
+% 
+% or (to define trials using (spm_eeg_definetrial)
+%
+% S.pretrig - pre-trigger time in ms
+% S.posttrig - post-trigger time in ms. 
+% S.trialdef - structure array for trial definition with fields
+%       S.trialdef.conditionlabel - string label for the condition
+%       S.trialdef.eventtype  - string
+%       S.trialdef.eventvalue  - string, numeric or empty
+% S.review - 1 - review individual trials after selection
+%
 % Output:
 % D         - EEG data struct (also written to files)
 %_______________________________________________________________________
@@ -21,7 +34,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1263 2008-03-28 10:30:10Z stefan $
+% $Id: spm_eeg_epochs.m 1268 2008-03-28 12:44:14Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -30,9 +43,9 @@ if nargin == 0
 end
 
 try
-    S.events.padding
+    epochinfo.padding = S.epochinfo.padding;
 catch
-    S.events.padding = 0;
+    epochinfo.padding = 0;
 end
 
 try
@@ -53,39 +66,61 @@ if ~strncmpi(D.type, 'cont', 4)
 end
 
 try
-    DS.dataset = fullfile(D.path, D.fname);
-    [S.events.trl, S.events.conditionlabels] = spm_eeg_definetrial(DS);
+    S_definetrial = [];
+    
+    if isfield(S, 'pretrig')
+        S_definetrial.pretrig = S.pretrig;
+    end
+      
+    if isfield(S, 'posttrig')
+        S_definetrial.posttrig = S.posttrig;
+    end
+    
+    if isfield(S, 'trialdef')
+        S_definetrial.trialdef = S.trialdef;
+    end
+    
+    if isfield(S, 'review')
+        S_definetrial.review = S.review;
+    end
+    
+    S_definetrial.event = D.events;
+    
+    S_definetrial.fsample = D.fsample;
+    
+    S_definetrial.timeonset = D.timeonset;
+    
+    [S.epochinfo.trl, S.epochinfo.conditionlabels] = spm_eeg_definetrial(S_definetrial);
 catch
     try
-        events.trlfile = S.events.trlfile;
+        epochinfo.trlfile = S.epochinfo.trlfile;
     catch
-        events.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
+        epochinfo.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
     end
 end
 
 try
-    events.trl = S.events.trl;
+    epochinfo.trl = S.epochinfo.trl;
 catch
     try
-        events.trl = getfield(load(S.events.trlfile, 'trl'), 'trl');
+        epochinfo.trl = getfield(load(S.epochinfo.trlfile, 'trl'), 'trl');
     catch
         error('Trouble reading trl file.');
     end
 end
-    
-    
+        
 try
-    events.conditionlabels = S.events.conditionlabels;
+    epochinfo.conditionlabels = S.epochinfo.conditionlabels;
 catch
     try
-        events.conditionlabels = getfield(load(events.trlfile, 'conditionlabels'), 'conditionlabels');
+        epochinfo.conditionlabels = getfield(load(epochinfo.trlfile, 'conditionlabels'), 'conditionlabels');
     catch
         error('Trouble reading trl file.');
     end
 end
 
-trl = events.trl;
-conditionlabels = events.conditionlabels;
+trl = epochinfo.trl;
+conditionlabels = epochinfo.conditionlabels;
 
 % checks on input
 if size(trl, 2) >= 3
@@ -131,7 +166,7 @@ for i = 1:ntrial
     Dnew(:, :, i) = d;
 
     Dnew = events(Dnew, i, select_events(D.events, ...
-        [trl(i, 1)/D.fsample-events.padding  trl(i, 2)/D.fsample+events.padding]));
+        [trl(i, 1)/D.fsample-epochinfo.padding  trl(i, 2)/D.fsample+epochinfo.padding]));
 
     if ismember(i, Ibar)
         spm_progress_bar('Set', i);
@@ -142,6 +177,7 @@ end
 Dnew = conditions(Dnew, [], conditionlabels);
 Dnew = trialonset(Dnew, [], trl(i, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
+Dnew = type(Dnew, 'single');
 
 save(Dnew);
 
