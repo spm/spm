@@ -4,7 +4,7 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_cfg_con.m 1274 2008-03-28 16:22:43Z volkmar $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -508,6 +508,6 @@ function dep = vout_stats(job)
 % Could pass on SPM variable too.
 % Could also pass on deps for con or stats images.
 dep            = cfg_dep;
-dep.sname      = 'SPM.mat File (Contrast Estimation)';
+dep.sname      = 'SPM.mat File (Contrasts)';
 dep.src_output = substruct('.','spmmat');
 dep.tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});

@@ -4,7 +4,7 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_st.m 1274 2008-03-28 16:22:43Z volkmar $
 
 % ---------------------------------------------------------------------
 % scans Session
@@ -126,7 +126,7 @@ st.modality = {'FMRI'};
 function dep = vout(job)
 for k=1:numel(job.scans),
     dep(k)            = cfg_dep;
-    dep(k).sname      = sprintf('Slice Timing (Sess %d)', k);
+    dep(k).sname      = sprintf('Slice Timing Corr. Images (Sess %d)', k);
     dep(k).src_output = substruct('()',{k}, '.','files');
     dep(k).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
 end;

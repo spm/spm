@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_fmri_spec.m 1274 2008-03-28 16:22:43Z volkmar $
 
 
 spm_defaults;
@@ -108,7 +108,7 @@ for i = 1:numel(job.sess),
 
     % Image filenames
     %-------------------------------------------------------------
-    SPM.nscan(i) = size(sess.scans,1);
+    SPM.nscan(i) = numel(sess.scans);
     SPM.xY.P     = strvcat(SPM.xY.P,sess.scans{:});
     U = [];
 
