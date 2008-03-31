@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1280 2008-03-31 10:59:39Z vladimir $
+% $Id: spm_eeg_convert.m 1282 2008-03-31 18:44:03Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -102,7 +102,7 @@ D.Fsample = hdr.Fs;
 %--------- Select channels
 
 if ~S.allchannels
-    selected = load(S.chanfile, label);
+    selected = load(S.chanfile, 'label');
     if ~isfield(selected, 'label')
         error('Channel selection file does not contain labels.');
     end

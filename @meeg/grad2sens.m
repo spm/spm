@@ -6,7 +6,7 @@ function this = grad2sens(this, grad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: grad2sens.m 1280 2008-03-31 10:59:39Z vladimir $
+% $Id: grad2sens.m 1282 2008-03-31 18:44:03Z vladimir $
 
 [sel1, sel2] = spm_match_str(chanlabels(this), grad.label);
 
@@ -63,10 +63,13 @@ this = getset(this, 'channels', 'tra', sel1, ...
     mat2cell(grad.tra(sel2, :), ones(1, length(sel2)), size(grad.tra, 2)));
 
 
-% Set the type of channels found in grad to MEG
-this = chantype(this, sel1, 'MEG');
+% Set the type of channels found in grad to MEG or MEGREF
+% This would not work for 4D and should be improved
+megind = sel1(strmatch('M', chanlabels(this, sel1)));
+this = chantype(this, megind, 'MEG');
+this = chantype(this, setdiff(sel1, megind), 'MEGREF');
 
-% Check if there any other channels marked as MEG and change theor type.
+% Check if there any other channels marked as MEG and change their type.
 nonMEGind = setdiff(1:nchannels(this), sel1);
 if ~isempty(nonMEGind)
     illegalMEGchan = strmatch('MEG', chantype(this, nonMEGind));

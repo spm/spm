@@ -57,6 +57,12 @@ if nargin == 0
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
         'HandleVisibility','on');
+    
+    LoadTemplateMenu = uimenu(Coor2DMenu, 'Label', 'Load template',...
+            'Tag','EEGprepUI',...
+            'Enable', 'on', ...
+            'HandleVisibility','on',...
+            'Callback', 'spm_eeg_prep_ui(''LoadTemplateCB'')');
 
 else
     eval(callback);
@@ -93,7 +99,7 @@ D = getD;
 if ~isempty(D)
     chanlist ={};
     for i = 1:D.nchannels
-        if strcmp(D.chantype(i), 'MEG')
+        if strncmp(D.chantype(i), 'MEG', 3)
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i) , ' (nonmodifiable)'];
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
@@ -109,9 +115,13 @@ if ~isempty(D)
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
         
         % Changing the type of MEG channels in GUI is not allowed.
-        selection(strmatch('MEG', chantype(D, selection), 'exact')) = [];
+        selection(strmatch('MEG', chantype(D, selection))) = [];
         if ok && ~isempty(selection)
-            D = chantype(D, selection, type);
+            S.task = 'settype';
+            S.D = D;
+            S.ind = selection;
+            S.type = type;
+            D = spm_eeg_prep(S);
             setD(D);
         end
     end
@@ -121,7 +131,20 @@ update_menu;
 
 %-----------------------------------------------------------------------
 
+function LoadTemplateCB
+
+S=[];
+S.task = 'loadtemplate';
+S.P = spm_select(1, '\.mat$', 'Select sensor template file', ...
+    [], fullfile(spm('dir'), 'EEGtemplates'));
+S.D = getD;
+D = spm_eeg_prep(S);
+setD(D);
+update_menu;
+%-----------------------------------------------------------------------
+
 function update_menu
+
 Finter = spm_figure('GetWin','Interactive');
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 
@@ -132,6 +155,7 @@ else
 end
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
 
 figure(Finter);
 

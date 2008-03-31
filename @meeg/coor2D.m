@@ -1,4 +1,4 @@
-function [xy, plotind] = coor2D(this, ind)
+function [res, plotind] = coor2D(this, ind, val)
 % returns x and y coordinates of channels in 2D plane
 % FORMAT coor2D(this)
 % _______________________________________________________________________
@@ -10,8 +10,7 @@ function [xy, plotind] = coor2D(this, ind)
 
 megind = strmatch('MEG', chantype(this), 'exact');
 eegind = strmatch('EEG', chantype(this), 'exact');
-
-otherind = setdiff(1:nchannels(this), [megind, eegind]);
+otherind = setdiff(1:nchannels(this), [megind; eegind]);
 
 if nargin==1 || isempty(ind)
     if ~isempty(megind)
@@ -32,57 +31,65 @@ elseif ischar(ind)
     end
 end
 
-if ~isempty(intersect(ind, megind))
-    if ~any(cellfun('isempty', {this.channels(megind).X_plot2D}))
-        meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
-    elseif all(cellfun('isempty', {this.channels(megind).X_plot2D}))
-        meg_xy = grid(length(megind));
-    else
-        error('Either all or none of MEG channels should have 2D coordinates defined.');
-    end
-end
-
-if ~isempty(intersect(ind, eegind))
-    if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
-        eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
-    elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
-        eeg_xy = grid(length(eegind));
-    else
-        error('Either all or none of EEG channels should have 2D coordinates defined.');
-    end
-end
-
-if ~isempty(intersect(ind, otherind))
-    other_xy = grid(length(eegind));
-end
-
-xy = zeros(2, length(ind));
-plotind = zeros(1, length(ind));
-for i = 1:length(ind)
-    [found, loc] = ismember(ind(i), megind);
-    if found
-        xy(:, i) = meg_xy(:, loc);
-        plotind(i) = 1;
-    else
-        [found, loc] = ismember(ind(i), eegind);
-        if found
-            xy(:, i) = eeg_xy(:, loc);
-            plotind(i) = 2;
+if nargin < 3
+    if ~isempty(intersect(ind, megind))
+        if ~any(cellfun('isempty', {this.channels(megind).X_plot2D}))
+            meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
+        elseif all(cellfun('isempty', {this.channels(megind).X_plot2D}))
+            meg_xy = grid(length(megind));
         else
-            [found, loc] = ismember(ind(i), otherind);
+            error('Either all or none of MEG channels should have 2D coordinates defined.');
+        end
+    end
+
+    if ~isempty(intersect(ind, eegind))
+        if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
+            eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
+        elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
+            eeg_xy = grid(length(eegind));
+        else
+            error('Either all or none of EEG channels should have 2D coordinates defined.');
+        end
+    end
+
+    if ~isempty(intersect(ind, otherind))
+        other_xy = grid(length(eegind));
+    end
+
+    xy = zeros(2, length(ind));
+    plotind = zeros(1, length(ind));
+    for i = 1:length(ind)
+        [found, loc] = ismember(ind(i), megind);
+        if found
+            xy(:, i) = meg_xy(:, loc);
+            plotind(i) = 1;
+        else
+            [found, loc] = ismember(ind(i), eegind);
             if found
-                xy(:, i) = other_xy(:, loc);
-                plotind(i) = 3;
+                xy(:, i) = eeg_xy(:, loc);
+                plotind(i) = 2;
+            else
+                [found, loc] = ismember(ind(i), otherind);
+                if found
+                    xy(:, i) = other_xy(:, loc);
+                    plotind(i) = 3;
+                end
             end
         end
     end
-end
 
-% To be removed in the future
-if length(unique(plotind))>1
-    error('Only one plot type is supported at this stage')
-end
+    % To be removed in the future
+    if length(unique(plotind))>1
+        error('Only one plot type is supported at this stage')
+    end
 
+    res = xy;
+else
+    this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
+    this = getset(this, 'channels', 'Y_plot2D', ind, val(2, :));
+    
+    res = this;
+end
 
 function xy = grid(n)
 

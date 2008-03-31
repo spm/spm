@@ -7,5 +7,5 @@ function ind = meegchannels(this)
 % Stefan Kiebel
 
 type = chantype(this);
-ind = unique([strmatch('EEG', type) strmatch('MEG', type)]);
+ind = unique([strmatch('EEG', type); strmatch('MEG', type)]);
 
