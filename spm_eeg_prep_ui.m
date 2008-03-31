@@ -31,14 +31,14 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on');
 
-    chanTypes = {'EEG', 'MEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
+    chanTypes = {'EEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
 
     for i = 1:length(chanTypes)
         CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
+            'Tag','EEGprepUI',...
+            'Enable', 'on', ...
+            'HandleVisibility','on',...
+            'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
     end
 
     CTypesReviewMenu = uimenu(ChanTypeMenu, 'Label', 'Review',...
@@ -93,17 +93,23 @@ D = getD;
 if ~isempty(D)
     chanlist ={};
     for i = 1:D.nchannels
-        chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
+        if strcmp(D.chantype(i), 'MEG')
+            chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i) , ' (nonmodifiable)'];
+        else
+            chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
+        end
     end
 
     if strcmpi(type, 'review')
         listdlg('ListString', chanlist, 'SelectionMode', 'single', 'Name', 'Review channels', 'ListSize', [400 300]);
         return
     else
-        
+
         [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
         
+        % Changing the type of MEG channels in GUI is not allowed.
+        selection(strmatch('MEG', chantype(D, selection), 'exact')) = [];
         if ok && ~isempty(selection)
             D = chantype(D, selection, type);
             setD(D);

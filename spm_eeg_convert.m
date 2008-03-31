@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1267 2008-03-28 12:12:14Z vladimir $
+% $Id: spm_eeg_convert.m 1280 2008-03-31 10:59:39Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -325,7 +325,13 @@ D.fname = [S.outfile '.mat'];
 
 D = meeg(D);
 
+% Set channel types to default
 D = chantype(D, [], []);
+
+% Configure MEG sensors and channels
+if isfield(hdr, 'grad')
+    D = grad2sens(D, hdr.grad);
+end
 
 if S.continuous
     D = type(D, 'continuous');
