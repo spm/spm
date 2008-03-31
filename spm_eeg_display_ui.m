@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_eeg_display_ui.m 1281 2008-03-31 17:05:49Z vladimir $
 
 if nargin == 1
     S = varargin{1};
@@ -35,11 +35,11 @@ if nargin == 0 || ~isfield(S, 'rebuild')
         end
     end
 
-%     if D.ntrials == 1
-%         errordlg({'Continuous data cannot be displayed (yet).', 'Epoch first please.'});
-%         return;
-%     end
-% 
+    %     if D.ntrials == 1
+    %         errordlg({'Continuous data cannot be displayed (yet).', 'Epoch first please.'});
+    %         return;
+    %     end
+    %
     try
         % Use your own window
         F = S.Hfig;
@@ -231,7 +231,9 @@ if nargin == 0 || ~isfield(S, 'rebuild')
     handles.scaletexttop = text('Position', [0, scale], 'String', sprintf(' %d', 2*scale), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'VerticalAlignment', 'top',...
         'Tag', 'scaletext2');
-    ylabel(D.units(1), 'Interpreter', 'tex', 'FontSize', FS1);
+    try
+        ylabel(D.units(1), 'Interpreter', 'tex', 'FontSize', FS1);
+    end
     text('Position', [D.nsamples, -scale], 'String', sprintf('%d', round((D.nsamples-1)*1000/D.fsample)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
     xlabel('ms', 'Interpreter', 'tex', 'FontSize', FS1);
@@ -543,7 +545,7 @@ for i = 1:length(handles.Heegfigures)
 
         if isfield(D,'Nfrequencies')
 
-%             caxis([-scale scale])
+            %             caxis([-scale scale])
         else
             set(handles.Heegaxes2{i}, 'YLim', [-scale scale],...
                 'XLim', [D.time(1) D.time(end)]);
