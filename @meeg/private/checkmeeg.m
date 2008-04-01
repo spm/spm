@@ -8,7 +8,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1281 2008-03-31 17:05:49Z vladimir $
+% $Id: checkmeeg.m 1284 2008-04-01 10:49:06Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -71,6 +71,12 @@ else
         [meegstruct.channels.X_plot2D] = deal([]);
         [meegstruct.channels.Y_plot2D] = deal([]);
     end
+     if ~isfield(meegstruct.channels, 'units')
+        disp('checkmeeg: no units, assigning default');
+        [meegstruct.channels.units] = deal('unknown');
+     else
+        [meegstruct.channels(find(cellfun('isempty', {meegstruct.channels.units}))).units] = deal('unknown'); 
+     end
 end
 
 try 
