@@ -21,7 +21,7 @@ function [trl conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1273 2008-03-28 16:17:04Z vladimir $
+% $Id: spm_eeg_definetrial.m 1285 2008-04-01 11:23:10Z stefan $
 
 if nargin == 0
     S = [];
@@ -64,11 +64,11 @@ if ~isfield(event, 'sample')
 end
 
 if ~isfield(S, 'pretrig')
-    S.pretrig = spm_input('Pre-trigger time [ms]', '+1', 'r', '', 1);
+    S.pretrig = spm_input('Start of trial in PST [ms]', '+1', 'r', '', 1);
 end
 
 if ~isfield(S, 'posttrig')
-    S.posttrig = spm_input('Post-trigger time [ms]', '+1', 'r', '', 1);
+    S.posttrig = spm_input('End of trial in PST [ms]', '+1', 'r', '', 1);
 end
 
 if ~(isfield(S, 'trialdef'))

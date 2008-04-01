@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1281 2008-03-31 17:05:49Z vladimir $
+% $Id: spm_eeg_display_ui.m 1285 2008-04-01 11:23:10Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -640,7 +640,7 @@ else
     ylabel(D.units(handles.Cselection(ind)), 'FontSize', 16, 'Interpreter', 'Tex')
 
     for i = 1:length(handles.Tselection)
-        plot(D.time,...
+        plot(1000*D.time,...
             D(handles.Cselection(ind), :, handles.Tselection(i)),...
             'Color', handles.colour{i}, 'LineWidth', 2);
     end
@@ -648,7 +648,7 @@ else
     scale = get(handles.scaleslider, 'Value');
 
     set(gca, 'YLim', [-scale scale],...
-        'XLim', [D.time(1) D.time(end)], 'Box', 'on');
+        'XLim', 1000*[D.time(1) D.time(end)], 'Box', 'on');
     grid on
 
     title(sprintf('%s (%d)', strvcat(D.chanlabels(handles.Cselection(ind))), handles.Cselection(ind)), 'FontSize', 16);

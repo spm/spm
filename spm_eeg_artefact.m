@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_artefact.m 1285 2008-04-01 11:23:10Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -137,14 +137,14 @@ Mbad = zeros(D.nchannels, D.ntrials);
 % flag channels that were already marked as bad
 Mbad(D.badchannels, :) = 1;
 
-% cell vectors of channel-wise indices for thresholded events
+% cell vectors of channel-wise indices for thresholded trials
 thresholded = cell(1, D.nchannels);
 index = [];
 if MustDoWork
     
     Tchannel = artefact.threshold;
     
-    spm_progress_bar('Init', D.ntrials, '1st pass - Events thresholded'); drawnow;
+    spm_progress_bar('Init', D.ntrials, '1st pass - Trials thresholded'); drawnow;
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
     else Ibar = [1:D.ntrials]; end
     
@@ -167,17 +167,17 @@ if MustDoWork
     
     spm_progress_bar('Clear');
     
-    % flag channels as bad if 20% of events above threshold
+    % flag channels as bad if 20% of trials above threshold
     s = sum(Mbad, 2)/D.ntrials;
     ind = find(s > 0.2);
 
     Mbad = zeros(D.nchannels, D.ntrials);
     Mbad(ind, :) = 1;
     
-    % report on command line
+    % report on command line and set badchannels
     if isempty(ind)
         disp(sprintf('There isn''t a bad channel.'));
-        D = badchannels(D, [1:D.meegchannels], zeros(length(D.meegchannels), 1));
+        D = badchannels(D, [D.meegchannels], zeros(length(D.meegchannels), 1));
     else
         disp(['Bad channels: ', sprintf('%s ', D.chanlabels(ind)')])    
         D = badchannels(D, ind, ones(length(ind), 1));
@@ -233,7 +233,7 @@ if MustDoWork
         % 2nd round of thresholding, but excluding bad channels
         index = [];
         
-        spm_progress_bar('Init', D.ntrials, '2nd pass - Events thresholded'); drawnow;
+        spm_progress_bar('Init', D.ntrials, '2nd pass - Trials thresholded'); drawnow;
         if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
         else Ibar = [1:D.ntrials]; end
         

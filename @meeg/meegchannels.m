@@ -8,4 +8,5 @@ function ind = meegchannels(this)
 
 type = chantype(this);
 ind = unique([strmatch('EEG', type); strmatch('MEG', type)]);
+ind = ind(:)'; % must be row to allow to use it as loop indices
 
