@@ -3,7 +3,9 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1287 2008-04-01 14:50:25Z guillaume $
+# $Id: Makefile 1288 2008-04-01 16:05:52Z guillaume $
+
+include ../../src/Makefile.var
 
 SPMMEX =\
 	ip_bwlabel.$(SUF) ip_dilate_erode.$(SUF) \

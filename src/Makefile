@@ -3,129 +3,29 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1287 2008-04-01 14:50:25Z guillaume $
+# $Id: Makefile 1288 2008-04-01 16:05:52Z guillaume $
 #
 ###############################################################################
 #
 # This Makefile has been tested under Linux, Windows, MacOS and SunOS.
 # 
-# If you have to tweak this Makefile to compile the SPM mex-files for your 
-# platform, please send the details to <spm@fil.ion.ucl.ac.uk> so they can be 
-# included here. 
+# If you have to tweak this Makefile or Makefile.var to compile the SPM 
+# mex-files for your platform, please send the details to <spm@fil.ion.ucl.ac.uk> 
+# so they can be included here. 
+#
+# To compile and install SPM, type the following in a Unix console:
+# >  make && make install
 #
 # You can specify a particular platform with the following syntax:
-#    make PLATFORM=Your_Platform
+# >  make PLATFORM=Your_Platform
 # The standard targets are 'all', 'clean', 'distclean' and 'install'.
 #
 # For a list of compatible compilers, see
 #    http://www.mathworks.com/support/compilers/current_release/
 #
-# You can find some more help online on the SPM wikibook:
-#  * Linux:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Linux
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Linux 
-#  * Windows:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Windows
-#      MinGW: http://www.mingw.org/
-#      Gnumex: http://gnumex.sourceforge.net/
-#  * SunOS:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_SunOS
-#  * MacOS:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
-#
 ###############################################################################
 
-SHELL         = /bin/sh
-MAKE          = make
-MEXBIN        = mex
-MEXOPTS       = -O
-MEXEND        = 
-CC            = cc
-CFLAGS        = 
-MOSUF         = o # mex output object suffix
-CHMODIT       = chmod 644
-AR            = ar rcs
-COPY          = cp -f
-DEL           = rm -f
-MOVE          = mv -f
-TAR           = tar
-ZIP           = gzip
-
-ifndef SUF
-  ifndef PLATFORM
-    PLATFORM  = $(shell uname)
-  endif
-  ifeq (SunOS,$(PLATFORM))
-    SUF       = mexsol
-    CC        = gcc
-    CFLAGS    = -O3 -funroll-loops -DBIGENDIAN -fPIC
-    MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
-  endif
-  ifeq (SunOS64,$(PLATFORM))
-    SUF       = mexs64
-    CC        = gcc
-    CFLAGS    = -m64 -O3 -funroll-loops -DBIGENDIAN -fPIC
-    MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
-  endif
-  ifeq (Linux,$(PLATFORM))
-    HARDWARE  = $(shell uname -m)
-    ifeq (i386,$(HARDWARE))
-      SUF     = mexglx
-      CC      = gcc
-      CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
-      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
-    endif
-    ifeq (i686,$(HARDWARE))
-      SUF     = mexglx
-      CC      = gcc
-      CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
-      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
-    endif
-    ifeq (x86_64,$(HARDWARE))
-      SUF     = mexa64
-      CC      = gcc
-      CFLAGS  = -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse
-      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'
-    endif
-    ifndef SUF
-      $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
-    endif
-  endif
-  ifeq (Darwin,$(PLATFORM))
-    HARDWARE  = $(shell uname -p)
-    ifeq (i386,$(HARDWARE))
-       SUF       = mexmaci
-       CFLAGS    = 
-       MEXOPTS   = -O
-    endif
-    ifeq (powerpc,$(HARDWARE))
-       SUF       = mexmac
-       CFLAGS    = -DBIGENDIAN
-       MEXOPTS   = -O -DBIGENDIAN
-    endif
-  endif
-  ifeq (windows,$(PLATFORM))
-    override PLATFORM = MINGW32
-  endif
-  ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
-    SUF       = mexw32
-    CC        = gcc
-    CFLAGS    = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
-    MEXBIN    = cmd /c "mex.bat
-    MEXOPTS   = -O -DSPM_WIN32
-    MEXEND    = "
-    MOSUF     = obj
-    CHMODIT   = chmod 755
-  endif
-  ifndef SUF
-    $(error Unknowm platform $(PLATFORM))
-  endif
-endif
-
-MEX           = $(MEXBIN) $(MEXOPTS)
-
-export MEX MEXEND SUF CHMODIT DEL TAR
+include Makefile.var
 
 ###############################################################################
 # Objects to go in the archive and mexfiles
