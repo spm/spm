@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1276 2008-03-28 18:29:19Z guillaume $
+# $Id: Makefile 1287 2008-04-01 14:50:25Z guillaume $
 #
 ###############################################################################
 #
@@ -37,6 +37,7 @@
 ###############################################################################
 
 SHELL         = /bin/sh
+MAKE          = make
 MEXBIN        = mex
 MEXOPTS       = -O
 MEXEND        = 
@@ -48,6 +49,8 @@ AR            = ar rcs
 COPY          = cp -f
 DEL           = rm -f
 MOVE          = mv -f
+TAR           = tar
+ZIP           = gzip
 
 ifndef SUF
   ifndef PLATFORM
@@ -122,6 +125,8 @@ endif
 
 MEX           = $(MEXBIN) $(MEXOPTS)
 
+export MEX MEXEND SUF CHMODIT DEL TAR
+
 ###############################################################################
 # Objects to go in the archive and mexfiles
 ###############################################################################
@@ -146,42 +151,44 @@ SPMMEX =\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	mat2file.$(SUF) file2mat.$(SUF) spm_invdef.$(SUF)
 
+SUBDIRS=\
+	toolbox/DARTEL \
+	toolbox/FieldMap \
+	toolbox/HDW
+
 ###############################################################################
 # The main ways to run make
 ###############################################################################
 
-all: verb.$(SUF) $(SPMMEX)
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        FINISHED"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+all: verb.$(SUF) $(SPMMEX) verb.end
 
-clean:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting object (.o) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+clean: verb.clean
 	$(DEL) $(OBS)
 
-distclean: clean
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting mex and archive (.a) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+distclean: clean verb.distclean
 	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
 
 archive: spm_vol_utils.$(SUF).a
 
-install: $(SPMMEX)
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Installing mex files"
-	@ echo "_____________________________________________________________"
-	@ echo ""	
+install: verb.install $(SPMMEX)
 	$(COPY) $(SPMMEX) ..
+
+toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
+	@@for p in $(SUBDIRS); do \
+	echo "_____________________________________________________________";\
+	echo "";\
+	echo "          In " ../$$p; \
+	echo "_____________________________________________________________";\
+	echo ""	;\
+	$(MAKE) -C ../$$p --no-print-directory $(subst -,,$(subst toolbox,,$@));\
+	done
+
+tarball: all toolbox-all toolbox-tarball verb.archive
+	$(TAR) cf spm_mex.tar $(SPMMEX)
+	@@for p in $(SUBDIRS); do \
+		$(TAR) Af spm_mex.tar  ../$$p/spm_mex.tar;\
+	done
+	$(ZIP) -f spm_mex.tar
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
@@ -380,6 +387,45 @@ spm_project.$(SUF): spm_project.c
 spm_unlink.$(SUF): spm_unlink.c
 	$(MEX) spm_unlink.c $(MEXEND)
 	@ $(CHMODIT) $@
+
+###############################################################################
+# General messages
+###############################################################################
+
+verb.end:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        FINISHED"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.clean:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Deleting object (.o) files"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.distclean:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Deleting mex and archive (.a) files"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.install:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Installing mex files"
+	@ echo "_____________________________________________________________"
+	@ echo ""	
+
+verb.archive:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Creating archive spm_mex.tar.gz"
+	@ echo "_____________________________________________________________"
+	@ echo ""	
 
 ###############################################################################
 # Assorted architecture dependent messages
