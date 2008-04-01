@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_dcm_ind_results.m 1286 2008-04-01 12:34:47Z vladimir $
 
 
 % get figure handle
@@ -213,7 +213,7 @@ case{lower('Coupling (B - Hz)')}
     %----------------------------------------------------------------------
     for i = 1:nr
         for j = 1:nr
-            subplot(nr,nr,i + nr*(j - 1))
+            subplot(nr,nr,j + nr*(i - 1))
             ii = [1:nf]*nr - nr + i;
             jj = [1:nf]*nr - nr + j; 
             B  = xY.U*DCM.Ep.B{k}(ii,jj)*xY.U';
