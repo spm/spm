@@ -10,9 +10,9 @@ function [fnames defaults] = mysubs_fields
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: mysubs_fields.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: mysubs_fields.m 1293 2008-04-02 14:20:43Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1293 $';
 
 fnames={'prog', 'vfiles', 'modality', 'vout', 'sout', 'jout', 'tdeps', 'sdeps','chk'};
-defaults={{},{},{},{},[],[],[],[],false};
+defaults={{},{},{},{},[],cfg_inv_out,[],[],false};

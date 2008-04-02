@@ -69,8 +69,12 @@ function varargout = cfg_util(cmd, varargin)
 % saved properly. By default, the entire tree is saved into a file fname.
 % If tropts is given as a traversal option specification, code generation
 % will be split at the nodes matching tropts.stopspec. Each of these nodes will
-% generate code in a new file with filename fname_<tag of node>, and the
+% generate code in a new file with filename <fname>_<tag of node>, and the
 % nodes up to tropts.stopspec will be saved into fname.
+% If a file named <fname>_mlb_preamble.m exists in the folder where the
+% configuration code is being written, it will be read in literally
+% and its contents will be prepended to each of the created files. This
+% allows to automatically include e.g. copyright or revision.
 %
 %  job_id = cfg_util('getcjob')
 %
@@ -308,9 +312,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1275 2008-03-28 16:25:56Z volkmar $
+% $Id: cfg_util.m 1293 2008-04-02 14:20:43Z volkmar $
 
-rev = '$Rev: 1275 $';
+rev = '$Rev: 1293 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -769,19 +773,25 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function local_gencode(c0, fname, tropts)
+function local_gencode(c0, fname, tropts, preamble)
 % Generate code, split at nodes matching stopspec (if stopspec is not
 % empty). fname will be overwritten if tropts is empty (i.e. for single
 % file output or subtrees). Note that some manual fixes may be required
 % (function handles, variable/function names).
-if isempty(tropts)
+% If a preamble is passed as cellstr, it will be prepended to each
+% generated file after the function... line. If no preamble is specified and
+% a file <fname>_mlb_preamble.m exists in the folder where the
+% configuration is being written, this file will be read and included
+% literally.
+if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
+        isequal(tropts, cfg_tropts({{}},1,Inf,1,Inf,false))
     tropts(1).clvl = 1;
     tropts(1).mlvl = Inf;
     tropts(1).cnt  = 1;
     [p funcname e v] = fileparts(fname);
-    [cstr tag] = gencode(c0, '', {}, funcname, tropts);
+    [cstr tag] = gencode(c0, '', {}, [funcname '_'], tropts);
     funcname = [funcname '_' tag];
-    fname = fullfile(p, [funcname e v]);
+    fname = fullfile(p, [funcname '.m']);
     unpostfix = '';
     while exist(fname, 'file')
         warning('matlabbatch:cfg_util:gencode:fileexist', ...
@@ -790,32 +800,41 @@ if isempty(tropts)
                  'need to adjust generated code.'], ...
                 c0.name, tag, fname);
         unpostfix = [unpostfix '1'];
-        fname = fullfile(p, [funcname unpostfix e v]);
+        fname = fullfile(p, [funcname unpostfix '.m']);
     end;
     fid = fopen(fname,'w');
     fprintf(fid, 'function %s = %s\n', tag, funcname);
-    for k = 1:numel(cstr)
-        fprintf(fid, '%s\n', cstr{k});
-    end;
+    fprintf(fid, '%s\n', preamble{:});
+    fprintf(fid, '%s\n', cstr{:});
     fclose(fid);
 else
     % generate root level code
     [p funcname e v] = fileparts(fname);
-    [cstr tag] = gencode(c0, 'jobs', {}, funcname, tropts);
+    [cstr tag] = gencode(c0, 'jobs', {}, [funcname '_'], tropts);
+    fname = fullfile(p, [funcname '.m']);
+    if nargin < 4 || isempty(preamble) || ~iscellstr(preamble)
+        try
+            fid = fopen(fullfile(p, [funcname '_mlb_preamble.m']),'r');
+            ptmp = textscan(fid,'%s','Delimiter',sprintf('\n'));
+            fclose(fid);
+            preamble = ptmp{1};
+        catch
+            preamble = {};
+        end;
+    end;
     fid = fopen(fname,'w');
     fprintf(fid, 'function %s = %s\n', tag, funcname);
-    for k = 1:numel(cstr)
-        fprintf(fid, '%s\n', cstr{k});
-    end;
+    fprintf(fid, '%s\n', preamble{:});
+    fprintf(fid, '%s\n', cstr{:});
     fclose(fid);
     % generate subtree code - find nodes one level below stop spec
     tropts.mlvl = tropts.mlvl+1;
     [ids stop] = list(c0, tropts.stopspec, tropts);
     ids = ids(stop); % generate code for stop items only
-    tropts = cfg_tropts;
+    ctropts = cfg_tropts({{}},1,Inf,1,Inf,tropts.dflag);
     for k = 1:numel(ids)
         if ~isempty(ids{k}) % don't generate root level code again
-            local_gencode(subsref(c0, ids{k}), fname, tropts);
+            local_gencode(subsref(c0, ids{k}), fname, ctropts, preamble);
         end;
     end;
 end;
@@ -1068,7 +1087,7 @@ while ~isempty(cjid2subs)
     % run jobs that have all dependencies resolved
     for k = 1:numel(cjid2subsrun)
         cm = subsref(cjrun, cjid2subsrun{k});
-        if isempty(cm.jout)
+        if isa(cm.jout,'cfg_inv_out')
             % no cached outputs (module did not run or it does not return
             % outputs) - run job
             fprintf('Running ''%s''\n', cm.name);
@@ -1077,11 +1096,12 @@ while ~isempty(cjid2subs)
                     warning('matlabbatch:cfg_util:vfiles', ...
                             'Using deprecated ''vfiles'' output in node ''%s''.', cm.tag);
                     feval(cm.prog, subsref(jobs, jobsubsrun{k}));
-                    cm.jout.vfiles = feval(cm.vfiles, ...
-                                           subsref(jobs, jobsubsrun{k}));
+                    cm.jout = struct('vfiles', feval(cm.vfiles, ...
+                                           subsref(jobs, jobsubsrun{k})));
                 elseif isempty(cm.sout)
                     % no outputs specified
                     feval(cm.prog, subsref(jobs, jobsubsrun{k}));
+                    cm.jout = [];
                 else
                     cm.jout = feval(cm.prog, subsref(jobs, jobsubsrun{k}));
                 end;

@@ -44,9 +44,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: harvest.m 1293 2008-04-02 14:20:43Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1293 $';
 
 [tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
@@ -91,8 +91,8 @@ else
         sdeps = item.sdeps;
         item.sdeps = [];
         cj = del_in_target(sdeps, cj);
-        % clear already computed outputs
-        item.jout = [];
+        % invalidate already computed outputs
+        item.jout = cfg_inv_out;
     end;
 
     % even if no sources changed, source names may have changed

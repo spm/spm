@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1184 $)
+% Job configuration created by cfg_util (rev $Rev: 1293 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_entry.type = 'cfg_entry';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Output Variable Name';
@@ -14,7 +14,7 @@ matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Output Item';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.tag = 'output';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.strtype = 'e';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = double([]);
-matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([1 Inf]);
+matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([]);
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.check = double([]);
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'The contents that is passed to this input that will be assigned to the workspace variable whose name is given in "Output Variable Name".'};
 matlabbatch{3}.menu_cfg{1}.menu_struct{1}.conf_exbranch.type = 'cfg_exbranch';

@@ -7,7 +7,8 @@ function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Traversal options
 % struct with fields
 % stopspec - match spec to stop forced setting of eflag
-% dflag    - (not used here)
+% dflag    - if set to true, don't create code for .val children (code
+%            for .val field is created)
 % clvl     - current level in tree
 % mlvl     - maximum level to force settings - range 1 (top level only) to
 %            Inf (all levels)
@@ -21,14 +22,22 @@ function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1266 2008-03-28 12:00:56Z volkmar $
+% $Id: gencode.m 1293 2008-04-02 14:20:43Z volkmar $
 
-rev = '$Rev: 1266 $';
+rev = '$Rev: 1293 $';
 
 %% Parent object
 % Generate generic object
-[str tag cind ccnt] = gencode(item.cfg_item, tag, tagctx, stoptag, ...
-                              tropts);
+itropts = tropts;
+istoptag = stoptag;
+if tropts.dflag
+    % don't descend into .val tree of cfg_item
+    itropts.clvl = 1;
+    itropts.mlvl = 1;
+    istoptag     = '';
+end;
+[str tag cind ccnt] = gencode(item.cfg_item, tag, tagctx, istoptag, ...
+                              itropts);
 tagctx = {tagctx{:} tag};
 % Check whether to generate code - ccnt == 0 means that generic object did
 % not return code
@@ -46,8 +55,9 @@ if numel(item.values) > 0
     % Traverse values{:} tree, if items are cfg_items
     cstr = {};
     % Update clvl
-    tropts.clvl = tropts.clvl + 1;
-    tropts.cnt  = tropts.cnt + ccnt;
+    ctropts = tropts;
+    ctropts.clvl = ctropts.clvl + 1;
+    ctropts.cnt  = ctropts.cnt + ccnt;
     ctag = cell(size(item.values));
     for k = 1:numel(item.values)
         % tags are used as variable names and need to be unique in the
@@ -55,12 +65,13 @@ if numel(item.values) > 0
         % and the tags of its immediate children.
         ctag{k} = genvarname(subsref(item.values{k}, substruct('.','tag')), ...
                              tagctx);
-        [ccstr ctag{k} ccind cccnt] = gencode(item.values{k}, ctag{k}, tagctx, stoptag, tropts);
+        [ccstr ctag{k} ccind cccnt] = gencode(item.values{k}, ctag{k}, ...
+                                              tagctx, stoptag, ctropts);
         tagctx = {tagctx{:} ctag{k}};
         if ~isempty(ccstr)
             % Child has returned code
             cstr = {cstr{:} ccstr{:}};
-            tropts.cnt = tropts.cnt + cccnt;
+            ctropts.cnt = ctropts.cnt + cccnt;
             ccnt = ccnt + cccnt;
         end;
     end;

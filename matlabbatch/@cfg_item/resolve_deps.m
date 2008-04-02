@@ -18,18 +18,23 @@ function [val sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 1225 2008-03-18 13:39:33Z volkmar $
+% $Id: resolve_deps.m 1293 2008-04-02 14:20:43Z volkmar $
 
-rev = '$Rev: 1225 $';
+rev = '$Rev: 1293 $';
 
 try
     val1 = cell(size(item.val{1}));
     for k = 1:numel(item.val{1})
         % Outputs are stored in .jout field of cfg_exbranch, which is
         % neither included in .src_exbranch nor in .src_output substruct
-        val1{k} = subsref(cj, [item.val{1}(k).src_exbranch, substruct('.','jout'), item.val{1}(k).src_output]);
+        val1{k} = subsref(cj, [item.val{1}(k).src_exbranch, ...
+                            substruct('.','jout'), item.val{1}(k).src_output]);
+        sts = ~isa(val1{k},'cfg_inv_out');
+        if ~sts
+            val = [];
+            return;
+        end;
     end;
-    sts = true;
 catch
     % some dependencies are not yet resolved
     val = [];

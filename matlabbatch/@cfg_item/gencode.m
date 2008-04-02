@@ -16,6 +16,10 @@ function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 %            Inf (all levels)
 % cnt      - item count - used for unique tags
 % mcnt     - (not evaluated here)
+% Code generation stops at this item, if item matches tropts.stopspec or
+% tropts.clvl > tropts.mlvl. In this case, the tag of the item is
+% generated from genvarname(sprintf('%s%s', stoptag, tag), tagctx), but
+% no code is generated.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -24,18 +28,18 @@ function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1266 2008-03-28 12:00:56Z volkmar $
+% $Id: gencode.m 1293 2008-04-02 14:20:43Z volkmar $
 
-rev = '$Rev: 1266 $';
+rev = '$Rev: 1293 $';
 
 %% Class of item
 % Check whether to generate code
 if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec)))
     % Stopping - tag based on stoptag, and tag of item
     if isempty(tag)
-        tag = genvarname(sprintf('%s_%s', stoptag, item.tag), tagctx);
+        tag = genvarname(sprintf('%s%s', stoptag, item.tag), tagctx);
     else
-        tag = genvarname(sprintf('%s_%s', stoptag, tag), tagctx);
+        tag = genvarname(sprintf('%s%s', stoptag, tag), tagctx);
     end;
     str = {};
     cind = [];
@@ -71,8 +75,9 @@ if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
     % Traverse val{:} tree, if items are cfg_items
     cstr = {};
     % Update clvl
-    tropts.clvl = tropts.clvl + 1;
-    tropts.cnt  = tropts.cnt + ccnt;
+    ctropts = tropts;
+    ctropts.clvl = ctropts.clvl + 1;
+    ctropts.cnt  = ctropts.cnt + ccnt;
     ctag = cell(size(item.val));
     for k = 1:numel(item.val)
         % tags are used as variable names and need to be unique in the
@@ -80,13 +85,14 @@ if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
         % and the tags of its children.
         ctag{k} = genvarname(subsref(item.val{k}, substruct('.','tag')), ...
                              tagctx);
-        [ccstr ctag{k} ccind cccnt] = gencode(item.val{k}, ctag{k}, tagctx, stoptag, tropts);
+        [ccstr ctag{k} ccind cccnt] = gencode(item.val{k}, ctag{k}, tagctx, ...
+                                              stoptag, ctropts);
         tagctx = {tagctx{:} ctag{k}};
         if ~isempty(ccstr)
             % Child has returned code
             cstr = {cstr{:} ccstr{:}};
             ccnt = ccnt + cccnt;
-            tropts.cnt = tropts.cnt + cccnt;
+            ctropts.cnt = ctropts.cnt + cccnt;
         end;
     end;
     % Update position of class definition

@@ -308,7 +308,7 @@ input.tag     = 'input';
 input.name    = 'Input Variable';
 input.help    = {'Enter a MATLAB variable. This can be a variable in the MATLAB workspace, or any other valid MATLAB statement which evaluates to a single variable.'};
 input.strtype = 'e';
-input.num     = [Inf Inf];
+input.num     = [];
 % ---------------------------------------------------------------------
 % cfg_named_input Named Input
 % ---------------------------------------------------------------------
@@ -415,7 +415,7 @@ output.tag     = 'output';
 output.name    = 'Output Item';
 output.help    = {'The contents that is passed to this input that will be assigned to the workspace variable whose name is given in "Output Variable Name".'};
 output.strtype = 'e';
-output.num     = [1 Inf];
+output.num     = [];
 % ---------------------------------------------------------------------
 % cfg_assignin Pass Output to Workspace
 % ---------------------------------------------------------------------
