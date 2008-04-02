@@ -4,8 +4,9 @@ function ui = spm_cfg_ui
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_ui.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_ui.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % colour1 Background Colour 1
 % ---------------------------------------------------------------------
@@ -13,6 +14,7 @@ colour1         = cfg_entry;
 colour1.tag     = 'colour1';
 colour1.name    = 'Background Colour 1';
 colour1.val{1} = double([0.800000000000000044 0.800000000000000044 1]);
+colour1.help    = {''};
 colour1.strtype = 'e';
 colour1.num     = [1 3];
 colour1.extras = double([0 1]);
@@ -23,6 +25,7 @@ colour2         = cfg_entry;
 colour2.tag     = 'colour2';
 colour2.name    = 'Background Colour 2';
 colour2.val{1} = double([1 1 0.800000000000000044]);
+colour2.help    = {''};
 colour2.strtype = 'e';
 colour2.num     = [1 3];
 colour2.extras = double([0 1]);
@@ -33,6 +36,7 @@ colour3         = cfg_entry;
 colour3.tag     = 'colour3';
 colour3.name    = 'Foreground Colour';
 colour3.val{1} = double([0 0 0]);
+colour3.help    = {''};
 colour3.strtype = 'e';
 colour3.num     = [1 3];
 colour3.extras = double([0 1]);
@@ -43,6 +47,7 @@ fs         = cfg_menu;
 fs.tag     = 'fs';
 fs.name    = 'Font Size';
 fs.val{1} = double(14);
+fs.help    = {''};
 fs.labels = {
              '8'
              '9'
@@ -65,7 +70,7 @@ fs.values{7} = double(18);
 appearance         = cfg_branch;
 appearance.tag     = 'appearance';
 appearance.name    = 'Appearance';
-appearance.val     = { colour1 colour2 colour3 fs};
+appearance.val     = {colour1 colour2 colour3 fs };
 appearance.help    = {'Appearance of user interface'};
 % ---------------------------------------------------------------------
 % print Printing
@@ -184,4 +189,5 @@ print.values{18}.ext = '.tif';
 ui         = cfg_branch;
 ui.tag     = 'ui';
 ui.name    = 'User Interface';
-ui.val     = { appearance print};
+ui.val     = {appearance print };
+ui.help    = {''};

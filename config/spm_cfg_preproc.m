@@ -4,8 +4,9 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1269 2008-03-28 13:14:11Z volkmar $
+% $Id: spm_cfg_preproc.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -134,7 +135,7 @@ cleanup.values{3} = double(2);
 output         = cfg_branch;
 output.tag     = 'output';
 output.name    = 'Output Files';
-output.val     = { GM WM CSF biascor cleanup};
+output.val     = {GM WM CSF biascor cleanup };
 output.help    = {
                   'This routine produces spatial normalisation parameters (*_seg_sn.mat files) by default. These can be used for writing spatially normalised versions of your data, via the "Normalise: Write" option. This mechanism may produce superior results than the "Normalise: Estimate" option, although this may need some empirical evaluations.'
                   ''
@@ -330,7 +331,7 @@ msk.num     = [0 1];
 opts         = cfg_branch;
 opts.tag     = 'opts';
 opts.name    = 'Custom';
-opts.val     = { tpm ngaus regtype warpreg warpco biasreg biasfwhm samp msk};
+opts.val     = {tpm ngaus regtype warpreg warpco biasreg biasfwhm samp msk };
 opts.help    = {'Various options can be adjusted in order to improve the performance of the algorithm with your data.  Knowing what works best should be a matter of empirical exploration.  For example, if your data has very little intensity non-uniformity artifact, then the bias regularisation should be increased.  This effectively tells the algorithm that there is very little bias in your data, so it does not try to model it.'};
 % ---------------------------------------------------------------------
 % preproc Segment
@@ -338,7 +339,7 @@ opts.help    = {'Various options can be adjusted in order to improve the perform
 preproc         = cfg_exbranch;
 preproc.tag     = 'preproc';
 preproc.name    = 'Segment';
-preproc.val     = { data output opts};
+preproc.val     = {data output opts };
 preproc.help    = {
                    'Segment, bias correct and spatially normalise - all in the same model/* \cite{ashburner05}*/. This function can be used for bias correcting, spatially normalising or segmenting your data.'
                    ''

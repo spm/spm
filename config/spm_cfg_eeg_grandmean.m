@@ -4,8 +4,9 @@ function S = spm_cfg_eeg_grandmean
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 1263 2008-03-28 10:30:10Z stefan $
+% $Id: spm_cfg_eeg_grandmean.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';

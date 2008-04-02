@@ -4,8 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1223 2008-03-18 11:45:10Z volkmar $
+% $Id: spm_cfg_realign.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -23,7 +24,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'Add new sessions for this subject. In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'};
-generic.values  = { data};
+generic.values  = {data };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % quality Quality
@@ -153,7 +154,7 @@ weight.num     = [0 1];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { quality sep fwhm rtm interp wrap weight};
+eoptions.val     = {quality sep fwhm rtm interp wrap weight };
 eoptions.help    = {'Various registration options. If in doubt, simply keep the default values.'};
 % ---------------------------------------------------------------------
 % estimate Realign: Estimate
@@ -161,7 +162,7 @@ eoptions.help    = {'Various registration options. If in doubt, simply keep the 
 estimate         = cfg_exbranch;
 estimate.tag     = 'estimate';
 estimate.name    = 'Realign: Estimate';
-estimate.val     = { generic eoptions};
+estimate.val     = {generic eoptions };
 estimate.help    = {
                     'This routine realigns a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body) spatial transformation/* \cite{friston95a}*/.  The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to the the first chronologically and it may be wise to chose a "representative scan" in this role.'
                     ''
@@ -293,7 +294,7 @@ prefix.num     = [1 Inf];
 roptions         = cfg_branch;
 roptions.tag     = 'roptions';
 roptions.name    = 'Reslice Options';
-roptions.val     = { which interp wrap mask prefix};
+roptions.val     = {which interp wrap mask prefix };
 roptions.help    = {'Various reslicing options. If in doubt, simply keep the default values.'};
 % ---------------------------------------------------------------------
 % write Realign: Reslice
@@ -301,7 +302,7 @@ roptions.help    = {'Various reslicing options. If in doubt, simply keep the def
 write         = cfg_exbranch;
 write.tag     = 'write';
 write.name    = 'Realign: Reslice';
-write.val     = { data roptions};
+write.val     = {data roptions };
 write.help    = {'This function reslices a series of registered images such that they match the first image selected voxel-for-voxel. The resliced images are named the same as the originals, except that they are prefixed by ''r''.'};
 write.prog = @spm_run_realign_reslice;
 write.vout = @vout_reslice;
@@ -322,7 +323,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'Add new sessions for this subject. In the coregistration step, the sessions are first realigned to each other, by aligning the first scan from each session to the first scan of the first session.  Then the images within each session are aligned to the first image of the session. The parameter estimation is performed this way because it is assumed (rightly or not) that there may be systematic differences in the images between sessions.'};
-generic.values  = { data};
+generic.values  = {data };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % quality Quality
@@ -452,7 +453,7 @@ weight.num     = [0 1];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { quality sep fwhm rtm interp wrap weight};
+eoptions.val     = {quality sep fwhm rtm interp wrap weight };
 eoptions.help    = {'Various registration options. If in doubt, simply keep the default values.'};
 % ---------------------------------------------------------------------
 % which Resliced images
@@ -568,7 +569,7 @@ prefix.num     = [1 Inf];
 roptions         = cfg_branch;
 roptions.tag     = 'roptions';
 roptions.name    = 'Reslice Options';
-roptions.val     = { which interp wrap mask prefix};
+roptions.val     = {which interp wrap mask prefix };
 roptions.help    = {'Various reslicing options. If in doubt, simply keep the default values.'};
 % ---------------------------------------------------------------------
 % estwrite Realign: Estimate & Reslice
@@ -576,7 +577,7 @@ roptions.help    = {'Various reslicing options. If in doubt, simply keep the def
 estwrite         = cfg_exbranch;
 estwrite.tag     = 'estwrite';
 estwrite.name    = 'Realign: Estimate & Reslice';
-estwrite.val     = { generic eoptions roptions};
+estwrite.val     = {generic eoptions roptions };
 estwrite.help    = {
                     'This routine realigns a time-series of images acquired from the same subject using a least squares approach and a 6 parameter (rigid body)spatial transformation/* \cite{friston95a}*/.  The first image in the list specified by the user is used as a reference to which all subsequent scans are realigned. The reference scan does not have to the the first chronologically and it may be wise to chose a "representative scan" in this role.'
                     ''
@@ -591,7 +592,7 @@ realign         = cfg_repeat;
 realign.tag     = 'realign';
 realign.name    = 'Realign';
 realign.help    = {'Within-subject registration of image time series.'};
-realign.values  = { estimate write estwrite};
+realign.values  = {estimate write estwrite };
 realign.num     = [1 Inf];
 
 %------------------------------------------------------------------------

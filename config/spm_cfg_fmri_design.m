@@ -4,8 +4,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 1264 2008-03-28 11:11:21Z volkmar $
+% $Id: spm_cfg_fmri_design.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -521,30 +522,6 @@ fir.tag     = 'fir';
 fir.name    = 'Finite Impulse Response';
 fir.val     = {length order };
 fir.help    = {'Finite impulse response - requires SPM{F} for inference.'};
-% ---------------------------------------------------------------------
-% derivs Model derivatives
-% ---------------------------------------------------------------------
-derivs         = cfg_menu;
-derivs.tag     = 'derivs';
-derivs.name    = 'Model derivatives';
-derivs.val{1} = double([0 0]);
-derivs.help    = {'Model HRF Derivatives. The canonical HRF combined with time and dispersion derivatives comprise an ''informed'' basis set, as the shape of the canonical response conforms to the hemodynamic response that is commonly observed. The incorporation of the derivate terms allow for variations in subject-to-subject and voxel-to-voxel responses. The time derivative allows the peak response to vary by plus or minus a second and the dispersion derivative allows the width of the response to vary. The informed basis set requires an SPM{F} for inference. T-contrasts over just the canonical are perfectly valid but assume constant delay/dispersion. The informed basis set compares favourably with eg. FIR bases on many data sets. '};
-derivs.labels = {
-                 'No derivatives'
-                 'Time derivatives'
-                 'Time and Dispersion derivatives'
-}';
-derivs.values{1} = double([0 0]);
-derivs.values{2} = double([1 0]);
-derivs.values{3} = double([1 1]);
-% ---------------------------------------------------------------------
-% hrf Canonical HRF
-% ---------------------------------------------------------------------
-hrf         = cfg_branch;
-hrf.tag     = 'hrf';
-hrf.name    = 'Canonical HRF';
-hrf.val     = {derivs };
-hrf.help    = {'Canonical Hemodynamic Response Function. This is the default option. Contrasts of these effects have a physical interpretation and represent a parsimonious way of characterising event-related responses. This option is also useful if you wish to look separately at activations and deactivations (this is implemented using a t-contrast with a +1 or -1 entry over the canonical regressor). '};
 % ---------------------------------------------------------------------
 % bases Basis Functions
 % ---------------------------------------------------------------------

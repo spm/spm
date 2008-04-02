@@ -4,8 +4,9 @@ function fmri_data = spm_cfg_fmri_data
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_data.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_fmri_data.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % scans Scans
 % ---------------------------------------------------------------------
@@ -43,7 +44,7 @@ mask.num     = [0 1];
 fmri_data         = cfg_exbranch;
 fmri_data.tag     = 'fmri_data';
 fmri_data.name    = 'fMRI data specification';
-fmri_data.val     = { scans spmmat mask};
+fmri_data.val     = {scans spmmat mask };
 fmri_data.help    = {'Select the data and optional explicit mask for a specified design'};
 fmri_data.prog = @spm_run_fmri_data;
 fmri_data.vout = @vout_stats;

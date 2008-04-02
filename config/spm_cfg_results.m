@@ -4,8 +4,9 @@ function results = spm_cfg_results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 1264 2008-03-28 11:11:21Z volkmar $
+% $Id: spm_cfg_results.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -22,6 +23,7 @@ spmmat.num     = [1 1];
 titlestr         = cfg_entry;
 titlestr.tag     = 'titlestr';
 titlestr.name    = 'Results Title';
+titlestr.val = {''};
 titlestr.help    = {'Heading on results page - determined automatically if left empty'};
 titlestr.strtype = 's';
 titlestr.num     = [1 Inf];
@@ -44,6 +46,7 @@ contrasts.num     = [1 Inf];
 threshdesc         = cfg_menu;
 threshdesc.tag     = 'threshdesc';
 threshdesc.name    = 'Threshold type';
+threshdesc.help    = {''};
 threshdesc.labels = {
                      'FWE'
                      'FDR'
@@ -61,6 +64,7 @@ thresh         = cfg_entry;
 thresh.tag     = 'thresh';
 thresh.name    = 'Threshold';
 thresh.val{1} = double(0.0500000000000000028);
+thresh.help    = {''};
 thresh.strtype = 'e';
 thresh.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -70,6 +74,7 @@ extent         = cfg_entry;
 extent.tag     = 'extent';
 extent.name    = 'Extent (voxels)';
 extent.val{1} = double(0);
+extent.help    = {''};
 extent.strtype = 'e';
 extent.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -88,6 +93,7 @@ thresh1         = cfg_entry;
 thresh1.tag     = 'thresh';
 thresh1.name    = 'Mask threshold';
 thresh1.val{1} = double(0.0500000000000000028);
+thresh1.help    = {''};
 thresh1.strtype = 'e';
 thresh1.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -96,6 +102,7 @@ thresh1.num     = [1 1];
 mtype         = cfg_menu;
 mtype.tag     = 'mtype';
 mtype.name    = 'Nature of mask';
+mtype.help    = {''};
 mtype.labels = {
                 'Inclusive'
                 'Exclusive'
@@ -109,12 +116,14 @@ mask         = cfg_branch;
 mask.tag     = 'mask';
 mask.name    = 'Mask definition';
 mask.val     = {contrasts1 thresh1 mtype };
+mask.help    = {''};
 % ---------------------------------------------------------------------
 % generic Masking
 % ---------------------------------------------------------------------
 generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Masking';
+generic1.help    = {''};
 generic1.values  = {mask };
 generic1.num     = [0 1];
 % ---------------------------------------------------------------------
@@ -124,12 +133,14 @@ conspec         = cfg_branch;
 conspec.tag     = 'conspec';
 conspec.name    = 'Contrast query';
 conspec.val     = {titlestr contrasts threshdesc thresh extent generic1 };
+conspec.help    = {''};
 % ---------------------------------------------------------------------
 % generic Contrasts
 % ---------------------------------------------------------------------
 generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Contrasts';
+generic.help    = {''};
 generic.values  = {conspec };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -139,6 +150,7 @@ print         = cfg_menu;
 print.tag     = 'print';
 print.name    = 'Print results';
 print.val{1} = double(1);
+print.help    = {''};
 print.labels = {
                 'Yes'
                 'No'
@@ -152,6 +164,7 @@ results         = cfg_exbranch;
 results.tag     = 'results';
 results.name    = 'Results Report';
 results.val     = {spmmat generic print };
+results.help    = {''};
 results.prog = @spm_run_results;
 results.modality = {
                     'FMRI'

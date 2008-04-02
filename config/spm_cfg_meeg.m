@@ -4,8 +4,9 @@ function meeg = spm_cfg_meeg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_meeg.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_cfg_meeg.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % dataset Select the dataset file
 % ---------------------------------------------------------------------
@@ -99,7 +100,8 @@ savetrl.values = {
 sub_trialdef         = cfg_branch;
 sub_trialdef.tag     = 'sub_trialdef';
 sub_trialdef.name    = 'Define based on events';
-sub_trialdef.val     = { eventtype eventvalue prestim poststim ignorelim savetrl};
+sub_trialdef.val     = {eventtype eventvalue prestim poststim ignorelim savetrl };
+sub_trialdef.help    = {''};
 % ---------------------------------------------------------------------
 % trlfile Define by TRL file
 % ---------------------------------------------------------------------
@@ -119,101 +121,17 @@ loadcont.name    = 'Load continuous data';
 loadcont.val = {' '};
 loadcont.help    = {'Load continuous data without epoching.'};
 % ---------------------------------------------------------------------
-% eventtype Event type
-% ---------------------------------------------------------------------
-eventtype         = cfg_entry;
-eventtype.tag     = 'eventtype';
-eventtype.name    = 'Event type';
-eventtype.val = {'gui'};
-eventtype.help    = {'Type of the event for trial selection'};
-eventtype.strtype = 's';
-eventtype.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% eventvalue Event value
-% ---------------------------------------------------------------------
-eventvalue         = cfg_entry;
-eventvalue.tag     = 'eventvalue';
-eventvalue.name    = 'Event value';
-eventvalue.val = {'gui'};
-eventvalue.help    = {'Value of the event for trial selection'};
-eventvalue.strtype = 's';
-eventvalue.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% prestim Pre-trigger time
-% ---------------------------------------------------------------------
-prestim         = cfg_entry;
-prestim.tag     = 'prestim';
-prestim.name    = 'Pre-trigger time';
-prestim.help    = {'Pre-trigger latency in seconds'};
-prestim.strtype = 'r';
-prestim.num     = [1 1];
-% ---------------------------------------------------------------------
-% poststim Post-trigger time
-% ---------------------------------------------------------------------
-poststim         = cfg_entry;
-poststim.tag     = 'poststim';
-poststim.name    = 'Post-trigger time';
-poststim.help    = {'Post-trigger latency in seconds'};
-poststim.strtype = 'r';
-poststim.num     = [1 1];
-% ---------------------------------------------------------------------
-% ignorelim Ignore trial limits in the data
-% ---------------------------------------------------------------------
-ignorelim         = cfg_menu;
-ignorelim.tag     = 'ignorelim';
-ignorelim.name    = 'Ignore trial limits in the data';
-ignorelim.val = {'no'};
-ignorelim.help    = {
-                     'In some file formats there can be events that already '
-                     'contain information about the trial limits. If such event'
-                     'is chosen SPM will disregard the user defined pre- and post-'
-                     'stimulus times. Choose ''yes'' in this menu to override this'
-                     'default behavior and ignore the information from the file.'
-                     'Leave it as ''no'' unless you know well what you are doing.'
-}';
-ignorelim.labels = {
-                    'Yes'
-                    'No'
-}';
-ignorelim.values = {
-                    'yes'
-                    'no'
-}';
-% ---------------------------------------------------------------------
-% savetrl Save TRL to file
-% ---------------------------------------------------------------------
-savetrl         = cfg_menu;
-savetrl.tag     = 'savetrl';
-savetrl.name    = 'Save TRL to file';
-savetrl.val = {'no'};
-savetrl.help    = {'Choose whether to save the TRL matrix to a mat or ASCII file'};
-savetrl.labels = {
-                  'Yes'
-                  'No'
-}';
-savetrl.values = {
-                  'yes'
-                  'no'
-}';
-% ---------------------------------------------------------------------
-% sub_trialdef Define based on events
-% ---------------------------------------------------------------------
-sub_trialdef         = cfg_branch;
-sub_trialdef.tag     = 'sub_trialdef';
-sub_trialdef.name    = 'Define based on events';
-sub_trialdef.val     = { eventtype eventvalue prestim poststim ignorelim savetrl};
-% ---------------------------------------------------------------------
 % trials Trial definitions
 % ---------------------------------------------------------------------
 trials         = cfg_choice;
 trials.tag     = 'trials';
 trials.name    = 'Trial definitions';
-trials.val     = { sub_trialdef};
+trials.val     = {sub_trialdef };
 trials.help    = {
                   'Choose whether to define trials semi-automatically based on events in the file'
                   'or using iser defined trl matrix (see definitrial() help)'
 }';
-trials.values  = { sub_trialdef trlfile loadcont};
+trials.values  = {sub_trialdef trlfile loadcont };
 % ---------------------------------------------------------------------
 % padding Padding for filtering
 % ---------------------------------------------------------------------
@@ -343,7 +261,7 @@ lpfiltdir.values = {
 lpfilter         = cfg_branch;
 lpfilter.tag     = 'lpfilter';
 lpfilter.name    = 'Lowpass filter';
-lpfilter.val     = { lpfreq lpfiltord lpfilttype lpfiltdir};
+lpfilter.val     = {lpfreq lpfiltord lpfilttype lpfiltdir };
 lpfilter.help    = {'Should a lowpass filter be used'};
 % ---------------------------------------------------------------------
 % hpfreq HP frequency
@@ -404,7 +322,7 @@ hpfiltdir.values = {
 hpfilter         = cfg_branch;
 hpfilter.tag     = 'hpfilter';
 hpfilter.name    = 'Highpass filter';
-hpfilter.val     = { hpfreq hpfiltord hpfilttype hpfiltdir};
+hpfilter.val     = {hpfreq hpfiltord hpfilttype hpfiltdir };
 hpfilter.help    = {'Should a highpass filter be used'};
 % ---------------------------------------------------------------------
 % bpfreq BP frequency
@@ -465,7 +383,7 @@ bpfiltdir.values = {
 bpfilter         = cfg_branch;
 bpfilter.tag     = 'bpfilter';
 bpfilter.name    = 'Bandpass filter';
-bpfilter.val     = { bpfreq bpfiltord bpfilttype bpfiltdir};
+bpfilter.val     = {bpfreq bpfiltord bpfilttype bpfiltdir };
 bpfilter.help    = {'Should a bandpass filter be used'};
 % ---------------------------------------------------------------------
 % lnfreq Notch frequency
@@ -493,7 +411,7 @@ lnfiltord.num     = [1 1];
 lnfilter         = cfg_branch;
 lnfilter.tag     = 'lnfilter';
 lnfilter.name    = 'Line noise filter';
-lnfilter.val     = { lnfreq lnfiltord};
+lnfilter.val     = {lnfreq lnfiltord };
 lnfilter.help    = {'Should a notch filter be used'};
 % ---------------------------------------------------------------------
 % dftfreq DFT frequencies
@@ -511,7 +429,7 @@ dftfreq.num     = [1 3];
 dftfilter         = cfg_branch;
 dftfilter.tag     = 'dftfilter';
 dftfilter.name    = 'DFT filter';
-dftfilter.val     = { dftfreq};
+dftfilter.val     = {dftfreq };
 dftfilter.help    = {'Should a DFT filter be used'};
 % ---------------------------------------------------------------------
 % medianfiltord Median filter order
@@ -529,7 +447,8 @@ medianfiltord.num     = [1 1];
 medianfilter         = cfg_branch;
 medianfilter.tag     = 'medianfilter';
 medianfilter.name    = 'Median Filter';
-medianfilter.val     = { medianfiltord};
+medianfilter.val     = {medianfiltord };
+medianfilter.help    = {''};
 % ---------------------------------------------------------------------
 % detrend Detrend
 % ---------------------------------------------------------------------
@@ -553,7 +472,8 @@ blcwindow.num     = [1 2];
 blc         = cfg_branch;
 blc.tag     = 'blc';
 blc.name    = 'Baseline correction';
-blc.val     = { blcwindow};
+blc.val     = {blcwindow };
+blc.help    = {''};
 % ---------------------------------------------------------------------
 % hilbert Hilbert transform
 % ---------------------------------------------------------------------
@@ -576,8 +496,9 @@ rectify.help    = {'Rectify the data'};
 filters         = cfg_repeat;
 filters.tag     = 'filters';
 filters.name    = 'Filters and transformations';
-filters.values  = { lpfilter hpfilter bpfilter lnfilter dftfilter medianfilter detrend blc hilbert rectify};
 filters.check   = @check_filter;
+filters.help    = {''};
+filters.values  = {lpfilter hpfilter bpfilter lnfilter dftfilter medianfilter detrend blc hilbert rectify };
 filters.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % chansubset Channel subset
@@ -585,14 +506,16 @@ filters.num     = [0 Inf];
 chansubset         = cfg_branch;
 chansubset.tag     = 'chansubset';
 chansubset.name    = 'Channel subset';
-chansubset.val     = { channel filters};
+chansubset.val     = {channel filters };
+chansubset.help    = {''};
 % ---------------------------------------------------------------------
 % generic Channels
 % ---------------------------------------------------------------------
 generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Channels';
-generic.values  = { chansubset};
+generic.help    = {''};
+generic.values  = {chansubset };
 generic.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % precision Number precision
@@ -637,14 +560,15 @@ ctf.num     = [1 1];
 sub_savesettings         = cfg_branch;
 sub_savesettings.tag     = 'sub_savesettings';
 sub_savesettings.name    = 'Save settings';
-sub_savesettings.val     = { savename ctf};
+sub_savesettings.val     = {savename ctf };
+sub_savesettings.help    = {''};
 % ---------------------------------------------------------------------
 % meeg MEEG Preprocessing
 % ---------------------------------------------------------------------
 meeg         = cfg_exbranch;
 meeg.tag     = 'meeg';
 meeg.name    = 'MEEG Preprocessing';
-meeg.val     = { dataset trials padding timeshift forcecont generic precision sub_savesettings};
+meeg.val     = {dataset trials padding timeshift forcecont generic precision sub_savesettings };
 meeg.help    = {'Preprocessing of MEG/EEG data'};
 meeg.prog = @meeg_preprocess;
 meeg.modality = {'EEG'};

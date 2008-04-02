@@ -4,8 +4,9 @@ function cat = spm_cfg_cat
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_cat.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_cat.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % vols 3D Volumes
 % ---------------------------------------------------------------------
@@ -22,7 +23,7 @@ vols.num     = [1 Inf];
 cat         = cfg_exbranch;
 cat.tag     = 'cat';
 cat.name    = '3D to 4D';
-cat.val     = { vols};
+cat.val     = {vols };
 cat.help    = {
                'Concatenate a number of 3D volumes into a single 4D file.'
                'Note that output time series are stored as big-endian int16.'

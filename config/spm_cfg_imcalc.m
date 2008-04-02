@@ -4,8 +4,9 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_imcalc.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % input Input Images
 % ---------------------------------------------------------------------
@@ -153,7 +154,7 @@ dtype.values{5} = double(64);
 options         = cfg_branch;
 options.tag     = 'options';
 options.name    = 'Options';
-options.val     = { dmtx mask interp dtype};
+options.val     = {dmtx mask interp dtype };
 options.help    = {'Options for image calculator'};
 % ---------------------------------------------------------------------
 % imcalc Image Calculator
@@ -161,7 +162,7 @@ options.help    = {'Options for image calculator'};
 imcalc         = cfg_exbranch;
 imcalc.tag     = 'imcalc';
 imcalc.name    = 'Image Calculator';
-imcalc.val     = { input output outdir expression options};
+imcalc.val     = {input output outdir expression options };
 imcalc.help    = {'The image calculator is for performing user-specified algebraic manipulations on a set of images, with the result being written out as an image. The user is prompted to supply images to work on, a filename for the output image, and the expression to evaluate. The expression should be a standard MATLAB expression, within which the images should be referred to as i1, i2, i3,... etc.'};
 imcalc.prog = @spm_imcalc_ui;
 imcalc.vout = @vout;

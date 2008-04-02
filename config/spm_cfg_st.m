@@ -4,8 +4,9 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 1274 2008-03-28 16:22:43Z volkmar $
+% $Id: spm_cfg_st.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % scans Session
 % ---------------------------------------------------------------------
@@ -23,7 +24,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'Subjects or sessions. The same parameters specified below will be applied to all sessions.'};
-generic.values  = { scans};
+generic.values  = {scans };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % nslices Number of Slices
@@ -101,7 +102,7 @@ prefix.num     = [1 Inf];
 st         = cfg_exbranch;
 st.tag     = 'st';
 st.name    = 'Slice Timing';
-st.val     = { generic nslices tr ta so refslice prefix};
+st.val     = {generic nslices tr ta so refslice prefix };
 st.help    = {
               'Correct differences in image acquisition time between slices. Slice-time corrected files are prepended with an ''a''.'
               ''

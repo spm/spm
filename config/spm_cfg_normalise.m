@@ -4,8 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 1274 2008-03-28 16:22:43Z volkmar $
+% $Id: spm_cfg_normalise.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -33,7 +34,7 @@ wtsrc.num     = [0 1];
 subj         = cfg_branch;
 subj.tag     = 'subj';
 subj.name    = 'Subject';
-subj.val     = { source wtsrc};
+subj.val     = {source wtsrc };
 subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
 % ---------------------------------------------------------------------
 % generic Data
@@ -42,7 +43,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'List of subjects. Images of each subject should be warped differently.'};
-generic.values  = { subj};
+generic.values  = {subj };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % template Template Image
@@ -143,7 +144,7 @@ reg.num     = [1 1];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { template weight smosrc smoref regtype cutoff nits reg};
+eoptions.val     = {template weight smosrc smoref regtype cutoff nits reg };
 eoptions.help    = {'Various settings for estimating warps.'};
 % ---------------------------------------------------------------------
 % est Normalise: Estimate
@@ -151,7 +152,7 @@ eoptions.help    = {'Various settings for estimating warps.'};
 est         = cfg_exbranch;
 est.tag     = 'est';
 est.name    = 'Normalise: Estimate';
-est.val     = { generic eoptions};
+est.val     = {generic eoptions };
 est.help    = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to a file imagename''_sn.mat''.'};
 est.prog = @spm_run_normalise_estimate;
 est.vout = @vout_estimate;
@@ -181,7 +182,7 @@ resample.num     = [1 Inf];
 subj         = cfg_branch;
 subj.tag     = 'subj';
 subj.name    = 'Subject';
-subj.val     = { matname resample};
+subj.val     = {matname resample };
 subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
 % ---------------------------------------------------------------------
 % generic Data
@@ -190,7 +191,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'List of subjects. Images of each subject should be warped differently.'};
-generic.values  = { subj};
+generic.values  = {subj };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % preserve Preserve
@@ -308,7 +309,7 @@ prefix.num     = [1 Inf];
 roptions         = cfg_branch;
 roptions.tag     = 'roptions';
 roptions.name    = 'Writing Options';
-roptions.val     = { preserve bb vox interp wrap prefix};
+roptions.val     = {preserve bb vox interp wrap prefix };
 roptions.help    = {'Various options for writing normalised images.'};
 % ---------------------------------------------------------------------
 % write Normalise: Write
@@ -316,7 +317,7 @@ roptions.help    = {'Various options for writing normalised images.'};
 write         = cfg_exbranch;
 write.tag     = 'write';
 write.name    = 'Normalise: Write';
-write.val     = { generic roptions};
+write.val     = {generic roptions };
 write.help    = {'Allows previously estimated warps (stored in imagename''_sn.mat'' files) to be applied to series of images.'};
 write.prog = @spm_run_normalise_write;
 write.vout = @vout_write;
@@ -357,7 +358,7 @@ resample.num     = [1 Inf];
 subj         = cfg_branch;
 subj.tag     = 'subj';
 subj.name    = 'Subject';
-subj.val     = { source wtsrc resample};
+subj.val     = {source wtsrc resample };
 subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
 % ---------------------------------------------------------------------
 % generic Data
@@ -366,7 +367,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'List of subjects. Images of each subject should be warped differently.'};
-generic.values  = { subj};
+generic.values  = {subj };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % template Template Image
@@ -467,7 +468,7 @@ reg.num     = [1 1];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { template weight smosrc smoref regtype cutoff nits reg};
+eoptions.val     = {template weight smosrc smoref regtype cutoff nits reg };
 eoptions.help    = {'Various settings for estimating warps.'};
 % ---------------------------------------------------------------------
 % preserve Preserve
@@ -585,7 +586,7 @@ prefix.num     = [1 Inf];
 roptions         = cfg_branch;
 roptions.tag     = 'roptions';
 roptions.name    = 'Writing Options';
-roptions.val     = { preserve bb vox interp wrap prefix};
+roptions.val     = {preserve bb vox interp wrap prefix };
 roptions.help    = {'Various options for writing normalised images.'};
 % ---------------------------------------------------------------------
 % estwrite Normalise: Estimate & Write
@@ -593,7 +594,7 @@ roptions.help    = {'Various options for writing normalised images.'};
 estwrite         = cfg_exbranch;
 estwrite.tag     = 'estwrite';
 estwrite.name    = 'Normalise: Estimate & Write';
-estwrite.val     = { generic eoptions roptions};
+estwrite.val     = {generic eoptions roptions };
 estwrite.help    = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to the file imagename''_sn.mat''. This option also allows the contents of the imagename''_sn.mat'' files to be applied to a series of images.'};
 estwrite.prog = @spm_run_normalise_estwrite;
 estwrite.vout = @vout_estwrite;
@@ -616,7 +617,7 @@ normalise.help    = {
                      ''
                      'All normalised *.img scans are written to the same subdirectory as the original *.img, prefixed with a ''w'' (i.e. w*.img).  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
 }';
-normalise.values  = { est write estwrite};
+normalise.values  = {est write estwrite };
 normalise.num     = [1 Inf];
 %------------------------------------------------------------------------
  

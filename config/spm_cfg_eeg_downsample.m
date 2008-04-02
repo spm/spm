@@ -4,8 +4,9 @@ function S = spm_cfg_eeg_downsample
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 1253 2008-03-26 21:28:33Z stefan $
+% $Id: spm_cfg_eeg_downsample.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';

@@ -4,8 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_cfg_fmri_est.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -49,22 +50,14 @@ Slices.help    = {'Enter Slice Numbers. This can be a single slice or multiple s
 Slices.strtype = 'e';
 Slices.num     = [Inf 1];
 % ---------------------------------------------------------------------
-% Volume Volume
-% ---------------------------------------------------------------------
-Volume         = cfg_const;
-Volume.tag     = 'Volume';
-Volume.name    = 'Volume';
-Volume.val{1} = double(1);
-Volume.help    = {'You have selected the Volume option. SPM will analyse fMRI time series in all slices of each volume.'};
-% ---------------------------------------------------------------------
 % space Analysis Space
 % ---------------------------------------------------------------------
 space         = cfg_choice;
 space.tag     = 'space';
 space.name    = 'Analysis Space';
-space.val     = { Volume};
+space.val     = {Volume };
 space.help    = {'Because estimation can be time consuming an option is provided to analyse selected slices rather than the whole volume.'};
-space.values  = { Volume Slices};
+space.values  = {Volume Slices };
 % ---------------------------------------------------------------------
 % signal Signal priors
 % ---------------------------------------------------------------------
@@ -148,25 +141,17 @@ Robust.name    = 'Robust';
 Robust.val{1} = double(1);
 Robust.help    = {'Robust GLM. Uses Mixture of Gaussians noise model.'};
 % ---------------------------------------------------------------------
-% GMRF GMRF
-% ---------------------------------------------------------------------
-GMRF         = cfg_const;
-GMRF.tag     = 'GMRF';
-GMRF.name    = 'GMRF';
-GMRF.val{1} = double(1);
-GMRF.help    = {'[GMRF] Gaussian Markov Random Field. This is the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
-% ---------------------------------------------------------------------
 % noise Noise priors
 % ---------------------------------------------------------------------
 noise         = cfg_choice;
 noise.tag     = 'noise';
 noise.name    = 'Noise priors';
-noise.val     = { GMRF};
+noise.val     = {GMRF };
 noise.help    = {
                  'There are four noise prior options here (1) GMRF, (2) LORETA '
                  '(3) Tissue-type and (4) Robust'
 }';
-noise.values  = { GMRF LORETA tissue_type Robust};
+noise.values  = {GMRF LORETA tissue_type Robust };
 % ---------------------------------------------------------------------
 % first First level
 % ---------------------------------------------------------------------
@@ -217,7 +202,7 @@ second.values = {
 anova         = cfg_branch;
 anova.tag     = 'anova';
 anova.name    = 'ANOVA';
-anova.val     = { first second};
+anova.val     = {first second };
 anova.help    = {'Perform 1st or 2nd level Analysis of Variance.'};
 % ---------------------------------------------------------------------
 % name Name
@@ -243,7 +228,7 @@ convec.num     = [Inf 1];
 gcon         = cfg_branch;
 gcon.tag     = 'gcon';
 gcon.name    = 'Simple contrast';
-gcon.val     = { name convec};
+gcon.val     = {name convec };
 gcon.help    = {''};
 % ---------------------------------------------------------------------
 % generic Simple contrasts
@@ -260,7 +245,7 @@ generic.help    = {
                    '                                                                                                            '
                    'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. '
 }';
-generic.values  = { gcon};
+generic.values  = {gcon };
 generic.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % Bayesian Bayesian 1st-level
@@ -268,7 +253,7 @@ generic.num     = [0 Inf];
 Bayesian         = cfg_branch;
 Bayesian.tag     = 'Bayesian';
 Bayesian.name    = 'Bayesian 1st-level';
-Bayesian.val     = { space signal ARP noise anova generic};
+Bayesian.val     = {space signal ARP noise anova generic };
 Bayesian.help    = {
                     'Model parameters are estimated using Variational Bayes (VB). This allows you to specify spatial priors for regression coefficients and regularised voxel-wise AR(P) models for fMRI noise processes. The algorithm does not require functional images to be spatially smoothed. Estimation will take about 5 times longer than with the classical approach. This is why VB is not the default estimation option. '
                     '                                                                                                            '
@@ -285,37 +270,25 @@ Bayesian2.name    = 'Bayesian 2nd-level';
 Bayesian2.val{1} = double(1);
 Bayesian2.help    = {'Bayesian estimation of 2nd level models. This option uses the Empirical Bayes algorithm with global shrinkage priors that was previously implemented in SPM2. Use of the global shrinkage prior embodies a prior belief that, on average over all voxels, there is no net experimental effect. Some voxels will respond negatively and some positively with a variability determined by the prior precision. This prior precision can be estimated from the data using Empirical Bayes. '};
 % ---------------------------------------------------------------------
-% Classical Classical
-% ---------------------------------------------------------------------
-Classical         = cfg_const;
-Classical.tag     = 'Classical';
-Classical.name    = 'Classical';
-Classical.val{1} = double(1);
-Classical.help    = {
-                     'Model parameters are estimated using Restricted Maximum Likelihood (ReML). This assumes the error correlation structure is the same at each voxel. This correlation can be specified using either an AR(1) or an Independent and Identically Distributed (IID) error model. These options are chosen at the model specification stage. ReML estimation should be applied to spatially smoothed functional images.'
-                     '                                                                                                            '
-                     'After estimation, specific profiles of parameters are tested using a linear compound or contrast with the T or F statistic. The resulting statistical map constitutes an SPM. The SPM{T}/{F} is then characterised in terms of focal or regional differences by assuming that (under the null hypothesis) the components of the SPM (ie. residual fields) behave as smooth stationary Gaussian fields.'
-}';
-% ---------------------------------------------------------------------
 % method Method
 % ---------------------------------------------------------------------
 method         = cfg_choice;
 method.tag     = 'method';
 method.name    = 'Method';
-method.val     = { Classical};
+method.val     = {Classical };
 method.help    = {
                   'There are three possible estimation procedures for fMRI models (1) classical (ReML) estimation of first or second level models, (2) Bayesian estimation of first level models and (3) Bayesian estimation of second level models. Option (2) uses a Variational Bayes (VB) algorithm that is new to SPM5. Option (3) uses the Empirical Bayes algorithm with global shrinkage priors that was also in SPM2. '
                   '                                                                                                            '
                   'To use option (3) you must have already estimated the model using option (1). That is, for second-level models you must run a ReML estimation before running a Bayesian estimation. This is not necessary for option (2). Bayesian estimation of 1st-level models using VB does not require a prior ReML estimation.'
 }';
-method.values  = { Classical Bayesian Bayesian2};
+method.values  = {Classical Bayesian Bayesian2 };
 % ---------------------------------------------------------------------
 % fmri_est Model estimation
 % ---------------------------------------------------------------------
 fmri_est         = cfg_exbranch;
 fmri_est.tag     = 'fmri_est';
 fmri_est.name    = 'Model estimation';
-fmri_est.val     = { spmmat method};
+fmri_est.val     = {spmmat method };
 fmri_est.help    = {'Model parameters can be estimated using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. After parameter estimation, the RESULTS button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.'};
 fmri_est.prog = @spm_run_fmri_est;
 fmri_est.vout = @vout_stats;

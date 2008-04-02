@@ -4,8 +4,9 @@ function defs = spm_cfg_defs
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_defs.m 1264 2008-03-28 11:11:21Z volkmar $
+% $Id: spm_cfg_defs.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % matname Parameter File
 % ---------------------------------------------------------------------

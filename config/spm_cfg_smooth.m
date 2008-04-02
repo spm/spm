@@ -4,8 +4,9 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_smooth.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -64,7 +65,7 @@ prefix.num     = [1 Inf];
 smooth         = cfg_exbranch;
 smooth.tag     = 'smooth';
 smooth.name    = 'Smooth';
-smooth.val     = { data fwhm dtype prefix};
+smooth.val     = {data fwhm dtype prefix };
 smooth.help    = {'This is for smoothing (or convolving) image volumes with a Gaussian kernel of a specified width. It is used as a preprocessing step to suppress noise and effects due to residual differences in functional and gyral anatomy during inter-subject averaging.'};
 smooth.prog = @spm_run_smooth;
 smooth.vout = @vout;

@@ -4,8 +4,9 @@ function reorient = spm_cfg_reorient
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_reorient.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_reorient.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % srcfiles Images to reorient
 % ---------------------------------------------------------------------
@@ -17,7 +18,7 @@ srcfiles.filter = 'image';
 srcfiles.ufilter = '.*';
 srcfiles.num     = [0 Inf];
 % ---------------------------------------------------------------------
-% transM Reorientation matrix
+% transM Reorientation Matrix
 % ---------------------------------------------------------------------
 transM         = cfg_entry;
 transM.tag     = 'transM';
@@ -32,7 +33,7 @@ transM.help    = {
 transM.strtype = 'e';
 transM.num     = [4 4];
 % ---------------------------------------------------------------------
-% transprm Reorientation parameters
+% transprm Reorientation Parameters
 % ---------------------------------------------------------------------
 transprm         = cfg_entry;
 transprm.tag     = 'transprm';
@@ -61,36 +62,21 @@ transprm.help    = {
 transprm.strtype = 'e';
 transprm.num     = [1 12];
 % ---------------------------------------------------------------------
-% transM Reorientation matrix
-% ---------------------------------------------------------------------
-transM         = cfg_entry;
-transM.tag     = 'transM';
-transM.name    = 'Reorientation Matrix';
-transM.help    = {
-                  'Enter a valid 4x4 matrix for reorientation.'
-                  ''
-                  'Example: This will L-R flip the images.'
-                  ''
-                  '   -1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1'
-}';
-transM.strtype = 'e';
-transM.num     = [4 4];
-% ---------------------------------------------------------------------
 % transform Reorient by
 % ---------------------------------------------------------------------
 transform         = cfg_choice;
 transform.tag     = 'transform';
 transform.name    = 'Reorient by';
-transform.val     = { transM};
+transform.val     = {transM };
 transform.help    = {'Specify reorientation method.'};
-transform.values  = { transM transprm};
+transform.values  = {transM transprm };
 % ---------------------------------------------------------------------
-% reorient Reorient images
+% reorient Reorient Images
 % ---------------------------------------------------------------------
 reorient         = cfg_exbranch;
 reorient.tag     = 'reorient';
 reorient.name    = 'Reorient Images';
-reorient.val     = { srcfiles transform};
+reorient.val     = {srcfiles transform };
 reorient.help    = {'This facility allows to reorient images in a batch. The reorientation parameters can be given either as a 4x4 matrix or as parameters as defined for spm_matrix.m. The new image orientation will be computed by PRE-multiplying the original orientation matrix with the supplied matrix.'};
 reorient.prog = @spm_run_reorient;
 reorient.vout = @vout;

@@ -4,8 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -36,7 +37,7 @@ pmscan.num     = [0 1];
 data         = cfg_branch;
 data.tag     = 'data';
 data.name    = 'Session';
-data.val     = { scans pmscan};
+data.val     = {scans pmscan };
 data.help    = {
                 'Only add similar session data to a realign+unwarp branch, i.e., choose Data or Data+phase map for all sessions, but don''t use them interchangeably.'
                 ''
@@ -49,7 +50,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'Data sessions to unwarp.'};
-generic.values  = { data};
+generic.values  = {data };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % quality Quality
@@ -188,7 +189,7 @@ weight.num     = [0 1];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { quality sep fwhm rtm einterp ewrap weight};
+eoptions.val     = {quality sep fwhm rtm einterp ewrap weight };
 eoptions.help    = {'Various registration options that could be modified to improve the results. Whenever possible, the authors of SPM try to choose reasonable settings, but sometimes they can be improved.'};
 % ---------------------------------------------------------------------
 % basfcn Basis Functions
@@ -365,7 +366,7 @@ expround.values = {
 uweoptions         = cfg_branch;
 uweoptions.tag     = 'uweoptions';
 uweoptions.name    = 'Unwarp Estimation Options';
-uweoptions.val     = { basfcn regorder lambda jm fot sot uwfwhm rem noi expround};
+uweoptions.val     = {basfcn regorder lambda jm fot sot uwfwhm rem noi expround };
 uweoptions.help    = {'Various registration & unwarping estimation options.'};
 % ---------------------------------------------------------------------
 % uwwhich Reslices images (unwarp)?
@@ -478,7 +479,7 @@ prefix.num     = [1 Inf];
 uwroptions         = cfg_branch;
 uwroptions.tag     = 'uwroptions';
 uwroptions.name    = 'Unwarp Reslicing Options';
-uwroptions.val     = { uwwhich rinterp wrap mask prefix};
+uwroptions.val     = {uwwhich rinterp wrap mask prefix };
 uwroptions.help    = {'Various registration & unwarping estimation options.'};
 % ---------------------------------------------------------------------
 % realignunwarp Realign & Unwarp
@@ -486,7 +487,7 @@ uwroptions.help    = {'Various registration & unwarping estimation options.'};
 realignunwarp         = cfg_exbranch;
 realignunwarp.tag     = 'realignunwarp';
 realignunwarp.name    = 'Realign & Unwarp';
-realignunwarp.val     = { generic eoptions uweoptions uwroptions};
+realignunwarp.val     = {generic eoptions uweoptions uwroptions };
 realignunwarp.help    = {
                          'Within-subject registration and unwarping of time series.'
                          ''

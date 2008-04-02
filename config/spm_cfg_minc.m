@@ -4,8 +4,9 @@ function minc = spm_cfg_minc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_minc.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_minc.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data MINC files
 % ---------------------------------------------------------------------
@@ -58,7 +59,7 @@ ext.values = {
 opts         = cfg_branch;
 opts.tag     = 'opts';
 opts.name    = 'Options';
-opts.val     = { dtype ext};
+opts.val     = {dtype ext };
 opts.help    = {'Conversion options'};
 % ---------------------------------------------------------------------
 % minc MINC Import
@@ -66,7 +67,7 @@ opts.help    = {'Conversion options'};
 minc         = cfg_exbranch;
 minc.tag     = 'minc';
 minc.name    = 'MINC Import';
-minc.val     = { data opts};
+minc.val     = {data opts };
 minc.help    = {'MINC Conversion.  MINC is the image data format used for exchanging data within the ICBM community, and the format used by the MNI software tools. It is based on NetCDF, but due to be superceded by a new version relatively soon. MINC is no longer supported for reading images into SPM, so MINC files need to be converted to NIFTI format in order to use them. See http://www.bic.mni.mcgill.ca/software/ for more information.'};
 minc.prog = @spm_run_minc;
 minc.vout = @vout;

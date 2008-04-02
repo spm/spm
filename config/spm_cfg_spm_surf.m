@@ -4,8 +4,9 @@ function spm_surf_node = spm_cfg_spm_surf
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_spm_surf.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_spm_surf.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data Grey+white matter image
 % ---------------------------------------------------------------------
@@ -23,6 +24,7 @@ mode         = cfg_menu;
 mode.tag     = 'mode';
 mode.name    = 'Output';
 mode.val{1} = double(3);
+mode.help    = {''};
 mode.labels = {
                'Save Rendering'
                'Save Extracted Surface'
@@ -50,6 +52,7 @@ spm_surf_node         = cfg_exbranch;
 spm_surf_node.tag     = 'spm_surf';
 spm_surf_node.name    = 'Create Rendering/Surface';
 spm_surf_node.val     = { data mode thresh};
+spm_surf_node.help    = {''};
 spm_surf_node.prog = @spm_surf;
 spm_surf_node.vout = @vout_surf;
 % ---------------------------------------------------------------------

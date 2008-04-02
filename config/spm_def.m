@@ -17,7 +17,7 @@ function spmjobs = spm_def
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_def.m 1213 2008-03-14 20:03:45Z volkmar $
+% $Id: spm_def.m 1292 2008-04-02 14:17:31Z volkmar $
 
 spm_defaults;
 global defaults;
@@ -165,7 +165,7 @@ spmjobs.stats.fmri_spec.timing.RT = '<UNDEFINED>';
 spmjobs.stats.fmri_spec.timing.fmri_t = double(16);
 spmjobs.stats.fmri_spec.timing.fmri_t0 = double(1);
 spmjobs.stats.fmri_spec.sess.scans = '<UNDEFINED>';
-spmjobs.stats.fmri_spec.sess.cond.name = 'Param';
+spmjobs.stats.fmri_spec.sess.cond.name = 'Trial';
 spmjobs.stats.fmri_spec.sess.cond.onset = '<UNDEFINED>';
 spmjobs.stats.fmri_spec.sess.cond.duration = '<UNDEFINED>';
 spmjobs.stats.fmri_spec.sess.cond.tmod = double(0);
@@ -198,7 +198,7 @@ spmjobs.stats.fmri_design.timing.RT = '<UNDEFINED>';
 spmjobs.stats.fmri_design.timing.fmri_t = double(16);
 spmjobs.stats.fmri_design.timing.fmri_t0 = double(1);
 spmjobs.stats.fmri_design.sess.nscan = '<UNDEFINED>';
-spmjobs.stats.fmri_design.sess.cond.name = 'Param';
+spmjobs.stats.fmri_design.sess.cond.name = 'Trial';
 spmjobs.stats.fmri_design.sess.cond.onset = '<UNDEFINED>';
 spmjobs.stats.fmri_design.sess.cond.duration = '<UNDEFINED>';
 spmjobs.stats.fmri_design.sess.cond.tmod = double(0);

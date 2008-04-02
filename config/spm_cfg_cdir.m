@@ -4,8 +4,9 @@ function cdir = spm_cfg_cdir
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_cdir.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_cdir.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % directory Select a directory
 % ---------------------------------------------------------------------
@@ -17,17 +18,17 @@ directory.filter = 'dir';
 directory.ufilter = '.*';
 directory.num     = [1 1];
 % ---------------------------------------------------------------------
-% cdir Change Directory
+% cdir Change Directory (Deprecated)
 % ---------------------------------------------------------------------
 cdir         = cfg_exbranch;
 cdir.tag     = 'cdir';
 cdir.name    = 'Change Directory (Deprecated)';
-cdir.val     = { directory};
-cdir.help    = {'This module is deprecated and has been moved to BasicIO.',...
-                ['Jobs which are ready to run may continue using it, but ' ...
-                 'the module inputs can not be changed via GUI. ' ...
-                 'Please switch to the BasicIO module instead.'], ...
-                'This facilty allows programming a directory change. Directories are selected in the right listbox.'};
+cdir.val     = {directory };
+cdir.help    = {
+                'This module is deprecated and has been moved to BasicIO.'
+                'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the BasicIO module instead.'
+                'This facilty allows programming a directory change. Directories are selected in the right listbox.'
+}';
 cdir.prog = @my_job_cd;
 cdir.hidden = true;
 %------------------------------------------------------------------------

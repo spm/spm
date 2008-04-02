@@ -4,8 +4,9 @@ function movefile = spm_cfg_movefile
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_movefile.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_movefile.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % srcfiles Files to move
 % ---------------------------------------------------------------------
@@ -27,20 +28,19 @@ targetdir.filter = 'dir';
 targetdir.ufilter = '.*';
 targetdir.num     = [1 1];
 % ---------------------------------------------------------------------
-% movefile Move Files
+% movefile Move Files (Deprecated)
 % ---------------------------------------------------------------------
 movefile         = cfg_exbranch;
 movefile.tag     = 'movefile';
 movefile.name    = 'Move Files (Deprecated)';
-movefile.val     = { srcfiles targetdir};
-movefile.help    = {'This module is deprecated and has been moved to BasicIO.',...
-                    ['Jobs which are ready to run may continue using it, but ' ...
-                    'the module inputs can not be changed via GUI. ' ...
-                    'Please switch to the BasicIO module instead.'], ...
-                    'This facilty allows to move files in a batch. Note that moving files will not make them disappear from file selection lists. Therefore onehas to be careful not to select the original files after they have been programmed to be moved.',...
-                    '',...
+movefile.val     = {srcfiles targetdir };
+movefile.help    = {
+                    'This module is deprecated and has been moved to BasicIO.'
+                    'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the BasicIO module instead.'
+                    'This facilty allows to move files in a batch. Note that moving files will not make them disappear from file selection lists. Therefore onehas to be careful not to select the original files after they have been programmed to be moved.'
+                    ''
                     'If image files (.*img or .*nii) are selected, corresponding hdr or mat files will be moved as well, if they exist.'
-}';
+};
 movefile.prog = @my_movefile;
 movefile.vfiles = @vfiles_movefile;
 movefile.hidden = true;

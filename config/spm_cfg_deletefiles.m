@@ -4,8 +4,9 @@ function deletefiles = spm_cfg_deletefiles
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_deletefiles.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_deletefiles.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % deletefiles Files to delete
 % ---------------------------------------------------------------------
@@ -17,20 +18,19 @@ deletefiles1.filter = '.*';
 deletefiles1.ufilter = '.*';
 deletefiles1.num     = [0 Inf];
 % ---------------------------------------------------------------------
-% deletefiles Delete Files
+% deletefiles Delete Files (Deprecated)
 % ---------------------------------------------------------------------
 deletefiles         = cfg_exbranch;
 deletefiles.tag     = 'deletefiles';
 deletefiles.name    = 'Delete Files (Deprecated)';
 deletefiles.val     = {deletefiles1 };
-deletefiles.help    = {'This module is deprecated and has been moved to BasicIO.',...
-                    ['Jobs which are ready to run may continue using it, but ' ...
-                    'the module inputs can not be changed via GUI. ' ...
-                    'Please switch to the BasicIO module instead.'], ...
-                    'This facilty allows to delete files in a batch. Note that deleting files will not make them disappear from file selection lists. Therefore one has to be careful not to select the original files after they have been programmed to be deleted.',...
-                       '',...
+deletefiles.help    = {
+                       'This module is deprecated and has been moved to BasicIO.'
+                       'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the BasicIO module instead.'
+                       'This facilty allows to delete files in a batch. Note that deleting files will not make them disappear from file selection lists. Therefore one has to be careful not to select the original files after they have been programmed to be deleted.'
+                       ''
                        'If image files (.img or .nii) are selected, corresponding .hdr or .mat files will be deleted as well, if they exist.'
-}';
+};
 deletefiles.prog = @my_deletefiles;
 deletefiles.hidden = true;
 %------------------------------------------------------------------------

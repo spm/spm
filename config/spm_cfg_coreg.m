@@ -4,8 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_coreg.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -93,7 +94,7 @@ fwhm.num     = [1 2];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { cost_fun sep tol fwhm};
+eoptions.val     = {cost_fun sep tol fwhm };
 eoptions.help    = {'Various registration options, which are passed to the Powell optimisation algorithm/* \cite{press92}*/.'};
 % ---------------------------------------------------------------------
 % estimate Coreg: Estimate
@@ -101,7 +102,7 @@ eoptions.help    = {'Various registration options, which are passed to the Powel
 estimate         = cfg_exbranch;
 estimate.tag     = 'estimate';
 estimate.name    = 'Coreg: Estimate';
-estimate.val     = { ref source other eoptions};
+estimate.val     = {ref source other eoptions };
 estimate.help    = {
                     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
                     ''
@@ -217,7 +218,7 @@ prefix.num     = [1 Inf];
 roptions         = cfg_branch;
 roptions.tag     = 'roptions';
 roptions.name    = 'Reslice Options';
-roptions.val     = { interp wrap mask prefix};
+roptions.val     = {interp wrap mask prefix };
 roptions.help    = {'Various reslicing options.'};
 % ---------------------------------------------------------------------
 % write Coreg: Reslice
@@ -225,7 +226,7 @@ roptions.help    = {'Various reslicing options.'};
 write         = cfg_exbranch;
 write.tag     = 'write';
 write.name    = 'Coreg: Reslice';
-write.val     = { ref source roptions};
+write.val     = {ref source roptions };
 write.help    = {'Reslice images to match voxel-for-voxel with an image defining some space. The resliced images are named the same as the originals except that they are prefixed by ''r''.'};
 write.prog = @spm_run_coreg_reslice;
 write.vout = @vout_reslice;
@@ -316,7 +317,7 @@ fwhm.num     = [1 2];
 eoptions         = cfg_branch;
 eoptions.tag     = 'eoptions';
 eoptions.name    = 'Estimation Options';
-eoptions.val     = { cost_fun sep tol fwhm};
+eoptions.val     = {cost_fun sep tol fwhm };
 eoptions.help    = {'Various registration options, which are passed to the Powell optimisation algorithm/* \cite{press92}*/.'};
 % ---------------------------------------------------------------------
 % interp Interpolation
@@ -404,7 +405,7 @@ prefix.num     = [1 Inf];
 roptions         = cfg_branch;
 roptions.tag     = 'roptions';
 roptions.name    = 'Reslice Options';
-roptions.val     = { interp wrap mask prefix};
+roptions.val     = {interp wrap mask prefix };
 roptions.help    = {'Various reslicing options.'};
 % ---------------------------------------------------------------------
 % estwrite Coreg: Estimate & Reslice
@@ -412,7 +413,7 @@ roptions.help    = {'Various reslicing options.'};
 estwrite         = cfg_exbranch;
 estwrite.tag     = 'estwrite';
 estwrite.name    = 'Coreg: Estimate & Reslice';
-estwrite.val     = { ref source other eoptions roptions};
+estwrite.val     = {ref source other eoptions roptions };
 estwrite.help    = {
                     'The registration method used here is based on work by Collignon et al/* \cite{collignon95}*/. The original interpolation method described in this paper has been changed in order to give a smoother cost function.  The images are also smoothed slightly, as is the histogram.  This is all in order to make the cost function as smooth as possible, to give faster convergence and less chance of local minima.'
                     ''
@@ -433,7 +434,7 @@ coreg.help    = {
                  ''
                  'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
 }';
-coreg.values  = { estimate write estwrite};
+coreg.values  = {estimate write estwrite };
 coreg.num     = [1 Inf];
 %------------------------------------------------------------------------
 

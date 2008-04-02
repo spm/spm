@@ -4,8 +4,9 @@ function disp = spm_cfg_disp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_disp.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_disp.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data Image to Display
 % ---------------------------------------------------------------------
@@ -22,7 +23,7 @@ data.num     = [1 1];
 disp         = cfg_exbranch;
 disp.tag     = 'disp';
 disp.name    = 'Display Image';
-disp.val     = { data};
+disp.val     = {data };
 disp.help    = {
                 'This is an interactive facility that allows orthogonal sections from an image volume to be displayed.  Clicking the cursor on either of the three images moves the point around which the orthogonal sections are viewed.  The co-ordinates of the cursor are shown both in voxel co-ordinates and millimetres within some fixed framework. The intensity at that point in the image (sampled using the current interpolation scheme) is also given. The position of the cross-hairs can also be moved by specifying the co-ordinates in millimetres to which they should be moved.  Clicking on the horizontal bar above these boxes will move the cursor back to the origin  (analogous to setting the cross-hair position (in mm) to [0 0 0]).'
                 ''

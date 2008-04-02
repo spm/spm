@@ -4,8 +4,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 1274 2008-03-28 16:22:43Z volkmar $
+% $Id: spm_cfg_con.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -63,7 +64,7 @@ sessrep.values = {
 tcon         = cfg_branch;
 tcon.tag     = 'tcon';
 tcon.name    = 'T-contrast';
-tcon.val     = { name convec sessrep};
+tcon.val     = {name convec sessrep };
 tcon.help    = {
                 '* Simple one-dimensional contrasts for an SPM{T}'
                 ''
@@ -100,7 +101,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Contrast vectors';
 generic.help    = {'F contrasts are defined by a series of vectors.'};
-generic.values  = { convec};
+generic.values  = {convec };
 generic.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % sessrep Replicate over sessions
@@ -131,7 +132,7 @@ sessrep.values = {
 fcon         = cfg_branch;
 fcon.tag     = 'fcon';
 fcon.name    = 'F-contrast';
-fcon.val     = { name generic sessrep};
+fcon.val     = {name generic sessrep };
 fcon.help    = {
                 '* Linear constraining matrices for an SPM{F}'
                 ''
@@ -283,7 +284,8 @@ colmodord.num     = [1 1];
 colconds         = cfg_branch;
 colconds.tag     = 'colconds';
 colconds.name    = 'Contrast entry';
-colconds.val     = { conweight colcond colbf colmod colmodord};
+colconds.val     = {conweight colcond colbf colmod colmodord };
+colconds.help    = {''};
 % ---------------------------------------------------------------------
 % generic T contrast for conditions
 % ---------------------------------------------------------------------
@@ -291,7 +293,7 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'T contrast for conditions';
 generic.help    = {'Assemble your contrast column by column.'};
-generic.values  = { colconds};
+generic.values  = {colconds };
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % colreg T contrast for extra regressors
@@ -303,79 +305,14 @@ colreg.help    = {'Enter T contrast vector for extra regressors.'};
 colreg.strtype = 'e';
 colreg.num     = [1 Inf];
 % ---------------------------------------------------------------------
-% conweight Contrast weight
-% ---------------------------------------------------------------------
-conweight         = cfg_entry;
-conweight.tag     = 'conweight';
-conweight.name    = 'Contrast weight';
-conweight.help    = {'The contrast weight for the selected column.'};
-conweight.strtype = 'e';
-conweight.num     = [1 1];
-% ---------------------------------------------------------------------
-% colcond Condition #
-% ---------------------------------------------------------------------
-colcond         = cfg_entry;
-colcond.tag     = 'colcond';
-colcond.name    = 'Condition #';
-colcond.help    = {'Select which condition function set is to be contrasted.'};
-colcond.strtype = 'e';
-colcond.num     = [1 1];
-% ---------------------------------------------------------------------
-% colbf Basis function #
-% ---------------------------------------------------------------------
-colbf         = cfg_entry;
-colbf.tag     = 'colbf';
-colbf.name    = 'Basis function #';
-colbf.help    = {'Select which basis function from the basis function set is to be contrasted.'};
-colbf.strtype = 'e';
-colbf.num     = [1 1];
-% ---------------------------------------------------------------------
-% colmod Parametric modulation #
-% ---------------------------------------------------------------------
-colmod         = cfg_entry;
-colmod.tag     = 'colmod';
-colmod.name    = 'Parametric modulation #';
-colmod.help    = {'Select which parametric modulation is to be contrasted. If there is no time/parametric modulation, enter "1". If there are both time and parametric modulations, then time modulation comes before parametric modulation.'};
-colmod.strtype = 'e';
-colmod.num     = [1 1];
-% ---------------------------------------------------------------------
-% colmodord Parametric modulation order
-% ---------------------------------------------------------------------
-colmodord         = cfg_entry;
-colmodord.tag     = 'colmodord';
-colmodord.name    = 'Parametric modulation order';
-colmodord.help    = {
-                     'Order of parametric modulation to be contrasted. '
-                     ''
-                     '0 - the basis function itself, 1 - 1st order mod etc'
-}';
-colmodord.strtype = 'e';
-colmodord.num     = [1 1];
-% ---------------------------------------------------------------------
-% colconds Contrast entry
-% ---------------------------------------------------------------------
-colconds         = cfg_branch;
-colconds.tag     = 'colconds';
-colconds.name    = 'Contrast entry';
-colconds.val     = { conweight colcond colbf colmod colmodord};
-% ---------------------------------------------------------------------
-% generic T contrast for conditions
-% ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'T contrast for conditions';
-generic.help    = {'Assemble your contrast column by column.'};
-generic.values  = { colconds};
-generic.num     = [1 Inf];
-% ---------------------------------------------------------------------
 % coltype Contrast columns
 % ---------------------------------------------------------------------
 coltype         = cfg_choice;
 coltype.tag     = 'coltype';
 coltype.name    = 'Contrast columns';
-coltype.val     = { generic};
+coltype.val     = {generic };
 coltype.help    = {'Contrasts can be specified either over conditions or over extra regressors.'};
-coltype.values  = { generic colreg};
+coltype.values  = {generic colreg };
 % ---------------------------------------------------------------------
 % sessions Session(s)
 % ---------------------------------------------------------------------
@@ -391,7 +328,7 @@ sessions.num     = [1 Inf];
 tconsess         = cfg_branch;
 tconsess.tag     = 'tconsess';
 tconsess.name    = 'T-contrast (cond/sess based)';
-tconsess.val     = { name coltype sessions};
+tconsess.val     = {name coltype sessions };
 tconsess.help    = {
                     'Define a contrast in terms of conditions or regressors instead of columns of the design matrix. This allows to create contrasts automatically even if some columns are not always present (e.g. parametric modulations).'
                     ''
@@ -476,7 +413,7 @@ consess.help    = {
                    ''
                    'For an F-contrast, SPM (spm_getSPM.m) writes the Extra Sum-of-Squares (the difference in the residual sums of squares for the full and reduced model) as ess_????.{img,nii}. (Note that the ess_????.{img,nii} and SPM{T,F}_????.{img,nii} images are not suitable input for a higher level analysis.)'
 }';
-consess.values  = { tcon fcon tconsess};
+consess.values  = {tcon fcon tconsess };
 consess.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % delete Delete existing contrasts
@@ -485,6 +422,7 @@ delete         = cfg_menu;
 delete.tag     = 'delete';
 delete.name    = 'Delete existing contrasts';
 delete.val{1} = double(0);
+delete.help    = {''};
 delete.labels = {
                  'Yes'
                  'No'
@@ -497,7 +435,7 @@ delete.values{2} = double(0);
 con         = cfg_exbranch;
 con.tag     = 'con';
 con.name    = 'Contrast Manager';
-con.val     = { spmmat consess delete};
+con.val     = {spmmat consess delete };
 con.help    = {'Set up T and F contrasts.'};
 con.prog    = @spm_run_con;
 con.vout    = @vout_stats;

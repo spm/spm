@@ -4,8 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1264 2008-03-28 11:11:21Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -669,6 +670,7 @@ fsubject.help    = {'Enter data and conditions for a new subject'};
 generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Subjects';
+generic1.help    = {''};
 generic1.values  = {fsubject };
 generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -706,47 +708,13 @@ specall.help    = {
                    'So, for eg. a two-factor design the first column denotes the replication number and columns two and three have entries like 2 3 denoting the 2nd level of the first factor and 3rd level of the second factor. The 4th column in I would contain all 1s.'
 }';
 % ---------------------------------------------------------------------
-% scans Scans
-% ---------------------------------------------------------------------
-scans         = cfg_files;
-scans.tag     = 'scans';
-scans.name    = 'Scans';
-scans.help    = {'Select the images to be analysed.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
-scans.ufilter = '.*';
-scans.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% conds Conditions
-% ---------------------------------------------------------------------
-conds         = cfg_entry;
-conds.tag     = 'conds';
-conds.name    = 'Conditions';
-conds.help    = {''};
-conds.strtype = 'e';
-conds.num     = [Inf Inf];
-% ---------------------------------------------------------------------
-% fsubject Subject
-% ---------------------------------------------------------------------
-fsubject         = cfg_branch;
-fsubject.tag     = 'fsubject';
-fsubject.name    = 'Subject';
-fsubject.val     = {scans conds };
-fsubject.help    = {'Enter data and conditions for a new subject'};
-% ---------------------------------------------------------------------
-% generic Subjects
-% ---------------------------------------------------------------------
-generic1         = cfg_repeat;
-generic1.tag     = 'generic';
-generic1.name    = 'Subjects';
-generic1.values  = {fsubject };
-generic1.num     = [1 Inf];
-% ---------------------------------------------------------------------
 % fsuball Specify Subjects or all Scans & Factors
 % ---------------------------------------------------------------------
 fsuball         = cfg_choice;
 fsuball.tag     = 'fsuball';
 fsuball.name    = 'Specify Subjects or all Scans & Factors';
 fsuball.val     = {generic1 };
+fsuball.help    = {''};
 fsuball.values  = {generic1 specall };
 % ---------------------------------------------------------------------
 % fnum Factor number
@@ -788,6 +756,7 @@ inter.help    = {'Add an interaction to your design matrix'};
 maininters         = cfg_repeat;
 maininters.tag     = 'maininters';
 maininters.name    = 'Main effects & Interactions';
+maininters.help    = {''};
 maininters.values  = {fmain inter };
 maininters.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -809,24 +778,6 @@ fblock.help    = {
                   'Thirdly, the design matrix is built up a block at a time. Each block can be a main effect or a (two-way) interaction. '
                   '                                                                                                            '
 }';
-% ---------------------------------------------------------------------
-% scans Scans
-% ---------------------------------------------------------------------
-scans         = cfg_files;
-scans.tag     = 'scans';
-scans.name    = 'Scans';
-scans.help    = {'Select the images.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
-scans.ufilter = '.*';
-scans.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% t1 One-sample t-test
-% ---------------------------------------------------------------------
-t1         = cfg_branch;
-t1.tag     = 't1';
-t1.name    = 'One-sample t-test';
-t1.val     = {scans };
-t1.help    = {''};
 % ---------------------------------------------------------------------
 % des Design
 % ---------------------------------------------------------------------
@@ -985,14 +936,6 @@ tmr.help    = {
                '                                                                                                            '
 }';
 % ---------------------------------------------------------------------
-% tm_none None
-% ---------------------------------------------------------------------
-tm_none         = cfg_const;
-tm_none.tag     = 'tm_none';
-tm_none.name    = 'None';
-tm_none.val{1} = double([]);
-tm_none.help    = {'No threshold masking'};
-% ---------------------------------------------------------------------
 % tm Threshold masking
 % ---------------------------------------------------------------------
 tm         = cfg_choice;
@@ -1102,14 +1045,6 @@ g_mean.help    = {
                   '                                                                                                            '
 }';
 % ---------------------------------------------------------------------
-% g_omit Omit
-% ---------------------------------------------------------------------
-g_omit         = cfg_const;
-g_omit.tag     = 'g_omit';
-g_omit.name    = 'Omit';
-g_omit.val{1} = double([]);
-g_omit.help    = {'Omit'};
-% ---------------------------------------------------------------------
 % globalc Global calculation
 % ---------------------------------------------------------------------
 globalc         = cfg_choice;
@@ -1155,14 +1090,6 @@ gmsca_yes.help    = {
                      'Scaling of the overall grand mean simply scales all the data by a common factor such that the mean of all the global values is the value specified. For qualitative data, this puts the data into an intuitively accessible scale without altering the statistics. '
                      '                                                                                                            '
 }';
-% ---------------------------------------------------------------------
-% gmsca_no No
-% ---------------------------------------------------------------------
-gmsca_no         = cfg_const;
-gmsca_no.tag     = 'gmsca_no';
-gmsca_no.name    = 'No';
-gmsca_no.val{1} = double([]);
-gmsca_no.help    = {'No overall grand mean scaling'};
 % ---------------------------------------------------------------------
 % gmsca Overall grand mean scaling
 % ---------------------------------------------------------------------

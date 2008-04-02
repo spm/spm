@@ -4,8 +4,9 @@ function ecat = spm_cfg_ecat
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_ecat.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_ecat.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data ECAT files
 % ---------------------------------------------------------------------
@@ -38,7 +39,7 @@ ext.values = {
 opts         = cfg_branch;
 opts.tag     = 'opts';
 opts.name    = 'Options';
-opts.val     = { ext};
+opts.val     = {ext };
 opts.help    = {'Conversion options'};
 % ---------------------------------------------------------------------
 % ecat ECAT Import
@@ -46,7 +47,7 @@ opts.help    = {'Conversion options'};
 ecat         = cfg_exbranch;
 ecat.tag     = 'ecat';
 ecat.name    = 'ECAT Import';
-ecat.val     = { data opts};
+ecat.val     = {data opts };
 ecat.help    = {'ECAT 7 Conversion.  ECAT 7 is the image data format used by the more recent CTI PET scanners.'};
 ecat.prog = @convert_ecat;
 ecat.modality = {'PET'};

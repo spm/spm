@@ -4,8 +4,9 @@ function runbatch = spm_cfg_runbatch
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_runbatch.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_runbatch.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % jobs Batch Files
 % ---------------------------------------------------------------------
@@ -22,7 +23,7 @@ jobs.num     = [1 Inf];
 runbatch         = cfg_exbranch;
 runbatch.tag     = 'runbatch';
 runbatch.name    = 'Execute Batch Jobs';
-runbatch.val     = { jobs};
+runbatch.val     = {jobs };
 runbatch.help    = {'This facility allows previously created batch jobs to be run. These are simply created by the batch user interface (which you are currently using).'};
 % can't run this in matlabbatch
 runbatch.prog = @false;

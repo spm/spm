@@ -4,8 +4,9 @@ function md = spm_cfg_md
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_md.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_cfg_md.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % basedir Select a base directory
 % ---------------------------------------------------------------------
@@ -26,17 +27,17 @@ name.help    = {'Enter a directory name'};
 name.strtype = 's';
 name.num     = [1 Inf];
 % ---------------------------------------------------------------------
-% md Make Directory
+% md Make Directory (Deprecated)
 % ---------------------------------------------------------------------
 md         = cfg_exbranch;
 md.tag     = 'md';
 md.name    = 'Make Directory (Deprecated)';
-md.val     = { basedir name};
-md.help    = {'This module is deprecated and has been moved to BasicIO.',...
-              ['Jobs which are ready to run may continue using it, but ' ...
-               'the module inputs can not be changed via GUI. ' ...
-               'Please switch to the BasicIO module instead.'], ...
-              'This facilty allows programming a directory change. Directories are selected in the right listbox.'};
+md.val     = {basedir name };
+md.help    = {
+              'This module is deprecated and has been moved to BasicIO.'
+              'Jobs which are ready to run may continue using it, but the module inputs can not be changed via GUI. Please switch to the BasicIO module instead.'
+              'This facilty allows programming a directory change. Directories are selected in the right listbox.'
+}';
 md.prog = @my_mkdir;
 md.vfiles = @vdirs_mydirs;
 md.hidden = true;

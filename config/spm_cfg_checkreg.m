@@ -4,8 +4,9 @@ function checkreg = spm_cfg_checkreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_checkreg.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_checkreg.m 1292 2008-04-02 14:17:31Z volkmar $
 
+rev = '$Rev';
 % ---------------------------------------------------------------------
 % data Images to Display
 % ---------------------------------------------------------------------
@@ -22,7 +23,7 @@ data.num     = [1 15];
 checkreg         = cfg_exbranch;
 checkreg.tag     = 'checkreg';
 checkreg.name    = 'Check Registration';
-checkreg.val     = { data};
+checkreg.val     = {data };
 checkreg.help    = {
                     'Orthogonal views of one or more images are displayed.  Clicking in any image moves the centre of the orthogonal views.  Images are shown in orientations relative to that of the first selected image. The first specified image is shown at the top-left, and the last at the bottom right.  The fastest increment is in the left-to-right direction (the same as you are reading this).'
                     ''
