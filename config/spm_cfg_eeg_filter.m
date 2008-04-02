@@ -6,7 +6,7 @@ function S = spm_cfg_eeg_filter8
 % Stefan Kiebel
 % $Id: spm_config_eeg_filter.m 1185 2008-03-04 16:31:21Z volkmar $
 
-rev = '$Rev';
+rev = '$Rev$';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';

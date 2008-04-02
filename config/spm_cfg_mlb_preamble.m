@@ -5,4 +5,4 @@
 
 % $Id: spm_cfg_cat.m 1185 2008-03-04 16:31:21Z volkmar $
 
-rev = '$Rev';
+rev = '$Rev$';
