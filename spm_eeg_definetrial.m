@@ -1,4 +1,4 @@
-function [trl conditionlabels] = spm_eeg_definetrial(S)
+function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Function for definition of trials based on events
 % FORMAT S = spm_eeg_definetrial(S)
 % S - existing configuration struct (optional)
@@ -21,7 +21,7 @@ function [trl conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1285 2008-04-01 11:23:10Z stefan $
+% $Id: spm_eeg_definetrial.m 1291 2008-04-02 13:58:28Z vladimir $
 
 if nargin == 0
     S = [];
@@ -160,14 +160,14 @@ end
 % ------------- Create trial definition file
 
 if ~isfield(S, 'save')
-    S.review = spm_input('Save trial definition?','+1','yes|no',[1 0], 0);
+    S.save = spm_input('Save trial definition?','+1','yes|no',[1 0], 0);
+end
 
-    if S.review
-        [trlfilename, trlpathname] = uiputfile( ...
-            {'*.mat', 'MATLAB File (*.mat)'}, 'Save trial definition as');
+if S.save
+    [trlfilename, trlpathname] = uiputfile( ...
+        {'*.mat', 'MATLAB File (*.mat)'}, 'Save trial definition as');
 
-        save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels');
-    end
+    save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

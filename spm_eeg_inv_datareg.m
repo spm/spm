@@ -47,7 +47,7 @@ function [varargout] = spm_eeg_inv_datareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1191 2008-03-06 12:11:38Z karl $
+% $Id: spm_eeg_inv_datareg.m 1291 2008-04-02 13:58:28Z vladimir $
 
 % Modified by Rik Henson to handle gradiometers (with two positions/orientations 
 % for component coils) 4/6/07
@@ -201,18 +201,17 @@ end
     
 % retain valid sensor locations for leadfield computation
 %--------------------------------------------------------------------------
-if nargin < 3
-    try
-        sens  = setdiff(D.channels.eeg, D.channels.Bad);
-    catch
-        sens  = D.channels.eeg;
-        D.channels.Bad = [];
-    end
-    sensors   = sensors(sens,:);
-    if strcmp(D.modality,'MEG')
-        megorient = megorient(sens,:);
-    end
-end
+% if nargin < 3
+%     try
+%         sens  = setdiff(D.meegchannels, D.badchannels);
+%     catch
+%         sens  = D.meegchannels;
+%     end
+%     sensors   = sensors(sens,:);
+%     if strcmp(D.modality,'MEG')
+%         megorient = megorient(sens,:);
+%     end
+% end
 
 % ensure sensors lie outside the scalp
 %--------------------------------------------------------------------------

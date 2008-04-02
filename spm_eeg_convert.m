@@ -11,8 +11,8 @@ function spm_eeg_convert(S)
 % S.timewindow - [start end] in sec. Boundaries for a sub-segment of
 %                continuous data (default - all).
 % S.outfile - name base for the output files (default - the same as input)
-% S.allchannels - 1 - convert all channels
-%               - 0 - use channel selection file to select channels
+% S.channels - 'all' - convert all channels
+%               cell array of labels
 % S.chanfile - name of the channel selection file
 % S.usetrials - 1 - take the trials as defined in the data (default)
 %               0 - use trial definition file even though the data is
@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1282 2008-03-31 18:44:03Z vladimir $
+% $Id: spm_eeg_convert.m 1291 2008-04-02 13:58:28Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -49,7 +49,7 @@ if ~isfield(S, 'dataset')
 end
 
 if ~isfield(S, 'outfile'),         S.outfile = spm_str_manip(S.dataset,'tr');     end
-if ~isfield(S, 'allchannels'),     S.allchannels = 1;                             end
+if ~isfield(S, 'channels'),        S.channels = 'all';                             end
 if ~isfield(S, 'timewindow'),      S.timewindow = [];                             end
 if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                         end  %100 Mb
 if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                           end
@@ -101,12 +101,8 @@ D.Fsample = hdr.Fs;
 
 %--------- Select channels
 
-if ~S.allchannels
-    selected = load(S.chanfile, 'label');
-    if ~isfield(selected, 'label')
-        error('Channel selection file does not contain labels.');
-    end
-    [junk, chansel] = spm_match_str(selected.label, hdr.label);
+if ~strcmp(S.channels, 'all')
+    [junk, chansel] = spm_match_str(S.channels, hdr.label);
 else
     if isfield(hdr, 'nChans')
         chansel = 1:hdr.nChans;

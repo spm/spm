@@ -28,4 +28,44 @@ switch S.task
 
             D = coor2D(D, sel1, num2cell(template.Cpos(:, sel2)));
         end
+    case 'loadeegsens'
+        switch S.source
+            case 'mat'
+                senspos = load(S.sensfile{1});
+                name    = fieldnames(senspos);
+                senspos = getfield(senspos,name{1});
+
+                fiducials = load(S.sensfile{2});
+                name    = fieldnames(fiducials);
+                fiducials = getfield(fiducials,name{1});         
+                
+                label = chanlabels(D, strmatch('EEG', D.chantype, 'exact'));
+            case 'filpolhemus'
+                [fiducials, senspos] = spm_eeg_inv_ReadPolhemus(S.sensfile);
+                label = chanlabels(D, strmatch('EEG', D.chantype, 'exact'));
+        end
+
+        if size(senspos, 1) ~= length(label)
+            error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
+        end
+        
+        elec = [];
+        elec.pnt = senspos;
+        elec.label = label;
+        elec.fid = fiducials;
+        
+        D = elec2sens(D, elec);
+    case 'headshape'
+        switch S.source
+            case 'mat'
+                headshape = load(S.headshapefile);
+                name    = fieldnames(headshape);
+                headshape = getfield(headshape,name{1});
+            case 'filpolhemus'
+                [fiducials, headshape] = spm_eeg_inv_ReadPolhemus(S.headshapefile);                      
+        end
+
+        D.headshape = headshape;
+    case 'coregister'
+        D = D.sensorcoreg;
 end

@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1267 2008-03-28 12:12:14Z vladimir $
+% $Id: spm_eeg_convert_ui.m 1291 2008-04-02 13:58:28Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -50,13 +50,15 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
         end
     end
 
-    if ~isfield(S, 'allchannels')
-        S.allchannels = spm_input('Read all channels?','+1','yes|no',[1 0], 1);
+    if ~isfield(S, 'channels')
+        S.channels = spm_input('What channels?','+1','all|meg|eeg|gui|file');
     end
 
-    if ~S.allchannels && ~isfield(S, 'chanfile')
-        S.chanfile = spm_select(1, '\.mat$', 'Select a channel selection file');
+    if strcmp(S.channels, 'meg') || strcmp(S.channels, 'eeg')
+        S.channels = upper(S.channels);
     end
+    
+    S = spm_eeg_channelselection(S);
 
     if ~isfield(S, 'outfile')
         if S.continuous

@@ -53,16 +53,57 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on');
 
+    LoadEEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load (EEG)',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on');
+
+    LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat files',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
+
+    LoadEEGSensPolhemusMenu = uimenu(LoadEEGSensMenu, 'Label', 'From FIL polhemus file',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
+
+    HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Headshape',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Separator', 'on');
+
+    LoadHeadshapeMatMenu = uimenu(HeadshapeMenu, 'Label', 'Load from *.mat file',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on');
+
+    LoadHeadshapePolhemusMenu = uimenu(HeadshapeMenu, 'Label', 'Load from FIL polhemus file',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
+
+    CoregisterMenu = uimenu(Coor3DMenu, 'Label', 'Coregister',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Separator', 'on', ...
+        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
+
     Coor2DMenu = uimenu(Finter,'Label','2D projection',...
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
         'HandleVisibility','on');
-    
+
     LoadTemplateMenu = uimenu(Coor2DMenu, 'Label', 'Load template',...
-            'Tag','EEGprepUI',...
-            'Enable', 'on', ...
-            'HandleVisibility','on',...
-            'Callback', 'spm_eeg_prep_ui(''LoadTemplateCB'')');
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''LoadTemplateCB'')');
 
 else
     eval(callback);
@@ -113,7 +154,7 @@ if ~isempty(D)
 
         [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
-        
+
         % Changing the type of MEG channels in GUI is not allowed.
         selection(strmatch('MEG', chantype(D, selection))) = [];
         if ok && ~isempty(selection)
@@ -141,8 +182,68 @@ S.D = getD;
 D = spm_eeg_prep(S);
 setD(D);
 update_menu;
+
 %-----------------------------------------------------------------------
 
+function LoadEEGSensCB
+
+S = [];
+S.D = getD;
+S.task = 'loadeegsens';
+
+switch get(gcbo, 'Label')
+    case 'From *.mat files'
+        S.sensfile{1} = spm_select(1,'.mat$','Select EEG fiducials file');    
+        S.sensfile{2} = spm_select(1,'.mat$','Select EEG sensors file');
+        S.source = 'mat';        
+    case 'From FIL polhemus file'
+        S.sensfile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
+        S.source = 'filpolhemus'
+end
+
+D = spm_eeg_prep(S);
+
+setD(D);
+
+update_menu;
+
+%-----------------------------------------------------------------------
+
+function HeadshapeCB
+
+S = [];
+S.D = getD;
+S.task = 'headshape';
+
+switch get(gcbo, 'Label')
+    case 'Load from *.mat file'
+        S.headshapefile = spm_select(1,'.mat$','Select matlab head');           
+        S.source = 'mat';        
+    case 'Load from FIL polhemus file'
+        S.headshapefile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
+        S.source = 'filpolhemus';
+end
+
+D = spm_eeg_prep(S);
+
+setD(D);
+
+update_menu;
+
+%-----------------------------------------------------------------------
+
+function CoregisterCB
+
+S = [];
+S.D = getD;
+S.task = 'coregister';
+
+D = spm_eeg_prep(S);
+
+setD(D);
+update_menu;
+
+%-----------------------------------------------------------------------
 function update_menu
 
 Finter = spm_figure('GetWin','Interactive');
@@ -150,12 +251,28 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 
 if isa(get(Finter, 'UserData'), 'meeg')
     Dloaded = 'on';
+
+    D = getD;
+
+    IsEEG = 'off';
+    if ~isempty(strmatch('EEG', D.chantype, 'exact'))
+        IsEEG = 'on';
+    end
+
+    IsMEG = 'off';
+    if ~isempty(strmatch('MEG', D.chantype, 'exact'));
+        IsMEG = 'on';
+    end
 else
     Dloaded = 'off';
 end
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
+
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensor coordinates'), 'Enable', IsEEG);
+
 
 figure(Finter);
 

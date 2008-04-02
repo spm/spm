@@ -13,7 +13,7 @@ function [D,val] = spm_eeg_inv_check(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Karl Friston
-% $Id: spm_eeg_inv_check.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_check.m 1291 2008-04-02 13:58:28Z vladimir $
 
 
 % Check - prompt for file if necessary
@@ -23,11 +23,11 @@ try
     D.inv;
 catch
     try
-        D = spm_eeg_ldata(D);
+        D = spm_eeg_load(D);
         D.inv;
     catch
         D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-        D = spm_eeg_ldata(D);
+        D = spm_eeg_load(D);
         
         % Check for inversion
         %------------------------------------------------------------------

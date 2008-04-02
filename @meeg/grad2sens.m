@@ -6,7 +6,7 @@ function this = grad2sens(this, grad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: grad2sens.m 1282 2008-03-31 18:44:03Z vladimir $
+% $Id: grad2sens.m 1291 2008-04-02 13:58:28Z vladimir $
 
 [sel1, sel2] = spm_match_str(chanlabels(this), grad.label);
 
@@ -46,7 +46,7 @@ this.sensors.label(prevMEGind) = [];
 % Adding MEG to sensors (MEG goes first)
 this.sensors.pnt = [grad.pnt; this.sensors.pnt];
 this.sensors.ori = [grad.ori; this.sensors.ori];
-this.sensors.type = [repmat({'MEG'}, 1, size(this.sensors.pnt, 1)), this.sensors.type];
+this.sensors.type = [repmat({'MEG'}, 1, size(grad.pnt, 1)), this.sensors.type];
 
 % For MEG the sensor labels are not really important. At the moment grad
 % struct does not contain sensor labels so we'll use arbitrary labels
@@ -67,7 +67,9 @@ this = getset(this, 'channels', 'tra', sel1, ...
 % This would not work for 4D and should be improved
 megind = sel1(strmatch('M', chanlabels(this, sel1)));
 this = chantype(this, megind, 'MEG');
-this = chantype(this, setdiff(sel1, megind), 'MEGREF');
+if ~isempty(setdiff(sel1, megind))
+    this = chantype(this, setdiff(sel1, megind), 'MEGREF');
+end
 
 % Check if there any other channels marked as MEG and change their type.
 nonMEGind = setdiff(1:nchannels(this), sel1);

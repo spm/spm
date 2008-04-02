@@ -10,7 +10,7 @@ function spm_eeg_inv_checkdatareg(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_checkdatareg.m 1291 2008-04-02 13:58:28Z vladimir $
 
 % Minor change by Rik to handle sensors consisting of two gradiometer coils 5/6/07
 
@@ -56,6 +56,7 @@ try
     Lfid    = D.inv{val}.datareg.fid_coreg;
     Lhsp    = D.inv{val}.datareg.hsp_coreg;
     Lfidmri = D.inv{val}.datareg.fid_mri;
+    Llabel = D.inv{val}.datareg.label;
 catch
     warndlg('please coregister these data')
     return
@@ -112,8 +113,7 @@ plot3(Lfidmri(:,1),Lfidmri(:,2),Lfidmri(:,3),'dm',...
 
 % Channel names
 %--------------------------------------------------------------------------
-j       = setdiff(D.channels.eeg, D.channels.Bad);
-text(Lsens(:, 1),Lsens(:,2),Lsens(:,3),D.channels.name(j),...
+text(Lsens(:, 1),Lsens(:,2),Lsens(:,3), Llabel,...
      'FontSize',8,...
      'Color','r',...
      'FontWeight','bold')
