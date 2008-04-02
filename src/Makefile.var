@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 1288 2008-04-01 16:05:52Z guillaume $
+# $Id: Makefile.var 1297 2008-04-02 18:08:48Z guillaume $
 #
 ###############################################################################
 #
@@ -30,91 +30,97 @@
 #
 ###############################################################################
 
-SHELL         = /bin/sh
-MAKE          = make
-MEXBIN        = mex
-MEXOPTS       = -O
-MEXEND        = 
-CC            = cc
-CFLAGS        = 
-MOSUF         = o # mex output object suffix
-CHMODIT       = chmod 644
-AR            = ar rcs
-COPY          = cp -f
-DEL           = rm -f
-MOVE          = mv -f
-TAR           = tar
-ZIP           = gzip
+SHELL          = /bin/sh
+MAKE           = make
+MEXBIN         = mex
+MEXOPTS        = -O
+MEXEND         = 
+CC             = gcc
+CFLAGS         = -O3
+MOSUF          = o # mex output object suffix
+CHMODIT        = chmod 644
+UNAME          = uname
+ISAINFO        = isainfo # SunOS only
+AR             = ar rcs
+COPY           = cp -f
+DEL            = rm -f
+MOVE           = mv -f
+TAR            = tar
+ZIP            = gzip -f
 
 ifndef SUF
   ifndef PLATFORM
-    PLATFORM  = $(shell uname)
+    PLATFORM   = $(shell $(UNAME))
   endif
-  ifeq (SunOS,$(PLATFORM))
-    SUF       = mexsol
-    CC        = gcc
-    CFLAGS    = -O3 -funroll-loops -DBIGENDIAN -fPIC
-    MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
-  endif
-  ifeq (SunOS64,$(PLATFORM))
-    SUF       = mexs64
-    CC        = gcc
-    CFLAGS    = -m64 -O3 -funroll-loops -DBIGENDIAN -fPIC
-    MEXOPTS   = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
-  endif
+  ##### Linux #####
   ifeq (Linux,$(PLATFORM))
-    HARDWARE  = $(shell uname -m)
+    HARDWARE   = $(shell $(UNAME) -m)
     ifeq (i386,$(HARDWARE))
-      SUF     = mexglx
-      CC      = gcc
-      CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
-      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
+      SUF      = mexglx
+      CFLAGS   = -O3 -funroll-loops -fPIC -fexceptions
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
     endif
     ifeq (i686,$(HARDWARE))
-      SUF     = mexglx
-      CC      = gcc
-      CFLAGS  = -O3 -funroll-loops -fPIC -fexceptions
-      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
+      SUF      = mexglx
+      CFLAGS   = -O3 -funroll-loops -fPIC -fexceptions
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
     endif
     ifeq (x86_64,$(HARDWARE))
-      SUF     = mexa64
-      CC      = gcc
-      CFLAGS  = -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse
-      MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'
+      SUF      = mexa64
+      CFLAGS   = -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'
     endif
     ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
     endif
   endif
+  ##### MacOS #####
   ifeq (Darwin,$(PLATFORM))
-    HARDWARE  = $(shell uname -p)
+    HARDWARE   = $(shell $(UNAME) -p)
     ifeq (i386,$(HARDWARE))
-       SUF       = mexmaci
-       CFLAGS    = 
-       MEXOPTS   = -O
+       SUF     = mexmaci
+       CFLAGS  = -O3 
+       MEXOPTS = -O
     endif
     ifeq (powerpc,$(HARDWARE))
-       SUF       = mexmac
-       CFLAGS    = -DBIGENDIAN
-       MEXOPTS   = -O -DBIGENDIAN
+       SUF     = mexmac
+       CFLAGS  = -O3 -DBIGENDIAN
+       MEXOPTS = -O -DBIGENDIAN
     endif
   endif
+  ##### Windows #####
   ifeq (windows,$(PLATFORM))
     override PLATFORM = MINGW32
   endif
   ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
-    SUF       = mexw32
-    CC        = gcc
-    CFLAGS    = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
-    MEXBIN    = cmd /c "mex.bat
-    MEXOPTS   = -O -DSPM_WIN32
-    MEXEND    = "
-    MOSUF     = obj
-    CHMODIT   = chmod 755
+    SUF        = mexw32
+    CFLAGS     = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
+    MEXBIN     = cmd /c "mex.bat
+    MEXOPTS    = -O -DSPM_WIN32
+    MEXEND     = "
+    MOSUF      = obj
+    CHMODIT    = chmod 755
+  endif
+  ##### SunOS #####
+  ifeq (SunOS,$(PLATFORM))
+    SUNBIT     = $(shell $(ISAINFO) -b)
+    ifeq (32,$(SUNBIT))
+      SUF      = mexsol
+      CFLAGS   = -O3 -funroll-loops -DBIGENDIAN -fPIC
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
+    endif
+    ifeq (64,$(SUNBIT))
+      SUF      = mexs64
+      CFLAGS   = -m64 -O3 -funroll-loops -DBIGENDIAN -fPIC
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
+    endif
+    ifndef SUF
+      $(error Unknowm platform $(PLATFORM)-$(SUNBIT))
+    endif
   endif
   ifndef SUF
     $(error Unknowm platform $(PLATFORM))
   endif
 endif
 
-MEX           = $(MEXBIN) $(MEXOPTS)
+MEX            = $(MEXBIN) $(MEXOPTS)

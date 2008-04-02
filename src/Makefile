@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1288 2008-04-01 16:05:52Z guillaume $
+# $Id: Makefile 1297 2008-04-02 18:08:48Z guillaume $
 #
 ###############################################################################
 #
@@ -88,7 +88,7 @@ tarball: all toolbox-all toolbox-tarball verb.archive
 	@@for p in $(SUBDIRS); do \
 		$(TAR) Af spm_mex.tar  ../$$p/spm_mex.tar;\
 	done
-	$(ZIP) -f spm_mex.tar
+	$(ZIP) spm_mex.tar
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
