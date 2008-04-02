@@ -312,9 +312,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1293 2008-04-02 14:20:43Z volkmar $
+% $Id: cfg_util.m 1296 2008-04-02 16:56:04Z volkmar $
 
-rev = '$Rev: 1293 $';
+rev = '$Rev: 1296 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1096,8 +1096,8 @@ while ~isempty(cjid2subs)
                     warning('matlabbatch:cfg_util:vfiles', ...
                             'Using deprecated ''vfiles'' output in node ''%s''.', cm.tag);
                     feval(cm.prog, subsref(jobs, jobsubsrun{k}));
-                    cm.jout = struct('vfiles', feval(cm.vfiles, ...
-                                           subsref(jobs, jobsubsrun{k})));
+                    cm.jout = struct('vfiles', {feval(cm.vfiles, ...
+                                           subsref(jobs, jobsubsrun{k}))});
                 elseif isempty(cm.sout)
                     % no outputs specified
                     feval(cm.prog, subsref(jobs, jobsubsrun{k}));
