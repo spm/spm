@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1285 2008-04-01 11:23:10Z stefan $
+% $Id: spm_eeg_display_ui.m 1290 2008-04-02 11:09:34Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -122,9 +122,13 @@ if nargin == 0 || ~isfield(S, 'rebuild')
     %     if isfield (sD.other,'tf')
     %         handles.scalemax = 2*ceil(max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,:, 1))))));
     %     else
-    handles.scalemax = 2*ceil(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1)))));
+    
+%     handles.scalemax = 2*max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1))));
+    handles.scalemax = 2*max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1))));
+    handles.order = 10^floor(log10(handles.scalemax)-2);
+    scale = 100;
+    
     %     end
-    scale = handles.scalemax/2;
 
     % text above slider
     uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
@@ -135,9 +139,9 @@ if nargin == 0 || ~isfield(S, 'rebuild')
 
     % slider
     handles.scaleslider = uicontrol('Tag', 'scaleslider', 'Style', 'slider',...
-        'Min', 1, 'Max', handles.scalemax, 'Value', scale, 'Units',...
+        'Min', 1, 'Max', 300, 'Value', scale, 'Units',...
         'normalized', 'Position', [0.35 0.045 0.25 0.03],...
-        'SliderStep', [1/(handles.scalemax-1) 10/(handles.scalemax-1)],...
+        'SliderStep', [0.0033 0.1],...
         'TooltipString', 'Choose scaling',...
         'Callback', @scaleslider_update,...
         'Parent', F);
@@ -147,20 +151,21 @@ if nargin == 0 || ~isfield(S, 'rebuild')
         'normalized', 'Position',[0.35 0.019 0.25 0.031]);
 
     % text
-    uicontrol(F, 'Style', 'text', 'Units', 'normalized', 'String', '1',...
+    uicontrol(F, 'Style', 'text', 'Units', 'normalized', ...
+        'String', num2str(handles.order, 4),...
         'Position',[0.36 0.02 0.07 0.029],...
         'HorizontalAlignment', 'left', 'FontSize', FS1,...
         'BackgroundColor', spm('Colour'));
 
     handles.scaletext = uicontrol(F, 'Style', 'text', 'Tag', 'scaletext',...
         'Units', 'normalized',...
-        'String', mat2str(handles.scalemax/2),...
+        'String', num2str(round(get(handles.scaleslider, 'Value'))*handles.order, 4),...
         'Position',[0.44 0.02 0.07 0.029],...
         'HorizontalAlignment', 'center', 'FontSize', FS1,...
         'BackgroundColor',spm('Colour'));
 
     uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
-        'String', mat2str(handles.scalemax),...
+        'String', num2str(round(get(handles.scaleslider, 'Max'))*handles.order, 4),...
         'Position',[0.52 0.02 0.07 0.029],...
         'HorizontalAlignment', 'right', 'FontSize', FS1,...
         'BackgroundColor',spm('Colour'));
@@ -225,16 +230,15 @@ if nargin == 0 || ~isfield(S, 'rebuild')
         'Background', 'white', 'FontSize', 14, 'HorizontalAlignment', 'Left');
 
     % axes with scaling and ms display
-    axes('Position', [0.05 0.15 0.2 0.07]);
-    set(gca, 'YLim', [-scale scale], 'XLim', [1 D.nsamples],...
+    axes('Position', [0.05 0.15 0.2 0.07], 'YLim', [-round(scale)*handles.order round(scale)*handles.order], 'XLim', [1 D.nsamples],...
         'XTick', [], 'YTick', [], 'LineWidth', 2);
-    handles.scaletexttop = text('Position', [0, scale], 'String', sprintf(' %d', 2*scale), 'Interpreter', 'Tex',...
+    handles.scaletexttop = text('Position', [0, round(scale)*handles.order], 'String', ['   ' num2str(round(scale)*handles.order, 4)], 'Interpreter', 'Tex',...
         'FontSize', FS1, 'VerticalAlignment', 'top',...
         'Tag', 'scaletext2');
     try
         ylabel(D.units(1), 'Interpreter', 'tex', 'FontSize', FS1);
     end
-    text('Position', [D.nsamples, -scale], 'String', sprintf('%d', round((D.nsamples-1)*1000/D.fsample)), 'Interpreter', 'Tex',...
+    text('Position', [D.nsamples, -round(scale)*handles.order], 'String', sprintf('%d', round((D.nsamples-1)*1000/D.fsample)), 'Interpreter', 'Tex',...
         'FontSize', FS1, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
     xlabel('ms', 'Interpreter', 'tex', 'FontSize', FS1);
 
@@ -347,7 +351,7 @@ p = p+0.5;
 p(1,:) = Pos(3)*p(1,:)+Pos(1);
 p(2,:) = Pos(4)*p(2,:)+Pos(2);
 
-scale = get(handles.scaleslider, 'Value');
+scale = get(handles.scaleslider, 'Value')*handles.order;
 
 % cell vector for figures handles of separate single channel plots
 handles.Heegfigures = cell(1, Npos);
@@ -381,7 +385,6 @@ for i = 1:Npos
         'YLim', [-scale scale],...
         'XLim', [D.time(1) D.time(end)],...
         'XTick', [], 'YTick', [], 'Box', 'off');
-
 
     for j = 1:length(handles.Tselection)
 
@@ -508,14 +511,14 @@ handles = guidata(hObject);
 D = handles.D;
 
 % slider value
-scale = round(get(hObject, 'Value'));
-set(hObject, 'Value', scale);
-
+scale = round(get(hObject, 'Value'))*handles.order;
+% set(hObject, 'Value', scale);
+% 
 % text below slider
-set(handles.scaletext, 'String', mat2str(scale));
+set(handles.scaletext, 'String', num2str(scale, 4));
 
 % text at top of figure
-set(handles.scaletexttop, 'String', sprintf(' %d', 2*scale));
+set(handles.scaletexttop, 'String', ['   ' num2str(scale, 4)]);
 
 % rescale plots
 for i = 1:length(handles.Heegaxes)
@@ -548,7 +551,7 @@ for i = 1:length(handles.Heegfigures)
             %             caxis([-scale scale])
         else
             set(handles.Heegaxes2{i}, 'YLim', [-scale scale],...
-                'XLim', [D.time(1) D.time(end)]);
+                'XLim', [1000*D.time(1) 1000*D.time(end)]);
         end
 
 
@@ -645,7 +648,7 @@ else
             'Color', handles.colour{i}, 'LineWidth', 2);
     end
 
-    scale = get(handles.scaleslider, 'Value');
+    scale = get(handles.scaleslider, 'Value')*handles.order;
 
     set(gca, 'YLim', [-scale scale],...
         'XLim', 1000*[D.time(1) D.time(end)], 'Box', 'on');
