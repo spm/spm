@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1261 2008-03-28 07:19:21Z volkmar $
+% $Id: cfg_ui.m 1303 2008-04-03 13:52:53Z volkmar $
 
-rev = '$Rev: 1261 $';
+rev = '$Rev: 1303 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -234,8 +234,13 @@ set(handles.modlist, 'userdata',udmodlist);
 local_showjob(gcbo);
 %% Show job contents
 % --------------------------------------------------------------------
-function local_showjob(obj)
+function local_showjob(obj,cjob)
 handles = guidata(obj);
+% set cjob, if supplied
+if nargin == 2
+    cfg_util('setcjob',cjob);
+    set(handles.modlist,'userdata',[]);
+end;
 [id str sts dep sout] = cfg_util('showjob');
 if isempty(str)
     str = {'No Modules in Batch'};

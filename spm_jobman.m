@@ -94,19 +94,19 @@ else
             end;
             if strcmpi(varargin{1}, 'interactive')
                 if exist('mljob', 'var')
-                    cfg_util('initjob', mljob);
+                    cjob = cfg_util('initjob', mljob);
                 elseif exist('mod_cfg_id', 'var')
                     if isempty(mod_cfg_id)
                         warning('spm:spm_jobman:NodeNotFound', ...
                                 ['Can not find executable node ''%s'' - running '...
                                  'matlabbatch without default node.'], varargin{3});
-                        cfg_util('initjob');
+                        cjob = cfg_util('initjob');
                     else
-                        cfg_util('initjob');
+                        cjob = cfg_util('initjob');
                         cfg_util('addtojob', mod_cfg_id);
                     end;
                 end;
-                cfg_ui('local_showjob', cfg_ui);
+                cfg_ui('local_showjob', cfg_ui, cjob);
             else
                 if exist('mljob', 'var')
                     cfg_serial(@serial_ui, mljob)
