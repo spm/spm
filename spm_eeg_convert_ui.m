@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1291 2008-04-02 13:58:28Z vladimir $
+% $Id: spm_eeg_convert_ui.m 1304 2008-04-03 17:37:45Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -31,7 +31,7 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
         end
 
         if ~readall  &&  isempty(S.timewindow);
-            S.timewindow = spm_input('Input time window ([start end] in sec)', '+1', 'r');
+            S.timewindow = spm_input('Input time window ([start end] in sec)', '+1', 'r', '', 2);
         end
     else
         res = spm_input('Where to look for trials?','+1','data|define|file',[1 2 3], 1);
@@ -54,10 +54,6 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
         S.channels = spm_input('What channels?','+1','all|meg|eeg|gui|file');
     end
 
-    if strcmp(S.channels, 'meg') || strcmp(S.channels, 'eeg')
-        S.channels = upper(S.channels);
-    end
-    
     S = spm_eeg_channelselection(S);
 
     if ~isfield(S, 'outfile')

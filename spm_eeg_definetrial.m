@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1291 2008-04-02 13:58:28Z vladimir $
+% $Id: spm_eeg_definetrial.m 1304 2008-04-03 17:37:45Z vladimir $
 
 if nargin == 0
     S = [];
@@ -118,10 +118,10 @@ for i=1:numel(S.trialdef)
 
     for j=1:length(sel)
         % override the offset of the event
-        trloff = round(-0.001*S.pretrig*S.fsample);
+        trloff = round(0.001*S.pretrig*S.fsample);
         % also shift the begin sample with the specified amount
         trlbeg = event(sel(j)).sample + trloff;
-        trldur = round(0.001*(S.pretrig+S.posttrig)*S.fsample);
+        trldur = round(0.001*(-S.pretrig+S.posttrig)*S.fsample);
         trlend = trlbeg + trldur;
         % add the beginsample, endsample and offset of this trial to the list
         trl = [trl; trlbeg trlend trloff];

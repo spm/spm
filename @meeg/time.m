@@ -1,14 +1,14 @@
-function res = time(obj, ind, format)
+function res = time(this, ind, format)
 % Method for getting the time axis
-% FORMAT res = time(obj, ind, format)
+% FORMAT res = time(this, ind, format)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: time.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: time.m 1304 2008-04-03 17:37:45Z vladimir $
 
-if obj.Nsamples>0
-    res = (0:(obj.Nsamples-1))./obj.Fsample + obj.timeOnset;
+if this.Nsamples>0
+    res = (0:(this.Nsamples-1))./this.Fsample + this.timeOnset;
 else
     res = [];
 end

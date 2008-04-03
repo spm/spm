@@ -5,7 +5,7 @@ function this = sensorcoreg(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensorcoreg.m 1291 2008-04-02 13:58:28Z vladimir $
+% $Id: sensorcoreg.m 1304 2008-04-03 17:37:45Z vladimir $
 
 if ~isfield(this.sensors, 'pnt') ~isempty(this.sensors.pnt)
     error('No sensor positions are defined');
@@ -50,11 +50,12 @@ this.other.inv{val}.datareg.hsp_coreg=headshape_reg;
 
 spm_eeg_inv_checkdatareg(this);
 
-% 
-% % remove effects of inv_datareg
-% if exist('invbackup')==1
-%     D.inv=invbackup;
-% else
-%     D=rmfield(D, 'inv');
-% end
+elec = [];
 
+elec.pnt = sensors_reg;
+elec.fid = fid_reg;
+elec.label = this.other.inv{val}.datareg.label;
+
+this = elec2sens(this, elec);
+
+this.other = rmfield(this.other, 'inv');

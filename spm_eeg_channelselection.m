@@ -13,7 +13,7 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 1291 2008-04-02 13:58:28Z vladimir $
+% $Id: spm_eeg_channelselection.m 1304 2008-04-03 17:37:45Z vladimir $
 
 if nargin == 0
     S = [];
@@ -29,6 +29,7 @@ if ~isfield(S, 'channels') S.channels = 'gui'; end
 if ~isfield(S, 'dataset')
     S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
 end
+
 hdr = read_header(S.dataset);
 
 if strcmp(S.channels, 'file')
@@ -42,7 +43,18 @@ if strcmp(S.channels, 'file')
         end
     end
 elseif exist('channelselection') == 2
-    S.channels = channelselection(S.channels, hdr.label);
+    switch S.channels
+        case 'eeg'
+            S.channels = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGREF'};
+        case 'meg'
+            S.channels = 'MEG';
+        otherwise
+    end
+    
+    % Make sure the order is like in the file
+    channels = channelselection(S.channels, hdr.label);
+    [sel1, sel2] = spm_match_str(hdr.label, channels);
+    S.channels = channels(sel2);
 else
     error('Fieldtrip channelselection not found. Use a file to select channels');
 end

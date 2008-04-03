@@ -1,14 +1,30 @@
 function D = spm_eeg_prep(S)
+% spm_eeg_prep function performs several tasks
+% for preparation of converted MEEG data for further analysis
+% FORMAT spm_eeg_prep(S)
+%   S - configuration struct (obligatory)
+% _______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Vladimir Litvak
+% $Id: spm_eeg_prep.m 1304 2008-04-03 17:37:45Z vladimir $
 
 D = S.D;
 
 switch S.task
     case 'settype'
         D = chantype(D, S.ind, S.type);
-    case 'loadtemplate'
-        template = load(S.P); % must contain Cpos, Cnames
+    case {'loadtemplate', 'setcoor2d'}
+        if strcmp(S.task, 'loadtemplate')
+            template = load(S.P); % must contain Cpos, Cnames
+            xy = template.Cpos;
+            label = template.Cnames;
+        else
+            xy = S.xy;
+            label = S.label;
+        end
 
-        [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(template.Cnames));
+        [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));
 
         if ~isempty(sel1)
 
@@ -25,35 +41,38 @@ switch S.task
 
                 D = chantype(D, setdiff(eegind, sel1), 'Other');
             end
-
-            D = coor2D(D, sel1, num2cell(template.Cpos(:, sel2)));
+            
+            if any(any(coor2D(D, sel1) - xy(:, sel2)))
+                D = coor2D(D, sel1, num2cell(xy(:, sel2)));
+            end
         end
     case 'loadeegsens'
         switch S.source
             case 'mat'
-                senspos = load(S.sensfile{1});
+                fiducials = load(S.sensfile{1});
+                name    = fieldnames(fiducials);
+                fiducials = getfield(fiducials,name{1});
+
+                senspos = load(S.sensfile{2});
                 name    = fieldnames(senspos);
                 senspos = getfield(senspos,name{1});
 
-                fiducials = load(S.sensfile{2});
-                name    = fieldnames(fiducials);
-                fiducials = getfield(fiducials,name{1});         
-                
-                label = chanlabels(D, strmatch('EEG', D.chantype, 'exact'));
             case 'filpolhemus'
                 [fiducials, senspos] = spm_eeg_inv_ReadPolhemus(S.sensfile);
-                label = chanlabels(D, strmatch('EEG', D.chantype, 'exact'));
+
         end
+
+        label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
 
         if size(senspos, 1) ~= length(label)
             error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
         end
-        
+
         elec = [];
         elec.pnt = senspos;
         elec.label = label;
         elec.fid = fiducials;
-        
+
         D = elec2sens(D, elec);
     case 'headshape'
         switch S.source
@@ -62,7 +81,7 @@ switch S.task
                 name    = fieldnames(headshape);
                 headshape = getfield(headshape,name{1});
             case 'filpolhemus'
-                [fiducials, headshape] = spm_eeg_inv_ReadPolhemus(S.headshapefile);                      
+                [fiducials, headshape] = spm_eeg_inv_ReadPolhemus(S.headshapefile);
         end
 
         D.headshape = headshape;

@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 1279 2008-03-28 18:43:17Z vladimir $
+% $Id: chantype.m 1304 2008-04-03 17:37:45Z vladimir $
 
 
 if length(varargin)>=2
@@ -27,6 +27,7 @@ if length(varargin)>=2
             other_types = {'MEG', 'EMG', 'EOG'};
 
             for i=1:length(eeg_types)
+                if isempty(ind) break; end
                 foundind = spm_match_str(chanlabels(this, ind), channelselection(eeg_types(i), chanlabels(this, ind)));
                 if ~isempty(foundind)
                     this = chantype(this, ind(foundind), 'EEG');
@@ -35,6 +36,7 @@ if length(varargin)>=2
             end
 
             for i=1:length(other_types)
+                if isempty(ind) break; end
                 foundind = spm_match_str(chanlabels(this, ind), channelselection(other_types(i), chanlabels(this, ind)));
                 if ~isempty(foundind)
                     this = chantype(this, ind(foundind), other_types{i});
