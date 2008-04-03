@@ -112,10 +112,15 @@ function varargout = cfg_util(cmd, varargin)
 % jobs will be cleared.
 % Initial application data will be initialised to a combination of
 % cfg_mlbatch_appcfg.m files in their order found on the MATLAB path. Each
-% of these config files should be a function that (optionally) adds a path
-% to a configuration file and calls cfg_util('addapp',...) with an
-% application configuration. These files are executed in the order they are
-% found on the MATLAB path with the one first found taking precedence over
+% of these config files should be a function with calling syntax
+%   function [cfg def] = cfg_mlbatch_appcfg(varargin) 
+% This function should do application initialisation (e.g. add
+% paths). cfg and def should be configuration and defaults data
+% structures or the name of m-files on the MATLAB path containing these
+% structures. If no defaults are provided, the second output argument
+% should be empty.
+% cfg_mlbatch_appcfg files are executed in the order they are found on
+% the MATLAB path with the one first found taking precedence over
 % following ones.
 %
 %  cfg_util('initdef', apptag|cfg_id, def)
@@ -312,9 +317,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1296 2008-04-02 16:56:04Z volkmar $
+% $Id: cfg_util.m 1300 2008-04-03 12:26:57Z volkmar $
 
-rev = '$Rev: 1296 $';
+rev = '$Rev: 1300 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -692,6 +697,24 @@ job.cjid2subs{id} = cjsubs;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
+function varargout = local_cd(pth)
+% Try to work around some unexpected behaviour of MATLAB's cd command
+if ~isempty(pth)
+    if ischar(pth)
+        wd = cd(pth);
+    else
+        error('cfg_util:cd','CD: path must be a string.');
+    end;
+else
+    % Do not cd if pth is empty.
+    wd = pwd;
+end;
+if nargout > 0
+    varargout{1} = wd;
+end;
+%-----------------------------------------------------------------------
+
+%-----------------------------------------------------------------------
 function [job n2oid] = local_compactjob(ojob)
 % Remove placeholders from cj and recursively update dependencies to fit
 % new ids. Warning: this will invalidate mod_job_ids!
@@ -758,16 +781,16 @@ function matlabbatch = local_eval(varargin)
 % Evaluate a matlab expression or script
 opwd = pwd;
 try
-    cd(varargin{2});
+    local_cd(varargin{2});
     eval(varargin{1});
     if ~exist('matlabbatch', 'var')
         try
             matlabbatch = eval(varargin{1});
         end;
     end;
-    cd(opwd);
+    local_cd(opwd);
 catch
-    cd(opwd);
+    local_cd(opwd);
     error('cfg_util:initjob:local_eval', 'Load failed.');
 end;
 %-----------------------------------------------------------------------
@@ -894,6 +917,33 @@ cm = subsref(c0, id{1});
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
+function local_initapps
+% add application data
+appcfgs = which('cfg_mlbatch_appcfg','-all');
+cwd = pwd;
+dirs = cell(size(appcfgs));
+for k = 1:numel(appcfgs)
+    % cd into directory containing config file
+    [p n e v] = fileparts(appcfgs{k});
+    local_cd(p);
+    % try to work around MATLAB bug in symlink handling
+    % only add application if this directory has not been visited yet
+    dirs{k} = pwd;
+    if ~any(strcmp(dirs{k}, dirs(1:k-1)))
+        try
+            [cfg def] = feval('cfg_mlbatch_appcfg');
+        catch
+            warning('matlabbatch:initcfg:eval_appcfg', ...
+                    'Failed to load %s', which('cfg_mlbatch_appcfg'));
+            rethrow(lasterror);
+        end;
+        cfg_util('addapp', cfg, def);
+    end;
+end;
+local_cd(cwd);
+%-----------------------------------------------------------------------
+
+%-----------------------------------------------------------------------
 function [c0 jobs cjob] = local_initcfg
 % initial config
 c0   = cfg_mlbatch_root;
@@ -908,11 +958,11 @@ if subsasgn_check_funhandle(defspec)
     opwd = pwd;
     if ischar(defspec)
         [p fn e v] = fileparts(defspec);
-        cd(p);
+        local_cd(p);
         defspec = fn;
     end;
     def = feval(defspec);
-    cd(opwd);
+    local_cd(opwd);
 elseif isa(defspec, 'cell') || isa(defspec, 'struct')
     def = defspec;
 else
@@ -921,30 +971,6 @@ end;
 if ~isempty(def)
     c1 = initialise(c1, def, true);
 end;
-%-----------------------------------------------------------------------
-
-%-----------------------------------------------------------------------
-function local_initapps
-% add application data
-appcfgs = which('cfg_mlbatch_appcfg','-all');
-cwd = pwd;
-for k = 1:numel(appcfgs)
-    % cd into directory containing config file
-    [p n e v] = fileparts(appcfgs{k});
-    cd(p);
-    try
-        feval('cfg_mlbatch_appcfg');
-    catch
-        try
-            evalc('cfg_mlbatch_appcfg');
-        catch
-            warning('matlabbatch:initcfg:eval_appcfg', ...
-                    'Failed to load %s', which('cfg_mlbatch_appcfg'));
-            %            rethrow(lasterror);
-        end;
-    end;
-end;
-cd(cwd);
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------

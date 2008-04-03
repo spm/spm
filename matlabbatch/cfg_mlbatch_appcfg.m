@@ -1,4 +1,4 @@
-function cfg_mlbatch_appcfg
+function [cfg def] = cfg_mlbatch_appcfg(varargin)
 
 % Add BasicIO to applications list of cfg_util. This file is an example how
 % to add your own application configuration to cfg_util. To add an
@@ -14,9 +14,9 @@ function cfg_mlbatch_appcfg
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_appcfg.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_mlbatch_appcfg.m 1300 2008-04-03 12:26:57Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1300 $';
 
 % get path to this file
 p = fileparts(mfilename('fullpath'));
@@ -24,5 +24,6 @@ p = fileparts(mfilename('fullpath'));
 % folder. Therefore, the path to the application needs to be added
 % explicitly
 addpath(fullfile(p, 'cfg_basicio'));
-% run configuration main function, add output to cfg_util
-cfg_util('addapp',cfg_cfg_basicio,cfg_cfg_basicio_def);
+% these two files are now on MATLABs path
+cfg = cfg_cfg_basicio;
+def = cfg_cfg_basicio_def;

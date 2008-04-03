@@ -12,9 +12,9 @@ function menu_cfg = cfg_cfg
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1218 2008-03-17 12:39:36Z volkmar $
+% $Id: cfg_confgui.m 1300 2008-04-03 12:26:57Z volkmar $
 
-rev = '$Rev: 1218 $';
+rev = '$Rev: 1300 $';
 
 %% Declaration of fields
 
@@ -453,7 +453,7 @@ fclose(fid);
 % Generate cfg_util initialisation file
 fid = fopen(fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m'), ...
             'w');
-fprintf(fid, 'function cfg_mlbatch_appcfg\n');
+fprintf(fid, 'function [cfg def] = cfg_mlbatch_appcfg(varargin)\n');
 fprintf(fid, ...
 ['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...
  '%% This MATLABBATCH initialisation file can be used to load application\n' ...
@@ -471,8 +471,9 @@ fprintf(fid, ['%% If the configuration file is stored in another place, the ' ..
               'path must be adjusted here.\n']);
 fprintf(fid, 'p = fileparts(mfilename(''fullpath''));\n');
 fprintf(fid, 'addpath(p);\n');
-fprintf(fid, '%% run configuration main function, add output to cfg_util\n');
-fprintf(fid, 'cfg_util(''addapp'', %s, %s);\n', n, dn);
+fprintf(fid, '%% run configuration main & def function, return output\n');
+fprintf(fid, 'cfg = %s;\n', n);
+fprintf(fid, 'def = %s;\n', dn);
 fclose(fid);
 
 function out = cfg_cfg_pass(varargin)

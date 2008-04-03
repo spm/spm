@@ -75,10 +75,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1298 2008-04-03 08:54:13Z volkmar $
+% $Id: cfg_getfile.m 1300 2008-04-03 12:26:57Z volkmar $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1298 2008-04-03 08:54:13Z volkmar $
+% $Id: cfg_getfile.m 1300 2008-04-03 12:26:57Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -89,14 +89,23 @@ if nargin > 0 && ischar(varargin{1})
             t = cpath(varargin{2:end});
         case 'filter'
             filt    = mk_filter(varargin{3:end});
-            cs      = iscell(varargin{2});
-            if ~cs
-                t = cellstr(varargin{2});
+            t       = varargin{2};
+            cs      = iscell(t);
+            if cs
+                if numel(t) == 1 && isempty(t{1})
+                    sts = 1;
+                    return;
+                end;
             else
-                t = varargin{2};
+                if isempty(t)
+                    sts = 1;
+                    return;
+                end;
+                t = cellstr(t);
             end;
-            [t,sts] = do_filter(t,filt.ext);
-            [t,sts] = do_filter(t,filt.filt);
+            [t,sts1] = do_filter(t,filt.ext);
+            [t,sts2] = do_filter(t,filt.filt);
+            sts = sts1(sts2);
             if ~cs
                 t = strvcat(t);
             end;
