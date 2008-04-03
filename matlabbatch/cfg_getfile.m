@@ -28,11 +28,15 @@ function [t,sts] = cfg_getfile(varargin)
 %      t    - selected files
 %      sts  - status (1 means OK, 0 means window quit)
 %
-% FORMAT [t,sts] = cfg_getfile('Filter',files,typ,filt,frames)
+% FORMAT [t,ind] = cfg_getfile('Filter',files,typ,filt,frames)
 % filter the list of files (cell or char array) in the same way as the
 % GUI would do. There is an additional typ 'extimage' which will match
 % images with frame specifications, too. Also, there is a typ 'extdir',
-% which will match canonicalised directory names.
+% which will match canonicalised directory names. The 'frames' argument
+% is currently ignored, i.e. image files will not be filtered out if
+% their frame numbers do not match.
+% t returns the filtered list (cell or char array, depending on input),
+% ind an index array, such that t = files{ind}, or t = files(ind,:).
 %
 % FORMAT cpath = cfg_getfile('CPath',path,cwd)
 % function to canonicalise paths: Prepends cwd to relative paths, processes
@@ -71,10 +75,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1195 2008-03-07 21:51:49Z volkmar $
+% $Id: cfg_getfile.m 1298 2008-04-03 08:54:13Z volkmar $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1195 2008-03-07 21:51:49Z volkmar $
+% $Id: cfg_getfile.m 1298 2008-04-03 08:54:13Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})

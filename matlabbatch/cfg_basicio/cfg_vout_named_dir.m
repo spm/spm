@@ -11,9 +11,9 @@ function dep = cfg_vout_named_dir(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_vout_named_dir.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_vout_named_dir.m 1298 2008-04-03 08:54:13Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1298 $';
 
 if strcmp(job.name,'<UNDEFINED>') || isempty(job.name) || isa(job.name, 'cfg_dep')
     dirname = 'Directory';
@@ -25,5 +25,5 @@ for k = 1:numel(job.dirs)
     dep(k) = cfg_dep;
     dep(k).sname = sprintf('%s(%d)', dirname, k);
     dep(k).src_output = substruct('.','dirs','{}',{k});
-    dep(k).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(k).tgt_spec   = cfg_findspec({{'filter','dir','strtype','e'}});
 end;

@@ -18,9 +18,9 @@ function [val sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 1293 2008-04-02 14:20:43Z volkmar $
+% $Id: resolve_deps.m 1298 2008-04-03 08:54:13Z volkmar $
 
-rev = '$Rev: 1293 $';
+rev = '$Rev: 1298 $';
 
 try
     val1 = cell(size(item.val{1}));
@@ -55,11 +55,7 @@ if sts
             warning('matlabbatch:resolve_deps:concat','Dependencies resolved, but incompatible values.');
             l = lasterror;
             fprintf('%s\n',l.message);
-            fprintf('In item %s:\n', subsref(item, substruct('.','name')));
-            for k = 1:numel(item.val{1})
-                fprintf('Dependency %d: %s\n', k, item.val{1}(k).sname);
-                disp(val1{k});
-            end;
+            disp_deps(item, val1);
             % reset val and sts
             val = [];
             sts = false;
@@ -77,6 +73,14 @@ if sts
     val = val{1};
 else
     warning('matlabbatch:resolve_deps:subsasgn',...
-            'Item ''%s'': Dependencies resolved, but not suitable for this item.', subsref(item, substruct('.','name')));
+            'Dependencies resolved, but not suitable for this item.');
+    disp_deps(item, val1);
     return;
+end;
+
+function disp_deps(item, val1)
+fprintf('In item %s:\n', subsref(item, substruct('.','name')));
+for k = 1:numel(item.val{1})
+    fprintf('Dependency %d: %s\n', k, item.val{1}(k).sname);
+    disp(val1{k});
 end;
