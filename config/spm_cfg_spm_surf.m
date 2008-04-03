@@ -4,9 +4,9 @@ function spm_surf_node = spm_cfg_spm_surf
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_spm_surf.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_spm_surf.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % data Grey+white matter image
 % ---------------------------------------------------------------------
@@ -66,7 +66,7 @@ try
         dep(cdep)            = cfg_dep;
         dep(cdep).sname      = 'Render .mat File';
         dep(cdep).src_output = substruct('.','rendfile');
-        dep(cdep).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+        dep(cdep).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
         cdep = cdep+1;
     end;
 
@@ -77,7 +77,7 @@ try
                 dep(cdep).sname      = sprintf('Surf .mat File (thr=%.02f)', ...
                                                job.thresh(k));
                 dep(cdep).src_output = substruct('.','surffile', '()',{k});
-                dep(cdep).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+                dep(cdep).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
                 cdep = cdep+1;
             end;
             if any(job.mode==[4]),
@@ -85,7 +85,7 @@ try
                 dep(cdep).sname      = sprintf('Surf .obj File (thr=%.02f)', ...
                                                job.thresh(k));
                 dep(cdep).src_output = substruct('.','objfile', '()',{k});
-                dep(cdep).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+                dep(cdep).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
                 cdep = cdep+1;
             end;
         end;

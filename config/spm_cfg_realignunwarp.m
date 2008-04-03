@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -541,12 +541,12 @@ for k=1:numel(job.data)
     cdep(2)            = cfg_dep;
     cdep(2).sname      = sprintf('Unwarp Params File (Sess %d)', k);
     cdep(2).src_output = substruct('.','sess', '()',{k}, '.','dsfile');
-    cdep(2).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    cdep(2).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
     if job.uwroptions.uwwhich(1) == 2
         cdep(3)            = cfg_dep;
         cdep(3).sname      = sprintf('Unwarped Images (Sess %d)', k);
         cdep(3).src_output = substruct('.','sess', '()',{k}, '.','uwrfiles');
-        cdep(3).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+        cdep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end;
     if k == 1
         dep = cdep;
@@ -559,5 +559,5 @@ if job.uwroptions.uwwhich(2),
     dep(end+1)            = cfg_dep;
     dep(end).sname      = 'Unwarped Mean Image';
     dep(end).src_output = substruct('.','meanuwr');
-    dep(end).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;

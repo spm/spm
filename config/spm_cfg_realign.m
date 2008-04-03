@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_realign.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -603,7 +603,7 @@ if job.roptions.which(1) > 0
     dep(1)            = cfg_dep;
     dep(1).sname      = 'Resliced Images';
     dep(1).src_output = substruct('.','rfiles');
-    dep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
 if job.roptions.which(2),
     if exist('dep','var')
@@ -613,7 +613,7 @@ if job.roptions.which(2),
     end;
     dep(end).sname      = 'Mean Image';
     dep(end).src_output = substruct('.','rmean');
-    dep(end).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
 
 %------------------------------------------------------------------------
@@ -622,13 +622,13 @@ end;
 function dep = vout_estimate(job)
 for k=1:numel(job.data)
     cdep(1)            = cfg_dep;
-    cdep(1).sname      = sprintf('Realigned Images (Sess %d)', k);
-    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','cfiles');
-    cdep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    cdep(1).sname      = sprintf('Realignment Param File (Sess %d)', k);
+    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
+    cdep(1).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
     cdep(2)            = cfg_dep;
-    cdep(2).sname      = sprintf('Realignment Param File (Sess %d)', k);
-    cdep(2).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
-    cdep(2).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    cdep(2).sname      = sprintf('Realigned Images (Sess %d)', k);
+    cdep(2).src_output = substruct('.','sess', '()',{k}, '.','cfiles');
+    cdep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     if k == 1
         dep = cdep;
     else
@@ -642,18 +642,18 @@ end;
 function dep = vout_estwrite(job)
 for k=1:numel(job.data)
     cdep(1)            = cfg_dep;
-    cdep(1).sname      = sprintf('Realigned Images (Sess %d)', k);
-    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','cfiles');
-    cdep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    cdep(1).sname      = sprintf('Realignment Param File (Sess %d)', k);
+    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
+    cdep(1).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
     cdep(2)            = cfg_dep;
-    cdep(2).sname      = sprintf('Realignment Param File (Sess %d)', k);
-    cdep(2).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
-    cdep(2).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    cdep(2).sname      = sprintf('Realigned Images (Sess %d)', k);
+    cdep(2).src_output = substruct('.','sess', '()',{k}, '.','cfiles');
+    cdep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     if job.roptions.which(1) > 0
         cdep(3)            = cfg_dep;
         cdep(3).sname      = sprintf('Resliced Images (Sess %d)', k);
         cdep(3).src_output = substruct('.','sess', '()',{k}, '.','rfiles');
-        cdep(3).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+        cdep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end;
     if k == 1
         dep = cdep;
@@ -669,6 +669,6 @@ if job.roptions.which(2),
     end;
     dep(end).sname      = 'Mean Image';
     dep(end).src_output = substruct('.','rmean');
-    dep(end).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
 

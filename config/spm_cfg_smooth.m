@@ -4,9 +4,9 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_smooth.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -77,4 +77,4 @@ function dep = vout(varargin)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'Smoothed Images';
 dep(1).src_output = substruct('.','files');
-dep(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});

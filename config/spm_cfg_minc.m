@@ -4,9 +4,9 @@ function minc = spm_cfg_minc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_minc.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_minc.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % data MINC files
 % ---------------------------------------------------------------------
@@ -76,7 +76,7 @@ minc.vout = @vout;
 %------------------------------------------------------------------------
 function dep = vout(job)
 dep            = cfg_dep;
-dep.sname      = 'Converted Files';
+dep.sname      = 'Converted Images';
 dep.src_output = substruct('.','files');
-dep.tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+dep.tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 

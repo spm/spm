@@ -4,9 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_normalise.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -625,9 +625,9 @@ normalise.num     = [1 Inf];
 function dep = vout_estimate(job)
 for k=1:numel(job.subj)
     dep(k)            = cfg_dep;
-    dep(k).sname      = sprintf('Norm Params (Subj %d)',k);
+    dep(k).sname      = sprintf('Norm Params File (Subj %d)',k);
     dep(k).src_output = substruct('()',{k},'.','snparams');
-    dep(k).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(k).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 end;
 %------------------------------------------------------------------------
 
@@ -637,7 +637,7 @@ for k=1:numel(job.subj)
     dep(k)            = cfg_dep;
     dep(k).sname      = sprintf('Normalised Images (Subj %d)',k);
     dep(k).src_output = substruct('()',{k},'.','files');
-    dep(k).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
 %------------------------------------------------------------------------
 

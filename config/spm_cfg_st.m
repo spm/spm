@@ -4,9 +4,9 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_st.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % scans Session
 % ---------------------------------------------------------------------
@@ -129,6 +129,6 @@ for k=1:numel(job.scans),
     dep(k)            = cfg_dep;
     dep(k).sname      = sprintf('Slice Timing Corr. Images (Sess %d)', k);
     dep(k).src_output = substruct('()',{k}, '.','files');
-    dep(k).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
 return;

@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_fmri_est.m 1299 2008-04-03 08:55:09Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1299 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -305,4 +305,4 @@ function dep = vout_stats(job)
 dep            = cfg_dep;
 dep.sname      = 'SPM.mat File (Estimation)';
 dep.src_output = substruct('.','spmmat');
-dep.tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
