@@ -106,7 +106,7 @@ else
                         cfg_util('addtojob', mod_cfg_id);
                     end;
                 end;
-                cfg_ui;
+                cfg_ui('local_showjob', cfg_ui);
             else
                 if exist('mljob', 'var')
                     cfg_serial(@serial_ui, mljob)
