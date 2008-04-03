@@ -5,7 +5,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_preproc8.m 1301 2008-04-03 13:21:44Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -71,7 +71,7 @@ end
 ll     = -Inf;
 llr    = 0;
 llrb   = 0;
-tol1   = 1e-3; % Stopping criterion.  For more accuracy, use a smaller value
+tol1   = 1e-4; % Stopping criterion.  For more accuracy, use a smaller value
 
 
 % Initial parameterisation of Gaussians
@@ -81,22 +81,22 @@ if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
 if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
 vr0 = zeros(N,N);
 for n=1:N,
-    mn =  Inf;
-    mx = -Inf;
+   %mnv =  Inf; % Note dodgy variable name
+    mxv = -Inf;
     for z=1:length(z0),
         tmp = spm_sample_vol(V(n),x0,y0,o*z0(z),0);
         tmp = tmp(isfinite(tmp) & tmp~=0);
-        mn  = min(min(tmp),mn);
-        mx  = max(max(tmp),mx);
+       %mnv = min(min(tmp),mnv);
+        mxv = max(max(tmp),mxv);
     end;
     for k1=1:Kb,
         kk = sum(lkp==k1);
-        if ~isfield(obj,'mn'), mn(n,lkp==k1) = rand(1,kk)*mx; end
+        if ~isfield(obj,'mn'), mn(n,lkp==k1) = rand(1,kk)*mxv; end
         if ~isfield(obj,'mg'), mg(lkp==k1)   = 1/kk;          end
     end;
     if ~isfield(obj,'vr'),
         for k=1:K,
-            vr(n,n,k) = (mx/2)^2;
+            vr(n,n,k) = (mxv/2)^2;
         end
     end
 
@@ -105,7 +105,7 @@ for n=1:N,
     if spm_type(V(n).dt(1),'intt'),
         vr0(n,n) = 0.083*V(n).pinfo(1,1);
     else
-        vr0(n,n) = mx^2*eps*10000;
+        vr0(n,n) = mxv^2*eps*10000;
     end
 end
 
@@ -164,7 +164,7 @@ for n=1:N,
 end
 
 
-spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
+spm_chi2_plot('Init','Initialising','Log-likelihood','Iteration');
 for iter=1:20,
 
     % Load the warped prior probability images into the buffer
@@ -178,7 +178,7 @@ for iter=1:20,
         end;
     end;
 
-    for iter1=1:20,
+    for iter1=1:10,
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Estimate cluster parameters
@@ -312,9 +312,18 @@ fprintf('* %d %g %g\n', subit, llrb,ll);
                 % Improvement is only small, so go to next step
                 break;
             end
-            if ~((ll-ooll)>tol1*nm), break; end
         end
+
+        if iter==1 && iter1==1,
+            % Most of the log-likelihood improvements are in the first iteration.
+            % Show only improvements after this, as they are more clearly visible.
+            spm_chi2_plot('Clear');
+            spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
+        end
+
+        if ~((ll-ooll)>tol1*nm), disp('XXX'); break; end
     end
+
  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Estimate deformations
@@ -405,7 +414,7 @@ fprintf('* %d %g %g\n', subit, llrb,ll);
             for z=1:length(z0),
                 if ~buf(z).nm, continue; end;
                 [x1,y1,z1] = defs(Twarp1,z,x0,y0,z0,M,buf(z).msk);
-                b  = spm_sample_priors8(tpm,x1,y1,z1);
+                b          = spm_sample_priors8(tpm,x1,y1,z1);
                 clear x1 y1 z1
 
                 sq = zeros(buf(z).nm,1) + tiny;
@@ -416,11 +425,11 @@ fprintf('* %d %g %g\n', subit, llrb,ll);
                 ll1 = ll1 + sum(log(sq));
                 clear sq
             end;
-            spm_chi2_plot('Set',ll1);
             fprintf('%d\t%d\t%g\n', iter, subit, ll1);
             if ll1<ll,
                 lam   = lam*8;
             else
+                spm_chi2_plot('Set',ll1);
                 lam   = lam*0.5;
                 ll    = ll1;
                 llr   = llr1;
@@ -442,17 +451,17 @@ fprintf('* %d %g %g\n', subit, llrb,ll);
 end;
 % spm_chi2_plot('Clear');
 
-results.image = obj.image;
-results.tpm   = tpm.V;
+results.image  = obj.image;
+results.tpm    = tpm.V;
 results.Affine = Affine;
-results.lkp   = lkp;
-results.MT    = MT;
-results.Twarp = Twarp;
-results.Tbias = {bias(:).T};
-results.mg    = mg;
-results.mn    = mn;
-results.vr    = vr;
-results.ll    = ll;
+results.lkp    = lkp;
+results.MT     = MT;
+results.Twarp  = Twarp;
+results.Tbias  = {bias(:).T};
+results.mg     = mg;
+results.mn     = mn;
+results.vr     = vr;
+results.ll     = ll;
 return;
 %=======================================================================
 

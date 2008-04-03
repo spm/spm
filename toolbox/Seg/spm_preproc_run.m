@@ -17,7 +17,7 @@ function varargout = spm_preproc_run(job,arg)
 % job.warp.vox
 
 % John Ashburner
-% $Id: spm_preproc_run.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_preproc_run.m 1301 2008-04-03 13:21:44Z john $
 
 if nargin==1,
     run_job(job);
@@ -35,39 +35,85 @@ function run_job(job)
 tpm    = strvcat(cat(1,job.tissue(:).tpm));
 tpm    = spm_load_priors8(tpm);
 
-for subj=1:numel(job.channel(1).vols),
-    images = '';
-    for n=1:numel(job.channel),
-        images = strvcat(images,job.channel(n).vols{subj});
+nit = 1;
+
+for iter=1:nit,
+    if nit>1,
+        SS = zeros([size(tpm.dat{1}),numel(tpm.dat)],'single');
     end
-    obj.image    = spm_vol(images);
-    spm_check_orientations(obj.image);
+    for subj=1:numel(job.channel(1).vols),
+        images = '';
+        for n=1:numel(job.channel),
+            images = strvcat(images,job.channel(n).vols{subj});
+        end
+        obj.image    = spm_vol(images);
+        spm_check_orientations(obj.image);
 
-    obj.fudge    = 5;
-    obj.biasreg  = cat(1,job.channel(:).biasreg);
-    obj.biasfwhm = cat(1,job.channel(:).biasfwhm);
-    obj.tpm      = tpm;
-    obj.lkp      = [];
-    for k=1:numel(job.tissue),
-        obj.lkp = [obj.lkp ones(1,job.tissue(k).ngaus)*k];
-    end;
-    obj.reg      = job.warp.reg;
-    obj.samp     = job.warp.samp;
+        obj.fudge    = 5;
+        obj.biasreg  = cat(1,job.channel(:).biasreg);
+        obj.biasfwhm = cat(1,job.channel(:).biasfwhm);
+        obj.tpm      = tpm;
+        obj.lkp      = [];
+        for k=1:numel(job.tissue),
+            obj.lkp = [obj.lkp ones(1,job.tissue(k).ngaus)*k];
+        end;
+        obj.reg      = job.warp.reg;
+        obj.samp     = job.warp.samp;
 
-    % Initial affine registration.
-    obj.Affine  = eye(4);
-    if ~isempty(job.warp.affreg),
-        obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge*4,tpm,obj.Affine,job.warp.affreg);
-        obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,obj.Affine,job.warp.affreg);
-    end;
-    res = spm_preproc8(obj);
-    savefields('results.mat',res);
+        if iter==1,
+            % Initial affine registration.
+            obj.Affine  = eye(4);
+            if ~isempty(job.warp.affreg),
+                obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge*4,tpm,obj.Affine,job.warp.affreg);
+                obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,obj.Affine,job.warp.affreg);
+            end;
+        else
+            [pth,nam] = fileparts(job.channel(1).vols{subj});
+            res       = load(fullfile(pth,[nam '_seg8.mat']));
+            obj.Affine = res.Affine;
+            obj.Twarp  = res.Twarp;
+            obj.Tbias  = res.Tbias;
+            obj.mg     = res.mg;
+            obj.mn     = res.mn;
+            obj.vr     = res.vr;
+        end
 
-    tmp1 =  cat(1,job.channel(:).write);
-    tmp2 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
-    tmp3 = [tmp2(:,1) any(tmp2(:,2:end),2)];
-    cls  = spm_preproc_write8(res,tmp1,tmp3);
+        res = spm_preproc8(obj);
 
+        try,
+            [pth,nam] = fileparts(job.channel(1).vols{subj});
+            savefields(fullfile(pth,[nam '_seg8.mat']),res);
+        catch
+        end
+
+        if iter==nit,
+            tmp2 =  cat(1,job.channel(:).write);
+            tmp1 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
+            tmp2 =  cat(1,job.channel(:).write);
+            tmp3 = job.warp.write;
+            spm_preproc_write8(res,tmp1,tmp2,tmp3);
+        else
+            N    = numel(job.channel);
+            K    = numel(job.tissue);
+            cls  = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0]);
+            for k=1:K,
+                SS(:,:,:,k) = SS(:,:,:,k) + cls{k};
+            end
+        end
+
+    end
+    if iter<nit && nit>1,
+         for k=1:K,
+             SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*2.0 + eps;
+         end
+         s = sum(SS,4);
+         for k=1:K,
+             tmp        = SS(:,:,:,k)./s;
+             tpm.bg(k)  = mean(mean(tmp(:,:,1)));
+             tpm.dat{k} = spm_bsplinc(log(tmp+tpm.tiny),[ones(1,3)*(tpm.deg-1)  0 0 0]);
+         end
+         save junk.mat SS tpm
+    end
 end
 
 return

@@ -6,10 +6,11 @@ function out = isnan(fa)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: isnan.m 1230 2008-03-19 14:23:20Z john $
+% $Id: isnan.m 1301 2008-04-03 13:21:44Z john $
 
 bs  = 10240;
 m   = size(fa);
+fa  = reshape(fa,prod(m),1);
 n   = prod(m);
 out = false(m);
 for i=1:ceil(n/bs),
