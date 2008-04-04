@@ -12,9 +12,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1298 2008-04-03 08:54:13Z volkmar $
+% $Id: subsasgn_check.m 1311 2008-04-04 14:41:30Z volkmar $
 
-rev = '$Rev: 1298 $';
+rev = '$Rev: 1311 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -35,7 +35,9 @@ switch subs(1).subs
             else
                 typ = item.filter;
             end;
-            [val{1} sts1] = cfg_getfile('filter',val{1},typ,item.ufilter,Inf);
+            % don't filter for item.ufilter - this may have been
+            % overridden by user interface
+            [val{1} sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
             if numel(val{1}) < item.num(1)
                 sts = false;
                 warning('matlabbatch:cfg_files:subsasgn_check', ...
