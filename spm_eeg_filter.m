@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_filter.m 1314 2008-04-07 11:28:27Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -81,7 +81,7 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r');
-            if PHz > 0 && PHz < D.fsample/2, break, end
+            if PHz > 0 & PHz < D.fsample/2, break, end
             str = 'Cutoff must be > 0 & < half sample rate';
         end
     elseif strcmp(filter.band, 'high')
@@ -91,8 +91,8 @@ catch
             if YPos == -1
                 YPos = '+1';
             end
-            [PHz, YPos] = spm_input(str, YPos, 'r');
-            if PHz > 0 && PHz < D.fsample/2, break, end
+            [PHz, YPos] = spm_input(str, YPos, 'r', [], 1);
+            if PHz > 0 & PHz < D.fsample/2, break, end
             str = 'Cutoff must be > 0 & < half sample rate';
         end
     elseif strcmp(filter.band, 'bandpass')
@@ -103,7 +103,7 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
-            if PHz(1) > 0 && PHz(1) < D.fsample/2 && PHz(1) < PHz(2), break, end
+            if PHz(1) > 0 & PHz(1) < D.fsample/2 & PHz(1) < PHz(2), break, end
             str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
         end
     elseif strcmp(filter.band, 'stop')
@@ -114,7 +114,7 @@ catch
                 YPos = '+1';
             end
             [PHz, YPos] = spm_input(str, YPos, 'r', [], 2);
-            if PHz(1) > 0 && PHz(1) < D.fsample/2 && PHz(1) < PHz(2), break, end
+            if PHz(1) > 0 & PHz(1) < D.fsample/2 & PHz(1) < PHz(2), break, end
             str = 'Cutoff 1 must be > 0 & < half sample rate and Cutoff 1 must be < Cutoff 2';
         end
     end
@@ -124,7 +124,7 @@ end
 if strcmpi(filter.type, 'butterworth')
     % butterworth coefficients
     if(isempty(filter.para))
-    [B, A] = butter(filter.order, 2*filter.PHz/D.fsample, filter.band);
+    [B, A] = butter(filter.order, filter.PHz/(D.fsample/2), filter.band);
         filter.para{1} = B;
         filter.para{2} = A;
     elseif(length(filter.para)~=2)
@@ -149,7 +149,7 @@ for i = 1:D.ntrials
 
     for j = 1:D.nchannels
         if strcmpi(filter.type, 'butterworth')
-            d(j,:) = filtfilt(filter.para{1}, filter.para{2}, d(j,:));
+            d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
         end
     end
 
