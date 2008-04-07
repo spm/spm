@@ -76,12 +76,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1260 2008-03-27 21:56:55Z volkmar $
+% $Id: cfg_serial.m 1312 2008-04-07 07:47:40Z volkmar $
 
-rev = '$Rev: 1260 $';
-
-% close any cfg_ui instance
-close(cfg_ui);
+rev = '$Rev: 1312 $';
 
 if ischar(job)
     % Assume dot delimited sequence of tags
@@ -91,7 +88,7 @@ if ischar(job)
         % initialise new job
         cjob = cfg_util('initjob');
         % add mod_cfg_id
-        cfg_util('addtojob', mod_cfg_id);
+        cfg_util('addtojob', cjob, mod_cfg_id);
     else
         % tag string points to somewhere above cfg_branch
         cjob = local_addtojob(job);
@@ -103,11 +100,11 @@ end;
 % varargin{:} is a list of input items
 in = varargin;
 % get job information
-[mod_job_idlist str sts dep sout] = cfg_util('showjob');
+[mod_job_idlist str sts dep sout] = cfg_util('showjob', cjob);
 for cm = 1:numel(mod_job_idlist)
     % loop over modules, enter missing inputs
     if ~sts(cm)
-        in = local_fillmod(guifcn, mod_job_idlist{cm}, in);
+        in = local_fillmod(guifcn, cjob, mod_job_idlist{cm}, in);
     end;
 end;
 cfg_util('run',cjob);
@@ -120,16 +117,16 @@ function cjob = local_addtojob(job)
 error('matlabbatch:cfg_serial:notimplemented', ...
       'Menu traversal not yet implemented.');
 
-function inputs = local_fillmod(guifcn, cm, inputs)
+function inputs = local_fillmod(guifcn, cjob, cm, inputs)
 [item_mod_idlist stop contents] = ...
-    cfg_util('listmod', cm, [], cfg_findspec({{'hidden',false}}), ...
+    cfg_util('listmod', cjob, cm, [], cfg_findspec({{'hidden',false}}), ...
              cfg_tropts({{'hidden', true}},1,Inf,1,Inf,false), ...
              {'class', 'all_set_item'});
 for ci = 1:numel(item_mod_idlist)
     % loop over items, enter missing inputs
     if ~contents{2}{ci}
         if ~isempty(inputs)
-            sts = local_setval(cm, item_mod_idlist, contents, ci, inputs{1});
+            sts = local_setval(cjob, cm, item_mod_idlist, contents, ci, inputs{1});
             % discard input{1}, even if setval failed
             inputs = inputs(2:end);
         else
@@ -142,21 +139,21 @@ for ci = 1:numel(item_mod_idlist)
         end;
         while ~sts
             % call guifcn until a valid input is returned
-            val = local_call_guifcn(guifcn, cm, item_mod_idlist{ci}, ...
+            val = local_call_guifcn(guifcn, cjob, cm, item_mod_idlist{ci}, ...
                                     contents{1}{ci});
-            sts = local_setval(cm, item_mod_idlist, contents, ci, val);
+            sts = local_setval(cjob, cm, item_mod_idlist, contents, ci, val);
         end;
         if strcmp(contents{1}{ci}, 'cfg_choice')||...
                 strcmp(contents{1}{ci}, 'cfg_repeat')
             % restart filling current module, break out of for loop
             % afterwards
-            inputs = local_fillmod(guifcn, cm, inputs);
+            inputs = local_fillmod(guifcn, cjob, cm, inputs);
             return;
         end;
     end;
 end;
 
-function sts = local_setval(cm, item_mod_idlist, contents, ci, val)
+function sts = local_setval(cjob, cm, item_mod_idlist, contents, ci, val)
 if strcmp(contents{1}{ci}, 'cfg_repeat')
     % assume val to be a cell array of indices into
     % .values
@@ -169,16 +166,16 @@ if strcmp(contents{1}{ci}, 'cfg_repeat')
         % do not use fast track || here, otherwise
         % cfg_util('setval') must be called in any case to
         % append val{cv} to cfg_repeat list.
-        sts = sts | cfg_util('setval', cm, item_mod_idlist{ci}, ...
+        sts = sts | cfg_util('setval', cjob, cm, item_mod_idlist{ci}, ...
                              [val{cv} Inf]);
     end;
 else
     % try to set val
-    sts = cfg_util('setval', cm, item_mod_idlist{ci}, ...
+    sts = cfg_util('setval', cjob, cm, item_mod_idlist{ci}, ...
                    val);
 end;
 
-function val = local_call_guifcn(guifcn, cm, citem, cmclass)
+function val = local_call_guifcn(guifcn, cjob, cm, citem, cmclass)
 % fieldnames depend on class of item
 switch cmclass
     case {'cfg_choice', 'cfg_repeat'},
@@ -198,7 +195,7 @@ if isempty(citem)
     % we are not in a module
     [u1 u2 contents] = cfg_util('listcfgall', cm, fspec, tropts, fnames);
 else
-    [u1 u2 contents] = cfg_util('listmod', cm, citem, fspec, tropts, fnames);
+    [u1 u2 contents] = cfg_util('listmod', cjob, cm, citem, fspec, tropts, fnames);
 end;
 
 cmname = contents{1}{1};

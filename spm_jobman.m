@@ -103,7 +103,7 @@ else
                         cjob = cfg_util('initjob');
                     else
                         cjob = cfg_util('initjob');
-                        cfg_util('addtojob', mod_cfg_id);
+                        cfg_util('addtojob', cjob, mod_cfg_id);
                     end;
                 end;
                 cfg_ui('local_showjob', cfg_ui, cjob);
@@ -158,7 +158,9 @@ else
 
         case {'harvest'}
             if nargin == 1
-                [varargout{1:nargout}] = cfg_util('harvest');
+                warning('spm:spm_jobman:CantHarvest', ...
+                        ['Can not harvest job without job_id. Please use ' ...
+                         'cfg_util(''harvest'', job_id).']);
             else
                 warning('spm:spm_jobman:CantHarvestCfg', ['Can not harvest ' ...
                                     'configuration struct argument.']);
@@ -214,8 +216,9 @@ for k = 1:numel(fname)
         % Save new job as *_spm8.m
         newfname = fullfile(p, sprintf('%s_spm8.m', n));
         fprintf('SPM5 job: %s\nSPM8 job: %s\n', fname{k}, newfname);
-        cfg_util('initjob', canonicalise_job(joblist{k}));
-        cfg_util('savejob', newfname);
+        cjob = cfg_util('initjob', canonicalise_job(joblist{k}));
+        cfg_util('savejob', cjob, newfname);
+        cfg_util('deljob', cjob);
     end;
 end;
 %------------------------------------------------------------------------

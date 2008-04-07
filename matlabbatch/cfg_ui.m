@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1303 2008-04-03 13:52:53Z volkmar $
+% $Id: cfg_ui.m 1312 2008-04-07 07:47:40Z volkmar $
 
-rev = '$Rev: 1303 $';
+rev = '$Rev: 1312 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -60,20 +60,20 @@ end
 % --------------------------------------------------------------------
 function local_DelMod(hObject)
 handles = guidata(hObject);
-ud = get(handles.modlist,'userdata');
+udmodlist = get(handles.modlist,'userdata');
 val = get(handles.modlist,'value');
-if ~isempty(ud)
-    cfg_util('delfromjob',ud.id{val});
+if ~isempty(udmodlist.cmod)
+    cfg_util('delfromjob',udmodlist.cjob, udmodlist.id{val});
     local_showjob(hObject);
 end;
 
 % --------------------------------------------------------------------
 function local_ReplMod(hObject)
 handles = guidata(hObject);
-ud = get(handles.modlist,'userdata');
+udmodlist = get(handles.modlist,'userdata');
 val = get(handles.modlist,'value');
-if ~isempty(ud)
-    cfg_util('replicate',ud.id{val});
+if ~isempty(udmodlist.cmod)
+    cfg_util('replicate',udmodlist.cjob, udmodlist.id{val});
     local_showjob(hObject);
 end;
 
@@ -164,7 +164,9 @@ end;
 % --------------------------------------------------------------------
 function local_addtojob(varargin)
 id  = get(gcbo, 'userdata');
-cfg_util('addtojob', id);
+handles = guidata(gcbo);
+udmodlist = get(handles.modlist, 'userdata');
+cfg_util('addtojob', udmodlist.cjob, id);
 local_showjob(gcbo);
 % --------------------------------------------------------------------
 function local_loaddefs(varargin)
@@ -236,34 +238,34 @@ local_showjob(gcbo);
 % --------------------------------------------------------------------
 function local_showjob(obj,cjob)
 handles = guidata(obj);
-% set cjob, if supplied
-if nargin == 2
-    cfg_util('setcjob',cjob);
-    set(handles.modlist,'userdata',[]);
+if nargin == 1
+    % udmodlist should be initialised here
+    udmodlist = get(handles.modlist,'userdata');
+    cjob = udmodlist.cjob;
+else
+    % set cjob, if supplied
+    udmodlist = local_init_modlist;
+    udmodlist(1).cjob = cjob;
 end;
-[id str sts dep sout] = cfg_util('showjob');
+[id str sts dep sout] = cfg_util('showjob',cjob);
 if isempty(str)
     str = {'No Modules in Batch'};
-    udmodlist  = local_init_modlist;
     mrk = {' '};
     cmod = 1;
+    udmodlist.cmod = [];
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*(Del)|(Repl)Mod$'),'Enable','off');
 else
-    udmodlist = get(handles.modlist, 'userdata');
-    if isempty(udmodlist)
+    if isempty(udmodlist.cmod)
         cmod = 1;
-        % instantiate udmodlist
-        udmodlist(1).cjob = cfg_util('getcjob');
     else
-        cfg_util('setcjob', udmodlist(1).cjob);
         cmod = min(get(handles.modlist,'value'), numel(str));
-        if udmodlist(1).cmod ~= cmod
+        if udmodlist.cmod ~= cmod
             set(handles.module, 'Userdata',[]);
         end;
     end
-    udmodlist(1).id = id;
-    udmodlist(1).sout = sout;
-    udmodlist(1).cmod = cmod;
+    udmodlist.id = id;
+    udmodlist.sout = sout;
+    udmodlist.cmod = cmod;
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*(Del)|(Repl)Mod$'),'Enable','on');
 end;
 for k = 1:numel(sts)
@@ -278,11 +280,9 @@ end;
 str = cellstr(cat(2,strvcat(str), strvcat(mrk)));
 set(handles.modlist, 'string', str, 'userdata',udmodlist, 'value', cmod);
 if ~isempty(sts) && all(sts)
-    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRun$'),'Enable','on');
-    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRunSerial$'),'Enable','on');
+    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*File(Run)|(RunSerial)$'),'Enable','on');
 else
-    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRun$'),'Enable','off');
-    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*FileRunSerial$'),'Enable','off');
+    set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*File(Run)|(RunSerial)$'),'Enable','off');
 end    
 local_showmod(obj);
 
@@ -291,19 +291,19 @@ local_showmod(obj);
 function local_showmod(obj)
 handles = guidata(obj);
 udmodlist = get(handles.modlist, 'userdata');
-if ~isempty(udmodlist)
+if ~isempty(udmodlist.cmod)
     cmod = get(handles.modlist, 'value');
     % fill module box with module contents
     if isfield(udmodlist, 'defid')
         % list defaults
         dflag = true;
-        cid = udmodlist(1).defid{cmod};
+        cid = {udmodlist.defid{cmod} ,[]};
     else
         dflag = false;
-        cid = udmodlist(1).id{cmod};
+        cid = {udmodlist.cjob, udmodlist.id{cmod}, []};
     end;
     [id stop contents] = ...
-        cfg_util('listmod', cid, [], ...
+        cfg_util('listmod', cid{:}, ...
                  cfg_findspec({{'hidden',false}}), ...
                  cfg_tropts({{'hidden', true}},1,Inf,1,Inf,dflag), ...
                  {'name','val','labels','values','class','level', ...
@@ -312,7 +312,7 @@ if ~isempty(udmodlist)
         % Module not found without hidden flag
         % Try to list top level entry of module anyway, but not module items.
         [id stop contents] = ...
-            cfg_util('listmod', cid, [], ...
+            cfg_util('listmod', cid{:}, ...
                      cfg_findspec({}), ...
                      cfg_tropts({{'hidden', true}},1,1,1,1,dflag), ...
                      {'name','val','labels','values','class','level', ...
@@ -395,7 +395,7 @@ if ~isempty(udmodlist)
     udmodule.oldvalue = citem;
     set(handles.module, 'String', str, 'Value', citem, 'userdata', udmodule);
     % set help box to module help
-    [id stop help] = cfg_util('listmod', cid, [], cfg_findspec, ...
+    [id stop help] = cfg_util('listmod', cid{:}, cfg_findspec, ...
                               cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
     set(handles.helpbox, 'String', spm_justify(handles.helpbox, help{1}{1}), 'Value', 1);
     udmodlist(1).cmod = cmod;
@@ -475,11 +475,11 @@ switch(udmodule.contents{5}{value})
         end;
 end;
 if isfield(udmodlist, 'defid')
-    cmid = udmodlist(1).defid{cmod};
+    cmid = {udmodlist.defid{cmod}};
 else
-    cmid = udmodlist(1).id{cmod};
+    cmid = {udmodlist.cjob udmodlist.id{cmod}};
 end;
-[id stop help] = cfg_util('listmod', cmid, udmodule.id{value}, cfg_findspec, ...
+[id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
 set(handles.helpbox, 'string', spm_justify(handles.helpbox, help{1}{1}));
 
@@ -502,11 +502,11 @@ cmod = get(handles.modlist, 'Value');
 udmodlist = get(handles.modlist, 'Userdata');
 val = udmodule.contents{2}{value};
 if isfield(udmodlist, 'defid')
-    cmid = udmodlist(1).defid{cmod};
+    cmid = {udmodlist.defid{cmod}};
 else
-    cmid = udmodlist(1).id{cmod};
+    cmid = {udmodlist.cjob, udmodlist.id{cmod}};
 end;
-[id stop strtype] = cfg_util('listmod', cmid, udmodule.id{value}, cfg_findspec, ...
+[id stop strtype] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                              cfg_tropts(cfg_findspec,1,1,1,1,false), {'strtype'});
 if isempty(val)
     if strtype{1}{1} == 's'
@@ -697,8 +697,8 @@ if isfield(udmodlist, 'defid')
     cfg_util('setdef', udmodlist(1).defid{cmod}, udmodule.id{citem}, val);
     local_showmod(obj);
 else
-    cfg_util('setval', udmodlist(1).id{cmod}, udmodule.id{citem}, val);
-    cfg_util('harvest', udmodlist(1).id{cmod});
+    cfg_util('setval', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, val);
+    cfg_util('harvest', udmodlist.cjob, udmodlist.id{cmod});
     local_showjob(obj);
 end;
 
@@ -711,12 +711,12 @@ udmodlist = get(handles.modlist, 'Userdata');
 cmod = get(handles.modlist, 'Value');
 udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
-if isfield(udmodlist,'id')
-    id = udmodlist(1).id;
+if isfield(udmodlist,'defid')
+    cmid = {udmodlist.defid{cmod}};
 else
-    id = udmodlist(1).defid;
+    cmid = {udmodlist.cjob, udmodlist.id{cmod}};
 end;
-[unused1 unused2 contents] = cfg_util('listmod', id{cmod}, udmodule.id{citem},{},cfg_tropts({},1,1,1,1,false),{'val','num','filter','name','dir','ufilter'});
+[unused1 unused2 contents] = cfg_util('listmod', cmid{:}, udmodule.id{citem},{},cfg_tropts({},1,1,1,1,false),{'val','num','filter','name','dir','ufilter'});
 if isempty(contents{1}{1}) || isa(contents{1}{1}{1}, 'cfg_dep')
     inifile = '';
 else
@@ -753,7 +753,7 @@ sout = cat(2,udmodlist(1).sout{1:cmod-1});
 smatch = false(size(sout));
 % loop over sout to find all souts that match the current item
 for k = 1:numel(sout)
-    smatch(k) = cfg_util('match', udmodlist(1).id{cmod}, udmodule.id{citem}, sout(k).tgt_spec);
+    smatch(k) = cfg_util('match', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, sout(k).tgt_spec);
 end;
 sout = sout(smatch);
 if isempty(sout)
@@ -845,6 +845,14 @@ function cfg_ui_OpeningFcn(hObject, eventdata, handles, varargin)
 % Add configuration specific menu items
 local_setmenu(hObject);
 
+% Check udmodlist
+udmodlist = get(handles.modlist, 'userdata');
+if isempty(udmodlist)
+    udmodlist = local_init_modlist;
+    udmodlist.cjob = cfg_util('initjob');
+    set(handles.modlist, 'userdata', udmodlist);
+end;
+
 % show job
 local_showjob(hObject);
 
@@ -882,10 +890,11 @@ function MenuFileNew_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 udmodlist = get(handles.modlist, 'userdata');
-if ~isempty(udmodlist)
+if ~isempty(udmodlist.cmod)
     cfg_util('deljob',udmodlist(1).cjob);
 end;
-udmodlist(1).cjob = cfg_util('initjob');
+udmodlist = local_init_modlist;
+udmodlist.cjob = cfg_util('initjob');
 set(handles.modlist, 'userdata', udmodlist);
 local_showjob(hObject);
 
@@ -895,13 +904,12 @@ function MenuFileLoad_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[files sts] = cfg_getfile(Inf, '.*\.m$', 'Load Job File(s)');
+[files sts] = cfg_getfile([1 Inf], '.*\.m$', 'Load Job File(s)');
 if sts
     udmodlist = get(handles.modlist, 'userdata');
-    if ~isempty(udmodlist)
-        cfg_util('deljob',udmodlist(1).cjob);
-    end;
-    udmodlist(1).cjob = cfg_util('initjob', cellstr(files));
+    cfg_util('deljob',udmodlist(1).cjob);
+    udmodlist = local_init_modlist;
+    udmodlist.cjob = cfg_util('initjob', cellstr(files));
     set(handles.modlist, 'userdata', udmodlist);
     local_showjob(hObject);
 end;
@@ -916,7 +924,8 @@ function MenuFileSave_Callback(hObject, eventdata, handles)
 if isnumeric(file) && file == 0
     return;
 end;
-cfg_util('savejob', fullfile(path, file));
+udmodlist = get(handles.modlist, 'userdata');
+cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
 
 % --------------------------------------------------------------------
 function MenuFileRun_Callback(hObject, eventdata, handles)
@@ -968,6 +977,14 @@ function MenuEdit_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % --------------------------------------------------------------------
+function MenuEditUpdateView_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuEditUpdateView (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+local_showjob(hObject);
+
+% --------------------------------------------------------------------
 function MenuEditReplMod_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuEditReplMod (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1015,6 +1032,14 @@ function MenuEditValEditVal_Callback(hObject, eventdata, handles)
 local_valedit_EditValue(hObject);
 
 % --------------------------------------------------------------------
+function MenuEditValClearVal_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuEditValClearVal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+local_valedit_ClearVal(hObject);
+
+% --------------------------------------------------------------------
 function MenuEditValSelectFiles_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuEditValSelectFiles (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1031,12 +1056,16 @@ function MenuEditValAddDep_Callback(hObject, eventdata, handles)
 local_valedit_AddDep(hObject);
 
 % --------------------------------------------------------------------
-function MenuEditUpdateView_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditUpdateView (see GCBO)
+function MenuEditExpertEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuEditExpertEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-local_showjob(hObject);
+if strcmp(get(gcbo,'checked'),'on')
+    set(gcbo, 'checked', 'off');
+else
+    set(gcbo, 'checked', 'on');
+end;
 
 %% Module List Callbacks
 % --- Executes on selection change in modlist.
@@ -1048,7 +1077,7 @@ function modlist_Callback(hObject, eventdata, handles)
 % Hints: contents = get(hObject,'String') returns modlist contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from modlist
 udmodlist = get(handles.modlist, 'userdata');
-if ~isempty(udmodlist)
+if ~isempty(udmodlist.cmod)
     if ~isfield(udmodlist, 'defid')
         cfg_util('harvest', udmodlist(1).id{udmodlist(1).cmod});
         local_showjob(hObject);
@@ -1216,28 +1245,7 @@ local_valedit_ReplItem(hObject);
 
 
 % --------------------------------------------------------------------
-function MenuEditExpertEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditExpertEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-if strcmp(get(gcbo,'checked'),'on')
-    set(gcbo, 'checked', 'off');
-else
-    set(gcbo, 'checked', 'on');
-end;
-
-
-% --------------------------------------------------------------------
-function MenuEditValClearVal_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditValClearVal (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_ClearVal(hObject);
-
-% --------------------------------------------------------------------
 function modlist = local_init_modlist
 % Initialise modlist to empty struct
 % Don't initialise defid field - this will be added by defaults editor
-modlist = struct('cjob',{},'cmod',{},'id',{},'sout',{});
+modlist = struct('cjob',[],'cmod',[],'id',[],'sout',[]);
