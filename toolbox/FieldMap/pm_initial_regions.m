@@ -29,9 +29,13 @@ function [irima,cn] = pm_initial_regions(pm,mask,nstep)
 %
 % N.B. The interval > phi <= is based on the observation that
 % angle(-1) returns pi (rather than -pi).
-%_____________________________________________________________
+%
 % Jesper Andersson 1/10-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
+% Jesper Andersson 
+% $Id: pm_initial_regions.m 1317 2008-04-08 16:16:38Z chloe $
 if max(abs(pm(:))) > pi
    nstep = round(nstep * (max(pm(:))-min(pm(:))) / (2*pi));
    bins = linspace(min(pm(:))-eps,max(pm(:)),nstep+1);
@@ -43,7 +47,7 @@ cn = 0;
 irima = zeros(size(pm));
 for i=1:nstep
    tmp = double((pm > bins(i)) & (pm <= bins(i+1))).*mask;
-   [lltmp,num] = ip_bwlabel(tmp,6);
+   [lltmp,num] = spm_bwlabel(tmp,6);
    irima = irima+((lltmp+cn).*(lltmp~=0));
    cn = max(irima(:));
 end

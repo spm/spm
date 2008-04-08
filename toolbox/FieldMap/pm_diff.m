@@ -1,5 +1,4 @@
 function V = pm_diff(V,dir)
-%
 % Calculate derivative in one direction of 
 % volume (matrix or memory mapped)
 %
@@ -13,8 +12,11 @@ function V = pm_diff(V,dir)
 % Output:
 % V      : 3D matlab array of derivatives.
 %
-%__________________________________________________
-% Chloe Hutton 7/10-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton
+% $Id: pm_diff.m 1317 2008-04-08 16:16:38Z chloe $
 
 if ischar(V) & exist(V) == 2
    V = spm_vol(V);

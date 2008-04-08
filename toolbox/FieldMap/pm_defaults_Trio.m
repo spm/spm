@@ -7,7 +7,10 @@
 % This file is intended for use with the Siemens fieldmap sequence
 % on the Trio scanner at the AMRIG/FIL.
 %_______________________________________________________________________
-% pm_defaults_Trio Chloe Hutton, Jesper Andersson 24/11/07
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton and Jesper Andersson
+% $Id: pm_defaults_Trio.m 1317 2008-04-08 16:16:38Z chloe $
 
 global pm_def
 

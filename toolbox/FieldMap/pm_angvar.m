@@ -1,5 +1,4 @@
 function angvar = pm_angvar(cmap)
-%
 % Estimates the (voxelwise) variance of the angle
 % estimated from the complex map cmap.
 % FORMAT: angvar = pm_angvar(cmap)
@@ -13,13 +12,14 @@ function angvar = pm_angvar(cmap)
 % Output:
 % angvar   : Map with an estimate of the variance of a phasemap
 %            estimated using cmap as one of its constituents.
-%______________________________________________________________
-% Jesper Andersson 30/9-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-%
+% Jesper Andersson 
+% $Id: pm_angvar.m 1317 2008-04-08 16:16:38Z chloe $
+
 % Get mutual histogram of Re and Im part of all voxels.
 %
-
 maxr = max(real(cmap(:)));
 minr = min(real(cmap(:)));
 if maxr > abs(minr) minr = -maxr; else maxr = -minr; end

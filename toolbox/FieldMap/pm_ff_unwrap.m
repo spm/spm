@@ -1,5 +1,4 @@
 function varargout = pm_ff_unwrap(varargin)
-%
 % Performs phase-unwrapping along the shore of a flood-fill
 % progressing from some seed in a low-variance area towards
 % higher variance areas.
@@ -36,6 +35,11 @@ function varargout = pm_ff_unwrap(varargin)
 % reporting of progress to some GUI.
 %_________________________________________________________________
 % Jesper Andersson 30/9-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_ff_unwrap.m 1317 2008-04-08 16:16:38Z chloe $
 
 error('mex-function pm_ff_unwrap.c not compiled');
 

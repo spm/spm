@@ -53,7 +53,7 @@ function [VO,M] = pm_segment(VF,PG,flags)
 
 % John Ashburner
 % $Id: spm_segment.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id$
 
 % Create some suitable default values
 %-----------------------------------------------------------------------

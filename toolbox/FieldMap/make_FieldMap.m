@@ -5,12 +5,13 @@
 % It may be necessary to use any special options.
 % if there are problems, in matlab check:
 % >help mex.
-%--------------------------------------------------------------------------
-% Chloe Hutton
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-mex ip_bwlabel.c 
-mex pm_invert_phasemap_dtj.c
-mex ip_dilate_erode.c             
+% Chloe Hutton
+% $Id: make_FieldMap.m 1317 2008-04-08 16:16:38Z chloe $
+
+mex pm_invert_phasemap_dtj.c            
 mex pm_merge_regions.c
 mex pm_create_connectogram_dtj.c  
 mex pm_pad.c
@@ -25,9 +26,7 @@ mex pm_smooth_phasemap_dtj.c
 % replacing /usr/local/matlab6.5 with the location of your local version of 
 % matlab.
 
-%mex -f /local/matlab6.5/bin/gccopts.sh ip_bwlabel.c 
-%mex -f /local/matlab6.5/bin/gccopts.sh pm_invert_phasemap_dtj.c
-%mex -f /local/matlab6.5/bin/gccopts.sh ip_dilate_erode.c             
+%mex -f /local/matlab6.5/bin/gccopts.sh pm_invert_phasemap_dtj.c         
 %mex -f /local/matlab6.5/bin/gccopts.sh pm_merge_regions.c
 %mex -f /local/matlab6.5/bin/gccopts.sh pm_create_connectogram_dtj.c  
 %mex -f /local/matlab6.5/bin/gccopts.sh pm_pad.c

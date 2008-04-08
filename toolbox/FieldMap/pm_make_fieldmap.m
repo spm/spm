@@ -1,5 +1,4 @@
 function fm = pm_make_fieldmap(P,flags)
-%
 % This function creates an unwrapped fieldmap (in Hz) from either 
 % a single or double echo complex image volume. In the case of a 
 % "single-echo" image, that will have been created by the vendor
@@ -69,6 +68,11 @@ function fm = pm_make_fieldmap(P,flags)
 % P(4)        : imaginary part of long echo time image
 %__________________________________________________________
 % Chloe Hutton, Jesper Andersson 05/08/22
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson and Chloe Hutton
+% $Id: pm_make_fieldmap.m 1317 2008-04-08 16:16:38Z chloe $
 
 % The default values below will be used if any flags haven't been defined 
 % or are empty.

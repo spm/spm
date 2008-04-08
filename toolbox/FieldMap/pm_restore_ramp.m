@@ -23,5 +23,10 @@ function varargout = pm_restore_ramp(varargin)
 % phasemap toolbox.
 %__________________________________________________________________
 % Jesper Andersson 30/9-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_restore_ramp.m 1317 2008-04-08 16:16:38Z chloe $
 
 error('mex-function pm_restore_ramp.c not compiled');

@@ -9,7 +9,10 @@
 % on the Allegra scanner at the FIL and the new EPI sequence with
 % extended field FOV - nw_mepi_v3d_efov.
 %_______________________________________________________________________
-% pm_defaults_Allegra_eFoV Chloe Hutton, Jesper Andersson  28/02/08
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton and Jesper Andersson
+% $Id: pm_defaults_Allegra_eFoV.m 1317 2008-04-08 16:16:38Z chloe $
 
 global pm_def;
 

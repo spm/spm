@@ -8,7 +8,10 @@
 % This file is intended for use with the Siemens fieldmap sequence
 % and the 128 EPI sequence on the Allegra scanner at the FIL.
 %_______________________________________________________________________
-% pm_defaults_Allegra Chloe Hutton, Jesper Andersson 13/02/07
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton and Jesper Andersson
+% $Id: pm_defaults_Allegra_128.m 1317 2008-04-08 16:16:38Z chloe $
 
 global pm_def
 

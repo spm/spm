@@ -1,5 +1,3 @@
-%
-%
 % Template script for FieldMap toolbox
 % _____________________________________________________________________
 %
@@ -17,10 +15,12 @@
 % description of the components of the structure IP, see FieldMap.m.
 % For an introduction to the theoretcial and practical principles behind 
 % the toolbox, see principles.man.
-%_________________________________________________________________
-% FieldMap_ngui.m         Chloe Hutton & Jesper Andersson 27/01/04
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-%
+% Jesper Andersson and Chloe Hutton
+% $Id: FieldMap_ngui.m 1317 2008-04-08 16:16:38Z chloe $
+
 %----------------------------------------------------------------------  
 % Set up default parameters and structures 
 %----------------------------------------------------------------------

@@ -32,7 +32,12 @@ function varargout = pm_invert_phasemap(varargin)
 % the field should be inverted.
 %_______________________________________________________________________
 % Jesper Andersson 17/3-05
+%
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
+% Jesper Andersson 
+% $Id: pm_invert_phasemap.m 1317 2008-04-08 16:16:38Z chloe $
 
 %
 % Decode first input parameter.

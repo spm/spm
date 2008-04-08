@@ -4,6 +4,11 @@
 % This script will do realign and unwarp with a fieldmap
 %
 % Chloe Hutton 24/08/05
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton 
+% $Id: Unwarp_batch.m 1317 2008-04-08 16:16:38Z chloe $
 
 which spm
 

@@ -1,5 +1,4 @@
 function pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
-%
 % Performs a weighted (by 1/angvar) gaussian smoothing
 % of a phasemap.
 % FORMAT: pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
@@ -12,7 +11,11 @@ function pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
 %              directions (or scalar for isotropic kernel).
 %__________________________________________________________
 % Jesper Andersson 16/10-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
+% Jesper Andersson 
+% $Id: pm_smooth_phasemap.m 1317 2008-04-08 16:16:38Z chloe $
 
 if nargin ~= 4 | nargout ~= 1
    help pm_smooth_phasemap

@@ -1,5 +1,4 @@
 function seed = pm_seed(angvar,mask,pxs)
-%
 % Find a suitable (hopefully) seed point from which
 % to start watershed-based unwrapping.
 % FORMAT: seed = pm_seed(angvar,mask,pxs)
@@ -29,6 +28,11 @@ function seed = pm_seed(angvar,mask,pxs)
 % variance map.
 %___________________________________________________________
 % Jesper Andersson 1/10-03 
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_seed.m 1317 2008-04-08 16:16:38Z chloe $
 
 if nargin < 3
    mask = ones(size(angvar));

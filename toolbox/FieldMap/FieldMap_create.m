@@ -1,5 +1,4 @@
 function VDM=FieldMap_create(fm_imgs,epi_img,pm_defs)
-%
 % Function to create VDM file from fieldmap images and can be called
 % using FieldMap_preprocess.m
 % 
@@ -18,9 +17,12 @@ function VDM=FieldMap_create(fm_imgs,epi_img,pm_defs)
 %
 % 27/02/07 - Updated for SPM5.
 % 20/02/08 - Updated to work with multiple sessions
-%_________________________________________________________________
-% FieldMap_create.m                           Chloe Hutton 27/02/07
-  
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton
+% $Id: FieldMap_create.m 1317 2008-04-08 16:16:38Z chloe $
+
 if nargin < 3
   error('field map images, epi image and defaults');
 end

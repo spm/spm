@@ -53,7 +53,11 @@ function varargout = pm_create_connectogram(rima,pm)
 % and remove any duplicate connections in there.
 % We're lazy, not neccesarily stupid.
 %_______________________________________________________________________
-% Jesper Andersson 30/9-03
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_create_connectogram.m 1317 2008-04-08 16:16:38Z chloe $
+
 
 if exist('pm_create_connectogram_dtj')~=3 
    error('mex-file pm_create_connectogram_dtj has not been compiled');

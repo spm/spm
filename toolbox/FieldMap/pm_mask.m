@@ -1,5 +1,4 @@
 function mask = pm_mask(angvar,mthres,ndil)
-%
 % Creating a mask that will determine how far
 % we should proceed with phase unwrapping.
 % FORMAT: mask = pm_mask(angvar,mthrea,ndil)
@@ -20,8 +19,12 @@ function mask = pm_mask(angvar,mthres,ndil)
 % Output:
 % mask       : Well...
 %
-%_____________________________________________________
 % Jesper Andersson 26/9-03.
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_mask.m 1317 2008-04-08 16:16:38Z chloe $
 
 if nargin < 2
    mthres = (pi^2)/6;
@@ -35,7 +38,7 @@ end
 % largest connected component.
 %
 mask = double(angvar < mthres);
-[lmask,num] = ip_bwlabel(mask,6);
+[lmask,num] = spm_bwlabel(mask,6);
 n = histc(lmask(:),[0:num]+0.5);
 [mv,mi] = max(n);
 indx = lmask(:)==mi;
@@ -44,15 +47,15 @@ mask(~indx) = 0;
 if ndil
    dmask = mask;
    for i=1:ndil
-      dmask = ip_erode(dmask);
+      dmask = spm_erode(dmask);
    end
-   [lmask,num] = ip_bwlabel(dmask,6);
+   [lmask,num] = spm_bwlabel(dmask,6);
    n = histc(lmask(:),[0:num]+0.5);
    [mv,mi] = max(n);
    indx = lmask(:)==mi;
    dmask(~indx) = 0;
    for i=1:ndil
-      dmask = ip_dilate(dmask);
+      dmask = spm_dilate(dmask);
    end
    mask = mask.*dmask;
 end

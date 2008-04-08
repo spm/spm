@@ -1,5 +1,4 @@
 function varargout = pm_unwrap(varargin)
-%
 % Unwrapping of phasemap. When measuring phase one
 % cannot easily distinguish between e.g. a phase of 182
 % degrees, and one of -178 degrees. One tries to 
@@ -76,6 +75,11 @@ function varargout = pm_unwrap(varargin)
 % unwrapping algorithm. MRM 49:193-197.
 %__________________________________________________________
 % Jesper Andersson 30/9-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_unwrap.m 1317 2008-04-08 16:16:38Z chloe $
 
 %
 % The following are a set of parameters that
@@ -241,7 +245,7 @@ switch lower(method)
          % one if e.g. the temporal lobes are disconnected in the
 	 % present slice).
          %
-         [tmp,num] = ip_bwlabel(srima,6);
+         [tmp,num] = spm_bwlabel(srima,6);
          if sl == 1
 	    vrima(:,:,sl) = tmp;
          else

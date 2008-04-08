@@ -3,12 +3,11 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1288 2008-04-01 16:05:52Z guillaume $
+# $Id: Makefile 1317 2008-04-08 16:16:38Z chloe $
 
 include ../../src/Makefile.var
 
 SPMMEX =\
-	ip_bwlabel.$(SUF) ip_dilate_erode.$(SUF) \
 	pm_invert_phasemap_dtj.$(SUF) pm_merge_regions.$(SUF) \
 	pm_create_connectogram_dtj.$(SUF) pm_pad.$(SUF) \
 	pm_estimate_ramp.$(SUF) pm_restore_ramp.$(SUF) \

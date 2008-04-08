@@ -1,5 +1,4 @@
 function pm = pm_merge_regions(pm,rima,ii,jj,nn,pp,rs)
-%
 % Merges regions as defined in connectogram to minimise 
 % total costfunction (sum of phase-differences across 
 % region borders).
@@ -71,5 +70,10 @@ function pm = pm_merge_regions(pm,rima,ii,jj,nn,pp,rs)
 % algorithm. MRM 49:193-197.
 %_________________________________________________________________________
 % Jesper Andersson 2/10-03
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Jesper Andersson 
+% $Id: pm_merge_regions.m 1317 2008-04-08 16:16:38Z chloe $
 
 error('pm_merge_regions.c has not been compiled');

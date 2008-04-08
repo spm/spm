@@ -1,5 +1,4 @@
 function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
-%
 % Function to prepare fieldmap data for processing
 % 
 % FORMAT VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
@@ -60,9 +59,12 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % 27/02/07 - Updated for SPM5.
 % 20/02/08 - Updated to generate session specific versions of the 
 % vdm file that have been matched to the first image of each session.
-%_________________________________________________________________
-% FieldMap_preprocess.m                           Chloe Hutton 27/02/07
-%
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton
+% $Id: FieldMap_preprocess.m 1317 2008-04-08 16:16:38Z chloe $
+
 if nargin < 3
   error('Usage: FieldMap_preprocess(fm_dir,epi_dir,pm_defs)');
 end

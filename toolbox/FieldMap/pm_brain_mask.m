@@ -24,9 +24,11 @@ function bmask = pm_brain_mask(P,flags)
 % adding these components together then thresholding above zero.
 % A morphological opening is performed to get rid of stuff left outside of
 % the brain. Any leftover holes are filled. 
-%
-%__________________________________________________________________________
-% @(#)pm_brain_mask.m	1.0 Chloe Hutton 05/02/26
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton
+% $Id: pm_brain_mask.m 1317 2008-04-08 16:16:38Z chloe $
 
 if nargin < 2 | isempty(flags)
    flags.template=fullfile(spm('Dir'),'templates','T1.nii');
@@ -94,7 +96,7 @@ ovol=vol;
 
 % Need to find connected components of negative volume
 vol=~vol;
-[vol,NUM]=ip_bwlabel(double(vol),26); 
+[vol,NUM]=spm_bwlabel(double(vol),26); 
 
 % Now get biggest component and assume this is outside head..
 pnc=0;
@@ -125,7 +127,7 @@ ovol=ovol>thresh;
 function ovol=connect_it(vol)
 % Find connected components and return the largest one.
 
-[vol,NUM]=ip_bwlabel(double(vol),26); 
+[vol,NUM]=spm_bwlabel(double(vol),26); 
 
 % Get biggest component
 pnc=0;

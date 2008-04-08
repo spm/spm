@@ -1,5 +1,4 @@
 function varargout = pm_vdm_apply(ds,flags)
-%
 % Applies vdm (voxel displacement map) to distortion correct images volume by volume
 % FORMAT pm_vdm_apply(ds,[flags])
 % or
@@ -62,6 +61,12 @@ function varargout = pm_vdm_apply(ds,flags)
 %             They are all aligned with the first.
 %_______________________________________________________________________
 % @(#)spm_vdm_apply.m	1.0 Chloe Hutton   05/02/25
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton 
+% $Id: pm_vdm_apply.m 1317 2008-04-08 16:16:38Z chloe $
+
 
 global defaults
 

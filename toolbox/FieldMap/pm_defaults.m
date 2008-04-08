@@ -8,7 +8,10 @@
 % This file is intended for site and/or scanner and/or
 % sequence-specific customisations.
 %_______________________________________________________________________
-% pm_defaults Chloe Hutton, Jesper Andersson 17/12/06
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton and Jesper Andersson
+% $Id: pm_defaults.m 1317 2008-04-08 16:16:38Z chloe $
 
 global pm_def
 

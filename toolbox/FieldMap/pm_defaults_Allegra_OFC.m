@@ -10,7 +10,11 @@
 % extended FOV and optimised for imaging the orbital frontal cortex.
 % nw_mepi_v3d_OFC
 %_______________________________________________________________________
-% pm_defaults_Allegra_OFC  Chloe Hutton, Jesper Andersson 28/02/08
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Chloe Hutton and Jesper Andersson
+% $Id: pm_defaults_Allegra_OFC.m 1317 2008-04-08 16:16:38Z chloe $
+
 
 global pm_def
 
