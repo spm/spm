@@ -12,9 +12,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1311 2008-04-04 14:41:30Z volkmar $
+% $Id: subsasgn_check.m 1320 2008-04-08 17:07:14Z volkmar $
 
-rev = '$Rev: 1311 $';
+rev = '$Rev: 1320 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -22,8 +22,13 @@ switch subs(1).subs
     case {'num'}
 	sts = subsasgn_check_num(val);
     case {'val'}
-        sts = iscell(val) && (isempty(val) || isa(val{1}, 'cfg_dep') || ...
-                              iscellstr(val{1}));
+        % val{1} should be a cellstr or a cfg_dep
+        sts = iscell(val) && (isempty(val) || isempty(val{1}) || ...
+                              isa(val{1}, 'cfg_dep') || iscellstr(val{1}));
+        if ~sts
+            warning('matlabbatch:cfg_files:subsasgn_check', ...
+                    '%s: Value must be a either empty, a cellstr or a cfg_dep object.', checkstr);
+        end;
         if ~isempty(val) && iscellstr(val{1})
             % do filtering and .num checks
             % this is already done in interactive mode, but not in batch

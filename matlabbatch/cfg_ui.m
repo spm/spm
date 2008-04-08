@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1315 2008-04-08 07:28:56Z volkmar $
+% $Id: cfg_ui.m 1320 2008-04-08 17:07:14Z volkmar $
 
-rev = '$Rev: 1315 $';
+rev = '$Rev: 1320 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -515,7 +515,8 @@ else
 end;
 [id stop strtype] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                              cfg_tropts(cfg_findspec,1,1,1,1,false), {'strtype'});
-if isempty(val)
+if isempty(val) || isa(val{1}, 'cfg_dep')
+    % silently clear cfg_deps
     if strtype{1}{1} == 's'
         val = {''};
     else
@@ -599,8 +600,8 @@ udmodule = get(handles.module, 'Userdata');
 val = udmodule.contents{2}{value};
 sts = false;
 if ~isempty(val) && isa(val{1}, 'cfg_dep')
-    local_valedit_AddDep(hObject);
-    return;
+    % silently clear cfg_deps
+    instr = {''};
 else
     instr = {strvcat(get(handles.valshow, 'String'))};
 end;
