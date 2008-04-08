@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1321 2008-04-08 17:36:16Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1321 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ factorial_design.help    = {
                             'Various data and parameters need to be supplied to specify the design (1) the image files, (2) indicators of the corresponding condition/subject/group (2) any covariates, nuisance variables, or design matrix partitions (3) the type of global normalisation (if any) (4) grand mean scaling options (5) thresholds and masks defining the image volume to analyse. The interface supports a comprehensive range of options for all these parameters.'
                             '                                                                                                            '
 }';
-factorial_design.prog = @spm_run_config_factorial_design;
+factorial_design.prog = @spm_run_factorial_design;
 factorial_design.vout = @vout_stats;
 %-------------------------------------------------------------------------
 

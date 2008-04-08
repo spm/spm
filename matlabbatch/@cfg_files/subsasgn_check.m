@@ -12,9 +12,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1320 2008-04-08 17:07:14Z volkmar $
+% $Id: subsasgn_check.m 1321 2008-04-08 17:36:16Z volkmar $
 
-rev = '$Rev: 1320 $';
+rev = '$Rev: 1321 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -35,8 +35,6 @@ switch subs(1).subs
             % mode (e.g. after resolve_deps).
             if strcmp(item.filter,'image')
                 typ = 'extimage';
-            elseif strcmp(item.filter,'dir')
-                typ = 'extdir';
             else
                 typ = item.filter;
             end;
