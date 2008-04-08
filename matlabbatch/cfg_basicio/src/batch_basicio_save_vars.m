@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1184 $)
+% Job configuration created by cfg_util (rev $Rev: 1315 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_entry.type = 'cfg_entry';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Output Filename';
@@ -31,7 +31,7 @@ matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Variable Contents';
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.tag = 'vcont';
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.strtype = 'e';
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = double([]);
-matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([1 Inf]);
+matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([]);
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.check = double([]);
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'Contents to be saved. This can be any MATLAB variable or an output from another module, passed as dependency.'};
 matlabbatch{5}.menu_cfg{1}.menu_struct{1}.conf_branch.type = 'cfg_branch';

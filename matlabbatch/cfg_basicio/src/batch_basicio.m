@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1293 $)
+% Job configuration created by cfg_util (rev $Rev: 1315 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/delete';
@@ -776,7 +776,7 @@ matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Variable Contents';
 matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.tag = 'vcont';
 matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.strtype = 'e';
 matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = double([]);
-matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([1 Inf]);
+matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.num = double([]);
 matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.check = double([]);
 matlabbatch{36}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'Contents to be saved. This can be any MATLAB variable or an output from another module, passed as dependency.'};
 matlabbatch{37}.menu_cfg{1}.menu_struct{1}.conf_branch.type = 'cfg_branch';

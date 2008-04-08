@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1312 2008-04-07 07:47:40Z volkmar $
+% $Id: cfg_ui.m 1315 2008-04-08 07:28:56Z volkmar $
 
-rev = '$Rev: 1312 $';
+rev = '$Rev: 1315 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -339,12 +339,10 @@ if ~isempty(udmodlist.cmod)
                         end;
                     case 'cfg_files',
                         if numel(contents{2}{k}{1}) == 1
-                            if length(contents{2}{k}{1}{1}) < 15 && ~isempty(contents{2}{k}{1}{1})
-                                datastr{k} = contents{2}{k}{1}{1};
-                            elseif isempty(contents{2}{k}{1}{1})
+                            if isempty(contents{2}{k}{1}{1})
                                 datastr{k} = ' ';
                             else
-                                datastr{k} = sprintf('...%s', contents{2}{k}{1}{1}(end-10:end));
+                                datastr{k} = contents{2}{k}{1}{1};
                             end;
                         else
                             datastr{k} = sprintf('%d files', numel(contents{2}{k}{1}));
@@ -353,11 +351,7 @@ if ~isempty(udmodlist.cmod)
                         csz = size(contents{2}{k}{1});
                         % TODO use gencode like string formatting
                         if ischar(contents{2}{k}{1}) && any(csz(1:2) == 1)
-                            if numel(contents{2}{k}{1}) < 15
-                                datastr{k} = contents{2}{k}{1};
-                            else
-                                datastr{k} = sprintf('%s...', contents{2}{k}{1}(1:10));
-                            end;
+                            datastr{k} = contents{2}{k}{1};
                         elseif isnumeric(contents{2}{k}{1}) && any(csz(1:2) == 1)
                             % always display line vector as summary
                             datastr{k} = num2str(contents{2}{k}{1}(:)');
@@ -374,7 +368,20 @@ if ~isempty(udmodlist.cmod)
         end;
         namestr{k} = sprintf('%s%s  ', indent, contents{1}{k});
     end;
-    str = cellstr(cat(2, strvcat(namestr), strjust(strvcat(datastr),'right')));
+    % justify datastr, left fill/cut if necessary
+    datastr = strjust(strvcat(datastr),'right');
+    namestr = strvcat(namestr);
+    un = get(handles.module,'units');
+    set(handles.module,'units','characters');
+    cpos = get(handles.module,'position');
+    set(handles.module,'units',un);
+    minl = min(max(20, floor(.6*cpos(3))-3-size(namestr,2)), size(datastr,2));
+    adatastr = datastr(:,1:end-minl);
+    edatastr = datastr(:,end-minl+1:end);
+    ell = any(~isspace(adatastr),2);
+    ellstr=repmat(' ',size(datastr,1),3);
+    ellstr(ell,:) = repmat('.',sum(ell),3);    
+    str = cellstr(cat(2, namestr, ellstr, edatastr));
     udmodule = get(handles.module, 'userdata');
     if isempty(udmodule)
         citem = 1;
@@ -982,6 +989,7 @@ function MenuEditUpdateView_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+local_setmenu(hObject);
 local_showjob(hObject);
 
 % --------------------------------------------------------------------

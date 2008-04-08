@@ -356,7 +356,7 @@ vcont.tag     = 'vcont';
 vcont.name    = 'Variable Contents';
 vcont.help    = {'Contents to be saved. This can be any MATLAB variable or an output from another module, passed as dependency.'};
 vcont.strtype = 'e';
-vcont.num     = [1 Inf];
+vcont.num     = [];
 % ---------------------------------------------------------------------
 % vars Variable
 % ---------------------------------------------------------------------

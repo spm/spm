@@ -307,9 +307,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1312 2008-04-07 07:47:40Z volkmar $
+% $Id: cfg_util.m 1315 2008-04-08 07:28:56Z volkmar $
 
-rev = '$Rev: 1312 $';
+rev = '$Rev: 1315 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -678,6 +678,7 @@ function [c0 jobs] = local_addapp(c0, jobs, cfg, varargin)
 % * def - Optional. Function name, function handle or defaults struct/cell.
 %         This function should return a job struct suitable to initialise
 %         the defaults branches of the cfg tree.
+%         If def is empty or does not exist, no defaults will be added.
 
 if subsasgn_check_funhandle(cfg)
     c1 = feval(cfg);
@@ -693,7 +694,7 @@ for k = 1:numel(c0.values)
               c1.name, c0.values{k}.name);
     end;
 end;
-if nargin > 3
+if nargin > 3 && ~isempty(varargin{1})
     c1 = local_initdef(c1, varargin{1});
 end;
 fprintf('%s: Added application ''%s''\n', mfilename, c1.name);
