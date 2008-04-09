@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1320 2008-04-08 17:07:14Z volkmar $
+% $Id: cfg_ui.m 1323 2008-04-09 09:32:06Z volkmar $
 
-rev = '$Rev: 1320 $';
+rev = '$Rev: 1323 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -942,7 +942,12 @@ function MenuFileRun_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 set(get(0,'Children'),'Pointer','watch');
 udmodlist = get(handles.modlist, 'userdata');
-cfg_util('run',udmodlist(1).cjob);
+try
+    cfg_util('run',udmodlist(1).cjob);
+catch
+    l = lasterror;
+    errordlg(l.message);
+end;
 set(get(0,'Children'),'Pointer','arrow');
 
 % --------------------------------------------------------------------

@@ -307,9 +307,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1315 2008-04-08 07:28:56Z volkmar $
+% $Id: cfg_util.m 1323 2008-04-09 09:32:06Z volkmar $
 
-rev = '$Rev: 1315 $';
+rev = '$Rev: 1323 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1114,6 +1114,10 @@ function cjrun = local_runcj(job, pflag)
 % If a job with pre-set module outputs .jout is passed in cj, the
 % corresponding modules will not be run again. This feature is currently unused.
 
+fprintf('\n\n-----------------------------------------------------------------------\n');
+fprintf('Running job\n');
+fprintf('-----------------------------------------------------------------------\n');
+
 job = local_compactjob(job);
 cj = job.cj;
 cjid2subs = job.cjid2subs;
@@ -1207,12 +1211,19 @@ while ~isempty(cjid2subs)
     [u1 jobs u3 u4 u5 cjrun] = harvest(cjrun, cjrun, false, true);
 end;
 if isempty(cjid2subsfailed)
-    fprintf('Done\n');
+    fprintf('Done\n\n');
 else
     fprintf('The following modules did not run:\n');
     for k = 1:numel(cjid2subsfailed)
         fprintf('%s\n', subsref(cj, [cjid2subsfailed{k} substruct('.','name')]));
     end;
+    est.identifier = 'cfg_util:run:failed';
+    est.message    = sprintf(['Job execution failed. The full log of this run can ' ...
+                      'be found in MATLAB command window, starting with ' ...
+                      'the lines\n------------------ \nRunning job ' ...
+                      '\n------------------\n']);
+    est.stack      = struct('file','','name','MATLABbatch system','line',0);
+    error(est);
 end;
 %-----------------------------------------------------------------------
 
