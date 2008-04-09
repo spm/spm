@@ -22,6 +22,7 @@ function D = spm_eeg_epochs(S)
 %       S.trialdef.eventtype  - string
 %       S.trialdef.eventvalue  - string, numeric or empty
 % S.review - 1 - review individual trials after selection
+% S.save   - 1 - save trial definition
 %
 % Output:
 % D         - EEG data struct (also written to files)
@@ -34,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1285 2008-04-01 11:23:10Z stefan $
+% $Id: spm_eeg_epochs.m 1342 2008-04-09 18:24:34Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -82,6 +83,10 @@ try
     
     if isfield(S, 'review')
         S_definetrial.review = S.review;
+    end
+    
+    if isfield(S, 'save')
+        S_definetrial.save = S.save;
     end
     
     S_definetrial.event = D.events;
