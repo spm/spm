@@ -11,8 +11,29 @@ function sts = subsasgn_check_funhandle(val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_funhandle.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsasgn_check_funhandle.m 1322 2008-04-09 08:37:52Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1322 $';
 
-sts = isempty(val) || isa(val, 'function_handle') || (ischar(val) && any(exist(val) == 2:6));
+sts = isempty(val) || isa(val, 'function_handle') || (ischar(val) && ...
+                                                  any(exist(val) == 2:6));
+if sts && isa(val, 'function_handle')
+    try
+        f = functions(val);
+    catch
+        % fail silently if "functions" evaluation fails, keep sts == true
+        return;
+    end;
+    try
+        if ~strcmp(f.type,'anonymous')
+            % file name should not be empty for builtin or file functions
+            sts = ~isempty(f.file);
+        end;
+    catch
+        % fail silently if something is wrong with f, keep sts == true
+        return;
+    end;
+end;
+        
+        
+        

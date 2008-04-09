@@ -12,9 +12,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1321 2008-04-08 17:36:16Z volkmar $
+% $Id: subsasgn_check.m 1322 2008-04-09 08:37:52Z volkmar $
 
-rev = '$Rev: 1321 $';
+rev = '$Rev: 1322 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -27,7 +27,7 @@ switch subs(1).subs
                               isa(val{1}, 'cfg_dep') || iscellstr(val{1}));
         if ~sts
             warning('matlabbatch:cfg_files:subsasgn_check', ...
-                    '%s: Value must be a either empty, a cellstr or a cfg_dep object.', checkstr);
+                    '%s: Value must be either empty, a cellstr or a cfg_dep object.', checkstr);
         end;
         if ~isempty(val) && iscellstr(val{1})
             % do filtering and .num checks

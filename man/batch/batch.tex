@@ -483,6 +483,14 @@ configuration using \verb|cfg_struct2cfg| and \verb|gencode|. This sometimes
 results in redundant/duplicate code. Also, conditional constructs like
 \verb|if|, \verb|case| may not have been considered. 
 
+Some assignments to configuration items are guarded by validity
+checks. Usually, there will be a warning issued if a wrong value is
+supplied. Special care needs to be taken for \verb|.prog|, \verb|.vfiles|,
+\verb|.vout|, \verb|.check| functions or function handles. The functions
+referenced here must be on MATLAB path before they are assigned to one of
+these fields. For toolboxes, this implies that toolbox paths must be added at
+the top of the configuration file.
+
 For details, see section~\ref{sec:code}. 
 
 \subsection{Interfaces between SPM and Matlabbatch}

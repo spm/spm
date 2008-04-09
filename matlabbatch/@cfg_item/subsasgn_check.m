@@ -24,9 +24,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
+% $Id: subsasgn_check.m 1322 2008-04-09 08:37:52Z volkmar $
 
-rev = '$Rev: 1260 $';
+rev = '$Rev: 1322 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -50,7 +50,9 @@ switch class(item)
                 end;
             case {'check'},
                 if ~subsasgn_check_funhandle(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:check', '%s: Value must be a function or function handle.', checkstr);
+                    warning('matlabbatch:cfg_item:subsasgn_check:check', ...
+                            ['%s: Value must be a function or function ' ...
+                             'handle on MATLAB path.'], checkstr);
                     sts = false;
                 end;
             case {'help'},
