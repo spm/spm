@@ -13,7 +13,7 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: spm_eeg_channelselection.m 1326 2008-04-09 12:15:35Z vladimir $
 
 if nargin == 0
     S = [];
@@ -42,7 +42,7 @@ if strcmp(S.channels, 'file')
             S.channels = label.label;
         end
     end
-elseif exist('channelselection') == 2
+else
     switch S.channels
         case 'eeg'
             S.channels = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGREF'};
@@ -50,13 +50,11 @@ elseif exist('channelselection') == 2
             S.channels = 'MEG';
         otherwise
     end
-    
+
     % Make sure the order is like in the file
-    channels = channelselection(S.channels, hdr.label);
+    channels = ft_channelselection(S.channels, hdr.label);
     [sel1, sel2] = spm_match_str(hdr.label, channels);
     S.channels = channels(sel2);
-else
-    error('Fieldtrip channelselection not found. Use a file to select channels');
 end
 
 % ------------- Create trial definition file

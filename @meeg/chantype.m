@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: chantype.m 1326 2008-04-09 12:15:35Z vladimir $
 
 
 if length(varargin)>=2
@@ -22,38 +22,36 @@ if length(varargin)>=2
     end
 
     if isempty(type)
-        if exist('channelselection') == 2
-            eeg_types = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGBHAM', 'EEGREF'};
-            other_types = {'MEG', 'EMG', 'EOG'};
+        eeg_types = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGBHAM', 'EEGREF'};
+        other_types = {'MEG', 'EMG', 'EOG'};
 
-            for i=1:length(eeg_types)
-                if isempty(ind) break; end
-                foundind = spm_match_str(chanlabels(this, ind), channelselection(eeg_types(i), chanlabels(this, ind)));
-                if ~isempty(foundind)
-                    this = chantype(this, ind(foundind), 'EEG');
-                    ind = setdiff(ind, ind(foundind));
-                end
+        for i=1:length(eeg_types)
+            if isempty(ind) break; end
+            foundind = spm_match_str(chanlabels(this, ind), ft_channelselection(eeg_types(i), chanlabels(this, ind)));
+            if ~isempty(foundind)
+                this = chantype(this, ind(foundind), 'EEG');
+                ind = setdiff(ind, ind(foundind));
             end
-
-            for i=1:length(other_types)
-                if isempty(ind) break; end
-                foundind = spm_match_str(chanlabels(this, ind), channelselection(other_types(i), chanlabels(this, ind)));
-                if ~isempty(foundind)
-                    this = chantype(this, ind(foundind), other_types{i});
-                    ind = setdiff(ind, ind(foundind));
-                end
-            end
-        else
-            warning('Fieldtrip not available, setting all types to ''other''');
         end
 
-        if ~isempty(ind)
-            this = chantype(this, ind, 'Other');
+        for i=1:length(other_types)
+            if isempty(ind) break; end
+            foundind = spm_match_str(chanlabels(this, ind), ft_channelselection(other_types(i), chanlabels(this, ind)));
+            if ~isempty(foundind)
+                this = chantype(this, ind(foundind), other_types{i});
+                ind = setdiff(ind, ind(foundind));
+            end
         end
+    else
+        warning('Fieldtrip not available, setting all types to ''other''');
+    end
 
-        res = this;       
-        return
-    end    
+    if ~isempty(ind)
+        this = chantype(this, ind, 'Other');
+    end
+
+    res = this;
+    return
 end
 
 res = getset(this, 'channels', 'type', varargin{:});

@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1326 2008-04-09 12:15:35Z vladimir $
 
 if nargin == 0
 
@@ -382,7 +382,7 @@ cfg.elec = [];
 cfg.elec.label = sensors.label(ind);
 cfg.elec.pnt = sensors.pnt(ind, :);
 
-lay = prepare_layout(cfg);
+lay = ft_prepare_layout(cfg);
 
 [sel1, sel2] = spm_match_str(cfg.elec.label, lay.label);
 
