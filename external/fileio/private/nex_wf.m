@@ -21,7 +21,7 @@ function [adfreq, n, ts, nf, w] = nex_wf(filename, varname)
 % Revision 1.1  2005/02/11 07:46:34  roboos
 % downloaded from Plexon website, added support for reading nex files on Solaris and Mac OS X (fopen ieee-le), added log-section to the comments after the help
 %
- 
+
 n = 0;
 adfreq = 0;
 ts = 0;

@@ -46,7 +46,7 @@ if(fid == -1)
 	disp('cannot open file');
    return
 end
- 
+
 disp(strcat('file = ', filename));
 magic = fread(fid, 1, 'int32');
 version = fread(fid, 1, 'int32');

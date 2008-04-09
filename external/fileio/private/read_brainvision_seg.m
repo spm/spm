@@ -14,6 +14,9 @@ function [dat] = read_brainvision_seg(filename, hdr, begsample, endsample);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_seg.m,v $
+% Revision 1.4  2008/04/09 10:11:23  roboos
+% renamed nChans into the original form, converted from dos to unix
+%
 % Revision 1.3  2007/06/13 08:08:19  roboos
 % changed single & into &&
 %
@@ -28,8 +31,8 @@ function [dat] = read_brainvision_seg(filename, hdr, begsample, endsample);
 if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'int_16')
   % this is a fileformat that I understand
   fid = fopen(filename, 'rb', 'ieee-le');
-  fseek(fid, hdr.nChans*2*(begsample-1), 'cof');
-  [dat, siz] = fread(fid, [hdr.nChans, (endsample-begsample+1)], 'int16');
+  fseek(fid, hdr.NumberOfChannels*2*(begsample-1), 'cof');
+  [dat, siz] = fread(fid, [hdr.NumberOfChannels, (endsample-begsample+1)], 'int16');
   fclose(fid);
   % compute real microvolts using the calibration factor (resolution)
   res = sparse(diag(hdr.resolution));

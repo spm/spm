@@ -28,6 +28,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.34  2008/04/09 10:09:45  roboos
+% pass the hdr.orig to the low-level brainvision readers
+%
 % Revision 1.33  2008/02/19 10:08:13  roboos
 % added support for fcdc_buffer
 %
@@ -422,11 +425,11 @@ switch dataformat
     fclose(orig.Head.FILE.FID);
 
   case {'brainvision_eeg', 'brainvision_dat'}
-    dat = read_brainvision_eeg(filename, hdr, begsample, endsample);
+    dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample);
     dat = dat(chanindx,:);	% select the desired channels
 
   case 'brainvision_seg'
-    dat = read_brainvision_seg(filename, hdr, begsample, endsample);
+    dat = read_brainvision_seg(filename, hdr.orig, begsample, endsample);
     dat = dat(chanindx,:);	% select the desired channels
 
   case 'ced_son'

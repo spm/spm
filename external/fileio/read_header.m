@@ -30,6 +30,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.41  2008/04/09 10:09:20  roboos
+% only keep main fields for brainvision, remainder in orig
+% added channel labels to hdr for ns_avg (thanks to Vladimir)
+%
 % Revision 1.40  2008/03/20 12:18:49  roboos
 % warn only once for channel names in besa avr
 %
@@ -324,8 +328,15 @@ switch headerformat
     fclose(orig.Head.FILE.FID);
 
   case {'brainvision_vhdr', 'brainvision_seg', 'brainvision_eeg', 'brainvision_dat'}
-    hdr = read_brainvision_vhdr(filename);
-
+    orig = read_brainvision_vhdr(filename);
+    hdr.Fs          = orig.Fs;
+    hdr.nChans      = orig.NumberOfChannels;
+    hdr.label       = orig.label;
+    hdr.nSamples    = orig.nSamples;
+    hdr.nSamplesPre = orig.nSamplesPre;
+    hdr.nTrials     = orig.nTrials;
+    hdr.orig        = orig;
+    
   case 'ced_son'
     % check that the required low-level toolbox is available
     hastoolbox('neuroshare', 1);
@@ -625,6 +636,7 @@ switch headerformat
     hdr.nSamples    = orig.npnt;
     hdr.nSamplesPre = round(-orig.rate*orig.xmin/1000);
     hdr.nChans      = orig.nchan;
+    hdr.label       = orig.label(:);
     hdr.nTrials     = 1; % the number of trials in this datafile is only one, i.e. the average
     % remember the original header details
     hdr.orig = orig;

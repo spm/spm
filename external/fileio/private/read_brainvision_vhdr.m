@@ -11,6 +11,12 @@ function [hdr] = read_brainvision_vhdr(filename);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_vhdr.m,v $
+% Revision 1.4  2008/04/09 10:08:28  roboos
+% added detection of number of samples, based on filesize (only if binary)
+%
+% Revision 1.3  2008/04/09 10:06:50  roboos
+% renamed nChans into NumberOfChannels to stay as close as possible to the ascii header
+%
 % Revision 1.2  2004/03/30 11:23:50  roberto
 % fixed bug in cutting channel info into pieces, added local tokenize function
 %
@@ -24,11 +30,11 @@ hdr.MarkerFile       = read_asa(filename, 'MarkerFile=', '%s');
 hdr.DataFormat       = read_asa(filename, 'DataFormat=', '%s');
 hdr.DataOrientation  = read_asa(filename, 'DataOrientation=', '%s');
 hdr.BinaryFormat     = read_asa(filename, 'BinaryFormat=', '%s');
-hdr.nChans           = read_asa(filename, 'NumberOfChannels=', '%d');
+hdr.NumberOfChannels = read_asa(filename, 'NumberOfChannels=', '%d');
 hdr.SamplingInterval = read_asa(filename, 'SamplingInterval=', '%f');	% microseconds
 
-if ~isempty(hdr.nChans)
-  for i=1:hdr.nChans
+if ~isempty(hdr.NumberOfChannels)
+  for i=1:hdr.NumberOfChannels
     chan_str  = sprintf('Ch%d=', i);
     chan_info = read_asa(filename, chan_str, '%s');
     t = tokenize(chan_info, ',');
@@ -48,9 +54,24 @@ hdr.Fs = 1e6/(hdr.SamplingInterval);
 
 % the number of samples is unkown
 hdr.nSamples = Inf;
+if strcmp(hdr.DataFormat, 'BINARY')
+  % determine the number of samples by looking at the binary file
+  info = dir(hdr.DataFile);
+  switch lower(hdr.BinaryFormat)
+    case 'int_16';
+      hdr.nSamples = info.bytes./(hdr.NumberOfChannels*2);
+    case 'int_32';
+      hdr.nSamples = info.bytes./(hdr.NumberOfChannels*4);
+    case 'ieee_float_32';
+      hdr.nSamples = info.bytes./(hdr.NumberOfChannels*4);
+    otherwise
+      warning('cannot determine number of samples for this sub-fileformat');
+  end
+end
 
 % the number of trials is unkown, assume continuous data
-hdr.nTrials = 1;
+hdr.nTrials     = 1;
+hdr.nSamplesPre = 0;
 
 % ensure that the labels are in a column
 hdr.label      = hdr.label(:);

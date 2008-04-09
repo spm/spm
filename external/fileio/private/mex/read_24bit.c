@@ -22,6 +22,9 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.4  2008/04/09 10:10:20  roboos
+ * corrected the text of an error message
+ *
  * Revision 1.3  2007/10/02 08:49:37  roboos
  * added brackets around the bitshift operations
  *
@@ -77,7 +80,7 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   num = fread(buf, sizeof(char), 3*numwords, fp);
   if (num<3*numwords)
   {
-    printf("error opening %s\n", filename);
+    printf("error reading from %s\n", filename);
     fclose(fp);
     return;
   }

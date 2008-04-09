@@ -12,6 +12,10 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_eeg.m,v $
+% Revision 1.5  2008/04/09 10:10:58  roboos
+% added support for int_32
+% renamed nChans into the original form
+%
 % Revision 1.4  2007/06/13 08:08:19  roboos
 % changed single & into &&
 %
@@ -28,8 +32,17 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample);
 
 if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'int_16')
   fid = fopen(filename, 'rb', 'ieee-le');
-  fseek(fid, hdr.nChans*2*(begsample-1), 'cof');
-  [dat, siz] = fread(fid, [hdr.nChans, (endsample-begsample+1)], 'int16');
+  fseek(fid, hdr.NumberOfChannels*2*(begsample-1), 'cof');
+  [dat, siz] = fread(fid, [hdr.NumberOfChannels, (endsample-begsample+1)], 'int16');
+  fclose(fid);
+  % compute real microvolts using the calibration factor (resolution)
+  res = sparse(diag(hdr.resolution));
+  dat = res * dat;
+
+elseif strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'int_32')
+  fid = fopen(filename, 'rb', 'ieee-le');
+  fseek(fid, hdr.NumberOfChannels*4*(begsample-1), 'cof');
+  [dat, siz] = fread(fid, [hdr.NumberOfChannels, (endsample-begsample+1)], 'int32');
   fclose(fid);
   % compute real microvolts using the calibration factor (resolution)
   res = sparse(diag(hdr.resolution));
@@ -37,17 +50,17 @@ if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexe
 
 elseif strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexed') && strcmpi(hdr.BinaryFormat, 'ieee_float_32')
   fid = fopen(filename, 'rb', 'ieee-le');
-  fseek(fid, hdr.nChans*4*(begsample-1), 'cof');
-  [dat, siz] = fread(fid, [hdr.nChans, (endsample-begsample+1)], 'float32');
+  fseek(fid, hdr.NumberOfChannels*4*(begsample-1), 'cof');
+  [dat, siz] = fread(fid, [hdr.NumberOfChannels, (endsample-begsample+1)], 'float32');
   fclose(fid);
 
 elseif strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'vectorized') && strcmpi(hdr.BinaryFormat, 'ieee_float_32')
   fid = fopen(filename, 'rb', 'ieee-le');
   fseek(fid, 0, 'eof');
-  hdr.nSamples = ftell(fid)/(4*hdr.nChans);
+  hdr.nSamples = ftell(fid)/(4*hdr.NumberOfChannels);
   fseek(fid, 0, 'bof');
   numsamples = (endsample-begsample+1);
-  for chan=1:hdr.nChans
+  for chan=1:hdr.NumberOfChannels
     fseek(fid, (begsample-1)*4, 'cof');                 % skip the first N samples
     [tmp, siz] = fread(fid, numsamples, 'float32');     % read these samples
     fseek(fid, (hdr.nSamples-endsample)*4, 'cof');      % skip the last M samples
@@ -61,7 +74,7 @@ elseif strcmpi(hdr.DataFormat, 'ascii') && strcmpi(hdr.DataOrientation, 'multipl
     % read first lines and discard the data in them
     str = fgets(fid);
   end
-  dat = zeros(endsample-begsample+1, hdr.nChans);
+  dat = zeros(endsample-begsample+1, hdr.NumberOfChannels);
   for line=1:(endsample-begsample+1)
     str = fgets(fid);			% read a single line with Nchan samples
     str(find(str==',')) = '.';		% replace comma with point
@@ -75,8 +88,8 @@ elseif strcmpi(hdr.DataFormat, 'ascii') && strcmpi(hdr.DataOrientation, 'vectori
   % this is a very inefficient fileformat to read data from, since it requires to
   % read in all the samples of each channel and then select only the samples of interest
   fid = fopen(filename, 'rt');
-  dat = zeros(hdr.nChans, endsample-begsample+1);
-  for chan=1:hdr.nChans
+  dat = zeros(hdr.NumberOfChannels, endsample-begsample+1);
+  for chan=1:hdr.NumberOfChannels
     str = fgets(fid);			% read all samples of a single channel
     str(find(str==',')) = '.';		% replace comma with point
     tmp = str2num(str);
