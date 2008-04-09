@@ -9,6 +9,7 @@ function [hdr] = read_header(filename, varargin)
 %
 % Additional options should be specified in key-value pairs and can be
 %   'headerformat'   string
+%   'fallback'       can be empty or 'biosig' (default = [])
 %
 % This returns a header structure with the following elements
 %   hdr.Fs                  sampling frequency
@@ -29,9 +30,12 @@ function [hdr] = read_header(filename, varargin)
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
-% Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
+% Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.43  2008/04/09 16:50:02  roboos
+% added fallback option to biosig (not default)
+%
 % Revision 1.42  2008/04/09 14:10:12  roboos
 % updated docu, added placeholder for biosig (not yet implemented)
 %
@@ -183,7 +187,8 @@ if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp
 end
 
 % get the options
-headerformat = keyval('headerformat',  varargin);
+headerformat = keyval('headerformat', varargin);
+fallback     = keyval('fallback',     varargin);
 
 % determine the filetype
 if isempty(headerformat)
@@ -797,7 +802,11 @@ switch headerformat
     hdr.grad = yokogawa2grad(hdr);
 
   otherwise
-    error('unsupported header format');
+    if strcmp(fallback, 'biosig')
+      hdr = read_biosig_header(filename);
+    else
+      error('unsupported header format');
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
