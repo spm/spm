@@ -72,6 +72,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % version 23-11-2004
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.15  2008/04/09 14:12:18  roboos
+% fixed potential bug in print(fix(..))), see mail from Marcel from a few weeks abo
+%
 % Revision 1.14  2006/11/29 09:06:36  roboos
 % renamed all cfg options with "sgn" into "channel", added backward compatibility when required
 % updated documentation, mainly in the artifact detection routines
@@ -220,7 +223,7 @@ for(i=1:dat.numtrl)
   [dataY{i}, dumlab, dumtime, dumcfg] = preproc(dataY{i}', cfg.artfctdef.manual.channel, hdr.Fs, cfg.artfctdef.manual, cfg.trl(i,3)-begpadding, 0, 0);
   dataY{i} = dataY{i}';
 
-  if(~rem(i,fix(dat.numtrl/10)))fprintf('.');end;
+  try, if(~rem(i,fix(dat.numtrl/10)))fprintf('.');end; end
 end;
 clear show; % Now, we don't need the complete dataset anymore...
 for(i=1:dat.numtrl) % we go on with the calculations ....
@@ -345,7 +348,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.14 2006/11/29 09:06:36 roboos Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.15 2008/04/09 14:12:18 roboos Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

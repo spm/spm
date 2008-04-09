@@ -97,6 +97,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.27  2008/04/09 14:12:41  roboos
+% test isnan over both dimensions of data
+%
 % Revision 1.26  2007/11/27 16:42:17  roboos
 % unwrap angle for hilbert, fixed typo for absimag
 %
@@ -297,7 +300,7 @@ if strcmp(cfg.reref, 'yes'),
   dat = avgref(dat, refindx);
 end
 
-if any(isnan(dat))
+if any(any(isnan(dat)))
   % filtering is not possible for at least a selection of the data, replace all data with nans 
   dat(:) = nan;
   if nargout>2
