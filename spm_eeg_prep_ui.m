@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1326 2008-04-09 12:15:35Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1336 2008-04-09 14:57:45Z vladimir $
 
 if nargin == 0
 
@@ -77,6 +77,12 @@ if nargin == 0
         'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
 
     LoadEEGSensPolhemusMenu = uimenu(LoadEEGSensMenu, 'Label', 'From FIL polhemus file',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
+    
+    LoadEEGSensOtherMenu = uimenu(LoadEEGSensMenu, 'Label', 'Convert locations file',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
@@ -264,6 +270,9 @@ switch get(gcbo, 'Label')
     case 'From FIL polhemus file'
         S.sensfile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
         S.source = 'filpolhemus'
+    case 'Convert locations file'
+        S.sensfile = spm_select(1, '\.*', 'Select locations file');
+        S.source = 'locfile'
 end
 
 D = spm_eeg_prep(S);

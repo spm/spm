@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: spm_eeg_prep.m 1336 2008-04-09 14:57:45Z vladimir $
 
 D = S.D;
 
@@ -56,13 +56,29 @@ switch S.task
                 senspos = load(S.sensfile{2});
                 name    = fieldnames(senspos);
                 senspos = getfield(senspos,name{1});
+                
+                label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
 
             case 'filpolhemus'
-                [fiducials, senspos] = spm_eeg_inv_ReadPolhemus(S.sensfile);
-
-        end
-
-        label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
+                [fiducials, senspos] = spm_eeg_inv_ReadPolhemus(S.sensfile); 
+                
+                label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
+                
+            case 'locfile'
+                elec = read_sens(S.sensfile);
+                
+                [junk fidind] = spm_match_str({'fidnz', 'fidt9', 'fidt10'}, lower(elec.label));
+                
+                if length(fidind) ~= 3
+                    error('Locations file should contain 3 fiducials labeled ''fidnz'', ''fidt9'' and ''fidt10''');
+                end                                                               
+                
+                sensind = setdiff(1:length(elec.label), fidind);
+                
+                fiducials = elec.pnt(fidind, :);
+                label = elec.label(sensind);
+                senspos = elec.pnt(sensind, :);
+        end        
 
         if size(senspos, 1) ~= length(label)
             error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
