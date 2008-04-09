@@ -17,6 +17,7 @@ function [dat] = read_data(filename, varargin);
 %   'checkboundary'  boolean, whether to check for reading segments over a trial boundary
 %   'dataformat'     string
 %   'headerformat'   string
+%   'fallback'       can be empty or 'biosig' (default = [])
 %
 % This function returns a 2-D matrix of size Nchans*Nsamples for
 % continuous data when begevent and endevent are specified, or a 3-D
@@ -28,6 +29,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.36  2008/04/09 16:50:02  roboos
+% added fallback option to biosig (not default)
+%
 % Revision 1.35  2008/04/09 14:10:34  roboos
 % added placeholder for biosig (not yet implemented)
 %
@@ -183,6 +187,7 @@ chanindx      = keyval('chanindx',      varargin);
 checkboundary = keyval('checkboundary', varargin);
 dataformat    = keyval('dataformat',    varargin);
 headerformat  = keyval('headerformat',  varargin);
+fallback      = keyval('fallback',      varargin);
 
 % determine the filetype
 if isempty(dataformat)
@@ -791,7 +796,12 @@ switch dataformat
     dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
 
   otherwise
-    error('unsupported data format');
+    if strcmp(fallback, 'biosig')
+      hdr = read_biosig_header(filename);
+    else
+      error('unsupported header format');
+    end
+
 end
 
 if ~exist('dimord', 'var')
