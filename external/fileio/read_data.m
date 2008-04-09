@@ -28,6 +28,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.35  2008/04/09 14:10:34  roboos
+% added placeholder for biosig (not yet implemented)
+%
 % Revision 1.34  2008/04/09 10:09:45  roboos
 % pass the hdr.orig to the low-level brainvision readers
 %
@@ -482,6 +485,11 @@ switch dataformat
     % contact Robert Oostenveld if you are interested in real-time acquisition on the CTF system
     % read the data from shared memory
     [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
+
+  case {'edf' 'biosig'}
+    % use the biosig toolbox if available
+    hastoolbox('BIOSIG');
+    keyboard
 
   case 'eep_avr'
     % check that the required low-level toolbos ix available

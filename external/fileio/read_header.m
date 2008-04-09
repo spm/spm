@@ -11,12 +11,14 @@ function [hdr] = read_header(filename, varargin)
 %   'headerformat'   string
 %
 % This returns a header structure with the following elements
-%   hdr.Fs           sampling frequency
-%   hdr.nChans       number of channels
-%   hdr.nSamples     number of samples per trial
-%   hdr.nSamplesPre  number of pre-trigger samples in each trial
-%   hdr.nTrials      number of trials
-%   hdr.label        cell-array with labels of each channel
+%   hdr.Fs                  sampling frequency
+%   hdr.nChans              number of channels
+%   hdr.nSamples            number of samples per trial
+%   hdr.nSamplesPre         number of pre-trigger samples in each trial
+%   hdr.nTrials             number of trials
+%   hdr.label               cell-array with labels of each channel
+%   hdr.FirstTimeStamp      integer, only available for some subformats (mainly animal electrophisiology systems)
+%   hdr.TimeStampPerSample  integer, only available for some subformats (mainly animal electrophisiology systems)
 %
 % For continuous data, nSamplesPre=0 and nTrials=1.
 %
@@ -30,6 +32,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.42  2008/04/09 14:10:12  roboos
+% updated docu, added placeholder for biosig (not yet implemented)
+%
 % Revision 1.41  2008/04/09 10:09:20  roboos
 % only keep main fields for brainvision, remainder in orig
 % added channel labels to hdr for ns_avg (thanks to Vladimir)
@@ -419,6 +424,11 @@ switch headerformat
     % contact Robert Oostenveld if you are interested in real-time acquisition on the CTF system
     % read the header information from shared memory
     hdr = read_shm_header(filename);
+
+  case {'edf' 'biosig'}
+    % use the biosig toolbox if available
+    hastoolbox('BIOSIG');
+    keyboard
 
   case 'eep_avr'
     % check that the required low-level toolbox is available
