@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_average.m 1341 2008-04-09 18:22:43Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -135,7 +135,7 @@ else
 
     for i = 1:D.nconditions
 
-        w = intersect(pickconditions(D, deblank(cl(i,:))), find(~D.reject))';
+        w = intersect(pickconditions(D, deblank(cl{i})), find(~D.reject))';
         c = zeros(1, D.ntrials);
         c(w) = 1;
         
