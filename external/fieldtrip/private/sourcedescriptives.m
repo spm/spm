@@ -19,7 +19,7 @@ function [source] = sourcedescriptives(cfg, source)
 %   cfg.feedback         = 'no', 'text', 'textbar', 'gui' (default = 'text')
 %
 % The following option only applies to LCMV single-trial timecourses.
-%   cfg.fixedori         = 'within_trials' or 'over_trials'
+%   cfg.fixedori         = 'within_trials' or 'over_trials' (default = 'over_trials')
 %
 % You can apply a custom mathematical transformation such as a log-transform
 % on the estimated power using
@@ -40,6 +40,9 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.38  2008/04/09 14:14:30  roboos
+% updated docu
+%
 % Revision 1.37  2008/02/20 14:22:54  roboos
 % in allocating sumdip and sqrdip, only make the ourside voxels nan to start with
 %
@@ -806,7 +809,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.37 2008/02/20 14:22:54 roboos Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.38 2008/04/09 14:14:30 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

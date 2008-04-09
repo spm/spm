@@ -7,11 +7,14 @@ function [planar] = planarchannelset(data);
 % Use as
 %   [planar] = planarchannelset(data)
 %
-% See also MEGSYSTEM
+% See also SENSTYPE
 
-% Copyright (C) 2005-2006, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: planarchannelset.m,v $
+% Revision 1.6  2008/04/09 14:13:07  roboos
+% updated docu
+%
 % Revision 1.5  2006/10/04 15:42:14  roboos
 % renamed megsystem into sensortype, thanks to Juan
 %

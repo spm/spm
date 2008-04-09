@@ -36,6 +36,10 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.45  2008/04/09 14:14:09  roboos
+% only make neighbours if clustering is required
+% better detection of mom for pcc (thanks to Till)
+%
 % Revision 1.44  2008/01/15 09:49:06  roboos
 % more robust detection of number of output methods of statmethod (for matlab 6.5)
 %
@@ -185,9 +189,9 @@ if issource
   Nvoxel  = length(varargin{1}.inside) + length(varargin{1}.outside);
 
   % get the source parameter on which the statistic should be evaluated
-  if strcmp(cfg.parameter, 'mom') && isfield(varargin{1}.avg, 'csdlabel') && isfield(varargin{1}, 'cumtapcnt')
+  if strcmp(cfg.parameter, 'mom') && isfield(varargin{1}, 'avg') && isfield(varargin{1}.avg, 'csdlabel') && isfield(varargin{1}, 'cumtapcnt')
     [dat, cfg] = get_source_pcc_mom(cfg, varargin{:});
-  elseif strcmp(cfg.parameter, 'mom') && ~isfield(varargin{1}.avg, 'csdlabel')
+  elseif strcmp(cfg.parameter, 'mom') && isfield(varargin{1}, 'avg') && ~isfield(varargin{1}.avg, 'csdlabel')
     [dat, cfg] = get_source_lcmv_mom(cfg, varargin{:});
   elseif isfield(varargin{1}, 'trial')
     [dat, cfg] = get_source_trial(cfg, varargin{:});
@@ -222,7 +226,7 @@ elseif isfreq || istimelock
   data.biol = [];
   
   % add gradiometer/electrode information to the configuration
-  if ~isfield(cfg,'neighbours')
+  if ~isfield(cfg,'neighbours') && isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
     cfg.neighbours = neighbourselection(cfg,varargin{1});
   end
   
@@ -366,7 +370,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.44 2008/01/15 09:49:06 roboos Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.45 2008/04/09 14:14:09 roboos Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
