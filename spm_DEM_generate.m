@@ -4,7 +4,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % FORMAT [DEM] = spm_DEM_generate(M,U,P,h,g): size(U,2) samples using U
 %
 % M(i)     - HDM
-% U(n x N} - causes or number of causes
+% U(n x N} - causes or N number of causes
 % P{i}     - model-parameters for level i (defaults to M.pE)
 % h{i}     - hyper-parameters for level i (defaults to 32 - no noise)
 % g{i}     - hyper-parameters for level i (defaults to 32 - no noise)
@@ -23,7 +23,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_generate.m 1329 2008-04-09 13:22:23Z karl $
  
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------
@@ -77,8 +77,15 @@ end
 %--------------------------------------------------------------------------
 M        = spm_DEM_M_set(M);
 [z w]    = spm_DEM_z(M,N);
-if length(U) > 1
-    z{end} = U + z{end};
+
+% and add exogenous input
+%--------------------------------------------------------------------------
+if ~isscalar(U)
+    try
+        z{end} = U + z{end};
+    catch
+        warndlg('input and model are inconsistent')
+    end
 end
  
 % integrate HDM to obtain causal (v) and hidden states (x)

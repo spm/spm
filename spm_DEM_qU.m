@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_qU.m 1329 2008-04-09 13:22:23Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -95,8 +95,9 @@ for i = 1:g
         try, 
             plot(t,pV{i},'linewidth',2,'color',[1 1 1]/2)
         end, hold on
-        plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
-        hold off
+        try
+            plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
+        end, hold off
         set(gca,'XLim',[t(1) t(end)])
         a   = axis;
 

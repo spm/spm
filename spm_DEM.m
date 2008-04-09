@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_DEM.m 1329 2008-04-09 13:22:23Z karl $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -97,7 +97,6 @@ TOL  = 1e-3;
 %==========================================================================
 d    = M(1).E.d + 1;                   % embedding order of q(v)
 n    = M(1).E.n + 1;                   % embedding order of q(x) (n >= d)
-s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
 
 % number of states and parameters
 %--------------------------------------------------------------------------
@@ -126,47 +125,62 @@ else
     te = 2;
 end
 
-% precision (R) and covariance of generalised errors
-%--------------------------------------------------------------------------
-iV    = spm_DEM_R(n,s);
-
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
 Q     = {};
 for i = 1:nl
-    q0{i,i} = sparse(M(i).l,M(i).l);
-    r0{i,i} = sparse(M(i).n,M(i).n);
+    v0{i,i} = sparse(M(i).l,M(i).l);
+    w0{i,i} = sparse(M(i).n,M(i).n);
 end
-Q0    = kron(iV,spm_cat(q0));
-R0    = kron(iV,spm_cat(r0));
+V0    = kron(sparse(n,n),spm_cat(v0));
+W0    = kron(sparse(n,n),spm_cat(w0));
+Qp    = blkdiag(V0,W0);
 for i = 1:nl
+
+    % precision (R) and covariance of generalised errors
+    %----------------------------------------------------------------------
+    iVv   = spm_DEM_R(n,M(i).sv);
+    iVw   = spm_DEM_R(n,M(i).sw);
+
+    % noise on causal states (Q)
+    %----------------------------------------------------------------------
     for j = 1:length(M(i).Q)
-        q          = q0;
+        q          = v0;
         q{i,i}     = M(i).Q{j};
-        Q{end + 1} = blkdiag(kron(iV,spm_cat(q)),R0);
+        Q{end + 1} = blkdiag(kron(iVv,spm_cat(q)),W0);
     end
+
+    % and fixed components (V)
+    %----------------------------------------------------------------------
+    q      = v0;
+    q{i,i} = M(i).V;
+    Qp     = Qp + blkdiag(kron(iVv,spm_cat(q)),W0);
+
+    % noise on hidden states (R)
+    %----------------------------------------------------------------------
     for j = 1:length(M(i).R)
-        q          = r0;
+        q          = w0;
         q{i,i}     = M(i).R{j};
-        Q{end + 1} = blkdiag(Q0,kron(iV,spm_cat(q)));
+        Q{end + 1} = blkdiag(V0,kron(iVw,spm_cat(q)));
     end
+
+    % and fixed components (W)
+    %----------------------------------------------------------------------
+    q      = w0;
+    q{i,i} = M(i).W;
+    Qp     = Qp + blkdiag(V0,kron(iVw,spm_cat(q)));
+    
 end
 
 
-% and fixed components P
+% number of hyperparameters
 %--------------------------------------------------------------------------
-Q0    = kron(iV,spm_cat(diag({M.V})));
-R0    = kron(iV,spm_cat(diag({M.W})));
-Qp    = blkdiag(Q0,R0);
-Q0    = kron(iV,speye(nv));
-R0    = kron(iV,speye(nx));
-Qu    = blkdiag(Q0,R0);
-nh    = length(Q);                         % number of hyperparameters
+nh    = length(Q);
 
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
-Px    = kron(iV(1:n,1:n),sparse(nx,nx));
-Pv    = kron(iV(1:d,1:d),sparse(nv,nv));
+Px    = kron(spm_DEM_R(n,1),speye(nx,nx)*0);
+Pv    = kron(spm_DEM_R(d,1),speye(nv,nv)*0);
 Pu    = spm_cat(diag({Px Pv}));
 
 % hyperpriors
@@ -352,9 +366,11 @@ for iN = 1:nN
                 
                 % conditional covariance [of states {u}]
                 %----------------------------------------------------------
-                qu.c   = inv(dE.du'*iS*dE.du + Pu);
+                qu.p   = dE.du'*iS*dE.du + Pu;
+                Ru     = speye(nu,nu)*nu*eps(norm(qu.p,1));
+                qu.c   = inv(qu.p + Ru);
                 qu_c   = qu_c*qu.c;
-                
+                                
                 % and conditional covariance [of parameters {P}]
                 %----------------------------------------------------------
                 dE.dP  = [dE.dp spm_cat(dEdb)];
@@ -420,11 +436,11 @@ for iN = 1:nN
                 
                 % first-order derivatives
                 %----------------------------------------------------------             
-                dVdu  = -dE.du'*iS*E     - dWdu/2  - Pu*u(1:nu); 
+                dVdu  = -dE.du'*iS*E     - dWdu/2  - (Pu + Ru)*u(1:nu); 
                 
                 % and second-order derivatives
                 %----------------------------------------------------------
-                dVduu = -dE.du'*iS*dE.du - dWduu/2 - Pu;
+                dVduu = -dE.du'*iS*dE.du - dWduu/2 - (Pu + Ru);
                 dVduy = -dE.du'*iS*dE.dy;
                 dVduc = -dE.du'*iS*dE.dc;
                 
@@ -441,7 +457,8 @@ for iN = 1:nN
                 
                 % update conditional modes of states
                 %==========================================================
-                du    = spm_dx(dFduu + D,dFdu + D*u,td);                
+                K     = exp(-2);
+                du    = spm_dx(K*dFduu + D,K*dFdu + D*u,td);                
                 q     = spm_unvec(u + du,q);
                 
                 % and save them
@@ -628,14 +645,12 @@ for iN = 1:nN
             x     = spm_unvec(qU(t).x{1},x);
             z     = spm_unvec(qE{t},{M.v});
             for i = 1:(nl - 1)
-                QU.v{i + 1}(:,t) = spm_vec(v{i});
-                try
-                    QU.x{i}(:,t) = spm_vec(x{i});
-                end
-                QU.z{i}(:,t)     = spm_vec(z{i});
+                if M(i).m, QU.v{i + 1}(:,t) = spm_vec(v{i}); end
+                if M(i).n, QU.x{i}(:,t)     = spm_vec(x{i}); end
+                if M(i).l, QU.z{i}(:,t)     = spm_vec(z{i}); end
             end
-            QU.v{1}(:,t)         = spm_vec(qU(t).y{1} - z{1});
-            QU.z{nl}(:,t)        = spm_vec(z{nl});
+            QU.v{1}(:,t)              = spm_vec(qU(t).y{1} - z{1});
+            if M(nl).l, QU.z{nl}(:,t) = spm_vec(z{nl});      end
 
             % and conditional covariances
             %--------------------------------------------------------------

@@ -47,7 +47,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_M_set.m 1329 2008-04-09 13:22:23Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -213,15 +213,6 @@ for i = (g - 1):-1:1
         errordlg(sprintf('evaluation failure: M(%i).g(x,v,P)',i))
     end
 end
- 
-% remove empty levels
-%--------------------------------------------------------------------------
-try
-    g  = min(find(~spm_vec(M.m)));
-    M  = M(1:g);
-catch
-    errordlg('please specify number of variables')
-end
 
 % number of x (hidden states)
 %--------------------------------------------------------------------------
@@ -370,6 +361,17 @@ try M(1).E.nE; catch,        M(1).E.nE = 1;  end
 try M(1).E.nM; catch,        M(1).E.nM = 8;  end
 try M(1).E.nN; catch,        M(1).E.nN = 16; end
  
+% checks on smoothness hyperparameter
+%==========================================================================
+for i = 1:g
+    
+    try, M(i).sv; catch, M(i).sv = M(1).E.s;   end
+    try, M(i).sw; catch, M(i).sw = M(1).E.s;   end
+        
+    if ~isscalar(M(i).sv), M(i).sv = M(1).E.s; end
+    if ~isscalar(M(i).sw), M(i).sw = M(1).E.s; end
+end
+
 
 % checks on estimability
 %==========================================================================

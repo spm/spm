@@ -14,7 +14,7 @@ function [V,X] = spm_DEM_int(M,Z,W)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_int.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_int.m 1329 2008-04-09 13:22:23Z karl $
  
 % set model indices and missing fields
 %--------------------------------------------------------------------------
@@ -105,9 +105,8 @@ for t  = 1:nt
         xi     = spm_unvec(u.x{1},{M.x});
         if iD == 1
             for i = 1:nl
-                V{i}(:,t) = spm_vec(vi{i});
-                if M(i).n
-                    X{i}(:,t) = spm_vec(xi{i});
+                if M(i).l, V{i}(:,t) = spm_vec(vi{i}); end
+                if M(i).n, X{i}(:,t) = spm_vec(xi{i}); end
                 end
             end
         end       

@@ -28,7 +28,7 @@ function [E, dE] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_eval.m 1329 2008-04-09 13:22:23Z karl $
 
 % persistent variables to avoid redundant evaluations
 %==========================================================================
@@ -135,8 +135,16 @@ for i = 1:(nl - 1)
 
     % g(x,v), f(x,v) and 1st-order partial derivatives (parameters)
     %----------------------------------------------------------------------
-    [dfdp fi]  = spm_diff(h,M(i).f,xvp{:},4);
-    [dgdp gi]  = spm_diff(h,M(i).g,xvp{:},4);
+    try
+        dfdp       = h(M(i).fp,xvp{:});
+        dgdp       = h(M(i).gp,xvp{:});
+        fi         = h(M(i).f, xvp{:});
+        gi         = h(M(i).g, xvp{:});
+        
+    catch
+        [dfdp fi]  = spm_diff(h,M(i).f,xvp{:},4);
+        [dgdp gi]  = spm_diff(h,M(i).g,xvp{:},4);
+    end
 
     % and place in array
     %----------------------------------------------------------------------
@@ -149,12 +157,14 @@ for i = 1:(nl - 1)
     %======================================================================
     if du
 
-        % 1st and 2nd partial derivatives (states)
-        %------------------------------------------------------------------
-        [dgdxp dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4]);
-        [dgdvp dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4]);
-        [dfdxp dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4]);
-        [dfdvp dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4]);
+        try
+            % 1st and 2nd partial derivatives (states)
+            %--------------------------------------------------------------
+            [dgdxp dgdx] = spm_diff(h,M(i).g,xvp{:},[2 4]);
+            [dgdvp dgdv] = spm_diff(h,M(i).g,xvp{:},[3 4]);
+            [dfdxp dfdx] = spm_diff(h,M(i).f,xvp{:},[2 4]);
+            [dfdvp dfdv] = spm_diff(h,M(i).f,xvp{:},[3 4]);
+        end
 
         % place 1st derivatives in array
         %------------------------------------------------------------------
