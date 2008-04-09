@@ -4,7 +4,7 @@ function job = spm_config_preproc8
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc8.m 1167 2008-02-24 19:51:13Z volkmar $
+% $Id: spm_config_preproc8.m 1340 2008-04-09 17:11:23Z john $
 
 
 %_______________________________________________________________________
@@ -301,16 +301,16 @@ tpm_nam = fullfile(fileparts(which(mfilename)),'TPM.nii');
 ngaus   = [2 2 2 3 4 2];
 nval    = {[1 0],[1 0],[1 0],[1 0],[1 0],[0 0]};
 for k=1:numel(ngaus),
-    tissue.val{1}.val = {[tpm_nam ',' num2str(k)]};
-    tissue.val{2}.val = {ngaus(k)};
-    tissue.val{3}.val = {nval{k}};
-    tissues.val{k}    = tissue;
+    tissue.val{1}.val{1} = {[tpm_nam ',' num2str(k)]};
+    tissue.val{2}.val    = {ngaus(k)};
+    tissue.val{3}.val    = {nval{k}};
+    tissues.val{k}       = tissue;
 end
 
 %------------------------------------------------------------------------
 
 warpreg      = entry('Warping Regularisation','reg','e',[1 1]);
-warpreg.val  = {1};
+warpreg.val  = {4};
 warpreg.help = {[...
 'The objective function for registering the tissue probability maps to the ',...
 'image to process, involves minimising the sum of two terms. ',...
@@ -330,7 +330,7 @@ affreg = mnu('Affine Regularisation','affreg',...
    {'No Affine Registration','ICBM space template - European brains',...
     'ICBM space template - East Asian brains', 'Average sized template','No regularisation'},...
    {'','mni','eastern','subj','none'});
-affreg.def  = 'preproc.regtype';
+affreg.def  = 'mni';
 affreg.help = {[...
 'The procedure is a local optimisation, so it needs reasonable initial '...
 'starting estimates. Images should be placed in approximate alignment '...

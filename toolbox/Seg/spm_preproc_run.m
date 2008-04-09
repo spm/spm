@@ -15,9 +15,13 @@ function varargout = spm_preproc_run(job,arg)
 % job.warp.write
 % job.warp.bb
 % job.warp.vox
+%
+% See the user interface for a description of the fields.
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 1301 2008-04-03 13:21:44Z john $
+% $Id: spm_preproc_run.m 1340 2008-04-09 17:11:23Z john $
 
 if nargin==1,
     run_job(job);
@@ -29,7 +33,9 @@ else
     error('Unknown argument ("%s").', arg);
 end
 return
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function run_job(job)
 
 tpm    = strvcat(cat(1,job.tissue(:).tpm));
@@ -39,6 +45,7 @@ nit = 1;
 
 for iter=1:nit,
     if nit>1,
+        % Unused
         SS = zeros([size(tpm.dat{1}),numel(tpm.dat)],'single');
     end
     for subj=1:numel(job.channel(1).vols),
@@ -68,6 +75,7 @@ for iter=1:nit,
                 obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,obj.Affine,job.warp.affreg);
             end;
         else
+            % Unused
             [pth,nam] = fileparts(job.channel(1).vols{subj});
             res       = load(fullfile(pth,[nam '_seg8.mat']));
             obj.Affine = res.Affine;
@@ -93,6 +101,7 @@ for iter=1:nit,
             tmp3 = job.warp.write;
             spm_preproc_write8(res,tmp1,tmp2,tmp3);
         else
+            % Unused
             N    = numel(job.channel);
             K    = numel(job.tissue);
             cls  = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0]);
@@ -103,8 +112,10 @@ for iter=1:nit,
 
     end
     if iter<nit && nit>1,
+         % Unused
+         alpha = 1.0;
          for k=1:K,
-             SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*2.0 + eps;
+             SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*alpha + eps;
          end
          s = sum(SS,4);
          for k=1:K,
@@ -112,16 +123,18 @@ for iter=1:nit,
              tpm.bg(k)  = mean(mean(tmp(:,:,1)));
              tpm.dat{k} = spm_bsplinc(log(tmp+tpm.tiny),[ones(1,3)*(tpm.deg-1)  0 0 0]);
          end
-         save junk.mat SS tpm
     end
 end
-
 return
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function msg = check_job(job)
 msg = [];
 return
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 function vf = vfiles_job(job)
 vf = {};
 return

@@ -5,7 +5,7 @@ function [sig,a] = spm_dartel_smooth(t,lam,its,vx,a)
 % (c) Wellcome Centre for NeuroImaging (2007)
 
 % John Ashburner
-% $Id: spm_dartel_smooth.m 981 2007-10-26 10:19:42Z john $
+% $Id: spm_dartel_smooth.m 1340 2008-04-09 17:11:23Z john $
 
 if nargin<5, a   = zeros(size(t),'single'); end
 if nargin<4, vx  = [1 1 1]; end;
@@ -26,7 +26,7 @@ for i=1:its,
     for k=1:d(4),
         gr(:,:,:,k) = gr(:,:,:,k).*s;
     end
-    gr  = gr + optimNn('vel2mom',a,[2 vx lam 0 1e-4]);
+    gr  = gr + optimNn('vel2mom',a,[2 vx lam lam*1e-4 0]);
     jj  = d(4)+1;
     reg = 2*sqrt(eps('single'))*d(4)^2;
     for j1=1:d(4),
@@ -36,7 +36,7 @@ for i=1:its,
             jj = jj+1;
         end
     end
-    a   = a - optimNn(W,gr,[2 vx lam 0 1e-4 1 1]);
+    a   = a - optimNn(W,gr,[2 vx lam lam*1e-4 0 1 1]);
     %a  = a - mean(a(:)); % unstable
     %a   = a - sum(sum(sum(sum(a))))/numel(a);
     fprintf(' %g,', sum(gr(:).^2)/numel(gr));

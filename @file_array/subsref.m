@@ -5,7 +5,7 @@ function varargout=subsref(obj,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: subsref.m 1340 2008-04-09 17:11:23Z john $
 
 
 if isempty(subs)
@@ -113,6 +113,7 @@ for i=1:numel(sobj),
     case 'dim',       t = dim(obj);
     case 'scl_slope', t = scl_slope(obj);
     case 'scl_inter', t = scl_inter(obj);
+    case 'permission',t = permission(obj);
     otherwise, error(['Reference to non-existent field "' subs(1).type '".']);
     end;
     if numel(subs)>1,

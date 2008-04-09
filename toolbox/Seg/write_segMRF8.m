@@ -4,23 +4,23 @@ function spm_preproc_write8(p,opts)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: write_segMRF8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: write_segMRF8.m 1340 2008-04-09 17:11:23Z john $
 
 
 if nargin==1,
     opts = struct('biascor',0,'def',1,'tissues',ones(6,3),'cleanup',0);
 end;
 if numel(p)>0,
-    [b0,bg]  = spm_load_priors8(p(1).tpm);
+    b0  = spm_load_priors8(p(1).tpm);
 end;
 for i=1:numel(p),
-    preproc_apply(p(i),opts,b0,bg);
+    preproc_apply(p(i),opts,b0);
 end;
 return;
 %=======================================================================
 
 %=======================================================================
-function preproc_apply(p,opts,b0,bg)
+function preproc_apply(p,opts,b0)
 
 sopts = opts.tissues;
 
@@ -50,7 +50,7 @@ C{3} = spm_bsplinc(p.Twarp(:,:,:,3),prm);
 mg  = p.mg;
 mn  = p.mn;
 vr  = p.vr;
-Kb  = length(p.ngaus);
+Kb  = max(p.lkp);
 
 for k1=1:size(sopts,1),
     dat{k1} = zeros(d(1:3),'uint8');
@@ -68,7 +68,7 @@ for k1=1:size(sopts,1),
 end;
 
 N   = numel(p.image);
-lkp = []; for k=1:Kb, lkp = [lkp ones(1,p.ngaus(k))*k]; end;
+lkp = p.lkp;
 
 M = p.tpm(1).mat\p.Affine*p.image(1).mat;
 
@@ -92,7 +92,7 @@ for it=1:3,
         [t1,t2,t3] = defs(C,z,p.MT,prm,x1,x2,x3,M);
         q          = zeros([d(1:2) Kb]);
 
-        b          = spm_sample_priors8(b0,t1,t2,t3,bg);
+        b          = spm_sample_priors8(b0,t1,t2,t3);
         if it>1,
             for k1=1:Kb,
                 s{k1} = convn(double(dat{k1}(:,:,z)),[0 1 0; 1 0 1; 0 1 0],'same');

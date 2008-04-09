@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: subsasgn.m 1340 2008-04-09 17:11:23Z john $
 
 
 if isempty(subs)
@@ -17,12 +17,13 @@ if ~strcmp(subs(1).type,'()'),
             error('Can only change the fields of simple file_array objects.');
         end;
         switch(subs(1).subs)
-        case 'fname',      obj = asgn(obj,@fname,    subs(2:end),dat); %fname(obj,dat);
-        case 'dtype',      obj = asgn(obj,@dtype,    subs(2:end),dat); %dtype(obj,dat);
-        case 'offset',     obj = asgn(obj,@offset,   subs(2:end),dat); %offset(obj,dat);
-        case 'dim',        obj = asgn(obj,@dim,      subs(2:end),dat); %obj = dim(obj,dat);
-        case 'scl_slope',  obj = asgn(obj,@scl_slope,subs(2:end),dat); %scl_slope(obj,dat);
-        case 'scl_inter',  obj = asgn(obj,@scl_inter,subs(2:end),dat); %scl_inter(obj,dat);
+        case 'fname',      obj = asgn(obj,@fname,     subs(2:end),dat); %fname(obj,dat);
+        case 'dtype',      obj = asgn(obj,@dtype,     subs(2:end),dat); %dtype(obj,dat);
+        case 'offset',     obj = asgn(obj,@offset,    subs(2:end),dat); %offset(obj,dat);
+        case 'dim',        obj = asgn(obj,@dim,       subs(2:end),dat); %obj = dim(obj,dat);
+        case 'scl_slope',  obj = asgn(obj,@scl_slope, subs(2:end),dat); %scl_slope(obj,dat);
+        case 'scl_inter',  obj = asgn(obj,@scl_inter, subs(2:end),dat); %scl_inter(obj,dat);
+        case 'permission', obj = asgn(obj,@permission,subs(2:end),dat); %permission(obj,dat);
         otherwise, error(['Reference to non-existent field "' subs.subs '".']);
         end;
         return;
@@ -57,6 +58,13 @@ for i=1:length(subs.subs),
     end;
     do(i) = length(args{i});
 end;
+for j=1:length(sobj),
+    disp(j)
+    if strcmp(sobj(j).permission,'ro'),
+        error('Array is read-only.');
+    end
+end
+
 if length(sobj)==1
     sobj.dim = dm;
     if numel(dat)~=1,
