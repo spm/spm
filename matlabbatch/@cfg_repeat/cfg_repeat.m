@@ -28,31 +28,23 @@ function item = cfg_repeat(varargin)
 %    * get_strings - returns name of object
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest
-%    * all_set
+%    * harvest     - see below
+%    * all_set     - true, if .num check passes and all items in .val are
+%                    all_set 
 %
-% * 'repeat' - Repeated kids in the tree structure
-%   - required fields: 'type', 'name', 'tag', 'values'
-%   - optional fields: 'num', 'help'
-%
-%   If the number of elements in the 'values' field is greater than
-%   one, then the resulting data structure is a cell array.  Each
-%   element of the cell array is a struct with a single field, where
-%   the name of the field is given by the 'tag' of the child node.
-%
-%   If the 'values' field only contains one element, which is a 'branch',
-%   then the data structure is a struct array (in which case the 'tag'
-%   of the current node can be ignored).
-%
-%   If the 'values' field only contains one element, which is not a branch,
-%   then the data structure is a cell array, where each element is the value
-%   of the child node ((in which case the 'tag' of the current node can be
-%   ignored).
-%
-%   If the 'num' field is present, it is a 2-vector [min max] which
-%   limits the occurence of the repeated substructure(s). This can
-%   be used to check inputs whether there is at least one repeated
-%   entry.
+% Output in Job Structure (harvest)
+% =================================
+% If the number of elements in the 'values' field is greater than one,
+% then the resulting data structure is a cell array.  Each element of the
+% cell array is a struct with a single field, where the name of the field
+% is given by the 'tag' of the child node.
+% If the 'values' field only contains one element, which is a 'branch',
+% then the data structure is a struct array (in which case the 'tag' of
+% the current node can be ignored).
+% If the 'values' field only contains one element, which is not a branch,
+% then the data structure is a cell array, where each element is the
+% value of the child node ((in which case the 'tag' of the current node
+% can be ignored).
 %
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
@@ -68,9 +60,9 @@ function item = cfg_repeat(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_repeat.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_repeat.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

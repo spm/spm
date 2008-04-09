@@ -303,7 +303,28 @@ f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
             'HandleVisibility','off', 'tag','jobs', 'Separator','on');
 f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', 'Callback',@conv_jobs, ...
             'HandleVisibility','off', 'tag','jobs');
+f4 = uimenu(f0,'Label','SPM (interactive)', ...
+            'HandleVisibility','off', 'tag','jobs', 'Separator','on');
+cfg_ui('local_setmenu', f4, cfg_util('tag2cfg_id', 'spmjobs'), ...
+       @local_init_interactive, false);
+f5 = uimenu(f0,'Label','SPM (serial)', ...
+            'HandleVisibility','off', 'tag','jobs');
+cfg_ui('local_setmenu', f5, cfg_util('tag2cfg_id', 'spmjobs'), ...
+       @local_init_serial, false);
+%------------------------------------------------------------------------
 
+%------------------------------------------------------------------------
+function local_init_interactive(varargin)
+cjob = cfg_util('initjob');
+mod_cfg_id = get(gcbo,'userdata');
+cfg_util('addtojob', cjob, mod_cfg_id);
+cfg_ui('local_showjob', cfg_ui, cjob);
+%------------------------------------------------------------------------
+
+%------------------------------------------------------------------------
+function local_init_serial(varargin)
+mod_cfg_id = get(gcbo,'userdata');
+cfg_serial(@serial_ui, mod_cfg_id);
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------

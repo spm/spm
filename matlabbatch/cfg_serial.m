@@ -1,6 +1,6 @@
 function cfg_serial(guifcn, job, varargin)
 
-% function cfg_serial(guifcn, job, varargin)
+% function cfg_serial(guifcn, job|tagstr|mod_cfg_id, varargin)
 % A matlabbatch user interface which completes a matlabbatch job with
 % incomplete inputs one at a time and runs the job.
 % This interface may be called with or without user interaction. If
@@ -11,7 +11,7 @@ function cfg_serial(guifcn, job, varargin)
 % cfg_ui. However, after the job is executed, it will be removed from the
 % job list.
 %
-% cfg_serial(guifcn, job[, input1, input2, ...inputN])
+% cfg_serial(guifcn, job|tagstr|mod_cfg_id[, input1, input2, ...inputN])
 % Ask for missing inputs in a job. Job should be a matlabbatch job as
 % returned by cfg_util('harvest'). Modifications to the job structure are
 % limited:
@@ -76,9 +76,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1312 2008-04-07 07:47:40Z volkmar $
+% $Id: cfg_serial.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1312 $';
+rev = '$Rev: 1337 $';
 
 if ischar(job)
     % Assume dot delimited sequence of tags
@@ -93,6 +93,11 @@ if ischar(job)
         % tag string points to somewhere above cfg_branch
         cjob = local_addtojob(job);
     end;
+elseif cfg_util('ismod_cfg_id', job)
+        % initialise new job
+        cjob = cfg_util('initjob');
+        % add mod_cfg_id
+        cfg_util('addtojob', cjob, job);    
 else
     % assume job to be a saved job structure
     cjob = cfg_util('initjob', job);

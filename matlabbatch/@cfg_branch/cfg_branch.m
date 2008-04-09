@@ -8,7 +8,7 @@ function item = cfg_branch(varargin)
 % Description fields
 %    * name  - display name of config item
 %    * tag   - tag of the menu item
-%    * val   - cell array of config_items
+%    * val   - cell array of cfg_item objects
 %    * check - (optional) function handle to implement configuration
 %              specific subsasgn checks based on the harvested subtree
 %              rooted at this node
@@ -24,12 +24,15 @@ function item = cfg_branch(varargin)
 %    * get_strings - returns name of object
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest
-%    * all_set
+%    * harvest     - returns struct, field names correspond to tags of
+%                    items in .val field
+%    * all_set     - returns all(all_set(item.val{...}))
 %
-% * 'branch' - Branch of the tree structure
-%   - required fields: 'type', 'name', 'tag', 'val'
-%   - optional fields: 'prog', 'vfiles', 'check', 'modality', 'help'
+% Output in Job Structure (harvest)
+% =================================
+% The resulting structure is a struct. Its fieldnames correspond to the
+% tags of the cfg_items in item.val, the value of each field is the
+% harvested data of the corresponding child item.
 %
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
@@ -48,9 +51,9 @@ function item = cfg_branch(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_branch.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_branch.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

@@ -26,16 +26,12 @@ function item = cfg_menu(varargin)
 %    * get_strings - returns name of object
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest
-%    * all_set
+%    * harvest     - returns item.val{1}, or '<UNDEFINED>' if empty, see below
+%    * all_set     - returns ~isempty(item.val)
 %
-% * 'menu'  - Data entry by menu
-%   - required fields: 'type', 'name', 'tag', 'labels', 'values'
-%   - optional fields: 'val', 'def', 'help'
-%
-%   The resulting data structure simply contains the contents of
-%   val{1}, which corresponds to the element of values selected
-%   by the user.
+% Output in Job Structure (harvest)
+% =================================
+% cfg_menu uses cfg_item/harvest.
 %
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
@@ -51,9 +47,9 @@ function item = cfg_menu(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_menu.m 1245 2008-03-26 10:32:25Z volkmar $
+% $Id: cfg_menu.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1245 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

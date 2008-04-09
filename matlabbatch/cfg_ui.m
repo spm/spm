@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1323 2008-04-09 09:32:06Z volkmar $
+% $Id: cfg_ui.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1323 $';
+rev = '$Rev: 1337 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -111,15 +111,19 @@ end;
 
 %% Dynamic Menu Creation
 % --------------------------------------------------------------------
-function local_setmenu(hObject)
+function local_setmenu(parent, id, cb, dflag)
+% parent: menu parent
+% id: id to start listcfgall
+% cb: callback to add/run new nodes
+% dflag: add defaults edit (true/false)
+
 % delete previous added menu, if any
-handles = guidata(hObject);
-prevmenu = findobj(handles.cfg_ui, 'Tag', 'AddedAppMenu');
+prevmenu = findobj(parent, 'Tag', 'AddedAppMenu');
 if ~isempty(prevmenu)
     delete(prevmenu);
 end;
 % get strings and ids
-[id,stop,val]=cfg_util('listcfgall',[],cfg_findspec({{'hidden',false}}),{'name','level'});
+[id,stop,val]=cfg_util('listcfgall',id,cfg_findspec({{'hidden',false}}),{'name','level'});
 str = val{1};
 lvl = cat(1,val{2}{:});
 % strings and ids are in preorder - if stop is true, then we are at leaf
@@ -127,7 +131,7 @@ lvl = cat(1,val{2}{:});
 % remember last menu at lvl for parents, start at lvl > 1 (top parent is
 % figure menu)
 lastmenulvl = zeros(1, max(lvl));
-lastmenulvl(1) = handles.cfg_ui;
+lastmenulvl(1) = parent;
 toplevelmenus = [];
 toplevelids   = {};
 % 1st entry is top of matlabbatch config tree, applications start at 2nd entry
@@ -135,7 +139,7 @@ for k = 2:numel(lvl)
     if stop(k)
         label = sprintf('New: %s', str{k});
         udata = id{k};
-        cback = @local_addtojob;
+        cback = cb;
     else
         label = str{k};
         udata = [];
@@ -149,17 +153,19 @@ for k = 2:numel(lvl)
         toplevelids{end+1}   = id{k};
     end;
 end;
-% add defaults manipulation entries
-for k =1:numel(toplevelmenus)
-    cm = uimenu('Parent',toplevelmenus(k), 'Label','Load Defaults', ...
-                'Callback',@local_loaddefs, 'Userdata',toplevelids{k}, ...
-                'tag','AddedAppMenu', 'Separator','on');
-    cm = uimenu('Parent',toplevelmenus(k), 'Label','Save Defaults', ...
-                'Callback',@local_savedefs, 'Userdata',toplevelids{k}, ...
-                'tag','AddedAppMenu');
-    cm = uimenu('parent',toplevelmenus(k), 'Label','Edit Defaults', ...
-                'Callback',@local_editdefs, 'Userdata',toplevelids{k}, ...
-                'tag','AddedAppMenu', 'Separator','on');
+if dflag
+    % add defaults manipulation entries
+    for k =1:numel(toplevelmenus)
+        cm = uimenu('Parent',toplevelmenus(k), 'Label','Load Defaults', ...
+                    'Callback',@local_loaddefs, 'Userdata',toplevelids{k}, ...
+                    'tag','AddedAppMenu', 'Separator','on');
+        cm = uimenu('Parent',toplevelmenus(k), 'Label','Save Defaults', ...
+                    'Callback',@local_savedefs, 'Userdata',toplevelids{k}, ...
+                    'tag','AddedAppMenu');
+        cm = uimenu('parent',toplevelmenus(k), 'Label','Edit Defaults', ...
+                    'Callback',@local_editdefs, 'Userdata',toplevelids{k}, ...
+                    'tag','AddedAppMenu', 'Separator','on');
+    end;
 end;
 % --------------------------------------------------------------------
 function local_addtojob(varargin)
@@ -851,7 +857,7 @@ function cfg_ui_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to cfg_ui (see VARARGIN)
 
 % Add configuration specific menu items
-local_setmenu(hObject);
+local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 
 % Check udmodlist
 udmodlist = get(handles.modlist, 'userdata');
@@ -973,7 +979,7 @@ end;
 addpath(path);
 [p fun e v] = fileparts(file);
 cfg_util('addapp', fun);
-local_setmenu(hObject);
+local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 
 % --------------------------------------------------------------------
 function MenuFileClose_Callback(hObject, eventdata, handles)
@@ -995,7 +1001,7 @@ function MenuEditUpdateView_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-local_setmenu(hObject);
+local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 local_showjob(hObject);
 
 % --------------------------------------------------------------------

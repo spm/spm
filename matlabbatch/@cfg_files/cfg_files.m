@@ -28,15 +28,33 @@ function item = cfg_files(varargin)
 %    * get_strings - returns name of object
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest
-%    * all_set
+%    * harvest     - returns item.val{1}, or '<UNDEFINED>' if empty, see below
+%    * all_set     - returns ~isempty(item.val), checks numel(item.val{1})
+%                    against item.num
 %
-% * 'files' - Entry by file selection
-%   - required fields: 'type', 'name', 'tag', 'filter', 'num'
-%   - optional fields: 'val', 'def', 'help', 'dir', 'ufilter'
+% Subscript Assignment Checks
+% ===========================
+% Values assigned to the .num field must be a 2-vector.
+% Values assigned to the .val{1} field must be either
+% - empty
+% - an array of cfg_dep objects
+% - a cell string of file names.
+% In the latter case, the cell string will be filtered using 
+% cfg_getfile('filter', item.val{1}, item.filter, '.*', 1:inf) and only
+% files matching item.filter will be assigned.
 %
-%   The resulting data structure simply contains a cell array
-%   of filenames (from val{1} ).
+% GUI Input
+% =========
+% The GUI uses 
+% cfg_getfile(item.num, item.filter, item.name, item.val{1}, '.', item.ufilter)
+% to select files. The filter in item.filter can not be overridden by the
+% GUI.
+%
+% Output in Job Structure (harvest)
+% =================================
+% cfg_files uses cfg_item/harvest. If multiple dependencies are present
+% and all can be resolved, the result will be a cell string containing a
+% concatenated list of files.
 %
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
@@ -52,9 +70,9 @@ function item = cfg_files(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_files.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_files.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

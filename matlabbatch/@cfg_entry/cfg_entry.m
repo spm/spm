@@ -39,8 +39,9 @@ function item = cfg_entry(varargin)
 %    * get_strings - returns name of object
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest
-%    * all_set
+%    * harvest     - returns item.val{1}, or '<UNDEFINED>' if empty, see below
+%    * all_set     - returns ~isempty(item.val), checks numel(item.val{1})
+%                    against item.num
 %
 % Public internal Methods
 % =======================
@@ -64,6 +65,18 @@ function item = cfg_entry(varargin)
 %   'x'   contrast matrix
 %   'p'   permutation
 %
+% Subscript Assignment Checks
+% ===========================
+% .num must conform to the semantics described above.
+% The contents of item.val{1} will be checked to match .num and .strtype
+% restrictions. 
+%
+% Output in Job Structure (harvest)
+% =================================
+% cfg_entry uses cfg_item/harvest. If multiple dependencies are present
+% and all can be resolved, the result will be a concatenation of all
+% inputs. If concatenation fails, dependencies will not be resolved.
+%
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
 % implementation in SPM5 (Statistical Parametric Mapping, Copyright (C)
@@ -78,9 +91,9 @@ function item = cfg_entry(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_entry.m 1260 2008-03-27 21:56:55Z volkmar $
+% $Id: cfg_entry.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1260 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

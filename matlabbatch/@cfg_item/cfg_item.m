@@ -29,7 +29,7 @@ function item = cfg_item(varargin)
 %                    added in child class method.
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest     - returns item.val{1}, or '<UNDEFINED>' if empty
+%    * harvest     - returns item.val{1}, or '<UNDEFINED>' if empty, see below
 %    * all_set     - returns ~isempty(item.val)
 %
 % Public internal Methods
@@ -38,6 +38,13 @@ function item = cfg_item(varargin)
 %    * subsref
 %    * display
 %    * disp
+%
+% Output in Job Structure (harvest)
+% =================================
+% cfg_item/harvest returns item.val{1}. If this is a dependency object
+% and dependencies shall and can be resolved the contents of the
+% dependencies will be returned. Otherwise the dependency object(s) will
+% be returned. This is the default behaviour for all cfg_leaf items. 
 %
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
@@ -53,9 +60,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 1195 2008-03-07 21:51:49Z volkmar $
+% $Id: cfg_item.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1195 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

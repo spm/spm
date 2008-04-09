@@ -25,15 +25,13 @@ function item = cfg_choice(varargin)
 %    * get_strings - returns name of object
 %    * gettag      - returns tag
 %    * help        - returns help text
-%    * harvest
-%    * all_set
+%    * harvest     - a struct with a single field (see below)
+%    * all_set     - returns all_set(item.val)
 %
-% * 'choice' - A choice of ways of changing the tree structure
-%   - required fields: 'type', 'name', 'tag', 'values'
-%   - optional fields: 'val', 'help'
-%
-%   The resulting data structure is a struct with a single field.  The
-%   name of the field is given by the 'tag' of the specified value.
+% Output in Job Structure (harvest)
+% =================================
+% The resulting data structure is a struct with a single field.  The
+% name of the field is given by the 'tag' of the specified value.
 %
 % The layout of the configuration tree and the types of configuration items
 % have been kept compatible to a configuration system and job manager
@@ -49,9 +47,9 @@ function item = cfg_choice(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_choice.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_choice.m 1337 2008-04-09 15:52:05Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1337 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
