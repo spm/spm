@@ -5,7 +5,7 @@ function varargout = spm_api_fmri(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_fmri.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_api_fmri.m 1358 2008-04-10 11:20:26Z guillaume $
 
 
 % set action
@@ -23,9 +23,7 @@ switch action
 %----------------------------------------------------------------------------
 case {'initialise'}
     
-    spm_defaults
-    global defaults
-    defaults.modality = 'FMRI';
+    spm('defaults','FMRI');
     study = openfig('spm_study');
     global study
     h     = guihandles(study);

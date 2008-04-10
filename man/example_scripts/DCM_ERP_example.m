@@ -4,7 +4,7 @@
 % Please replace filenames etc. by your own.
 %-------------------------------------------------------
 clear all
-spm_defaults
+spm('defaults','EEG');
 
 % paths to data, etc.
 %-------------------------------------------------------

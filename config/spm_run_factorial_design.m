@@ -9,10 +9,13 @@ function out = spm_run_factorial_design(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_factorial_design.m 1193 2008-03-07 08:26:54Z volkmar $
+% $Id: spm_run_factorial_design.m 1358 2008-04-10 11:20:26Z guillaume $
 
 
-spm_defaults;
+global defaults
+if isempty(defaults)
+    spm_defaults;
+end
 
 original_dir = pwd;
 cd(job.dir{1});

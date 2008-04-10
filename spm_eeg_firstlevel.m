@@ -16,7 +16,7 @@ function spm_eeg_firstlevel(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 1262 2008-03-28 09:28:42Z stefan $
+% $Id: spm_eeg_firstlevel.m 1358 2008-04-10 11:20:26Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','M/EEG 1st level contrast setup',0);
 
@@ -75,7 +75,7 @@ end
 spm('Pointer', 'Watch'); drawnow;
 
 % compute contrasts
-spm_defaults;
+spm('defaults','EEG');
 global defaults
 defaults.analyze.flip = 0;
 

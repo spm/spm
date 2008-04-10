@@ -3,7 +3,7 @@ function spm_eeg_scalp3d(data)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_scalp3d.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_scalp3d.m 1358 2008-04-10 11:20:26Z guillaume $
 
 %-Projecting the scalp EEG data onto scalp
 % just for EEG (and BDF files)
@@ -24,7 +24,7 @@ if length(data)==275
     load(fullfile(P, '3d_ctf'));
 end
 
-spm_defaults
+spm('defaults','EEG');
 
 
 map = griddata3(pos(:,1),pos(:,2),pos(:,3),data,xs,ys,zs,'nearest');

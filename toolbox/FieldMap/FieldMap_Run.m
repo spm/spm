@@ -35,15 +35,14 @@ function vdm=Fieldmap_Run(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: FieldMap_Run.m 1358 2008-04-10 11:20:26Z guillaume $
 %_________________________________________________________________
 
 %
 %----------------------------------------------------------------------  
 % Set up default parameters and structures 
 %----------------------------------------------------------------------
-dbstop if error
-spm_defaults
+spm('defaults','FMRI');
 
 % Open the FieldMap control window with visibility off. This allows the
 % graphics display to work.

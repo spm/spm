@@ -65,10 +65,10 @@ function varargout = pm_vdm_apply(ds,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton 
-% $Id: pm_vdm_apply.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_vdm_apply.m 1358 2008-04-10 11:20:26Z guillaume $
 
 
-global defaults
+defaults = spm('GetGlobal','defaults');
 
 def_flags = struct('mask',       1,...
                    'mean',       1,...

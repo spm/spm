@@ -107,7 +107,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: FieldMap.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: FieldMap.m 1358 2008-04-10 11:20:26Z guillaume $
 
 persistent PF FS WS PM   % GUI related constants
 persistent ID            % Image display
@@ -116,8 +116,8 @@ persistent DGW           % Delete Graphics Window (if we created it)
 global st                % Global for spm_orthviews
 
 % SPM5 Update
-global defaults
-spm_defaults
+spm('defaults','FMRI');
+defaults = spm('GetGlobal','defaults');
 
 if nargin == 0
    Action = 'welcome';

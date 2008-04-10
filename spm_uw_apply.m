@@ -120,11 +120,11 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_uw_apply.m 1358 2008-04-10 11:20:26Z guillaume $
 
 tiny = 5e-2;
 
-global defaults
+defaults = spm('GetGlobal','defaults');
 
 def_flags = struct('mask',       1,...
                    'mean',       1,...

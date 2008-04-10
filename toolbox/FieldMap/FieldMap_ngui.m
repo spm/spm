@@ -19,13 +19,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: FieldMap_ngui.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: FieldMap_ngui.m 1358 2008-04-10 11:20:26Z guillaume $
 
 %----------------------------------------------------------------------  
 % Set up default parameters and structures 
 %----------------------------------------------------------------------
 
-spm_defaults
+spm('defaults','FMRI');
 IP = FieldMap('Initialise'); % Gets default params from pm_defaults
 
 %----------------------------------------------------------------------

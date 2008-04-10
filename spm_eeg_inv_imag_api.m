@@ -7,10 +7,10 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_imag_api.m 1358 2008-04-10 11:20:26Z guillaume $
 
 
-spm_defaults
+spm('defaults','EEG');
 spm('Clear')
 
 % Launch API
