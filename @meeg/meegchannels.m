@@ -7,6 +7,6 @@ function ind = meegchannels(this)
 % Stefan Kiebel
 
 type = chantype(this);
-ind = unique([find(strcmpi('EEG', type)); find(strcmpi('MEG', type))]);
+ind = union(find(strcmpi('EEG', type)), find(strcmpi('MEG', type)));
 ind = ind(:)'; % must be row to allow to use it as loop indices
 

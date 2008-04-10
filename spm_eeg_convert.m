@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1343 2008-04-10 08:09:56Z vladimir $
+% $Id: spm_eeg_convert.m 1348 2008-04-10 09:40:50Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -243,7 +243,7 @@ else % Read by trials
             error('All trials should have identical lengths');
         end
 
-        inbounds = (trl(:,1)>1 & trl(:, 2)<=hdr.nSamples);
+        inbounds = (trl(:,1)>1 & trl(:, 2)<=hdr.nSamples)';
 
         rejected = find(~inbounds);
 
