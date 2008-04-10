@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.3  2008/04/10 11:00:29  roboos
+% fixed some small but obvious bugs
+%
 % Revision 1.2  2008/04/09 20:37:32  roboos
 % copied code over from ft version, not yet tested
 %
@@ -64,7 +67,7 @@ elseif ~ismeg && ~iseeg
 elseif ismeg
   % select the desired magnetometer/gradiometer channels
   % first only modify the linear combination of coils into channels
-  sel = match_str(sens.label);
+  sel = match_str(sens.label, channel);
   sens.label = sens.label(sel);
   sens.tra   = sens.tra(sel,:);
 
@@ -90,7 +93,7 @@ elseif ismeg
       % we have to add a selection of the channels so that the channels
       % in the forward model correspond with those in the data.
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      vol.chansel = match_str(sens.label, cfg.channel);
+      vol.chansel = match_str(sens.label, channel);
 
     case 'multisphere'
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,7 +143,7 @@ elseif ismeg
       [center,radius]=sphfit([vol.bnd.pnt vol.bnd.nrm]);
       % initialize the forward calculation (only if gradiometer coils are available)
       if size(sens.pnt,1)>0
-        vol.forwpar = meg_ini([vol.bnd.pnt vol.bnd.nrm], center', cfg.order, [sens.pnt sens.ori]);
+        vol.forwpar = meg_ini([vol.bnd.pnt vol.bnd.nrm], center', order, [sens.pnt sens.ori]);
       end
 
     otherwise
@@ -150,9 +153,9 @@ elseif ismeg
 elseif iseeg
 
   % select the desired electrodes
-  sel = match_str(sens.label);
+  sel = match_str(sens.label, channel);
   sens.label = sens.label(sel);
-  sens.pnt   = sens.pnt(sel);
+  sens.pnt   = sens.pnt(sel,:);
   % create a 2D projection and triangulation
   sens.prj   = elproj(sens.pnt);
   sens.tri   = delaunay(sens.prj(:,1), sens.prj(:,2));
@@ -182,12 +185,12 @@ elseif iseeg
         if ~isfield(vol, 'source')
           vol.source  = find_innermost_boundary(vol.bnd);
         end
-        if size(vol.mat,1)~=size(vol.mat,2) && size(vol.mat,1)==length(elec.pnt)
+        if size(vol.mat,1)~=size(vol.mat,2) && size(vol.mat,1)==length(sens.pnt)
           fprintf('electrode transfer and system matrix were already combined\n');
         else
           fprintf('projecting electrodes on skin surface\n');
           % compute linear interpolation from triangle vertices towards electrodes
-          el   = project_elec(elec.pnt, vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri);
+          el   = project_elec(sens.pnt, vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri);
           tra  = transfer_elec(vol.bnd(vol.skin).pnt, vol.bnd(vol.skin).tri, el);
           % construct the transfer from all vertices (also brain/skull) towards electrodes
           vol.tra = [];
