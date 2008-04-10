@@ -17,6 +17,9 @@ function [dat] = read_yokogawa_data(filename, hdr, begsample, endsample, chanind
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_yokogawa_data.m,v $
+% Revision 1.5  2008/04/10 09:59:39  roboos
+% define sample_length for Raw data
+%
 % Revision 1.4  2006/11/30 10:03:00  roboos
 % fixed small bug -> extra ")"
 %
@@ -86,6 +89,7 @@ switch hdr.acq_type
     end
     rawbegsample = begsample - (begtrial-1)*hdr.sample_count;
     rawendsample = endsample - (begtrial-1)*hdr.sample_count;
+    sample_length = rawendsample - rawbegsample + 1;
     % select the desired samples from the complete trials
     dat = dat(:,rawbegsample:rawendsample);
 
