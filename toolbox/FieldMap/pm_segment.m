@@ -52,8 +52,7 @@ function [VO,M] = pm_segment(VF,PG,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_segment.m 1143 2008-02-07 19:33:33Z spm $
-% $Id$
+% $Id: pm_segment.m 1353 2008-04-10 10:34:22Z guillaume $
 
 % Create some suitable default values
 %-----------------------------------------------------------------------
