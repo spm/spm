@@ -13,6 +13,9 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.4  2008/04/10 10:59:38  roboos
+% better detection of multisphere meg (after preparing)
+%
 % Revision 1.3  2008/03/18 12:39:24  roboos
 % change in comment, nothing functional
 %
@@ -30,11 +33,18 @@ if isfield(vol, 'type')
 elseif isfield(vol, 'r') && numel(vol.r)==1 && ~isfield(vol, 'label')
   type = 'singlesphere';
 
+elseif isfield(vol, 'r') && isfield(vol, 'o') && isfield(vol, 'label')
+  % this is before the spheres have been assigned to the coils
+  % and every sphere is still associated with a channel
+  type = 'multisphere';
+
+elseif isfield(vol, 'r') && isfield(vol, 'o') && size(vol.r,1)==size(vol.o,1)
+  % this is after the spheres have been assigned to the coils
+  % note that this one is easy to confuse with the concentric one
+  type = 'multisphere';
+
 elseif isfield(vol, 'r') && numel(vol.r)>=2 && ~isfield(vol, 'label')
   type = 'concentric';
-
-elseif isfield(vol, 'r') && isfield(vol, 'o') && isfield(vol, 'label')
-  type = 'multisphere';
 
 elseif isfield(vol, 'bnd')
   type = 'bem';
