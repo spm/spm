@@ -33,6 +33,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.44  2008/04/10 09:34:51  roboos
+% added fallback option for biosig, implemented biosig also for edf
+%
 % Revision 1.43  2008/04/09 16:50:02  roboos
 % added fallback option to biosig (not default)
 %
@@ -118,7 +121,8 @@ function [hdr] = read_header(filename, varargin)
 % added timestamp details to header in case of neuralynx_ncs
 %
 % Revision 1.17  2007/01/10 17:29:54  roboos
-% moved the fieldtrip specific handling of header information into read_header
+% moved the fieldtrip specific handling of header information into
+% read_header
 %
 % Revision 1.16  2007/01/09 09:38:40  roboos
 % added spike channels for plexon_plx, moved plexon timestamp combination code to seperate function
@@ -302,7 +306,12 @@ switch headerformat
     hdr.nSamplesPre = -(hdr.Fs * orig.tsb/1000);   % convert from ms to samples
     hdr.nTrials     = 1;
     hdr.label       = orig.label;
-    
+
+  case {'biosig', 'edf'}
+    % use the biosig toolbox if available
+    hastoolbox('BIOSIG', 1);
+    hdr = read_biosig_header(filename);
+
   case {'biosemi_bdf', 'bham_bdf'}
     hdr = read_biosemi_bdf(filename);
     if any(diff(hdr.orig.SampleRate))
@@ -346,7 +355,7 @@ switch headerformat
     hdr.nSamplesPre = orig.nSamplesPre;
     hdr.nTrials     = orig.nTrials;
     hdr.orig        = orig;
-    
+
   case 'ced_son'
     % check that the required low-level toolbox is available
     hastoolbox('neuroshare', 1);
@@ -430,11 +439,6 @@ switch headerformat
     % read the header information from shared memory
     hdr = read_shm_header(filename);
 
-  case {'edf' 'biosig'}
-    % use the biosig toolbox if available
-    hastoolbox('BIOSIG');
-    keyboard
-
   case 'eep_avr'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
@@ -504,7 +508,7 @@ switch headerformat
       hdr.label{i}  = ['e' num2str(i)];
     end;
     hdr.nTrials     = sum(chdr(:,2));
-    hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));  
+    hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));
     % assuming that a utility was used to insert the correct baseline
     % duration into the header since it is normally absent. This slot is
     % actually allocated to the age of the subject, although NetStation
@@ -597,7 +601,7 @@ switch headerformat
     % FIXME add hdr.FirstTimeStamp and hdr.LastTimeStamp
 
   case {'neuralynx_ttl', 'neuralynx_tsl', 'neuralynx_tsh'}
-    % these are hardcoded, they contain an 8-byte header and int32 values for a single channel 
+    % these are hardcoded, they contain an 8-byte header and int32 values for a single channel
     % FIXME this should be done similar as neuralynx_bin, i.e. move the hdr into the function
     hdr             = [];
     hdr.Fs          = 32556;
@@ -609,7 +613,7 @@ switch headerformat
 
   case 'neuralynx_bin'
     hdr = read_neuralynx_bin(filename);
-    
+
   case 'neuralynx_ds'
     hdr = read_neuralynx_ds(filename);
 
@@ -802,7 +806,7 @@ switch headerformat
     hdr.grad = yokogawa2grad(hdr);
 
   otherwise
-    if strcmp(fallback, 'biosig')
+    if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
       hdr = read_biosig_header(filename);
     else
       error('unsupported header format');
