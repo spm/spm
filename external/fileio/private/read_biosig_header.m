@@ -15,12 +15,12 @@ function [hdr] = read_biosig_header(filename)
 % modify it under the terms of the GNU General Public License
 % as published by the Free Software Foundation; either version 2
 % of the License, or (at your option) any later version.
-% 
+%
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 % GNU General Public License for more details.
-% 
+%
 % You should have received a copy of the GNU General Public License
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -28,6 +28,9 @@ function [hdr] = read_biosig_header(filename)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: read_biosig_header.m,v $
+% Revision 1.3  2008/04/10 09:36:14  roboos
+% biosig labels are already cell array
+%
 % Revision 1.2  2004/03/11 10:18:57  roberto
 % fixed bug in number of samples (should be the same in all channels)
 %
@@ -66,10 +69,7 @@ hdr.nSamplesPre = 0;      % this one is not in the biosig header
 hdr.label       = {};     % start with empty labels and fill them below
 
 if isfield(biosig, 'Label')
-  for i=1:size(biosig.Label,1)
-    % remove spaces at both sides
-    hdr.label{i} = fliplr(deblank(fliplr(deblank(biosig.Label(i,:)))));
-  end
+  hdr.label = biosig.Label;
 end
 
 if length(hdr.label)~=hdr.nChans
@@ -86,7 +86,7 @@ hdr.label = hdr.label(:);
 % also remember the biosig header details
 hdr.orig = biosig;
 return;
-  
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the BIOSIG header always contains these elements
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

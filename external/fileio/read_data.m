@@ -29,6 +29,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.37  2008/04/10 09:34:51  roboos
+% added fallback option for biosig, implemented biosig also for edf
+%
 % Revision 1.36  2008/04/09 16:50:02  roboos
 % added fallback option to biosig (not default)
 %
@@ -279,7 +282,7 @@ if min(chanindx)<1 || max(chanindx)>hdr.nChans
 end
 
 % test whether the requested data segment is not outside the file
-if any(begsample<1) 
+if any(begsample<1)
   error('FILEIO:InvalidBegSample', 'cannot read data before the begin of the file');
 elseif any(endsample>(hdr.nSamples*hdr.nTrials))
   error('FILEIO:InvalidEndSample', 'cannot read data after the end of the file');
@@ -432,6 +435,11 @@ switch dataformat
     % close the file between seperate read operations
     fclose(orig.Head.FILE.FID);
 
+  case {'biosig', 'edf'}
+    % use the biosig toolbox if available
+    hastoolbox('BIOSIG', 1);
+    dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
+
   case {'brainvision_eeg', 'brainvision_dat'}
     dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample);
     dat = dat(chanindx,:);	% select the desired channels
@@ -491,11 +499,6 @@ switch dataformat
     % read the data from shared memory
     [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
 
-  case {'edf' 'biosig'}
-    % use the biosig toolbox if available
-    hastoolbox('BIOSIG');
-    keyboard
-
   case 'eep_avr'
     % check that the required low-level toolbos ix available
     hastoolbox('eeprobe', 1);
@@ -513,7 +516,7 @@ switch dataformat
     [host, port] = filetype_check_uri(filename);
     dat = buffer_getdat(host, port, begsample-1, endsample-1);  % indices should be zero-offset
     dat = dat.buf(chanindx,:);                                  % select the desired channels
-    
+
   case 'fcdc_matbin'
     % multiplexed data in a *.bin file, accompanied by a matlab file containing the header
     offset        = begsample-1;
@@ -543,7 +546,7 @@ switch dataformat
       % select the desired channel(s)
       dat = dat(chanindx,:);
     end
-    
+
   case 'fcdc_mysql'
     % read from a MySQL server listening somewhere else on the network
     db_open(filename);
@@ -720,8 +723,8 @@ switch dataformat
           % allocate memory to hold the complete continuous record
           cnt = nan(1, offset(end)+nsample(end));
           for j=1:length(offset)
-            cntbegsmp  = offset(j)   + 1; 
-            cntendsmp  = offset(j)   + nsample(j); 
+            cntbegsmp  = offset(j)   + 1;
+            cntendsmp  = offset(j)   + nsample(j);
             fragbegsmp = nex.indx(j) + 1;
             fragendsmp = nex.indx(j) + nsample(j);
             cnt(cntbegsmp:cntendsmp) = nex.dat(fragbegsmp:fragendsmp);
@@ -796,7 +799,7 @@ switch dataformat
     dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
 
   otherwise
-    if strcmp(fallback, 'biosig')
+    if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
       hdr = read_biosig_header(filename);
     else
       error('unsupported header format');
