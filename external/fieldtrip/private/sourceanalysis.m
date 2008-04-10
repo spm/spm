@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.125  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.124  2007/05/15 07:01:29  roboos
 % updated help
 %
@@ -611,7 +614,7 @@ if isfield(cfg, 'parallel') && ~strcmp(cfg.parallel, 'no')
 end
 
 % collect and preprocess the electrodes/gradiometer and head model
-[vol, sens, cfg] = prepare_vol_sens(cfg, data);
+[vol, sens, cfg] = prepare_headmodel(cfg, data);
 
 % set the default for reducing the rank of the leadfields
 if ~isfield(cfg, 'reducerank')
@@ -1239,7 +1242,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.124 2007/05/15 07:01:29 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.125 2008/04/10 08:03:11 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

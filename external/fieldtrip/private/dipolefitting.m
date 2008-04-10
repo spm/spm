@@ -123,6 +123,9 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %   
 % $Log: dipolefitting.m,v $
+% Revision 1.48  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.47  2008/03/18 12:38:40  roboos
 % be more explicit about absense of symmetry constraint (since other options can also be passed in cfg.dipfit)
 %
@@ -379,7 +382,7 @@ end
 
 % prepare the volume conduction model and the sensor array
 % this updates the configuration with the appropriate fields
-[vol, sens, cfg] = prepare_vol_sens(cfg, data);
+[vol, sens, cfg] = prepare_headmodel(cfg, data);
 
 % select the desired channels, the order should be the same as in the sensor structure
 [selsens, seldata] = match_str(sens.label, data.label);
@@ -687,7 +690,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.47 2008/03/18 12:38:40 roboos Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.48 2008/04/10 08:03:11 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -75,6 +75,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.48  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.47  2008/03/05 10:46:36  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -424,9 +427,9 @@ end
 % conduction models seperate, since the single-shell Nolte model contains
 % gradiometer specific precomputed parameters
 tmpdat.grad  = data.grad;
-[volold, data.grad] = prepare_vol_sens(tmpcfg, tmpdat);
+[volold, data.grad] = prepare_headmodel(tmpcfg, tmpdat);
 tmpdat.grad = template.grad;
-[volnew, template.grad] = prepare_vol_sens(tmpcfg, tmpdat);
+[volnew, template.grad] = prepare_headmodel(tmpcfg, tmpdat);
 
 % Continue to work with the volume conduction model that matches the
 % original data and gradiometer definition. For the template gradiometer
@@ -566,7 +569,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.47 2008/03/05 10:46:36 roboos Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.48 2008/04/10 08:03:11 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

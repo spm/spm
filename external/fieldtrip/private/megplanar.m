@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.29  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.28  2008/01/31 17:20:16  sashae
 % added option for trial selection
 %
@@ -395,7 +398,7 @@ elseif strcmp(cfg.planarmethod, 'sourceproject')
   % PREPARE_VOL_SENS will match the data labels, the gradiometer labels and the 
   % volume model labels (in case of a multisphere model) and result in a gradiometer 
   % definition that only contains the gradiometers that are present in the data.
-  [vol, axial.grad, cfg] = prepare_vol_sens(cfg, data);
+  [vol, axial.grad, cfg] = prepare_headmodel(cfg, data);
 
   % determine the dipole positions on the surface of the cortex
   if strcmp(cfg.headshape, 'headmodel')
@@ -527,7 +530,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.28 2008/01/31 17:20:16 sashae Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.29 2008/04/10 08:03:11 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

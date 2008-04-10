@@ -32,6 +32,9 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.13  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.12  2007/08/06 09:20:14  roboos
 % added support for bti_hs
 %
@@ -196,7 +199,7 @@ if nargin<2
 end
 
 % construct the geometry of the volume conductor model, containing a single boundary
-% the initialization of the forward computation code is done later in prepare_vol_sens
+% the initialization of the forward computation code is done later in prepare_headmodel
 vol = [];
 vol.bnd.pnt = pnt;
 vol.bnd.tri = tri;

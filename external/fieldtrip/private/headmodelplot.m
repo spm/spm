@@ -69,6 +69,9 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.19  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.18  2007/10/25 12:13:45  roboos
 % make better determination of channel number for CTF gradiometer systems with broken channels
 %
@@ -158,7 +161,7 @@ if ~isfield(cfg, 'plotoutside'),      cfg.plotoutside = 'no';        end
 if ~isfield(cfg, 'plotheadshape'),    cfg.plotheadshape = 'yes';     end
 
 % extract/read the gradiometer and volume conductor
-[vol, sens, cfg] = prepare_vol_sens(cfg, data);
+[vol, sens, cfg] = prepare_headmodel(cfg, data);
 
 % extract/construct the dipole grid
 if strcmp(cfg.plotgrid, 'yes') && isfield(cfg, 'grid')

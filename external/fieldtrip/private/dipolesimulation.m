@@ -59,6 +59,9 @@ function [simulated] = dipolesimulation(cfg)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: dipolesimulation.m,v $
+% Revision 1.21  2008/04/10 08:03:11  roboos
+% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
+%
 % Revision 1.20  2008/03/18 12:27:22  roboos
 % use senstype helper function to determine whether output should contain grad or elec
 %
@@ -104,7 +107,7 @@ if size(cfg.dip.pos,2)~=3
 end
 
 % prepare the volume conductor and the sensor array
-[vol, sens, cfg] = prepare_vol_sens(cfg, []);
+[vol, sens, cfg] = prepare_headmodel(cfg, []);
 
 if ~isfield(cfg, 'ntrials') 
   if isfield(cfg.dip, 'signal')
@@ -236,7 +239,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: dipolesimulation.m,v 1.20 2008/03/18 12:27:22 roboos Exp $';
+cfg.version.id   = '$Id: dipolesimulation.m,v 1.21 2008/04/10 08:03:11 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
