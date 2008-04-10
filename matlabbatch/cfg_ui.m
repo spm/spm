@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1337 2008-04-09 15:52:05Z volkmar $
+% $Id: cfg_ui.m 1346 2008-04-10 08:57:17Z volkmar $
 
-rev = '$Rev: 1337 $';
+rev = '$Rev: 1346 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -465,11 +465,17 @@ switch(udmodule.contents{5}{value})
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
             'Visible','on', 'Enable','on');
     case 'cfg_menu'
+        [str cval] = local_showvaledit_list(obj);
+        set(handles.valshow,'String', str, 'Visible','on', 'Value', cval);
+        set(handles.valshowLabel, 'Visible','on');
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), 'Visible','on', 'Enable','on');
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
             'Visible','on', 'Enable','on');
     case 'cfg_choice'
         if ~isfield(udmodlist, 'defid')
+            [str cval] = local_showvaledit_list(obj);
+            set(handles.valshow,'String', str, 'Visible','on', 'Value', cval);
+            set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
                 'Visible','on', 'Enable','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
@@ -477,6 +483,18 @@ switch(udmodule.contents{5}{value})
         end;
     case {'cfg_repeat'}
         if ~isfield(udmodlist, 'defid')
+            indent = '  ';
+            % Already selected items
+            str1{1} = sprintf('%sNothing selected', indent);
+            for k = 1:numel(udmodule.contents{2}{value})
+                str1{k} = sprintf('%s%s', indent, udmodule.contents{2}{value}{k}.name);
+            end;
+            for k = 1:numel(udmodule.contents{4}{value})
+                str2{k} = sprintf('%s%s', indent, udmodule.contents{4}{value}{k}.name);
+            end;
+            str = {'Selected Items:', str1{:}, 'Available Items:', str2{:}};
+            set(handles.valshow,'String', str, 'Visible','on', 'Value', 1);
+            set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddItem$'), ...
                 'Visible','on', 'Enable','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*ReplItem$'), ...
@@ -495,6 +513,37 @@ end;
 [id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
 set(handles.helpbox, 'string', spm_justify(handles.helpbox, help{1}{1}));
+
+% --------------------------------------------------------------------
+function [str cval] = local_showvaledit_list(hObject)
+handles = guidata(hObject);
+value = get(handles.module, 'Value');
+udmodule = get(handles.module, 'Userdata');
+cval = -1;
+if strcmp(udmodule.contents{5}{value},'cfg_choice')
+    % compare tag, not filled entries
+    cmpsubs = substruct('.','tag');
+else
+    cmpsubs =struct('type',{},'subs',{});
+end;
+valsubs = substruct('{}',{1});
+for l = 1:numel(udmodule.contents{4}{value})
+    valuesubs = substruct('{}',{l});
+    if ~isempty(udmodule.contents{2}{value}) && isequal(subsref(udmodule.contents{2}{value},[valsubs cmpsubs]), subsref(udmodule.contents{4}{value},[valuesubs cmpsubs]))
+        mrk{l} = '*';
+        cval = l;
+    else
+        mrk{l} = ' ';
+    end;
+end;
+if strcmp(udmodule.contents{5}{value},'cfg_choice')
+    for k = 1:numel(udmodule.contents{4}{value})
+        str{k} = udmodule.contents{4}{value}{k}.name;
+    end;
+else
+    str = udmodule.contents{3}{value};
+end;
+str = strcat(mrk, str);
 
 %% Value edit dialogues
 % --------------------------------------------------------------------
@@ -578,6 +627,8 @@ while ~sts
     % Evaluation is encapsulated to avoid users compromising this function
     % context
     [val sts] = local_eval_valedit(str);
+    % for strtype 's', val must be a string
+    sts = sts && (~strcmp(strtype{1}{1},'s') || ischar(val));
     if ~sts
         % try with matching value enclosure
         if strtype{1}{1} == 's'
@@ -598,6 +649,7 @@ end;
 % This code will only be reached if a new value has been set
 local_setvaledit(hObject, val);
 
+% --------------------------------------------------------------------
 function local_valedit_expert_edit(hObject)
 % Expert mode, use full flexibility of evaluated expressions.
 handles = guidata(hObject);
@@ -653,34 +705,10 @@ local_setvaledit(hObject, val);
 
 % --------------------------------------------------------------------
 function local_valedit_list(hObject)
-
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
-cval = -1;
-if strcmp(udmodule.contents{5}{value},'cfg_choice')
-    % compare tag, not filled entries
-    cmpsubs = substruct('.','tag');
-else
-    cmpsubs =struct('type',{},'subs',{});
-end;
-valsubs = substruct('{}',{1});
-for l = 1:numel(udmodule.contents{4}{value})
-    valuesubs = substruct('{}',{l});
-    if ~isempty(udmodule.contents{2}{value}) && isequal(subsref(udmodule.contents{2}{value},[valsubs cmpsubs]), subsref(udmodule.contents{4}{value},[valuesubs cmpsubs]))
-        mrk{l} = '*';
-        cval = l;
-    else
-        mrk{l} = ' ';
-    end;
-end;
-if strcmp(udmodule.contents{5}{value},'cfg_choice')
-    for k = 1:numel(udmodule.contents{4}{value})
-        str{k} = udmodule.contents{4}{value}{k}.name;
-    end;
-else
-    str = udmodule.contents{3}{value};
-end;
+[str cval] = local_showvaledit_list(hObject);
 if cval > 0
     inival = cval;
 else
@@ -691,7 +719,7 @@ end;
 % characters and a font size of 12.
 szi = min(size(strvcat(str)')+1,[140 60])*13;
 [val sts] = listdlg('Name',udmodule.contents{1}{value}, ...
-                    'ListString',strcat(mrk, str), 'SelectionMode','single', ...
+                    'ListString',str, 'SelectionMode','single', ...
                     'InitialValue',inival, 'ListSize', szi);
 if ~sts || val == cval
     % Selection cancelled or nothing changed
@@ -861,7 +889,7 @@ local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 
 % Check udmodlist
 udmodlist = get(handles.modlist, 'userdata');
-if isempty(udmodlist)
+if isempty(udmodlist) || ~cfg_util('isjob_id', udmodlist.cjob)
     udmodlist = local_init_modlist;
     udmodlist.cjob = cfg_util('initjob');
     set(handles.modlist, 'userdata', udmodlist);
