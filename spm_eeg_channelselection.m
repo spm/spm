@@ -13,7 +13,7 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 1326 2008-04-09 12:15:35Z vladimir $
+% $Id: spm_eeg_channelselection.m 1355 2008-04-10 10:52:35Z vladimir $
 
 if nargin == 0
     S = [];
@@ -30,7 +30,7 @@ if ~isfield(S, 'dataset')
     S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
 end
 
-hdr = read_header(S.dataset);
+hdr = read_header(S.dataset, 'fallback', 'biosig');
 
 if strcmp(S.channels, 'file')
     if ~isfield(S, 'chanfile')

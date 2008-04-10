@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1348 2008-04-10 09:40:50Z vladimir $
+% $Id: spm_eeg_convert.m 1355 2008-04-10 10:52:35Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -60,7 +60,7 @@ if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined';              
 
 %--------- Read and check header
 
-hdr = read_header(S.dataset);
+hdr = read_header(S.dataset, 'fallback', 'biosig');
 
 if isfield(hdr, 'label')
     [unique_label junk ind]=unique(hdr.label);
@@ -285,10 +285,10 @@ offset = 1;
 for i = 1:ntrial
     if readbytrials
         dat = read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
-            'chanindx', chansel, 'checkboundary', S.checkboundary);
+            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig');
     else
         dat = read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
-            'chanindx', chansel, 'checkboundary', S.checkboundary);
+            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig');
     end
 
     % Sometimes read_data returns sparse output
@@ -328,7 +328,8 @@ D = chantype(D, [], []);
 
 % Configure MEG sensors and channels
 if isfield(hdr, 'grad')
-    D = grad2sens(D, hdr.grad);
+    % Disabled for now
+   % D = grad2sens(D, hdr.grad);
 end
 
 if S.continuous

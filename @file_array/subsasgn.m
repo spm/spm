@@ -4,7 +4,7 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 1340 2008-04-09 17:11:23Z john $
+% $Id: subsasgn.m 1355 2008-04-10 10:52:35Z vladimir $
 
 
 if isempty(subs)
@@ -59,7 +59,6 @@ for i=1:length(subs.subs),
     do(i) = length(args{i});
 end;
 for j=1:length(sobj),
-    disp(j)
     if strcmp(sobj(j).permission,'ro'),
         error('Array is read-only.');
     end

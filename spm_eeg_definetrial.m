@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: spm_eeg_definetrial.m 1355 2008-04-10 10:52:35Z vladimir $
 
 if nargin == 0
     S = [];
@@ -37,7 +37,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
         S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
     end
     event = read_event(S.dataset);
-    hdr = read_header(S.dataset);
+    hdr = read_header(S.dataset, 'fallback', 'biosig');
     S.fsample = hdr.Fs;
 else
     event = S.event;
