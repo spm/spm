@@ -13,10 +13,13 @@ function varargout = dartel3(varargin)
 %           - 1 Membrane energy
 %           - 2 Bending energy
 %         - [2][3][4] Regularisation parameters
-%           - For linear elasticity, the parameters
-%             are mu, lambda, and id
-%           - For membrane and bending energy, the parameters
-%             are lambda, unused and id.
+%           - For "membrane energy", the parameters are
+%             lambda, unused and id.
+%           - For "linear elasticity", the parameters are
+%             mu, lambda, and id
+%           - For "bending energy", the parameters are
+%             lambda, id1 and id2, such that regularisation is by
+%             (-lambda*\grad^2 + id1)^2 + id2
 %         - [5] Levenberg-Marquardt regularisation
 %         - [6] Number of Full Multigrid cycles
 %         - [7] Number of relaxation iterations per cycle
@@ -51,10 +54,12 @@ function varargout = dartel3(varargin)
 %           - 2 Bending energy
 %         - [2][3][4] Voxel sizes
 %         - [5][6][7] Regularisation parameters
-%           - For Linear elasticity, the parameters
-%             are mu, lambda, and id
-%           - For membrane and bending energy, the parameters
-%             are lambda, unused and id.
+%           - For "membrane energy", the parameters are
+%             lambda, unused and id.
+%           - For "linear elasticity", the parameters are
+%             mu, lambda, and id
+%           - For "bending energy", the parameters are
+%             lambda, id1 and id2.
 %         - [8] Tolerance.  Indicates required degree of accuracy.
 %         - [9] Maximum number of iterations.
 %
@@ -76,10 +81,12 @@ function varargout = dartel3(varargin)
 %           - 2 Bending energy
 %         - [2][3][4] Voxel sizes
 %         - [5][6][7] Regularisation parameters
-%           - For linear elasticity, the parameters
-%             are mu, lambda, and id
-%           - For membrane and bending energy, the parameters
-%             are lambda, unused and id.
+%           - For "membrane energy", the parameters are
+%             lambda, unused and id.
+%           - For "linear elasticity", the parameters are
+%             mu, lambda, and id
+%           - For "bending energy", the parameters are
+%             lambda, id1 and id2.
 %         - [8] Number of Full Multigrid cycles
 %         - [9] Number of relaxation iterations per cycle
 %
@@ -117,10 +124,12 @@ function varargout = dartel3(varargin)
 %           - 2 Bending energy
 %         - [2][3][4] Voxel sizes
 %         - [5][6][7] Regularisation parameters
-%           - For linear elasticity, the parameters
-%             are mu, lambda and id.
-%           - For membrane and bending energy, the parameters
-%             are lambda, unusaed and id.
+%           - For "membrane energy", the parameters are
+%             lambda, unused and id.
+%           - For "linear elasticity", the parameters are
+%             mu, lambda, and id
+%           - For "bending energy", the parameters are
+%             lambda, id1 and id2.
 % m       - `momentum' field n1*n2*n3*3.
 %
 % Convert a flow field to a momentum field by m = H*v, where
@@ -192,7 +201,7 @@ function varargout = dartel3(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: dartel3.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: dartel3.m 1359 2008-04-10 11:21:34Z john $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 
