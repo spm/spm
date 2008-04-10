@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm.m 1361 2008-04-10 15:09:48Z guillaume $
 
 
 %=======================================================================
@@ -451,7 +451,6 @@ else
     set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'on' );
 end
 set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
-spm_jobman('chmod',Modality);
 
 
 %=======================================================================
