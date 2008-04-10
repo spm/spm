@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1291 2008-04-02 13:58:28Z vladimir $
+% $Id: spm_eeg_convert.m 1343 2008-04-10 08:09:56Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -255,7 +255,9 @@ else % Read by trials
         ntrial = size(trl, 1);
     end
     D.Nsamples = nsampl;
-    event = rmfield(event, 'sample');     
+    if isfield(event, 'sample')
+        event = rmfield(event, 'sample');
+    end
 end
 
 %--------- Prepare for reading the data
