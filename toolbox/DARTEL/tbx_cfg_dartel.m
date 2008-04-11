@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 1381 2008-04-11 19:10:56Z john $
+% $Id: tbx_cfg_dartel.m 1382 2008-04-11 20:26:54Z john $
 
 % ---------------------------------------------------------------------
 % matnames Parameter Files
@@ -268,15 +268,49 @@ param1.tag     = 'param';
 param1.name    = 'Outer Iteration';
 param1.val     = {its rparam K slam };
 param1.help    = {'Different parameters can be specified for each outer iteration. Each of them warps the images to the template, and then regenerates the template from the average of the warped images. Multiple outer iterations should be used for more accurate results, beginning with a more coarse registration (more regularisation) then ending with the more detailed registration (less regularisation).'};
+
+val = cell(1,6);
+param = param1;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [4 2 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+param.val{4}.val{1} = 16;
+val{1} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [2 1 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+param.val{4}.val{1} = 8;
+val{2} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [1 0.5 1e-6]; % rparam
+param.val{3}.val{1} = 1; % K
+param.val{4}.val{1} = 4;
+val{3} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.5 0.25 1e-6]; % rparam
+param.val{3}.val{1} = 2; % K
+param.val{4}.val{1} = 2;
+val{4} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
+param.val{3}.val{1} = 4; % K
+param.val{4}.val{1} = 1;
+val{5} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
+param.val{3}.val{1} = 6; % K
+param.val{4}.val{1} = 0.5;
+val{6} = param;
+
 % ---------------------------------------------------------------------
 % param Outer Iterations
 % ---------------------------------------------------------------------
 param         = cfg_repeat;
 param.tag     = 'param';
 param.name    = 'Outer Iterations';
-param.val     = {param1 param1 param1 param1 param1 param1 };
+param.val     = val;
 param.help    = {'The images are averaged, and each individual image is warped to match this average.  This is repeated a number of times.'};
-param.values  = {param1 };
+param.values  = {param1};
 param.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % lmreg LM Regularisation
@@ -493,15 +527,43 @@ param1.tag     = 'param';
 param1.name    = 'Outer Iteration';
 param1.val     = {its rparam K template };
 param1.help    = {'Different parameters and templates can be specified for each outer iteration.'};
+
+val = cell(1,6);
+param = param1;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [4 2 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+val{1} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [2 1 1e-6]; % rparam
+param.val{3}.val{1} = 0; % K
+val{2} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [1 0.5 1e-6]; % rparam
+param.val{3}.val{1} = 1; % K
+val{3} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.5 0.25 1e-6]; % rparam
+param.val{3}.val{1} = 2; % K
+val{4} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.25 0.125 1e-6]; % rparam
+param.val{3}.val{1} = 4; % K
+val{5} = param;
+param.val{1}.val{1} = 3; % iits
+param.val{2}.val{1} = [0.125 0.0625 1e-6]; % rparam
+param.val{3}.val{1} = 6; % K
+val{6} = param;
+
 % ---------------------------------------------------------------------
 % param Outer Iterations
 % ---------------------------------------------------------------------
 param         = cfg_repeat;
 param.tag     = 'param';
 param.name    = 'Outer Iterations';
-param.val     = {param1 param1 param1 param1 param1 param1 };
+param.val     = val;
 param.help    = {'The images are warped to match a sequence of templates. Early iterations should ideally use smoother templates and more regularisation than later iterations.'};
-param.values  = {param1 };
+param.values  = {param1};
 param.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % lmreg LM Regularisation

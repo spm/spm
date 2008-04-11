@@ -9,7 +9,7 @@ function out = spm_run_preproc(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_preproc.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_run_preproc.m 1382 2008-04-11 20:26:54Z john $
 
 job.opts.tpm = strvcat(job.opts.tpm{:});
 if isfield(job.opts,'msk'),
@@ -17,14 +17,14 @@ if isfield(job.opts,'msk'),
 end;
 for i=1:numel(job.data),
     res           = spm_preproc(job.data{i},job.opts);
-    [out(1).sn,out(1).isn{i}]   = spm_prep2sn(res);
+    [out(1).sn{i},out(1).isn{i}]   = spm_prep2sn(res);
     [pth,nam]     = spm_fileparts(job.data{i});
     out(1).snfile{i} = fullfile(pth,[nam '_seg_sn.mat']);
     savefields(out(1).snfile{i},out(1).sn{i});
     out(1).isnfile{i} = fullfile(pth,[nam '_seg_inv_sn.mat']);
     savefields(out(1).isnfile{i},out(1).isn{i});
 end;
-spm_preproc_write(cat(2,out(:).sn),job.output);
+spm_preproc_write(cat(2,out.sn{:}),job.output);
 % Guess filenames
 opts  = job.output;
 sopts = [opts.GM;opts.WM;opts.CSF];
