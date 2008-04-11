@@ -1,8 +1,8 @@
 function [hdr] = read_header(filename, varargin)
 
-% READ_HEADER is a wrapper around different EEG/MEG file importers
-% directly supported formats are CTF, Neuromag, EEP, BrainVision,
-% Neuroscan and Neuralynx.
+% READ_HEADER reads header information from a variety of EEG, MEG and LFP 
+% filesi and represents the header information in a common data-indepentend
+% format. The supported formats are listed below.
 %
 % Use as
 %   hdr = read_header(filename, ...)
@@ -26,6 +26,28 @@ function [hdr] = read_header(filename, varargin)
 % Depending on the file format, additional header information can be
 % returned in the hdr.orig subfield.
 %
+% The following MEG dataformats are supported
+%   CTF - VSM MedTech (*.ds, *.res4, *.meg4)
+%   Neuromag - Elektra (*.m4d, *.pdf, *.xyz)
+%   BTi - 4D Neuroimaging (*.m4d, *.pdf, *.xyz)
+%   Yokogawa (*.ave, *.con, *.raw)
+% 
+% The following EEG dataformats are supported
+%   ANT - Advanced Neuro Technology, EEProbe (*.avr, *.eeg, *.cnt)
+%   Biosemi (*.bdf)
+%   CED - Cambridge Electronic Design (*. smr)
+%   Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw)
+%   Megis/BESA (*.avr, *.swf)
+%   NeuroScan (*.eeg, *.cnt, *.avg)
+%   Nexstim (*.nxe)
+%   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
+% 
+% The following spike and LFP dataformats are supported (with some limitations)
+%   Plextor (*.nex, *.plx, *.ddt)
+%   Neuralynx (*.ncs, *.nse, *.nts, *.nev, DMA log files)
+%   CED - Cambridge Electronic Design (*.smr)
+%   MPI - Max Planck Institute (*.dap)
+%
 % See also READ_DATA, READ_EVENT, WRITE_DATA, WRITE_EVENT
 
 % TODO channel renaming should be made a general option (see bham_bdf)
@@ -33,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.45  2008/04/11 07:12:57  roboos
+% updated docu, added list of supported file formats
+%
 % Revision 1.44  2008/04/10 09:34:51  roboos
 % added fallback option for biosig, implemented biosig also for edf
 %
