@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.70  2008/04/11 12:09:18  roboos
+% added polhemus_fil
+%
 % Revision 1.69  2008/03/04 11:14:26  roboos
 % added neuralynx_nst
 %
@@ -792,6 +795,10 @@ elseif filetype_check_extension(filename, '.txt')
   ftype = 'ascii_txt';
   manufacturer = '';
   content = '';
+elseif filetype_check_extension(filename, '.pol')
+  ftype = 'polhemus_fil';
+  manufacturer = 'Functional Imaging Lab, London, UK';
+  content = 'headshape points';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
