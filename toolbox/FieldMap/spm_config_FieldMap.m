@@ -4,7 +4,7 @@ function job = spm_config_fieldmap
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: spm_config_FieldMap.m 1167 2008-02-24 19:51:13Z volkmar $
+% $Id: spm_config_FieldMap.m 1381 2008-04-11 19:10:56Z john $
 %_______________________________________________________________________
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
         '''tag'',tag,''strtype'',strtype,''num'',num)'],...
@@ -131,7 +131,7 @@ defaults.tag  = 'defaults';
 defaults.num  = [1 1];
 defaults.filter  = 'm';
 defaults.ufilter = '^pm_defaults.*\.m$';
-defaults.val = {default_filename};
+defaults.val{1} = {default_filename};
 defaults.dir = default_file_path;
 defaults.help = {[...
 'Select the ''pm_defaults*.m'' file containing the parameters for the fieldmap data. ',...

@@ -1,4 +1,4 @@
-function spm_dartel_template(job)
+function out = spm_dartel_template(job)
 % Iteratively compute a template with mean shape and intensities
 % format spm_dartel_template(job)
 %
@@ -7,7 +7,7 @@ function spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_template.m 1381 2008-04-11 19:10:56Z john $
 
 code = 2;
 st = job.settings;
@@ -49,16 +49,16 @@ for i=1:n2,
     NU(i).descrip = 'Flow Field';
 
     vn  = NF(1,i).vn;
-    tmp = find(~isfinite(NF(1,i).NI.dat(:,:,:,vn(1),vn(2))));
-    if ~isempty(tmp),
-        for j=1:n1,
-            vn  = NF(j,i).vn;
-            dat = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
-            dat(tmp)    = 0;
-            NF(j,i).NI.dat(:,:,:,vn(1),vn(2)) = dat;
-            clear dat
-        end;
-    end;
+   %tmp = find(~isfinite(NF(1,i).NI.dat(:,:,:,vn(1),vn(2))));
+   %if ~isempty(tmp),
+   %    for j=1:n1,
+   %        vn  = NF(j,i).vn;
+   %        dat = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+   %        dat(tmp)    = 0;
+   %        NF(j,i).NI.dat(:,:,:,vn(1),vn(2)) = dat;
+   %        clear dat
+   %    end;
+   %end;
     if exist(NU(i).dat.fname,'file'),
         u = NU(i).dat(:,:,:,1,:);
         u = single(squeeze(u));
@@ -95,9 +95,13 @@ for i=1:n2,
         NU(i).dat(:,:,:,:,:) = 0;
         for j=1:n1,
             vn         = NF(j,i).vn;
-            t(:,:,:,j) = t(:,:,:,j) + NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+            dat        = NF(j,i).NI.dat(:,:,:,vn(1),vn(2));
+            msk        = isfinite(dat);
+            dat(~msk)  = 0;
+            t(:,:,:,j) = t(:,:,:,j) + dat;
         end;
-        t(:,:,:,end) = t(:,:,:,end) + 1;
+        t(:,:,:,end) = t(:,:,:,end) + msk;
+        clear tmp msk
     end;
     spm_progress_bar('Set',i);
 end;
@@ -109,6 +113,7 @@ if st.param(1).slam,
     for j=1:n1,
         t(:,:,:,end) = t(:,:,:,end) - t(:,:,:,j);
     end
+    t = max(t,0);
     g = spm_dartel_smooth(t,st.param(1).slam*2,8,vx);
 else
     for j=1:n1,
@@ -197,5 +202,28 @@ for it=1:numel(st.param),
         end
         drawnow
     end;
+end;
+
+
+n1 = numel(job.images);
+n2 = numel(job.images{1});
+[tdir,nam,ext] = fileparts(job.images{1}{1});
+tname = deblank(job.settings.template);
+out.template = cell(numel(job.settings.param),1);
+if ~isempty(tname),
+    for it=0:numel(job.settings.param),
+        fname    = fullfile(tdir,[tname '_' num2str(it) '.nii']);
+        out.template{it} = fname;
+    end
+end
+out.files = cell(n2,1);
+for j=1:n2,
+    [pth,nam,ext,num] = spm_fileparts(job.images{1}{j});
+    if ~isempty(tname),
+        fname             = fullfile(pth,['u_' nam '_' tname '.nii']);
+    else
+        fname             = fullfile(pth,['u_' nam '.nii']);
+    end
+    out.files{j} = fname;
 end;
 

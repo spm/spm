@@ -1,4 +1,4 @@
-function spm_dartel_jacobian(job)
+function out = spm_dartel_jacobian(job)
 % Generate Jacobian determinant fields
 % FORMAT spm_dartel_jacobian(job)
 % job.flowfields - Filenames of flowfields
@@ -10,7 +10,7 @@ function spm_dartel_jacobian(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_jacobian.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_jacobian.m 1381 2008-04-11 19:10:56Z john $
 
 PU = job.flowfields;
 K  = job.K;
@@ -38,4 +38,12 @@ for i=1:numel(PU),
     spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
+
+PU = job.flowfields;
+out.files = cell(numel(PU),1);
+for i=1:numel(PU),
+    [pth,nam,ext] = fileparts(PU{i});
+    fname         = fullfile(pth,['jac_' nam(3:end) ext]);
+    out.files{i}  = fname;
+end;
 

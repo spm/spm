@@ -1,4 +1,4 @@
-function spm_dartel_resids(job)
+function out = spm_dartel_resids(job)
 % Generate residuals in a form suitable for generating a Fisher kernel
 % FORMAT spm_dartel_residuals(job)
 % job.flowfields
@@ -13,7 +13,7 @@ function spm_dartel_resids(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_resids.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_resids.m 1381 2008-04-11 19:10:56Z john $
 
 
 PG = job.template{1};
@@ -190,6 +190,14 @@ for i=1:numel(PI{1}),
     spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');
+
+PI  = job.images{1};
+out.files = cell(numel(PI),1);
+for i=1:numel(PI),
+    [pth,nam,ext] = fileparts(PI{i});
+    fname         = fullfile(pwd,['resid_' nam '.nii',',1']);
+    out.files{i} = fname;
+end
 
 
 

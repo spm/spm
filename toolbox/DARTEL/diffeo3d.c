@@ -699,175 +699,179 @@ void push(int dm[], int m, int n, float def[], float pf[], float po[], float so[
     for(i=0; i<m; i++)
     {
         double x, y, z;
-        x    = px[i]-1.0; /* Subtract 1 because of MATLAB indexing */
-        y    = py[i]-1.0;
-        z    = pz[i]-1.0;
 
-        /* Check range and avoid inserting values outside the FOV. */
-        if (x>=1 && x<dm[0]-1 && y>=1 && y<dm[1]-1 && z>=1 && z<dm[2]-1)
+        if (MxIsFinite(pf[i]))
         {
-            /* A faster function fo voxels that are safely inside the FOV */
-            int   o000, o100, o010, o110, o001, o101, o011, o111;
-            float w000, w100, w010, w110, w001, w101, w011, w111;
-            ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
-            iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
-            iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
-            
-            /* Weights for trilinear interpolation */
-            w000 = dx2*dy2*dz2;
-            w100 = dx1*dy2*dz2;
-            w010 = dx2*dy1*dz2;
-            w110 = dx1*dy1*dz2;
-            w001 = dx2*dy2*dz1;
-            w101 = dx1*dy2*dz1;
-            w011 = dx2*dy1*dz1;
-            w111 = dx1*dy1*dz1;
+            x    = px[i]-1.0; /* Subtract 1 because of MATLAB indexing */
+            y    = py[i]-1.0;
+            z    = pz[i]-1.0;
 
-            ix1  = ix+1;
-            iy1  = iy+1;
-            iz1  = iz+1;
+            /* Check range and avoid inserting values outside the FOV. */
+            if (x>=1 && x<dm[0]-1 && y>=1 && y<dm[1]-1 && z>=1 && z<dm[2]-1)
+            {
+                /* A faster function fo voxels that are safely inside the FOV */
+                int   o000, o100, o010, o110, o001, o101, o011, o111;
+                float w000, w100, w010, w110, w001, w101, w011, w111;
+                ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+                iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+                iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
             
-            /* Neighbouring voxels used for trilinear interpolation */
-            tmpz  = dm[1]*iz;
-            tmpy  = dm[0]*(iy + tmpz);
-            o000  = ix +tmpy;
-            o100  = ix1+tmpy;
-            tmpy  = dm[0]*(iy1 + tmpz);
-            o010  = ix +tmpy;
-            o110  = ix1+tmpy;
-            tmpz  = dm[1]*iz1;
-            tmpy  = dm[0]*(iy + tmpz);
-            o001  = ix +tmpy;
-            o101  = ix1+tmpy;
-            tmpy  = dm[0]*(iy1 + tmpz);
-            o011  = ix +tmpy;
-            o111  = ix1+tmpy;
+                /* Weights for trilinear interpolation */
+                w000 = dx2*dy2*dz2;
+                w100 = dx1*dy2*dz2;
+                w010 = dx2*dy1*dz2;
+                w110 = dx1*dy1*dz2;
+                w001 = dx2*dy2*dz1;
+                w101 = dx1*dy2*dz1;
+                w011 = dx2*dy1*dz1;
+                w111 = dx1*dy1*dz1;
+
+                ix1  = ix+1;
+                iy1  = iy+1;
+                iz1  = iz+1;
             
-            if (so!=(float *)0)
-            {
-                /* Increment an image containing the number of voxels added */
-                so[o000] += w000;
-                so[o100] += w100;
-                so[o010] += w010;
-                so[o110] += w110;
-                so[o001] += w001;
-                so[o101] += w101;
-                so[o011] += w011;
-                so[o111] += w111;
-            }
-
-            for (j=0; j<n; j++)
-            {
-                /* Increment the images themselves */
-                float *pj = po+mm*j;
-                float  f  = pf[i+j*m];
-                pj[o000] += f*w000;
-                pj[o100] += f*w100;
-                pj[o010] += f*w010;
-                pj[o110] += f*w110;
-                pj[o001] += f*w001;
-                pj[o101] += f*w101;
-                pj[o011] += f*w011;
-                pj[o111] += f*w111;
-            }
-        }
-        else if ((x>=0.0) && (x<dm[0]) && (y>=0.0) && (y<dm[1]) && (z>=0.0) && (z<dm[2]))
-        {
-            /* A slower function for voxels at the edge of the field of view */
-            int   o[8], nn=0, k;
-            float w[8];
-
-            ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
-            iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
-            iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
-            ix1  = ix+1;
-            iy1  = iy+1;
-            iz1  = iz+1;
-            if (iz>=0)
-            {
+                /* Neighbouring voxels used for trilinear interpolation */
                 tmpz  = dm[1]*iz;
-                if (iy>=0)
-                {
-                    tmpy  = dm[0]*(iy + tmpz);
-                    if (ix>=0)
-                    {
-                        o[nn] = ix+tmpy;
-                        w[nn] = dx2*dy2*dz2;
-                        nn++;
-                    }
-                    if (ix1<dm[0])
-                    {
-                        o[nn] = ix1+tmpy;
-                        w[nn] = dx1*dy2*dz2;
-                        nn++;
-                    }
-                }
-                if (iy1<dm[1])
-                {
-                    tmpy  = dm[0]*(iy1 + tmpz);
-                    if (ix>=0)
-                    {
-                        o[nn] = ix+tmpy;
-                        w[nn] = dx2*dy1*dz2;
-                        nn++;
-                    }
-                    if (ix1<dm[0])
-                    {
-                        o[nn] = ix1+tmpy;
-                        w[nn] = dx1*dy1*dz2;
-                        nn++;
-                    }
-                }
-            }
-            if (iz1<dm[2])
-            {
+                tmpy  = dm[0]*(iy + tmpz);
+                o000  = ix +tmpy;
+                o100  = ix1+tmpy;
+                tmpy  = dm[0]*(iy1 + tmpz);
+                o010  = ix +tmpy;
+                o110  = ix1+tmpy;
                 tmpz  = dm[1]*iz1;
-                if (iy>=0)
-                {
-                    tmpy  = dm[0]*(iy + tmpz);
-                    if (ix>=0)
-                    {
-                        o[nn] = ix +tmpy;
-                        w[nn] = dx2*dy2*dz1;
-                        nn++;
-                    }
-                    if (ix1<dm[0])
-                    {
-                        o[nn] = ix1+tmpy;
-                        w[nn] = dx1*dy2*dz1;
-                        nn++;
-                    }
-                }
-                if (iy1<dm[1])
-                {
-                    tmpy  = dm[0]*(iy1 + tmpz);
-                    if (ix>=0)
-                    {
-                        o[nn] = ix +tmpy;
-                        w[nn] = dx2*dy1*dz1;
-                        nn++;
-                    }
-                    if (ix1<dm[0])
-                    {
-                        o[nn] = ix1+tmpy;
-                        w[nn] = dx1*dy1*dz1;
-                        nn++;
-                    }
-                }
-            }
-            if (so!=(float *)0)
-            {
-                for(k=0; k<nn; k++)
-                    so[o[k]] += w[k];
-            }
+                tmpy  = dm[0]*(iy + tmpz);
+                o001  = ix +tmpy;
+                o101  = ix1+tmpy;
+                tmpy  = dm[0]*(iy1 + tmpz);
+                o011  = ix +tmpy;
+                o111  = ix1+tmpy;
 
-            for (j=0; j<n; j++)
+                for (j=0; j<n; j++)
+                {
+                    /* Increment the images themselves */
+                    float *pj = po+mm*j;
+                    float  f  = pf[i+j*m];
+                    pj[o000] += f*w000;
+                    pj[o100] += f*w100;
+                    pj[o010] += f*w010;
+                    pj[o110] += f*w110;
+                    pj[o001] += f*w001;
+                    pj[o101] += f*w101;
+                    pj[o011] += f*w011;
+                    pj[o111] += f*w111;
+                }
+
+                if (so!=(float *)0)
+                {
+                    /* Increment an image containing the number of voxels added */
+                    so[o000] += w000;
+                    so[o100] += w100;
+                    so[o010] += w010;
+                    so[o110] += w110;
+                    so[o001] += w001;
+                    so[o101] += w101;
+                    so[o011] += w011;
+                    so[o111] += w111;
+                }
+            }
+            else if ((x>=0.0) && (x<dm[0]) && (y>=0.0) && (y<dm[1]) && (z>=0.0) && (z<dm[2]))
             {
-                float *pj = po+mm*j;
-                float  f  = pf[i+j*m];
-                for(k=0; k<nn; k++)
-                    pj[o[k]] += f*w[k];
-            }  
+                /* A slower function for voxels at the edge of the field of view */
+                int   o[8], nn=0, k;
+                float w[8];
+
+                ix   = (int)floor(x); dx1=x-ix; dx2=1.0-dx1;
+                iy   = (int)floor(y); dy1=y-iy; dy2=1.0-dy1;
+                iz   = (int)floor(z); dz1=z-iz; dz2=1.0-dz1;
+                ix1  = ix+1;
+                iy1  = iy+1;
+                iz1  = iz+1;
+                if (iz>=0)
+                {
+                    tmpz  = dm[1]*iz;
+                    if (iy>=0)
+                    {
+                        tmpy  = dm[0]*(iy + tmpz);
+                        if (ix>=0)
+                        {
+                            o[nn] = ix+tmpy;
+                            w[nn] = dx2*dy2*dz2;
+                            nn++;
+                        }
+                        if (ix1<dm[0])
+                        {
+                            o[nn] = ix1+tmpy;
+                            w[nn] = dx1*dy2*dz2;
+                            nn++;
+                        }
+                    }
+                    if (iy1<dm[1])
+                    {
+                        tmpy  = dm[0]*(iy1 + tmpz);
+                        if (ix>=0)
+                        {
+                            o[nn] = ix+tmpy;
+                            w[nn] = dx2*dy1*dz2;
+                            nn++;
+                        }
+                        if (ix1<dm[0])
+                        {
+                            o[nn] = ix1+tmpy;
+                            w[nn] = dx1*dy1*dz2;
+                            nn++;
+                        }
+                    }
+                }
+                if (iz1<dm[2])
+                {
+                    tmpz  = dm[1]*iz1;
+                    if (iy>=0)
+                    {
+                        tmpy  = dm[0]*(iy + tmpz);
+                        if (ix>=0)
+                        {
+                            o[nn] = ix +tmpy;
+                            w[nn] = dx2*dy2*dz1;
+                            nn++;
+                        }
+                        if (ix1<dm[0])
+                        {
+                            o[nn] = ix1+tmpy;
+                            w[nn] = dx1*dy2*dz1;
+                            nn++;
+                        }
+                    }
+                    if (iy1<dm[1])
+                    {
+                        tmpy  = dm[0]*(iy1 + tmpz);
+                        if (ix>=0)
+                        {
+                            o[nn] = ix +tmpy;
+                            w[nn] = dx2*dy1*dz1;
+                            nn++;
+                        }
+                        if (ix1<dm[0])
+                        {
+                            o[nn] = ix1+tmpy;
+                            w[nn] = dx1*dy1*dz1;
+                            nn++;
+                        }
+                    }
+                }
+                if (so!=(float *)0)
+                {
+                    for(k=0; k<nn; k++)
+                        so[o[k]] += w[k];
+                }
+
+                for (j=0; j<n; j++)
+                {
+                    float *pj = po+mm*j;
+                    float  f  = pf[i+j*m];
+                    for(k=0; k<nn; k++)
+                        pj[o[k]] += f*w[k];
+                }  
+            }
         }
     }
 }
@@ -1267,20 +1271,60 @@ double smalldef_objfun_mn(int dm[], float f[], float g[], float v[], float jd[],
         
         for(k=0; k<dm[3]; k++)
         {
-            int km = k*m;
-            T[k]  = g[j + km];
-            sT   -= T[k];
-            k000  = f[ix +dm[0]*(iy +dm[1]*iz ) + km];sk000-=k000;k000=LOG(k000);
-            k100  = f[ix1+dm[0]*(iy +dm[1]*iz ) + km];sk100-=k100;k100=LOG(k100);
-            k010  = f[ix +dm[0]*(iy1+dm[1]*iz ) + km];sk010-=k010;k010=LOG(k010);
-            k110  = f[ix1+dm[0]*(iy1+dm[1]*iz ) + km];sk110-=k110;k110=LOG(k110);
-            k001  = f[ix +dm[0]*(iy +dm[1]*iz1) + km];sk001-=k001;k001=LOG(k001);
-            k101  = f[ix1+dm[0]*(iy +dm[1]*iz1) + km];sk101-=k101;k101=LOG(k101);
-            k011  = f[ix +dm[0]*(iy1+dm[1]*iz1) + km];sk011-=k011;k011=LOG(k011);
-            k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1) + km];sk111-=k111;k111=LOG(k111);
+            T[k]   = g[j + k*m];
+            sT    -= T[k];
+        }
+        if (!mxIsFinite((double)sT))
+        {
+            A[j    ] = 0.0;
+            A[j+m  ] = 0.0;
+            A[j+m*2] = 0.0;
+            A[j+m*3] = 0.0;
+            A[j+m*4] = 0.0;
+            A[j+m*5] = 0.0;
+            b[j    ] = 0.0;
+            b[j+m  ] = 0.0;
+            b[j+m*2] = 0.0;
+        }
+        else
+        {
+            for(k=0; k<dm[3]; k++)
+            {
+                int km = k*m;
+                k000  = f[ix +dm[0]*(iy +dm[1]*iz ) + km];sk000-=k000;k000=LOG(k000);
+                k100  = f[ix1+dm[0]*(iy +dm[1]*iz ) + km];sk100-=k100;k100=LOG(k100);
+                k010  = f[ix +dm[0]*(iy1+dm[1]*iz ) + km];sk010-=k010;k010=LOG(k010);
+                k110  = f[ix1+dm[0]*(iy1+dm[1]*iz ) + km];sk110-=k110;k110=LOG(k110);
+                k001  = f[ix +dm[0]*(iy +dm[1]*iz1) + km];sk001-=k001;k001=LOG(k001);
+                k101  = f[ix1+dm[0]*(iy +dm[1]*iz1) + km];sk101-=k101;k101=LOG(k101);
+                k011  = f[ix +dm[0]*(iy1+dm[1]*iz1) + km];sk011-=k011;k011=LOG(k011);
+                k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1) + km];sk111-=k111;k111=LOG(k111);
 
-            Y[k]  = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
-                      + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
+                Y[k]  = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                          + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
+                sY   += Y[k];
+
+                dx[k] = -(((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
+                        + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1);
+                dy[k] = -(((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
+                        + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1);
+                dz[k] = -(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
+                        - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1));
+            }
+
+            k    = dm[3];
+            T[k] = sT;
+            k000 = LOG(sk000);
+            k001 = LOG(sk001);
+            k010 = LOG(sk010);
+            k011 = LOG(sk011);
+            k100 = LOG(sk100);
+            k101 = LOG(sk101);
+            k110 = LOG(sk110);
+            k111 = LOG(sk111);
+
+            Y[k] = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                     + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
             sY   += Y[k];
 
             dx[k] = -(((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
@@ -1289,92 +1333,70 @@ double smalldef_objfun_mn(int dm[], float f[], float g[], float v[], float jd[],
                     + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1);
             dz[k] = -(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
                     - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1));
-        }
-        
-        k    = dm[3];
-        T[k] = sT;
-        k000 = LOG(sk000);
-        k001 = LOG(sk001);
-        k010 = LOG(sk010);
-        k011 = LOG(sk011);
-        k100 = LOG(sk100);
-        k101 = LOG(sk101);
-        k110 = LOG(sk110);
-        k111 = LOG(sk111);
 
-        Y[k] = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
-                 + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
-        sY   += Y[k];
-
-        dx[k] = -(((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
-                + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1);
-        dy[k] = -(((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
-                + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1);
-        dz[k] = -(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
-                - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1));
-
-        ta11 = ta22 = ta33 = ta12 = ta13 = ta23 = 0.0;
-        tb1  = tb2  = tb3  = 0.0;
-        tss  = 0.0;
-        for(k=0; k<=dm[3]; k++)
-        {
-            Y[k] /= sY;
-        }
-        for(k=0; k<=dm[3]; k++)
-        {
-            double wt;
-            int k1;
-            tss  += log(Y[k])*T[k];
-            tb1  += (Y[k]-T[k])*dx[k];
-            tb2  += (Y[k]-T[k])*dy[k];
-            tb3  += (Y[k]-T[k])*dz[k];
-            
-            for(k1=0; k1<k; k1++)
+            ta11 = ta22 = ta33 = ta12 = ta13 = ta23 = 0.0;
+            tb1  = tb2  = tb3  = 0.0;
+            tss  = 0.0;
+            for(k=0; k<=dm[3]; k++)
             {
-                wt    =  -Y[k]*Y[k1];
-                ta11 += wt* dx[k]*dx[k1]*2;
-                ta22 += wt* dy[k]*dy[k1]*2;
-                ta33 += wt* dz[k]*dz[k1]*2;
-                ta12 += wt*(dx[k]*dy[k1] + dx[k1]*dy[k]);
-                ta13 += wt*(dx[k]*dz[k1] + dx[k1]*dz[k]);
-                ta23 += wt*(dy[k]*dz[k1] + dy[k1]*dz[k]);
+                Y[k] /= sY;
             }
-            wt    = Y[k]*(1.0-Y[k]);
-            ta11 += wt*dx[k]*dx[k];
-            ta22 += wt*dy[k]*dy[k];
-            ta33 += wt*dz[k]*dz[k];
-            ta12 += wt*dx[k]*dy[k];
-            ta13 += wt*dx[k]*dz[k];
-            ta23 += wt*dy[k]*dz[k];
-        }
+            for(k=0; k<=dm[3]; k++)
+            {
+                double wt;
+                int k1;
+                tss  += log(Y[k])*T[k];
+                tb1  += (Y[k]-T[k])*dx[k];
+                tb2  += (Y[k]-T[k])*dy[k];
+                tb3  += (Y[k]-T[k])*dz[k];
 
-        if (jd != (float *)0)
-        {
-            double dt = jd[j];
-            if (dt<0.0) dt = 0.0;
-            A[j    ]  = ta11*dt;
-            A[j+m  ]  = ta22*dt;
-            A[j+m*2]  = ta33*dt;
-            A[j+m*3]  = ta12*dt;
-            A[j+m*4]  = ta13*dt;
-            A[j+m*5]  = ta23*dt;
-            b[j    ]  = tb1*dt;
-            b[j+m  ]  = tb2*dt;
-            b[j+m*2]  = tb3*dt;
-            ssl      -= tss*dt;
-        }
-        else
-        {
-            A[j    ] = ta11;
-            A[j+m  ] = ta22;
-            A[j+m*2] = ta33;
-            A[j+m*3] = ta12;
-            A[j+m*4] = ta13;
-            A[j+m*5] = ta23;
-            b[j    ] = tb1;
-            b[j+m  ] = tb2;
-            b[j+m*2] = tb3;
-            ssl     -= tss;
+                for(k1=0; k1<k; k1++)
+                {
+                    wt    =  -Y[k]*Y[k1];
+                    ta11 += wt* dx[k]*dx[k1]*2;
+                    ta22 += wt* dy[k]*dy[k1]*2;
+                    ta33 += wt* dz[k]*dz[k1]*2;
+                    ta12 += wt*(dx[k]*dy[k1] + dx[k1]*dy[k]);
+                    ta13 += wt*(dx[k]*dz[k1] + dx[k1]*dz[k]);
+                    ta23 += wt*(dy[k]*dz[k1] + dy[k1]*dz[k]);
+                }
+                wt    = Y[k]*(1.0-Y[k]);
+                ta11 += wt*dx[k]*dx[k];
+                ta22 += wt*dy[k]*dy[k];
+                ta33 += wt*dz[k]*dz[k];
+                ta12 += wt*dx[k]*dy[k];
+                ta13 += wt*dx[k]*dz[k];
+                ta23 += wt*dy[k]*dz[k];
+            }
+
+            if (jd != (float *)0)
+            {
+                double dt = jd[j];
+                if (dt<0.0) dt = 0.0;
+                A[j    ]  = ta11*dt;
+                A[j+m  ]  = ta22*dt;
+                A[j+m*2]  = ta33*dt;
+                A[j+m*3]  = ta12*dt;
+                A[j+m*4]  = ta13*dt;
+                A[j+m*5]  = ta23*dt;
+                b[j    ]  = tb1*dt;
+                b[j+m  ]  = tb2*dt;
+                b[j+m*2]  = tb3*dt;
+                ssl      -= tss*dt;
+            }
+            else
+            {
+                A[j    ] = ta11;
+                A[j+m  ] = ta22;
+                A[j+m*2] = ta33;
+                A[j+m*3] = ta12;
+                A[j+m*4] = ta13;
+                A[j+m*5] = ta23;
+                b[j    ] = tb1;
+                b[j+m  ] = tb2;
+                b[j+m*2] = tb3;
+                ssl     -= tss;
+            }
         }
     }
     return(ssl);
@@ -1592,6 +1614,7 @@ double initialise_objfun_mn(int dm[], float f[], float g[], float t0[], float J0
         double sk000 = 1.0, sk100 = 1.0, sk010 = 1.0,
                sk110 = 1.0, sk001 = 1.0, sk101 = 1.0,
                sk011 = 1.0, sk111 = 1.0;
+
         x    = t0[j    ]-1.0;
         y    = t0[j+m  ]-1.0;
         z    = t0[j+m*2]-1.0;
@@ -1606,21 +1629,64 @@ double initialise_objfun_mn(int dm[], float f[], float g[], float t0[], float J0
         iz1  = WRAP(iz+1,dm[2]);
         sY   = 0.0;
         
-        sk000 = sk100 = sk010 = sk110 = sk001 = sk101 = sk011 = sk111 = 1.0;
-        
         for(k=0; k<dm[3]; k++)
         {
-            int km= k*m;
-            T[k]  = g[j + km];
-            sT   -= T[k];
-            k000  = f[ix +dm[0]*(iy +dm[1]*iz ) + km];sk000-=k000;k000=LOG(k000);
-            k100  = f[ix1+dm[0]*(iy +dm[1]*iz ) + km];sk100-=k100;k100=LOG(k100);
-            k010  = f[ix +dm[0]*(iy1+dm[1]*iz ) + km];sk010-=k010;k010=LOG(k010);
-            k110  = f[ix1+dm[0]*(iy1+dm[1]*iz ) + km];sk110-=k110;k110=LOG(k110);
-            k001  = f[ix +dm[0]*(iy +dm[1]*iz1) + km];sk001-=k001;k001=LOG(k001);
-            k101  = f[ix1+dm[0]*(iy +dm[1]*iz1) + km];sk101-=k101;k101=LOG(k101);
-            k011  = f[ix +dm[0]*(iy1+dm[1]*iz1) + km];sk011-=k011;k011=LOG(k011);
-            k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1) + km];sk111-=k111;k111=LOG(k111);
+            T[k]   = g[j + k*m];
+            sT    -= T[k];
+        }
+        if (!mxIsFinite((double)sT))
+        {
+            A[j    ] = 0.0;
+            A[j+m  ] = 0.0;
+            A[j+m*2] = 0.0;
+            A[j+m*3] = 0.0;
+            A[j+m*4] = 0.0;
+            A[j+m*5] = 0.0;
+            b[j    ] = 0.0;
+            b[j+m  ] = 0.0;
+            b[j+m*2] = 0.0;
+        }
+        else
+        {
+            for(k=0; k<dm[3]; k++)
+            {
+                int km = k*m;
+                k000  = f[ix +dm[0]*(iy +dm[1]*iz ) + km];sk000-=k000;k000=LOG(k000);
+                k100  = f[ix1+dm[0]*(iy +dm[1]*iz ) + km];sk100-=k100;k100=LOG(k100);
+                k010  = f[ix +dm[0]*(iy1+dm[1]*iz ) + km];sk010-=k010;k010=LOG(k010);
+                k110  = f[ix1+dm[0]*(iy1+dm[1]*iz ) + km];sk110-=k110;k110=LOG(k110);
+                k001  = f[ix +dm[0]*(iy +dm[1]*iz1) + km];sk001-=k001;k001=LOG(k001);
+                k101  = f[ix1+dm[0]*(iy +dm[1]*iz1) + km];sk101-=k101;k101=LOG(k101);
+                k011  = f[ix +dm[0]*(iy1+dm[1]*iz1) + km];sk011-=k011;k011=LOG(k011);
+                k111  = f[ix1+dm[0]*(iy1+dm[1]*iz1) + km];sk111-=k111;k111=LOG(k111);
+
+                Y[k]  = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
+                          + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
+                sY   += Y[k];
+            
+                dx0   = ((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
+                      + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1;
+                dy0   = ((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
+                      + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1;
+                dz0   = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
+                      - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
+
+                dx[k] = -(J0[j    ]*dx0 + J0[j+  m]*dy0 + J0[j+2*m]*dz0);
+                dy[k] = -(J0[j+3*m]*dx0 + J0[j+4*m]*dy0 + J0[j+5*m]*dz0);
+                dz[k] = -(J0[j+6*m]*dx0 + J0[j+7*m]*dy0 + J0[j+8*m]*dz0);
+            }
+
+            k    = dm[3];
+            T[k] = sT;
+
+            k000 = LOG(sk000);
+            k001 = LOG(sk001);
+            k010 = LOG(sk010);
+            k011 = LOG(sk011);
+            k100 = LOG(sk100);
+            k101 = LOG(sk101);
+            k110 = LOG(sk110);
+            k111 = LOG(sk111);
 
             Y[k]  = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
                       + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
@@ -1636,93 +1702,66 @@ double initialise_objfun_mn(int dm[], float f[], float g[], float t0[], float J0
             dx[k] = -(J0[j    ]*dx0 + J0[j+  m]*dy0 + J0[j+2*m]*dz0);
             dy[k] = -(J0[j+3*m]*dx0 + J0[j+4*m]*dy0 + J0[j+5*m]*dz0);
             dz[k] = -(J0[j+6*m]*dx0 + J0[j+7*m]*dy0 + J0[j+8*m]*dz0);
-        }
-        
-        k    = dm[3];
-        T[k] = sT;
 
-        k000 = LOG(sk000);
-        k001 = LOG(sk001);
-        k010 = LOG(sk010);
-        k011 = LOG(sk011);
-        k100 = LOG(sk100);
-        k101 = LOG(sk101);
-        k110 = LOG(sk110);
-        k111 = LOG(sk111);
-
-        Y[k]  = exp(((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)*dz2
-                  + ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1)*dz1);
-        sY   += Y[k];
-            
-        dx0   = ((k000     - k100    )*dy2 + (k010     - k110    )*dy1)*dz2
-              + ((k001     - k101    )*dy2 + (k011     - k111    )*dy1)*dz1;
-        dy0   = ((k000*dx2 + k100*dx1)     - (k010*dx2 + k110*dx1)    )*dz2
-              + ((k001*dx2 + k101*dx1)     - (k011*dx2 + k111*dx1)    )*dz1;
-        dz0   = ((k000*dx2 + k100*dx1)*dy2 + (k010*dx2 + k110*dx1)*dy1)
-              - ((k001*dx2 + k101*dx1)*dy2 + (k011*dx2 + k111*dx1)*dy1);
-
-        dx[k] = -(J0[j    ]*dx0 + J0[j+  m]*dy0 + J0[j+2*m]*dz0);
-        dy[k] = -(J0[j+3*m]*dx0 + J0[j+4*m]*dy0 + J0[j+5*m]*dz0);
-        dz[k] = -(J0[j+6*m]*dx0 + J0[j+7*m]*dy0 + J0[j+8*m]*dz0);
-
-        ta11 = ta22 = ta33 = ta12 = ta13 = ta23 = 0.0;
-        tb1  = tb2  = tb3  = 0.0;
-        tss  = 0.0;
-        for(k=0; k<=dm[3]; k++)
-        {
-            double wt;
-            int k1;
-            Y[k] /= sY;
-            tss  += log(Y[k])*T[k];
-            tb1  += (Y[k]-T[k])*dx[k];
-            tb2  += (Y[k]-T[k])*dy[k];
-            tb3  += (Y[k]-T[k])*dz[k];
-
-            for(k1=0; k1<k; k1++)
+            ta11 = ta22 = ta33 = ta12 = ta13 = ta23 = 0.0;
+            tb1  = tb2  = tb3  = 0.0;
+            tss  = 0.0;
+            for(k=0; k<=dm[3]; k++)
             {
-                wt    =  -Y[k]*Y[k1];
-                ta11 += wt* dx[k]*dx[k1]*2;
-                ta22 += wt* dy[k]*dy[k1]*2;
-                ta33 += wt* dz[k]*dz[k1]*2;
-                ta12 += wt*(dx[k]*dy[k1] + dx[k1]*dy[k]);
-                ta13 += wt*(dx[k]*dz[k1] + dx[k1]*dz[k]);
-                ta23 += wt*(dy[k]*dz[k1] + dy[k1]*dz[k]);
+                double wt;
+                int k1;
+                Y[k] /= sY;
+                tss  += log(Y[k])*T[k];
+                tb1  += (Y[k]-T[k])*dx[k];
+                tb2  += (Y[k]-T[k])*dy[k];
+                tb3  += (Y[k]-T[k])*dz[k];
+
+                for(k1=0; k1<k; k1++)
+                {
+                    wt    =  -Y[k]*Y[k1];
+                    ta11 += wt* dx[k]*dx[k1]*2;
+                    ta22 += wt* dy[k]*dy[k1]*2;
+                    ta33 += wt* dz[k]*dz[k1]*2;
+                    ta12 += wt*(dx[k]*dy[k1] + dx[k1]*dy[k]);
+                    ta13 += wt*(dx[k]*dz[k1] + dx[k1]*dz[k]);
+                    ta23 += wt*(dy[k]*dz[k1] + dy[k1]*dz[k]);
+                }
+                wt    = Y[k]*(1.0-Y[k]);
+                ta11 += wt*dx[k]*dx[k];
+                ta22 += wt*dy[k]*dy[k];
+                ta33 += wt*dz[k]*dz[k];
+                ta12 += wt*dx[k]*dy[k];
+                ta13 += wt*dx[k]*dz[k];
+                ta23 += wt*dy[k]*dz[k];
             }
-            wt    = Y[k]*(1.0-Y[k]);
-            ta11 += wt*dx[k]*dx[k];
-            ta22 += wt*dy[k]*dy[k];
-            ta33 += wt*dz[k]*dz[k];
-            ta12 += wt*dx[k]*dy[k];
-            ta13 += wt*dx[k]*dz[k];
-            ta23 += wt*dy[k]*dz[k];
-        }
-        if (jd != (float *)0)
-        {
-            double dt = jd[j];
-            if (dt<0.0) dt = 0.0;
-            A[j    ]  = ta11*dt;
-            A[j+m  ]  = ta22*dt;
-            A[j+m*2]  = ta33*dt;
-            A[j+m*3]  = ta12*dt;
-            A[j+m*4]  = ta13*dt;
-            A[j+m*5]  = ta23*dt;
-            b[j    ]  = tb1*dt;
-            b[j+m  ]  = tb2*dt;
-            b[j+m*2]  = tb3*dt;
-            ssl      -= tss*dt;
-        }
-        else
-        {
-            A[j    ] = ta11;
-            A[j+m  ] = ta22;
-            A[j+m*2] = ta33;
-            A[j+m*3] = ta12;
-            A[j+m*4] = ta13;
-            A[j+m*5] = ta23;
-            b[j    ] = tb1;
-            b[j+m  ] = tb2;
-            b[j+m*2] = tb3;
-            ssl     -= tss;
+            if (jd != (float *)0)
+            {
+                double dt = jd[j];
+                if (dt<0.0) dt = 0.0;
+                A[j    ]  = ta11*dt;
+                A[j+m  ]  = ta22*dt;
+                A[j+m*2]  = ta33*dt;
+                A[j+m*3]  = ta12*dt;
+                A[j+m*4]  = ta13*dt;
+                A[j+m*5]  = ta23*dt;
+                b[j    ]  = tb1*dt;
+                b[j+m  ]  = tb2*dt;
+                b[j+m*2]  = tb3*dt;
+                ssl      -= tss*dt;
+            }
+            else
+            {
+                A[j    ] = ta11;
+                A[j+m  ] = ta22;
+                A[j+m*2] = ta33;
+                A[j+m*3] = ta12;
+                A[j+m*4] = ta13;
+                A[j+m*5] = ta23;
+                b[j    ] = tb1;
+                b[j+m  ] = tb2;
+                b[j+m*2] = tb3;
+                ssl     -= tss;
+            }
         }
     }
     return(ssl);

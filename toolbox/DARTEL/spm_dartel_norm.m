@@ -1,4 +1,4 @@
-function spm_dartel_norm(job)
+function out = spm_dartel_norm(job)
 % Warp individuals to match template
 % FORMAT spm_dartel_norm(job)
 % job.flowfields - Flow-fields
@@ -9,7 +9,7 @@ function spm_dartel_norm(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_norm.m 1381 2008-04-11 19:10:56Z john $
 
 
 PU = job.flowfields;
@@ -98,4 +98,20 @@ for i=1:numel(PU),
         fprintf('\n'); drawnow;
     end;
 end;
+
+PU = job.flowfields;
+PI = job.images;
+jactransf = job.jactransf;
+out.files = cell(numel(PU),numel(PI));
+for i=1:numel(PU),
+    for m=1:numel(PI),
+        [pth,nam,ext,num] = spm_fileparts(PI{m}{i});
+        if jactransf,
+            fname = fullfile(pth,['mw' nam ext ',1']);
+        else
+            fname = fullfile(pth,['w' nam ext ',1']);
+        end;
+        out.files{i,m} = fname;
+    end
+end
 

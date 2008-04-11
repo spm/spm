@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1361 2008-04-10 15:09:48Z guillaume $
+% $Id: spm.m 1381 2008-04-11 19:10:56Z john $
 
 
 %=======================================================================
@@ -1101,6 +1101,10 @@ function check_installation
 %-----------------------------------------------------------------------
 if spm_matlab_version_chk('7') >=0,
     warning('off','MATLAB:dispatcher:ShadowedMEXExtension');
+else
+    error([...
+        'SPM8 requires MATLAB 7 onwards in order to run.\n'...
+        'This MATLAB version is %s\n'], version);
 end
 
 %-Disable Java if necessary
@@ -1118,7 +1122,7 @@ d = spm('Dir');
 if ~ismember(lower(d),lower(strread(path,'%s','delimiter',pathsep)))
     error([...
         'You do not appear to have the MATLAB search path\n'...
-        'set up to include your SPM5 distribution.  This\n'...
+        'set up to include your SPM8 distribution.  This\n'...
         'means that you can start SPM in this directory,\n'...
         'but if you change to another directory then MATLAB\n'...
         'will be unable to find the SPM functions.  You\n'...
@@ -1189,3 +1193,4 @@ catch
         'in MATLAB %s.'],...
         d,filesep,filesep,computer,version);
 end
+

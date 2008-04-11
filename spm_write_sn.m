@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_write_sn.m 1381 2008-04-11 19:10:56Z john $
 
 
 if isempty(V), return; end;
@@ -81,7 +81,6 @@ end;
 
 def_flags = struct('interp',1,'vox',NaN,'bb',NaN,'wrap',[0 0 0],'preserve',0,...
                    'prefix','w');
-[def_flags.bb, def_flags.vox] = bbvox_from_V(prm.VG(1));
 
 if nargin < 3,
     flags = def_flags;
@@ -93,9 +92,6 @@ else
         end;
     end;
 end;
-
-if ~all(isfinite(flags.vox(:))), flags.vox = def_flags.vox; end;
-if ~all(isfinite(flags.bb(:))),  flags.bb  = def_flags.bb;  end;
 
 [x,y,z,mat] = get_xyzmat(prm,flags.bb,flags.vox);
 
@@ -262,8 +258,7 @@ for i=1:numel(V),
     %Dat        = zeros(VO.dim(1:3));
     Dat         = single(0);
     Dat(VO.dim(1),VO.dim(2),VO.dim(3)) = 0;
-    [bb, vox]   = bbvox_from_V(VO);
-    [x,y,z,mat] = get_xyzmat(prm,bb,vox);
+    [x,y,z,mat] = get_xyzmat(prm,NaN,NaN,VO);
 
     if sum((mat(:)-VO.mat(:)).^2)>1e-7, error('Orientations not compatible'); end;
 
@@ -368,17 +363,6 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [bb,vx] = bbvox_from_V(V)
-vx = sqrt(sum(V.mat(1:3,1:3).^2));
-if det(V.mat(1:3,1:3))<0, vx(1) = -vx(1); end;
-
-o  = V.mat\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
 function msk = get_snmask(V,prm,x,y,z,wrap)
 % Generate a mask for where there is data for all images
 %-----------------------------------------------------------------------
@@ -429,7 +413,7 @@ return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [x,y,z,mat] = get_xyzmat(prm,bb,vox)
+function [x,y,z,mat] = get_xyzmat(prm,bb,vox,VG)
 % The old voxel size and origin notation is used here.
 % This requires that the position and orientation
 % of the template is transverse.  It would not be
@@ -442,6 +426,22 @@ function [x,y,z,mat] = get_xyzmat(prm,bb,vox)
 % bb  = sort(bb);
 % vox = abs(vox);
 
+if nargin<4,
+    VG = prm.VG(1);
+end
+
+if all(~isfinite(bb(:))) && all(~isfinite(vox(:))),
+    x   = 1:VG.dim(1);
+    y   = 1:VG.dim(2);
+    z   = 1:VG.dim(3);
+    mat = prm.VG(1).mat*inv(VG.mat);
+    return;
+end
+
+[bb0,vox0] = bbvox_from_V(VG);
+if ~all(isfinite(vox(:))), vox = vox0; end;
+if ~all(isfinite(bb(:))),  bb  = bb0;  end;
+
 msk       = find(vox<0);
 bb        = sort(bb);
 bb(:,msk) = flipud(bb(:,msk));
@@ -450,9 +450,9 @@ bb(:,msk) = flipud(bb(:,msk));
 % Comment out if not needed.  I chose not to change it because
 % it would lead to being bombarded by questions about spatially
 % normalised images not having the same dimensions.
-bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
-bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
-bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
+%bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
+%bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
+%bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
 
 M   = prm.VG(1).mat;
 vxg = sqrt(sum(M(1:3,1:3).^2));
@@ -468,8 +468,8 @@ z   = (bb(1,3):vox(3):bb(2,3))/vxg(3) + ogn(3);
 og  = -vxg.*ogn;
 
 % Again, chose whether to round to closest voxel.
-of  = -vox.*(round(-bb(1,:)./vox)+1);
-%of = bb(1,:)-vox;
+%of  = -vox.*(round(-bb(1,:)./vox)+1);
+of = bb(1,:)-vox;
 
 M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
 M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
@@ -481,6 +481,17 @@ if (LEFTHANDED && det(mat(1:3,1:3))>0) || (~LEFTHANDED && det(mat(1:3,1:3))<0),
     mat = mat*Flp;
     x   = flipud(x(:))';
 end;
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function [bb,vx] = bbvox_from_V(V)
+vx = sqrt(sum(V.mat(1:3,1:3).^2));
+if det(V.mat(1:3,1:3))<0, vx(1) = -vx(1); end;
+
+o  = V.mat\[0 0 0 1]';
+o  = o(1:3)';
+bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
 return;
 %_______________________________________________________________________
 

@@ -10,7 +10,7 @@ function spm_latex_cfg(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: spm_latex_cfg.m 1381 2008-04-11 19:10:56Z john $
 
 if nargin==0, c = spm_cfg; end;
 
@@ -173,6 +173,7 @@ return;
 function str = clean_latex(str)
 str  = strrep(str,'$','\$');
 str  = strrep(str,'&','\&');
+str  = strrep(str,'^','\^');
 str  = strrep(str,'_','\_');
 str  = strrep(str,'#','\#');
 %str  = strrep(str,'\','$\\$');

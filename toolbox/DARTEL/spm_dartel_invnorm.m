@@ -1,4 +1,4 @@
-function spm_dartel_invnorm(job)
+function out = spm_dartel_invnorm(job)
 % Warp template to match individuals
 % FORMAT spm_dartel_invnorm(job)
 % job.flowfields - Filenames of flowfields
@@ -11,7 +11,7 @@ function spm_dartel_invnorm(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_invnorm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_invnorm.m 1381 2008-04-11 19:10:56Z john $
 
 PU    = job.flowfields;
 PI    = job.images;
@@ -72,4 +72,16 @@ for i=1:numel(PU),
         fprintf('\n'); drawnow;
     end;
 end;
+
+PU    = job.flowfields;
+PI    = job.images;
+out.files = cell(numel(PU),numel(PI));
+for i=1:numel(PU),
+    [pth1,nam1,ext1,num1] = spm_fileparts(PU{i});
+    for m=1:numel(PI),
+        [pth2,nam2,ext2,num2] = spm_fileparts(PI{m});
+        fname = fullfile(pth1,['w' nam2 '_' nam1 ext2]);
+        out.files{i,j} = fname;
+    end
+end
 

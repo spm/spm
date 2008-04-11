@@ -1,4 +1,4 @@
-function spm_dartel_import(job)
+function out = spm_dartel_import(job)
 % Import subjects' data for use with DARTEL
 % FORMAT spm_dartel_import(job)
 % job.matnames  - Names of *_seg_sn.mat files to use
@@ -15,7 +15,7 @@ function spm_dartel_import(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_import.m 1381 2008-04-11 19:10:56Z john $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
@@ -34,6 +34,26 @@ opt  = [job.GM, job.WM, job.CSF];
 for i=1:numel(p),
     preproc_apply(p(i),odir,b0,bb,vox,iopt,opt,matnames{i});
 end;
+
+out.cfiles = cell(numel(matnames),numel(opt));
+if job.image,
+    out.files  = cell(numel(matnames),1);
+end
+for i=1:numel(matnames),
+    [pth,nam,ext] = fileparts(matnames{i});
+    nam = nam(1:(numel(nam)-7));
+    if job.image,
+        fname = fullfile(odir,['r',nam, '.nii' ',1']);
+        out.files{i} = fname;
+    end
+    for k1=1:numel(opt),
+        if opt(k1),
+            fname            = fullfile(odir,['r','c', num2str(k1), nam, '.nii' ',1']);
+            out.cfiles{i,k1} = fname;
+        end
+    end
+end
+
 return;
 %=======================================================================
 

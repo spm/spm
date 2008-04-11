@@ -4,9 +4,9 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_preproc.m 1381 2008-04-11 19:10:56Z john $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1381 $';
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -359,62 +359,49 @@ opts  = job.output;
 % This depends on job contents, which may not be present when virtual
 % outputs are calculated.
 sopts = [opts.GM;opts.WM;opts.CSF];
-if iscellstr(job.data)
-    nsub = numel(job.data);
-else
-    warning('spm_cfg_preproc:nsub', ...
-            ['Segment: Can not determine #subjects - assuming single ' ...
-             'subject']);
-    nsub = 1;
+
+cdep(1)            = cfg_dep;
+cdep(1).sname      = sprintf('Norm Params Subj->MNI',i);
+cdep(1).src_output = substruct('()',{1}, '.','snfile','{}',':');
+cdep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+cdep(2)            = cfg_dep;
+cdep(2).sname      = sprintf('Norm Params MNI->Subj',i);
+cdep(2).src_output = substruct('()',{1}, '.','isnfile','{}',':');
+cdep(2).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+cdep(3)            = cfg_dep;
+%cdep(3).sname      = sprintf('Norm Params Struct Subj->MNI (Subj %d)',i);
+%cdep(3).src_output = substruct('()',{1}, '.','sn');
+%cdep(3).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
+%cdep(4)            = cfg_dep;
+%cdep(4).sname      = sprintf('Norm Params Struct MNI->Subj (Subj %d)',i);
+%cdep(4).src_output = substruct('()',{1}, '.','isn');
+%cdep(4).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
+if opts.biascor,
+    cdep(end+1)          = cfg_dep;
+    cdep(end).sname      = sprintf('Bias Corr Images');
+    cdep(end).src_output = substruct('()',{1}, '.','biascorr','{}',':');
+    cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
-for i=1:numel(nsub),
-    cdep(1)            = cfg_dep;
-    cdep(1).sname      = sprintf('Norm Params File Subj->MNI (Subj %d)',i);
-    cdep(1).src_output = substruct('()',{i}, '.','snfile');
-    cdep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-    cdep(2)            = cfg_dep;
-    cdep(2).sname      = sprintf('Norm Params File MNI->Subj (Subj %d)',i);
-    cdep(2).src_output = substruct('()',{i}, '.','isnfile');
-    cdep(2).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-    cdep(3)            = cfg_dep;
-    cdep(3).sname      = sprintf('Norm Params Struct Subj->MNI (Subj %d)',i);
-    cdep(3).src_output = substruct('()',{i}, '.','sn');
-    cdep(3).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
-    cdep(4)            = cfg_dep;
-    cdep(4).sname      = sprintf('Norm Params Struct MNI->Subj (Subj %d)',i);
-    cdep(4).src_output = substruct('()',{i}, '.','isn');
-    cdep(4).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
-    if opts.biascor,
-        cdep(end+1)            = cfg_dep;
-        cdep(end).sname      = sprintf('Bias Corr Image (Subj %d)',i);
-        cdep(end).src_output = substruct('()',{i}, '.','biascorr');
+for k1=1:3,
+    if sopts(k1,3),
+        cdep(end+1)          = cfg_dep;
+        cdep(end).sname      = sprintf('c%d Images',k1);
+        cdep(end).src_output = substruct('()',{1}, '.',sprintf('c%d',k1),'{}',':');
         cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end;
-    for k1=1:3,
-        if sopts(k1,3),
-            cdep(end+1)            = cfg_dep;
-            cdep(end).sname      = sprintf('c%d Image (Subj %d)',k1,i);
-            cdep(end).src_output = substruct('()',{i}, '.',sprintf('c%d',k1));
-            cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-        end;
-        if sopts(k1,2),
-            cdep(end+1)            = cfg_dep;
-            cdep(end).sname      = sprintf('wc%d Image (Subj %d)',k1,i);
-            cdep(end).src_output = substruct('()',{i}, '.',sprintf('wc%d',k1));
-            cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-        end;
-        if sopts(k1,1),
-            cdep(end+1)            = cfg_dep;
-            cdep(end).sname      = sprintf('mwc%d Image (Subj %d)',k1,i);
-            cdep(end).src_output = substruct('()',{i}, '.',sprintf('mwc%d',k1));
-            cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-        end;
+    if sopts(k1,2),
+        cdep(end+1)          = cfg_dep;
+        cdep(end).sname      = sprintf('wc%d Images',k1);
+        cdep(end).src_output = substruct('()',{1}, '.',sprintf('wc%d',k1),'{}',':');
+        cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end;
-    if i == 1
-        dep = cdep;
-    else
-        dep = [dep cdep];
+    if sopts(k1,1),
+        cdep(end+1)          = cfg_dep;
+        cdep(end).sname      = sprintf('mwc%d Images',k1);
+        cdep(end).src_output = substruct('()',{1}, '.',sprintf('mwc%d',k1),'{}',':');
+        cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end;
 end;
+dep = cdep;
 
 

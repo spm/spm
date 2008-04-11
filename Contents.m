@@ -1,5 +1,5 @@
 % SPM8 (c) 1991,1994-2003,2005-2008
-% Statistical Parametric Mapping           -                        SPM5
+% Statistical Parametric Mapping           -                        SPM8
 %_______________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -10,7 +10,7 @@
 % This Contents.m file holds the version ID for this release of Matlab,
 % and contains a manifest of the included functions and their version numbers.
 %
-% SPM5 is written for Matlab 6.5.1 or Matlab 7.0.1 under UNIX and Windows
+% SPM8 is written for Matlab 7.0.1 onwards under UNIX and Windows
 % ( Compiled binaries of external MEX functions are provided for:       )
 % (                   Solaris2, Linux and Windows                       )
 %
@@ -27,7 +27,7 @@
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 1257 2008-03-27 20:45:08Z guillaume $
+% $Id: Contents.m 1381 2008-04-11 19:10:56Z john $
 
 %=======================================================================
 % PROGRAMMERS NOTE:

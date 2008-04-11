@@ -48,7 +48,8 @@ James Kilner (Chapter 13) \\
 Jeremie Mattout (Chapter 14) \\
 Will Penny (Chapters 8-10,28-32) \\
 Klaas Stephan (Chapter 32)} \\
-Chloe Hutton (Chapter 27)
+Chloe Hutton (Chapter 27) \\
+Volkmar Glauche (Chapters 34 and 35)
 \end{minipage}}
 
 \vspace{\stretch{2}}
@@ -66,52 +67,6 @@ Institute of Neurology, UCL\\
 \dominitoc\tableofcontents
 
 \newpage
-
-%%%%%% THE SPM5 USER INTERFACE %%%%%%
-
-\section*{The SPM5 User Interface}
-
-%* Top Left Panel
-
-\subsection*{Top Left Panel}
-
-The current list of jobs, which is represented as a tree-structure. Double-clicking can expand/contract items of the tree (marked with +/-) for visualisation. Items marked with X still require some values to be set before the job can be run, although an incompletely specified job can still be saved and loaded.
-
-%* Top Right Panel
-
-\subsection*{Top Right Panel}
-
-These are the options avaliable for the currently highlighted item. Changing the list of jobs is done by clicking on an option in the menu. Items can created, replicated or removed, allowing the processing stream to be modified. Values are also modified or entered via this panel. This is either by specifying values as text, selecting a menu option, or by file selection.
-
-%* Centre Right Panel
-
-\subsection*{Centre Right Panel}
-
-This panel shows the current value of the highlighted item (where relevant).
-
-%* Save, Load \& Run
-
-\subsection*{Save, Load \& Run}
-
-Jobs can be saved and loaded at a later time, either as XML or Matlab .mat files.  The format depends on the extension you give the filename. XML files can be loaded into Matlab via "loadxml", modified, and saved again by "savexml", whereas "load" and "save" can be used for Matlab .mat files. Incomplete jobs can be loaded or saved, but the specification needs to be complete for a job to be run.
-
-%* Bottom Panel
-
-\subsection*{Bottom Panel}
-
-This panel provides information about the meaning of the current item.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=70mm]{images/ui1}
-\includegraphics[width=70mm]{images/ui2}
-\includegraphics[width=70mm]{images/ui3}
-\includegraphics[width=70mm]{images/ui4}
-\end{center}
-\caption{The SPM5 user interface. \emph{Top left:} The usual user-interface.  \emph{Top right:} The Defaults user-interface. \emph{Bottom left:} The file selector (click the (?) button for more information about filtering filenames, or selecting individual volumes within a 4D file). \emph{Bottom right:} more online help can be obtained via the main help button.}
-\end{figure}
-
-%%%%%% TEMPORAL PROCESSING %%%%%%
 
 \part{Temporal processing}
 
@@ -173,7 +128,7 @@ This panel provides information about the meaning of the current item.
 
 %%%%%% DATASETS %%%%%%
 
-\part{Data sets}
+\part{Data sets and examples}
 
 \include{auditory/auditory}
 \include{faces/face}
@@ -181,6 +136,13 @@ This panel provides information about the meaning of the current item.
 \include{pet/pet}
 \include{dcm/dcm}
 \include{multimodal/multimodal}
+
+%%%%%% Appendix %%%%%%%
+
+\part{Batching and User Interface}
+
+\include{batch/batch_chapter}
+\include{batch/batch_transition_chapter}
 
 %%%%%% BIBLIOGRAPHY %%%%%%
 

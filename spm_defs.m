@@ -5,10 +5,10 @@ function spm_defs(job)
 %
 % See spm_config_defs.m for more information.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_defs.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_defs.m 1381 2008-04-11 19:10:56Z john $
 
 [Def,mat] = get_comp(job.comp);
 save_def(Def,mat,strvcat(job.ofname));
@@ -74,34 +74,42 @@ vox = job.vox;
 bb  = job.bb;
 sn  = load(job.matname{1});
 
-[bb0,vox0] = bbvox_from_V(sn.VG(1));
+if any(isfinite(bb(:))) || any(isfinite(vox)),
+    [bb0,vox0] = bbvox_from_V(sn.VG(1));
 
-if any(~isfinite(vox)), vox = vox0; end;
-if any(~isfinite(bb)),  bb  = bb0;  end;
-bb  = sort(bb);
-vox = abs(vox);
+    if any(~isfinite(vox)), vox = vox0; end;
+    if any(~isfinite(bb)),  bb  = bb0;  end;
+    bb  = sort(bb);
+    vox = abs(vox);
 
-% Adjust bounding box slightly - so it rounds to closest voxel.
-bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
-bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
-bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
+    % Adjust bounding box slightly - so it rounds to closest voxel.
+    bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
+    bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
+    bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
 
-M   = sn.VG(1).mat;
-vxg = sqrt(sum(M(1:3,1:3).^2));
-ogn = M\[0 0 0 1]';
-ogn = ogn(1:3)';
+    M   = sn.VG(1).mat;
+    vxg = sqrt(sum(M(1:3,1:3).^2));
+    ogn = M\[0 0 0 1]';
+    ogn = ogn(1:3)';
 
-% Convert range into range of voxels within template image
-x   = (bb(1,1):vox(1):bb(2,1))/vxg(1) + ogn(1);
-y   = (bb(1,2):vox(2):bb(2,2))/vxg(2) + ogn(2);
-z   = (bb(1,3):vox(3):bb(2,3))/vxg(3) + ogn(3);
+    % Convert range into range of voxels within template image
+    x   = (bb(1,1):vox(1):bb(2,1))/vxg(1) + ogn(1);
+    y   = (bb(1,2):vox(2):bb(2,2))/vxg(2) + ogn(2);
+    z   = (bb(1,3):vox(3):bb(2,3))/vxg(3) + ogn(3);
 
-og  = -vxg.*ogn;
-of  = -vox.*(round(-bb(1,:)./vox)+1);
-M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
-M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
-mat = sn.VG(1).mat*inv(M1)*M2;
-% dim = [length(x) length(y) length(z)];
+    og  = -vxg.*ogn;
+    of  = -vox.*(round(-bb(1,:)./vox)+1);
+    M1  = [vxg(1) 0 0 og(1) ; 0 vxg(2) 0 og(2) ; 0 0 vxg(3) og(3) ; 0 0 0 1];
+    M2  = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
+    mat = sn.VG(1).mat*inv(M1)*M2;
+    % dim = [length(x) length(y) length(z)];
+else
+    dim = sn.VG(1).dim;
+    x   = 1:dim(1);
+    y   = 1:dim(2);
+    z   = 1:dim(3);
+    mat = sn.VG(1).mat;
+end
 
 [X,Y] = ndgrid(x,y);
 
@@ -227,7 +235,7 @@ function save_def(Def,mat,ofname)
 
 if isempty(ofname), return; end;
 
-fname = ['y_' ofname '.nii'];
+fname = fullfile(pwd,['y_' ofname '.nii']);
 dim   = [size(Def{1},1) size(Def{1},2) size(Def{1},3) 1 3];
 dtype = 'FLOAT32-BE';
 off   = 0;
@@ -261,7 +269,7 @@ for i=1:size(fnames,1),
     V = spm_vol(fnames(i,:));
     M = inv(V.mat);
     [pth,nam,ext] = spm_fileparts(fnames(i,:));
-    ofname = fullfile(pth,['w',nam,ext]);
+    ofname = fullfile(pwd,['w',nam,ext]);
     Vo = struct('fname',ofname,...
                 'dim',[size(Def{1},1) size(Def{1},2) size(Def{1},3)],...
                 'dt',V.dt,...
@@ -281,3 +289,4 @@ for i=1:size(fnames,1),
     end;
 end;
 return;
+

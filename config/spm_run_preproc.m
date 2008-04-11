@@ -9,7 +9,7 @@ function out = spm_run_preproc(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_preproc.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_preproc.m 1381 2008-04-11 19:10:56Z john $
 
 job.opts.tpm = strvcat(job.opts.tpm{:});
 if isfield(job.opts,'msk'),
@@ -17,12 +17,12 @@ if isfield(job.opts,'msk'),
 end;
 for i=1:numel(job.data),
     res           = spm_preproc(job.data{i},job.opts);
-    [out(i).sn,out(i).isn]   = spm_prep2sn(res);
+    [out(1).sn,out(1).isn{i}]   = spm_prep2sn(res);
     [pth,nam]     = spm_fileparts(job.data{i});
-    out(i).snfile{1} = fullfile(pth,[nam '_seg_sn.mat']);
-    savefields(out(i).snfile{1},out(i).sn);
-    out(i).isnfile{1} = fullfile(pth,[nam '_seg_inv_sn.mat']);
-    savefields(out(i).isnfile{1},out(i).isn);
+    out(1).snfile{i} = fullfile(pth,[nam '_seg_sn.mat']);
+    savefields(out(1).snfile{i},out(1).sn{i});
+    out(1).isnfile{i} = fullfile(pth,[nam '_seg_inv_sn.mat']);
+    savefields(out(1).isnfile{i},out(1).isn{i});
 end;
 spm_preproc_write(cat(2,out(:).sn),job.output);
 % Guess filenames
@@ -31,20 +31,20 @@ sopts = [opts.GM;opts.WM;opts.CSF];
 for i=1:numel(job.data)
     [pth,nam,ext,num] = spm_fileparts(job.data{i});
     if opts.biascor,
-        out(i).biascorr{1} = ...
+        out(1).biascorr{i} = ...
             fullfile(pth, sprintf('m%s%s,1', nam, ext));
     end;
     for k1=1:3,
         if sopts(k1,3),
-            out(i).(sprintf('c%d',k1)){1} = ...
+            out(1).(sprintf('c%d',k1)){i} = ...
                 fullfile(pth, sprintf('c%d%s%s,1', k1, nam, ext));
         end;
         if sopts(k1,2),
-            out(i).(sprintf('wc%d',k1)){1} = ...
+            out(1).(sprintf('wc%d',k1)){i} = ...
                 fullfile(pth, sprintf('wc%d%s%s,1', k1, nam, ext));
         end;
         if sopts(k1,1),
-            out(i).(sprintf('mwc%d',k1)){1} = ...
+            out(1).(sprintf('mwc%d',k1)){i} = ...
                 fullfile(pth, sprintf('mwc%d%s%s,1', k1, nam, ext));
         end;
     end;
