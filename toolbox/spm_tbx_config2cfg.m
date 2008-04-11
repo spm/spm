@@ -28,14 +28,14 @@ function spm_tbx_config2cfg(c0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_tbx_config2cfg.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_tbx_config2cfg.m 1374 2008-04-11 14:36:35Z volkmar $
 
 % Convert to cfg_ tree. This will produce warnings if some elements could
 % not be converted properly.
 c = cfg_struct2cfg(c0);
 
 % generate code for configuration
-[cstr tag] = gencode(c,'','',cfg_tropts(cfg_findspec, 0, Inf, 0, Inf, true));
+[cstr tag] = gencode(c,'',{},'',cfg_tropts(cfg_findspec, 0, Inf, 0, Inf, true));
 cfgname = sprintf('tbx_cfg_%s', tag);
 fid = fopen(sprintf('%s.m', cfgname),'w');
 fprintf(fid, 'function %s = %s\n', tag, cfgname);
