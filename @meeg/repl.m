@@ -5,7 +5,7 @@ function res = repl(obj, ind)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: $
+% $Id: repl.m 1373 2008-04-11 14:24:03Z spm $
 
 if isfield(obj.trials(1), 'repl')
     res = cat(1, obj.trials.repl);

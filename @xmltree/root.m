@@ -26,8 +26,8 @@ uid = 1;
 
 % Look for the first element in the XML Tree
 for i=1:length(tree)
-	if strcmp(get(tree,i,'type'),'element')
-		uid = i;
-		break
-	end
+    if strcmp(get(tree,i,'type'),'element')
+        uid = i;
+        break
+    end
 end

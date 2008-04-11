@@ -26,7 +26,7 @@ function varargout = spm_eeg_scalp2d_ext(varargin)
 
 % Last Modified by GUIDE v2.5 22-Nov-2005 17:06:20
 
-% Colon removed so that times output to Matlab window	Doris Eckstein
+% Colon removed so that times output to Matlab window   Doris Eckstein
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -63,15 +63,15 @@ handles.T = varargin{2}; % input in peri-stimulus time (ms)
 
 D = handles.D;
 for i = 1:length(handles.T)
-	tmp = (handles.T(i) - D.time(1:D.nsamples, 'ms')).^2;
-	[m, ind(i)] = min(tmp);
+    tmp = (handles.T(i) - D.time(1:D.nsamples, 'ms')).^2;
+    [m, ind(i)] = min(tmp);
 end
 
 handles.T = ind;
 
 % locations
 gfx = getcache(D, 'gfx');
-gfx.channels = intersect(gfx.channels, D.meegchannels);	% to ensure EOG not included
+gfx.channels = intersect(gfx.channels, D.meegchannels); % to ensure EOG not included
 D = cache(D, gfx);
 xy = D.coor2D(gfx.channels);
 
@@ -162,7 +162,7 @@ if length(T) == 1
         handles.CLim2 = max(max(D(setdiff(gfx.channels, D.badchannels), :, event)));
     end
 else
-	d = squeeze(mean(D(gfx.channels, T, event), 2));
+    d = squeeze(mean(D(gfx.channels, T, event), 2));
 end
 
 %Exclude bad channels

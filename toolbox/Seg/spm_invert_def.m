@@ -17,7 +17,7 @@ function y = spm_invert_def(y,M1,d0,M0,args)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_invert_def.m 1373 2008-04-11 14:24:03Z spm $
 
 
 d1 = size(y);

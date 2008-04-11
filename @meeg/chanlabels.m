@@ -5,7 +5,7 @@ function res = chanlabels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: chanlabels.m 1373 2008-04-11 14:24:03Z spm $
 
 if nargin == 3
     ind = varargin{1};

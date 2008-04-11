@@ -37,7 +37,7 @@ for i = 1:nimgs
     vol = I.vol.imgdata;
   end
   vals(i,:) = spm_sample_vol(vol, XYZ(X,:), XYZ(Y,:),XYZ(Z,:),[holdlist(i) ...
-		    I.background]);
+            I.background]);
 end  
 return
 

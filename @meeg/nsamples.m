@@ -5,6 +5,6 @@ function res = nsamples(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: nsamples.m 1125 2008-01-30 12:12:18Z vladimir $
+% $Id: nsamples.m 1373 2008-04-11 14:24:03Z spm $
 
 res = obj.Nsamples;

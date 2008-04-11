@@ -5,7 +5,7 @@ function res = cache(this, stuff)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id$
+% $Id: cache.m 1373 2008-04-11 14:24:03Z spm $
 
 if ischar(stuff)
     % assume this is a retrieval

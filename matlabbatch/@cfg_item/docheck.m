@@ -10,9 +10,9 @@ function chk = docheck(item, val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: copyright_cfg.m 166 2008-02-28 16:19:56Z glauche $
+% $Id: docheck.m 1373 2008-04-11 14:24:03Z spm $
 
-rev = '$Rev: 166 $';
+rev = '$Rev: 1373 $';
 
 chk = true;
 

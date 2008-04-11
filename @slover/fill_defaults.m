@@ -13,11 +13,11 @@ function obj = fill_defaults(obj)
 % Some default structures
 def_labs = struct('colour',[1 1 1],'size',0.075,'format', '%+3.0f');
 def_fig  = struct('position', [0 0 1 0.92], 'units', 'normalized', ...
-		     'valign', 'top');
+             'valign', 'top');
 def_area = struct('position', [0 0 1 1], ...
-		  'units', '', ...
-		  'halign', 'center',...
-		  'valign', 'middle');
+          'units', '', ...
+          'halign', 'center',...
+          'valign', 'middle');
 
 % Figure.  We allow the figure to be dead, if we are going to resurrect
 % it later.
@@ -53,9 +53,9 @@ end
 orientn = [];
 if ischar(obj.transform)
   orientn = find(strcmpi(obj.transform, {'axial', ... 
-		    'coronal', ...
-		    'sagittal', ...
-		    'saggital'}));
+            'coronal', ...
+            'sagittal', ...
+            'saggital'}));
   if isempty(orientn)
     error(sprintf('Unexpected orientation %s', obj.transform));
   end
@@ -76,7 +76,7 @@ if (isempty(obj.slicedef) | isempty(obj.slices)) ...
   D = V.dim(1:3);
   T = obj.transform * V.mat;
   vcorners = [1 1 1; D(1) 1 1; 1 D(2) 1; D(1:2) 1; ...
-	      1 1 D(3); D(1) 1 D(3); 1 D(2:3) ; D(1:3)]';
+          1 1 D(3); D(1) 1 D(3); 1 D(2:3) ; D(1:3)]';
   corners = T * [vcorners; ones(1,8)];
   SC = sort(corners');
   vxsz = sqrt(sum(T(1:3,1:3).^2));
@@ -119,8 +119,8 @@ for i = 1:length(obj.img)
     img.type = 'truecolour';
     if mars_struct('isthere', img, 'prop')
       if img.prop == Inf
-	img.type = 'split';
-	img.prop = 1;
+    img.type = 'split';
+    img.prop = 1;
       end
     end
   end
@@ -152,9 +152,9 @@ for i = 1:length(obj.img)
   if ~mars_struct('isthere', img, 'cmap')
     if strcmpi(img.type, 'split')
       if obj.range(1)<obj.range(2)
-	img.cmap = pr_getcmap('hot');
+    img.cmap = pr_getcmap('hot');
       else
-	img.cmap = pr_getcmap('winter');
+    img.cmap = pr_getcmap('winter');
       end
     else                  % true colour
       img.cmap = gray;
@@ -168,10 +168,10 @@ for i = 1:length(obj.img)
     % this can be complex, and depends on split/true colour
     if strcmpi(img.type, 'split')
       if xor(img.range(1) < img.range(2), ...
-	     img.range(2) < 0)
-	img.outofrange = {[0],size(img.cmap,1)};
+         img.range(2) < 0)
+    img.outofrange = {[0],size(img.cmap,1)};
       else
-	obj.img(imgno).outofrange={[1], [0]};
+    obj.img(imgno).outofrange={[1], [0]};
       end
     else            % true colour
       img.outofrange = {1,size(img.cmap,1)};

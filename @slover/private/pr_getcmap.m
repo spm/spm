@@ -37,15 +37,15 @@ end
 % not a matrix, is it...
 % a colour name?
 tmp = strcmpi(acmapname, {'red','green','blue','cyan', 'magenta', ...
-		    'yellow', 'black', 'white'});
+            'yellow', 'black', 'white'});
 coldefs = [1 0 0;
-	   0 1 0;
-	   0 0 1;
-	   0 1 1;
-	   1 0 1;
-	   1 1 0;
-	   0 0 0;
-	   1 1 1];
+       0 1 0;
+       0 0 1;
+       0 1 1;
+       1 0 1;
+       1 1 0;
+       0 0 0;
+       1 1 1];
 
 if any(tmp)
   coldef = coldefs(tmp, :);

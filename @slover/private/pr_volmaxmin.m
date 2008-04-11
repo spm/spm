@@ -30,8 +30,8 @@ else
       tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),[0 NaN]);
       tmp = tmp(find(isfinite(tmp(:))));
       if ~isempty(tmp)
-	mx = max([mx; tmp]);
-	mn = min([mn; tmp]);
+    mx = max([mx; tmp]);
+    mn = min([mn; tmp]);
       end
     end
 end

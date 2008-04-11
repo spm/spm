@@ -5,6 +5,6 @@ function res = nconditions(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: nconditions.m 1236 2008-03-20 18:15:33Z stefan $
+% $Id: nconditions.m 1373 2008-04-11 14:24:03Z spm $
 
 res = length(unique(conditions(obj)));

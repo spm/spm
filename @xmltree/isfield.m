@@ -16,7 +16,7 @@ error(nargchk(3,3,nargin));
 
 F = zeros(1,length(uid));
 for i=1:length(uid)
-	if isfield(tree.tree{uid(i)},parameter)
-		F(i) = 1;
-	end
+    if isfield(tree.tree{uid(i)},parameter)
+        F(i) = 1;
+    end
 end

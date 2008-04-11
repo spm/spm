@@ -5,6 +5,6 @@ function res = fsample(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: fsample.m 1219 2008-03-17 17:35:12Z vladimir $
+% $Id: fsample.m 1373 2008-04-11 14:24:03Z spm $
 
 res = this.Fsample;

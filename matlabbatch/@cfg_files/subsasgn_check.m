@@ -12,15 +12,15 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: subsasgn_check.m 1373 2008-04-11 14:24:03Z spm $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1373 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
 switch subs(1).subs
     case {'num'}
-	sts = subsasgn_check_num(val);
+    sts = subsasgn_check_num(val);
     case {'val'}
         % val{1} should be a cellstr or a cfg_dep
         sts = iscell(val) && (isempty(val) || isempty(val{1}) || ...

@@ -26,7 +26,7 @@ function [M,R] = spm_get_closest_affine(x,y,w1,w2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_get_closest_affine.m 1373 2008-04-11 14:24:03Z spm $
  
 XX = zeros(4);
 XY = zeros(4);

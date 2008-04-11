@@ -110,9 +110,9 @@ global xmlstring Xparse_count xtree;
 %- Check input arguments
 error(nargchk(1,1,nargin));
 if isempty(xmlstr)
-	error('[XML] Not enough parameters.')
+    error('[XML] Not enough parameters.')
 elseif ~isstr(xmlstr) | sum(size(xmlstr)>1)>1
-	error('[XML] Input must be a string.')
+    error('[XML] Input must be a string.')
 end
 
 %- Initialize number of tags (<=> uid)
@@ -141,281 +141,281 @@ clear global xmlstring Xparse_count xtree;
 
 %-----------------------------------------------------------------------
 function frag = compile(frag)
-	global xmlstring xtree Xparse_count;
-	
-	while 1,
-		if length(xmlstring)<=frag.str | ...
-		   (frag.str == length(xmlstring)-1 & strcmp(xmlstring(frag.str:end),' '))
-			return
-		end
-		TagStart = xml_findstr(xmlstring,'<',frag.str,1);
-		if isempty(TagStart)
-			%- Character data
-			error(sprintf(['[XML] Unknown data at the end of the XML file.\n' ...
-			'      Please send me your XML file at flandin@sophia.inria.fr']));
-			xtree{Xparse_count} = chardata;
-			xtree{Xparse_count}.value = erode(entity(xmlstring(frag.str:end)));
-			xtree{Xparse_count}.parent = frag.parent;
-			xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
-			frag.str = '';
-		elseif TagStart > frag.str
-			if strcmp(xmlstring(frag.str:TagStart-1),' ')
-				%- A single white space before a tag (ignore)
-				frag.str = TagStart;
-			else
-				%- Character data
-				xtree{Xparse_count} = chardata;
-				xtree{Xparse_count}.value = erode(entity(xmlstring(frag.str:TagStart-1)));
-				xtree{Xparse_count}.parent = frag.parent;
-				xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
-				frag.str = TagStart;
-			end
-		else 
-			if strcmp(xmlstring(frag.str+1),'?')
-				%- Processing instruction
-				frag = tag_pi(frag);
-			else
-				if length(xmlstring)-frag.str>4 & strcmp(xmlstring(frag.str+1:frag.str+3),'!--')
-					%- Comment
-					frag = tag_comment(frag);
-				else
-					if length(xmlstring)-frag.str>9 & strcmp(xmlstring(frag.str+1:frag.str+8),'![CDATA[')
-						%- Litteral data
-						frag = tag_cdata(frag);
-					else
-						%- A tag element (empty (<.../>) or not)
-						if ~isempty(frag.end)
-							endmk = ['/' frag.end '>'];
-						else 
-							endmk = '/>';
-						end
-						if strcmp(xmlstring(frag.str+1:frag.str+length(frag.end)+2),endmk) | ...
-							strcmp(strip(xmlstring(frag.str+1:frag.str+length(frag.end)+2)),endmk)
-							frag.str = frag.str + length(frag.end)+3;
-							return
-						else
-							frag = tag_element(frag);
-						end
-					end
-				end
-			end
-		end
-	end
+    global xmlstring xtree Xparse_count;
+    
+    while 1,
+        if length(xmlstring)<=frag.str | ...
+           (frag.str == length(xmlstring)-1 & strcmp(xmlstring(frag.str:end),' '))
+            return
+        end
+        TagStart = xml_findstr(xmlstring,'<',frag.str,1);
+        if isempty(TagStart)
+            %- Character data
+            error(sprintf(['[XML] Unknown data at the end of the XML file.\n' ...
+            '      Please send me your XML file at flandin@sophia.inria.fr']));
+            xtree{Xparse_count} = chardata;
+            xtree{Xparse_count}.value = erode(entity(xmlstring(frag.str:end)));
+            xtree{Xparse_count}.parent = frag.parent;
+            xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
+            frag.str = '';
+        elseif TagStart > frag.str
+            if strcmp(xmlstring(frag.str:TagStart-1),' ')
+                %- A single white space before a tag (ignore)
+                frag.str = TagStart;
+            else
+                %- Character data
+                xtree{Xparse_count} = chardata;
+                xtree{Xparse_count}.value = erode(entity(xmlstring(frag.str:TagStart-1)));
+                xtree{Xparse_count}.parent = frag.parent;
+                xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
+                frag.str = TagStart;
+            end
+        else 
+            if strcmp(xmlstring(frag.str+1),'?')
+                %- Processing instruction
+                frag = tag_pi(frag);
+            else
+                if length(xmlstring)-frag.str>4 & strcmp(xmlstring(frag.str+1:frag.str+3),'!--')
+                    %- Comment
+                    frag = tag_comment(frag);
+                else
+                    if length(xmlstring)-frag.str>9 & strcmp(xmlstring(frag.str+1:frag.str+8),'![CDATA[')
+                        %- Litteral data
+                        frag = tag_cdata(frag);
+                    else
+                        %- A tag element (empty (<.../>) or not)
+                        if ~isempty(frag.end)
+                            endmk = ['/' frag.end '>'];
+                        else 
+                            endmk = '/>';
+                        end
+                        if strcmp(xmlstring(frag.str+1:frag.str+length(frag.end)+2),endmk) | ...
+                            strcmp(strip(xmlstring(frag.str+1:frag.str+length(frag.end)+2)),endmk)
+                            frag.str = frag.str + length(frag.end)+3;
+                            return
+                        else
+                            frag = tag_element(frag);
+                        end
+                    end
+                end
+            end
+        end
+    end
 
 %-----------------------------------------------------------------------
 function frag = tag_element(frag)
-	global xmlstring xtree Xparse_count;
-	close =  xml_findstr(xmlstring,'>',frag.str,1);
-	if isempty(close)
-		error('[XML] Tag < opened but not closed.');
-	else
-		empty = strcmp(xmlstring(close-1:close),'/>');
-		if empty
-			close = close - 1;
-		end
-		starttag = normalize(xmlstring(frag.str+1:close-1));
-		nextspace = xml_findstr(starttag,' ',1,1);
-		attribs = '';
-		if isempty(nextspace)
-			name = starttag;
-		else
-			name = starttag(1:nextspace-1);
-			attribs = starttag(nextspace+1:end);
-		end
-		xtree{Xparse_count} = element;
-		xtree{Xparse_count}.name = strip(name);
-		if frag.parent
-			xtree{Xparse_count}.parent = frag.parent;
-			xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
-		end
-		if length(attribs) > 0
-			xtree{Xparse_count}.attributes = attribution(attribs);
-		end
-		if ~empty
-			contents = fragment;
-			contents.str = close+1;
-			contents.end = name;
-			contents.parent = Xparse_count;
-			contents = compile(contents);
-			frag.str = contents.str;
-		else
-			frag.str = close+2;
-		end
-	end
+    global xmlstring xtree Xparse_count;
+    close =  xml_findstr(xmlstring,'>',frag.str,1);
+    if isempty(close)
+        error('[XML] Tag < opened but not closed.');
+    else
+        empty = strcmp(xmlstring(close-1:close),'/>');
+        if empty
+            close = close - 1;
+        end
+        starttag = normalize(xmlstring(frag.str+1:close-1));
+        nextspace = xml_findstr(starttag,' ',1,1);
+        attribs = '';
+        if isempty(nextspace)
+            name = starttag;
+        else
+            name = starttag(1:nextspace-1);
+            attribs = starttag(nextspace+1:end);
+        end
+        xtree{Xparse_count} = element;
+        xtree{Xparse_count}.name = strip(name);
+        if frag.parent
+            xtree{Xparse_count}.parent = frag.parent;
+            xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
+        end
+        if length(attribs) > 0
+            xtree{Xparse_count}.attributes = attribution(attribs);
+        end
+        if ~empty
+            contents = fragment;
+            contents.str = close+1;
+            contents.end = name;
+            contents.parent = Xparse_count;
+            contents = compile(contents);
+            frag.str = contents.str;
+        else
+            frag.str = close+2;
+        end
+    end
 
 %-----------------------------------------------------------------------
 function frag = tag_pi(frag)
-	global xmlstring xtree Xparse_count;
-	close = xml_findstr(xmlstring,'?>',frag.str,1);
-	if isempty(close)
-		warning('[XML] Tag <? opened but not closed.')
-	else
-		nextspace = xml_findstr(xmlstring,' ',frag.str,1);
-		xtree{Xparse_count} = pri;
-		if nextspace > close | nextspace == frag.str+2
-			xtree{Xparse_count}.value = erode(xmlstring(frag.str+2:close-1));
-		else
-			xtree{Xparse_count}.value = erode(xmlstring(nextspace+1:close-1));
-			xtree{Xparse_count}.target = erode(xmlstring(frag.str+2:nextspace));
-		end
-		if frag.parent
-			xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
-			xtree{Xparse_count}.parent = frag.parent;
-		end
-		frag.str = close+2;
-	end
+    global xmlstring xtree Xparse_count;
+    close = xml_findstr(xmlstring,'?>',frag.str,1);
+    if isempty(close)
+        warning('[XML] Tag <? opened but not closed.')
+    else
+        nextspace = xml_findstr(xmlstring,' ',frag.str,1);
+        xtree{Xparse_count} = pri;
+        if nextspace > close | nextspace == frag.str+2
+            xtree{Xparse_count}.value = erode(xmlstring(frag.str+2:close-1));
+        else
+            xtree{Xparse_count}.value = erode(xmlstring(nextspace+1:close-1));
+            xtree{Xparse_count}.target = erode(xmlstring(frag.str+2:nextspace));
+        end
+        if frag.parent
+            xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
+            xtree{Xparse_count}.parent = frag.parent;
+        end
+        frag.str = close+2;
+    end
 
 %-----------------------------------------------------------------------
 function frag = tag_comment(frag)
-	global xmlstring xtree Xparse_count;
-	close = xml_findstr(xmlstring,'-->',frag.str,1);
-	if isempty(close)
-		warning('[XML] Tag <!-- opened but not closed.')
-	else
-		xtree{Xparse_count} = comment;
-		xtree{Xparse_count}.value = erode(xmlstring(frag.str+4:close-1));
-		if frag.parent
-			xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
-			xtree{Xparse_count}.parent = frag.parent;
-		end
-		frag.str = close+3;
-	end
+    global xmlstring xtree Xparse_count;
+    close = xml_findstr(xmlstring,'-->',frag.str,1);
+    if isempty(close)
+        warning('[XML] Tag <!-- opened but not closed.')
+    else
+        xtree{Xparse_count} = comment;
+        xtree{Xparse_count}.value = erode(xmlstring(frag.str+4:close-1));
+        if frag.parent
+            xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
+            xtree{Xparse_count}.parent = frag.parent;
+        end
+        frag.str = close+3;
+    end
 
 %-----------------------------------------------------------------------
 function frag = tag_cdata(frag)
-	global xmlstring xtree Xparse_count;
-	close = xml_findstr(xmlstring,']]>',frag.str,1);
-	if isempty(close)
-		warning('[XML] Tag <![CDATA[ opened but not closed.')
-	else
-		xtree{Xparse_count} = cdata;
-		xtree{Xparse_count}.value = xmlstring(frag.str+9:close-1);
-		if frag.parent
-			xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
-			xtree{Xparse_count}.parent = frag.parent;
-		end
-		frag.str = close+3;
-	end
+    global xmlstring xtree Xparse_count;
+    close = xml_findstr(xmlstring,']]>',frag.str,1);
+    if isempty(close)
+        warning('[XML] Tag <![CDATA[ opened but not closed.')
+    else
+        xtree{Xparse_count} = cdata;
+        xtree{Xparse_count}.value = xmlstring(frag.str+9:close-1);
+        if frag.parent
+            xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
+            xtree{Xparse_count}.parent = frag.parent;
+        end
+        frag.str = close+3;
+    end
 
 %-----------------------------------------------------------------------
 function all = attribution(str)
-	%- Initialize attributs
-	nbattr = 0;
-	all = cell(nbattr);
-	%- Look for 'key="value"' substrings
-	while 1,
-		eq = xml_findstr(str,'=',1,1);
-		if isempty(str) | isempty(eq), return; end
-		id = xml_findstr(str,'"',1,1);       % should also look for ''''
-		nextid = xml_findstr(str,'"',id+1,1);% rather than only '"'
-		nbattr = nbattr + 1;
-		all{nbattr}.key = strip(str(1:(eq-1)));
-		all{nbattr}.val = entity(str((id+1):(nextid-1)));
-		str = str((nextid+1):end);
-	end
+    %- Initialize attributs
+    nbattr = 0;
+    all = cell(nbattr);
+    %- Look for 'key="value"' substrings
+    while 1,
+        eq = xml_findstr(str,'=',1,1);
+        if isempty(str) | isempty(eq), return; end
+        id = xml_findstr(str,'"',1,1);       % should also look for ''''
+        nextid = xml_findstr(str,'"',id+1,1);% rather than only '"'
+        nbattr = nbattr + 1;
+        all{nbattr}.key = strip(str(1:(eq-1)));
+        all{nbattr}.val = entity(str((id+1):(nextid-1)));
+        str = str((nextid+1):end);
+    end
 
 %-----------------------------------------------------------------------
 function elm = element
-	global Xparse_count;
-	Xparse_count = Xparse_count + 1;
-	elm = struct('type','element','name','','attributes',[],'contents',[],'parent',[],'uid',Xparse_count);
+    global Xparse_count;
+    Xparse_count = Xparse_count + 1;
+    elm = struct('type','element','name','','attributes',[],'contents',[],'parent',[],'uid',Xparse_count);
    
 %-----------------------------------------------------------------------
 function cdat = chardata
-	global Xparse_count;
-	Xparse_count = Xparse_count + 1;
-	cdat = struct('type','chardata','value','','parent',[],'uid',Xparse_count);
+    global Xparse_count;
+    Xparse_count = Xparse_count + 1;
+    cdat = struct('type','chardata','value','','parent',[],'uid',Xparse_count);
    
 %-----------------------------------------------------------------------
 function cdat = cdata
-	global Xparse_count;
-	Xparse_count = Xparse_count + 1;
-	cdat = struct('type','cdata','value','','parent',[],'uid',Xparse_count);
+    global Xparse_count;
+    Xparse_count = Xparse_count + 1;
+    cdat = struct('type','cdata','value','','parent',[],'uid',Xparse_count);
    
 %-----------------------------------------------------------------------
 function proce = pri
-	global Xparse_count;
-	Xparse_count = Xparse_count + 1;
-	proce = struct('type','pi','value','','target','','parent',[],'uid',Xparse_count);
+    global Xparse_count;
+    Xparse_count = Xparse_count + 1;
+    proce = struct('type','pi','value','','target','','parent',[],'uid',Xparse_count);
 
 %-----------------------------------------------------------------------
 function commt = comment
-	global Xparse_count;
-	Xparse_count = Xparse_count + 1;
-	commt = struct('type','comment','value','','parent',[],'uid',Xparse_count);
+    global Xparse_count;
+    Xparse_count = Xparse_count + 1;
+    commt = struct('type','comment','value','','parent',[],'uid',Xparse_count);
 
 %-----------------------------------------------------------------------
 function frg = fragment
-	frg = struct('str','','parent','','end','');
+    frg = struct('str','','parent','','end','');
 
 %-----------------------------------------------------------------------
 function str = prolog(str)
-	%- Initialize beginning index of elements tree
-	b = 1;
-	%- Initial tag
-	start = xml_findstr(str,'<',1,1);
-	if isempty(start) 
-		error('[XML] No tag found.')
-	end
-	%- Header (<?xml version="1.0" ... ?>)
-	if strcmp(lower(str(start:start+2)),'<?x')
-		close = xml_findstr(str,'?>',1,1);
-		if ~isempty(close) 
-			b = close + 2;
-		else 
-			warning('[XML] Header tag incomplete.')
-		end
-	end
-	%- Doctype (<!DOCTYPE type ... [ declarations ]>)
-	start = xml_findstr(str,'<!DOCTYPE',b,1);  % length('<!DOCTYPE') = 9
-	if ~isempty(start) 
-		close = xml_findstr(str,'>',start+9,1);
-		if ~isempty(close)
-			b = close + 1;
-			dp = xml_findstr(str,'[',start+9,1);
-			if (~isempty(dp) & dp < b)
-				k = xml_findstr(str,']>',start+9,1);
-				if ~isempty(k)
-					b = k + 2;
-				else
-					warning('[XML] Tag [ in DOCTYPE opened but not closed.')
-				end
-			end
-		else
-			warning('[XML] Tag DOCTYPE opened but not closed.')
-		end
-	end
-	%- Skip prolog from the xml string
-	str = str(b:end);
+    %- Initialize beginning index of elements tree
+    b = 1;
+    %- Initial tag
+    start = xml_findstr(str,'<',1,1);
+    if isempty(start) 
+        error('[XML] No tag found.')
+    end
+    %- Header (<?xml version="1.0" ... ?>)
+    if strcmp(lower(str(start:start+2)),'<?x')
+        close = xml_findstr(str,'?>',1,1);
+        if ~isempty(close) 
+            b = close + 2;
+        else 
+            warning('[XML] Header tag incomplete.')
+        end
+    end
+    %- Doctype (<!DOCTYPE type ... [ declarations ]>)
+    start = xml_findstr(str,'<!DOCTYPE',b,1);  % length('<!DOCTYPE') = 9
+    if ~isempty(start) 
+        close = xml_findstr(str,'>',start+9,1);
+        if ~isempty(close)
+            b = close + 1;
+            dp = xml_findstr(str,'[',start+9,1);
+            if (~isempty(dp) & dp < b)
+                k = xml_findstr(str,']>',start+9,1);
+                if ~isempty(k)
+                    b = k + 2;
+                else
+                    warning('[XML] Tag [ in DOCTYPE opened but not closed.')
+                end
+            end
+        else
+            warning('[XML] Tag DOCTYPE opened but not closed.')
+        end
+    end
+    %- Skip prolog from the xml string
+    str = str(b:end);
 
 %-----------------------------------------------------------------------
 function str = strip(str)
-	a = isspace(str);
-	a = find(a==1);
-	str(a) = '';
+    a = isspace(str);
+    a = find(a==1);
+    str(a) = '';
 
 %-----------------------------------------------------------------------
 function str = normalize(str)
-	% Find white characters (space, newline, carriage return, tabs, ...)
-	i = isspace(str);
-	i = find(i == 1);
-	str(i) = ' ';
-	% replace several white characters by only one
-	if ~isempty(i)
-		j = i - [i(2:end) i(end)];
-		k = find(j == -1);
-		str(i(k)) = [];
-	end
+    % Find white characters (space, newline, carriage return, tabs, ...)
+    i = isspace(str);
+    i = find(i == 1);
+    str(i) = ' ';
+    % replace several white characters by only one
+    if ~isempty(i)
+        j = i - [i(2:end) i(end)];
+        k = find(j == -1);
+        str(i(k)) = [];
+    end
 
 %-----------------------------------------------------------------------
 function str = entity(str)
-	str = strrep(str,'&lt;','<');
-	str = strrep(str,'&gt;','>');
-	str = strrep(str,'&quot;','"');
-	str = strrep(str,'&apos;','''');
-	str = strrep(str,'&amp;','&');
+    str = strrep(str,'&lt;','<');
+    str = strrep(str,'&gt;','>');
+    str = strrep(str,'&quot;','"');
+    str = strrep(str,'&apos;','''');
+    str = strrep(str,'&amp;','&');
    
 %-----------------------------------------------------------------------
 function str = erode(str)
-	if ~isempty(str) & str(1)==' ' str(1)=''; end;
-	if ~isempty(str) & str(end)==' ' str(end)=''; end;
+    if ~isempty(str) & str(1)==' ' str(1)=''; end;
+    if ~isempty(str) & str(end)==' ' str(end)=''; end;

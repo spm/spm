@@ -10,7 +10,7 @@ function spm_latex_cfg(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_latex_cfg.m 1373 2008-04-11 14:24:03Z spm $
 
 if nargin==0, c = spm_cfg; end;
 

@@ -5,5 +5,6 @@ function this = rmfield(this, stuff)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
+% $Id: rmfield.m 1373 2008-04-11 14:24:03Z spm $
 
 eval(['obj = rmfield(obj.' stuff ');'])

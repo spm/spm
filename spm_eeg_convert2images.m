@@ -28,7 +28,7 @@ function D = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_convert2images.m 1373 2008-04-11 14:24:03Z spm $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -113,14 +113,14 @@ if strcmp(D.transformtype, 'TF');
                 
                 for l = Itrials
 
-					% if single trial data make new directory for single trials,
-					% otherwise just write images to trialtype directory
+                    % if single trial data make new directory for single trials,
+                    % otherwise just write images to trialtype directory
                     if strcmp(D.type, 'single')
-						% single trial data
-						fname = sprintf('trial%d.img', l);
-					else
-						fname = 'average.img';
-					end
+                        % single trial data
+                        fname = sprintf('trial%d.img', l);
+                    else
+                        fname = 'average.img';
+                    end
 
                     dat = file_array(fname, [D.nfrequencies D.nsamples], 'FLOAT64');
                     dat(:, :) = squeeze(mean(D(images.electrodes_of_interest, :, :, l), 1));

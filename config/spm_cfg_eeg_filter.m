@@ -1,12 +1,12 @@
-function S = spm_cfg_eeg_filter8
+function S = spm_cfg_eeg_filter
 % configuration file for EEG Filtering
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_config_eeg_filter.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_cfg_eeg_filter.m 1373 2008-04-11 14:24:03Z spm $
 
-rev = '$Rev$';
+rev = '$Rev: 1373 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';

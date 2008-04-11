@@ -19,39 +19,39 @@ function tree = xmltree(varargin)
 % @(#)xmltree.m                 Guillaume Flandin              02/03/27
 
 switch(nargin)
-	case 0
-		tree.tree{1} = struct('type','element',...
-		                      'name','tag',...
-						      'attributes',[],...
-						      'contents',[],...
-							  'parent',[],...
-						      'uid',1);
-		tree.filename = '';
-		tree = class(tree,'xmltree');
-	case 1
-		if isa(varargin{1},'xmltree')
-			tree = varargin{1};
-		elseif ischar(varargin{1})
-			% Input argument is an XML string
-			if (exist(varargin{1}) ~= 2 & ...
-				~isempty(xml_findstr(varargin{1},'<',1,1)))
-				tree.tree = xml_parser(varargin{1});
-				tree.filename = '';
-			% Input argument is an XML filename
-			else
-				fid = fopen(varargin{1},'rt');
-				if (fid == -1) 
-					error(['[XMLTree] Cannot open ' varargin{1}]);
-				end
-				xmlstr = fscanf(fid,'%c');
-				fclose(fid);
-				tree.tree = xml_parser(xmlstr);
-				tree.filename = varargin{1};
-			end
-			tree = class(tree,'xmltree');
-		else 
-			error('[XMLTree] Bad input argument');
-		end
-	otherwise
-		error('[XMLTree] Too many input arguments');
+    case 0
+        tree.tree{1} = struct('type','element',...
+                              'name','tag',...
+                              'attributes',[],...
+                              'contents',[],...
+                              'parent',[],...
+                              'uid',1);
+        tree.filename = '';
+        tree = class(tree,'xmltree');
+    case 1
+        if isa(varargin{1},'xmltree')
+            tree = varargin{1};
+        elseif ischar(varargin{1})
+            % Input argument is an XML string
+            if (exist(varargin{1}) ~= 2 & ...
+                ~isempty(xml_findstr(varargin{1},'<',1,1)))
+                tree.tree = xml_parser(varargin{1});
+                tree.filename = '';
+            % Input argument is an XML filename
+            else
+                fid = fopen(varargin{1},'rt');
+                if (fid == -1) 
+                    error(['[XMLTree] Cannot open ' varargin{1}]);
+                end
+                xmlstr = fscanf(fid,'%c');
+                fclose(fid);
+                tree.tree = xml_parser(xmlstr);
+                tree.filename = varargin{1};
+            end
+            tree = class(tree,'xmltree');
+        else 
+            error('[XMLTree] Bad input argument');
+        end
+    otherwise
+        error('[XMLTree] Too many input arguments');
 end

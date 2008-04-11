@@ -41,19 +41,19 @@ set(H,'Units','normalized')
 err = 0;
 try, eval([printstr ' ' filename]), catch, err=1; end
 if err
-	errstr = lasterr;
-	tmp = [find(abs(errstr)==10),length(errstr)+1];
-	str = {errstr(1:tmp(1)-1)};
-	for i = 1:length(tmp)-1
-		if tmp(i)+1 < tmp(i+1) 
-			str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
-		end
-	end
-	str = {str{:},	'','- print command is:',['    ',printstr ' ' filename],...
-			'','- current directory is:',['    ',pwd],...
-			'','            * nothing has been printed *'};
-	for i=1:length(str)
-	  disp(str{i});end
+    errstr = lasterr;
+    tmp = [find(abs(errstr)==10),length(errstr)+1];
+    str = {errstr(1:tmp(1)-1)};
+    for i = 1:length(tmp)-1
+        if tmp(i)+1 < tmp(i+1) 
+            str = [str, {errstr(tmp(i)+1:tmp(i+1)-1)}];
+        end
+    end
+    str = {str{:},  '','- print command is:',['    ',printstr ' ' filename],...
+            '','- current directory is:',['    ',pwd],...
+            '','            * nothing has been printed *'};
+    for i=1:length(str)
+      disp(str{i});end
 end
 
 set(H,{'Units'},un)

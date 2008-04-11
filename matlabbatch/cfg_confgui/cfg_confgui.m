@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: cfg_confgui.m 1373 2008-04-11 14:24:03Z spm $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1373 $';
 
 %% Declaration of fields
 
@@ -35,9 +35,9 @@ conf_tag.tag     = 'tag';
 conf_tag.strtype = 's';
 conf_tag.num     = [1 Inf];
 conf_tag.help    = {['Tag of configuration item.', 'This will be used as tag' ...
-		    ' of the generated output and (depending on item class)' ...
-		    ' appear in the input structure to the computation' ...
-		    ' function.']};
+            ' of the generated output and (depending on item class)' ...
+            ' appear in the input structure to the computation' ...
+            ' function.']};
 
 % Val Item
 %-----------------------------------------------------------------------

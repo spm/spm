@@ -24,11 +24,11 @@ error(nargchk(1,2,nargin));
 
 % Get the root uid of the output structure
 if nargin == 1
-	% Get the root uid of the XML tree
-	root_uid = root(tree);
+    % Get the root uid of the XML tree
+    root_uid = root(tree);
 else
-	% Uid provided by user
-	root_uid = uid;
+    % Uid provided by user
+    root_uid = uid;
 end
 
 % Initialize the output structure
@@ -44,65 +44,65 @@ s = rmfield(s,'deletedummy');
 
 %=======================================================================
 function s = sub_convert(tree,s,uid,arg)
-	type = get(tree,uid,'type');
-	switch type
-		case 'element'
-			child = children(tree,uid);
-			l = {};
-			ll = {};
-			for i=1:length(child)
-				if isfield(tree,child(i),'name')
-					ll = { ll{:}, get(tree,child(i),'name') };
-				end
-			end
-			for i=1:length(child)
-				if isfield(tree,child(i),'name')
-					name = get(tree,child(i),'name');
-					nboccur = sum(ismember(l,name));
-					nboccur2 = sum(ismember(ll,name));
-					l = { l{:}, name };
-					if nboccur | (nboccur2>1)
-						arg2 = { arg{:}, name, {nboccur+1} };
-					else
-						arg2 = { arg{:}, name};
-					end
-				else
-					arg2 = arg;
-				end
-				s = sub_convert(tree,s,child(i),arg2);
-			end
-			if isempty(child)
-				s = sub_setfield(s,arg{:},'');
-			end
-		case 'chardata'
-			s = sub_setfield(s,arg{:},get(tree,uid,'value'));
-		case 'cdata'
-			s = sub_setfield(s,arg{:},get(tree,uid,'value'));
-		case 'pi'
-			% Processing instructions are evaluated if possible
-			app = get(tree,uid,'target');
-			switch app
-				case {'matlab',''}
-					s = sub_setfield(s,arg{:},eval(get(tree,uid,'value')));
-				case 'unix'
-					s = sub_setfield(s,arg{:},unix(get(tree,uid,'value')));
-				case 'dos'
-					s = sub_setfield(s,arg{:},dos(get(tree,uid,'value')));
-				case 'system'
-					s = sub_setfield(s,arg{:},system(get(tree,uid,'value')));
-				otherwise
-					try,
-						s = sub_setfield(s,arg{:},feval(app,get(tree,uid,'value')));
-					catch,
-						warning('[Xmltree/convert] Unknown target application');
-					end
-			end
-		case 'comment'
-			% Comments are forgotten
-		otherwise
-			warning(sprintf('Type %s unknown : not saved',get(tree,uid,'type')));
-	end
-	
+    type = get(tree,uid,'type');
+    switch type
+        case 'element'
+            child = children(tree,uid);
+            l = {};
+            ll = {};
+            for i=1:length(child)
+                if isfield(tree,child(i),'name')
+                    ll = { ll{:}, get(tree,child(i),'name') };
+                end
+            end
+            for i=1:length(child)
+                if isfield(tree,child(i),'name')
+                    name = get(tree,child(i),'name');
+                    nboccur = sum(ismember(l,name));
+                    nboccur2 = sum(ismember(ll,name));
+                    l = { l{:}, name };
+                    if nboccur | (nboccur2>1)
+                        arg2 = { arg{:}, name, {nboccur+1} };
+                    else
+                        arg2 = { arg{:}, name};
+                    end
+                else
+                    arg2 = arg;
+                end
+                s = sub_convert(tree,s,child(i),arg2);
+            end
+            if isempty(child)
+                s = sub_setfield(s,arg{:},'');
+            end
+        case 'chardata'
+            s = sub_setfield(s,arg{:},get(tree,uid,'value'));
+        case 'cdata'
+            s = sub_setfield(s,arg{:},get(tree,uid,'value'));
+        case 'pi'
+            % Processing instructions are evaluated if possible
+            app = get(tree,uid,'target');
+            switch app
+                case {'matlab',''}
+                    s = sub_setfield(s,arg{:},eval(get(tree,uid,'value')));
+                case 'unix'
+                    s = sub_setfield(s,arg{:},unix(get(tree,uid,'value')));
+                case 'dos'
+                    s = sub_setfield(s,arg{:},dos(get(tree,uid,'value')));
+                case 'system'
+                    s = sub_setfield(s,arg{:},system(get(tree,uid,'value')));
+                otherwise
+                    try,
+                        s = sub_setfield(s,arg{:},feval(app,get(tree,uid,'value')));
+                    catch,
+                        warning('[Xmltree/convert] Unknown target application');
+                    end
+            end
+        case 'comment'
+            % Comments are forgotten
+        otherwise
+            warning(sprintf('Type %s unknown : not saved',get(tree,uid,'type')));
+    end
+    
 %=======================================================================
 function s = sub_setfield(s,varargin)
 % Same as setfield but using '{}' rather than '()'

@@ -11,13 +11,13 @@ function t = spm_convmtx(v,n)
 %   See also CONV.
 %__________________________________________________________________________
 %   Author(s): L. Shure, 5-17-88
-%   	   T. Krauss, 3-30-93, removed dependence on toeplitz
+%          T. Krauss, 3-30-93, removed dependence on toeplitz
 %   Copyright 1988-2004 The MathWorks, Inc.
-%   $Revision: 1183 $  $Date: 2004/12/26 22:15:33 $
+%   $Revision: 1373 $  $Date: 2004/12/26 22:15:33 $
 
 %--------------------------------------------------------------------------
 [mv,nv] = size(v);
-v = v(:);		                              % make v a column vector
+v = v(:);                                     % make v a column vector
 c = [v; sparse(n-1,1)];
 r = sparse(n,1);
 m = length(c);
@@ -29,6 +29,6 @@ t(:) = x(t);                                  % actual data
 % end of toeplitz code
 
 if mv < nv
-	t = t.';
+    t = t.';
 end
 

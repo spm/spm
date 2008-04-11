@@ -5,6 +5,7 @@ function res = pickconditions(obj, label)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
+% $Id: pickconditions.m 1373 2008-04-11 14:24:03Z spm $
 
 c = conditions(obj);
 

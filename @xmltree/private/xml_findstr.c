@@ -27,53 +27,53 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     unsigned int *k = NULL;
     mxArray *out = NULL;
     
-	/* Check for proper number of arguments. */
+    /* Check for proper number of arguments. */
     if ((nrhs == 0) || (nrhs == 1))
-	    mexErrMsgTxt("Not enough input arguments.");
+        mexErrMsgTxt("Not enough input arguments.");
     else if (nrhs > 4)
-	    mexErrMsgTxt("Too many input arguments.");
+        mexErrMsgTxt("Too many input arguments.");
     else if (nlhs > 1)
         mexErrMsgTxt("Too many output arguments.");
     
     /* The input TEXT must be a string */
-	if (!mxIsChar(prhs[0]))
-	    mexErrMsgTxt("Inputs must be character arrays.");
-	stext = mxGetM(prhs[0]) * mxGetN(prhs[0]);
+    if (!mxIsChar(prhs[0]))
+        mexErrMsgTxt("Inputs must be character arrays.");
+    stext = mxGetM(prhs[0]) * mxGetN(prhs[0]);
 #ifdef __HACK_MXCHAR__
-	text = mxGetData(prhs[0]);
+    text = mxGetData(prhs[0]);
 #else
     text = mxCalloc(stext+1, sizeof(char));
     mxGetString(prhs[0], text, stext+1);
 #endif
         
     /* The input PATTERN must be a string */
-	if (!mxIsChar(prhs[1]))
-		mexErrMsgTxt("Inputs must be character arrays.");
+    if (!mxIsChar(prhs[1]))
+        mexErrMsgTxt("Inputs must be character arrays.");
     spattern = mxGetM(prhs[1]) * mxGetN(prhs[1]);
 #ifdef __HACK_MXCHAR__
-	pattern = mxGetData(prhs[1]);
+    pattern = mxGetData(prhs[1]);
 #else
     pattern = mxCalloc(spattern+1, sizeof(char));
-	mxGetString(prhs[1], pattern, spattern+1);
+    mxGetString(prhs[1], pattern, spattern+1);
 #endif
 
-	/* The input INDEX must be an integer */
-	if (nrhs > 2) {
-	    if ((!mxIsNumeric(prhs[2]) || (mxGetM(prhs[2]) * mxGetN(prhs[2]) !=  1)))
-	        mexErrMsgTxt("Index input must be an integer.");
-	    ind = (unsigned int)mxGetScalar(prhs[2]);
-	    if (ind < 1)
-	        mexErrMsgTxt("Index must be greater than 1.");
-	}
-	
-	/* The input OCCUR must be an integer */
-	if (nrhs == 4) {
-	    if ((!mxIsNumeric(prhs[3]) || (mxGetM(prhs[3]) * mxGetN(prhs[3]) !=  1)))
-	        mexErrMsgTxt("Index input must be an integer.");
-	    nboccur = (unsigned int)mxGetScalar(prhs[3]);
-	}
-	
-	/* Find pattern in text */
+    /* The input INDEX must be an integer */
+    if (nrhs > 2) {
+        if ((!mxIsNumeric(prhs[2]) || (mxGetM(prhs[2]) * mxGetN(prhs[2]) !=  1)))
+            mexErrMsgTxt("Index input must be an integer.");
+        ind = (unsigned int)mxGetScalar(prhs[2]);
+        if (ind < 1)
+            mexErrMsgTxt("Index must be greater than 1.");
+    }
+    
+    /* The input OCCUR must be an integer */
+    if (nrhs == 4) {
+        if ((!mxIsNumeric(prhs[3]) || (mxGetM(prhs[3]) * mxGetN(prhs[3]) !=  1)))
+            mexErrMsgTxt("Index input must be an integer.");
+        nboccur = (unsigned int)mxGetScalar(prhs[3]);
+    }
+    
+    /* Find pattern in text */
     for (i=ind-1;i<stext;i++) {
         for (j=0;j<spattern && i+j<stext;j++) {
             if (pattern[j] == text[i+j]) {

@@ -17,12 +17,12 @@ child = [];
 uid = uid(:);
 l = length(tree);
 for i=1:length(uid)
-	if uid(i) > 0 & uid(i) <= l
-		if strcmp(tree.tree{uid(i)}.type,'element')
-			child = [child tree.tree{uid(i)}.contents];
-		end
-	else
-		error('[XMLTree] Invalid UID.');
-	end
+    if uid(i) > 0 & uid(i) <= l
+        if strcmp(tree.tree{uid(i)}.type,'element')
+            child = [child tree.tree{uid(i)}.contents];
+        end
+    else
+        error('[XMLTree] Invalid UID.');
+    end
 end
 if isempty(child), child = []; end

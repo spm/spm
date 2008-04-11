@@ -70,7 +70,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1086 2008-01-11 15:11:20Z john $
+% $Id: spm_jobman.m 1373 2008-04-11 14:24:03Z spm $
 
 
 if nargin==0
@@ -174,7 +174,7 @@ return;
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function [mljob comp] = canonicalise_job(job)
+function [mljob, comp] = canonicalise_job(job)
 % Check whether job is a SPM5 or matlabbatch job. In the first case, all
 % items in job{:} should have a fieldname of either 'temporal', 'spatial',
 % 'stats', 'tools' or 'util'. If this is the case, then job will be

@@ -14,26 +14,26 @@ function tree = flush(tree,uid)
 error(nargchk(1,2,nargin));
 
 if nargin == 1,
-	uid = root(tree);
+    uid = root(tree);
 end
 
 uid = uid(:);
 for i=1:length(uid)
-	 tree = sub_flush(tree,uid(i));
+     tree = sub_flush(tree,uid(i));
 end
 
 %=======================================================================
 function tree = sub_flush(tree,uid)
-	if isfield(tree.tree{uid},'contents')
-		% contents is parsed in reverse order because each child is
-		% deleted and the contents vector is then eventually reduced
-		for i=length(tree.tree{uid}.contents):-1:1
-			tree = sub_flush(tree,tree.tree{uid}.contents(i));
-		end
-	end
-	if strcmp(tree.tree{uid}.type,'chardata') |...
-		strcmp(tree.tree{uid}.type,'pi') |...
-		strcmp(tree.tree{uid}.type,'cdata') |...
-		strcmp(tree.tree{uid}.type,'comment')
-		tree = delete(tree,uid);
-	end
+    if isfield(tree.tree{uid},'contents')
+        % contents is parsed in reverse order because each child is
+        % deleted and the contents vector is then eventually reduced
+        for i=length(tree.tree{uid}.contents):-1:1
+            tree = sub_flush(tree,tree.tree{uid}.contents(i));
+        end
+    end
+    if strcmp(tree.tree{uid}.type,'chardata') |...
+        strcmp(tree.tree{uid}.type,'pi') |...
+        strcmp(tree.tree{uid}.type,'cdata') |...
+        strcmp(tree.tree{uid}.type,'comment')
+        tree = delete(tree,uid);
+    end

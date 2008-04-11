@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: $
+% $Id: coor2D.m 1373 2008-04-11 14:24:03Z spm $
 
 
 megind = strmatch('MEG', chantype(this), 'exact');

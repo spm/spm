@@ -18,6 +18,6 @@ error(nargchk(4,4,nargin));
 if iscell(uid), uid = [uid{:}]; else uid = uid(:); end
 
 for i=1:length(uid)
-	tree.tree{uid(i)} = builtin('subsasgn', tree.tree{uid(i)}, struct('type','.','subs',parameter), value);
-	%tree.tree{uid(i)} = setfield(tree.tree{uid(i)},parameter,value);
+    tree.tree{uid(i)} = builtin('subsasgn', tree.tree{uid(i)}, struct('type','.','subs',parameter), value);
+    %tree.tree{uid(i)} = setfield(tree.tree{uid(i)},parameter,value);
 end

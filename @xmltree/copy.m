@@ -14,7 +14,7 @@ function tree = copy(tree,subuid,uid)
 
 error(nargchk(2,3,nargin));
 if nargin == 2
-	uid = parent(tree,subuid);
+    uid = parent(tree,subuid);
 end
 
 l = length(tree);
@@ -29,17 +29,17 @@ tree.tree{uid}.contents = [tree.tree{uid}.contents l+1];
 %=======================================================================
 function tree = sub_copy(tree,uid,p)
 
-	l = length(tree);
-	tree.tree{l+1} = tree.tree{uid};
-	tree.tree{l+1}.uid = l+1;
-	tree.tree{l+1}.parent = p;
-	tree.tree{l+1}.contents = [];
-	if isfield(tree.tree{uid},'contents')
-		contents = get(tree,uid,'contents');
-		m = length(tree);
-		for i=1:length(contents)
-			tree.tree{l+1}.contents = [tree.tree{l+1}.contents m+1];
-			tree = sub_copy(tree,contents(i),l+1);
-			m = length(tree);
-		end
-	end
+    l = length(tree);
+    tree.tree{l+1} = tree.tree{uid};
+    tree.tree{l+1}.uid = l+1;
+    tree.tree{l+1}.parent = p;
+    tree.tree{l+1}.contents = [];
+    if isfield(tree.tree{uid},'contents')
+        contents = get(tree,uid,'contents');
+        m = length(tree);
+        for i=1:length(contents)
+            tree.tree{l+1}.contents = [tree.tree{l+1}.contents m+1];
+            tree = sub_copy(tree,contents(i),l+1);
+            m = length(tree);
+        end
+    end

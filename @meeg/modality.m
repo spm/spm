@@ -5,7 +5,7 @@ function res = modality(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: modality_.m 1305 2008-04-03 17:39:04Z vladimir $
+% $Id: modality.m 1373 2008-04-11 14:24:03Z spm $
 
 % Unlike in SPM5, in SPM8 modality is not well defined and is a property
 % of channels rather than the whole file. So this function is only a

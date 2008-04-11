@@ -70,9 +70,9 @@ function item = cfg_files(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_files.m 1337 2008-04-09 15:52:05Z volkmar $
+% $Id: cfg_files.m 1373 2008-04-11 14:24:03Z spm $
 
-rev = '$Rev: 1337 $';
+rev = '$Rev: 1373 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
@@ -103,9 +103,9 @@ mxpnargin = 4; % Max 4 arguments to parent initialisation
 pnargin = min([nargin,mxpnargin]);
 switch nargin
     case 0
-	gitem = cfg_item;
+    gitem = cfg_item;
     case {1,2,3,4,5,6,7,8,9,10}
-	gitem = cfg_item(varargin{1:pnargin});
+    gitem = cfg_item(varargin{1:pnargin});
     otherwise
         error('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
 end;

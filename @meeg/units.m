@@ -5,5 +5,6 @@ function res = units(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
+% $Id: units.m 1373 2008-04-11 14:24:03Z spm $
 
 res = getset(this, 'channels', 'units', varargin{:});

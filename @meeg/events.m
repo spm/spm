@@ -6,6 +6,6 @@ function res = events(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id $
+% $Id: events.m 1373 2008-04-11 14:24:03Z spm $
 
 res = getset(this, 'trials', 'events', varargin{:});

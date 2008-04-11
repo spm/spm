@@ -11,12 +11,12 @@ function item = clearval(item, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: clearval.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: clearval.m 1373 2008-04-11 14:24:03Z spm $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1373 $';
 
 for k = 1:numel(item.cfg_item.val)
-	item.cfg_item.val{k} = clearval(item.cfg_item.val{k}, ...
-					  dflag);
+    item.cfg_item.val{k} = clearval(item.cfg_item.val{k}, ...
+                      dflag);
 end;
 

@@ -5,7 +5,7 @@ function res = path(this, name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id$
+% $Id: path.m 1373 2008-04-11 14:24:03Z spm $
 
 switch nargin
     case 1

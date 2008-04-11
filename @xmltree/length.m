@@ -19,15 +19,15 @@ l = length(tree.tree);
 
 % Substract the number of deleted nodes to the previous length
 if nargin == 2
-	if strcmp(r,'real')
-		ll = 0;
-		for i=1:l
-			if ~strcmp(tree.tree{i}.type,'deleted')
-				ll = ll + 1;
-			end
-		end
-		l = ll;
-	else
-		error('[XMLTree] Bad input argument.');
-	end
+    if strcmp(r,'real')
+        ll = 0;
+        for i=1:l
+            if ~strcmp(tree.tree{i}.type,'deleted')
+                ll = ll + 1;
+            end
+        end
+        l = ll;
+    else
+        error('[XMLTree] Bad input argument.');
+    end
 end
