@@ -1,8 +1,9 @@
 function [dat] = read_data(filename, varargin);
 
-% READ_DATA is a wrapper around different EEG/MEG file importers
-% directly supported formats are CTF, Neuromag, EEP, BrainVision,
-% Neuroscan and Neuralynx.
+% READ_DATA reads electrophysiological data from a variety of EEG,
+% MEG and LFP files and represents it in a common data-indepentend
+% format. The supported formats are listed in the accompanying
+% READ_HEADER function.
 %
 % Use as
 %   dat = read_data(filename, ...)
@@ -29,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.38  2008/04/11 07:23:15  roboos
+% updated docu
+%
 % Revision 1.37  2008/04/10 09:34:51  roboos
 % added fallback option for biosig, implemented biosig also for edf
 %
