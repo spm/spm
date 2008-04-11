@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 1382 2008-04-11 20:26:54Z john $
+% $Id: tbx_cfg_dartel.m 1383 2008-04-11 21:26:03Z john $
 
 % ---------------------------------------------------------------------
 % matnames Parameter Files
@@ -1159,7 +1159,7 @@ for k=1:3,
     if cls(k),
         dep(kk)            = cfg_dep;
         dep(kk).sname      = sprintf('Imported Tissue %d', k);
-        dep(kk).src_output = substruct('.','cfiles','{}',{':',k});
+        dep(kk).src_output = substruct('.','cfiles','()',{':',k});
         dep(kk).tgt_spec   = cfg_findspec({{'filter','nifti'}});
         kk = kk + 1;
     end
@@ -1183,12 +1183,12 @@ end;
 function dep = vout_runjob(job)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'Template';
-dep(1).src_output = substruct('.','template','{}',':');
+dep(1).src_output = substruct('.','template','()',{':'});
 dep(1).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 
 dep(2)            = cfg_dep;
 dep(2).sname      = 'Flow Fields';
-dep(2).src_output = substruct('.','files','{}',':');
+dep(2).src_output = substruct('.','files','()',{':'});
 dep(2).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
 
@@ -1196,7 +1196,7 @@ dep(2).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 function dep = vout_runjob1(job)
 dep            = cfg_dep;
 dep.sname      = 'Flow Fields';
-dep.src_output = substruct('.','files','{}',':');
+dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
 
@@ -1226,14 +1226,14 @@ PI    = job.images;
 for m=1:numel(PI),
     dep(m)            = cfg_dep;
     dep(m).sname      = sprintf('%s (Image %d)',sname,m);
-    dep(m).src_output = substruct('.','files','{}',{':',m});
+    dep(m).src_output = substruct('.','files','()',{':',m});
     dep(m).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 end
 n = numel(PI);
 for m=1:numel(PU),
     dep(m+n)            = cfg_dep;
     dep(m+n).sname      = sprintf('%s (Deformation %d)',sname,m);
-    dep(m+n).src_output = substruct('.','files','{}',{m,':'});
+    dep(m+n).src_output = substruct('.','files','()',{m,':'});
     dep(m+n).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 end
 %_______________________________________________________________________
@@ -1246,14 +1246,14 @@ PI    = job.images;
 for m=1:numel(PI),
     dep(m)            = cfg_dep;
     dep(m).sname      = sprintf('Inverse Warped Images (Image %d)',m);
-    dep(m).src_output = substruct('.','files','{}',{':',m});
+    dep(m).src_output = substruct('.','files','()',{':',m});
     dep(m).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 end
 n = numel(PI);
 for m=1:numel(PU),
     dep(m+n)            = cfg_dep;
     dep(m+n).sname      = sprintf('Inverse Warped Images (Deformation %d)',m);
-    dep(m+n).src_output = substruct('.','files','{}',{m,':'});
+    dep(m+n).src_output = substruct('.','files','()',{m,':'});
     dep(m+n).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 end
 %_______________________________________________________________________
@@ -1262,7 +1262,7 @@ end
 function dep = vout_jacdet(job)
 dep            = cfg_dep;
 dep.sname      = 'Jacobian Determinant Fields';
-dep.src_output = substruct('.','files','{}',':');
+dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
 
@@ -1284,7 +1284,7 @@ end
 function dep = vout_resids(job)
 dep = cfg_dep;
 dep.sname      = 'Residual Files';
-dep.src_output = substruct('.','files','{}',':');
+dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
 
