@@ -45,7 +45,7 @@ function varargout = cfg_util(cmd, varargin)
 % job_id. Returns a mod_job_id, which can be passed on to other cfg_util
 % callbacks that modify the module in the job.
 %
-%  [mod_job_idlist new2old_id] = cfg_util('compactjob', job_id)
+%  [mod_job_idlist, new2old_id] = cfg_util('compactjob', job_id)
 %
 % Modifies the internal representation of a job by removing deleted modules
 % from the job configuration tree. This will invalidate all mod_job_ids and
@@ -76,7 +76,7 @@ function varargout = cfg_util(cmd, varargin)
 % and its contents will be prepended to each of the created files. This
 % allows to automatically include e.g. copyright or revision.
 %
-%  [tag val] = cfg_util('harvest', job_id[, mod_job_id])
+%  [tag, val] = cfg_util('harvest', job_id[, mod_job_id])
 %
 % Harvest is a method defined for all 'cfg_item' objects. It collects the
 % entered values and dependencies of the input items in the tree and
@@ -91,7 +91,7 @@ function varargout = cfg_util(cmd, varargin)
 % cfg_util is updated. In this case, the val output is only part of a job
 % description and can not be loaded back into cfg_util.
 %
-%  [tag appdef] = cfg_util('harvestdef'[, apptag|cfg_id])
+%  [tag, appdef] = cfg_util('harvestdef'[, apptag|cfg_id])
 %
 % Harvest the defaults branches of the current configuration tree. If
 % apptag is supplied, only the subtree of that application whose root tag
@@ -109,7 +109,7 @@ function varargout = cfg_util(cmd, varargin)
 % Initial application data will be initialised to a combination of
 % cfg_mlbatch_appcfg.m files in their order found on the MATLAB path. Each
 % of these config files should be a function with calling syntax
-%   function [cfg def] = cfg_mlbatch_appcfg(varargin) 
+%   function [cfg, def] = cfg_mlbatch_appcfg(varargin) 
 % This function should do application initialisation (e.g. add
 % paths). cfg and def should be configuration and defaults data
 % structures or the name of m-files on the MATLAB path containing these
@@ -129,7 +129,7 @@ function varargout = cfg_util(cmd, varargin)
 % have been loaded. Saved jobs and modules already present in the current
 % job will not be changed.
 %
-%  [job_id mod_job_idlist] = cfg_util('initjob'[, job])
+%  [job_id, mod_job_idlist] = cfg_util('initjob'[, job])
 %
 % Initialise a new job. 
 % If job is given as input argument, the job tree structure will be
@@ -150,7 +150,7 @@ function varargout = cfg_util(cmd, varargin)
 % structure). This can be used to decide whether 'list*' or 'tag2*'
 % callbacks returned valid ids.
 %
-%  [mod_cfg_idlist stop [contents]] = cfg_util('listcfg[all]', mod_cfg_id, find_spec[, fieldnames])
+%  [mod_cfg_idlist, stop, [contents]] = cfg_util('listcfg[all]', mod_cfg_id, find_spec[, fieldnames])
 %
 % List modules and retrieve their contents in the cfg tree, starting at
 % mod_cfg_id. If mod_cfg_id is empty, search will start at the root level
@@ -169,8 +169,8 @@ function varargout = cfg_util(cmd, varargin)
 % sequence of tags of its parent items, use cfg_util('tag2mod_cfg_id',
 % tagstring) instead.
 %
-%  [item_mod_idlist stop [contents]] = cfg_util('listmod', job_id, mod_job_id, item_mod_id, find_spec[, tropts][, fieldnames])
-%  [item_mod_idlist stop [contents]] = cfg_util('listmod', mod_cfg_id, item_mod_id, find_spec[, tropts][, fieldnames])
+%  [item_mod_idlist, stop, [contents]] = cfg_util('listmod', job_id, mod_job_id, item_mod_id, find_spec[, tropts][, fieldnames])
+%  [item_mod_idlist, stop, [contents]] = cfg_util('listmod', mod_cfg_id, item_mod_id, find_spec[, tropts][, fieldnames])
 %
 % Find configuration items starting in module mod_job_id in the job
 % referenced by job_id or in module mod_cfg_id in the defaults tree,
@@ -257,7 +257,7 @@ function varargout = cfg_util(cmd, varargin)
 % cfg_branch items.
 % Defaults only apply to new jobs, not to already configured ones.
 %
-%  [mod_job_idlist str sts dep sout] = cfg_util('showjob', job_id[, mod_job_idlist])
+%  [mod_job_idlist, str, sts, dep sout] = cfg_util('showjob', job_id[, mod_job_idlist])
 %
 % Return information about the current job (or the part referenced by the
 % input cell array mod_job_idlist). Output arguments
@@ -274,7 +274,7 @@ function varargout = cfg_util(cmd, varargin)
 % dependency object which can be passed as input to other modules. See
 % 'cfg_dep' for details about dependency objects.
 %
-%  [mod_cfg_id item_mod_id] = cfg_util('tag2cfg_id', tagstr)
+%  [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', tagstr)
 %
 % Return a mod_cfg_id for the cfg_exbranch item that is the parent to the
 % item in the configuration tree whose parents have tag names as in the
@@ -307,9 +307,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1323 2008-04-09 09:32:06Z volkmar $
+% $Id: cfg_util.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1323 $';
+rev = '$Rev: 1366 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -669,7 +669,7 @@ return;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [c0 jobs] = local_addapp(c0, jobs, cfg, varargin)
+function [c0, jobs] = local_addapp(c0, jobs, cfg, varargin)
 % Add configuration data to c0 and all jobs
 % Input
 % * cfg - Function name, function handle or cfg_item tree. If a
@@ -752,7 +752,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [job n2oid] = local_compactjob(ojob)
+function [job, n2oid] = local_compactjob(ojob)
 % Remove placeholders from cj and recursively update dependencies to fit
 % new ids. Warning: this will invalidate mod_job_ids!
 
@@ -901,7 +901,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [cj cjid2subs] = local_getcjid2subs(cjin)
+function [cj, cjid2subs] = local_getcjid2subs(cjin)
 % Find ids of exbranches. 
 % find ids
 exspec = cfg_findspec({{'class', 'cfg_exbranch'}});
@@ -935,7 +935,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [cm id] = local_getcm(c0, cfg_id)
+function [cm, id] = local_getcm(c0, cfg_id)
 % This code could use tag2cfg_id
 if cfg_util('ismod_cfg_id', cfg_id)
     % This should better test something like 'iscfg_id'
@@ -981,7 +981,7 @@ local_cd(cwd);
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [c0 jobs cjob] = local_initcfg
+function [c0, jobs, cjob] = local_initcfg
 % initial config
 % mlock this file - prevent clearing if code changed
 mlock;
@@ -1013,7 +1013,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [cjob mod_job_idlist] = local_initjob(c0, job)
+function [cjob, mod_job_idlist] = local_initjob(c0, job)
 % Initialise a cell array of jobs
 for n = 1:numel(job)
     % init job
@@ -1228,7 +1228,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [id str sts dep sout] = local_showjob(cj, cjid2subs)
+function [id, str, sts, dep, sout] = local_showjob(cj, cjid2subs)
 % Return name, all_set status and id of internal job representation
 id  = {};
 str = {};
@@ -1250,7 +1250,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [mod_cfg_id item_mod_id] = local_tag2cfg_id(c0, tagstr, splitspec)
+function [mod_cfg_id, item_mod_id] = local_tag2cfg_id(c0, tagstr, splitspec)
 
 tags = textscan(tagstr, '%s', 'delimiter', '.');
 taglist = tags{1};

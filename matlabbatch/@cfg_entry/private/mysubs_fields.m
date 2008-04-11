@@ -1,5 +1,6 @@
-function [fnames defaults] = mysubs_fields
+function [fnames, defaults] = mysubs_fields
 
+% function [fnames, defaults] = mysubs_fields
 % Additional fields for class cfg_entry. See help of
 % @cfg_item/subs_fields for general help about this function.
 %
@@ -10,9 +11,9 @@ function [fnames defaults] = mysubs_fields
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: mysubs_fields.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: mysubs_fields.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1366 $';
 
 fnames = {'strtype','num','def','extras'};
 defaults = {'e',[],{},{}};

@@ -6,9 +6,12 @@ function spec = cfg_findspec(cellspec)
 % pairs that will be combined into a struct suitable for match/find.
 % Name/value pairs within a cell will be OR concatenated, while cells
 % will be AND concatenated.
-% A cellspec {{'field1','val1','field2','val2'},{'field3','val3'}}
+% A cellspec
+%  {{'field1','val1','field2','val2'},{'field3','val3'}}
 % matches an item if 
-% (item.field1==val1 || item.field2==val2) && item.field3==val3
+%  (item.field1==val1 || item.field2==val2) && item.field3==val3
+% If the field name is 'class', an item matches, if its class name is equal to
+% spec.value.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -17,9 +20,9 @@ function spec = cfg_findspec(cellspec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_findspec.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_findspec.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 if nargin == 0 || isempty(cellspec)
     spec = {};

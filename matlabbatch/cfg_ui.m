@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1346 2008-04-10 08:57:17Z volkmar $
+% $Id: cfg_ui.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1346 $';
+rev = '$Rev: 1366 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -79,7 +79,7 @@ end;
 
 %% Input evaluation
 % --------------------------------------------------------------------
-function [val sts] = local_eval_valedit(varargin)
+function [val, sts] = local_eval_valedit(varargin)
 % for security reasons, separate string evaluation from valedit_Callback
 % (evaluation might overwrite variables). Uses evalc to suppress any
 % console output.
@@ -515,7 +515,7 @@ end;
 set(handles.helpbox, 'string', spm_justify(handles.helpbox, help{1}{1}));
 
 % --------------------------------------------------------------------
-function [str cval] = local_showvaledit_list(hObject)
+function [str, cval] = local_showvaledit_list(hObject)
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
@@ -717,7 +717,7 @@ end;
 % for some reason, MATLAB wants to have the list size to be specified in
 % pixels, not chars. Try to work this out based on the number of
 % characters and a font size of 12.
-szi = min(size(strvcat(str)')+1,[140 60])*13;
+szi = min(max(size(strvcat(str)')+1, [10 1]),[140 60])*13;
 [val sts] = listdlg('Name',udmodule.contents{1}{value}, ...
                     'ListString',str, 'SelectionMode','single', ...
                     'InitialValue',inival, 'ListSize', szi);
@@ -806,7 +806,7 @@ else
     % pixels, not chars. Try to work this out based on the number of
     % characters and a font size of 12.
     str = strvcat(sout.sname);
-    szi = min(size(strvcat(str)')+1,[140 20])*13;
+    szi = min(max(size(strvcat(str)')+1, [10 1]),[140 60])*13;
     [val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str, ...
                         'ListSize',szi);
     if sts
@@ -980,7 +980,7 @@ try
     cfg_util('run',udmodlist(1).cjob);
 catch
     l = lasterror;
-    errordlg(l.message);
+    errordlg(l.message,'Error in job execution', 'modal');
 end;
 set(get(0,'Children'),'Pointer','arrow');
 

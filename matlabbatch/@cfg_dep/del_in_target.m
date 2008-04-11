@@ -1,5 +1,6 @@
 function cj = del_in_target(sdeps, cj)
 
+% function cj = del_in_target(sdeps, cj)
 % If a dependency source has changed, drop all dependent (target)
 % references recursively.
 %
@@ -10,9 +11,9 @@ function cj = del_in_target(sdeps, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: del_in_target.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: del_in_target.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 % first, delete all immediate dependencies
 for k = 1:numel(sdeps)

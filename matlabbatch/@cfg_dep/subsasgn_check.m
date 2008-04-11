@@ -1,6 +1,6 @@
-function [sts val] = subsasgn_check(item,subs,val)
+function [sts, val] = subsasgn_check(item,subs,val)
 
-% function [sts val] = subsasgn_check(item,subs,val)
+% function [sts, val] = subsasgn_check(item,subs,val)
 % Do a check for proper assignments of values to fields. This routine
 % will be called for derived objects from @cfg_dep/subsasgn with the
 % original object as first argument and the proposed subs and val fields
@@ -13,9 +13,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
+% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1260 $';
+rev = '$Rev: 1366 $';
 
 sts = true;
 switch(subs(1).subs)

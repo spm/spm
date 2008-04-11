@@ -1,6 +1,6 @@
-function [id stop rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
+function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 
-% function [id stop rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
+% function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % Return the index into the values branch of a configuration tree which
 % corresponds to a list of tags. 
 % This is the generic tag2cfgsubs function, suitable for all leaf
@@ -19,9 +19,9 @@ function [id stop rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: tag2cfgsubs.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: tag2cfgsubs.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 if strcmp(gettag(item), taglist{1}) && match(item, finalspec)
     id = struct('type', {}, 'subs', {});
     stop = numel(taglist) > 1 || (~isempty(tropts.stopspec) ...

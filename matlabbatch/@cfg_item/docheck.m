@@ -1,7 +1,6 @@
 function chk = docheck(item, val)
 
 % function chk = docheck(item, val)
-%
 % Run item specific check function, if present.
 %
 % This code is part of a batch job configuration system for MATLAB. See 

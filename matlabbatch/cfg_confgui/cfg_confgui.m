@@ -1,4 +1,4 @@
-function menu_cfg = cfg_cfg
+function menu_cfg = cfg_confgui
 
 % This function describes the user defined fields for each kind of
 % cfg_item and their layout in terms of cfg_items. Thus, the
@@ -12,9 +12,9 @@ function menu_cfg = cfg_cfg
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1300 2008-04-03 12:26:57Z volkmar $
+% $Id: cfg_confgui.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1300 $';
+rev = '$Rev: 1366 $';
 
 %% Declaration of fields
 
@@ -453,7 +453,7 @@ fclose(fid);
 % Generate cfg_util initialisation file
 fid = fopen(fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m'), ...
             'w');
-fprintf(fid, 'function [cfg def] = cfg_mlbatch_appcfg(varargin)\n');
+fprintf(fid, 'function [cfg, def] = cfg_mlbatch_appcfg(varargin)\n');
 fprintf(fid, ...
 ['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...
  '%% This MATLABBATCH initialisation file can be used to load application\n' ...

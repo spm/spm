@@ -1,5 +1,6 @@
 function fn = fieldnames(item)
 
+% function fn = fieldnames(item)
 % Return a list of all (inherited and non-inherited) field names.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -9,9 +10,9 @@ function fn = fieldnames(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: fieldnames.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: fieldnames.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 fn1 = fieldnames(item.cfg_item);
 fn2 = mysubs_fields;

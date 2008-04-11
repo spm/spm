@@ -1,6 +1,6 @@
-function [sts val] = subsasgn_check(item,subs,val)
+function [sts, val] = subsasgn_check(item,subs,val)
 
-% function [sts val] = subsasgn_check(item,subs,val)
+% function [sts, val] = subsasgn_check(item,subs,val)
 % Perform validity checks for cfg_entry inputs. Does not yet support
 % evaluation of inputs.
 %
@@ -11,9 +11,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
+% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1260 $';
+rev = '$Rev: 1366 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -52,7 +52,7 @@ switch subs(1).subs
         end;
 end;
 
-function [sts val] = valcheck(item,val)
+function [sts, val] = valcheck(item,val)
 % taken from spm_jobman/stringval
 % spm_eeval goes into GUI
 sts = true;
@@ -124,7 +124,7 @@ if ~isa(val,'cfg_dep')
     end;
 end;
 
-function [sts val] = numcheck(item,val)
+function [sts, val] = numcheck(item,val)
 checkstr = sprintf('Item ''%s'', field ''val''', subsref(item,substruct('.','name')));
 % allow arbitrary size, if num field is empty
 sts = true;

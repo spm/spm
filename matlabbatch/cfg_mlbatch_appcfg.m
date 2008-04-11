@@ -1,4 +1,4 @@
-function [cfg def] = cfg_mlbatch_appcfg(varargin)
+function [cfg, def] = cfg_mlbatch_appcfg(varargin)
 
 % Add BasicIO to applications list of cfg_util. This file is an example how
 % to add your own application configuration to cfg_util. To add an
@@ -14,9 +14,9 @@ function [cfg def] = cfg_mlbatch_appcfg(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_appcfg.m 1300 2008-04-03 12:26:57Z volkmar $
+% $Id: cfg_mlbatch_appcfg.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1300 $';
+rev = '$Rev: 1366 $';
 
 % get path to this file
 p = fileparts(mfilename('fullpath'));

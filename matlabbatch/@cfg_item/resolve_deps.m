@@ -1,6 +1,6 @@
-function [val sts] = resolve_deps(item, cj)
+function [val, sts] = resolve_deps(item, cj)
 
-% function [val sts] = resolve_deps(item, cj)
+% function [val, sts] = resolve_deps(item, cj)
 % Resolve dependencies for an cfg item. This is a generic function that
 % returns the contents of item.val{1} if it is an array of cfg_deps. If
 % there is more than one dependency, they will be resolved in order of
@@ -18,28 +18,37 @@ function [val sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 1298 2008-04-03 08:54:13Z volkmar $
+% $Id: resolve_deps.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1298 $';
+rev = '$Rev: 1366 $';
 
-try
-    val1 = cell(size(item.val{1}));
-    for k = 1:numel(item.val{1})
-        % Outputs are stored in .jout field of cfg_exbranch, which is
-        % neither included in .src_exbranch nor in .src_output substruct
-        val1{k} = subsref(cj, [item.val{1}(k).src_exbranch, ...
-                            substruct('.','jout'), item.val{1}(k).src_output]);
-        sts = ~isa(val1{k},'cfg_inv_out');
-        if ~sts
-            val = [];
-            return;
-        end;
+val1 = cell(size(item.val{1}));
+for k = 1:numel(item.val{1})
+    % Outputs are stored in .jout field of cfg_exbranch, which is
+    % not included in .src_exbranch substruct
+    out = subsref(cj, [item.val{1}(k).src_exbranch, ...
+                            substruct('.','jout')]);
+    sts = ~isa(out,'cfg_inv_out');
+    if ~sts
+        % dependency not yet computed, fail silently
+        val = [];
+        return;
     end;
-catch
-    % some dependencies are not yet resolved
-    val = [];
-    sts = false;
-    return;
+    try
+        val1{k} = subsref(out, item.val{1}(k).src_output);
+    catch
+        % dependency can't be resolved, even though it should be there
+        warning('matlabbatch:resolve_deps:subsref', ...
+                'Dependency source available, but is missing required output.');
+        l = lasterror;
+        fprintf('%s\n',l.message);
+        % display source output to diagnose problems
+        val1{k} = out;
+        disp_deps(item, val1);
+        val = [];
+        sts = false;
+        return;
+    end;
 end;
 if sts
     % All items resolved, try concatenation
@@ -81,6 +90,8 @@ end;
 function disp_deps(item, val1)
 fprintf('In item %s:\n', subsref(item, substruct('.','name')));
 for k = 1:numel(item.val{1})
-    fprintf('Dependency %d: %s\n', k, item.val{1}(k).sname);
+    substr = gencode_substruct(item.val{1}(k).src_output);
+    fprintf('Dependency %d: %s (out%s)\n', ...
+            k, item.val{1}(k).sname, substr{1});
     disp(val1{k});
 end;

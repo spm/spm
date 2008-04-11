@@ -1,5 +1,6 @@
-function [fnames defaults] = mysubs_fields
+function [fnames, defaults] = mysubs_fields
 
+% function [fnames, defaults] = mysubs_fields
 % Additional fields for class cfg_exbranch. See help of
 % @cfg_item/subs_fields for general help about this function.
 %
@@ -10,9 +11,9 @@ function [fnames defaults] = mysubs_fields
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: mysubs_fields.m 1293 2008-04-02 14:20:43Z volkmar $
+% $Id: mysubs_fields.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1293 $';
+rev = '$Rev: 1366 $';
 
 fnames={'prog', 'vfiles', 'modality', 'vout', 'sout', 'jout', 'tdeps', 'sdeps','chk'};
 defaults={{},{},{},{},[],cfg_inv_out,[],[],false};

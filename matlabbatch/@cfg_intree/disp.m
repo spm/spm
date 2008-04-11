@@ -1,5 +1,6 @@
 function disp(varargin)
 
+% function disp(varargin)
 % This class should not display any information about its structure.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -9,8 +10,8 @@ function disp(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: disp.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: disp.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 disp(class(varargin{1}))

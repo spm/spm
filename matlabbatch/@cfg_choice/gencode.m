@@ -1,5 +1,6 @@
-function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
+function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 
+% function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Generate code to recreate a cfg_choice item. This code does not deal with
 % arrays of cfg_items, such a configuration should not exist with the
 % current definition of a configuration tree.
@@ -22,9 +23,9 @@ function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1293 2008-04-02 14:20:43Z volkmar $
+% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1293 $';
+rev = '$Rev: 1366 $';
 
 %% Parent object
 % Generate generic object

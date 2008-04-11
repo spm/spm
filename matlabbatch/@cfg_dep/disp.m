@@ -1,4 +1,6 @@
 function disp(obj)
+
+% function disp(obj)
 % Disp a configuration dependency
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -8,9 +10,9 @@ function disp(obj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: disp.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: disp.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 sz = size(obj);
 fprintf('%s object: ', class(obj));

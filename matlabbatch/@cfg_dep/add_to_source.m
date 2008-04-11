@@ -1,5 +1,6 @@
 function cj = add_to_source(tdeps, cj)
 
+% function cj = add_to_source(tdeps, cj)
 % add foreign target dependencies to own source dependencies
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -9,9 +10,9 @@ function cj = add_to_source(tdeps, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: add_to_source.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: add_to_source.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 for k = 1:numel(tdeps)
     sitem = subsref(cj, tdeps(k).src_exbranch); % Source item to deal with

@@ -1,6 +1,6 @@
-function [sts val] = subsasgn_check(item,subs,val)
+function [sts, val] = subsasgn_check(item,subs,val)
 
-% function [sts val] = subsasgn_check(item,subs,val)
+% function [sts, val] = subsasgn_check(item,subs,val)
 % Perform assignment checks for .val, .labels and .values field. 
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -10,9 +10,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1260 2008-03-27 21:56:55Z volkmar $
+% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1260 $';
+rev = '$Rev: 1366 $';
 
 % Checks could include a check whether the number of elements in labels
 % and values match, but this would require a method to add a label and a

@@ -1,7 +1,6 @@
 function val = subsref_job(item, subs, dflag)
 
 % function val = subsref_job(item, subs, dflag)
-%
 % Treat a subscript reference as a reference in a job structure instead
 % of a cfg_item structure. This function is only defined for in-tree nodes.
 % The structure of a subscript reference is always a '()' or '{}'
@@ -27,9 +26,9 @@ function val = subsref_job(item, subs, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref_job.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsref_job.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 dflag = dflag || subs(1).subs{1} < 0;
 tn = tagnames(item, dflag);

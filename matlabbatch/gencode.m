@@ -1,6 +1,6 @@
-function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
+function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 
-% function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
+% function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Generate code to recreate any MATLAB struct/cell variable. Classes need
 % to implement their class specific equivalent of gencode.
 %
@@ -26,9 +26,9 @@ function [str tag cind ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 if nargin < 2
     tag = inputname(1);

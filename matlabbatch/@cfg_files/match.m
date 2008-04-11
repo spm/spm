@@ -1,6 +1,6 @@
 function sts = match(item, spec)
 
-% MATCH function for cfg trees
+% function sts = match(item, spec)
 % This function is an implementation of find to search the cfg tree for
 % certain entries.
 %
@@ -30,9 +30,9 @@ function sts = match(item, spec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: match.m 1298 2008-04-03 08:54:13Z volkmar $
+% $Id: match.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1298 $';
+rev = '$Rev: 1366 $';
 
 % match an empty spec
 sts = true;

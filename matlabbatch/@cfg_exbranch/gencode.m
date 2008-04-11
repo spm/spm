@@ -1,5 +1,6 @@
-function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
+function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 
+% function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Generate code to recreate a cfg_exbranch item. This code first generates
 % code for the parent cfg_branch item and adds code for its own fields.
 % Note that function references will be broken if they refer to a local
@@ -24,9 +25,9 @@ function [str tag cind ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1266 2008-03-28 12:00:56Z volkmar $
+% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1266 $';
+rev = '$Rev: 1366 $';
 
 %% Parent object
 % Generate branch object

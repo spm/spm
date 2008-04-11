@@ -1,5 +1,6 @@
 function item = setval(item, val)
 
+% function item = setval(item, val)
 % Add, replicate or delete an entry in item.val. The semantics is based on
 % the contents of the 2nd argument:
 % If val == {}, set item.val to {}.
@@ -19,9 +20,9 @@ function item = setval(item, val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: setval.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1246 $';
+rev = '$Rev: 1366 $';
 
 if iscell(val) && isempty(val)
     item = subsasgn(item, substruct('.','val'), {});

@@ -1,4 +1,4 @@
-function [str name ind] = gencode_substruct(subs, name)
+function [str, name, ind] = gencode_substruct(subs, name)
 
 % Generate MATLAB code that shows the subscript reference subs. If name is
 % given, it is prepended to the string, otherwise it is set to ''.
@@ -12,9 +12,9 @@ function [str name ind] = gencode_substruct(subs, name)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_substruct.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: gencode_substruct.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 ind = 1;
 if nargin < 2

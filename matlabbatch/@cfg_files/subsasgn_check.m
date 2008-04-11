@@ -1,6 +1,6 @@
-function [sts val] = subsasgn_check(item,subs,val)
+function [sts, val] = subsasgn_check(item,subs,val)
 
-% function [sts val] = subsasgn_check(item,subs,val)
+% function [sts, val] = subsasgn_check(item,subs,val)
 % Perform assignment checks for .num field. Checks for .val field could
 % include filtering and numel checks, if inputs are not passed as
 % reference.
@@ -12,9 +12,9 @@ function [sts val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1322 2008-04-09 08:37:52Z volkmar $
+% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1322 $';
+rev = '$Rev: 1366 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);

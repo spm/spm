@@ -1,5 +1,6 @@
 function varargout = vertcat(varargin)
 
+% function varargout = vertcat(varargin)
 % Prevent vertcat for cfg_item objects.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -9,9 +10,9 @@ function varargout = vertcat(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: vertcat.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: vertcat.m 1366 2008-04-11 10:24:17Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1366 $';
 
 error('matlabbatch:cfg_item:cat', ['Concatenation of cfg_item objects is ' ...
                     'not allowed.']);
