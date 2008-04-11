@@ -17,6 +17,14 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % depend on the type of model. The sens structure represents a sensor
 % arary, i.e. EEG electrodes or MEG gradiometers.
 %
+% It is possible to compute a simultaneous forward solution for EEG and MEG
+% by specifying sens and grad as two cell-arrays, e.g.
+%   sens = {senseeg, sensmeg}
+%   vol  = {voleeg, volmeg }
+% This results in the computation of the leadfield of the first element of
+% sens and vol, followed by the second, etc. The leadfields of the
+% different imaging modalities are concatenated.
+%
 % Additional input arguments can be specified as key-value pairs, supported
 % optional arguments are
 %   'reducerank'      = 'no' or number
@@ -58,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.22  2008/04/11 13:16:16  roboos
+% added support for simultaneous EEG and MEG
+%
 % Revision 1.21  2008/03/18 13:20:42  roboos
 % updated documentation and some error messages
 %
@@ -128,6 +139,16 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 %
 
 persistent warning_issued;
+
+if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
+  % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
+  lf = cell(1,numel(sens));
+  for i=1:length(sens)
+    lf{i} = compute_leadfield(pos, sens{i}, vol{i}, varargin{:});
+  end
+  lf = cat(1, lf{:});
+  return;
+end
 
 if ~isstruct(sens) && size(sens,2)==3
   % definition of electrode positions only, restructure it
