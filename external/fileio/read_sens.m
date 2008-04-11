@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.7  2008/04/11 16:17:22  roboos
+% added polhemus_fil
+%
 % Revision 1.6  2008/03/20 13:43:14  roboos
 % added support for besa_pos
 %
@@ -56,9 +59,6 @@ function [sens] = read_sens(filename, varargin)
 if ~exist(filename)
   error(sprintf('file ''%s'' does not exist', filename));
 end
-
-iseeg = 0;
-ismeg = 0;
 
 % get the options
 fileformat = keyval('fileformat',  varargin);
@@ -137,6 +137,19 @@ switch fileformat
     hdr = read_header(filename);
     sens = hdr.grad;
     
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % these are created at the FIL in London with a polhemus tracker
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+  case 'polhemus_fil'
+    [sens.fid, sens.pnt] = read_polhemus_fil(filename, 0, 0);
+
+    % the file does not have channel labels in it
+    warning('creating fake channel names for polhemus_fil');
+    for i=1:nchan
+      sens.label{i} = sprintf('%03d', i);
+    end
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % matlab files can contain either electrodes or gradiometers
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
