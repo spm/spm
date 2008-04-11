@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 1207 2008-03-13 20:57:56Z karl $
+% $Id: spm_figure.m 1380 2008-04-11 18:55:18Z karl $
 
 
 %=======================================================================
@@ -269,6 +269,7 @@ if isempty(F)
     end
 else
     set(0,'CurrentFigure',F);
+    figure(F);
 end
 varargout = {F};
 

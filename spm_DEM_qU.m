@@ -13,14 +13,16 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 1329 2008-04-09 13:22:23Z karl $
+% $Id: spm_DEM_qU.m 1380 2008-04-11 18:55:18Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
 clf
 V      = qU.v;
-X      = qU.x;
 E      = qU.z;
+try
+    X  = qU.x;
+end
 try
     C  = qU.C;
     S  = qU.S;
@@ -93,7 +95,7 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try, 
-            plot(t,pV{i},'linewidth',2,'color',[1 1 1]/2)
+            plot(t,pV{i},':k','linewidth',2)
         end, hold on
         try
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
@@ -110,6 +112,9 @@ for i = 1:g
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+            try 
+                plot(t,pV{i},':k','linewidth',2)
+            end
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
             hold off
         end
@@ -121,7 +126,7 @@ for i = 1:g
         else
             title(sprintf('causal states - level %i',i));
             try, hold on
-                plot(t,pV{i},'linewidth',2,'color',[1 1 1]/2)
+                plot(t,pV{i},':k','linewidth',2)
             end, hold off
             try, hold on
                 plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0])
@@ -138,10 +143,10 @@ for i = 1:g
         try
  
             subplot(g,2,2*i)
-            plot(t,full(X{i}))
             try, hold on
-                plot(t,pX{i},'linewidth',2,'color',[1 1 1]/2)
+                plot(t,pX{i},':k','linewidth',2)
             end, hold off
+            plot(t,full(X{i}))
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
             
@@ -152,15 +157,13 @@ for i = 1:g
                 s(j,:) = [];
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
+                try
+                    plot(t,pX{i},':k','linewidth',2)
+                end
                 plot(t,full(X{i}))
                 hold off
-
             end
-            
-            try, hold on
-                plot(t,pX{i},'linewidth',2,'color',[1 1 1]/2)
-            end, hold off
-            
+                      
             % title and grid
             %--------------------------------------------------------------
             title('hidden states')

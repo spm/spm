@@ -78,7 +78,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM.m 1329 2008-04-09 13:22:23Z karl $
+% $Id: spm_DEM.m 1380 2008-04-11 18:55:18Z karl $
 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -114,6 +114,8 @@ try nD = M(1).E.nD; catch nD = 1;  end
 try nE = M(1).E.nE; catch nE = 1;  end
 try nM = M(1).E.nM; catch nM = 8;  end
 try nN = M(1).E.nN; catch nN = 16; end
+try K  = M(1).E.K;  catch K  = 1;  end
+
 
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
@@ -457,7 +459,6 @@ for iN = 1:nN
                 
                 % update conditional modes of states
                 %==========================================================
-                K     = exp(-2);
                 du    = spm_dx(K*dFduu + D,K*dFdu + D*u,td);                
                 q     = spm_unvec(u + du,q);
                 

@@ -47,7 +47,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 1329 2008-04-09 13:22:23Z karl $
+% $Id: spm_DEM_M_set.m 1380 2008-04-11 18:55:18Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -353,6 +353,8 @@ try M(1).E.dt; catch M(1).E.dt = 1; end
 %--------------------------------------------------------------------------
 try M(1).E.d;  catch, if nx, M(1).E.d = 2;  else M(1).E.d = 0;  end, end
 try M(1).E.n;  catch, if nx, M(1).E.n = 6;  else M(1).E.n = 0;  end, end
+
+M(1).E.d = min(M(1).E.d,M(1).E.n);
  
 % number of iterations
 %--------------------------------------------------------------------------
