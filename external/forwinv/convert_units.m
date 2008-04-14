@@ -23,6 +23,10 @@ function [obj] = convert_units(obj, target);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: convert_units.m,v $
+% Revision 1.3  2008/04/14 20:53:58  roboos
+% added detection for headshape and/or fiducials
+% fixed bug in scaling of fiducials
+%
 % Revision 1.2  2008/04/14 19:29:58  roboos
 % cleanded up code and added autodetection based on geometrical size of object
 % changed interface, no forced input type is possible
@@ -85,6 +89,21 @@ else
     unit  = {'m', 'dm', 'cm', 'mm'};
     unit  = unit{round(log10(size)+2-0.2)};
 
+  elseif isfield(obj, 'pnt') && ~isempty(obj.pnt)
+    size = norm(range(obj.pnt));
+    % do some magic based on the size
+    unit  = {'m', 'dm', 'cm', 'mm'};
+    unit  = unit{round(log10(size)+2-0.2)};
+
+  elseif isfield(obj, 'fid') && isfield(obj.fid, 'pnt') && ~isempty(obj.fid.pnt)
+    size = norm(range(obj.fid.pnt));
+    % do some magic based on the size
+    unit  = {'m', 'dm', 'cm', 'mm'};
+    unit  = unit{round(log10(size)+2-0.2)};
+
+  else
+    error('cannot determine geometrical units');
+    
   end % recognized type of volume conduction model or sensor array
 end % determine input units
 
@@ -139,7 +158,7 @@ if isfield(obj, 'prj'),  obj.prj  = scale * obj.prj;  end
 if isfield(obj, 'pnt'), obj.pnt = scale * obj.pnt; end
 
 % fiducials
-if isfield(obj, 'fid') && isfield(obj.fid, 'pnt'), obj.pnt = scale * obj.pnt; end
+if isfield(obj, 'fid') && isfield(obj.fid, 'pnt'), obj.fid.pnt = scale * obj.fid.pnt; end
 
 % dipole grid
 if isfield(obj, 'mom'), obj.mom = scale * obj.mom; end
