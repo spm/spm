@@ -1,40 +1,41 @@
-function spm_print(fname)
+function spm_print(job)
 % Print the graphics window
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_print.m 1397 2008-04-14 19:57:16Z volkmar $
+
+% Run spm_print always as job to get configured print options
+if nargin == 0
+    cfg_serial([],'spmjobs.util.print','');
+    return;
+elseif ischar(job)
+    cfg_serial([],'spmjobs.util.print',job);
+    return;
+end;
 
 
-global defaults
-try,
-
-    if isfield(defaults,'ui') && isfield(defaults.ui,'print'),
-        pd = defaults.ui.print;
-    else
-        pd = struct('opt',{{'-dpsc2'  '-append'}},'append',true,'ext','.ps');
-    end;
-
+try
     mon = {'Jan','Feb','Mar','Apr','May','Jun',...
             'Jul','Aug','Sep','Oct','Nov','Dec'};
     t   = clock;
     nam = ['spm_' num2str(t(1)) mon{t(2)} sprintf('%.2d',t(3))];
 
-    if (nargin<1) || isempty(fname)
-        if pd.append,
-            nam1 = fullfile(pwd,[nam pd.ext]);
+    if isempty(job.fname)
+        if job.opts.append,
+            nam1 = fullfile(pwd,[nam job.opts.ext]);
         else
             nam1 = sprintf('%s_%3d',nam,1);
             for i=1:100000,
-                nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,pd.ext));
+                nam1 = fullfile(pwd,sprintf('%s_%.3d%s',nam,i,job.opts.ext));
                 if ~exist(nam1,'file'), break; end;
             end;
         end;
     else
-        nam1 = fname;
+        nam1 = job.fname;
     end;
-    opts = {nam1,'-noui','-painters',pd.opt{:}};
+    opts = {nam1,'-noui','-painters',job.opts.opt{:}};
     if strcmp(get(gcf,'Tag'),'Help'),
         fg = gcf;
     else
@@ -46,7 +47,7 @@ try,
     else
     fprintf('\nPrinting Graphics Windows to\n%s\n',nam1);
     end
-catch,
+catch
     errstr = lasterr;
     tmp = [find(abs(errstr)==10),length(errstr)+1];
     str = {errstr(1:tmp(1)-1)};
