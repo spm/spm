@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm.m 1396 2008-04-14 19:55:08Z volkmar $
 
 
 %=======================================================================
@@ -341,6 +341,13 @@ spm('AsciiWelcome');                    fprintf('\n\nInitialising SPM');
 Modality = upper(Action);                                  fprintf('.');
 delete(get(0,'Children'));                                 fprintf('.');
 
+%-Setup for batch system
+%-----------------------------------------------------------------------
+addpath(fullfile(spm('Dir'),'matlabbatch'));
+addpath(fullfile(spm('Dir'),'config'));
+cfg_util('initcfg'); % This must be the first call to cfg_util
+spm_select('prevdirs',spm('Dir'));
+
 %-Draw SPM windows
 %-----------------------------------------------------------------------
 Fmenu  = spm('CreateMenuWin','off');                       fprintf('.');
@@ -356,14 +363,6 @@ if exist(Fmotd,'file'), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
 %-Load startup global defaults
 %-----------------------------------------------------------------------
 spm_defaults;                                              fprintf('.');
-
-%-Setup for batch system
-%-----------------------------------------------------------------------
-addpath(fullfile(spm('Dir'),'matlabbatch'));
-addpath(fullfile(spm('Dir'),'config'));
-cfg_util('initcfg');
-cfg_util('addapp',spm_cfg,spm_def);
-spm_select('prevdirs',spm('Dir'));
 
 %-Setup for current modality
 %-----------------------------------------------------------------------
