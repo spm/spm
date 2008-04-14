@@ -13,10 +13,13 @@ function varargout = spm_jobman(varargin)
 % Runs the user interface in interactive mode.
 %
 % FORMAT spm_jobman('serial')
-%        spm_jobman('serial',job)
-%        spm_jobman('serial',job,node)
-%        spm_jobman('serial','',node)
-% Runs the user interface in serial mode.
+%        spm_jobman('serial',job[,'',   input1,...inputN])
+%        spm_jobman('serial',job ,node[,input1,...inputN])
+%        spm_jobman('serial',''  ,node[,input1,...inputN])
+% Runs the user interface in serial mode. I job is not empty, then node
+% is silently ignored. Inputs can be a list of arguments. These are
+% passed on to the open inputs of the specified job/node. See cfg_serial
+% for details.
 %
 %     node - indicates which part of the configuration is to be used.
 %            For example, it could be 'jobs.spatial.coreg'.
@@ -70,7 +73,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1385 2008-04-14 08:41:41Z volkmar $
+% $Id: spm_jobman.m 1393 2008-04-14 18:53:47Z volkmar $
 
 
 if nargin==0
@@ -83,10 +86,10 @@ else
                 % GUI. Done automatically in serial mode or if a job
                 % argument is given.
                 % cfg_util('initjob');
-            elseif nargin==2 || (nargin==3 && ~isempty(varargin{2}))
+            elseif nargin==2 || (nargin>=3 && ~isempty(varargin{2}))
                 % do not consider node if job is given
                 mljob = canonicalise_job(varargin{2});
-            elseif nargin==3 && isempty(varargin{2})
+            elseif nargin>=3 && isempty(varargin{2})
                 mod_cfg_id = cfg_util('tag2mod_cfg_id',varargin{3});
             else
                 warning('spm:spm_jobman:WrongUI', ...
@@ -111,10 +114,10 @@ else
                 cfg_ui('local_showjob', cfg_ui, cjob);
             else
                 if exist('mljob', 'var')
-                    cfg_serial(@serial_ui, mljob)
+                    cfg_serial(@serial_ui, mljob, varargin{4:end})
                 else
                     if nargin > 2
-                        cfg_serial(@serial_ui, lower(varargin{3}));
+                        cfg_serial(@serial_ui, lower(varargin{3}), varargin{4:end});
                     else
                         cfg_serial(@serial_ui, 'jobs');
                     end;

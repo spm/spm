@@ -75,10 +75,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1300 2008-04-03 12:26:57Z volkmar $
+% $Id: cfg_getfile.m 1393 2008-04-14 18:53:47Z volkmar $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1300 2008-04-03 12:26:57Z volkmar $
+% $Id: cfg_getfile.m 1393 2008-04-14 18:53:47Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -401,16 +401,12 @@ uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
 % Drives
 if strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'),
-    %    dr  = spm_platform('drives');
-    warning('matlabbatch:cfg_getfile:drives', ...
-            ['Platform specific drive letter detection not yet ' ...
-             'implemented']);
-    dr = char(67:90);
-    drivestr = cell(1,numel(dr));
-    for i=1:numel(dr),
-        drivestr{i} = [dr(i) ':'];
-    end;
-    %drivestr = {'A:','B:','C:','D:'};
+    driveLett = strcat(cellstr(char(('C':'Z')')), ':');
+    dsel = false(size(driveLett));
+    for i=1:numel(driveLett)
+        dsel(i) = exist([driveLett{i} '\'],'dir');
+    end
+    drivestr = driveLett(dsel);
     sz = get(db,'Position');
     sz(4) = sz(4)-fh-2*0.01;
     set(db,'Position',sz);
@@ -486,7 +482,8 @@ waitfor(dne);
 drawnow;
 if ishandle(sel),
     t  = get(sel,'String');
-    if sfilt.code == -1
+    if sfilt.code == -1 && ~isempty(t)
+        % don't canonicalise empty selection
         t = cellstr(t);
         for k = 1:numel(t);
             t{k} = cpath(t{k},pwd);

@@ -64,7 +64,7 @@ function [t,sts] = spm_select(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_select.m 1393 2008-04-14 18:53:47Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -464,7 +464,8 @@ waitfor(dne);
 drawnow;
 if ishandle(sel),
     t  = get(sel,'String');
-    if sfilt.code == -1
+    if sfilt.code == -1 && ~isempty(t)
+        % don't canonicalise empty selection
         t = cellstr(t);
         for k = 1:numel(t);
             t{k} = cpath(t{k},pwd);
