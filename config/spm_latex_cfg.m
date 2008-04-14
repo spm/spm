@@ -10,7 +10,7 @@ function spm_latex_cfg(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_latex_cfg.m 1384 2008-04-14 06:36:39Z volkmar $
 
 if nargin==0, c = spm_cfg; end;
 
@@ -20,7 +20,7 @@ fprintf(fp,'\\usepackage{epsfig,amsmath,pifont,moreverb,minitoc}\n');
 fprintf(fp,'%s\n%s\n%s\n%s\n%s\n%s\n%s\n',...
     '\usepackage[colorlinks=true,',...
     'pdfpagemode=UseOutlines,',...
-    'pdftitle={SPM5 Manual},','pdfauthor={The SPM Team},',...
+    'pdftitle={SPM Manual},','pdfauthor={The SPM Team},',...
     'pdfsubject={Statistical Parametric Mapping},',...
     'pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}',...
     ']{hyperref}');
@@ -31,12 +31,12 @@ fprintf(fp,'\\oddsidemargin=0mm\n\\evensidemargin=0mm\n\\topmargin=0mm\n');
 fprintf(fp,'\\headheight=12pt\n\\headsep=10mm\n\\textheight=240mm\n\\textwidth=148mm\n');
 fprintf(fp,'\\marginparsep=5mm\n\\marginparwidth=21mm\n\\footskip=10mm\n\n');
 
-fprintf(fp,'\\title{\\huge{SPM5 Manual}}\n');
+fprintf(fp,'\\title{\\huge{SPM Manual}}\n');
 fprintf(fp,'\\author{The FIL Methods Group (and honorary members)}\n');
 fprintf(fp,'\\begin{document}\n');
 fprintf(fp,'\\maketitle\n');
 fprintf(fp,'\\dominitoc\\tableofcontents\n\n');
-fprintf(fp,'\\newpage\n\\section*{The SPM5 User Interface}\n');
+fprintf(fp,'\\newpage\n\\section*{The SPM User Interface}\n');
 write_help(c,fp);
 for i=1:numel(c.values),
    % this is always false, and each cfg_item has a tag
