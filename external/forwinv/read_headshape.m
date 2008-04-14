@@ -1,7 +1,7 @@
 function [shape] = read_headshape(filename, varargin)
 
 % READ_HEADSHAPE reads the fiducials and/or the measured headshape
-% from a variety of files (like CTF and Polhemus). The headshape  and
+% from a variety of files (like CTF and Polhemus). The headshape and
 % fiducials can for example be used for coregistration.
 %
 % Use as
@@ -12,6 +12,10 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.2  2008/04/14 20:52:11  roboos
+% ensure consistent output for all  file formats (thanks to Vladimir)
+% added convert_units
+%
 % Revision 1.1  2008/04/11 12:04:55  roboos
 % new impoementation, required for clean interface towards SPM
 %
@@ -28,30 +32,49 @@ if isempty(fileformat)
   fileformat = filetype(filename);
 end
 
-switch fileformat
-  case 'ctf_ds'
-    [p, f, x] = fileparts(filename);
-    filename = fullfile(p, f, [f 'hs']);
-    shape = read_ctf_hs(filename);
+% start with an empty structure
+shape           = [];
+shape.pnt       = [];
+shape.fid.pnt   = [];
+shape.fid.label = {};
 
-  case 'ctf_hc'
-    shape = read_ctf_hc(filename);
+switch fileformat
+  case {'ctf_ds', 'ctf_hc', 'ctf_meg4', 'ctf_res4'}
+    [p, f, x] = fileparts(filename);
+    if strcmp(fileformat, 'ctf_ds')
+      filename = fullfile(p, f, [f '.hc']);
+    elseif strcmp(fileformat, 'ctf_meg4')
+      filename = fullfile(p, [f '.hc']);
+    elseif strcmp(fileformat, 'ctf_res4')
+      filename = fullfile(p, [f '.hc']);
+    end
+
+    orig = read_ctf_hc(filename);
+    shape.fid.pnt = cell2mat(struct2cell(orig.head));
+    shape.fid.label = fieldnames(orig.head);
 
   case 'ctf_shape'
-    shape = read_ctf_shape(filename);
+    orig = read_ctf_shape(filename);
+    shape.pnt = orig.pnt;
+    shape.fid.label = {'NASION', 'LEFT_EAR', 'RIGHT_EAR'};
+    for i = 1:numel(shape.fid.label)
+      shape.fid.pnt = cat(1, shape.fid.pnt, ...
+        getfield(orig.MRI_Info, shape.fid.label{i}));
+    end
 
   case '4d_hs'
     shape.pnt = read_bti_hs(filename);
 
   case 'polhemus_fil'
-    [fid, sens] = read_polhemus_fil(filename, 0, 0);
-    shape.fid  = fid;
-    shape.sens = sens;
+    [shape.fid.pnt, shape.pnt, shape.fid.label] = read_polhemus_fil(filename, 0);
 
   case 'matlab'
     tmp = load(filename);
     if isfield(tmp, 'shape')
       shape = tmp.shape;
+    elseif isfield(tmp, 'elec')
+        shape.fid.pnt   = tmp.elec.pnt;
+        shape.fid.label = tmp.elec.label;
     else
       error('no headshape found in Matlab file');
     end
@@ -63,7 +86,8 @@ switch fileformat
       if ~senstype(elec, 'eeg')
         error('headshape information can not be read from MEG gradiometer file');
       else
-        shape.pnt = elec.pnt;
+        shape.fid.pnt   = elec.pnt;
+        shape.fid.label = elec.label;
       end
     catch
       disp(lasterr);
@@ -71,3 +95,5 @@ switch fileformat
     end
 end
 
+% this will add the units to the head shape
+shape = convert_units(shape);

@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.8  2008/04/14 20:51:36  roboos
+% added convert_units
+%
 % Revision 1.7  2008/04/11 16:17:22  roboos
 % added polhemus_fil
 %
@@ -183,3 +186,5 @@ if senstype(sens, 'eeg')
   sens.label = dum.label;
 end
 
+% this will add the units to the sensor array
+sens = convert_units(sens);
