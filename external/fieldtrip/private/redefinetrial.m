@@ -45,6 +45,9 @@ function [data] = redefinetrial(cfg, data);
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.10  2008/04/14 14:59:31  roboos
+% added test for correct cfg.trl
+%
 % Revision 1.9  2008/04/08 20:21:32  roboos
 % updated documentation, made some room in the code to plug in the new functionality from Esther
 %
@@ -117,9 +120,9 @@ end
 Ntrial = size(trl,1);
 
 % check the input arguments, only one method for processing is allowed
-numoptions = ~isempty(cfg.toilim) + ~isempty(cfg.offset) + (~isempty(cfg.begsample) || ~isempty(cfg.endsample));
+numoptions = ~isempty(cfg.toilim) + ~isempty(cfg.offset) + (~isempty(cfg.begsample) || ~isempty(cfg.endsample)) + ~isempty(cfg.trl);
 if numoptions>1
-  error('you should specify either cfg.toilim, cfg.offset, or cfg.begsample and cfg.endsample');
+  error('you should specify only one of the options for redefining the data segments');
 end
 if numoptions==0 && isempty(cfg.minlength) && strcmp(cfg.trials, 'all')
   error('you should specify at least one configuration option');
@@ -238,7 +241,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.9 2008/04/08 20:21:32 roboos Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.10 2008/04/14 14:59:31 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
