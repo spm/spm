@@ -15,7 +15,7 @@ function out = spm_dartel_import(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_dartel_import.m 1387 2008-04-14 14:34:15Z john $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
@@ -43,12 +43,12 @@ for i=1:numel(matnames),
     [pth,nam,ext] = fileparts(matnames{i});
     nam = nam(1:(numel(nam)-7));
     if job.image,
-        fname = fullfile(odir,['r',nam, '.nii' ',1']);
+        fname = fullfile(odir,['r',nam, '.nii']);
         out.files{i} = fname;
     end
     for k1=1:numel(opt),
         if opt(k1),
-            fname            = fullfile(odir,['r','c', num2str(k1), nam, '.nii' ',1']);
+            fname            = fullfile(odir,['r','c', num2str(k1), nam, '.nii']);
             out.cfiles{i,k1} = fname;
         end
     end

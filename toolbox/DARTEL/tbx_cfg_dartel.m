@@ -1,7 +1,9 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 1383 2008-04-11 21:26:03Z john $
+% $Id: tbx_cfg_dartel.m 1387 2008-04-14 14:34:15Z john $
+
+addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
 % ---------------------------------------------------------------------
 % matnames Parameter Files

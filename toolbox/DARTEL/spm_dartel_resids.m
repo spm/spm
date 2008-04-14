@@ -13,7 +13,7 @@ function out = spm_dartel_resids(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_resids.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_dartel_resids.m 1387 2008-04-14 14:34:15Z john $
 
 
 PG = job.template{1};
@@ -195,7 +195,7 @@ PI  = job.images{1};
 out.files = cell(numel(PI),1);
 for i=1:numel(PI),
     [pth,nam,ext] = fileparts(PI{i});
-    fname         = fullfile(pwd,['resid_' nam '.nii',',1']);
+    fname         = fullfile(pwd,['resid_' nam '.nii']);
     out.files{i} = fname;
 end
 

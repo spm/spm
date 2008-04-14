@@ -4,17 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_dartel.m 1359 2008-04-10 11:21:34Z john $
-
-if spm_matlab_version_chk('7') < 0,
-    job = struct('type','const',...
-                 'name','Need MATLAB 7 onwards',...
-                 'tag','old_matlab',...
-                 'val',...
-          {{['This toolbox needs MATLAB 7 or greater.  '...
-            'More recent MATLAB functionality has been used by this toolbox.']}});
-    return;
-end;
+% $Id: spm_config_dartel.m 1387 2008-04-14 14:34:15Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 %_______________________________________________________________________
