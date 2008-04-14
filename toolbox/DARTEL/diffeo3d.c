@@ -700,7 +700,7 @@ void push(int dm[], int m, int n, float def[], float pf[], float po[], float so[
     {
         double x, y, z;
 
-        if (MxIsFinite(pf[i]))
+        if (mxIsFinite(pf[i]))
         {
             x    = px[i]-1.0; /* Subtract 1 because of MATLAB indexing */
             y    = py[i]-1.0;
