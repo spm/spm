@@ -70,7 +70,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: spm_jobman.m 1385 2008-04-14 08:41:41Z volkmar $
 
 
 if nargin==0
@@ -105,6 +105,8 @@ else
                         cjob = cfg_util('initjob');
                         cfg_util('addtojob', cjob, mod_cfg_id);
                     end;
+                else
+                    cjob = cfg_util('initjob');
                 end;
                 cfg_ui('local_showjob', cfg_ui, cjob);
             else
