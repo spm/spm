@@ -18,6 +18,10 @@ function [vol] = read_vol(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_vol.m,v $
+% Revision 1.4  2008/04/14 20:51:19  roboos
+% fixed dependency for dipoli/ama
+% added convert_units
+%
 % Revision 1.3  2008/03/06 09:27:54  roboos
 % updated documentation
 %
@@ -54,10 +58,11 @@ switch fileformat
 
   case 'asa_vol'
     vol = read_asa_vol(filename);
+    vol.type = 'asa';
 
   case 'mbfys_ama'
     ama = loadama(filename);
-    vol = convert_ama2vol(ama);
+    vol = ama2vol(ama);
 
   case 'neuromag_fif'
     % do not read the volume into Matlab, but use external Neuromag toolbox
@@ -76,3 +81,5 @@ switch fileformat
     error('unknown fileformat for volume conductor model');
 end
 
+% this will add the units to the volume conductor model
+vol = convert_units(vol);
