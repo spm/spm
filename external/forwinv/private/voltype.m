@@ -13,6 +13,9 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.5  2008/04/14 19:31:05  roboos
+% return 'unknown' if the type cannot be determined
+%
 % Revision 1.4  2008/04/10 10:59:38  roboos
 % better detection of multisphere meg (after preparing)
 %
@@ -51,6 +54,10 @@ elseif isfield(vol, 'bnd')
 
 elseif isempty(vol)
   type = 'infinite';
+
+else
+  type = 'unknown';
+  
 end
 
 if nargin>1
