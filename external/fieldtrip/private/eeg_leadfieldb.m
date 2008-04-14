@@ -23,6 +23,9 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: eeg_leadfieldb.m,v $
+% Revision 1.3  2008/04/14 20:54:35  roboos
+% be more explicit about BEM type
+%
 % Revision 1.2  2005/12/06 11:41:07  roboos
 % added support for dipoli models
 % restructured the whole code
@@ -37,11 +40,14 @@ isdipoli = 0;  % system matrix computed using Thom Oostendorp's DIPOLI
 isasa    = 0;  % system matrix computed using ASA from www.ant-neuro.com
 
 % determine the type of BEM system matrix
-if isfield(vol, 'type') && strcmp(vol.type, 'avo')
-  isavo = 1;
-elseif isfield(vol, 'type') && strcmp(vol.type, 'dipoli')
+if     isfield(vol, 'type') && strcmp(vol.type, 'dipoli')
   isdipoli = 1;
+elseif isfield(vol, 'type') && strcmp(vol.type, 'avo')
+  isavo = 1;
+elseif isfield(vol, 'type') && strcmp(vol.type, 'asa')
+  isasa = 1;
 else
+  % default is to assume ASA, see http://www.ant-neuro.com
   isasa = 1;
 end
 
