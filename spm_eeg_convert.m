@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1360 2008-04-10 11:54:31Z vladimir $
+% $Id: spm_eeg_convert.m 1390 2008-04-14 16:08:09Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -191,7 +191,7 @@ else % Read by trials
         readbytrials = 0;
     else
         try
-            trialind = find(strcmpi('trial', {event.type}));
+            trialind = find(strcmp('trial', {event.type}));
             trl = [event(trialind).sample];
             trl = trl(:);
             trl = [trl  trl+[event(trialind).duration]'-1];
@@ -316,6 +316,24 @@ end
 spm_progress_bar('Clear');
 spm('Pointer', 'Arrow');drawnow;
 
+
+% Specify sensor positions and fiducials
+if isfield(hdr, 'grad')
+    D.sensors.meg = hdr.grad;
+else
+    try
+        D.sensors.eeg = read_sensors(S.dataset);
+    catch
+        warning('Could not obtain electrode locations automatically.');
+    end
+end
+
+try
+    D.fiducials = read_headshape(S.dataset);
+catch
+    warning('Could not obtain fiducials automatically.');
+end
+
 %--------- Create meeg object
 D.history(1).fun = 'spm_eeg_convert';
 D.history(1).args = {S};
@@ -326,12 +344,6 @@ D = meeg(D);
 % Set channel types to default
 D = chantype(D, [], []);
 
-% Configure MEG sensors and channels
-if isfield(hdr, 'grad')
-    % Disabled for now
-   % D = grad2sens(D, hdr.grad);
-end
-
 if S.continuous
     D = type(D, 'continuous');
 else
@@ -339,7 +351,6 @@ else
 end
 
 save(D);
-
 
 function event = select_events(event, timeseg)
 % Utility function to select events according to time segment

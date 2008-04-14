@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1336 2008-04-09 14:57:45Z vladimir $
+% $Id: spm_eeg_prep.m 1390 2008-04-14 16:08:09Z vladimir $
 
 D = S.D;
 
@@ -41,7 +41,7 @@ switch S.task
 
                 D = chantype(D, setdiff(eegind, sel1), 'Other');
             end
-            
+
             if any(any(coor2D(D, sel1) - xy(:, sel2)))
                 D = coor2D(D, sel1, num2cell(xy(:, sel2)));
             end
@@ -49,58 +49,71 @@ switch S.task
     case 'loadeegsens'
         switch S.source
             case 'mat'
-                fiducials = load(S.sensfile{1});
-                name    = fieldnames(fiducials);
-                fiducials = getfield(fiducials,name{1});
-
-                senspos = load(S.sensfile{2});
+                senspos = load(S.sensfile);
                 name    = fieldnames(senspos);
                 senspos = getfield(senspos,name{1});
-                
+
                 label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
+
+                if size(senspos, 1) ~= length(label)
+                    error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
+                end
+
+                elec = [];
+                elec.pnt = senspos;
+                elec.label = label;
 
             case 'filpolhemus'
-                [fiducials, senspos] = spm_eeg_inv_ReadPolhemus(S.sensfile); 
-                
+                shape = read_headshape(S.sensfile, 'fileformat', 'polhemus_fil');
+
+                senspos = shape.pnt;
+
                 label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
-                
+
+                if size(senspos, 1) ~= length(label)
+                    error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
+                end
+
+                elec = [];
+                elec.pnt = senspos;
+                elec.label = label;
+
             case 'locfile'
                 elec = read_sens(S.sensfile);
-                
-                [junk fidind] = spm_match_str({'fidnz', 'fidt9', 'fidt10'}, lower(elec.label));
-                
-                if length(fidind) ~= 3
-                    error('Locations file should contain 3 fiducials labeled ''fidnz'', ''fidt9'' and ''fidt10''');
-                end                                                               
-                
-                sensind = setdiff(1:length(elec.label), fidind);
-                
-                fiducials = elec.pnt(fidind, :);
-                label = elec.label(sensind);
-                senspos = elec.pnt(sensind, :);
-        end        
-
-        if size(senspos, 1) ~= length(label)
-            error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
         end
 
-        elec = [];
-        elec.pnt = senspos;
-        elec.label = label;
-        elec.fid = fiducials;
+        D = sensors(D, 'EEG', elec);
 
-        D = elec2sens(D, elec);
     case 'headshape'
         switch S.source
             case 'mat'
                 headshape = load(S.headshapefile);
-                name    = fieldnames(headshape);
-                headshape = getfield(headshape,name{1});
-            case 'filpolhemus'
-                [fiducials, headshape] = spm_eeg_inv_ReadPolhemus(S.headshapefile);
+                name    = fieldnames(fiducials);
+                headshape = getfield(fiducials,name{1});
+
+                shape = [];
+
+                fidnum = 0;
+                while ~all(isspace(S.fidlabel))
+                    fidnum = fidnum+1;
+                    [shape.fid.label{i} S.fidlabel] = strtok(S.fidlabel);
+                end
+
+                if (fidnum < 3)  || (size(headshape, 1) < fidnum)
+                    error('At least 3 labeled fiducials are necessary');
+                end
+
+                shape.fid.pnt = headshape(1:fidnum, :);
+
+                if size(headshape, 1) > fidnum
+                    shape.pnt = headshape((fidnum+1):end, :);
+                end
+            otherwise
+                shape = read_headshape(S.headshapefile, 'fileformat', 'polhemus_fil');
         end
 
-        D.headshape = headshape;
+        D = fiducials(D, shape);
+        
     case 'coregister'
         D = D.sensorcoreg;
 end

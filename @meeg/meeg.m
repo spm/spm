@@ -73,19 +73,16 @@ function D = meeg(varargin)
 % .sensors
 %
 %
-%   Subfields of .sensors
+%   Subfields of .sensors (optional)
+%       .meg - struct with sensor positions for MEG (subfields: .pnt .ori .tra .label)
+%       .eeg - struct with sensor positions for MEG (subfields: .pnt .tra .label)
 %
-%   Only sensors with positions should be included (i.e., EEG, MEG)
-%
-%       .pnt   -  Mx3 matrix with the position of each sensor
-%       .ori   - Mx3 matrix with the orientation of each MEG coil.
-%       .label - labels of the sensors (Mx1 cell array of strings).
-%       .type  - cell array of strings with sensor types ('EEG', 'MEG').
-%
-%   M - number of sensors can be larger or smaller than the number of channels.
-%
-%
-% .fiducials - MRI fiducials for coregistration (3x3 matrix)
+% .fiducials - headshape and fiducials for coregistration with sMRI
+%      
+%   Subfiels of .fiducials (optional)
+%       .pnt - headshape points
+%       .fid.pnt - fiducial points
+%       .fid.label - fiducial labels
 %
 % .artifacts - structure array with fields .start and .stop expressed in 
 %              seconds in original file time.
@@ -108,7 +105,7 @@ function D = meeg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 1389 2008-04-14 15:04:57Z christophe $
+% $Id: meeg.m 1390 2008-04-14 16:08:09Z vladimir $
 
 if nargin==1
     if isstruct(varargin{1})

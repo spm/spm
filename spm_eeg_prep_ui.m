@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1336 2008-04-09 14:57:45Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1390 2008-04-14 16:08:09Z vladimir $
 
 if nargin == 0
 
@@ -65,12 +65,12 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on');
 
-    LoadEEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load (EEG)',...
+    LoadEEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load EEG sensors',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on');
 
-    LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat files',...
+    LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat file',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
@@ -88,18 +88,17 @@ if nargin == 0
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
 
-    HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Headshape',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on');
-
-    LoadHeadshapeMatMenu = uimenu(HeadshapeMenu, 'Label', 'Load from *.mat file',...
+    HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load Fiducials/Headshape',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on');
 
-    LoadHeadshapePolhemusMenu = uimenu(HeadshapeMenu, 'Label', 'Load from FIL polhemus file',...
+    LoadHeadshapeMatMenu = uimenu(HeadshapeMenu, 'Label', 'From *.mat file',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on');
+
+    LoadHeadshapePolhemusMenu = uimenu(HeadshapeMenu, 'Label', 'Convert headshape file',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
@@ -263,9 +262,8 @@ S.D = getD;
 S.task = 'loadeegsens';
 
 switch get(gcbo, 'Label')
-    case 'From *.mat files'
-        S.sensfile{1} = spm_select(1,'.mat$','Select EEG fiducials file');
-        S.sensfile{2} = spm_select(1,'.mat$','Select EEG sensors file');
+    case 'From *.mat file'
+        S.sensfile = spm_select(1,'.mat$','Select EEG sensors file');
         S.source = 'mat';
     case 'From FIL polhemus file'
         S.sensfile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
@@ -290,12 +288,13 @@ S.D = getD;
 S.task = 'headshape';
 
 switch get(gcbo, 'Label')
-    case 'Load from *.mat file'
-        S.headshapefile = spm_select(1,'.mat$','Select matlab head');
+    case 'From *.mat file'
+        S.headshapefile = spm_select(1,'.mat$','Select fiducials/headshape file');
+        S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'NZ LE RE'); 
         S.source = 'mat';
-    case 'Load from FIL polhemus file'
-        S.headshapefile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
-        S.source = 'filpolhemus';
+    case 'Convert headshape file'
+        S.headshapefile = spm_select(1, '\.*', 'Select fiducials/headshape file');
+        S.source = 'convert';
 end
 
 D = spm_eeg_prep(S);
@@ -374,26 +373,18 @@ function Project3DCB
 
 D = getD;
 
-% Ugly, but this is a very specific case that does not justify
-% making a separate method at this stage
-sD = struct(D);
-sensors = sD.sensors;
-
+cfg = [];
 switch get(gcbo, 'Label')
     case 'Project 3D (EEG)'
-        ind = strmatch('EEG', sensors.type, 'exact');
+       cfg.elec = D.sensors('EEG');
+       label = cfg.elec.label;
     case 'Project 3D (MEG)'
-        ind = strmatch('MEG', sensors.type, 'exact');
+       cfg.grad = D.sensors('MEG');
+       label = cfg.grad.label;
 end
 
-cfg = [];
-cfg.elec = [];
-cfg.elec.label = sensors.label(ind);
-cfg.elec.pnt = sensors.pnt(ind, :);
-
 lay = ft_prepare_layout(cfg);
-
-[sel1, sel2] = spm_match_str(cfg.elec.label, lay.label);
+[sel1, sel2] = spm_match_str(label, lay.label);
 
 label =lay.label(sel2)';
 xy = [lay.pos(sel2, 2), -lay.pos(sel2, 1)];
@@ -484,15 +475,15 @@ if isa(get(Finter, 'UserData'), 'meeg')
         IsMEG = 'on';
     end
 
-    if D.sensorsdefined
+    if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
         IsSensors = 'on';
     end
 
-    if D.sensorsdefined('EEG')
+    if ~isempty(D.sensors('EEG'))
         IsSensorsEEG = 'on';
     end
 
-    if  D.sensorsdefined('MEG')
+    if  ~isempty(D.sensors('MEG'))
         IsSensorsMEG = 'on';
     end
 else
@@ -521,7 +512,7 @@ end
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load (EEG)'), 'Enable', IsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', IsSensors);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister'), 'Enable', IsSensors);

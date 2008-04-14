@@ -5,57 +5,39 @@ function this = sensorcoreg(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensorcoreg.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: sensorcoreg.m 1390 2008-04-14 16:08:09Z vladimir $
 
 if ~isfield(this.sensors, 'pnt') ~isempty(this.sensors.pnt)
     error('No sensor positions are defined');
 end
 
-if ~isempty(strmatch('MEG', this.sensors.type))
-    error('MEG not supported yet');
-end
-
-val=1;
-this.other(1).inv{val}.mesh.Msize = 1;
-this = spm_eeg_inv_template(this, val);
-
-allpoints = [this.sensors.pnt; this.fiducials];
+% if ~isempty(strmatch('MEG', this.sensors.type))
+%     error('MEG not supported yet');
+% end
 
 if isfield(this.other, 'headshape')
     headshape = this.other.headshape;
-    allpoints = [allpoints; headshape];
+elseif ~isfield(this.sensors, 'tra')
+    headshape = this.sensors.pnt;
 else
-    eegind = strmatch('EEG', this.sensors.type, 'exact');
-    headshape = this.sensors.pnt(eegind, :);
+    headshape = this.fiducials.pnt;
 end
 
+if isempty(headshape)
+    headshape = sparse(0, 3);
+end
 
-% The coregistration function doesn't like coordinates smaller than 1
-% So the units are normalized to have values in the order of magnitude of 10.
-norm_const = 0.1*mean(std(allpoints));
+[datareg, mesh] = spm_eeg_inv_template(1);
 
-this.other.inv{val}.datareg.sensors = this.sensors.pnt./norm_const;
-this.other.inv{val}.datareg.label = this.sensors.label;
-this.other.inv{val}.datareg.fid_eeg = this.fiducials./norm_const;
-this.other.inv{val}.datareg.headshape = headshape./norm_const;
+[M1, sensors, fid_eeg, headshape] = ...
+    spm_eeg_inv_datareg(this.sensors, this.fiducials.fid.pnt, datareg.fid_mri, headshape, datareg.scalpvert, 1);
 
-this.other.modality = 'EEG'; % for now
+datareg.sens_coreg = sensors.pnt;
+datareg.fid_coreg = fid_eeg;
+datareg.hsp_coreg = headshape;
+datareg.label = sensors.label;
 
+spm_eeg_inv_checkdatareg(mesh, datareg);
 
-[RT,sensors_reg,fid_reg,headshape_reg,orient_reg] = spm_eeg_inv_datareg(this);
-
-this.other.inv{val}.datareg.sens_coreg=sensors_reg;
-this.other.inv{val}.datareg.fid_coreg=fid_reg;
-this.other.inv{val}.datareg.hsp_coreg=headshape_reg;
-
-spm_eeg_inv_checkdatareg(this);
-
-elec = [];
-
-elec.pnt = sensors_reg;
-elec.fid = fid_reg;
-elec.label = this.other.inv{val}.datareg.label;
-
-this = elec2sens(this, elec);
-
-this.other = rmfield(this.other, 'inv');
+this.sensors = sensors;
+this.fiducials = fid_eeg;

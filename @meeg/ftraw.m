@@ -5,7 +5,7 @@ function raw = ftraw(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ftraw.m 1231 2008-03-19 15:06:13Z vladimir $
+% $Id: ftraw.m 1390 2008-04-14 16:08:09Z vladimir $
 
 
 nchans  = nchannels(this);
@@ -21,7 +21,7 @@ wsize=wordsize(this.data.datatype);
 for i=1:ntrl
     offset = (i-1)*nchans*ntime*wsize;
     trialdim = [nchans ntime];
-    raw.trial{i} = file_array(fullfile(this.path, this.data.fnamedat),trialdim,this.data.datatype,offset,1,0);
+    raw.trial{i} = file_array(fullfile(this.path, this.data.fnamedat),trialdim,this.data.datatype,offset,1,0,'ro');
 end
 
 raw.time = repmat({time(this)}, 1, ntrl);
