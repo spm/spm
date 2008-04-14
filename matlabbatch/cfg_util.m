@@ -307,9 +307,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: cfg_util.m 1386 2008-04-14 12:15:59Z john $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1386 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1160,7 +1160,48 @@ while ~isempty(cjid2subs)
             % no cached outputs (module did not run or it does not return
             % outputs) - run job
             fprintf('Running ''%s''\n', cm.name);
-            try
+            if isempty(dbstatus),
+                try
+                    if isempty(cm.vout) && ~isempty(cm.vfiles);
+                        warning('matlabbatch:cfg_util:vfiles', ...
+                                'Using deprecated ''vfiles'' output in node ''%s''.', cm.tag);
+                        feval(cm.prog, subsref(jobs, jobsubsrun{k}));
+                        cm.jout = struct('vfiles', {feval(cm.vfiles, ...
+                                               subsref(jobs, jobsubsrun{k}))});
+                    elseif isempty(cm.sout)
+                        % no outputs specified
+                        feval(cm.prog, subsref(jobs, jobsubsrun{k}));
+                        cm.jout = [];
+                    else
+                        cm.jout = feval(cm.prog, subsref(jobs, jobsubsrun{k}));
+                    end;
+                catch
+                    cjid2subsfailed = {cjid2subsfailed{:} cjid2subsrun{k}};
+                    fprintf('%s failed\n', cm.name);
+                    l = lasterror;
+                    disp(l.message);
+                    if isfield(l,'stack'), % Does not always exist
+                        for m = 1:numel(l.stack),
+                            try
+                                fp  = fopen(l.stack(m).file,'r');
+                                str = fread(fp,Inf,'*uchar');
+                                fclose(fp);
+                                str = char(str(:)');
+                                re  = regexp(str,'\$Id: \w+\.\w+ ([0-9]+) [0-9][0-9][0-9][0-9].*\$','tokens');
+                                if numel(re)>0 && numel(re{1})>0,
+                                    id = [' (v', re{1}{1}, ')'];
+                                else
+                                    id = ' (???)';
+                                end
+                            catch
+                                id = '';
+                            end
+                            fprintf('In file "%s"%s, function "%s" at line %d.\n', ...
+                                    l.stack(m).file, id, l.stack(m).name, l.stack(m).line);
+                        end
+                    end;
+                end;
+            else
                 if isempty(cm.vout) && ~isempty(cm.vfiles);
                     warning('matlabbatch:cfg_util:vfiles', ...
                             'Using deprecated ''vfiles'' output in node ''%s''.', cm.tag);
@@ -1174,32 +1215,8 @@ while ~isempty(cjid2subs)
                 else
                     cm.jout = feval(cm.prog, subsref(jobs, jobsubsrun{k}));
                 end;
-            catch
-                cjid2subsfailed = {cjid2subsfailed{:} cjid2subsrun{k}};
-                fprintf('%s failed\n', cm.name);
-                l = lasterror;
-                disp(l.message);
-                if isfield(l,'stack'), % Does not always exist
-                    for m = 1:numel(l.stack),
-                        try
-                            fp  = fopen(l.stack(m).file,'r');
-                            str = fread(fp,Inf,'*uchar');
-                            fclose(fp);
-                            str = char(str(:)');
-                            re  = regexp(str,'\$Id: \w+\.\w+ ([0-9]+) [0-9][0-9][0-9][0-9].*\$','tokens');
-                            if numel(re)>0 && numel(re{1})>0,
-                                id = [' (v', re{1}{1}, ')'];
-                            else
-                                id = ' (???)';
-                            end
-                        catch
-                            id = '';
-                        end
-                        fprintf('In file "%s"%s, function "%s" at line %d.\n', ...
-                                l.stack(m).file, id, l.stack(m).name, l.stack(m).line);
-                    end
-                end;
             end;
+
             % save results (if any) into job tree
             cjrun = subsasgn(cjrun, cjid2subsrun{k}, cm);
         else
