@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.4  2008/04/15 20:36:21  roboos
+% added explicit handling of various BEM implementations, i.e. for all voltype variants
+%
 % Revision 1.3  2008/04/10 11:00:29  roboos
 % fixed some small but obvious bugs
 %
@@ -170,7 +173,7 @@ elseif iseeg
     case 'concentric'
       % nothing to do
 
-    case 'bem'
+    case {'bem', 'dipoli', 'asa', 'avo'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % do postprocessing of volume and electrodes in case of BEM model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

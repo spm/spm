@@ -13,6 +13,9 @@ function [vol] = transform_vol(transform, vol)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: transform_vol.m,v $
+% Revision 1.4  2008/04/15 20:36:21  roboos
+% added explicit handling of various BEM implementations, i.e. for all voltype variants
+%
 % Revision 1.3  2008/03/06 09:27:31  roboos
 % updated documentation
 %
@@ -43,7 +46,7 @@ switch voltype(vol)
       vol.o = apply(transform, vol.o);
     end
 
-  case {'bem' 'nolte'}
+  case {'bem', 'dipoli', 'asa', 'avo', 'nolte'}
     for i=1:length(vol.bnd)
       % apply the transformation to each of the triangulated surface descriptions
       vol.bnd(i).pnt = apply(transform, vol.bnd(i).pnt);

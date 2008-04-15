@@ -14,6 +14,9 @@ function [inside, outside] = find_inside_vol(pos, vol);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: find_inside_vol.m,v $
+% Revision 1.7  2008/04/15 20:36:21  roboos
+% added explicit handling of various BEM implementations, i.e. for all voltype variants
+%
 % Revision 1.6  2007/07/25 08:34:05  roboos
 % switched to using voltype helper function
 % also support N-shell concentric sphere model
@@ -87,7 +90,7 @@ case 'multisphere'
   inside  = find(inside>0);
 
 % realistic BEM volume conductor model
-case {'bem' 'dipoli'}
+case {'bem', 'dipoli', 'asa', 'avo', 'nolte', 'neuromag'}
   if isfield(vol, 'source')
     % use the specified source compartment
     pnt = vol.bnd(vol.source).pnt;
@@ -100,12 +103,6 @@ case {'bem' 'dipoli'}
   end
   % determine the dipole positions that are inside the brain compartment
   inside  = find(bounding_mesh(pos, pnt, tri)==1)';
-  outside = setdiff(1:size(pos,1),inside)';
-
-% Neuromag BEM volume conductor
-case 'neuromag'
-  % determine the dipole positions that are inside the brain compartment
-  inside  = find(bounding_mesh(pos,vol.bnd.pnt,vol.bnd.tri)==1)';
   outside = setdiff(1:size(pos,1),inside)';
 
 % unrecognized volume conductor model
