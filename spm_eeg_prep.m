@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1406 2008-04-15 09:37:59Z vladimir $
+% $Id: spm_eeg_prep.m 1410 2008-04-15 13:06:09Z vladimir $
 
 D = S.D;
 
@@ -94,15 +94,15 @@ switch S.task
         switch S.source
             case 'mat'
                 headshape = load(S.headshapefile);
-                name    = fieldnames(fiducials);
-                headshape = getfield(fiducials,name{1});
+                name    = fieldnames(headshape);
+                headshape = getfield(headshape,name{1});
 
                 shape = [];
 
                 fidnum = 0;
                 while ~all(isspace(S.fidlabel))
                     fidnum = fidnum+1;
-                    [shape.fid.label{i} S.fidlabel] = strtok(S.fidlabel);
+                    [shape.fid.label{fidnum} S.fidlabel] = strtok(S.fidlabel);
                 end
 
                 if (fidnum < 3)  || (size(headshape, 1) < fidnum)

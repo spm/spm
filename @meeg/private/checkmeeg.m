@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1406 2008-04-15 09:37:59Z vladimir $
+% $Id: checkmeeg.m 1410 2008-04-15 13:06:09Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -296,9 +296,13 @@ if strcmp(option, 'sensfid')
         return;
     end
     
-    if ~isfield(meegstruct.fiducials, 'pnt') || ...
-            isempty(meegstruct.fiducials.pnt)
-        meegstruct.fiducials.pnt = sparse(0, 3);
+    if ~isfield(meegstruct.fiducials, 'pnt') || isempty(meegstruct.fiducials.pnt)
+        if ~isempty(eegind)
+            % Copy EEG sensors to fiducials.
+            meegstruct.fiducials.pnt = meegstruct.sensors.eeg.pnt;
+        else
+            meegstruct.fiducials.pnt = sparse(0, 3);
+        end
     end
     
     if ~isfield(meegstruct.fiducials, 'fid') || ...
