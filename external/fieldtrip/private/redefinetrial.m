@@ -32,19 +32,18 @@ function [data] = redefinetrial(cfg, data)
 %   cfg.begsample = single number or Nx1 vector, expressed in samples relative to current t=0
 %   cfg.endsample = single number or Nx1 vector, expressed in samples relative to current t=0
 %
-% See also DEFINETRIAL, RECODEEVENT, PREPROCESSING
-
-
-% TODO incorporate the code from Esther, which corresponds to
 % Alternatively you can specify a new trial definition, expressed in
 % samples relative to the original recording
 %   cfg.trl       = Nx3 matrix with the trial definition, see DEFINETRIAL
 %
-
+% See also DEFINETRIAL, RECODEEVENT, PREPROCESSING
 
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.12  2008/04/15 16:11:54  estmee
+% updated documentation
+%
 % Revision 1.11  2008/04/15 16:07:24  estmee
 % inserted code that creates new trials based on cfg.trl
 %
@@ -309,7 +308,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.11 2008/04/15 16:07:24 estmee Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.12 2008/04/15 16:11:54 estmee Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
