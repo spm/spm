@@ -32,9 +32,9 @@ function item = subsasgn(item, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 178 2008-03-17 09:18:11Z glauche $
+% $Id: subsasgn.m 212 2008-04-15 10:21:00Z glauche $
 
-rev = '$Rev: 178 $';
+rev = '$Rev: 212 $';
 
 if numel(item) ~= 1
     error('matlabbatch:subsasgn:numel', ...
@@ -61,24 +61,19 @@ if numel(subs) == 1
                         par_class = 'cfg_item';
                         par_fields = subs_fields(item.cfg_item);
                 end;
-                switch subs(1).subs
-                    case par_fields,
-                        % call subsasgn_check of derived class to check
-                        % for correctness
-                        [ok val] = subsasgn_check(item,subs,varargin{1});
-                        if ok,
+                [ok val] = subsasgn_check(item,subs,varargin{1});
+                if ok,
+                    switch subs(1).subs
+                        case par_fields,
                             item.(par_class) = subsasgn(item.(par_class), subs, val);
-                        end
-                    case subs_fields(item),
-                        [ok val] = subsasgn_check(item,subs,varargin{1});
-                        if ok,
+                        case subs_fields(item),
                             item.(subs(1).subs) = val;
-                        end;
-                    otherwise
-                        error('matlabbatch:subsasgn:unknownfield', ...
-                              ['Reference to unknown field ''%s''.\n' ...
-                               'To assign to a field in the job structure, use a reference like ' ...
-                               '''(x).%s''.'], subs(1).subs, subs(1).subs);
+                        otherwise
+                            error('matlabbatch:subsasgn:unknownfield', ...
+                                  ['Reference to unknown field ''%s''.\n' ...
+                                   'To assign to a field in the job structure, use a reference like ' ...
+                                   '''(x).%s''.'], subs(1).subs, subs(1).subs);
+                    end;
                 end;
             else
                 error('matlabbatch:subsasgn:numel', ...

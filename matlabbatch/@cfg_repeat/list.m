@@ -1,10 +1,6 @@
 function [id, stop, val] = list(item, spec, tropts, fn)
 
-%function [id, stop, val] = list(item, spec, tropts, fn)
-% This function searches the cfg tree for certain entries. It is identical
-% for cfg_branch, cfg_choice and cfg_repeat nodes.
-%
-% [id stop val] = list(item, spec, tropts[, fieldnames])
+% function [id, stop, val] = list(item, spec, tropts, fn)
 % Find items in a cfg tree rooted at item that match a specification spec.
 % By default, the filled configuration tree is searched (i.e. the
 % val-branches of cfg_repeat and cfg_choice nodes). 
@@ -43,6 +39,7 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % 'all_set_item' - return all_set_item status of current node (i.e. whether
 %                  all integrity conditions for this node are fulfilled).
 %                  For in-tree nodes this can be different from all_set.
+% This function is identical for all in-tree items.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -51,9 +48,9 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: list.m 1411 2008-04-15 13:55:24Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1411 $';
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};

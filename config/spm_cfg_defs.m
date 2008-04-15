@@ -4,9 +4,9 @@ function defs = spm_cfg_defs
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_defs.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_defs.m 1411 2008-04-15 13:55:24Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1411 $';
 % ---------------------------------------------------------------------
 % matname Parameter File
 % ---------------------------------------------------------------------
@@ -2311,7 +2311,7 @@ comp.num     = [0 Inf];
 ofname         = cfg_entry;
 ofname.tag     = 'ofname';
 ofname.name    = 'Save as';
-ofname.val = {''};
+ofname.val = {};
 ofname.help    = {'Save the result as a three-volume image.  "y_" will be prepended to the filename.  The result will be written to the current directory.'};
 ofname.strtype = 's';
 ofname.num     = [1 Inf];

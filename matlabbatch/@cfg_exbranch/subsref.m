@@ -23,23 +23,37 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: subsref.m 1411 2008-04-15 13:55:24Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1411 $';
 
 switch subs(1).type,
     case {'.'},
         if numel(subs) > 1 && numel(item) > 1
             error('matlabbatch:subsref:multiref', 'Field reference for multiple structure elements that is followed by more reference blocks is an error.');
         end;
+        citem = class(item);
+        switch citem
+            case 'cfg_exbranch',
+                par_class = 'cfg_branch';
+                pf1 = subs_fields(item.cfg_branch);
+                pf2 = subs_fields(cfg_item);
+                par_fields = {pf1{:} pf2{:}};
+            case 'cfg_item',
+                par_class = '';
+                par_fields = {};
+            otherwise
+                par_class = 'cfg_item';
+                par_fields = subs_fields(item.cfg_item);
+        end;
         switch subs(1).subs
             case subs_fields(item),
                 for k = 1:numel(item)
                     val{k} = item(k).(subs(1).subs);
                 end;
-            case cat(2, subs_fields(item.cfg_branch), subs_fields(cfg_item)),
+            case par_fields,
                 for k = 1:numel(item)
-                    val{k} = item(k).cfg_branch.(subs(1).subs);
+                    val{k} = item(k).(par_class).(subs(1).subs);
                 end;
             otherwise
                 error('matlabbatch:subsref:unknownfield', ...

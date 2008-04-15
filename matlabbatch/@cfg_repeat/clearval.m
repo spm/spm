@@ -3,8 +3,8 @@ function item = clearval(item, dflag)
 % function item = clearval(item, dflag)
 % Clear val field, thereby removing the currently selected configuration
 % subtree. If dflag is set, then also all val fields in the item.values{:}
-% cfg_item(s) are cleared. This code is identical for cfg_choice and
-% cfg_repeat nodes.
+% cfg_item(s) are cleared. 
+% This function is identical for cfg_choice and cfg_repeat items.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -13,9 +13,9 @@ function item = clearval(item, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: clearval.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: clearval.m 1411 2008-04-15 13:55:24Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1411 $';
 
 item.cfg_item.val = {};
 
