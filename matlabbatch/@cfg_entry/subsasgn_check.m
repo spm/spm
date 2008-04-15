@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: subsasgn_check.m 1409 2008-04-15 10:22:46Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1409 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -128,6 +128,7 @@ function [sts, val] = numcheck(item,val)
 checkstr = sprintf('Item ''%s'', field ''val''', subsref(item,substruct('.','name')));
 % allow arbitrary size, if num field is empty
 sts = true;
+csz = size(val);
 if ~isempty(item.num)
     if item.strtype == 's' && numel(item.num) == 2
         % interpret num field as [min max] # elements
@@ -139,7 +140,6 @@ if ~isempty(item.num)
         end;
     else
         ind = item.num>0 & isfinite(item.num);
-        csz = size(val);
         if numel(csz) == 2
             % also try transpose for 2D arrays
             cszt = size(val');
