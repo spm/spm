@@ -23,9 +23,9 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1412 2008-04-15 15:15:19Z john $
+% $Id: subsref.m 1414 2008-04-15 15:50:48Z volkmar $
 
-rev = '$Rev: 1412 $';
+rev = '$Rev: 1414 $';
 
 switch subs(1).type,
     case {'.'},

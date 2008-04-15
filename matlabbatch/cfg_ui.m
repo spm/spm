@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: cfg_ui.m 1414 2008-04-15 15:50:48Z volkmar $
 
-rev = '$Rev: 1405 $';
+rev = '$Rev: 1414 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1218,6 +1218,8 @@ if strcmp(get(handles.cfg_ui,'SelectionType'),'open')
             local_valedit_SelectFiles(hObject);
         case {'cfg_choice', 'cfg_menu'},
             local_valedit_list(hObject);
+        case {'cfg_repeat'},
+            local_valedit_AddItem(hObject);
     end;
 end;
 
