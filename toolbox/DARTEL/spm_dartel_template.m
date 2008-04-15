@@ -7,7 +7,7 @@ function out = spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_dartel_template.m 1412 2008-04-15 15:15:19Z john $
 
 code = 2;
 st = job.settings;
@@ -213,7 +213,7 @@ out.template = cell(numel(job.settings.param),1);
 if ~isempty(tname),
     for it=0:numel(job.settings.param),
         fname    = fullfile(tdir,[tname '_' num2str(it) '.nii']);
-        out.template{it} = fname;
+        out.template{it+1} = fname;
     end
 end
 out.files = cell(n2,1);

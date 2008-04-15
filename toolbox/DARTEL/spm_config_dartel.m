@@ -4,7 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_dartel.m 1387 2008-04-14 14:34:15Z john $
+% $Id: spm_config_dartel.m 1412 2008-04-15 15:15:19Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 %_______________________________________________________________________
@@ -530,7 +530,7 @@ data = files('Data','images','nifti',[1 Inf]);
 data.help = {'Select images to generate dot-products from.'};
 
 msk = files('Weighting image','weight','image',[0 1]);
-msk.val = {''};
+msk.val = {{}};
 msk.help = {[...
 'The kernel can be generated so that some voxels contribute to '...
 'the similarity measures more than others.  This is achieved by supplying '...

@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 1387 2008-04-14 14:34:15Z john $
+% $Id: tbx_cfg_dartel.m 1412 2008-04-15 15:15:19Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -1038,7 +1038,7 @@ images.num     = [1 Inf];
 weight         = cfg_files;
 weight.tag     = 'weight';
 weight.name    = 'Weighting image';
-weight.val = {''};
+weight.val = {{}};
 weight.help    = {'The kernel can be generated so that some voxels contribute to the similarity measures more than others.  This is achieved by supplying a weighting image, which each of the component images are multiplied before the dot-products are computed. This image needs to have the same dimensions as the component images, but orientation information (encoded by matrices in the headers) is ignored. If left empty, then all voxels are weighted equally.'};
 weight.filter = 'image';
 weight.ufilter = '.*';

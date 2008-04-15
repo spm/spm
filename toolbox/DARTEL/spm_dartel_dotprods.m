@@ -7,7 +7,7 @@ function spm_dartel_dotprods(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_dotprods.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_dotprods.m 1412 2008-04-15 15:15:19Z john $
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.dotprod);
@@ -22,7 +22,7 @@ for i=1:numel(N),
 end
 Phi = zeros(n,n);
 
-if isfield(job,'weight') && ~isempty(job.weight{1}),
+if isfield(job,'weight') && ~isempty(job.weight),
     Pmsk = strvcat(job.weight);
     Nmsk = nifti(Pmsk);
     msk  = Nmsk.dat;
