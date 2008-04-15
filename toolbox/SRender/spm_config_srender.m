@@ -1,10 +1,10 @@
-function c = spm_config_render
+function c = spm_config_srender
 % Configuration file for surface visualisation
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_srender.m 1167 2008-02-24 19:51:13Z volkmar $
+% $Id: spm_config_srender.m 1425 2008-04-15 21:03:42Z Darren $
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...
         '''tag'',tag,''strtype'',strtype,''num'',num,''help'',{{}})'],...
