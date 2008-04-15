@@ -1,7 +1,7 @@
 \chapter{Dynamic Causal Modelling for evoked responses}
 \label{ch:eeg_DCM}
 Dynamic Causal Modelling for ERP/ERFs is described in
- \cite{david_dcm_erp} and \cite{sjk_dcm_erp}, see also\\
+ \cite{od_dcm_erp} and \cite{sjk_dcm_erp}, see also\\
 \href{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/}{\texttt{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/}}.
 We recommend reading these two communications as a starter, because it will
 enable you to better understand all the modelling options presented
@@ -12,7 +12,7 @@ interacting network consisting of a few areas that receive an input
 stimulus. The difference between two evoked responses that receive
 comparable stimuli under two conditions is modelled as a 
 modulation of some of the inter-areal connections
-\cite{david_dcm_erp}. This interpretation 
+\cite{od_dcm_erp}. This interpretation 
 of the ERP makes hypotheses about connectivity directly testable. For
 example, one can ask, whether the difference between two
 evoked responses can be explained by some top-down modulation of early areas
@@ -116,7 +116,7 @@ For the first option, you need to choose
 \textit{fixed} in the pull-down menu. Then click on \textit{load lead
 field} and specify a matfile. This matfile must contain a matrix with
 one column for each area. Each column must have one entry for each
-channel. For an example, see \cite{david_dcm_erp}. Of course, you must have some
+channel. For an example, see \cite{od_dcm_erp}. Of course, you must have some
 means of computing the leadfield for your experiment. Alternatively,
 you can opt for the alternative and make the leadfield a function of
 equivalent current dipoles (ECDs). The parameters of the ECDs
@@ -197,7 +197,7 @@ both evoked responses, and its fit by the model.
 
 When you select \textit{ERPs sources}, the dynamics of each area are
 plotted. These corresponds to the (output) states of the dynamic
-system \cite{david_dcm_erp}.
+system \cite{od_dcm_erp}.
 
 The option \textit{coupling (A)} will take you to a summary about the
 posterior distributions of the intrinsic connectivities. In the upper
@@ -219,7 +219,7 @@ area. On the right hand side, you can see the corresponding
 probabilities (s.~above).
 
 The option \textit{Input} shows you the estimated input function. As
-described by \cite{david_dcm_erp}, this is a gamma function with an
+described by \cite{od_dcm_erp}, this is a gamma function with an
 addition of some low-frequency terms.
 
 With \textit{Response}, you can plot the selected data, i.e.~the modes

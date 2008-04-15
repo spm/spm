@@ -10,7 +10,7 @@ function spm_latex_cfg(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 1384 2008-04-14 06:36:39Z volkmar $
+% $Id: spm_latex_cfg.m 1419 2008-04-15 19:49:38Z spm $
 
 if nargin==0, c = spm_cfg; end;
 
@@ -110,8 +110,8 @@ return;
 
 function section(c,fp,lev)
 if nargin<3, lev = 1; end;
-sec = {'section','subsection','subsubsection','paragraph','subparagraph'};
-if lev<=5,
+sec = {'section','subsection','subsubsection','paragraph','subparagraph','textbf','textsc','textsl','textit'};
+if lev<=length(sec),
     fprintf(fp,'\n\\%s{%s}\n',sec{lev},texify(c.name));
     write_help(c,fp);
     switch class(c),

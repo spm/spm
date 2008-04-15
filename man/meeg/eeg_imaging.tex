@@ -14,7 +14,7 @@ Contrary to PET/fMRI data reconstruction, EEG/MEG source reconstruction is a non
 
 Distributed linear models have been around for more than a decade now~\cite{Dale93} and the proposed pipeline in SPM for 'Imaging' solution is classical and very similar to common approaches in the field. However, at least two aspects are quite original and should be emphasized here:
 \begin{itemize}
-\item Based on an empirical Bayesian formalism, the inversion is meant to be generic in the sense it can incorporate and estimate the relevance of multiple constraints of various nature; data-driven relevance estimation being made possible through Bayesian model comparison~\cite{peb1,Phillips05,Mattout06,karl_induced}.
+\item Based on an empirical Bayesian formalism, the inversion is meant to be generic in the sense it can incorporate and estimate the relevance of multiple constraints of various nature; data-driven relevance estimation being made possible through Bayesian model comparison~\cite{peb1,cp_empirical_eeg,jm_multiple,karl_induced}.
 \item The subject's specific anatomy is incorporated in the generative model of the data, in a fashion that eschews individual cortical surface extraction. The individual cortical mesh is obtained automatically from a canonical mesh in MNI space, providing a simple and efficient way of reporting results in stereotactic coordinates.
 \end{itemize}
 

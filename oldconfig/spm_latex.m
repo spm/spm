@@ -8,7 +8,7 @@ function spm_latex(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex.m 1384 2008-04-14 06:36:39Z volkmar $
+% $Id: spm_latex.m 1419 2008-04-15 19:49:38Z spm $
 
 warning(['To produce documentation for the new batch system, please use ' ...
          '''spm_latex_cfg'' instead of ''spm_latex''.']);
