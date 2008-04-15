@@ -5,39 +5,30 @@ function this = sensorcoreg(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensorcoreg.m 1390 2008-04-14 16:08:09Z vladimir $
+% $Id: sensorcoreg.m 1406 2008-04-15 09:37:59Z vladimir $
 
-if ~isfield(this.sensors, 'pnt') ~isempty(this.sensors.pnt)
-    error('No sensor positions are defined');
+[ok, this] = checkmeeg(struct(this), 'sensfid');
+
+if ~ok
+    error('Coregistration cannot be performed due to missing data');
 end
 
-% if ~isempty(strmatch('MEG', this.sensors.type))
-%     error('MEG not supported yet');
-% end
-
-if isfield(this.other, 'headshape')
-    headshape = this.other.headshape;
-elseif ~isfield(this.sensors, 'tra')
-    headshape = this.sensors.pnt;
-else
-    headshape = this.fiducials.pnt;
-end
-
-if isempty(headshape)
-    headshape = sparse(0, 3);
-end
+this = meeg(this);
 
 [datareg, mesh] = spm_eeg_inv_template(1);
 
-[M1, sensors, fid_eeg, headshape] = ...
-    spm_eeg_inv_datareg(this.sensors, this.fiducials.fid.pnt, datareg.fid_mri, headshape, datareg.scalpvert, 1);
+senstypes = {'EEG', 'MEG'};
 
-datareg.sens_coreg = sensors.pnt;
-datareg.fid_coreg = fid_eeg;
-datareg.hsp_coreg = headshape;
-datareg.label = sensors.label;
+for i = 1:numel(senstypes)
+    if ~isempty(sensors(this, senstypes{i}))
+        [M1, sens, fid] = spm_eeg_inv_datareg(sensors(this, senstypes{i}), fiducials(this), datareg, 1);
 
-spm_eeg_inv_checkdatareg(mesh, datareg);
+        this = sensors(this, senstypes{i}, sens);
+    end
+end
 
-this.sensors = sensors;
-this.fiducials = fid_eeg;
+try
+    spm_eeg_inv_checkdatareg(mesh, datareg, sens, fid);
+end
+
+this = fiducials(this, fid);

@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1390 2008-04-14 16:08:09Z vladimir $
+% $Id: spm_eeg_prep.m 1406 2008-04-15 09:37:59Z vladimir $
 
 D = S.D;
 
@@ -83,6 +83,12 @@ switch S.task
         end
 
         D = sensors(D, 'EEG', elec);
+        
+        fid = [];
+        fid.fid = elec;
+        fid.pnt = elec.pnt;
+        
+        D = fiducials(D, fid);
 
     case 'headshape'
         switch S.source

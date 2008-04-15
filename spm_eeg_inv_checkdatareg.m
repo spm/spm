@@ -1,22 +1,14 @@
-function spm_eeg_inv_checkdatareg(varargin);
+function spm_eeg_inv_checkdatareg(mesh, datareg, sens, fid)
 % Display of the coregistred meshes and sensor locations in MRI space for
 % quality check by eye.
 % Fiducials which were used for rigid registration are also displayed
 %
-% FORMAT spm_eeg_inv_checkdatareg(D,[val])
-% Input:
-% D         - input data struct (optional)
+% FORMAT spm_eeg_inv_checkdatareg(mesh, sensors)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1291 2008-04-02 13:58:28Z vladimir $
-
-% Minor change by Rik to handle sensors consisting of two gradiometer coils 5/6/07
-
-% initialise
-%--------------------------------------------------------------------------
-[D,val] = spm_eeg_inv_check(varargin{:});
+% $Id: spm_eeg_inv_checkdatareg.m 1406 2008-04-15 09:37:59Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -25,9 +17,9 @@ subplot(2,1,1)
 
 % --- DISPLAY ANATOMY ---
 %==========================================================================
-Mcortex = D.inv{val}.mesh.tess_ctx;
-Miskull = D.inv{val}.mesh.tess_iskull;
-Mscalp  = D.inv{val}.mesh.tess_scalp;
+Mcortex = mesh.tess_ctx;
+Miskull = mesh.tess_iskull;
+Mscalp  = mesh.tess_scalp;
 
 % Cortical Mesh
 %--------------------------------------------------------------------------
@@ -52,11 +44,11 @@ h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor',
 % --- DISPLAY SETUP ---
 %==========================================================================
 try
-    Lsens   = D.inv{val}.datareg.sens_coreg;
-    Lfid    = D.inv{val}.datareg.fid_coreg;
-    Lhsp    = D.inv{val}.datareg.hsp_coreg;
-    Lfidmri = D.inv{val}.datareg.fid_mri;
-    Llabel = D.inv{val}.datareg.label;
+    Lsens   = sens.pnt;
+    Lfid    = fid.fid.pnt;
+    Lhsp    = fid.pnt;
+    Lfidmri = datareg.fid_mri;
+    Llabel = sens.label;
 catch
     warndlg('please coregister these data')
     return
@@ -125,4 +117,4 @@ rotate3d on
 
 % display field
 %--------------------------------------------------------------------------
-disp(D.inv{val}.datareg)
+disp(datareg)

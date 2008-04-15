@@ -4,11 +4,12 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % result - 1 - OK, 0- failed
 % meegstruct - the struct to check (is returned modified if necessary)
 % option - 'basic' (default) - just check the essential fields
+%          'sensfid' - also checks sensor and fiducial definitions
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1390 2008-04-14 16:08:09Z vladimir $
+% $Id: checkmeeg.m 1406 2008-04-15 09:37:59Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -256,27 +257,86 @@ if strcmp(option, 'basic')
     return;
 end
 
-if strcmp(option, 'plot2D')
-    if (Nsamples == 0)
-        result =0;
-        return;
-    else
-        if ~all(isfield(meegstruct.channels, {'X_plot2D', 'Y_plot2D'}))
-            [meegstruct.channels(:).X_plot2D] = NaN;
-            [meegstruct.channels(:).Y_plot2D] = NaN;
-        end
-        for i = 1:Nchannels
-            X = meegstruct.channels(i).X_plot2D;
-            Y = meegstruct.channels(i).Y_plot2D;
-            if ~(~isempty(X) && ~isempty(Y) && ...
-                    0<=X && X<=1 && 0<=Y && Y<=1)
-                meegstruct.channels(i).X_plot2D = NaN;
-                meegstruct.channels(i).X_plot2D = NaN;
-            end
-        end
-        result = 1;
+if strcmp(option, 'sensfid')
+    if isempty(meegstruct.sensors)
+        disp('checkmeeg: no sensor positions are defined');
         return;
     end
+    
+    chantypes = getset(meegstruct, 'channels', 'type');
+    eegind = strmatch('EEG', chantypes, 'exact');
+    megind = strmatch('MEG', chantypes, 'exact');
+    
+    if ~isempty(eegind)
+        if ~isfield(meegstruct.sensors, 'eeg') || isempty(meegstruct.sensors.eeg)
+            disp('checkmeeg: EEG channel locations are not specified');
+            return;
+        else
+            if ~isempty(setdiff({meegstruct.channels(eegind).label}, meegstruct.sensors.eeg.label))
+                disp('checkmeeg: not all EEG channel locations are specified');
+                return;
+            end
+        end
+    end
+    
+    if ~isempty(megind)
+        if ~isfield(meegstruct.sensors, 'meg') || isempty(meegstruct.sensors.meg)
+            disp('checkmeeg: MEG channel locations are not specified');
+            return;
+        else
+            if ~isempty(setdiff({meegstruct.channels(megind).label}, meegstruct.sensors.meg.label))
+                disp('checkmeeg: not all MEG channel locations are specified');
+                return;
+            end
+        end
+    end
+
+    if isempty(meegstruct.fiducials)
+        disp('checkmeeg: no fiducials are defined');
+        return;
+    end
+    
+    if ~isfield(meegstruct.fiducials, 'pnt') || ...
+            isempty(meegstruct.fiducials.pnt)
+        meegstruct.fiducials.pnt = sparse(0, 3);
+    end
+    
+    if ~isfield(meegstruct.fiducials, 'fid') || ...
+            ~all(isfield(meegstruct.fiducials.fid, {'pnt', 'label'})) ||...
+            (length(meegstruct.fiducials.fid.label) ~= size(meegstruct.fiducials.fid.pnt, 1)) || ...
+            length(meegstruct.fiducials.fid.label) < 3
+        disp('checkmeeg: at least 3 fiducials with labels are required');
+        return
+    end
+    
+    nzlbl = {'fidnz', 'nz', 'nas'};
+    lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl' 'le', 't9'};
+    relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 't10'};
+    
+    [sel1, nzind] = spm_match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
+    if isempty(nzind)
+        disp('checkmeeg: could not find the nasion fiducial');
+        return
+    end
+    
+    [sel1, leind] = spm_match_str(lelbl, lower(meegstruct.fiducials.fid.label));
+    if isempty(leind)
+        disp('checkmeeg: could not find the left fiducial');
+        return
+    end
+    
+    [sel1, reind] = spm_match_str(relbl, lower(meegstruct.fiducials.fid.label));
+    if isempty(reind)
+        disp('checkmeeg: could not find the right fiducial');
+        return
+    end
+    
+    restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind, leind, reind]);
+    
+    meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind, leind, reind, restind]);
+    meegstruct.fiducials.fid.pnt = meegstruct.fiducials.fid.pnt([nzind, leind, reind, restind], :);
+    
+    result = 1;
 end
 
 

@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1390 2008-04-14 16:08:09Z vladimir $
+% $Id: spm_eeg_convert.m 1406 2008-04-15 09:37:59Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -71,7 +71,7 @@ if isfield(hdr, 'label')
         sortind=sort(ind);
         [junk ind2]=setdiff(hdr.label, unique_label(sortind(find(diff(sortind)==0))));
         hdr.label=hdr.label(ind2);
-        hdr.nChans=length(hdr.label); 
+        hdr.nChans=length(hdr.label);
     end
 end
 
@@ -158,7 +158,7 @@ if S.continuous
     ntrial = size(trl, 1);
 
     readbytrials = 0;
-    
+
     D.timeOnset = (-hdr.nSamplesPre+trl(1,1)-1)./hdr.Fs;
     D.Nsamples = nsampl;
 else % Read by trials
@@ -221,8 +221,8 @@ else % Read by trials
             if  hdr.nTrials>1 && size(trl, 1)~=hdr.nTrials
                 warning('Mismatch between trial definition in events and in data. Ignoring events');
             end
-            
-            readbytrials = 1;           
+
+            readbytrials = 1;
             event = event(setdiff(1:numel(event), trialind));
         catch
             if hdr.nTrials == 1
@@ -251,7 +251,7 @@ else % Read by trials
             trl = trl(find(inbounds), :);
             warning([S.dataset ': Trials ' num2str(rejected) ' not read - out of bounds']);
         end
-        
+
         ntrial = size(trl, 1);
     end
     D.Nsamples = nsampl;
@@ -313,23 +313,24 @@ for i = 1:ntrial
     end
 
 end
-spm_progress_bar('Clear');
-spm('Pointer', 'Arrow');drawnow;
 
+spm_progress_bar('Clear');
+
+spm('Pointer', 'Arrow');drawnow;
 
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
-    D.sensors.meg = hdr.grad;
+    D.sensors.meg = convert_units(hdr.grad, 'mm');
 else
     try
-        D.sensors.eeg = read_sensors(S.dataset);
+        D.sensors.eeg = convert_units(read_sensors(S.dataset), 'mm');
     catch
         warning('Could not obtain electrode locations automatically.');
     end
 end
 
 try
-    D.fiducials = read_headshape(S.dataset);
+    D.fiducials = convert_units(read_headshape(S.dataset), 'mm');
 catch
     warning('Could not obtain fiducials automatically.');
 end
