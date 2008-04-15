@@ -1,9 +1,9 @@
-function [data] = redefinetrial(cfg, data);
+function [data] = redefinetrial(cfg, data)
 
 % REDEFINETRIAL allows you to adjust the time axis of your data, i.e. to
 % change from stimulus-locked to response-locked. Furthermore, it allows
 % you to select a time window of interest, or to resegment your long trials
-% into shorter fragments. 
+% into shorter fragments.
 %
 % Use as
 %   data = redefinetrial(cfg, data)
@@ -45,6 +45,9 @@ function [data] = redefinetrial(cfg, data);
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.11  2008/04/15 16:07:24  estmee
+% inserted code that creates new trials based on cfg.trl
+%
 % Revision 1.10  2008/04/14 14:59:31  roboos
 % added test for correct cfg.trl
 %
@@ -204,7 +207,72 @@ elseif ~isempty(cfg.begsample) || ~isempty(cfg.endsample)
   end
 
 elseif ~isempty(cfg.trl)
-  % TODO incorporate the new code of Esther
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % select new trials from the existing data
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  dataold = data;
+  trlnew  = cfg.trl;
+
+  numtrlold    = size(trlold,1);
+  numtrlnew    = size(trlnew,1);
+  maxsampleold = max(trlold(end,:));
+  maxsamplenew = max(trlnew(end,:));
+
+  % these are for bookkeeping
+  count     = zeros(1, maxsampleold);
+  trialnum  = NaN(1, maxsampleold);
+  samplenum = NaN(1, maxsampleold);
+
+  for i=1:numtrlold
+    % make vector with 0= no sample of old data, 1= one sample of old data, 2= two samples of old data, etc
+    count(trlold(i,1):trlold(i,2)) = count(trlold(i,1):trlold(i,2))+1;
+
+    % make vector with 1's if samples belong to trial 1, 2's if samples belong to trial 2 etc. overlap/ no data --> Nan
+    trialnum(trlold(i,1):trlold(i,2))=i;
+
+    % make samplenum vector with samplenrs for each sample in the old trials
+    trllength = trlold(i,2) - trlold(i,1) + 1;
+    samplenum(trlold(i,1):trlold(i,2)) = 1:trllength;
+  end
+
+  % overlap is not supported
+  trialnum(count>1)  = NaN;
+  samplenum(count>1) = NaN;
+
+  % in the available vector 1 means that sample is available and 0 means that sample is not available
+  available = (samplenum>=1);
+
+  if length(available)<=maxsamplenew
+    error('the requested data extends beyond the end of the available preprocessed data')
+  end
+
+  for i=1:numtrlnew
+    % check if all samples in trlnew are present, are not present, or are present twice or more
+    if ~all(available(trlnew(i,1):trlnew(i,2)))
+      error('not all samples present/ samples are twice or more times present in preprocessed data');
+    end
+
+    trllength         = trlnew(i,2) - trlnew(i,1) + 1; % aantal samples in de trl
+    data.trial{i}  = zeros(length(dataold.label), trllength);
+    data.time{i}   = offset2time(trlnew(i,3), dataold.fsample, trllength);
+
+    % fill in the new data
+    a = 1;
+    for b=trlnew(i,1):trlnew(i,2);
+      data.trial{i}(:,a) = dataold.trial{trialnum(b)}(:,samplenum(b));
+      a = a + 1;
+    end
+  end
+
+  % add the remaining fields to the data structure
+  data.label     = dataold.label;
+  if isfield(dataold, 'grad')
+    data.grad      = dataold.grad;
+  end
+  if isfield(dataold, 'elec')
+    data.elec      = dataold.elec;
+  end
 
 end % processing the realignment or data selection
 
@@ -241,7 +309,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.10 2008/04/14 14:59:31 roboos Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.11 2008/04/15 16:07:24 estmee Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
