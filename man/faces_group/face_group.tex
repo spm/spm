@@ -1,5 +1,4 @@
-
-\chapter{Face group data}
+\chapter{Face group data \label{Chap:data:faces_group}}
 
 \section{Introduction}
 
@@ -62,10 +61,10 @@ proceeds these directories will be filled with job-specification files, design m
 For the main effect versus baseline, these happen to correspond to the contrast images numbered 3-14 in 1st-level model M1i, ie:
 
 \bi
-\item{\verb!con_0006.img!		(canonical HRF, subject 1)}
-\item{\verb!con_0007.img!		(canonical HRF, subject 2)}
+\item{\verb!con_0006.img!       (canonical HRF, subject 1)}
+\item{\verb!con_0007.img!       (canonical HRF, subject 2)}
 \item{...}
-\item{\verb!con_0017.img!		(canonical HRF, subject 12)}
+\item{\verb!con_0017.img!       (canonical HRF, subject 12)}
 \ei
 These images comprise the data for M2c, which is simply a `One-sample t-test'. This can be implemented as follows.
 \bi
@@ -117,18 +116,18 @@ You can then press the volume to get a table of stastical information for cluste
 For this example, 3 contrast images per subject are taken to the 2nd-level. These are
 
 \bi
-\item{\verb!con_0003.img!		(canonical HRF, subject 1)}
-\item{\verb!con_0004.img!		(canonical HRF, subject 2)}
+\item{\verb!con_0003.img!       (canonical HRF, subject 1)}
+\item{\verb!con_0004.img!       (canonical HRF, subject 2)}
 \item{...}
-\item{\verb!con_0014.img!		(canonical HRF, subject 12)}
-\item{\verb!con_0015.img!		(temporal derivative, subject 1)}
-\item{\verb!con_0016.img!		(temporal derivative, subject 2)}
+\item{\verb!con_0014.img!       (canonical HRF, subject 12)}
+\item{\verb!con_0015.img!       (temporal derivative, subject 1)}
+\item{\verb!con_0016.img!       (temporal derivative, subject 2)}
 \item{...}
-\item{\verb!con_0026.img!		(temporal derivative, subject 12)}
-\item{\verb!con_0027.img!		(dispersion derivative, subject 1)}
-\item{\verb!con_0028.img!		(dispersion derivative, subject 2)}
+\item{\verb!con_0026.img!       (temporal derivative, subject 12)}
+\item{\verb!con_0027.img!       (dispersion derivative, subject 1)}
+\item{\verb!con_0028.img!       (dispersion derivative, subject 2)}
 \item{...}
-\item{\verb!con_0038.img!		(dispersion derivative, subject 12)}
+\item{\verb!con_0038.img!       (dispersion derivative, subject 12)}
 \item{...}
 \ei
 These images comprise the data for M2c, which is simply a `One-way ANOVA' with 3-levels. This can be implemented as follows.
@@ -243,8 +242,8 @@ The main reason for this increased power is the increase in the degrees of freed
 \end{center}
 \end{figure}
 
-	Finally, evaluate the F-contrasts [0 1 0] and [0 0 1]. These 
-	are shown in Figures~\ref{informed_Ftemp} and~\ref{informed_Fdisp}.
+    Finally, evaluate the F-contrasts [0 1 0] and [0 0 1]. These 
+    are shown in Figures~\ref{informed_Ftemp} and~\ref{informed_Fdisp}.
 These contrasts reveal voxels that load (positively or negatively) on the temporal and dispersion derivatives respectively. These contrasts reveal that there is significant variability (at p$<$.05 corrected) that is not captured by the canonical HRF alone (see Eg3.1 below for more discussion; see also to Henson et al (2000) \cite{rnah_basis}.
 
 In other words, some regions have earlier or later, or wider or narrower, BOLD impulse responses than the canonical HRF. This may reflect differences in vasculature (or even face-related neural differences across regions).  
@@ -258,10 +257,10 @@ One can also confirm this by going to various voxels in the above F-contrasts, p
 For this example, 12 contrast images per subject are taken to the 2nd-level. These are the contrast images:
 
 \bi
-\item{\verb!con_fir_bin01_sub01.img!	(FIR bin 1, subject 1)}
-\item{\verb!con_fir_bin01_sub02.img!	(FIR bin 1, subject 2)}
+\item{\verb!con_fir_bin01_sub01.img!    (FIR bin 1, subject 1)}
+\item{\verb!con_fir_bin01_sub02.img!    (FIR bin 1, subject 2)}
 \item{...}
-\item{\verb!con_fir_bin02_sub01.img!	(FIR bin 2, subject 1)}
+\item{\verb!con_fir_bin02_sub01.img!    (FIR bin 2, subject 1)}
 \item{...}
 \ei
 These images comprise the data for M2f, which is simply a `One-way ANOVA' with 12-levels (one for each time-bin). This can be implemented as follows.
@@ -353,10 +352,10 @@ One can also test for more constrained shapes of event-related responses within 
 
 This returns the canonical and two derivatives in the matrix `xBF.bf' (type \verb!help spm_get_bf! for more info), with one value every 1 second. For convenience, then define:
 \bi
-\item{\verb!all		= xBF.bf(2:2:24,:)';!}
-\item{\verb!can 	= all(1,:);!}
-\item{\verb!tem 	= all(2,:);!}
-\item{\verb!dis 	= all(3,:);!}
+\item{\verb!all     = xBF.bf(2:2:24,:)';!}
+\item{\verb!can     = all(1,:);!}
+\item{\verb!tem     = all(2,:);!}
+\item{\verb!dis     = all(3,:);!}
 \ei
 
 These commands down-sample the basis functions every 2s, which is the bin-width of the FIR.
@@ -403,7 +402,7 @@ This creates a matrix for an F-contrast that spans the 'null space' of all three
 \bi
 \item{In the contrast manager press 'Define new contrast' (select F).}
 \item{Enter [`nullall'] as the contrast weights (defined in Matlab workspace
-	as above), and `Null space of informed basis set' as the name.}
+    as above), and `Null space of informed basis set' as the name.}
 \ei
 \begin{figure}
 \begin{center}

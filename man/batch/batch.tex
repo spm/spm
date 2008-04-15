@@ -1,5 +1,4 @@
-\chapter{Batch interface}
-\label{ch:batch_interface}
+\chapter{Batch interface \label{Chap:batch_interface}}
 
 Details about the algorithms used for data processing are given in the other
 sections of this manual. This section explains how a sequence of processing
@@ -35,7 +34,7 @@ of advantages:
 
 In this tutorial we will develop a batch for spatial processing and fMRI
 statistics of a single subject of the ``Face'' example dataset (see
-chapter~\ref{ch:face_data}). To follow this tutorial, it is not necessary to
+chapter~\ref{Chap:data:faces}). To follow this tutorial, it is not necessary to
 download the example dataset, except for the last step (entering subject
 dependent data).
 
@@ -56,7 +55,7 @@ template has been saved.
 This dataset consists of fMRI data acquired in a single session and a
 structural MRI. See section~\ref{sec:batch_interface_advanced} to learn how to
 deal efficiently with multi-session data. MRI parameters and experiment
-details are described in chapter~\ref{ch:face_data}.
+details are described in chapter~\ref{Chap:data:faces}.
 
 \subsection{Necessary processing steps}
 
@@ -117,10 +116,10 @@ configure any details until you have selected all modules.
 
 Now, go through the batch and configure all settings that are
 subject-independent (e.g.\ the name of the analysis directory, slice timing
-parameters) as described in chapter~\ref{ch:face_data}. Do not enter any data that
+parameters) as described in chapter~\ref{Chap:data:faces}. Do not enter any data that
 is specific for a certain subject. The values that need to be entered are not
 repeated here, please refer to the corresponding sections in
-chapter~\ref{ch:face_data}.
+chapter~\ref{Chap:data:faces}.
 
 The file \verb|man/batch/face_template_single_subject_nodeps.m| contains the
 batch after all modules have been added and subject-independent data has been
@@ -237,7 +236,7 @@ PostScript file.
 
 \subsection{Data flow}
 
-In chapter~\ref{ch:face_data}, each processing step was performed on its own. In
+In chapter~\ref{Chap:data:faces}, each processing step was performed on its own. In
 most cases, output data was simply passed on from one module to the next. This
 scheme is illustrated in figure~\ref{fig:flow}. Only the coloured items at the
 top of the flow chart are subject specific and need to be entered in the final

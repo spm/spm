@@ -1,6 +1,4 @@
-
-
-\chapter{Dynamic Causal Modeling for fMRI}
+\chapter{Dynamic Causal Modeling for fMRI \label{Chap:DCM_fmri}}
 
 
 \section{Theoretical background}
@@ -23,11 +21,11 @@ Overall, DCM models the temporal evolution of the neural state vector, i.e. , as
   \dot{z}_2 \\
   .. \\
   \dot{z}_k \\  \end{array} \right] = \dot{z}= \frac{dz}{dt} = F(z,u,\theta^n)
-\end{equation}     				
+\end{equation}                  
 In this neural state equation, the state $z$ and the inputs $u$ are time-dependent whereas the parameters are time-invariant.  In DCM, $F$ has the bilinear form
  \begin{equation}
 \dot{z}=Az+\sum_{j=1}^m u_j B_j z + Cu
-\end{equation}         				
+\end{equation}                      
 The parameters of this bilinear neural state equation, $\theta^n=\{A,B_1,...,B_m,C\}$, can be expressed as partial derivatives of $F$:
 \begin{eqnarray}
 A & = & \frac{\partial F}{\partial z} = \frac{\partial \dot{z}}{\partial z} \\ \nonumber

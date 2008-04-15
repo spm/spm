@@ -1,5 +1,4 @@
-
-\chapter{Multimodal face-evoked responses}
+\chapter{Multimodal face-evoked responses \label{Chap:data:multimodal}}
 
 
 \section{Overview}
@@ -34,16 +33,16 @@ The T1-weighted structural MRI of a young male was acquired on a 1.5T Siemens So
 
 The images are in Analyze format in the sMRI sub-directory, consisting of two files:
 \begin{verbatim}
-	sMRI/sMRI.img
-	sMRI/sMRI.hdr
+    sMRI/sMRI.img
+    sMRI/sMRI.hdr
 \end{verbatim}
 The structural was manually-positioned to match roughly Talairach space, with the origin close to the Anterior Commissure, which produced the associated SPM Matlab file:
 \begin{verbatim}
-	sMRI/sMRI.mat
+    sMRI/sMRI.mat
 \end{verbatim}
 The approximate position of 3 fiducials within this MRI space - the nasion, and the left and right peri-aricular points - are stored in the file:
 \begin{verbatim}
-	sMRI/smri_fids.mat
+    sMRI/smri_fids.mat
 \end{verbatim}
 These were identified manually (based on anatomy) and are used to define the MRI space relative to the EEG and MEG spaces, which need to be coregistered (see below). It doesn't matter that the positions are approximate, because more precise coregistration is done via digitised surfaces of the scalp ("head shape functions") that were created using the Polhemus 3D digitizer.
 
@@ -53,13 +52,13 @@ The EEG data were acquired on a 128-channel ActiveTwo system, sampled at 2048 Hz
 
 The original data were converted into SPM M/EEG format and epoched from -200ms to +600ms post-stimulus (baseline-corrected from -200 to 0ms), ie 161 samples:
 \begin{verbatim}
-	EEG/e_eeg.mat
-	EEG/e_eeg.dat
+    EEG/e_eeg.mat
+    EEG/e_eeg.dat
 \end{verbatim}
 (using the \verb!bdf_setup.mat! channel template provided with SPM5 in the EEGtemplates sub-directory).
 Other details about the data can be examined by typing:
 \begin{verbatim}
-	D = spm_eeg_ldata
+    D = spm_eeg_ldata
 \end{verbatim}
 and selecting the \verb!e_meg.mat! file. This will show the contents of the structure "D" that is loaded into the Matlab workspace, the various fields of which can be explored. Note that the data values themselves are memory-mapped from the \verb!e_eeg.dat! file to the field D.data (e.g, D.data(1,2,3) returns the field strength in the first sensor at the second sample point during the third trial).
 
@@ -67,9 +66,9 @@ You will see that there are 344 events (D.Nevents), consisting of 172 faces (eve
 
 The EEG directory also contains a Polhemus sub-directory with the following files:
 \begin{verbatim}
-	EEG/Polhemus/eeg_fids.mat
-	EEG/Polhemus/eeg_sens_loc.mat
-	EEG/Polhemus/eeg_hsf.mat
+    EEG/Polhemus/eeg_fids.mat
+    EEG/Polhemus/eeg_sens_loc.mat
+    EEG/Polhemus/eeg_hsf.mat
 \end{verbatim}
 All files contain matrices, the three columns of which code location in a right-handed 3D space, the axes of which conform to the Talairach space, i.e, the first column is x (left-right), the second is y (anterior-posterior) and the third is z (inferior-superior). The units are mm.
 
@@ -79,20 +78,20 @@ The \verb!eeg_fids.mat! file contains the position of 3 fiducial markers that we
 
 The MEG data were acquired on a 151 channel CTF Omega system, using second-order axial gradiometers sampled at 625 Hz (subsequently downsampled to 200Hz to reduce filesize).  The original data were converted into SPM MEEG format and epoched from -200ms to +600ms post-stimulus (i.e, baseline-corrected from -200ms to 0ms), ie 161 samples:
 \begin{verbatim}
-	MEG/e_meg.mat
-	MEG/e_meg.dat
+    MEG/e_meg.mat
+    MEG/e_meg.dat
 \end{verbatim}
 The channel template for these data is also provided:
 \begin{verbatim}
-	MEG/CTF151_setup.mat
+    MEG/CTF151_setup.mat
 \end{verbatim}
 (which may need to be copied to the EEGtemplates sub-directory of your local SPM5 installation directory, if not already there).
 The MEG data also contains a Polhemus sub-directory with the following files:
 \begin{verbatim}
-	MEG/Polhemus/meg_fids.mat
-	MEG/Polhemus/meg_sens_loc.mat
-	MEG/Polhemus/meg_sens_or.mat
-	MEG/Polhemus/meg_hsf.mat
+    MEG/Polhemus/meg_fids.mat
+    MEG/Polhemus/meg_sens_loc.mat
+    MEG/Polhemus/meg_sens_or.mat
+    MEG/Polhemus/meg_hsf.mat
 \end{verbatim}
 which are analogous to the corresponding MEG files described in the previous section\footnote{These matrices are transformations from the original CTF / Polhemus files - in which x codes anterior-posterior and y codes left-right - i.e, a 90 degree clockwise rotation about the z-axis.}. More specifically, the \verb!meg_fids.mat! contains the position of 3 "locator coils", positioned close to the fiducials\footnote{Unlike the MRI and EEG data, these fiducials were not precisely the nasion and peri-aricular points. However, given that the coregistration of the MEG and MRI data is based mainly on the headshape (see later), this inaccuracy in the MEG fiducials does not matter.}, the locations of which are measured by the CTF machine, and used to define the coordinates (in "CTF space") for the location of the 151 sensors (in the \verb!meg_sens_loc.mat! file) and their (axial gradiometer) orientations (\verb!meg_sens_or.mat!). The same three locator coils were digitised by a Polhemus digitizer outside the MEG machine, together with the head shape, to define the "Polhemus space". Subsequently, the fiducials in the Polhemus space were coregistered with the fiducials in the CTF space, and the resulting rigid-body transformation applied to the Polhemus head shape. Thus the coordinates in all four files above are in alignment in the CTF space, which will subsequently be transformed into the "MRI space".
 
@@ -102,19 +101,19 @@ which are analogous to the corresponding MEG files described in the previous sec
 
 The fMRI data were acquired using a Trajectory-Based Reconstruction (TBR) gradient-echo EPI sequence (Josephs et al, 2000) on a 1.5T Sonata. There were 32, 3mm slices of 3x3 mm2 pixels, acquired in a sequential descending order with a TR of 2.88s. There are 215 images in the 'Scans' sub-directory (5 initial dummy scans have been removed), each consisting of an Analyze image and header file:
 \begin{verbatim}
-	fMRI/Scans/fM*.img	
-	fMRI/Scans/fM*.hdr
+    fMRI/Scans/fM*.img  
+    fMRI/Scans/fM*.hdr
 \end{verbatim}
 Also provided are the onsets of faces and scrambled faces (in units of scans) in the Matlab file:
 \begin{verbatim}
-	fMRI/onsets.mat	
+    fMRI/onsets.mat 
 \end{verbatim}
 and the SPM "Job" files (see Section~\ref{fMRI}):
 \begin{verbatim}
-	fMRI/realign_job.mat
-	fMRI/slicetime_job.mat
-	fMRI/smooth_job.mat
-	fMRI/stats_job.mat
+    fMRI/realign_job.mat
+    fMRI/slicetime_job.mat
+    fMRI/smooth_job.mat
+    fMRI/stats_job.mat
 \end{verbatim}
 
 \section{Getting Started}
@@ -135,8 +134,8 @@ This will detect trials in which the signal recorded at any of the channels exce
 
 In this case, the Matlab window will show:
 \begin{verbatim}
-	There isn't a bad channel.
-	45 rejected trials: [5 38 76 82 83 86 87 88 89 90 92 93 94 96 98 99
+    There isn't a bad channel.
+    45 rejected trials: [5 38 76 82 83 86 87 88 89 90 92 93 94 96 98 99
     100 101 104 105 106 107 108 112 117 118 119 120 122 124 126 130 137
     139 159 173 221 266 268 279 281 292 293 298 326]
 \end{verbatim}
@@ -157,10 +156,10 @@ At this point, you may want to look at the data. Press "Display: M/EEG", and sel
 
 * Press the 'Averaging' button and select the \verb!ae_eeg.mat! file. After a few moments, the matlab window will echo:
 
-	\verb!ae_eeg.mat!: Number of replications per contrast:
-	average 1: 151 trials, average 2: 148 trials
+    \verb!ae_eeg.mat!: Number of replications per contrast:
+    average 1: 151 trials, average 2: 148 trials
 
-	(artefact trials are excluded from averaging) and a new file will be created in 	the MEG directory called \verb!mae_eeg.mat! ("m" for "mean").
+    (artefact trials are excluded from averaging) and a new file will be created in     the MEG directory called \verb!mae_eeg.mat! ("m" for "mean").
 
 * Press the 'Filtering' button, select the \verb!mae_eeg.mat! file, select 'lowpass', and enter 40 (Hz) as the cutoff. This smooths the data to 40Hz, producing the file \verb!fmae_eeg.mat! (using zero-phase-shift forward and reverse digital filtering with a 5th-order Butterworth filter)\footnote{Note that (lowpass) filtering short epochs like this is not necessarily a good idea, since ringing or "end-effects" can result at the start and end of the epoch. Filtering is normally better performed on continuous data (or longer epochs). The filtering performed here is simply to demonstrate the option and for display purposes (though the averaging process also tends to act like a lowpass filter anyway).}.
 
@@ -250,9 +249,9 @@ This will take some time while the MRI is segmented (and normalisation parameter
 
 This process will also create binary images of the cortex, inner skull surface and scalp, which are then used to create meshes (of 2002 vertices) for these surfaces, stored in the following files:
 \begin{verbatim}
-		sMRI/smri_cortex.img
-		sMRI/smri_iskull.img
-		sMRI/smri_scalp.img
+        sMRI/smri_cortex.img
+        sMRI/smri_iskull.img
+        sMRI/smri_scalp.img
 \end{verbatim}
 When meshing has finished, the cortex (blue), inner skull (red) and scalp (orange) meshes will also be shown in the Graphics window. The field D.inv\{1\}.mesh field will be updated in matlab. Press "save" in top right of window to update the corresponding mat file on disk.
 
@@ -260,10 +259,10 @@ Note that the cortical mesh (and the distances within the mesh) are not created 
 
 * Press the 'Co-register' button, respond "no" to the 'Read Polhemus?' question (which is if you want to read in a Polhemus file directly), and then select the following files in response to each prompt (pressing "yes" to the 'Use headshape file' prompt):
 \begin{verbatim}
-  		EEG/Polhemus/eeg_sens_loc.mat
-   		EEG/Polhemus/eeg_fids.mat
-   		EEG/Polhemus/eeg_hsf.mat
-   		sMRI/smri_fids.mat
+        EEG/Polhemus/eeg_sens_loc.mat
+        EEG/Polhemus/eeg_fids.mat
+        EEG/Polhemus/eeg_hsf.mat
+        sMRI/smri_fids.mat
 \end{verbatim}
 This stage coregisters the EEG sensor positions with the structural MRI and cortical mesh, via an approximate matching of the fiducials in the two spaces, followed by a more accurate surface-matching routine that fits the head-shape function (measured by Polhemus) to the scalp that was created in the previous meshing stage via segmentation of the MRI.
 
@@ -281,18 +280,18 @@ When coregistration has finished, the field D.inv\{1\}.datareg will be updated i
 
 This will create a forward model (lead field matrix) based on a three sphere model (using a subset of BrainStorm functions, packaged with SPM~\footnote{Brainstorm is available from http://neuroimage.usc.edu/ResearchMEGEEGBrainStorm.html}). The Matlab window will output:
 \begin{verbatim}
-	Scalp best fitting sphere computed (in 11 iterations)
-	Centre = [0.0001 -0.0218 0.0027] (Radius = 0.0774)
-	Computing EEG "BERG" Parameters. . .
-	Computing EEG "BERG" Parameters -> DONE
+    Scalp best fitting sphere computed (in 11 iterations)
+    Centre = [0.0001 -0.0218 0.0027] (Radius = 0.0774)
+    Computing EEG "BERG" Parameters. . .
+    Computing EEG "BERG" Parameters -> DONE
 
-	Computing the Image Gain Matrices. . .
-	Foward model complete - thank you
+    Computing the Image Gain Matrices. . .
+    Foward model complete - thank you
  \end{verbatim}
 
 and a picture of the best-fitting sphere to the inner skull surface will be shown in the Graphics window (this defines the centre of the concentric spheres). The leadfield matrix (with source orientations fixed as normal to the cortical surface) is stored in the file:
 \begin{verbatim}
-	smri_SPMgainmatrix_1.mat
+    smri_SPMgainmatrix_1.mat
 \end{verbatim}
 (The file \verb!smri_SPMgainmatxyz_1.mat! stores a version with three orthogonal orientations per source location).
 
@@ -322,10 +321,10 @@ If you press "render" you can get a very neat graphical interface to explore the
 
 \noindent * If you then press "Image", press "12" for the smoothing kernel, and SPM will write 3D Nifti images corresponding to the above contrast for each condition:
 \begin{verbatim}
-	w_mfmae_eeg_1_1.nii
-	w_mfmae_eeg_1_2.nii
-	sw_mfmae_eeg_1_1.nii
-	sw_mfmae_eeg_1_2.nii
+    w_mfmae_eeg_1_1.nii
+    w_mfmae_eeg_1_2.nii
+    sw_mfmae_eeg_1_1.nii
+    sw_mfmae_eeg_1_2.nii
 \end{verbatim}
 Note that the first two images are unsmoothed (but normalised); the latter two are smoothed by a 12mm isotropic Gaussian kernel. The last number in the file name refers to the condition number; the penultimate number refers to the reconstruction number (ie the number in red in the reconstruction window, i.e, D.val, here 1).
 
@@ -348,10 +347,10 @@ This will take a while. The new file produced, \verb!ae_meg.mat!, will contain t
 
 * Press the 'Averaging' button and select the \verb!ae_meg.mat! file. After a few moments, the matlab window will echo:
 \begin{verbatim}
-	e_meg.mat: Number of replications per contrast:
-	average 1: 86 trials, average 2: 86 trials
+    e_meg.mat: Number of replications per contrast:
+    average 1: 86 trials, average 2: 86 trials
 \end{verbatim}
-	and a new file will be created in the MEG directory called \verb!mae_meg.mat! 	 ("m" for "mean")
+    and a new file will be created in the MEG directory called \verb!mae_meg.mat!    ("m" for "mean")
 
 * Press the 'Filtering' button, select the \verb!mae_eeg.mat! file, select 'lowpass', and enter 40 (Hz) as the cutoff. This smooths the data to 40Hz, producing the file \verb!fmae_eeg.mat! (see again footnote 5 about filtering).
 
@@ -397,10 +396,10 @@ This will produce two new files, \verb!t1_e_eeg.mat! and  \verb!t2_e_eeg.mat!. T
 
 * Press the 'Averaging' button and select the \verb!t1_e_meg.mat! file. After a few moments, the matlab window will echo:
 \begin{verbatim}
-	e_meg.mat: Number of replications per contrast:
-	average 1: 86 trials, average 2: 86 trials
+    e_meg.mat: Number of replications per contrast:
+    average 1: 86 trials, average 2: 86 trials
 \end{verbatim}
-	and a new file will be created in the MEG directory called \verb!mt1_e_meg.mat!.
+    and a new file will be created in the MEG directory called \verb!mt1_e_meg.mat!.
 
 This contains the power spectrum averaged over all trials, and will include both "evoked" and "induced" power. Induced power is (high-frequency) power that is not phase-locked to the stimulus onset, which is therefore removed when averaging the amplitude of responses across trials (i.e, would be absent from a time-frequency analysis of the \verb!mae_eeg.mat! file).
 
@@ -419,10 +418,10 @@ vectors in Argand space), which corresponds to a "Phase-Locking Value" (PLV) whi
 
 * Press the 'Averaging' button and select the \verb!t2_e_meg.mat! file. This time you will be prompted for either a straight or a vector average, for which you should select "vector". The matlab window will echo:
 \begin{verbatim}
-	e_meg.mat: Number of replications per contrast:
-	average 1: 86 trials, average 2: 86 trials
+    e_meg.mat: Number of replications per contrast:
+    average 1: 86 trials, average 2: 86 trials
 \end{verbatim}
-	and a new file will be created in the MEG directory called \verb!mt2_e_meg.mat!.
+    and a new file will be created in the MEG directory called \verb!mt2_e_meg.mat!.
 
 If you now display the file \verb!mt2_e_eeg.mat! file, you will see PLV as a function of frequency (y-axis) and time (x-axis) for Channel MLT34. Again, if you use the "trial" slider to switch between trial(types) 1 and 2, you will see greater phase-locking around 10Hz and 100ms for faces than scrambled faces, as in Figure~\ref{fig_32_14}. Together with the above power analysis, these data suggest that the M170 includes an increase both in power and in phase-locking of ongoing oscillatory activity in the alpha range (Henson et al, 2005b).
 
@@ -491,13 +490,13 @@ When meshing has finished, the field D.inv\{1\}.mesh field will be updated in ma
 
 * Press the 'Co-register' button, respond "no" to the 'Read Polhemus?' question, and then select the following files in response to each prompt (pressing "yes" to the 'Use headshape file' prompt):
 \begin{verbatim}
-  		MEG/Polhemus/meg_sens_loc.mat
-   		MEG/Polhemus/meg_fids.mat
-   		MEG/Polhemus/meg_hsf.mat   	
-  		MEG/Polhemus/meg_sens_or.mat	
-		sMRI/smri_fids.mat
+        MEG/Polhemus/meg_sens_loc.mat
+        MEG/Polhemus/meg_fids.mat
+        MEG/Polhemus/meg_hsf.mat    
+        MEG/Polhemus/meg_sens_or.mat    
+        sMRI/smri_fids.mat
 \end{verbatim}
-	(like in Section~\ref{3DSPM}, except now we also need to provide information about the orientation of each MEG sensor, as in the penultimate file here).
+    (like in Section~\ref{3DSPM}, except now we also need to provide information about the orientation of each MEG sensor, as in the penultimate file here).
 
 This stage coregisters the MEG sensor positions and orientations (in "MEG" space) with the structural MRI and solution mesh (in "MRI" space). This is done via an approximate matching of the fiducials in the two spaces, followed by a more accurate surface-matching routine that fits the head-shape function (in "MEG" space) to the scalp that was created in the previous meshing stage via segmentation of the MRI. The match will be shown in a window like that in Figure~\ref{fig_32_17}. (Note that the match of the MEG and MRI fiducials is poor because the MEG fiducials did not correspond exactly to the nasion and peri-aricular points (see footnote 3); this does not matter because the coregistration is dominated by the close fit of the digitized headshape to the scalp mesh).
 
@@ -537,10 +536,10 @@ If you press "render" you can get a very neat graphical interface to explore the
 
 * If you then press "Image", press "12" for the smoothing kernel, and SPM will write 3D Nifti images corresponding to the above contrast for each condition:
 \begin{verbatim}
-	w_e_meg_1_1.nii
-	w_e_meg_1_2.nii
-	sw_e_meg_1_1.nii
-	sw_e_meg_1_2.nii
+    w_e_meg_1_1.nii
+    w_e_meg_1_2.nii
+    sw_e_meg_1_1.nii
+    sw_e_meg_1_2.nii
 \end{verbatim}
 Note that the first two images are unsmoothed (but normalised); the latter two are smoothed by a 12mm isotropic Gaussian kernel. The last number in the file name refers to the condition number; the penultimate number refers to the reconstruction number (ie the number in red in the reconstruction window, i.e, D.val, here 1).
 
@@ -550,7 +549,7 @@ You can also of course view the image with the normal SPM "Display:image" option
 
 If you want to see where activity (in this time/freq contrast) is greater for faces and scrambled faces, you can use SPM's ImCalc to create a difference image of \verb!sw_e_meg_1_1.nii - sw_e_meg_1_2.nii! - you should see bilateral fusiform. For further discussion of localising a differential effect (as in Section~\ref{3D} with ERPs), vs taking the difference of two localisations, as here, see Henson et al (2007).
 
-	
+    
 
 \begin{figure}
 \begin{center}
@@ -568,10 +567,10 @@ Only the main characteristics of the fMRI analysis are described below; for a mo
 
 Note that all the job files for each stage of preprocessing and analysis are also provided:
 \begin{verbatim}
-	fMRI/realign_job.mat
-	fMRI/slicetime_job.mat
-	fMRI/smooth_job.mat
-	fMRI/stats_job.mat
+    fMRI/realign_job.mat
+    fMRI/slicetime_job.mat
+    fMRI/smooth_job.mat
+    fMRI/stats_job.mat
 \end{verbatim}
 These can be loaded and run, though of course the location of the files and the output directory will need to be changed.
 
@@ -583,11 +582,11 @@ These can be loaded and run, though of course the location of the files and the 
 
 Realignment will produce a \verb!spm*.ps! postscript file in the current directory, which shows the estimated movement (like in Figure~\ref{fig_32_20}). Importantly, the resliced images will be output as rfM*.img files. A mean image will also be written:
 \begin{verbatim}
-		meanfMS02554-0003-000006.img
+        meanfMS02554-0003-000006.img
 \end{verbatim}
 as will the movement parameters in the text file:
 \begin{verbatim}
-		rp_fMS02554-0003-000006.txt
+        rp_fMS02554-0003-000006.txt
 \end{verbatim}
 
 .
@@ -612,7 +611,7 @@ Note that we will not normalise these images, in order to compare them with the 
 
 This will produce a design matrix like that in Figure~\ref{fig_32_21}, which is stored in the file:
 \begin{verbatim}
-		fMRI/Stats/SPM.mat
+        fMRI/Stats/SPM.mat
 \end{verbatim}
 
 \begin{figure}
