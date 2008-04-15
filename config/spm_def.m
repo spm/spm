@@ -17,7 +17,7 @@ function spmjobs = spm_def
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_def.m 1292 2008-04-02 14:17:31Z volkmar $
+% $Id: spm_def.m 1408 2008-04-15 10:15:34Z volkmar $
 
 spm_defaults;
 global defaults;
@@ -415,7 +415,7 @@ spmjobs.util.defs.comp.comp.comp.comp.dartel.times = double([1 0]);
 spmjobs.util.defs.comp.comp.comp.comp.dartel.K = double(6);
 spmjobs.util.defs.comp.comp.comp.comp.def = '<UNDEFINED>';
 spmjobs.util.defs.comp.comp.comp.comp.id.space = '<UNDEFINED>';
-spmjobs.util.defs.ofname = '';
+spmjobs.util.defs.ofname = '<UNDEFINED>';
 spmjobs.util.defs.fnames = {''};
 spmjobs.util.defs.interp = double(1);
 spmjobs.util.ui.appearance.colour1 = double([0.800000000000000044 0.800000000000000044 1]);
