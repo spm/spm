@@ -33,7 +33,7 @@ function [M1, sens, fid] = spm_eeg_inv_datareg(sens, fid, datareg, template)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1406 2008-04-15 09:37:59Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 1407 2008-04-15 10:09:18Z vladimir $
 
 % Check input arguments
 %==========================================================================
@@ -59,15 +59,13 @@ fid_eeg = fid.fid.pnt;
 %--------------------------------------------------------------------------
 M1 = spm_eeg_inv_rigidreg(fid_mri', fid_eeg');
 
-fid_tmp = transform_headshape(M1, fid);
-fid_eeg = fid_tmp.fid.pnt;
-
-headshape = fid_tmp.pnt;
+[fid_eeg, headshape, fid] = apply_transformation(M1, fid);
 
 if isfield(sens, 'ori') % MEG
 
     M = headcoordinates(fid_eeg(1,:), fid_eeg(2, :), fid_eeg(3, :));
-    M1 = M * M1;
+    
+    M1 = inv(M) * M1;
 
 else
 
@@ -82,25 +80,24 @@ else
             %----------------------------------------------------------------------
             M       = pinv(fid_eeg(:))*fid_mri(:);
             M       = sparse(1:4,1:4,[M M M 1]);
-            fid_eeg = M*[fid_eeg'; ones(1,nfid)];
-            fid_eeg = fid_eeg(1:3,:)';
+
+            [fid_eeg, headshape, fid] = apply_transformation(M, fid);
+
             M1      = M*M1;
 
             % and move
             %----------------------------------------------------------------------
             M       = spm_eeg_inv_rigidreg(fid_mri', fid_eeg');
-            fid_eeg = M*[fid_eeg'; ones(1,nfid)];
-            fid_eeg = fid_eeg(1:3,:)';
+
+            [fid_eeg, headshape, fid] = apply_transformation(M, fid);
+
             M1      = M*M1;
 
         end
     else
         aff = 0;
     end
-
-    % assume headshape locations are registered to sensor fiducials
-    %--------------------------------------------------------------------------
-    M2   = M1;
+    
 
     % Surface matching between the scalp vertices in MRI space and
     % the headshape positions in data space
@@ -116,13 +113,6 @@ else
             scalpvert = scalpvert';
         end
 
-
-        % move headshape locations (NB: future code will allow for hsp fiducials)
-        %----------------------------------------------------------------------
-        % fid_hsp = headshape(1:3,:);
-        % M2      = spm_eeg_inv_rigidreg(fid_eeg', fid_hsp');
-        headshape = M2*[headshape'; ones(1,size(headshape,1))];
-        headshape = headshape(1:3,:)';
 
         % intialise plot
         %----------------------------------------------------------------------
@@ -141,10 +131,7 @@ else
 
         % transform headshape and eeg fiducials
         %----------------------------------------------------------------------
-        headshape = M*[headshape'; ones(1,size(headshape,1))];
-        headshape = headshape(1:3,:)';
-        fid_eeg   = M*[fid_eeg'; ones(1,nfid)];
-        fid_eeg   = fid_eeg(1:3,:)';
+        [fid_eeg, headshape, fid] = apply_transformation(M, fid);
         M1        = M*M1;
     end
 end
@@ -152,9 +139,16 @@ end
 % Update the sensor locations and orientation
 %--------------------------------------------------------------------------
 sens = transform_sens(M1, sens);
-fid = transform_headshape(M1, fid);
 
 return
+
+%==========================================================================
+function [fid_eeg, headshape, fid] = apply_transformation(M, fid)
+
+fid = transform_headshape(M, fid);
+fid_eeg = fid.fid.pnt;
+headshape = fid.pnt;
+
 
 %==========================================================================
 function [M1] = spm_eeg_inv_icp(data1,data2,fid1,fid2,Fmri,Fhsp,aff)

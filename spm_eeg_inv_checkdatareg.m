@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(mesh, datareg, sens, fid)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1406 2008-04-15 09:37:59Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 1407 2008-04-15 10:09:18Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -16,7 +16,7 @@ Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 subplot(2,1,1)
 
 % --- DISPLAY ANATOMY ---
-%==========================================================================
+% ==========================================================================
 Mcortex = mesh.tess_ctx;
 Miskull = mesh.tess_iskull;
 Mscalp  = mesh.tess_scalp;
@@ -81,8 +81,8 @@ set(h_hsp,'MarkerFaceColor','r','MarkerSize',4,'MarkerEdgeColor','r');
 % Sensors (coreg.)
 %--------------------------------------------------------------------------
 h_sens  = plot3(Lsens(:,1),Lsens(:,2),Lsens(:,3),'og');
-set(h_sens,'MarkerFaceColor','g','MarkerSize',12,'MarkerEdgeColor','k');
-
+set(h_sens,'MarkerFaceColor','g','MarkerSize', 12,'MarkerEdgeColor','k');
+% 
 % camera view
 %--------------------------------------------------------------------------
 axis image off
