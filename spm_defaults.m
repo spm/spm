@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1246 2008-03-26 10:45:13Z volkmar $
+% $Id: spm_defaults.m 1418 2008-04-15 19:15:16Z john $
 
 
 global defaults
@@ -26,8 +26,10 @@ defaults.cmdline  = 0;
 
 % File format specific
 %=======================================================================
-defaults.analyze.multivol = 0;
-defaults.analyze.flip     = 1; % <<= Very important.  Relates to L/R
+% Note that defaults.analyze.flip is no longer used.  Specifying the
+% left/right handedness of the voxel indices is now done entirely by
+% spm_flip_analyze_images.m
+
 
 % Stats defaults
 %=======================================================================
