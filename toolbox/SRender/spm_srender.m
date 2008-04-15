@@ -1,12 +1,12 @@
 function spm_srender(job)
 % A function for rendering surfaces
-% FORMAT spm_render(job)
-% job - a job structure (see spm_config_render.m)
+% FORMAT spm_srender(job)
+% job - a job structure (see spm_config_srender.m)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_srender.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_srender.m 1426 2008-04-15 21:03:56Z Darren $
 
 
 fg  = spm_figure('GetWin','Graphics');
