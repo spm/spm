@@ -10,14 +10,14 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: subsasgn_check.m 1405 2008-04-15 08:41:43Z volkmar $
 
-rev = '$Rev: 1373 $';
+rev = '$Rev: 1405 $';
 
 sts = true;
 
 % check, whether arguments for 'val' are cfg_items
 switch subs(1).subs
     case {'val'}
-    sts = subsasgn_check_valcfg(subs,val,[0 Inf]);
+        sts = subsasgn_check_valcfg(subs,val,[0 Inf]);
 end;

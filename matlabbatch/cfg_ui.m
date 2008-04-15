@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: cfg_ui.m 1405 2008-04-15 08:41:43Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1405 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 25-Mar-2008 19:32:22
+% Last Modified by GUIDE v2.5 15-Apr-2008 09:51:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,6 +64,8 @@ udmodlist = get(handles.modlist,'userdata');
 val = get(handles.modlist,'value');
 if ~isempty(udmodlist.cmod)
     cfg_util('delfromjob',udmodlist.cjob, udmodlist.id{val});
+    udmodlist.modified = true;
+    set(handles.modlist,'userdata',udmodlist);
     local_showjob(hObject);
 end;
 
@@ -74,6 +76,8 @@ udmodlist = get(handles.modlist,'userdata');
 val = get(handles.modlist,'value');
 if ~isempty(udmodlist.cmod)
     cfg_util('replicate',udmodlist.cjob, udmodlist.id{val});
+    udmodlist.modified = true;
+    set(handles.modlist,'userdata',udmodlist);
     local_showjob(hObject);
 end;
 
@@ -173,6 +177,8 @@ id  = get(gcbo, 'userdata');
 handles = guidata(gcbo);
 udmodlist = get(handles.modlist, 'userdata');
 cfg_util('addtojob', udmodlist.cjob, id);
+udmodlist.modified = true;
+set(handles.modlist,'userdata',udmodlist);
 local_showjob(gcbo);
 % --------------------------------------------------------------------
 function local_loaddefs(varargin)
@@ -211,8 +217,9 @@ function local_editdefs(varargin)
 % normal/defaults mode, a check for the presence of udmodlist(1).defid is
 % performed.
 handles = guidata(gcbo);
-% Disable application menus & edit menus
+% Disable application menus & file, edit menus
 set(findobj(handles.cfg_ui, 'Tag', 'AddedAppMenu'), 'Enable','off');
+set(findobj(handles.cfg_ui, 'Tag', 'MenuFile'), 'Enable', 'off');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*(Del)|(Repl)Mod$'),'Enable','off');
 set(findobj(handles.cfg_ui,'-regexp','Tag','^MenuEditVal.*'), 'Enable', 'off');
 % Change current menu to 'Quit'
@@ -231,6 +238,7 @@ local_showmod(gcbo);
 function local_editdefsquit(varargin)
 handles = guidata(gcbo);
 set(findobj(handles.cfg_ui, 'Tag', 'AddedAppMenu'), 'Enable','on');
+set(findobj(handles.cfg_ui, 'Tag', 'MenuFile'), 'Enable', 'on');
 set(gcbo, 'Enable','on', 'Callback',@local_editdefs, ...
           'Label','Edit Defaults');
 % remove defs field from udmodlist
@@ -410,7 +418,7 @@ if ~isempty(udmodlist.cmod)
     % set help box to module help
     [id stop help] = cfg_util('listmod', cid{:}, cfg_findspec, ...
                               cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-    set(handles.helpbox, 'String', spm_justify(handles.helpbox, help{1}{1}), 'Value', 1);
+    set(handles.helpbox, 'String', cfg_justify(handles.helpbox, help{1}{1}), 'Value', 1);
     udmodlist(1).cmod = cmod;
     set(handles.modlist, 'userdata', udmodlist);
     local_showvaledit(obj);
@@ -422,7 +430,7 @@ else
     set(handles.valshowLabel, 'Visible','off');
     % set help box to matlabbatch top node help
     [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'help'});
-    set(handles.helpbox, 'String', spm_justify(handles.helpbox, help{1}{1}), 'Value', 1);
+    set(handles.helpbox, 'String', cfg_justify(handles.helpbox, help{1}{1}), 'Value', 1);
 end;
 
 %% Show Item
@@ -497,10 +505,12 @@ switch(udmodule.contents{5}{value})
             set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddItem$'), ...
                 'Visible','on', 'Enable','on');
-            set(findobj(handles.cfg_ui,'-regexp','Tag','.*ReplItem$'), ...
-                'Visible','on', 'Enable','on');
-            set(findobj(handles.cfg_ui,'-regexp','Tag','.*DelItem$'), ...
-                'Visible','on', 'Enable','on');
+            if ~isempty(udmodule.contents{2}{value})
+                set(findobj(handles.cfg_ui,'-regexp','Tag','.*ReplItem$'), ...
+                    'Visible','on', 'Enable','on');
+                set(findobj(handles.cfg_ui,'-regexp','Tag','.*DelItem$'), ...
+                    'Visible','on', 'Enable','on');
+            end;
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
                 'Visible','on', 'Enable','on');
         end;
@@ -512,7 +522,7 @@ else
 end;
 [id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-set(handles.helpbox, 'string', spm_justify(handles.helpbox, help{1}{1}));
+set(handles.helpbox, 'string', cfg_justify(handles.helpbox, help{1}{1}));
 
 % --------------------------------------------------------------------
 function [str, cval] = local_showvaledit_list(hObject)
@@ -741,6 +751,8 @@ if isfield(udmodlist, 'defid')
 else
     cfg_util('setval', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, val);
     cfg_util('harvest', udmodlist.cjob, udmodlist.id{cmod});
+    udmodlist.modified = true;
+    set(handles.modlist,'userdata',udmodlist);
     local_showjob(obj);
 end;
 
@@ -968,6 +980,8 @@ if isnumeric(file) && file == 0
 end;
 udmodlist = get(handles.modlist, 'userdata');
 cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
+udmodlist.modified = false;
+set(handles.modlist,'userdata',udmodlist);
 
 % --------------------------------------------------------------------
 function MenuFileRun_Callback(hObject, eventdata, handles)
@@ -1296,4 +1310,32 @@ local_valedit_ReplItem(hObject);
 function modlist = local_init_modlist
 % Initialise modlist to empty struct
 % Don't initialise defid field - this will be added by defaults editor
-modlist = struct('cjob',[],'cmod',[],'id',[],'sout',[]);
+modlist = struct('cjob',[],'cmod',[],'id',[],'sout',[],'modified',false);
+
+
+% --- Executes when user attempts to close cfg_ui.
+function cfg_ui_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to cfg_ui (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+udmodlist = get(handles.modlist,'userdata');
+if udmodlist.modified
+    cmd = questdlg(['The current batch contains unsaved changes. Do you want to quit ' ...
+                    'anyway or do you want to hide the batch window ' ...
+                    'instead?'], 'Unsaved Changes', 'Quit','Cancel','Hide', ...
+                   'Quit');
+else
+    cmd = 'Quit';
+end;
+switch lower(cmd)
+    case 'quit'
+        if ~isempty(udmodlist.cjob)
+            cfg_util('deljob', udmodlist.cjob);
+        end;
+        delete(hObject);
+    case 'hide'
+        set(hObject,'Visible','off');
+end;
+

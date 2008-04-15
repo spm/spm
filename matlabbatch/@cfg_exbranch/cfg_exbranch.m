@@ -52,9 +52,9 @@ function item = cfg_exbranch(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_exbranch.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: cfg_exbranch.m 1405 2008-04-15 08:41:43Z volkmar $
 
-rev = '$Rev: 1373 $';
+rev = '$Rev: 1405 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
@@ -85,25 +85,25 @@ mxpnargin = 5; % Max 5 arguments to parent initialisation
 pnargin = min([nargin, mxpnargin]); 
 switch nargin
     case 0
-    bitem = cfg_branch;
+        bitem = cfg_branch;
     case 1
-    if isa(varargin{1},myclass)
-        item = varargin{1};
-        return;
-    elseif isstruct(varargin{1})
-        % assume input is a struct to be converted back into a class
-        % no fieldname checking performed here
-        bitem = varargin{1}.cfg_branch;
-        sitem = rmfield(varargin{1},'cfg_branch');
-        item  = class(sitem, myclass, bitem);
-        return;
-    else
-        bitem = cfg_branch(varargin{1});
-    end;
+        if isa(varargin{1},myclass)
+            item = varargin{1};
+            return;
+        elseif isstruct(varargin{1})
+            % assume input is a struct to be converted back into a class
+            % no fieldname checking performed here
+            bitem = varargin{1}.cfg_branch;
+            sitem = rmfield(varargin{1},'cfg_branch');
+            item  = class(sitem, myclass, bitem);
+            return;
+        else
+            bitem = cfg_branch(varargin{1});
+        end;
     case {2,3,4,5,6,7,8,9,10}
-    bitem = cfg_branch(varargin{1:pnargin});
+        bitem = cfg_branch(varargin{1:pnargin});
     otherwise
-    error('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
+        error('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
 end;
 for k=1:numel(fn)
     sitem.(fn{k})=defs{k};
