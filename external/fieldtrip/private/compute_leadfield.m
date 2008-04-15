@@ -66,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.23  2008/04/15 20:36:21  roboos
+% added explicit handling of various BEM implementations, i.e. for all voltype variants
+%
 % Revision 1.22  2008/04/11 13:16:16  roboos
 % added support for simultaneous EEG and MEG
 %
@@ -476,7 +479,7 @@ elseif iseeg
         error('more than 4 concentric spheres are not supported');
       end
 
-    case 'bem'
+    case {'bem', 'dipoli', 'asa', 'avo'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % EEG boundary element method volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

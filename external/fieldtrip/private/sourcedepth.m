@@ -17,6 +17,9 @@ function [depth] = sourcedepth(pos, vol)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: sourcedepth.m,v $
+% Revision 1.3  2008/04/15 20:36:21  roboos
+% added explicit handling of various BEM implementations, i.e. for all voltype variants
+%
 % Revision 1.2  2007/11/05 12:02:28  roboos
 % medged arno's changed into my copy
 %
@@ -48,7 +51,7 @@ case {'singlesphere' 'concentric'}
   depth = sqrt(sum(tmp.^2, 2))-vol.r(vol.source); % positive if outside, negative if inside
 
 % boundary element model
-case {'bem' 'dipoli', 'neuromag'}
+case {'bem' 'dipoli', 'asa', 'avo', 'nolte', 'neuromag'}
   if isfield(vol, 'source')
     % use the specified source compartment
     pnt = vol.bnd(vol.source).pnt;
