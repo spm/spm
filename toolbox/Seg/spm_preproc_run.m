@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 1340 2008-04-09 17:11:23Z john $
+% $Id: spm_preproc_run.m 1424 2008-04-15 20:49:14Z john $
 
 if nargin==1,
     run_job(job);
@@ -45,7 +45,8 @@ nit = 1;
 
 for iter=1:nit,
     if nit>1,
-        % Unused
+        % Sufficient statistics for possible generation of group-specific
+        % template data.
         SS = zeros([size(tpm.dat{1}),numel(tpm.dat)],'single');
     end
     for subj=1:numel(job.channel(1).vols),
@@ -75,7 +76,8 @@ for iter=1:nit,
                 obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,obj.Affine,job.warp.affreg);
             end;
         else
-            % Unused
+            % Load results from previous iteration for use with next round of
+            % iterations, with the new group-specific tissue probability map.
             [pth,nam] = fileparts(job.channel(1).vols{subj});
             res       = load(fullfile(pth,[nam '_seg8.mat']));
             obj.Affine = res.Affine;
@@ -95,13 +97,15 @@ for iter=1:nit,
         end
 
         if iter==nit,
+            % Final iteration, so write out the required data.
             tmp2 =  cat(1,job.channel(:).write);
             tmp1 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
             tmp2 =  cat(1,job.channel(:).write);
             tmp3 = job.warp.write;
             spm_preproc_write8(res,tmp1,tmp2,tmp3);
         else
-            % Unused
+            % Not the final iteration, so compute sufficient statistics for
+            % re-estimating the template data.
             N    = numel(job.channel);
             K    = numel(job.tissue);
             cls  = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0]);
@@ -112,7 +116,9 @@ for iter=1:nit,
 
     end
     if iter<nit && nit>1,
-         % Unused
+         % Treat the tissue probability maps as Dirichlet priors, and compute the 
+         % MAP estimate of group tissue probability map using the sufficient
+         % statistics.
          alpha = 1.0;
          for k=1:K,
              SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*alpha + eps;
@@ -130,7 +136,7 @@ return
 
 %_______________________________________________________________________
 function msg = check_job(job)
-msg = [];
+msg = {};
 return
 %_______________________________________________________________________
 
