@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: spm_maff8.m 1434 2008-04-16 14:00:56Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -31,11 +31,11 @@ return;
 %_______________________________________________________________________
 function [buf,MG,x,ff] = loadbuf(V,samp,ff)
 if ischar(V), V = spm_vol(V); end;
-d         = V(1).dim(1:3);
-vx        = sqrt(sum(V(1).mat(1:3,1:3).^2));
-sk        = max([1 1 1],round(samp*[1 1 1]./vx));
-[x1,x2,o] = ndgrid(1:sk(1):d(1),1:sk(2):d(2),1);
-x3        = 1:sk(3):d(3);
+d       = V(1).dim(1:3);
+vx      = sqrt(sum(V(1).mat(1:3,1:3).^2));
+sk      = max([1 1 1],round(samp*[1 1 1]./vx));
+[x1,x2] = ndgrid(1:sk(1):d(1),1:sk(2):d(2));
+x3      = 1:sk(3):d(3);
 
 % Fudge Factor - to (approximately) account for
 % non-independence of voxels
@@ -69,8 +69,6 @@ return;
 %_______________________________________________________________________
 function [M,h0] = affreg(buf,MG,x,ff,tpm,M,regtyp)
 
-kron = inline('spm_krutil(a,b)','a','b');
-
 x1 = x{1};
 x2 = x{2};
 x3 = x{3};
@@ -78,8 +76,6 @@ x3 = x{3};
 isig      =  isig*ff;
 Alpha0    =  isig;
 Beta0     = -isig*mu;
-
-db   = size(tpm.dat{1});
 
 sol  = M2P(M);
 sol1 = sol;

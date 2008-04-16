@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 1424 2008-04-15 20:49:14Z john $
+% $Id: spm_preproc_run.m 1434 2008-04-16 14:00:56Z john $
 
 if nargin==1,
     run_job(job);
@@ -90,7 +90,7 @@ for iter=1:nit,
 
         res = spm_preproc8(obj);
 
-        try,
+        try
             [pth,nam] = fileparts(job.channel(1).vols{subj});
             savefields(fullfile(pth,[nam '_seg8.mat']),res);
         catch
@@ -98,7 +98,6 @@ for iter=1:nit,
 
         if iter==nit,
             % Final iteration, so write out the required data.
-            tmp2 =  cat(1,job.channel(:).write);
             tmp1 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
             tmp2 =  cat(1,job.channel(:).write);
             tmp3 = job.warp.write;

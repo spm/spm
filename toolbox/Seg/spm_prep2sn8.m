@@ -10,7 +10,7 @@ function [po,pin] = spm_prep2sn8(p)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_prep2sn8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_prep2sn8.m 1434 2008-04-16 14:00:56Z john $
 
 
 if ischar(p), p = load(p); end;
@@ -78,7 +78,7 @@ function [Affine,Tr] = reparameterise(Y1,Y2,Y3,B,M2,MT,d2)
 % Take a deformation field and reparameterise in the same form
 % as used by the spatial normalisation routines of SPM
 d          = [size(Y1) 1];
-[x1,x2,o]  = ndgrid(1:d(1),1:d(2),1);
+[x1,x2]  = ndgrid(1:d(1),1:d(2));
 x3         = 1:d(3);
 Affine     = M2\MT*B(1).mat;
 A          = inv(Affine);
@@ -89,8 +89,7 @@ B3  = spm_dctmtx(d(3),d2(3));
 pd  = prod(d2(1:3));
 AA  = eye(pd)*0.01;
 Ab  = zeros(pd,3);
-spm_progress_bar('init',length(x3),['Reparameterising'],'Planes completed');
-mx = [0 0 0];
+spm_progress_bar('init',length(x3),'Reparameterising','Planes completed');
 for z=1:length(x3),
     y1       = double(Y1(:,:,z));
     y2       = double(Y2(:,:,z));
@@ -132,7 +131,7 @@ x3         = 1:d(3);
 c1  = [0 0 0];
 c2  = [0 0 0];
 sw  =  0;
-spm_progress_bar('init',length(x3),['Procrustes (1)'],'Planes completed');
+spm_progress_bar('init',length(x3),'Procrustes (1)','Planes completed');
 for z=1:length(x3),
     y1         = double(Y1(:,:,z));
     y2         = double(Y2(:,:,z));
@@ -151,7 +150,7 @@ c2 = c2/sw;
 T1 = [eye(4,3) M1*[c1 1]'];
 T2 = [eye(4,3) M2*[c2 1]'];
 C  = zeros(3);
-spm_progress_bar('init',length(x3),['Procrustes (2)'],'Planes completed');
+spm_progress_bar('init',length(x3),'Procrustes (2)','Planes completed');
 for z=1:length(x3),
     y1         = double(Y1(:,:,z));
     y2         = double(Y2(:,:,z));
@@ -176,7 +175,7 @@ function [Y1,Y2,Y3] = create_def(T,VG,VF,Affine)
 d2   = size(T);
 d    = VG.dim(1:3);
 M    = VF.mat\Affine*VG.mat;
-[x1,x2,o] = ndgrid(1:d(1),1:d(2),1);
+[x1,x2] = ndgrid(1:d(1),1:d(2));
 x3   = 1:d(3);
 B1   = spm_dctmtx(d(1),d2(1));
 B2   = spm_dctmtx(d(2),d2(2));

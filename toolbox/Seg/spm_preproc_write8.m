@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1301 2008-04-03 13:21:44Z john $
+% $Id: spm_preproc_write8.m 1434 2008-04-16 14:00:56Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -220,7 +220,7 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
             end
             if any(tc(:,3)),
                 vx          = sqrt(sum(M1(1:3,1:3).^2));
-                C(:,:,:,k1) = optimNn(w,c,[1  vx  1e-4 1e-6 0  2 1]);
+                C(:,:,:,k1) = optimNn(w,c,[1  vx  1e-4 1e-6 0  3 2]);
             end
             spm_progress_bar('set',k1);
         end
@@ -311,27 +311,5 @@ for k=1:K,
     p(:,k) = amp * exp(-0.5* sum(d.*(d/vr(:,:,k)),2));
 end
 p = p + 1024*eps;
-%=======================================================================
-
-%=======================================================================
-function y1 = affind(y0,M)
-y1 = zeros(size(y0),'single');
-for d=1:3,
-    y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
-end
-%=======================================================================
-
-%=======================================================================
-function dat = decimate(dat,fwhm)
-% Convolve the volume in memory (fwhm in voxels).
-lim = ceil(2*fwhm);
-x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
-y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
-z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
-i  = (length(x) - 1)/2;
-j  = (length(y) - 1)/2;
-k  = (length(z) - 1)/2;
-spm_conv_vol(dat,dat,x,y,z,-[i j k]);
-return;
 %=======================================================================
 

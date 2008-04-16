@@ -1,10 +1,10 @@
-function spm_preproc_write8(p,opts)
+function write_segMRF8(p,opts)
 % Write out VBM preprocessed data
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: write_segMRF8.m 1340 2008-04-09 17:11:23Z john $
+% $Id: write_segMRF8.m 1434 2008-04-16 14:00:56Z john $
 
 
 if nargin==1,
@@ -25,17 +25,12 @@ function preproc_apply(p,opts,b0)
 sopts = opts.tissues;
 
 [pth,nam,ext]=fileparts(p.image(1).fname);
-T    = p.Twarp;
 bsol = p.Tbias;
-d2   = [size(T) 1];
 d    = p.image(1).dim(1:3);
 
 [x1,x2,o] = ndgrid(1:d(1),1:d(2),1);
 x3  = 1:d(3);
 d3  = [size(bsol{1}) 1];
-B1  = spm_dctmtx(d(1),d2(1));
-B2  = spm_dctmtx(d(2),d2(2));
-B3  = spm_dctmtx(d(3),d2(3));
 bB3 = spm_dctmtx(d(3),d3(3),x3);
 bB2 = spm_dctmtx(d(2),d3(2),x2(1,:)');
 bB1 = spm_dctmtx(d(1),d3(1),x1(:,1));

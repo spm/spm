@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 1340 2008-04-09 17:11:23Z john $
+% $Id: spm_preproc8.m 1434 2008-04-16 14:00:56Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -127,7 +127,7 @@ for n=1:N,
     bias(n).B3  = spm_dctmtx(d0(3),d3(3),z0);
     bias(n).B2  = spm_dctmtx(d0(2),d3(2),y0(1,:)');
     bias(n).B1  = spm_dctmtx(d0(1),d3(1),x0(:,1));
-    if isfield(obj,'Tbias') & ~isempty(obj.Tbias{n}),
+    if isfield(obj,'Tbias') && ~isempty(obj.Tbias{n}),
         bias(n).T = obj.Tbias{n};
     else
         bias(n).T   = zeros(d3);

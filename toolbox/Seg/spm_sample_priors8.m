@@ -10,7 +10,7 @@ function [s,ds1,ds2,ds3] = spm_sample_priors8(tpm,x1,x2,x3)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_sample_priors8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_sample_priors8.m 1434 2008-04-16 14:00:56Z john $
 
 deg  = tpm.deg;
 tiny = tpm.tiny;
@@ -39,7 +39,7 @@ if nargout<=1,
         s{k}(msk) = tpm.bg(k);
         s{k}      = s{k}./tot;
     end
-else,
+else
     ds1 = cell(1,Kb);
     ds2 = cell(1,Kb);
     ds3 = cell(1,Kb);

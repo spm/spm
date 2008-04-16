@@ -7,7 +7,7 @@ function tpm = spm_load_priors8(V)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_load_priors8.m 1151 2008-02-14 17:36:47Z john $
+% $Id: spm_load_priors8.m 1434 2008-04-16 14:00:56Z john $
 
 tiny = 1e-3;
 
@@ -41,7 +41,6 @@ for i=1:tpm.V(1).dim(3)
             tpm.dat{k1}(:,:,i) = tmp;
         end;
     end;
-    s(t) = 1;
     spm_progress_bar('Set',i);
 end;
 tpm.bg = zeros(Kb,1);
