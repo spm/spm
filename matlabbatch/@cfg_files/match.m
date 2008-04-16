@@ -16,9 +16,10 @@ function sts = match(item, spec)
 % An empty spec always matches.
 % Special matching rules for cfg_files apply to the .filter field, if
 % both item.filter and spec.value are one of the special types 'any',
-% 'image', 'mat', 'xml', 'batch', 'dir':
+% 'image', 'nifti', 'mat', 'xml', 'batch', 'dir':
 % A .filter 'any' matches any spec.value. All other filters only match if
-% strcmpi(item.filter,spec.value) is true.
+% strcmpi(item.filter,spec.value) is true. Currently, 'nifti' and 'image'
+% filters are treated as equivalent.
 % Checking the equivalence of two regular expressions is a demanding
 % task. Therefore, no matching is performed if item.filter or spec.value
 % are regular expressions and this match will always be true.
@@ -30,14 +31,14 @@ function sts = match(item, spec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: match.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: match.m 1433 2008-04-16 13:36:06Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1433 $';
 
 % match an empty spec
 sts = true;
 
-specflt = {'image','mat','batch','xml','any','dir'};
+specflt = {'image','nifti','mat','batch','xml','any','dir'};
 for k = 1:numel(spec)
     % Assume no match
     sts = false;
@@ -45,12 +46,20 @@ for k = 1:numel(spec)
         switch spec{k}(l).name,
             % don't try any matching of regexp filters
             case 'filter',
-                if any(strcmpi(spec{k}(l).value,specflt)) && any(strcmpi(item.filter,specflt))
-                    if strcmpi(item.filter,'any')
-                        sts = true;
-                    else
-                        sts = strcmpi(spec{k}(l).value,item.filter);
-                    end;
+                if strcmpi(item.filter,'nifti')
+                    ifilter = 'image';
+                else
+                    ifilter = item.filter;
+                end;
+                if strcmpi(spec{k}(l).value,'nifti')
+                    sfilter = 'image';
+                else
+                    sfilter = spec{k}(l).value;
+                end;                
+                if strcmpi(ifilter,'any')
+                    sts = true;
+                elseif any(strcmpi(sfilter,specflt)) && any(strcmpi(ifilter,specflt))
+                    sts = strcmpi(sfilter,ifilter);
                 else
                     sts = true;
                 end;

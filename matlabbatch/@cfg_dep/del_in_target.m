@@ -11,9 +11,9 @@ function cj = del_in_target(sdeps, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: del_in_target.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: del_in_target.m 1433 2008-04-16 13:36:06Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1433 $';
 
 % first, delete all immediate dependencies
 for k = 1:numel(sdeps)
@@ -21,7 +21,9 @@ for k = 1:numel(sdeps)
     ditem = subsref(eitem, sdeps(k).tgt_input); % dependent item
     dind  = false(1,numel(ditem.val{1}));
     for l = 1:numel(ditem.val{1})
-        dind(l) = ~isequalsource(sdeps(k),ditem.val{1}(l)); % ?.src_exbranch?
+        % only check source here: if source has changed, delete it in all
+        % targets
+        dind(l) = ~isequalsource(sdeps(k),ditem.val{1}(l));
     end;
     if any(dind)
         ditem.val{1} = ditem.val{1}(dind); % Keep other dependencies

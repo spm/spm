@@ -12,9 +12,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: subsasgn_check.m 1433 2008-04-16 13:36:06Z volkmar $
 
-rev = '$Rev: 1405 $';
+rev = '$Rev: 1433 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -33,7 +33,7 @@ switch subs(1).subs
             % do filtering and .num checks
             % this is already done in interactive mode, but not in batch
             % mode (e.g. after resolve_deps).
-            if strcmp(item.filter,'image')
+            if strcmpi(item.filter,'image') || strcmpi(item.filter,'nifti')
                 typ = 'extimage';
             else
                 typ = item.filter;

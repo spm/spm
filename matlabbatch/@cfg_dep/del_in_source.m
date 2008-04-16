@@ -10,15 +10,16 @@ function cj = del_in_source(tdeps, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: del_in_source.m 1431 2008-04-16 08:35:08Z volkmar $
+% $Id: del_in_source.m 1433 2008-04-16 13:36:06Z volkmar $
 
-rev = '$Rev: 1431 $';
+rev = '$Rev: 1433 $';
 
 for k = 1:numel(tdeps)
     sitem = subsref(cj, tdeps(k).src_exbranch); % Source item to deal with
     stind = false(1,numel(sitem.sdeps));
     for l = 1:numel(sitem.sdeps)
-        stind(l) = ~isequaltarget(tdeps(k), sitem.sdeps(l));
+        stind(l) = ~(isequaltarget(tdeps(k), sitem.sdeps(l)) && ...
+                     isequalsource(tdeps(k), sitem.sdeps(l)));
     end;
     sitem.sdeps = sitem.sdeps(stind);
     cj = subsasgn(cj, tdeps(k).src_exbranch,sitem);
