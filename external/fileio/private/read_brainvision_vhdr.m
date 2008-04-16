@@ -11,6 +11,9 @@ function [hdr] = read_brainvision_vhdr(filename);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_vhdr.m,v $
+% Revision 1.5  2008/04/16 07:51:11  roboos
+% added fixme comment
+%
 % Revision 1.4  2008/04/09 10:08:28  roboos
 % added detection of number of samples, based on filesize (only if binary)
 %
@@ -52,6 +55,7 @@ end
 % compute the sampling rate in Hz
 hdr.Fs = 1e6/(hdr.SamplingInterval);
 
+% FIXME nsamples detection does not work if file in another directory
 % the number of samples is unkown
 hdr.nSamples = Inf;
 if strcmp(hdr.DataFormat, 'BINARY')
