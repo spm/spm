@@ -15,7 +15,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 1206 2008-03-13 20:56:00Z karl $
+% $Id: spm_orth.m 1436 2008-04-16 15:37:03Z guillaume $
  
 % default
 %--------------------------------------------------------------------------
@@ -25,7 +25,7 @@ catch
     OPT = 'pad';
 end
  
-% recursive Gram–Schmidt orthogonalisation
+% recursive Gram-Schmidt orthogonalisation
 %--------------------------------------------------------------------------
 sw = warning('off','all');
 [n m] = size(X);

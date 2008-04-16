@@ -9,8 +9,8 @@ function varargout=spm(varargin)
 %
 % SPM (Statistical Parametric Mapping) is a package for the analysis
 % functional brain mapping experiments. It is the in-house package of
-% the Wellcome Department of Cognitive Neurology, and is available to
-% the scientific community as copyright freeware under the terms of the
+% the Wellcome Trust Centre for Neuroimaging, and is available to the
+% scientific community as copyright freeware under the terms of the
 % GNU General Public Licence.
 % 
 % Theoretical, computational and other details of the package are
@@ -23,10 +23,10 @@ function varargout=spm(varargin)
 % `spm_help spm.man` in the MATLAB command window)
 % 
 % This spm function initialises the default parameters, and displays a
-% splash screen with buttons leading to the PET(SPECT) & fMRI
-% modalities Alternatively, `spm('pet')` and `spm('fmri')`
-% (equivalently `spm pet` and `spm mri`) lead directly to the respective
-% modality interfaces.
+% splash screen with buttons leading to the PET,fMRI and M/EEG
+% modalities. Alternatively, `spm('pet')`, `spm('fmri')`, `spm('eeg')`
+% (equivalently `spm pet`, `spm fmri` and `spm eeg`) lead directly to 
+% the respective modality interfaces.
 %
 % Once the modality is chosen, (and it can be toggled mid-session) the
 % SPM user interface is displayed. This provides a constant visual
@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1396 2008-04-14 19:55:08Z volkmar $
+% $Id: spm.m 1436 2008-04-16 15:37:03Z guillaume $
 
 
 %=======================================================================
@@ -359,7 +359,6 @@ spm_figure('WaterMark',Finter,spm('Ver'),'',45);           fprintf('.');
 Fmotd  = fullfile(spm('Dir'),'spm_motd.man');
 if exist(Fmotd,'file'), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
                                                            fprintf('.');
-
 %-Load startup global defaults
 %-----------------------------------------------------------------------
 spm_defaults;                                              fprintf('.');
@@ -378,43 +377,7 @@ fprintf('SPM present working directory:\n\t%s\n',pwd)
 
 
 %=======================================================================
-case 'createmenuwin'                            %-Create SPM menu window
-%=======================================================================
-% Fmenu = spm('CreateMenuWin',Vis)
-
-%-Close any existing 'Menu' 'Tag'ged windows
-%-----------------------------------------------------------------------
-delete(spm_figure('FindWin','Menu'))
-Fmenu     = openfig('spm_Menu','new','invisible');
-set(Fmenu,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
-set(Fmenu,'Units','pixels', 'Position',spm('winsize','M'));
-
-%-Set SPM colour
-%-----------------------------------------------------------------------
-set(findobj(Fmenu,'Tag', 'frame'),'backgroundColor',spm('colour'));
-
-%-Set toolbox
-%-----------------------------------------------------------------------
-xTB       = spm('tbs');
-set(findobj(Fmenu,'Tag', 'Toolbox'),'String',{'Toolbox:' xTB.name });
-set(findobj(Fmenu,'Tag', 'Toolbox'),'UserData',xTB);
-varargout = {Fmenu};
-
-
-%=======================================================================
-case 'createintwin'                      %-Create SPM interactive window
-%=======================================================================
-% Finter = spm('CreateIntWin',Vis)
-%-----------------------------------------------------------------------
-delete(spm_figure('FindWin','Interactive'))
-Finter    = openfig('spm_Interactive','new','invisible');
-set(Finter,'name',spm('Ver'));
-set(Finter,'Units','pixels', 'Position',spm('winsize','I'));
-varargout = {Finter};
-
-
-%=======================================================================
-case 'chmod'                            %-Change SPM modality PET<->fMRI
+case 'chmod'                      %-Change SPM modality PET<->fMRI<->EEG
 %=======================================================================
 % spm('ChMod',Modality)
 %-----------------------------------------------------------------------
@@ -451,6 +414,15 @@ else
 end
 set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
 
+%-Addpath (temporary solution)
+%-----------------------------------------------------------------------
+if strcmpi(Modality,'EEG')
+    addpath(fullfile(spm('Dir'),'external','fieldtrip'));
+    addpath(fullfile(spm('Dir'),'external','fileio'));
+    addpath(fullfile(spm('Dir'),'external','forwinv'));
+    addpath(fullfile(spm('Dir'),'external','brainstorm'));
+end
+
 
 %=======================================================================
 case 'defaults'                 %-Set SPM defaults (as global variables)
@@ -484,16 +456,6 @@ end
 
 
 %=======================================================================
-case 'quit'                                      %-Quit SPM and clean up
-%=======================================================================
-% spm('Quit')
-%-----------------------------------------------------------------------
-delete(get(0,'Children'));
-local_clc;
-fprintf('Bye for now...\n\n');
-
-
-%=======================================================================
 case 'checkmodality'              %-Check & canonicalise modality string
 %=======================================================================
 % [Modality,ModNum] = spm('CheckModality',Modality)
@@ -518,6 +480,42 @@ end
 
 if isempty(ModNum), error('Unknown Modality'), end
 varargout = {upper(Modality),ModNum};
+
+
+%=======================================================================
+case 'createmenuwin'                            %-Create SPM menu window
+%=======================================================================
+% Fmenu = spm('CreateMenuWin',Vis)
+
+%-Close any existing 'Menu' 'Tag'ged windows
+%-----------------------------------------------------------------------
+delete(spm_figure('FindWin','Menu'))
+Fmenu     = openfig('spm_Menu','new','invisible');
+set(Fmenu,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
+set(Fmenu,'Units','pixels', 'Position',spm('winsize','M'));
+
+%-Set SPM colour
+%-----------------------------------------------------------------------
+set(findobj(Fmenu,'Tag', 'frame'),'backgroundColor',spm('colour'));
+
+%-Set toolbox
+%-----------------------------------------------------------------------
+xTB       = spm('tbs');
+set(findobj(Fmenu,'Tag', 'Toolbox'),'String',{'Toolbox:' xTB.name });
+set(findobj(Fmenu,'Tag', 'Toolbox'),'UserData',xTB);
+varargout = {Fmenu};
+
+
+%=======================================================================
+case 'createintwin'                      %-Create SPM interactive window
+%=======================================================================
+% Finter = spm('CreateIntWin',Vis)
+%-----------------------------------------------------------------------
+delete(spm_figure('FindWin','Interactive'))
+Finter    = openfig('spm_Interactive','new','invisible');
+set(Finter,'name',spm('Ver'));
+set(Finter,'Units','pixels', 'Position',spm('winsize','I'));
+varargout = {Finter};
 
 
 %=======================================================================
@@ -601,6 +599,63 @@ end
 
 if ~raw, Rect = Rect.*WS; end
 varargout = {Rect};
+
+
+%=======================================================================
+case 'figname'                                %-Robust SPM figure naming
+%=======================================================================
+% F = spm('FigName',Iname,F,CmdLine)
+%-----------------------------------------------------------------------
+if nargin<4, CmdLine=spm('CmdLine'); else CmdLine=varargin{4}; end
+if nargin<3, F='Interactive'; else F=varargin{3}; end
+if nargin<2, Iname=''; else Iname=varargin{2}; end
+
+%if ~isempty(Iname), fprintf('\t%s\n',Iname), end
+if CmdLine, varargout={[]}; return, end
+F = spm_figure('FindWin',F);
+if ~isempty(F) && ~isempty(Iname)
+    set(F,'Name',sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname))
+end
+varargout={F};
+
+
+%=======================================================================
+case 'show'                   %-Bring visible MATLAB windows to the fore
+%=======================================================================
+% Fs = spm('Show')
+%-----------------------------------------------------------------------
+cF = get(0,'CurrentFigure');
+Fs = get(0,'Children');
+Fs = findobj(Fs,'flat','Visible','on');
+for F=Fs', figure(F), end
+set(0,'CurrentFigure',cF)
+spm('FnBanner','GUI show');
+varargout={Fs};
+
+
+%=======================================================================
+case 'clear'                                             %-Clear SPM GUI
+%=======================================================================
+% spm('Clear',Finter, Fgraph)
+%-----------------------------------------------------------------------
+if nargin<3, Fgraph='Graphics'; else Fgraph=varargin{3}; end
+if nargin<2, Finter='Interactive'; else Finter=varargin{2}; end
+spm_figure('Clear',Fgraph)
+spm_figure('Clear',Finter)
+spm('Pointer','Arrow')
+spm_select('clearvfiles');
+spm_conman('Initialise','reset');
+local_clc, spm('FnBanner','GUI cleared');
+fprintf('\n');
+%evalin('Base','clear')
+
+
+%=======================================================================
+case 'help'                                  %-Pass through for spm_help
+%=======================================================================
+% spm('Help',varargin)
+%-----------------------------------------------------------------------
+if nargin>1, spm_help(varargin{2:end}), else spm_help, end
 
 
 %=======================================================================
@@ -688,6 +743,15 @@ if Cache
 end
 
 varargout = {v,c};
+
+
+%=======================================================================
+case 'mlver'                       %-MATLAB major & point version number
+%=======================================================================
+% v = spm('MLver')
+%-----------------------------------------------------------------------
+v = version; tmp = find(v=='.');
+if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
 
 %=======================================================================
@@ -807,15 +871,6 @@ if isempty(CmdLine)
     end
 end
 varargout = {CmdLine * (get(0,'ScreenDepth')>0)};
-
-
-%=======================================================================
-case 'mlver'                       %-MATLAB major & point version number
-%=======================================================================
-% v = spm('MLver')
-%-----------------------------------------------------------------------
-v = version; tmp = find(v=='.');
-if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
 
 %=======================================================================
@@ -997,24 +1052,6 @@ varargout = {Finter,Fgraph,CmdLine};
 
 
 %=======================================================================
-case 'figname'                                %-Robust SPM figure naming
-%=======================================================================
-% F = spm('FigName',Iname,F,CmdLine)
-%-----------------------------------------------------------------------
-if nargin<4, CmdLine=spm('CmdLine'); else CmdLine=varargin{4}; end
-if nargin<3, F='Interactive'; else F=varargin{3}; end
-if nargin<2, Iname=''; else Iname=varargin{2}; end
-
-%if ~isempty(Iname), fprintf('\t%s\n',Iname), end
-if CmdLine, varargout={[]}; return, end
-F = spm_figure('FindWin',F);
-if ~isempty(F) && ~isempty(Iname)
-    set(F,'Name',sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname))
-end
-varargout={F};
-
-
-%=======================================================================
 case 'gui_filedelete'                                %-GUI file deletion
 %=======================================================================
 % spm('GUI_FileDelete')
@@ -1038,42 +1075,13 @@ end
 
 
 %=======================================================================
-case 'show'                   %-Bring visible MATLAB windows to the fore
+case 'quit'                                      %-Quit SPM and clean up
 %=======================================================================
-% Fs = spm('Show')
+% spm('Quit')
 %-----------------------------------------------------------------------
-cF = get(0,'CurrentFigure');
-Fs = get(0,'Children');
-Fs = findobj(Fs,'flat','Visible','on');
-for F=Fs', figure(F), end
-set(0,'CurrentFigure',cF)
-spm('FnBanner','GUI show');
-varargout={Fs};
-
-
-%=======================================================================
-case 'clear'                                             %-Clear SPM GUI
-%=======================================================================
-% spm('Clear',Finter, Fgraph)
-%-----------------------------------------------------------------------
-if nargin<3, Fgraph='Graphics'; else Fgraph=varargin{3}; end
-if nargin<2, Finter='Interactive'; else Finter=varargin{2}; end
-spm_figure('Clear',Fgraph)
-spm_figure('Clear',Finter)
-spm('Pointer','Arrow')
-spm_select('clearvfiles');
-spm_conman('Initialise','reset');
-local_clc, spm('FnBanner','GUI cleared');
-fprintf('\n');
-%evalin('Base','clear')
-
-
-%=======================================================================
-case 'help'                                  %-Pass through for spm_help
-%=======================================================================
-% spm('Help',varargin)
-%-----------------------------------------------------------------------
-if nargin>1, spm_help(varargin{2:end}), else spm_help, end
+delete(get(0,'Children'));
+local_clc;
+fprintf('Bye for now...\n\n');
 
 
 %=======================================================================
@@ -1119,36 +1127,35 @@ d = spm('Dir');
 %-Check the search path
 %-----------------------------------------------------------------------
 if ~ismember(lower(d),lower(strread(path,'%s','delimiter',pathsep)))
-    error([...
-        'You do not appear to have the MATLAB search path\n'...
-        'set up to include your SPM8 distribution.  This\n'...
-        'means that you can start SPM in this directory,\n'...
-        'but if you change to another directory then MATLAB\n'...
-        'will be unable to find the SPM functions.  You\n'...
-        'can use the editpath command in MATLAB to set it up.\n'...
+    error(sprintf([...
+        'You do not appear to have the MATLAB search path set up\n'...
+        'to include your SPM8 distribution. This means that you\n'...
+        'can start SPM in this directory, but if your change to\n'...
+        'another directory then MATLAB will be unable to find the\n'...
+        'SPM functions. You can use the editpath command in MATLAB\n'...
+        'to set it up.\n'...
         'For more information, try typing the following:\n'...
-        '    help path\n    help editpath']);
+        '    help path\n    help editpath']));
 end
 
 %-Ensure that the original release - as well as the updates - was installed.
 %-----------------------------------------------------------------------
-if ~exist(fullfile(d,'spm_showdoc.m'),'file'), % This is a file that should not have changed
+if ~exist(fullfile(d,'spm_reml_sc.m'),'file'), % This is a file that should not have changed
     if isunix,
-        error([...
+        error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'The original spm8.tar.gz distribution should be installed\n'...
-            'and the updates installed on top of this.  Unix commands\n'...
+            'and the updates installed on top of this. Unix commands\n'...
             'to do this are:\n'...
-            '   gunzip < spm8.tar.gz | tar xvf -\n'...
-            '   cd spm8\n'...
-            '   gunzip < Updates_????.tar.gz | tar xvf -\n'...
-            'You may need help from your local network administrator.']);
+            '   tar xvfz spm8.tar.gz\n'...
+            '   tar xvz -C spm8 -f Updates_????.tar.gz\n'...
+            'You may need help from your local network administrator.']));
     else
-        error([...
+        error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'The original spm8.tar.gz distribution should be installed\n'...
-            'and the updates installed on top of this.  If in doubt,\n'...
-            'consult your local network administrator.']);
+            'and the updates installed on top of this. If in doubt,\n'...
+            'consult your local network administrator.']));
     end
 end
 
@@ -1158,21 +1165,21 @@ if ispc
     try
         t = load(fullfile(d,'Split.mat'));
     catch
-        error([...
-            'There appears to be some problem reading the MATLAB\n'...
-            '.mat files from the SPM distribution.  This is probably\n'...
+        error(sprintf([...
+            'There appears to be some problem reading the MATLAB .mat\n'...
+            'files from the SPM distribution. This is probably\n'...
             'something to do with the way that the distribution was\n'...
-            'unpacked.  If you used WinZip, then ensure that\n'...
+            'unpacked. If you used WinZip, then ensure that\n'...
             'TAR file smart CR/LF conversion is disabled\n'...
-            '(under the Miscellaneous Configuration Options).']);
+            '(under the Miscellaneous Configuration Options).']));
     end
     if ~exist(fullfile(d,'toolbox','DARTEL','diffeo3d.c'),'file'),
-        error([...
+        error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'This is probably something to do with the way that the\n'...
-            'distribution was unbundled from the original .tar.gz files.'...
+            'distribution was unbundled from the original .tar.gz files.\n'...
             'Please ensure that the files are unpacked so that the\n'...
-            'directory structure is retained.']);
+            'directory structure is retained.']));
     end
 end
 
@@ -1184,12 +1191,11 @@ catch
     error([...
         'SPM uses a number of "mex" files, which are compiled functions.\n'...
         'These need to be compiled for the various platforms on which SPM\n'...
-        'is run.  At the FIL, where SPM is developed, the number of\n'...
+        'is run. At the FIL, where SPM is developed, the number of\n'...
         'computer platforms is limited.  It is therefore not possible to\n'...
         'release a version of SPM that will run on all computers. See\n'...
-        '  %s%csrc%cMakefile\n'...
+        '   %s%csrc%cMakefile\n'...
         'for information about how to compile mex files for %s\n'...
         'in MATLAB %s.'],...
         d,filesep,filesep,computer,version);
 end
-

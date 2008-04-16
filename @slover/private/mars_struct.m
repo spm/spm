@@ -70,7 +70,7 @@ function varargout = mars_struct(action, varargin)
 % returns output like disp(a) as a cell array
 % Useful for printing text description of structure
 % 
-% $Id: mars_struct.m 253 2005-10-13 15:31:34Z guillaume $
+% $Id: mars_struct.m 1436 2008-04-16 15:37:03Z guillaume $
 
 if nargin < 1
   error('Action needed');

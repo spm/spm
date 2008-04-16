@@ -14,9 +14,9 @@ function filled=fillstruct(def, prov)
 % individual array member and a filled struct array is returned.
 %_______________________________________________________________________
 %
-% @(#) $Id: fillstruct.m 552 2006-06-08 06:26:38Z volkmar $
+% @(#) $Id: fillstruct.m 1436 2008-04-16 15:37:03Z guillaume $
 
-rev = '$Revision: 552 $';
+rev = '$Revision: 1436 $';
 if isempty(prov)
   filled = def;
 else

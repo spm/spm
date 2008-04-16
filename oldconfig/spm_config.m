@@ -199,7 +199,7 @@ function vals = spm_config
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_config.m 1436 2008-04-16 15:37:03Z guillaume $
 
 ob = struct('type','branch','tag','unused','name','Toolboxes','val',{{}});
 

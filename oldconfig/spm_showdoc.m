@@ -10,7 +10,7 @@ function spm_showdoc(c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_showdoc.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_showdoc.m 1436 2008-04-16 15:37:03Z guillaume $
 
 
 if nargin==0,
