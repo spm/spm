@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.3  2008/04/16 08:04:03  roboos
+% allow headshape to be extracted from BEM volume conduction model
+%
 % Revision 1.2  2008/04/14 20:52:11  roboos
 % ensure consistent output for all  file formats (thanks to Vladimir)
 % added convert_units
@@ -80,17 +83,42 @@ switch fileformat
     end
 
   otherwise
-    % try reading it as electrode positions
-    try
-      elec = read_sens(filename);
-      if ~senstype(elec, 'eeg')
-        error('headshape information can not be read from MEG gradiometer file');
-      else
-        shape.fid.pnt   = elec.pnt;
-        shape.fid.label = elec.label;
+
+    success = 0;
+    if ~success
+      % try reading it as electrode positions
+      % and treat those as fiducials
+      try
+        elec = read_sens(filename);
+        if ~senstype(elec, 'eeg')
+          error('headshape information can not be read from MEG gradiometer file');
+        else
+          shape.fid.pnt   = elec.pnt;
+          shape.fid.label = elec.label;
+          success = 1;
+        end
       end
-    catch
-      disp(lasterr);
+    end
+
+    if ~success
+      % try reading it as volume conductor
+      % and treat the skin surface as headshape
+      try
+        vol = read_vol(filename);
+        if ~voltype(vol, 'bem')
+          error('skin surface can only be extracted from boundary element model');
+        else
+          if ~isfield(vol, 'skin')
+            vol.skin = find_outermost_boundary(vol.bnd);
+          end
+          shape.pnt = vol.bnd(vol.skin).pnt;
+          shape.tri = vol.bnd(vol.skin).tri; % also return the triangulation
+          success = 1;
+        end
+      end
+    end
+
+    if ~success
       error('unknown fileformat for head shape information');
     end
 end

@@ -13,6 +13,9 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.6  2008/04/16 08:04:33  roboos
+% be flexible in determining whether it is bem
+%
 % Revision 1.5  2008/04/14 19:31:05  roboos
 % return 'unknown' if the type cannot be determined
 %
@@ -57,10 +60,16 @@ elseif isempty(vol)
 
 else
   type = 'unknown';
-  
-end
+
+end % if isfield(vol, 'type')
 
 if nargin>1
-  type = strcmp(type, desired);
+  % return a boolean flag
+  switch desired
+    case 'bem'
+      type = any(strcmp(type, {'bem', 'dipoli', 'asa', 'avo'}));
+    otherwise
+      type = any(strcmp(type, desired));
+  end
 end
 
