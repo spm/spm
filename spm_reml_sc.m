@@ -1,6 +1,6 @@
-function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
+function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % ReML estimation of covariance components from y*y' - proper components
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,[hE,hC,A,K]);
+% FORMAT [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,[hE,hC,A,K]);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
@@ -21,6 +21,8 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Fa  - accuracy
 % Fc  - complexity (F = Fa - Fc)
 %
+% k   - number of iterations required
+%
 % Performs a Fisher-Scoring ascent on F to find MAP variance parameter
 % estimates.  NB: uses weakly informative log-normal hyperpriors.
 % See also spm_reml for an unconstrained version that allows for negative
@@ -38,7 +40,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_reml_sc.m 1179 2008-02-28 15:39:28Z karl $
+% $Id: spm_reml_sc.m 1438 2008-04-17 12:14:36Z christophe $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------

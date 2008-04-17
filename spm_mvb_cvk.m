@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1182 2008-03-03 18:25:04Z karl $
+% $Id: spm_mvb_cvk.m 1438 2008-04-17 12:14:36Z christophe $
  
  
 %-partition order
@@ -75,7 +75,9 @@ V     = R'*R;
 % leave-one-out
 %--------------------------------------------------------------------------
 Ns    = length(X);
-qX    = sparse(Ns,1);
+qX    = zeros(Ns,1);
+qE    = zeros(size(Y,2),Ns);
+P     = zeros(size(Y,2),Ns);
 if ~k, k = Ns - 1; end
  
 % k-fold cross-validation
@@ -167,5 +169,7 @@ fprintf('\np-value = %.4f; classification: %.1f%s; R-squared %.1f%s\n',p,pc,'%',
 MVB.p_value = p;
 MVB.percent = pc;
 MVB.R2      = R2;
+MVB.cvk     = struct('qX',qX,'qE',qE,'P',P);
+
  
 assignin('base','MVB',MVB)

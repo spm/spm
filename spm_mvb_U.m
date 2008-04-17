@@ -15,12 +15,12 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_U.m 1171 2008-02-27 14:34:38Z christophe $
+% $Id: spm_mvb_U.m 1438 2008-04-17 12:14:36Z christophe $
  
 % defaults
 %--------------------------------------------------------------------------
-try X0;  catch X0  = [];   end %#ok<VUNUS>
-try xyz; catch xyz = [];   end %#ok<VUNUS>
+try, X0;  catch, X0  = [];   end
+try, xyz; catch, xyz = [];   end
  
 % get orders
 %--------------------------------------------------------------------------

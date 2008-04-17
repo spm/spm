@@ -5,7 +5,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1227 2008-03-18 16:16:36Z christophe $
+% $Id: spm_mvb_ui.m 1438 2008-04-17 12:14:36Z christophe $
 
 
 %-Get figure handles and set title
@@ -88,8 +88,6 @@ priors = str{Ip};
 %--------------------------------------------------------------------------
 str    = 'size of successive subdivisions';
 sg   = spm_input(str,'!+1','e',.5);
-str    = 'Greedy search steps';
-Ni   = spm_input(str,'!+1','i',max(8,ceil(log(size(Y,2))/log(1/sg))));
 
 % MVB defined
 %==========================================================================
@@ -118,6 +116,8 @@ V   = SPM.xVi.V;
 % invert
 %==========================================================================
 U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
+str    = 'Greedy search steps';
+Ni   = spm_input(str,'!+1','i',max(8,ceil(log(size(U,2))/log(1/sg))));
 M        = spm_mvb(X,Y,X0,U,V,Ni,sg);
 M.priors = priors;
 
