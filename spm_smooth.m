@@ -23,25 +23,26 @@ function spm_smooth(P,Q,s,dtype)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_smooth.m 1439 2008-04-17 15:42:17Z john $
 
 
 %-----------------------------------------------------------------------
 if length(s) == 1; s = [s s s]; end
 if nargin<4, dtype = 0; end;
 
-if ischar(P),
+if ischar(P), P = spm_vol(P); end;
 
-    % Peter Stiers' bug fix for 4D data
-    if size(P,1)>1,
-        for j=1:size(P,1),
-            spm_smooth(deblank(P(j,:)),Q,s,dtype);
-        end
-        return;
+if isstruct(P),
+    for i=1:numel(P),
+        smooth1(P(i),Q,s,dtype);
     end
+else
+    smooth1(P,Q,s,dtype);
+end
+%_______________________________________________________________________
 
-    P = spm_vol(P);
-end;
+%_______________________________________________________________________
+function smooth1(P,Q,s,dtype)
 if isstruct(P),
     VOX = sqrt(sum(P.mat(1:3,1:3).^2));
 else
@@ -92,9 +93,9 @@ s  = s./VOX;                        % voxel anisotropy
 s  = max(s,ones(size(s)));          % lower bound on FWHM
 s  = s/sqrt(8*log(2));              % FWHM -> Gaussian parameter
 
-x  = round(6*s(1)); x = [-x:x];
-y  = round(6*s(2)); y = [-y:y];
-z  = round(6*s(3)); z = [-z:z];
+x  = round(6*s(1)); x = -x:x;
+y  = round(6*s(2)); y = -y:y;
+z  = round(6*s(3)); z = -z:z;
 x  = exp(-(x).^2/(2*(s(1)).^2));
 y  = exp(-(y).^2/(2*(s(2)).^2));
 z  = exp(-(z).^2/(2*(s(3)).^2));
@@ -109,3 +110,5 @@ k  = (length(z) - 1)/2;
 
 if isstruct(Q), Q = spm_create_vol(Q); end;
 spm_conv_vol(P,Q,x,y,z,-[i,j,k]);
+
+
