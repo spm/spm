@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1389 2008-04-14 15:04:57Z christophe $
+% $Id: spm_eeg_inv_imag_api.m 1437 2008-04-17 10:34:39Z christophe $
 
 
 spm('defaults','EEG');
@@ -74,8 +74,11 @@ Reset(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 function Reg2tem_Callback(hObject, eventdata, handles)
 str       = 'Mesh size (vertices)';
-handles.D.inv{handles.D.val}.mesh.Msize = spm_input(str,'+1','3000|4000|5000|7200',[1 2 3 4]);
-handles.D = spm_eeg_inv_template(handles.D);
+Msize = spm_input(str,'+1','3000|4000|5000|7200',[1 2 3 4]);
+% handles.D = spm_eeg_inv_template(handles.D);
+[datareg,mesh] = spm_eeg_inv_template(Msize);
+handles.D.inv{handles.D.ival}.mesh = mesh;
+handles.D.inv{handles.D.ival}.datareg = datareg;
 set(handles.CreateMeshes,'enable','off')
 DataReg_Callback(hObject, eventdata, handles);
 

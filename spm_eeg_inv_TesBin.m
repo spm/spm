@@ -19,7 +19,7 @@ function surf = spm_eeg_inv_TesBin(n,ctr_vol,P,info);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_TesBin.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_TesBin.m 1437 2008-04-17 10:34:39Z christophe $
 
 if nargin > 4
     error('Wrong input arguments for ''TesBin''.') ;
@@ -38,7 +38,8 @@ trsh_vol = .9;            % Thershold for surface detection
 rad      = round(4/3*max(Vv.dim(1:3).*VOX/2)); % Radius (mm) of original sphere
 dr       = rad/n_div;     % size of sampling step (mm)
 d_li     = 0:dr:rad;      % Sampling location on radius (mm)
-nd_li    = length(d_li); unit = ones(1,nd_li);
+nd_li    = length(d_li);
+unit = ones(1,nd_li);
 
 % Create a tessalated sphere
 %--------------------------------------------------------------------------
@@ -55,11 +56,10 @@ for i = 1:tsph.nr(1)
     line     = vert(:,i)*unit + or*d_li;
     line_vx  = spm_eeg_inv_mm2vx(line,Vv.mat);
     val_line = spm_sample_vol(Vv,line_vx(1,:),line_vx(2,:),line_vx(3,:),ho);
-    srf_vert(:,i) = line_vx(:,min(find(val_line>trsh_vol))); % first point to intercept the surface
+    srf_vert(:,i) = line_vx(:,find(val_line>trsh_vol,1)); % first point to intercept the surface
     spm_progress_bar('Set',i);
 end
 spm_progress_bar('Clear');
-
 
 % tesllation structure
 %--------------------------------------------------------------------------

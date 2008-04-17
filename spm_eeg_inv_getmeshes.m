@@ -1,4 +1,4 @@
-function varargout = spm_eeg_inv_getmeshes(varargin);
+function varargout = spm_eeg_inv_getmeshes(varargin)
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
 % FORMAT D = spm_eeg_inv_getmeshes(D)
@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_getmeshes(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Christophe Phillips, Rik Henson
-% $Id: spm_eeg_inv_getmeshes.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_getmeshes.m 1437 2008-04-17 10:34:39Z christophe $
 
 if nargin == 2
   num_mesh = varargin{2};
@@ -23,19 +23,19 @@ end
 
 % checks and defaults
 %--------------------------------------------------------------------------
-[D,val] = spm_eeg_inv_check(varargin{1});
+[D,ival] = spm_eeg_inv_check(varargin{1});
 Msize   = D.inv{val}.mesh.Msize;
 Nsize   = [3127 4207 5122 7222];
 Nvert   = [2002 2002 Nsize(Msize)];
 
 mesh_labels = strvcat('Tess. inner skull','Tess. scalp','Tess. cortex');
-Il{1}   = D.inv{val}.mesh.msk_iskull;
-Il{2}   = D.inv{val}.mesh.msk_scalp;
-Il{3}   = D.inv{val}.mesh.msk_cortex;
+Il{1}   = D.inv{ival}.mesh.msk_iskull;
+Il{2}   = D.inv{ival}.mesh.msk_scalp;
+Il{3}   = D.inv{ival}.mesh.msk_cortex;
 
 [Centre_vx,Centre_mm]     = spm_eeg_inv_CtrBin(Il{1});
-D.inv{val}.mesh.Centre_vx = Centre_vx;
-D.inv{val}.mesh.Centre_mm = Centre_mm;
+D.inv{ival}.mesh.Centre_vx = Centre_vx;
+D.inv{ival}.mesh.Centre_mm = Centre_mm;
 
 % create meshes
 %==========================================================================
@@ -58,11 +58,11 @@ end
 vert = head(1).XYZmm';
 face = head(1).tri';
 norm = spm_eeg_inv_normals(vert,face);
-D.inv{val}.mesh.tess_iskull.vert = vert;
-D.inv{val}.mesh.tess_iskull.face = face;
-D.inv{val}.mesh.tess_iskull.norm = norm;
-D.inv{val}.mesh.Iskull_Nv        = length(vert);
-D.inv{val}.mesh.Iskull_Nf        = length(face);
+D.inv{ival}.mesh.tess_iskull.vert = vert;
+D.inv{ival}.mesh.tess_iskull.face = face;
+D.inv{ival}.mesh.tess_iskull.norm = norm;
+D.inv{ival}.mesh.Iskull_Nv        = length(vert);
+D.inv{ival}.mesh.Iskull_Nf        = length(face);
 
 if num_mesh > 1
  % scalp mesh
@@ -70,11 +70,11 @@ if num_mesh > 1
  vert = head(2).XYZmm';
  face = head(2).tri';
  norm = spm_eeg_inv_normals(vert,face);
- D.inv{val}.mesh.tess_scalp.vert = vert;
- D.inv{val}.mesh.tess_scalp.face = face;
- D.inv{val}.mesh.tess_scalp.norm = norm;
- D.inv{val}.mesh.Scalp_Nv        = length(vert);
- D.inv{val}.mesh.Scalp_Nf        = length(face);
+ D.inv{ival}.mesh.tess_scalp.vert = vert;
+ D.inv{ival}.mesh.tess_scalp.face = face;
+ D.inv{ival}.mesh.tess_scalp.norm = norm;
+ D.inv{ival}.mesh.Scalp_Nv        = length(vert);
+ D.inv{ival}.mesh.Scalp_Nf        = length(face);
 
 % cortex mesh
 %--------------------------------------------------------------------------
@@ -82,11 +82,11 @@ if num_mesh > 1
   vert = head(3).XYZmm';
   face = head(3).tri';
   norm = spm_eeg_inv_normals(vert,face);
-  D.inv{val}.mesh.tess_ctx.vert  = vert;
-  D.inv{val}.mesh.tess_ctx.face  = face;
-  D.inv{val}.mesh.tess_ctx.norm  = norm;
-  D.inv{val}.mesh.Ctx_Nv         = length(vert);
-  D.inv{val}.mesh.Ctx_Nf         = length(face);
+  D.inv{ival}.mesh.tess_ctx.vert  = vert;
+  D.inv{ival}.mesh.tess_ctx.face  = face;
+  D.inv{ival}.mesh.tess_ctx.norm  = norm;
+  D.inv{ival}.mesh.Ctx_Nv         = length(vert);
+  D.inv{ival}.mesh.Ctx_Nf         = length(face);
  end
 end
 

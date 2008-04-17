@@ -1,12 +1,13 @@
 function ts = spm_eeg_inv_ElastM(ts);
 % FORMAT ts = spm_eeg_inv_ElastM(ts);
 %
-% Modify the mesh in order to reduce overlong edges.
+% Modify the mesh in order to reduce overlong edges, and smooth out "rough"
+% areas.
 % The procedure uses an elastic model :
 % At each vertex, the neighbouring triangles and vertices connected 
-% directly are considered.
-% Each edge is considered elastic and can be lengthened or shortened,
-% depending on their length.
+% directly are used. Each edge is considered elastic and can be lengthened 
+% or shortened, depending on their length. Displacement are done in 3D, so
+% that holes and bumps are attenuated.
 % Refs: G.Taubin, A signal processing approach to fair surface design, 1995
 % This is a non-shrinking smoothing algorithm.
 %
@@ -19,7 +20,7 @@ function ts = spm_eeg_inv_ElastM(ts);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ElastM.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe $
 
 % Connection vertex-to-vertex
 %--------------------------------------------------------------------------
@@ -29,7 +30,8 @@ M_con = sparse([ts.tri(1,:)';ts.tri(1,:)';ts.tri(2,:)';ts.tri(3,:)';ts.tri(2,:)'
                       
 kpb   = .1;                       % Cutt-off frequency
 lam   = .5; mu = lam/(lam*kpb-1); % Parameters for elasticity.
-N     = 25;                       % Number of smoothing steps, the larger, the smoother
+N     = 25;                       % Number of smoothing steps:
+%                                                  the larger, the smoother
 XYZmm = ts.XYZmm;
 
 % smoothing iterations

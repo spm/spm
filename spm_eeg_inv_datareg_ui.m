@@ -11,7 +11,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: spm_eeg_inv_datareg_ui.m 1437 2008-04-17 10:34:39Z christophe $
 
 % Set-up specfic parameters (POLHEMIUS)
 %==========================================================================
@@ -21,11 +21,11 @@ pol_fig  = 0;                    % supress graphic when reading pol file
 
 % initialise
 %--------------------------------------------------------------------------
-[D,val] = spm_eeg_inv_check(varargin{:});
+[D,ival] = spm_eeg_inv_check(varargin{:});
 try
-    D.inv{val}.mesh.template;
+    D.inv{ival}.mesh.template;
 catch
-    D.inv{val}.mesh.template = 0;
+    D.inv{ival}.mesh.template = 0;
 end
 
 % For some data formats, fids and headshape encoded in native data formats, 
@@ -112,7 +112,7 @@ end
 % fiducial in sMRI space
 %--------------------------------------------------------------------------
 try
-    fid_mri = D.inv{val}.datareg.fid_mri;
+    fid_mri = D.inv{ival}.datareg.fid_mri;
 catch
     fid_mri = load(spm_select(1,'.mat','Select sMRI fiducials {nasion, left & right ear)'));
     name    = fieldnames(fid_mri);
@@ -122,8 +122,8 @@ end
 % get scalp locations if headshape is specified
 %--------------------------------------------------------------------------
 try
-    D.inv{val}.datareg.scalpvert = D.inv{val}.mesh.tess_scalp.vert;
-    scalpvert                    = D.inv{val}.datareg.scalpvert;
+    D.inv{ival}.datareg.scalpvert = D.inv{ival}.mesh.tess_scalp.vert;
+    scalpvert                     = D.inv{ival}.datareg.scalpvert;
 catch
     if length(headshape)
         scalpvert = spm_select(1,'.mat','Select scalp vertices (N x 3)');
@@ -135,17 +135,19 @@ end
 
 % register
 %==========================================================================
-D.inv{val}.datareg.sensors   = sensors;
-D.inv{val}.datareg.fid_eeg   = fid_eeg;
-D.inv{val}.datareg.fid_mri   = fid_mri;
-D.inv{val}.datareg.headshape = headshape;
-D.inv{val}.datareg.scalpvert = scalpvert;
-D.inv{val}.datareg.megorient = megorient;
+D.inv{ival}.datareg.sensors   = sensors;
+D.inv{ival}.datareg.fid_eeg   = fid_eeg;
+D.inv{ival}.datareg.fid_mri   = fid_mri;
+D.inv{ival}.datareg.headshape = headshape;
+D.inv{ival}.datareg.scalpvert = scalpvert;
+D.inv{ival}.datareg.megorient = megorient;
 try
-    D.inv{val}.datareg.grad = grad;
+    D.inv{ival}.datareg.grad = grad;
 end
 %--------------------------------------------------------------------------
-D = spm_eeg_inv_datareg(D);
+% D = spm_eeg_inv_datareg(D);
+[M1, sens, fid] = spm_eeg_inv_datareg(sensors,fid_eeg, ...
+                    D.inv{ival}.datareg,D.inv{ival}.mesh.template);
 
 % check and display registration
 %--------------------------------------------------------------------------

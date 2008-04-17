@@ -1,4 +1,4 @@
-function tsph = spm_eeg_inv_TesSph(r,n);
+function tsph = spm_eeg_inv_TesSph(r,n)
 % Generate a structure 'tsph' containing a tesselated sphere.
 %
 % FORMAT tsph = spm_eeg_inv)TesSph(r,n);
@@ -16,7 +16,7 @@ function tsph = spm_eeg_inv_TesSph(r,n);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_TesSph.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_TesSph.m 1437 2008-04-17 10:34:39Z christophe $
 
 if nargin == 0 
     n = 40;

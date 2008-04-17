@@ -12,24 +12,25 @@ function D = spm_eeg_inv_meshing(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_meshing.m 1437 2008-04-17 10:34:39Z christophe $
 
 % initialise
 %--------------------------------------------------------------------------
-[D,val] = spm_eeg_inv_check(varargin{:});
+[D,ival] = spm_eeg_inv_check(varargin{:});
 
 % check template flag
 %--------------------------------------------------------------------------
 try
     template = D.inv{val}.mesh.template;
 catch
-    D.inv{val}.mesh.template = 0;
+    D.inv{ival}.mesh.template = 0;
 end
 
 % get sMRI file name (select none if none present, to use template mesh)
 %--------------------------------------------------------------------------
-if ~D.inv{val}.mesh.template & ~isfield(D.inv{val}.mesh,'sMRI')
-    D.inv{val}.mesh.sMRI = spm_select([0 1],'image','Select subject''s structural MRI (Press Done if none)');
+if ~D.inv{ival}.mesh.template & ~isfield(D.inv{ival}.mesh,'sMRI')
+    D.inv{ival}.mesh.sMRI = spm_select([0 1],'image', ...
+                'Select subject''s structural MRI (Press Done if none)');
 end
 
 if isempty(D.inv{val}.mesh.sMRI)
@@ -39,7 +40,7 @@ end
 
 % set canonical flag (if not specified, determined by modality)
 %--------------------------------------------------------------------------
-if ~D.inv{val}.mesh.template
+if ~D.inv{ival}.mesh.template
     try
         canonical = D.inv{val}.mesh.canonical;
     catch
@@ -49,7 +50,8 @@ if ~D.inv{val}.mesh.template
         end
 
         if ~isfield(D.inv{val},'method')
-            D.inv{val}.method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
+            D.inv{val}.method = questdlg('recontruction','Please select', ...
+                                                'Imaging','ECD','Imaging');
         end
 
         if strcmp(D.inv{val}.method,'ECD')  % Use subject-specific mesh for ECD
@@ -65,15 +67,19 @@ end
 % get cortical mesh size
 %--------------------------------------------------------------------------
 if ~isfield(D.inv{val}.mesh,'Msize')
-    Msize = spm_input('Mesh size (vertices)','+1','3000|4000|5000|7200',[1 2 3 4]);
-    D.inv{val}.mesh.Msize = Msize;
+    Msize = spm_input('Cortical mesh size (vert.)','+1', ...
+                                          '3000|4000|5000|7200',[1 2 3 4]);
+    D.inv{ival}.mesh.Msize = Msize;
 else
-    Msize = D.inv{val}.mesh.Msize;
+    Msize = D.inv{ival}.mesh.Msize;
 end
 
 
-if D.inv{val}.mesh.template
-    D = spm_eeg_inv_template(D);
+if D.inv{ival}.mesh.template
+%     D = spm_eeg_inv_template(D);
+    [datareg, mesh] = spm_eeg_inv_template(Msize);
+    D.inv{ival}.datareg = datareg;
+    D.inv{ival}.mesh = mesh;
 else
 
     % Segment and normalise structural

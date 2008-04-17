@@ -1,19 +1,19 @@
-function [D,val] = spm_eeg_inv_check(varargin)
+function [D,ival] = spm_eeg_inv_check(varargin)
 % Checks that the EEG/EMG .mat file structure is loaded properly and that
 % the particular inversion of interest has been specified
 %
-% FORMAT [D,val] = spm_eeg_inv_check(D,[val])
+% FORMAT [D,ival] = spm_eeg_inv_check(D,[ival])
 % Input:
 % S              - data structure or its filename
-% val            - model of interest (usually 1)
+% ival            - model of interest (usually 1)
 % Output:
 % D              - data structure
-% val            - model of interest D.val
+% ival            - model of interest D.ival
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Karl Friston
-% $Id: spm_eeg_inv_check.m 1291 2008-04-02 13:58:28Z vladimir $
+% $Id: spm_eeg_inv_check.m 1437 2008-04-17 10:34:39Z christophe $
 
 
 % Check - prompt for file if necessary
@@ -41,23 +41,23 @@ end
 % set val = 1 if only one model
 %--------------------------------------------------------------------------
 if length(D.inv) == 1
-    val   = 1;
-    D.val = val;
+    ival   = 1;
+    D.ival = ival;
     return
 end
 
 % Check - val
 %--------------------------------------------------------------------------
 try
-    val = varargin{2};
+    ival = varargin{2};
 catch
     try
-        val    = D.val;
+        ival    = D.ival;
     catch
         prompt = sprintf('which model (1 to %i)',length(D.inv));
-        val    = inputdlg(prompt,'Source reconstruction',1,{'1'});
-        val    = eval(val{1});
+        ival    = inputdlg(prompt,'Source reconstruction',1,{'1'});
+        ival    = eval(ival{1});
     end
 end
-D.val = val;
+D.ival = ival;
 
