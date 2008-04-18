@@ -13,6 +13,9 @@ function [vol] = transform_vol(transform, vol)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: transform_vol.m,v $
+% Revision 1.5  2008/04/18 13:16:25  roboos
+% removed check for scaling
+%
 % Revision 1.4  2008/04/15 20:36:21  roboos
 % added explicit handling of various BEM implementations, i.e. for all voltype variants
 %
@@ -34,9 +37,11 @@ end
 rotation = eye(4);
 rotation(1:3,1:3) = transform(1:3,1:3);
 
-if abs(det(rotation)-1)>10*eps
-  error('only a rigid body transformation without rescaling is allowed');
-end
+% FIXME insert check for nonuniform scaling, should give an error
+
+% if abs(det(rotation)-1)>10*eps
+%   error('only a rigid body transformation without rescaling is allowed');
+% end
 
 switch voltype(vol)
   
