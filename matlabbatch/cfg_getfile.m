@@ -75,10 +75,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1393 2008-04-14 18:53:47Z volkmar $
+% $Id: cfg_getfile.m 1441 2008-04-18 12:34:13Z volkmar $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1393 2008-04-14 18:53:47Z volkmar $
+% $Id: cfg_getfile.m 1441 2008-04-18 12:34:13Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -401,12 +401,6 @@ uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
 % Drives
 if strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'),
-    driveLett = strcat(cellstr(char(('C':'Z')')), ':');
-    dsel = false(size(driveLett));
-    for i=1:numel(driveLett)
-        dsel(i) = exist([driveLett{i} '\'],'dir');
-    end
-    drivestr = driveLett(dsel);
     sz = get(db,'Position');
     sz(4) = sz(4)-fh-2*0.01;
     set(db,'Position',sz);
@@ -427,7 +421,7 @@ if strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'),
         'tag','drive',...
         'BackgroundColor',col1,...
         'ForegroundColor',col3,...
-        'String',drivestr,...
+        'String',listdrives(false),...
         'Value',1);
 end;
 
@@ -1186,4 +1180,17 @@ sfilt = struct('code',code,'frames',frames,'ext',{ext},...
 %=======================================================================
 
 %=======================================================================
+function drivestr = listdrives(reread)
+persistent mydrivestr;
+if isempty(mydrivestr) || reread
+    driveLett = strcat(cellstr(char(('C':'Z')')), ':');
+    dsel = false(size(driveLett));
+    for i=1:numel(driveLett)
+        dsel(i) = exist([driveLett{i} '\'],'dir');
+    end
+    mydrivestr = driveLett(dsel);
+end;
+drivestr = mydrivestr;
+%=======================================================================
 
+%=======================================================================
