@@ -21,7 +21,7 @@ function [] = spm_dcm_U (DCM_filename,SPM_filename,session,input_nos)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_U.m 1440 2008-04-18 10:00:22Z klaas $
 
 
 load(DCM_filename);
@@ -43,7 +43,9 @@ m_sel  = length(find(cell2mat(input_nos)));
 m      = size(DCM.c,2);
 
 if ~(m_sel==m)
-    disp(sprintf('Error in spm_dcm_U: must include %d inputs',m));
+    msg = sprintf('Error in spm_dcm_U: %d inputs expected, but only %d passed on',m,m_sel);
+    disp(msg)
+    error('spm_dcm_U aborted')
     return
 end
 
@@ -56,7 +58,9 @@ u      = length(Sess.U);
 % Last relevant input
 u_last = max(size(input_nos));
 if u_last > u 
-    disp('Error in spm_dcm_U: more inputs specified than exist in SPM.mat');
+    msg = sprintf('Error in spm_dcm_U: more inputs specified than exist in SPM.mat');
+    disp(msg)
+    error('spm_dcm_U aborted')
     return
 end
 
@@ -68,15 +72,17 @@ for k = 1:u_last,
     if find(input_nos{k})
         mo = find(input_nos{k});
         if (length(mo)-1) > length(Sess.U(k).P)
-            disp(['Error in spm_dcm_U: more parametric modulations specified than exist for input ' Sess.U(k).name{1} 'in SPM file.']);
+            msg = ['Error in spm_dcm_U: more parametric modulations specified than exist for input ' Sess.U(k).name{1} 'in SPM file.'];
+            disp(msg)
+            error('spm_dcm_U aborted')
             return
         end
         for j=mo,
             U.u             = [U.u Sess.U(k).u(33:end,j)];
             U.name{end + 1} = Sess.U(k).name{j};
         end
-    end 
-end   
+    end
+end
 DCM.U = U;
 
 
@@ -95,6 +101,7 @@ if ~(round(DCM.v*DCM.Y.dt/DCM.U.dt) == num_inputs)
     disp('Error in spm_dcm_U: input period and output period do not match');
     disp(sprintf('Number of inputs=%d, input dt=%1.2f, input period=%1.2f',num_inputs,DCM.U.dt,input_period));
     disp(sprintf('Number of outputs=%d, output dt=%1.2f, output period=%1.2f',DCM.v,DCM.Y.dt,output_period));
+    error('spm_dcm_U aborted')
     return
 end
 
