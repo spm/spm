@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1414 2008-04-15 15:50:48Z volkmar $
+% $Id: cfg_ui.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1414 $';
+rev = '$Rev: 1448 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 15-Apr-2008 09:51:12
+% Last Modified by GUIDE v2.5 18-Apr-2008 13:25:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -418,10 +418,11 @@ if ~isempty(udmodlist.cmod)
     % set help box to module help
     [id stop help] = cfg_util('listmod', cid{:}, cfg_findspec, ...
                               cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-    set(handles.helpbox, 'String', cfg_justify(handles.helpbox, help{1}{1}), 'Value', 1);
+    set(handles.helpbox, 'String',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
     udmodlist(1).cmod = cmod;
     set(handles.modlist, 'userdata', udmodlist);
     local_showvaledit(obj);
+    uicontrol(handles.module);
 else
     set(handles.module, 'String','No Module selected', 'Value',1,'Userdata',[]);
     set(findobj(handles.cfg_ui,'-regexp','Tag','^Btn.*'), 'Visible', 'off');
@@ -430,7 +431,7 @@ else
     set(handles.valshowLabel, 'Visible','off');
     % set help box to matlabbatch top node help
     [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'help'});
-    set(handles.helpbox, 'String', cfg_justify(handles.helpbox, help{1}{1}), 'Value', 1);
+    set(handles.helpbox, 'String',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 end;
 
 %% Show Item
@@ -443,8 +444,9 @@ udmodule = get(handles.module, 'userdata');
 value = get(handles.module, 'value');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^BtnVal.*'), 'Visible','off');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^MenuEditVal.*'), 'Enable','off');
-set(handles.valshow,'String', '','Visible','off');
+set(handles.valshow,'String', '','Visible','off','Min',0,'Max',0,'Callback',[]);
 set(handles.valshowLabel, 'Visible','off');
+udvalshow = struct('en',{{}},'cval',[]);
 switch(udmodule.contents{5}{value})
     case {'cfg_entry','cfg_files'}
         if ~isempty(udmodule.contents{2}{value}) && isa(udmodule.contents{2}{value}{1}, 'cfg_dep')
@@ -474,7 +476,12 @@ switch(udmodule.contents{5}{value})
             'Visible','on', 'Enable','on');
     case 'cfg_menu'
         [str cval] = local_showvaledit_list(obj);
-        set(handles.valshow,'String', str, 'Visible','on', 'Value', cval);
+        udvalshow.cval = cval;
+        if cval == -1
+            cval = 1;
+        end;
+        set(handles.valshow,'String',str, 'Visible','on', 'Value',cval, ...
+                          'Callback',@local_valedit_list, 'Userdata',udvalshow);
         set(handles.valshowLabel, 'Visible','on');
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), 'Visible','on', 'Enable','on');
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
@@ -482,7 +489,12 @@ switch(udmodule.contents{5}{value})
     case 'cfg_choice'
         if ~isfield(udmodlist, 'defid')
             [str cval] = local_showvaledit_list(obj);
-            set(handles.valshow,'String', str, 'Visible','on', 'Value', cval);
+            udvalshow.cval = cval;
+            if cval == -1
+                cval = 1;
+            end;
+            set(handles.valshow,'String',str, 'Visible','on', 'Value',cval, ...
+                              'Callback',@local_valedit_list, 'Userdata',udvalshow);
             set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
                 'Visible','on', 'Enable','on');
@@ -522,7 +534,7 @@ else
 end;
 [id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-set(handles.helpbox, 'string', cfg_justify(handles.helpbox, help{1}{1}));
+set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 
 % --------------------------------------------------------------------
 function [str, cval] = local_showvaledit_list(hObject)
@@ -714,28 +726,70 @@ end;
 local_setvaledit(hObject, val);
 
 % --------------------------------------------------------------------
-function local_valedit_list(hObject)
+function en = local_disable(hObject)
+% disable all ui objects, returning their previous state in cell list en
 handles = guidata(hObject);
-value = get(handles.module, 'Value');
-udmodule = get(handles.module, 'Userdata');
-[str cval] = local_showvaledit_list(hObject);
-if cval > 0
-    inival = cval;
+c = allchild(handles.cfg_ui);
+en = cell(size(c));
+for k = 1:numel(c)
+    x = get(c(k));
+    if isfield(x, 'Enable')
+        en{k} = x.Enable;
+        set(c(k),'Enable','off');
+    end;
+end;
+
+% --------------------------------------------------------------------
+function local_enable(hObject, en)
+% reset original enable status. if en is empty, return without changing
+% anything. 
+handles = guidata(hObject);
+c = allchild(handles.cfg_ui);
+for k = 1:numel(en)
+    if ~isempty(en{k})
+        set(c(k),'Enable',en{k});
+    end;
+end;
+
+% --------------------------------------------------------------------
+function local_valedit_list(hObject,varargin)
+handles = guidata(hObject);
+udvalshow = get(handles.valshow, 'Userdata');
+if isequal(hObject, handles.valshow) || ...
+        any(hObject == findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'))
+    % callback called from handles.valshow, finish editing and set value
+    c = get(handles.cfg_ui,'CurrentCharacter');
+    if isempty(c) || unicode2native(c) == 13 || ...
+            hObject == handles.valshowBtnAccept
+        % under some circumstances, c may be empty if mouse + keyboard interact
+        local_enable(hObject, udvalshow.en);
+        uiresume(handles.cfg_ui);
+        set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
+            'Visible','off', 'Callback',[]);
+        val = get(handles.valshow, 'Value');
+        if val ~= udvalshow.cval
+            local_setvaledit(hObject,val);
+        else
+            uicontrol(handles.module);
+        end;
+    elseif hObject == handles.valshowBtnCancel
+        local_enable(hObject, udvalshow.en);
+        uiresume(handles.cfg_ui);
+        set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
+            'Visible','off', 'Callback',[]);
+        uicontrol(handles.module);
+    end;
 else
-    inival = 1;
+    % callback called from elsewhere (module, menu, button) - init editing
+    udvalshow.en = local_disable(hObject);
+    figure(handles.cfg_ui);
+    set(handles.valshow,'enable','on','Userdata',udvalshow, 'Min',0, ...
+                      'Max',1);
+    set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
+        'Enable','on', 'Visible','on', 'Callback',@local_valedit_list);
+    uicontrol(handles.valshow);
+    uiwait(handles.cfg_ui);
 end;
-% for some reason, MATLAB wants to have the list size to be specified in
-% pixels, not chars. Try to work this out based on the number of
-% characters and a font size of 12.
-szi = min(max(size(strvcat(str)')+1, [10 1]),[140 60])*13;
-[val sts] = listdlg('Name',udmodule.contents{1}{value}, ...
-                    'ListString',str, 'SelectionMode','single', ...
-                    'InitialValue',inival, 'ListSize', szi);
-if ~sts || val == cval
-    % Selection cancelled or nothing changed
-    return;
-end;
-local_setvaledit(hObject, val);
 
 %% Set changed values
 % --------------------------------------------------------------------
@@ -1014,14 +1068,13 @@ function MenuFileAddApp_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file path idx] = uigetfile({'*.m','Matlab m file'}, 'Load Application Configuration');
-if isnumeric(file) && file == 0
-    return;
+[file sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
+if sts
+    [p fun e v] = fileparts(file);
+    addpath(p);
+    cfg_util('addapp', fun);
+    local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 end;
-addpath(path);
-[p fun e v] = fileparts(file);
-cfg_util('addapp', fun);
-local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 
 % --------------------------------------------------------------------
 function MenuFileClose_Callback(hObject, eventdata, handles)
@@ -1340,4 +1393,19 @@ switch lower(cmd)
     case 'hide'
         set(hObject,'Visible','off');
 end;
+
+
+% --- Executes on button press in valshowBtnAccept.
+function valshowBtnAccept_Callback(hObject, eventdata, handles)
+% hObject    handle to valshowBtnAccept (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in valshowBtnCancel.
+function valshowBtnCancel_Callback(hObject, eventdata, handles)
+% hObject    handle to valshowBtnCancel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
 

@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: cfg_confgui.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1405 $';
+rev = '$Rev: 1448 $';
 
 %% Declaration of fields
 
@@ -169,6 +169,23 @@ conf_dir.help    = {'Dir field.', 'Initial directory for file selector.'};
 
 % Num
 %-----------------------------------------------------------------------
+conf_num_any         = cfg_entry;
+conf_num_any.name    = 'Num';
+conf_num_any.tag     = 'num';
+conf_num_any.strtype = 'w';
+conf_num_any.num     = [0 Inf];
+conf_num_any.help    = {'Num field.', ...
+                    ['Specify how many dimensions this ' ...
+                    'item must have and the size of each dimension. An ' ...
+                    'empty num field means no restriction on number of ' ...
+                    'dimensions. Inf in any dimension means no upper limit ' ...
+                    'on size of this dimension.'], ...
+                    ['Note that for strtype ''s'' inputs, num is interpreted ' ...
+                    'as a 2-vector [min max], allowing for a 1-by-min...max ' ...
+                    'string to be entered.']};
+
+% Num
+%-----------------------------------------------------------------------
 conf_num         = cfg_entry;
 conf_num.name    = 'Num';
 conf_num.tag     = 'num';
@@ -304,7 +321,7 @@ conf_choice.vout = @cfg_cfg_vout;
 conf_entry      = cfg_exbranch;
 conf_entry.name = 'Entry';
 conf_entry.tag  = 'conf_entry';
-conf_entry.val  = {conf_class_entry, conf_name, conf_tag, conf_strtype, conf_extras, conf_num, conf_check, conf_help};
+conf_entry.val  = {conf_class_entry, conf_name, conf_tag, conf_strtype, conf_extras, conf_num_any, conf_check, conf_help};
 conf_entry.help = help2cell('cfg_entry');
 conf_entry.prog = @cfg_cfg_pass;
 conf_entry.vout = @cfg_cfg_vout;

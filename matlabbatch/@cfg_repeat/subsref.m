@@ -23,14 +23,15 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1414 2008-04-15 15:50:48Z volkmar $
+% $Id: subsref.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1414 $';
+rev = '$Rev: 1448 $';
 
 switch subs(1).type,
     case {'.'},
-        if numel(subs) > 1 && numel(item) > 1
-            error('matlabbatch:subsref:multiref', 'Field reference for multiple structure elements that is followed by more reference blocks is an error.');
+        if numel(item) > 1
+            error('matlabbatch:subsref:multiref', ...
+                  'Field to multiple items not allowed for cfg_item classes.');
         end;
         citem = class(item);
         switch citem
@@ -47,19 +48,25 @@ switch subs(1).type,
                 par_fields = subs_fields(item.cfg_item);
         end;
         switch subs(1).subs
-            case subs_fields(item),
-                for k = 1:numel(item)
-                    val{k} = item(k).(subs(1).subs);
-                end;
+            case mysubs_fields,
+                val{1} = item.(subs(1).subs);
             case par_fields,
-                for k = 1:numel(item)
-                    val{k} = item(k).(par_class).(subs(1).subs);
-                end;
+                val{1} = item.(par_class).(subs(1).subs);
             otherwise
                 error('matlabbatch:subsref:unknownfield', ...
                       ['Reference to unknown field ''%s''.\nTo reference ' ...
                        'a field in the job structure, use a reference like ' ...
                        '''(x).%s'''], subs(1).subs, subs(1).subs);
+        end;
+        if numel(subs) > 1 
+            % in this case, val has only one element, and
+            % subs(2:end) are indices into val{1} 
+            %    val{1} = builtin('subsref', val{1}, subs(2:end));
+            % The line above does not seem to work, as MATLAB is
+            % not able to figure out which subsref to call and when.
+            for k = 2:numel(subs)
+                val{1} = subsref(val{1}, subs(k));
+            end;
         end;
     case {'()','{}'},
         val = subsref_job(item, subs, false);
@@ -67,14 +74,5 @@ switch subs(1).type,
         error('matlabbatch:subsref:unknowntype', ...
               'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end
-if strcmp(subs(1).type, '.') && numel(subs) > 1 
-    % in this case, val has only one element, and subs(2:end) are indices into val{1}
-    %    val{1} = builtin('subsref', val{1}, subs(2:end));
-    % The line above does not seem to work, as MATLAB is not able to figure out
-    % which subsref to call and when.
-    for k = 2:numel(subs)
-        val{1} = subsref(val{1}, subs(k));
-    end;
-end;
 
 varargout = val;

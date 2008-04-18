@@ -24,14 +24,15 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1195 2008-03-07 21:51:49Z volkmar $
+% $Id: harvest.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1195 $';
+rev = '$Rev: 1448 $';
 
 typ = class(item);
 tag = gettag(item);
 val = struct([]);
-dep = [];
+dep = cfg_dep;    % placeholder for dependencies
+dep = dep(false); % make dep an empty dependency array
 chk = ~dflag && rflag;
 
 tname = treepart(item, dflag);
@@ -49,7 +50,7 @@ for k = 1:numel(citems)
         njtsubs.subs  = ctag;
         ntgt_input(2).subs  = {k};
         % augment cdep tsubs references
-        dep = cfg_dep_add(dep, cdep, ntgt_input, njtsubs);
+        dep = dep_add(dep, cdep, ntgt_input, njtsubs);
     end;
     chk = chk && cchk;
 end;

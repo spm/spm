@@ -27,14 +27,15 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1195 2008-03-07 21:51:49Z volkmar $
+% $Id: harvest.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1195 $';
+rev = '$Rev: 1448 $';
 
 typ = class(item);
 tag = item.tag;
 val = '<UNDEFINED>';
-dep = []; % placeholder for dependencies
+dep = cfg_dep;    % placeholder for dependencies
+dep = dep(false); % make dep an empty dependency array
 chk = ~dflag && rflag;
 
 if ~isempty(item.val)

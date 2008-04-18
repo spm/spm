@@ -62,13 +62,6 @@ function cfg_serial(guifcn, job, varargin)
 %     dir - initial directory
 %     num - 2-vector of min/max number of required files
 %
-% Interaction between cfg_ui and cfg_serial
-% Currently, cfg_util can hold multiple jobs, but only one of them is
-% active. If cfg_ui is open and cfg_serial is called in between, then the
-% current job is set to the job specified in cfg_serial. Therefore,
-% cfg_ui will be closed once cfg_serial is called. This will change, once
-% cfg_util is able to hold more than one active job context.
-%
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
 % for a general overview.
@@ -76,9 +69,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1337 2008-04-09 15:52:05Z volkmar $
+% $Id: cfg_serial.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1337 $';
+rev = '$Rev: 1448 $';
 
 if ischar(job)
     % Assume dot delimited sequence of tags

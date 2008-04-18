@@ -9,9 +9,9 @@ function dep = cfg_dep_add(dep, cdep, ntgt_input, njtsubs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_dep_add.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: dep_add.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1448 $';
 
 if isempty(cdep)
     return;
@@ -23,5 +23,5 @@ end;
 if isempty(dep)
     dep = cdep(:);
 else
-    dep = [dep(:) cdep(:)];
+    dep = [dep(:); cdep(:)];
 end;

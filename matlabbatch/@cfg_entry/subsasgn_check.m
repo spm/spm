@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1409 2008-04-15 10:22:46Z volkmar $
+% $Id: subsasgn_check.m 1448 2008-04-18 16:25:41Z volkmar $
 
-rev = '$Rev: 1409 $';
+rev = '$Rev: 1448 $';
 
 sts = true;
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
@@ -83,7 +83,7 @@ if ~isa(val,'cfg_dep')
         case {'n'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && all(val(:) >= 1) && ...
-                                   all(abs(round(val(:))-val(:)) <= tol));
+                                   all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
                 warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
                         '%s: Item must be an array of natural numbers.', checkstr);
@@ -93,7 +93,7 @@ if ~isa(val,'cfg_dep')
         case {'i'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && ...
-                                   all(abs(round(val(:))-val(:)) <= tol));
+                                   all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
                 warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
                         '%s: Item must be an array of integers.', checkstr);
@@ -111,7 +111,7 @@ if ~isa(val,'cfg_dep')
         case {'w'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && all(val(:) >= 0) && ...
-                                   all(abs(round(val(:))-val(:)) <= tol));
+                                   all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
                 warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
                         '%s: Item must be an array of whole numbers.', checkstr);
