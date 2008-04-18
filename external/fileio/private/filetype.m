@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.71  2008/04/18 14:08:03  roboos
+% added eeglab_set
+%
 % Revision 1.70  2008/04/11 12:09:18  roboos
 % added polhemus_fil
 %
@@ -799,6 +802,10 @@ elseif filetype_check_extension(filename, '.pol')
   ftype = 'polhemus_fil';
   manufacturer = 'Functional Imaging Lab, London, UK';
   content = 'headshape points';
+elseif filetype_check_extension(filename, '.set')
+  ftype = 'eeglab_set';
+  manufacturer = 'Swartz Center for Computational Neuroscience, San Diego, USA';
+  content = 'electrophysiological data';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
