@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.39  2008/04/18 14:07:45  roboos
+% added eeglab_set
+%
 % Revision 1.38  2008/04/11 07:23:15  roboos
 % updated docu
 %
@@ -503,6 +506,11 @@ switch dataformat
     % read the data from shared memory
     [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
 
+  case 'eeglab_set'
+    % FIXME begsample/begtrial are mutually exclusive
+    % FIXME assign dimord
+    dat = read_eeglabdata(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
+ 
   case 'eep_avr'
     % check that the required low-level toolbos ix available
     hastoolbox('eeprobe', 1);

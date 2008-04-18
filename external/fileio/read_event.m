@@ -47,6 +47,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.57  2008/04/18 14:07:45  roboos
+% added eeglab_set
+%
 % Revision 1.56  2008/02/20 12:32:00  roboos
 % allow empty events from buffer
 %
@@ -590,6 +593,9 @@ switch eventformat
     % read the events from shared memory
     event = read_shm_event(filename, varargin{:});
 
+ case 'eeglab_set'
+    event = read_eeglabevent(filename, 'header', hdr);
+ 
   case 'eep_avr'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);

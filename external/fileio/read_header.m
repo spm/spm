@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.46  2008/04/18 14:07:45  roboos
+% added eeglab_set
+%
 % Revision 1.45  2008/04/11 07:12:57  roboos
 % updated docu, added list of supported file formats
 %
@@ -478,6 +481,9 @@ switch headerformat
     hdr = rmfield(hdr, 'data');
     try, hdr = rmfield(hdr, 'variance'); end
 
+  case 'eeglab_set'
+    hdr = read_eeglabheader(filename);
+    
   case 'eep_cnt'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
