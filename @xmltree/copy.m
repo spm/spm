@@ -10,7 +10,10 @@ function tree = copy(tree,subuid,uid)
 % Copy a subtree to another branch
 % The tree parameter must be in input AND in output
 %_______________________________________________________________________
-% @(#)copy.m                   Guillaume Flandin               02/04/08
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: copy.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(2,3,nargin));
 if nargin == 2
@@ -21,7 +24,7 @@ l = length(tree);
 tree = sub_copy(tree,subuid,uid);
 tree.tree{uid}.contents = [tree.tree{uid}.contents l+1];
 
-% pour que la copie soit a cote de l'original et pas a la fin ?
+% to have the copy next to the original and not at the end?
 %  contents = get(tree,parent,'contents');
 %  i = find(contents==uid);
 %  tree = set(tree,parent,'contents',[contents(1:i) l+1 contents(i+1:end)]);

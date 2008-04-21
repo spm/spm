@@ -22,16 +22,19 @@ function varargout = attributes(varargin)
 % The tree parameter must be in input AND in output for 'set', 'add' and
 % 'del' methods.
 %_______________________________________________________________________
-% @(#)attributes.m               Guillaume Flandin             02/04/05
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: attributes.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(3,6,nargin));
 tree = varargin{1};
-if ~ischar(varargin{2}) | ...
+if ~ischar(varargin{2}) || ...
    ~any(strcmp(varargin{2},{'set','get','add','del','length'}))
     error('[XMLTree] Unknown method.');
 end
 uid = varargin{3};
-if ~isa(uid,'double') | any(uid>length(tree)) | any(uid<1)
+if ~isa(uid,'double') || any(uid>length(tree)) || any(uid<1)
     error('[XMLTree] UID must be a positive integer scalar.');
 end
 
@@ -42,8 +45,8 @@ end
 switch varargin{2}
     case 'set'
         error(nargchk(6,6,nargin));
-        if ~isa(varargin{4},'double') | ...
-           any(varargin{4}>length(tree.tree{uid}.attributes)) | ...
+        if ~isa(varargin{4},'double') || ...
+           any(varargin{4}>length(tree.tree{uid}.attributes)) || ...
            any(varargin{4}<1)
             error('[XMLTree] Invalid attribute indice.');
         end
@@ -61,8 +64,8 @@ switch varargin{2}
                     end
                 end
                 varargout{1} = [];
-            elseif ~isa(varargin{4},'double') | ...
-               any(varargin{4}>length(tree.tree{uid}.attributes)) | ...
+            elseif ~isa(varargin{4},'double') || ...
+               any(varargin{4}>length(tree.tree{uid}.attributes)) || ...
                any(varargin{4}<1)
                 error('[XMLTree] Invalid attribute indice.');
             else
@@ -93,8 +96,8 @@ switch varargin{2}
     case 'del'
         error(nargchk(3,4,nargin));
         if nargin == 4
-            if ~isa(varargin{4},'double') | ...
-              any(varargin{4}>length(tree.tree{uid}.attributes)) | ...
+            if ~isa(varargin{4},'double') || ...
+              any(varargin{4}>length(tree.tree{uid}.attributes)) || ...
               any(varargin{4}<1)
                 error('[XMLTree] Invalid attribute indice.');
             end

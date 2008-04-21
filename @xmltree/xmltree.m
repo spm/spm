@@ -16,7 +16,10 @@ function tree = xmltree(varargin)
 % See http://www.w3.org/TR/REC-xml for details about XML 1.0.
 % See http://www.w3.org/DOM/ for details about DOM platform.
 %_______________________________________________________________________
-% @(#)xmltree.m                 Guillaume Flandin              02/03/27
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: xmltree.m 1460 2008-04-21 17:43:18Z guillaume $
 
 switch(nargin)
     case 0
@@ -33,7 +36,7 @@ switch(nargin)
             tree = varargin{1};
         elseif ischar(varargin{1})
             % Input argument is an XML string
-            if (exist(varargin{1}) ~= 2 & ...
+            if (~exist(varargin{1},'file') && ...
                 ~isempty(xml_findstr(varargin{1},'<',1,1)))
                 tree.tree = xml_parser(varargin{1});
                 tree.filename = '';
@@ -43,7 +46,8 @@ switch(nargin)
                 if (fid == -1) 
                     error(['[XMLTree] Cannot open ' varargin{1}]);
                 end
-                xmlstr = fscanf(fid,'%c');
+                xmlstr = fread(fid,'*char')';
+                %xmlstr = fscanf(fid,'%c');
                 fclose(fid);
                 tree.tree = xml_parser(xmlstr);
                 tree.filename = varargin{1};

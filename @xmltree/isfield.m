@@ -10,7 +10,10 @@ function F = isfield(tree,uid,parameter)
 %
 % Is parameter a field of tree{uid} ?
 %_______________________________________________________________________
-% @(#)isfield.m               Guillaume Flandin                01/10/31
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: isfield.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(3,3,nargin));
 

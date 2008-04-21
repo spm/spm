@@ -9,6 +9,9 @@ function p = parent(tree,uid)
 %
 % Return the uid of the parent of a node.
 %_______________________________________________________________________
-% @(#)parent.m                  Guillaume Flandin              02/04/08
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: parent.m 1460 2008-04-21 17:43:18Z guillaume $
 
 p = tree.tree{uid}.parent;

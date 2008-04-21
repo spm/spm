@@ -8,6 +8,9 @@ function tree = setfilename(tree,filename)
 %
 % Set the filename linked to the XML tree as filename.
 %_______________________________________________________________________
-% @(#)setfilename.m               Guillaume Flandin            02/03/27
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: setfilename.m 1460 2008-04-21 17:43:18Z guillaume $
 
 tree.filename = filename;

@@ -19,9 +19,10 @@ function k = xml_findstr(s,p,i,n)
 %       xml_findstr(s,' ',10,1) returns 14
 %
 %   See also STRFIND, FINDSTR
+%_______________________________________________________________________
+% Copyright (C) 2002-2008  http://www.artefact.tk/
 
-%   Copyright (C) 2002 Guillaume Flandin <Guillaume@artefact.tk>
-%   $Revision: 1.0 $  $Date: 2002/04/10 22:50:32 $
-%   Implemented in a MATLAB mex file.
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: xml_findstr.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(sprintf('Missing MEX-file: %s', mfilename));

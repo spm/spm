@@ -10,7 +10,10 @@ function varargout = save(tree, filename)
 % Convert an XML tree into a well-formed XML string and write it into
 % a file or return it as a string if no filename is provided.
 %_______________________________________________________________________
-% @(#)save.m                 Guillaume Flandin                 01/07/11
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: save.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(1,2,nargin));
 
@@ -28,7 +31,7 @@ else
         if fid==-1, error(msg); end
         if isempty(tree.filename), tree.filename = filename; end
     %- File identifier provided
-    elseif isnumeric(filename) & prod(size(filename)) == 1
+    elseif isnumeric(filename) && numel(filename) == 1
         fid = filename;
         prolog = ''; %- With this option, do not write any prolog
     else
@@ -36,7 +39,7 @@ else
     end
     fprintf(fid,prolog);
     save_subtree(tree,fid,root(tree));
-    if isstr(filename), fclose(fid); end
+    if ischar(filename), fclose(fid); end
     if nargout == 1
         varargout{1} = print_subtree(tree,'',root(tree));
     end

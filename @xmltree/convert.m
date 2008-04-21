@@ -13,7 +13,10 @@ function s = convert(tree,uid)
 % If provided, only the structure corresponding to the subtree defined
 % by the uid UID is returned.
 %_______________________________________________________________________
-% @(#)convert.m                 Guillaume Flandin              02/04/11
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: convert.m 1460 2008-04-21 17:43:18Z guillaume $
 
 % Exemple:
 % tree: <toto><titi>field1</titi><tutu>field2</tutu><titi>field3</titi></toto>
@@ -61,7 +64,7 @@ function s = sub_convert(tree,s,uid,arg)
                     nboccur = sum(ismember(l,name));
                     nboccur2 = sum(ismember(ll,name));
                     l = { l{:}, name };
-                    if nboccur | (nboccur2>1)
+                    if nboccur || (nboccur2>1)
                         arg2 = { arg{:}, name, {nboccur+1} };
                     else
                         arg2 = { arg{:}, name};
@@ -74,8 +77,24 @@ function s = sub_convert(tree,s,uid,arg)
             if isempty(child)
                 s = sub_setfield(s,arg{:},'');
             end
+            %- saving attributes : does not work with <a t='q'>b</a>
+            %- but ok with <a t='q'><c>b</c></a>
+%             attrb = attributes(tree,'get',uid);     %-
+%             if ~isempty(attrb)                      %-
+%                 arg2 = {arg{:} 'attributes'};       %-
+%                 s = sub_setfield(s,arg2{:},attrb);  %-
+%             end                                     %-
         case 'chardata'
             s = sub_setfield(s,arg{:},get(tree,uid,'value'));
+            %- convert strings into their Matlab equivalent when possible
+            %- e.g. string '3.14159' becomes double scalar 3.14159
+%             v = get(tree,uid,'value');              %-
+%             cv = str2num(v);                        %-
+%             if isempty(cv)                          %-
+%                 s = sub_setfield(s,arg{:},v);       %-
+%             else                                    %-
+%                 s = sub_setfield(s,arg{:},cv);      %-
+%             end                                     %-
         case 'cdata'
             s = sub_setfield(s,arg{:},get(tree,uid,'value'));
         case 'pi'
@@ -91,10 +110,10 @@ function s = sub_convert(tree,s,uid,arg)
                 case 'system'
                     s = sub_setfield(s,arg{:},system(get(tree,uid,'value')));
                 otherwise
-                    try,
+                    try
                         s = sub_setfield(s,arg{:},feval(app,get(tree,uid,'value')));
-                    catch,
-                        warning('[Xmltree/convert] Unknown target application');
+                    catch
+                        warning('[XMLTREE] Unknown target application');
                     end
             end
         case 'comment'

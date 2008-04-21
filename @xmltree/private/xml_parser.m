@@ -13,10 +13,13 @@ function tree = xml_parser(xmlstr)
 % A description of the tree structure provided in output is detailed in 
 % the header of this m-file.
 %_______________________________________________________________________
-% @(#)xml_parser.m              Guillaume Flandin            2002/04/04
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: xml_parser.m 1460 2008-04-21 17:43:18Z guillaume $
 
 % XML Processor for MATLAB (The Mathworks, Inc.).
-% Copyright (C) 2002-2003 Guillaume Flandin <Guillaume@artefact.tk>
+% Copyright (C) 2002-2008 Guillaume Flandin <Guillaume@artefact.tk>
 %
 % This program is free software; you can redistribute it and/or
 % modify it under the terms of the GNU General Public License
@@ -33,15 +36,15 @@ function tree = xml_parser(xmlstr)
 % Foundation Inc, 59 Temple Pl. - Suite 330, Boston, MA 02111-1307, USA.
 %-----------------------------------------------------------------------
 
-% Please feel free to email the author any comment/suggestion/bug report
-% to improve this XML processor in Matlab.
-% Email: <Guillaume@artefact.tk>
+% Suggestions for improvement and fixes are always welcome, although no
+% guarantee is made whether and when they will be implemented.
+% Send requests to <Guillaume@artefact.tk>
 % Check also the latest developments on the following webpage:
-% http://www.artefact.tk/software/matlab/xml/
+%           <http://www.artefact.tk/software/matlab/xml/>
 %-----------------------------------------------------------------------
 
 % The implementation of this XML parser is much inspired from a 
-% Javascript parser available at http://www.jeremie.com/
+% Javascript parser available at <http://www.jeremie.com/>
 
 % A mex-file xml_findstr.c is also required, to encompass some
 % limitations of the built-in findstr Matlab function.
@@ -111,7 +114,7 @@ global xmlstring Xparse_count xtree;
 error(nargchk(1,1,nargin));
 if isempty(xmlstr)
     error('[XML] Not enough parameters.')
-elseif ~isstr(xmlstr) | sum(size(xmlstr)>1)>1
+elseif ~ischar(xmlstr) || sum(size(xmlstr)>1)>1
     error('[XML] Input must be a string.')
 end
 
@@ -144,15 +147,14 @@ function frag = compile(frag)
     global xmlstring xtree Xparse_count;
     
     while 1,
-        if length(xmlstring)<=frag.str | ...
-           (frag.str == length(xmlstring)-1 & strcmp(xmlstring(frag.str:end),' '))
+        if length(xmlstring)<=frag.str || ...
+           (frag.str == length(xmlstring)-1 && strcmp(xmlstring(frag.str:end),' '))
             return
         end
         TagStart = xml_findstr(xmlstring,'<',frag.str,1);
         if isempty(TagStart)
             %- Character data
-            error(sprintf(['[XML] Unknown data at the end of the XML file.\n' ...
-            '      Please send me your XML file at flandin@sophia.inria.fr']));
+            error('[XML] Unknown data at the end of the XML file.');
             xtree{Xparse_count} = chardata;
             xtree{Xparse_count}.value = erode(entity(xmlstring(frag.str:end)));
             xtree{Xparse_count}.parent = frag.parent;
@@ -175,11 +177,11 @@ function frag = compile(frag)
                 %- Processing instruction
                 frag = tag_pi(frag);
             else
-                if length(xmlstring)-frag.str>4 & strcmp(xmlstring(frag.str+1:frag.str+3),'!--')
+                if length(xmlstring)-frag.str>4 && strcmp(xmlstring(frag.str+1:frag.str+3),'!--')
                     %- Comment
                     frag = tag_comment(frag);
                 else
-                    if length(xmlstring)-frag.str>9 & strcmp(xmlstring(frag.str+1:frag.str+8),'![CDATA[')
+                    if length(xmlstring)-frag.str>9 && strcmp(xmlstring(frag.str+1:frag.str+8),'![CDATA[')
                         %- Litteral data
                         frag = tag_cdata(frag);
                     else
@@ -189,7 +191,7 @@ function frag = compile(frag)
                         else 
                             endmk = '/>';
                         end
-                        if strcmp(xmlstring(frag.str+1:frag.str+length(frag.end)+2),endmk) | ...
+                        if strcmp(xmlstring(frag.str+1:frag.str+length(frag.end)+2),endmk) || ...
                             strcmp(strip(xmlstring(frag.str+1:frag.str+length(frag.end)+2)),endmk)
                             frag.str = frag.str + length(frag.end)+3;
                             return
@@ -228,7 +230,7 @@ function frag = tag_element(frag)
             xtree{Xparse_count}.parent = frag.parent;
             xtree{frag.parent}.contents = [xtree{frag.parent}.contents Xparse_count];
         end
-        if length(attribs) > 0
+        if ~isempty(attribs)
             xtree{Xparse_count}.attributes = attribution(attribs);
         end
         if ~empty
@@ -252,7 +254,7 @@ function frag = tag_pi(frag)
     else
         nextspace = xml_findstr(xmlstring,' ',frag.str,1);
         xtree{Xparse_count} = pri;
-        if nextspace > close | nextspace == frag.str+2
+        if nextspace > close || nextspace == frag.str+2
             xtree{Xparse_count}.value = erode(xmlstring(frag.str+2:close-1));
         else
             xtree{Xparse_count}.value = erode(xmlstring(nextspace+1:close-1));
@@ -305,7 +307,7 @@ function all = attribution(str)
     %- Look for 'key="value"' substrings
     while 1,
         eq = xml_findstr(str,'=',1,1);
-        if isempty(str) | isempty(eq), return; end
+        if isempty(str) || isempty(eq), return; end
         id = xml_findstr(str,'"',1,1);       % should also look for ''''
         nextid = xml_findstr(str,'"',id+1,1);% rather than only '"'
         nbattr = nbattr + 1;
@@ -358,7 +360,7 @@ function str = prolog(str)
         error('[XML] No tag found.')
     end
     %- Header (<?xml version="1.0" ... ?>)
-    if strcmp(lower(str(start:start+2)),'<?x')
+    if strcmpi(str(start:start+2),'<?x')
         close = xml_findstr(str,'?>',1,1);
         if ~isempty(close) 
             b = close + 2;
@@ -373,7 +375,7 @@ function str = prolog(str)
         if ~isempty(close)
             b = close + 1;
             dp = xml_findstr(str,'[',start+9,1);
-            if (~isempty(dp) & dp < b)
+            if (~isempty(dp) && dp < b)
                 k = xml_findstr(str,']>',start+9,1);
                 if ~isempty(k)
                     b = k + 2;
@@ -417,5 +419,5 @@ function str = entity(str)
    
 %-----------------------------------------------------------------------
 function str = erode(str)
-    if ~isempty(str) & str(1)==' ' str(1)=''; end;
-    if ~isempty(str) & str(end)==' ' str(end)=''; end;
+    if ~isempty(str) && str(1)==' ', str(1)=''; end;
+    if ~isempty(str) && str(end)==' ', str(end)=''; end;

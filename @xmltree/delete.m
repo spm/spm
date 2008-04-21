@@ -8,7 +8,10 @@ function tree = delete(tree,uid)
 % Delete a subtree given its UID
 % The tree parameter must be in input AND in output
 %_______________________________________________________________________
-% @(#)delete.m                 Guillaume Flandin               02/04/08
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: delete.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(2,2,nargin));
 

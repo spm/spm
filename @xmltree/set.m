@@ -11,7 +11,10 @@ function tree = set(tree,uid, parameter, value)
 % Set object properties given its uid and pairs parameter/value
 % The tree parameter must be in input AND in output
 %_______________________________________________________________________
-% @(#)set.m                   Guillaume Flandin                02/03/27
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: set.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(4,4,nargin));
 

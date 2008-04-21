@@ -9,7 +9,10 @@ function tree = move(tree,uida, uidb)
 % Move a subtree inside a tree from A to B.
 % The tree parameter must be in input AND in output
 %_______________________________________________________________________
-% @(#)move.m                  Guillaume Flandin                02/04/08
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: move.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(3,3,nargin));
 

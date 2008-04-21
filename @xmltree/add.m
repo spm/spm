@@ -20,7 +20,10 @@ function varargout = add(tree,uid,type,parameter)
 % deal with the attributes of an element node (initialized empty).
 % The tree parameter must be in input AND in output.
 %_______________________________________________________________________
-% @(#)add.m                   Guillaume Flandin                02/03/29
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: add.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(4,4,nargin));
 
@@ -31,10 +34,10 @@ if ~ischar(type)
     error('[XMLTree] TYPE must be a valid item type.');
 end
 if strcmp(type,'pi')
-    if ~isfield(parameter,'target') | ~isfield(parameter,'value') | ...
-       ~ischar(parameter.target) | ~ischar(parameter.value)
-        error('[XMLTree] For a Processing Instruction, ',...
-                        'PARAMETER must be a struct.');
+    if ~isfield(parameter,'target') || ~isfield(parameter,'value') || ...
+       ~ischar(parameter.target) || ~ischar(parameter.value)
+        error(['[XMLTree] For a Processing Instruction, ',...
+                        'PARAMETER must be a struct.']);
     end
 elseif ~ischar(parameter)
     error('[XMLTree] PARAMETER must be a string.');
@@ -42,11 +45,11 @@ end
 
 if nargout == 2
     l = length(tree.tree);
-    varargout{2} = (l+1):(l+prod(size(uid)));
+    varargout{2} = (l+1):(l+numel(uid));
 end
 
-for i=1:prod(size(uid))
-    if uid(i)<1 | uid(i)>length(tree.tree)
+for i=1:numel(uid)
+    if uid(i)<1 || uid(i)>length(tree.tree)
         error('[XMLTree] Invalid UID.');
     end
     if ~strcmp(tree.tree{uid(i)}.type,'element')

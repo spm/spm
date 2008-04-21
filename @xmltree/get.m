@@ -10,7 +10,10 @@ function value = get(tree,uid,parameter)
 %
 % Get object properties of a tree given their UIDs.
 %_______________________________________________________________________
-% @(#)get.m                   Guillaume Flandin                02/03/27
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: get.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(2,3,nargin));
 
@@ -18,7 +21,7 @@ value = cell(size(uid));
 uid = uid(:);
 if nargin==2
     for i=1:length(uid)
-        if uid(i)<1 | uid(i)>length(tree.tree)
+        if uid(i)<1 || uid(i)>length(tree.tree)
             error('[XMLTree] Invalid UID.');
         end
         % According to the type of the node, return only some parameters
@@ -27,9 +30,9 @@ if nargin==2
     end
 else
     for i=1:length(uid)
-        try,
+        try
             value{i} = subsref(tree.tree{uid(i)}, struct('type','.','subs',parameter));
-        catch,
+        catch
             error(sprintf('[XMLTree] Parameter %s not found.',parameter));
         end
     end 

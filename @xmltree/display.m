@@ -8,12 +8,15 @@ function display(tree)
 % This method is called when the semicolon is not used to terminate a
 % statement which returns an XMLTree.
 %_______________________________________________________________________
-% @(#)display.m                  Guillaume Flandin             02/04/04
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: display.m 1460 2008-04-21 17:43:18Z guillaume $
 
 disp(' ');
 disp([inputname(1),' = ']);
 disp(' ');
-for i=1:prod(size(tree))
+for i=1:numel(tree)
     disp([blanks(length(inputname(1))+3) char(tree(i))]);
 end
 disp(' ');

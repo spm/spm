@@ -9,18 +9,23 @@ function subtree = branch(tree,uid)
 %
 % Return a subtree from a tree.
 %_______________________________________________________________________
-% @(#)branch.m                  Guillaume Flandin              02/04/17
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: branch.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(2,2,nargin));
 
-if uid > length(tree) | ...
-   prod(size(uid))~=1 | ...
+if uid > length(tree) || ...
+   numel(uid)~=1 || ...
    ~strcmp(tree.tree{uid}.type,'element')
     error('[XMLTree] Invalid UID.');
 end
 
 subtree = xmltree;
 subtree = set(subtree,root(subtree),'name',tree.tree{uid}.name);
+%- fix by Piotr Dollar to copy attributes for the root node:
+subtree = set(subtree,root(subtree),'attributes',tree.tree{uid}.attributes); 
 
 child = children(tree,uid);
 

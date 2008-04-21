@@ -20,7 +20,10 @@ function list = find(varargin)
 % Find elements in an XML tree with specified characteristics or given
 % a path (using a subset of XPath language).
 %_______________________________________________________________________
-% @(#)find.m                 Guillaume Flandin                 01/10/29
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: find.m 1460 2008-04-21 17:43:18Z guillaume $
 
 % TODO:
 %   - clean up subroutines
@@ -34,12 +37,12 @@ elseif nargin==1
     list = 1:length(tree.tree);
     return
 elseif mod(nargin,2)
-    list = sub_find_subtree1(varargin{1}.tree,root(tree),varargin{2:end});
-elseif isa(varargin{2},'double') & ...
-       ndims(varargin{2}) == 2 & ...
+    list = sub_find_subtree1(varargin{1}.tree,root(varargin{1}),varargin{2:end});
+elseif isa(varargin{2},'double') && ...
+       ndims(varargin{2}) == 2 && ...
        min(size(varargin{2})) == 1
     list = unique(sub_find_subtree1(varargin{1}.tree,varargin{2:end}));
-elseif nargin==2 & ischar(varargin{2})
+elseif nargin==2 && ischar(varargin{2})
     list = sub_pathfinder(varargin{:});
 else
    error('[XMLTree] Arguments must be parameter/value pairs.');
@@ -69,7 +72,7 @@ function list = sub_find_subtree2(varargin)
 %=======================================================================
 function match = sub_comp_element(varargin)
 match = 0;
-try,
+try
     % v = getfield(varargin{1}, varargin{2}); % slow...
     for i=1:floor(nargin/2)
         v = subsref(varargin{1}, struct('type','.','subs',varargin{i+1}));     
@@ -77,7 +80,7 @@ try,
             match = 1;
         end
     end
-catch,
+catch
 end
 
 % More powerful but much slower
@@ -109,7 +112,7 @@ function list = sub_pathfinder(tree,pth)
     j = 1;
     while j <= length(i)
         %- Look for recursion '//'
-        if j<length(i) & i(j+1)==i(j)+1
+        if j<length(i) && i(j+1)==i(j)+1
             recursive = 1;
             j = j + 1;
         else
@@ -147,7 +150,7 @@ function list = sub_pathfinder(tree,pth)
         end
         % If an element is specified using a key
         if ~isempty(k)
-            if val < 1 | val > length(list)+1
+            if val < 1 || val > length(list)+1
                 error('[XMLTree] Bad key in the path.');
             elseif val == length(list)+1
                 list = [];

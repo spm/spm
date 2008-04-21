@@ -9,7 +9,10 @@ function tree = flush(tree,uid)
 % Clear a subtree given its UID (remove all the leaves of the tree)
 % The tree parameter must be in input AND in output
 %_______________________________________________________________________
-% @(#)flush.m                  Guillaume Flandin               02/04/10
+% Copyright (C) 2002-2008  http://www.artefact.tk/
+
+% Guillaume Flandin <guillaume@artefact.tk>
+% $Id: flush.m 1460 2008-04-21 17:43:18Z guillaume $
 
 error(nargchk(1,2,nargin));
 
@@ -31,9 +34,9 @@ function tree = sub_flush(tree,uid)
             tree = sub_flush(tree,tree.tree{uid}.contents(i));
         end
     end
-    if strcmp(tree.tree{uid}.type,'chardata') |...
-        strcmp(tree.tree{uid}.type,'pi') |...
-        strcmp(tree.tree{uid}.type,'cdata') |...
+    if strcmp(tree.tree{uid}.type,'chardata') ||...
+        strcmp(tree.tree{uid}.type,'pi') ||...
+        strcmp(tree.tree{uid}.type,'cdata') ||...
         strcmp(tree.tree{uid}.type,'comment')
         tree = delete(tree,uid);
     end

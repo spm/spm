@@ -1,6 +1,11 @@
 #include "mex.h"
 
 /*
+ * $Id: xml_findstr.c 1460 2008-04-21 17:43:18Z guillaume $
+ * Guillaume Flandin <guillaume@artefact.tk>
+ */
+
+/*
     Differences with matlab built-in findstr:
         - allows to search only the n first occurences of a pattern
         - allows to search only in a substring (given an index of the beginning)
