@@ -18,8 +18,10 @@ function varargout = spm_jobman(varargin)
 %        spm_jobman('serial',''  ,node[,input1,...inputN])
 % Runs the user interface in serial mode. I job is not empty, then node
 % is silently ignored. Inputs can be a list of arguments. These are
-% passed on to the open inputs of the specified job/node. See cfg_serial
-% for details.
+% passed on to the open inputs of the specified job/node. Each input should
+% be suitable to be assigned to item.val{1}. For cfg_repeat/cfg_choice
+% items, input should be a cell list of indices input{1}...input{k} into
+% item.value. See cfg_serial for details.
 %
 %     node - indicates which part of the configuration is to be used.
 %            For example, it could be 'jobs.spatial.coreg'.
@@ -73,7 +75,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1393 2008-04-14 18:53:47Z volkmar $
+% $Id: spm_jobman.m 1457 2008-04-21 15:22:36Z volkmar $
 
 
 if nargin==0
@@ -114,21 +116,29 @@ else
                 cfg_ui('local_showjob', cfg_ui, cjob);
             else
                 if exist('mljob', 'var')
-                    cfg_serial(@serial_ui, mljob, varargin{4:end})
+                    cjob = cfg_util('initjob', mljob);
                 else
+                    cjob = cfg_util('initjob');
                     if nargin > 2
-                        cfg_serial(@serial_ui, lower(varargin{3}), varargin{4:end});
-                    else
-                        cfg_serial(@serial_ui, 'jobs');
+                        [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', lower(varargin{3}));
+                        cfg_util('addtojob', cjob, mod_cfg_id);
                     end;
                 end;
+                sts  = cfg_util('filljobui', cjob, @serial_ui, varargin{4:end});
+                if sts
+                    cfg_util('run', cjob);
+                end;
+                cfg_util('deljob', cjob);
             end;
 
         case {'run','run_nogui'}
             if nargin<2
                 error('Nothing to run');
             end;
-            [mljob comp] = canonicalise_job(varargin{2});
+            if ischar(varargin{2})
+                job = load_jobs(varargin{2});
+            end;
+            [mljob comp] = canonicalise_job(job{1});
             if comp
                 % Run a SPM5 job - force serialisation
                 cfg_util('runserial',mljob);
@@ -329,29 +339,46 @@ cfg_ui('local_showjob', cfg_ui, cjob);
 %------------------------------------------------------------------------
 function local_init_serial(varargin)
 mod_cfg_id = get(gcbo,'userdata');
-cfg_serial(@serial_ui, mod_cfg_id);
+cjob = cfg_util('initjob');
+cfg_util('addtojob', cjob, mod_cfg_id);
+sts = cfg_util('filljobui', cjob, @serial_ui);
+if sts
+    cfg_util('run', cjob);
+end;
+cfg_util('deljob', cjob);
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
-function val = serial_ui(cmclass, cmname, varargin)
-% wrapper function to translate cfg_serial input requests into
+function [val sts] = serial_ui(item)
+% wrapper function to translate cfg_util('filljobui'... input requests into
 % spm_input/cfg_select calls.
-switch cmclass,
-    case {'cfg_choice', 'cfg_menu'},
-        val = spm_input(cmname, 1, 'm', varargin{1}, varargin{2});
+sts = true;
+switch class(item),
+    case 'cfg_choice', 
+        for k = 1:numel(item.values)
+            labels{k} = item.values{k}.name;
+            values{k} = k;
+        end;
+        val = spm_input(item.name, 1, 'm', labels, values);
+    case 'cfg_menu',
+        val = spm_input(item.name, 1, 'm', item.labels, item.values);
         val = val{1};
     case 'cfg_repeat',
-        % enter at least varargin{3}[1] values
-        for k = 1:varargin{3}(1)
-            val(k) = spm_input(sprintf('%s(%d)', cmname, k), 1, 'm', ...
-                               varargin{1}, varargin{2});
+        for k = 1:numel(item.values)
+            labels{k} = item.values{k}.name;
+            values{k} = k;
+        end;
+        % enter at least item.num(1) values
+        for k = 1:item.num(1)
+            val(k) = spm_input(sprintf('%s(%d)', item.name, k), 1, 'm', ...
+                               labels, values);
         end;
         % enter more (up to varargin{3}(2) values
-        labels = {varargin{1}{:} 'Done'};
+        labels = {labels{:} 'Done'};
         % values is a cell list of natural numbers, use -1 for Done
-        values = {varargin{2}{:} -1}; 
-        while numel(val) < varargin{3}(2)
-            val1 = spm_input(sprintf('%s(%d)', cmname, numel(val)+1), 1, ...
+        values = {values{:} -1}; 
+        while numel(val) < item.num(2)
+            val1 = spm_input(sprintf('%s(%d)', item.name, numel(val)+1), 1, ...
                              'm', labels, values);
             if val1{1} == -1
                 break;
@@ -360,11 +387,11 @@ switch cmclass,
             end;
         end;
     case 'cfg_entry',
-        val = spm_input(cmname, 1, varargin{1}, '', varargin{2}, ...
-                        varargin{3});
+        val = spm_input(item.name, 1, item.strtype, '', item.num, ...
+                        item.extras);
     case 'cfg_files',
-        [t,sts] = cfg_getfile(varargin{1}, varargin{2}, cmname, '', ...
-                              varargin{3}, varargin{4});
+        [t,sts] = cfg_getfile(item.num, item.filter, item.name, '', ...
+                              item.dir, item.ufilter);
         if sts
             val = cellstr(t);
         else
