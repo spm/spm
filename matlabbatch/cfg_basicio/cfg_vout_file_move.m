@@ -10,11 +10,15 @@ function dep = cfg_vout_move_file(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_vout_move_file.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_vout_file_move.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1456 $';
 
-dep = cfg_dep;
-dep.sname = 'Moved Files';
-dep.src_output = substruct('.','files');
-dep.tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+if isfield(job.action,'moveto')
+    dep = cfg_dep;
+    dep.sname = 'Moved Files';
+    dep.src_output = substruct('.','files');
+    dep.tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+else
+    dep = [];
+end;

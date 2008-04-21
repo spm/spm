@@ -5,9 +5,10 @@ function cfg_basicio_def = cfg_cfg_basicio_def
 % menu items and provides a full documentation of all fields that may
 % be present in a job variable for this application.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-03-12 09:23:12.
+% Created at 2008-04-21 14:10:42.
 cfg_basicio_def.file_move.files = '<UNDEFINED>';
-cfg_basicio_def.file_move.target = '<UNDEFINED>';
+cfg_basicio_def.file_move.action.moveto = '<UNDEFINED>';
+cfg_basicio_def.file_move.action.delete = logical(false);
 cfg_basicio_def.cfg_cd.dir = '<UNDEFINED>';
 cfg_basicio_def.cfg_mkdir.parent = '<UNDEFINED>';
 cfg_basicio_def.cfg_mkdir.name = '<UNDEFINED>';
@@ -33,3 +34,13 @@ cfg_basicio_def.cfg_save_vars.vars.vcont = '<UNDEFINED>';
 cfg_basicio_def.cfg_save_vars.saveasstruct = '<UNDEFINED>';
 cfg_basicio_def.cfg_assignin.name = '<UNDEFINED>';
 cfg_basicio_def.cfg_assignin.output = '<UNDEFINED>';
+cfg_basicio_def.runjobs.jobs = '<UNDEFINED>';
+cfg_basicio_def.runjobs.inputs{1}.instr = '<UNDEFINED>';
+cfg_basicio_def.runjobs.inputs{1}.ineval = '<UNDEFINED>';
+cfg_basicio_def.runjobs.inputs{1}.innifti = '<UNDEFINED>';
+cfg_basicio_def.runjobs.inputs{1}.inmat = '<UNDEFINED>';
+cfg_basicio_def.runjobs.inputs{1}.inany = '<UNDEFINED>';
+cfg_basicio_def.runjobs.save.savejobs.outstub = '<UNDEFINED>';
+cfg_basicio_def.runjobs.save.savejobs.outdir = '<UNDEFINED>';
+cfg_basicio_def.runjobs.save.dontsave = logical(false);
+cfg_basicio_def.runjobs.missing = '<UNDEFINED>';

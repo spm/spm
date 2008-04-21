@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1448 2008-04-18 16:25:41Z volkmar $
+% $Id: cfg_ui.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1448 $';
+rev = '$Rev: 1456 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -998,30 +998,47 @@ function MenuFileNew_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 udmodlist = get(handles.modlist, 'userdata');
-if ~isempty(udmodlist.cmod)
-    cfg_util('deljob',udmodlist(1).cjob);
+if udmodlist.modified
+        cmd = questdlg(['The current batch contains unsaved changes. '...
+            'Do you want to replace it with another batch?'], ...
+            'Unsaved Changes', 'Continue','Cancel', 'Continue');
+else
+    cmd = 'Continue';
 end;
-udmodlist = local_init_modlist;
-udmodlist.cjob = cfg_util('initjob');
-set(handles.modlist, 'userdata', udmodlist);
-local_showjob(hObject);
-
+if strcmpi(cmd,'continue')
+    udmodlist = get(handles.modlist, 'userdata');
+    if ~isempty(udmodlist.cmod)
+        cfg_util('deljob',udmodlist(1).cjob);
+    end;
+    udmodlist = local_init_modlist;
+    udmodlist.cjob = cfg_util('initjob');
+    set(handles.modlist, 'userdata', udmodlist);
+    local_showjob(hObject);
+end;
 % --------------------------------------------------------------------
 function MenuFileLoad_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuFileLoad (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[files sts] = cfg_getfile([1 Inf], '.*\.m$', 'Load Job File(s)');
-if sts
-    udmodlist = get(handles.modlist, 'userdata');
-    cfg_util('deljob',udmodlist(1).cjob);
-    udmodlist = local_init_modlist;
-    udmodlist.cjob = cfg_util('initjob', cellstr(files));
-    set(handles.modlist, 'userdata', udmodlist);
-    local_showjob(hObject);
+udmodlist = get(handles.modlist, 'userdata');
+if udmodlist.modified
+        cmd = questdlg(['The current batch contains unsaved changes. '...
+            'Do you want to replace it with another batch?'], ...
+            'Unsaved Changes', 'Continue','Cancel', 'Continue');
+else
+    cmd = 'Continue';
 end;
-
+if strcmpi(cmd,'continue')
+    [files sts] = cfg_getfile([1 Inf], '.*\.m$', 'Load Job File(s)');
+    if sts
+        cfg_util('deljob',udmodlist(1).cjob);
+        udmodlist = local_init_modlist;
+        udmodlist.cjob = cfg_util('initjob', cellstr(files));
+        set(handles.modlist, 'userdata', udmodlist);
+        local_showjob(hObject);
+    end;
+end;
 % --------------------------------------------------------------------
 function MenuFileSave_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuFileSave (see GCBO)
@@ -1194,12 +1211,13 @@ function modlist_Callback(hObject, eventdata, handles)
 udmodlist = get(handles.modlist, 'userdata');
 if ~isempty(udmodlist.cmod)
     if ~isfield(udmodlist, 'defid')
-        cfg_util('harvest', udmodlist(1).id{udmodlist(1).cmod});
         local_showjob(hObject);
     else
         local_showmod(hObject);
     end;
 end;
+% Return focus to modlist - otherwise it would be on current module
+uicontrol(handles.modlist);
 
 % --- Executes during object creation, after setting all properties.
 function modlist_CreateFcn(hObject, eventdata, handles)

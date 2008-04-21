@@ -1,5 +1,55 @@
 function cfg_serial(guifcn, job, varargin)
 
+% This function is deprecated.
+% The functionality should replaced by the following sequence of calls:
+%
+% Instead of
+% cfg_serial(guifcn, job, varargin)
+% use
+% cjob = cfg_util('initjob', job);
+% sts  = cfg_util('filljobui', cjob, guifcn, varargin);
+% if sts
+%      cfg_util('run', cjob);
+% end;
+% cfg_util('deljob', cjob);
+%
+% Instead of
+% cfg_serial(guifcn, tagstr, varargin)
+% use
+% cjob = cfg_util('initjob');
+% mod_cfg_id = cfg_util('tag2cfg_id', tagstr);
+% cfg_util('addtojob', cjob, mod_cfg_id);
+% sts  = cfg_util('filljobui', cjob, guifcn, varargin);
+% if sts
+%      cfg_util('run', cjob);
+% end;
+% cfg_util('deljob', cjob);
+%
+% Instead of
+% cfg_serial(guifcn, mod_cfg_id, varargin)
+% use
+% cjob = cfg_util('initjob');
+% cfg_util('addtojob', cjob, mod_cfg_id);
+% sts  = cfg_util('filljobui', cjob, guifcn, varargin);
+% if sts
+%      cfg_util('run', cjob);
+% end;
+% cfg_util('deljob', cjob);
+%
+% If no guifcn is specified, use cfg_util('filljob',... instead.
+%
+% GuiFcn semantics
+% [val sts] = guifcn(item)
+% val should be suitable to set item.val{1} using setval(item, val) for all
+% cfg_leaf items. For cfg_repeat/cfg_choice items, val should be a cell
+% array of indices into item.values. For each element of val, 
+% setval(item, [val{k} Inf])
+% will be called and thus item.values{k} will be appended to item.val.
+% sts should be set to true, if guifcn returns with success (i.e. a
+% valid value is returned or input should continue for the next item,
+% regardless of value validity).
+
+% Old help
 % function cfg_serial(guifcn, job|tagstr|mod_cfg_id, varargin)
 % A matlabbatch user interface which completes a matlabbatch job with
 % incomplete inputs one at a time and runs the job.
@@ -69,10 +119,11 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1448 2008-04-18 16:25:41Z volkmar $
+% $Id: cfg_serial.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1448 $';
+rev = '$Rev: 1456 $';
 
+warning('matlabbatch:deprecated', '''cfg_serial'' is deprecated. Please use cfg_util(''filljob[ui]'',...) to fill a job in serial mode.');
 if ischar(job)
     % Assume dot delimited sequence of tags
     mod_cfg_id = cfg_util('tag2mod_cfg_id', job);

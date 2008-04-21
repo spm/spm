@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1448 2008-04-18 16:25:41Z volkmar $
+% $Id: cfg_confgui.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1448 $';
+rev = '$Rev: 1456 $';
 
 %% Declaration of fields
 
@@ -56,6 +56,12 @@ conf_val.tag     = 'val';
 conf_val.values  = {conf_val_item};
 conf_val.num     = [1 Inf];
 conf_val.help    = {'Val of configuration item.', 'A collection of cfg_item objects to be assembled in a cfg_(ex)branch. Each item in this list needs to have a unique tag.'};
+
+% Val with exactly one element 
+%-----------------------------------------------------------------------
+conf_val_single = conf_val;
+conf_val_single.val = {conf_val_item};
+conf_val_single.num = [1 1];
 
 % check
 %-----------------------------------------------------------------------
@@ -249,6 +255,15 @@ conf_class_choice.val    = {'cfg_choice'};
 conf_class_choice.hidden = true;
 conf_class_choice.help   = {'Hidden field that gives the hint to cfg_struct2cfg which class to create.'};
 
+% Const
+%-----------------------------------------------------------------------
+conf_class_const        = cfg_const;
+conf_class_const.name   = 'Const';
+conf_class_const.tag    = 'type';
+conf_class_const.val    = {'cfg_const'};
+conf_class_const.hidden = true;
+conf_class_const.help   = {'Hidden field that gives the hint to cfg_struct2cfg which class to create.'};
+
 % Entry
 %-----------------------------------------------------------------------
 conf_class_entry        = cfg_const;
@@ -315,6 +330,16 @@ conf_choice.val  = {conf_class_choice, conf_name, conf_tag, conf_values, conf_ch
 conf_choice.help = help2cell('cfg_choice');
 conf_choice.prog = @cfg_cfg_pass;
 conf_choice.vout = @cfg_cfg_vout;
+
+% Const
+%-----------------------------------------------------------------------
+conf_const      = cfg_exbranch;
+conf_const.name = 'Const';
+conf_const.tag  = 'conf_const';
+conf_const.val  = {conf_class_const, conf_name, conf_tag, conf_val_single, conf_check, conf_help};
+conf_const.help = help2cell('cfg_const');
+conf_const.prog = @cfg_cfg_pass;
+conf_const.vout = @cfg_cfg_vout;
 
 % Entry
 %-----------------------------------------------------------------------
@@ -405,7 +430,7 @@ gencode_gen.prog    = @cfg_cfg_gencode;
 menu_entry        = cfg_repeat;
 menu_entry.name   = 'Data entry items';
 menu_entry.tag    = 'menu_entry';
-menu_entry.values = {conf_entry, conf_files, conf_menu};
+menu_entry.values = {conf_entry, conf_files, conf_menu, conf_const};
 menu_entry.help   = {'These items are used to enter data that will be passed to the computation code.'};
 
 % Tree structuring nodes
@@ -432,7 +457,7 @@ function cfg_cfg_gencode(varargin)
 % Transform struct into class based tree
 c0 = cfg_struct2cfg(varargin{1}.gencode_var);
 % Generate code
-[str tag] = gencode(c0,'','',cfg_tropts({{}},1,inf,1,inf,true));
+[str tag] = gencode(c0,'',{},'',cfg_tropts({{}},1,inf,1,inf,true));
 [p n e v] = fileparts(varargin{1}.gencode_fname);
 fname = fullfile(p, [n '.m']);
 fid = fopen(fullfile(varargin{1}.gencode_dir{1}, fname), 'w');

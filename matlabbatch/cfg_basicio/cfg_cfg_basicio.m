@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-03-12 09:23:12.
+% Created at 2008-04-21 14:10:42.
 % ---------------------------------------------------------------------
 % files Files to move/delete
 % ---------------------------------------------------------------------
@@ -16,25 +16,40 @@ files.filter = 'any';
 files.ufilter = '.*';
 files.num     = [1 Inf];
 % ---------------------------------------------------------------------
-% target Target Directory
+% moveto Move to
 % ---------------------------------------------------------------------
-target         = cfg_files;
-target.tag     = 'target';
-target.name    = 'Target Directory';
-target.help    = {'Files will be moved to the specified directory. If no directory is specified, then files will be deleted instead.'};
-target.filter = 'dir';
-target.ufilter = '.*';
-target.num     = [0 1];
+moveto         = cfg_files;
+moveto.tag     = 'moveto';
+moveto.name    = 'Move to';
+moveto.help    = {'Files will be moved to the specified directory.'};
+moveto.filter = 'dir';
+moveto.ufilter = '.*';
+moveto.num     = [0 1];
+% ---------------------------------------------------------------------
+% delete Delete
+% ---------------------------------------------------------------------
+delete         = cfg_const;
+delete.tag     = 'delete';
+delete.name    = 'Delete';
+delete.val{1} = logical(false);
+delete.help    = {'The selected files will be deleted.'};
+% ---------------------------------------------------------------------
+% action Action
+% ---------------------------------------------------------------------
+action         = cfg_choice;
+action.tag     = 'action';
+action.name    = 'Action';
+action.values  = {moveto delete };
 % ---------------------------------------------------------------------
 % file_move Move/Delete Files
 % ---------------------------------------------------------------------
 file_move         = cfg_exbranch;
 file_move.tag     = 'file_move';
 file_move.name    = 'Move/Delete Files';
-file_move.val     = {files target };
+file_move.val     = {files action };
 file_move.help    = {'Move or delete files.'};
 file_move.prog = @cfg_run_file_move;
-file_move.vout = @cfg_vout_move_file;
+file_move.vout = @cfg_vout_file_move;
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -72,7 +87,7 @@ name.tag     = 'name';
 name.name    = 'New Directory Name';
 name.help    = {'Name for the new directory.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % cfg_mkdir Make Directory
 % ---------------------------------------------------------------------
@@ -91,7 +106,7 @@ name.tag     = 'name';
 name.name    = 'Input Name';
 name.help    = {'Enter a name for this directory selection. This name will be displayed in the ''Dependency'' listing as output name.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % dirs Directory
 % ---------------------------------------------------------------------
@@ -129,7 +144,7 @@ name.tag     = 'name';
 name.name    = 'Input Name';
 name.help    = {'Enter a name for this file selection. This name will be displayed in the ''Dependency'' listing as output name.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % files File Set
 % ---------------------------------------------------------------------
@@ -180,7 +195,7 @@ filter.tag     = 'filter';
 filter.name    = 'Filter';
 filter.help    = {'A regular expression to filter files (applied after filtering for ''Typ'').'};
 filter.strtype = 's';
-filter.num     = [1 Inf];
+filter.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % file_fplist File Selector (Batch Mode)
 % ---------------------------------------------------------------------
@@ -209,7 +224,7 @@ typ.tag     = 'typ';
 typ.name    = 'Typ';
 typ.help    = {'Allowed types are (see cfg_getfile): ''any'', ''image'', ''xml'', ''mat'', ''batch'', ''dir'' or a regular expression.'};
 typ.strtype = 's';
-typ.num     = [1 Inf];
+typ.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % filter Filter
 % ---------------------------------------------------------------------
@@ -218,7 +233,7 @@ filter.tag     = 'filter';
 filter.name    = 'Filter';
 filter.help    = {'A regular expression to filter files (applied after filtering for ''Typ'').'};
 filter.strtype = 's';
-filter.num     = [1 Inf];
+filter.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % frames Frames
 % ---------------------------------------------------------------------
@@ -227,7 +242,7 @@ frames.tag     = 'frames';
 frames.name    = 'Frames';
 frames.help    = {'Number of frames to address in 4D NIfTI images. Ignored if empty.'};
 frames.strtype = 's';
-frames.num     = [0 Inf];
+frames.num     = [0  Inf];
 % ---------------------------------------------------------------------
 % file_filter File Filter
 % ---------------------------------------------------------------------
@@ -246,7 +261,7 @@ name.tag     = 'name';
 name.name    = 'File Set Name';
 name.help    = {'Enter a name for this file selection. This name will be displayed in the ''Dependency'' listing as output name.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % files Input File Set
 % ---------------------------------------------------------------------
@@ -268,7 +283,7 @@ index.help    = {
                  'To split the combined list of all files selected by a "Named File Selector", enter the index vectors here as dependency.'
 }';
 index.strtype = 'n';
-index.num     = [1 Inf];
+index.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % filesets Output File Sets
 % ---------------------------------------------------------------------
@@ -299,7 +314,7 @@ name.tag     = 'name';
 name.name    = 'Input Name';
 name.help    = {'Enter a name for this variable. This name will be displayed in the ''Dependency'' listing as output name.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % input Input Variable
 % ---------------------------------------------------------------------
@@ -327,7 +342,7 @@ name.tag     = 'name';
 name.name    = 'Output Filename';
 name.help    = {'Output filename without any directory names.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % outdir Output Directory
 % ---------------------------------------------------------------------
@@ -347,7 +362,7 @@ vname.name    = 'Variable Name';
 vname.check   = @cfg_check_assignin;
 vname.help    = {'Name for the variable in output file/struct. This must be a valid MATLAB variable name.'};
 vname.strtype = 's';
-vname.num     = [1 Inf];
+vname.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % vcont Variable Contents
 % ---------------------------------------------------------------------
@@ -406,7 +421,7 @@ name.name    = 'Output Variable Name';
 name.check   = @cfg_check_assignin;
 name.help    = {'Enter a valid MATLAB variable name. The contents of the input to "Output Item" will be assigned to a variable of this name in MATLAB workspace.'};
 name.strtype = 's';
-name.num     = [1 Inf];
+name.num     = [1  Inf];
 % ---------------------------------------------------------------------
 % output Output Item
 % ---------------------------------------------------------------------
@@ -429,12 +444,156 @@ cfg_assignin.help    = {
 }';
 cfg_assignin.prog = @cfg_run_assignin;
 % ---------------------------------------------------------------------
+% jobs Job File(s)
+% ---------------------------------------------------------------------
+jobs         = cfg_files;
+jobs.tag     = 'jobs';
+jobs.name    = 'Job File(s)';
+jobs.help    = {'Select the job template(s). If multiple files are selected, they will be concatenated in selection order to form one job.'};
+jobs.filter = 'batch';
+jobs.ufilter = '.*';
+jobs.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% instr String
+% ---------------------------------------------------------------------
+instr         = cfg_entry;
+instr.tag     = 'instr';
+instr.name    = 'String';
+instr.help    = {'Enter a string.'};
+instr.strtype = 's';
+instr.num     = [0  Inf];
+% ---------------------------------------------------------------------
+% ineval Evaluated Input
+% ---------------------------------------------------------------------
+ineval         = cfg_entry;
+ineval.tag     = 'ineval';
+ineval.name    = 'Evaluated Input';
+ineval.help    = {'Enter an evaluated input.'};
+ineval.strtype = 'e';
+ineval.num     = [];
+% ---------------------------------------------------------------------
+% innifti NIfTI Images
+% ---------------------------------------------------------------------
+innifti         = cfg_files;
+innifti.tag     = 'innifti';
+innifti.name    = 'NIfTI Images';
+innifti.help    = {'Select NIfTI Images'};
+innifti.filter = 'image';
+innifti.ufilter = '.*';
+innifti.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% inmat MATLAB .mat Files
+% ---------------------------------------------------------------------
+inmat         = cfg_files;
+inmat.tag     = 'inmat';
+inmat.name    = 'MATLAB .mat Files';
+inmat.help    = {'Select MATLAB .mat files.'};
+inmat.filter = 'mat';
+inmat.ufilter = '.*';
+inmat.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% inany Any Files
+% ---------------------------------------------------------------------
+inany         = cfg_files;
+inany.tag     = 'inany';
+inany.name    = 'Any Files';
+inany.help    = {'Select any kind of files.'};
+inany.filter = 'any';
+inany.ufilter = '.*';
+inany.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% inputs Job Inputs
+% ---------------------------------------------------------------------
+inputs         = cfg_repeat;
+inputs.tag     = 'inputs';
+inputs.name    = 'Job Inputs';
+inputs.help    = {'Assemble the set of input items for one run of the job.'};
+inputs.values  = {instr ineval innifti inmat inany };
+inputs.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% runs Runs
+% ---------------------------------------------------------------------
+runs         = cfg_repeat;
+runs.tag     = 'runs';
+runs.name    = 'Runs';
+runs.help    = {'Repeat "Job Inputs" for each run of the job, even if you want to specify no inputs in this batch itself. The number of "Job Inputs" items determines how often this job is run.'};
+runs.values  = {inputs };
+runs.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% outstub Batch Filename Stub
+% ---------------------------------------------------------------------
+outstub         = cfg_entry;
+outstub.tag     = 'outstub';
+outstub.name    = 'Batch Filename Stub';
+outstub.help    = {'The output filename will be generated by appending a job counter to this string.'};
+outstub.strtype = 's';
+outstub.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% outdir Batch Directory
+% ---------------------------------------------------------------------
+outdir         = cfg_files;
+outdir.tag     = 'outdir';
+outdir.name    = 'Batch Directory';
+outdir.help    = {'The generated batches will be saved into this folder.'};
+outdir.filter = 'dir';
+outdir.ufilter = '.*';
+outdir.num     = [1 1];
+% ---------------------------------------------------------------------
+% savejobs Save
+% ---------------------------------------------------------------------
+savejobs         = cfg_branch;
+savejobs.tag     = 'savejobs';
+savejobs.name    = 'Save';
+savejobs.val     = {outstub outdir };
+savejobs.help    = {'Specify filename stub and output directory to save the generated files.'};
+% ---------------------------------------------------------------------
+% dontsave Don't Save
+% ---------------------------------------------------------------------
+dontsave         = cfg_const;
+dontsave.tag     = 'dontsave';
+dontsave.name    = 'Don''t Save';
+dontsave.val{1} = logical(false);
+dontsave.help    = {'Do not save the generated jobs.'};
+% ---------------------------------------------------------------------
+% save Save Generated Batch Jobs
+% ---------------------------------------------------------------------
+save         = cfg_choice;
+save.tag     = 'save';
+save.name    = 'Save Generated Batch Jobs';
+save.help    = {'The generated batch jobs can be saved for reference or debugging purposes.'};
+save.values  = {savejobs dontsave };
+% ---------------------------------------------------------------------
+% missing Missing Inputs
+% ---------------------------------------------------------------------
+missing         = cfg_menu;
+missing.tag     = 'missing';
+missing.name    = 'Missing Inputs';
+missing.help    = {'Jobs with missing inputs (e.g. because of wrong input contents) can be skipped, while filled jobs are run. Alternatively, if any job has missing inputs, no jobs are run.'};
+missing.labels = {
+                  'Skip jobs with missing inputs, run filled jobs'
+                  'Don''t run any jobs if missing inputs'
+}';
+missing.values = {
+                  'skip'
+                  'error'
+}';
+% ---------------------------------------------------------------------
+% runjobs Run Batch Jobs
+% ---------------------------------------------------------------------
+runjobs         = cfg_exbranch;
+runjobs.tag     = 'runjobs';
+runjobs.name    = 'Run Batch Jobs';
+runjobs.val     = {jobs runs save missing };
+runjobs.help    = {'Load a set of job files, fill missing inputs and run the filled job. This automates the creation and execution of batch jobs for a large number of identical computations.'};
+runjobs.prog = @cfg_run_runjobs;
+runjobs.vout = @cfg_vout_runjobs;
+% ---------------------------------------------------------------------
 % cfg_basicio BasicIO
 % ---------------------------------------------------------------------
 cfg_basicio         = cfg_repeat;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
-cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input cfg_save_vars cfg_assignin };
+cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input cfg_save_vars cfg_assignin runjobs };
 cfg_basicio.num     = [0 Inf];
 cfg_basicio.forcestruct = true;

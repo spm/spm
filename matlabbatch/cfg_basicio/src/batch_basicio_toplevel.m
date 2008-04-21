@@ -1,10 +1,16 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1184 $)
+% Job configuration created by cfg_util (rev $Rev: 1456 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.type = 'cfg_repeat';
 matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.name = 'BasicIO';
 matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.tag = 'cfg_basicio';
 matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.values = {
+                                                                '<UNDEFINED>'
+                                                                '<UNDEFINED>'
+                                                                '<UNDEFINED>'
+                                                                '<UNDEFINED>'
+                                                                '<UNDEFINED>'
+                                                                '<UNDEFINED>'
                                                                 '<UNDEFINED>'
                                                                 '<UNDEFINED>'
                                                                 '<UNDEFINED>'
@@ -17,7 +23,7 @@ matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.forcestruct = logical(true
 matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.check = double([]);
 matlabbatch{1}.menu_cfg{1}.menu_struct{1}.conf_repeat.help = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
 matlabbatch{2}.menu_cfg{1}.gencode_gen.gencode_fname = 'cfg_cfg_basicio.m';
-matlabbatch{2}.menu_cfg{1}.gencode_gen.gencode_dir = {'/export/toolbox/matlabbatch/trunk/cfg_basicio/'};
+matlabbatch{2}.menu_cfg{1}.gencode_gen.gencode_dir = {'/export/spm-devel/matlabbatch/trunk/cfg_basicio/'};
 matlabbatch{2}.menu_cfg{1}.gencode_gen.gencode_var(1) = cfg_dep;
 matlabbatch{2}.menu_cfg{1}.gencode_gen.gencode_var(1).tname = 'Root node of config';
 matlabbatch{2}.menu_cfg{1}.gencode_gen.gencode_var(1).tgt_exbranch = struct('type', {}, 'subs', {});

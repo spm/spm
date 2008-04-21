@@ -11,11 +11,11 @@ function out = cfg_run_file_move(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 1393 2008-04-14 18:53:47Z volkmar $
+% $Id: cfg_run_file_move.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1393 $';
+rev = '$Rev: 1456 $';
 
-if isempty(job.target{1})
+if isfield(job.action, 'delete')
     for k = 1:numel(job.files)
         [p n e v] = fileparts(job.files{k});
         delete(job.files{k});
@@ -26,20 +26,20 @@ if isempty(job.target{1})
             end;
         end
     end;
-    out.files{1} = '';
+    out = [];
 else
     out.files = {};
     for k = 1:numel(job.files)
         [p n e v] = fileparts(job.files{k});
-        movefile(job.files{k}, job.target{1});
+        movefile(job.files{k}, job.action.moveto{1});
+        out.files{end+1} = fullfile(job.action.moveto{1}, [n e v]);
         if strcmp(e,'.img') || strcmp(e,'.nii')
             try
-                movefile(fullfile(p,[n '.hdr']));
-                out.files{end+1} = fullfile(job.target{1}, [n '.hdr']);
-                movefile(fullfile(p,[n '.mat']));
-                out.files{end+1} = fullfile(job.target{1}, [n '.mat']);
+                movefile(fullfile(p,[n '.hdr']), job.action.moveto{1});
+                out.files{end+1} = fullfile(job.action.moveto{1}, [n '.hdr']);
+                movefile(fullfile(p,[n '.mat']), job.action.moveto{1});
+                out.files{end+1} = fullfile(job.action.moveto{1}, [n '.mat']);
             end;
         end
-        out.files{end+1} = fullfile(job.target{1}, [n e v]);
     end;
 end;

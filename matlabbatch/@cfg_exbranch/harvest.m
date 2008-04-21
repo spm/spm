@@ -44,9 +44,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1293 2008-04-02 14:20:43Z volkmar $
+% $Id: harvest.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1293 $';
+rev = '$Rev: 1456 $';
 
 [tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
@@ -68,7 +68,9 @@ else
         osout = item.sout;
         if ~isempty(item.vout)
             item.sout = feval(item.vout, val);
-            [item.sout.src_exbranch] = deal(item.cfg_branch.id);
+            if ~isempty(item.sout)
+                [item.sout.src_exbranch] = deal(item.cfg_branch.id);
+            end;
         elseif ~isempty(item.vfiles)
             warning('matlabbatch:harvest:vfiles', 'Using deprecated ''vfiles'' output from node ''%s''.', tag);
             item.sout = cfg_dep;
@@ -98,7 +100,8 @@ else
     % even if no sources changed, source names may have changed
     for k = 1:numel(item.sdeps)
         for l = 1:numel(item.sout)
-            if isequalsource(item.sdeps(k), item.sout(l))
+            if isequalsource(item.sdeps(k), item.sout(l)) ...
+                    && ~strcmp(item.sdeps(k).sname, item.sout(l).sname)
                 item.sdeps(k).sname = item.sout(l).sname;
                 cdeps = subsref(cj, [item.sdeps(k).tgt_exbranch ...
                                     item.sdeps(k).tgt_input ...

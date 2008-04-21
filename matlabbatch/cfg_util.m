@@ -62,6 +62,21 @@ function varargout = cfg_util(cmd, varargin)
 %
 % Delete job with job_id from the job list. 
 %
+%  sts = cfg_util('filljob', job_id, input1, ..., inputN)
+%  sts = cfg_util('filljobui', job_id, ui_fcn, input1, ..., inputN)
+%
+% Fill missing inputs in a job from a list of input items. If an can not be
+% filled by the specified input, this input will be discarded. If
+% cfg_util('filljobui'...) is called, [val sts] = ui_fcn(item) will be run
+% and should return a value which is suitable for setval(item, val). sts
+% should be set to true if input should continue with the next item. This
+% can result in an partially filled job. If ui_fcn is interrupted, the job
+% will stay unfilled.
+% If cfg_util('filljob' is called, the current job can become partially
+% filled. If ui_fcn is interrupted, the job will stay unfilled.
+% Returns the all_set status of the filled job, returns always false if
+% ui_fcn is interrupted.
+%
 %  cfg_util('gencode', fname, apptag|cfg_id[, tropts])
 %
 % Generate code from default configuration structure, suitable for
@@ -307,9 +322,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: cfg_util.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1405 $';
+rev = '$Rev: 1456 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -369,6 +384,20 @@ switch lower(cmd),
                 jobs(varargin{1}).cjid2subs = {};
             end;
         end;
+    case 'filljob',
+        cjob = varargin{1};
+        jobs(cjob).cj = fillvals(jobs(cjob).cj, varargin(2:end), []);
+        sts = all_set(jobs(cjob).cj);
+        varargout{1} = sts;
+    case 'filljobui',
+        try
+            cjob = varargin{1};
+            jobs(cjob).cj = fillvals(jobs(cjob).cj, varargin(3:end), varargin{2});
+            sts = all_set(jobs(cjob).cj);
+        catch
+            sts = false;
+        end;
+        varargout{1} = sts;
     case 'gencode',
         fname = varargin{1};
         cm = local_getcm(c0, varargin{2});
@@ -446,6 +475,9 @@ switch lower(cmd),
                         end;
                 end;
             end;
+        elseif iscell(varargin{1})
+            % try to initialise cell array of jobs
+            job = varargin{1};
         else
             % try to initialise single job
             job{1} = varargin{1};
@@ -779,7 +811,11 @@ for k = 1:numel(ojob.cjid2subs)
         nid = nid + 1;
     end;
 end;
-job.cj = update_deps(job.cj, oid, job.cjid2subs);
+% update changed ids in job (where nid ~= 1:numel(nid))
+cid = nid ~= 1:numel(nid);
+if any(cid)
+    job.cj = update_deps(job.cj, oid(cid), job.cjid2subs(cid));
+end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------

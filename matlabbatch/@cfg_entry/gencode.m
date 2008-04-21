@@ -22,9 +22,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: gencode.m 1456 2008-04-21 15:03:41Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1456 $';
 
 %% Parent object
 % Generate generic object
@@ -47,7 +47,7 @@ if ~isempty(item.strtype)
 end;
 %% Num
 % Generate num field
-str{end+1} = sprintf('%s.num     = [%d %d];', tag, item.num);
+str{end+1} = sprintf('%s.num     = [%s];', tag, num2str(item.num));
 %% Def
 % Do not create deprecated def field
 %% Extras
