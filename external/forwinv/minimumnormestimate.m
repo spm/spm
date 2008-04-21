@@ -18,6 +18,19 @@ function [dipout] = minimumnormestimate(dip, grad, vol, dat, varargin);
 % Note that leadfield normalization (depth regularisation) should be
 % done by scaling the leadfields outside this function, e.g. in
 % prepare_leadfield.
+%
+% This implements
+% * Dale AM, Liu AK, Fischl B, Buckner RL, Belliveau JW, Lewine JD,
+%   Halgren E (2000): Dynamic statistical parametric mapping: combining
+%   fMRI and MEG to produce high-resolution spatiotemporal maps of
+%   cortical activity. Neuron 26:55-67.
+% * Arthur K. Liu, Anders M. Dale, and John W. Belliveau  (2002): Monte
+%   Carlo Simulation Studies of EEG and MEG Localization Accuracy.
+%   Human Brain Mapping 16:47-62.
+% * Fa-Hsuan Lin, Thomas Witzel, Matti S. Hamalainen, Anders M. Dale,
+%   John W. Belliveau, and Steven M. Stufflebeam (2004): Spectral
+%   spatiotemporal imaging of cortical oscillations and interactions
+%   in the human brain.  NeuroImage 23:582-595.
 
 % TODO implement the following options
 % - keepleadfield
@@ -27,6 +40,9 @@ function [dipout] = minimumnormestimate(dip, grad, vol, dat, varargin);
 % Copyright (C) 2004-2008, Robert Oostenveld
 % 
 % $Log: minimumnormestimate.m,v $
+% Revision 1.7  2008/04/21 14:50:10  roboos
+% added full literature references to documentation
+%
 % Revision 1.6  2008/03/18 13:18:06  roboos
 % added optional settings for compute_leadfield
 % fixed typo in equation (would have cased Matlab error)
