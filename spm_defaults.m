@@ -14,8 +14,13 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1418 2008-04-15 19:15:16Z john $
+% $Id: spm_defaults.m 1462 2008-04-21 18:34:38Z guillaume $
 
+fprintf('################################################\n');
+fprintf('################################################\n');
+fprintf('###            LOADING DEFAULTS              ###\n');
+fprintf('################################################\n');
+fprintf('################################################\n');
 
 global defaults
 

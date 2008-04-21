@@ -41,52 +41,57 @@ function [F,pm] = spm_vb_roi_basis (VOI_fnames,SPM,bases,model)
 % F             model evidences 
 % pm            posterior model probability
 %
-% See W.Penny et al. (2005) Bayesian Model Comparison of Spatially Regularised
-% General Linear Models. Submitted.
+% See W. Penny et al. (2007). Bayesian Model Comparison of Spatially 
+% Regularised General Linear Models. Human Brain Mapping.
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_basis.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_roi_basis.m 1462 2008-04-21 18:34:38Z guillaume $
 
-% Load VOIs
-nVOIs=length(VOI_fnames);
-for p=1:nVOIs,
-    load(VOI_fnames{p});
-    data_sess(p).Y=xY.y;
+% check input parameters
+%--------------------------------------------------------------------------
+try 
+    VOI_fnames;
+catch
+    VOI_fnames = cellstr(spm_select([1 Inf],'^VOI.*\.mat$',{'select VOIs'}));
 end
-xyz=xY.XYZmm;
-N=size(xyz,2);
-M=diag(SPM.xVol.M);
-m=1./abs(M(1:3));
-xyz=(m*ones(1,N)).*xyz;
-vxyz = spm_vb_neighbors(xyz',1);
-
-if nargin == 1
-    %-Get SPM.mat 
-    swd     = spm_str_manip(spm_select(1,'SPM.mat','Select SPM.mat'),'H');
+try 
+    SPM;
+catch
+    swd = spm_str_manip(spm_select(1,'SPM.mat','Select SPM.mat'),'H');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
 end
-nsess=length(SPM.Sess);
+try, bases; catch, bases = 'all'; end
 
-if ~(nsess==nVOIs)
-    disp(sprintf('Error: SPM design specified for %d sessions and %d VOI files specified',nsess,nVOIs));
-    return
+% check parameters
+%--------------------------------------------------------------------------
+if strcmpi(bases,'user') && ~nargin == 4
+    error('Models not specified.');
 end
 
-if nargin <3 | isempty(bases)
-    bases='all';
+nsess = length(SPM.Sess);
+nVOIs = length(VOI_fnames);
+if nsess~=nVOIs
+    error('SPM design specified for %d sessions and %d VOI files specified',nsess,nVOIs);
 end
 
-xyz=xY.XYZmm;
-N=size(xyz,2);
-M=diag(SPM.xVol.M);
-m=1./abs(M(1:3));
-xyz=(m*ones(1,N)).*xyz;
+% Load VOIs
+%--------------------------------------------------------------------------
+for p=1:nVOIs
+    load(VOI_fnames{p});
+    data_sess(p).Y=xY.y;
+end
+xyz  = xY.XYZmm;
+N    = size(xyz,2);
+M    = diag(SPM.xVol.M);
+m    = 1./abs(M(1:3));
+xyz  = (m*ones(1,N)).*xyz;
 vxyz = spm_vb_neighbors(xyz',1);
 
 % Set number of AR coefficients
+%--------------------------------------------------------------------------
 try 
     SPM.PPM.AR_P;
 catch
@@ -94,6 +99,7 @@ catch
 end
 
 % Specify type of prior for regression coefficients
+%--------------------------------------------------------------------------
 try
     SPM.PPM.priors.W;
 catch
@@ -105,6 +111,7 @@ catch
 end
 
 % Specify type of prior for AR coefficients
+%--------------------------------------------------------------------------
 try
     SPM.PPM.priors.A;
 catch
@@ -117,157 +124,165 @@ end
 
 % Get matrices that will remove low-frequency drifts 
 % if high pass filters have been specified
-for s=1:nsess,
-    sess_nScan=length(SPM.xX.K(s).row);
+%--------------------------------------------------------------------------
+for s=1:nsess
+    sess_nScan = length(SPM.xX.K(s).row);
     if size(SPM.xX.K(s).X0,2) > 0
-        X0=SPM.xX.K(s).X0;
-        hpf(s).R0=eye(sess_nScan)-X0*pinv(X0);
+        X0 = SPM.xX.K(s).X0;
+        hpf(s).R0 = eye(sess_nScan)-X0*pinv(X0);
     else
-        hpf(s).R0=eye(sess_nScan);
+        hpf(s).R0 = eye(sess_nScan);
     end    
 end
 
 % Set optimisation parameters
+%--------------------------------------------------------------------------
 try
     SPM.PPM.maxits;
 catch
-    SPM.PPM.maxits=16;
+    SPM.PPM.maxits = 16;
 end
 try
     SPM.PPM.tol;
 catch
-    SPM.PPM.tol=0.00001;
+    SPM.PPM.tol = 0.00001;
 end
-
-window_length=32; % length in seconds
 
 % Specify basis functions
-switch bases,
-    case 'fir',
-        window_length=20; % length in seconds
-        bins=[1:1:10];
+%--------------------------------------------------------------------------
+window_length = 32; % length in seconds
+
+switch bases
+    case 'fir'
+        window_length = 20; % length in seconds
+        bins = [1:1:10];
         for i=1:length(bins),
-            model(i).name='Finite Impulse Response';
-            if bins(i)>9
-                model(i).sname=int2str(bins(i));
-            else
-                model(i).sname=[' ',int2str(bins(i))];
-            end
-            model(i).order      = bins(i); 
-            model(i).length     = window_length; 
+            model(i).name   = 'Finite Impulse Response';
+            model(i).sname  = int2str(bins(i));
+            model(i).order  = bins(i); 
+            model(i).length = window_length; 
         end
-    case 'fh',
-        window_length=20; % length in seconds
-        bins=[1:1:10];
+    case 'fh'
+        window_length = 20; % length in seconds
+        bins = [1:1:10];
         for i=1:length(bins),
-            model(i).name='Fourier set (Hanning)';
-            if bins(i)>9
-                model(i).sname=int2str(bins(i));
-            else
-                model(i).sname=[' ',int2str(bins(i))];
-            end
-            model(i).order      = bins(i); 
-            model(i).length     = window_length; 
+            model(i).name   = 'Fourier set (Hanning)';
+            model(i).sname  = int2str(bins(i));
+            model(i).order  = bins(i); 
+            model(i).length = window_length; 
         end
     case 'all'
-        model(1).name='hrf';
-        model(1).sname='Inf-1';
-        model(1).order=1;
-        model(1).length=window_length; 
+        model(1).name   = 'hrf';
+        model(1).sname  = 'Inf-1';
+        model(1).order  = 1;
+        model(1).length = window_length; 
         
-        model(2).name='hrf (with time derivative)';
-        model(2).sname='Inf-2';
-        model(2).order=2;
-        model(2).length=window_length;
+        model(2).name   = 'hrf (with time derivative)';
+        model(2).sname  = 'Inf-2';
+        model(2).order  = 2;
+        model(2).length = window_length;
         
-        model(3).name='hrf (with time and dispersion derivatives)';
-        model(3).sname='Inf-3';
-        model(3).order      = 3;  
-        model(3).length     = window_length;                
+        model(3).name   = 'hrf (with time and dispersion derivatives)';
+        model(3).sname  = 'Inf-3';
+        model(3).order  = 3;  
+        model(3).length = window_length;                
         
-        model(4).name='Fourier set';
-        model(4).sname='F    ';
-        model(4).order=5;
-        model(4).length=window_length;
+        model(4).name   = 'Fourier set';
+        model(4).sname  = 'F';
+        model(4).order  = 5;
+        model(4).length = window_length;
         
-        model(5).name='Fourier set (Hanning)';
-        model(5).sname='FH   ';
-        model(5).order=5;
-        model(5).length=window_length;
+        model(5).name   = 'Fourier set (Hanning)';
+        model(5).sname  = 'FH';
+        model(5).order  = 5;
+        model(5).length = window_length;
         
-        model(6).name='Gamma functions';
-        model(6).sname='Gamm3';
-        model(6).order      = 3;  
-        model(6).length     = window_length;                
+        model(6).name   = 'Gamma functions';
+        model(6).sname  = 'Gamm3';
+        model(6).order  = 3;  
+        model(6).length = window_length;                
         
-        model(7).name='Finite Impulse Response';
-        model(7).sname='FIR  ';
-        model(7).order      = 10; 
-        model(7).length     = window_length;        
-    case 'user',
-        disp('Using user-specified models');
+        model(7).name   = 'Finite Impulse Response';
+        model(7).sname  = 'FIR';
+        model(7).order  = 10; 
+        model(7).length = window_length;        
+    case 'user'
+        disp('Using user-specified models.');
     otherwise
-        disp('Error in spm_vb_voi: unknown bases option');
+        error('Unknown bases option.');
 end
 
-M=length(model);
-F=[];
-
-sname=[];
 % Fit models
-for m=1:M,
+%==========================================================================
+for m=1:length(model)
+    fprintf('Model %d (%s)\n',m,model(m).name);                             %-#
     
     % Switch basis functions
-    SPM.xBF.name=model(m).name;
-    SPM.xBF.order=model(m).order;
-    SPM.xBF.length=model(m).length;
-    SPM.xBF = spm_get_bf(SPM.xBF);
+    %----------------------------------------------------------------------
+    SPM.xBF.name   = model(m).name;
+    SPM.xBF.order  = model(m).order;
+    SPM.xBF.length = model(m).length;
+    SPM.xBF        = spm_get_bf(SPM.xBF);
     
     SPM = spm_fmri_design(SPM,0);  % 0 to override writing of SPM.mat file
     
-    Ev=0;
-    for s=1:nsess,
-        disp(sprintf('Session %d',s));
-        X=SPM.xX.X(SPM.Sess(s).row,SPM.Sess(s).col);
-        X=[X ones(length(SPM.Sess(s).row),1)]; % Add on constant 
+    Ev = 0;
+    % Loop over sessions
+    %======================================================================
+    for s=1:nsess
+        fprintf('Session %d\n',s);                                      %-#
+        
+        % Design matrix
+        %------------------------------------------------------------------
+        X = SPM.xX.X(SPM.Sess(s).row,SPM.Sess(s).col);
+        X = [X ones(length(SPM.Sess(s).row),1)]; % Add one constant 
         
         slice = spm_vb_init_volume (X,SPM.PPM.AR_P);
         slice = spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
         
-        slice.maxits=SPM.PPM.maxits;
-        slice.tol=SPM.PPM.tol;
-        slice.compute_det_D=1;
-        slice.verbose=1;
-        slice.update_w=1;
-        slice.update_lambda=1;
-        slice.update_F=1;
+        slice.maxits        = SPM.PPM.maxits;
+        slice.tol           = SPM.PPM.tol;
+        slice.compute_det_D = 1;
+        slice.verbose       = 1;
+        slice.update_w      = 1;
+        slice.update_lambda = 1;
+        slice.update_F      = 1;
     
         % Filter data to remove low frequencies
-        R0Y=hpf(s).R0*data_sess(s).Y;
+        %------------------------------------------------------------------
+        R0Y = hpf(s).R0 * data_sess(s).Y;
+        
+        % Variational Bayes for GLM-AR modelling
+        %------------------------------------------------------------------
         slice = spm_vb_glmar(R0Y,slice);
-        Ev=Ev+slice.F; % Add up evidence from different sessions
+        
+        % Add up evidence from different sessions
+        %------------------------------------------------------------------
+        Ev = Ev + slice.F;
     end
-    F=[F,Ev];
-    sname=[sname; model(m).sname];
+    
+    F(m) = Ev;
 end
 
-Fm=F-mean(F);
-figure
-pm=exp(Fm)./sum(exp(Fm));
-if sum(isnan(pm))
-    [pF,pi]=max(F);
-    pm=zeros(M,1);
-    pm(pi)=1;
+% Display results
+%==========================================================================
+Fm    = F - mean(F);
+Fnorm = F - min(F);
+pm    = exp(Fm)./sum(exp(Fm));
+if any(isnan(pm))
+    [pF,pi] = max(F);
+    pm      = zeros(size(pi));
+    pm(pi)  = 1;
 end
+
+figure;
 bar(pm);
-set(gca,'XTickLabel',sname);
+set(gca,'XTickLabel',{model.sname});
 ylabel('Posterior model probability');
 set(gca,'FontSize',12);
 
-figure
-Fnorm=F-min(F);
+figure;
 bar(Fnorm);
-set(gca,'XTickLabel',sname);
+set(gca,'XTickLabel',{model.sname});
 ylabel('Log Evidence');
 set(gca,'FontSize',12);
-

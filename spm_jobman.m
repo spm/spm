@@ -1,9 +1,8 @@
 function varargout = spm_jobman(varargin)
 % UI/Batching stuff
-% This code is based on an earlier version by Philippe Ciuciu and
-% Guillaume Flandin of Orsay, France. It provides a compatibility layer
-% between SPM and matlabbatch. It translates spm_jobman callbacks into
-% matlabbatch callbacks and allows to edit and run SPM5 style batch jobs.
+% This function provides a compatibility layer between SPM and matlabbatch.
+% It translates spm_jobman callbacks into matlabbatch callbacks and allows
+% to edit and run SPM5 style batch jobs.
 %
 % FORMAT job_id = spm_jobman
 %        job_id = spm_jobman('interactive')
@@ -31,6 +30,9 @@ function varargout = spm_jobman(varargin)
 % job itself). The matlabbatch system does not need graphics output to run
 % a job.
 %
+% FORMAT spm_jobman('initcfg')
+% Initialise cfg_util configuration and set path accordingly.
+%
 % FORMAT job = spm_jobman('spm5tospm8',job)
 % Takes an SPM5 job structure and returns a SPM8 compatible version.
 %
@@ -46,17 +48,17 @@ function varargout = spm_jobman(varargin)
 %            cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
 %            cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
 %
-% FORMAT spm_jobman('help',node)
+% not implemented: FORMAT spm_jobman('help',node)
 %        spm_jobman('help',node,width)
 % Creates a cell array containing help information.  This is justified
 % to be 'width' characters wide. e.g.
 %     h = spm_jobman('help','jobs.spatial.coreg.estimate');
 %     for i=1:numel(h),fprintf('%s\n',h{i}); end;
 %
-% FORMAT spm_jobman('defaults')
+% not implemented: FORMAT spm_jobman('defaults')
 % Runs the interactive defaults editor.
 %
-% FORMAT [tag, jobs, typ] = spm_jobman('harvest', job_id)
+% not implemented: FORMAT [tag, jobs, typ] = spm_jobman('harvest', job_id)
 % Take the job with id job_id in cfg_util and extract what is
 % needed to save it as a batch job (for experts only).
 %
@@ -73,12 +75,14 @@ function varargout = spm_jobman(varargin)
 % not implemented: FORMAT spm_jobman('chmod')
 % Changes the modality for the TASKS pulldown.
 %
+% This code is based on earlier versions by John Ashburner, Philippe 
+% Ciuciu and Guillaume Flandin.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1461 2008-04-21 18:04:32Z volkmar $
+% $Id: spm_jobman.m 1462 2008-04-21 18:34:38Z guillaume $
 
 
 if nargin==0
@@ -103,11 +107,17 @@ else
     elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
         % Node spec only allowed for 'interactive', 'serial'
         mod_cfg_id = cfg_util('tag2mod_cfg_id',varargin{3});
+    elseif any(strcmp(cmd, {'initcfg','pulldown'}))
     else
         error('spm:spm_jobman:WrongUI', ...
             'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
     end;    
     switch cmd
+        case 'initcfg'
+            addpath(fullfile(spm('Dir'),'matlabbatch'));
+            addpath(fullfile(spm('Dir'),'config'));
+            cfg_util('initcfg'); % This must be the first call to cfg_util
+
         case 'interactive',
             if exist('mljob', 'var')
                 cjob = cfg_util('initjob', mljob);
@@ -128,6 +138,7 @@ else
             if nargout > 0
                 varargout{1} = cjob;
             end;
+            
         case 'serial',
             if exist('mljob', 'var')
                 cjob = cfg_util('initjob', mljob);

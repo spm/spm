@@ -16,7 +16,7 @@ function spm_eeg_firstlevel(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: spm_eeg_firstlevel.m 1462 2008-04-21 18:34:38Z guillaume $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','M/EEG 1st level contrast setup',0);
 
@@ -44,7 +44,7 @@ end
 try
     contrast1st.fnames = S.contrast1st.fnames;
 catch
-    contrast1st.fnames = cfg_getfile(inf, 'image', 'Select M/EEG files');
+    contrast1st.fnames = spm_select(inf, 'image', 'Select M/EEG files');
 end
 
 try
