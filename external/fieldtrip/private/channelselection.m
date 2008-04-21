@@ -47,6 +47,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.25  2008/04/21 14:38:26  jansch
+% added support 'MEG' for NM122 systems
+%
 % Revision 1.24  2008/02/27 17:03:02  roboos
 % use senstype to distinguish between ctf and bti
 %
@@ -164,6 +167,7 @@ channel = channel(indx);
 % try to distinguish between CTF and 4D-BTi channel labels, required when selection contains 'MEG'
 isctf = senstype(datachannel, 'ctf');
 isbti = senstype(datachannel, 'bti');
+isnm122 = senstype(datachannel, 'neuromag122');
 
 % define the known groups with channel labels
 labelall  = datachannel;
@@ -181,6 +185,8 @@ if isctf
   labelmeg = datachannel(strncmp('M'  , datachannel, length('M'  )));	% all CTF MEG channels start with "M"
 elseif isbti
   labelmeg = datachannel(strncmp('A'  , datachannel, length('A'  )));	% all 4D-BTi MEG channels start with "A"
+elseif isnm122
+  labelmeg = datachannel(strncmp('MEG', datachannel, length('MEG')));
 else
   labelmeg = [];
 end

@@ -41,6 +41,10 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.13  2008/04/21 14:27:12  jansch
+% changed trlnew into trl to be able to output the new trl-matrix correctly
+% and elegantly into the output-structure
+%
 % Revision 1.12  2008/04/15 16:11:54  estmee
 % updated documentation
 %
@@ -79,8 +83,6 @@ function [data] = redefinetrial(cfg, data)
 % new implementation
 %
 
-% check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % set the defaults
 if ~isfield(cfg, 'offset'),    cfg.offset = [];    end
@@ -89,7 +91,12 @@ if ~isfield(cfg, 'begsample'), cfg.begsample = []; end
 if ~isfield(cfg, 'endsample'), cfg.endsample = []; end
 if ~isfield(cfg, 'minlength'), cfg.minlength = []; end
 if ~isfield(cfg, 'trials'),    cfg.trials = 'all'; end
+if ~isfield(cfg, 'feedback'),  cfg.feedback = 'yes'; end
 if ~isfield(cfg, 'trl'),       cfg.trl =  [];      end
+
+% check if the input data is valid for this function
+data = checkdata(data, 'datatype', 'raw', 'feedback', cfg.feedback);
+fb   = strcmp(cfg.feedback, 'yes');
 
 % trl is not specified in the function call, but the data is given ->
 % try to locate the trial definition (trl) in the nested configuration
@@ -105,7 +112,7 @@ trlold = trl;
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
-  fprintf('selecting %d trials\n', length(cfg.trials));
+  if fb, fprintf('selecting %d trials\n', length(cfg.trials)); end
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
   trl         = trl(cfg.trials,:);
@@ -150,7 +157,6 @@ if ~isempty(cfg.toilim)
       data.time{i}  = data.time{i} (   begsample(i):endsample(i));
     end
   end
-
   % also correct the trial definition
   if ~isempty(trl)
     trl(:,1) = trl(:,1) + begsample - 1;
@@ -162,7 +168,7 @@ if ~isempty(cfg.toilim)
   trl = trl(~skiptrial,:);
   data.time  = data.time(~skiptrial);
   data.trial = data.trial(~skiptrial);
-  fprintf('removing %d trials in which no data was selected\n', sum(skiptrial));
+  if fb, fprintf('removing %d trials in which no data was selected\n', sum(skiptrial)); end
 
 elseif ~isempty(cfg.offset)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -211,12 +217,12 @@ elseif ~isempty(cfg.trl)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   dataold = data;
-  trlnew  = cfg.trl;
+  trl     = cfg.trl;
 
   numtrlold    = size(trlold,1);
-  numtrlnew    = size(trlnew,1);
+  numtrlnew    = size(   trl,1);
   maxsampleold = max(trlold(end,:));
-  maxsamplenew = max(trlnew(end,:));
+  maxsamplenew = max(   trl(end,:));
 
   % these are for bookkeeping
   count     = zeros(1, maxsampleold);
@@ -242,23 +248,23 @@ elseif ~isempty(cfg.trl)
   % in the available vector 1 means that sample is available and 0 means that sample is not available
   available = (samplenum>=1);
 
-  if length(available)<=maxsamplenew
+  if length(available)<maxsamplenew
     error('the requested data extends beyond the end of the available preprocessed data')
   end
 
   for i=1:numtrlnew
-    % check if all samples in trlnew are present, are not present, or are present twice or more
-    if ~all(available(trlnew(i,1):trlnew(i,2)))
+    % check if all samples in trl are present, are not present, or are present twice or more
+    if ~all(available(trl(i,1):trl(i,2)))
       error('not all samples present/ samples are twice or more times present in preprocessed data');
     end
 
-    trllength         = trlnew(i,2) - trlnew(i,1) + 1; % aantal samples in de trl
+    trllength         = trl(i,2) - trl(i,1) + 1; % aantal samples in de trl
     data.trial{i}  = zeros(length(dataold.label), trllength);
-    data.time{i}   = offset2time(trlnew(i,3), dataold.fsample, trllength);
+    data.time{i}   = offset2time(trl(i,3), dataold.fsample, trllength);
 
     % fill in the new data
     a = 1;
-    for b=trlnew(i,1):trlnew(i,2);
+    for b=trl(i,1):trl(i,2);
       data.trial{i}(:,a) = dataold.trial{trialnum(b)}(:,samplenum(b));
       a = a + 1;
     end
@@ -292,7 +298,7 @@ if ~isempty(cfg.minlength)
   trl = trl(~skiptrial,:);
   data.time  = data.time(~skiptrial);
   data.trial = data.trial(~skiptrial);
-  fprintf('removing %d trials that are too short\n', sum(skiptrial));
+  if fb, fprintf('removing %d trials that are too short\n', sum(skiptrial)); end
 end
 
 % remember the previous and the up-to-date trial definitions in the configuration
@@ -308,7 +314,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.12 2008/04/15 16:11:54 estmee Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.13 2008/04/21 14:27:12 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

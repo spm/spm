@@ -15,6 +15,10 @@ function [x, ut] = svdfft(f, n, trltapcnt);
 % Copyright (C) 2005-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: svdfft.m,v $
+% Revision 1.8  2008/04/21 14:32:38  jansch
+% added the option to output a variable number of components, explaining n%
+% of the variance.
+%
 % Revision 1.7  2007/01/17 17:04:43  roboos
 % added a space, changed year
 %
@@ -62,6 +66,12 @@ end
 if n==size(f,1),
   % do a complete decomposition
   [u, s, v] = svd(real(c));
+elseif n<1,
+  % do a complete decomposition and only keep the biggest components which together explain n percent of the variance 
+  [u, s, v] = svd(real(c)); 
+  s         = cumsum(diag(s))./sum(diag(s));
+  n         = length(find(s<=n));
+  u         = u(:, 1:n);
 else
   % only decompose the first n components
   [u, s, v] = svds(real(c),n);
