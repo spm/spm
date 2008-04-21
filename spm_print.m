@@ -4,14 +4,14 @@ function spm_print(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 1397 2008-04-14 19:57:16Z volkmar $
+% $Id: spm_print.m 1458 2008-04-21 15:22:53Z volkmar $
 
 % Run spm_print always as job to get configured print options
 if nargin == 0
-    cfg_serial([],'spmjobs.util.print','');
+    spm_jobman('serial','','spmjobs.util.print','');
     return;
 elseif ischar(job)
-    cfg_serial([],'spmjobs.util.print',job);
+    spm_jobman('serial','','spmjobs.util.print',job);
     return;
 end;
 
