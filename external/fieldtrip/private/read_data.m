@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.40  2008/04/21 11:50:52  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
 % Revision 1.39  2008/04/18 14:07:45  roboos
 % added eeglab_set
 %
@@ -578,6 +581,10 @@ switch dataformat
 
   case {'egi_egia', 'egi_egis'}
     dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
+    dimord = 'chans_samples_trials';
+
+  case {'egi_sbin'}
+    dat = read_sbin_data(filename, hdr, begtrial, endtrial, chanindx);
     dimord = 'chans_samples_trials';
 
   case {'mpi_ds', 'mpi_dap'}

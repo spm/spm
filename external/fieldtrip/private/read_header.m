@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.47  2008/04/21 11:50:52  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
 % Revision 1.46  2008/04/18 14:07:45  roboos
 % added eeglab_set
 %
@@ -562,6 +565,30 @@ switch headerformat
     hdr.orig.cnames = cnames;
     hdr.orig.fcom   = fcom;
     hdr.orig.ftext  = ftext;
+
+  case 'egi_sbin'
+    % segmented type only
+    [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
+    [p, f, x]       = fileparts(filename);
+
+    hdr.Fs          = header_array(9);
+    hdr.nChans      = header_array(10);
+    for i = 1:hdr.nChans
+        hdr.label{i}  = ['e' num2str(i)];
+    end;
+    hdr.nTrials     = header_array(15);
+    hdr.nSamplesPre = preBaseline;
+
+    if hdr.nSamplesPre == 0
+        hdr.nSamplesPre = 1; % If baseline was left as zero, then change to "1" to avoid possible issues with software expecting a non-zero baseline.
+    end;
+
+    hdr.nSamples    = header_array(16); % making assumption that number of samples is same for all cells
+
+    % remember the original header details
+    hdr.orig.header_array   = header_array;
+    hdr.orig.CateNames   = CateNames;
+    hdr.orig.CatLengths  = CatLengths;
 
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis

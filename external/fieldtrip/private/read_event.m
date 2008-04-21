@@ -47,6 +47,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.58  2008/04/21 11:50:52  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
 % Revision 1.57  2008/04/18 14:07:45  roboos
 % added eeglab_set
 %
@@ -675,6 +678,33 @@ switch eventformat
       end
     end
 
+  case 'egi_sbin'
+    if isempty(segHdr)
+      [EventCodes, segHdr, eventData] = read_sbin_events(filename);
+    end
+    if isempty(header_array)
+      [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
+    end
+    eventCount=0;
+    for event=1:size(eventData,1)
+      for segment=1:size(eventData,2)
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'trial';
+        event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+        event(eventCount).offset   = -hdr.nSamplesPre;
+        event(eventCount).duration =  length(find(eventData(event,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0));
+        event(eventCount).value    =  EventCodes(event,:);
+      end
+    end
+    for segment=1:size(eventData,2)  % cell information
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'trial';
+        event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+        event(eventCount).offset   = -hdr.nSamplesPre;
+        event(eventCount).duration =  hdr.nSamples;
+        event(eventCount).value    =  ['S' num2str(subject) CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))];
+    end
+
       case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);
@@ -683,7 +713,7 @@ switch eventformat
     catch
       evt = [];
     end
-    
+
     type = {
       'char'
       'uint8'
@@ -697,7 +727,7 @@ switch eventformat
       'single'
       'double'
       };
-    
+
     for i=1:length(evt)
       sel = 1:evt(i).type_numel;
       if evt(i).type_type==0
@@ -715,7 +745,7 @@ switch eventformat
       event(i).offset   = evt(i).offset;
       event(i).duration = evt(i).duration;
     end
-    
+
   case 'fcdc_matbin'
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header and event
     [path, file, ext] = fileparts(filename);
