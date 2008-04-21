@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.72  2008/04/21 11:50:51  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
 % Revision 1.71  2008/04/18 14:08:03  roboos
 % added eeglab_set
 %
@@ -747,8 +750,8 @@ elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filen
   ftype = 'mbfys_ama';
   manufacturer = 'MBFYS';
   content = 'BEM volume conduction model';
-  
-  % Electrical Geodesics Incorporated EGIS format
+
+  % Electrical Geodesics Incorporated format
 elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.gave') || filetype_check_extension(filename, '.raw')) && (filetype_check_header(filename, [char(1) char(2) char(3) char(4) char(255) char(255)]) || filetype_check_header(filename, [char(3) char(4) char(1) char(2) char(255) char(255)]))
   ftype = 'egi_egia';
   manufacturer = 'Electrical Geodesics Incorporated';
@@ -757,7 +760,12 @@ elseif (filetype_check_extension(filename, '.egis') || filetype_check_extension(
   ftype = 'egi_egis';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'raw EEG data';
-  
+elseif (filetype_check_extension(filename, '.sbin') || filetype_check_extension(filename, '.raw'))
+  ftype = 'egi_sbin';
+  manufacturer = 'Electrical Geodesics Incorporated';
+  content = 'averaged EEG data';
+
+
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
