@@ -6,7 +6,7 @@ function [depth] = sourcedepth(pos, vol)
 % Use as
 %   depth = sourcedepth(pos, vol);
 % where
-%   pos     Nx3 matris with the position of N sources
+%   pos     Nx3 matrix with the position of N sources
 %   vol     structure describing volume condition model
 %
 % A negative depth indicates that the source is inside the source
@@ -14,9 +14,12 @@ function [depth] = sourcedepth(pos, vol)
 %
 % See also FIND_INSIDE_VOL
 
-% Copyright (C) 2007, Robert Oostenveld
+% Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: sourcedepth.m,v $
+% Revision 1.4  2008/04/21 12:09:47  roboos
+% small change to documentation
+%
 % Revision 1.3  2008/04/15 20:36:21  roboos
 % added explicit handling of various BEM implementations, i.e. for all voltype variants
 %
@@ -37,7 +40,7 @@ function [depth] = sourcedepth(pos, vol)
 switch voltype(vol)
 
 % single-sphere or multiple concentric spheres
-case {'singlesphere' 'concentric'}
+case {'singlesphere', 'concentric'}
   if ~isfield(vol, 'source')
     % locate the innermost compartment and remember it
     [dum, vol.source] = min(vol.r);
