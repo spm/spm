@@ -22,6 +22,9 @@ function dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_data.m,v $
+% Revision 1.4  2008/04/21 11:44:58  roboos
+% preallocate space for the data (thanks to Joseph)
+%
 % Revision 1.3  2007/12/20 08:21:22  roboos
 % changed from returning a 2d to a 3d matrix, thanks to Joseph
 %
@@ -66,6 +69,8 @@ elseif fhdr(2) == 3
 else
     error('This is not an EGIS file.');
 end;
+
+dat=zeros(hdr.nChans,hdr.nSamples,endtrial-begtrial+1);
 
 fseek(fh, fhdr(3)+((begtrial-1)*hdr.nChans*hdr.nSamples*2), 'bof');
 for segment=1:(endtrial-begtrial+1)
