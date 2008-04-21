@@ -30,6 +30,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabheader.m,v $
+% Revision 1.2  2008/04/21 18:45:59  roboos
+% fixed bug, ori should be orig
+%
 % Revision 1.1  2008/04/18 14:04:48  roboos
 % new implementation by Arno, shoudl be tested
 %
@@ -74,4 +77,4 @@ end;
 %end;
 EEG.icaact = [];
 
-header.ori = EEG;
+header.orig = EEG;

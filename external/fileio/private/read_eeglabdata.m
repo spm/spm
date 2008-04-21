@@ -7,10 +7,8 @@
 %   filename - [string] file name
 %
 % Optional inputs:
-%   'begsample' - [integer] first sample to read
-%   'endsample' - [integer] last sample to read
-%   'begtrial'  - [integer] first trial to read, mutually exclusive with begsample+endsample
-%   'endtrial'  - [integer] last trial to read, mutually exclusive with begsample+endsample
+%   'begtrial'  - [integer] first trial to read
+%   'endtrial'  - [integer] last trial to read
 %   'chanindx'  - [integer] list with channel indices to read
 %   'header'    - FILEIO structure header
 %
@@ -38,6 +36,10 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_eeglabdata.m,v $
+% Revision 1.2  2008/04/21 18:45:23  roboos
+% fixed bug due to sample/trial selection mixup
+% only read the selected trials
+%
 % Revision 1.1  2008/04/18 14:04:48  roboos
 % new implementation by Arno, shoudl be tested
 %
@@ -60,11 +62,8 @@ if isempty(header)
   header = read_eeglabheader(filename);
 end;
 
-if isempty(begsample), begsample = 1; end;
-if isempty(endsample), endsample = header.nSamples; end;
 if isempty(begtrial), begtrial = 1; end;
 if isempty(endtrial), endtrial = header.nTrials; end;
-if isempty(chanindx), chanindx = [1:header.nChans]; end;
 
 if ischar(header.orig.data)
   if strcmpi(header.orig.data(end-2:end), 'set'),
@@ -72,12 +71,24 @@ if ischar(header.orig.data)
   else
     fid = fopen(header.orig.data);
     if fid == -1, error('Cannot not find data file'); end;
-    dat = fread(fid,prod([ header.nChans header.nSamples*header.nTrials ]),'float');
+
+    nTrials = endtrial-begtrial+1;
+    offset = (begtrial-1)*header.nChans*header.nSamples*4; % number of bytes to skip
+    fseek(fid, offset, 'cof');
+
+    % only read the desired trials
+    dat = fread(fid,prod([header.nChans header.nSamples*nTrials]),'float');
+    dat = reshape(dat, header.nChans, header.nSamples, nTrials);
     fclose(fid);
-    dat = reshape(dat, header.nChans, header.nSamples, header.nTrials);
   end;
 else
   dat = header.orig.data;
+  dat = reshape(dat, header.nChans, header.nSamples, header.nTrials);
+  dat = dat(:,:,begtrial:endtrial);
 end;
 
-dat = dat(chanindx, begsample:endsample, begtrial:endtrial);
+if ~isempty(chanindx)
+  % select the desired channels
+  dat = dat(chanindx,:,:);
+end
+
