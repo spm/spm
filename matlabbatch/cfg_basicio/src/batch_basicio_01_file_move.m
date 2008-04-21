@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1456 $)
+% Job configuration created by cfg_util (rev $Rev: 1459 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/delete';
@@ -16,7 +16,7 @@ matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.tag = 'moveto';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.filter = 'dir';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.ufilter = '.*';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.dir = '';
-matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.num = double([0 1]);
+matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.num = double([1 1]);
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.check = double([]);
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.help = {'Files will be moved to the specified directory.'};
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_const.type = 'cfg_const';

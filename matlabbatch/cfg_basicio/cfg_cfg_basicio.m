@@ -24,7 +24,7 @@ moveto.name    = 'Move to';
 moveto.help    = {'Files will be moved to the specified directory.'};
 moveto.filter = 'dir';
 moveto.ufilter = '.*';
-moveto.num     = [0 1];
+moveto.num     = [1 1];
 % ---------------------------------------------------------------------
 % delete Delete
 % ---------------------------------------------------------------------
