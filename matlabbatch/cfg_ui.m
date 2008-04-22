@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: cfg_ui.m 1470 2008-04-22 10:06:24Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1470 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -157,9 +157,22 @@ for k = 2:numel(lvl)
         toplevelids{end+1}   = id{k};
     end;
 end;
-if dflag
-    % add defaults manipulation entries
-    for k =1:numel(toplevelmenus)
+hkeys = cell(1,numel(toplevelmenus)+2);
+hkeys{1} = 'f';
+hkeys{2} = 'e';
+for k =1:numel(toplevelmenus)
+    % add hot keys
+    clabel = get(toplevelmenus(k),'Label');
+    for l = 1:numel(clabel)
+        if ~isspace(clabel(l)) && ~any(strcmpi(clabel(l),hkeys))
+            hkeys{k+2} = lower(clabel(l));
+            clabel = [clabel(1:l-1) '&' clabel(l:end)];
+            break;
+        end;
+    end;
+    set(toplevelmenus(k),'Label',clabel);
+    if dflag
+        % add defaults manipulation entries
         cm = uimenu('Parent',toplevelmenus(k), 'Label','Load Defaults', ...
                     'Callback',@local_loaddefs, 'Userdata',toplevelids{k}, ...
                     'tag','AddedAppMenu', 'Separator','on');

@@ -17,7 +17,7 @@ function spmjobs = spm_def
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_def.m 1408 2008-04-15 10:15:34Z volkmar $
+% $Id: spm_def.m 1470 2008-04-22 10:06:24Z volkmar $
 
 spm_defaults;
 global defaults;
@@ -342,7 +342,6 @@ spmjobs.util.ecat.opts.ext = '.img';
 spmjobs.util.spm_surf.data = '<UNDEFINED>';
 spmjobs.util.spm_surf.mode = double(3);
 spmjobs.util.spm_surf.thresh = double(0.5);
-spmjobs.util.runbatch.jobs = '<UNDEFINED>';
 spmjobs.util.cdir.directory = '<UNDEFINED>';
 spmjobs.util.md.basedir = '<UNDEFINED>';
 spmjobs.util.md.name = '<UNDEFINED>';

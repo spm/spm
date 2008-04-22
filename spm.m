@@ -23,7 +23,7 @@ function varargout=spm(varargin)
 % `spm_help spm.man` in the MATLAB command window)
 % 
 % This spm function initialises the default parameters, and displays a
-% splash screen with buttons leading to the PET,fMRI and M/EEG
+% splash screen with buttons leading to the PET, fMRI and M/EEG
 % modalities. Alternatively, `spm('pet')`, `spm('fmri')`, `spm('eeg')`
 % (equivalently `spm pet`, `spm fmri` and `spm eeg`) lead directly to 
 % the respective modality interfaces.
@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1462 2008-04-21 18:34:38Z guillaume $
+% $Id: spm.m 1470 2008-04-22 10:06:24Z volkmar $
 
 
 %=======================================================================
