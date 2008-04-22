@@ -20,6 +20,9 @@ function [interp] = megrepair(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: megrepair.m,v $
+% Revision 1.16  2008/04/22 13:28:01  roboos
+% ensure that for loop over goodsensindcs is correct (fixes bug reported by Jurrian)
+%
 % Revision 1.15  2008/04/08 12:00:51  roboos
 % also work on eeg data (using data.elec)
 % only use the channels in the interpolation that are "good" (thanks to Markus Bauer)
@@ -124,7 +127,6 @@ Ntrials = length(data.trial);
 Nchans = length(data.label);
 Nsens  = length(sens.label);
 
-
 repair = eye(Nchans,Nchans);
 [badindx] = match_str(data.label, cfg.badchannel);
 
@@ -133,7 +135,7 @@ for k=badindx(:)'
   repair(k,k) = 0;
   
   sensindx = match_str(sens.label, data.label{k});
-  for l = goodsensindcs
+  for l=goodsensindcs(:)'
     distance = norm(sens.pnt(l,:)-sens.pnt(sensindx,:));
     if distance<cfg.neighbourdist
       % include this channel as neighbour, weigh with inverse distance
@@ -174,7 +176,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrepair.m,v 1.15 2008/04/08 12:00:51 roboos Exp $';
+cfg.version.id   = '$Id: megrepair.m,v 1.16 2008/04/22 13:28:01 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
