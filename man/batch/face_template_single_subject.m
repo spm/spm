@@ -167,9 +167,9 @@ matlabbatch{7}.spmjobs{1}.spatial{1}.preproc.output.CSF = double([0 0 0]);
 matlabbatch{7}.spmjobs{1}.spatial{1}.preproc.output.biascor = double(1);
 matlabbatch{7}.spmjobs{1}.spatial{1}.preproc.output.cleanup = double(0);
 matlabbatch{7}.spmjobs{1}.spatial{1}.preproc.opts.tpm = {
-                                                         '/afs/fbi.ukl.uni-freiburg.de/apps/spm8/tpm/grey.nii'
-                                                         '/afs/fbi.ukl.uni-freiburg.de/apps/spm8/tpm/white.nii'
-                                                         '/afs/fbi.ukl.uni-freiburg.de/apps/spm8/tpm/csf.nii'
+  fullfile(spm('dir'),'tpm','grey.nii')
+  fullfile(spm('dir'),'tpm','white.nii')
+  fullfile(spm('dir'),'tpm','csf.nii')
 };
 matlabbatch{7}.spmjobs{1}.spatial{1}.preproc.opts.ngaus = double([2
                                                                   2
