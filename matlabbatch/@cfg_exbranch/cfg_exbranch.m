@@ -13,7 +13,6 @@ function item = cfg_exbranch(varargin)
 %              rooted at this node
 %    * help  - help text
 % GUI/job manager fields
-%    * id   
 %    * expanded
 %    * hidden
 % All fields above are inherited from the branch configuration item class.
@@ -27,6 +26,8 @@ function item = cfg_exbranch(varargin)
 %    * tdeps - list where this branch is target of a dependency
 %    * sdeps - list where this branch is source of a dependency
 %    * chk   - field to save check status from cfg_item.check callbacks
+%    * id    - id of this cfg_exbranch. This is used to reference the
+%              cfg_exbranch in cfg_dep objects.
 %
 % Public Methods
 % ==============
@@ -52,9 +53,9 @@ function item = cfg_exbranch(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_exbranch.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: cfg_exbranch.m 1467 2008-04-22 07:46:05Z volkmar $
 
-rev = '$Rev: 1405 $';
+rev = '$Rev: 1467 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-04-21 14:10:42.
+% Created at 2008-04-21 23:13:57.
 % ---------------------------------------------------------------------
 % files Files to move/delete
 % ---------------------------------------------------------------------

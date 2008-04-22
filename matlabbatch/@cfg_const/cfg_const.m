@@ -13,7 +13,6 @@ function item = cfg_const(varargin)
 %              const should not change.
 %    * help  - help text
 % GUI/job manager fields
-%    * id   
 %    * expanded
 %    * hidden
 % All fields are inherited from the generic configuration item class.
@@ -47,9 +46,9 @@ function item = cfg_const(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_const.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_const.m 1467 2008-04-22 07:46:05Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1467 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

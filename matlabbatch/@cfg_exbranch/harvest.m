@@ -44,16 +44,17 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: harvest.m 1467 2008-04-22 07:46:05Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1467 $';
 
 [tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
     dep = [];
 else
+    item_id = subsref(item, substruct('.','id'));
     if ~isempty(tdeps)
-        [tdeps.tgt_exbranch] = deal(item.cfg_branch.id);
+        [tdeps.tgt_exbranch] = deal(item_id);
     end;
     if ~isequal(tdeps, item.tdeps)
         if ~isempty(item.tdeps)
@@ -69,13 +70,13 @@ else
         if ~isempty(item.vout)
             item.sout = feval(item.vout, val);
             if ~isempty(item.sout)
-                [item.sout.src_exbranch] = deal(item.cfg_branch.id);
+                [item.sout.src_exbranch] = deal(item_id);
             end;
         elseif ~isempty(item.vfiles)
             warning('matlabbatch:harvest:vfiles', 'Using deprecated ''vfiles'' output from node ''%s''.', tag);
             item.sout = cfg_dep;
             item.sout.sname = sprintf('Output from ''%s''', subsref(item, substruct('.','name')));
-            item.sout.src_exbranch = item.cfg_branch.id;
+            item.sout.src_exbranch = item_id;
             item.sout.src_output = substruct('.','vfiles');
         end;
         if ~isempty(osout) && ~isempty(item.sout)
@@ -121,5 +122,7 @@ else
     dep = tdeps;
     % save chk status
     item.chk = chk;
-    cj = subsasgn(cj, item.cfg_branch.id, item);
+    if ~isempty(item_id) % check whether we are in root node
+        cj = subsasgn(cj, item_id, item);
+    end;
 end;

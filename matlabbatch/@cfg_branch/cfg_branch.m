@@ -14,7 +14,6 @@ function item = cfg_branch(varargin)
 %              rooted at this node
 %    * help  - help text
 % GUI/job manager fields
-%    * id   
 %    * expanded
 %    * hidden
 % All fields are inherited from the generic configuration item class.
@@ -51,9 +50,9 @@ function item = cfg_branch(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_branch.m 1337 2008-04-09 15:52:05Z volkmar $
+% $Id: cfg_branch.m 1467 2008-04-22 07:46:05Z volkmar $
 
-rev = '$Rev: 1337 $';
+rev = '$Rev: 1467 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

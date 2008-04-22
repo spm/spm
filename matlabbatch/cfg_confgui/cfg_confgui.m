@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: cfg_confgui.m 1467 2008-04-22 07:46:05Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1467 $';
 
 %% Declaration of fields
 
@@ -421,6 +421,7 @@ gencode_gen.tag     = 'gencode_gen';
 gencode_gen.val     = {gencode_fname, gencode_dir, gencode_var};
 gencode_gen.help    = {'Generate code from a cfg_item tree.'};
 gencode_gen.prog    = @cfg_cfg_gencode;
+gencode_gen.vout    = @vout_cfg_gencode;
 
 %% Assemble Menu
 
@@ -453,14 +454,14 @@ menu_cfg.help   = help2cell(mfilename);
 
 %% Helper functions
 
-function cfg_cfg_gencode(varargin)
+function out = cfg_cfg_gencode(varargin)
 % Transform struct into class based tree
 c0 = cfg_struct2cfg(varargin{1}.gencode_var);
 % Generate code
 [str tag] = gencode(c0,'',{},'',cfg_tropts({{}},1,inf,1,inf,true));
 [p n e v] = fileparts(varargin{1}.gencode_fname);
-fname = fullfile(p, [n '.m']);
-fid = fopen(fullfile(varargin{1}.gencode_dir{1}, fname), 'w');
+out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
+fid = fopen(out.cfg_file{1}, 'w');
 fprintf(fid, 'function %s = %s\n', tag, n);
 fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH configuration\n' ...
@@ -477,8 +478,8 @@ fclose(fid);
 [u1 djob]  = harvest(c0, c0, true, true);
 [str dtag] = gencode(djob, sprintf('%s_def', tag));
 dn = sprintf('%s_def', n);
-dfname     = fullfile(p, sprintf('%s.m', dn));
-fid = fopen(fullfile(varargin{1}.gencode_dir{1}, dfname), 'w');
+out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
+fid = fopen(out.def_file{1}, 'w');
 fprintf(fid, 'function %s = %s\n', dtag, dn);
 fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH defaults\n' ...
@@ -493,8 +494,8 @@ for k = 1:numel(str)
 end;
 fclose(fid);
 % Generate cfg_util initialisation file
-fid = fopen(fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m'), ...
-            'w');
+out.mlb_file{1} = fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m');
+fid = fopen(out.mlb_file{1}, 'w');
 fprintf(fid, 'function [cfg, def] = cfg_mlbatch_appcfg(varargin)\n');
 fprintf(fid, ...
 ['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...
@@ -533,7 +534,20 @@ end;
 function vout = cfg_cfg_vout(varargin)
 % cfg_struct2cfg returns its output immediately, so a subscript '(1)' is
 % appropriate.
-
 vout = cfg_dep;
 vout.sname = sprintf('%s (%s)', varargin{1}.name, varargin{1}.type);
 vout.src_output = substruct('()', {1});
+
+function vout = vout_cfg_gencode(varargin)
+vout(1)            = cfg_dep;
+vout(1).sname      = 'Generated Configuration File';
+vout(1).src_output = substruct('.', 'cfg_file');
+vout(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+vout(2)            = cfg_dep;
+vout(2).sname      = 'Generated Defaults File';
+vout(2).src_output = substruct('.', 'def_file');
+vout(2).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+vout(3)            = cfg_dep;
+vout(3).sname      = 'Generated Initialisation File';
+vout(3).src_output = substruct('.', 'mlb_file');
+vout(3).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});

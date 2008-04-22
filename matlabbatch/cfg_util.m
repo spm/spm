@@ -322,9 +322,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: cfg_util.m 1467 2008-04-22 07:46:05Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1467 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -459,23 +459,9 @@ switch lower(cmd),
             varargout{1} = cjob;
             varargout{2} = {};
             return;
-        elseif iscellstr(varargin{1})
-            job = {};
-            for k = 1:numel(varargin{1})
-                [p jobfun e v] = fileparts(varargin{1}{k});
-                switch e,
-                    case '.m',
-                        job{end+1} = local_eval(jobfun,p);
-                    case '.mat'
-                        tmp = load(varargin{1}{k});
-                        if isfield(tmp,'matlabbatch')
-                            job{end+1} = tmp.matlabbatch;
-                        else
-                            error('matlabbatch:initjob:loadmat', 'Load failed.');
-                        end;
-                end;
-            end;
-        elseif iscell(varargin{1})
+        elseif ischar(varargin{1}) || iscellstr(varargin{1})
+            job = local_load_jobs(varargin{1});
+        elseif iscell(varargin{1}{1})
             % try to initialise cell array of jobs
             job = varargin{1};
         else
@@ -1106,6 +1092,56 @@ end;
 % harvest, update dependencies
 [u1 u2 u3 u4 u5 cjob.cj] = harvest(cjob.cj, cjob.cj, false, false);
 mod_job_idlist = mat2cell(1:numel(cjob.cjid2subs),1,ones(1,numel(cjob.cjid2subs)));
+%-----------------------------------------------------------------------
+
+%-----------------------------------------------------------------------
+function newjobs = local_load_jobs(job)
+% Load a list of possible job files, return a cell list of jobs. If a job
+% file failed to load, an empty cell is returned in the list.
+if ischar(job)
+    filenames = cellstr(job);
+else
+    filenames = job;
+end;
+newjobs = {};
+for cf = 1:numel(filenames)
+    [p,nam,ext] = fileparts(filenames{cf});
+    switch ext
+        case '.xml',
+            try
+                loadxml(filenames{cf},'matlabbatch');
+            catch
+                warning('cfg_util:local_load_jobs','LoadXML failed: ''%s''',filenames{cf});
+            end;
+        case '.mat'
+            try
+                S=load(filenames{cf});
+                matlabbatch = S.matlabbatch;
+            catch
+                warning('cfg_util:local_load_jobs','Load failed: ''%s''',filenames{cf});
+            end;
+        case '.m'
+            opwd = pwd;
+            try
+                if ~isempty(p)
+                    cd(p);
+                end;
+                eval(nam);
+            catch
+                warning('cfg_util:local_load_jobs','Eval failed: ''%s''',filenames{cf});
+            end;
+            cd(opwd);
+            if ~exist('matlabbatch','var')
+                warning('cfg_util:local_load_jobs','No matlabbatch job found in ''%s''', filenames{cf});
+            end;
+        otherwise
+            warning('cfg_util:local_load_jobs','Unknown extension: ''%s''', filenames{cf});
+    end;
+    if exist('matlabbatch','var')
+        newjobs = {newjobs{:} matlabbatch};
+        clear matlabbatch;
+    end;
+end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
