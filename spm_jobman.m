@@ -30,6 +30,13 @@ function varargout = spm_jobman(varargin)
 % job itself). The matlabbatch system does not need graphics output to run
 % a job.
 %
+%     node - indicates which part of the configuration is to be used.
+%            For example, it could be 'jobs.spatial.coreg'.
+%
+%     job  - can be the name of a jobfile (as a .m, .mat or a .xml), a
+%            cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
+%            cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
+%
 % FORMAT spm_jobman('initcfg')
 % Initialise cfg_util configuration and set path accordingly.
 %
@@ -41,13 +48,6 @@ function varargout = spm_jobman(varargin)
 % compatible format. The new job files will be MATLAB .m files and have a
 % _spm8 appended to their filename.
 %
-%     node - indicates which part of the configuration is to be used.
-%            For example, it could be 'jobs.spatial.coreg'.
-%
-%     job  - can be the name of a jobfile (as a .m, .mat or a .xml), a
-%            cellstr of filenames, a 'jobs'/'matlabbatch' variable or a
-%            cell of 'jobs'/'matlabbatch' variables loaded from a jobfile.
-%
 % not implemented: FORMAT spm_jobman('help',node)
 %        spm_jobman('help',node,width)
 % Creates a cell array containing help information.  This is justified
@@ -58,9 +58,12 @@ function varargout = spm_jobman(varargin)
 % not implemented: FORMAT spm_jobman('defaults')
 % Runs the interactive defaults editor.
 %
-% not implemented: FORMAT [tag, jobs, typ] = spm_jobman('harvest', job_id)
+% FORMAT [tag, job] = spm_jobman('harvest', job_id|cfg_item|cfg_struct)
 % Take the job with id job_id in cfg_util and extract what is
-% needed to save it as a batch job (for experts only).
+% needed to save it as a batch job (for experts only). If the argument is a
+% cfg_item or cfg_struct tree, it will be harvested outside cfg_util. 
+% tag - tag of the root node of the current job/cfg_item tree
+% job - harvested data from the current job/cfg_item tree
 %
 % FORMAT spm_jobman('pulldown')
 % Creates a pulldown 'TASKS' menu in the Graphics window.
@@ -82,36 +85,37 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1462 2008-04-21 18:34:38Z guillaume $
+% $Id: spm_jobman.m 1468 2008-04-22 08:27:22Z volkmar $
 
 
 if nargin==0
     cfg_ui;
 else
     cmd = lower(varargin{1});
-    % sort out job/node arguments for interactive, serial, run cmds
-    if nargin>=2 && ~isempty(varargin{2})
-        % do not consider node if job is given
-        if ischar(varargin{2}) || iscellstr(varargin{2})
-            jobs = load_jobs(varargin{2});
-        elseif iscell(varargin{2})
-            if iscell(varargin{2}{1})
-                % assume varargin{2} is a cell of jobs
-                jobs = varargin{2};
-            else
-                % assume varargin{2} is a single job
-                jobs{1} = varargin{2};
+    if any(strcmp(cmd, {'serial','interactive','run','run_nogui'}))
+        % sort out job/node arguments for interactive, serial, run cmds
+        if nargin>=2 && ~isempty(varargin{2})
+            % do not consider node if job is given
+            if ischar(varargin{2}) || iscellstr(varargin{2})
+                jobs = load_jobs(varargin{2});
+            elseif iscell(varargin{2})
+                if iscell(varargin{2}{1})
+                    % assume varargin{2} is a cell of jobs
+                    jobs = varargin{2};
+                else
+                    % assume varargin{2} is a single job
+                    jobs{1} = varargin{2};
+                end;
             end;
+            [mljob comp] = canonicalise_job(jobs);
+        elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
+            % Node spec only allowed for 'interactive', 'serial'
+            mod_cfg_id = cfg_util('tag2mod_cfg_id',varargin{3});
+        else
+            error('spm:spm_jobman:WrongUI', ...
+                'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
         end;
-        [mljob comp] = canonicalise_job(jobs);
-    elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
-        % Node spec only allowed for 'interactive', 'serial'
-        mod_cfg_id = cfg_util('tag2mod_cfg_id',varargin{3});
-    elseif any(strcmp(cmd, {'initcfg','pulldown'}))
-    else
-        error('spm:spm_jobman:WrongUI', ...
-            'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
-    end;    
+    end;
     switch cmd
         case 'initcfg'
             addpath(fullfile(spm('Dir'),'matlabbatch'));
@@ -190,13 +194,23 @@ else
 
         case {'harvest'}
             if nargin == 1
-                warning('spm:spm_jobman:CantHarvest', ...
+                error('spm:spm_jobman:CantHarvest', ...
                         ['Can not harvest job without job_id. Please use ' ...
                          'cfg_util(''harvest'', job_id).']);
+            elseif cfg_util('isjob_id', varargin{2})
+                [tag job] = cfg_util('harvest', varargin{2});
+            elseif isa(varargin{2}, 'cfg_item')
+                [tag job] = harvest(varargin{2}, varargin{2}, false, false);
+            elseif isstruct(varargin{2})
+                % try to convert into class before harvesting
+                c = cfg_struct2cfg(varargin{2});
+                [tag job] = harvest(c,c,false,false);
             else
-                warning('spm:spm_jobman:CantHarvestCfg', ['Can not harvest ' ...
-                                    'configuration struct argument.']);
+                error('spm:spm_jobman:CantHarvestThis', ['Can not harvest ' ...
+                                    'this argument.']);
             end;
+            varargout{1} = tag;
+            varargout{2} = job;
 
         otherwise
             error(['"' varargin{1} '" - unknown option']);
@@ -273,8 +287,10 @@ return;
 
 %------------------------------------------------------------------------
 function newjobs = load_jobs(job)
-% Load a list of possible job files, return a cell list of jobs. If a job
-% file failed to load, an empty cell is returned in the list.
+% Load a list of possible job files, return a cell list of jobs. Jobs can
+% be either SPM5 (i.e. containing a 'jobs' variable) or SPM8/matlabbatch
+% jobs. If a job file failed to load, an empty cell is returned in the
+% list.
 if ischar(job)
     filenames = cellstr(job);
 else
@@ -289,7 +305,11 @@ for cf = 1:numel(filenames)
             try
                 loadxml(filenames{cf},'jobs');
             catch
-                warning('LoadXML failed: ''%s''',filenames{cf});
+                try
+                    loadxml(filenames{cf},'matlabbatch');
+                catch
+                    warning('LoadXML failed: ''%s''',filenames{cf});
+                end;
             end;
             spm('Pointer');
         case '.mat'
@@ -297,7 +317,11 @@ for cf = 1:numel(filenames)
                 S=load(filenames{cf});
                 jobs = S.jobs;
             catch
-                warning('Load failed: ''%s''',filenames{cf});
+                try
+                    matlabbatch = S.matlabbatch;
+                catch
+                    warning('Load failed: ''%s''',filenames{cf});
+                end;
             end;
         case '.m'
             opwd = pwd;
@@ -310,9 +334,7 @@ for cf = 1:numel(filenames)
                 warning('Eval failed: ''%s''',filenames{cf});
             end;
             cd(opwd);
-            if exist('matlabbatch','var')
-                jobs = matlabbatch;
-            elseif ~exist('jobs','var')
+            if ~(exist('jobs','var') || exist('matlabbatch','var'))
                 warning('No SPM5/SPM8 job found in ''%s''', filenames{cf});
             end;
         otherwise
@@ -320,6 +342,9 @@ for cf = 1:numel(filenames)
     end;
     if exist('jobs','var')
         newjobs = {newjobs{:} jobs};
+        clear jobs;
+    elseif exist('matlabbatch','var')
+        newjobs = {newjobs{:} matlabbatch};
         clear jobs;
     else
         newjobs = {newjobs{:} {}};
