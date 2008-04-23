@@ -21,9 +21,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: gencode.m 1472 2008-04-23 12:02:44Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1472 $';
 
 if nargin < 2
     tag = inputname(1);
@@ -62,19 +62,20 @@ for k = 1:numel(item)
     for l = 1:numel(fn)
         switch class(item(k).(fn{l}))
             case 'struct'
-                % the initial fields are empty structs which need to be
-                % indexed explicitly
-                if numel(item(k).(fn{l})) == 1
+                % substruct fields
+                % only create if not empty, use gencode_substructcode to
+                % produce a one-line code.
+                if numel(item(k).(fn{l})) >= 1
                     % force index (1) if there is exactly one entry
-                    tag1 = sprintf('%s(%d).%s(1)', tag, k, fn{l});
-                else
                     tag1 = sprintf('%s(%d).%s', tag, k, fn{l});
+                    [str1 tag1] = gencode_substructcode(item(k).(fn{l}), tag1);
+                    str = {str{:} str1{:}};
                 end;
             otherwise
                 % other field should not be indexed
                 tag1 = sprintf('%s(%d).%s', tag, k, fn{l});
+                [str1 tag1 ccnt1 cind1] = gencode(item(k).(fn{l}), tag1, tag1, tropts);
+                str = {str{:} str1{:}};
         end;
-        [str1 tag1 ccnt1 cind1] = gencode(item(k).(fn{l}), tag1, tag1, tropts);
-        str = {str{:} str1{:}};
     end;
 end;

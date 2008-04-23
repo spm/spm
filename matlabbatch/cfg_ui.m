@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1470 2008-04-22 10:06:24Z volkmar $
+% $Id: cfg_ui.m 1472 2008-04-23 12:02:44Z volkmar $
 
-rev = '$Rev: 1470 $';
+rev = '$Rev: 1472 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -468,15 +468,35 @@ switch(udmodule.contents{5}{value})
                 str{k+1} = udmodule.contents{2}{value}{1}(k).sname; % return something to be printed
             end;
         elseif ~isempty(udmodule.contents{2}{value})
-            str = gencode(udmodule.contents{2}{value}{1},'val');
+            if ndims(udmodule.contents{2}{value}{1}) <= 2 
+                if ischar(udmodule.contents{2}{value}{1})
+                    str = cellstr(udmodule.contents{2}{value}{1});
+                elseif iscellstr(udmodule.contents{2}{value}{1})
+                    str = udmodule.contents{2}{value}{1};
+                elseif isnumeric(udmodule.contents{2}{value}{1})
+                    str = cellstr(num2str(udmodule.contents{2}{value}{1}));
+                else
+                    str = gencode(udmodule.contents{2}{value}{1},'val');
+                end;
+            else
+               str = gencode(udmodule.contents{2}{value}{1},'val');
+            end;
         else
             str = '';
         end;
         set(handles.valshow,'String', str, 'Visible','on', 'Value', 1);
         set(handles.valshowLabel, 'Visible','on');
         if ~isfield(udmodlist, 'defid')
-            set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddDep$'), ...
-                'Visible','on', 'Enable','on');
+            sout = cat(2,udmodlist(1).sout{1:cmod-1});
+            smatch = false(size(sout));
+            % loop over sout to find whether there are dependencies that match the current item
+            for k = 1:numel(sout)
+                smatch(k) = cfg_util('match', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, sout(k).tgt_spec);
+            end;
+            if any(smatch)
+                set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddDep$'), ...
+                    'Visible','on', 'Enable','on');
+            end;
         end;
         if strcmp(udmodule.contents{5}{value},'cfg_files')
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*SelectFiles$'), ...
@@ -696,7 +716,7 @@ if ~isempty(val) && isa(val{1}, 'cfg_dep')
     % silently clear cfg_deps
     instr = {''};
 else
-    instr = {strvcat(get(handles.valshow, 'String'))};
+    instr = gencode(udmodule.contents{2}{value}{1},'val');
 end;
 while ~sts
     % estimate size of input field based on instr
@@ -1043,11 +1063,13 @@ else
     cmd = 'Continue';
 end;
 if strcmpi(cmd,'continue')
-    [files sts] = cfg_getfile([1 Inf], '.*\.m$', 'Load Job File(s)');
+    [files sts] = cfg_getfile([1 Inf], 'batch', 'Load Job File(s)');
     if sts
+        files = cellstr(files);
         cfg_util('deljob',udmodlist(1).cjob);
         udmodlist = local_init_modlist;
-        udmodlist.cjob = cfg_util('initjob', cellstr(files));
+        udmodlist.wd = fileparts(files{1});
+        udmodlist.cjob = cfg_util('initjob', files);
         set(handles.modlist, 'userdata', udmodlist);
         local_showjob(hObject);
     end;
@@ -1058,11 +1080,16 @@ function MenuFileSave_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file path idx] = uiputfile({'*.m','Matlab m file'}, 'Save Job');
+udmodlist = get(handles.modlist, 'userdata');
+opwd = pwd;
+if ~isempty(udmodlist.wd)
+    cd(udmodlist.wd);
+end;
+[file path idx] = uiputfile({'*.mat','Matlab .mat File';'*.m','Matlab Script File'}, 'Save Job');
+cd(opwd);
 if isnumeric(file) && file == 0
     return;
 end;
-udmodlist = get(handles.modlist, 'userdata');
 cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
 udmodlist.modified = false;
 set(handles.modlist,'userdata',udmodlist);
@@ -1075,7 +1102,7 @@ function MenuFileRun_Callback(hObject, eventdata, handles)
 set(get(0,'Children'),'Pointer','watch');
 udmodlist = get(handles.modlist, 'userdata');
 try
-    cfg_util('run',udmodlist(1).cjob);
+    cfg_util('runserial',udmodlist(1).cjob);
 catch
     l = lasterror;
     errordlg(l.message,'Error in job execution', 'modal');
@@ -1396,7 +1423,7 @@ local_valedit_ReplItem(hObject);
 function modlist = local_init_modlist
 % Initialise modlist to empty struct
 % Don't initialise defid field - this will be added by defaults editor
-modlist = struct('cjob',[],'cmod',[],'id',[],'sout',[],'modified',false);
+modlist = struct('cjob',[],'cmod',[],'id',[],'sout',[],'modified',false,'wd','');
 
 
 % --- Executes when user attempts to close cfg_ui.

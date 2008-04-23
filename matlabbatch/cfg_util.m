@@ -322,9 +322,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1467 2008-04-22 07:46:05Z volkmar $
+% $Id: cfg_util.m 1472 2008-04-23 12:02:44Z volkmar $
 
-rev = '$Rev: 1467 $';
+rev = '$Rev: 1472 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -621,15 +621,22 @@ switch lower(cmd),
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob)
             sjob = local_compactjob(jobs(cjob));
-            [tag job] = harvest(sjob.cj, sjob.cj, false, false);
-            jobstr = gencode(job, tag);
+            [tag matlabbatch] = harvest(sjob.cj, sjob.cj, false, false);
             [p n e v] = fileparts(varargin{2});
-            fid = fopen(fullfile(p, [n '.m']),'w');
-            fprintf(fid, '%%-----------------------------------------------------------------------\n');
-            fprintf(fid, '%% Job configuration created by %s (rev %s)\n', mfilename, rev);
-            fprintf(fid, '%%-----------------------------------------------------------------------\n');
-            fprintf(fid, '%s\n', jobstr{:});
-            fclose(fid);
+            switch lower(e)
+                case '.mat',
+                    save(varargin{2},'matlabbatch','-v6');
+                case '.m'
+                    jobstr = gencode(matlabbatch, tag);
+                    fid = fopen(fullfile(p, [n '.m']),'w');
+                    fprintf(fid, '%%-----------------------------------------------------------------------\n');
+                    fprintf(fid, '%% Job configuration created by %s (rev %s)\n', mfilename, rev);
+                    fprintf(fid, '%%-----------------------------------------------------------------------\n');
+                    fprintf(fid, '%s\n', jobstr{:});
+                    fclose(fid);
+                otherwise
+                    warning('matlabbatch:cfg_util:save', 'Unknown file format for %s.', varargin{2});
+            end;
         end;
     case 'setdef',
         % Set defaults for new jobs only

@@ -26,9 +26,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: gencode.m 1472 2008-04-23 12:02:44Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1472 $';
 
 if nargin < 2
     tag = inputname(1);
@@ -171,10 +171,15 @@ switch class(item)
         elseif ~(isnumeric(item) || islogical(item))
             error('matlabbatch:gencode:unknown', 'Code generation for objects of class ''%s'' not implemented.', class(item));
         end;
-        % treat item as numeric or logical
+        % treat item as numeric or logical, don't create 'class'(...)
+        % classifier code for double
         clsitem = class(item);
         if isempty(item)
-            str{1} = sprintf('%s = %s([]);', tag, clsitem);
+            if strcmp(clsitem, 'double')
+                str{1} = sprintf('%s = [];', tag);
+            else
+                str{1} = sprintf('%s = %s([]);', tag, clsitem);
+            end;
         elseif issparse(item)
             % recreate sparse matrix from indices
             [tmpi tmpj tmps] = find(item);
@@ -185,8 +190,12 @@ switch class(item)
             cind = cind + cindi + cindj + cinds;
             str{end+1} = sprintf('%s = sparse(tmpi, tmpj, tmps);', tag);
         elseif ndims(item) == 2
-            % Use mat2str with precision 18
-            str1 = textscan(mat2str(item,18,'class'), '%s', 'delimiter', ';');
+            % Use mat2str with standard precision 15
+            if any(strcmp(clsitem, {'double', 'logical'}))
+                str1 = textscan(mat2str(item), '%s', 'delimiter', ';');
+            else
+                str1 = textscan(mat2str(item,'class'), '%s', 'delimiter', ';');
+            end;
             if numel(str1{1}) > 1
                 % indent lines to tag length plus class definition
                 indent = {repmat(' ', 1, length(tag)+3+strfind(str1{1}{1}, '['))};
