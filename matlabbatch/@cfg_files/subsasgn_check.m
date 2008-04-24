@@ -12,12 +12,11 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1433 2008-04-16 13:36:06Z volkmar $
+% $Id: subsasgn_check.m 1473 2008-04-24 08:14:02Z volkmar $
 
-rev = '$Rev: 1433 $';
+rev = '$Rev: 1473 $';
 
 sts = true;
-checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
 switch subs(1).subs
     case {'num'}
         sts = subsasgn_check_num(val);
@@ -27,7 +26,7 @@ switch subs(1).subs
                               isa(val{1}, 'cfg_dep') || iscellstr(val{1}));
         if ~sts
             warning('matlabbatch:cfg_files:subsasgn_check', ...
-                    '%s: Value must be either empty, a cellstr or a cfg_dep object.', checkstr);
+                    '%s: Value must be either empty, a cellstr or a cfg_dep object.', subsasgn_checkstr(item,subs));
         end;
         if ~isempty(val) && iscellstr(val{1})
             % do filtering and .num checks
@@ -46,12 +45,12 @@ switch subs(1).subs
                 warning('matlabbatch:cfg_files:subsasgn_check', ...
                         ['%s: Number of matching files (%d) less than ' ...
                          'required (%d).'], ...
-                        checkstr, numel(val{1}), item.num(1));
+                        subsasgn_checkstr(item,subs), numel(val{1}), item.num(1));
             elseif numel(val{1}) > item.num(2)
                 warning('matlabbatch:cfg_files:subsasgn_check', ...
                         ['%s: Number of matching files larger than ' ...
                          'max allowed, keeping %d/%d files.'], ...
-                        checkstr, item.num(2), numel(val{1}));
+                        subsasgn_checkstr(item,subs), item.num(2), numel(val{1}));
                 val{1} = val{1}(1:item.num(2));
             end;
         end;

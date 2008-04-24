@@ -24,19 +24,18 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: subsasgn_check.m 1473 2008-04-24 08:14:02Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1473 $';
 
 sts = true;
-checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);
 switch class(item)
     case {'cfg_item'}
         % do subscript checking for base class
         switch subs(1).subs
             case {'tag', 'name'},
                 if ~ischar(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:tagname', '%s: Value must be a string.', checkstr);
+                    warning('matlabbatch:cfg_item:subsasgn_check:tagname', '%s: Value must be a string.', subsasgn_checkstr(item,subs));
                     sts = false;
                 end;
             case {'val'},
@@ -45,14 +44,14 @@ switch class(item)
                 if isa(val, 'cfg_dep')
                     sts = match(item, cfg_dep.tgt_spec);
                     if ~sts
-                        warning('matlabbatch:cfg_item:subsasgn_check:depmatch', '%s: Dependency does not match.', checkstr);
+                        warning('matlabbatch:cfg_item:subsasgn_check:depmatch', '%s: Dependency does not match.', subsasgn_checkstr(item,subs));
                     end;
                 end;
             case {'check'},
                 if ~subsasgn_check_funhandle(val)
                     warning('matlabbatch:cfg_item:subsasgn_check:check', ...
                             ['%s: Value must be a function or function ' ...
-                             'handle on MATLAB path.'], checkstr);
+                             'handle on MATLAB path.'], subsasgn_checkstr(item,subs));
                     sts = false;
                 end;
             case {'help'},
@@ -60,7 +59,7 @@ switch class(item)
                     val = {};
                 else
                     if ~iscellstr(val)
-                        warning('matlabbatch:cfg_item:subsasgn_check:help', '%s: Value must be a cell string.', checkstr);
+                        warning('matlabbatch:cfg_item:subsasgn_check:help', '%s: Value must be a cell string.', subsasgn_checkstr(item,subs));
                         sts = false;
                     end;
                 end;

@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1472 2008-04-23 12:02:44Z volkmar $
+% $Id: cfg_ui.m 1473 2008-04-24 08:14:02Z volkmar $
 
-rev = '$Rev: 1472 $';
+rev = '$Rev: 1473 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 18-Apr-2008 13:25:09
+% Last Modified by GUIDE v2.5 23-Apr-2008 23:15:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -345,8 +345,18 @@ if ~isempty(udmodlist.cmod)
                      {'name','val','labels','values','class','level', ...
                       'all_set','all_set_item'});
     end;
+    set(handles.moduleHead,'String',sprintf('Current Module: %s', contents{1}{1}));
+    namestr = {''};
+    datastr = {''};
+    % Cut 1st entry (module name)
+    % ugly workaround - contents should become a struct array
+    for k = 1:numel(contents)
+        contents{k} = contents{k}(2:end);
+    end;
+    id = id(2:end);
+    stop = stop(2:end);
     for k = 1:numel(contents{1})
-        indent = repmat('  ', 1, contents{6}{k}-1);
+        indent = repmat('  ', 1, contents{6}{k}-2);
         if contents{8}{k}
             if any(strcmp(contents{5}{k}, {'cfg_menu','cfg_files','cfg_entry'})) && ...
                     isa(contents{2}{k}{1}, 'cfg_dep')
@@ -438,6 +448,7 @@ if ~isempty(udmodlist.cmod)
     uicontrol(handles.module);
 else
     set(handles.module, 'String','No Module selected', 'Value',1,'Userdata',[]);
+    set(handles.moduleHead,'String','No Current Module');
     set(findobj(handles.cfg_ui,'-regexp','Tag','^Btn.*'), 'Visible', 'off');
     set(findobj(handles.cfg_ui,'-regexp','Tag','^MenuEditVal.*'), 'Enable', 'off');
     set(handles.valshow, 'String','', 'Visible','off');
@@ -454,32 +465,32 @@ handles = guidata(obj);
 udmodlist = get(handles.modlist, 'userdata');
 cmod = get(handles.modlist, 'value');
 udmodule = get(handles.module, 'userdata');
-value = get(handles.module, 'value');
+citem = get(handles.module, 'value');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^BtnVal.*'), 'Visible','off');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^MenuEditVal.*'), 'Enable','off');
 set(handles.valshow,'String', '','Visible','off','Min',0,'Max',0,'Callback',[]);
-set(handles.valshowLabel, 'Visible','off');
+set(handles.valshowLabel, 'String',sprintf('Current Item: %s',udmodule.contents{1}{citem}),'Visible','off');
 udvalshow = struct('en',{{}},'cval',[]);
-switch(udmodule.contents{5}{value})
+switch(udmodule.contents{5}{citem})
     case {'cfg_entry','cfg_files'}
-        if ~isempty(udmodule.contents{2}{value}) && isa(udmodule.contents{2}{value}{1}, 'cfg_dep')
+        if ~isempty(udmodule.contents{2}{citem}) && isa(udmodule.contents{2}{citem}{1}, 'cfg_dep')
             str = {'Reference from'};
-            for k = 1:numel(udmodule.contents{2}{value}{1}) % we may have multiple dependencies
-                str{k+1} = udmodule.contents{2}{value}{1}(k).sname; % return something to be printed
+            for k = 1:numel(udmodule.contents{2}{citem}{1}) % we may have multiple dependencies
+                str{k+1} = udmodule.contents{2}{citem}{1}(k).sname; % return something to be printed
             end;
-        elseif ~isempty(udmodule.contents{2}{value})
-            if ndims(udmodule.contents{2}{value}{1}) <= 2 
-                if ischar(udmodule.contents{2}{value}{1})
-                    str = cellstr(udmodule.contents{2}{value}{1});
-                elseif iscellstr(udmodule.contents{2}{value}{1})
-                    str = udmodule.contents{2}{value}{1};
-                elseif isnumeric(udmodule.contents{2}{value}{1})
-                    str = cellstr(num2str(udmodule.contents{2}{value}{1}));
+        elseif ~isempty(udmodule.contents{2}{citem})
+            if ndims(udmodule.contents{2}{citem}{1}) <= 2 
+                if ischar(udmodule.contents{2}{citem}{1})
+                    str = cellstr(udmodule.contents{2}{citem}{1});
+                elseif iscellstr(udmodule.contents{2}{citem}{1})
+                    str = udmodule.contents{2}{citem}{1};
+                elseif isnumeric(udmodule.contents{2}{citem}{1})
+                    str = cellstr(num2str(udmodule.contents{2}{citem}{1}));
                 else
-                    str = gencode(udmodule.contents{2}{value}{1},'val');
+                    str = gencode(udmodule.contents{2}{citem}{1},'val');
                 end;
             else
-               str = gencode(udmodule.contents{2}{value}{1},'val');
+               str = gencode(udmodule.contents{2}{citem}{1},'val');
             end;
         else
             str = '';
@@ -498,7 +509,7 @@ switch(udmodule.contents{5}{value})
                     'Visible','on', 'Enable','on');
             end;
         end;
-        if strcmp(udmodule.contents{5}{value},'cfg_files')
+        if strcmp(udmodule.contents{5}{citem},'cfg_files')
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*SelectFiles$'), ...
                 'Visible','on', 'Enable','on');
         else
@@ -539,18 +550,18 @@ switch(udmodule.contents{5}{value})
             indent = '  ';
             % Already selected items
             str1{1} = sprintf('%sNothing selected', indent);
-            for k = 1:numel(udmodule.contents{2}{value})
-                str1{k} = sprintf('%s%s', indent, udmodule.contents{2}{value}{k}.name);
+            for k = 1:numel(udmodule.contents{2}{citem})
+                str1{k} = sprintf('%s%s', indent, udmodule.contents{2}{citem}{k}.name);
             end;
-            for k = 1:numel(udmodule.contents{4}{value})
-                str2{k} = sprintf('%s%s', indent, udmodule.contents{4}{value}{k}.name);
+            for k = 1:numel(udmodule.contents{4}{citem})
+                str2{k} = sprintf('%s%s', indent, udmodule.contents{4}{citem}{k}.name);
             end;
             str = {'Selected Items:', str1{:}, 'Available Items:', str2{:}};
             set(handles.valshow,'String', str, 'Visible','on', 'Value', 1);
             set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddItem$'), ...
                 'Visible','on', 'Enable','on');
-            if ~isempty(udmodule.contents{2}{value})
+            if ~isempty(udmodule.contents{2}{citem})
                 set(findobj(handles.cfg_ui,'-regexp','Tag','.*ReplItem$'), ...
                     'Visible','on', 'Enable','on');
                 set(findobj(handles.cfg_ui,'-regexp','Tag','.*DelItem$'), ...
@@ -565,7 +576,7 @@ if isfield(udmodlist, 'defid')
 else
     cmid = {udmodlist.cjob udmodlist.id{cmod}};
 end;
-[id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
+[id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{citem}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
 set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 
@@ -1154,7 +1165,12 @@ function MenuEditUpdateView_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
-local_showjob(hObject);
+udmodlist = get(handles.modlist,'Userdata');
+if isfield(udmodlist,'defid')
+    local_showmod(hObject);
+else
+    local_showjob(hObject);
+end;
 
 % --------------------------------------------------------------------
 function MenuEditReplMod_Callback(hObject, eventdata, handles)
@@ -1467,3 +1483,21 @@ function valshowBtnCancel_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+% --------------------------------------------------------------------
+function MenuEditFontSize_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuEditFontSize (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+fs = uisetfont;
+if isstruct(fs)
+    % construct argument list for set
+    fn = fieldnames(fs);
+    fs = struct2cell(fs);
+    fnfs = [fn'; fs'];
+    set(handles.modlist, fnfs{:});
+    set(handles.module, fnfs{:});
+    set(handles.valshow, fnfs{:});
+    set(handles.helpbox, fnfs{:});
+end;
+MenuEditUpdateView_Callback(hObject, eventdata, handles);
