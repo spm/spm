@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1473 2008-04-24 08:14:02Z volkmar $
+% $Id: cfg_ui.m 1475 2008-04-24 11:46:53Z volkmar $
 
-rev = '$Rev: 1473 $';
+rev = '$Rev: 1475 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -579,6 +579,7 @@ end;
 [id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{citem}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
 set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
+drawnow;
 
 % --------------------------------------------------------------------
 function [str, cval] = local_showvaledit_list(hObject)
