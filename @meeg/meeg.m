@@ -14,7 +14,7 @@ function D = meeg(varargin)
 % The following is a description of the internal implementation of meeg.
 %
 % Fields of meeg:
-%
+% .type - type of data in the file: 'continuous', 'single', 'evoked'
 % .Fsample - sampling rate
 % .data - substruct containing the information related to the bimary data 
 % file and memory mapping.
@@ -27,7 +27,7 @@ function D = meeg(varargin)
 %
 %
 % .Nsamples - length of the trial (whole data if the file is continuous).
-% .timeOnset - the peri-stimulus time of the first sample in the trial
+% .timeOnset - the peri-stimulus time of the first sample in the trial (in sec)
 %
 % .fname, .path - strings added by spm_eeg_ldata to keep track of where a 
 %                 header struct was loaded from.
@@ -66,9 +66,6 @@ function D = meeg(varargin)
 %       .bad - 0 or 1 flag to mark channels as bad.
 %       .X_plot2D, .Y_plot2D - positions on 2D plane (formerly in ctf). NaN
 %                              for channels that should not be plotted.
-%       .tra - this is a vector which must be compatible with the .sensors 
-%              subfield. It defines how the signal in the corresponding 
-%              channel is derived from the sensors.
 %
 % .sensors
 %
@@ -105,7 +102,7 @@ function D = meeg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 1390 2008-04-14 16:08:09Z vladimir $
+% $Id: meeg.m 1474 2008-04-24 11:33:39Z vladimir $
 
 if nargin==1
     if isstruct(varargin{1})
