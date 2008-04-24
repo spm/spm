@@ -3,7 +3,7 @@ function figure_size = getnicedialoglocation(figure_size, figure_units)
 % or into the upper 3rd of the screen
 
 %  Copyright 1999-2006 The MathWorks, Inc.
-%  $Revision: -1M $
+%  $Revision: 233 $
 
 %%%%%% PLEASE NOTE %%%%%%%%%
 %%%%%% This file has also been copied into:

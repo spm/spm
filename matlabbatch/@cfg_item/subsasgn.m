@@ -1,6 +1,6 @@
-function item = subsasgn(item, subs, varargin)
+function item = subsasgn(item, subs, val)
 
-% function item = subsasgn(item, subs, varargin)
+% function item = subsasgn(item, subs, val)
 % This function implements subsasgn for all classes derived from cfg_item.
 % It relies on the capability of each class constructor to re-classify a
 % struct object after a new value has been assigned to its underlying
@@ -32,103 +32,76 @@ function item = subsasgn(item, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 1411 2008-04-15 13:55:24Z volkmar $
+% $Id: subsasgn.m 1478 2008-04-24 17:36:30Z volkmar $
 
-rev = '$Rev: 1411 $';
+rev = '$Rev: 1478 $';
+
+% Store a copy of subs_fields(item), par_class etc. to speed up things.
+% This is possible, because a copy of this code resides in each class
+% folder.
+persistent my_fields;
+persistent citem;
+persistent par_class;
+persistent par_fields;
+if isempty(my_fields)
+    my_fields = subs_fields(item);
+    citem = class(item);
+    switch citem
+        case 'cfg_exbranch',
+            par_class = 'cfg_branch';
+            pf1 = subs_fields(item.cfg_branch);
+            pf2 = subs_fields(cfg_item);
+            par_fields = {pf1{:} pf2{:}};
+        case 'cfg_item',
+            par_class = '';
+            par_fields = {};
+        otherwise
+            par_class = 'cfg_item';
+            par_fields = subs_fields(item.cfg_item);
+    end;
+end;
 
 if numel(item) ~= 1
     error('matlabbatch:subsasgn:numel', ...
           'Arrays of cfg_item objects not supported.');
 end;
 
-%% One-level subscripts
-%--------------------------------------------------------------------------
-if numel(subs) == 1
-    switch subs(1).type,
-        case {'.'},
-            if numel(item) == 1 && nargin == 3
-                citem = class(item);
-                switch citem
-                    case 'cfg_exbranch',
-                        par_class = 'cfg_branch';
-                        pf1 = subs_fields(item.cfg_branch);
-                        pf2 = subs_fields(cfg_item);
-                        par_fields = {pf1{:} pf2{:}};
-                    case 'cfg_item',
-                        par_class = '';
-                        par_fields = {};
-                    otherwise
-                        par_class = 'cfg_item';
-                        par_fields = subs_fields(item.cfg_item);
+switch subs(1).type,
+    case {'.'},
+        if numel(item) == 1 && nargin == 3
+            if numel(subs) > 1
+                try
+                    val = builtin('subsasgn', subsref(item, subs(1)), subs(2:end), val);
+                catch
+                    val = subsasgn(subsref(item, subs(1)), subs(2:end), val);
                 end;
-                [ok val] = subsasgn_check(item,subs,varargin{1});
-                if ok,
-                    switch subs(1).subs
-                        case par_fields,
-                            item.(par_class) = subsasgn(item.(par_class), subs, val);
-                        case subs_fields(item),
-                            item.(subs(1).subs) = val;
-                        otherwise
-                            error('matlabbatch:subsasgn:unknownfield', ...
-                                  ['Reference to unknown field ''%s''.\n' ...
-                                   'To assign to a field in the job structure, use a reference like ' ...
-                                   '''(x).%s''.'], subs(1).subs, subs(1).subs);
-                    end;
-                end;
-            else
-                error('matlabbatch:subsasgn:numel', ...
-                      ['Array assignments not supported for fields of cfg_item objects.\n' ...
-                       'To assign to a field in the job structure, use a reference like ' ...
-                       '''(x).%s''.'], subs(1).subs);
-
             end;
-        case {'()','{}'},
-        warning('matlabbatch:subsref:jobsubs', ...
-                'Subscript type ''%s'' reserved for future use.', subs(1).type);
-        otherwise
-            error('matlabbatch:subsref:unknowntype', ...
-                  'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
-    end;
-    return;
-end;
-
-%% Two- and multi-level subscripts
-%--------------------------------------------------------------------------
-item = subsasgn_rec(item, subs, varargin{1});
-return;
-
-function it = subsasgn_rec(it, subs, val)
-if numel(subs) == 1
-    % final subscript
-    try
-        it = builtin('subsasgn', it, subs, val);
-    catch
-        % there may be an object method that is missed by builtin
-        it = subsasgn(it, subs, val);
-    end;
-else
-    try
-        it1 = subsref(it, subs(1));
-    catch
-        % it does not yet contain contents at this subscript
-        % builtin subsasgn will be clever enough to create the necessary
-        % struct/fields that are referenced
-        it = builtin('subsasgn', it, subs, val);
-        return;
-    end;
-    it1 = subsasgn_rec(it1, subs(2:end), val);
-    %    try
-        % do we need this?
-        %    it = builtin('subsasgn', it, subs(1), it1);
-        %catch
-    if isobject(it)
-        try
-            % try to use class subsasgn
-            it = subsasgn(it,subs(1), it1);
-        catch
-            it = builtin('subsasgn', it, subs(1), it1);
+            [ok val] = subsasgn_check(item,subs(1),val);
+            if ok,
+                switch subs(1).subs
+                    case par_fields,
+                        %item.(par_class) = subsasgn(item.(par_class), subs, val);
+                        item.(par_class).(subs(1).subs) = val;
+                    case my_fields,
+                        item.(subs(1).subs) = val;
+                    otherwise
+                        error('matlabbatch:subsasgn:unknownfield', ...
+                            ['Reference to unknown field ''%s''.\n' ...
+                            'To assign to a field in the job structure, use a reference like ' ...
+                            '''(x).%s''.'], subs(1).subs, subs(1).subs);
+                end;
+            end;
+        else
+            error('matlabbatch:subsasgn:numel', ...
+                ['Array assignments not supported for fields of cfg_item objects.\n' ...
+                'To assign to a field in the job structure, use a reference like ' ...
+                '''(x).%s''.'], subs(1).subs);
+            
         end;
-    else
-        it = builtin('subsasgn', it, subs(1), it1);
-    end;
+    case {'()','{}'},
+        warning('matlabbatch:subsref:jobsubs', ...
+            'Subscript type ''%s'' reserved for future use.', subs(1).type);
+    otherwise
+        error('matlabbatch:subsref:unknowntype', ...
+            'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end;
