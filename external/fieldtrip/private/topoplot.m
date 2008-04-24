@@ -88,6 +88,7 @@ function [handle] = topoplot(varargin)
 % cfg.hlcolor         = Highlight marker color (default = [0 0 0] (black)) 
 % cfg.hlmarkersize    = Highlight marker size (default = 6) 
 % cfg.hllinewidth     = Highlight marker linewidth (default = 3) 
+% cfg.outline         = 'scalp' or 'ECog' (default = 'scalp')
 % 
 % Note: topoplot() only works when map limits are >= the max and min 
 %                             interpolated data values.
@@ -125,6 +126,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.32  2008/04/24 10:29:38  roboos
+% Added cfg.outline, which can be used to toggle between scalp-mode (default) and ecog mode. This affects the masking and the outline of the head.
+%
 % Revision 1.31  2007/10/29 16:08:22  marvger
 % added the possibility to define the colorbar location (with documentation)
 %
@@ -145,81 +149,6 @@ function [handle] = topoplot(varargin)
 %
 % Revision 1.25  2007/03/14 08:43:12  roboos
 % replaced call to createlayout to prepare_layout, made some small changes to the lay structure
-%
-% Revision 1.24  2007/03/08 16:23:58  ingnie
-% fixed bug in scaling opacitymap
-%
-% Revision 1.23  2007/02/21 12:11:34  roboos
-% fixed typo, thanks to Juan
-%
-% Revision 1.22  2007/02/21 09:59:07  roboos
-% fixed small problem when cfg is empty, it was not recognized as struct (see email from Sameer Walawalkar, 19 Feb 2007)
-%
-% Revision 1.21  2006/10/21 10:02:32  chrhes
-% fixed a small bug, where the variable "err" was not being initialized
-%
-% Revision 1.20  2006/10/19 14:43:34  roboos
-% changed the method for dealing with the different types of input, some small modifications to the help
-%
-% Revision 1.19  2006/10/06 14:33:28  ingnie
-% added highlight option; it also takes cell-arrays to highlight different
-% clusters
-%
-% Revision 1.18  2006/09/14 19:54:49  roboos
-% fixed scaling of opacity mask between 0 and 1
-%
-% Revision 1.17  2006/09/14 19:38:14  roboos
-% added support for cfg.mask (or as key-value input), opacity mask for showing significance
-%
-% Revision 1.16  2006/07/20 18:50:18  ingnie
-% minor change to axis scaling
-%
-% Revision 1.15  2006/06/13 14:54:13  ingnie
-% updated documentation
-%
-% Revision 1.14  2006/05/30 14:19:48  ingnie
-% added colorbar option
-%
-% Revision 1.13  2006/05/30 11:45:47  ingnie
-% updated ducumentation
-%
-% Revision 1.12  2006/05/23 16:05:20  ingnie
-% updated documentation
-%
-% Revision 1.11  2006/05/09 12:19:43  ingnie
-% added comment position, updated help
-%
-% Revision 1.10  2006/04/27 11:32:58  jansch
-% fixed little bug in oldstylesyntax
-%
-% Revision 1.9  2006/04/27 09:39:34  ingnie
-% fixed bug when layout is elec or grad structure, removed redundant scaling code,
-% moved writing of comment from topoplotER to topoplot, changed position comment
-% (temporary solution)
-%
-% Revision 1.8  2006/04/20 09:58:34  roboos
-% updated documentation
-%
-% Revision 1.7  2006/03/17 14:28:55  denpas
-% Added cfg.layout.chanX, cfg.layout.chanY, and cfg.layout.chanLabels to allow
-% topoplotER.m call topoplot.m to do the plotting, with cfg.interactive turned on.
-%
-% Revision 1.6  2006/02/01 13:43:19  jansch
-% removed bug in line 209
-%
-% Revision 1.5  2006/01/31 13:37:46  jansch
-% cleaned up the code a bit, improved readability of the code
-%
-% Revision 1.4  2005/11/09 16:25:49  geekra
-% Cleaned up tab characters in documentation.
-%
-% Revision 1.3  2005/11/08 18:58:52  geekra
-% Complete new implementation. But it is completely backwards compatible with
-% the old version in /fieldtrip/private/.
-% - Added new commandline key-value possibilities.
-% - Added new highlighting options.
-% - Updated the documentation.
-%
 
 % Try to detect EEGLAB-style input and give an informative error
 % message. The EEGLAB documentation describes the usage as 
@@ -228,6 +157,7 @@ function [handle] = topoplot(varargin)
 %        >>  topoplot('example');                  % give an example of an electrode location file
 %        >>  [h grid_or_val plotrad_or_grid, xmesh, ymesh]= ...
 %                           topoplot(datavector, chan_locs, 'Input1','Value1', ...);
+
 if nargin==2 && isvector(varargin{1}) && isstruct(varargin{2}) && isfield(varargin{2}, 'labels')
   eeglab = 1;
 elseif nargin==2 && isvector(varargin{1}) && ischar(varargin{2})
@@ -314,21 +244,23 @@ else
 end
 
 % set the defaults
-if ~isfield(cfg,'maxchans')      cfg.maxchans = 256;       end;
-if ~isfield(cfg,'maplimits')     cfg.maplimits = 'absmax'; end; % absmax, maxmin, [values]
-if ~isfield(cfg,'interplimits')  cfg.interplimits ='head'; end; % head, electrodes
-if ~isfield(cfg,'grid_scale')    cfg.grid_scale = 67;      end; % 67 in original
-if ~isfield(cfg,'contournum')    cfg.contournum = 6;       end;
-if ~isfield(cfg, 'colorbar')     cfg.colorbar = 'no';      end;
-if ~isfield(cfg,'style')         cfg.style = 'both';       end; % both,straight,fill,contour,blank
-if ~isfield(cfg,'hcolor')        cfg.hcolor = [0 0 0];     end;
-if ~isfield(cfg,'contcolor')     cfg.contcolor = 'k';      end;
-if ~isfield(cfg,'hlinewidth')    cfg.hlinewidth = 2;       end;
-if ~isfield(cfg,'shading')       cfg.shading = 'flat';     end; % flat or interp
-if ~isfield(cfg,'interpolation') cfg.interpolation = 'v4'; end;
-if ~isfield(cfg, 'fontsize'),    cfg.fontsize = 8;         end;
-if ~isfield(cfg, 'commentpos'),  cfg.commentpos = 'leftbottom';    end;
-if ~isfield(cfg, 'mask'),        cfg.mask = [];            end;
+if ~isfield(cfg, 'maxchans')      cfg.maxchans = 256;       end;
+if ~isfield(cfg, 'maplimits')     cfg.maplimits = 'absmax'; end; % absmax, maxmin, [values]
+if ~isfield(cfg, 'interplimits')  cfg.interplimits ='head'; end; % head, electrodes
+if ~isfield(cfg, 'grid_scale')    cfg.grid_scale = 67;      end; % 67 in original
+if ~isfield(cfg, 'contournum')    cfg.contournum = 6;       end;
+if ~isfield(cfg, 'colorbar')      cfg.colorbar = 'no';      end;
+if ~isfield(cfg, 'style')         cfg.style = 'both';       end; % both,straight,fill,contour,blank
+if ~isfield(cfg, 'hcolor')        cfg.hcolor = [0 0 0];     end;
+if ~isfield(cfg, 'contcolor')     cfg.contcolor = 'k';      end;
+if ~isfield(cfg, 'hlinewidth')    cfg.hlinewidth = 2;       end;
+if ~isfield(cfg, 'shading')       cfg.shading = 'flat';     end; % flat or interp
+if ~isfield(cfg, 'interpolation') cfg.interpolation = 'v4'; end;
+if ~isfield(cfg, 'fontsize'),     cfg.fontsize = 8;         end;
+if ~isfield(cfg, 'commentpos'),   cfg.commentpos = 'leftbottom';    end;
+if ~isfield(cfg, 'mask'),         cfg.mask = [];            end;
+if ~isfield(cfg, 'outline'),      cfg.outline = 'scalp';    end; % scalp or ecog
+
 if ~isfield(cfg,'layout')
   if ~OldStyleSyntax
     error('Specify at least the field or key "layout".');
@@ -342,6 +274,7 @@ if ~isfield(cfg,'showlabels') % for compatibility with OLDSTYLE
 else
   cfg.electrodes = '';
 end; 
+
 if ~isfield(cfg,'emarker')      cfg.emarker = 'o';     end;
 if ~isfield(cfg,'ecolor')       cfg.ecolor = [0 0 0];  end;
 if ~isfield(cfg,'emarkersize')  cfg.emarkersize = 2;   end;
@@ -351,7 +284,7 @@ if ~isfield(cfg,'highlight')    cfg.highlight = 'off'; end; % 'off' or the elect
 if ~isfield(cfg,'hlmarker')     cfg.hlmarker = 'o';    end;
 if ~isfield(cfg,'hlcolor')      cfg.hlcolor = [0 0 0]; end;
 if ~isfield(cfg,'hlmarkersize') cfg.hlmarkersize = 6;  end;
-if ~isfield(cfg,'hllinewidth')	cfg.hllinewidth = 3; end;
+if ~isfield(cfg,'hllinewidth')	cfg.hllinewidth = 3;   end;
 
 if isfield(cfg,'colormap')
   if size(cfg.colormap,2)~=3, error('topoplot(): Colormap must be a n x 3 matrix'); end
@@ -453,9 +386,14 @@ if length(data)~=length(X)
   error('topoplot(): data vector must be the same size as layout-file')
 end
 
-% Scale the data to x-axis and y-axis: -0.45 to 0.45
-y = 0.9*((X-min(X))/(max(X)-min(X))-0.5); %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
-x = 0.9*((Y-min(Y))/(max(Y)-min(Y))-0.5);
+if strcmpi(cfg.outline, 'scalp')
+  % Scale the data to a circle with x-axis and y-axis: -0.45 to 0.45
+  y = 0.9*((X-min(X))/(max(X)-min(X))-0.5); %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
+  x = 0.9*((Y-min(Y))/(max(Y)-min(Y))-0.5);
+elseif strcmpi(cfg.outline, 'ecog')
+  y = X; %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
+  x = Y;
+end
 
 % Set coordinates for comment
 if strcmp(cfg.commentpos,'lefttop') 
@@ -517,11 +455,16 @@ if ~strcmp(cfg.style,'blank')
   yi         = linspace(ymin,ymax,cfg.grid_scale);   % y-axis description (row vector)
   [Xi,Yi,Zi] = griddata(y, x, data, yi', xi, cfg.interpolation); % Interpolate data
   % [Xi,Yi,Zi] = griddata(y,x,data,yi',xi,'invdist'); % Interpolate data
-
-  % Take data within head
-  mask   = (sqrt(Xi.^2+Yi.^2) <= rmax);
-  ii     = find(mask == 0);
-  Zi(ii) = NaN;
+  
+  if strcmpi(cfg.outline, 'scalp')
+    % Take data within head
+    mask   = (sqrt(Xi.^2+Yi.^2) <= rmax);
+    ii     = find(mask == 0);
+    Zi(ii) = NaN;
+  elseif strcmpi(cfg.outline, 'ecog')
+    % FIXME masking of ECoG data with the outline of the electrode grid is not yet implemented
+    warning('masking of ECoG data with the outline of the electrode grid is not yet implemented');
+  end
 
   % calculate colormap limits
   m = size(colormap,1);
@@ -575,14 +518,6 @@ if ~strcmp(cfg.style,'blank')
   caxis([amin amax]) % set coloraxis
 end
 
-set(ha,'Xlim',[-rmax*1.3 rmax*1.3],'Ylim',[-rmax*1.3 rmax*1.3])
-
-% Set head coordinates:
-l     = 0:2*pi/100:2*pi;
-basex = .18*rmax;  
-tip   = rmax*1.15; base = rmax-.004;
-EarX  = [.497 .510 .518 .5299 .5419 .54 .547 .532 .510 .489];
-EarY  = [.0555 .0775 .0783 .0746 .0555 -.0055 -.0932 -.1313 -.1384 -.1199];
 
 % Plot electrodes:
 if strcmp(cfg.electrodes,'on')||strcmp(cfg.showlabels,'markers')
@@ -636,11 +571,22 @@ elseif strcmp(cfg.electrodes,'dotnum')
   end;
 end
 
-% Plot head, ears, and nose:
-plot(cos(l).*rmax, sin(l).*rmax, 'color', cfg.hcolor, 'Linestyle', '-', 'LineWidth', cfg.hlinewidth);
-plot([0.18*rmax;0;-0.18*rmax], [base;tip;base], 'Color', cfg.hcolor, 'LineWidth', cfg.hlinewidth);
-plot( EarX, EarY, 'color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
-plot(-EarX, EarY, 'color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)   
+if strcmp(cfg.outline, 'scalp')
+  % Define the outline of the head, ears and nose:
+  l     = 0:2*pi/100:2*pi;
+  tip   = rmax*1.15; base = rmax-.004;
+  EarX  = [.497 .510 .518 .5299 .5419 .54 .547 .532 .510 .489];
+  EarY  = [.0555 .0775 .0783 .0746 .0555 -.0055 -.0932 -.1313 -.1384 -.1199];
+  % Plot head, ears, and nose:
+  plot(cos(l).*rmax, sin(l).*rmax, 'color', cfg.hcolor, 'Linestyle', '-', 'LineWidth', cfg.hlinewidth);
+  plot([0.18*rmax;0;-0.18*rmax], [base;tip;base], 'Color', cfg.hcolor, 'LineWidth', cfg.hlinewidth);
+  plot( EarX, EarY, 'color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
+  plot(-EarX, EarY, 'color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
+elseif strcmpi(cfg.outline, 'ecog')
+  % FIXME drawing an outline of the ECoG electrode grid has not been
+  % implemented yet
+  warning('drawing an outline of the ECoG electrode grid has not been implemented yet')
+end
 
 % Write comment:
 if isfield(cfg, 'comment') 
@@ -661,6 +607,10 @@ if isfield(cfg, 'colorbar') && ~all(data == data(1))
 end
 
 hold off
-xlim([-.6 .6]);
-ylim([-.6 .6]);
 axis off
+if strcmpi(cfg.outline, 'scalp')
+  xlim([-.6 .6]);
+  ylim([-.6 .6]);
+elseif strcmpi(cfg.outline, 'ecog')
+  % do not apply any scaling
+end
