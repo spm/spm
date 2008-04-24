@@ -1,5 +1,5 @@
-function ts = spm_eeg_inv_ElastM(ts);
-% FORMAT ts = spm_eeg_inv_ElastM(ts);
+function ts = spm_eeg_inv_ElastM(ts)
+% FORMAT ts = spm_eeg_inv_ElastM(ts)
 %
 % Modify the mesh in order to reduce overlong edges, and smooth out "rough"
 % areas.
@@ -20,7 +20,7 @@ function ts = spm_eeg_inv_ElastM(ts);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Jeremie Mattout
-% $Id: spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe $
+% $Id: spm_eeg_inv_ElastM.m 1477 2008-04-24 14:33:47Z christophe $
 
 % Connection vertex-to-vertex
 %--------------------------------------------------------------------------
