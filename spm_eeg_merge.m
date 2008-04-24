@@ -15,7 +15,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_merge.m 1476 2008-04-24 14:00:41Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -70,9 +70,9 @@ for i = 1:Nfiles
 end
 
 % generate new meeg object with new filenames
-Dout = clone(Dout, ['c' fnamedat(Dout)], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
+[p, f, x] = fileparts(fnamedat(Dout));
+Dout = clone(Dout, ['c' f x], [Dout.nchannels Dout.nsamples sum(Ntrials)]);
 sDout = struct(Dout);
-
 
 for i = 1:Nfiles
 
@@ -94,7 +94,7 @@ for i = 1:Nfiles
     % recode labels
     code_new = {};
     for j = 1:Dtmp.nconditions
-        [code_new(pickconditions(Dtmp, cl{j}))] = deal(S.recode{1});
+        [code_new{pickconditions(Dtmp, cl{j})}] = deal(S.recode{1});
     end
 
     [sDtmp.trials.label] = deal(code_new{:});

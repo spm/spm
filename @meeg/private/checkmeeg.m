@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1410 2008-04-15 13:06:09Z vladimir $
+% $Id: checkmeeg.m 1476 2008-04-24 14:00:41Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -72,15 +72,15 @@ else
         [meegstruct.channels.X_plot2D] = deal([]);
         [meegstruct.channels.Y_plot2D] = deal([]);
     end
-     if ~isfield(meegstruct.channels, 'units')
+    if ~isfield(meegstruct.channels, 'units')
         disp('checkmeeg: no units, assigning default');
         [meegstruct.channels.units] = deal('unknown');
-     else
-        [meegstruct.channels(find(cellfun('isempty', {meegstruct.channels.units}))).units] = deal('unknown'); 
-     end
+    else
+        [meegstruct.channels(find(cellfun('isempty', {meegstruct.channels.units}))).units] = deal('unknown');
+    end
 end
 
-try 
+try
     meegstruct.transform.ID;
 catch
     meegstruct.transform.ID = 'time';
@@ -123,6 +123,15 @@ else
 
     if ~isfield(meegstruct.data, 'y')
         meegstruct.data.y=[];
+    end
+
+    if isa(meegstruct.data.y, 'file_array')
+        try
+            % Try reading data
+            meegstruct.data.y(1, 1, 1);
+        catch
+            meegstruct.data.y = [];
+        end
     end
 
     if ~isa(meegstruct.data.y, 'file_array')
@@ -262,11 +271,11 @@ if strcmp(option, 'sensfid')
         disp('checkmeeg: no sensor positions are defined');
         return;
     end
-    
+
     chantypes = getset(meegstruct, 'channels', 'type');
     eegind = strmatch('EEG', chantypes, 'exact');
     megind = strmatch('MEG', chantypes, 'exact');
-    
+
     if ~isempty(eegind)
         if ~isfield(meegstruct.sensors, 'eeg') || isempty(meegstruct.sensors.eeg)
             disp('checkmeeg: EEG channel locations are not specified');
@@ -278,7 +287,7 @@ if strcmp(option, 'sensfid')
             end
         end
     end
-    
+
     if ~isempty(megind)
         if ~isfield(meegstruct.sensors, 'meg') || isempty(meegstruct.sensors.meg)
             disp('checkmeeg: MEG channel locations are not specified');
@@ -295,7 +304,7 @@ if strcmp(option, 'sensfid')
         disp('checkmeeg: no fiducials are defined');
         return;
     end
-    
+
     if ~isfield(meegstruct.fiducials, 'pnt') || isempty(meegstruct.fiducials.pnt)
         if ~isempty(eegind)
             % Copy EEG sensors to fiducials.
@@ -304,7 +313,7 @@ if strcmp(option, 'sensfid')
             meegstruct.fiducials.pnt = sparse(0, 3);
         end
     end
-    
+
     if ~isfield(meegstruct.fiducials, 'fid') || ...
             ~all(isfield(meegstruct.fiducials.fid, {'pnt', 'label'})) ||...
             (length(meegstruct.fiducials.fid.label) ~= size(meegstruct.fiducials.fid.pnt, 1)) || ...
@@ -312,34 +321,34 @@ if strcmp(option, 'sensfid')
         disp('checkmeeg: at least 3 fiducials with labels are required');
         return
     end
-    
+
     nzlbl = {'fidnz', 'nz', 'nas'};
     lelbl = {'fidle', 'fidt9', 'lpa', 'lear', 'earl' 'le', 't9'};
     relbl = {'fidre', 'fidt10', 'rpa', 'rear', 'earr', 're', 't10'};
-    
+
     [sel1, nzind] = spm_match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
     if isempty(nzind)
         disp('checkmeeg: could not find the nasion fiducial');
         return
     end
-    
+
     [sel1, leind] = spm_match_str(lelbl, lower(meegstruct.fiducials.fid.label));
     if isempty(leind)
         disp('checkmeeg: could not find the left fiducial');
         return
     end
-    
+
     [sel1, reind] = spm_match_str(relbl, lower(meegstruct.fiducials.fid.label));
     if isempty(reind)
         disp('checkmeeg: could not find the right fiducial');
         return
     end
-    
+
     restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind, leind, reind]);
-    
+
     meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind, leind, reind, restind]);
     meegstruct.fiducials.fid.pnt = meegstruct.fiducials.fid.pnt([nzind, leind, reind, restind], :);
-    
+
     result = 1;
 end
 

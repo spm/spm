@@ -5,7 +5,7 @@ function spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 1474 2008-04-24 11:33:39Z vladimir $
+% $Id: spm_eeg_ft2spm.m 1476 2008-04-24 14:00:41Z vladimir $
 
 % If raw format
 if iscell(ftdata.time)
@@ -81,7 +81,7 @@ D.trials = repmat(struct('label', {'Undefined'}), 1, Ntrials);
 D.path = pathname;
 D.fname = [fname '.mat'];
 
-D.data.fnamedat = fullfile(D.path, [fname '.dat']);
+D.data.fnamedat = [fname '.dat'];
 D.data.datatype = 'float32';
 
 if Ntrials == 1
