@@ -36,6 +36,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.10  2008/04/25 12:29:52  roboos
+% slight improvement for ordered layout
+%
 % Revision 1.9  2008/03/05 10:46:36  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -118,8 +121,8 @@ elseif isequal(cfg.layout, 'ordered')
       x = (j-1)/ncol;
       y = (nrow-i-1)/nrow;
       lay.pos(k,:) = [x y];
-      lay.width(k,1)  = 0.8 * 1/(ncol-1);
-      lay.height(k,1) = 0.8 * 1/(nrow-1);
+      lay.width(k,1)  = 0.8 * 1/ncol;
+      lay.height(k,1) = 0.8 * 1/nrow;
     end
   end
   end
@@ -129,14 +132,14 @@ elseif isequal(cfg.layout, 'ordered')
   lay.width(end+1)  = mean(lay.width);
   lay.height(end+1) = mean(lay.height);
   x = (ncol-2)/ncol;
-  y = 1/nrow;
+  y = 0/nrow;
   lay.pos(end+1,:) = [x y];
 
   lay.label{end+1}  = 'COMNT';
   lay.width(end+1)  = mean(lay.width);
   lay.height(end+1) = mean(lay.height);
   x = (ncol-1)/ncol;
-  y = 1/nrow;
+  y = 0/nrow;
   lay.pos(end+1,:) = [x y];
 
 % elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'ori', 'tra', 'label'}))
