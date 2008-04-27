@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 1485 2008-04-27 12:23:42Z klaas $
+% $Id: spm_dcm_ui.m 1486 2008-04-27 12:25:27Z klaas $
 
 
 
@@ -556,7 +556,7 @@ case 'review'
         %-----------------------------------------------------------
         c    = C'*DCM.Ep;
         v    = C'*DCM.Cp*C;
-        x    = c + [-32:32]*sqrt(v)*6/32;
+        x    = c + [-512:512]*sqrt(v)*6/512;
         p    = full(1/sqrt(2*pi*v)*exp(-[x - c].^2/(2*v)));  % conversion to full necessary to account for sparse matrices bug in MATLAB 6.5.0 R13 
         sw = warning('off','SPM:negativeVariance');
         PP   = 1 - spm_Ncdf(DCM.T,c,v);
