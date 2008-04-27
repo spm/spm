@@ -28,7 +28,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 1485 2008-04-27 12:23:42Z klaas $
+% $Id: spm_dcm_average.m 1487 2008-04-27 12:27:51Z klaas $
 
 
 if nargin <= 1
@@ -66,8 +66,8 @@ for model = 1:num_models,
             % DCM for fMRI
             m = DCM.M.m; % number of inputs
             n = DCM.n; % number of regions
-            % Only look at A,B,C values - ignore hemodynamics (last 5*n parameters)
-            cwsel = wsel(1:end-5*n);
+            % Only look at A,B,C values - ignore hemodynamics (last 6*n parameters)
+            cwsel = wsel(1:end-6*n);
         else
             % DCM for ERP
             m = size(DCM.Qp.C,2); % number of inputs
