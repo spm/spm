@@ -1,22 +1,25 @@
 function [] = spm_dcm_average (mtype,P,name)
 % Produce an aggregate DCM model using Bayesian averaging
-% FORMAT [] = spm_dcm_average (P,name,mtype)
+% FORMAT [] = spm_dcm_average (mtype,P,name)
 %
 % mtype             ERP: mtype =0;  fMRI: mtype > 0
 % P                 Array of DCM filenames eg. P(1,:)='DCM1', P(2,:)='DCM2'
 % name              Name of DCM output file. This is prefixed by 'DCM_avg_'.
 %
-% This routine creates a new DCM model which is the average over a 
+% This routine creates a new DCM model in which the parameters are averaged over a 
 % number of fitted DCM models. These can be over sessions or over subjects.
 % This average model can then be interrogated using the standard 
-% DCM 'review' options eg. to look at individual parameters or 
-% contrasts of parameters. The resulting inferences correspond to 
-% a Bayesian Fixed Effects analysis.
+% DCM 'review' options to look at contrasts of parameters. The resulting 
+% inferences correspond to a Bayesian Fixed Effects analysis.
 %
 % Note that the Bayesian averaging is only applied to the A, B and C matrices.
-% All other quantities in the average model are simply copied from 
-% the first DCM in the list. Only models with exactly the same 
-% A,B,C structure can be averaged.
+% All other quantities in the average model are initially simply copied from 
+% the first DCM in the list. Subsequently, they are deleted before saving the average DCM 
+% in order to avoid any false impression that averaged models could be used 
+% for model comparison or contained averaged timeseries. Neither operation
+% is valid and will be prevented by the DCM interface.
+% Finally, note that only models with exactly the same A,B,C structure 
+% and the same brain regions can be averaged.
 %
 % A Bayesian random effects analysis can be implemented for a 
 % particular contrast using the spm_dcm_sessions.m function
@@ -25,7 +28,7 @@ function [] = spm_dcm_average (mtype,P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_dcm_average.m 1485 2008-04-27 12:23:42Z klaas $
 
 
 if nargin <= 1
@@ -149,18 +152,16 @@ else
 end
 
 
-% Remove fields with subject-specific information (e.g. predicted/observed data)
+% Remove or rename fields with subject-specific information (e.g. predicted/observed data)
 % to prevent the impression that these have also been averaged and set a flag 
-% indicating that this is an averaged DCM
+% indicating that this is an averaged DCM.
 if mtype
     % DCM for fMRI
-    DCM.VOIs = cell(num_models,1);
-    for k = 1:DCM.n
-        DCM.VOIs{k} = DCM.xY(k).name;
-    end
     try
         % DCMs computed with SPM5
-        DCM = rmfield (DCM,{'y','Y','xY','F','AIC','BIC','R','U','M','H1','H2','K1','K2','Ce','T'});
+        DCM.Y = rmfield (DCM.Y,{'y','X0','Ce'});
+        DCM.U = rmfield (DCM.U,{'u'});
+        DCM = rmfield (DCM,{'y','xY','F','AIC','BIC','R','H1','H2','K1','K2','Ce','T'});
     catch
         % minimum: remove time series
         DCM = rmfield (DCM,{'y','Y'});
@@ -168,7 +169,7 @@ if mtype
 else
     % DCM for ERPs
     try
-        DCM = rmfield (DCM,{'options','M','Y','U','L','xY','xU','H','Hc','K','R','Rc','Ce','F'});
+        DCM = rmfield (DCM,{'options','Y','U','L','xY','xU','H','Hc','K','R','Rc','Ce','F'});
     catch
         DCM = rmfield (DCM,{'Y','xY'});
     end
@@ -189,7 +190,16 @@ if nargin <= 1
     spm_clf
     spm('FigName',header);
     spm('Pointer','Arrow')
-    spm_input('Average DCM saved.',1,'d')
+    spm_input(['Results of averaging DCMs were saved in DCM_avg_' name],1,'d')
 end
+
+% Warn the user how this average DCM should NOT be used
+str = {['Results of averaging DCMs were saved in DCM_avg_' name '.'], ...
+        ' ', ...
+        'Please note that this file only contains average parameter estimates and their post. probabilities, but NOT averaged time series.', ...
+        ' ', ...
+        'Also, note that this file can NOT be used for model comparisons.'};
+spm_input(str,1,'bd','OK',[1],1);
+
 
 return

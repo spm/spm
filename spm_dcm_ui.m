@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_dcm_ui.m 1485 2008-04-27 12:23:42Z klaas $
 
 
 
@@ -364,6 +364,22 @@ case 'review'
     n     = DCM.M.n;
     l     = DCM.M.l;
 
+    % check whether the model is an averaged DCM
+    if isfield(DCM,'averaged')
+        if DCM.averaged
+            str = {'This model is an "averaged" DCM, containing the results of a Bayesian fixed effects analysis.', ...
+                'It only contains averaged parameter estimates and their posterior probabilities.', ...
+                ' ', ...
+                '<Review> functions are disabled except for computing contrasts.'}
+            spm_input(str,1,'bd','OK',[1],1);
+            averaged = 1;
+        else
+            averaged = 0;
+        end
+    else
+        averaged = 0;
+    end
+
     %-get threshold and recompute posterior probabilities
     %-------------------------------------------------------------------
     str        = 'Threshold {Hz}';
@@ -380,18 +396,24 @@ case 'review'
     % get options
     %-------------------------------------------------------------------
     str   = {};
-    for i = 1:m
-        str{i} = ['    Effects of ' DCM.U.name{i} '    '];
+    
+    if averaged
+        % averaged DCM: only allow for 'contrast' option
+        str   = {'Contrast of connections','quit'};
+    else
+        % normal (non-averaged DCMs)
+        for i = 1:m
+            str{i} = ['    Effects of ' DCM.U.name{i} '    '];
+        end
+        str   = {str{:}     '    Intrinsic connections',...
+            'Contrast of connections',...
+            'location of regions',...
+            'Inputs',...
+            'Outputs',...
+            '1st order Kernels',...
+            'quit'};
     end
-
-    str   = {str{:}     '    Intrinsic connections',...
-                'Contrast of connections',...
-                'location of regions',...
-                'Inputs',...
-                'Outputs',...
-                '1st order Kernels',...
-                'quit'};
-
+    
     OPT   = spm_input('display',2,'m',str);
     figure(Fgraph)
     spm_figure('Clear',Fgraph)
@@ -399,7 +421,7 @@ case 'review'
 
     % Inputs
     %-------------------------------------------------------------------
-    if OPT <= m 
+    if (OPT <= m) && ~averaged
 
         % input effects
         %-----------------------------------------------------------
@@ -461,7 +483,7 @@ case 'review'
 
     % Intrinsic connections
     %-------------------------------------------------------------------
-    elseif OPT == 1 + m
+    elseif (OPT == 1 + m) && ~averaged
 
         % Intrinsic effects
         %-----------------------------------------------------------
@@ -501,7 +523,7 @@ case 'review'
 
     % contrast
     %-------------------------------------------------------------------
-    elseif OPT == 2 + m
+    elseif ((OPT == 2 + m) && ~averaged) || ((OPT == 1) && averaged)
 
         %-get contrast
         %-----------------------------------------------------------
@@ -585,7 +607,7 @@ case 'review'
 
     % location of regions
     %-------------------------------------------------------------------
-    elseif OPT == 3 + m
+    elseif (OPT == 3 + m) && ~averaged
 
 
         % transverse
@@ -638,7 +660,7 @@ case 'review'
 
     % inputs
     %-------------------------------------------------------------------
-    elseif OPT == 4 + m
+    elseif (OPT == 4 + m) && ~averaged
 
         % graph
         %-----------------------------------------------------------
@@ -664,7 +686,7 @@ case 'review'
 
     % outputs
     %-------------------------------------------------------------------
-    elseif OPT == 5 + m
+    elseif (OPT == 5 + m) && ~averaged
 
         % graph
         %-----------------------------------------------------------
@@ -705,7 +727,7 @@ case 'review'
         
     % Kernels
     %-------------------------------------------------------------------
-    elseif OPT == 6 + m
+    elseif (OPT == 6 + m) && ~averaged
 
         % input effects
         %-----------------------------------------------------------
@@ -749,7 +771,7 @@ case 'review'
 
     % quit
     %-------------------------------------------------------------------
-    elseif OPT == 7 + m
+    elseif ((OPT == 7 + m) && ~averaged) || ((OPT == 2) && averaged)
 
         %-Reset title and delete figure
         %-----------------------------------------------------------

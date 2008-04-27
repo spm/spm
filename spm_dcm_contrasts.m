@@ -17,7 +17,7 @@ function [con_vec,con_mat] = spm_dcm_contrasts (DCM_filename,D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_contrasts.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_contrasts.m 1485 2008-04-27 12:23:42Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -28,14 +28,13 @@ WS     = spm('WinScale');
 P = DCM_filename;
 load(P);
 
-m=DCM.n;
-xY=DCM.xY;
-U=DCM.U;
-
-n     = size(DCM.U.u,2);
-a     = zeros(m,m);
-c     = zeros(m,n);
-b     = zeros(m,m,n);
+Y.name   = DCM.Y.name;
+U.name   = DCM.U.name;
+n        = DCM.n;            % number of regions
+m        = length(U.name);   % number of inputs
+a        = zeros(n,n);
+c        = zeros(n,m);
+b        = zeros(n,n,m);
 
 if (nargin < 2) | isempty(D)
     str     = 'contrast for';
@@ -57,11 +56,11 @@ d     = uicontrol(Finter,'String','done',...
 itext_left=030;
 inum_left=80;
 name_length=8; % number of characters in short names
-for i=1:m
-    if length(xY(i).name) > name_length
-        short_name(i).str=xY(i).name(1:name_length);
+for i=1:n
+    if length(Y.name{i}) > name_length
+        short_name(i).str = Y.name{i}(1:name_length);
     else
-        short_name(i).str=xY(i).name;
+        short_name(i).str = Y.name{i};
     end
 end
 text_top=336;
@@ -75,7 +74,7 @@ case 'A' % intrinsic
         spm_input(str,1,'d');
         
     % Print names and numbers of regions
-    for i = 1:m
+    for i = 1:n
         str    = sprintf('%s   %i',short_name(i).str,i);
         h1(i)  = uicontrol(Finter,'String',str,...
             'Style','text',...
@@ -87,8 +86,8 @@ case 'A' % intrinsic
     end
     
     % Set contrast values to zero and display
-    for i = 1:m
-        for j = 1:m
+    for i = 1:n
+        for j = 1:n
             cc=ceil([inum_left+dx*j text_top+4-dx*i wx wy].*WS);
             h3(i,j) = uicontrol(Finter,...
                 'Position',cc,...
@@ -105,8 +104,8 @@ case 'A' % intrinsic
         pause(0.01)
         if strcmp(get(gco,'Type'),'uicontrol')
             if strcmp(get(gco,'String'),'done')
-                for i = 1:m
-                    for j = 1:m
+                for i = 1:n
+                    for j = 1:n
                         a(i,j) = str2num(get(h3(i,j),'string'));
                     end
                 end
@@ -121,13 +120,13 @@ case 'A' % intrinsic
 case 'B' % modulatory
     %---------------------------------------------------
     
-    for k = 1:n,
+    for k = 1:m,
         str   = sprintf(...
             'Enter contrast for B: effects of input  %-12s',...
             U.name{k});
         spm_input(str,1,'d')
         
-        for i = 1:m
+        for i = 1:n
             str    = sprintf('%s   %i',short_name(i).str,i);
             h1(i)  = uicontrol(Finter,'String',str,...
                 'Style','text',...
@@ -136,8 +135,8 @@ case 'B' % modulatory
             'Style','text',...
             'Position',[inum_left+dx*i text_top 020 020].*WS);
         end
-        for i = 1:m
-            for j = 1:m
+        for i = 1:n
+            for j = 1:n
                 cc=ceil([inum_left+dx*j text_top+4-dx*i wx wy].*WS);
                 h3(i,j) = uicontrol(Finter,...
                     'Position',cc,...
@@ -154,8 +153,8 @@ case 'B' % modulatory
             pause(0.01)
             if strcmp(get(gco,'Type'),'uicontrol')
                 if strcmp(get(gco,'String'),'done')
-                    for i = 1:m
-                        for j = 1:m
+                    for i = 1:n
+                        for j = 1:n
                             b(i,j,k) = str2num(get(h3(i,j),'string'));
                         end
                     end
@@ -173,13 +172,13 @@ case 'B' % modulatory
 case 'C' % input
     %---------------------------------------------------
     
-    for k = 1:n,
+    for k = 1:m,
         str   = sprintf(...
             'Enter contrast for C: Effects of input %-12s',...
             U.name{k});
         spm_input(str,1,'d');
         
-        for i = 1:m
+        for i = 1:n
             str    = sprintf('%s   %i',short_name(i).str,i);
             h1(i)  = uicontrol(Finter,'String',str,...
                 'Style','text',...
@@ -201,7 +200,7 @@ case 'C' % input
                     
                     % get c
                     %--------------------------------------------------
-                    for i = 1:m
+                    for i = 1:n
                         c(i,k)   = str2num(get(h2(i),'string'));
                     end
                     
