@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_invert_ui.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -49,20 +49,21 @@ end
 
 % Conventional reconstruction: get conditions or trials
 %==========================================================================
-if length(D.events.types) > 1
+if D.nconditions > 1
     if spm_input('All conditions or trials','+1','b',{'yes|no'},[1 0],1)
-        trials = D.events.types;
+        trials = unique(D.conditions);
     else
         trials = [];
-        for  i = 1:length(D.events.types)
-            str = sprintf('invert %i',D.events.types(i))
+        condlabels = unique(D.conditions);
+        for  i = 1:D.nconditions
+            str = sprintf('invert %i', condlabels{i})
             if spm_input(str,'+1','b',{'yes|no'},[1 0],1);
-                trials(end + 1) = D.events.types(i);
+                trials(end + 1) = condlabels(i);
             end
         end
     end
 else
-    trials = D.events.types;
+    trials = unique(D.conditions);
 end
 
 % Inversion parameters

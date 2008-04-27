@@ -1,4 +1,4 @@
-function spm_eeg_inv_checkdatareg(mesh, datareg, sens, fid)
+function spm_eeg_inv_checkdatareg(S)
 % Display of the coregistred meshes and sensor locations in MRI space for
 % quality check by eye.
 % Fiducials which were used for rigid registration are also displayed
@@ -8,60 +8,40 @@ function spm_eeg_inv_checkdatareg(mesh, datareg, sens, fid)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1407 2008-04-15 10:09:18Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 subplot(2,1,1)
 
-% --- DISPLAY ANATOMY ---
-% ==========================================================================
-Mcortex = mesh.tess_ctx;
-Miskull = mesh.tess_iskull;
-Mscalp  = mesh.tess_scalp;
-
 % Cortical Mesh
 %--------------------------------------------------------------------------
-face    = Mcortex.face;
-vert    = Mcortex.vert;
+face    = S.mesh.tess_ctx.face;
+vert    = S.mesh.tess_ctx.vert;
 h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
 hold on
 
-% Inner-skull Mesh
-%--------------------------------------------------------------------------
-face    = Miskull.face;
-vert    = Miskull.vert;
-h_skl   = patch('vertices',vert,'faces',face,'EdgeColor','r','FaceColor','none');
-
 % Scalp Mesh
 %--------------------------------------------------------------------------
-face    = Mscalp.face;
-vert    = Mscalp.vert;
+face    = S.vol.bnd(1).tri;
+vert    = S.vol.bnd(1).pnt;
 h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor','none');
 
 
 % --- DISPLAY SETUP ---
 %==========================================================================
 try
-    Lsens   = sens.pnt;
-    Lfid    = fid.fid.pnt;
-    Lhsp    = fid.pnt;
-    Lfidmri = datareg.fid_mri;
-    Llabel = sens.label;
+    Lsens   = S.sens.pnt;
+    Lfid    = S.meegfid.fid.pnt;
+    Lhsp    = S.meegfid.pnt;
+    Lfidmri = S.mrifid.fid.pnt;
+    Llabel = S.sens.label;
 catch
     warndlg('please coregister these data')
     return
 end
 
-if size(Lsens,2)==6 % gradiometers, two coils
-    for ch = 1:size(Lsens,1)
-        if all(isfinite(Lsens(ch,4:6)))
-          Lsens(ch,1:3) = (Lsens(ch,1:3)+Lsens(ch,4:6))/2;
-    end
-    end
-    Lsens = Lsens(:,1:3);
-end
 
 % EEG fiducials or MEG coils (coreg.)
 %--------------------------------------------------------------------------
@@ -115,6 +95,3 @@ axis([min(Lsens(:,1)), max(Lsens(:,1)), min(Lsens(:,2)),...
 view(-140,70)
 rotate3d on
 
-% display field
-%--------------------------------------------------------------------------
-disp(datareg)

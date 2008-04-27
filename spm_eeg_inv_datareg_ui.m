@@ -11,144 +11,61 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 1437 2008-04-17 10:34:39Z christophe $
-
-% Set-up specfic parameters (POLHEMIUS)
-%==========================================================================
-pol_skip = 2;                    % first 2 channels are reference channels
-pol_fig  = 0;                    % supress graphic when reading pol file
-%==========================================================================
+% $Id: spm_eeg_inv_datareg_ui.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
-[D,ival] = spm_eeg_inv_check(varargin{:});
+[D,val] = spm_eeg_inv_check(varargin{:});
 try
-    D.inv{ival}.mesh.template;
+    D.inv{val}.mesh.template;
 catch
-    D.inv{ival}.mesh.template = 0;
+    D.inv{val}.mesh.template = 0;
 end
 
-% For some data formats, fids and headshape encoded in native data formats, 
-% i.e, put into D.channels during data conversion   RH 12/9/07
-try
-    fid_eeg   = D.channels.fid_eeg;
-    headshape = D.channels.headshape;
-    sensors   = D.channels.Loc';
+iseeg = ~isempty(strmatch('EEG', D.chantype));
+ismeg = ~isempty(strmatch('MEG', D.chantype));
 
-catch
-
-% Specify sensor space (fiducials sensors and scalp surface)
-%==========================================================================
-  if strcmp(questdlg('Use Polhemus file?'),'Yes');
-
-    % get fiduicials and headshape
-    %----------------------------------------------------------------------
-    pol_file            = spm_select(1,'.pol','Select Polhemus file');
-    [fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip,pol_fig);
-
-    % get sensor locations
-    %----------------------------------------------------------------------
-    if strcmp(D.modality,'EEG')
-        sensors = headshape;
-    else
-        sensors = load(spm_select(1,'.mat','Select MEG sensor file'));
-        name    = fieldnames(sensors);
-        sensors = getfield(sensors,name{1});
-    end
-  else
-
-    % get sensor and fiducial locations
-    %----------------------------------------------------------------------
-    sensors = load(spm_select(1,'.mat','Select EEG/MEG sensor file'));
-    fid_eeg = load(spm_select(1,'.mat','Select EEG/MEG fiducial file'));
-    name    = fieldnames(sensors);
-    sensors = getfield(sensors,name{1});
-    name    = fieldnames(fid_eeg);
-    fid_eeg = getfield(fid_eeg,name{1});
-
-
-    % get headshape and fiducial locations
-    %----------------------------------------------------------------------
-    if strcmp(questdlg('Use headshape file?'),'Yes');
-        headshape = load(spm_select(1,'.mat','Select headshape file (N x 3)'));
-        name      = fieldnames(headshape);
-        headshape = getfield(headshape,name{1});
-        
-        % ensure fiducials correspond
-        %------------------------------------------------------------------
-        % hsp_ind   = inputdlg('Indices of sensor fiducials','SPM',1,{'1 2 3'});
-        % hsp_ind   = str2num(hsp_ind{1});
-        % headshape = [headshape(hsp_ind,:); headshape];
-        
-    else
-        headshape = sparse(0,3);
-    end
-  end
-end
-        
-% sensor orientations (MEG)
-%--------------------------------------------------------------------------
-if strcmp(D.modality,'MEG')
-try
-    megorient   = D.channels.Orient';
-    catch
-        megorient = load(spm_select(1,'.mat','Select MEG sensor orients (N x 3)'));
-        name      = fieldnames(megorient);
-        megorient = getfield(megorient,name{1});
-    end
+if iseeg && ismeg
+    modality = spm_input('Which modality?','+1','EEG|MEG');
+elseif iseeg
+    modality = 'EEG';
+elseif ismeg
+    modality = 'MEG';
 else
-    megorient = sparse(0,3);
+    error('No MEEG channels in the data');
 end
 
-% put grad structure aboard as well (used by MEG fieldtrip leadfield
-% function)
-try
-    grad = D.channels.grad;
-end
-    
-% Speccify anatomical space (fiducials and scalp surface)
-%==========================================================================
+D.inv{val}.modality = modality;
 
-% fiducial in sMRI space
-%--------------------------------------------------------------------------
-try
-    fid_mri = D.inv{ival}.datareg.fid_mri;
-catch
-    fid_mri = load(spm_select(1,'.mat','Select sMRI fiducials {nasion, left & right ear)'));
-    name    = fieldnames(fid_mri);
-    fid_mri = getfield(fid_mri,name{1});
-end
-
-% get scalp locations if headshape is specified
-%--------------------------------------------------------------------------
-try
-    D.inv{ival}.datareg.scalpvert = D.inv{ival}.mesh.tess_scalp.vert;
-    scalpvert                     = D.inv{ival}.datareg.scalpvert;
-catch
-    if length(headshape)
-        scalpvert = spm_select(1,'.mat','Select scalp vertices (N x 3)');
-    else
-        scalpvert = sparse(0,3);
-    end
-end
-
+channels = D.chanlabels;
+chanind = strmatch(D.chantype, modality);
+chanind = setdiff(chanind, D.badchannels);
+D.inv{val}.forward.channels = channels(chanind);
 
 % register
 %==========================================================================
-D.inv{ival}.datareg.sensors   = sensors;
-D.inv{ival}.datareg.fid_eeg   = fid_eeg;
-D.inv{ival}.datareg.fid_mri   = fid_mri;
-D.inv{ival}.datareg.headshape = headshape;
-D.inv{ival}.datareg.scalpvert = scalpvert;
-D.inv{ival}.datareg.megorient = megorient;
-try
-    D.inv{ival}.datareg.grad = grad;
-end
+S =[];
+S.sens = D.sensors(modality);
+S.meegfid = D.fiducials;
+S.vol = D.inv{val}.forward.vol;
+S.mrifid = D.inv{val}.datareg.fid_mri;
+S.template = D.inv{val}.mesh.template;
+
 %--------------------------------------------------------------------------
-% D = spm_eeg_inv_datareg(D);
-[M1, sens, fid] = spm_eeg_inv_datareg(sensors,fid_eeg, ...
-                    D.inv{ival}.datareg,D.inv{ival}.mesh.template);
+switch D.inv{val}.modality
+    case 'EEG'
+        [M1, sens, fid] = spm_eeg_inv_datareg_eeg(S);
+    case 'MEG'
+        error('MEG support is under construction');
+end
+
+D.inv{val}.datareg.sensors = sens;
+D.inv{val}.datareg.fid_eeg   = fid;
+
+S.sens = sens;
+S.meegfid = fid;
+S.mesh = D.inv{val}.mesh;
 
 % check and display registration
 %--------------------------------------------------------------------------
-spm_eeg_inv_checkdatareg(D);
+spm_eeg_inv_checkdatareg(S);

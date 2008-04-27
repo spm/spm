@@ -11,12 +11,12 @@ function [mesh,vol] = spm_eeg_inv_getmeshes(mesh,lbuild)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Christophe Phillips, Rik Henson
-% $Id: spm_eeg_inv_getmeshes.m 1477 2008-04-24 14:33:47Z christophe $
+% $Id: spm_eeg_inv_getmeshes.m 1488 2008-04-27 14:11:48Z vladimir $
 
 if nargin<1
     D = spm_eeg_load;
-    [D,ival] = spm_eeg_inv_check(varargin{1});
-    mesh = D.inv{ival}.mesh;
+    [D,val] = spm_eeg_inv_check(varargin{1});
+    mesh = D.inv{val}.mesh;
 end
 if nargin<2
     lbuild = 1:4;

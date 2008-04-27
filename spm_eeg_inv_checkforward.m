@@ -5,12 +5,12 @@ function spm_eeg_inv_checkforward(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkforward.m 1437 2008-04-17 10:34:39Z christophe $
+% $Id: spm_eeg_inv_checkforward.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % SPM data structure
 %==========================================================================
 try
-    forward = D.inv{D.ival}.forward;
+    forward = D.inv{D.val}.forward;
     disp(forward)
 catch
     warndlg('please create forward model')
@@ -19,7 +19,7 @@ end
 
 % show electrodes
 %--------------------------------------------------------------------------
-if strcmp(D.inv{D.ival}.method,'ECD')
+if strcmp(D.inv{D.val}.method,'ECD')
     
     % SPM graphics figure
     %----------------------------------------------------------------------

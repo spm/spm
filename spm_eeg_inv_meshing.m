@@ -12,7 +12,7 @@ function D = spm_eeg_inv_meshing(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 1477 2008-04-24 14:33:47Z christophe $
+% $Id: spm_eeg_inv_meshing.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % Flags explanation:
 % * template:
@@ -35,62 +35,62 @@ function D = spm_eeg_inv_meshing(varargin)
 
 % initialise
 %--------------------------------------------------------------------------
-[D,ival] = spm_eeg_inv_check(varargin{:});
+[D,val] = spm_eeg_inv_check(varargin{:});
 
 % check template flag
 %--------------------------------------------------------------------------
 try
-    template = D.inv{ival}.mesh.template;
+    template = D.inv{val}.mesh.template;
 catch
-    D.inv{ival}.mesh.template = 0;
+    D.inv{val}.mesh.template = 0;
 end
 
 % get sMRI file name (select none if none present, to use template mesh)
 %--------------------------------------------------------------------------
-if ~D.inv{ival}.mesh.template & ~isfield(D.inv{ival}.mesh,'sMRI')
-    D.inv{ival}.mesh.sMRI = spm_select([0 1],'image', ...
+if ~D.inv{val}.mesh.template & ~isfield(D.inv{val}.mesh,'sMRI')
+    D.inv{val}.mesh.sMRI = spm_select([0 1],'image', ...
                 'Select subject''s structural MRI (Press Done if none)');
 end
 
-if isempty(D.inv{ival}.mesh.sMRI)
+if isempty(D.inv{val}.mesh.sMRI)
     disp('No structural MRI selected; will use template mesh');
-    D.inv{ival}.mesh.template = 1;
+    D.inv{val}.mesh.template = 1;
 end
 
 % set canonical flag (if not specified, determined by modality)
 %--------------------------------------------------------------------------
-if ~D.inv{ival}.mesh.template
+if ~D.inv{val}.mesh.template
     try
-        canonical = D.inv{ival}.mesh.canonical;
+        canonical = D.inv{val}.mesh.canonical;
     catch
 
         if strcmp(D.modality,'MEG')         % No ECD yet for MEG!
-            D.inv{ival}.method = 'Imaging';
+            D.inv{val}.method = 'Imaging';
         end
 
-        if ~isfield(D.inv{ival},'method')
-            D.inv{ival}.method = questdlg('recontruction','Please select', ...
+        if ~isfield(D.inv{val},'method')
+            D.inv{val}.method = questdlg('recontruction','Please select', ...
                                                 'Imaging','ECD','Imaging');
         end
 
-        if strcmp(D.inv{ival}.method,'ECD')  % Use subject-specific mesh for ECD
-            D.inv{ival}.mesh.canonical = 1;
+        if strcmp(D.inv{val}.method,'ECD')  % Use subject-specific mesh for ECD
+            D.inv{val}.mesh.canonical = 1;
             % We could allow to use template specific model for ECD by
             % allowing canonical = 2;
         else % Imaging
-            if ~isfield(D.inv{ival}.mesh,'canonical')
+            if ~isfield(D.inv{val}.mesh,'canonical')
                 tmp = questdlg('scalp/skull mesh','Please select', ...
                                 'canonical','subject','canonical');
             end
             if strcmp(tmp,'canonical')
-                D.inv{ival}.mesh.canonical = 2;  % Use canonical mesh
+                D.inv{val}.mesh.canonical = 2;  % Use canonical mesh
             else
-                D.inv{ival}.mesh.canonical = 1;
+                D.inv{val}.mesh.canonical = 1;
             end
         end
     end
 else
-    D.inv{ival}.mesh.canonical = 2;
+    D.inv{val}.mesh.canonical = 2;
 end
 % The case with canonical=0, i.e. use all meshes (scalp/iskull/cortex) 
 % defined from the subject's sMRI, only occurs if canonical is defined by
@@ -98,31 +98,31 @@ end
 
 % get cortical mesh size
 %--------------------------------------------------------------------------
-if ~isfield(D.inv{ival}.mesh,'Msize') ...
-                && strcmp(D.inv{ival}.method,'Imaging')
+if ~isfield(D.inv{val}.mesh,'Msize') ...
+                && strcmp(D.inv{val}.method,'Imaging')
     Msize = spm_input('Cortical mesh size (vert.)','+1', ...
                                           '3000|4000|5000|7200',[1 2 3 4]);
-    D.inv{ival}.mesh.Msize = Msize;
-else strcmp(D.inv{ival}.method,'ECD')
-    D.inv{ival}.mesh.Msize = 1;
+    D.inv{val}.mesh.Msize = Msize;
+else strcmp(D.inv{val}.method,'ECD')
+    D.inv{val}.mesh.Msize = 1;
 end
-Msize = D.inv{ival}.mesh.Msize;
+Msize = D.inv{val}.mesh.Msize;
 
-if D.inv{ival}.mesh.template
+if D.inv{val}.mesh.template
     [vol,fid,mesh] = spm_eeg_inv_template(Msize);
     D = fiducials(D,fid);
-    D.inv{ival}.mesh = mesh;
-    D.inv{ival}.vol = vol;
+    D.inv{val}.mesh = mesh;
+    D.inv{val}.vol = vol;
 else
-    mesh = D.inv{ival}.mesh;
+    mesh = D.inv{val}.mesh;
     % Segment and normalise structural
     %======================================================================
-    mesh  = spm_eeg_inv_spatnorm(mesh,ival);
+    mesh  = spm_eeg_inv_spatnorm(mesh,val);
     
     % Compute the masks
     %======================================================================
     mesh  = spm_eeg_inv_getmasks(mesh);
-    D.inv{ival}.mesh = mesh;
+    D.inv{val}.mesh = mesh;
 
     % Compute the skull, cortex and scalp meshes de novo, from masks
     %======================================================================
@@ -154,17 +154,17 @@ else
 %         % Compute the scalp mesh from the template
 %         %------------------------------------------------------------------
 %         Tmesh      = load('wmeshTemplate_scalp.mat');
-%         Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{ival}.mesh.def);
-%         D.inv{ival}.mesh.tess_scalp.vert  = Tmesh.vert;
-%         D.inv{ival}.mesh.tess_scalp.face  = uint16(Tmesh.face);
+%         Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
+%         D.inv{val}.mesh.tess_scalp.vert  = Tmesh.vert;
+%         D.inv{val}.mesh.tess_scalp.face  = uint16(Tmesh.face);
 %         % Compute the skull mesh from the template
 %         %------------------------------------------------------------------
 %         Tmesh      = load('wmeshTemplate_skull.mat');
-%         Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{ival}.mesh.def);
-%         D.inv{ival}.mesh.tess_iskull.vert = Tmesh.vert;
-%         D.inv{ival}.mesh.tess_iskull.face = uint16(Tmesh.face);
+%         Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
+%         D.inv{val}.mesh.tess_iskull.vert = Tmesh.vert;
+%         D.inv{val}.mesh.tess_iskull.face = uint16(Tmesh.face);
     end
-    D.inv{ival}.vol = vol;
+    D.inv{val}.vol = vol;
 
     % Deal with the cortical mesh, canonical cortex mesh if 1 or 2
     if mesh.canonical
@@ -188,10 +188,10 @@ else
 
         % Compute the cortical mesh from the template
         %------------------------------------------------------------------
-        Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{ival}.mesh.def);
+        Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
         mesh.tess_ctx.vert    = Tmesh.vert;
         mesh.tess_ctx.face    = uint16(Tmesh.face);
     end
-    D.inv{ival}.mesh = mesh;
+    D.inv{val}.mesh = mesh;
 end
 spm('Pointer','Arrow');

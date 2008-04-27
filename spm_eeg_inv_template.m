@@ -16,7 +16,7 @@ function [vol,fid,mesh] = spm_eeg_inv_template(Msize)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_template.m 1477 2008-04-24 14:33:47Z christophe $
+% $Id: spm_eeg_inv_template.m 1488 2008-04-27 14:11:48Z vladimir $
 
 
 % check for mesh size
@@ -79,11 +79,13 @@ tmp = load(fullfile(Cdir,'standard_vol.mat'));
 if isfield(tmp,'vol')
     vol = tmp.vol;
 else
-    error('Missing vol structure in tempalte file!')
+    error('Missing vol structure in template file!')
 end
 
 % datareg
 %--------------------------------------------------------------------------
-fid.fid = structure('pnt',[1 85  -41; -83 -20 -65; 83 -20 -65], ...
-                    'label',{'fidnz','fidt9','fidt10'}, ...
-                    'unit','mm');
+fid = [];
+fid.pnt = [];
+fid.fid = struct('pnt',[1 85  -41; -83 -20 -65; 83 -20 -65], ...
+                    'label',{{'fidnz','fidt9','fidt10'}});
+fid.unit = 'mm';                              

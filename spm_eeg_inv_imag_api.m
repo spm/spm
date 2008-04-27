@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1437 2008-04-17 10:34:39Z christophe $
+% $Id: spm_eeg_inv_imag_api.m 1488 2008-04-27 14:11:48Z vladimir $
 
 
 spm('defaults','EEG');
@@ -75,12 +75,12 @@ Reset(hObject, eventdata, handles);
 function Reg2tem_Callback(hObject, eventdata, handles)
 str       = 'Mesh size (vertices)';
 Msize = spm_input(str,'+1','3000|4000|5000|7200',[1 2 3 4]);
-% handles.D = spm_eeg_inv_template(handles.D);
-[datareg,mesh] = spm_eeg_inv_template(Msize);
-handles.D.inv{handles.D.ival}.mesh = mesh;
-handles.D.inv{handles.D.ival}.datareg = datareg;
-set(handles.CreateMeshes,'enable','off')
-DataReg_Callback(hObject, eventdata, handles);
+[vol,fid,mesh] = spm_eeg_inv_template(Msize);
+handles.D.inv{handles.D.val}.mesh = mesh;
+handles.D.inv{handles.D.val}.datareg.fid_mri = fid;
+handles.D.inv{handles.D.val}.forward.vol = vol;
+set(handles.CreateMeshes,'enable','off');
+Reset(hObject, eventdata, handles);
 
 
 % --- Executes on button press in Data Reg.
@@ -100,11 +100,7 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in Invert.
 %--------------------------------------------------------------------------
 function Inverse_Callback(hObject, eventdata, handles)
-if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
-    handles.D = spm_eeg_invert_ui(handles.D);
-else
-    handles.D = spm_eeg_inv_ecd_ui(handles.D);
-end
+handles.D = spm_eeg_invert_ui(handles.D);
 Reset(hObject, eventdata, handles);
 
 
@@ -135,14 +131,9 @@ Reset(hObject, eventdata, handles);
 function Load_Callback(hObject, eventdata, handles)
 S = spm_select(1, '.mat', 'Select EEG/MEG mat file');
 D = spm_eeg_load(S);
-try
-    D.modality;
-catch
-    modalty = questdlg('Modality','Please specify','EEG','MEG','LFP','EEG');
-    D = chantype(D,[],modalty);
-end
+
 set(handles.DataFile,'String',D.fname);
-set(handles.Exit,'enable','on')
+set(handles.Exit,'enable','on');
 cd(D.path);
 handles.D     = D;
 Reset(hObject, eventdata, handles);
@@ -152,11 +143,7 @@ Reset(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 function Exit_Callback(hObject, eventdata, handles)
 D             = handles.D;
-if spm_matlab_version_chk('7.1') >= 0
-    save(fullfile(D.path, D.fname), '-V6', 'D');
-else
-    save(fullfile(D.path, D.fname), 'D');
-end
+D.save;
 varargout{1} = handles.D;
 assignin('base','D',handles.D)
 
@@ -169,17 +156,17 @@ assignin('base','D',handles.D)
 function new_Callback(hObject, eventdata, handles)
 D  = handles.D;
 if ~isfield(D,'inv')
-    ival   = 1;
+    val   = 1;
 elseif ~length(D.inv)
-    ival   = 1;
+    val   = 1;
 else
-    ival        = length(D.inv) + 1;
-    D.inv{ival} = D.inv{D.ival};
+    val        = length(D.inv) + 1;
+    D.inv{val} = D.inv{D.val};
 end
 
 % set D in handles and update analysis specific buttons
 %--------------------------------------------------------------------------
-D.ival     = ival;
+D.val     = val;
 D         = set_CommentDate(D);
 handles.D = D;
 set(handles.CreateMeshes,'enable','on')
@@ -188,8 +175,8 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in next.
 %--------------------------------------------------------------------------
 function next_Callback(hObject, eventdata, handles)
-if handles.D.ival < length(handles.D.inv)
-    handles.D.ival = handles.D.ival + 1;
+if handles.D.val < length(handles.D.inv)
+    handles.D.val = handles.D.val + 1;
 end
 Reset(hObject, eventdata, handles);
 
@@ -197,8 +184,8 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in previous.
 %--------------------------------------------------------------------------
 function previous_Callback(hObject, eventdata, handles)
-if handles.D.ival > 1
-    handles.D.ival = handles.D.ival - 1;
+if handles.D.val > 1
+    handles.D.val = handles.D.val - 1;
 end
 Reset(hObject, eventdata, handles);
 
@@ -207,9 +194,9 @@ Reset(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 function clear_Callback(hObject, eventdata, handles)
 try
-    inv.comment = handles.D.inv{handles.D.ival}.comment;
-    inv.date    = handles.D.inv{handles.D.ival}.date;
-    handles.D.inv{handles.D.ival} = inv;
+    inv.comment = handles.D.inv{handles.D.val}.comment;
+    inv.date    = handles.D.inv{handles.D.val}.date;
+    handles.D.inv{handles.D.val} = inv;
 end
 Reset(hObject, eventdata, handles);
 
@@ -222,8 +209,8 @@ if length(handles.D.inv)
         warndlg({'you are about to delete:',str{1}});
         uiwait
     end
-    handles.D.inv(handles.D.ival) = [];
-    handles.D.ival                = handles.D.ival - 1;
+    handles.D.inv(handles.D.val) = [];
+    handles.D.val                = handles.D.val - 1;
 end
 Reset(hObject, eventdata, handles);
 
@@ -247,55 +234,55 @@ if ~length(handles.D.inv)
     return
 end
 try
-    ival = handles.D.ival;
-    handles.D.inv{ival};
+    val = handles.D.val;
+    handles.D.inv{val};
 catch
-    handles.D.ival = 1;
-    ival           = 1;
+    handles.D.val = 1;
+    val           = 1;
 end
 
 % analysis specification buttons
 %--------------------------------------------------------------------------
-Q  = handles.D.inv{ival};
+Q  = handles.D.inv{val};
 set(handles.new,      'enable','on','value',0)
 set(handles.clear,    'enable','on','value',0)
 set(handles.delete,   'enable','on','value',0)
 set(handles.next,     'value',0)
 set(handles.previous, 'value',0)
 
-if ival < length(handles.D.inv)
+if val < length(handles.D.inv)
     set(handles.next,    'enable','on')
 end
-if ival > 1
+if val > 1
     set(handles.previous,'enable','on')
 end
-if ival == 1
+if val == 1
     set(handles.previous,'enable','off')
 end
-if ival == length(handles.D.inv)
+if val == length(handles.D.inv)
     set(handles.next,    'enable','off')
 end
 try
-    str = sprintf('%i: %s',ival,Q.comment{1});
+    str = sprintf('%i: %s',val,Q.comment{1});
 catch
     try
-        str = sprintf('%i: %s',ival,Q.comment);
+        str = sprintf('%i: %s',val,Q.comment);
     catch
-        str = sprintf('%i',ival);
+        str = sprintf('%i',val);
     end
 end
-set(handles.val, 'Value',ival,'string',str);
+set(handles.val, 'Value',val,'string',str);
 
 % condition specification
 %--------------------------------------------------------------------------
 try
     handles.D.con = max(handles.D.con,1);
-    if handles.D.con > length(handles.D.inv{ival}.inverse.J);
+    if handles.D.con > length(handles.D.inv{val}.inverse.J);
        handles.D.con = 1;
     end
 catch
     try 
-       handles.D.con = length(handles.D.inv{ival}.inverse.J);
+       handles.D.con = length(handles.D.inv{val}.inverse.J);
     catch
        handles.D.con = 0;
     end
@@ -326,7 +313,7 @@ set(handles.Movie,        'enable','off','Value',0)
 set(handles.Vis3D,        'enable','off','Value',0)
 set(handles.Image,        'enable','off','Value',0)
 
-if isfield(Q,'mesh')
+if isfield(Q, 'mesh')
     set(handles.DataReg,  'enable','on')
     set(handles.CheckMesh,'enable','on')
     if isfield(Q,'datareg')
@@ -354,7 +341,7 @@ if isfield(Q,'mesh')
     end
 end
 try
-    if strcmp(handles.D.inv{handles.D.ival}.method,'Imaging')
+    if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
         set(handles.CheckInverse,'String','mip');
         set(handles.PST,'Enable','on');
     else
@@ -377,8 +364,8 @@ if clck(5) < 10
 else
     clck = [num2str(clck(4)) ':' num2str(clck(5))];
 end
-D.inv{D.ival}.date    = strvcat(date,clck);
-D.inv{D.ival}.comment = inputdlg('Comment/Label for this analysis:');
+D.inv{D.val}.date    = strvcat(date,clck);
+D.inv{D.val}.comment = inputdlg('Comment/Label for this analysis:');
 S = D;
 
 
@@ -406,12 +393,12 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in CheckInverse.
 %--------------------------------------------------------------------------
 function CheckInverse_Callback(hObject, eventdata, handles)
-if strcmp(handles.D.inv{handles.D.ival}.method,'Imaging')
+if strcmp(handles.D.inv{handles.D.val}.method,'Imaging')
     PST    = str2num(get(handles.PST,'String'));
     spm_eeg_invert_display(handles.D,PST);
 else
-    resdip = handles.D.inv{handles.D.ival}.inverse.resdip;
-    sMRI   = handles.D.inv{handles.D.ival}.mesh.sMRI
+    resdip = handles.D.inv{handles.D.val}.inverse.resdip;
+    sMRI   = handles.D.inv{handles.D.val}.mesh.sMRI
     spm_eeg_inv_ecd_DrawDip('Init',resdip,sMRI);
 end
 Reset(hObject, eventdata, handles);

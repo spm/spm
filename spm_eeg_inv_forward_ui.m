@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_forward_ui.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -21,23 +21,10 @@ function D = spm_eeg_inv_forward_ui(varargin)
 
 % get method
 %--------------------------------------------------------------------------
-if strcmp(D.modality,'MEG')
-    method = 'Imaging';
-else
-    try 
-    method = D.inv{val}.method;
-    catch
-    method = questdlg('recontruction','Please select','Imaging','ECD','Imaging');
-    end
-end
-D.inv{D.val}.method = method;
+D.inv{D.val}.method = 'Imaging';
 
 % compute forward model
 %==========================================================================
-if strcmp(method,'Imaging')
-    D = spm_eeg_inv_BSTfwdsol(D);
-else
-    D = spm_eeg_inv_elec_Rsph_ui(D);
-end
+D = spm_eeg_inv_forward(D);
 
 fprintf('Foward model complete - thank you\n')

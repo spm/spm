@@ -1,4 +1,4 @@
-function mesh = spm_eeg_inv_spatnorm(mesh,ival)
+function mesh = spm_eeg_inv_spatnorm(mesh,val)
 % Spatial Normalization (using a unified model - SPM5) transforms 
 % individual sMRI into MNI T1 space and saves the [inverse] deformations 
 % (..._inv_sn.mat) that will be needed for computing the individual mesh
@@ -13,19 +13,19 @@ function mesh = spm_eeg_inv_spatnorm(mesh,ival)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 1477 2008-04-24 14:33:47Z christophe $
+% $Id: spm_eeg_inv_spatnorm.m 1488 2008-04-27 14:11:48Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
 try
-    sMRI = D.inv{ival}.mesh.sMRI;
+    sMRI = D.inv{val}.mesh.sMRI;
 catch
     sMRI = spm_select(1,'image','Select subject''s structural MRI');
     mesh.sMRI = sMRI;
 end
 
 if nargin<2
-    ival=1;
+    val=1;
 end
 
 fprintf(['\n\tNormalising sMRI and computing mapping from canonical\n', ...
@@ -38,8 +38,8 @@ fprintf(['\n\tNormalising sMRI and computing mapping from canonical\n', ...
 if ~isfield(mesh,'def') || isempty(mesh)
     res           = spm_preproc(sMRI);
     [sn,isn]      = spm_prep2sn(res); %#ok<NASGU>
-    def_name      = [nam '_sn_'     num2str(ival) '.mat'];
-    isndef_name   = [nam '_inv_sn_' num2str(ival) '.mat'];
+    def_name      = [nam '_sn_'     num2str(val) '.mat'];
+    isndef_name   = [nam '_inv_sn_' num2str(val) '.mat'];
     mesh.def      = fullfile(pth,def_name);
     mesh.invdef   = fullfile(pth,isndef_name);
     save(mesh.def, '-STRUCT', 'sn');
