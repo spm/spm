@@ -19,6 +19,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.2  2008/04/28 14:14:29  roboos
+% added closing bracket
+%
 % Revision 1.1  2008/04/14 20:16:37  roboos
 % new implementation, required for spm integration
 %
@@ -30,7 +33,7 @@ if ~isfield(sens, 'tra')
 end
 
 % select and discard the columns that are empty
-selempty = find(all(montage.tra==0, 1);
+selempty = find(all(montage.tra==0, 1));
 montage.tra      = montage.tra(:,selempty);
 montage.labelorg = montage.labelorg(selempty);
 
