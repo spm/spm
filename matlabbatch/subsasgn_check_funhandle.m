@@ -11,9 +11,9 @@ function sts = subsasgn_check_funhandle(val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_funhandle.m 1322 2008-04-09 08:37:52Z volkmar $
+% $Id: subsasgn_check_funhandle.m 1489 2008-04-28 06:32:55Z volkmar $
 
-rev = '$Rev: 1322 $';
+rev = '$Rev: 1489 $';
 
 sts = isempty(val) || isa(val, 'function_handle') || (ischar(val) && ...
                                                   any(exist(val) == 2:6));
@@ -26,8 +26,8 @@ if sts && isa(val, 'function_handle')
     end;
     try
         if ~strcmp(f.type,'anonymous')
-            % file name should not be empty for builtin or file functions
-            sts = ~isempty(f.file);
+            % file name should not be empty for file functions
+            sts = ~isempty(f.file) || ~isempty(which(f.function));
         end;
     catch
         % fail silently if something is wrong with f, keep sts == true

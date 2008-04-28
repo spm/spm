@@ -24,9 +24,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1473 2008-04-24 08:14:02Z volkmar $
+% $Id: subsasgn_check.m 1489 2008-04-28 06:32:55Z volkmar $
 
-rev = '$Rev: 1473 $';
+rev = '$Rev: 1489 $';
 
 sts = true;
 switch class(item)
@@ -57,13 +57,22 @@ switch class(item)
             case {'help'},
                 if isempty(val)
                     val = {};
-                else
-                    if ~iscellstr(val)
-                        warning('matlabbatch:cfg_item:subsasgn_check:help', '%s: Value must be a cell string.', subsasgn_checkstr(item,subs));
-                        sts = false;
-                    end;
+                elseif ~iscellstr(val)
+                    warning('matlabbatch:cfg_item:subsasgn_check:help', '%s: Value must be a cell string.', subsasgn_checkstr(item,subs));
+                    sts = false;
                 end;
-            case {'id', 'hidden', 'expanded'},
+            case {'def'},
+                if isempty(val)
+                    val = {};
+                elseif ~(iscell(val) && numel(val) == 2 && subsasgn_check_funhandle(val{1}))
+                    warning('matlabbatch:cfg_item:subsasgn_check:def', '%s: Value must be a 2-element cell and val{1} a function or function handle.', subsasgn_checkstr(item,subs));
+                    sts = false;
+                end;
+            case {'hidden', 'expanded'},
+                if ~islogical(val)
+                    warning('matlabbatch:cfg_item:subsasgn_check:logical', '%s: Value must be ''true'' or ''false''.', subsasgn_checkstr(item,subs));
+                    sts = false;
+                end;
         end;
     otherwise
         % fall back for derived classes

@@ -17,6 +17,29 @@ function item = cfg_item(varargin)
 %              This function should return an empty string on success and
 %              a string explaining why it failed otherwise. 
 %    * help  - help text
+%    * def   - defaults setting (only evaluated for cfg_leaf items),
+%              holding a cell array with 2 elements:
+%              - def{1} a function or function handle
+%              - def{2} a custom argument, giving the defaults function a
+%              hint which default value should be returned.
+%              If there is no .val{1} set for an cfg_leaf item,
+%              feval(def{:}) will be evaluated to retreive a default value.
+%              Note that it is not possible to explicitly clear the .val
+%              field, if an default has been set. To clear the default
+%              value, either the .def function has to be removed from the
+%              configuration, or the called defaults function needs to
+%              return the value <UNDEFINED> (string, literally as shown
+%              including <>). Also, any value returned that does not match
+%              the size/type/filter etc. requirements of the item, will
+%              resolve to <UNDEFINED>.
+%              To change a default value, feval(def{:}, newval) will be
+%              called. It is up to the defaults function def{1} to decide
+%              whether this value will be stored permanently or just for
+%              the current instance of the configuration tree. Only values
+%              which are valid entries for this field are accepted. If the
+%              value is not valid, it will not be changed. It is not
+%              possibly to set a defaults value to <UNDEFINED> using the
+%              class methods.
 % GUI/job manager fields
 %    * expanded
 %    * hidden
@@ -59,13 +82,14 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 1467 2008-04-22 07:46:05Z volkmar $
+% $Id: cfg_item.m 1489 2008-04-28 06:32:55Z volkmar $
 
-rev = '$Rev: 1467 $';
+rev = '$Rev: 1489 $';
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
 [fn defs] = mysubs_fields;
+fnd = [fn' defs']';
 
 if nargin == 1
     if isstruct(varargin{1})
@@ -85,9 +109,7 @@ if nargin == 1
     end;
 end;
 
-item = class(struct('name','Config Item', ...
-    'tag','generic', 'val',{{}}, 'check',{''}, 'help',{{''}}, 'id',[], 'expanded',0, 'hidden',0),...
-    'cfg_item');
+item = class(struct(fnd{:}), 'cfg_item');
 switch nargin
     case 0
         return;
