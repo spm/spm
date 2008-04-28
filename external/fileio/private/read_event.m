@@ -16,11 +16,12 @@ function [event] = read_event(filename, varargin)
 % FILTER_EVENT for more details.
 %
 % This function returns an event structure with the following fields
-%   event.type      string
-%   event.sample    expressed in samples, first sample of file is 1
-%   event.value     number or string
-%   event.offset    expressed in samples
-%   event.duration  expressed in samples
+%   event.type      = string
+%   event.sample    = expressed in samples, the first sample of a recording is 1
+%   event.value     = number or string
+%   event.offset    = expressed in samples
+%   event.duration  = expressed in samples
+%   event.timestamp = expressed in timestamp units, which vary over systems (optional)
 %
 % The event type and sample fields are always defined, other fields can be empty,
 % depending on the type of event file. Events are sorted by the sample on
@@ -43,9 +44,33 @@ function [event] = read_event(filename, varargin)
 %
 % See also READ_HEADER, READ_DATA, WRITE_DATA, WRITE_EVENT, FILTER_EVENT
 
-% Copyright (C) 2004-2007, Robert Oostenveld
+% Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.58  2008/04/21 11:50:52  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
+% Revision 1.57  2008/04/18 14:07:45  roboos
+% added eeglab_set
+%
+% Revision 1.56  2008/02/20 12:32:00  roboos
+% allow empty events from buffer
+%
+% Revision 1.55  2008/02/19 10:08:13  roboos
+% added support for fcdc_buffer
+%
+% Revision 1.54  2008/01/31 20:13:46  roboos
+% On line 291 the cell element 4D was added to the existing case
+% designed for the handling of 4D_bti data.  This is necessary to
+% allow this identified filetype to cause execution of this case.
+% [thanks to Gavin]
+%
+% Revision 1.53  2008/01/30 10:40:54  roboos
+% moved catevent to seperate function and renamed to appendevent
+%
+% Revision 1.52  2008/01/30 08:42:13  roboos
+% fixed two bugs for ttl.bin in online session with Thilo (both were due to the code being untested)
+%
 % Revision 1.51  2007/12/20 19:06:57  roboos
 % Added filtering base on event number (minnumber and maxnumber), implemented in low level for neuralynx_nev and for the rest of the formats in filter event. If event.number is not present everything still should work as it used to.
 %
@@ -240,7 +265,7 @@ if iscell(filename)
   event = [];
   for i=1:numel(filename)
     tmp   = read_event(filename{i}, varargin{:});
-    event = catevent(event(:), tmp(:));
+    event = appendevent(event(:), tmp(:));
   end
   return
 end
@@ -288,7 +313,7 @@ switch eventformat
   case 'fcdc_global'
     event = event_queue;
 
-  case {'4d_pdf', '4d_m4d', '4d_xyz'}
+  case {'4d' '4d_pdf', '4d_m4d', '4d_xyz'}
     if isempty(hdr)
       hdr = read_header(filename);
     end
@@ -571,6 +596,9 @@ switch eventformat
     % read the events from shared memory
     event = read_shm_event(filename, varargin{:});
 
+ case 'eeglab_set'
+    event = read_eeglabevent(filename, 'header', hdr);
+ 
   case 'eep_avr'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
@@ -648,6 +676,74 @@ switch eventformat
         event(eventCount).duration =  hdr.nSamples;
         event(eventCount).value    =  ['S' num2str(subject) cnames{cell}];
       end
+    end
+
+  case 'egi_sbin'
+    if isempty(segHdr)
+      [EventCodes, segHdr, eventData] = read_sbin_events(filename);
+    end
+    if isempty(header_array)
+      [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
+    end
+    eventCount=0;
+    for event=1:size(eventData,1)
+      for segment=1:size(eventData,2)
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'trial';
+        event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+        event(eventCount).offset   = -hdr.nSamplesPre;
+        event(eventCount).duration =  length(find(eventData(event,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0));
+        event(eventCount).value    =  EventCodes(event,:);
+      end
+    end
+    for segment=1:size(eventData,2)  % cell information
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'trial';
+        event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
+        event(eventCount).offset   = -hdr.nSamplesPre;
+        event(eventCount).duration =  hdr.nSamples;
+        event(eventCount).value    =  ['S' num2str(subject) CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))];
+    end
+
+      case 'fcdc_buffer'
+    % read from a networked buffer for realtime analysis
+    [host, port] = filetype_check_uri(filename);
+    try
+    evt = buffer_getevt(host, port);  % it would be possible to specify event numbers, not that indices should be zero-offset
+    catch
+      evt = [];
+    end
+
+    type = {
+      'char'
+      'uint8'
+      'uint16'
+      'uint32'
+      'uint64'
+      'int8'
+      'int16'
+      'int32'
+      'int64'
+      'single'
+      'double'
+      };
+
+    for i=1:length(evt)
+      sel = 1:evt(i).type_numel;
+      if evt(i).type_type==0
+        event(i).type = char(evt(i).buf(sel));
+      else
+        event(i).type = typecast(evt(i).buf(sel), type{evt(i).type_type+1});
+      end
+      sel = (evt(i).type_numel+1):(evt(i).type_numel+evt(i).value_numel);
+      if evt(i).value_type==0
+        event(i).value = char(evt(i).buf(sel));
+      else
+        event(i).value = typecast(evt(i).buf(sel), type{evt(i).value_type+1});
+      end
+      event(i).sample   = evt(i).sample;
+      event(i).offset   = evt(i).offset;
+      event(i).duration = evt(i).duration;
     end
 
   case 'fcdc_matbin'
@@ -925,9 +1021,9 @@ switch eventformat
         tsh = tsh(smp);
         ts  = timestamp_neuralynx(tsl, tsh);
       elseif exist(tslfile) && exist(tshfile)
-        tsl = read_neuralynx_dma(filename, 1, max(smp), 'tsl');
+        tsl = read_neuralynx_bin(tslfile, 1, max(smp));
         tsl = tsl(smp);
-        tsh = read_neuralynx_dma(filename, 1, max(smp), 'tsh');
+        tsh = read_neuralynx_bin(tshfile, 1, max(smp));
         tsh = tsh(smp);
         ts  = timestamp_neuralynx(tsl, tsh);
       else
@@ -941,7 +1037,7 @@ switch eventformat
       duration  = repmat({[]},size(smp));
       offset    = repmat({[]},size(smp));
       if ~isempty(ts)
-        value     = num2cell(ts);
+        timestamp  = reshape(num2cell(ts),size(smp));
       else
         timestamp  = repmat({[]},size(smp));
       end
@@ -950,7 +1046,7 @@ switch eventformat
       clear type value sample timestamp offset duration
     end
 
-    if (strcmp(filetype, 'neuralynx_bin') || strcmp(filetype, 'neuralynx_ttl')) && isfield(hdr, 'FirstTimeStamp')
+    if (strcmp(eventformat, 'neuralynx_bin') || strcmp(eventformat, 'neuralynx_ttl')) && isfield(hdr, 'FirstTimeStamp')
       % the header was obtained from an external dataset which could be at a different sampling rate
       % use the timestamps to redetermine the sample numbers
       fprintf('using sample number of the downsampled file to reposition the TTL events\n');
@@ -1149,24 +1245,5 @@ end
 
 % apply the optional filters
 event = filter_event(event, varargin{:});
-
-function c = catevent(a, b);
-if isempty(a)
-  c = b(:);
-elseif isempty(b)
-  c = a(:);
-else
-  c = a(:);
-  for i=1:numel(b)
-    c(end+1).type     = b(i).type;
-    c(end  ).sample   = b(i).sample;
-    if isfield(b, 'timestamp')
-      c(end  ).timestamp= b(i).timestamp;
-    end
-    c(end  ).value    = b(i).value;
-    c(end  ).offset   = b(i).offset;
-    c(end  ).duration = b(i).duration;
-  end
-end
 
 

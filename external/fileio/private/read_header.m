@@ -1,35 +1,94 @@
 function [hdr] = read_header(filename, varargin)
 
-% READ_HEADER is a wrapper around different EEG/MEG file importers
-% directly supported formats are CTF, Neuromag, EEP, BrainVision,
-% Neuroscan and Neuralynx.
+% READ_HEADER reads header information from a variety of EEG, MEG and LFP 
+% filesi and represents the header information in a common data-indepentend
+% format. The supported formats are listed below.
 %
 % Use as
 %   hdr = read_header(filename, ...)
 %
 % Additional options should be specified in key-value pairs and can be
 %   'headerformat'   string
+%   'fallback'       can be empty or 'biosig' (default = [])
 %
 % This returns a header structure with the following elements
-%   hdr.Fs           sampling frequency
-%   hdr.nChans       number of channels
-%   hdr.nSamples     number of samples per trial
-%   hdr.nSamplesPre  number of pre-trigger samples in each trial
-%   hdr.nTrials      number of trials
-%   hdr.label        cell-array with labels of each channel
+%   hdr.Fs                  sampling frequency
+%   hdr.nChans              number of channels
+%   hdr.nSamples            number of samples per trial
+%   hdr.nSamplesPre         number of pre-trigger samples in each trial
+%   hdr.nTrials             number of trials
+%   hdr.label               cell-array with labels of each channel
+%   hdr.FirstTimeStamp      integer, only available for some subformats (mainly animal electrophisiology systems)
+%   hdr.TimeStampPerSample  integer, only available for some subformats (mainly animal electrophisiology systems)
 %
 % For continuous data, nSamplesPre=0 and nTrials=1.
 %
 % Depending on the file format, additional header information can be
 % returned in the hdr.orig subfield.
 %
+% The following MEG dataformats are supported
+%   CTF - VSM MedTech (*.ds, *.res4, *.meg4)
+%   Neuromag - Elektra (*.m4d, *.pdf, *.xyz)
+%   BTi - 4D Neuroimaging (*.m4d, *.pdf, *.xyz)
+%   Yokogawa (*.ave, *.con, *.raw)
+% 
+% The following EEG dataformats are supported
+%   ANT - Advanced Neuro Technology, EEProbe (*.avr, *.eeg, *.cnt)
+%   Biosemi (*.bdf)
+%   CED - Cambridge Electronic Design (*. smr)
+%   Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw)
+%   Megis/BESA (*.avr, *.swf)
+%   NeuroScan (*.eeg, *.cnt, *.avg)
+%   Nexstim (*.nxe)
+%   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
+% 
+% The following spike and LFP dataformats are supported (with some limitations)
+%   Plextor (*.nex, *.plx, *.ddt)
+%   Neuralynx (*.ncs, *.nse, *.nts, *.nev, DMA log files)
+%   CED - Cambridge Electronic Design (*.smr)
+%   MPI - Max Planck Institute (*.dap)
+%
 % See also READ_DATA, READ_EVENT, WRITE_DATA, WRITE_EVENT
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
-% Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
+% Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.47  2008/04/21 11:50:52  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
+% Revision 1.46  2008/04/18 14:07:45  roboos
+% added eeglab_set
+%
+% Revision 1.45  2008/04/11 07:12:57  roboos
+% updated docu, added list of supported file formats
+%
+% Revision 1.44  2008/04/10 09:34:51  roboos
+% added fallback option for biosig, implemented biosig also for edf
+%
+% Revision 1.43  2008/04/09 16:50:02  roboos
+% added fallback option to biosig (not default)
+%
+% Revision 1.42  2008/04/09 14:10:12  roboos
+% updated docu, added placeholder for biosig (not yet implemented)
+%
+% Revision 1.41  2008/04/09 10:09:20  roboos
+% only keep main fields for brainvision, remainder in orig
+% added channel labels to hdr for ns_avg (thanks to Vladimir)
+%
+% Revision 1.40  2008/03/20 12:18:49  roboos
+% warn only once for channel names in besa avr
+%
+% Revision 1.39  2008/02/19 10:08:13  roboos
+% added support for fcdc_buffer
+%
+% Revision 1.38  2008/01/31 20:14:35  roboos
+% A 4D case has been added to the existing switch statement to allow
+% the execution of the new read_4D_hdr.m  script to read the data
+% from the pdf file.  Header and grad structures are returned by the
+% new function. [thanks to Gavin]
+%
 % Revision 1.37  2008/01/10 12:57:34  roboos
 % give explicit errors with msgid FILEIO:Something
 %
@@ -93,7 +152,8 @@ function [hdr] = read_header(filename, varargin)
 % added timestamp details to header in case of neuralynx_ncs
 %
 % Revision 1.17  2007/01/10 17:29:54  roboos
-% moved the fieldtrip specific handling of header information into read_header
+% moved the fieldtrip specific handling of header information into
+% read_header
 %
 % Revision 1.16  2007/01/09 09:38:40  roboos
 % added spike channels for plexon_plx, moved plexon timestamp combination code to seperate function
@@ -157,12 +217,13 @@ if isempty(db_blob)
 end
 
 % test whether the file or directory exists
-if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql')
+if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql') && ~strcmp(filetype(filename), 'fcdc_buffer')
   error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
 end
 
 % get the options
-headerformat = keyval('headerformat',  varargin);
+headerformat = keyval('headerformat', varargin);
+fallback     = keyval('fallback',     varargin);
 
 % determine the filetype
 if isempty(headerformat)
@@ -235,6 +296,8 @@ end
 % read the data with the low-level reading function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch headerformat
+  case '4d'
+    hdr=read_4d_hdr(filename);
 
   case {'4d_pdf', '4d_m4d', '4d_xyz'}
     orig = read_bti_m4d(filename);
@@ -260,8 +323,8 @@ switch headerformat
     elseif isfield(orig, 'label') && ischar(orig.label)
       hdr.label = tokenize(orig.label, ' ');
     else
+      warning('creating fake channel names for besa_avr');
       for i=1:hdr.nChans
-        warning('creating fake channel names for besa_avr');
         hdr.label{i} = sprintf('%03d', i);
       end
     end
@@ -274,7 +337,12 @@ switch headerformat
     hdr.nSamplesPre = -(hdr.Fs * orig.tsb/1000);   % convert from ms to samples
     hdr.nTrials     = 1;
     hdr.label       = orig.label;
-    
+
+  case {'biosig', 'edf'}
+    % use the biosig toolbox if available
+    hastoolbox('BIOSIG', 1);
+    hdr = read_biosig_header(filename);
+
   case {'biosemi_bdf', 'bham_bdf'}
     hdr = read_biosemi_bdf(filename);
     if any(diff(hdr.orig.SampleRate))
@@ -310,7 +378,14 @@ switch headerformat
     fclose(orig.Head.FILE.FID);
 
   case {'brainvision_vhdr', 'brainvision_seg', 'brainvision_eeg', 'brainvision_dat'}
-    hdr = read_brainvision_vhdr(filename);
+    orig = read_brainvision_vhdr(filename);
+    hdr.Fs          = orig.Fs;
+    hdr.nChans      = orig.NumberOfChannels;
+    hdr.label       = orig.label;
+    hdr.nSamples    = orig.nSamples;
+    hdr.nSamplesPre = orig.nSamplesPre;
+    hdr.nTrials     = orig.nTrials;
+    hdr.orig        = orig;
 
   case 'ced_son'
     % check that the required low-level toolbox is available
@@ -409,6 +484,9 @@ switch headerformat
     hdr = rmfield(hdr, 'data');
     try, hdr = rmfield(hdr, 'variance'); end
 
+  case 'eeglab_set'
+    hdr = read_eeglabheader(filename);
+    
   case 'eep_cnt'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
@@ -464,7 +542,7 @@ switch headerformat
       hdr.label{i}  = ['e' num2str(i)];
     end;
     hdr.nTrials     = sum(chdr(:,2));
-    hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));  
+    hdr.nSamplesPre = ceil(fhdr(14)/(1000/hdr.Fs));
     % assuming that a utility was used to insert the correct baseline
     % duration into the header since it is normally absent. This slot is
     % actually allocated to the age of the subject, although NetStation
@@ -487,6 +565,47 @@ switch headerformat
     hdr.orig.cnames = cnames;
     hdr.orig.fcom   = fcom;
     hdr.orig.ftext  = ftext;
+
+  case 'egi_sbin'
+    % segmented type only
+    [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
+    [p, f, x]       = fileparts(filename);
+
+    hdr.Fs          = header_array(9);
+    hdr.nChans      = header_array(10);
+    for i = 1:hdr.nChans
+        hdr.label{i}  = ['e' num2str(i)];
+    end;
+    hdr.nTrials     = header_array(15);
+    hdr.nSamplesPre = preBaseline;
+
+    if hdr.nSamplesPre == 0
+        hdr.nSamplesPre = 1; % If baseline was left as zero, then change to "1" to avoid possible issues with software expecting a non-zero baseline.
+    end;
+
+    hdr.nSamples    = header_array(16); % making assumption that number of samples is same for all cells
+
+    % remember the original header details
+    hdr.orig.header_array   = header_array;
+    hdr.orig.CateNames   = CateNames;
+    hdr.orig.CatLengths  = CatLengths;
+
+  case 'fcdc_buffer'
+    % read from a networked buffer for realtime analysis
+    [host, port] = filetype_check_uri(filename);
+    orig = buffer_gethdr(host, port);
+    hdr.Fs          = orig.fsample;
+    hdr.nChans      = orig.nchans;
+    hdr.nSamples    = orig.nsamples;
+    hdr.nSamplesPre = 0; % since continuous
+    hdr.nTrials     = 1; % since continuous
+    for i=1:orig.nchans
+      hdr.label{i} = sprintf('chan%03d', i);
+    end
+    % this should be a column vector
+    hdr.label = hdr.label(:);
+    % remember the original header details
+    hdr.orig = orig;
 
   case 'fcdc_matbin'
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header
@@ -540,7 +659,7 @@ switch headerformat
     % FIXME add hdr.FirstTimeStamp and hdr.LastTimeStamp
 
   case {'neuralynx_ttl', 'neuralynx_tsl', 'neuralynx_tsh'}
-    % these are hardcoded, they contain an 8-byte header and int32 values for a single channel 
+    % these are hardcoded, they contain an 8-byte header and int32 values for a single channel
     % FIXME this should be done similar as neuralynx_bin, i.e. move the hdr into the function
     hdr             = [];
     hdr.Fs          = 32556;
@@ -552,7 +671,7 @@ switch headerformat
 
   case 'neuralynx_bin'
     hdr = read_neuralynx_bin(filename);
-    
+
   case 'neuralynx_ds'
     hdr = read_neuralynx_ds(filename);
 
@@ -594,6 +713,7 @@ switch headerformat
     hdr.nSamples    = orig.npnt;
     hdr.nSamplesPre = round(-orig.rate*orig.xmin/1000);
     hdr.nChans      = orig.nchan;
+    hdr.label       = orig.label(:);
     hdr.nTrials     = 1; % the number of trials in this datafile is only one, i.e. the average
     % remember the original header details
     hdr.orig = orig;
@@ -744,7 +864,11 @@ switch headerformat
     hdr.grad = yokogawa2grad(hdr);
 
   otherwise
-    error('unsupported header format');
+    if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
+      hdr = read_biosig_header(filename);
+    else
+      error('unsupported header format');
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

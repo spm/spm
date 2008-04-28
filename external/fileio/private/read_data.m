@@ -1,8 +1,9 @@
 function [dat] = read_data(filename, varargin);
 
-% READ_DATA is a wrapper around different EEG/MEG file importers
-% directly supported formats are CTF, Neuromag, EEP, BrainVision,
-% Neuroscan and Neuralynx.
+% READ_DATA reads electrophysiological data from a variety of EEG,
+% MEG and LFP files and represents it in a common data-indepentend
+% format. The supported formats are listed in the accompanying
+% READ_HEADER function.
 %
 % Use as
 %   dat = read_data(filename, ...)
@@ -17,6 +18,7 @@ function [dat] = read_data(filename, varargin);
 %   'checkboundary'  boolean, whether to check for reading segments over a trial boundary
 %   'dataformat'     string
 %   'headerformat'   string
+%   'fallback'       can be empty or 'biosig' (default = [])
 %
 % This function returns a 2-D matrix of size Nchans*Nsamples for
 % continuous data when begevent and endevent are specified, or a 3-D
@@ -28,6 +30,36 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.40  2008/04/21 11:50:52  roboos
+% added support for egi_sbin, thanks to Joseph Dien
+%
+% Revision 1.39  2008/04/18 14:07:45  roboos
+% added eeglab_set
+%
+% Revision 1.38  2008/04/11 07:23:15  roboos
+% updated docu
+%
+% Revision 1.37  2008/04/10 09:34:51  roboos
+% added fallback option for biosig, implemented biosig also for edf
+%
+% Revision 1.36  2008/04/09 16:50:02  roboos
+% added fallback option to biosig (not default)
+%
+% Revision 1.35  2008/04/09 14:10:34  roboos
+% added placeholder for biosig (not yet implemented)
+%
+% Revision 1.34  2008/04/09 10:09:45  roboos
+% pass the hdr.orig to the low-level brainvision readers
+%
+% Revision 1.33  2008/02/19 10:08:13  roboos
+% added support for fcdc_buffer
+%
+% Revision 1.32  2008/01/31 20:12:51  roboos
+% On line 322 the cell element 4D was added to the existing case
+% designed for the handling of 4D_bti data.  This is necessary to
+% allow this identified filetype to cause execution of this case.
+% [thanks to Gavin]
+%
 % Revision 1.31  2008/01/10 12:57:34  roboos
 % give explicit errors with msgid FILEIO:Something
 %
@@ -140,7 +172,7 @@ if isempty(db_blob)
 end
 
 % test whether the file or directory exists
-if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql')
+if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql') && ~strcmp(filetype(filename), 'fcdc_buffer')
   error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
 end
 
@@ -168,6 +200,7 @@ chanindx      = keyval('chanindx',      varargin);
 checkboundary = keyval('checkboundary', varargin);
 dataformat    = keyval('dataformat',    varargin);
 headerformat  = keyval('headerformat',  varargin);
+fallback      = keyval('fallback',      varargin);
 
 % determine the filetype
 if isempty(dataformat)
@@ -259,7 +292,7 @@ if min(chanindx)<1 || max(chanindx)>hdr.nChans
 end
 
 % test whether the requested data segment is not outside the file
-if any(begsample<1) 
+if any(begsample<1)
   error('FILEIO:InvalidBegSample', 'cannot read data before the begin of the file');
 elseif any(endsample>(hdr.nSamples*hdr.nTrials))
   error('FILEIO:InvalidEndSample', 'cannot read data after the end of the file');
@@ -319,7 +352,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch dataformat
 
-  case {'4d_pdf', '4d_m4d', '4d_xyz'}
+  case {'4d' '4d_pdf', '4d_m4d', '4d_xyz'}
     [fid,message] = fopen(datafile,'rb','ieee-be');
     % determine the type and size of the samples
     sampletype = lower(hdr.orig.Format);
@@ -412,12 +445,17 @@ switch dataformat
     % close the file between seperate read operations
     fclose(orig.Head.FILE.FID);
 
+  case {'biosig', 'edf'}
+    % use the biosig toolbox if available
+    hastoolbox('BIOSIG', 1);
+    dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
+
   case {'brainvision_eeg', 'brainvision_dat'}
-    dat = read_brainvision_eeg(filename, hdr, begsample, endsample);
+    dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample);
     dat = dat(chanindx,:);	% select the desired channels
 
   case 'brainvision_seg'
-    dat = read_brainvision_seg(filename, hdr, begsample, endsample);
+    dat = read_brainvision_seg(filename, hdr.orig, begsample, endsample);
     dat = dat(chanindx,:);	% select the desired channels
 
   case 'ced_son'
@@ -471,6 +509,11 @@ switch dataformat
     % read the data from shared memory
     [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
 
+  case 'eeglab_set'
+    % FIXME begsample/begtrial are mutually exclusive
+    % FIXME assign dimord
+    dat = read_eeglabdata(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
+ 
   case 'eep_avr'
     % check that the required low-level toolbos ix available
     hastoolbox('eeprobe', 1);
@@ -482,6 +525,12 @@ switch dataformat
     hastoolbox('eeprobe', 1);
     dat = read_eep_cnt(filename, begsample, endsample);
     dat = dat.data(chanindx,:);                         % select the desired channels
+
+  case 'fcdc_buffer'
+    % read from a networked buffer for realtime analysis
+    [host, port] = filetype_check_uri(filename);
+    dat = buffer_getdat(host, port, begsample-1, endsample-1);  % indices should be zero-offset
+    dat = dat.buf(chanindx,:);                                  % select the desired channels
 
   case 'fcdc_matbin'
     % multiplexed data in a *.bin file, accompanied by a matlab file containing the header
@@ -512,7 +561,7 @@ switch dataformat
       % select the desired channel(s)
       dat = dat(chanindx,:);
     end
-    
+
   case 'fcdc_mysql'
     % read from a MySQL server listening somewhere else on the network
     db_open(filename);
@@ -532,6 +581,10 @@ switch dataformat
 
   case {'egi_egia', 'egi_egis'}
     dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
+    dimord = 'chans_samples_trials';
+
+  case {'egi_sbin'}
+    dat = read_sbin_data(filename, hdr, begtrial, endtrial, chanindx);
     dimord = 'chans_samples_trials';
 
   case {'mpi_ds', 'mpi_dap'}
@@ -689,8 +742,8 @@ switch dataformat
           % allocate memory to hold the complete continuous record
           cnt = nan(1, offset(end)+nsample(end));
           for j=1:length(offset)
-            cntbegsmp  = offset(j)   + 1; 
-            cntendsmp  = offset(j)   + nsample(j); 
+            cntbegsmp  = offset(j)   + 1;
+            cntendsmp  = offset(j)   + nsample(j);
             fragbegsmp = nex.indx(j) + 1;
             fragendsmp = nex.indx(j) + nsample(j);
             cnt(cntbegsmp:cntendsmp) = nex.dat(fragbegsmp:fragendsmp);
@@ -765,7 +818,12 @@ switch dataformat
     dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
 
   otherwise
-    error('unsupported data format');
+    if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
+      hdr = read_biosig_header(filename);
+    else
+      error('unsupported header format');
+    end
+
 end
 
 if ~exist('dimord', 'var')
