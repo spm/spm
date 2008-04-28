@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.41  2008/04/28 19:27:11  roboos
+% fixed dimord and selection of eeglab set data
+%
 % Revision 1.40  2008/04/21 11:50:52  roboos
 % added support for egi_sbin, thanks to Joseph Dien
 %
@@ -510,9 +513,8 @@ switch dataformat
     [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial);
 
   case 'eeglab_set'
-    % FIXME begsample/begtrial are mutually exclusive
-    % FIXME assign dimord
-    dat = read_eeglabdata(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
+    dat = read_eeglabdata(filename, 'header', hdr, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
+    dimord = 'chans_samples_trials';
  
   case 'eep_avr'
     % check that the required low-level toolbos ix available
