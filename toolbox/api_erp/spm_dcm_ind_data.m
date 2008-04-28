@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_dcm_ind_data.m 1491 2008-04-28 16:46:35Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -54,13 +54,26 @@ end
 
 % load D
 %--------------------------------------------------------------------------
-D = spm_eeg_ldata(Dfile);
+D = spm_eeg_load(Dfile);
 
 % indices of EEG channel (excluding bad channels)
 %--------------------------------------------------------------------------
-Ic              = setdiff(D.channels.eeg, D.channels.Bad);
-Nc              = length(Ic);
-DCM.xY.Ic       = Ic;
+if ~isfield(DCM.xY, 'modality')
+    DCM.xY.modality = spm_eeg_modality_ui(D);
+end
+
+modality = DCM.xY.modality;
+channels = D.chanlabels;
+
+if ~isfield(DCM.xY, 'Ic')
+    Ic = strmatch(modality, D.chantype);
+    Ic = setdiff(Ic, D.badchannels);
+    DCM.xY.Ic       = Ic;
+end
+
+Ic = DCM.xY.Ic;
+
+Nc              = length(DCM.xY.Ic);
 
 % options
 %--------------------------------------------------------------------------
@@ -98,8 +111,8 @@ end
 
 % check data are not oversampled (< 4ms)
 %--------------------------------------------------------------------------
-if DT/D.Radc < 0.004
-    DT            = ceil(0.004*D.Radc);
+if DT/D.fsample < 0.004
+    DT            = ceil(0.004*D.fsample);
     DCM.options.D = DT;
 end
 
@@ -110,7 +123,7 @@ try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    DCM.xY.Time = 1000*[-D.events.start:D.events.stop]/D.Radc; % ms
+    DCM.xY.Time = 1000*D.time; % ms
     T1          = DCM.options.Tdcm(1);
     T2          = DCM.options.Tdcm(2);
     [i, T1]     = min(abs(DCM.xY.Time - T1));
@@ -123,7 +136,7 @@ try
     Is          = [1:Ns]';                   % indices - samples
     DCM.xY.pst  = DCM.xY.Time(It);           % PST
     DCM.xY.It   = It;                        % Indices of time bins
-    DCM.xY.dt   = DT/D.Radc;                 % sampling in seconds
+    DCM.xY.dt   = DT/D.fsample;                 % sampling in seconds
     Nb          = length(It);                % number of bins
     
 catch
@@ -152,7 +165,7 @@ if (Hz2 - Hz1) > 64, HzD = 2; else, HzD = 1; end
 %--------------------------------------------------------------------------
 DCM.xY.Hz  = Hz1:HzD:Hz2;              % Frequencies
 DCM.xY.Nm  = Nm;                       % number of frequency modes
-dt         = 1000/D.Radc;              % sampling interval (ms)
+dt         = 1000/D.fsample;            % sampling interval (ms)
 Nf         = length(DCM.xY.Hz);        % number of frequencies
 Nr         = size(DCM.C,1);            % number of sources
 Ne         = length(trial);            % number of ERPs
@@ -203,9 +216,9 @@ end
 
 % parameterised lead field ECD given positions (or LFP data)
 %--------------------------------------------------------------------------
-switch DCM.M.dipfit.type
+switch DCM.xY.modality
 
-    case{'ECD'}
+    case{'EEG', 'MEG'}
         
         try
             pos = DCM.Lpos;
@@ -238,15 +251,12 @@ end
 
 % Wavelet amplitudes for each (projected) source
 %==========================================================================
+condlabels = unique(D.conditions);
 for i = 1:Ne;
     
     % trial indices
     %----------------------------------------------------------------------
-    if isfield(D.events,'reject')
-        c = find(D.events.code == D.events.types(trial(i)) & ~D.events.reject);
-    else
-        c = find(D.events.code == D.events.types(trial(i)));
-    end
+    c = D.pickconditions(condlabels{i});
     
     % use only the first 512 trials
     %----------------------------------------------------------------------
@@ -261,7 +271,7 @@ for i = 1:Ne;
     for j = 1:Nf
         f     = [1:Ny] + (j - 1)*Ny;
         for k = 1:Nt
-            y      = abs(M{j}*D.data(Ic,Is,c(k))'*MAP');
+            y      = abs(M{j}*D(Ic,Is,c(k))'*MAP');
             Y(f,k) = log(y(:));
         end
         fprintf('\nevaluating %i Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
@@ -304,7 +314,7 @@ end
 DCM.xY.y    = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
 DCM.xY.U    = U;
 DCM.xY.S    = S;
-DCM.xY.code = D.events.code(trial);
+DCM.xY.code = condlabels(trial);
 
 
 

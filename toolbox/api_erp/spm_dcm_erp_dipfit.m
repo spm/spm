@@ -23,7 +23,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_dcm_erp_dipfit.m 1491 2008-04-28 16:46:35Z vladimir $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -37,11 +37,11 @@ end
 
 % D - SPM data structure
 %--------------------------------------------------------------------------
-D    = spm_eeg_ldata(DCM.xY.Dfile);
+D    = spm_eeg_load(DCM.xY.Dfile);
 
 % Get source locations if MEG or EEG
 %--------------------------------------------------------------------------
-switch D.modality
+switch DCM.xY.modality
 
     % get source priors for EEG or MEG
     %----------------------------------------------------------------------

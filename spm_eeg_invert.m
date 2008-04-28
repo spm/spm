@@ -1,4 +1,4 @@
-function [D] = spm_eeg_invert(D)
+function [D] = spm_eeg_invert(D, val)
 % ReML inversion of multiple forward models for EEG-EMG
 % FORMAT [D] = spm_eeg_invert(D)
 % ReML estimation of regularisation hyperparameters using the
@@ -46,7 +46,7 @@ function [D] = spm_eeg_invert(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1490 2008-04-28 11:16:29Z vladimir $
+% $Id: spm_eeg_invert.m 1491 2008-04-28 16:46:35Z vladimir $
 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -55,6 +55,10 @@ Nl         = length(D);                          % number of forward models
  
 % D - SPM data structure
 %==========================================================================
+if nargin == 1
+    val = 1;
+end
+
 inverse    = D{1}.inv{D{1}.val}.inverse;
  
 % defaults
@@ -164,7 +168,7 @@ fprintf('Using %i spatial modes\n',Nm)
 
 % force low-pass filtering for MEG
 %--------------------------------------------------------------------------
-if strcmp(D{1}.modality,'MEG'), hpf = 48; end
+if strcmp(D{1}.inv{val}.modality,'MEG'), hpf = 48; end
 
 
 Nrmax = Nr;
@@ -221,7 +225,7 @@ for i = 1:Nl
         c = D{i}.pickconditions{trial{j}};
         Ne    = length(c);
         for k = 1:Ne
-            Y{i,j} = Y{i,j} + double(squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne);
+            Y{i,j} = Y{i,j} + squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne;
         end
     end
 

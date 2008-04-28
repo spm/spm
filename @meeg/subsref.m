@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 1244 2008-03-26 09:08:39Z stefan $
+% $Id: subsref.m 1491 2008-04-28 16:46:35Z vladimir $
 
 if isempty(subs)
     return;
@@ -18,7 +18,7 @@ end;
 switch subs(1).type
     case '()'
         if numel(subs)~= 1, error('Expression too complicated');end;
-        varargout = {subsref(this.data.y, subs)};
+        varargout = {double(subsref(this.data.y, subs))};
     case '{}'
     case '.'
         if isfield(this.other, subs(1).subs)

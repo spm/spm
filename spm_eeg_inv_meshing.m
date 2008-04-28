@@ -12,7 +12,7 @@ function D = spm_eeg_inv_meshing(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_meshing.m 1491 2008-04-28 16:46:35Z vladimir $
 
 % Flags explanation:
 % * template:
@@ -64,7 +64,7 @@ if ~D.inv{val}.mesh.template
         canonical = D.inv{val}.mesh.canonical;
     catch
 
-        if strcmp(D.modality,'MEG')         % No ECD yet for MEG!
+        if strcmp(D.inv{val}.modality,'MEG')         % No ECD yet for MEG!
             D.inv{val}.method = 'Imaging';
         end
 

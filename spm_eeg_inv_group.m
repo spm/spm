@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1490 2008-04-28 11:16:29Z vladimir $
+% $Id: spm_eeg_inv_group.m 1491 2008-04-28 16:46:35Z vladimir $
 
 
 % check if to proceed
@@ -140,6 +140,8 @@ else
     contrast = [];
 end
 
+modality = spm_eeg_modality_ui(D{1}, 1);
+
 % Register and compute a forward model
 %==========================================================================
 for i = NS
@@ -148,18 +150,6 @@ for i = NS
 
     % Forward model
     %----------------------------------------------------------------------
-    iseeg = ~isempty(strmatch('EEG', D{1}.chantype));
-    ismeg = ~isempty(strmatch('MEG', D{1}.chantype));
-
-    if iseeg && ismeg
-        modality = spm_input('Which modality?','+1','EEG|MEG');
-    elseif iseeg
-        modality = 'EEG';
-    elseif ismeg
-        modality = 'MEG';
-    else
-        error('No MEEG channels in the data');
-    end
     
     D{i} = spm_eeg_inv_datareg_ui(D{i}, 1, modality);
     

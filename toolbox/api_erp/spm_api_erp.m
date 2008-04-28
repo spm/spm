@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_api_erp.m 1491 2008-04-28 16:46:35Z vladimir $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -287,7 +287,7 @@ handles = Xdefault(hObject,handles,m);
 %-Get new trial data from file
 %--------------------------------------------------------------------------
 try
-    spm_eeg_ldata(handles.DCM.xY.Dfile);
+    spm_eeg_load(handles.DCM.xY.Dfile);
 catch
     [f,p] = uigetfile({'*.mat'}, 'please select data file');
     handles.DCM.xY.Dfile = fullfile(p,f);
@@ -423,6 +423,10 @@ switch DCM.xY.modality
         %------------------------------------------------------------------
         DCM.Lpos = Slocation';
         
+        % forward model (spatial)
+        %--------------------------------------------------------------------------
+        DCM = spm_dcm_erp_dipfit(DCM);
+
     case{'LFP'}
         
         % for LFP
@@ -440,10 +444,6 @@ switch DCM.xY.modality
         
 
 end
-
-% forward model (spatial)
-%--------------------------------------------------------------------------
-DCM = spm_dcm_erp_dipfit(DCM);
 
 handles.DCM = DCM;
 set(handles.Spatial_type,     'Enable', 'off');
