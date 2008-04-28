@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_results.m 1490 2008-04-28 11:16:29Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -22,6 +22,7 @@ try
     model = D.inv{D.val};
 catch
     model = D.inv{end};
+    D.val = numel(D.inv);
 end
  
 % defaults
@@ -102,7 +103,7 @@ MAP   = M*U'*R;
 try
     trial = model.inverse.trials;
 catch
-    trial = D.events.types;
+    trial = unique(D.conditions);
 end
 for i = 1:length(J)
  
@@ -123,18 +124,15 @@ for i = 1:length(J)
  
             JW{i} = sparse(0);
             JWWJ  = sparse(0);
-            if isfield(D.events,'reject')
-                c = find(D.events.code == trial(i) & ~D.events.reject);
-            else
-                c = find(D.events.code == trial(i));
-            end
+            
+            c = D.pickconditions{trial{i}};
  
             % conditional expectation of contrast (J*W) and its energy
             %------------------------------------------------------------------
             Nt    = length(c);
             for j = 1:Nt
                 fprintf('evaluating trial %i, condition %i\n',j,i)
-                Y     = D.data(Ic,It,c(j))*scale;
+                Y     = D(Ic,It,c(j))*scale;
                 MYW   = MAP*Y*TTW;
                 JW{i} = JW{i} + MYW(:,1);
                 JWWJ  = JWWJ  + sum(MYW.^2,2);

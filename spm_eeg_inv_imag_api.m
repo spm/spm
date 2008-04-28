@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 1490 2008-04-28 11:16:29Z vladimir $
 
 
 spm('defaults','EEG');
@@ -316,10 +316,10 @@ set(handles.Image,        'enable','off','Value',0)
 if isfield(Q, 'mesh')
     set(handles.DataReg,  'enable','on')
     set(handles.CheckMesh,'enable','on')
-    if isfield(Q,'datareg')
+    if isfield(Q,'datareg') && isfield(Q.datareg, 'sensors')
         set(handles.Forward, 'enable','on')
         set(handles.CheckReg,'enable','on')
-        if isfield(Q,'forward')
+        if isfield(Q,'forward') && isfield(Q.forward, 'gainmat')
             set(handles.Inverse,     'enable','on')
             set(handles.CheckForward,'enable','on')
             if isfield(Q,'inverse')

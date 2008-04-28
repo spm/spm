@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1177 2008-02-28 13:55:07Z karl $
+% $Id: spm_eeg_inv_group.m 1490 2008-04-28 11:16:29Z vladimir $
 
 
 % check if to proceed
@@ -46,10 +46,7 @@ val   = 1;
 % Load data and set method
 %==========================================================================
 for i = 1:Ns
-    [p f]                = fileparts(deblank(S(i,:)));
-    D{i}                 = spm_eeg_ldata(fullfile(p,f));
-    D{i}.path            = p;
-    D{i}.fname           = f;
+    D{i}                 = spm_eeg_load(deblank(S(i,:)));
     D{i}.val             = 1;
     D{i}.inv{1}.method = 'Imaging';
     
@@ -96,76 +93,13 @@ for i = NS
     %======================================================================
     D{i} = spm_eeg_inv_template(D{i});
 
-    % get fiducials and sensor locations
-    %----------------------------------------------------------------------
-    try
-        sensors = D{i}.inv{val}.datareg.sensors;
-    catch
-        if strcmp(questdlg('Use Polhemus file?'),'Yes');
-
-            % get fiduicials and headshape
-            %--------------------------------------------------------------
-            pol_skip            = 2;
-            pol_file            = spm_select(1,'.pol','Select Polhemus file');
-            [fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip);
-            D{i}.inv{val}.datareg.fid_eeg = fid_eeg;
-            
-            % get sensor locations
-            %--------------------------------------------------------------
-            if strcmp(D{i}.modality,'EEG')
-                sensors = headshape;
-            else
-                sensors = load(spm_select(1,'.mat','Select MEG sensor file'));
-                name    = fieldnames(sensors);
-                sensors = getfield(sensors,name{1});
-            end
-            
-        else
-            [f p]   = uigetfile('*sens*.mat','select sensor locations');
-            sensors = load(fullfile(p,f));
-            name    = fieldnames(sensors);
-            sensors = getfield(sensors,name{1});
-        end
-    end
-
-    try
-        fid_eeg = D{i}.inv{val}.datareg.fid_eeg;
-    catch
-        [f p]   = uigetfile('*fid*.mat','select fiducial locations');
-        fid_eeg = load(fullfile(p,f));
-        name    = fieldnames(fid_eeg);
-        fid_eeg = getfield(fid_eeg,name{1});
-    end
-
-
-    % get sensor locations
-    %----------------------------------------------------------------------
-    if strcmp(D{i}.modality,'EEG')
-        headshape  = sensors;
-        orient     = sparse(0,3);
-    else
-        headshape  = sparse(0,3);
-        try
-            orient = D{i}.inv{val}.datareg.megorient;
-        catch
-            [f p]  = uigetfile('*or*.mat','select sensor orientations');
-            orient = load(fullfile(p,f));
-            name   = fieldnames(orient);
-            orient = getfield(orient,name{1});
-        end
-    end
-    D{i}.inv{val}.datareg.sensors   = sensors;
-    D{i}.inv{val}.datareg.fid_eeg   = fid_eeg;
-    D{i}.inv{val}.datareg.headshape = headshape;
-    D{i}.inv{val}.datareg.megorient = orient;
-
-    % specify forward model
-    %----------------------------------------------------------------------
-    if strcmp(D{i}.modality,'EEG')
-        D{i}.inv{val}.forward.method = 'eeg_3sphereBerg';
-    else
-        D{i}.inv{val}.forward.method = 'meg_sphere';
-    end
+%     % specify forward model
+%     %----------------------------------------------------------------------
+%     if strcmp(D{i}.modality,'EEG')
+%         D{i}.inv{val}.forward.method = 'eeg_3sphereBerg';
+%     else
+%         D{i}.inv{val}.forward.method = 'meg_sphere';
+%     end
     
     % save forward model parameters
     %----------------------------------------------------------------------
@@ -214,8 +148,22 @@ for i = NS
 
     % Forward model
     %----------------------------------------------------------------------
-    D{i} = spm_eeg_inv_datareg(D{i});
-    D{i} = spm_eeg_inv_BSTfwdsol(D{i});
+    iseeg = ~isempty(strmatch('EEG', D{1}.chantype));
+    ismeg = ~isempty(strmatch('MEG', D{1}.chantype));
+
+    if iseeg && ismeg
+        modality = spm_input('Which modality?','+1','EEG|MEG');
+    elseif iseeg
+        modality = 'EEG';
+    elseif ismeg
+        modality = 'MEG';
+    else
+        error('No MEEG channels in the data');
+    end
+    
+    D{i} = spm_eeg_inv_datareg_ui(D{i}, 1, modality);
+    
+    D{i} = spm_eeg_inv_forward_ui(D{i});
     
     % save forward model
     %----------------------------------------------------------------------
@@ -244,7 +192,7 @@ if length(contrast)
     %----------------------------------------------------------------------
     for i = 1:Ns
         [p f] = fileparts(deblank(S(i,:)));
-        D     = spm_eeg_ldata(fullfile(p,f));
+        D     = spm_eeg_load(fullfile(p,f));
         D.inv{val}.contrast = contrast;
         D     = spm_eeg_inv_results(D);
         D     = spm_eeg_inv_Mesh2Voxels(D);

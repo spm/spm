@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1476 2008-04-24 14:00:41Z vladimir $
+% $Id: checkmeeg.m 1490 2008-04-28 11:16:29Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -45,6 +45,9 @@ else
     if ~isfield(meegstruct.trials, 'label')
         disp('checkmeeg: no trial label, assigning default');
         [meegstruct.trials.label] = deal('Undefined');
+    end
+    if ~isfield(meegstruct.trials, 'bad')
+        [meegstruct.trials.bad] = deal(0);
     end
 end
 

@@ -46,7 +46,7 @@ function [D] = spm_eeg_invert(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_invert.m 1490 2008-04-28 11:16:29Z vladimir $
 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -175,21 +175,21 @@ for i = 1:Nl
     % Time-window of interest
     %----------------------------------------------------------------------
     if isempty(woi)
-        w{i} = round([-D{i}.events.start D{i}.events.stop]*1000/D{i}.Radc);
+        w{i} = 1000*[min(D{i}.time) max(D{i}.time)];
     else
         w{i} = woi;
     end
-    It{i}  = w{i}*(D{i}.Radc/1000) + D{i}.events.start + 1;
-    It{i}  = max(1,It{i}(1)):min(It{i}(end),size(D{i}.data,2));
+    It{i}  = (w{i}/1000 - D{i}.timeonset)*D{i}.fsample + 1;
+    It{i}  = max(1,It{i}(1)):min(It{i}(end), length(D{i}.time));
     It{i}  = fix(It{i});
 
     % Peri-stimulus time
     %----------------------------------------------------------------------
-    pst{i} = (It{i} - D{i}.events.start - 1);
-    pst{i} = pst{i}/D{i}.Radc*1000;               % peristimulus time (ms)
-    dur    = (pst{i}(end) - pst{i}(1))/1000;      % duration (s)
-    dct{i} = (It{i} - It{i}(1))/2/dur;            % DCT frequenices (Hz)
-    Nb(i)  = length(It{i});                       % number of time bins
+    pst{i} = 1000*D{i}.time;
+    pst{i} = pst{i}(pst{i}>=w{i}(1) & pst{i}<=w{i}(2)); % peristimulus time (ms)
+    dur    = (pst{i}(end) - pst{i}(1))/1000;            % duration (s)
+    dct{i} = (It{i} - It{i}(1))/2/dur;                  % DCT frequenices (Hz)
+    Nb(i)  = length(It{i});                             % number of time bins
 
     % Serial correlations
     %----------------------------------------------------------------------
@@ -212,20 +212,16 @@ for i = 1:Nl
     try
         trial = D{i}.inv{D{i}.val}.inverse.trials; 
     catch
-        trial = D{i}.events.types;
+        trial = unique(D{i}.conditions);
     end
     Nt(i) = length(trial);
-    Ic{i} = setdiff(D{i}.channels.eeg, D{i}.channels.Bad);
+    [junk Ic{i}] = spm_match_str(D{i}.inv{D{i}.val}.forward.channels, D{i}.chanlabels);
     for j = 1:Nt(i)
         Y{i,j} = sparse(0);
-        if isfield(D{i}.events,'reject')
-            c = find(D{i}.events.code == trial(j) & ~D{i}.events.reject);
-        else
-            c = find(D{i}.events.code == trial(j));
-        end
+        c = D{i}.pickconditions{trial{j}};
         Ne    = length(c);
         for k = 1:Ne
-            Y{i,j} = Y{i,j} + squeeze(D{i}.data(Ic{i},It{i},c(k)))*T/Ne;
+            Y{i,j} = Y{i,j} + double(squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne);
         end
     end
 

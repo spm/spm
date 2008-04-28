@@ -10,13 +10,9 @@ function spm_eeg_inv_save(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_save.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_save.m 1490 2008-04-28 11:16:29Z vladimir $
 
 % save D
 %--------------------------------------------------------------------------
-if spm_matlab_version_chk('7.1') >= 0
-    save(fullfile(D.path, D.fname), '-V6', 'D');
-else
-    save(fullfile(D.path, D.fname), 'D');
-end
 
+D.save;

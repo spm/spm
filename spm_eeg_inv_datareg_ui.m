@@ -2,16 +2,15 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Data registration user-interface routine
 % commands the EEG/MEG data co-registration within original sMRI space
 %
-% FORMAT D = spm_eeg_inv_mesh_ui(D,[val])
+% FORMAT D = spm_eeg_inv_mesh_ui(D,[val], modality)
 % Input:
-% S         - input data struct (optional)
 % Output:
 % D         - same data struct including the new required files and variables
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 1490 2008-04-28 11:16:29Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -22,23 +21,27 @@ catch
     D.inv{val}.mesh.template = 0;
 end
 
-iseeg = ~isempty(strmatch('EEG', D.chantype));
-ismeg = ~isempty(strmatch('MEG', D.chantype));
-
-if iseeg && ismeg
-    modality = spm_input('Which modality?','+1','EEG|MEG');
-elseif iseeg
-    modality = 'EEG';
-elseif ismeg
-    modality = 'MEG';
+if nargin > 2
+    modality = varargin{3};
 else
-    error('No MEEG channels in the data');
+    iseeg = ~isempty(strmatch('EEG', D.chantype));
+    ismeg = ~isempty(strmatch('MEG', D.chantype));
+
+    if iseeg && ismeg
+        modality = spm_input('Which modality?','+1','EEG|MEG');
+    elseif iseeg
+        modality = 'EEG';
+    elseif ismeg
+        modality = 'MEG';
+    else
+        error('No MEEG channels in the data');
+    end
 end
 
 D.inv{val}.modality = modality;
 
 channels = D.chanlabels;
-chanind = strmatch(D.chantype, modality);
+chanind = strmatch(modality, D.chantype);
 chanind = setdiff(chanind, D.badchannels);
 D.inv{val}.forward.channels = channels(chanind);
 
