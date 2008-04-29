@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1510 2008-04-29 10:59:01Z vladimir $
+% $Id: spm_eeg_convert.m 1516 2008-04-29 15:03:26Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -82,7 +82,7 @@ end
 %--------- Read and prepare events
 
 try
-    event = fileio_read_event(S.dataset);
+    event = fileio_read_event(S.dataset, 'detectflank', 'both');
 catch
     warning(['Could not read events from file ' S.dataset]);
     event = [];
