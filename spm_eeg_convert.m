@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1406 2008-04-15 09:37:59Z vladimir $
+% $Id: spm_eeg_convert.m 1507 2008-04-29 10:44:36Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -60,7 +60,7 @@ if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined';              
 
 %--------- Read and check header
 
-hdr = read_header(S.dataset, 'fallback', 'biosig');
+hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
 
 if isfield(hdr, 'label')
     [unique_label junk ind]=unique(hdr.label);
@@ -82,7 +82,7 @@ end
 %--------- Read and prepare events
 
 try
-    event = read_event(S.dataset);
+    event = fileio_read_event(S.dataset);
 catch
     warning(['Could not read events from file ' S.dataset]);
     event = [];
@@ -284,14 +284,14 @@ else Ibar = [1:ntrial]; end
 offset = 1;
 for i = 1:ntrial
     if readbytrials
-        dat = read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
+        dat = fileio_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
             'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig');
     else
-        dat = read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
+        dat = fileio_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
             'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig');
     end
 
-    % Sometimes read_data returns sparse output
+    % Sometimes fileio_read_data returns sparse output
     dat = full(dat);
 
     if S.continuous
@@ -320,17 +320,17 @@ spm('Pointer', 'Arrow');drawnow;
 
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
-    D.sensors.meg = convert_units(hdr.grad, 'mm');
+    D.sensors.meg = forwinv_convert_units(hdr.grad, 'mm');
 else
     try
-        D.sensors.eeg = convert_units(read_sensors(S.dataset), 'mm');
+        D.sensors.eeg = forwinv_convert_units(fileio_read_sens(S.dataset), 'mm');
     catch
         warning('Could not obtain electrode locations automatically.');
     end
 end
 
 try
-    D.fiducials = convert_units(read_headshape(S.dataset), 'mm');
+    D.fiducials = forwinv_convert_units(forwinv_read_headshape(S.dataset), 'mm');
 catch
     warning('Could not obtain fiducials automatically.');
 end

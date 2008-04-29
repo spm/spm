@@ -11,7 +11,7 @@ function D = spm_eeg_invert_fuse_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_fuse_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_invert_fuse_ui.m 1507 2008-04-29 10:44:36Z vladimir $
 
 % Load data
 %==========================================================================
@@ -169,11 +169,11 @@ for i = NS
     fprintf('Registering and computing forward model (subject: %i)\n',i)
     D{i} = spm_eeg_inv_datareg(D{i});
     D{i} = spm_eeg_inv_BSTfwdsol(D{i});
-    spm_eeg_inv_save(D{i});
+    save(D{i});
     
     % save D
     %----------------------------------------------------------------------
-    spm_eeg_inv_save(D{i});
+    save(D{i});
     
 end
 
@@ -184,5 +184,5 @@ D.path = PWD;
 
 % Save
 %==========================================================================
-spm_eeg_inv_save(D);
+save(D);
 cd(PWD)

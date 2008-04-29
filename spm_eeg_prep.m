@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1410 2008-04-15 13:06:09Z vladimir $
+% $Id: spm_eeg_prep.m 1507 2008-04-29 10:44:36Z vladimir $
 
 D = S.D;
 
@@ -64,7 +64,7 @@ switch S.task
                 elec.label = label;
 
             case 'filpolhemus'
-                shape = read_headshape(S.sensfile, 'fileformat', 'polhemus_fil');
+                shape = forwinv_read_headshape(S.sensfile, 'fileformat', 'polhemus_fil');
 
                 senspos = shape.pnt;
 
@@ -79,7 +79,7 @@ switch S.task
                 elec.label = label;
 
             case 'locfile'
-                elec = read_sens(S.sensfile);
+                elec = fileio_read_sens(S.sensfile);
         end
 
         D = sensors(D, 'EEG', elec);
@@ -115,7 +115,7 @@ switch S.task
                     shape.pnt = headshape((fidnum+1):end, :);
                 end
             otherwise
-                shape = read_headshape(S.headshapefile, 'fileformat', 'polhemus_fil');
+                shape = forwinv_read_headshape(S.headshapefile);
         end
 
         D = fiducials(D, shape);

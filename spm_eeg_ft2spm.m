@@ -5,7 +5,7 @@ function spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_ft2spm.m 1507 2008-04-29 10:44:36Z vladimir $
 
 % If raw format
 if iscell(ftdata.time)
@@ -100,7 +100,7 @@ else
 end
 
 if isfield(ftdata, 'hdr') &&  isfield(ftdata.hdr, 'grad')
-    D.sensors.meg = convert_units(ftdata.hdr.grad, 'mm');
+    D.sensors.meg = forwinv_convert_units(ftdata.hdr.grad, 'mm');
 end
 
 D = meeg(D);

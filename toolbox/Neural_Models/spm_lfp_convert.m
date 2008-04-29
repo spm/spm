@@ -4,7 +4,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_convert.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_lfp_convert.m 1507 2008-04-29 10:44:36Z vladimir $
 
 
 % load data (in this case a .mat file)
@@ -56,4 +56,4 @@ D.path      = pwd;
  
 % save
 %--------------------------------------------------------------------------
-spm_eeg_inv_save(D)
+save(D)

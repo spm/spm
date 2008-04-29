@@ -29,7 +29,7 @@ function [M1, sens, meegfid] = spm_eeg_inv_datareg_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_eeg.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_datareg_eeg.m 1507 2008-04-29 10:44:36Z vladimir $
 
 
 if nargin == 0 || ~isstruct(S)
@@ -39,24 +39,27 @@ end
 if ~isfield(S, 'sens')
     error('EEG sensors are missing');
 else
-    sens = convert_units(S.sens, 'mm');
-end
-
-if ~isfield(S, 'meegfid')
-    error('EEG fiducials are missing');
-else
-    meegfid = convert_units(S.meegfid, 'mm');
+    sens = forwinv_convert_units(S.sens, 'mm');
 end
 
 if ~isfield(S, 'mrifid')
     error('MRI fiducials are missing');
 else
-    mrifid = convert_units(S.mrifid, 'mm');
+    mrifid = forwinv_convert_units(S.mrifid, 'mm');
+    nfid = size(mrifid.fid.pnt, 1);
+end
+
+if ~isfield(S, 'meegfid')
+    error('EEG fiducials are missing');
+else
+    meegfid = forwinv_convert_units(S.meegfid, 'mm');
+    meegfid.fid.pnt = meegfid.fid.pnt(1:nfid, :);
+    meegfid.fid.label = meegfid.fid.label(1:nfid);
 end
 
 if isfield(S, 'vol');
     ishead = 1;
-    vol = convert_units(S.vol, 'mm');
+    vol = forwinv_convert_units(S.vol, 'mm');
 end
 
 if ~isfield(S, 'template')
@@ -68,7 +71,7 @@ end
 %--------------------------------------------------------------------------
 M1 = spm_eeg_inv_rigidreg(mrifid.fid.pnt', meegfid.fid.pnt');
 
-meegfid = transform_headshape(M1, meegfid);
+meegfid = forwinv_transform_headshape(M1, meegfid);
 
 if S.template
 
@@ -82,7 +85,7 @@ if S.template
         M       = pinv(meegfid.fid.pnt(:))*mrifid.fid.pnt(:);
         M       = sparse(1:4,1:4,[M M M 1]);
 
-        meegfid = transform_headshape(M, meegfid);
+        meegfid = forwinv_transform_headshape(M, meegfid);
 
         M1      = M*M1;
 
@@ -90,7 +93,7 @@ if S.template
         %----------------------------------------------------------------------
         M       = spm_eeg_inv_rigidreg(mrifid.fid.pnt', meegfid.fid.pnt');
 
-        meegfid = transform_headshape(M, meegfid);
+        meegfid = forwinv_transform_headshape(M, meegfid);
 
         M1      = M*M1;
 
@@ -135,14 +138,14 @@ if ishead && ~isempty(meegfid.pnt)
 
     % transform headshape and eeg fiducials
     %----------------------------------------------------------------------
-    meegfid = transform_headshape(M, meegfid);
+    meegfid = forwinv_transform_headshape(M, meegfid);
     M1        = M*M1;
 end
 
 
 % Update the sensor locations and orientation
 %--------------------------------------------------------------------------
-sens = transform_sens(M1, sens);
+sens = forwinv_transform_sens(M1, sens);
 
 return
 

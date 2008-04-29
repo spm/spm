@@ -26,7 +26,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_dcm_erp.m 1507 2008-04-29 10:44:36Z vladimir $
  
 % check options 
 %==========================================================================
@@ -370,7 +370,7 @@ if strcmp(M.dipfit.type,'Imaging')
     try
         D.inv{end}      = rmfield(D.inv{end},'contrast');
     end
-    spm_eeg_inv_save(D)
+    save(D)
  
 end
  

@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_eeg_inv_group.m 1507 2008-04-29 10:44:36Z vladimir $
 
 
 % check if to proceed
@@ -62,7 +62,7 @@ for i = 1:Ns
     
     % save forward model parameters
     %----------------------------------------------------------------------
-    spm_eeg_inv_save(D{i})
+    save(D{i})
     
 end
 
@@ -103,7 +103,7 @@ for i = NS
     
     % save forward model parameters
     %----------------------------------------------------------------------
-    spm_eeg_inv_save(D{i})
+    save(D{i})
 
 end
 
@@ -157,7 +157,7 @@ for i = NS
     
     % save forward model
     %----------------------------------------------------------------------
-    spm_eeg_inv_save(D{i})
+    save(D{i})
 
 end
 
@@ -169,7 +169,7 @@ if ~iscell(D), D = {D}; end
 % Save
 %==========================================================================
 for i = 1:Ns
-    spm_eeg_inv_save(D{i})
+    save(D{i})
 end
 clear D
 

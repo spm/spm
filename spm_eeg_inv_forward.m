@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_forward.m 1507 2008-04-29 10:44:36Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -39,8 +39,8 @@ sens = D.inv{val}.datareg.sensors;
 
 % Forward computation
 %--------------------------------------------------------------------------
-[vol, sens] = prepare_vol_sens(vol, sens, 'channel', D.inv{val}.forward.channels);
-Gxyz  = compute_leadfield(vert, sens, vol) ;
+[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.inv{val}.forward.channels);
+Gxyz  = forwinv_compute_leadfield(vert, sens, vol) ;
 %%
 G = [];
 for i = 1:size(norm, 1)

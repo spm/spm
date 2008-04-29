@@ -7,7 +7,7 @@ function res = save(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Latvik
-% $Id: save.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: save.m 1507 2008-04-29 10:44:36Z vladimir $
 
 
 D = struct(this);
@@ -20,7 +20,7 @@ try
 catch
     [filename, pathname] = uiputfile('*.mat', 'Select a file to save');
     try
-        save(fullfile(pathname, filename), 'D');
+        save(fullfile(pathname, filename), 'D', '-V6');
     catch
         res = 0;
     end
