@@ -28,7 +28,7 @@ function out = spm_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_justify.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_justify.m 1504 2008-04-29 10:33:56Z guillaume $
 
 out = {};
 

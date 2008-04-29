@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1470 2008-04-22 10:06:24Z volkmar $
+% $Id: spm.m 1504 2008-04-29 10:33:56Z guillaume $
 
 
 %=======================================================================
@@ -313,8 +313,11 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
 Fwelcome = openfig('spm_Welcome','new','invisible');
-set(Fwelcome,'name',spm('Ver'));
+set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
 set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
+RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
+set(Fwelcome,'Units','pixels', 'Position',...
+    [(Rect0(3)-RectW(3))/2 (Rect0(4)-RectW(4))/2 RectW(3) RectW(4)]);
 set(Fwelcome,'Visible','on');
 
 %=======================================================================
@@ -568,7 +571,8 @@ if nargin<2, Win=''; else Win=varargin{2}; end
 
 Rect = [[108 466 400 445];...
         [108 045 400 395];...
-        [515 015 600 865]];
+        [515 015 600 865];...
+        [326 310 500 280]];
 
 WS = spm('WinScale');
 
@@ -583,6 +587,9 @@ elseif upper(Win(1))=='I'
 elseif upper(Win(1))=='G'
     %-Graphics window
     Rect = Rect(3,:);
+elseif upper(Win(1))=='W'
+    %-Welcome window
+    Rect = Rect(4,:);
 elseif Win(1)=='0'
     %-Root workspace
     if spm_matlab_version_chk('7') >=0
