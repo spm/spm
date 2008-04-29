@@ -4,9 +4,9 @@ function ecat = spm_cfg_ecat
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_ecat.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_ecat.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % data ECAT files
 % ---------------------------------------------------------------------
@@ -23,7 +23,6 @@ data.num     = [1 Inf];
 ext         = cfg_menu;
 ext.tag     = 'ext';
 ext.name    = 'NIFTI Type';
-ext.val = {'.img'};
 ext.help    = {'Output files can be written as .img + .hdr, or the two can be combined into a .nii file.'};
 ext.labels = {
               '.nii only'
@@ -33,6 +32,7 @@ ext.values = {
               '.nii'
               '.img'
 }';
+ext.def    = {@spm_get_defaults, 'ecat.ext'};
 % ---------------------------------------------------------------------
 % opts Options
 % ---------------------------------------------------------------------

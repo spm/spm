@@ -18,9 +18,14 @@ function ok = all_set(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: all_set.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: all_set.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1184 $';
-% do not check input size/type etc. this is already done in subsasgn
+rev = '$Rev: 1517 $';
+% by default, do not check input size/type etc. this is already done in
+% subsasgn
 ok = ~isempty(item.val)||item.hidden;
-
+if ~ok && ~isempty(item.def)
+    % check whether defaults exist and match
+    [un val] = harvest(item, item, false, false);
+    [ok val] = subsasgn_check(item, substruct('.','val'), {val});
+end;

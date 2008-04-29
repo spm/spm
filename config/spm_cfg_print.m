@@ -6,12 +6,6 @@ function cfg_print = spm_cfg_print
 opts         = cfg_menu;
 opts.tag     = 'opts';
 opts.name    = 'Printing Options';
-opts.val{1}.opt = {
-                    '-dpsc2'
-                    '-append'
-}';
-opts.val{1}.append = logical(true);
-opts.val{1}.ext = '.ps';
 opts.help    = {'Select the printing option you want.  The figure will be printed to a file named spm5*.*, in the current directory.  PostScript files will be appended to, but other files will have "page numbers" appended to them.'};
 opts.labels = {
                 'PostScript for black and white printers'
@@ -111,6 +105,7 @@ opts.values{17}.ext = '.tif';
 opts.values{18}.opt = {'-dtiffnocompression'};
 opts.values{18}.append = logical(false);
 opts.values{18}.ext = '.tif';
+opts.def = {@spm_get_defaults, 'ui.print'};
 
 fname = cfg_entry;
 fname.tag  = 'fname';

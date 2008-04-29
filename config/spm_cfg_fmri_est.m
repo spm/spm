@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_fmri_est.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -64,7 +64,6 @@ space.values  = {Volume Slices };
 signal         = cfg_menu;
 signal.tag     = 'signal';
 signal.name    = 'Signal priors';
-signal.val = {'GMRF'};
 signal.help    = {
                   '[GMRF] Gaussian Markov Random Field. This spatial prior is the recommended option. Regression coefficients at a given voxel are (softly) constrained to be similar to those at nearby voxels. The strength of this constraint is determined by a spatial precision parameter that is estimated from the data. Different regression coefficients have different spatial precisions allowing each putative experimental effect to have its own spatial regularity. '
                   '                                                                                                            '
@@ -86,13 +85,13 @@ signal.values = {
                  'Global'
                  'Uninformative'
 }';
+signal.def     = {@spm_get_defaults, 'stats.est.signal'};
 % ---------------------------------------------------------------------
 % ARP AR model order
 % ---------------------------------------------------------------------
 ARP         = cfg_entry;
 ARP.tag     = 'ARP';
 ARP.name    = 'AR model order';
-ARP.val{1} = double(3);
 ARP.help    = {
                'An AR model order of 3 is the default. Cardiac and respiratory artifacts are periodic in nature and therefore require an AR order of at least 2. In previous work, voxel-wise selection of the optimal model order showed that a value of 3 was the highest order required. '
                '                                                                                                            '
@@ -102,6 +101,7 @@ ARP.help    = {
 }';
 ARP.strtype = 'e';
 ARP.num     = [Inf 1];
+ARP.def     = {@spm_get_defaults, 'stats.est.ARP'};
 % ---------------------------------------------------------------------
 % GMRF GMRF
 % ---------------------------------------------------------------------
@@ -300,9 +300,27 @@ fmri_est.modality = {
 
 %-------------------------------------------------------------------------
 function dep = vout_stats(job)
-% Could pass on SPM variable too.
-% Could create virtual outputs for betas, mask,... too.
-dep            = cfg_dep;
-dep.sname      = 'SPM.mat File (Estimation)';
-dep.src_output = substruct('.','spmmat');
-dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+dep(1)            = cfg_dep;
+dep(1).sname      = 'SPM.mat File';
+dep(1).src_output = substruct('.','spmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+%dep(2)            = cfg_dep;
+%dep(2).sname      = 'SPM Variable';
+%dep(2).src_output = substruct('.','spmvar');
+%dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});
+if isfield(job.method, 'Classical')
+    dep(2)            = cfg_dep;
+    dep(2).sname      = 'Beta Images';
+    dep(2).src_output = substruct('.','beta');
+    dep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    dep(3)            = cfg_dep;
+    dep(3).sname      = 'Analysis Mask';
+    dep(3).src_output = substruct('.','mask');
+    dep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    dep(4)            = cfg_dep;
+    dep(4).sname      = 'ResMS Image';
+    dep(4).src_output = substruct('.','resms');
+    dep(4).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    % can't check whether auto-generated contrasts are generated this is
+    % specified in input SPM.mat, not this job
+end;

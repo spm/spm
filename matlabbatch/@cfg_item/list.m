@@ -42,6 +42,10 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % 'all_set_item' - return all_set_item status of current node (i.e. whether
 %                  all integrity conditions for this node are fulfilled)
 %                  For in-tree nodes this can be different from all_set.
+% This code is the generic list function, suitable for all cfg_leaf items.
+% It calls harvest(item, false, false) to retreive the contents of the .val
+% field. This harvest call ensures that the correct val (val{1}, dependency
+% or default value) is listed.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -50,19 +54,17 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: list.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1517 $';
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};
     stop = false;
     if nargin > 3
-        specialfn = {'class','level','all_set','all_set_item'};
+        specialfn = {'class','level','all_set','all_set_item','val'};
         for k = 1:numel(fn)
-            if any(strcmp(fn{k}, fieldnames(item)))
-                val{k} = {subsref(item, substruct('.', fn{k}))};
-            elseif any(strcmp(fn{k}, specialfn))
+            if any(strcmp(fn{k}, specialfn))
                 switch fn{k}
                     case 'class'
                         val{k} = {class(item)};
@@ -72,7 +74,15 @@ if match(item, spec)
                         val{k} = {all_set(item)};
                     case 'all_set_item'
                         val{k} = {all_set_item(item)};
+                    case 'val'
+                        [un val1] = harvest(item, item, false, false);
+                        val{k}{1} = {val1};
+                        if strcmp(val{k}{1},'<UNDEFINED>')
+                            val{k}{1} = {};
+                        end;
                 end;
+            elseif any(strcmp(fn{k}, fieldnames(item)))
+                val{k} = {subsref(item, substruct('.', fn{k}))};
             else
                 val{k} = {{}};
             end;

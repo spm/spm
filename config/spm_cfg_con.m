@@ -4,9 +4,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_con.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -421,14 +421,13 @@ consess.num     = [0 Inf];
 delete         = cfg_menu;
 delete.tag     = 'delete';
 delete.name    = 'Delete existing contrasts';
-delete.val{1} = double(0);
 delete.help    = {''};
 delete.labels = {
                  'Yes'
                  'No'
 }';
-delete.values{1} = double(1);
-delete.values{2} = double(0);
+delete.values = {1 0};
+delete.def    = {@spm_get_defaults, 'stats.con.delete'};
 % ---------------------------------------------------------------------
 % con Contrast Manager
 % ---------------------------------------------------------------------
@@ -443,9 +442,19 @@ con.vout    = @vout_stats;
 
 %-------------------------------------------------------------------------
 function dep = vout_stats(job)
-% Could pass on SPM variable too.
-% Could also pass on deps for con or stats images.
-dep            = cfg_dep;
-dep.sname      = 'SPM.mat File (Contrasts)';
-dep.src_output = substruct('.','spmmat');
-dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+dep(1)            = cfg_dep;
+dep(1).sname      = 'SPM.mat File';
+dep(1).src_output = substruct('.','spmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+%dep(2)            = cfg_dep;
+%dep(2).sname      = 'SPM Variable';
+%dep(2).src_output = substruct('.','spmvar');
+%dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});
+dep(2)            = cfg_dep;
+dep(2).sname      = 'All Con Images';
+dep(2).src_output = substruct('.','con');
+dep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+dep(3)            = cfg_dep;
+dep(3).sname      = 'All Stats Images';
+dep(3).src_output = substruct('.','spm');
+dep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});

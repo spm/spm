@@ -4,9 +4,9 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_dicom.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % data DICOM files
 % ---------------------------------------------------------------------
@@ -23,7 +23,6 @@ data.num     = [1 Inf];
 root         = cfg_menu;
 root.tag     = 'root';
 root.name    = 'Directory structure for converted files';
-root.val = {'flat'};
 root.help    = {
                 'Choose root directory of converted file tree. The options are:'
                 ''
@@ -48,6 +47,7 @@ root.values = {
                'patname'
                'flat'
 }';
+root.def    = {@spm_get_defaults, 'dicom.root'};
 % ---------------------------------------------------------------------
 % outdir Output directory
 % ---------------------------------------------------------------------
@@ -65,7 +65,6 @@ outdir.num     = [1 1];
 format         = cfg_menu;
 format.tag     = 'format';
 format.name    = 'Output image format';
-format.val = {'nii'};
 format.help    = {
                   'DICOM conversion can create separate img and hdr files or combine them in one file. The single file option will help you save space on your hard disk, but may be incompatible with programs that are not NIfTI-aware.'
                   'In any case, only 3D image files will be produced.'
@@ -78,20 +77,20 @@ format.values = {
                  'img'
                  'nii'
 }';
+format.def    = {@spm_get_defaults, 'dicom.format'};
 % ---------------------------------------------------------------------
 % icedims Use ICEDims in filename
 % ---------------------------------------------------------------------
 icedims         = cfg_menu;
 icedims.tag     = 'icedims';
 icedims.name    = 'Use ICEDims in filename';
-icedims.val{1} = double(0);
 icedims.help    = {'If image sorting fails, one can try using the additional SIEMENS ICEDims information to create unique filenames. Use this only if there would be multiple volumes with exactly the same file names.'};
 icedims.labels = {
                   'No'
                   'Yes'
 }';
-icedims.values{1} = double(0);
-icedims.values{2} = double(1);
+icedims.values = {0 1};
+icedims.def    = {@spm_get_defaults, 'dicom.icedims'};
 % ---------------------------------------------------------------------
 % convopts Conversion options
 % ---------------------------------------------------------------------

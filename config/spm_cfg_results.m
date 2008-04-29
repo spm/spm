@@ -4,9 +4,9 @@ function results = spm_cfg_results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 1408 2008-04-15 10:15:34Z volkmar $
+% $Id: spm_cfg_results.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1408 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -63,7 +63,6 @@ threshdesc.values = {
 thresh         = cfg_entry;
 thresh.tag     = 'thresh';
 thresh.name    = 'Threshold';
-thresh.val{1} = double(0.0500000000000000028);
 thresh.help    = {''};
 thresh.strtype = 'e';
 thresh.num     = [1 1];
@@ -73,7 +72,6 @@ thresh.num     = [1 1];
 extent         = cfg_entry;
 extent.tag     = 'extent';
 extent.name    = 'Extent (voxels)';
-extent.val{1} = double(0);
 extent.help    = {''};
 extent.strtype = 'e';
 extent.num     = [1 1];
@@ -92,7 +90,6 @@ contrasts1.num     = [1 Inf];
 thresh1         = cfg_entry;
 thresh1.tag     = 'thresh';
 thresh1.name    = 'Mask threshold';
-thresh1.val{1} = double(0.0500000000000000028);
 thresh1.help    = {''};
 thresh1.strtype = 'e';
 thresh1.num     = [1 1];
@@ -149,7 +146,6 @@ generic.num     = [1 Inf];
 print         = cfg_menu;
 print.tag     = 'print';
 print.name    = 'Print results';
-print.val{1} = double(1);
 print.help    = {''};
 print.labels = {
                 'Yes'

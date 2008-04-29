@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1463 2008-04-21 18:36:29Z guillaume $
+% $Id: spm_defaults.m 1517 2008-04-29 15:46:08Z volkmar $
 
 
 global defaults
@@ -39,14 +39,58 @@ defaults.stats.fmri.ufp = 0.001;
 defaults.stats.pet.ufp  = 0.05;
 defaults.stats.eeg.ufp  = 1;
 
+% fMRI design defaults
+%=======================================================================
+defaults.stats.fmri.fmri_t    = 16;
+defaults.stats.fmri.fmri_t0   = 1;
+defaults.stats.fmri.cond.tmod = 0;
+defaults.stats.fmri.hpf       = 128;
+defaults.stats.fmri.hrf.derivs = [0 0];
+defaults.stats.fmri.volt      = 1;
+defaults.stats.fmri.global    = 'None';
+defaults.stats.fmri.cvi       = 'AR(1)';
+
+% Factorial design defaults
+%=======================================================================
+defaults.stats.fact.dept     = 0;
+defaults.stats.fact.variance = 1;
+defaults.stats.fact.gmsca    = 0;
+defaults.stats.fact.ancova   = 0;
+defaults.stats.fact.mcov.iCC = 1;
+defaults.stats.fact.iCFI     = 1;
+defaults.stats.fact.iCC      = 1;
+defaults.stats.fact.athresh  = 100;
+defaults.stats.fact.rthresh  = .8;
+defaults.stats.fact.imask    = 1;
+defaults.stats.fact.gmsca    = 50;
+defaults.stats.fact.glonorm  = 1;
+
+% Model estimation defaults
+%=======================================================================
+defaults.stats.est.signal = 'GMRF';
+defaults.stats.est.ARP    = 3;
+
+% Contrast manager batch defaults
+%=======================================================================
+defaults.stats.con.delete = 0;
+
 % Mask defaults
 %=======================================================================
 defaults.mask.thresh    = 0.8;
 
+% Filename prefix defaults
+%=======================================================================
+defaults.slicetiming.prefix     = 'a';
+defaults.realign.write.prefix   = 'r';
+defaults.coreg.write.prefix     = 'r';
+defaults.unwarp.write.prefix    = 'u';
+defaults.normalise.write.prefix = 'w';
+defaults.smooth.prefix          = 's';
+
 % Realignment defaults
 %=======================================================================
 defaults.realign.estimate.quality = 0.9;
-defaults.realign.estimate.weight = 0;
+defaults.realign.estimate.weight = {''};
 defaults.realign.estimate.interp = 2;
 defaults.realign.estimate.wrap   = [0 0 0];
 defaults.realign.estimate.sep    = 4;
@@ -55,13 +99,16 @@ defaults.realign.estimate.rtm    = 1;
 defaults.realign.write.mask      = 1;
 defaults.realign.write.interp    = 4;
 defaults.realign.write.wrap      = [0 0 0];
+defaults.realign.write.which     = [2 1];
 
 % Unwarp defaults
 %=======================================================================
+defaults.unwarp.estimate.rtm     = 0;
 defaults.unwarp.estimate.fwhm    = 4;
 defaults.unwarp.estimate.basfcn  = [12 12];
 defaults.unwarp.estimate.regorder= 1;
 defaults.unwarp.estimate.regwgt  = 1e5;
+defaults.unwarp.estimate.foe     = [4 5];
 defaults.unwarp.estimate.soe     = 1;
 defaults.unwarp.estimate.rem     = 1;
 defaults.unwarp.estimate.jm      = 0;
@@ -124,10 +171,10 @@ defaults.bias.cutoff = 30;  % DCT frequency cutoff (mm)
 
 % VBM Preprocessing defaults
 %=======================================================================
-defaults.preproc.tpm     = char(...
+defaults.preproc.tpm     = cellstr(char(...
     fullfile(spm('Dir'),'tpm','grey.nii'),...
     fullfile(spm('Dir'),'tpm','white.nii'),...
-    fullfile(spm('Dir'),'tpm','csf.nii')); % Prior probability maps
+    fullfile(spm('Dir'),'tpm','csf.nii'))); % Prior probability maps
 defaults.preproc.ngaus    = [2 2 2 4]';     % Gaussians per class
 defaults.preproc.warpreg  = 1;             % Warping Regularisation
 defaults.preproc.warpco   = 25;            % Warp Frequency Cutoff
@@ -135,13 +182,39 @@ defaults.preproc.biasreg  = 0.0001;        % Bias regularisation
 defaults.preproc.biasfwhm = 60;            % Bias FWHM
 defaults.preproc.regtype  = 'mni';         % Affine Regularisation
 defaults.preproc.samp     = 3;             % Sampling distance
+defaults.preproc.output.GM  = [0 0 1];
+defaults.preproc.output.WM  = [0 0 1];
+defaults.preproc.output.CSF = [0 0 0];
+defaults.preproc.output.biascor = 1;
+defaults.preproc.output.cleanup = 0;
+
+% Smooth defaults
+%=======================================================================
+defaults.smooth.fwhm  = [8 8 8];
+defaults.smooth.dtype = 0;
 
 % ImCalc defaults
 %=======================================================================
+defaults.imcalc.output = 'output.img';      % Output Filename
 defaults.imcalc.dmtx   = 0;                 % Data Matrix
 defaults.imcalc.mask   = 0;                 % Masking
 defaults.imcalc.interp = 1;                 % Interpolation
 defaults.imcalc.dtype  = spm_type('int16'); % Data Type
+
+% DICOM Import defaults
+%=======================================================================
+defaults.dicom.root    = 'flat';
+defaults.dicom.format  = 'nii';
+defaults.dicom.icedims = 0;
+
+% MINC Import defaults
+%=======================================================================
+defaults.minc.dtype    = spm_type('int16');
+defaults.minc.ext      = '.img';
+
+% ECAT Import defaults
+%=======================================================================
+defaults.ecat.ext      = '.img';
 
 % User Interface Defaults
 %=======================================================================

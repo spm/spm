@@ -1,6 +1,6 @@
-function item = setval(item, val)
+function item = setval(item, val, dflag)
 
-% function item = setval(item, val)
+% function item = setval(item, val, dflag)
 % Add, replicate or delete an entry in item.val. The semantics is based on
 % the contents of the 2nd argument:
 % If val == {}, set item.val to {}.
@@ -12,6 +12,7 @@ function item = setval(item, val)
 % the overall job structure. This has to be done in the job management
 % utility.
 % If val(1) is not finite, then the entry val(2) is deleted from item.val.
+% dflag is ignored for cfg_repeat items.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -20,9 +21,9 @@ function item = setval(item, val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: setval.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1517 $';
 
 if iscell(val) && isempty(val)
     item = subsasgn(item, substruct('.','val'), {});

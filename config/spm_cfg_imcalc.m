@@ -4,9 +4,9 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_imcalc.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % input Input Images
 % ---------------------------------------------------------------------
@@ -23,10 +23,10 @@ input.num     = [1 Inf];
 output         = cfg_entry;
 output.tag     = 'output';
 output.name    = 'Output Filename';
-output.val = {'output.img'};
 output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'};
 output.strtype = 's';
 output.num     = [1 Inf];
+output.def     = {@spm_get_defaults, 'imcalc.output'};
 % ---------------------------------------------------------------------
 % outdir Output Directory
 % ---------------------------------------------------------------------
@@ -44,7 +44,6 @@ outdir.num     = [0 1];
 expression         = cfg_entry;
 expression.tag     = 'expression';
 expression.name    = 'Expression';
-expression.val = {'i1'};
 expression.help    = {
                       'Example expressions (f):'
                       '    * Mean of six images (select six images)'
@@ -67,37 +66,33 @@ expression.num     = [2 Inf];
 dmtx         = cfg_menu;
 dmtx.tag     = 'dmtx';
 dmtx.name    = 'Data Matrix';
-dmtx.val{1} = double(0);
 dmtx.help    = {'If the dmtx flag is set, then images are read into a data matrix X (rather than into separate variables i1, i2, i3,...). The data matrix  should be referred to as X, and contains images in rows. Computation is plane by plane, so in data-matrix mode, X is a NxK matrix, where N is the number of input images [prod(size(Vi))], and K is the number of voxels per plane [prod(Vi(1).dim(1:2))].'};
 dmtx.labels = {
                'No - don''t read images into data matrix'
                'Yes -  read images into data matrix'
 }';
-dmtx.values{1} = double(0);
-dmtx.values{2} = double(1);
+dmtx.values = {0 1};
+dmtx.def    = {@spm_get_defaults, 'imcalc.dmtx'};
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
 mask         = cfg_menu;
 mask.tag     = 'mask';
 mask.name    = 'Masking';
-mask.val{1} = double(0);
 mask.help    = {'For data types without a representation of NaN, implicit zero masking assumes that all zero voxels are to be treated as missing, and treats them as NaN. NaN''s are written as zero (by spm_write_plane), for data types without a representation of NaN.'};
 mask.labels = {
                'No implicit zero mask'
                'Implicit zero mask'
                'NaNs should be zeroed'
 }';
-mask.values{1} = double(0);
-mask.values{2} = double(1);
-mask.values{3} = double(-1);
+mask.values = {0 1 -1};
+mask.def    = {@spm_get_defaults, 'imcalc.mask'};
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.val{1} = double(1);
 interp.help    = {
                   'With images of different sizes and orientations, the size and orientation of the first is used for the output image. A warning is given in this situation. Images are sampled into this orientation using the interpolation specified by the hold parameter.'
                   ''
@@ -120,21 +115,14 @@ interp.labels = {
                  '6th Degree Sinc'
                  '7th Degree Sinc'
 }';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(-2);
-interp.values{4} = double(-3);
-interp.values{5} = double(-4);
-interp.values{6} = double(-5);
-interp.values{7} = double(-6);
-interp.values{8} = double(-7);
+interp.values = {0 1 -2 -3 -4 -5 -6 -7};
+interp.def    = {@spm_get_defaults, 'imcalc.interp'};
 % ---------------------------------------------------------------------
 % dtype Data Type
 % ---------------------------------------------------------------------
 dtype         = cfg_menu;
 dtype.tag     = 'dtype';
 dtype.name    = 'Data Type';
-dtype.val{1} = double(4);
 dtype.help    = {'Data-type of output image'};
 dtype.labels = {
                 'UINT8  - unsigned char'
@@ -143,11 +131,9 @@ dtype.labels = {
                 'FLOAT - single prec. float'
                 'DOUBLE - double prec. float'
 }';
-dtype.values{1} = double(2);
-dtype.values{2} = double(4);
-dtype.values{3} = double(8);
-dtype.values{4} = double(16);
-dtype.values{5} = double(64);
+dtype.values = {spm_type('uint8') spm_type('int16') spm_type('int32') ...
+                spm_type('float') spm_type('double')};
+dtype.def    = {@spm_get_defaults, 'imcalc.dtype'};
 % ---------------------------------------------------------------------
 % options Options
 % ---------------------------------------------------------------------

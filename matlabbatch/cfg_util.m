@@ -68,12 +68,12 @@ function varargout = cfg_util(cmd, varargin)
 % Fill missing inputs in a job from a list of input items. If an can not be
 % filled by the specified input, this input will be discarded. If
 % cfg_util('filljobui'...) is called, [val sts] = ui_fcn(item) will be run
-% and should return a value which is suitable for setval(item, val). sts
-% should be set to true if input should continue with the next item. This
-% can result in an partially filled job. If ui_fcn is interrupted, the job
-% will stay unfilled.
-% If cfg_util('filljob' is called, the current job can become partially
-% filled. If ui_fcn is interrupted, the job will stay unfilled.
+% and should return a value which is suitable for setval(item, val,
+% false). sts should be set to true if input should continue with the
+% next item. This can result in an partially filled job. If ui_fcn is
+% interrupted, the job will stay unfilled.
+% If cfg_util('filljob'...) is called, the current job can become partially
+% filled.
 % Returns the all_set status of the filled job, returns always false if
 % ui_fcn is interrupted.
 %
@@ -322,9 +322,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1472 2008-04-23 12:02:44Z volkmar $
+% $Id: cfg_util.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1472 $';
+rev = '$Rev: 1517 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -598,7 +598,7 @@ switch lower(cmd),
                 % check
                 cm = subsref(jobs(cjob).cj, [jobs(cjob).cjid2subs{mod_job_id}, varargin{3}]);
                 if isa(cm, 'cfg_repeat')
-                    cm = setval(cm, varargin{4});
+                    cm = setval(cm, varargin{4}, false);
                     jobs(cjob).cj = subsasgn(jobs(cjob).cj, ...
                                          [jobs(cjob).cjid2subs{mod_job_id}, ...
                                         varargin{3}], cm);
@@ -641,7 +641,7 @@ switch lower(cmd),
     case 'setdef',
         % Set defaults for new jobs only
         cm = subsref(c0, [varargin{1}, varargin{2}]);
-        cm = setval(cm, varargin{3});
+        cm = setval(cm, varargin{3}, true);
         c0 = subsasgn(c0, [varargin{1}, varargin{2}], cm);
     case 'setval',
         cjob        = varargin{1};
@@ -650,7 +650,7 @@ switch lower(cmd),
         if cfg_util('ismod_job_id', cjob, mod_job_id) && ...
                 cfg_util('isitem_mod_id', item_mod_id)
             cm = subsref(jobs(cjob).cj, [jobs(cjob).cjid2subs{mod_job_id}, item_mod_id]);
-            cm = setval(cm, varargin{4});
+            cm = setval(cm, varargin{4}, false);
             jobs(cjob).cj = subsasgn(jobs(cjob).cj, [jobs(cjob).cjid2subs{mod_job_id}, item_mod_id], cm);
             varargout{1} = all_set_item(cm);
         end;

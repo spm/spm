@@ -4,9 +4,9 @@ function st = spm_cfg_st
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_st.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % scans Session
 % ---------------------------------------------------------------------
@@ -92,10 +92,10 @@ refslice.num     = [1 1];
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.val = {'a'};
 prefix.help    = {'Specify the string to be prepended to the filenames of the smoothed image file(s). Default prefix is ''a''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
+prefix.def     = {@spm_get_defaults, 'slicetiming.prefix'};
 % ---------------------------------------------------------------------
 % st Slice Timing
 % ---------------------------------------------------------------------

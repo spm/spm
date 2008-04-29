@@ -4,9 +4,9 @@ function minc = spm_cfg_minc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_minc.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_minc.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % data MINC files
 % ---------------------------------------------------------------------
@@ -23,7 +23,6 @@ data.num     = [1 Inf];
 dtype         = cfg_menu;
 dtype.tag     = 'dtype';
 dtype.name    = 'Data Type';
-dtype.val{1} = double(4);
 dtype.help    = {'Data-type of output images. Note that the number of bits used determines the accuracy, and the amount of disk space needed.'};
 dtype.labels = {
                 'UINT8  - unsigned char'
@@ -32,18 +31,15 @@ dtype.labels = {
                 'FLOAT - single prec. float'
                 'DOUBLE - double prec. float'
 }';
-dtype.values{1} = double(2);
-dtype.values{2} = double(4);
-dtype.values{3} = double(8);
-dtype.values{4} = double(16);
-dtype.values{5} = double(64);
+dtype.values = {spm_type('uint8') spm_type('int16') spm_type('int32') ...
+                spm_type('float') spm_type('double')};
+dtype.def    = {@spm_get_defaults, 'minc.dtype'};
 % ---------------------------------------------------------------------
 % ext NIFTI Type
 % ---------------------------------------------------------------------
 ext         = cfg_menu;
 ext.tag     = 'ext';
 ext.name    = 'NIFTI Type';
-ext.val = {'.img'};
 ext.help    = {'Output files can be written as .img + .hdr, or the two can be combined into a .nii file.'};
 ext.labels = {
               '.nii only'
@@ -53,6 +49,7 @@ ext.values = {
               '.nii'
               '.img'
 }';
+ext.def    = {@spm_get_defaults, 'minc.ext'};
 % ---------------------------------------------------------------------
 % opts Options
 % ---------------------------------------------------------------------

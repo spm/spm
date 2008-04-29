@@ -9,7 +9,7 @@ function out = spm_run_con(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_con.m 1517 2008-04-29 15:46:08Z volkmar $
 
 
 wd  = pwd;
@@ -229,3 +229,13 @@ end;
 fprintf('   Changing back to directory: %s\n', wd);
 cd(wd); 
 out.spmmat = job.spmmat;
+%out.spmvar = SPM;
+if isfield(SPM, 'xCon')
+    Vcon = cat(1,SPM.xCon.Vcon);
+    Vspm = cat(1,SPM.xCon.Vspm);
+elseif isfield(SPM, 'PPM')
+    Vcon = cat(1,SPM.PPM.xCon.Vcon);
+    Vspm = cat(1,SPM.PPM.xCon.Vspm);
+end;
+out.con = cellstr(strvcat(Vcon.fname));
+out.spm = cellstr(strvcat(Vspm.fname));

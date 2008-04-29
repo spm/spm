@@ -4,9 +4,9 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1439 2008-04-17 15:42:17Z john $
+% $Id: spm_cfg_preproc.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1439 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -23,7 +23,6 @@ data.num     = [1 Inf];
 GM         = cfg_menu;
 GM.tag     = 'GM';
 GM.name    = 'Grey Matter';
-GM.val{1} = double([0 0 1]);
 GM.help    = {'Options to produce grey matter images: c1*.img, wc1*.img and mwc1*.img.'};
 GM.labels = {
              'None'
@@ -35,21 +34,15 @@ GM.labels = {
              'Native + Modulated + Unmodulated'
              'Modulated + Unmodulated Normalised'
 }';
-GM.values{1} = double([0 0 0]);
-GM.values{2} = double([0 0 1]);
-GM.values{3} = double([0 1 0]);
-GM.values{4} = double([1 0 0]);
-GM.values{5} = double([0 1 1]);
-GM.values{6} = double([1 0 1]);
-GM.values{7} = double([1 1 1]);
-GM.values{8} = double([1 1 0]);
+GM.values = {[0 0 0] [0 0 1] [0 1 0] [1 0 0] [0 1 1] [1 0 1] [1 1 1]...
+             [1 1 0]};
+GM.def    = {@spm_get_defaults, 'preproc.output.GM'};
 % ---------------------------------------------------------------------
 % WM White Matter
 % ---------------------------------------------------------------------
 WM         = cfg_menu;
 WM.tag     = 'WM';
 WM.name    = 'White Matter';
-WM.val{1} = double([0 0 1]);
 WM.help    = {'Options to produce white matter images: c2*.img, wc2*.img and mwc2*.img.'};
 WM.labels = {
              'None'
@@ -61,21 +54,15 @@ WM.labels = {
              'Native + Modulated + Unmodulated'
              'Modulated + Unmodulated Normalised'
 }';
-WM.values{1} = double([0 0 0]);
-WM.values{2} = double([0 0 1]);
-WM.values{3} = double([0 1 0]);
-WM.values{4} = double([1 0 0]);
-WM.values{5} = double([0 1 1]);
-WM.values{6} = double([1 0 1]);
-WM.values{7} = double([1 1 1]);
-WM.values{8} = double([1 1 0]);
+WM.values = {[0 0 0] [0 0 1] [0 1 0] [1 0 0] [0 1 1] [1 0 1] [1 1 1]...
+             [1 1 0]};
+WM.def    = {@spm_get_defaults, 'preproc.output.WM'};
 % ---------------------------------------------------------------------
 % CSF Cerebro-Spinal Fluid
 % ---------------------------------------------------------------------
 CSF         = cfg_menu;
 CSF.tag     = 'CSF';
 CSF.name    = 'Cerebro-Spinal Fluid';
-CSF.val{1} = double([0 0 0]);
 CSF.help    = {'Options to produce CSF images: c3*.img, wc3*.img and mwc3*.img.'};
 CSF.labels = {
               'None'
@@ -87,35 +74,28 @@ CSF.labels = {
               'Native + Modulated + Unmodulated'
               'Modulated + Unmodulated Normalised'
 }';
-CSF.values{1} = double([0 0 0]);
-CSF.values{2} = double([0 0 1]);
-CSF.values{3} = double([0 1 0]);
-CSF.values{4} = double([1 0 0]);
-CSF.values{5} = double([0 1 1]);
-CSF.values{6} = double([1 0 1]);
-CSF.values{7} = double([1 1 1]);
-CSF.values{8} = double([1 1 0]);
+CSF.values = {[0 0 0] [0 0 1] [0 1 0] [1 0 0] [0 1 1] [1 0 1] [1 1 1]...
+             [1 1 0]};
+CSF.def    = {@spm_get_defaults, 'preproc.output.CSF'};
 % ---------------------------------------------------------------------
 % biascor Bias Corrected
 % ---------------------------------------------------------------------
 biascor         = cfg_menu;
 biascor.tag     = 'biascor';
 biascor.name    = 'Bias Corrected';
-biascor.val{1} = double(1);
 biascor.help    = {'This is the option to produce a bias corrected version of your image. MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.  The bias corrected version should have more uniform intensities within the different types of tissues.'};
 biascor.labels = {
                   'Save Bias Corrected'
                   'Don''t Save Corrected'
 }';
-biascor.values{1} = double(1);
-biascor.values{2} = double(0);
+biascor.values = {1 0};
+biascor.def    = {@spm_get_defaults, 'preproc.output.biascor'};
 % ---------------------------------------------------------------------
 % cleanup Clean up any partitions
 % ---------------------------------------------------------------------
 cleanup         = cfg_menu;
 cleanup.tag     = 'cleanup';
 cleanup.name    = 'Clean up any partitions';
-cleanup.val{1} = double(0);
 cleanup.help    = {
                    'This uses a crude routine for extracting the brain from segmentedimages.  It begins by taking the white matter, and eroding it acouple of times to get rid of any odd voxels.  The algorithmcontinues on to do conditional dilations for several iterations,where the condition is based upon gray or white matter being present.This identified region is then used to clean up the grey and whitematter partitions, and has a slight influences on the CSF partition.'
                    ''
@@ -126,9 +106,8 @@ cleanup.labels = {
                   'Light Clean'
                   'Thorough Clean'
 }';
-cleanup.values{1} = double(0);
-cleanup.values{2} = double(1);
-cleanup.values{3} = double(2);
+cleanup.values = {0 1 2};
+cleanup.def    = {@spm_get_defaults, 'preproc.output.cleanup'};
 % ---------------------------------------------------------------------
 % output Output Files
 % ---------------------------------------------------------------------
@@ -164,11 +143,6 @@ output.help    = {
 tpm         = cfg_files;
 tpm.tag     = 'tpm';
 tpm.name    = 'Tissue probability maps';
-tpm.val{1} = {
-              fullfile(spm('dir'),'tpm','grey.nii')
-              fullfile(spm('dir'),'tpm','white.nii')
-              fullfile(spm('dir'),'tpm','csf.nii')
-};
 tpm.help    = {
                'Select the tissue probability images. These should be maps of grey matter, white matter and cerebro-spinal fluid probability. A nonlinear deformation field is estimated that best overlays the tissue probability maps on the individual subjects'' image. The default tissue probability maps are modified versions of the ICBM Tissue Probabilistic Atlases.These tissue probability maps are kindly provided by the International Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga. http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html. The original data are derived from 452 T1-weighted scans, which were aligned with an atlas space, corrected for scan inhomogeneities, and classified into grey matter, white matter and cerebrospinal fluid. These data were then affine registered to the MNI space and downsampled to 2mm resolution.'
                ''
@@ -180,23 +154,23 @@ tpm.filter = 'image';
 tpm.dir = fullfile(spm('dir'),'tpm');
 tpm.ufilter = '.*';
 tpm.num     = [3 3];
+tpm.def     = {@spm_get_defaults, 'preproc.tpm'};
 % ---------------------------------------------------------------------
 % ngaus Gaussians per class
 % ---------------------------------------------------------------------
 ngaus         = cfg_entry;
 ngaus.tag     = 'ngaus';
 ngaus.name    = 'Gaussians per class';
-ngaus.val{1} = double([2 2 2 4]);
 ngaus.help    = {'The number of Gaussians used to represent the intensity distribution for each tissue class can be greater than one. In other words, a tissue probability map may be shared by several clusters. The assumption of a single Gaussian distribution for each class does not hold for a number of reasons. In particular, a voxel may not be purely of one tissue type, and instead contain signal from a number of different tissues (partial volume effects). Some partial volume voxels could fall at the interface between different classes, or they may fall in the middle of structures such as the thalamus, which may be considered as being either grey or white matter. Various other image segmentation approaches use additional clusters to model such partial volume effects. These generally assume that a pure tissue class has a Gaussian intensity distribution, whereas intensity distributions for partial volume voxels are broader, falling between the intensities of the pure classes. Unlike these partial volume segmentation approaches, the model adopted here simply assumes that the intensity distribution of each class may not be Gaussian, and assigns belonging probabilities according to these non-Gaussian distributions. Typical numbers of Gaussians could be two for grey matter, two for white matter, two for CSF, and four for everything else.'};
 ngaus.strtype = 'n';
 ngaus.num     = [4 1];
+ngaus.def     = {@spm_get_defaults, 'preproc.ngaus'};
 % ---------------------------------------------------------------------
 % regtype Affine Regularisation
 % ---------------------------------------------------------------------
 regtype         = cfg_menu;
 regtype.tag     = 'regtype';
 regtype.name    = 'Affine Regularisation';
-regtype.val = {'mni'};
 regtype.help    = {
                    'The procedure is a local optimisation, so it needs reasonable initial starting estimates. Images should be placed in approximate alignment using the Display function of SPM before beginning. A Mutual Information affine registration with the tissue probability maps (D''Agostino et al, 2004) is used to achieve approximate alignment. Note that this step does not include any model for intensity non-uniformity. This means that if the procedure is to be initialised with the affine registration, then the data should not be too corrupted with this artifact.If there is a lot of intensity non-uniformity, then manually position your image in order to achieve closer starting estimates, and turn off the affine registration.'
                    ''
@@ -216,33 +190,33 @@ regtype.values = {
                   'subj'
                   'none'
 }';
+regtype.def     = {@spm_get_defaults, 'preproc.regtype'};
 % ---------------------------------------------------------------------
 % warpreg Warping Regularisation
 % ---------------------------------------------------------------------
 warpreg         = cfg_entry;
 warpreg.tag     = 'warpreg';
 warpreg.name    = 'Warping Regularisation';
-warpreg.val{1} = double(1);
 warpreg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
 warpreg.strtype = 'e';
 warpreg.num     = [1 1];
+warpreg.def     = {@spm_get_defaults, 'preproc.warpreg'};
 % ---------------------------------------------------------------------
 % warpco Warp Frequency Cutoff
 % ---------------------------------------------------------------------
 warpco         = cfg_entry;
 warpco.tag     = 'warpco';
 warpco.name    = 'Warp Frequency Cutoff';
-warpco.val{1} = double(25);
 warpco.help    = {'Cutoff of DCT bases.  Only DCT bases of periods longer than the cutoff are used to describe the warps. The number actually used will depend on the cutoff and the field of view of your image. A smaller cutoff frequency will allow more detailed deformations to be modelled, but unfortunately comes at a cost of greatly increasing the amount of memory needed, and the time taken.'};
 warpco.strtype = 'e';
 warpco.num     = [1 1];
+warpco.def     = {@spm_get_defaults, 'preproc.warpco'};
 % ---------------------------------------------------------------------
 % biasreg Bias regularisation
 % ---------------------------------------------------------------------
 biasreg         = cfg_menu;
 biasreg.tag     = 'biasreg';
 biasreg.name    = 'Bias regularisation';
-biasreg.val{1} = double(0.000100000000000000005);
 biasreg.help    = {
                    'MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.'
                    ''
@@ -258,21 +232,14 @@ biasreg.labels = {
                   'very heavy regularisation (1)'
                   'extremely heavy regularisation (10)'
 }';
-biasreg.values{1} = double(0);
-biasreg.values{2} = double(1.00000000000000008e-05);
-biasreg.values{3} = double(0.000100000000000000005);
-biasreg.values{4} = double(0.00100000000000000002);
-biasreg.values{5} = double(0.0100000000000000002);
-biasreg.values{6} = double(0.100000000000000006);
-biasreg.values{7} = double(1);
-biasreg.values{8} = double(10);
+biasreg.values = {0 1e-5 .0001 .001 .01 .1 1 10};
+biasreg.def     = {@spm_get_defaults, 'preproc.biasreg'};
 % ---------------------------------------------------------------------
 % biasfwhm Bias FWHM
 % ---------------------------------------------------------------------
 biasfwhm         = cfg_menu;
 biasfwhm.tag     = 'biasfwhm';
 biasfwhm.name    = 'Bias FWHM';
-biasfwhm.val{1} = double(60);
 biasfwhm.help    = {'FWHM of Gaussian smoothness of bias. If your intensity non-uniformity is very smooth, then choose a large FWHM. This will prevent the algorithm from trying to model out intensity variation due to different tissue types. The model for intensity non-uniformity is one of i.i.d. Gaussian noise that has been smoothed by some amount, before taking the exponential. Note also that smoother bias fields need fewer parameters to describe them. This means that the algorithm is faster for smoother intensity non-uniformities.'};
 biasfwhm.labels = {
                    '30mm cutoff'
@@ -290,30 +257,18 @@ biasfwhm.labels = {
                    '150mm cutoff'
                    'No correction'
 }';
-biasfwhm.values{1} = double(30);
-biasfwhm.values{2} = double(40);
-biasfwhm.values{3} = double(50);
-biasfwhm.values{4} = double(60);
-biasfwhm.values{5} = double(70);
-biasfwhm.values{6} = double(80);
-biasfwhm.values{7} = double(90);
-biasfwhm.values{8} = double(100);
-biasfwhm.values{9} = double(110);
-biasfwhm.values{10} = double(120);
-biasfwhm.values{11} = double(130);
-biasfwhm.values{12} = double(140);
-biasfwhm.values{13} = double(150);
-biasfwhm.values{14} = double(Inf);
+biasfwhm.values = {30 40 50 60 70 80 90 100 110 120 130 140 150 Inf};
+biasfwhm.def     = {@spm_get_defaults, 'preproc.biasfwhm'};
 % ---------------------------------------------------------------------
 % samp Sampling distance
 % ---------------------------------------------------------------------
 samp         = cfg_entry;
 samp.tag     = 'samp';
 samp.name    = 'Sampling distance';
-samp.val{1} = double(3);
 samp.help    = {'The approximate distance between sampled points when estimating the model parameters. Smaller values use more of the data, but the procedure is slower.'};
 samp.strtype = 'e';
 samp.num     = [1 1];
+samp.def     = {@spm_get_defaults, 'preproc.samp'};
 % ---------------------------------------------------------------------
 % msk Masking image
 % ---------------------------------------------------------------------

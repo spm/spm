@@ -4,9 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_normalise.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -23,7 +23,7 @@ source.num     = [1 1];
 wtsrc         = cfg_files;
 wtsrc.tag     = 'wtsrc';
 wtsrc.name    = 'Source Weighting Image';
-wtsrc.val{1} = {};
+wtsrc.val     = {''};
 wtsrc.help    = {'Optional weighting images (consisting of pixel values between the range of zero to one) to be used for registering abnormal or lesioned brains.  These images should match the dimensions of the image from which the parameters are estimated, and should contain zeros corresponding to regions of abnormal tissue.'};
 wtsrc.filter = 'image';
 wtsrc.ufilter = '.*';
@@ -54,6 +54,7 @@ template.name    = 'Template Image';
 template.help    = {'Specify a template image to match the source image with. The contrast in the template must be similar to that of the source image in order to achieve a good registration.  It is also possible to select more than one template, in which case the registration algorithm will try to find the best linear combination of these images in order to best model the intensities in the source image.'};
 template.filter = 'image';
 template.ufilter = '.*';
+template.dir     = fullfile(spm('dir'),'templates');
 template.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % weight Template Weighting Image
@@ -61,7 +62,7 @@ template.num     = [1 Inf];
 weight         = cfg_files;
 weight.tag     = 'weight';
 weight.name    = 'Template Weighting Image';
-weight.val{1} = {};
+weight.val     = {''};
 weight.help    = {
                   'Applies a weighting mask to the template(s) during the parameter estimation.  With the default brain mask, weights in and around the brain have values of one whereas those clearly outside the brain are zero.  This is an attempt to base the normalisation purely upon the shape of the brain, rather than the shape of the head (since low frequency basis functions can not really cope with variations in skull thickness).'
                   ''
@@ -76,27 +77,26 @@ weight.num     = [0 1];
 smosrc         = cfg_entry;
 smosrc.tag     = 'smosrc';
 smosrc.name    = 'Source Image Smoothing';
-smosrc.val{1} = double(8);
 smosrc.help    = {'Smoothing to apply to a copy of the source image. The template and source images should have approximately the same smoothness. Remember that the templates supplied with SPM have been smoothed by 8mm, and that smoothnesses combine by Pythagoras'' rule.'};
 smosrc.strtype = 'e';
 smosrc.num     = [1 1];
+smosrc.def     = {@spm_get_defaults, 'normalise.estimate.smosrc'};
 % ---------------------------------------------------------------------
 % smoref Template Image Smoothing
 % ---------------------------------------------------------------------
 smoref         = cfg_entry;
 smoref.tag     = 'smoref';
 smoref.name    = 'Template Image Smoothing';
-smoref.val{1} = double(0);
 smoref.help    = {'Smoothing to apply to a copy of the template image. The template and source images should have approximately the same smoothness. Remember that the templates supplied with SPM have been smoothed by 8mm, and that smoothnesses combine by Pythagoras'' rule.'};
 smoref.strtype = 'e';
 smoref.num     = [1 1];
+smoref.def     = {@spm_get_defaults, 'normalise.estimate.smoref'};
 % ---------------------------------------------------------------------
 % regtype Affine Regularisation
 % ---------------------------------------------------------------------
 regtype         = cfg_menu;
 regtype.tag     = 'regtype';
 regtype.name    = 'Affine Regularisation';
-regtype.val = {'mni'};
 regtype.help    = {'Affine registration into a standard space can be made more robust by regularisation (penalising excessive stretching or shrinking).  The best solutions can be obtained by knowing the approximate amount of stretching that is needed (e.g. ICBM templates are slightly bigger than typical brains, so greater zooms are likely to be needed). If registering to an image in ICBM/MNI space, then choose the first option.  If registering to a template that is close in size, then select the second option.  If you do not want to regularise, then choose the third.'};
 regtype.labels = {
                   'ICBM space template'
@@ -108,36 +108,37 @@ regtype.values = {
                   'subj'
                   'none'
 }';
+regtype.def     = {@spm_get_defaults, 'normalise.estimate.regtype'};
 % ---------------------------------------------------------------------
 % cutoff Nonlinear Frequency Cutoff
 % ---------------------------------------------------------------------
 cutoff         = cfg_entry;
 cutoff.tag     = 'cutoff';
 cutoff.name    = 'Nonlinear Frequency Cutoff';
-cutoff.val{1} = double(25);
 cutoff.help    = {'Cutoff of DCT bases.  Only DCT bases of periods longer than the cutoff are used to describe the warps. The number used will depend on the cutoff and the field of view of the template image(s).'};
 cutoff.strtype = 'e';
 cutoff.num     = [1 1];
+cutoff.def     = {@spm_get_defaults, 'normalise.estimate.cutoff'};
 % ---------------------------------------------------------------------
 % nits Nonlinear Iterations
 % ---------------------------------------------------------------------
 nits         = cfg_entry;
 nits.tag     = 'nits';
 nits.name    = 'Nonlinear Iterations';
-nits.val{1} = double(16);
 nits.help    = {'Number of iterations of nonlinear warping performed.'};
 nits.strtype = 'w';
 nits.num     = [1 1];
+nits.def     = {@spm_get_defaults, 'normalise.estimate.nits'};
 % ---------------------------------------------------------------------
 % reg Nonlinear Regularisation
 % ---------------------------------------------------------------------
 reg         = cfg_entry;
 reg.tag     = 'reg';
 reg.name    = 'Nonlinear Regularisation';
-reg.val{1} = double(1);
 reg.help    = {'The amount of regularisation for the nonlinear part of the spatial normalisation. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude) - or even just use an affine normalisation. The regularisation influences the smoothness of the deformation fields.'};
 reg.strtype = 'e';
 reg.num     = [1 1];
+reg.def     = {@spm_get_defaults, 'normalise.estimate.reg'};
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -199,7 +200,6 @@ generic.num     = [1 Inf];
 preserve         = cfg_menu;
 preserve.tag     = 'preserve';
 preserve.name    = 'Preserve';
-preserve.val{1} = double(0);
 preserve.help    = {
                     'Preserve Concentrations: Spatially normalised images are not "modulated". The warped images preserve the intensities of the original images.'
                     ''
@@ -209,36 +209,34 @@ preserve.labels = {
                    'Preserve Concentrations'
                    'Preserve Amount'
 }';
-preserve.values{1} = double(0);
-preserve.values{2} = double(1);
+preserve.values = {0 1};
+preserve.def     = {@spm_get_defaults, 'normalise.write.preserve'};
 % ---------------------------------------------------------------------
 % bb Bounding box
 % ---------------------------------------------------------------------
 bb         = cfg_entry;
 bb.tag     = 'bb';
 bb.name    = 'Bounding box';
-bb.val{1} = double([-78 -112 -50
-                    78 76 85]);
 bb.help    = {'The bounding box (in mm) of the volume which is to be written (relative to the anterior commissure).'};
 bb.strtype = 'e';
 bb.num     = [2 3];
+bb.def     = {@spm_get_defaults, 'normalise.write.bb'};
 % ---------------------------------------------------------------------
 % vox Voxel sizes
 % ---------------------------------------------------------------------
 vox         = cfg_entry;
 vox.tag     = 'vox';
 vox.name    = 'Voxel sizes';
-vox.val{1} = double([2 2 2]);
 vox.help    = {'The voxel sizes (x, y & z, in mm) of the written normalised images.'};
 vox.strtype = 'e';
 vox.num     = [1 3];
+vox.def     = {@spm_get_defaults, 'normalise.write.vox'};
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.val{1} = double(1);
 interp.help    = {
                   'The method by which the images are sampled when being written in a different space.'
                   '    Nearest Neighbour:     - Fastest, but not normally recommended.'
@@ -255,21 +253,14 @@ interp.labels = {
                  '6th Degree B-Spline'
                  '7th Degree B-Spline'
 }';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(2);
-interp.values{4} = double(3);
-interp.values{5} = double(4);
-interp.values{6} = double(5);
-interp.values{7} = double(6);
-interp.values{8} = double(7);
+interp.values = {0 1 2 3 4 5 6 7};
+interp.def     = {@spm_get_defaults, 'normalise.write.interp'};
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
 wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
-wrap.val{1} = double([0 0 0]);
 wrap.help    = {
                 'These are typically:'
                 '    No wrapping: for PET or images that have already                   been spatially transformed. '
@@ -285,24 +276,19 @@ wrap.labels = {
                'Wrap Y & Z'
                'Wrap X, Y & Z'
 }';
-wrap.values{1} = double([0 0 0]);
-wrap.values{2} = double([1 0 0]);
-wrap.values{3} = double([0 1 0]);
-wrap.values{4} = double([1 1 0]);
-wrap.values{5} = double([0 0 1]);
-wrap.values{6} = double([1 0 1]);
-wrap.values{7} = double([0 1 1]);
-wrap.values{8} = double([1 1 1]);
+wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
+               [1 1 1]};
+wrap.def     = {@spm_get_defaults, 'normalise.write.wrap'};
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.val = {'w'};
 prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ''w''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
+prefix.def     = {@spm_get_defaults, 'normalise.write.prefix'};
 % ---------------------------------------------------------------------
 % roptions Writing Options
 % ---------------------------------------------------------------------
@@ -321,273 +307,6 @@ write.val     = {generic roptions };
 write.help    = {'Allows previously estimated warps (stored in imagename''_sn.mat'' files) to be applied to series of images.'};
 write.prog = @spm_run_normalise_write;
 write.vout = @vout_write;
-% ---------------------------------------------------------------------
-% source Source Image
-% ---------------------------------------------------------------------
-source         = cfg_files;
-source.tag     = 'source';
-source.name    = 'Source Image';
-source.help    = {'The image that is warped to match the template(s).  The result is a set of warps, which can be applied to this image, or any other image that is in register with it.'};
-source.filter = 'image';
-source.ufilter = '.*';
-source.num     = [1 1];
-% ---------------------------------------------------------------------
-% wtsrc Source Weighting Image
-% ---------------------------------------------------------------------
-wtsrc         = cfg_files;
-wtsrc.tag     = 'wtsrc';
-wtsrc.name    = 'Source Weighting Image';
-wtsrc.val{1} = {};
-wtsrc.help    = {'Optional weighting images (consisting of pixel values between the range of zero to one) to be used for registering abnormal or lesioned brains.  These images should match the dimensions of the image from which the parameters are estimated, and should contain zeros corresponding to regions of abnormal tissue.'};
-wtsrc.filter = 'image';
-wtsrc.ufilter = '.*';
-wtsrc.num     = [0 1];
-% ---------------------------------------------------------------------
-% resample Images to Write
-% ---------------------------------------------------------------------
-resample         = cfg_files;
-resample.tag     = 'resample';
-resample.name    = 'Images to Write';
-resample.help    = {'These are the images for warping according to the estimated parameters. They can be any images that are in register with the "source" image used to generate the parameters.'};
-resample.filter = 'image';
-resample.ufilter = '.*';
-resample.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% subj Subject
-% ---------------------------------------------------------------------
-subj         = cfg_branch;
-subj.tag     = 'subj';
-subj.name    = 'Subject';
-subj.val     = {source wtsrc resample };
-subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
-% ---------------------------------------------------------------------
-% generic Data
-% ---------------------------------------------------------------------
-generic         = cfg_repeat;
-generic.tag     = 'generic';
-generic.name    = 'Data';
-generic.help    = {'List of subjects. Images of each subject should be warped differently.'};
-generic.values  = {subj };
-generic.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% template Template Image
-% ---------------------------------------------------------------------
-template         = cfg_files;
-template.tag     = 'template';
-template.name    = 'Template Image';
-template.help    = {'Specify a template image to match the source image with. The contrast in the template must be similar to that of the source image in order to achieve a good registration.  It is also possible to select more than one template, in which case the registration algorithm will try to find the best linear combination of these images in order to best model the intensities in the source image.'};
-template.filter = 'image';
-template.ufilter = '.*';
-template.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% weight Template Weighting Image
-% ---------------------------------------------------------------------
-weight         = cfg_files;
-weight.tag     = 'weight';
-weight.name    = 'Template Weighting Image';
-weight.val{1} = {};
-weight.help    = {
-                  'Applies a weighting mask to the template(s) during the parameter estimation.  With the default brain mask, weights in and around the brain have values of one whereas those clearly outside the brain are zero.  This is an attempt to base the normalisation purely upon the shape of the brain, rather than the shape of the head (since low frequency basis functions can not really cope with variations in skull thickness).'
-                  ''
-                  'The option is now available for a user specified weighting image. This should have the same dimensions and mat file as the template images, with values in the range of zero to one.'
-}';
-weight.filter = 'image';
-weight.ufilter = '.*';
-weight.num     = [0 1];
-% ---------------------------------------------------------------------
-% smosrc Source Image Smoothing
-% ---------------------------------------------------------------------
-smosrc         = cfg_entry;
-smosrc.tag     = 'smosrc';
-smosrc.name    = 'Source Image Smoothing';
-smosrc.val{1} = double(8);
-smosrc.help    = {'Smoothing to apply to a copy of the source image. The template and source images should have approximately the same smoothness. Remember that the templates supplied with SPM have been smoothed by 8mm, and that smoothnesses combine by Pythagoras'' rule.'};
-smosrc.strtype = 'e';
-smosrc.num     = [1 1];
-% ---------------------------------------------------------------------
-% smoref Template Image Smoothing
-% ---------------------------------------------------------------------
-smoref         = cfg_entry;
-smoref.tag     = 'smoref';
-smoref.name    = 'Template Image Smoothing';
-smoref.val{1} = double(0);
-smoref.help    = {'Smoothing to apply to a copy of the template image. The template and source images should have approximately the same smoothness. Remember that the templates supplied with SPM have been smoothed by 8mm, and that smoothnesses combine by Pythagoras'' rule.'};
-smoref.strtype = 'e';
-smoref.num     = [1 1];
-% ---------------------------------------------------------------------
-% regtype Affine Regularisation
-% ---------------------------------------------------------------------
-regtype         = cfg_menu;
-regtype.tag     = 'regtype';
-regtype.name    = 'Affine Regularisation';
-regtype.val = {'mni'};
-regtype.help    = {'Affine registration into a standard space can be made more robust by regularisation (penalising excessive stretching or shrinking).  The best solutions can be obtained by knowing the approximate amount of stretching that is needed (e.g. ICBM templates are slightly bigger than typical brains, so greater zooms are likely to be needed). If registering to an image in ICBM/MNI space, then choose the first option.  If registering to a template that is close in size, then select the second option.  If you do not want to regularise, then choose the third.'};
-regtype.labels = {
-                  'ICBM space template'
-                  'Average sized template'
-                  'No regularisation'
-}';
-regtype.values = {
-                  'mni'
-                  'subj'
-                  'none'
-}';
-% ---------------------------------------------------------------------
-% cutoff Nonlinear Frequency Cutoff
-% ---------------------------------------------------------------------
-cutoff         = cfg_entry;
-cutoff.tag     = 'cutoff';
-cutoff.name    = 'Nonlinear Frequency Cutoff';
-cutoff.val{1} = double(25);
-cutoff.help    = {'Cutoff of DCT bases.  Only DCT bases of periods longer than the cutoff are used to describe the warps. The number used will depend on the cutoff and the field of view of the template image(s).'};
-cutoff.strtype = 'e';
-cutoff.num     = [1 1];
-% ---------------------------------------------------------------------
-% nits Nonlinear Iterations
-% ---------------------------------------------------------------------
-nits         = cfg_entry;
-nits.tag     = 'nits';
-nits.name    = 'Nonlinear Iterations';
-nits.val{1} = double(16);
-nits.help    = {'Number of iterations of nonlinear warping performed.'};
-nits.strtype = 'w';
-nits.num     = [1 1];
-% ---------------------------------------------------------------------
-% reg Nonlinear Regularisation
-% ---------------------------------------------------------------------
-reg         = cfg_entry;
-reg.tag     = 'reg';
-reg.name    = 'Nonlinear Regularisation';
-reg.val{1} = double(1);
-reg.help    = {'The amount of regularisation for the nonlinear part of the spatial normalisation. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude) - or even just use an affine normalisation. The regularisation influences the smoothness of the deformation fields.'};
-reg.strtype = 'e';
-reg.num     = [1 1];
-% ---------------------------------------------------------------------
-% eoptions Estimation Options
-% ---------------------------------------------------------------------
-eoptions         = cfg_branch;
-eoptions.tag     = 'eoptions';
-eoptions.name    = 'Estimation Options';
-eoptions.val     = {template weight smosrc smoref regtype cutoff nits reg };
-eoptions.help    = {'Various settings for estimating warps.'};
-% ---------------------------------------------------------------------
-% preserve Preserve
-% ---------------------------------------------------------------------
-preserve         = cfg_menu;
-preserve.tag     = 'preserve';
-preserve.name    = 'Preserve';
-preserve.val{1} = double(0);
-preserve.help    = {
-                    'Preserve Concentrations: Spatially normalised images are not "modulated". The warped images preserve the intensities of the original images.'
-                    ''
-                    'Preserve Total: Spatially normalised images are "modulated" in order to preserve the total amount of signal in the images. Areas that are expanded during warping are correspondingly reduced in intensity.'
-}';
-preserve.labels = {
-                   'Preserve Concentrations'
-                   'Preserve Amount'
-}';
-preserve.values{1} = double(0);
-preserve.values{2} = double(1);
-% ---------------------------------------------------------------------
-% bb Bounding box
-% ---------------------------------------------------------------------
-bb         = cfg_entry;
-bb.tag     = 'bb';
-bb.name    = 'Bounding box';
-bb.val{1} = double([-78 -112 -50
-                    78 76 85]);
-bb.help    = {'The bounding box (in mm) of the volume which is to be written (relative to the anterior commissure).'};
-bb.strtype = 'e';
-bb.num     = [2 3];
-% ---------------------------------------------------------------------
-% vox Voxel sizes
-% ---------------------------------------------------------------------
-vox         = cfg_entry;
-vox.tag     = 'vox';
-vox.name    = 'Voxel sizes';
-vox.val{1} = double([2 2 2]);
-vox.help    = {'The voxel sizes (x, y & z, in mm) of the written normalised images.'};
-vox.strtype = 'e';
-vox.num     = [1 3];
-% ---------------------------------------------------------------------
-% interp Interpolation
-% ---------------------------------------------------------------------
-interp         = cfg_menu;
-interp.tag     = 'interp';
-interp.name    = 'Interpolation';
-interp.val{1} = double(1);
-interp.help    = {
-                  'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour:     - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
-                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
-}';
-interp.labels = {
-                 'Nearest neighbour'
-                 'Trilinear'
-                 '2nd Degree B-spline'
-                 '3rd Degree B-Spline '
-                 '4th Degree B-Spline '
-                 '5th Degree B-Spline'
-                 '6th Degree B-Spline'
-                 '7th Degree B-Spline'
-}';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(2);
-interp.values{4} = double(3);
-interp.values{5} = double(4);
-interp.values{6} = double(5);
-interp.values{7} = double(6);
-interp.values{8} = double(7);
-% ---------------------------------------------------------------------
-% wrap Wrapping
-% ---------------------------------------------------------------------
-wrap         = cfg_menu;
-wrap.tag     = 'wrap';
-wrap.name    = 'Wrapping';
-wrap.val{1} = double([0 0 0]);
-wrap.help    = {
-                'These are typically:'
-                '    No wrapping: for PET or images that have already                   been spatially transformed. '
-                '    Wrap in  Y: for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space).'
-}';
-wrap.labels = {
-               'No wrap'
-               'Wrap X'
-               'Wrap Y'
-               'Wrap X & Y'
-               'Wrap Z'
-               'Wrap X & Z'
-               'Wrap Y & Z'
-               'Wrap X, Y & Z'
-}';
-wrap.values{1} = double([0 0 0]);
-wrap.values{2} = double([1 0 0]);
-wrap.values{3} = double([0 1 0]);
-wrap.values{4} = double([1 1 0]);
-wrap.values{5} = double([0 0 1]);
-wrap.values{6} = double([1 0 1]);
-wrap.values{7} = double([0 1 1]);
-wrap.values{8} = double([1 1 1]);
-% ---------------------------------------------------------------------
-% prefix Filename Prefix
-% ---------------------------------------------------------------------
-prefix         = cfg_entry;
-prefix.tag     = 'prefix';
-prefix.name    = 'Filename Prefix';
-prefix.val = {'w'};
-prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ''w''.'};
-prefix.strtype = 's';
-prefix.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% roptions Writing Options
-% ---------------------------------------------------------------------
-roptions         = cfg_branch;
-roptions.tag     = 'roptions';
-roptions.name    = 'Writing Options';
-roptions.val     = {preserve bb vox interp wrap prefix };
-roptions.help    = {'Various options for writing normalised images.'};
 % ---------------------------------------------------------------------
 % estwrite Normalise: Estimate & Write
 % ---------------------------------------------------------------------

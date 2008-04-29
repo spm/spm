@@ -40,10 +40,10 @@ function cfg_serial(guifcn, job, varargin)
 %
 % GuiFcn semantics
 % [val sts] = guifcn(item)
-% val should be suitable to set item.val{1} using setval(item, val) for all
-% cfg_leaf items. For cfg_repeat/cfg_choice items, val should be a cell
-% array of indices into item.values. For each element of val, 
-% setval(item, [val{k} Inf])
+% val should be suitable to set item.val{1} using setval(item, val,
+% false) for all cfg_leaf items. For cfg_repeat/cfg_choice items, val
+% should be a cell array of indices into item.values. For each element of
+% val, setval(item, [val{k} Inf], false)
 % will be called and thus item.values{k} will be appended to item.val.
 % sts should be set to true, if guifcn returns with success (i.e. a
 % valid value is returned or input should continue for the next item,
@@ -119,9 +119,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: cfg_serial.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1517 $';
 
 warning('matlabbatch:deprecated', '''cfg_serial'' is deprecated. Please use cfg_util(''filljob[ui]'',...) to fill a job in serial mode.');
 if ischar(job)

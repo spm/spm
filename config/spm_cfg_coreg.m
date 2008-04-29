@@ -4,9 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_coreg.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -44,7 +44,6 @@ other.num     = [0 Inf];
 cost_fun         = cfg_menu;
 cost_fun.tag     = 'cost_fun';
 cost_fun.name    = 'Objective Function';
-cost_fun.val = {'nmi'};
 cost_fun.help    = {'Registration involves finding parameters that either maximise or minimise some objective function. For inter-modal registration, use Mutual Information\* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.For within modality, you could also use Normalised Cross Correlation.'};
 cost_fun.labels = {
                    'Mutual Information'
@@ -58,36 +57,37 @@ cost_fun.values = {
                    'ecc'
                    'ncc'
 }';
+cost_fun.def    = {@spm_get_defaults, 'coreg.estimate.cost_fun'};
 % ---------------------------------------------------------------------
 % sep Separation
 % ---------------------------------------------------------------------
 sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
-sep.val{1} = double([4 2]);
 sep.help    = {'The average distance between sampled points (in mm).  Can be a vector to allow a coarse registration followed by increasingly fine ones.'};
 sep.strtype = 'e';
 sep.num     = [1 Inf];
+sep.def     = {@spm_get_defaults, 'coreg.estimate.sep'};
 % ---------------------------------------------------------------------
 % tol Tolerances
 % ---------------------------------------------------------------------
 tol         = cfg_entry;
 tol.tag     = 'tol';
 tol.name    = 'Tolerances';
-tol.val{1} = double([0.0200000000000000004 0.0200000000000000004 0.0200000000000000004 0.00100000000000000002 0.00100000000000000002 0.00100000000000000002 0.0100000000000000002 0.0100000000000000002 0.0100000000000000002 0.00100000000000000002 0.00100000000000000002 0.00100000000000000002]);
 tol.help    = {'The accuracy for each parameter.  Iterations stop when differences between successive estimates are less than the required tolerance.'};
 tol.strtype = 'e';
 tol.num     = [1 12];
+tol.def     = {@spm_get_defaults, 'coreg.estimate.tol'};
 % ---------------------------------------------------------------------
 % fwhm Histogram Smoothing
 % ---------------------------------------------------------------------
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Histogram Smoothing';
-fwhm.val{1} = double([7 7]);
 fwhm.help    = {'Gaussian smoothing to apply to the 256x256 joint histogram. Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'};
 fwhm.strtype = 'e';
 fwhm.num     = [1 2];
+fwhm.def     = {@spm_get_defaults, 'coreg.estimate.fwhm'};
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -131,14 +131,13 @@ source.name    = 'Images to Reslice';
 source.help    = {'These images are resliced to the same dimensions, voxel sizes, orientation etc as the space defining image.'};
 source.filter = 'image';
 source.ufilter = '.*';
-source.num     = [0 Inf];
+source.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
 interp         = cfg_menu;
 interp.tag     = 'interp';
 interp.name    = 'Interpolation';
-interp.val{1} = double(1);
 interp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not normally recommended. It can be useful for re-orienting images while preserving the original intensities (e.g. an image consisting of labels). Bilinear Interpolation is OK for PET, or realigned and re-sliced fMRI. If subject movement (from an fMRI time series) is included in the transformations then it may be better to use a higher degree approach. Note that higher degree B-spline interpolation/* \cite{thevenaz00a,unser93a,unser93b}*/ is slower because it uses more neighbours.'};
 interp.labels = {
                  'Nearest neighbour'
@@ -150,21 +149,14 @@ interp.labels = {
                  '6th Degree B-Spline'
                  '7th Degree B-Spline'
 }';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(2);
-interp.values{4} = double(3);
-interp.values{5} = double(4);
-interp.values{6} = double(5);
-interp.values{7} = double(6);
-interp.values{8} = double(7);
+interp.values = {0 1 2 3 4 5 6 7};
+interp.def     = {@spm_get_defaults, 'coreg.write.interp'};
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
 wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
-wrap.val{1} = double([0 0 0]);
 wrap.help    = {
                 'These are typically:'
                 '    No wrapping - for PET or images that have already                  been spatially transformed.'
@@ -180,38 +172,32 @@ wrap.labels = {
                'Wrap Y & Z'
                'Wrap X, Y & Z'
 }';
-wrap.values{1} = double([0 0 0]);
-wrap.values{2} = double([1 0 0]);
-wrap.values{3} = double([0 1 0]);
-wrap.values{4} = double([1 1 0]);
-wrap.values{5} = double([0 0 1]);
-wrap.values{6} = double([1 0 1]);
-wrap.values{7} = double([0 1 1]);
-wrap.values{8} = double([1 1 1]);
+wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
+               [1 1 1]};
+wrap.def     = {@spm_get_defaults, 'coreg.write.wrap'};
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
 mask         = cfg_menu;
 mask.tag     = 'mask';
 mask.name    = 'Masking';
-mask.val{1} = double(0);
 mask.help    = {'Because of subject motion, different images are likely to have different patterns of zeros from where it was not possible to sample data. With masking enabled, the program searches through the whole time series looking for voxels which need to be sampled from outside the original images. Where this occurs, that voxel is set to zero for the whole set of images (unless the image format can represent NaN, in which case NaNs are used where possible).'};
 mask.labels = {
                'Mask images'
                'Dont mask images'
 }';
-mask.values{1} = double(1);
-mask.values{2} = double(0);
+mask.values = {1 0};
+mask.def     = {@spm_get_defaults, 'coreg.write.mask'};
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.val = {'r'};
 prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
+prefix.def     = {@spm_get_defaults, 'coreg.write.prefix'};
 % ---------------------------------------------------------------------
 % roptions Reslice Options
 % ---------------------------------------------------------------------
@@ -230,183 +216,6 @@ write.val     = {ref source roptions };
 write.help    = {'Reslice images to match voxel-for-voxel with an image defining some space. The resliced images are named the same as the originals except that they are prefixed by ''r''.'};
 write.prog = @spm_run_coreg_reslice;
 write.vout = @vout_reslice;
-% ---------------------------------------------------------------------
-% ref Reference Image
-% ---------------------------------------------------------------------
-ref         = cfg_files;
-ref.tag     = 'ref';
-ref.name    = 'Reference Image';
-ref.help    = {'This is the image that is assumed to remain stationary (sometimes known as the target or template image), while the source image is moved to match it.'};
-ref.filter = 'image';
-ref.ufilter = '.*';
-ref.num     = [1 1];
-% ---------------------------------------------------------------------
-% source Source Image
-% ---------------------------------------------------------------------
-source         = cfg_files;
-source.tag     = 'source';
-source.name    = 'Source Image';
-source.help    = {'This is the image that is jiggled about to best match the reference.'};
-source.filter = 'image';
-source.ufilter = '.*';
-source.num     = [1 1];
-% ---------------------------------------------------------------------
-% other Other Images
-% ---------------------------------------------------------------------
-other         = cfg_files;
-other.tag     = 'other';
-other.name    = 'Other Images';
-other.val{1} = {''};
-other.help    = {'These are any images that need to remain in alignment with the source image.'};
-other.filter = 'image';
-other.ufilter = '.*';
-other.num     = [0 Inf];
-% ---------------------------------------------------------------------
-% cost_fun Objective Function
-% ---------------------------------------------------------------------
-cost_fun         = cfg_menu;
-cost_fun.tag     = 'cost_fun';
-cost_fun.name    = 'Objective Function';
-cost_fun.val = {'nmi'};
-cost_fun.help    = {'Registration involves finding parameters that either maximise or minimise some objective function. For inter-modal registration, use Mutual Information\* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.For within modality, you could also use Normalised Cross Correlation.'};
-cost_fun.labels = {
-                   'Mutual Information'
-                   'Normalised Mutual Information'
-                   'Entropy Correlation Coefficient'
-                   'Normalised Cross Correlation'
-}';
-cost_fun.values = {
-                   'mi'
-                   'nmi'
-                   'ecc'
-                   'ncc'
-}';
-% ---------------------------------------------------------------------
-% sep Separation
-% ---------------------------------------------------------------------
-sep         = cfg_entry;
-sep.tag     = 'sep';
-sep.name    = 'Separation';
-sep.val{1} = double([4 2]);
-sep.help    = {'The average distance between sampled points (in mm).  Can be a vector to allow a coarse registration followed by increasingly fine ones.'};
-sep.strtype = 'e';
-sep.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% tol Tolerances
-% ---------------------------------------------------------------------
-tol         = cfg_entry;
-tol.tag     = 'tol';
-tol.name    = 'Tolerances';
-tol.val{1} = double([0.0200000000000000004 0.0200000000000000004 0.0200000000000000004 0.00100000000000000002 0.00100000000000000002 0.00100000000000000002 0.0100000000000000002 0.0100000000000000002 0.0100000000000000002 0.00100000000000000002 0.00100000000000000002 0.00100000000000000002]);
-tol.help    = {'The accuracy for each parameter.  Iterations stop when differences between successive estimates are less than the required tolerance.'};
-tol.strtype = 'e';
-tol.num     = [1 12];
-% ---------------------------------------------------------------------
-% fwhm Histogram Smoothing
-% ---------------------------------------------------------------------
-fwhm         = cfg_entry;
-fwhm.tag     = 'fwhm';
-fwhm.name    = 'Histogram Smoothing';
-fwhm.val{1} = double([7 7]);
-fwhm.help    = {'Gaussian smoothing to apply to the 256x256 joint histogram. Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'};
-fwhm.strtype = 'e';
-fwhm.num     = [1 2];
-% ---------------------------------------------------------------------
-% eoptions Estimation Options
-% ---------------------------------------------------------------------
-eoptions         = cfg_branch;
-eoptions.tag     = 'eoptions';
-eoptions.name    = 'Estimation Options';
-eoptions.val     = {cost_fun sep tol fwhm };
-eoptions.help    = {'Various registration options, which are passed to the Powell optimisation algorithm/* \cite{press92}*/.'};
-% ---------------------------------------------------------------------
-% interp Interpolation
-% ---------------------------------------------------------------------
-interp         = cfg_menu;
-interp.tag     = 'interp';
-interp.name    = 'Interpolation';
-interp.val{1} = double(1);
-interp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not normally recommended. It can be useful for re-orienting images while preserving the original intensities (e.g. an image consisting of labels). Bilinear Interpolation is OK for PET, or realigned and re-sliced fMRI. If subject movement (from an fMRI time series) is included in the transformations then it may be better to use a higher degree approach. Note that higher degree B-spline interpolation/* \cite{thevenaz00a,unser93a,unser93b}*/ is slower because it uses more neighbours.'};
-interp.labels = {
-                 'Nearest neighbour'
-                 'Trilinear'
-                 '2nd Degree B-Spline'
-                 '3rd Degree B-Spline'
-                 '4th Degree B-Spline'
-                 '5th Degree B-Spline'
-                 '6th Degree B-Spline'
-                 '7th Degree B-Spline'
-}';
-interp.values{1} = double(0);
-interp.values{2} = double(1);
-interp.values{3} = double(2);
-interp.values{4} = double(3);
-interp.values{5} = double(4);
-interp.values{6} = double(5);
-interp.values{7} = double(6);
-interp.values{8} = double(7);
-% ---------------------------------------------------------------------
-% wrap Wrapping
-% ---------------------------------------------------------------------
-wrap         = cfg_menu;
-wrap.tag     = 'wrap';
-wrap.name    = 'Wrapping';
-wrap.val{1} = double([0 0 0]);
-wrap.help    = {
-                'These are typically:'
-                '    No wrapping - for PET or images that have already                  been spatially transformed.'
-                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding                  is in the Y direction (voxel space).'
-}';
-wrap.labels = {
-               'No wrap'
-               'Wrap X'
-               'Wrap Y'
-               'Wrap X & Y'
-               'Wrap Z'
-               'Wrap X & Z'
-               'Wrap Y & Z'
-               'Wrap X, Y & Z'
-}';
-wrap.values{1} = double([0 0 0]);
-wrap.values{2} = double([1 0 0]);
-wrap.values{3} = double([0 1 0]);
-wrap.values{4} = double([1 1 0]);
-wrap.values{5} = double([0 0 1]);
-wrap.values{6} = double([1 0 1]);
-wrap.values{7} = double([0 1 1]);
-wrap.values{8} = double([1 1 1]);
-% ---------------------------------------------------------------------
-% mask Masking
-% ---------------------------------------------------------------------
-mask         = cfg_menu;
-mask.tag     = 'mask';
-mask.name    = 'Masking';
-mask.val{1} = double(0);
-mask.help    = {'Because of subject motion, different images are likely to have different patterns of zeros from where it was not possible to sample data. With masking enabled, the program searches through the whole time series looking for voxels which need to be sampled from outside the original images. Where this occurs, that voxel is set to zero for the whole set of images (unless the image format can represent NaN, in which case NaNs are used where possible).'};
-mask.labels = {
-               'Mask images'
-               'Dont mask images'
-}';
-mask.values{1} = double(1);
-mask.values{2} = double(0);
-% ---------------------------------------------------------------------
-% prefix Filename Prefix
-% ---------------------------------------------------------------------
-prefix         = cfg_entry;
-prefix.tag     = 'prefix';
-prefix.name    = 'Filename Prefix';
-prefix.val = {'r'};
-prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
-prefix.strtype = 's';
-prefix.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% roptions Reslice Options
-% ---------------------------------------------------------------------
-roptions         = cfg_branch;
-roptions.tag     = 'roptions';
-roptions.name    = 'Reslice Options';
-roptions.val     = {interp wrap mask prefix };
-roptions.help    = {'Various reslicing options.'};
 % ---------------------------------------------------------------------
 % estwrite Coreg: Estimate & Reslice
 % ---------------------------------------------------------------------

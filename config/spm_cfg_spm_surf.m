@@ -4,9 +4,9 @@ function spm_surf_node = spm_cfg_spm_surf
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_spm_surf.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_spm_surf.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % data Grey+white matter image
 % ---------------------------------------------------------------------
@@ -23,7 +23,6 @@ data.num     = [1 Inf];
 mode         = cfg_menu;
 mode.tag     = 'mode';
 mode.name    = 'Output';
-mode.val{1} = double(3);
 mode.help    = {''};
 mode.labels = {
                'Save Rendering'
@@ -41,7 +40,6 @@ mode.values{4} = double(4);
 thresh         = cfg_entry;
 thresh.tag     = 'thresh';
 thresh.name    = 'Surface isovalue(s)';
-thresh.val{1} = double(0.5);
 thresh.help    = {'Enter one or more values at which isosurfaces through the input images will be computed.'};
 thresh.strtype = 'e';
 thresh.num     = [1 Inf];
@@ -80,7 +78,7 @@ try
                 dep(cdep).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
                 cdep = cdep+1;
             end;
-            if any(job.mode==[4]),
+            if any(job.mode==4),
                 dep(cdep)            = cfg_dep;
                 dep(cdep).sname      = sprintf('Surf .obj File (thr=%.02f)', ...
                                                job.thresh(k));

@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -26,7 +26,6 @@ scans.num     = [1 Inf];
 pmscan         = cfg_files;
 pmscan.tag     = 'pmscan';
 pmscan.name    = 'Phase map (vdm* file)';
-pmscan.val{1} = {};
 pmscan.help    = {'Select pre-calculated phase map, or leave empty for no phase correction. The vdm* file is assumed to be already in alignment with the first scan of the first session.'};
 pmscan.filter = 'image';
 pmscan.ufilter = '^vdm5_.*';
@@ -58,28 +57,27 @@ generic.num     = [1 Inf];
 quality         = cfg_entry;
 quality.tag     = 'quality';
 quality.name    = 'Quality';
-quality.val{1} = double(0.900000000000000022);
 quality.help    = {'Quality versus speed trade-off.  Highest quality (1) gives most precise results, whereas lower qualities gives faster realignment. The idea is that some voxels contribute little to the estimation of the realignment parameters. This parameter is involved in selecting the number of voxels that are used.'};
 quality.strtype = 'r';
 quality.num     = [1 1];
-quality.extras = double([0 1]);
+quality.extras  = [0 1];
+quality.def     = {@spm_get_defaults, 'realign.estimate.quality'};
 % ---------------------------------------------------------------------
 % sep Separation
 % ---------------------------------------------------------------------
 sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
-sep.val{1} = double(4);
 sep.help    = {'The separation (in mm) between the points sampled in the reference image.  Smaller sampling distances gives more accurate results, but will be slower.'};
 sep.strtype = 'e';
 sep.num     = [1 1];
+sep.def     = {@spm_get_defaults, 'realign.estimate.sep'};
 % ---------------------------------------------------------------------
 % fwhm Smoothing (FWHM)
 % ---------------------------------------------------------------------
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Smoothing (FWHM)';
-fwhm.val{1} = double(5);
 fwhm.help    = {
                 'The FWHM of the Gaussian smoothing kernel (mm) applied to the images before estimating the realignment parameters.'
                 ''
@@ -89,13 +87,13 @@ fwhm.help    = {
 }';
 fwhm.strtype = 'e';
 fwhm.num     = [1 1];
+fwhm.def     = {@spm_get_defaults, 'realign.estimate.fwhm'};
 % ---------------------------------------------------------------------
 % rtm Num Passes
 % ---------------------------------------------------------------------
 rtm         = cfg_menu;
 rtm.tag     = 'rtm';
 rtm.name    = 'Num Passes';
-rtm.val{1} = double(0);
 rtm.help    = {
                'Register to first: Images are registered to the first image in the series. Register to mean:   A two pass procedure is used in order to register the images to the mean of the images after the first realignment.'
                ''
@@ -107,15 +105,14 @@ rtm.labels = {
               'Register to first'
               'Register to mean'
 }';
-rtm.values{1} = double(0);
-rtm.values{2} = double(1);
+rtm.values = {0 1};
+rtm.def    = {@spm_get_defaults, 'unwarp.estimate.rtm'};
 % ---------------------------------------------------------------------
 % einterp Interpolation
 % ---------------------------------------------------------------------
 einterp         = cfg_menu;
 einterp.tag     = 'einterp';
 einterp.name    = 'Interpolation';
-einterp.val{1} = double(2);
 einterp.help    = {
                    'The method by which the images are sampled when being written in a different space. '
                    '    Nearest Neighbour     - Fastest, but not normally recommended. '
@@ -132,21 +129,14 @@ einterp.labels = {
                   '6th Degree B-Spline'
                   '7th Degree B-Spline'
 }';
-einterp.values{1} = double(0);
-einterp.values{2} = double(1);
-einterp.values{3} = double(2);
-einterp.values{4} = double(3);
-einterp.values{5} = double(4);
-einterp.values{6} = double(5);
-einterp.values{7} = double(6);
-einterp.values{8} = double(7);
+einterp.values = {1 2 3 4 5 6 7};
+einterp.def    = {@spm_get_defaults, 'realign.estimate.interp'};
 % ---------------------------------------------------------------------
 % ewrap Wrapping
 % ---------------------------------------------------------------------
 ewrap         = cfg_menu;
 ewrap.tag     = 'ewrap';
 ewrap.name    = 'Wrapping';
-ewrap.val{1} = double([0 0 0]);
 ewrap.help    = {
                  'These are typically: '
                  '    No wrapping - for images that have already '
@@ -164,25 +154,20 @@ ewrap.labels = {
                 'Wrap Y & Z'
                 'Wrap X, Y & Z'
 }';
-ewrap.values{1} = double([0 0 0]);
-ewrap.values{2} = double([1 0 0]);
-ewrap.values{3} = double([0 1 0]);
-ewrap.values{4} = double([1 1 0]);
-ewrap.values{5} = double([0 0 1]);
-ewrap.values{6} = double([1 0 1]);
-ewrap.values{7} = double([0 1 1]);
-ewrap.values{8} = double([1 1 1]);
+ewrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
+                [1 1 1]};
+ewrap.def    = {@spm_get_defaults, 'realign.estimate.wrap'};
 % ---------------------------------------------------------------------
 % weight Weighting
 % ---------------------------------------------------------------------
 weight         = cfg_files;
 weight.tag     = 'weight';
 weight.name    = 'Weighting';
-weight.val{1} = {};
 weight.help    = {'The option of providing a weighting image to weight each voxel of the reference image differently when estimating the realignment parameters.  The weights are proportional to the inverses of the standard deviations. For example, when there is a lot of extra-brain motion - e.g., during speech, or when there are serious artifacts in a particular region of the images.'};
-weight.filter = 'image';
+weight.filter  = 'image';
 weight.ufilter = '.*';
 weight.num     = [0 1];
+weight.def     = {@spm_get_defaults, 'realign.estimate.weight'};
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -197,7 +182,6 @@ eoptions.help    = {'Various registration options that could be modified to impr
 basfcn         = cfg_menu;
 basfcn.tag     = 'basfcn';
 basfcn.name    = 'Basis Functions';
-basfcn.val{1} = double([12 12]);
 basfcn.help    = {'Number of basis functions to use for each dimension. If the third dimension is left out, the order for that dimension is calculated to yield a roughly equal spatial cut-off in all directions. Default: [12 12 *]'};
 basfcn.labels = {
                  '8x8x*'
@@ -205,17 +189,14 @@ basfcn.labels = {
                  '12x12x*'
                  '14x14x*'
 }';
-basfcn.values{1} = double([8 8]);
-basfcn.values{2} = double([10 10]);
-basfcn.values{3} = double([12 12]);
-basfcn.values{4} = double([14 14]);
+basfcn.values = {[8 8] [10 10] [12 12] [14 14]};
+basfcn.def    = {@spm_get_defaults, 'unwarp.estimate.basfcn'};
 % ---------------------------------------------------------------------
 % regorder Regularisation
 % ---------------------------------------------------------------------
 regorder         = cfg_menu;
 regorder.tag     = 'regorder';
 regorder.name    = 'Regularisation';
-regorder.val{1} = double(1);
 regorder.help    = {
                     'Unwarp looks for the solution that maximises the likelihood (minimises the variance) while simultaneously maximising the smoothness of the estimated field (c.f. Lagrange multipliers). This parameter determines how to balance the compromise between these (i.e. the value of the multiplier). Test it on your own data (if you can be bothered) or go with the defaults. '
                     ''
@@ -227,47 +208,41 @@ regorder.labels = {
                    '2'
                    '3'
 }';
-regorder.values{1} = double(0);
-regorder.values{2} = double(1);
-regorder.values{3} = double(2);
-regorder.values{4} = double(3);
+regorder.values = {0 1 2 3 4};
+regorder.def    = {@spm_get_defaults, 'unwarp.estimate.regorder'};
 % ---------------------------------------------------------------------
 % lambda Reg. Factor
 % ---------------------------------------------------------------------
 lambda         = cfg_menu;
 lambda.tag     = 'lambda';
 lambda.name    = 'Reg. Factor';
-lambda.val{1} = double(100000);
 lambda.help    = {'Regularisation factor. Default: Medium.'};
-lambda.labels = {
+lambda.labels  = {
                  'A little'
                  'Medium'
                  'A lot'
 }';
-lambda.values{1} = double(10000);
-lambda.values{2} = double(100000);
-lambda.values{3} = double(1000000);
+lambda.values  = {10000 100000 1000000};
+lambda.def     = {@spm_get_defaults, 'unwarp.estimate.regwgt'};
 % ---------------------------------------------------------------------
 % jm Jacobian deformations
 % ---------------------------------------------------------------------
 jm         = cfg_menu;
 jm.tag     = 'jm';
 jm.name    = 'Jacobian deformations';
-jm.val{1} = double(0);
 jm.help    = {'In the defaults there is also an option to include Jacobian intensity modulation when estimating the fields. "Jacobian intensity modulation" refers to the dilution/concentration of intensity that ensue as a consequence of the distortions. Think of a semi-transparent coloured rubber sheet that you hold against a white background. If you stretch a part of the sheet (induce distortions) you will see the colour fading in that particular area. In theory it is a brilliant idea to include also these effects when estimating the field (see e.g. Andersson et al, NeuroImage 20:870-888). In practice for this specific problem it is NOT a good idea. Default: No'};
 jm.labels = {
              'Yes'
              'No'
 }';
-jm.values{1} = double(1);
-jm.values{2} = double(0);
+jm.values = {1 0};
+jm.def    = {@spm_get_defaults, 'unwarp.estimate.jm'};
 % ---------------------------------------------------------------------
 % fot First-order effects
 % ---------------------------------------------------------------------
 fot         = cfg_entry;
 fot.tag     = 'fot';
 fot.name    = 'First-order effects';
-fot.val{1} = double([4 5]);
 fot.help    = {
                'Theoretically (ignoring effects of shimming) one would expect the field to depend only on subject out-of-plane rotations. Hence the default choice ("Pitch and Roll", i.e., [4 5]). Go with that unless you have very good reasons to do otherwise'
                ''
@@ -281,6 +256,7 @@ fot.help    = {
 }';
 fot.strtype = 'e';
 fot.num     = [1 Inf];
+fot.def     = {@spm_get_defaults, 'unwarp.estimate.foe'};
 % ---------------------------------------------------------------------
 % sot Second-order effects
 % ---------------------------------------------------------------------
@@ -307,48 +283,47 @@ sot.help    = {
                '  5 5 ]'
 }';
 sot.strtype = 'e';
-sot.num     = [1 Inf];
+sot.num     = [Inf Inf];
+sot.def     = {@spm_get_defaults, 'unwarp.estimate.soe'};
 % ---------------------------------------------------------------------
 % uwfwhm Smoothing for unwarp (FWHM)
 % ---------------------------------------------------------------------
 uwfwhm         = cfg_entry;
 uwfwhm.tag     = 'uwfwhm';
 uwfwhm.name    = 'Smoothing for unwarp (FWHM)';
-uwfwhm.val{1} = double(4);
 uwfwhm.help    = {'FWHM (mm) of smoothing filter applied to images prior to estimation of deformation fields.'};
 uwfwhm.strtype = 'r';
 uwfwhm.num     = [1 1];
+uwfwhm.def     = {@spm_get_defaults, 'unwarp.estimate.fwhm'};
 % ---------------------------------------------------------------------
 % rem Re-estimate movement params
 % ---------------------------------------------------------------------
 rem         = cfg_menu;
 rem.tag     = 'rem';
 rem.name    = 'Re-estimate movement params';
-rem.val{1} = double(1);
 rem.help    = {'Re-estimation means that movement-parameters should be re-estimated at each unwarping iteration. Default: Yes.'};
-rem.labels = {
+rem.labels  = {
               'Yes'
               'No'
 }';
-rem.values{1} = double(1);
-rem.values{2} = double(0);
+rem.values  = {1 0};
+rem.def     = {@spm_get_defaults, 'unwarp.estimate.rem'};
 % ---------------------------------------------------------------------
 % noi Number of Iterations
 % ---------------------------------------------------------------------
 noi         = cfg_entry;
 noi.tag     = 'noi';
 noi.name    = 'Number of Iterations';
-noi.val{1} = double(5);
 noi.help    = {'Maximum number of iterations. Default: 5.'};
 noi.strtype = 'n';
 noi.num     = [1 1];
+noi.def     = {@spm_get_defaults, 'unwarp.estimate.noi'};
 % ---------------------------------------------------------------------
 % expround Taylor expansion point
 % ---------------------------------------------------------------------
 expround         = cfg_menu;
 expround.tag     = 'expround';
 expround.name    = 'Taylor expansion point';
-expround.val = {'Average'};
 expround.help    = {'Point in position space to perform Taylor-expansion around. Choices are (''First'', ''Last'' or ''Average''). ''Average'' should (in principle) give the best variance reduction. If a field-map acquired before the time-series is supplied then expansion around the ''First'' MIGHT give a slightly better average geometric fidelity.'};
 expround.labels = {
                    'Average'
@@ -360,6 +335,7 @@ expround.values = {
                    'First'
                    'Last'
 }';
+expround.def     = {@spm_get_defaults, 'unwarp.estimate.expround'};
 % ---------------------------------------------------------------------
 % uweoptions Unwarp Estimation Options
 % ---------------------------------------------------------------------
@@ -373,8 +349,7 @@ uweoptions.help    = {'Various registration & unwarping estimation options.'};
 % ---------------------------------------------------------------------
 uwwhich         = cfg_menu;
 uwwhich.tag     = 'uwwhich';
-uwwhich.name    = 'Reslices images (unwarp)?';
-uwwhich.val{1} = double([2 1]);
+uwwhich.name    = 'Resliced images (unwarp)?';
 uwwhich.help    = {
                    'All Images (1..n) '
                    '  This reslices and unwarps all the images. '
@@ -386,15 +361,14 @@ uwwhich.labels = {
                   ' All Images (1..n)'
                   ' All Images + Mean Image'
 }';
-uwwhich.values{1} = double([2 0]);
-uwwhich.values{2} = double([2 1]);
+uwwhich.values = {[2 0] [2 1]};
+uwwhich.def    = {@spm_get_defaults, 'realign.write.which'};
 % ---------------------------------------------------------------------
 % rinterp Interpolation
 % ---------------------------------------------------------------------
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
 rinterp.name    = 'Interpolation';
-rinterp.val{1} = double(4);
 rinterp.help    = {
                    'The method by which the images are sampled when being written in a different space. '
                    '    Nearest Neighbour     - Fastest, but not normally recommended.'
@@ -411,25 +385,18 @@ rinterp.labels = {
                   '6th Degree B-Spline'
                   '7th Degree B-Spline'
 }';
-rinterp.values{1} = double(0);
-rinterp.values{2} = double(1);
-rinterp.values{3} = double(2);
-rinterp.values{4} = double(3);
-rinterp.values{5} = double(4);
-rinterp.values{6} = double(5);
-rinterp.values{7} = double(6);
-rinterp.values{8} = double(7);
+rinterp.values = {0 1 2 3 4 5 6 7};
+rinterp.def    = {@spm_get_defaults, 'realign.write.interp'};
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
 wrap         = cfg_menu;
 wrap.tag     = 'wrap';
 wrap.name    = 'Wrapping';
-wrap.val{1} = double([0 0 0]);
 wrap.help    = {
                 'These are typically: '
-                '    No wrapping - for PET or images that have already                   been spatially transformed. '
-                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding                   is in the Y direction (voxel space).'
+                '    No wrapping - for PET or images that have already been spatially transformed. '
+                '    Wrap in  Y  - for (un-resliced) MRI where phase encoding is in the Y direction (voxel space).'
 }';
 wrap.labels = {
                'No wrap'
@@ -441,38 +408,32 @@ wrap.labels = {
                'Wrap Y & Z'
                'Wrap X, Y & Z'
 }';
-wrap.values{1} = double([0 0 0]);
-wrap.values{2} = double([1 0 0]);
-wrap.values{3} = double([0 1 0]);
-wrap.values{4} = double([1 1 0]);
-wrap.values{5} = double([0 0 1]);
-wrap.values{6} = double([1 0 1]);
-wrap.values{7} = double([0 1 1]);
-wrap.values{8} = double([1 1 1]);
+wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
+               [1 1 1]};
+wrap.def    = {@spm_get_defaults, 'realign.write.wrap'};
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
 mask         = cfg_menu;
 mask.tag     = 'mask';
 mask.name    = 'Masking';
-mask.val{1} = double(1);
 mask.help    = {'Because of subject motion, different images are likely to have different patterns of zeros from where it was not possible to sample data. With masking enabled, the program searches through the whole time series looking for voxels which need to be sampled from outside the original images. Where this occurs, that voxel is set to zero for the whole set of images (unless the image format can represent NaN, in which case NaNs are used where possible).'};
 mask.labels = {
                'Mask images'
                'Dont mask images'
 }';
-mask.values{1} = double(1);
-mask.values{2} = double(0);
+mask.values = {1 0};
+mask.def    = {@spm_get_defaults, 'realign.write.mask'};
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.val = {'u'};
 prefix.help    = {'Specify the string to be prepended to the filenames of the smoothed image file(s). Default prefix is ''u''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
+prefix.def     = {@spm_get_defaults, 'unwarp.write.prefix'};
 % ---------------------------------------------------------------------
 % uwroptions Unwarp Reslicing Options
 % ---------------------------------------------------------------------

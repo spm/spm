@@ -4,9 +4,9 @@ function fmri_data = spm_cfg_fmri_data
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_data.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_fmri_data.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % scans Scans
 % ---------------------------------------------------------------------
@@ -53,8 +53,11 @@ fmri_data.modality = {'FMRI'};
 
 %-------------------------------------------------------------------------
 function dep = vout_stats(job)
-% Could pass on SPM variable too.
-dep            = cfg_dep;
-dep.sname      = 'SPM.mat File (fMRI Data added)';
-dep.src_output = substruct('.','spmmat');
-dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+dep(1)            = cfg_dep;
+dep(1).sname      = 'SPM.mat File';
+dep(1).src_output = substruct('.','spmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+%dep(2)            = cfg_dep;
+%dep(2).sname      = 'SPM Variable';
+%dep(2).src_output = substruct('.','spmvar');
+%dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});

@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_fmri_est.m 1517 2008-04-29 15:46:08Z volkmar $
 
 
 global defaults
@@ -55,7 +55,7 @@ cd(fileparts(job.spmmat{:}));
 % B A Y E S I A N   2nd   L E V E L   E S T I M A T I O N
 %=======================================================================
 if isfield(job.method,'Bayesian2')
-    SPM = spm_spm_Bayes(SPM);
+    %out.spmvar = spm_spm_Bayes(SPM);
     cd(original_dir); % Change back
     fprintf('Done\n');
     return
@@ -130,6 +130,10 @@ if isfield(job.method,'Classical'),
         end % if SPM.factor(1).levels > 1
     end % if isfield(SPM,'factor')
     
+    %out.spmvar = SPM;
+    out.beta = cellstr(strvcat(SPM.Vbeta(:).fname));
+    out.mask = {SPM.VM.fname};
+    out.resms = {SPM.VResMS.fname};
     cd(original_dir); % Change back
     fprintf('Done\n');
     return
@@ -278,6 +282,7 @@ if bayes_anova
     spm_vb_ppm_anova(SPM);
 end
 
+%out.spmvar = SPM;
 cd(original_dir); % Change back
 fprintf('Done\n')
 return

@@ -4,9 +4,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_fmri_design.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -47,7 +47,6 @@ RT.num     = [1 1];
 fmri_t         = cfg_entry;
 fmri_t.tag     = 'fmri_t';
 fmri_t.name    = 'Microtime resolution';
-fmri_t.val{1} = double(16);
 fmri_t.help    = {
                   'The microtime resolution, t, is the number of time-bins per scan used when building regressors. '
                   '                                                                                                            '
@@ -55,13 +54,13 @@ fmri_t.help    = {
 }';
 fmri_t.strtype = 'e';
 fmri_t.num     = [1 1];
+fmri_t.def     = {@spm_get_defaults, 'stats.fmri.fmri_t'};
 % ---------------------------------------------------------------------
 % fmri_t0 Microtime onset
 % ---------------------------------------------------------------------
 fmri_t0         = cfg_entry;
 fmri_t0.tag     = 'fmri_t0';
 fmri_t0.name    = 'Microtime onset';
-fmri_t0.val{1} = double(1);
 fmri_t0.help    = {
                    'The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions). '
                    '                                                                                                            '
@@ -69,6 +68,7 @@ fmri_t0.help    = {
 }';
 fmri_t0.strtype = 'e';
 fmri_t0.num     = [1 1];
+fmri_t0.def     = {@spm_get_defaults, 'stats.fmri.fmri_t0'};
 % ---------------------------------------------------------------------
 % timing Timing parameters
 % ---------------------------------------------------------------------
@@ -96,7 +96,6 @@ nscan.num     = [1 1];
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
-name.val = {'Trial'};
 name.help    = {'Condition Name'};
 name.strtype = 's';
 name.num     = [1 Inf];
@@ -124,7 +123,6 @@ duration.num     = [Inf 1];
 tmod         = cfg_menu;
 tmod.tag     = 'tmod';
 tmod.name    = 'Time Modulation';
-tmod.val{1} = double(0);
 tmod.help    = {
                 'This option allows for the characterisation of linear or nonlinear time effects. For example, 1st order modulation would model the stick functions and a linear change of the stick function heights over time. Higher order modulation will introduce further columns that contain the stick functions scaled by time squared, time cubed etc.'
                 ''
@@ -139,20 +137,14 @@ tmod.labels = {
                '5th order Time Modulation'
                '6th order Time Modulation'
 }';
-tmod.values{1} = double(0);
-tmod.values{2} = double(1);
-tmod.values{3} = double(2);
-tmod.values{4} = double(3);
-tmod.values{5} = double(4);
-tmod.values{6} = double(5);
-tmod.values{7} = double(6);
+tmod.values = {0 1 2 3 4 5 6};
+tmod.def    = {@spm_get_defaults, 'stats.fmri.cond.tmod'};
 % ---------------------------------------------------------------------
 % name Name
 % ---------------------------------------------------------------------
 name1         = cfg_entry;
 name1.tag     = 'name';
 name1.name    = 'Name';
-name1.val = {'Param'};
 name1.help    = {'Enter a name for this parameter.'};
 name1.strtype = 's';
 name1.num     = [1 Inf];
@@ -171,7 +163,6 @@ param.num     = [Inf 1];
 poly         = cfg_menu;
 poly.tag     = 'poly';
 poly.name    = 'Polynomial Expansion';
-poly.val{1} = double(1);
 poly.help    = {'For example, 1st order modulation would model the stick functions and a linear change of the stick function heights over different values of the parameter. Higher order modulation will introduce further columns that contain the stick functions scaled by parameter squared, cubed etc.'};
 poly.labels = {
                '1st order'
@@ -181,12 +172,7 @@ poly.labels = {
                '5th order'
                '6th order'
 }';
-poly.values{1} = double(1);
-poly.values{2} = double(2);
-poly.values{3} = double(3);
-poly.values{4} = double(4);
-poly.values{5} = double(5);
-poly.values{6} = double(6);
+poly.values = {1 2 3 4 5 6};
 % ---------------------------------------------------------------------
 % pmod Parameter
 % ---------------------------------------------------------------------
@@ -272,7 +258,6 @@ multi.num     = [0 1];
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
-name.val = {'Regressor'};
 name.help    = {'Enter name of regressor eg. First movement parameter'};
 name.strtype = 's';
 name.num     = [1 Inf];
@@ -316,7 +301,7 @@ multi_reg.help    = {
                      '                                                                                                            '
                      'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'
 }';
-multi_reg.filter = '.*';
+multi_reg.filter = 'mattxt';
 multi_reg.ufilter = '.*';
 multi_reg.num     = [0 1];
 % ---------------------------------------------------------------------
@@ -325,10 +310,10 @@ multi_reg.num     = [0 1];
 hpf         = cfg_entry;
 hpf.tag     = 'hpf';
 hpf.name    = 'High-pass filter';
-hpf.val{1} = double(128);
 hpf.help    = {'The default high-pass filter cutoff is 128 seconds.Slow signal drifts with a period longer than this will be removed. Use ''explore design'' to ensure this cut-off is not removing too much experimental variance. High-pass filtering is implemented using a residual forming matrix (i.e. it is not a convolution) and is simply to a way to remove confounds without estimating their parameters explicitly.  The constant term is also incorporated into this filter matrix.'};
 hpf.strtype = 'e';
 hpf.num     = [1 1];
+hpf.def     = {@spm_get_defaults, 'stats.fmri.hpf'};
 % ---------------------------------------------------------------------
 % sess Subject/Session
 % ---------------------------------------------------------------------
@@ -400,16 +385,14 @@ generic1.num     = [0 Inf];
 derivs         = cfg_menu;
 derivs.tag     = 'derivs';
 derivs.name    = 'Model derivatives';
-derivs.val{1} = double([0 0]);
 derivs.help    = {'Model HRF Derivatives. The canonical HRF combined with time and dispersion derivatives comprise an ''informed'' basis set, as the shape of the canonical response conforms to the hemodynamic response that is commonly observed. The incorporation of the derivate terms allow for variations in subject-to-subject and voxel-to-voxel responses. The time derivative allows the peak response to vary by plus or minus a second and the dispersion derivative allows the width of the response to vary. The informed basis set requires an SPM{F} for inference. T-contrasts over just the canonical are perfectly valid but assume constant delay/dispersion. The informed basis set compares favourably with eg. FIR bases on many data sets. '};
 derivs.labels = {
                  'No derivatives'
                  'Time derivatives'
                  'Time and Dispersion derivatives'
 }';
-derivs.values{1} = double([0 0]);
-derivs.values{2} = double([1 0]);
-derivs.values{3} = double([1 1]);
+derivs.values = {[0 0] [1 0] [1 1]};
+derivs.def    = {@spm_get_defaults, 'stats.fmri.hrf.derivs'};
 % ---------------------------------------------------------------------
 % hrf Canonical HRF
 % ---------------------------------------------------------------------
@@ -537,7 +520,6 @@ bases.values  = {hrf fourier fourier_han gamma fir };
 volt         = cfg_menu;
 volt.tag     = 'volt';
 volt.name    = 'Model Interactions (Volterra)';
-volt.val{1} = double(1);
 volt.help    = {
                 'Generalized convolution of inputs (U) with basis set (bf).'
                 ''
@@ -548,15 +530,14 @@ volt.labels = {
                'Do not model Interactions'
                'Model Interactions'
 }';
-volt.values{1} = double(1);
-volt.values{2} = double(2);
+volt.values = {1 2};
+volt.def    = {@spm_get_defaults, 'stats.fmri.volt'};
 % ---------------------------------------------------------------------
 % global Global normalisation
 % ---------------------------------------------------------------------
 xGlobal         = cfg_menu;
 xGlobal.tag     = 'global';
 xGlobal.name    = 'Global normalisation';
-xGlobal.val = {'None'};
 xGlobal.help    = {'Global intensity normalisation'};
 xGlobal.labels = {
                   'Scaling'
@@ -566,13 +547,13 @@ xGlobal.values = {
                   'Scaling'
                   'None'
 }';
+xGlobal.def     = {@spm_get_defaults, 'stats.fmri.global'};
 % ---------------------------------------------------------------------
 % cvi Serial correlations
 % ---------------------------------------------------------------------
 cvi         = cfg_menu;
 cvi.tag     = 'cvi';
 cvi.name    = 'Serial correlations';
-cvi.val = {'AR(1)'};
 cvi.help    = {
                'Serial correlations in fMRI time series due to aliased biorhythms and unmodelled neuronal activity can be accounted for using an autoregressive AR(1) model during Classical (ReML) parameter estimation.  '
                '                                                                                                            '
@@ -588,6 +569,7 @@ cvi.values = {
               'none'
               'AR(1)'
 }';
+cvi.def     = {@spm_get_defaults, 'stats.fmri.cvi'};
 % ---------------------------------------------------------------------
 % fmri_design fMRI model specification (design only)
 % ---------------------------------------------------------------------
@@ -613,8 +595,7 @@ fmri_design.vout = @vout_stats;
 fmri_design.modality = {'FMRI'};
 %-------------------------------------------------------------------------
 
-%-------------------------------------------------------------------------
-
+%------------------------------------------------------------------------
 function t = cond_check(job)
 t   = {};
 if (numel(job.onset) ~= numel(job.duration)) && (numel(job.duration)~=1),
@@ -631,7 +612,6 @@ return;
 %-------------------------------------------------------------------------
 
 %-------------------------------------------------------------------------
-
 function t = sess_check(sess)
 t = {};
 for i=1:numel(sess.regress),
@@ -644,8 +624,11 @@ return;
 
 %-------------------------------------------------------------------------
 function dep = vout_stats(job)
-% Could pass on SPM variable too.
-dep            = cfg_dep;
-dep.sname      = 'SPM.mat File (fMRI Design only)';
-dep.src_output = substruct('.','spmmat');
-dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+dep(1)            = cfg_dep;
+dep(1).sname      = 'SPM.mat File';
+dep(1).src_output = substruct('.','spmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+%dep(2)            = cfg_dep;
+%dep(2).sname      = 'SPM Variable';
+%dep(2).src_output = substruct('.','spmvar');
+%dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});

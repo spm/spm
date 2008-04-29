@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1321 2008-04-08 17:36:16Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1321 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -61,7 +61,6 @@ scans2.num     = [1 Inf];
 dept         = cfg_menu;
 dept.tag     = 'dept';
 dept.name    = 'Independence';
-dept.val{1} = double(0);
 dept.help    = {
                 'By default, the measurements are assumed to be independent between levels. '
                 '                                                                                                            '
@@ -74,15 +73,15 @@ dept.labels = {
                'Yes'
                'No'
 }';
-dept.values{1} = double(0);
-dept.values{2} = double(1);
+dept.values = {0 1};
+dept.def     = {@spm_get_defaults, 'stats.fact.dept'};
+
 % ---------------------------------------------------------------------
 % variance Variance
 % ---------------------------------------------------------------------
 variance         = cfg_menu;
 variance.tag     = 'variance';
 variance.name    = 'Variance';
-variance.val{1} = double(1);
 variance.help    = {
                     'By default, the measurements in each level are assumed to have unequal variance. '
                     '                                                                                                            '
@@ -97,15 +96,14 @@ variance.labels = {
                    'Equal'
                    'Unequal'
 }';
-variance.values{1} = double(0);
-variance.values{2} = double(1);
+variance.values = {0 1};
+variance.def    = {@spm_get_defaults, 'stats.fact.variance'};
 % ---------------------------------------------------------------------
 % gmsca Grand mean scaling
 % ---------------------------------------------------------------------
 gmsca         = cfg_menu;
 gmsca.tag     = 'gmsca';
 gmsca.name    = 'Grand mean scaling';
-gmsca.val{1} = double(0);
 gmsca.help    = {
                  'This option is only used for PET data.'
                  '                                                                                                            '
@@ -118,15 +116,13 @@ gmsca.labels = {
                 'No'
                 'Yes'
 }';
-gmsca.values{1} = double(0);
-gmsca.values{2} = double(1);
+gmsca.values = {0 1};
 % ---------------------------------------------------------------------
 % ancova ANCOVA
 % ---------------------------------------------------------------------
 ancova         = cfg_menu;
 ancova.tag     = 'ancova';
 ancova.name    = 'ANCOVA';
-ancova.val{1} = double(0);
 ancova.help    = {
                   'This option is only used for PET data.'
                   '                                                                                                            '
@@ -137,8 +133,8 @@ ancova.labels = {
                  'No'
                  'Yes'
 }';
-ancova.values{1} = double(0);
-ancova.values{2} = double(1);
+ancova.values = {0 1};
+ancova.def    = {@spm_get_defaults, 'stats.fact.ancova'};
 % ---------------------------------------------------------------------
 % t2 Two-sample t-test
 % ---------------------------------------------------------------------
@@ -177,90 +173,6 @@ generic.help    = {
 }';
 generic.values  = {pair };
 generic.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% dept Independence
-% ---------------------------------------------------------------------
-dept         = cfg_menu;
-dept.tag     = 'dept';
-dept.name    = 'Independence';
-dept.val{1} = double(0);
-dept.help    = {
-                'By default, the measurements are assumed to be independent between levels. '
-                '                                                                                                            '
-                'If you change this option to allow for dependencies, this will violate the assumption of sphericity. It would therefore be an example of non-sphericity. One such example would be where you had repeated measurements from the same subjects - it may then be the case that, over subjects, measure 1 is correlated to measure 2. '
-                '                                                                                                            '
-                'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                '                                                                                                            '
-}';
-dept.labels = {
-               'Yes'
-               'No'
-}';
-dept.values{1} = double(0);
-dept.values{2} = double(1);
-% ---------------------------------------------------------------------
-% variance Variance
-% ---------------------------------------------------------------------
-variance         = cfg_menu;
-variance.tag     = 'variance';
-variance.name    = 'Variance';
-variance.val{1} = double(1);
-variance.help    = {
-                    'By default, the measurements in each level are assumed to have unequal variance. '
-                    '                                                                                                            '
-                    'This violates the assumption of ''sphericity'' and is therefore an example of ''non-sphericity''.'
-                    '                                                                                                            '
-                    'This can occur, for example, in a 2nd-level analysis of variance, one contrast may be scaled differently from another.  Another example would be the comparison of qualitatively different dependent variables (e.g. normals vs. patients).  Different variances (heteroscedasticy) induce different error covariance components that are estimated using restricted maximum likelihood (see below).'
-                    '                                                                                                            '
-                    'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                    '                                                                                                            '
-}';
-variance.labels = {
-                   'Equal'
-                   'Unequal'
-}';
-variance.values{1} = double(0);
-variance.values{2} = double(1);
-% ---------------------------------------------------------------------
-% gmsca Grand mean scaling
-% ---------------------------------------------------------------------
-gmsca         = cfg_menu;
-gmsca.tag     = 'gmsca';
-gmsca.name    = 'Grand mean scaling';
-gmsca.val{1} = double(0);
-gmsca.help    = {
-                 'This option is only used for PET data.'
-                 '                                                                                                            '
-                 'Selecting YES will specify ''grand mean scaling by factor'' which could be eg. ''grand mean scaling by subject'' if the factor is ''subject''. '
-                 '                                                                                                            '
-                 'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" to obtain a combination of between subject proportional scaling and within subject AnCova. '
-                 '                                                                                                            '
-}';
-gmsca.labels = {
-                'No'
-                'Yes'
-}';
-gmsca.values{1} = double(0);
-gmsca.values{2} = double(1);
-% ---------------------------------------------------------------------
-% ancova ANCOVA
-% ---------------------------------------------------------------------
-ancova         = cfg_menu;
-ancova.tag     = 'ancova';
-ancova.name    = 'ANCOVA';
-ancova.val{1} = double(0);
-ancova.help    = {
-                  'This option is only used for PET data.'
-                  '                                                                                                            '
-                  'Selecting YES will specify ''ANCOVA-by-factor'' regressors. This includes eg. ''Ancova by subject'' or ''Ancova by effect''. These options allow eg. different subjects to have different relationships between local and global measurements. '
-                  '                                                                                                            '
-}';
-ancova.labels = {
-                 'No'
-                 'Yes'
-}';
-ancova.values{1} = double(0);
-ancova.values{2} = double(1);
 % ---------------------------------------------------------------------
 % pt Paired t-test
 % ---------------------------------------------------------------------
@@ -303,14 +215,13 @@ cname.num     = [1 Inf];
 iCC         = cfg_menu;
 iCC.tag     = 'iCC';
 iCC.name    = 'Centering';
-iCC.val{1} = double(1);
 iCC.help    = {''};
 iCC.labels = {
               'Overall mean'
               'No centering'
 }';
-iCC.values{1} = double(1);
-iCC.values{2} = double(5);
+iCC.values = {1 5};
+iCC.def    = {@spm_get_defaults, 'stats.fact.mcov.iCC'};
 % ---------------------------------------------------------------------
 % mcov Covariate
 % ---------------------------------------------------------------------
@@ -354,90 +265,6 @@ levels.name    = 'Levels';
 levels.help    = {'Enter number of levels for this factor, eg. 2'};
 levels.strtype = 'e';
 levels.num     = [Inf 1];
-% ---------------------------------------------------------------------
-% dept Independence
-% ---------------------------------------------------------------------
-dept         = cfg_menu;
-dept.tag     = 'dept';
-dept.name    = 'Independence';
-dept.val{1} = double(0);
-dept.help    = {
-                'By default, the measurements are assumed to be independent between levels. '
-                '                                                                                                            '
-                'If you change this option to allow for dependencies, this will violate the assumption of sphericity. It would therefore be an example of non-sphericity. One such example would be where you had repeated measurements from the same subjects - it may then be the case that, over subjects, measure 1 is correlated to measure 2. '
-                '                                                                                                            '
-                'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                '                                                                                                            '
-}';
-dept.labels = {
-               'Yes'
-               'No'
-}';
-dept.values{1} = double(0);
-dept.values{2} = double(1);
-% ---------------------------------------------------------------------
-% variance Variance
-% ---------------------------------------------------------------------
-variance         = cfg_menu;
-variance.tag     = 'variance';
-variance.name    = 'Variance';
-variance.val{1} = double(1);
-variance.help    = {
-                    'By default, the measurements in each level are assumed to have unequal variance. '
-                    '                                                                                                            '
-                    'This violates the assumption of ''sphericity'' and is therefore an example of ''non-sphericity''.'
-                    '                                                                                                            '
-                    'This can occur, for example, in a 2nd-level analysis of variance, one contrast may be scaled differently from another.  Another example would be the comparison of qualitatively different dependent variables (e.g. normals vs. patients).  Different variances (heteroscedasticy) induce different error covariance components that are estimated using restricted maximum likelihood (see below).'
-                    '                                                                                                            '
-                    'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                    '                                                                                                            '
-}';
-variance.labels = {
-                   'Equal'
-                   'Unequal'
-}';
-variance.values{1} = double(0);
-variance.values{2} = double(1);
-% ---------------------------------------------------------------------
-% gmsca Grand mean scaling
-% ---------------------------------------------------------------------
-gmsca         = cfg_menu;
-gmsca.tag     = 'gmsca';
-gmsca.name    = 'Grand mean scaling';
-gmsca.val{1} = double(0);
-gmsca.help    = {
-                 'This option is only used for PET data.'
-                 '                                                                                                            '
-                 'Selecting YES will specify ''grand mean scaling by factor'' which could be eg. ''grand mean scaling by subject'' if the factor is ''subject''. '
-                 '                                                                                                            '
-                 'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" to obtain a combination of between subject proportional scaling and within subject AnCova. '
-                 '                                                                                                            '
-}';
-gmsca.labels = {
-                'No'
-                'Yes'
-}';
-gmsca.values{1} = double(0);
-gmsca.values{2} = double(1);
-% ---------------------------------------------------------------------
-% ancova ANCOVA
-% ---------------------------------------------------------------------
-ancova         = cfg_menu;
-ancova.tag     = 'ancova';
-ancova.name    = 'ANCOVA';
-ancova.val{1} = double(0);
-ancova.help    = {
-                  'This option is only used for PET data.'
-                  '                                                                                                            '
-                  'Selecting YES will specify ''ANCOVA-by-factor'' regressors. This includes eg. ''Ancova by subject'' or ''Ancova by effect''. These options allow eg. different subjects to have different relationships between local and global measurements. '
-                  '                                                                                                            '
-}';
-ancova.labels = {
-                 'No'
-                 'Yes'
-}';
-ancova.values{1} = double(0);
-ancova.values{2} = double(1);
 % ---------------------------------------------------------------------
 % fact Factor
 % ---------------------------------------------------------------------
@@ -527,90 +354,6 @@ name.help    = {'Name of factor, eg. ''Repetition'' '};
 name.strtype = 's';
 name.num     = [1 Inf];
 % ---------------------------------------------------------------------
-% dept Independence
-% ---------------------------------------------------------------------
-dept         = cfg_menu;
-dept.tag     = 'dept';
-dept.name    = 'Independence';
-dept.val{1} = double(0);
-dept.help    = {
-                'By default, the measurements are assumed to be independent between levels. '
-                '                                                                                                            '
-                'If you change this option to allow for dependencies, this will violate the assumption of sphericity. It would therefore be an example of non-sphericity. One such example would be where you had repeated measurements from the same subjects - it may then be the case that, over subjects, measure 1 is correlated to measure 2. '
-                '                                                                                                            '
-                'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                '                                                                                                            '
-}';
-dept.labels = {
-               'Yes'
-               'No'
-}';
-dept.values{1} = double(0);
-dept.values{2} = double(1);
-% ---------------------------------------------------------------------
-% variance Variance
-% ---------------------------------------------------------------------
-variance         = cfg_menu;
-variance.tag     = 'variance';
-variance.name    = 'Variance';
-variance.val{1} = double(1);
-variance.help    = {
-                    'By default, the measurements in each level are assumed to have unequal variance. '
-                    '                                                                                                            '
-                    'This violates the assumption of ''sphericity'' and is therefore an example of ''non-sphericity''.'
-                    '                                                                                                            '
-                    'This can occur, for example, in a 2nd-level analysis of variance, one contrast may be scaled differently from another.  Another example would be the comparison of qualitatively different dependent variables (e.g. normals vs. patients).  Different variances (heteroscedasticy) induce different error covariance components that are estimated using restricted maximum likelihood (see below).'
-                    '                                                                                                            '
-                    'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                    '                                                                                                            '
-}';
-variance.labels = {
-                   'Equal'
-                   'Unequal'
-}';
-variance.values{1} = double(0);
-variance.values{2} = double(1);
-% ---------------------------------------------------------------------
-% gmsca Grand mean scaling
-% ---------------------------------------------------------------------
-gmsca         = cfg_menu;
-gmsca.tag     = 'gmsca';
-gmsca.name    = 'Grand mean scaling';
-gmsca.val{1} = double(0);
-gmsca.help    = {
-                 'This option is only used for PET data.'
-                 '                                                                                                            '
-                 'Selecting YES will specify ''grand mean scaling by factor'' which could be eg. ''grand mean scaling by subject'' if the factor is ''subject''. '
-                 '                                                                                                            '
-                 'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" to obtain a combination of between subject proportional scaling and within subject AnCova. '
-                 '                                                                                                            '
-}';
-gmsca.labels = {
-                'No'
-                'Yes'
-}';
-gmsca.values{1} = double(0);
-gmsca.values{2} = double(1);
-% ---------------------------------------------------------------------
-% ancova ANCOVA
-% ---------------------------------------------------------------------
-ancova         = cfg_menu;
-ancova.tag     = 'ancova';
-ancova.name    = 'ANCOVA';
-ancova.val{1} = double(0);
-ancova.help    = {
-                  'This option is only used for PET data.'
-                  '                                                                                                            '
-                  'Selecting YES will specify ''ANCOVA-by-factor'' regressors. This includes eg. ''Ancova by subject'' or ''Ancova by effect''. These options allow eg. different subjects to have different relationships between local and global measurements. '
-                  '                                                                                                            '
-}';
-ancova.labels = {
-                 'No'
-                 'Yes'
-}';
-ancova.values{1} = double(0);
-ancova.values{2} = double(1);
-% ---------------------------------------------------------------------
 % fac Factor
 % ---------------------------------------------------------------------
 fac         = cfg_branch;
@@ -689,7 +432,6 @@ scans.num     = [1 Inf];
 imatrix         = cfg_entry;
 imatrix.tag     = 'imatrix';
 imatrix.name    = 'Factor matrix';
-imatrix.val{1} = double(0);
 imatrix.help    = {'Specify factor/level matrix as a nscan-by-4 matrix. Note that the first row of I is reserved for the internal replication factor and must not be used for experimental factors.'};
 imatrix.strtype = 'e';
 imatrix.num     = [Inf Inf];
@@ -811,7 +553,6 @@ cname.num     = [1 Inf];
 iCFI         = cfg_menu;
 iCFI.tag     = 'iCFI';
 iCFI.name    = 'Interactions';
-iCFI.val{1} = double(1);
 iCFI.help    = {
                 'For each covariate you have defined, there is an opportunity to create an additional regressor that is the interaction between the covariate and a chosen experimental factor. '
                 '                                                                                                            '
@@ -822,17 +563,14 @@ iCFI.labels = {
                'With Factor 2'
                'With Factor 3'
 }';
-iCFI.values{1} = double(1);
-iCFI.values{2} = double(2);
-iCFI.values{3} = double(3);
-iCFI.values{4} = double(4);
+iCFI.values = {1 2 3 4};
+iCFI.def    = {@spm_get_defaults, 'stats.fact.iCFI'};
 % ---------------------------------------------------------------------
 % iCC Centering
 % ---------------------------------------------------------------------
 iCC         = cfg_menu;
 iCC.tag     = 'iCC';
 iCC.name    = 'Centering';
-iCC.val{1} = double(1);
 iCC.help    = {
                'The appropriate centering option is usually the one that corresponds to the interaction chosen, and ensures that main effects of the interacting factor aren''t affected by the covariate. You are advised to choose this option, unless you have other modelling considerations. '
                '                                                                                                            '
@@ -847,14 +585,8 @@ iCC.labels = {
               'As implied by ANCOVA'
               'GM'
 }';
-iCC.values{1} = double(1);
-iCC.values{2} = double(2);
-iCC.values{3} = double(3);
-iCC.values{4} = double(4);
-iCC.values{5} = double(5);
-iCC.values{6} = double(6);
-iCC.values{7} = double(7);
-iCC.values{8} = double(8);
+iCC.values = {1 2 3 4 5 6 7 8};
+iCC.def    = {@spm_get_defaults, 'stats.fact.iCC'};
 % ---------------------------------------------------------------------
 % cov Covariate
 % ---------------------------------------------------------------------
@@ -889,13 +621,13 @@ tm_none.help    = {'No threshold masking'};
 athresh         = cfg_entry;
 athresh.tag     = 'athresh';
 athresh.name    = 'Threshold';
-athresh.val{1} = double(100);
 athresh.help    = {
                    'Enter the absolute value of the threshold.'
                    '                                                                                                            '
 }';
 athresh.strtype = 'e';
 athresh.num     = [1 1];
+athresh.def     = {@spm_get_defaults, 'stats.fact.athresh'};
 % ---------------------------------------------------------------------
 % tma Absolute
 % ---------------------------------------------------------------------
@@ -915,13 +647,13 @@ tma.help    = {
 rthresh         = cfg_entry;
 rthresh.tag     = 'rthresh';
 rthresh.name    = 'Threshold';
-rthresh.val{1} = double(0.800000000000000044);
 rthresh.help    = {
                    'Enter the threshold as a proportion of the global value'
                    '                                                                                                            '
 }';
 rthresh.strtype = 'e';
 rthresh.num     = [1 1];
+rthresh.def     = {@spm_get_defaults, 'stats.fact.rthresh'};
 % ---------------------------------------------------------------------
 % tmr Relative
 % ---------------------------------------------------------------------
@@ -953,7 +685,6 @@ tm.values  = {tm_none tma tmr };
 im         = cfg_menu;
 im.tag     = 'im';
 im.name    = 'Implicit Mask';
-im.val{1} = double(1);
 im.help    = {
               'An "implicit mask" is a mask implied by a particular voxel value. Voxels with this mask value are excluded from the analysis. '
               '                                                                                                            '
@@ -968,8 +699,8 @@ im.labels = {
              'Yes'
              'No'
 }';
-im.values{1} = double(1);
-im.values{2} = double(0);
+im.values = {1 0};
+im.def    = {@spm_get_defaults, 'stats.fact.imask'};
 % ---------------------------------------------------------------------
 % em Explicit Mask
 % ---------------------------------------------------------------------
@@ -1013,7 +744,6 @@ g_omit.help    = {'Omit'};
 global_uval         = cfg_entry;
 global_uval.tag     = 'global_uval';
 global_uval.name    = 'Global values';
-global_uval.val{1} = double(0);
 global_uval.help    = {
                        'Enter the vector of global values'
                        '                                                                                                            '
@@ -1072,13 +802,13 @@ gmsca_no.help    = {'No overall grand mean scaling'};
 gmscv         = cfg_entry;
 gmscv.tag     = 'gmscv';
 gmscv.name    = 'Grand mean scaled value';
-gmscv.val{1} = double(50);
 gmscv.help    = {
                  'The default value of 50, scales the global flow to a physiologically realistic value of 50ml/dl/min.'
                  '                                                                                                            '
 }';
 gmscv.strtype = 'e';
 gmscv.num     = [Inf 1];
+gmscv.def     = {@spm_get_defaults, 'stats.fact.gmsca'};
 % ---------------------------------------------------------------------
 % gmsca_yes Yes
 % ---------------------------------------------------------------------
@@ -1112,7 +842,6 @@ gmsca.values  = {gmsca_no gmsca_yes };
 glonorm         = cfg_menu;
 glonorm.tag     = 'glonorm';
 glonorm.name    = 'Normalisation';
-glonorm.val{1} = double(1);
 glonorm.help    = {
                    'Global nuisance effects are usually accounted for either by scaling the images so that they all have the same global value (proportional scaling), or by including the global covariate as a nuisance effect in the general linear model (AnCova). Much has been written on which to use, and when. Basically, since proportional scaling also scales the variance term, it is appropriate for situations where the global measurement predominantly reflects gain or sensitivity. Where variance is constant across the range of global values, linear modelling in an AnCova approach has more flexibility, since the model is not restricted to a simple proportional regression. '
                    '                                                                                                            '
@@ -1126,9 +855,8 @@ glonorm.labels = {
                   'Proportional'
                   'ANCOVA'
 }';
-glonorm.values{1} = double(1);
-glonorm.values{2} = double(2);
-glonorm.values{3} = double(3);
+glonorm.values = {1 2 3};
+glonorm.def    = {@spm_get_defaults, 'stats.fact.glonorm'};
 % ---------------------------------------------------------------------
 % globalm Global normalisation
 % ---------------------------------------------------------------------
@@ -1169,8 +897,11 @@ factorial_design.vout = @vout_stats;
 
 %-------------------------------------------------------------------------
 function dep = vout_stats(job)
-% Could pass on SPM variable too.
-dep            = cfg_dep;
-dep.sname      = 'SPM.mat File (Factorial Design & Data)';
-dep.src_output = substruct('.','spmmat');
-dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+dep(1)            = cfg_dep;
+dep(1).sname      = 'SPM.mat File';
+dep(1).src_output = substruct('.','spmmat');
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+%dep(2)            = cfg_dep;
+%dep(2).sname      = 'SPM Variable';
+%dep(2).src_output = substruct('.','spmvar');
+%dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});

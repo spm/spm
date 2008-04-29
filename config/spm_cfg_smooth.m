@@ -4,9 +4,9 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 1299 2008-04-03 08:55:09Z volkmar $
+% $Id: spm_cfg_smooth.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1299 $';
+rev = '$Rev: 1517 $';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -23,17 +23,16 @@ data.num     = [0 Inf];
 fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'FWHM';
-fwhm.val{1} = double([8 8 8]);
 fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian smoothing kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions.'};
 fwhm.strtype = 'e';
 fwhm.num     = [1 3];
+fwhm.def     = {@spm_get_defaults, 'smooth.fwhm'};
 % ---------------------------------------------------------------------
 % dtype Data Type
 % ---------------------------------------------------------------------
 dtype         = cfg_menu;
 dtype.tag     = 'dtype';
 dtype.name    = 'Data Type';
-dtype.val{1} = double(0);
 dtype.help    = {'Data-type of output images.  SAME indicates the same datatype as the original images.'};
 dtype.labels = {
                 'SAME'
@@ -43,22 +42,18 @@ dtype.labels = {
                 'FLOAT - single prec. float'
                 'DOUBLE - double prec. float'
 }';
-dtype.values{1} = double(0);
-dtype.values{2} = double(2);
-dtype.values{3} = double(4);
-dtype.values{4} = double(8);
-dtype.values{5} = double(16);
-dtype.values{6} = double(64);
+dtype.values = {0 spm_type('uint8') spm_type('int16') spm_type('int32') spm_type('float') spm_type('double')};
+dtype.def     = {@spm_get_defaults, 'smooth.dtype'};
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.val = {'s'};
 prefix.help    = {'Specify the string to be prepended to the filenames of the smoothed image file(s). Default prefix is ''s''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
+prefix.def     = {@spm_get_defaults, 'smooth.prefix'};
 % ---------------------------------------------------------------------
 % smooth Smooth
 % ---------------------------------------------------------------------

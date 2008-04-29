@@ -18,13 +18,13 @@ function [item, inputs] = fillvals(item, inputs, infcn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: fillvals.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: fillvals.m 1517 2008-04-29 15:46:08Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1517 $';
 
 if ~all_set_item(item)
     if ~isempty(inputs)
-        item = setval(item, inputs{1});
+        item = setval(item, inputs{1}, false);
         inputs = inputs(2:end);
     end;
     if ~all_set_item(item) && ~isempty(infcn) && subsasgn_check_funhandle(infcn)
@@ -32,7 +32,7 @@ if ~all_set_item(item)
         while ~sts && ~all_set_item(item)
             [val sts] = feval(infcn, item);
             if sts
-                item = setval(item, val);
+                item = setval(item, val, false);
             end;
         end;
     end;
