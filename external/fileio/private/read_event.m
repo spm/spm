@@ -11,9 +11,20 @@ function [event] = read_event(filename, varargin)
 % Additional options should be specified in key-value pairs and can be
 %   'eventformat'   string
 %   'header'        structure, see READ_HEADER
+%   'detectflank'   string, can be 'up', 'down' or 'both' (default = 'up')
 % Furthermore, you can specify optional arguments as key-value pairs for
 % filtering the events, e.g. to select only events of a specific type. See
 % FILTER_EVENT for more details.
+%
+% Some data formats have trigger channels that are sampled continuously with
+% the same rate as the electrophysiological data. The default is to detect
+% only the up-going TTL flanks. The trigger events will correspond with the
+% first sample where the TTL value is up. This behaviour can be changed
+% using the 'detectflank' option, which also allows for detecting the
+% down-going flank or both. In case of detecting the down-going flank, the
+% sample number of the event will correspond with the first sample at which
+% the TTF went down, and the value will correspond to the TTL value just
+% prior to going down.
 %
 % This function returns an event structure with the following fields
 %   event.type      = string
@@ -47,6 +58,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.59  2008/04/29 13:58:53  roboos
+% switched to read_trigger helper function for ctf, neuromag and bti
+%
 % Revision 1.58  2008/04/21 11:50:52  roboos
 % added support for egi_sbin, thanks to Joseph Dien
 %
@@ -273,6 +287,7 @@ end
 % get the options
 eventformat      = keyval('eventformat', varargin);
 hdr              = keyval('header',      varargin);
+detectflank      = keyval('detectflank', varargin); % up, down or both
 % this allows to read only events in a certain range, supported for selected data formats only
 flt_type         = keyval('type',         varargin);  
 flt_value        = keyval('value',        varargin);  
@@ -283,9 +298,15 @@ flt_maxtimestamp = keyval('maxtimestamp', varargin);
 flt_minnumber    = keyval('minnumber', varargin);  
 flt_maxnumber    = keyval('maxnumber', varargin);
 
+
 % determine the filetype
 if isempty(eventformat)
   eventformat = filetype(filename);
+end
+
+% default is to search only for rising or up-going flanks
+if isempty(detectflank)
+  detectflank = 'up';
 end
 
 switch eventformat
@@ -325,33 +346,9 @@ switch eventformat
       event(end  ).offset   = -hdr.nSamplesPre;
       event(end  ).duration = hdr.nSamples;
     end
-    % specify the range to search for triggers, default is the complete file
-    if ~isempty(flt_minsample)
-      begsample = flt_minsample;
-    else
-      begsample = 1;
-    end
-    if ~isempty(flt_maxsample)
-      endsample = flt_maxsample;
-    else
-      endsample = hdr.nSamples*hdr.nTrials;
-    end
-    % read the data from the trigger channel
-    dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', hdr.orig.TriggerIndex);
-    for i=1:size(dat,1)
-      % detect the flanks in the trigger channel
-      % FIXME the trigger channel looks a bit sloppy, i.e. not really sharp transitions
-      flank = [0 diff(dat(i,:), 1, 2)~=0];
-      indx = find(flank);
-      trig = dat(indx);
-      for j=1:length(trig)
-        event(end+1).type     = hdr.label{hdr.orig.TriggerIndex(i)};
-        event(end  ).sample   = indx(j) + begsample - 1;
-        event(end  ).value    = trig(j);
-        event(end  ).offset   = 0;
-        event(end  ).duration = 0;
-      end
-    end
+    % read the trigger channel and do flank detection
+    trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', hdr.orig.TriggerIndex, 'detectflank', detectflank);
+    event   = appendevent(event, trigger);
 
   case {'besa_avr', 'besa_swf'}
     if isempty(hdr)
@@ -368,6 +365,7 @@ switch eventformat
     if isempty(hdr)
       hdr = read_header(filename);
     end
+    
     % specify the range to search for triggers, default is the complete file
     if ~isempty(flt_minsample)
       begsample = flt_minsample;
@@ -379,8 +377,16 @@ switch eventformat
     else
       endsample = hdr.nSamples*hdr.nTrials;
     end
+    
+    if ~strcmp(detectflank, 'up')
+      error('only up-going flanks are supported for Biosemi');
+      % FIXME the next section on trigger detection should be merged with the
+      % READ_CTF_TRIGGER (which also does masking with bit-patterns) into the
+      % READ_TRIGGER function
+    end
+    
     % find the STATUS channel and read the values from it
-    schan = find(strcmp(upper(hdr.label),'STATUS'));
+    schan = find(strcmpi(hdr.label,'STATUS'));
     sdata = read_data(filename, hdr, begsample, endsample, schan);
 
     % find indices of negative numbers
@@ -514,32 +520,11 @@ switch eventformat
       event(end  ).value  = frontpanel(i);
     end
 
-    % specify the range to search for triggers, default is the complete file
-    if ~isempty(flt_minsample)
-      begsample = flt_minsample;
-    else
-      begsample = 1;
-    end
-    if ~isempty(flt_maxsample)
-      endsample = flt_maxsample;
-    else
-      endsample = hdr.nSamples*hdr.nTrials;
-    end
-
     % determine the trigger channels from the header
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
-      for i=find(hdr.orig.sensType(:)'==11)
-        % read the trigger channel as raw data, can safely assume that it is continuous
-        trig = read_data(datafile, hdr, begsample, endsample, i, 1);
-        % correct for reading it as signed integer, whereas it should be an unsigned int
-        trig(find(trig<0)) = trig(find(trig<0)) + 2^32;
-        % convert the trigger into an event with a value at a specific sample
-        for j=find(diff([0 trig(:)'])>0)
-          event(end+1).type   = hdr.label{i};
-          event(end  ).sample = j + begsample - 1;
-          event(end  ).value  = trig(j);
-        end
-      end
+      % read the trigger channel and do flank detection
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', find(hdr.orig.sensType==11), 'detectflank', detectflank, 'fixctf', 1);
+      event   = appendevent(event, trigger);
     end
 
     % make an event for each trial as defined in the header
@@ -871,83 +856,33 @@ switch eventformat
       event(end  ).offset   = -hdr.nSamplesPre;
       event(end  ).duration =  hdr.nSamples;
     end
-    % add triggers based on the binary trigger channel, this is based the following email
-    %
-    % On 14 Sep 2004, at 16:33, Lauri Parkkonen wrote:
-    %   Anke's file is probably quite recent one. It should have normal binary
-    %   coding on STI014 and its "analog" counterparts on STI1 ... STI6,
-    %   swinging between 0 ... +5 volts. These latter channels are virtual,
-    %   i.e., they are generated from STI014 for backwards compatibility. STI1
-    %   is the LSB of STI014 etc. For all the new stuff, I would recommend
-    %   using STI014 as that's the way the triggers will be stored in the future
-    %   (maybe the channel name is going to change to something more reasonable
-    %   like TRIG). Unfortunately, some older files from the 306-channel system
-    %   have the STI014 coded in a different way - the two 8-bit halves code
-    %   the input and output triggers separately.
-    triglab  = {'STI 014', 'STI 015', 'STI 016'};
-    trigindx = match_str(hdr.label, triglab);
-    if length(trigindx)>0
-      % pad with the last sample of the previous block, start with zeros
-      pad = zeros(length(trigindx),1);
-      for i=1:hdr.nTrials
-        begsample = (i-1)*hdr.nSamples + 1;
-        endsample = (i  )*hdr.nSamples;
-        raw = read_data(filename, hdr, begsample, endsample, trigindx);
-        % detect the flank of the trigger
-        flank = ((diff([raw pad], [], 2) .* raw)~=0);
-        % for each flank in the TRIG channels, add an event
-        for j=1:length(trigindx)
-          for k=find(flank(j,:))
-            event(end+1).type     = 'trigger';
-            event(end  ).sample   = begsample + k;
-            event(end  ).value    = raw(j,k);
-            event(end  ).offset   = [];
-            event(end  ).duration = [];
-          end
-        end
-        % remember the last sample to ensure continuity with the next block
-        pad = raw(:,end);
-      end
-    end % if length(trigindx)
-    % look for the analog triggers only if no binary trigger channel is present
-    if isempty(trigindx)
+
+    binary     = {'STI 014', 'STI 015', 'STI 016'};
+    binaryindx = match_str(hdr.label, binary);
+    analogindx = strmatch('STI', hdr.label);
+    
+    if ~isempty(binaryindx)
+      % add triggers based on the binary trigger channel, this is based on
+      % an email on 14 Sep 2004, at 16:33, Lauri Parkkonen wrote:
+      %   Anke's file is probably quite recent one. It should have normal binary
+      %   coding on STI014 and its "analog" counterparts on STI1 ... STI6,
+      %   swinging between 0 ... +5 volts. These latter channels are virtual,
+      %   i.e., they are generated from STI014 for backwards compatibility. STI1
+      %   is the LSB of STI014 etc. For all the new stuff, I would recommend
+      %   using STI014 as that's the way the triggers will be stored in the future
+      %   (maybe the channel name is going to change to something more reasonable
+      %   like TRIG). Unfortunately, some older files from the 306-channel system
+      %   have the STI014 coded in a different way - the two 8-bit halves code
+      %   the input and output triggers separately.
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'neuromagfix', 0);
+      event   = appendevent(event, trigger);
+    elseif ~isempty(analogindx)
       % add the triggers to the event structure based on trigger channels with the name "STI xxx"
-      % this is not a very efficient implementation, since it has to read all data
-      % furthermore, there are some issues with noise on these analog trigger channels
-      stimindx = [];
-      stimlab  = {};
-      for i=1:length(hdr.label)
-        if all(hdr.label{i}(1:3) == 'STI')
-          stimindx(end+1) = i;
-          stimlab{end+1}  = hdr.label{i};
-        end
-      end
-      if length(stimindx)>0
-        % pad with the last sample of the previous block, start with zeros
-        pad = zeros(length(stimindx),1);
-        for i=1:hdr.nTrials
-          begsample = (i-1)*hdr.nSamples + 1;
-          endsample = (i  )*hdr.nSamples;
-          raw = read_data(filename, hdr, begsample, endsample, stimindx);
-          % detect the flank of the trigger
-          flank = ((diff([raw pad], [], 2) .* raw)~=0) & (raw>=5);
-          % Note: the original code read
-          %   flank = (diff([raw pad], [], 2) .* raw)~=0;
-          % but according to Joachim, real events always have triggers > 5
-          % for each flank in the STIM channels, add an event
-          for j=1:length(stimindx)
-            for k=find(flank(j,:))
-              event(end+1).type     = stimlab{j};
-              event(end  ).sample   = begsample + k;
-              event(end  ).value    = raw(j,k);
-              event(end  ).offset   = [];
-              event(end  ).duration = [];
-            end
-          end
-          % remember the last sample to ensure continuity with the next block
-          pad = raw(:,end);
-        end
-      end % if length(stimindx)
+      % there are some issues with noise on these analog trigger channels
+      % therefore look for the analog triggers only if no binary trigger channel is present
+      % read the trigger channel and do flank detection
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'neuromagfix', 1);
+      event   = appendevent(event, trigger);
     end
 
   case {'neuralynx_ttl' 'neuralynx_bin' 'neuralynx_dma' 'neuralynx_sdma'}
