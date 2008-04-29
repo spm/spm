@@ -9,6 +9,10 @@ function [ntt] = read_neuralynx_ntt(filename, begrecord, endrecord)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_neuralynx_ntt.m,v $
+% Revision 1.7  2008/04/29 07:52:31  roboos
+% fixed windows related bug
+% be consistent with begin and end timestamp in header
+%
 % Revision 1.6  2008/03/04 11:16:11  roboos
 % do not convert to uV, since ADBitVolts seems not always to be present in the header
 % fixed bug in output assignment of Nrecords
@@ -54,13 +58,24 @@ end
 % int16 ChanZ[31]
 
 hdr = neuralynx_getheader(filename);
-
 fid = fopen(filename, 'rb', 'ieee-le');
+
 % determine the length of the file
 fseek(fid, 0, 'eof');
 headersize = 16384;
 recordsize = 304;
 NRecords   = floor((ftell(fid) - headersize)/recordsize);
+
+if NRecords>0
+  if (ispc), fclose(fid); end
+  % read the timestamp from the first and last record
+  hdr.FirstTimeStamp = neuralynx_timestamp(filename, 1);
+  hdr.LastTimeStamp  = neuralynx_timestamp(filename, inf);
+  if (ispc), fid = fopen(filename, 'rb', 'ieee-le'); end
+else
+  hdr.FirstTimeStamp = nan;
+  hdr.LastTimeStamp  = nan;
+end
 
 if begrecord==0 && endrecord==0
   % only read the header  
