@@ -20,6 +20,10 @@ function [nev] = read_neuralynx_nev(filename, varargin);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_neuralynx_nev.m,v $
+% Revision 1.6  2008/04/29 07:52:31  roboos
+% fixed windows related bug
+% be consistent with begin and end timestamp in header
+%
 % Revision 1.5  2008/03/04 11:17:48  roboos
 % read ttl value as uint16 instead of int16
 %
@@ -91,15 +95,15 @@ end
 % Extra is user-defined data.
 % TTLValue is the value sent to the computer on a parallel input port.
 
-% read all event records
 fid = fopen(filename, 'rb', 'ieee-le');
-nev = [];
 
-offset = 16*1024;
-
+headersize = 16384;
+offset     = headersize;
 if ~isempty(flt_minnumber)
   offset = offset + (flt_minnumber-1)*184;
 end
+
+nev = [];
 
 if implementation==1
   if ~isempty(flt_maxnumber)

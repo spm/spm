@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.48  2008/04/29 07:33:19  roboos
+% changed low level function call for buffer
+%
 % Revision 1.47  2008/04/21 11:50:52  roboos
 % added support for egi_sbin, thanks to Joseph Dien
 %
@@ -593,7 +596,7 @@ switch headerformat
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);
-    orig = buffer_gethdr(host, port);
+    orig = buffer('get_hdr', [], host, port);
     hdr.Fs          = orig.fsample;
     hdr.nChans      = orig.nchans;
     hdr.nSamples    = orig.nsamples;

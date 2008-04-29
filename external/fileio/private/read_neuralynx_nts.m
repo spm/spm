@@ -9,6 +9,10 @@ function [nts] = read_neuralynx_nts(filename, begrecord, endrecord);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: read_neuralynx_nts.m,v $
+% Revision 1.4  2008/04/29 07:52:31  roboos
+% fixed windows related bug
+% be consistent with begin and end timestamp in header
+%
 % Revision 1.3  2008/01/10 12:51:58  roboos
 % ensure that it is possible to read only the header, using beg/end = 0/0
 %
@@ -48,15 +52,6 @@ headersize = 16384;
 recordsize = 8;
 NRecords   = floor((ftell(fid) - headersize)/recordsize);
 
-if NRecords>0
-  % read the timestamp from the first and last record
-  hdr.FirstTimeStamp = neuralynx_timestamp(filename, 1);
-  hdr.LastTimeStamp  = neuralynx_timestamp(filename, inf);
-else
-  hdr.FirstTimeStamp = nan;
-  hdr.LastTimeStamp  = nan;
-end
-
 if begrecord==0 && endrecord==0
   % only read the header  
 elseif begrecord<1
@@ -65,6 +60,17 @@ elseif begrecord>NRecords
   error('cannot read beyond the last record')
 elseif endrecord>NRecords
   endrecord = NRecords;
+end
+
+if NRecords>0
+  if (ispc), fclose(fid); end
+  % read the timestamp from the first and last record
+  hdr.FirstTimeStamp = neuralynx_timestamp(filename, 1);
+  hdr.LastTimeStamp  = neuralynx_timestamp(filename, inf);
+  if (ispc), fid = fopen(filename, 'rb', 'ieee-le'); end
+else
+  hdr.FirstTimeStamp = nan;
+  hdr.LastTimeStamp  = nan;
 end
 
 if begrecord>=1 && endrecord>=begrecord
