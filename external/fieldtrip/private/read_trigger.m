@@ -14,6 +14,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.2  2008/04/29 14:54:39  roboos
+% explicit specification of begsample and endsample, otherwise event.sample remains empty
+%
 % Revision 1.1  2008/04/29 13:53:50  roboos
 % new implementation, works for ctf, bti and neuromag
 %
@@ -26,8 +29,16 @@ begsample   = keyval('begsample',   varargin);
 endsample   = keyval('endsample',   varargin);
 chanindx    = keyval('chanindx',    varargin);
 detectflank = keyval('detectflank', varargin);
-fixctf      = keyval('fixctf',      varargin); if isempty(fixctf), fixctf = 0; end
-fixneuromag = keyval('fixneuromag', varargin); if isempty(fixneuromag), fixneuromag = 0; end
+fixctf      = keyval('fixctf',      varargin); if isempty(fixctf),      fixctf = 0;       end
+fixneuromag = keyval('fixneuromag', varargin); if isempty(fixneuromag), fixneuromag = 0;  end
+
+if isempty(begsample)
+  begsample = 1;
+end
+
+if isempty(endsample)
+  endsample = hdr.nSamples*hdr.nTrials;
+end
 
 % read the trigger channel as raw data, can safely assume that it is continuous
 dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chainindx', chanindx);

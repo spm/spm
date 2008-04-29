@@ -45,6 +45,9 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: scalpcurrentdensity.m,v $
+% Revision 1.21  2008/04/29 14:35:20  roboos
+% fixed bug in looping over trials, thanks to Manuel
+%
 % Revision 1.20  2008/03/05 10:46:36  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -183,7 +186,7 @@ if strcmp(cfg.method, 'spline')
     % this also gives L1, the laplacian of the original data in which we
     % are interested here
     fprintf('computing SCD for trial %d\n', trlop);
-    [V2, L2, L1] = splint(elec.pnt, data.trial{1}, [0 0 1]);
+    [V2, L2, L1] = splint(elec.pnt, data.trial{trlop}, [0 0 1]);
     scd.trial{trlop} = L1;
   end
 elseif strcmp(cfg.method, 'finite')
@@ -225,7 +228,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.20 2008/03/05 10:46:36 roboos Exp $';
+cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.21 2008/04/29 14:35:20 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
