@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1504 2008-04-29 10:33:56Z guillaume $
+% $Id: spm.m 1509 2008-04-29 10:58:50Z guillaume $
 
 
 %=======================================================================
@@ -1109,13 +1109,11 @@ end
 function check_installation
 %=======================================================================
 
-%-Disable warning messages due to dll files still existing
+%-Minimal MATLAB version required
 %-----------------------------------------------------------------------
-if spm_matlab_version_chk('7') >=0,
-    warning('off','MATLAB:dispatcher:ShadowedMEXExtension');
-else
+if spm_matlab_version_chk('7.1') < 0
     error([...
-        'SPM8 requires MATLAB 7 onwards in order to run.\n'...
+        'SPM8 requires MATLAB 7.1 onwards in order to run.\n'...
         'This MATLAB version is %s\n'], version);
 end
 
