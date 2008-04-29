@@ -13,15 +13,24 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %   'maxiter'     = Maximum number of function evaluations allowed [ positive integer ]
 %   'metric'      = Error measure to be minimised [ rv | var | abs ]
 %   'checkinside' = Boolean flag to check whether dipole is inside source compartment [ 0 | 1 ]
+%   'cov'         = estimated data covariance matrix, for maximum likelihood estimation
 % 
 % The following optional input arguments relate to the computation of the leadfields
 %   'reducerank'      = 'no' or number
 %   'normalize'       = 'no', 'yes' or 'column'
 %   'normalizeparam'  = parameter for depth normalization (default = 0.5)
+%
+% The maximum likelihood estimation implements
+%   Lutkenhoner B. "Dipole source localization by means of maximum
+%   likelihood estimation I. Theory and simulations" Electroencephalogr Clin
+%   Neurophysiol. 1998 Apr;106(4):314-21.
 
-% Copyright (C) 2003-2007, Robert Oostenveld
+% Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: dipole_fit.m,v $
+% Revision 1.10  2008/04/29 15:41:53  roboos
+% added skelleton for MAP estimation, but the covariance is not passed yet to lower level function
+%
 % Revision 1.9  2008/01/09 12:43:25  roboos
 % added optional input arguments for reducerank, normalize and normalizeparam, these are directly passed on to compute_leadfield
 %
@@ -114,6 +123,7 @@ maxiter        = keyval('maxiter',        varargin);
 reducerank     = keyval('reducerank',     varargin); % for leadfield computation
 normalize      = keyval('normalize' ,     varargin); % for leadfield computation
 normalizeparam = keyval('normalizeparam', varargin); % for leadfield computation
+cov            = keyval('cov',            varargin); % for maximum likelihood estimation
 
 % determine whether the Matlab Optimization toolbox can be used
 if isempty(optimfun)
@@ -284,17 +294,38 @@ if isfield(constr, 'fixedori') && constr.fixedori
   lf = lf * ori;
 end
 
+% FIXME continue with implementation
+invcov = [];
+
 % compute the optimal dipole moment and the model error
-mom = pinv(lf)*dat;
-dif = dat - lf*mom;
-switch metric
-  case 'rv' % relative residual variance
-    err = sum(dif(:).^2) / sum(dat(:).^2);
-  case 'var' % residual variance
-    err = sum(dif(:).^2);
-  case 'abs' % absolute difference
-    err = sum(abs(dif));
-  otherwise
-    error('Unsupported error metric for dipole fitting');
+if ~isempty(invcov)
+  mom = pinv(lf'*invcov*lf)*lf'*invcov*dat;  % Lutkenhoner equation 5
+  dif = dat - lf*mom;
+  % compute the generalized goodness-of-fit measure that is weighted with the inverse data covariance
+  switch metric
+    case 'rv' % relative residual variance
+      num   = dif * invcov * dif';
+      denom = dat * invcov * dat';
+      err   = sum(num(:)) ./ sum(denom(:)); % Lutkenhonner equation 7, except for the gof=1-rv
+    case 'var' % residual variance
+      num   = dif * invcov * dif';
+      err   = sum(num(:));
+    otherwise
+      error('Unsupported error metric for maximum likelihood dipole fitting');
+   end
+else
+  mom = pinv(lf)*dat;
+  dif = dat - lf*mom;
+  % compute the ordinary goodness-of-fit measures
+  switch metric
+    case 'rv' % relative residual variance
+      err = sum(dif(:).^2) / sum(dat(:).^2);
+    case 'var' % residual variance
+      err = sum(dif(:).^2);
+    case 'abs' % absolute difference
+      err = sum(abs(dif));
+    otherwise
+      error('Unsupported error metric for dipole fitting');
+  end
 end
 
