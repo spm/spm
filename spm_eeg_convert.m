@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1507 2008-04-29 10:44:36Z vladimir $
+% $Id: spm_eeg_convert.m 1510 2008-04-29 10:59:01Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -330,7 +330,7 @@ else
 end
 
 try
-    D.fiducials = forwinv_convert_units(forwinv_read_headshape(S.dataset), 'mm');
+    D.fiducials = forwinv_convert_units(fileio_read_headshape(S.dataset), 'mm');
 catch
     warning('Could not obtain fiducials automatically.');
 end
