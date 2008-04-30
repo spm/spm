@@ -5,7 +5,7 @@ function this = sensorcoreg(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensorcoreg.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: sensorcoreg.m 1524 2008-04-30 17:59:56Z vladimir $
 
 [ok, this] = checkmeeg(struct(this), 'sensfid');
 
@@ -15,34 +15,29 @@ end
 
 this = meeg(this);
 
-[vol,mrifid, mesh] = spm_eeg_inv_template(1);
-
-senstypes = {'EEG', 'MEG'};
-
-for i = 1:numel(senstypes)
-    if ~isempty(sensors(this, senstypes{i}))
-        S =[];
-        S.sens = sensors(this, senstypes{i});
-        S.meegfid = fiducials(this);
-        S.vol = vol;
-        S.mrifid = mrifid;
-        S.template = 1;
-        switch senstypes{i}
-            case 'MEG'
-                error('MEG coregistration is under construction');
-            case 'EEG'
-                [M1, sens, fid] = spm_eeg_inv_datareg_eeg(S);
-        end
-        this = sensors(this, senstypes{i}, sens);
-    end
+if isempty(sensors(this, 'EEG'))
+    error('No EEG sensors found');
 end
+
+
+[eegvol, megvol, mrifid, mesh] = spm_eeg_inv_template(1);
+
+S =[];
+S.sens = sensors(this, 'EEG');
+S.meegfid = fiducials(this);
+S.vol = eegvol;
+S.mrifid = mrifid;
+S.template = 1;
+M1 = spm_eeg_inv_datareg(S);
+
+sens = forwinv_transform_sens(M1, S.sens);
+fid = forwinv_transform_headshape(M1, S.meegfid);
+
+this = sensors(this, 'EEG', sens);
+this = fiducials(this, fid);
 
 S.sens = sens;
 S.meegfid = fid;
 S.mesh = mesh;
 
-%try
-    spm_eeg_inv_checkdatareg(S);
-%end
-
-this = fiducials(this, fid);
+spm_eeg_inv_checkdatareg(S);

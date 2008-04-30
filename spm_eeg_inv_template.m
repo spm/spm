@@ -1,4 +1,4 @@
-function [eegvol, megvol, fid, mesh, scalpvert] = spm_eeg_inv_template(Msize)
+function [eegvol, megvol, fid, mesh] = spm_eeg_inv_template(Msize)
 
 % Build the head model (meshes) from the template.
 % IN
@@ -16,7 +16,7 @@ function [eegvol, megvol, fid, mesh, scalpvert] = spm_eeg_inv_template(Msize)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_template.m 1523 2008-04-30 17:33:04Z vladimir $
+% $Id: spm_eeg_inv_template.m 1524 2008-04-30 17:59:56Z vladimir $
 
 
 % check for mesh size

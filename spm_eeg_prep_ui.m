@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1410 2008-04-15 13:06:09Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1524 2008-04-30 17:59:56Z vladimir $
 
 if nargin == 0
 
@@ -516,13 +516,13 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dload
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', IsSensors);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister'), 'Enable', IsSensors);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister'), 'Enable', IsSensorsEEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', IsEEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', IsSensorsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', IsSensorsMEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', 'off'); % for now
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Delete sensor'), 'Enable', IsSelected);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);
