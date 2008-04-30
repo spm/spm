@@ -16,9 +16,7 @@ function varargout = spm_get_defaults(defstr, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_realign.m 1265 2008-03-28 11:45:04Z john $
-
-rev = '$Rev:$';
+% $Id: spm_get_defaults.m 1530 2008-04-30 19:28:22Z guillaume $
 
 global defaults;
 
@@ -30,4 +28,4 @@ if nargin == 1
     varargout{1} = subsref(defaults, subs);
 else
     defaults = subsasgn(defaults, subs, varargin{1});
-end;
+end

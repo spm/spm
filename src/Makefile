@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1297 2008-04-02 18:08:48Z guillaume $
+# $Id: Makefile 1530 2008-04-30 19:28:22Z guillaume $
 #
 ###############################################################################
 #
@@ -49,7 +49,7 @@ SPMMEX =\
 	spm_unlink.$(SUF) spm_hist.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	mat2file.$(SUF) file2mat.$(SUF) spm_invdef.$(SUF)
+	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF)
 
 SUBDIRS=\
 	toolbox/DARTEL \
@@ -72,6 +72,7 @@ archive: spm_vol_utils.$(SUF).a
 
 install: verb.install $(SPMMEX)
 	$(COPY) $(SPMMEX) ..
+	$(MOVE) ../file2mat.$(SUF) ../mat2file.$(SUF) ../@file_array/private
 
 toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
 	@@for p in $(SUBDIRS); do \
