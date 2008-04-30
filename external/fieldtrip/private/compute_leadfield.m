@@ -66,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.24  2008/04/30 13:47:20  roboos
+% removed support for pnt1+pnt2
+%
 % Revision 1.23  2008/04/15 20:36:21  roboos
 % added explicit handling of various BEM implementations, i.e. for all voltype variants
 %
@@ -189,16 +192,9 @@ elseif ismeg
       % MEG single-sphere volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      if isfield(sens, 'pnt1') && isfield(sens, 'pnt2')
-        % this appears to be an old fashioned gradiometer definition
-        % add the magnetometer positions at the upper coil
-        nchan = size(sens.pnt1, 1);
-        pnt = [sens.pnt1; sens.pnt2];
-        ori = [sens.ori1; sens.ori2];
-      else
-        pnt = sens.pnt;
-        ori = sens.ori;
-      end
+      % get the position and orientation of each coil
+      pnt = sens.pnt;
+      ori = sens.ori;
 
       if isfield(vol, 'o')
         % shift dipole and magnetometers to origin of sphere
