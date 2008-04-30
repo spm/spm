@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1467 2008-04-22 07:46:05Z volkmar $
+% $Id: cfg_confgui.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1467 $';
+rev = '$Rev: 1521 $';
 
 %% Declaration of fields
 
@@ -91,6 +91,29 @@ conf_help.values  = {conf_help_par};
 conf_help.num     = [0 Inf];
 conf_help.help    = {'Help text.', 'Each help text consists of a number of paragraphs.'};
 
+% Def Item
+%-----------------------------------------------------------------------
+conf_def_item         = cfg_entry;
+conf_def_item.name    = 'Def Item';
+conf_def_item.tag     = 'def';
+conf_def_item.strtype = 'e';
+conf_def_item.num     = [1 1];
+conf_def_item.help    = {'Default settings for configuration item.', ...
+                    ['The first item in this list should be a function ' ...
+                    'handle, all others will be passed as argument to ' ...
+                    'this function.']};
+
+% Def
+%-----------------------------------------------------------------------
+conf_def         = cfg_repeat;
+conf_def.name    = 'Def';
+conf_def.tag     = 'def';
+conf_def.values  = {conf_def_item};
+conf_def.num     = [0 Inf];
+conf_def.help    = {'Default settings for configuration item.', ...
+                    ['The first item in this list should be a function ' ...
+                    'handle, all others will be passed as argument to ' ...
+                    'this function.']};
 
 % Hidden
 %-----------------------------------------------------------------------
@@ -336,7 +359,8 @@ conf_choice.vout = @cfg_cfg_vout;
 conf_const      = cfg_exbranch;
 conf_const.name = 'Const';
 conf_const.tag  = 'conf_const';
-conf_const.val  = {conf_class_const, conf_name, conf_tag, conf_val_single, conf_check, conf_help};
+conf_const.val  = {conf_class_const, conf_name, conf_tag, conf_val_single, ...
+                   conf_check, conf_help, conf_def};
 conf_const.help = help2cell('cfg_const');
 conf_const.prog = @cfg_cfg_pass;
 conf_const.vout = @cfg_cfg_vout;
@@ -346,7 +370,8 @@ conf_const.vout = @cfg_cfg_vout;
 conf_entry      = cfg_exbranch;
 conf_entry.name = 'Entry';
 conf_entry.tag  = 'conf_entry';
-conf_entry.val  = {conf_class_entry, conf_name, conf_tag, conf_strtype, conf_extras, conf_num_any, conf_check, conf_help};
+conf_entry.val  = {conf_class_entry, conf_name, conf_tag, conf_strtype, ...
+                   conf_extras, conf_num_any, conf_check, conf_help, conf_def};
 conf_entry.help = help2cell('cfg_entry');
 conf_entry.prog = @cfg_cfg_pass;
 conf_entry.vout = @cfg_cfg_vout;
@@ -356,7 +381,8 @@ conf_entry.vout = @cfg_cfg_vout;
 conf_exbranch      = cfg_exbranch;
 conf_exbranch.name = 'Exbranch';
 conf_exbranch.tag  = 'conf_exbranch';
-conf_exbranch.val  = {conf_class_exbranch, conf_name, conf_tag, conf_val, conf_prog, conf_vout, conf_check, conf_help};
+conf_exbranch.val  = {conf_class_exbranch, conf_name, conf_tag, conf_val, ...
+                    conf_prog, conf_vout, conf_check, conf_help};
 conf_exbranch.help = help2cell('cfg_exbranch');
 conf_exbranch.prog = @cfg_cfg_pass;
 conf_exbranch.vout = @cfg_cfg_vout;
@@ -366,7 +392,8 @@ conf_exbranch.vout = @cfg_cfg_vout;
 conf_files      = cfg_exbranch;
 conf_files.name = 'Files';
 conf_files.tag  = 'conf_files';
-conf_files.val  = {conf_class_files, conf_name, conf_tag, conf_filter, conf_ufilter, conf_dir, conf_num, conf_check, conf_help};
+conf_files.val  = {conf_class_files, conf_name, conf_tag, conf_filter, ...
+                   conf_ufilter, conf_dir, conf_num, conf_check, conf_help, conf_def};
 conf_files.help = help2cell('cfg_files');
 conf_files.prog = @cfg_cfg_pass;
 conf_files.vout = @cfg_cfg_vout;
@@ -376,7 +403,8 @@ conf_files.vout = @cfg_cfg_vout;
 conf_menu      = cfg_exbranch;
 conf_menu.name = 'Menu';
 conf_menu.tag  = 'conf_menu';
-conf_menu.val  = {conf_class_menu, conf_name, conf_tag, conf_labels, conf_values, conf_check, conf_help};
+conf_menu.val  = {conf_class_menu, conf_name, conf_tag, conf_labels, ...
+                  conf_values, conf_check, conf_help, conf_def};
 conf_menu.help = help2cell('cfg_menu');
 conf_menu.prog = @cfg_cfg_pass;
 conf_menu.vout = @cfg_cfg_vout;
@@ -387,12 +415,16 @@ conf_menu.check = @cfg_cfg_labels_values;
 conf_repeat      = cfg_exbranch;
 conf_repeat.name = 'Repeat';
 conf_repeat.tag  = 'conf_repeat';
-conf_repeat.val  = {conf_class_repeat, conf_name, conf_tag, conf_values, conf_num, conf_forcestruct, conf_check, conf_help};
+conf_repeat.val  = {conf_class_repeat, conf_name, conf_tag, conf_values, ...
+                    conf_num, conf_forcestruct, conf_check, conf_help};
 conf_repeat.help = help2cell('cfg_repeat');
 conf_repeat.prog = @cfg_cfg_pass;
 conf_repeat.vout = @cfg_cfg_vout;
 
-%% Generate code
+%% Output nodes
+
+% Generate code
+%-----------------------------------------------------------------------
 
 gencode_fname         = cfg_entry;
 gencode_fname.name    = 'Output filename';
@@ -413,15 +445,40 @@ gencode_var.name    = 'Root node of config';
 gencode_var.tag     = 'gencode_var';
 gencode_var.strtype = 'e';
 gencode_var.num     = [1 1];
-gencode_var.help    = {'This should be a dependency input from the root node of the application''s configuration tree.'};
+gencode_var.help    = {['This should be a dependency input from the root ' ...
+                    'node of the application''s configuration tree. Use ' ...
+                    'the output of the root configuration item directly, ' ...
+                    'it is not necessary to run "Generate object tree" first.']};
 
 gencode_gen         = cfg_exbranch;
 gencode_gen.name    = 'Generate code';
 gencode_gen.tag     = 'gencode_gen';
 gencode_gen.val     = {gencode_fname, gencode_dir, gencode_var};
-gencode_gen.help    = {'Generate code from a cfg_item tree.'};
+gencode_gen.help    = {['Generate code from a cfg_item tree. This tree can ' ...
+                    'be either a struct (as returned from the ConfGUI ' ...
+                    'modules) or a cfg_item object tree.']};
 gencode_gen.prog    = @cfg_cfg_gencode;
 gencode_gen.vout    = @vout_cfg_gencode;
+
+% Generate object tree without code generation
+%-----------------------------------------------------------------------
+
+genobj_var         = cfg_entry;
+genobj_var.name    = 'Root node of config';
+genobj_var.tag     = 'genobj_var';
+genobj_var.strtype = 'e';
+genobj_var.num     = [1 1];
+genobj_var.help    = {'This should be a dependency input from the root node of the application''s configuration tree.'};
+
+genobj_gen         = cfg_exbranch;
+genobj_gen.name    = 'Generate object tree';
+genobj_gen.tag     = 'genobj_gen';
+genobj_gen.val     = {genobj_var};
+genobj_gen.help    = {['Generate a cfg_item tree as a variable. This can ' ...
+                    'be useful to test a configuration before it is saved ' ...
+                    'into files.']};
+genobj_gen.prog    = @cfg_cfg_genobj;
+genobj_gen.vout    = @vout_cfg_genobj;
 
 %% Assemble Menu
 
@@ -449,16 +506,31 @@ menu_struct.help   = {'These items collect data entry items and build a menu str
 menu_cfg        = cfg_repeat;
 menu_cfg.name   = 'ConfGUI';
 menu_cfg.tag    = 'menu_cfg';
-menu_cfg.values = {menu_entry, menu_struct, gencode_gen};
+menu_cfg.values = {menu_entry, menu_struct, gencode_gen, genobj_gen};
 menu_cfg.help   = help2cell(mfilename);
 
 %% Helper functions
 
+function out = cfg_cfg_genobj(varargin)
+if isa(varargin{1}.genobj_var, 'cfg_item')
+    % use object tree "as is"
+    out.c0 = varargin{1}.gencode_var;
+else
+    % Transform struct into class based tree
+    out.c0 = cfg_struct2cfg(varargin{1}.genobj_var);
+end;
+[u1 out.djob]  = harvest(out.c0, out.c0, true, true);
+
 function out = cfg_cfg_gencode(varargin)
-% Transform struct into class based tree
-c0 = cfg_struct2cfg(varargin{1}.gencode_var);
+if isa(varargin{1}.gencode_var, 'cfg_item')
+    % use object tree "as is"
+    out.c0 = varargin{1}.gencode_var;
+else
+    % Transform struct into class based tree
+    out.c0 = cfg_struct2cfg(varargin{1}.gencode_var);
+end;
 % Generate code
-[str tag] = gencode(c0,'',{},'',cfg_tropts({{}},1,inf,1,inf,true));
+[str tag] = gencode(out.c0,'',{},'',cfg_tropts({{}},1,inf,1,inf,true));
 [p n e v] = fileparts(varargin{1}.gencode_fname);
 out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
 fid = fopen(out.cfg_file{1}, 'w');
@@ -469,14 +541,14 @@ fprintf(fid, ...
          '%% by MATLABBATCH using ConfGUI. It describes menu structure, validity\n' ...
          '%% constraints and links to run time code.\n' ...
          '%% Changes to this file will be overwritten if the ConfGUI batch is executed again.\n' ...
-         '%% Created at %s.\n'], c0.name, datestr(now, 31));
+         '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
 for k = 1:numel(str)
     fprintf(fid, '%s\n', str{k});
 end;
 fclose(fid);
 % Generate defaults file
-[u1 djob]  = harvest(c0, c0, true, true);
-[str dtag] = gencode(djob, sprintf('%s_def', tag));
+[u1 out.djob]  = harvest(out.c0, out.c0, true, true);
+[str dtag] = gencode(out.djob, sprintf('%s_def', tag));
 dn = sprintf('%s_def', n);
 out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
 fid = fopen(out.def_file{1}, 'w');
@@ -488,7 +560,7 @@ fprintf(fid, ...
          '%% menu items and provides a full documentation of all fields that may\n' ...
          '%% be present in a job variable for this application.\n' ...
          '%% Changes to this file will be overwritten if the ConfGUI batch is executed again.\n' ...
-         '%% Created at %s.\n'], c0.name, datestr(now, 31));
+         '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
 for k = 1:numel(str)
     fprintf(fid, '%s\n', str{k});
 end;
@@ -507,7 +579,7 @@ fprintf(fid, ...
  '%%              ''%s''\n' ...
  '%% must be in MATLAB''s path variable.\n' ...
  '%% Created at %s.\n\n'], ...
-        c0.name, c0.name, n, datestr(now, 31));
+        out.c0.name, out.c0.name, n, datestr(now, 31));
 
 fprintf(fid, '%% Get path to this file and add it to MATLAB path.\n');
 fprintf(fid, ['%% If the configuration file is stored in another place, the ' ...
@@ -538,6 +610,16 @@ vout = cfg_dep;
 vout.sname = sprintf('%s (%s)', varargin{1}.name, varargin{1}.type);
 vout.src_output = substruct('()', {1});
 
+function vout = vout_cfg_genobj(varargin)
+vout(1)            = cfg_dep;
+vout(1).sname      = 'Configuration Object Tree';
+vout(1).src_output = substruct('.','c0');
+vout(1).tgt_spec   = cfg_findspec({{'strtype','e'}});
+vout(2)            = cfg_dep;
+vout(2).sname      = 'Configuration Defaults Variable';
+vout(2).src_output = substruct('.','djob');
+vout(2).tgt_spec   = cfg_findspec({{'strtype','e'}});
+
 function vout = vout_cfg_gencode(varargin)
 vout(1)            = cfg_dep;
 vout(1).sname      = 'Generated Configuration File';
@@ -551,3 +633,11 @@ vout(3)            = cfg_dep;
 vout(3).sname      = 'Generated Initialisation File';
 vout(3).src_output = substruct('.', 'mlb_file');
 vout(3).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+vout(4)            = cfg_dep;
+vout(4).sname      = 'Configuration Object Tree';
+vout(4).src_output = substruct('.','c0');
+vout(4).tgt_spec   = cfg_findspec({{'strtype','e'}});
+vout(5)            = cfg_dep;
+vout(5).sname      = 'Configuration Defaults Variable';
+vout(5).src_output = substruct('.','djob');
+vout(5).tgt_spec   = cfg_findspec({{'strtype','e'}});

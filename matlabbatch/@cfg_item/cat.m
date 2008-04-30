@@ -10,9 +10,13 @@ function varargout = cat(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cat.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: cat.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1521 $';
 
-error('matlabbatch:cfg_item:cat', ['Concatenation of cfg_item objects is ' ...
+if nargin > 2
+    error('matlabbatch:cfg_item:cat', ['Concatenation of cfg_item objects is ' ...
                     'not allowed.']);
+else
+    varargout{1} = varargin{2};
+end;

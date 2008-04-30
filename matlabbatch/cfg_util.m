@@ -322,9 +322,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: cfg_util.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1521 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -613,7 +613,7 @@ switch lower(cmd),
             cjob = cfg_util('initjob',varargin{1});
             dflag = true;
         end;
-        jobrun = local_runcj(jobs(cjob), strcmpi(cmd, 'run'));
+        jobrun = local_runcj(jobs(cjob), cjob, strcmpi(cmd, 'run'));
         if dflag
             cfg_util('deljob', cjob);
         end;
@@ -1177,7 +1177,7 @@ job.cjid2subs{id} = rcjsubs;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function cjrun = local_runcj(job, pflag)
+function cjrun = local_runcj(job, cjob, pflag)
 % Matlab uses a copy-on-write policy with very high granularity - if
 % modified, only parts of a struct or cell array are copied.
 % However, forward resolution may lead to high memory consumption if
@@ -1194,7 +1194,7 @@ function cjrun = local_runcj(job, pflag)
 % corresponding modules will not be run again. This feature is currently unused.
 
 fprintf('\n\n-----------------------------------------------------------------------\n');
-fprintf('Running job\n');
+fprintf('Running job #%d\n', cjob);
 fprintf('-----------------------------------------------------------------------\n');
 
 job = local_compactjob(job);
@@ -1300,8 +1300,8 @@ else
     est.identifier = 'cfg_util:run:failed';
     est.message    = sprintf(['Job execution failed. The full log of this run can ' ...
                       'be found in MATLAB command window, starting with ' ...
-                      'the lines\n------------------ \nRunning job ' ...
-                      '\n------------------\n']);
+                      'the lines (look for the line showing the exact #job as displayed in this error message)\n------------------ \nRunning job #%d' ...
+                      '\n------------------\n'], cjob);
     est.stack      = struct('file','','name','MATLABbatch system','line',0);
     error(est);
 end;

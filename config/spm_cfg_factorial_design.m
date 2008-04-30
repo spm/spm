@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1521 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -152,7 +152,7 @@ scans.name    = 'Scans [1,2]';
 scans.help    = {'Select the pair of images. '};
 scans.filter = 'image';
 scans.ufilter = '.*';
-scans.num     = [1 2];
+scans.num     = [2 2];
 % ---------------------------------------------------------------------
 % pair Pair
 % ---------------------------------------------------------------------

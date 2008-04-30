@@ -14,7 +14,8 @@ function [t,sts] = cfg_getfile(varargin)
 %                     Note that it gives the option to select
 %                     individual volumes of the images.
 %           'xml'   - XML files
-%           'mat'   - Matlab .mat files
+%           'mat'   - Matlab .mat files or .txt files (assumed to contain
+%                     ASCII representation of a 2D-numeric array)
 %           'batch' - SPM batch files (.m, .mat and XML)
 %           'dir'   - select a directory
 %           Other strings act as a filter to regexp.  This means
@@ -75,10 +76,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1441 2008-04-18 12:34:13Z volkmar $
+% $Id: cfg_getfile.m 1521 2008-04-30 09:48:09Z volkmar $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1441 2008-04-18 12:34:13Z volkmar $
+% $Id: cfg_getfile.m 1521 2008-04-30 09:48:09Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -1169,7 +1170,7 @@ case {'extimage'},   code = 1; ext = {'.*\.nii(,[0-9]*){0,1}$',...
                             '.*\.NII(,[0-9]*){0,1}$',...
                             '.*\.IMG(,[0-9]*){0,1}$'};
 case {'xml'},     code = 0; ext = {'.*\.xml$','.*\.XML$'};
-case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$'};
+case {'mat'},     code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.txt','.*\.TXT'};
 case {'batch'},   code = 0; ext = {'.*\.mat$','.*\.MAT$','.*\.m$','.*\.M$','.*\.xml$','.*\.XML$'};
 case {'dir'},     code =-1; ext = {'.*'};
 case {'extdir'},     code =-1; ext = {['.*' filesep '$']};

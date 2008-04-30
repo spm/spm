@@ -31,14 +31,14 @@ function sts = match(item, spec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: match.m 1433 2008-04-16 13:36:06Z volkmar $
+% $Id: match.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1433 $';
+rev = '$Rev: 1521 $';
 
 % match an empty spec
 sts = true;
 
-specflt = {'image','nifti','mat','batch','xml','any','dir'};
+specflt = {'image','nifti','mat','mattxt','batch','xml','any','dir'};
 for k = 1:numel(spec)
     % Assume no match
     sts = false;
@@ -83,6 +83,3 @@ for k = 1:numel(spec)
         break;
     end;
 end;
-
-
-function sts = match_filter(cfilt, tfilt)

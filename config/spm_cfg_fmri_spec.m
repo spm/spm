@@ -4,9 +4,9 @@ function fmri_spec = spm_cfg_fmri_spec
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_fmri_spec.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1521 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -302,7 +302,7 @@ multi_reg.help    = {
                      '                                                                                                            '
                      'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'
 }';
-multi_reg.filter = 'mattxt';
+multi_reg.filter = 'mat';
 multi_reg.ufilter = '.*';
 multi_reg.num     = [0 1];
 % ---------------------------------------------------------------------

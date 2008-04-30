@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_realign.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1521 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -347,7 +347,7 @@ for k=1:numel(job.data)
     cdep(1)            = cfg_dep;
     cdep(1).sname      = sprintf('Realignment Param File (Sess %d)', k);
     cdep(1).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
-    cdep(1).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
+    cdep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
     cdep(2)            = cfg_dep;
     cdep(2).sname      = sprintf('Realigned Images (Sess %d)', k);
     cdep(2).src_output = substruct('.','sess', '()',{k}, '.','cfiles');
@@ -367,7 +367,7 @@ for k=1:numel(job.data)
     cdep(1)            = cfg_dep;
     cdep(1).sname      = sprintf('Realignment Param File (Sess %d)', k);
     cdep(1).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
-    cdep(1).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
+    cdep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
     cdep(2)            = cfg_dep;
     cdep(2).sname      = sprintf('Realigned Images (Sess %d)', k);
     cdep(2).src_output = substruct('.','sess', '()',{k}, '.','cfiles');

@@ -29,9 +29,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1366 2008-04-11 10:24:17Z volkmar $
+% $Id: gencode.m 1521 2008-04-30 09:48:09Z volkmar $
 
-rev = '$Rev: 1366 $';
+rev = '$Rev: 1521 $';
 
 %% Class of item
 % Check whether to generate code
@@ -102,8 +102,18 @@ if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
     str = {cstr{:} str{:}};
     str{end+1} = sprintf('%s.val     = {%s};' ,tag, sprintf('%s ', ctag{:}));
 elseif numel(item.val) > 0 && ~isa(item.val{1}, 'cfg_item')
-    str1 = gencode(item.val, sprintf('%s.val', tag), stoptag, tropts);
-    str = {str{:} str1{:}};
+    % Check .def field. Generate code for .val only, if no defaults
+    % defined or value is different from defaults.
+    if ~isempty(item.def)
+        dval = feval(item.def{:});
+        doit = ~isequalwithequalnans(dval, item.val{1});
+    else
+        doit = false;
+    end;
+    if doit
+        str1 = gencode(item.val, sprintf('%s.val', tag), stoptag, tropts);
+        str = {str{:} str1{:}};
+    end;
 end;
 %% Check
 % Generate check field
@@ -122,4 +132,10 @@ if numel(item.help) > 0
     str1 = gencode(item.help, sprintf('%s.help   ', tag), stoptag, tropts);
     str = {str{:} str1{:}};
 end;
-
+%% Def
+% Generate def field
+if ~isempty(item.def)
+    str1 = gencode(item.def, sprintf('%s.def', tag), stoptag, tropts);
+    str = {str{:} str1{:}};
+end;
+    
