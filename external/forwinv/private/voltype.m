@@ -13,6 +13,9 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.7  2008/04/30 13:40:34  roboos
+% improved detection concentric eeg
+%
 % Revision 1.6  2008/04/16 08:04:33  roboos
 % be flexible in determining whether it is bem
 %
@@ -44,7 +47,7 @@ elseif isfield(vol, 'r') && isfield(vol, 'o') && isfield(vol, 'label')
   % and every sphere is still associated with a channel
   type = 'multisphere';
 
-elseif isfield(vol, 'r') && isfield(vol, 'o') && size(vol.r,1)==size(vol.o,1)
+elseif isfield(vol, 'r') && isfield(vol, 'o') && size(vol.r,1)==size(vol.o,1) && size(vol.r,1)>4
   % this is after the spheres have been assigned to the coils
   % note that this one is easy to confuse with the concentric one
   type = 'multisphere';

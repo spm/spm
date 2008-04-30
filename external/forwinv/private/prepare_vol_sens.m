@@ -32,6 +32,10 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.5  2008/04/30 13:47:59  roboos
+% project electrodes on scalp surface if sphere
+% always ensure that grad.tra exists (not yet for elec)
+%
 % Revision 1.4  2008/04/15 20:36:21  roboos
 % added explicit handling of various BEM implementations, i.e. for all voltype variants
 %
@@ -68,6 +72,11 @@ elseif ~ismeg && ~iseeg
   error('the input does not look like EEG, nor like MEG');
 
 elseif ismeg
+  % always ensure that there is a linear transfer matrix for combining the coils into gradiometers
+  if ~isfield(sens, 'tra');
+    sens.tra = sparse(eye(length(sens.label)));
+  end
+
   % select the desired magnetometer/gradiometer channels
   % first only modify the linear combination of coils into channels
   sel = match_str(sens.label, channel);
@@ -154,7 +163,6 @@ elseif ismeg
   end
 
 elseif iseeg
-
   % select the desired electrodes
   sel = match_str(sens.label, channel);
   sens.label = sens.label(sel);
@@ -167,11 +175,28 @@ elseif iseeg
     case 'infinite'
       % nothing to do
 
-    case 'singlesphere'
-      % nothing to do
-
-    case 'concentric'
-      % nothing to do
+    case {'singlesphere', 'concentric'}
+      % ensure that the electrodes ly on the skin surface
+      radius = max(vol.r);
+      pnt    = sens.pnt;
+      if isfield(vol, 'o')
+        % shift the the centre of the sphere to the origin
+        pnt(:,1) = pnt(:,1) - vol.o(1);
+        pnt(:,2) = pnt(:,2) - vol.o(2);
+        pnt(:,3) = pnt(:,3) - vol.o(3);
+      end
+      distance = sqrt(sum(pnt.^2,2)); % to the center of the sphere
+      if any((abs(distance-radius)/radius)>0.005)
+        warning('electrodes do not ly on skin surface -> using radial projection')
+      end
+      pnt = pnt * radius ./ [distance distance distance];
+      if isfield(vol, 'o')
+        % shift the center back to the original location
+        pnt(:,1) = pnt(:,1) + vol.o(1);
+        pnt(:,2) = pnt(:,2) + vol.o(2);
+        pnt(:,3) = pnt(:,3) + vol.o(3);
+      end
+      sens.pnt = pnt;
 
     case {'bem', 'dipoli', 'asa', 'avo'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,6 +243,13 @@ elseif iseeg
     otherwise
       error('unsupported volume conductor model for EEG');
   end
+
+  % FIXME this needs carefull throught to ensure that the average referencing which is now done here and there, and that the linear interpolation in case of BEM are all dealt with consistently
+  % % always ensure that there is a linear transfer matrix for
+  % % rereferencing the EEG potential
+  % if ~isfield(sens, 'tra');
+  %   sens.tra = sparse(eye(length(sens.label)));
+  % end
 
 end % if iseeg or ismeg
 

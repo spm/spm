@@ -13,8 +13,8 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %   'maxiter'     = Maximum number of function evaluations allowed [ positive integer ]
 %   'metric'      = Error measure to be minimised [ rv | var | abs ]
 %   'checkinside' = Boolean flag to check whether dipole is inside source compartment [ 0 | 1 ]
-%   'cov'         = estimated data covariance matrix, for maximum likelihood estimation
-% 
+%   'weight'      = weight matrix for maximum likelihood estimation, e.g. inverse noise covariance
+%
 % The following optional input arguments relate to the computation of the leadfields
 %   'reducerank'      = 'no' or number
 %   'normalize'       = 'no', 'yes' or 'column'
@@ -28,6 +28,9 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: dipole_fit.m,v $
+% Revision 1.11  2008/04/30 13:48:57  roboos
+% finished implementation of MLE fitting, renamed cov into weight (inverse should be done outside this function)
+%
 % Revision 1.10  2008/04/29 15:41:53  roboos
 % added skelleton for MAP estimation, but the covariance is not passed yet to lower level function
 %
@@ -123,7 +126,7 @@ maxiter        = keyval('maxiter',        varargin);
 reducerank     = keyval('reducerank',     varargin); % for leadfield computation
 normalize      = keyval('normalize' ,     varargin); % for leadfield computation
 normalizeparam = keyval('normalizeparam', varargin); % for leadfield computation
-cov            = keyval('cov',            varargin); % for maximum likelihood estimation
+weight            = keyval('weight',            varargin); % for maximum likelihood estimation
 
 % determine whether the Matlab Optimization toolbox can be used
 if isempty(optimfun)
@@ -201,13 +204,13 @@ if strcmp(optimfun, 'fminunc')
     'MaxIter',maxiter,...
     'MaxFunEvals',2*maxiter*length(param),...
     'Display',display);
-  [param, fval, exitflag, output] = fminunc(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam);
+  [param, fval, exitflag, output] = fminunc(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight);
 else
   % do non-linear optimization of the dipole parameters using standard Matlab fminsearch()
   options = optimset('MaxIter',maxiter,...
     'MaxFunEvals',2*maxiter*length(param),...
     'Display',display);
-  [param, fval, exitflag, output] = fminsearch(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam);
+  [param, fval, exitflag, output] = fminsearch(@dipfit_error, param, options, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight);
 end
 
 if exitflag==0
@@ -215,7 +218,7 @@ if exitflag==0
 end
 
 % do linear optimization of dipole moment parameters
-[err, mom] = dipfit_error(param, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam);
+[err, mom] = dipfit_error(param, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight);
 
 % expand the number of parameters according to the constraints
 if isfield(constr, 'mirror')
@@ -250,7 +253,7 @@ end
 % DIPFIT_ERROR computes the error between measured and model data
 % and can be used for non-linear fitting of dipole position
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [err, mom] = dipfit_error(param, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam)
+function [err, mom] = dipfit_error(param, dat, sens, vol, constr, metric, checkinside, reducerank, normalize, normalizeparam, weight)
 
 % flush pending graphics events, ensure that fitting is interruptible
 drawnow;
@@ -294,26 +297,25 @@ if isfield(constr, 'fixedori') && constr.fixedori
   lf = lf * ori;
 end
 
-% FIXME continue with implementation
-invcov = [];
-
 % compute the optimal dipole moment and the model error
-if ~isempty(invcov)
-  mom = pinv(lf'*invcov*lf)*lf'*invcov*dat;  % Lutkenhoner equation 5
+if ~isempty(weight)
+  % maximum likelihood estimation using the weigth matrix
+  mom = pinv(lf'*weight*lf)*lf'*weight*dat;  % Lutkenhoner equation 5
   dif = dat - lf*mom;
-  % compute the generalized goodness-of-fit measure that is weighted with the inverse data covariance
+  % compute the generalized goodness-of-fit measure
   switch metric
     case 'rv' % relative residual variance
-      num   = dif * invcov * dif';
-      denom = dat * invcov * dat';
+      num   = dif' * weight * dif;
+      denom = dat' * weight * dat;
       err   = sum(num(:)) ./ sum(denom(:)); % Lutkenhonner equation 7, except for the gof=1-rv
     case 'var' % residual variance
-      num   = dif * invcov * dif';
+      num   = dif' * weight * dif';
       err   = sum(num(:));
     otherwise
       error('Unsupported error metric for maximum likelihood dipole fitting');
-   end
+  end
 else
+  % ordinary least squares, this is the same as MLE with weight=eye(nchans,nchans)
   mom = pinv(lf)*dat;
   dif = dat - lf*mom;
   % compute the ordinary goodness-of-fit measures
