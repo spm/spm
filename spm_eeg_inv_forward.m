@@ -13,16 +13,12 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 1507 2008-04-29 10:44:36Z vladimir $
+% $Id: spm_eeg_inv_forward.m 1523 2008-04-30 17:33:04Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-
-if strcmp(D.inv{val}.modality, 'MEG')
-    error('MEG support is under construction');
-end
 
 % Head Geometry (create tesselation file)
 %--------------------------------------------------------------------------
@@ -40,13 +36,43 @@ sens = D.inv{val}.datareg.sensors;
 % Forward computation
 %--------------------------------------------------------------------------
 [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.inv{val}.forward.channels);
-Gxyz  = forwinv_compute_leadfield(vert, sens, vol) ;
-%%
-G = [];
-for i = 1:size(norm, 1)
-    G = [G Gxyz(:, (3*i- 2):(3*i))*norm(i, :)'];
+
+nvert = size(vert, 1);
+
+spm('Pointer', 'Watch');drawnow;
+spm_progress_bar('Init', nvert, 'Computing leadfields'); drawnow;
+if nvert > 100, Ibar = floor(linspace(1, nvert,100));
+else Ibar = [1:nvert]; end
+
+Gxyz = zeros(length(D.inv{val}.forward.channels), 3*nvert);
+for i = 1:nvert
+
+    Gxyz(:, (3*i- 2):(3*i))  = forwinv_compute_leadfield(vert(i, :), sens, vol);
+
+    if ismember(i, Ibar)
+        spm_progress_bar('Set', i); drawnow;
+    end
+
 end
 
+spm_progress_bar('Clear');
+%%
+spm_progress_bar('Init', nvert, 'Orienting leadfields'); drawnow;
+
+G = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);
+for i = 1:nvert
+    
+    G(:, i) = Gxyz(:, (3*i- 2):(3*i))*norm(i, :)';
+
+    if ismember(i, Ibar)
+        spm_progress_bar('Set', i); drawnow;
+    end
+
+end
+
+spm_progress_bar('Clear');
+
+spm('Pointer', 'Arrow');drawnow;
 
 % Save
 %--------------------------------------------------------------------------

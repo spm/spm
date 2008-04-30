@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 1490 2008-04-28 11:16:29Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 1523 2008-04-30 17:33:04Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -24,18 +24,7 @@ end
 if nargin > 2
     modality = varargin{3};
 else
-    iseeg = ~isempty(strmatch('EEG', D.chantype));
-    ismeg = ~isempty(strmatch('MEG', D.chantype));
-
-    if iseeg && ismeg
-        modality = spm_input('Which modality?','+1','EEG|MEG');
-    elseif iseeg
-        modality = 'EEG';
-    elseif ismeg
-        modality = 'MEG';
-    else
-        error('No MEEG channels in the data');
-    end
+    modality = spm_eeg_modality_ui(D, 1);
 end
 
 D.inv{val}.modality = modality;
@@ -53,20 +42,43 @@ S.meegfid = D.fiducials;
 S.vol = D.inv{val}.forward.vol;
 S.mrifid = D.inv{val}.datareg.fid_mri;
 S.template = D.inv{val}.mesh.template;
-
 %--------------------------------------------------------------------------
+
+M1 = spm_eeg_inv_datareg(S);
+
 switch D.inv{val}.modality
     case 'EEG'
-        [M1, sens, fid] = spm_eeg_inv_datareg_eeg(S);
+        D.inv{val}.datareg.sensors = forwinv_transform_sens(M1, S.sens);
+        D.inv{val}.datareg.fid_eeg = forwinv_transform_headshape(M1, S.meegfid);
+        D.inv{val}.datareg.fid_mri = S.mrifid;
     case 'MEG'
-        error('MEG support is under construction');
+        D.inv{val}.forward.vol = forwinv_transform_vol(inv(M1), S.vol);
+        D.inv{val}.datareg.fid_mri = forwinv_transform_headshape(inv(M1), S.mrifid);
+        D.inv{val}.mesh = spm_eeg_inv_transform_mesh(inv(M1), D.inv{val}.mesh);
+        D.inv{val}.datareg.sensors = S.sens;
+        D.inv{val}.datareg.fid_eeg = S.meegfid;    
 end
 
-D.inv{val}.datareg.sensors = sens;
-D.inv{val}.datareg.fid_eeg   = fid;
+%%
+S =[];
 
-S.sens = sens;
-S.meegfid = fid;
+switch D.inv{val}.modality
+    case 'EEG'
+        S.sens = D.inv{val}.datareg.sensors;
+    case 'MEG'
+        % FIXME This is a temporary dirty fix for CTF MEG before 3D layout
+        % is available
+        sens = D.inv{val}.datareg.sensors;
+        [sel1 sel2] = spm_match_str(D.inv{val}.forward.channels, sens.label);
+        S.sens = [];
+        S.sens.label = D.inv{val}.forward.channels;
+        pnt = ((sens.tra)./repmat(sum(sens.tra, 2), 1, size(sens.tra, 2)))*sens.pnt;
+        S.sens.pnt = pnt(sel2 ,:);
+end
+        
+S.meegfid = D.inv{val}.datareg.fid_eeg;
+S.vol = D.inv{val}.forward.vol;
+S.mrifid = D.inv{val}.datareg.fid_mri;
 S.mesh = D.inv{val}.mesh;
 
 % check and display registration

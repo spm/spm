@@ -4,7 +4,7 @@ function this = subsasgn(this,subs,dat)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: subsasgn.m 1243 2008-03-25 23:02:44Z stefan $
+% $Id: subsasgn.m 1523 2008-04-30 17:33:04Z vladimir $
 
 if isempty(subs)
     return;
@@ -19,7 +19,7 @@ if strcmp(subs(1).type, '.')
         error('meeg method names cannot be used for custom fields');
     else
         if isempty(this.other)
-            this.other = struct(subs(1).subs, dat);
+            this.other = struct(subs(1).subs, {dat});
         else
             this.other = subsasgn(this.other, subs, dat);
         end

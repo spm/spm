@@ -1,4 +1,4 @@
-function res = isfield(this,fieldname)
+function res = isfield(this, varargin)
 % Returns true if the string fieldname is the name of a field in the 
 % substructure 'other' in the meeg object 'this'.
 % FORMAT res = isfield(this,fieldname)
@@ -10,8 +10,4 @@ function res = isfield(this,fieldname)
 % Christophe Phillips
 % $$
 
-if isfield(this.other,fieldname)
-    res = true;
-else
-    res = false;
-end
+res = isfield(this.other, varargin{:});

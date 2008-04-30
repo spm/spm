@@ -13,30 +13,29 @@ function [D,val] = spm_eeg_inv_check(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Karl Friston
-% $Id: spm_eeg_inv_check.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_check.m 1523 2008-04-30 17:33:04Z vladimir $
 
 
 % Check - prompt for file if necessary
 %--------------------------------------------------------------------------
-try
+
+if nargin == 0
+    D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
+else
     D = varargin{1};
-    D.inv;
-catch
-    try
-        D = spm_eeg_load(D);
-        D.inv;
-    catch
-        D = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-        D = spm_eeg_load(D);
-        
-        % Check for inversion
-        %------------------------------------------------------------------
-        if ~isfield(D,'inv')
-            warndlg('No inverse structure has been created yet');
-            return
-        end
-    end
 end
+
+if ~isa(D, 'meeg')
+    D = spm_eeg_load(D);
+end
+
+% Check for inversion
+%------------------------------------------------------------------
+if ~isfield(D,'inv')
+    val = 0;
+    return
+end
+
 
 % set val = 1 if only one model
 %--------------------------------------------------------------------------

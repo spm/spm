@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1490 2008-04-28 11:16:29Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 1523 2008-04-30 17:33:04Z vladimir $
 
 
 spm('defaults','EEG');
@@ -73,12 +73,7 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in Reg2tem.
 %--------------------------------------------------------------------------
 function Reg2tem_Callback(hObject, eventdata, handles)
-str       = 'Mesh size (vertices)';
-Msize = spm_input(str,'+1','3000|4000|5000|7200',[1 2 3 4]);
-[vol,fid,mesh] = spm_eeg_inv_template(Msize);
-handles.D.inv{handles.D.val}.mesh = mesh;
-handles.D.inv{handles.D.val}.datareg.fid_mri = fid;
-handles.D.inv{handles.D.val}.forward.vol = vol;
+handles.D = spm_eeg_inv_template_ui(handles.D);
 set(handles.CreateMeshes,'enable','off');
 Reset(hObject, eventdata, handles);
 
@@ -381,7 +376,34 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in CheckReg.
 %--------------------------------------------------------------------------
 function CheckReg_Callback(hObject, eventdata, handles)
-spm_eeg_inv_checkdatareg(handles.D);
+
+D = handles.D;
+
+S =[];
+
+switch D.inv{D.val}.modality
+    case 'EEG'
+        S.sens = D.inv{D.val}.datareg.sensors;
+    case 'MEG'
+        % FIXME This is a temporary dirty fix for CTF MEG before 3D layout
+        % is available
+        sens = D.inv{D.val}.datareg.sensors;
+        [sel1 sel2] = spm_match_str(D.inv{D.val}.forward.channels, sens.label);
+        S.sens = [];
+        S.sens.label = D.inv{D.val}.forward.channels;
+        pnt = ((sens.tra)./repmat(sum(sens.tra, 2), 1, size(sens.tra, 2)))*sens.pnt;
+        S.sens.pnt = pnt(sel2 ,:);
+end
+        
+S.meegfid = D.inv{D.val}.datareg.fid_eeg;
+S.vol = D.inv{D.val}.forward.vol;
+S.mrifid = D.inv{D.val}.datareg.fid_mri;
+S.mesh = D.inv{D.val}.mesh;
+
+% check and display registration
+%--------------------------------------------------------------------------
+spm_eeg_inv_checkdatareg(S);
+
 Reset(hObject, eventdata, handles);
 
 % --- Executes on button press in CheckForward.

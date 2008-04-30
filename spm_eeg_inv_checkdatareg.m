@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 1523 2008-04-30 17:33:04Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -55,8 +55,10 @@ set(h_fidmr,'MarkerFaceColor','m','MarkerSize',12,'MarkerEdgeColor','k');
 
 % headshape locations
 %--------------------------------------------------------------------------
-h_hsp   = plot3(Lhsp(:,1),Lhsp(:,2),Lhsp(:,3),'dm');
-set(h_hsp,'MarkerFaceColor','r','MarkerSize',4,'MarkerEdgeColor','r');
+if ~isempty(Lhsp)
+    h_hsp   = plot3(Lhsp(:,1),Lhsp(:,2),Lhsp(:,3),'dm');
+    set(h_hsp,'MarkerFaceColor','r','MarkerSize',4,'MarkerEdgeColor','r');
+end
 
 % Sensors (coreg.)
 %--------------------------------------------------------------------------
