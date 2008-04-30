@@ -1,9 +1,9 @@
-function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag)
+function [fid, sens, label] = read_polhemus_fil(Fname_pol,skip)
 
 % Reads Polhemus files:
 %   either sensor file or headshape file or both
 %
-% FORMAT [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname.pol, skip, figflag)
+% FORMAT [fid, sens, label] = read_polhemus_fil(Fname_pol,skip)
 % Input:
 % Fname_pol - Polhemus ASCII file containing sensor locations (cm)
 %             (headshape can also be considered here instead of sensors)
@@ -12,6 +12,7 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag)
 % Output:
 % fid       - fiducial         locations (mm) in rows
 % sens      - sensor/headshape locations (mm) in rows
+% label - labels of the fiducials
 %
 % IMPORTANT: Note that Polhemus data files should be -ASCII files with
 % extension .pol
@@ -25,14 +26,12 @@ function [fid, sens] = spm_eeg_inv_ReadPolhemus(Fname_pol,skip,figflag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: read_polhemus_fil.m,v 1.1 2008/04/11 12:08:04 roboos Exp $
-
+% $Id: read_polhemus_fil.m,v 1.3 2008/04/30 10:07:44 vlalit Exp $
 
 
 % checks and assigments
 %--------------------------------------------------------------------------
 try, skip;    catch, skip    = 0; end
-try, figflag; catch, figflag = 0; end
 
 [pth,nam,ext] = fileparts(Fname_pol);
 if ~strcmp(ext,'.pol')
@@ -85,6 +84,8 @@ end
 %--------------------------------------------------------------------------
 NZ    = mean(NZ,1); LE = mean(LE,1); RE = mean(RE,1);
 fid   = 10*[NZ; LE; RE]; 
+
+label = {'NZ', 'LE', 'RE'};
 
 % read sensor locations or headshape locations
 %--------------------------------------------------------------------------
