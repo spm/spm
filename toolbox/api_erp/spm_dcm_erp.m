@@ -26,7 +26,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1507 2008-04-29 10:44:36Z vladimir $
+% $Id: spm_dcm_erp.m 1534 2008-05-01 15:51:32Z vladimir $
  
 % check options 
 %==========================================================================
@@ -360,7 +360,7 @@ if strcmp(M.dipfit.type,'Imaging')
     % append DCM results and save in structure
     %----------------------------------------------------------------------
     try, val = DCM.val;  catch, val = 1; end
-    D        = spm_eeg_ldata(DCM.xY.Dfile);
+    D        = spm_eeg_load(DCM.xY.Dfile);
     
     D.inv{end + 1}      = D.inv{val};
     D.inv{end}.date     = date;
@@ -370,8 +370,7 @@ if strcmp(M.dipfit.type,'Imaging')
     try
         D.inv{end}      = rmfield(D.inv{end},'contrast');
     end
-    save(D)
- 
+    save(D);
 end
  
 % and save
