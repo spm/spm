@@ -46,7 +46,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_eeg_invert.m 1531 2008-05-01 14:17:54Z vladimir $
 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -190,7 +190,7 @@ for i = 1:Nl
     % Peri-stimulus time
     %----------------------------------------------------------------------
     pst{i} = 1000*D{i}.time;
-    pst{i} = pst{i}(pst{i}>=w{i}(1) & pst{i}<=w{i}(2)); % peristimulus time (ms)
+    pst{i} = pst{i}(It{i});                             % peristimulus time (ms)
     dur    = (pst{i}(end) - pst{i}(1))/1000;            % duration (s)
     dct{i} = (It{i} - It{i}(1))/2/dur;                  % DCT frequenices (Hz)
     Nb(i)  = length(It{i});                             % number of time bins

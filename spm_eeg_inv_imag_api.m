@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1523 2008-04-30 17:33:04Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 1531 2008-05-01 14:17:54Z vladimir $
 
 
 spm('defaults','EEG');
@@ -126,6 +126,18 @@ Reset(hObject, eventdata, handles);
 function Load_Callback(hObject, eventdata, handles)
 S = spm_select(1, '.mat', 'Select EEG/MEG mat file');
 D = spm_eeg_load(S);
+
+[ok, D] = check(D, 'sensfid');
+
+if ~ok
+    if check(D, 'basic')
+        warndlg(['The requested file is not ready for source reconstruction.'...
+            'Use prep to specify sensors and fiducials.']);
+    else
+        warndlg('The meeg file is corrupt or incomplete');
+    end
+    return
+end
 
 set(handles.DataFile,'String',D.fname);
 set(handles.Exit,'enable','on');

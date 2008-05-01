@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1509 2008-04-29 10:58:50Z guillaume $
+% $Id: spm.m 1531 2008-05-01 14:17:54Z vladimir $
 
 
 %=======================================================================
@@ -421,9 +421,7 @@ if strcmpi(Modality,'EEG')
     addpath(fullfile(spm('Dir'),'external','fieldtrip'));
     addpath(fullfile(spm('Dir'),'external','fileio'));
     addpath(fullfile(spm('Dir'),'external','forwinv'));
-    addpath(fullfile(spm('Dir'),'external','brainstorm'));
 end
-
 
 %=======================================================================
 case 'defaults'                 %-Set SPM defaults (as global variables)
@@ -525,9 +523,9 @@ case 'winscale'                  %-Window scale factors (to fit display)
 % WS = spm('WinScale')
 %-----------------------------------------------------------------------
 if spm_matlab_version_chk('7') >=0
-    S0 = get(0, 'MonitorPosition');
+    S0 = get(0, 'MonitorPosition')
 else
-    S0 = get(0,'ScreenSize');
+    S0 = get(0,'ScreenSize')
 end
 if all(S0(:)==1), error('Can''t open any graphics windows...'), end
 

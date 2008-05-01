@@ -9,8 +9,8 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Jeremie Mattout
-% $Id: spm_eeg_inv_datareg_ui.m 1523 2008-04-30 17:33:04Z vladimir $
+% Vladimir Litvak
+% $Id: spm_eeg_inv_datareg_ui.m 1531 2008-05-01 14:17:54Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------

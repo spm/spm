@@ -29,7 +29,7 @@ function D = meeg(varargin)
 % .Nsamples - length of the trial (whole data if the file is continuous).
 % .timeOnset - the peri-stimulus time of the first sample in the trial (in sec)
 %
-% .fname, .path - strings added by spm_eeg_ldata to keep track of where a 
+% .fname, .path - strings added by spm_eeg_load to keep track of where a 
 %                 header struct was loaded from.
 %
 % .trials - this describes the segments of the epoched file and is also a 
@@ -102,7 +102,7 @@ function D = meeg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 1474 2008-04-24 11:33:39Z vladimir $
+% $Id: meeg.m 1531 2008-05-01 14:17:54Z vladimir $
 
 if nargin==1
     if isstruct(varargin{1})

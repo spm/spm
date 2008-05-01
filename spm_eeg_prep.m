@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1510 2008-04-29 10:59:01Z vladimir $
+% $Id: spm_eeg_prep.m 1531 2008-05-01 14:17:54Z vladimir $
 
 D = S.D;
 
@@ -88,6 +88,8 @@ switch S.task
         fid.fid = elec;
         fid.pnt = elec.pnt;
         
+        fid = forwinv_convert_units(fid, 'mm');
+        
         D = fiducials(D, fid);
 
     case 'headshape'
@@ -113,11 +115,22 @@ switch S.task
 
                 if size(headshape, 1) > fidnum
                     shape.pnt = headshape((fidnum+1):end, :);
+                else
+                    shape.pnt = [];
                 end
             otherwise
                 shape = fileio_read_headshape(S.headshapefile);
+                
+                % In case electrode file is used for fiducials, the
+                % electrodes can be used as headshape
+                if ~isfield(shape, 'pnt') || isempty(shape.pnt) && ...
+                        size(shape.fid.pnt, 1) > 3
+                    shape.pnt = shape.fid.pnt;
+                end                    
         end
 
+        shape = forwinv_convert_units(shape, 'mm');
+        
         D = fiducials(D, shape);
         
     case 'coregister'
