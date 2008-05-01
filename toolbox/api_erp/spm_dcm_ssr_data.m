@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_dcm_ssr_data.m 1536 2008-05-01 18:32:41Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -39,11 +39,44 @@ end
 
 % load D
 %--------------------------------------------------------------------------
-D         = spm_eeg_ldata(Dfile);
+try
+    D = spm_eeg_load(Dfile);
+catch
+    try
+        [p,f]        = fileparts(Dfile);
+        D            = spm_eeg_load(f);
+        DCM.xY.Dfile = fullfile(pwd,f);
+    catch
+        try
+            [f,p]        = uigetfile('*.mat','please select data file');
+            name         = fullfile(p,f);
+            D            = spm_eeg_load(name);
+            DCM.xY.Dfile = fullfile(name);
+        catch
+            warndlg([Dfile ' could not be found'])
+            return
+        end
+    end
+end
+
  
 % indices of EEG channel (excluding bad channels)
 %--------------------------------------------------------------------------
-Ic        = setdiff(D.channels.eeg, D.channels.Bad);
+if ~isfield(DCM.xY, 'modality')
+    DCM.xY.modality = spm_eeg_modality_ui(D);
+end
+
+modality = DCM.xY.modality;
+channels = D.chanlabels;
+
+if ~isfield(DCM.xY, 'Ic')
+    Ic = strmatch(modality, D.chantype);
+    Ic = setdiff(Ic, D.badchannels);
+    DCM.xY.Ic       = Ic;
+end
+
+Ic = DCM.xY.Ic;
+
 Nc        = length(Ic);
 Nm        = size(DCM.M.U,2);
 DCM.xY.Ic = Ic;
@@ -58,13 +91,13 @@ end
 try
     trial = DCM.options.trials;
 catch
-    trial = 1:length(D.events.types);
+    trial = D.nconditions;
 end
  
 % check data are not oversampled (< 4ms)
 %--------------------------------------------------------------------------
-if DT/D.Radc < 0.004
-    DT            = ceil(0.004*D.Radc);
+if DT/D.fsample < 0.004
+    DT            = ceil(0.004*D.fsample);
     DCM.options.D = DT;
 end
  
@@ -75,7 +108,7 @@ try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    DCM.xY.Time = 1000*[-D.events.start:D.events.stop]/D.Radc; % ms
+    DCM.xY.Time = 1000*D.time; % ms
     T1          = DCM.options.Tdcm(1);
     T2          = DCM.options.Tdcm(2);
     [i, T1]     = min(abs(DCM.xY.Time - T1));
@@ -85,7 +118,7 @@ try
     It          = [T1:DT:T2]';               % indices - bins
     DCM.xY.pst  = DCM.xY.Time(It);           % PST
     DCM.xY.It   = It;                        % Indices of time bins
-    DCM.xY.dt   = DT/D.Radc;                 % sampling in seconds
+    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
     Nb          = length(It);                % number of bins
     
 catch
@@ -130,15 +163,12 @@ end
  
 % Cross spectral density for each trial type
 %==========================================================================
+condlabels = unique(D.conditions);
 for i = 1:Ne;
    
     % trial indices
     %----------------------------------------------------------------------
-    if isfield(D.events,'reject')
-        c = find(D.events.code == D.events.types(trial(i)) & ~D.events.reject);
-    else
-        c = find(D.events.code == D.events.types(trial(i)));
-    end
+    c = D.pickconditions(condlabels{i});
     
     % use only the first 512 trial
     %----------------------------------------------------------------------
@@ -152,7 +182,7 @@ for i = 1:Ne;
     for j = 1:Nt
         
         fprintf('\nevaluating condition %i (trial %i)',i,j)
-        Y   = D.data(Ic,It,c(j))'*DCM.M.U;
+        Y   = D(Ic,It,c(j))'*DCM.M.U;
         mar = spm_mar(Y,8);
         mar = spm_mar_spectra(mar,DCM.xY.Hz,1/DCM.xY.dt);
         P   = P + abs(mar.P);
@@ -170,4 +200,4 @@ end
 %==========================================================================
 DCM.xY.y    =spm_cond_units(DCM.xY.csd); 
 DCM.xY.U    = DCM.M.U;
-DCM.xY.code = D.events.code(trial);
+DCM.xY.code = condlabels(trial);

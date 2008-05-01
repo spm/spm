@@ -29,7 +29,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_dcm_erp_data.m 1536 2008-05-01 18:32:41Z vladimir $
 
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -83,8 +83,6 @@ if ~isfield(DCM.xY, 'Ic')
 end
 
 Ic = DCM.xY.Ic;
-
-
 
 Nc              = length(Ic);
 DCM.xY.name     = channels(Ic);

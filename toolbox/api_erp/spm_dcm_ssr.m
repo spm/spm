@@ -23,7 +23,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_dcm_ssr.m 1536 2008-05-01 18:32:41Z vladimir $
  
  
 % check options 
@@ -73,6 +73,11 @@ switch DCM.xY.modality
         %------------------------------------------------------------------
         L     = 0;
         dGdg  = spm_diff('spm_erp_L',pE,DCM.M,1);
+        
+        if ~iscell(dGdg)
+            dGdg = {dGdg};
+        end
+        
         for i = 1:length(dGdg)
             L = L + pC(i,i)*dGdg{i}*dGdg{i}';
         end
