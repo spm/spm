@@ -27,7 +27,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_erp_L.m 1535 2008-05-01 17:08:22Z vladimir $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -51,75 +51,29 @@ switch type
     %----------------------------------------------------------------------
     case{'ECD'}
 
-        switch modality
-
-            % EEG
-            %--------------------------------------------------------------
-            case{'EEG'}
-
-                % re-compute lead field only if any dipoles changed
-                %----------------------------------------------------------
-                try
-                    Id = find(any(LastLpos ~= P.Lpos));
-                catch
-                    Id = 1:n;
-                end
-
-                % record new spatial parameters
-                %----------------------------------------------------------
-                LastLpos = P.Lpos;
-
-                % note that in all DCM code, EEG coordinates are in MNI
-                % space-orientation. Transform here to POL space and add
-                % translation to relate coordinates to centre of sphere
-                %----------------------------------------------------------
-                iMt  = M.dipfit.Mmni2polsphere;
-                iSt  = iMt; iSt(1:3,4) = 0;
-
-                Lpos = iMt*[P.Lpos; ones(1,n)];
-                Lmom = iSt*[P.L   ; ones(1,n)];
-                Lpos = Lpos(1:3,:);
-                Lmom = Lmom(1:3,:);
-
-                for i = Id
-                    Lf = fieldtrip_eeg_leadfield4(Lpos(:,i), M.dipfit.elc, M.dipfit.vol);
-                    LastL(:,:,i) = Lf;
-                end
-                G    = spm_cond_units(LastL);
-                for i = 1:n
-                    L(:,i) = G(:,:,i)*Lmom(:,i);
-                end
-
-
-            % MEG
-            %--------------------------------------------------------------
-            case{'MEG'}
-
-                % re-compute lead field only if any dipoles changed
-                %----------------------------------------------------------
-                try
-                    Id = find(any(LastLpos ~= P.Lpos));
-                catch
-                    Id = 1:n;
-                end
-
-                % record new locations and compute new lead field components
-                %----------------------------------------------------------
-                LastLpos = P.Lpos;
-
-                for i = Id
-                    Lf = fieldtrip_meg_leadfield(P.Lpos(:,i)', M.grad, M.dipfit.vol);
-                    LastL(:,:,i) = Lf;
-                end
-                G    = spm_cond_units(LastL);
-                for i = 1:n
-                    L(:,i) = G(:,:,i)*P.L(:,i);
-                end
-
+        % re-compute lead field only if any dipoles changed
+        %----------------------------------------------------------
+        try
+            Id = find(any(LastLpos ~= P.Lpos));
+        catch
+            Id = 1:n;
         end
 
-    % Imaging solution {specified in M.dipfit.G}
-    %----------------------------------------------------------------------
+        % record new spatial parameters
+        %----------------------------------------------------------
+        LastLpos = P.Lpos;
+
+        for i = Id
+            Lf = forwinv_compute_leadfield(P.Lpos(:,i), M.dipfit.sens, M.dipfit.vol);
+            LastL(:,:,i) = Lf;
+        end
+        G    = spm_cond_units(LastL);
+        for i = 1:n
+            L(:,i) = G(:,:,i)*P.L(:,i);
+        end
+              
+        % Imaging solution {specified in M.dipfit.G}
+        %----------------------------------------------------------------------
     case{'Imaging'}
 
         % re-compute lead field only if any coeficients have changed
@@ -138,8 +92,8 @@ switch type
         LastLpos = P.L;
         L        = LastL;
 
-    % LFP or sources - no lead feild required
-    %----------------------------------------------------------------------
+        % LFP or sources - no lead field required
+        %----------------------------------------------------------------------
     case{'LFP'}
 
         L = sparse(diag(P.L));

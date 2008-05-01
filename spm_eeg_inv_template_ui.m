@@ -6,7 +6,7 @@ function [D val] = spm_eeg_inv_template_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_template_ui.m 1523 2008-04-30 17:33:04Z vladimir $
+% $Id: spm_eeg_inv_template_ui.m 1535 2008-05-01 17:08:22Z vladimir $
 
 [D,val] = spm_eeg_inv_check(varargin{:});
 
@@ -23,7 +23,7 @@ end
 [eegvol, megvol, fid, mesh] = spm_eeg_inv_template(Msize);
 
 if ~isfield(D, 'inv')
-    D.inv = {struct([])};
+    D.inv = {};
 end
 
 D.inv{val}.mesh = mesh;

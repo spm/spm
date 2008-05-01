@@ -23,7 +23,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1534 2008-05-01 15:51:32Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 1535 2008-05-01 17:08:22Z vladimir $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -90,86 +90,89 @@ try
 catch
     D = spm_eeg_inv_template_ui(D, D.val, 4);
     D = spm_eeg_inv_datareg_ui(D, D.val);
-    DCM.M.dipfit.vol = D.inv{D.val}.forward.vol;
-    DCM.M.dipfit.datareg = D.inv{D.val}.datareg;
 end
 
-% Imaging (distributed source reconstruction)
-%======================================================================
-if DCM.options.type == 2
+[DCM.M.dipfit.vol, DCM.M.dipfit.sens] = forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
+    D.inv{D.val}.datareg.sensors, 'channel', D.inv{D.val}.forward.channels);
 
-    % Load Gain or Lead field matrix
-    %------------------------------------------------------------------
-    DCM.val = D.val;
-    try
-        gainmat = D.inv{D.val}.forward.gainmat;
-    catch
-        D = spm_eeg_inv_forward_ui(D, D.val);
-        gainmat = D.inv{D.val}.forward.gainmat;
-    end
+switch DCM.options.type
+    case 1 %ECD
+        DCM.M.dipfit.type = 'ECD';
+    case 2  % Imaging (distributed source reconstruction)
+        DCM.M.dipfit.type = 'Imaging';
 
-    try
-        L       = load(gainmat);
-    catch
-        [p,f]   = fileparts(gainmat);
-        L       = load(f);
-        gainmat = fullfile(pwd,f);
-    end
-
-    name    = fieldnames(L);
-    L       = sparse(getfield(L, name{1}));
-    L       = spm_cond_units(L);
-
-    % centers
-    %------------------------------------------------------------------
-    xyz = DCM.M.dipfit.Lpos;
-    Np  = size(xyz,2);
-
-    % parameters
-    %==================================================================
-
-    % defaults: Nm = 8; number of modes per region
-    %------------------------------------------------------------------
-    try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;    end
-    try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;     end
-
-    % Compute spatial basis (eigenmodes of lead field)
-    %==================================================================
-
-    % create MSP spatial basis set in source space
-    %------------------------------------------------------------------
-    vert   = D.inv{D.val}.mesh.tess_mni.vert;
-    for i  = 1:Np
-        Dp = sum([vert(:,1) - xyz(1,i), ...
-            vert(:,2) - xyz(2,i), ...
-            vert(:,3) - xyz(3,i)].^2,2);
-
-
-        % nearest mesh points
-        %--------------------------------------------------------------
-        Ip = find(Dp < rad^2);
-        if length(Ip) < Nm;
-            [y,Ip] = sort(Dp);
-            Ip     = Ip(1:Nm);
+        % Load Gain or Lead field matrix
+        %------------------------------------------------------------------
+        DCM.val = D.val;
+        try
+            gainmat = D.inv{D.val}.forward.gainmat;
+        catch
+            D = spm_eeg_inv_forward_ui(D, D.val);
+            gainmat = D.inv{D.val}.forward.gainmat;
         end
 
+        try
+            L       = load(gainmat);
+        catch
+            [p,f]   = fileparts(gainmat);
+            L       = load(f);
+            gainmat = fullfile(pwd,f);
+        end
 
-        % left hemisphere
-        %--------------------------------------------------------------
-        U                  = spm_svd(L(:,Ip)',0);
-        U                  = U(:,1:Nm);
-        DCM.M.dipfit.G{i}  = L(:,Ip)*U;
-        DCM.M.dipfit.U{i}  = U;
-        DCM.M.dipfit.Ip{i} = Ip;
-    end
+        name    = fieldnames(L);
+        L       = sparse(getfield(L, name{1}));
+        L       = spm_cond_units(L);
 
-    % Save results
-    %==================================================================
-    DCM.M.dipfit.radius  = rad;                  % VOI (XYZ, Radius)
-    DCM.M.dipfit.Nm      = Nm;                   % modes per region
-    DCM.M.dipfit.Nd      = length(vert);         % number of dipoles
-    DCM.M.dipfit.gainmat = gainmat;              % Lead field filename
-    DCM.M.dipfit.type    = 'Imaging';
-    
-    save(D);
+        % centers
+        %------------------------------------------------------------------
+        xyz = DCM.M.dipfit.Lpos;
+        Np  = size(xyz,2);
+
+        % parameters
+        %==================================================================
+
+        % defaults: Nm = 8; number of modes per region
+        %------------------------------------------------------------------
+        try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;    end
+        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;     end
+
+        % Compute spatial basis (eigenmodes of lead field)
+        %==================================================================
+
+        % create MSP spatial basis set in source space
+        %------------------------------------------------------------------
+        vert   = D.inv{D.val}.mesh.tess_mni.vert;
+        for i  = 1:Np
+            Dp = sum([vert(:,1) - xyz(1,i), ...
+                vert(:,2) - xyz(2,i), ...
+                vert(:,3) - xyz(3,i)].^2,2);
+
+
+            % nearest mesh points
+            %--------------------------------------------------------------
+            Ip = find(Dp < rad^2);
+            if length(Ip) < Nm;
+                [y,Ip] = sort(Dp);
+                Ip     = Ip(1:Nm);
+            end
+
+
+            % left hemisphere
+            %--------------------------------------------------------------
+            U                  = spm_svd(L(:,Ip)',0);
+            U                  = U(:,1:Nm);
+            DCM.M.dipfit.G{i}  = L(:,Ip)*U;
+            DCM.M.dipfit.U{i}  = U;
+            DCM.M.dipfit.Ip{i} = Ip;
+        end
+
+        % Save results
+        %==================================================================
+        DCM.M.dipfit.radius  = rad;                  % VOI (XYZ, Radius)
+        DCM.M.dipfit.Nm      = Nm;                   % modes per region
+        DCM.M.dipfit.Nd      = length(vert);         % number of dipoles
+        DCM.M.dipfit.gainmat = gainmat;              % Lead field filename
+        DCM.M.dipfit.type    = 'Imaging';
+
+        save(D);
 end
