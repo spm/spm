@@ -7,3 +7,5 @@ setdefaultbutton.m
 
 These files are (c) The MathWorks. They are made available here to provide the
 same behaviour of the input dialogs on platforms running MATLAB R14SP3 onwards.
+
+$Id$

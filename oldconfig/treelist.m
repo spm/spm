@@ -233,9 +233,9 @@ case {'double', 'logical', 'single', 'uint8', 'uint16', 'uint32', 'uint64', ...
         newname=sprintf('%s',fn{n});
         newnameprefix=sprintf('%s%s.',nameprefix,name);
         if n==numel(fn),
-	  treelistsub(dts,newname,newnameprefix,[level ' \'],flags);
+      treelistsub(dts,newname,newnameprefix,[level ' \'],flags);
         else
-	  treelistsub(dts,newname,newnameprefix,[level ' |'],flags);
+      treelistsub(dts,newname,newnameprefix,[level ' |'],flags);
         end
       end;
       warning(ww);
@@ -257,9 +257,9 @@ case {'double', 'logical', 'single', 'uint8', 'uint16', 'uint32', 'uint64', ...
       eval(funcstr);
       newname=sprintf('%s{%s}',name,msubstr);
       if m==numel(dt),
-	treelistsub(dt{m},newname,nameprefix,[level ' \'],flags);
+    treelistsub(dt{m},newname,nameprefix,[level ' \'],flags);
       else
-	treelistsub(dt{m},newname,nameprefix,[level ' |'],flags);
+    treelistsub(dt{m},newname,nameprefix,[level ' |'],flags);
       end
     end
     return;

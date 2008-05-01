@@ -28,34 +28,34 @@ void invert_phasemap_dtj_idim1(unsigned int    *dim,
    {
       for (y=1; y<=dim[1]; y++) 
       {
-	 oi = 1;
+     oi = 1;
          for (x=1; x<=dim[0]; x++)
-	 {
-	    for (i=oi; i<=dim[0] && (pm[INDX(i,y,z,dim)]+i)<x; i++) ; /* N.B. */
+     {
+        for (i=oi; i<=dim[0] && (pm[INDX(i,y,z,dim)]+i)<x; i++) ; /* N.B. */
             if (i>1 && i<=dim[0])
-	    {
-	       ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) x) + 
+        {
+           ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) x) + 
                                       (((double) x)-pm[INDX(i-1,y,z,dim)]-((double) (i-1))) / 
                                       (pm[INDX(i,y,z,dim)]-pm[INDX(i-1,y,z,dim)]+1.0);
             }
             else
             {
-	       ipm[INDX(x,y,z,dim)] = DBL_MAX;
+           ipm[INDX(x,y,z,dim)] = DBL_MAX;
             }
             oi = MAX(1,i-1);
          }
 
          for (i=1; i<=dim[0] && ipm[INDX(i,y,z,dim)]==DBL_MAX; i++) ; /* N.B. */
          for (x=i-1; x>0; x--)
-	 {
-	    ipm[INDX(x,y,z,dim)] = ipm[INDX(i,y,z,dim)];
-	 }
+     {
+        ipm[INDX(x,y,z,dim)] = ipm[INDX(i,y,z,dim)];
+     }
 
          for (i=dim[0]; i>0 && ipm[INDX(i,y,z,dim)]==DBL_MAX; i--) ; /* N.B. */
          for (x=i+1; x<=dim[0]; x++)
-	 {
-	    ipm[INDX(x,y,z,dim)] = ipm[INDX(i,y,z,dim)];
-	 }
+     {
+        ipm[INDX(x,y,z,dim)] = ipm[INDX(i,y,z,dim)];
+     }
       }
    }
    return;       
@@ -74,34 +74,34 @@ void invert_phasemap_dtj_idim2(unsigned int    *dim,
    {
       for (x=1; x<=dim[0]; x++) 
       {
-	 oi = 1;
+     oi = 1;
          for (y=1; y<=dim[1]; y++)
-	 {
-	    for (i=oi; i<=dim[1] && (pm[INDX(x,i,z,dim)]+i)<y; i++) ; /* N.B. */
+     {
+        for (i=oi; i<=dim[1] && (pm[INDX(x,i,z,dim)]+i)<y; i++) ; /* N.B. */
             if (i>1 && i<=dim[1])
-	    {
-	       ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) y) + 
+        {
+           ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) y) + 
                                       (((double) y)-pm[INDX(x,i-1,z,dim)]-((double) (i-1))) / 
                                       (pm[INDX(x,i,z,dim)]-pm[INDX(x,i-1,z,dim)]+1.0);
             }
             else
             {
-	       ipm[INDX(x,y,z,dim)] = DBL_MAX;
+           ipm[INDX(x,y,z,dim)] = DBL_MAX;
             }
             oi = MAX(1,i-1);
          }
 
          for (i=1; i<=dim[1] && ipm[INDX(x,i,z,dim)]==DBL_MAX; i++) ; /* N.B. */
          for (y=i-1; y>0; y--)
-	 {
-	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,i,z,dim)];
-	 }
+     {
+        ipm[INDX(x,y,z,dim)] = ipm[INDX(x,i,z,dim)];
+     }
 
          for (i=dim[1]; i>0 && ipm[INDX(x,i,z,dim)]==DBL_MAX; i--) ; /* N.B. */
          for (y=i+1; y<=dim[1]; y++)
-	 {
-	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,i,z,dim)];
-	 }
+     {
+        ipm[INDX(x,y,z,dim)] = ipm[INDX(x,i,z,dim)];
+     }
       }
    }
    return;       
@@ -120,34 +120,34 @@ void invert_phasemap_dtj_idim3(unsigned int    *dim,
    {
       for (x=1; x<=dim[0]; x++) 
       {
-	 oi = 1;
+     oi = 1;
          for (z=1; z<=dim[2]; z++)
-	 {
-	    for (i=oi; i<=dim[2] && (pm[INDX(x,y,i,dim)]+i)<z; i++) ; /* N.B. */
+     {
+        for (i=oi; i<=dim[2] && (pm[INDX(x,y,i,dim)]+i)<z; i++) ; /* N.B. */
             if (i>1 && i<=dim[2])
-	    {
-	       ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) z) + 
+        {
+           ipm[INDX(x,y,z,dim)] = ((double) i) - 1.0 - ((double) z) + 
                                       (((double) z)-pm[INDX(x,y,i-1,dim)]-((double) (i-1))) / 
                                       (pm[INDX(x,y,i,dim)]-pm[INDX(x,y,i-1,dim)]+1.0);
             }
             else
             {
-	       ipm[INDX(x,y,z,dim)] = DBL_MAX;
+           ipm[INDX(x,y,z,dim)] = DBL_MAX;
             }
             oi = MAX(1,i-1);
          }
 
          for (i=1; i<=dim[2] && ipm[INDX(x,y,i,dim)]==DBL_MAX; i++) ; /* N.B. */
          for (z=i-1; z>0; z--)
-	 {
-	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,y,i,dim)];
-	 }
+     {
+        ipm[INDX(x,y,z,dim)] = ipm[INDX(x,y,i,dim)];
+     }
 
          for (i=dim[2]; i>0 && ipm[INDX(x,y,i,dim)]==DBL_MAX; i--) ; /* N.B. */
          for (z=i+1; z<=dim[2]; z++)
-	 {
-	    ipm[INDX(x,y,z,dim)] = ipm[INDX(x,y,i,dim)];
-	 }
+     {
+        ipm[INDX(x,y,z,dim)] = ipm[INDX(x,y,i,dim)];
+     }
       }
    }
    return;       
@@ -170,34 +170,34 @@ void invert_phasemap_dtj(unsigned int    *dim,
    {
       for (f=1; f<=dim[0]; f++)  /* New column in phase encode direction. */
       {
-	 oi = 1;
+     oi = 1;
          for (p=1; p<=dim[1]; p++)
-	 {
-	    for (i=oi; i<=dim[1] && (pm[INDX(f,i,s,dim)]+i)<p; i++) ; /* N.B. */
+     {
+        for (i=oi; i<=dim[1] && (pm[INDX(f,i,s,dim)]+i)<p; i++) ; /* N.B. */
             if (i>1 && i<=dim[1])
-	    {
-	       ipm[INDX(f,p,s,dim)] = ((double) i) - 1.0 - ((double) p) + 
+        {
+           ipm[INDX(f,p,s,dim)] = ((double) i) - 1.0 - ((double) p) + 
                                       (((double) p)-pm[INDX(f,i-1,s,dim)]-((double) (i-1))) / 
                                       (pm[INDX(f,i,s,dim)]-pm[INDX(f,i-1,s,dim)]+1.0);
             }
             else
             {
-	       ipm[INDX(f,p,s,dim)] = DBL_MAX;
+           ipm[INDX(f,p,s,dim)] = DBL_MAX;
             }
             oi = MAX(1,i-1);
          }
 
          for (i=1; i<=dim[1] && ipm[INDX(f,i,s,dim)]==DBL_MAX; i++) ; /* N.B. */
          for (p=i-1; p>0; p--)
-	 {
-	    ipm[INDX(f,p,s,dim)] = ipm[INDX(f,i,s,dim)];
-	 }
+     {
+        ipm[INDX(f,p,s,dim)] = ipm[INDX(f,i,s,dim)];
+     }
 
          for (i=dim[1]; i>0 && ipm[INDX(f,i,s,dim)]==DBL_MAX; i--) ; /* N.B. */
          for (p=i+1; p<=dim[1]; p++)
-	 {
-	    ipm[INDX(f,p,s,dim)] = ipm[INDX(f,i,s,dim)];
-	 }
+     {
+        ipm[INDX(f,p,s,dim)] = ipm[INDX(f,i,s,dim)];
+     }
       }
    }
    return;       

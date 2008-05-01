@@ -41,12 +41,12 @@ void restore_ramps(double          *mask,
       for (j=0; j<dim[1]; j++)
       {
          for (k=0; k<dim[2]; k++)
-	 {
-	    if (mask[ii=index(i,j,k,dim)])
-	    {
-    	       pm[ii] += ramp[0] * ((double) (i - ((double) (dim[0]-1.0))/2.0));
-	       pm[ii] += ramp[1] * ((double) (j - ((double) (dim[1]-1.0))/2.0));
-	       pm[ii] += ramp[2] * ((double) (k - ((double) (dim[2]-1.0))/2.0));
+     {
+        if (mask[ii=index(i,j,k,dim)])
+        {
+               pm[ii] += ramp[0] * ((double) (i - ((double) (dim[0]-1.0))/2.0));
+           pm[ii] += ramp[1] * ((double) (j - ((double) (dim[1]-1.0))/2.0));
+           pm[ii] += ramp[2] * ((double) (k - ((double) (dim[2]-1.0))/2.0));
             }
          }
       }

@@ -79,7 +79,7 @@ function varargout = pm_unwrap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_unwrap.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_unwrap.m 1533 2008-05-01 14:29:03Z spm $
 
 %
 % The following are a set of parameters that
@@ -243,14 +243,14 @@ switch lower(method)
          %
          % Get connected regions after merging (can be more than
          % one if e.g. the temporal lobes are disconnected in the
-	 % present slice).
+     % present slice).
          %
          [tmp,num] = spm_bwlabel(srima,6);
          if sl == 1
-	    vrima(:,:,sl) = tmp;
+        vrima(:,:,sl) = tmp;
          else
-	    tmp(tmp(:)>0) = tmp(tmp(:)>0) + max(max(vrima(:,:,sl-1)));
-	    vrima(:,:,sl) = tmp;
+        tmp(tmp(:)>0) = tmp(tmp(:)>0) + max(max(vrima(:,:,sl-1)));
+        vrima(:,:,sl) = tmp;
          end
       end
       %

@@ -37,7 +37,7 @@ function varargout = pm_invert_phasemap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_invert_phasemap.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_invert_phasemap.m 1533 2008-05-01 14:29:03Z spm $
 
 %
 % Decode first input parameter.
@@ -61,7 +61,7 @@ if nargin > 1
       idim  = varargin{2};
    else
       if nargin > 2
-	 idim = varargin{3};
+     idim = varargin{3};
       else
          idim = 2;
       end

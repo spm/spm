@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_defaults_Trio.m 1533 2008-05-01 14:29:03Z spm $
 
 global pm_def
 
@@ -25,7 +25,7 @@ pm_def.INPUT_DATA_FORMAT = 'PM';      % 'RI' = load two real and
 pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Allegra
 pm_def.LONG_ECHO_TIME = 12.46;        % Long echo time in ms for Allegra
 pm_def.MASKBRAIN = 1;                 % Do brain masking (1 or 0,
-				      % 0 for EPI fieldmaps)
+                      % 0 for EPI fieldmaps)
 
 % Defaults for unwrapping options. (See pm_make_fieldmap.m and 
 %                                   FieldMap.man for more info.)
@@ -59,5 +59,5 @@ pm_def.TOTAL_EPI_READOUT_TIME = 32.0;   % Trio EPI RO time (500E-6*64)
 pm_def.DO_JACOBIAN_MODULATION = 0;    % Do jacobian modulation to adjust 
                                       % for compression or stretching
                                       % No = 0, Yes = 1
-				      
-				      
+                      
+                      

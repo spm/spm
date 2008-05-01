@@ -202,7 +202,7 @@ void merge_regions(/* Input */
       else {sign1 = 1;}
       for (j=0; j<nr; j++)
       {
-	if (eqlist[j] == olbl) 
+    if (eqlist[j] == olbl) 
         {
            rw[j] += sign1*l;
            eqlist[j] = nlbl;
@@ -229,36 +229,36 @@ void merge_regions(/* Input */
       */
       for (j=0; j<olbli_n; j++)
       {
-	 ci = olbli[j];
-	 if (jj[ci] < nlbl) /* Search in row-list. */
-	 {
-	    mlbli[j] = binsearch(ii,ii_ia,cnc,jj[ci],&(mlbli_n[j]));
+     ci = olbli[j];
+     if (jj[ci] < nlbl) /* Search in row-list. */
+     {
+        mlbli[j] = binsearch(ii,ii_ia,cnc,jj[ci],&(mlbli_n[j]));
          }
          else if (jj[ci] > nlbl) /* Search in column list. */
-	 {
-	    mlbli[j] = binsearch(jj,jj_ia,cnc,jj[ci],&(mlbli_n[j]));
+     {
+        mlbli[j] = binsearch(jj,jj_ia,cnc,jj[ci],&(mlbli_n[j]));
          }
          else /* Paired with nlbl, skip it. */
-	 {
-	    mlbli[j] = NULL;
-	    mlbli_n[j] = 0;
+     {
+        mlbli[j] = NULL;
+        mlbli_n[j] = 0;
          }
       }
       for (j=0; j<olblj_n; j++)
       {
-	 ci = olblj[j];
-	 if (ii[ci] < nlbl) /* Search in row-list. */
-	 {
-	    mlblj[j] = binsearch(ii,ii_ia,cnc,ii[ci],&(mlblj_n[j]));
+     ci = olblj[j];
+     if (ii[ci] < nlbl) /* Search in row-list. */
+     {
+        mlblj[j] = binsearch(ii,ii_ia,cnc,ii[ci],&(mlblj_n[j]));
          }
          else if (ii[ci] > nlbl) /* Search in column list. */
-	 {
-	    mlblj[j] = binsearch(jj,jj_ia,cnc,ii[ci],&(mlblj_n[j]));
+     {
+        mlblj[j] = binsearch(jj,jj_ia,cnc,ii[ci],&(mlblj_n[j]));
          }
          else /* Paired with nlbl, skip it. */
-	 {
-	    mlblj[j] = NULL;
-	    mlblj_n[j] = 0;
+     {
+        mlblj[j] = NULL;
+        mlblj_n[j] = 0;
          }
       }
 
@@ -279,11 +279,11 @@ void merge_regions(/* Input */
       */
       if (olbli)
       {
-	 sign2 = 1;
+     sign2 = 1;
          for (j=0; j<olbli_n; j++)
          {
             ci = olbli[j];
-	    if (jj[ci] == nlbl)
+        if (jj[ci] == nlbl)
             {
                nn[ci] = 0; /* Delete */
                pp[ci] = 0.0;
@@ -303,7 +303,7 @@ void merge_regions(/* Input */
             differences stats.
             */
             {
-	       if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
+           if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
                nn[ci2] += nn[ci];
                pp[ci2] -= pp[ci]; /* Third sign reversal. */
                k = -pp[ci2]/(2.0*PI*nn[ci2]);
@@ -321,7 +321,7 @@ void merge_regions(/* Input */
             differences stats.
             */
             {
-	       if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
+           if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
                nn[ci2] += nn[ci];
                pp[ci2] += pp[ci];
                k = -pp[ci2]/(2.0*PI*nn[ci2]);
@@ -339,7 +339,7 @@ void merge_regions(/* Input */
             {
                if (jj[ci] < nlbl)
                {
-		  if (l) 
+          if (l) 
                   {
                      pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];
                      k = -pp[ci]/(2.0*PI*nn[ci]);
@@ -351,7 +351,7 @@ void merge_regions(/* Input */
                }
                else
                {
-		  if (l) 
+          if (l) 
                   {
                      pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];
                      k = -pp[ci]/(2.0*PI*nn[ci]);
@@ -367,11 +367,11 @@ void merge_regions(/* Input */
       */
       if (olblj)
       {
-	 sign2 = -1;
+     sign2 = -1;
          for (j=0; j<olblj_n; j++)
          {
             ci = olblj[j];
-	    if (ii[ci] == nlbl)
+        if (ii[ci] == nlbl)
             {
                nn[ci] = 0; /* Delete */
                pp[ci] = 0.0;
@@ -391,7 +391,7 @@ void merge_regions(/* Input */
             differences stats.
             */
             {
-	       if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
+           if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
                nn[ci2] += nn[ci];
                pp[ci2] += pp[ci]; 
                k = -pp[ci2]/(2.0*PI*nn[ci2]);
@@ -409,7 +409,7 @@ void merge_regions(/* Input */
             adding to sum of differences stats.
             */
             {
-	       if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
+           if (l) {pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];}
                nn[ci2] += nn[ci];
                pp[ci2] -= pp[ci]; /* Third sign reversal. */
                k = -pp[ci2]/(2.0*PI*nn[ci2]);
@@ -427,7 +427,7 @@ void merge_regions(/* Input */
             {
                if (ii[ci] < nlbl)
                {
-		  if (l) 
+          if (l) 
                   {
                      pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];
                      k = -pp[ci]/(2.0*PI*nn[ci]);
@@ -437,7 +437,7 @@ void merge_regions(/* Input */
                }
                else
                {
-		  if (l) 
+          if (l) 
                   {
                      pp[ci] = pp[ci] + sign1*sign2*l*2.0*PI*nn[ci];
                      k = -pp[ci]/(2.0*PI*nn[ci]);
@@ -464,7 +464,7 @@ void merge_regions(/* Input */
       we can do much better than a full quicksort for those cases.
       */
       {
-	 sillysort(ii_ia,jj_ia,ocnc);
+     sillysort(ii_ia,jj_ia,ocnc);
       }
       else
       {
@@ -505,10 +505,10 @@ void sillysort(int  *ii_ia,
    {
       if (ii[ii_ia[i]] == INT_MAX)
       {
-	 tmp = ii_ia[i];
+     tmp = ii_ia[i];
          for (j=i; j<(n-1); j++)
-	 {
-	    ii_ia[j] = ii_ia[j+1];
+     {
+        ii_ia[j] = ii_ia[j+1];
          }
          ii_ia[n-1] = tmp;
          break;
@@ -519,10 +519,10 @@ void sillysort(int  *ii_ia,
    {
       if (jj[jj_ia[i]] == INT_MAX)
       {
-	 tmp = jj_ia[i];
+     tmp = jj_ia[i];
          for (j=i; j<(n-1); j++)
-	 {
-	    jj_ia[j] = jj_ia[j+1];
+     {
+        jj_ia[j] = jj_ia[j+1];
          }
          jj_ia[n-1] = tmp;
          break;

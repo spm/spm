@@ -66,23 +66,23 @@ void ff_unwrap(double        *ipm,
       twm[1] = (double *) mxCalloc(dim[0]*dim[1]*dim[2],sizeof(double));
       while (ff_unwrap_dilate(tpm[0],vm,twm[0],mask,dim,thres,tpm[1],twm[1]))
       {
-	 tmp = tpm[0];
+     tmp = tpm[0];
          tpm[0] = tpm[1];
          tpm[1] = tmp;
-	 tmp = twm[0];
+     tmp = twm[0];
          twm[0] = twm[1];
          twm[1] = tmp;
       }
       if (tpm[1]==opm) 
       {
-	 mxFree(tpm[0]);
+     mxFree(tpm[0]);
          mxFree(twm[0]);
       }
       else
       {
-	 memcpy(opm,tpm[1],dim[0]*dim[1]*dim[2]*sizeof(double)); 
-	 memcpy(owm,twm[1],dim[0]*dim[1]*dim[2]*sizeof(double)); 
-	 mxFree(tpm[1]);
+     memcpy(opm,tpm[1],dim[0]*dim[1]*dim[2]*sizeof(double)); 
+     memcpy(owm,twm[1],dim[0]*dim[1]*dim[2]*sizeof(double)); 
+     mxFree(tpm[1]);
          mxFree(twm[1]);
       }
    }
@@ -110,26 +110,26 @@ unsigned int ff_unwrap_dilate(double        *ipm,
       {
          for (k=0; k<dim[2]; k++)
          {
-	    ii=index(i,j,k,dim);
-	    if (mask[ii] && !iwm[ii] && vm[ii] < thres)
-	    {
-	       if (np = neighbour(i,j,k,dim,iwm,ipm,6))
-	       {
-		  owm[ii] = 1.0;
+        ii=index(i,j,k,dim);
+        if (mask[ii] && !iwm[ii] && vm[ii] < thres)
+        {
+           if (np = neighbour(i,j,k,dim,iwm,ipm,6))
+           {
+          owm[ii] = 1.0;
                   opm[ii] = ipm[ii];
                   while ((opm[ii] - np) > PI) {opm[ii] -= 2*PI;}
                   while ((opm[ii] - np) < -PI) {opm[ii] += 2*PI;}
                   nwrapped++;
                }
                else
-	       {
-		  owm[ii] = iwm[ii];
+           {
+          owm[ii] = iwm[ii];
                   opm[ii] = ipm[ii];
                }
-	    }
+        }
             else
- 	    {
-	       owm[ii] = iwm[ii];
+        {
+           owm[ii] = iwm[ii];
                opm[ii] = ipm[ii];
             }         
          }

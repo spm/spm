@@ -70,7 +70,7 @@ function varargout = mars_struct(action, varargin)
 % returns output like disp(a) as a cell array
 % Useful for printing text description of structure
 % 
-% $Id: mars_struct.m 1436 2008-04-16 15:37:03Z guillaume $
+% $Id: mars_struct.m 1533 2008-05-01 14:29:03Z spm $
 
 if nargin < 1
   error('Action needed');
@@ -121,27 +121,27 @@ switch lower(action)
       fn = cf{i};
       switch ftype(i)
        case 0 % a~b
-	fval = getfield(a(si), fn);
+    fval = getfield(a(si), fn);
        case 1 % shared field
-	bfc = getfield(b(si), fn);
-	if isempty(getfield(a(si), fn)) | ... % a field is empty
-	      (any(flags == 'f' & ~isempty(bfc)))% or force fill
-	  fval = bfc;
-	else % field not empty, could be struct -> recurse
-	  fval = getfield(a(si),fn);
-	  if isstruct(fval) & isstruct(bfc)
-	    fval = mars_struct('fillafromb',fval,bfc);
-	  end
-	end
+    bfc = getfield(b(si), fn);
+    if isempty(getfield(a(si), fn)) | ... % a field is empty
+          (any(flags == 'f' & ~isempty(bfc)))% or force fill
+      fval = bfc;
+    else % field not empty, could be struct -> recurse
+      fval = getfield(a(si),fn);
+      if isstruct(fval) & isstruct(bfc)
+        fval = mars_struct('fillafromb',fval,bfc);
+      end
+    end
        case 2 % b~a
-	fval = getfield(b(si), fn);
+    fval = getfield(b(si), fn);
        case 3 % no field information, see below
-	fval = [];
+    fval = [];
       end
       if isempty(ctmp)
-	ctmp = struct(fn, fval);
+    ctmp = struct(fn, fval);
       else
-	ctmp = setfield(ctmp, fn, fval);
+    ctmp = setfield(ctmp, fn, fval);
       end
     end
     c(si) = ctmp;
@@ -200,7 +200,7 @@ switch lower(action)
     if isfield(d, cf{i})
       dfc = getfield(d,cf{i});
       if ~isempty(dfc) 
-	c = setfield(c, cf{i}, dfc);
+    c = setfield(c, cf{i}, dfc);
       end
       d = rmfield(d, cf{i});
     end

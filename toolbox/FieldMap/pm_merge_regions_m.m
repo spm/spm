@@ -26,7 +26,7 @@ function [varargout] = pm_merge_regions_m(opm,N,P,rima,gd)
 % pm       : Phase-map after merging of all regions in rima that
 %            are connected.
 % rima     : Label map after merging of all possible regions (regions 
-%	     with a common border). Note that if there are dissconnected
+%        with a common border). Note that if there are dissconnected
 %            regions in the original rima (e.g. in 2D where the temporal
 %            lobes may be disconnected from the rest of the brain) there
 %            will still be more than one label in rima.

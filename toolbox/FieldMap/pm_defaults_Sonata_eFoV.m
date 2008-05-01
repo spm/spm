@@ -11,7 +11,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Sonata_eFoV.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_defaults_Sonata_eFoV.m 1533 2008-05-01 14:29:03Z spm $
 
 global pm_def
 
@@ -26,7 +26,7 @@ pm_def.INPUT_DATA_FORMAT = 'PM';      % 'RI' = load two real and
 pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Sonata
 pm_def.LONG_ECHO_TIME = 14.76;        % Long echo time in ms for Sonata
 pm_def.MASKBRAIN = 1;                 % Do brain masking (1 or 0,
-				      % 0 for EPI fieldmaps)
+                      % 0 for EPI fieldmaps)
 
 % Defaults for unwrapping options. (See pm_make_fieldmap.m and 
 %                                   FieldMap.man for more info.)

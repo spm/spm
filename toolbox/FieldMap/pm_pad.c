@@ -36,24 +36,24 @@ void pad(double         *pm,
    {
       for (j=0; j<dim[1]; j++)
       {
-	 for (k=0; k<dim[2]; k++)
-	 {
-	    if (!wmap[ndx=index(i,j,k,dim)])
-	    {
-	       n = 0;
+     for (k=0; k<dim[2]; k++)
+     {
+        if (!wmap[ndx=index(i,j,k,dim)])
+        {
+           n = 0;
                p = 0.0;
-	       for (ki=0; ki<kdim[0]; ki++)
-	       {
-		  for (kj=0; kj<kdim[1]; kj++)
-		  {
-		     for (kk=0; kk<kdim[2]; kk++)
-		     {
+           for (ki=0; ki<kdim[0]; ki++)
+           {
+          for (kj=0; kj<kdim[1]; kj++)
+          {
+             for (kk=0; kk<kdim[2]; kk++)
+             {
                         kndx = index(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
- 		        if (kndx > -1)
-			{
-			   if (wmap[kndx])
-			   {
-			      p += krnl[index(ki,kj,kk,kdim)] * pm[kndx];
+                if (kndx > -1)
+            {
+               if (wmap[kndx])
+               {
+                  p += krnl[index(ki,kj,kk,kdim)] * pm[kndx];
                               n++;
                            }
                         }
@@ -61,19 +61,19 @@ void pad(double         *pm,
                   }
                }
                if (n)
-	       {
-		  opm[ndx] = p/n;
+           {
+          opm[ndx] = p/n;
                   owmap[ndx] = 1;
                }
                else
-	       {
+           {
                   opm[ndx]=pm[ndx];
                   owmap[ndx]=wmap[ndx];
                }
             }
             else
-	    {
-	       opm[ndx]=pm[ndx];
+        {
+           opm[ndx]=pm[ndx];
                owmap[ndx]=wmap[ndx];
             } 
          }

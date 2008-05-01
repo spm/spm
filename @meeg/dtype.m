@@ -5,6 +5,6 @@ function res = dtype(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id$
+% $Id: dtype.m 1533 2008-05-01 14:29:03Z spm $
 
 res = obj.data.y.dtype;

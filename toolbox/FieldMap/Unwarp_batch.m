@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton 
-% $Id: Unwarp_batch.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: Unwarp_batch.m 1533 2008-05-01 14:29:03Z spm $
 
 which spm
 
@@ -66,8 +66,8 @@ uwe_flags = struct(  'order',       defaults.unwarp.estimate.basfcn,...
             'regorder',    defaults.unwarp.estimate.regorder,...
             'lambda',      defaults.unwarp.estimate.regwgt,...
             'jm',          defaults.unwarp.estimate.jm,...
-            'fot',         [4 5],...	% pitch and roll
-            'sot',         [],...		% no second-order 
+            'fot',         [4 5],...    % pitch and roll
+            'sot',         [],...       % no second-order 
             'fwhm',        defaults.unwarp.estimate.fwhm,...
             'rem',         defaults.unwarp.estimate.rem,...
             'noi',         defaults.unwarp.estimate.noi,...
@@ -99,9 +99,9 @@ for i=1:nsubs
         pm = spm_get('Files',fdir{ses},'vdm_*.img');
         if pcpm & ~isempty(pm)
            ppm{ses} = pm;
-	elseif pcpm & isempty(pm) & ~isempty(ppm{ses-1})
-	   ppm{ses} = ppm{ses-1};
-	elseif pcpm & isempty(pm) & ses==1
+    elseif pcpm & isempty(pm) & ~isempty(ppm{ses-1})
+       ppm{ses} = ppm{ses-1};
+    elseif pcpm & isempty(pm) & ses==1
            msg=sprintf('Cannot find a vdm file for %s%s%s',subnames{i},filesep,sessnames{ses});
            error(msg);
         end
@@ -128,7 +128,7 @@ for i=1:nsubs
    % Get the space of the first image of first session for each subject
    clear ads
    tmpP = spm_vol(P{i}{1}(1,:));
-   uwe_flags.M 	= tmpP.mat;    
+   uwe_flags.M  = tmpP.mat;    
 
    for j=1:length(P{i})
       

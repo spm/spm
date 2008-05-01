@@ -49,52 +49,52 @@ unsigned int make_vectors(double        *rima,
    {
       for (c=0; c<dim[1]; c++)
       {
-	 for (r=0; r<dim[0]; r++)
-	 {
-	    if (cr = rima[cri = index(r,c,sl,dim)])
-	    {
-	       if (i > (size-4))
-	       {
-		  size += 10000;
- 		  (*ii) = mxRealloc((*ii),size*sizeof(double));
- 		  (*jj) = mxRealloc((*jj),size*sizeof(double));
- 		  (*nn) = mxRealloc((*nn),size*sizeof(double));
- 		  (*pp) = mxRealloc((*pp),size*sizeof(double));
+     for (r=0; r<dim[0]; r++)
+     {
+        if (cr = rima[cri = index(r,c,sl,dim)])
+        {
+           if (i > (size-4))
+           {
+          size += 10000;
+          (*ii) = mxRealloc((*ii),size*sizeof(double));
+          (*jj) = mxRealloc((*jj),size*sizeof(double));
+          (*nn) = mxRealloc((*nn),size*sizeof(double));
+          (*pp) = mxRealloc((*pp),size*sizeof(double));
                }
-	       if (sl)
-	       {
-		  if ((nxt = rima[nxti = index(r,c,sl-1,dim)]) && (cr != nxt))
-		  {
+           if (sl)
+           {
+          if ((nxt = rima[nxti = index(r,c,sl-1,dim)]) && (cr != nxt))
+          {
                      (*ii)[i] = MIN(cr,nxt);
                      (*jj)[i] = MAX(cr,nxt);
                      (*nn)[i] = 1.0;
                      if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
                      else (*pp)[i] = pm[nxti] - pm[cri];
-		     i++;
+             i++;
                   }
                }
-	       if (c)
-	       {
- 		  if ((nxt = rima[nxti = index(r,c-1,sl,dim)]) && (cr != nxt))
-		  {
+           if (c)
+           {
+          if ((nxt = rima[nxti = index(r,c-1,sl,dim)]) && (cr != nxt))
+          {
                      (*ii)[i] = MIN(cr,nxt);
                      (*jj)[i] = MAX(cr,nxt);
                      (*nn)[i] = 1.0;
                      if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
                      else (*pp)[i] = pm[nxti] - pm[cri];
-		     i++;
+             i++;
                   }
                }
-	       if (r)
-	       {
- 		  if ((nxt = rima[nxti = index(r-1,c,sl,dim)]) && (cr != nxt))
-		  {
+           if (r)
+           {
+          if ((nxt = rima[nxti = index(r-1,c,sl,dim)]) && (cr != nxt))
+          {
                      (*ii)[i] = MIN(cr,nxt);
                      (*jj)[i] = MAX(cr,nxt);
                      (*nn)[i] = 1.0;
                      if (cr < nxt) (*pp)[i] = pm[cri] - pm[nxti];
                      else (*pp)[i] = pm[nxti] - pm[cri];
-		     i++;
+             i++;
                   }
                }
             }

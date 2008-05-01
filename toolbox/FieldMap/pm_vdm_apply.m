@@ -60,12 +60,12 @@ function varargout = pm_vdm_apply(ds,flags)
 %             orginal subdirectory with the same filename but prefixed with an 'c'.
 %             They are all aligned with the first.
 %_______________________________________________________________________
-% @(#)spm_vdm_apply.m	1.0 Chloe Hutton   05/02/25
+% @(#)spm_vdm_apply.m   1.0 Chloe Hutton   05/02/25
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton 
-% $Id: pm_vdm_apply.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: pm_vdm_apply.m 1533 2008-05-01 14:29:03Z spm $
 
 
 defaults = spm('GetGlobal','defaults');
@@ -252,9 +252,9 @@ for s=1:length(ds)
          end
          ivol = reshape(ima,PO.dim(1:3));
          tP = spm_write_vol(PO,ivol);
-	 if nargout > 0
-	    oP{s}(i) = tP;
-	 end
+     if nargout > 0
+        oP{s}(i) = tP;
+     end
       end
       %
       % Build up mean image if so required.

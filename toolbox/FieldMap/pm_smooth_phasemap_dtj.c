@@ -33,21 +33,21 @@ void smooth(double         *pm,
    {
       for (j=0; j<dim[1]; j++)
       {
-	 for (k=0; k<dim[2]; k++)
-	 {
-	    ndx = index(i,j,k,dim);
-	    twgt = 0.0;
+     for (k=0; k<dim[2]; k++)
+     {
+        ndx = index(i,j,k,dim);
+        twgt = 0.0;
             ii = 0.0;
-	    for (ki=0; ki<kdim[0]; ki++)
-	    {
-	       for (kj=0; kj<kdim[1]; kj++)
-	       {
-	          for (kk=0; kk<kdim[2]; kk++)
-	          {
+        for (ki=0; ki<kdim[0]; ki++)
+        {
+           for (kj=0; kj<kdim[1]; kj++)
+           {
+              for (kk=0; kk<kdim[2]; kk++)
+              {
                      kndx = index(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
- 		     if (kndx > -1)
-		     {
-		        wgt = krnl[index(ki,kj,kk,kdim)] * wmap[kndx];
+             if (kndx > -1)
+             {
+                wgt = krnl[index(ki,kj,kk,kdim)] * wmap[kndx];
                         ii += pm[kndx] * wgt;
                         twgt += wgt;
                      }
@@ -55,11 +55,11 @@ void smooth(double         *pm,
                }
             }
             if (twgt)
-	    {
-	       opm[ndx] = ii/twgt;
+        {
+           opm[ndx] = ii/twgt;
             }
             else
-	    {
+        {
                opm[ndx]=pm[ndx];
             }
          }
