@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1516 2008-04-29 15:03:26Z vladimir $
+% $Id: spm_eeg_convert.m 1537 2008-05-02 14:27:16Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -48,15 +48,15 @@ if ~isfield(S, 'dataset')
     error('Dataset must be specified.');
 end
 
-if ~isfield(S, 'outfile'),         S.outfile = spm_str_manip(S.dataset,'tr');     end
-if ~isfield(S, 'channels'),        S.channels = 'all';                             end
-if ~isfield(S, 'timewindow'),      S.timewindow = [];                             end
-if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                         end  %100 Mb
-if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                           end
-if ~isfield(S, 'usetrials'),       S.usetrials = 1;                               end
-if ~isfield(S, 'datatype'),        S.datatype = 'float32';                        end
-if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                            end
-if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined';                end
+if ~isfield(S, 'outfile'),         S.outfile = ['spm8_' spm_str_manip(S.dataset,'tr')];     end
+if ~isfield(S, 'channels'),        S.channels = 'all';                                      end
+if ~isfield(S, 'timewindow'),      S.timewindow = [];                                       end
+if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                   end  %100 Mb
+if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                     end
+if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                         end
+if ~isfield(S, 'datatype'),        S.datatype = 'float32';                                  end
+if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                      end
+if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined';                          end
 
 %--------- Read and check header
 
@@ -321,6 +321,8 @@ spm('Pointer', 'Arrow');drawnow;
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
     D.sensors.meg = forwinv_convert_units(hdr.grad, 'mm');
+elseif isfield(hdr, 'elec')
+    D.sensors.eeg = forwinv_convert_units(hdr.elec, 'mm');
 else
     try
         D.sensors.eeg = forwinv_convert_units(fileio_read_sens(S.dataset), 'mm');

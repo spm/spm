@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1304 2008-04-03 17:37:45Z vladimir $
+% $Id: spm_eeg_convert_ui.m 1537 2008-05-02 14:27:16Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -58,9 +58,9 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
 
     if ~isfield(S, 'outfile')
         if S.continuous
-            prefix = '';
+            prefix = 'spm8_';
         else
-            prefix = 'e';
+            prefix = 'espm8_';
         end
         S.outfile = spm_input('SPM EEG file name', '+1', 's', [prefix spm_str_manip(S.dataset,'tr')]);
     end
