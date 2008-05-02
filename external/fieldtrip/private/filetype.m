@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.73  2008/05/02 14:23:04  vlalit
+% Added readers for SPM5 and SPM8 EEG formats
+%
 % Revision 1.72  2008/04/21 11:50:51  roboos
 % added support for egi_sbin, thanks to Joseph Dien
 %
@@ -794,10 +797,6 @@ elseif filetype_check_extension(filename, '.edf')
   ftype = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
-elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
-  ftype = 'matlab';
-  manufacturer = 'Matlab';
-  content = 'Matlab binary data';
 elseif filetype_check_header(filename, 'RIFF', 0) && filetype_check_header(filename, 'WAVE', 8)
   ftype = 'riff_wave';
   manufacturer = 'Microsoft';
@@ -814,6 +813,15 @@ elseif filetype_check_extension(filename, '.set')
   ftype = 'eeglab_set';
   manufacturer = 'Swartz Center for Computational Neuroscience, San Diego, USA';
   content = 'electrophysiological data';
+elseif filetype_check_extension(filename, '.mat') && ...
+        numel(whos('-file', filename)) == 1 && strcmp('D', getfield(whos('-file', filename), {1}, 'name'))
+    ftype = 'spmeeg_mat';
+    manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
+    content = 'electrophysiological data';
+elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
+    ftype = 'matlab';
+    manufacturer = 'Matlab';
+    content = 'Matlab binary data';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
