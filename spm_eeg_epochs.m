@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1507 2008-04-29 10:44:36Z vladimir $
+% $Id: spm_eeg_epochs.m 1538 2008-05-02 17:46:13Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -182,7 +182,7 @@ end
 Dnew = spm_eeg_bc(Dnew, [time(D, 1, 'ms') 0]);
 
 Dnew = conditions(Dnew, [], conditionlabels);
-Dnew = trialonset(Dnew, [], trl(i, 1)./D.fsample+D.trialonset);
+Dnew = trialonset(Dnew, [], trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
 
