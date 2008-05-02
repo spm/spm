@@ -58,6 +58,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.60  2008/05/02 14:23:04  vlalit
+% Added readers for SPM5 and SPM8 EEG formats
+%
 % Revision 1.59  2008/04/29 13:58:53  roboos
 % switched to read_trigger helper function for ctf, neuromag and bti
 %
@@ -583,6 +586,9 @@ switch eventformat
 
  case 'eeglab_set'
     event = read_eeglabevent(filename, 'header', hdr);
+    
+ case 'spmeeg_mat'
+    event = read_spmeeg_event(filename, 'header', hdr);
  
   case 'eep_avr'
     % check that the required low-level toolbox is available

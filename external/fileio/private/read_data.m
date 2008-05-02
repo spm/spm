@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.43  2008/05/02 17:45:10  vlalit
+% Some bug fixes after testing the SPM fileo code
+%
 % Revision 1.41  2008/04/28 19:27:11  roboos
 % fixed dimord and selection of eeglab set data
 %
@@ -515,7 +518,10 @@ switch dataformat
   case 'eeglab_set'
     dat = read_eeglabdata(filename, 'header', hdr, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
     dimord = 'chans_samples_trials';
- 
+    
+  case 'spmeeg_mat'
+    dat = read_spmeeg_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
+    
   case 'eep_avr'
     % check that the required low-level toolbos ix available
     hastoolbox('eeprobe', 1);

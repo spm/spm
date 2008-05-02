@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.49  2008/05/02 14:23:05  vlalit
+% Added readers for SPM5 and SPM8 EEG formats
+%
 % Revision 1.48  2008/04/29 07:33:19  roboos
 % changed low level function call for buffer
 %
@@ -284,6 +287,10 @@ switch headerformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
+  case 'spmeeg_mat'
+    [path, file, ext] = fileparts(filename);
+    headerfile = fullfile(path, [file '.mat']);
+    datafile   = fullfile(path, [file '.dat']);
   otherwise
     % convert filename into filenames, assume that the header and data are the same
     datafile   = filename;
@@ -489,6 +496,9 @@ switch headerformat
 
   case 'eeglab_set'
     hdr = read_eeglabheader(filename);
+    
+  case  'spmeeg_mat'
+    hdr = read_spmeeg_header(filename);
     
   case 'eep_cnt'
     % check that the required low-level toolbox is available
