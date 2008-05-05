@@ -48,7 +48,7 @@ function varargout = spm_jobman(varargin)
 % compatible format. The new job files will be MATLAB .m files and have a
 % _spm8 appended to their filename.
 %
-% not implemented: FORMAT spm_jobman('help',node)
+% FORMAT spm_jobman('help',node)
 %        spm_jobman('help',node,width)
 % Creates a cell array containing help information.  This is justified
 % to be 'width' characters wide. e.g.
@@ -85,7 +85,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1468 2008-04-22 08:27:22Z volkmar $
+% $Id: spm_jobman.m 1541 2008-05-05 13:36:51Z volkmar $
 
 
 if nargin==0
@@ -117,6 +117,19 @@ else
         end;
     end;
     switch cmd
+        case 'help'
+            if (nargin < 2) || isempty(varargin{2})
+                node = 'spmjobs';
+            else
+                node = varargin{2};
+            end;
+            if nargin < 3
+                width = 60;
+            else
+                width = varargin{3};
+            end;
+            varargout{1} = cfg_justify(width, cfg_util('showdoc', node));
+            
         case 'initcfg'
             addpath(fullfile(spm('Dir'),'matlabbatch'));
             addpath(fullfile(spm('Dir'),'config'));

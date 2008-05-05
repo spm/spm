@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 1541 2008-05-05 13:36:51Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1541 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -117,7 +117,7 @@ einterp.help    = {
                    'The method by which the images are sampled when being written in a different space. '
                    '    Nearest Neighbour     - Fastest, but not normally recommended. '
                    '    Bilinear Interpolation     - OK for PET, or realigned fMRI. '
-                   '    B-spline Interpolation/* \cite{thevenaz00a}     - Better quality (but slower) interpolation, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
+                   '    B-spline Interpolation/* \cite{thevenaz00a}*/     - Better quality (but slower) interpolation, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
 }';
 einterp.labels = {
                   'Nearest neighbour'

@@ -4,9 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_coreg.m 1541 2008-05-05 13:36:51Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1541 $';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -44,7 +44,7 @@ other.num     = [0 Inf];
 cost_fun         = cfg_menu;
 cost_fun.tag     = 'cost_fun';
 cost_fun.name    = 'Objective Function';
-cost_fun.help    = {'Registration involves finding parameters that either maximise or minimise some objective function. For inter-modal registration, use Mutual Information\* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.For within modality, you could also use Normalised Cross Correlation.'};
+cost_fun.help    = {'Registration involves finding parameters that either maximise or minimise some objective function. For inter-modal registration, use Mutual Information/* \cite{collignon95,wells96}*/, Normalised Mutual Information/* \cite{studholme99}*/, or Entropy Correlation Coefficient/* \cite{maes97}*/.For within modality, you could also use Normalised Cross Correlation.'};
 cost_fun.labels = {
                    'Mutual Information'
                    'Normalised Mutual Information'

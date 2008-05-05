@@ -117,6 +117,14 @@ function varargout = cfg_util(cmd, varargin)
 % If no application is specified, defaults of all applications will be
 % returned in one struct/cell array. 
 % 
+%  doc = cfg_util('showdoc', tagstr|cfg_id|(job_id, mod_job_id[, item_mod_id]))
+%
+% Return help text for specified item. Item can be either a tag string or
+% a cfg_id in the default configuration tree, or a combination of job_id,
+% mod_job_id and item_mod_id from the current job.
+% The text returned will be a cell array of strings, each string
+% containing one paragraph of the help text.
+%
 %  cfg_util('initcfg')
 %
 % Initialise cfg_util configuration. All currently added applications and
@@ -272,6 +280,15 @@ function varargout = cfg_util(cmd, varargin)
 % cfg_branch items.
 % Defaults only apply to new jobs, not to already configured ones.
 %
+%  doc = cfg_util('showdoc', tagstr|cfg_id|(job_id, mod_job_id[, item_mod_id]))
+%
+% Return help text for specified item. Item can be either a tag string or
+% a cfg_id in the default configuration tree, or a combination of job_id,
+% mod_job_id and item_mod_id from the current job.
+% The text returned will be a cell array of strings, each string
+% containing one paragraph of the help text. In addition to the help
+% text, hints about valid values, defaults etc. are displayed.
+%
 %  [mod_job_idlist, str, sts, dep sout] = cfg_util('showjob', job_id[, mod_job_idlist])
 %
 % Return information about the current job (or the part referenced by the
@@ -322,9 +339,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: cfg_util.m 1541 2008-05-05 13:36:51Z volkmar $
 
-rev = '$Rev: 1521 $';
+rev = '$Rev: 1541 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -654,6 +671,15 @@ switch lower(cmd),
             jobs(cjob).cj = subsasgn(jobs(cjob).cj, [jobs(cjob).cjid2subs{mod_job_id}, item_mod_id], cm);
             varargout{1} = all_set_item(cm);
         end;
+    case 'showdoc',
+        if nargin == 2
+            % get item from defaults tree
+            cm = local_getcm(c0, varargin{1});
+        elseif nargin >= 3
+            % get item from job
+            cm = local_getcmjob(jobs, varargin{:});
+        end;
+        varargout{1} = showdoc(cm,'');
     case 'showjob',
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob)
@@ -843,25 +869,6 @@ job.cjid2subs{id} = struct([]);
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function matlabbatch = local_eval(varargin)
-% Evaluate a matlab expression or script
-opwd = pwd;
-try
-    local_cd(varargin{2});
-    eval(varargin{1});
-    if ~exist('matlabbatch', 'var')
-        try
-            matlabbatch = eval(varargin{1});
-        end;
-    end;
-    local_cd(opwd);
-catch
-    local_cd(opwd);
-    error('cfg_util:initjob:local_eval', 'Load failed.');
-end;
-%-----------------------------------------------------------------------
-
-%-----------------------------------------------------------------------
 function local_gencode(c0, fname, tropts, preamble)
 % Generate code, split at nodes matching stopspec (if stopspec is not
 % empty). fname will be overwritten if tropts is empty (i.e. for single
@@ -964,22 +971,34 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [cm, id] = local_getcm(c0, cfg_id)
-% This code could use tag2cfg_id
+function [cm, cfg_id] = local_getcm(c0, cfg_id)
 if cfg_util('ismod_cfg_id', cfg_id)
     % This should better test something like 'iscfg_id'
-    id{1} = cfg_id;
+    % do nothing
 else
-    % find application root
-    root = cfg_findspec({{'tag',cfg_id}});
-    tropts = cfg_tropts(cfg_findspec, 1, 2, 0, 1, true);
-    [id stop] = list(c0, root, tropts);
-    if numel(id) ~= 1 || isempty(id{1})
+    [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', cfg_id);
+    if isempty(mod_cfg_id)
         error('matlabbatch:cfg_util:harvestdef', ...
-              'Application with tag ''%s'' not found.', cfg_id);
+              'Item with tag ''%s'' not found.', cfg_id);
     end;
+    cfg_id = [mod_cfg_id, item_mod_id];
 end;
-cm = subsref(c0, id{1});
+cm = subsref(c0, cfg_id);
+%-----------------------------------------------------------------------
+
+%-----------------------------------------------------------------------
+function cm = local_getcmjob(jobs, job_id, mod_job_id, item_mod_id)
+if nargin < 4
+    item_mod_id = struct('subs',{},'type',{});
+end;
+if cfg_util('isjob_id', job_id) && cfg_util('ismod_job_id', mod_job_id) ...
+        && cfg_util('isitem_mod_id', item_mod_id)
+    cm = subsref(jobs(job_id).cj, ...
+                 [jobs(job_id).cjid2subs{mod_job_id} item_mod_id]);
+else
+    error('matlabbatch:cfg_util:getjobcm', ...
+          'Item not found.');
+end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------

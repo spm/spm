@@ -47,7 +47,7 @@ function Answer=inputdlg(Prompt, Title, NumLines, DefAns, Resize)
 %    QUESTDLG, TEXTWRAP, UIWAIT, WARNDLG .
 
 %  Copyright 1994-2007 The MathWorks, Inc.
-%  $Revision: 233 $
+%  $Revision: 1541 $
 
 %%%%%%%%%%%%%%%%%%%%
 %%% Nargin Check %%%

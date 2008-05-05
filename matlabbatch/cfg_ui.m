@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1475 2008-04-24 11:46:53Z volkmar $
+% $Id: cfg_ui.m 1541 2008-05-05 13:36:51Z volkmar $
 
-rev = '$Rev: 1475 $';
+rev = '$Rev: 1541 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -257,7 +257,7 @@ set(gcbo, 'Enable','on', 'Callback',@local_editdefs, ...
 % remove defs field from udmodlist
 udmodlist = rmfield(get(handles.modlist, 'userdata'), 'defid');
 if numel(fieldnames(udmodlist)) == 0
-    udmodlist = local_init_modlist;
+    udmodlist = local_init_udmodlist;
 end;
 set(handles.modlist, 'userdata',udmodlist);
 local_showjob(gcbo);
@@ -271,7 +271,7 @@ if nargin == 1
     cjob = udmodlist.cjob;
 else
     % set cjob, if supplied
-    udmodlist = local_init_modlist;
+    udmodlist = local_init_udmodlist;
     udmodlist(1).cjob = cjob;
 end;
 [id str sts dep sout] = cfg_util('showjob',cjob);
@@ -498,13 +498,8 @@ switch(udmodule.contents{5}{citem})
         set(handles.valshow,'String', str, 'Visible','on', 'Value', 1);
         set(handles.valshowLabel, 'Visible','on');
         if ~isfield(udmodlist, 'defid')
-            sout = cat(2,udmodlist(1).sout{1:cmod-1});
-            smatch = false(size(sout));
-            % loop over sout to find whether there are dependencies that match the current item
-            for k = 1:numel(sout)
-                smatch(k) = cfg_util('match', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, sout(k).tgt_spec);
-            end;
-            if any(smatch)
+            sout = local_showvaledit_deps(obj);
+            if ~isempty(sout)
                 set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddDep$'), ...
                     'Visible','on', 'Enable','on');
             end;
@@ -520,12 +515,15 @@ switch(udmodule.contents{5}{citem})
             'Visible','on', 'Enable','on');
     case 'cfg_menu'
         [str cval] = local_showvaledit_list(obj);
+        udvalshow = local_init_udvalshow;
         udvalshow.cval = cval;
         if cval == -1
             cval = 1;
         end;
         set(handles.valshow,'String',str, 'Visible','on', 'Value',cval, ...
-                          'Callback',@local_valedit_list, 'Userdata',udvalshow);
+                          'Callback',@local_valedit_list, ...
+                          'Keypressfcn',@local_valedit_list_key, ...
+                          'Userdata',udvalshow);
         set(handles.valshowLabel, 'Visible','on');
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), 'Visible','on', 'Enable','on');
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
@@ -533,12 +531,15 @@ switch(udmodule.contents{5}{citem})
     case 'cfg_choice'
         if ~isfield(udmodlist, 'defid')
             [str cval] = local_showvaledit_list(obj);
+            udvalshow = local_init_udvalshow;
             udvalshow.cval = cval;
             if cval == -1
                 cval = 1;
             end;
             set(handles.valshow,'String',str, 'Visible','on', 'Value',cval, ...
-                              'Callback',@local_valedit_list, 'Userdata',udvalshow);
+                              'Callback',@local_valedit_list, ...
+                              'Keypressfcn',@local_valedit_list_key, ...
+                              'Userdata',udvalshow);
             set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
                 'Visible','on', 'Enable','on');
@@ -580,6 +581,22 @@ end;
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
 set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 drawnow;
+
+% Get matching dependencies
+% --------------------------------------------------------------------
+function sout = local_showvaledit_deps(obj)
+handles = guidata(obj);
+udmodlist = get(handles.modlist, 'userdata');
+cmod = get(handles.modlist, 'value');
+udmodule = get(handles.module, 'userdata');
+citem = get(handles.module, 'value');
+sout = cat(2,udmodlist(1).sout{1:cmod-1});
+smatch = false(size(sout));
+% loop over sout to find whether there are dependencies that match the current item
+for k = 1:numel(sout)
+    smatch(k) = cfg_util('match', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, sout(k).tgt_spec);
+end;
+sout = sout(smatch);
 
 % --------------------------------------------------------------------
 function [str, cval] = local_showvaledit_list(hObject)
@@ -797,36 +814,65 @@ for k = 1:numel(en)
 end;
 
 % --------------------------------------------------------------------
+function local_valedit_list_accept(hObject)
+handles = guidata(hObject);
+udvalshow = get(handles.valshow, 'Userdata');
+local_enable(hObject, udvalshow.en);
+uiresume(handles.cfg_ui);
+set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
+    'Visible','off', 'Callback',[]);
+val = get(handles.valshow, 'Value');
+if val ~= udvalshow.cval
+    local_setvaledit(hObject,val);
+else
+    uicontrol(handles.module);
+end;
+
+% --------------------------------------------------------------------
+function local_valedit_list_cancel(hObject)
+handles = guidata(hObject);
+udvalshow = get(handles.valshow, 'Userdata');
+local_enable(hObject, udvalshow.en);
+uiresume(handles.cfg_ui);
+set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
+    'Visible','off', 'Callback',[]);
+uicontrol(handles.module);
+
+% --------------------------------------------------------------------
+function local_valedit_list_key(hObject, data, varargin)
+% collect key info for evaluation in local_valedit_list
+if strcmpi(data.Key,'return') && ~isempty(data.Modifier) && ...
+        any(strcmpi(data.Modifier, 'Control'))
+    local_valedit_list_accept(hObject);
+elseif  strcmpi(data.Key,'escape')
+    local_valedit_list_cancel(hObject);
+else
+    % record key
+    handles = guidata(hObject);
+    udvalshow = get(handles.valshow, 'Userdata');
+    udvalshow.key = data;
+    set(handles.valshow, 'Userdata',udvalshow);
+end;
+
+% --------------------------------------------------------------------
 function local_valedit_list(hObject,varargin)
 handles = guidata(hObject);
 udvalshow = get(handles.valshow, 'Userdata');
-if isequal(hObject, handles.valshow) || ...
+if (isempty(udvalshow.key) && hObject == handles.valshow) || ...
         any(hObject == findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'))
     % callback called from handles.valshow, finish editing and set value
-    c = get(handles.cfg_ui,'CurrentCharacter');
-    if isempty(c) || unicode2native(c) == 13 || ...
+    if hObject == handles.valshow || ...
             hObject == handles.valshowBtnAccept
-        % under some circumstances, c may be empty if mouse + keyboard interact
-        local_enable(hObject, udvalshow.en);
-        uiresume(handles.cfg_ui);
-        set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
-            'Visible','off', 'Callback',[]);
-        val = get(handles.valshow, 'Value');
-        if val ~= udvalshow.cval
-            local_setvaledit(hObject,val);
-        else
-            uicontrol(handles.module);
-        end;
+        % Mouse selection: no key in udvalshow.key
+        % Button selection: Accept button press
+        local_valedit_list_accept(hObject);
     elseif hObject == handles.valshowBtnCancel
-        local_enable(hObject, udvalshow.en);
-        uiresume(handles.cfg_ui);
-        set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
-            'Visible','off', 'Callback',[]);
-        uicontrol(handles.module);
+        local_valedit_list_cancel(hObject);
     end;
-else
+elseif hObject ~= handles.valshow
     % callback called from elsewhere (module, menu, button) - init editing
     udvalshow.en = local_disable(hObject);
+    udvalshow.key = [];
     figure(handles.cfg_ui);
     set(handles.valshow,'enable','on','Userdata',udvalshow, 'Min',0, ...
                       'Max',1);
@@ -902,27 +948,16 @@ udmodlist = get(handles.modlist, 'Userdata');
 cmod = get(handles.modlist, 'Value');
 udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
-sout = cat(2,udmodlist(1).sout{1:cmod-1});
-smatch = false(size(sout));
-% loop over sout to find all souts that match the current item
-for k = 1:numel(sout)
-    smatch(k) = cfg_util('match', udmodlist.cjob, udmodlist.id{cmod}, udmodule.id{citem}, sout(k).tgt_spec);
-end;
-sout = sout(smatch);
-if isempty(sout)
-    set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddDep$'), 'Enable','off');
-    uiwait(msgbox('No matching dependencies found.','Add Dependency','modal'));
-else
-    % for some reason, MATLAB wants to have the list size to be specified in
-    % pixels, not chars. Try to work this out based on the number of
-    % characters and a font size of 12.
-    str = strvcat(sout.sname);
-    szi = min(max(size(strvcat(str)')+1, [10 1]),[140 60])*13;
-    [val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str, ...
-                        'ListSize',szi);
-    if sts
-        local_setvaledit(hObject, sout(val));
-    end;
+sout = local_showvaledit_deps(hObject);
+% for some reason, MATLAB wants to have the list size to be specified in
+% pixels, not chars. Try to work this out based on the number of
+% characters and a font size of 12.
+str = strvcat(sout.sname);
+szi = min(max(size(strvcat(str)')+1, [10 1]),[140 60])*13;
+[val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str, ...
+                    'ListSize',szi);
+if sts
+    local_setvaledit(hObject, sout(val));
 end;
 
 % --------------------------------------------------------------------
@@ -1001,7 +1036,7 @@ local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
 % Check udmodlist
 udmodlist = get(handles.modlist, 'userdata');
 if isempty(udmodlist) || ~cfg_util('isjob_id', udmodlist.cjob)
-    udmodlist = local_init_modlist;
+    udmodlist = local_init_udmodlist;
     udmodlist.cjob = cfg_util('initjob');
     set(handles.modlist, 'userdata', udmodlist);
 end;
@@ -1055,7 +1090,7 @@ if strcmpi(cmd,'continue')
     if ~isempty(udmodlist.cmod)
         cfg_util('deljob',udmodlist(1).cjob);
     end;
-    udmodlist = local_init_modlist;
+    udmodlist = local_init_udmodlist;
     udmodlist.cjob = cfg_util('initjob');
     set(handles.modlist, 'userdata', udmodlist);
     local_showjob(hObject);
@@ -1079,7 +1114,7 @@ if strcmpi(cmd,'continue')
     if sts
         files = cellstr(files);
         cfg_util('deljob',udmodlist(1).cjob);
-        udmodlist = local_init_modlist;
+        udmodlist = local_init_udmodlist;
         udmodlist.wd = fileparts(files{1});
         udmodlist.cjob = cfg_util('initjob', files);
         set(handles.modlist, 'userdata', udmodlist);
@@ -1437,10 +1472,15 @@ local_valedit_ReplItem(hObject);
 
 
 % --------------------------------------------------------------------
-function modlist = local_init_modlist
-% Initialise modlist to empty struct
+function udmodlist = local_init_udmodlist
+% Initialise udmodlist to empty struct
 % Don't initialise defid field - this will be added by defaults editor
-modlist = struct('cjob',[],'cmod',[],'id',[],'sout',[],'modified',false,'wd','');
+udmodlist = struct('cjob',[],'cmod',[],'id',[],'sout',[],'modified',false,'wd','');
+
+% --------------------------------------------------------------------
+function udvalshow = local_init_udvalshow
+% Initialise udvalshow to empty struct
+udvalshow = struct('cval',[],'en',[],'key',[]);
 
 
 % --- Executes when user attempts to close cfg_ui.
