@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1537 2008-05-02 14:27:16Z vladimir $
+% $Id: spm_eeg_convert.m 1548 2008-05-06 15:07:31Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -236,7 +236,9 @@ else % Read by trials
         nsampl = hdr.nSamples;
         ntrial = hdr.nTrials;
         trl = zeros(ntrial, 2);
-        conditionlabels = repmat({S.conditionlabel}, 1, ntrial);
+        if length(conditionlabels) ~= ntrial
+            conditionlabels = repmat({S.conditionlabel}, 1, ntrial);
+        end
     else
         nsampl = unique(diff(trl, [], 2))+1;
         if length(nsampl) > 1
