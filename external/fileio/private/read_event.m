@@ -58,6 +58,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.61  2008/05/06 13:29:46  vlalit
+% Changed the code to only give a warning and not an error for Biosemi when detectflank = 'both' is specified and change it to 'up'.
+%
 % Revision 1.60  2008/05/02 14:23:04  vlalit
 % Added readers for SPM5 and SPM8 EEG formats
 %

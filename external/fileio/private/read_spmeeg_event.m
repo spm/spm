@@ -50,7 +50,7 @@ elseif all(isfield(D, {'type', 'Nsamples', 'Fsample', 'timeOnset'})) % SPM8
 
     for i = 1:numel(D.trials)
         event = [event struct('type', 'trial', 'sample', (i-1)*header.nSamples + 1,...
-            'value', [], 'offset', -header.nSamplesPre, 'duration', header.nSamples)];
+            'value', D.trials(i).label, 'offset', -header.nSamplesPre, 'duration', header.nSamples)];
 
         if isfield(D.trials, 'events')
             cevent = D.trials(i).events;

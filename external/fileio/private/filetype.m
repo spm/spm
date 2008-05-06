@@ -54,6 +54,12 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.76  2008/05/06 14:36:23  roboos
+% Added readers for SPM5 and SPM8 EEG formats (fix cvs conflict between jansch and vlalit)
+%
+% Revision 1.75  2008/05/06 12:00:38  jansch
+% changed strcmp into strfind for 4d-data
+%
 % Revision 1.74  2008/05/06 09:24:36  jansch
 % removed check for . in filename of 4D-files. necessary to read in data that
 % are not DC-recorded.
@@ -340,7 +346,7 @@ elseif isequal(f, 'hs_file') % the filename is "hs_file"
   ftype = '4d_hs';
   manufacturer = '4D/BTI';
   content = 'head shape';
-elseif length(filename)>=4 && strcmp(filename(2:4),',rf')
+elseif length(filename)>=4 && ~isempty(strfind(filename,',rf'))
     ftype = '4d';
     manufacturer = '4D/BTi';
     content = '';
@@ -798,6 +804,10 @@ elseif filetype_check_extension(filename, '.edf')
   ftype = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
+elseif filetype_check_extension(filename, '.mat') && numel(whos('-file', filename))==1 && strcmp('D', getfield(whos('-file', filename), {1}, 'name'))
+    ftype = 'spmeeg_mat';
+    manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
+    content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
   ftype = 'matlab';
   manufacturer = 'Matlab';
