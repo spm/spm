@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.47  2008/05/06 16:30:26  sashae
+% change in trial selection, cfg.trials can be logical
+%
 % Revision 1.46  2008/01/31 09:42:37  roboos
 % keep cumtapcnt if available
 %
@@ -225,10 +228,12 @@ if ~strcmp(cfg.trials, 'all')
     error('trial selection requires input data with repeated observations');
   end
   if hascsd
+    if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
     fprintf('selecting %d trials\n', length(cfg.trials));
     freq.crsspctrm=freq.crsspctrm(cfg.trials,:,:,:);
   end
   if haspow
+    if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
     fprintf('selecting %d trials\n', length(cfg.trials));
     freq.powspctrm=freq.powspctrm(cfg.trials,:,:,:);
   end
@@ -608,7 +613,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.46 2008/01/31 09:42:37 roboos Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.47 2008/05/06 16:30:26 sashae Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

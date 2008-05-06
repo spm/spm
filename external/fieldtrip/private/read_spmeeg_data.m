@@ -40,16 +40,21 @@ if isempty(header)
 end
 
 datatype = 'float32';
+scale = [];
 if isfield(header, 'orig')
     if isfield(header.orig, 'datatype')
         datatype = header.orig.datatype;
     elseif isfield(header.orig.data, 'datatype')
         datatype = header.orig.data.datatype;
     end
+    if isfield(header.orig, 'scale')
+        scale = header.orig.scale;
+    elseif isfield(header.orig.data, 'scale')
+        scale = header.orig.data.scale;
+    end
 end
-    
-stepsize = typesizes(strmatch(datatype, typenames));
 
+stepsize = typesizes(strmatch(datatype, typenames));
 
 if isempty(begsample), begsample = 1; end;
 if isempty(endsample), endsample = header.nSamples; end;
@@ -66,3 +71,6 @@ if ~isempty(chanindx)
     dat = dat(chanindx,:,:);
 end
 
+if ~isempty(scale) && ~ismember(datatype, {'float32', 'float64'})
+    dat = dat .* repmat(scale(chanindx,:,:), [1, size(dat, 2), 1]);
+end

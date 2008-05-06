@@ -11,6 +11,7 @@ function [interp] = megrepair(cfg, data);
 % The configuration can contain
 %   cfg.badchannel     = cell-array, see CHANNELSELECTION for details
 %   cfg.neighbourdist  = default is 4 cm 
+%   cfg.trials         = 'all' or a selection given as a 1xN vector (default = 'all')
 %
 % Since a nearest neighbour average is used, the input should contain
 % a gradiometer or electrode definition, i.e. data.grad or data.elec.
@@ -20,6 +21,9 @@ function [interp] = megrepair(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: megrepair.m,v $
+% Revision 1.17  2008/05/06 16:30:26  sashae
+% change in trial selection, cfg.trials can be logical
+%
 % Revision 1.16  2008/04/22 13:28:01  roboos
 % ensure that for loop over goodsensindcs is correct (fixes bug reported by Jurrian)
 %
@@ -88,6 +92,7 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -176,7 +181,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrepair.m,v 1.16 2008/04/22 13:28:01 roboos Exp $';
+cfg.version.id   = '$Id: megrepair.m,v 1.17 2008/05/06 16:30:26 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
