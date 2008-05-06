@@ -29,7 +29,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1536 2008-05-01 18:32:41Z vladimir $
+% $Id: spm_dcm_erp_data.m 1551 2008-05-06 15:19:33Z stefan $
 
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ end
 
 % order of drift terms
 %--------------------------------------------------------------------------
-try h; catch h = 0; end
+try, h; catch h = 0; end
 
 % load D
 %--------------------------------------------------------------------------
@@ -135,11 +135,11 @@ end
 % get trial averages - ERP
 %--------------------------------------------------------------------------
 condlabels = unique(D.conditions);
-for i = 1:length(trial);
+for i = 1:length(trial)
 
     % trial indices
     %----------------------------------------------------------------------
-    c = D.pickconditions(condlabels{i});
+    c = D.pickconditions(condlabels{trial(i)});
     
     Nt    = length(c);
 
