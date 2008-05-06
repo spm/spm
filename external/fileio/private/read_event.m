@@ -382,10 +382,15 @@ switch eventformat
     end
     
     if ~strcmp(detectflank, 'up')
-      error('only up-going flanks are supported for Biosemi');
-      % FIXME the next section on trigger detection should be merged with the
-      % READ_CTF_TRIGGER (which also does masking with bit-patterns) into the
-      % READ_TRIGGER function
+        if strcmp(detectflank, 'both')
+            warning('only up-going flanks are supported for Biosemi');
+            detectflank = 'up';
+        else
+            error('only up-going flanks are supported for Biosemi');
+            % FIXME the next section on trigger detection should be merged with the
+            % READ_CTF_TRIGGER (which also does masking with bit-patterns) into the
+            % READ_TRIGGER function
+        end
     end
     
     % find the STATUS channel and read the values from it

@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1516 2008-04-29 15:03:26Z vladimir $
+% $Id: spm_eeg_definetrial.m 1547 2008-05-06 13:23:30Z vladimir $
 
 if nargin == 0
     S = [];
@@ -61,6 +61,10 @@ if ~isfield(event, 'sample')
             event(i).sample = (event(i).time-S.timeonset)*S.fsample+1;
         end
     end
+end
+
+if isempty(event)
+    error('No event information was found in the input');
 end
 
 if ~isfield(S, 'pretrig')
