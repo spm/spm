@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.30  2008/05/06 15:43:46  sashae
+% change in trial selection, cfg.trials can be logical
+%
 % Revision 1.29  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -175,6 +178,7 @@ end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -530,7 +534,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.29 2008/04/10 08:03:11 roboos Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.30 2008/05/06 15:43:46 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

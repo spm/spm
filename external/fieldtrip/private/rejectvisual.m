@@ -97,6 +97,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.20  2008/05/06 14:03:10  sashae
+% change in trial selection, cfg.trials can be a logical
+%
 % Revision 1.19  2007/12/18 17:52:20  sashae
 % added option for trial selection, replaced some old code by call to findcfg
 %
@@ -188,6 +191,7 @@ end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -306,7 +310,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.19 2007/12/18 17:52:20 sashae Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.20 2008/05/06 14:03:10 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

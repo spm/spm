@@ -75,6 +75,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.50  2008/05/06 15:43:46  sashae
+% change in trial selection, cfg.trials can be logical
+%
 % Revision 1.49  2008/01/29 18:06:13  sashae
 % added option for trial selection
 % removed some old code
@@ -272,6 +275,7 @@ data = data2raw(data);
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -649,7 +653,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.49 2008/01/29 18:06:13 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.50 2008/05/06 15:43:46 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

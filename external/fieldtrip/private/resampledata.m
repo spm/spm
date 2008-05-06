@@ -5,7 +5,7 @@ function [data] = resampledata(cfg, data);
 % Use as
 %   [data] = resampledata(cfg, data)
 %
-% The data should be organised in a structure as obtained from 
+% The data should be organised in a structure as obtained from
 % the PREPROCESSING function. The configuration should contain
 %   cfg.resamplefs = frequency at which the data will be resampled (default = 256 Hz)
 %   cfg.detrend    = 'no' or 'yes', detrend the data prior to resampling (no default specified, see below)
@@ -37,6 +37,9 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2008, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.14  2008/05/06 14:03:10  sashae
+% change in trial selection, cfg.trials can be a logical
+%
 % Revision 1.13  2008/04/07 16:02:33  roboos
 % changed default for detrending, added baselinecorrection
 %
@@ -99,6 +102,7 @@ end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -158,9 +162,9 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.13 2008/04/07 16:02:33 roboos Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.14 2008/05/06 14:03:10 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
-% remember the exact configuration details in the output 
+% remember the exact configuration details in the output
 data.cfg = cfg;
 

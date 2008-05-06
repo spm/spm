@@ -130,6 +130,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.89  2008/05/06 15:43:46  sashae
+% change in trial selection, cfg.trials can be logical
+%
 % Revision 1.88  2008/03/04 16:37:04  roboos
 % automatically read continuous or trial based data, this reads all data into memory
 %
@@ -345,6 +348,7 @@ if nargin>1
 
   % select trials of interest
   if ~strcmp(cfg.trials, 'all')
+    if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
     fprintf('selecting %d trials\n', length(cfg.trials));
     data.trial  = data.trial(cfg.trials);
     data.time   = data.time(cfg.trials);
@@ -583,7 +587,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.88 2008/03/04 16:37:04 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.89 2008/05/06 15:43:46 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

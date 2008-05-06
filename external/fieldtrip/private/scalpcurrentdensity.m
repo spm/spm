@@ -45,6 +45,9 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: scalpcurrentdensity.m,v $
+% Revision 1.22  2008/05/06 14:23:32  sashae
+% change in trial selection, cfg.trials can be a logical
+%
 % Revision 1.21  2008/04/29 14:35:20  roboos
 % fixed bug in looping over trials, thanks to Manuel
 %
@@ -130,6 +133,7 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';       end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -228,7 +232,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.21 2008/04/29 14:35:20 roboos Exp $';
+cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.22 2008/05/06 14:23:32 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

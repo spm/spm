@@ -40,6 +40,9 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.40  2008/05/06 15:43:46  sashae
+% change in trial selection, cfg.trials can be logical
+%
 % Revision 1.39  2008/01/18 13:14:50  sashae
 % added option for trial selection, updated documentation
 %
@@ -173,6 +176,7 @@ end
 % select trials of interest
 if ~isfield(cfg, 'trials'),   cfg.trials = 'all';  end % set the default
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);

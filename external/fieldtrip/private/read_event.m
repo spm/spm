@@ -58,6 +58,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.61  2008/05/06 13:29:46  vlalit
+% Changed the code to only give a warning and not an error for Biosemi when detectflank = 'both' is specified and change it to 'up'.
+%
 % Revision 1.60  2008/05/02 14:23:04  vlalit
 % Added readers for SPM5 and SPM8 EEG formats
 %
@@ -382,10 +385,15 @@ switch eventformat
     end
     
     if ~strcmp(detectflank, 'up')
-      error('only up-going flanks are supported for Biosemi');
-      % FIXME the next section on trigger detection should be merged with the
-      % READ_CTF_TRIGGER (which also does masking with bit-patterns) into the
-      % READ_TRIGGER function
+        if strcmp(detectflank, 'both')
+            warning('only up-going flanks are supported for Biosemi');
+            detectflank = 'up';
+        else
+            error('only up-going flanks are supported for Biosemi');
+            % FIXME the next section on trigger detection should be merged with the
+            % READ_CTF_TRIGGER (which also does masking with bit-patterns) into the
+            % READ_TRIGGER function
+        end
     end
     
     % find the STATUS channel and read the values from it

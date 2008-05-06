@@ -41,6 +41,9 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.14  2008/05/06 14:03:10  sashae
+% change in trial selection, cfg.trials can be a logical
+%
 % Revision 1.13  2008/04/21 14:27:12  jansch
 % changed trlnew into trl to be able to output the new trl-matrix correctly
 % and elegantly into the output-structure
@@ -112,6 +115,7 @@ trlold = trl;
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   if fb, fprintf('selecting %d trials\n', length(cfg.trials)); end
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -314,7 +318,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.13 2008/04/21 14:27:12 jansch Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.14 2008/05/06 14:03:10 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

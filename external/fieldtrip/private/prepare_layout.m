@@ -21,6 +21,7 @@ function [lay] = prepare_layout(cfg, data);
 %   cfg.elecfile    filename containing electrode positions
 %   cfg.grad        structure with gradiometer definition, or
 %   cfg.gradfile    filename containing gradiometer definition
+%   cfg.output      filename to which the layout will be written (default = [])
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -36,6 +37,10 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.11  2008/05/06 13:16:56  roboos
+% added option for writing *.lay files
+% merged bti and ctf code
+%
 % Revision 1.10  2008/04/25 12:29:52  roboos
 % slight improvement for ordered layout
 %
@@ -97,6 +102,7 @@ if ~isfield(cfg, 'grad'),       cfg.grad = [];                  end
 if ~isfield(cfg, 'elec'),       cfg.elec = [];                  end
 if ~isfield(cfg, 'gradfile'),   cfg.gradfile = [];              end
 if ~isfield(cfg, 'elecfile'),   cfg.elecfile = [];              end
+if ~isfield(cfg, 'output'),     cfg.output = [];                end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'no';            end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,6 +208,7 @@ if ~any(strcmp('COMNT', lay.label))
   lay.height(end+1) = mean(lay.height);
   X                 = min(lay.pos(:,1));
   Y                 = max(lay.pos(:,2));
+  Y                 = min(lay.pos(:,2));
   lay.pos(end+1,:)  = [X Y];
 end
 
@@ -212,6 +219,7 @@ if ~any(strcmp('SCALE', lay.label))
   lay.height(end+1) = mean(lay.height);
   X                 = max(lay.pos(:,1));
   Y                 = max(lay.pos(:,2));
+  Y                 = min(lay.pos(:,2));
   lay.pos(end+1,:)  = [X Y];
 end
 
@@ -229,12 +237,21 @@ if strcmp(cfg.feedback, 'yes')
 end
 
 
+if ~isempty(cfg.output)
+  fprintf('writing layout to ''%s''\n', cfg.output);
+  fid = fopen(cfg.output, 'wt');
+  for i=1:numel(lay.label)
+    fprintf(fid, '%d %f %f %f %f %s\n', i, lay.pos(i,1), lay.pos(i,2), lay.width(i), lay.height(i), lay.label{i});
+  end
+  fclose(fid);
+end
+  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 % read the layout information from the ascii file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function lay = readlay(filename);
+function lay = readlay(filename)
 if ~exist(filename, 'file')
   error(sprintf('could not open layout file: %s', filename));
 end
@@ -282,7 +299,7 @@ return % function elec2lay
 function lay = grad2lay(grad, rz, method);
 fprintf('creating layout for %s system\n', sensortype(grad));
 switch lower(sensortype(grad))
-  case {'ctf151', 'ctf275', 'ctf151_planar', 'ctf275_planar', 'bti148', 'magnetometer'}
+  case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
     rz = 90;
   case {'neuromag122', 'neuromag306'}
     rz = 0;
@@ -291,9 +308,12 @@ switch lower(sensortype(grad))
 end
 grad.pnt = warp_apply(rotate([0 0 rz]), grad.pnt, 'homogenous');
 switch lower(sensortype(grad))
-  case {'ctf151', 'ctf275'}
+  case {'ctf151', 'ctf275' 'bti148', 'bti248'}
+    % select only the MEG channels, not the reference channels
     Lbl = channelselection('MEG', grad.label);
     ind = match_str(grad.label, Lbl);
+    % this assumes that the bottom of the MEG gradiometers is listed as the first set of coils
+    % which is always the case for BTi-magnetometers, and which is ensured for CTF-gradiometers in ctf2grad
     pnt = grad.pnt(ind,:);
     prj = elproj(pnt, method);
     d = dist(prj');
@@ -304,7 +324,7 @@ switch lower(sensortype(grad))
     Width  = ones(size(X)) * mindist * 0.8;
     Height = ones(size(X)) * mindist * 0.6;
 
-  case {'ctf151_planar', 'ctf275_planar'}
+  case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
     % create a list with planar channel names
     chan = {};
     for i=1:length(grad.label)
@@ -429,22 +449,8 @@ switch lower(sensortype(grad))
     Width  = ones(size(X))*mindist/3;
     Height = ones(size(X))*mindist/3;
 
-  case {'bti148', 'magnetometer'}
-    % select all channels for the layout
-    pnt = grad.pnt;
-    lab = grad.label;
-    prj = elproj(pnt, method);
-    d = dist(prj');
-    d(find(eye(size(d)))) = inf;
-    mindist = min(d(:));
-    X = prj(:,1);
-    Y = prj(:,2);
-    Lbl = lab;
-    Width  = ones(size(X)) * mindist * 0.8;
-    Height = ones(size(X)) * mindist * 0.6;
-
   otherwise
-    error('unrecognized sensor type');
+    error('unsupported MEG sensor type');
 end % switch sensortype
 
 lay.pos    = [X Y];

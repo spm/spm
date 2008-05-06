@@ -48,7 +48,7 @@ function [association] = nonlinearassociation(cfg, data)
 % The configuration should contain
 %   cfg.channel    = Nx1 cell-array with selection of channels (default = 'all'), see CHANNELSELECTION for details
 %   cfg.keeptrials = 'yes' or 'no', process the individual trials or the concatenated data (default = 'no')
-%   cfg.trials     = 'all' or a selection like 1:10 (default = 'all')
+%   cfg.trials     = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.fsample    = 1200
 %   cfg.maxdelay   = 32/cfg.fsample
 %   cfg.delaystep  = 2/cfg.fsample
@@ -69,6 +69,9 @@ function [association] = nonlinearassociation(cfg, data)
 % Copyright (C) 2007, Inge Westmijse
 %
 % $Log: nonlinearassociation.m,v $
+% Revision 1.9  2008/05/06 14:23:32  sashae
+% change in trial selection, cfg.trials can be a logical
+%
 % Revision 1.8  2008/02/20 16:07:48  roboos
 % added the documentation according to Pauly
 %
@@ -111,6 +114,7 @@ if ~isfield(cfg, 'feedback'),      cfg.feedback = 'textbar';        end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -233,7 +237,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: nonlinearassociation.m,v 1.8 2008/02/20 16:07:48 roboos Exp $';
+cfg.version.id   = '$Id: nonlinearassociation.m,v 1.9 2008/05/06 14:23:32 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

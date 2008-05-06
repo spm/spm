@@ -35,6 +35,9 @@ function [comp] = componentanalysis(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.33  2008/05/06 14:23:32  sashae
+% change in trial selection, cfg.trials can be a logical
+%
 % Revision 1.32  2007/12/18 17:06:05  sashae
 % updated documentation
 %
@@ -226,6 +229,7 @@ end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
+  if islogical(cfg.trials),  cfg.trials=find(cfg.trials);  end
   fprintf('selecting %d trials\n', length(cfg.trials));
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
@@ -439,7 +443,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.32 2007/12/18 17:06:05 sashae Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.33 2008/05/06 14:23:32 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
