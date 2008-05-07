@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 1562 2008-05-07 14:08:44Z stefan $
+% $Id: spm_cfg_eeg_epochs.m 1568 2008-05-07 18:23:23Z stefan $
 
-rev = '$Rev: 1562 $';
+rev = '$Rev: 1568 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -66,7 +66,7 @@ trialdef.help = {'structure array for trial definition with fields',...
 trlchoice         = cfg_choice;
 trlchoice.tag     = 'trialchoice';
 trlchoice.name    = 'Choose a way how to define trials';
-trlchoice.val = {1};
+trlchoice.val = {gui};
 trlchoice.help    = {'Choose one of the two options how to define trials'}';
 trlchoice.values = {gui epochinfo trialdef};
 

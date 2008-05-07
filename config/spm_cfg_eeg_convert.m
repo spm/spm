@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 1565 2008-05-07 18:15:11Z stefan $
+% $Id: spm_cfg_eeg_convert.m 1568 2008-05-07 18:23:23Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'filename';
@@ -104,9 +104,9 @@ dataset.help = {'Select data set file.'};
 % convert.val = {dataset continuous timewindow outfile usetrials trlfile datatype eventpadding conditionlabels blocksize checkboundary};
 % 
 % 
-% S = cfg_exbranch;
-% S.tag = 'eeg_convert';
-% S.name = 'M/EEG Conversion';
+S = cfg_exbranch;
+S.tag = 'eeg_convert';
+S.name = 'M/EEG Conversion';
 % S.val = {dataset convert};
 % S.help = {'Converts EEG/MEG data.'};
 % S.prog = @eeg_convert;
