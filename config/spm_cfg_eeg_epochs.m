@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_eeg_epochs.m 1562 2008-05-07 14:08:44Z stefan $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1562 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -21,46 +21,59 @@ timing.strtype = 'r';
 timing.num = [1 2];
 timing.help = {'start and end of epoch [ms]'};
 
-types = cfg_entry;
-types.tag = 'types';
-types.name = 'Trial types';
-types.strtype = 'n';
-types.num = [1 inf];
-types.help = {'Select the indices of trial types to be epoched.'};
+gui = cfg_const;
+gui.tag = 'gui';
+gui.name = 'Use GUI';
+gui.val{1} = double([]);
 
-Ec = cfg_entry;
-Ec.tag = 'newcodes';
-Ec.name = 'New event codes';
-Ec.strtype = 'r';
-Ec.num = [0 inf];
-Ec.help = {'New event codes'};
+trl = cfg_entry;
+trl.tag = 'trialdef';
+trl.name = 'Trial matrix';
+trl.strtype = 'r';
+trl.num = [1 inf];
+trl.help = {'Nx2 or Nx3 matrix (N - number of chantype) [start end offset]'};
 
-nothing = cfg_const;
-nothing.tag = 'nothing';
-nothing.name = 'No new event codes';
-nothing.val{1} = double([]);
+cl = cfg_entry;
+cl.tag = 'conditionlabels';
+cl.name = 'Condition labels';
+cl.strtype = 's';
+cl.num = [inf inf];
+cl.help = {'Enter condition labels'};
 
-Inewlist         = cfg_choice;
-Inewlist.tag     = 'Inewlist';
-Inewlist.name    = 'Use new list of events';
-Inewlist.val = {nothing};
-Inewlist.help    = {'Choose this option if you want to assign new'
-                     'event codes.'}';
-Inewlist.values = {Ec nothing};
+padding = cfg_entry;
+padding.tag = 'padding';
+padding.name = 'Padding';
+padding.strtype = 'r';
+padding.num = [1 1];
+padding.help = {'Enter padding [s]'};
 
-newlabels = cfg_entry;
-newlabels.tag = 'newlabels';
-newlabels.name = 'New labels';
-newlabels.strtype = 'e';
-newlabels.num = [inf inf];
-newlabels.help = {
-    'Add one label (a string) for each epoched'
-    'trial type'};
+epochinfo = cfg_branch;
+epochinfo.tag = 'epochinfo';
+epochinfo.name = 'Epoch information';
+epochinfo.val = {trl cl padding};
+
+trialdef = cfg_entry;
+trialdef.tag = 'trialdef';
+trialdef.name = 'Trial definition';
+trialdef.strtype = 'e';
+trialdef.num = [inf inf];
+trialdef.help = {'structure array for trial definition with fields',...
+    'S.trialdef.conditionlabel - string label for the condition',...
+    'S.trialdef.eventtype  - string',...
+    'S.trialdef.eventvalue  - string, numeric or empty'};
+
+
+trlchoice         = cfg_choice;
+trlchoice.tag     = 'trialchoice';
+trlchoice.name    = 'Choose a way how to define trials';
+trlchoice.val = {1};
+trlchoice.help    = {'Choose one of the two options how to define trials'}';
+trlchoice.values = {gui epochinfo trialdef};
 
 events = cfg_branch;
 events.tag = 'events';
 events.name = 'Events';
-events.val = {timing types Inewlist newlabels};
+events.val = {timing trlchoice};
 
 S = cfg_exbranch;
 S.tag = 'eeg_epochs';
@@ -75,16 +88,15 @@ S.modality = {'EEG'};
 function out = eeg_epochs(job)
 % construct the S struct
 S.D = job.D{1};
-S.events = job.events;
-S.events.start = S.events.timing(1);
-S.events.stop = S.events.timing(2);
-if isfield(S.events.Inewlist, 'nothing')
-    S.events.Inewlist = 0;
-else
-    S.events.Inewlist = 1;
-    S.events.Ec = job.events.Inewlist.newcodes;
-end
+S.pretrig = job.events.timing(1);
+S.posttrig = job.events.timing(2);
 
+if isfield(job.events.trlchoice, 'gui')
+
+elseif isfield(job.events.trlchoice, 'trialdef')
+    S.trialdef = 1;
+    
+end
 out.D = spm_eeg_epochs(S);
 
 function dep = vout_eeg_epochs(job)
