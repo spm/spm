@@ -13,11 +13,12 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: initialise.m 1559 2008-05-07 09:23:55Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1559 $';
 
-if numel(item.values)==1 && isa(item.values{1},'cfg_branch') && ~item.forcestruct,
+if numel(item.values)==1 && isa(item.values{1},'cfg_branch') ...
+        && ~item.forcestruct,
     if dflag
         item.values{1} = initialise(item.values{1}, val, dflag);
     else
@@ -33,20 +34,25 @@ else
             % fields (a harvested defaults tree). In the latter case,
             % convert val to a cell array before proceeding.
             if isstruct(val)
-                fn = fieldnames(val);
-                for k = 1:numel(fn)
-                    val1{k} = struct(fn{k}, val.(fn{k}));
+                vtag = fieldnames(val);
+                val1 = cell(size(vtag));
+                for k = 1:numel(vtag)
+                    val1{k} = struct(vtag{k}, val.(vtag{k}));
                 end;
                 val = val1;
+            elseif iscell(val)
+                vtag = cell(size(val));
+                for k = 1:numel(val)
+                    vtag(k) = fieldnames(val{k});
+                end;
             end;
-            for l = 1:numel(val)
-                vtag = fieldnames(val{l});
-                for k = 1:numel(item.values)
-                    if strcmp(gettag(item.values{k}), vtag{1})
-                        item.values{k} = initialise(item.values{k}, ...
-                            val{l}.(vtag{1}), ...
-                            dflag);
-                    end;
+            for k = 1:numel(item.values)
+                % use first match for defaults initialisation
+                sel = find(strcmp(gettag(item.values{k}), vtag));
+                if ~isempty(sel)
+                    item.values{k} = initialise(item.values{k}, ...
+                                                val{sel(1)}.(vtag{sel(1)}), ...
+                                                dflag);
                 end;
             end;
         else

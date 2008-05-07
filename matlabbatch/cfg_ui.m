@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: cfg_ui.m 1559 2008-05-07 09:23:55Z volkmar $
 
-rev = '$Rev: 1541 $';
+rev = '$Rev: 1559 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 23-Apr-2008 23:15:30
+% Last Modified by GUIDE v2.5 07-May-2008 09:58:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -173,12 +173,13 @@ for k =1:numel(toplevelmenus)
     set(toplevelmenus(k),'Label',clabel);
     if dflag
         % add defaults manipulation entries
-        cm = uimenu('Parent',toplevelmenus(k), 'Label','Load Defaults', ...
-                    'Callback',@local_loaddefs, 'Userdata',toplevelids{k}, ...
-                    'tag','AddedAppMenu', 'Separator','on');
-        cm = uimenu('Parent',toplevelmenus(k), 'Label','Save Defaults', ...
-                    'Callback',@local_savedefs, 'Userdata',toplevelids{k}, ...
-                    'tag','AddedAppMenu');
+        % disable Load/Save
+        %cm = uimenu('Parent',toplevelmenus(k), 'Label','Load Defaults', ...
+        %           'Callback',@local_loaddefs, 'Userdata',toplevelids{k}, ...
+        %           'tag','AddedAppMenu', 'Separator','on');
+        %cm = uimenu('Parent',toplevelmenus(k), 'Label','Save Defaults', ...
+        %           'Callback',@local_savedefs, 'Userdata',toplevelids{k}, ...
+        %           'tag','AddedAppMenu');
         cm = uimenu('parent',toplevelmenus(k), 'Label','Edit Defaults', ...
                     'Callback',@local_editdefs, 'Userdata',toplevelids{k}, ...
                     'tag','AddedAppMenu', 'Separator','on');
@@ -393,7 +394,12 @@ if ~isempty(udmodlist.cmod)
                             % always display line vector as summary
                             datastr{k} = num2str(contents{2}{k}{1}(:)');
                         else
-                            szstr = sprintf('%dx', csz);
+                            if any(csz == 0)
+                                szstr = 'empty '; % leave space at the end to be
+                                                  % cut off
+                            else
+                                szstr = sprintf('%dx', csz);
+                            end;
                             datastr{k} = sprintf('%s %s', szstr(1:end-1), class(contents{2}{k}{1}));
                         end;
                     otherwise
@@ -416,8 +422,13 @@ if ~isempty(udmodlist.cmod)
     adatastr = datastr(:,1:end-minl);
     edatastr = datastr(:,end-minl+1:end);
     ell = any(~isspace(adatastr),2);
-    ellstr=repmat(' ',size(datastr,1),3);
-    ellstr(ell,:) = repmat('.',sum(ell),3);    
+    if any(ell)
+        ellstr = repmat(' ',size(datastr,1),3);
+        ellstr(ell,:) = repmat('.',sum(ell),3);
+    else
+        indent = max(floor(.6*cpos(3))-size(namestr,2)-size(edatastr,2),0);
+        ellstr = repmat(' ',size(datastr,1),indent);
+    end;
     str = cellstr(cat(2, namestr, ellstr, edatastr));
     udmodule = get(handles.module, 'userdata');
     if isempty(udmodule)
@@ -1542,3 +1553,14 @@ if isstruct(fs)
     set(handles.helpbox, fnfs{:});
 end;
 MenuEditUpdateView_Callback(hObject, eventdata, handles);
+
+
+% --- Executes when cfg_ui is resized.
+function cfg_ui_ResizeFcn(hObject, eventdata, handles)
+% hObject    handle to cfg_ui (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% this is just "Update View"
+MenuEditUpdateView_Callback(hObject, eventdata, handles);
+
