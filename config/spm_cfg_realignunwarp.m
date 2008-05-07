@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 1558 2008-05-07 07:05:30Z volkmar $
 
-rev = '$Rev: 1541 $';
+rev = '$Rev: 1558 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -122,14 +122,14 @@ einterp.help    = {
 einterp.labels = {
                   'Nearest neighbour'
                   'Trilinear'
-                  '2nd Degree B-spline '
+                  '2nd Degree B-spline'
                   '3rd Degree B-Spline'
                   '4th Degree B-Spline'
-                  '5th Degree B-Spline '
+                  '5th Degree B-Spline'
                   '6th Degree B-Spline'
                   '7th Degree B-Spline'
 }';
-einterp.values = {1 2 3 4 5 6 7};
+einterp.values = {0 1 2 3 4 5 6 7};
 einterp.def    = {@spm_get_defaults, 'realign.estimate.interp'};
 % ---------------------------------------------------------------------
 % ewrap Wrapping
@@ -208,7 +208,7 @@ regorder.labels = {
                    '2'
                    '3'
 }';
-regorder.values = {0 1 2 3 4};
+regorder.values = {0 1 2 3};
 regorder.def    = {@spm_get_defaults, 'unwarp.estimate.regorder'};
 % ---------------------------------------------------------------------
 % lambda Reg. Factor

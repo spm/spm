@@ -17,7 +17,7 @@ function spmjobs = spm_def
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_def.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_def.m 1558 2008-05-07 07:05:30Z volkmar $
 
 spm_defaults;
 global defaults;
@@ -423,40 +423,4 @@ spmjobs.util.ui.appearance.colour3 = double([0 0 0]);
 spmjobs.util.ui.appearance.fs = double(14);
 spmjobs.util.ui.print.opts  = '<UNDEFINED>';
 spmjobs.util.ui.print.fname = '<UNDEFINED>';
-spmjobs.util.meeg.dataset = '<UNDEFINED>';
-spmjobs.util.meeg.trials.sub_trialdef.eventtype = 'gui';
-spmjobs.util.meeg.trials.sub_trialdef.eventvalue = 'gui';
-spmjobs.util.meeg.trials.sub_trialdef.prestim = '<UNDEFINED>';
-spmjobs.util.meeg.trials.sub_trialdef.poststim = '<UNDEFINED>';
-spmjobs.util.meeg.trials.sub_trialdef.ignorelim = 'no';
-spmjobs.util.meeg.trials.sub_trialdef.savetrl = 'no';
-spmjobs.util.meeg.trials.trlfile = '<UNDEFINED>';
-spmjobs.util.meeg.trials.loadcont = ' ';
-spmjobs.util.meeg.padding = double(0);
-spmjobs.util.meeg.timeshift = double(0);
-spmjobs.util.meeg.forcecont = 'no';
-spmjobs.util.meeg.chansubset.channel = 'all';
-spmjobs.util.meeg.chansubset.filters.lpfilter.lpfreq = '<UNDEFINED>';
-spmjobs.util.meeg.chansubset.filters.lpfilter.lpfiltord = double(6);
-spmjobs.util.meeg.chansubset.filters.lpfilter.lpfilttype = 'but';
-spmjobs.util.meeg.chansubset.filters.lpfilter.lpfiltdir = 'twopass';
-spmjobs.util.meeg.chansubset.filters.hpfilter.hpfreq = '<UNDEFINED>';
-spmjobs.util.meeg.chansubset.filters.hpfilter.hpfiltord = double(6);
-spmjobs.util.meeg.chansubset.filters.hpfilter.hpfilttype = 'but';
-spmjobs.util.meeg.chansubset.filters.hpfilter.hpfiltdir = 'twopass';
-spmjobs.util.meeg.chansubset.filters.bpfilter.bpfreq = '<UNDEFINED>';
-spmjobs.util.meeg.chansubset.filters.bpfilter.bpfiltord = double(4);
-spmjobs.util.meeg.chansubset.filters.bpfilter.bpfilttype = 'but';
-spmjobs.util.meeg.chansubset.filters.bpfilter.bpfiltdir = 'twopass';
-spmjobs.util.meeg.chansubset.filters.lnfilter.lnfreq = double(50);
-spmjobs.util.meeg.chansubset.filters.lnfilter.lnfiltord = double(4);
-spmjobs.util.meeg.chansubset.filters.dftfilter.dftfreq = double([50 100 150]);
-spmjobs.util.meeg.chansubset.filters.medianfilter.medianfiltord = double(9);
-spmjobs.util.meeg.chansubset.filters.detrend = 'yes';
-spmjobs.util.meeg.chansubset.filters.blc.blcwindow = '<UNDEFINED>';
-spmjobs.util.meeg.chansubset.filters.hilbert = 'yes';
-spmjobs.util.meeg.chansubset.filters.rectify = 'yes';
-spmjobs.util.meeg.precision = 'double';
-spmjobs.util.meeg.sub_savesettings.savename = '<UNDEFINED>';
-spmjobs.util.meeg.sub_savesettings.ctf = {'empty.mat'};
 spmjobs.util.cat.vols = '<UNDEFINED>';
