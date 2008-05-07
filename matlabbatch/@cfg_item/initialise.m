@@ -15,9 +15,24 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: initialise.m 1561 2008-05-07 13:48:52Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1561 $';
+
+if ischar(val) && strcmp(val, '<DEFAULTS>')
+    if isempty(item.def)
+        val = '<UNDEFINED>';
+    else
+        try
+            val = feval(item.def{:});
+        catch
+            warning('matlabbatch:cfg_item:initialise:nodef', ...
+                    '%s: No matching defaults value found.', ...
+                    subsasgn_checkstr(item,substruct('.','val')));
+            val = '<UNDEFINED>';
+        end;
+    end;
+end;
 
 subs = substruct('.', 'val', '{}', {1});
 if ischar(val) && strcmp(val, '<UNDEFINED>') % val may be <UNDEFINED>

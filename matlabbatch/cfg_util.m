@@ -19,8 +19,6 @@ function varargout = cfg_util(cmd, varargin)
 % return id(s) of unspecified type. If necessary, these id(s) should be
 % stored in cell arrays in a calling application, since their internal
 % format may change.
-% This file will be mlock'ed at startup to prevent accidental clearing of
-% its persistent variables.
 %
 % The commands to manipulate these structures are described below in
 % alphabetical order.
@@ -142,12 +140,14 @@ function varargout = cfg_util(cmd, varargin)
 % the MATLAB path with the one first found taking precedence over
 % following ones.
 %
-%  cfg_util('initdef', apptag|cfg_id, def)
+%  cfg_util('initdef', apptag|cfg_id[, defvar])
 %
-% Set default values for application specified by apptag or cfg_id. Def
-% can be any representation of a defaults job as returned by
-% cfg_util('harvestdef', apptag|cfg_id), i.e. a MATLAB variable, a
-% function creating this variable...
+% Set default values for application specified by apptag or
+% cfg_id. If defvar is supplied, it should be any representation of a
+% defaults job as returned by cfg_util('harvestdef', apptag|cfg_id),
+% i.e. a MATLAB variable, a function creating this variable...
+% Defaults from defvar are overridden by defaults specified in .def
+% fields.
 % New defaults only apply to modules added to a job after the defaults
 % have been loaded. Saved jobs and modules already present in the current
 % job will not be changed.
@@ -339,9 +339,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: cfg_util.m 1561 2008-05-07 13:48:52Z volkmar $
 
-rev = '$Rev: 1541 $';
+rev = '$Rev: 1561 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -376,7 +376,7 @@ switch lower(cmd),
         cjob = varargin{1};
         mod_cfg_id = varargin{2};
         if cfg_util('isjob_id', cjob) && cfg_util('ismod_cfg_id', mod_cfg_id)
-            [jobs(cjob), mod_job_id] = local_addtojob(c0, jobs(cjob), mod_cfg_id);
+            [jobs(cjob), mod_job_id] = local_addtojob(jobs(cjob), mod_cfg_id);
             varargout{1} = mod_job_id;
         end;
     case 'compactjob',
@@ -470,8 +470,10 @@ switch lower(cmd),
         else
             cjob = numel(jobs)+1;
         end;
+        % update application defaults
+        jobs(cjob).c0 = initialise(c0, '<DEFAULTS>', true);
         if nargin == 1
-            jobs(cjob).cj =c0;
+            jobs(cjob).cj = jobs(cjob).c0;
             jobs(cjob).cjid2subs = {};
             varargout{1} = cjob;
             varargout{2} = {};
@@ -485,7 +487,7 @@ switch lower(cmd),
             % try to initialise single job
             job{1} = varargin{1};
         end;
-        [jobs(cjob) mod_job_idlist] = local_initjob(c0, job);
+        [jobs(cjob) mod_job_idlist] = local_initjob(jobs(cjob), job);
         varargout{1} = cjob;
         varargout{2} = mod_job_idlist;
     case 'isitem_mod_id'
@@ -756,7 +758,7 @@ end;
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [job, id] = local_addtojob(c0, job, c0subs)
+function [job, id] = local_addtojob(job, c0subs)
 % Add module subsref(c0, c0subs) to job.cj, append its subscript to
 % job.cjid2subs and return the index into job.cjid2subs to the caller.
 % The module will be added in a 'degenerated' branch of a cfg tree, where
@@ -777,7 +779,7 @@ for k = 1:2:numel(cjsubs)
         end;
     end;
     % add path to module to cj
-    job.cj = subsasgn(job.cj, cjsubs(1:(k+1)), subsref(c0, c0subs(1:(k+1))));
+    job.cj = subsasgn(job.cj, cjsubs(1:(k+1)), subsref(job.c0, c0subs(1:(k+1))));
 end;
 % set id in module    
 job.cj = subsasgn(job.cj, [cjsubs substruct('.', 'id')], cjsubs);
@@ -1031,41 +1033,44 @@ local_cd(cwd);
 %-----------------------------------------------------------------------
 function [c0, jobs, cjob] = local_initcfg
 % initial config
-% mlock this file - prevent clearing if code changed
-mlock;
 c0   = cfg_mlbatch_root;
 cjob = 1;
 jobs(cjob).cj        = c0;
+jobs(cjob).c0        = c0;
 jobs(cjob).cjid2subs = {};
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function c1 = local_initdef(c1, defspec)
-if subsasgn_check_funhandle(defspec)
-    opwd = pwd;
-    if ischar(defspec)
-        [p fn e v] = fileparts(defspec);
-        local_cd(p);
-        defspec = fn;
+function c1 = local_initdef(c1, varargin)
+if nargin > 1
+    defspec = varargin{1};
+    if subsasgn_check_funhandle(defspec)
+        opwd = pwd;
+        if ischar(defspec)
+            [p fn e v] = fileparts(defspec);
+            local_cd(p);
+            defspec = fn;
+        end;
+        def = feval(defspec);
+        local_cd(opwd);
+    elseif isa(defspec, 'cell') || isa(defspec, 'struct')
+        def = defspec;
+    else
+        def = [];
     end;
-    def = feval(defspec);
-    local_cd(opwd);
-elseif isa(defspec, 'cell') || isa(defspec, 'struct')
-    def = defspec;
-else
-    def = [];
+    if ~isempty(def)
+        c1 = initialise(c1, def, true);
+    end;
 end;
-if ~isempty(def)
-    c1 = initialise(c1, def, true);
-end;
+c1 = initialise(c1, '<DEFAULTS>', true);
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function [cjob, mod_job_idlist] = local_initjob(c0, job)
+function [cjob, mod_job_idlist] = local_initjob(cjob, job)
 % Initialise a cell array of jobs
 for n = 1:numel(job)
     % init job
-    cj1 = initialise(c0, job{n}, false);
+    cj1 = initialise(cjob.c0, job{n}, false);
     % canonicalise (this may break dependencies, see comment in
     % local_getcjid2subs)
     [cj1 cjid2subs1] = local_getcjid2subs(cj1);

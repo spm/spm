@@ -1,13 +1,18 @@
 function item = initialise(item, val, dflag)
 
 % function item = initialise(item, val, dflag)
-% Disassemble val struct and pass its fields on to child nodes. If dflag
-% is set, then val fields are passed on to the item.values{:} cfg_item(s),
-% whose tags match a field name of val. In this case, multiple
-% item.values{:} cfg_items can be initialised, if val has more than one
-% field.
-% If dflags is not set, then item.val is set to the initialised copy of the
-% matching values item.
+% Initialise a configuration tree with values. If val is a job
+% struct/cell, only the parts of the configuration that are present in
+% this job will be initialised. If dflag is true, then matching items
+% from item.values will be initialised. If dflag is false, the matching
+% item from item.values will be added to item.val and initialised after
+% copying.
+% If val has the special value '<DEFAULTS>', the entire configuration
+% will be updated with values from .def fields. If a .def field is
+% present in a cfg_leaf item, the current default value will be inserted,
+% possibly replacing a previously entered (default) value. If dflag is
+% true, defaults will only be set in item.values. If dflag is false,
+% defaults will be set for both item.val and item.values.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -16,12 +21,31 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: initialise.m 1561 2008-05-07 13:48:52Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1561 $';
 
+if ischar(val) && strcmp(val,'<DEFAULTS>')
+    item = initialise_def(item, val, dflag);
+else
+    item = initialise_job(item, val, dflag);
+end;
+
+function item = initialise_def(item, val, dflag)
+if ~dflag
+    % initialise defaults both in current job and in defaults
+    citem = subsref(item, substruct('.','val'));
+    for k = 1:numel(citem)
+        citem{k} = initialise(citem{k}, val, dflag);
+    end;
+    item = subsasgn(item, substruct('.','val'), citem);
+end;
+for k = 1:numel(item.values)
+    item.values{k} = initialise(item.values{k}, val, dflag);
+end;
+
+function item = initialise_job(item, val, dflag)
 vtags = fieldnames(val);
-
 if dflag % set defaults
     for k = 1:numel(item.values)
         % find field in val that corresponds to one of the branch vals

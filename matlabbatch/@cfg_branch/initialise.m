@@ -1,8 +1,14 @@
 function item = initialise(item, val, dflag)
 
 % function item = initialise(item, val, dflag)
-% Disassemble val struct and pass its fields on to a item.val{} item whose
-% tag matches the current field name. dflag is ignored in a cfg_branch.
+% Initialise a configuration tree with values. If val is a job
+% struct/cell, only the parts of the configuration that are present in
+% this job will be initialised.
+% If val has the special value '<DEFAULTS>', the entire configuration
+% will be updated with values from .def fields. If a .def field is
+% present in a cfg_leaf item, the current default value will be inserted,
+% possibly replacing a previously entered (default) value.
+% dflag is ignored in a cfg_branch.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -11,10 +17,24 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: initialise.m 1561 2008-05-07 13:48:52Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1561 $';
 
+if ischar(val) && strcmp(val,'<DEFAULTS>')
+    item = initialise_def(item, val, dflag);
+else
+    item = initialise_job(item, val, dflag);
+end;
+
+function item = initialise_def(item, val, dflag)
+citem = subsref(item, substruct('.','val'));
+for k = 1:numel(citem)
+    citem{k} = initialise(citem{k}, val, dflag);
+end;
+item = subsasgn(item, substruct('.','val'), citem);
+
+function item = initialise_job(item, val, dflag)
 % Determine possible tags
 vtags = fieldnames(val);
 

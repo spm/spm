@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1473 2008-04-24 08:14:02Z volkmar $
+% $Id: subsasgn_check.m 1561 2008-05-07 13:48:52Z volkmar $
 
-rev = '$Rev: 1473 $';
+rev = '$Rev: 1561 $';
 
 sts = true;
 switch subs(1).subs
@@ -55,6 +55,14 @@ function [sts, val] = valcheck(item,val)
 % taken from spm_jobman/stringval
 % spm_eeval goes into GUI
 sts = true;
+% check for reserved words
+if ischar(val) && any(strcmp(val, {'<UNDEFINED>','<DEFAULTS>'}))
+    warning('matlabbatch:cfg_entry:subsasgn_check:reserved', ...
+            ['%s: Item must not be one of the reserved words ''<UNDEFINED>'' ' ...
+             'or ''<DEFAULTS>''.'], subsasgn_checkstr(item,substruct('.','val')));
+    sts = false;
+    return;
+end;
 if ~isa(val,'cfg_dep')
     switch item.strtype
         case {'s'}
