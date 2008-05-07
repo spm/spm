@@ -5,11 +5,12 @@ function [res, plotind] = coor2D(this, ind, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: coor2D.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: coor2D.m 1564 2008-05-07 14:50:57Z vladimir $
 
 
 megind = strmatch('MEG', chantype(this), 'exact');
 eegind = strmatch('EEG', chantype(this), 'exact');
+eogind = [strmatch('VEOG', chantype(this), 'exact') strmatch('HEOG', chantype(this), 'exact')];
 otherind = setdiff(1:nchannels(this), [megind; eegind]);
 
 if nargin==1 || isempty(ind)
@@ -26,17 +27,38 @@ elseif ischar(ind)
             ind = megind;
         case 'EEG'
             ind = eegind;
+        case 'EOG'
+            ind = eogind;
         otherwise
             ind = otherind;
     end
 end
 
 if nargin < 3
+
     if ~isempty(intersect(ind, megind))
         if ~any(cellfun('isempty', {this.channels(megind).X_plot2D}))
             meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
+
+            switch length(eogind)
+                case 0
+                    eog_xy = [];
+                case 1
+                    eog_xy = [0.05 0.05];
+                case 2
+                    eog_xy = [0.05 0.05; 0.95 0.5];
+                otherwise
+                    error('Only two EOG channels can be displayed in non-grid topoplot');
+            end
+
         elseif all(cellfun('isempty', {this.channels(megind).X_plot2D}))
-            meg_xy = grid(length(megind));
+            tmp_xy = grid(length(megind)+length(eogind));
+            meg_xy = tmp_xy(:, 1:length(megind));
+            if ~isempty(eogind)
+                eog_xy = tmp_xy(:, (length(megind)+1):end);
+            else
+                eog_xy = [];
+            end
         else
             error('Either all or none of MEG channels should have 2D coordinates defined.');
         end
@@ -45,8 +67,26 @@ if nargin < 3
     if ~isempty(intersect(ind, eegind))
         if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
             eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
+
+            switch length(eogind)
+                case 0
+                    eog_xy = [];
+                case 1
+                    eog_xy = [0.05 0.05];
+                case 2
+                    eog_xy = [0.05 0.05; 0.95 0.5];
+                otherwise
+                    error('Only two EOG channels can be displayed in non-grid topoplot');
+            end
+
         elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
-            eeg_xy = grid(length(eegind));
+            tmp_xy = grid(length(eegind)+length(eogind));
+            eeg_xy = tmp_xy(:, 1:length(eegind));
+            if ~isempty(eogind)
+                eog_xy = tmp_xy(:, (length(eegind)+1):end);
+            else
+                eog_xy = [];
+            end
         else
             error('Either all or none of EEG channels should have 2D coordinates defined.');
         end
@@ -69,17 +109,23 @@ if nargin < 3
                 xy(:, i) = eeg_xy(:, loc);
                 plotind(i) = 2;
             else
-                [found, loc] = ismember(ind(i), otherind);
+                [found, loc] = ismember(ind(i), eogind);
                 if found
-                    xy(:, i) = other_xy(:, loc);
-                    plotind(i) = 3;
+                    xy(:, i) = eog_xy(:, loc);
+                    plotind(i) = -1;
+                else
+                    [found, loc] = ismember(ind(i), otherind);
+                    if found
+                        xy(:, i) = other_xy(:, loc);
+                        plotind(i) = 3;
+                    end
                 end
             end
         end
     end
 
     % To be removed in the future
-    if length(unique(plotind))>1
+    if length(unique(setdiff(plotind, -1))) > 1
         error('Only one plot type is supported at this stage')
     end
 
@@ -87,7 +133,7 @@ if nargin < 3
 else
     this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
     this = getset(this, 'channels', 'Y_plot2D', ind, val(2, :));
-    
+
     res = this;
 end
 
