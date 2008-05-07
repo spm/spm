@@ -22,8 +22,8 @@ function dat = read_spmeeg_data(filename, varargin)
 
 
 if nargin < 1
-  help read_spmeeg_data;
-  return;
+    help read_spmeeg_data;
+    return;
 end;
 
 
@@ -36,7 +36,7 @@ endsample = keyval('endsample',  varargin);
 chanindx  = keyval('chanindx',   varargin);
 
 if isempty(header)
-  header = read_spmeeg_header([filename(1:(end-3)) 'mat']);
+    header = read_spmeeg_header([filename(1:(end-3)) 'mat']);
 end
 
 datatype = 'float32';
@@ -68,9 +68,21 @@ fclose(fid);
 
 if ~isempty(chanindx)
     % select the desired channels
-    dat = dat(chanindx,:,:);
+    dat = dat(chanindx,:);
 end
 
 if ~isempty(scale) && ~ismember(datatype, {'float32', 'float64'})
-    dat = dat .* repmat(scale(chanindx,:,:), [1, size(dat, 2), 1]);
+    
+    % This is a somewhat complicated mechanism to figure out which scaling
+    % coefficients go with which data points in a generic way
+    
+    trlind = floor(((begsample:endsample)-1)/header.nSamples)+1;
+
+    utrlind = unique(trlind);
+
+    for i = 1:length(utrlind)
+        dat(:, trlind == utrlind(i)) = dat(:, trlind == utrlind(i)).* ...
+            repmat(squeeze(scale(chanindx,:,utrlind(i))), 1, sum(trlind == utrlind(i)));
+    end
+
 end
