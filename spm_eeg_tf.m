@@ -1,14 +1,14 @@
 function D = spm_eeg_tf(S)
 % compute instantaneous power and phase in peri-stimulus time and frequency
 % FORMAT D = spm_eeg_tf(S)
-% 
+%
 % D     - filename of EEG-data file or EEG data struct
 % stored in struct D.events:
 % fmin          - minimum frequency
 % fmax          - maximum frequency
 % rm_baseline   - baseline removal (1/0) yes/no
 % Mfactor       - Morlet wavelet factor (can not be accessed by GUI)
-% 
+%
 % D             - EEG data struct with time-frequency data (also written to files)
 %_______________________________________________________________________
 %
@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_tf.m 1560 2008-05-07 12:18:58Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -33,7 +33,7 @@ P = spm_str_manip(D, 'H');
 
 try
     D = spm_eeg_load(D);
-catch    
+catch
     error(sprintf('Trouble reading file %s', D));
 end
 
@@ -81,18 +81,18 @@ catch
         spm_input('Compute phase?', '+1', 'y/n', [1,0], 2);
 end
 
-try 
+try
     tf.pow = S.tf.pow;    % 1 = power, 0 = magnitude
 catch
     tf.pow = 1;
 end
 
 if length(tf.channels) > 1
-   try
-       tf.collchans = S.tf.collchans;    % 1 = collapse across channels, 0 = do not
-   catch
-       tf.collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
-   end
+    try
+        tf.collchans = S.tf.collchans;    % 1 = collapse across channels, 0 = do not
+    catch
+        tf.collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
+    end
 else
     tf.collchans = 0;
 end
@@ -116,28 +116,59 @@ end
 
 Nfrequencies = length(tf.frequencies);
 
-% still have to change newdata
 Dtf = clone(D, ['tf1_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
 Dtf = frequencies(Dtf, tf.frequencies);
 
+% fix all channels
+sD = struct(Dtf);
+
+for i = 1:length(tf.channels)
+    sD.channels(i).label = D.chanlabels(tf.channels(i));
+    if D.badchannels(tf.channels(i))
+        sD.channels(i).bad = 1;
+    end
+    sD.channels(i).type = D.chantype(tf.channels(i));
+    Dtf = coor2D(Dtf, i, coor2D(D, tf.channels(i)));
+    % units?
+
+end
+Dtf = meeg(sD);
+Dtf = coor2D(Dtf,[1:length(tf.channels)], coor2D(D,tf.channels));
 
 if tf.phase == 1
     Dtf2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
     Dtf2 = frequencies(Dtf, tf.frequencies);
+
+    % fix all channels
+    sD = struct(Dtf2);
+
+    for i = 1:length(tf.channels)
+        sD.channels(i).label = D.chanlabels(tf.channels(i));
+        if D.badchannels(tf.channels(i))
+            sD.channels(i).bad = 1;
+        end
+        sD.channels(i).type = D.chantype(tf.channels(i));
+        % units?
+
+
+    end
+    Dtf2 = meeg(sD);
+    Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));
 end
 
+
 for k = 1:D.ntrials
-    
+
     d = zeros(length(tf.channels), Nfrequencies, D.nsamples);
-    
+
     if tf.phase
         d2 = zeros(length(tf.channels), Nfrequencies, D.nsamples);
     end
-    
+
     for j = 1:length(tf.channels)
         for i = 1 : Nfrequencies
             tmp = conv(squeeze(D(tf.channels(j), :, k)), M{i});
-            
+
             % time shift to remove delay
             tmp = tmp([1:D.nsamples] + (length(M{i})-1)/2);
 
@@ -152,10 +183,10 @@ for k = 1:D.ntrials
             if tf.phase
                 d2(j, i, :) = angle(tmp);
             end
-            
+
         end
     end
-    
+
     if tf.collchans
         d = mean(d, 1);
 
@@ -170,11 +201,11 @@ for k = 1:D.ntrials
     end
 
     Dtf(:, :, :, k) = d;
-    
+
     if tf.phase
         Dtf2(:, :, :, k) = d2;
     end
-        
+
 end
 
 

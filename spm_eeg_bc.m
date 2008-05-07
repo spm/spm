@@ -1,5 +1,6 @@
 function D = spm_eeg_bc(D, time)
-% 'baseline correction' for data in D: subtract average baseline from data
+% 'baseline correction' for data in D: subtract average baseline from all
+% M/EEG and EOG channels
 % FORMAT d = spm_eeg_bc(D, time)
 %
 % D:    meeg object
@@ -8,14 +9,16 @@ function D = spm_eeg_bc(D, time)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 1285 2008-04-01 11:23:10Z stefan $
+% $Id: spm_eeg_bc.m 1560 2008-05-07 12:18:58Z stefan $
 
 t(1) = D.indsample(time(1));
 t(2) = D.indsample(time(2));
 
+indchannels = [D.meegchannels D.eogchannels];
+
 switch(transformtype(D))
     case 'TF'
-        for i = 1 : D.nchannels
+        for i = indchannels
             for j = 1 : D.nfrequencies
                 for k = 1: D.ntrials
                     tmp = mean(D(i, j, t(1):t(2), k), 3);
@@ -29,8 +32,8 @@ switch(transformtype(D))
         else Ibar = [1:D.ntrials]; end
 
         for k = 1: D.ntrials
-            tmp = mean(D(:, t(1):t(2), k), 2);
-            D(:, :, k) = D(:, :, k) - repmat(tmp, 1, D.nsamples);
+            tmp = mean(D(indchannels, t(1):t(2), k), 2);
+            D(indchannels, :, k) = D(indchannels, :, k) - repmat(tmp, 1, D.nsamples);
             
             if ismember(k, Ibar)
                 spm_progress_bar('Set', k);

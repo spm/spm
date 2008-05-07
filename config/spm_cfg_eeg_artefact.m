@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_artefact.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_eeg_artefact.m 1560 2008-05-07 12:18:58Z stefan $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1560 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -81,12 +81,24 @@ nothing.tag = 'nothing';
 nothing.name = 'No thresholding';
 nothing.val{1} = double([]);
 
-threshold = cfg_entry;
+channels_threshold = cfg_entry;
+channels_threshold.tag = 'channels_threshold';
+channels_threshold.name = 'Channels to threshold';
+channels_threshold.strtype = 'r';
+channels_threshold.num = [1 inf];
+channels_threshold.help = {'Choose channel indices of channels which you want to threshold.'};
+
+thresholdval = cfg_entry;
+thresholdval.tag = 'thresholdval';
+thresholdval.name = 'Thresholds';
+thresholdval.strtype = 'r';
+thresholdval.num = [1 inf];
+thresholdval.help = {'Channel-wise thresholds. Use single threshold to apply the same threshold to all channels'};
+
+threshold = cfg_branch;
 threshold.tag = 'threshold';
-threshold.name = 'Thresholds';
-threshold.strtype = 'r';
-threshold.num = [1 inf];
-threshold.help = {'Channel-wise thresholds. Use single threshold to apply the same threshold to all channels'};
+threshold.name = 'Thresholding';
+threshold.val = {channels_threshold thresholdval};
 
 Check_Threshold         = cfg_choice;
 Check_Threshold.tag     = 'Check_Threshold';
@@ -137,7 +149,9 @@ if isfield(S.artefact.Check_Threshold, 'nothing')
     S.artefact.Check_Threshold = 0;
 else
     S.artefact.Check_Threshold = 1;
-    S.artefact.threshold = job.artefact.Check_Threshold.threshold;
+    S.artefact.threshold = job.artefact.Check_Threshold.threshold.thresholdval;
+    S.artefact.channels_threshold = job.artefact.Check_Threshold.threshold.channels_threshold;
+
 end
 
 out.D = spm_eeg_artefact(S);
@@ -145,7 +159,7 @@ out.D = spm_eeg_artefact(S);
 function dep = vout_eeg_artefact(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
-dep.sname = 'Arteface detection';
+dep.sname = 'Artefact detection';
 % reference field "D" from output
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input

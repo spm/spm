@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1525 2008-04-30 18:34:30Z vladimir $
+% $Id: spm_eeg_artefact.m 1560 2008-05-07 12:18:58Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -38,32 +38,32 @@ if artefact.External_list
         artefact.out_list = ...
             spm_input('List artefactual trials (0 for none)', '+1', 'w', '', inf);
     end
-    
+
     if artefact.out_list == 0
         artefact.out_list = [];
     end
-    
+
     try
         artefact.in_list = S.artefact.in_list;
     catch
         artefact.in_list = ...
             spm_input('List clean trials (0 for none)', '+1', 'w', '', inf);
     end
-    
+
     if artefact.in_list == 0
         artefact.in_list = [];
     end
-    
+
     if any([artefact.out_list; artefact.in_list] < 1 | [artefact.out_list; artefact.in_list] > D.ntrials)
         error('Trial numbers cannot be smaller than 1 or greater than %d.', D.ntrials);
     end
-    
+
     % check the lists
     tmp = intersect(artefact.out_list, artefact.in_list);
     if ~isempty(tmp)
         error('These trials were listed as both artefactual and clean: %s', mat2str(tmp));
     end
-    
+
     % Check whether user has specified all trials
     Iuser = [artefact.out_list; artefact.in_list];
     if length(Iuser) == D.ntrials
@@ -78,12 +78,12 @@ catch
 end
 
 if artefact.Weighted == 1
-    try 
+    try
         artefact.Weightingfunction = S.artefact.weightingfunction;
     catch
         artefact.Weightingfunction = spm_input('Offset weighting function by', '+1', 'r', '3', 1);
     end
-        try 
+    try
         artefact.Smoothing = S.artefact.smoothing;
     catch
         artefact.Smoothing = spm_input('FWHM for residual smoothing (ms)', '+1', 'r', '20', 1);
@@ -99,17 +99,24 @@ if MustDoWork
     catch
         artefact.Check_Threshold = spm_input('Threshold channels?','+1','yes|no',[1 0]);
     end
-    
+
     if artefact.Check_Threshold
+        try
+            artefact.channels_threshold = S.artefact.channels_threshold;
+        catch
+            artefact.channels_threshold = ...
+                spm_input('Select channels', '+1', 'i', num2str([1:D.nchannels]));
+        end
+
         try
             artefact.threshold = S.artefact.threshold;
             if length(artefact.threshold) == 1
-                artefact.threshold = artefact.threshold * ones(1, D.nchannels);
+                artefact.threshold = artefact.threshold * ones(1,  length(artefact.channels_threshold));
             end
         catch
             str = 'threshold[s]';
             Ypos = -1;
-            
+
             while 1
                 if Ypos == -1
                     [artefact.threshold, Ypos] = spm_input(str, '+1', 'r', [], [1 Inf]);
@@ -117,63 +124,63 @@ if MustDoWork
                     artefact.threshold = spm_input(str, Ypos, 'r', [], [1 Inf]);
                 end
                 if length(artefact.threshold) == 1
-                    artefact.threshold = artefact.threshold * ones(1, D.nchannels);
+                    artefact.threshold = artefact.threshold * ones(1, length(artefact.channels_threshold));
                 end
-                
-                if length(artefact.threshold) == D.nchannels, break, end
-                str = sprintf('enter a scalar or [%d] vector', D.nchannels);
+
+                if length(artefact.threshold) == length(artefact.channels_threshold), break, end
+                str = sprintf('enter a scalar or [%d] vector', length(artefact.channels_threshold));
             end
         end
     else
-        artefact.threshold = kron(ones(1, D.nchannels), Inf);
+        artefact.threshold = kron(ones(1, length(artefact.channels_threshold)), Inf);
     end
-    
+
 end % MustDoWork
 
 spm('Pointer', 'Watch'); drawnow
 
 % matrix used for detecting bad channels
-Mbad = zeros(D.nchannels, D.ntrials);
+Mbad = zeros(length(artefact.channels_threshold), D.ntrials);
 % flag channels that were already marked as bad
 Mbad(D.badchannels, :) = 1;
 
 % cell vectors of channel-wise indices for thresholded trials
-thresholded = cell(1, D.nchannels);
+thresholded = cell(1, length(artefact.channels_threshold));
 index = [];
 if MustDoWork
-    
+
     Tchannel = artefact.threshold;
-    
+
     spm_progress_bar('Init', D.ntrials, '1st pass - Trials thresholded'); drawnow;
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
     else Ibar = [1:D.ntrials]; end
-    
+
     % first flag bad channels based on thresholding
     for i = 1:D.ntrials
-        
-        d = squeeze(D(:, :, i));
-        
+
+        d = squeeze(D(artefact.channels_threshold, :, i));
+
         % indices of channels that are above threshold and not marked as
         % bad
         Id = find(max(abs(d')) > Tchannel & ~Mbad(:, i)');
         Mbad(intersect(Id, D.meegchannels), i) = 1;
-        
+
         if ismember(i, Ibar)
             spm_progress_bar('Set', i);
             drawnow;
         end
-        
+
     end
-    
+
     spm_progress_bar('Clear');
-    
+
     % flag channels as bad if 20% of trials above threshold
     s = sum(Mbad, 2)/D.ntrials;
     ind = find(s > 0.2);
 
-    Mbad = zeros(D.nchannels, D.ntrials);
+    Mbad = zeros(length(artefact.channels_threshold), D.ntrials);
     Mbad(ind, :) = 1;
-    
+
     % report on command line and set badchannels
     if isempty(ind)
         disp(sprintf('There isn''t a bad channel.'));
@@ -183,77 +190,77 @@ if MustDoWork
         if ~iscell(lbl)
             lbl = {lbl};
         end
-        disp(['Bad channels: ', sprintf('%s ', lbl{:})])    
+        disp(['Bad channels: ', sprintf('%s ', lbl{:})])
         D = badchannels(D, ind, ones(length(ind), 1));
     end
-    
+
     cl = unique(conditions(D));
-    
+
     if artefact.Weighted == 1
         % weighted averaging by J Kilner
 
         allWf = zeros(D.nchannels, D.ntrials * D.nsamples);
         tloops = 1:D.nchannels;
         tloops(ind) = [];
-        
+
         for i = 1:D.nconditions
             nbars = D.nconditions * length(tloops);
             spm_progress_bar('Init', nbars, '2nd pass - robust averaging'); drawnow;
             if nbars > 100, Ibar = floor(linspace(1, nbars,100));
             else Ibar = [1:nbars]; end
-            
+
             trials = pickconditions(D, deblank(cl(i,:)));
-            
-            for j = tloops %loop across electrodes      
+
+            for j = tloops %loop across electrodes
                 if ismember((i-1)*length(tloops)+j, Ibar)
                     spm_progress_bar('Set', (i-1)*length(tloops)+j);
                     drawnow;
                 end
                 tempdata=max(abs(squeeze(D(j, :, trials))));
                 itrials=trials;
-               
+
                 itrials(find(tempdata>Tchannel(j))) = '';
                 tdata = squeeze(D(j, :, itrials));
                 [B, bc] = spm_eeg_robust_averaget(tdata, artefact.Weightingfunction, artefact.Smoothing);
                 bc = bc(:);
                 ins = 0;
-                
+
                 for n = itrials
                     ins = ins+1;
                     allWf(j, (n-1)*D.nsamples+1 : n*D.nsamples) = bc((ins-1)*D.nsamples+1:ins*D.nsamples)';
                 end
             end
-            
-            
+
+
         end
-        
+
         spm_progress_bar('Clear');
-        
+
         artefact.weights = allWf;
         D = other(D, artefact);
-        
+
     else
-        
+
         % 2nd round of thresholding, but excluding bad channels
         index = [];
-        
+
         spm_progress_bar('Init', D.ntrials, '2nd pass - Trials thresholded'); drawnow;
         if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
         else Ibar = [1:D.ntrials]; end
-        
+
         for i = 1:D.ntrials
-            
-            d = squeeze(D(:, :, i));
-            
+
+            d = squeeze(D(artefact.channels_threshold, :, i));
+
             % indices of channels that are above threshold
             Id = find(max(abs(d')) > Tchannel & ~Mbad(:, i)');
             Mbad(Id, i) = 1;
-            
+
             if any(Id)
                 % reject
                 index = [index i];
             end
-            
+
             % stow away event indices for which good channels were
             % above threshold
             for j = Id
@@ -264,17 +271,17 @@ if MustDoWork
                 spm_progress_bar('Set', i);
                 drawnow;
             end
-            
+
         end
-        
+
         D.thresholded = thresholded;
 
         spm_progress_bar('Clear');
         disp(sprintf('%d rejected trials: %s', length(index), mat2str(index)))
-        
+
         D = reject(D, index, 1);
     end
-    
+
 end % MustDoWork
 
 % User-specified lists override any artefact classification

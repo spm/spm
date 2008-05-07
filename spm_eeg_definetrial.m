@@ -9,7 +9,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 %   S.timeonset - time of the first sample in the data (default - 0)
 %   S.pretrig - pre-trigger time in ms
 %   S.posttrig - post-trigger time in ms.
-%   S.trialdef - structure array for trial definition with fields
+%   S.trialdef - structure array for trial definition with fields (optional)
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype  - string
 %       S.trialdef.eventvalue  - string, numeric or empty
@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1547 2008-05-06 13:23:30Z vladimir $
+% $Id: spm_eeg_definetrial.m 1560 2008-05-07 12:18:58Z stefan $
 
 if nargin == 0
     S = [];

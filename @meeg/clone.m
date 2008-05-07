@@ -6,7 +6,7 @@ function new = clone(this, fnamedat, dim)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 1270 2008-03-28 14:35:16Z stefan $
+% $Id: clone.m 1560 2008-05-07 12:18:58Z stefan $
 
 if nargin < 3
     dim = [nchannels(this), nsamples(this), ntrials(this)];
@@ -14,7 +14,7 @@ end
 
 new = this;
 
-% initialise new file_array thisect
+% initialise new file_array
 d = file_array(fullfile(this.path,fnamedat), dim, dtype(this));
 
 % physically initialise file

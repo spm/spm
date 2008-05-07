@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1290 2008-04-02 11:09:34Z stefan $
+% $Id: spm_eeg_display_ui.m 1560 2008-05-07 12:18:58Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -119,16 +119,14 @@ if nargin == 0 || ~isfield(S, 'rebuild')
     % Scaling slider
     %-----------------
     % estimate of maximum scaling value
-    %     if isfield (sD.other,'tf')
-    %         handles.scalemax = 2*ceil(max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,:, 1))))));
-    %     else
-    
-%     handles.scalemax = 2*max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1))));
-    handles.scalemax = 2*max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1))));
+    if strcmp(D.transformtype, 'TF')
+        handles.scalemax = 2*max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,:, 1)))));
+    else
+        handles.scalemax = 2*max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1))));
+    end
+
     handles.order = 10^floor(log10(handles.scalemax)-2);
     scale = 100;
-    
-    %     end
 
     % text above slider
     uicontrol(F, 'Style', 'text', 'Units', 'normalized',...
@@ -224,6 +222,7 @@ if nargin == 0 || ~isfield(S, 'rebuild')
             'CallBack', @triallistbox_update,...
             'Parent', F);
     end
+
     % display file name at top of page
     uicontrol('Style', 'text', 'String', fullfile(D.path, D.fname),...
         'Units', 'normalized', 'Position', [0.05 0.98 0.8 0.02],...
@@ -388,30 +387,31 @@ for i = 1:Npos
 
     for j = 1:length(handles.Tselection)
 
-        %         if isfield(D,'Nfrequencies')
-        %             h = imagesc(squeeze(D(handles.Cselection(i), :,:, handles.Tselection(j))));
-        %             set(h, 'ButtonDownFcn', {@windowplot, i},...
-        %                 'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
-        %         else
-        h = plot(handles.Heegaxes(i), D.time,...
-            D(handles.Cselection(i), :, handles.Tselection(j)),...
-            'Color', handles.colour{j},...
-            'ButtonDownFcn', {@windowplot, i},...
-            'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
-    end
-    %     if isfield(D,'Nfrequencies')
-    %         set(gca, 'ZLim', [-scale scale],...
-    %             'XLim', [1 D.nsamples], 'YLim',  [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-    %         caxis([-scale scale])
-    %         colormap('jet')
-    %     else
-    if Lxrec > 0.1
-        % boxes are quite large
-        set(handles.Heegaxes(i), 'Xgrid', 'on');
+        if strcmp(D.transformtype, 'TF')
+            h = imagesc(squeeze(D(handles.Cselection(i), :,:, handles.Tselection(j))));
+            set(h, 'ButtonDownFcn', {@windowplot, i},...
+                'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
+        else
+            h = plot(handles.Heegaxes(i), D.time,...
+                D(handles.Cselection(i), :, handles.Tselection(j)),...
+                'Color', handles.colour{j},...
+                'ButtonDownFcn', {@windowplot, i},...
+                'Clipping', 'off', 'UIContextMenu', Heegmenus(i));
+        end
+
+        if strcmp(D.transformtype, 'TF')
+            set(gca, 'ZLim', [-scale scale],...
+                'XLim', [1 D.nsamples], 'YLim',  [1 D.nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+            caxis([-scale scale])
+            colormap('jet')
+        else
+            if Lxrec > 0.1
+                % boxes are quite large
+                set(handles.Heegaxes(i), 'Xgrid', 'on');
+            end
+        end
     end
 end
-% end
-
 
 handles.Lxrec = Lxrec;
 handles.D = D;
@@ -513,7 +513,7 @@ D = handles.D;
 % slider value
 scale = round(get(hObject, 'Value'))*handles.order;
 % set(hObject, 'Value', scale);
-% 
+%
 % text below slider
 set(handles.scaletext, 'String', num2str(scale, 4));
 
@@ -523,37 +523,35 @@ set(handles.scaletexttop, 'String', ['   ' num2str(scale, 4)]);
 % rescale plots
 for i = 1:length(handles.Heegaxes)
 
-
-    %     if isfield(D,'Nfrequencies')
-    %         set(gca, 'ZLim', [0 scale],...
-    %             'XLim', [1 D.nsamples], 'YLim', [1 D.Nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-    %         caxis([-scale scale])
-    %     else
-    if handles.Lxrec > 0.1
-        % boxes are quite large
-        set(handles.Heegaxes(i), 'YLim', [-scale scale],...
-            'XLim',[D.time(1) D.time(end)], 'Box', 'off', 'Xgrid', 'on');
+    
+    if strcmp(D.transformtype, 'TF')
+        set(handles.Heegaxes(i), 'ZLim', [0 scale],...
+            'XLim', [1 D.nsamples], 'YLim', [1 D.nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+        caxis([-scale scale])
     else
-        % otherwise remove tickmarks
-        set(handles.Heegaxes(i), 'YLim', [-scale scale],...
-            'XLim', [D.time(1) D.time(end)], 'XTick', [], 'YTick', [], 'Box', 'off');
+        if handles.Lxrec > 0.1
+            % boxes are quite large
+            set(handles.Heegaxes(i), 'YLim', [-scale scale],...
+                'XLim',[D.time(1) D.time(end)], 'Box', 'off', 'Xgrid', 'on');
+        else
+            % otherwise remove tickmarks
+            set(handles.Heegaxes(i), 'YLim', [-scale scale],...
+                'XLim', [D.time(1) D.time(end)], 'XTick', [], 'YTick', [], 'Box', 'off');
+        end
     end
-    %     end
 end
 
 % rescale separate windows (if there are any)
 for i = 1:length(handles.Heegfigures)
+
     if ~isempty(handles.Heegfigures{i})
 
-
-        if isfield(D,'Nfrequencies')
-
-            %             caxis([-scale scale])
+        if strcmp(D.transformtype, 'TF')
+            caxis(handles.Heegaxes2{i}, [-scale scale])
         else
             set(handles.Heegaxes2{i}, 'YLim', [-scale scale],...
                 'XLim', [1000*D.time(1) 1000*D.time(end)]);
         end
-
 
         % update legend
         legend;
@@ -575,19 +573,19 @@ for i = 1:length(handles.Heegaxes)
     cla(handles.Heegaxes(i));
 
     for j = 1:length(ind)
-        %         if isfield(D,'Nfrequencies')
-        %             h = imagesc(squeeze(D.data(handles.Cselection2(i), :,:, ind(j))));
-        %             set(h, 'ButtonDownFcn', {@windowplot, i},...
-        %                 'Clipping', 'off');
-        %         else
-        h = plot(handles.Heegaxes(i), D.time,...
-            D(handles.Cselection(i), :, ind(j)),...
-            'Color', handles.colour{j},'ButtonDownFcn', {@windowplot, i},...
-            'Clipping', 'off');
-        %         end
+        if strcmp(D.transformtype, 'TF')
+
+            h = imagesc(squeeze(D(handles.Cselection(i), :,:, ind(j))), 'Parent', handles.Heegaxes(i));
+            set(h, 'ButtonDownFcn', {@windowplot, i},...
+                'Clipping', 'off');
+        else
+            h = plot(handles.Heegaxes(i), D.time,...
+                D(handles.Cselection(i), :, ind(j)),...
+                'Color', handles.colour{j},'ButtonDownFcn', {@windowplot, i},...
+                'Clipping', 'off');
+        end
     end
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function windowplot(hObject, events, ind)
@@ -622,46 +620,50 @@ else
     handles.Heegaxes2{ind} = gca;
     set(handles.Heegaxes2{ind}, 'NextPlot', 'add');
 
-    %     if isfield(D,'Nfrequencies')
-    %         xlabel('ms', 'FontSize', 16);
-    %         ylabel('Hz', 'FontSize', 16, 'Interpreter', 'Tex')
-    %
-    %         for i = 1:length(handles.Tselection)
-    %
-    %             imagesc([-D.events.start:D.events.stop]*1000/D.Radc,D.tf.frequencies,squeeze(D.data(handles.Cselection2(ind), :,:, handles.Tselection(i))));
-    %
-    %         end
-    %
-    %         scale = get(handles.scaleslider, 'Value');
-    %         set(gca, 'ZLim', [-scale scale],...
-    %             'XLim',  [-D.events.start D.events.stop]*1000/D.Radc, 'YLim', [min(D.tf.frequencies) max(D.tf.frequencies)], 'Box', 'on');
-    %         colormap('jet')
-    %         caxis([-scale scale])
-    %
-    %     else
-    xlabel('ms', 'FontSize', 16);
-    ylabel(D.units(handles.Cselection(ind)), 'FontSize', 16, 'Interpreter', 'Tex')
+    if strcmp(D.transformtype, 'TF')
+        xlabel('ms', 'FontSize', 16);
+        ylabel('Hz', 'FontSize', 16, 'Interpreter', 'Tex')
 
-    for i = 1:length(handles.Tselection)
-        plot(1000*D.time,...
-            D(handles.Cselection(ind), :, handles.Tselection(i)),...
-            'Color', handles.colour{i}, 'LineWidth', 2);
+        for i = 1:length(handles.Tselection)
+
+            imagesc(1000*D.time, D.frequencies, squeeze(D(handles.Cselection(ind), :,:, handles.Tselection(i))));
+
+        end
+
+        scale = get(handles.scaleslider, 'Value');
+        set(handles.Heegaxes2{ind}, 'ZLim', [-scale scale],...
+            'XLim',  1000*[D.time(1) D.time(end)], 'YLim', [min(D.frequencies) max(D.frequencies)], 'Box', 'on');
+        colormap('jet')
+        caxis([-scale scale])
+
+    else
+        xlabel('ms', 'FontSize', 16);
+        ylabel(D.units(handles.Cselection(ind)), 'FontSize', 16, 'Interpreter', 'Tex')
+
+        for i = 1:length(handles.Tselection)
+            plot(1000*D.time,...
+                D(handles.Cselection(ind), :, handles.Tselection(i)),...
+                'Color', handles.colour{i}, 'LineWidth', 2);
+        end
+        set(gca, 'YLim', [-scale scale],...
+            'XLim', 1000*[D.time(1) D.time(end)], 'Box', 'on');
+        grid on
+        
+        if D.ntrials > 1
+            legend(handles.trialnames{handles.Tselection}, 0);
+        end
+
+    
     end
 
     scale = get(handles.scaleslider, 'Value')*handles.order;
 
-    set(gca, 'YLim', [-scale scale],...
-        'XLim', 1000*[D.time(1) D.time(end)], 'Box', 'on');
-    grid on
 
     title(sprintf('%s (%d)', strvcat(D.chanlabels(handles.Cselection(ind))), handles.Cselection(ind)), 'FontSize', 16);
 
-    if D.ntrials > 1
-        legend(handles.trialnames{handles.Tselection}, 0);
-    end
+
     % save handles structure to new figure
     guidata(handles.Heegaxes2{ind}, handles);
-    % end
 end
 
 guidata(hObject, handles);

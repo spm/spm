@@ -15,7 +15,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 1476 2008-04-24 14:00:41Z vladimir $
+% $Id: spm_eeg_merge.m 1560 2008-05-07 12:18:58Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -87,14 +87,16 @@ for i = 1:Nfiles
     try
         S.recode{i};
     catch
-        S.recode{i} = spm_input(sprintf('Labels: %s', spm_str_manip(Dtmp.fname, 'r')),...
-            '+1', 's+', sprintf('%s ', cl{:}), Dtmp.nconditions);
+        for j = 1:Dtmp.nconditions
+            S.recode{i}{j} = spm_input(sprintf('Labels: %s', spm_str_manip(Dtmp.fname, 'r')),...
+                '+1', 's', sprintf('%s ', cl{j}));
+        end
     end
 
     % recode labels
     code_new = {};
     for j = 1:Dtmp.nconditions
-        [code_new{pickconditions(Dtmp, cl{j})}] = deal(S.recode{1});
+        [code_new{pickconditions(Dtmp, cl{j})}] = S.recode{i}{j};
     end
 
     [sDtmp.trials.label] = deal(code_new{:});
@@ -121,7 +123,10 @@ else Ibar = [1:Nfiles]; end
 k = 0;
 for i = 1:Nfiles
 
-    Dout = badchannels(Dout, intersect(Dout.badchannels, D{i}.badchannels), 1);
+    ind = union(Dout.badchannels, D{i}.badchannels);
+    if ~isempty(ind)
+        Dout = badchannels(Dout, ind, 1);
+    end
 
     % write trial-wise to avoid memory mapping error
     for j = 1:D{i}.ntrials
