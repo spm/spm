@@ -15,13 +15,14 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1561 2008-05-07 13:48:52Z volkmar $
+% $Id: initialise.m 1569 2008-05-08 06:11:26Z volkmar $
 
-rev = '$Rev: 1561 $';
+rev = '$Rev: 1569 $';
 
 if ischar(val) && strcmp(val, '<DEFAULTS>')
     if isempty(item.def)
-        val = '<UNDEFINED>';
+        % don't change anything if no .def field
+        return;
     else
         try
             val = feval(item.def{:});
