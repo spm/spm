@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.50  2008/05/08 11:08:57  jansch
+% made changes in support for raw 4d-files
+%
 % Revision 1.49  2008/05/02 14:23:05  vlalit
 % Added readers for SPM5 and SPM8 EEG formats
 %
@@ -248,6 +251,11 @@ switch headerformat
     datafile   = filename(1:(end-4)); % remove the extension
     headerfile = [datafile '.m4d'];
     sensorfile = [datafile '.xyz'];
+  case '4d'
+    [path, file, ext] = fileparts(filename);
+    datafile   = fullfile(path, file);
+    headerfile = fullfile(path, file);
+    configfile = fullfile(path, 'config');
   case 'ctf_ds'
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
@@ -307,7 +315,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch headerformat
   case '4d'
-    hdr=read_4d_hdr(filename);
+    orig            = read_4d_hdr(datafile, configfile);
+    hdr.Fs          = orig.header_data.SampleFrequency;
+    hdr.nChans      = orig.header_data.TotalChannels;
+    hdr.nSamples    = orig.header_data.SlicesPerEpoch;
+    hdr.nSamplesPre = round(-orig.header_data.FirstLatency*orig.header_data.SampleFrequency);
+    hdr.nTrials     = orig.header_data.TotalEpochs;
+    hdr.label       = {orig.channel_data(:).chan_label}';
+    hdr.ChannelGain = double([orig.config.channel_data([orig.channel_data.chan_no]).gain]');
+    hdr.ChannelUnitsPerBit = double([orig.config.channel_data([orig.channel_data.chan_no]).units_per_bit]');
+    hdr.Format      = orig.header_data.Format;
+    hdr.grad        = bti2grad(orig);
+    % remember original header details
+    hdr.orig        = orig;
 
   case {'4d_pdf', '4d_m4d', '4d_xyz'}
     orig = read_bti_m4d(filename);

@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.31  2008/05/08 11:12:19  jansch
+% added support for bti248 magnetometer system
+%
 % Revision 1.30  2008/05/06 15:43:46  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -162,7 +165,7 @@ function [interp] = megplanar(cfg, data);
 %
 
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'senstype', {'ctf151', 'ctf275'});
+data  = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti248'});
 
 % set the default configuration 
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';             end
@@ -534,7 +537,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.30 2008/05/06 15:43:46 sashae Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.31 2008/05/08 11:12:19 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
