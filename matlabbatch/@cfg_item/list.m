@@ -54,15 +54,15 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: list.m 1570 2008-05-08 07:36:21Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1570 $';
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};
     stop = false;
     if nargin > 3
-        specialfn = {'class','level','all_set','all_set_item','val'};
+        specialfn = {'class','level','all_set','all_set_item'};
         for k = 1:numel(fn)
             if any(strcmp(fn{k}, specialfn))
                 switch fn{k}
@@ -74,12 +74,6 @@ if match(item, spec)
                         val{k} = {all_set(item)};
                     case 'all_set_item'
                         val{k} = {all_set_item(item)};
-                    case 'val'
-                        [un val1] = harvest(item, item, false, false);
-                        val{k}{1} = {val1};
-                        if strcmp(val{k}{1},'<UNDEFINED>')
-                            val{k}{1} = {};
-                        end;
                 end;
             elseif any(strcmp(fn{k}, fieldnames(item)))
                 val{k} = {subsref(item, substruct('.', fn{k}))};

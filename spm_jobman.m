@@ -85,7 +85,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: spm_jobman.m 1570 2008-05-08 07:36:21Z volkmar $
 
 
 if nargin==0
@@ -173,16 +173,7 @@ else
             cfg_util('deljob', cjob);
 
         case {'run','run_nogui'}
-            if any(comp)
-                % Run a SPM5 job - force serialisation
-                cfg_util('runserial',mljob);
-            else
-                warning('spm:spm_jobman:runparallel', ...
-                        ['%s: Trying to run job in parallel. If this does ' ...
-                         'not work, run this job by calling ' ...
-                         'cfg_util(''runserial'', job).'], mfilename);
-                cfg_util('run',mljob);
-            end;
+            cfg_util('runserial',mljob);
             
         case {'spm5tospm8'}
             varargout{1} = canonicalise_job(varargin{2});

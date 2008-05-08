@@ -339,9 +339,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1561 2008-05-07 13:48:52Z volkmar $
+% $Id: cfg_util.m 1570 2008-05-08 07:36:21Z volkmar $
 
-rev = '$Rev: 1561 $';
+rev = '$Rev: 1570 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -470,8 +470,9 @@ switch lower(cmd),
         else
             cjob = numel(jobs)+1;
         end;
-        % update application defaults
-        jobs(cjob).c0 = initialise(c0, '<DEFAULTS>', true);
+        % update application defaults - not only in .values, but also in
+        % pre-configured .val items
+        jobs(cjob).c0 = initialise(c0, '<DEFAULTS>', false);
         if nargin == 1
             jobs(cjob).cj = jobs(cjob).c0;
             jobs(cjob).cjid2subs = {};
@@ -1241,7 +1242,9 @@ while ~isempty(cjid2subs)
         maxcand = min(1, numel(cjid2subs));
     end;
     for k = 1:maxcand
-        if isempty(subsref(cjrun, [cjid2subs{k} substruct('.','tdeps')])) && subsref(cjrun, [cjid2subs{k} substruct('.','chk')])
+        if isempty(subsref(cjrun, [cjid2subs{k} substruct('.','tdeps')])) ...
+                && subsref(cjrun, [cjid2subs{k} substruct('.','chk')]) ...
+                && all_set(subsref(cjrun, cjid2subs{k}))
             cand(k) = true;
         end;
     end;
