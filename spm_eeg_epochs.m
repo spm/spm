@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1538 2008-05-02 17:46:13Z vladimir $
+% $Id: spm_eeg_epochs.m 1572 2008-05-08 09:32:51Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -139,7 +139,7 @@ if length(timeOnset) > 1
     error('All trials should have identical baseline');
 end
 
-nsampl = unique(diff(trl, [], 2))+1;
+nsampl = unique(round(diff(trl, [], 2)))+1;
 if length(nsampl) > 1 || nsampl<1
     error('All trials should have identical and positive lengths');
 end
