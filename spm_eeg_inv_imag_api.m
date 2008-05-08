@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1531 2008-05-01 14:17:54Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 1573 2008-05-08 10:47:28Z vladimir $
 
 
 spm('defaults','EEG');
@@ -176,7 +176,7 @@ end
 D.val     = val;
 D         = set_CommentDate(D);
 handles.D = D;
-set(handles.CreateMeshes,'enable','on')
+set(handles.CreateMeshes,'enable','off')
 Reset(hObject, eventdata, handles);
 
 % --- Executes on button press in next.
@@ -322,7 +322,7 @@ set(handles.Image,        'enable','off','Value',0)
 
 if isfield(Q, 'mesh')
     set(handles.DataReg,  'enable','on')
-    set(handles.CheckMesh,'enable','on')
+    set(handles.CheckMesh,'enable','off')
     if isfield(Q,'datareg') && isfield(Q.datareg, 'sensors')
         set(handles.Forward, 'enable','on')
         set(handles.CheckReg,'enable','on')
@@ -334,7 +334,7 @@ if isfield(Q, 'mesh')
                 if isfield(Q.inverse,'J')
                     set(handles.contrast,    'enable','on')
                     set(handles.Movie,       'enable','on')
-                    set(handles.Vis3D,       'enable','on')
+                    set(handles.Vis3D,       'enable','off')
                     if isfield(Q,'contrast')
                         set(handles.CheckContrast,'enable','on')
                         set(handles.Image,        'enable','on')
