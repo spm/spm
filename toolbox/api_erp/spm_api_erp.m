@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_api_erp.m 1579 2008-05-08 15:07:39Z stefan $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -181,6 +181,7 @@ try
 catch
     set(handles.results,    'Enable','off');
 end
+
 guidata(hObject, handles);
 
 % --- Executes on button press in save.
@@ -837,7 +838,7 @@ switch handles.DCM.options.model
         return
 end
 
-guidata(hObject, handles);
+handles = ERP_Callback(hObject, eventdata, handles);
 
 set(handles.results,    'Enable','on' )
 set(handles.save,       'Enable','on')
@@ -846,6 +847,9 @@ if get(handles.Spatial_type,'Value') == 2
     set(handles.render, 'Enable','on' )
     set(handles.Imaging,'Enable','on' )
 end
+
+guidata(hObject, handles);
+
 
 % --- Executes on button press in results.
 % -------------------------------------------------------------------------
