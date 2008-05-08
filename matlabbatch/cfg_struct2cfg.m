@@ -18,13 +18,17 @@ function cc = cfg_struct2cfg(co, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_struct2cfg.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_struct2cfg.m 1571 2008-05-08 08:07:35Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1571 $';
 
 if nargin < 2
     indent = '';
 end;
+
+% set warning backtrace to off, save old state
+wsts = warning('query','backtrace');
+warning('backtrace','off');
 
 %% Class of node
 % Usually, the class is determined by the node type. Only for branches
@@ -42,9 +46,11 @@ else
 end;
 
 try
-    fprintf('%sNode %s (%s): %s > %s\n', indent, co.tag, co.name, co.type, typ);
+    warning('matlabbatch:cfg_struct2cfg:verb', ...
+            '%sNode %s (%s): %s > %s', indent, co.tag, co.name, co.type, typ);
 catch
-    fprintf('%sNode UNKNOWN: %s > %s\n', indent, co.type, typ);
+    warning('matlabbatch:cfg_struct2cfg:verb', ...
+            '%sNode UNKNOWN: %s > %s', indent, co.type, typ);
 end;
 eval(sprintf('cc = %s;', typ));
 
@@ -96,14 +102,15 @@ end;
 nind = strcmp('num',fn);
 if any(nind)
     if numel(co.num) == 1
-        fprintf('(WW) Node %s / ''%s'' field num [%d] padded to ', cc.tag, ...
-                cc.name, co.num);
+        onum = co.num;
         if isfinite(co.num) && co.num > 0
             co.num = [co.num co.num];
         else
             co.num = [0 Inf];
         end;
-        fprintf('[%d %d]\n', co.num);
+        warning('matlabbatch:cfg_struct2cfg:verb', ...
+                '(WW) Node %s / ''%s'' field num [%d] padded to [%d %d]', ...
+                cc.tag, cc.name, onum, co.num);
     end;
     cc = try_assign(cc,co,'num');
     % remove num field from list
@@ -114,14 +121,18 @@ for k = 1:numel(fn)
     cc = try_assign(cc,co,fn{k});
 end;
 
+warning('backtrace',wsts.state);
+
 function cc = try_assign(cc, co, fn)
 try
     cc.(fn) = co.(fn);
 catch
-    fprintf('(WW) Node %s / ''%s'' field %s: import failed.\n', cc.tag, ...
+    warning('matlabbatch:cfg_struct2cfg:verb', ...
+            '(WW) Node %s / ''%s'' field %s: import failed.', cc.tag, ...
             cc.name, fn);
     tmp = textscan(evalc('disp(lasterr)'), '%s', 'delimiter', '\n');
     for l = 1:numel(tmp{1})
-        fprintf('(WW)       %s\n', tmp{1}{l});
+        warning('matlabbatch:cfg_struct2cfg:verb', ...
+                '(WW)       %s\n', tmp{1}{l});
     end;
 end;

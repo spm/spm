@@ -4,7 +4,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: spm_cfg.m 1571 2008-05-08 08:07:35Z volkmar $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -77,6 +77,9 @@ tools.help    = {'Other tools', ...
 tools.forcestruct = true;
 tools.num     = [0 Inf];
 %-Toolbox autodetection
+% Disable warnings when converting SPM5 toolboxes - set this to 'on' to
+% debug problems with SPM5 toolboxes
+warning('off','matlabbatch:cfg_struct2cfg:verb');
 %-Get the list of toolbox directories
 tbxdir = fullfile(spm('Dir'),'toolbox');
 d  = dir(tbxdir); d = {d([d.isdir]).name};
