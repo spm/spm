@@ -11,7 +11,7 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_preproc_write.m 1586 2008-05-08 20:45:20Z john $
 
 
 if nargin==1,
@@ -29,7 +29,18 @@ return;
 %=======================================================================
 function preproc_apply(p,opts,b0)
 
-sopts = [opts.GM ; opts.WM ; opts.CSF];
+%sopts = [opts.GM ; opts.WM ; opts.CSF];
+nclasses = size(fieldnames(opts),1) - 2 ;
+switch nclasses
+    case 3
+        sopts = [opts.GM ; opts.WM ; opts.CSF];
+    case 4
+       sopts = [opts.GM ; opts.WM ; opts.CSF ; opts.EXTRA1];
+    case 5
+       sopts = [opts.GM ; opts.WM ; opts.CSF ; opts.EXTRA1 ; opts.EXTRA2];
+    otherwise
+        error('######## unsupported number of classes....!!!')
+end
 
 [pth,nam,ext]=fileparts(p.VF.fname);
 T    = p.flags.Twarp;

@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: spm_cfg_realign.m 1586 2008-05-08 20:45:20Z john $
 
-rev = '$Rev: 1541 $';
+rev = '$Rev: 1586 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -130,7 +130,7 @@ wrap.def    = {@spm_get_defaults, 'realign.estimate.wrap'};
 weight         = cfg_files;
 weight.tag     = 'weight';
 weight.name    = 'Weighting';
-weight.help    = {'The option of providing a weighting image to weight each voxel of the reference image differently when estimating the realignment parameters.  The weights are proportional to the inverses of the standard deviations. For example, when there is a lot of extra-brain motion - e.g., during speech, or when there are serious artifacts in a particular region of the images.'};
+weight.help    = {'The option of providing a weighting image to weight each voxel of the reference image differently when estimating the realignment parameters.  The weights are proportional to the inverses of the standard deviations. This would be used, for example, when there is a lot of extra-brain motion - e.g., during speech, or when there are serious artifacts in a particular region of the images.'};
 weight.filter  = 'image';
 weight.ufilter = '.*';
 weight.num     = [0 1];
