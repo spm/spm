@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 1531 2008-05-01 14:17:54Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 1580 2008-05-08 15:08:46Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -51,12 +51,16 @@ switch D.inv{val}.modality
         D.inv{val}.datareg.sensors = forwinv_transform_sens(M1, S.sens);
         D.inv{val}.datareg.fid_eeg = forwinv_transform_headshape(M1, S.meegfid);
         D.inv{val}.datareg.fid_mri = S.mrifid;
+        D.inv{val}.datareg.fromMNI = eye(4);
+        D.inv{val}.datareg.toMNI = eye(4);
     case 'MEG'
         D.inv{val}.forward.vol = forwinv_transform_vol(inv(M1), S.vol);
         D.inv{val}.datareg.fid_mri = forwinv_transform_headshape(inv(M1), S.mrifid);
         D.inv{val}.mesh = spm_eeg_inv_transform_mesh(inv(M1), D.inv{val}.mesh);
         D.inv{val}.datareg.sensors = S.sens;
-        D.inv{val}.datareg.fid_eeg = S.meegfid;    
+        D.inv{val}.datareg.fid_eeg = S.meegfid; 
+        D.inv{val}.datareg.fromMNI = inv(M1);
+        D.inv{val}.datareg.toMNI = M1;
 end
 
 %%

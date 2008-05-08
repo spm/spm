@@ -27,7 +27,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 1535 2008-05-01 17:08:22Z vladimir $
+% $Id: spm_erp_L.m 1580 2008-05-08 15:08:46Z vladimir $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ switch type
         LastLpos = P.Lpos;
 
         for i = Id
-            Lf = forwinv_compute_leadfield(P.Lpos(:,i), M.dipfit.sens, M.dipfit.vol);
+            Lf = forwinv_compute_leadfield(transform_points(M.dipfit.datareg.fromMNI, P.Lpos(:,i)'), M.dipfit.sens, M.dipfit.vol);
             LastL(:,:,i) = Lf;
         end
         G    = spm_cond_units(LastL);
@@ -102,3 +102,11 @@ switch type
         warndlg('unknown type of model')
 end
 
+% ----------------------------------------------------------------
+
+
+function new = transform_points(M, old)
+
+old(:,4) = 1;
+new = old * M';
+new = new(:,1:3);
