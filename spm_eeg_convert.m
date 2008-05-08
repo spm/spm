@@ -34,9 +34,11 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1548 2008-05-06 15:07:31Z vladimir $
+% $Id: spm_eeg_convert.m 1575 2008-05-08 11:50:41Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
+
+spm('Pointer', 'Watch');drawnow;
 
 if ischar(S)
     temp = S;
@@ -274,8 +276,6 @@ end
 
 % physically initialise file
 datafile(end,end) = 0;
-
-spm('Pointer', 'Watch');drawnow;
 
 spm_progress_bar('Init', ntrial, 'reading and converting'); drawnow;
 if ntrial > 100, Ibar = floor(linspace(1, ntrial,100));
