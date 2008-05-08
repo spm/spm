@@ -28,7 +28,7 @@ function out = cfg_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: cfg_justify.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: cfg_justify.m 1578 2008-05-08 13:52:32Z volkmar $
 
 out = {};
 
@@ -49,7 +49,7 @@ if ishandle(n)
         set(h,'Units','Characters');
         % Matlab is very inaccurate at estimating the width of single
         % characters, so we'll use 100.
-        set(h,'string',repmat(' ',1,100));
+        set(h,'string',repmat('x',1,100));
         ext = get(h,'extent');
         % calculate width of 1 character.
         ext = ext(3)/100;
@@ -77,7 +77,8 @@ if ishandle(n)
             while ext < pos
                 str = [str(1), str];
                 if numel(str) > 200
-                    error('Too many characters for object handle provided.');
+                    warning('matlabbatch:cfg_justify',...
+                            'Too many characters for object handle provided.');
                 end
                 set(h,'String',str);
                 ext = get(h,'extent');

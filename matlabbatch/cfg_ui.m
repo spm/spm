@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1559 2008-05-07 09:23:55Z volkmar $
+% $Id: cfg_ui.m 1578 2008-05-08 13:52:32Z volkmar $
 
-rev = '$Rev: 1559 $';
+rev = '$Rev: 1578 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -305,7 +305,7 @@ for k = 1:numel(sts)
         mrk{k} = ' ';
     end;
 end;
-str = cellstr(cat(2,strvcat(str), strvcat(mrk)));
+str = cfg_textfill(handles.modlist, str, mrk, false);
 set(handles.modlist, 'string', str, 'userdata',udmodlist, 'value', cmod);
 if ~isempty(sts) && all(sts)
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*File(Run)|(RunSerial)$'),'Enable','on');
@@ -411,25 +411,7 @@ if ~isempty(udmodlist.cmod)
         end;
         namestr{k} = sprintf('%s%s  ', indent, contents{1}{k});
     end;
-    % justify datastr, left fill/cut if necessary
-    datastr = strjust(strvcat(datastr),'right');
-    namestr = strvcat(namestr);
-    un = get(handles.module,'units');
-    set(handles.module,'units','characters');
-    cpos = get(handles.module,'position');
-    set(handles.module,'units',un);
-    minl = min(max(20, floor(.6*cpos(3))-3-size(namestr,2)), size(datastr,2));
-    adatastr = datastr(:,1:end-minl);
-    edatastr = datastr(:,end-minl+1:end);
-    ell = any(~isspace(adatastr),2);
-    if any(ell)
-        ellstr = repmat(' ',size(datastr,1),3);
-        ellstr(ell,:) = repmat('.',sum(ell),3);
-    else
-        indent = max(floor(.6*cpos(3))-size(namestr,2)-size(edatastr,2),0);
-        ellstr = repmat(' ',size(datastr,1),indent);
-    end;
-    str = cellstr(cat(2, namestr, ellstr, edatastr));
+    str = cfg_textfill(handles.module,namestr,datastr,true);
     udmodule = get(handles.module, 'userdata');
     if isempty(udmodule)
         citem = 1;
