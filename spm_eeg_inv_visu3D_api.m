@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_visu3D_api.m 1582 2008-05-08 18:03:54Z stefan $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ function spm_eeg_inv_visu3D_api_OpeningFcn(hObject, eventdata, handles)
 try
     D = handles.D;
 catch
-    D = spm_eeg_ldata(spm_select(1, '.mat', 'Select EEG/MEG mat file'));
+    D = spm_eeg_load(spm_select(1, '.mat', 'Select EEG/MEG mat file'));
 end
 
 if ~isfield(D,'inv')
@@ -226,27 +226,15 @@ handles.colorbar = colorbar;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % LOAD SENSOR FILE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-try
-    load(fullfile(spm('dir'),'EEGtemplates',D.channels.ctf));
-catch
-    try
-        Cpos  = D.inv{1}.datareg.sens_coreg(:,[1 2])'; 
-    catch
-        [f,p] = uigetfile({'*.mat'}, 'EEGtemplate file (Cpos)');
-        load(fullfile(p,f))        
-    end
-end
-try
-    Cpos = Cpos(:,D.channels.order(Cs));
-catch
-    Cpos = Cpos(:,D.channels.order(D.channels.eeg));
-end
-xp       = Cpos(1,:)';
-yp       = Cpos(2,:)';
+coor = D.coor2D;
+xp = coor(1,:)';
+yp = coor(2,:)';
+
 x        = linspace(min(xp),max(xp),64);
 y        = linspace(min(yp),max(yp),64);
 [xm,ym]  = meshgrid(x,y);
 handles.sens_coord = [xp yp];
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -724,6 +712,7 @@ if length(handles.D.inv{handles.D.val}.inverse.J) == 1
     set(handles.con,'Value',0);
     return
 end
+
 handles.D.con = handles.D.con + 1;
 if handles.D.con > length(handles.D.inv{handles.D.val}.inverse.J)
     handles.D.con = 1;

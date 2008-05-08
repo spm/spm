@@ -26,7 +26,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1534 2008-05-01 15:51:32Z vladimir $
+% $Id: spm_dcm_erp.m 1582 2008-05-08 18:03:54Z stefan $
  
 % check options 
 %==========================================================================
@@ -230,6 +230,8 @@ if ~isfield(M, 'E')
     end
     Nm    = size(U,2);
     M.E   = U;
+else
+    U = M.E;
 end
  
 % EM: inversion
