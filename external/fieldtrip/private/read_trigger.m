@@ -14,6 +14,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.3  2008/05/08 18:32:45  vlalit
+% Fixed a bug
+%
 % Revision 1.2  2008/04/29 14:54:39  roboos
 % explicit specification of begsample and endsample, otherwise event.sample remains empty
 %
@@ -41,7 +44,7 @@ if isempty(endsample)
 end
 
 % read the trigger channel as raw data, can safely assume that it is continuous
-dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chainindx', chanindx);
+dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
 
 if fixctf
   % correct for reading the data as signed 32-bit integer, whereas it should be interpreted as an unsigned int
