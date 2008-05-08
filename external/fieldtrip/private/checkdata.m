@@ -17,7 +17,7 @@ function [data, state] = checkdata(data, varargin);
 % include
 %   datatype           = raw, freq, timelock, comp, spike, source, volume, dip
 %   dimord             = any combination of time, freq, chan, refchan, rpt, subj, chancmb, rpttap
-%   senstype           = ctf151, ctf275, ctf151_planar, ctf275_planar, neuromag122, neuromag306, bti148, magnetometer, electrode
+%   senstype           = ctf151, ctf275, ctf151_planar, ctf275_planar, neuromag122, neuromag306, bti148, bti248, bti248_planar, magnetometer, electrode
 %   ismeg              = yes, no
 %   inside             = logical, index
 %   hastrials          = yes, no
@@ -35,6 +35,10 @@ function [data, state] = checkdata(data, varargin);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.20  2008/05/08 10:45:34  jansch
+% changed function-call to sensortype into senstype. changed variable-name
+% senstype into stype
+%
 % Revision 1.19  2008/04/01 10:47:05  jansch
 % remove nans in reconstructed timecourses in freq2raw
 %
@@ -147,7 +151,7 @@ function [data, state] = checkdata(data, varargin);
 datatype  = keyval('datatype', varargin);
 feedback  = keyval('feedback', varargin); if isempty(feedback), feedback = 'no'; end
 dimord    = keyval('dimord', varargin);
-senstype  = keyval('senstype', varargin);
+stype     = keyval('senstype', varargin);
 ismeg     = keyval('ismeg', varargin);
 inside    = keyval('inside', varargin);
 hastrials = keyval('hastrials', varargin);
@@ -290,13 +294,13 @@ if ~isempty(dimord)
   end % if okflag
 end
 
-if ~isempty(senstype)
-  if ~isa(senstype, 'cell')
-    senstype = {senstype};
+if ~isempty(stype)
+  if ~isa(stype, 'cell')
+    stype = {stype};
   end
 
   if isfield(data, 'grad') || isfield(data, 'elec')
-    if any(strcmp(sensortype(data), senstype));
+    if any(strcmp(senstype(data), stype));
       okflag = 1;
     else
       okflag = 0;
@@ -307,13 +311,13 @@ if ~isempty(senstype)
   
   if ~okflag
     % construct an error message
-    if length(senstype)>1
-      str = sprintf('%s, ', senstype{1:(end-2)});
-      str = sprintf('%s%s or %s', str, senstype{end-1}, senstype{end});
+    if length(stype)>1
+      str = sprintf('%s, ', stype{1:(end-2)});
+      str = sprintf('%s%s or %s', str, stype{end-1}, stype{end});
     else
-      str = senstype{1};
+      str = stype{1};
     end
-    str = sprintf('This function requires %s data as input, but you are giving %s data.', str, sensortype(data));
+    str = sprintf('This function requires %s data as input, but you are giving %s data.', str, senstype(data));
     error(str);
   end % if okflag
 end
