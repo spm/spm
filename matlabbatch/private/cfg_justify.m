@@ -28,72 +28,14 @@ function out = cfg_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: cfg_justify.m 1578 2008-05-08 13:52:32Z volkmar $
+% $Id: cfg_justify.m 1581 2008-05-08 16:05:36Z volkmar $
 
 out = {};
 
-% DRG added code to estimate the actual size of the listbox and how many
-% characters will fit per line. 
 if nargin < 2
     error('Incorrect usage of cfg_justify.')
 end
 n = varargin{1};
-if ishandle(n)
-    % n is presumably the handle of some object that can deal with text.
-    % use try catch statements so that if try fails the
-    % UI is returned to its original state.
-    h = n;
-    oldStr = get(h,'String');
-    oldUnits = get(h,'Units');
-    try
-        set(h,'Units','Characters');
-        % Matlab is very inaccurate at estimating the width of single
-        % characters, so we'll use 100.
-        set(h,'string',repmat('x',1,100));
-        ext = get(h,'extent');
-        % calculate width of 1 character.
-        ext = ext(3)/100;
-        pos = get(h,'position');
-        pos = pos(3);
-        % hack because Matlab cannot tell us how wide the scrollbar is.
-        pos = pos - 5;
-        wGuess = floor(pos/ext);
-        str = repmat(' ',1,wGuess);
-        set(h,'string',str);
-        ext = get(h,'extent');
-        ext = ext(3);
-        if ext > pos
-            while ext > pos
-                if numel(str) == 1
-                    error('Too few characters for object handle provided.');
-                end
-                str = str(1:end-1);
-                set(h,'String',str);
-                ext = get(h,'extent');
-                ext = ext(3);
-            end
-            n = numel(str);
-        else
-            while ext < pos
-                str = [str(1), str];
-                if numel(str) > 200
-                    warning('matlabbatch:cfg_justify',...
-                            'Too many characters for object handle provided.');
-                end
-                set(h,'String',str);
-                ext = get(h,'extent');
-                ext = ext(3);
-            end
-            n = numel(str)-2;
-        end
-        set(h,'String',oldStr);
-        set(h,'Units',oldUnits);
-    catch
-        set(h,'String',oldStr);
-        set(h,'Units',oldUnits);
-        error('Problem estimating characters for object handle provided');
-    end
-end
 for i=2:nargin,
     if iscell(varargin{i}),
         for j=1:numel(varargin{i}),
@@ -134,12 +76,11 @@ str = [str txt(pen:numel(txt))];
 txt = str;
 
 off = find((txt'>='a' & txt'<='z') | (txt'>='A' & txt'<='Z'));
-off = off(off<n);
 if isempty(off),
     out{1} = txt;
 else
     off  = off(1);
-    para = justify_para(n-off+1,txt(off:end));
+    para = justify_para(n,off,txt(off:end));
     if numel(para)>1,
         out{1} = [txt(1:(off-1)) para{1}];
         for j=2:numel(para),
@@ -151,74 +92,65 @@ else
 end;
 return;
 
-function out = justify_para(n,varargin)
+function out = justify_para(n,off,varargin)
 % Collect varargs into a single string
 str = varargin{1};
 for i=2:length(varargin),
     str = [str ' ' varargin{i}];
 end;
-
 if isempty(str), out = {''}; return; end;
-
-% Remove repeats
-sp  = find(str==' ');
-rep = sp(diff(sp)==1);
-str(rep) = [];
-if str(1)  ==' ', str(1)   = ''; end;
-if str(end)==' ', str(end) = ''; end;
-
-out = {};
-while length(str)>n,
-
-    % Break the string into lines
-    sp  = find(str==' ');
-    brk = sp(sp<=n);
-    if isempty(brk),
-        if isempty(sp),
-            brk = length(str)+1;
-        else
-            brk = sp(1);
-        end;
-    else
-        brk = brk(end);
+if ishandle(n)
+    TempObj=copyobj(n,get(n,'Parent'));
+    set(TempObj,'Visible','off','Max',100);
+    spext = maxextent(TempObj,{repmat(' ',1,100)})/100;
+    % try to work out slider size
+    pos = get(TempObj,'Position');
+    oldun = get(TempObj,'units');
+    set(TempObj,'units','points');
+    ppos = get(TempObj,'Position');
+    set(TempObj,'units',oldun);
+    sc = pos(3)/ppos(3);
+    % assume slider width of 15 points
+    swidth=15*sc;
+    % new size: at least 20 spaces wide, max widget width less offset
+    % space and scrollbar width
+    pos = get(TempObj,'position');
+    pos(3) = max(pos(3)-off*spext-swidth,20*spext);
+    set(TempObj,'position',pos);
+    out = textwrap(TempObj,{str});
+    cext = maxextent(TempObj,out);
+    for k = 1:numel(out)-1
+        out{k} = justify_line(out{k}, pos(3), cext(k), spext);
     end;
-
-    % Pad the line to n characters wide
-    current = str(1:(brk-1));
-    % l   = length(current);
-    % l   = n-l;
-    sp  = find(current==' ');
-    if ~isempty(sp),
-
-        % Break into words
-        sp    = [sp length(current)+1];
-        words = {current(1:(sp(1)-1))};
-        for i=1:(length(sp)-1),
-            words = {words{:}, current((sp(i)+1):(sp(i+1)-1))};
-        end;
-
-        % Figure out how much padding on average
-        nsp = length(sp)-1;
-        pad = (n-(length(current)-nsp))/nsp;
-
-        % Pad all spaces by the same integer amount
-        sp  = repmat(floor(pad),1,nsp);
-
-        % Pad a random selection of spaces by one
-        pad = round((pad-floor(pad))*nsp);
-        [unused,ind] = sort(rand(pad,1));
-        ind = ind(1:pad);
-        sp(ind) = sp(ind)+1;
-
-        % Re-construct line from individual words
-        current = words{1};
-        for i=2:length(words),
-            current = [current repmat(' ',1,sp(i-1)) words{i}];
-        end;
+else
+    cols = max(n-off,20);
+    out = textwrap({str},cols);
+    for k = 1:numel(out)-1
+        out{k} = justify_line(out{k}, cols, length(out{k}), 1);
     end;
-
-    out = {out{:},current};
-    str = str((brk+1):end);
 end;
 
-out = {out{:},str};
+function out = justify_line(str, width, cext, spext)
+ind = strfind(str,' ');
+if isempty(ind)
+    out = str;
+else
+    % #spaces to insert
+    nsp = floor((width-cext)/spext);
+    % #spaces per existing space
+    ins(1:numel(ind)) = floor(nsp/numel(ind));
+    ins(1:mod(nsp,numel(ind))) = floor(nsp/numel(ind))+1;
+    % insert spaces beginning at the end of the string
+    for k = numel(ind):-1:1
+        str = [str(1:ind(k)) repmat(' ',1,ins(k)) str(ind(k)+1:end)];
+    end;
+    out = str;
+end; 
+
+function ext = maxextent(obj, str)
+ext = zeros(size(str));
+for k = 1:numel(str)
+    set(obj,'String',str{k});
+    next = get(obj, 'Extent');
+    ext(k) = next(3);
+end;

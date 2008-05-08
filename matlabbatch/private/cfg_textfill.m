@@ -3,7 +3,7 @@ function str = cfg_textfill(obj, left, right, tflag)
 % function str = cfg_textfill(obj, left, right)
 % Fill a text object, so that the left part is left justified and the
 % right part right justified. If tflag is set, try to fit text in widget
-% by truncating right until at least 20 characters are displayed.
+% by truncating right until at least 5 characters are displayed.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -45,6 +45,10 @@ if ~iscellstr(right)
               'Third input must be a string array or cellstr.');
     end;
 end;
+if numel(left) ~= numel(right)
+    error('matlabbatch:textfill:argchk',...
+          'Second and third input must have the same number of lines.');
+end;    
 
 TempObj=copyobj(obj,get(obj,'Parent'));
 set(TempObj,'Visible','off','Max',100);
