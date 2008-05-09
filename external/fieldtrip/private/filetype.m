@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.77  2008/05/09 17:04:41  vlalit
+% Added even more stringent criteria for recognition of SPM EEG mat files
+%
 % Revision 1.76  2008/05/06 14:36:23  roboos
 % Added readers for SPM5 and SPM8 EEG formats (fix cvs conflict between jansch and vlalit)
 %
@@ -804,7 +807,9 @@ elseif filetype_check_extension(filename, '.edf')
   ftype = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
-elseif filetype_check_extension(filename, '.mat') && numel(whos('-file', filename))==1 && strcmp('D', getfield(whos('-file', filename), {1}, 'name'))
+elseif filetype_check_extension(filename, '.mat') && numel(whos('-file', filename))==1 ...
+        && strcmp('D', getfield(whos('-file', filename), {1}, 'name')) && exist([filename(1:(end-4)) '.dat'], 'file') && ...
+        strcmp('struct', getfield(whos('-file', filename), {1}, 'class'))
     ftype = 'spmeeg_mat';
     manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
     content = 'electrophysiological data';
