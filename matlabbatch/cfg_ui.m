@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1578 2008-05-08 13:52:32Z volkmar $
+% $Id: cfg_ui.m 1587 2008-05-09 07:03:10Z volkmar $
 
-rev = '$Rev: 1578 $';
+rev = '$Rev: 1587 $';
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 07-May-2008 09:58:54
+% Last Modified by GUIDE v2.5 23-Apr-2008 23:15:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -630,8 +630,7 @@ function local_valedit_edit(hObject)
 % input. If input has ndims > 2, isn't numeric or char, proceed with
 % expert dialogue.
 handles = guidata(hObject);
-if strcmp(get(findobj(handles.cfg_ui,'Tag','MenuEditExpertEdit'), ...
-              'checked'),'on')
+if strcmp(cfg_get_defaults([mfilename '.ExpertEdit']), 'on')
     local_valedit_expert_edit(hObject);
     return;
 end;
@@ -734,11 +733,11 @@ value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
 val = udmodule.contents{2}{value};
 sts = false;
-if ~isempty(val) && isa(val{1}, 'cfg_dep')
+if isempty(val) || isa(val{1}, 'cfg_dep')
     % silently clear cfg_deps
     instr = {''};
 else
-    instr = gencode(udmodule.contents{2}{value}{1},'val');
+    instr = gencode(val{1},'val');
 end;
 while ~sts
     % estimate size of input field based on instr
@@ -1034,6 +1033,14 @@ if isempty(udmodlist) || ~cfg_util('isjob_id', udmodlist.cjob)
     set(handles.modlist, 'userdata', udmodlist);
 end;
 
+% set initial font
+fs = cfg_get_defaults([mfilename '.font']);
+local_setfont(hObject, fs);
+
+% set ExpertEdit checkbox
+set(handles.MenuEditExpertEdit, ...
+    'checked',cfg_get_defaults([mfilename '.ExpertEdit']));
+
 % show job
 local_showjob(hObject);
 
@@ -1279,10 +1286,12 @@ function MenuEditExpertEdit_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 if strcmp(get(gcbo,'checked'),'on')
-    set(gcbo, 'checked', 'off');
+    newstate = 'off';
 else
-    set(gcbo, 'checked', 'on');
+    newstate = 'on';
 end;
+set(gcbo, 'checked', newstate);
+cfg_get_defaults([mfilename '.ExpertEdit'], newstate);
 
 %% Module List Callbacks
 % --- Executes on selection change in modlist.
@@ -1525,17 +1534,9 @@ function MenuEditFontSize_Callback(hObject, eventdata, handles)
 
 fs = uisetfont;
 if isstruct(fs)
-    % construct argument list for set
-    fn = fieldnames(fs);
-    fs = struct2cell(fs);
-    fnfs = [fn'; fs'];
-    set(handles.modlist, fnfs{:});
-    set(handles.module, fnfs{:});
-    set(handles.valshow, fnfs{:});
-    set(handles.helpbox, fnfs{:});
+    local_setfont(hObject,fs);
+    MenuEditUpdateView_Callback(hObject, eventdata, handles);
 end;
-MenuEditUpdateView_Callback(hObject, eventdata, handles);
-
 
 % --- Executes when cfg_ui is resized.
 function cfg_ui_ResizeFcn(hObject, eventdata, handles)
@@ -1546,3 +1547,15 @@ function cfg_ui_ResizeFcn(hObject, eventdata, handles)
 % this is just "Update View"
 MenuEditUpdateView_Callback(hObject, eventdata, handles);
 
+% --------------------------------------------------------------------
+function local_setfont(obj,fs)
+handles = guidata(obj);
+cfg_get_defaults([mfilename '.font'], fs);
+% construct argument list for set
+fn = fieldnames(fs);
+fs = struct2cell(fs);
+fnfs = [fn'; fs'];
+set(handles.modlist, fnfs{:});
+set(handles.module, fnfs{:});
+set(handles.valshow, fnfs{:});
+set(handles.helpbox, fnfs{:});
