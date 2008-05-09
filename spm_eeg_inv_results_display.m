@@ -5,7 +5,7 @@ function spm_eeg_inv_results_display(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_inv_results_display.m 1588 2008-05-09 08:14:55Z vladimir $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -15,6 +15,11 @@ Ndip  = 256; % Number of dipoles to display
 %==========================================================================
 try, val = D.val; catch, val = 1; end
 try, con = D.con; catch, con = 1; end
+
+if con == 0
+    con = 1;
+end
+
 model = D.inv{D.val};
 con   = min(con,length(model.inverse.J));
 try
