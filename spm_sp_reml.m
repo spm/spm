@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_sp_reml.m 1161 2008-02-22 12:18:05Z karl $
+% $Id: spm_sp_reml.m 1594 2008-05-11 13:39:02Z vladimir $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -200,7 +200,7 @@ for k = 1:K
     
     % and ARD
     %----------------------------------------------------------------------
-    if dF < 1e-2
+    if dF < 1e-2 || k == K
         break
     else
         as             = h > -16;
