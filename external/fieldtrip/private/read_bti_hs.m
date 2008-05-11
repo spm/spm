@@ -1,4 +1,4 @@
-function [ output ] = read_hs_file( filename, outfile )
+function [output, firstIndexPoint] = read_hs_file( filename, outfile)
 
 %read_hs_file Reads in BTI-Headshape files
 %   filename: file with the headshape informations
@@ -8,6 +8,9 @@ function [ output ] = read_hs_file( filename, outfile )
 %   (C) 2007 by Thomas Hartmann
 
 % $Log: read_bti_hs.m,v $
+% Revision 1.3  2008/05/11 16:29:57  vlalit
+% Changed the function to also output fiducials
+%
 % Revision 1.2  2007/08/06 09:23:57  roboos
 % removed debug output, transposed output to Nx3
 %
@@ -25,13 +28,13 @@ timestamp = fread(fid, 1, '*int32');
 checksum = fread(fid, 1, '*int32');
 nPoints = fread(fid, 1, '*int32');
 
-firstIndexPoint = fread(fid, [3, 5], 'double');
+firstIndexPoint = fread(fid, [3, 5], 'double')';
 
 points = fread(fid, [3, double(nPoints)], 'double');
 
 fclose(fid);
 
-if(nargout == 1)
+if(nargout > 0)
     output = points';
 end %if
 
