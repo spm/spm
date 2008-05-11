@@ -24,7 +24,7 @@ function spm_eeg_convert(S)
 %               for which the events are saved with the trial (to let the
 %               user keep and use for analysis events which are outside
 %               trial borders). Default - 0.
-% S.conditionlabels - labels for the trials in the data Default - 'Undefined'
+% S.conditionlabel - labels for the trials in the data Default - 'Undefined'
 % S.blocksize - size of blocks used internally to split large files
 %               default ~100Mb.
 % S.checkboundary - 1 - check if there are breaks in the file and do not read
@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1575 2008-05-08 11:50:41Z vladimir $
+% $Id: spm_eeg_convert.m 1595 2008-05-11 15:28:26Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -181,7 +181,7 @@ else % Read by trials
             error('All trials should have identical baseline');
         end
         if isfield(S, 'conditionlabels')
-            conditionlabels = S.conditionlabels;
+            conditionlabels = S.conditionlabel;
         else
             conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
         end
@@ -238,7 +238,7 @@ else % Read by trials
         nsampl = hdr.nSamples;
         ntrial = hdr.nTrials;
         trl = zeros(ntrial, 2);
-        if length(conditionlabels) ~= ntrial
+        if exist('conditionlabels', 'var') ~= 1 || length(conditionlabels) ~= ntrial
             conditionlabels = repmat({S.conditionlabel}, 1, ntrial);
         end
     else
