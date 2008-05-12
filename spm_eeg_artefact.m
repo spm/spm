@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: spm_eeg_artefact.m 1602 2008-05-12 14:40:25Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -132,6 +132,7 @@ if MustDoWork
             end
         end
     else
+        artefact.channels_threshold = [1: nchannels(D)];
         artefact.threshold = kron(ones(1, length(artefact.channels_threshold)), Inf);
     end
 
@@ -200,8 +201,7 @@ if MustDoWork
         % weighted averaging by J Kilner
 
         allWf = zeros(D.nchannels, D.ntrials * D.nsamples);
-        tloops = 1:D.nchannels;
-        tloops(ind) = [];
+        tloops = setdiff(artefact.channels_threshold, ind);
 
         for i = 1:D.nconditions
             nbars = D.nconditions * length(tloops);
@@ -209,7 +209,7 @@ if MustDoWork
             if nbars > 100, Ibar = floor(linspace(1, nbars,100));
             else Ibar = [1:nbars]; end
 
-            trials = pickconditions(D, deblank(cl(i,:)));
+            trials = pickconditions(D, deblank(cl{i}));
 
             for j = tloops %loop across electrodes
                 if ismember((i-1)*length(tloops)+j, Ibar)
@@ -237,7 +237,8 @@ if MustDoWork
         spm_progress_bar('Clear');
 
         artefact.weights = allWf;
-        D = other(D, artefact);
+        
+        D.artefact = artefact;
 
     else
 
@@ -274,13 +275,14 @@ if MustDoWork
 
         end
 
-        D.thresholded = thresholded;
 
         spm_progress_bar('Clear');
         disp(sprintf('%d rejected trials: %s', length(index), mat2str(index)))
 
         D = reject(D, index, 1);
     end
+
+    D.thresholded = thresholded;
 
 end % MustDoWork
 

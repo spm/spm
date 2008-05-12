@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1598 2008-05-12 12:06:54Z stefan $
+% $Id: spm_eeg_average.m 1602 2008-05-12 14:40:25Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -46,7 +46,7 @@ if ~isempty(artefact)
 end
 cl = unique(conditions(D));
 
-if isfield(D, 'weights');
+if isfield(artefact, 'weights');
     d = zeros(D.nchannels, D.nsamples);
 
     for i = 1:D.nconditions
@@ -57,13 +57,13 @@ if isfield(D, 'weights');
             ts=0;
             while ts==0
                 ti=ti+1;
-                ts=(j==thresholded{ti});
+                ts = (j == thresholded{ti});
 
             end
-            w = intersect(pickconditions(D, deblank(cl(i,:))), find(~D.reject))';
+            w = intersect(pickconditions(D, cl{i}), find(~reject(D)))';
             ni(i) = length(w);
             if isempty(ts)
-                ind = pickconditions(D, deblank(cl(i,:)));
+                ind = pickconditions(D, cl{i});
                 data = squeeze(D(j, :, ind))';
                 for nl = ind
                     tempwf = [tempwf, weights(j, (nl-1)*D.nsamples+1:nl*D.nsamples)];
@@ -88,7 +88,7 @@ if isfield(D, 'weights');
                 d(j,:)=zeros(1,D.nsamples);
             end
         end
-        Dnew = putdata(Dnew, j, 1:Dnew.nsamples, ind, d);
+        Dnew(j, 1:Dnew.nsamples, ind) = d;
 
     end
 else
