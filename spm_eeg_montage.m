@@ -13,7 +13,7 @@ function [D, montage] = spm_eeg_montage(S)
 %   montage.keepothers = 'yes' - keep the channels not involved in the montage (default)
 %                        'no' - discard the channels not involved in the montage 
 % S.blocksize - size of blocks used internally to split large continuous files
-%               default ~100Mb.
+%               default ~20Mb.
 %
 % Output:
 % D         - MEEG data struct (also written to files)
@@ -27,7 +27,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 1593 2008-05-11 13:37:50Z vladimir $
+% $Id: spm_eeg_montage.m 1599 2008-05-12 12:23:16Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -35,7 +35,7 @@ if nargin == 0
     S = [];
 end
 
-if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;   end  %100 Mb
+if ~isfield(S, 'blocksize'),       S.blocksize = 655360;   end  %20 Mb
 
 if isfield(S, 'D')
     D = S.D;
@@ -47,14 +47,27 @@ if ~isa(D, 'meeg')
     D = spm_eeg_load(D);
 end
 
-if isfield(S, 'montage')
-    montage = S.montage;
-else
-    montage = [];
-    montage.labelorg = D.chanlabels;
-    error('GUI specification of montage is under development.');
-    %montage = spm_eeg_montage_ui(montage);
+if ~isfield(S, 'montage')
+    res = spm_input('How to specify the montage?', '+1', 'gui|file');
+    switch res
+        case 'gui'
+            montage = [];
+            montage.labelorg = D.chanlabels;
+            errordlg('The montage specification GUI is under construction.');
+            return;
+            S.montage = spm_eeg_montage_ui(montage);
+        case 'file'
+            S.montage = spm_select(1, '\.mat$', 'Select a montage file');
+    end
 end
+
+if ischar(S.montage)
+    montage = load(S.montage);
+    name = fieldnames(montage);
+    S.montage = getfield(montage, name{1});
+end
+
+montage = S.montage;
     
 if ~all(isfield(montage, {'labelnew', 'labelorg', 'tra'})) || ...
         any([isempty(montage.labelnew), isempty(montage.labelorg), isempty(montage.tra)]) || ...
@@ -136,7 +149,7 @@ if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
 elseif  D.ntrials == 1, Ibar = [1:ceil(D.nsamples./nblocksamples)]; 
 else Ibar = [1:D.ntrials]; end
 
-spm_progress_bar('Init', Ibar(end), 'Applying montage'); drawnow;
+spm_progress_bar('Init', Ibar(end), 'applying montage'); drawnow;
 
 for i = 1:D.ntrials
     for j = 1:nblocks
@@ -167,6 +180,8 @@ Dnew = chantype(Dnew, [], []);
 
 Dnew = sensors(Dnew, 'EEG', eegsens);
 Dnew = sensors(Dnew, 'MEG', megsens);
+
+[ok, Dnew] = check(Dnew, 'basic');
 
 spm_progress_bar('Clear');
 
