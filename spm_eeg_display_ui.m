@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1590 2008-05-09 14:07:51Z stefan $
+% $Id: spm_eeg_display_ui.m 1598 2008-05-12 12:06:54Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -402,7 +402,7 @@ for i = 1:Npos
         if strcmp(D.transformtype, 'TF')
             set(gca, 'ZLim', [-scale scale],...
                 'XLim', [1 D.nsamples], 'YLim',  [1 D.nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-            caxis([-scale scale])
+            caxis(handles.Heegaxes(i),[-scale scale])
             colormap('jet')
         else
             if Lxrec > 0.1
@@ -526,8 +526,9 @@ for i = 1:length(handles.Heegaxes)
     
     if strcmp(D.transformtype, 'TF')
         set(handles.Heegaxes(i), 'ZLim', [0 scale],...
-            'XLim', [1 D.nsamples], 'YLim', [1 D.nfrequencies], 'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
-        caxis([-scale scale])
+            'XLim', [1 D.nsamples], 'YLim', [1 D.nfrequencies],...
+            'XTick', [], 'YTick', [], 'ZTick', [],'Box', 'off');
+        caxis(handles.Heegaxes(i),[-scale scale])
     else
         if handles.Lxrec > 0.1
             % boxes are quite large
@@ -632,8 +633,8 @@ else
 
         set(handles.Heegaxes2{ind}, 'ZLim', [-scale scale],...
             'XLim',  1000*[D.time(1) D.time(end)], 'YLim', [min(D.frequencies) max(D.frequencies)], 'Box', 'on');
+        caxis(handles.Heegaxes2{ind},[-scale scale])
         colormap('jet')
-        caxis([-scale scale])
 
     else
         xlabel('ms', 'FontSize', 16);

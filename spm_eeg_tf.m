@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: spm_eeg_tf.m 1598 2008-05-12 12:06:54Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -137,7 +137,7 @@ Dtf = coor2D(Dtf,[1:length(tf.channels)], coor2D(D,tf.channels));
 
 if tf.phase == 1
     Dtf2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
-    Dtf2 = frequencies(Dtf, tf.frequencies);
+    Dtf2 = frequencies(Dtf2, tf.frequencies);
 
     % fix all channels
     sD = struct(Dtf2);
@@ -156,6 +156,10 @@ if tf.phase == 1
     Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));
 end
 
+
+spm_progress_bar('Init', D.ntrials, 'trials done'); drawnow;
+if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
+else Ibar = [1:D.ntrials]; end
 
 for k = 1:D.ntrials
 
@@ -206,14 +210,19 @@ for k = 1:D.ntrials
         Dtf2(:, :, :, k) = d2;
     end
 
+    if ismember(k, Ibar)
+        spm_progress_bar('Set', k);
+        drawnow;
+    end
+
 end
 
+spm_progress_bar('Clear');
 
 % Remove baseline over frequencies and trials (do later)
 if tf.rm_baseline == 1
     Dtf = spm_eeg_bc(Dtf, tf.Sbaseline);
 end
-
 
 save(Dtf);
 if tf.phase

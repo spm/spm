@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1341 2008-04-09 18:22:43Z jean $
+% $Id: spm_eeg_average.m 1598 2008-05-12 12:06:54Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -33,43 +33,8 @@ catch
     error(sprintf('Trouble reading file %s', D));
 end
 
-% try
-%     circularise = S.circularise_phase;
-% catch
-%         circularise = 0;
-%     try
-%        phs = D.phs;
-%            if phs
-%           circularise = spm_input('Straight or vector (eg PLV) average of phase angles?','+1', 'straight|vector',[0 1], 1);
-%            end
-%     end
-% end
-
 
 spm('Pointer', 'Watch'); drawnow;
-
-% if isfield(D, 'Nfrequencies');
-%     D.scale = zeros(D.Nchannels, 1, 1, D.events.Ntypes);
-%
-%     for i = 1:D.events.Ntypes
-%       clear d
-%       w = find((D.events.code == D.events.types(i)) & ~D.events.reject);
-%       if ~circularise               % straight average
-%         d = mean(D.data(:,:,:,w), 4);
-%       else              % vector average (eg PLV for phase)
-%         for c=1:D.Nchannels
-%            tmp = D.data(c,:,:,w);
-%            tmp = cos(tmp) + sqrt(-1)*sin(tmp);
-%            d(c,:,:) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
-%         end
-%       end
-%       ni(i) = length(find(w));
-%       D.scale(:, 1, 1, i) = max(max(abs(d), [], 3), [], 2)./32767;
-%       d = int16(d./repmat(D.scale(:, 1, 1, i), [1, D.Nfrequencies, D.Nsamples]));
-%       fwrite(fpd, d, 'int16');
-%     end
-%     Ntypes = D.events.Ntypes;
-% else
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions]);

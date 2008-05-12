@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 1285 2008-04-01 11:23:10Z stefan $
+% $Id: spm_eeg_select_channels.m 1598 2008-05-12 12:06:54Z stefan $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,7 +80,7 @@ gfx = getcache(D, 'gfx');
 
 ind = zeros(D.nchannels, 1);
 ind(gfx.channels) = 1;
-xy = coor2D(D, find(ind));
+xy = coor2D(D, D.meegchannels);
 
 for i = D.meegchannels
     

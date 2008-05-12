@@ -1,101 +1,130 @@
-function D=spm_eeg_average_TF(S)
-% function to average induced TF data if standard average does not work 
-% because of out of memory issues
-%__________________________________________________________________________
+function D = spm_eeg_average_TF(S)
+% averages each channel over trials or trial types, for time-frequency data.
+% FORMAT D = spm_eeg_average_TF(S)
+%
+% S         - optional input struct
+% (optional) fields of S:
+% D         - filename of EEG mat-file with epoched data
+%
+% Output:
+% D         - EEG data struct (also written to files)
+%_______________________________________________________________________
+%
+% spm_eeg_average_TF averages single trial time-frequency data within trial type.
+%_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% James Kilner
-% $Id: spm_eeg_average_TF.m 1131 2008-02-06 11:17:09Z spm $
+% Stefan Kiebel
+% $Id: spm_eeg_average_TF.m 1598 2008-05-12 12:06:54Z stefan $
+
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
 try
     D = S.D;
 catch
     D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
 end
+
 P = spm_str_manip(D, 'H');
+
 try
-    D = spm_eeg_ldata(D);
-catch    
+    D = spm_eeg_load(D);
+catch
     error(sprintf('Trouble reading file %s', D));
 end
+
 try
-    c = S.c;
+    circularise = S.circularise_phase;
 catch
-    % if there is no S.c, assume that user wants default average within
-    % trial type
-    c = eye(D.events.Ntypes);
-end
-c1=size(D.data,1);
-c2=size(D.data,2);
-c3=size(D.data,3);
-D=rmfield(D,'data');
-pack;
-d=zeros(c1,c2,c3,D.events.Ntypes);
-fh=fopen(fullfile(D.path,D.fnamedat),'r');
-ni=zeros(1,D.events.Ntypes);
-for n=1:D.Nevents
-    if D.events.reject(n)== 0
-  
-        [m,i]=find(D.events.types==D.events.code(n));  
-      
-        data=fread(fh,[1,c1*c2*c3],'short');
-        data=reshape(data,c1,c2,c3,1);
-        data=data.*repmat(D.scale(:,1,1,n),[1,D.Nfrequencies, D.Nsamples]);
-        d(:,:,:,i)=d(:,:,:,i)+data;
+    circularise = 0;
+    try
+        phs = D.phs;
+        if phs
+            circularise = spm_input('Straight or vector (eg PLV) average of phase angles?','+1', 'straight|vector',[0 1], 1);
+        end
     end
 end
 
-D.fnamedat = ['m' D.fnamedat];
+spm('Pointer', 'Watch'); drawnow;
 
-fpd = fopen(fullfile(P, D.fnamedat), 'w');
-D.scale = zeros(D.Nchannels, 1, 1, D.events.Ntypes);
+if ~strcmp(D.type, 'single')
+    error('This function can only be applied to single trial data');
+else
+    if strcmp(D.transformtype, 'TF')
 
-for n=1:D.events.Ntypes
-    dat=squeeze(d(:,:,:,n)./length(find(D.events.code==D.events.types(n) & ~D.events.reject)));
-    ni(n)=length(find(D.events.code==D.events.types(n) & ~D.events.reject));
-    D.scale(:, 1, 1, n) = max(max(squeeze(abs(dat)), [], 3), [], 2)./32767;
-    dat = int16(dat./repmat(D.scale(:, 1, 1, n), [1, D.Nfrequencies, D.Nsamples]));
-    fwrite(fpd, dat, 'int16');
+        % generate new meeg object with new filenames
+        Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
+        cl = unique(conditions(D));
+
+        spm_progress_bar('Init', D.nconditions, 'Averages done'); drawnow;
+        if D.nconditions > 100, Ibar = floor(linspace(1, D.nconditions, 100));
+        else Ibar = [1:D.nconditions]; end
+
+        for i = 1:D.nconditions
+
+            w = intersect(pickconditions(D, deblank(cl{i})), find(~D.reject))';
+
+            ni(i) = length(w);
+
+            if ni(i) == 0
+                warning('%s: No trials for trial type %d', D.fname, conditionlabels(D, i));
+            else
+                if ~circularise % straight average
+
+                    for j = 1:D.nchannels
+                        Dnew(j, 1:Dnew.nfrequencies, 1:Dnew.nsamples, i) = mean(D(j, :, :, w), 4);
+                    end
+                else% vector average (eg PLV for phase)
+
+                    for j = 1:D.nchannels
+                        tmp = D(j,:,:,w);
+                        tmp = cos(tmp) + sqrt(-1)*sin(tmp);
+                        Dnew(j, 1:Dnew.nsamples, i) = squeeze(abs(mean(tmp,4)) ./ mean(abs(tmp),4));
+                    end
+                end
+
+                if ismember(i, Ibar)
+                    spm_progress_bar('Set', i);
+                    drawnow;
+                end
+            end
+        end
+    else
+        error('This function can only be applied to time-frequency data.');
+    end
 end
-fclose (fh) ;
+spm_progress_bar('Clear');
 
-fclose(fpd);
-D.Nevents = size(c, 2);
-D.events.repl = ni;
-disp(sprintf('%s: Number of replications per contrast:', D.fname))
+Dnew = type(Dnew, 'evoked');
+
+% jump outside methods to reorganise trial structure
+sD = struct(Dnew);
+
+[sD.trials.label] = deal([]);
+for i = 1:D.nconditions
+    sD.trials(i).label = cl{i};
+end
+
+sD.trials = sD.trials(1:D.nconditions);
+
+for i = 1:D.nconditions, sD.trials(i).repl = ni(i); end
+
+Dnew = meeg(sD);
+
+cl = unique(D.conditions);
+
+disp(sprintf('%s: Number of replications per contrast:', Dnew.fname))
 s = [];
-for i = 1:D.events.Ntypes
-    s = [s sprintf('average %d: %d trials', D.events.types(i), D.events.repl(i))];
-    if i < D.events.Ntypes
+for i = 1:D.nconditions
+    s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
+    if i < D.nconditions
         s = [s sprintf(', ')];
     else
         s = [s '\n'];
     end
-end 
+end
 disp(sprintf(s))
-% labeling of resulting contrasts, take care to keep numbers of old trial
-% types
-% check this again: can be problematic, when user mixes within-trialtype
-% and over-trial type contrasts
-D.events.code = size(1, size(c, 2));
-for i = 1:size(c, 2)
-    if sum(c(:, i)) == 1 & sum(~c(:, i)) == size(c, 1)-1
-        D.events.code(i) = find(c(:, i));
-    else
-        D.events.code(i) = i;
-    end
-end
 
-D.events.time = [];
-D.events.types = D.events.code;
-D.events.Ntypes = length(D.events.types);
-D.data = [];
-D.events.reject = zeros(1, D.Nevents);
-D.events.blinks = zeros(1, D.Nevents);
-D.fname = ['m' D.fname];
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(P, D.fname), '-V6', 'D');
-else
-    save(fullfile(P, D.fname), 'D');
-end
+save(Dnew);
 
+spm('Pointer', 'Arrow');
