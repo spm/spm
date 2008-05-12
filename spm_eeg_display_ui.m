@@ -6,7 +6,8 @@ function Heeg = spm_eeg_display_ui(varargin)
 % S         - struct
 %    fields of S:
 %     D       - MEEG object
-%     Hfig    - Figure (or axes) to work in (Defaults to SPM graphics window)
+%     Hfig    - Figure (or axes) to work in (Defaults to SPM graphics
+%     window)
 %     rebuild - indicator variable: if defined spm_eeg_display_ui has been
 %                                   called after channel selection
 %
@@ -16,7 +17,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1598 2008-05-12 12:06:54Z stefan $
+% $Id: spm_eeg_display_ui.m 1603 2008-05-12 17:23:01Z stefan $
 
 if nargin == 1
     S = varargin{1};

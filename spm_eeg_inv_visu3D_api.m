@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 1582 2008-05-08 18:03:54Z stefan $
+% $Id: spm_eeg_inv_visu3D_api.m 1603 2008-05-12 17:23:01Z stefan $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -84,6 +84,7 @@ try, con = D.con; catch,  con = 1; D.con = 1; end
 if D.con > length(D.inv{D.val}.inverse.J)
     con = 1; D.con = 1;
 end
+handles.D = D;
 
 set(handles.DataFile,'String',D.fname);
 set(handles.next,'String',sprintf('model %i',val));
@@ -372,24 +373,24 @@ if TypOfDisp == 1
         sens_disp = handles.sens_data_ev;
         pred_disp = handles.pred_data_ev;
     end
-    
-    axes(handles.sensors_axes); cla
-    disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(sens_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
-    imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
-    axis image xy off
 
-    axes(handles.pred_axes); cla
-    disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(pred_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
+    axes(handles.sensors_axes);
+    disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(sens_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
     imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
     axis image xy off
 
     % add sensor locations
     %----------------------------------------------------------------------
-    axes(handles.sensors_axes)
     try, delete(handles.sensor_loc); end
-    hold on
-    handles.sensor_loc = plot(handles.sens_coord(:,1),handles.sens_coord(:,2),'o','MarkerFaceColor',[1 1 1]/2,'MarkerSize',6);
-    hold off
+    hold(handles.sensors_axes, 'on');
+    handles.sensor_loc = plot(handles.sensors_axes,...
+        handles.sens_coord(:,1),handles.sens_coord(:,2),'o','MarkerFaceColor',[1 1 1]/2,'MarkerSize',6);
+    hold(handles.sensors_axes, 'off');
+
+    axes(handles.pred_axes);
+    disp = griddata(handles.sens_coord(:,1),handles.sens_coord(:,2),full(pred_disp),handles.sens_coord2D_X,handles.sens_coord2D_Y);
+    imagesc(handles.sens_coord_x,handles.sens_coord_y,disp);
+    axis image xy off;
 
     checkbox_sensloc_Callback(hObject, [], handles);
     
@@ -430,7 +431,7 @@ end
 % --- Executes on button press in LoadData.
 function LoadData_Callback(hObject, eventdata, handles)
 S         = spm_select(1, '.mat', 'Select EEG/MEG mat file');
-handles.D = spm_eeg_ldata(S);
+handles.D = spm_eeg_load(S);
 spm_eeg_inv_visu3D_api_OpeningFcn(hObject, [], handles);
 
 

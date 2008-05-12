@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: spm_eeg_grandmean.m 1603 2008-05-12 17:23:01Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -66,7 +66,15 @@ for i = 1:Nfiles
     if D{1}.fsample ~= D{i}.fsample
         error('Data don''t have the same sampling rate.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
     end
+
+    if strcmp(D{1}.transformtype, 'TF')
+        if D{1}.nfrequencies ~= D{i}.nfrequencies
+            error('Data don''t have the same number of frequencies.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
+        end
+
+    end
 end
+
 % output
 Do = D{1};
 
@@ -99,45 +107,79 @@ for i = 1:Nfiles
 end
 
 % generate new meeg object with new filenames
-Do = clone(Do, [spm_str_manip(S.Pout, 'tr') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
+if strcmp(D{1}.transformtype, 'TF')
+    Do = clone(Do, [spm_str_manip(S.Pout, 'tr') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
+else
+    Do = clone(Do, [spm_str_manip(S.Pout, 'tr') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
+end
 
 % for determining bad channels of the grandmean
 w = zeros(Do.nchannels, Ntypes);
 
-spm_progress_bar('Init', Ntypes, 'EPs averaged'); drawnow;
+spm_progress_bar('Init', Ntypes, 'responses averaged'); drawnow;
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end
 
+if strcmp(D{1}.transformtype, 'TF')
+    for i = 1:Ntypes
+        d = zeros(D{1}.nchannels, D{1}.nfrequencies, D{1}.nsamples);
 
-for i = 1:Ntypes
-    d = zeros(D{1}.nchannels, D{1}.nsamples);
+        for j = 1:D{1}.nchannels
 
-    for j = 1:D{1}.nchannels
-
-        for k = 1:Nfiles
-            if ~ismember(j, D{k}.badchannels)
-                ind = strmatch(types(i), cl{k}(:));
-                if ~isempty(ind)
-                    d(j, :) = d(j, :) + D{k}(j, :, ind);
-                    w(j, i) = w(j, i) + 1;
+            for k = 1:Nfiles
+                if ~ismember(j, D{k}.badchannels)
+                    ind = strmatch(types(i), cl{k}(:));
+                    if ~isempty(ind)
+                        d(j, :, :) = d(j, :, :) + D{k}(j, :, :, ind);
+                        w(j, i) = w(j, i) + 1;
+                    end
                 end
             end
+
+            if w(j, i) > 0
+                d(j, :, :) = d(j, :, :)/w(j, i);
+            end
+
         end
 
-        if w(j, i) > 0
-            d(j, :) = d(j, :)/w(j, i);
+        Do(1:Do.nchannels, 1:Do.nfrequencies, 1:Do.nsamples, i) = d;
+
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i); drawnow;
         end
 
     end
 
-    Do(1:Do.nchannels, 1:Do.nsamples, i) = d;
+else
+    for i = 1:Ntypes
+        d = zeros(D{1}.nchannels, D{1}.nsamples);
 
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
+        for j = 1:D{1}.nchannels
+
+            for k = 1:Nfiles
+                if ~ismember(j, D{k}.badchannels)
+                    ind = strmatch(types(i), cl{k}(:));
+                    if ~isempty(ind)
+                        d(j, :) = d(j, :) + D{k}(j, :, ind);
+                        w(j, i) = w(j, i) + 1;
+                    end
+                end
+            end
+
+            if w(j, i) > 0
+                d(j, :) = d(j, :)/w(j, i);
+            end
+
+        end
+
+        Do(1:Do.nchannels, 1:Do.nsamples, i) = d;
+
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i); drawnow;
+        end
+
     end
-    
 end
-
 spm_progress_bar('Clear');
 
 Do = type(Do, 'grandmean');

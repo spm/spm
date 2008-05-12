@@ -28,7 +28,7 @@ function D = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: spm_eeg_convert2images.m 1603 2008-05-12 17:23:01Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -55,7 +55,7 @@ if strcmp(D.transformtype, 'TF');
     catch
         spm_input('average over ...', 1, 'd')
         Ctype = {
-            'electrodes',...
+            'channels',...
                 'frequency'};
         str   = 'Average over which dimension';
         Sel   = spm_input(str, 2, 'm', Ctype);
