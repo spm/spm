@@ -13,12 +13,12 @@ function mesh = spm_eeg_inv_spatnorm(mesh,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_spatnorm.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_spatnorm.m 1604 2008-05-12 20:34:46Z christophe $
 
 % initialise
 %--------------------------------------------------------------------------
 try
-    sMRI = D.inv{val}.mesh.sMRI;
+    sMRI = mesh.sMRI;
 catch
     sMRI = spm_select(1,'image','Select subject''s structural MRI');
     mesh.sMRI = sMRI;
@@ -35,6 +35,14 @@ fprintf(['\n\tNormalising sMRI and computing mapping from canonical\n', ...
 
 % Spatial Transformation into MNI space
 %--------------------------------------------------------------------------
+def_name      = [nam '_sn_'     num2str(val) '.mat'];
+isndef_name   = [nam '_inv_sn_' num2str(val) '.mat'];
+if exist(fullfile(pth,def_name),'file') && exist(fullfile(pth,isndef_name),'file')
+    % reuse  the files if they're available
+    % comment this if you want to recalculte it anyway.
+    mesh.def      = fullfile(pth,def_name);
+    mesh.invdef   = fullfile(pth,isndef_name);    
+end
 if ~isfield(mesh,'def') || isempty(mesh)
     res           = spm_preproc(sMRI);
     [sn,isn]      = spm_prep2sn(res); %#ok<NASGU>
@@ -60,6 +68,9 @@ if ~exist(fullfile(pth,['c1',nam,ext]),'file')
     mesh.nobias = fullfile(pth,['m' nam ext]);
 else
     fprintf('\tSegmentation images already exist.\n')
+    if ~isfield(mesh,'nobias')
+        mesh.nobias = fullfile(pth,['m' nam ext]);
+    end
 end
     
 

@@ -5,12 +5,14 @@ function [res, plotind] = coor2D(this, ind, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: coor2D.m 1564 2008-05-07 14:50:57Z vladimir $
+% $Id: coor2D.m 1604 2008-05-12 20:34:46Z christophe $
 
 
 megind = strmatch('MEG', chantype(this), 'exact');
 eegind = strmatch('EEG', chantype(this), 'exact');
-eogind = [strmatch('VEOG', chantype(this), 'exact') strmatch('HEOG', chantype(this), 'exact')];
+eogind = [strmatch('VEOG', chantype(this), 'exact') ...
+          strmatch('HEOG', chantype(this), 'exact') ...
+          strmatch('EOG', chantype(this), 'exact')];
 otherind = setdiff(1:nchannels(this), [megind; eegind]);
 
 if nargin==1 || isempty(ind)

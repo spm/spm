@@ -3,7 +3,7 @@ function D = spm_eeg_inv_meshing(varargin)
 % to obtain the individual cortical mesh
 % save the individual .mat tesselation of the chosen size
 %
-% FORMAT D = spm_eeg_inv_meshing(D,ival)
+% FORMAT D = spm_eeg_inv_meshing(D,val)
 % Input:
 % D        - input data struct (optional)
 % Output:
@@ -12,7 +12,7 @@ function D = spm_eeg_inv_meshing(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_eeg_inv_meshing.m 1604 2008-05-12 20:34:46Z christophe $
 
 % Flags explanation:
 % * template:
@@ -24,7 +24,7 @@ function D = spm_eeg_inv_meshing(varargin)
 %   [2] - use the canonical meshes for the cortex, i/o skull and scalp and 
 %         bring it into the subject's own space, thanks to the 
 %         normalisation parameters of his sMRI (if available).
-%   [1] - use the canonical cortiex mesh and subject's specifi meshes for
+%   [1] - use the canonical cortex mesh and subject's specific meshes for
 %         the inner skull and scalp.
 %   [0] - extract the subject's meshes from the binary volumes estimated
 %         from his sMRI.
@@ -64,7 +64,7 @@ if ~D.inv{val}.mesh.template
         canonical = D.inv{val}.mesh.canonical;
     catch
 
-        if strcmp(D.inv{val}.modality,'MEG')         % No ECD yet for MEG!
+        if strcmp(modality(D),'MEG')         % No ECD yet for MEG!
             D.inv{val}.method = 'Imaging';
         end
 

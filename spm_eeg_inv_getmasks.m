@@ -19,7 +19,7 @@ function mesh = spm_eeg_inv_getmasks(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 1477 2008-04-24 14:33:47Z christophe $
+% $Id: spm_eeg_inv_getmasks.m 1604 2008-05-12 20:34:46Z christophe $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -51,33 +51,45 @@ fl_ic   = {[],[],'uint8',[]}; % writing option for ImCalc
 
 % Use GM+WM to produce the cortical surface and write *_cortex.img
 %--------------------------------------------------------------------------
-Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
-                  fullfile(pth,['c2',nam,ext]));
 Ictx    = fullfile(pth,[nam,'_cortex',ext]);
-Ictx    = spm_imcalc_ui(Iin,Ictx,'i1+i2',fl_ic);
-Iout    = spm_eeg_inv_ErodeGrow(strvcat(Ictx,Ictx), ...
+if exist(Ictx,'file')
+        fprintf('\tCortex binary volume already exists.\n')
+else
+    Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
+                      fullfile(pth,['c2',nam,ext]));
+    Ictx    = spm_imcalc_ui(Iin,Ictx,'i1+i2',fl_ic);
+    Iout    = spm_eeg_inv_ErodeGrow(strvcat(Ictx,Ictx), ...
                                 flags.ne(1),0,flags.thr_im(1));
+end
 
 % Add up GM+WM+CSF to produce the inner skull volume and write *_iskull.img
 %--------------------------------------------------------------------------
-Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
-                  fullfile(pth,['c2',nam,ext]), ...
-                  fullfile(pth,['c3',nam,ext]));
 Iisk    = fullfile(pth,[nam,'_iskull',ext]);
-Iisk    = spm_imcalc_ui(Iin,Iisk,'i1+i2+i3',fl_ic);
-Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iisk,Iisk), ...
+if exist(Iisk,'file')
+        fprintf('\tInner skull binary volume already exists.\n')
+else
+    Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
+                      fullfile(pth,['c2',nam,ext]), ...
+                      fullfile(pth,['c3',nam,ext]));
+    Iisk    = spm_imcalc_ui(Iin,Iisk,'i1+i2+i3',fl_ic);
+    Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iisk,Iisk), ...
                                 flags.ne(1),flags.ng(1),flags.thr_im(1));
+end
 
 % Maybe one day we'll produce the outer skull volume
 %--------------------------------------------------------------------------
 
 % Use sMRI to produce the scalp surface and write *_scalp.img
 %--------------------------------------------------------------------------
-Iin     = mesh.nobias;
 Iscl    = fullfile(pth,[nam,'_scalp',ext]);
-Iscl    = spm_imcalc_ui(Iin,Iscl,'i1',fl_ic);
-Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iscl,Iscl), ...
+if exist(Iscl,'file')
+        fprintf('\tScalp binary volume already exists.\n')
+else
+    Iin     = mesh.nobias;
+    Iscl    = spm_imcalc_ui(Iin,Iscl,'i1',fl_ic);
+    Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iscl,Iscl), ...
                                 flags.ne(1),flags.ng(1),flags.thr_im(2));
+end
 
 % Output arguments
 %--------------------------------------------------------------------------

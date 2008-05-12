@@ -11,7 +11,7 @@ function [mesh,vol] = spm_eeg_inv_getmeshes(mesh,lbuild)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Christophe Phillips, Rik Henson
-% $Id: spm_eeg_inv_getmeshes.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_getmeshes.m 1604 2008-05-12 20:34:46Z christophe $
 
 if nargin<1
     D = spm_eeg_load;
@@ -97,13 +97,18 @@ end
 
 % store meshes
 %==========================================================================
-bnd = [];
+% bnd = [];
 % scalp mesh
 %--------------------------------------------------------------------------
 if any(list==1)
     ind = find(list==1);
-    bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
+    if exist('bnd','var')
+        bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
                         'tri',head(ind).tri');
+    else
+        bnd = struct('pnt',head(ind).XYZmm', ...
+                        'tri',head(ind).tri');
+    end
 %     vert = head(ind).XYZmm';
 %     face = head(ind).tri';
 %     norm = spm_eeg_inv_normals(vert,face);
@@ -118,8 +123,13 @@ end
 %--------------------------------------------------------------------------
 if any(list==2)
     ind = find(list==2);
-    bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
+    if exist('bnd','var')
+        bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
                         'tri',head(ind).tri');
+    else
+        bnd = struct('pnt',head(ind).XYZmm', ...
+                        'tri',head(ind).tri');
+    end
 %     vert = head(ind).XYZmm';
 %     face = head(ind).tri';
 %     norm = spm_eeg_inv_normals(vert,face);
@@ -134,8 +144,13 @@ end
 %--------------------------------------------------------------------------
 if any(list==3)
     ind = find(list==3);
-    bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
+    if exist('bnd','var')
+        bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
                         'tri',head(ind).tri');
+    else
+        bnd = struct('pnt',head(ind).XYZmm', ...
+                        'tri',head(ind).tri');
+    end                    
 %     vert = head(ind).XYZmm';
 %     face = head(ind).tri';
 %     norm = spm_eeg_inv_normals(vert,face);
