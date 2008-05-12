@@ -27,7 +27,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 1599 2008-05-12 12:23:16Z vladimir $
+% $Id: spm_eeg_montage.m 1605 2008-05-12 20:50:51Z jean $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -52,9 +52,10 @@ if ~isfield(S, 'montage')
     switch res
         case 'gui'
             montage = [];
-            montage.labelorg = D.chanlabels;
-            errordlg('The montage specification GUI is under construction.');
-            return;
+            montage.labelorg = D.chanlabels(D.meegchannels);
+            montage.tra = eye(length(montage.labelorg));
+%             errordlg('The montage specification GUI is under construction.');
+%             return;
             S.montage = spm_eeg_montage_ui(montage);
         case 'file'
             S.montage = spm_select(1, '\.mat$', 'Select a montage file');
