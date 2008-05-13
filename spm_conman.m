@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_conman.m 1607 2008-05-13 08:01:30Z stefan $
 
 
 %=======================================================================
@@ -1630,34 +1630,7 @@ switch lower(varargin{1}), case 'initialise'
             set(hD_X1cols,'String','')
             [c,I,emsg,imsg] = spm_conman('ParseCon',str,xX.xKXs,STAT);
             if all(I)
-                if isfield(xX, 'fullrank')
-                    % fullrank is set by EEG/MEG mode for 'models' with
-                    % zero error df. This code does exactly the same as the
-                    % usual contrast computation, but produces (space-saving)
-                    % sparse matrices only.
-                    rk = xX.xKXs.rk;
-
-                    sXc = spm_sp('set', c); sXc.u = sparse(sXc.u);
-                    op = sXc.u(:,[1:sXc.rk])*sXc.u(:,[1:sXc.rk])';
-                    r = speye(size(xX.xKXs.X,1)) - op;
-
-                    if strcmp(STAT, 'T')
-                        DxCon.name = '';
-                        DxCon.STAT = STAT;
-                        DxCon.c = spm_sp(':', xX.xKXs, c);
-                        DxCon.X0.ukX0 = sparse(diag(xX.xKXs.ds(1:rk))*xX.xKXs.v(:,1:rk)'*r);
-                        DxCon.iX0 = 'c';
-                        DxCon.X1o.ukX1o = spm_sp('cukxp-:',xX.xKXs,c);
-                        DxCon.eidf = [];
-                        DxCon.Vcon = [];
-                        DxCon.Vspm = [];
-                    else
-                        error('Can only compute 1-dim contrasts for this design');
-                    end
-
-                else
-                    DxCon = spm_FcUtil('Set','',STAT,'c',c,xX.xKXs);
-                end
+                DxCon = spm_FcUtil('Set','',STAT,'c',c,xX.xKXs);
             else
                 DxCon = [];
             end
@@ -2191,33 +2164,6 @@ switch lower(varargin{1}), case 'initialise'
             'Position',[250 053 050 022].*WS);
         H = [H,h];
 
-        % add one button for EEG and change 3 uicontrols
-        %-------------------------------------------------------------
-        if strcmpi('EEG', spm('checkmodality'))
-            h = findobj(F, 'Tag', 'submit');
-            set(h, 'Position', [250 180 045 020].*WS);
-
-            h = findobj(F, 'Tag', 'D_X1cols');
-            set(h, 'Position', [080 180 110 020].*WS);
-
-            h  = findobj(F, 'Tag', 'D_Ftxt', 'String','columns for');
-            set(h, 'Position', [022 190 055 008].*WS);
-            h  = findobj(F, 'Tag', 'D_Ftxt', 'String','reduced design');
-            set(h, 'Position',[022 180 055 008].*WS);
-
-            % new components button
-            h = uicontrol(F,'Style','Pushbutton','String','components',...
-                'Tag', 'components',...
-                'FontSize',FS(8),...
-                'ForegroundColor','c',...
-                'CallBack', 'delete(findobj(''Tag'', ''conman_eeg'')); spm_eeg_conman;',...
-                'Position',[190 180 055 020].*WS);
-
-        end
-
-
-
-        H = [H,h];
         set(findobj(H,'flat','Tag','DefineNew'),'UserData',H)
 
         %-Finish up
