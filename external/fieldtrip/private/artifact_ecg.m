@@ -57,6 +57,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.13  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.12  2007/07/31 08:40:59  jansch
 % added option cfg.arfctdef.ecg.mindist to specify the minimal distance between
 % the peaks
@@ -122,7 +125,7 @@ end
 
 artfctdef     = cfg.artfctdef.ecg;
 cfg           = dataset2files(cfg);
-hdr           = read_fcdc_header(cfg.headerfile);
+hdr           = read_header(cfg.headerfile);
 padsmp        = round(artfctdef.padding*hdr.Fs);
 trl           = cfg.trl;
 ntrl          = size(trl,1);
@@ -141,7 +144,7 @@ end
 
 % read in the ecg-channel and do blc and squaring
 for j = 1:ntrl
-  ecg{j} = read_fcdc_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
+  ecg{j} = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
   ecg{j} = preproc(ecg{j}, artfctdef.channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
   ecg{j} = ecg{j}.^2;
 end 
@@ -214,7 +217,7 @@ ntrl   = size(trl,1);
 if ~isempty(sgnind)
   for j = 1:ntrl
     fprintf('reading and preprocessing trial %d of %d\n', j, ntrl);
-    dum = read_fcdc_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
+    dum = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
     dat = dat + blc(dum);
   end 
 end
@@ -287,5 +290,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.12 2007/07/31 08:40:59 jansch Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.13 2008/05/13 15:37:24 roboos Exp $';
 

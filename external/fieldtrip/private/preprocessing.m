@@ -130,6 +130,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.90  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.89  2008/05/06 15:43:46  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -414,7 +417,7 @@ else
   end
 
   % read the header
-  hdr = read_fcdc_header(cfg.headerfile);
+  hdr = read_header(cfg.headerfile);
 
   % this option relates to reading over trial boundaries in a pseudo-continuous dataset
   if ~isfield(cfg, 'continuous')
@@ -555,7 +558,7 @@ else
     end
 
     % read the raw data with padding on both sides of the trial
-    dat = read_fcdc_data(cfg.datafile, hdr, begsample, endsample, rawindx, strcmp(cfg.continuous, 'yes'));
+    dat = read_data(cfg.datafile, hdr, begsample, endsample, rawindx, strcmp(cfg.continuous, 'yes'));
 
     % do the preprocessing on the padded trial data and remove the padding after filtering
     [cutdat{i}, label, time{i}, cfg] = preproc(dat, hdr.label(rawindx), hdr.Fs, cfg, cfg.trl(i,3), begpadding, endpadding);
@@ -587,7 +590,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.89 2008/05/06 15:43:46 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.90 2008/05/13 15:37:24 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

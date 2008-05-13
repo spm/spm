@@ -69,6 +69,9 @@ function [association] = nonlinearassociation(cfg, data)
 % Copyright (C) 2007, Inge Westmijse
 %
 % $Log: nonlinearassociation.m,v $
+% Revision 1.10  2008/05/13 15:36:09  roboos
+% fixed potential bug in assessing the number of trials (when data.trial was column instead of row vector)a, now use numel instead of size
+%
 % Revision 1.9  2008/05/06 14:23:32  sashae
 % change in trial selection, cfg.trials can be a logical
 %
@@ -119,7 +122,7 @@ if ~strcmp(cfg.trials, 'all')
   data.trial  = data.trial(cfg.trials);
   data.time   = data.time(cfg.trials);
 end
-Ntrials  = size(data.trial,2);
+Ntrials  = numel(data.trial);
 
 % select channels of interest
 cfg.channel = channelselection(cfg.channel, data.label);
@@ -237,7 +240,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: nonlinearassociation.m,v 1.9 2008/05/06 14:23:32 sashae Exp $';
+cfg.version.id   = '$Id: nonlinearassociation.m,v 1.10 2008/05/13 15:36:09 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

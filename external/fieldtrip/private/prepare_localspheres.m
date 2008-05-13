@@ -37,6 +37,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.18  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.17  2007/08/06 09:20:14  roboos
 % added support for bti_hs
 %
@@ -196,7 +199,7 @@ cfg.headshape = shape;
 
 % read the gradiometer definition from file or copy it from the configuration
 if isfield(cfg, 'gradfile')
-  hdr = read_fcdc_header(cfg.gradfile);
+  hdr = read_header(cfg.gradfile);
   grad = hdr.grad;
 else
   grad = cfg.grad;

@@ -13,6 +13,9 @@ function [cfg, artifact] = artifact_eog_old(cfg);
 % Copyright (C) 2004, F.C. Donders Centre
 %
 % $Log: artifact_eog_old.m,v $
+% Revision 1.4  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.3  2006/04/20 09:56:07  roboos
 % removed the (outdated and unclear) documentation, now it only
 % contains a comment that the function is deprecated and has been
@@ -71,7 +74,7 @@ end
 
 artfctdef    = cfg.artfctdef.eog;
 cfg          = dataset2files(cfg);
-hdr          = read_fcdc_header(cfg.headerfile); 
+hdr          = read_header(cfg.headerfile); 
 padsmp       = round(artfctdef.padding*hdr.Fs);
 trl          = cfg.trl;
 trl(:,1)     = trl(:,1) - padsmp; % pad the trial with padsmp-samples, in order to detect
@@ -119,7 +122,7 @@ z_tdata      = zeros(1,trl(end,2));
 
 for trllop = 1:numtrl  
      fprintf('scanning for eog artifacts in trial %d from %d\n', trllop, numtrl);
-     dat = read_fcdc_data(cfg.datafile, hdr, trl(trllop,1)-fltpadding, ...
+     dat = read_data(cfg.datafile, hdr, trl(trllop,1)-fltpadding, ...
          trl(trllop,2)+fltpadding, sgnind, iscontinuous);%read data
      fltdat = preproc(dat, artfctdef.sgn, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
      cutfltdatstr{trllop} = fltdat; 
@@ -196,5 +199,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_eog_old.m,v 1.3 2006/04/20 09:56:07 roboos Exp $';
+cfg.version.id = '$Id: artifact_eog_old.m,v 1.4 2008/05/13 15:37:24 roboos Exp $';
 

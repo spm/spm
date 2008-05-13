@@ -44,6 +44,9 @@ function [cfg] = rejectartifact(cfg);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.37  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.36  2007/03/06 16:15:43  roboos
 % keep the values of the 4th and subsequent column in the trl matrix, also when doing partial artifact rejection
 %
@@ -240,7 +243,7 @@ elseif length(trialall)<length(rejectall)
 end
 
 % read the header of the dataset, needed only for sampling frequency
-hdr = read_fcdc_header(cfg.headerfile);
+hdr = read_header(cfg.headerfile);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % give visual feedback on the trial definition and the artifacts
@@ -385,5 +388,5 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.version.name = st(i);
 end
-cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.36 2007/03/06 16:15:43 roboos Exp $';
+cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.37 2008/05/13 15:37:24 roboos Exp $';
 

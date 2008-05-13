@@ -14,6 +14,9 @@ function [cfg, artifact] = artifact_jump_old(cfg);
 % Copyright (C) 2004, F.C. Donders Centre
 %
 % $Log: artifact_jump_old.m,v $
+% Revision 1.4  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.3  2006/04/20 09:56:07  roboos
 % removed the (outdated and unclear) documentation, now it only
 % contains a comment that the function is deprecated and has been
@@ -62,7 +65,7 @@ fprintf('\nscanning for jump artifacts');
 
 artfctdef     = cfg.artfctdef.jump;
 cfg           = dataset2files(cfg);
-hdr           = read_fcdc_header(cfg.headerfile);
+hdr           = read_header(cfg.headerfile);
 trl           = cfg.trl;
 numtrl        = size(trl,1);
 padding       = round(artfctdef.padding*hdr.Fs);
@@ -95,7 +98,7 @@ for sgnlop = 1:length(sgnind)
    cumpernumsmp = 0;
    % loop over the trials and calculate mean and std
    for trllop = 1:numtrl 
-       dat = read_fcdc_data(cfg.datafile, hdr, trl(trllop,1)-fltpadding, ...
+       dat = read_data(cfg.datafile, hdr, trl(trllop,1)-fltpadding, ...
             trl(trllop,2)+fltpadding, sgnind(sgnlop), iscontinuous);%read data
        if strcmp(artfctdef.method,'zvalue'),
            fltdat = preproc(dat, artfctdef.sgn, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
@@ -155,5 +158,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_jump_old.m,v 1.3 2006/04/20 09:56:07 roboos Exp $';
+cfg.version.id = '$Id: artifact_jump_old.m,v 1.4 2008/05/13 15:37:24 roboos Exp $';
 

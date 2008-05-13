@@ -50,6 +50,9 @@ function [freq] = freqanalysis_mtmfft(cfg, data);
 % Copyright (c) 2003-2006, Pascal Fries, F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmfft.m,v $
+% Revision 1.40  2008/05/13 15:36:09  roboos
+% fixed potential bug in assessing the number of trials (when data.trial was column instead of row vector)a, now use numel instead of size
+%
 % Revision 1.39  2008/01/18 13:14:50  sashae
 % added option for trial selection, updated documentation
 %
@@ -307,7 +310,7 @@ if csdflg
 end
 
 % if rectan is 1 it means that trials are of equal lengths
-numper = size(data.trial,2);
+numper = numel(data.trial);
 rectan = 1;
 for perlop = 1:numper
   numdatbnsarr(perlop,1) = size(data.trial{perlop},2);
@@ -562,7 +565,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.39 2008/01/18 13:14:50 sashae Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.40 2008/05/13 15:36:09 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

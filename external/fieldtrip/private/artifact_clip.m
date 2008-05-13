@@ -53,6 +53,9 @@ function [cfg, artifact] = artifact_clip(cfg);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.10  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.9  2006/11/29 09:06:36  roboos
 % renamed all cfg options with "sgn" into "channel", added backward compatibility when required
 % updated documentation, mainly in the artifact detection routines
@@ -101,7 +104,7 @@ artifact = [];
 
 % read the header
 cfg = dataset2files(cfg);
-hdr = read_fcdc_header(cfg.headerfile);
+hdr = read_header(cfg.headerfile);
 
 % find the channel labels present in the data and their indices
 label = channelselection(cfg.artfctdef.clip.channel, hdr.label);
@@ -115,7 +118,7 @@ nsgn = length(sgnindx);
 for trlop=1:ntrl
   fprintf('searching for clipping artifacts in trial %d\n', trlop);
   % read the data of this trial
-  dat = read_fcdc_data(cfg.datafile, hdr, cfg.trl(trlop,1), cfg.trl(trlop,2), sgnindx);
+  dat = read_data(cfg.datafile, hdr, cfg.trl(trlop,1), cfg.trl(trlop,2), sgnindx);
   % apply filtering etc to the data
   datflt = preproc(dat, label, hdr.Fs, artfctdef, cfg.trl(trlop,3));
   % detect all samples that have the same value as the previous sample
@@ -168,4 +171,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_clip.m,v 1.9 2006/11/29 09:06:36 roboos Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.10 2008/05/13 15:37:24 roboos Exp $';

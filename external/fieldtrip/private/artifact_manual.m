@@ -72,6 +72,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % version 23-11-2004
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.16  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.15  2008/04/09 14:12:18  roboos
 % fixed potential bug in print(fix(..))), see mail from Marcel from a few weeks abo
 %
@@ -161,7 +164,7 @@ end
 % read the header and do some preprocessing on the configuration
 fprintf('Reading raw data...');
 cfg = dataset2files(cfg);
-hdr = read_fcdc_header(cfg.headerfile);
+hdr = read_header(cfg.headerfile);
 cfg.artfctdef.manual.channel=channelselection(cfg.artfctdef.manual.channel, hdr.label);
 cfg.artfctdef.manual.trl=cfg.trl;
 if(isempty(cfg.artfctdef.manual.channel))
@@ -176,7 +179,7 @@ elseif(nch>cfg.artfctdef.manual.maxnumberofchannels)
 	error(sprintf('\nMore than %i channels selected in cfg.artfctdef.manual.channel',cfg.artfctdef.manual.maxnumberofchannels));
 end
 
-show=read_fcdc_data(cfg.datafile, hdr, 1, hdr.nTrials*hdr.nSamples, channelindx, iscontinuous);
+show=read_data(cfg.datafile, hdr, 1, hdr.nTrials*hdr.nSamples, channelindx, iscontinuous);
 show=show';
 
 N=length(show);
@@ -348,7 +351,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.15 2008/04/09 14:12:18 roboos Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.16 2008/05/13 15:37:24 roboos Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

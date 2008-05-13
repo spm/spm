@@ -60,6 +60,9 @@ function [cfg, artifact] = artifact_threshold(cfg)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.19  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.18  2006/06/14 12:43:52  roboos
 % removed the documentation for cfg.lnfilttype, since that option is not supported by preproc
 %
@@ -150,7 +153,7 @@ end
 
 % read the header
 cfg = dataset2files(cfg);
-hdr = read_fcdc_header(cfg.headerfile);
+hdr = read_header(cfg.headerfile);
 
 % get the remaining settings
 numtrl      = size(cfg.trl,1);
@@ -159,7 +162,7 @@ channelindx = match_str(hdr.label,channel);
 artifact    = [];
 
 for trllop = 1:numtrl
-  dat = read_fcdc_data(cfg.datafile, hdr, cfg.trl(trllop,1), cfg.trl(trllop,2), channelindx, iscontinuous);
+  dat = read_data(cfg.datafile, hdr, cfg.trl(trllop,1), cfg.trl(trllop,2), channelindx, iscontinuous);
   dat = preproc(dat, channel, hdr.Fs, artfctdef, cfg.trl(trllop,3));
   % compute the min, max and range over all channels and samples
   minval   = min(dat(:));
@@ -195,5 +198,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.18 2006/06/14 12:43:52 roboos Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.19 2008/05/13 15:37:24 roboos Exp $';
 

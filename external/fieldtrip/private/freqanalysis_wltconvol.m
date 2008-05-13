@@ -44,6 +44,9 @@ function [freq] = freqanalysis_wltconvol(cfg, data);
 % Copyright (C) 2003-2007, Markus Siegel, F.C. Donders Centre
 %
 % $Log: freqanalysis_wltconvol.m,v $
+% Revision 1.20  2008/05/13 15:36:09  roboos
+% fixed potential bug in assessing the number of trials (when data.trial was column instead of row vector)a, now use numel instead of size
+%
 % Revision 1.19  2008/01/18 13:14:50  sashae
 % added option for trial selection, updated documentation
 %
@@ -190,7 +193,7 @@ if csdflg
 end
 
 % if rectan is 1 it means that trials are of equal lengths
-numper      = size(data.trial,2);
+numper = numel(data.trial);
 rectan = 1;
 for perlop = 1:numper
   numdatbnsarr(perlop,1) = size(data.trial{perlop},2);
@@ -352,7 +355,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_wltconvol.m,v 1.19 2008/01/18 13:14:50 sashae Exp $';
+cfg.version.id = '$Id: freqanalysis_wltconvol.m,v 1.20 2008/05/13 15:36:09 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -13,6 +13,9 @@ function [cfg, artifact] = artifact_file(cfg);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.11  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.10  2006/05/03 08:12:51  ingnie
 % updated documentation
 %
@@ -51,7 +54,7 @@ function [cfg, artifact] = artifact_file(cfg);
 
 if isfield(cfg, 'rejectfile') && ~strcmp(cfg.rejectfile, 'no')
   cfg = dataset2files(cfg);
-  hdr = read_fcdc_header(cfg.headerfile);
+  hdr = read_header(cfg.headerfile);
   if filetype(cfg.rejectfile, 'eep_rej')
     artifact = read_eep_rej(cfg.rejectfile);
   elseif filetype(cfg.rejectfile, 'brainvision_marker')
@@ -82,5 +85,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.10 2006/05/03 08:12:51 ingnie Exp $';
+cfg.version.id = '$Id: artifact_file.m,v 1.11 2008/05/13 15:37:24 roboos Exp $';
 

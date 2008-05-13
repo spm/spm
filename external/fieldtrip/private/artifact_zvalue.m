@@ -88,6 +88,9 @@ function [cfg, artifact] = artifact_zvalue(cfg)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.12  2008/05/13 15:37:24  roboos
+% switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
+%
 % Revision 1.11  2006/11/29 16:14:15  roboos
 % fixed a bug introduced by the previous commit, hope that everything works now...
 %
@@ -150,7 +153,7 @@ if ~isfield(cfg.artfctdef.zvalue,'fltpadding'), cfg.artfctdef.zvalue.fltpadding 
 if ~isfield(cfg.artfctdef.zvalue,'feedback'),   cfg.artfctdef.zvalue.feedback    = 'no';     end
 
 cfg = dataset2files(cfg);
-hdr = read_fcdc_header(cfg.headerfile);
+hdr = read_header(cfg.headerfile);
 
 % determine whether it is continuous data
 if ~isfield(cfg, 'datatype')
@@ -196,7 +199,7 @@ for sgnlop=1:numsgn
   fprintf('searching channel %s ', cfg.artfctdef.zvalue.channel{sgnlop});
   for trlop = 1:numtrl
     fprintf('.');
-    data{trlop} = read_fcdc_data(cfg.datafile, hdr, trl(trlop,1)-fltpadding, trl(trlop,2)+fltpadding, sgnind(sgnlop), iscontinuous);
+    data{trlop} = read_data(cfg.datafile, hdr, trl(trlop,1)-fltpadding, trl(trlop,2)+fltpadding, sgnind(sgnlop), iscontinuous);
     data{trlop} = preproc(data{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);;
     % accumulate the sum and the sum-of-squares
     sumval = sumval + sum(data{trlop},2);
@@ -322,5 +325,5 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.11 2006/11/29 16:14:15 roboos Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.12 2008/05/13 15:37:24 roboos Exp $';
 
