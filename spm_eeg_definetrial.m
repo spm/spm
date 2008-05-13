@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: spm_eeg_definetrial.m 1620 2008-05-13 18:13:42Z vladimir $
 
 if nargin == 0
     S = [];
@@ -36,9 +36,22 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
     if ~isfield(S, 'dataset')
         S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
     end
-    event = fileio_read_event(S.dataset, 'detectflank', 'both');
+    
     hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
     S.fsample = hdr.Fs;
+
+    event = fileio_read_event(S.dataset, 'detectflank', 'both');
+
+    if ~isempty(strmatch('UPPT001', hdr.label))
+        % This is s somewhat ugly fix to the specific problem with event
+        % coding in FIL CTF. It can also be useful for other CTF systems where the
+        % pulses in the event channel go downwards.
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1);
+        if ~isempty(fil_ctf_events)
+            [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
+            event = cat(1, event, fil_ctf_events);
+        end
+    end
 else
     event = S.event;
 end
