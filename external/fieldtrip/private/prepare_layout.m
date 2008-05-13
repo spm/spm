@@ -14,9 +14,10 @@ function [lay] = prepare_layout(cfg, data);
 % created based on the specification of an electrode of gradiometer file.
 %
 % You can specify either one of the following configuration options
-%   cfg.layout      filename containg the 2-D layout
+%   cfg.layout      filename containg the layout
 %   cfg.rotate      number, rotation around the z-axis in degrees (default = [], which means automatic)
-%   cfg.projection  string, 'stereographic', 'ortographic', 'polar', 'gnomic' or 'inverse' (default = 'orthographic')
+%   cfg.style       string, '2d' or '3d' (default = '2d')
+%   cfg.projection  string, 2D projection method can be 'stereographic', 'ortographic', 'polar', 'gnomic' or 'inverse' (default = 'orthographic')
 %   cfg.elec        structure with electrode positions, or
 %   cfg.elecfile    filename containing electrode positions
 %   cfg.grad        structure with gradiometer definition, or
@@ -28,15 +29,20 @@ function [lay] = prepare_layout(cfg, data);
 %   data.grad     structure with gradiometer definition
 %
 % Alternatively, you can specify
-%   cfg.layout = 'ordered' 
+%   cfg.layout = 'ordered'
 % which will give you a 2-D ordered layout. Note that this is only suited
 % for multiplotting and not for topoplotting.
 %
 % See also layoutplot, topoplotER, topoplotTFR, multiplotER, multiplotTFR
 
-% Copyright (C) 2007, Robert Oostenveld
+% TODO switch to using planarchannelset function
+
+% Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.12  2008/05/13 09:54:07  roboos
+% added option cfg.style=2d|3d, used by SPM8
+%
 % Revision 1.11  2008/05/06 13:16:56  roboos
 % added option for writing *.lay files
 % merged bti and ctf code
@@ -96,6 +102,7 @@ if (nargin<2), data = []; end;
 % set default configuration options
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isfield(cfg, 'rotate'),     cfg.rotate = [];                end  % [] => rotation is determined based on the type of sensors
+if ~isfield(cfg, 'style'),      cfg.style = '2d';               end
 if ~isfield(cfg, 'projection'), cfg.projection = 'ortographic'; end
 if ~isfield(cfg, 'layout'),     cfg.layout = [];                end
 if ~isfield(cfg, 'grad'),       cfg.grad = [];                  end
@@ -109,11 +116,11 @@ if ~isfield(cfg, 'feedback'),   cfg.feedback = 'no';            end
 % try to generate the layout structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% check whether cfg.layout already contains a valid layout structure (this can 
-% happen when higher level plotting functions are called with cfg.layout set to 
+% check whether cfg.layout already contains a valid layout structure (this can
+% happen when higher level plotting functions are called with cfg.layout set to
 % a lay structure)
 if isstruct(cfg.layout) && all(isfield(cfg.layout, {'pos';'width';'height';'label'}))
-    lay = cfg.layout;
+  lay = cfg.layout;
 
 elseif isequal(cfg.layout, 'ordered')
   nchan = length(data.label);
@@ -121,16 +128,16 @@ elseif isequal(cfg.layout, 'ordered')
   nrow = ceil(sqrt(nchan))+1;
   k = 0;
   for i=1:nrow
-  for j=1:ncol
-    k = k+1;
-    if k<=nchan
-      x = (j-1)/ncol;
-      y = (nrow-i-1)/nrow;
-      lay.pos(k,:) = [x y];
-      lay.width(k,1)  = 0.8 * 1/ncol;
-      lay.height(k,1) = 0.8 * 1/nrow;
+    for j=1:ncol
+      k = k+1;
+      if k<=nchan
+        x = (j-1)/ncol;
+        y = (nrow-i-1)/nrow;
+        lay.pos(k,:) = [x y];
+        lay.width(k,1)  = 0.8 * 1/ncol;
+        lay.height(k,1) = 0.8 * 1/nrow;
+      end
     end
-  end
   end
   lay.label = data.label;
 
@@ -148,13 +155,14 @@ elseif isequal(cfg.layout, 'ordered')
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
 
-% elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'ori', 'tra', 'label'}))
-%     lay = grad2lay(cfg.layout, cfg.rotate, cfg.projection);
+  % elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'ori', 'tra', 'label'}))
+  %     lay = grad2lay(cfg.layout, cfg.rotate, cfg.projection);
 
-% elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'tra', 'label'}))
-%     lay = elec2lay(cfg.layout, cfg.rotate, cfg.projection);
+  % elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pnt', 'tra', 'label'}))
+  %     lay = elec2lay(cfg.layout, cfg.rotate, cfg.projection);
 
-% try to generate layout from other configuration options
+
+  % try to generate layout from other configuration options
 elseif isstr(cfg.layout) && filetype(cfg.layout, 'matlab')
   fprintf('reading layout from file %s\n', cfg.layout);
   load(cfg.layout, 'lay');
@@ -166,31 +174,31 @@ elseif isstr(cfg.layout) && filetype(cfg.layout, 'layout')
 elseif isstr(cfg.layout) && ~filetype(cfg.layout, 'layout')
   % assume that cfg.layout is an electrode file
   fprintf('creating layout from electrode file %s\n', cfg.layout);
-  lay = elec2lay(read_sens(cfg.layout), cfg.rotate, cfg.projection);
+  lay = elec2lay(read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style);
 
 elseif isstr(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
-  lay = elec2lay(read_sens(cfg.elecfile), cfg.rotate, cfg.projection);
+  lay = elec2lay(read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style);
 
 elseif ~isempty(cfg.elec) && isstruct(cfg.elec)
   fprintf('creating layout from cfg.elec\n');
-  lay = elec2lay(cfg.elec, cfg.rotate, cfg.projection);
+  lay = elec2lay(cfg.elec, cfg.rotate, cfg.projection, cfg.style);
 
 elseif isfield(data, 'elec') && isstruct(data.elec)
   fprintf('creating layout from data.elec\n');
-  lay = elec2lay(data.elec, cfg.rotate, cfg.projection);
+  lay = elec2lay(data.elec, cfg.rotate, cfg.projection, cfg.style);
 
 elseif isstr(cfg.gradfile)
   fprintf('creating layout from gradiometer file %s\n', cfg.gradfile);
-  lay = grad2lay(read_sens(cfg.gradfile), cfg.rotate, cfg.projection);
+  lay = grad2lay(read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style);
 
 elseif ~isempty(cfg.grad) && isstruct(cfg.grad)
   fprintf('creating layout from cfg.grad\n');
-  lay = grad2lay(cfg.grad, cfg.rotate, cfg.projection);
+  lay = grad2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style);
 
 elseif isfield(data, 'grad') && isstruct(data.grad)
   fprintf('creating layout from data.grad\n');
-  lay = grad2lay(data.grad, cfg.rotate, cfg.projection);
+  lay = grad2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
 
 else
   fprintf('reverting to 151 channel CTF default\n');
@@ -201,7 +209,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % add axes positions for comments and scale information if required
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~any(strcmp('COMNT', lay.label))
+if ~any(strcmp('COMNT', lay.label)) && strcmpi(cfg.style, '2d')
   % add a placeholder for the comment in the upper left corner
   lay.label{end+1}  = 'COMNT';
   lay.width(end+1)  = mean(lay.width);
@@ -212,7 +220,7 @@ if ~any(strcmp('COMNT', lay.label))
   lay.pos(end+1,:)  = [X Y];
 end
 
-if ~any(strcmp('SCALE', lay.label))
+if ~any(strcmp('SCALE', lay.label)) && strcmpi(cfg.style, '2d')
   % add a placeholder for the scale in the upper right corner
   lay.label{end+1}  = 'SCALE';
   lay.width(end+1)  = mean(lay.width);
@@ -224,7 +232,7 @@ if ~any(strcmp('SCALE', lay.label))
 end
 
 % to plot the layout for debugging, you can use this code snippet
-if strcmp(cfg.feedback, 'yes')
+if strcmp(cfg.feedback, 'yes') && strcmpi(cfg.style, '2d')
   X      = lay.pos(:,1);
   Y      = lay.pos(:,2);
   Width  = lay.width;
@@ -236,16 +244,20 @@ if strcmp(cfg.feedback, 'yes')
   line([X X+Width X+Width X X]',[Y Y Y+Height Y+Height Y]');
 end
 
-
-if ~isempty(cfg.output)
+% to write the layout to a text file, you can use this code snippet
+if ~isempty(cfg.output) && strcmpi(cfg.style, '2d')
   fprintf('writing layout to ''%s''\n', cfg.output);
   fid = fopen(cfg.output, 'wt');
   for i=1:numel(lay.label)
     fprintf(fid, '%d %f %f %f %f %s\n', i, lay.pos(i,1), lay.pos(i,2), lay.width(i), lay.height(i), lay.label{i});
   end
   fclose(fid);
+elseif ~isempty(cfg.output) && strcmpi(cfg.style, '3d')
+  % the layout file format does not support 3D positions, furthermore for
+  % a 3D layout the width and height are currently set to NaN
+  error('writing a 3D layout to an output file is not supported');
 end
-  
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -272,31 +284,36 @@ return % function readlay
 % SUBFUNCTION
 % convert 3D electrode positions into 2D layout
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function lay = elec2lay(elec, rz, method);
+function lay = elec2lay(elec, rz, method, style)
 if isempty(rz)
   rz = 90;
 end
 elec.pnt = warp_apply(rotate([0 0 rz]), elec.pnt, 'homogenous');
-prj = elproj(elec.pnt, method);
-d = dist(prj');
-d(find(eye(size(d)))) = inf;
-mindist = min(d(:));
-X = prj(:,1);
-Y = prj(:,2);
-Width  = ones(size(X)) * mindist * 0.8;
-Height = ones(size(X)) * mindist * 0.6;
-Lbl = elec.label;
-lay.pos    = [X Y];
-lay.width  = Width;
-lay.height = Height;
-lay.label  = Lbl;
+if strcmpi(style, '3d')
+  % use helper function for 3D layout
+  lay = layout3d(elec);
+else
+  prj = elproj(elec.pnt, method);
+  d = dist(prj');
+  d(find(eye(size(d)))) = inf;
+  mindist = min(d(:));
+  X = prj(:,1);
+  Y = prj(:,2);
+  Width  = ones(size(X)) * mindist * 0.8;
+  Height = ones(size(X)) * mindist * 0.6;
+  Lbl    = elec.label;
+  lay.pos    = [X Y];
+  lay.width  = Width;
+  lay.height = Height;
+  lay.label  = Lbl;
+end
 return % function elec2lay
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 % convert the magnetometer/gradiometer coil positions into a layout
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function lay = grad2lay(grad, rz, method);
+function lay = grad2lay(grad, rz, method, style)
 fprintf('creating layout for %s system\n', sensortype(grad));
 switch lower(sensortype(grad))
   case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
@@ -307,30 +324,192 @@ switch lower(sensortype(grad))
     rz = 0;
 end
 grad.pnt = warp_apply(rotate([0 0 rz]), grad.pnt, 'homogenous');
-switch lower(sensortype(grad))
+if strcmpi(style, '3d')
+  % use helper function for 3D layout
+  lay = layout3d(grad);
+else
+  switch lower(sensortype(grad))
+    case {'ctf151', 'ctf275' 'bti148', 'bti248'}
+      % select only the MEG channels, not the reference channels
+      Lbl = channelselection('MEG', grad.label);
+      ind = match_str(grad.label, Lbl);
+      % this assumes that the bottom of the MEG gradiometers is listed as the first set of coils
+      % which is always the case for BTi-magnetometers, and which is ensured for CTF-gradiometers in ctf2grad
+      pnt = grad.pnt(ind,:);
+      prj = elproj(pnt, method);
+      d = dist(prj');
+      d(find(eye(size(d)))) = inf;
+      mindist = min(d(:));
+      X = prj(:,1);
+      Y = prj(:,2);
+      Width  = ones(size(X)) * mindist * 0.8;
+      Height = ones(size(X)) * mindist * 0.6;
+
+    case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
+      % create a list with planar channel names
+      chan = {};
+      for i=1:length(grad.label)
+        if ~isempty(findstr(grad.label{i}, '_dH')) || ...
+            ~isempty(findstr(grad.label{i}, '_dV'))
+          chan{i} = grad.label{i}(1:(end-3));
+        end
+      end
+      chan = unique(chan);
+      % find the matching channel-duplets
+      ind = [];
+      lab = {};
+      for i=1:length(chan)
+        ch1 =  [chan{i} '_dH'];
+        ch2 =  [chan{i} '_dV'];
+        sel = match_str(grad.label, {ch1, ch2});
+        if length(sel)==2
+          ind = [ind; i];
+          lab(i,:) = {ch1, ch2};
+          meanpnt1 = mean(grad.pnt(find(grad.tra(sel(1),:)),:), 1);
+          meanpnt2 = mean(grad.pnt(find(grad.tra(sel(2),:)),:), 1);
+          pnt(i,:) = mean([meanpnt1; meanpnt2], 1);
+        end
+      end
+      lab = lab(ind,:);
+      pnt = pnt(ind,:);
+      prj = elproj(pnt, method);
+      X = prj(:,1);
+      Y = prj(:,2);
+      d = dist(prj');
+      d(find(eye(size(d)))) = inf;
+      mindist = min(d(:));
+      X1 = X; Y1 = Y + 0.21 * mindist;
+      X2 = X; Y2 = Y - 0.21 * mindist;
+      X = [X1; X2];
+      Y = [Y1; Y2];
+      Lbl = [lab(:,1); lab(:,2)];
+      Width  = ones(size(X))*mindist/2;
+      Height = ones(size(X))*mindist/3.0;
+
+    case 'neuromag122'
+      % find the matching channel-duplets
+      ind = [];
+      lab = {};
+      for i=1:2:140
+        % first try MEG channel labels with a space
+        ch1 = sprintf('MEG %03d', i);
+        ch2 = sprintf('MEG %03d', i+1);
+        sel = match_str(grad.label, {ch1, ch2});
+        % then try MEG channel labels without a space
+        if (length(sel)~=2)
+          ch1 = sprintf('MEG%03d', i);
+          ch2 = sprintf('MEG%03d', i+1);
+          sel = match_str(grad.label, {ch1, ch2});
+        end
+        % then try to determine the channel locations
+        if (length(sel)==2)
+          ind = [ind; i];
+          lab(i,:) = {ch1, ch2};
+          meanpnt1 = mean(grad.pnt(find(grad.tra(sel(1),:)),:), 1);
+          meanpnt2 = mean(grad.pnt(find(grad.tra(sel(2),:)),:), 1);
+          pnt(i,:) = mean([meanpnt1; meanpnt2], 1);
+        end
+      end
+      lab = lab(ind,:);
+      pnt = pnt(ind,:);
+      prj = elproj(pnt, method);
+      X = prj(:,1);
+      Y = prj(:,2);
+      d = dist(prj');
+      d(find(eye(size(d)))) = inf;
+      mindist = min(d(:));
+      X1 = X; Y1 = Y + 0.21 * mindist;
+      X2 = X; Y2 = Y - 0.21 * mindist;
+      X = [X1; X2];
+      Y = [Y1; Y2];
+      Lbl = [lab(:,1); lab(:,2)];
+      Width  = ones(size(X))*mindist/2;
+      Height = ones(size(X))*mindist/3.0;
+
+    case 'neuromag306'
+      % find the matching channel-triplets
+      ind = [];
+      lab = {};
+      for i=1:300
+        % first try MEG channel labels with a space
+        ch1 = sprintf('MEG %03d1', i);
+        ch2 = sprintf('MEG %03d2', i);
+        ch3 = sprintf('MEG %03d3', i);
+        sel = match_str(grad.label, {ch1, ch2, ch3});
+        % the try MEG channels without a space
+        if (length(sel)~=3)
+          ch1 = sprintf('MEG%03d1', i);
+          ch2 = sprintf('MEG%03d2', i);
+          ch3 = sprintf('MEG%03d3', i);
+          sel = match_str(grad.label, {ch1, ch2, ch3});
+        end
+        % then try to determine the channel locations
+        if (length(sel)==3)
+          ind = [ind; i];
+          lab(i,:) = {ch1, ch2, ch3};
+          meanpnt1 = mean(grad.pnt(find(grad.tra(sel(1),:)),:), 1);
+          meanpnt2 = mean(grad.pnt(find(grad.tra(sel(2),:)),:), 1);
+          meanpnt3 = mean(grad.pnt(find(grad.tra(sel(3),:)),:), 1);
+          pnt(i,:) = mean([meanpnt1; meanpnt2; meanpnt3], 1);
+        end
+      end
+      lab = lab(ind,:);
+      pnt = pnt(ind,:);
+      prj = elproj(pnt, method);
+      X = prj(:,1);
+      Y = prj(:,2);
+      d = dist(prj');
+      d(find(eye(size(d)))) = inf;
+      mindist = min(d(:));
+      X1 = X - 0.2 * mindist; Y1 = Y + 0.2 * mindist;
+      X2 = X - 0.2 * mindist; Y2 = Y - 0.2 * mindist;
+      X3 = X + 0.2 * mindist; Y3 = Y + 0.0 * mindist;
+      X = [X1; X2; X3];
+      Y = [Y1; Y2; Y3];
+      Lbl = [lab(:,1); lab(:,2); lab(:,3)];
+      Width  = ones(size(X))*mindist/3;
+      Height = ones(size(X))*mindist/3;
+
+    otherwise
+      error('unsupported MEG sensor type');
+  end % switch sensortype
+  lay.pos    = [X Y];
+  lay.width  = Width;
+  lay.height = Height;
+  lay.label  = Lbl;
+end % if 2D or 3D
+
+return % function grad2lay
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% convert the magnetometer/gradiometer coil positions into a 3D layout
+% Note that this function is mainly copy and paste from the code above, it
+% certainly needs some cleanup!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [lay] = layout3d(sens);
+
+switch lower(sensortype(sens))
+  case {'eeg'}
+    pnt = sens.pnt;
+    lab = sens.label;
+
   case {'ctf151', 'ctf275' 'bti148', 'bti248'}
     % select only the MEG channels, not the reference channels
-    Lbl = channelselection('MEG', grad.label);
-    ind = match_str(grad.label, Lbl);
+    Lbl = channelselection('MEG', sens.label);
+    ind = match_str(sens.label, Lbl);
     % this assumes that the bottom of the MEG gradiometers is listed as the first set of coils
-    % which is always the case for BTi-magnetometers, and which is ensured for CTF-gradiometers in ctf2grad
-    pnt = grad.pnt(ind,:);
-    prj = elproj(pnt, method);
-    d = dist(prj');
-    d(find(eye(size(d)))) = inf;
-    mindist = min(d(:));
-    X = prj(:,1);
-    Y = prj(:,2);
-    Width  = ones(size(X)) * mindist * 0.8;
-    Height = ones(size(X)) * mindist * 0.6;
+    % which is always the case for BTi-magnetometers, and which is ensured for CTF-gradiometers in ctf2sens
+    pnt = sens.pnt(ind,:);
+    lab = sens.label(ind);
 
   case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
     % create a list with planar channel names
     chan = {};
-    for i=1:length(grad.label)
-      if ~isempty(findstr(grad.label{i}, '_dH')) || ...
-          ~isempty(findstr(grad.label{i}, '_dV'))
-        chan{i} = grad.label{i}(1:(end-3));
+    for i=1:length(sens.label)
+      if ~isempty(findstr(sens.label{i}, '_dH')) || ...
+          ~isempty(findstr(sens.label{i}, '_dV'))
+        chan{i} = sens.label{i}(1:(end-3));
       end
     end
     chan = unique(chan);
@@ -340,30 +519,17 @@ switch lower(sensortype(grad))
     for i=1:length(chan)
       ch1 =  [chan{i} '_dH'];
       ch2 =  [chan{i} '_dV'];
-      sel = match_str(grad.label, {ch1, ch2});
+      sel = match_str(sens.label, {ch1, ch2});
       if length(sel)==2
         ind = [ind; i];
         lab(i,:) = {ch1, ch2};
-        meanpnt1 = mean(grad.pnt(find(grad.tra(sel(1),:)),:), 1);
-        meanpnt2 = mean(grad.pnt(find(grad.tra(sel(2),:)),:), 1);
+        meanpnt1 = mean(sens.pnt(find(sens.tra(sel(1),:)),:), 1);
+        meanpnt2 = mean(sens.pnt(find(sens.tra(sel(2),:)),:), 1);
         pnt(i,:) = mean([meanpnt1; meanpnt2], 1);
       end
     end
     lab = lab(ind,:);
     pnt = pnt(ind,:);
-    prj = elproj(pnt, method);
-    X = prj(:,1);
-    Y = prj(:,2);
-    d = dist(prj');
-    d(find(eye(size(d)))) = inf;
-    mindist = min(d(:));
-    X1 = X; Y1 = Y + 0.21 * mindist;
-    X2 = X; Y2 = Y - 0.21 * mindist;
-    X = [X1; X2];
-    Y = [Y1; Y2];
-    Lbl = [lab(:,1); lab(:,2)];
-    Width  = ones(size(X))*mindist/2;
-    Height = ones(size(X))*mindist/3.0;
 
   case 'neuromag122'
     % find the matching channel-duplets
@@ -373,37 +539,24 @@ switch lower(sensortype(grad))
       % first try MEG channel labels with a space
       ch1 = sprintf('MEG %03d', i);
       ch2 = sprintf('MEG %03d', i+1);
-      sel = match_str(grad.label, {ch1, ch2});
-      % the try MEG channel labels without a space
+      sel = match_str(sens.label, {ch1, ch2});
+      % then try MEG channel labels without a space
       if (length(sel)~=2)
         ch1 = sprintf('MEG%03d', i);
         ch2 = sprintf('MEG%03d', i+1);
-        sel = match_str(grad.label, {ch1, ch2});
+        sel = match_str(sens.label, {ch1, ch2});
       end
-      % the try to determine the channel locations
+      % then try to determine the channel locations
       if (length(sel)==2)
         ind = [ind; i];
         lab(i,:) = {ch1, ch2};
-        meanpnt1 = mean(grad.pnt(find(grad.tra(sel(1),:)),:), 1);
-        meanpnt2 = mean(grad.pnt(find(grad.tra(sel(2),:)),:), 1);
+        meanpnt1 = mean(sens.pnt(find(sens.tra(sel(1),:)),:), 1);
+        meanpnt2 = mean(sens.pnt(find(sens.tra(sel(2),:)),:), 1);
         pnt(i,:) = mean([meanpnt1; meanpnt2], 1);
       end
     end
     lab = lab(ind,:);
     pnt = pnt(ind,:);
-    prj = elproj(pnt, method);
-    X = prj(:,1);
-    Y = prj(:,2);
-    d = dist(prj');
-    d(find(eye(size(d)))) = inf;
-    mindist = min(d(:));
-    X1 = X; Y1 = Y + 0.21 * mindist;
-    X2 = X; Y2 = Y - 0.21 * mindist;
-    X = [X1; X2];
-    Y = [Y1; Y2];
-    Lbl = [lab(:,1); lab(:,2)];
-    Width  = ones(size(X))*mindist/2;
-    Height = ones(size(X))*mindist/3.0;
 
   case 'neuromag306'
     % find the matching channel-triplets
@@ -414,47 +567,34 @@ switch lower(sensortype(grad))
       ch1 = sprintf('MEG %03d1', i);
       ch2 = sprintf('MEG %03d2', i);
       ch3 = sprintf('MEG %03d3', i);
-      sel = match_str(grad.label, {ch1, ch2, ch3});
+      sel = match_str(sens.label, {ch1, ch2, ch3});
       % the try MEG channels without a space
       if (length(sel)~=3)
         ch1 = sprintf('MEG%03d1', i);
         ch2 = sprintf('MEG%03d2', i);
         ch3 = sprintf('MEG%03d3', i);
-        sel = match_str(grad.label, {ch1, ch2, ch3});
+        sel = match_str(sens.label, {ch1, ch2, ch3});
       end
       % then try to determine the channel locations
       if (length(sel)==3)
         ind = [ind; i];
         lab(i,:) = {ch1, ch2, ch3};
-        meanpnt1 = mean(grad.pnt(find(grad.tra(sel(1),:)),:), 1);
-        meanpnt2 = mean(grad.pnt(find(grad.tra(sel(2),:)),:), 1);
-        meanpnt3 = mean(grad.pnt(find(grad.tra(sel(3),:)),:), 1);
+        meanpnt1 = mean(sens.pnt(find(sens.tra(sel(1),:)),:), 1);
+        meanpnt2 = mean(sens.pnt(find(sens.tra(sel(2),:)),:), 1);
+        meanpnt3 = mean(sens.pnt(find(sens.tra(sel(3),:)),:), 1);
         pnt(i,:) = mean([meanpnt1; meanpnt2; meanpnt3], 1);
       end
     end
     lab = lab(ind,:);
     pnt = pnt(ind,:);
-    prj = elproj(pnt, method);
-    X = prj(:,1);
-    Y = prj(:,2);
-    d = dist(prj');
-    d(find(eye(size(d)))) = inf;
-    mindist = min(d(:));
-    X1 = X - 0.2 * mindist; Y1 = Y + 0.2 * mindist;
-    X2 = X - 0.2 * mindist; Y2 = Y - 0.2 * mindist;
-    X3 = X + 0.2 * mindist; Y3 = Y + 0.0 * mindist;
-    X = [X1; X2; X3];
-    Y = [Y1; Y2; Y3];
-    Lbl = [lab(:,1); lab(:,2); lab(:,3)];
-    Width  = ones(size(X))*mindist/3;
-    Height = ones(size(X))*mindist/3;
+
 
   otherwise
-    error('unsupported MEG sensor type');
+    error('unsupported sensor type');
 end % switch sensortype
 
-lay.pos    = [X Y];
-lay.width  = Width;
-lay.height = Height;
-lay.label  = Lbl;
-return % function grad2lay
+lay.pos    = pnt;
+lay.width  = nan*ones(length(lab),1);
+lay.height = nan*ones(length(lab),1);
+lay.label  = lab;
+return % subfunction layout3d
