@@ -66,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.25  2008/05/13 19:24:11  roboos
+% consistently removed support for pnt1/pnt2 gradiometer description
+%
 % Revision 1.24  2008/04/30 13:47:20  roboos
 % removed support for pnt1+pnt2
 %
@@ -192,9 +195,8 @@ elseif ismeg
       % MEG single-sphere volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      % get the position and orientation of each coil
-      pnt = sens.pnt;
-      ori = sens.ori;
+      pnt = sens.pnt; % position of each coil
+      ori = sens.ori; % orientation of each coil
 
       if isfield(vol, 'o')
         % shift dipole and magnetometers to origin of sphere
@@ -213,12 +215,6 @@ elseif ismeg
         lf = meg_leadfield1(pos, pnt, ori);
       end
 
-      if isfield(sens, 'pnt2')
-        % this appears to be a gradiometer definition
-        % construct the gradient from both magnetometers
-        lf = lf(1:nchan, :) - lf((nchan+1):end,:);
-      end
-
       if isfield(sens, 'tra')
         % this appears to be the modern complex gradiometer definition
         % construct the channels from a linear combination of all magnetometers
@@ -232,10 +228,6 @@ elseif ismeg
       nspheres = length(vol.r);
       if size(vol.o, 1)~=nspheres
         error('different number of spheres for the radius and origin')
-      end
-
-      if isfield(sens, 'pnt1') && isfield(sens, 'pnt2')
-        error('oldfashoned gradiometer format not supported for multi-sphere headmodel');
       end
 
       if size(sens.pnt, 1)~=nspheres
@@ -311,16 +303,8 @@ elseif ismeg
         warning_issued = 1;
       end
 
-      if isfield(sens, 'pnt1') && isfield(sens, 'pnt2')
-        % this appears to be an old fashioned gradiometer definition
-        % add the magnetometer positions at the upper coil
-        nchan = size(sens.pnt1, 1);
-        pnt = [sens.pnt1; sens.pnt2];
-        ori = [sens.ori1; sens.ori2];
-      else
-        pnt = sens.pnt;
-        ori = sens.ori;
-      end
+      pnt = sens.pnt; % position of each coil
+      ori = sens.ori; % orientation of each coil
 
       if Ndipoles>1
         % loop over multiple dipoles
@@ -333,15 +317,8 @@ elseif ismeg
         lf = magnetic_dipole(pos, pnt, ori);
       end
 
-      if isfield(sens, 'pnt2')
-        % this appears to be a gradiometer definition
-        % construct the gradient from both magnetometers
-        lf = lf(1:nchan, :) - lf((nchan+1):end,:);
-      end
-
       if isfield(sens, 'tra')
-        % this appears to be a complex gradiometer definition
-        % construct the channels from a linear combination of all magnetometers
+        % construct the channels from a linear combination of all magnetometer coils
         lf = sens.tra * lf;
       end
 
