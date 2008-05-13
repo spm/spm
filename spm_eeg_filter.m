@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 1314 2008-04-07 11:28:27Z stefan $
+% $Id: spm_eeg_filter.m 1614 2008-05-13 14:40:13Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -139,31 +139,68 @@ spm('Pointer', 'Watch');drawnow;
 % generate new meeg object with new filenames
 Dnew = clone(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials]);
 
-spm_progress_bar('Init', D.ntrials, 'Events filtered'); drawnow;
-if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
-else Ibar = [1:D.ntrials]; end
+% determine channels for filtering
+Fchannels = unique([D.meegchannels, D.eogchannels]);
 
-for i = 1:D.ntrials
+ind = setdiff(1:D.nchannels, Fchannels);
 
-    d = squeeze(D(:, :, i));
+if strcmp(D.type, 'continuous')
 
-    for j = 1:D.nchannels
+    % copy channels not to be filtered
+    if ~isempty(ind)
+        Dnew(ind,:,1)=D(ind,:,1);
+    end
+    
+    spm_progress_bar('Init', length(Fchannels), 'Channels filtered'); drawnow;
+    if length(Fchannels) > 100, Ibar = floor(linspace(1, length(Fchannels),100));
+    else Ibar = [1:length(Fchannels)]; end
+
+    for j = 1:length(Fchannels)
+        
         if strcmpi(filter.type, 'butterworth')
-            d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
+            Dnew(Fchannels(j), :, 1) = filtfilt(filter.para{1}, filter.para{2}, squeeze(D(Fchannels(j), :, 1)));
         end
+
+        if ismember(j, Ibar)
+            spm_progress_bar('Set', j); drawnow;
+        end
+
     end
 
-    % base line correction
-    d = d - repmat(mean(d(:, 1:indsample(D,0)), 2), 1, D.nsamples);
+else
+    
+    % copy channels not to be filtered
+    if ~isempty(ind)
+        Dnew(ind, :, 1:D.ntrials) = D(ind,:,1:D.ntrials);
+    end   
+    
+    % single trial or epoched
+    spm_progress_bar('Init', D.ntrials, 'Events filtered'); drawnow;
+    if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+    else Ibar = [1:D.ntrials]; end
 
-    Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
 
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
+    for i = 1:D.ntrials
+
+        d = squeeze(D(Fchannels, :, i));
+
+        for j = Fchannels
+            if strcmpi(filter.type, 'butterworth')
+                d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
+            end
+        end
+
+        % base line correction
+        d = d - repmat(mean(d(:, 1:indsample(D,0)), 2), 1, D.nsamples);
+
+        Dnew(Fchannels, 1:Dnew.nsamples, i) = d;
+
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i); drawnow;
+        end
+
     end
-
 end
-
 
 spm_progress_bar('Clear');
 
