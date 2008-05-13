@@ -40,6 +40,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.13  2008/05/13 20:19:39  roboos
+% changed senstype eeg into electrode
+%
 % Revision 1.12  2008/05/13 09:54:07  roboos
 % added option cfg.style=2d|3d, used by SPM8
 %
@@ -490,7 +493,7 @@ return % function grad2lay
 function [lay] = layout3d(sens);
 
 switch lower(sensortype(sens))
-  case {'eeg'}
+  case {'electrode'}
     pnt = sens.pnt;
     lab = sens.label;
 
