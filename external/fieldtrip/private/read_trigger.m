@@ -5,6 +5,10 @@ function [event] = read_trigger(filename, varargin)
 % dataformats that have one or multiple continuously sampled TTL channels
 % in the data.
 %
+% The optional trigshift (default is 0) causes the value of the
+% trigger to be obtained from a sample that is shifted N samples away
+% from the actual flank.
+%
 % This is a helper function for READ_EVENT
 %
 % TODO
@@ -14,6 +18,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.4  2008/05/13 16:48:24  roboos
+% added option trigshift (default = 0) for cases where the trigger value should be assigned from a sample not directly after/before the upgoing/downgoing flank
+%
 % Revision 1.3  2008/05/08 18:32:45  vlalit
 % Fixed a bug
 %
@@ -32,6 +39,7 @@ begsample   = keyval('begsample',   varargin);
 endsample   = keyval('endsample',   varargin);
 chanindx    = keyval('chanindx',    varargin);
 detectflank = keyval('detectflank', varargin);
+trigshift   = keyval('trigshift',   varargin); if isempty(trigshift),   trigshift = 0;    end
 fixctf      = keyval('fixctf',      varargin); if isempty(fixctf),      fixctf = 0;       end
 fixneuromag = keyval('fixneuromag', varargin); if isempty(fixneuromag), fixneuromag = 0;  end
 
@@ -67,27 +75,27 @@ for i=1:length(chanindx)
       for j=find(diff([0 trig(:)'])>0)
         event(end+1).type   = channel;
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
-        event(end  ).value  = trig(j);                % assign the trigger value just _after_ going up
+        event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
       end
     case 'down'
       % convert the trigger into an event with a value at a specific sample
       for j=find(diff([0 trig(:)'])<0)
         event(end+1).type   = channel;
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
-        event(end  ).value  = trig(j-1);              % assign the trigger value just _before_ going down
+        event(end  ).value  = trig(j-1-trigshift);    % assign the trigger value just _before_ going down
       end
     case 'both'
       % convert the trigger into an event with a value at a specific sample
       for j=find(diff([0 trig(:)'])>0)
-        event(end+1).type   = [channel '_up'];   % distinguish between up and down flank
+        event(end+1).type   = [channel '_up'];        % distinguish between up and down flank
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
-        event(end  ).value  = trig(j);                % assign the trigger value just _after_ going up
+        event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
       end
       % convert the trigger into an event with a value at a specific sample
       for j=find(diff([0 trig(:)'])<0)
-        event(end+1).type   = [channel '_down']; % distinguish between up and down flank
+        event(end+1).type   = [channel '_down'];      % distinguish between up and down flank
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
-        event(end  ).value  = trig(j-1);              % assign the trigger value just _before_ going down
+        event(end  ).value  = trig(j-1-trigshift);    % assign the trigger value just _before_ going down
       end
     otherwise
       error('incorrect specification of ''detectflank''');
