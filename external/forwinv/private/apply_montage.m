@@ -3,7 +3,7 @@ function [sens] = apply_montage(sens, montage, varargin)
 % APPLY_MONTAGE changes the montage of an electrode or gradiometer array. A
 % montage can be used for EEG rereferencing, MEG synthetic gradients, MEG
 % planar gradients or unmixing using ICA. This function applies the montage
-% to the sensor array. The  sensor array can subsequently be used for
+% to the sensor array. The sensor array can subsequently be used for
 % forward computation and source reconstruction of the data.
 %
 % Use as
@@ -19,12 +19,19 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.3  2008/05/13 09:08:19  roboos
+% fixed bug in assignment
+% added option keepunused=yes|no
+%
 % Revision 1.2  2008/04/28 14:14:29  roboos
 % added closing bracket
 %
 % Revision 1.1  2008/04/14 20:16:37  roboos
 % new implementation, required for spm integration
 %
+
+% get optional input arguments
+keepunused = keyval('keepunused', varargin{:}); if isempty(keepunused), keepunused = 'no'; end
 
 % use default transfer from sensors to channels if not specified
 if ~isfield(sens, 'tra')
@@ -33,18 +40,25 @@ if ~isfield(sens, 'tra')
 end
 
 % select and discard the columns that are empty
-selempty = find(all(montage.tra==0, 1));
-montage.tra      = montage.tra(:,selempty);
-montage.labelorg = montage.labelorg(selempty);
+selempty          = find(all(montage.tra==0, 1));
+montage.tra       = montage.tra(:,selempty);
+montage.labelorg  = montage.labelorg(selempty);
 
 % add columns for the channels that are not involved in the montage
 add = setdiff(sens.label, montage.labelorg);
 m = size(montage.tra,1);
 n = size(montage.tra,2);
 k = length(add);
-montage.tra((m+(1:k)):(n+(1:k))) = eye(k);
-montage.labelorg = cat(1, montage.labelorg(:), add(:));
-montage.labelnew = cat(1, montage.labelnew(:), add(:));
+if strcmp(keepunused, 'yes')
+  % add the channels that are not rereferenced to the input and output
+  montage.tra((m+(1:k)),(n+(1:k))) = eye(k);
+  montage.labelorg = cat(1, montage.labelorg(:), add(:));
+  montage.labelnew = cat(1, montage.labelnew(:), add(:));
+else
+  % add the channels that are not rereferenced to the input montage only
+  montage.tra(:,(n+(1:k))) = zeros(m,k);
+  montage.labelorg = cat(1, montage.labelorg(:), add(:));
+end
 
 % determine whether all channels are unique
 m = size(montage.tra,1);
