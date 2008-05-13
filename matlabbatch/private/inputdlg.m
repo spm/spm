@@ -47,7 +47,7 @@ function Answer=inputdlg(Prompt, Title, NumLines, DefAns, Resize)
 %    QUESTDLG, TEXTWRAP, UIWAIT, WARNDLG .
 
 %  Copyright 1994-2007 The MathWorks, Inc.
-%  $Revision: 1541 $
+%  $Revision: 1606 $
 
 %%%%%%%%%%%%%%%%%%%%
 %%% Nargin Check %%%
@@ -236,6 +236,11 @@ AxesHandle=axes('Parent',InputFig,'Position',[0 0 1 1],'Visible','off');
 
 inputWidthSpecified = false;
 
+lfont = cfg_get_defaults('cfg_ui.font');
+fn    = fieldnames(lfont);
+fs    = struct2cell(lfont);
+lfont = [fn'; fs'];
+
 for lp=1:NumQuest,
   if ~ischar(DefAns{lp}),
     delete(InputFig);
@@ -248,8 +253,8 @@ for lp=1:NumQuest,
     'Max'        ,NumLines(lp,1)       , ...
     'Position'   ,[ TxtXOffset EditYOffset(lp) TxtWidth EditHeight(lp) ], ...
     'String'     ,DefAns{lp}           , ...
-    'Tag'        ,'Edit'                 ...
-    );
+    'Tag'        ,'Edit'               , ...
+    lfont{:});
 
   QuestHandle(lp)=text('Parent'     ,AxesHandle, ...
     TextInfo     , ...

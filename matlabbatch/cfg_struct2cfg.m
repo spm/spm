@@ -18,9 +18,9 @@ function cc = cfg_struct2cfg(co, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_struct2cfg.m 1571 2008-05-08 08:07:35Z volkmar $
+% $Id: cfg_struct2cfg.m 1606 2008-05-13 06:07:01Z volkmar $
 
-rev = '$Rev: 1571 $';
+rev = '$Rev: 1606 $';
 
 if nargin < 2
     indent = '';
@@ -29,6 +29,9 @@ end;
 % set warning backtrace to off, save old state
 wsts = warning('query','backtrace');
 warning('backtrace','off');
+% set warning status according to cfg_get_defaults
+warning(cfg_get_defaults(['warning.' mfilename '.verb']), ...
+    'matlabbatch:cfg_struct2cfg:verb');
 
 %% Class of node
 % Usually, the class is determined by the node type. Only for branches
@@ -109,14 +112,26 @@ if any(nind)
             co.num = [0 Inf];
         end;
         warning('matlabbatch:cfg_struct2cfg:verb', ...
-                '(WW) Node %s / ''%s'' field num [%d] padded to [%d %d]', ...
-                cc.tag, cc.name, onum, co.num);
+                '(WW) Node %s / ''%s'' field num [%d] padded to %s', ...
+                cc.tag, cc.name, onum, mat2str(co.num));
     end;
     cc = try_assign(cc,co,'num');
     % remove num field from list
     fn = fn(~nind);
 end;
     
+% if present, convert .def field
+nind = strcmp('def',fn);
+if any(nind)
+    if ~isempty(co.def) && ischar(co.def)
+        % assume SPM5 style defaults
+        co.def = {@spm_get_defaults co.def};
+    end;
+    cc = try_assign(cc,co,'def');
+    % remove def field from list
+    fn = fn(~nind);
+end;
+
 for k = 1:numel(fn)
     cc = try_assign(cc,co,fn{k});
 end;

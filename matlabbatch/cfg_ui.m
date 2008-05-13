@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1587 2008-05-09 07:03:10Z volkmar $
+% $Id: cfg_ui.m 1606 2008-05-13 06:07:01Z volkmar $
 
-rev = '$Rev: 1587 $';
+rev = '$Rev: 1606 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -278,7 +278,6 @@ end;
 [id str sts dep sout] = cfg_util('showjob',cjob);
 if isempty(str)
     str = {'No Modules in Batch'};
-    mrk = {' '};
     cmod = 1;
     udmodlist.cmod = [];
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*(Del)|(Repl)Mod$'),'Enable','off');
@@ -295,17 +294,12 @@ else
     udmodlist.sout = sout;
     udmodlist.cmod = cmod;
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*(Del)|(Repl)Mod$'),'Enable','on');
+    mrk = cell(size(sts));
+    [mrk{dep}] = deal('DEP');
+    [mrk{~sts}] = deal('<-X');
+    [mrk{~dep & sts}] = deal('');
+    str = cfg_textfill(handles.modlist, str, mrk, false);
 end;
-for k = 1:numel(sts)
-    if ~sts(k)
-        mrk{k} = '  <-X';
-    elseif dep(k)
-        mrk{k} = '  DEP';
-    else
-        mrk{k} = ' ';
-    end;
-end;
-str = cfg_textfill(handles.modlist, str, mrk, false);
 set(handles.modlist, 'string', str, 'userdata',udmodlist, 'value', cmod);
 if ~isempty(sts) && all(sts)
     set(findobj(handles.cfg_ui,'-regexp', 'Tag','.*File(Run)|(RunSerial)$'),'Enable','on');
@@ -1112,6 +1106,7 @@ end;
 if strcmpi(cmd,'continue')
     [files sts] = cfg_getfile([1 Inf], 'batch', 'Load Job File(s)');
     if sts
+        local_pointer('watch');
         files = cellstr(files);
         cfg_util('deljob',udmodlist(1).cjob);
         udmodlist = local_init_udmodlist;
@@ -1119,6 +1114,7 @@ if strcmpi(cmd,'continue')
         udmodlist.cjob = cfg_util('initjob', files);
         set(handles.modlist, 'userdata', udmodlist);
         local_showjob(hObject);
+        local_pointer('arrow');
     end;
 end;
 % --------------------------------------------------------------------
@@ -1137,34 +1133,36 @@ cd(opwd);
 if isnumeric(file) && file == 0
     return;
 end;
+local_pointer('watch');
 cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
 udmodlist.modified = false;
 set(handles.modlist,'userdata',udmodlist);
+local_pointer('arrow');
 
 % --------------------------------------------------------------------
 function MenuFileRun_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuFileRun (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(get(0,'Children'),'Pointer','watch');
+local_pointer('watch');
 udmodlist = get(handles.modlist, 'userdata');
 try
-    cfg_util('runserial',udmodlist(1).cjob);
+    cfg_util('run',udmodlist(1).cjob);
 catch
     l = lasterror;
     errordlg(l.message,'Error in job execution', 'modal');
 end;
-set(get(0,'Children'),'Pointer','arrow');
+local_pointer('arrow');
 
 % --------------------------------------------------------------------
 function MenuFileRunSerial_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuFileRunSerial (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-set(get(0,'Children'),'Pointer','watch');
+local_pointer('watch');
 udmodlist = get(handles.modlist, 'userdata');
 cfg_util('runserial',udmodlist(1).cjob);
-set(get(0,'Children'),'Pointer','arrow');
+local_pointer('arrow');
 
 % --------------------------------------------------------------------
 function MenuFileAddApp_Callback(hObject, eventdata, handles)
@@ -1559,3 +1557,10 @@ set(handles.modlist, fnfs{:});
 set(handles.module, fnfs{:});
 set(handles.valshow, fnfs{:});
 set(handles.helpbox, fnfs{:});
+
+% --------------------------------------------------------------------
+function local_pointer(ptr)
+shh = get(0,'showhiddenhandles');
+set(0,'showhiddenhandles','on');
+set(get(0,'Children'),'Pointer',ptr);
+set(0,'showhiddenhandles',shh);

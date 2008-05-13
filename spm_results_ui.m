@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_results_ui.m 1606 2008-05-13 06:07:01Z volkmar $
 
-SCCSid = '$Rev: 1143 $';
+SCCSid = '$Rev: 1606 $';
 
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -630,7 +630,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'spm_input(''!DeleteInputObj''),',...
             'spm_clf(''Satellite'')'],...
             'Interruptible','on','Enable','on',...
-            'DeleteFcn','clc,spm_clf(''Graphics'')',...
+            'DeleteFcn','spm_clf(''Graphics'')',...
             'Position',[285 055 035 018].*WS);
 
         hExit  = uicontrol(Finter,'Style','PushButton','String','exit',...

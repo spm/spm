@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-04-21 23:13:57.
+% Created at 2008-05-12 20:53:55.
 % ---------------------------------------------------------------------
 % files Files to move/delete
 % ---------------------------------------------------------------------
@@ -31,7 +31,6 @@ moveto.num     = [1 1];
 delete         = cfg_const;
 delete.tag     = 'delete';
 delete.name    = 'Delete';
-delete.val{1} = logical(false);
 delete.help    = {'The selected files will be deleted.'};
 % ---------------------------------------------------------------------
 % action Action
@@ -400,8 +399,8 @@ saveasstruct.labels = {
                        'Individual Variables'
                        'Struct Variable'
 }';
-saveasstruct.values{1} = logical(false);
-saveasstruct.values{2} = logical(true);
+saveasstruct.values{1} = false;
+saveasstruct.values{2} = true;
 % ---------------------------------------------------------------------
 % cfg_save_vars Save Variables
 % ---------------------------------------------------------------------
@@ -502,13 +501,23 @@ inany.filter = 'any';
 inany.ufilter = '.*';
 inany.num     = [0 Inf];
 % ---------------------------------------------------------------------
+% indir Directory
+% ---------------------------------------------------------------------
+indir         = cfg_files;
+indir.tag     = 'indir';
+indir.name    = 'Directory';
+indir.help    = {'Directory'};
+indir.filter = 'dir';
+indir.ufilter = '.*';
+indir.num     = [1 Inf];
+% ---------------------------------------------------------------------
 % inputs Job Inputs
 % ---------------------------------------------------------------------
 inputs         = cfg_repeat;
 inputs.tag     = 'inputs';
 inputs.name    = 'Job Inputs';
 inputs.help    = {'Assemble the set of input items for one run of the job.'};
-inputs.values  = {instr ineval innifti inmat inany };
+inputs.values  = {instr ineval innifti inmat inany indir };
 inputs.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % runs Runs
@@ -552,7 +561,6 @@ savejobs.help    = {'Specify filename stub and output directory to save the gene
 dontsave         = cfg_const;
 dontsave.tag     = 'dontsave';
 dontsave.name    = 'Don''t Save';
-dontsave.val{1} = logical(false);
 dontsave.help    = {'Do not save the generated jobs.'};
 % ---------------------------------------------------------------------
 % save Save Generated Batch Jobs

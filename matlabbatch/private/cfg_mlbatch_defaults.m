@@ -24,3 +24,17 @@ cfg_defaults.cfg_ui.font.FontSize   = 10;
 cfg_defaults.cfg_ui.font.FontUnits  = 'points';
 % Toggle ExpertEdit mode. Value can be 'on' or 'off'
 cfg_defaults.cfg_ui.ExpertEdit = 'off';
+
+% cfg_util
+% Parallel execution of independent modules
+% Currently, this does not run modules in parallel, but it may reorder
+% execution order of modules: all modules without dependencies will be run
+% before modules with dependencies will be harvested again. If some modules
+% have side effects (e.g. "Change Directory") that are not encoded as
+% dependency, this may lead to unwanted results. Disabling parallel
+% execution incurs a small overhead during job execution because the job
+% must be harvested more often.
+cfg_defaults.cfg_util.runparallel = false;
+
+% Warnings
+cfg_defaults.warning.cfg_struct2cfg.verb = 'off';

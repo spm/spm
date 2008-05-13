@@ -237,7 +237,8 @@ function varargout = cfg_util(cmd, varargin)
 % a harvested job, then cfg_util('initjob', job) will be called first. If
 % job_id is supplied and is a valid job_id, the job with this job id will
 % be run.
-% The job is harvested and dependencies are resolved if possible. All
+% The job is harvested and dependencies are resolved if possible.
+% If cfg_get_defaults('cfg_util.runparallel') returns true, all
 % modules without unresolved dependencies will be run in arbitrary order.
 % Then the remaining modules are harvested again and run, if their
 % dependencies can be resolved. This process is iterated until no modules
@@ -257,7 +258,9 @@ function varargout = cfg_util(cmd, varargin)
 %  cfg_util('runserial'[, job|job_id])
 %
 % Like 'run', but force cfg_util to run the job as if each module was
-% dependent on its predecessor.
+% dependent on its predecessor. If cfg_get_defaults('cfg_util.runparallel')
+% returns false, cfg_util('run',...) and cfg_util('runserial',...) are
+% identical.
 %
 %  cfg_util('savejob', job_id, filename)
 %
@@ -353,9 +356,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1589 2008-05-09 09:30:54Z volkmar $
+% $Id: cfg_util.m 1606 2008-05-13 06:07:01Z volkmar $
 
-rev = '$Rev: 1589 $';
+rev = '$Rev: 1606 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -505,7 +508,7 @@ switch lower(cmd),
             varargout{2} = {};
             return;
         elseif ischar(varargin{1}) || iscellstr(varargin{1})
-            job = local_load_jobs(varargin{1});
+            job = cfg_load_jobs(varargin{1});
         elseif iscell(varargin{1}{1})
             % try to initialise cell array of jobs
             job = varargin{1};
@@ -651,14 +654,19 @@ switch lower(cmd),
             end;
         end;
     case {'run','runserial'}
-        dflag = false;
         if cfg_util('isjob_id',varargin{1})
             cjob = varargin{1};
+            dflag = false;
         else
             cjob = cfg_util('initjob',varargin{1});
             dflag = true;
         end;
-        jobs(cjob) = local_runcj(jobs(cjob), cjob, strcmpi(cmd, 'run'));
+        if strcmpi(cmd, 'run')
+            pflag = cfg_get_defaults([mfilename '.runparallel']);
+        else
+            pflag = false;
+        end;
+        jobs(cjob) = local_runcj(jobs(cjob), cjob, pflag);
         if dflag
             cfg_util('deljob', cjob);
         end;
@@ -870,8 +878,8 @@ for k = 1:numel(ojob.cjid2subs)
         nid = nid + 1;
     end;
 end;
-% update changed ids in job (where nid ~= 1:numel(nid))
-cid = nid ~= 1:numel(nid);
+% update changed ids in job (where n2oid ~= 1:numel(n2oid))
+cid = n2oid ~= 1:numel(n2oid);
 if any(cid)
     job.cj = update_deps(job.cj, oid(cid), job.cjid2subs(cid));
 end;
@@ -1169,56 +1177,6 @@ cjob.cjrun = [];
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function newjobs = local_load_jobs(job)
-% Load a list of possible job files, return a cell list of jobs. If a job
-% file failed to load, an empty cell is returned in the list.
-if ischar(job)
-    filenames = cellstr(job);
-else
-    filenames = job;
-end;
-newjobs = {};
-for cf = 1:numel(filenames)
-    [p,nam,ext] = fileparts(filenames{cf});
-    switch ext
-        case '.xml',
-            try
-                loadxml(filenames{cf},'matlabbatch');
-            catch
-                warning('cfg_util:local_load_jobs','LoadXML failed: ''%s''',filenames{cf});
-            end;
-        case '.mat'
-            try
-                S=load(filenames{cf});
-                matlabbatch = S.matlabbatch;
-            catch
-                warning('cfg_util:local_load_jobs','Load failed: ''%s''',filenames{cf});
-            end;
-        case '.m'
-            opwd = pwd;
-            try
-                if ~isempty(p)
-                    cd(p);
-                end;
-                eval(nam);
-            catch
-                warning('cfg_util:local_load_jobs','Eval failed: ''%s''',filenames{cf});
-            end;
-            cd(opwd);
-            if ~exist('matlabbatch','var')
-                warning('cfg_util:local_load_jobs','No matlabbatch job found in ''%s''', filenames{cf});
-            end;
-        otherwise
-            warning('cfg_util:local_load_jobs','Unknown extension: ''%s''', filenames{cf});
-    end;
-    if exist('matlabbatch','var')
-        newjobs = {newjobs{:} matlabbatch};
-        clear matlabbatch;
-    end;
-end;
-%-----------------------------------------------------------------------
-
-%-----------------------------------------------------------------------
 function [job, id] = local_replmod(job, oid)
 % Replicate module subsref(job.cj,job.cjid2subs{oid}) by adding it to the end of
 % the job list. Update id in module and delete links to dependent modules,
@@ -1312,45 +1270,12 @@ while ~isempty(cjid2subs)
             % outputs) - run job
             fprintf('Running ''%s''\n', cm.name);
             try
-                if isempty(cm.vout) && ~isempty(cm.vfiles);
-                    warning('matlabbatch:cfg_util:vfiles', ...
-                            'Using deprecated ''vfiles'' output in node ''%s''.', cm.tag);
-                    feval(cm.prog, subsref(mlbch, jobsubsrun{k}));
-                    cm.jout = struct('vfiles', {feval(cm.vfiles, ...
-                                           subsref(mlbch, jobsubsrun{k}))});
-                elseif isempty(cm.sout)
-                    % no outputs specified
-                    feval(cm.prog, subsref(mlbch, jobsubsrun{k}));
-                    cm.jout = [];
-                else
-                    cm.jout = feval(cm.prog, subsref(mlbch, jobsubsrun{k}));
-                end;
+                cm = cfg_run_cm(cm, subsref(mlbch, jobsubsrun{k}));
                 fprintf('''%s'' done\n', cm.name);
             catch
                 cjid2subsfailed = {cjid2subsfailed{:} cjid2subsrun{k}};
                 fprintf('''%s'' failed\n', cm.name);
-                l = lasterror;
-                disp(l.message);
-                if isfield(l,'stack'), % Does not always exist
-                    for m = 1:numel(l.stack),
-                        try
-                            fp  = fopen(l.stack(m).file,'r');
-                            str = fread(fp,Inf,'*uchar');
-                            fclose(fp);
-                            str = char(str(:)');
-                            re  = regexp(str,'\$Id: \w+\.\w+ ([0-9]+) [0-9][0-9][0-9][0-9].*\$','tokens');
-                            if numel(re)>0 && numel(re{1})>0,
-                                id = [' (v', re{1}{1}, ')'];
-                            else
-                                id = ' (???)';
-                            end
-                        catch
-                            id = '';
-                        end
-                        fprintf('In file "%s"%s, function "%s" at line %d.\n', ...
-                                l.stack(m).file, id, l.stack(m).name, l.stack(m).line);
-                    end
-                end;
+                cfg_disp_error(lasterror);
             end;
             % save results (if any) into job tree
             job.cjrun = subsasgn(job.cjrun, cjid2subsrun{k}, cm);
@@ -1384,8 +1309,8 @@ function [id, str, sts, dep, sout] = local_showjob(cj, cjid2subs)
 % Return name, all_set status and id of internal job representation
 id  = {};
 str = {};
-sts = [];
-dep = [];
+sts = logical([]);
+dep = logical([]);
 sout = {};
 cmod = 1; % current module count
 for k = 1:numel(cjid2subs)

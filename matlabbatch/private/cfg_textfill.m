@@ -35,7 +35,7 @@ if ~iscellstr(left)
               'Second input must be a string array or cellstr.');
     end;
     % add one space as delimiter
-    left = strcat(left, ' ');
+    left = strcat(left, {' '});
 end;
 if ~iscellstr(right)
     if ischar(right)
@@ -95,11 +95,11 @@ if tflag && mlext+mrext > pos(3)-swidth
     width = mlext+newrext;
 end;
 
-str = cell(size(left));
+fillstr = cell(size(left));
 for k = 1:numel(left)
-    fillstr = repmat(' ',1,floor((width-(lext(k)+rext(k)))/spext));
-    str{k} = [left{k} fillstr right{k}];
+    fillstr{k} = repmat(' ',1,floor((width-(lext(k)+rext(k)))/spext));
 end;
+str = strcat(left, fillstr, right);
 
 function ext = maxextent(obj, str)
 ext = zeros(size(str));
