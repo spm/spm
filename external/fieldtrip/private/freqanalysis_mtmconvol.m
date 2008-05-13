@@ -44,6 +44,11 @@ function [freq] = freqanalysis_mtmconvol(cfg, data);
 % a large prime factor sum. This is because the FFTs will then be computed
 % very inefficiently.
 %
+% An asymmetric taper usefull for TMS is used when cfg.taper='alpha' and corresponds to
+%   W. Kyle Mitchell, Mark R. Baker & Stuart N.  Baker. Muscle Responses to
+%   Transcranial Stimulation Depend on Background Oscillatory Activity.
+%   published online Jul 12, 2007 J. Physiol. 
+%
 % See also FREQANALYSIS
 
 % undocumented experimental options
@@ -52,6 +57,9 @@ function [freq] = freqanalysis_mtmconvol(cfg, data);
 % Copyright (c) 2003,2004-2006 F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmconvol.m,v $
+% Revision 1.41  2008/05/13 13:53:22  roboos
+% added some documentation on alpha taper, fixed potential bug in assessing number of trials
+%
 % Revision 1.40  2008/02/28 09:44:30  roboos
 % round the number of padded samples to an integer
 %
@@ -293,7 +301,7 @@ if csdflg
 end
 
 % if rectan is 1 it means that trials are of equal lengths
-numper       = size(data.trial,2);
+numper       = numel(data.trial);
 numdatbnsarr = zeros(numper, 1);
 for perlop = 1:numper
   numdatbnsarr(perlop) = size(data.trial{perlop},2);
@@ -576,7 +584,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmconvol.m,v 1.40 2008/02/28 09:44:30 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmconvol.m,v 1.41 2008/05/13 13:53:22 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
