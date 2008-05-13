@@ -19,6 +19,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.4  2008/05/13 11:43:27  roboos
+% fixed bug in selempty
+%
 % Revision 1.3  2008/05/13 09:08:19  roboos
 % fixed bug in assignment
 % added option keepunused=yes|no
@@ -40,9 +43,9 @@ if ~isfield(sens, 'tra')
 end
 
 % select and discard the columns that are empty
-selempty          = find(all(montage.tra==0, 1));
-montage.tra       = montage.tra(:,selempty);
-montage.labelorg  = montage.labelorg(selempty);
+selnonempty       = find(~all(montage.tra==0, 1));
+montage.tra       = montage.tra(:,selnonempty);
+montage.labelorg  = montage.labelorg(selnonempty);
 
 % add columns for the channels that are not involved in the montage
 add = setdiff(sens.label, montage.labelorg);
