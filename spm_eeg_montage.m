@@ -10,7 +10,8 @@ function [D, montage] = spm_eeg_montage(S)
 %   montage.tra      = MxN matrix
 %   montage.labelnew = Mx1 cell-array - new labels
 %   montage.labelorg = Nx1 cell-array - original labels
-%   montage.keepothers = 'yes' - keep the channels not involved in the montage (default)
+
+% S.keepothers = 'yes' - keep the channels not involved in the montage (default)
 %                        'no' - discard the channels not involved in the montage 
 % S.blocksize - size of blocks used internally to split large continuous files
 %               default ~20Mb.
@@ -27,7 +28,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 1605 2008-05-12 20:50:51Z jean $
+% $Id: spm_eeg_montage.m 1619 2008-05-13 17:29:26Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -52,10 +53,9 @@ if ~isfield(S, 'montage')
     switch res
         case 'gui'
             montage = [];
-            montage.labelorg = D.chanlabels(D.meegchannels);
+            montage.labelorg = D.chanlabels;
             montage.tra = eye(length(montage.labelorg));
-%             errordlg('The montage specification GUI is under construction.');
-%             return;
+            montage.labelnew = montage.labelorg;
             S.montage = spm_eeg_montage_ui(montage);
         case 'file'
             S.montage = spm_select(1, '\.mat$', 'Select a montage file');
@@ -77,23 +77,8 @@ if ~all(isfield(montage, {'labelnew', 'labelorg', 'tra'})) || ...
     error('Insufficient or illegal montage specification.');
 end
 
-if ~isfield(montage, 'keepothers')
-    montage.keepothers = 'yes';
-end
-
-% apply montage to sensors
-eegsens = D.sensors('EEG');
-if ~isempty(eegsens) && length(intersect(eegsens.label, montage.labelorg))==length(eegsens.label)
-    eegsens = forwinv_apply_montage(eegsens, montage);
-end
-
-megsens = D.sensors('MEG');
-if ~isempty(megsens) && length(intersect(megsens.label, montage.labelorg))==length(megsens.label)
-    megsens = forwinv_apply_montage(megsens, montage);
-end
-
 % select and discard the columns that are empty
-selempty = find(~all(montage.tra==0, 1));
+selempty         = find(~all(montage.tra == 0, 1));
 montage.tra      = montage.tra(:, selempty);
 montage.labelorg = montage.labelorg(selempty);
 
@@ -101,10 +86,18 @@ montage.labelorg = montage.labelorg(selempty);
 [add, ind] = setdiff(D.chanlabels, montage.labelorg);
 add = D.chanlabels(sort(ind));
 
+if ~isfield(S, 'keepothers')
+    if ~isempty(add)
+       S.keepothers = spm_input('Keep the other channels?', '+1', 'yes|no'); 
+    else
+        S.keepothers = 'yes';
+    end
+end
+
 m = size(montage.tra, 1);
 n = size(montage.tra, 2);
 k = length(add);
-if strcmp(montage.keepothers, 'yes')
+if strcmp(S.keepothers, 'yes')
     montage.tra((m+(1:k)), (n+(1:k))) = eye(k);
     montage.labelnew = cat(1, montage.labelnew(:), add(:));
 else
@@ -179,8 +172,22 @@ Dnew = chanlabels(Dnew, 1:Dnew.nchannels, montage.labelnew);
 % Set channel types to default
 Dnew = chantype(Dnew, [], []);
 
-Dnew = sensors(Dnew, 'EEG', eegsens);
-Dnew = sensors(Dnew, 'MEG', megsens);
+sensortypes = {'EEG', 'MEG'};
+% apply montage to sensors
+for i = 1:length(sensortypes)
+    sens = D.sensors(sensortypes{i});
+    if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label)
+        sensmontage = montage;
+        sel1 = spm_match_str(sensmontage.labelorg, sens.label);
+        sensmontage.labelorg = sensmontage.labelorg(sel1);
+        sensmontage.tra = sensmontage.tra(:, sel1);
+        selempty  = find(all(sensmontage.tra == 0, 2));
+        sensmontage.tra(selempty, :) = [];
+        sensmontage.labelnew(selempty) = [];
+        sens = forwinv_apply_montage(sens, montage, 'keepunused', S.keepothers);
+    end
+    Dnew = sensors(Dnew, sensortypes{i}, sens);
+end
 
 [ok, Dnew] = check(Dnew, 'basic');
 
