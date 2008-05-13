@@ -2,11 +2,11 @@ function montage = spm_eeg_montage_ui(montage)
 
 dbstop if error
 
+%% creates GUI from spm_uitable
 fig = figure;
-pos = [520   627   559   494];
+pos = get(fig,'position');
 set(gcf,'menubar','none',...
     'numbertitle','off','name','Montage edition');
-set(gcf,'position',pos);
 pos2 = [40 70 pos(3)-60 pos(4) - 100];
 ha = gca;
 set(ha,'position',pos2);
@@ -20,17 +20,20 @@ colnames = cat(2,'channel labels',montage.labelorg(:)');
 set(ht,'position',pos2,...
     'units','normalized');
 
-ud.ob4MontageEditing = get(0,'userdata');
+ud.b4MontageEditing = get(0,'userdata');
 ud.ht = ht;
 ud.montage = montage;
 set(0,'userdata',ud);
 
+
+
+%% gets the montage from the GUI
 uiwait(fig)
 
-ud = get(0,'userdata');
-if isfield(ud,'b4MontageEdition')
+ud = get(0,'userdata')
+if isfield(ud,'b4MontageEditing')
     montage = ud.montage;
-    set(0,'userdata',ud.b4MontageEdition);
+    set(0,'userdata',ud.b4MontageEditing);
 else % GUI was closed without 'OK' button
     montage = [];
 end
@@ -38,7 +41,7 @@ end
 
 
 
-
+%% 'add row' button subfunction
 function [ha] = doAddRow(o1,o2)
 dbstop if error
 ud = get(0,'userdata');
@@ -58,7 +61,7 @@ ud.ht = ht;
 set(0,'userdata',ud);
 
 
-
+%% 'load' button subfunction
 function [ha] = doLoad(o1,o2)
 [FileName,PathName] = uigetfile('*.mat','Load montage file');
 if ~isempty(FileName) || ~isequal(FileName,0)
@@ -77,10 +80,13 @@ if ~isempty(FileName) || ~isequal(FileName,0)
         set(ht,'position',pos,...
             'units','normalized');
         ud.ht = ht;
+        ud.montage = montage;
         set(0,'userdata',ud);
     end
 end
 
+
+%% 'save as' button subfunction
 function [ha] = doSave(o1,o2)
 dbstop if error
 ud = get(0,'userdata');
@@ -90,19 +96,21 @@ montage.labelorg = ud.montage.labelorg;
 montage.labelnew = newLabels;
 uisave('montage','SPMeeg_montage.mat');
 
+
+%% 'OK' button subfunction
 function [] = doOK(o1,o2)
 dbstop if error
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 montage.tra = M;
-montage.labelorg = ud.montage.labelorg;
-montage.labelnew = newLabels;
-ud.b4MontageEdition = get(0,'userdata');
+montage.labelorg = ud.montage.labelorg(:);
+montage.labelnew = newLabels(:);
 ud.montage = montage;
 set(0,'userdata',ud);
 close(gcf)
 
 
+%% extracting montage from java object
 function [M,newLabels] = getM(ht)
 nnew = get(ht,'NumRows');
 nold = get(ht,'NumColumns')-1;
@@ -124,7 +132,7 @@ for i =1:nnew
 end
 
 
-
+%% adding buttons to the montage GUI
 function [] = addButtons(ha)
 dbstop if error
 hAdd = uicontrol('style','pushbutton',...
