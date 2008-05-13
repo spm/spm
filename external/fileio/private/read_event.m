@@ -12,6 +12,7 @@ function [event] = read_event(filename, varargin)
 %   'eventformat'   string
 %   'header'        structure, see READ_HEADER
 %   'detectflank'   string, can be 'up', 'down' or 'both' (default = 'up')
+%   'trigshift'     integer, number of samples to shift from flank to detect trigger value (default = 0)
 % Furthermore, you can specify optional arguments as key-value pairs for
 % filtering the events, e.g. to select only events of a specific type. See
 % FILTER_EVENT for more details.
@@ -58,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.62  2008/05/13 16:48:23  roboos
+% added option trigshift (default = 0) for cases where the trigger value should be assigned from a sample not directly after/before the upgoing/downgoing flank
+%
 % Revision 1.61  2008/05/06 13:29:46  vlalit
 % Changed the code to only give a warning and not an error for Biosemi when detectflank = 'both' is specified and change it to 'up'.
 %
@@ -294,6 +298,7 @@ end
 eventformat      = keyval('eventformat', varargin);
 hdr              = keyval('header',      varargin);
 detectflank      = keyval('detectflank', varargin); % up, down or both
+trigshift        = keyval('trigshift',   varargin); % default is assigned in subfunction
 % this allows to read only events in a certain range, supported for selected data formats only
 flt_type         = keyval('type',         varargin);  
 flt_value        = keyval('value',        varargin);  
@@ -353,7 +358,7 @@ switch eventformat
       event(end  ).duration = hdr.nSamples;
     end
     % read the trigger channel and do flank detection
-    trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', hdr.orig.TriggerIndex, 'detectflank', detectflank);
+    trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', hdr.orig.TriggerIndex, 'detectflank', detectflank, 'trigshift', trigshift);
     event   = appendevent(event, trigger);
 
   case {'besa_avr', 'besa_swf'}
@@ -534,7 +539,7 @@ switch eventformat
     % determine the trigger channels from the header
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', find(hdr.orig.sensType==11), 'detectflank', detectflank, 'fixctf', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', find(hdr.orig.sensType==11), 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
       event   = appendevent(event, trigger);
     end
 
@@ -704,14 +709,11 @@ switch eventformat
         event(eventCount).value    =  ['S' num2str(subject) CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))];
     end
 
-      case 'fcdc_buffer'
+  case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);
-    try
-    evt = buffer_getevt(host, port);  % it would be possible to specify event numbers, not that indices should be zero-offset
-    catch
-      evt = [];
-    end
+    evt = buffer('get_evt', [], host, port);  % indices should be zero-offset
+    % FIMXE it should be possible to specify event numbers
 
     type = {
       'char'
@@ -888,14 +890,14 @@ switch eventformat
       %   like TRIG). Unfortunately, some older files from the 306-channel system
       %   have the STI014 coded in a different way - the two 8-bit halves code
       %   the input and output triggers separately.
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'neuromagfix', 0);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'trigshift', trigshift, 'neuromagfix', 0);
       event   = appendevent(event, trigger);
     elseif ~isempty(analogindx)
       % add the triggers to the event structure based on trigger channels with the name "STI xxx"
       % there are some issues with noise on these analog trigger channels
       % therefore look for the analog triggers only if no binary trigger channel is present
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'neuromagfix', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'neuromagfix', 1);
       event   = appendevent(event, trigger);
     end
 
