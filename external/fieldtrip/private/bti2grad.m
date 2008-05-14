@@ -18,6 +18,9 @@ function [grad] = bti2grad(hdr);
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.5  2008/05/14 09:17:04  jansch
+% included check for orientation in the case of gradiometers
+%
 % Revision 1.4  2008/05/14 08:02:40  jansch
 % transposed grad.tra (was initially incorrect)
 %
@@ -39,8 +42,6 @@ grad.label = grad.label(:);
 grad.tra = sparse(eye(size(grad.pnt,1)));
    
 else
-
-
 % it seems as if there is information about the channels at 2 places of
 % the original header. 
 % hdr.channel_data contains info about the actual recorded channels 
@@ -69,6 +70,7 @@ end
 [srt, ind] = sort(n);
 selMEG     = selMEG(ind);
 
+%sortrows does work here
 [srt, ind] = sortrows(char(name{selREF}));
 selREF     = selREF(ind);
 %first gradiometer refs, then magnetometer refs, alphabetical sorting
@@ -83,15 +85,13 @@ for i=1:numALL
 end
 totalcoils = sum(numcoils);
 
-% start with empty gradiometer
+% start with empty gradiometer structure
 grad       = [];
 grad.pnt   = zeros(totalcoils, 3);
 grad.ori   = zeros(totalcoils, 3);
 grad.tra   = zeros(numALL, totalcoils);
 grad.label = cell(numALL,1);
 
-% combine the coils of each MEG channel if necessary
-% FIXME find a description of gradiometer system
 cnt = 0;
 for i=1:numMEG
   n   = selMEG(i);
@@ -103,6 +103,13 @@ for i=1:numMEG
   end
   % add the coils of this channel to the gradiometer array
   grad.tra(i, cnt+1:cnt+numcoils(n)) = 1;
+  % check the orientation of the individual coils in the case of a gradiometer
+  % and adjust such that the grad.tra and grad.ori are consistent
+  if numcoils(n) > 1,
+    c   = ori*ori';
+    s   = c./sqrt(diag(c)*diag(c)');
+    ori(2:end, :) = ori(2:end, :) .* repmat(-sign(s(2:end,1)), [1 3]);
+  end
   for k=1:numcoils(n)
     cnt = cnt+1;
     grad.pnt(cnt,   :) = pos(k,:);
@@ -122,6 +129,15 @@ for i=1:numREF
   end
   % add the coils of this channel to the gradiometer array
   grad.tra(numMEG+i, cnt+1:cnt+numcoils(n)) = 1; %FIXME check whether ori is OK for gradiometers
+  %I think this depends on the orientation of the coils: if they point in opposite directions it's OK
+  %check ori by determining the cosine of the angle between the orientations, this should be -1
+  % check the orientation of the individual coils in the case of a gradiometer
+  % and adjust such that the grad.tra and grad.ori are consistent
+  if numcoils(n) > 1,
+    c   = ori*ori';
+    s   = c./sqrt(diag(c)*diag(c)');
+    ori(2:end, :) = ori(2:end, :) .* repmat(-sign(s(2:end,1)), [1 3]);
+  end
   for k=1:numcoils(n)
     cnt                = cnt+1;
     grad.pnt(cnt,   :) = pos(k,:);
