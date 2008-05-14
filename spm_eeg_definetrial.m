@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1620 2008-05-13 18:13:42Z vladimir $
+% $Id: spm_eeg_definetrial.m 1628 2008-05-14 09:34:20Z vladimir $
 
 if nargin == 0
     S = [];
@@ -39,7 +39,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
     
     hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
     S.fsample = hdr.Fs;
-
+    
     event = fileio_read_event(S.dataset, 'detectflank', 'both');
 
     if ~isempty(strmatch('UPPT001', hdr.label))
@@ -52,6 +52,20 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
             event = cat(1, event, fil_ctf_events);
         end
     end
+
+    % This is another FIL-specific fix that will hopefully not affect other sites
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, 'ÿBIOSEMI')
+        ind = strcmp('STATUS', {event(:).type});
+        val = [event(ind).value];
+        if any(val>255)
+            bytes  = dec2bin(val);
+            bytes  = bytes(:, end-7:end);
+            bytes  = flipdim(bytes, 2);
+            val    = num2cell(bin2dec(bytes));
+            [event(ind).value] = deal(val{:});
+        end
+    end
+
 else
     event = S.event;
 end
