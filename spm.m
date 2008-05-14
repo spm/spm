@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1532 2008-05-01 14:25:04Z vladimir $
+% $Id: spm.m 1640 2008-05-14 16:36:38Z guillaume $
 
 
 %=======================================================================
@@ -344,6 +344,10 @@ spm('AsciiWelcome');                    fprintf('\n\nInitialising SPM');
 Modality = upper(Action);                                  fprintf('.');
 delete(get(0,'Children'));                                 fprintf('.');
 
+%-Load startup global defaults
+%-----------------------------------------------------------------------
+spm_defaults;                                              fprintf('.');
+
 %-Setup for batch system
 %-----------------------------------------------------------------------
 spm_jobman('initcfg');
@@ -360,9 +364,6 @@ spm_figure('WaterMark',Finter,spm('Ver'),'',45);           fprintf('.');
 Fmotd  = fullfile(spm('Dir'),'spm_motd.man');
 if exist(Fmotd,'file'), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
                                                            fprintf('.');
-%-Load startup global defaults
-%-----------------------------------------------------------------------
-spm_defaults;                                              fprintf('.');
 
 %-Setup for current modality
 %-----------------------------------------------------------------------
