@@ -17,10 +17,7 @@ function spmjobs = spm_def
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_def.m 1558 2008-05-07 07:05:30Z volkmar $
-
-spm_defaults;
-global defaults;
+% $Id: spm_def.m 1636 2008-05-14 14:20:32Z volkmar $
 
 spmjobs.temporal.st.scans = {'<UNDEFINED>'};
 spmjobs.temporal.st.nslices = '<UNDEFINED>';

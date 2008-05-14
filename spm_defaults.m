@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_defaults.m 1636 2008-05-14 14:20:32Z volkmar $
 
 
 global defaults
@@ -73,6 +73,14 @@ defaults.stats.est.ARP    = 3;
 % Contrast manager batch defaults
 %=======================================================================
 defaults.stats.con.delete = 0;
+
+% Results report batch defaults
+%=======================================================================
+defaults.stats.results.threshtype = 'FWE'; % Threshold type
+defaults.stats.results.thresh     = 0.05;  % Threshold value
+defaults.stats.results.extent     = 0;     % Spatial extent
+defaults.stats.results.maskthresh = 0.05;  % (Uncorrected) Threshold for masking
+defaults.stats.results.print      = true;  % Print report to file
 
 % Mask defaults
 %=======================================================================

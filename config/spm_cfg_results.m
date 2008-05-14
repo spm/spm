@@ -4,9 +4,9 @@ function results = spm_cfg_results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_results.m 1636 2008-05-14 14:20:32Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1636 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -23,7 +23,6 @@ spmmat.num     = [1 1];
 titlestr         = cfg_entry;
 titlestr.tag     = 'titlestr';
 titlestr.name    = 'Results Title';
-titlestr.val = {''};
 titlestr.help    = {'Heading on results page - determined automatically if left empty'};
 titlestr.strtype = 's';
 titlestr.num     = [0 Inf];
@@ -57,6 +56,7 @@ threshdesc.values = {
                      'FDR'
                      'none'
 }';
+threshdesc.def    = {@spm_get_defaults, 'stats.results.threshtype'};
 % ---------------------------------------------------------------------
 % thresh Threshold
 % ---------------------------------------------------------------------
@@ -66,6 +66,7 @@ thresh.name    = 'Threshold';
 thresh.help    = {''};
 thresh.strtype = 'e';
 thresh.num     = [1 1];
+thresh.def     = {@spm_get_defaults, 'stats.results.thresh'};
 % ---------------------------------------------------------------------
 % extent Extent (voxels)
 % ---------------------------------------------------------------------
@@ -75,6 +76,7 @@ extent.name    = 'Extent (voxels)';
 extent.help    = {''};
 extent.strtype = 'e';
 extent.num     = [1 1];
+extent.def     = {@spm_get_defaults, 'stats.results.extent'};
 % ---------------------------------------------------------------------
 % contrasts Contrast(s)
 % ---------------------------------------------------------------------
@@ -93,6 +95,7 @@ thresh1.name    = 'Mask threshold';
 thresh1.help    = {''};
 thresh1.strtype = 'e';
 thresh1.num     = [1 1];
+thresh1.def     = {@spm_get_defaults 'stats.results.maskthresh'};
 % ---------------------------------------------------------------------
 % mtype Nature of mask
 % ---------------------------------------------------------------------
@@ -151,8 +154,8 @@ print.labels = {
                 'Yes'
                 'No'
 }';
-print.values{1} = double(1);
-print.values{2} = double(0);
+print.values = {true false};
+print.def    = {@spm_get_defaults 'stats.results.print'};
 % ---------------------------------------------------------------------
 % results Results Report
 % ---------------------------------------------------------------------

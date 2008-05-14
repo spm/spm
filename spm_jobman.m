@@ -85,7 +85,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1570 2008-05-08 07:36:21Z volkmar $
+% $Id: spm_jobman.m 1636 2008-05-14 14:20:32Z volkmar $
 
 
 if nargin==0
@@ -128,7 +128,7 @@ else
             else
                 width = varargin{3};
             end;
-            varargout{1} = cfg_justify(width, cfg_util('showdoc', node));
+            varargout{1} = cfg_util('showdocwidth', width, node);
             
         case 'initcfg'
             addpath(fullfile(spm('Dir'),'matlabbatch'));
