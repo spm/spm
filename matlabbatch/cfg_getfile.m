@@ -76,10 +76,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: cfg_getfile.m 1642 2008-05-14 17:02:56Z john $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: cfg_getfile.m 1642 2008-05-14 17:02:56Z john $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -1187,7 +1187,7 @@ if isempty(mydrivestr) || reread
     driveLett = strcat(cellstr(char(('C':'Z')')), ':');
     dsel = false(size(driveLett));
     for i=1:numel(driveLett)
-        dsel(i) = exist([driveLett{i} '\'],'dir');
+        dsel(i) = exist([driveLett{i} '\'],'dir')~=0;
     end
     mydrivestr = driveLett(dsel);
 end;
