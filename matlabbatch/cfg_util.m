@@ -306,6 +306,11 @@ function varargout = cfg_util(cmd, varargin)
 % containing one paragraph of the help text. In addition to the help
 % text, hints about valid values, defaults etc. are displayed.
 %
+%  doc = cfg_util('showdocwidth', handle|width, tagstr|cfg_id|(job_id, mod_job_id[, item_mod_id]))
+%
+% Same as cfg_util('showdoc', but use handle or width to determine the
+% width of the returned strings.
+%
 %  [mod_job_idlist, str, sts, dep sout] = cfg_util('showjob', job_id[, mod_job_idlist])
 %
 % Return information about the current job (or the part referenced by the
@@ -356,9 +361,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1606 2008-05-13 06:07:01Z volkmar $
+% $Id: cfg_util.m 1641 2008-05-14 16:37:35Z volkmar $
 
-rev = '$Rev: 1606 $';
+rev = '$Rev: 1641 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -724,6 +729,15 @@ switch lower(cmd),
             cm = local_getcmjob(jobs, varargin{:});
         end;
         varargout{1} = showdoc(cm,'');
+    case 'showdocwidth',
+        if nargin == 3
+            % get item from defaults tree
+            cm = local_getcm(c0, varargin{2});
+        elseif nargin >= 4
+            % get item from job
+            cm = local_getcmjob(jobs, varargin{2:end});
+        end;
+        varargout{1} = cfg_justify(varargin{1}, showdoc(cm,''));
     case 'showjob',
         cjob = varargin{1};
         if cfg_util('isjob_id', cjob)

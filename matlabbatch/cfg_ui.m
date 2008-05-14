@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1606 2008-05-13 06:07:01Z volkmar $
+% $Id: cfg_ui.m 1641 2008-05-14 16:37:35Z volkmar $
 
-rev = '$Rev: 1606 $';
+rev = '$Rev: 1641 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1198,14 +1198,17 @@ function MenuEditUpdateView_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
-udmodlist = get(handles.modlist,'Userdata');
-if isfield(udmodlist,'defid')
-    local_showmod(hObject);
-else
-    local_showjob(hObject);
+% This function seems to be called on startup without guidata - do nothing
+% there
+if ~isempty(handles) 
+    local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
+    udmodlist = get(handles.modlist,'Userdata');
+    if isfield(udmodlist,'defid')
+        local_showmod(hObject);
+    else
+        local_showjob(hObject);
+    end;
 end;
-
 % --------------------------------------------------------------------
 function MenuEditReplMod_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuEditReplMod (see GCBO)
