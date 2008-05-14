@@ -40,6 +40,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.14  2008/05/14 13:53:30  roboos
+% rotate only if needed
+%
 % Revision 1.13  2008/05/13 20:19:39  roboos
 % changed senstype eeg into electrode
 %
@@ -318,13 +321,15 @@ return % function elec2lay
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lay = grad2lay(grad, rz, method, style)
 fprintf('creating layout for %s system\n', sensortype(grad));
-switch lower(sensortype(grad))
-  case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
-    rz = 90;
-  case {'neuromag122', 'neuromag306'}
-    rz = 0;
-  otherwise
-    rz = 0;
+if isempty(rz)
+  switch lower(sensortype(grad))
+    case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
+      rz = 90;
+    case {'neuromag122', 'neuromag306'}
+      rz = 0;
+    otherwise
+      rz = 0;
+  end
 end
 grad.pnt = warp_apply(rotate([0 0 rz]), grad.pnt, 'homogenous');
 if strcmpi(style, '3d')
