@@ -18,6 +18,9 @@ function [grad] = bti2grad(hdr);
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.6  2008/05/14 10:20:37  jansch
+% included tra-computation when inputting 'm4d' and 'xyz' headers
+%
 % Revision 1.5  2008/05/14 09:17:04  jansch
 % included check for orientation in the case of gradiometers
 %
@@ -40,8 +43,10 @@ for i=1:size(grad.pnt,1)
 end
 grad.label = grad.label(:);
 grad.tra = sparse(eye(size(grad.pnt,1)));
-   
-else
+
+elseif isfield(hdr, 'config'),
+% hdr has been derived from read_4d_hdr
+
 % it seems as if there is information about the channels at 2 places of
 % the original header. 
 % hdr.channel_data contains info about the actual recorded channels 
@@ -146,8 +151,13 @@ for i=1:numREF
   grad.label(numMEG+i) = {hdr.config.channel_data(n).name}; 
 end
 
-grad.unit  = 'm';
+grad.unit  = 'm';%check
 %TODO remove redundant rows in tra matrix, since some coils are used twice
+
+elseif isfield(hdr, 'grad'),
+  %hdr has been derived in a different way and grad is already there, possibly without tra
+  grad = hdr.grad;
+  if ~isfield(grad, 'tra'), 
+    grad.tra = sparse(eye(size(grad.pnt,1)));
+  end
 end
-
-

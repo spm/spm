@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.51  2008/05/14 10:21:34  jansch
+% included function call to bti2grad for 'm4d' and 'xyz' headers
+%
 % Revision 1.50  2008/05/08 11:08:57  jansch
 % made changes in support for raw 4d-files
 %
@@ -322,24 +325,21 @@ switch headerformat
     hdr.nSamplesPre = round(-orig.header_data.FirstLatency*orig.header_data.SampleFrequency);
     hdr.nTrials     = orig.header_data.TotalEpochs;
     hdr.label       = {orig.channel_data(:).chan_label}';
-    hdr.ChannelGain = double([orig.config.channel_data([orig.channel_data.chan_no]).gain]');
-    hdr.ChannelUnitsPerBit = double([orig.config.channel_data([orig.channel_data.chan_no]).units_per_bit]');
-    hdr.Format      = orig.header_data.Format;
     hdr.grad        = bti2grad(orig);
     % remember original header details
     hdr.orig        = orig;
 
   case {'4d_pdf', '4d_m4d', '4d_xyz'}
-    orig = read_bti_m4d(filename);
+    orig            = read_bti_m4d(filename);
     hdr.Fs          = orig.SampleFrequency;
     hdr.nChans      = orig.TotalChannels;
     hdr.nSamples    = orig.SlicesPerEpoch;
     hdr.nSamplesPre = round(-orig.FirstLatency*orig.SampleFrequency);
     hdr.nTrials     = orig.TotalEpochs;
     hdr.label       = orig.ChannelOrder(:);
-    hdr.grad        = orig.grad;
+    hdr.grad        = bti2grad(orig);
     % remember original header details
-    hdr.orig = orig;
+    hdr.orig        = orig;
 
   case 'besa_avr'
     orig = read_besa_avr(filename);
