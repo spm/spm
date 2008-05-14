@@ -18,6 +18,9 @@ function [grad] = bti2grad(hdr);
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.4  2008/05/14 08:02:40  jansch
+% transposed grad.tra (was initially incorrect)
+%
 % Revision 1.3  2008/05/08 11:10:20  jansch
 % implementation in analogy with ctf2grad
 %
@@ -84,7 +87,7 @@ totalcoils = sum(numcoils);
 grad       = [];
 grad.pnt   = zeros(totalcoils, 3);
 grad.ori   = zeros(totalcoils, 3);
-grad.tra   = zeros(totalcoils, numALL);
+grad.tra   = zeros(numALL, totalcoils);
 grad.label = cell(numALL,1);
 
 % combine the coils of each MEG channel if necessary
@@ -99,7 +102,7 @@ for i=1:numMEG
     error('number of coils does not correspond with number of coil positions');
   end
   % add the coils of this channel to the gradiometer array
-  grad.tra(cnt+1:cnt+numcoils(n),   i) = 1;
+  grad.tra(i, cnt+1:cnt+numcoils(n)) = 1;
   for k=1:numcoils(n)
     cnt = cnt+1;
     grad.pnt(cnt,   :) = pos(k,:);
@@ -118,7 +121,7 @@ for i=1:numREF
     error('number of coils does not correspond with number of coil positions');
   end
   % add the coils of this channel to the gradiometer array
-  grad.tra(cnt+1:cnt+numcoils(n),   numMEG+i) = 1; %FIXME check whether ori is OK for gradiometers
+  grad.tra(numMEG+i, cnt+1:cnt+numcoils(n)) = 1; %FIXME check whether ori is OK for gradiometers
   for k=1:numcoils(n)
     cnt                = cnt+1;
     grad.pnt(cnt,   :) = pos(k,:);
