@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.63  2008/05/14 15:58:33  roboos
+% typecast to uint32 for tsl and tsh obtained from neuralynx_dma file (*.nrd)
+%
 % Revision 1.62  2008/05/13 16:48:23  roboos
 % added option trigshift (default = 0) for cases where the trigger value should be assigned from a sample not directly after/before the upgoing/downgoing flank
 %
@@ -967,9 +970,9 @@ switch eventformat
       % try reading the timestamps
       if strcmp(eventformat, 'neuralynx_dma')
         tsl = read_neuralynx_dma(filename, 1, max(smp), 'tsl');
-        tsl = tsl(smp);
+        tsl = typecast(tsl(smp), 'uint32');
         tsh = read_neuralynx_dma(filename, 1, max(smp), 'tsh');
-        tsh = tsh(smp);
+        tsh = typecast(tsh(smp), 'uint32');
         ts  = timestamp_neuralynx(tsl, tsh);
       elseif exist(tslfile) && exist(tshfile)
         tsl = read_neuralynx_bin(tslfile, 1, max(smp));
