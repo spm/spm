@@ -16,7 +16,6 @@ function [lay] = prepare_layout(cfg, data);
 % You can specify either one of the following configuration options
 %   cfg.layout      filename containg the layout
 %   cfg.rotate      number, rotation around the z-axis in degrees (default = [], which means automatic)
-%   cfg.style       string, '2d' or '3d' (default = '2d')
 %   cfg.projection  string, 2D projection method can be 'stereographic', 'ortographic', 'polar', 'gnomic' or 'inverse' (default = 'orthographic')
 %   cfg.elec        structure with electrode positions, or
 %   cfg.elecfile    filename containing electrode positions
@@ -37,9 +36,15 @@ function [lay] = prepare_layout(cfg, data);
 
 % TODO switch to using planarchannelset function
 
+% undocumented and non-recommended option (for SPM only)
+%   cfg.style       string, '2d' or '3d' (default = '2d')
+
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.15  2008/05/14 19:17:24  roboos
+% fixed bug for vladimirs neuromag306 example, removed spm specific documentation
+%
 % Revision 1.14  2008/05/14 13:53:30  roboos
 % rotate only if needed
 %
@@ -602,7 +607,12 @@ switch lower(sensortype(sens))
 end % switch sensortype
 
 lay.pos    = pnt;
-lay.width  = nan*ones(length(lab),1);
-lay.height = nan*ones(length(lab),1);
 lay.label  = lab;
+lay.width  = nan*ones(numel(lab),1);
+lay.height = nan*ones(numel(lab),1);
+% this is to fix the neuromag planar layouts, which cannot be plotted anyway
+n         = size(lab,2);
+lay.label = lay.label(:);
+lay.pos   = repmat(lay.pos, n, 1);
+
 return % subfunction layout3d
