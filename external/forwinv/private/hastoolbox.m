@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, add_to_path);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.14  2008/05/15 10:52:29  roboos
+% added ctf
+%
 % Revision 1.13  2008/03/17 08:29:40  roboos
 % changed some contact addresses
 %
@@ -164,6 +167,8 @@ switch toolbox
     status  = (exist('compute_leadfield') && exist('prepare_vol_sens'));
   case 'DENOISE'
     status  = (exist('tsr') && exist('sns'));
+  case 'CTF'
+    status  = (exist('getCTFBalanceCoefs') && exist('getCTFdata'));
   otherwise
     warning(sprintf('cannot determine whether the %s toolbox is present', toolbox));
     status = 0;
