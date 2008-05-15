@@ -3,10 +3,15 @@ function grad = yokogawa2grad(hdr);
 % YOKOGAWA2GRAD converts the position and weights of all coils that
 % compromise a gradiometer system into a structure that can be used
 % by FieldTrip.
+%
+% See also READ_HEADER, CTF2GRAD, BTI2GRAD, FIF2GRAD
 
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: yokogawa2grad.m,v $
+% Revision 1.2  2008/05/15 13:20:36  roboos
+% updated documentation
+%
 % Revision 1.1  2006/08/31 13:32:11  roboos
 % moved from fieldtrip to fileio module
 %
@@ -14,12 +19,15 @@ function grad = yokogawa2grad(hdr);
 % new implementations for the Yokogawa 160 channel MEG system
 %
 
-% hdr = read_yokogawa_header(filename);
-hdr = hdr.orig; % use the original Yokogawa header, not the FieldTrip header
+if isfield(hdr, 'orig')
+  hdr = hdr.orig; % use the original header, not the FieldTrip header
+end
 
 handles    = definehandles;
 isgrad     = (hdr.channel_info(:,2)==handles.AxialGradioMeter);
 grad.pnt   = hdr.channel_info(find(isgrad),3:5);
+
+warning('The implementation of the gradiometer definition is incomplete')
 grad.ori   = []; % FIXME
 grad.label = []; % FIXME
 

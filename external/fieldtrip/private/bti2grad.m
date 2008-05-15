@@ -13,11 +13,14 @@ function [grad] = bti2grad(hdr);
 % definition for the 4D system. This function is based on ctf2grad and
 % Gavin Paterson's code, which was adapted from Eugene Kronberg's code
 %
-% See also NIMH2GRAD, FIF2GRAD, CTF2GRAD
+% See also FIF2GRAD, CTF2GRAD
 
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.7  2008/05/15 13:20:36  roboos
+% updated documentation
+%
 % Revision 1.6  2008/05/14 10:20:37  jansch
 % included tra-computation when inputting 'm4d' and 'xyz' headers
 %
