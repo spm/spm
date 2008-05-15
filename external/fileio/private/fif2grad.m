@@ -7,11 +7,14 @@ function grad = fif2grad(filename);
 % Use as
 %   grad = fif2grad(filename);
 %
-% See also READ_FCDC_HEADER
+% See also READ_HEADER, CTF2GRAD, BTI2GRAD
 
 % Copyright (C) 2004, Joachim Gross
 %
 % $Log: fif2grad.m,v $
+% Revision 1.3  2008/05/15 13:20:35  roboos
+% updated documentation
+%
 % Revision 1.2  2007/03/15 12:44:42  roboos
 % added try-catch to deal with fif files that do not contain coil information (code by chrhes)
 %
