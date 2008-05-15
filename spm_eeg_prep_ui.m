@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1648 2008-05-15 09:49:36Z stefan $
+% $Id: spm_eeg_prep_ui.m 1650 2008-05-15 10:22:31Z vladimir $
 
 if nargin == 0
 
@@ -41,7 +41,7 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on');
 
-    chanTypes = {'EEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
+    chanTypes = {'EEG', 'MEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
 
     for i = 1:length(chanTypes)
         CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
@@ -224,7 +224,7 @@ D = getD;
 if ~isempty(D)
     chanlist ={};
     for i = 1:D.nchannels
-        if strncmp(D.chantype(i), 'MEG', 3)
+        if 0%  strncmp(D.chantype(i), 'MEG', 3)
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i) , ' (nonmodifiable)'];
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
@@ -239,8 +239,10 @@ if ~isempty(D)
         [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
 
+        % This is disabled for now. Will be brought back later
         % Changing the type of MEG channels in GUI is not allowed.
-        selection(strmatch('MEG', chantype(D, selection))) = [];
+        % selection(strmatch('MEG', chantype(D, selection))) = [];
+        
         if ok && ~isempty(selection)
             S.task = 'settype';
             S.D = D;
@@ -268,13 +270,34 @@ switch get(gcbo, 'Label')
         S.source = 'mat';
     case 'From FIL polhemus file'
         S.sensfile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
-        S.source = 'filpolhemus'
+        S.source = 'filpolhemus';
     case 'Convert locations file'
         S.sensfile = spm_select(1, '\.*', 'Select locations file');
-        S.source = 'locfile'
+        S.source = 'locfile';
 end
 
 D = spm_eeg_prep(S);
+
+% ====== This is for the future ==================================
+% sens = D.sensors('EEG');
+% label = D.chanlabels(strmatch('EEG',D.chantype));
+% 
+% [sel1, sel2] = spm_match_str(label, sens.label);
+% 
+% montage = [];
+% montage.labelorg = sens.label;
+% montage.labelnew = label;
+% montage.tra = sparse(zeros(numel(label), numel(sens.label)));
+% montage.tra(sub2ind(size(montage.tra), sel1, sel2)) = 1;
+% 
+% montage = spm_eeg_montage_ui(montage);
+% 
+% S = [];
+% S.D = D;
+% S.task = 'sens2chan';
+% S.montage = montage;
+% 
+% D = spm_eeg_prep(S);
 
 setD(D);
 
@@ -508,7 +531,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', I
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', IsSensorsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', 'off'); % for now
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', IsSensorsMEG); 
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Delete sensor'), 'Enable', IsSelected);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);

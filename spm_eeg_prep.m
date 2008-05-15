@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1531 2008-05-01 14:17:54Z vladimir $
+% $Id: spm_eeg_prep.m 1650 2008-05-15 10:22:31Z vladimir $
 
 D = S.D;
 
@@ -92,6 +92,30 @@ switch S.task
         
         D = fiducials(D, fid);
 
+    case 'sens2chan'
+        montage = S.montage;
+        
+        eeglabel = D.chanlabels(strmatch('EEG',D.chantype));
+        meglabel = D.chanlabels(strmatch('MEG',D.chantype));
+        
+        if ~isempty(intersect(eeglabel, montage.labelnew))
+            sens = sensors(D, 'EEG');
+            if isempty(sens)
+                error('The montage cannod be applied - no EEG sensors specified');
+            end
+            sens = forwinv_apply_montage(sens, montage, 'keepunused', 'no');
+            D = sensors(D, 'EEG', sens);
+        elseif ~isempty(intersect(meglabel, montage.labelnew))
+            sens = sensors(D, 'MEG');
+            if isempty(sens)
+                error('The montage cannod be applied - no MEG sensors specified');
+            end
+            sens = forwinv_apply_montage(sens, montage, 'keepunused', 'no');
+            D = sensors(D, 'MEG', sens);
+        else
+            error('The montage cannot be applied to the sensors');
+        end         
+        
     case 'headshape'
         switch S.source
             case 'mat'

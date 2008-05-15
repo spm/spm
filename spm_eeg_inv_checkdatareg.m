@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1523 2008-04-30 17:33:04Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 1650 2008-05-15 10:22:31Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -33,9 +33,9 @@ h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor',
 %==========================================================================
 try
     Lsens   = S.sens.pnt;
-    Lfid    = S.meegfid.fid.pnt;
     Lhsp    = S.meegfid.pnt;
     Lfidmri = S.mrifid.fid.pnt;
+    Lfid    = S.meegfid.fid.pnt(1:size(Lfidmri, 1), :);
     Llabel = S.sens.label;
 catch
     warndlg('please coregister these data')

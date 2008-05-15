@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 1580 2008-05-08 15:08:46Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 1650 2008-05-15 10:22:31Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -69,15 +69,17 @@ S =[];
 switch D.inv{val}.modality
     case 'EEG'
         S.sens = D.inv{val}.datareg.sensors;
-    case 'MEG'
-        % FIXME This is a temporary dirty fix for CTF MEG before 3D layout
-        % is available
-        sens = D.inv{val}.datareg.sensors;
-        [sel1 sel2] = spm_match_str(D.inv{val}.forward.channels, sens.label);
+    case 'MEG'    
+        cfg = [];
+        cfg.style = '3d';
+        cfg.rotate = 0;
+        cfg.grad = D.inv{val}.datareg.sensors;
+   
+        lay = ft_prepare_layout(cfg);
+                
         S.sens = [];
-        S.sens.label = D.inv{val}.forward.channels;
-        pnt = ((sens.tra)./repmat(sum(sens.tra, 2), 1, size(sens.tra, 2)))*sens.pnt;
-        S.sens.pnt = pnt(sel2 ,:);
+        S.sens.label = lay.label(:, 1);
+        S.sens.pnt = lay.pos;
 end
         
 S.meegfid = D.inv{val}.datareg.fid_eeg;
