@@ -18,6 +18,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.5  2008/05/15 18:38:53  vlalit
+% Fixed the problems with discontinuous files and baseline different than zero
+%
 % Revision 1.4  2008/05/13 16:48:24  roboos
 % added option trigshift (default = 0) for cases where the trigger value should be assigned from a sample not directly after/before the upgoing/downgoing flank
 %
@@ -52,7 +55,7 @@ if isempty(endsample)
 end
 
 % read the trigger channel as raw data, can safely assume that it is continuous
-dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
+dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
 
 if fixctf
   % correct for reading the data as signed 32-bit integer, whereas it should be interpreted as an unsigned int
@@ -69,6 +72,7 @@ for i=1:length(chanindx)
   % process each trigger channel independently
   channel = hdr.label{chanindx(i)};
   trig    = dat(i,:);
+  trig    = trig - trig(1); %Assume that the first sample is the baseline
   switch detectflank
     case 'up'
       % convert the trigger into an event with a value at a specific sample
