@@ -7,11 +7,11 @@ function [proj] = elproj(pos, method);
 %  [proj] = elproj([x, y, z], 'method');
 %
 % Method should be one of these:
-%	'gnomic'
-%	'stereographic'
-%	'ortographic'
-%	'inverse'
-%	'polar'
+%	  'gnomic'
+%	  'stereographic'
+%	  'ortographic'
+%	  'inverse'
+%	  'polar'
 %
 % Imagine a plane being placed against (tangent to) a globe. If
 % a light source inside the globe projects the graticule onto
@@ -20,12 +20,15 @@ function [proj] = elproj(pos, method);
 % projection results, if the light is antipodal a Sterographic,
 % and if at infinity, an Orthographic.
 %
-% The default projection is an angular projection (BESA like).
-% An inverse projection is the opposite of the default angular projection.
+% The default projection is a polar projection (BESA like).
+% An inverse projection is the opposite of the default polar projection.
 
-% Copyright (C) 2000-2001, Robert Oostenveld
+% Copyright (C) 2000-2008, Robert Oostenveld
 %
 % $Log: elproj.m,v $
+% Revision 1.4  2008/05/15 10:54:24  roboos
+% updated documentation
+%
 % Revision 1.3  2007/03/20 10:29:35  roboos
 % renamed method 'default' into 'polar'
 %
