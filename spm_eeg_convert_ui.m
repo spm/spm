@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1575 2008-05-08 11:50:41Z vladimir $
+% $Id: spm_eeg_convert_ui.m 1659 2008-05-15 14:18:00Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -46,7 +46,7 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
                 S.usetrials = 1;
             case 2
                 S.usetrials = 0;
-                [S.trl, S.conditionlabels] = spm_eeg_definetrial(S);
+                [S.trl, S.conditionlabel] = spm_eeg_definetrial(S);
             case 3
                 S.usetrials = 0;
                 if  ~isfield(S, 'trlfile')

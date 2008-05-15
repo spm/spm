@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1595 2008-05-11 15:28:26Z vladimir $
+% $Id: spm_eeg_convert.m 1659 2008-05-15 14:18:00Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -58,7 +58,11 @@ if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                         
 if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                         end
 if ~isfield(S, 'datatype'),        S.datatype = 'float32';                                  end
 if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                      end
-if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined';                          end
+if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                         end
+
+if ~iscell(S.conditionlabel)
+    S.conditionlabel = {S.conditionlabel};
+end
 
 %--------- Read and check header
 
@@ -141,7 +145,7 @@ if S.continuous
             [S.timewindow(1)-S.eventpadding S.timewindow(2)+S.eventpadding]);
     end
 
-    D.trials.label = S.conditionlabel;
+    D.trials.label = S.conditionlabel{1};
     D.trials.events = event;
     D.trials.onset = S.timewindow(1);
 
@@ -180,7 +184,7 @@ else % Read by trials
         if length(D.timeOnset) > 1
             error('All trials should have identical baseline');
         end
-        if isfield(S, 'conditionlabels')
+        if isfield(S, 'conditionlabel')
             conditionlabels = S.conditionlabel;
         else
             conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
@@ -211,7 +215,7 @@ else % Read by trials
             conditionlabels = {};
             for i = 1:length(trialind)
                 if isempty(event(trialind(i)).value)
-                    conditionlabels{i} = S.conditionlabel;
+                    conditionlabels{i} = S.conditionlabel{1};
                 else
                     if all(ischar(event(trialind(i)).value))
                         conditionlabels{i} = event(trialind(i)).value;
@@ -239,7 +243,7 @@ else % Read by trials
         ntrial = hdr.nTrials;
         trl = zeros(ntrial, 2);
         if exist('conditionlabels', 'var') ~= 1 || length(conditionlabels) ~= ntrial
-            conditionlabels = repmat({S.conditionlabel}, 1, ntrial);
+            conditionlabels = repmat(S.conditionlabel, 1, ntrial);
         end
     else
         nsampl = unique(diff(trl, [], 2))+1;
@@ -247,7 +251,7 @@ else % Read by trials
             error('All trials should have identical lengths');
         end
 
-        inbounds = (trl(:,1)>1 & trl(:, 2)<=hdr.nSamples)';
+        inbounds = (trl(:,1)>1 & trl(:, 2)<=hdr.nSamples*hdr.nTrials)';
 
         rejected = find(~inbounds);
 
