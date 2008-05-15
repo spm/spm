@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1661 2008-05-15 14:53:01Z volkmar $
 
-rev = '$Rev: 1521 $';
+rev = '$Rev: 1661 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -240,12 +240,24 @@ generic.help    = {'Covariates'};
 generic.values  = {mcov };
 generic.num     = [0 Inf];
 % ---------------------------------------------------------------------
+% incint Intercept
+% ---------------------------------------------------------------------
+incint = cfg_menu;
+incint.tag = 'incint';
+incint.name = 'Intercept';
+incint.help = {['By default, an intercept is always added to the model. If the ',...
+    'covariates supplied by the user include a constant effect, the ',...
+    'intercept may be omitted.']};
+incint.labels = {'Include Intercept','Omit Intercept'};
+incint.values = {1,0};
+incint.def    = {@spm_get_defaults, 'stats.fact.mreg_int'};
+% ---------------------------------------------------------------------
 % mreg Multiple regression
 % ---------------------------------------------------------------------
 mreg         = cfg_branch;
 mreg.tag     = 'mreg';
 mreg.name    = 'Multiple regression';
-mreg.val     = {scans generic };
+mreg.val     = {scans generic incint};
 mreg.help    = {''};
 % ---------------------------------------------------------------------
 % name Name

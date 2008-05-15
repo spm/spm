@@ -9,7 +9,7 @@ function out = spm_run_factorial_design(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_factorial_design.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: spm_run_factorial_design.m 1661 2008-05-15 14:53:01Z volkmar $
 
 
 global defaults
@@ -217,7 +217,11 @@ switch strvcat(fieldnames(job.des)),
         SPM.factor(1).dept=0;
 
         H=[];Hnames=[];
-        [B,Bnames]=spm_DesMtx(I(:,2),'-','mean');
+        if job.des.mreg.incint==0
+            B = []; Bnames = '';
+        else
+            [B,Bnames] = spm_DesMtx(I(:,2),'-','mean');
+        end
 
         for i=1:length(job.des.mreg.mcov)
             job.cov(end+1).c   = job.des.mreg.mcov(i).c;

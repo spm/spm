@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1636 2008-05-14 14:20:32Z volkmar $
+% $Id: spm_defaults.m 1661 2008-05-15 14:53:01Z volkmar $
 
 
 global defaults
@@ -64,6 +64,7 @@ defaults.stats.fact.rthresh  = .8;
 defaults.stats.fact.imask    = 1;
 defaults.stats.fact.gmsca    = 50;
 defaults.stats.fact.glonorm  = 1;
+defaults.stats.fact.mreg_int = 1;
 
 % Model estimation defaults
 %=======================================================================
