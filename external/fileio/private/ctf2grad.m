@@ -14,6 +14,9 @@ function [grad] = ctf2grad(hdr, dewar);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: ctf2grad.m,v $
+% Revision 1.4  2008/05/15 15:11:40  roboos
+% add balancing coefficients to the gradiometer definition
+%
 % Revision 1.3  2008/05/15 13:21:13  roboos
 % merged nihm impleemntation into this function
 % added new implementation based on CTF p-files
@@ -130,6 +133,50 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
 
   grad.label = label([selMEG selREF]);
   grad.unit  = 'cm';
+  
+  if     all([hdr.res4.senres(selMEG).grad_order_no]==0)
+    grad.balance.current = 'none';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==1)
+    grad.balance.current = 'G1BR';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==2)
+    grad.balance.current = 'G2BR';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==3)
+    grad.balance.current = 'G3BR';
+  else
+    error('cannot determine balancing of CTF gradiometers');
+  end
+  
+  % convert the balancing coefficients into a montage that can be used with
+  % the apply_montage function
+  meglabel          = label(hdr.BalanceCoefs.G1BR.MEGlist);
+  reflabel          = label(hdr.BalanceCoefs.G1BR.Refindex);
+  nmeg              = length(meglabel);
+  nref              = length(reflabel);
+  montage.labelorg  = cat(1, meglabel, reflabel);
+  montage.labelnew  = cat(1, meglabel, reflabel);
+  montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G1BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+  grad.balance.G1BR = montage;
+
+  meglabel          = label(hdr.BalanceCoefs.G2BR.MEGlist);
+  reflabel          = label(hdr.BalanceCoefs.G2BR.Refindex);
+  nmeg              = length(meglabel);
+  nref              = length(reflabel);
+  montage.labelorg  = cat(1, meglabel, reflabel);
+  montage.labelnew  = cat(1, meglabel, reflabel);
+  montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G2BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+  grad.balance.G2BR = montage;
+
+  meglabel          = label(hdr.BalanceCoefs.G3BR.MEGlist);
+  reflabel          = label(hdr.BalanceCoefs.G3BR.Refindex);
+  nmeg              = length(meglabel);
+  nref              = length(reflabel);
+  montage.labelorg  = cat(1, meglabel, reflabel);
+  montage.labelnew  = cat(1, meglabel, reflabel);
+  montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G3BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+  grad.balance.G3BR = montage;
+  
+  
+
 
 elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
