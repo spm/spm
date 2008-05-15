@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1602 2008-05-12 14:40:25Z stefan $
+% $Id: spm_eeg_artefact.m 1649 2008-05-15 10:22:26Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -279,7 +279,9 @@ if MustDoWork
         spm_progress_bar('Clear');
         disp(sprintf('%d rejected trials: %s', length(index), mat2str(index)))
 
-        D = reject(D, index, 1);
+        if ~isempty(index)
+            D = reject(D, index, 1);
+        end
     end
 
     D.thresholded = thresholded;

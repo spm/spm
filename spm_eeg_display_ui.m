@@ -17,7 +17,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1603 2008-05-12 17:23:01Z stefan $
+% $Id: spm_eeg_display_ui.m 1649 2008-05-15 10:22:26Z stefan $
 
 if nargin == 1
     S = varargin{1};
@@ -121,11 +121,15 @@ if nargin == 0 || ~isfield(S, 'rebuild')
     %-----------------
     % estimate of maximum scaling value
     if strcmp(D.transformtype, 'TF')
-        handles.scalemax = 2*max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,:, 1)))));
+        handles.scalemax = 2*max(max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,:, linspace(1,D.ntrials,10)))))));
     else
-        handles.scalemax = 2*max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :, 1))));
+        handles.scalemax = 2*max(max(max(abs(D(setdiff(D.meegchannels, D.badchannels), :,  linspace(1,D.ntrials,10))))));
     end
 
+    if handles.scalemax == 0
+        error('Can''t display because all data are zero');
+    end
+    
     handles.order = 10^floor(log10(handles.scalemax)-2);
     scale = 100;
 
