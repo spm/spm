@@ -14,11 +14,19 @@ function [sens] = apply_montage(sens, montage, varargin)
 %   montage.labelnew = Mx1 cell-array
 %   montage.labelorg = Nx1 cell-array
 %
+% Additional options should be specified in key-value pairs and can be
+%   'keepunused'   string, 'yes' or 'no' (default = 'no')
+%   'inverse'      string, 'yes' or 'no' (default = 'no')
+%
 % See also READ_SENS, TRANSFORM_SENS
 
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.5  2008/05/15 15:08:51  roboos
+% added support for applying the inverse montage (i.e. undo a previous montage)
+% added support for applying the montage to preprocessed/raw data
+%
 % Revision 1.4  2008/05/13 11:43:27  roboos
 % fixed bug in selempty
 %
@@ -35,9 +43,18 @@ function [sens] = apply_montage(sens, montage, varargin)
 
 % get optional input arguments
 keepunused = keyval('keepunused', varargin{:}); if isempty(keepunused), keepunused = 'no'; end
+inverse    = keyval('inverse',    varargin{:}); if isempty(inverse),    inverse    = 'no'; end
+
+if strcmp(inverse, 'yes')
+  % apply the inverse montage, i.e. undo a previously applied montage
+  tmp.labelnew = montage.labelorg;
+  tmp.labelorg = montage.labelnew;
+  tmp.tra      = inv(montage.tra);
+  montage      = tmp;
+end
 
 % use default transfer from sensors to channels if not specified
-if ~isfield(sens, 'tra')
+if ~isfield(sens, 'tra') && ~isfield(sens, 'trial')
   nchan = size(sens.pnt,1);
   sens.tra = sparse(eye(nchan));
 end
@@ -80,9 +97,21 @@ end
 
 % reorder the columns of the montage matrix
 [selsens, selmont] = match_str(sens.label, montage.labelorg);
-montage.tra        = montage.tra(:,selmont);
+montage.tra        = sparse(montage.tra(:,selmont));
 montage.labelorg   = montage.labelorg(selmont);
 
-% apply the montage to the sensor array
-sens.tra   = sparse(montage.tra) * sens.tra;
-sens.label = montage.labelnew;
+if isfield(sens, 'tra')
+  % apply the montage to the sensor array
+  sens.tra   = montage.tra * sens.tra;
+  sens.label = montage.labelnew;
+elseif isfield(sens, 'trial')
+  % apply the montage to the data that was preprocessed using fieldtrip
+  Ntrials = numel(sens.trial);
+  for i=1:Ntrials
+    fprintf('processing trial %d from %d\n', i, Ntrials);
+    sens.trial{i}   = montage.tra * sens.trial{i};
+  end
+  sens.label = montage.labelnew;
+else
+  error('unrecognized input');
+end
