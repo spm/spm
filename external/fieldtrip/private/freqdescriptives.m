@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.48  2008/05/15 08:18:55  roboos
+% replaced strmatch with strcmp where applicable to fix bug in toilim='all' (thanks to Doug)
+%
 % Revision 1.47  2008/05/06 16:30:26  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -272,7 +275,7 @@ else
 end
 
 %check which frequency bins are requested
-if strmatch(cfg.foilim, 'all'),
+if strcmp(cfg.foilim, 'all'),
   fbin = [1:length(freq.freq)];
 else
   fbin = [nearest(freq.freq, cfg.foilim(1)):nearest(freq.freq, cfg.foilim(2))];
@@ -281,7 +284,7 @@ end
 %check which time bins are requested
 if ~hastim,
   tbin   = 1;
-elseif hastim && strmatch(cfg.toilim, 'all'),
+elseif hastim && strcmp(cfg.toilim, 'all'),
   tbin   = [1:length(freq.time)];
 else 
   tbin   = [nearest(freq.time, cfg.latency(1)):nearest(freq.time, cfg.latency(2))];
@@ -613,7 +616,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.47 2008/05/06 16:30:26 sashae Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.48 2008/05/15 08:18:55 roboos Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details
@@ -639,8 +642,11 @@ fprintf('indexing the channels and channel combinations\n');
 sgnindx    = [1:length(freq.label)]';
 cmbindx = zeros(size(freq.labelcmb));
 for i=1:size(freq.labelcmb,1)
-  cmbindx(i,1) = strmatch(freq.labelcmb{i,1}, freq.label, 'exact');
-  cmbindx(i,2) = strmatch(freq.labelcmb{i,2}, freq.label, 'exact');
+  cmbindx(i,1) = find(strcmp(freq.labelcmb(i,1), freq.label));
+  cmbindx(i,2) = find(strcmp(freq.labelcmb(i,2), freq.label));
+  % this works the same, but is much slower in Octave
+  % cmbindx(i,1) = strmatch(freq.labelcmb{i,1}, freq.label, 'exact');
+  % cmbindx(i,2) = strmatch(freq.labelcmb{i,2}, freq.label, 'exact');
 end
 sgncmbmat  = nan*zeros(length(sgnindx),length(sgnindx));
 for i=1:size(cmbindx,1)
