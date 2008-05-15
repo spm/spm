@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1646 2008-05-15 09:01:12Z volkmar $
+% $Id: cfg_ui.m 1651 2008-05-15 10:38:52Z volkmar $
 
-rev = '$Rev: 1646 $';
+rev = '$Rev: 1651 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -483,7 +483,7 @@ switch(udmodule.contents{5}{citem})
                     str = udmodule.contents{2}{citem}{1};
                 elseif isnumeric(udmodule.contents{2}{citem}{1}) || ...
                         islogical(udmodule.contents{2}{citem}{1})
-                    str = cellstr(mat2str(udmodule.contents{2}{citem}{1}));
+                    str = cellstr(num2str(udmodule.contents{2}{citem}{1}));
                 else
                     str = gencode(udmodule.contents{2}{citem}{1},'val');
                 end;
@@ -669,7 +669,7 @@ if strtype{1}{1} == 's'
     encl  = '''''';
 else
     try
-        instr = {mat2str(val{1})};
+        instr = {num2str(val{1})};
         encl  = '[]';
     catch
         local_valedit_expert_edit(hObject);
