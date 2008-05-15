@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.52  2008/05/15 15:10:56  roboos
+% added ctf_new implementation, using p-files, this supports synthetic gradients
+% some changes to the filename handling, merged nihm2grad into ctf2grad
+%
 % Revision 1.51  2008/05/14 10:21:34  jansch
 % included function call to bti2grad for 'm4d' and 'xyz' headers
 %
@@ -254,24 +258,22 @@ switch headerformat
     datafile   = filename(1:(end-4)); % remove the extension
     headerfile = [datafile '.m4d'];
     sensorfile = [datafile '.xyz'];
-  case '4d'
-    [path, file, ext] = fileparts(filename);
-    datafile   = fullfile(path, file);
-    headerfile = fullfile(path, file);
-    configfile = fullfile(path, 'config');
   case 'ctf_ds'
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
+    filename   = filename; % this is the *.ds directory
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
+    filename   = path; % this is the *.ds directory
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
+    filename   = path; % this is the *.ds directory
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.vhdr']);
@@ -298,17 +300,13 @@ switch headerformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
-  case 'spmeeg_mat'
-    [path, file, ext] = fileparts(filename);
-    headerfile = fullfile(path, [file '.mat']);
-    datafile   = fullfile(path, [file '.dat']);
   otherwise
     % convert filename into filenames, assume that the header and data are the same
     datafile   = filename;
     headerfile = filename;
 end
 
-if ~strcmp(filename, headerfile)
+if ~strcmp(filename, headerfile) && ~filetype(filename, 'ctf_ds')
   filename     = headerfile;                % this function will read the header
   headerformat = filetype(filename);        % update the filetype
 end
@@ -442,16 +440,52 @@ switch headerformat
     end;
     hdr.label = {orig.label};
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_res4'} % the default reader for CTF is read_ctf_res4
-    if strcmp(headerformat, 'ctf_ds')
-      [p, f, x] = fileparts(filename);
-      filename = fullfile(filename, [f '.res4']);
-    elseif strcmp(headerformat, 'ctf_meg4')
-      [p, f, x] = fileparts(filename);
-      filename = fullfile(p, [f '.res4']);
+  case {'ctf_new'} % this is an experimental implementation using the CTF p-files
+    % check the presence of the required low-level toolbox
+    hastoolbox('ctf', 1);
+    orig             = readCTFds(filename);
+    hdr.Fs           = orig.res4.sample_rate;
+    hdr.nChans       = orig.res4.no_channels;
+    hdr.nSamples     = orig.res4.no_samples;
+    hdr.nSamplesPre  = orig.res4.preTrigPts;
+    hdr.nTrials      = orig.res4.no_trials;
+    hdr.label        = cellstr(orig.res4.chanNames);
+    for i=1:numel(hdr.label)
+      % remove the site-specific numbers from each channel name, e.g. 'MZC01-1706' becomes 'MZC01'
+      hdr.label{i} = strtok(hdr.label{i}, '-');
     end
-    % read it using the default CTF importer that originates from CTF and the FCDC
-    orig = read_ctf_res4(filename);
+    % read the balance coefficients, these are used to compute the synthetic gradients
+    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'NONE', 'T');
+    orig.BalanceCoefs.none.alphaMEG  = alphaMEG;
+    orig.BalanceCoefs.none.MEGlist   = MEGlist;
+    orig.BalanceCoefs.none.Refindex  = Refindex;
+    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G1BR', 'T');
+    orig.BalanceCoefs.G1BR.alphaMEG  = alphaMEG;
+    orig.BalanceCoefs.G1BR.MEGlist   = MEGlist;
+    orig.BalanceCoefs.G1BR.Refindex  = Refindex;
+    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G2BR', 'T');
+    orig.BalanceCoefs.G2BR.alphaMEG  = alphaMEG;
+    orig.BalanceCoefs.G2BR.MEGlist   = MEGlist;
+    orig.BalanceCoefs.G2BR.Refindex  = Refindex;
+    [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig,'G3BR', 'T');
+    orig.BalanceCoefs.G3BR.alphaMEG  = alphaMEG;
+    orig.BalanceCoefs.G3BR.MEGlist   = MEGlist;
+    orig.BalanceCoefs.G3BR.Refindex  = Refindex;
+    % add a gradiometer structure for forward and inverse modelling
+    try
+      hdr.grad = ctf2grad(orig);
+    catch
+      % this fails if the res4 file is not correctly closed, e.g. during realtime processing
+      tmp = lasterror;
+      disp(tmp.message);
+      warning('could not construct gradiometer definition from the header');
+    end
+    % add the original header details
+    hdr.orig = orig;
+
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_res4'} % the default reader for CTF is read_ctf_res4
+    % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
+    orig             = read_ctf_res4(headerfile);
     hdr.Fs           = orig.Fs;
     hdr.nChans       = orig.nChans;
     hdr.nSamples     = orig.nSamples;
@@ -462,6 +496,9 @@ switch headerformat
     try
       hdr.grad = ctf2grad(orig);
     catch
+      % this fails if the res4 file is not correctly closed, e.g. during realtime processing
+      tmp = lasterror;
+      disp(tmp.message);
       warning('could not construct gradiometer definition from the header');
     end
     % add the original header details
@@ -470,13 +507,6 @@ switch headerformat
   case 'ctf_read_res4'
     % check that the required low-level toolbos ix available
     hastoolbox('eegsf', 1);
-    if strcmp(headerformat, 'ctf_res4')
-      [p, f, x] = fileparts(filename);
-      filename = p;
-    elseif strcmp(headerformat, 'ctf_meg4')
-      [p, f, x] = fileparts(filename);
-      filename = p;
-    end
     % read it using the CTF importer from the NIH and Daren Weber
     orig = ctf_read_res4(filename, 0);
     % convert the header into a structure that FieldTrip understands
@@ -491,7 +521,14 @@ switch headerformat
     end
     hdr.label        = hdr.label(:);
     % add a gradiometer structure for forward and inverse modelling
-    hdr.grad         = nimh2grad(orig);
+    try
+      hdr.grad = ctf2grad(orig);
+    catch
+      % this fails if the res4 file is not correctly closed, e.g. during realtime processing
+      tmp = lasterror;
+      disp(tmp.message);
+      warning('could not construct gradiometer definition from the header');
+    end
     % add the original header details
     hdr.orig = orig;
 

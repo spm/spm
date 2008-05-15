@@ -30,6 +30,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.44  2008/05/15 15:10:56  roboos
+% added ctf_new implementation, using p-files, this supports synthetic gradients
+% some changes to the filename handling, merged nihm2grad into ctf2grad
+%
 % Revision 1.43  2008/05/02 17:45:10  vlalit
 % Some bug fixes after testing the SPM fileo code
 %
@@ -227,14 +231,17 @@ switch dataformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
+    filename   = filename; % this is the *.ds directory
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
+    filename   = path; % this is the *.ds directory
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
+    filename   = path; % this is the *.ds directory
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.vhdr']);
@@ -267,7 +274,7 @@ switch dataformat
     headerfile = filename;
 end
 
-if ~strcmp(filename, datafile)
+if ~strcmp(filename, datafile) && ~filetype(filename, 'ctf_ds')
   filename   = datafile;                % this function will read the data
   dataformat = filetype(filename);      % update the filetype
 end
@@ -345,12 +352,6 @@ if checkboundary && hdr.nTrials>1
   if begtrial~=endtrial
     error('requested data segment extends over a discontinuous trial boundary');
   end
-end
-
-% translate the name of the dataset directory into the name of the data file
-if filetype(filename, 'ctf_ds')
-  [path, file, ext] = fileparts(filename);
-  filename = fullfile(filename, [file '.meg4']);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -481,29 +482,21 @@ switch dataformat
       'endsample',endsample,...
       'channels',chanindx);
     dat = cell2mat(tmp.data');
+    
+  case  'ctf_new'
+    % check that the required low-level toolbox is available
+    hastoolbox('ctf', 1);
+    % this returns SQUIDs in T, EEGs in V, ADC's and DACS in V, HLC channels in m, clock channels in s.
+    dat    = getCTFdata(hdr.orig, [begtrial, endtrial], chanindx, 'T', 'double');
+    dimord = 'samples_chans_trials';
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_meg4'} % the default reader for CTF is read_ctf_meg4
-    if strcmp(dataformat, 'ctf_ds')
-      [p, f, x] = fileparts(filename);
-      filename = fullfile(p, [f '.meg4']);
-    elseif strcmp(dataformat, 'ctf_res4')
-      [p, f, x] = fileparts(filename);
-      filename = fullfile(p, [f '.meg4']);
-    end
-    % read it using the default CTF importer that originates from CTF and
-    % the FCDC
-    dat = read_ctf_meg4(filename, hdr.orig, begsample, endsample, chanindx);
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_meg4'}  
+    % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
+    dat = read_ctf_meg4(datafile, hdr.orig, begsample, endsample, chanindx);
 
   case 'ctf_read_meg4'
-    % check that the required low-level toolbos ix available
+    % check that the required low-level toolbox is available
     hastoolbox('eegsf', 1);
-    if strcmp(dataformat, 'ctf_res4')
-      [p, f, x] = fileparts(filename);
-      filename = p;
-    elseif strcmp(dataformat, 'ctf_meg4')
-      [p, f, x] = fileparts(filename);
-      filename = p;
-    end
     % read it using the CTF importer from the NIH and Daren Weber
     tmp = ctf_read_meg4(filename, hdr.orig, chanindx, 'all', begtrial:endtrial);
     dat = cat(3, tmp.data{:});
@@ -537,8 +530,8 @@ switch dataformat
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);
-    dat = buffer_getdat(host, port, begsample-1, endsample-1);  % indices should be zero-offset
-    dat = dat.buf(chanindx,:);                                  % select the desired channels
+    dat = buffer('get_dat', [begsample-1 endsample-1], host, port);  % indices should be zero-offset
+    dat = dat.buf(chanindx,:);                                        % select the desired channels
 
   case 'fcdc_matbin'
     % multiplexed data in a *.bin file, accompanied by a matlab file containing the header
