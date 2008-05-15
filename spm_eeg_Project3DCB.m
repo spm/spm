@@ -6,7 +6,7 @@ function [xy,label] = spm_eeg_Project3DCB(D, datatype)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: spm_eeg_Project3DCB.m 1667 2008-05-15 17:15:46Z stefan $
+% $Id: spm_eeg_Project3DCB.m 1668 2008-05-15 17:50:41Z vladimir $
 
 cfg = [];
 
@@ -14,6 +14,7 @@ switch datatype
     case 'EEG'
         cfg.elec = D.sensors('EEG');
         label = cfg.elec.label;
+        cfg.rotate = 0;
     case 'MEG'
        cfg.grad = D.sensors('MEG');
        label = cfg.grad.label;
@@ -25,7 +26,7 @@ lay = ft_prepare_layout(cfg);
 [sel1, sel2] = spm_match_str(label, lay.label);
 
 label =lay.label(sel2)';
-xy = [lay.pos(sel2, 2), -lay.pos(sel2, 1)];
+xy = lay.pos(sel2, :);
 
 nchan = size(xy, 1);
 
