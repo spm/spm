@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1641 2008-05-14 16:37:35Z volkmar $
+% $Id: cfg_ui.m 1646 2008-05-15 09:01:12Z volkmar $
 
-rev = '$Rev: 1641 $';
+rev = '$Rev: 1646 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -382,19 +382,29 @@ if ~isempty(udmodlist.cmod)
                     case 'cfg_entry'
                         csz = size(contents{2}{k}{1});
                         % TODO use gencode like string formatting
-                        if ischar(contents{2}{k}{1}) && any(csz(1:2) == 1)
+                        if ischar(contents{2}{k}{1}) && ...
+                                numel(csz) == 2 && any(csz(1:2) == 1)
                             datastr{k} = contents{2}{k}{1};
-                        elseif isnumeric(contents{2}{k}{1}) && any(csz(1:2) == 1)
+                        elseif (isnumeric(contents{2}{k}{1}) || ...
+                                islogical(contents{2}{k}{1})) && ...
+                                numel(csz) == 2 && any(csz(1:2) == 1) &&...
+                                numel(contents{2}{k}{1}) <= 4
                             % always display line vector as summary
-                            datastr{k} = num2str(contents{2}{k}{1}(:)');
-                        else
-                            if any(csz == 0)
-                                szstr = 'empty '; % leave space at the end to be
-                                                  % cut off
-                            else
-                                szstr = sprintf('%dx', csz);
+                            datastr{k} = mat2str(contents{2}{k}{1}(:)');
+                        elseif any(csz == 0)
+                            switch class(contents{2}{k}{1})
+                                case 'char',
+                                    datastr{k} = '''''';
+                                case 'double',
+                                    datastr{k} = '[]';
+                                otherwise
+                                    datastr{k} = sprintf('%s([])', ...
+                                                         class(contents{2}{k}{1}));
                             end;
-                            datastr{k} = sprintf('%s %s', szstr(1:end-1), class(contents{2}{k}{1}));
+                        else
+                            szstr = sprintf('%dx', csz);
+                            datastr{k} = sprintf('%s %s', ...
+                                                 szstr(1:end-1), class(contents{2}{k}{1}));
                         end;
                     otherwise
                         datastr{k} = ' ';
@@ -471,8 +481,9 @@ switch(udmodule.contents{5}{citem})
                     str = cellstr(udmodule.contents{2}{citem}{1});
                 elseif iscellstr(udmodule.contents{2}{citem}{1})
                     str = udmodule.contents{2}{citem}{1};
-                elseif isnumeric(udmodule.contents{2}{citem}{1})
-                    str = cellstr(num2str(udmodule.contents{2}{citem}{1}));
+                elseif isnumeric(udmodule.contents{2}{citem}{1}) || ...
+                        islogical(udmodule.contents{2}{citem}{1})
+                    str = cellstr(mat2str(udmodule.contents{2}{citem}{1}));
                 else
                     str = gencode(udmodule.contents{2}{citem}{1},'val');
                 end;
@@ -649,7 +660,7 @@ if isempty(val) || isa(val{1}, 'cfg_dep')
     end;
 end;
 % If we can't handle this, use expert mode
-if ndims(val{1}) > 2 || ~(ischar(val{1}) || isnumeric(val{1}))
+if ndims(val{1}) > 2 || ~(ischar(val{1}) || isnumeric(val{1}) || islogical(val{1}))
     local_valedit_expert_edit(hObject);
     return;
 end
@@ -658,7 +669,7 @@ if strtype{1}{1} == 's'
     encl  = '''''';
 else
     try
-        instr = {num2str(val{1})};
+        instr = {mat2str(val{1})};
         encl  = '[]';
     catch
         local_valedit_expert_edit(hObject);
