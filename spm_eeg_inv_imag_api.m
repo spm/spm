@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1573 2008-05-08 10:47:28Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 1648 2008-05-15 09:49:36Z stefan $
 
 
 spm('defaults','EEG');
@@ -334,7 +334,7 @@ if isfield(Q, 'mesh')
                 if isfield(Q.inverse,'J')
                     set(handles.contrast,    'enable','on')
                     set(handles.Movie,       'enable','on')
-                    set(handles.Vis3D,       'enable','off')
+                    set(handles.Vis3D,       'enable','on')
                     if isfield(Q,'contrast')
                         set(handles.CheckContrast,'enable','on')
                         set(handles.Image,        'enable','on')

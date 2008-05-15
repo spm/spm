@@ -3,21 +3,42 @@ function S = spm_cfg_eeg_merge
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: spm_cfg_eeg_merge.m 1295 2008-04-02 14:31:24Z volkmar $
+% Stefan Kiebel, Volkmar Glauche
+% $Id: spm_cfg_eeg_merge.m 1648 2008-05-15 09:49:36Z stefan $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 1648 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
 D.filter = 'mat';
-D.num = [1 inf];
+D.num = [1 1];
 D.help = {'Select the M/EEG mat file.'};
+
+string = cfg_entry;
+string.tag = 'str';
+string.name = 'Label';
+string.strtype = 's';
+string.num = [1 Inf];
+
+strings = cfg_repeat;
+strings.tag = 'unused';
+strings.name = 'Labels';
+strings.values = {string};
+
+file = cfg_branch;
+file.tag = 'file';
+file.name = 'File info';
+file.val  = {D strings};
+
+files = cfg_repeat;
+files.tag = 'unused';
+files.name = 'Files';
+files.values = {file};
 
 S = cfg_exbranch;
 S.tag = 'eeg_merge';
 S.name = 'M/EEG merging';
-S.val = {D};
+S.val = {files};
 S.help = {'Merge EEG/MEG data.'};
 S.prog = @eeg_merge;
 S.vout = @vout_eeg_merge;
@@ -26,7 +47,13 @@ S.modality = {'EEG'};
 
 function out = eeg_merge(job)
 % construct the S struct
-S.D = strvcat(job.D);
+S.D = strvcat(cat(1,job.file(:).D));
+for i = 1:length(job.file)
+    for j = 1:numel(job.file(i).str)
+        S.recode{i}{j} = job.file(i).str{j};
+    end
+end
+
 out.D = spm_eeg_merge(S);
 
 function dep = vout_eeg_merge(job)

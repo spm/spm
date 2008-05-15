@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1524 2008-04-30 17:59:56Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1648 2008-05-15 09:49:36Z stefan $
 
 if nargin == 0
 
@@ -149,13 +149,13 @@ if nargin == 0
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
+        'Callback', 'spm_eeg_prep_ui(''Callback_Project3DCB'')');
 
     Project3DMEGMenu = uimenu(Coor2DMenu, 'Label', 'Project 3D (MEG)',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
+        'Callback', 'spm_eeg_prep_ui(''Callback_Project3DCB'')');
 
     AddCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Add sensor',...
         'Tag','EEGprepUI',...
@@ -370,32 +370,18 @@ save(fullfile(pathname, filename), 'Cnames', 'Cpos', 'Rxy', 'Nchannels');
 
 %-----------------------------------------------------------------------
 
-function Project3DCB
+function Callback_Project3DCB
 
 D = getD;
 
-cfg = [];
 switch get(gcbo, 'Label')
     case 'Project 3D (EEG)'
-       cfg.elec = D.sensors('EEG');
-       label = cfg.elec.label;
+        datatype = 'EEG';
     case 'Project 3D (MEG)'
-       cfg.grad = D.sensors('MEG');
-       label = cfg.grad.label;
+        datatype = 'MEG';
 end
 
-lay = ft_prepare_layout(cfg);
-[sel1, sel2] = spm_match_str(label, lay.label);
-
-label =lay.label(sel2)';
-xy = [lay.pos(sel2, 2), -lay.pos(sel2, 1)];
-
-nchan = size(xy, 1);
-
-xy =(xy-repmat(min(xy), nchan, 1));
-xy = xy./repmat(max(xy), nchan, 1);
-xy = xy*0.9+0.05;
-xy = xy';
+[xy, label] = spm_eeg_Project3DCB(D, datatype);
 
 plot_sensors2D(xy, label);
 
