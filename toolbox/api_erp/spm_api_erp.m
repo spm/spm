@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1579 2008-05-08 15:07:39Z stefan $
+% $Id: spm_api_erp.m 1665 2008-05-15 16:39:02Z vladimir $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -44,6 +44,11 @@ end
 
 % Callbacks
 %==========================================================================
+% --- Executes during object creation, after setting all properties.
+function data_ok_CreateFcn(hObject, eventdata, handles)
+
+set(hObject, 'enable', 'off');
+
 
 %-DCM files and directories: Load and save
 %==========================================================================
@@ -265,9 +270,6 @@ guidata(hObject,handles);
 % --- Executes on button press in Datafile.
 %--------------------------------------------------------------------------
 function Datafile_Callback(hObject, eventdata, handles)
-
-[f,p] = uigetfile({'*.mat'}, 'please select data file'); cd(p)
-handles.DCM.xY.Dfile = fullfile(p,f);
 Y1_Callback(hObject, eventdata, handles);
 
 
@@ -283,17 +285,47 @@ catch
     m  = 1;
     set(handles.Y1,'String','1')
 end
+
+if isempty(m) || m == 0
+    m  = 1;
+    set(handles.Y1,'String','1');
+end
+
 handles = Xdefault(hObject,handles,m);
 
 %-Get new trial data from file
 %--------------------------------------------------------------------------
 try
-    spm_eeg_load(handles.DCM.xY.Dfile);
+    D = spm_eeg_load(handles.DCM.xY.Dfile);
 catch
     [f,p] = uigetfile({'*.mat'}, 'please select data file');
+
+    if f == 0
+        return;
+    end
+
     handles.DCM.xY.Dfile = fullfile(p,f);
+    
+    D = spm_eeg_load(handles.DCM.xY.Dfile);    
 end
 
+[ok, D] = check(D, 'sensfid');
+
+if ~ok
+    if check(D, 'basic')
+        warndlg(['The requested file is not ready for source reconstruction.'...
+            'Use prep to specify sensors and fiducials.']);
+    else
+        warndlg('The meeg file is corrupt or incomplete');
+    end
+    
+    handles.DCM.xY.Dfile = [];
+    set(handles.data_ok, 'enable', 'off');
+    guidata(hObject,handles);    
+    return
+end
+
+set(handles.data_ok, 'enable', 'on');
 
 % Assemble and display data
 %--------------------------------------------------------------------------
