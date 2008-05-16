@@ -20,7 +20,7 @@ function [] = spm_dcm_create (syn_model, source_model, SNR)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_create.m 1674 2008-05-16 16:00:22Z klaas $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -59,14 +59,14 @@ switch upper(source_model)
         %------------------------------------------------------------------
         n = spm_input('Enter number of regions','+1','r',[],1);
         for i=1:n,
-            str=sprintf('Region %d',i);
-            xY(i).name = spm_input(['Name for ',str],'+1','s');
+            str         = sprintf('Region %d',i);
+            xY(i).name  = spm_input(['Name for ',str],'+1','s');
             % Make up spurious VOI info
             % for compatibility with spm_dcm_display
-            xY(i).xyz = [i i i]'*10;
+            xY(i).xyz   = [i i i]'*10;
             xY(i).XYZmm = [i i i]'*10;
-            xY(i).s=1;
-            xY(i).spec=1;
+            xY(i).s     = 1;
+            xY(i).spec  = 1;
         end
 
         % inputs
@@ -85,14 +85,14 @@ switch upper(source_model)
         SPM.xBF.T0 = fMRI_T0;
 
         spm_input('Basic parameters...',1,'d',mfilename)
-        SPM.xY.RT = spm_input('Interscan interval {secs}','+1','r',[],1);
-        SPM.nscan = spm_input(['scans per session e.g. 256'],'+1');
-        v=SPM.nscan;
-        SPM.xBF.dt = SPM.xY.RT/SPM.xBF.T;
+        SPM.xY.RT     = spm_input('Interscan interval {secs}','+1','r',[],1);
+        SPM.nscan     = spm_input(['scans per session e.g. 256'],'+1');
+        v             = SPM.nscan;
+        SPM.xBF.dt    = SPM.xY.RT/SPM.xBF.T;
         str           = 'specify design in';
         SPM.xBF.UNITS = spm_input(str,'+1','scans|secs');
 
-        Ui=spm_get_ons(SPM,1);
+        Ui            = spm_get_ons(SPM,1);
 
         % Change input format to DCM input format and correct 32 bin offset that is inserted by spm_get_ons
         % (NB: for "normal" DCMs this is corrected for in spm_dcm_ui)
