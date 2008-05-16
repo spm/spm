@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1649 2008-05-15 10:22:26Z stefan $
+% $Id: spm_eeg_artefact.m 1672 2008-05-16 11:17:14Z james $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -225,7 +225,7 @@ if MustDoWork
                 bc = bc(:);
                 ins = 0;
 
-                for n = itrials
+                for n = itrials'
                     ins = ins+1;
                     allWf(j, (n-1)*D.nsamples+1 : n*D.nsamples) = bc((ins-1)*D.nsamples+1:ins*D.nsamples)';
                 end

@@ -6,7 +6,7 @@ function [B,Wf]=spm_eeg_robust_averaget(data,ks,FS);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_robust_averaget.m 1672 2008-05-16 11:17:14Z james $
 
 if nargin==1
     ks=3;
@@ -39,12 +39,12 @@ while abs(ores-nres)>sqrt(1E-8)
         end
     end
 
-    sm=gausswin(FS);
-    sm=sm/sum(sm);
-    mB=mean(B);
-    B=conv(sm,B-mean(B));
-    B=B(floor(FS/2):end-ceil(FS/2));
-    B=B+mB;
+%     sm=gausswin(FS);
+%     sm=sm/sum(sm);
+%     mB=mean(B);
+%     B=conv(sm,B-mean(B));
+%     B=B(floor(FS/2):end-ceil(FS/2));
+%     B=B+mB;
    
     if sum(isnan(B))>0
         break
