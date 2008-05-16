@@ -5,7 +5,7 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 1603 2008-05-12 17:23:01Z stefan $
+% $Id: badchannels.m 1673 2008-05-16 15:32:22Z vladimir $
 
     
 if length(varargin) == 2
@@ -23,6 +23,11 @@ end
 
 res = getset(this, 'channels', 'bad', varargin{:});
 
+
 if isempty(varargin)
+    if iscell(res)
+      res = [res{:}];
+    end
+    
     res = find(res);
 end

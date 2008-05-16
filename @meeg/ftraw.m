@@ -1,12 +1,17 @@
-function raw = ftraw(this)
+function raw = ftraw(this, memmap)
 % Method for converting meeg object to Fieldtrip raw struct
-% FORMAT raw = ftraw(this)
+% FORMAT raw = ftraw(this, memmap)
+%        memmap - 1 (default) memory map the data with file_array
+%                 0 load the data into memory
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ftraw.m 1390 2008-04-14 16:08:09Z vladimir $
+% $Id: ftraw.m 1673 2008-05-16 15:32:22Z vladimir $
 
+if nargin < 2
+    memmap = 1;
+end
 
 nchans  = nchannels(this);
 ntime   = nsamples(this);
@@ -19,9 +24,13 @@ raw.label   = chanlabels(this)';
 wsize=wordsize(this.data.datatype);
 
 for i=1:ntrl
-    offset = (i-1)*nchans*ntime*wsize;
-    trialdim = [nchans ntime];
-    raw.trial{i} = file_array(fullfile(this.path, this.data.fnamedat),trialdim,this.data.datatype,offset,1,0,'ro');
+    if memmap
+        offset = (i-1)*nchans*ntime*wsize;
+        trialdim = [nchans ntime];
+        raw.trial{i} = file_array(fullfile(this.path, this.data.fnamedat),trialdim,this.data.datatype,offset,1,0,'ro');
+    else
+        raw.trial{i} = this.data.y(:, :, i);
+    end
 end
 
 raw.time = repmat({time(this)}, 1, ntrl);

@@ -5,7 +5,7 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 1262 2008-03-28 09:28:42Z stefan $
+% $Id: getset.m 1673 2008-05-16 15:32:22Z vladimir $
 
 this = struct(this);
 
@@ -40,7 +40,7 @@ end
 if nargin == 5
     % This might fail in some pathological cases, but not in what it's
     % supposed to be used for.
-    if isnumeric(values) && (length(values) == length(ind))
+    if (isnumeric(values) || islogical(values)) && (length(values) == length(ind))
         values = num2cell(values);
     end
 

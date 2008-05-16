@@ -3,11 +3,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 1669 2008-05-15 18:34:49Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 1673 2008-05-16 15:32:22Z vladimir $
 
-spmfile = spm_select(1, '\.mat$', 'Select an SPM8 EEG file');
-
-D = spm_eeg_load(spmfile);
+D = spm_eeg_load;
 
 data = D.ftraw;
 
@@ -35,7 +33,7 @@ switch spm_eeg_modality_ui(D)
         data.grad = cfg.grad;
 end
 
-cfg.label = data.label(chanind);
+cfg.channel = data.label(chanind);
 %%
 figure;
 ft_multiplotER(cfg, data);
