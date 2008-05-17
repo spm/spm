@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1659 2008-05-15 14:18:00Z vladimir $
+% $Id: spm_eeg_convert.m 1676 2008-05-17 07:13:19Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -130,12 +130,19 @@ end
 if S.continuous
 
     if isempty(S.timewindow)
-        segmentbounds = [1 hdr.nSamples];
+        if hdr.nTrials == 1
+            segmentbounds = [1 hdr.nSamples];
+        elseif ~S.checkboundary
+            segmentbounds = [1 hdr.nSamples*hdr.nTrials];
+        else
+            error('The data cannot be read without ignoring trial borders');
+        end
         S.timewindow = segmentbounds./D.Fsample;
     else
         segmentbounds = S.timewindow.*D.Fsample;
         segmentbounds(1) = max(segmentbounds(1), 1);
     end
+
 
     %--------- Sort events and put in the trial
 
@@ -184,10 +191,11 @@ else % Read by trials
         if length(D.timeOnset) > 1
             error('All trials should have identical baseline');
         end
-        if isfield(S, 'conditionlabel')
-            conditionlabels = S.conditionlabel;
-        else
+        
+        try 
             conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
+        catch
+            conditionlabels = S.conditionlabel;           
         end
 
         if numel(conditionlabels) == 1

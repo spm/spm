@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1659 2008-05-15 14:18:00Z vladimir $
+% $Id: spm_eeg_convert_ui.m 1676 2008-05-17 07:13:19Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -55,6 +55,10 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
         end
     end
 
+    if S.continuous || ~S.usetrials
+         S.checkboundary = spm_input('Read across trial borders?','+1','yes|no',[0 1]);
+    end
+    
     if ~isfield(S, 'channels')
         S.channels = spm_input('What channels?','+1','all|meg|eeg|gui|file');
     end
