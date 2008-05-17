@@ -3,7 +3,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 1673 2008-05-16 15:32:22Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 1675 2008-05-17 06:45:46Z vladimir $
 
 D = spm_eeg_load;
 
@@ -26,6 +26,7 @@ switch spm_eeg_modality_ui(D)
     case 'EEG'
         chanind = strmatch('EEG', D.chantype);
         cfg.elec = D.sensors('EEG');
+        cfg.rotate = 0;
         data.elec = cfg.elec;
     case 'MEG'
         chanind = strmatch('MEG', D.chantype);

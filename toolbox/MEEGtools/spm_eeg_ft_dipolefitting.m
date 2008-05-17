@@ -3,9 +3,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 1673 2008-05-16 15:32:22Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 1675 2008-05-17 06:45:46Z vladimir $
 
-[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
+[Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
 
 %% ============ Load SPM EEG file and verify consistency
@@ -94,8 +94,15 @@ cfg.xparam='time';
 cfg.xlim=[min(source.time) max(source.time)];
 cfg.comment ='xlim';
 cfg.commentpos='middlebottom';
-cfg.electrodes='off';
-cfg.layout=fullfile(spm('dir'), '\external\fieldtrip\private\CTF274.lay');
+cfg.electrodes='on';
+
+if strcmp('EEG', modality)
+    cfg.elec = sens;
+    cfg.rotate = 0;
+else
+    cfg.grad = sens;
+end
+
 figure;
 clf
 subplot(1,2,1);
@@ -117,6 +124,7 @@ Slocation = Slocation(:,1:3);
 Nlocations = size(source.dip.pos,1);
 
 %% =========== Display dipole locations using SPM's function
+figure(Fgraph); clf
 
 sdip= [];
 sdip.n_seeds = 1;
