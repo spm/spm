@@ -1,9 +1,14 @@
 % Demo script for interactive plotting in Fieldtrip
-% _______________________________________________________________________
+%
+% Disclaimer: this code is provided as an example and is not guaranteed to work
+% with data on which it was not tested. If it does not work for you, feel
+% free to improve it and contribute your improvements to the MEEGtools toolbox
+% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+%_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 1675 2008-05-17 06:45:46Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 1680 2008-05-19 11:18:19Z vladimir $
 
 D = spm_eeg_load;
 

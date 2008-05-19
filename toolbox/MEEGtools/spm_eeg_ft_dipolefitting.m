@@ -1,9 +1,15 @@
 % Demo script for interactive artefact rejection using Fieldtrip
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% Disclaimer: this code is provided as an example and is not guaranteed to work
+% with data on which it was not tested. If it does not work for you, feel
+% free to improve it and contribute your improvements to the MEEGtools toolbox
+% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+%
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 1675 2008-05-17 06:45:46Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 1680 2008-05-19 11:18:19Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -58,7 +64,7 @@ if D.ntrials > 1
     data.time =  data.time(ind);
 end
 
-data = ft_checkdata(data, 'datatype', 'timelock');
+data = ft_timelockanalysis([], data);
 
 
 %% =========== Configure and run Fieldtrip dipolefitting

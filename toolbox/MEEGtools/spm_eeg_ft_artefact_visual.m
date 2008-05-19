@@ -1,9 +1,15 @@
 % Demo script for interactive artefact rejection using Fieldtrip
+%
+% Disclaimer: this code is provided as an example and is not guaranteed to work
+% with data on which it was not tested. If it does not work for you, feel
+% free to improve it and contribute your improvements to the MEEGtools toolbox
+% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+%
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 1673 2008-05-16 15:32:22Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 1680 2008-05-19 11:18:19Z vladimir $
 
 D = spm_eeg_load;
 
