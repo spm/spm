@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1651 2008-05-15 10:38:52Z volkmar $
+% $Id: cfg_ui.m 1677 2008-05-19 07:57:49Z volkmar $
 
-rev = '$Rev: 1651 $';
+rev = '$Rev: 1677 $';
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -140,12 +140,11 @@ toplevelmenus = [];
 toplevelids   = {};
 % 1st entry is top of matlabbatch config tree, applications start at 2nd entry
 for k = 2:numel(lvl)
+    label = str{k};
     if stop(k)
-        label = sprintf('New: %s', str{k});
         udata = id{k};
         cback = cb;
     else
-        label = str{k};
         udata = [];
         cback = '';
     end;
