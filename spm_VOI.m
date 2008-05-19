@@ -52,7 +52,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_VOI.m 1683 2008-05-19 16:07:00Z guillaume $
 
 
 %-Parse arguments
@@ -110,7 +110,10 @@ switch SPACE
     %---------------------------------------------------------------
     Msk   = spm_select(1,'image','Image defining search volume');
     D     = spm_vol(Msk);
-    str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
+    str   = strrep(spm_str_manip(Msk,'a30'),'\','\\');
+    str   = strrep(str,'^','\^'); str   = strrep(str,'_','\_');
+    str   = strrep(str,'{','\{'); str   = strrep(str,'}','\}');
+    str   = sprintf('image mask: %s',str); 
     VOX   = sqrt(sum(D.mat(1:3,1:3).^2));
     FWHM  = FWHM.*(xSPM.VOX./VOX);
     XYZ   = D.mat \ [xSPM.XYZmm; ones(1, size(xSPM.XYZmm, 2))];
