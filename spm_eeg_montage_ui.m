@@ -5,9 +5,11 @@ dbstop if error
 %% creates GUI from spm_uitable
 fig = figure;
 pos = get(fig,'position');
-set(gcf,'menubar','none',...
-    'numbertitle','off','name','Montage edition');
 pos2 = [40 70 pos(3)-60 pos(4) - 100];
+pos = [pos(1) pos(2) 1.8*pos(3) pos(4)];
+set(gcf,'menubar','none','position',pos,...
+    'numbertitle','off','name','Montage edition');
+
 ha = gca;
 set(ha,'position',pos2);
 
@@ -19,6 +21,11 @@ colnames = cat(2,'channel labels',montage.labelorg(:)');
 [ht,hc] = spm_uitable(table,colnames);
 set(ht,'position',pos2,...
     'units','normalized');
+
+ud.hi = imagesc(montage.tra);
+set(gca,'position',[0.6 0.18 0.4 0.77])
+axis square
+colormap('bone')
 
 ud.b4MontageEditing = get(0,'userdata');
 ud.ht = ht;
@@ -110,6 +117,13 @@ set(0,'userdata',ud);
 close(gcf)
 
 
+function [] = doCheck(o1,o2)
+dbstop if error
+ud = get(0,'userdata');
+[M,newLabels] = getM(ud.ht);
+set(ud.hi,'cdata',M)
+
+
 %% extracting montage from java object
 function [M,newLabels] = getM(ht)
 nnew = get(ht,'NumRows');
@@ -124,7 +138,16 @@ for i =1:nnew
     end
     for j =1:nold
         if ~isempty(data(i,j+1))
-            M(i,j) = data(i,j+1);
+            if ~isstr(data(i,j+1))
+                M(i,j) = data(i,j+1);
+            else
+                M0 = str2num(data(i,j+1));
+                if ~isempty(M0)
+                    M(i,j) = M0;
+                else
+                    M(i,j) = 0;
+                end
+            end
         else
             M(i,j) = 0;
         end
@@ -151,4 +174,8 @@ hOK = uicontrol('style','pushbutton',...
     'string',' OK ','callback',{@doOK},...
     'position',[400 20 80 20]);
 set(hOK,'units','normalized')
+hCheck = uicontrol('style','pushbutton',...
+    'string',' Check montage ','callback',{@doCheck},...
+    'position',[760 20 120 20]);
+set(hCheck,'units','normalized')
 
