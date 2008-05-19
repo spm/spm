@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.53  2008/05/19 15:24:12  jansch
+% re-entered handling of '4d' which disappeared after last commit by someone
+% else
+%
 % Revision 1.52  2008/05/15 15:10:56  roboos
 % added ctf_new implementation, using p-files, this supports synthetic gradients
 % some changes to the filename handling, merged nihm2grad into ctf2grad
@@ -258,6 +262,11 @@ switch headerformat
     datafile   = filename(1:(end-4)); % remove the extension
     headerfile = [datafile '.m4d'];
     sensorfile = [datafile '.xyz'];
+  case '4d'
+    [path, file, ext] = fileparts(filename);
+    datafile   = fullfile(path, file);
+    headerfile = fullfile(path, file);
+    configfile = fullfile(path, 'config');
   case 'ctf_ds'
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
