@@ -28,7 +28,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 1619 2008-05-13 17:29:26Z vladimir $
+% $Id: spm_eeg_montage.m 1679 2008-05-19 10:04:02Z jean $
+
+dbstop if error
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -54,6 +56,7 @@ if ~isfield(S, 'montage')
         case 'gui'
             montage = [];
             montage.labelorg = D.chanlabels;
+            montage.labelnew = montage.labelorg;
             montage.tra = eye(length(montage.labelorg));
             montage.labelnew = montage.labelorg;
             S.montage = spm_eeg_montage_ui(montage);
@@ -84,7 +87,8 @@ montage.labelorg = montage.labelorg(selempty);
 
 % add columns for the channels that are not involved in the montage
 [add, ind] = setdiff(D.chanlabels, montage.labelorg);
-add = D.chanlabels(sort(ind));
+chlab = D.chanlabels; % this fixes subsref troubles!
+add = chlab(sort(ind));
 
 if ~isfield(S, 'keepothers')
     if ~isempty(add)

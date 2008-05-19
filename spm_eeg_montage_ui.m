@@ -23,12 +23,14 @@ set(ht,'position',pos2,...
     'units','normalized');
 
 ud.hi = imagesc(montage.tra);
-set(gca,'position',[0.6 0.18 0.4 0.77])
-axis square
+set(ha,'position',[0.6 0.18 0.4 0.77])
+axis image
 colormap('bone')
+zoom
 
 ud.b4MontageEditing = get(0,'userdata');
 ud.ht = ht;
+ud.fig = fig;
 ud.montage = montage;
 set(0,'userdata',ud);
 
@@ -66,7 +68,7 @@ set(ht,'position',pos,...
     'units','normalized');
 ud.ht = ht;
 set(0,'userdata',ud);
-
+doCheck
 
 %% 'load' button subfunction
 function [ha] = doLoad(o1,o2)
@@ -89,6 +91,10 @@ if ~isempty(FileName) || ~isequal(FileName,0)
         ud.ht = ht;
         ud.montage = montage;
         set(0,'userdata',ud);
+        pause(1)
+        doCheck
+    else
+        warndlg('File did not contain any montage!')
     end
 end
 
@@ -114,6 +120,7 @@ montage.labelorg = ud.montage.labelorg(:);
 montage.labelnew = newLabels(:);
 ud.montage = montage;
 set(0,'userdata',ud);
+pause(1)
 close(gcf)
 
 
@@ -122,6 +129,9 @@ dbstop if error
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 set(ud.hi,'cdata',M)
+set(gca,'xlim',[0.5 size(M,1)])
+set(gca,'ylim',[0.5 size(M,2)])
+axis image
 
 
 %% extracting montage from java object
