@@ -14,6 +14,9 @@ function [grad] = ctf2grad(hdr, dewar);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: ctf2grad.m,v $
+% Revision 1.5  2008/05/20 12:24:14  roboos
+% apply optional balancing to grad.tra
+%
 % Revision 1.4  2008/05/15 15:11:40  roboos
 % add balancing coefficients to the gradiometer definition
 %
@@ -134,18 +137,6 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   grad.label = label([selMEG selREF]);
   grad.unit  = 'cm';
   
-  if     all([hdr.res4.senres(selMEG).grad_order_no]==0)
-    grad.balance.current = 'none';
-  elseif all([hdr.res4.senres(selMEG).grad_order_no]==1)
-    grad.balance.current = 'G1BR';
-  elseif all([hdr.res4.senres(selMEG).grad_order_no]==2)
-    grad.balance.current = 'G2BR';
-  elseif all([hdr.res4.senres(selMEG).grad_order_no]==3)
-    grad.balance.current = 'G3BR';
-  else
-    error('cannot determine balancing of CTF gradiometers');
-  end
-  
   % convert the balancing coefficients into a montage that can be used with
   % the apply_montage function
   meglabel          = label(hdr.BalanceCoefs.G1BR.MEGlist);
@@ -175,9 +166,24 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G3BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
   grad.balance.G3BR = montage;
   
+  if     all([hdr.res4.senres(selMEG).grad_order_no]==0)
+    grad.balance.current = 'none';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==1)
+    grad.balance.current = 'G1BR';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==2)
+    grad.balance.current = 'G2BR';
+  elseif all([hdr.res4.senres(selMEG).grad_order_no]==3)
+    grad.balance.current = 'G3BR';
+  else
+    error('cannot determine balancing of CTF gradiometers');
+  end
+  % sofar the gradiometer definition was the ideal, non-balenced one
+  if ~strcmp(grad.balance.current, 'none')
+    % apply the current balancing parameters to the gradiometer definition
+    grad = apply_montage(grad, getfield(grad.balance, grad.balance.current));
+  end
+
   
-
-
 elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % the header was read using the open-source matlab code that originates from CTF and that was modified by the FCDC
@@ -238,6 +244,7 @@ elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
 
   grad.label = hdr.label([selMEG selREF]);
   grad.unit  = 'cm';
+
 
 elseif isfield(hdr, 'sensor') && isfield(hdr.sensor, 'info')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
