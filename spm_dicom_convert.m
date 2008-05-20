@@ -31,7 +31,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1238 2008-03-25 13:24:38Z volkmar $
+% $Id: spm_dicom_convert.m 1690 2008-05-20 15:58:36Z volkmar $
 
 
 if nargin<2, opts = 'all'; end;
@@ -802,7 +802,11 @@ for i=1:length(hdr),
     if ~checkfields(hdr{i},'ImageType','CSAImageHeaderInfo') ||...
             isfield(hdr{i}.CSAImageHeaderInfo,'junk') ||...
             isempty(read_AcquisitionMatrixText(hdr{i})) ||...
-            isempty(read_NumberOfImagesInMosaic(hdr{i}))
+            isempty(read_NumberOfImagesInMosaic(hdr{i})) ||...
+            read_NumberOfImagesInMosaic(hdr{i}) == 0
+        % NumberOfImagesInMosaic seems to be set to zero for pseudo images
+        % containing e.g. online-fMRI design matrices, don't treat them as
+        % mosaics
         standard = {standard{:},hdr{i}};
     else
         mosaic = {mosaic{:},hdr{i}};
