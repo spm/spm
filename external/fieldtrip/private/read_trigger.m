@@ -18,6 +18,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.6  2008/05/20 15:12:50  vlalit
+% Added trigpadding option to handle channels with baseline different from zero
+%
 % Revision 1.5  2008/05/15 18:38:53  vlalit
 % Fixed the problems with discontinuous files and baseline different than zero
 %
@@ -43,8 +46,10 @@ endsample   = keyval('endsample',   varargin);
 chanindx    = keyval('chanindx',    varargin);
 detectflank = keyval('detectflank', varargin);
 trigshift   = keyval('trigshift',   varargin); if isempty(trigshift),   trigshift = 0;    end
+trigpadding = keyval('trigpadding', varargin); if isempty(trigpadding), trigpadding = 1;  end
 fixctf      = keyval('fixctf',      varargin); if isempty(fixctf),      fixctf = 0;       end
 fixneuromag = keyval('fixneuromag', varargin); if isempty(fixneuromag), fixneuromag = 0;  end
+
 
 if isempty(begsample)
   begsample = 1;
@@ -72,31 +77,37 @@ for i=1:length(chanindx)
   % process each trigger channel independently
   channel = hdr.label{chanindx(i)};
   trig    = dat(i,:);
-  trig    = trig - trig(1); %Assume that the first sample is the baseline
+  
+  if trigpadding
+      pad = trig(1);
+  else
+      pad = 0;
+  end 
+  
   switch detectflank
     case 'up'
       % convert the trigger into an event with a value at a specific sample
-      for j=find(diff([0 trig(:)'])>0)
+      for j=find(diff([pad trig(:)'])>0)
         event(end+1).type   = channel;
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
         event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
       end
     case 'down'
       % convert the trigger into an event with a value at a specific sample
-      for j=find(diff([0 trig(:)'])<0)
+      for j=find(diff([pad trig(:)'])<0)
         event(end+1).type   = channel;
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
         event(end  ).value  = trig(j-1-trigshift);    % assign the trigger value just _before_ going down
       end
     case 'both'
       % convert the trigger into an event with a value at a specific sample
-      for j=find(diff([0 trig(:)'])>0)
+      for j=find(diff([pad trig(:)'])>0)
         event(end+1).type   = [channel '_up'];        % distinguish between up and down flank
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
         event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
       end
       % convert the trigger into an event with a value at a specific sample
-      for j=find(diff([0 trig(:)'])<0)
+      for j=find(diff([pad trig(:)'])<0)
         event(end+1).type   = [channel '_down'];      % distinguish between up and down flank
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
         event(end  ).value  = trig(j-1-trigshift);    % assign the trigger value just _before_ going down
