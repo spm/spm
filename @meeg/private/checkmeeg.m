@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1490 2008-04-28 11:16:29Z vladimir $
+% $Id: checkmeeg.m 1702 2008-05-21 13:55:11Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -269,7 +269,20 @@ if strcmp(option, 'basic')
     return;
 end
 
-if strcmp(option, 'sensfid')
+if strcmp(option, 'dcm')
+    chantypes = getset(meegstruct, 'channels', 'type');    
+    if ismember('LFP', chantypes)
+        if ismember('EEG', chantypes) || ismember('MEG', chantypes)
+            disp('checkmeeg: DCM does not presently support files with both LFP and scalp channels');
+            return;
+        else
+            result = 1;
+            return;
+        end
+    end
+end
+
+if strcmp(option, 'sensfid') || strcmp(option, 'dcm')
     if isempty(meegstruct.sensors)
         disp('checkmeeg: no sensor positions are defined');
         return;
@@ -332,19 +345,16 @@ if strcmp(option, 'sensfid')
     [sel1, nzind] = spm_match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
     if isempty(nzind)
         disp('checkmeeg: could not find the nasion fiducial');
-        return
     end
 
     [sel1, leind] = spm_match_str(lelbl, lower(meegstruct.fiducials.fid.label));
     if isempty(leind)
         disp('checkmeeg: could not find the left fiducial');
-        return
     end
 
     [sel1, reind] = spm_match_str(relbl, lower(meegstruct.fiducials.fid.label));
     if isempty(reind)
         disp('checkmeeg: could not find the right fiducial');
-        return
     end
 
     restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind, leind, reind]);

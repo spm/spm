@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1665 2008-05-15 16:39:02Z vladimir $
+% $Id: spm_api_erp.m 1702 2008-05-21 13:55:11Z vladimir $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -309,12 +309,12 @@ catch
     D = spm_eeg_load(handles.DCM.xY.Dfile);    
 end
 
-[ok, D] = check(D, 'sensfid');
+[ok, D] = check(D, 'dcm');
 
 if ~ok
     if check(D, 'basic')
-        warndlg(['The requested file is not ready for source reconstruction.'...
-            'Use prep to specify sensors and fiducials.']);
+        warndlg(['The requested file is not ready for DCM.'...
+            'Use prep to specify sensors and fiducials or LFP channels.']);
     else
         warndlg('The meeg file is corrupt or incomplete');
     end
