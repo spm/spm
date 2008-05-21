@@ -13,7 +13,7 @@ function [D] = spm_eeg_invert(D, val)
 %                      'LOR' LORETA-like model
 %                      'IID' LORETA and minimum norm
 %     inverse.woi    - time window of interest ([start stop] in ms)
-%     inverse.lpf    - band-pass filter - low  frequency cutoff (Hz)
+%     inverse.lpf    - band-pass filter - low frequency cutoff (Hz)
 %     inverse.hpf    - band-pass filter - high frequency cutoff (Hz)
 %     inverse.Han    - switch for Hanning window
 %     inverse.xyz    - (n x 3) locations of spherical VOIs
@@ -32,10 +32,10 @@ function [D] = spm_eeg_invert(D, val)
 %     inverse.J      - Conditional expectation
 %     inverse.L      - Lead field (reduced)
 %     inverse.R      - Re-referencing matrix
-%     inverse.qC     - spatial  covariance
+%     inverse.qC     - spatial covariance
 %     inverse.qV     - temporal correlations
 %     inverse.T      - temporal subspace
-%     inverse.U      - spatial  subspace
+%     inverse.U      - spatial subspace
 %     inverse.Is     - Indices of active dipoles
 %     inverse.Nd     - number of dipoles
 %     inverse.pst    - peristimulus time
@@ -46,8 +46,8 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1531 2008-05-01 14:17:54Z vladimir $
-
+% $Id: spm_eeg_invert.m 1704 2008-05-21 14:00:09Z karl $
+ 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
 if ~iscell(D), D = {D}; end
@@ -58,7 +58,7 @@ Nl         = length(D);                          % number of forward models
 if nargin == 1
     val = 1;
 end
-
+ 
 inverse    = D{1}.inv{D{1}.val}.inverse;
  
 % defaults
@@ -76,12 +76,12 @@ try, sdv   = inverse.sdv;    catch, sdv   = 4;                 end
 try, Han   = inverse.Han;    catch, Han   = 1;                 end
 try, Na    = inverse.Na;     catch, Na    = 1024;              end
 try, woi   = inverse.woi;    catch, woi   = [];                end
-
-
+ 
+ 
 %==========================================================================
 % Spatial parameters
 %==========================================================================
-
+ 
 % Check gain or lead-field matrices
 %--------------------------------------------------------------------------
 for i = 1:Nl
@@ -93,7 +93,7 @@ if any(diff(Nd))
     warndlg('please ensure the number of dipoles is the same')
     return
 end
-
+ 
 % chaeck restriction; assume radii are the same for all VOI
 %--------------------------------------------------------------------------
 Nd    = Nd(1);                                     % number of dipoles
@@ -103,12 +103,12 @@ if length(rad) ~= Nv
 else
     rad = rad(:);
 end
-
-
+ 
+ 
 % Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
 %==========================================================================
-
-fprintf('Computing Green''s function from graph Laplacian:')
+ 
+fprintf('Computing Green function from graph Laplacian:')
 %--------------------------------------------------------------------------
 vert  = D{1}.inv{D{1}.val}.mesh.tess_mni.vert;
 face  = D{1}.inv{D{1}.val}.mesh.tess_mni.face;
@@ -125,8 +125,8 @@ clear Qi
 QG    = QG.*(QG > exp(-8));
 QG    = QG*QG;
 fprintf(' - done\n')
-
-
+ 
+ 
 % Restrict source space
 %--------------------------------------------------------------------------
 Is    = sparse(Nd,1);
@@ -140,8 +140,8 @@ Is    = find(Is);
 vert  = vert(Is,:);
 QG    = QG(Is,Is);
 Ns    = length(Is);
-
-
+ 
+ 
 % Project to channel modes (U)
 %--------------------------------------------------------------------------
 TOL   = 16;
@@ -152,30 +152,30 @@ Nm    = min(size(U{1},2),Nmax);
 U{1}  = U{1}(:,1:Nm);
 UL{1} = U{1}'*L;
 for i = 2:Nl
-    L     = spm_eeg_lgainmat(D{i});
+    L     = spm_eeg_lgainmat(D{i},Is);
     U{i}  = spm_svd(L*L',exp(-TOL));
     Nm(i) = min(size(U{i},2),Nmax);
     U{i}  = U{i}(:,1:Nm(i));
     UL{i} = U{i}'*L;
 end
 fprintf('Using %i spatial modes\n',Nm)
-
-
-
+ 
+ 
+ 
 %==========================================================================
 % Temporal parameters
 %==========================================================================
-
+ 
 % force low-pass filtering for MEG
 %--------------------------------------------------------------------------
 if strcmp(D{1}.inv{val}.modality,'MEG'), hpf = 48; end
-
-
+ 
+ 
 Nrmax = Nr;
 A     = {};
 AY    = {};
 for i = 1:Nl
-
+ 
     % Time-window of interest
     %----------------------------------------------------------------------
     if isempty(woi)
@@ -186,28 +186,28 @@ for i = 1:Nl
     It{i}  = (w{i}/1000 - D{i}.timeonset)*D{i}.fsample + 1;
     It{i}  = max(1,It{i}(1)):min(It{i}(end), length(D{i}.time));
     It{i}  = fix(It{i});
-
+ 
     % Peri-stimulus time
     %----------------------------------------------------------------------
     pst{i} = 1000*D{i}.time;
     pst{i} = pst{i}(It{i});                             % peristimulus time (ms)
     dur    = (pst{i}(end) - pst{i}(1))/1000;            % duration (s)
-    dct{i} = (It{i} - It{i}(1))/2/dur;                  % DCT frequenices (Hz)
+    dct{i} = (It{i} - It{i}(1))/2/dur;                  % DCT frequencies (Hz)
     Nb(i)  = length(It{i});                             % number of time bins
-
+ 
     % Serial correlations
     %----------------------------------------------------------------------
     K      = exp(-(pst{i} - pst{i}(1)).^2/(2*sdv^2));
     K      = toeplitz(K);
     qV{i}  = sparse(K*K');
-
+ 
     % Confounds and temporal subspace
     %----------------------------------------------------------------------
     T      = spm_dctmtx(Nb(i),Nb(i));
     j      = find( (dct{i} > lpf) & (dct{i} < hpf) );
     T      = T(:,j);
     dct{i} = dct{i}(j);
-
+ 
     % get data (with temporal filtering)
     %======================================================================
     
@@ -228,7 +228,7 @@ for i = 1:Nl
             Y{i,j} = Y{i,j} + squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne;
         end
     end
-
+ 
     % Hanning operator (if requested)
     %----------------------------------------------------------------------
     if Han
@@ -237,7 +237,7 @@ for i = 1:Nl
     else
         WY = spm_cat(Y(i,:)')';
     end
-
+ 
     % temporal projector (at most 8 modes) S = T*v
     %======================================================================
     [v u]  = spm_svd(WY,1);                      % temporal modes
@@ -248,11 +248,11 @@ for i = 1:Nl
     S{i}   = T*v;                                % temporal projector
     iV{i}  = inv(S{i}'*qV{i}*S{i});              % precision (mode)
     Vq{i}  = S{i}*iV{i}*S{i}';                   % precision (time)
-
+ 
     % spatial projector (adjusting for different Lead-fields)
     %======================================================================
     A{i}   = UL{1}*pinv(full(UL{i}))*U{i}';
-
+ 
     % spatially adjust, temporally whiten and scale under i.i.d priors
     %----------------------------------------------------------------------
     for j = 1:Nt(i)
@@ -260,20 +260,20 @@ for i = 1:Nl
         AY{end + 1} = A{i}*Y{i,j}*sqrtm(iV{i});
         AY{end}     = AY{end}*sqrt(trace(A{i}*A{i}'))/trace(AY{end}'*AY{end});
     end
-
+ 
     % create sensor components (Qe)
     %----------------------------------------------------------------------
     Qe{i} = A{i}*A{i}';
-
+ 
 end
-
-% adjsuted data and smaple covaraince
+ 
+% adjusted data and sample covariance
 %--------------------------------------------------------------------------
 [Y scale] = spm_cond_units(Y);
 AY        = spm_cat(AY);
 YY        = AY*AY';
 G         = UL{1};
-
+ 
 fprintf('Using %i temporal modes\n',Nr)
 fprintf('accounting for %0.2f percent variance\n',full(100*VE))
     
@@ -343,9 +343,9 @@ QP    = {};
 % get source-level priors (using all subjects)
 %--------------------------------------------------------------------------
 switch(type)
-
+ 
     case {'MSP','GS'}
-
+ 
         % Greedy search over MSPs
         %------------------------------------------------------------------
         Np    = length(Qp);
@@ -353,11 +353,11 @@ switch(type)
         for i = 1:Np
             Q(:,i) = Qp{i}.q;
         end
-
+ 
         % Multivariate Bayes
         %------------------------------------------------------------------
         MVB   = spm_mvb(AY,G,[],Q,Qe,16);
-
+ 
         % Spatial priors (QP); eliminating minor patterns
         %------------------------------------------------------------------
         cp    = diag(MVB.cp);
@@ -368,11 +368,11 @@ switch(type)
             end
         end
         qp    = Q(:,j)*MVB.cp(j,j)*Q(:,j)';
-
+ 
         % Accmulate empirical priors
         %------------------------------------------------------------------
         QP{end + 1} = qp;
-
+ 
 end
  
 switch(type)
@@ -405,7 +405,7 @@ switch(type)
     QP{end + 1} = qp;
     
 end
-
+ 
  
 % re-estimate (one subject at a time)
 %==========================================================================
@@ -464,7 +464,7 @@ for i = 1:Nl
  
     end
  
-    % assess accuracy; signal to noise (over sources)
+    % accuracy; signal to noise (over sources)
     %======================================================================
     R2   = 100*(SST - SSR)/SST;
     fprintf('Percent variance explained %.2f (%.2f)\n',R2,R2*VE(i))
@@ -475,7 +475,7 @@ for i = 1:Nl
     inverse.smooth = s;                    % smoothness (0 - 1)
     inverse.xyz    = xyz;                  % VOI (XYZ)
     inverse.rad    = rad;                  % VOI (radius)
-    inverse.scale  = scale;                % scalefactor
+    inverse.scale  = scale;                % scale-factor
  
     inverse.M      = M;                    % MAP projector (reduced)
     inverse.J      = J;                    % Conditional expectation

@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_expm.m 1704 2008-05-21 14:00:09Z karl $
 
 
 % expm(J) use Pade approximation
@@ -27,7 +27,6 @@ if nargin == 1
     [f,e] = log2(norm(J,'inf'));
     s     = max(0,e+1);
     J     = J/2^s;
-
     X     = J; 
     c     = 1/2;
     E     = I + c*J;
@@ -35,7 +34,7 @@ if nargin == 1
     q     = 6;
     p     = 1;
     for k = 2:q
-        c   = c * (q-k+1) / (k*(2*q-k+1));
+        c   = c*(q - k + 1)/(k*(2*q - k + 1));
         X   = J*X;
         cX  = c*X;
         E   = E + cX;
