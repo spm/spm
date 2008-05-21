@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.54  2008/05/21 11:06:05  roboos
+% changed the fif reading to store all available info (including channel type) in hdr.orig
+%
 % Revision 1.53  2008/05/19 15:24:12  jansch
 % re-entered handling of '4d' which disappeared after last commit by someone
 % else
@@ -763,27 +766,31 @@ switch headerformat
   case 'neuromag_fif'
     % check that the required low-level toolbox is available
     hastoolbox('meg-pd', 1);
+    rawdata('any',filename);
+    rawdata('goto', 0);
+    megmodel('head',[0 0 0],filename);
+    % get the available information from the fif file
+    [orig.rawdata.range,orig.rawdata.calib]           = rawdata('range');
+    [orig.rawdata.sf]                                 = rawdata('sf');
+    [orig.rawdata.samples]                            = rawdata('samples');
+    [orig.chaninfo.N,orig.chaninfo.S,orig.chaninfo.T] = chaninfo;           % Numbers, names & places
+    [orig.chaninfo.TY,orig.chaninfo.NA]               = chaninfo('type');   % Coil type
+    [orig.chaninfo.NO]                                = chaninfo('noise');  % Default noise level
+    [orig.channames.NA,orig.channames.KI,orig.channames.NU] = channames(filename); % names, kind, logical numbers
+    % read a single trial to determine the data size
+    [buf, status] = rawdata('next');
+    rawdata('close');
+    % convert to fieldtrip format header
+    hdr.label       = orig.channames.NA;
+    hdr.Fs          = orig.rawdata.sf;
+    hdr.nSamplesPre = 0; % I don't know how to get this out of the file
+    hdr.nChans      = size(buf,1);
+    hdr.nSamples    = size(buf,2); % number of samples per trial
+    hdr.nTrials     = orig.rawdata.samples ./ hdr.nSamples;
     % add a gradiometer structure for forward and inverse modelling
     hdr.grad = fif2grad(filename);
-    [hdr.label, type, number] = channames(filename);
-    rawdata('any',filename);
-    hdr.Fs = rawdata('sf');
-    hdr.nTrials = 0;
-    rawdata('goto', 0);
-    [buf, status] = rawdata('next');
-    hdr.nChans   = size(buf,1);
-    hdr.nSamples = size(buf,2);
-    while strcmp(status, 'ok')
-      hdr.nTrials = hdr.nTrials + 1;
-      [buf, status] = rawdata('next');
-    end
-    % I don't know how to get this out of the file
-    hdr.nSamplesPre  = 0;
-    % this would give some information that I don't know how to use
-    % [range, cal] = rawdata('range');
-    % this would give the current latency
-    % rawdata('t');
-    rawdata('close');
+    % remember the original header details
+    hdr.orig = orig;
 
   case 'ns_avg'
     orig = read_ns_hdr(filename);
