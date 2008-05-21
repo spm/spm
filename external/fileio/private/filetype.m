@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.78  2008/05/21 13:31:34  vlalit
+% Added check for existence of the file before the other spmeeg checks.
+%
 % Revision 1.77  2008/05/09 17:04:41  vlalit
 % Added even more stringent criteria for recognition of SPM EEG mat files
 %
@@ -807,7 +810,7 @@ elseif filetype_check_extension(filename, '.edf')
   ftype = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
-elseif filetype_check_extension(filename, '.mat') && numel(whos('-file', filename))==1 ...
+elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && numel(whos('-file', filename))==1 ...
         && strcmp('D', getfield(whos('-file', filename), {1}, 'name')) && exist([filename(1:(end-4)) '.dat'], 'file') && ...
         strcmp('struct', getfield(whos('-file', filename), {1}, 'class'))
     ftype = 'spmeeg_mat';
