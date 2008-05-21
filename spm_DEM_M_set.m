@@ -47,7 +47,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 1380 2008-04-11 18:55:18Z karl $
+% $Id: spm_DEM_M_set.m 1703 2008-05-21 13:59:23Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -87,6 +87,7 @@ for i  = 1:g
     catch
         M(i).f = inline('sparse(0,1)','x','v','P');
         M(i).x = sparse(0,1);
+        M(i).n = 0;
     end
 end
  
@@ -194,6 +195,10 @@ for i = (g - 1):-1:1
     catch
         errordlg(sprintf('evaluation failure: M(%i).f(x,v,P)',i))
     end
+    try M(i).fx = fcnchk(M(i).fx,'x','v','P'); end
+    try M(i).fv = fcnchk(M(i).fv,'x','v','P'); end
+    try M(i).fp = fcnchk(M(i).fp,'x','v','P'); end
+
  
     % check g(x,v,P)
     %----------------------------------------------------------------------
@@ -212,6 +217,9 @@ for i = (g - 1):-1:1
     catch
         errordlg(sprintf('evaluation failure: M(%i).g(x,v,P)',i))
     end
+    try M(i).gx = fcnchk(M(i).gx,'x','v','P'); end
+    try M(i).gv = fcnchk(M(i).gv,'x','v','P'); end
+    try M(i).gp = fcnchk(M(i).gp,'x','v','P'); end
 end
 
 % number of x (hidden states)

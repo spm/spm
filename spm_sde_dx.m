@@ -28,7 +28,7 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sde_dx.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_sde_dx.m 1703 2008-05-21 13:59:23Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -65,4 +65,4 @@ w     = spm_sqrtm(Q)*randn(m,1);
  
 % local linear solution plus stochastic term
 %==========================================================================
-dx    = (eJt - speye(m,m))*spm_pinv(dfdx)*f + w;
+dx    = spm_dx(dfdx,f,t) + w;

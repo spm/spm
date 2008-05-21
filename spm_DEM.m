@@ -3,7 +3,7 @@ function [DEM] = spm_DEM(DEM)
 % FORMAT DEM   = spm_DEM(DEM)
 %
 % DEM.M  - hierarchical model
-% DEM.Y  - response varaible, output or data
+% DEM.Y  - response variable, output or data
 % DEM.U  - explanatory variables, inputs or prior expectation of causes
 % DEM.X  - confounds
 %__________________________________________________________________________
@@ -73,31 +73,30 @@ function [DEM] = spm_DEM(DEM)
 % in generalised co-ordinates.  This means DEM can deconvolve online and can
 % represents an alternative to Kalman filtering or alternative Bayesian 
 % update procedures.
-%
-%==========================================================================
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_DEM.m 1380 2008-04-11 18:55:18Z karl $
-
+% $Id: spm_DEM.m 1703 2008-05-21 13:59:23Z karl $
+ 
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
 [M Y U X] = spm_DEM_set(DEM);
-
+ 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
 clear spm_DEM_eval
 Fdem = spm_figure('GetWin','DEM');
-
+ 
 % tolerance for changes in norm
 %--------------------------------------------------------------------------
 TOL  = 1e-3;
-
+ 
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
 d    = M(1).E.d + 1;                   % embedding order of q(v)
 n    = M(1).E.n + 1;                   % embedding order of q(x) (n >= d)
-
+ 
 % number of states and parameters
 %--------------------------------------------------------------------------
 nY   = size(Y,2);                      % number of samples
@@ -107,7 +106,7 @@ nx   = sum(spm_vec(M.n));              % number of x (hidden states)
 ny   = M(1).l;                         % number of y (inputs)
 nc   = M(end).l;                       % number of c (prior causes)
 nu   = nv*d + nx*n;                    % number of generalised states
-
+ 
 % number of iterations
 %--------------------------------------------------------------------------
 try nD = M(1).E.nD; catch nD = 1;  end
@@ -115,8 +114,8 @@ try nE = M(1).E.nE; catch nE = 1;  end
 try nM = M(1).E.nM; catch nM = 8;  end
 try nN = M(1).E.nN; catch nN = 16; end
 try K  = M(1).E.K;  catch K  = 1;  end
-
-
+ 
+ 
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 if nx
@@ -126,7 +125,7 @@ else
     td = {8};
     te = 2;
 end
-
+ 
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
 Q     = {};
@@ -138,12 +137,12 @@ V0    = kron(sparse(n,n),spm_cat(v0));
 W0    = kron(sparse(n,n),spm_cat(w0));
 Qp    = blkdiag(V0,W0);
 for i = 1:nl
-
+ 
     % precision (R) and covariance of generalised errors
     %----------------------------------------------------------------------
     iVv   = spm_DEM_R(n,M(i).sv);
     iVw   = spm_DEM_R(n,M(i).sw);
-
+ 
     % noise on causal states (Q)
     %----------------------------------------------------------------------
     for j = 1:length(M(i).Q)
@@ -151,13 +150,13 @@ for i = 1:nl
         q{i,i}     = M(i).Q{j};
         Q{end + 1} = blkdiag(kron(iVv,spm_cat(q)),W0);
     end
-
+ 
     % and fixed components (V)
     %----------------------------------------------------------------------
     q      = v0;
     q{i,i} = M(i).V;
     Qp     = Qp + blkdiag(kron(iVv,spm_cat(q)),W0);
-
+ 
     % noise on hidden states (R)
     %----------------------------------------------------------------------
     for j = 1:length(M(i).R)
@@ -165,7 +164,7 @@ for i = 1:nl
         q{i,i}     = M(i).R{j};
         Q{end + 1} = blkdiag(V0,kron(iVw,spm_cat(q)));
     end
-
+ 
     % and fixed components (W)
     %----------------------------------------------------------------------
     q      = w0;
@@ -173,18 +172,18 @@ for i = 1:nl
     Qp     = Qp + blkdiag(V0,kron(iVw,spm_cat(q)));
     
 end
-
-
+ 
+ 
 % number of hyperparameters
 %--------------------------------------------------------------------------
 nh    = length(Q);
-
+ 
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
 Px    = kron(spm_DEM_R(n,1),speye(nx,nx)*0);
 Pv    = kron(spm_DEM_R(d,1),speye(nv,nv)*0);
 Pu    = spm_cat(diag({Px Pv}));
-
+ 
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
@@ -192,7 +191,7 @@ ph.c  = spm_cat(diag({M.hC M.gC}));        % prior covariances of h
 qh.h  = ph.h;                              % conditional expectation
 qh.c  = ph.c;                              % conditional covariance
 ph.ic = spm_pinv(ph.c);                    % prior precision 
-
+ 
 % priors on parameters (in reduced parameter space)
 %==========================================================================
 pp.c  = cell(nl,nl);
@@ -205,7 +204,7 @@ for i = 1:(nl - 1)
     M(i).p    = size(qp.u{i},2);                     % number of qp.p
     qp.p{i}   = sparse(M(i).p,1);                    % initial qp.p
     pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
-
+ 
 end
 Up    = spm_cat(diag(qp.u));
  
@@ -214,7 +213,7 @@ Up    = spm_cat(diag(qp.u));
 np    = sum(spm_vec(M.p));                  % number of model parameters
 nb    = size(X,1);                          % number of confounds
 nn    = nb*ny;                              % number of nuisance parameters
-nf    = np + nn;                            % numer of free parameters
+nf    = np + nn;                            % number of free parameters
 ip    = [1:np];
 ib    = [1:nn] + np;
 pp.c  = spm_cat(pp.c);
@@ -225,7 +224,7 @@ pp.ic = spm_pinv(pp.c);
 qp.e  = spm_vec(qp.p);
 qp.c  = sparse(nf,nf);
 qp.b  = sparse(ny,nb);
-
+ 
 % initialise dedb
 %--------------------------------------------------------------------------
 for i = 1:nl
@@ -241,8 +240,8 @@ for i = 1:n
     dNdb{i,1}  = spm_cat(dndbi);
 end
 dEdb  = [dEdb; dNdb];
-
-
+ 
+ 
 % initialise cell arrays for D-Step; e{i + 1} = (d/dt)^i[e] = e[i]
 %==========================================================================
 qu.x      = cell(n,1);
@@ -260,7 +259,7 @@ x         = {M(1:end - 1).x};
 v         = {M(1 + 1:end).v};
 qu.x{1}   = spm_vec(x);
 qu.v{1}   = spm_vec(v);
-
+ 
 % derivatives for Jacobian of D-step
 %--------------------------------------------------------------------------
 Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
@@ -275,21 +274,21 @@ dVdy  = sparse(n*ny,1);
 dVdc  = sparse(d*nc,1);              
 dVdyy = sparse(n*ny,n*ny);
 dVdcc = sparse(d*nc,d*nc);
-
+ 
 % gradients and curvatures for conditional uncertainty
 %--------------------------------------------------------------------------
 dWdu  = sparse(nu,1);
 dWdp  = sparse(nf,1);
 dWduu = sparse(nu,nu);
 dWdpp = sparse(nf,nf);
-
+ 
 % preclude unneceassry iterations
 %--------------------------------------------------------------------------
 if ~nh,        nM = 1; end
 if ~nf,        nE = 1; end
 if ~nf && ~nh, nN = 1; end
-
-
+ 
+ 
 % Iterate DEM
 %==========================================================================
 Fm     = -exp(64);
@@ -301,7 +300,7 @@ for iN = 1:nN
     Fe     = -exp(64);                         % Free energy (E-stpep)
     for iE = 1:nE
  
-
+ 
         % [re-]set accumulators for E-Step
         %------------------------------------------------------------------
         dFdp  = zeros(nf,1);
@@ -332,13 +331,13 @@ for iN = 1:nN
         % D-Step: (nD D-Steps for each sample)
         %==================================================================
         for iY = 1:nY
-
+ 
             % [re-]set states for static systems
             %--------------------------------------------------------------
             if ~nx
                 try, qu = qU(iY); end
             end
-
+ 
             % D-Step: until convergence for static systems
             %==============================================================
             Fd     = -exp(64);
@@ -352,7 +351,7 @@ for iN = 1:nN
                 %----------------------------------------------------------
                 qu.y(1:n) = spm_DEM_embed(Y,n,ts);
                 qu.u(1:d) = spm_DEM_embed(U,d,ts);
-
+ 
                 % compute dEdb (derivatives of confounds)
                 %----------------------------------------------------------
                 b     = spm_DEM_embed(X,n,ts);
@@ -360,7 +359,7 @@ for iN = 1:nN
                     dedbi{1}  = -kron(b{i}',speye(ny,ny));
                     dEdb{i,1} =  spm_cat(dedbi);
                 end
-
+ 
                 % evaluate functions:
                 % E = v - g(x,v) and derivatives dE.dx, ...
                 %==========================================================       
@@ -385,7 +384,7 @@ for iN = 1:nN
                     
                     L = - trace(E'*iS*E)/2 ...           % states (u)
                         - trace(iS*ECEp)/2;              % expectation q(p)
-
+ 
                     % if F is increasing, save expansion point
                     %------------------------------------------------------
                     if L > Fd
@@ -407,7 +406,7 @@ for iN = 1:nN
                         td     = {min(td{1} - 1,0)};
                     end
                 end
-
+ 
                 % save states at qu(t)
                 %----------------------------------------------------------
                 if iD == 1
@@ -426,8 +425,8 @@ for iN = 1:nN
                     dWdu   = CJp'*spm_vec(dE.dp');
                     dWduu  = CJp'*dEdpu;
                 end
-
-
+ 
+ 
                 % D-step update: of causes v{i}, and hidden states x(i)
                 %==========================================================
                 
@@ -484,7 +483,7 @@ for iN = 1:nN
                     str{3} = sprintf('u:%.2e',full(du'*du));
                     fprintf('%-16s%-24s%-16s\n',str{1:3})
                 end
-
+ 
             end % D-Step
             
             % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
@@ -497,7 +496,7 @@ for iN = 1:nN
                 dWdp(ip)       = CJu'*spm_vec(dE.du');
                 dWdpp(ip,ip)   = CJu'*dEdup;
             end
-
+ 
  
             % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
             %--------------------------------------------------------------
@@ -523,9 +522,9 @@ for iN = 1:nN
         %==================================================================
         L = - trace(iS*EE)/2  ...                    % states (u)
             - trace(qp.e'*pp.ic*qp.e)/2;             % parameters (p)
-
  
-        % if F is increasing, save expansion point and dervatives
+ 
+        % if F is increasing, save expansion point and derivatives
         %------------------------------------------------------------------
         if L > Fe
             
@@ -549,7 +548,7 @@ for iN = 1:nN
  
         % E-step: update expectation (p)
         %==================================================================
-
+ 
         % update conditional expectation
         %------------------------------------------------------------------
         dp   = spm_dx(dFdpp,dFdp,{te});
@@ -557,7 +556,7 @@ for iN = 1:nN
         qp.p = spm_unvec(qp.e,qp.p);
         qp.b = spm_unvec(dp(ib),qp.b);
         mp   = mp + dp;
-
+ 
         % convergence (E-Step)
         %------------------------------------------------------------------
         if (dFdp'*dp < 1e-2) | (norm(dp,1) < TOL), break, end
@@ -630,15 +629,15 @@ for iN = 1:nN
           - spm_logdet(ph.c)/2  ...            % entropy - prior h
           + spm_logdet(iS)*nY/2 ...            % entropy - error
           - n*ny*nY*log(2*pi)/2;
-
+ 
     
-    % if F is increasing, save expansion point and dervatives
+    % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
     if L > (Fm + 1e-2)
-
+ 
         Fm    = L;
         F(iN) = Fm;
-
+ 
         % save model-states (for each time point)
         %==================================================================
         for t = 1:length(qU)
@@ -650,9 +649,9 @@ for iN = 1:nN
                 if M(i).n, QU.x{i}(:,t)     = spm_vec(x{i}); end
                 if M(i).l, QU.z{i}(:,t)     = spm_vec(z{i}); end
             end
-            QU.v{1}(:,t)              = spm_vec(qU(t).y{1} - z{1});
+            QU.v{1}(:,t)  = spm_vec(qU(t).y{1}) - spm_vec(z{1});
             if M(nl).l, QU.z{nl}(:,t) = spm_vec(z{nl});      end
-
+ 
             % and conditional covariances
             %--------------------------------------------------------------
             i       = [1:nx];
@@ -666,7 +665,7 @@ for iN = 1:nN
         B.QU   = QU;
         B.qp   = qp;
         B.qh   = qh;
-
+ 
         % report and break if convergence
         %------------------------------------------------------------------
         figure(Fdem)
@@ -685,7 +684,7 @@ for iN = 1:nN
             axis square, grid on
         end
         drawnow
-
+ 
         % report (EM-Steps)
         %------------------------------------------------------------------
         str{1} = sprintf('DEM: %i (%i:%i:%i)',iN,iD,iE,iM);
@@ -693,9 +692,9 @@ for iN = 1:nN
         str{3} = sprintf('p:%.2e',full(mp'*mp));
         str{4} = sprintf('h:%.2e',full(mh'*mh));
         fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
-
+ 
     else
-
+ 
         % otherwise, return to previous expansion point and break
         %------------------------------------------------------------------
         QU   = B.QU;
@@ -708,7 +707,7 @@ end
  
 % Assemble output arguments
 %==========================================================================
-
+ 
 % conditional moments of model-parameters (rotated into original space)
 %--------------------------------------------------------------------------
 qP.P   = spm_unvec(Up*qp.e + spm_vec(M.pE),M.pE);
@@ -724,7 +723,7 @@ qH.C   = qh.c;
 qH.V   = spm_unvec(diag(qH.C),{{M.hE} {M.gE}});
 qH.W   = qH.V{2};
 qH.V   = qH.V{1};
-
+ 
 % assign output variables
 %--------------------------------------------------------------------------
 DEM.M  = M;
@@ -736,4 +735,3 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
-

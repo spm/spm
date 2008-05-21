@@ -13,7 +13,7 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 1380 2008-04-11 18:55:18Z karl $
+% $Id: spm_DEM_play_song.m 1703 2008-05-21 13:59:23Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
@@ -33,7 +33,6 @@ v      = qU.v{1};
 %--------------------------------------------------------------------------
 Hf  = 5000;                                % upper frequency (Hz)
 Lf  = 2000;                                % lower frequency (Hz)
-Bf  = 500;                                 % boundary frequency (Hz)
 Nf  = 64;                                  % number of frequency bin
 Hz  = linspace(Lf,Hf,64);                  % frequencies
 FS  = 2*Hz(end);                           % sampling rate (Hz)
@@ -56,11 +55,10 @@ end
 %--------------------------------------------------------------------------
 b     = V(1,:);                            % amplitude modulation
 f     = V(2,:);                            % frequency modulation
-b     = exp(abs(b)/3);
+b     = abs(b);
 b     = b/max(b);
-f     = f - min(f);
-f     = (Hf - Lf - Bf - Bf)*f/max(f) + Lf + Bf;
-
+b     = exp(b*6);
+f     = 64*f + Lf;
 S     = sparse(Nf,N);
 for i = 1:N
     s      = b(i)*exp(-(Hz - f(i)).^2/sf);

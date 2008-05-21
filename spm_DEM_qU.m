@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 1380 2008-04-11 18:55:18Z karl $
+% $Id: spm_DEM_qU.m 1703 2008-05-21 13:59:23Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -83,8 +83,7 @@ for i = 1:g
 
         % title and grid
         %------------------------------------------------------------------
-        title(sprintf('causal states - level %i',i));
-        xlabel('states')
+        title(sprintf('causes (level %i)',i),'FontSize',16);
         grid on
         axis square
         set(gca,'XLim',[t(1) t(end)])
@@ -95,7 +94,7 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try, 
-            plot(t,pV{i},':k','linewidth',2)
+            plot(t,pV{i},':k','linewidth',1)
         end, hold on
         try
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
@@ -113,7 +112,7 @@ for i = 1:g
             fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             try 
-                plot(t,pV{i},':k','linewidth',2)
+                plot(t,pV{i},':k','linewidth',1)
             end
             plot(t,full(E{i}(:,1:N)),'r:',t,full(V{i}))
             hold off
@@ -122,18 +121,17 @@ for i = 1:g
         % title, action, grid and true casues (if available)
         %------------------------------------------------------------------
         if i == 1
-            title('predicted response and error');
+            title('prediction and error','FontSize',16);
         else
-            title(sprintf('causal states - level %i',i));
+            title(sprintf('causes - level %i',i),'FontSize',16);
             try, hold on
-                plot(t,pV{i},':k','linewidth',2)
+                plot(t,pV{i},':k','linewidth',1)
             end, hold off
             try, hold on
                 plot(t,pA{i - 1},'linewidth',1,'color',[1 0 0])
             end, hold off
         end
-        xlabel('time {bins}')
-        ylabel('states (a.u.)')
+        xlabel('time','FontSize',14)
         grid on
         axis square
         axis(a)
@@ -144,7 +142,7 @@ for i = 1:g
  
             subplot(g,2,2*i)
             try, hold on
-                plot(t,pX{i},':k','linewidth',2)
+                plot(t,pX{i},':k','linewidth',1)
             end, hold off
             plot(t,full(X{i}))
             set(gca,'XLim',[t(1) t(end)])
@@ -158,7 +156,7 @@ for i = 1:g
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
                 try
-                    plot(t,pX{i},':k','linewidth',2)
+                    plot(t,pX{i},':k','linewidth',1)
                 end
                 plot(t,full(X{i}))
                 hold off
@@ -166,8 +164,8 @@ for i = 1:g
                       
             % title and grid
             %--------------------------------------------------------------
-            title('hidden states')
-            xlabel('time {bins}')
+            title('hidden states','FontSize',16)
+            xlabel('time','FontSize',14)
             grid on
             axis square
             axis(a);

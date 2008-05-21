@@ -1,16 +1,18 @@
-function [] = spm_dcm_estimate (DCM_filename)   
+function [DCM] = spm_dcm_estimate(P)   
 % Estimate parameters of a DCM
-% FORMAT [] = spm_dcm_estimate (DCM_filename)   
+% FORMAT [DCM] = spm_dcm_estimate(DCM)   
 %
-% DCM_filename  - the DCM model
+% DCM  - the DCM or its filename
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_dcm_estimate.m 1703 2008-05-21 13:59:23Z karl $
 
  
-if nargin < 1
+% load DCM structure
+%--------------------------------------------------------------------------
+if ~nargin
     
     %-display model details
     %----------------------------------------------------------------------
@@ -23,28 +25,33 @@ if nargin < 1
     
     spm('Pointer','Watch')
     spm('FigName','Estimation in progress');
+    
+end
+if isstruct(P)
+    DCM = P;
+    P   = ['DCM-' date];
 else
-    P = DCM_filename;
+    load(P)
 end
 
-% load and unpack
+    
+% unpack
 %--------------------------------------------------------------------------
-load(P)
-a  = DCM.a;
-b  = DCM.b;
-c  = DCM.c;
-U  = DCM.U;
-Y  = DCM.Y;
-xY = DCM.xY;
+a  = DCM.a;                             % switchs on endogenous connections
+b  = DCM.b;                             % switchs on bilinear connections
+c  = DCM.c;                             % switchs on exogenous connections
+
+U  = DCM.U;                             % exogenous inpurs 
+Y  = DCM.Y;                             % responses
+X0 = DCM.Y.X0;                          % confounds
+
 n  = DCM.n;
 v  = DCM.v;
-X0 = DCM.Y.X0;
-% check whether TE of acquisition has been defined;
-% if not, default to 40 ms
+
+% check whether TE of acquisition has been defined (default to 40 ms)
+%--------------------------------------------------------------------------
 if ~isfield(DCM,'TE')
     DCM.TE = 0.04;
-    disp('spm_dcm_estimate: TE not defined.')
-    disp('DCM.TE was set to default of 0.04 s')
 else
     if (DCM.TE < 0) || (DCM.TE > 0.1)
         disp('spm_dcm_estimate: Extreme TE value found.')
@@ -73,10 +80,9 @@ M.dt  = 16/M.N;
 M.ns  = size(Y.y,1);
 M.TE  = TE;
 
-try
-    % extension to cover fMRI slice time sampling
-    M.delays = DCM.delays;
-end
+% fMRI slice time sampling
+%--------------------------------------------------------------------------
+try, M.delays = DCM.delays; end
 
 % nonlinear system identification (nlsi)
 %--------------------------------------------------------------------------
@@ -129,13 +135,12 @@ DCM.K1     = K1;
 DCM.K2     = K2;
 DCM.R      = R;
 DCM.y      = y;
-DCM.xY     = xY;
 DCM.T      = T;
 DCM.Ce     = Ce;
 
 % Save approximations to model evidence: negative free energy, AIC, BIC
 %--------------------------------------------------------------------------
-evidence   = spm_dcm_evidence (DCM);
+evidence   = spm_dcm_evidence(DCM);
 DCM.F      = F;
 DCM.AIC    = evidence.aic_overall;
 DCM.BIC    = evidence.bic_overall;

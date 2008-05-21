@@ -10,7 +10,7 @@ function [z,w] = spm_DEM_z(M,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_z.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_z.m 1703 2008-05-21 13:59:23Z karl $
  
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
@@ -39,7 +39,11 @@ for i = 1:length(M)
     for j = 1:length(M(i).R)
         P = P + M(i).R{j}*exp(M(i).gE(j));
     end
-    w{i}  = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
+    if length(P)
+        w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
+    else
+        w{i} = sparse(0,0);
+    end
     
 end
 

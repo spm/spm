@@ -1,19 +1,23 @@
-% State-space demo routine simulating position invariance representations
+% State-space demo routine simulating position invariant representations
 % in the visual system.  The generative model predicts a one-dimensional
-% Gabor patch that moves in the (one-dimensional) visual field. The
+% Gabor patch that moves in a (one-dimensional) visual field. The
 % inversion of this dynamic model can be viewed as deconvolving spatial and
-% category attributed from a moving stimulus (or selective re-sampling of
+% category attributes from a moving stimulus (or selective re-sampling of
 % the input to recover the stimulus that can be represented.
-%==========================================================================
+%___________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Karl Friston
+% $Id: DEM_demo_Gabor.m 1703 2008-05-21 13:59:23Z karl $
+
 clear M
-Fgraph    = spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Graphics');
  
 % temporal correlations
 %--------------------------------------------------------------------------
 M(1).E.s  = 1/2;
  
- 
- 
+
 % model specification - 1st level
 %--------------------------------------------------------------------------
 M(1).x  = [0;0;0];
@@ -62,24 +66,28 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-Fgraph    = spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Graphics');
  
 subplot(2,2,1)
 imagesc(DEM.Y)
 axis square
 xlabel time
- 
+title('moving stimulus','FontSize',16)
+
 subplot(2,2,2)
 imagesc(DEM.qU.v{1})
 axis square
 xlabel time
- 
+title('moving prediction','FontSize',16)
+
 subplot(2,2,3)
 imagesc(P)
 axis square
 xlabel time
+title('true stimulus','FontSize',16)
  
 subplot(2,2,4)
 imagesc(Q)
 axis square
 xlabel time
+title('internal prediction','FontSize',16)

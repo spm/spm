@@ -33,9 +33,10 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 %
 % input and noise parameters
 %--------------------------------------------------------------------------
-%    pE.a - amplitude of AR component
+%    pE.a - amplitude of AR  component
 %    pE.b - amplitude of IID component
-%    pE.c - amplitude of noise (spectral density)
+%    pE.c - amplitude of AR  noise (channel specific and non-specific)
+%    pE.d - amplitude of IID noise (channel specific and non-specific)
 %
 %--------------------------------------------------------------------------
 %
@@ -54,7 +55,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_lfp_priors.m 1703 2008-05-21 13:59:23Z karl $
  
 % defaults
 %--------------------------------------------------------------------------

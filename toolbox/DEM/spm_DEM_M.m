@@ -189,23 +189,31 @@ switch lower(model)
         %==================================================================
     case{'convolution model'}
         
+        % time-step
+        %------------------------------------------------------------------
+        try
+            dt = varargin{1};
+        catch
+            dt = 1;
+        end
+        
         % smoothness
         %------------------------------------------------------------------
         M(1).E.linear = 1;                          % linear model
-        M(1).E.s      = 1/2;                        % smoothness
+        M(1).E.s      = 1/2;                          % smoothness
 
         % level 1
         %------------------------------------------------------------------
-        pE.f    = [-1  4   ;                        % the Jacobian for the
-                   -2 -1]/4;                        % hidden sates
+        pE.f    = [-1  4;                           % the Jacobian for the
+                   -2 -1]/(4*dt);                   % hidden sates
         pE.g    = [spm_dctmtx(4,2)]/4;              % the mixing parameters
         pE.h    = [1 0]';                           % input parameter
         M(1).n  = 2;
         M(1).f  = inline('P.f*x + P.h*v','x','v','P');
         M(1).g  = inline('P.g*x','x','v','P');
         M(1).pE = pE;                               % prior expectation
-        M(1).V  = speye(4,4)*exp(8);                % error precision
-        M(1).W  = speye(2,2)*exp(16);               % error precision
+        M(1).V  = exp(8);                           % error precision
+        M(1).W  = exp(16);                          % error precision
 
         % level 2
         %------------------------------------------------------------------

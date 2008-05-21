@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_birdsong.m 1380 2008-04-11 18:55:18Z karl $
+% $Id: DEM_demo_birdsong.m 1703 2008-05-21 13:59:23Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
@@ -32,8 +32,6 @@ dt       = 1/64;                     % time bin (seconds)
 % correlations
 %--------------------------------------------------------------------------
 M(1).E.s = 1;
-M(1).E.n = 6;
-M(1).E.d = 2;
 M(1).E.K = exp(-2);
  
 % level 1
@@ -44,12 +42,14 @@ M(1).E.K = exp(-2);
  
 P        = [10; 8/3];
 x        = [0.9; 0.8; 30];
-f        = '[-P(1) P(1) 0; (v(1) - 4 - x(3)) -1 0; x(2) 0 -P(2)]*x/16;';
-M(1).f   = f;
-M(1).g   = inline('x([2 3])','x','v','P');
+M(1).f   = ' [-P(1) P(1) 0; (v(1) - 4 - x(3)) -1 0; x(2) 0 -P(2)]*x/16;';
+M(1).fx  = '([-P(1) P(1) 0; (v(1) - 4 - x(3)) -1 0; x(2) 0 -P(2)] + [0 0 0; 0 0 -x(1); 0 x(1) 0])/16;';
+M(1).fv  = '[0; x(2); 0]/16;';
+M(1).g   = 'x([2 3])';
+M(1).gx  = [0 1 0; 0 0 1];
 M(1).x   = x;
 M(1).pE  = P;
-M(1).V   = exp(0);
+M(1).V   = exp(2);
 M(1).W   = exp(8);
  
  
@@ -57,9 +57,11 @@ M(1).W   = exp(8);
 %--------------------------------------------------------------------------
 P        = [10; 8/3];
 x        = [0.9; 0.8; 30];
-f        = '[-P(1) P(1) 0; (32 - x(3)) -1 0; x(2) 0 -P(2)]*x/128;';
-M(2).f   = f;
-M(2).g   = inline('x(3)','x','v','P');
+M(2).f   = ' [-P(1) P(1) 0; (32 - x(3)) -1 0; x(2) 0 -P(2)]*x/128;';
+M(2).fx  = '([-P(1) P(1) 0; (32 - x(3)) -1 0; x(2) 0 -P(2)] + [0 0 0; 0 0 -x(1); 0 x(1) 0])/128;';
+M(2).fv  = sparse(3,0);
+M(2).g   = 'x(3)';
+M(2).gx  = [0 0 1];
 M(2).x   = x;
 M(2).pE  = P;
 M(2).V   = exp(8);
@@ -116,6 +118,7 @@ title('percept','Fontsize',18)
 subplot(3,2,5)
 spm_DEM_EEG(DEM,dt);
 title('ERP (error)','Fontsize',18)
+axis([1 N*dt*1000 -100 100])
  
 % first stimulus
 %--------------------------------------------------------------------------
@@ -130,3 +133,4 @@ title('percept','Fontsize',18)
 subplot(3,2,6)
 spm_DEM_EEG(DEMa,dt);
 title('with omission','Fontsize',18)
+axis([1 N*dt*1000 -100 100])

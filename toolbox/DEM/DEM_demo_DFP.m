@@ -10,7 +10,7 @@
  
 % basic deconvolution
 %==========================================================================
-f     = spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Graphics');
  
 % get a simple convolution model
 %==========================================================================
@@ -18,8 +18,8 @@ M     = spm_DEM_M('convolution model');
  
 % and generate data
 %==========================================================================
-N     = 32;                                 % length of data sequence
-U     = exp(-([1:N] - 12).^2/(2.^2));       % this is the Gaussian cause;
+N     = 32;                                        % length of data sequence
+U     = exp(-([1:N] - N/4).^2/(2*(N/32)^2));       % Gaussian cause
 DEM   = spm_DEM_generate(M,U,{},{[] 16});
  
 % display
@@ -33,7 +33,7 @@ DEM  = spm_DFP(DEM);
  
 % overlay true values
 %--------------------------------------------------------------------------
-figure(f)
+spm_figure('GetWin','Graphics')
 spm_DEM_qU(DEM.qU,DEM.pU)
 
 if ~strcmp(questdlg('proceed with DEM using the same model and data'),'Yes')

@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_LFP.m 1380 2008-04-11 18:55:18Z karl $
+% $Id: DEM_demo_song_LFP.m 1703 2008-05-21 13:59:23Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)
@@ -24,8 +24,6 @@ dt       = 1/64;                     % time bin (seconds)
 % correlations
 %--------------------------------------------------------------------------
 M(1).E.s = 1;
-M(1).E.n = 6;
-M(1).E.d = 2;
 M(1).E.K = exp(-2);
 
 
@@ -69,39 +67,63 @@ spm_DEM_qU(DEM.pU)
  
 % DEM estimation and display
 %==========================================================================
-DEM.M(1).x = [0; 0; 8];
+DEM.M(1).x = [1; 1; 8];
 DEM.M(2).x = [1; 1; 8];
  
-DEM    = spm_DEM(DEM);
+% canoncial DEM
+%--------------------------------------------------------------------------
+DEMc   = DEM;
  
-% Repeat without second level
+ 
+% without second level
 %==========================================================================
 DEMa   = DEM;
 DEMa.M = DEMa.M(1);
  
-% deconvolve
-%--------------------------------------------------------------------------
-DEMa   = spm_DEM(DEMa);
- 
-% Repeat without generlised coordinates
+% without generlised coordinates
 %==========================================================================
 DEMb   = DEM;
 DEMb.M(1).E.n = 1;
  
 % deconvolve
 %--------------------------------------------------------------------------
+DEMa   = spm_DEM(DEMa);
 DEMb   = spm_DEM(DEMb);
+DEMc   = spm_DEM(DEMc);
+
+spm_DEM_qU(DEMc.qU,DEMc.pU)
+
+
+
+
  
-% show songs and predicti0n error (ERP)
+% show songs and prediction error (ERP)
 %==========================================================================
+spm_figure('Getwin','MFM');
+clf, colormap('pink')
+
+% Sonograms
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+spm_DEM_play_song(DEMc.pU ,N*dt);
+title('simulus','Fontsize',18)
+axis square
+
+subplot(2,2,2)
+spm_DEM_play_song(DEMc.qU ,N*dt);
+title('percept','Fontsize',18)
+axis square
+drawnow
+
+
 spm_figure('Getwin','Graphics');
 clf, colormap('pink')
  
 % Sonograms
 %--------------------------------------------------------------------------
 subplot(3,2,1)
-spm_DEM_play_song(DEM.qU ,N*dt);
-title('natural stimulus','Fontsize',18)
+spm_DEM_play_song(DEMc.qU ,N*dt);
+title('percept','Fontsize',18)
  
 subplot(3,2,3)
 spm_DEM_play_song(DEMa.qU,N*dt);
@@ -114,7 +136,7 @@ title('no dynamical priors','Fontsize',18)
 % LFPs
 %--------------------------------------------------------------------------
 subplot(3,2,2)
-spm_DEM_EEG(DEM ,dt);
+spm_DEM_EEG(DEMc,dt);
 title('LFP','Fontsize',18)
  
 subplot(3,2,4)
@@ -124,3 +146,4 @@ title('LFP','Fontsize',18)
 subplot(3,2,6)
 spm_DEM_EEG(DEMb,dt);
 title('LFP','Fontsize',18)
+drawnow
