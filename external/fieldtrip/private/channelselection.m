@@ -47,6 +47,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.26  2008/05/21 09:47:14  jansch
+% added MEGREF (for 4d-systems) as a channel-group
+%
 % Revision 1.25  2008/04/21 14:38:26  jansch
 % added support 'MEG' for NM122 systems
 %
@@ -185,6 +188,8 @@ if isctf
   labelmeg = datachannel(strncmp('M'  , datachannel, length('M'  )));	% all CTF MEG channels start with "M"
 elseif isbti
   labelmeg = datachannel(strncmp('A'  , datachannel, length('A'  )));	% all 4D-BTi MEG channels start with "A"
+  labelmref = [datachannel(strncmp('M'  , datachannel, length('M'  )));
+              datachannel(strncmp('G'  , datachannel, length('G'  )))];
 elseif isnm122
   labelmeg = datachannel(strncmp('MEG', datachannel, length('MEG')));
 else
@@ -233,6 +238,7 @@ findeeg1005    = find(strcmp(channel, 'EEG1005'));
 findeegchwilla = find(strcmp(channel, 'EEGCHWILLA'));
 findeegbham    = find(strcmp(channel, 'EEGBHAM'));
 findeegref     = find(strcmp(channel, 'EEGREF'));
+findmegref     = find(strcmp(channel, 'MEGREF'));
 findeog        = find(strcmp(channel, 'EOG'));
 findmz         = find(strcmp(channel, 'MZ' ));
 findml         = find(strcmp(channel, 'ML' ));
@@ -268,6 +274,7 @@ channel([
   findeegchwilla
   findeegbham
   findeegref
+  findmegref
   findeog
   findmz
   findml
@@ -303,6 +310,7 @@ if findeeg1005,    channel = [channel; label1005]; end
 if findeegchwilla, channel = [channel; labelchwilla]; end
 if findeegbham,    channel = [channel; labelbham]; end
 if findeegref,     channel = [channel; labelref]; end
+if findmegref,     channel = [channel; labelmref]; end
 if findeog,        channel = [channel; labeleog]; end
 if findmz ,        channel = [channel; labelmz ]; end
 if findml ,        channel = [channel; labelml ]; end
