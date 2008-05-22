@@ -52,16 +52,7 @@ for k = 1:64
     if aff
         M     = pinv([S' ones(length(S),1)])*M';
 
-        M     = [M'; 0 0 0 1];
-
-        if aff == 2
-            % Enforce uniform scaling for MEG case in order not to distort
-            % the head
-
-            [U, L, V] = svd(M(1:3, 1:3));
-            L = eye(3)*mean(diag(L)); 
-            M(1:3,1:3) =U*L*V';
-        end
+        M     = [M'; 0 0 0 1];    
     else
         % 6-parmaeter affine (i.e. rigid body)
         %----------------------------------------------------------------------
@@ -86,4 +77,15 @@ for k = 1:64
         break;
     end
 end
+
+
+if aff == 2
+    % Enforce uniform scaling for MEG case in order not to distort
+    % the head
+
+    [U, L, V] = svd(M1(1:3, 1:3));
+    L = eye(3)*mean(diag(L));
+    M1(1:3,1:3) =U*L*V';
+end
+
 return
