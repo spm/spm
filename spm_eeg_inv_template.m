@@ -16,7 +16,7 @@ function [eegvol, megvol, fid, mesh] = spm_eeg_inv_template(Msize)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_template.m 1524 2008-04-30 17:59:56Z vladimir $
+% $Id: spm_eeg_inv_template.m 1712 2008-05-22 14:30:41Z vladimir $
 
 
 % check for mesh size
@@ -80,5 +80,5 @@ eegvol = tmp.eegvol;
 fid = [];
 fid.pnt = eegvol.bnd(1).pnt;
 fid.fid = struct('pnt',[1 85  -41; -83 -20 -65; 83 -20 -65], ...
-                    'label',{{'fidnz','fidt9','fidt10'}});
+                    'label',{{'nas','lpa','rpa'}});
 fid.unit = 'mm';                              

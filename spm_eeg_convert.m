@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1676 2008-05-17 07:13:19Z vladimir $
+% $Id: spm_eeg_convert.m 1712 2008-05-22 14:30:41Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -139,7 +139,7 @@ if S.continuous
         end
         S.timewindow = segmentbounds./D.Fsample;
     else
-        segmentbounds = S.timewindow.*D.Fsample;
+        segmentbounds = round(S.timewindow.*D.Fsample);
         segmentbounds(1) = max(segmentbounds(1), 1);
     end
 

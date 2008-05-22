@@ -5,7 +5,7 @@ function M1 = spm_eeg_inv_datareg(S)
 %           2: surface matching between sensor mesh and headshape
 %           (starts with a type 1 registration)
 %
-% FORMAT M1 = spm_eeg_inv_datareg_eeg(S)
+% FORMAT M1 = spm_eeg_inv_datareg(S)
 %
 % Input:
 %
@@ -16,8 +16,9 @@ function M1 = spm_eeg_inv_datareg(S)
 % S.meegfid  - EEG fiducials (struct)
 % S.vol - volume model
 % S.mrifid = MRI fiducials
-% S.template  - 1 - input is a template /0 - input is an individual head
-%                   model
+% S.template  - 1 - input is a template (for EEG)
+%               0 - input is an individual head model
+%               2 - input is a template (for MEG) - enforce uniform scaling
 %
 % Output:
 % M1 = homogenous transformation matrix
@@ -30,7 +31,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1523 2008-04-30 17:33:04Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 1712 2008-05-22 14:30:41Z vladimir $
 
 
 if nargin == 0 || ~isstruct(S)
@@ -78,7 +79,7 @@ if S.template
 
     % constatined affine transform
     %--------------------------------------------------------------------------
-    aff   = 1;
+    aff   = S.template;
     for i = 1:16
 
         % scale

@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1650 2008-05-15 10:22:31Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 1712 2008-05-22 14:30:41Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -77,23 +77,14 @@ zoom(5/3)
 %==========================================================================
 subplot(2,1,2)
 
-% MRI fiducials
-%--------------------------------------------------------------------------
-plot3(Lfidmri(:,1),Lfidmri(:,2),Lfidmri(:,3),'dm',...
-      'MarkerFaceColor','m',...
-      'MarkerSize',12,...
-      'MarkerEdgeColor','k');
-
+[xy, label] = spm_eeg_project3D(S.sensorig, S.modality);
 
 % Channel names
 %--------------------------------------------------------------------------
-text(Lsens(:, 1),Lsens(:,2),Lsens(:,3), Llabel,...
+text(xy(1, :), xy(2, :), label,...
      'FontSize',8,...
      'Color','r',...
      'FontWeight','bold')
+  
 axis equal off
-axis([min(Lsens(:,1)), max(Lsens(:,1)), min(Lsens(:,2)),...
-      max(Lsens(:,2)), min(Lsens(:,3)), max(Lsens(:,3))])
-view(-140,70)
-rotate3d on
 

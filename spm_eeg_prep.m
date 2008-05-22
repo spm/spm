@@ -7,21 +7,24 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1650 2008-05-15 10:22:31Z vladimir $
+% $Id: spm_eeg_prep.m 1712 2008-05-22 14:30:41Z vladimir $
 
 D = S.D;
 
 switch S.task
     case 'settype'
         D = chantype(D, S.ind, S.type);
-    case {'loadtemplate', 'setcoor2d'}
-        if strcmp(S.task, 'loadtemplate')
-            template = load(S.P); % must contain Cpos, Cnames
-            xy = template.Cpos;
-            label = template.Cnames;
-        else
-            xy = S.xy;
-            label = S.label;
+    case {'loadtemplate', 'setcoor2d', 'project3D'}
+        switch task
+            case 'loadtemplate'
+                template = load(S.P); % must contain Cpos, Cnames
+                xy = template.Cpos;
+                label = template.Cnames;
+            case 'setcoor2d'
+                xy = S.xy;
+                label = S.label;
+            case 'project3D'
+                [xy, label] = spm_eeg_project3D(D.sensors(S.modality), S.modality);
         end
 
         [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));
@@ -61,34 +64,32 @@ switch S.task
 
                 elec = [];
                 elec.pnt = senspos;
-                elec.label = label;
-
-            case 'filpolhemus'
-                shape = fileio_read_headshape(S.sensfile, 'fileformat', 'polhemus_fil');
-
-                senspos = shape.pnt;
-
+                elec.label = label;                
+            case 'locfile'
                 label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
 
-                if size(senspos, 1) ~= length(label)
-                    error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
+                elec = fileio_read_sens(S.sensfile);
+
+                % This handles FIL Polhemus case and other possible cases
+                % when no proper labels are available.
+                if isempty(intersect(label, elec.label))
+                    ind = str2num(strvcat(elec.label));
+                    if length(ind) == length(label)
+                        elec.label = label(ind);
+                    else
+                        error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
+                    end
                 end
 
-                elec = [];
-                elec.pnt = senspos;
-                elec.label = label;
-
-            case 'locfile'
-                elec = fileio_read_sens(S.sensfile);
         end
 
+        elec = forwinv_convert_units(elec, 'mm');
+        
         D = sensors(D, 'EEG', elec);
         
         fid = [];
         fid.fid = elec;
         fid.pnt = elec.pnt;
-        
-        fid = forwinv_convert_units(fid, 'mm');
         
         D = fiducials(D, fid);
 
@@ -150,13 +151,35 @@ switch S.task
                 if ~isfield(shape, 'pnt') || isempty(shape.pnt) && ...
                         size(shape.fid.pnt, 1) > 3
                     shape.pnt = shape.fid.pnt;
-                end                    
+                end
         end
 
         shape = forwinv_convert_units(shape, 'mm');
-        
+
+        fid = D.fiducials;
+        if ~isempty(fid) && ~isempty(S.regfid)
+            sel1 = spm_match_str(S.regfid(:, 1), fid.fid.label);
+            sel2 = spm_match_str(S.regfid(:, 2), shape.fid.label);
+
+            M1 = spm_eeg_inv_rigidreg(fid.fid.pnt(sel1, :)', shape.fid.pnt(sel2, :)');
+
+            shape = forwinv_transform_headshape(M1, shape);
+        end
+
         D = fiducials(D, shape);
-        
+
     case 'coregister'
-        D = D.sensorcoreg;
+        [ok, D] = check(D, 'sensfid');
+
+        if ~ok
+            error('Coregistration cannot be performed due to missing data');
+        end
+        
+        D = spm_eeg_inv_template_ui(D, 0, 1);
+        D = spm_eeg_inv_datareg_ui(D, 1, S.modality);
+        
+        if strcmp(S.modality, 'EEG')
+            D = sensors(D, 'EEG', D.inv{1}.datareg.sensors);
+            D = fiducials(D, D.inv{1}.datareg.fid_eeg);
+        end
 end

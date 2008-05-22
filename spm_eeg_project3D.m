@@ -1,29 +1,27 @@
-function [xy,label] = spm_eeg_Project3DCB(D, datatype)
+function [xy,label] = spm_eeg_project3D(sens, modality)
 % Wrapper function to a fieldtrip function to project 3D locations 
 % onto a 2D plane. 
-% FORMAT [xy,label] = spm_eeg_Project3DCB(D, datatype)
+% FORMAT [xy,label] = spm_eeg_project3D(sens, modality)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: spm_eeg_Project3DCB.m 1668 2008-05-15 17:50:41Z vladimir $
+% $Id: spm_eeg_project3D.m 1712 2008-05-22 14:30:41Z vladimir $
 
 cfg = [];
 
-switch datatype
+switch modality
     case 'EEG'
-        cfg.elec = D.sensors('EEG');
-        label = cfg.elec.label;
+        cfg.elec = sens;
         cfg.rotate = 0;
     case 'MEG'
-       cfg.grad = D.sensors('MEG');
-       label = cfg.grad.label;
+        cfg.grad = sens;
     otherwise
         error('Unknown data type');
 end
 
 lay = ft_prepare_layout(cfg);
-[sel1, sel2] = spm_match_str(label, lay.label);
+[sel1, sel2] = spm_match_str(sens.label, lay.label);
 
 label =lay.label(sel2)';
 xy = lay.pos(sel2, :);

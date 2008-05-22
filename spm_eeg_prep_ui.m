@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1650 2008-05-15 10:22:31Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1712 2008-05-22 14:30:41Z vladimir $
 
 if nargin == 0
 
@@ -75,12 +75,6 @@ if nargin == 0
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
-
-    LoadEEGSensPolhemusMenu = uimenu(LoadEEGSensMenu, 'Label', 'From FIL polhemus file',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
     
     LoadEEGSensOtherMenu = uimenu(LoadEEGSensMenu, 'Label', 'Convert locations file',...
         'Tag','EEGprepUI',...
@@ -88,30 +82,25 @@ if nargin == 0
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
 
-    HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load Fiducials/Headshape',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on');
-
-    LoadHeadshapeMatMenu = uimenu(HeadshapeMenu, 'Label', 'From *.mat file',...
+    HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load MEG Fiducials/Headshape',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
 
-    LoadHeadshapePolhemusMenu = uimenu(HeadshapeMenu, 'Label', 'Convert headshape file',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
-
-    CoregisterMenu = uimenu(Coor3DMenu, 'Label', 'Coregister',...
+    CoregisterEEGMenu = uimenu(Coor3DMenu, 'Label', 'Coregister (EEG)',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Separator', 'on', ...
         'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
 
+    CoregisterMEGMenu = uimenu(Coor3DMenu, 'Label', 'Coregister (MEG)',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
+    
     % ====== 2D projection ===================================
     
     Coor2DMenu = uimenu(Finter, 'Label','2D projection',...
@@ -149,13 +138,13 @@ if nargin == 0
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''Callback_Project3DCB'')');
+        'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
 
     Project3DMEGMenu = uimenu(Coor2DMenu, 'Label', 'Project 3D (MEG)',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''Callback_Project3DCB'')');
+        'Callback', 'spm_eeg_prep_ui(''Project3DCB'')');
 
     AddCoor2DMenu = uimenu(Coor2DMenu, 'Label', 'Add sensor',...
         'Tag','EEGprepUI',...
@@ -268,9 +257,6 @@ switch get(gcbo, 'Label')
     case 'From *.mat file'
         S.sensfile = spm_select(1,'.mat$','Select EEG sensors file');
         S.source = 'mat';
-    case 'From FIL polhemus file'
-        S.sensfile = spm_select(1, '\.pol$', 'Select FIL polhemus file');
-        S.source = 'filpolhemus';
     case 'Convert locations file'
         S.sensfile = spm_select(1, '\.*', 'Select locations file');
         S.source = 'locfile';
@@ -299,6 +285,21 @@ D = spm_eeg_prep(S);
 % 
 % D = spm_eeg_prep(S);
 
+% ============= Assign the fiducials using a mat file or the sensors file
+
+S.task = 'headshape';
+S.D = D;
+S.regfid = {};
+if strcmp(S.source, 'mat')
+    S.headshapefile = spm_select(1,'.mat$','Select EEG fiducials file');
+    S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'NZ LE RE');
+else
+    S.headshapefile = S.sensfile;
+    S.source = 'convert';
+end
+
+D = spm_eeg_prep(S);
+
 setD(D);
 
 update_menu;
@@ -311,16 +312,45 @@ S = [];
 S.D = getD;
 S.task = 'headshape';
 
-switch get(gcbo, 'Label')
-    case 'From *.mat file'
-        S.headshapefile = spm_select(1,'.mat$','Select fiducials/headshape file');
-        S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'NZ LE RE'); 
-        S.source = 'mat';
-    case 'Convert headshape file'
-        S.headshapefile = spm_select(1, '\.*', 'Select fiducials/headshape file');
-        S.source = 'convert';
-end
+S.headshapefile = spm_select(1, '\.*', 'Select fiducials/headshape file');
+S.source = 'convert';
 
+shape = fileio_read_headshape(S.headshapefile);
+lblshape = shape.fid.label;
+
+fid = fiducials(S.D);
+lblfid = fid.fid.label;
+
+if numel(intersect(upper(lblshape), upper(lblfid))) < 3
+    if numel(lblshape)<3 || numel(lblfid)<3
+        warndlg('3 fiducials are required to load headshape');
+        return;
+    else
+        S.regfid = {};
+        for i = 1:length(lblfid)
+            [selection ok]= listdlg('ListString',lblshape, 'SelectionMode', 'single',...
+                'InitialValue', strmatch(upper(lblfid{i}), upper(lblshape)), ...
+                'Name', ['Select matching fiducial for ' lblfid{i}], 'ListSize', [400 300]);
+
+            if ~ok
+                continue
+            end
+            
+            S.regfid = [S.regfid; [lblfid(i) lblshape(selection)]];
+        end
+        
+        if size(S.regfid, 1) < 3
+            warndlg('3 fiducials are required to load headshape');
+            return;
+        end
+    end
+else
+    [sel1, sel2] = spm_match_str(upper(lblfid), upper(lblshape));
+    lblfid = lblfid(sel1);
+    lblshape = lblshape(sel2);
+    S.regfid = [lblfid(:) lblshape(:)];
+end
+    
 D = spm_eeg_prep(S);
 
 setD(D);
@@ -335,7 +365,18 @@ S = [];
 S.D = getD;
 S.task = 'coregister';
 
+switch get(gcbo, 'Label')
+    case 'Coregister (EEG)'
+        S.modality = 'EEG';
+    case 'Coregister (MEG)'
+        S.modality = 'MEG';
+end
+
+
 D = spm_eeg_prep(S);
+
+% Bring the menu back
+spm_eeg_prep_ui;
 
 setD(D);
 
@@ -393,18 +434,18 @@ save(fullfile(pathname, filename), 'Cnames', 'Cpos', 'Rxy', 'Nchannels');
 
 %-----------------------------------------------------------------------
 
-function Callback_Project3DCB
+function Project3DCB
 
 D = getD;
 
 switch get(gcbo, 'Label')
     case 'Project 3D (EEG)'
-        datatype = 'EEG';
+        modality = 'EEG';
     case 'Project 3D (MEG)'
-        datatype = 'MEG';
+        modality = 'MEG';
 end
 
-[xy, label] = spm_eeg_Project3DCB(D, datatype);
+[xy, label] = spm_eeg_project3D(D.sensors(modality), modality);
 
 plot_sensors2D(xy, label);
 
@@ -469,9 +510,10 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 
 IsEEG = 'off';
 IsMEG = 'off';
-IsSensors = 'off';
-IsSensorsEEG = 'off';
-IsSensorsMEG = 'off';
+HasSensors = 'off';
+HasSensorsEEG = 'off';
+HasSensorsMEG = 'off';
+HasFiducials = 'off';
 if isa(get(Finter, 'UserData'), 'meeg')
     Dloaded = 'on';
 
@@ -486,15 +528,19 @@ if isa(get(Finter, 'UserData'), 'meeg')
     end
 
     if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
-        IsSensors = 'on';
+        HasSensors = 'on';
     end
 
     if ~isempty(D.sensors('EEG'))
-        IsSensorsEEG = 'on';
+        HasSensorsEEG = 'on';
     end
 
     if  ~isempty(D.sensors('MEG'))
-        IsSensorsMEG = 'on';
+        HasSensorsMEG = 'on';
+    end
+    
+    if  ~isempty(D.fiducials)
+        HasFiducials = 'on';
     end
 else
     Dloaded = 'off';
@@ -523,15 +569,18 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dload
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
 
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', IsSensors);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister'), 'Enable', IsSensorsEEG);
+
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensors);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (EEG)'), 'Enable', HasSensorsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (MEG)'), 'Enable', HasSensorsMEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', IsEEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
 
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', IsSensorsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', IsSensorsMEG); 
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', HasSensorsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', HasSensorsMEG); 
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Delete sensor'), 'Enable', IsSelected);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);
