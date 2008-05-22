@@ -26,7 +26,7 @@ function [] = spm_dcm_sessions ()
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_sessions.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_sessions.m 1711 2008-05-22 11:09:13Z guillaume $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -49,7 +49,7 @@ T=DCM.T;
 % Get mean and variance of effect in each model
 con_error=0;
 for model=1:num_models,
-    load(deblank(P(1,:)));
+    load(deblank(P(model,:)));
     drawnow;
     
     l     = DCM.M.l;
