@@ -17,16 +17,17 @@ function [fid, sens, label] = read_polhemus_fil(Fname_pol,skip)
 % IMPORTANT: Note that Polhemus data files should be -ASCII files with
 % extension .pol
 % It is assumed that the .pol file contains the location (cm) of fiducials
-% (sampled twice), followed by the location of the sensors.  In some
-% instances the first few channel locations may pertain to reference
-% channels; the skip variable allows these to be skipped if necessary.
-% The fiducial locations are flaged with the strings 'NZ','LE' and 'RE'; 
-% indicating the Nasion, left and right eare respectively
-%__________________________________________________________________________
+% (sampled twice), possibly followed by some additional named points and 
+% then unnamed location of the sensors.  In some instances the first
+% few channel locations may pertain to reference channels; the skip 
+% variable allows these to be skipped if necessary. The fiducial locations
+% are flaged with the strings 'NZ','LE' and 'RE'; indicating the Nasion,
+% left and right eare respectively.
+% _________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: read_polhemus_fil.m,v 1.3 2008/04/30 10:07:44 vlalit Exp $
+% $Id: read_polhemus_fil.m,v 1.4 2008/05/22 14:33:18 vlalit Exp $
 
 
 % checks and assigments
@@ -62,6 +63,8 @@ end
 NZ   = [];
 LE   = [];
 RE   = [];
+label = {};
+fid = [];
 temp = 0;
 nl   = 1;
 
@@ -75,6 +78,10 @@ while temp == 0
     elseif strcmp(file{nl},'RE') | strcmp(file{nl},'OD')
         RE = [RE ; str2num(file{nl+1}) str2num(file{nl+2}) str2num(file{nl+3}) ];
         nl = nl + 4;
+    elseif isempty(str2num(file{nl})) % Add possible other named points
+        label = [label, file(nl)];
+        fid = [fid; str2num(file{nl+1}) str2num(file{nl+2}) str2num(file{nl+3}) ];
+        nl = nl + 4;
     else
         temp = 1;
     end
@@ -83,9 +90,9 @@ end
 % convert from cm to mm
 %--------------------------------------------------------------------------
 NZ    = mean(NZ,1); LE = mean(LE,1); RE = mean(RE,1);
-fid   = 10*[NZ; LE; RE]; 
+fid   = [NZ; LE; RE; fid]; 
 
-label = {'NZ', 'LE', 'RE'};
+label = [{'nas', 'lpa', 'rpa'}, label];
 
 % read sensor locations or headshape locations
 %--------------------------------------------------------------------------
@@ -94,7 +101,3 @@ start = nl + skip*3;
 for i = start:3:length(file)
     sens = [sens; str2num(file{i}) str2num(file{i+1}) str2num(file{i+2})];
 end
-
-% convert from cm to mm
-%--------------------------------------------------------------------------
-sens   = 10*sens;

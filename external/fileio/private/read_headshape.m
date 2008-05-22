@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.5  2008/05/22 14:33:18  vlalit
+% Changes related to generalization of fiducials'  handling in SPM.
+%
 % Revision 1.4  2008/05/11 16:30:30  vlalit
 % Improved the support of 4d and neuromag
 %
@@ -81,25 +84,33 @@ switch fileformat
         fid = fid(1:3, :);
         
         [junk, NZ] = max(fid(:,1));
-        [junk, LE] = max(fid(:,2));
-        [junk, RE] = min(fid(:,2));
+        [junk, L] = max(fid(:,2));
+        [junk, R] = min(fid(:,2));
 
-        shape.fid.pnt = fid([NZ LE RE], :);
-        shape.fid.label = {'NZ', 'LE', 'RE'};
+        shape.fid.pnt = fid([NZ L R], :);
+        shape.fid.label = {'NZ', 'L', 'R'};
 
     case 'neuromag_fif'
         [co,ki,nu] = hpipoints(filename);
         fid = co(:,find(ki==1))';
 
         [junk, NZ] = max(fid(:,2));
-        [junk, LE] = min(fid(:,1));
-        [junk, RE] = max(fid(:,1));
+        [junk, L] = min(fid(:,1));
+        [junk, R] = max(fid(:,1));
 
-        shape.fid.pnt = fid([NZ LE RE], :);
-        shape.fid.label = {'NZ', 'LE', 'RE'};
+        shape.fid.pnt = fid([NZ L R], :);
+        shape.fid.label = {'NZ', 'L', 'R'};
 
     case 'polhemus_fil'
         [shape.fid.pnt, shape.pnt, shape.fid.label] = read_polhemus_fil(filename, 0);
+        
+    case 'spmeeg_mat'
+        tmp = load(filename);
+        if isfield(tmp.D, 'fiducials') && ~isempty(tmp.D.fiducials)
+            shape = tmp.D.fiducials;
+        else
+            error('no headshape found in SPM EEG file');
+        end
 
     case 'matlab'
         tmp = load(filename);

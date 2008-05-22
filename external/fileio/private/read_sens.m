@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.9  2008/05/22 14:33:18  vlalit
+% Changes related to generalization of fiducials'  handling in SPM.
+%
 % Revision 1.8  2008/04/14 20:51:36  roboos
 % added convert_units
 %
@@ -140,16 +143,35 @@ switch fileformat
     hdr = read_header(filename);
     sens = hdr.grad;
     
+    
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % This is for EEG formats where electrode positions can be stored with the data
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  case {'spmeeg_mat'}
+    % check the availability of the required low-level toolbox
+    % this is required because the read_sens function is also on itself included in the forwinv toolbox
+    hastoolbox('fileio');
+    hdr = read_header(filename);
+    
+    if isfield(hdr, 'grad')
+         sens = hdr.grad;
+    elseif isfield(hdr, 'elec')
+        sens = hdr.elec;
+    else
+        error('no electrodes or gradiometers found in the file')
+    end
+      
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % these are created at the FIL in London with a polhemus tracker
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
   case 'polhemus_fil'
-    [sens.fid, sens.pnt] = read_polhemus_fil(filename, 0, 0);
+    [sens.fid, sens.pnt] = read_polhemus_fil(filename, 0);
 
     % the file does not have channel labels in it
-    warning('creating fake channel names for polhemus_fil');
-    for i=1:nchan
+    warning('no channel names in polhemus file, using numbers instead');
+    for i=1:size(sens.pnt, 1)
       sens.label{i} = sprintf('%03d', i);
     end
 
