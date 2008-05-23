@@ -5,10 +5,18 @@ function P = spm_eeg_inv_vbecd(P)
 vol = P.forward.vol;
 sens = P.forward.sens;
 
-% prior call to leadfield_prepare
-% vol.t = forwinv_eeg_leadfield4_prepare(vol, 16);
-% % Don't use this last line as it implies using EEG data and a spherical
-% model !
+% Which kind of head model are we dealing with ? BEM [1] or sphere [2]?
+fl_model = 0;
+if isfield(vol,'bnd')
+    fl_model = 1;
+elseif isfield(vol,'r')
+    fl_model = 2;
+    % sort the spheres from the smallest to the largest
+    [vol.r, indx] = sort(vol.r);
+    vol.c = vol.c(indx);
+else
+    error('Unfortunately, case not covered yet')
+end
 
 a10 = P.priors.a10; b10 = P.priors.b10;
 a20 = P.priors.a20; b20 = P.priors.b20;
@@ -41,11 +49,30 @@ dv = 10^-2; % used to compute step-size for gradients
 % initialization
 %---------------
 
-% use some random initialization for parameters,
-% but must be well inside inner sphere
-mu_s = -inf*ones(3,1);
-while ~(mu_s > -20 & sqrt(mu_s'*mu_s) < 0.8*vol.r(1))
+% % use some random initialization for parameters,
+% % but must be well inside inner sphere
+% mu_s = -inf*ones(3,1);
+% while ~(mu_s > -20 & sqrt(mu_s'*mu_s) < 0.8*vol.r(1))
+%     mu_s = 30*randn(length(mu_s0),1);
+% end
+
+% use some random initialization for parameters, 
+% but ensure the starting point are inside the volume !!!
+q_out = 1;
+while q_out
     mu_s = 30*randn(length(mu_s0),1);
+    if fl_model==1
+        % inside the 1st bnd mesh
+        mu_s = 30*randn(length(mu_s0),1);
+        [inside] = bounding_mesh(reshape(mu_s,3,length(mu_s0)/3), ...
+                                         vol.bnd(1).pnt, vol.bnd(1).tri);
+    elseif fl_model==2
+        % inside the 1st sphere
+        mu_s = 30*randn(length(mu_s0),1);
+        inside = sqrt(sum(reshape(mu_s,3,length(mu_s0)/3).^2))<.8*vol.r(1);
+        inside = inside.*(mu_s(3:3:end)>-20);
+    end
+    q_out = all(inside);
 end
 
 mu_w = randn(size(mu_w0), 1);
@@ -101,36 +128,38 @@ for i = 1:P.Niter
 
     % precision on y
     DE = kron(S_w+mu_w*mu_w', eye(Nc));
-
-    
     b1 = 0.5*(y'*y...
         - 2*mu_w'*gmn'*y...
         + gm'*DE*gm...
         + trace(S_s*dgm'*DE*dgm))...
         + b10;
 
-
     % precision on w
-    b2 = 0.5*((Vw'*(mu_w-mu_w0))'*Vw'*iS_w0*Vw*(Vw'*(mu_w-mu_w0)) + trace(Vw'*iS_w0*S_w*Vw)) + b20;
-
+    b2 = 0.5*((Vw'*(mu_w-mu_w0))'*Vw'*iS_w0*Vw*(Vw'*(mu_w-mu_w0)) + ...
+                trace(Vw'*iS_w0*S_w*Vw)) + b20;
 
     % precision on s
-    b3 = 0.5*((Vs'*(mu_s-mu_s0))'*Vs'*iS_s0*Vs*(Vs'*(mu_s-mu_s0)) + trace(Vs'*iS_s0*Vs*Vs'*S_s*Vs)) + b30;
-
+    b3 = 0.5*((Vs'*(mu_s-mu_s0))'*Vs'*iS_s0*Vs*(Vs'*(mu_s-mu_s0)) + ...
+                trace(Vs'*iS_s0*Vs*Vs'*S_s*Vs)) + b30;
 
     % location parameters s
     old_mu_s = mu_s;
     S_s = Ts*inv(a3/b3*iS_s0 + a1/b1*(dgm'*DE*dgm))*Ts';
-    mu_s = Ts*S_s*(a1/b1*(dgm'*(kron(mu_w, y)+ DE*(dgm*mu_s - gm))) + a3/b3*iS_s0*mu_s0);
+    mu_s = Ts*S_s*(a1/b1*(dgm'*(kron(mu_w, y)+ DE*(dgm*mu_s - gm))) + ...
+                a3/b3*iS_s0*mu_s0);
 
     % update leadfield and its partials
-    [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, dv.*sqrt(diag(S_s)), P.Bad);
+    [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
+                dv.*sqrt(diag(S_s)), P.Bad);
     
     mu_sn = reshape(mu_s, 3, Np/3);
     old_mu_sn = reshape(old_mu_s, 3, Np/3);
-    ind = find(sqrt(diag(mu_sn'*mu_sn)) > P.forward.vol.r(1));
-
-
+    % list of sources outside the brain volume
+    if fl_model==1
+        ind = ~bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
+    elseif fl_model==2
+        ind = find(sqrt(diag(mu_sn'*mu_sn)) > P.forward.vol.r(1));
+    end
     
     if i == 1
         F(i) = -Nc/2*log(2*pi) + Nc/2*(spm_digamma(a1) - log(b1))...
@@ -144,7 +173,11 @@ for i = 1:P.Niter
         % make sure that first update of mu_s doesn't jump outside sphere
         while ~isempty(ind)
             mu_sn(:, ind) = mu_sn(:, ind)/2;
-            ind = find(sqrt(diag(mu_sn'*mu_sn)) > 0.99*P.forward.vol.r(1));
+            if fl_model==1
+                ind = ~bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
+            elseif fl_model==2
+                ind = find(sqrt(diag(mu_sn'*mu_sn)) > .99*P.forward.vol.r(1));
+            end
         end
         mu_s = mu_sn(:);
         % update leadfield and its partials
@@ -184,7 +217,12 @@ for i = 1:P.Niter
                 end
             end
                             
-            ind = find(sqrt(diag(mu_sn'*mu_sn)) > 0.99*P.forward.vol.r(1));
+%             ind = find(sqrt(diag(mu_sn'*mu_sn)) > 0.99*P.forward.vol.r(1));
+            if fl_model==1
+                ind = ~bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
+            elseif fl_model==2
+                ind = find(sqrt(diag(mu_sn'*mu_sn)) > .99*P.forward.vol.r(1));
+            end
 
             if j == 16
                 % this seeems to be a bad case, let's start over

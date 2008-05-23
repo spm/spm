@@ -15,7 +15,6 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step, Bad)
  
 gm = [];
 for i = 1:length(s)/3
-%     [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3), sens, vol);
     [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
     tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
     tmp(Bad, :) = [];
@@ -37,7 +36,6 @@ if step > 0
         dtmp = [];
         for i = 1:length(s)/3
             if ceil(j/3) == i 
-%                 [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3), sens, vol);
                 [tmp] = forwinv_compute_leadfield(ds(1+(i-1)*3:i*3)', sens, vol);
                 tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
                 tmp(Bad, :) = [];
@@ -51,7 +49,7 @@ if step > 0
     end
     
     % correct order
-    ind = reshape([1:Np^2], Np, Np)';
+    ind = reshape(1:Np^2 , Np, Np)';
     
     dgm = reshape(dgm, size(gmn, 1), Np^2);
     dgm = dgm(:, ind(:));

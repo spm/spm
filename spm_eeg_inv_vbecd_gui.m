@@ -20,14 +20,24 @@ else
     else
         % use last one
         val = length(D.inv);
-        D.val = val
+        D.val = val;
     end
 end
 
-if ~isfield(D.inv{val},'vol') || ~isfield(D.inv{val},'sens')
-    error('Forward model needs to be ready in FT format.!')
+if isfield(D.inv{val},'forward')
+    if isfield(D.inv{val}.forward,'vol')
+        P.forward = struct('vol',D.inv{val}.forward.vol, ...
+                            'sens',[]);
+    else
+        error('Forward model needs to be ready in FT format.!')
+    end
+    if isfield(D.inv{val}.forward,'sens')
+        P.forward.sens = D.inv{val}.forward.sens;
+    else
+        P.forward.sens = D.sensors('eeg');
+    end
 else
-    P.forward = struct('vol',D.inv{val}.vol,'sens',D.inv{val}.sens);
+    error('Forward model needs to be ready in FT format.!')
 end
 
 
@@ -96,8 +106,6 @@ while adding_dips
         adding_dips = 0;
     elseif a_dip == 1
         % add a single dipole to the model
-        dip_q = dip_q+1;
-        dip_c = dip_c+1;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(3),'S_w0',eye(3), ...
             'ab20',[],'ab30',[],'Tw',eye(3),'Ts',eye(3));
@@ -127,10 +135,10 @@ while adding_dips
             dip_pr(dip_q).mu_w0 = zeros(3,1);
             dip_pr(dip_q).ab20 = def_ab_noninfo;
         end
+        dip_c = dip_c+1;
+        dip_q = dip_q+1;
     else
         % add a pair of symmetric dipoles to the model
-        dip_q = dip_q+1;
-        dip_c = dip_c+2;
         dip_pr(dip_q) = struct( 'a_dip',a_dip, ...
             'mu_w0',[],'mu_s0',[],'S_s0',eye(6),'S_w0',eye(6), ...
             'ab20',[],'ab30',[],'Tw',eye(6),'Ts',eye(6));
@@ -181,6 +189,8 @@ while adding_dips
             dip_pr(dip_q).Tw = .5*T*T';
             dip_pr(dip_q).Ts = .5*T*T';            
         end
+        dip_q = dip_q+1;
+        dip_c = dip_c+2;
     end
 end
 
@@ -240,6 +250,6 @@ P.priors = priors;
 %%
 % Launch inversion !
 %===================
-P = spm_eeg_inv_vbecd(P)
+P = spm_eeg_inv_vbecd(P);
 
 
