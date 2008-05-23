@@ -12,9 +12,9 @@ function item = update_deps(item, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: update_deps.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: update_deps.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1716 $'; %#ok
 
 if ~isempty(item.val) && isa(item.val{1}, 'cfg_dep')
     item.val{1} = update_deps(item.val{1},varargin{:});

@@ -22,9 +22,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: gencode.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1716 $'; %#ok
 
 %% Parent object
 % Generate generic object

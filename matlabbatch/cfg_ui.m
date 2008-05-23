@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1677 2008-05-19 07:57:49Z volkmar $
+% $Id: cfg_ui.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1677 $';
+rev = '$Rev: 1716 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 

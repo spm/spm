@@ -11,9 +11,9 @@ function sts = isequalsource(dep1, dep2)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: isequalsource.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: isequalsource.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1716 $'; %#ok
 sts = numel(dep1) == numel(dep2);
 if sts
     for k = 1:numel(dep1)

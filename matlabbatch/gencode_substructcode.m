@@ -13,9 +13,9 @@ function [str, name, ind] = gencode_substructcode(subs, name)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_substructcode.m 1472 2008-04-23 12:02:44Z volkmar $
+% $Id: gencode_substructcode.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1472 $';
+rev = '$Rev: 1716 $'; %#ok
 
 ind = 1;
 if nargin < 2

@@ -11,9 +11,9 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: showdoc.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1541 $';
+rev = '$Rev: 1716 $'; %#ok
 
 str = {sprintf('%s %s', indent, item.name)};
 if ~isempty(item.help)

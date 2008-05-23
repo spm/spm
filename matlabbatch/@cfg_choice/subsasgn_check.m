@@ -10,9 +10,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1405 2008-04-15 08:41:43Z volkmar $
+% $Id: subsasgn_check.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1405 $';
+rev = '$Rev: 1716 $'; %#ok
 
 sts = true;
 switch subs(1).subs

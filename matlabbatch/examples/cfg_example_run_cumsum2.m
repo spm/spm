@@ -10,9 +10,9 @@ function out = cfg_example_run_cumsum2(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_example_run_cumsum2.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_example_run_cumsum2.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1716 $'; %#ok
 
 % The harvested cfg_repeat will return a cell array of numbers. These need
 % to be cat'ed together to be useful as input to cumsum.

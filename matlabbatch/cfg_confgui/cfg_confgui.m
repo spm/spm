@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: cfg_confgui.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1521 $';
+rev = '$Rev: 1716 $'; %#ok
 
 %% Declaration of fields
 

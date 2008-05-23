@@ -9,9 +9,9 @@ function cfg_run_cd(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_cd.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_run_cd.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1716 $'; %#ok
 
 cd(job.dir{1});
 fprintf('Change Directory: New working directory\n\n     %s\n\n', ...

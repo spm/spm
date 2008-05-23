@@ -13,9 +13,9 @@ function obj = cfg_inv_out(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_inv_out.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: cfg_inv_out.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1373 $';
+rev = '$Rev: 1716 $'; %#ok
 
 % Dummy field - nothing should be stored here
 obj.invalid = true;

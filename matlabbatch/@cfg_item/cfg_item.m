@@ -82,9 +82,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 1489 2008-04-28 06:32:55Z volkmar $
+% $Id: cfg_item.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1489 $';
+rev = '$Rev: 1716 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

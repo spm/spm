@@ -1,7 +1,7 @@
 #!/bin/sh
 
-#PROJDIR="/data/projects/spm-devel/matlabbatch/trunk"
-PROJDIR="/export/spm-devel/matlabbatch/trunk"
+PROJDIR="/data/projects/spm-devel/matlabbatch/trunk"
+#PROJDIR="/export/spm-devel/matlabbatch/trunk"
 
 D1CLASSES="@cfg_branch @cfg_choice @cfg_const @cfg_entry @cfg_files @cfg_menu @cfg_repeat"
 D2CLASSES="@cfg_exbranch"

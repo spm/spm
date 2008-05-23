@@ -9,9 +9,9 @@ function dep = cfg_vout_runjobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_vout_runjobs.m 1606 2008-05-13 06:07:01Z volkmar $
+% $Id: cfg_vout_runjobs.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1606 $';
+rev = '$Rev: 1716 $'; %#ok
 
 dep = cfg_dep;
 if isfield(job.save, 'savejobs')

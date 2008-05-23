@@ -10,8 +10,8 @@ function checkstr = subsasgn_checkstr(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_checkstr.m 1473 2008-04-24 08:14:02Z volkmar $
+% $Id: subsasgn_checkstr.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1473 $';
+rev = '$Rev: 1716 $'; %#ok
 
 checkstr = sprintf('Item ''%s'', field ''%s''', subsref(item,substruct('.','name')), subs(1).subs);

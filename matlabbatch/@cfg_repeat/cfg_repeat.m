@@ -7,7 +7,7 @@ function item = cfg_repeat(varargin)
 % Description fields
 %    * name  - display name of config item
 %    * tag   - tag of the menu item
-%    * val   - cell array (not set initially)
+%    * val   - cell array of cfg_items (not set initially)
 %    * check - (optional) function handle to implement configuration
 %              specific subsasgn checks based on the harvested subtree
 %              rooted at this node
@@ -59,9 +59,9 @@ function item = cfg_repeat(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_repeat.m 1467 2008-04-22 07:46:05Z volkmar $
+% $Id: cfg_repeat.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1467 $';
+rev = '$Rev: 1716 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

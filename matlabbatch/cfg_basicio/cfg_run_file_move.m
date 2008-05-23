@@ -11,9 +11,9 @@ function out = cfg_run_file_move(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 1456 2008-04-21 15:03:41Z volkmar $
+% $Id: cfg_run_file_move.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1456 $';
+rev = '$Rev: 1716 $'; %#ok
 
 if isfield(job.action, 'delete')
     for k = 1:numel(job.files)

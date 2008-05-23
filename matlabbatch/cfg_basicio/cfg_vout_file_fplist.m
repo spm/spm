@@ -12,9 +12,9 @@ function dep = cfg_vout_file_fplist(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_vout_file_fplist.m 1203 2008-03-12 09:29:49Z volkmar $
+% $Id: cfg_vout_file_fplist.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1203 $';
+rev = '$Rev: 1716 $'; %#ok
 
 dep(1)            = cfg_dep;
 dep(1).sname      = 'Selected Files';

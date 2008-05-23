@@ -18,9 +18,9 @@ function cc = cfg_struct2cfg(co, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_struct2cfg.m 1606 2008-05-13 06:07:01Z volkmar $
+% $Id: cfg_struct2cfg.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1606 $';
+rev = '$Rev: 1716 $'; %#ok
 
 if nargin < 2
     indent = '';

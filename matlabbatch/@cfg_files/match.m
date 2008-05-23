@@ -31,9 +31,9 @@ function sts = match(item, spec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: match.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: match.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1521 $';
+rev = '$Rev: 1716 $'; %#ok
 
 % match an empty spec
 sts = true;

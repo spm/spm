@@ -14,9 +14,9 @@ function sts = subsasgn_check_num(val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_num.m 1218 2008-03-17 12:39:36Z volkmar $
+% $Id: subsasgn_check_num.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1218 $';
+rev = '$Rev: 1716 $'; %#ok
 if numel(val)==2 && isnumeric(val) && val(1)>=0 && val(2)>=val(1)
     sts = true;
 else

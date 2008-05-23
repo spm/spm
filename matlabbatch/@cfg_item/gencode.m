@@ -29,9 +29,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: gencode.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1521 $';
+rev = '$Rev: 1716 $'; %#ok
 
 %% Class of item
 % Check whether to generate code

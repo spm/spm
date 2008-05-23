@@ -16,7 +16,7 @@ function varargout = cfg_get_defaults(defstr, varargin)
 % Volkmar Glauche
 % $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
 
-rev = '$Rev: 218 $';
+rev = '$Rev: 218 $'; %#ok
 
 persistent local_def;
 if isempty(local_def)

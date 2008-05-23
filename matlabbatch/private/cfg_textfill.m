@@ -14,7 +14,7 @@ function str = cfg_textfill(obj, left, right, tflag)
 % Volkmar Glauche
 % $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
 
-rev = '$Rev: 218 $';
+rev = '$Rev: 218 $'; %#ok
 
 if ~ishandle(obj)
     error('matlabbatch:textfill:argchk',...

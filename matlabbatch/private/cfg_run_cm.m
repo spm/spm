@@ -13,7 +13,7 @@ function cm = cfg_run_cm(cm, job)
 % Volkmar Glauche
 % $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
 
-rev = '$Rev: 218 $';
+rev = '$Rev: 218 $'; %#ok
 
 if isempty(cm.vout) && ~isempty(cm.vfiles);
     warning('matlabbatch:cfg_util:vfiles', ...

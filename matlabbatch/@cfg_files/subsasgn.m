@@ -32,9 +32,9 @@ function item = subsasgn(item, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: subsasgn.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1533 $';
+rev = '$Rev: 1716 $'; %#ok
 
 if numel(item) ~= 1
     error('matlabbatch:subsasgn:numel', ...

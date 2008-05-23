@@ -10,9 +10,9 @@ function dep = cfg_vout_named_input(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_vout_named_input.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: cfg_vout_named_input.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1716 $'; %#ok
 
 dep = cfg_dep;
 dep.sname = job.name;

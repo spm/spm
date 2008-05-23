@@ -14,9 +14,9 @@ function tn = tagnames(item, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: tagnames.m 1411 2008-04-15 13:55:24Z volkmar $
+% $Id: tagnames.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1411 $';
+rev = '$Rev: 1716 $'; %#ok
 
 tp = treepart(item, dflag);
 citems = subsref(item, substruct('.', tp));

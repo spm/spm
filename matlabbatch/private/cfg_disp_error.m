@@ -13,7 +13,7 @@ function disp_error(l)
 % Volkmar Glauche
 % $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
 
-rev = '$Rev: 218 $';
+rev = '$Rev: 218 $'; %#ok
 
 disp(l.message);
 if isfield(l,'stack'), % Does not always exist

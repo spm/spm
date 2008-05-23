@@ -9,9 +9,9 @@ function sts = subsasgn_check_valcfg(subs,val,num)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_valcfg.m 1478 2008-04-24 17:36:30Z volkmar $
+% $Id: subsasgn_check_valcfg.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1478 $';
+rev = '$Rev: 1716 $'; %#ok
 
 sts = true;
 

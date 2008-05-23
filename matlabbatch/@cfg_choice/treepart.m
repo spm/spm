@@ -11,9 +11,9 @@ function tname = treepart(item, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: treepart.m 1184 2008-03-04 16:27:57Z volkmar $
+% $Id: treepart.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1184 $';
+rev = '$Rev: 1716 $'; %#ok
 
 if dflag
     tname = 'values';

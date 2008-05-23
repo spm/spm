@@ -19,9 +19,9 @@ function toy_example
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: toy_example.m 1315 2008-04-08 07:28:56Z volkmar $
+% $Id: toy_example.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1315 $';
+rev = '$Rev: 1716 $'; %#ok
 
 % the application config resides in the current directory, therefore add
 % this to the path

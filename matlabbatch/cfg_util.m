@@ -361,9 +361,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1641 2008-05-14 16:37:35Z volkmar $
+% $Id: cfg_util.m 1716 2008-05-23 08:18:45Z volkmar $
 
-rev = '$Rev: 1641 $';
+rev = '$Rev: 1716 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
