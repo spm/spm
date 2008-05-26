@@ -19,6 +19,9 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: clusterstat.m,v $
+% Revision 1.22  2008/05/26 09:23:56  roboos
+% fixed bug in neg and postailcritval concatenation when one was inf and the other a vector
+%
 % Revision 1.21  2008/01/15 09:48:04  roboos
 % added comment, no functional change
 %
@@ -81,11 +84,11 @@ if strcmp(cfg.clusterthreshold, 'parametric')
   elseif all(siz==1) && cfg.clustertail==-1
     % it only specifies one critical value corresponding to the left tail
     negtailcritval = cfg.clustercritval;
-    postailcritval = +Inf;
+    postailcritval = +inf * ones(size(negtailcritval));
   elseif all(siz==1) && cfg.clustertail==1
     % it only specifies one critical value corresponding to the right tail
-    negtailcritval = -Inf;
     postailcritval =  cfg.clustercritval;
+    negtailcritval = +inf * ones(size(postailcritval));
   elseif siz(1)==Nsample && siz(2)==1 && cfg.clustertail==0
     %  it specifies a single critical value for each sample, assume that the left and right tail are symmetric around zero
     negtailcritval = -cfg.clustercritval;
@@ -94,12 +97,12 @@ if strcmp(cfg.clusterthreshold, 'parametric')
     % it specifies a critical value for the left tail
     % which is different for each sample (samples have a different df)
     negtailcritval = cfg.clustercritval;
-    postailcritval = +Inf;
+    postailcritval = +inf * ones(size(negtailcritval));
   elseif siz(1)==Nsample && siz(2)==1 && cfg.clustertail==1
     % it specifies a critical value for the right tail
     % which is different for each sample (samples have a different df)
-    negtailcritval = -Inf;
     postailcritval = cfg.clustercritval;
+    negtailcritval = +inf * ones(size(postailcritval));
   elseif siz(1)==Nsample && siz(2)==2 && cfg.clustertail==0
     % it specifies a critical value for the left and for the right tail of the distribution
     % which is different for each sample (samples have a different df)
@@ -124,12 +127,12 @@ elseif strcmp(cfg.clusterthreshold, 'nonparametric_individual')
     postailcritval = srt(:,round((1-cfg.clusteralpha/2)*size(statrnd,2)));
   elseif cfg.clustertail==1
     % only positive tail is needed
-    negtailcritval = -inf;
     postailcritval = srt(:,round((1-cfg.clusteralpha)*size(statrnd,2)));
+    negtailcritval = -inf * ones(size(postailcritval));
   elseif cfg.clustertail==1
     % only negative tail is needed
     negtailcritval = srt(:,round((  cfg.clusteralpha)*size(statrnd,2)));
-    postailcritval = +inf;
+    postailcritval = +inf * ones(size(negtailcritval));
   end
 
 elseif strcmp(cfg.clusterthreshold, 'nonparametric_common')
@@ -142,12 +145,12 @@ elseif strcmp(cfg.clusterthreshold, 'nonparametric_common')
     postailcritval = srt(round((1-cfg.clusteralpha/2)*prod(size(statrnd))));
   elseif cfg.clustertail==1
     % only positive tail is needed
-    negtailcritval = -inf;
     postailcritval = srt(round((1-cfg.clusteralpha)*prod(size(statrnd))));
+    negtailcritval = -inf * ones(size(postailcritval));
   elseif cfg.clustertail==1
     % only negative tail is needed
     negtailcritval = srt(round((  cfg.clusteralpha)*prod(size(statrnd))));
-    postailcritval = +inf;
+    postailcritval = +inf * ones(size(negtailcritval));
   end
 
 else
