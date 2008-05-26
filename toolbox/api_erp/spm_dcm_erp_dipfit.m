@@ -23,7 +23,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1580 2008-05-08 15:08:46Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 1726 2008-05-26 16:45:55Z vladimir $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -88,7 +88,7 @@ try
     DCM.M.dipfit.vol = D.inv{D.val}.forward.vol;
     DCM.M.dipfit.datareg = D.inv{D.val}.datareg;
 catch
-    D = spm_eeg_inv_template_ui(D, D.val, 4);
+    D = spm_eeg_inv_mesh_ui(D, D.val, [], 4);
     D = spm_eeg_inv_datareg_ui(D, D.val);
     DCM.M.dipfit.datareg = D.inv{D.val}.datareg;
 end

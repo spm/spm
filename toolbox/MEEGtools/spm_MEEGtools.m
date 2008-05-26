@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 1680 2008-05-19 11:18:19Z vladimir $
+% $Id: spm_MEEGtools.m 1726 2008-05-26 16:45:55Z vladimir $
 
 
 funlist = {
@@ -13,7 +13,8 @@ funlist = {
     'Fieldtrip interactive plotting', 'spm_eeg_plot_interactive';
     'Fieldtrip visual artefact rejection', 'spm_eeg_ft_artefact_visual';
     'Fieldtrip dipole fitting', 'spm_eeg_ft_dipolefitting';
-    'Vector-AR connectivity measures', 'spm_eeg_var_measures'
+    'Vector-AR connectivity measures', 'spm_eeg_var_measures';
+    'Fieldtrip-SPM MEG head modelling' , 'spm_eeg_ft_indiv_meg_model'
     };
 
 str = sprintf('%s|', funlist{:, 1});

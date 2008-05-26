@@ -13,7 +13,7 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_inv_checkmeshes.m 1726 2008-05-26 16:45:55Z vladimir $
 
 
 % initialise
@@ -22,8 +22,8 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 try
     disp(D.inv{val}.mesh);
     Mctx  = D.inv{val}.mesh.tess_ctx;
-    Mslp  = D.inv{val}.vol.bnd(1);
-    Mskl  = D.inv{val}.vol.bnd(end);
+    Mslp  = D.inv{val}.datareg.fid_mri;
+    Mskl  = D.inv{val}.forward.vol.bnd(end);
 catch
     warndlg('please create meshes')
     return

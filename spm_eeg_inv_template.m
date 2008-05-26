@@ -1,4 +1,4 @@
-function [eegvol, megvol, fid, mesh] = spm_eeg_inv_template(Msize)
+function [vol, fid, mesh] = spm_eeg_inv_template(Msize, modality)
 
 % Build the head model (meshes) from the template.
 % IN
@@ -16,7 +16,7 @@ function [eegvol, megvol, fid, mesh] = spm_eeg_inv_template(Msize)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_template.m 1712 2008-05-22 14:30:41Z vladimir $
+% $Id: spm_eeg_inv_template.m 1726 2008-05-26 16:45:55Z vladimir $
 
 
 % check for mesh size
@@ -38,6 +38,7 @@ Cdir     = [spm('dir') filesep 'EEGtemplates'];
 % head model (sMRI)
 %--------------------------------------------------------------------------
 mesh.template   = 1;
+mesh.Affine     = eye(4);
 mesh.sMRI       = fullfile(Cdir,'smri.nii');
 mesh.msk_scalp  = fullfile(Cdir,'scalp.nii');
 mesh.msk_oskull = fullfile(Cdir,'oskull.nii');
@@ -72,13 +73,19 @@ mesh.tess_ctx.face    = uint16(Tmesh.face);
 % Scalp, out-skull, in-skull meshes from the template
 %----------------------------------------------------------------------
 tmp = load(fullfile(Cdir,'standard_vol.mat'));
-megvol = tmp.megvol;
-eegvol = tmp.eegvol;
+
+switch modality
+    case 'MEG'
+        vol = tmp.megvol;
+    case 'EEG'
+        vol = tmp.eegvol;
+end
 
 % datareg
 %--------------------------------------------------------------------------
 fid = [];
-fid.pnt = eegvol.bnd(1).pnt;
+fid.pnt = tmp.eegvol.bnd(1).pnt;
+fid.tri = tmp.eegvol.bnd(1).tri;
 fid.fid = struct('pnt',[1 85  -41; -83 -20 -65; 83 -20 -65], ...
                     'label',{{'nas','lpa','rpa'}});
 fid.unit = 'mm';                              

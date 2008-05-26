@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 1680 2008-05-19 11:18:19Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 1726 2008-05-26 16:45:55Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -44,7 +44,7 @@ try
     vol = D.inv{D.val}.forward.vol;
     datareg = D.inv{D.val}.datareg;
 catch
-    D = spm_eeg_inv_template_ui(D, D.val, 1);
+    D = spm_eeg_inv_mesh_ui(D, D.val, [], 1);
     D = spm_eeg_inv_datareg_ui(D, D.val);
     datareg = D.inv{D.val}.datareg;
 end
@@ -73,6 +73,7 @@ cfg=[];
 cfg.channel = D.inv{D.val}.forward.channels;
 cfg.vol = vol;
 cfg.inwardshift = 0;
+cfg.grid.resolution=20;
 
 if strcmp('EEG', modality)
     cfg.elec = sens;

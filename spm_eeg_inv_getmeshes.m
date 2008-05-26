@@ -1,25 +1,28 @@
-function [mesh,vol] = spm_eeg_inv_getmeshes(mesh,lbuild)
+function [mesh, vol, fid] = spm_eeg_inv_getmeshes(mesh, modality)
 % Generate the tesselated surfaces of the inner-skull and scalp from binary volumes.
 %
 % FORMAT D = spm_eeg_inv_getmeshes(D)
 % Input:
 %   mesh      - input data struct with the binary mask volumes filenames
-%   lbuild    - list of meshes to build (scalp 1, oskull 2, iskull 3, cortex 4)
+%   modality  - the kind of BEM to make - EEG or MEG
 % Output:
 %   mesh      - mesh struct with the tessellation fields
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Christophe Phillips, Rik Henson
-% $Id: spm_eeg_inv_getmeshes.m 1604 2008-05-12 20:34:46Z christophe $
+% $Id: spm_eeg_inv_getmeshes.m 1726 2008-05-26 16:45:55Z vladimir $
 
-if nargin<1
-    D = spm_eeg_load;
-    [D,val] = spm_eeg_inv_check(varargin{1});
-    mesh = D.inv{val}.mesh;
-end
+
 if nargin<2
-    lbuild = 1:4;
+    modality = 'MEG';
+end
+
+switch modality
+    case 'MEG'
+        lbuild = [1,3];
+    case 'EEG'
+        lbuild =  [1:3];
 end
 
 % checks and defaults
@@ -95,87 +98,47 @@ for m = 1:num_mesh
     head(m) = spm_eeg_inv_ElastM(head(m));
 end
 
-% store meshes
+% prepare forwinv volume models from meshes
 %==========================================================================
 % bnd = [];
 % scalp mesh
 %--------------------------------------------------------------------------
-if any(list==1)
-    ind = find(list==1);
-    if exist('bnd','var')
-        bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
-                        'tri',head(ind).tri');
-    else
-        bnd = struct('pnt',head(ind).XYZmm', ...
-                        'tri',head(ind).tri');
-    end
-%     vert = head(ind).XYZmm';
-%     face = head(ind).tri';
-%     norm = spm_eeg_inv_normals(vert,face);
-%     mesh.tess_scalp.vert  = vert;
-%     mesh.tess_scalp.face  = face;
-%     mesh.tess_scalp.norm  = norm;
-%     mesh.Iskull_Nv        = length(vert);
-%     mesh.Iskull_Nf        = length(face);
+switch modality
+    case 'MEG'
+        ind = find(list==3);
+        bnd = struct('pnt',head(ind).XYZmm', 'tri',head(ind).tri');
+        vol = struct('bnd', bnd, 'type', 'nolte');
+    case 'EEG'
+        for i = 1:3
+            ind = find(list==1);
+            bnd(i) = struct('pnt',head(ind).XYZmm', 'tri',head(ind).tri');
+        end
+        vol = struct('bnd',bnd,'cond',[0.3300 0.0041 0.3300],'type','dipoli');
 end
 
-% outer skull mesh
-%--------------------------------------------------------------------------
-if any(list==2)
-    ind = find(list==2);
-    if exist('bnd','var')
-        bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
-                        'tri',head(ind).tri');
-    else
-        bnd = struct('pnt',head(ind).XYZmm', ...
-                        'tri',head(ind).tri');
-    end
-%     vert = head(ind).XYZmm';
-%     face = head(ind).tri';
-%     norm = spm_eeg_inv_normals(vert,face);
-%     mesh.tess_oskull.vert = vert;
-%     mesh.tess_oskull.face = face;
-%     mesh.tess_oskull.norm = norm;
-%     mesh.Oskull_Nv        = length(vert);
-%     mesh.Oskull_Nf        = length(face);
-end
+fid = [];
+fid.pnt = head(find(list==1)).XYZmm';
+fid.tri = head(find(list==1)).tri';
+fid.fid.pnt = [];
+fid.fid.label = {};
 
-% inner skull mesh
-%--------------------------------------------------------------------------
-if any(list==3)
-    ind = find(list==3);
-    if exist('bnd','var')
-        bnd(end+1) = struct('pnt',head(ind).XYZmm', ...
-                        'tri',head(ind).tri');
-    else
-        bnd = struct('pnt',head(ind).XYZmm', ...
-                        'tri',head(ind).tri');
-    end                    
-%     vert = head(ind).XYZmm';
-%     face = head(ind).tri';
-%     norm = spm_eeg_inv_normals(vert,face);
-%     mesh.tess_iskull.vert = vert;
-%     mesh.tess_iskull.face = face;
-%     mesh.tess_iskull.norm = norm;
-%     mesh.Scalp_Nv         = length(vert);
-%     mesh.Scalp_Nf         = length(face);
-end
+vol = forwinv_convert_units(vol, 'mm');
+fid = forwinv_convert_units(fid, 'mm');
 
-vol = struct('bnd',bnd,'cond',[0.3300 0.0041 0.3300],'type','dipoli');
 
 % cortex mesh
 %--------------------------------------------------------------------------
-if any(list==4)
-    ind = find(list==4);
-    vert = head(ind).XYZmm';
-    face = head(ind).tri';
-    norm = spm_eeg_inv_normals(vert,face);
-    mesh.tess_ctx.vert  = vert;
-    mesh.tess_ctx.face  = face;
-    mesh.tess_ctx.norm  = norm;
-    mesh.Ctx_Nv         = length(vert);
-    mesh.Ctx_Nf         = length(face);
-end
+% if any(list==4)
+%     ind = find(list==4);
+%     vert = head(ind).XYZmm';
+%     face = head(ind).tri';
+%     norm = spm_eeg_inv_normals(vert,face);
+%     mesh.tess_ctx.vert  = vert;
+%     mesh.tess_ctx.face  = face;
+%     mesh.tess_ctx.norm  = norm;
+%     mesh.Ctx_Nv         = length(vert);
+%     mesh.Ctx_Nf         = length(face);
+% end
 
 fprintf('%c','='*ones(1,80)), fprintf('\n')
 return

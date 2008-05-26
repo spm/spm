@@ -9,15 +9,18 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 1680 2008-05-19 11:18:19Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 1726 2008-05-26 16:45:55Z vladimir $
 
 D = spm_eeg_load;
 
 data = D.ftraw(0);
 
+trlind = 1:length(data.trial);
+data.cfg.trl(:, 4) = trlind;
+
 cfg=[];
 cfg.method =  spm_input('What method?','+1', 'm', 'summary|channel|trial', strvcat('summary', 'channel', 'trial'));
-cfg.keepchannel = 'yes';
+cfg.keepchannel = 'no';
 
 
 switch spm_eeg_modality_ui(D)
@@ -29,9 +32,18 @@ end
 
 cfg.channel = data.label(chanind);
 
-[data, chansel, trlsel] = ft_rejectvisual(cfg, data);
+data = ft_rejectvisual(cfg, data);
 
+% Figure out based on the output of FT function what trials and channels to
+% reject
+trlsel(trlind) = 0;
+trlsel(data.cfg.trl(:, 4)) = 1;
 D = reject(D, 1:D.ntrials, ~trlsel);
-D = badchannels(D, 1:D.nchannels, ~chansel);
+
+badchan = setdiff(cfg.channel, data.label);
+if ~isempty(badchan)
+    badchanind = spm_match_str(D.chanlabels, badchan);
+    D = badchannels(D, badchanind, 1);
+end
 
 save(D);

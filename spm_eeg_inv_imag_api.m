@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1648 2008-05-15 09:49:36Z stefan $
+% $Id: spm_eeg_inv_imag_api.m 1726 2008-05-26 16:45:55Z vladimir $
 
 
 spm('defaults','EEG');
@@ -64,17 +64,14 @@ end
 % --- Executes on button press in CreateMeshes.
 %--------------------------------------------------------------------------
 function CreateMeshes_Callback(hObject, eventdata, handles)
-handles.D = spm_eeg_inv_mesh_ui(handles.D);
-set(handles.CreateMeshes,'enable','off')
-set(handles.Reg2tem,     'enable','off')
+handles.D = spm_eeg_inv_mesh_ui(handles.D, handles.D.val, 0);
 Reset(hObject, eventdata, handles);
 
 
 % --- Executes on button press in Reg2tem.
 %--------------------------------------------------------------------------
 function Reg2tem_Callback(hObject, eventdata, handles)
-handles.D = spm_eeg_inv_template_ui(handles.D);
-set(handles.CreateMeshes,'enable','off');
+handles.D = spm_eeg_inv_mesh_ui(handles.D, handles.D.val, 1);
 Reset(hObject, eventdata, handles);
 
 
@@ -176,7 +173,8 @@ end
 D.val     = val;
 D         = set_CommentDate(D);
 handles.D = D;
-set(handles.CreateMeshes,'enable','off')
+set(handles.CreateMeshes,'enable','on')
+set(handles.Reg2tem,'enable','on')
 Reset(hObject, eventdata, handles);
 
 % --- Executes on button press in next.
@@ -321,8 +319,10 @@ set(handles.Vis3D,        'enable','off','Value',0)
 set(handles.Image,        'enable','off','Value',0)
 
 if isfield(Q, 'mesh')
+    set(handles.CreateMeshes,'enable','on')
+    set(handles.Reg2tem,'enable','on')
     set(handles.DataReg,  'enable','on')
-    set(handles.CheckMesh,'enable','off')
+    set(handles.CheckMesh,'enable','on')
     if isfield(Q,'datareg') && isfield(Q.datareg, 'sensors')
         set(handles.Forward, 'enable','on')
         set(handles.CheckReg,'enable','on')
@@ -388,33 +388,9 @@ Reset(hObject, eventdata, handles);
 % --- Executes on button press in CheckReg.
 %--------------------------------------------------------------------------
 function CheckReg_Callback(hObject, eventdata, handles)
-
-D = handles.D;
-
-S =[];
-
-switch D.inv{D.val}.modality
-    case 'EEG'
-        S.sens = D.inv{D.val}.datareg.sensors;
-    case 'MEG'
-        % FIXME This is a temporary dirty fix for CTF MEG before 3D layout
-        % is available
-        sens = D.inv{D.val}.datareg.sensors;
-        [sel1 sel2] = spm_match_str(D.inv{D.val}.forward.channels, sens.label);
-        S.sens = [];
-        S.sens.label = D.inv{D.val}.forward.channels;
-        pnt = ((sens.tra)./repmat(sum(sens.tra, 2), 1, size(sens.tra, 2)))*sens.pnt;
-        S.sens.pnt = pnt(sel2 ,:);
-end
-        
-S.meegfid = D.inv{D.val}.datareg.fid_eeg;
-S.vol = D.inv{D.val}.forward.vol;
-S.mrifid = D.inv{D.val}.datareg.fid_mri;
-S.mesh = D.inv{D.val}.mesh;
-
 % check and display registration
 %--------------------------------------------------------------------------
-spm_eeg_inv_checkdatareg(S);
+spm_eeg_inv_checkdatareg(handles.D);
 
 Reset(hObject, eventdata, handles);
 

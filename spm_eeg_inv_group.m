@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1588 2008-05-09 08:14:55Z vladimir $
+% $Id: spm_eeg_inv_group.m 1726 2008-05-26 16:45:55Z vladimir $
 
 
 % check if to proceed
@@ -87,20 +87,12 @@ for i = NS
 
     % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
     %----------------------------------------------------------------------
-    D{i}.inv{val}.mesh.Msize  = 4;
+    Msize  = 4;
 
     % use a template head model and associated meshes
     %======================================================================
-    D{i} = spm_eeg_inv_template_ui(D{i});
+    D{i} = spm_eeg_inv_mesh_ui(D{i}, 1, Msize, 1);
 
-%     % specify forward model
-%     %----------------------------------------------------------------------
-%     if strcmp(D{i}.modality,'EEG')
-%         D{i}.inv{val}.forward.method = 'eeg_3sphereBerg';
-%     else
-%         D{i}.inv{val}.forward.method = 'meg_sphere';
-%     end
-    
     % save forward model parameters
     %----------------------------------------------------------------------
     save(D{i})
@@ -157,7 +149,7 @@ for i = NS
     
     % save forward model
     %----------------------------------------------------------------------
-    save(D{i})
+    save(D{i});
 
 end
 

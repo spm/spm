@@ -1,4 +1,4 @@
-function spm_eeg_inv_checkdatareg(S)
+function spm_eeg_inv_checkdatareg(varargin)
 % Display of the coregistred meshes and sensor locations in MRI space for
 % quality check by eye.
 % Fiducials which were used for rigid registration are also displayed
@@ -8,35 +8,72 @@ function spm_eeg_inv_checkdatareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1712 2008-05-22 14:30:41Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 1726 2008-05-26 16:45:55Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
+
+%%
+
+[D,val] = spm_eeg_inv_check(varargin{:});
+
+switch D.inv{val}.modality
+    case 'EEG'
+        sens = D.inv{val}.datareg.sensors;
+        sensorig = sens;
+    case 'MEG'    
+        cfg = [];
+        cfg.style = '3d';
+        cfg.rotate = 0;
+        cfg.grad = D.inv{val}.datareg.sensors;
+   
+        lay = ft_prepare_layout(cfg);
+                
+        sens = [];
+        sens.label = lay.label(:, 1);
+        sens.pnt = lay.pos;
+        sensorig = cfg.grad;
+end
+        
+modality = D.inv{val}.modality;
+meegfid = D.inv{val}.datareg.fid_eeg;
+vol = D.inv{val}.forward.vol;
+mrifid = D.inv{val}.datareg.fid_mri;
+mesh = D.inv{val}.mesh;
+
+
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 subplot(2,1,1)
 
 % Cortical Mesh
 %--------------------------------------------------------------------------
-face    = S.mesh.tess_ctx.face;
-vert    = S.mesh.tess_ctx.vert;
+face    = mesh.tess_ctx.face;
+vert    = mesh.tess_ctx.vert;
 h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
 hold on
 
 % Scalp Mesh
 %--------------------------------------------------------------------------
-face    = S.vol.bnd(1).tri;
-vert    = S.vol.bnd(1).pnt;
-h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor','none');
+face    = mrifid.tri;
+vert    = mrifid.pnt;
+h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[0 0 0],'FaceColor','none');
+
+
+% Inner volume Mesh
+%--------------------------------------------------------------------------
+face    = vol.bnd(end).tri;
+vert    = vol.bnd(end).pnt;
+h_vol   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor','none');
 
 
 % --- DISPLAY SETUP ---
 %==========================================================================
 try
-    Lsens   = S.sens.pnt;
-    Lhsp    = S.meegfid.pnt;
-    Lfidmri = S.mrifid.fid.pnt;
-    Lfid    = S.meegfid.fid.pnt(1:size(Lfidmri, 1), :);
-    Llabel = S.sens.label;
+    Lsens   = sens.pnt;
+    Lhsp    = meegfid.pnt;
+    Lfidmri = mrifid.fid.pnt;
+    Lfid    = meegfid.fid.pnt(1:size(Lfidmri, 1), :);
+    Llabel = sens.label;
 catch
     warndlg('please coregister these data')
     return
@@ -77,7 +114,7 @@ zoom(5/3)
 %==========================================================================
 subplot(2,1,2)
 
-[xy, label] = spm_eeg_project3D(S.sensorig, S.modality);
+[xy, label] = spm_eeg_project3D(sensorig, modality);
 
 % Channel names
 %--------------------------------------------------------------------------
@@ -87,4 +124,4 @@ text(xy(1, :), xy(2, :), label,...
      'FontWeight','bold')
   
 axis equal off
-
+rotate3d on

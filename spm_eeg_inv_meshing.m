@@ -1,197 +1,64 @@
-function D = spm_eeg_inv_meshing(varargin)
+function [vol, fid, mesh] = spm_eeg_inv_meshing(sMRI, Msize, modality)
 % Apply the inverse spatial deformation to the template mesh
 % to obtain the individual cortical mesh
 % save the individual .mat tesselation of the chosen size
 %
-% FORMAT D = spm_eeg_inv_meshing(D,val)
+% FORMAT [megvol, fid, mesh] = spm_eeg_inv_meshing(filename, Msize)
 % Input:
-% D        - input data struct (optional)
+% sMRI - name of the sMRI file
+% Msize - size of the mesh (1-4)
 % Output:
-% D        - same data struct including the new files and parameters
+% megvol - single shell BEM for MEG
+% fid    - fiducials (head surface + points inverse normalized from the template)
+% mesh   - inverse - normalized canonical mesh
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_meshing.m 1604 2008-05-12 20:34:46Z christophe $
+% $Id: spm_eeg_inv_meshing.m 1726 2008-05-26 16:45:55Z vladimir $
 
-% Flags explanation:
-% * template:
-%   [1] - use the template mesh, useful when the subject's sMRI is not
-%         available
-%   [0] - use the subject's sMRI to estimate at least the main "brain
-%         volumes", and maybe other meshes.
-% * canonical:
-%   [2] - use the canonical meshes for the cortex, i/o skull and scalp and 
-%         bring it into the subject's own space, thanks to the 
-%         normalisation parameters of his sMRI (if available).
-%   [1] - use the canonical cortex mesh and subject's specific meshes for
-%         the inner skull and scalp.
-%   [0] - extract the subject's meshes from the binary volumes estimated
-%         from his sMRI.
-%         Beware that the cortex mesh will be a very rough approximation !
-%         A mesh estimated by a more sophisticated toolbox (eg. BrainVisa)
-%         would provide a more accurate mesh.
-
-
-% initialise
-%--------------------------------------------------------------------------
-[D,val] = spm_eeg_inv_check(varargin{:});
-
-% check template flag
-%--------------------------------------------------------------------------
-try
-    template = D.inv{val}.mesh.template;
-catch
-    D.inv{val}.mesh.template = 0;
+if nargin <2
+    Msize = 4;
 end
 
-% get sMRI file name (select none if none present, to use template mesh)
-%--------------------------------------------------------------------------
-if ~D.inv{val}.mesh.template & ~isfield(D.inv{val}.mesh,'sMRI')
-    D.inv{val}.mesh.sMRI = spm_select([0 1],'image', ...
-                'Select subject''s structural MRI (Press Done if none)');
+if nargin <3
+    modality = 'MEG';
 end
 
-if isempty(D.inv{val}.mesh.sMRI)
-    disp('No structural MRI selected; will use template mesh');
-    D.inv{val}.mesh.template = 1;
-end
+%%
+mesh = [];
+mesh.Msize = Msize;
+mesh.template = 0;
+mesh.sMRI = sMRI;
 
-% set canonical flag (if not specified, determined by modality)
-%--------------------------------------------------------------------------
-if ~D.inv{val}.mesh.template
-    try
-        canonical = D.inv{val}.mesh.canonical;
-    catch
+% Segment and normalise structural
+%======================================================================
+[mesh]  = spm_eeg_inv_segment(mesh);
 
-        if strcmp(modality(D),'MEG')         % No ECD yet for MEG!
-            D.inv{val}.method = 'Imaging';
-        end
+% Compute the masks
+%======================================================================
+mesh  = spm_eeg_inv_getmasks(mesh);
+%%
+% Get volume models and head surface meshes
+%------------------------------------------------------------------
+[mesh, vol, fid] = spm_eeg_inv_getmeshes(mesh, modality);
+%%
+% Canonical cortical mesh
+%------------------------------------------------------------------
+[junk, template_fid, template_mesh] = spm_eeg_inv_template(Msize, modality);
 
-        if ~isfield(D.inv{val},'method')
-            D.inv{val}.method = questdlg('recontruction','Please select', ...
-                                                'Imaging','ECD','Imaging');
-        end
+mesh.tess_mni.vert    = template_mesh.tess_mni.vert;
+mesh.tess_mni.face    = template_mesh.tess_mni.face; 
 
-        if strcmp(D.inv{val}.method,'ECD')  % Use subject-specific mesh for ECD
-            D.inv{val}.mesh.canonical = 1;
-            % We could allow to use template specific model for ECD by
-            % allowing canonical = 2;
-        else % Imaging
-            if ~isfield(D.inv{val}.mesh,'canonical')
-                tmp = questdlg('scalp/skull mesh','Please select', ...
-                                'canonical','subject','canonical');
-            end
-            if strcmp(tmp,'canonical')
-                D.inv{val}.mesh.canonical = 2;  % Use canonical mesh
-            else
-                D.inv{val}.mesh.canonical = 1;
-            end
-        end
-    end
-else
-    D.inv{val}.mesh.canonical = 2;
-end
-% The case with canonical=0, i.e. use all meshes (scalp/iskull/cortex) 
-% defined from the subject's sMRI, only occurs if canonical is defined by
-% hand somewhere else.
+mesh.tess_ctx.vert    = mesh.tess_mni.vert;
+mesh.tess_ctx.face    = mesh.tess_mni.face ;
 
-% get cortical mesh size
-%--------------------------------------------------------------------------
-if ~isfield(D.inv{val}.mesh,'Msize') ...
-                && strcmp(D.inv{val}.method,'Imaging')
-    Msize = spm_input('Cortical mesh size (vert.)','+1', ...
-                                          '3000|4000|5000|7200',[1 2 3 4]);
-    D.inv{val}.mesh.Msize = Msize;
-else strcmp(D.inv{val}.method,'ECD')
-    D.inv{val}.mesh.Msize = 1;
-end
-Msize = D.inv{val}.mesh.Msize;
+% Inverse transform the template mesh
+%------------------------------------------------------------------
+mesh = spm_eeg_inv_transform_mesh(inv(mesh.Affine), mesh);
 
-if D.inv{val}.mesh.template
-    [vol,fid,mesh] = spm_eeg_inv_template(Msize);
-    D = fiducials(D,fid);
-    D.inv{val}.mesh = mesh;
-    D.inv{val}.vol = vol;
-else
-    mesh = D.inv{val}.mesh;
-    % Segment and normalise structural
-    %======================================================================
-    mesh  = spm_eeg_inv_spatnorm(mesh,val);
-    
-    % Compute the masks
-    %======================================================================
-    mesh  = spm_eeg_inv_getmasks(mesh);
-    D.inv{val}.mesh = mesh;
+% Get labeled fiducial points by inverse transforming template fiducials
+%------------------------------------------------------------------
+fid.fid = getfield(forwinv_transform_headshape(inv(mesh.Affine), template_fid), 'fid');
 
-    % Compute the skull, cortex and scalp meshes de novo, from masks
-    %======================================================================
-    if mesh.canonical<2
-        
-        switch mesh.canonical
-            case 1
-                [mesh,vol] = spm_eeg_inv_getmeshes(mesh,1:3);
-            case 2
-                [mesh,vol] = spm_eeg_inv_getmeshes(mesh,1:4);
-        end
-
-        % or deform canonical meshes
-        %------------------------------------------------------------------
-    else
-        % Get mesh from template and warp it into subject's space
-        %------------------------------------------------------------------
-        tmp = load('standard_SPMvol.mat'); % rebuilt with SPM
-%         tmp = load('standard_vol.mat');  % original from FT
-
-        vol_mni = tmp.vol;
-        vol = vol_mni;
-        % deal with the meshes
-        %------------------------------------------------------------------
-        for ii=1:length(vol.bnd)
-            vol.bnd(ii).pnt = spm_get_orig_coord(vol.bnd(ii).pnt,mesh.def);
-        end
-% 
-%         % Compute the scalp mesh from the template
-%         %------------------------------------------------------------------
-%         Tmesh      = load('wmeshTemplate_scalp.mat');
-%         Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
-%         D.inv{val}.mesh.tess_scalp.vert  = Tmesh.vert;
-%         D.inv{val}.mesh.tess_scalp.face  = uint16(Tmesh.face);
-%         % Compute the skull mesh from the template
-%         %------------------------------------------------------------------
-%         Tmesh      = load('wmeshTemplate_skull.mat');
-%         Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
-%         D.inv{val}.mesh.tess_iskull.vert = Tmesh.vert;
-%         D.inv{val}.mesh.tess_iskull.face = uint16(Tmesh.face);
-    end
-    D.inv{val}.vol = vol;
-
-    % Deal with the cortical mesh, canonical cortex mesh if 1 or 2
-    if mesh.canonical
-        % Compute the cortex mesh from the template
-        %------------------------------------------------------------------
-        switch Msize
-            case 1
-                Tmesh = load('wmeshTemplate_3004d.mat');
-            case 2
-                Tmesh = load('wmeshTemplate_4004d.mat');
-            case 3
-                Tmesh = load('wmeshTemplate_5004d.mat');
-            case 4
-                Tmesh = load('wmeshTemplate_7204d.mat');
-        end
-
-        % Canonical cortical mesh
-        %------------------------------------------------------------------
-        mesh.tess_mni.vert    = Tmesh.vert;
-        mesh.tess_mni.face    = uint16(Tmesh.face);
-
-        % Compute the cortical mesh from the template
-        %------------------------------------------------------------------
-        Tmesh.vert = spm_get_orig_coord(Tmesh.vert,D.inv{val}.mesh.def);
-        mesh.tess_ctx.vert    = Tmesh.vert;
-        mesh.tess_ctx.face    = uint16(Tmesh.face);
-    end
-    D.inv{val}.mesh = mesh;
-end
 spm('Pointer','Arrow');

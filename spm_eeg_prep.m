@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1712 2008-05-22 14:30:41Z vladimir $
+% $Id: spm_eeg_prep.m 1726 2008-05-26 16:45:55Z vladimir $
 
 D = S.D;
 
@@ -15,7 +15,7 @@ switch S.task
     case 'settype'
         D = chantype(D, S.ind, S.type);
     case {'loadtemplate', 'setcoor2d', 'project3D'}
-        switch task
+        switch S.task
             case 'loadtemplate'
                 template = load(S.P); % must contain Cpos, Cnames
                 xy = template.Cpos;
@@ -175,7 +175,7 @@ switch S.task
             error('Coregistration cannot be performed due to missing data');
         end
         
-        D = spm_eeg_inv_template_ui(D, 0, 1);
+        D = spm_eeg_inv_mesh_ui(D, 0, 1, 1);
         D = spm_eeg_inv_datareg_ui(D, 1, S.modality);
         
         if strcmp(S.modality, 'EEG')

@@ -19,7 +19,7 @@ function mesh = spm_eeg_inv_getmasks(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 1604 2008-05-12 20:34:46Z christophe $
+% $Id: spm_eeg_inv_getmasks.m 1726 2008-05-26 16:45:55Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -33,13 +33,13 @@ fprintf(['\tGenerate binary volumes from structural image.\n']);
 %  - thr_im  : threhold applied to the binary images
 
 % Modified by Rik to allow other masking flags to be passed
-try 
-  flags = mesh.msk_flags;
-  if isempty(flags)
-     flags = struct('img_norm',0,'ne',1,'ng',2,'thr_im',[.5 .05]);
-  end
+try
+    flags = mesh.msk_flags;
+    if isempty(flags)
+        flags = struct('img_norm',0,'ne',{2, 2, 2},'ng',{0, 2, 6},'thr_im', .1);
+    end
 catch
-  flags = struct('img_norm',0,'ne',1,'ng',2,'thr_im',[.5 .05]);
+    flags = struct('img_norm',0,'ne',{3, 3, 3},'ng',{0, 2, 6},'thr_im', {.05, .05, 0.02});
 end
 
 %==========================================================================
@@ -53,50 +53,53 @@ fl_ic   = {[],[],'uint8',[]}; % writing option for ImCalc
 %--------------------------------------------------------------------------
 Ictx    = fullfile(pth,[nam,'_cortex',ext]);
 if exist(Ictx,'file')
-        fprintf('\tCortex binary volume already exists.\n')
+    fprintf('\tCortex binary volume already exists.\n')
 else
     Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
-                      fullfile(pth,['c2',nam,ext]));
+        fullfile(pth,['c2',nam,ext]));
     Ictx    = spm_imcalc_ui(Iin,Ictx,'i1+i2',fl_ic);
     Iout    = spm_eeg_inv_ErodeGrow(strvcat(Ictx,Ictx), ...
-                                flags.ne(1),0,flags.thr_im(1));
+        flags(1).ne, flags(1).ng, flags(1).thr_im);
 end
 
 % Add up GM+WM+CSF to produce the inner skull volume and write *_iskull.img
 %--------------------------------------------------------------------------
 Iisk    = fullfile(pth,[nam,'_iskull',ext]);
 if exist(Iisk,'file')
-        fprintf('\tInner skull binary volume already exists.\n')
+    fprintf('\tInner skull binary volume already exists.\n')
 else
     Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
-                      fullfile(pth,['c2',nam,ext]), ...
-                      fullfile(pth,['c3',nam,ext]));
+        fullfile(pth,['c2',nam,ext]), ...
+        fullfile(pth,['c3',nam,ext]));
     Iisk    = spm_imcalc_ui(Iin,Iisk,'i1+i2+i3',fl_ic);
     Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iisk,Iisk), ...
-                                flags.ne(1),flags.ng(1),flags.thr_im(1));
+        flags(2).ne, flags(2).ng ,flags(2).thr_im);
 end
 
-% Maybe one day we'll produce the outer skull volume
-%--------------------------------------------------------------------------
-
+%%
 % Use sMRI to produce the scalp surface and write *_scalp.img
 %--------------------------------------------------------------------------
-Iscl    = fullfile(pth,[nam,'_scalp',ext]);
-if exist(Iscl,'file')
-        fprintf('\tScalp binary volume already exists.\n')
+Iscp    = fullfile(pth,[nam,'_scalp',ext]);
+if exist(Iscp,'file')
+    fprintf('\tScalp binary volume already exists.\n')
 else
-    Iin     = mesh.nobias;
-    Iscl    = spm_imcalc_ui(Iin,Iscl,'i1',fl_ic);
-    Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iscl,Iscl), ...
-                                flags.ne(1),flags.ng(1),flags.thr_im(2));
-end
+    Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
+        fullfile(pth,['c2',nam,ext]), ...
+        fullfile(pth,['c3',nam,ext]), ...
+        fullfile(pth,['c4',nam,ext]), ...
+        fullfile(pth,['c5',nam,ext]));
 
+    Iscp    = spm_imcalc_ui(Iin,Iscp,'i1+i2+i3+i4+i5',fl_ic);
+    Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iscp,Iscp), ...
+        flags(3).ne, flags(3).ng, flags(3).thr_im);
+end
+%%
 % Output arguments
 %--------------------------------------------------------------------------
 mesh.msk_cortex = Ictx;
 mesh.msk_iskull = Iisk;
 mesh.msk_oskull = [];
-mesh.msk_scalp  = Iscl;
+mesh.msk_scalp  = Iscp;
 mesh.msk_flags  = flags;
 
 return

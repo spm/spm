@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 1680 2008-05-19 11:18:19Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 1726 2008-05-26 16:45:55Z vladimir $
 
 D = spm_eeg_load;
 
@@ -22,7 +22,7 @@ if D.ntrials > 1
     data.time =  data.time(ind);
 end
 
-data = ft_checkdata(data, 'datatype', 'timelock');
+data = ft_timelockanalysis([], data);
 
 cfg = [];
 cfg.interactive = 'yes';

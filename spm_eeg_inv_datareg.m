@@ -20,6 +20,9 @@ function M1 = spm_eeg_inv_datareg(S)
 %               0 - input is an individual head model
 %               2 - input is a template (for MEG) - enforce uniform scaling
 %
+% S.useheadshape - 1 use headshape matching 0 - don't
+%
+%
 % Output:
 % M1 = homogenous transformation matrix
 %
@@ -31,7 +34,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1712 2008-05-22 14:30:41Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 1726 2008-05-26 16:45:55Z vladimir $
 
 
 if nargin == 0 || ~isstruct(S)
@@ -108,7 +111,7 @@ end
 % Surface matching between the scalp vertices in MRI space and
 % the headshape positions in data space
 %--------------------------------------------------------------------------
-if ishead && ~isempty(meegfid.pnt)
+if ishead && ~isempty(meegfid.pnt) && S.useheadshape
 
     headshape = meegfid.pnt;
     scalpvert = mrifid.pnt;
