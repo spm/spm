@@ -11,7 +11,7 @@ function [mesh, vol, fid] = spm_eeg_inv_getmeshes(mesh, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Christophe Phillips, Rik Henson
-% $Id: spm_eeg_inv_getmeshes.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_getmeshes.m 1727 2008-05-26 17:49:22Z vladimir $
 
 
 if nargin<2
@@ -110,7 +110,7 @@ switch modality
         vol = struct('bnd', bnd, 'type', 'nolte');
     case 'EEG'
         for i = 1:3
-            ind = find(list==1);
+            ind = find(list==i);
             bnd(i) = struct('pnt',head(ind).XYZmm', 'tri',head(ind).tri');
         end
         vol = struct('bnd',bnd,'cond',[0.3300 0.0041 0.3300],'type','dipoli');

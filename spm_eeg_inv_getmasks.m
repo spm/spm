@@ -19,7 +19,7 @@ function mesh = spm_eeg_inv_getmasks(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_getmasks.m 1727 2008-05-26 17:49:22Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -36,10 +36,10 @@ fprintf(['\tGenerate binary volumes from structural image.\n']);
 try
     flags = mesh.msk_flags;
     if isempty(flags)
-        flags = struct('img_norm',0,'ne',{2, 2, 2},'ng',{0, 2, 6},'thr_im', .1);
+         flags = struct('img_norm',0,'ne',{3, 3, 3, 3},'ng',{0, 2, 2, 6},'thr_im', {.05, .05, 0.5, 0.02});
     end
 catch
-    flags = struct('img_norm',0,'ne',{3, 3, 3},'ng',{0, 2, 6},'thr_im', {.05, .05, 0.02});
+    flags = struct('img_norm',0,'ne',{3, 3, 3, 3},'ng',{0, 2, 2, 6},'thr_im', {.05, .05, 0.5, 0.02});
 end
 
 %==========================================================================
@@ -75,6 +75,22 @@ else
     Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iisk,Iisk), ...
         flags(2).ne, flags(2).ng ,flags(2).thr_im);
 end
+%%
+% Add up GM+WM+CSF+Skull to produce the outer skull volume and write *_oskull.img
+%--------------------------------------------------------------------------
+Iosk    = fullfile(pth,[nam,'_oskull',ext]);
+if exist(Iosk,'file')
+    fprintf('\tOuter skull binary volume already exists.\n')
+else
+    Iin     = strvcat(fullfile(pth,['c1',nam,ext]), ...
+        fullfile(pth,['c2',nam,ext]), ...
+        fullfile(pth,['c3',nam,ext]),...
+        fullfile(pth,['c4',nam,ext]));
+    Iosk    = spm_imcalc_ui(Iin,Iosk,'i1+i2+i3+i4',fl_ic);
+    Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iosk,Iosk), ...
+        flags(3).ne, flags(3).ng ,flags(3).thr_im);
+end
+
 
 %%
 % Use sMRI to produce the scalp surface and write *_scalp.img
@@ -91,14 +107,14 @@ else
 
     Iscp    = spm_imcalc_ui(Iin,Iscp,'i1+i2+i3+i4+i5',fl_ic);
     Iout    = spm_eeg_inv_ErodeGrow(strvcat(Iscp,Iscp), ...
-        flags(3).ne, flags(3).ng, flags(3).thr_im);
+        flags(4).ne, flags(4).ng, flags(4).thr_im);
 end
 %%
 % Output arguments
 %--------------------------------------------------------------------------
 mesh.msk_cortex = Ictx;
 mesh.msk_iskull = Iisk;
-mesh.msk_oskull = [];
+mesh.msk_oskull = Iosk;
 mesh.msk_scalp  = Iscp;
 mesh.msk_flags  = flags;
 
