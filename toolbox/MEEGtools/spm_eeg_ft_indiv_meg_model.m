@@ -11,7 +11,7 @@ function  D = spm_eeg_ft_indiv_meg_model(varargin)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Robert Oostenveld, Vladimir Litvak,  
-% $Id: spm_eeg_ft_indiv_meg_model.m 1731 2008-05-27 10:51:12Z vladimir $
+% $Id: spm_eeg_ft_indiv_meg_model.m 1740 2008-05-27 19:44:24Z vladimir $
 
 [Finter] = spm('FnUIsetup','FT based MEG head model',0);
 
@@ -141,7 +141,7 @@ end
 if spm_input('Which volume model?', '+1','SPM|FT', [1 0], 1)
     D.inv{val}.forward.vol = spmvol;
 else
-    D.inv{val}.datareg.fid_mri = ftvol;
+    D.inv{val}.forward.vol = ftvol;
 end
 
 % check meshes and display
