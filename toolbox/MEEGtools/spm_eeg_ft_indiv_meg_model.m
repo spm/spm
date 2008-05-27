@@ -1,5 +1,4 @@
 function  D = spm_eeg_ft_indiv_meg_model(varargin)
-%%
 % Function for making an individually fitted MEG head model based on
 % subject's sMRI.
 %
@@ -12,7 +11,7 @@ function  D = spm_eeg_ft_indiv_meg_model(varargin)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Robert Oostenveld, Vladimir Litvak,  
-% $Id: spm_eeg_ft_indiv_meg_model.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_ft_indiv_meg_model.m 1731 2008-05-27 10:51:12Z vladimir $
 
 [Finter] = spm('FnUIsetup','FT based MEG head model',0);
 
@@ -43,14 +42,9 @@ end
 sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
 
 
-mesh = [];
-mesh.Msize = Msize;
-mesh.template = 0;
-mesh.sMRI = sMRI;
-
 % Segment structural if necessary
 %======================================================================
-[mesh]  = spm_eeg_inv_segment(mesh);
+[spmvol, spmfid, mesh] = spm_eeg_inv_meshing(sMRI, Msize, 'MEG');
 %%
 [p f x] = fileparts(strtok(mesh.sMRI, ','));
 
@@ -79,9 +73,9 @@ mri.anatomy = anatomy;
 
 cfg = [];
 cfg.spheremesh = 4000;
-vol = ft_prepare_singleshell(cfg, seg);
+ftvol = ft_prepare_singleshell(cfg, seg);
 
-vol = forwinv_convert_units(vol, 'mm');
+ftvol = forwinv_convert_units(ftvol, 'mm');
 %%
 cfg = [];
 cfg.downsample = 2;
@@ -130,31 +124,25 @@ pnt(:,4) = 1;
 pnt = (mri.transform * (pnt'))';
 pnt = pnt(:,1:3);
 
-fid = [];
-fid.pnt = pnt;
-fid.tri = tri;
+ftfid = [];
+ftfid.pnt = pnt;
+ftfid.tri = tri;
+ftfid.fid = spmfid.fid;
 %%
-% Canonical cortical mesh
-%------------------------------------------------------------------
-[junk, template_fid, template_mesh] = spm_eeg_inv_template(Msize, D.inv{val}(1).modality);
-
-mesh.tess_mni.vert    = template_mesh.tess_mni.vert;
-mesh.tess_mni.face    = template_mesh.tess_mni.face; 
-
-mesh.tess_ctx.vert    = mesh.tess_mni.vert;
-mesh.tess_ctx.face    = mesh.tess_mni.face ;
-
-% Inverse transform the template mesh
-%------------------------------------------------------------------
-mesh = spm_eeg_inv_transform_mesh(inv(mesh.Affine), mesh);
-
-% Get labeled fiducial points by inverse transforming template fiducials
-%------------------------------------------------------------------
-fid.fid = getfield(forwinv_transform_headshape(inv(mesh.Affine), template_fid), 'fid');
-
 D.inv{val}.mesh = mesh;
-D.inv{val}.datareg.fid_mri = fid;
-D.inv{val}.forward.vol = vol;
+
+if spm_input('Which head surface?', '+1','SPM|FT', [1 0], 0)
+    D.inv{val}.datareg.fid_mri = spmfid;
+else
+    D.inv{val}.datareg.fid_mri = ftfid;
+end
+
+
+if spm_input('Which volume model?', '+1','SPM|FT', [1 0], 1)
+    D.inv{val}.forward.vol = spmvol;
+else
+    D.inv{val}.datareg.fid_mri = ftvol;
+end
 
 % check meshes and display
 %--------------------------------------------------------------------------
@@ -163,7 +151,7 @@ spm_eeg_inv_checkmeshes(D);
 save(D);
 
 %%
-function se = strel_bol(r);
+function se = strel_bol(r)
 
 % STREL_BOL constructs a 3D sphere with the specified radius
 % that can be used as structural element in 3D image processing

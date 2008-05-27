@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 1686 2008-05-19 17:10:06Z vladimir $
+% $Id: spm_eeg_var_measures.m 1731 2008-05-27 10:51:12Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -37,16 +37,26 @@ else
     error('Not enough channels');
 end
 
-if strcmp(D.type, 'continuous') || D.ntrials < 3 || (D.nsamples/D.fsample) < 1
-    error('Expecting epoched files with multiple trials at least 1 sec long');
+if strcmp(D.type, 'continuous') 
+    trldur = spm_input('Input trial length in sec)', '+1', 'r', '2', 1);
+    
+    cfg = [];
+    cfg.dataset = fullfile(D.path, D.fname);
+    cfg.channel= chan;
+    cfg.trl = 1:round(trldur*D.fsample):D.nsamples;
+    cfg.trl = [cfg.trl(1:(end-1))' cfg.trl(2:end)'-1 zeros(length(cfg.trl)-1, 1)];
+    data = ft_preprocessing(cfg);   
+elseif D.ntrials < 3 || (D.nsamples/D.fsample) < 1
+    error('Expecting continuous data or epoched files with multiple trials at least 1 sec long');
+else
+    data = D.ftraw(0);
 end
 %%
-data = D.ftraw(0);
+data.fsample = round(data.fsample);
 
-%%
 cfg=[];
 cfg.channel = chan;
-cfg.resamplefs = 90;
+cfg.resamplefs = 250;
 cfg.detrend = 'yes';
 data = ft_resampledata(cfg, data);
 %%
@@ -65,7 +75,7 @@ cfg.keeptrials = 'yes';
 cfg.keeptapers='no';
 cfg.taper = 'dpss';
 cfg.method = 'mtmfft';
-cfg.foilim     = [0 45]; % Frequency range
+cfg.foilim     = [0 100]; % Frequency range
 cfg.tapsmofrq = 1; % Frequency resolution
 %
 inp = ft_freqanalysis(cfg, data);
@@ -107,7 +117,7 @@ for i=1:1:length(data.label)
             hold on
             plot(coh.freq, squeeze(scoh.cohspctrm(ind,:)), 'r');
             ylim([0 1]);
-            xlim([0 45]);
+            xlim([0 100]);
             title([data.label{i} '->' data.label{j}]);
         end
     end
@@ -139,7 +149,7 @@ end
 ns=data.fsample; % Sample rate
 tt=[1:Ntime]/ns;
 p= spm_input('Input model order', '+1', 'r', '', 1); % Order of MAR model
-freqs=[1:45]; % Frequencies to evaluate spectral quantities at
+freqs=[1:100]; % Frequencies to evaluate spectral quantities at
 
 dircoh=[];
 sdircoh=[];
@@ -196,7 +206,7 @@ Ntrials1=size(dummy.trial,1);
 Ntrials2=size(sdummy.trial,1);
 
 cfg=[];
-cfg.frequency   = [1 45];
+cfg.frequency   = [1 100];
 cfg.method = 'montecarlo';
 cfg.statistic = 'indepsamplesT';
 cfg.tail = 1;
@@ -244,7 +254,7 @@ for i=1:1:length(data.label)
             plot(freqs(sigind), squeeze(mdircoh(maskind, sigind)), '*');
             plot(freqs, squeeze(smdircoh(maskind,:)), 'r');
             ylim([0 max(max(max(mdircoh)), max(max(smdircoh)))]);
-            xlim([0 45]);
+            xlim([0 100]);
             title([data.label{i} '->' data.label{j}]);
         end
     end
