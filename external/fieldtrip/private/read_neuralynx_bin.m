@@ -10,10 +10,29 @@ function [dat] = read_neuralynx_bin(filename, begsample, endsample);
 % This  is not a formal Neuralynx file format, but at the
 % F.C. Donders Centre we use it in conjunction with Neuralynx,
 % SPIKESPLITTING and SPIKEDOWNSAMPLE.
+%
+% The first version of this file format contained in the first 8 bytes the
+% channel label as string. Subsequently it contained 32 bit integer values.
+%
+% The second version of this file format starts with 8 bytes describing (as
+% a space-padded string) the data type. The channel label is contained in
+% the filename as dataset.chanlabel.bin.
+%
+% The third version of this file format starts with 7 bytes describing (as
+% a zero-padded string) the data type, followed by the 8th byte which
+% describes the downscaling for the 8 and 16 bit integer representations.
+% The downscaling itself is represented as uint8 and should be interpreted as
+% the number of bits to shift. The channel label is contained in the
+% filename as dataset.chanlabel.bin.
 
-% Copyright (C) 2007, Robert Oostenveld
+% Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_bin.m,v $
+% Revision 1.3  2008/05/27 13:04:58  roboos
+% switched to the 3rd version of the file format, which includes the downscale/calibration value to recover from int32->int16 compression
+% added explicit support for version 1, 2 and 3 of the fileformat
+% added original details to the output header
+%
 % Revision 1.2  2007/12/17 16:23:44  roboos
 % fixed bug in jumping to correct begin sample
 % added support for determining channel name from filename like this "dataset.chanlabel.bin"
@@ -34,48 +53,87 @@ fid    = fopen(filename, 'rb', 'ieee-le');
 magic  = fread(fid, 8, 'char=>char')';
 
 % the header describes the format of the subsequent samples
-format = strtrim(magic(magic~=0));  % remove padding zeros and trailing spaces
-if     strcmp(format, 'uint8')
+subtype = [];
+if     strncmp(magic, 'uint8',   length('uint8'))
+  format = 'uint8';
   samplesize = 1;
-elseif strcmp(format, 'int8')
+elseif strncmp(magic, 'int8',    length('int8'))
+  format = 'int8';
   samplesize = 1;
-elseif strcmp(format, 'uint16')
+elseif strncmp(magic, 'uint16',  length('uint16'))
+  format = 'uint16';
   samplesize = 2;
-elseif strcmp(format, 'int16')
+elseif strncmp(magic, 'int16',   length('int16'))
+  format = 'int16';
   samplesize = 2;
-elseif strcmp(format, 'uint32')
+elseif strncmp(magic, 'uint32',  length('uint32'))
+  format = 'uint32';
   samplesize = 4;
-elseif strcmp(format, 'int32')
+elseif strncmp(magic, 'int32',   length('int32'))
+  format = 'int32';
   samplesize = 4;
-elseif strcmp(format, 'uint64')
+elseif strncmp(magic, 'uint64',  length('uint64'))
+  format = 'uint64';
   samplesize = 8;
-elseif strcmp(format, 'int64')
+elseif strncmp(magic, 'int64',   length('int64'))
+  format = 'int64';
   samplesize = 8;
-elseif strcmp(format, 'float32')
+elseif strncmp(magic, 'float32', length('float32'))
+  format = 'float32';
   samplesize = 4;
-elseif strcmp(format, 'float64')
+elseif strncmp(magic, 'float64', length('float64'))
+  format = 'float64';
   samplesize = 8;
 else
-  warning('could not detect sample format, assuming old format file with ''int32''');
-  oldformat  = true;
-  samplesize = 4;
+  warning('could not detect sample format, assuming file format subtype 1 with ''int32''');
+  subtype    = 1; % the file format is version 1
   format     = 'int32';
+  samplesize = 4;
 end
 
-if oldformat
-  % the first 8 bytes of the file contain the channel label (padded with spaces)
-  label = strtrim(magic);
-else
-  % the filename is formatted like "dataset.chanlabel.bin"
-  [p, f, x1] = fileparts(filename);
-  [p, f, x2] = fileparts(f);
-  if isempty(x2)
-    warning('could not determine channel label');
-    label = 'unknown';
+% determine whether the file format is version 2 or 3
+if isempty(subtype)
+  if all(magic((length(format)+1):end)==' ')
+    subtype = 2;
   else
-    label = x2(2:end);
+    subtype = 3;
   end
-  clear p f x1 x2
+end
+
+% determine the channel name
+switch subtype
+  case 1
+    % the first 8 bytes of the file contain the channel label (padded with spaces)
+    label = strtrim(magic);
+  case {2, 3}
+    % the filename is formatted like "dataset.chanlabel.bin"
+    [p, f, x1] = fileparts(filename);
+    [p, f, x2] = fileparts(f);
+    if isempty(x2)
+      warning('could not determine channel label');
+      label = 'unknown';
+    else
+      label = x2(2:end);
+    end
+    clear p f x1 x2
+  otherwise
+    error('unknown file format subtype');
+end
+
+% determine the downscale factor, i.e. the number of bits that the integer representation has to be shifted back to the left
+switch subtype
+  case 1
+    % these never contained a multiplication factor but always corresponded
+    % to the lowest N bits of the original 32 bit integer
+    downscale = 0;
+  case 2
+    % these might contain a multiplication factor but that factor cannot be retrieved from the file
+    warning('downscale factor is unknown for ''%s'', assuming that no downscaling was applied', filename);
+    downscale = 0;
+  case 3
+    downscale = double(magic(8));
+  otherwise
+    error('unknown file format subtype');
 end
 
 % construct the header
@@ -88,6 +146,11 @@ hdr.nTrials     = 1;
 hdr.label       = {label};
 
 if ~needdat
+  % also return the file details
+  hdr.orig.subtype    = subtype;
+  hdr.orig.magic      = magic;
+  hdr.orig.format     = format;
+  hdr.orig.downscale  = downscale;
   % return only the header details
   dat = hdr;
 
@@ -104,6 +167,11 @@ else
   fseek(fid, 8+(begsample-1)*samplesize, 'bof');   % skip to the beginning of the interesting data
   format = sprintf('%s=>%s', format, format);
   dat = fread(fid, [1 endsample-begsample+1], format);
+  if downscale>1
+    % the data was downscaled with 2^N, i.e. shifted N bits to the right in case of integer representations
+    % now it should be upscaled again with the same amount
+    dat = dat.*(2^downscale);  
+  end
   if length(dat)<(endsample-begsample+1)
     error('could not read the requested data');
   end
