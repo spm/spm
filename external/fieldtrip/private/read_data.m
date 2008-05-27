@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.46  2008/05/27 16:12:26  vlalit
+% Changed type name to ced_spike6mat
+%
 % Revision 1.45  2008/05/27 11:58:20  vlalit
 % Added support of Matlab files exported from Spike 6
 %
@@ -518,7 +521,7 @@ switch dataformat
   case 'spmeeg_mat'
     dat = read_spmeeg_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
    
-  case 'spike6_mat'
+  case 'ced_spike6mat'
     dat = read_spike6mat_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);    
     
   case 'eep_avr'

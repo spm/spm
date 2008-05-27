@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.56  2008/05/27 16:12:26  vlalit
+% Changed type name to ced_spike6mat
+%
 % Revision 1.55  2008/05/27 11:58:20  vlalit
 % Added support of Matlab files exported from Spike 6
 %
@@ -572,7 +575,7 @@ switch headerformat
   case  'spmeeg_mat'
     hdr = read_spmeeg_header(filename);
     
-  case  'spike6_mat'
+  case  'ced_spike6mat'
     hdr = read_spike6mat_header(filename);
     
   case 'eep_cnt'

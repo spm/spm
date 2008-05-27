@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.80  2008/05/27 16:12:26  vlalit
+% Changed type name to ced_spike6mat
+%
 % Revision 1.79  2008/05/27 11:58:20  vlalit
 % Added support of Matlab files exported from Spike 6
 %
@@ -824,7 +827,7 @@ elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') ...
         && 10 == numel(intersect(fieldnames(subsref(struct2cell(load(filename ,...
         getfield(whos('-file', filename), {1}, 'name'))), substruct('{}', {1}))), ...
         {'title', 'comment', 'interval', 'scale', 'offset', 'units', 'start', 'length', 'values' 'times'}))
-    ftype = 'spike6_mat';
+    ftype = 'ced_spike6mat';
     manufacturer = 'Cambridge Electronic Design Limited';
     content = 'electrophysiological data';        
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
