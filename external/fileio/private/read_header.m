@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.55  2008/05/27 11:58:20  vlalit
+% Added support of Matlab files exported from Spike 6
+%
 % Revision 1.54  2008/05/21 11:06:05  roboos
 % changed the fif reading to store all available info (including channel type) in hdr.orig
 %
@@ -568,6 +571,9 @@ switch headerformat
     
   case  'spmeeg_mat'
     hdr = read_spmeeg_header(filename);
+    
+  case  'spike6_mat'
+    hdr = read_spike6mat_header(filename);
     
   case 'eep_cnt'
     % check that the required low-level toolbox is available

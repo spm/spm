@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.45  2008/05/27 11:58:20  vlalit
+% Added support of Matlab files exported from Spike 6
+%
 % Revision 1.44  2008/05/15 15:10:56  roboos
 % added ctf_new implementation, using p-files, this supports synthetic gradients
 % some changes to the filename handling, merged nihm2grad into ctf2grad
@@ -514,6 +517,9 @@ switch dataformat
     
   case 'spmeeg_mat'
     dat = read_spmeeg_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
+   
+  case 'spike6_mat'
+    dat = read_spike6mat_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);    
     
   case 'eep_avr'
     % check that the required low-level toolbos ix available
