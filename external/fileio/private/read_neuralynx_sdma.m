@@ -14,6 +14,9 @@ function [dat] = read_neuralynx_sdma(dataset, begsample, endsample, chanindx);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_neuralynx_sdma.m,v $
+% Revision 1.7  2008/05/27 13:03:00  roboos
+% remember the original header details
+%
 % Revision 1.6  2007/12/17 16:29:43  roboos
 % switched to read_neuralynx_bin for reading the file content, thereby adding support for int16 etc.
 % changed handling fo files in directory, be more explicit on which file is used where
@@ -399,6 +402,9 @@ if needhdr
   hdr.LastTimeStamp  = timestamp_neuralynx(end_tsl, end_tsh);
   hdr.TimeStampPerSample = double(hdr.LastTimeStamp-hdr.FirstTimeStamp)./(hdr.nSamples-1);  % this should be double, since it can be fractional
 
+  % also remember the original header details
+  hdr.orig = orig;
+  
   % only return the header information
   dat = hdr;
 
