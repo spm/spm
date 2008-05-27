@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1530 2008-04-30 19:28:22Z guillaume $
+# $Id: Makefile 1729 2008-05-27 10:11:35Z guillaume $
 #
 ###############################################################################
 #
@@ -54,7 +54,8 @@ SPMMEX =\
 SUBDIRS=\
 	toolbox/DARTEL \
 	toolbox/FieldMap \
-	toolbox/HDW
+	toolbox/HDW \
+	@xmltree/private
 
 ###############################################################################
 # The main ways to run make
