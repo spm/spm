@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_mapping.c 1745 2008-05-28 14:18:33Z guillaume $
  * John Ashburner
  */
 
@@ -203,7 +203,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 	mxArray *tmp;
 	double *pr;
 	int dsize = 0, off;
-#ifdef BIGENDIAN
+#ifdef SPM_BIGENDIAN
 	int be = 1;
 #else
 	int be = 0;

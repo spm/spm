@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 1297 2008-04-02 18:08:48Z guillaume $
+# $Id: Makefile.var 1745 2008-05-28 14:18:33Z guillaume $
 #
 ###############################################################################
 #
@@ -84,8 +84,8 @@ ifndef SUF
     endif
     ifeq (powerpc,$(HARDWARE))
        SUF     = mexmac
-       CFLAGS  = -O3 -DBIGENDIAN
-       MEXOPTS = -O -DBIGENDIAN
+       CFLAGS  = -O3 -DSPM_BIGENDIAN
+       MEXOPTS = -O -DSPM_BIGENDIAN
     endif
   endif
   ##### Windows #####
@@ -106,13 +106,13 @@ ifndef SUF
     SUNBIT     = $(shell $(ISAINFO) -b)
     ifeq (32,$(SUNBIT))
       SUF      = mexsol
-      CFLAGS   = -O3 -funroll-loops -DBIGENDIAN -fPIC
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
+      CFLAGS   = -O3 -funroll-loops -DSPM_BIGENDIAN -fPIC
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DSPM_BIGENDIAN'
     endif
     ifeq (64,$(SUNBIT))
       SUF      = mexs64
-      CFLAGS   = -m64 -O3 -funroll-loops -DBIGENDIAN -fPIC
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DBIGENDIAN'
+      CFLAGS   = -m64 -O3 -funroll-loops -DSPM_BIGENDIAN -fPIC
+      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DSPM_BIGENDIAN'
     endif
     ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(SUNBIT))

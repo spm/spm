@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 938 2007-10-12 19:09:31Z john $
+ * $Id: mat2file.c 1745 2008-05-28 14:18:33Z guillaume $
  * John Ashburner
  */
 
@@ -234,7 +234,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
         map->dim[i] = (int)fabs(pr[i]);
     }
     pr       = getpr(ptr, "be",1, &n);
-#ifdef BIGENDIAN
+#ifdef SPM_BIGENDIAN
     map->swap = (int)pr[0]==0;
 #else
     map->swap = (int)pr[0]!=0;

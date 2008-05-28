@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 938 2007-10-12 19:09:31Z john $
+ * $Id: file2mat.c 1745 2008-05-28 14:18:33Z guillaume $
  * John Ashburner
  */
 
@@ -363,7 +363,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
         siz = siz*(map->dtype->bytes/8);
 
     pr       = getpr(ptr, "be",1, &n);
-#ifdef BIGENDIAN
+#ifdef SPM_BIGENDIAN
     map->swap = (int)pr[0]==0;
 #else
     map->swap = (int)pr[0]!=0;
