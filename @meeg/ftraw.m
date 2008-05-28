@@ -7,7 +7,7 @@ function raw = ftraw(this, memmap)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ftraw.m 1673 2008-05-16 15:32:22Z vladimir $
+% $Id: ftraw.m 1742 2008-05-28 11:58:04Z vladimir $
 
 if nargin < 2
     memmap = 1;
@@ -36,6 +36,9 @@ end
 raw.time = repmat({time(this)}, 1, ntrl);
 
 function s = wordsize(datatype)
+
+datatype = strtok(datatype, '-');
+
 switch datatype
     case 'int8'
         s = 1;

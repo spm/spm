@@ -19,7 +19,7 @@ function spm_eeg_convertmat2nifti(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_convertmat2nifti.m 1742 2008-05-28 11:58:04Z vladimir $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -93,7 +93,7 @@ for k = 1:Nsub
 
             fname = sprintf('trial%s%d.img', tmp, l);
             
-            dat = file_array(fname,[n n 1 D{k}.nsamples],'FLOAT32');
+            dat = file_array(fname,[n n 1 D{k}.nsamples],'FLOAT32-LE');
             N = nifti;
             N.dat = dat;
             N.mat = eye(4);

@@ -19,7 +19,7 @@ function spm_eeg_convert(S)
 %                   already epoched.
 % S.trlfile - name of the trial definition file
 % S.datatype - data type for the data file one of
-%              'int16','int32','float32' (default), 'float64'
+%              'float32-le' (default), 'float64-le'
 % S.eventpadding - in sec - the additional time period around each trial
 %               for which the events are saved with the trial (to let the
 %               user keep and use for analysis events which are outside
@@ -34,7 +34,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1712 2008-05-22 14:30:41Z vladimir $
+% $Id: spm_eeg_convert.m 1742 2008-05-28 11:58:04Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -56,7 +56,7 @@ if ~isfield(S, 'timewindow'),      S.timewindow = [];                           
 if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                   end  %100 Mb
 if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                     end
 if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                         end
-if ~isfield(S, 'datatype'),        S.datatype = 'float32';                                  end
+if ~isfield(S, 'datatype'),        S.datatype = 'float32-le';                                  end
 if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                      end
 if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                         end
 

@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 1702 2008-05-21 13:55:11Z vladimir $
+% $Id: checkmeeg.m 1742 2008-05-28 11:58:04Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -110,12 +110,12 @@ else
     end
     if ~isfield(meegstruct.data, 'datatype')
         disp('checkmeeg: data type missing, assigning default');
-        meegstruct.data.datatype = 'float32';
+        meegstruct.data.datatype = 'float32-le';
     end
 
     if ~isfield(meegstruct.data, 'scale')
-        if strcmp(meegstruct.data.datatype, 'float32') || ...
-                strcmp(meegstruct.data.datatype, 'float64')
+        if strcmp(meegstruct.data.datatype, 'float32-le') || ...
+                strcmp(meegstruct.data.datatype, 'float64-le')
             disp('checkmeeg: data scale missing, assigning default');
             meegstruct.data.scale = ones(Nchannels, 1, Ntrials);
         else
@@ -148,11 +148,11 @@ else
             % format
             case 'time'
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-                    [Nchannels Nsamples Ntrials], spm_type(meegstruct.data.datatype));
+                    [Nchannels Nsamples Ntrials], meegstruct.data.datatype);
 
             case 'TF'
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
-                    [Nchannels Nfrequencies Nsamples Ntrials], spm_type(meegstruct.data.datatype));
+                    [Nchannels Nfrequencies Nsamples Ntrials], meegstruct.data.datatype);
                 if Ntrials>1
                     expected_size = [Nchannels Nfrequencies Nsamples Ntrials];
                 else
