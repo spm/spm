@@ -4,7 +4,7 @@ function [pos, name] = spm_eeg_elec_pos3d
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_elec_pos3d.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_elec_pos3d.m 1748 2008-05-28 17:55:25Z guillaume $
 
 inter_ring_dist=2;
 pos=zeros(128,4); %x and y coordinates for each electrode
@@ -44,7 +44,7 @@ pos(7:14,3)=z';
 [x,y,z]=sph2cart((0:-(2*pi)/length(ring3):-(2*pi-0.1))-pi/2,ones(1,size(ring3,1)).*scalars(4),1);
 pos(15:24,1)=x([1,3:end-1])';
 pos(15:24,2)=y([1,3:end-1])';
-pos(15:24,3)=z([1,3:end-1])';;
+pos(15:24,3)=z([1,3:end-1])';
 [x,y,z]=sph2cart((0:-(2*pi)/length(ring4):-(2*pi-0.1))-pi/2,ones(1,size(ring4,1)).*scalars(5),1);
 pos(25:40,1)=x';
 pos(25:40,2)=y';

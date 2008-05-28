@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_nlsi_GN.m 1748 2008-05-28 17:55:25Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -227,7 +227,7 @@ ipC   = inv(spm_cat(diag({pC,uC})));
 %--------------------------------------------------------------------------
 Eu    = spm_pinv(dfdu)*spm_vec(y);
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
-Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
+Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 Cp    = pC;
 
  
@@ -416,7 +416,7 @@ end
 %--------------------------------------------------------------------------
 warning('on','all');
 
-Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);;
+Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;
 

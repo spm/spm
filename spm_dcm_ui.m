@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 1486 2008-04-27 12:25:27Z klaas $
+% $Id: spm_dcm_ui.m 1748 2008-05-28 17:55:25Z guillaume $
 
 
 
@@ -690,7 +690,7 @@ case 'review'
 
         % graph
         %-----------------------------------------------------------
-        x  = [1:length(DCM.y)]*DCM.Y.dt;;
+        x  = [1:length(DCM.y)]*DCM.Y.dt;
         for i = 1:l
             subplot(l,1,i);
             plot(x,DCM.Y.y(:,i));

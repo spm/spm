@@ -11,7 +11,7 @@ function spm_dcm_display(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_display.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dcm_display.m 1748 2008-05-28 17:55:25Z guillaume $
 
 
 
@@ -124,7 +124,7 @@ for j = 1:length(a)
                 % text
                 %-------------------------------------------
                 u     = q*(L(1,j) - L(1,i)) + L(1,i);
-                v     = q*(L(2,j) - L(2,i)) + L(2,i);;
+                v     = q*(L(2,j) - L(2,i)) + L(2,i);
                 str   = {};
                 for k = 1:size(a,3)
                     str{k}   = sprintf('%0.2f ',a(i,j,k));
