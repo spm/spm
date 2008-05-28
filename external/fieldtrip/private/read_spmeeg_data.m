@@ -39,7 +39,7 @@ if isempty(header)
     header = read_spmeeg_header([filename(1:(end-3)) 'mat']);
 end
 
-datatype = 'float32';
+datatype = 'float32-le';
 scale = [];
 if isfield(header, 'orig')
     if isfield(header.orig, 'datatype')
@@ -54,7 +54,7 @@ if isfield(header, 'orig')
     end
 end
 
-stepsize = typesizes(strmatch(datatype, typenames));
+stepsize = typesizes(strmatch(strtok(datatype, '-'), typenames));
 
 if isempty(begsample), begsample = 1; end;
 if isempty(endsample), endsample = header.nSamples; end;
