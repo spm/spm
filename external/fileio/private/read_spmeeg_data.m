@@ -39,9 +39,23 @@ if isempty(header)
     header = read_spmeeg_header([filename(1:(end-3)) 'mat']);
 end
 
+if isempty(begsample), begsample = 1; end;
+if isempty(endsample), endsample = header.nSamples; end;
+
+
+
 datatype = 'float32-le';
 scale = [];
 if isfield(header, 'orig')
+    if isfield(header.orig, 'data') && isnumeric(header.orig.data) ...
+            && ~isempty(header.orig.data)
+        try
+            dat = reshape(header.orig.data(chanindx, :, :), length(chanindx), []);
+            dat = dat(:, begsample:endsample);
+            return;
+        end
+    end
+
     if isfield(header.orig, 'datatype')
         datatype = header.orig.datatype;
     elseif isfield(header.orig.data, 'datatype')
@@ -55,9 +69,6 @@ if isfield(header, 'orig')
 end
 
 stepsize = typesizes(strmatch(strtok(datatype, '-'), typenames));
-
-if isempty(begsample), begsample = 1; end;
-if isempty(endsample), endsample = header.nSamples; end;
 
 filename = [filename(1:(end-3)) 'dat'];
 
