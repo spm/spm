@@ -1,4 +1,5 @@
 function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
+%
 % Function to prepare fieldmap data for processing
 % 
 % FORMAT VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
@@ -13,7 +14,7 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 %             default or another name if specified by the user as the fourth
 %             argument to the script.
 % pm_defs   - vector containing following values (optional flags in brackets): 
-%             [te1,te2,epifm,tert,kdir,(mask),(match)];
+%             [te1,te2,epifm,tert,kdir,(mask),(match),(write)];
 %
 % te1       - short echo time
 % te2       - long echo time
@@ -23,6 +24,9 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % mask      - (optional flag, default=1) Do brain masking or not 
 %             (only if non-epi fieldmap)
 % match     - (optional flag, default=1) Match fieldmap to epi or not
+%
+% writeunwarped 
+%           - (optional flag, default=1) Write unwarped epi or not
 %
 % sessname  - (optional string, default='session') This will be the name
 %             extension followed by an incremented integer for session specific vdm files.
@@ -60,11 +64,13 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % 20/02/08 - Updated to generate session specific versions of the 
 % vdm file that have been matched to the first image of each session.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
-% Chloe Hutton
-% $Id: FieldMap_preprocess.m 1317 2008-04-08 16:16:38Z chloe $
+% Chloe Hutton 
+% $Id: FieldMap_preprocess.m 1753 2008-05-29 13:54:30Z chloe $
+%_______________________________________________________________________
 
+ 
 if nargin < 3
   error('Usage: FieldMap_preprocess(fm_dir,epi_dir,pm_defs)');
 end
@@ -114,6 +120,16 @@ pm_def.match_vdm=1;
 if size(pm_defs,1)>6 | size(pm_defs,2)>6
    if pm_defs(7)==0
       pm_def.match_vdm=0;
+   end
+end
+
+%----------------------------------------------------------------------
+% Write the unwarped EPI unless unless switched off in pm_defs(8)
+%----------------------------------------------------------------------
+pm_def.write_unwarped=1;
+if size(pm_defs,1)>7 | size(pm_defs,2)>7
+   if pm_defs(8)==0
+      pm_def.write_unwarped=0;
    end
 end
 

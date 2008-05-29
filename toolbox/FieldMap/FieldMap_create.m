@@ -1,4 +1,5 @@
-function VDM=FieldMap_create(fm_imgs,epi_img,pm_defs)
+function [VDM IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
+%
 % Function to create VDM file from fieldmap images and can be called
 % using FieldMap_preprocess.m
 % 
@@ -18,11 +19,13 @@ function VDM=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % 27/02/07 - Updated for SPM5.
 % 20/02/08 - Updated to work with multiple sessions
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
-% Chloe Hutton
-% $Id: FieldMap_create.m 1317 2008-04-08 16:16:38Z chloe $
+% Chloe Hutton 
+% $Id: FieldMap_create.m 1753 2008-05-29 13:54:30Z chloe $
+%_______________________________________________________________________
 
+  
 if nargin < 3
   error('field map images, epi image and defaults');
 end
@@ -30,30 +33,75 @@ end
 IP = FieldMap('Initialise'); % Gets default params from pm_defaults
 
 % Define parameters for fieldmap creation
-IP.et{1} = pm_defs.SHORT_ECHO_TIME;
-IP.et{2} = pm_defs.LONG_ECHO_TIME;
-IP.maskbrain = pm_defs.MASKBRAIN;
- 
+
+if ~isfield(pm_defs,'et')
+   IP.et{1} = pm_defs.SHORT_ECHO_TIME;
+   IP.et{2} = pm_defs.LONG_ECHO_TIME;
+else
+   IP.et{1} = pm_defs.et{1};
+   IP.et{2} = pm_defs.et{2};
+end
+
+if ~isfield(pm_defs,'maskbrain')
+   IP.maskbrain = pm_defs.MASKBRAIN;
+else
+   IP.maskbrain = pm_defs.maskbrain;
+end
+     
 % Set parameters for unwrapping
-IP.uflags.iformat = pm_defs.INPUT_DATA_FORMAT;
-IP.uflags.method = pm_defs.UNWRAPPING_METHOD;
-IP.uflags.fwhm = pm_defs.FWHM;
-IP.uflags.pad = pm_defs.PAD;
-IP.uflags.ws = pm_defs.WS;
-IP.uflags.etd = pm_defs.LONG_ECHO_TIME - pm_defs.SHORT_ECHO_TIME;     
+if ~isfield(pm_defs,'uflags')
+   IP.uflags.iformat = pm_defs.INPUT_DATA_FORMAT;
+   IP.uflags.method = pm_defs.UNWRAPPING_METHOD;
+   IP.uflags.fwhm = pm_defs.FWHM;
+   IP.uflags.pad = pm_defs.PAD;
+   IP.uflags.ws = pm_defs.WS;
+   IP.uflags.etd = pm_defs.LONG_ECHO_TIME - pm_defs.SHORT_ECHO_TIME;     
+else
+   IP.uflags.iformat = pm_defs.uflags.iformat;
+   IP.uflags.method = pm_defs.uflags.method;
+   IP.uflags.fwhm = pm_defs.uflags.fwhm;
+   IP.uflags.pad = pm_defs.uflags.pad;
+   IP.uflags.ws = pm_defs.uflags.ws;
+   IP.uflags.etd = pm_defs.uflags.etd;      
+end
 
 % Set parameters for brain extraction
-IP.mflags.template=pm_defs.MFLAGS.TEMPLATE;
-IP.mflags.fwhm=pm_defs.MFLAGS.FWHM; 
-IP.mflags.nerode=pm_defs.MFLAGS.NERODE;
-IP.mflags.ndilate=pm_defs.MFLAGS.NDILATE;
-IP.mflags.thresh=pm_defs.MFLAGS.THRESH;
+if ~isfield(pm_defs,'mflags')
+   IP.mflags.template=pm_defs.MFLAGS.TEMPLATE;
+   IP.mflags.fwhm=pm_defs.MFLAGS.FWHM; 
+   IP.mflags.nerode=pm_defs.MFLAGS.NERODE;
+   IP.mflags.ndilate=pm_defs.MFLAGS.NDILATE;
+   IP.mflags.thresh=pm_defs.MFLAGS.THRESH;
+else
+   IP.mflags.template=pm_defs.mflags.template;
+   IP.mflags.fwhm=pm_defs.mflags.fwhm; 
+   IP.mflags.nerode=pm_defs.mflags.nerode;
+   IP.mflags.ndilate=pm_defs.mflags.ndilate;
+   IP.mflags.thresh=pm_defs.mflags.thresh;
+end
 
-% Set parameters for unwarping 
-IP.ajm = pm_defs.DO_JACOBIAN_MODULATION;
-IP.blipdir = pm_defs.K_SPACE_TRAVERSAL_BLIP_DIR;
-IP.tert = pm_defs.TOTAL_EPI_READOUT_TIME;
-IP.epifm = pm_defs.EPI_BASED_FIELDMAPS;
+% Get FieldMap parameters 
+% These may come from FieldMap_preprocess or FieldMap_Run
+if ~isfield(pm_defs,'ajm')
+   IP.ajm = pm_defs.DO_JACOBIAN_MODULATION;
+else
+   IP.ajm = pm_defs.ajm;
+end
+if ~isfield(pm_defs,'blipdir')
+   IP.blipdir = pm_defs.K_SPACE_TRAVERSAL_BLIP_DIR;
+else
+   IP.blipdir = pm_defs.blipdir;
+end
+if ~isfield(pm_defs,'tert')
+   IP.tert = pm_defs.TOTAL_EPI_READOUT_TIME;
+else
+   IP.tert = pm_defs.tert;
+end 
+if ~isfield(pm_defs,'epifm')
+   IP.epifm = pm_defs.EPI_BASED_FIELDMAPS;
+else
+   IP.epifm = pm_defs.epifm; 
+end
 
 % Clear any old handles etc
 IP.fm = [];
@@ -69,32 +117,43 @@ ID = cell(4,1);
 % Load measured field map data - phase and magnitude or real and imaginary
 %----------------------------------------------------------------------
 
-if ischar(fm_imgs), fm_imgs = spm_vol(fm_imgs); end
+if ischar(fm_imgs)
+   fm_imgs = spm_vol(fm_imgs); 
+end
 n_fms = length(fm_imgs);
 switch n_fms
- case 4  % real, imaginary pairs
-  for i = 1:n_fms
-     IP.P{i} = spm_vol(fm_imgs(i)); 
-  end
- case 2  % precalculated Hz map and magnitude image
-  IP.P{1} = spm_vol(fm_imgs(1));
-  IP.P{2} = spm_vol(fm_imgs(2));
- otherwise 
+case 4  % real, imaginary pairs
+   for i = 1:n_fms
+      IP.P{i} = spm_vol(fm_imgs(i)); 
+   end
+case 2  % precalculated phase map and magnitude image
+   IP.P{1} = spm_vol(fm_imgs(1));
+   IP.P{2} = spm_vol(fm_imgs(2));
+case 1  % precalculated and unwrapped Hz map    
+   IP.pP = spm_vol(fm_imgs);
+   IP.fm.fpm = spm_read_vols(IP.pP);
+   IP.fm.jac = pm_diff(IP.fm.fpm,2);
+   if isfield(IP,'P') & ~isempty(IP.P{1})
+      IP.P = cell(1,4); 
+   end
+   if isfield(pm_defs,'magfieldmap')
+      IP.fmagP=pm_defs.magfieldmap;
+   end
+otherwise 
    error('Funny number of input fieldmap images')
 end
 
+if ~isempty(IP.P{1})
 %----------------------------------------------------------------------
 % Create field map (in Hz) - this routine calls the unwrapping
 %----------------------------------------------------------------------
-
-IP.fm = FieldMap('CreateFieldMap',IP);
-  
+   IP.fm = FieldMap('CreateFieldMap',IP);
 %----------------------------------------------------------------------
 % Write out field map
 % Outputs -> fpm_NAME-OF-FIRST-INPUT-IMAGE.img
-%----------------------------------------------------------------------
-  
-FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Smoothed phase map');
+%----------------------------------------------------------------------  
+   FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Smoothed phase map');
+end
 
 %----------------------------------------------------------------------
 % Convert Hz to voxels and write voxel displacement map 
@@ -112,13 +171,18 @@ if ischar(epi_img)
     epi_img{1} = epi_img;
 elseif iscell(epi_img)
     nsessions=size(epi_img,2);
+else
+    nsessions=0;
 end
 
 %----------------------------------------------------------------------
 % Match voxel displacement map to image
 % Outputs -> mag_NAME-OF-FIRST-INPUT-IMAGE.img
 %----------------------------------------------------------------------
-if nsessions==1
+if nsessions==0
+   VDM{1}=IP.vdmP;
+   IPcell{1}=IP; 
+elseif nsessions==1
     IP.epiP = spm_vol(epi_img{1}(1,:));
     if isfield(pm_defs, 'match_vdm')
       if pm_defs.match_vdm
@@ -139,7 +203,7 @@ if nsessions==1
    unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
    IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
    VDM{1}=IP.vdmP;
-   
+   IPcell{1}=IP;
 else
 % If multiple sessions, does match to first image of each session
 % Copies the written file to 
@@ -155,10 +219,11 @@ else
 
    for sessnum=1:nsessions
       IP.vdmP=orig_vdm; % Make sure we start with original for each session
+      Ovdm=IP.vdmP;
       IP.epiP = spm_vol(epi_img{sessnum});
       if isfield(pm_defs, 'match_vdm')
          if pm_defs.match_vdm
-            msg=sprintf('Matching session %d...\n',sessnum);
+            msg=sprintf('\nMatching session %d...\n',sessnum);
             disp(msg);
             IP.vdmP = FieldMap('MatchVDM',IP);
          end
@@ -169,22 +234,27 @@ else
          newname=sprintf('%s_%s%d.img',spm_str_manip(IP.vdmP.fname,'r'),sessname,sessnum);
          Ovdm=struct('fname',newname,'mat',session_vdm.mat,'dim',session_vdm.dim,'dt',session_vdm.dt,'descrip',vdm_info);
          spm_write_vol(Ovdm,vol);
-         IP.vdmP=Ovdm;
       end
   
       %----------------------------------------------------------------------
       % Unwarp EPI
       %----------------------------------------------------------------------
+      if isfield(pm_defs,'write_unwarped')
+         if pm_defs.write_unwarped
+            IP.uepiP = FieldMap('UnwarpEPI',IP);
 
-      IP.uepiP = FieldMap('UnwarpEPI',IP);
-
-      %----------------------------------------------------------------------
-      % Write unwarped EPI 
-      % Outputs -> uNAME-OF-EPI.img
-      %----------------------------------------------------------------------
-      unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
-      IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+         %----------------------------------------------------------------------
+         % Write unwarped EPI 
+         % Outputs -> uNAME-OF-EPI.img
+         %----------------------------------------------------------------------
+            unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
+            IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+         end
+      end
+      % Update current values in memory
+      IP.vdmP=Ovdm;
       VDM{sessnum}=IP.vdmP ;
+      IPcell{sessnum}=IP;
    end  
 end
 return

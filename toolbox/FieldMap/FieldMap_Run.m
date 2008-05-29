@@ -1,4 +1,4 @@
-function vdm=Fieldmap_Run(job)
+function Fieldmap_Run(job)
 % Auxillary file for running FieldMap jobs
 %
 % FORMAT vdm = Fieldmap_Run(job)
@@ -8,7 +8,6 @@ function vdm=Fieldmap_Run(job)
 %     Common to all jobs:
 %        defaults - cell array containing name string of the defaults file
 %        options - structure containing the following:
-%           display - display results or not (1/0)
 %           epi - cell array containing name string of epi image to unwarp
 %           matchvdm - match vdm to epi or not (1/0)
 %           writeunwarped - write unwarped EPI or not (1/0)
@@ -32,163 +31,157 @@ function vdm=Fieldmap_Run(job)
 %        longimag - name of long imaginary image for real/imaginary job
 %
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: FieldMap_Run.m 1753 2008-05-29 13:54:30Z chloe $
 %_________________________________________________________________
 
 %
 %----------------------------------------------------------------------  
 % Set up default parameters and structures 
 %----------------------------------------------------------------------
-spm('defaults','FMRI');
+dbstop if error
+spm_defaults
 
 % Open the FieldMap control window with visibility off. This allows the
 % graphics display to work.
 FieldMap('Welcome','Off');
-IP = FieldMap('Initialise'); % Gets default params from pm_defaults
+%IP = FieldMap('Initialise'); % Gets default params from pm_defaults
 
-% Here load the selected defaults file necessary
-m_file = job.defaults;
-m_file = m_file{1}(1:end-2);
-m_file = spm_str_manip(m_file,'t');
-IP = FieldMap('SetParams',m_file); % Gets default params from pm_defaults
-
-% Load precalculated Hz fieldmap if required
+% Here load the selected defaults file if selected
+if isfield(job.defaults,'defaultsfile')
+   m_file = job.defaults.defaultsfile;
+   m_file = m_file{1}(1:end-2);
+   m_file = spm_str_manip(m_file,'t');
+   pm_defs = FieldMap('SetParams',m_file); % Gets default params from pm_defaults
+elseif isfield(job.defaults,'defaultsval')
+   pm_defs = job.defaults.defaultsval;
+   echotimes=pm_defs.et;
+   pm_defs.et=[];
+   pm_defs.et{1}=echotimes(1);
+   pm_defs.et{2}=echotimes(2);
+   pm_defs.uflags.etd=pm_defs.et{2}-pm_defs.et{1};
+end
+%----------------------------------------------------------------------
+% Load measured field map data - phase and magnitude, real and imaginary or
+% precalculated fieldmap
+%----------------------------------------------------------------------
 if isfield(job,'precalcfieldmap')
-    IP.pP = spm_vol(job.precalcfieldmap{1});
-end
-%----------------------------------------------------------------------
-% Load measured field map data - phase and magnitude or real and imaginary
-%----------------------------------------------------------------------
-if ~isempty(IP.pP)
-   IP.fm.fpm = spm_read_vols(IP.pP);
-   IP.fm.jac = pm_diff(IP.fm.fpm,2);
-   if isfield(IP,'P') & ~isempty(IP.P{1})
-      IP.P = cell(1,4);
+   fm_imgs=spm_vol(job.precalcfieldmap{1});
+   if isfield(job,'magfieldmap') & iscell(job.magfieldmap)
+      if ~isempty(job.magfieldmap{1})~isempty(job.magfieldmap{1})
+         pm_defs.magfieldmap=spm_vol(job.magfieldmap{1});
+      end
+   else
+      job.matchvdm=0;
+      job.matchanat=0;
+      pm_defs.maskbrain=0;
    end
-elseif IP.uflags.iformat=='PM' &  isfield(job,'phase') % && using presub 
-   IP.P{1}=spm_vol(job.phase{1});
-   tmp=FieldMap('Scale',IP.P{1}.fname);
-   IP.P{1} = spm_vol(tmp.fname);
-   IP.P{2}=spm_vol(job.magnitude{1});
-elseif IP.uflags.iformat=='PM' &  isfield(job,'shortphase') % && using double phase and magnitude
-   IP.P{1}=spm_vol(job.shortphase{1});
-   tmp=FieldMap('Scale',IP.P{1}.fname);
-   IP.P{2}=spm_vol(job.shortmag{1});
-   IP.P{3}=spm_vol(job.longphase{1});
-   tmp=FieldMap('Scale',IP.P{3}.fname);
-   IP.P{4}=spm_vol(job.longmag{1});
-elseif IP.uflags.iformat=='RI' 
-   IP.P{1}=spm_vol(job.shortreal{1});
-   IP.P{2}=spm_vol(job.shortimag{1});
-   IP.P{3}=spm_vol(job.longreal{1});
-   IP.P{4}=spm_vol(job.longimag{1});
+   pm_defs.uflags.iformat='';
+elseif isfield(job,'phase') & isfield(job,'magnitude')% && using presub 
+   tmp=FieldMap('Scale',spm_vol(job.phase{1}));
+   fm_imgs=[spm_vol(tmp.fname) spm_vol(job.magnitude{1})];
+   pm_defs.uflags.iformat='PM';
+elseif isfield(job,'shortphase') & isfield(job,'shortmag')% && using double phase and magnitude
+   tmp1=FieldMap('Scale',spm_vol(job.shortphase{1}));
+   tmp2=FieldMap('Scale',spm_vol(job.longphase{1}));
+   fm_imgs=[spm_vol(tmp1.fname) spm_vol(job.shortmag{1}) spm_vol(tmp2.fname) spm_vol(job.longmag{1})];
+   pm_defs.uflags.iformat='PM';
+elseif isfield(job,'shortreal') & isfield(job,'shortimag')% && using real & imag
+   fm_imgs=[spm_vol(job.shortreal{1}) spm_vol(job.shortimag{1}) spm_vol(job.longreal{1}) spm_vol(job.longimag{1})];
+   pm_defs.uflags.iformat='RI';
 else
-    error('Do not know what to do with this data. Please check your defaults file');
+   error('Do not know what to do with this data. Please check your job');
 end
 
 %----------------------------------------------------------------------
-% Load job options
+% Load epi session data 
 %----------------------------------------------------------------------
-
-% Only do matchvdm and writeunwarped if an epi has been selected
-do_matchvdm = 0;
-do_write_unwarped = 0;
-if ~isempty(job.options.epi)      
-    IP.epiP = spm_vol(job.options.epi{1}); 
-    do_matchvdm = job.options.matchvdm;
-    do_writeunwarped = job.options.writeunwarped;
-end
-
-% Only do matchanat if anatomical image has been selected
-do_matchanat = 0;
-if ~isempty(job.options.anat{1})      
-    IP.nwarp = spm_vol(job.options.anat{1});
-    do_matchanat = job.options.matchanat;
-end
-
-do_display = job.options.display;
-
-%----------------------------------------------------------------------
-% Create field map (in Hz) - this routine calls the unwrapping
-%----------------------------------------------------------------------
-if isempty(IP.pP)
-
-   IP.fm = FieldMap('CreateFieldMap',IP);
-
-%----------------------------------------------------------------------
-% Write out field map
-% Outputs -> fpm_NAME-OF-FIRST-INPUT-IMAGE.img
-%----------------------------------------------------------------------
-
-   FieldMap('Write',IP.P{1},IP.fm.fpm,'fpm_',64,'Fitted phase map in Hz');
+nsessions=0;
+if ~isempty(job.session)    
+   nsessions=size(job.session,2);
+   for sessnum=1:nsessions
+      epi_img{sessnum}=job.session(sessnum).epi{1};
+   end       
+else
+    epi_img=[];
 end
 
 %----------------------------------------------------------------------
-% Convert Hz to voxels and write voxel displacement map 
-% Outputs -> vdm5_NAME-OF-FIRST-INPUT-IMAGE.img
+% Load matching, unwarping and session name options
 %----------------------------------------------------------------------
+if ~isempty(job.matchvdm)  
+   pm_defs.match_vdm=job.matchvdm;
+else
+   pm_defs.match_vdm=0;
+end
 
-[IP.vdm, IP.vdmP]=FieldMap('FM2VDM',IP);
+if ~isempty(job.writeunwarped)  
+   pm_defs.write_unwarped=job.writeunwarped;
+else
+   pm_defs.write_unwarped=0;
+end
 
+if ~isempty(job.sessname)  
+   pm_defs.sessname=job.sessname;
+else
+   pm_defs.sessname='session';
+end
 %----------------------------------------------------------------------
-% Match VDM and/or unwarp EPI 
+% Call FieldMap_create
 %----------------------------------------------------------------------
-if ~isempty(IP.epiP) 
-      
-    if do_matchvdm == 1
+[VDM IPcell] = FieldMap_create(fm_imgs,epi_img,pm_defs);
 
-%----------------------------------------------------------------------
-% Match voxel displacement map to image
-% Outputs -> mag_NAME-OF-FIRST-INPUT-IMAGE.img
-%----------------------------------------------------------------------
-        IP.vdmP = FieldMap('MatchVDM',IP);
-    end    
+for sessnum=1:max([1 nsessions]);
     
-%----------------------------------------------------------------------
-% Unwarp the EPI
-% Outputs -> mag_NAME-OF-FIRST-INPUT-IMAGE.img
-%----------------------------------------------------------------------    
+   IP=IPcell{sessnum};
+   
+   %----------------------------------------------------------------------
+   % Display and print results 
+   %----------------------------------------------------------------------
+   fg=spm_figure('FindWin','Graphics');
+   if ~isempty(fg)
+      spm_figure('Clear','Graphics');
+   end
+   FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
+   if ~isempty(IP.epiP)
+      FieldMap('DisplayImage',IP.epiP,[.05 .5 .95 .2],2);
+   end
+   if ~isempty(IP.uepiP)
+      FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
+   end
+   
+   %----------------------------------------------------------------------
+   % Coregister structural with the unwarped image and display if required
+   %----------------------------------------------------------------------
+   do_matchanat = 0;
+   if iscell(job.anat)
+      if ~isempty(job.anat{1})         
+         IP.nwarp = spm_vol(job.anat{1});
+         do_matchanat = job.matchanat;
+      end
+   end
 
-    IP.uepiP = FieldMap('UnwarpEPI',IP);
-    
-    if do_writeunwarped == 1
-        
-%----------------------------------------------------------------------
-% Outputs -> uNAME-OF-EPI.img
-%----------------------------------------------------------------------
-       unwarp_info=sprintf('Unwarped EPI:echo time difference=%2.2fms, EPI readout time=%2.2fms, Jacobian=%d',IP.uflags.etd, IP.tert,IP.ajm);    
-       IP.uepiP = FieldMap('Write',IP.epiP,IP.uepiP.dat,'u',IP.epiP.dt(1),unwarp_info);
+   if ~isempty(IP.nwarp)==1 & ~isempty(IP.epiP)
+      if do_matchanat == 1  
+         msg=sprintf('\nMatching anatomical to unwarped EPI in session %d...\n',sessnum);
+         disp(msg);
+         FieldMap('MatchStructural',IP);
+      end
+   end
 
-    end
-end
-
-if ~isempty(IP.nwarp) == 1
-
-    if do_matchanat == 1
-        
-%----------------------------------------------------------------------
-% Coregister structural with the unwarped image
-%----------------------------------------------------------------------
-       FieldMap('MatchStructural',IP);
-    end
-end
-
-if do_display == 1
-
-    FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
-    if ~isempty(IP.epiP)
-       FieldMap('DisplayImage',IP.epiP,[.05 .5 .95 .2],2);
-    end
-    if ~isempty(IP.uepiP)
-       FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
-    end
-    if ~isempty(IP.nwarp)
-       FieldMap('DisplayImage',IP.nwarp,[.05 0.0 .95 .2],4);
-    end
-end
-        
+   if ~isempty(IP.nwarp) & ~isempty(IP.epiP)
+      FieldMap('DisplayImage',IP.nwarp,[.05 0.0 .95 .2],4);
+      % Now need to redisplay other images to make it all look correct
+      FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
+      if ~isempty(IP.epiP)
+         FieldMap('DisplayImage',IP.epiP,[.05 .5 .95 .2],2);
+      end
+      if ~isempty(IP.uepiP)
+         FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3); 
+      end   
+   end
+   spm_print
+end     
 %______________________________________________________________________
-vdm=IP.vdmP;

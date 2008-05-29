@@ -4,7 +4,7 @@
 #include <math.h>
 #include <limits.h>
 
-int index(int            i,
+int getindex(int            i,
           int            j,
           int            k,
           unsigned int   dim[3]);
@@ -35,7 +35,7 @@ void smooth(double         *pm,
       {
      for (k=0; k<dim[2]; k++)
      {
-        ndx = index(i,j,k,dim);
+        ndx = getindex(i,j,k,dim);
         twgt = 0.0;
             ii = 0.0;
         for (ki=0; ki<kdim[0]; ki++)
@@ -44,10 +44,10 @@ void smooth(double         *pm,
            {
               for (kk=0; kk<kdim[2]; kk++)
               {
-                     kndx = index(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
+                     kndx = getindex(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
              if (kndx > -1)
              {
-                wgt = krnl[index(ki,kj,kk,kdim)] * wmap[kndx];
+                wgt = krnl[getindex(ki,kj,kk,kdim)] * wmap[kndx];
                         ii += pm[kndx] * wgt;
                         twgt += wgt;
                      }
@@ -71,7 +71,7 @@ void smooth(double         *pm,
 /* Utility function that returns index into */
 /* 1D array with range checking.            */
  
-int index(int            i,
+int getindex(int            i,
           int            j,
           int            k,
           unsigned int   dim[3])

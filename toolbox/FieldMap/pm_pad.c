@@ -12,7 +12,7 @@ void pad(double         *pm,
          double         *opm,
          double         *owmap);
 
-int index(int            i,
+int getindex(int            i,
           int            j,
           int            k,
           unsigned int   dim[3]);
@@ -38,7 +38,7 @@ void pad(double         *pm,
       {
      for (k=0; k<dim[2]; k++)
      {
-        if (!wmap[ndx=index(i,j,k,dim)])
+        if (!wmap[ndx=getindex(i,j,k,dim)])
         {
            n = 0;
                p = 0.0;
@@ -48,12 +48,12 @@ void pad(double         *pm,
           {
              for (kk=0; kk<kdim[2]; kk++)
              {
-                        kndx = index(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
+                        kndx = getindex(i-(kdim[0]/2)+ki,j-(kdim[1]/2)+kj,k-(kdim[2]/2)+kk,dim);
                 if (kndx > -1)
             {
                if (wmap[kndx])
                {
-                  p += krnl[index(ki,kj,kk,kdim)] * pm[kndx];
+                  p += krnl[getindex(ki,kj,kk,kdim)] * pm[kndx];
                               n++;
                            }
                         }
@@ -85,7 +85,7 @@ void pad(double         *pm,
 /* Utility function that returns index into */
 /* 1D array with range checking.            */
  
-int index(int            i,
+int getindex(int            i,
           int            j,
           int            k,
           unsigned int   dim[3])
