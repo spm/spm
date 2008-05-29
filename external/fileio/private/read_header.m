@@ -55,6 +55,12 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.59  2008/05/29 13:54:52  roboos
+% also work when no path is specified
+%
+% Revision 1.58  2008/05/29 13:51:12  roboos
+% use strcmp instead of strmatch, thanks to Marinka
+%
 % Revision 1.57  2008/05/29 07:30:42  roboos
 % small change in renaming header/data and filename in case of ctf, this prevents a warning if the res4 or meg4 are not positioned in a xxx.ds directory (see email Jo)
 %
@@ -284,21 +290,21 @@ switch headerformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
-    if strmatch(path(end-2:end), '.ds')
-      filename   = filename; % this is the *.ds directory
+    if length(path)>3 && strcmp(path(end-2:end), '.ds')
+      filename   = path; % this is the *.ds directory
     end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
-    if strmatch(path(end-2:end), '.ds')
+    if length(path)>3 && strcmp(path(end-2:end), '.ds')
       filename   = path; % this is the *.ds directory
     end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
-    if strmatch(path(end-2:end), '.ds')
+    if length(path)>3 && strcmp(path(end-2:end), '.ds')
       filename   = path; % this is the *.ds directory
     end
   case 'brainvision_vhdr'
@@ -410,7 +416,7 @@ switch headerformat
       labelnew = { 'P9' 'PPO9h' 'PO7' 'PPO5h' 'PPO3h' 'PO5h' 'POO9h' 'PO9' 'I1' 'OI1h' 'O1' 'POO1' 'PO3h' 'PPO1h' 'PPO2h' 'POz' 'Oz' 'Iz' 'I2' 'OI2h' 'O2' 'POO2' 'PO4h' 'PPO4h' 'PO6h' 'POO10h' 'PO10' 'PO8' 'PPO6h' 'PPO10h' 'P10' 'P8' 'TPP9h' 'TP7' 'TTP7h' 'CP5' 'TPP7h' 'P7' 'P5' 'CPP5h' 'CCP5h' 'CP3' 'P3' 'CPP3h' 'CCP3h' 'CP1' 'P1' 'Pz' 'CPP1h' 'CPz' 'CPP2h' 'P2' 'CPP4h' 'CP2' 'CCP4h' 'CP4' 'P4' 'P6' 'CPP6h' 'CCP6h' 'CP6' 'TPP8h' 'TP8' 'TPP10h' 'T7' 'FTT7h' 'FT7' 'FC5' 'FCC5h' 'C5' 'C3' 'FCC3h' 'FC3' 'FC1' 'C1' 'CCP1h' 'Cz' 'FCC1h' 'FCz' 'FFC1h' 'Fz' 'FFC2h' 'FC2' 'FCC2h' 'CCP2h' 'C2' 'C4' 'FCC4h' 'FC4' 'FC6' 'FCC6h' 'C6' 'TTP8h' 'T8' 'FTT8h' 'FT8' 'FT9' 'FFT9h' 'F7' 'FFT7h' 'FFC5h' 'F5' 'AFF7h' 'AF7' 'AF5h' 'AFF5h' 'F3' 'FFC3h' 'F1' 'AF3h' 'Fp1' 'Fpz' 'Fp2' 'AFz' 'AF4h' 'F2' 'FFC4h' 'F4' 'AFF6h' 'AF6h' 'AF8' 'AFF8h' 'F6' 'FFC6h' 'FFT8h' 'F8' 'FFT10h' 'FT10'};
       % rename the channel labels
       for i=1:length(labelnew)
-        chan = strmatch(labelold(i), hdr.label, 'exact');
+        chan = strcmp(labelold(i), hdr.label);
         hdr.label(chan) = labelnew(chan);
       end
     end
