@@ -126,6 +126,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.33  2008/05/29 13:45:40  roboos
+% added hack for Miriam, should be finished by ingnie
+%
 % Revision 1.32  2008/04/24 10:29:38  roboos
 % Added cfg.outline, which can be used to toggle between scalp-mode (default) and ecog mode. This affects the masking and the outline of the head.
 %
@@ -390,7 +393,7 @@ if strcmpi(cfg.outline, 'scalp')
   % Scale the data to a circle with x-axis and y-axis: -0.45 to 0.45
   y = 0.9*((X-min(X))/(max(X)-min(X))-0.5); %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
   x = 0.9*((Y-min(Y))/(max(Y)-min(Y))-0.5);
-elseif strcmpi(cfg.outline, 'ecog')
+elseif strcmpi(cfg.outline, 'ecog') || strcmp(cfg.outline, 'miriam')
   y = X; %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
   x = Y;
 end
@@ -456,7 +459,7 @@ if ~strcmp(cfg.style,'blank')
   [Xi,Yi,Zi] = griddata(y, x, data, yi', xi, cfg.interpolation); % Interpolate data
   % [Xi,Yi,Zi] = griddata(y,x,data,yi',xi,'invdist'); % Interpolate data
   
-  if strcmpi(cfg.outline, 'scalp')
+  if strcmpi(cfg.outline, 'scalp') || strcmp(cfg.outline, 'miriam')
     % Take data within head
     mask   = (sqrt(Xi.^2+Yi.^2) <= rmax);
     ii     = find(mask == 0);
@@ -571,7 +574,7 @@ elseif strcmp(cfg.electrodes,'dotnum')
   end;
 end
 
-if strcmp(cfg.outline, 'scalp')
+if strcmp(cfg.outline, 'scalp') || strcmp(cfg.outline, 'miriam')
   % Define the outline of the head, ears and nose:
   l     = 0:2*pi/100:2*pi;
   tip   = rmax*1.15; base = rmax-.004;
@@ -608,7 +611,7 @@ end
 
 hold off
 axis off
-if strcmpi(cfg.outline, 'scalp')
+if strcmpi(cfg.outline, 'scalp') || strcmp(cfg.outline, 'miriam')
   xlim([-.6 .6]);
   ylim([-.6 .6]);
 elseif strcmpi(cfg.outline, 'ecog')

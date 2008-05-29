@@ -30,6 +30,12 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.49  2008/05/29 13:54:52  roboos
+% also work when no path is specified
+%
+% Revision 1.48  2008/05/29 13:51:11  roboos
+% use strcmp instead of strmatch, thanks to Marinka
+%
 % Revision 1.47  2008/05/29 07:30:42  roboos
 % small change in renaming header/data and filename in case of ctf, this prevents a warning if the res4 or meg4 are not positioned in a xxx.ds directory (see email Jo)
 %
@@ -245,21 +251,21 @@ switch dataformat
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
-    if strmatch(path(end-2:end), '.ds')
-      filename   = filename; % this is the *.ds directory
+    if length(path)>3 && strcmp(path(end-2:end), '.ds')
+      filename   = path; % this is the *.ds directory
     end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
-    if strmatch(path(end-2:end), '.ds')
+    if length(path)>3 && strcmp(path(end-2:end), '.ds')
       filename   = path; % this is the *.ds directory
     end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
-    if strmatch(path(end-2:end), '.ds')
+    if length(path)>3 && strcmp(path(end-2:end), '.ds')
       filename   = path; % this is the *.ds directory
     end
   case 'brainvision_vhdr'
