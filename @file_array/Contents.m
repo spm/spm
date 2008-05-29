@@ -15,13 +15,13 @@
 % Example usage.
 %
 % % Create a file array object by mapping test_le.img
-% % to a 256x256x100 array, of datatype 16, stored
+% % to a 256x256x100 array, of datatype float32, stored
 % % in a little-endian way starting at byte 0.
-% fa0 = file_array('test_le.img',[256 256 100], 16,0,0)
+% fa0 = file_array('test_le.img',[256 256 100], 'FLOAT32-LE',0)
 %
 % % Creating an object from test_be.img, but skipping
 % % the first plane of data.  Data stored as big-endian
-% fa1 = file_array('test_be.img',[256 256 99], 16,1,512)
+% fa1 = file_array('test_be.img',[256 256 99], 'FLOAT32-BE',4*256*256)
 %
 % % Reshape procedure
 % fa2 = reshape(fa1,[128 2 256 99])
@@ -43,9 +43,9 @@
 % size(fa2)
 % length(fa0)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 %
-% $Id: Contents.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: Contents.m 1761 2008-05-29 17:35:21Z guillaume $
 
 

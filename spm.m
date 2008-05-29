@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1748 2008-05-28 17:55:25Z guillaume $
+% $Id: spm.m 1761 2008-05-29 17:35:21Z guillaume $
 
 
 %=======================================================================
@@ -312,7 +312,7 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end
 
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
-Fwelcome = openfig('spm_Welcome','new','invisible');
+Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
 set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
 set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
 RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
@@ -491,7 +491,7 @@ case 'createmenuwin'                            %-Create SPM menu window
 %-Close any existing 'Menu' 'Tag'ged windows
 %-----------------------------------------------------------------------
 delete(spm_figure('FindWin','Menu'))
-Fmenu     = openfig('spm_Menu','new','invisible');
+Fmenu     = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
 set(Fmenu,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
 set(Fmenu,'Units','pixels', 'Position',spm('winsize','M'));
 
@@ -513,7 +513,7 @@ case 'createintwin'                      %-Create SPM interactive window
 % Finter = spm('CreateIntWin',Vis)
 %-----------------------------------------------------------------------
 delete(spm_figure('FindWin','Interactive'))
-Finter    = openfig('spm_Interactive','new','invisible');
+Finter    = openfig(fullfile(spm('Dir'),'spm_Interactive.fig'),'new','invisible');
 set(Finter,'name',spm('Ver'));
 set(Finter,'Units','pixels', 'Position',spm('winsize','I'));
 varargout = {Finter};

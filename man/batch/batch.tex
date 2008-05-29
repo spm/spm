@@ -471,15 +471,15 @@ the resulting job will be run.
 
 The following MATLAB code snippet can be used to fill in and run the
 \verb|face_single_subject_template.m| batch. Instead of using
-\verb|cfg_getfile| as file selector, files could be read from e.g. a MATLAB
+\verb|spm_select| as file selector, files could be read from e.g. a MATLAB
 variable: 
 
 \begin{verbatim}
 % Collect missing inputs
-subjdir = cellstr(cfg_getfile([1 1],'dir','Subject Dir'));
-subjepi = cellstr(cfg_getfile([1 inf],'image','Raw EPI images'));
-subjana = cellstr(cfg_getfile([1 1],'image','Anatomy image'));
-subjcon = cellstr(cfg_getfile([1 1],'mat','Multiple conditions'));
+subjdir = cellstr(spm_select([1 1],'dir','Subject Dir'));
+subjepi = cellstr(spm_select([1 inf],'image','Raw EPI images'));
+subjana = cellstr(spm_select([1 1],'image','Anatomy image'));
+subjcon = cellstr(spm_select([1 1],'mat','Multiple conditions'));
 % Run batch, assuming face_single_subject_template.m is in 
 % MATLAB path or working directory.
 % If it is not, then a full path and file name can be used instead.
@@ -491,14 +491,14 @@ To run the same job for multiple subjects, this code could be modified to:
 
 \begin{verbatim}
 % Collect missing inputs
-subj1dir = cellstr(cfg_getfile([1 1],'dir','Subject Dir'));
-subj1epi = cellstr(cfg_getfile([1 inf],'image','Raw EPI images'));
-subj1ana = cellstr(cfg_getfile([1 1],'image','Anatomy image'));
-subj1con = cellstr(cfg_getfile([1 1],'mat','Multiple conditions'));
-subj2dir = cellstr(cfg_getfile([1 1],'dir','Subject Dir'));
-subj2epi = cellstr(cfg_getfile([1 inf],'image','Raw EPI images'));
-subj2ana = cellstr(cfg_getfile([1 1],'image','Anatomy image'));
-subj2con = cellstr(cfg_getfile([1 1],'mat','Multiple conditions'));
+subj1dir = cellstr(spm_select([1 1],'dir','Subject Dir'));
+subj1epi = cellstr(spm_select([1 inf],'image','Raw EPI images'));
+subj1ana = cellstr(spm_select([1 1],'image','Anatomy image'));
+subj1con = cellstr(spm_select([1 1],'mat','Multiple conditions'));
+subj2dir = cellstr(spm_select([1 1],'dir','Subject Dir'));
+subj2epi = cellstr(spm_select([1 inf],'image','Raw EPI images'));
+subj2ana = cellstr(spm_select([1 1],'image','Anatomy image'));
+subj2con = cellstr(spm_select([1 1],'mat','Multiple conditions'));
 % Run batch, assuming face_single_subject_template.m is in your 
 % MATLAB path or working directory
 % If it is not, then a full path and file name can be used instead.
