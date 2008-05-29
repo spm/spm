@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.47  2008/05/29 07:30:42  roboos
+% small change in renaming header/data and filename in case of ctf, this prevents a warning if the res4 or meg4 are not positioned in a xxx.ds directory (see email Jo)
+%
 % Revision 1.46  2008/05/27 16:12:26  vlalit
 % Changed type name to ced_spike6mat
 %
@@ -232,22 +235,33 @@ switch dataformat
     datafile   = filename(1:(end-4)); % remove the extension
     headerfile = [datafile '.m4d'];
     sensorfile = [datafile '.xyz'];
+  case '4d'
+    [path, file, ext] = fileparts(filename);
+    datafile   = fullfile(path, file);
+    headerfile = fullfile(path, file);
+    configfile = fullfile(path, 'config');
   case 'ctf_ds'
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
-    filename   = filename; % this is the *.ds directory
+    if strmatch(path(end-2:end), '.ds')
+      filename   = filename; % this is the *.ds directory
+    end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
-    filename   = path; % this is the *.ds directory
+    if strmatch(path(end-2:end), '.ds')
+      filename   = path; % this is the *.ds directory
+    end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
-    filename   = path; % this is the *.ds directory
+    if strmatch(path(end-2:end), '.ds')
+      filename   = path; % this is the *.ds directory
+    end
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.vhdr']);
