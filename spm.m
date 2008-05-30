@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1761 2008-05-29 17:35:21Z guillaume $
+% $Id: spm.m 1766 2008-05-30 17:37:31Z guillaume $
 
 
 %=======================================================================
@@ -652,7 +652,16 @@ spm_select('clearvfiles');
 spm_conman('Initialise','reset');
 local_clc, spm('FnBanner','GUI cleared');
 fprintf('\n');
-%evalin('Base','clear')
+%evalin('base','clear')
+
+
+%=======================================================================
+case 'clean'                                    %-Clean MATLAB workspace
+%=======================================================================
+% spm('Clean')
+%-----------------------------------------------------------------------
+evalin('base','clear all');
+evalc('clear classes');
 
 
 %=======================================================================
@@ -1125,6 +1134,7 @@ end
 
 %-Check installation
 %-----------------------------------------------------------------------
+spm('Ver','spm',1);
 d = spm('Dir');
 
 %-Check the search path
