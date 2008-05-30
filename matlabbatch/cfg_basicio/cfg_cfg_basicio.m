@@ -4,14 +4,14 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-05-12 20:53:55.
+% Created at 2008-05-29 00:44:53.
 % ---------------------------------------------------------------------
-% files Files to move/delete
+% files Files to move/copy/delete
 % ---------------------------------------------------------------------
 files         = cfg_files;
 files.tag     = 'files';
-files.name    = 'Files to move/delete';
-files.help    = {'These files will be moved/deleted.'};
+files.name    = 'Files to move/copy/delete';
+files.help    = {'These files will be moved, copied or deleted.'};
 files.filter = 'any';
 files.ufilter = '.*';
 files.num     = [1 Inf];
@@ -26,6 +26,152 @@ moveto.filter = 'dir';
 moveto.ufilter = '.*';
 moveto.num     = [1 1];
 % ---------------------------------------------------------------------
+% copyto Copy to
+% ---------------------------------------------------------------------
+copyto         = cfg_files;
+copyto.tag     = 'copyto';
+copyto.name    = 'Copy to';
+copyto.help    = {'Files will be moved to the specified directory.'};
+copyto.filter = 'dir';
+copyto.ufilter = '.*';
+copyto.num     = [1 1];
+% ---------------------------------------------------------------------
+% moveto Move to
+% ---------------------------------------------------------------------
+moveto1         = cfg_files;
+moveto1.tag     = 'moveto';
+moveto1.name    = 'Move to';
+moveto1.help    = {'Files will be moved to the specified directory.'};
+moveto1.filter = 'dir';
+moveto1.ufilter = '.*';
+moveto1.num     = [1 1];
+% ---------------------------------------------------------------------
+% pattern Pattern
+% ---------------------------------------------------------------------
+pattern         = cfg_entry;
+pattern.tag     = 'pattern';
+pattern.name    = 'Pattern';
+pattern.help    = {'The regular expression pattern to look for.'};
+pattern.strtype = 's';
+pattern.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% repl Replacement
+% ---------------------------------------------------------------------
+repl         = cfg_entry;
+repl.tag     = 'repl';
+repl.name    = 'Replacement';
+repl.help    = {'This string (or pattern) will be inserted instead.'};
+repl.strtype = 's';
+repl.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% patrep Pattern/Replacement Pair
+% ---------------------------------------------------------------------
+patrep         = cfg_branch;
+patrep.tag     = 'patrep';
+patrep.name    = 'Pattern/Replacement Pair';
+patrep.val     = {pattern repl };
+% ---------------------------------------------------------------------
+% patreplist Pattern/Replacement List
+% ---------------------------------------------------------------------
+patreplist         = cfg_repeat;
+patreplist.tag     = 'patreplist';
+patreplist.name    = 'Pattern/Replacement List';
+patreplist.help    = {'Regexprep supports a list of multiple patterns and corresponding replacements. These will be applied to the filenames one after another. E.g., if your filename is ''testimage.nii'', and you replace ''test'' with ''xyz'' and ''xyzim'' with ''newtestim'', the final filename will be ''newtestimage.nii''.'};
+patreplist.values  = {patrep };
+patreplist.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% unique Unique Filenames
+% ---------------------------------------------------------------------
+unique         = cfg_menu;
+unique.tag     = 'unique';
+unique.name    = 'Unique Filenames';
+unique.help    = {
+                  'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
+                  'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
+}';
+unique.labels = {
+                 'Don''t Care'
+                 'Append Index Number'
+}';
+unique.values{1} = false;
+unique.values{2} = true;
+% ---------------------------------------------------------------------
+% moveren Move and Rename
+% ---------------------------------------------------------------------
+moveren         = cfg_branch;
+moveren.tag     = 'moveren';
+moveren.name    = 'Move and Rename';
+moveren.val     = {moveto1 patreplist unique };
+moveren.help    = {'The input files will be moved to the specified target folder. In addition, their filenames will be changed by replacing regular expression patterns using MATLABs regexprep function. Please consult MATLAB help and HTML documentation for how to specify regular expressions.'};
+% ---------------------------------------------------------------------
+% copyto Copy to
+% ---------------------------------------------------------------------
+copyto1         = cfg_files;
+copyto1.tag     = 'copyto';
+copyto1.name    = 'Copy to';
+copyto1.help    = {'Files will be moved to the specified directory.'};
+copyto1.filter = 'dir';
+copyto1.ufilter = '.*';
+copyto1.num     = [1 1];
+% ---------------------------------------------------------------------
+% pattern Pattern
+% ---------------------------------------------------------------------
+pattern         = cfg_entry;
+pattern.tag     = 'pattern';
+pattern.name    = 'Pattern';
+pattern.help    = {'The regular expression pattern to look for.'};
+pattern.strtype = 's';
+pattern.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% repl Replacement
+% ---------------------------------------------------------------------
+repl         = cfg_entry;
+repl.tag     = 'repl';
+repl.name    = 'Replacement';
+repl.help    = {'This string (or pattern) will be inserted instead.'};
+repl.strtype = 's';
+repl.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% patrep Pattern/Replacement Pair
+% ---------------------------------------------------------------------
+patrep         = cfg_branch;
+patrep.tag     = 'patrep';
+patrep.name    = 'Pattern/Replacement Pair';
+patrep.val     = {pattern repl };
+% ---------------------------------------------------------------------
+% patreplist Pattern/Replacement List
+% ---------------------------------------------------------------------
+patreplist         = cfg_repeat;
+patreplist.tag     = 'patreplist';
+patreplist.name    = 'Pattern/Replacement List';
+patreplist.help    = {'Regexprep supports a list of multiple patterns and corresponding replacements. These will be applied to the filenames one after another. E.g., if your filename is ''testimage.nii'', and you replace ''test'' with ''xyz'' and ''xyzim'' with ''newtestim'', the final filename will be ''newtestimage.nii''.'};
+patreplist.values  = {patrep };
+patreplist.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% unique Unique Filenames
+% ---------------------------------------------------------------------
+unique         = cfg_menu;
+unique.tag     = 'unique';
+unique.name    = 'Unique Filenames';
+unique.help    = {
+                  'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
+                  'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
+}';
+unique.labels = {
+                 'Don''t Care'
+                 'Append Index Number'
+}';
+unique.values{1} = false;
+unique.values{2} = true;
+% ---------------------------------------------------------------------
+% copyren Copy and Rename
+% ---------------------------------------------------------------------
+copyren         = cfg_branch;
+copyren.tag     = 'copyren';
+copyren.name    = 'Copy and Rename';
+copyren.val     = {copyto1 patreplist unique };
+copyren.help    = {'The input files will be copied to the specified target folder. In addition, their filenames will be changed by replacing regular expression patterns using MATLABs regexprep function. Please consult MATLAB help and HTML documentation for how to specify regular expressions.'};
+% ---------------------------------------------------------------------
 % delete Delete
 % ---------------------------------------------------------------------
 delete         = cfg_const;
@@ -38,7 +184,7 @@ delete.help    = {'The selected files will be deleted.'};
 action         = cfg_choice;
 action.tag     = 'action';
 action.name    = 'Action';
-action.values  = {moveto delete };
+action.values  = {moveto copyto moveren copyren delete };
 % ---------------------------------------------------------------------
 % file_move Move/Delete Files
 % ---------------------------------------------------------------------

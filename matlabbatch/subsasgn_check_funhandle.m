@@ -11,12 +11,12 @@ function sts = subsasgn_check_funhandle(val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_funhandle.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check_funhandle.m 1764 2008-05-30 13:09:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1764 $'; %#ok
 
-sts = isempty(val) || isa(val, 'function_handle') || (ischar(val) && ...
-                                                  any(exist(val) == 2:6));
+sts = isempty(val) || isa(val, 'function_handle') || ...
+    (ischar(val) && (any(exist(val) == 2:6) || ~isempty(which(val))));
 if sts && isa(val, 'function_handle')
     try
         f = functions(val);

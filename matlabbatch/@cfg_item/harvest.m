@@ -27,9 +27,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: harvest.m 1764 2008-05-30 13:09:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1764 $'; %#ok
 
 typ = class(item);
 tag = item.tag;
@@ -41,7 +41,7 @@ chk = ~dflag && rflag;
 if ~isempty(item.val)
     if isa(item.val{1},'cfg_dep')
         if dflag % do not harvest references if defaults are requested
-            val = [];
+            val = '<UNDEFINED>';
         else
             if rflag
                 [val sts] = resolve_deps(item, cj);

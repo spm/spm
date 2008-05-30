@@ -11,11 +11,13 @@ function out = cfg_run_file_move(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_run_file_move.m 1764 2008-05-30 13:09:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1764 $'; %#ok
 
-if isfield(job.action, 'delete')
+action = fieldnames(job.action);
+action = action{1};
+if strcmp(action, 'delete')
     for k = 1:numel(job.files)
         [p n e v] = fileparts(job.files{k});
         delete(job.files{k});
@@ -28,17 +30,51 @@ if isfield(job.action, 'delete')
     end;
     out = [];
 else
+    % copy or move
+    if any(strcmp(action, {'copyto','copyren'}))
+        cmd = @copyfile;
+        if strcmp(action,'copyto')
+            tgt = job.action.copyto{1};
+        else
+            tgt = job.action.(action).copyto{1};
+        end
+    else
+        cmd = @movefile;
+        if strcmp(action,'moveto')
+            tgt = job.action.moveto{1};
+        else
+            tgt = job.action.(action).moveto{1};
+        end
+    end
+    if any(strcmp(action, {'copyren','moveren'}))
+        patrep = struct2cell(job.action.(action).patrep(:)); % patrep{1,:} holds patterns, patrep{2,:} replacements
+        if job.action.(action).unique
+            nw = floor(log10(numel(job.files))+1);
+        end
+    end
     out.files = {};
     for k = 1:numel(job.files)
         [p n e v] = fileparts(job.files{k});
-        movefile(job.files{k}, job.action.moveto{1});
-        out.files{end+1} = fullfile(job.action.moveto{1}, [n e v]);
-        if strcmp(e,'.img') || strcmp(e,'.nii')
+        if any(strcmp(action, {'copyren','moveren'}))
+            on = regexprep(n, patrep{1,:}, patrep{2,:});
+            if job.action.(action).unique
+                on = sprintf('%s_%0*d', on, nw, k);
+            end
+        else
+            on = n;
+        end;
+        nam = {[n e v]};
+        onam = {[on e v]};
+        if any(strcmp(e, {'.nii','.img'}))
+            nam{2}  = [n  '.hdr'];
+            onam{2} = [on '.hdr'];
+            nam{3}  = [n  '.mat'];
+            onam{3} = [on '.mat'];
+        end
+        for l = 1:numel(nam)
             try
-                movefile(fullfile(p,[n '.hdr']), job.action.moveto{1});
-                out.files{end+1} = fullfile(job.action.moveto{1}, [n '.hdr']);
-                movefile(fullfile(p,[n '.mat']), job.action.moveto{1});
-                out.files{end+1} = fullfile(job.action.moveto{1}, [n '.mat']);
+                feval(cmd, fullfile(p, nam{l}), fullfile(tgt, onam{l}));
+                out.files{end+1} = fullfile(tgt, onam{l});
             end;
         end
     end;

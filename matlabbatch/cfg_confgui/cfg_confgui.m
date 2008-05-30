@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_confgui.m 1764 2008-05-30 13:09:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1764 $'; %#ok
 
 %% Declaration of fields
 
@@ -97,7 +97,7 @@ conf_def_item         = cfg_entry;
 conf_def_item.name    = 'Def Item';
 conf_def_item.tag     = 'def';
 conf_def_item.strtype = 'e';
-conf_def_item.num     = [1 1];
+conf_def_item.num     = [1 Inf];
 conf_def_item.help    = {'Default settings for configuration item.', ...
                     ['The first item in this list should be a function ' ...
                     'handle, all others will be passed as argument to ' ...
@@ -227,8 +227,17 @@ conf_num.help    = {'Num field.', 'Specify how many items (min and max) must be 
 conf_strtype        = cfg_menu;
 conf_strtype.name   = 'Strtype';
 conf_strtype.tag    = 'strtype';
-conf_strtype.labels = {'String (s)','Evaluated (e)','Natural number (1..n) (n)','Whole number (0..n) (w)','Integer (i)','Real number (r)','Condition vector (c)','Contrast matrix (x)','Permutation (p)'}; 
-conf_strtype.values = {'s','e','n','w','i','r','c','x','p'};
+conf_strtype.labels = {'String (s)', ...
+                    'Evaluated (e)', ...
+                    'Natural number (1..n) (n)', ...
+                    'Whole number (0..n) (w)', ...
+                    'Integer (i)', ...
+                    'Real number (r)', ...
+                    'Function handle (f)', ...
+                    'Condition vector (c)', ...
+                    'Contrast matrix (x)', ...
+                    'Permutation (p)'}; 
+conf_strtype.values = {'s','e','n','w','i','r','f','c','x','p'};
 conf_strtype.help   = {'Strtype field.', 'This type describes how an evaluated input should be treated. Type checking against this type will be performed during subscript assignment.'};
 
 % Extras

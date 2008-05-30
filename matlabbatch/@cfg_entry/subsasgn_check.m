@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check.m 1764 2008-05-30 13:09:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1764 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -79,8 +79,7 @@ if ~isa(val,'cfg_dep')
         case {'f'}
             % test whether val is a function handle or a name of an
             % existing function
-            sts = isempty(val) || isa(val, 'function_handle') || ...
-                  (ischar(val) && any(exist(val) == 2:6));
+            sts = subsasgn_check_funhandle(val);
             if ~sts
                 warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
                         '%s: Item must be a function handle or function name.', ...

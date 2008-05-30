@@ -29,9 +29,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: gencode.m 1764 2008-05-30 13:09:40Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1764 $'; %#ok
 
 %% Class of item
 % Check whether to generate code
@@ -135,7 +135,11 @@ end;
 %% Def
 % Generate def field
 if ~isempty(item.def)
-    str1 = gencode(item.def, sprintf('%s.def', tag), stoptag, tropts);
+    % work around insufficient gencode implementation for non-char cell arrays
+    % by introducing a temporary variable
+    deftag = genvarname('tmp', {tagctx{:}, tag});
+    str1 = gencode(item.def, deftag, stoptag, tropts);
     str = {str{:} str1{:}};
+    str{end+1} = sprintf('%s.def = %s;', tag, deftag);
 end;
     
