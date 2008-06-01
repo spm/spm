@@ -33,13 +33,19 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_render.m 1774 2008-06-01 01:23:44Z Darren $
 
+global prevrend
+if ~isstruct(prevrend)
+    prevrend = struct('rendfile','',...
+                      'brt',[],...
+                      'col',[]);
+end
 
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1143 $');
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1774 $');
     [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -59,34 +65,41 @@ end;
 
 % get surface
 %-----------------------------------------------------------------------
-if nargin < 3,
+if nargin < 3 || isempty(prevrend.rendfile),
     rendfile = spm_select(1,'^render.*\.mat$','Render file');
 end;
+prevrend.rendfile = rendfile;
 
 % get brightness
 %-----------------------------------------------------------------------
-if nargin < 2,
+if nargin < 2  || isempty(prevrend.brt),
     brt = 1;
     if num==1,
         brt = spm_input('Style',1,'new|old',[1 NaN], 1);
     end;
+
     if isfinite(brt),
         brt = spm_input('Brighten blobs',1,'none|slightly|more|lots',[1 0.75 0.5 0.25], 1);
         col = eye(3);
         % ask for custom colors & get rgb values
-        %-----------------------------------------------------------------------        
-        if spm_input('Which colors?','!+1','b',{'RGB','Custom'},[0 1])          
+        %-----------------------------------------------------------------------
+        if spm_input('Which colors?','!+1','b',{'RGB','Custom'},[0 1])
             for k = 1:num,
-            col(k,:) = uisetcolor(col(k,:),sprintf('Color of blob set %d',k));
+                col(k,:) = uisetcolor(col(k,:),sprintf('Color of blob set %d',k));
             end;
         end;
+    else
+        col = [];
     end;
-elseif isfinite(brt)
+elseif isfinite(brt) && isempty(prevrend.col)
     col = eye(3);
+elseif isfinite(brt)  % don't need to check prevrend.col again
+    col = prevrend.col;
+else
+    col = [];
 end;
-
-
-
+prevrend.brt = brt;
+prevrend.col = col;
 
 % Perform the rendering
 %=======================================================================
