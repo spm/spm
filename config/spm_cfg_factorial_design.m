@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1661 2008-05-15 14:53:01Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1661 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -74,7 +74,7 @@ dept.labels = {
                'No'
 }';
 dept.values = {0 1};
-dept.def     = {@spm_get_defaults, 'stats.fact.dept'};
+dept.def     = @(val)spm_get_defaults('stats.fact.dept', val{:});
 
 % ---------------------------------------------------------------------
 % variance Variance
@@ -97,7 +97,7 @@ variance.labels = {
                    'Unequal'
 }';
 variance.values = {0 1};
-variance.def    = {@spm_get_defaults, 'stats.fact.variance'};
+variance.def    = @(val)spm_get_defaults('stats.fact.variance', val{:});
 % ---------------------------------------------------------------------
 % gmsca Grand mean scaling
 % ---------------------------------------------------------------------
@@ -134,7 +134,7 @@ ancova.labels = {
                  'Yes'
 }';
 ancova.values = {0 1};
-ancova.def    = {@spm_get_defaults, 'stats.fact.ancova'};
+ancova.def    = @(val)spm_get_defaults('stats.fact.ancova', val{:});
 % ---------------------------------------------------------------------
 % t2 Two-sample t-test
 % ---------------------------------------------------------------------
@@ -221,7 +221,7 @@ iCC.labels = {
               'No centering'
 }';
 iCC.values = {1 5};
-iCC.def    = {@spm_get_defaults, 'stats.fact.mcov.iCC'};
+iCC.def    = @(val)spm_get_defaults('stats.fact.mcov.iCC', val{:});
 % ---------------------------------------------------------------------
 % mcov Covariate
 % ---------------------------------------------------------------------
@@ -250,7 +250,7 @@ incint.help = {['By default, an intercept is always added to the model. If the '
     'intercept may be omitted.']};
 incint.labels = {'Include Intercept','Omit Intercept'};
 incint.values = {1,0};
-incint.def    = {@spm_get_defaults, 'stats.fact.mreg_int'};
+incint.def    = @(val)spm_get_defaults('stats.fact.mreg_int', val{:});
 % ---------------------------------------------------------------------
 % mreg Multiple regression
 % ---------------------------------------------------------------------
@@ -576,7 +576,7 @@ iCFI.labels = {
                'With Factor 3'
 }';
 iCFI.values = {1 2 3 4};
-iCFI.def    = {@spm_get_defaults, 'stats.fact.iCFI'};
+iCFI.def    = @(val)spm_get_defaults('stats.fact.iCFI', val{:});
 % ---------------------------------------------------------------------
 % iCC Centering
 % ---------------------------------------------------------------------
@@ -598,7 +598,7 @@ iCC.labels = {
               'GM'
 }';
 iCC.values = {1 2 3 4 5 6 7 8};
-iCC.def    = {@spm_get_defaults, 'stats.fact.iCC'};
+iCC.def    = @(val)spm_get_defaults('stats.fact.iCC', val{:});
 % ---------------------------------------------------------------------
 % cov Covariate
 % ---------------------------------------------------------------------
@@ -639,7 +639,7 @@ athresh.help    = {
 }';
 athresh.strtype = 'e';
 athresh.num     = [1 1];
-athresh.def     = {@spm_get_defaults, 'stats.fact.athresh'};
+athresh.def     = @(val)spm_get_defaults('stats.fact.athresh', val{:});
 % ---------------------------------------------------------------------
 % tma Absolute
 % ---------------------------------------------------------------------
@@ -665,7 +665,7 @@ rthresh.help    = {
 }';
 rthresh.strtype = 'e';
 rthresh.num     = [1 1];
-rthresh.def     = {@spm_get_defaults, 'stats.fact.rthresh'};
+rthresh.def     = @(val)spm_get_defaults('stats.fact.rthresh', val{:});
 % ---------------------------------------------------------------------
 % tmr Relative
 % ---------------------------------------------------------------------
@@ -712,7 +712,7 @@ im.labels = {
              'No'
 }';
 im.values = {1 0};
-im.def    = {@spm_get_defaults, 'stats.fact.imask'};
+im.def    = @(val)spm_get_defaults('stats.fact.imask', val{:});
 % ---------------------------------------------------------------------
 % em Explicit Mask
 % ---------------------------------------------------------------------
@@ -820,7 +820,7 @@ gmscv.help    = {
 }';
 gmscv.strtype = 'e';
 gmscv.num     = [Inf 1];
-gmscv.def     = {@spm_get_defaults, 'stats.fact.gmsca'};
+gmscv.def     = @(val)spm_get_defaults('stats.fact.gmsca', val{:});
 % ---------------------------------------------------------------------
 % gmsca_yes Yes
 % ---------------------------------------------------------------------
@@ -868,7 +868,7 @@ glonorm.labels = {
                   'ANCOVA'
 }';
 glonorm.values = {1 2 3};
-glonorm.def    = {@spm_get_defaults, 'stats.fact.glonorm'};
+glonorm.def    = @(val)spm_get_defaults('stats.fact.glonorm', val{:});
 % ---------------------------------------------------------------------
 % globalm Global normalisation
 % ---------------------------------------------------------------------

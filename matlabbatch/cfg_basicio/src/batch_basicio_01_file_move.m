@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1764 $)
+% Job configuration created by cfg_util (rev $Rev: 1775 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/copy/delete';
@@ -10,7 +10,7 @@ matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.dir = '';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.num = [1 Inf];
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.check = [];
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.help = {'These files will be moved, copied or deleted.'};
-matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.def = {};
+matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.def = [];
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Move to';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.tag = 'moveto';
@@ -20,7 +20,7 @@ matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.dir = '';
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.num = [1 1];
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.check = [];
 matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.help = {'Files will be moved to the specified directory.'};
-matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.def = {};
+matlabbatch{2}.menu_cfg{1}.menu_entry{1}.conf_files.def = [];
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Copy to';
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.tag = 'copyto';
@@ -30,7 +30,7 @@ matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.dir = '';
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.num = [1 1];
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.check = [];
 matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.help = {'Files will be moved to the specified directory.'};
-matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.def = {};
+matlabbatch{3}.menu_cfg{1}.menu_entry{1}.conf_files.def = [];
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.type = 'cfg_entry';
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Pattern';
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.tag = 'pattern';
@@ -39,7 +39,7 @@ matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = [];
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.num = [1 Inf];
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.check = [];
 matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'The regular expression pattern to look for.'};
-matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.def = {};
+matlabbatch{4}.menu_cfg{1}.menu_entry{1}.conf_entry.def = [];
 matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.type = 'cfg_entry';
 matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.name = 'Replacement';
 matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.tag = 'repl';
@@ -48,7 +48,7 @@ matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.extras = [];
 matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.num = [1 Inf];
 matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.check = [];
 matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.help = {'This string (or pattern) will be inserted instead.'};
-matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.def = {};
+matlabbatch{5}.menu_cfg{1}.menu_entry{1}.conf_entry.def = [];
 matlabbatch{6}.menu_cfg{1}.menu_struct{1}.conf_branch.type = 'cfg_branch';
 matlabbatch{6}.menu_cfg{1}.menu_struct{1}.conf_branch.name = 'Pattern/Replacement Pair';
 matlabbatch{6}.menu_cfg{1}.menu_struct{1}.conf_branch.tag = 'patrep';
@@ -93,7 +93,7 @@ matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.help = {
                                                            'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
                                                            'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
 }';
-matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.def = {};
+matlabbatch{8}.menu_cfg{1}.menu_entry{1}.conf_menu.def = [];
 matlabbatch{9}.menu_cfg{1}.menu_struct{1}.conf_branch.type = 'cfg_branch';
 matlabbatch{9}.menu_cfg{1}.menu_struct{1}.conf_branch.name = 'Move and Rename';
 matlabbatch{9}.menu_cfg{1}.menu_struct{1}.conf_branch.tag = 'moveren';
@@ -146,7 +146,7 @@ matlabbatch{11}.menu_cfg{1}.menu_entry{1}.conf_const.tag = 'delete';
 matlabbatch{11}.menu_cfg{1}.menu_entry{1}.conf_const.val{1} = false;
 matlabbatch{11}.menu_cfg{1}.menu_entry{1}.conf_const.check = [];
 matlabbatch{11}.menu_cfg{1}.menu_entry{1}.conf_const.help = {'The selected files will be deleted.'};
-matlabbatch{11}.menu_cfg{1}.menu_entry{1}.conf_const.def = {};
+matlabbatch{11}.menu_cfg{1}.menu_entry{1}.conf_const.def = [];
 matlabbatch{12}.menu_cfg{1}.menu_struct{1}.conf_choice.type = 'cfg_choice';
 matlabbatch{12}.menu_cfg{1}.menu_struct{1}.conf_choice.name = 'Action';
 matlabbatch{12}.menu_cfg{1}.menu_struct{1}.conf_choice.tag = 'action';

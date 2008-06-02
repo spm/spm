@@ -29,11 +29,22 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1764 2008-05-30 13:09:40Z volkmar $
+% $Id: gencode.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1764 $'; %#ok
+rev = '$Rev: 1775 $'; %#ok
 
 %% Class of item
+% if there are function handles in .check or .def, add their names to
+% tagctx
+if ~isempty(item.check) && isa(item.check, 'function_handle')
+    functx = {func2str(item.check)};
+else
+    functx = {};
+end
+if ~isempty(item.def) && isa(item.def{1}, 'function_handle')
+    functx{end+1} = func2str(item.def{1});
+end
+tagctx = {tagctx{:} functx{:}};
 % Check whether to generate code
 if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec)))
     % Stopping - tag based on stoptag, and tag of item
@@ -47,9 +58,10 @@ if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropt
     ccnt = 0;
     return;
 else
-    % Tag based on tag of item and item count
     if isempty(tag)
-        tag = genvarname(sprintf('%s', item.tag), tagctx);
+        tag = genvarname(item.tag, tagctx);
+    else
+        tag = genvarname(tag, tagctx);
     end;
 end;
 tagctx = {tagctx{:} tag};
@@ -88,12 +100,12 @@ if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
                              tagctx);
         [ccstr ctag{k} ccind cccnt] = gencode(item.val{k}, ctag{k}, tagctx, ...
                                               stoptag, ctropts);
-        tagctx = {tagctx{:} ctag{k}};
         if ~isempty(ccstr)
             % Child has returned code
             cstr = {cstr{:} ccstr{:}};
             ccnt = ccnt + cccnt;
             ctropts.cnt = ctropts.cnt + cccnt;
+            tagctx = {tagctx{:} ctag{k}};
         end;
     end;
     % Update position of class definition

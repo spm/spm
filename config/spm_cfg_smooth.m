@@ -4,9 +4,9 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_smooth.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -26,7 +26,7 @@ fwhm.name    = 'FWHM';
 fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian smoothing kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions.'};
 fwhm.strtype = 'e';
 fwhm.num     = [1 3];
-fwhm.def     = {@spm_get_defaults, 'smooth.fwhm'};
+fwhm.def     = @(val)spm_get_defaults('smooth.fwhm', val{:});
 % ---------------------------------------------------------------------
 % dtype Data Type
 % ---------------------------------------------------------------------
@@ -43,7 +43,7 @@ dtype.labels = {
                 'DOUBLE - double prec. float'
 }';
 dtype.values = {0 spm_type('uint8') spm_type('int16') spm_type('int32') spm_type('float') spm_type('double')};
-dtype.def     = {@spm_get_defaults, 'smooth.dtype'};
+dtype.def     = @(val)spm_get_defaults('smooth.dtype', val{:});
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
@@ -53,7 +53,7 @@ prefix.name    = 'Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the filenames of the smoothed image file(s). Default prefix is ''s''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.def     = {@spm_get_defaults, 'smooth.prefix'};
+prefix.def     = @(val)spm_get_defaults('smooth.prefix', val{:});
 % ---------------------------------------------------------------------
 % smooth Smooth
 % ---------------------------------------------------------------------

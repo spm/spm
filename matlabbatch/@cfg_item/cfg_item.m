@@ -18,28 +18,24 @@ function item = cfg_item(varargin)
 %              a string explaining why it failed otherwise. 
 %    * help  - help text
 %    * def   - defaults setting (only evaluated for cfg_leaf items),
-%              holding a cell array with 2 elements:
-%              - def{1} a function or function handle
-%              - def{2} a custom argument, giving the defaults function a
-%              hint which default value should be returned.
+%              holding a function handle. This function handle should
+%              accept both an empty and a non-empty argument list.
 %              If there is no .val{1} set for an cfg_leaf item,
-%              feval(def{:}) will be evaluated to retreive a default value.
-%              Note that it is not possible to explicitly clear the .val
-%              field, if an default has been set. To clear the default
-%              value, either the .def function has to be removed from the
-%              configuration, or the called defaults function needs to
-%              return the value <UNDEFINED> (string, literally as shown
-%              including <>). Also, any value returned that does not match
-%              the size/type/filter etc. requirements of the item, will
-%              resolve to <UNDEFINED>.
-%              To change a default value, feval(def{:}, newval) will be
-%              called. It is up to the defaults function def{1} to decide
-%              whether this value will be stored permanently or just for
-%              the current instance of the configuration tree. Only values
+%              feval(def, {}) will be evaluated to retreive a default value.
+%              Any value returned that does not match the size/type/filter
+%              etc. requirements of the item, will resolve to <UNDEFINED>.
+%              To change a default value, feval(def, {newval}) will be
+%              called. It is up to the defaults function to decide whether
+%              this value will be stored permanently or just for the
+%              current instance of the configuration tree. Only values
 %              which are valid entries for this field are accepted. If the
-%              value is not valid, it will not be changed. It is not
-%              possibly to set a defaults value to <UNDEFINED> using the
-%              class methods.
+%              value is not valid, it will not be changed.
+%              To use a registry like defaults function with key/value
+%              pairs as arguments, construct the function handle like this:
+%              @(defval)get_defaults('some.key', defval{:})
+%              This will result in 'get_defaults' being called with the key
+%              argument only for retrieving defaults, and with key plus
+%              defval arguments to set defaults.
 % GUI/job manager fields
 %    * expanded
 %    * hidden
@@ -82,9 +78,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_item.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1775 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

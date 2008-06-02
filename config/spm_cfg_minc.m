@@ -4,9 +4,9 @@ function minc = spm_cfg_minc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_minc.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_minc.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % data MINC files
 % ---------------------------------------------------------------------
@@ -33,7 +33,7 @@ dtype.labels = {
 }';
 dtype.values = {spm_type('uint8') spm_type('int16') spm_type('int32') ...
                 spm_type('float') spm_type('double')};
-dtype.def    = {@spm_get_defaults, 'minc.dtype'};
+dtype.def    = @(val)spm_get_defaults('minc.dtype', val{:});
 % ---------------------------------------------------------------------
 % ext NIFTI Type
 % ---------------------------------------------------------------------
@@ -49,7 +49,7 @@ ext.values = {
               '.nii'
               '.img'
 }';
-ext.def    = {@spm_get_defaults, 'minc.ext'};
+ext.def    = @(val)spm_get_defaults('minc.ext', val{:});
 % ---------------------------------------------------------------------
 % opts Options
 % ---------------------------------------------------------------------

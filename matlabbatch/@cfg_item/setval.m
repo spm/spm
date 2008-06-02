@@ -15,15 +15,15 @@ function item = setval(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: setval.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1775 $'; %#ok
 
 if iscell(val) && isempty(val)
     if dflag
         if ~isempty(item.def)
             try
-                feval(item.def{:}, '<UNDEFINED>');
+                feval(item.def, {'<UNDEFINED>'});
             catch
                 warning('matlabbatch:cfg_item:setval', '%s: unable to set default value.', subsasgn_checkstr(item, substruct('.','val')));
             end;
@@ -39,7 +39,7 @@ else
         if sts
             if ~isempty(item.def)
                 try
-                    feval(item.def{:}, val1{1});
+                    feval(item.def, val1);
                 catch
                     warning('matlabbatch:cfg_item:setval', '%s: unable to set default value.', subsasgn_checkstr(item, substruct('.','val')));
                 end;

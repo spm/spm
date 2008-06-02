@@ -4,9 +4,9 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_preproc.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -36,7 +36,7 @@ GM.labels = {
 }';
 GM.values = {[0 0 0] [0 0 1] [0 1 0] [1 0 0] [0 1 1] [1 0 1] [1 1 1]...
              [1 1 0]};
-GM.def    = {@spm_get_defaults, 'preproc.output.GM'};
+GM.def    = @(val)spm_get_defaults('preproc.output.GM', val{:});
 % ---------------------------------------------------------------------
 % WM White Matter
 % ---------------------------------------------------------------------
@@ -56,7 +56,7 @@ WM.labels = {
 }';
 WM.values = {[0 0 0] [0 0 1] [0 1 0] [1 0 0] [0 1 1] [1 0 1] [1 1 1]...
              [1 1 0]};
-WM.def    = {@spm_get_defaults, 'preproc.output.WM'};
+WM.def    = @(val)spm_get_defaults('preproc.output.WM', val{:});
 % ---------------------------------------------------------------------
 % CSF Cerebro-Spinal Fluid
 % ---------------------------------------------------------------------
@@ -76,7 +76,7 @@ CSF.labels = {
 }';
 CSF.values = {[0 0 0] [0 0 1] [0 1 0] [1 0 0] [0 1 1] [1 0 1] [1 1 1]...
              [1 1 0]};
-CSF.def    = {@spm_get_defaults, 'preproc.output.CSF'};
+CSF.def    = @(val)spm_get_defaults('preproc.output.CSF', val{:});
 % ---------------------------------------------------------------------
 % biascor Bias Corrected
 % ---------------------------------------------------------------------
@@ -89,7 +89,7 @@ biascor.labels = {
                   'Don''t Save Corrected'
 }';
 biascor.values = {1 0};
-biascor.def    = {@spm_get_defaults, 'preproc.output.biascor'};
+biascor.def    = @(val)spm_get_defaults('preproc.output.biascor', val{:});
 % ---------------------------------------------------------------------
 % cleanup Clean up any partitions
 % ---------------------------------------------------------------------
@@ -107,7 +107,7 @@ cleanup.labels = {
                   'Thorough Clean'
 }';
 cleanup.values = {0 1 2};
-cleanup.def    = {@spm_get_defaults, 'preproc.output.cleanup'};
+cleanup.def    = @(val)spm_get_defaults('preproc.output.cleanup', val{:});
 % ---------------------------------------------------------------------
 % output Output Files
 % ---------------------------------------------------------------------
@@ -154,7 +154,7 @@ tpm.filter = 'image';
 tpm.dir = fullfile(spm('dir'),'tpm');
 tpm.ufilter = '.*';
 tpm.num     = [3 3];
-tpm.def     = {@spm_get_defaults, 'preproc.tpm'};
+tpm.def     = @(val)spm_get_defaults('preproc.tpm', val{:});
 % ---------------------------------------------------------------------
 % ngaus Gaussians per class
 % ---------------------------------------------------------------------
@@ -164,7 +164,7 @@ ngaus.name    = 'Gaussians per class';
 ngaus.help    = {'The number of Gaussians used to represent the intensity distribution for each tissue class can be greater than one. In other words, a tissue probability map may be shared by several clusters. The assumption of a single Gaussian distribution for each class does not hold for a number of reasons. In particular, a voxel may not be purely of one tissue type, and instead contain signal from a number of different tissues (partial volume effects). Some partial volume voxels could fall at the interface between different classes, or they may fall in the middle of structures such as the thalamus, which may be considered as being either grey or white matter. Various other image segmentation approaches use additional clusters to model such partial volume effects. These generally assume that a pure tissue class has a Gaussian intensity distribution, whereas intensity distributions for partial volume voxels are broader, falling between the intensities of the pure classes. Unlike these partial volume segmentation approaches, the model adopted here simply assumes that the intensity distribution of each class may not be Gaussian, and assigns belonging probabilities according to these non-Gaussian distributions. Typical numbers of Gaussians could be two for grey matter, two for white matter, two for CSF, and four for everything else.'};
 ngaus.strtype = 'n';
 ngaus.num     = [4 1];
-ngaus.def     = {@spm_get_defaults, 'preproc.ngaus'};
+ngaus.def     = @(val)spm_get_defaults('preproc.ngaus', val{:});
 % ---------------------------------------------------------------------
 % regtype Affine Regularisation
 % ---------------------------------------------------------------------
@@ -190,7 +190,7 @@ regtype.values = {
                   'subj'
                   'none'
 }';
-regtype.def     = {@spm_get_defaults, 'preproc.regtype'};
+regtype.def     = @(val)spm_get_defaults('preproc.regtype', val{:});
 % ---------------------------------------------------------------------
 % warpreg Warping Regularisation
 % ---------------------------------------------------------------------
@@ -200,7 +200,7 @@ warpreg.name    = 'Warping Regularisation';
 warpreg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
 warpreg.strtype = 'e';
 warpreg.num     = [1 1];
-warpreg.def     = {@spm_get_defaults, 'preproc.warpreg'};
+warpreg.def     = @(val)spm_get_defaults('preproc.warpreg', val{:});
 % ---------------------------------------------------------------------
 % warpco Warp Frequency Cutoff
 % ---------------------------------------------------------------------
@@ -210,7 +210,7 @@ warpco.name    = 'Warp Frequency Cutoff';
 warpco.help    = {'Cutoff of DCT bases.  Only DCT bases of periods longer than the cutoff are used to describe the warps. The number actually used will depend on the cutoff and the field of view of your image. A smaller cutoff frequency will allow more detailed deformations to be modelled, but unfortunately comes at a cost of greatly increasing the amount of memory needed, and the time taken.'};
 warpco.strtype = 'e';
 warpco.num     = [1 1];
-warpco.def     = {@spm_get_defaults, 'preproc.warpco'};
+warpco.def     = @(val)spm_get_defaults('preproc.warpco', val{:});
 % ---------------------------------------------------------------------
 % biasreg Bias regularisation
 % ---------------------------------------------------------------------
@@ -233,7 +233,7 @@ biasreg.labels = {
                   'extremely heavy regularisation (10)'
 }';
 biasreg.values = {0 1e-5 .0001 .001 .01 .1 1 10};
-biasreg.def     = {@spm_get_defaults, 'preproc.biasreg'};
+biasreg.def     = @(val)spm_get_defaults('preproc.biasreg', val{:});
 % ---------------------------------------------------------------------
 % biasfwhm Bias FWHM
 % ---------------------------------------------------------------------
@@ -258,7 +258,7 @@ biasfwhm.labels = {
                    'No correction'
 }';
 biasfwhm.values = {30 40 50 60 70 80 90 100 110 120 130 140 150 Inf};
-biasfwhm.def     = {@spm_get_defaults, 'preproc.biasfwhm'};
+biasfwhm.def     = @(val)spm_get_defaults('preproc.biasfwhm', val{:});
 % ---------------------------------------------------------------------
 % samp Sampling distance
 % ---------------------------------------------------------------------
@@ -268,7 +268,7 @@ samp.name    = 'Sampling distance';
 samp.help    = {'The approximate distance between sampled points when estimating the model parameters. Smaller values use more of the data, but the procedure is slower.'};
 samp.strtype = 'e';
 samp.num     = [1 1];
-samp.def     = {@spm_get_defaults, 'preproc.samp'};
+samp.def     = @(val)spm_get_defaults('preproc.samp', val{:});
 % ---------------------------------------------------------------------
 % msk Masking image
 % ---------------------------------------------------------------------

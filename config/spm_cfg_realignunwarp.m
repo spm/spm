@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1558 2008-05-07 07:05:30Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1558 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -61,7 +61,7 @@ quality.help    = {'Quality versus speed trade-off.  Highest quality (1) gives m
 quality.strtype = 'r';
 quality.num     = [1 1];
 quality.extras  = [0 1];
-quality.def     = {@spm_get_defaults, 'realign.estimate.quality'};
+quality.def     = @(val)spm_get_defaults('realign.estimate.quality', val{:});
 % ---------------------------------------------------------------------
 % sep Separation
 % ---------------------------------------------------------------------
@@ -71,7 +71,7 @@ sep.name    = 'Separation';
 sep.help    = {'The separation (in mm) between the points sampled in the reference image.  Smaller sampling distances gives more accurate results, but will be slower.'};
 sep.strtype = 'e';
 sep.num     = [1 1];
-sep.def     = {@spm_get_defaults, 'realign.estimate.sep'};
+sep.def     = @(val)spm_get_defaults('realign.estimate.sep', val{:});
 % ---------------------------------------------------------------------
 % fwhm Smoothing (FWHM)
 % ---------------------------------------------------------------------
@@ -87,7 +87,7 @@ fwhm.help    = {
 }';
 fwhm.strtype = 'e';
 fwhm.num     = [1 1];
-fwhm.def     = {@spm_get_defaults, 'realign.estimate.fwhm'};
+fwhm.def     = @(val)spm_get_defaults('realign.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------
 % rtm Num Passes
 % ---------------------------------------------------------------------
@@ -106,7 +106,7 @@ rtm.labels = {
               'Register to mean'
 }';
 rtm.values = {0 1};
-rtm.def    = {@spm_get_defaults, 'unwarp.estimate.rtm'};
+rtm.def    = @(val)spm_get_defaults('unwarp.estimate.rtm', val{:});
 % ---------------------------------------------------------------------
 % einterp Interpolation
 % ---------------------------------------------------------------------
@@ -130,7 +130,7 @@ einterp.labels = {
                   '7th Degree B-Spline'
 }';
 einterp.values = {0 1 2 3 4 5 6 7};
-einterp.def    = {@spm_get_defaults, 'realign.estimate.interp'};
+einterp.def    = @(val)spm_get_defaults('realign.estimate.interp', val{:});
 % ---------------------------------------------------------------------
 % ewrap Wrapping
 % ---------------------------------------------------------------------
@@ -156,7 +156,7 @@ ewrap.labels = {
 }';
 ewrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                 [1 1 1]};
-ewrap.def    = {@spm_get_defaults, 'realign.estimate.wrap'};
+ewrap.def    = @(val)spm_get_defaults('realign.estimate.wrap', val{:});
 % ---------------------------------------------------------------------
 % weight Weighting
 % ---------------------------------------------------------------------
@@ -167,7 +167,7 @@ weight.help    = {'The option of providing a weighting image to weight each voxe
 weight.filter  = 'image';
 weight.ufilter = '.*';
 weight.num     = [0 1];
-weight.def     = {@spm_get_defaults, 'realign.estimate.weight'};
+weight.def     = @(val)spm_get_defaults('realign.estimate.weight', val{:});
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -190,7 +190,7 @@ basfcn.labels = {
                  '14x14x*'
 }';
 basfcn.values = {[8 8] [10 10] [12 12] [14 14]};
-basfcn.def    = {@spm_get_defaults, 'unwarp.estimate.basfcn'};
+basfcn.def    = @(val)spm_get_defaults('unwarp.estimate.basfcn', val{:});
 % ---------------------------------------------------------------------
 % regorder Regularisation
 % ---------------------------------------------------------------------
@@ -209,7 +209,7 @@ regorder.labels = {
                    '3'
 }';
 regorder.values = {0 1 2 3};
-regorder.def    = {@spm_get_defaults, 'unwarp.estimate.regorder'};
+regorder.def    = @(val)spm_get_defaults('unwarp.estimate.regorder', val{:});
 % ---------------------------------------------------------------------
 % lambda Reg. Factor
 % ---------------------------------------------------------------------
@@ -223,7 +223,7 @@ lambda.labels  = {
                  'A lot'
 }';
 lambda.values  = {10000 100000 1000000};
-lambda.def     = {@spm_get_defaults, 'unwarp.estimate.regwgt'};
+lambda.def     = @(val)spm_get_defaults('unwarp.estimate.regwgt', val{:});
 % ---------------------------------------------------------------------
 % jm Jacobian deformations
 % ---------------------------------------------------------------------
@@ -236,7 +236,7 @@ jm.labels = {
              'No'
 }';
 jm.values = {1 0};
-jm.def    = {@spm_get_defaults, 'unwarp.estimate.jm'};
+jm.def    = @(val)spm_get_defaults('unwarp.estimate.jm', val{:});
 % ---------------------------------------------------------------------
 % fot First-order effects
 % ---------------------------------------------------------------------
@@ -256,7 +256,7 @@ fot.help    = {
 }';
 fot.strtype = 'e';
 fot.num     = [1 Inf];
-fot.def     = {@spm_get_defaults, 'unwarp.estimate.foe'};
+fot.def     = @(val)spm_get_defaults('unwarp.estimate.foe', val{:});
 % ---------------------------------------------------------------------
 % sot Second-order effects
 % ---------------------------------------------------------------------
@@ -284,7 +284,7 @@ sot.help    = {
 }';
 sot.strtype = 'e';
 sot.num     = [Inf Inf];
-sot.def     = {@spm_get_defaults, 'unwarp.estimate.soe'};
+sot.def     = @(val)spm_get_defaults('unwarp.estimate.soe', val{:});
 % ---------------------------------------------------------------------
 % uwfwhm Smoothing for unwarp (FWHM)
 % ---------------------------------------------------------------------
@@ -294,7 +294,7 @@ uwfwhm.name    = 'Smoothing for unwarp (FWHM)';
 uwfwhm.help    = {'FWHM (mm) of smoothing filter applied to images prior to estimation of deformation fields.'};
 uwfwhm.strtype = 'r';
 uwfwhm.num     = [1 1];
-uwfwhm.def     = {@spm_get_defaults, 'unwarp.estimate.fwhm'};
+uwfwhm.def     = @(val)spm_get_defaults('unwarp.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------
 % rem Re-estimate movement params
 % ---------------------------------------------------------------------
@@ -307,7 +307,7 @@ rem.labels  = {
               'No'
 }';
 rem.values  = {1 0};
-rem.def     = {@spm_get_defaults, 'unwarp.estimate.rem'};
+rem.def     = @(val)spm_get_defaults('unwarp.estimate.rem', val{:});
 % ---------------------------------------------------------------------
 % noi Number of Iterations
 % ---------------------------------------------------------------------
@@ -317,7 +317,7 @@ noi.name    = 'Number of Iterations';
 noi.help    = {'Maximum number of iterations. Default: 5.'};
 noi.strtype = 'n';
 noi.num     = [1 1];
-noi.def     = {@spm_get_defaults, 'unwarp.estimate.noi'};
+noi.def     = @(val)spm_get_defaults('unwarp.estimate.noi', val{:});
 % ---------------------------------------------------------------------
 % expround Taylor expansion point
 % ---------------------------------------------------------------------
@@ -335,7 +335,7 @@ expround.values = {
                    'First'
                    'Last'
 }';
-expround.def     = {@spm_get_defaults, 'unwarp.estimate.expround'};
+expround.def     = @(val)spm_get_defaults('unwarp.estimate.expround', val{:});
 % ---------------------------------------------------------------------
 % uweoptions Unwarp Estimation Options
 % ---------------------------------------------------------------------
@@ -362,7 +362,7 @@ uwwhich.labels = {
                   ' All Images + Mean Image'
 }';
 uwwhich.values = {[2 0] [2 1]};
-uwwhich.def    = {@spm_get_defaults, 'realign.write.which'};
+uwwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 % ---------------------------------------------------------------------
 % rinterp Interpolation
 % ---------------------------------------------------------------------
@@ -386,7 +386,7 @@ rinterp.labels = {
                   '7th Degree B-Spline'
 }';
 rinterp.values = {0 1 2 3 4 5 6 7};
-rinterp.def    = {@spm_get_defaults, 'realign.write.interp'};
+rinterp.def    = @(val)spm_get_defaults('realign.write.interp', val{:});
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
@@ -410,7 +410,7 @@ wrap.labels = {
 }';
 wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                [1 1 1]};
-wrap.def    = {@spm_get_defaults, 'realign.write.wrap'};
+wrap.def    = @(val)spm_get_defaults('realign.write.wrap', val{:});
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
@@ -423,7 +423,7 @@ mask.labels = {
                'Dont mask images'
 }';
 mask.values = {1 0};
-mask.def    = {@spm_get_defaults, 'realign.write.mask'};
+mask.def    = @(val)spm_get_defaults('realign.write.mask', val{:});
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
@@ -433,7 +433,7 @@ prefix.name    = 'Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the filenames of the smoothed image file(s). Default prefix is ''u''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.def     = {@spm_get_defaults, 'unwarp.write.prefix'};
+prefix.def     = @(val)spm_get_defaults('unwarp.write.prefix', val{:});
 % ---------------------------------------------------------------------
 % uwroptions Unwarp Reslicing Options
 % ---------------------------------------------------------------------

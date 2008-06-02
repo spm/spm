@@ -4,9 +4,9 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_dicom.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % data DICOM files
 % ---------------------------------------------------------------------
@@ -47,7 +47,7 @@ root.values = {
                'patname'
                'flat'
 }';
-root.def    = {@spm_get_defaults, 'dicom.root'};
+root.def    = @(val)spm_get_defaults('dicom.root', val{:});
 % ---------------------------------------------------------------------
 % outdir Output directory
 % ---------------------------------------------------------------------
@@ -77,7 +77,7 @@ format.values = {
                  'img'
                  'nii'
 }';
-format.def    = {@spm_get_defaults, 'dicom.format'};
+format.def    = @(val)spm_get_defaults('dicom.format', val{:});
 % ---------------------------------------------------------------------
 % icedims Use ICEDims in filename
 % ---------------------------------------------------------------------
@@ -90,7 +90,7 @@ icedims.labels = {
                   'Yes'
 }';
 icedims.values = {0 1};
-icedims.def    = {@spm_get_defaults, 'dicom.icedims'};
+icedims.def    = @(val)spm_get_defaults('dicom.icedims', val{:});
 % ---------------------------------------------------------------------
 % convopts Conversion options
 % ---------------------------------------------------------------------

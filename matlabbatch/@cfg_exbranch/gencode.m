@@ -25,11 +25,25 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: gencode.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1775 $'; %#ok
 
 %% Parent object
+% if there are function handles in .prog, .vout, .vfiles add their names to
+% tagctx
+if ~isempty(item.prog) && isa(item.prog, 'function_handle')
+    functx = {func2str(item.prog)};
+else
+    functx = {};
+end
+if ~isempty(item.vout) && isa(item.vout, 'function_handle')
+    functx{end+1} = func2str(item.vout);
+end
+if ~isempty(item.vfiles) && isa(item.vfiles, 'function_handle')
+    functx{end+1} = func2str(item.vfiles);
+end
+tagctx = {tagctx{:} functx{:}};
 % Generate branch object
 [str tag cind ccnt] = gencode(item.cfg_branch, tag, tagctx, stoptag, tropts);
 % Check whether to generate code - ccnt == 0 means that generic object did

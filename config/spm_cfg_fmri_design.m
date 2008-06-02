@@ -4,9 +4,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 1521 2008-04-30 09:48:09Z volkmar $
+% $Id: spm_cfg_fmri_design.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1521 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -54,7 +54,7 @@ fmri_t.help    = {
 }';
 fmri_t.strtype = 'e';
 fmri_t.num     = [1 1];
-fmri_t.def     = {@spm_get_defaults, 'stats.fmri.fmri_t'};
+fmri_t.def     = @(val)spm_get_defaults('stats.fmri.fmri_t', val{:});
 % ---------------------------------------------------------------------
 % fmri_t0 Microtime onset
 % ---------------------------------------------------------------------
@@ -68,7 +68,7 @@ fmri_t0.help    = {
 }';
 fmri_t0.strtype = 'e';
 fmri_t0.num     = [1 1];
-fmri_t0.def     = {@spm_get_defaults, 'stats.fmri.fmri_t0'};
+fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.fmri_t0', val{:});
 % ---------------------------------------------------------------------
 % timing Timing parameters
 % ---------------------------------------------------------------------
@@ -138,7 +138,7 @@ tmod.labels = {
                '6th order Time Modulation'
 }';
 tmod.values = {0 1 2 3 4 5 6};
-tmod.def    = {@spm_get_defaults, 'stats.fmri.cond.tmod'};
+tmod.def    = @(val)spm_get_defaults('stats.fmri.cond.tmod', val{:});
 % ---------------------------------------------------------------------
 % name Name
 % ---------------------------------------------------------------------
@@ -313,7 +313,7 @@ hpf.name    = 'High-pass filter';
 hpf.help    = {'The default high-pass filter cutoff is 128 seconds.Slow signal drifts with a period longer than this will be removed. Use ''explore design'' to ensure this cut-off is not removing too much experimental variance. High-pass filtering is implemented using a residual forming matrix (i.e. it is not a convolution) and is simply to a way to remove confounds without estimating their parameters explicitly.  The constant term is also incorporated into this filter matrix.'};
 hpf.strtype = 'e';
 hpf.num     = [1 1];
-hpf.def     = {@spm_get_defaults, 'stats.fmri.hpf'};
+hpf.def     = @(val)spm_get_defaults('stats.fmri.hpf', val{:});
 % ---------------------------------------------------------------------
 % sess Subject/Session
 % ---------------------------------------------------------------------
@@ -392,7 +392,7 @@ derivs.labels = {
                  'Time and Dispersion derivatives'
 }';
 derivs.values = {[0 0] [1 0] [1 1]};
-derivs.def    = {@spm_get_defaults, 'stats.fmri.hrf.derivs'};
+derivs.def    = @(val)spm_get_defaults('stats.fmri.hrf.derivs', val{:});
 % ---------------------------------------------------------------------
 % hrf Canonical HRF
 % ---------------------------------------------------------------------
@@ -531,7 +531,7 @@ volt.labels = {
                'Model Interactions'
 }';
 volt.values = {1 2};
-volt.def    = {@spm_get_defaults, 'stats.fmri.volt'};
+volt.def    = @(val)spm_get_defaults('stats.fmri.volt', val{:});
 % ---------------------------------------------------------------------
 % global Global normalisation
 % ---------------------------------------------------------------------
@@ -547,7 +547,7 @@ xGlobal.values = {
                   'Scaling'
                   'None'
 }';
-xGlobal.def     = {@spm_get_defaults, 'stats.fmri.global'};
+xGlobal.def     = @(val)spm_get_defaults('stats.fmri.global', val{:});
 % ---------------------------------------------------------------------
 % cvi Serial correlations
 % ---------------------------------------------------------------------
@@ -569,7 +569,7 @@ cvi.values = {
               'none'
               'AR(1)'
 }';
-cvi.def     = {@spm_get_defaults, 'stats.fmri.cvi'};
+cvi.def     = @(val)spm_get_defaults('stats.fmri.cvi', val{:});
 % ---------------------------------------------------------------------
 % fmri_design fMRI model specification (design only)
 % ---------------------------------------------------------------------

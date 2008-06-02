@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1586 2008-05-08 20:45:20Z john $
+% $Id: spm_cfg_realign.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1586 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -36,7 +36,7 @@ quality.help    = {'Quality versus speed trade-off.  Highest quality (1) gives m
 quality.strtype = 'r';
 quality.num     = [1 1];
 quality.extras  = [0 1];
-quality.def     = {@spm_get_defaults, 'realign.estimate.quality'};
+quality.def     = @(val)spm_get_defaults('realign.estimate.quality', val{:});
 % ---------------------------------------------------------------------
 % sep Separation
 % ---------------------------------------------------------------------
@@ -46,7 +46,7 @@ sep.name    = 'Separation';
 sep.help    = {'The separation (in mm) between the points sampled in the reference image.  Smaller sampling distances gives more accurate results, but will be slower.'};
 sep.strtype = 'e';
 sep.num     = [1 1];
-sep.def     = {@spm_get_defaults, 'realign.estimate.sep'};
+sep.def     = @(val)spm_get_defaults('realign.estimate.sep', val{:});
 % ---------------------------------------------------------------------
 % fwhm Smoothing (FWHM)
 % ---------------------------------------------------------------------
@@ -62,7 +62,7 @@ fwhm.help    = {
 }';
 fwhm.strtype = 'e';
 fwhm.num     = [1 1];
-fwhm.def     = {@spm_get_defaults, 'realign.estimate.fwhm'};
+fwhm.def     = @(val)spm_get_defaults('realign.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------
 % rtm Num Passes
 % ---------------------------------------------------------------------
@@ -81,7 +81,7 @@ rtm.labels = {
               'Register to mean'
 }';
 rtm.values = {0 1};
-rtm.def    = {@spm_get_defaults, 'realign.estimate.rtm'};
+rtm.def    = @(val)spm_get_defaults('realign.estimate.rtm', val{:});
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
@@ -99,7 +99,7 @@ interp.labels = {
                  '7th Degree B-Spline'
 }';
 interp.values = {1 2 3 4 5 6 7};
-interp.def    = {@spm_get_defaults, 'realign.estimate.interp'};
+interp.def    = @(val)spm_get_defaults('realign.estimate.interp', val{:});
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
@@ -123,7 +123,7 @@ wrap.labels = {
 }';
 wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1] ...
                [1 1 1]};
-wrap.def    = {@spm_get_defaults, 'realign.estimate.wrap'};
+wrap.def    = @(val)spm_get_defaults('realign.estimate.wrap', val{:});
 % ---------------------------------------------------------------------
 % weight Weighting
 % ---------------------------------------------------------------------
@@ -134,7 +134,7 @@ weight.help    = {'The option of providing a weighting image to weight each voxe
 weight.filter  = 'image';
 weight.ufilter = '.*';
 weight.num     = [0 1];
-weight.def     = {@spm_get_defaults, 'realign.estimate.weight'};
+weight.def     = @(val)spm_get_defaults('realign.estimate.weight', val{:});
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -189,7 +189,7 @@ which.labels = {
                 ' Mean Image Only'
 }';
 which.values = {[2 0] [1 0] [2 1] [0 1]};
-which.def    = {@spm_get_defaults, 'realign.write.which'};
+which.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
@@ -209,7 +209,7 @@ interp.labels = {
                  'Fourier Interpolation'
 }';
 interp.values = {0 1 2 3 4 5 6 7 Inf};
-interp.def    = {@spm_get_defaults, 'realign.write.interp'};
+interp.def    = @(val)spm_get_defaults('realign.write.interp', val{:});
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
@@ -233,7 +233,7 @@ wrap.labels = {
 }';
 wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                [1 1 1]};
-wrap.def    = {@spm_get_defaults, 'realign.write.wrap'};
+wrap.def    = @(val)spm_get_defaults('realign.write.wrap', val{:});
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
@@ -246,7 +246,7 @@ mask.labels = {
                'Dont mask images'
 }';
 mask.values = {1 0};
-mask.def    = {@spm_get_defaults, 'realign.write.mask'};
+mask.def    = @(val)spm_get_defaults('realign.write.mask', val{:});
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
@@ -256,7 +256,7 @@ prefix.name    = 'Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.def     = {@spm_get_defaults, 'realign.write.prefix'};
+prefix.def     = @(val)spm_get_defaults('realign.write.prefix', val{:});
 % ---------------------------------------------------------------------
 % roptions Reslice Options
 % ---------------------------------------------------------------------

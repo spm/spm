@@ -18,9 +18,9 @@ function cc = cfg_struct2cfg(co, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_struct2cfg.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_struct2cfg.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1775 $'; %#ok
 
 if nargin < 2
     indent = '';
@@ -125,7 +125,7 @@ nind = strcmp('def',fn);
 if any(nind)
     if ~isempty(co.def) && ischar(co.def)
         % assume SPM5 style defaults
-        co.def = {@spm_get_defaults co.def};
+        co.def = @(val)spm_get_defaults(co.def, val{:});
     end;
     cc = try_assign(cc,co,'def');
     % remove def field from list

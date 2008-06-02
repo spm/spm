@@ -4,9 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_normalise.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -80,7 +80,7 @@ smosrc.name    = 'Source Image Smoothing';
 smosrc.help    = {'Smoothing to apply to a copy of the source image. The template and source images should have approximately the same smoothness. Remember that the templates supplied with SPM have been smoothed by 8mm, and that smoothnesses combine by Pythagoras'' rule.'};
 smosrc.strtype = 'e';
 smosrc.num     = [1 1];
-smosrc.def     = {@spm_get_defaults, 'normalise.estimate.smosrc'};
+smosrc.def     = @(val)spm_get_defaults('normalise.estimate.smosrc', val{:});
 % ---------------------------------------------------------------------
 % smoref Template Image Smoothing
 % ---------------------------------------------------------------------
@@ -90,7 +90,7 @@ smoref.name    = 'Template Image Smoothing';
 smoref.help    = {'Smoothing to apply to a copy of the template image. The template and source images should have approximately the same smoothness. Remember that the templates supplied with SPM have been smoothed by 8mm, and that smoothnesses combine by Pythagoras'' rule.'};
 smoref.strtype = 'e';
 smoref.num     = [1 1];
-smoref.def     = {@spm_get_defaults, 'normalise.estimate.smoref'};
+smoref.def     = @(val)spm_get_defaults('normalise.estimate.smoref', val{:});
 % ---------------------------------------------------------------------
 % regtype Affine Regularisation
 % ---------------------------------------------------------------------
@@ -108,7 +108,7 @@ regtype.values = {
                   'subj'
                   'none'
 }';
-regtype.def     = {@spm_get_defaults, 'normalise.estimate.regtype'};
+regtype.def     = @(val)spm_get_defaults('normalise.estimate.regtype', val{:});
 % ---------------------------------------------------------------------
 % cutoff Nonlinear Frequency Cutoff
 % ---------------------------------------------------------------------
@@ -118,7 +118,7 @@ cutoff.name    = 'Nonlinear Frequency Cutoff';
 cutoff.help    = {'Cutoff of DCT bases.  Only DCT bases of periods longer than the cutoff are used to describe the warps. The number used will depend on the cutoff and the field of view of the template image(s).'};
 cutoff.strtype = 'e';
 cutoff.num     = [1 1];
-cutoff.def     = {@spm_get_defaults, 'normalise.estimate.cutoff'};
+cutoff.def     = @(val)spm_get_defaults('normalise.estimate.cutoff', val{:});
 % ---------------------------------------------------------------------
 % nits Nonlinear Iterations
 % ---------------------------------------------------------------------
@@ -128,7 +128,7 @@ nits.name    = 'Nonlinear Iterations';
 nits.help    = {'Number of iterations of nonlinear warping performed.'};
 nits.strtype = 'w';
 nits.num     = [1 1];
-nits.def     = {@spm_get_defaults, 'normalise.estimate.nits'};
+nits.def     = @(val)spm_get_defaults('normalise.estimate.nits', val{:});
 % ---------------------------------------------------------------------
 % reg Nonlinear Regularisation
 % ---------------------------------------------------------------------
@@ -138,7 +138,7 @@ reg.name    = 'Nonlinear Regularisation';
 reg.help    = {'The amount of regularisation for the nonlinear part of the spatial normalisation. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude) - or even just use an affine normalisation. The regularisation influences the smoothness of the deformation fields.'};
 reg.strtype = 'e';
 reg.num     = [1 1];
-reg.def     = {@spm_get_defaults, 'normalise.estimate.reg'};
+reg.def     = @(val)spm_get_defaults('normalise.estimate.reg', val{:});
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -210,7 +210,7 @@ preserve.labels = {
                    'Preserve Amount'
 }';
 preserve.values = {0 1};
-preserve.def     = {@spm_get_defaults, 'normalise.write.preserve'};
+preserve.def     = @(val)spm_get_defaults('normalise.write.preserve', val{:});
 % ---------------------------------------------------------------------
 % bb Bounding box
 % ---------------------------------------------------------------------
@@ -220,7 +220,7 @@ bb.name    = 'Bounding box';
 bb.help    = {'The bounding box (in mm) of the volume which is to be written (relative to the anterior commissure).'};
 bb.strtype = 'e';
 bb.num     = [2 3];
-bb.def     = {@spm_get_defaults, 'normalise.write.bb'};
+bb.def     = @(val)spm_get_defaults('normalise.write.bb', val{:});
 % ---------------------------------------------------------------------
 % vox Voxel sizes
 % ---------------------------------------------------------------------
@@ -230,7 +230,7 @@ vox.name    = 'Voxel sizes';
 vox.help    = {'The voxel sizes (x, y & z, in mm) of the written normalised images.'};
 vox.strtype = 'e';
 vox.num     = [1 3];
-vox.def     = {@spm_get_defaults, 'normalise.write.vox'};
+vox.def     = @(val)spm_get_defaults('normalise.write.vox', val{:});
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
@@ -254,7 +254,7 @@ interp.labels = {
                  '7th Degree B-Spline'
 }';
 interp.values = {0 1 2 3 4 5 6 7};
-interp.def     = {@spm_get_defaults, 'normalise.write.interp'};
+interp.def     = @(val)spm_get_defaults('normalise.write.interp', val{:});
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
@@ -278,7 +278,7 @@ wrap.labels = {
 }';
 wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                [1 1 1]};
-wrap.def     = {@spm_get_defaults, 'normalise.write.wrap'};
+wrap.def     = @(val)spm_get_defaults('normalise.write.wrap', val{:});
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
@@ -288,7 +288,7 @@ prefix.name    = 'Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the filenames of the normalised image file(s). Default prefix is ''w''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.def     = {@spm_get_defaults, 'normalise.write.prefix'};
+prefix.def     = @(val)spm_get_defaults('normalise.write.prefix', val{:});
 % ---------------------------------------------------------------------
 % roptions Writing Options
 % ---------------------------------------------------------------------

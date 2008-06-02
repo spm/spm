@@ -4,7 +4,7 @@ function cfg_print = spm_cfg_print
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_print.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: spm_cfg_print.m 1775 2008-06-02 09:18:18Z volkmar $
  
 % ---------------------------------------------------------------------
 % print Printing
@@ -111,7 +111,7 @@ opts.values{17}.ext = '.tif';
 opts.values{18}.opt = {'-dtiffnocompression'};
 opts.values{18}.append = logical(false);
 opts.values{18}.ext = '.tif';
-opts.def = {@spm_get_defaults, 'ui.print'};
+opts.def = @(val)spm_get_defaults('ui.print', val{:});
 
 fname = cfg_entry;
 fname.tag  = 'fname';

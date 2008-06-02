@@ -4,9 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 1541 2008-05-05 13:36:51Z volkmar $
+% $Id: spm_cfg_coreg.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1541 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -57,7 +57,7 @@ cost_fun.values = {
                    'ecc'
                    'ncc'
 }';
-cost_fun.def    = {@spm_get_defaults, 'coreg.estimate.cost_fun'};
+cost_fun.def    = @(val)spm_get_defaults('coreg.estimate.cost_fun', val{:});
 % ---------------------------------------------------------------------
 % sep Separation
 % ---------------------------------------------------------------------
@@ -67,7 +67,7 @@ sep.name    = 'Separation';
 sep.help    = {'The average distance between sampled points (in mm).  Can be a vector to allow a coarse registration followed by increasingly fine ones.'};
 sep.strtype = 'e';
 sep.num     = [1 Inf];
-sep.def     = {@spm_get_defaults, 'coreg.estimate.sep'};
+sep.def     = @(val)spm_get_defaults('coreg.estimate.sep', val{:});
 % ---------------------------------------------------------------------
 % tol Tolerances
 % ---------------------------------------------------------------------
@@ -77,7 +77,7 @@ tol.name    = 'Tolerances';
 tol.help    = {'The accuracy for each parameter.  Iterations stop when differences between successive estimates are less than the required tolerance.'};
 tol.strtype = 'e';
 tol.num     = [1 12];
-tol.def     = {@spm_get_defaults, 'coreg.estimate.tol'};
+tol.def     = @(val)spm_get_defaults('coreg.estimate.tol', val{:});
 % ---------------------------------------------------------------------
 % fwhm Histogram Smoothing
 % ---------------------------------------------------------------------
@@ -87,7 +87,7 @@ fwhm.name    = 'Histogram Smoothing';
 fwhm.help    = {'Gaussian smoothing to apply to the 256x256 joint histogram. Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'};
 fwhm.strtype = 'e';
 fwhm.num     = [1 2];
-fwhm.def     = {@spm_get_defaults, 'coreg.estimate.fwhm'};
+fwhm.def     = @(val)spm_get_defaults('coreg.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------
 % eoptions Estimation Options
 % ---------------------------------------------------------------------
@@ -150,7 +150,7 @@ interp.labels = {
                  '7th Degree B-Spline'
 }';
 interp.values = {0 1 2 3 4 5 6 7};
-interp.def     = {@spm_get_defaults, 'coreg.write.interp'};
+interp.def     = @(val)spm_get_defaults('coreg.write.interp', val{:});
 % ---------------------------------------------------------------------
 % wrap Wrapping
 % ---------------------------------------------------------------------
@@ -174,7 +174,7 @@ wrap.labels = {
 }';
 wrap.values = {[0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1]...
                [1 1 1]};
-wrap.def     = {@spm_get_defaults, 'coreg.write.wrap'};
+wrap.def     = @(val)spm_get_defaults('coreg.write.wrap', val{:});
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
@@ -187,7 +187,7 @@ mask.labels = {
                'Dont mask images'
 }';
 mask.values = {1 0};
-mask.def     = {@spm_get_defaults, 'coreg.write.mask'};
+mask.def     = @(val)spm_get_defaults('coreg.write.mask', val{:});
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
@@ -197,7 +197,7 @@ prefix.name    = 'Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the filenames of the resliced image file(s). Default prefix is ''r''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.def     = {@spm_get_defaults, 'coreg.write.prefix'};
+prefix.def     = @(val)spm_get_defaults('coreg.write.prefix', val{:});
 % ---------------------------------------------------------------------
 % roptions Reslice Options
 % ---------------------------------------------------------------------

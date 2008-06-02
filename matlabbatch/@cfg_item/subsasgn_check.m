@@ -24,9 +24,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1775 $'; %#ok
 
 sts = true;
 switch class(item)
@@ -63,9 +63,9 @@ switch class(item)
                 end;
             case {'def'},
                 if isempty(val)
-                    val = {};
-                elseif ~(iscell(val) && numel(val) == 2 && subsasgn_check_funhandle(val{1}))
-                    warning('matlabbatch:cfg_item:subsasgn_check:def', '%s: Value must be a 2-element cell and val{1} a function or function handle.', subsasgn_checkstr(item,subs));
+                    val = [];
+                elseif ~subsasgn_check_funhandle(val)
+                    warning('matlabbatch:cfg_item:subsasgn_check:def', '%s: Value must be a function or function handle.', subsasgn_checkstr(item,subs));
                     sts = false;
                 end;
             case {'hidden', 'expanded'},

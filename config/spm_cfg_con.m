@@ -4,9 +4,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_con.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -427,7 +427,7 @@ delete.labels = {
                  'No'
 }';
 delete.values = {1 0};
-delete.def    = {@spm_get_defaults, 'stats.con.delete'};
+delete.def    = @(val)spm_get_defaults('stats.con.delete', val{:});
 % ---------------------------------------------------------------------
 % con Contrast Manager
 % ---------------------------------------------------------------------

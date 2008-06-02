@@ -4,9 +4,9 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_imcalc.m 1775 2008-06-02 09:18:18Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 1775 $';
 % ---------------------------------------------------------------------
 % input Input Images
 % ---------------------------------------------------------------------
@@ -26,7 +26,7 @@ output.name    = 'Output Filename';
 output.help    = {'The output image is written to current working directory unless a valid full pathname is given. If a path name is given here, the output directory setting will be ignored.'};
 output.strtype = 's';
 output.num     = [1 Inf];
-output.def     = {@spm_get_defaults, 'imcalc.output'};
+output.def     = @(val)spm_get_defaults('imcalc.output', val{:});
 % ---------------------------------------------------------------------
 % outdir Output Directory
 % ---------------------------------------------------------------------
@@ -72,7 +72,7 @@ dmtx.labels = {
                'Yes -  read images into data matrix'
 }';
 dmtx.values = {0 1};
-dmtx.def    = {@spm_get_defaults, 'imcalc.dmtx'};
+dmtx.def    = @(val)spm_get_defaults('imcalc.dmtx', val{:});
 % ---------------------------------------------------------------------
 % mask Masking
 % ---------------------------------------------------------------------
@@ -86,7 +86,7 @@ mask.labels = {
                'NaNs should be zeroed'
 }';
 mask.values = {0 1 -1};
-mask.def    = {@spm_get_defaults, 'imcalc.mask'};
+mask.def    = @(val)spm_get_defaults('imcalc.mask', val{:});
 % ---------------------------------------------------------------------
 % interp Interpolation
 % ---------------------------------------------------------------------
@@ -116,7 +116,7 @@ interp.labels = {
                  '7th Degree Sinc'
 }';
 interp.values = {0 1 -2 -3 -4 -5 -6 -7};
-interp.def    = {@spm_get_defaults, 'imcalc.interp'};
+interp.def    = @(val)spm_get_defaults('imcalc.interp', val{:});
 % ---------------------------------------------------------------------
 % dtype Data Type
 % ---------------------------------------------------------------------
@@ -133,7 +133,7 @@ dtype.labels = {
 }';
 dtype.values = {spm_type('uint8') spm_type('int16') spm_type('int32') ...
                 spm_type('float') spm_type('double')};
-dtype.def    = {@spm_get_defaults, 'imcalc.dtype'};
+dtype.def    = @(val)spm_get_defaults('imcalc.dtype', val{:});
 % ---------------------------------------------------------------------
 % options Options
 % ---------------------------------------------------------------------
