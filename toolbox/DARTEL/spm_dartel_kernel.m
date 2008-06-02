@@ -20,7 +20,7 @@ function spm_dartel_kernel(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_kernel.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_kernel.m 1780 2008-06-02 16:58:56Z john $
 
 
 P      = strvcat(job.flowfields);
@@ -33,8 +33,6 @@ prm = [form 1 1 1 param];
 
 N   = nifti(P);
 dm  = size(N(1).dat);
-A   = zeros([dm(1:3),6],'single');
-A(:,:,:,1:3) = 1e-6;
 n   = numel(N);
 Phi = zeros(n,n);
 spm_progress_bar('Init',n*n,'Generating kernel','Elements done');

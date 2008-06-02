@@ -1,13 +1,13 @@
 function spm_dartel_dotprods(job)
 % Generate a kernel from dot-products of images
-% FORMAT spm_resid_kernel(job)
+% FORMAT spm_dartel_dotprods(job)
 % job.images  - Images to use
 % job.dotprod - Part of filename for results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_dotprods.m 1412 2008-04-15 15:15:19Z john $
+% $Id: spm_dartel_dotprods.m 1780 2008-06-02 16:58:56Z john $
 
 P      = strvcat(job.images);
 [pth,nam,ext] = fileparts(job.dotprod);
