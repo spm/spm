@@ -29,9 +29,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: gencode.m 1783 2008-06-03 10:48:24Z volkmar $
 
-rev = '$Rev: 1775 $'; %#ok
+rev = '$Rev: 1783 $'; %#ok
 
 %% Class of item
 % if there are function handles in .check or .def, add their names to
@@ -41,8 +41,8 @@ if ~isempty(item.check) && isa(item.check, 'function_handle')
 else
     functx = {};
 end
-if ~isempty(item.def) && isa(item.def{1}, 'function_handle')
-    functx{end+1} = func2str(item.def{1});
+if ~isempty(item.def) && isa(item.def, 'function_handle')
+    functx{end+1} = func2str(item.def);
 end
 tagctx = {tagctx{:} functx{:}};
 % Check whether to generate code
@@ -147,11 +147,7 @@ end;
 %% Def
 % Generate def field
 if ~isempty(item.def)
-    % work around insufficient gencode implementation for non-char cell arrays
-    % by introducing a temporary variable
-    deftag = genvarname('tmp', {tagctx{:}, tag});
-    str1 = gencode(item.def, deftag, stoptag, tropts);
+    str1 = gencode(item.def, sprintf('%s.def', tag), stoptag, tropts);
     str = {str{:} str1{:}};
-    str{end+1} = sprintf('%s.def = %s;', tag, deftag);
 end;
     
