@@ -5,7 +5,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1438 2008-04-17 12:14:36Z christophe $
+% $Id: spm_mvb_ui.m 1781 2008-06-03 09:06:24Z christophe $
 
 
 %-Get figure handles and set title
@@ -137,6 +137,8 @@ MVB.VOX      = xSPM.M;
 MVB.xyzmm    = xyzmm;
 MVB.Space    = SPACE;
 MVB.Sp_info  = D;
+MVB.Ni       = Ni;
+MVB.sg       = sg;
 
 % display
 %==========================================================================

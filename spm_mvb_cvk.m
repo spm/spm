@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1438 2008-04-17 12:14:36Z christophe $
+% $Id: spm_mvb_cvk.m 1781 2008-06-03 09:06:24Z christophe $
  
  
 %-partition order
@@ -96,7 +96,7 @@ for i = 1:k
  
     % Training
     %======================================================================
-    M        = spm_mvb(X(tran,:),Y(tran,:),[],U,[],16);
+    M        = spm_mvb(X(tran,:),Y(tran,:),[],U,[],MVB.Ni,MVB.sg);
  
     % Test
     %======================================================================
