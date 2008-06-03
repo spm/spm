@@ -45,8 +45,11 @@ function varargout = spm_jobman(varargin)
 %
 % FORMAT job = spm_jobman('spm5tospm8bulk',jobfiles)
 % Takes a cell string with SPM5 job filenames and saves them in SPM8
-% compatible format. The new job files will be MATLAB .m files and have a
-% _spm8 appended to their filename.
+% compatible format. The new job files will be MATLAB .m files. Their
+% filenames will be derived from the input filenames. To make sure they are
+% valid MATLAB script names they will be processed with
+% genvarname(filename) and have a '_spm8' string appended to their
+% filename.
 %
 % FORMAT spm_jobman('help',node)
 %        spm_jobman('help',node,width)
@@ -85,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1636 2008-05-14 14:20:32Z volkmar $
+% $Id: spm_jobman.m 1786 2008-06-03 12:44:46Z volkmar $
 
 
 if nargin==0
@@ -266,8 +269,9 @@ joblist = load_jobs(fname);
 for k = 1:numel(fname)
     if ~isempty(joblist{k})
         [p n e v] = spm_fileparts(fname{k});
-        % Save new job as *_spm8.m
-        newfname = fullfile(p, sprintf('%s_spm8.m', n));
+        % Save new job as genvarname(*_spm8).m
+        newfname = fullfile(p, sprintf('%s.m', ...
+            genvarname(sprintf('%s_spm8', n))));
         fprintf('SPM5 job: %s\nSPM8 job: %s\n', fname{k}, newfname);
         cjob = cfg_util('initjob', canonicalise_job(joblist(k)));
         cfg_util('savejob', cjob, newfname);
