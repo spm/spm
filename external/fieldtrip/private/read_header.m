@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.60  2008/06/03 10:05:16  jansch
+% removed minus-sign in nSamplesPre for 4d-data.
+%
 % Revision 1.59  2008/05/29 13:54:52  roboos
 % also work when no path is specified
 %
@@ -353,7 +356,7 @@ switch headerformat
     hdr.Fs          = orig.header_data.SampleFrequency;
     hdr.nChans      = orig.header_data.TotalChannels;
     hdr.nSamples    = orig.header_data.SlicesPerEpoch;
-    hdr.nSamplesPre = round(-orig.header_data.FirstLatency*orig.header_data.SampleFrequency);
+    hdr.nSamplesPre = round(orig.header_data.FirstLatency*orig.header_data.SampleFrequency);
     hdr.nTrials     = orig.header_data.TotalEpochs;
     hdr.label       = {orig.channel_data(:).chan_label}';
     hdr.grad        = bti2grad(orig);
@@ -365,7 +368,7 @@ switch headerformat
     hdr.Fs          = orig.SampleFrequency;
     hdr.nChans      = orig.TotalChannels;
     hdr.nSamples    = orig.SlicesPerEpoch;
-    hdr.nSamplesPre = round(-orig.FirstLatency*orig.SampleFrequency);
+    hdr.nSamplesPre = round(orig.FirstLatency*orig.SampleFrequency);
     hdr.nTrials     = orig.TotalEpochs;
     hdr.label       = orig.ChannelOrder(:);
     hdr.grad        = bti2grad(orig);
