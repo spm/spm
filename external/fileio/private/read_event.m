@@ -59,6 +59,10 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.64  2008/06/03 15:29:06  jansch
+% changed extracting trigger index from original hdr into extracting it from
+% the labels, for 4D data
+%
 % Revision 1.63  2008/05/14 15:58:33  roboos
 % typecast to uint32 for tsl and tsh obtained from neuralynx_dma file (*.nrd)
 %
@@ -361,7 +365,8 @@ switch eventformat
       event(end  ).duration = hdr.nSamples;
     end
     % read the trigger channel and do flank detection
-    trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', hdr.orig.TriggerIndex, 'detectflank', detectflank, 'trigshift', trigshift);
+    trgindx = match_str(hdr.label, 'TRIGGER');
+    trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift);
     event   = appendevent(event, trigger);
 
   case {'besa_avr', 'besa_swf'}
