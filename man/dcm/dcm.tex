@@ -5,9 +5,10 @@
 Dynamic Causal Modelling (DCM) is a method for making inferences about neural processes that underlie measured time series, e.g. fMRI data.  The general idea is to estimate the parameters of a reasonably realistic neuronal system model such that the predicted blood oxygen level dependent (BOLD) signal, which results from converting the modeled neural dynamics into hemodynamic responses, corresponds as closely as possible to the observed BOLD time series.  This section gives a short introduction to the theoretical background of DCM for fMRI; details can be found in \cite{dcm}.  Note that DCMs can be formulated, in principle, for any measurement technique.  Depending on the spatio-temporal properties of a given measurement technique, one needs to define an adequate state equation and an observation model. See Fig~\ref{fig1} for a summary of the differences between DCM implementations for fMRI and Event-Related Potentials (ERPs).
 
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig1,width=100mm}
-\caption{\em A schematic overview of the differences between between the DCM implementations for fMRI and ERPs (as measured by EEG or MEG).  Whereas the state equation of DCM for fMRI is bilinear and uses only a single state variable per region, that for ERPs is more complex and requires 8 state variables per region.  Moreover, DCM for ERPs models the delays of activity propagation between areas.  At the level of the observation model, DCM for fMRI is more complex than DCM for ERPs.  While the former uses a non-linear model of the hemodynamic response that contains a cascade of differential equations with five state variables per region, the latter uses a simple linear model for predicting observed scalp data.}
-\label{fig1}
+\begin{center}
+\includegraphics[width=100mm]{dcm/Fig1}
+\caption{\em A schematic overview of the differences between between the DCM implementations for fMRI and ERPs (as measured by EEG or MEG).  Whereas the state equation of DCM for fMRI is bilinear and uses only a single state variable per region, that for ERPs is more complex and requires 8 state variables per region.  Moreover, DCM for ERPs models the delays of activity propagation between areas.  At the level of the observation model, DCM for fMRI is more complex than DCM for ERPs.  While the former uses a non-linear model of the hemodynamic response that contains a cascade of differential equations with five state variables per region, the latter uses a simple linear model for predicting observed scalp data.\label{fig1}}
+\end{center}
 \end{figure}
 
 As in state-space models, two distinct levels constitute a DCM (see Figure~\ref{fig2}).  The hidden level, which cannot be directly observed using fMRI, represents a simple model of neural dynamics in a system of $k$ coupled brain regions.  Each system element $i$ is represented by a single state variable $z_i$, and the dynamics of the system is described by the change of the neural state vector  over time.  
@@ -35,9 +36,10 @@ C & = & \frac{\partial F}{\partial u}
 These parameter matrices describe the nature of the three causal components which underlie the modeled neural dynamics:  (i) context-independent effective connectivity among brain regions, mediated by anatomical connections ($k \times k$ matrix $A$), (ii) context-dependent changes in effective connectivity induced by the $j$th input $u_j$ ($k \times k$ matrices $B_1$, ..., $B_m$), and (iii) direct inputs into the system that drive regional activity ($k \times m$ matrix $C$).  As will be demonstrated below, the posterior distributions of these parameters can inform us about the impact that different mechanisms have on determining the dynamics of the model.  Notably, the distinction between “driving” and “modulatory” is neurobiologically relevant: driving inputs exert their effects through direct synaptic responses in the target area, whereas modulatory inputs change synaptic responses in the target area in response to inputs from another area.  This distinction represents an analogy, at the level of large neural populations, to the concept of driving and modulatory afferents in studies of single neurons.
 
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig2,width=100mm}
-\caption{\em Schematic summary of the conceptual basis of DCM.  The dynamics in a system of interacting neuronal populations (orange boxes), which are not directly observable by fMRI, is modeled using a bilinear state equation (grey box).  Integrating the state equation gives predicted neural dynamics ($z$) that enter a model of the hemodynamic response ($\lambda$) to give predicted BOLD responses ($y$) (green boxes).  The parameters at both neural and hemodynamic levels are adjusted such that the differences between predicted and measured BOLD series are minimized.  Critically, the neural dynamics are determined by experimental manipulations.  These enter the model in the form of “external” or “driving” inputs.  Driving inputs ($u_1$; e.g. sensory stimuli) elicit local responses directly that are propagated through the system according to the intrinsic connections.  The strengths of these connections can be changed by modulatory inputs ($u_2$; e.g. changes in cognitive set, attention, or learning). }
-\label{fig2}
+\begin{center}
+\includegraphics[width=130mm]{dcm/Fig2}
+\caption{\em Schematic summary of the conceptual basis of DCM.  The dynamics in a system of interacting neuronal populations (orange boxes), which are not directly observable by fMRI, is modeled using a bilinear state equation (grey box).  Integrating the state equation gives predicted neural dynamics ($z$) that enter a model of the hemodynamic response ($\lambda$) to give predicted BOLD responses ($y$) (green boxes).  The parameters at both neural and hemodynamic levels are adjusted such that the differences between predicted and measured BOLD series are minimized.  Critically, the neural dynamics are determined by experimental manipulations.  These enter the model in the form of “external” or “driving” inputs.  Driving inputs ($u_1$; e.g. sensory stimuli) elicit local responses directly that are propagated through the system according to the intrinsic connections.  The strengths of these connections can be changed by modulatory inputs ($u_2$; e.g. changes in cognitive set, attention, or learning).\label{fig2}}
+\end{center}
 \end{figure}
 
 DCM combines this model of neural dynamics with a biophysically plausible and experimentally validated hemodynamic model that describes the transformation of neuronal activity into a BOLD response.  This so-called “Balloon model” was initially formulated by Buxton and colleagues and later extended by \cite{balloon}.  Briefly summarized, it consists of a set of differential equations that describe the relations between four hemodynamic state variables, using five parameters ($\theta^h$).  More specifically, changes in neural activity elicit a vasodilatory signal that leads to increases in blood flow and subsequently to changes in blood volume $v$ and deoxyhemoglobin content $q$.  The predicted BOLD signal $y$ is a non-linear function of blood volume and deoxyhemoglobine content: .  Details of the hemodynamic model can be found in other publications \cite{balloon}.
@@ -63,9 +65,10 @@ p(c^T \eta_{\theta | y} > \gamma) = \Phi_N \left(\frac{c^T \eta_{\theta | y} - \
 For example, for the special case $c^T \eta_{\theta | y} = \gamma$ the probability is $p(c^T \eta_{\theta | y} > \gamma)=0.5$, i.e. it is equally likely that the parameter is smaller or larger than the chosen threshold $\gamma$.
 We conclude this section on the theoretical foundations of DCM by noting that the parameters can be understood as rate constants (units: $1/s = Hz$) of neural population responses that have an exponential nature.  This is easily understood if one considers that the solution to a linear ordinary differential equation of the form $\dot{z}=Az$ is an exponential function (see Fig. ~\ref{fig3}). 
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig3,width=100mm}
-\caption{\em A short mathematical demonstration, using a simple linear first-order differential equation as an example, explaining why the coupling parameters in a DCM are inversely proportional to the half-life of the modelled neural responses and are therefore in units of 1/s = Hertz.}
-\label{fig3}
+\begin{center}
+\includegraphics[width=120mm]{dcm/Fig3}
+\caption{\em A short mathematical demonstration, using a simple linear first-order differential equation as an example, explaining why the coupling parameters in a DCM are inversely proportional to the half-life of the modelled neural responses and are therefore in units of 1/s = Hertz.\label{fig3}}
+\end{center}
 \end{figure}
 
 \section{Bayesian model selection \label{mc}}
@@ -149,9 +152,10 @@ SPM now computes the first principal component of the time series from all voxel
 
 Now we have defined the inputs (via the design matrix) and the time series, we are ready to build the DCM.  We will look at a simplified version of the model described in \cite{dcm}.  In our example here, we will model a hierarchically connected system comprising V1, V5 and SPC, i.e. reciprocal connections between V1-V5 and V5-SPC, but not between V1-SPC.  We will assume that (i) V1 is driven by any kind of visual stimulation (direct input "photic"), (ii) motion-related responses in V5 can be explained through an increase in the influence of V1 onto V5 whenever the stimuli are moving (i.e. "motion" acts as modulatory input onto the $V1 \rightarrow V5$ connection) and (iii) attention enhances the influence of SPC onto V5 (i.e. "attention" acts as modulatory input onto the $SPC \rightarrow V5$ connection). This DCM is shown schematically in Figure~\ref{bwd}, and can be made 
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/dcm_mod_bwd,width=100mm}
-\caption{\em DCM with attentional modulation of backwards connection. Dotted lines denote modulatory connections.}
-\label{bwd}
+\begin{center}
+\includegraphics[width=100mm]{dcm/dcm_mod_bwd}
+\caption{\em DCM with attentional modulation of backwards connection. Dotted lines denote modulatory connections.\label{bwd}}
+\end{center}
 \end{figure}
 as follows:
 \begin{enumerate}
@@ -172,24 +176,28 @@ as follows:
 A polite "Thank you" completes the model specification process. 
 
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig4,width=100mm}
-\caption{\em Filled circles define the structure of the intrinsic connections $C$ such that eg. there are no connections from V1R to SPCR or from SPCR to V1R. See also Fig~\ref{bwd}}
-\label{fig4}
+\begin{center}
+\includegraphics[width=70mm]{dcm/Fig4}
+\caption{\em Filled circles define the structure of the intrinsic connections $C$ such that eg. there are no connections from V1R to SPCR or from SPCR to V1R. See also Fig~\ref{bwd}.\label{fig4}}
+\end{center}
 \end{figure}
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig5,width=100mm}
-\caption{\em The filled circle specifies that the input `phot' connects to region V1R. See also Fig~\ref{bwd}}
-\label{fig5}
+\begin{center}
+\includegraphics[width=70mm]{dcm/Fig5}
+\caption{\em The filled circle specifies that the input `phot' connects to region V1R. See also Fig~\ref{bwd}.\label{fig5}}
+\end{center}
 \end{figure}
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig6,width=100mm}
-\caption{\em The filled circle indicates that the input variable `mot' can modulate the connection from V1R to V5R. This specifies a `modulatory' connection. See also Fig~\ref{bwd}.}
-\label{fig6}
+\begin{center}
+\includegraphics[width=70mm]{dcm/Fig6}
+\caption{\em The filled circle indicates that the input variable `mot' can modulate the connection from V1R to V5R. This specifies a `modulatory' connection. See also Fig~\ref{bwd}.\label{fig6}}
+\end{center}
 \end{figure}
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig7,width=100mm}
-\caption{\em The filled circle indicates that attention can modulate the connection from SPCR to V5R. See also Fig~\ref{bwd}}
-\label{fig7}
+\begin{center}
+\includegraphics[width=70mm]{dcm/Fig7}
+\caption{\em The filled circle indicates that attention can modulate the connection from SPCR to V5R. See also Fig~\ref{bwd}.\label{fig7}}
+\end{center}
 \end{figure}
 You can now estimate the model parameters, either by pressing the DCM button again and choosing "estimate", or by typing \verb!spm_dcm_estimate('DCM_mod_bwd')! from the MATLAB command line.  Once this is completed, you can review the results as follows:
 \begin{enumerate}
@@ -209,9 +217,10 @@ Of course, you can also explore the model results at the level of the MATLAB com
 Let us now specify an alternative model and compare it against the one that we defined and estimated above.  The change that we are going to make is to assume that attention modulates the $V1 \rightarrow V5$ connection (as opposed to the $SPC \rightarrow V5$ connection in the previous model).  For defining this model, you repeat all the steps from the above example, the only differences being that the model gets a new name (e.g. \verb!mod_fwd!) and that attention now acts on the forward connection.  
 This DCM is shown schematically in Figure~\ref{fwd}.
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/dcm_mod_fwd,width=100mm}
-\caption{\em DCM with attentional modulation of forwards connection. Dotted lines denote modulatory connections.}
-\label{fwd}
+\begin{center}
+\includegraphics[width=100mm]{dcm/dcm_mod_fwd}
+\caption{\em DCM with attentional modulation of forwards connection. Dotted lines denote modulatory connections.\label{fwd}}
+\end{center}
 \end{figure}
 Once you have estimated this new model, you can perform a Bayesian model comparison as follows:
 \begin{enumerate}
@@ -244,10 +253,10 @@ Bayes factor >= 3.2532
 \end{verbatim}
 
 \begin{figure}[ht]
-\centering\epsfig{file=dcm/Fig8,width=100mm}
-\caption{\em Model 2 (shown in Fig~\ref{fwd}) 
-is preferred to model 1 (shown in Fig~\ref{bwd}).}
-\label{fig8}
+\begin{center}
+\includegraphics[width=100mm]{dcm/Fig8}
+\caption{\em Model 2 (shown in Fig~\ref{fwd}) is preferred to model 1 (shown in Fig~\ref{bwd}).\label{fig8}}
+\end{center}
 \end{figure}
 
 
