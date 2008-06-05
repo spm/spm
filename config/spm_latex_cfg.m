@@ -1,18 +1,13 @@
 function spm_latex_cfg(c)
 % Convert a job configuration tree into a series of LaTeX documents
-%
-% Quick and dirty adapted to new batch configuration structure. 
-%
-% Note that this function works rather better in Matlab 7.x, than it
-% does under Matlab 6.x.  This is primarily because of the slightly
-% different usage of the 'regexp' function.
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_latex_cfg.m 1419 2008-04-15 19:49:38Z spm $
+% $Id: spm_latex_cfg.m 1791 2008-06-05 13:50:14Z guillaume $
 
-if nargin==0, c = spm_cfg; end;
+if ~nargin, c = spm_cfg; end
+if nargin && ischar(c), clean_latex_compile; return; end
 
 fp = fopen('spm_manual.tex','w');
 fprintf(fp,'\\documentclass[a4paper,titlepage]{book}\n');
@@ -189,3 +184,19 @@ for k = 1:numel(biblist)
     [p n e v] = fileparts(biblist(k).name);
     bibcstr{k}  = fullfile(bibdir,n);
 end;
+
+function clean_latex_compile
+p = fullfile(spm('Dir'),'man');
+[f, d] = spm_select('FPlist',p,'.*\.aux$');
+f = strvcat(f, spm_select('FPlist',p,'.*\.tex$'));
+f = strvcat(f, spm_select('FPlist',p,'^manual\..*$'));
+f(strcmp(cellstr(f),fullfile(spm('Dir'),'man','manual.tex')),:) = [];
+f(strcmp(cellstr(f),fullfile(spm('Dir'),'man','manual.pdf')),:) = [];
+for i=1:size(d,1)
+    f = strvcat(f, spm_select('FPlist',deblank(d(i,:)),'.*\.aux$'));
+end
+f(strcmp(cellstr(f),filesep),:) = [];
+disp(f); pause
+for i=1:size(f,1)
+    spm_unlink(deblank(f(i,:)));
+end
