@@ -222,22 +222,6 @@ switch lower(mode)
     else
       plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'k.');
     end
-    
-  case 'nodes_blue'
-    % plot the nodes (vertices) only as points
-    if size(pnt, 2)==2
-      plot(pnt(:,1), pnt(:,2), 'b.', 'MarkerSize', 20);
-    else
-      plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'b.', 'MarkerSize', 20);
-    end  
-    
-  case 'nodes_red'
-    % plot the nodes (vertices) only as points
-    if size(pnt, 2)==2
-      plot(pnt(:,1), pnt(:,2), 'r.', 'MarkerSize', 20);
-    else
-      plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'r.', 'MarkerSize', 20);
-    end   
 
   case 'node_index'
     % plot the vertex indices (numbers) at each node
