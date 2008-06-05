@@ -3,7 +3,7 @@ function [] = spm_eeg_review_callbacks(arg1,arg2,arg3)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1792 2008-06-05 15:43:54Z jean $
+% $Id: spm_eeg_review_callbacks.m 1793 2008-06-05 16:02:01Z jean $
 
 D = get(gcf,'userdata');
 handles = D.PSD.handles;
@@ -128,7 +128,7 @@ switch arg1
                     set(D.PSD.handles.infoText,'string',str);
                     set(D.PSD.handles.BMCcurrent,'XData',find(isInv==arg3));
                     D.PSD.invN = arg3;
-                    trN = D.PSD.trials.current;
+                    trN = D.PSD.trials.current(1);
                     model = D.other.inv{D.PSD.invN}.inverse;
                     J = model.J{trN}*model.T';
                     set(D.PSD.handles.axes,'CLim',[min(min(J)) max(max(J))]);
