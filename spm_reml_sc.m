@@ -37,10 +37,10 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 %      spm_sp_reml: for sparse patterns (c.f., ARD)
 %
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 1438 2008-04-17 12:14:36Z christophe $
+% $Id: spm_reml_sc.m 1790 2008-06-05 11:27:02Z spm $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------

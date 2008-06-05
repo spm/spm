@@ -1,5 +1,5 @@
 /*
- * $Id: spm_get_lm.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_get_lm.c 1790 2008-06-05 11:27:02Z spm $
  * Jesper Andersson
  */
 
@@ -76,10 +76,10 @@ unsigned int get_maxima(double        *vol,
       
       if (get_index(ix,iy,iz,vdim) > 0)
       {
-	 if (is_maxima(vol,vdim,ix,iy,iz,cc))
-	 {
-	    if (ldx_n >= ldx_sz)
-	    {
+         if (is_maxima(vol,vdim,ix,iy,iz,cc))
+         {
+            if (ldx_n >= ldx_sz)
+            {
                *ldx = (unsigned int *) mxRealloc(*ldx,(ldx_sz += 1000)*sizeof(unsigned int));
             }
             (*ldx)[ldx_n] = i+1;
@@ -162,8 +162,8 @@ void mexFunction(int            nlhs,      /* No. of output arguments */
 {
    int                 i = 0, j = 0, k = 0;
    int                 tmpint = 0;
+   const int           *pdim = NULL;
    unsigned int        ndim = 0;
-   const unsigned int  *pdim = NULL;
    unsigned int        vdim[3];
    unsigned int        ln = 0, lm = 0;
    unsigned int        n_lindex = 0;
@@ -211,9 +211,9 @@ void mexFunction(int            nlhs,      /* No. of output arguments */
    {
       for (i=0, j=0; i<ln; i++, j+=3)
       {
-	 tmpint = ((int) lp[j+2]+0.1);
+         tmpint = ((int) lp[j+2]+0.1);
          if (tmpint != 1)
-	 {
+         {
             mexErrMsgTxt("spm_get_lm: z-coordinate must be 1 when using 3xn list with 2D map");
          }
       }
@@ -223,7 +223,7 @@ void mexFunction(int            nlhs,      /* No. of output arguments */
    {
       for (i=0, j=0, k=0; i<ln; i++, j+=3, k+=2)
       {
-	 list[j] = lp[k]; list[j+1] = lp[k+1]; list[j+2] = 1.0; 
+         list[j] = lp[k]; list[j+1] = lp[k+1]; list[j+2] = 1.0; 
       }
    }
    else

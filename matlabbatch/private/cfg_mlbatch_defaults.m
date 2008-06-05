@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
+% $Id: cfg_mlbatch_defaults.m 1790 2008-06-05 11:27:02Z spm $
 
-rev = '$Rev: 218 $'; %#ok
+rev = '$Rev: 1790 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.font is a font struct as returned by uisetfont

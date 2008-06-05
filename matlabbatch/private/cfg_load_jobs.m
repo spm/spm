@@ -12,9 +12,9 @@ function newjobs = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
+% $Id: cfg_load_jobs.m 1790 2008-06-05 11:27:02Z spm $
 
-rev = '$Rev: 218 $'; %#ok
+rev = '$Rev: 1790 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);

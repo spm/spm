@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bwlabel.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_bwlabel.c 1790 2008-06-05 11:27:02Z spm $
  * Jesper Andersson
  */
 
@@ -42,7 +42,7 @@
 /* Function prototypes. */
 
 unsigned int do_initial_labelling(double         *bw,   /* Binary map */
-                                  unsigned int   *dim,  /* Dimensions of bw */
+                                  int            *dim,  /* Dimensions of bw */
                                   unsigned int   conn,  /* Connectivity criterion */
                                   unsigned int   *il,   /* Initially labelled map */
                                   unsigned int   **tt); /* Translation table */
@@ -51,7 +51,7 @@ unsigned int check_previous_slice(unsigned int *il,     /* Initial labelling map
                                   unsigned int r,       /* row */
                                   unsigned int c,       /* column */
                                   unsigned int sl,      /* slice */
-                                  unsigned int dim[3],  /* dimensions of il */
+                                  int          dim[3],  /* dimensions of il */
                                   unsigned int conn,    /* Connectivity criterion */
                                   unsigned int *tt,     /* Translation table */
                                   unsigned int ttn);    /* Size of translation table */
@@ -62,7 +62,7 @@ void fill_tratab(unsigned int    *tt,      /* Translation table */
                  unsigned int    nr_set);  /* Number of neighbours in nabo */
 
 double translate_labels(unsigned int    *il,     /* Map of initial labels. */
-                        unsigned int    dim[3],  /* Dimensions of il. */
+                        int             dim[3],  /* Dimensions of il. */
                         unsigned int    *tt,     /* Translation table. */
                         unsigned int    ttn,     /* Size of translation table. */
                         double          *l);     /* Final map of labels. */
@@ -72,7 +72,7 @@ double translate_labels(unsigned int    *il,     /* Map of initial labels. */
 /* Here starts actual code. */
 
 unsigned int do_initial_labelling(double         *bw,   /* Binary map */
-                                  unsigned int   *dim,  /* Dimensions of bw */
+                                  int            *dim,  /* Dimensions of bw */
                                   unsigned int   conn,  /* Connectivity criterion */
                                   unsigned int   *il,   /* Initially labelled map */
                                   unsigned int   **tt)  /* Translation table */
@@ -117,7 +117,7 @@ unsigned int do_initial_labelling(double         *bw,   /* Binary map */
                   N.B. In current slice no difference to 26.
                */
                if (conn >= 18)
-	       {
+               {
                   if (c && r)
                   {
                      if ((l = il[index(r-1,c-1,sl,dim)])) {nabo[nr_set++] = l;}
@@ -139,7 +139,7 @@ unsigned int do_initial_labelling(double         *bw,   /* Binary map */
                   (*tt)[label-1] = label;
                   label++;
                }
-	    }
+            }
          }
       }
    }
@@ -166,7 +166,7 @@ unsigned int check_previous_slice(unsigned int *il,     /* Initial labelling map
                                   unsigned int r,       /* row */
                                   unsigned int c,       /* column */
                                   unsigned int sl,      /* slice */
-                                  unsigned int dim[3],  /* dimensions of il */
+                                  int          dim[3],  /* dimensions of il */
                                   unsigned int conn,    /* Connectivity criterion */
                                   unsigned int *tt,     /* Translation table */
                                   unsigned int ttn)     /* Size of translation table */
@@ -242,7 +242,7 @@ void fill_tratab(unsigned int    *tt,      /* Translation table */
 }
 
 double translate_labels(unsigned int    *il,     /* Map of initial labels. */
-                        unsigned int    dim[3],  /* Dimensions of il. */
+                        int             dim[3],  /* Dimensions of il. */
                         unsigned int    *tt,     /* Translation table. */
                         unsigned int    ttn,     /* Size of translation table. */
                         double          *l)      /* Final map of labels. */
@@ -287,11 +287,11 @@ void mexFunction(int             nlhs,      /* No. of output arguments */
 {
    int            ndim;
    int            n, i;
+   int            dim[3];
    const int      *cdim = NULL;
    unsigned int   conn;
    unsigned int   tmp1;
    unsigned int   tmp2;
-   unsigned int   dim[3];
    unsigned int   ttn = 0;
    unsigned int   *il = NULL;
    unsigned int   *tt = NULL;

@@ -1,5 +1,5 @@
 function X = spm_orth(X,OPT)
-% recursive Gram–Schmidt orthogonalisation of basis functions
+% recursive Gram-Schmidt orthogonalisation of basis functions
 % FORMAT X = spm_orth(X,OPT)
 %
 % X   - matrix
@@ -15,7 +15,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 1436 2008-04-16 15:37:03Z guillaume $
+% $Id: spm_orth.m 1790 2008-06-05 11:27:02Z spm $
  
 % default
 %--------------------------------------------------------------------------

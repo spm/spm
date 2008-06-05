@@ -11,9 +11,9 @@ function disp_error(l)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: copyright_cfg.m 218 2008-04-17 10:34:11Z glauche $
+% $Id: cfg_disp_error.m 1790 2008-06-05 11:27:02Z spm $
 
-rev = '$Rev: 218 $'; %#ok
+rev = '$Rev: 1790 $'; %#ok
 
 disp(l.message);
 if isfield(l,'stack'), % Does not always exist

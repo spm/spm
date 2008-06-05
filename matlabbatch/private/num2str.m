@@ -50,36 +50,36 @@ floatFieldExtra = 7;
 intFieldExtra = 2;
 maxFieldWidth = 12;
 floatWidthOffset = 4;
-	
+    
 % Compose sprintf format string of numeric array.
 if nargin < 2 && ~isempty(x) && isequalwithequalnans(x, fix(x))
-	if isreal(x)
-	    % The precision is unspecified; the numeric array contains whole numbers.
-		s = int2str(x);
-		return;
-	else
-		%Complex case
-		% maximum field width is 12 digits
-		xmax = double(max(abs(x(:))));
-		if xmax == 0
-			d = 1;
-		else
-			d = min(maxFieldWidth, floor(log10(xmax)) + 1);	
-		end
+    if isreal(x)
+        % The precision is unspecified; the numeric array contains whole numbers.
+        s = int2str(x);
+        return;
+    else
+        %Complex case
+        % maximum field width is 12 digits
+        xmax = double(max(abs(x(:))));
+        if xmax == 0
+            d = 1;
+        else
+            d = min(maxFieldWidth, floor(log10(xmax)) + 1); 
+        end
 
-		% Create ANSI C print format string.
-		f = ['%' sprintf('%d',d+intFieldExtra) 'd'];    % real numbers
-		fi = ['%-' sprintf('%d',d+intFieldExtra) 's'];  % imaginary numbers
-	end
+        % Create ANSI C print format string.
+        f = ['%' sprintf('%d',d+intFieldExtra) 'd'];    % real numbers
+        fi = ['%-' sprintf('%d',d+intFieldExtra) 's'];  % imaginary numbers
+    end
 elseif nargin < 2
     % The precision is unspecified; the numeric array contains floating point
     % numbers.
-	xmax = double(max(abs(x(:))));
-	if xmax == 0
-		d = 1;
-	else
-		d = min(maxFieldWidth, max(1, floor(log10(xmax))+1))+floatWidthOffset;	
-	end
+    xmax = double(max(abs(x(:))));
+    if xmax == 0
+        d = 1;
+    else
+        d = min(maxFieldWidth, max(1, floor(log10(xmax))+1))+floatWidthOffset;  
+    end
    
     % Create ANSI C print format string.
     % real numbers

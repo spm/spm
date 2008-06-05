@@ -8,10 +8,10 @@ function C = spm_atranspa(A)
 % This compiled routine was written to save both memory and CPU time but
 % is now deprecated. Use A'*A directly instead.
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_atranspa.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: spm_atranspa.m 1790 2008-06-05 11:27:02Z spm $
 
 persistent runonce
 if isempty(runonce)

@@ -42,10 +42,10 @@
 % size(fa4)
 % size(fa2)
 % length(fa0)
-% _______________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+% _________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: Contents.m 1761 2008-05-29 17:35:21Z guillaume $
+% $Id: Contents.m 1790 2008-06-05 11:27:02Z spm $
 
 

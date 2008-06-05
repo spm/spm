@@ -33,7 +33,7 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 1774 2008-06-01 01:23:44Z Darren $
+% $Id: spm_render.m 1790 2008-06-05 11:27:02Z spm $
 
 global prevrend
 if ~isstruct(prevrend)
@@ -45,7 +45,7 @@ end
 %-Parse arguments, get data if not passed as parameters
 %=======================================================================
 if nargin < 1
-    SPMid = spm('FnBanner',mfilename,'$Rev: 1774 $');
+    SPMid = spm('FnBanner',mfilename,'$Rev: 1790 $');
     [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Results: render',0);
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3]);
@@ -83,7 +83,7 @@ if nargin < 2  || isempty(prevrend.brt),
         col = eye(3);
         % ask for custom colors & get rgb values
         %-----------------------------------------------------------------------
-        if spm_input('Which colors?','!+1','b',{'RGB','Custom'},[0 1])
+        if spm_input('Which colors?','!+1','b',{'RGB','Custom'},[0 1],1)
             for k = 1:num,
                 col(k,:) = uisetcolor(col(k,:),sprintf('Color of blob set %d',k));
             end;

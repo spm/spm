@@ -18,7 +18,7 @@ function [D] = spm_eeg_invert_fuse(D)
 %     inverse.xyz    - (n x 3) locations of spherical VOIs
 %     inverse.rad    - radius (mm) of VOIs
 %     inverse.lpf    - band-pass filter - low -frequency cut-off (Hz)
-%     inverse.hpf    - band-pass filter – high-frequency cut-off (Hz)
+%     inverse.hpf    - band-pass filter - high-frequency cut-off (Hz)
 %     inverse.Lap    - switch for Laplace transform
 %     inverse.sdv    - standard deviations of Gaussian temporal correlation
 %     inverse.Han    - switch for Hanning window
@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 1164 2008-02-22 12:26:36Z karl $
+% $Id: spm_eeg_invert_fuse.m 1790 2008-06-05 11:27:02Z spm $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------

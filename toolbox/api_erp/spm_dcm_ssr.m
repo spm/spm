@@ -5,7 +5,7 @@ function DCM = spm_dcm_ssr(DCM)
 % DCM     
 %    name: name string
 %       M:  Forward model
-%              M.dipfit – lead-field specification
+%              M.dipfit - lead-field specification
 %       xY: data   [1x1 struct]
 %       xU: design [1x1 struct]
 %
@@ -23,7 +23,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr.m 1536 2008-05-01 18:32:41Z vladimir $
+% $Id: spm_dcm_ssr.m 1790 2008-06-05 11:27:02Z spm $
  
  
 % check options 

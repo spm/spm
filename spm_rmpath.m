@@ -17,7 +17,7 @@ function varargout = spm_rmpath(d)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman & Guillaume Flandin
-% $Id$ 
+% $Id: spm_rmpath.m 1790 2008-06-05 11:27:02Z spm $ 
 
 varargout = {};
 if ~nargin
