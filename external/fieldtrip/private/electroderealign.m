@@ -183,7 +183,8 @@ if usetemplate
       template(i) = read_sens(cfg.template{i});
     end
   end
-elseif useheadshape
+end
+if useheadshape
   % get the surface describing the head shape
   if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
     % use the headshape surface specified in the configuration
@@ -480,7 +481,10 @@ if any(strcmp(cfg.method, {'rigidbody', 'globalrescale', 'traditional', 'nonlin1
 else
   norm.pnt   = warp_apply(norm.m, orig.pnt, 'homogenous');
 end
-norm.label = orig.label;
+
+if isfield(orig, 'label')
+    norm.label = orig.label;
+end
 
 % add version information to the configuration
 try
@@ -645,7 +649,7 @@ R = rotate   ([rx ry rz]);
 T = translate([tx ty tz]);
 S = scale    ([sx sy sz]);
 H = S * T * R;
-elec.pnt = warp_apply(H, elec.pnt);
+elec = transform_headshape(H, elec);
 axis vis3d; cla
 xlabel('x')
 ylabel('y')
@@ -660,6 +664,9 @@ end
 triplot(elec.pnt, [], [], 'nodes');
 if isfield(elec, 'line')
   triplot(elec.pnt, elec.line, [], 'edges');
+end
+if isfield(elec, 'fid') && ~isempty(elec.fid.pnt)
+  triplot(elec.fid.pnt, [], [], 'nodes_red');
 end
 if get(findobj(fig, 'tag', 'toggle axes'), 'value')
   axis on
@@ -691,7 +698,7 @@ R = rotate   ([rx ry rz]);
 T = translate([tx ty tz]);
 S = scale    ([sx sy sz]);
 H = S * T * R;
-elec.pnt = warp_apply(H, elec.pnt);
+elec = transform_headshape(H, elec);
 transform = H * transform;
 set(findobj(fig, 'tag', 'rx'), 'string', 0);
 set(findobj(fig, 'tag', 'ry'), 'string', 0);

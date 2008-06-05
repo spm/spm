@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: spm_dcm_ind_data.m 1794 2008-06-05 16:17:39Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -251,7 +251,7 @@ end
 
 % Wavelet amplitudes for each (projected) source
 %==========================================================================
-condlabels = unique(D.conditions);
+condlabels = D.condlist;
 for i = 1:Ne;
     
     % trial indices

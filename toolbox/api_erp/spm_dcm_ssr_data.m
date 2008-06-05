@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 1536 2008-05-01 18:32:41Z vladimir $
+% $Id: spm_dcm_ssr_data.m 1794 2008-06-05 16:17:39Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -163,7 +163,7 @@ end
  
 % Cross spectral density for each trial type
 %==========================================================================
-condlabels = unique(D.conditions);
+condlabels = D.condlist;
 for i = 1:Ne;
    
     % trial indices

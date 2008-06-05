@@ -28,7 +28,7 @@ function D = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 1603 2008-05-12 17:23:01Z stefan $
+% $Id: spm_eeg_convert2images.m 1794 2008-06-05 16:17:39Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -101,7 +101,7 @@ if strcmp(D.transformtype, 'TF');
                 
             end
             
-            cl = unique(D.conditions);
+            cl = D.condlist;
 
             for i = 1 : D.nconditions
                 Itrials = intersect(pickconditions(D, cl{i}), find(~D.reject))';

@@ -15,7 +15,7 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 1598 2008-05-12 12:06:54Z stefan $
+% $Id: spm_eeg_average_TF.m 1794 2008-06-05 16:17:39Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -111,7 +111,7 @@ for i = 1:D.nconditions, sD.trials(i).repl = ni(i); end
 
 Dnew = meeg(sD);
 
-cl = unique(D.conditions);
+cl = D.condlist;
 
 disp(sprintf('%s: Number of replications per contrast:', Dnew.fname))
 s = [];

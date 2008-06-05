@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 1488 2008-04-27 14:11:48Z vladimir $
+% $Id: spm_eeg_invert_ui.m 1794 2008-06-05 16:17:39Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -51,10 +51,10 @@ end
 %==========================================================================
 if D.nconditions > 1
     if spm_input('All conditions or trials','+1','b',{'yes|no'},[1 0],1)
-        trials = unique(D.conditions);
+        trials = D.condlist;
     else
         trials = [];
-        condlabels = unique(D.conditions);
+        condlabels = D.condlist;
         for  i = 1:D.nconditions
             str = sprintf('invert %i', condlabels{i})
             if spm_input(str,'+1','b',{'yes|no'},[1 0],1);
@@ -63,7 +63,7 @@ if D.nconditions > 1
         end
     end
 else
-    trials = unique(D.conditions);
+    trials = D.condlist;
 end
 
 % Inversion parameters

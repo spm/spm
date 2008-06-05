@@ -1,5 +1,6 @@
 function M1 = spm_eeg_inv_datareg(S)
-% Rigid registration of the MEEG data and sMRI spaces
+% Co-registration of two setse of fiducials according to sets of
+% corresponding points and (optionally) headshapes.
 % rigid co-registration
 %           1: fiducials based (3 landmarks: nasion, left ear, right ear)
 %           2: surface matching between sensor mesh and headshape
@@ -12,10 +13,8 @@ function M1 = spm_eeg_inv_datareg(S)
 % S  - input struct
 % fields of S:
 %
-% S.sens - EEG sensors (struct)
-% S.meegfid  - EEG fiducials (struct)
-% S.vol - volume model
-% S.mrifid = MRI fiducials
+% S.sourcefid  - EEG fiducials (struct)
+% S.targetfid = MRI fiducials
 % S.template  - 1 - input is a template (for EEG)
 %               0 - input is an individual head model
 %               2 - input is a template (for MEG) - enforce uniform scaling
@@ -34,37 +33,26 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 1794 2008-06-05 16:17:39Z vladimir $
 
 
 if nargin == 0 || ~isstruct(S)
     error('Input struct is required');
 end
 
-if ~isfield(S, 'sens')
-    error('MEEG sensors are missing');
+if ~isfield(S, 'targetfid')
+    error('Target fiducials are missing');
 else
-    sens = forwinv_convert_units(S.sens, 'mm');
+    targetfid = forwinv_convert_units(S.targetfid, 'mm');
+    nfid = size(targetfid.fid.pnt, 1);
 end
 
-if ~isfield(S, 'mrifid')
-    error('MRI fiducials are missing');
+if ~isfield(S, 'sourcefid')
+    error('Source are missing');
 else
-    mrifid = forwinv_convert_units(S.mrifid, 'mm');
-    nfid = size(mrifid.fid.pnt, 1);
-end
-
-if ~isfield(S, 'meegfid')
-    error('MEEG fiducials are missing');
-else
-    meegfid = forwinv_convert_units(S.meegfid, 'mm');
-    meegfid.fid.pnt = meegfid.fid.pnt(1:nfid, :);
-    meegfid.fid.label = meegfid.fid.label(1:nfid);
-end
-
-if isfield(S, 'vol');
-    ishead = 1;
-    vol = forwinv_convert_units(S.vol, 'mm');
+    sourcefid = forwinv_convert_units(S.sourcefid, 'mm');
+    sourcefid.fid.pnt = sourcefid.fid.pnt(1:nfid, :);
+    sourcefid.fid.label = sourcefid.fid.label(1:nfid);
 end
 
 if ~isfield(S, 'template')
@@ -74,34 +62,37 @@ end
 
 % Estimate-apply rigid body transform to sensor space
 %--------------------------------------------------------------------------
-M1 = spm_eeg_inv_rigidreg(mrifid.fid.pnt', meegfid.fid.pnt');
+M1 = spm_eeg_inv_rigidreg(targetfid.fid.pnt', sourcefid.fid.pnt');
 
-meegfid = forwinv_transform_headshape(M1, meegfid);
+sourcefid = forwinv_transform_headshape(M1, sourcefid);
 
 if S.template
 
     % constatined affine transform
     %--------------------------------------------------------------------------
     aff   = S.template;
-    for i = 1:16
+    for i = 1:64
 
         % scale
         %----------------------------------------------------------------------
-        M       = pinv(meegfid.fid.pnt(:))*mrifid.fid.pnt(:);
+        M       = pinv(sourcefid.fid.pnt(:))*targetfid.fid.pnt(:);
         M       = sparse(1:4,1:4,[M M M 1]);
 
-        meegfid = forwinv_transform_headshape(M, meegfid);
+        sourcefid = forwinv_transform_headshape(M, sourcefid);
 
         M1      = M*M1;
 
         % and move
         %----------------------------------------------------------------------
-        M       = spm_eeg_inv_rigidreg(mrifid.fid.pnt', meegfid.fid.pnt');
+        M       = spm_eeg_inv_rigidreg(targetfid.fid.pnt', sourcefid.fid.pnt');
 
-        meegfid = forwinv_transform_headshape(M, meegfid);
+        sourcefid = forwinv_transform_headshape(M, sourcefid);
 
         M1      = M*M1;
-
+  
+        if (norm(M)-1)< eps
+            break;
+        end
     end
 else
     aff = 0;
@@ -111,10 +102,10 @@ end
 % Surface matching between the scalp vertices in MRI space and
 % the headshape positions in data space
 %--------------------------------------------------------------------------
-if ishead && ~isempty(meegfid.pnt) && S.useheadshape
+if  ~isempty(sourcefid.pnt) && S.useheadshape
 
-    headshape = meegfid.pnt;
-    scalpvert = mrifid.pnt;
+    headshape = sourcefid.pnt;
+    scalpvert = targetfid.pnt;
 
     % load surface locations from sMRI
     %----------------------------------------------------------------------
@@ -138,10 +129,10 @@ if ishead && ~isempty(meegfid.pnt) && S.useheadshape
 
     % nearest point registration
     %----------------------------------------------------------------------
-    M    = spm_eeg_inv_icp(scalpvert',headshape',mrifid.fid.pnt',meegfid.fid.pnt',Fmri,Fhsp,aff);
+    M    = spm_eeg_inv_icp(scalpvert',headshape',targetfid.fid.pnt',sourcefid.fid.pnt',Fmri,Fhsp,aff);
 
     % transform headshape and eeg fiducials
     %----------------------------------------------------------------------
-    meegfid = forwinv_transform_headshape(M, meegfid);
+    sourcefid = forwinv_transform_headshape(M, sourcefid);
     M1        = M*M1;
 end

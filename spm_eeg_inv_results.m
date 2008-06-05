@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 1490 2008-04-28 11:16:29Z vladimir $
+% $Id: spm_eeg_inv_results.m 1794 2008-06-05 16:17:39Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -103,7 +103,7 @@ MAP   = M*U'*R;
 try
     trial = model.inverse.trials;
 catch
-    trial = unique(D.conditions);
+    trial = D.condlist;
 end
 for i = 1:length(J)
  

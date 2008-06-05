@@ -1,11 +1,11 @@
-function spm_eeg_ft2spm(ftdata, filename)
+function D = spm_eeg_ft2spm(ftdata, filename)
 % Converter from Fieldtrip (http://www.ru.nl/fcdonders/fieldtrip/)
 % data structures to SPM8 file format
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 1742 2008-05-28 11:58:04Z vladimir $
+% $Id: spm_eeg_ft2spm.m 1794 2008-06-05 16:17:39Z vladimir $
 
 % If raw format
 if iscell(ftdata.time)
