@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.61  2008/06/06 12:45:50  jansch
+% changed filename-construction for 4d-datafiles to accommodate for filtered
+% data
+%
 % Revision 1.60  2008/06/03 10:05:16  jansch
 % removed minus-sign in nSamplesPre for 4d-data.
 %
@@ -285,8 +289,8 @@ switch headerformat
     sensorfile = [datafile '.xyz'];
   case '4d'
     [path, file, ext] = fileparts(filename);
-    datafile   = fullfile(path, file);
-    headerfile = fullfile(path, file);
+    datafile   = fullfile(path, [file,ext]);
+    headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
   case 'ctf_ds'
     % convert CTF filename into filenames
