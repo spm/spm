@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: spm_preproc8.m 1798 2008-06-06 16:25:56Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -83,7 +83,7 @@ vx        = sqrt(sum(V(1).mat(1:3,1:3).^2));
 sk        = max([1 1 1],round(obj.samp*[1 1 1]./vx));
 [x0,y0,o] = ndgrid(1:sk(1):d0(1),1:sk(2):d0(2),1);
 z0        = 1:sk(3):d0(3);
-tiny      = eps;
+tiny      = eps*eps;
 MT        = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 1];
 
 lkp       = obj.lkp;
@@ -98,6 +98,7 @@ ff     = obj.fudge;
 ff     = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
 
 % Initialise Deformation
+%-----------------------------------------------------------------------
 param  = [2 sk.*vx ff*obj.reg*[1 1e-4 0]];
 lam    = [0 0 0 0 0 0.01 1e-4];
 scal   = sk;
@@ -111,10 +112,11 @@ else
 end
 
 
-% GAUSSIAN REGULARISATION for bias correction
+% Initialise bias correction
 %-----------------------------------------------------------------------
 N      = numel(V);
 for n=1:N,
+    % GAUSSIAN REGULARISATION for bias correction
     fwhm    = obj.biasfwhm(n);
     biasreg = obj.biasreg(n);
     vx      = sqrt(sum(V(n).mat(1:3,1:3).^2));
@@ -124,9 +126,13 @@ for n=1:N,
     sd      = vx(3)*d0(3)/fwhm; d3(3) = ceil(sd*2); krn_z   = exp(-(0:(d3(3)-1)).^2/sd.^2)/sqrt(vx(3));
     Cbias   = kron(krn_z,kron(krn_y,krn_x)).^(-2)*biasreg*ff;
     bias(n).C   = sparse(1:length(Cbias),1:length(Cbias),Cbias,length(Cbias),length(Cbias));
+
+    % Basis functions for bias correction
     bias(n).B3  = spm_dctmtx(d0(3),d3(3),z0);
     bias(n).B2  = spm_dctmtx(d0(2),d3(2),y0(1,:)');
     bias(n).B1  = spm_dctmtx(d0(1),d3(1),x0(:,1));
+
+    % Initial parameterisation of bias field
     if isfield(obj,'Tbias') && ~isempty(obj.Tbias{n}),
         bias(n).T = obj.Tbias{n};
     else
@@ -139,41 +145,6 @@ ll     = -Inf;
 tol1   = 1e-4; % Stopping criterion.  For more accuracy, use a smaller value
 
 
-% Initial parameterisation of Gaussians
-rand('state',0); % give same results each time
-if isfield(obj,'mg'), mg = obj.mg; else mg = ones(K,1)/K;  end
-if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
-if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
-vr0 = zeros(N,N);
-for n=1:N,
-   %mnv =  Inf; % Note dodgy variable name
-    mxv = -Inf;
-    for z=1:length(z0),
-        tmp = spm_sample_vol(V(n),x0,y0,o*z0(z),0);
-        tmp = tmp(isfinite(tmp) & tmp~=0);
-       %mnv = min(min(tmp),mnv);
-        mxv = max(max(tmp),mxv);
-    end;
-    for k1=1:Kb,
-        kk = sum(lkp==k1);
-        if ~isfield(obj,'mn'), mn(n,lkp==k1) = rand(1,kk)*mxv; end
-        if ~isfield(obj,'mg'), mg(lkp==k1)   = 1/kk;          end
-    end;
-    if ~isfield(obj,'vr'),
-        for k=1:K,
-            vr(n,n,k) = (mxv/2)^2;
-        end
-    end
-
-    % Add a little something to the covariance estimates
-    % in order to assure stability
-    if spm_type(V(n).dt(1),'intt'),
-        vr0(n,n) = 0.083*V(n).pinfo(1,1);
-    else
-        vr0(n,n) = mxv^2*eps*10000;
-    end
-end
-
 if isfield(obj,'msk') && ~isempty(obj.msk),
     VM = spm_vol(obj.msk);
     if sum(sum((VM.mat-V(1).mat).^2)) > 1e-6 || any(VM.dim(1:3) ~= V(1).dim(1:3)),
@@ -182,8 +153,13 @@ if isfield(obj,'msk') && ~isempty(obj.msk),
 end;
 
 % Load the data
-nm      = 0;
+%-----------------------------------------------------------------------
+nm      = 0; % Number of voxels
 for z=1:length(z0),
+   % Load only those voxels that are more than 5mm up
+   % from the bottom of the tissue probability map.  This
+   % assumes that the affine transformation is pretty close.
+
    %x1  = M(1,1)*x0 + M(1,2)*y0 + (M(1,3)*z0(z) + M(1,4));
    %y1  = M(2,1)*x0 + M(2,2)*y0 + (M(2,3)*z0(z) + M(2,4));
     z1  = M(3,1)*x0 + M(3,2)*y0 + (M(3,3)*z0(z) + M(3,4));
@@ -191,6 +167,10 @@ for z=1:length(z0),
     e   = 5./e; % mm from edge of TPM
     buf(z).msk = z1>e(3);
 
+    % Initially load all the data, but prepare to exclude
+    % locations where any of the images is not finite, or
+    % is zero.  We want this to work for skull-stripped
+    % images too.
     fz = cell(1,N);
     for n=1:N,
         fz{n}      = spm_sample_vol(V(n),x0,y0,o*z0(z),0);
@@ -198,19 +178,25 @@ for z=1:length(z0),
     end
 
     if isfield(obj,'msk') && ~isempty(obj.msk),
+        % Exclude any voxels to be masked out
         msk        = spm_sample_vol(VM,x0,y0,o*z0(z),0);
         buf(z).msk = buf(z).msk & msk;
     end;
+
+    % Eliminate unwanted voxels
     buf(z).nm  = sum(buf(z).msk(:));
     nm         = nm + buf(z).nm;
     for n=1:N,
         buf(z).f{n}  = single(fz{n}(buf(z).msk));
     end
+
+    % Create a buffer for tissue probability info
     buf(z).dat = zeros([buf(z).nm,Kb],'single');
 end;
 
 
-% Initial Bias Field
+% Create initial bias field
+%-----------------------------------------------------------------------
 llrb = 0;
 for n=1:N,
     B1 = bias(n).B1;
@@ -218,13 +204,14 @@ for n=1:N,
     B3 = bias(n).B3;
     C  = bias(n).C;
     T  = bias(n).T;
+    bias(n).ll = double(-0.5*T(:)'*C*T(:));
     for z=1:numel(z0),
         bf           = transf(B1,B2,B3(z,:),T);
         tmp          = bf(buf(z).msk);
-        llrb         = llrb + sum(tmp);
+        bias(n).ll   = bias(n).ll + double(sum(tmp));
         buf(z).bf{n} = single(exp(tmp));
     end
-    llrb      = llrb - 0.5*T(:)'*C*T(:);
+    llrb = llrb + bias(n).ll;
     clear B1 B2 B3 T C
 end
 
@@ -243,12 +230,74 @@ for iter=1:20,
         end;
     end;
 
+    % Starting estimates for Gaussian parameters
+    %-----------------------------------------------------------------------
+    if iter==1,
+        % Begin with moments:
+        mm0 = zeros(Kb,1);
+        mm1 = zeros(N,Kb);
+        mm2 = zeros(N,N,Kb);
+        for z=1:length(z0),
+            cr = zeros(size(buf(z).f{1},1),N);
+            for n=1:N,
+                cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
+            end
+            for k1=1:Kb, % Moments
+                b           = double(buf(z).dat(:,k1));
+                mm0(k1)     = mm0(k1)     + sum(b);
+                mm1(:,k1)   = mm1(:,k1)   + (b'*cr)';
+                mm2(:,:,k1) = mm2(:,:,k1) + (repmat(b,1,N).*cr)'*cr;
+            end
+            clear cr
+        end
+
+        % Initial parameterisation of Gaussians
+        rand('state',0); % give same results each time
+        if isfield(obj,'mg'), mg = obj.mg; else mg = ones(K,1)/K;  end
+        if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
+        if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
+
+        % Use moments to compute means and variances, and then use these
+        % to initialise the Gaussians
+        for k1=1:Kb,
+            mn1 = mm1(:,k1)/(mm0(k1)+tiny);
+            vr1 = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
+
+            % A crude heuristic to replace a single Gaussian by a bunch of Gaussians
+            % If there is only one Gaussian, then it should be the same as the
+            % original distribution.
+            kk  = sum(lkp==k1);
+            w   = 1./(1+exp(-(kk-1)*0.25))-0.5;
+            if ~isfield(obj,'mn'),
+                mn(:,lkp==k1)   = sqrtm(vr1)*randn(N,kk)*w + repmat(mn1,[1,kk]);
+            end
+            if ~isfield(obj,'vr'),
+                vr(:,:,lkp==k1) = repmat(vr1*(1-w),[1,1,kk]);
+            end
+            if ~isfield(obj,'mg'),
+                mg(lkp==k1)     = 1/kk;
+            end
+        end
+
+        % Add a little something to the covariance estimates
+        % in order to assure stability
+        vr0 = zeros(N,N);
+        for n=1:N,
+            if spm_type(V(n).dt(1),'intt'),
+                vr0(n,n) = 0.083*V(n).pinfo(1,1);
+            else
+                vr0(n,n) = (max(mn(n,:))-min(mn(n,:)))^2*1e-8;
+            end
+        end
+    end
+
+
     for iter1=1:10,
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Estimate cluster parameters
         %------------------------------------------------------------
-        for subit=1:10,
+        for subit=1:20,
             oll  = ll;
             mom0 = zeros(K,1)+tiny;
             mom1 = zeros(N,K);
@@ -258,14 +307,14 @@ for iter=1:20,
                 if ~buf(z).nm, continue; end;
                 q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
                 for k1=1:Kb,
-                    b = buf(z).dat(:,k1);
+                    b = double(buf(z).dat(:,k1));
                     for k=find(lkp==k1),
                         q(:,k) = q(:,k).*b;
                     end
                     clear b
                 end
                 sq = sum(q,2)+tiny;
-                ll = ll + sum(log(sq));
+                ll = ll + sum(log(sq + tiny));
                 cr = zeros(size(q,1),N);
                 for n=1:N,
                     cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
@@ -279,11 +328,14 @@ for iter=1:20,
                 clear cr
             end;
 
+fprintf('*\t%g\t%g\t%g\n', ll,llr,llrb);
+
             % Mixing proportions, Means and Variances
             for k=1:K,
-                mg(k)     = (mom0(k)+eps)/(sum(mom0(lkp==lkp(k)))+eps);
-                mn(:,k)   = mom1(:,k)/(mom0(k)+eps);
-                vr(:,:,k) = (mom2(:,:,k) - mom0(k)*mn(:,k)*mn(:,k)')/(mom0(k)+eps) + vr0;
+                tmp       = mom0(lkp==lkp(k));
+                mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);
+                mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);
+                vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
             end;
 
             if subit>1 || iter>1,
@@ -304,33 +356,30 @@ for iter=1:20,
         % The aim is to save memory, and maybe make the computations
         % faster.
         %------------------------------------------------------------
-        for subit=1:10,
-            % Compute objective function and its 1st and second derivatives
+        for subit=1:5,
+            oll   = ll;
+
             for n=1:N,
                 d3 = numel(bias(n).T);
                 if d3>0,
-                    bias(n).Alpha = zeros(d3,d3); % Second derivatives
-                    bias(n).Beta  = zeros(d3,1);  % First derivatives
-                end
-            end
-            oll   = ll;
-            ll    = llr+llrb;
-            for z=1:length(z0),
-                if ~buf(z).nm, continue; end;
-                q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
-                for k1=1:Kb,
-                    b = buf(z).dat(:,k1);
-                    for k=find(lkp==k1),
-                        q(:,k) = q(:,k).*b;
-                    end
-                    clear b
-                end
-                sq = sum(q,2)+tiny;
-                ll = ll + sum(log(sq));
+                    % Compute objective function and its 1st and second derivatives
+                    Alpha = zeros(d3,d3); % Second derivatives
+                    Beta  = zeros(d3,1);  % First derivatives
+                    ll    = llr+llrb;
+                    for z=1:length(z0),
+                        if ~buf(z).nm, continue; end;
+                        q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
+                        for k1=1:Kb,
+                            b = double(buf(z).dat(:,k1));
+                            for k=find(lkp==k1),
+                                q(:,k) = q(:,k).*b;
+                            end
+                            clear b
+                        end
+                        sq = sum(q,2)+tiny;
+                        ll = ll + sum(log(sq + tiny));
 
-                for n=1:N,
-                    if ~isempty(bias(n).T),
-                        cr = double(buf(z).f{n}.*buf(z).bf{n});
+                        cr = double(buf(z).f{n}).*double(buf(z).bf{n});
                         w1 = zeros(buf(z).nm,1);
                         w2 = zeros(buf(z).nm,1);
                         for k=1:K,
@@ -341,35 +390,36 @@ for iter=1:20,
                         wt1   = zeros(d(1:2));
                         wt1(buf(z).msk) = 1 + cr.*w1;
                         wt2   = zeros(d(1:2));
-                       %wt2(buf(z).msk) = cr.*cr.*w2 - cr.*w1;
+                       %wt2(buf(z).msk) = cr.*(cr.*w2 - w1);
                         wt2(buf(z).msk) = cr.*cr.*w2 + 1;
                         b3    = bias(n).B3(z,:)';
-                        bias(n).Beta  = bias(n).Beta  + kron(b3,spm_krutil(wt1,bias(n).B1,bias(n).B2,0));
-                        bias(n).Alpha = bias(n).Alpha + kron(b3*b3',spm_krutil(wt2,bias(n).B1,bias(n).B2,1));
+                        Beta  = Beta  - kron(b3,spm_krutil(wt1,bias(n).B1,bias(n).B2,0));
+                        Alpha = Alpha + kron(b3*b3',spm_krutil(wt2,bias(n).B1,bias(n).B2,1));
                         clear w1 w2 wt1 wt2 b3
                     end
-                end
-            end
-            % Accept new solutions
-            spm_chi2_plot('Set',ll);
-            llrb = 0;
-            for n=1:N,
-                if ~isempty(bias(n).T),
-                    d3        = size(bias(n).T);
-                    Alpha     = bias(n).Alpha; bias(n).Alpha = [];
-                    Beta      = bias(n).Beta;  bias(n).Beta  = [];
-                    C         = bias(n).C;
-                    T         = bias(n).T;
-                    R         = eye(size(Alpha))*0.01;
-                    bias(n).T = T - reshape((Alpha + C + R)\(C*T(:)-Beta),d3);
-                    llrb      = llrb - 0.5*bias(n).T(:)'*C*bias(n).T(:);
+
+                    % Accept new solutions
+                    spm_chi2_plot('Set',ll);
+fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
+
+                    % Gauss-Newton iteration
+                    C          = bias(n).C; % Inverse covariance of priors
+                    T          = bias(n).T; % Current estimate
+                    R          = 0; %diag(sqrt(Beta.^2*0.01+1)); % L-M regularisation
+                    bias(n).T  = T - reshape((Alpha + C + R)\(C*T(:)+Beta),size(T));
+
+                    % Re-generate bias field, and compute terms of the objective function
+                    bias(n).ll = double(-0.5*bias(n).T(:)'*C*bias(n).T(:));
                     for z=1:length(z0),
                         if ~buf(z).nm, continue; end;
                         bf           = transf(bias(n).B1,bias(n).B2,bias(n).B3(z,:),bias(n).T);
                         tmp          = bf(buf(z).msk);
-                        llrb         = llrb + sum(tmp);
+                        bias(n).ll   = bias(n).ll + double(sum(tmp));
                         buf(z).bf{n} = single(exp(tmp));
                     end
+                    llrb = 0;
+                    for n1=1:N, llrb = llrb + bias(n1).ll; end
+                    clear Alpha Beta R T C
                 end
             end
             if subit > 1 && ~((ll-oll)>tol1*nm),
@@ -393,6 +443,8 @@ for iter=1:20,
     % Estimate deformations
     %------------------------------------------------------------
     ll  = llr+llrb;
+
+    % Compute likelihoods, and save them in buf.dat
     for z=1:length(z0),
         if ~buf(z).nm, continue; end;
         cr = cell(1,N);
@@ -409,7 +461,7 @@ for iter=1:20,
             buf(z).dat(:,k1) = single(q(:,k1));
             q(:,k1)          = q(:,k1).*b;
         end
-        ll = ll + sum(log(sum(q,2)));
+        ll = ll + sum(log(sum(q,2) + tiny));
     end;
     oll = ll;
 
@@ -418,11 +470,18 @@ for iter=1:20,
         Beta   = zeros([size(x0),numel(z0),3],'single');
         for z=1:length(z0),
             if ~buf(z).nm, continue; end;
+
+            % Deformations from parameters
             [x1,y1,z1]      = defs(Twarp,z,x0,y0,z0,M,buf(z).msk);
+
+            % Tissue probability map and spatial derivatives
             [b,db1,db2,db3] = spm_sample_priors8(tpm,x1,y1,z1);
             clear x1 y1 z1
 
-            p   = zeros(buf(z).nm,1)+tiny;
+            % Rotate gradients (according to initial affine registration) and
+            % compute the sums of the tpm and its gradients, times the likelihoods
+            % (from buf.dat).
+            p   = zeros(buf(z).nm,1)+eps;
             dp1 = zeros(buf(z).nm,1);
             dp2 = zeros(buf(z).nm,1);
             dp3 = zeros(buf(z).nm,1);
@@ -435,16 +494,18 @@ for iter=1:20,
             end;
             clear b db1 db2 db3
 
+            % Compute first and second derivatives of the matching term.  Note that
+            % these can be represented by a vector and tensor field respectively.
             tmp             = zeros(d(1:2));
             tmp(buf(z).msk) = dp1./p; dp1 = tmp;
             tmp(buf(z).msk) = dp2./p; dp2 = tmp;
             tmp(buf(z).msk) = dp3./p; dp3 = tmp;
 
-            Beta(:,:,z,1)   = -dp1;
+            Beta(:,:,z,1)   = -dp1; % First derivatives
             Beta(:,:,z,2)   = -dp2;
             Beta(:,:,z,3)   = -dp3;
 
-            Alpha(:,:,z,1)  = dp1.*dp1;
+            Alpha(:,:,z,1)  = dp1.*dp1; % Second derivatives
             Alpha(:,:,z,2)  = dp2.*dp2;
             Alpha(:,:,z,3)  = dp3.*dp3;
             Alpha(:,:,z,4)  = dp1.*dp2;
@@ -453,6 +514,7 @@ for iter=1:20,
             clear tmp p dp1 dp2 dp3
         end;
 
+        % Heavy-to-light regularisation
         if ~isfield(obj,'Twarp')
             switch iter
             case 1,
@@ -468,12 +530,16 @@ for iter=1:20,
             prm = [param(1:4)   param(5:6) param(7:end)];
         end
 
+        % Add in the first derivatives of the prior term
         Beta   = Beta  + optimNn('vel2mom',Twarp,prm,scal);
 
         for lmreg=1:6,
+            % L-M update
             Twarp1 = Twarp - optimNn('fmg',Alpha,Beta,[prm+lam 1 1],scal);
+
             llr1   = -0.5*sum(sum(sum(sum(Twarp1.*optimNn('vel2mom',Twarp1,prm,scal)))));
             ll1    = llr1+llrb;
+
             for z=1:length(z0),
                 if ~buf(z).nm, continue; end;
                 [x1,y1,z1] = defs(Twarp1,z,x0,y0,z0,M,buf(z).msk);
@@ -482,12 +548,13 @@ for iter=1:20,
 
                 sq = zeros(buf(z).nm,1) + tiny;
                 for k1=1:Kb,
-                    sq = sq + double(buf(z).dat(:,k1)).*b{k1};
+                    sq = sq + double(buf(z).dat(:,k1)).*double(b{k1});
                 end;
                 clear b
-                ll1 = ll1 + sum(log(sq));
+                ll1 = ll1 + sum(log(sq + tiny));
                 clear sq
             end;
+fprintf('#\t%g\t%g\t%g\n', ll1, llr1,llrb);
             if ll1<ll,
                 lam   = lam*8;
             else
@@ -562,15 +629,14 @@ N  = numel(f);
 M  = numel(f{1});
 cr = zeros(M,N);
 for n=1:N,
-    cr(:,n) = double(f{n}(:).*bf{n}(:));
+    cr(:,n) = double(f{n}(:)).*double(bf{n}(:));
 end
-p  = ones(numel(f{1}),K);
+p  = zeros(numel(f{1}),K);
 for k=1:K,
     amp    = mg(k)/sqrt((2*pi)^N * det(vr(:,:,k)));
     d      = cr - repmat(mn(:,k)',M,1);
     p(:,k) = amp * exp(-0.5* sum(d.*(d/vr(:,:,k)),2));
 end
-p = p + 1024*eps;
 %=======================================================================
 
 %=======================================================================

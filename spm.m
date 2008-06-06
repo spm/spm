@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1766 2008-05-30 17:37:31Z guillaume $
+% $Id: spm.m 1798 2008-06-06 16:25:56Z john $
 
 
 %=======================================================================
@@ -1125,6 +1125,7 @@ if spm_matlab_version_chk('7.1') < 0
         'SPM8 requires MATLAB 7.1 onwards in order to run.\n'...
         'This MATLAB version is %s\n'], version);
 end
+if isdeployed, return; end
 
 %-Disable Java if necessary
 %-----------------------------------------------------------------------

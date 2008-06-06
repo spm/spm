@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: spm_preproc_write8.m 1798 2008-06-06 16:25:56Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -165,7 +165,7 @@ for z=1:length(x3),
                 q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*b{k1};
             end
 
-            sq = sum(q,3);
+            sq = sum(q,3) + eps^2;
             for k1=1:Kb,
                 tmp            = q(:,:,k1);
                 tmp(msk)       = 0;
@@ -310,6 +310,5 @@ for k=1:K,
     d      = cr - repmat(mn(:,k)',M,1);
     p(:,k) = amp * exp(-0.5* sum(d.*(d/vr(:,:,k)),2));
 end
-p = p + 1024*eps;
 %=======================================================================
 
