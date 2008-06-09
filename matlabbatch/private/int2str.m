@@ -10,7 +10,7 @@ function s = int2str(x)
 %   See also NUM2STR, SPRINTF, FPRINTF, MAT2STR.
 
 %   Copyright 1984-2006 The MathWorks, Inc.
-%   $Revision: 5.20.4.8 $  $Date: 2006/11/11 22:45:05 $
+%   $Revision: 284 $  $Date: 2006/11/11 22:45:05 $
 
 if ~islogical(x)
     x = round(real(x));

@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_ui.m 1799 2008-06-09 14:02:09Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1799 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1180,12 +1180,30 @@ function MenuFileAddApp_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
-if sts
-    [p fun e v] = fileparts(file);
-    addpath(p);
-    cfg_util('addapp', fun);
-    local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
+udmodlist = get(handles.modlist, 'userdata');
+if udmodlist.modified
+        cmd = questdlg(['The current batch contains unsaved changes. '...
+            'Adding a new application will discard this batch.'], ...
+            'Unsaved Changes', 'Continue','Cancel', 'Continue');
+else
+    cmd = 'Continue';
+end;
+if strcmpi(cmd,'continue')
+    [file sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
+    if sts
+        [p fun e v] = fileparts(file);
+        addpath(p);
+        cfg_util('addapp', fun);
+        local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
+    end;
+    udmodlist = get(handles.modlist, 'userdata');
+    if ~isempty(udmodlist.cmod)
+        cfg_util('deljob',udmodlist(1).cjob);
+    end;
+    udmodlist = local_init_udmodlist;
+    udmodlist.cjob = cfg_util('initjob');
+    set(handles.modlist, 'userdata', udmodlist);
+    local_showjob(hObject);
 end;
 
 % --------------------------------------------------------------------

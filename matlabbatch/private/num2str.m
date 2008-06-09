@@ -25,7 +25,7 @@ function s = num2str(x, f)
 %   See also INT2STR, SPRINTF, FPRINTF, MAT2STR.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 5.32.4.14 $  $Date: 2006/11/11 22:45:08 $
+%   $Revision: 284 $  $Date: 2006/11/11 22:45:08 $
 %------------------------------------------------------------------------------
 % if input does not exist or is empty, throw an exception
 if nargin<1
@@ -50,36 +50,36 @@ floatFieldExtra = 7;
 intFieldExtra = 2;
 maxFieldWidth = 12;
 floatWidthOffset = 4;
-    
+	
 % Compose sprintf format string of numeric array.
 if nargin < 2 && ~isempty(x) && isequalwithequalnans(x, fix(x))
-    if isreal(x)
-        % The precision is unspecified; the numeric array contains whole numbers.
-        s = int2str(x);
-        return;
-    else
-        %Complex case
-        % maximum field width is 12 digits
-        xmax = double(max(abs(x(:))));
-        if xmax == 0
-            d = 1;
-        else
-            d = min(maxFieldWidth, floor(log10(xmax)) + 1); 
-        end
+	if isreal(x)
+	    % The precision is unspecified; the numeric array contains whole numbers.
+		s = int2str(x);
+		return;
+	else
+		%Complex case
+		% maximum field width is 12 digits
+		xmax = double(max(abs(x(:))));
+		if xmax == 0
+			d = 1;
+		else
+			d = min(maxFieldWidth, floor(log10(xmax)) + 1);	
+		end
 
-        % Create ANSI C print format string.
-        f = ['%' sprintf('%d',d+intFieldExtra) 'd'];    % real numbers
-        fi = ['%-' sprintf('%d',d+intFieldExtra) 's'];  % imaginary numbers
-    end
+		% Create ANSI C print format string.
+		f = ['%' sprintf('%d',d+intFieldExtra) 'd'];    % real numbers
+		fi = ['%-' sprintf('%d',d+intFieldExtra) 's'];  % imaginary numbers
+	end
 elseif nargin < 2
     % The precision is unspecified; the numeric array contains floating point
     % numbers.
-    xmax = double(max(abs(x(:))));
-    if xmax == 0
-        d = 1;
-    else
-        d = min(maxFieldWidth, max(1, floor(log10(xmax))+1))+floatWidthOffset;  
-    end
+	xmax = double(max(abs(x(:))));
+	if xmax == 0
+		d = 1;
+	else
+		d = min(maxFieldWidth, max(1, floor(log10(xmax))+1))+floatWidthOffset;	
+	end
    
     % Create ANSI C print format string.
     % real numbers
