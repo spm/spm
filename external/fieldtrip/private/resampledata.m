@@ -37,6 +37,9 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2008, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.15  2008/06/10 18:20:17  sashae
+% replaced blc and detrend with preproc modules
+%
 % Revision 1.14  2008/05/06 14:03:10  sashae
 % change in trial selection, cfg.trials can be a logical
 %
@@ -135,10 +138,10 @@ ntr = length(data.trial);
 for itr = 1:ntr
   progress(itr/ntr, 'resampling data in trial %d from %d\n', itr, ntr);
   if strcmp(cfg.blc,'yes')
-    data.trial{itr} = blc(data.trial{itr});
+    data.trial{itr} = preproc_baselinecorrect(data.trial{itr});
   end
   if strcmp(cfg.detrend,'yes')
-    data.trial{itr} = detrend(data.trial{itr}')';
+    data.trial{itr} = preproc_detrend(data.trial{itr});
   end
   if isa(data.trial{itr}, 'single')
     % temporary convert this trial to double precision
@@ -162,7 +165,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.14 2008/05/06 14:03:10 sashae Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.15 2008/06/10 18:20:17 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
