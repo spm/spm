@@ -34,14 +34,13 @@ function Fieldmap_Run(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 1806 2008-06-10 11:33:23Z chloe $
+% $Id: FieldMap_Run.m 1810 2008-06-10 14:30:33Z chloe $
 %_________________________________________________________________
 
 %
 %----------------------------------------------------------------------  
 % Set up default parameters and structures 
 %----------------------------------------------------------------------
-dbstop if error
 spm_defaults
 
 % Open the FieldMap control window with visibility off. This allows the
