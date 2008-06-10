@@ -34,7 +34,7 @@ function Fieldmap_Run(job)
 % Copyright (C) 2007 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 1753 2008-05-29 13:54:30Z chloe $
+% $Id: FieldMap_Run.m 1806 2008-06-10 11:33:23Z chloe $
 %_________________________________________________________________
 
 %
@@ -62,6 +62,8 @@ elseif isfield(job.defaults,'defaultsval')
    pm_defs.et{1}=echotimes(1);
    pm_defs.et{2}=echotimes(2);
    pm_defs.uflags.etd=pm_defs.et{2}-pm_defs.et{1};
+   tmptemplate=pm_defs.mflags.template{1};
+   pm_defs.mflags.template=tmptemplate;
 end
 %----------------------------------------------------------------------
 % Load measured field map data - phase and magnitude, real and imaginary or

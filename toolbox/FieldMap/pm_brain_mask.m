@@ -28,7 +28,7 @@ function bmask = pm_brain_mask(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_brain_mask.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_brain_mask.m 1806 2008-06-10 11:33:23Z chloe $
 
 if nargin < 2 | isempty(flags)
    flags.template=fullfile(spm('Dir'),'templates','T1.nii');
@@ -43,6 +43,7 @@ end
 disp('Segmenting and extracting brain...');
 seg_flags.estimate.reg=flags.reg;
 seg_flags.graphics = flags.graphics;
+
 % Updated to use renamed version of spm_segment
 VO=pm_segment(P.fname,flags.template,seg_flags);
 bmask=double(VO(1).dat)+double(VO(2).dat)+double(VO(3).dat)>0;
