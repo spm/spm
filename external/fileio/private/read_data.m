@@ -30,6 +30,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.50  2008/06/10 10:22:12  jansch
+% removed sparse from calibration for 4d data, this is not necessary. added
+% possibility for filnames including '.' for 4d data
+%
 % Revision 1.49  2008/05/29 13:54:52  roboos
 % also work when no path is specified
 %
@@ -243,8 +247,8 @@ switch dataformat
     sensorfile = [datafile '.xyz'];
   case '4d'
     [path, file, ext] = fileparts(filename);
-    datafile   = fullfile(path, file);
-    headerfile = fullfile(path, file);
+    datafile   = fullfile(path, [file,ext]);
+    headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
   case 'ctf_ds'
     % convert CTF filename into filenames
@@ -402,8 +406,10 @@ switch dataformat
         error('unsupported data format');
     end
     % 4D/BTi MEG data is multiplexed, can be epoched/discontinuous
-    offset        = (begsample-1)*samplesize*hdr.nChans;
-    numsamples    = endsample-begsample+1;
+    offset     = (begsample-1)*samplesize*hdr.nChans;
+    numsamples = endsample-begsample+1;
+    gain       = hdr.orig.ChannelGain;
+    upb        = hdr.orig.ChannelUnitsPerBit;
     % jump to the desired data
     fseek(fid, offset, 'cof');
     % read the desired data
@@ -426,14 +432,14 @@ switch dataformat
       % select the desired channel(s)
       dat = dat(chanindx,:);
     end
-    % determine the calibrate for the data
+    % determine how to calibrate the data
     switch sampletype
       case {'short', 'long'}
         % include both the gain values and the integer-to-double conversion in the calibration
-        calib = sparse(diag(hdr.orig.ChannelGain(chanindx) .* hdr.orig.ChannelUnitsPerBit(chanindx)));
+        calib = diag(gain(chanindx) .* upb(chanindx));
       case {'float', 'double'}
         % only include the gain values in the calibration
-        calib = sparse(diag(hdr.orig.ChannelGain(chanindx)));
+        calib = diag(gain(chanindx));
       otherwise
         error('unsupported data format');
     end
