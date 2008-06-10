@@ -70,7 +70,7 @@ function [DCM] = spm_dcm_ui(Action);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 1748 2008-05-28 17:55:25Z guillaume $
+% $Id: spm_dcm_ui.m 1811 2008-06-10 16:13:39Z guillaume $
 
 
 
@@ -339,17 +339,39 @@ case 'specify'
     spm('FigName',header);
     spm('Pointer','Arrow')
     return
-    
-case 'estimate',
-    
-    
-    spm_dcm_estimate;
 
-    return
+
+% estimate models
+%-----------------------------------------------------------------------
+case 'estimate'
+	
+    %-estimate models
+	%-------------------------------------------------------------------
+	set(Finter,'name','Dynamic Causal Modeling');
+    spm('FnBanner','spm_dcm_estimate');
+
+    %-select DCM models
+    %-------------------------------------------------------------------
+    P = cellstr(spm_select(Inf,'^DCM.*\.mat$','select DCM_???.mat'));
+
+    spm('Pointer','Watch')
+    spm('FigName','Estimation in progress');
+
+    %-loop over models
+    %-------------------------------------------------------------------
+    for i=1:numel(P)
+        spm('SFnBanner',sprintf('spm_dcm_estimate: model %d',i));
+        spm_dcm_estimate(P{i});
+    end
+
+    spm('Pointer','Arrow');
+    spm_input('Thank you',1,'d');
+
+	return
 
 
 % review results
-%---------------------------------------------------------------------------
+%-----------------------------------------------------------------------
 case 'review'
 
     %-display model details
