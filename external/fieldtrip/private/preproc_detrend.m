@@ -4,7 +4,7 @@ function [dat, beta, x] = preproc_detrend(dat, begsample, endsample, order)
 % data using using General Linear Modeling
 %
 % Use as
-%   [dat] = preproc_baselinecorrect(dat, begin, end, order)
+%   [dat] = preproc_detrend(dat, begin, end, order)
 % where
 %   dat        data matrix (Nchans X Ntime)
 %   begsample  index of the begin sample for the trend estimate
@@ -19,6 +19,9 @@ function [dat, beta, x] = preproc_detrend(dat, begsample, endsample, order)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: preproc_detrend.m,v $
+% Revision 1.3  2008/06/10 16:03:40  roboos
+% fixed small bug and typ, thanks to Saskia
+%
 % Revision 1.2  2008/05/23 09:13:58  roboos
 % cleaned up code and documentation, ensure that all functions are consistent, added proper implementation to the scratch functions
 %
@@ -35,7 +38,7 @@ if nargin<3 || isempty(endsample)
 end
 
 % determine the order of the polynomial trend to be removed, default is linear
-if nargin<3 || isempty(order)
+if nargin<4 || isempty(order)
   order = 1;
 end
 

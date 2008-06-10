@@ -19,6 +19,9 @@ function [timelock] = timelockbaseline(cfg, timelock);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: timelockbaseline.m,v $
+% Revision 1.10  2008/06/10 16:45:05  sashae
+% replaced call to blc function with preproc_baselinecorrect
+%
 % Revision 1.9  2007/12/18 14:17:29  ingnie
 % Changed timelock.subj to timelock.individual (Thanks to Ian)
 %
@@ -90,10 +93,10 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
     % only apply on selected channels
     cfg.channel = channelselection(cfg.channel, timelock.label);
     chansel = match_str(timelock.label, cfg.channel);
-    timelock.avg(chansel,:) = blc(timelock.avg(chansel,:), tbeg:tend);
+    timelock.avg(chansel,:) = preproc_baselinecorrect(timelock.avg(chansel,:), tbeg, tend);
   else
     % apply on all channels
-    timelock.avg = blc(timelock.avg, tbeg:tend);
+    timelock.avg = preproc_baselinecorrect(timelock.avg, tbeg, tend);
   end
 
   if strcmp(timelock.dimord, 'rpt_chan_time')
@@ -102,12 +105,12 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
     if isfield(cfg, 'channel')
       % only apply on selected channels
       for i=1:ntrial
-        timelock.trial(i,chansel,:) = blc(timelock.trial(i,chansel,:), tbeg:tend);
+        timelock.trial(i,chansel,:) = preproc_baselinecorrect(shiftdim(timelock.trial(i,chansel,:),1), tbeg, tend);
       end
     else
       % apply on all channels
       for i=1:ntrial
-        timelock.trial(i,:,:) = blc(timelock.trial(i,:,:), tbeg:tend);
+        timelock.trial(i,:,:) = preproc_baselinecorrect(shiftdim(timelock.trial(i,:,:),1), tbeg, tend);
       end
     end
   elseif strcmp(timelock.dimord, 'subj_chan_time')
@@ -116,12 +119,12 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
     if isfield(cfg, 'channel')
       % only apply on selected channels
       for i=1:nsubj
-        timelock.individual(i,chansel,:) = blc(timelock.individual(i,chansel,:), tbeg:tend);
+        timelock.individual(i,chansel,:) = preproc_baselinecorrect(shiftdim(timelock.individual(i,chansel,:),1), tbeg, tend);
       end
     else
       % apply on all channels
       for i=1:nsubj
-        timelock.individual(i,:,:) = blc(timelock.individual(i,:,:), tbeg:tend);
+        timelock.individual(i,:,:) = preproc_baselinecorrect(shiftdim(timelock.individual(i,:,:),1), tbeg, tend);
       end
     end
   end
@@ -147,7 +150,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockbaseline.m,v 1.9 2007/12/18 14:17:29 ingnie Exp $';
+cfg.version.id = '$Id: timelockbaseline.m,v 1.10 2008/06/10 16:45:05 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = timelock.cfg; end
 % remember the exact configuration details in the output 

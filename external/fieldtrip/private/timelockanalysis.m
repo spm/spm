@@ -75,6 +75,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.51  2008/06/10 16:45:04  sashae
+% replaced call to blc function with preproc_baselinecorrect
+%
 % Revision 1.50  2008/05/06 15:43:46  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -536,7 +539,7 @@ for i=1:ntrial
     dat = data.trial{i}(chansel, begsampl:endsampl);
     if ~isempty(dat)  % we did not exlude this case above
       if strcmp(cfg.removemean, 'yes')
-        dat = blc(dat);
+        dat = preproc_baselinecorrect(dat);
       end
       covsig(i,:,:) = dat * dat';
     end
@@ -550,7 +553,7 @@ for i=1:ntrial
     dat = data.trial{i}(chansel, begsampl:endsampl);
     if ~isempty(dat)  % we did not exlude this case above
       if strcmp(cfg.removemean, 'yes')
-        dat = blc(dat);
+        dat = preproc_baselinecorrect(dat);
       end
       covbl(i,:,:) = dat * dat';
     end
@@ -653,7 +656,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.50 2008/05/06 15:43:46 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.51 2008/06/10 16:45:04 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
