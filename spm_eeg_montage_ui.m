@@ -1,6 +1,9 @@
 function montage = spm_eeg_montage_ui(montage)
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-dbstop if error
+% Jean Daunizeau
+% $Id: spm_eeg_montage_ui.m 1809 2008-06-10 14:30:27Z guillaume $
 
 %% creates GUI from spm_uitable
 fig = figure;
@@ -52,7 +55,6 @@ end
 
 %% 'add row' button subfunction
 function [ha] = doAddRow(o1,o2)
-dbstop if error
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 M = [M;zeros(1,size(M,2))];
@@ -101,7 +103,6 @@ end
 
 %% 'save as' button subfunction
 function [ha] = doSave(o1,o2)
-dbstop if error
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 montage.tra = M;
@@ -112,7 +113,6 @@ uisave('montage','SPMeeg_montage.mat');
 
 %% 'OK' button subfunction
 function [] = doOK(o1,o2)
-dbstop if error
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 montage.tra = M;
@@ -125,7 +125,6 @@ close(gcf)
 
 
 function [] = doCheck(o1,o2)
-dbstop if error
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 set(ud.hi,'cdata',M)
@@ -167,7 +166,6 @@ end
 
 %% adding buttons to the montage GUI
 function [] = addButtons(ha)
-dbstop if error
 hAdd = uicontrol('style','pushbutton',...
     'string','Add row','callback',{@doAddRow},...
     'position',[60 20 80 20]);

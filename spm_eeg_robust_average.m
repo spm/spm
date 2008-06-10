@@ -1,9 +1,9 @@
-function [B,Wf]=robust_average(data);
+function [B,Wf] = spm_eeg_robust_average(data);
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_average.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_robust_average.m 1809 2008-06-10 14:30:27Z guillaume $
 
 data=data';
 %figure(1)

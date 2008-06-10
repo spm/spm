@@ -17,7 +17,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 1792 2008-06-05 15:43:54Z jean $
+% $Id: spm_eeg_plotScalpData.m 1809 2008-06-10 14:30:27Z guillaume $
 
 if ~exist('in','var') || isempty(in) == 1
     in = [];
@@ -137,7 +137,6 @@ set(d.hsn,'userdata',d);
 
 
 function dosp(btn,evd)
-dbstop if error
 d = get(btn,'userdata');
 v = get(d.hp,'visible');
 switch v
@@ -149,7 +148,6 @@ end
 
 
 function dosn(btn,evd)
-dbstop if error
 d = get(btn,'userdata');
 v = get(d.ht(1),'visible');
 switch v
@@ -161,7 +159,6 @@ end
 
 
 function doChangeTime(btn,evd)
-dbstop if error
 d = get(btn,'userdata');
 v = get(btn,'value');
 % get data
@@ -203,7 +200,6 @@ function [xy] = get2Dfrom3D(xyz)
 % OUT:
 %   - xy: the (x,y) carthesian coordinates of the sensors after projection
 %   onto the best-fitting sphere
-dbstop if error
 if size(xyz,2) ~= 3
     xyz = xyz';
 end

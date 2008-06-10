@@ -3,7 +3,7 @@ function [] = spm_eeg_review_callbacks(arg1,arg2,arg3)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1793 2008-06-05 16:02:01Z jean $
+% $Id: spm_eeg_review_callbacks.m 1809 2008-06-10 14:30:27Z guillaume $
 
 D = get(gcf,'userdata');
 handles = D.PSD.handles;
@@ -1028,7 +1028,6 @@ end
 function [] = updateDisp(D,flag)
 % This function updates the display of the data and events.
 
-dbstop if error
 if ~exist('flag','var')
     flag = 0;
 end
@@ -1364,7 +1363,7 @@ function [] = psd_defineMenuEvent(re,sc)
 % This funcion defines the uicontextmenu associated to the selected events.
 % All the actions which are accessible using the right mouse click on the
 % selected events are a priori defined here.
-dbstop if error
+
 % Highlighting the selection
 set(re,'buttondownfcn','spm_eeg_review_callbacks(''menuEvent'',''click'',0)');
 cmenu = uicontextmenu;

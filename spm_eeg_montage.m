@@ -28,9 +28,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 1679 2008-05-19 10:04:02Z jean $
-
-dbstop if error
+% $Id: spm_eeg_montage.m 1809 2008-06-10 14:30:27Z guillaume $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 

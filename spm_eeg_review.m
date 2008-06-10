@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1792 2008-06-05 15:43:54Z jean $
+% $Id: spm_eeg_review.m 1809 2008-06-10 14:30:27Z guillaume $
 
 if ~exist('flag','var') || isempty(flag)
     flag = 'standardData';
@@ -300,7 +300,6 @@ function [D] = PSD_initUD(D)
 % This function initializes the userdata structure required for the
 % PreSelectdata toolbox.
 
-% dbstop if error
 D = struct(D);
 
 switch D.type
