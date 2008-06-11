@@ -69,9 +69,9 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 1761 2008-05-29 17:35:21Z guillaume $
+% $Id: spm_select.m 1816 2008-06-11 15:28:51Z guillaume $
 
-if ~exist('cfg_getfile','file')
+if ~exist('cfg_getfile','file') && ~isdeployed
     addpath(fullfile(spm('dir'),'matlabbatch'));
 end;
 [varargout{1:nargout}] = cfg_getfile(varargin{:});

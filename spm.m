@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1798 2008-06-06 16:25:56Z john $
+% $Id: spm.m 1816 2008-06-11 15:28:51Z guillaume $
 
 
 %=======================================================================
@@ -314,6 +314,7 @@ if isfield(defaults,'modality'), spm(defaults.modality); return; end
 %-----------------------------------------------------------------------
 Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
 set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
+set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
 set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
 RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
 set(Fwelcome,'Units','pixels', 'Position',...
@@ -418,7 +419,7 @@ set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
 
 %-Addpath (temporary solution)
 %-----------------------------------------------------------------------
-if strcmpi(Modality,'EEG')
+if strcmpi(Modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'external','fieldtrip'));
     addpath(fullfile(spm('Dir'),'external','fileio'));
     addpath(fullfile(spm('Dir'),'external','forwinv'));
@@ -524,12 +525,13 @@ case 'winscale'                  %-Window scale factors (to fit display)
 %=======================================================================
 % WS = spm('WinScale')
 %-----------------------------------------------------------------------
-if spm_matlab_version_chk('7') >=0
-    S0 = get(0, 'MonitorPosition');
-else
-    S0 = get(0,'ScreenSize');
+S0 = get(0, 'MonitorPosition');
+
+if all(ismember(S0(:),[0 1]))
+    warning('SPM:noDisplay','Can''t open display...');
+    varargout = {[1 1 1 1]};
+    return;
 end
-if all(S0(:)==1), error('Can''t open any graphics windows...'), end
 
 S0    = S0(:,[3 4]) - S0(:,[1 2]) + 1;
 S0    = S0 - rem(S0,2);
@@ -592,12 +594,8 @@ elseif upper(Win(1))=='W'
     Rect = Rect(4,:);
 elseif Win(1)=='0'
     %-Root workspace
-    if spm_matlab_version_chk('7') >=0
-        Rect = get(0, 'MonitorPosition');
-        Rect = Rect(1,:);
-    else
-        Rect = get(0,'ScreenSize');
-    end
+    Rect = get(0, 'MonitorPosition');
+    Rect = Rect(1,:);
 else
     error('Unknown Win type');
 end
@@ -688,7 +686,7 @@ if isempty(SPMdir)             %-Not found or full pathname given
 end
 SPMdir = fileparts(SPMdir);
 
-if exist('isdeployed','builtin') && isdeployed,
+if isdeployed
     ind = findstr(SPMdir,'_mcr')-1;
     SPMdir = fileparts(SPMdir(1:ind(1)));
 end
@@ -819,7 +817,7 @@ if i > 0
     %-Addpath (& report)
     %-------------------------------------------------------------------
     if isempty(findstr(xTB(i).dir,path))
-        addpath(xTB(i).dir,'-begin');
+        if ~isdeployed, addpath(xTB(i).dir,'-begin'); end
         spm('alert"',{'Toolbox directory prepended to Matlab path:',...
             xTB(i).dir},...
             [xTB(i).name,' toolbox'],1);
@@ -1110,7 +1108,7 @@ end
 %=======================================================================
 function local_clc
 %=======================================================================
-if ~(exist('isdeployed','builtin') && isdeployed),
+if ~isdeployed
     clc
 end
 

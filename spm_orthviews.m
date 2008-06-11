@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 1154 2008-02-15 16:08:15Z guillaume $
+% $Id: spm_orthviews.m 1816 2008-06-11 15:28:51Z guillaume $
 
 
 
@@ -1321,7 +1321,7 @@ pluginpath = fullfile(spm('Dir'),'spm_orthviews');
 if isdir(pluginpath)
     pluginfiles = dir(fullfile(pluginpath,'spm_ov_*.m'));
     if ~isempty(pluginfiles)
-        addpath(pluginpath);
+        if ~isdeployed, addpath(pluginpath); end
         % fprintf('spm_orthviews: Using Plugins in %s\n', pluginpath);
         for k = 1:length(pluginfiles)
             [p, pluginname, e, v] = fileparts(pluginfiles(k).name);

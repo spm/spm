@@ -88,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1786 2008-06-03 12:44:46Z volkmar $
+% $Id: spm_jobman.m 1816 2008-06-11 15:28:51Z guillaume $
 
 
 if nargin==0
@@ -134,8 +134,10 @@ else
             varargout{1} = cfg_util('showdocwidth', width, node);
             
         case 'initcfg'
-            addpath(fullfile(spm('Dir'),'matlabbatch'));
-            addpath(fullfile(spm('Dir'),'config'));
+            if ~isdeployed
+                addpath(fullfile(spm('Dir'),'matlabbatch'));
+                addpath(fullfile(spm('Dir'),'config'));
+            end
             cfg_util('initcfg'); % This must be the first call to cfg_util
 
         case 'interactive',

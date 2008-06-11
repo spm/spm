@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_input.m 1816 2008-06-11 15:28:51Z guillaume $
 
 
 %=======================================================================
@@ -812,7 +812,7 @@ else                                             %-Use GUI to get answer
         'BackgroundColor','w',...
         'Position',RRec);
     set(hDef,'UserData',[hPrmpt,h])
-    uifocus(h);
+    uicontrol(h);
     if TTips, set(h,'ToolTipString',TTstr), end
 
     %-Figure ContextMenu for shortcuts
@@ -1098,7 +1098,7 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
                     'Position',[RRec(1)+(i-1)*dX+1 ...
                             RRec(2) dX-2 RRec(4)]);
                 if i == DefItem,
-                    uifocus(h);
+                    uicontrol(h);
                 end
                 H = [H,h];
             end
@@ -1325,7 +1325,7 @@ else
         'Position',...
             [RRec(1)+RRec(3)*(2/3)+2 RRec(2) RRec(3)/3-2 RRec(4)]);
     set(hDef,'UserData',[hPrmpt,h])
-    uifocus(h);
+    uicontrol(h);
     H = [H,h];
 
     %-Figure ContextMenu for shortcuts
@@ -1498,11 +1498,8 @@ otherwise, error('unrecognised type')
 end % (switch lower(Type) within case {'b','b|','y/n'})
 
 
-%-Log the transaction & return response
+%-Return response
 %-----------------------------------------------------------------------
-if exist('spm_log')==2
-    if iscellstr(Prompt), Prompt=Prompt{1}; end
-    spm_log([mfilename,' : ',Prompt,': (',deblank(Labels(k,:)),')'],p); end
 varargout = {p,YPos};
 
 
@@ -2365,24 +2362,3 @@ else
     end
 
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%        UIFOCUS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function uifocus(h)
-% MATLAB R14 NO LONGER KEEPS FOCUS ON THE UICONTROL, UNLESS IT IS
-% EXPLICITLY SPECIFIED, OTHERWISE CONTROL IS GIVEN TO THE FIGURE'S
-% KEYPRESS FUNCTION. THEREFORE WE MUST EXPLICITLY SET THE FOCUS TO
-% A UICONTROL OR THE USER IS FORCED TO CLICK INTO THE CONTROL TO
-% ENTER DATA OR PRESS A BUTTON. MATLAB 7 HAS EXTENDED THE FUNCTIONALITY
-% OF THE UICONTROL FUNCTION. UICONTROL(HANDLE) SETS THE FOCUS
-% TO THE DESIGNATED UIONTROL'S HANDLE.
-% -DRG 05/1/13
-%------------------------------------------------------------------
-a = ver('Matlab');
-if str2num(a.Version) > 7
-    uicontrol(h);
-end
-return
-%-------------------------------------------------------------------
-
