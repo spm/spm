@@ -78,6 +78,8 @@ function ret = spm_ov_roi(varargin)
 % ------------
 % Save       Save ROI image
 % Save As    Save ROI image under a new file name
+%            The images will be rescaled to 0 (out of mask) and 1 (in
+%            mask).
 % Quit       Quit ROI tool
 %
 % This routine is a plugin to spm_orthviews for SPM5. For general help about
@@ -85,14 +87,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 1137 2008-02-06 15:58:21Z spm $
+% $Id: spm_ov_roi.m 1815 2008-06-11 14:08:48Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 1137 $';
+rev = '$Revision: 1815 $';
 
 global st;
 if isempty(st)
@@ -131,7 +133,8 @@ switch cmd
                     roi(ind) = 1;
                 end;
         end;
-        
+        % reset scaling factor of Vroi handle
+        Vroi.pinfo(1:2) = Inf;
         clear x y z
         
         % draw a frame only if ROI volume different from underlying GM volume

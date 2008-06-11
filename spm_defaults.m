@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1661 2008-05-15 14:53:01Z volkmar $
+% $Id: spm_defaults.m 1815 2008-06-11 14:08:48Z volkmar $
 
 
 global defaults
@@ -54,7 +54,7 @@ defaults.stats.fmri.cvi       = 'AR(1)';
 %=======================================================================
 defaults.stats.fact.dept     = 0;
 defaults.stats.fact.variance = 1;
-defaults.stats.fact.gmsca    = 0;
+defaults.stats.fact.t2.gmsca = 0;
 defaults.stats.fact.ancova   = 0;
 defaults.stats.fact.mcov.iCC = 1;
 defaults.stats.fact.iCFI     = 1;

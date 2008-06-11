@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_factorial_design.m 1815 2008-06-11 14:08:48Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 1815 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -117,6 +117,7 @@ gmsca.labels = {
                 'Yes'
 }';
 gmsca.values = {0 1};
+gmsca.def    = @(val)spm_get_defaults('stats.fact.t2.gmsca', val{:});
 % ---------------------------------------------------------------------
 % ancova ANCOVA
 % ---------------------------------------------------------------------
