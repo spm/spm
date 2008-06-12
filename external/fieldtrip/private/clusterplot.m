@@ -1,15 +1,15 @@
-function clusterplot(cfg, stat);
+function clusterplot(cfg, stat)
 
 % CLUSTERPLOT plots a series of topoplots with found clusters highlighted.
-% stat is 2D data from TIMELOCKSTATISTICS or FREQSTATISTICS with 'cluster'
-% as cfg.correctmc. 2D, therefore stat from timelockstatistics data not
-% averaged over time or stat from freqstatistics averaged over frequency
-% not averaged over time.
+% stat is 2D or 1D data from TIMELOCKSTATISTICS or FREQSTATISTICS with 'cluster'
+% as cfg.correctmc. 2D: stat from timelockstatistics not averaged over
+% time, or stat from freqstatistics averaged over frequency not averaged over
+% time. 1D: averaged over time as well.
 %
 % use as: clusterplot(cfg,stat)
 %
 % configuration options
-% cfg.alpha              = number, highest cluster p-value to be plotted 
+% cfg.alpha              = number, highest cluster p-value to be plotted
 %                          max 0.3 (default = 0.05)
 % cfg.hlmarkerseries     = 1x5 vector, highlight marker symbol series
 %                          default ['*','x','+','o','.'] for p < [0.01 0.05 0.1 0.2 0.3]
@@ -34,6 +34,9 @@ function clusterplot(cfg, stat);
 % Copyright (C) 2007, Ingrid Nieuwenhuis, F.C. Donders Centre
 %
 % $Log: clusterplot.m,v $
+% Revision 1.5  2008/06/12 12:22:36  ingnie
+% Now also works for 1D data (= avaraged over time), added some comma's in default setting for readability
+%
 % Revision 1.4  2007/11/07 16:28:08  ingnie
 % added option saveaspng
 %
@@ -42,14 +45,22 @@ function clusterplot(cfg, stat);
 %
 
 % set the defaults
-if ~isfield(cfg,'alpha')                  cfg.alpha = 0.05;                             end;
-if ~isfield(cfg,'hlmarkerseries')         cfg.hlmarkerseries = ['*','x','+','o','.'];   end;
-if ~isfield(cfg,'hlmarkersizeseries')     cfg.hlmarkersizeseries = [6 6 6 6 6];         end;
-if ~isfield(cfg,'hllinewidthseries')      cfg.hllinewidthseries = [1 1 1 1 1];          end;
-if ~isfield(cfg,'hlcolorpos')             cfg.hlcolorpos = [0 0 0];                     end;
-if ~isfield(cfg,'hlcolorneg')             cfg.hlcolorneg = [0 0 0];                     end;
-if ~isfield(cfg,'zparam')                 cfg.zparam = 'stat';                          end;
-if ~isfield(cfg,'saveaspng')              cfg.saveaspng = 'no';                         end;
+if ~isfield(cfg,'alpha'),                  cfg.alpha = 0.05;                             end;
+if ~isfield(cfg,'hlmarkerseries'),         cfg.hlmarkerseries = ['*','x','+','o','.'];   end;
+if ~isfield(cfg,'hlmarkersizeseries'),     cfg.hlmarkersizeseries = [6 6 6 6 6];         end;
+if ~isfield(cfg,'hllinewidthseries'),      cfg.hllinewidthseries = [1 1 1 1 1];          end;
+if ~isfield(cfg,'hlcolorpos'),             cfg.hlcolorpos = [0 0 0];                     end;
+if ~isfield(cfg,'hlcolorneg'),             cfg.hlcolorneg = [0 0 0];                     end;
+if ~isfield(cfg,'zparam'),                 cfg.zparam = 'stat';                          end;
+if ~isfield(cfg,'saveaspng'),              cfg.saveaspng = 'no';                         end;
+
+% detect 2D or 1D
+is2D = isfield(stat,'time');
+
+% add .time field to 1D data, topoplotER wants it
+if ~is2D
+  stat.time = 0; %doesn't matter what it is, so just choose 0
+end;  
 
 % find significant clusters
 sigpos = [];
@@ -92,35 +103,48 @@ else
   end
 
   fprintf('%s%i%s%g%s\n','There are ',Nsigall,' clusters smaller than alpha (',cfg.alpha,')')
-  for iPos = 1:length(sigpos)
-    possum_perclus = sum(sigposCLM(:,:,iPos),1);
-    ind_min = min(find(possum_perclus~=0));
-    ind_max = max(find(possum_perclus~=0));
-    time_perclus = [stat.time(ind_min) stat.time(ind_max)];
-    fprintf('%s%s%s%s%s%s%s%s%s%s%s\n','Positive cluster: ',num2str(sigpos(iPos)),', pvalue: ',num2str(probpos(iPos)),' (',hlsignpos(iPos),')',', t = ',num2str(time_perclus(1)),' to ',num2str(time_perclus(2)))
+
+  if is2D
+    % define time window per cluster
+    for iPos = 1:length(sigpos)
+      possum_perclus = sum(sigposCLM(:,:,iPos),1); %sum over Chans for each timepoint
+      ind_min = min(find(possum_perclus~=0));
+      ind_max = max(find(possum_perclus~=0));
+      time_perclus = [stat.time(ind_min) stat.time(ind_max)];
+      fprintf('%s%s%s%s%s%s%s%s%s%s%s\n','Positive cluster: ',num2str(sigpos(iPos)),', pvalue: ',num2str(probpos(iPos)),' (',hlsignpos(iPos),')',', t = ',num2str(time_perclus(1)),' to ',num2str(time_perclus(2)))
+    end
+    for iNeg = 1:length(signeg)
+      negsum_perclus = sum(signegCLM(:,:,iNeg),1);
+      ind_min = min(find(negsum_perclus~=0));
+      ind_max = max(find(negsum_perclus~=0));
+      time_perclus = [stat.time(ind_min) stat.time(ind_max)];
+      fprintf('%s%s%s%s%s%s%s%s%s%s%s\n','Negative cluster: ',num2str(signeg(iNeg)),', pvalue: ',num2str(probneg(iNeg)),' (',hlsignneg(iNeg),')',', t = ',num2str(time_perclus(1)),' to ',num2str(time_perclus(2)))
+    end
+
+    % define timewindow containing all significant clusters
+    possum = sum(sigposCLM,3); %sum over Chans for timevector
+    possum = sum(possum,1);
+    negsum = sum(signegCLM,3);
+    negsum = sum(negsum,1);
+    allsum = possum + negsum;
+
+    ind_timewin_min = min(find(allsum~=0));
+    ind_timewin_max = max(find(allsum~=0));
+
+    timestep = stat.time(2) - stat.time(1);
+    timewin = [stat.time(ind_timewin_min): timestep :stat.time(ind_timewin_max)];
+  else
+    for iPos = 1:length(sigpos)
+      fprintf('%s%s%s%s%s%s%s\n','Positive cluster: ',num2str(sigpos(iPos)),', pvalue: ',num2str(probpos(iPos)),' (',hlsignpos(iPos),')')
+    end
+    for iNeg = 1:length(signeg)
+      fprintf('%s%s%s%s%s%s%s\n','Negative cluster: ',num2str(signeg(iNeg)),', pvalue: ',num2str(probneg(iNeg)),' (',hlsignneg(iNeg),')')
+    end
   end
-  for iNeg = 1:length(signeg)
-    negsum_perclus = sum(signegCLM(:,:,iNeg),1);
-    ind_min = min(find(negsum_perclus~=0));
-    ind_max = max(find(negsum_perclus~=0));
-    time_perclus = [stat.time(ind_min) stat.time(ind_max)];
-    fprintf('%s%s%s%s%s%s%s%s%s%s%s\n','Negative cluster: ',num2str(signeg(iNeg)),', pvalue: ',num2str(probneg(iNeg)),' (',hlsignneg(iNeg),')',', t = ',num2str(time_perclus(1)),' to ',num2str(time_perclus(2)))
-  end
 
-  % define timewindow containing all significant clusters
-  possum = sum(sigposCLM,3);
-  possum = sum(possum,1);
-  negsum = sum(signegCLM,3);
-  negsum = sum(negsum,1);
-  allsum = possum + negsum;
-
-  ind_timewin_min = min(find(allsum~=0));
-  ind_timewin_max = max(find(allsum~=0));
-
-  timestep = stat.time(2) - stat.time(1);
-  timewin = [stat.time(ind_timewin_min): timestep :stat.time(ind_timewin_max)];
-
-  % setup highlight options for all clusters
+  % setup highlight options for all clusters and make comment for 1D data
+  compos = [];
+  comneg = [];
   for iPos = 1:length(sigpos)
     if stat.posclusters(sigpos(iPos)).prob < 0.01
       cfg.hlmarker{iPos}     = cfg.hlmarkerseries(1);
@@ -144,6 +168,7 @@ else
       cfg.hllinewidth{iPos}  = cfg.hllinewidthseries(5);
     end
     cfg.hlcolor{iPos}        = cfg.hlcolorpos;
+    compos = strcat(compos,cfg.hlmarker{iPos}, 'p=',num2str(probpos(iPos)),' '); % make comment, only used for 1D data
   end
 
   for iNeg = 1:length(signeg)
@@ -169,44 +194,69 @@ else
       cfg.hllinewidth{length(sigpos)+iNeg}  = cfg.hllinewidthseries(5);
     end
     cfg.hlcolor{length(sigpos)+iNeg}        = cfg.hlcolorneg;
+    comneg = strcat(comneg,cfg.hlmarker{length(sigpos)+iNeg}, 'p=',num2str(probneg(iNeg)),' '); % make comment, only used for 1D data
   end
 
-  Npl = length(timewin);
+  if is2D
+    Npl = length(timewin);
+  else
+    Npl = 1;
+  end
   Nfig = ceil(Npl/15);
 
   % put channel indexes in list
-  for iPl = 1:Npl
-    for iPos = 1:length(sigpos)
-      list{iPl}{iPos} = find(sigposCLM(:,ind_timewin_min+iPl-1,iPos) == 1);
+  if is2D
+    for iPl = 1:Npl
+      for iPos = 1:length(sigpos)
+        list{iPl}{iPos} = find(sigposCLM(:,ind_timewin_min+iPl-1,iPos) == 1);
+      end
+      for iNeg = 1:length(signeg)
+        list{iPl}{length(sigpos)+iNeg} = find(signegCLM(:,ind_timewin_min+iPl-1,iNeg) == 1);
+      end
     end
-    for iNeg = 1:length(signeg)
-      list{iPl}{length(sigpos)+iNeg} = find(signegCLM(:,ind_timewin_min+iPl-1,iNeg) == 1);
+  else
+   for iPl = 1:Npl
+      for iPos = 1:length(sigpos)
+        list{iPl}{iPos} = find(sigposCLM(:,iPos) == 1);
+      end
+      for iNeg = 1:length(signeg)
+        list{iPl}{length(sigpos)+iNeg} = find(signegCLM(:,iNeg) == 1);
+      end
     end
   end
 
   % make plots
   for iPl = 1:Nfig
     figure;
-    if iPl < Nfig
-      for iT = 1:15
-        PlN = (iPl-1)*15 + iT; %plotnumber
-        cfg.xlim = [stat.time(ind_timewin_min+PlN-1) stat.time(ind_timewin_min+PlN-1)];
-        cfg.highlight = list{PlN};
-        cfg.comment = strcat('time: ',num2str(stat.time(ind_timewin_min+PlN-1)), ' s');
-        cfg.commentpos = 'title';
-        subplot(3,5,iT);
-        topoplotER(cfg, stat);
+    if is2D
+      if iPl < Nfig
+        for iT = 1:15
+          PlN = (iPl-1)*15 + iT; %plotnumber
+          cfg.xlim = [stat.time(ind_timewin_min+PlN-1) stat.time(ind_timewin_min+PlN-1)];
+          cfg.highlight = list{PlN};
+          cfg.comment = strcat('time: ',num2str(stat.time(ind_timewin_min+PlN-1)), ' s');
+          cfg.commentpos = 'title';
+          subplot(3,5,iT);
+          topoplotER(cfg, stat);
+        end
+      elseif iPl == Nfig
+        for iT = 1:Npl-(15*(Nfig-1))
+          PlN = (iPl-1)*15 + iT; %plotnumber
+          cfg.xlim = [stat.time(ind_timewin_min+PlN-1) stat.time(ind_timewin_min+PlN-1)];
+          cfg.highlight   = list{PlN};
+          cfg.comment = strcat('time: ',num2str(stat.time(ind_timewin_min+PlN-1)), ' s');
+          cfg.commentpos = 'title';
+          subplot(3,5,iT);
+          topoplotER(cfg, stat);
+        end
       end
-    elseif iPl == Nfig
-      for iT = 1:Npl-(15*(Nfig-1))
-        PlN = (iPl-1)*15 + iT; %plotnumber
-        cfg.xlim = [stat.time(ind_timewin_min+PlN-1) stat.time(ind_timewin_min+PlN-1)];
-        cfg.highlight   = list{PlN};
-        cfg.comment = strcat('time: ',num2str(stat.time(ind_timewin_min+PlN-1)), ' s');
-        cfg.commentpos = 'title';
-        subplot(3,5,iT);
-        topoplotER(cfg, stat);
-      end
+    else
+      cfg.highlight = list{1};
+      cfg.xparam = 'time';
+      cfg.yparam = '';
+      cfg.comment = strcat(compos,comneg);
+      cfg.commentpos = 'title';
+      topoplotER(cfg, stat);
     end
     % save figure
     if isequal(cfg.saveaspng,'no');
