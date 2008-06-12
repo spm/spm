@@ -17,7 +17,7 @@ function [F,L,KL] = spm_vb_Fn (Y,slice)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_Fn.m 1276 2008-03-28 18:29:19Z guillaume $
+% $Id: spm_vb_Fn.m 1821 2008-06-12 18:12:15Z guillaume $
 
 T=slice.T;
 p=slice.p;
@@ -103,7 +103,6 @@ for n=1:slice.N,
 %             sqrt(slice.a_cov{n})
 %             a_n
 %             sqrt(ibeta_n)
-%             keyboard
         else
             ablock_ni = [1:N*p];
             ablock_ni(ablock_n)=[];

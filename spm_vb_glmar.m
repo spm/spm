@@ -75,7 +75,7 @@ function [slice] = spm_vb_glmar (Y,slice)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_glmar.m 1821 2008-06-12 18:12:15Z guillaume $
 
 
 t0 = clock;
@@ -152,10 +152,7 @@ for it = 1:slice.maxits, % Loop over iterations
         if it > 2
             if delta_F < 0
                 disp(sprintf('********** Warning: decrease in F of %1.4f per cent *************',100*(delta_F/F)));
-                keyboard
                 break;
-                
-                
             elseif abs(delta_F/F) < slice.tol,
                 break;
             end;     
