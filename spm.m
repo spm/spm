@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1816 2008-06-11 15:28:51Z guillaume $
+% $Id: spm.m 1819 2008-06-12 16:22:50Z guillaume $
 
 
 %=======================================================================
@@ -135,38 +135,21 @@ function varargout=spm(varargin)
 % raw  - If specified, then positions are for a 1152 x 900 Sun display.
 %        Otherwise the positions are scaled for the current display.
 %
-% FORMAT SPMdir=spm('Dir',Mfile)
+% FORMAT SPMdir = spm('Dir',Mfile)
 % Returns the directory containing the version of spm in use,
 % identified as the first in MATLABPATH containing the Mfile spm (this
 % file) (or Mfile if specified).
 %
-% FORMAT [v,c]=spm('Ver',Mfile,ReDo,Cache,Con)
-% Returns the current version (v) & copyright notice, extracted from
-% the top line of the Contents.m file in the directory containing the
-% currently used file Mfile (defaults on omission or empty to 'spm').
-%
-%-The version and copyright information are saved in a global
-% variable called [upper(spm_str_manip(Mfile,'rt')),'_VER'], as a
-% structure with fields 'v' and 'c'. This enables repeat use without
-% recomputation.
-%
-%-If Con [default (missing or empty) 1] is false, then the version
-% information is extracted from Mfile itself, rather than the
-% Contents.m file in the same directory. When using a Contents.m file,
-% the first line is read. For other files, the second line (the H1 help
-% line) is used. This is for consistency with MATLAB's ver and help
-% commands respectively. (This functionality enables toolboxes to be
-% identified by a function rather than a Contents.m file, allowing
-% installation in a directory which already has a Contents.m file.)
-%
-%-If Cache [default (missing or empty) 1] is true, then the version and
-% copyright information cached in the global variable
-% [upper(Mfile),'_VER'], as a structure with fields 'v' and 'c'. This
-% enables repeat use without recomputation.
-%
-%-If ReDo [default (missing or empty) 0] is true, then the version and
-% copyright information are recomputed (regardless of any stored global
-% data).
+% FORMAT [v,r] = spm('Ver',Mfile,ReDo)
+% Returns the current version (v) and release (r) of file Mfile. This 
+% corresponds to the Last changed Revision number extracted from the 
+% Subversion Id tag.
+% If Mfile is absent or empty then it returns the current SPM version (v)
+% and release (r), extracted from the file Contents.m in the SPM directory
+% (these information are cached in a persistent variable to enable repeat
+% use without recomputation).
+% If Redo [default false] is true, then the cached current SPM information
+% are not used but recomputed (and recached).
 %
 % FORMAT xTB = spm('TBs')
 % Identifies installed SPM toolboxes: SPM toolboxes are defined as the
@@ -285,6 +268,9 @@ function varargout=spm(varargin)
 % Clears and resets SPM-GUI, clears and timestamps MATLAB command window
 % Finter  - handle or 'Tag' of 'Interactive' figure [default 'Interactive']
 % Fgraph  - handle or 'Tag' of 'Graphics' figure [default 'Graphics']
+%
+% FORMAT spm('Clean')
+% Clear all variables, globals, functions, MEX links and class definitions.
 %
 % FORMAT spm('Help',varargin)
 % Merely a gateway to spm_help(varargin) - so you can type "spm help"
@@ -696,65 +682,37 @@ varargout = {SPMdir};
 %=======================================================================
 case 'ver'                                                 %-SPM version
 %=======================================================================
-% SPMver = spm('Ver',Mfile,ReDo,Cache,Con)
+% [SPMver, SPMrel] = spm('Ver',Mfile,ReDo)
 %-----------------------------------------------------------------------
-if nargin<5, Con=[]; else Con=varargin{5}; end
-if isempty(Con), Con=1; end
-if nargin<4, Cache=[]; else Cache=varargin{4}; end
-if isempty(Cache), Cache=1; end
-if nargin<3, ReDo=[]; else ReDo=varargin{3}; end
-if isempty(ReDo), ReDo=0; end
-if nargin<2, Mfile=''; else Mfile=varargin{2}; end
-if isempty(Mfile), Mfile='spm'; end
-
-xVname = [upper(spm_str_manip(Mfile,'rt')),'_VER'];
-
-%-See if version info exists in global variable
-%-----------------------------------------------------------------------
-xV = spm('GetGlobal',xVname);
-if ~ReDo && ~isempty(xV)
-    if isstruct(xV) && isfield(xV,'v') && isfield(xV,'c')
-        varargout = {xV.v,xV.c};
-        return
+if nargin > 3, warning('This usage of "spm ver" is now deprecated.'); end
+if nargin ~= 3, ReDo = false; else ReDo = logical(varargin{3}); end
+if nargin == 1 || (nargin > 1 && isempty(varargin{2}))
+    Mfile = ''; 
+else
+    Mfile = which(varargin{2});
+    if isempty(Mfile)
+        error('Can''t find %s on MATLABPATH.',varargin{2});
     end
 end
 
-%-Work version out from file
-%-----------------------------------------------------------------------
-if Con
-    Vfile = fullfile(spm('Dir',Mfile),'Contents.m');
-    skip = 0;   %-Don't skip first line
+v = spm_version(ReDo);
+
+if isempty(Mfile)
+    varargout = {v.Release v.Version};
 else
-    Vfile = which(Mfile);
-    if isempty(Vfile), error(['Can''t find ',Mfile,' on MATLABPATH']); end
-    skip = 1;   %-Skip first line
-end
-if exist(Vfile,'file')
-    fid = fopen(Vfile,'r');
-    str = fgets(fid);
-    for i=1:skip, str=fgets(fid); end
-    fclose(fid);
-    str(1:max(1,min(find(str~='%' & str~=' '))-1))=[];
-    tmp = min(find(str==10|str==32));
-    v = str(1:tmp-1);
-    if str(tmp)==32
-        c = str(tmp+1:tmp+min(find(str(tmp+1:end)==10))-1);
-    else
-        c = '(c) Copyright reserved';
+    fp  = fopen(Mfile,'rt');
+    if fp == -1, error('Can''t read %s.',Mfile); end
+    str = fread(fp,Inf,'*uchar');
+    fclose(fp);
+    str = char(str(:)');
+    r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
+        '(\S+Z) (?<author>\S+) \$'],'names','once');
+
+    if isempty(r)
+        r = struct('file',Mfile,'id','???','date','','author','');
     end
-else
-    v = 'SPM';
-    c = '(c) Copyright reserved';
+    varargout = {r(1).id v.Release};
 end
-
-%-Store version info in global variable
-%-----------------------------------------------------------------------
-if Cache
-    eval(['global ',xVname])
-    eval([xVname,' = struct(''v'',v,''c'',c);'])
-end
-
-varargout = {v,c};
 
 
 %=======================================================================
@@ -1099,18 +1057,45 @@ fprintf('Bye for now...\n\n');
 %=======================================================================
 otherwise                                        %-Unknown action string
 %=======================================================================
-error('Unknown action string')
+error('Unknown action string');
 
 %=======================================================================
 end
 
 
 %=======================================================================
-function local_clc
+function local_clc                                %-Clear command window
 %=======================================================================
 if ~isdeployed
-    clc
+    clc;
 end
+
+
+%=======================================================================
+function v = spm_version(ReDo)                    %-Retrieve SPM version
+%=======================================================================
+persistent SPM_VER;
+v = SPM_VER;
+
+str = 'Can''t obtain SPM Revision information.';
+
+if isempty(SPM_VER) || (nargin > 0 && ReDo)
+    v = struct('Name','','Version','','Release','','Date','');
+    try
+        fid = fopen(fullfile(spm('Dir'),'Contents.m'),'rt');
+        if fid == -1, error(str); end
+        l1 = fgetl(fid); l2 = fgetl(fid);
+        fclose(fid);
+        l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
+        t = strread(l2,'%s','delimiter',' ');
+        v.Name = l1; v.Date = t{4};
+        v.Version = t{2}; v.Release = t{3}(2:end-1);
+    catch
+        error(str);
+    end
+    SPM_VER = v;
+end
+
 
 %=======================================================================
 function check_installation
@@ -1133,7 +1118,7 @@ end
 
 %-Check installation
 %-----------------------------------------------------------------------
-spm('Ver','spm',1);
+spm('Ver','',1);
 d = spm('Dir');
 
 %-Check the search path
