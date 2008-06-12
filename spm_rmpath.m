@@ -12,12 +12,12 @@ function varargout = spm_rmpath(d)
 %   P = SPM_RMPATH(D) strips the path string D from the MATLAB path and
 %   returns the cleaned path string in P.
 %
-%   See also WHICH, CD, DIR, ADDPATH, RMPATH, GENPATH, PATHTOOL, SAVEPATH, REHASH.
+%   See also PATH, ADDPATH, RMPATH, GENPATH, PATHTOOL, SAVEPATH.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman & Guillaume Flandin
-% $Id: spm_rmpath.m 1790 2008-06-05 11:27:02Z spm $ 
+% $Id: spm_rmpath.m 1818 2008-06-12 14:53:59Z guillaume $ 
 
 varargout = {};
 if ~nargin
@@ -30,7 +30,7 @@ end
 p = strread(path,'%s','delimiter',pathsep);
 i = strmatch(d,p); P = p(i); p(i) = [];
 if ~nargin && ~isempty(P)
-    fprintf('Removed %s paths starting from base path: "%s"\n',spm('ver','spm',1),d);
+    fprintf('Removed %s paths starting from base path: "%s"\n',spm('ver','',1),d);
 elseif ~isempty(P)
     fprintf('Removed paths starting from base path: "%s" from:\n',d);
 else
