@@ -21,7 +21,7 @@ switch V(4:end)
   XYZ = SPM.XYZ;
   Z   = SPM.Z;
   M   = evalin('base', 'VOL.M', ['error(' errstr ')']);
- case {'2','5'}
+ case {'2','5','8'}
   have_res = evalin('base', 'exist(''xSPM'', ''var'')');
   if ~have_res, return, end
   xSPM = evalin('base', 'xSPM', ['error(' errstr ')']);
