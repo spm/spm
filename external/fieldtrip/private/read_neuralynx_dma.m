@@ -14,6 +14,9 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: read_neuralynx_dma.m,v $
+% Revision 1.20  2008/06/13 12:47:23  roboos
+% added check on STX to detect discontinuous recordings (and give error)
+%
 % Revision 1.19  2007/12/12 11:30:28  roboos
 % remember the offset of the data (header+jumk) in hdr.orig.Offset
 %
@@ -262,14 +265,24 @@ if needhdr
   datoffset = 0*blocksize;
   fseek(fid, hdroffset + datoffset, 'bof');
   buf = fread(fid, blocksize, 'uint32=>uint32');
+  beg_stx = buf(1);
   beg_tsh = buf(4);
   beg_tsl = buf(5);
   datoffset = (hdr.nSamples-1)*blocksize*4;
   fseek(fid, hdroffset + datoffset, 'bof');
   buf = fread(fid, blocksize, 'uint32=>uint32');
+  end_stx = buf(1);
   end_tsh = buf(4);
   end_tsl = buf(5);
   fclose(fid);
+  % check that the junk at the beginning was correctly detected
+  if (beg_stx~=2048)
+    error('problem with STX at the begin of the file');
+  end
+  % check that the file is truely continuous, i.e. no gaps with junk in between
+  if (end_stx~=2048)
+    error('problem with STX at the end of the file');
+  end
   % combine the two uint32 words into a uint64
   hdr.FirstTimeStamp = timestamp_neuralynx(beg_tsl, beg_tsh);
   hdr.LastTimeStamp  = timestamp_neuralynx(end_tsl, end_tsh);
