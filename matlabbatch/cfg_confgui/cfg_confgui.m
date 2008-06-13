@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: cfg_confgui.m 1824 2008-06-13 13:38:32Z volkmar $
 
-rev = '$Rev: 1775 $'; %#ok
+rev = '$Rev: 1824 $'; %#ok
 
 %% Declaration of fields
 
@@ -63,14 +63,20 @@ conf_val_single = conf_val;
 conf_val_single.val = {conf_val_item};
 conf_val_single.num = [1 1];
 
-% check
+% Check
 %-----------------------------------------------------------------------
 conf_check         = cfg_entry;
 conf_check.name    = 'Check';
 conf_check.tag     = 'check';
 conf_check.strtype = 'f';
 conf_check.num     = [0 Inf];
-conf_check.help    = {'Check function (handle).', 'This function will be called during all_set, before a job can be run. It receives the harvested configuration tree rooted at the current item as input. Its output should be a boolean decision whether all inputs are correct and consistent. Note that no dependencies are resolved here. The check function should assume that dependencies will be ok.'};
+conf_check.help    = {'Check function (handle).', ...
+    ['This function will be called during all_set, before a job can be run. ', ...
+    'It receives the harvested configuration tree rooted at the current item as input. ', ...
+    'If the input is ok, it should return an empty string. Otherwise, ', ...
+    'its output should be a string that describes why input is not correct or consistent.'], ...
+    ['Note that the check function will be called only if all dependencies are resolved. ', ...
+    'This will usually be at the time just before the job is actually run.']};
 
 % Help paragraph
 %-----------------------------------------------------------------------
@@ -526,7 +532,7 @@ if isa(varargin{1}.genobj_var, 'cfg_item')
 else
     % Transform struct into class based tree
     out.c0 = cfg_struct2cfg(varargin{1}.genobj_var);
-end;
+end
 [u1 out.djob]  = harvest(out.c0, out.c0, true, true);
 
 function out = cfg_cfg_gencode(varargin)
@@ -536,10 +542,10 @@ if isa(varargin{1}.gencode_var, 'cfg_item')
 else
     % Transform struct into class based tree
     out.c0 = cfg_struct2cfg(varargin{1}.gencode_var);
-end;
+end
 % Generate code
 [str tag] = gencode(out.c0,'',{},'',cfg_tropts({{}},1,inf,1,inf,true));
-[p n e v] = fileparts(varargin{1}.gencode_fname);
+[p n e v] = fileparts(varargin{1}.gencode_fname); %#ok<NASGU>
 out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
 fid = fopen(out.cfg_file{1}, 'w');
 fprintf(fid, 'function %s = %s\n', tag, n);
@@ -552,7 +558,7 @@ fprintf(fid, ...
          '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
 for k = 1:numel(str)
     fprintf(fid, '%s\n', str{k});
-end;
+end
 fclose(fid);
 % Generate defaults file
 [u1 out.djob]  = harvest(out.c0, out.c0, true, true);
@@ -571,7 +577,7 @@ fprintf(fid, ...
          '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
 for k = 1:numel(str)
     fprintf(fid, '%s\n', str{k});
-end;
+end
 fclose(fid);
 % Generate cfg_util initialisation file
 out.mlb_file{1} = fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m');
@@ -609,7 +615,7 @@ if numel(varargin{1}.labels) == numel(varargin{1}.values)
     str = '';
 else
     str = 'Number of labels must match number of values.';
-end;
+end
 
 function vout = cfg_cfg_vout(varargin)
 % cfg_struct2cfg returns its output immediately, so a subscript '(1)' is
