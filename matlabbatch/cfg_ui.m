@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1799 2008-06-09 14:02:09Z volkmar $
+% $Id: cfg_ui.m 1825 2008-06-14 13:26:17Z volkmar $
 
-rev = '$Rev: 1799 $'; %#ok
+rev = '$Rev: 1825 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -90,9 +90,15 @@ function [val, sts] = local_eval_valedit(varargin)
 val = [];
 sts = false;
 try
-    % try to evaluate str as rvalue
-    val = evalin('base', varargin{1});
-    sts = true;
+    % 1st, try to convert into numeric matrix without evaluation
+    % This converts expressions like '1 -1' into [1 -1] instead of
+    % evaluating them
+    [val sts] = str2num(varargin{1}); %#ok<ST2NM>
+    if ~sts
+        % try to evaluate str as rvalue
+        val = evalin('base', varargin{1});
+        sts = true;
+    end
 catch
     everr = lasterror;
     if strcmp(everr.identifier, 'MATLAB:m_invalid_lhs_of_assignment')
