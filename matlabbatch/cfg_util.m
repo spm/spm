@@ -361,9 +361,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_util.m 1827 2008-06-16 13:54:37Z guillaume $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1827 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -806,7 +806,7 @@ end;
 if nargin > 3 && ~isempty(varargin{1})
     c1 = local_initdef(c1, varargin{1});
 end;
-fprintf('%s: Added application ''%s''\n', mfilename, c1.name);
+%fprintf('%s: Added application ''%s''\n', mfilename, c1.name);
 c0.values{end+1} = c1;
 for k = 1:numel(jobs)
     jobs(k).cj.values{end+1} = c1;
