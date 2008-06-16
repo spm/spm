@@ -54,7 +54,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 1144 2008-02-07 19:56:54Z guillaume $
+% $Id: spm_platform.m 1826 2008-06-16 13:51:36Z guillaume $
 
 
 %-Initialise
@@ -224,12 +224,12 @@ end
 %-Fonts
 %--------------------------------------------------------------------------
 switch comp
-    case {'SOL2'}   %-Some Sol2 platforms give segmentation violations with Helvetica
-        PLATFORM.font.helvetica = 'Lucida';
+    case {'MAC','MACI'}
+        PLATFORM.font.helvetica = 'Helvetica';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';
         PLATFORM.font.symbol    = 'Symbol';
-    case {'SOL64','GLNX86','GLNXA64','MAC','MACI'}
+    case {'SOL2','SOL64','GLNX86','GLNXA64'}
         PLATFORM.font.helvetica = 'Helvetica';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';

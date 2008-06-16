@@ -21,14 +21,14 @@ function  [out] = spm_eeg_render(m,options)
 % OUT:
 %   - out: a structure containing the fields:
 %       .hfra: frame structure for movie building
-%   	.handles: a structure containing the handles of the created
-%   	uicontrols and mesh objects.
+%       .handles: a structure containing the handles of the created
+%       uicontrols and mesh objects.
 % NB: The texture and the clusters can not be visualized at the same time.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 1792 2008-06-05 15:43:54Z jean $
+% $Id: spm_eeg_render.m 1826 2008-06-16 13:51:36Z guillaume $
 
 try
     options;

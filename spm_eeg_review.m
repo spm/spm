@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1809 2008-06-10 14:30:27Z guillaume $
+% $Id: spm_eeg_review.m 1826 2008-06-16 13:51:36Z guillaume $
 
 if ~exist('flag','var') || isempty(flag)
     flag = 'standardData';
@@ -217,23 +217,23 @@ figure(hfig)
 % % Visualization buttons
 % handles.BUTTONS.vb1 = uicontrol(hfig,'Position',[0.14 0.92 0.05 0.04].*repmat(POS(3:4),1,2),'cdata',Y3,...
 %     'Callback','spm_eeg_review_callbacks(''visu'',''iten_sc'',2)',...
-% 	'tooltipstring','Increase contrast (intensity rescaling)');
+%   'tooltipstring','Increase contrast (intensity rescaling)');
 % set(handles.BUTTONS.vb1,'units','normalized');
 %
 % handles.BUTTONS.vb2 = uicontrol(hfig,'Position',[0.2 0.92 0.05 0.04].*repmat(POS(3:4),1,2),'cdata',Y4,...
 %     'Callback','spm_eeg_review_callbacks(''visu'',''iten_sc'',0.5)',...
-% 	'tooltipstring','Decrease contrast (intensity rescaling)');
+%   'tooltipstring','Decrease contrast (intensity rescaling)');
 % set(handles.BUTTONS.vb2,'units','normalized');
 %
 %
 % handles.BUTTONS.vb5 = uicontrol(hfig,'Position',[0.26 0.92 0.05 0.04].*repmat(POS(3:4),1,2),'cdata',Y7,...
 %     'callback','spm_eeg_review_callbacks(''visu'',''zoom'',1)',...
-% 	'tooltipstring','Zoom in (mouse box)');
+%   'tooltipstring','Zoom in (mouse box)');
 % set(handles.BUTTONS.vb5,'units','normalized');
 %
 % handles.BUTTONS.vb1 = uicontrol(hfig,'Position',[0.34 0.92 0.05 0.04].*repmat(POS(3:4),1,2),'cdata',Y8,...
 %     'Callback','spm_eeg_review_callbacks(''visu'',''scalp_interp'',1)',...
-% 	'tooltipstring','scalp interpolation (image scalp data)');
+%   'tooltipstring','scalp interpolation (image scalp data)');
 % set(handles.BUTTONS.vb1,'units','normalized');
 
 
@@ -256,12 +256,12 @@ figure(hfig)
 %
 %         handles.BUTTONS.sb2 = uicontrol(hfig,'Position',[0.42 0.92 0.05 0.04].*repmat(POS(3:4),1,2),...
 %             'cdata',Y10,'callback','spm_eeg_review_callbacks(''select'',''goto'',0)',...
-%         	'tooltipstring','Go to closest selected event (forward)','enable',enab);
+%           'tooltipstring','Go to closest selected event (forward)','enable',enab);
 %         set(handles.BUTTONS.sb2,'units','normalized');
 %
 %         handles.BUTTONS.sb3 = uicontrol(hfig,'Position',[0.48 0.92 0.05 0.04].*repmat(POS(3:4),1,2),...
 %             'cdata',Y11,'callback','spm_eeg_review_callbacks(''select'',''goto'',1)',...
-%         	'tooltipstring','Go to closest selected event (backward)','enable',enab);
+%           'tooltipstring','Go to closest selected event (backward)','enable',enab);
 %         set(handles.BUTTONS.sb3,'units','normalized');
 %
 %         clear Y1
