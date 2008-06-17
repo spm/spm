@@ -128,6 +128,9 @@ function [data] = freqsimulation(cfg)
 % Copyright (C) 2007-2008, Ingrid Nieuwenhuis & Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: freqsimulation.m,v $
+% Revision 1.12  2008/06/17 16:13:18  sashae
+% now using preproc_modules
+%
 % Revision 1.11  2008/02/26 14:39:25  roboos
 % fixed bug in cfg.time
 %
@@ -313,8 +316,8 @@ elseif strcmp(cfg.method,'broadband')
 
   % make data
   for iTr = 1 : length(timevec)
-    n1    = bandpassfilter(cfg.n1.ampl*randn(size(timevec{iTr})), cfg.fsample, cfg.n1.bpfreq);
-    n2    = bandpassfilter(cfg.n2.ampl*randn(size(timevec{iTr})), cfg.fsample, cfg.n2.bpfreq);
+    n1    = preproc_bandpassfilter(cfg.n1.ampl*randn(size(timevec{iTr})), cfg.fsample, cfg.n1.bpfreq);
+    n2    = preproc_bandpassfilter(cfg.n2.ampl*randn(size(timevec{iTr})), cfg.fsample, cfg.n2.bpfreq);
     noise = cfg.noise.ampl*randn(size(timevec{iTr}));
     mix   = n1 + n2 + noise;
 
@@ -531,7 +534,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: freqsimulation.m,v 1.11 2008/02/26 14:39:25 roboos Exp $';
+cfg.version.id   = '$Id: freqsimulation.m,v 1.12 2008/06/17 16:13:18 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
