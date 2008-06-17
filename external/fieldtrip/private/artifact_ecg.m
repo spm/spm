@@ -57,6 +57,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.14  2008/06/17 15:43:09  sashae
+% now using preproc_modules
+%
 % Revision 1.13  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -218,7 +221,7 @@ if ~isempty(sgnind)
   for j = 1:ntrl
     fprintf('reading and preprocessing trial %d of %d\n', j, ntrl);
     dum = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
-    dat = dat + blc(dum);
+    dat = dat + preproc_baselinecorrect(dum);
   end 
 end
 
@@ -290,5 +293,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.13 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.14 2008/06/17 15:43:09 sashae Exp $';
 

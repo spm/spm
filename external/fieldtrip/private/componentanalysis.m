@@ -35,6 +35,9 @@ function [comp] = componentanalysis(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.34  2008/06/17 15:21:42  sashae
+% now using preproc_modules
+%
 % Revision 1.33  2008/05/06 14:23:32  sashae
 % change in trial selection, cfg.trials can be a logical
 %
@@ -255,13 +258,13 @@ if strcmp(cfg.detrend, 'yes')
   % optionally perform detrending on each trial
   fprintf('detrending data \n');
   for trial=1:Ntrials
-    data.trial{trial} = detrend(data.trial{trial}')';
+    data.trial{trial} = preproc_detrend(data.trial{trial});
   end
 elseif strcmp(cfg.blc, 'yes') 
   % optionally perform baseline correction on each trial
   fprintf('baseline correcting data \n');
   for trial=1:Ntrials
-    data.trial{trial} = blc(data.trial{trial});
+    data.trial{trial} = preproc_baselinecorrect(data.trial{trial});
   end
 end
 
@@ -443,7 +446,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.33 2008/05/06 14:23:32 sashae Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.34 2008/06/17 15:21:42 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
