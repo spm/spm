@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.66  2008/06/18 08:24:33  roboos
+% added support for BCI2000
+%
 % Revision 1.65  2008/06/18 06:21:59  roboos
 % added support for other event.value types (i.e. int/single/double etc) by introducing a wordsize cell-array
 %
@@ -371,6 +374,53 @@ switch eventformat
     trgindx = match_str(hdr.label, 'TRIGGER');
     trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift);
     event   = appendevent(event, trigger);
+    
+  case 'bci2000_dat'
+    % this is inefficient, since it reads the complete data
+    [signal, states, parameters, total_samples] = load_bcidat(filename);
+    
+    list = fieldnames(states);
+
+    % loop over all states and detect the flanks, the following code was taken from read_trigger
+    for i=1:length(list)
+      channel   = list{i};
+      trig      = double(getfield(states, channel));
+      pad       = trig(1);
+      trigshift = 0;
+      begsample = 1;
+
+      switch detectflank
+        case 'up'
+          % convert the trigger into an event with a value at a specific sample
+          for j=find(diff([pad trig(:)'])>0)
+            event(end+1).type   = channel;
+            event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
+            event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
+          end
+        case 'down'
+          % convert the trigger into an event with a value at a specific sample
+          for j=find(diff([pad trig(:)'])<0)
+            event(end+1).type   = channel;
+            event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
+            event(end  ).value  = trig(j-1-trigshift);    % assign the trigger value just _before_ going down
+          end
+        case 'both'
+          % convert the trigger into an event with a value at a specific sample
+          for j=find(diff([pad trig(:)'])>0)
+            event(end+1).type   = [channel '_up'];        % distinguish between up and down flank
+            event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
+            event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
+          end
+          % convert the trigger into an event with a value at a specific sample
+          for j=find(diff([pad trig(:)'])<0)
+            event(end+1).type   = [channel '_down'];      % distinguish between up and down flank
+            event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
+            event(end  ).value  = trig(j-1-trigshift);    % assign the trigger value just _before_ going down
+          end
+        otherwise
+          error('incorrect specification of ''detectflank''');
+      end
+    end
 
   case {'besa_avr', 'besa_swf'}
     if isempty(hdr)

@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.81  2008/06/18 08:24:33  roboos
+% added support for BCI2000
+%
 % Revision 1.80  2008/05/27 16:12:26  vlalit
 % Changed type name to ced_spike6mat
 %
@@ -416,6 +419,12 @@ elseif filetype_check_extension(filename, '.iso')
   manufacturer = 'ASA';
   content = 'MRI image data';
 
+  % known BCI2000 file types
+elseif filetype_check_extension(filename, '.dat') && filetype_check_header(filename, 'HeaderLen=')
+  ftype = 'bci2000_dat';
+  manufacturer = 'BCI2000';
+  content = 'continuous EEG';
+
   % known Neuroscan file types
 elseif filetype_check_extension(filename, '.avg') && filetype_check_header(filename, 'Version 3.0')
   ftype = 'ns_avg';
@@ -486,9 +495,9 @@ elseif filetype_check_extension(filename, '.seg')
   ftype = 'brainvision_seg';
   manufacturer = 'BrainProducts';
   content = 'segmented EEG data';
-elseif filetype_check_extension(filename, '.dat') && ~filetype_check_header(filename, 'BESA_SA_IMAGE') && ~(exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
+elseif filetype_check_extension(filename, '.dat') && ~filetype_check_header(filename, 'HeaderLen=') && ~filetype_check_header(filename, 'BESA_SA_IMAGE') && ~(exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
   % WARNING this is a very general name, it could be exported BrainVision
-  % data but also a BESA beamformer source reconstruction
+  % data but also a BESA beamformer source reconstruction or BCI2000
   ftype = 'brainvision_dat';
   manufacturer = 'BrainProducts';
   content = 'exported EEG data';
