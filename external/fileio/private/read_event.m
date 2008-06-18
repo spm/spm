@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.65  2008/06/18 06:21:59  roboos
+% added support for other event.value types (i.e. int/single/double etc) by introducing a wordsize cell-array
+%
 % Revision 1.64  2008/06/03 15:29:06  jansch
 % changed extracting trigger index from original hdr into extracting it from
 % the labels, for 4D data
@@ -737,19 +740,42 @@ switch eventformat
       'double'
       };
 
+    wordsize = {
+      1 % 'char'
+      1 % 'uint8'
+      2 % 'uint16'
+      4 % 'uint32'
+      8 % 'uint64'
+      1 % 'int8'
+      2 % 'int16'
+      4 % 'int32'
+      8 % 'int64'
+      4 % 'single'
+      8 % 'double'
+      };
+
     for i=1:length(evt)
-      sel = 1:evt(i).type_numel;
-      if evt(i).type_type==0
+      % convert the field "type" into the Matlab representation
+      this_type = type{evt(i).type_type+1};
+      this_size = wordsize{evt(i).type_type+1} * evt(i).type_numel;
+      sel = 1:this_size;
+      if strcmp(this_type, 'char')
         event(i).type = char(evt(i).buf(sel));
       else
-        event(i).type = typecast(evt(i).buf(sel), type{evt(i).type_type+1});
+        event(i).type = typecast(evt(i).buf(sel), this_type);
       end
-      sel = (evt(i).type_numel+1):(evt(i).type_numel+evt(i).value_numel);
-      if evt(i).value_type==0
+
+      % convert the field "value" into the Matlab representation
+      this_type = type{evt(i).value_type+1};
+      this_size = wordsize{evt(i).value_type+1} * evt(i).value_numel;
+      sel = sel(end) + (1:this_size);
+      if strcmp(this_type, 'char')
         event(i).value = char(evt(i).buf(sel));
       else
-        event(i).value = typecast(evt(i).buf(sel), type{evt(i).value_type+1});
+        event(i).value = typecast(evt(i).buf(sel), this_type);
       end
+
+      % the other fields are simple, because they have a fixed type and only a single elements
       event(i).sample   = evt(i).sample;
       event(i).offset   = evt(i).offset;
       event(i).duration = evt(i).duration;
