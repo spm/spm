@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.51  2008/06/18 08:24:33  roboos
+% added support for BCI2000
+%
 % Revision 1.50  2008/06/10 10:22:12  jansch
 % removed sparse from calibration for 4d data, this is not necessary. added
 % possibility for filnames including '.' for 4d data
@@ -445,6 +448,16 @@ switch dataformat
     end
     % calibrate the data
     dat = calib*dat;
+
+  case 'bci2000_dat'
+    % this is inefficient, since it reads the complete data
+    [signal, states, parameters, total_samples] = load_bcidat(filename);
+    % apply the callibration from AD units to uV
+    dat = double(signal(begsample:endsample,chanindx)');
+    for i=chanindx(:)'
+      dat(i,:) = dat(i,:).* parameters.SourceChGain.NumericValue(i) + parameters.SourceChOffset.NumericValue(i);
+    end
+    dimord = 'chans_samples';
 
   case 'besa_avr'
     % BESA average data

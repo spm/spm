@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.62  2008/06/18 08:24:33  roboos
+% added support for BCI2000
+%
 % Revision 1.61  2008/06/06 12:45:50  jansch
 % changed filename-construction for 4d-datafiles to accommodate for filtered
 % data
@@ -376,6 +379,26 @@ switch headerformat
     hdr.nTrials     = orig.TotalEpochs;
     hdr.label       = orig.ChannelOrder(:);
     hdr.grad        = bti2grad(orig);
+    % remember original header details
+    hdr.orig        = orig;
+
+  case 'bci2000_dat'
+    % this is inefficient, since it reads the complete data
+    [signal, states, parameters, total_samples] = load_bcidat(filename);
+    orig = parameters;
+    hdr.Fs          = orig.SamplingRate.NumericValue;
+    hdr.nChans      = orig.SourceCh.NumericValue;
+    hdr.nSamples    = total_samples;
+    hdr.nSamplesPre = 0;  % it is continuous
+    hdr.nTrials     = 1;  % it is continuous
+    if ~isempty(orig.ChannelNames.Value)
+      hdr.label       = orig.ChannelNames.Value;
+    else
+      warning('creating fake channel names for bci2000_dat');
+      for i=1:hdr.nChans
+        hdr.label{i} = sprintf('%03d', i);
+      end
+    end
     % remember original header details
     hdr.orig        = orig;
 
