@@ -29,6 +29,9 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.10  2008/06/19 20:50:35  roboos
+% added initial support for fcdc_buffer, sofar only for the header
+%
 % Revision 1.9  2008/01/31 20:05:05  roboos
 % removed fcdc_ftc
 % updated documentation
@@ -77,7 +80,40 @@ hdr           = keyval('header',        varargin);
 [nchans, nsamples] = size(dat);
 
 switch dataformat
-  case 'ctf_meg4'  % wat als ctf_ds??
+  case 'fcdc_buffer'
+
+    [host, port] = filetype_check_uri(filename);
+    
+       type = {
+      'char'
+      'uint8'
+      'uint16'
+      'uint32'
+      'uint64'
+      'int8'
+      'int16'
+      'int32'
+      'int64'
+      'single'
+      'double'
+      };
+
+    if ~isempty(hdr)
+      % reformat the header into a buffer-compatible format
+      H.fsample   = hdr.Fs;
+      H.nchans    = hdr.nChans;
+      H.nsamples  = 0;
+      H.nevents   = 0;
+      H.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+      buffer('put_hdr', H, host, port);
+    end    
+    if ~isempty(dat)
+      error('not yet implemented'); 
+      % FIXME reformat the data into a buffer-compatible format
+      buffer('put_dat', dat, host, port);
+    end    
+
+    case 'ctf_meg4'  % wat als ctf_ds??
     % this is a skeleton implementation only and a lot of details still
     % need to be filled in. The implementation has not been tested yet.
     warning('this implementation has not yet been tested');
