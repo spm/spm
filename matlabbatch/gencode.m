@@ -26,9 +26,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1783 2008-06-03 10:48:24Z volkmar $
+% $Id: gencode.m 1834 2008-06-19 14:49:20Z volkmar $
 
-rev = '$Rev: 1783 $'; %#ok
+rev = '$Rev: 1834 $'; %#ok
 
 if nargin < 2
     tag = inputname(1);
@@ -71,6 +71,10 @@ if sts
         str{1} = sprintf('%s%s', lvaleq, rstr{1});
         str(2:end-1) = strcat(indent, rstr(2:end-1));
         str{end} = sprintf('%s%s;', indent{1}, rstr{end});
+        if numel(str) > 10
+            % add cell mode comment to structure longer output
+            str = [{'%%'} str {'%%'}];
+        end
     end
 else   
     switch class(item)

@@ -12,9 +12,9 @@ function newjobs = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_jobs.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: cfg_load_jobs.m 1834 2008-06-19 14:49:20Z volkmar $
 
-rev = '$Rev: 1790 $'; %#ok
+rev = '$Rev: 1834 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);
@@ -44,6 +44,7 @@ for cf = 1:numel(filenames)
                 if ~isempty(p)
                     cd(p);
                 end;
+                clear(nam);
                 eval(nam);
             catch
                 warning('cfg_util:local_load_jobs','Eval failed: ''%s''',filenames{cf});

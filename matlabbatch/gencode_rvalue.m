@@ -8,7 +8,7 @@ switch class(item)
             % Create cell string, keep white space padding
             for k = 1:size(item,1)
                 cstr{k} = item(k,:);
-            end;
+            end
             str1 = genstrarray(cstr);
             if numel(str1) == 1
                 % One string, do not print brackets
@@ -16,11 +16,11 @@ switch class(item)
             else
                 % String array, print brackets and concatenate str1
                 str = {'[' str1{:} ']'};
-            end;
+            end
         else
             % not an rvalue
             sts = false;
-        end;
+        end
     case 'cell'
         if isempty(item)
             str = {'{}'};
@@ -30,7 +30,7 @@ switch class(item)
                 [str2 sts] = gencode_rvalue(item{k});
                 if ~sts
                     break;
-                end;
+                end
                 str1 = {str1{:} str2{:}};
             end
             if sts
@@ -43,13 +43,13 @@ switch class(item)
                         endstr = '}''';
                     else
                         endstr = '}';
-                    end;
+                    end
                     str = {'{' str1{:} endstr};
-                end;
-            end;
+                end
+            end
         else
             sts = false;
-        end;
+        end
     case 'function_handle'
         fstr = func2str(item);
         % sometimes (e.g. for anonymous functions) '@' is already included
@@ -78,7 +78,7 @@ switch class(item)
                     str1 = textscan(mat2str(item), '%s', 'delimiter', ';');
                 else
                     str1 = textscan(mat2str(item,'class'), '%s', 'delimiter', ';');
-                end;
+                end
                 if numel(str1{1}) > 1
                     str = str1{1};
                 else
