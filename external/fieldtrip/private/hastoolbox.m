@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, add_to_path);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.15  2008/06/20 07:25:56  roboos
+% added check for presence of BCI2000 load_bcidat mex file
+%
 % Revision 1.14  2008/05/15 10:52:29  roboos
 % added ctf
 %
@@ -103,6 +106,7 @@ url = {
   'FILEIO'     'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:fileio'
   'FORWINV'    'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:forwinv'
   'DENOISE'    'see http://lumiere.ens.fr/Audition/adc/meg, or contact Alain de Cheveigne'
+  'BCI2000'    'see http://bci2000.org'
 };
 
 if nargin<2
@@ -169,6 +173,8 @@ switch toolbox
     status  = (exist('tsr') && exist('sns'));
   case 'CTF'
     status  = (exist('getCTFBalanceCoefs') && exist('getCTFdata'));
+  case 'BCI2000'
+    status  = exist('load_bcidat');
   otherwise
     warning(sprintf('cannot determine whether the %s toolbox is present', toolbox));
     status = 0;

@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.67  2008/06/20 07:25:56  roboos
+% added check for presence of BCI2000 load_bcidat mex file
+%
 % Revision 1.66  2008/06/18 08:24:33  roboos
 % added support for BCI2000
 %
@@ -376,6 +379,8 @@ switch eventformat
     event   = appendevent(event, trigger);
     
   case 'bci2000_dat'
+    % this requires the load_bcidat mex file to be present on the path
+    hastoolbox('BCI2000', 1);
     % this is inefficient, since it reads the complete data
     [signal, states, parameters, total_samples] = load_bcidat(filename);
     

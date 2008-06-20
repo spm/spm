@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.63  2008/06/20 07:25:56  roboos
+% added check for presence of BCI2000 load_bcidat mex file
+%
 % Revision 1.62  2008/06/18 08:24:33  roboos
 % added support for BCI2000
 %
@@ -383,6 +386,8 @@ switch headerformat
     hdr.orig        = orig;
 
   case 'bci2000_dat'
+    % this requires the load_bcidat mex file to be present on the path
+    hastoolbox('BCI2000', 1);
     % this is inefficient, since it reads the complete data
     [signal, states, parameters, total_samples] = load_bcidat(filename);
     orig = parameters;
