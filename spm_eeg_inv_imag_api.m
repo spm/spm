@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 1844 2008-06-20 20:14:05Z guillaume $
 
 
 spm('defaults','EEG');
@@ -20,11 +20,11 @@ if nargin < 2
     % open figure
     %----------------------------------------------------------------------
     fig     = openfig(mfilename,'reuse');
-    WS      = spm('WinScale');
-    Rect    = spm('WinSize','Menu','raw').*WS;
+    Rect    = spm('WinSize','Menu');
+    S0      = spm('WinSize','0',1);
     set(fig,'units','pixels');
     Fdim    = get(fig,'position');
-    set(fig,'position',[Rect(1) Rect(2) Fdim(3) Fdim(4)]);
+    set(fig,'position',[S0(1)+Rect(1) S0(2)+Rect(2) Fdim(3) Fdim(4)]);
     handles = guihandles(fig);
 
     % Use system color scheme for figure:

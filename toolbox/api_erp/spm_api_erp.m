@@ -6,11 +6,14 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1702 2008-05-21 13:55:11Z vladimir $
+% $Id: spm_api_erp.m 1844 2008-06-20 20:14:05Z guillaume $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
     fig     = openfig(mfilename,'reuse');
+    S0      = spm('WinSize','0',1);
+    set(fig,'units','pixels'); Fdim = get(fig,'position');
+    set(fig,'position',[S0(1) S0(2) 0 0] + Fdim);
     Fgraph  = spm_figure('GetWin','Graphics');
     % Use system color scheme for figure:
     set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));

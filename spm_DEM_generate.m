@@ -23,7 +23,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 1329 2008-04-09 13:22:23Z karl $
+% $Id: spm_DEM_generate.m 1844 2008-06-20 20:14:05Z guillaume $
  
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------
@@ -42,9 +42,9 @@ end
  
 % initialise model-parameters if specified
 %--------------------------------------------------------------------------
-try P; if ~iscell(P), P = {P}; end, catch, P = {M.pE}; end
-try h; if ~iscell(h), h = {h}; end, catch, h = {}; end
-try g; if ~iscell(P), g = {g}; end, catch, g = {}; end
+try, P; if ~iscell(P), P = {P}; end, catch, P = {M.pE}; end
+try, h; if ~iscell(h), h = {h}; end, catch, h = {}; end
+try, g; if ~iscell(P), g = {g}; end, catch, g = {}; end
  
 % transcribe parameters and hyperparameters into prior expectations
 %--------------------------------------------------------------------------
