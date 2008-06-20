@@ -76,10 +76,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_getfile.m 1761 2008-05-29 17:35:21Z guillaume $
+% $Id: cfg_getfile.m 1843 2008-06-20 19:41:36Z guillaume $
 
 % John Ashburner
-% $Id: cfg_getfile.m 1761 2008-05-29 17:35:21Z guillaume $
+% $Id: cfg_getfile.m 1843 2008-06-20 19:41:36Z guillaume $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -187,35 +187,20 @@ fg = figure('IntegerHandle','off',...
         'ResizeFcn',@resize_fun,...
         'KeyPressFcn',@hitkey);
 
-% Code from Brian Lenoski for dealing with multiple monitors
-%if spm_matlab_version_chk('7') >=0
-    S    = get(0, 'MonitorPosition');
-    Rect = get(fg,'Position');
-    pointer_loc = get(0,'PointerLocation');
-
-    for i = 1:size(S,1), % Loop over monitors
-        h_min   = S(i,1);
-        h_width = S(i,3);
-        h_max   = h_width + h_min - 1;
-        v_min   = S(i,2);
-        v_len   = S(i,4);
-        v_max   = v_min + v_len;
-
-        % Use the monitor containing the pointer
-        if pointer_loc(1) >= h_min && pointer_loc(1) < h_max && ...
-           pointer_loc(2) >= v_min && pointer_loc(2) < v_max,
-            hor_min   = h_min;
-            hor_width = h_width;
-            hor_max   = h_max;
-            ver_min   = v_min;
-            ver_len   = v_len;
-            ver_max   = v_max;
-        end
-    end
-    Rect(1) = (hor_max - 0.5*hor_width) - 0.5*Rect(3); % Horizontal
-    Rect(2) = (ver_max - 0.5*ver_len)   - 0.5*Rect(4); % Vertical
-    set(fg,'Position',Rect);
-%end
+Rect = get(fg,'Position');
+%S0 = spm('WinSize','0',1);
+S0   = get(0,'MonitorPosition');
+if size(S0,1) > 1 % Multiple Monitors
+    %-Use Monitor containing the Pointer
+    pl = get(0,'PointerLocation');
+    w  = find(pl(1)>=S0(:,1) & pl(1)<S0(:,1)+S0(:,3)-1 &...
+            pl(2)>=S0(:,2) & pl(2)<S0(:,2)+S0(:,4));
+    if numel(w)~=1, w = 1; end
+    S0 = S0(w,:);
+end
+Rect(1) = S0(1) + (S0(3) - Rect(3))/2;
+Rect(2) = S0(2) + (S0(4) - Rect(4))/2;
+set(fg,'Position',Rect);
 
 
 fh = 0.05;

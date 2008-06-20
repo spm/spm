@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1819 2008-06-12 16:22:50Z guillaume $
+% $Id: spm.m 1843 2008-06-20 19:41:36Z guillaume $
 
 
 %=======================================================================
@@ -304,7 +304,7 @@ set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Fon
 set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
 RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
 set(Fwelcome,'Units','pixels', 'Position',...
-    [(Rect0(3)-RectW(3))/2 (Rect0(4)-RectW(4))/2 RectW(3) RectW(4)]);
+    [Rect0(1)+(Rect0(3)-RectW(3))/2, Rect0(2)+(Rect0(4)-RectW(4))/2, RectW(3), RectW(4)]);
 set(Fwelcome,'Visible','on');
 
 %=======================================================================
@@ -480,7 +480,9 @@ case 'createmenuwin'                            %-Create SPM menu window
 delete(spm_figure('FindWin','Menu'))
 Fmenu     = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
 set(Fmenu,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
-set(Fmenu,'Units','pixels', 'Position',spm('winsize','M'));
+S0 = spm('WinSize','0',1);
+SM = spm('WinSize','M');
+set(Fmenu,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] + SM);
 
 %-Set SPM colour
 %-----------------------------------------------------------------------
@@ -502,7 +504,9 @@ case 'createintwin'                      %-Create SPM interactive window
 delete(spm_figure('FindWin','Interactive'))
 Finter    = openfig(fullfile(spm('Dir'),'spm_Interactive.fig'),'new','invisible');
 set(Finter,'name',spm('Ver'));
-set(Finter,'Units','pixels', 'Position',spm('winsize','I'));
+S0 = spm('WinSize','0',1);
+SI = spm('WinSize','I');
+set(Finter,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] +  SI);
 varargout = {Finter};
 
 
@@ -511,19 +515,14 @@ case 'winscale'                  %-Window scale factors (to fit display)
 %=======================================================================
 % WS = spm('WinScale')
 %-----------------------------------------------------------------------
-S0 = get(0, 'MonitorPosition');
+S0 = spm('WinSize','0',1);
 
 if all(ismember(S0(:),[0 1]))
-    warning('SPM:noDisplay','Can''t open display...');
     varargout = {[1 1 1 1]};
     return;
 end
 
-S0    = S0(:,[3 4]) - S0(:,[1 2]) + 1;
-S0    = S0 - rem(S0,2);
-[m,i] = max(prod(S0,2));
-S0    = S0(i,:);
-tmp   = [S0(1)/1152 (S0(2)-50)/900];
+tmp   = [S0(3)/1152 (S0(4)-50)/900];
 
 varargout = {min(tmp)*[1 1 1 1]};
 
@@ -562,10 +561,8 @@ Rect = [[108 466 400 445];...
         [515 015 600 865];...
         [326 310 500 280]];
 
-WS = spm('WinScale');
-
 if isempty(Win)
-    WS = ones(3,1)*WS;
+    %-All windows
 elseif upper(Win(1))=='M'
     %-Menu window
     Rect = Rect(1,:);
@@ -581,12 +578,26 @@ elseif upper(Win(1))=='W'
 elseif Win(1)=='0'
     %-Root workspace
     Rect = get(0, 'MonitorPosition');
-    Rect = Rect(1,:);
+    if all(ismember(Rect(:),[0 1]))
+        warning('SPM:noDisplay','Unable to open display.');
+    end
+    if size(Rect,1) > 1 % Multiple Monitors
+        %-Use Monitor containing the Pointer
+        pl = get(0,'PointerLocation');
+        w  = find(pl(1)>=Rect(:,1) & pl(1)<Rect(:,1)+Rect(:,3)-1 &...
+                pl(2)>=Rect(:,2) & pl(2)<Rect(:,2)+Rect(:,4));
+        if numel(w)~=1, w = 1; end
+        Rect = Rect(w,:);
+    end
 else
     error('Unknown Win type');
 end
 
-if ~raw, Rect = Rect.*WS; end
+if ~raw
+    WS = repmat(spm('WinScale'),size(Rect,1),1);
+    Rect = Rect.*WS; 
+end
+
 varargout = {Rect};
 
 

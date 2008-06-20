@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 1704 2008-05-21 14:00:09Z karl $
+% $Id: spm_figure.m 1843 2008-06-20 19:41:36Z guillaume $
 
 
 %=======================================================================
@@ -614,14 +614,15 @@ if nargin<4 || isempty(varargin{4}), Visible='on'; else Visible=varargin{4}; end
 if nargin<3, Name=''; else Name = varargin{3}; end
 if nargin<2, Tag='';  else Tag  = varargin{2}; end
 
-WS   = spm('WinScale');             %-Window scaling factors
-FS   = spm('FontSizes');            %-Scaled font sizes
-PF   = spm_platform('fonts');           %-Font names (for this platform)
-Rect = spm('WinSize','Graphics','raw').*WS; %-Graphics window rectangle
+WS   = spm('WinScale');           %-Window scaling factors
+FS   = spm('FontSizes');          %-Scaled font sizes
+PF   = spm_platform('fonts');     %-Font names (for this platform)
+Rect = spm('WinSize','Graphics'); %-Graphics window rectangle
+S0   = spm('WinSize','0',1);      %-Screen size (of the current monitor)
 
 F    = figure(...
     'Tag',Tag,...
-    'Position',Rect,...
+    'Position',[S0(1) S0(2) 0 0] + Rect,...
     'Resize','off',...
     'Color','w',...
     'ColorMap',gray(64),...

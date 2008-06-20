@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 1607 2008-05-13 08:01:30Z stefan $
+% $Id: spm_conman.m 1843 2008-06-20 19:41:36Z guillaume $
 
 
 %=======================================================================
@@ -1799,23 +1799,12 @@ switch lower(varargin{1}), case 'initialise'
         WS = spm('WinScale');               %-Window scaling factors
         FS = spm('FontSizes');              %-Scaled font sizes
         PF = spm_platform('fonts');         %-Font names (for this platform)
-        if spm_matlab_version_chk('7') >= 0,    %-Screen size
-            S0 = get(0, 'MonitorPosition');
-
-            % Monitor containing the pointer (thanks to Brian Lenoski)
-            pl = get(0,'PointerLocation');
-            i  = find(pl(1)>=S0(:,1) & pl(1)<S0(:,1)+S0(:,3)-1 &...
-                pl(2)>=S0(:,2) & pl(1)<S0(:,2)+S0(:,4));
-            if numel(i)~=1, i=1; end;
-            S0 = S0(i,:);
-        else
-            S0 = get(0,'ScreenSize');
-        end;
+        S0 = spm('WinSize','0',1);          %-Screen size (of the current monitor)
 
         F = figure('IntegerHandle','off',...
             'Tag','ConMan',...
             'Name','SPM contrast manager','NumberTitle','off',...
-            'Position',[S0(3)/2,S0(4)/2,0,0] + [-250,-200,500,400].*WS,...
+            'Position',[S0(1)+S0(3)/2,S0(2)+S0(4)/2,0,0] + [-250,-200,500,400].*WS,...
             'Resize','off',...
             'Color',[1 1 1]*.7,...
             'MenuBar','none',...
