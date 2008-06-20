@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.52  2008/06/20 07:25:56  roboos
+% added check for presence of BCI2000 load_bcidat mex file
+%
 % Revision 1.51  2008/06/18 08:24:33  roboos
 % added support for BCI2000
 %
@@ -450,6 +453,8 @@ switch dataformat
     dat = calib*dat;
 
   case 'bci2000_dat'
+    % this requires the load_bcidat mex file to be present on the path
+    hastoolbox('BCI2000', 1);
     % this is inefficient, since it reads the complete data
     [signal, states, parameters, total_samples] = load_bcidat(filename);
     % apply the callibration from AD units to uV
