@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 1731 2008-05-27 10:51:12Z vladimir $
+% $Id: spm_eeg_var_measures.m 1846 2008-06-23 15:46:53Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -102,13 +102,13 @@ for c=1:length(data.label)
     end
 end
 
-% Plot the coherence
+% Plot power and coherence
 
-figure('Name', 'Fourier coherence');
+figure('Name', 'Fourier power and coherence');
 for i=1:1:length(data.label)
     for j=1:1:length(data.label)
-        if (i~=j)
-            subplot(length(data.label),length(data.label), sub2ind([length(data.label) length(data.label)], i, j));
+        subplot(length(data.label),length(data.label), sub2ind([length(data.label) length(data.label)], i, j));
+        if (i~=j)            
             ind=[intersect(strmatch(data.label{i},coh.labelcmb(:,1),'exact'), ...
                 strmatch(data.label{j},coh.labelcmb(:,2),'exact'))...
                 intersect(strmatch(data.label{i},coh.labelcmb(:,2),'exact'), ...
@@ -119,6 +119,10 @@ for i=1:1:length(data.label)
             ylim([0 1]);
             xlim([0 100]);
             title([data.label{i} '->' data.label{j}]);
+        else
+            plot(inp.freq, log(squeeze(mean(inp.powspctrm(:, i, :),1))), 'b');
+            xlim([0 100]);
+            title(data.label{i});
         end
     end
 end
