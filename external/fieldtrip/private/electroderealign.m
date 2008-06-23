@@ -62,25 +62,31 @@ function [norm] = electroderealign(cfg);
 % structures (i.e. when they are already read in memory) or as electrode
 % files.
 %
-% If you want to align the electrodes to the head surface as obtained from
-% an anatomical MRI (using one of the warping methods), you should specify
-% the head surface
-%   cfg.headshape      = a filename containing headshape, a structure containing a
-%                        single triangulated boundary, or a Nx3 matrix with surface
-%                        points
-%
-% In case you only want to realign the fiducials, the template electrode
+% If you only want to realign using the fiducials, the template electrode
 % set only has to contain the three fiducials, e.g.
 %   cfg.template.pnt(1,:) = [110 0 0]  % location of the nose
 %   cfg.template.pnt(2,:) = [0  90 0]  % left ear
 %   cfg.template.pnt(3,:) = [0 -90 0]  % right ear
 %   cfg.template.label    = {''nasion', 'lpa', 'rpa'}
 %
+% If you want to align the electrodes to the head surface as obtained from
+% an anatomical MRI, you should specify the head surface as
+%   cfg.headshape      = a filename containing headshape, a structure containing a
+%                        single triangulated boundary, or a Nx3 matrix with surface
+%                        points
+%
 % See also READ_FCDC_ELEC, VOLUMEREALIGN
 
-% Copyright (C) 2005-2006, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: electroderealign.m,v $
+% Revision 1.8  2008/06/23 08:17:23  roboos
+% allow method=interactive with both template and headshape (for Vladimir)
+% repositioned global variable fb
+% reordered help
+% changed transform_headshape into transform_sens
+% renamed internal variable surf into headshape (used in interactive plotting)
+%
 % Revision 1.7  2008/03/05 10:46:35  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -141,12 +147,15 @@ function [norm] = electroderealign(cfg);
 % new implementation
 %
 
+% this is used for feedback of the lower-level functions
+global fb
+
 % set the defaults
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';       end
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'no';       end
 if ~isfield(cfg, 'casesensitive'), cfg.casesensitive = 'yes'; end
-if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end
-if ~isfield(cfg, 'template'),      cfg.template = [];         end
+if ~isfield(cfg, 'headshape'),     cfg.headshape = [];        end % for triangulated head surface, without labels
+if ~isfield(cfg, 'template'),      cfg.template = [];         end % for electrodes or fiducials, always with labels
 
 % this is a common mistake which can be accepted
 if strcmp(cfg.method, 'realignfiducials')
@@ -160,15 +169,17 @@ end
 
 if strcmp(cfg.feedback, 'yes')
   % use the global fb field to tell the warping toolbox to print feedback
-  global fb
   fb = 1;
 else
-  global fb
   fb = 0;
 end
 
 usetemplate  = isfield(cfg, 'template')  && ~isempty(cfg.template);
 useheadshape = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);
+
+if ~usetemplate && ~useheadshape
+  error('you should either specify template electrode positions, template fiducials or a head shape');
+end
 
 if usetemplate
   % get the template electrode definitions
@@ -183,7 +194,9 @@ if usetemplate
       template(i) = read_sens(cfg.template{i});
     end
   end
-elseif useheadshape
+end
+
+if useheadshape
   % get the surface describing the head shape
   if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
     % use the headshape surface specified in the configuration
@@ -191,13 +204,9 @@ elseif useheadshape
   elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
     % use the headshape points specified in the configuration
     headshape.pnt = cfg.headshape;
-  elseif ischar(cfg.headshape) && filetype(cfg.headshape, 'ctf_shape')
+  elseif ischar(cfg.headshape)
     % read the headshape from file
-    headshape = read_ctf_shape(cfg.headshape);
-  elseif ischar(cfg.headshape) && filetype(cfg.headshape, '4d_hs')
-    % read the headshape from file
-    headshape     = []; 
-    headshape.pnt = read_bti_hs(cfg.headshape);
+    headshape = read_headshape(cfg.headshape);
   else
     error('cfg.headshape is not specified correctly')
   end
@@ -205,8 +214,6 @@ elseif useheadshape
     % generate a closed triangulation from the surface points
     headshape.tri = projecttri(headshape.pnt);
   end
-else
-  error('you should either specify template electrode positions, template fiducials or a head shape');
 end
 
 % get the electrode definition that should be warped
@@ -450,7 +457,7 @@ elseif strcmp(cfg.method, 'interactive')
   setappdata(fig, 'elec', elec);
   setappdata(fig, 'transform', eye(4));
   if useheadshape
-    setappdata(fig, 'surf', headshape);
+    setappdata(fig, 'headshape', headshape);
   end
   if usetemplate
     % FIXME interactive realigning to template electrodes is not yet supported
@@ -480,7 +487,10 @@ if any(strcmp(cfg.method, {'rigidbody', 'globalrescale', 'traditional', 'nonlin1
 else
   norm.pnt   = warp_apply(norm.m, orig.pnt, 'homogenous');
 end
-norm.label = orig.label;
+
+if isfield(orig, 'label')
+    norm.label = orig.label;
+end
 
 % add version information to the configuration
 try
@@ -491,7 +501,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: electroderealign.m,v 1.7 2008/03/05 10:46:35 roboos Exp $';
+cfg.version.id = '$Id: electroderealign.m,v 1.8 2008/06/23 08:17:23 roboos Exp $';
 
 % remember the configuration
 norm.cfg = cfg;
@@ -628,7 +638,7 @@ layoutgui(fig, [0.7 0.05 0.25 0.50], position, style, string, value, tag, callba
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cb_redraw(hObject, eventdata, handles);
 fig = get(hObject, 'parent');
-surf = getappdata(fig, 'surf');
+headshape = getappdata(fig, 'headshape');
 elec = getappdata(fig, 'elec');
 template = getappdata(fig, 'template');
 % get the transformation details
@@ -645,13 +655,13 @@ R = rotate   ([rx ry rz]);
 T = translate([tx ty tz]);
 S = scale    ([sx sy sz]);
 H = S * T * R;
-elec.pnt = warp_apply(H, elec.pnt);
+elec = transform_sens(H, elec);
 axis vis3d; cla
 xlabel('x')
 ylabel('y')
 zlabel('z')
-if ~isempty(surf)
-  triplot(surf.pnt, surf.tri,  [], 'faces_skin');
+if ~isempty(headshape)
+  triplot(headshape.pnt, headshape.tri,  [], 'faces_skin');
   alpha(str2num(get(findobj(fig, 'tag', 'alpha'), 'string')));
 end
 if ~isempty(template)
@@ -660,6 +670,9 @@ end
 triplot(elec.pnt, [], [], 'nodes');
 if isfield(elec, 'line')
   triplot(elec.pnt, elec.line, [], 'edges');
+end
+if isfield(elec, 'fid') && ~isempty(elec.fid.pnt)
+  triplot(elec.fid.pnt, [], [], 'nodes_red');
 end
 if get(findobj(fig, 'tag', 'toggle axes'), 'value')
   axis on
@@ -691,7 +704,7 @@ R = rotate   ([rx ry rz]);
 T = translate([tx ty tz]);
 S = scale    ([sx sy sz]);
 H = S * T * R;
-elec.pnt = warp_apply(H, elec.pnt);
+elec = transform_headshape(H, elec);
 transform = H * transform;
 set(findobj(fig, 'tag', 'rx'), 'string', 0);
 set(findobj(fig, 'tag', 'ry'), 'string', 0);
@@ -718,3 +731,4 @@ norm   = getappdata(fig, 'elec');
 norm.m = getappdata(fig, 'transform');
 set(fig, 'CloseRequestFcn', @delete);
 delete(fig);
+
