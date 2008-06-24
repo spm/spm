@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_peb_ppi.m 1847 2008-06-24 11:20:48Z guillaume $
 
 
 % set up the graphical interface
@@ -87,7 +87,9 @@ header = get(Finter,'Name');
 % check inputs and set up variables
 %----------------------------------------------------------------------
 if ~nargin
-    swd   = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+    [P, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, return; end
+    swd   = spm_str_manip(P,'H');
     load(fullfile(swd,'SPM.mat'))
     cd(swd)
 end

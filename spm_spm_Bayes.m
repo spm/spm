@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_spm_Bayes.m 1847 2008-06-24 11:20:48Z guillaume $
 
 
 %-Say hello
@@ -78,7 +78,9 @@ Finter = spm('FigName','Stats: Bayesian estimation...');
 %-Select SPM.mat & change directory
 %-----------------------------------------------------------------------
 if ~nargin
-    swd = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
+    [P, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    if ~sts, return; end
+    swd = spm_str_manip(P,'H');
     load(fullfile(swd,'SPM.mat'))
     cd(swd)
 end
