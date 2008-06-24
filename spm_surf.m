@@ -55,13 +55,13 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 1847 2008-06-24 11:20:48Z guillaume $
+% $Id: spm_surf.m 1848 2008-06-24 11:29:07Z guillaume $
 
 
 if ~nargin
-	[Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
+    [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Surface');
 
-    spm('FnBanner',mfilename,'$Rev: 1847 $');
+    spm('FnBanner',mfilename,'$Rev: 1848 $');
     spm_help('!ContextHelp',mfilename);
 
     [P, sts] = spm_select([1 Inf],'image','Select images');
@@ -164,7 +164,7 @@ if any(mode==[2 3 4]),
         if any(mode==[4]),
             out.objfile{k} = fullfile(pth,[nam1 '.obj']);
             fid   = fopen(out.objfile{k},'w');
-            fprintf(fid,'# Created with %s (%s v %s) on %s\n',spm('Ver'),mfilename,'$Rev: 1847 $',date);
+            fprintf(fid,'# Created with %s (%s v %s) on %s\n',spm('Ver'),mfilename,'$Rev: 1848 $',date);
             fprintf(fid,'v %.3f %.3f %.3f\n',vertices');
             fprintf(fid,'g Cortex\n'); % Group Cortex
             fprintf(fid,'f %d %d %d\n',faces');
