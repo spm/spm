@@ -16,6 +16,7 @@ function [hs, hc, contour] = triplot(pnt, tri, val, mode, levels)
 %   'surface'     make interpolated plot of value on surface (default)
 %   'faces'       plot white triangles only        (value can be [])
 %   'faces_red'   plot red triangles only          (value can be [])
+%   'faces_blue'  plot blue triangles only         (value can be [])
 %   'faces_skin'  plot skin-colored triangles only (value can be [])
 %   'face_index'  plot index of each triangle      (value can be [])
 %   'nodes'       plot black vertices only         (value can be [])
@@ -37,6 +38,10 @@ function [hs, hc, contour] = triplot(pnt, tri, val, mode, levels)
 % Copyright (C) 2001=2006, Robert Oostenveld
 %
 % $Log: triplot.m,v $
+% Revision 1.7  2008/06/24 13:37:51  roboos
+% added option faces_blue
+% always return handle to objects that were plotted
+%
 % Revision 1.6  2007/01/03 17:00:35  roboos
 % updated documentation, changed layout of code and comments
 %
@@ -197,6 +202,15 @@ switch lower(mode)
     lighting gouraud
     material shiny
     camlight
+    
+  case 'faces_blue'
+    % plot the faces of the 2D or 3D triangulation
+    hs = patch('Vertices', pnt, 'Faces', tri);
+    set(hs, 'FaceColor', [0 0 1]);
+    set(hs, 'EdgeColor', 'none');
+    lighting gouraud
+    material shiny
+    camlight
 
   case 'face_index'
     % plot the triangle indices (numbers) at each face
@@ -218,10 +232,26 @@ switch lower(mode)
   case 'nodes'
     % plot the nodes (vertices) only as points
     if size(pnt, 2)==2
-      plot(pnt(:,1), pnt(:,2), 'k.');
+      hs = plot(pnt(:,1), pnt(:,2), 'k.');
     else
-      plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'k.');
+      hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'k.');
     end
+    
+  case 'nodes_blue'
+    % plot the nodes (vertices) only as points
+    if size(pnt, 2)==2
+      hs = plot(pnt(:,1), pnt(:,2), 'b.', 'MarkerSize', 20);
+    else
+      hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'b.', 'MarkerSize', 20);
+    end  
+    
+  case 'nodes_red'
+    % plot the nodes (vertices) only as points
+    if size(pnt, 2)==2
+      hs = plot(pnt(:,1), pnt(:,2), 'r.', 'MarkerSize', 20);
+    else
+      hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'r.', 'MarkerSize', 20);
+    end   
 
   case 'node_index'
     % plot the vertex indices (numbers) at each node
