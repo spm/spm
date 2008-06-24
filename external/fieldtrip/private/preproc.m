@@ -86,9 +86,10 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.precision     = 'single' or 'double' (default = 'double')
 %
 % Preprocessing options that you should only use for EEG data are
-%   cfg.reref         = 'no' or 'yes'
-%   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros
+%   cfg.reref         = 'no' or 'yes' (default = 'no')
 %   cfg.refchannel    = cell-array with new EEG reference channel(s)
+%   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros (default = [])
+%   cfg.montage       = 'no' or a montage structure (default = 'no')
 %
 % See also READ_FCDC_DATA, READ_FCDC_HEADER
 
@@ -97,6 +98,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.28  2008/06/24 12:47:12  roboos
+% added cfg.montage as alternative for rereferencing
+%
 % Revision 1.27  2008/04/09 14:12:41  roboos
 % test isnan over both dimensions of data
 %
@@ -262,6 +266,7 @@ if ~isfield(cfg, 'rectify'),      cfg.rectify = 'no';           end
 if ~isfield(cfg, 'boxcar'),       cfg.boxcar = 'no';            end
 if ~isfield(cfg, 'absdiff'),      cfg.absdiff = 'no';           end
 if ~isfield(cfg, 'precision'),    cfg.precision = [];           end
+if ~isfield(cfg, 'montage'),      cfg.montage = 'no';           end
 
 % test whether the Matlab signal processing toolbox is available
 if strcmp(cfg.medianfilter, 'yes') && ~hastoolbox('signal')
@@ -284,6 +289,11 @@ if strcmp(cfg.hilbert, 'yes') && strcmp(cfg.rectify, 'yes')
   error('hilbert transform and rectification should not be applied both')
 end
 
+% do a sanity check on the rereferencing/montage
+if ~strcmp(cfg.reref, 'no') && ~strcmp(cfg.montage, 'no')
+  error('cfg.reref and cfg.montage are mutually exclusive')
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do the rereferencing in case of EEG
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -291,6 +301,7 @@ if ~isempty(cfg.implicitref) && ~any(strmatch(cfg.implicitref,label))
   label = {label{:} cfg.implicitref};
   dat(end+1,:) = 0;
 end
+
 if strcmp(cfg.reref, 'yes'),
   cfg.refchannel = channelselection(cfg.refchannel, label);
   refindx = match_str(label, cfg.refchannel);
@@ -298,6 +309,11 @@ if strcmp(cfg.reref, 'yes'),
     error('reference channel was not found')
   end
   dat = avgref(dat, refindx);
+end
+
+if ~strcmp(cfg.montage, 'no')
+  % this is an alternative approach for rereferencing, with arbitrary complex linear combinations of channels
+  dat = apply_montage(dat, cfg.montage);
 end
 
 if any(any(isnan(dat)))

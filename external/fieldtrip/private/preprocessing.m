@@ -76,9 +76,10 @@ function [data] = preprocessing(cfg, data);
 %   cfg.precision     = 'single' or 'double' (default = 'double')
 %
 % Preprocessing options that you should only use for EEG data are
-%   cfg.reref         = 'no' or 'yes'
-%   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros
+%   cfg.reref         = 'no' or 'yes' (default = 'no')
 %   cfg.refchannel    = cell-array with new EEG reference channel(s)
+%   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros (default = [])
+%   cfg.montage       = 'no' or a montage structure (default = 'no')
 %
 % Preprocessing options that you should only use when you are calling PREPROCESSING with 
 % also the second input argument "data" are
@@ -130,6 +131,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.91  2008/06/24 12:47:12  roboos
+% added cfg.montage as alternative for rereferencing
+%
 % Revision 1.90  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -590,7 +594,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.90 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.91 2008/06/24 12:47:12 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
