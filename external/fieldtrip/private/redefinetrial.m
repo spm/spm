@@ -41,6 +41,9 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.15  2008/06/25 06:37:57  roboos
+% change in whitespace
+%
 % Revision 1.14  2008/05/06 14:03:10  sashae
 % change in trial selection, cfg.trials can be a logical
 %
@@ -105,11 +108,11 @@ fb   = strcmp(cfg.feedback, 'yes');
 % try to locate the trial definition (trl) in the nested configuration
 if isfield(data,'cfg')
   trl = findcfg(data.cfg, 'trl');
+  if length(data.trial)~=size(trl,1) || length(data.time)~=size(trl,1)
+    error('the trial definition is inconsistent with the data');
+  end
 else
   trl = [];
-end
-if length(data.trial)~=size(trl,1) || length(data.time)~=size(trl,1)
-  error('the trial definition is inconsistent with the data');
 end
 trlold = trl;
 
@@ -318,7 +321,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.14 2008/05/06 14:03:10 sashae Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.15 2008/06/25 06:37:57 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

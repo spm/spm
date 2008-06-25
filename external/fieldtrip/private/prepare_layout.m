@@ -22,6 +22,7 @@ function [lay] = prepare_layout(cfg, data);
 %   cfg.grad        structure with gradiometer definition, or
 %   cfg.gradfile    filename containing gradiometer definition
 %   cfg.output      filename to which the layout will be written (default = [])
+%   cfg.montage     'no' or a montage structure (default = 'no')
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -42,6 +43,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.16  2008/06/25 06:36:06  roboos
+% added option cfg.montage, computes average location for bipolar channels
+%
 % Revision 1.15  2008/05/14 19:17:24  roboos
 % fixed bug for vladimirs neuromag306 example, removed spm specific documentation
 %
@@ -122,6 +126,7 @@ if ~isfield(cfg, 'gradfile'),   cfg.gradfile = [];              end
 if ~isfield(cfg, 'elecfile'),   cfg.elecfile = [];              end
 if ~isfield(cfg, 'output'),     cfg.output = [];                end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'no';            end
+if ~isfield(cfg, 'montage'),    cfg.montage = 'no';             end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
@@ -216,6 +221,29 @@ else
   lay = readlay('CTF151s.lay');
 end
 
+if ~strcmp(cfg.montage, 'no')
+  % apply the montage, i.e. combine bipolar channels into a new representation
+  Norg = length(cfg.montage.labelorg);
+  Nnew = length(cfg.montage.labelnew);
+  
+  for i=1:Nnew
+    cfg.montage.tra(i,:) = abs(cfg.montage.tra(i,:));
+    cfg.montage.tra(i,:) = cfg.montage.tra(i,:) ./ sum(cfg.montage.tra(i,:));
+  end
+  % pretend it is a sensor structure, this achieves averaging after channel matching
+  tmp.tra   = lay.pos;
+  tmp.label = lay.label;
+  new = apply_montage(tmp, cfg.montage);
+  lay.pos   = new.tra;
+  lay.label = new.label;
+  % do the same for the width and height
+  tmp.tra = lay.width(:);
+  new = apply_montage(tmp, cfg.montage);
+  lay.width = new.tra;
+  tmp.tra = lay.height(:);
+  new = apply_montage(tmp, cfg.montage);
+  lay.height = new.tra;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % add axes positions for comments and scale information if required

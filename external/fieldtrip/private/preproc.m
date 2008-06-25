@@ -67,6 +67,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.bpfiltord     = bandpass filter order
 %   cfg.bsfiltord     = bandstop filter order
 %   cfg.lnfiltord     = line noise notch filter order
+%   cfg.medianfiltord = length of median filter
 %   cfg.lpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.hpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.bpfilttype    = digital filter type, 'but' (default) or 'fir'
@@ -75,7 +76,6 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.hpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
 %   cfg.bpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
 %   cfg.bsfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
-%   cfg.medianfiltord = length of median filter
 %   cfg.blc           = 'no' or 'yes'
 %   cfg.blcwindow     = [begin end] in seconds, the default is the complete trial
 %   cfg.detrend       = 'no' or 'yes', this is done on the complete trial
@@ -98,6 +98,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.29  2008/06/25 06:37:17  roboos
+% change in whitespace
+%
 % Revision 1.28  2008/06/24 12:47:12  roboos
 % added cfg.montage as alternative for rereferencing
 %

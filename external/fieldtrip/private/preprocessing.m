@@ -131,6 +131,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.92  2008/06/25 06:36:49  roboos
+% use new API for read_data instead of old one
+%
 % Revision 1.91  2008/06/24 12:47:12  roboos
 % added cfg.montage as alternative for rereferencing
 %
@@ -562,7 +565,7 @@ else
     end
 
     % read the raw data with padding on both sides of the trial
-    dat = read_data(cfg.datafile, hdr, begsample, endsample, rawindx, strcmp(cfg.continuous, 'yes'));
+    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', rawindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
 
     % do the preprocessing on the padded trial data and remove the padding after filtering
     [cutdat{i}, label, time{i}, cfg] = preproc(dat, hdr.label(rawindx), hdr.Fs, cfg, cfg.trl(i,3), begpadding, endpadding);
@@ -594,7 +597,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.91 2008/06/24 12:47:12 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.92 2008/06/25 06:36:49 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

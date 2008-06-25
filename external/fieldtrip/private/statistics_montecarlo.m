@@ -75,6 +75,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.23  2008/06/25 06:38:31  roboos
+% removed backward compatibility cfg option rename anova->fstat
+%
 % Revision 1.22  2008/01/15 11:32:41  roboos
 % implemented cfg.correctp, default is the same as before. Probably the
 % old behaviour is UNDESIRED, but more discussion is needed and a thourough
@@ -227,7 +230,6 @@ cfg.unitfactor = cfg.uvar;
 % for backward compatibility with some low-level statfuns
 if strcmp(cfg.statistic, 'corrcoef'),      cfg.statistic='pearson';      end
 if strcmp(cfg.statistic, 'difference'),    cfg.statistic='diff';         end
-if strcmp(cfg.statistic, 'anova'),         cfg.statistic='fstat';        end
 if strcmp(cfg.statistic, 'paired-tstat'),  cfg.statistic='paired_tstat'; end
 
 % for backward compatibility in clustering
