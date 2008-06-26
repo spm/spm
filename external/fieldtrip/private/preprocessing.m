@@ -131,6 +131,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.93  2008/06/26 15:31:34  roboos
+% added cfg.headerformat and dataformat, these are passed to low-level readers and allow overriding the auto-detected format
+%
 % Revision 1.92  2008/06/25 06:36:49  roboos
 % use new API for read_data instead of old one
 %
@@ -311,6 +314,9 @@ if ~isfield(cfg, 'removeeog'),    cfg.removeeog = 'no';         end
 if ~isfield(cfg, 'feedback'),     cfg.feedback = 'text';        end
 if ~isfield(cfg, 'precision'),    cfg.precision = 'double';     end
 if ~isfield(cfg, 'padding'),      cfg.padding = 0;              end % padding is only done when filtering
+if ~isfield(cfg, 'headerformat'), cfg.headerformat = [];        end % is passed to low-level function, empty implies autodetection
+if ~isfield(cfg, 'dataformat'),   cfg.dataformat = [];          end % is passed to low-level function, empty implies autodetection
+
 
 % these options relate to the actual preprocessing, it is neccessary to specify here because of padding
 if ~isfield(cfg, 'lnfilter'),     cfg.lnfilter = 'no';          end
@@ -424,7 +430,7 @@ else
   end
 
   % read the header
-  hdr = read_header(cfg.headerfile);
+  hdr = read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
 
   % this option relates to reading over trial boundaries in a pseudo-continuous dataset
   if ~isfield(cfg, 'continuous')
@@ -565,7 +571,7 @@ else
     end
 
     % read the raw data with padding on both sides of the trial
-    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', rawindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
+    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', rawindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
 
     % do the preprocessing on the padded trial data and remove the padding after filtering
     [cutdat{i}, label, time{i}, cfg] = preproc(dat, hdr.label(rawindx), hdr.Fs, cfg, cfg.trl(i,3), begpadding, endpadding);
@@ -597,7 +603,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.92 2008/06/25 06:36:49 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.93 2008/06/26 15:31:34 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

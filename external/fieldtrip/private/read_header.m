@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.64  2008/06/26 15:50:56  roboos
+% tread ctf_new just as ctf_ds w.r.t. mapping of the filenames
+%
 % Revision 1.63  2008/06/20 07:25:56  roboos
 % added check for presence of BCI2000 load_bcidat mex file
 %
@@ -298,7 +301,7 @@ switch headerformat
     datafile   = fullfile(path, [file,ext]);
     headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
-  case 'ctf_ds'
+  case {'ctf_ds', 'ctf_new'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);

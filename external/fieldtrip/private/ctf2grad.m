@@ -14,6 +14,9 @@ function [grad] = ctf2grad(hdr, dewar);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: ctf2grad.m,v $
+% Revision 1.6  2008/06/26 15:32:19  roboos
+% balancing shoudl be subtracted from orig channel, hence added minus sign
+%
 % Revision 1.5  2008/05/20 12:24:14  roboos
 % apply optional balancing to grad.tra
 %
@@ -145,7 +148,7 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   nref              = length(reflabel);
   montage.labelorg  = cat(1, meglabel, reflabel);
   montage.labelnew  = cat(1, meglabel, reflabel);
-  montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G1BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+  montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G1BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
   grad.balance.G1BR = montage;
 
   meglabel          = label(hdr.BalanceCoefs.G2BR.MEGlist);
@@ -154,7 +157,7 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   nref              = length(reflabel);
   montage.labelorg  = cat(1, meglabel, reflabel);
   montage.labelnew  = cat(1, meglabel, reflabel);
-  montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G2BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+  montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G2BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
   grad.balance.G2BR = montage;
 
   meglabel          = label(hdr.BalanceCoefs.G3BR.MEGlist);
@@ -163,7 +166,7 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   nref              = length(reflabel);
   montage.labelorg  = cat(1, meglabel, reflabel);
   montage.labelnew  = cat(1, meglabel, reflabel);
-  montage.tra       = [eye(nmeg, nmeg), hdr.BalanceCoefs.G3BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
+  montage.tra       = [eye(nmeg, nmeg), -hdr.BalanceCoefs.G3BR.alphaMEG'; zeros(nref, nmeg), eye(nref, nref)];
   grad.balance.G3BR = montage;
   
   if     all([hdr.res4.senres(selMEG).grad_order_no]==0)
