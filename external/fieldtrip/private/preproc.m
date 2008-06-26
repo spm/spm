@@ -98,6 +98,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.30  2008/06/26 07:55:38  roboos
+% apply_montage needs cell+label structure and not matrix (thanks to Conrado)
+%
 % Revision 1.29  2008/06/25 06:37:17  roboos
 % change in whitespace
 %
@@ -316,7 +319,12 @@ end
 
 if ~strcmp(cfg.montage, 'no')
   % this is an alternative approach for rereferencing, with arbitrary complex linear combinations of channels
-  dat = apply_montage(dat, cfg.montage);
+  tmp.trial = {dat};
+  tmp.label = label;
+  tmp = apply_montage(tmp, cfg.montage);
+  dat = tmp.trial{1};
+  label = tmp.label;
+  clear tmp
 end
 
 if any(any(isnan(dat)))
