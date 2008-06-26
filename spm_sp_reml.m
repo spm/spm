@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_sp_reml.m 1857 2008-06-26 11:30:47Z rik $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -223,7 +223,7 @@ if nargout > 3
             
     % complexity - KL(Ph,hP)
     %----------------------------------------------------------------------
-    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq);
+    Fc = Ft/2 + e'*hP*e/2 + spm_logdet(Ph*inv(hP))/2 - N*spm_logdet(Cq)/2;
     
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
