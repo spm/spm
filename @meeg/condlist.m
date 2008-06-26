@@ -6,16 +6,16 @@ function res = condlist(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: condlist.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: condlist.m 1855 2008-06-26 11:00:01Z vladimir $
 
 res = getset(this, 'trials', 'label');
-
-[res, ind] = unique(res);
-
-[junk, ind] = sort(ind);
 
 if ~iscell(res)
     res = {res};
 end
+
+[res, ind] = unique(res);
+
+[junk, ind] = sort(ind);
 
 res = res(ind);

@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 1614 2008-05-13 14:40:13Z stefan $
+% $Id: spm_eeg_filter.m 1855 2008-06-26 11:00:01Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -184,7 +184,7 @@ else
 
         d = squeeze(D(Fchannels, :, i));
 
-        for j = Fchannels
+        for j = 1:length(Fchannels)
             if strcmpi(filter.type, 'butterworth')
                 d(j,:) = filtfilt(filter.para{1}, filter.para{2}, double(d(j,:)));
             end
