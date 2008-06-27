@@ -8,7 +8,7 @@ function spm_DEM_ButtonDownFcn
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_ButtonDownFcn.m 1861 2008-06-27 13:28:10Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ if isstruct(S{1})
     
     % save avi file
     %----------------------------------------------------------------------
-    [FILENAME, PATHNAME] = uiputfile('*.wav','wave file');
+    [FILENAME, PATHNAME] = uiputfile('*.avi','movie file');
     NAME = fullfile(PATHNAME,FILENAME);
     movie2avi(S{1},NAME,'compression','none')
     
@@ -31,13 +31,14 @@ else
     % play sound
     %----------------------------------------------------------------------
     soundsc(S{1},S{2});
-    %return
+    return
     
     % save wav file
     %----------------------------------------------------------------------
     [FILENAME, PATHNAME] = uiputfile('*.wav','wave file');
     NAME = fullfile(PATHNAME,FILENAME);
-    wavwrite(S{1},S{2},32,NAME)
+    S{1} = S{1}/max(S{1}(:));
+    wavwrite(S{1},S{2},16,NAME)
 end
  
 
