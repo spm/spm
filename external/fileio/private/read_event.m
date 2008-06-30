@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.68  2008/06/30 15:35:20  roboos
+% changed ns_eeg events following a suggestion by Monika Mellem
+%
 % Revision 1.67  2008/06/20 07:25:56  roboos
 % added check for presence of BCI2000 load_bcidat mex file
 %
@@ -1213,18 +1216,21 @@ switch eventformat
       hdr = read_header(filename);
     end
     for i=1:hdr.nTrials
+      % the *.eeg file has a fixed trigger value for each trial
+      % furthermore each trial has the label 'accept' or 'reject'
+      tmp = read_ns_eeg(filename, i);
+      % create an event with the trigger value
       event(end+1).type     = 'trial';
       event(end  ).sample   = (i-1)*hdr.nSamples + 1;
-      event(end  ).value    = [];
+      event(end  ).value    = tmp.sweep.type;  % trigger value
       event(end  ).offset   = -hdr.nSamplesPre;
       event(end  ).duration =  hdr.nSamples;
-      % read the data to determine manually accepted/rejected trials
-      tmp = read_ns_eeg(filename, i);
-      if tmp.sweep.accept
-        event(end).value = 'accept';
-      else
-        event(end).value = 'reject';
-      end
+      % create an event with the boolean accept/reject code
+      event(end+1).type     = 'accept';
+      event(end  ).sample   = (i-1)*hdr.nSamples + 1;
+      event(end  ).value    = tmp.sweep.accept;  % boolean value indicating accept/reject
+      event(end  ).offset   = -hdr.nSamplesPre;
+      event(end  ).duration =  hdr.nSamples;
     end
 
   case 'plexon_nex'
