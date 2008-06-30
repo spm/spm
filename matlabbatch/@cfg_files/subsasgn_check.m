@@ -12,9 +12,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -25,9 +25,9 @@ switch subs(1).subs
         sts = iscell(val) && (isempty(val) || isempty(val{1}) || ...
                               isa(val{1}, 'cfg_dep') || iscellstr(val{1}));
         if ~sts
-            warning('matlabbatch:cfg_files:subsasgn_check', ...
+            cfg_message('matlabbatch:checkval', ...
                     '%s: Value must be either empty, a cellstr or a cfg_dep object.', subsasgn_checkstr(item,subs));
-        end;
+        end
         if ~isempty(val) && iscellstr(val{1})
             % do filtering and .num checks
             % this is already done in interactive mode, but not in batch
@@ -42,16 +42,16 @@ switch subs(1).subs
             [val{1} sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
             if numel(val{1}) < item.num(1)
                 sts = false;
-                warning('matlabbatch:cfg_files:subsasgn_check', ...
+                cfg_message('matlabbatch:checkval', ...
                         ['%s: Number of matching files (%d) less than ' ...
                          'required (%d).'], ...
                         subsasgn_checkstr(item,subs), numel(val{1}), item.num(1));
             elseif numel(val{1}) > item.num(2)
-                warning('matlabbatch:cfg_files:subsasgn_check', ...
+                cfg_message('matlabbatch:checkval', ...
                         ['%s: Number of matching files larger than ' ...
                          'max allowed, keeping %d/%d files.'], ...
                         subsasgn_checkstr(item,subs), item.num(2), numel(val{1}));
                 val{1} = val{1}(1:item.num(2));
-            end;
-        end;
-end;
+            end
+        end
+end

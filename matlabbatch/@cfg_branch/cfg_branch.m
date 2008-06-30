@@ -50,9 +50,9 @@ function item = cfg_branch(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_branch.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_branch.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
@@ -69,7 +69,7 @@ if nargin == 1
             item  = class(sitem, myclass, gitem, cfg_intree);
             return;
         else
-            error('matlabbatch:reclassify', ['Don''t know how to convert this ' ...
+            cfg_message('matlabbatch:constructor:reclassify', ['Don''t know how to convert this ' ...
                                 'into class ''%s''.'], myclass);
         end;
     end;
@@ -87,7 +87,7 @@ switch nargin
     case {1,2,3,4,5}
         gitem = cfg_item(varargin{1:pnargin});
     otherwise
-        error('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
+        cfg_message('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
 end;
 item = class(struct([]), myclass, gitem, cfg_intree);
 if nargin > mxpnargin

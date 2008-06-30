@@ -10,8 +10,8 @@ function item = setval(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: setval.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
-warning('matlabbatch:cfg_branch:setval', 'Setting val{} of branch items via setval() not permitted.');
+cfg_message('matlabbatch:setval', 'Setting val{} of branch items via setval() not permitted.');

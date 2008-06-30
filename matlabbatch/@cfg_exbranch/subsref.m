@@ -23,15 +23,15 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsref.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 switch subs(1).type,
     case {'.'},
         if numel(item) > 1
-            error('matlabbatch:subsref:multiref', ...
-                  'Field to multiple items not allowed for cfg_item classes.');
+            cfg_message('matlabbatch:subsref:multiref', ...
+                  'Field reference to multiple items not allowed for cfg_item classes.');
         end;
         citem = class(item);
         switch citem
@@ -53,7 +53,7 @@ switch subs(1).type,
             case par_fields,
                 val{1} = item.(par_class).(subs(1).subs);
             otherwise
-                error('matlabbatch:subsref:unknownfield', ...
+                cfg_message('matlabbatch:subsref:unknownfield', ...
                       ['Reference to unknown field ''%s''.\nTo reference ' ...
                        'a field in the job structure, use a reference like ' ...
                        '''(x).%s'''], subs(1).subs, subs(1).subs);
@@ -71,7 +71,7 @@ switch subs(1).type,
     case {'()','{}'},
         val = subsref_job(item, subs, false);
     otherwise
-        error('matlabbatch:subsref:unknowntype', ...
+        cfg_message('matlabbatch:subsref:unknowntype', ...
               'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end
 

@@ -40,9 +40,9 @@ function dep = cfg_dep(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_dep.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_dep.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 dep = class(struct('tname','Target', ...
                    'tgt_exbranch', struct('type',{},'subs',{}), ...
@@ -105,5 +105,5 @@ switch nargin
         dep.src_exbranch(1:numel(varargin{7})) = varargin{7};
         dep.src_output(1:numel(varargin{8})) = varargin{8};
     otherwise
-        error('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
+        cfg_message('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
 end;

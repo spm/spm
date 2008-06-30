@@ -24,9 +24,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1775 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 sts = true;
 switch class(item)
@@ -35,46 +35,46 @@ switch class(item)
         switch subs(1).subs
             case {'tag', 'name'},
                 if ~ischar(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:tagname', '%s: Value must be a string.', subsasgn_checkstr(item,subs));
+                    cfg_message('matlabbatch:check:tagname', '%s: Value must be a string.', subsasgn_checkstr(item,subs));
                     sts = false;
-                end;
+                end
             case {'val'},
                 % Check match of a dependency. Other item-specific checks
                 % are performed in an item's subsasgn_check.
                 if isa(val, 'cfg_dep')
                     sts = match(item, cfg_dep.tgt_spec);
                     if ~sts
-                        warning('matlabbatch:cfg_item:subsasgn_check:depmatch', '%s: Dependency does not match.', subsasgn_checkstr(item,subs));
-                    end;
-                end;
+                        cfg_message('matlabbatch:checkval', '%s: Dependency does not match.', subsasgn_checkstr(item,subs));
+                    end
+                end
             case {'check'},
                 if ~subsasgn_check_funhandle(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:check', ...
+                    cfg_message('matlabbatch:check:funhandle', ...
                             ['%s: Value must be a function or function ' ...
                              'handle on MATLAB path.'], subsasgn_checkstr(item,subs));
                     sts = false;
-                end;
+                end
             case {'help'},
                 if isempty(val)
                     val = {};
                 elseif ~iscellstr(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:help', '%s: Value must be a cell string.', subsasgn_checkstr(item,subs));
+                    cfg_message('matlabbatch:check:help', '%s: Value must be a cell string.', subsasgn_checkstr(item,subs));
                     sts = false;
-                end;
+                end
             case {'def'},
                 if isempty(val)
                     val = [];
                 elseif ~subsasgn_check_funhandle(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:def', '%s: Value must be a function or function handle.', subsasgn_checkstr(item,subs));
+                    cfg_message('matlabbatch:check:def', '%s: Value must be a function or function handle.', subsasgn_checkstr(item,subs));
                     sts = false;
-                end;
+                end
             case {'hidden', 'expanded'},
                 if ~islogical(val)
-                    warning('matlabbatch:cfg_item:subsasgn_check:logical', '%s: Value must be ''true'' or ''false''.', subsasgn_checkstr(item,subs));
+                    cfg_message('matlabbatch:check:hiddenexpanded', '%s: Value must be ''true'' or ''false''.', subsasgn_checkstr(item,subs));
                     sts = false;
-                end;
-        end;
+                end
+        end
     otherwise
         % fall back for derived classes
         sts = true;
-end;
+end

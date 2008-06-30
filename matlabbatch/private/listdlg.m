@@ -41,7 +41,7 @@ function [selection,value] = listdlg(varargin)
 %    MSGBOX, QUESTDLG, WARNDLG.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 1606 $  $Date: 2005/10/28 15:54:55 $
+%   $Revision: 1862 $  $Date: 2005/10/28 15:54:55 $
 
 %   'uh'            uicontrol button height, in pixels; default = 22.
 %   'fus'           frame/uicontrol spacing, in pixels; default = 8.
@@ -51,7 +51,7 @@ function [selection,value] = listdlg(varargin)
 %
 % d = dir; [s,v] = listdlg('PromptString','Select a file:','ListString',{d.name});
 % 
-error(nargchk(1,inf,nargin))
+cfg_message(nargchk(1,inf,nargin,'struct'))
 
 figname = '';
 smode = 2;   % (multiple)
@@ -67,7 +67,7 @@ uh = 22;
 
 if mod(length(varargin),2) ~= 0
     % input args have not com in pairs, woe is me
-    error('MATLAB:listdlg:InvalidArgument', 'Arguments to LISTDLG must come param/value in pairs.')
+    cfg_message('MATLAB:listdlg:InvalidArgument', 'Arguments to LISTDLG must come param/value in pairs.')
 end
 for i=1:2:length(varargin)
     switch lower(varargin{i})
@@ -99,7 +99,7 @@ for i=1:2:length(varargin)
      case 'cancelstring'
       cancelstring = varargin{i+1};
      otherwise
-      error('MATLAB:listdlg:UnknownParameter', ['Unknown parameter name passed to LISTDLG.  Name was ' varargin{i}])
+      cfg_message('MATLAB:listdlg:UnknownParameter', ['Unknown parameter name passed to LISTDLG.  Name was ' varargin{i}])
     end
 end
 
@@ -112,7 +112,7 @@ if isempty(initialvalue)
 end
 
 if isempty(liststring)
-    error('MATLAB:listdlg:NeedParameter', 'ListString parameter is required.')
+    cfg_message('MATLAB:listdlg:NeedParameter', 'ListString parameter is required.')
 end
 
 ex = get(0,'defaultuicontrolfontsize')*1.7;  % height extent per line of uicontrol text (approx)

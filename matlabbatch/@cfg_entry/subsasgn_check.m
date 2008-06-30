@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1764 2008-05-30 13:09:40Z volkmar $
+% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1764 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -22,34 +22,35 @@ switch subs(1).subs
         % input in cfg_entry items, not a min/max number
         sts = isnumeric(val) && (isempty(val) || numel(val)>=2 && all(val(:) >= 0));
         if ~sts
-             warning('matlabbatch:cfg_entry:subsasgn_check:num', ...
+             cfg_message('matlabbatch:check:num', ...
                      '%s: Value must be empty or a vector of non-negative numbers with at least 2 elements', ...
                      subsasgn_checkstr(item,subs));
-        end;
+        end
     case {'val'}
         % perform validity checks - subsasgn_check should be called with
         % a cell containing one item
         if ~iscell(val)
-            warning('matlabbatch:cfg_entry:subsasgn_check:iscell', '%s: Value must be a cell.', subsasgn_checkstr(item,subs));
+            cfg_message('matlabbatch:checkval', ...
+                    '%s: Value must be a cell.', subsasgn_checkstr(item,subs));
             sts = false;
             return;
-        end;
+        end
         if isempty(val)
             val = {};
         else
             % check whether val{1} is a valid element
             [sts vtmp] = valcheck(item,val{1});
             val{1} = vtmp;
-        end;
+        end
     case {'strtype'}
         strtypes = {'s','e','f','n','w','i','r','c','x','p'};
         sts = isempty(val) || (ischar(val) && ...
                                any(strcmp(val, strtypes)));
         if ~sts
-            warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+            cfg_message('matlabbatch:check:strtype', ...
                     '%s: Value must be a valid strtype.', subsasgn_checkstr(item,subs));
-        end;
-end;
+        end
+end
 
 function [sts, val] = valcheck(item,val)
 % taken from spm_jobman/stringval
@@ -57,77 +58,77 @@ function [sts, val] = valcheck(item,val)
 sts = true;
 % check for reserved words
 if ischar(val) && any(strcmp(val, {'<UNDEFINED>','<DEFAULTS>'}))
-    warning('matlabbatch:cfg_entry:subsasgn_check:reserved', ...
+    cfg_message('matlabbatch:checkval', ...
             ['%s: Item must not be one of the reserved words ''<UNDEFINED>'' ' ...
              'or ''<DEFAULTS>''.'], subsasgn_checkstr(item,substruct('.','val')));
     sts = false;
     return;
-end;
+end
 if ~isa(val,'cfg_dep')
     switch item.strtype
         case {'s'}
             if ~ischar(val)
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Item must be a string.', subsasgn_checkstr(item,substruct('.','val')));
                 sts = false;
             else
                 [sts val] = numcheck(item,val);
-            end;
+            end
         case {'s+'}
-            warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+            cfg_message('matlabbatch:checkval', ...
                     '%s: FAILURE: Cant do s+ yet', subsasgn_checkstr(item,substruct('.','val')));
         case {'f'}
             % test whether val is a function handle or a name of an
             % existing function
             sts = subsasgn_check_funhandle(val);
             if ~sts
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Item must be a function handle or function name.', ...
                         subsasgn_checkstr(item,substruct('.','val')));
-            end;
+            end
         case {'n'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && all(val(:) >= 1) && ...
                                    all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Item must be an array of natural numbers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
-            end;
+            end
             [sts val] = numcheck(item,val);
         case {'i'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && ...
                                    all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                cfg_message('matlabbatch:subsasgn:val', ...
                         '%s: Item must be an array of integers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
-            end;
+            end
             [sts val] = numcheck(item,val);
         case {'r'}
             sts = isempty(val) || (isnumeric(val) && all(isreal(val(:))));
             if ~sts
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Item must be an array of real numbers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
-            end;
+            end
             [sts val] = numcheck(item,val);
         case {'w'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && all(val(:) >= 0) && ...
                                    all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
-                warning('matlabbatch:cfg_entry:subsasgn_check:strtype', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Item must be an array of whole numbers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
-            end;
+            end
             [sts val] = numcheck(item,val);
         otherwise
             % only do size check for other strtypes
             [sts val] = numcheck(item,val);
-    end;
-end;
+    end
+end
 
 function [sts, val] = numcheck(item,val)
 % allow arbitrary size, if num field is empty
@@ -138,10 +139,10 @@ if ~isempty(item.num)
         % interpret num field as [min max] # elements
         sts = item.num(1) <= numel(val) && numel(val) <= item.num(2);
         if ~sts
-            warning('matlabbatch:cfg_entry:subsasgn_check:notsize', ...
+            cfg_message('matlabbatch:checkval', ...
                     '%s: Size mismatch (required [%s], present [%s]).', ...
                     subsasgn_checkstr(item,substruct('.','val')), num2str(item.num), num2str(csz));
-        end;
+        end
     else
         ind = item.num>0 & isfinite(item.num);
         if numel(csz) == 2
@@ -149,25 +150,26 @@ if ~isempty(item.num)
             cszt = size(val');
         else
             cszt = csz;
-        end;
+        end
         if numel(item.num) ~= numel(csz)
-            warning('matlabbatch:cfg_entry:subsasgn_check:notdim', '%s: Dimension mismatch (required %d, present %d).', subsasgn_checkstr(item,substruct('.','val')), numel(item.num), numel(csz));
+            cfg_message('matlabbatch:checkval', ...
+                    '%s: Dimension mismatch (required %d, present %d).', subsasgn_checkstr(item,substruct('.','val')), numel(item.num), numel(csz));
             sts = false;
             return;
-        end;
+        end
         if any(item.num(ind)-csz(ind))
             if any(item.num(ind)-cszt(ind))
-                warning('matlabbatch:cfg_entry:subsasgn_check:notsize', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Size mismatch (required [%s], present [%s]).', ...
                         subsasgn_checkstr(item,substruct('.','val')), num2str(item.num), num2str(csz));
                 sts = false;
                 return
             else
                 val = val';
-                warning('matlabbatch:cfg_entry:subsasgn_check:transp', ...
+                cfg_message('matlabbatch:checkval', ...
                         '%s: Value transposed to match required size [%s].', ...
                         subsasgn_checkstr(item,substruct('.','val')), num2str(item.num));
-            end;
-        end;
-    end;
-end;
+            end
+        end
+    end
+end

@@ -12,39 +12,40 @@ function [str, name, ind] = gencode_substruct(subs, name)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_substruct.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: gencode_substruct.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 ind = 1;
 if nargin < 2
     name = '';
-end;
+end
 
 if ~isstruct(subs) || ~all(isfield(subs, {'type','subs'}))
-    error('gencode:substruct:notsubs', 'Item is not a substruct.');
-end;
-str = {name};
-for k = 1:numel(subs)
-    switch subs(k).type
-        case '.',
-            str{1} = sprintf('%s.%s', str{1}, subs(k).subs);
-        case {'()','{}'},
-            str{1} = sprintf('%s%s', str{1}, subs(k).type(1));
-            for l = 1:numel(subs(k).subs)
-                if ischar(subs(k).subs{l})
-                    substr = subs(k).subs{l};
-                else
-                    substr = sprintf('%d ', subs(k).subs{l});
-                    if numel(subs(k).subs{l}) > 1
-                        substr = sprintf('[%s]', substr(1:end-1));
+    cfg_message('matlabbatch:usage', 'Item is not a substruct.');
+else
+    str = {name};
+    for k = 1:numel(subs)
+        switch subs(k).type
+            case '.',
+                str{1} = sprintf('%s.%s', str{1}, subs(k).subs);
+            case {'()','{}'},
+                str{1} = sprintf('%s%s', str{1}, subs(k).type(1));
+                for l = 1:numel(subs(k).subs)
+                    if ischar(subs(k).subs{l})
+                        substr = subs(k).subs{l};
                     else
-                        substr = substr(1:end-1);
-                    end;
-                end;
-                str{1} = sprintf('%s%s, ', str{1}, substr);
-            end
-            str{1} = str{1}(1:end-2);
-            str{1} = sprintf('%s%s', str{1}, subs(k).type(2));
-    end;
-end;
+                        substr = sprintf('%d ', subs(k).subs{l});
+                        if numel(subs(k).subs{l}) > 1
+                            substr = sprintf('[%s]', substr(1:end-1));
+                        else
+                            substr = substr(1:end-1);
+                        end
+                    end
+                    str{1} = sprintf('%s%s, ', str{1}, substr);
+                end
+                str{1} = str{1}(1:end-2);
+                str{1} = sprintf('%s%s', str{1}, subs(k).type(2));
+        end
+    end
+end

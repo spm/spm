@@ -1,6 +1,6 @@
-function disp_error(l)
+function varargout = cfg_disp_error(l)
 
-% function disp_error(errstruct)
+% function varargout = cfg_disp_error(errstruct)
 %
 % Display a condensed version of a MATLAB error without rethrowing it.
 %
@@ -11,12 +11,12 @@ function disp_error(l)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_disp_error.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: cfg_disp_error.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1790 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
-disp(l.message);
 if isfield(l,'stack'), % Does not always exist
+    estr = cell(numel(l.stack)+1,1);
     for m = 1:numel(l.stack),
         try
             fp  = fopen(l.stack(m).file,'r');
@@ -32,7 +32,13 @@ if isfield(l,'stack'), % Does not always exist
         catch
             id = '';
         end
-        fprintf('In file "%s"%s, function "%s" at line %d.\n', ...
-                l.stack(m).file, id, l.stack(m).name, l.stack(m).line);
+        estr{m+1} = sprintf('In file "%s"%s, function "%s" at line %d.', ...
+                           l.stack(m).file, id, l.stack(m).name, l.stack(m).line);
     end
-end;
+end
+estr{1} = l.message;
+if nargout == 0
+    fprintf('%s\n', estr{:});
+else
+    varargout{1} = estr;
+end

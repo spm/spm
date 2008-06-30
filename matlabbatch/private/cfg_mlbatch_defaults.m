@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: cfg_mlbatch_defaults.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1790 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.font is a font struct as returned by uisetfont
@@ -36,5 +36,58 @@ cfg_defaults.cfg_ui.ExpertEdit = 'off';
 % must be harvested more often.
 cfg_defaults.cfg_util.runparallel = false;
 
-% Warnings
-cfg_defaults.warning.cfg_struct2cfg.verb = 'off';
+% Message defaults
+cfg_defaults.msgdef.identifier  = 'cfg_defaults:defaultmessage';
+cfg_defaults.msgdef.level       = 'info'; % one of 'info', 'warning', 'error'
+cfg_defaults.msgdef.destination = 'stdout'; % one of 'none', 'stdout',
+                                            % 'stderr', 'syslog'. Errors
+                                            % will always be logged to
+                                            % the command window, and
+                                            % additionally to syslog, if specified
+cfg_defaults.msgdef.verbose     = 'off';
+cfg_defaults.msgdef.backtrace   = 'off';
+
+cfg_defaults.msgcfg(1)             = cfg_defaults.msgdef;
+cfg_defaults.msgcfg(1).identifier  = 'matlabbatch:run:jobfailederr';
+cfg_defaults.msgcfg(1).level       = 'error';
+cfg_defaults.msgcfg(2)             = cfg_defaults.msgdef;
+cfg_defaults.msgcfg(2).identifier  = 'matlabbatch:cfg_util:addapp:done';
+cfg_defaults.msgcfg(2).destination = 'none';
+
+cfg_defaults.msgtpl(1)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(1).identifier  = '^matlabbatch:subsasgn';
+cfg_defaults.msgtpl(1).level       = 'error';
+cfg_defaults.msgtpl(2)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(2).identifier  = '^matlabbatch:subsref';
+cfg_defaults.msgtpl(2).level       = 'error';
+cfg_defaults.msgtpl(3)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(3).identifier  = '^matlabbatch:constructor';
+cfg_defaults.msgtpl(3).level       = 'error';
+cfg_defaults.msgtpl(4)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(4).identifier  = '^matlabbatch:deprecated';
+cfg_defaults.msgtpl(4).destination = 'none';
+cfg_defaults.msgtpl(5)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(5).identifier  = '^MATLAB:nargchk';
+cfg_defaults.msgtpl(5).level       = 'error';
+cfg_defaults.msgtpl(6)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(6).identifier  = '^matlabbatch:usage';
+cfg_defaults.msgtpl(6).level       = 'error';
+cfg_defaults.msgtpl(7)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(7).identifier  = '^matlabbatch:setval';
+cfg_defaults.msgtpl(7).destination = 'none';
+cfg_defaults.msgtpl(8)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(8).identifier  = '^matlabbatch:run:nomods';
+cfg_defaults.msgtpl(8).level       = 'info';
+cfg_defaults.msgtpl(9)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(9).identifier  = '^matlabbatch:cfg_struct2cfg';
+cfg_defaults.msgtpl(9).destination = 'none';
+cfg_defaults.msgtpl(10)            = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(10).identifier = '^MATLAB:inputdlg';
+cfg_defaults.msgtpl(10).level      = 'error';
+cfg_defaults.msgtpl(11)            = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(11).identifier = '^MATLAB:listdlg';
+cfg_defaults.msgtpl(11).level      = 'error';
+cfg_defaults.msgtpl(12)            = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(12).identifier = '^MATLAB:num2str';
+cfg_defaults.msgtpl(12).level      = 'error';
+

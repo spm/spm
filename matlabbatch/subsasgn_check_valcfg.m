@@ -9,31 +9,34 @@ function sts = subsasgn_check_valcfg(subs,val,num)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_valcfg.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check_valcfg.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 sts = true;
 
 % pass a cell of items
 if ~iscell(val)
-    warning('matlabbatch:subsasgn_check_valcfg:iscell', 'Value must be a cell of ''cfg_item'' objects.');
+    cfg_message('matlabbatch:checkval', ...
+            'Value must be a cell of ''cfg_item'' objects.');
     sts = false;
     return;
-end;
+end
 % check whether number of items fits into num restrictions
 cn = numel(val);
 if (cn < num(1))||(cn > num(2))
-    warning('matlabbatch:subsasgn_check_valcfg:numel', 'Number of values %d must be in range [%d %d].', cn, num(1), ...
+    cfg_message('matlabbatch:checkval', ...
+            'Number of values %d must be in range [%d %d].', cn, num(1), ...
         num(2));
     sts = false;
     return;
-end;
+end
 % check whether each val is a menu config item
 for k=1:numel(val)
     if ~isa(val{k},'cfg_item')
-        warning('matlabbatch:subsasgn_check_valcfg:cfg_item', 'Value for ''val{%d}'' must be a ''cfg_item''.',k);
+        cfg_message('matlabbatch:checkval', ...
+                'Value for ''val{%d}'' must be a ''cfg_item''.',k);
         sts = false;
         return;
-    end;
-end;
+    end
+end

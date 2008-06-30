@@ -11,9 +11,9 @@ function jsubs = cfg2jobsubs(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg2jobsubs.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg2jobsubs.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 % Only de-reference subscripts into .val{x} field
 if isequal(subs(1), substruct('.','val')) && strcmp(subs(2).type, '{}')
@@ -35,6 +35,6 @@ if isequal(subs(1), substruct('.','val')) && strcmp(subs(2).type, '{}')
     end;
     jsubs = [cjsubs jsubs1];
 else
-    warning('matlabbatch:cfg2jobsubs:wrongsubs', 'Inappropriate subscript reference in item ''%s''.', item.tag);
+    cfg_message('matlabbatch:cfg2jobsubs:wrongsubs', 'Inappropriate subscript reference in item ''%s''.', item.tag);
     jsubs = struct('type',{},'subs',{});
 end;

@@ -26,9 +26,9 @@ function val = subsref_job(item, subs, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref_job.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsref_job.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 dflag = dflag || subs(1).subs{1} < 0;
 tn = tagnames(item, dflag);
@@ -49,18 +49,18 @@ if strcmp(subs(2).type, '.')
                 try
                     val = subsref(val1, subs(3:end));
                 catch
-                    warning('matlabbatch:subsref_job:subsfail', ...
+                    cfg_message('matlabbatch:subsref', ...
                             'Subscript into value failed.');
                 end;
             end;
         end;
     else
-        error('matlabbatch:subsref:jobsubs', ...
+        cfg_message('matlabbatch:subsref', ...
               'Reference to unknown field ''%s'' in job structure.', ...
               subs(2).subs);
     end;
 else
-    error('matlabbatch:subsref:jobsubs', ...
+    cfg_message('matlabbatch:subsref', ...
           'Wrong subscript reference ''%s''.', subs(2).type);
 end;
     

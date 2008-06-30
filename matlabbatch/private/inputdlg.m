@@ -47,13 +47,13 @@ function Answer=inputdlg(Prompt, Title, NumLines, DefAns, Resize)
 %    QUESTDLG, TEXTWRAP, UIWAIT, WARNDLG .
 
 %  Copyright 1994-2007 The MathWorks, Inc.
-%  $Revision: 1606 $
+%  $Revision: 1862 $
 
 %%%%%%%%%%%%%%%%%%%%
 %%% Nargin Check %%%
 %%%%%%%%%%%%%%%%%%%%
-error(nargchk(0,5,nargin));
-error(nargoutchk(0,1,nargout));
+cfg_message(nargchk(0,5,nargin,'struct'));
+cfg_message(nargoutchk(0,1,nargout,'struct'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Handle Input Args %%%
@@ -106,11 +106,11 @@ elseif (rw == 1 & cl == 1) %#ok
 elseif (rw == 1 & cl == NumQuest) %#ok
   NumLines = NumLines';
 elseif (rw ~= NumQuest | cl > 2) %#ok
-  error('MATLAB:inputdlg:IncorrectSize', 'NumLines size is incorrect.')
+  cfg_message('MATLAB:inputdlg:IncorrectSize', 'NumLines size is incorrect.')
 end
 
 if ~iscell(DefAns),
-  error('MATLAB:inputdlg:InvalidDefaultAnswer', 'Default Answer must be a cell array of strings.');
+  cfg_message('MATLAB:inputdlg:InvalidDefaultAnswer', 'Default Answer must be a cell array of strings.');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -244,8 +244,8 @@ lfont = [fn'; fs'];
 for lp=1:NumQuest,
   if ~ischar(DefAns{lp}),
     delete(InputFig);
-    %error('Default Answer must be a cell array of strings.');
-    error('MATLAB:inputdlg:InvalidInput', 'Default Answer must be a cell array of strings.');
+    %cfg_message('Default Answer must be a cell array of strings.');
+    cfg_message('MATLAB:inputdlg:InvalidInput', 'Default Answer must be a cell array of strings.');
   end
 
   EditHandle(lp)=uicontrol(InputFig    , ...

@@ -75,18 +75,17 @@ function [t,sts] = cfg_getfile(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2007 Freiburg Brain Imaging
 
-% Volkmar Glauche
-% $Id: cfg_getfile.m 1843 2008-06-20 19:41:36Z guillaume $
-
-% John Ashburner
-% $Id: cfg_getfile.m 1843 2008-06-20 19:41:36Z guillaume $
+% John Ashburner and Volkmar Glauche
+% $Id: cfg_getfile.m 1862 2008-06-30 14:12:49Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
         case {'addvfiles', 'clearvfiles', 'vfiles'}
-            warning('matlabbatch:cfg_getfile:vfiles', 'Trying to use deprecated ''%s'' call.', lower(varargin{1}));
+            cfg_message('matlabbatch:deprecated:vfiles', ...
+                        'Trying to use deprecated ''%s'' call.', ...
+                        lower(varargin{1}));
         case 'cpath'
-            error(nargchk(2,Inf,nargin));
+            cfg_message(nargchk(2,Inf,nargin,'struct'));
             t = cpath(varargin{2:end});
         case 'filter'
             filt    = mk_filter(varargin{3:end});
@@ -149,7 +148,7 @@ if nargin > 0 && ischar(varargin{1})
                 t = prevdirs;
             end;
         otherwise
-            error('Inappropriate usage.');
+            cfg_message('matlabbatch:usage','Inappropriate usage.');
     end
 else
     [t,sts] = selector(varargin{:});
@@ -713,9 +712,9 @@ function obj = sib(ob,tag)
 obj = findobj(get(ob,'Parent'),'Tag',tag);
 return;
 %if isempty(obj),
-%    error(['Can''t find object with tag "' tag '".']);
+%    cfg_message('matlabbatch:usage',['Can''t find object with tag "' tag '".']);
 %elseif length(obj)>1,
-%    error(['Found ' num2str(length(obj)) ' objects with tag "' tag '".']);
+%    cfg_message('matlabbatch:usage',['Found ' num2str(length(obj)) ' objects with tag "' tag '".']);
 %end;
 %return;
 %=======================================================================
@@ -981,7 +980,7 @@ case '\',
     fs  = '\';
     fs1 = '\\';
 otherwise;
-    error('What is this filesystem?');
+    cfg_message('matlabbatch:usage','What is this filesystem?');
 end
 
 if isempty(regexp(t,mch,'once')),

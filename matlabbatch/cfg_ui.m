@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1825 2008-06-14 13:26:17Z volkmar $
+% $Id: cfg_ui.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1825 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -107,7 +107,7 @@ catch
             val = evalin('base','val');
             % test if val variable exists
             if ~exist('val','var')
-                error('cfg_ui:local_eval_valedit:noval','No variable ''val'' assigned.');
+                cfg_message('cfg_ui:local_eval_valedit:noval','No variable ''val'' assigned.');
             end;
             sts = true;
         catch
@@ -217,7 +217,7 @@ if ~ischar(file)
 end;
 fid = fopen(fullfile(path, file),'w');
 if fid < 1
-    warning('matlabbatch:cfg_ui:savedefs', ...
+    cfg_message('matlabbatch:savefailed', ...
             'Save failed: no defaults written to %s.', ...
             fullfile(path, file));
     return;

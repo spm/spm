@@ -44,9 +44,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: harvest.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 [tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
@@ -76,7 +76,7 @@ else
                 item.sout(k).sname = sprintf('%s: %s', subsref(item, substruct('.','name')), item.sout(k).sname);
             end;
         elseif ~isempty(item.vfiles)
-            warning('matlabbatch:harvest:vfiles', 'Using deprecated ''vfiles'' output from node ''%s''.', tag);
+            cfg_message('matlabbatch:deprecated:vfiles', 'Using deprecated ''vfiles'' output from node ''%s''.', tag);
             item.sout = cfg_dep;
             item.sout.sname = sprintf('%s: All Output Files', subsref(item, substruct('.','name')));
             item.sout.src_exbranch = item_id;

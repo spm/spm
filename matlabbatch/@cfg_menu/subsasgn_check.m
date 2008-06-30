@@ -10,9 +10,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 % Checks could include a check whether the number of elements in labels
 % and values match, but this would require a method to add a label and a
@@ -26,19 +26,19 @@ switch subs(1).subs
     case {'val'}
         sts = iscell(val) && (isempty(val) || numel(val) == 1);
         if ~sts
-            warning('matlabbatch:cfg_menu:subsasgn_check:val', ...
+            cfg_message('matlabbatch:checkval', ...
                     '%s: Value must be a cell with zero or one elements.', subsasgn_checkstr(item,subs));
-        end;        
+        end        
     case {'labels'}
         sts = iscell(val) && (isempty(val) || iscellstr(val));
         if ~sts
-            warning('matlabbatch:cfg_menu:subsasgn_check:labels', ...
+            cfg_message('matlabbatch:check:labels', ...
                     '%s: Value must be a cell array of strings.', subsasgn_checkstr(item,subs));
-        end;
+        end
     case {'values'}
         sts = iscell(val);
         if ~sts
-            warning('matlabbatch:cfg_menu:subsasgn_check:values', ...
+            cfg_message('matlabbatch:check:values', ...
                     '%s: Value must be a cell array of values.', subsasgn_checkstr(item,subs));
-        end;
-end;
+        end
+end

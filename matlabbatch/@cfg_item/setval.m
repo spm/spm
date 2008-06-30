@@ -15,9 +15,9 @@ function item = setval(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: setval.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1775 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if iscell(val) && isempty(val)
     if dflag
@@ -25,14 +25,16 @@ if iscell(val) && isempty(val)
             try
                 feval(item.def, {'<UNDEFINED>'});
             catch
-                warning('matlabbatch:cfg_item:setval', '%s: unable to set default value.', subsasgn_checkstr(item, substruct('.','val')));
-            end;
+                cfg_message('matlabbatch:setval:defaults', ...
+                            '%s: unable to set default value.', ...
+                            subsasgn_checkstr(item, substruct('.','val')));
+            end
         else
             item = subsasgn(item, substruct('.','val'), {});
-        end;
+        end
     else
         item = subsasgn(item, substruct('.','val'), {});
-    end;
+    end
 else
     if dflag
         [sts val1] = subsasgn_check(item, substruct('.','val'), {val});
@@ -41,13 +43,15 @@ else
                 try
                     feval(item.def, val1);
                 catch
-                    warning('matlabbatch:cfg_item:setval', '%s: unable to set default value.', subsasgn_checkstr(item, substruct('.','val')));
-                end;
+                    cfg_message('matlabbatch:setval:defaults', ...
+                                '%s: unable to set default value.', ...
+                                subsasgn_checkstr(item, substruct('.','val')));
+                end
             else
                 item = subsasgn(item, substruct('.','val', '{}',{1}), val);
-            end;
-        end;
+            end
+        end
     else
         item = subsasgn(item, substruct('.','val', '{}',{1}), val);
-    end;
-end;
+    end
+end

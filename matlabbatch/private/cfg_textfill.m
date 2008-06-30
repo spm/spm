@@ -12,18 +12,18 @@ function str = cfg_textfill(obj, left, right, tflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_textfill.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: cfg_textfill.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1790 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if ~ishandle(obj)
-    error('matlabbatch:textfill:argchk',...
+    cfg_message('matlabbatch:usage',...
           'First input must be a graphics handle.');
 else
     try
         get(obj,'string');
     catch
-        error('matlabbatch:textfill:argchk',...
+        cfg_message('matlabbatch:usage',...
               'Input object must have a ''string'' property.');
     end;
 end;
@@ -31,7 +31,7 @@ if ~iscellstr(left)
     if ischar(left)
         left = cellstr(left);
     else
-        error('matlabbatch:textfill:argchk',...
+        cfg_message('matlabbatch:usage',...
               'Second input must be a string array or cellstr.');
     end;
     % add one space as delimiter
@@ -41,12 +41,12 @@ if ~iscellstr(right)
     if ischar(right)
         right = cellstr(right);
     else
-        error('matlabbatch:textfill:argchk',...
+        cfg_message('matlabbatch:usage',...
               'Third input must be a string array or cellstr.');
     end;
 end;
 if numel(left) ~= numel(right)
-    error('matlabbatch:textfill:argchk',...
+    cfg_message('matlabbatch:usage',...
           'Second and third input must have the same number of lines.');
 end;    
 

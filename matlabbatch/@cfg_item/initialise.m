@@ -15,9 +15,9 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: initialise.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1775 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if ischar(val) && strcmp(val, '<DEFAULTS>')
     if isempty(item.def)
@@ -27,7 +27,7 @@ if ischar(val) && strcmp(val, '<DEFAULTS>')
         try
             val = feval(item.def, {});
         catch
-            warning('matlabbatch:cfg_item:initialise:nodef', ...
+            cfg_message('matlabbatch:initialise:defaults', ...
                     '%s: No matching defaults value found.', ...
                     subsasgn_checkstr(item,substruct('.','val')));
             val = '<UNDEFINED>';

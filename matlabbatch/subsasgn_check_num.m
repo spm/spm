@@ -14,15 +14,13 @@ function sts = subsasgn_check_num(val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check_num.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check_num.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
-if numel(val)==2 && isnumeric(val) && val(1)>=0 && val(2)>=val(1)
-    sts = true;
-else
-    sts = false;
-    warning('matlabbatch:subsasgn_check_num:notdim', ...
+rev = '$Rev: 1862 $'; %#ok
+
+sts = numel(val)==2 && isnumeric(val) && val(1)>=0 && val(2)>=val(1);
+if ~sts
+    cfg_message('matlabbatch:check:num', ...
             ['Value of field ''num'' must be a 2-vector with non-negative ' ...
-             'equal or ascending elements.']);
-    disp(val);
-end;
+             'equal or ascending elements.\n%s'], evalc('disp(val)'));
+end

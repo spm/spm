@@ -361,9 +361,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1827 2008-06-16 13:54:37Z guillaume $
+% $Id: cfg_util.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1827 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -683,7 +683,7 @@ switch lower(cmd),
             [tag matlabbatch] = cfg_util('harvestrun', cjob);
         end;
         if isempty(tag)
-            warning('matlabbatch:savejob:nojob', ...
+            cfg_message('matlabbatch:cfg_util:savejob:nojob', ...
                     'Nothing to save for job #%d', cjob);
         else
             [p n e v] = fileparts(varargin{2});
@@ -699,7 +699,7 @@ switch lower(cmd),
                     fprintf(fid, '%s\n', jobstr{:});
                     fclose(fid);
                 otherwise
-                    warning('matlabbatch:cfg_util:save', 'Unknown file format for %s.', varargin{2});
+                    cfg_message('matlabbatch:cfg_util:savejob:unknown', 'Unknown file format for %s.', varargin{2});
             end;
         end;
     case 'setdef',
@@ -769,7 +769,7 @@ switch lower(cmd),
     case 'tag2mod_cfg_id',
         varargout{1} = local_tag2cfg_id(c0, varargin{1}, true);
     otherwise
-        error('matlabbatch:cfg_util:unknown', 'Unknown command ''%s''.', cmd);
+        cfg_message('matlabbatch:usage', '%s. Unknown command ''%s''.', mfilename, cmd);
 end;
 return;
 
@@ -793,26 +793,30 @@ if subsasgn_check_funhandle(cfg)
     c1 = feval(cfg);
 elseif isa(cfg, 'cfg_item')
     c1 = cfg;
-else
-    error('matlabbatch:cfg_util:addappcfg','Invalid configuration');
-end;
-for k = 1:numel(c0.values)
-    if strcmp(c1.tag, c0.values{k}.tag)
-        error('matlabbatch:cfg_util:addappdup',...
-              'Duplicate application tag in applications ''%s'' and ''%s''.', ...
-              c1.name, c0.values{k}.name);
-    end;
-end;
+end
+if ~isa(c1, 'cfg_item')
+    cfg_message('matlabbatch:cfg_util:addapp:inv',...
+                'Invalid configuration');
+    return;
+end
+dpind = cellfun(@(c0item)strcmp(c1.tag, c0item.tag), c0.values);
+if any(dpind)
+    dpind = find(dpind);
+    cfg_message('matlabbatch:cfg_util:addapp:dup',...
+                'Duplicate application tag in applications ''%s'' and ''%s''.', ...
+                c1.name, c0.values{dpind(1)}.name);
+    return;
+end
 if nargin > 3 && ~isempty(varargin{1})
     c1 = local_initdef(c1, varargin{1});
 end;
-%fprintf('%s: Added application ''%s''\n', mfilename, c1.name);
 c0.values{end+1} = c1;
 for k = 1:numel(jobs)
     jobs(k).cj.values{end+1} = c1;
     % clear run configuration
     jobs(k).cjrun = [];
 end;
+cfg_message('matlabbatch:cfg_util:addapp:done', 'Added application ''%s''\n', c1.name);
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
@@ -853,7 +857,7 @@ if ~isempty(pth)
     if ischar(pth)
         wd = cd(pth);
     else
-        error('cfg_util:cd','CD: path must be a string.');
+        cfg_message('matlabbatch:usage','CD: path must be a string.');
     end;
 else
     % Do not cd if pth is empty.
@@ -909,7 +913,7 @@ function job = local_delfromjob(job, id)
 % of changed subsrefs would be possible (and needs to be done before
 % e.g. saving the job). 
 if isempty(job.cjid2subs) || isempty(job.cjid2subs{id}) || numel(job.cjid2subs) < id
-    warning('matlabbatch:cfg_util:local_delfromjob:invid', ...
+    cfg_message('matlabbatch:cfg_util:invid', ...
             'Invalid id %d.', id);
     return;
 end;
@@ -954,7 +958,7 @@ if isempty(tropts)||isequal(tropts,cfg_tropts({{}},1,Inf,1,Inf,true)) || ...
     fname = fullfile(p, [funcname '.m']);
     unpostfix = '';
     while exist(fname, 'file')
-        warning('matlabbatch:cfg_util:gencode:fileexist', ...
+        cfg_message('matlabbatch:cfg_util:gencode:fileexist', ...
                 ['While generating code for cfg_item: ''%s'', %s. File ' ...
                  '''%s'' already exists. Trying new filename - you will ' ...
                  'need to adjust generated code.'], ...
@@ -1042,12 +1046,13 @@ if cfg_util('ismod_cfg_id', cfg_id)
 else
     [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', cfg_id);
     if isempty(mod_cfg_id)
-        error('matlabbatch:cfg_util:harvestdef', ...
+        cfg_message('matlabbatch:cfg_util:invid', ...
               'Item with tag ''%s'' not found.', cfg_id);
-    end;
-    cfg_id = [mod_cfg_id, item_mod_id];
-end;
-cm = subsref(c0, cfg_id);
+    else
+        cfg_id = [mod_cfg_id, item_mod_id];
+        cm = subsref(c0, cfg_id);
+    end
+end
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
@@ -1060,7 +1065,7 @@ if cfg_util('isjob_id', job_id) && cfg_util('ismod_job_id', mod_job_id) ...
     cm = subsref(jobs(job_id).cj, ...
                  [jobs(job_id).cjid2subs{mod_job_id} item_mod_id]);
 else
-    error('matlabbatch:cfg_util:getjobcm', ...
+    cfg_message('matlabbatch:cfg_util:invid', ...
           'Item not found.');
 end;
 %-----------------------------------------------------------------------
@@ -1081,14 +1086,19 @@ for k = 1:numel(appcfgs)
     if ~any(strcmp(dirs{k}, dirs(1:k-1)))
         try
             [cfg def] = feval('cfg_mlbatch_appcfg');
+            ests = true;
         catch
-            warning('matlabbatch:initcfg:eval_appcfg', ...
-                    'Failed to load %s', which('cfg_mlbatch_appcfg'));
-            rethrow(lasterror);
+            ests = false;
+            estr = cfg_disp_error(lasterror);
+            cfg_message('matlabbatch:cfg_util:eval_appcfg', ...
+                        'Failed to load %s', which('cfg_mlbatch_appcfg'));
+            cfg_message('matlabbatch:cfg_util:eval_appcfg', '%s\n', estr{:});
         end;
-        cfg_util('addapp', cfg, def);
-    end;
-end;
+        if ests
+            cfg_util('addapp', cfg, def);
+        end
+    end
+end
 local_cd(cwd);
 %-----------------------------------------------------------------------
 
@@ -1234,9 +1244,10 @@ function job = local_runcj(job, cjob, pflag)
 % If a job with pre-set module outputs .jout is passed in cj, the
 % corresponding modules will not be run again. This feature is currently unused.
 
-fprintf('\n\n-----------------------------------------------------------------------\n');
-fprintf('Running job #%d\n', cjob);
-fprintf('-----------------------------------------------------------------------\n');
+cfg_message('matlabbatch:run:jobstart', ...
+            ['\n\n-----------------------------------------------------------------------\n',...
+             'Running job #%d\n', ...
+             '-----------------------------------------------------------------------'], cjob);
 
 job = local_compactjob(job);
 % copy cjid2subs, it will be modified for each module that is run
@@ -1266,7 +1277,7 @@ while ~isempty(cjid2subs)
         end;
     end;
     if ~any(cand)
-        warning('matlabbatch:cfg_util:local_runcj:nomods', ...
+        cfg_message('matlabbatch:run:nomods', ...
                 'No executable modules, but still unresolved dependencies or incomplete module inputs.');
         cjid2subsfailed = cjid2subs;
         break;
@@ -1282,39 +1293,50 @@ while ~isempty(cjid2subs)
         if isa(cm.jout,'cfg_inv_out')
             % no cached outputs (module did not run or it does not return
             % outputs) - run job
-            fprintf('Running ''%s''\n', cm.name);
+            cfg_message('matlabbatch:run:modstart', 'Running ''%s''', cm.name);
             try
                 cm = cfg_run_cm(cm, subsref(mlbch, jobsubsrun{k}));
-                fprintf('''%s'' done\n', cm.name);
+                cfg_message('matlabbatch:run:moddone', 'Done    ''%s''', cm.name);
             catch
                 cjid2subsfailed = {cjid2subsfailed{:} cjid2subsrun{k}};
-                fprintf('''%s'' failed\n', cm.name);
-                cfg_disp_error(lasterror);
+                le = lasterror;
+                % try to filter out stack trace into matlabbatch
+                try
+                    runind = find(strcmp('cfg_run_cm', {le.stack.name}));
+                    le.stack = le.stack(1:runind-1);
+                end
+                str = cfg_disp_error(le);
+                cfg_message('matlabbatch:run:modfailed', 'Failed  ''%s''', cm.name);
+                cfg_message('matlabbatch:run:modfailed', '%s\n', str{:});
             end;
             % save results (if any) into job tree
             job.cjrun = subsasgn(job.cjrun, cjid2subsrun{k}, cm);
         else
             % Use cached outputs
-            fprintf('Using cached outputs for ''%s''\n', cm.name);
+            cfg_message('matlabbatch:run:cached', 'Using cached outputs for ''%s''', cm.name);
         end;
     end;
     % update dependencies, re-harvest mlbch
     [u1 mlbch u3 u4 u5 job.cjrun] = harvest(job.cjrun, job.cjrun, false, true);
 end;
 if isempty(cjid2subsfailed)
-    fprintf('Done\n\n');
+    cfg_message('matlabbatch:run:jobdone', 'Done\n');
 else
-    fprintf('The following modules did not run:\n');
+    str = cell(numel(cjid2subsfailed)+1,1);
+    str{1} = 'The following modules did not run:';
     for k = 1:numel(cjid2subsfailed)
-        fprintf('%s\n', subsref(job.cj, [cjid2subsfailed{k} substruct('.','name')]));
+        str{k+1} = subsref(job.cj, [cjid2subsfailed{k} substruct('.','name')]);
     end;
-    est.identifier = 'cfg_util:run:failed';
+    cfg_message('matlabbatch:run:jobfailed', '%s\n', str{:});
+    est.identifier = 'matlabbatch:run:jobfailederr';
     est.message    = sprintf(['Job execution failed. The full log of this run can ' ...
-                      'be found in MATLAB command window, starting with ' ...
-                      'the lines (look for the line showing the exact #job as displayed in this error message)\n------------------ \nRunning job #%d' ...
-                      '\n------------------\n'], cjob);
+                        'be found in MATLAB command window, starting with ' ...
+                        'the lines (look for the line showing the exact ' ...
+                        '#job as displayed in this error message)\n' ...
+                        '------------------ \nRunning job #%d' ...
+                        '\n------------------\n'], cjob);
     est.stack      = struct('file','','name','MATLABbatch system','line',0);
-    error(est);
+    cfg_message(est);
 end;
 %-----------------------------------------------------------------------
 

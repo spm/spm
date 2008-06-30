@@ -11,12 +11,12 @@ function cm = cfg_run_cm(cm, job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_cm.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: cfg_run_cm.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1790 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if isempty(cm.vout) && ~isempty(cm.vfiles);
-    warning('matlabbatch:cfg_util:vfiles', ...
+    cfg_message('matlabbatch:deprecated:vfiles', ...
             'Using deprecated ''vfiles'' output in node ''%s''.', cm.tag);
     feval(cm.prog, job);
     cm.jout = struct('vfiles', {feval(cm.vfiles, ...

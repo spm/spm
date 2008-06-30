@@ -119,11 +119,11 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_serial.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
-warning('matlabbatch:deprecated', '''cfg_serial'' is deprecated. Please use cfg_util(''filljob[ui]'',...) to fill a job in serial mode.');
+cfg_message('matlabbatch:deprecated:cfg_serial', '''cfg_serial'' is deprecated. Please use cfg_util(''filljob[ui]'',...) to fill a job in serial mode.');
 if ischar(job)
     % Assume dot delimited sequence of tags
     mod_cfg_id = cfg_util('tag2mod_cfg_id', job);
@@ -163,7 +163,7 @@ cfg_util('deljob',cjob);
 
 function cjob = local_addtojob(job)
 % traverse tree down to cfg_exbranch level, add selected modules to job
-error('matlabbatch:cfg_serial:notimplemented', ...
+cfg_message('matlabbatch:cfg_serial:notimplemented', ...
       'Menu traversal not yet implemented.');
 
 function inputs = local_fillmod(guifcn, cjob, cm, inputs)
@@ -183,7 +183,7 @@ for ci = 1:numel(item_mod_idlist)
         end;
         if ~sts && ~isa(guifcn, 'function_handle')
             % no input given, or input did not match required criteria
-            error('matlabbatch:cfg_serial:notimplemented', ...
+            cfg_message('matlabbatch:cfg_serial:notimplemented', ...
                   'User prompted input not yet implemented.');
         end;
         while ~sts

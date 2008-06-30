@@ -26,9 +26,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1834 2008-06-19 14:49:20Z volkmar $
+% $Id: gencode.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1834 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if nargin < 2
     tag = inputname(1);
@@ -73,7 +73,7 @@ if sts
         str{end} = sprintf('%s%s;', indent{1}, rstr{end});
         if numel(str) > 10
             % add cell mode comment to structure longer output
-            str = [{'%%'} str {'%%'}];
+            str = [{'%%'} str(:)' {'%%'}];
         end
     end
 else   
@@ -132,9 +132,9 @@ else
         otherwise
             if isobject(item)
                 % Objects need to have their own gencode method implemented
-                error('matlabbatch:gencode:object', 'Code generation for objects of class ''%s'' must be implemented as object method.', class(item));
+                cfg_message('matlabbatch:gencode:unknown', 'Code generation for objects of class ''%s'' must be implemented as object method.', class(item));
             elseif ~(isnumeric(item) || islogical(item))
-                error('matlabbatch:gencode:unknown', 'Code generation for objects of class ''%s'' not implemented.', class(item));
+                cfg_message('matlabbatch:gencode:unknown', 'Code generation for objects of class ''%s'' not implemented.', class(item));
             end
             if issparse(item)
                 % recreate sparse matrix from indices

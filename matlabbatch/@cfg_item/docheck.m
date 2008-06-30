@@ -10,9 +10,9 @@ function chk = docheck(item, val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: docheck.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: docheck.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 chk = true;
 
@@ -31,7 +31,7 @@ if ~isempty(item.check) && all_set(item)
         if iscellstr(cstr)
             cstr = sprintf('%s\n', cstr{:});
         end;
-        warning('matlabbatch:harvest:check', ...
+        cfg_message('matlabbatch:harvest:check', ...
                 'Contents of ''%s'' does not meet check criteria:\n''%s''', ...
                 gettag(item), cstr);
     end;

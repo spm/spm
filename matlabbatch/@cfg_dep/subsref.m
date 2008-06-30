@@ -20,14 +20,14 @@ function varargout = subsref(dep, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsref.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 switch subs(1).type,
     case {'.'},
         if numel(subs) > 1 && numel(dep) > 1
-            error('matlabbatch:subsref:multiref', 'Field reference for multiple structure elements that is followed by more reference blocks is an error.');
+            cfg_message('matlabbatch:subsref:multiref', 'Field reference for multiple structure elements that is followed by more reference blocks is an error.');
         end;
         switch subs(1).subs
             case subs_fields(dep),
@@ -35,7 +35,7 @@ switch subs(1).type,
                     val{k} = dep(k).(subs(1).subs);
                 end;
             otherwise
-                error('matlabbatch:subsref:unknownfield', 'Reference to unknown field ''%s''.', subs(1).subs);
+                cfg_message('matlabbatch:subsref:unknownfield', 'Reference to unknown field ''%s''.', subs(1).subs);
         end;
     case {'()'},
         if numel(subs(1).subs) == 1 % vectorise output
@@ -50,9 +50,9 @@ switch subs(1).type,
         end;        
         val{1} = dep(subs(1).subs{:});
     case {'{}'}
-        error('matlabbatch:subsref:notcell', 'Cell content reference from non cell-array object.');
+        cfg_message('matlabbatch:subsref:notcell', 'Cell content reference from non cell-array object.');
     otherwise
-        error('matlabbatch:subsref:unknowntype', 'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
+        cfg_message('matlabbatch:subsref:unknowntype', 'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end
 if numel(subs) > 1 % in this case, val has only one element, and subs(2:end) are indices into val{1}
     val{1} = builtin('subsref', val{1}, subs(2:end));

@@ -12,9 +12,9 @@ function newjobs = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_jobs.m 1834 2008-06-19 14:49:20Z volkmar $
+% $Id: cfg_load_jobs.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1834 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);
@@ -29,14 +29,14 @@ for cf = 1:numel(filenames)
             try
                 loadxml(filenames{cf},'matlabbatch');
             catch
-                warning('cfg_util:local_load_jobs','LoadXML failed: ''%s''',filenames{cf});
+                cfg_message('matlabbatch:initialise:xml','LoadXML failed: ''%s''',filenames{cf});
             end;
         case '.mat'
             try
                 S=load(filenames{cf});
                 matlabbatch = S.matlabbatch;
             catch
-                warning('cfg_util:local_load_jobs','Load failed: ''%s''',filenames{cf});
+                cfg_message('matlabbatch:initialise:mat','Load failed: ''%s''',filenames{cf});
             end;
         case '.m'
             opwd = pwd;
@@ -47,14 +47,14 @@ for cf = 1:numel(filenames)
                 clear(nam);
                 eval(nam);
             catch
-                warning('cfg_util:local_load_jobs','Eval failed: ''%s''',filenames{cf});
+                cfg_message('matlabbatch:initialise:m','Eval failed: ''%s''',filenames{cf});
             end;
             cd(opwd);
             if ~exist('matlabbatch','var')
-                warning('cfg_util:local_load_jobs','No matlabbatch job found in ''%s''', filenames{cf});
+                cfg_message('matlabbatch:initialise:m','No matlabbatch job found in ''%s''', filenames{cf});
             end;
         otherwise
-            warning('cfg_util:local_load_jobs','Unknown extension: ''%s''', filenames{cf});
+            cfg_message('matlabbatch:initialise:unknown','Unknown extension: ''%s''', filenames{cf});
     end;
     if exist('matlabbatch','var')
         newjobs = {newjobs{:} matlabbatch};

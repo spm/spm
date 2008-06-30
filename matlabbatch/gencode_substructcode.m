@@ -13,52 +13,53 @@ function [str, name, ind] = gencode_substructcode(subs, name)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_substructcode.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: gencode_substructcode.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 ind = 1;
 if nargin < 2
     name = '';
-end;
+end
 
 if ~isstruct(subs) || ~all(isfield(subs, {'type','subs'}))
-    error('gencode:substruct:notsubs', 'Item is not a substruct.');
-end;
-if isempty(subs)
-    str = {'struct(''type'',{},''subs'',{})'};
+    cfg_message('matlabbatch:usage', 'Item is not a substruct.');
 else
-    str = {'substruct('};
-    for k = 1:numel(subs)
-        str{1} = sprintf('%s''%s'',', str{1}, subs(k).type);
-        switch subs(k).type
-            case '.',
-                substr = sprintf('''%s''', subs(k).subs);
-            case {'()','{}'},
-                substr = '{';
-                for l = 1:numel(subs(k).subs)
-                    if ischar(subs(k).subs{l})
-                        if strcmp(subs(k).subs{l},':')
-                            substr = sprintf('%s'':'', ', substr);
+    if isempty(subs)
+        str = {'struct(''type'',{},''subs'',{})'};
+    else
+        str = {'substruct('};
+        for k = 1:numel(subs)
+            str{1} = sprintf('%s''%s'',', str{1}, subs(k).type);
+            switch subs(k).type
+                case '.',
+                    substr = sprintf('''%s''', subs(k).subs);
+                case {'()','{}'},
+                    substr = '{';
+                    for l = 1:numel(subs(k).subs)
+                        if ischar(subs(k).subs{l})
+                            if strcmp(subs(k).subs{l},':')
+                                substr = sprintf('%s'':'', ', substr);
+                            else
+                                substr = sprintf('%s%s, ', substr, subs(k).subs{l});
+                            end
                         else
-                            substr = sprintf('%s%s, ', substr, subs(k).subs{l});
-                        end;
-                    else
-                        substr1 = sprintf('%d ', subs(k).subs{l});
-                        if numel(subs(k).subs{l}) > 1
-                            substr1 = sprintf('[%s]', substr1(1:end-1));
-                        else
-                            substr1 = substr1(1:end-1);
-                        end;
-                        substr = sprintf('%s%s, ', substr, substr1);
-                    end;
-                end
-                substr = sprintf('%s}', substr(1:end-2));
-        end;
-        str{1} = sprintf('%s%s, ', str{1}, substr);
-    end;
-    str{1} = sprintf('%s)', str{1}(1:end-2));
-end;
-if ~isempty(name)
-    str{1} = sprintf('%s = %s;', name, str{1});
-end;
+                            substr1 = sprintf('%d ', subs(k).subs{l});
+                            if numel(subs(k).subs{l}) > 1
+                                substr1 = sprintf('[%s]', substr1(1:end-1));
+                            else
+                                substr1 = substr1(1:end-1);
+                            end
+                            substr = sprintf('%s%s, ', substr, substr1);
+                        end
+                    end
+                    substr = sprintf('%s}', substr(1:end-2));
+            end
+            str{1} = sprintf('%s%s, ', str{1}, substr);
+        end
+        str{1} = sprintf('%s)', str{1}(1:end-2));
+    end
+    if ~isempty(name)
+        str{1} = sprintf('%s = %s;', name, str{1});
+    end
+end

@@ -21,9 +21,9 @@ function item = setval(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: setval.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if iscell(val) && isempty(val)
     item = subsasgn(item, substruct('.','val'), {});
@@ -42,7 +42,7 @@ else
             substype = '{}';
             subsind = numel(subsref(item, substruct('.', 'val')))+1;
         else
-            warning('matlabbatch:cfg_repeat:setvalRepl','Nothing to replicate.');
+            cfg_message('matlabbatch:setval:repl','Nothing to replicate.');
             return;
         end;
     else

@@ -11,10 +11,10 @@ function val = subsref_job(item, subs, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref_job.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsref_job.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
-warning('matlabbatch:subsref:jobsubs', ...
+cfg_message('matlabbatch:subsref', ...
         'Subscript type ''%s'' reserved for future use.', subs(1).type);
 val = {};

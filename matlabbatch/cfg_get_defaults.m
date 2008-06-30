@@ -14,9 +14,9 @@ function varargout = cfg_get_defaults(defstr, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_get_defaults.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: cfg_get_defaults.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1790 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 persistent local_def;
 if isempty(local_def)
@@ -28,7 +28,11 @@ tags = textscan(defstr,'%s', 'delimiter','.');
 subs = struct('type','.','subs',tags{1}');
 
 if nargin == 1
-    varargout{1} = subsref(local_def, subs);
+    try
+        varargout{1} = subsref(local_def, subs);
+    catch
+        varargout{1} = [];
+    end
 else
     local_def = subsasgn(local_def, subs, varargin{1});
 end;

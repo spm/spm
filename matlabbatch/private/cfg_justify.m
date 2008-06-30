@@ -28,12 +28,12 @@ function out = cfg_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: cfg_justify.m 1581 2008-05-08 16:05:36Z volkmar $
+% $Id: cfg_justify.m 1862 2008-06-30 14:12:49Z volkmar $
 
 out = {};
 
 if nargin < 2
-    error('Incorrect usage of cfg_justify.')
+    cfg_message('matlabbatch:usage','Incorrect usage of cfg_justify.')
 end
 n = varargin{1};
 for i=2:nargin,

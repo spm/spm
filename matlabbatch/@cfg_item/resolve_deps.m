@@ -18,9 +18,9 @@ function [val, sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: resolve_deps.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 val1 = cell(size(item.val{1}));
 for k = 1:numel(item.val{1})
@@ -33,45 +33,48 @@ for k = 1:numel(item.val{1})
         % dependency not yet computed, fail silently
         val = [];
         return;
-    end;
+    end
     try
         val1{k} = subsref(out, item.val{1}(k).src_output);
-    catch
+    catch %#ok
         % dependency can't be resolved, even though it should be there
-        warning('matlabbatch:resolve_deps:subsref', ...
-                'Dependency source available, but is missing required output.');
-        l = lasterror;
-        fprintf('%s\n',l.message);
+        l = lasterror; %#ok
         % display source output to diagnose problems
         val1{k} = out;
-        disp_deps(item, val1);
+        dstr = disp_deps(item, val1);
+        cfg_message('matlabbatch:resolve_deps:missing', ...
+                'Dependency source available, but is missing required output.\n%s',...
+                l.message);
+        cfg_message('matlabbatch:resolve_deps:missing', '%s\n', dstr{:});
         val = [];
         sts = false;
         return;
-    end;
-end;
+    end
+end
 if sts
     % All items resolved, try concatenation
     try
         % try concatenation along 1st dim
         val = cat(1, val1{:});
-    catch
+    catch %#ok
         % try concatenation along 2nd dim
         try
             val = cat(2, val1{:});
-        catch
+        catch %#ok
             % all concatenations failed, display warning
-            warning('matlabbatch:resolve_deps:concat','Dependencies resolved, but incompatible values.');
-            l = lasterror;
-            fprintf('%s\n',l.message);
-            disp_deps(item, val1);
+            l = lasterror; %#ok
+            dstr = disp_deps(item, val1);
+            cfg_message('matlabbatch:resolve_deps:incompatible',...
+                        'Dependencies resolved, but incompatible values.\n%s', ...
+                        l.message);
+            cfg_message('matlabbatch:resolve_deps:incompatible', '%s\n', dstr{:});
             % reset val and sts
             val = [];
             sts = false;
             return;
-        end;
-    end;
-end;
+        end
+    end
+end
 % all collected, check subsasgn validity
 if sts
     % subsasgn_check only accepts single subscripts
@@ -81,17 +84,18 @@ if sts
     % dereference val after subsasgn_check
     val = val{1};
 else
-    warning('matlabbatch:resolve_deps:subsasgn',...
+    dstr = disp_deps(item, val1);
+    cfg_message('matlabbatch:subsasgn:val',...
             'Dependencies resolved, but not suitable for this item.');
-    disp_deps(item, val1);
+    cfg_message('matlabbatch:checkval', '%s\n', dstr{:});
     return;
-end;
+end
 
-function disp_deps(item, val1)
-fprintf('In item %s:\n', subsref(item, substruct('.','name')));
+function dstr = disp_deps(item, val1) %#ok
+dstr = cell(numel(item.val{1}+1,1));
+dstr{1} = sprintf('In item %s:', subsref(item, substruct('.','name')));
 for k = 1:numel(item.val{1})
     substr = gencode_substruct(item.val{1}(k).src_output);
-    fprintf('Dependency %d: %s (out%s)\n', ...
-            k, item.val{1}(k).sname, substr{1});
-    disp(val1{k});
-end;
+    dstr{k+1} = sprintf('Dependency %d: %s (out%s)\n%s', ...
+            k, item.val{1}(k).sname, substr{1}, evalc(disp('val1{k}')));
+end

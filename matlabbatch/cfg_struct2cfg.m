@@ -18,20 +18,13 @@ function cc = cfg_struct2cfg(co, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_struct2cfg.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: cfg_struct2cfg.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1775 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
 if nargin < 2
     indent = '';
 end;
-
-% set warning backtrace to off, save old state
-wsts = warning('query','backtrace');
-warning('backtrace','off');
-% set warning status according to cfg_get_defaults
-warning(cfg_get_defaults(['warning.' mfilename '.verb']), ...
-    'matlabbatch:cfg_struct2cfg:verb');
 
 %% Class of node
 % Usually, the class is determined by the node type. Only for branches
@@ -49,10 +42,10 @@ else
 end;
 
 try
-    warning('matlabbatch:cfg_struct2cfg:verb', ...
+    cfg_message('matlabbatch:cfg_struct2cfg:info', ...
             '%sNode %s (%s): %s > %s', indent, co.tag, co.name, co.type, typ);
 catch
-    warning('matlabbatch:cfg_struct2cfg:verb', ...
+    cfg_message('matlabbatch:cfg_struct2cfg:info', ...
             '%sNode UNKNOWN: %s > %s', indent, co.type, typ);
 end;
 eval(sprintf('cc = %s;', typ));
@@ -61,21 +54,22 @@ eval(sprintf('cc = %s;', typ));
 % for branches, repeats, choices children are collected first, before the
 % object is created.
 
-val = {};
-values = {};
 switch typ
     case {'cfg_branch','cfg_exbranch'}
+        val = cell(size(co.val));
         for k = 1:numel(co.val)
             val{k} = cfg_struct2cfg(co.val{k}, [indent ' ']);
         end;
         co.val = val;
     case {'cfg_repeat', 'cfg_choice'}
         if isfield(co, 'val')
+            val = cell(size(co.val));
             for k = 1:numel(co.val)
                 val{k} = cfg_struct2cfg(co.val{k}, [indent ' ']);
             end;            
             co.val = val;
         end;
+        values = cell(size(co.values));
         for k = 1:numel(co.values)
             values{k} = cfg_struct2cfg(co.values{k}, [indent ' ']);
         end;
@@ -111,8 +105,8 @@ if any(nind)
         else
             co.num = [0 Inf];
         end;
-        warning('matlabbatch:cfg_struct2cfg:verb', ...
-                '(WW) Node %s / ''%s'' field num [%d] padded to %s', ...
+        cfg_message('matlabbatch:cfg_struct2cfg:num', ...
+                '     Node %s / ''%s'' field num [%d] padded to %s', ...
                 cc.tag, cc.name, onum, mat2str(co.num));
     end;
     cc = try_assign(cc,co,'num');
@@ -136,18 +130,13 @@ for k = 1:numel(fn)
     cc = try_assign(cc,co,fn{k});
 end;
 
-warning('backtrace',wsts.state);
-
 function cc = try_assign(cc, co, fn)
 try
     cc.(fn) = co.(fn);
 catch
-    warning('matlabbatch:cfg_struct2cfg:verb', ...
-            '(WW) Node %s / ''%s'' field %s: import failed.', cc.tag, ...
-            cc.name, fn);
-    tmp = textscan(evalc('disp(lasterr)'), '%s', 'delimiter', '\n');
-    for l = 1:numel(tmp{1})
-        warning('matlabbatch:cfg_struct2cfg:verb', ...
-                '(WW)       %s\n', tmp{1}{l});
-    end;
+    le = lasterror;
+    le1.identifier = 'matlabbatch:cfg_struct2cfg:failed';
+    le1.message    = sprintf('     Node %s / ''%s'' field %s: import failed.\n%s', cc.tag, ...
+            cc.name, fn, le.message);
+    cfg_message(le1);
 end;

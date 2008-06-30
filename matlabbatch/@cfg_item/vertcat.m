@@ -10,9 +10,9 @@ function varargout = vertcat(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: vertcat.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: vertcat.m 1862 2008-06-30 14:12:49Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1862 $'; %#ok
 
-error('matlabbatch:cfg_item:cat', ['Concatenation of cfg_item objects is ' ...
+cfg_message('matlabbatch:cfg_item:cat', ['Concatenation of cfg_item objects is ' ...
                     'not allowed.']);

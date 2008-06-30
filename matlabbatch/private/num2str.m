@@ -25,11 +25,11 @@ function s = num2str(x, f)
 %   See also INT2STR, SPRINTF, FPRINTF, MAT2STR.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 284 $  $Date: 2006/11/11 22:45:08 $
+%   $Revision: 299 $  $Date: 2006/11/11 22:45:08 $
 %------------------------------------------------------------------------------
 % if input does not exist or is empty, throw an exception
 if nargin<1
-    error('MATLAB:num2str:NumericArrayUnspecified',...
+    cfg_message('MATLAB:num2str:NumericArrayUnspecified',...
         'Numeric array is unspecified')
 end
 % If input is a string, return this string.
@@ -95,7 +95,7 @@ elseif ~ischar(f)
     % of digits of precision, as it should be enough for most computations.
     % Large numbers of digits to the LEFT of the decimal point seem to be allowed.
     if f > maxDigitsOfPrecision
-        error('MATLAB:num2str:exceededMaxDigitsOfPrecision', ...
+        cfg_message('MATLAB:num2str:exceededMaxDigitsOfPrecision', ...
             'Exceeded maximum %d digits of precision.',maxDigitsOfPrecision);
     end
 
@@ -106,7 +106,7 @@ else
     % Precistion is specified as an ANSI C print format string.
     % Validate format string
     k = strfind(f,'%');
-    if isempty(k), error('MATLAB:num2str:fmtInvalid', ...
+    if isempty(k), cfg_message('MATLAB:num2str:fmtInvalid', ...
             '''%s'' is an invalid format.',f);
     end
     % If digits of precision to the right of the decimal point are specified,
@@ -117,7 +117,7 @@ else
         if ~isempty(decimalPosition)
             digitsOfPrecision = sscanf(f(dotPositions(decimalPosition(1))+1:end),'%d');
             if digitsOfPrecision > maxDigitsOfPrecision
-                error('MATLAB:num2str:exceededMaxDigitsOfPrecision', ...
+                cfg_message('MATLAB:num2str:exceededMaxDigitsOfPrecision', ...
                     'Exceeded maximum %d digits of precision.',maxDigitsOfPrecision);
             end
         end

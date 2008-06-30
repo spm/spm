@@ -25,8 +25,7 @@ function setdefaultbutton(figHandle, btnHandle)
 %  Copyright 2005 The MathWorks, Inc.
 
 % Nargin Check
-if nargin<1, error('Too few arguments for setdefaultbutton'); end
-if nargin>2, error('Too many arguments for setdefaultbutton'); end
+cfg_message(nargchk(2,2,nargin,'struct'));
 
 if isempty(get(figHandle, 'JavaFrame'))
     % We are running with Native Figures
