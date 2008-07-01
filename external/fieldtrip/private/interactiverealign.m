@@ -26,6 +26,9 @@ function cfg = interactiverealign(cfg)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: interactiverealign.m,v $
+% Revision 1.3  2008/07/01 19:05:23  roboos
+% Vladimir fixed some bugs
+%
 % Revision 1.2  2008/06/25 09:21:38  roboos
 % various changes
 %
@@ -60,7 +63,8 @@ if ~isempty(template.headshape)
   end
 end
 
-if ~isempty(individual.headshape)
+if ~isempty(individual.headshape) && isfield(individual.headshape, 'pnt') && ...
+        ~isempty(individual.headshape.pnt)
   if ~isfield(individual.headshape, 'tri') || isempty(individual.headshape.tri)
     individual.headshape.tri = projecttri(individual.headshape.pnt);
   end
@@ -97,7 +101,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: interactiverealign.m,v 1.2 2008/06/25 09:21:38 roboos Exp $';
+cfg.version.id = '$Id: interactiverealign.m,v 1.3 2008/07/01 19:05:23 roboos Exp $';
 
 % remember the transform
 cfg.m = norm.m;
@@ -338,14 +342,14 @@ end
 
 if ~isempty(template.headshape)
   if isfield(template.headshape, 'pnt') && ~isempty(template.headshape.pnt)
-    if strcmp(template.template.headshapestyle, 'surface') || ...
-        strcmp(template.template.headshapestyle, 'both')
+    if strcmp(template.headshapestyle, 'surface') || ...
+        strcmp(template.headshapestyle, 'both')
       triplot(template.headshape.pnt, template.headshape.tri,  [], 'faces_blue');
       alpha(str2num(get(findobj(fig, 'tag', 'alpha'), 'string')));
     end
 
-    if strcmp(template.template.headshapestyle, 'vertex') || ...
-        strcmp(template.template.headshapestyle, 'both')
+    if strcmp(template.headshapestyle, 'vertex') || ...
+        strcmp(template.headshapestyle, 'both')
       hs = triplot(template.headshape.pnt, [], [], 'nodes');
       set(hs, 'Color', 'b');
     end
