@@ -28,6 +28,9 @@ function [dat] = read_neuralynx_bin(filename, begsample, endsample);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_bin.m,v $
+% Revision 1.4  2008/07/01 13:00:58  roboos
+% optionally read the 16384 byte ascii header instead of hard-coded defaults
+%
 % Revision 1.3  2008/05/27 13:04:58  roboos
 % switched to the 3rd version of the file format, which includes the downscale/calibration value to recover from int32->int16 compression
 % added explicit support for version 1, 2 and 3 of the fileformat
@@ -136,14 +139,29 @@ switch subtype
     error('unknown file format subtype');
 end
 
-% construct the header
-hdr             = [];
-hdr.Fs          = 32556;
-hdr.nChans      = 1;
-hdr.nSamples    = (filesize(filename)-8)/samplesize;
-hdr.nSamplesPre = 0;
-hdr.nTrials     = 1;
-hdr.label       = {label};
+[p1, f1, x1] = fileparts(filename);
+[p2, f2, x2] = fileparts(f1);
+headerfile = fullfile(p1, [f2, '.txt']);
+if exist(headerfile, 'file')
+  orig = neuralynx_getheader(headerfile);
+  % construct the header from the accompanying text file
+  hdr             = [];
+  hdr.Fs          = orig.SamplingFrequency;
+  hdr.nChans      = 1;
+  hdr.nSamples    = (filesize(filename)-8)/samplesize;
+  hdr.nSamplesPre = 0;
+  hdr.nTrials     = 1;
+  hdr.label       = {label};
+else
+  % construct the header from the hard-coded defaults
+  hdr             = [];
+  hdr.Fs          = 32556;
+  hdr.nChans      = 1;
+  hdr.nSamples    = (filesize(filename)-8)/samplesize;
+  hdr.nSamplesPre = 0;
+  hdr.nTrials     = 1;
+  hdr.label       = {label};
+end
 
 if ~needdat
   % also return the file details
