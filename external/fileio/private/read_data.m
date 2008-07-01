@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.54  2008/07/01 12:59:42  roboos
+% explicit blockread 1 for ns_cnt
+%
 % Revision 1.53  2008/06/26 15:50:56  roboos
 % tread ctf_new just as ctf_ds w.r.t. mapping of the filenames
 %
@@ -721,9 +724,9 @@ switch dataformat
     % an old version since the new version is not compatible any more
     % all data is read, and only the relevant data is kept.
     if ~isfield(hdr, 'nsdf')
-      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan);
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1);
     else
-      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'format', hdr.nsdf);
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', hdr.nsdf);
     end
     dat = tmp.dat(chanoi,:);
 

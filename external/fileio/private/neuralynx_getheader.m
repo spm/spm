@@ -15,8 +15,8 @@ begchar = [1 nl(1:(end-1))];
 endchar = nl - 1;
 num     = length(nl);
 
-hdr     = [];
-hdr.buf = buf; % remember the full header in its original format
+hdr        = [];
+hdr.Header = buf; % remember the full header in its original format
 
 for i=1:num
   line = fliplr(deblank(fliplr(deblank(char(buf(begchar(i):endchar(i)))))));

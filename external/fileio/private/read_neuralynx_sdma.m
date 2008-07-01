@@ -9,11 +9,19 @@ function [dat] = read_neuralynx_sdma(dataset, begsample, endsample, chanindx);
 % The splitted DMA dataset is not a formal Neuralynx format, but at
 % the FCDC we use it in conjunction with SPIKEDOWNSAMPLE. The dataset
 % directory contains files, one for each channel, each containing a
-% 8-byte header followed by 32-bit integer values for all samples.
+% 8-byte header followed by the binary values for all samples. Commonly
+% the binary values are represented as int32, but it is possible to use
+% int16 or other numeric representations. The 8-byte header specifies the
+% numeric representation and the bitshift that should be applied (in case
+% of integer representations).
 
-% Copyright (C) 2006, Robert Oostenveld
+% Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_sdma.m,v $
+% Revision 1.8  2008/07/01 13:02:33  roboos
+% optionally read the 16384 byte ascii header (if present as txt file)
+% remember channel specific header details in hdr.orig.chan and general details in hdr.orig.dataset
+%
 % Revision 1.7  2008/05/27 13:03:00  roboos
 % remember the original header details
 %
@@ -50,9 +58,10 @@ end
 dirlist = dir(dataset);
 
 % determine the correspondence between files and channels
-label   = cell(length(dirlist),1);
-filesel = zeros(length(dirlist),1);
-[pd, nd, xd] = fileparts(dataset);
+label         = cell(length(dirlist),1);
+filesel       = zeros(length(dirlist),1);
+headerfile    = [];
+[pd, nd, xd]  = fileparts(dataset);
 for i=1:length(dirlist)
   [pf, nf, x1] = fileparts(dirlist(i).name);
   [pf, nf, x2] = fileparts(nf);
@@ -62,7 +71,12 @@ for i=1:length(dirlist)
     if ~isempty(x2)
       label{i}   = x2(2:end);
       filesel(i) = 1;
-    else
+    elseif strcmp(x1, '.txt')
+      % this is not a proper channel, but an ascii file with header info
+      label{i}   = [];
+      filesel(i) = 0;
+      headerfile = fullfile(dataset, dirlist(i).name);
+    else      
       label{i}   = x1(2:end);
       filesel(i) = 1;
     end
@@ -371,25 +385,48 @@ else
 end
 
 if needhdr
-  % read the header of each individual file
+  % construct a general header for the complete dataset
+  if ~isempty(headerfile)
+    orig             = neuralynx_getheader(headerfile);
+    hdr.Fs           = orig.SamplingFrequency;
+    hdr.nSamples     = [];        % see below
+    hdr.nSamplesPre  = 0;         % number of pre-trigger samples in each trial
+    hdr.nTrials      = 1;         % number of trials
+    hdr.label        = label;
+    hdr.nChans       = length(label);
+    hdr.orig.dataset = orig;       % keep the header details
+  else
+    % some parts of the header have to be hardcoded, since the splitted dataset does not contain all header information
+    hdr.Fs           = 32556;     % sampling frequency
+    hdr.nSamples     = [];        % see below
+    hdr.nSamplesPre  = 0;         % number of pre-trigger samples in each trial
+    hdr.nTrials      = 1;         % number of trials
+    hdr.label        = label;
+    hdr.nChans       = length(label);
+  end
+  
+  % read the header of each individual file, i.e. for each variable
+  clear orig
   for i=1:length(filelist)
     orig(i) = read_neuralynx_bin(filelist{i});
   end
 
-  % some parts of the header have to be hardcoded, since the splitted dataset does not contain all header information
-  hdr.Fs           = 32556;     % sampling frequency
-  hdr.nSamplesPre  = 0;         % number of pre-trigger samples in each trial
-  hdr.nTrials      = 1;         % number of trials
-  hdr.label        = label;
-  hdr.nChans       = length(label);
-
-  % determine the number of samples by looking at the file sizes in the directory
+  % determine the number of samples for each channel
   nsamples = cell2mat({orig.nSamples});
   if any(nsamples~=nsamples(1))
-    error('different number of samples detected');
+    error('different number of samples over channels are not supported');
   else
     hdr.nSamples = nsamples(1);
   end
+
+  % determine the sampling frequency for each channel
+  fsample = cell2mat({orig.Fs});
+  if any(diff(fsample))
+    error('different sampling rates over channels are not supported');
+  elseif any(fsample~=hdr.Fs)
+    error('inconsistent sampling rates');
+  end
+  
 
   % determine the first and last timestamp, by reading them from the timestamp channels
   tslfile = filelist{find(strcmp('tsl', label))};
@@ -403,7 +440,7 @@ if needhdr
   hdr.TimeStampPerSample = double(hdr.LastTimeStamp-hdr.FirstTimeStamp)./(hdr.nSamples-1);  % this should be double, since it can be fractional
 
   % also remember the original header details
-  hdr.orig = orig;
+  hdr.orig.chan = orig;
   
   % only return the header information
   dat = hdr;
