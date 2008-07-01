@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.55  2008/07/01 16:23:02  roboos
+% added read_combined_data (new implementation)
+%
 % Revision 1.54  2008/07/01 12:59:42  roboos
 % explicit blockread 1 for ns_cnt
 %
@@ -538,7 +541,10 @@ switch dataformat
       'endsample',endsample,...
       'channels',chanindx);
     dat = cell2mat(tmp.data');
-    
+
+  case  'combined_ds'
+    dat = read_combined_ds(filename, hdr, begsample, endsample, chanindx);
+
   case  'ctf_new'
     % check that the required low-level toolbox is available
     hastoolbox('ctf', 1);
