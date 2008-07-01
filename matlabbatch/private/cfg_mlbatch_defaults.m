@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 1870 2008-07-01 14:06:43Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 1870 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.font is a font struct as returned by uisetfont
@@ -90,4 +90,7 @@ cfg_defaults.msgtpl(11).level      = 'error';
 cfg_defaults.msgtpl(12)            = cfg_defaults.msgdef;
 cfg_defaults.msgtpl(12).identifier = '^MATLAB:num2str';
 cfg_defaults.msgtpl(12).level      = 'error';
+cfg_defaults.msgtpl(13)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(13).identifier  = '^matlabbatch:ok_subsasgn';
+cfg_defaults.msgtpl(13).destination = 'none';
 
