@@ -5,7 +5,7 @@ function [hdr] = neuralynx_getheader(filename);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fid     = fopen(filename, 'rb', 'ieee-le');
-buf     = fread(fid, 16*1024, 'char');
+buf     = fread(fid, 16*1024, 'char=>char');
 fclose(fid);
 
 buf     = buf(:)';
@@ -14,7 +14,9 @@ cr      = find(buf==13);    % determine the carriage-returns
 begchar = [1 nl(1:(end-1))];
 endchar = nl - 1;
 num     = length(nl);
+
 hdr     = [];
+hdr.buf = buf; % remember the full header in its original format
 
 for i=1:num
   line = fliplr(deblank(fliplr(deblank(char(buf(begchar(i):endchar(i)))))));
