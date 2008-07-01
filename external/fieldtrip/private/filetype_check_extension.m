@@ -6,6 +6,9 @@ function [val] = filetype_check_extension(filename, ext)
 % Copyright (C) 2003-2006 Robert Oostenveld
 %
 % $Log: filetype_check_extension.m,v $
+% Revision 1.3  2008/07/01 13:35:47  roboos
+% look at number of elements, not length
+%
 % Revision 1.2  2007/03/21 17:22:08  roboos
 % use recursion instead of copying the same code twice
 %
@@ -21,7 +24,7 @@ if iscell(filename)
   end
 else
   % compare the extension of a single file
-  if length(filename)<length(ext)
+  if numel(filename)<numel(ext)
     val = 0;
   else
     val = strcmpi(filename((end-length(ext)+1):end), ext);
