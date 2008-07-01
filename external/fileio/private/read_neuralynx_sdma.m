@@ -18,6 +18,9 @@ function [dat] = read_neuralynx_sdma(dataset, begsample, endsample, chanindx);
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_sdma.m,v $
+% Revision 1.9  2008/07/01 13:36:41  roboos
+% only whitespace
+%
 % Revision 1.8  2008/07/01 13:02:33  roboos
 % optionally read the 16384 byte ascii header (if present as txt file)
 % remember channel specific header details in hdr.orig.chan and general details in hdr.orig.dataset
@@ -427,7 +430,6 @@ if needhdr
     error('inconsistent sampling rates');
   end
   
-
   % determine the first and last timestamp, by reading them from the timestamp channels
   tslfile = filelist{find(strcmp('tsl', label))};
   tshfile = filelist{find(strcmp('tsh', label))};

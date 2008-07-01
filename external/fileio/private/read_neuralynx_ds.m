@@ -26,6 +26,9 @@ function [dat] = read_neuralynx_ds(dirname, hdr, begsample, endsample, chanindx)
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: read_neuralynx_ds.m,v $
+% Revision 1.9  2008/07/01 13:36:17  roboos
+% SubSamplingInterleave is not always present
+%
 % Revision 1.8  2008/01/24 19:54:40  roboos
 % fixed bug in begrecord, thanks to Thilo
 %
@@ -109,7 +112,11 @@ if needhdr
     else
       label{i}           = orig(i).hdr.AcqEntName;
     end
-    SamplingFrequency(i) = orig(i).hdr.SamplingFrequency / orig(i).hdr.SubSamplingInterleave;
+    if isfield(orig(i).hdr, 'SubSamplingInterleave')
+      SamplingFrequency(i) = orig(i).hdr.SamplingFrequency / orig(i).hdr.SubSamplingInterleave;
+    else
+      SamplingFrequency(i) = orig(i).hdr.SamplingFrequency;
+    end
     ADBitVolts(i)        = orig(i).hdr.ADBitVolts;
     FirstTimeStamp(i)    = orig(i).hdr.FirstTimeStamp;
     LastTimeStamp(i)     = orig(i).hdr.LastTimeStamp;

@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.82  2008/07/01 13:35:25  roboos
+% moved long sequence for mat files onto single line (2x)
+%
 % Revision 1.81  2008/06/18 08:24:33  roboos
 % added support for BCI2000
 %
@@ -825,17 +828,11 @@ elseif filetype_check_extension(filename, '.edf')
   ftype = 'edf';
   manufacturer = 'European Data Format';
   content = 'electrophysiological data';
-elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && numel(whos('-file', filename))==1 ...
-        && strcmp('D', getfield(whos('-file', filename), {1}, 'name')) && exist([filename(1:(end-4)) '.dat'], 'file') && ...
-        strcmp('struct', getfield(whos('-file', filename), {1}, 'class'))
+elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && exist([filename(1:(end-4)) '.dat'], 'file') && numel(whos('-file', filename))==1 && strcmp('D', getfield(whos('-file', filename), {1}, 'name')) && strcmp('struct', getfield(whos('-file', filename), {1}, 'class'))
     ftype = 'spmeeg_mat';
     manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
     content = 'electrophysiological data';
-elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') ...
-        && all(1 == strmatch('struct', unique(subsref(struct2cell(whos('-file', filename)), substruct('()', {4, ':'}))), 'exact'))...
-        && 10 == numel(intersect(fieldnames(subsref(struct2cell(load(filename ,...
-        getfield(whos('-file', filename), {1}, 'name'))), substruct('{}', {1}))), ...
-        {'title', 'comment', 'interval', 'scale', 'offset', 'units', 'start', 'length', 'values' 'times'}))
+elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && all(1 == strmatch('struct', unique(subsref(struct2cell(whos('-file', filename)), substruct('()', {4, ':'}))), 'exact')) && 10 == numel(intersect(fieldnames(subsref(struct2cell(load(filename, getfield(whos('-file', filename), {1}, 'name'))), substruct('{}', {1}))), {'title', 'comment', 'interval', 'scale', 'offset', 'units', 'start', 'length', 'values' 'times'}))
     ftype = 'ced_spike6mat';
     manufacturer = 'Cambridge Electronic Design Limited';
     content = 'electrophysiological data';        
