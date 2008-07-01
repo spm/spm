@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.65  2008/07/01 16:23:02  roboos
+% added read_combined_data (new implementation)
+%
 % Revision 1.64  2008/06/26 15:50:56  roboos
 % tread ctf_new just as ctf_ds w.r.t. mapping of the filenames
 %
@@ -510,6 +513,9 @@ switch headerformat
       hdr.nTrials = 1;
     end;
     hdr.label = {orig.label};
+
+  case  'combined_ds'
+    hdr = read_combined_ds(filename);
 
   case {'ctf_new'} % this is an experimental implementation using the CTF p-files
     % check the presence of the required low-level toolbox
