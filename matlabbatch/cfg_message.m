@@ -38,9 +38,9 @@ function cfg_message(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_message.m 1865 2008-06-30 18:08:46Z guillaume $
+% $Id: cfg_message.m 1873 2008-07-01 15:23:40Z volkmar $
 
-rev = '$Rev: 1865 $'; %#ok
+rev = '$Rev: 1873 $'; %#ok
 
 if nargin < 1 || isempty(varargin{1})
     return;
@@ -232,8 +232,7 @@ if strcmp(msgcfg.level,'error') || ~strcmp(msgcfg.destination, 'none')
                              msg));
             elseif ~ischar(fid) && fid > 0
                 % only display, if destination is neither syslog nor none
-                fprintf(fid, msg);
-                fprintf(fid, '\n');
+                fprintf(fid, '%s\n', msg);
                 if strcmp(msgcfg.backtrace, 'on')
                     dbstack(2) % This will ignore fid
                 end
