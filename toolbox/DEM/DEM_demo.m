@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 25-Apr-2008 12:54:22
+% Last Modified by GUIDE v2.5 02-Jul-2008 13:17:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -140,7 +140,7 @@ run_demo_Callback(hObject, handles, 'DEM_demo_song')
 
 % --- Executes on button press in pushbutton37.
 function pushbutton37_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_song_recognition')
+run_demo_Callback(hObject, handles, 'DEM_demo_song_inference')
 
 % --- Executes on button press in pushbutton38.
 function pushbutton38_Callback(hObject, eventdata, handles)
@@ -148,7 +148,7 @@ run_demo_Callback(hObject, handles, 'DEM_demo_song_omission')
 
 % --- Executes on button press in pushbutton40.
 function pushbutton40_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_face')
+run_demo_Callback(hObject, handles, 'DEM_demo_face_inference')
 
 % --- Executes on button press in pushbutton41.
 function pushbutton41_Callback(hObject, eventdata, handles)
@@ -157,4 +157,18 @@ run_demo_Callback(hObject, handles, 'DEM_demo_song_learning')
 % --- Executes on button press in pushbutton42.
 function pushbutton42_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'DEM_demo_Gabor')
+
+% --- Executes on button press in pushbutton44.
+function pushbutton44_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_demo_visual')
+
+% --- Executes on button press in pushbutton45.
+function pushbutton45_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_demo_motor')
+
+% --- Executes on button press in pushbutton46.
+function pushbutton46_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_demo_learning')
+
+
 

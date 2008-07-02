@@ -12,7 +12,7 @@ function [y] = spm_DEM_embed(Y,n,t,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_embed.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_embed.m 1880 2008-07-02 12:41:41Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -21,12 +21,16 @@ if nargin < 4, dt = 1; end
 % get dimensions
 %--------------------------------------------------------------------------
 [q N]  = size(Y);
-t      = t/dt;
 y      = cell(n,1);
 [y{:}] = deal(sparse(q,1));
+
+% return if ~q
+%--------------------------------------------------------------------------
+if ~q, return, end
  
 % boundary conditions
 %--------------------------------------------------------------------------
+t      = t/dt;
 k      = [1:n]  + fix(t - (n + 1)/2);
 x      = t - min(k) + 1;
 i      = k < 1;

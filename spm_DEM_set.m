@@ -10,7 +10,7 @@ function [varargout] = spm_DEM_set(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_set.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_set.m 1880 2008-07-02 12:41:41Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
@@ -20,7 +20,7 @@ catch
     errordlg('please check your model')
 end
 
-% check data or generative model
+% check whether data or specified explicitly or with a generative model
 % -------------------------------------------------------------------------
 try
     N = size(DEM.Y,2);

@@ -1,6 +1,6 @@
-function [u, dgdv, dgdx, dfdv, dfdx] = spm_DEM_diff(M,u);
+function [u, dgdv, dgdx, dfdv, dfdx] = spm_DEM_diff(M,u)
 % evaluates a hierarchical model given innovations z{i} and w{i}
-% FORMAT [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
+% FORMAT [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u)
 %
 % M    - generative model
 %
@@ -16,7 +16,7 @@ function [u, dgdv, dgdx, dfdv, dfdx] = spm_DEM_diff(M,u);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_diff.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_DEM_diff.m 1880 2008-07-02 12:41:41Z karl $
  
 % number of states and parameters
 %--------------------------------------------------------------------------

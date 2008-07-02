@@ -28,7 +28,7 @@ function [E, dE] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_eval.m 1880 2008-07-02 12:41:41Z karl $
 
 % persistent variables to avoid redundant evaluations
 %==========================================================================
@@ -213,8 +213,8 @@ end
 %==========================================================================
 dfdy  =  sparse(nx,ny);
 dfdc  =  sparse(nx,nc);
-dedy  =  speye(ne,ny);
-dedc  = -flipdim(flipdim(speye(ne,nc),1),2);
+dedy  =  spm_speye(ne,ny);
+dedc  = -spm_speye(ne,nc,nc - ne);
 
 % prediction error (E) - causes
 %--------------------------------------------------------------------------

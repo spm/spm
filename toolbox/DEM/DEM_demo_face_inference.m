@@ -17,7 +17,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_face.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: DEM_demo_face_inference.m 1880 2008-07-02 12:41:41Z karl $
 
 
 % temporal smoothness - s.d. of kernel

@@ -77,7 +77,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM.m 1880 2008-07-02 12:41:41Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -643,10 +643,12 @@ for iN = 1:nN
         for t = 1:length(qU)
             v     = spm_unvec(qU(t).v{1},v);
             x     = spm_unvec(qU(t).x{1},x);
-            z     = spm_unvec(qE{t},{M.v});
+            z     = spm_unvec(qE{t}(1:(ny + nv)),{M.v});
+            w     = spm_unvec(qE{t}([1:nx] + (ny + nv)*n),{M.x});
             for i = 1:(nl - 1)
                 if M(i).m, QU.v{i + 1}(:,t) = spm_vec(v{i}); end
                 if M(i).n, QU.x{i}(:,t)     = spm_vec(x{i}); end
+                if M(i).n, QU.w{i}(:,t)     = spm_vec(w{i}); end
                 if M(i).l, QU.z{i}(:,t)     = spm_vec(z{i}); end
             end
             QU.v{1}(:,t)  = spm_vec(qU(t).y{1}) - spm_vec(z{1});
