@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_roving.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: DEM_demo_roving.m 1879 2008-07-02 12:04:22Z karl $
  
 % figure
 %--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ for i = 1:Nc
     qR{i} = spm_DEM_EEG(DEM,dt);
     qE(i) = sum(spm_vec(qR{i}).^2);   % record the prediction error
     axis tight
-    set(gca,'YLim',[-8 12])
+    set(gca,'YLim',[-10 10])
     drawnow
  
 end
@@ -154,20 +154,20 @@ plot(t,qR{Na + 1}{1},':r',t,qR{Na + 1}{2},'r')
 title('LFP: Oddball','FontSize',16)
 xlabel('peristimulus time (ms)')
 axis square
-set(gca,'YLim',[-8 8])
+set(gca,'YLim',[-10 10])
  
 subplot(3,2,3)
 plot(t,qR{Na + Nb}{1},':r',t,qR{Na + Nb}{2},'r')
 title('LFP: Standard (P1)','FontSize',16)
 xlabel('peristimulus time (ms)')
 axis square
-set(gca,'YLim',[-8 8])
+set(gca,'YLim',[-10 10])
  
 subplot(3,1,3)
 plot(t,qR{Na + 1}{1} - qR{Na + Nb}{1},':r',t,qR{Na + 1}{2} - qR{Na + Nb}{2},'r')
 title('Difference waveform (MMN)','FontSize',16)
 xlabel('peristimulus time (ms)')
 axis square
-set(gca,'YLim',[-8 8])
+set(gca,'YLim',[-10 10])
 
 legend({'primary area - amplitude','primary area - frequency','secondary area - chirp'})

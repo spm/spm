@@ -14,7 +14,7 @@ function [R] = spm_DEM_EEG(DEM,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_EEG.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_EEG.m 1879 2008-07-02 12:04:22Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -32,9 +32,9 @@ end
 %--------------------------------------------------------------------------
 cla
 hold on
-U     = DEM.qU.z;
-pst   = [1:size(U{1},2)]*dt*1000;
-n     = length(U);
+z     = DEM.qU.z;
+pst   = [1:size(z{1},2)]*dt*1000;
+n     = length(z);
 for i = 1:n
  
     % precisions
@@ -46,8 +46,12 @@ for i = 1:n
     
     % ERPs
     %----------------------------------------------------------------------
-    R{i}  = P*U{i};
-    plot(pst,R{i},'Color',[1 i/(n + 1) i/(n + 1)],'LineWidth',1)
+    R{i}  = P*z{i};
+    if i == 1
+        plot(pst,R{i},'r:')
+    else
+        plot(pst,R{i},'r')
+    end
  
 end
  

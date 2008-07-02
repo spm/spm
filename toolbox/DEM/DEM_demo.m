@@ -136,15 +136,15 @@ run_demo_Callback(hObject, handles, 'DFP_demo_double_well')
 
 % --- Executes on button press in pushbutton15.
 function pushbutton15_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_birdsong')
+run_demo_Callback(hObject, handles, 'DEM_demo_song')
 
 % --- Executes on button press in pushbutton37.
 function pushbutton37_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_song_learning')
+run_demo_Callback(hObject, handles, 'DEM_demo_song_recognition')
 
 % --- Executes on button press in pushbutton38.
 function pushbutton38_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_song_LFP')
+run_demo_Callback(hObject, handles, 'DEM_demo_song_omission')
 
 % --- Executes on button press in pushbutton40.
 function pushbutton40_Callback(hObject, eventdata, handles)
@@ -152,7 +152,7 @@ run_demo_Callback(hObject, handles, 'DEM_demo_face')
 
 % --- Executes on button press in pushbutton41.
 function pushbutton41_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_roving')
+run_demo_Callback(hObject, handles, 'DEM_demo_song_learning')
 
 % --- Executes on button press in pushbutton42.
 function pushbutton42_Callback(hObject, eventdata, handles)
