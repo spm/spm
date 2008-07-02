@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song.m 1879 2008-07-02 12:04:22Z karl $
+% $Id: DEM_demo_song_omission.m 1881 2008-07-02 13:11:05Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)

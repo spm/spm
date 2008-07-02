@@ -136,7 +136,7 @@ run_demo_Callback(hObject, handles, 'DFP_demo_double_well')
 
 % --- Executes on button press in pushbutton15.
 function pushbutton15_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'DEM_demo_song')
+run_demo_Callback(hObject, handles, 'DEM_demo_song_priors')
 
 % --- Executes on button press in pushbutton37.
 function pushbutton37_Callback(hObject, eventdata, handles)
