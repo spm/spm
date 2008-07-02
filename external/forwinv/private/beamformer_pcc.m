@@ -9,6 +9,9 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld & Jan-Mathijs Schoffelen
 
 % $Log: beamformer_pcc.m,v $
+% Revision 1.13  2008/07/02 07:57:33  roboos
+% allow specification of percentage noise in lambda, relative to trace(cov)/nchans
+%
 % Revision 1.12  2008/03/18 13:01:17  roboos
 % added optional argument normalizeparam, is passed onto compute_leadfield
 %
@@ -151,6 +154,14 @@ if isrankdeficient & ~isfield(dip, 'filter')
   warning('cross-spectral density matrix is rank deficient')
 end
 
+% it is difficult to give a quantitative estimate of lambda, therefore also
+% support relative (percentage) measure that can be specified as string (e.g. '10%')
+if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
+    ratio = sscanf(lambda, '%f%%');
+    ratio = ratio/100;
+    lambda = ratio * trace(Cf)/size(Cf,1);
+end
+
 if projectnoise
   % estimate the noise power, which is further assumed to be equal and uncorrelated over channels
   if isrankdeficient
@@ -262,7 +273,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 1.12 $  $Date: 2008/03/18 13:01:17 $
+%   $Revision: 1.13 $  $Date: 2008/07/02 07:57:33 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
