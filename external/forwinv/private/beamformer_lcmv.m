@@ -44,6 +44,9 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.8  2008/07/02 16:02:01  roboos
+% fixed bug in % lambda
+%
 % Revision 1.7  2008/07/02 07:57:33  roboos
 % allow specification of percentage noise in lambda, relative to trace(cov)/nchans
 %
@@ -152,7 +155,7 @@ end
 if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
     ratio = sscanf(lambda, '%f%%');
     ratio = ratio/100;
-    lambda = ratio * trace(Cf)/size(Cf,1);
+    lambda = ratio * trace(Cy)/size(Cy,1);
 end
 
 if projectnoise
@@ -303,7 +306,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.7 $  $Date: 2008/07/02 07:57:33 $
+%   $Revision: 1.8 $  $Date: 2008/07/02 16:02:01 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
