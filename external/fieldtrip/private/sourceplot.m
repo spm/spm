@@ -76,6 +76,8 @@ function [cfg] = sourceplot(cfg, data)
 %   cfg.axis          = 'on' or 'off' (default = 'on')
 %   cfg.interactive   = 'yes' or 'no' (default = 'no')
 %                        in interactive mode cusor click determines location of cut
+%   cfg.TTlookup      = 'yes' or 'no' (default)
+%   cfg.TTqueryrange  = number (default 3)
 %
 % The folowing parameters apply for slice-plotting
 %   cfg.nslices       = number of slices, (default = 20)
@@ -102,7 +104,6 @@ function [cfg] = sourceplot(cfg, data)
 %   cfg.markersize    = radius of markers (default = 5)
 %   cfg.markercolor   = [1x3] marker color in RGB (default = [1 1 1], i.e. white) (orig: from sliceinterp)
 %   cfg.title         = optional title (default is '') (orig: from sliceinterp)
-%   TT lookup function
 %   white background option
 
 % undocumented TODO
@@ -113,6 +114,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: sourceplot.m,v $
+% Revision 1.52  2008/07/02 18:23:43  roboos
+% reinserted TTlookup code
+%
 % Revision 1.51  2007/11/26 09:08:57  roboos
 % give instructive error if nothing is selected to be plotted
 %
@@ -192,6 +196,8 @@ if ~isfield(cfg, 'crosshair'),           cfg.crosshair = 'yes';              end
 if ~isfield(cfg, 'colorbar'),            cfg.colorbar  = 'yes';              end
 if ~isfield(cfg, 'axis'),                cfg.axis   = 'on';                  end
 if ~isfield(cfg, 'interactive'),         cfg.interactive   = 'no';           end
+if ~isfield(cfg, 'TTlookup'),            cfg.TTlookup = 'no';                end
+if ~isfield(cfg, 'TTqueryrange');        cfg.TTqueryrange = 3;               end
 % slice
 if ~isfield(cfg, 'nslices');            cfg.nslices = 20;                    end
 if ~isfield(cfg, 'slicedim');           cfg.slicedim = 3;                    end
@@ -508,6 +514,12 @@ if isequal(cfg.method,'ortho')
     zi = nearest(data.zgrid, loc(3));
   end
 
+  if strcmp(cfg.TTlookup, 'yes')
+    % initialize the TT atlas
+    fprintf('reading Talairach-Tournoux atlas coordinates and labels\n');
+    tlrc = TTatlas_init;
+  end
+  
   %% do the actual plotting %%
 
   interactive_flag = 1; % it happens at least once
@@ -533,19 +545,20 @@ if isequal(cfg.method,'ortho')
       fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f]\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3));
     end
 
-    %     if strcmp(cfg.TTlookup, 'yes')  %FIXME make this work
-    %       lab = TTatlas_lookup(tlrc, mni2tal(xyz(1:3)), cfg.TTqueryrange);
-    %       if isempty(lab)
-    %         fprintf('Talairach-Tournoux labels: not found\n');
-    %       else
-    %         fprintf('Talairach-Tournoux labels: ')
-    %         fprintf('%s', lab{1});
-    %         for i=2:length(lab)
-    %           fprintf(', %s', lab{i});
-    %         end
-    %         fprintf('\n');
-    %       end
-    %     end
+    if strcmp(cfg.TTlookup, 'yes')
+      % determine the anatomical label of the current position 
+      lab = TTatlas_lookup(tlrc, mni2tal(xyz(1:3)), cfg.TTqueryrange);
+      if isempty(lab)
+        fprintf('Talairach-Tournoux labels: not found\n');
+      else
+        fprintf('Talairach-Tournoux labels: ')
+        fprintf('%s', lab{1});
+        for i=2:length(lab)
+          fprintf(', %s', lab{i});
+        end
+        fprintf('\n');
+      end
+    end
 
     % make vols and scales, containes volumes to be plotted (fun, ana, msk) %added ingnie
     vols = {};
