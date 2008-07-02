@@ -44,6 +44,9 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.7  2008/07/02 07:57:33  roboos
+% allow specification of percentage noise in lambda, relative to trace(cov)/nchans
+%
 % Revision 1.6  2008/03/18 13:01:17  roboos
 % added optional argument normalizeparam, is passed onto compute_leadfield
 %
@@ -142,6 +145,14 @@ dip.outside = [];
 isrankdeficient = (rank(Cy)<size(Cy,1));
 if isrankdeficient & ~isfield(dip, 'filter')
   warning('covariance matrix is rank deficient')
+end
+
+% it is difficult to give a quantitative estimate of lambda, therefore also
+% support relative (percentage) measure that can be specified as string (e.g. '10%')
+if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
+    ratio = sscanf(lambda, '%f%%');
+    ratio = ratio/100;
+    lambda = ratio * trace(Cf)/size(Cf,1);
 end
 
 if projectnoise
@@ -292,7 +303,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.6 $  $Date: 2008/03/18 13:01:17 $
+%   $Revision: 1.7 $  $Date: 2008/07/02 07:57:33 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
