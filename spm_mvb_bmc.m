@@ -1,15 +1,16 @@
-function [F,P] = spm_mvb_bmc(mvb)
+function [F,P,MVB] = spm_mvb_bmc(mvb)
 % multivariate Bayesian model comparison (Baysian decoding of a contrast)
-% FORMAT [F,P] = spm_mvb_bmc
+% FORMAT [F,P,MVB] = spm_mvb_bmc
 %
 % mvb   : models to compare (file names)
 % F     : F ratio relative to null
 % P     : P-value relative to null
+% MVB   : best model
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_bmc.m 1227 2008-03-18 16:16:36Z christophe $
+% $Id: spm_mvb_bmc.m 1885 2008-07-03 15:23:37Z christophe $
 
 
 %-Get figure handles and set title
@@ -87,10 +88,11 @@ if size(mvb,1) > 1
     title({'log-evidence';'Model comparison'})
 
     subplot(3,2,2), cla
-    text(.2,1/2,name','FontSize',12,'FontWeight','Bold')
-    text(.6,1/2,num2str(P',' %.3f'),'FontSize',12,'FontWeight','Bold')
+    text(0,1/2,name','FontSize',12,'FontWeight','Bold')
+    text(.7,1/2,num2str(P',' %.3f'),'FontSize',12,'FontWeight','Bold')
+    text(.9,1/2,num2str(F',' (%2.1f)'),'FontSize',12)
     axis square off
-    title({'Posterior p-values';'Model comparison'})
+    title({'Posterior p-values (F)';'Model comparison'})
 
 else
     

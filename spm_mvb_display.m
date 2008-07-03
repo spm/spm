@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 1227 2008-03-18 16:16:36Z christophe $
+% $Id: spm_mvb_display.m 1885 2008-07-03 15:23:37Z christophe $
 
 
 % get figure
@@ -62,7 +62,7 @@ str{1,1} = 'Posterior probabilities at maxima  ';
 str{2,1} = '________________________________';
 str{3,1} = 'p(|w| > 0)    location (x,y,z)  weight (w)';
 str{4,1} = '________________________________';
-while length(str) < 16  || ~any(P)
+while length(str) < 16  && any(P)
     
     [p i]  = max(P);
     str{end + 1,1} = sprintf('p = %.3f   %2.1f,%2.1f,%2.1fmm   q = %.4f;',...
