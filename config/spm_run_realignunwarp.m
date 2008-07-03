@@ -9,7 +9,8 @@ function out = spm_run_realignunwarp(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_realignunwarp.m 1185 2008-03-04 16:31:21Z volkmar $
+% Darren R. Gitelman
+% $Id: spm_run_realignunwarp.m 1886 2008-07-03 19:31:43Z guillaume $
 
 job = varargin{1};
 
@@ -60,28 +61,29 @@ if uweflags.jm == 1
 else
     uwrflags.udc = 1;
 end
-%---------------------------------------------------------------------
+%-----------------------------------------------------------------------
 
 % assemble files
-%---------------------------------------------------------------------
-P             = {};
+%-----------------------------------------------------------------------
+P = {};
 for i = 1:numel(job.data)
-        P{i} = strvcat(job.data(i).scans{:});
-        if ~isempty(job.data(i).pmscan)
-            sfP{i} = job.data(i).pmscan{1};
-        else
-            sfP{i} = [];
-        end
+    P{i} = strvcat(job.data(i).scans{:});
+    if ~isempty(job.data(i).pmscan)
+        sfP{i} = job.data(i).pmscan{1};
+    else
+        sfP{i} = [];
+    end
 end
+
 % realign
-%----------------------------------------------------------------
+%-----------------------------------------------------------------------
 spm_realign(P,flags);
 
 for i = 1:numel(P)
     uweflags.sfP = sfP{i};
 
     % unwarp estimate
-    %----------------------------------------------------------------
+    %-------------------------------------------------------------------
     tmpP = spm_vol(P{i}(1,:));
     uweflags.M = tmpP.mat;
     ds = spm_uw_estimate(P{i},uweflags);
@@ -93,29 +95,30 @@ for i = 1:numel(P)
         save(out.sess(i).dsfile{1},'-V6','ds');
     else
         save(out.sess(i).dsfile{1},'ds');
-    end;
-end;
+    end
+end
+
 % unwarp write - done at the single subject level since Batch
 % forwards one subjects data at a time for analysis, assuming
 % that subjects should be grouped as new spatial nodes. Sessions
 % should be within subjects.
-%----------------------------------------------------------------
-spm_uw_apply(cat(2,out.ds),uwrflags);
-switch job.uwroptions.uwwhich(1),
-    case 0,
-        vf = {};
-    case 2,
+%-----------------------------------------------------------------------
+spm_uw_apply(cat(2,out.sess.ds),uwrflags);
+switch job.uwroptions.uwwhich(1)
+    case 0
+    	out.sess.uwrfiles  = {};
+    case 2
         for i = 1:numel(P)
             for j=1:size(P{i},2)
                 [pth,nam,ext,num] = spm_fileparts(deblank(P{i}(j,:)));
                 out.sess(i).uwrfiles{j} = fullfile(pth,[job.uwroptions.prefix, ...
-                                    nam, ext, num]);
-            end;
-        end;
-end;
-if job.uwroptions.uwwhich(2),
+                    nam, ext, num]);
+            end
+        end
+end
+if job.uwroptions.uwwhich(2)
     [pth,nam,ext,num] = spm_fileparts(deblank(P{1}(j,:)));
     out.meanuwr{1} = fullfile(pth,['mean', job.uwroptions.prefix, nam, ext, num]);
-end;
+end
 
 return;
