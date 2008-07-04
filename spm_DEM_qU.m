@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_DEM_qU.m 1887 2008-07-04 17:48:42Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -175,4 +175,23 @@ for i = 1:g
         end
     end
 end
+
+% plot action if specified
+%--------------------------------------------------------------------------
+try
+    subplot(g,2,2*g)
+    plot(qU.a{2});
+    try
+        hold on
+        plot(pU.v{2},':'); hold off
+    end
+    xlabel('time','Fontsize',14)
+    title('perturbation and action','Fontsize',16)
+    grid on
+    axis square
+    set(gca,'XLim',[t(1) t(end)])
+catch
+    delete(gca)
+end
+
 drawnow
