@@ -53,20 +53,17 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.hpfilter      = 'no' or 'yes'  highpass filter
 %   cfg.bpfilter      = 'no' or 'yes'  bandpass filter
 %   cfg.bsfilter      = 'no' or 'yes'  bandstop filter
-%   cfg.lnfilter      = 'no' or 'yes'  line noise removal using notch filter
 %   cfg.dftfilter     = 'no' or 'yes'  line noise removal using discrete fourier transform
 %   cfg.medianfilter  = 'no' or 'yes'  jump preserving median filter
 %   cfg.lpfreq        = lowpass  frequency in Hz
 %   cfg.hpfreq        = highpass frequency in Hz
 %   cfg.bpfreq        = bandpass frequency range, specified as [low high] in Hz
 %   cfg.bsfreq        = bandstop frequency range, specified as [low high] in Hz
-%   cfg.lnfreq        = line noise frequency in Hz, default 50Hz
 %   cfg.dftfreq       = line noise frequencies for DFT filter, default [50 100 150] Hz
 %   cfg.lpfiltord     = lowpass  filter order
 %   cfg.hpfiltord     = highpass filter order
 %   cfg.bpfiltord     = bandpass filter order
 %   cfg.bsfiltord     = bandstop filter order
-%   cfg.lnfiltord     = line noise notch filter order
 %   cfg.medianfiltord = length of median filter
 %   cfg.lpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.hpfilttype    = digital filter type, 'but' (default) or 'fir'
@@ -81,6 +78,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.detrend       = 'no' or 'yes', this is done on the complete trial
 %   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial
 %   cfg.polyorder     = polynome order (default = 2)
+%   cfg.derivative    = 'no' (default) or 'yes', computes the first order derivative of the data
 %   cfg.hilbert       = 'no', 'abs', 'complex', 'real', 'imag', 'absreal', 'absimag' or 'angle' (default = 'no')
 %   cfg.rectify       = 'no' or 'yes'
 %   cfg.precision     = 'single' or 'double' (default = 'double')
@@ -98,6 +96,11 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.31  2008/07/07 14:59:14  sashae
+% now using preproc_modules for low-level preprocessing functions
+% lnfilter is no longer supported
+% updated documentation
+%
 % Revision 1.30  2008/06/26 07:55:38  roboos
 % apply_montage needs cell+label structure and not matrix (thanks to Conrado)
 %
@@ -243,7 +246,6 @@ if ~isfield(cfg, 'polyorder'),    cfg.polyorder = 2;            end
 if ~isfield(cfg, 'detrend'),      cfg.detrend = 'no';           end
 if ~isfield(cfg, 'blc'),          cfg.blc = 'no';               end
 if ~isfield(cfg, 'blcwindow'),    cfg.blcwindow = 'all';        end
-if ~isfield(cfg, 'lnfilter'),     cfg.lnfilter = 'no';          end
 if ~isfield(cfg, 'dftfilter'),    cfg.dftfilter = 'no';         end
 if ~isfield(cfg, 'lpfilter'),     cfg.lpfilter = 'no';          end
 if ~isfield(cfg, 'hpfilter'),     cfg.hpfilter = 'no';          end
@@ -253,7 +255,6 @@ if ~isfield(cfg, 'lpfiltord'),    cfg.lpfiltord = 6;            end
 if ~isfield(cfg, 'hpfiltord'),    cfg.hpfiltord = 6;            end
 if ~isfield(cfg, 'bpfiltord'),    cfg.bpfiltord = 4;            end
 if ~isfield(cfg, 'bsfiltord'),    cfg.bsfiltord = 4;            end
-if ~isfield(cfg, 'lnfiltord'),    cfg.lnfiltord = 4;            end
 if ~isfield(cfg, 'lpfilttype'),   cfg.lpfilttype = 'but';       end
 if ~isfield(cfg, 'hpfilttype'),   cfg.hpfilttype = 'but';       end
 if ~isfield(cfg, 'bpfilttype'),   cfg.bpfilttype = 'but';       end
@@ -264,7 +265,6 @@ if ~isfield(cfg, 'bpfiltdir'),    cfg.bpfiltdir = 'twopass';    end
 if ~isfield(cfg, 'bsfiltdir'),    cfg.bsfiltdir = 'twopass';    end
 if ~isfield(cfg, 'medianfilter'), cfg.medianfilter  = 'no';     end
 if ~isfield(cfg, 'medianfiltord'),cfg.medianfiltord = 9;        end
-if ~isfield(cfg, 'lnfreq'),       cfg.lnfreq = 50;              end
 if ~isfield(cfg, 'dftfreq')       cfg.dftfreq = [50 100 150];   end
 if ~isfield(cfg, 'hilbert'),      cfg.hilbert = 'no';           end
 if ~isfield(cfg, 'derivative'),   cfg.derivative = 'no';        end
@@ -300,6 +300,11 @@ if ~strcmp(cfg.reref, 'no') && ~strcmp(cfg.montage, 'no')
   error('cfg.reref and cfg.montage are mutually exclusive')
 end
 
+% lnfilter is no longer used
+if isfield(cfg, 'lnfilter') && strcmp(cfg.lnfilter, 'yes')
+  error('line noise filtering using the option cfg.lnfilter is not supported any more, use cfg.bsfilter instead')
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do the rereferencing in case of EEG
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -314,7 +319,7 @@ if strcmp(cfg.reref, 'yes'),
   if isempty(refindx)
     error('reference channel was not found')
   end
-  dat = avgref(dat, refindx);
+  dat = preproc_rereference(dat, refindx);
 end
 
 if ~strcmp(cfg.montage, 'no')
@@ -341,26 +346,20 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do the filtering on the padded data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if strcmp(cfg.medianfilter, 'yes'), dat = medfilt1(dat, cfg.medianfiltord, [], 2); end
-if strcmp(cfg.lpfilter, 'yes'),     dat = lowpassfilter (dat, fsample, cfg.lpfreq, cfg.lpfiltord, cfg.lpfilttype, cfg.lpfiltdir); end
-if strcmp(cfg.hpfilter, 'yes'),     dat = highpassfilter(dat, fsample, cfg.hpfreq, cfg.hpfiltord, cfg.hpfilttype, cfg.hpfiltdir); end
-if strcmp(cfg.bpfilter, 'yes'),     dat = bandpassfilter(dat, fsample, cfg.bpfreq, cfg.bpfiltord, cfg.bpfilttype, cfg.bpfiltdir); end
+if strcmp(cfg.medianfilter, 'yes'), dat = preproc_medianfilter(dat, cfg.medianfiltord); end
+if strcmp(cfg.lpfilter, 'yes'),     dat = preproc_lowpassfilter(dat, fsample, cfg.lpfreq, cfg.lpfiltord, cfg.lpfilttype, cfg.lpfiltdir); end
+if strcmp(cfg.hpfilter, 'yes'),     dat = preproc_highpassfilter(dat, fsample, cfg.hpfreq, cfg.hpfiltord, cfg.hpfilttype, cfg.hpfiltdir); end
+if strcmp(cfg.bpfilter, 'yes'),     dat = preproc_bandpassfilter(dat, fsample, cfg.bpfreq, cfg.bpfiltord, cfg.bpfilttype, cfg.bpfiltdir); end
 if strcmp(cfg.bsfilter, 'yes')
   for i=1:size(cfg.bsfreq,1)
     % apply a bandstop filter for each of the specified bands, i.e. cfg.bsfreq should be Nx2
-    dat = bandstopfilter(dat, fsample, cfg.bsfreq(i,:), cfg.bsfiltord, cfg.bsfilttype, cfg.bsfiltdir);
-  end
-end
-if strcmp(cfg.lnfilter, 'yes')
-  for i=1:length(cfg.lnfreq)
-    % filter out the 50Hz noise, optionally also the 100 and 150 Hz harmonics
-    dat = notchfilter(dat, fsample, cfg.lnfreq(i), cfg.lnfiltord);
+    dat = preproc_bandstopfilter(dat, fsample, cfg.bsfreq(i,:), cfg.bsfiltord, cfg.bsfilttype, cfg.bsfiltdir);
   end
 end
 if strcmp(cfg.dftfilter, 'yes')
   for i=1:length(cfg.dftfreq)
     % filter out the 50Hz noise, optionally also the 100 and 150 Hz harmonics
-    dat = dftfilter(dat, fsample, cfg.dftfreq(i));
+    dat = preproc_dftfilter(dat, fsample, cfg.dftfreq(i));
   end
 end
 if strcmp(cfg.polyremoval, 'yes')
@@ -375,7 +374,7 @@ if strcmp(cfg.detrend, 'yes')
   % the begin and endsample of the detrend period correspond to the complete data minus padding
   begsample = 1        + begpadding;
   endsample = nsamples - endpadding;
-  dat = mydetrend(dat, begsample, endsample);
+  dat = preproc_detrend(dat, begsample, endsample);
 end
 if strcmp(cfg.blc, 'yes') || nargout>2
   % determine the complete time axis for the baseline correction
@@ -389,36 +388,19 @@ if strcmp(cfg.blc, 'yes')
     % the begin and endsample of the baseline period correspond to the complete data minus padding
     begsample = 1        + begpadding;
     endsample = nsamples - endpadding;
-    dat          = blc(dat, begsample, endsample);
+    dat       = preproc_baselinecorrect(dat, begsample, endsample);
   else
     % determine the begin and endsample of the baseline period and baseline correct for it
     begsample = nearest(time, cfg.blcwindow(1));
     endsample = nearest(time, cfg.blcwindow(2));
-    dat          = blc(dat, begsample, endsample);
+    dat       = preproc_baselinecorrect(dat, begsample, endsample);
   end
 end
 if ~strcmp(cfg.hilbert, 'no')
-  switch cfg.hilbert
-    case {'yes' 'abs'}
-      dat = abs(hilbert(dat'))';  % this is the default if 'yes' is specified
-    case 'complex'
-      dat = hilbert(dat')';
-    case 'real'
-      dat = real(hilbert(dat'))';
-    case 'imag'
-      dat = imag(hilbert(dat'))';
-    case 'absreal'
-      dat = abs(real(hilbert(dat')))';
-    case 'absimag'
-      dat = abs(imag(hilbert(dat')))';
-    case 'angle'
-      dat = unwrap(angle(hilbert(dat')))';
-    otherwise
-      error('incorrect specification of cfg.hilbert');
-  end
+  dat = preproc_hilbert(dat, cfg.hilbert);
 end
 if strcmp(cfg.rectify, 'yes'),
-  dat = abs(dat);
+  dat = preproc_rectify(dat);
 end
 if isnumeric(cfg.boxcar)
   numsmp = round(cfg.boxcar*fsample);
@@ -437,7 +419,7 @@ if isnumeric(cfg.boxcar)
   dat = convn(dat, kernel, 'same');
 end
 if strcmp(cfg.derivative, 'yes'),
-  dat = [diff(dat, 1, 2) 0];
+  dat = preproc_derivative(dat, 1, 2);
 end
 if strcmp(cfg.absdiff, 'yes'),
   % this implements abs(diff(data), which is required for jump detection
@@ -457,17 +439,6 @@ if begpadding~=0 || endpadding~=0
     time = time((1+begpadding):(end-endpadding));
   end
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%subfunction which does the detrending on the data without filter-padding
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dat = mydetrend(dat, begsample, endsample);
-nsamples = size(dat,2);
-vec1     = [ones(1,nsamples) ; 0:(nsamples-1)];
-vec0     = vec1;
-vec0(:, [1:(begsample-1) (endsample+1):nsamples]) = 0;
-beta     = dat/vec0;
-dat      = dat - beta*vec1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %subfunction which does the polyremoval on the data without filter-padding
