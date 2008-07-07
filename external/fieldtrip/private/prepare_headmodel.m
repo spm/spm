@@ -30,6 +30,9 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_headmodel.m,v $
+% Revision 1.3  2008/07/07 12:36:09  roboos
+% fixed bug in skin-compartment determination for 4-sphere
+%
 % Revision 1.2  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -208,7 +211,7 @@ end
 if ~isfield(vol, 'skin')
   if isfield(vol, 'bnd')
     vol.skin   = find_outermost_boundary(vol.bnd);
-  elseif isfield(vol, 'r') && length(vol.r<=4)
+  elseif isfield(vol, 'r') && length(vol.r)<=4
     [dum, vol.skin] = max(vol.r);
   end
 end
@@ -406,5 +409,6 @@ else
 end
 
 % update the configuration, so that the calling function exactly knows wat was selected
+% the channel ordering in the sensor array remains consistent
 cfg.channel = sens.label;
 
