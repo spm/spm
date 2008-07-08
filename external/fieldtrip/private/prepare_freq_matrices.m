@@ -11,6 +11,9 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 % Copyright (C) 2004-2006, Robet Oostenveld
 %
 % $Log: prepare_freq_matrices.m,v $
+% Revision 1.21  2008/07/08 15:39:22  roboos
+% initial version for Saskia to work on
+%
 % Revision 1.20  2006/10/30 16:37:29  roboos
 % fixed bug in reshaping of fourier data (was ctranspose, whereas it should be normal transpose), all phase differences in the CSD matix were therefore defined the other way around
 % added support for Cr and Pr (needed for dics) in case fourier input data
@@ -158,6 +161,7 @@ if isfield(freq, 'powspctrm') && isfield(freq, 'crsspctrm')
 
   % this complex rearrangement of channel indices transforms the CSDs into a square matrix
   if Ntrials==1
+    % FIXME this fails in case dimord=rpt_chan_freq and only 1 trial
     Cf = complex(nan*zeros(Nchans,Nchans));
     % first use the complex conjugate for all reversed signal combinations
     Cf(find(crsspctrmindx)) = freq.crsspctrm(crsspctrmindx(find(crsspctrmindx)), fbin);
