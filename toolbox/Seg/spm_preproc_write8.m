@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1798 2008-06-06 16:25:56Z john $
+% $Id: spm_preproc_write8.m 1893 2008-07-08 15:05:40Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -206,7 +206,7 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
             if nargout>=1,
                 cls{k1} = c;
             end
-            if tc(k1,4),
+            if tc(k1,3),
                 N      = nifti;
                 N.dat  = file_array(fullfile(pth,['mwc', num2str(k1), nam, ext1]),...
                                     d1,...
@@ -218,7 +218,7 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
                 create(N);
                 N.dat(:,:,:) = c*abs(det(M0(1:3,1:3))/det(M1(1:3,1:3)));
             end
-            if any(tc(:,3)),
+            if any(tc(:,4)),
                 vx          = sqrt(sum(M1(1:3,1:3).^2));
                 C(:,:,:,k1) = optimNn(w,c,[1  vx  1e-4 1e-6 0  3 2]);
             end
@@ -228,12 +228,12 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
     spm_progress_bar('Clear');
 end
 
-if any(tc(:,3)),
+if any(tc(:,4)),
     spm_progress_bar('init',Kb,'Writing Warped Tis Cls','Classes completed');
     C = max(C,eps);
     s = sum(C,4);
     for k1=1:Kb,
-        if tc(k1,3),
+        if tc(k1,4),
             N      = nifti;
             N.dat  = file_array(fullfile(pth,['wc', num2str(k1), nam, ext1]),...
                                 d1,'uint8-be',0,1/255,0);

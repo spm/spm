@@ -1,5 +1,5 @@
 /*
- * $Id: spm_project.c 574 2006-07-25 17:59:36Z john $
+ * $Id: spm_project.c 1893 2008-07-08 15:05:40Z john $
  */
  
 /*
@@ -27,7 +27,7 @@ spm_project.c
 #include <math.h>
 #include <stdio.h>
 #include "mex.h"
-#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
+#define RINT(A) floor((A)+0.5)
 #define	MAX(A, B)	((A) > (B) ? (A) : (B))
 #define	MIN(A, B)	((A) < (B) ? (A) : (B))
 

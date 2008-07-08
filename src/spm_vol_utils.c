@@ -1,5 +1,5 @@
 /*
- * $Id: spm_vol_utils.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_vol_utils.c 1893 2008-07-08 15:05:40Z john $
  * John Ashburner
  */
 
@@ -239,7 +239,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
+#define RINT(A) floor((A)+0.5)
 #include "spm_make_lookup.h"
 #include "spm_getdata.h"
 

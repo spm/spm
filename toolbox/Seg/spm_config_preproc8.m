@@ -4,9 +4,9 @@ function job = spm_config_preproc8
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: spm_config_preproc8.m 1893 2008-07-08 15:05:40Z john $
 
-
+addpath(fullfile(spm('dir'),'toolbox','Seg'));
 %_______________________________________________________________________
 
 entry = inline(['struct(''type'',''entry'',''name'',name,'...

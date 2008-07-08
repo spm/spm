@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bias_mex.c 938 2007-10-12 19:09:31Z john $
+ * $Id: spm_bias_mex.c 1893 2008-07-08 15:05:40Z john $
  * John Ashburner
  */
 
@@ -7,7 +7,7 @@
 #include "mex.h"
 #include "spm_mapping.h"
 #include "spm_datatypes.h"
-#define RINT(A) floor((A)+(((A) < 0)? -0.5 : 0.5))
+#define RINT(A) floor((A)+0.5)
 #define EPS 2.2204460492503130808e-16
 #define MAXB 128 /* Maximum number of bases functions in each dimension */
 

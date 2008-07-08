@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 1798 2008-06-06 16:25:56Z john $
+% $Id: spm_preproc8.m 1893 2008-07-08 15:05:40Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -88,7 +88,7 @@ MT        = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 
 
 lkp       = obj.lkp;
 K         = numel(lkp);
-Kb        = max(lkp);
+Kb        = max(obj.lkp);
 
 kron = inline('spm_krutil(a,b)','a','b');
 
@@ -234,6 +234,8 @@ for iter=1:20,
     %-----------------------------------------------------------------------
     if iter==1,
         % Begin with moments:
+        K   = Kb;
+        lkp = 1:Kb;
         mm0 = zeros(Kb,1);
         mm1 = zeros(N,Kb);
         mm2 = zeros(N,N,Kb);
@@ -251,33 +253,15 @@ for iter=1:20,
             clear cr
         end
 
-        % Initial parameterisation of Gaussians
-        rand('state',0); % give same results each time
-        if isfield(obj,'mg'), mg = obj.mg; else mg = ones(K,1)/K;  end
-        if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
-        if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
-
         % Use moments to compute means and variances, and then use these
         % to initialise the Gaussians
+        mn = zeros(N,Kb);
+        vr = zeros(N,N,Kb);
         for k1=1:Kb,
-            mn1 = mm1(:,k1)/(mm0(k1)+tiny);
-            vr1 = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
-
-            % A crude heuristic to replace a single Gaussian by a bunch of Gaussians
-            % If there is only one Gaussian, then it should be the same as the
-            % original distribution.
-            kk  = sum(lkp==k1);
-            w   = 1./(1+exp(-(kk-1)*0.25))-0.5;
-            if ~isfield(obj,'mn'),
-                mn(:,lkp==k1)   = sqrtm(vr1)*randn(N,kk)*w + repmat(mn1,[1,kk]);
-            end
-            if ~isfield(obj,'vr'),
-                vr(:,:,lkp==k1) = repmat(vr1*(1-w),[1,1,kk]);
-            end
-            if ~isfield(obj,'mg'),
-                mg(lkp==k1)     = 1/kk;
-            end
+            mn(:,k1)   = mm1(:,k1)/(mm0(k1)+tiny);
+            vr(:,:,k1) = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
         end
+        mg = ones(Kb,1);
 
         % Add a little something to the covariance estimates
         % in order to assure stability
@@ -405,7 +389,7 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
                     % Gauss-Newton iteration
                     C          = bias(n).C; % Inverse covariance of priors
                     T          = bias(n).T; % Current estimate
-                    R          = 0; %diag(sqrt(Beta.^2*0.01+1)); % L-M regularisation
+                    R          = diag(sqrt(Beta.^2*0.1+1)*0.01); % L-M regularisation
                     bias(n).T  = T - reshape((Alpha + C + R)\(C*T(:)+Beta),size(T));
 
                     % Re-generate bias field, and compute terms of the objective function
@@ -433,6 +417,35 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
             % Show only improvements after this, as they are more clearly visible.
             spm_chi2_plot('Clear');
             spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
+
+            mn1 = mn;
+            vr1 = vr;
+            lkp = obj.lkp;
+            K   = numel(lkp);
+
+            % Use moments to compute means and variances, and then use these
+            % to initialise the Gaussians
+            rand('state',0); % give same results each time
+            if isfield(obj,'mg'), mg = obj.mg; else mg = ones(K,1)/K;  end
+            if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
+            if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
+
+            for k1=1:Kb,
+                % A crude heuristic to replace a single Gaussian by a bunch of Gaussians
+                % If there is only one Gaussian, then it should be the same as the
+                % original distribution.
+                kk  = sum(lkp==k1);
+                w   = 1./(1+exp(-(kk-1)*0.25))-0.5;
+                if ~isfield(obj,'mn'),
+                    mn(:,lkp==k1)   = sqrtm(vr1(:,:,k1))*randn(N,kk)*w + repmat(mn1(:,k1),[1,kk]);
+                end
+                if ~isfield(obj,'vr'),
+                    vr(:,:,lkp==k1) = repmat(vr1(:,:,k1)*(1-w),[1,1,kk]);
+                end
+                if ~isfield(obj,'mg'),
+                    mg(lkp==k1)     = 1/kk;
+                end
+            end
         end
 
         if ~((ll-ooll)>tol1*nm), break; end
