@@ -43,20 +43,17 @@ function [data] = preprocessing(cfg, data);
 %   cfg.hpfilter      = 'no' or 'yes'  highpass filter
 %   cfg.bpfilter      = 'no' or 'yes'  bandpass filter
 %   cfg.bsfilter      = 'no' or 'yes'  bandstop filter
-%   cfg.lnfilter      = 'no' or 'yes'  line noise removal using notch filter
 %   cfg.dftfilter     = 'no' or 'yes'  line noise removal using discrete fourier transform
 %   cfg.medianfilter  = 'no' or 'yes'  jump preserving median filter
 %   cfg.lpfreq        = lowpass  frequency in Hz
 %   cfg.hpfreq        = highpass frequency in Hz
 %   cfg.bpfreq        = bandpass frequency range, specified as [low high] in Hz
 %   cfg.bsfreq        = bandstop frequency range, specified as [low high] in Hz
-%   cfg.lnfreq        = line noise frequency in Hz, default 50Hz
 %   cfg.dftfreq       = line noise frequencies for DFT filter, default [50 100 150] Hz
 %   cfg.lpfiltord     = lowpass  filter order
 %   cfg.hpfiltord     = highpass filter order
 %   cfg.bpfiltord     = bandpass filter order
 %   cfg.bsfiltord     = bandstop filter order
-%   cfg.lnfiltord     = line noise notch filter order
 %   cfg.lpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.hpfilttype    = digital filter type, 'but' (default) or 'fir'
 %   cfg.bpfilttype    = digital filter type, 'but' (default) or 'fir'
@@ -71,6 +68,7 @@ function [data] = preprocessing(cfg, data);
 %   cfg.detrend       = 'no' or 'yes', this is done on the complete trial
 %   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial
 %   cfg.polyorder     = polynome order (default = 2)
+%   cfg.derivative    = 'no' (default) or 'yes', computes the first order derivative of the data
 %   cfg.hilbert       = 'no', 'abs', 'complex', 'real', 'imag', 'absreal', 'absimag' or 'angle' (default = 'no')
 %   cfg.rectify       = 'no' or 'yes'
 %   cfg.precision     = 'single' or 'double' (default = 'double')
@@ -104,7 +102,7 @@ function [data] = preprocessing(cfg, data);
 % cfg.bsfiltord, documented
 % cfg.bsfilttype, documented
 % cfg.bsfreq, documented
-% cfg.derivative
+% cfg.derivative, documented
 % cfg.detrend, documented
 % cfg.dftfilter, documented
 % cfg.dftfreq, documented
@@ -114,10 +112,6 @@ function [data] = preprocessing(cfg, data);
 % cfg.hpfilttype, documented
 % cfg.hpfreq, documented
 % cfg.implicitref, documented
-% cfg.lnfilter, documented
-% cfg.lnfiltord, documented
-% cfg.lnfilttype, documented
-% cfg.lnfreq, documented
 % cfg.lpfilter, documented
 % cfg.lpfiltord, documented
 % cfg.lpfilttype, documented
@@ -131,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.94  2008/07/08 08:15:11  sashae
+% updated documentation, removed lnfilter
+%
 % Revision 1.93  2008/06/26 15:31:34  roboos
 % added cfg.headerformat and dataformat, these are passed to low-level readers and allow overriding the auto-detected format
 %
@@ -319,7 +316,6 @@ if ~isfield(cfg, 'dataformat'),   cfg.dataformat = [];          end % is passed 
 
 
 % these options relate to the actual preprocessing, it is neccessary to specify here because of padding
-if ~isfield(cfg, 'lnfilter'),     cfg.lnfilter = 'no';          end
 if ~isfield(cfg, 'dftfilter'),    cfg.dftfilter = 'no';         end
 if ~isfield(cfg, 'lpfilter'),     cfg.lpfilter = 'no';          end
 if ~isfield(cfg, 'hpfilter'),     cfg.hpfilter = 'no';          end
@@ -471,8 +467,7 @@ else
   % determine the length in samples to which the data should be padded before filtering is applied
   % the filter padding is done by reading a longer segment of data from the original data file
   if cfg.padding>0
-    if strcmp(cfg.lnfilter, 'yes') || ...
-        strcmp(cfg.dftfilter, 'yes') || ...
+    if strcmp(cfg.dftfilter, 'yes') || ...
         strcmp(cfg.lpfilter, 'yes') || ...
         strcmp(cfg.hpfilter, 'yes') || ...
         strcmp(cfg.bpfilter, 'yes') || ...
@@ -603,7 +598,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.93 2008/06/26 15:31:34 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.94 2008/07/08 08:15:11 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

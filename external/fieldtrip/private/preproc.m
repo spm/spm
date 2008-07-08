@@ -96,6 +96,9 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.32  2008/07/08 08:05:44  sashae
+% fixed small bug in derivative
+%
 % Revision 1.31  2008/07/07 14:59:14  sashae
 % now using preproc_modules for low-level preprocessing functions
 % lnfilter is no longer supported
@@ -419,7 +422,7 @@ if isnumeric(cfg.boxcar)
   dat = convn(dat, kernel, 'same');
 end
 if strcmp(cfg.derivative, 'yes'),
-  dat = preproc_derivative(dat, 1, 2);
+  dat = preproc_derivative(dat, 1, 'end');
 end
 if strcmp(cfg.absdiff, 'yes'),
   % this implements abs(diff(data), which is required for jump detection
