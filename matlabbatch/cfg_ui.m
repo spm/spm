@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_ui.m 1896 2008-07-09 08:21:36Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 1896 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -204,7 +204,7 @@ function local_loaddefs(varargin)
 appid = get(gcbo, 'Userdata');
 [file sts] = cfg_getfile(1, '.*\.m$','Load Defaults from');
 if sts
-    cfg_util('initdef', appid, file);
+    cfg_util('initdef', appid, file{1});
 end;
 % --------------------------------------------------------------------
 function local_savedefs(varargin)
@@ -925,7 +925,7 @@ else
 end;
 [val sts] = cfg_getfile(contents{2}{1}, contents{3}{1}, contents{4}{1}, inifile, contents{5}{1}, contents{6}{1});
 if sts
-    local_setvaledit(hObject, cellstr(val));
+    local_setvaledit(hObject, val);
 end;
 
 % --------------------------------------------------------------------
@@ -1044,7 +1044,7 @@ if isempty(udmodlist) || ~cfg_util('isjob_id', udmodlist.cjob)
 end;
 
 % set initial font
-fs = cfg_get_defaults([mfilename '.font']);
+fs = cfg_get_defaults([mfilename '.lfont']);
 local_setfont(hObject, fs);
 
 % set ExpertEdit checkbox
@@ -1123,7 +1123,6 @@ if strcmpi(cmd,'continue')
     [files sts] = cfg_getfile([1 Inf], 'batch', 'Load Job File(s)');
     if sts
         local_pointer('watch');
-        files = cellstr(files);
         cfg_util('deljob',udmodlist(1).cjob);
         udmodlist = local_init_udmodlist;
         udmodlist.wd = fileparts(files{1});
@@ -1197,7 +1196,7 @@ end;
 if strcmpi(cmd,'continue')
     [file sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
     if sts
-        [p fun e v] = fileparts(file);
+        [p fun e v] = fileparts(file{1});
         addpath(p);
         cfg_util('addapp', fun);
         local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
@@ -1567,7 +1566,7 @@ function MenuEditFontSize_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-fs = uisetfont;
+fs = uisetfont(cfg_get_defaults([mfilename '.lfont']));
 if isstruct(fs)
     local_setfont(hObject,fs);
     MenuEditUpdateView_Callback(hObject, eventdata, handles);
@@ -1585,7 +1584,7 @@ MenuEditUpdateView_Callback(hObject, eventdata, handles);
 % --------------------------------------------------------------------
 function local_setfont(obj,fs)
 handles = guidata(obj);
-cfg_get_defaults([mfilename '.font'], fs);
+cfg_get_defaults([mfilename '.lfont'], fs);
 % construct argument list for set
 fn = fieldnames(fs);
 fs = struct2cell(fs);

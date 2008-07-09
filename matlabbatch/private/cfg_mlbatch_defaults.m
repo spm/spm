@@ -11,17 +11,24 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 1870 2008-07-01 14:06:43Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 1896 2008-07-09 08:21:36Z volkmar $
 
-rev = '$Rev: 1870 $'; %#ok
+rev = '$Rev: 1896 $'; %#ok
 
 % Font definition for cfg_ui user interface
-% cfg_defaults.cfg_ui.font is a font struct as returned by uisetfont
-cfg_defaults.cfg_ui.font.FontName   = 'FixedWidth';
-cfg_defaults.cfg_ui.font.FontWeight = 'normal';
-cfg_defaults.cfg_ui.font.FontAngle  = 'normal';
-cfg_defaults.cfg_ui.font.FontSize   = 10;
-cfg_defaults.cfg_ui.font.FontUnits  = 'points';
+% cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
+% lfont: used in lists, value edit dialogues etc.
+cfg_defaults.cfg_ui.lfont.FontAngle  = 'normal';
+cfg_defaults.cfg_ui.lfont.FontName   = get(0,'FixedWidthFontName');
+cfg_defaults.cfg_ui.lfont.FontSize   = 10;
+cfg_defaults.cfg_ui.lfont.FontUnits  = 'points';
+cfg_defaults.cfg_ui.lfont.FontWeight = 'normal';
+% bfont: used for buttons
+cfg_defaults.cfg_ui.bfont.FontAngle  = get(0, 'factoryUicontrolFontAngle');
+cfg_defaults.cfg_ui.bfont.FontName   = get(0,'factoryUicontrolFontName');
+cfg_defaults.cfg_ui.bfont.FontSize   = get(0, 'factoryUicontrolFontSize');
+cfg_defaults.cfg_ui.bfont.FontUnits  = get(0, 'factoryUicontrolFontUnits');
+cfg_defaults.cfg_ui.bfont.FontWeight = get(0, 'factoryUicontrolFontWeight');
 % Toggle ExpertEdit mode. Value can be 'on' or 'off'
 cfg_defaults.cfg_ui.ExpertEdit = 'off';
 

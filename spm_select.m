@@ -69,9 +69,31 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 1816 2008-06-11 15:28:51Z guillaume $
+% $Id: spm_select.m 1896 2008-07-09 08:21:36Z volkmar $
 
 if ~exist('cfg_getfile','file') && ~isdeployed
     addpath(fullfile(spm('dir'),'matlabbatch'));
 end;
-[varargout{1:nargout}] = cfg_getfile(varargin{:});
+% cfg_getfile expects and returns cellstr arguments for multi-line strings
+if nargin > 0 && ischar(varargin{1}) && strcmpi(varargin{1},'filter') && ischar(varargin{2})
+    varargin{2} = cellstr(varargin{2});
+end
+[t sts] = cfg_getfile(varargin{:});
+% cfg_getfile returns cell arrays, convert to char arrays
+if nargin > 0 && ischar(varargin{1})
+    switch lower(varargin{1})
+        case 'filter',
+            if ischar(varargin{2})
+                t = char(t);
+            end
+        case {'list','fplist','extlist','extfplist'},
+                t = char(t);
+                sts = char(sts);
+    end
+else
+    t = char(t);
+end
+varargout{1} = t;
+if nargout > 1
+    varargout{2} = sts;
+end

@@ -41,7 +41,7 @@ function [selection,value] = listdlg(varargin)
 %    MSGBOX, QUESTDLG, WARNDLG.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 1862 $  $Date: 2005/10/28 15:54:55 $
+%   $Revision: 1896 $  $Date: 2005/10/28 15:54:55 $
 
 %   'uh'            uicontrol button height, in pixels; default = 22.
 %   'fus'           frame/uicontrol spacing, in pixels; default = 8.
@@ -148,7 +148,7 @@ end
 
 btn_wid = (fp(3)-2*(ffs+fus)-fus)/2;
 
-lfont = cfg_get_defaults('cfg_ui.font');
+lfont = cfg_get_defaults('cfg_ui.lfont');
 fn    = fieldnames(lfont);
 fs    = struct2cell(lfont);
 lfont = [fn'; fs'];
