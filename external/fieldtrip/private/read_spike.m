@@ -20,6 +20,9 @@ function [spike] = read_spike(filename, varargin);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: read_spike.m,v $
+% Revision 1.12  2008/07/09 12:16:38  roboos
+% added mclust_t
+%
 % Revision 1.11  2008/03/25 10:59:02  roboos
 % use either NLX_Base_Class_Name or AcqEntName, whichever is available
 %
@@ -73,6 +76,19 @@ switch spikeformat
   case 'matlab'
     % plain matlab file with a single variable in it
     load(filename, 'spike');
+
+  case 'mclust_t'
+    fp = fopen(filename, 'rb');
+    H = ReadHeader(fp);
+    fclose(fp);
+    % read only from one file
+    S = LoadSpikes({filename});
+    spike.hdr = H(:);
+    spike.timestamp = S;
+    [p, f, x] = fileparts(filename);
+    spike.label     = {f};  % use the filename as label for the spike channel
+    spike.waveform  = {};   % this is unknown
+    spike.unit      = {};   % this is unknown
 
   case 'neuralynx_nse'
     % single channel file, read all records
