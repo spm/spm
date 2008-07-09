@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_dcm_estimate.m 1900 2008-07-09 14:57:34Z guillaume $
 
  
 % load DCM structure
@@ -114,7 +114,7 @@ vv         = diag(Cp);
 [vA vB vC] = spm_dcm_reshape(vv,M.m,n,1);
 
 % Store parameters
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 DCM.M      = M;
 DCM.Y      = Y;
 DCM.U      = U;
@@ -146,17 +146,17 @@ DCM.AIC    = evidence.aic_overall;
 DCM.BIC    = evidence.bic_overall;
 
 
-%-Save and reset title
-%-------------------------------------------------------------------
+%-Save DCM
+%--------------------------------------------------------------------------
 if spm_matlab_version_chk('7') >= 0
     save(P,'-V6','DCM');
 else
     save(P,'DCM');
-end;
+end
 
-if nargin < 1
+if ~nargin
     spm('Pointer','Arrow');
-    spm_input('Thank you',1,'d');
+    spm('FigName','Done');
 end
 
 return
