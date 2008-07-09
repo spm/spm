@@ -7,7 +7,7 @@ function b0 = spm_load_priors(B)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_load_priors.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_load_priors.m 1902 2008-07-09 19:00:37Z john $
 
 
 % deg = 3;
@@ -29,7 +29,7 @@ for i=1:B(1).dim(3)
         s             = s + tmp;
     end;
     t = s>1;
-    if any(t)
+    if any(any(t)),
         for k1=1:Kb
             tmp           = b0{k1}(:,:,i);
             tmp(t)        = tmp(t)./s(t);
