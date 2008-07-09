@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.83  2008/07/09 12:16:38  roboos
+% added mclust_t
+%
 % Revision 1.82  2008/07/01 13:35:25  roboos
 % moved long sequence for mat files onto single line (2x)
 %
@@ -856,6 +859,10 @@ elseif filetype_check_extension(filename, '.set')
   ftype = 'eeglab_set';
   manufacturer = 'Swartz Center for Computational Neuroscience, San Diego, USA';
   content = 'electrophysiological data';
+elseif filetype_check_extension(filename, '.t') && filetype_check_header(filename, '%%BEGINHEADER')
+  ftype = 'mclust_t';
+  manufacturer = 'MClust';
+  content = 'sorted spikes';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
