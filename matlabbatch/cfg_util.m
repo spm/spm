@@ -89,6 +89,11 @@ function varargout = cfg_util(cmd, varargin)
 % and its contents will be prepended to each of the created files. This
 % allows to automatically include e.g. copyright or revision.
 %
+%  out = cfg_util('getAllOutputs', job_id)
+% 
+% Returns a cell array with module outputs. If a module has not been run,
+% its output will be a cfg_inv_out object.
+%
 %  [tag, val] = cfg_util('harvest', job_id[, mod_job_id])
 %
 % Harvest is a method defined for all 'cfg_item' objects. It collects the
@@ -361,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_util.m 1897 2008-07-09 11:57:33Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 1897 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -448,6 +453,11 @@ switch lower(cmd),
             tropts = cfg_tropts(cfg_findspec, 1, 2, 0, Inf, true);
         end;
         local_gencode(cm, fname, tropts);
+    case 'getalloutputs',
+        cjob = varargin{1};
+        if cfg_util('isjob_id', cjob) && ~isempty(jobs(cjob).cjrun)
+            varargout{1} = cellfun(@(cid)subsref(jobs(cjob).cjrun, [cid substruct('.','jout')]), jobs(cjob).cjid2subsrun, 'UniformOutput',false);
+        end
     case 'harvest',
         tag = '';
         val = [];
@@ -509,6 +519,8 @@ switch lower(cmd),
         if nargin == 1
             jobs(cjob).cj = jobs(cjob).c0;
             jobs(cjob).cjid2subs = {};
+            jobs(cjob).cjrun = [];
+            jobs(cjob).cjid2subsrun = {};
             varargout{1} = cjob;
             varargout{2} = {};
             return;
@@ -1111,6 +1123,7 @@ jobs(cjob).cj        = c0;
 jobs(cjob).c0        = c0;
 jobs(cjob).cjid2subs = {};
 jobs(cjob).cjrun     = [];
+jobs(cjob).cjid2subsrun = {};
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
@@ -1198,6 +1211,7 @@ end;
 mod_job_idlist = mat2cell(1:numel(cjob.cjid2subs),1,ones(1,numel(cjob.cjid2subs)));
 % add field to keep run results from job
 cjob.cjrun = [];
+cjob.cjid2subsrun = {};
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
@@ -1249,10 +1263,11 @@ cfg_message('matlabbatch:run:jobstart', ...
              'Running job #%d\n', ...
              '-----------------------------------------------------------------------'], cjob);
 
-job = local_compactjob(job);
+job1 = local_compactjob(job);
 % copy cjid2subs, it will be modified for each module that is run
-cjid2subs = job.cjid2subs;
-[u1 mlbch u3 u4 u5 job.cjrun] = harvest(job.cj, job.cj, false, true);
+cjid2subs = job1.cjid2subs;
+job.cjid2subsrun = job1.cjid2subs;
+[u1 mlbch u3 u4 u5 job.cjrun] = harvest(job1.cj, job1.cj, false, true);
 % get subscripts of all exbranches into harvested job structure
 jobsubs = cell(size(cjid2subs));
 for k = 1:numel(cjid2subs)

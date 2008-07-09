@@ -12,9 +12,9 @@ function out = cfg_run_runjobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_runjobs.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: cfg_run_runjobs.m 1897 2008-07-09 11:57:33Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 1897 $'; %#ok
 
 sts = true;
 if isfield(job.save, 'savejobs')
@@ -43,6 +43,7 @@ end;
 if sts || strcmp(job.missing,'skip')
     cjob = cfg_util('initjob', hjobs);
     cfg_util('run', cjob);
+    out.jout = cfg_util('getalloutputs', cjob);
     if isfield(job.save, 'savejobs')
         [p n e v] = fileparts(job.save.savejobs.outstub);
         out.jobrun{1} = fullfile(p, [n '_run.m']);
