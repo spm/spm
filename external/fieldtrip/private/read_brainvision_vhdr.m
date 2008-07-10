@@ -11,6 +11,9 @@ function [hdr] = read_brainvision_vhdr(filename);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_vhdr.m,v $
+% Revision 1.6  2008/07/10 07:15:30  roboos
+% also determine data file size if on another directory, thanks to Paul
+%
 % Revision 1.5  2008/04/16 07:51:11  roboos
 % added fixme comment
 %
@@ -55,12 +58,19 @@ end
 % compute the sampling rate in Hz
 hdr.Fs = 1e6/(hdr.SamplingInterval);
 
-% FIXME nsamples detection does not work if file in another directory
 % the number of samples is unkown
 hdr.nSamples = Inf;
+
+% determine the number of samples by looking at the binary file
 if strcmp(hdr.DataFormat, 'BINARY')
-  % determine the number of samples by looking at the binary file
-  info = dir(hdr.DataFile);
+  % the data file is supposed to be located in the same directory as the header file
+  % but that might be on another location than the present working directory
+  [p, f, x] = fileparts(filename);
+  datafile = fullfile(p, hdr.DataFile);
+  info = dir(datafile);
+  if isempty(info)
+    error('cannot determine the location of the data file %s', hdr.DataFile);
+  end
   switch lower(hdr.BinaryFormat)
     case 'int_16';
       hdr.nSamples = info.bytes./(hdr.NumberOfChannels*2);
