@@ -11,6 +11,9 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 % Copyright (C) 2004-2006, Robet Oostenveld
 %
 % $Log: prepare_freq_matrices.m,v $
+% Revision 1.22  2008/07/10 15:50:27  roboos
+% keep channel order consistent with the input cfg
+%
 % Revision 1.21  2008/07/08 15:39:22  roboos
 % initial version for Saskia to work on
 %
@@ -145,10 +148,12 @@ if isfield(freq, 'powspctrm') && isfield(freq, 'crsspctrm')
   % use the power and cross spectrum and construct a square matrix
 
   % find the index of each sensor channel into powspctrm
-  powspctrmindx = match_str(freq.label, cfg.channel);
-  Nchans        = length(powspctrmindx);
+  % keep the channel order of the cfg
+  [dum, powspctrmindx] = match_str(cfg.channel, freq.label);
+  Nchans = length(powspctrmindx);
 
   % find the index of each sensor channel combination into crsspctrm
+  % keep the channel order of the cfg
   crsspctrmindx = zeros(Nchans);
   for sgncmblop=1:size(freq.labelcmb,1)
     ch1 = find(strcmp(cfg.channel, freq.labelcmb(sgncmblop,1)));
