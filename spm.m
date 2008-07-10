@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1843 2008-06-20 19:41:36Z guillaume $
+% $Id: spm.m 1906 2008-07-10 11:00:26Z guillaume $
 
 
 %=======================================================================
@@ -474,11 +474,13 @@ varargout = {upper(Modality),ModNum};
 case 'createmenuwin'                            %-Create SPM menu window
 %=======================================================================
 % Fmenu = spm('CreateMenuWin',Vis)
+%-----------------------------------------------------------------------
+if nargin<2, Vis='on'; else Vis=varargin{2}; end
 
 %-Close any existing 'Menu' 'Tag'ged windows
 %-----------------------------------------------------------------------
 delete(spm_figure('FindWin','Menu'))
-Fmenu     = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
+Fmenu = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
 set(Fmenu,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
 S0 = spm('WinSize','0',1);
 SM = spm('WinSize','M');
@@ -493,6 +495,7 @@ set(findobj(Fmenu,'Tag', 'frame'),'backgroundColor',spm('colour'));
 xTB       = spm('tbs');
 set(findobj(Fmenu,'Tag', 'Toolbox'),'String',{'Toolbox:' xTB.name });
 set(findobj(Fmenu,'Tag', 'Toolbox'),'UserData',xTB);
+set(Fmenu,'Visible',Vis);
 varargout = {Fmenu};
 
 
@@ -501,12 +504,17 @@ case 'createintwin'                      %-Create SPM interactive window
 %=======================================================================
 % Finter = spm('CreateIntWin',Vis)
 %-----------------------------------------------------------------------
+if nargin<2, Vis='on'; else Vis=varargin{2}; end
+
+%-Close any existing 'Interactive' 'Tag'ged windows
+%-----------------------------------------------------------------------
 delete(spm_figure('FindWin','Interactive'))
-Finter    = openfig(fullfile(spm('Dir'),'spm_Interactive.fig'),'new','invisible');
+Finter = openfig(fullfile(spm('Dir'),'spm_Interactive.fig'),'new','invisible');
 set(Finter,'name',spm('Ver'));
 S0 = spm('WinSize','0',1);
 SI = spm('WinSize','I');
 set(Finter,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] +  SI);
+set(Finter,'Visible',Vis);
 varargout = {Finter};
 
 
