@@ -1,11 +1,11 @@
 function [data] = freqsimulation(cfg)
 
-% This function makes simulated data in FieldTrip format. The data is built
+% FREQSIMULATION makes simulated data in FieldTrip format. The data is built
 % up from fifferent frequencies and can contain a signal in which the
 % different frequencies interact (i.e. cross-frequency coherent). Different
 % methods are possible to make data with special properties.
 %
-% use as:
+% Use as
 %   [data] = freqsimulation(cfg)
 %
 % The configuration options include
@@ -16,20 +16,20 @@ function [data] = freqsimulation(cfg)
 %                     'amplow_amphigh'  amplitude of low freq correlated with amplithude of high freq
 %                     'phalow_freqhigh' phase of low freq correlated with frequency of high signal
 %                     'asymmetric'      single signal component with asymmetric positive/negative deflections
-%   cfg.asymmetry   = amount of asymmetry (default = 0, which is none)
-%   cfg.noise.ampl  = amplitude of noise
-%   cfg.output      = which output channels in data (default = 'all')
-%                   'all' all signals, 'mixed' only mixed signal
+%   cfg.output      = which channels should be in the output data, can be 'mixed' or 'all' (default = 'all')
 %
-% The trial time-axes are specified using
+% The number of trials and the time axes of the trials can be specified by
 %   cfg.fsample     = simulated sample frequency
 %   cfg.trllen      = length of simulated trials in seconds
 %   cfg.numtrl      = number of simulated trials
-% or using 
-%   cfg.time        = cell-array with one time axis per trial
+% or by 
+%   cfg.time        = cell-array with one time axis per trial (i.e. from another dataset)
 %
-% The interpretation of the following signal components depends on the
-% specified method:
+% For each of the methods default parameters are configured to generate
+% example data, including noise. To get full control over the generated
+% data you should explicitely set all parameters involved in the method
+% of your choise. The interpretation of the following signal components
+% depends on the specified method:
 %
 % cfg.s1.freq     = frequency of signal 1
 % cfg.s1.phase    = phase (in rad) relative to cosine of signal 1  (default depends on method)
@@ -52,6 +52,9 @@ function [data] = freqsimulation(cfg)
 % cfg.n1.bpfreq   = [Flow Fhigh]
 % cfg.n2.ampl     = root-mean-square amplitude of wide-band signal prior to filtering
 % cfg.n2.bpfreq   = [Flow Fhigh]
+%
+% cfg.asymmetry   = amount of asymmetry (default = 0, which is none)
+% cfg.noise.ampl  = amplitude of noise
 %
 %
 % In the method 'superimposed' the signal contains just the sum of the different frequency contributions:
@@ -128,6 +131,9 @@ function [data] = freqsimulation(cfg)
 % Copyright (C) 2007-2008, Ingrid Nieuwenhuis & Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: freqsimulation.m,v $
+% Revision 1.13  2008/07/10 08:39:36  roboos
+% updated documentation
+%
 % Revision 1.12  2008/06/17 16:13:18  sashae
 % now using preproc_modules
 %
@@ -534,7 +540,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: freqsimulation.m,v 1.12 2008/06/17 16:13:18 sashae Exp $';
+cfg.version.id   = '$Id: freqsimulation.m,v 1.13 2008/07/10 08:39:36 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
