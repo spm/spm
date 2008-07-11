@@ -8,9 +8,12 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 % with the original channel order in the data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Copyright (C) 2004-2006, Robet Oostenveld
+% Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_freq_matrices.m,v $
+% Revision 1.23  2008/07/11 14:06:43  jansch
+% fixed the cfg.channel freq.label issue for fourierspctrm as well
+%
 % Revision 1.22  2008/07/10 15:50:27  roboos
 % keep channel order consistent with the input cfg
 %
@@ -91,6 +94,9 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 
 % set the defaults
 if ~isfield(cfg, 'dicsfix'), cfg.dicsfix = 'yes'; end
+if ~isfield(cfg, 'quickflag'), cfg.quickflag = 0; end
+
+quickflag = cfg.quickflag==1;
 
 Cf = [];
 Cr = [];
@@ -244,31 +250,46 @@ if isfield(freq, 'powspctrm') && isfield(freq, 'crsspctrm')
 
 else
   fprintf('computing cross-spectrum from fourier\n');
+  [dum, powspctrmindx] = match_str(cfg.channel, freq.label);
   % use the fourier spectrum to compute the complete cross spectrum matrix
-  powspctrmindx = match_str(freq.label, cfg.channel);
   Nchans = length(powspctrmindx);
   if strcmp(freq.dimord, 'chan_freq')
     error('incompatible dimord for computing CSD matrix from fourier');
   elseif strcmp(freq.dimord, 'rpt_chan_freq')
     error('incompatible dimord for computing CSD matrix from fourier');
-  elseif strcmp(freq.dimord, 'rpttap_chan_freq')
+  elseif strcmp(freq.dimord, 'rpttap_chan_freq'),
+    if quickflag,
+      Ntrials = 1;
+    end
     Cf = zeros(Ntrials,Nchans,Nchans);
     refindx = match_str(freq.label, cfg.refchan);
     if ~isempty(refindx)
       Cr = zeros(Ntrials,Nchans,1);
       Pr = zeros(Ntrials,1,1);
     end
-    freq.cumtapcnt = freq.cumtapcnt(:)';
-    for k=1:Ntrials
-      tapbeg = 1 + sum([0 freq.cumtapcnt(1:(k-1))]);
-      tapend =     sum([0 freq.cumtapcnt(1:(k  ))]);
-      ntap = freq.cumtapcnt(k);
-      dat  = transpose(freq.fourierspctrm(tapbeg:tapend, powspctrmindx, fbin));
-      Cf(k,:,:) = (dat * ctranspose(dat)) ./ ntap;
+
+    if quickflag,
+      ntap = sum(freq.cumtapcnt);
+      dat  = transpose(freq.fourierspctrm(:, powspctrmindx, fbin));
+      Cf(1,:,:) = (dat * ctranspose(dat)) ./ ntap;
       if ~isempty(refindx)
-        ref = transpose(freq.fourierspctrm(tapbeg:tapend, refindx, fbin));
-        Cr(k,:,1) = dat * ctranspose(ref) ./ ntap;
-        Pr(k,1,1) = ref * ctranspose(ref) ./ ntap;
+        ref = transpose(freq.fourierspctrm(:, refindx, fbin));
+	Cr(1,:,1) = dat * ctranspose(ref) ./ ntap;
+	Pr(1,1,1) = ref * ctranspose(ref) ./ ntap;
+      end
+    else
+      freq.cumtapcnt = freq.cumtapcnt(:)';
+      for k=1:Ntrials
+        tapbeg = 1 + sum([0 freq.cumtapcnt(1:(k-1))]);
+        tapend =     sum([0 freq.cumtapcnt(1:(k  ))]);
+        ntap = freq.cumtapcnt(k);
+        dat  = transpose(freq.fourierspctrm(tapbeg:tapend, powspctrmindx, fbin));
+        Cf(k,:,:) = (dat * ctranspose(dat)) ./ ntap;
+        if ~isempty(refindx)
+          ref = transpose(freq.fourierspctrm(tapbeg:tapend, refindx, fbin));
+          Cr(k,:,1) = dat * ctranspose(ref) ./ ntap;
+          Pr(k,1,1) = ref * ctranspose(ref) ./ ntap;
+        end
       end
     end
   else
