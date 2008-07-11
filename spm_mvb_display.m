@@ -6,16 +6,13 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 1885 2008-07-03 15:23:37Z christophe $
+% $Id: spm_mvb_display.m 1912 2008-07-11 18:02:03Z guillaume $
 
 
 % get figure
 %--------------------------------------------------------------------------
 Fmvb = spm_figure('GetWin','MVB');
-if isempty(Fmvb)
-    Fmvb = spm_figure('Create','MVB','Multivariate Bayes');
-end
-clf
+spm_clf(Fmvb);
 
 % display specified model
 %==========================================================================

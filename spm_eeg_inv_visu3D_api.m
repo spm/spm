@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 1603 2008-05-12 17:23:01Z stefan $
+% $Id: spm_eeg_inv_visu3D_api.m 1912 2008-07-11 18:02:03Z guillaume $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ catch
 end
 
 if ~isfield(D,'inv')
-    error(sprintf('Please specify and invert a foward model\n'));
+    error(sprintf('Please specify and invert a forward model\n'));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GET RESULTS (default: current or last analysis)

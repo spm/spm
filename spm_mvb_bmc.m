@@ -10,17 +10,13 @@ function [F,P,MVB] = spm_mvb_bmc(mvb)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_bmc.m 1885 2008-07-03 15:23:37Z christophe $
+% $Id: spm_mvb_bmc.m 1912 2008-07-11 18:02:03Z guillaume $
 
 
 %-Get figure handles and set title
 %--------------------------------------------------------------------------
 Fmvb = spm_figure('GetWin','MVB');
-if isempty(Fmvb)
-    Fmvb = spm_figure('Create','MVB','Multivariate Bayes');
-else
-    clf
-end
+spm_clf(Fmvb);
 
 % get MVB results
 %--------------------------------------------------------------------------

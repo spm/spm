@@ -5,17 +5,13 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1781 2008-06-03 09:06:24Z christophe $
+% $Id: spm_mvb_ui.m 1912 2008-07-11 18:02:03Z guillaume $
 
 
 %-Get figure handles and set title
 %--------------------------------------------------------------------------
 Fmvb = spm_figure('GetWin','MVB');
-if isempty(Fmvb)
-    Fmvb =  spm_figure('Create','MVB','Multivariate Bayes');
-else
-    clf
-end
+spm_clf(Fmvb);
 
 %-Get contrast
 %--------------------------------------------------------------------------

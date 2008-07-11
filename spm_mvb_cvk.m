@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1781 2008-06-03 09:06:24Z christophe $
+% $Id: spm_mvb_cvk.m 1912 2008-07-11 18:02:03Z guillaume $
  
  
 %-partition order
@@ -31,13 +31,7 @@ end
 %-Get figure handles and set title
 %--------------------------------------------------------------------------
 Fmvb = spm_figure('GetWin','MVB');
-if isempty(Fmvb)
-    Fmvb = spm_figure('Create','MVB','Multivariate Bayes');
-    figure(Fmvb)
-else
-    figure(Fmvb);
-    clf
-end
+spm_clf(Fmvb);
  
 % get MVB results
 %==========================================================================

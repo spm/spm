@@ -53,19 +53,19 @@ function spm_image(op,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_image.m 1912 2008-07-11 18:02:03Z guillaume $
 
 
 global st
 
 if nargin == 0,
     spm('FnUIsetup','Display',0);
-    spm('FnBanner',mfilename,'$Rev: 1185 $');
+    spm('FnBanner',mfilename,'$Rev: 1912 $');
     spm_help('!ContextHelp',[mfilename,'.m']);
 
     % get the image's filename {P}
     %-----------------------------------------------------------------------
-    P      = spm_select(1,'image','Select image',[],0);
+    P      = spm_select(1,'image','Select image');
     spm_image('init',P);
     return;
 end;
@@ -332,7 +332,7 @@ WS = spm('WinScale');
 %-----------------------------------------------------------------------
 uicontrol(fg,'Style','Frame','Position',[60 25 200 325].*WS,'DeleteFcn','spm_image(''reset'');');
 uicontrol(fg,'Style','Text', 'Position',[75 220 100 016].*WS,'String','right  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[75 200 100 016].*WS,'String','foward  {mm}');
+uicontrol(fg,'Style','Text', 'Position',[75 200 100 016].*WS,'String','forward  {mm}');
 uicontrol(fg,'Style','Text', 'Position',[75 180 100 016].*WS,'String','up  {mm}');
 uicontrol(fg,'Style','Text', 'Position',[75 160 100 016].*WS,'String','pitch  {rad}');
 uicontrol(fg,'Style','Text', 'Position',[75 140 100 016].*WS,'String','roll  {rad}');

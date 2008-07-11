@@ -8,7 +8,7 @@ function varargout=spm_figure(varargin)
 %
 % spm_figure creates and manages the 'Graphics' window. This window and
 % these facilities may be used independently of SPM, and any number of
-% Graphics windows my be used within the same MatLab session. (Though
+% Graphics windows my be used within the same MATLAB session. (Though
 % only one SPM 'Graphics' 'Tag'ed window is permitted.
 %
 % The Graphics window is provided with a menu bar at the top that
@@ -35,7 +35,7 @@ function varargout=spm_figure(varargin)
 % Colormap effects:
 % * Invert: Inverts (flips) the current color map.
 % * Brighten and Darken: Brighten and Darken the current colourmap
-%      using the MatLab BRIGHTEN command, with  beta's of +0.2 and -0.2
+%      using the MATLAB BRIGHTEN command, with  beta's of +0.2 and -0.2
 %      respectively.
 %
 % Editing: Right button ('alt' button) cancels operations
@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 1843 2008-06-20 19:41:36Z guillaume $
+% $Id: spm_figure.m 1912 2008-07-11 18:02:03Z guillaume $
 
 
 %=======================================================================
@@ -81,7 +81,7 @@ function varargout=spm_figure(varargin)
 %=======================================================================
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take. Recall   )
-%( MatLab's command-function duality: `spm_figure Create` is           )
+%( MATLAB's command-function duality: `spm_figure Create` is           )
 %( equivalent to `spm_figure('Create')`.                               )
 %
 % FORMAT F = spm_figure
@@ -106,9 +106,8 @@ function varargout=spm_figure(varargin)
 % F - (Output) Figure number (if found) or empty (if not).
 %
 % FORMAT F = spm_figure('GetWin',Tag)
-% Like spm_figure('FindWin',Tag), except that if 'Tag' is 'Graphics' or
-% 'Interactive' and no such 'Tag'ged figure is found, one is created. Further,
-% the "got" window is made current.
+% Like spm_figure('FindWin',Tag), except that if no such 'Tag'ged figure
+% is found, one is created. Further, the "got" window is made current.
 % Tag   - Figure 'Tag' to get, defaults to 'Graphics'
 % F - Figure number (if found/created) or empty (if not).
 %
@@ -225,6 +224,9 @@ case 'findwin'
 
 if nargin<2, F='Graphics'; else F=varargin{2}; end
 
+shh = get(0,'showhiddenhandles');
+set(0,'showhiddenhandles','on');
+
 if isempty(F)
     % Leave F empty
 elseif ischar(F)
@@ -240,7 +242,9 @@ else
     % F is supposed to be a figure number - check it
     if ~any(F==get(0,'Children')), F=[]; end
 end
+set(0,'showhiddenhandles',shh);
 varargout = {F};
+
 
 case 'getwin'
 %=======================================================================
@@ -259,10 +263,12 @@ if isempty(F)
             F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
         case 'DFP'
             F = spm_figure('Create','DFP','Variational filtering');
-        case 'SI'
-            F = spm_figure('Create','SI','System Identification');
         case 'MFM'
             F = spm_figure('Create','MFM','Mean-field and neural mass models');
+        case 'MVB'
+            F = spm_figure('Create','MVB','Multivariate Bayes');
+        case 'SI'
+            F = spm_figure('Create','SI','System Identification');
         case 'Interactive'
             F = spm('CreateIntWin');
         end
