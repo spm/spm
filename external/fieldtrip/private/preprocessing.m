@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.95  2008/07/11 13:18:40  roboos
+% removed all lnfilter references, added error to preprocessing and preproc
+%
 % Revision 1.94  2008/07/08 08:15:11  sashae
 % updated documentation, removed lnfilter
 %
@@ -314,7 +317,6 @@ if ~isfield(cfg, 'padding'),      cfg.padding = 0;              end % padding is
 if ~isfield(cfg, 'headerformat'), cfg.headerformat = [];        end % is passed to low-level function, empty implies autodetection
 if ~isfield(cfg, 'dataformat'),   cfg.dataformat = [];          end % is passed to low-level function, empty implies autodetection
 
-
 % these options relate to the actual preprocessing, it is neccessary to specify here because of padding
 if ~isfield(cfg, 'dftfilter'),    cfg.dftfilter = 'no';         end
 if ~isfield(cfg, 'lpfilter'),     cfg.lpfilter = 'no';          end
@@ -334,6 +336,10 @@ if isfield(cfg, 'emgrectify'), error('EMG specific preprocessing is not supporte
 if isfield(cfg, 'emghilbert'), error('EMG specific preprocessing is not supported any more'); end
 if isfield(cfg, 'eegchannel'), error('EEG specific preprocessing is not supported any more'); end
 if isfield(cfg, 'resamplefs'), error('resampling is not supported any more, see RESAMPLEDATA'); end
+
+if isfield(cfg, 'lnfilter') && strcmp(cfg.lnfilter, 'yes')
+  error('line noise filtering using the option cfg.lnfilter is not supported any more, use cfg.bsfilter instead')
+end
 
 if nargin>1
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -598,7 +604,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.94 2008/07/08 08:15:11 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.95 2008/07/11 13:18:40 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

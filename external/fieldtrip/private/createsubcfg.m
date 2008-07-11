@@ -11,6 +11,9 @@ function [topcfg] = createsubcfg(topcfg, subname);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: createsubcfg.m,v $
+% Revision 1.7  2008/07/11 13:18:40  roboos
+% removed all lnfilter references, added error to preprocessing and preproc
+%
 % Revision 1.6  2006/10/12 09:11:43  roboos
 % split lcmv and dics, changed keepcsd into keepcov for lcmv
 %
@@ -48,26 +51,28 @@ switch subname
       'detrend'
       'blc'
       'blcwindow'
-      'lnfilter'
-      'dftfilter'
-      'lpfilter'
-      'hpfilter'
-      'bpfilter'
-      'lpfiltord'
-      'hpfiltord'
-      'bpfiltord'
-      'lnfiltord'
-      'lpfilttype'
-      'hpfilttype'
-      'bpfilttype'
-      'lpfiltdir'
-      'hpfiltdir'
       'bpfiltdir'
-      'lnfreq'
-      'dftfreq'
-      'lpfreq'
-      'hpfreq'
+      'bpfilter'
+      'bpfiltord'
+      'bpfilttype'
       'bpfreq'
+      'bsfiltdir'
+      'bsfilter'
+      'bsfiltord'
+      'bsfilttype'
+      'bsfreq'
+      'dftfilter'
+      'dftfreq'
+      'hpfiltdir'
+      'hpfilter'
+      'hpfiltord'
+      'hpfilttype'
+      'hpfreq'
+      'lpfiltdir'
+      'lpfilter'
+      'lpfiltord'
+      'lpfilttype'
+      'lpfreq'
       'medianfilter'
       'medianfiltord'
       'hilbert'

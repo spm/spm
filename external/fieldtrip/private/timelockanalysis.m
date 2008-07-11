@@ -58,9 +58,6 @@ function [timelock] = timelockanalysis(cfg, data);
 % cfg.hpfilttype
 % cfg.hpfreq
 % cfg.implicitref
-% cfg.lnfilter
-% cfg.lnfiltord
-% cfg.lnfreq
 % cfg.lpfilter
 % cfg.lpfiltord
 % cfg.lpfilttype
@@ -75,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.52  2008/07/11 13:18:40  roboos
+% removed all lnfilter references, added error to preprocessing and preproc
+%
 % Revision 1.51  2008/06/10 16:45:04  sashae
 % replaced call to blc function with preproc_baselinecorrect
 %
@@ -656,7 +656,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.51 2008/06/10 16:45:04 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.52 2008/07/11 13:18:40 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
