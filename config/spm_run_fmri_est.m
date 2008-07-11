@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_run_fmri_est.m 1910 2008-07-11 14:30:19Z volkmar $
 
 
 global defaults
@@ -131,9 +131,9 @@ if isfield(job.method,'Classical'),
     end % if isfield(SPM,'factor')
     
     %out.spmvar = SPM;
-    out.beta = cellstr(strvcat(SPM.Vbeta(:).fname));
-    out.mask = {SPM.VM.fname};
-    out.resms = {SPM.VResMS.fname};
+    out.beta = cellfun(@(fn)fullfile(SPM.swd,fn), cellstr(char(SPM.Vbeta(:).fname)),'UniformOutput',false);
+    out.mask = {fullfile(SPM.swd,SPM.VM.fname)};
+    out.resms = {fullfile(SPM.swd,SPM.VResMS.fname)};
     cd(original_dir); % Change back
     fprintf('Done\n');
     return
