@@ -76,7 +76,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 1896 2008-07-09 08:21:36Z volkmar $
+% $Id: cfg_getfile.m 1908 2008-07-11 13:56:48Z guillaume $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -84,6 +84,7 @@ if nargin > 0 && ischar(varargin{1})
             cfg_message('matlabbatch:deprecated:vfiles', ...
                         'Trying to use deprecated ''%s'' call.', ...
                         lower(varargin{1}));
+            t = []; sts = false;
         case 'cpath'
             cfg_message(nargchk(2,Inf,nargin,'struct'));
             t = cpath(varargin{2:end});
