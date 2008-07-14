@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1824 2008-06-13 13:38:32Z volkmar $
+% $Id: cfg_confgui.m 1913 2008-07-14 14:35:43Z volkmar $
 
-rev = '$Rev: 1824 $'; %#ok
+rev = '$Rev: 1913 $'; %#ok
 
 %% Declaration of fields
 
@@ -464,10 +464,37 @@ gencode_var.help    = {['This should be a dependency input from the root ' ...
                     'the output of the root configuration item directly, ' ...
                     'it is not necessary to run "Generate object tree" first.']};
 
+gencode_o_def       = cfg_menu;
+gencode_o_def.name  = 'Create Defaults File';
+gencode_o_def.tag   = 'gencode_o_def';
+gencode_o_def.labels= {'No',  'Yes'};
+gencode_o_def.values= {false, true};
+gencode_o_def.help  = {'The defaults file can be used to document all possible job structures. Its use to set all defaults is deprecated, .def function handles should be used instead.'};
+
+gencode_o_mlb       = cfg_menu;
+gencode_o_mlb.name  = 'Create mlbatch_appcfg File';
+gencode_o_mlb.tag   = 'gencode_o_mlb';
+gencode_o_mlb.labels= {'No',  'Yes'};
+gencode_o_mlb.values= {false, true};
+gencode_o_mlb.help  = {'The cfg_mlbatch_appcfg file can be used if the toolbox should be found by MATLABBATCH automatically.'};
+
+gencode_o_path       = cfg_menu;
+gencode_o_path.name  = 'Create Code for addpath()';
+gencode_o_path.tag   = 'gencode_o_path';
+gencode_o_path.labels= {'No',  'Yes'};
+gencode_o_path.values= {false, true};
+gencode_o_path.help  = {'If the toolbox resides in a non-MATLAB path, code can be generated to automatically add the configuration file to MATLAB path.'};
+
+gencode_opts        = cfg_branch;
+gencode_opts.name   = 'Options';
+gencode_opts.tag    = 'gencode_opts';
+gencode_opts.val    = {gencode_o_def gencode_o_mlb gencode_o_path};
+gencode_opts.help   = {'Code generation options.'};
+
 gencode_gen         = cfg_exbranch;
 gencode_gen.name    = 'Generate code';
 gencode_gen.tag     = 'gencode_gen';
-gencode_gen.val     = {gencode_fname, gencode_dir, gencode_var};
+gencode_gen.val     = {gencode_fname, gencode_dir, gencode_var, gencode_opts};
 gencode_gen.help    = {['Generate code from a cfg_item tree. This tree can ' ...
                     'be either a struct (as returned from the ConfGUI ' ...
                     'modules) or a cfg_item object tree.']};
@@ -556,54 +583,64 @@ fprintf(fid, ...
          '%% constraints and links to run time code.\n' ...
          '%% Changes to this file will be overwritten if the ConfGUI batch is executed again.\n' ...
          '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
-for k = 1:numel(str)
-    fprintf(fid, '%s\n', str{k});
+fprintf(fid, '%s\n', str{:});
+if varargin{1}.gencode_opts.gencode_o_path
+    fprintf(fid, '%% ---------------------------------------------------------------------\n');
+    fprintf(fid, '%% add path to this mfile\n');
+    fprintf(fid, '%% ---------------------------------------------------------------------\n');
+    fprintf(fid, 'addpath(fileparts(mfilename(''fullpath'')));\n');
 end
 fclose(fid);
-% Generate defaults file
-[u1 out.djob]  = harvest(out.c0, out.c0, true, true);
-[str dtag] = gencode(out.djob, sprintf('%s_def', tag));
-dn = sprintf('%s_def', n);
-out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
-fid = fopen(out.def_file{1}, 'w');
-fprintf(fid, 'function %s = %s\n', dtag, dn);
-fprintf(fid, ...
+if varargin{1}.gencode_opts.gencode_o_def
+    % Generate defaults file
+    [u1 out.djob]  = harvest(out.c0, out.c0, true, true);
+    [str dtag] = gencode(out.djob, sprintf('%s_def', tag));
+    dn = sprintf('%s_def', n);
+    out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
+    fid = fopen(out.def_file{1}, 'w');
+    fprintf(fid, 'function %s = %s\n', dtag, dn);
+    fprintf(fid, ...
         ['%% ''%s'' - MATLABBATCH defaults\n' ...
-         '%% This MATLABBATCH defaults file has been generated automatically\n' ...
-         '%% by MATLABBATCH using ConfGUI. It contains all pre-defined values for\n' ...
-         '%% menu items and provides a full documentation of all fields that may\n' ...
-         '%% be present in a job variable for this application.\n' ...
-         '%% Changes to this file will be overwritten if the ConfGUI batch is executed again.\n' ...
-         '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
-for k = 1:numel(str)
-    fprintf(fid, '%s\n', str{k});
+        '%% This MATLABBATCH defaults file has been generated automatically\n' ...
+        '%% by MATLABBATCH using ConfGUI. It contains all pre-defined values for\n' ...
+        '%% menu items and provides a full documentation of all fields that may\n' ...
+        '%% be present in a job variable for this application.\n' ...
+        '%% Changes to this file will be overwritten if the ConfGUI batch is executed again.\n' ...
+        '%% Created at %s.\n'], out.c0.name, datestr(now, 31));
+    fprintf(fid, '%s\n', str{:});
+    fclose(fid);
 end
-fclose(fid);
-% Generate cfg_util initialisation file
-out.mlb_file{1} = fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m');
-fid = fopen(out.mlb_file{1}, 'w');
-fprintf(fid, 'function [cfg, def] = cfg_mlbatch_appcfg(varargin)\n');
-fprintf(fid, ...
-['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...
- '%% This MATLABBATCH initialisation file can be used to load application\n' ...
- '%%              ''%s''\n' ...
- '%% into cfg_util. This can be done manually by running this file from\n' ...
- '%% MATLAB command line or automatically when cfg_util is initialised.\n' ...
- '%% The directory containing this file and the configuration file\n' ...
- '%%              ''%s''\n' ...
- '%% must be in MATLAB''s path variable.\n' ...
- '%% Created at %s.\n\n'], ...
+if varargin{1}.gencode_opts.gencode_o_mlb
+    % Generate cfg_util initialisation file
+    out.mlb_file{1} = fullfile(varargin{1}.gencode_dir{1}, 'cfg_mlbatch_appcfg.m');
+    fid = fopen(out.mlb_file{1}, 'w');
+    fprintf(fid, 'function [cfg, def] = cfg_mlbatch_appcfg(varargin)\n');
+    fprintf(fid, ...
+        ['%% ''%s'' - MATLABBATCH cfg_util initialisation\n' ...
+        '%% This MATLABBATCH initialisation file can be used to load application\n' ...
+        '%%              ''%s''\n' ...
+        '%% into cfg_util. This can be done manually by running this file from\n' ...
+        '%% MATLAB command line or automatically when cfg_util is initialised.\n' ...
+        '%% The directory containing this file and the configuration file\n' ...
+        '%%              ''%s''\n' ...
+        '%% must be in MATLAB''s path variable.\n' ...
+        '%% Created at %s.\n\n'], ...
         out.c0.name, out.c0.name, n, datestr(now, 31));
 
-fprintf(fid, '%% Get path to this file and add it to MATLAB path.\n');
-fprintf(fid, ['%% If the configuration file is stored in another place, the ' ...
-              'path must be adjusted here.\n']);
-fprintf(fid, 'p = fileparts(mfilename(''fullpath''));\n');
-fprintf(fid, 'addpath(p);\n');
-fprintf(fid, '%% run configuration main & def function, return output\n');
-fprintf(fid, 'cfg = %s;\n', n);
-fprintf(fid, 'def = %s;\n', dn);
-fclose(fid);
+    fprintf(fid, '%% Get path to this file and add it to MATLAB path.\n');
+    fprintf(fid, ['%% If the configuration file is stored in another place, the ' ...
+        'path must be adjusted here.\n']);
+    fprintf(fid, 'p = fileparts(mfilename(''fullpath''));\n');
+    fprintf(fid, 'addpath(p);\n');
+    fprintf(fid, '%% run configuration main & def function, return output\n');
+    fprintf(fid, 'cfg = %s;\n', n);
+    if varargin{1}.gencode_opts.gencode_o_def
+        fprintf(fid, 'def = %s;\n', dn);
+    else
+        fprintf(fid, 'def = [];\n');
+    end
+    fclose(fid);
+end
 
 function out = cfg_cfg_pass(varargin)
 % just pass input to output
@@ -640,18 +677,22 @@ vout(1).sname      = 'Generated Configuration File';
 vout(1).src_output = substruct('.', 'cfg_file');
 vout(1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
 vout(2)            = cfg_dep;
-vout(2).sname      = 'Generated Defaults File';
-vout(2).src_output = substruct('.', 'def_file');
-vout(2).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
-vout(3)            = cfg_dep;
-vout(3).sname      = 'Generated Initialisation File';
-vout(3).src_output = substruct('.', 'mlb_file');
-vout(3).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
-vout(4)            = cfg_dep;
-vout(4).sname      = 'Configuration Object Tree';
-vout(4).src_output = substruct('.','c0');
-vout(4).tgt_spec   = cfg_findspec({{'strtype','e'}});
-vout(5)            = cfg_dep;
-vout(5).sname      = 'Configuration Defaults Variable';
-vout(5).src_output = substruct('.','djob');
-vout(5).tgt_spec   = cfg_findspec({{'strtype','e'}});
+vout(2).sname      = 'Configuration Object Tree';
+vout(2).src_output = substruct('.','c0');
+vout(2).tgt_spec   = cfg_findspec({{'strtype','e'}});
+if islogical(varargin{1}.gencode_opts.gencode_o_def) && varargin{1}.gencode_opts.gencode_o_def
+    vout(3)            = cfg_dep;
+    vout(3).sname      = 'Generated Defaults File';
+    vout(3).src_output = substruct('.', 'def_file');
+    vout(3).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    vout(4)            = cfg_dep;
+    vout(4).sname      = 'Configuration Defaults Variable';
+    vout(4).src_output = substruct('.','djob');
+    vout(4).tgt_spec   = cfg_findspec({{'strtype','e'}});
+end
+if islogical(varargin{1}.gencode_opts.gencode_o_mlb) && varargin{1}.gencode_opts.gencode_o_mlb
+    vout(end+1)            = cfg_dep;
+    vout(end+1).sname      = 'Generated Initialisation File';
+    vout(end+1).src_output = substruct('.', 'mlb_file');
+    vout(end+1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+end
