@@ -41,7 +41,7 @@ function [selection,value] = listdlg(varargin)
 %    MSGBOX, QUESTDLG, WARNDLG.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 1896 $  $Date: 2005/10/28 15:54:55 $
+%   $Revision: 1915 $  $Date: 2005/10/28 15:54:55 $
 
 %   'uh'            uicontrol button height, in pixels; default = 22.
 %   'fus'           frame/uicontrol spacing, in pixels; default = 8.
@@ -163,7 +163,6 @@ listbox = uicontrol('style','listbox',...
                     'callback', {@doListboxClick}, ...
                     lfont{:});
 
-                
 ok_btn = uicontrol('style','pushbutton',...
                    'string',okstring,...
                    'position',[ffs+fus ffs+fus btn_wid uh],...

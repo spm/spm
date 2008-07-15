@@ -76,7 +76,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 1913 2008-07-14 14:35:43Z volkmar $
+% $Id: cfg_getfile.m 1915 2008-07-15 11:09:28Z volkmar $
 
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
@@ -854,7 +854,7 @@ return;
 %=======================================================================
 function unselect_all(ob,varargin)
 lb = sib(ob,'selected');
-set(lb,'Value',[],'String',{''},'ListBoxTop',1);
+set(lb,'Value',[],'String',{},'ListBoxTop',1);
 msg(lb,'Unselected all files.');
 lim = get(sib(lb,'files'),'UserData');
 if lim(1)>0, set(sib(lb,'D'),'Enable','off'); end;

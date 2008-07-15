@@ -22,17 +22,23 @@ function setdefaultbutton(figHandle, btnHandle)
 %  setdefaultbutton(b2);
 %
 
-%  Copyright 2005 The MathWorks, Inc.
+%  Copyright 2005-2007 The MathWorks, Inc.
+
+%--------------------------------------- NOTE ------------------------------------------
+% This file was copied into matlab/toolbox/local/private.
+% These two files should be kept in sync - when editing please make sure
+% that *both* files are modified.
 
 % Nargin Check
-cfg_message(nargchk(2,2,nargin,'struct'));
+if nargin<1, error('MATLAB:setdefaultbutton:InvalidNumberOfArguments','Too few arguments for setdefaultbutton'); end
+if nargin>2, error('MATLAB:setdefaultbutton:InvalidNumberOfArguments','Too many arguments for setdefaultbutton'); end
 
-if isempty(get(figHandle, 'JavaFrame'))
-    % We are running with Native Figures
-    useHGDefaultButton(figHandle, btnHandle);
-else
+if (usejava('awt') == 1)
     % We are running with Java Figures
     useJavaDefaultButton(figHandle, btnHandle)
+else
+    % We are running with Native Figures
+    useHGDefaultButton(figHandle, btnHandle);
 end
 
     function useJavaDefaultButton(figH, btnH)
