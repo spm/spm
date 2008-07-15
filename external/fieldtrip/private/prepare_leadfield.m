@@ -83,6 +83,9 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_leadfield.m,v $
+% Revision 1.24  2008/07/15 19:56:44  roboos
+% moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
+%
 % Revision 1.23  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -185,6 +188,10 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if nargin<2
+  data = [];
+end
+
 % set the defaults
 if ~isfield(cfg, 'normalize'),        cfg.normalize  = 'no';          end
 if ~isfield(cfg, 'normalizeparam'),   cfg.normalizeparam = 0.5;       end
@@ -195,12 +202,11 @@ if ~isfield(cfg, 'mollify'),          cfg.mollify    = 'no';          end
 if ~isfield(cfg, 'patchsvd'),         cfg.patchsvd   = 'no';          end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
 
+% put the low-level options pertaining to the dipole grid in their own field
+cfg = createsubcfg(cfg, 'grid');
+
 if strcmp(cfg.sel50p, 'yes') && strcmp(cfg.lbex, 'yes')
   error('subspace projection with either lbex or sel50p is mutually exclusive');
-end
-
-if nargin<2
-  data = [];
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -269,7 +275,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: prepare_leadfield.m,v 1.23 2008/04/10 08:03:11 roboos Exp $';
+cfg.version.id = '$Id: prepare_leadfield.m,v 1.24 2008/07/15 19:56:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

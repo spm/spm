@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.32  2008/07/15 19:56:44  roboos
+% moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
+%
 % Revision 1.31  2008/05/08 11:12:19  jansch
 % added support for bti248 magnetometer system
 %
@@ -178,6 +181,9 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   if ~isfield(cfg, 'pruneratio'),    cfg.pruneratio = 1e-3;         end
   if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 642;          end
 end
+
+% put the low-level options pertaining to the dipole grid in their own field
+cfg = createsubcfg(cfg, 'grid');
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -537,7 +543,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.31 2008/05/08 11:12:19 jansch Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.32 2008/07/15 19:56:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

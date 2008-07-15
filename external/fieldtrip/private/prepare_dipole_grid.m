@@ -1,8 +1,16 @@
-function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens);
+function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 
 % PREPARE_DIPOLE_GRID helps to make a regular grid with dipoles that can be
-% used for scanning, e.g. as initial search for dipole fitting or for
-% beamforming.
+% used for scanning (e.g. for SOURCEANALYSIS) or linear estimation (e.g.
+% for MEGREALIGN).
+%
+% A grid can be constructed based on
+%   - regular 3D grid with explicit specification
+%   - regular 3D grid with specification of the resolution
+%   - regular 3D grid, based on segmented MRI, restricted to gray matter
+%   - surface grid based on brain surface from volume conductor
+%   - surface grid based on head surface from external file
+%   - using user-supplied grid positions, which can be regular or irregular
 %
 % Configuration options for generating a regular 3-D grid
 %   cfg.grid.xgrid      = vector (e.g. -20:1:20) or 'auto' (default = 'auto')
@@ -29,121 +37,194 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens);
 %   cfg.smooth        = 5, smoothing in voxels
 %
 % Other configuration options
-%   cfg.headshape   = filename of headshape (optional)
-%   cfg.inwardshift = depth of the bounding layer for the source space, relative to the head model surface (default = 0)
-%   cfg.symmetry    = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
-%   cfg.tightgrid   = 'yes' or 'no' (default is automatic)
+%   cfg.inwardshift  = depth of the bounding layer for the source space, relative to the head model surface (default = 0)
+%   cfg.grid.tight        = 'yes' or 'no' (default is automatic)
+%   cfg.headshape         = filename of headshape (optional)
+%   cfg.symmetry          = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
 %
 % See also SOURCEANALYSIS, DIPOLEFITTING, PREPARE_LEADFIELD
 
-% Copyright (C) 2004-2007, Robert Oostenveld
+% Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.36  2008/07/15 19:52:21  roboos
+% cleaned up the handling of the different grid-generating methods
+% more output on screen, more rigid checking of conflicting cfgs
+% renamed cfg.tightgrid into cfg.grid.tight
+%
 % Revision 1.35  2007/12/11 11:12:44  roboos
 % remember dipole moment if specified
 %
-% Revision 1.34  2007/06/14 10:25:51  jansch
-% changed order of handling of haspos and hasgrid in order to be able to create
-% mni-based grids
-%
-% Revision 1.33  2007/06/07 13:00:14  roboos
-% fixed bug in detection of hasgrid, thanks to Juan
-%
-% Revision 1.32  2007/05/16 12:22:00  roboos
-% fixed some small bugs
-%
-% Revision 1.31  2007/05/16 11:29:11  roboos
-% included the generation of surface grids based on headshape or volume (used in megrealign)
-%
-% Revision 1.30  2007/01/03 15:04:44  roboos
-% default cfg.tightgrid=no if cfg.grid.pos specified
-%
-% Revision 1.29  2007/01/02 13:35:16  roboos
-% added option cfg.tightgrid to make the tightening accessible from the outside
-%
-% Revision 1.28  2006/10/12 09:58:15  jansch
-% added default for cfg.symmetry
-%
-% Revision 1.27  2006/10/12 08:44:48  roboos
-% implemented construction of symmetric dipole pair, cfg.symmetry
-%
-% Revision 1.26  2006/07/24 08:22:20  roboos
-% added option cfg.inwardshift, default=0 (can be negative for an outward shift)
-%
-% Revision 1.25  2006/07/05 10:21:10  roboos
-% moved cfg.xgrid/ygrid/zgrid/resolution options into cfg.grid substructure
-% added code for automatic estimation of source units in case cfg.grid.resolution is unspecified
-% cleaned up code a little bit, cleaned up documentation
-%
-% Revision 1.24  2006/06/08 07:50:57  roboos
-% updated the conversion between the source and MRI units (support mm,cm,dm,m for both)
-%
-% Revision 1.23  2006/05/23 10:16:11  roboos
-% Also update the cfg in case of tightening the grid.
 
 % set the defaults
-if ~isfield(cfg, 'spheremesh'),       cfg.spheremesh = 642;       end
 if ~isfield(cfg, 'symmetry'),         cfg.symmetry = [];          end
 if ~isfield(cfg, 'grid'),             cfg.grid = [];              end
 
-if isfield(cfg, 'grid') && isempty(cfg.grid)
-  % for backward compatibility with old cfg, move the options to substructure
-  if isfield(cfg, 'resolution'),      cfg.grid.resolution = cfg.resolution; cfg = rmfield(cfg, 'resolution'); end
-  if isfield(cfg, 'xgrid'),           cfg.grid.xgrid = cfg.xgrid; cfg = rmfield(cfg, 'xgrid'); end
-  if isfield(cfg, 'ygrid'),           cfg.grid.ygrid = cfg.ygrid; cfg = rmfield(cfg, 'ygrid'); end
-  if isfield(cfg, 'zgrid'),           cfg.grid.zgrid = cfg.zgrid; cfg = rmfield(cfg, 'zgrid'); end
+if isfield(cfg.grid, 'resolution') && isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid)
+  error('You cannot specify cfg.grid.resolution and an explicit cfg.grid.xgrid simultaneously');
+end
+if isfield(cfg.grid, 'resolution') && isfield(cfg.grid, 'ygrid') && ~ischar(cfg.grid.ygrid)
+  error('You cannot specify cfg.grid.resolution and an explicit cfg.grid.ygrid simultaneously');
+end
+if isfield(cfg.grid, 'resolution') && isfield(cfg.grid, 'zgrid') && ~ischar(cfg.grid.zgrid)
+  error('You cannot specify cfg.grid.resolution and an explicit cfg.grid.zgrid simultaneously');
 end
 
-if isfield(cfg, 'grid') && ~isempty(cfg.grid)
-  % generate an automatic grid that fits around the sensor array
-  if ~isfield(cfg.grid, 'xgrid'),     cfg.grid.xgrid = 'auto';    end
-  if ~isfield(cfg.grid, 'ygrid'),     cfg.grid.ygrid = 'auto';    end
-  if ~isfield(cfg.grid, 'zgrid'),     cfg.grid.zgrid = 'auto';    end
-  if ~isfield(cfg, 'inwardshift'),    cfg.inwardshift = 0;        end % in this case for inside detection
+% a grid can be constructed based on a number of ways
+basedonauto   = isfield(cfg.grid, 'resolution');                        % regular 3D grid with specification of the resolution
+basedongrid   = isfield(cfg.grid, 'xgrid');                             % regular 3D grid with explicit specification
+basedonpos    = isfield(cfg.grid, 'pos');                               % using user-supplied grid positions, which can be regular or irregular
+basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);   % surface grid based on inward shifted head surface from external file
+basedonmri    = isfield(cfg, 'mri');                                    % regular 3D grid, based on segmented MRI, restricted to gray matter
+basedonvol    = nargin>1 && ~isempty(vol);                              % surface grid based on inward shifted brain surface from volume conductor
+
+% these are mutually exclusive, but printing all requested methods here
+% facilitates debugging of weird configs. Also specify the defaults here to
+% keep the overview
+if basedonauto
+  fprintf('creating dipole grid based on automatic 3D grid with specified resolution\n');
+  if ~isfield(cfg.grid, 'xgrid'),       cfg.grid.xgrid = 'auto';    end
+  if ~isfield(cfg.grid, 'ygrid'),       cfg.grid.ygrid = 'auto';    end
+  if ~isfield(cfg.grid, 'zgrid'),       cfg.grid.zgrid = 'auto';    end
+  if ~isfield(cfg, 'inwardshift'),      cfg.inwardshift = 0;        end % in this case for inside detection
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'yes';     end
 end
 
-if isfield(cfg, 'mri')
-  % set the defaults for cortex segmentation
-  if ~isfield(cfg, 'threshold'),      cfg.threshold = 0.1;        end % relative
-  if ~isfield(cfg, 'smooth');         cfg.smooth    = 5;          end % in voxels
-  if ~isfield(cfg, 'sourceunits');    cfg.sourceunits = 'cm';     end
-  if ~isfield(cfg, 'mriunits');       cfg.mriunits = 'mm';        end
+if basedongrid
+  fprintf('creating dipole grid based on user specified 3D grid\n');
+  if ~isfield(cfg.grid, 'inwardshift'), cfg.inwardshift = 0;        end % in this case for inside detection
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no';      end
 end
 
-% there are a number of ways in which the grid can be constructed
-hasgrid  = isfield(cfg.grid, 'resolution') || isfield(cfg.grid, 'xgrid');  % from the specified configuration (xgrid/ygrid/zgrid/resolution)
-haspos   = isfield(cfg.grid, 'pos');                                       % the dipole positions are fully specified
-hasmom   = isfield(cfg.grid, 'mom');                                       % the dipole moments/orientations are fully specified
-hasmri   = isfield(cfg, 'mri');                                            % a segmented cortex will be used to determine positions
-hasshape = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);           % construct grid from the inward shifted headshape
+if basedonpos
+  fprintf('creating dipole grid based on user specified dipole positions\n');
+end
 
-if ~isfield(cfg, 'tightgrid')
-  % If any of the grid options is 'auto, an initial grid is constructed
-  % that spans a box which completely encompasses the sensor array.
-  % Such a grid is much larger than what is needed to span the brain
-  % compartment, therefore it will be tightened around the brain
-  % compartment at the end.
-  if hasgrid
-    if isfield(cfg.grid, 'pos')
-      cfg.tightgrid = 'no';
-    elseif ischar(cfg.grid.xgrid) && strcmp(cfg.grid.xgrid, 'auto')
-      cfg.tightgrid = 'yes';
-    elseif ischar(cfg.grid.ygrid) && strcmp(cfg.grid.ygrid, 'auto')
-      cfg.tightgrid = 'yes';
-    elseif ischar(cfg.grid.zgrid) && strcmp(cfg.grid.zgrid, 'auto')
-      cfg.tightgrid = 'yes';
-    else
-      cfg.tightgrid = 'no';
-    end
-  else
-    cfg.tightgrid = 'no';
-  end
+if basedonshape
+  fprintf('creating dipole grid based on inward-shifted head shape\n');
+  if ~isfield(cfg, 'spheremesh'), cfg.spheremesh = 642;  end  % FIXME move spheremesh to cfg.grid
+  if ~isfield(cfg.grid, 'tight'), cfg.grid.tight = 'no'; end
+end
+
+if basedonmri
+  fprintf('creating dipole grid based on grey matter from segmented MRI\n');
+  if ~isfield(cfg, 'threshold'),        cfg.threshold = 0.1;        end % relative
+  if ~isfield(cfg, 'smooth');           cfg.smooth    = 5;          end % in voxels
+  if ~isfield(cfg, 'sourceunits');      cfg.sourceunits = 'cm';     end
+  if ~isfield(cfg, 'mriunits');         cfg.mriunits = 'mm';        end
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'yes';     end
+end
+
+if basedonvol
+  fprintf('creating dipole grid based on inward-shifted brain surface from volume conductor model\n');
+  if ~isfield(cfg, 'spheremesh'), cfg.spheremesh = 642;  end   % FIXME move spheremesh to cfg.grid
+  if ~isfield(cfg.grid, 'tight'), cfg.grid.tight = 'no'; end
+end
+
+% these are mutually exclusive
+if sum([basedonauto basedongrid basedonpos basedonshape basedonmri basedonvol])~=1
+  error('incorrect configuration to specify a dipole grid');
 end
 
 % start with an empty grid
 grid = [];
 
-if hasmri
+if basedonauto
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % construct a regular 3D grid that spans a box encompassing all electrode
+  % or gradiometer coils, this will typically also cover the complete brain
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if ischar(cfg.grid.xgrid) && strcmp(cfg.grid.xgrid, 'auto')
+    grid.xgrid = floor(min(sens.pnt(:,1))):cfg.grid.resolution:ceil(max(sens.pnt(:,1)));
+  end
+  if ischar(cfg.grid.ygrid) && strcmp(cfg.grid.ygrid, 'auto')
+    grid.ygrid = floor(min(sens.pnt(:,2))):cfg.grid.resolution:ceil(max(sens.pnt(:,2)));
+  end
+  if ischar(cfg.grid.zgrid) && strcmp(cfg.grid.zgrid, 'auto')
+    grid.zgrid = floor(min(sens.pnt(:,3))):cfg.grid.resolution:ceil(max(sens.pnt(:,3)));
+  end
+  % create the regular 3-D dipole grid
+  grid.xgrid = cfg.grid.xgrid;
+  grid.ygrid = cfg.grid.ygrid;
+  grid.zgrid = cfg.grid.zgrid;
+  grid.dim   = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
+  [X, Y, Z]  = ndgrid(grid.xgrid, grid.ygrid, grid.zgrid);
+  grid.pos   = [X(:) Y(:) Z(:)];
+end
+
+if basedongrid
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % a detailled xgrid/ygrid/zgrid has been specified, the other details
+  % still need to be determined
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  grid.xgrid = cfg.grid.xgrid;
+  grid.ygrid = cfg.grid.ygrid;
+  grid.zgrid = cfg.grid.zgrid;
+  grid.dim   = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
+  [X, Y, Z]  = ndgrid(grid.xgrid, grid.ygrid, grid.zgrid);
+  grid.pos   = [X(:) Y(:) Z(:)];
+end
+
+if basedonpos
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % a grid is already specified in the configuration, reuse as much of the
+  % prespecified grid as possible (but only known objects)
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if isfield(cfg.grid, 'pos')
+    grid.pos = cfg.grid.pos;
+  end
+  if isfield(cfg.grid, 'mom')
+    grid.mom = cfg.grid.mom;
+  end
+  if isfield(cfg.grid, 'xgrid')
+    % FIXME is it desirable to have this in the grid?
+    grid.xgrid = cfg.grid.xgrid;
+  end
+  if isfield(cfg.grid, 'ygrid')
+    % FIXME is it desirable to have this in the grid?
+    grid.ygrid = cfg.grid.ygrid;
+  end
+  if isfield(cfg.grid, 'zgrid')
+    % FIXME is it desirable to have this in the grid?
+    grid.zgrid = cfg.grid.zgrid;
+  end
+  if isfield(cfg.grid, 'dim')
+    grid.dim = cfg.grid.dim;
+  elseif isfield(grid, 'xgrid') && isfield(grid, 'ygrid') && isfield(grid, 'zgrid')
+    grid.dim = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
+  end
+  if isfield(cfg.grid, 'inside')
+    grid.inside = cfg.grid.inside;
+  end
+  if isfield(cfg.grid, 'outside')
+    grid.outside = cfg.grid.outside;
+  end
+  if isfield(cfg.grid, 'lbex')
+    grid.lbex = cfg.grid.lbex;
+  end
+  if isfield(cfg.grid, 'subspace')
+    grid.subspace = cfg.grid.subspace;
+  end
+  if isfield(cfg.grid, 'leadfield')
+    grid.leadfield = cfg.grid.leadfield;
+  end
+  if isfield(cfg.grid, 'filter')
+    grid.filter = cfg.grid.filter;
+  end
+  % this is not supported any more
+  if isfield(cfg.grid, 'avg') && isfield(cfg.grid.avg, 'filter')
+    error('please put your filters in cfg.grid instead of cfg.grid.avg');
+  end
+  % this will remove all remaining unknown objects from the configuration
+  cfg.grid = grid;
+end
+
+if basedonmri
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % construct a grid based on the segmented MRI that is provided in the
+  % configuration, only voxels in gray matter will be used
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   % convert the source/functional data into the same units as the anatomical MRI
   scale = 1;
   switch cfg.sourceunits
@@ -170,103 +251,7 @@ if hasmri
     otherwise
       error('unknown physical dimension in cfg.mriunits');
   end
-end
 
-if haspos
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % a grid is already specified in the configuration, reuse as much of the
-  % prespecified grid as possible (but only known objects)
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  grid.pos = cfg.grid.pos;
-  if hasmom
-    grid.mom = cfg.grid.mom;
-  end
-  if isfield(cfg.grid, 'xgrid')
-    grid.xgrid = cfg.grid.xgrid;
-  end
-  if isfield(cfg.grid, 'ygrid')
-    grid.ygrid = cfg.grid.ygrid;
-  end
-  if isfield(cfg.grid, 'zgrid')
-    grid.zgrid = cfg.grid.zgrid;
-  end
-  if isfield(cfg.grid, 'dim')
-    grid.dim = cfg.grid.dim;
-  elseif isfield(grid, 'xgrid') && isfield(grid, 'ygrid') && isfield(grid, 'zgrid')
-    grid.dim = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
-  end
-  if isfield(cfg.grid, 'inside')
-    grid.inside = cfg.grid.inside;
-  end
-  if isfield(cfg.grid, 'outside')
-    grid.outside = cfg.grid.outside;
-  end
-  if isfield(cfg.grid, 'lbex')
-    grid.lbex = cfg.grid.lbex;
-  end
-  if isfield(cfg.grid, 'subspace')
-    grid.subspace = cfg.grid.subspace;
-  end
-  if isfield(cfg.grid, 'leadfield')
-    grid.leadfield = cfg.grid.leadfield;
-  end
-  if isfield(cfg.grid, 'filter')
-    grid.filter = cfg.grid.filter;
-  elseif isfield(cfg.grid, 'avg')
-    % the precomputed filters could also be in the average sub-structure
-    if isfield(cfg.grid.avg, 'filter')
-      grid.filter = cfg.grid.avg.filter;
-    end
-  end
-  % this will remove all remaining unknown objects from the configuration
-  cfg.grid = grid;
-
-elseif hasgrid
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % construct a regular 3D grid that spans a box encompassing all electrode
-  % or gradiometer coils, this will typically also cover the complete brain
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if (strcmp(cfg.grid.xgrid, 'auto') || strcmp(cfg.grid.ygrid, 'auto') || strcmp(cfg.grid.zgrid, 'auto')) && ~isfield(cfg.grid, 'resolution')
-    % the units of the head coordinate system are unknown and can be mm, cm or m
-    % try to determine the units by looking at the spatial extent of the sensor array
-    switch floor(log10(max(range(sens.pnt))))
-      case -1
-        % cfg.sourceunits = 'm';
-        cfg.grid.resolution = 0.01;
-      case 0
-        % cfg.sourceunits = 'dm';
-        cfg.grid.resolution = 0.1;
-      case 1
-        % cfg.sourceunits = 'cm';
-        cfg.grid.resolution = 1;
-      case 2
-        % cfg.sourceunits = 'mm';
-        cfg.grid.resolution = 10;
-    end
-    fprintf('using an automatic grid resolution of %d\n', cfg.grid.resolution);
-  end
-  if ischar(cfg.grid.xgrid) && strcmp(cfg.grid.xgrid, 'auto')
-    cfg.grid.xgrid = floor(min(sens.pnt(:,1))):cfg.grid.resolution:ceil(max(sens.pnt(:,1)));
-  end
-  if ischar(cfg.grid.ygrid) && strcmp(cfg.grid.ygrid, 'auto')
-    cfg.grid.ygrid = floor(min(sens.pnt(:,2))):cfg.grid.resolution:ceil(max(sens.pnt(:,2)));
-  end
-  if ischar(cfg.grid.zgrid) && strcmp(cfg.grid.zgrid, 'auto')
-    cfg.grid.zgrid = floor(min(sens.pnt(:,3))):cfg.grid.resolution:ceil(max(sens.pnt(:,3)));
-  end
-  % create the regular 3-D dipole grid
-  grid.xgrid = cfg.grid.xgrid;
-  grid.ygrid = cfg.grid.ygrid;
-  grid.zgrid = cfg.grid.zgrid;
-  grid.dim   = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
-  [X, Y, Z]  = ndgrid(cfg.grid.xgrid, cfg.grid.ygrid, cfg.grid.zgrid);
-  grid.pos   = [X(:) Y(:) Z(:)];
-
-elseif hasmri
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % construct a grid based on the segmented MRI that is provided in the
-  % configuration, only voxels in gray matter will be used
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if ~isfield(cfg.grid, 'resolution')
     switch cfg.sourceunits
       case 'mm'
@@ -279,6 +264,7 @@ elseif hasmri
         cfg.grid.resolution = 0.01;
     end
   end
+
   if isstr(cfg.mri)
     % read the segmentation from file
     mri      = read_fcdc_mri(cfg.mri);
@@ -356,8 +342,9 @@ elseif hasmri
   fprintf('the regular 3D grid encompassing the cortex contains %d grid points\n', size(grid.pos,1));
   fprintf('%d grid points inside gray matter\n', length(grid.inside));
   fprintf('%d grid points outside gray matter\n', length(grid.outside));
+end
 
-elseif hasshape
+if basedonshape
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % use the headshape  to make a superficial dipole layer (e.g.
   % for megrealign). Assume that all points are inside the volume.
@@ -365,8 +352,9 @@ elseif hasshape
   grid.pos = headsurface([], [], 'headshape', cfg.headshape, 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
   grid.inside  = 1:size(grid.pos,1);
   grid.outside = [];
+end
 
-else
+if basedonvol
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % use the volume conduction model to make a superficial dipole layer (e.g.
   % for megrealign). Assume that all points are inside the volume.
@@ -374,7 +362,6 @@ else
   grid.pos = headsurface(vol, sens, 'inwardshift', cfg.inwardshift, 'npnt', cfg.spheremesh);
   grid.inside  = 1:size(grid.pos,1);
   grid.outside = [];
-
 end
 
 % determine the dipole locations inside the brain volume
@@ -409,7 +396,7 @@ elseif ~isfield(grid, 'outside')
   grid.outside = setdiff(1:size(grid.pos,1), grid.inside);
 end
 
-if strcmp(cfg.tightgrid, 'yes')
+if strcmp(cfg.grid.tight, 'yes')
   fprintf('%d dipoles inside, %d dipoles outside brain\n', length(grid.inside), length(grid.outside));
   fprintf('making tight grid\n');
   xmin = min(grid.pos(grid.inside,1));
@@ -440,7 +427,6 @@ if strcmp(cfg.tightgrid, 'yes')
   grid.zgrid   = grid.zgrid(zmin_indx:zmax_indx);
   grid.dim     = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
 end
-
 fprintf('%d dipoles inside, %d dipoles outside brain\n', length(grid.inside), length(grid.outside));
 
 % apply the symmetry constraint, i.e. add a symmetric dipole for each location defined sofar
@@ -465,6 +451,3 @@ if ~isempty(cfg.symmetry)
   % expand the number of parameters from one (3) to two dipoles (6)
   grid.pos = grid.pos(:,expand) .* repmat(mirror, size(grid.pos,1), 1);
 end
-
-% update the configuration for consistency
-cfg.grid = grid;

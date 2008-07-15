@@ -123,6 +123,9 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %   
 % $Log: dipolefitting.m,v $
+% Revision 1.49  2008/07/15 19:56:44  roboos
+% moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
+%
 % Revision 1.48  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -312,6 +315,9 @@ if ~isfield(cfg, 'feedback'),    cfg.feedback = 'text';      end
 if ~isfield(cfg, 'gridsearch'),  cfg.gridsearch = 'yes';     end
 if ~isfield(cfg, 'nonlinear'),   cfg.nonlinear = 'yes';      end
 if ~isfield(cfg, 'symmetry'),    cfg.symmetry = [];          end
+
+% put the low-level options pertaining to the dipole grid (used for initial scanning) in their own field
+cfg = createsubcfg(cfg, 'grid');
 
 % the default for this depends on the data type
 if ~isfield(cfg, 'model'),
@@ -690,7 +696,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.48 2008/04/10 08:03:11 roboos Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.49 2008/07/15 19:56:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.127  2008/07/15 19:56:44  roboos
+% moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
+%
 % Revision 1.126  2008/07/07 12:37:42  roboos
 % fixed bug in channelordering in case sens.label and data.label were inconsistent
 %
@@ -542,6 +545,12 @@ if ~isfield(cfg, 'channel'),          cfg.channel = 'all';        end
 if ~isfield(cfg, 'normalize'),        cfg.normalize = 'no';       end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';      end  % the default for this depends on EEG/MEG and is set below
 
+% put the low-level options pertaining to the source reconstruction method in their own field
+cfg = createsubcfg(cfg, cfg.method);
+
+% put the low-level options pertaining to the dipole grid in their own field
+cfg = createsubcfg(cfg, 'grid');
+
 convertfreq = 0;
 convertcomp = 0;
 if ~istimelock && (strcmp(cfg.method, 'mne') || strcmp(cfg.method, 'loreta') || strcmp(cfg.method, 'rv') || strcmp(cfg.method, 'music'))
@@ -847,10 +856,7 @@ if isfreq && (strcmp(cfg.method, 'dics') || strcmp(cfg.method, 'pcc'))
     Pr  = reshape(Pr , [1 1 1]);
   end
 
-  % get the relevant options from the cfg and convert into key-value pairs
-  dum = cfg.method;
-  cfg = createsubcfg(cfg, cfg.method);
-  cfg.method = dum;
+  % get the relevant low level options from the cfg and convert into key-value pairs
   optarg = cfg2keyval(getfield(cfg, cfg.method));
 
   for i=1:Nrepetitions
@@ -1065,10 +1071,7 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
   end
 
 
-  % get the relevant options from the cfg and convert into key-value pairs
-  dum = cfg.method;
-  cfg = createsubcfg(cfg, cfg.method);
-  cfg.method = dum;
+  % get the relevant low level options from the cfg and convert into key-value pairs
   optarg = cfg2keyval(getfield(cfg, cfg.method));
 
   if strcmp(cfg.method, 'lcmv')
@@ -1178,6 +1181,7 @@ elseif strcmp(cfg.keepleadfield, 'no') && isfield(source, 'leadfield')
 end
 
 % remove the precomputed leadfields from the cfg regardless of what keepleadfield is saying
+% it should not be kept in cfg, since there it takes up too much space
 if isfield(cfg, 'grid') && isfield(cfg.grid, 'leadfield')
   cfg.grid = rmfield(cfg.grid, 'leadfield');
 end
@@ -1243,7 +1247,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.126 2008/07/07 12:37:42 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.127 2008/07/15 19:56:44 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

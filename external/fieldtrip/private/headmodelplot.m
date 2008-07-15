@@ -69,6 +69,9 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.20  2008/07/15 19:53:23  roboos
+% use grid subcfg, prevent recreation of grid if already fully specified
+%
 % Revision 1.19  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -143,6 +146,9 @@ if ~isfield(cfg, 'surface_facecolor'), cfg.surface_facecolor = skin;   end
 if ~isfield(cfg, 'surface_edgecolor'), cfg.surface_edgecolor = 'none'; end
 if ~isfield(cfg, 'surface_facealpha'), cfg.surface_facealpha = 0.7;    end
 
+% put the low-level options pertaining to the dipole grid in their own field
+cfg = createsubcfg(cfg, 'grid');
+
 if ~isfield(cfg, 'vol') && ~isfield(cfg, 'hdmfile')
   cfg.vol = [];  % FIXME why is this empty setting neccessary?
 end
@@ -163,10 +169,18 @@ if ~isfield(cfg, 'plotheadshape'),    cfg.plotheadshape = 'yes';     end
 % extract/read the gradiometer and volume conductor
 [vol, sens, cfg] = prepare_headmodel(cfg, data);
 
-% extract/construct the dipole grid
-if strcmp(cfg.plotgrid, 'yes') && isfield(cfg, 'grid')
-  sourcegrid = prepare_dipole_grid(cfg, vol, sens);
+if strcmp(cfg.plotgrid, 'yes')
+  if isfield(cfg.grid, 'pos')
+    % use the specified grid
+    sourcegrid.pos      = cfg.grid.pos;
+    sourcegrid.inside   = cfg.grid.inside;
+    sourcegrid.outside  = cfg.grid.outside;
+  else
+    % construct the grid according to the configuration
+    sourcegrid = prepare_dipole_grid(cfg, vol, sens);
+  end
 else
+  % construct an empty dipole grid
   sourcegrid     = [];
   sourcegrid.pos = zeros(0,3);
   sourcegrid.inside = [];
@@ -323,7 +337,7 @@ elseif ismeg
       headshape = read_ctf_shape(cfg.headshape);
     elseif ischar(cfg.headshape) && filetype(cfg.headshape, '4d_hs')
       % read the headshape from file
-      headshape     = []; 
+      headshape     = [];
       headshape.pnt = read_bti_hs(cfg.headshape);
     else
       error('cfg.headshape is not specified correctly')

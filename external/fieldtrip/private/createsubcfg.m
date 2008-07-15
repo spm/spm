@@ -15,6 +15,9 @@ function [topcfg] = createsubcfg(topcfg, subname);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: createsubcfg.m,v $
+% Revision 1.9  2008/07/15 19:34:13  roboos
+% removed inwardshift from cfg.grid, will have to be reconsidered later
+%
 % Revision 1.8  2008/07/15 18:18:45  roboos
 % added subfield grid
 %
@@ -101,7 +104,6 @@ switch subname
       'outside'
       'pos'
       'dim'
-      'inwardshift'
       'tight'
       };
 

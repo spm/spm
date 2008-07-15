@@ -75,6 +75,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.50  2008/07/15 19:56:44  roboos
+% moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
+%
 % Revision 1.49  2008/05/06 15:43:46  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -248,6 +251,9 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';           end
 if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
 
+% put the low-level options pertaining to the dipole grid in their own field
+cfg = createsubcfg(cfg, 'grid');
+
 if ~isfield(cfg, 'inwardshift'),
   % it depends on the volume model and/or headshape that is used for constructing the dipole sheet
   error('you should specify cfg.inwardshift');
@@ -329,7 +335,7 @@ case {'ctf151_planar' 'ctf275_planar'}
   labF = 'MZF03_dH';
   labL = 'MLC21_dH';
   labR = 'MRC21_dH';
-case 'bti148'
+case {'bti148' 'bti248'}
   labC = 'A14';
   labF = 'A2';
   labL = 'A15';
@@ -445,7 +451,6 @@ fprintf('mean distance towards template gradiometers is %.2f %s\n', mean(sum((da
 % create the dipole grid on which the data will be projected
 grid = prepare_dipole_grid(cfg, volold, data.grad);
 pos = grid.pos;
-clear grid
 
 % sometimes some of the dipole positions are nan, due to problems with the headsurface triangulation
 % remove them to prevent problems with the forward computation
@@ -516,7 +521,7 @@ if strcmp(cfg.feedback, 'yes')
   tmpcfg = [];
   tmpcfg.vol = volold;
   tmpcfg.grad = data.grad;
-  tmpcfg.grid.pos = pos;
+  tmpcfg.grid = grid;
   tmpcfg.plotsensors = 'no';  % these are plotted seperately below
   headmodelplot(tmpcfg);
   hold on
@@ -573,7 +578,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.49 2008/05/06 15:43:46 sashae Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.50 2008/07/15 19:56:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
