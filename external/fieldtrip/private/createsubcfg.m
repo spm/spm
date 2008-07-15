@@ -6,11 +6,18 @@ function [topcfg] = createsubcfg(topcfg, subname);
 % and documentation that do not use the nested detailled configuration
 % but that use a flat configuration.
 %
+% Use as
+%   cfg = createsubcfg(cfg, 'something')
+% which will put all fields related to 'something' into cfg.something
+%
 % See also KEYVAL2CFG, CFG2KEYVAL
 
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: createsubcfg.m,v $
+% Revision 1.8  2008/07/15 18:18:45  roboos
+% added subfield grid
+%
 % Revision 1.7  2008/07/11 13:18:40  roboos
 % removed all lnfilter references, added error to preprocessing and preproc
 %
@@ -80,68 +87,81 @@ switch subname
       'rectify'
       'boxcar'
       'absdiff'
-    };
+      };
+
+  case 'grid'
+    fieldname = {
+      'xgrid'
+      'ygrid'
+      'zgrid'
+      'resolution'
+      'filter'
+      'leadfield'
+      'inside'
+      'outside'
+      'pos'
+      'dim'
+      'inwardshift'
+      'tight'
+      };
 
   case 'dics'
-   fieldname = {
-      'feedback'     
-      'keepfilter'   
-      'keepmom'      
-      'lambda'       
-      'method'       
-      'normalize'    
-      'powmethod'    
-      'projectnoise' 
-      'reducerank'   
-      'keepcsd'   
-      'realfilter'   
-    };
+    fieldname = {
+      'feedback'
+      'keepfilter'
+      'keepmom'
+      'lambda'
+      'normalize'
+      'powmethod'
+      'projectnoise'
+      'reducerank'
+      'keepcsd'
+      'realfilter'
+      };
 
   case 'lcmv'
-   fieldname = {
-      'feedback'     
-      'keepfilter'   
-      'keepmom'      
-      'lambda'       
-      'method'       
-      'normalize'    
-      'powmethod'    
-      'projectnoise' 
-      'reducerank'   
-      'keepcov'   
-    };
+    fieldname = {
+      'feedback'
+      'keepfilter'
+      'keepmom'
+      'lambda'
+      'normalize'
+      'powmethod'
+      'projectnoise'
+      'reducerank'
+      'keepcov'
+      };
 
   case 'pcc'
-   fieldname = {
-      'feedback'     
-      'keepfilter'   
-      'keepmom'      
-      'lambda'       
-      'method'       
-      'normalize'    
-%      'powmethod'    
-      'projectnoise' 
-      'reducerank'   
-      'keepcsd'   
-      'realfilter'   
-    };
+    fieldname = {
+      'feedback'
+      'keepfilter'
+      'keepmom'
+      'lambda'
+      'normalize'
+%     'powmethod'
+      'projectnoise'
+      'reducerank'
+      'keepcsd'
+      'realfilter'
+      };
 
   case {'mne', 'loreta', 'rv'}
     fieldname = {
       'feedback'
-    };
+      };
 
   case 'music'
     fieldname = {
       'feedback'
       'numcomponent'
-    };
+      };
 
   otherwise
     error('unexpected name of the subfunction');
     fieldname = {};
 
-end % switch method
+end % switch subname
 
 for i=1:length(fieldname)
   if ~isfield(subcfg, fieldname{i}) && isfield(topcfg, fieldname{i})
