@@ -28,6 +28,9 @@ function [data] = combineplanar(cfg, data)
 % Copyright (C) 2004, Ole Jensen, Robert Oostenveld
 %
 % $Log: combineplanar.m,v $
+% Revision 1.38  2008/07/16 10:20:42  jansch
+% added support for bti248_planar data
+%
 % Revision 1.37  2008/01/31 17:20:17  sashae
 % added option for trial selection
 %
@@ -154,7 +157,7 @@ function [data] = combineplanar(cfg, data)
 
 % check if the input data is valid for this function
 % TODO this is not yet consistent with the code that is approx. 15 lines below
-data = checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306'});
+data = checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar'});
 
 % set the defaults
 if ~isfield(cfg, 'blc'),           cfg.blc           = 'no';  end
@@ -351,7 +354,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: combineplanar.m,v 1.37 2008/01/31 17:20:17 sashae Exp $';
+cfg.version.id  = '$Id: combineplanar.m,v 1.38 2008/07/16 10:20:42 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

@@ -12,6 +12,9 @@ function [planar] = planarchannelset(data);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: planarchannelset.m,v $
+% Revision 1.7  2008/07/16 10:20:14  jansch
+% added support for bti248 system.
+%
 % Revision 1.6  2008/04/09 14:13:07  roboos
 % updated docu
 %
@@ -22,7 +25,7 @@ function [planar] = planarchannelset(data);
 % updated help and copyright
 %
 
-switch lower(sensortype(data))
+switch lower(senstype(data))
 case 'ctf151_planar'
 planar = {
     'MLC11_dH'     'MLC11_dV'     'MLC11' 
@@ -628,7 +631,13 @@ planar = {
     'MEG 2633'    'MEG 2632'    'MEG 2633+2632'    % 'MEG 2631'
     'MEG 2642'    'MEG 2643'    'MEG 2642+2643'    % 'MEG 2641'
 };
-
+case 'bti248_planar'
+  planar = cell(248,3);
+  for k = 1:248
+    planar{k,1} = ['A',num2str(k),'_dH'];
+    planar{k,2} = ['A',num2str(k),'_dV'];
+    planar{k,3} = ['A',num2str(k)];
+  end
 otherwise
   error('unrecognized MEG system');
 end

@@ -47,6 +47,15 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.40  2008/07/16 10:51:46  roboos
+% fixed bug: inwardshift is in cfg, not yet in cfg.grid
+%
+% Revision 1.39  2008/07/16 10:47:33  roboos
+% basedonpos overrides basedongrid
+%
+% Revision 1.38  2008/07/16 10:15:15  roboos
+% added two missing defaults for basedonpos, thanks to Jan-Mathijs
+%
 % Revision 1.37  2008/07/16 08:53:55  roboos
 % only fall back to default "basedonvol" in case none of the other methods was selected
 %
@@ -81,9 +90,13 @@ basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);   % surfac
 basedonmri    = isfield(cfg, 'mri');                                    % regular 3D grid, based on segmented MRI, restricted to gray matter
 basedonvol    = 0;                                                      % surface grid based on inward shifted brain surface from volume conductor
 
+if basedongrid && basedonpos
+  % fall back to default behaviour, in which the pos overrides the grid
+  basedongrid = 0;
+end
+
 if ~any([basedonauto basedongrid basedonpos basedonshape basedonmri]) && nargin>1 && ~isempty(vol)
-  % fall back to default behaviour, which is to create a surface grid (e.g.
-  % used in MEGRELIGN)
+  % fall back to default behaviour, which is to create a surface grid (e.g. used in MEGRELIGN)
   basedonvol = 1;
 end
 
@@ -95,24 +108,26 @@ if basedonauto
   if ~isfield(cfg.grid, 'xgrid'),       cfg.grid.xgrid = 'auto';    end
   if ~isfield(cfg.grid, 'ygrid'),       cfg.grid.ygrid = 'auto';    end
   if ~isfield(cfg.grid, 'zgrid'),       cfg.grid.zgrid = 'auto';    end
-  if ~isfield(cfg, 'inwardshift'),      cfg.inwardshift = 0;        end % in this case for inside detection
+  if ~isfield(cfg, 'inwardshift'),      cfg.inwardshift = 0;        end % in this case for inside detection, % FIXME move to cfg.grid
   if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'yes';     end
 end
 
 if basedongrid
   fprintf('creating dipole grid based on user specified 3D grid\n');
-  if ~isfield(cfg.grid, 'inwardshift'), cfg.inwardshift = 0;        end % in this case for inside detection
+  if ~isfield(cfg, 'inwardshift'),      cfg.inwardshift = 0;        end % in this case for inside detection, % FIXME move to cfg.grid
   if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no';      end
 end
 
 if basedonpos
   fprintf('creating dipole grid based on user specified dipole positions\n');
+  if ~isfield(cfg, 'inwardshift'),      cfg.inwardshift = 0;        end % in this case for inside detection, % FIXME move to cfg.grid
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no';      end
 end
 
 if basedonshape
   fprintf('creating dipole grid based on inward-shifted head shape\n');
-  if ~isfield(cfg, 'spheremesh'), cfg.spheremesh = 642;  end  % FIXME move spheremesh to cfg.grid
-  if ~isfield(cfg.grid, 'tight'), cfg.grid.tight = 'no'; end
+  if ~isfield(cfg, 'spheremesh'),       cfg.spheremesh = 642;  end  % FIXME move spheremesh to cfg.grid
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no'; end
 end
 
 if basedonmri
@@ -126,8 +141,8 @@ end
 
 if basedonvol
   fprintf('creating dipole grid based on inward-shifted brain surface from volume conductor model\n');
-  if ~isfield(cfg, 'spheremesh'), cfg.spheremesh = 642;  end   % FIXME move spheremesh to cfg.grid
-  if ~isfield(cfg.grid, 'tight'), cfg.grid.tight = 'no'; end
+  if ~isfield(cfg, 'spheremesh'),       cfg.spheremesh = 642;  end   % FIXME move to cfg.grid
+  if ~isfield(cfg.grid, 'tight'),       cfg.grid.tight = 'no'; end
 end
 
 % these are mutually exclusive
