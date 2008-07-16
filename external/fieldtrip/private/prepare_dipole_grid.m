@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.37  2008/07/16 08:53:55  roboos
+% only fall back to default "basedonvol" in case none of the other methods was selected
+%
 % Revision 1.36  2008/07/15 19:52:21  roboos
 % cleaned up the handling of the different grid-generating methods
 % more output on screen, more rigid checking of conflicting cfgs
@@ -76,7 +79,13 @@ basedongrid   = isfield(cfg.grid, 'xgrid');                             % regula
 basedonpos    = isfield(cfg.grid, 'pos');                               % using user-supplied grid positions, which can be regular or irregular
 basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);   % surface grid based on inward shifted head surface from external file
 basedonmri    = isfield(cfg, 'mri');                                    % regular 3D grid, based on segmented MRI, restricted to gray matter
-basedonvol    = nargin>1 && ~isempty(vol);                              % surface grid based on inward shifted brain surface from volume conductor
+basedonvol    = 0;                                                      % surface grid based on inward shifted brain surface from volume conductor
+
+if ~any([basedonauto basedongrid basedonpos basedonshape basedonmri]) && nargin>1 && ~isempty(vol)
+  % fall back to default behaviour, which is to create a surface grid (e.g.
+  % used in MEGRELIGN)
+  basedonvol = 1;
+end
 
 % these are mutually exclusive, but printing all requested methods here
 % facilitates debugging of weird configs. Also specify the defaults here to
@@ -123,7 +132,7 @@ end
 
 % these are mutually exclusive
 if sum([basedonauto basedongrid basedonpos basedonshape basedonmri basedonvol])~=1
-  error('incorrect configuration to specify a dipole grid');
+  error('incorrect configuration was specified for constructing a dipole grid');
 end
 
 % start with an empty grid
