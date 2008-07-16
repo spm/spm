@@ -23,6 +23,8 @@ function [lay] = prepare_layout(cfg, data);
 %   cfg.gradfile    filename containing gradiometer definition
 %   cfg.output      filename to which the layout will be written (default = [])
 %   cfg.montage     'no' or a montage structure (default = 'no')
+%   cfg.image       filename, use an image to construct a layout (e.g.
+%                   usefull for ECog grids)
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -43,6 +45,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.17  2008/07/16 09:27:36  roboos
+% added support for creating a layout based on a figure, including mask and outline for topoplot
+%
 % Revision 1.16  2008/06/25 06:36:06  roboos
 % added option cfg.montage, computes average location for bipolar channels
 %
@@ -127,6 +132,7 @@ if ~isfield(cfg, 'elecfile'),   cfg.elecfile = [];              end
 if ~isfield(cfg, 'output'),     cfg.output = [];                end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'no';            end
 if ~isfield(cfg, 'montage'),    cfg.montage = 'no';             end
+if ~isfield(cfg, 'image'),      cfg.image = [];                 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
@@ -158,15 +164,15 @@ elseif isequal(cfg.layout, 'ordered')
   lay.label = data.label;
 
   lay.label{end+1}  = 'SCALE';
-  lay.width(end+1)  = mean(lay.width);
-  lay.height(end+1) = mean(lay.height);
+  lay.width(end+1)  = 0.8 * 1/ncol;
+  lay.height(end+1) = 0.8 * 1/nrow;
   x = (ncol-2)/ncol;
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
 
   lay.label{end+1}  = 'COMNT';
-  lay.width(end+1)  = mean(lay.width);
-  lay.height(end+1) = mean(lay.height);
+  lay.width(end+1)  = 0.8 * 1/ncol;
+  lay.height(end+1) = 0.8 * 1/nrow;
   x = (ncol-1)/ncol;
   y = 0/nrow;
   lay.pos(end+1,:) = [x y];
@@ -179,20 +185,20 @@ elseif isequal(cfg.layout, 'ordered')
 
 
   % try to generate layout from other configuration options
-elseif isstr(cfg.layout) && filetype(cfg.layout, 'matlab')
+elseif ischar(cfg.layout) && filetype(cfg.layout, 'matlab')
   fprintf('reading layout from file %s\n', cfg.layout);
   load(cfg.layout, 'lay');
 
-elseif isstr(cfg.layout) && filetype(cfg.layout, 'layout')
+elseif ischar(cfg.layout) && filetype(cfg.layout, 'layout')
   fprintf('reading layout from file %s\n', cfg.layout);
   lay = readlay(cfg.layout);
 
-elseif isstr(cfg.layout) && ~filetype(cfg.layout, 'layout')
+elseif ischar(cfg.layout) && ~filetype(cfg.layout, 'layout')
   % assume that cfg.layout is an electrode file
   fprintf('creating layout from electrode file %s\n', cfg.layout);
   lay = elec2lay(read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style);
 
-elseif isstr(cfg.elecfile)
+elseif ischar(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
   lay = elec2lay(read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style);
 
@@ -204,7 +210,7 @@ elseif isfield(data, 'elec') && isstruct(data.elec)
   fprintf('creating layout from data.elec\n');
   lay = elec2lay(data.elec, cfg.rotate, cfg.projection, cfg.style);
 
-elseif isstr(cfg.gradfile)
+elseif ischar(cfg.gradfile)
   fprintf('creating layout from gradiometer file %s\n', cfg.gradfile);
   lay = grad2lay(read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style);
 
@@ -216,16 +222,260 @@ elseif isfield(data, 'grad') && isstruct(data.grad)
   fprintf('creating layout from data.grad\n');
   lay = grad2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
 
+elseif ~isempty(cfg.image)
+  fprintf('reading background image from %s\n', cfg.image);
+  img = imread(cfg.image);
+
+  figure
+  image(img);
+  hold on
+  axis equal
+  axis off
+
+  % get the electrode positions
+  pos = zeros(0,2);
+  electrodehelp = [ ...
+    '-----------------------------------------------------\n' ...
+    'specify electrode locations\n' ...
+    'press the right mouse button to add another electrode\n' ...
+    'press backspace on the keyboard to remove the last electrode\n' ...
+    'press "q" on the keyboard to continue\n' ...
+    ];
+  again = 1;
+  while again
+    fprintf(electrodehelp)
+    disp(round(pos)); % values are integers/pixels
+    [x, y, k] = ginput(1);
+    switch k
+      case 1
+        pos = cat(1, pos, [x y]);
+        % add it to the figure
+        plot(x, y, 'b.');
+        plot(x, y, 'yo');
+      case 8
+        if size(pos,1)>0
+          % remove the last point
+          pos = pos(1:end-1,:);
+          % completely redraw the figure
+          cla
+          h = image(img);
+          hold on
+          axis equal
+          axis off
+          plot(pos(:,1), pos(:,2), 'b.');
+          plot(pos(:,1), pos(:,2), 'yo');
+        end
+      case 'q'
+        again = 0;
+      otherwise
+        warning('invalid button (%d)', k);
+    end
+  end
+
+  % get the mask outline
+  polygon = {};
+  thispolygon = 1;
+  polygon{thispolygon} = zeros(0,2);
+  maskhelp = [ ...
+    '------------------------------------------------------------------------\n' ...
+    'specify polygons for masking the topgraphic interpolation\n' ...
+    'press the right mouse button to add another point to the current polygon\n' ...
+    'press backspace on the keyboard to remove the last point\n' ...
+    'press "c" on the keyboard to close this polygon and start with another\n' ...
+    'press "q" on the keyboard to continue\n' ...
+    ];
+  again = 1;
+  while again
+    fprintf(maskhelp);
+    fprintf('\n');
+    for i=1:length(polygon)
+      fprintf('polygon %d has %d points\n', i, size(polygon{i},1));
+    end
+
+    [x, y, k] = ginput(1);
+    switch k
+
+      case 1
+        polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
+        % add the last line segment to the figure
+        if size(polygon{thispolygon},1)>1
+          x = polygon{i}([end-1 end],1);
+          y = polygon{i}([end-1 end],2);
+        end
+        plot(x, y, 'g.-');
+
+      case 8 % backspace
+        if size(polygon{thispolygon},1)>0
+          % remove the last point
+          polygon{thispolygon} = polygon{thispolygon}(1:end-1,:);
+          % completely redraw the figure
+          cla
+          h = image(img);
+          hold on
+          axis equal
+          axis off
+          % plot the electrode positions
+          plot(pos(:,1), pos(:,2), 'b.');
+          plot(pos(:,1), pos(:,2), 'yo');
+          for i=1:length(polygon)
+            x = polygon{i}(:,1);
+            y = polygon{i}(:,2);
+            if i~=thispolygon
+              % close the polygon in the figure
+              x(end) = x(1);
+              y(end) = y(1);
+            end
+            plot(x, y, 'g.-');
+          end
+        end
+
+      case 'c'
+        if size(polygon{thispolygon},1)>0
+          % close the polygon in the figure
+          x = polygon{i}([1 end],1);
+          y = polygon{i}([1 end],2);
+          plot(x, y, 'g.-');
+          % switch to the next polygon
+          thispolygon = thispolygon + 1;
+          polygon{thispolygon} = zeros(0,2);
+        end
+
+      case 'q'
+        if size(polygon{thispolygon},1)>0
+          % close the polygon in the figure
+          x = polygon{i}([1 end],1);
+          y = polygon{i}([1 end],2);
+          plot(x, y, 'g.-');
+        end
+        again = 0;
+
+      otherwise
+        warning('invalid button (%d)', k);
+    end
+  end
+  % remember this set of polygons as the mask
+  mask = polygon;
+
+
+  % get the outline, e.g. head shape and sulci
+  polygon = {};
+  thispolygon = 1;
+  polygon{thispolygon} = zeros(0,2);
+  maskhelp = [ ...
+    '-----------------------------------------------------------------------------------\n' ...
+    'specify polygons for adding outlines (e.g. head shape and sulci) to the layout\n' ...
+    'press the right mouse button to add another point to the current polygon\n' ...
+    'press backspace on the keyboard to remove the last point\n' ...
+    'press "c" on the keyboard to close this polygon and start with another\n' ...
+    'press "n" on the keyboard to start with another without closing the current polygon\n' ...
+    'press "q" on the keyboard to continue\n' ...
+    ];
+  again = 1;
+  while again
+    fprintf(maskhelp);
+    fprintf('\n');
+    for i=1:length(polygon)
+      fprintf('polygon %d has %d points\n', i, size(polygon{i},1));
+    end
+
+    [x, y, k] = ginput(1);
+    switch k
+
+      case 1
+        polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
+        % add the last line segment to the figure
+        if size(polygon{thispolygon},1)>1
+          x = polygon{i}([end-1 end],1);
+          y = polygon{i}([end-1 end],2);
+        end
+        plot(x, y, 'm.-');
+
+      case 8 % backspace
+        if size(polygon{thispolygon},1)>0
+          % remove the last point
+          polygon{thispolygon} = polygon{thispolygon}(1:end-1,:);
+          % completely redraw the figure
+          cla
+          h = image(img);
+          hold on
+          axis equal
+          axis off
+          % plot the electrode positions
+          plot(pos(:,1), pos(:,2), 'b.');
+          plot(pos(:,1), pos(:,2), 'yo');
+          for i=1:length(polygon)
+            x = polygon{i}(:,1);
+            y = polygon{i}(:,2);
+            if i~=thispolygon
+              % close the polygon in the figure
+              x(end) = x(1);
+              y(end) = y(1);
+            end
+            plot(x, y, 'm.-');
+          end
+        end
+
+      case 'c'
+        if size(polygon{thispolygon},1)>0
+          x = polygon{thispolygon}(1,1);
+          y = polygon{thispolygon}(1,2);
+          polygon{thispolygon} = cat(1, polygon{thispolygon}, [x y]);
+          keyboard
+          % add the last line segment to the figure
+          x = polygon{i}([end-1 end],1);
+          y = polygon{i}([end-1 end],2);
+          plot(x, y, 'm.-');
+          % switch to the next polygon
+          thispolygon = thispolygon + 1;
+          polygon{thispolygon} = zeros(0,2);
+        end
+
+      case 'n'
+        if size(polygon{thispolygon},1)>0
+          % switch to the next polygon
+          thispolygon = thispolygon + 1;
+          polygon{thispolygon} = zeros(0,2);
+        end
+
+      case 'q'
+        again = 0;
+
+      otherwise
+        warning('invalid button (%d)', k);
+    end
+  end
+  % remember this set of polygons as the outline
+  outline = polygon;
+
+  % convert electrode positions into a layout structure
+  lay.pos = pos;
+  nchans = size(pos,1);
+  for i=1:nchans
+    lay.label{i,1} = sprintf('chan%03d\n', i);
+  end
+  d = dist(pos');
+  for i=1:nchans
+    d(i,i) = inf; % exclude the diagonal
+  end
+  mindist = min(d(:));
+  lay.width  = ones(nchans,1) * mindist * 0.8;
+  lay.height = ones(nchans,1) * mindist * 0.6;
+  % add mask and outline polygons
+  lay.mask    = mask;
+  lay.outline = outline;
+
 else
   fprintf('reverting to 151 channel CTF default\n');
   lay = readlay('CTF151s.lay');
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% apply the montage, i.e. combine bipolar channels into a new representation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~strcmp(cfg.montage, 'no')
-  % apply the montage, i.e. combine bipolar channels into a new representation
   Norg = length(cfg.montage.labelorg);
   Nnew = length(cfg.montage.labelnew);
-  
+
   for i=1:Nnew
     cfg.montage.tra(i,:) = abs(cfg.montage.tra(i,:));
     cfg.montage.tra(i,:) = cfg.montage.tra(i,:) ./ sum(cfg.montage.tra(i,:));
@@ -272,15 +522,9 @@ end
 
 % to plot the layout for debugging, you can use this code snippet
 if strcmp(cfg.feedback, 'yes') && strcmpi(cfg.style, '2d')
-  X      = lay.pos(:,1);
-  Y      = lay.pos(:,2);
-  Width  = lay.width;
-  Height = lay.height;
-  Lbl    = lay.label;
-  figure
-  plot(X, Y, '.');
-  text(X, Y, Lbl);
-  line([X X+Width X+Width X X]',[Y Y Y+Height Y+Height Y]');
+  tmpcfg = [];
+  tmpcfg.layout = lay;
+  layoutplot(tmpcfg);
 end
 
 % to write the layout to a text file, you can use this code snippet
@@ -353,9 +597,9 @@ return % function elec2lay
 % convert the magnetometer/gradiometer coil positions into a layout
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lay = grad2lay(grad, rz, method, style)
-fprintf('creating layout for %s system\n', sensortype(grad));
+fprintf('creating layout for %s system\n', senstype(grad));
 if isempty(rz)
-  switch lower(sensortype(grad))
+  switch senstype(grad)
     case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
       rz = 90;
     case {'neuromag122', 'neuromag306'}
@@ -369,7 +613,7 @@ if strcmpi(style, '3d')
   % use helper function for 3D layout
   lay = layout3d(grad);
 else
-  switch lower(sensortype(grad))
+  switch senstype(grad)
     case {'ctf151', 'ctf275' 'bti148', 'bti248'}
       % select only the MEG channels, not the reference channels
       Lbl = channelselection('MEG', grad.label);
@@ -511,9 +755,22 @@ else
       Width  = ones(size(X))*mindist/3;
       Height = ones(size(X))*mindist/3;
 
+    case 'meg'
+      % assume that all coils should be used for plotting
+      pnt = grad.pnt;
+      prj = elproj(pnt, method);
+      d = dist(prj');
+      d(find(eye(size(d)))) = inf;
+      mindist = min(d(:));
+      X = prj(:,1);
+      Y = prj(:,2);
+      Width  = ones(size(X)) * mindist * 0.8;
+      Height = ones(size(X)) * mindist * 0.6;
+      Lbl = grad.label;
+
     otherwise
       error('unsupported MEG sensor type');
-  end % switch sensortype
+  end % switch senstype
   lay.pos    = [X Y];
   lay.width  = Width;
   lay.height = Height;
@@ -530,7 +787,7 @@ return % function grad2lay
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lay] = layout3d(sens);
 
-switch lower(sensortype(sens))
+switch senstype(sens)
   case {'electrode'}
     pnt = sens.pnt;
     lab = sens.label;
@@ -629,10 +886,9 @@ switch lower(sensortype(sens))
     lab = lab(ind,:);
     pnt = pnt(ind,:);
 
-
   otherwise
     error('unsupported sensor type');
-end % switch sensortype
+end % switch senstype
 
 lay.pos    = pnt;
 lay.label  = lab;

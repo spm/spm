@@ -38,6 +38,9 @@ function layoutplot(cfg, data);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: layoutplot.m,v $
+% Revision 1.7  2008/07/16 09:27:36  roboos
+% added support for creating a layout based on a figure, including mask and outline for topoplot
+%
 % Revision 1.6  2007/03/21 14:47:06  chrhes
 % updated some comments
 %
@@ -99,3 +102,34 @@ text(X, Y, Lbl);
 line([X X+Width X+Width X X]',[Y Y Y+Height Y+Height Y]');
 axis auto
 axis equal
+axis off
+
+if isfield(lay, 'outline')
+  fprintf('solid lines indicate the outline, e.g. head shape or sulci\n');
+  for i=1:length(lay.outline)
+    if ~isempty(lay.outline{i})
+      X = lay.outline{i}(:,1);
+      Y = lay.outline{i}(:,2);
+      h = line(X, Y);
+      set(h, 'color', 'k');
+      set(h, 'linewidth', 1.5);
+    end
+  end
+end
+
+if isfield(lay, 'mask')
+  fprintf('dashed lines indicate the mask for topograpic interpolation\n');
+  for i=1:length(lay.mask)
+    if ~isempty(lay.mask{i})
+      X = lay.mask{i}(:,1);
+      Y = lay.mask{i}(:,2);
+      % the polygon representing the mask should be closed
+      X(end+1) = X(1);
+      Y(end+1) = Y(1);
+      h = line(X, Y);
+      set(h, 'color', 'k');
+      set(h, 'linewidth', 1.5);
+      set(h, 'linestyle', ':');
+    end
+  end
+end
