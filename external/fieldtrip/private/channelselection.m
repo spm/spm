@@ -39,14 +39,20 @@ function [channel] = channelselection(channel, datachannel)
 % You can also exclude channels or channel groups using the following syntax
 %   {'all', '-POz', '-Fp1', -EOG'}
 
+% Note that the order of channels that is returned should correspond with
+% the order of the channels in the data.
+
 % TODO implement the following
 %  'C*'     is replaced by all channels that mactch the wildcard, e.g. C1, C2, C3, ...
 %  '*1'     is replaced by all channels that mactch the wildcard, e.g. C1, P1, F1, ...
 % this can be done using the regexp function
 
-% Copyright (C) 2003-2007, Robert Oostenveld
+% Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.27  2008/07/17 10:25:20  roboos
+% ensure that the output ordering is the same as in teh original list with channel names
+%
 % Revision 1.26  2008/05/21 09:47:14  jansch
 % added MEGREF (for 4d-systems) as a channel-group
 %
@@ -62,83 +68,6 @@ function [channel] = channelselection(channel, datachannel)
 % on lines 155 and 156.  An extra IF statement has been added to
 % detect and correct this situation in favour of the isbti flag.
 % [thanks to Gavin]
-%
-% Revision 1.22  2008/01/02 11:45:14  ingnie
-% fixed typo in documentation
-%
-% Revision 1.21  2007/12/12 09:58:42  roboos
-% added a todo comment
-%
-% Revision 1.20  2007/11/01 13:38:30  roboos
-% also support 'MEG' for 4D-BTi systems, thanks to Stephan Moratti
-%
-% Revision 1.19  2007/05/30 13:22:01  roboos
-% concatenate indices as column instead of row vector
-%
-% Revision 1.18  2007/01/22 10:32:28  roboos
-% added 'gui' option for graphical user interface, thanks to Vladimir
-%
-% Revision 1.17  2006/06/06 16:28:54  ingnie
-% added option channel is numeric; channel index replaced by channel name
-%
-% Revision 1.16  2006/05/03 15:08:56  roboos
-% already remove double channels prior to the translation of the channel groups
-%
-% Revision 1.15  2006/03/23 22:26:18  roboos
-% added channel groups for lfp, mua and spike
-%
-% Revision 1.14  2005/12/16 14:03:20  roboos
-% added two VEOG channels
-% added the EEGBHAM channel group
-%
-% Revision 1.13  2005/09/14 12:32:24  roboos
-% small change in help
-%
-% Revision 1.12  2005/05/23 09:33:43  roboos
-% return immediately if input is empty
-%
-% Revision 1.11  2004/10/22 16:10:07  roboos
-% replaced all occurences of strmatch with strncmp, which runs much faster
-%
-% Revision 1.10  2004/03/10 15:03:08  roberto
-% made selection of EOG channels more general
-%
-% Revision 1.9  2004/02/24 17:21:34  roberto
-% slightly different implementation to undo the channel name sorting
-%
-% Revision 1.8  2004/02/24 16:53:44  roberto
-% added 2 lines that unbdo the alphabetical sorting, the labels are now
-% sorted according to their occurence in the data
-%
-% Revision 1.7  2004/01/26 11:54:47  roberto
-% fixed recursion bug in bad channels
-% added a line to remove double occurences of channels
-%
-% Revision 1.6  2004/01/22 21:41:12  roberto
-% added support for excluding bad channels or channel groups
-%
-% Revision 1.5  2004/01/15 17:01:35  roberto
-% added channel groups for MZx, with x=f,c,p,o
-%
-% Revision 1.4  2004/01/09 15:17:33  roberto
-% added EEGCHWILLA as channel group (for NICI/Eric Maris)
-% added LM and RM to to reference electrodes
-%
-% Revision 1.3  2003/12/08 12:32:10  roberto
-% added 2 channels for eog
-%
-% Revision 1.2  2003/11/12 07:50:14  roberto
-% added separate group for EEG reference electrodes (mastoid, ear)
-%
-% Revision 1.1  2003/10/28 15:09:27  roberto
-% previously known under misc/translate_channel_list.m
-% added label to EOG group
-%
-% Revision 1.2  2003/09/11 21:55:32  roberto
-% added labels for 10-10 and for 10-5 (5%) electrode system
-%
-% Revision 1.1  2003/06/16 15:32:58  roberto
-% new implementation, starting from code in preprocessing
 %
 
 if any(size(channel) == 0)
@@ -351,5 +280,7 @@ end
 [channel, indx] = unique(channel);
 
 % undo the sorting, make the order identical to that of the data channels
-[dum, indx] = sort(indx);
+[dataindx, indx] = match_str(datachannel, channel);
 channel = channel(indx);
+
+
