@@ -14,7 +14,8 @@ function [channel] = channelselection(channel, datachannel)
 % E.g.
 %  'gui'     a graphical user interface will pop up to select the channels 
 %  'all'     is replaced by all channels in the datafile
-%  'MEG'     is replaced by all channels in the CTF datafile starting with 'M'
+%  'MEG'     is replaced by all MEG channels (works for CTF, 4D and Neuromag)
+%  'MEGREF'  is replaced by all MEG reference channels (works for CTF and 4D)
 %  'EEG'     is replaced by all channels in the CTF datafile starting with 'EEG'
 %  'EEG1020' is replaced by 'Fp1', 'Fpz', 'Fp2', 'F7', 'F3', ...
 %  'EOG'     is replaced by all recognized EOG channels
@@ -50,6 +51,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.28  2008/07/17 14:45:39  roboos
+% document megref, added megref for ctf
+%
 % Revision 1.27  2008/07/17 10:25:20  roboos
 % ensure that the output ordering is the same as in teh original list with channel names
 %
@@ -113,17 +117,24 @@ labeleog  = datachannel(strncmp('EOG', datachannel, length('EOG')));  % anything
 labeleog  = {labeleog{:} 'HEOG', 'VEOG', 'VEOG-L', 'VEOG-R'}';        % or any of these
 labelemg  = datachannel(strncmp('EMG', datachannel, length('EMG')));
 labeleeg  = datachannel(strncmp('EEG', datachannel, length('EEG')));
+
 if isctf
   labelmeg = datachannel(strncmp('M'  , datachannel, length('M'  )));	% all CTF MEG channels start with "M"
+  labelmref = [datachannel(strncmp('B'  , datachannel, 1)); 
+               datachannel(strncmp('G'  , datachannel, 1)); 
+               datachannel(strncmp('P'  , datachannel, 1)); 
+               datachannel(strncmp('Q'  , datachannel, 1)); 
+               datachannel(strncmp('R'  , datachannel, length('G'  )))]; % all CTF reference channels start with B, G, P, Q or R
 elseif isbti
-  labelmeg = datachannel(strncmp('A'  , datachannel, length('A'  )));	% all 4D-BTi MEG channels start with "A"
-  labelmref = [datachannel(strncmp('M'  , datachannel, length('M'  )));
-              datachannel(strncmp('G'  , datachannel, length('G'  )))];
+  labelmeg = datachannel(strncmp('A'  , datachannel, 1));	% all 4D-BTi MEG channels start with "A"
+  labelmref = [datachannel(strncmp('M'  , datachannel, 1)); 
+               datachannel(strncmp('G'  , datachannel, 1))]; % all 4D-BTi reference channels start with M or G
 elseif isnm122
   labelmeg = datachannel(strncmp('MEG', datachannel, length('MEG')));
 else
   labelmeg = [];
 end
+
 labelmz   = datachannel(strncmp('MZ' , datachannel, length('MZ' )));	% central MEG channels
 labelml   = datachannel(strncmp('ML' , datachannel, length('ML' )));	% left    MEG channels
 labelmr   = datachannel(strncmp('MR' , datachannel, length('MR' )));	% right   MEG channels

@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.41  2008/07/17 14:56:38  roboos
+% fixed bug in basedonauto causing xgrid to be overwritten with 'auto' (thanks to Vladimir)
+%
 % Revision 1.40  2008/07/16 10:51:46  roboos
 % fixed bug: inwardshift is in cfg, not yet in cfg.grid
 %
@@ -167,10 +170,6 @@ if basedonauto
   if ischar(cfg.grid.zgrid) && strcmp(cfg.grid.zgrid, 'auto')
     grid.zgrid = floor(min(sens.pnt(:,3))):cfg.grid.resolution:ceil(max(sens.pnt(:,3)));
   end
-  % create the regular 3-D dipole grid
-  grid.xgrid = cfg.grid.xgrid;
-  grid.ygrid = cfg.grid.ygrid;
-  grid.zgrid = cfg.grid.zgrid;
   grid.dim   = [length(grid.xgrid) length(grid.ygrid) length(grid.zgrid)];
   [X, Y, Z]  = ndgrid(grid.xgrid, grid.ygrid, grid.zgrid);
   grid.pos   = [X(:) Y(:) Z(:)];
