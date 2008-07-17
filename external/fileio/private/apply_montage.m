@@ -23,6 +23,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.6  2008/07/17 14:46:06  roboos
+% check on presence of channels required for montage was incorrect
+%
 % Revision 1.5  2008/05/15 15:08:51  roboos
 % added support for applying the inverse montage (i.e. undo a previous montage)
 % added support for applying the montage to preprocessed/raw data
@@ -91,8 +94,8 @@ if length(unique(montage.labelorg))~=n
 end
 
 % determine whether all channels that have to be rereferenced are available
-if length(intersect(sens.label, montage.labelorg))~=length(sens.label)
-  error('not all channels that are used in the montage are available');
+if length(intersect(sens.label, montage.labelorg))~=length(montage.labelorg)
+  error('not all channels that are required in the montage are available in the data');
 end
 
 % reorder the columns of the montage matrix
