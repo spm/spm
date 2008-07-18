@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 1906 2008-07-10 11:00:26Z guillaume $
+% $Id: spm.m 1929 2008-07-18 10:34:48Z guillaume $
 
 
 %=======================================================================
@@ -651,7 +651,6 @@ if nargin<2, Finter='Interactive'; else Finter=varargin{2}; end
 spm_figure('Clear',Fgraph)
 spm_figure('Clear',Finter)
 spm('Pointer','Arrow')
-spm_select('clearvfiles');
 spm_conman('Initialise','reset');
 local_clc, spm('FnBanner','GUI cleared');
 fprintf('\n');
