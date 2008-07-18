@@ -28,12 +28,12 @@ function ima = spm_dilate(varargin)
 % at least for small (typical) kernels it is actually more than
 % twice as fast.
 % The actual job is done by spm_dilate_erode.c that serves both
-% spm_dilate.m and op_erode.m
+% spm_dilate.m and spm_erode.m
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_dilate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dilate.m 1930 2008-07-18 11:49:51Z christophe $
 
 
 if exist('spm_dilate_erode')~=3 
