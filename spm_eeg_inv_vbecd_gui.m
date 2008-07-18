@@ -1,8 +1,14 @@
+% spm_eeg_inv_vbecd_gui
+%
 % Script function to 
 % - load data
 % - fill in all the necessary bits for the VB-ECD inversion routine
 % - launch the VB_ECD routine
-%
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Christophe Phillips
+% $Id: spm_eeg_inv_vbecd_gui.m 1932 2008-07-18 17:12:02Z christophe $
 
 %%
 % Load data
@@ -47,11 +53,11 @@ end
 P.Bad = D.badchannels;
 
 % time bin or time window
-msg_tb = ['Select t_b or t_w [',num2str(min(D.time)), ...
-            ' ',num2str(max(D.time)),']'];
+msg_tb = ['t_b or t_w [',num2str(min(D.time)*1000), ...
+            ' ',num2str(max(D.time)*1000),'] ms'];
 ask_tb = 1
 while ask_tb
-    tb = spm_input(msg_tb,1,'r');
+    tb = spm_input(msg_tb,1,'r')/1000;
     if length(tb)==1
         if tb>=min(D.time) && tb<=max(D.time)
             ask_tb = 0;
@@ -63,16 +69,20 @@ while ask_tb
     end
 end
 if length(tb)==1
-    [kk,ltb] = min(abs(D.time-tb));
+    [kk,ltb] = min(abs(D.time-tb)); % round to nearest time bin
 else
-    [kk,ltb(1)] = min(abs(D.time-tb(1)));
+    [kk,ltb(1)] = min(abs(D.time-tb(1)));  % round to nearest time bin
     [kk,ltb(2)] = min(abs(D.time-tb(2)));
-    ltb = ltb(1):ltb(2);
+    ltb = ltb(1):ltb(2); % list of time bins 'tb' to use
 end
 
 % trial type
-msg_tr = ['Trial type number [1 ',num2str(D.ntrials),']'];
-ltr = spm_input(msg_tr,2,'i','1');
+if D.ntrials>1
+    msg_tr = ['Trial type number [1 ',num2str(D.ntrials),']'];
+    ltr = spm_input(msg_tr,2,'i','1');
+else
+    ltr=1;
+end
 
 % data, averaged over time window considered
 P.y = mean(squeeze(D(meegchannels(D),ltb,ltr)),2);
@@ -250,6 +260,5 @@ P.priors = priors;
 %%
 % Launch inversion !
 %===================
-P = spm_eeg_inv_vbecd(P);
-
+P = spm_eeg_inv_vbecd(P)
 

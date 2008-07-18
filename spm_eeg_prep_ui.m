@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1712 2008-05-22 14:30:41Z vladimir $
+% $Id: spm_eeg_prep_ui.m 1932 2008-07-18 17:12:02Z christophe $
 
 if nargin == 0
 
@@ -100,6 +100,14 @@ if nargin == 0
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
+    
+    VolSensMEGMenu = uimenu(Coor3DMenu, 'Label', 'Prepare Vol-Sens',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Separator', 'on', ...
+        'Callback', 'spm_eeg_prep_ui(''PrepVolSensCB'')');
+
     
     % ====== 2D projection ===================================
     
@@ -292,7 +300,7 @@ S.D = D;
 S.regfid = {};
 if strcmp(S.source, 'mat')
     S.headshapefile = spm_select(1,'.mat$','Select EEG fiducials file');
-    S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'NZ LE RE');
+    S.fidlabel = spm_input('Fiducial labels:', '+1', 's', 'nas lpa rpa');
 else
     S.headshapefile = S.sensfile;
     S.source = 'convert';
@@ -372,6 +380,23 @@ switch get(gcbo, 'Label')
         S.modality = 'MEG';
 end
 
+
+D = spm_eeg_prep(S);
+
+% Bring the menu back
+spm_eeg_prep_ui;
+
+setD(D);
+
+update_menu;
+
+%-----------------------------------------------------------------------
+
+function PrepVolSensCB
+
+S = [];
+S.D = getD;
+S.task = 'prepvolsens';
 
 D = spm_eeg_prep(S);
 

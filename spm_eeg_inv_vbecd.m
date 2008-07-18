@@ -1,5 +1,30 @@
 function P = spm_eeg_inv_vbecd(P)
-% model inversion routine for ECDs using variational Bayes
+% Model inversion routine for ECDs using variational Bayes
+%
+% Input:
+% structure P with fields:
+%  forward      - structure containing the forward model, i.e. the "vol"
+%                 and "sens" structure in a FT compatible format
+%  bad          - list of bad channels, not to use.
+%  y            - data vector
+%  Nc           -
+%  Niter        - maximum number of iterations
+%  threshold_dF - threshold on free energy improvement to stop iterating
+%  priors       - priors on parameters, hard and soft.
+%
+% Output:
+% same structure with extra fields
+%  init         - initial valuse used for mu_w/s
+%  ok           - flags indicating if everything was ok
+%  dF           - successive (relative) improvement of F
+%  post         - posterior value of estimated parameters and ther variance
+%  Fi           - successive values of F
+%  F            - Free energy final value.
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Christophe Phillips & Stefan Kiebel
+% $Id: spm_eeg_inv_vbecd.m 1932 2008-07-18 17:12:02Z christophe $
 
 % unpack model, priors, data
 vol = P.forward.vol;
@@ -49,13 +74,6 @@ dv = 10^-2; % used to compute step-size for gradients
 % initialization
 %---------------
 
-% % use some random initialization for parameters,
-% % but must be well inside inner sphere
-% mu_s = -inf*ones(3,1);
-% while ~(mu_s > -20 & sqrt(mu_s'*mu_s) < 0.8*vol.r(1))
-%     mu_s = 30*randn(length(mu_s0),1);
-% end
-
 % use some random initialization for parameters, 
 % but ensure the starting point are inside the volume !!!
 q_out = 1;
@@ -63,24 +81,26 @@ while q_out
     mu_s = 30*randn(length(mu_s0),1);
     if fl_model==1
         % inside the 1st bnd mesh
-        mu_s = 30*randn(length(mu_s0),1);
-        [inside] = bounding_mesh(reshape(mu_s,3,length(mu_s0)/3), ...
+        [inside] = forwinv_bounding_mesh(reshape(mu_s,length(mu_s0)/3,3), ...
                                          vol.bnd(1).pnt, vol.bnd(1).tri);
     elseif fl_model==2
         % inside the 1st sphere
-        mu_s = 30*randn(length(mu_s0),1);
         inside = sqrt(sum(reshape(mu_s,3,length(mu_s0)/3).^2))<.8*vol.r(1);
         inside = inside.*(mu_s(3:3:end)>-20);
     end
-    q_out = all(inside);
+    q_out = ~all(inside);
 end
-
-mu_w = randn(size(mu_w0), 1);
-P.init.mu_s = mu_s;
-P.init.mu_w = mu_w;
 
 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
                                     dv.*ones(1, length(mu_w0)), P.Bad);
+% Initialize mu_w with best estimate given random locations rather than at
+% random
+% mu_w = randn(size(mu_w0,1), 1);
+mu_w = pinv(gmn)*y; 
+
+P.init.mu_s = mu_s;
+P.init.mu_w = mu_w;
+
 [Nc, Np] = size(gmn);
 
 res = y - gmn*mu_w;
@@ -110,7 +130,6 @@ a3 = size(Vs,2)/2 + a30;
 
 % fprintf('Iterations:\n')
 P.ok = 1;
-
 
 for i = 1:P.Niter
 
@@ -156,13 +175,13 @@ for i = 1:P.Niter
     old_mu_sn = reshape(old_mu_s, 3, Np/3);
     % list of sources outside the brain volume
     if fl_model==1
-        ind = ~bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
+        ind = ~forwinv_bounding_mesh(mu_sn',vol.bnd(1).pnt, vol.bnd(1).tri);
     elseif fl_model==2
         ind = find(sqrt(diag(mu_sn'*mu_sn)) > P.forward.vol.r(1));
     end
     
     if i == 1
-        F(i) = -Nc/2*log(2*pi) + Nc/2*(spm_digamma(a1) - log(b1))...
+        F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
             -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
             -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
             -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
@@ -171,13 +190,15 @@ for i = 1:P.Niter
             -spm_kl_gamma(1/b3,a3,1/b30,a30);
 
         % make sure that first update of mu_s doesn't jump outside sphere
-        while ~isempty(ind)
+        q_out = 1;
+        while q_out
             mu_sn(:, ind) = mu_sn(:, ind)/2;
             if fl_model==1
-                ind = ~bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
+                ind = ~forwinv_bounding_mesh(mu_sn',vol.bnd(1).pnt, vol.bnd(1).tri);
             elseif fl_model==2
                 ind = find(sqrt(diag(mu_sn'*mu_sn)) > .99*P.forward.vol.r(1));
             end
+            q_out = ~all(~ind);
         end
         mu_s = mu_sn(:);
         % update leadfield and its partials
@@ -187,16 +208,15 @@ for i = 1:P.Niter
         for j = 1:16
             % compute neg free energy
             mu_s = mu_sn(:);
-            F(i) = -Nc/2*log(2*pi) + Nc/2*(spm_digamma(a1) - log(b1))...
+            F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
                 -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
                 -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
                 -spm_kl_normal(Vs'*mu_s, Vs'*S_s*Vs, Vs'*mu_s0, Vs'*b3/a3*inv(iS_s0)*Vs)...
                 -spm_kl_gamma(1/b1,a1,1/b10,a10)...
                 -spm_kl_gamma(1/b2,a2,1/b20,a20)...
                 -spm_kl_gamma(1/b3,a3,1/b30,a30);
-
             % check dF
-            if ~isempty(ind)
+            if ~all(~ind)
                 % decrease change in violating dipoles only
                 mu_sn(:, ind) = (old_mu_sn(:, ind) + mu_sn(:, ind))/2;
                 mu_s = mu_sn(:);
@@ -216,14 +236,11 @@ for i = 1:P.Niter
                     break;
                 end
             end
-                            
-%             ind = find(sqrt(diag(mu_sn'*mu_sn)) > 0.99*P.forward.vol.r(1));
             if fl_model==1
-                ind = ~bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
+                ind = ~forwinv_bounding_mesh(mu_sn,vol.bnd(1).pnt, vol.bnd(1).tri);
             elseif fl_model==2
                 ind = find(sqrt(diag(mu_sn'*mu_sn)) > .99*P.forward.vol.r(1));
             end
-
             if j == 16
                 % this seeems to be a bad case, let's start over
                 fprintf('bang\n')
@@ -237,13 +254,13 @@ for i = 1:P.Niter
 
                 P.post = post;
 
+                P.Fi = F;
                 P.F = F(end);
                 P.ok = 0;
                 return;
             end
         end
     end
-
 
     if i == 1
         dF = 0;
@@ -259,17 +276,17 @@ for i = 1:P.Niter
             P.ok = 0;
             break;
         elseif abs((F(i)-F(i-1))/F(i)) < P.threshold_dF
+            P.dF(i) = dF;
+            str = sprintf('%d/%d, dF: %f', i, P.Niter, dF);
+            fprintf('%s\n', str)
             break;
         end
     end
     P.dF(i) = dF;
-
-
     mu_w_old = mu_w;
     mu_s_old = mu_s;
     str = sprintf('%d/%d, dF: %f', i, P.Niter, dF);
     fprintf('%s\n', str)
-
 end
 
 post.mu_w = mu_w;
@@ -281,6 +298,5 @@ post.a2 = a2; post.b2 = b2;
 post.a3 = a3; post.b3 = b3;
 
 P.post = post;
-
+P.Fi = F;
 P.F = F(end);
-% P.Ftmp = Ftmp;

@@ -7,8 +7,12 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_prep.m 1932 2008-07-18 17:12:02Z christophe $
 
+if nargin==0;
+    spm_eeg_prep_ui;
+    return
+end
 D = S.D;
 
 switch S.task
@@ -182,4 +186,18 @@ switch S.task
             D = sensors(D, 'EEG', D.inv{1}.datareg.sensors);
             D = fiducials(D, D.inv{1}.datareg.fid_eeg);
         end
+
+    case 'prepvolsens'
+        % bookkeeping to ensures that the volume conductor model and the 
+        % sensor array are appropriate. Furthermore it takes care of 
+        % pre-computations that can be done efficiently prior to the
+        % leadfield calculations.
+%         vol_i = D.inv{D.val}.forward.vol;
+%         sens_i = D.inv{D.val}.sensors;
+        [D.inv{D.val}.forward.vol, D.inv{D.val}.datareg.sensors] = ...
+            forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
+                                     D.inv{D.val}.datareg.sensors);
+
+    otherwise
+        fprintf('Nothing done ''cos I did not understant the instructions');
 end
