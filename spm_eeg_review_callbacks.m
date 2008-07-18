@@ -3,7 +3,7 @@ function [] = spm_eeg_review_callbacks(arg1,arg2,arg3)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1809 2008-06-10 14:30:27Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 1928 2008-07-18 10:17:05Z jean $
 
 D = get(gcf,'userdata');
 handles = D.PSD.handles;
@@ -15,8 +15,11 @@ switch arg1
     case 'file'
         switch arg2
             case 'save'
+                spm('pointer','watch');
+                drawnow
                 D = rmfield(D,'PSD');
                 save(D.fname,'D')
+                spm('pointer','arrow');
         end
         
         
@@ -135,10 +138,15 @@ switch arg1
                     set(D.PSD.handles.mesh,...
                         'Vertices',D.other.inv{D.PSD.invN}.mesh.tess_mni.vert,...
                         'Faces',D.other.inv{D.PSD.invN}.mesh.tess_mni.face);
-                    if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit')
-                        xyz = D.other.inv{D.PSD.invN}.inverse.dipfit.Lpos;
+                    if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit') || ~isequal(D.other.inv{D.PSD.invN}.inverse.xyz,zeros(1,3))
+                        try 
+                            xyz = D.other.inv{D.PSD.invN}.inverse.dipfit.Lpos;
+                            radius = D.other.inv{D.PSD.invN}.inverse.dipfit.radius;
+                        catch
+                            xyz = D.other.inv{D.PSD.invN}.inverse.xyz';
+                            radius = D.other.inv{D.PSD.invN}.inverse.rad(1);
+                        end 
                         Np  = size(xyz,2);
-                        radius = D.other.inv{D.PSD.invN}.inverse.dipfit.radius;
                         [x,y,z] = sphere(20);
                         axes(D.PSD.handles.axes)
                         for i=1:Np
@@ -1412,13 +1420,13 @@ str{5} = ['Nb of included dipoles: ',...
     ' / ',num2str(D.other.inv{invN}.inverse.Nd)];
 str{6} = ['Inversion method: ',D.other.inv{invN}.inverse.type];
 try
-    str{7} = ['Time window of interest: ',...
-        num2str(D.other.inv{invN}.inverse.woi(1)),...
-        ' to ',num2str(D.other.inv{invN}.inverse.woi(2)),' ms'];
+    str{7} = ['Time window: ',...
+        num2str(floor(D.other.inv{invN}.inverse.woi(1))),...
+        ' to ',num2str(floor(D.other.inv{invN}.inverse.woi(2))),' ms'];
 catch
-    str{7} = ['Time window of interest: ',...
-        num2str(D.other.inv{invN}.inverse.pst(1)),...
-        ' to ',num2str(D.other.inv{invN}.inverse.pst(end)),' ms'];
+    str{7} = ['Time window: ',...
+        num2str(floor(D.other.inv{invN}.inverse.pst(1))),...
+        ' to ',num2str(floor(D.other.inv{invN}.inverse.pst(end))),' ms'];
 end
 try
     if D.other.inv{1}.inverse.Han

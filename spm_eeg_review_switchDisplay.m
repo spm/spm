@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D,type)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 1792 2008-06-05 15:43:54Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 1928 2008-07-18 10:17:05Z jean $
 
 switch type
 
@@ -528,10 +528,15 @@ else
             options.visible = 'off';
             [out] = spm_eeg_render(mesh,options);
 
-            if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit')
-                xyz = D.other.inv{D.PSD.invN}.inverse.dipfit.Lpos;
+            if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit') || ~isequal(D.other.inv{D.PSD.invN}.inverse.xyz,zeros(1,3))
+                try
+                    xyz = D.other.inv{D.PSD.invN}.inverse.dipfit.Lpos;
+                    radius = D.other.inv{D.PSD.invN}.inverse.dipfit.radius;
+                catch
+                    xyz = D.other.inv{D.PSD.invN}.inverse.xyz';
+                    radius = D.other.inv{D.PSD.invN}.inverse.rad(1);
+                end
                 Np  = size(xyz,2);
-                radius = D.other.inv{D.PSD.invN}.inverse.dipfit.radius;
                 [x,y,z] = sphere(20);
                 axes(D.PSD.handles.axes)
                 for i=1:Np
@@ -614,13 +619,13 @@ else
                 ' / ',num2str(D.other.inv{D.PSD.invN}.inverse.Nd)];
             str{6} = ['Inversion method: ',D.other.inv{D.PSD.invN}.inverse.type];
             try
-                str{7} = ['Time window of interest: ',...
-                    num2str(D.other.inv{D.PSD.invN}.inverse.woi(1)),...
-                    ' to ',num2str(D.other.inv{D.PSD.invN}.inverse.woi(2)),' ms'];
+                str{7} = ['Time window: ',...
+                    num2str(floor(D.other.inv{D.PSD.invN}.inverse.woi(1))),...
+                    ' to ',num2str(floor(D.other.inv{D.PSD.invN}.inverse.woi(2))),' ms'];
             catch
-                str{7} = ['Time window of interest: ',...
-                    num2str(D.other.inv{D.PSD.invN}.inverse.pst(1)),...
-                    ' to ',num2str(D.other.inv{D.PSD.invN}.inverse.pst(end)),' ms'];
+                str{7} = ['Time window: ',...
+                    num2str(floor(D.other.inv{D.PSD.invN}.inverse.pst(1))),...
+                    ' to ',num2str(floor(D.other.inv{D.PSD.invN}.inverse.pst(end))),' ms'];
             end
             try
                 if D.other.inv{D.PSD.invN}.inverse.Han

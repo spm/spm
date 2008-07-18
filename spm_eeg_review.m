@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1826 2008-06-16 13:51:36Z guillaume $
+% $Id: spm_eeg_review.m 1928 2008-07-18 10:17:05Z jean $
 
 if ~exist('flag','var') || isempty(flag)
     flag = 'standardData';
@@ -85,7 +85,7 @@ set(D.PSD.handles.hfig,'userdata',D);
 if ~isempty(D.PSD.VIZU.type)
     spm_eeg_review_callbacks('visu','update')
     if strcmp(D.PSD.VIZU.type,'standardData')
-        spm_eeg_review_callbacks('visu','time_w',0.5)
+        spm_eeg_review_callbacks('visu','time_w',2)
     end
 else
     D.PSD.VIZU.type = flag;
