@@ -5,8 +5,8 @@
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Christophe Phillip
-% $Id: BuildBEMimg.m 1930 2008-07-18 11:49:51Z christophe $
+% Christophe Phillips
+% $Id: BuildBEMimg.m 1931 2008-07-18 12:01:10Z christophe $
 
 
 P = spm_select(3,'image','Select i/o-skull & scalp');
@@ -33,6 +33,6 @@ bem = V(3).private.dat(:,:,:)*8 ...                 % scalp volume
       + (V(1).private.dat(:,:,:)-e_iskull)*80 ;     % brain vol. border
   
 Vbem = V(1);
-Vbem.fname = [spm_str_manip(Vbem.fname,'h'),filesep,'kk_bem.nii'];
+Vbem.fname = [spm_str_manip(Vbem.fname,'h'),filesep,'bem.nii'];
 Vbem.pinfo(1) = 1;
 Vbem = spm_write_vol(Vbem,bem);
