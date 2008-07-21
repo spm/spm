@@ -40,6 +40,9 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.39  2008/07/21 11:02:51  roboos
+% removed a try-catch whose purpose was unclear and that caused a problem with nai computation to remain invisible
+%
 % Revision 1.38  2008/04/09 14:14:30  roboos
 % updated docu
 %
@@ -534,10 +537,7 @@ end % dealing with pcc or lcmv input
 
 if isfield(source, 'avg') && isfield(source.avg, 'pow') && isfield(source.avg, 'noise')
   % compute the neural activity index for the average
-try
-  % FIXME remove the try-catch, it is needed because the noise is sometimes a cell-array 
   source.avg.nai = source.avg.pow ./ source.avg.noise;
-end
 end
 
 if isfield(source, 'trial') && isfield(source.trial, 'pow') && isfield(source.trial, 'noise')
@@ -809,7 +809,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.38 2008/04/09 14:14:30 roboos Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.39 2008/07/21 11:02:51 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output
