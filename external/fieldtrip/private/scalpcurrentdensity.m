@@ -3,7 +3,7 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % SCALPCURRENTDENSITY computes an estimate of the SCD using the
 % second-order derivative (the surface Laplacian) of the EEG potential
 % distribution
-% 
+%
 % Use as
 %   [data] = scalpcurrentdensity(cfg, data)
 % or
@@ -37,14 +37,23 @@ function [scd] = scalpcurrentdensity(cfg, data);
 %   F. Perrin, J. Pernier, O. Bertrand, and J. F. Echallier.
 %   Spherical splines for scalp potential and curernt density mapping.
 %   Electroencephalogr Clin Neurophysiol, 72:184-187, 1989
-% including their corrections in 
+% including their corrections in
 %   F. Perrin, J. Pernier, O. Bertrand, and J. F. Echallier.
 %   Corrigenda: EEG 02274, Electroencephalography and Clinical
 %   Neurophysiology 76:565.
+%
+% The 'hjorth' method implements
+%   B. Hjort; An on-line transformation of EEG ccalp potentials into
+%   orthogonal source derivation. Electroencephalography and Clinical
+%   Neurophysiology 39:526-530, 1975.
 
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: scalpcurrentdensity.m,v $
+% Revision 1.23  2008/07/21 13:19:05  roboos
+% implemented Hjorth filtering, using neighbourselection and apply_warp
+% changed finite method to use apply_warp
+%
 % Revision 1.22  2008/05/06 14:23:32  sashae
 % change in trial selection, cfg.trials can be a logical
 %
@@ -153,13 +162,13 @@ if ~strcmp(cfg.trials, 'all')
 end
 
 % get the electrode positions
-if isfield(cfg, 'elecfile') 
+if isfield(cfg, 'elecfile')
   fprintf('reading electrodes from file %s\n', cfg.elecfile);
   elec = read_sens(cfg.elecfile);
-elseif isfield(cfg, 'elec') 
+elseif isfield(cfg, 'elec')
   fprintf('using electrodes specified in the configuration\n');
   elec = cfg.elec;
-elseif isfield(data, 'elec') 
+elseif isfield(data, 'elec')
   fprintf('using electrodes specified in the data\n');
   elec = data.elec;
 else
@@ -177,7 +186,6 @@ elec.label = tmp.label;
 data.label = data.label(dataindx);
 elec.label = elec.label(elecindx);
 elec.pnt   = elec.pnt(elecindx, :);
-Nchans = length(dataindx);
 Ntrials = length(data.trial);
 for trlop=1:Ntrials
   data.trial{trlop} = data.trial{trlop}(dataindx,:);
@@ -193,28 +201,68 @@ if strcmp(cfg.method, 'spline')
     [V2, L2, L1] = splint(elec.pnt, data.trial{trlop}, [0 0 1]);
     scd.trial{trlop} = L1;
   end
+
 elseif strcmp(cfg.method, 'finite')
   % the finite difference approach requires a triangulation
   prj = elproj(elec.pnt);
   tri = delaunay(prj(:,1), prj(:,2));
-  % this only needs to be computed once for all trials
-  lap = lapcal(elec.pnt, tri);
-  for trlop=1:Ntrials
-    fprintf('computing SCD for trial %d\n', trlop);
-    scd.trial{trlop} = lap * data.trial{trlop};
+  % the new electrode montage only needs to be computed once for all trials
+  montage.tra = lapcal(elec.pnt, tri);
+  montage.labelorg = data.label;
+  montage.labelnew = data.label;
+  % apply the montage to the data, also update the electrode definition
+  scd = apply_montage(data, montage);
+  elec = apply_montage(elec, montage);
+
+elseif strcmp(cfg.method, 'hjorth')
+  % the Hjorth filter requires a specification of the neighbours
+  if ~isfield(cfg, 'neighbours')
+    tmpcfg      = cfg;
+    tmpcfg.elec = elec;
+    cfg.neighbours = neighbourselection(tmpcfg, data);
   end
+  % convert the neighbourhood structure into a montage
+  labelnew = {};
+  labelorg = {};
+  for i=1:length(cfg.neighbours)
+    labelnew  = cat(2, labelnew, cfg.neighbours{i}.label);
+    labelorg = cat(2, labelorg, cfg.neighbours{i}.neighblabel(:)');
+  end
+  labelorg = cat(2, labelnew, labelorg);
+  labelorg = unique(labelorg);
+  tra = zeros(length(labelnew), length(labelorg));
+  for i=1:length(cfg.neighbours)
+    thischan   = match_str(labelorg, cfg.neighbours{i}.label);
+    thisneighb = match_str(labelorg, cfg.neighbours{i}.neighblabel);
+    tra(i, thischan) = 1;
+    tra(i, thisneighb) = -1/length(thisneighb);
+  end
+  % combine it in a montage 
+  montage.tra = tra;
+  montage.labelorg = labelorg;
+  montage.labelnew = labelnew;
+  % apply the montage to the data, also update the electrode definition
+  scd = apply_montage(data, montage);
+  elec = apply_montage(elec, montage);
+
 else
   error('unknown method for SCD computation');
 end
 
-% correct the units
-for trlop=1:Ntrials
-  % The surface laplacian is proportional to potential divided by squared distance which means that, if 
-  % - input potential is in uV, which is 10^6 too large
-  % - units of electrode positions are in mm, which is 10^3 too large
-  % these two cancel out against each other. Hence the computed laplacian
-  % is in SI units (MKS).
-  scd.trial{trlop} = cfg.conductivity * -1 * scd.trial{trlop};
+if strcmp(cfg.method, 'spline') || strcmp(cfg.method, 'finite')
+  % correct the units
+  warning('trying to correct the units, assuming uV and mm');
+  for trlop=1:Ntrials
+    % The surface laplacian is proportional to potential divided by squared distance which means that, if
+    % - input potential is in uV, which is 10^6 too large
+    % - units of electrode positions are in mm, which is 10^3 too large
+    % these two cancel out against each other. Hence the computed laplacian
+    % is in SI units (MKS).
+    scd.trial{trlop} = cfg.conductivity * -1 * scd.trial{trlop};
+  end
+  fprintf('output surface laplacian is in V/m^2');
+else
+  fprintf('output Hjorth filtered potential is in uV');
 end
 
 % collect the results
@@ -232,9 +280,9 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.22 2008/05/06 14:23:32 sashae Exp $';
+cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.23 2008/07/21 13:19:05 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
-% remember the exact configuration details in the output 
+% remember the exact configuration details in the output
 scd.cfg = cfg;
 
