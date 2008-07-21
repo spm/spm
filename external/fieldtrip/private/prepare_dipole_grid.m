@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.42  2008/07/21 09:22:06  roboos
+% do not copy grid back into cfg.grid
+%
 % Revision 1.41  2008/07/17 14:56:38  roboos
 % fixed bug in basedonauto causing xgrid to be overwritten with 'auto' (thanks to Vladimir)
 %
@@ -238,8 +241,6 @@ if basedonpos
   if isfield(cfg.grid, 'avg') && isfield(cfg.grid.avg, 'filter')
     error('please put your filters in cfg.grid instead of cfg.grid.avg');
   end
-  % this will remove all remaining unknown objects from the configuration
-  cfg.grid = grid;
 end
 
 if basedonmri
