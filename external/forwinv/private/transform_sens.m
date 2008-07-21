@@ -13,6 +13,9 @@ function [sens] = transform_sens(transform, sens)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: transform_sens.m,v $
+% Revision 1.4  2008/07/21 20:31:35  roboos
+% updated documentation
+%
 % Revision 1.3  2008/03/06 09:27:30  roboos
 % updated documentation
 %
@@ -34,7 +37,7 @@ if senstype(sens, 'eeg')
 
 elseif senstype(sens, 'meg')
 
-  % only a rigid body transformation without rescaling is allowed
+  % only a rigid body transformation (translation+rotation) without rescaling is allowed
   rotation = eye(4);
   rotation(1:3,1:3) = transform(1:3,1:3);
 

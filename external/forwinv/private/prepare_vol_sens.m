@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.6  2008/07/21 20:28:44  roboos
+% added check on units (mm/cm/m) of the sensor array and volume conductor, give error if inconsistent
+%
 % Revision 1.5  2008/04/30 13:47:59  roboos
 % project electrodes on scalp surface if sphere
 % always ensure that grad.tra exists (not yet for elec)
@@ -63,6 +66,9 @@ if isempty(order),    order = 10;             end
 iseeg = senstype(sens, 'eeg');
 ismeg = senstype(sens, 'meg');
 
+if isfield(vol, 'unit') && isfield(sens, 'unit') && ~identical(vol.unit, sens.unit)
+  error('inconsistency in the units of the volume conductor and the sensor array');
+end
 
 if ismeg && iseeg
   % this is something that could be implemented relatively easily
