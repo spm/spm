@@ -35,6 +35,13 @@ function [data, state] = checkdata(data, varargin);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.21  2008/07/21 11:01:47  roboos
+% added source2volume conversion
+% update isXXXdatatype after all possible conversions
+% ensure that the input is either source or volume, not both
+% ensure consistent data dimensions in case of volume data (reshape into 3D representation)
+% ensure consistent data dimensions in case of source data (reshape into linear vector representation)
+%
 % Revision 1.20  2008/05/08 10:45:34  jansch
 % changed function-call to sensortype into senstype. changed variable-name
 % senstype into stype
@@ -148,15 +155,15 @@ function [data, state] = checkdata(data, varargin);
 
 
 % get the optional input arguments
-datatype  = keyval('datatype', varargin);
-feedback  = keyval('feedback', varargin); if isempty(feedback), feedback = 'no'; end
-dimord    = keyval('dimord', varargin);
-stype     = keyval('senstype', varargin);
-ismeg     = keyval('ismeg', varargin);
-inside    = keyval('inside', varargin);
-hastrials = keyval('hastrials', varargin);
-hasoffset = keyval('hasoffset', varargin);  if isempty(hasoffset), hasoffset = 'no'; end
-hascumtapcnt = keyval('hascumtapcnt', varargin);
+datatype      = keyval('datatype', varargin);
+feedback      = keyval('feedback', varargin); if isempty(feedback), feedback = 'no'; end
+dimord        = keyval('dimord', varargin);
+stype         = keyval('senstype', varargin);
+ismeg         = keyval('ismeg', varargin);
+inside        = keyval('inside', varargin); % logical, index
+hastrials     = keyval('hastrials', varargin);
+hasoffset     = keyval('hasoffset', varargin);  if isempty(hasoffset), hasoffset = 'no'; end
+hascumtapcnt  = keyval('hascumtapcnt', varargin);
 % ...
 
 % determine the type of input data
@@ -195,16 +202,25 @@ if ~isequal(feedback, 'no')
     fprintf('the input is volume data with dimensions [%d %d %d]\n', data.dim(1), data.dim(2), data.dim(3));
   elseif issource
     nsource = size(data.pos, 1);
-    fprintf('the input is source data\n');
+    fprintf('the input is source data with %d positions\n', nsource);
   elseif isdip
     fprintf('the input is dipole data\n');
   end
 end % give feedback
 
 if isfreq || istimelock || iscomp
-  % ensure consistency between the dimord string and the axes
-  % that describe the data dimensions
+  % ensure consistency between the dimord string and the axes that describe the data dimensions
   data = fixdimord(data);
+end
+
+if issource && isvolume
+  % it should be either one or the other, represent it as volume description (since that is simpler to handle)
+  % remove the unwanted fields
+  if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
+  if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
+  if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
+  if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
+  issource = 0;
 end
 
 if ~isempty(datatype)
@@ -240,18 +256,33 @@ if ~isempty(datatype)
     for iCell = 1:length(datatype)
       if isequal(datatype(iCell), {'source'}) && isvolume
         data = volume2source(data);
+        isvolume = 0;
+        issource = 1;
+        okflag = 1;
+      elseif isequal(datatype(iCell), {'volume'}) && issource
+        data = source2volume(data);
+        isvolume = 1;
+        issource = 0;
         okflag = 1;
       elseif isequal(datatype(iCell), {'raw'}) && issource
         data = data2raw(data);
+        issource = 0;
+        israw = 1;
         okflag = 1;
       elseif isequal(datatype(iCell), {'raw'}) && istimelock
         data = timelock2raw(data);
+        istimelock = 0;
+        israw = 1;
         okflag = 1;
       elseif isequal(datatype(iCell), {'timelock'}) && israw
         data = raw2timelock(data);
+        israw = 0;
+        istimelock = 1;
         okflag = 1;
       elseif isequal(datatype(iCell), {'raw'}) && isfreq
         data = freq2raw(data);
+        isfreq = 0;
+        israw = 1;
         okflag = 1;
       end
     end % for iCell
@@ -308,7 +339,7 @@ if ~isempty(stype)
   else
     okflag = 0;
   end
-  
+
   if ~okflag
     % construct an error message
     if length(stype)>1
@@ -338,11 +369,36 @@ if ~isempty(ismeg)
   end % if okflag
 end
 
+if isvolume
+  % ensure consistent dimensions of the volumetric data
+  % reshape each of the volumes that is found into a 3D array
+  param = parameterselection('all', data);
+  dim   = data.dim;
+  for i=1:length(param)
+    tmp  = getsubfield(data, param{i});
+    tmp  = reshape(tmp, dim);
+    data = setsubfield(data, param{i}, tmp);
+  end
+end
+
+if issource
+  % ensure consistent dimensions of the source reconstructed data
+  % reshape each of the volumes that is found into a linear vector
+  param = parameterselection('all', data);
+  dim   = [size(data.pos, 1) 1];
+  for i=1:length(param)
+    tmp  = getsubfield(data, param{i});
+    tmp  = reshape(tmp, dim);
+    data = setsubfield(data, param{i}, tmp);
+  end
+end
+
+
 if ~isempty(inside)
   % TODO absorb the fixinside function into this code
   data   = fixinside(data, inside);
   okflag = isfield(data, 'inside');
-  
+
   if ~okflag
     % construct an error message
     str = sprintf('This function requires data with an ''inside'' field.', inside);
@@ -352,7 +408,7 @@ end
 
 if isequal(hastrials,'yes')
   okflag = isfield(data, 'trial');
-  
+
   if ~okflag
     str = sprintf('This function requires data with a ''trial'' field');
     error(str);
@@ -391,7 +447,7 @@ end %if hascumtapcnt
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function data = volume2source(data);
+function data = volume2source(data)
 xgrid = 1:data.dim(1);
 ygrid = 1:data.dim(2);
 zgrid = 1:data.dim(3);
@@ -401,7 +457,25 @@ data.pos = warp_apply(data.transform, [x(:) y(:) z(:)]);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function data = freq2raw(freq);
+function data = source2volume(data)
+if isfield(data, 'xgrid') && isfield(data, 'ygrid') && isfield(data, 'zgrid')
+  data = grid2transform(data);
+  % remove the unwanted fields
+  if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
+  if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
+  if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
+  if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
+else
+  error('cannot convert source into volume');
+  % FIXME if data.pos is nicely described and data.dim is present, then in
+  % principle it should be possible to reconstruct the xgrid/ygrid/zgrid
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% convert between datatypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function data = freq2raw(freq)
 if ~strcmp(freq.dimord, 'rpt_chan_freq_time')
   error('this only works for dimord=''rpt_chan_freq_time''');
 end
@@ -428,14 +502,14 @@ for i=1:nrpt
     endsmp = find(isfinite(tmp),1,'last' );
     data.trial{i} = data.trial{i}(:, begsmp:endsmp);
     data.time{i}  = data.time{i}(begsmp:endsmp);
-  end  
+  end
 end
 data.fsample = 1/(data.time{1}(2)-data.time{1}(1));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [data] = raw2timelock(data);
+function [data] = raw2timelock(data)
 ntrial = numel(data.trial);
 nchan  = numel(data.label);
 if ntrial==1
@@ -462,7 +536,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [data] = timelock2raw(data);
+function [data] = timelock2raw(data)
 switch data.dimord
   case 'chan_time'
     data.trial{1} = data.avg;
@@ -497,10 +571,11 @@ switch data.dimord
   otherwise
     error('unsupported dimord');
 end
-if isfield(data, 'avg'), data = rmfield(data, 'avg'); end
-if isfield(data, 'var'), data = rmfield(data, 'var'); end
-if isfield(data, 'cov'), data = rmfield(data, 'cov'); end
-if isfield(data, 'dimord'), data = rmfield(data, 'dimord'); end
+% remove the unwanted fields
+if isfield(data, 'avg'),        data = rmfield(data, 'avg'); end
+if isfield(data, 'var'),        data = rmfield(data, 'var'); end
+if isfield(data, 'cov'),        data = rmfield(data, 'cov'); end
+if isfield(data, 'dimord'),     data = rmfield(data, 'dimord'); end
 if isfield(data, 'numsamples'), data = rmfield(data, 'numsamples'); end
-if isfield(data, 'dof'), data = rmfield(data, 'dof'); end
+if isfield(data, 'dof'),        data = rmfield(data, 'dof'); end
 
