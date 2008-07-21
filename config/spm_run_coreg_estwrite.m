@@ -9,29 +9,25 @@ function out = spm_run_coreg_estwrite(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_estwrite.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_coreg_estwrite.m 1934 2008-07-21 10:21:41Z volkmar $
 
 job = varargin{1};
-%disp(job);
-%disp(job.eoptions);
-%disp(job.roptions);
+if isempty(job.other{1})
+    job.other = {};
+end
 
-job.ref    = strvcat(job.ref);
-job.source = strvcat(job.source);
-job.other  = strvcat(job.other);
-
-x  = spm_coreg(job.ref, job.source,job.eoptions);
+x  = spm_coreg(strvcat(job.ref), strvcat(job.source),job.eoptions);
 M  = inv(spm_matrix(x));
-PO = strvcat(job.source,job.other);
-MM = zeros(4,4,size(PO,1));
-for j=1:size(PO,1),
-        MM(:,:,j) = spm_get_space(deblank(PO(j,:)));
+PO = {job.source{:} job.other{:}};
+MM = zeros(4,4,numel(PO));
+for j=1:numel(PO),
+        MM(:,:,j) = spm_get_space(PO{j});
 end;
 for j=1:size(PO,1),
-        spm_get_space(deblank(PO(j,:)), M*MM(:,:,j));
+        spm_get_space(PO{j}, M*MM(:,:,j));
 end;
 
-P            = strvcat(job.ref,job.source,job.other);
+P            = strvcat(job.ref{:},job.source{:},job.other{:});
 flags.mask   = job.roptions.mask;
 flags.mean   = 0;
 flags.interp = job.roptions.interp;
@@ -41,7 +37,7 @@ flags.prefix = job.roptions.prefix;
 
 spm_reslice(P,flags);
 
-out.cfiles = cellstr(strvcat(job.source{:}, job.other{:}));
+out.cfiles = {job.source{:} job.other{:}};
 for i=1:numel(out.cfiles),
     [pth,nam,ext,num] = spm_fileparts(out.cfiles{i});
     out.rfiles{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);

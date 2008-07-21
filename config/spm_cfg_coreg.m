@@ -4,9 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_coreg.m 1934 2008-07-21 10:21:41Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 1934 $';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -33,7 +33,7 @@ source.num     = [1 1];
 other         = cfg_files;
 other.tag     = 'other';
 other.name    = 'Other Images';
-other.val{1} = {''};
+other.val     = {''};
 other.help    = {'These are any images that need to remain in alignment with the source image.'};
 other.filter = 'image';
 other.ufilter = '.*';
@@ -115,13 +115,13 @@ estimate.vout = @vout_estimate;
 % ---------------------------------------------------------------------
 % ref Image Defining Space
 % ---------------------------------------------------------------------
-ref         = cfg_files;
-ref.tag     = 'ref';
-ref.name    = 'Image Defining Space';
-ref.help    = {'This is analogous to the reference image.  Images are resliced to match this image (providing they have been coregistered first).'};
-ref.filter = 'image';
-ref.ufilter = '.*';
-ref.num     = [1 1];
+refwrite         = cfg_files;
+refwrite.tag     = 'ref';
+refwrite.name    = 'Image Defining Space';
+refwrite.help    = {'This is analogous to the reference image.  Images are resliced to match this image (providing they have been coregistered first).'};
+refwrite.filter = 'image';
+refwrite.ufilter = '.*';
+refwrite.num     = [1 1];
 % ---------------------------------------------------------------------
 % source Images to Reslice
 % ---------------------------------------------------------------------
@@ -212,7 +212,7 @@ roptions.help    = {'Various reslicing options.'};
 write         = cfg_exbranch;
 write.tag     = 'write';
 write.name    = 'Coreg: Reslice';
-write.val     = {ref source roptions };
+write.val     = {refwrite source roptions };
 write.help    = {'Reslice images to match voxel-for-voxel with an image defining some space. The resliced images are named the same as the originals except that they are prefixed by ''r''.'};
 write.prog = @spm_run_coreg_reslice;
 write.vout = @vout_reslice;
