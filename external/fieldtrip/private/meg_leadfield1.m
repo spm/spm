@@ -18,9 +18,12 @@ function [lf] = meg_leadfield1(R, Rm, Um);
 % optimized for speed using temporary variables
 % the mex implementation is a literary copy of this
 
-% Copyright (C) 2002, Robert Oostenveld
+% Copyright (C) 2002-2008, Robert Oostenveld
 %
 % $Log: meg_leadfield1.m,v $
+% Revision 1.8  2008/07/21 20:32:27  roboos
+% updated documentation
+%
 % Revision 1.7  2008/03/05 16:27:33  roboos
 % updated documentation
 %

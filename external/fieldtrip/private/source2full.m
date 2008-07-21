@@ -14,6 +14,9 @@ function [source] = source2full(source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: source2full.m,v $
+% Revision 1.17  2008/07/21 20:09:23  roboos
+% use islogical and iscell
+%
 % Revision 1.16  2006/07/12 08:25:59  roboos
 % added support for coherence-like matrices (Nvox X Nvox)
 %
@@ -119,10 +122,10 @@ param      = param(sel);
 
 for j = 1:length(param)
   dat = getsubfield(source, param{j});
-  if strcmp(class(dat), 'logical'),
-    tmp         = logical(zeros(1,Nfull)); 
+  if islogical(dat),
+    tmp         = false(1,Nfull); 
     tmp(inside) = dat;
-  elseif strcmp(class(dat), 'cell'),
+  elseif iscell(dat),
     tmp          = cell(1,Nfull);
     tmp(inside)  = dat;
     %tmp(outside) = nan;
@@ -234,7 +237,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: source2full.m,v 1.16 2006/07/12 08:25:59 roboos Exp $';
+cfg.version.id = '$Id: source2full.m,v 1.17 2008/07/21 20:09:23 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

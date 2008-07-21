@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.96  2008/07/21 20:10:05  roboos
+% added explicit error in case trialdef is present without cfg.trl
+%
 % Revision 1.95  2008/07/11 13:18:40  roboos
 % removed all lnfilter references, added error to preprocessing and preproc
 %
@@ -349,6 +352,7 @@ if nargin>1
   % the input data must be raw
   data = checkdata(data, 'dataformat', 'raw', 'hasoffset', 'yes');
 
+  
   if cfg.padding>0
     error('cfg.padding should be zero, since filter padding is only possible while reading the data from file');
   elseif isfield(cfg, 'trl')
@@ -423,6 +427,10 @@ else
   % read the data from file and do the preprocessing
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+  if isfield(cfg, 'trialdef') && ~isfield(cfg, 'trl')
+    error('you must call DEFINETRIAL prior to PREPROCESSING');
+  end
+  
   % if neccessary convert dataset into headerfile and datafile
   cfg = dataset2files(cfg);
 
@@ -604,7 +612,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.95 2008/07/11 13:18:40 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.96 2008/07/21 20:10:05 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

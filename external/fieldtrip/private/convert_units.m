@@ -23,6 +23,9 @@ function [obj] = convert_units(obj, target);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: convert_units.m,v $
+% Revision 1.4  2008/07/21 20:29:22  roboos
+% small change in output on screen
+%
 % Revision 1.3  2008/04/14 20:53:58  roboos
 % added detection for headshape and/or fiducials
 % fixed bug in scaling of fiducials
@@ -117,8 +120,8 @@ elseif strcmp(unit, target)
   return
 end
 
-% give some imnformation about the conversion
-fprintf('converting object from ''%s'' to ''%s''\n', unit, target)
+% give some information about the conversion
+fprintf('converting units from ''%s'' to ''%s''\n', unit, target)
 
 if strcmp(unit, 'm')
   unit2meter = 1;
