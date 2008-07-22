@@ -34,6 +34,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.44  2008/07/22 11:38:24  ingnie
+% removed fixvolume, make full use of checkdata (also to ensure inside is logical volume)
+%
 % Revision 1.43  2007/04/18 10:30:41  roboos
 % switched to interpolation in voxel indeices, since in some cases interpn had problems (esp when the coordinate axes were strongly rotated)
 % apply the cm->mm scaling to the functional transfortmation matrix prior to computing voxel positions
@@ -170,13 +173,9 @@ if ischar(anatomical)
   anatomical = read_fcdc_mri(filename);
 end
 
-% ensure that the structure correctly describes a volume
-functional = fixvolume(functional);
-anatomical = fixvolume(anatomical);
-
-% check if the input data is valid for this function
-functional = checkdata(functional, 'datatype', 'source', 'feedback', 'yes');
-anatomical = checkdata(anatomical, 'datatype', 'volume', 'feedback', 'yes');
+% check if the input data is valid for this function and ensure that the structures correctly describes a volume
+functional = checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes');
+anatomical = checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes');
 
 % select the parameters that should be interpolated
 cfg.parameter = parameterselection(cfg.parameter, functional);
@@ -294,7 +293,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.43 2007/04/18 10:30:41 roboos Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.44 2008/07/22 11:38:24 ingnie Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end

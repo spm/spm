@@ -32,9 +32,15 @@ function [data, state] = checkdata(data, varargin);
 %   [data] = checkdata(data, 'megtype', {'ctf151', 'ctf275'}), e.g. in megrealign
 %   [data] = checkdata(data, 'datatype', {'timelock', 'freq'}), e.g. in sourceanalysis
 
-% Copyright (C) 2007, Robert Oostenveld
+% Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.23  2008/07/22 11:39:55  ingnie
+% moved the "inside" representation code to prior to reshaping, otherwise the logical volume inside would not be reshaped properly
+%
+% Revision 1.22  2008/07/22 11:11:01  roboos
+% changed the source2volume function so that it works with any type of source positions, as long as they span a 3D volume
+%
 % Revision 1.21  2008/07/21 11:01:47  roboos
 % added source2volume conversion
 % update isXXXdatatype after all possible conversions
@@ -369,6 +375,17 @@ if ~isempty(ismeg)
   end % if okflag
 end
 
+if ~isempty(inside)
+  % TODO absorb the fixinside function into this code
+  data   = fixinside(data, inside);
+  okflag = isfield(data, 'inside');
+
+  if ~okflag
+    % construct an error message
+    error('This function requires data with an ''inside'' field.');
+  end % if okflag
+end
+
 if isvolume
   % ensure consistent dimensions of the volumetric data
   % reshape each of the volumes that is found into a 3D array
@@ -391,19 +408,6 @@ if issource
     tmp  = reshape(tmp, dim);
     data = setsubfield(data, param{i}, tmp);
   end
-end
-
-
-if ~isempty(inside)
-  % TODO absorb the fixinside function into this code
-  data   = fixinside(data, inside);
-  okflag = isfield(data, 'inside');
-
-  if ~okflag
-    % construct an error message
-    str = sprintf('This function requires data with an ''inside'' field.', inside);
-    error(str);
-  end % if okflag
 end
 
 if isequal(hastrials,'yes')
@@ -458,19 +462,23 @@ data.pos = warp_apply(data.transform, [x(:) y(:) z(:)]);
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = source2volume(data)
-if isfield(data, 'xgrid') && isfield(data, 'ygrid') && isfield(data, 'zgrid')
-  data = grid2transform(data);
-  % remove the unwanted fields
-  if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
-  if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
-  if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
-  if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
-else
-  error('cannot convert source into volume');
-  % FIXME if data.pos is nicely described and data.dim is present, then in
-  % principle it should be possible to reconstruct the xgrid/ygrid/zgrid
-end
-
+% the volume representation requires a homogenous transformation matrix to convert voxel indices to head coordinates
+xgrid = 1:data.dim(1);
+ygrid = 1:data.dim(2);
+zgrid = 1:data.dim(3);
+[x y z] = ndgrid(xgrid, ygrid, zgrid);
+ind =  [x(:) y(:) z(:)];    % these are the positions expressed in voxel indices along each of the three axes
+pos = data.pos;             % these are the positions expressed in head coordinates	
+% represent the positions in a manner that is compatible with the homogenous matrix multiplication, i.e. pos = H * ind
+ind = ind'; ind(4,:) = 1;
+pos = pos'; pos(4,:) = 1;
+% recompute the homogenous transformation matrix
+data.transform = pos / ind;
+% remove the unwanted fields
+if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
+if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
+if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
+if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
