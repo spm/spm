@@ -66,6 +66,9 @@ function [lf] = compute_leadfield(pos, sens, vol, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: compute_leadfield.m,v $
+% Revision 1.27  2008/07/22 10:17:15  roboos
+% replaced identical with strcmp
+%
 % Revision 1.26  2008/07/21 20:28:44  roboos
 % added check on units (mm/cm/m) of the sensor array and volume conductor, give error if inconsistent
 %
@@ -183,7 +186,7 @@ if all(size(pos)==[1 3*Ndipoles])
   pos = reshape(pos, 3, Ndipoles)';
 end
 
-if isfield(vol, 'unit') && isfield(sens, 'unit') && ~identical(vol.unit, sens.unit)
+if isfield(vol, 'unit') && isfield(sens, 'unit') && ~strcmp(vol.unit, sens.unit)
   error('inconsistency in the units of the volume conductor and the sensor array');
 end
 

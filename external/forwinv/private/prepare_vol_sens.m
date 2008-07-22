@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.7  2008/07/22 10:17:15  roboos
+% replaced identical with strcmp
+%
 % Revision 1.6  2008/07/21 20:28:44  roboos
 % added check on units (mm/cm/m) of the sensor array and volume conductor, give error if inconsistent
 %
@@ -66,7 +69,7 @@ if isempty(order),    order = 10;             end
 iseeg = senstype(sens, 'eeg');
 ismeg = senstype(sens, 'meg');
 
-if isfield(vol, 'unit') && isfield(sens, 'unit') && ~identical(vol.unit, sens.unit)
+if isfield(vol, 'unit') && isfield(sens, 'unit') && ~strcmp(vol.unit, sens.unit)
   error('inconsistency in the units of the volume conductor and the sensor array');
 end
 
