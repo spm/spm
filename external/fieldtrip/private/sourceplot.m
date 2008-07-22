@@ -98,6 +98,8 @@ function [cfg] = sourceplot(cfg, data)
 %                        included in the sphere projection methods, expressed in mm
 %   cfg.distmat        = precomputed distance matrix (default = [])
 %   cfg.camlight       = 'yes' or 'no' (default = 'yes')
+%   cfg.renderer       = 'painters', 'zbuffer',' opengl' or 'none' (default = 'opengl')
+%                        When using opacity the OpenGL renderer is required. 
 %
 % TODO have to be built in:
 %   cfg.marker        = [Nx3] array defining N marker positions to display (orig: from sliceinterp)
@@ -114,6 +116,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: sourceplot.m,v $
+% Revision 1.53  2008/07/22 09:33:01  roboos
+% added cfg.renderer option
+%
 % Revision 1.52  2008/07/02 18:23:43  roboos
 % reinserted TTlookup code
 %
@@ -210,6 +215,7 @@ if ~isfield(cfg, 'surfinflated'),       cfg.surfinflated = [];               end
 if ~isfield(cfg, 'sphereradius'),       cfg.sphereradius = [];               end
 if ~isfield(cfg, 'distmat'),            cfg.distmat = [];                    end
 if ~isfield(cfg, 'camlight'),           cfg.camlight = 'yes';                end
+if ~isfield(cfg, 'renderer'),           cfg.renderer = 'opengl';             end
 
 if isequal(cfg.method,'surface')
   if ~isfield(cfg, 'projmethod'),         error('specify cfg.projmethod');     end
@@ -693,6 +699,7 @@ elseif isequal(cfg.method,'surface')
   else
     color = repmat(cortex_light, size(surf.pnt,1), 1);
   end
+  set(gcf, 'renderer', cfg.renderer);
   h1 = patch('Vertices', surf.pnt, 'Faces', surf.tri, 'FaceVertexCData', color , 'FaceColor', 'interp');
   set(h1, 'EdgeColor', 'none');
   axis   off;
