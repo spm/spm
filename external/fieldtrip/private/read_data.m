@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.56  2008/07/24 08:44:20  roboos
+% added initial support for nimh_cortex, not yet complete
+%
 % Revision 1.55  2008/07/01 16:23:02  roboos
 % added read_combined_data (new implementation)
 %
@@ -711,6 +714,9 @@ switch dataformat
 
   case 'nexstim_nxe'
     dat = read_nexstim_nxe(filename, begsample, endsample, chanindx);
+
+  case 'nimh_cortex'
+    keyboard
 
   case 'ns_avg'
     % NeuroScan average data

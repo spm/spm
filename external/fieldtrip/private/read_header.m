@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.66  2008/07/24 08:44:20  roboos
+% added initial support for nimh_cortex, not yet complete
+%
 % Revision 1.65  2008/07/01 16:23:02  roboos
 % added read_combined_data (new implementation)
 %
@@ -859,6 +862,30 @@ switch headerformat
     hdr.grad = fif2grad(filename);
     % remember the original header details
     hdr.orig = orig;
+
+  case 'nimh_cortex'
+    cortex = read_nimh_cortex(filename, 'epp', 'no', 'eog', 'no');
+    % look at the first trial to determine whether it contains data in the EPP and EOG channels
+    trial1  = read_nimh_cortex(filename, 'epp', 'yes', 'eog', 'yes', 'begtrial', 1, 'endtrial', 1);
+    hasepp = ~isempty(trial1.epp);
+    haseog = ~isempty(trial1.eog);
+    if hasepp
+      warning('EPP channels are not yet supported');
+    end
+    % at the moment only the EOG channels are supported here
+    if haseog
+      hdr.label       = {'EOGx' 'EOGy'};
+      hdr.nChans      = 2;
+    else
+      hdr.label       = {};
+      hdr.nChans      = 0;
+    end
+    hdr.nTrials     = length(cortex);
+    hdr.nSamples    = inf;
+    hdr.nSamplesPre = 0;
+    hdr.orig.trial = cortex;
+    hdr.orig.hasepp = hasepp;
+    hdr.orig.haseog = haseog;
 
   case 'ns_avg'
     orig = read_ns_hdr(filename);

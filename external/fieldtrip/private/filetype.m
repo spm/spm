@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.84  2008/07/24 08:43:40  roboos
+% added nimh_cortex
+%
 % Revision 1.83  2008/07/09 12:16:38  roboos
 % added mclust_t
 %
@@ -863,6 +866,10 @@ elseif filetype_check_extension(filename, '.t') && filetype_check_header(filenam
   ftype = 'mclust_t';
   manufacturer = 'MClust';
   content = 'sorted spikes';
+elseif filetype_check_header(filename, 26)
+  ftype = 'nimh_cortex';
+  manufacturer = 'NIMH Laboratory of Neuropsychology, http://www.cortex.salk.edu';
+  content = 'events and eye channels';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

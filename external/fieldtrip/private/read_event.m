@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.69  2008/07/24 08:44:20  roboos
+% added initial support for nimh_cortex, not yet complete
+%
 % Revision 1.68  2008/06/30 15:35:20  roboos
 % changed ns_eeg events following a suggestion by Monika Mellem
 %
@@ -1186,6 +1189,27 @@ switch eventformat
 
   case 'nexstim_nxe'
     event = read_nexstim_event(filename);
+    
+  case 'nimh_cortex'
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
+    cortex = hdr.orig.trial;
+    for i=1:length(cortex)
+      % add one 'trial' event for every trial and add the trigger events
+      event(end+1).type     = 'trial';
+      event(end  ).sample   = nan;
+      event(end  ).duration = nan;
+      event(end  ).offset   = nan;
+      event(end  ).value    = i; % use the trial number as value
+      for j=1:length(cortex(i).event)
+        event(end+1).type     = 'trigger';
+        event(end  ).sample   = nan;
+        event(end  ).duration = nan;
+        event(end  ).offset   = nan;
+        event(end  ).value    = cortex(i).event(j);
+      end
+    end
 
   case 'ns_avg'
     if isempty(hdr)
