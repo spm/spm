@@ -1,3 +1,5 @@
+function [hdr] = read_ctf_res4(fname)
+
 % READ_CTF_RES4 reads the header in RES4 format from a CTF dataset
 %
 % Use as
@@ -18,6 +20,9 @@
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_res4.m,v $
+% Revision 1.16  2008/07/24 08:51:43  roboos
+% added the function declaration to the top, which was accidentaly removed by the previous commit
+%
 % Revision 1.15  2008/07/24 07:22:49  roboos
 % replaced fread..char with uint8, solves problem with 16 bit wide characters (thanks to Erick Ortiz)
 %
