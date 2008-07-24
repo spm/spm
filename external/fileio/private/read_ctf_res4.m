@@ -1,5 +1,3 @@
-function hdr = read_ctf_res4(fname)
-
 % READ_CTF_RES4 reads the header in RES4 format from a CTF dataset
 %
 % Use as
@@ -20,6 +18,9 @@ function hdr = read_ctf_res4(fname)
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_res4.m,v $
+% Revision 1.15  2008/07/24 07:22:49  roboos
+% replaced fread..char with uint8, solves problem with 16 bit wide characters (thanks to Erick Ortiz)
+%
 % Revision 1.14  2007/03/07 08:58:46  roboos
 % Do not determine the MEG, REF and EEG channels based on the first character of the channel label, removed rowMEG etc from the header. The relevant information is contained in hdr.sensType.
 %
@@ -73,26 +74,26 @@ fid = fopen(fname,'r','ieee-be');
 
 % Check if header file exist
 if fid == -1
-    errMsg = strcat('Could not open header file:',fname);
-    error(errMsg); 
+  errMsg = strcat('Could not open header file:',fname);
+  error(errMsg);
 end
 
 % First 8 bytes contain filetype, check is fileformat is correct.
 % This function was written for MEG41RS, but also seems to work for MEG42RS.
-r_head=setstr(fread(fid,8,'char'))';
+r_head=setstr(fread(fid,8,'uint8'))';
 if ~strcmp(r_head(1,1:7),'MEG41RS') & ~strcmp(r_head(1,1:7),'MEG42RS')
   fclose(fid)
   errMsg = sprintf('Resource file format (%s) is not supported for file %s', r_head(1,1:7), fname);
-  error(errMsg); 
+  error(errMsg);
 end %if
 
-% Read the initial parameters 
-appName       = setstr(fread(fid,256,'char'))' ;
-dataOrigin    = setstr(fread(fid,256,'char'))' ;
-dataDescrip   = setstr(fread(fid,256,'char'))' ;
+% Read the initial parameters
+appName       = setstr(fread(fid,256,'uint8'))' ;
+dataOrigin    = setstr(fread(fid,256,'uint8'))' ;
+dataDescrip   = setstr(fread(fid,256,'uint8'))' ;
 no_trial_avgd = fread(fid,1,'int16')          ;
-data_time     = setstr(fread(fid,255,'char'))';
-data_date     = setstr(fread(fid,255,'char'))';
+data_time     = setstr(fread(fid,255,'uint8'))';
+data_date     = setstr(fread(fid,255,'uint8'))';
 
 fseek(fid,1288,'bof');
 % Read the general recording parameters
@@ -107,28 +108,28 @@ preTrigpts=fread(fid,1,'int32');
 
 fseek(fid,1360,'bof');
 % read in the meg4Filesetup structure
-run_name     = setstr(fread(fid,32,'char')');
-run_title    = setstr(fread(fid,256,'char')');
-instruments  = setstr(fread(fid,32,'char')');
-coll_desc    = setstr(fread(fid,32,'char')');
-subj_id      = setstr(fread(fid,32,'char')');
-operator     = setstr(fread(fid,32,'char')') ;
-sensFilename = setstr(fread(fid,60,'char')') ;
+run_name     = setstr(fread(fid,32,'uint8')');
+run_title    = setstr(fread(fid,256,'uint8')');
+instruments  = setstr(fread(fid,32,'uint8')');
+coll_desc    = setstr(fread(fid,32,'uint8')');
+subj_id      = setstr(fread(fid,32,'uint8')');
+operator     = setstr(fread(fid,32,'uint8')') ;
+sensFilename = setstr(fread(fid,60,'uint8')') ;
 
 % not nececssary to seek, the file pointer is already at the desired location
 % fseek(fid,1836,'bof');
 
-% Read in the run description length 
+% Read in the run description length
 rd_len=fread(fid,1,'uint32');
 % Go to the run description and read it in
 fseek(fid,1844,'bof');
-run_desc=setstr(fread(fid,rd_len,'char')');
+run_desc=setstr(fread(fid,rd_len,'uint8')');
 
 % read in the filter information
 num_filt=fread(fid,1,'uint16');
 for fi=0:(num_filt-1),
   %filt_info=fread(fid,18,'uint8');
-  filt_freq =fread(fid,1, 'double'); 
+  filt_freq =fread(fid,1, 'double');
   filt_class=fread(fid,1, 'uint32');
   filt_type =fread(fid,1, 'uint32');
   num_fparm=fread(fid, 1, 'uint16');
@@ -140,13 +141,13 @@ end % for fi
 
 % Read in the channel names
 for i=1:no_channels,
-    temp=fread(fid,32,'char')';
-    temp(find(temp<32 )) = ' ';		% remove non-printable characters
-    temp(find(temp>126)) = ' ';		% remove non-printable characters
-    endstr = findstr(temp, '-'); temp(endstr:end) = ' ';	% cut off at '-'
-    endstr = findstr(temp, ' '); temp(endstr:end) = ' ';	% cut off at ' '
-    chan_name(i,:) = char(temp);		% as char array
-    chan_label{i}  = deblank(char(temp));	% as cell array
+  temp=fread(fid,32,'uint8')';
+  temp(find(temp<32 )) = ' ';		% remove non-printable characters
+  temp(find(temp>126)) = ' ';		% remove non-printable characters
+  endstr = findstr(temp, '-'); temp(endstr:end) = ' ';	% cut off at '-'
+  endstr = findstr(temp, ' '); temp(endstr:end) = ' ';	% cut off at ' '
+  chan_name(i,:) = char(temp);		% as char array
+  chan_label{i}  = deblank(char(temp));	% as cell array
 end %for
 
 % pre-allocate some memory space
@@ -158,36 +159,36 @@ sensType = zeros([no_channels,1]);
 % Read in the sensor information
 fp = ftell(fid);
 for chan=1:no_channels,
-    fread(fid,1,'uint8');			% Read and ignore 1 byte from enum
-    sensType(chan)=fread(fid,1,'uint8');	% Read sensor type
-    fread(fid,2,'uint8');			% Read and ignore originalRunNum
-    fread(fid,4,'uint8');			% Read and ignore coilShape
-    sensGain(chan)=fread(fid,1,'double');	% Read sensor gain in Phi0/Tesla
-    qGain(chan)=fread(fid,1,'double');		% Read qxx gain (usually 2^20 for Q20)
-    ioGain(chan)=fread(fid,1,'double');		% Read i/o gain of special sensors (usually 1.0)
-    ioOffset(chan)=fread(fid,1,'double');
-    numCoils(chan)=fread(fid,1,'int16');
-    grad_order_no(chan)=fread(fid,1,'int16');
-    fread(fid,4,'char');
+  fread(fid,1,'uint8');			% Read and ignore 1 byte from enum
+  sensType(chan)=fread(fid,1,'uint8');	% Read sensor type
+  fread(fid,2,'uint8');			% Read and ignore originalRunNum
+  fread(fid,4,'uint8');			% Read and ignore coilShape
+  sensGain(chan)=fread(fid,1,'double');	% Read sensor gain in Phi0/Tesla
+  qGain(chan)=fread(fid,1,'double');		% Read qxx gain (usually 2^20 for Q20)
+  ioGain(chan)=fread(fid,1,'double');		% Read i/o gain of special sensors (usually 1.0)
+  ioOffset(chan)=fread(fid,1,'double');
+  numCoils(chan)=fread(fid,1,'int16');
+  grad_order_no(chan)=fread(fid,1,'int16');
+  fread(fid,4,'uint8');
 
-    % read the coil positions and orientations
-    for i=1:8
-      Chan(chan).coil(i).pos = fread(fid,3,'double')';	
-      fread(fid,1,'double');
-      Chan(chan).coil(i).ori = fread(fid,3,'double')';
-      fread(fid,3,'double');
-    end
+  % read the coil positions and orientations
+  for i=1:8
+    Chan(chan).coil(i).pos = fread(fid,3,'double')';
+    fread(fid,1,'double');
+    Chan(chan).coil(i).ori = fread(fid,3,'double')';
+    fread(fid,3,'double');
+  end
 
-    % read the coil positions and orientations in head coordinates(?)
-    for i=1:8
-      Chan(chan).coilHC(i).pos = fread(fid,3,'double')';	
-      fread(fid,1,'double');
-      Chan(chan).coilHC(i).ori = fread(fid,3,'double')';
-      fread(fid,3,'double');
-    end
+  % read the coil positions and orientations in head coordinates(?)
+  for i=1:8
+    Chan(chan).coilHC(i).pos = fread(fid,3,'double')';
+    fread(fid,1,'double');
+    Chan(chan).coilHC(i).ori = fread(fid,3,'double')';
+    fread(fid,3,'double');
+  end
 
-    % jump to the next sensor info record
-    fseek(fid, fp+chan*1328, 'bof');
+  % jump to the next sensor info record
+  fseek(fid, fp+chan*1328, 'bof');
 end % for chan
 
 % close the header file
@@ -221,7 +222,7 @@ hdr.sensGain    = sensGain;
 hdr.sensType    = sensType;
 
 hdr.label       = chan_label(:);
-hdr.nameALL     = chan_name; 
+hdr.nameALL     = chan_name;
 hdr.Chan        = Chan;
 % hdr.rowMEG      = rowMEG;
 % hdr.rowEEG      = rowEEG;
@@ -232,4 +233,3 @@ hdr.Chan        = Chan;
 % hdr.nameEOG     = [];
 % hdr.trigV       = [];
 % hdr.SwapData    = [];
-
