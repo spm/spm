@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_write_sn.m 1954 2008-07-24 17:02:21Z john $
 
 
 if isempty(V), return; end;
@@ -428,14 +428,14 @@ function [x,y,z,mat] = get_xyzmat(prm,bb,vox,VG)
 
 if nargin<4,
     VG = prm.VG(1);
-end
 
-if all(~isfinite(bb(:))) && all(~isfinite(vox(:))),
-    x   = 1:VG.dim(1);
-    y   = 1:VG.dim(2);
-    z   = 1:VG.dim(3);
-    mat = prm.VG(1).mat*inv(VG.mat);
-    return;
+    if all(~isfinite(bb(:))) && all(~isfinite(vox(:))),
+        x   = 1:VG.dim(1);
+        y   = 1:VG.dim(2);
+        z   = 1:VG.dim(3);
+        mat = VG.mat;
+        return;
+    end
 end
 
 [bb0,vox0] = bbvox_from_V(VG);
@@ -447,9 +447,7 @@ bb        = sort(bb);
 bb(:,msk) = flipud(bb(:,msk));
 
 % Adjust bounding box slightly - so it rounds to closest voxel.
-% Comment out if not needed.  I chose not to change it because
-% it would lead to being bombarded by questions about spatially
-% normalised images not having the same dimensions.
+% Comment out if not needed.
 %bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
 %bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
 %bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
