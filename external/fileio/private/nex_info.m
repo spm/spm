@@ -16,6 +16,9 @@ function [nvar, names, types] = nex_info(filename)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_info.m,v $
+% Revision 1.2  2008/07/24 12:03:23  roboos
+% changed end of line to unix style
+%
 % Revision 1.1  2005/02/11 07:46:34  roboos
 % downloaded from Plexon website, added support for reading nex files on Solaris and Mac OS X (fopen ieee-le), added log-section to the comments after the help
 %

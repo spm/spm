@@ -18,6 +18,9 @@ function [adfreq, n, ts, nf, w] = nex_wf(filename, varname)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_wf.m,v $
+% Revision 1.2  2008/07/24 12:02:01  roboos
+% changed end of line to unix style
+%
 % Revision 1.1  2005/02/11 07:46:34  roboos
 % downloaded from Plexon website, added support for reading nex files on Solaris and Mac OS X (fopen ieee-le), added log-section to the comments after the help
 %

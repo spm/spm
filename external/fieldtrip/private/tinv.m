@@ -10,6 +10,9 @@ function x = tinv(p,v);
 % open source subfunctions found on the web.
 
 % $Log: tinv.m,v $
+% Revision 1.6  2008/07/24 12:00:22  roboos
+% changed end of line to unix style
+%
 % Revision 1.5  2006/01/05 12:06:06  erimar
 % This is an open source function that was assembled by Eric Maris using
 % open source subfunctions found on the web. This function should behave

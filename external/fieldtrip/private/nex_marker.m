@@ -23,6 +23,9 @@ function [n, nm, nl, ts, names, m] = nex_marker(filename, varname)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_marker.m,v $
+% Revision 1.2  2008/07/24 11:57:57  roboos
+% converted end of line into unix style
+%
 % Revision 1.1  2005/02/11 07:46:34  roboos
 % downloaded from Plexon website, added support for reading nex files on Solaris and Mac OS X (fopen ieee-le), added log-section to the comments after the help
 %
