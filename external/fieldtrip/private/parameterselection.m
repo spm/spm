@@ -14,6 +14,9 @@ function [select] = parameterselection(param, data);
 % Copyright (C) 2005, Robert oostenveld
 %
 % $Log: parameterselection.m,v $
+% Revision 1.13  2008/07/25 09:05:02  roboos
+% not only check the parameter dimensions against source.dim, but optionally also against source.pos (required if it is an irregular grid)
+%
 % Revision 1.12  2007/07/31 08:36:27  jansch
 % added support for volume data with dimensionality > 3
 %
@@ -94,11 +97,12 @@ select = {};
 for i=1:length(param)
   if issubfield(data, param{i})
     % the field is present, check whether the dimension is correct
-    tmp = getsubfield(data, param{i});
-    dim(1) = size(tmp,1);
-    dim(2) = size(tmp,2);
-    dim(3) = size(tmp,3);
-    if all(dim(:)==data.dim(1:3)') || prod(dim)==prod(data.dim)
+    dim = size(getsubfield(data, param{i}));
+    if isfield(data, 'dim') && isequal(dim(:), data.dim(:))
+      select{end+1} = param{i}; 
+    elseif isfield(data, 'dim') && prod(dim)==prod(data.dim)
+      select{end+1} = param{i}; 
+    elseif isfield(data, 'pos') && prod(dim)==size(data.pos, 1)
       select{end+1} = param{i}; 
     end
   end
