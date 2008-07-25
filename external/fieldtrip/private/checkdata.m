@@ -24,6 +24,7 @@ function [data] = checkdata(data, varargin)
 %   hasoffset          = yes, no (only applies to raw data)
 %   hascumtapcnt       = yes, no (only applies to freq data)
 %   hasdof             = yes, no
+%   cmbrepresentation  = sparse, full (applies to covariance and cross-spectral density)
 %
 % For some options you can specify multiple values, e.g.
 %   [data] = checkdata(data, 'megtype', {'ctf151', 'ctf275'}), e.g. in megrealign
@@ -32,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.25  2008/07/25 12:52:44  roboos
+% fixed bug, hasdof would remove cumtapcnt (thanks to Jurrian)
+%
 % Revision 1.24  2008/07/25 07:15:49  roboos
 % cleaned up documentation and some minor aspects of the code (sprintf/error)
 % added hasdof, with default value of 'no'
@@ -171,6 +175,7 @@ hastrials     = keyval('hastrials',     varargin);
 hasoffset     = keyval('hasoffset',     varargin); if isempty(hasoffset), hasoffset = 'no'; end
 hascumtapcnt  = keyval('hascumtapcnt',  varargin);
 hasdof        = keyval('hasdof',        varargin); if isempty(hasdof), hasdof = 'no'; end
+cmbrepresentation = keyval('cmbrepresentation',  varargin);
 
 % determine the type of input data
 % this can be raw, freq, timelock, comp, spike, source, volume, dip
@@ -430,26 +435,74 @@ if isequal(hasoffset,'yes')
   end
 
   if ~okflag
-    str = sprintf('This function requires data with an offset');
-    error(str);
+    error('This function requires data with an ''offset'' field');
   end % if okflag
 
 elseif isequal(hasoffset,'no') && isfield(data, 'offset')
   data = rmfield(data, 'offset');
-end %if hasoffset
+end % if hasoffset
 
 if isequal(hascumtapcnt,'yes') && ~isfield(data, 'cumtapcnt')
   error('This function requires data with a ''cumtapcnt'' field');
 elseif isequal(hascumtapcnt,'no') && isfield(data, 'cumtapcnt')
   data = rmfield(data, 'cumtapcnt');
-end %if hascumtapcnt
+end % if hascumtapcnt
 
-if isequal(hasdof,'yes') && ~isfield(data, 'cumtapcnt')
-  error('This function requires data with a ''cumtapcnt'' field');
-elseif isequal(hasdof,'no') && isfield(data, 'cumtapcnt')
+if isequal(hasdof,'yes') && ~isfield(data, 'hasdof')
+  error('This function requires data with a ''dof'' field');
+elseif isequal(hasdof,'no') && isfield(data, 'hasdof')
   data = rmfield(data, 'cumtapcnt');
-end %if hasdof
+end % if hasdof
 
+if ~isempty(cmbrepresentation)
+  if istimelock
+    data = fixcov(data, cmbrepresentation);
+  elseif isfreq
+    data = fixcsd(data, cmbrepresentation);
+  else
+    error('This function requires data with a covariance or cross-spectrum');
+  end
+end % cmbrepresentation
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% represent the covariance matrix in a particular manner
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function data = fixcov(data, desired)
+if isfield(data, 'cov') && ~isfield(data, 'labelcmb')
+  current = 'full';
+elseif isfield(data, 'cov') && isfield(data, 'labelcmb')
+  current = 'sparse';
+else
+  error('Could not determine the current representation of the covariance matrix');
+end
+if isequal(current, desired)
+  % nothing to do
+elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
+  % FIXME should be implemented
+elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
+  % FIXME should be implemented
+end
+keyboard
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% represent the cross-spectral-density matrix in a particular manner
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function data = fixcsd(data, desired)
+if isfield(data, 'crsspctrm') && ~isfield(data, 'labelcmb')
+  current = 'full';
+elseif isfield(data, 'crsspctrm') && isfield(data, 'labelcmb')
+  current = 'sparse';
+else
+  error('Could not determine the current representation of the cross-spectrum matrix');
+end
+if isequal(current, desired)
+  % nothing to do
+elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
+  % FIXME should be implemented
+elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
+  % FIXME should be implemented
+end
+keyboard
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
