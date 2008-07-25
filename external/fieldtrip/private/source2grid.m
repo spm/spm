@@ -14,6 +14,9 @@ function [grid] = source2grid(source)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: source2grid.m,v $
+% Revision 1.4  2008/07/25 07:03:15  roboos
+% xgrid/ygrid/zgrid and dim do not always have to be present, hence made them optional
+%
 % Revision 1.3  2006/05/17 08:41:18  roboos
 % also keep the filters if present
 %
@@ -26,18 +29,25 @@ function [grid] = source2grid(source)
 % initial implementation of these helper functions for beamformer sourceanalysis
 %
 
-grid.xgrid   = source.xgrid;
-grid.ygrid   = source.ygrid;
-grid.zgrid   = source.zgrid;
+% these are always supposed to be present
 grid.pos     = source.pos;
-grid.dim     = source.dim;
 grid.inside  = source.inside;
 grid.outside = source.outside;
+
+% these are optional
+try, grid.xgrid   = source.xgrid; end
+try, grid.ygrid   = source.ygrid; end
+try, grid.zgrid   = source.zgrid; end
+try, grid.dim     = source.dim;   end
+
 if issubfield(source, 'filter')
   grid.filter = source.filter;
 elseif issubfield(source, 'avg.filter')
   grid.filter = source.avg.filter;
+elseif issubfield(source, 'trial.filter')
+  error('single trial filters are not supported here');
 end
+
 if isfield(source, 'leadfield')
   grid.leadfield = source.leadfield;
 end

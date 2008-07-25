@@ -1,4 +1,4 @@
-function [data, state] = checkdata(data, varargin);
+function [data] = checkdata(data, varargin)
 
 % CHECKDATA checks the input data of the main FieldTrip functions, e.g. whether
 % the type of data strucure corresponds with the required data. If neccessary
@@ -11,22 +11,19 @@ function [data, state] = checkdata(data, varargin);
 % the user to external documentation (link to website).
 %
 % Use as
-%   [data, state] = checkdata(data, ...)
+%   [data] = checkdata(data, ...)
 %
-% Optional input arguments should be specified as key-value pairs and can
-% include
+% Optional input arguments should be specified as key-value pairs and can include
+%   feedback           = yes, no
 %   datatype           = raw, freq, timelock, comp, spike, source, volume, dip
 %   dimord             = any combination of time, freq, chan, refchan, rpt, subj, chancmb, rpttap
 %   senstype           = ctf151, ctf275, ctf151_planar, ctf275_planar, neuromag122, neuromag306, bti148, bti248, bti248_planar, magnetometer, electrode
 %   ismeg              = yes, no
 %   inside             = logical, index
 %   hastrials          = yes, no
-%   hasoffset          = yes, only for raw data
-%   hascumtapcnt       = yes  -> this is implied by datatype=freq
-%   hascrsspctrm       = yes, can be computed from fourier
-%   hasfourier         = yes
-%   csdrepresentation  = square, cmb
-%   covrepresentation  = square, cmb
+%   hasoffset          = yes, no (only applies to raw data)
+%   hascumtapcnt       = yes, no (only applies to freq data)
+%   hasdof             = yes, no
 %
 % For some options you can specify multiple values, e.g.
 %   [data] = checkdata(data, 'megtype', {'ctf151', 'ctf275'}), e.g. in megrealign
@@ -35,6 +32,10 @@ function [data, state] = checkdata(data, varargin);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.24  2008/07/25 07:15:49  roboos
+% cleaned up documentation and some minor aspects of the code (sprintf/error)
+% added hasdof, with default value of 'no'
+%
 % Revision 1.23  2008/07/22 11:39:55  ingnie
 % moved the "inside" representation code to prior to reshaping, otherwise the logical volume inside would not be reshaped properly
 %
@@ -159,18 +160,17 @@ function [data, state] = checkdata(data, varargin);
 %   average over trials
 %   csd as matrix
 
-
 % get the optional input arguments
-datatype      = keyval('datatype', varargin);
-feedback      = keyval('feedback', varargin); if isempty(feedback), feedback = 'no'; end
-dimord        = keyval('dimord', varargin);
-stype         = keyval('senstype', varargin);
-ismeg         = keyval('ismeg', varargin);
-inside        = keyval('inside', varargin); % logical, index
-hastrials     = keyval('hastrials', varargin);
-hasoffset     = keyval('hasoffset', varargin);  if isempty(hasoffset), hasoffset = 'no'; end
-hascumtapcnt  = keyval('hascumtapcnt', varargin);
-% ...
+feedback      = keyval('feedback',      varargin); if isempty(feedback), feedback = 'no'; end
+datatype      = keyval('datatype',      varargin);
+dimord        = keyval('dimord',        varargin);
+stype         = keyval('senstype',      varargin); % senstype is a function name which should not be masked
+ismeg         = keyval('ismeg',         varargin);
+inside        = keyval('inside',        varargin); % can be logical or index
+hastrials     = keyval('hastrials',     varargin);
+hasoffset     = keyval('hasoffset',     varargin); if isempty(hasoffset), hasoffset = 'no'; end
+hascumtapcnt  = keyval('hascumtapcnt',  varargin);
+hasdof        = keyval('hasdof',        varargin); if isempty(hasdof), hasdof = 'no'; end
 
 % determine the type of input data
 % this can be raw, freq, timelock, comp, spike, source, volume, dip
@@ -367,11 +367,9 @@ if ~isempty(ismeg)
   end
 
   if ~okflag && isequal(ismeg,'yes')
-    str = sprintf('This function requires MEG data with a ''grad'' field');
-    error(str);
+    error('This function requires MEG data with a ''grad'' field');
   elseif ~okflag && isequal(ismeg,'no')
-    str = sprintf('This function should not be given MEG data with a ''grad'' field');
-    error(str);
+    error('This function should not be given MEG data with a ''grad'' field');
   end % if okflag
 end
 
@@ -414,8 +412,7 @@ if isequal(hastrials,'yes')
   okflag = isfield(data, 'trial');
 
   if ~okflag
-    str = sprintf('This function requires data with a ''trial'' field');
-    error(str);
+    error('This function requires data with a ''trial'' field');
   end % if okflag
 end
 
@@ -442,11 +439,17 @@ elseif isequal(hasoffset,'no') && isfield(data, 'offset')
 end %if hasoffset
 
 if isequal(hascumtapcnt,'yes') && ~isfield(data, 'cumtapcnt')
-  str = sprintf('This function requires data with a ''cumtapcnt'' field');
-  error(str);
+  error('This function requires data with a ''cumtapcnt'' field');
 elseif isequal(hascumtapcnt,'no') && isfield(data, 'cumtapcnt')
   data = rmfield(data, 'cumtapcnt');
 end %if hascumtapcnt
+
+if isequal(hasdof,'yes') && ~isfield(data, 'cumtapcnt')
+  error('This function requires data with a ''cumtapcnt'' field');
+elseif isequal(hasdof,'no') && isfield(data, 'cumtapcnt')
+  data = rmfield(data, 'cumtapcnt');
+end %if hasdof
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
