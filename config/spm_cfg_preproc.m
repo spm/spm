@@ -4,9 +4,9 @@ function preproc = spm_cfg_preproc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_preproc.m 1958 2008-07-25 13:56:06Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 1958 $';
 % ---------------------------------------------------------------------
 % data Data
 % ---------------------------------------------------------------------
@@ -316,24 +316,16 @@ opts  = job.output;
 sopts = [opts.GM;opts.WM;opts.CSF];
 
 cdep(1)            = cfg_dep;
-cdep(1).sname      = sprintf('Norm Params Subj->MNI',i);
+cdep(1).sname      = 'Norm Params Subj->MNI';
 cdep(1).src_output = substruct('()',{1}, '.','snfile','()',{':'});
 cdep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 cdep(2)            = cfg_dep;
-cdep(2).sname      = sprintf('Norm Params MNI->Subj',i);
+cdep(2).sname      = 'Norm Params MNI->Subj';
 cdep(2).src_output = substruct('()',{1}, '.','isnfile','()',{':'});
 cdep(2).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
-cdep(3)            = cfg_dep;
-%cdep(3).sname      = sprintf('Norm Params Struct Subj->MNI (Subj %d)',i);
-%cdep(3).src_output = substruct('()',{1}, '.','sn');
-%cdep(3).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
-%cdep(4)            = cfg_dep;
-%cdep(4).sname      = sprintf('Norm Params Struct MNI->Subj (Subj %d)',i);
-%cdep(4).src_output = substruct('()',{1}, '.','isn');
-%cdep(4).tgt_spec   = cfg_findspec({{'class','cfg_entry'},{'strtype','e'}});
 if opts.biascor,
     cdep(end+1)          = cfg_dep;
-    cdep(end).sname      = sprintf('Bias Corr Images');
+    cdep(end).sname      = 'Bias Corr Images';
     cdep(end).src_output = substruct('()',{1}, '.','biascorr','()',{':'});
     cdep(end).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end;
