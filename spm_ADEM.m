@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: spm_ADEM.m 1961 2008-07-26 09:38:46Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -164,8 +164,9 @@ na   = ga;
  
 % number of iterations
 %--------------------------------------------------------------------------
+try nE = M(1).E.nE; catch nE = 16; end
 try nM = M(1).E.nM; catch nM = 8;  end
-try nN = M(1).E.nN; catch nN = 16; end
+
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
@@ -214,6 +215,7 @@ nh    = length(Q);                         % number of hyperparameters
 %--------------------------------------------------------------------------
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(0));
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-4));
+Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-4));
 Pu    = spm_cat(diag({Px Pv}));
  
 % hyperpriors
@@ -310,7 +312,7 @@ dWdpp = sparse(np,np);
  
 % preclude unnecessary iterations
 %--------------------------------------------------------------------------
-if ~np && ~nh, nN = 1; end
+if ~np, nE = 1; end
  
  
 % create innovations (and add causes)
@@ -323,7 +325,7 @@ W      = spm_cat(w(:));
 % Iterate DEM
 %==========================================================================
 Fm     = -exp(64);
-for iN = 1:nN
+for iE = 1:nE
  
     % E-Step: (with embedded D-Step)
     %======================================================================
@@ -440,18 +442,19 @@ for iN = 1:nN
         
         % first-order derivatives
         %------------------------------------------------------------------
-        dVdu  = -dE.du'*iS*E - dWdu/2 - Pu*spm_vec({qu.x{1:n} qu.v{1:d}});
-        dVda  = -dE.da'*iS*E;
+        dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} qu.v{1:d}}) - dWdu/2;
+        dVda  = -dE.da'*iS*E - Pa*spm_vec( qu.a{1:1});
         
         % and second-order derivatives
         %------------------------------------------------------------------
-        dVduu = -dE.du'*iS*dE.du - dWduu/2 - Pu;
+        dVduu = -dE.du'*iS*dE.du - Pu - dWduu/2 ;
+        dVdaa = -dE.da'*iS*dE.da - Pa;
         dVduv = -dE.du'*iS*dE.dv;
         dVduc = -dE.du'*iS*dE.dc;
         dVdua = -dE.du'*iS*dE.da;
         dVdau = -dE.da'*iS*dE.du;
         dVdac = -dE.da'*iS*dE.dc;
-        dVdaa = -dE.da'*iS*dE.da;
+        
 
         
  
@@ -466,7 +469,7 @@ for iN = 1:nN
         
         % gradient
         %------------------------------------------------------------------
-        Ka    = 2/normest(dVdaa);
+        Ka    = 2/normest(dVdaa + speye(na)*exp(-16));
         Ku    = 1;
         dFdu  = [                                    Dp*spm_vec(p); 
                  spm_vec({Ku*dVdu; dVdc; Ka*dVda}) + Dq*spm_vec(q)];
@@ -612,7 +615,7 @@ for iN = 1:nN
     if L > (Fm + 1e-2)
  
         Fm    = L;
-        F(iN) = Fm;
+        F(iE) = Fm;
  
         % save model-states (for each time point)
         %==================================================================
@@ -688,7 +691,7 @@ for iN = 1:nN
  
         % report (EM-Steps)
         %------------------------------------------------------------------
-        str{1} = sprintf('DEM: %i (%i)',iN,iM);
+        str{1} = sprintf('DEM: %i (%i)',iE,iM);
         str{2} = sprintf('F:%.6e',full(Fm));
         str{3} = sprintf('p:%.2e',full(dp'*dp));
         str{4} = sprintf('h:%.2e',full(mh'*mh));

@@ -49,7 +49,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: spm_ADEM_M_set.m 1961 2008-07-26 09:38:46Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ for i = (g - 1):-1:1
     try
         f       = feval(M(i).f,x,v,a,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
-            errordlg('please check: M(%i).f(x,v,a,P)',i);
+            errordlg('please check nargout: M(%i).f(x,v,a,P)',i);
         end
     catch
         errordlg(sprintf('evaluation failure: M(%i).f(x,v,a,P)',i))
