@@ -53,13 +53,13 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 1162 2008-02-22 12:21:33Z karl $
+% $Id: spm_int.m 1959 2008-07-26 09:31:58Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U), U.u = U; end
-try, dt = U.dt; catch, dt = 1; end
+if ~isstruct(U), u.u = U; U = u; end
+try, dt = U.dt; catch, U.dt = 1; end
 
 
 % get expansion point

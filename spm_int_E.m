@@ -58,12 +58,13 @@ function [y] = spm_int_E(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_E.m 1188 2008-03-05 17:14:43Z karl $
+% $Id: spm_int_E.m 1959 2008-07-26 09:31:58Z karl $
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U)
-    U.u = U;
+    u.u = U;
+    U   = u;
 end
 try
     dt = U.dt;
