@@ -5,7 +5,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1912 2008-07-11 18:02:03Z guillaume $
+% $Id: spm_mvb_ui.m 1960 2008-07-26 09:33:47Z karl $
 
 
 %-Get figure handles and set title
@@ -112,8 +112,8 @@ V   = SPM.xVi.V;
 % invert
 %==========================================================================
 U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
-str    = 'Greedy search steps';
-Ni   = spm_input(str,'!+1','i',max(8,ceil(log(size(U,2))/log(1/sg))));
+str      = 'Greedy search steps';
+Ni       = spm_input(str,'!+1','i',max(8,ceil(log(size(U,2))/log(1/sg))));
 M        = spm_mvb(X,Y,X0,U,V,Ni,sg);
 M.priors = priors;
 
@@ -127,8 +127,8 @@ MVB.X        = X;
 MVB.Y        = Y;
 MVB.X0       = X0;
 MVB.XYZ      = XYZ;
-MVB.V        = SPM.xVi.V;
-MVB.K        = full(SPM.xVi.V)^(-1/2);
+MVB.V        = V;
+MVB.K        = full(V)^(-1/2);
 MVB.VOX      = xSPM.M;
 MVB.xyzmm    = xyzmm;
 MVB.Space    = SPACE;

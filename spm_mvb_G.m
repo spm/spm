@@ -23,7 +23,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 1227 2008-03-18 16:16:36Z christophe $
+% $Id: spm_mvb_G.m 1960 2008-07-26 09:33:47Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ try, V; catch,  V  = speye(Nx);   end
 % null space of confounds
 %--------------------------------------------------------------------------
 X0    = full(X0);
-R     = orth(speye(size(X0,1)) - X0*pinv(X0));
+R     = spm_svd(speye(size(X0,1)) - X0*pinv(X0));
 L     = R'*L;
 X     = R'*X;
 Nx    = size(X,1);

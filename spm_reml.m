@@ -33,7 +33,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_reml.m 1960 2008-07-26 09:33:47Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -56,23 +56,19 @@ end
 %--------------------------------------------------------------------------
 n     = length(Q{1});
 m     = length(Q);
-h     = zeros(m,1);
-dh    = zeros(m,1);
-dFdh  = zeros(m,1);
-dFdhh = zeros(m,m);
- 
+
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
     X = sparse(n,0);
 else
-    X = orth(full(X(q,:)));
+    X = spm_svd(X(q,:));
 end
  
 % initialise and specify hyperpriors
 %==========================================================================
 for i = 1:m
-    h(i) = any(diag(Q{i}));
+    h(i,1) = any(diag(Q{i}));
 end
 hE  = sparse(m,1);
 hP  = speye(m,m)/exp(32);
@@ -80,8 +76,6 @@ hP  = speye(m,m)/exp(32);
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------
-dF    = Inf;
-t     = 2;
 for k = 1:K
  
     % compute current estimate of covariance
@@ -95,7 +89,7 @@ for k = 1:K
     % E-step: conditional covariance cov(B|y) {Cq}
     %======================================================================
     iCX    = iC*X;
-    if length(X)
+    if ~isempty(X)
         Cq = inv(X'*iCX);
     else
         Cq = sparse(0);
@@ -112,8 +106,8 @@ for k = 1:K
  
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
-        PQ{i}   = P*Q{i};
-        dFdh(i) = -trace(PQ{i}*U)*N/2;
+        PQ{i}     = P*Q{i};
+        dFdh(i,1) = -sum(sum(PQ{i}'.*U))*N/2;
  
     end
  
@@ -124,7 +118,7 @@ for k = 1:K
  
             % dF/dhh = -trace{P*Q{i}*P*Q{j}}
             %--------------------------------------------------------------
-            dFdhh(i,j) = -trace(PQ{i}*PQ{j})*N/2;
+            dFdhh(i,j) = -sum(sum(PQ{i}'.*PQ{j}))*N/2;
             dFdhh(j,i) =  dFdhh(i,j);
  
         end
