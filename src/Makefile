@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1800 2008-06-09 18:56:42Z guillaume $
+# $Id: Makefile 1963 2008-07-28 15:57:42Z guillaume $
 #
 ###############################################################################
 #
@@ -376,6 +376,13 @@ verb.mexmaci:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ echo "        Unix compilation (MacOS X, Intel) - using $(CC)"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+
+verb.mexmaci64:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        Unix compilation (MacOS X, Intel 64 bit) - using $(CC)"
 	@ echo "_____________________________________________________________"
 	@ echo ""
 

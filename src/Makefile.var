@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 1745 2008-05-28 14:18:33Z guillaume $
+# $Id: Makefile.var 1963 2008-07-28 15:57:42Z guillaume $
 #
 ###############################################################################
 #
@@ -76,16 +76,22 @@ ifndef SUF
   endif
   ##### MacOS #####
   ifeq (Darwin,$(PLATFORM))
-    HARDWARE   = $(shell $(UNAME) -p)
+    HARDWARE    = $(shell $(UNAME) -p)
     ifeq (i386,$(HARDWARE))
-       SUF     = mexmaci
-       CFLAGS  = -O3 
-       MEXOPTS = -O
+      ifeq (1,$(MACI64))
+        SUF     = mexmaci64
+        CFLAGS  = -O3 -funroll-loops -fPIC -m64
+        MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fPIC -m64'
+      else
+        SUF     = mexmaci
+        CFLAGS  = -O3 
+        MEXOPTS = -O
+      endif
     endif
     ifeq (powerpc,$(HARDWARE))
-       SUF     = mexmac
-       CFLAGS  = -O3 -DSPM_BIGENDIAN
-       MEXOPTS = -O -DSPM_BIGENDIAN
+      SUF       = mexmac
+      CFLAGS    = -O3 -DSPM_BIGENDIAN
+      MEXOPTS   = -O -DSPM_BIGENDIAN
     endif
   endif
   ##### Windows #####
@@ -94,7 +100,7 @@ ifndef SUF
   endif
   ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
     SUF        = mexw32
-    CFLAGS     = -O3 -funroll-loops -fomit-frame-pointer -DSPM_WIN32
+    CFLAGS     = -O3 -funroll-loops -DSPM_WIN32
     MEXBIN     = cmd /c "mex.bat
     MEXOPTS    = -O -DSPM_WIN32
     MEXEND     = "

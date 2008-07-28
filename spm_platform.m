@@ -9,7 +9,6 @@ function varargout=spm_platform(varargin)
 %        - 'filesys' - type of filesystem
 %                      - 'unx' - UNIX
 %                      - 'win' - DOS
-%                      - 'mac' - Macintosh
 %        - 'sepchar' - returns directory separator
 %        - 'user'    - returns username
 %        - 'host'    - returns system's host name
@@ -54,7 +53,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 1826 2008-06-16 13:51:36Z guillaume $
+% $Id: spm_platform.m 1963 2008-07-28 15:57:42Z guillaume $
 
 
 %-Initialise
@@ -148,6 +147,7 @@ PDefs = {'PCWIN',     'win',   0;...
          'PCWIN64',   'win',   0;...
          'MAC',       'unx',   1;...
          'MACI',      'unx',   0;...
+         'MACI64',    'unx',   0;...
          'SOL2',      'unx',   1;...
          'SOL64',     'unx',   1;...
          'GLNX86',    'unx',   0;...
@@ -224,7 +224,7 @@ end
 %-Fonts
 %--------------------------------------------------------------------------
 switch comp
-    case {'MAC','MACI'}
+    case {'MAC','MACI','MACI64'}
         PLATFORM.font.helvetica = 'Helvetica';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';
