@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_group.m 1965 2008-07-28 18:38:57Z vladimir $
 
 
 % check if to proceed
@@ -128,6 +128,8 @@ if strcmp(str,'Yes')
     contrast.display = 0;
     contrast.smooth  = 4;
     
+    str  = {'evoked','induced'};
+    contrast.type = spm_input('Power of the energy or mean energy','+1','b',str,[],1);    
 else
     contrast = [];
 end

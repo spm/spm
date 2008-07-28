@@ -21,7 +21,7 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1628 2008-05-14 09:34:20Z vladimir $
+% $Id: spm_eeg_definetrial.m 1965 2008-07-28 18:38:57Z vladimir $
 
 if nargin == 0
     S = [];
@@ -49,7 +49,7 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
         fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1);
         if ~isempty(fil_ctf_events)
             [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
-            event = cat(1, event, fil_ctf_events);
+            event = cat(1, event(:), fil_ctf_events(:));
         end
     end
 
