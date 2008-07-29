@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1893 2008-07-08 15:05:40Z john $
+% $Id: spm_preproc_write8.m 1966 2008-07-29 15:40:11Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -66,7 +66,7 @@ do_cls   = any(tc(:)) || nargout>1;
 tiss(Kb) = struct('Nt',[]);
 cls      = cell(1,Kb);
 for k1=1:Kb,
-    if tc(k1,4) || any(tc(:,3)) || nargout>=1,
+    if tc(k1,4) || any(tc(:,3)) || tc(k1,2) || nargout>=1,
         cls{k1} = zeros(d(1:3),'uint8');
         do_cls  = true;
     end
@@ -109,7 +109,7 @@ if do_defs,
         Ndef.descrip = 'Inverse Deformation';
         create(Ndef);
     end
-    if df(1) || any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
+    if df(1) || any(any(tc(:,[2,3,4]))) || nargout>=1,
         y = zeros([res.image(1).dim(1:3),3],'single');
     end
 end
@@ -182,9 +182,80 @@ for z=1:length(x3),
     spm_progress_bar('set',z);
 end
 spm_progress_bar('clear');
-    
 
 M0 = res.image(1).mat;
+
+if any(tc(:,2)),
+
+    bb = nan(2,3);
+    vx = 1.5;
+    % Sort out bounding box etc
+    [bb1,vx1]         = bbvox_from_V(tpm.V(1));
+    bb(~isfinite(bb)) = bb1(~isfinite(bb));
+    if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
+    bb(1,:) = vx*ceil(bb(1,:)/vx);
+    bb(2,:) = vx*floor(bb(2,:)/vx);
+
+    % Figure out the mapping from the volumes to create to the original
+    mm = [[
+        bb(1,1) bb(1,2) bb(1,3)
+        bb(2,1) bb(1,2) bb(1,3)
+        bb(1,1) bb(2,2) bb(1,3)
+        bb(2,1) bb(2,2) bb(1,3)
+        bb(1,1) bb(1,2) bb(2,3)
+        bb(2,1) bb(1,2) bb(2,3)
+        bb(1,1) bb(2,2) bb(2,3)
+        bb(2,1) bb(2,2) bb(2,3)]'; ones(1,8)];
+
+    vx2  = tpm.M\mm;
+    odim = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
+    vx1  = [[
+        1       1       1
+        odim(1) 1       1
+        1       odim(2) 1
+        odim(1) odim(2) 1
+        1       1       odim(3)
+        odim(1) 1       odim(3)
+        1       odim(2) odim(3)
+        odim(1) odim(2) odim(3)]'; ones(1,8)];
+
+    x      = affind(rgrid(d),M0);
+    y1     = affind(y,tpm.M);
+    ind    = find(tc(:,2));
+    [M,R]  = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
+    clear x y1
+
+    M      = M0\inv(R)*tpm.M*vx2/vx1;
+    mat0   =    inv(R)*tpm.M*vx2/vx1;
+    mat    = mm/vx1;
+
+    fwhm = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);
+    for k1=1:size(tc,1),
+        if tc(k1,2),
+            tmp1     = decimate(single(cls{k1}),fwhm);
+            [pth,nam,ext1]=fileparts(res.image(1).fname);
+            VT      = struct('fname',fullfile(pth,['rc', num2str(k1), nam, '.nii']),...
+                'dim',  odim,...
+                'dt',   [spm_type('float32') spm_platform('bigend')],...
+                'pinfo',[1.0 0]',...
+                'mat',mat);
+            VT = spm_create_vol(VT);
+
+            Ni             = nifti(VT.fname);
+            Ni.mat0        = mat0;
+            Ni.mat_intent  = 'Aligned';
+            Ni.mat0_intent = 'Aligned';
+            create(Ni);
+
+            for i=1:odim(3),
+                tmp = spm_slice_vol(tmp1,M*spm_matrix([0 0 i]),odim(1:2),[1,NaN])/255;
+                VT  = spm_write_plane(VT,tmp,i);
+            end
+            clear tmp1
+        end
+    end
+end
+
 
 d1 = size(tpm.dat{1}); d1 = d1(1:3);
 M1 = tpm.M;
@@ -310,5 +381,44 @@ for k=1:K,
     d      = cr - repmat(mn(:,k)',M,1);
     p(:,k) = amp * exp(-0.5* sum(d.*(d/vr(:,:,k)),2));
 end
+%=======================================================================
+
+%=======================================================================
+function dat = decimate(dat,fwhm)
+% Convolve the volume in memory (fwhm in voxels).
+lim = ceil(2*fwhm);
+x  = -lim(1):lim(1); x = spm_smoothkern(fwhm(1),x); x  = x/sum(x);
+y  = -lim(2):lim(2); y = spm_smoothkern(fwhm(2),y); y  = y/sum(y);
+z  = -lim(3):lim(3); z = spm_smoothkern(fwhm(3),z); z  = z/sum(z);
+i  = (length(x) - 1)/2;
+j  = (length(y) - 1)/2;
+k  = (length(z) - 1)/2;
+spm_conv_vol(dat,dat,x,y,z,-[i j k]);
+return;
+%=======================================================================
+
+%=======================================================================
+function [bb,vx] = bbvox_from_V(V)
+vx = sqrt(sum(V(1).mat(1:3,1:3).^2));
+if det(V(1).mat(1:3,1:3))<0, vx(1) = -vx(1); end;
+
+o  = V(1).mat\[0 0 0 1]';
+o  = o(1:3)';
+bb = [-vx.*(o-1) ; vx.*(V(1).dim(1:3)-o)];
+return;
+%=======================================================================
+
+%=======================================================================
+function y1 = affind(y0,M)
+y1 = zeros(size(y0),'single');
+for d=1:3,
+    y1(:,:,:,d) = y0(:,:,:,1)*M(d,1) + y0(:,:,:,2)*M(d,2) + y0(:,:,:,3)*M(d,3) + M(d,4);
+end
+%=======================================================================
+
+%=======================================================================
+function x = rgrid(d)
+[x1,x2,x3] = ndgrid(1:d(1),1:d(2),1:d(3));
+x = cat(4,single(x1),single(x2),single(x3));
 %=======================================================================
 

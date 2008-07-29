@@ -38,7 +38,7 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affreg.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm_affreg.m 1966 2008-07-29 15:40:11Z john $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
@@ -308,7 +308,7 @@ for iter=1:256,
 
     if flags.debug,
         fprintf('%d\t%g\n', iter, ss/n);
-        piccies(VF,VG,M,scal,b)
+        piccies(VF,VG,M,scal)
     end;
 
     % If cost function stops decreasing, then re-estimate smoothness
@@ -524,7 +524,7 @@ error('insufficient image overlap')
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function piccies(VF,VG,M,scal,b)
+function piccies(VF,VG,M,scal)
 % This is for debugging purposes.
 % It shows the linear combination of template images, the affine
 % transformed source image, the residual image and a histogram of the
@@ -542,7 +542,7 @@ u  = spm_slice_vol(VF(1),M*Mt,VG(1).dim(1:2),1);
 subplot(2,2,1);imagesc(t');axis image xy off
 subplot(2,2,2);imagesc(u');axis image xy off
 subplot(2,2,3);imagesc(u'-t');axis image xy off
-subplot(2,2,4);hist(b,50); % Entropy of residuals may be a nice cost function?
+%subplot(2,2,4);hist(b,50); % Entropy of residuals may be a nice cost function?
 drawnow;
 return;
 %_______________________________________________________________________
