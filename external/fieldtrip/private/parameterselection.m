@@ -11,9 +11,12 @@ function [select] = parameterselection(param, data);
 %   data     structure with anatomical or functional data
 %   select   returns the selected parameters as a cell-array
 
-% Copyright (C) 2005, Robert oostenveld
+% Copyright (C) 2005-2008, Robert oostenveld
 %
 % $Log: parameterselection.m,v $
+% Revision 1.14  2008/07/30 07:41:39  roboos
+% also detect parameters in source.trial
+%
 % Revision 1.13  2008/07/25 09:05:02  roboos
 % not only check the parameter dimensions against source.dim, but optionally also against source.pos (required if it is an irregular grid)
 %
@@ -71,6 +74,14 @@ if ~isempty(sel)
     tmp = fieldnames(data.avg);
     for i=1:length(tmp)
       tmp{i} = ['avg.' tmp{i}];
+    end
+    allparam = cat(1, allparam, tmp);
+  end
+  % fields can be nested in source.trial
+  if isfield(data, 'trial')
+    tmp = fieldnames(data.trial);
+    for i=1:length(tmp)
+      tmp{i} = ['trial.' tmp{i}];
     end
     allparam = cat(1, allparam, tmp);
   end

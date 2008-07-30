@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.26  2008/07/30 07:41:10  roboos
+% when reshaping source parameters, also loop over source.trial(...) structure array and not only source.avg
+%
 % Revision 1.25  2008/07/25 12:52:44  roboos
 % fixed bug, hasdof would remove cumtapcnt (thanks to Jurrian)
 %
@@ -407,9 +410,24 @@ if issource
   param = parameterselection('all', data);
   dim   = [size(data.pos, 1) 1];
   for i=1:length(param)
-    tmp  = getsubfield(data, param{i});
-    tmp  = reshape(tmp, dim);
-    data = setsubfield(data, param{i}, tmp);
+    if any(param{i}=='.')
+      % the parameter is nested in a substructure, which can have multiple elements (e.g. source.trial(1).pow, source.trial(2).pow, ...)
+      % loop over the substructure array and reshape for every element
+      tok  = tokenize(param{i}, '.');
+      sub1 = tok{1};  % i.e. this would be 'trial'
+      sub2 = tok{2};  % i.e. this would be 'pow'
+      tmp1 = getfield(data, sub1);
+      for j=1:numel(tmp1)
+        tmp2 = getfield(tmp1(j), sub2);
+        tmp2 = reshape(tmp2, dim);
+        tmp1(j) = setfield(tmp1(j), sub2, tmp2);
+      end
+      data = setfield(data, sub1, tmp1);
+    else
+      tmp  = getfield(data, param{i});
+      tmp  = reshape(tmp, dim);
+      data = setfield(data, param{i}, tmp);
+    end
   end
 end
 

@@ -41,6 +41,9 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.16  2008/07/30 07:43:40  roboos
+% determine max sample number correctly, also if trials are ordered differently, i.e. trl(end,:) does not have to be the last one in the recording
+%
 % Revision 1.15  2008/06/25 06:37:57  roboos
 % change in whitespace
 %
@@ -228,8 +231,8 @@ elseif ~isempty(cfg.trl)
 
   numtrlold    = size(trlold,1);
   numtrlnew    = size(   trl,1);
-  maxsampleold = max(trlold(end,:));
-  maxsamplenew = max(   trl(end,:));
+  maxsampleold = max(trlold(:,2));
+  maxsamplenew = max(   trl(:,1));
 
   % these are for bookkeeping
   count     = zeros(1, maxsampleold);
@@ -321,7 +324,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.15 2008/06/25 06:37:57 roboos Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.16 2008/07/30 07:43:40 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

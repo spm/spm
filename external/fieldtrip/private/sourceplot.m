@@ -113,9 +113,12 @@ function [cfg] = sourceplot(cfg, data)
 %   surface also optimal when inside present
 %   anamask possibilities
 
-% Copyright (C) 2007, Robert Oostenveld
+% Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: sourceplot.m,v $
+% Revision 1.54  2008/07/30 07:44:14  roboos
+% changed some whitespace and comments
+%
 % Revision 1.53  2008/07/22 09:33:01  roboos
 % added cfg.renderer option
 %

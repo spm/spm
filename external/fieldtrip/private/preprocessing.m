@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.97  2008/07/30 07:44:14  roboos
+% changed some whitespace and comments
+%
 % Revision 1.96  2008/07/21 20:10:05  roboos
 % added explicit error in case trialdef is present without cfg.trl
 %
@@ -393,9 +396,6 @@ if nargin>1
   end % for all trials
   progress('close');
 
-  % remember the configuration details of the input data
-  if isfield(data, 'cfg'); cfg.previous = data.cfg; end
-  
   % update the trial definition (trl) in case of trial selection
   if ~strcmp(cfg.trials, 'all')
     % try to locate the trl in the nested configuration
@@ -412,6 +412,9 @@ if nargin>1
       cfg.trl=trl(cfg.trials,:);
     end
   end
+  
+  % remember the configuration details of the input data
+  if isfield(data, 'cfg'); cfg.previous = data.cfg; end
   
   % take along relevant fields of input data to output data
   if isfield(data, 'hdr');      dataout.hdr     = data.hdr;         end
@@ -612,7 +615,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.96 2008/07/21 20:10:05 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.97 2008/07/30 07:44:14 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
