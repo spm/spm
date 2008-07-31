@@ -120,6 +120,13 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.58  2008/07/31 16:28:34  roboos
+% reshaping the volumes is not needed any more, thanks to checkdata
+%
+% Revision 1.57  2008/07/31 16:27:25  roboos
+% removed grid2transform and removed xgrid etc from source representation
+% let checkdata handle the conversion of any input to a volumetric representation
+%
 % Revision 1.56  2008/07/31 15:44:48  ingnie
 % removed some comments, build in region of interest masking, moved hasatlas part up.
 %
@@ -252,11 +259,8 @@ if isstr(data)
   data = read_fcdc_mri(filename);
 end
 
-% convert the coordinates along the axes (i.e. xgrid/ygrid/zgrid) into a homogenous transformation matrix
-data = grid2transform(data);
-
 % check if the input data is valid for this function
-data = checkdata(data, 'datatype', {'source', 'volume'}, 'feedback', 'yes');
+data = checkdata(data, 'datatype', 'volume', 'feedback', 'yes');
 
 % select the functional and the mask parameter
 cfg.funparameter  = parameterselection(cfg.funparameter, data);
@@ -273,12 +277,6 @@ data = volumedownsample(tmpcfg, data);
 
 %%% make the local variables:
 dim = data.dim;
-
-% put data.xgrid, data.ygrid, data.zgrid in data
-% TODO Question ingnie WHY LIKE THIS? robert: goede vraag...
-data.xgrid = 1:dim(1);
-data.ygrid = 1:dim(2);
-data.zgrid = 1:dim(3);
 
 hasatlas = 0;
 if ~isempty(cfg.atlas)
@@ -508,11 +506,6 @@ if hasmsk
   alphamap(cfg.opacitymap);
 end
 
-%%% ensure that they are all 3D volumes
-if hasana, ana = reshape(ana, dim); end;
-if hasfun, fun = reshape(fun, dim); end;
-if hasmsk, msk = reshape(msk, dim); end;
-
 %%% determine what has to be plotted, depends on method
 if isequal(cfg.method,'ortho')
   if ~isstr(cfg.location)
@@ -560,13 +553,14 @@ if isequal(cfg.method,'ortho')
     [maxval, maxindx] = max(fun(:));
     [xi, yi, zi] = ind2sub(dim, maxindx);
   elseif isstr(loc) && strcmp(loc, 'center')
-    xi = round(length(data.xgrid)/2);
-    yi = round(length(data.ygrid)/2);
-    zi = round(length(data.zgrid)/2);
+    xi = round(dim(1)/2);
+    yi = round(dim(2)/2);
+    zi = round(dim(3)/2);
   elseif ~isstr(loc)
-    xi = nearest(data.xgrid, loc(1));
-    yi = nearest(data.ygrid, loc(2));
-    zi = nearest(data.zgrid, loc(3));
+    % using nearest instead of round ensures that the position remains within the volume
+    xi = nearest(1:dim(1), loc(1));
+    yi = nearest(1:dim(2), loc(2));
+    zi = nearest(1:dim(3), loc(3));
   end
 
   %% do the actual plotting %%
@@ -657,6 +651,7 @@ if isequal(cfg.method,'ortho')
         warning('no colorbar possible without functional data')
       end
     end
+
     drawnow;
 
     if interactive_flag

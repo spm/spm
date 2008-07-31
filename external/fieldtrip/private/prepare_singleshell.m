@@ -17,7 +17,7 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 %                     vertices of the mesh identical to the original headshape points
 %
 % The following options are relevant if you use a segmented MRI
-%   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 'no')
+%   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 5)
 %   cfg.mriunits    = 'mm' or 'cm' (default is 'mm')
 %   cfg.sourceunits = 'mm' or 'cm' (default is 'cm')
 %   cfg.threshold   = 0.5, relative to the maximum value in the segmentation
@@ -32,6 +32,9 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.14  2008/07/31 16:10:33  roboos
+% corrected documentation for default smooth=5
+%
 % Revision 1.13  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -75,7 +78,7 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 %
 
 % set the defaults
-if ~isfield(cfg, 'smooth');        cfg.smooth    = 5;       end % in voxels
+if ~isfield(cfg, 'smooth');        cfg.smooth = 5;          end % in voxels
 if ~isfield(cfg, 'mriunits');      cfg.mriunits = 'mm';     end
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative

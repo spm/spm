@@ -12,7 +12,7 @@ function [stat] = sourcestatistics(cfg, varargin)
 % The configuration should contain the following option for data selection
 %   cfg.parameter  = string, describing the functional data to be processed, e.g. 'pow', 'nai' or 'coh'
 %
-% Furthermore, the configuration should contain
+% Furthermore, the configuration should contain:
 %   cfg.method       = different methods for calculating the probability of the null-hypothesis,
 %                    'montecarlo'    uses a non-parametric randomization test to get a Monte-Carlo estimate of the probability,
 %                    'analytic'      uses a parametric test that results in analytic probability,
@@ -23,6 +23,16 @@ function [stat] = sourcestatistics(cfg, varargin)
 %                    'randcluster'   uses randomization of the data prior to source reconstruction 
 %                                    in combination with spatial clusters.
 %
+% You can restrict the statistical analysis to regions of interest (ROIs)
+% or to the average value inside ROIs using the following options:
+%   cfg.atlas        = filename of the atlas
+%   cfg.roi          = cell-array with labels according to the atlas
+%   cfg.avgoverroi   = 'yes' or 'no' (default = 'no')
+%   cfg.hemisphere   = 'left', 'right', 'both', 'combined', specifying this is
+%                      required when averaging over regions
+%   cfg.inputcoord   = 'mni' or 'tal', the coordinate system in which your source 
+%                      reconstruction is expressed
+%
 % The other cfg options depend on the method that you select. You
 % should read the help of the respective subfunction STATISTICS_XXX
 % for the corresponding configuration options and for a detailed
@@ -32,11 +42,14 @@ function [stat] = sourcestatistics(cfg, varargin)
 % See also SOURCEANALYSIS, SOURCEDESCRIPTIVES, SOURCEGRANDAVERAGE
 
 % Undocumented local options:
-% cfg.statistic
+%   cfg.statistic
 
-% Copyright (C) 2005-2007, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: sourcestatistics.m,v $
+% Revision 1.40  2008/07/31 16:22:52  roboos
+% added documentation pertaining to atlas ROIs and added check on input in case of ROI
+%
 % Revision 1.39  2007/05/30 07:08:08  roboos
 % use checkdata instead of fixinside
 %
@@ -94,7 +107,11 @@ function [stat] = sourcestatistics(cfg, varargin)
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
+  if isfield(cfg, 'roi') && ~isempty(cfg.roi)
+    varargin{i} = checkdata(varargin{i}, 'datatype', 'source', 'feedback', 'no', 'inside', 'index');
+  else
+    varargin{i} = checkdata(varargin{i}, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
+  end
 end
 
 if isfield(cfg, 'method')

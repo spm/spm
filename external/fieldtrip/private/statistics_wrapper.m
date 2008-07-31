@@ -36,6 +36,10 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.46  2008/07/31 16:25:16  roboos
+% added support for the specification of atlas ROIs, masking the data in that region or averaging the data in ROIs (seperate or combined over hemispheres)
+% probably this will not yet fully work for all possible input source reconstruction data
+%
 % Revision 1.45  2008/04/09 14:14:09  roboos
 % only make neighbours if clustering is required
 % better detection of mom for pcc (thanks to Till)
@@ -124,9 +128,11 @@ function [stat] = statistics_wrapper(cfg, varargin);
 if ~isfield(cfg, 'channel'),              cfg.channel = 'all';                     end
 if ~isfield(cfg, 'latency'),              cfg.latency = 'all';                     end
 if ~isfield(cfg, 'frequency'),            cfg.frequency = 'all';                   end
+if ~isfield(cfg, 'roi'),                  cfg.roi = [];                            end
 if ~isfield(cfg, 'avgoverchan'),          cfg.avgoverchan = 'no';                  end
 if ~isfield(cfg, 'avgovertime'),          cfg.avgovertime = 'no';                  end
 if ~isfield(cfg, 'avgoverfreq'),          cfg.avgoverfreq = 'no';                  end
+if ~isfield(cfg, 'avgoverroi'),           cfg.avgoverroi = 'no';                   end
 
 % determine the type of the input and hence the output data
 if ~exist('OCTAVE_VERSION')
@@ -145,9 +151,9 @@ if ~exist('OCTAVE_VERSION')
 else
   % cannot determine the calling function in Octave, try looking at the
   % data instead
-  istimelock = isfield(varargin{1},'time') && ~isfield(varargin{1},'freq') && isfield(varargin{1},'avg');
-  isfreq = isfield(varargin{1},'time') && isfield(varargin{1},'freq');
-  issource = isfield(varargin{1},'pos') || isfield(varargin{1},'transform');
+  istimelock  = isfield(varargin{1},'time') && ~isfield(varargin{1},'freq') && isfield(varargin{1},'avg');
+  isfreq      = isfield(varargin{1},'time') && isfield(varargin{1},'freq');
+  issource    = isfield(varargin{1},'pos') || isfield(varargin{1},'transform');
 end
 
 if (istimelock+isfreq+issource)~=1
@@ -163,7 +169,7 @@ end
 
 % this is not backward compatible
 if isfield(cfg, 'transform') && ~isempty(cfg.transform)
-  error('cfg.transform is not supported adny more, you should transform your data manually')
+  error('cfg.transform is not supported any more, you should transform your data manually')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -188,6 +194,71 @@ if issource
   Nsource = length(varargin);
   Nvoxel  = length(varargin{1}.inside) + length(varargin{1}.outside);
 
+  if ~isempty(cfg.roi)
+    if ischar(cfg.roi)
+      cfg.roi = {cfg.roi};
+    end
+    % the source representation should specify the position of each voxel in MNI coordinates
+    x = varargin{1}.pos(:,1);  % this is from left (negative) to right (positive)
+    % determine the mask to restrict the subsequent analysis
+    atlas = atlas_init(cfg.atlas);
+    % process each of the ROIs, and optionally also left and/or right seperately
+    roimask  = {};
+    roilabel = {};
+    for i=1:length(cfg.roi)
+      tmp = atlas_mask(atlas, varargin{1}, cfg.roi{i}, 'inputcoord', cfg.inputcoord);
+      
+      if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
+        % no reason to deal with seperated left/right hemispheres
+        cfg.hemisphere = 'combined';
+      end
+      
+      if     strcmp(cfg.hemisphere, 'left')
+        tmp(x>=0)    = 0;  % exclude the right hemisphere
+        roimask{end+1}  = tmp;
+        roilabel{end+1} = ['Left '  cfg.roi{i}];
+
+      elseif strcmp(cfg.hemisphere, 'right')
+        tmp(x<=0)    = 0;  % exclude the right hemisphere
+        roimask{end+1}  = tmp;
+        roilabel{end+1} = ['Right ' cfg.roi{i}];
+
+      elseif strcmp(cfg.hemisphere, 'both')
+        % deal seperately with the voxels on the left and right side of the brain
+        tmpL = tmp; tmpL(x>=0) = 0;  % exclude the right hemisphere
+        tmpR = tmp; tmpR(x<=0) = 0;  % exclude the left hemisphere
+        roimask{end+1}  = tmpL;
+        roimask{end+1}  = tmpR;
+        roilabel{end+1} = ['Left '  cfg.roi{i}];
+        roilabel{end+1} = ['Right ' cfg.roi{i}];
+        clear tmpL tmpR
+        
+      elseif strcmp(cfg.hemisphere, 'combined')
+        % all voxels of the ROI can be combined
+        roimask{end+1}  = tmp;
+        roilabel{end+1} = cfg.roi{i};
+      
+      else
+        error('incorrect specification of cfg.hemisphere');
+      end
+      clear tmp
+    end % for each roi
+
+    % note that avgoverroi=yes is implemented differently at a later stage
+    if strcmp(cfg.avgoverroi, 'no')
+      for i=2:length(roimask)
+        % combine them all in the first mask
+        roimask{1} = roimask{1} | roimask{i};
+      end
+      roimask = roimask{1};  % only keep the combined mask
+      % the source representation should have an inside and outside vector containing indices
+      sel = find(~roimask);
+      varargin{1}.inside  = setdiff(varargin{1}.inside, sel);
+      varargin{1}.outside = union(varargin{1}.outside, sel);
+      clear roimask roilabel
+    end % if avgoverroi=no
+  end
+
   % get the source parameter on which the statistic should be evaluated
   if strcmp(cfg.parameter, 'mom') && isfield(varargin{1}, 'avg') && isfield(varargin{1}.avg, 'csdlabel') && isfield(varargin{1}, 'cumtapcnt')
     [dat, cfg] = get_source_pcc_mom(cfg, varargin{:});
@@ -199,7 +270,23 @@ if issource
     [dat, cfg] = get_source_avg(cfg, varargin{:});
   end
   cfg.dimord = 'voxel';
- 
+  
+  % note that avgoverroi=no is implemented differently at an earlier stage
+  if strcmp(cfg.avgoverroi, 'yes')
+    tmp = zeros(length(roimask), size(dat,2));
+    for i=1:length(roimask)
+      % the data only reflects those points that are inside the brain,
+      % the atlas-based mask reflects points inside and outside the brain
+      roi = roimask{i}(varargin{1}.inside);
+      tmp(i,:) = mean(dat(roi,:), 1);
+    end
+    % replace the original data with the average over each ROI
+    dat = tmp;
+    clear tmp roi roimask
+    % remember the ROIs
+    cfg.dimord = 'roi';
+  end
+
 elseif isfreq || istimelock
   % get the ERF/TFR data by means of PREPARE_TIMEFREQ_DATA
   cfg.datarepresentation = 'concatenated';
@@ -288,15 +375,21 @@ end
 % add descriptive information to the output and rehape into the input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if issource
-  % remember the definition of the volume, assume that they are identical for all input arguments
-  try, stat.dim       = varargin{1}.dim;        end
-  try, stat.xgrid     = varargin{1}.xgrid;      end
-  try, stat.ygrid     = varargin{1}.ygrid;      end
-  try, stat.zgrid     = varargin{1}.zgrid;      end
-  try, stat.inside    = varargin{1}.inside;     end
-  try, stat.outside   = varargin{1}.outside;    end
-  try, stat.pos       = varargin{1}.pos;        end
-  try, stat.transform = varargin{1}.transform;  end
+  if ~isempty(cfg.roi) && strcmp(cfg.avgoverroi, 'no')
+    % remember the definition of the volume, assume that they are identical for all input arguments
+    try, stat.dim       = varargin{1}.dim;        end
+    try, stat.xgrid     = varargin{1}.xgrid;      end
+    try, stat.ygrid     = varargin{1}.ygrid;      end
+    try, stat.zgrid     = varargin{1}.zgrid;      end
+    try, stat.inside    = varargin{1}.inside;     end
+    try, stat.outside   = varargin{1}.outside;    end
+    try, stat.pos       = varargin{1}.pos;        end
+    try, stat.transform = varargin{1}.transform;  end
+  else
+    stat.inside  = 1:length(roilabel);
+    stat.outside = [];
+    stat.label   = roilabel(:);
+  end
   for i=1:length(statfield)
     tmp = getsubfield(stat, statfield{i});
     if isfield(varargin{1}, 'inside') && prod(size(tmp))==length(varargin{1}.inside)
@@ -370,7 +463,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.45 2008/04/09 14:14:09 roboos Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.46 2008/07/31 16:25:16 roboos Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
