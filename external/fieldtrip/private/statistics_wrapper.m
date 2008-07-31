@@ -36,6 +36,9 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.47  2008/07/31 20:26:39  roboos
+% fixed bug in roi/roilabel (thanks to Ingrid)
+%
 % Revision 1.46  2008/07/31 16:25:16  roboos
 % added support for the specification of atlas ROIs, masking the data in that region or averaging the data in ROIs (seperate or combined over hemispheres)
 % probably this will not yet fully work for all possible input source reconstruction data
@@ -375,7 +378,7 @@ end
 % add descriptive information to the output and rehape into the input format
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if issource
-  if ~isempty(cfg.roi) && strcmp(cfg.avgoverroi, 'no')
+  if isempty(cfg.roi) || strcmp(cfg.avgoverroi, 'no')
     % remember the definition of the volume, assume that they are identical for all input arguments
     try, stat.dim       = varargin{1}.dim;        end
     try, stat.xgrid     = varargin{1}.xgrid;      end
@@ -463,7 +466,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.46 2008/07/31 16:25:16 roboos Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.47 2008/07/31 20:26:39 roboos Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
