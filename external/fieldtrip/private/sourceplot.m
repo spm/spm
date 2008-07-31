@@ -30,6 +30,8 @@ function [cfg] = sourceplot(cfg, data)
 %
 % The following parameters can be used in all methods:
 %   cfg.downsample    = downsampling for resolution reduction, integer value (default = 1) (orig: from surface)
+%   cfg.atlas         = string, filename of atlas to use (default = []) SEE ATLAS_INIT
+%                        for ROI masking (see "masking" below) or in interactive mode (see "ortho-plotting" below)
 %
 % The following parameters can be used for the functional data:
 %   cfg.funcolormap   = colormap for functional data, see COLORMAP (default = 'auto')
@@ -62,6 +64,8 @@ function [cfg] = sourceplot(cfg, data)
 %                        'minzero', from min(abs(maskparameter)) to 0
 %                        'auto', if maskparameter values are all positive: 'zeromax',
 %                          all negative: 'minzero', both possitive and negative: 'maxabs'
+%   cfg.roi           = string or cell of strings, region(s) of interest from anatomical atlas (see cfg.atlas above)
+%                        everything is masked except for ROI
 %
 % The folowing parameters apply for ortho-plotting
 %   cfg.location      = location of cut, (default = 'auto')
@@ -75,9 +79,10 @@ function [cfg] = sourceplot(cfg, data)
 %   cfg.crosshair     = 'yes' or 'no' (default = 'yes')
 %   cfg.axis          = 'on' or 'off' (default = 'on')
 %   cfg.interactive   = 'yes' or 'no' (default = 'no')
-%                        in interactive mode cusor click determines location of cut
-%   cfg.TTlookup      = 'yes' or 'no' (default)
-%   cfg.TTqueryrange  = number (default 3)
+%                        in interactive mode cursor click determines location of cut
+%   cfg.queryrange    = number, in atlas voxels (default 3)
+%   cfg.inputcoord    = 'mni' or 'tal', coordinate system of data (default = [])
+%                        used to lookup the label from the atlas
 %
 % The folowing parameters apply for slice-plotting
 %   cfg.nslices       = number of slices, (default = 20)
@@ -113,9 +118,12 @@ function [cfg] = sourceplot(cfg, data)
 %   surface also optimal when inside present
 %   anamask possibilities
 
-% Copyright (C) 2007-2008, Robert Oostenveld
+% Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.55  2008/07/31 12:03:16  ingnie
+% removed some comments in code, changed from using TTatlas_* to atlas_* therefor also WFU atlasses possible in interactive mode.
+%
 % Revision 1.54  2008/07/30 07:44:14  roboos
 % changed some whitespace and comments
 %
@@ -167,34 +175,36 @@ function [cfg] = sourceplot(cfg, data)
 % Whole new implementation; combining sliceinterp, surfaceplot and sourceplot_old
 %
 
-%% checkdata see below!!! %%
+%%% checkdata see below!!! %%%
 
 % set the common defaults
-if ~isfield(cfg, 'method'),              cfg.method = 'ortho';              end %added ingnie
+if ~isfield(cfg, 'method'),              cfg.method = 'ortho';              end 
 if ~isfield(cfg, 'anaparameter'),
   if isfield(data, 'anatomy'),
     cfg.anaparameter = 'anatomy';
   else
     cfg.anaparameter = [];
   end
-end % added ingnie
+end 
 
 % all methods
 if ~isfield(cfg, 'funparameter'),        cfg.funparameter = [];             end
 if ~isfield(cfg, 'maskparameter'),       cfg.maskparameter = [];            end
 if ~isfield(cfg, 'downsample'),          cfg.downsample = 1;                end
 if ~isfield(cfg, 'title'),               cfg.title = '';                    end
-if ~isfield(cfg, 'marker'),              cfg.marker = [];                   end
-if ~isfield(cfg, 'markersize'),          cfg.markersize = 5;                end
+if ~isfield(cfg, 'atlas'),               cfg.atlas = [];                    end
+if ~isfield(cfg, 'marker'),              cfg.marker = [];                   end %TODO implement marker
+if ~isfield(cfg, 'markersize'),          cfg.markersize = 5;                end 
 if ~isfield(cfg, 'markercolor'),         cfg.markercolor = [1,1,1];         end
 
 % set the common defaults for the functional data
-if ~isfield(cfg, 'funcolormap'),         cfg.funcolormap = 'auto';          end  % was cfg.colormap
-if ~isfield(cfg, 'funcolorlim'),         cfg.funcolorlim = 'auto';          end; % was min max iso range
+if ~isfield(cfg, 'funcolormap'),         cfg.funcolormap = 'auto';          end  
+if ~isfield(cfg, 'funcolorlim'),         cfg.funcolorlim = 'auto';          end; 
 
 % set the common defaults for the statistical data
-if ~isfield(cfg, 'opacitymap'),         cfg.opacitymap = 'auto';            end; % was maskmap
-if ~isfield(cfg, 'opacitylim'),         cfg.opacitylim = 'auto';            end; % added ingnie, iso whole bunch of other cfg
+if ~isfield(cfg, 'opacitymap'),         cfg.opacitymap = 'auto';            end; 
+if ~isfield(cfg, 'opacitylim'),         cfg.opacitylim = 'auto';            end; 
+if ~isfield(cfg, 'roi'),                cfg.roi = [];                       end;
 
 % set the defaults per method
 % ortho
@@ -202,10 +212,10 @@ if ~isfield(cfg, 'location'),            cfg.location = 'auto';              end
 if ~isfield(cfg, 'locationcoordinates'), cfg.locationcoordinates = 'head';   end
 if ~isfield(cfg, 'crosshair'),           cfg.crosshair = 'yes';              end
 if ~isfield(cfg, 'colorbar'),            cfg.colorbar  = 'yes';              end
-if ~isfield(cfg, 'axis'),                cfg.axis   = 'on';                  end
-if ~isfield(cfg, 'interactive'),         cfg.interactive   = 'no';           end
-if ~isfield(cfg, 'TTlookup'),            cfg.TTlookup = 'no';                end
-if ~isfield(cfg, 'TTqueryrange');        cfg.TTqueryrange = 3;               end
+if ~isfield(cfg, 'axis'),                cfg.axis = 'on';                    end
+if ~isfield(cfg, 'interactive'),         cfg.interactive = 'no';             end
+if ~isfield(cfg, 'queryrange');          cfg.queryrange = 3;                 end
+if ~isfield(cfg, 'inputcoord');          cfg.inputcoord = [];                end
 % slice
 if ~isfield(cfg, 'nslices');            cfg.nslices = 20;                    end
 if ~isfield(cfg, 'slicedim');           cfg.slicedim = 3;                    end
@@ -221,7 +231,10 @@ if ~isfield(cfg, 'camlight'),           cfg.camlight = 'yes';                end
 if ~isfield(cfg, 'renderer'),           cfg.renderer = 'opengl';             end
 
 if isequal(cfg.method,'surface')
-  if ~isfield(cfg, 'projmethod'),         error('specify cfg.projmethod');     end
+  if ~isfield(cfg, 'projmethod'),       error('specify cfg.projmethod');     end
+end
+if isfield(cfg, 'TTlookup'),            
+  error('TTlookup is old; now specify cfg.atlas, see help!');     
 end
 
 % for backward compatibility
@@ -298,7 +311,7 @@ if ~isempty(cfg.funparameter)
     hasfun = 1;
     fun = getsubfield(data, cfg.funparameter);
   else
-    error('cfg.funparameter not found in data'); % added ingnie
+    error('cfg.funparameter not found in data');
   end
 else
   hasfun = 0;
@@ -310,7 +323,7 @@ if hasfun
   funmin = min(fun(:));
   funmax = max(fun(:));
   % smart lims: make from auto other string
-  if isequal(cfg.funcolorlim,'auto') % ingnie included all new scaling options
+  if isequal(cfg.funcolorlim,'auto') 
     if sign(funmin)>-1 && sign(funmax)>-1
       cfg.funcolorlim = 'zeromax';
     elseif sign(funmin)<1 && sign(funmax)<1
@@ -338,10 +351,10 @@ if hasfun
     end
   else
     % limits are numeric
-    fcolmin = cfg.funcolorlim(1); % ingnie changed to lim iso min
+    fcolmin = cfg.funcolorlim(1);
     fcolmax = cfg.funcolorlim(2);
     % smart colormap
-    if isequal(cfg.funcolormap,'auto') % ingnie added smart colormap choice
+    if isequal(cfg.funcolormap,'auto') 
       if sign(fcolmin) == -1 && sign(fcolmax) == 1
         cfg.funcolormap = 'jet';
       else
@@ -354,7 +367,6 @@ if hasfun
     end
   end %if ischar
   clear funmin funmax;
-  % ingnie removed fun scaling, is not done anymore, now colormap is scaled iso data
   % ensure that the functional data is real
   if ~isreal(fun)
     fprintf('taking absolute value of complex data\n');
@@ -376,7 +388,7 @@ if ~isempty(cfg.maskparameter)
       end
     end
   else
-    error('cfg.maskparameter not found in data'); %added ingnie
+    error('cfg.maskparameter not found in data');
   end
 else
   hasmsk = 0;
@@ -435,7 +447,7 @@ if hasmsk
     end
   end % handling opacitylim and opacitymap
   clear mskmin mskmax;
-end % ingnie removed mask scaling, is not done anymore, now opacitymap is scaled iso data
+end 
 
 %% intelligence: make mask to prevent outside fun from being plotted
 if hasfun && isfield(data,'inside') && ~hasmsk
@@ -523,10 +535,13 @@ if isequal(cfg.method,'ortho')
     zi = nearest(data.zgrid, loc(3));
   end
 
-  if strcmp(cfg.TTlookup, 'yes')
-    % initialize the TT atlas
-    fprintf('reading Talairach-Tournoux atlas coordinates and labels\n');
-    tlrc = TTatlas_init;
+  hasatlas = 0;
+  if ~isempty(cfg.atlas)
+    % initialize the atlas
+    hasatlas = 1;
+    [p, f, x] = fileparts(cfg.atlas);
+    fprintf(['reading ', f,' atlas coordinates and labels\n']);
+    atlas = atlas_init(cfg.atlas);
   end
   
   %% do the actual plotting %%
@@ -547,20 +562,25 @@ if isequal(cfg.method,'ortho')
 
     ijk = [xi yi zi 1]';
     xyz = data.transform * ijk;
-    if hasfun
+    if hasfun && ~hasatlas
       val = fun(xi, yi, zi);
       fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3), val);
-    else
+    elseif hasfun && hasatlas
+      val = fun(xi, yi, zi);
+      fprintf('voxel %d, indices [%d %d %d], %s coordinates [%.1f %.1f %.1f], value %f\n', sub2ind(dim, xi, yi, zi), ijk(1:3), cfg.inputcoord, xyz(1:3), val);
+    elseif ~hasfun && ~hasatlas
       fprintf('voxel %d, indices [%d %d %d], location [%.1f %.1f %.1f]\n', sub2ind(dim, xi, yi, zi), ijk(1:3), xyz(1:3));
+    elseif ~hasfun && hasatlas
+      fprintf('voxel %d, indices [%d %d %d], %s coordinates [%.1f %.1f %.1f]\n', sub2ind(dim, xi, yi, zi), ijk(1:3), cfg.inputcoord, xyz(1:3));
     end
 
-    if strcmp(cfg.TTlookup, 'yes')
+    if hasatlas
       % determine the anatomical label of the current position 
-      lab = TTatlas_lookup(tlrc, mni2tal(xyz(1:3)), cfg.TTqueryrange);
+      lab = atlas_lookup(atlas, (xyz(1:3)), 'inputcoord', cfg.inputcoord, 'queryrange', cfg.queryrange);
       if isempty(lab)
-        fprintf('Talairach-Tournoux labels: not found\n');
+        fprintf([f,' labels: not found\n']);
       else
-        fprintf('Talairach-Tournoux labels: ')
+        fprintf([f,' labels: '])
         fprintf('%s', lab{1});
         for i=2:length(lab)
           fprintf(', %s', lab{i});
@@ -569,7 +589,7 @@ if isequal(cfg.method,'ortho')
       end
     end
 
-    % make vols and scales, containes volumes to be plotted (fun, ana, msk) %added ingnie
+    % make vols and scales, containes volumes to be plotted (fun, ana, msk)
     vols = {};
     if hasana; vols{1} = ana; scales{1} = []; end; % needed when only plotting ana
     if hasfun; vols{2} = fun; scales{2} = [fcolmin fcolmax]; end;
@@ -577,7 +597,7 @@ if isequal(cfg.method,'ortho')
 
     if isempty(vols)
       % this seems to be a problem that people often have
-      error('no anatomy is present and no funcctional data is selected, please check your cfg.funparameter');
+      error('no anatomy is present and no functional data is selected, please check your cfg.funparameter');
     end
 
     subplot(2,2,1);
