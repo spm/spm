@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.43  2008/07/31 15:57:16  roboos
+% prevent basedongrid if xgrid=auto
+%
 % Revision 1.42  2008/07/21 09:22:06  roboos
 % do not copy grid back into cfg.grid
 %
@@ -90,7 +93,7 @@ end
 
 % a grid can be constructed based on a number of ways
 basedonauto   = isfield(cfg.grid, 'resolution');                        % regular 3D grid with specification of the resolution
-basedongrid   = isfield(cfg.grid, 'xgrid');                             % regular 3D grid with explicit specification
+basedongrid   = isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid);  % regular 3D grid with explicit specification
 basedonpos    = isfield(cfg.grid, 'pos');                               % using user-supplied grid positions, which can be regular or irregular
 basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);   % surface grid based on inward shifted head surface from external file
 basedonmri    = isfield(cfg, 'mri');                                    % regular 3D grid, based on segmented MRI, restricted to gray matter

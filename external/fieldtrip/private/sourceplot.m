@@ -116,11 +116,13 @@ function [cfg] = sourceplot(cfg, data)
 % undocumented TODO
 %   slice in all directions
 %   surface also optimal when inside present
-%   anamask possibilities
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.56  2008/07/31 15:44:48  ingnie
+% removed some comments, build in region of interest masking, moved hasatlas part up.
+%
 % Revision 1.55  2008/07/31 12:03:16  ingnie
 % removed some comments in code, changed from using TTatlas_* to atlas_* therefor also WFU atlasses possible in interactive mode.
 %
@@ -216,6 +218,9 @@ if ~isfield(cfg, 'axis'),                cfg.axis = 'on';                    end
 if ~isfield(cfg, 'interactive'),         cfg.interactive = 'no';             end
 if ~isfield(cfg, 'queryrange');          cfg.queryrange = 3;                 end
 if ~isfield(cfg, 'inputcoord');          cfg.inputcoord = [];                end
+if isfield(cfg, 'TTlookup'),
+  error('TTlookup is old; now specify cfg.atlas, see help!');     
+end
 % slice
 if ~isfield(cfg, 'nslices');            cfg.nslices = 20;                    end
 if ~isfield(cfg, 'slicedim');           cfg.slicedim = 3;                    end
@@ -229,12 +234,8 @@ if ~isfield(cfg, 'sphereradius'),       cfg.sphereradius = [];               end
 if ~isfield(cfg, 'distmat'),            cfg.distmat = [];                    end
 if ~isfield(cfg, 'camlight'),           cfg.camlight = 'yes';                end
 if ~isfield(cfg, 'renderer'),           cfg.renderer = 'opengl';             end
-
 if isequal(cfg.method,'surface')
   if ~isfield(cfg, 'projmethod'),       error('specify cfg.projmethod');     end
-end
-if isfield(cfg, 'TTlookup'),            
-  error('TTlookup is old; now specify cfg.atlas, see help!');     
 end
 
 % for backward compatibility
@@ -279,7 +280,27 @@ data.xgrid = 1:dim(1);
 data.ygrid = 1:dim(2);
 data.zgrid = 1:dim(3);
 
-%%% handle anaparameter
+hasatlas = 0;
+if ~isempty(cfg.atlas)
+  % initialize the atlas
+  hasatlas = 1;
+  [p, f, x] = fileparts(cfg.atlas);
+  fprintf(['reading ', f,' atlas coordinates and labels\n']);
+  atlas = atlas_init(cfg.atlas);
+end
+
+hasroi = 0;
+if ~isempty(cfg.roi)
+  if ~hasatlas
+    error('specify cfg.atlas which belongs to cfg.roi')
+  else
+    % get mask
+    hasroi = 1;
+    roi = atlas_mask(atlas, data, cfg.roi, 'inputcoord', cfg.inputcoord);
+  end
+end
+  
+%%% anaparameter
 if isequal(cfg.anaparameter,'anatomy')
   if isfield(data, 'anatomy')
     hasana = 1;
@@ -305,7 +326,7 @@ else
 end
 
 %%% funparameter
-%% has fun?
+% has fun?
 if ~isempty(cfg.funparameter)
   if issubfield(data, cfg.funparameter)
     hasfun = 1;
@@ -317,7 +338,7 @@ else
   hasfun = 0;
   fprintf('no functional parameter\n');
 end
-%% handle fun
+% handle fun
 if hasfun
   % determine scaling min and max (fcolmin fcolmax) and funcolormap
   funmin = min(fun(:));
@@ -375,7 +396,7 @@ if hasfun
 end % handle fun
 
 %%% maskparameter
-%% has mask?
+% has mask?
 if ~isempty(cfg.maskparameter)
   if issubfield(data, cfg.maskparameter)
     if ~hasfun
@@ -394,7 +415,7 @@ else
   hasmsk = 0;
   fprintf('no masking parameter\n');
 end
-%% handle mask
+% handle mask
 if hasmsk
   % determine scaling and opacitymap
   mskmin = min(msk(:));
@@ -449,7 +470,7 @@ if hasmsk
   clear mskmin mskmax;
 end 
 
-%% intelligence: make mask to prevent outside fun from being plotted
+% prevent outside fun from being plotted
 if hasfun && isfield(data,'inside') && ~hasmsk
   hasmsk = 1;
   msk = zeros(dim);
@@ -464,7 +485,20 @@ if hasfun && isfield(data,'inside') && ~hasmsk
   end;
 end;
 
-%% set color and opacity mapping for this figure
+% if region of interest is specified, mask everything besides roi
+if hasfun && hasroi && ~hasmsk
+  hasmsk = 1;
+  msk = roi;
+  cfg.opacitymap = 'rampup';
+  opacmin = 0;
+  opacmax = 1;
+elseif hasfun && hasroi && hasmsk
+  msk = roi .* msk;
+elseif hasroi
+  error('you can not have a roi without functional data')
+end;
+
+%%% set color and opacity mapping for this figure
 if hasfun
   cfg.funcolormap = colormap(cfg.funcolormap);
   colormap(cfg.funcolormap);
@@ -535,15 +569,6 @@ if isequal(cfg.method,'ortho')
     zi = nearest(data.zgrid, loc(3));
   end
 
-  hasatlas = 0;
-  if ~isempty(cfg.atlas)
-    % initialize the atlas
-    hasatlas = 1;
-    [p, f, x] = fileparts(cfg.atlas);
-    fprintf(['reading ', f,' atlas coordinates and labels\n']);
-    atlas = atlas_init(cfg.atlas);
-  end
-  
   %% do the actual plotting %%
 
   interactive_flag = 1; % it happens at least once
@@ -765,12 +790,11 @@ elseif isequal(cfg.method,'slice')
   % white BG => mskana
 
   %% TODO: HERE THE FUNCTION THAT MAKES TO SLICE DIMENSION ALWAYS THE THIRD
-  %% DIMENSION, AND ALSO KEEP TRANSFORMATION MATRIS UP TO DATE
+  %% DIMENSION, AND ALSO KEEP TRANSFORMATION MATRIX UP TO DATE
   % zoiets
   %if hasana; ana = shiftdim(ana,cfg.slicedim-1); end;
   %if hasfun; fun = shiftdim(fun,cfg.slicedim-1); end;
   %if hasmsk; msk = shiftdim(msk,cfg.slicedim-1); end;
-  %if hasmskana; mskana = shiftdim(mskana,cfg.slicedim-1); end;
   %%%%% select slices
   if ~isstr(cfg.slicerange)
     ind_fslice = cfg.slicerange(1);
