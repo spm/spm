@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1896 2008-07-09 08:21:36Z volkmar $
+% $Id: cfg_ui.m 1973 2008-08-01 11:52:41Z volkmar $
 
-rev = '$Rev: 1896 $'; %#ok
+rev = '$Rev: 1973 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -630,7 +630,7 @@ if strcmp(udmodule.contents{5}{value},'cfg_choice')
 else
     str = udmodule.contents{3}{value};
 end;
-str = strcat(mrk, str);
+str = strcat(mrk(:), str(:));
 
 %% Value edit dialogues
 % --------------------------------------------------------------------

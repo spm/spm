@@ -76,15 +76,16 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 1929 2008-07-18 10:34:48Z guillaume $
+% $Id: cfg_getfile.m 1973 2008-08-01 11:52:41Z volkmar $
 
+t = {};
+sts = false;
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
         case {'addvfiles', 'clearvfiles', 'vfiles'}
             cfg_message('matlabbatch:deprecated:vfiles', ...
                         'Trying to use deprecated ''%s'' call.', ...
                         lower(varargin{1}));
-            t = []; sts = false; 
         case 'cpath'
             cfg_message(nargchk(2,Inf,nargin,'struct'));
             t = cpath(varargin{2:end});
@@ -185,8 +186,7 @@ fg = figure('IntegerHandle','off',...
     'Units','Pixels',...
     'MenuBar','none',...
     'DefaultTextInterpreter','none',...
-    'DefaultUicontrolInterruptible','on',...
-    'KeyPressFcn',@hitkey);
+    'DefaultUicontrolInterruptible','on');
     
 Rect = get(fg,'Position');
 %S0 = spm('WinSize','0',1);
@@ -647,39 +647,46 @@ return;
 %=======================================================================
 
 %=======================================================================
-function click_dir_box(lb,varargin)
-[dr, odr] = current_dir(lb);
-update(lb,dr);
-if ~isempty(odr)
-    % If moving up one level, try to set focus on previously visited
-    % directory
-    cdrs = get(lb, 'String');
-    dind = find(strcmp(odr, cdrs));
-    if ~isempty(dind)
-        set(lb, 'Value',dind(1));
-    end
+function c = get_current_char(lb)
+fg = sib(lb, mfilename);
+c = get(fg, 'CurrentCharacter');
+if ~isempty(c)
+    % reset CurrentCharacter
+    set(fg, 'CurrentCharacter', char(13));
 end
-return;
 %=======================================================================
 
 %=======================================================================
-function [dr odr] = current_dir(lb,varargin)
-vl  = get(lb,'Value');
-str = get(lb,'String');
-pd  = get(sib(lb,'edit'),'String');
-while ~isempty(pd) && strcmp(pd(end),filesep) 
-    pd=pd(1:end-1);      % Remove any trailing fileseps
-end 
-sel = str{vl};
-if strcmp(sel,'..'),     % Parent directory 
-    [dr odr] = fileparts(pd);
-elseif strcmp(sel,'.'),  % Current directory 
-    dr = pd;
-    odr = '';
-else
-    dr = fullfile(pd,sel);
-    odr = '';
-end;
+function click_dir_box(lb,varargin)
+c = get_current_char(lb);
+if isempty(c) || isequal(c,char(13))
+    vl  = get(lb,'Value');
+    str = get(lb,'String');
+    pd  = get(sib(lb,'edit'),'String');
+    while ~isempty(pd) && strcmp(pd(end),filesep)
+        pd=pd(1:end-1);      % Remove any trailing fileseps
+    end
+    sel = str{vl};
+    if strcmp(sel,'..'),     % Parent directory
+        [dr odr] = fileparts(pd);
+    elseif strcmp(sel,'.'),  % Current directory
+        dr = pd;
+        odr = '';
+    else
+        dr = fullfile(pd,sel);
+        odr = '';
+    end;
+    update(lb,dr);
+    if ~isempty(odr)
+        % If moving up one level, try to set focus on previously visited
+        % directory
+        cdrs = get(lb, 'String');
+        dind = find(strcmp(odr, cdrs));
+        if ~isempty(dind)
+            set(lb, 'Value',dind(1));
+        end
+    end
+end
 return;
 %=======================================================================
 
@@ -762,53 +769,55 @@ return;
 
 %=======================================================================
 function click_file_box(lb,varargin)
-vlo  = get(lb,'Value');
-if isempty(vlo),
-    msg(lb,'Nothing selected');
-    return;
-end;
-lim  = get(lb,'UserData');
-ob   = sib(lb,'selected');
-str3 = get(ob,'String');
-str  = get(lb,'String');
-lim1  = min([max([lim(2)-numel(str3),0]),numel(vlo)]);
-if lim1==0,
-    msg(lb,['Selected ' num2str(size(str3,1)) '/' num2str(lim(2)) ' already.']);
-    beep;
-    set(sib(lb,'D'),'Enable','on');
-    return;
-end;
-
-vl   = vlo(1:lim1);
-msk  = false(size(str,1),1);
-if vl>0, msk(vl) = true; else msk = []; end;
-str1 = str( msk);
-str2 = str(~msk);
-dr   = get(sib(lb,'edit'), 'String');
-str1 = strcat(dr, str1);
-
-set(lb,'Value',min([vl(1),numel(str2)]),'String',str2);
-r    = (1:numel(str1))+numel(str3);
-str3 = [str3(:);str1(:)];
-set(ob,'String',str3,'Value',r);
-if numel(vlo)>lim1,
-    msg(lb,['Retained ' num2str(lim1) '/' num2str(numel(vlo))...
-        ' of selection.']);
-    beep;
-elseif isfinite(lim(2))
-    if lim(1)==lim(2),
-        msg(lb,['Selected ' num2str(numel(str3)) '/' num2str(lim(2)) ' files.']);
-    else
-        msg(lb,['Selected ' num2str(numel(str3)) '/' num2str(lim(1)) '-' num2str(lim(2)) ' files.']);
+c = get_current_char(lb);
+if isempty(c) || isequal(c, char(13))
+    vlo  = get(lb,'Value');
+    if isempty(vlo),
+        msg(lb,'Nothing selected');
+        return;
     end;
-else
-    if size(str3,1) == 1, ss = ''; else ss = 's'; end;
-    msg(lb,['Selected ' num2str(numel(str3)) ' file' ss '.']);
-end;
-if ~isfinite(lim(1)) || numel(str3)>=lim(1),
-    set(sib(lb,'D'),'Enable','on');
-end;
+    lim  = get(lb,'UserData');
+    ob   = sib(lb,'selected');
+    str3 = get(ob,'String');
+    str  = get(lb,'String');
+    lim1  = min([max([lim(2)-numel(str3),0]),numel(vlo)]);
+    if lim1==0,
+        msg(lb,['Selected ' num2str(size(str3,1)) '/' num2str(lim(2)) ' already.']);
+        beep;
+        set(sib(lb,'D'),'Enable','on');
+        return;
+    end;
 
+    vl   = vlo(1:lim1);
+    msk  = false(size(str,1),1);
+    if vl>0, msk(vl) = true; else msk = []; end;
+    str1 = str( msk);
+    str2 = str(~msk);
+    dr   = get(sib(lb,'edit'), 'String');
+    str1 = strcat(dr, str1);
+
+    set(lb,'Value',min([vl(1),numel(str2)]),'String',str2);
+    r    = (1:numel(str1))+numel(str3);
+    str3 = [str3(:);str1(:)];
+    set(ob,'String',str3,'Value',r);
+    if numel(vlo)>lim1,
+        msg(lb,['Retained ' num2str(lim1) '/' num2str(numel(vlo))...
+            ' of selection.']);
+        beep;
+    elseif isfinite(lim(2))
+        if lim(1)==lim(2),
+            msg(lb,['Selected ' num2str(numel(str3)) '/' num2str(lim(2)) ' files.']);
+        else
+            msg(lb,['Selected ' num2str(numel(str3)) '/' num2str(lim(1)) '-' num2str(lim(2)) ' files.']);
+        end;
+    else
+        if size(str3,1) == 1, ss = ''; else ss = 's'; end;
+        msg(lb,['Selected ' num2str(numel(str3)) ' file' ss '.']);
+    end;
+    if ~isfinite(lim(1)) || numel(str3)>=lim(1),
+        set(sib(lb,'D'),'Enable','on');
+    end;
+end
 return;
 %=======================================================================
 
@@ -969,7 +978,6 @@ t  = uicontrol(fg,...
     'units','normalized',...
     'Position',[0.01 0.01 0.98 0.98],...
     fn,...
-    'FontName','FixedWidthFont',...
     'BackgroundColor',col2,...
     'ForegroundColor',col3,...
     'Max',0,...
@@ -980,9 +988,7 @@ c0 = uicontextmenu('Parent',fg);
 set(t,'uicontextmenu',c0);
 uimenu('Label','Done', 'Parent',c0,'Callback',@helpclear);
 
-ext = get(t,'Extent');
-pw  = floor(0.98/ext(3)*20-4);
-str  = textwrap({[...
+str  = cfg_justify(t, {[...
 'File Selection help. You can return to selecting files via the right mouse button (the "Done" option). '],...
 '',[...
 'The panel at the bottom shows files that are already selected. ',...
@@ -991,14 +997,19 @@ str  = textwrap({[...
 'You can use the right mouse button to un-select everything.'],...
 '',[...
 'Directories are navigated by editing the name of the current directory (where it says "Dir"), ',...
-'by going to one of the previously entered directories ("Prev"), or by navigating around ',...
+'by going to one of the previously entered directories ("Prev"), '...
+'by going to one of the parent directories ("Up") or by navigating around ',...
 'the parent or subdirectories listed in the left side panel.'],...
 '',[...
 'Files matching the filter ("Filt") are shown in the panel on the right. ',...
 'These can be selected by clicking or dragging.  Use the right mouse button if ',...
 'you would like to select all files.  Note that when selected, the files disappear ',...
 'from this panel.  They can be made to reappear by re-specifying the directory ',...
-'or the filter. ',...
+'or the filter. '],...
+'',[...
+'Both directory and file lists can also be browsed by typing the leading ',...
+'character(s) of a directory or file name.'],...
+'',[...
 'Note that the syntax of the filter differs from that used by most other file selectors. ',...
 'The filter works using so called ''regular expressions''. Details can be found in the ',...
 'MATLAB help text on ''regexp''. ',...
@@ -1034,9 +1045,7 @@ str  = textwrap({[...
 'a while to run.'],...
 '',[...
 'There is also an edit button (Ed), which allows you to edit your selection of files. ',...
-'When you are done, then use the menu-button of your mouse to either cancel or accept your changes'],''},pw);
-pad = cellstr(char(zeros(max(0,floor(1.2/ext(4) - numel(str))),1)));
-str = {str{:}, pad{:}};
+'When you are done, then use the menu-button of your mouse to either cancel or accept your changes.'],''});
 set(t,'String',str);
 return;
 %=======================================================================
@@ -1047,29 +1056,6 @@ ob = get(ob,'Parent');
 ob = get(ob,'Parent');
 ob = findobj(ob,'Tag','HelpWin');
 delete(ob);
-%=======================================================================
-
-%=======================================================================
-function hitkey(fg,varargin)
-ch = get(fg,'CurrentCharacter');
-if isempty(ch), return; end;
-
-ob = findobj(fg,'Tag','files');
-if ~isempty(ob),
-    f = char(get(ob,'String'));
-    f = f(:,1);
-    fset = find(f>=ch);
-    if ~isempty(fset),
-        fset = fset(1);
-        %cb = get(ob,'Callback');
-        %set(ob,'Callback',[]);
-        set(ob,'ListboxTop',fset);
-        %set(ob,'Callback',cb);
-    else
-        set(ob,'ListboxTop',length(f));
-    end;
-end;
-return;
 %=======================================================================
 
 %=======================================================================

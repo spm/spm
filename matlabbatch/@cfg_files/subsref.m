@@ -23,32 +23,38 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsref.m 1973 2008-08-01 11:52:41Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 1973 $'; %#ok
 
+persistent local_mysubs_fields;
+persistent par_class;
+persistent par_fields;
+if ~iscell(local_mysubs_fields)
+    local_mysubs_fields = mysubs_fields;
+    citem = class(item);
+    switch citem
+        case 'cfg_exbranch',
+            par_class = 'cfg_branch';
+            pf1 = subs_fields(item.cfg_branch);
+            pf2 = subs_fields(cfg_item);
+            par_fields = {pf1{:} pf2{:}};
+        case 'cfg_item',
+            par_class = '';
+            par_fields = {};
+        otherwise
+            par_class = 'cfg_item';
+            par_fields = subs_fields(item.cfg_item);
+    end;
+end
 switch subs(1).type,
     case {'.'},
         if numel(item) > 1
             cfg_message('matlabbatch:subsref:multiref', ...
                   'Field reference to multiple items not allowed for cfg_item classes.');
         end;
-        citem = class(item);
-        switch citem
-            case 'cfg_exbranch',
-                par_class = 'cfg_branch';
-                pf1 = subs_fields(item.cfg_branch);
-                pf2 = subs_fields(cfg_item);
-                par_fields = {pf1{:} pf2{:}};
-            case 'cfg_item',
-                par_class = '';
-                par_fields = {};
-            otherwise
-                par_class = 'cfg_item';
-                par_fields = subs_fields(item.cfg_item);
-        end;
         switch subs(1).subs
-            case mysubs_fields,
+            case local_mysubs_fields,
                 val{1} = item.(subs(1).subs);
             case par_fields,
                 val{1} = item.(par_class).(subs(1).subs);

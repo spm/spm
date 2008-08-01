@@ -12,35 +12,42 @@ function out = cfg_run_runjobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_runjobs.m 1897 2008-07-09 11:57:33Z volkmar $
+% $Id: cfg_run_runjobs.m 1973 2008-08-01 11:52:41Z volkmar $
 
-rev = '$Rev: 1897 $'; %#ok
+rev = '$Rev: 1973 $'; %#ok
 
-sts = true;
 if isfield(job.save, 'savejobs')
     [p n e v] = fileparts(job.save.savejobs.outstub);
     outfmt = fullfile(job.save.savejobs.outdir{1}, sprintf('%s_%%0%dd.m', n, ceil(log10(numel(job.inputs))+1)));
 end;
-hjobs = {};
+hjobs = cell(size(job.inputs));
+sts = false(size(job.inputs));
 out.jobfiles = {};
 for cr = 1:numel(job.inputs)
     cjob = cfg_util('initjob', job.jobs);
+    inp = cell(size(job.inputs{cr}));
     for ci = 1:numel(job.inputs{cr})
         fn = fieldnames(job.inputs{cr}{ci});
         inp{ci} = job.inputs{cr}{ci}.(fn{1});
     end;
-    sts1 = cfg_util('filljob', cjob, inp{:});
-    if sts1
-        [un hjobs{end+1}] = cfg_util('harvest', cjob);
+    sts(cr) = cfg_util('filljob', cjob, inp{:});
+    if sts(cr)
+        [un hjobs{cr}] = cfg_util('harvest', cjob);
     end;
-    sts = sts && sts1;
     if isfield(job.save, 'savejobs')
         out.jobfiles{cr} = sprintf(outfmt, cr);
         cfg_util('savejob', cjob, out.jobfiles{cr});
     end;
     cfg_util('deljob', cjob);
 end;
-if sts || strcmp(job.missing,'skip')
+if all(sts)
+    % keep all hjobs;
+elseif any(sts) && strcmp(job.missing,'skip')
+    hjobs = hjobs(sts);
+else
+    hjobs = {};
+end
+if ~isempty(hjobs)
     cjob = cfg_util('initjob', hjobs);
     cfg_util('run', cjob);
     out.jout = cfg_util('getalloutputs', cjob);

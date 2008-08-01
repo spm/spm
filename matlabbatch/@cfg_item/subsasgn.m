@@ -32,10 +32,30 @@ function item = subsasgn(item, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsasgn.m 1973 2008-08-01 11:52:41Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 1973 $'; %#ok
 
+persistent local_mysubs_fields;
+persistent par_class;
+persistent par_fields;
+if ~iscell(local_mysubs_fields)
+    local_mysubs_fields = mysubs_fields;
+    citem = class(item);
+    switch citem
+        case 'cfg_exbranch',
+            par_class = 'cfg_branch';
+            pf1 = subs_fields(item.cfg_branch);
+            pf2 = subs_fields(cfg_item);
+            par_fields = {pf1{:} pf2{:}};
+        case 'cfg_item',
+            par_class = '';
+            par_fields = {};
+        otherwise
+            par_class = 'cfg_item';
+            par_fields = subs_fields(item.cfg_item);
+    end;
+end
 if numel(item) ~= 1
     cfg_message('matlabbatch:subsasgn', ...
           'Arrays of cfg_item objects not supported.');
@@ -47,26 +67,12 @@ if numel(subs) == 1
     switch subs(1).type,
         case {'.'},
             if numel(item) == 1 && nargin == 3
-                citem = class(item);
-                switch citem
-                    case 'cfg_exbranch',
-                        par_class = 'cfg_branch';
-                        pf1 = subs_fields(item.cfg_branch);
-                        pf2 = subs_fields(cfg_item);
-                        par_fields = {pf1{:} pf2{:}};
-                    case 'cfg_item',
-                        par_class = '';
-                        par_fields = {};
-                    otherwise
-                        par_class = 'cfg_item';
-                        par_fields = subs_fields(item.cfg_item);
-                end;
                 [ok val] = subsasgn_check(item,subs,varargin{1});
                 if ok,
                     switch subs(1).subs
                         case par_fields,
                             item.(par_class) = subsasgn(item.(par_class), subs, val);
-                        case subs_fields(item),
+                        case local_mysubs_fields,
                             item.(subs(1).subs) = val;
                         otherwise
                             cfg_message('matlabbatch:subsasgn', ...
