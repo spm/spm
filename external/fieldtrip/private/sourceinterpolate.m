@@ -34,6 +34,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.45  2008/08/01 18:32:37  ingnie
+% inside always kept, added extrapolating to outside to optimize interpolation at the edges, all logical volumes (incl inside) are interpolated with method nearest and stay logicals, whole (irregular) outside of functional volumes set to NaN.
+%
 % Revision 1.44  2008/07/22 11:38:24  ingnie
 % removed fixvolume, make full use of checkdata (also to ensure inside is logical volume)
 %
@@ -154,16 +157,10 @@ if ~isfield(cfg, 'downsample');   cfg.downsample   = 1;         end
 if ~isfield(cfg, 'sourceunits');  cfg.sourceunits  = 'cm';      end
 if ~isfield(cfg, 'mriunits');     cfg.mriunits     = 'mm';      end
 if ~isfield(cfg, 'voxelcoord'),   cfg.voxelcoord   = 'yes';     end
-if ~isfield(cfg, 'keepinside'),   cfg.keepinside   = 'yes';     end
 if ~isfield(cfg, 'feedback'),     cfg.feedback     = 'text';    end
 
-if strcmp(cfg.keepinside, 'yes')
-  % add inside to the list of parameters
-  if ~iscell(cfg.parameter),
-    cfg.parameter = {cfg.parameter 'inside'};
-  else
-    cfg.parameter(end+1) = {'inside'};
-  end
+if isfield(cfg, 'keepinside')
+  warning('cfg.keepinside is not supported anymore, inside is always kept')
 end
 
 if ischar(anatomical)
@@ -179,6 +176,7 @@ anatomical = checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'f
 
 % select the parameters that should be interpolated
 cfg.parameter = parameterselection(cfg.parameter, functional);
+cfg.parameter = setdiff(cfg.parameter, 'inside'); % inside is handled seperately
 
 % downsample the anatomical volume
 tmpcfg = [];
@@ -201,28 +199,28 @@ end
 % convert the source/functional data into the same units as the anatomical MRI
 s = 1;
 switch cfg.sourceunits
-case 'mm'
-  s = s / 1000;
-case 'cm'
-  s = s / 100;
-case 'dm'
-  s = s / 10;
-case 'm'
-  s = s / 1;
-otherwise
-  error('unknown physical dimension in cfg.sourceunits');
+  case 'mm'
+    s = s / 1000;
+  case 'cm'
+    s = s / 100;
+  case 'dm'
+    s = s / 10;
+  case 'm'
+    s = s / 1;
+  otherwise
+    error('unknown physical dimension in cfg.sourceunits');
 end
 switch cfg.mriunits
-case 'mm'
-  s = s * 1000;
-case 'cm'
-  s = s * 100;
-case 'dm'
-  s = s * 10;
-case 'm'
-  s = s * 1;
-otherwise
-  error('unknown physical dimension in cfg.mriunits');
+  case 'mm'
+    s = s * 1000;
+  case 'cm'
+    s = s * 100;
+  case 'dm'
+    s = s * 10;
+  case 'm'
+    s = s * 1;
+  otherwise
+    error('unknown physical dimension in cfg.mriunits');
 end
 
 if s~=1
@@ -249,31 +247,47 @@ maxfx = functional.dim(1);
 maxfy = functional.dim(2);
 maxfz = functional.dim(3);
 sel = ax(:)>=minfx & ...
-      ax(:)<=maxfx & ...
-      ay(:)>=minfy & ...
-      ay(:)<=maxfy & ...
-      az(:)>=minfz & ...
-      az(:)<=maxfz;
+  ax(:)<=maxfx & ...
+  ay(:)>=minfy & ...
+  ay(:)<=maxfy & ...
+  az(:)>=minfz & ...
+  az(:)<=maxfz;
 fprintf('selecting subvolume of %.1f%%\n', 100*sum(sel)./prod(anatomical.dim));
 
 % start with an empty output structure
 interp = [];
+
+% reslice and interpolate inside
+interp.inside = zeros(anatomical.dim);
+% interpolate with method nearest
+interp.inside( sel) = my_interpn(double(functional.inside), ax(sel), ay(sel), az(sel), 'nearest', cfg.feedback);
+interp.inside(~sel) = 0;
+interp.inside = logical(interp.inside);
 
 % reslice and interpolate all functional volumes
 for i=1:length(vol_name)
   fprintf('reslicing and interpolating %s\n', vol_name{i});
   fv = double(vol_data{i});
   av = zeros(anatomical.dim);
-  av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
   % av( sel) = my_interpn(fx, fy, fz, fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
-  av(~sel) = nan;
+  if islogical(vol_data{i})
+    % interpolate always with method nearest
+    av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), 'nearest', cfg.feedback);
+    av = logical(av);
+  else
+    % extrapolate the outside of the functional volumes for better interpolation at the edges
+    [xi, yi, zi] = ndgrid(1:functional.dim(1), 1:functional.dim(2),1:functional.dim(3));
+    X = [xi(functional.inside(:)) yi(functional.inside(:)) zi(functional.inside(:))];
+    Y = av(functional.inside(:));
+    XI = [xi(~functional.inside(:)) yi(~functional.inside(:)) zi(~functional.inside(:))];
+    YI = griddatan(X, Y, XI, 'nearest');
+    av(~functional.inside) = YI;
+    % interpolate functional onto anatomical grid
+    av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
+    av(~sel) = nan;
+    av(~interp.inside) = nan;
+  end
   interp = setsubfield(interp, vol_name{i}, av);
-end
-
-if isfield(interp, 'inside')
-  % convert back to a logical volume
-  interp.inside(~sel) = 0; % these values were previously set to NaN (see 10 lines above)
-  interp.inside       = abs(interp.inside-1)<=10*eps;
 end
 
 % add the other parameters to the output
@@ -293,7 +307,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.44 2008/07/22 11:38:24 ingnie Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.45 2008/08/01 18:32:37 ingnie Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end
