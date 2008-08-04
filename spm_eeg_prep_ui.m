@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1932 2008-07-18 17:12:02Z christophe $
+% $Id: spm_eeg_prep_ui.m 1978 2008-08-04 15:17:22Z jean $
 
 if nargin == 0
 
@@ -614,6 +614,24 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Apply'), 'Enable', IsTemplate);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
 
 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
+
+sD = struct(D);
+if sD.other.PSD == 1
+    try
+        hc = get(Finter,'children');
+        hc = findobj(hc,'flat','type','uimenu');
+        hc = findobj(hc,'flat','label','File');
+        delete(hc)
+    end
+    uicontrol(Finter,...
+                    'style','pushbutton','string','OK',...
+                    'callback','spm_eeg_review_callbacks(''get'',''prep'')',...
+                    'tooltipstring','Update data informations in ''SPM Graphics'' window',...
+                    'BusyAction','cancel',...
+                    'Interruptible','off',...
+                    'Tag','EEGprepUI');
+end
+
 
 figure(Finter);
 

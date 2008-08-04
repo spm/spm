@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 1976 2008-08-04 11:26:15Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 1978 2008-08-04 15:17:22Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -401,7 +401,7 @@ switch D.PSD.VIZU.info
                 if ~isempty(D.trials(1).events(i).duration)
                     table{i,4} = num2str(D.trials(1).events(i).duration);
                 else
-                    table{i,4} = 'NaN';
+                    table{i,4} = [];
                 end
                 table{i,5} = num2str(D.trials(1).events(i).time);
                 table{i,6} = 'Undefined';

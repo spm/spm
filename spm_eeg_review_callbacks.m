@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1976 2008-08-04 11:26:15Z jean $
+% $Id: spm_eeg_review_callbacks.m 1978 2008-08-04 15:17:22Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -20,6 +20,7 @@ switch varargin{1}
                 spm('pointer','watch');
                 drawnow
                 D = rmfield(D,'PSD');
+                D = meeg(D);
                 save(D.fname,'D')
                 spm('pointer','arrow');
         end
@@ -675,6 +676,15 @@ switch varargin{1}
 
                     D.PSD.tools.redo.select = D.trials.events;
 
+                    try
+                        delete(D.PSD.handles.PLOT.p)
+                    end
+                    try
+                        delete(D.PSD.handles.PLOT.p2)
+                    end
+                    try
+                        delete(D.PSD.handles.PLOT.e)
+                    end
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                     updateDisp(D)
@@ -750,6 +760,15 @@ switch varargin{1}
 
                 D.PSD.tools.redo.select = D.trials.events;
 
+                try
+                    delete(D.PSD.handles.PLOT.p)
+                end
+                try
+                    delete(D.PSD.handles.PLOT.p2)
+                end
+                try
+                    delete(D.PSD.handles.PLOT.e)
+                end
                 handles = rmfield(D.PSD.handles,'PLOT');
                 D.PSD.handles = handles;
                 updateDisp(D)
@@ -804,7 +823,7 @@ switch varargin{1}
                 D.PSD.tools.coreg      = 0;
                 D.PSD.tools.undo.coreg = 0;
 
-                [x,y]                             = ginput(2);
+                [x,y]                           = ginput(2);
                 x                               = round(x);
                 x(1)                            = min([max([1 x(1)]) D.Nsamples]);
                 x(2)                            = min([max([1 x(2)]) D.Nsamples]);
@@ -836,6 +855,15 @@ switch varargin{1}
                 %                 set(handles.EDIT.redo,'enable','off');
 
                 % Update display
+                try
+                    delete(D.PSD.handles.PLOT.p)
+                end
+                try
+                    delete(D.PSD.handles.PLOT.p2)
+                end
+                try
+                    delete(D.PSD.handles.PLOT.e)
+                end
                 handles = rmfield(D.PSD.handles,'PLOT');
                 D.PSD.handles = handles;
                 updateDisp(D)
@@ -874,6 +902,15 @@ switch varargin{1}
                 set(handles.EDIT.redo,'enable','off');
 
                 % Update display
+                try
+                    delete(D.PSD.handles.PLOT.p)
+                end
+                try
+                    delete(D.PSD.handles.PLOT.p2)
+                end
+                try
+                    delete(D.PSD.handles.PLOT.e)
+                end
                 handles = rmfield(D.PSD.handles,'PLOT');
                 D.PSD.handles = handles;
                 updateDisp(D)
@@ -1029,6 +1066,15 @@ switch varargin{1}
                             D.PSD.tools.redo.select    = D.trials.events;
                             D.PSD.tools.coreg          = 0;
 
+                            try
+                                delete(D.PSD.handles.PLOT.p)
+                            end
+                            try
+                                delete(D.PSD.handles.PLOT.p2)
+                            end
+                            try
+                                delete(D.PSD.handles.PLOT.e)
+                            end
                             handles = rmfield(D.PSD.handles,'PLOT');
                             D.PSD.handles = handles;
                             updateDisp(D)
@@ -1080,6 +1126,15 @@ switch varargin{1}
                     D.PSD.tools.redo.select    = D.trials.events;
                     D.PSD.tools.coreg          = 0;
 
+                    try
+                        delete(D.PSD.handles.PLOT.p)
+                    end
+                    try
+                        delete(D.PSD.handles.PLOT.p2)
+                    end
+                    try
+                        delete(D.PSD.handles.PLOT.e)
+                    end
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                     updateDisplay(D)
@@ -1117,6 +1172,15 @@ switch varargin{1}
                     set(handles.EDIT.undo,'enable','on');
                     set(handles.EDIT.redo,'enable','off');
 
+                    try
+                        delete(D.PSD.handles.PLOT.p)
+                    end
+                    try
+                        delete(D.PSD.handles.PLOT.p2)
+                    end
+                    try
+                        delete(D.PSD.handles.PLOT.e)
+                    end
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                     updateDisplay(D)
@@ -1135,6 +1199,7 @@ switch varargin{1}
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
                 D = rmfield(D,'PSD');
+                D.other.PSD = 1;
                 D = meeg(D);
                 set(Finter, 'UserData', D);
                 hc = get(Finter,'children');
@@ -1700,6 +1765,12 @@ if length(cn) == 5  % channel info
                 D.channels(i).type = 'EEG';
             case 'meg'
                 D.channels(i).type = 'MEG';
+            case 'lfp'
+                D.channels(i).type = 'LFP';
+            case 'veog'
+                D.channels(i).type = 'VEOG';
+            case 'heog'
+                D.channels(i).type = 'HEOG';
             case 'other'
                 D.channels(i).type = 'Other';
             otherwise
@@ -1732,9 +1803,24 @@ if length(cn) == 5  % channel info
 elseif length(cn) == 7
     if strcmp(D.type,'continuous')
         ne = length(D.trials(1).events);
+        D.trials = rmfield(D.trials,'events');
+        j = 0;
         for i=1:ne
-            D.trials(1).events(i).type = table(i,2);
-            D.trials(1).events(i).value = str2num(table(i,3));
+            if isempty(table(i,1))&...
+                    isempty(table(i,2))&...
+                    isempty(table(i,3))&...
+                    isempty(table(i,4))&...
+                    isempty(table(i,5))&...
+                    isempty(table(i,6))&...
+                    isempty(table(i,7))
+                % Row (ie event) has been cleared/deleted
+            else
+                j = j+1;
+                D.trials(1).events(j).type = table(i,2);
+                D.trials(1).events(j).value = str2num(table(i,3));
+                D.trials(1).events(j).duration = str2num(table(i,4));
+                D.trials(1).events(j).time = str2num(table(i,5));
+            end
         end
     else
         nt = length(D.trials);
