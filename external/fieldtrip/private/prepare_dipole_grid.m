@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.44  2008/08/04 09:40:18  jansch
+% added field tight to cfg.grid to prevent crash
+%
 % Revision 1.43  2008/07/31 15:57:16  roboos
 % prevent basedongrid if xgrid=auto
 %
@@ -78,8 +81,8 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 %
 
 % set the defaults
-if ~isfield(cfg, 'symmetry'),         cfg.symmetry = [];          end
-if ~isfield(cfg, 'grid'),             cfg.grid = [];              end
+if ~isfield(cfg, 'symmetry'),         cfg.symmetry    = [];       end
+if ~isfield(cfg, 'grid'),             cfg.grid        = [];       end
 
 if isfield(cfg.grid, 'resolution') && isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid)
   error('You cannot specify cfg.grid.resolution and an explicit cfg.grid.xgrid simultaneously');
@@ -239,6 +242,9 @@ if basedonpos
   end
   if isfield(cfg.grid, 'filter')
     grid.filter = cfg.grid.filter;
+  end
+  if isfield(cfg.grid, 'tight')
+    grid.tight = cfg.grid.tight;
   end
   % this is not supported any more
   if isfield(cfg.grid, 'avg') && isfield(cfg.grid.avg, 'filter')
