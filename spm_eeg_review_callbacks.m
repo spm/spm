@@ -1,19 +1,21 @@
-function [] = spm_eeg_review_callbacks(arg1,arg2,arg3)
+function [varargout] = spm_eeg_review_callbacks(varargin)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1928 2008-07-18 10:17:05Z jean $
+% $Id: spm_eeg_review_callbacks.m 1976 2008-08-04 11:26:15Z jean $
 
-D = get(gcf,'userdata');
-handles = D.PSD.handles;
+try
+    D = get(gcf,'userdata');
+    handles = D.PSD.handles;
+end
 
-switch arg1
+switch varargin{1}
 
     
     %% File I/O 
     case 'file'
-        switch arg2
+        switch varargin{2}
             case 'save'
                 spm('pointer','watch');
                 drawnow
@@ -23,6 +25,61 @@ switch arg1
         end
         
         
+    case 'get'
+        
+        switch varargin{2}
+            case 'VIZU'
+                if strcmp(D.transform.ID,'time')
+                    visuSensors             = varargin{3};
+                    M                       = sparse(length(visuSensors),length(D.channels));
+                    M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
+                    decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./1e4),1]);
+                    data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
+                    sd                      = std(data(:));
+                    offset                  = [0:1:length(visuSensors)-1]'*sd/2;
+                    v_data                  = 0.25.*data +repmat(offset,[1 size(data,2) size(data,3)]);
+                    ma                      = max(v_data(:))+sd;
+                    mi                      = min(v_data(:))-sd;
+                    ylim                    = [mi ma];
+                    VIZU.visu_scale         = 0.25;
+                    VIZU.FontSize           = 10;
+                    VIZU.visuSensors        = visuSensors;
+                    VIZU.visu_offset        = sd;
+                    VIZU.offset             = offset;
+                    VIZU.ylim               = ylim;
+                    VIZU.ylim0              = ylim;
+                    VIZU.figname            = 'main visualization window';
+                    VIZU.montage.M          = M;
+                    VIZU.montage.clab       = {D.channels(visuSensors).label};
+                else
+                    VIZU.visuSensors     = visuSensors;
+                    VIZU.montage.clab    = {D.channels(visuSensors).label};
+                end
+                varargout{1} = VIZU;
+                return
+            case 'commentInv'
+                try
+                    invN = D.PSD.invN;
+                catch
+                    invN = 1;
+                end
+                str = getInfo4Inv(D,invN);
+                varargout{1} = str;
+                return
+            case 'dataInfo'
+                str = getInfo4Data(D);
+                varargout{1} = str;
+                return
+            case 'uitable'
+                D = getUItable(D);
+                [D] = spm_eeg_review_switchDisplay(D);
+            case 'prep'
+                Finter = spm_figure('GetWin','Interactive');
+                D = get(Finter, 'UserData');
+                spm_eeg_review(D);
+                spm_clf(Finter)
+                
+        end
     
     
     %% Visualization callbacks
@@ -31,37 +88,59 @@ switch arg1
 
         zoom off
 
-        switch arg2
+        switch varargin{2}
 
             case 'main'
 
+                switch varargin{3}
+                    case 'eeg'
+                        D.PSD.VIZU.modality = 'eeg';
+                    case 'meg'
+                        D.PSD.VIZU.modality = 'meg';
+                    case 'other'
+                        D.PSD.VIZU.modality = 'other';
+                    case 'source'
+                        D.PSD.VIZU.modality = 'source';
+                    case 'info';
+                        D.PSD.VIZU.modality = 'info';
+                        try
+                            D.PSD.VIZU.info = varargin{4};
+                        catch
+                            D.PSD.VIZU.info = 1;
+                        end
+                    case 'standard'
+                        D.PSD.VIZU.type = 1;
+                    case 'scalp'
+                        D.PSD.VIZU.type = 2;
+                end
                 try
-                    handles = rmfield(D.PSD.handles,'PLOT');
-                    D.PSD.handles = handles;
+                    D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');
                 end
-                switch arg3
-                    case 1
-                        [D] = spm_eeg_review_switchDisplay(D,'standardData');
-                        if strcmp(D.PSD.VIZU.type,'standardData')
-                            updateDisp(D)
-                        end
-                    case 2
-                        [D] = spm_eeg_review_switchDisplay(D,'scalpData');
-                        if strcmp(D.PSD.VIZU.type,'scalpData')
-                            D.PSD.trials.current = D.PSD.trials.current(1);
-                            updateDisp(D)
-                        end
-                    case 3
-                        [D] = spm_eeg_review_switchDisplay(D,'visuRecon');
-                        if strcmp(D.PSD.VIZU.type,'visuRecon')
-                            updateDisp(D)
-                        end
+                [D] = spm_eeg_review_switchDisplay(D);
+                try
+                    updateDisp(D)
                 end
-                
+                   
 
+            case 'switch'
+                
+                spm('pointer','watch');
+                drawnow
+                mod = get(gcbo,'userdata');
+                if ~isequal(mod,D.PSD.VIZU.type)
+                    if mod == 1
+                        spm_eeg_review_callbacks('visu','main','standard')
+                    else
+                        spm_eeg_review_callbacks('visu','main','scalp')
+                    end
+                end
+                spm('pointer','arrow');
                 
             case 'update'
                 
+                try
+                    D = varargin{3};
+                end
                 updateDisp(D)
                 
                 % Scalp interpolation
@@ -69,8 +148,8 @@ switch arg1
 
                 if ~isempty([D.channels(:).X_plot2D])
                     x = round(mean(get(handles.axes(1),'xlim')));
-                    ylim = get(handles.axes,'ylim');
-                    if strcmp(D.PSD.VIZU.type,'standardData')
+                    ylim = get(handles.axes(1),'ylim');
+                    if strcmp(D.PSD.VIZU.type,'standard')
                         hl = line('parent',handles.axes,'xdata',[x;x],'ydata',[ylim(1);ylim(2)]);
                         in.hl = hl;
                     end
@@ -88,34 +167,32 @@ switch arg1
                     in.x = x;
 
                     in.handles = handles;
-                    % for EEG and MEG sensors
-                    Ieeg  = find(strcmp('EEG',{D.channels.type}));
-                    Ieeg = intersect(Ieeg,find(~[D.channels.bad]));
-                    if ~isempty(Ieeg)
-                        posEEG(:,1) = [D.channels(Ieeg).X_plot2D]';
-                        posEEG(:,2) = [D.channels(Ieeg).Y_plot2D]';
-                        EEGlabels = {D.channels(Ieeg).label};
-                        yEEG = D.data.y(Ieeg,:,trN);
-                        in.min = min(yEEG(:));
-                        in.max = max(yEEG(:));
-                        in.ind = Ieeg;
-                        in.type = 'EEG';
-                        yEEG = yEEG(:,x);
-                        spm_eeg_plotScalpData(yEEG,posEEG,EEGlabels,in);
+                    
+                    switch D.PSD.VIZU.modality
+                        case 'eeg'
+                            I = D.PSD.EEG.I;
+                            in.type = 'EEG';
+                        case 'meg'
+                            I = D.PSD.MEG.I;
+                            in.type = 'MEG';
+                        case 'other'
+                            I = D.PSD.other.I;
+                            in.type = 'other';
                     end
-                    Imeg  = find(strcmp('MEG',{D.channels.type}));
-                    Imeg = intersect(Imeg,find(~[D.channels.bad]));
-                    if ~isempty(Imeg)
-                        posMEG(:,1) = [D.channels(Imeg).X_plot2D]';
-                        posMEG(:,2) = [D.channels(Imeg).Y_plot2D]';
-                        MEGlabels = {D.channels(Imeg).label};
-                        yMEG = D.data.y(Imeg,:,trN);
-                        in.min = min(yMEG(:));
-                        in.max = max(yMEG(:));
-                        in.ind = Imeg;
-                        in.type = 'MEG';
-                        yMEG = yMEG(:,x);
-                        spm_eeg_plotScalpData(yMEG,posMEG,MEGlabels,in);
+                    I = intersect(I,find(~[D.channels.bad]));
+                    try
+                        pos(:,1) = [D.channels(I).X_plot2D]';
+                        pos(:,2) = [D.channels(I).Y_plot2D]';
+                        labels = {D.channels(I).label};
+                        y = D.data.y(I,:,trN);
+                        in.min = min(y(:));
+                        in.max = max(y(:));
+                        in.ind = I;
+                        in.type = 'EEG';
+                        y = y(:,x);
+                        spm_eeg_plotScalpData(y,pos,labels,in);
+                    catch
+                        msgbox('Get 2d positions for these channels!')
                     end
                 else
                     msgbox('Get 2d positions for EEG/MEG channels!')
@@ -123,14 +200,14 @@ switch arg1
 
             case 'inv'
                 
-
-                if ~isequal(D.PSD.invN,arg3)
+%                 D.PSD.invN = varargin{3};
+%                 if ~isequal(D.PSD.invN,varargin{3})
                     delete(findobj('tag','dipSpheres'))
-                    str = getInfo4Inv(D,arg3);
+                    str = getInfo4Inv(D,varargin{3});
                     isInv = get(D.PSD.handles.BMCcurrent,'userdata');
                     set(D.PSD.handles.infoText,'string',str);
-                    set(D.PSD.handles.BMCcurrent,'XData',find(isInv==arg3));
-                    D.PSD.invN = arg3;
+                    set(D.PSD.handles.BMCcurrent,'XData',find(isInv==varargin{3}));
+                    D.PSD.invN = varargin{3};
                     trN = D.PSD.trials.current(1);
                     model = D.other.inv{D.PSD.invN}.inverse;
                     J = model.J{trN}*model.T';
@@ -138,7 +215,8 @@ switch arg1
                     set(D.PSD.handles.mesh,...
                         'Vertices',D.other.inv{D.PSD.invN}.mesh.tess_mni.vert,...
                         'Faces',D.other.inv{D.PSD.invN}.mesh.tess_mni.face);
-                    if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit') || ~isequal(D.other.inv{D.PSD.invN}.inverse.xyz,zeros(1,3))
+                    if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit') ||...
+                            ~isequal(D.other.inv{D.PSD.invN}.inverse.xyz,zeros(1,3))
                         try 
                             xyz = D.other.inv{D.PSD.invN}.inverse.dipfit.Lpos;
                             radius = D.other.inv{D.PSD.invN}.inverse.dipfit.radius;
@@ -160,19 +238,24 @@ switch arg1
                     end
                     
                     updateDisp(D);
-                end
+%                 end
 
 
                 % Contrast/intensity rescaling
             case 'iten_sc'
 
-                D.PSD.VIZU.visu_scale = arg3*D.PSD.VIZU.visu_scale;
-                if strcmp(D.PSD.VIZU.type,'standardData')
+                switch D.PSD.VIZU.modality
+                    case 'eeg'
+                        D.PSD.EEG.VIZU.visu_scale = varargin{3}*D.PSD.EEG.VIZU.visu_scale;
+                    case 'meg'
+                        D.PSD.MEG.VIZU.visu_scale = varargin{3}*D.PSD.MEG.VIZU.visu_scale;
+                    case 'other'
+                        D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
+                end
+                if strcmp(D.PSD.VIZU.type,1)
                     D.PSD.VIZU.xlim = get(D.PSD.handles.axes(1),'xlim');
                 end
                 updateDisp(D);
-
-
 
 
                 % Resize plotted data window
@@ -181,7 +264,7 @@ switch arg1
                 % Get current plotted data window range and limits
                 xlim = get(handles.axes(1),'xlim');
                 %                 ylim = get(handles.axes(1),'ylim');
-                length_window = max([arg3*round(xlim(2)-xlim(1)),1]);
+                length_window = max([varargin{3}*round(xlim(2)-xlim(1)),1]);
                 xm = mean(xlim);
 
                 % Change limits of plotted data window
@@ -197,7 +280,7 @@ switch arg1
                         xlim(1) = max([xlim(1) 1]);
                     end
                 end
-                D.PSD.VIZU.xlim = xlim;
+                D.PSD.VIZU.xlim = xlim;              
 
                 % This part avoids limiting displaying conditions
                 if length_window >= D.Nsamples-1
@@ -216,7 +299,7 @@ switch arg1
                 if val > maxi;
                     set(handles.BUTTONS.slider_step,'value',maxi);
                 end
-                if arg3 > 1
+                if varargin{3} > 1
                     set(handles.BUTTONS.slider_step,'visible','on');
                 end
                 if isequal(xlim,[1 D.Nsamples]) == 0
@@ -231,7 +314,7 @@ switch arg1
                     set(D.PSD.handles.BUTTONS.goMinusOne,'visible','off');
                 end
 
-                if arg3 > 1
+                if varargin{3} > 1
 %                     set(handles.VIZU.time_w2,'enable','on');
                     set(handles.BUTTONS.vb4,'enable','on');
                 else
@@ -248,9 +331,9 @@ switch arg1
                 
                 switch D.PSD.VIZU.type
 
-                    case 'standardData'
+                    case 1
 
-                        if arg3
+                        if varargin{3}
                             zoom
                             %                     set(handles.VIZU.zoom2,'enable','on')
                         else % reset zoom and rebuild normal plotted data window
@@ -258,7 +341,16 @@ switch arg1
                             updateDisp(D)
                         end
 
-                    case 'scalpData'
+                    case 2
+                        
+                        switch D.PSD.VIZU.modality
+                            case 'eeg'
+                                VIZU = D.PSD.EEG.VIZU;
+                            case 'meg'
+                                VIZU = D.PSD.MEG.VIZU;
+                            case 'other'
+                                VIZU = D.PSD.other.VIZU;
+                        end
                         
                         try
                             axes(D.PSD.handles.scale)
@@ -267,8 +359,8 @@ switch arg1
                         indAxes = get(gco,'userdata');
                         if ~~indAxes
                             hf = figure;
-                            chanLabel = D.channels(D.PSD.VIZU.visuSensors(indAxes)).label;
-                            if D.channels(D.PSD.VIZU.visuSensors(indAxes)).bad
+                            chanLabel = D.channels(VIZU.visuSensors(indAxes)).label;
+                            if D.channels(VIZU.visuSensors(indAxes)).bad
                                 chanLabel = [chanLabel,' (BAD)'];
                             end
                             set(hf,'name',['channel ',chanLabel])
@@ -287,7 +379,7 @@ switch arg1
                                 col = repmat(col(1:7,:),floor(Ntrials./7)+1,1);
                                 hp = get(handles.axes(indAxes),'children');
                                 for i=1:Ntrials
-                                    datai = get(hp(Ntrials-i+1),'ydata')./D.PSD.VIZU.visu_scale;
+                                    datai = get(hp(Ntrials-i+1),'ydata')./VIZU.visu_scale;
                                     hp2(i) = plot(ha2,datai,...
                                         'color',col(i,:));
                                     leg{i} = D.PSD.trials.TrLabels{trN(i)};
@@ -297,7 +389,7 @@ switch arg1
                                 set(gca,'xtick',xg,'xticklabel',xg./D.Fsample*1e3+D.timeOnset*1e3);
                                 xlabel(ha2,'time (in ms after time onset)')
                                 title(ha2,['channel ',chanLabel,...
-                                    ' (',D.channels(D.PSD.VIZU.visuSensors(indAxes)).type,')'])
+                                    ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
 
                             else
 
@@ -328,7 +420,14 @@ switch arg1
                 % Select all sensors
             case 'sensor_select_all'
 
-                D.PSD.VIZU.visuSensors = 1:length(D.channels);
+                switch D.PSD.VIZU.modality
+                    case 'eeg'
+                        D.PSD.EEG.VIZU.visuSensors = D.PSD.EEG.I;
+                    case 'meg'
+                        D.PSD.MEG.VIZU.visuSensors = D.PSD.MEG.I;
+                    case 'other'
+                        D.PSD.other.VIZU.visuSensors = D.PSD.other.I;
+                end
                 updateDisp(D)
 
 
@@ -392,7 +491,7 @@ switch arg1
             case 'slider_t'
                 
                 offset = get(gco,'value');
-                if ~strcmp(D.PSD.VIZU.type,'visuRecon')
+                if ~strcmp(D.PSD.VIZU.modality,'source')
                     offset = round(offset);
                     % Get current plotted data window range and limits
                     xlim0 = get(handles.axes(1),'xlim');
@@ -414,13 +513,14 @@ switch arg1
                             xlim(2) = D.Nsamples;
                             set(handles.BUTTONS.slider_step,'value',mean(xlim));
                         end
-%                         set(handles.BUTTONS.focus_temp,'string',round(mean(xlim)));
+                        %                         set(handles.BUTTONS.focus
+                        %                         _temp,'string',round(mean(xlim)));
                         D.PSD.VIZU.xlim = xlim;
                         updateDisp(D,1)
                     end
                 else
-                    D.PSD.VIZU.x0 = offset;
-                    
+                    D.PSD.source.VIZU.x0 = offset;
+                   
                     updateDisp(D,1)
                 end
 
@@ -431,7 +531,7 @@ switch arg1
                 xlim0 = get(handles.axes(1),'xlim');
                 xm = mean(xlim0);
                 length_window = abs(diff(xlim0));
-                if arg3 == 0
+                if varargin{3} == 0
                     offset = xm - length_window;
                 else
                     offset = xm + length_window;
@@ -454,7 +554,6 @@ switch arg1
                     set(handles.BUTTONS.slider_step,'value',mean(xlim));
 %                     set(handles.BUTTONS.focus_temp,'string',round(mean(xlim)));
                     D.PSD.VIZU.xlim = xlim;
-
                     updateDisp(D)
 
                 end
@@ -498,7 +597,14 @@ switch arg1
                 %% Reverse data sign
             case  'MainSwitch'
 
-                D.PSD.VIZU.montage.M = -D.PSD.VIZU.montage.M;
+                switch D.PSD.VIZU.modality
+                    case 'eeg'
+                        D.PSD.EEG.VIZU.montage.M = -D.PSD.EEG.VIZU.montage.M;
+                    case 'meg'
+                        D.PSD.MEG.VIZU.montage.M = -D.PSD.MEG.VIZU.montage.M;
+                    case 'other'
+                        D.D.PSD.other.VIZU.montage.M = -D.PSD.other.VIZU.montage.M;
+                end
                 updateDisp(D)
 
 
@@ -527,7 +633,7 @@ switch arg1
         D.PSD.tools.undo.select = D.trials.events;
 
 
-        switch arg2
+        switch varargin{2}
 
             % Execute actions accessible from the event contextmenu : click
             case 'click'
@@ -589,7 +695,7 @@ switch arg1
 %                 sameValue = find(values==eventValue);
 %                 xm = mean(x(sameValue,:),2);
                 xm = mean(x(values==eventValue,:),2);
-                if arg3 == 0
+                if varargin{3} == 0
                     ind = find(xm < here);
                 else
                     ind = find(xm > here);
@@ -597,7 +703,7 @@ switch arg1
 
                 if ~isempty(ind)
 
-                    if arg3 == 0
+                    if varargin{3} == 0
                         offset = round(max(xm(ind))).*D.Fsample;
                     else
                         offset = round(min(xm(ind))).*D.Fsample;
@@ -675,14 +781,14 @@ switch arg1
         %% Selection callbacks
     case 'select'
 
-        switch arg2
+        switch varargin{2}
 
 
             %% Switch to another trial
             case 'switch'
 
                 trN = get(gco,'value');
-                if strcmp(D.PSD.VIZU.type,'scalpData')
+                if D.PSD.VIZU.type == 2
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                 end
@@ -783,14 +889,14 @@ switch arg1
                 x(:,2)                  = [D.trials.events.duration]';
                 x(:,2)                  = sum(x,2);
                 xm = mean(x,2).*D.Fsample;
-                if arg3 == 0
+                if varargin{3} == 0
                     ind = find(xm > here+1);
                 else
                     ind = find(xm < here-1);
                 end
                 if ~isempty(ind)
 
-                    if arg3 == 1
+                    if varargin{3} == 1
                         offset          = round(max(xm(ind)));
                     else
                         offset          = round(min(xm(ind)));
@@ -1020,9 +1126,92 @@ switch arg1
                 %%
         end
 
+        %% Edit callbacks (from spm_eeg_prep_ui)
+    case 'edit'
+        
+        switch varargin{2}
+            
+            case 'prep'
+                spm_eeg_prep_ui;
+                Finter = spm_figure('GetWin','Interactive');
+                D = rmfield(D,'PSD');
+                D = meeg(D);
+                set(Finter, 'UserData', D);
+                hc = get(Finter,'children');
+                delete(hc(end));    % get rid of 'file' uimenu...
+                %... and add an 'OK' button:
+                uicontrol(Finter,...
+                    'style','pushbutton','string','OK',...
+                    'callback','spm_eeg_review_callbacks(''get'',''prep'')',...
+                    'tooltipstring','Update data informations in ''SPM Graphics'' window',...
+                    'BusyAction','cancel',...
+                    'Interruptible','off',...
+                    'Tag','EEGprepUI');
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
+                IsEEG = 'off';
+                IsMEG = 'off';
+                HasSensors = 'off';
+                HasSensorsEEG = 'off';
+                HasSensorsMEG = 'off';
+                HasFiducials = 'off';
+                Dloaded = 'on';
+                if ~isempty(strmatch('EEG', D.chantype, 'exact'))
+                    IsEEG = 'on';
+                end
+                if ~isempty(strmatch('MEG', D.chantype, 'exact'));
+                    IsMEG = 'on';
+                end
+                if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
+                    HasSensors = 'on';
+                end
+                if ~isempty(D.sensors('EEG'))
+                    HasSensorsEEG = 'on';
+                end
+                if  ~isempty(D.sensors('MEG'))
+                    HasSensorsMEG = 'on';
+                end
+                if  ~isempty(D.fiducials)
+                    HasFiducials = 'on';
+                end
+                IsTemplate = 'off';
+                IsSelected = 'off';
+                IsMoved = 'off';
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensors);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (EEG)'), 'Enable', HasSensorsEEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (MEG)'), 'Enable', HasSensorsMEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', IsEEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', HasSensorsEEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', HasSensorsMEG);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Delete sensor'), 'Enable', IsSelected);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Apply'), 'Enable', IsTemplate);
+                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
+                delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
+                figure(Finter);
 
-
-
+            
+            case 'sensorPos'
+                
+                spm_eeg_prep_ui('LoadEEGSensCB')
+                spm_eeg_prep_ui('HeadshapeCB')
+            case 'coregSpos'
+                spm_eeg_prep_ui('CoregisterCB')
+            case 'volSens'
+                spm_eeg_prep_ui('PrepVolSensCB')
+            case '2Dpos'
+                spm_eeg_prep_ui('EditExistingCoor2DCB')
+            case 'project3Dpos'
+                spm_eeg_prep_ui('Project3DCB')
+                
+                
+                
+        end
 
         %% Tools callbacks
     case 'tools'
@@ -1046,282 +1235,293 @@ handles = D.PSD.handles;
 % Create intermediary display variables : events
 figure(handles.hfig)
 
+if ~strcmp(D.PSD.VIZU.modality,'source')
 
-switch D.PSD.VIZU.type
+    switch D.PSD.VIZU.modality
+        case 'eeg'
+            VIZU = D.PSD.EEG.VIZU;
+        case 'meg'
+            VIZU = D.PSD.MEG.VIZU;
+        case 'other'
+            VIZU = D.PSD.other.VIZU;
+    end
 
-    case 'standardData'
+    switch D.PSD.VIZU.type
 
-        % Create intermediary display variables
-        % Get [xlim,ylim] axes limits
-%         if isequal(get(handles.VIZU.zoom2,'enable'),'on')
-%             ylim                    = get(handles.axes(1),'ylim');
-%         else
-%             ylim                    = D.PSD.VIZU.ylim;
-%         end
-        ylim                        = D.PSD.VIZU.ylim;
-        ylim0                       = D.PSD.VIZU.ylim0;
-        xlim                        = sort(D.PSD.VIZU.xlim);
-        nc = size(D.PSD.VIZU.montage.M,1);
-%         inv = setdiff(1:nc,D.PSD.VIZU.visuSensors);
-%         dx                          = abs(diff(xlim));
-%         xs                          = max(xlim) - dx./10;
-%         xs2                         = max(xlim) - dx./10.5;
-%         dy                          = abs(diff(ylim));
-%         ys                          = min(ylim) + dy./20;
+        case 1
+            
+            
+            % Create intermediary display variables
+            % Get [xlim,ylim] axes limits
+            %         if isequal(get(handles.VIZU.zoom2,'enable'),'on')
+            %             ylim                    = get(handles.axes(1),'ylim');
+            %         else
+            %             ylim                    = D.PSD.VIZU.ylim;
+            %         end
+            ylim                        = VIZU.ylim;
+            ylim0                       = VIZU.ylim0;
+            xlim                        = sort(D.PSD.VIZU.xlim);
+            nc = size(VIZU.montage.M,1);
+            %         inv = setdiff(1:nc,VIZU.visuSensors);
+            %         dx                          = abs(diff(xlim));
+            %         xs                          = max(xlim) - dx./10;
+            %         xs2                         = max(xlim) - dx./10.5;
+            %         dy                          = abs(diff(ylim));
+            %         ys                          = min(ylim) + dy./20;
 
-        % Get data matrix and events to display
-        if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
-            trN = 1;
-            Nevents                 = length(D.trials.events);
-%             col                     = colormap(lines);
-%             col                     = col(1:7,:);
-            x                       = [D.trials.events.time]';
-            x(:,2)                  = [D.trials.events.duration]';
-            x(:,2)                  = sum(x,2);
-            x                       = x*D.Fsample;
-            LookEvents              = find((x(:,1) <= xlim(2) & x(:,1) >= xlim(1))...
-                | (x(:,2) <= xlim(2) & x(:,2) >= xlim(1))...
-                | (x(:,1) <= xlim(2) & x(:,2) >= xlim(2)) );
-            BlindEvents             = setdiff(1:Nevents,LookEvents);
-        elseif strcmp(D.PSD.type,'epoched')
-            trN = D.PSD.trials.current(1);
-            Nevents = 0;
-        elseif isempty(D.trials.events)
-            trN = 1;
-            Nevents   = 0;
-        end
-        
-        v_data                  = full(D.PSD.VIZU.montage.M)*D.data.y(:,xlim(1):xlim(2),trN);
-        v_data                  = D.PSD.VIZU.visu_scale*(v_data);
-
-        % Create graphical objects if absent
-        if ~isfield(handles,'PLOT')
-            set(handles.axes,'xlim',xlim,'nextplot','add');
-%             axes(handles.axes)
-            % create uicontextmnu on channel time series
-            % plot data on visualization window and add colour repairs on
-            % window
-            v_data = v_data +repmat(D.PSD.VIZU.offset,1,size(v_data,2));
-%             handles.PLOT.p = plot(handles.axes,xlim(1):xlim(2),v_data');
-%             hold on
-%             handles.PLOT.p2 = plot(handles.axes,xlim(1),D.PSD.VIZU.offset,'s',...
-%                 'markersize',2,'linewidth',4);
-            col = colormap('lines');
-            col = repmat(col(1:7,:),floor(nc./7)+1,1);
-            for i=1:nc
-                cmenu = uicontextmenu;
-                uimenu(cmenu,'Label',['channel ',num2str(D.PSD.VIZU.visuSensors(i)),': ',D.PSD.VIZU.montage.clab{i}]);
-                uimenu(cmenu,'Label',['type: ',D.channels(D.PSD.VIZU.visuSensors(i)).type]);
-                uimenu(cmenu,'Label',['bad: ',num2str(D.channels(D.PSD.VIZU.visuSensors(i)).bad)],...
-                    'callback',@switchBC,'userdata',i,...
-                    'BusyAction','cancel',...
-                    'Interruptible','off');
-                status = D.channels(D.PSD.VIZU.visuSensors(i)).bad;
-                if ~status
-                    lineStyle = '-';
-                else
-                    lineStyle = ':';
-                end
-                handles.PLOT.p(i) = plot(handles.axes,xlim(1):xlim(2),v_data(i,:)',...
-                    'uicontextmenu',cmenu,'lineStyle',lineStyle,...
-                    'color',col(i,:));
-                handles.PLOT.p2(i) = plot(handles.axes,xlim(1),D.PSD.VIZU.offset(i),'s',...
-                    'markersize',2,'linewidth',4,...
-                    'uicontextmenu',cmenu,...
-                    'color',col(i,:));
-%                 set(handles.PLOT.p(i),'uicontextmenu',cmenu,'lineStyle',lineStyle);
-%                 set(handles.PLOT.p2(i),'uicontextmenu',cmenu);
+            % Get data matrix and events to display
+            if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
+                trN = 1;
+                Nevents                 = length(D.trials.events);
+                %             col                     = colormap(lines);
+                %             col                     = col(1:7,:);
+                x                       = [D.trials.events.time]';
+                x(:,2)                  = [D.trials.events.duration]';
+                x(:,2)                  = sum(x,2);
+                x                       = x*D.Fsample;
+                LookEvents              = find((x(:,1) <= xlim(2) & x(:,1) >= xlim(1))...
+                    | (x(:,2) <= xlim(2) & x(:,2) >= xlim(1))...
+                    | (x(:,1) <= xlim(2) & x(:,2) >= xlim(2)) );
+                BlindEvents             = setdiff(1:Nevents,LookEvents);
+            elseif strcmp(D.PSD.type,'epoched')
+                trN = D.PSD.trials.current(1);
+                Nevents = 0;
+            elseif isempty(D.trials.events)
+                trN = 1;
+                Nevents   = 0;
             end
-%             % set invisible channels
-%             set(handles.PLOT.p(inv),'visible','off');
-            % Add on patches/lines for visualization of events
-            if Nevents > 0
-                col                     = colormap(lines);
-                col                     = col(1:7,:);
-                values                  = [D.trials(trN).events.value];
-                values                  = mod(values,7);
-                values(values==0)       = 7;
-                handles.PLOT.e          = zeros(Nevents,1);
-                for i = 1:Nevents
-                    if abs(diff(x(i,:))) >0 % create patch rectangle...
-                        handles.PLOT.e(i)   = patch([x(i,1) x(i,1) x(i,2) x(i,2)],...
-                            [ylim0(1) ylim0(2) ylim0(2) ylim0(1)],col(values(i),:),...
-                            'parent',handles.axes);
-                        set(handles.PLOT.e(i),'edgecolor','none','facealpha',0.30,...
-                            'userdata',i,'ButtonDownFcn','set(gco,''selected'',''on'')');
-                    else  % ... as well as left line marker (onset)
-                        handles.PLOT.e(i)   = plot(handles.axes,[x(i,1) x(i,1)],...
-                            [ylim0(1) ylim0(2)]);
-                        set(handles.PLOT.e(i),'color',col(values(i),:),...
-                            'userdata',i,'ButtonDownFcn','set(gco,''selected'',''on'')');
-                    end
-                    sc.currentEvent = i;
-                    sc.eventType    = D.trials(trN).events(i).type;
-                    sc.eventValue   = D.trials(trN).events(i).value;
-                    sc.N_select     = Nevents;
-                    psd_defineMenuEvent(handles.PLOT.e(i),sc);
-                    if ismember(i,BlindEvents)
-                        set(handles.PLOT.e(i),'visible','off')
-                    end
-                end
-            end
-            % Update axes limits and channel names
-            hold off
-            D.PSD.handles = handles;
-            set(handles.axes,'xlim',xlim,'ylim',ylim,'ytick',D.PSD.VIZU.offset,...
-                'yticklabel',D.PSD.VIZU.montage.clab,'fontsize',D.PSD.VIZU.FontSize);
-            set(handles.hfig,'userdata',D);
-        else
-            v_data = v_data +repmat(D.PSD.VIZU.offset,1,size(v_data,2));
-            % scroll through data
-            for i=1:length(D.PSD.VIZU.visuSensors)
-                set(handles.PLOT.p(i),...
-                    'xdata',xlim(1):xlim(2),...
-                    'ydata',v_data(i,:));
-                set(handles.PLOT.p2(i),...
-                    'xdata',xlim(1));
-            end
-%             % set visible channels
-%             set(handles.PLOT.p(inv),'visible','off');
-%             set(handles.PLOT.p(D.PSD.VIZU.visuSensors),'visible','on');
-%             set(handles.PLOT.p2(inv),'visible','off');
-%             set(handles.PLOT.p2(D.PSD.VIZU.visuSensors),'visible','on');
-            % Add on patches for visualization of selected events
-            if Nevents >0
-                set(handles.PLOT.e(BlindEvents),'visible','off')
-                set(handles.PLOT.e(LookEvents),'visible','on')
-            end
-            % Update axes limits and channel names
-            set(handles.axes,'xlim',xlim)
-            if ~flag
-                set(handles.axes,'ylim',ylim,'ytick',D.PSD.VIZU.offset,...
-                    'yticklabel',D.PSD.VIZU.montage.clab,'fontsize',D.PSD.VIZU.FontSize);
-                set(handles.hfig,'userdata',D);
-            end
-        end
-        % Update scale axes
-        pos0 = get(handles.axes,'position');
-        pos1 = get(handles.scale,'position');
-        dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
-        dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./D.PSD.VIZU.visu_scale;
-        set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
-            'yticklabel',num2str(dz));
 
-
-    case 'scalpData'
-        
-        if strcmp(D.transform.ID,'time')
-
-            trN = D.PSD.trials.current;
-            Ntrials = length(trN);
-            v_data = [];
-            for i=1:Ntrials
-                v_datai                 = full(D.PSD.VIZU.montage.M)*D.data.y(:,:,trN(i));
-                v_datai                 = D.PSD.VIZU.visu_scale*(v_datai);
-                v_data(:,:,i)           = v_datai;
-            end
+            v_data                  = full(VIZU.montage.M)*D.data.y(:,xlim(1):xlim(2),trN);
+            v_data                  = VIZU.visu_scale*(v_data);
 
             % Create graphical objects if absent
             if ~isfield(handles,'PLOT')
-
-                miY = min(v_data(:));
-                maY = max(v_data(:));
-
-                for i=1:length(D.PSD.VIZU.visuSensors)
+                set(handles.axes,'xlim',xlim,'nextplot','add');
+                %             axes(handles.axes)
+                % create uicontextmnu on channel time series
+                % plot data on visualization window and add colour repairs on
+                % window
+                v_data = v_data +repmat(VIZU.offset,1,size(v_data,2));
+                %             handles.PLOT.p = plot(handles.axes,xlim(1):xlim(2),v_data');
+                %             hold on
+                %             handles.PLOT.p2 = plot(handles.axes,xlim(1),VIZU.offset,'s',...
+                %                 'markersize',2,'linewidth',4);
+                col = colormap('lines');
+                col = repmat(col(1:7,:),floor(nc./7)+1,1);
+                for i=1:nc
                     cmenu = uicontextmenu;
-                    uimenu(cmenu,'Label',['channel ',num2str(D.PSD.VIZU.visuSensors(i)),': ',D.PSD.VIZU.montage.clab{i}]);
-                    uimenu(cmenu,'Label',['type: ',D.channels(D.PSD.VIZU.visuSensors(i)).type]);
-                    uimenu(cmenu,'Label',['bad: ',num2str(D.channels(D.PSD.VIZU.visuSensors(i)).bad)],...
+                    uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
+                    uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
+                    uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
                         'callback',@switchBC,'userdata',i,...
                         'BusyAction','cancel',...
                         'Interruptible','off');
-                    status = D.channels(D.PSD.VIZU.visuSensors(i)).bad;
+                    status = D.channels(VIZU.visuSensors(i)).bad;
                     if ~status
-                        color = [1 1 1];
+                        lineStyle = '-';
                     else
-                        color = 0.75*[1 1 1];
+                        lineStyle = ':';
                     end
-
-                    set(handles.fra(i),'uicontextmenu',cmenu);
-                    set(handles.axes(i),'color',color,...
-                        'ylim',[miY maY]./D.PSD.VIZU.visu_scale);
-                    handles.PLOT.p(:,i) = plot(handles.axes(i),squeeze(v_data(i,:,:)),...
-                        'uicontextmenu',cmenu,'userdata',i);
-
+                    handles.PLOT.p(i) = plot(handles.axes,xlim(1):xlim(2),v_data(i,:)',...
+                        'uicontextmenu',cmenu,'lineStyle',lineStyle,...
+                        'color',col(i,:),'tag','plotEEG');
+                    handles.PLOT.p2(i) = plot(handles.axes,xlim(1),VIZU.offset(i),'s',...
+                        'markersize',2,'linewidth',4,...
+                        'uicontextmenu',cmenu,...
+                        'color',col(i,:),'tag','plotEEG');
+                    %                 set(handles.PLOT.p(i),'uicontextmenu',cmenu,'lineStyle',lineStyle);
+                    %                 set(handles.PLOT.p2(i),'uicontextmenu',cmenu);
+                end
+                %             % set invisible channels
+                %             set(handles.PLOT.p(inv),'visible','off');
+                % Add on patches/lines for visualization of events
+                if Nevents > 0
+                    col                     = colormap(lines);
+                    col                     = col(1:7,:);
+                    values                  = [D.trials(trN).events.value];
+                    values                  = mod(values,7);
+                    values(values==0)       = 7;
+                    handles.PLOT.e          = zeros(Nevents,1);
+                    for i = 1:Nevents
+                        if abs(diff(x(i,:))) >0 % create patch rectangle...
+                            handles.PLOT.e(i)   = patch([x(i,1) x(i,1) x(i,2) x(i,2)],...
+                                [ylim0(1) ylim0(2) ylim0(2) ylim0(1)],col(values(i),:),...
+                                'parent',handles.axes);
+                            set(handles.PLOT.e(i),'edgecolor','none','facealpha',0.30,...
+                                'userdata',i,'ButtonDownFcn','set(gco,''selected'',''on'')',...
+                                'tag','plotEEG');
+                        else  % ... as well as left line marker (onset)
+                            handles.PLOT.e(i)   = plot(handles.axes,[x(i,1) x(i,1)],...
+                                [ylim0(1) ylim0(2)]);
+                            set(handles.PLOT.e(i),'color',col(values(i),:),...
+                                'userdata',i,'ButtonDownFcn','set(gco,''selected'',''on'')',...
+                                'tag','plotEEG');
+                        end
+                        sc.currentEvent = i;
+                        sc.eventType    = D.trials(trN).events(i).type;
+                        sc.eventValue   = D.trials(trN).events(i).value;
+                        sc.N_select     = Nevents;
+                        psd_defineMenuEvent(handles.PLOT.e(i),sc);
+                        if ismember(i,BlindEvents)
+                            set(handles.PLOT.e(i),'visible','off')
+                        end
+                    end
                 end
                 % Update axes limits and channel names
+                hold off
                 D.PSD.handles = handles;
-
+                set(handles.axes,'xlim',xlim,'ylim',ylim,'ytick',VIZU.offset,...
+                    'yticklabel',VIZU.montage.clab,'fontsize',VIZU.FontSize);
+                set(handles.hfig,'userdata',D);
             else
+                v_data = v_data +repmat(VIZU.offset,1,size(v_data,2));
                 % scroll through data
-                for i=1:length(D.PSD.VIZU.visuSensors)
-                    for j=1:Ntrials
-                        set(handles.PLOT.p(j,i),'ydata',v_data(i,:,j));
-                    end
+                for i=1:length(VIZU.visuSensors)
+                    set(handles.PLOT.p(i),...
+                        'xdata',xlim(1):xlim(2),...
+                        'ydata',v_data(i,:));
+                    set(handles.PLOT.p2(i),...
+                        'xdata',xlim(1));
                 end
-
+                % Add on patches for visualization of selected events
+                if Nevents >0
+                    set(handles.PLOT.e(BlindEvents),'visible','off')
+                    set(handles.PLOT.e(LookEvents),'visible','on')
+                end
+                % Update axes limits and channel names
+                set(handles.axes,'xlim',xlim)
+                if ~flag
+                    set(handles.axes,'ylim',ylim,'ytick',VIZU.offset,...
+                        'yticklabel',VIZU.montage.clab,'fontsize',VIZU.FontSize);
+                    set(handles.hfig,'userdata',D);
+                end
             end
             % Update scale axes
-            dz = (abs(diff(get(handles.axes(1),'ylim'))))./D.PSD.VIZU.visu_scale;
-            set(handles.scale,'yticklabel',num2str(dz));
-            set(handles.hfig,'userdata',D);
-            axes(D.PSD.handles.scale)
+            pos0 = get(handles.axes,'position');
+            pos1 = get(handles.scale,'position');
+            dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
+            dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./VIZU.visu_scale;
+            set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
+                'yticklabel',num2str(dz));
 
-        else %---- Time-frequency data !! ----%
 
-            trN = D.PSD.trials.current;
-            Ntrials = length(trN);
+        case 2
 
-            miY = 0;
-            maY = 0;
-            
-            for i=1:length(D.PSD.VIZU.visuSensors)
+            if strcmp(D.transform.ID,'time')
 
-                datai = squeeze(D.data.y(i,:,:,trN(1)));
-                miY = min([min(datai(:)),miY]);
-                maY = max([max(datai(:)),maY]);
-%                 if ~isfield(handles,'PLOT')
+                trN = D.PSD.trials.current;
+                Ntrials = length(trN);
+                v_data = [];
+                for i=1:Ntrials
+                    v_datai                 = full(VIZU.montage.M)*D.data.y(:,:,trN(i));
+                    v_datai                 = VIZU.visu_scale*(v_datai);
+                    v_data(:,:,i)           = v_datai;
+                end
+
+                % Create graphical objects if absent
+                if ~isfield(handles,'PLOT')
+
+                    miY = min(v_data(:));
+                    maY = max(v_data(:));
+
+                    for i=1:length(VIZU.visuSensors)
+                        cmenu = uicontextmenu;
+                        uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
+                        uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
+                        uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
+                            'callback',@switchBC,'userdata',i,...
+                            'BusyAction','cancel',...
+                            'Interruptible','off');
+                        status = D.channels(VIZU.visuSensors(i)).bad;
+                        if ~status
+                            color = [1 1 1];
+                        else
+                            color = 0.75*[1 1 1];
+                        end
+
+                        set(handles.fra(i),'uicontextmenu',cmenu);
+                        set(handles.axes(i),'color',color,...
+                            'ylim',[miY maY]./VIZU.visu_scale);
+                        handles.PLOT.p(:,i) = plot(handles.axes(i),squeeze(v_data(i,:,:)),...
+                            'uicontextmenu',cmenu,'userdata',i,'tag','plotEEG');
+
+                    end
+                    % Update axes limits and channel names
+                    D.PSD.handles = handles;
+
+                else
+                    % scroll through data
+                    for i=1:length(VIZU.visuSensors)
+                        for j=1:Ntrials
+                            set(handles.PLOT.p(j,i),'ydata',v_data(i,:,j));
+                        end
+                    end
+
+                end
+                % Update scale axes
+                dz = (abs(diff(get(handles.axes(1),'ylim'))))./VIZU.visu_scale;
+                set(handles.scale,'yticklabel',num2str(dz));
+                set(handles.hfig,'userdata',D);
+                axes(D.PSD.handles.scale)
+
+            else %---- Time-frequency data !! ----%
+
+                trN = D.PSD.trials.current;
+                Ntrials = length(trN);
+
+                miY = 0;
+                maY = 0;
+
+                for i=1:length(VIZU.visuSensors)
+
+                    datai = squeeze(D.data.y(i,:,:,trN(1)));
+                    miY = min([min(datai(:)),miY]);
+                    maY = max([max(datai(:)),maY]);
+                    %                 if ~isfield(handles,'PLOT')
                     D.PSD.handles.PLOT.im(i) = imagesc(datai);
+                    set(D.PSD.handles.PLOT.im(i),'tag',plotEEG');
                     set(D.PSD.handles.PLOT.im(i),...
                         'parent',handles.axes(i),...
                         'userdata',i);
-%                 else
-%                     set(D.PSD.handles.PLOT.im(i),...
-%                         'cdata',datai);
-%                 end
+                    %                 else
+                    %                     set(D.PSD.handles.PLOT.im(i),...
+                    %                         'cdata',datai);
+                    %                 end
+
+                end
+                for i=1:length(VIZU.visuSensors)
+                    caxis(handles.axes(i),[miY maY]);
+                    colormap('jet')
+                end
+
+                set(handles.hfig,'userdata',D);
+
 
             end
-            for i=1:length(D.PSD.VIZU.visuSensors)
-                caxis(handles.axes(i),[miY maY]);
-                colormap('jet')
-            end
-            
-            set(handles.hfig,'userdata',D);
-            
-            
-        end
-        
-    case 'visuRecon'
-        
-        trN = D.PSD.trials.current(1);
-        invN = D.PSD.invN;
-        model = D.other.inv{invN}.inverse;
+    end
+    
+    
+else  % source space
 
-        J = zeros(model.Nd,size(model.T,1));
-        J(model.Is,:) = model.J{trN}*model.T';
-        
-        time = (model.pst-D.PSD.VIZU.x0).^2;
-        indTime = find(time==min(time));
-        gridTime = model.pst(indTime);
-        
-        tex = J(:,indTime);
+    trN = D.PSD.trials.current(1);
+    invN = D.PSD.invN;
+    model = D.other.inv{invN}.inverse;
 
-        set(D.PSD.handles.mesh,'facevertexcdata',tex)
+    J = zeros(model.Nd,size(model.T,1));
+    J(model.Is,:) = model.J{trN}*model.T';
+    
+    time = (model.pst-D.PSD.source.VIZU.x0).^2;
+    indTime = find(time==min(time));
+    gridTime = model.pst(indTime);
 
-        set(handles.hfig,'userdata',D);
-        
-        set(D.PSD.handles.BUTTONS.slider_step,'value',gridTime)
-        set(D.PSD.handles.BUTTONS.focus_temp,'string',num2str(gridTime))
+    tex = J(:,indTime);
+
+    set(D.PSD.handles.mesh,'facevertexcdata',tex)
+
+    set(handles.hfig,'userdata',D);
+
+    set(D.PSD.handles.BUTTONS.slider_step,'value',gridTime)
+    set(D.PSD.handles.BUTTONS.focus_temp,'string',num2str(gridTime))
 
 end
 
@@ -1332,7 +1532,18 @@ end
 function [] = switchBC(varargin)
 ind = get(gcbo,'userdata');
 D = get(gcf,'userdata');
-status = D.channels(D.PSD.VIZU.visuSensors(ind)).bad;
+switch D.PSD.VIZU.modality
+    case 'eeg'
+        I = D.PSD.EEG.I;
+        VIZU = D.PSD.EEG.VIZU;
+    case 'meg'
+        I = D.PSD.MEG.I;
+        VIZU = D.PSD.MEG.VIZU;
+    case 'other'
+        I = D.PSD.other.I;
+        VIZU = D.PSD.other.VIZU;
+end
+status = D.channels(I(ind)).bad;
 if status
     status = 0;
     lineStyle = '-';
@@ -1342,21 +1553,21 @@ else
     lineStyle = ':';
     color = 0.75*[1 1 1];
 end
-D.channels(D.PSD.VIZU.visuSensors(ind)).bad = status;
+D.channels(I(ind)).bad = status;
 set(D.PSD.handles.hfig,'userdata',D);
 cmenu = uicontextmenu;
-uimenu(cmenu,'Label',['channel ',num2str(D.PSD.VIZU.visuSensors(ind)),': ',D.PSD.VIZU.montage.clab{ind}]);
-uimenu(cmenu,'Label',['type: ',D.channels(D.PSD.VIZU.visuSensors(ind)).type]);
+uimenu(cmenu,'Label',['channel ',num2str(I(ind)),': ',VIZU.montage.clab{ind}]);
+uimenu(cmenu,'Label',['type: ',D.channels(I(ind)).type]);
 uimenu(cmenu,'Label',['bad: ',num2str(status)],...
     'callback',@switchBC,'userdata',ind,...
     'BusyAction','cancel',...
     'Interruptible','off');
 switch D.PSD.VIZU.type
-    case 'standardData'
+    case 1
         set(D.PSD.handles.PLOT.p(ind),'uicontextmenu',cmenu,...
             'lineStyle',lineStyle);
         set(D.PSD.handles.PLOT.p2(ind),'uicontextmenu',cmenu);
-    case 'scalpData'
+    case 2
         set(D.PSD.handles.axes(ind),'Color',color);%,...
 %             'uicontextmenu',cmenu);
         set(D.PSD.handles.fra(ind),'uicontextmenu',cmenu);
@@ -1414,7 +1625,6 @@ else
     source = 'equivalent current dipoles';
 end
 str{4} = ['Source model: ',source,' (',D.other.inv{invN}.method,')'];
-% str{5} = ['Nb of included dipoles: ',num2str(size(D.other.inv{invN}.inverse.J{1},1))];
 str{5} = ['Nb of included dipoles: ',...
     num2str(length(D.other.inv{invN}.inverse.Is)),...
     ' / ',num2str(D.other.inv{invN}.inverse.Nd)];
@@ -1451,4 +1661,111 @@ str{11} = ['Variance accounted for: ',...
 str{12} = ['Log model evidence (free energy): ',...
     num2str(D.other.inv{invN}.inverse.F)];
 
+
+%% Get data info
+function str = getInfo4Data(D)
+str{1} = ['File name: ',D.path,filesep,D.fname];
+str{2} = ['Type: ',D.type];
+if ~strcmp(D.transform.ID,'time')
+    str{2} = [str{2},' (time-frequency data)'];
+end
+str{3} = ['Number of samples: ',num2str(D.Nsamples)];
+str{4} = ['Sampling frequency: ',num2str(D.Fsample)];
+nb = length(find([D.channels.bad]));
+str{5} = ['Number of channels: ',num2str(length(D.channels)),' (',num2str(nb),' bad channels)'];
+nb = length(find([D.trials.bad]));
+if strcmp(D.type,'continuous')
+    str{6} = ['Number of events: ',num2str(length(D.trials(1).events))];
+else
+    str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
+end
+try
+    str{7} = ['Time onset: ',num2str(D.timeOnset)];
+end
+
+
+%% extracting data from spm_uitable java object
+function [D] = getUItable(D)
+spm('pointer','watch');
+drawnow
+ht = D.PSD.handles.infoUItable;
+cn = get(ht,'columnNames');
+table = get(ht,'data');
+if length(cn) == 5  % channel info
+    nc = length(D.channels);
+    for i=1:nc
+        D.channels(i).label = table(i,1);
+        switch lower(table(i,2))
+            case 'eeg'
+                D.channels(i).type = 'EEG';
+            case 'meg'
+                D.channels(i).type = 'MEG';
+            case 'other'
+                D.channels(i).type = 'Other';
+            otherwise
+                D.channels(i).type = 'Other';
+        end
+        switch lower(table(i,3))
+            case 'yes'
+            D.channels(i).bad = 1;
+            otherwise
+            D.channels(i).bad = 0;
+        end
+        D.channels(i).units = table(i,5);
+    end
+    % Find indices of channel types (these might have been changed)
+    D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
+    D.PSD.MEG.I  = find(strcmp('MEG',{D.channels.type}));
+    D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
+    if ~isempty(D.PSD.EEG.I)
+        [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
+        D.PSD.EEG.VIZU = out;
+    end
+    if ~isempty(D.PSD.MEG.I)
+        [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEG.I);
+        D.PSD.MEG.VIZU = out;
+    end
+    if ~isempty(D.PSD.other.I)
+        [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);
+        D.PSD.other.VIZU = out;
+    end
+elseif length(cn) == 7
+    if strcmp(D.type,'continuous')
+        ne = length(D.trials(1).events);
+        for i=1:ne
+            D.trials(1).events(i).type = table(i,2);
+            D.trials(1).events(i).value = str2num(table(i,3));
+        end
+    else
+        nt = length(D.trials);
+        for i=1:nt
+            D.trials(i).label = table(i,1);
+            D.trials(i).events.type = table(i,2);
+            D.trials(i).events.value = str2num(table(i,3));
+            switch lower(table(i,6))
+                case 'yes'
+                    D.trials(i).bad = 1;
+                otherwise
+                    D.trials(i).bad = 0;
+            end
+            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label];
+        end
+    end
+
+elseif length(cn) == 3
+    for i=1:nt
+        D.trials(i).label = table(i,1);
+        switch lower(table(i,3))
+            case 'yes'
+                D.channels(i).bad = 1;
+            otherwise
+                D.channels(i).bad = 0;
+        end
+        D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label];
+    end
+end
+set(D.PSD.handles.hfig,'userdata',D)
+spm_eeg_review_callbacks('visu','main','info',D.PSD.VIZU.info)
+drawnow
+spm('pointer','arrow');
 

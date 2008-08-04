@@ -1,4 +1,4 @@
-function [handles] = spm_uitab(hparent,labels,callbacks,tag,active)
+function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
 % function [handles] = spm_uitab(hfig,labels,callbacks)
 % This functiuon creates tabs in the SPM graphics window.
 % These tabs may be associated with different sets of axes and uicontrol,
@@ -13,13 +13,15 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active)
 %   finding them in a window...)
 %   - active: the index of the active tab when creating the uitabs (default
 %   = 1).
+%   - height: the relative height of the tabs within its parent spatial
+%   extent (default = 1);
 % OUT:
 %   - handles: a structure of handles for the differents tab objects.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 1928 2008-07-18 10:17:05Z jean $
+% $Id: spm_uitab.m 1976 2008-08-04 11:26:15Z jean $
 
 Ntabs = length(labels);
 
@@ -34,6 +36,9 @@ end
 if  ~exist('active','var') || isempty(active)
     active = 1;
 end
+if  ~exist('height','var') || isempty(height)
+    height = 1;
+end
 
 if ~isequal(get(hparent,'type'),'figure')
     set(hparent,'units','normalized')
@@ -46,7 +51,7 @@ else
     dx = 0.1;
     dx2 = [0.04,0.93];
 end
-
+pos1(4) = pos1(4).*height;
 
 handles.hp = uipanel('position',pos1,...
     'BorderType','beveledout',...
@@ -142,7 +147,7 @@ end
 
 function doChoose(o1,o2)
 ud = get(gco,'userdata');
-% Do nothing if called tab is curret (active) tab
+% Do nothing if called tab is current (active) tab
 if ~strcmp(get(ud.handles.htab(ud.ind),'FontWeight'),'bold')
     spm('pointer','watch');
     set(ud.handles.hh(ud.ind),'visible','on');
