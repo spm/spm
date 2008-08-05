@@ -17,7 +17,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 1809 2008-06-10 14:30:27Z guillaume $
+% $Id: spm_eeg_plotScalpData.m 1979 2008-08-05 18:05:05Z jean $
 
 if ~exist('in','var') || isempty(in) == 1
     in = [];
@@ -63,7 +63,7 @@ y = ymin:dy:ymax;
 ZI = griddata(pos(1,:)',pos(2,:)',double(Z'),XI,YI);
 
 f=figure;
-set(f,'name',figName,'deleteFcn',deleteFcn);
+set(f,'name',figName,'deleteFcn',@dFcn);
 hi = imagesc(flipud(ZI));
 hold on
 [C,hc] = contour(flipud(ZI));
@@ -132,9 +132,11 @@ if ~isempty(in)
 end
 set(d.hsp,'userdata',d);
 set(d.hsn,'userdata',d);
+set(f,'userdata',d);
 
-
-
+function dFcn(btn,evd)
+d = get(gcf,'userdata');
+try;delete(d.in.hl);end
 
 function dosp(btn,evd)
 d = get(btn,'userdata');

@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1976 2008-08-04 11:26:15Z jean $
+% $Id: spm_eeg_review.m 1979 2008-08-05 18:05:05Z jean $
 
 dbstop if error
 
@@ -87,7 +87,12 @@ switch D.type
         nTrials = length(D.trials);
         D.PSD.trials.TrLabels = cell(nTrials,1);
         for i = 1:nTrials
-            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label];
+            if D.trials(i).bad
+                str = ' (bad)';
+            else
+                str = ' (not bad)';
+            end
+            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label,str];
         end
         D.PSD.trials.current = 1;
         D.PSD.VIZU.type = 1;

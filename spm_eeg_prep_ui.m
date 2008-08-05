@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1978 2008-08-04 15:17:22Z jean $
+% $Id: spm_eeg_prep_ui.m 1979 2008-08-05 18:05:05Z jean $
 
 if nargin == 0
 
@@ -616,7 +616,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
 
 sD = struct(D);
-if sD.other.PSD == 1
+if isfield(sD,'PSD') && sD.other.PSD == 1
     try
         hc = get(Finter,'children');
         hc = findobj(hc,'flat','type','uimenu');

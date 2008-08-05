@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 1978 2008-08-04 15:17:22Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 1979 2008-08-05 18:05:05Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -89,6 +89,9 @@ else
                 object.list = [object.list;9];
             case 'epoched'
                 object.list = [object.list;7;11];
+                if strcmp(D.type,'single')
+                    object.list = [object.list;13];
+                end
         end
         D = spm_eeg_review_uis(D,object);
 
@@ -129,10 +132,7 @@ else
 
     else
         
-        
         D.PSD.VIZU.type = 2;
-        trN = D.PSD.trials.current(1);
-
         % add buttons
         object.type = 'buttons';
         object.list = [1;5;7];
@@ -141,6 +141,9 @@ else
             object.list = [object.list;4;6;11];
         else
             object.options.multSelect = 0;
+        end
+        if strcmp(D.type,'single')
+            object.list = [object.list;13];
         end
         D = spm_eeg_review_uis(D,object);
 
@@ -157,7 +160,6 @@ else
         object.what = 'scalp';
         object.options.channelPlot = I;
         D = spm_eeg_review_uis(D,object);
-
 
     end
 
@@ -191,7 +193,9 @@ else
         if Ninv>=1
             
             D.PSD.VIZU.x0 = 1;
-
+            labels = cell(Ninv,1);
+            callbacks = cell(Ninv,1);
+            F = zeros(Ninv,1);
             pst = [];
             for i=1:Ninv
                 if ~isfield(D.other.inv{isInv(i)},'comment')
@@ -309,11 +313,10 @@ else
                 'string','There is no (imaging) inverse source reconstruction in this data file !',...
                 'BackgroundColor',0.95*[1 1 1],...
                 'tag','plotEEG')
-            tag = 'plotEEG';
             labels{1} = '1';
             callbacks{1} = [];
             hInv = D.PSD.handles.tabs.hp;
-            [h] = spm_uitab(hInv,labels,callbacks,'plotEEG');
+            spm_uitab(hInv,labels,callbacks,'plotEEG');
 
 
         end
@@ -324,11 +327,10 @@ else
             'string','There is no inverse source reconstruction in this data file !',...
             'BackgroundColor',0.95*[1 1 1],...
             'tag','plotEEG')
-        tag = 'plotEEG';
         labels{1} = '0';
         callbacks{1} = [];
         hInv = D.PSD.handles.tabs.hp;
-        [h] = spm_uitab(hInv,labels,callbacks,'plotEEG');
+        spm_uitab(hInv,labels,callbacks,'plotEEG');
 
     end
 
@@ -338,7 +340,7 @@ end
 
 
 %% GET DATA INFO
-function [D] = DataInfo(D);
+function [D] = DataInfo(D)
 % create info text
 object.type = 'text';
 object.what = 'data';
@@ -351,20 +353,21 @@ catch
 end
 
 % Create uitabs for channels and trials
-labels = {'channels','trials'};
+labels = {'channels','trials','inv'};
 callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''info'',1)',...,...
-    'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'};
+    'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'...
+    'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)'};
 [h] = spm_uitab(D.PSD.handles.tabs.hp,labels,callbacks,'plotEEG',D.PSD.VIZU.info,0.9);
 D.PSD.handles.infoTabs = h;
 
 % add table and buttons
 object.type = 'buttons';
-object.list = [1;12];
+object.list = 1;
 
 switch D.PSD.VIZU.info
 
     case 1 % channels info
-        object.list = [object.list;13];
+        object.list = [object.list;12];
         nc = length(D.channels);
         table = cell(nc,5);
         for i=1:nc
@@ -391,6 +394,7 @@ switch D.PSD.VIZU.info
 
     case 2 % trials info
         
+        object.list = [object.list;12];
         if strcmp(D.type,'continuous')
             ne = length(D.trials(1).events);
             table = cell(ne,3);
@@ -423,7 +427,7 @@ switch D.PSD.VIZU.info
                     if ~isempty(D.trials(i).events.duration)
                         table{i,4} = num2str(D.trials(i).events.duration);
                     else
-                        table{i,4} = 'NaN';
+                        table{i,4} = 'Undefined';
                     end
                     table{i,5} = num2str(D.trials(i).events.time);
                     if D.trials(i).bad
@@ -457,6 +461,62 @@ switch D.PSD.VIZU.info
             end
         end
         D.PSD.handles.infoUItable = ht;
+        
+    case 3 % inv info
+        if isfield(D.other,'inv') && ~isempty(D.other.inv) && isfield(D.other.inv{1},'inverse')
+            object.list = [object.list;12];
+            Ninv = length(D.other.inv);
+            table = cell(Ninv,12);
+            for i=1:Ninv
+                table{i,1} = [D.other.inv{i}.comment{1}];
+                table{i,2} = [D.other.inv{i}.date(1,:)];
+                table{i,3} = [D.other.inv{i}.modality];
+                table{i,4} = [D.other.inv{i}.method];
+                table{i,5} = [num2str(length(D.other.inv{i}.inverse.Is))];
+                table{i,6} = [D.other.inv{i}.inverse.type];
+                try
+                    table{i,7} = [num2str(floor(D.other.inv{i}.inverse.woi(1))),...
+                        ' to ',num2str(floor(D.other.inv{i}.inverse.woi(2))),' ms'];
+                catch
+                    table{i,7} = [num2str(floor(D.other.inv{i}.inverse.pst(1))),...
+                        ' to ',num2str(floor(D.other.inv{i}.inverse.pst(end))),' ms'];
+                end
+                try
+                    if D.other.inv{i}.inverse.Han
+                        han = 'yes';
+                    else
+                        han = 'no';
+                    end
+                    table{i,8} = [han];
+                catch
+                    table{i,8} = ['?'];
+                end
+                if isfield(D.other.inv{i}.inverse,'lpf')
+                    table{i,9} = [num2str(D.other.inv{i}.inverse.lpf),...
+                        ' to ',num2str(D.other.inv{i}.inverse.hpf), 'Hz'];
+                else
+                    table{i,9} = ['default'];
+                end
+                table{i,10} = [num2str(size(D.other.inv{i}.inverse.T,2))];
+                table{i,11} = [num2str(D.other.inv{i}.inverse.R2)];
+                table{i,12} = [num2str(D.other.inv{i}.inverse.F)];
+            end
+            colnames = {'label','date','modality','model','#dipoles','method',...
+                'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
+            [ht,hc] = spm_uitable(table,colnames);
+            set(ht,'units','normalized');
+            set(hc,'position',[0.1 0.05 0.8 0.7],...
+                'tag','plotEEG');
+            D.PSD.handles.infoUItable = ht;
+        else
+            POS = get(D.PSD.handles.infoTabs.hp,'position');
+            uicontrol('style','text','units','normalized',...
+                'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+            'string','There is no inverse source reconstruction in this data file !',...
+            'BackgroundColor',0.95*[1 1 1],...
+            'tag','plotEEG')
+
+        end
 
 end
 
