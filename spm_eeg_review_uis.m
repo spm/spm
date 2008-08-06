@@ -289,7 +289,7 @@ switch objects.type
             else
                 str1 = 'trial = ';
             end
-            status = [prod([D.trials(trN).bad])];
+            status = all([D.trials(trN).bad]);
             if status
                 str = ['declare as not bad'];
             else
