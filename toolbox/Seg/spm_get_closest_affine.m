@@ -26,7 +26,7 @@ function [M,R] = spm_get_closest_affine(x,y,w1,w2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_closest_affine.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: spm_get_closest_affine.m 1982 2008-08-07 13:13:15Z john $
  
 XX = zeros(4);
 XY = zeros(4);
@@ -65,7 +65,7 @@ if nargout>1,
     XX1 = XX - XX(:,4)*XX(:,4)'/XX(4,4);
     XY1 = XY - XY(:,4)*XY(4,:) /XY(4,4);
     Z   = (XX1(1:3,1:3)\XY1(1:3,1:3))';
-    [U,S,V] = svd(Z); % Decompose into rotate, zoom and rotate.
+    [U,S,V] = svd(Z);                   % Decompose into rotate, zoom and rotate.
     R   = [U*V' zeros(3,1);0 0 0 1];    % Pure rotation (by taking out the zoom)
     T1  = [eye(4,3) -XY(:,4) /XY(4,4)]; % Initial translation of centre of mass to origin.
     T2  = [eye(4,3) -XY(4,:)'/XY(4,4)]; % Final translation of origin to centre of mass.

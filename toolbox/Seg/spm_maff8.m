@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: spm_maff8.m 1982 2008-08-07 13:13:15Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -55,12 +55,15 @@ spm_progress_bar('Clear');
 
 % Convert the image to unsigned bytes
 [mn,mx] = spm_minmax(g);
+disp('sort out min/max');
+mn = min(g(:));
+mx = max(g(:));
 for z=1:length(x3),
     gz         = g(:,:,z);
-    buf(z).msk = isfinite(gz) & gz>mn;
+    buf(z).msk = isfinite(gz) & gz~=0;
     buf(z).nm  = sum(buf(z).msk(:));
-    gz         = double(gz(buf(z).msk));
-    buf(z).g   = uint8(max(min(round(gz*(255/mx)),255),0));
+    gz         = (double(gz(buf(z).msk))+(1-mn))*(255/(mx-mn+1));
+    buf(z).g   = uint8(max(min(round(gz),255),0));
 end;
 MG = V.mat;
 x  = {x1,x2,x3};
@@ -86,10 +89,11 @@ for iter=1:200
     penalty = (sol1-mu)'*isig*(sol1-mu);
     T       = tpm.M\P2M(sol1)*MG;
 
-    %global st
-    %st.vols{1}.premul = P2M(sol1);
-    %spm_orthviews('Redraw')
-    %drawnow
+   %fprintf('%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n', sol1);
+   %global st
+   %st.vols{1}.premul = P2M(sol1);
+   %spm_orthviews('Redraw')
+   %drawnow
 
     R       = derivs(tpm.M,sol1,MG);
     y1a     = T(1,1)*x1 + T(1,2)*x2 + T(1,4);
@@ -123,7 +127,7 @@ for iter=1:200
     h2    = log2(h1./(sum(h1,2)*sum(h1,1)));
     ll1   = sum(sum(h0.*h2))/ssh - penalty/ssh;
     spm_chi2_plot('Set',ll1);
-    if ll1-ll<1e-6, break; end;
+    if ll1-ll<1e-8, break; end;
     ll    = ll1;
     sol   = sol1;
     Alpha = zeros(12);

@@ -3,11 +3,16 @@ function tpm = spm_load_priors8(V)
 % FORMAT tpm = spm_load_priors(V)
 % V  - structures of image volume information (or filenames)
 % tpm - a structure for tissue probabilities
+%
+% This function is intended to be used in conjunction with spm_sample_priors.
+% V = spm_vol(P);
+% T = spm_load_priors(V);
+% B = spm_sample_priors(T,X,Y,Z);
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_load_priors8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: spm_load_priors8.m 1982 2008-08-07 13:13:15Z john $
 
 tiny = 1e-3;
 

@@ -31,7 +31,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1690 2008-05-20 15:58:36Z volkmar $
+% $Id: spm_dicom_convert.m 1982 2008-08-07 13:13:15Z john $
 
 
 if nargin<2, opts = 'all'; end;
@@ -66,6 +66,7 @@ return;
 function fnames = convert_mosaic(hdr,root_dir,format)
 spm_progress_bar('Init',length(hdr),'Writing Mosaic', 'Files written');
 
+fnames = cell(length(hdr),1);
 for i=1:length(hdr),
 
     % Output filename
@@ -216,6 +217,7 @@ return;
 %_______________________________________________________________________
 function fnames = convert_standard(hdr,root_dir,format)
 hdr = sort_into_volumes(hdr);
+fnames = cell(length(hdr),1);
 for i=1:length(hdr),
     fnames{i} = write_volume(hdr{i},root_dir,format);
 end;
@@ -232,8 +234,8 @@ function vol = sort_into_volumes(hdr)
 
 vol{1}{1} = hdr{1};
 for i=2:length(hdr),
-    orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
-    xy1    = hdr{i}.ImagePositionPatient*orient;
+   %orient = reshape(hdr{i}.ImageOrientationPatient,[3 2]);
+   %xy1    = hdr{i}.ImagePositionPatient*orient;
     match  = 0;
     if isfield(hdr{i},'CSAImageHeaderInfo') && isfield(hdr{i}.CSAImageHeaderInfo,'name')
         ice1 = sscanf( ...
@@ -244,13 +246,13 @@ for i=2:length(hdr),
         ice1 = [];
     end;
     for j=1:length(vol),
-        orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
-        xy2    = vol{j}{1}.ImagePositionPatient*orient;
-        dist2  = sum((xy1-xy2).^2);
+       %orient = reshape(vol{j}{1}.ImageOrientationPatient,[3 2]);
+       %xy2    = vol{j}{1}.ImagePositionPatient*orient;
         
         % This line is a fudge because of some problematic data that Bogdan,
         % Cynthia and Stefan were trying to convert.  I hope it won't cause
         % problems for others -JA
+        % dist2  = sum((xy1-xy2).^2);
         dist2 = 0;
         
         if strcmp(hdr{i}.Modality,'CT') && ...
@@ -308,7 +310,7 @@ for i=2:length(hdr),
     end;
 end;
 
-dcm = vol;
+%dcm = vol;
 %save('dicom_headers.mat','dcm');
 
 %
@@ -347,8 +349,7 @@ for j=1:length(vol),
         for i=1:length(vol{j}),
             z(i)  = vol{j}{i}.ImagePositionPatient*proj;
         end;
-        [z,index] = sort(z);
-        dist      = diff(z);
+        dist = diff(sort(z));
         if sum((dist-mean(dist)).^2)/length(dist)>1e-4,
             fprintf('***************************************************\n');
             fprintf('* VARIABLE SLICE SPACING                          *\n');
@@ -502,41 +503,30 @@ dt     = [spm_type('int16') spm_platform('bigend')];
 % y increases posterior to anterior
 % z increases  inferior to superior
 
-analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)-1) 0]'; 0 0 0 1]*[eye(4,3) [-1 -1 -1 1]'];
-orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
-orient(:,3)      = null(orient');
-if det(orient)<0, orient(:,3) = -orient(:,3); end;
+analyze_to_dicom = [diag([1 -1 1]) [0 (dim(2)+1) 0]'; 0 0 0 1]; % Flip voxels in y
+patient_to_tal   = diag([-1 -1 1 1]); % Flip mm coords in x and y directions
+
+R  = [reshape(hdr{1}.ImageOrientationPatient,3,2)*diag(hdr{1}.PixelSpacing); 0 0];
+x1 = [1;1;1;1];
+y1 = [hdr{1}.ImagePositionPatient'; 1];
+
 if length(hdr)>1,
-    z            = zeros(length(hdr),1);
-    for i=1:length(hdr),
-        z(i)     = hdr{i}.ImagePositionPatient*orient(:,3);
-    end;
-    z            = mean(diff(z));
+    x2 = [1;1;dim(3); 1];
+    y2 = [hdr{end}.ImagePositionPatient'; 1];
 else
+    orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
+    orient(:,3)      = null(orient');
+    if det(orient)<0, orient(:,3) = -orient(:,3); end;
     if checkfields(hdr{1},'SliceThickness'),
         z = hdr{1}.SliceThickness;
     else
         z = 1;
-    end;
-end;
-vox              = [hdr{1}.PixelSpacing z];
-pos              = hdr{1}.ImagePositionPatient';
-dicom_to_patient = [orient*diag(vox) pos ; 0 0 0 1];
-patient_to_tal   = diag([-1 -1 1 1]);
+    end
+    x2 = [0;0;1;0];
+    y2 = [orient*[0;0;z];0];
+end
+dicom_to_patient = [y1 y2 R]/[x1 x2 eye(4,2)];
 mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
-if strcmp(hdr{1}.Modality,'CT') && numel(hdr)>1
-    shear = (hdr{1}.ImagePositionPatient-hdr{2}.ImagePositionPatient) ...
-        * reshape(hdr{1}.ImageOrientationPatient,[3 2]);
-    if shear(1)
-        warning('shear(1) = %f not applied\n', shear(1));
-    end;
-    warning('shear(2) = %f applied\n', shear(2));
-    try
-        prms = spm_imatrix(mat);
-        prms(12) = shear(2);
-        mat = spm_matrix(prms);
-    end;
-end;
 
 % Possibly useful information
 %-------------------------------------------------------------------
@@ -557,23 +547,13 @@ if ~true, % LEFT-HANDED STORAGE
     mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 end;
 
-pinfo = [1 0 0]';
-if isfield(hdr{1},'RescaleSlope') || isfield(hdr{1},'RescaleIntercept'),
-    pinfo   = repmat(pinfo,1,length(hdr));
-    bytepix = spm_type('int16','bits')/8;
-    for i=1:length(hdr),
-        if isfield(hdr{i},'RescaleSlope'),      pinfo(1,i) = hdr{i}.RescaleSlope;     end;
-        if isfield(hdr{i},'RescaleIntercept'),  pinfo(2,i) = hdr{i}.RescaleIntercept; end;
-        pinfo(3,i) = dim(1)*dim(2)*(i-1)*bytepix;
-    end;
-end;
-
 % Write the image volume
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
-%V = struct('fname',fname, 'dim',dim, 'dt',dt, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
-%V = spm_create_vol(V);
 N      = nifti;
+pinfo  = [1 0];
+if isfield(hdr{1},'RescaleSlope'),      pinfo(1) = hdr{1}.RescaleSlope;     end;
+if isfield(hdr{1},'RescaleIntercept'),  pinfo(2) = hdr{1}.RescaleIntercept; end;
 N.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
 N.mat  = mat;
 N.mat0 = mat;
@@ -586,17 +566,14 @@ volume = zeros(dim);
 for i=1:length(hdr),
     plane = read_image_data(hdr{i});
 
-    if isfield(hdr{i},'RescaleSlope'),      plane = plane*hdr{i}.RescaleSlope;     end;
-    if isfield(hdr{i},'RescaleIntercept'),  plane = plane+hdr{i}.RescaleIntercept; end;
+    if pinfo(1)~=1, plane = plane*pinfo(1); end;
+    if pinfo(2)~=0, plane = plane+pinfo(2); end;
 
     plane = fliplr(plane);
     if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
-    %V     = spm_write_plane(V,plane,i);
-    % collect all planes before writing to disk
     volume(:,:,i) = plane;
     spm_progress_bar('Set',i);
 end;
-% write volume at once - see spm_write_plane for performance comments
 N.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 return;
@@ -604,7 +581,7 @@ return;
 
 %_______________________________________________________________________
 function fnames = convert_spectroscopy(hdr,root_dir,format)
-
+fnames = cell(length(hdr),1);
 for i=1:length(hdr),
     fnames{i} = write_spectroscopy_volume(hdr(i),root_dir,format);
 end;
@@ -670,19 +647,6 @@ dicom_to_patient = [orient*diag(vox) pos ; 0 0 0 1];
 patient_to_tal   = diag([-1 -1 1 1]);
 warning('Don''t know exactly what positions in spectroscopy files should be - just guessing!')
 mat              = patient_to_tal*dicom_to_patient*analyze_to_dicom;
-if strcmp(hdr{1}.Modality,'CT') && numel(hdr)>1
-    shear = (hdr{1}.ImagePositionPatient-hdr{2}.ImagePositionPatient) ...
-        * reshape(hdr{1}.ImageOrientationPatient,[3 2]);
-    if shear(1)
-        warning('shear(1) = %f not applied\n', shear(1));
-    end;
-    warning('shear(2) = %f applied\n', shear(2));
-    try
-        prms = spm_imatrix(mat);
-        prms(12) = shear(2);
-        mat = spm_matrix(prms);
-    end;
-end;
 
 % Possibly useful information
 %-------------------------------------------------------------------
@@ -703,23 +667,13 @@ if ~true, % LEFT-HANDED STORAGE
     mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
 end;
 
-pinfo = [1 0 0]';
-if isfield(hdr{1},'RescaleSlope') || isfield(hdr{1},'RescaleIntercept'),
-    pinfo   = repmat(pinfo,1,length(hdr));
-    bytepix = spm_type('int16','bits')/8;
-    for i=1:length(hdr),
-        if isfield(hdr{i},'RescaleSlope'),      pinfo(1,i) = hdr{i}.RescaleSlope;     end;
-        if isfield(hdr{i},'RescaleIntercept'),  pinfo(2,i) = hdr{i}.RescaleIntercept; end;
-        pinfo(3,i) = dim(1)*dim(2)*(i-1)*bytepix;
-    end;
-end;
-
 % Write the image volume
 %-------------------------------------------------------------------
 spm_progress_bar('Init',length(hdr),['Writing ' fname], 'Planes written');
-%V = struct('fname',fname, 'dim',dim, 'dt',dt, 'pinfo',pinfo, 'mat',mat, 'descrip',descrip);
-%V = spm_create_vol(V);
 N      = nifti;
+pinfo  = [1 0];
+if isfield(hdr{1},'RescaleSlope'),      pinfo(1) = hdr{1}.RescaleSlope;     end;
+if isfield(hdr{1},'RescaleIntercept'),  pinfo(2) = hdr{1}.RescaleIntercept; end;
 N.dat  = file_array(fname,dim,dt,0,pinfo(1),pinfo(2));
 N.mat  = mat;
 N.mat0 = mat;
@@ -731,18 +685,13 @@ volume = zeros(dim);
 
 for i=1:length(hdr),
     plane = read_spect_data(hdr{i});
-
-    if isfield(hdr{i},'RescaleSlope'),      plane = plane*hdr{i}.RescaleSlope;     end;
-    if isfield(hdr{i},'RescaleIntercept'),  plane = plane+hdr{i}.RescaleIntercept; end;
-
+    if pinfo(1)~=1, plane = plane*pinfo(1); end;
+    if pinfo(2)~=0, plane = plane+pinfo(2); end;
     plane = fliplr(plane);
     if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
-    %V     = spm_write_plane(V,plane,i);
-    % collect all planes before writing to disk
     volume(:,:,i) = plane;
     spm_progress_bar('Set',i);
 end;
-% write volume at once - see spm_write_plane for performance comments
 N.dat(:,:,:) = volume;
 spm_progress_bar('Clear');
 return;
@@ -817,14 +766,14 @@ return;
 
 %_______________________________________________________________________
 function [spect,images] = select_spectroscopy_images(hdr)
-spectsel  = zeros(1,numel(hdr));
+spectsel = zeros(1,numel(hdr));
 for i=1:length(hdr),
     if isfield(hdr{i},'SOPClassUID') && isfield(hdr{i},'Private_0029_1210')
         spectsel(i) = strcmp(hdr{i}.SOPClassUID,'1.3.12.2.1107.5.9.1');
     end;
 end;
-spect = hdr(logical(spectsel));
-images= hdr(~logical(spectsel));
+spect  = hdr(logical(spectsel));
+images = hdr(~logical(spectsel));
 return;
 %_______________________________________________________________________
 
@@ -842,8 +791,8 @@ return;
 
 %_______________________________________________________________________
 function clean = strip_unwanted(dirty)
-msk = find((dirty>='a'&dirty<='z') | (dirty>='A'&dirty<='Z') |...
-    (dirty>='0'&dirty<='9') | dirty=='_');
+msk = (dirty>='a'&dirty<='z') | (dirty>='A'&dirty<='Z') |...
+      (dirty>='0'&dirty<='9') | dirty=='_';
 clean = dirty(msk);
 return;
 %_______________________________________________________________________
@@ -957,6 +906,7 @@ return;
 %_______________________________________________________________________
 function val = get_numaris4_numval(str,name)
 val1 = get_numaris4_val(str,name);
+val  = zeros(size(val1,1),1);
 for k = 1:size(val1,1)
     val(k)=str2num(val1(k,:));
 end;

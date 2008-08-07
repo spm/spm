@@ -5,15 +5,20 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1966 2008-07-29 15:40:11Z john $
+% $Id: spm_preproc_write8.m 1982 2008-08-07 13:13:15Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
     tpm = spm_load_priors8(tpm);
 end
 
-lkp = res.lkp;
-Kb  = max(lkp);
+if isfield(res,'mg'),
+    lkp = res.lkp;
+    Kb  = max(lkp);
+else
+    Kb  = size(res.intensity,2);
+end
+
 N   = numel(res.image);
 if nargin<2, tc = true(Kb,4); end % native, import, warped, warped-mod
 if nargin<3, bf = true(N,2);  end % corrected, field
@@ -90,10 +95,6 @@ C{1} = spm_bsplinc(res.Twarp(:,:,:,1),prm);
 C{2} = spm_bsplinc(res.Twarp(:,:,:,2),prm);
 C{3} = spm_bsplinc(res.Twarp(:,:,:,3),prm);
 
-mg  = res.mg;
-mn  = res.mn;
-vr  = res.vr;
-
 do_defs = any(df);
 do_defs = do_cls | do_defs;
 if do_defs,
@@ -156,13 +157,23 @@ for z=1:length(x3),
 
         if do_cls,
             msk = (f==0) | ~isfinite(f);
-            q1  = likelihoods(cr,[],mg,mn,vr);
-            q1  = reshape(q1,[d(1:2),numel(mg)]);
 
             q   = zeros([d(1:2) Kb]);
-            b   = spm_sample_priors8(tpm,t1,t2,t3);
-            for k1=1:Kb,
-                q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*b{k1};
+            if isfield(res,'mg'),
+                q1  = likelihoods(cr,[],res.mg,res.mn,res.vr);
+                q1  = reshape(q1,[d(1:2),numel(res.mg)]);
+                b   = spm_sample_priors8(tpm,t1,t2,t3);
+                for k1=1:Kb,
+                    q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*b{k1};
+                end
+            else
+                b   = spm_sample_priors8(tpm,t1,t2,t3);
+                tmp = round(cr{1}*res.interscal(2) + res.interscal(1));
+                tmp = min(max(tmp,1),size(res.intensity,1));
+                for k1=1:Kb,
+                    likelihood = res.intensity(:,k1);
+                    q(:,:,k1)  = likelihood(tmp).*b{k1};
+                end
             end
 
             sq = sum(q,3) + eps^2;

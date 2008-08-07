@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 1893 2008-07-08 15:05:40Z john $
+% $Id: spm_preproc_run.m 1982 2008-08-07 13:13:15Z john $
 
 if nargin==1,
     run_job(job);
@@ -70,11 +70,12 @@ for iter=1:nit,
 
         if iter==1,
             % Initial affine registration.
-            obj.Affine  = eye(4);
+            Affine  = eye(4);
             if ~isempty(job.warp.affreg),
-                obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge*4,tpm,obj.Affine,job.warp.affreg);
-                obj.Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,obj.Affine,job.warp.affreg);
+                Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge*4,tpm,Affine,job.warp.affreg);
+                Affine  = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,Affine,job.warp.affreg);
             end;
+            obj.Affine = Affine;
         else
             % Load results from previous iteration for use with next round of
             % iterations, with the new group-specific tissue probability map.

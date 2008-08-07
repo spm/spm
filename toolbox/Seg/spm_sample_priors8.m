@@ -6,11 +6,16 @@ function [s,ds1,ds2,ds3] = spm_sample_priors8(tpm,x1,x2,x3)
 % x1,x2,x3    - coordinates to sample
 % s           - sampled values
 % ds1,ds2,ds3 - spatial derivatives of sampled values
+%
+% This function is intended to be used in conjunction with spm_load_priors.
+% V = spm_vol(P);
+% T = spm_load_priors(V);
+% B = spm_sample_priors(T,X,Y,Z);
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_sample_priors8.m 1434 2008-04-16 14:00:56Z john $
+% $Id: spm_sample_priors8.m 1982 2008-08-07 13:13:15Z john $
 
 deg  = tpm.deg;
 tiny = tpm.tiny;

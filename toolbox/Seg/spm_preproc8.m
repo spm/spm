@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 1893 2008-07-08 15:05:40Z john $
+% $Id: spm_preproc8.m 1982 2008-08-07 13:13:15Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -257,9 +257,15 @@ for iter=1:20,
         % to initialise the Gaussians
         mn = zeros(N,Kb);
         vr = zeros(N,N,Kb);
+        vr1 = zeros(N,N);
         for k1=1:Kb,
             mn(:,k1)   = mm1(:,k1)/(mm0(k1)+tiny);
-            vr(:,:,k1) = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
+           %vr(:,:,k1) = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
+            vr1 = vr1 + (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1));
+        end
+        vr1 = vr1/(sum(mm0)+tiny);
+        for k1=1:Kb,
+            vr(:,:,k1) = vr1;
         end
         mg = ones(Kb,1);
 
