@@ -9,7 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 1981 2008-08-07 12:46:34Z vladimir $
 
 D = spm_eeg_load;
 
@@ -20,15 +20,10 @@ data.cfg.trl(:, 4) = trlind;
 
 cfg=[];
 cfg.method =  spm_input('What method?','+1', 'm', 'summary|channel|trial', strvcat('summary', 'channel', 'trial'));
+cfg.latency = 1e-3*spm_input('PST ([start end] in ms):', '+1', 'r', num2str(1e3*[data.time{1}(1) data.time{1}(end)]), 2);
 cfg.keepchannel = 'no';
 
-
-switch spm_eeg_modality_ui(D)
-    case 'EEG'
-        chanind = strmatch('EEG', D.chantype);
-    case 'MEG'
-        chanind = strmatch('MEG', D.chantype);
-end
+chanind = strmatch(spm_eeg_modality_ui(D), D.chantype);
 
 cfg.channel = data.label(chanind);
 
