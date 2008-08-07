@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1912 2008-07-11 18:02:03Z guillaume $
+% $Id: spm_mvb_cvk.m 1984 2008-08-07 16:05:03Z christophe $
  
  
 %-partition order
@@ -72,7 +72,8 @@ Ns    = length(X);
 qX    = zeros(Ns,1);
 qE    = zeros(size(Y,2),Ns);
 P     = zeros(size(Y,2),Ns);
-if ~k, k = Ns - 1; end
+% if ~k, k = Ns - 1; end
+if ~k, k = Ns; end
  
 % k-fold cross-validation
 %==========================================================================
@@ -140,9 +141,11 @@ xlabel('true')
 ylabel('predicted')
 title(sprintf('p-value (parametric) = %.5f',p))
 axis square
- 
- 
-% plot feature wietghts
+abc = axis;
+hold on
+plot([max(abc([1 3])) min(abc([2 4]))],[max(abc([1 3])) min(abc([2 4]))],'k')
+
+% plot feature weights
 %--------------------------------------------------------------------------
 subplot(2,2,3)
 imagesc(corrcoef(qE))

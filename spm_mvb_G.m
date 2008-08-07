@@ -23,7 +23,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 1960 2008-07-26 09:33:47Z karl $
+% $Id: spm_mvb_G.m 1984 2008-08-07 16:05:03Z christophe $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -76,7 +76,9 @@ if size(L,2)
 else
     Q  = Qe;
 end
-[Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2));
+hE = ones(length(Q),1)*(-32); %hE(1)=0;    \_ to change hyperprior on noise
+hC = ones(length(Q),1)*256; %hC(1) = 32^2; /
+[Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2),hE,hC);
  
 % prior covariance: source space
 %--------------------------------------------------------------------------
