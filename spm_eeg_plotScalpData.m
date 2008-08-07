@@ -17,7 +17,8 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 1979 2008-08-05 18:05:05Z jean $
+% $Id: spm_eeg_plotScalpData.m 1983 2008-08-07 15:06:44Z jean $
+
 
 if ~exist('in','var') || isempty(in) == 1
     in = [];
@@ -26,6 +27,8 @@ if ~exist('in','var') || isempty(in) == 1
     deleteFcn = [];
 else
     clim = [in.min,in.max];
+    dc = abs(diff(clim))./63;
+    clim(1) = clim(1) - dc;
     if ~isfield(in,'trN')
         figName = ['Image Scalp data: ',in.type,' sensors'];
     else
@@ -61,6 +64,7 @@ x = xmin:dx:xmax;
 y = ymin:dy:ymax;
 [XI,YI] = meshgrid(x,y);
 ZI = griddata(pos(1,:)',pos(2,:)',double(Z'),XI,YI);
+
 
 f=figure;
 set(f,'name',figName,'deleteFcn',@dFcn);
@@ -122,7 +126,7 @@ if ~isempty(in)
         in.unit,')'],...
         'position',[10    10    120    20]);
     d.hts = uicontrol('style','slider',...
-        'Position',[130 10 30 20],'min',1,'max',nT,...
+        'Position',[130 10 250 20],'min',1,'max',nT,...
         'value',in.x,'sliderstep',[1./(nT-1) 1./(nT-1)],...
         'callback',{@doChangeTime},...
         'BusyAction','cancel',...
@@ -133,6 +137,7 @@ end
 set(d.hsp,'userdata',d);
 set(d.hsn,'userdata',d);
 set(f,'userdata',d);
+
 
 function dFcn(btn,evd)
 d = get(gcf,'userdata');
@@ -178,6 +183,7 @@ ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),double(Z),d.interp.XI,d.interp
 % update data display
 set(d.hi,'Cdata',flipud(ZI));
 % update time index display
+v = round(v);
 set(d.hti,'string',[num2str(d.in.gridTime(v)),' (',...
         d.in.unit,')']);
 % update display marker position

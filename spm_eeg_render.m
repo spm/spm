@@ -28,7 +28,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 1826 2008-06-16 13:51:36Z guillaume $
+% $Id: spm_eeg_render.m 1983 2008-08-07 15:06:44Z jean $
 
 try
     options;
@@ -125,7 +125,7 @@ if ~isempty(options)
     end
     
     % Subdivide figure?
-    if isfield(options,'subplot') & options.subplot.bin
+    if isfield(options,'subplot') && options.subplot.bin
         subplotBIN = 1;
         subplot(2,1,1)
     end

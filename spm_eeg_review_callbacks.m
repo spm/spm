@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1979 2008-08-05 18:05:05Z jean $
+% $Id: spm_eeg_review_callbacks.m 1983 2008-08-07 15:06:44Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -172,9 +172,7 @@ switch varargin{1}
                             in.unit = 'ms';
                     end
                     in.x = x;
-
                     in.handles = handles;
-                    
                     switch D.PSD.VIZU.modality
                         case 'eeg'
                             I = D.PSD.EEG.I;
@@ -204,7 +202,66 @@ switch varargin{1}
                 else
                     msgbox('Get 2d positions for EEG/MEG channels!')
                 end
+                
+                
+            case 'sensorPos'
 
+                % get 3D positions
+                try     % EEG
+                    pos3d = [D.sensors.eeg.pnt];
+                    m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
+                    m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    options.figname = 'EEG sensors';
+                    [out] = spm_eeg_render(m,options);
+                    lo = load(['D:\MatlabWork\spm8\EEGtemplates',filesep,'wmeshTemplate_scalp']);
+                    m2.vertices = lo.vert;
+                    m2.faces = lo.face;
+                    options.hfig = out.handles.fi;
+                    options.ParentAxes = gca;
+                    [out] = spm_eeg_render(m2,options);
+                    figure(out.handles.fi)
+                    hold on
+                    hp = plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+                    ht = text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
+                    axis tight
+                end
+                try     % MEG
+                    pos3d = [D.sensors.meg.pnt];
+                    m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
+                    m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    options.figname = 'MEG sensors';
+                    [out] = spm_eeg_render(m,options);
+                    lo = load(['D:\MatlabWork\spm8\EEGtemplates',filesep,'wmeshTemplate_scalp']);
+                    m2.vertices = lo.vert;
+                    m2.faces = lo.face;
+                    options.hfig = out.handles.fi;
+                    options.ParentAxes = gca;
+                    [out] = spm_eeg_render(m2,options);
+                    figure(out.handles.fi)
+                    hold on
+                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.MEG.VIZU.montage.clab);
+                    axis tight
+                end
+                try     % other
+                    pos3d = [D.sensors.other.pnt];
+                    m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
+                    m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    options.figname = 'other sensors';
+                    [out] = spm_eeg_render(m,options);
+                    lo = load(['D:\MatlabWork\spm8\EEGtemplates',filesep,'wmeshTemplate_scalp']);
+                    m2.vertices = lo.vert;
+                    m2.faces = lo.face;
+                    options.hfig = out.handles.fi;
+                    options.ParentAxes = gca;
+                    [out] = spm_eeg_render(m2,options);
+                    figure(out.handles.fi)
+                    hold on
+                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
+                    axis tight
+                end
+                
             case 'inv'
                 
 %                 D.PSD.invN = varargin{3};
@@ -850,7 +907,9 @@ switch varargin{1}
                 set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
                 set(D.PSD.handles.BUTTONS.badEvent,'string',str)
                 set(D.PSD.handles.hfig,'userdata',D)
-                
+                try
+                    uicontrol(D.PSD.handles.BUTTONS.pop1)
+                end
 
                 %% Add an event to current selection
             case 'add'
@@ -1820,11 +1879,14 @@ elseif length(cn) == 7
             if ~isempty(table(i,1))
                 D.trials(i).label = table(i,1);
             end
-            if ~isempty(table(i,2))
-                D.trials(i).events.type = table(i,2);
-            end
-            if ~isempty(table(i,3))
-                D.trials(i).events.value = str2double(table(i,3));
+            ne = length(D.trials(i).events);
+            if ne<2
+                if ~isempty(table(i,2))
+                    D.trials(i).events.type = table(i,2);
+                end
+                if ~isempty(table(i,3))
+                    D.trials(i).events.value = str2double(table(i,3));
+                end
             end
             if ~isempty(table(i,6))
                 switch lower(table(i,6))
@@ -1849,20 +1911,8 @@ elseif length(cn) == 3
         if ~isempty(table(i,1))
             D.trials(i).label = table(i,1);
         end
-        if ~isempty(table(i,3))
-            switch lower(table(i,3))
-                case 'yes'
-                    D.channels(i).bad = 1;
-                otherwise
-                    D.channels(i).bad = 0;
-            end
-        end
-        if D.trials(i).bad
-            str = ' (bad)';
-        else
-            str = ' (not bad)';
-        end
-        D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label,str];
+        D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),' (average of ',...
+                num2str(D.trials(i).repl),' events): ',D.trials(i).label];
     end
     
 elseif length(cn) == 12     % source reconstructions

@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 1979 2008-08-05 18:05:05Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 1983 2008-08-07 15:06:44Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -367,7 +367,7 @@ object.list = 1;
 switch D.PSD.VIZU.info
 
     case 1 % channels info
-        object.list = [object.list;12];
+        object.list = [object.list;12;14];
         nc = length(D.channels);
         table = cell(nc,5);
         for i=1:nc
@@ -422,14 +422,22 @@ switch D.PSD.VIZU.info
             if strcmp(D.type,'single')
                 for i=1:nt
                     table{i,1} = D.trials(i).label;
-                    table{i,2} = D.trials(i).events.type;
-                    table{i,3} = num2str(D.trials(i).events.value);
-                    if ~isempty(D.trials(i).events.duration)
-                        table{i,4} = num2str(D.trials(i).events.duration);
+                    ne = length(D.trials(i).events);
+                    if ne >1
+                        table{i,2} = 'multiple events';
+                        table{i,3} = 'multiple events';
+                        table{i,4} = 'multiple events';
+                        table{i,5} = 'multiple events';
                     else
-                        table{i,4} = 'Undefined';
+                        table{i,2} = D.trials(i).events.type;
+                        table{i,3} = num2str(D.trials(i).events.value);
+                        if ~isempty(D.trials(i).events.duration)
+                            table{i,4} = num2str(D.trials(i).events.duration);
+                        else
+                            table{i,4} = 'Undefined';
+                        end
+                        table{i,5} = num2str(D.trials(i).events.time);
                     end
-                    table{i,5} = num2str(D.trials(i).events.time);
                     if D.trials(i).bad
                         table{i,6} = 'yes';
                     else
