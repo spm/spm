@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1983 2008-08-07 15:06:44Z jean $
+% $Id: spm_eeg_review_callbacks.m 1986 2008-08-07 21:46:27Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -12,8 +12,8 @@ end
 
 switch varargin{1}
 
-    
-    %% File I/O 
+
+    %% File I/O
     case 'file'
         switch varargin{2}
             case 'save'
@@ -22,13 +22,13 @@ switch varargin{1}
                 D = rmfield(D,'PSD');
                 D = meeg(D);
                 D.save;
-%                 save(D.fname,'D')
+                %                 save(D.fname,'D')
                 spm('pointer','arrow');
         end
-        
-        
+
+
     case 'get'
-        
+
         switch varargin{2}
             case 'VIZU'
                 if strcmp(D.transform.ID,'time')
@@ -55,21 +55,22 @@ switch varargin{1}
                     VIZU.montage.clab       = {D.channels(visuSensors).label};
                 else
                     visuSensors             = varargin{3};
-%                     VIZU.visuSensors     = visuSensors;
+                    %                     VIZU.visuSensors     = visuSensors;
                     VIZU.montage.clab    = {D.channels(visuSensors).label};
                 end
                 varargout{1} = VIZU;
                 return
             case 'commentInv'
-                try
-                    invN = varargin{3};
-                catch
-                    try
-                        invN = D.PSD.invN;
-                    catch
-                        invN = 1;
-                    end
-                end
+                invN = varargin{3};
+%                 try
+%                     invN = varargin{3};
+%                 catch
+%                     try
+%                         invN = D.PSD.invN;
+%                     catch
+%                         invN = 1;
+%                     end
+%                 end
                 str = getInfo4Inv(D,invN);
                 varargout{1} = str;
                 return
@@ -85,11 +86,11 @@ switch varargin{1}
                 D = get(Finter, 'UserData');
                 spm_eeg_review(D);
                 spm_clf(Finter)
-                
+
         end
-    
-    
-    %% Visualization callbacks
+
+
+        %% Visualization callbacks
 
     case 'visu'
 
@@ -112,8 +113,6 @@ switch varargin{1}
                         D.PSD.VIZU.modality = 'info';
                         try
                             D.PSD.VIZU.info = varargin{4};
-                        catch
-                            D.PSD.VIZU.info = 1;
                         end
                     case 'standard'
                         D.PSD.VIZU.type = 1;
@@ -127,10 +126,10 @@ switch varargin{1}
                 try
                     updateDisp(D)
                 end
-                   
+
 
             case 'switch'
-                
+
                 spm('pointer','watch');
                 drawnow
                 mod = get(gcbo,'userdata');
@@ -142,14 +141,14 @@ switch varargin{1}
                     end
                 end
                 spm('pointer','arrow');
-                
+
             case 'update'
-                
+
                 try
                     D = varargin{3};
                 end
                 updateDisp(D)
-                
+
                 % Scalp interpolation
             case 'scalp_interp'
 
@@ -157,20 +156,19 @@ switch varargin{1}
                     x = round(mean(get(handles.axes(1),'xlim')));
                     ylim = get(handles.axes(1),'ylim');
                     if D.PSD.VIZU.type==1
-                        hl = line('parent',handles.axes,'xdata',[x;x],'ydata',[ylim(1);ylim(2)]);
+                        hl = line('parent',handles.axes,'xdata',[x;x],...
+                            'ydata',[ylim(1);ylim(2)]);
                         in.hl = hl;
                     end
                     switch D.PSD.type
                         case 'continuous'
                             trN = 1;
-                            in.gridTime = (1:D.Nsamples)./D.Fsample + D.timeOnset;
-                            in.unit = 's';
                         case 'epoched'
                             trN = D.PSD.trials.current(1);
                             in.trN = trN;
-                            in.gridTime = (1:D.Nsamples).*1e3./D.Fsample + D.timeOnset.*1e3;
-                            in.unit = 'ms';
                     end
+                    in.gridTime = (1:D.Nsamples).*1e3./D.Fsample + D.timeOnset.*1e3;
+                    in.unit = 'ms';
                     in.x = x;
                     in.handles = handles;
                     switch D.PSD.VIZU.modality
@@ -202,8 +200,8 @@ switch varargin{1}
                 else
                     msgbox('Get 2d positions for EEG/MEG channels!')
                 end
-                
-                
+
+
             case 'sensorPos'
 
                 % get 3D positions
@@ -261,48 +259,45 @@ switch varargin{1}
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
                     axis tight
                 end
-                
+
             case 'inv'
-                
-%                 D.PSD.invN = varargin{3};
-%                 if ~isequal(D.PSD.invN,varargin{3})
-                    delete(findobj('tag','dipSpheres'))
-                    str = getInfo4Inv(D,varargin{3});
-                    isInv = get(D.PSD.handles.BMCcurrent,'userdata');
-                    set(D.PSD.handles.infoText,'string',str);
-                    set(D.PSD.handles.BMCcurrent,'XData',find(isInv==varargin{3}));
-                    D.PSD.invN = varargin{3};
-                    trN = D.PSD.trials.current(1);
-                    model = D.other.inv{D.PSD.invN}.inverse;
-                    J = model.J{trN}*model.T';
-                    set(D.PSD.handles.axes,'CLim',[min(min(J)) max(max(J))]);
-                    set(D.PSD.handles.mesh,...
-                        'Vertices',D.other.inv{D.PSD.invN}.mesh.tess_mni.vert,...
-                        'Faces',D.other.inv{D.PSD.invN}.mesh.tess_mni.face);
-                    if isfield(D.other.inv{D.PSD.invN}.inverse,'dipfit') ||...
-                            ~isequal(D.other.inv{D.PSD.invN}.inverse.xyz,zeros(1,3))
-                        try 
-                            xyz = D.other.inv{D.PSD.invN}.inverse.dipfit.Lpos;
-                            radius = D.other.inv{D.PSD.invN}.inverse.dipfit.radius;
-                        catch
-                            xyz = D.other.inv{D.PSD.invN}.inverse.xyz';
-                            radius = D.other.inv{D.PSD.invN}.inverse.rad(1);
-                        end 
-                        Np  = size(xyz,2);
-                        [x,y,z] = sphere(20);
-                        axes(D.PSD.handles.axes)
-                        for i=1:Np
-                            D.PSD.handles.dipSpheres(i) = patch(...
-                                surf2patch(x.*radius+xyz(1,i),...
-                                y.*radius+xyz(2,i),z.*radius+xyz(3,i)));
-                            set(D.PSD.handles.dipSpheres(i),'facecolor',[1 1 1],...
-                                'edgecolor','none','facealpha',0.5,...
-                                'tag','dipSpheres');
-                        end
+
+                delete(findobj('tag','dipSpheres'))
+                isInv = D.PSD.source.VIZU.isInv;
+                D.PSD.source.VIZU.current = varargin{3};
+                invN = isInv(D.PSD.source.VIZU.current);
+                str = getInfo4Inv(D,invN);
+                set(D.PSD.handles.infoText,'string',str);
+                set(D.PSD.handles.BMCcurrent,'XData',invN);
+                trN = D.PSD.trials.current(1);
+                model = D.other.inv{invN}.inverse;
+                J = model.J{trN}*model.T';
+                set(D.PSD.handles.axes,'CLim',[min(min(J)) max(max(J))]);
+                set(D.PSD.handles.mesh,...
+                    'Vertices',D.other.inv{invN}.mesh.tess_mni.vert,...
+                    'Faces',D.other.inv{invN}.mesh.tess_mni.face);
+                if isfield(D.other.inv{invN}.inverse,'dipfit') ||...
+                        ~isequal(D.other.inv{invN}.inverse.xyz,zeros(1,3))
+                    try
+                        xyz = D.other.inv{invN}.inverse.dipfit.Lpos;
+                        radius = D.other.inv{invN}.inverse.dipfit.radius;
+                    catch
+                        xyz = D.other.inv{invN}.inverse.xyz';
+                        radius = D.other.inv{invN}.inverse.rad(1);
                     end
-                    
-                    updateDisp(D);
-%                 end
+                    Np  = size(xyz,2);
+                    [x,y,z] = sphere(20);
+                    axes(D.PSD.handles.axes)
+                    for i=1:Np
+                        D.PSD.handles.dipSpheres(i) = patch(...
+                            surf2patch(x.*radius+xyz(1,i),...
+                            y.*radius+xyz(2,i),z.*radius+xyz(3,i)));
+                        set(D.PSD.handles.dipSpheres(i),'facecolor',[1 1 1],...
+                            'edgecolor','none','facealpha',0.5,...
+                            'tag','dipSpheres');
+                    end
+                end
+                updateDisp(D);
 
 
                 % Contrast/intensity rescaling
@@ -344,14 +339,14 @@ switch varargin{1}
                         xlim(1) = max([xlim(1) 1]);
                     end
                 end
-                D.PSD.VIZU.xlim = xlim;              
+                D.PSD.VIZU.xlim = xlim;
 
                 % This part avoids limiting displaying conditions
                 if length_window >= D.Nsamples-1
-%                     set(handles.VIZU.time_w1,'enable','off')
+                    %                     set(handles.VIZU.time_w1,'enable','off')
                     set(handles.BUTTONS.vb3,'enable','off')
                 elseif length_window < 20
-%                     set(handles.VIZU.time_w2,'enable','off')
+                    %                     set(handles.VIZU.time_w2,'enable','off')
                     set(handles.BUTTONS.vb4,'enable','off')
                 end
 
@@ -379,10 +374,10 @@ switch varargin{1}
                 end
 
                 if varargin{3} > 1
-%                     set(handles.VIZU.time_w2,'enable','on');
+                    %                     set(handles.VIZU.time_w2,'enable','on');
                     set(handles.BUTTONS.vb4,'enable','on');
                 else
-%                     set(handles.VIZU.time_w1,'enable','on');
+                    %                     set(handles.VIZU.time_w1,'enable','on');
                     set(handles.BUTTONS.vb3,'enable','on');
                 end
 
@@ -392,7 +387,7 @@ switch varargin{1}
 
                 % Zoom (box in)
             case 'zoom'
-                
+
                 switch D.PSD.VIZU.type
 
                     case 1
@@ -406,7 +401,7 @@ switch varargin{1}
                         end
 
                     case 2
-                        
+
                         switch D.PSD.VIZU.modality
                             case 'eeg'
                                 VIZU = D.PSD.EEG.VIZU;
@@ -415,7 +410,7 @@ switch varargin{1}
                             case 'other'
                                 VIZU = D.PSD.other.VIZU;
                         end
-                        
+
                         try
                             axes(D.PSD.handles.scale)
                         end
@@ -434,7 +429,7 @@ switch varargin{1}
                                 'XGrid','on','YGrid','on');
                             trN = D.PSD.trials.current(:);
                             Ntrials = length(trN);
-                            
+
                             if strcmp(D.transform.ID,'time')
 
                                 leg = cell(Ntrials,1);
@@ -469,9 +464,9 @@ switch varargin{1}
                                 ylabel(ha2,'frequency (in Hz)')
                                 title(ha2,['channel ',chanLabel,...
                                     ' (',D.channels(D.PSD.VIZU.visuSensors(indAxes)).type,')'])
-                                
+
                             end
-                            
+
                             axes(ha2)
                         end
                 end
@@ -503,53 +498,53 @@ switch varargin{1}
 
 
 
-%                 %% Data navigation using the editable box
-%             case 'focus_t'
-% 
-% 
-%                 % Get current plotted data window range and limits
-%                 xlim0 = get(handles.axes,'xlim');
-%                 
-%                 val = str2num(...
-%                     get(D.PSD.handles.BUTTONS.slider_step,'string'));
-% 
-%                 offset = round(val);
-% 
-%                 try
-%                     % The IF statement ensures acceptable range
-%                     if ~isequal(xlim0,[1 D.Nsamples])
-% 
-%                         % Build limits of the plotted data window
-%                         length_window = round(xlim0(2)-xlim0(1));
-%                         if offset < round(0.5*length_window)
-%                             offset = round(0.5*length_window);
-%                             set(handles.BUTTONS.slider_step,'value',1);
-%                         elseif offset > D.Nsamples-round(0.5*length_window)
-%                             offset = D.Nsamples-round(0.5*length_window)-1;
-%                             set(handles.BUTTONS.slider_step,'value',get(handles.BUTTONS.slider_step,'max'));
-%                         else
-%                             set(handles.BUTTONS.slider_step,'value',offset);
-%                         end
-%                         xlim = [offset-round(0.5*length_window) offset+round(0.5*length_window)];
-%                         xlim(1) = max([xlim(1) 1]);
-%                         xlim(2) = min([xlim(2) D.Nsamples]);
-%                         set(gco,'string',num2str(mean(xlim)));
-% 
-%                         D.PSD.VIZU.xlim = xlim;
-%                         D.PSD.VIZU.x0 = offset;
-%                         
-%                         updateDisp(D,1)
-% 
-%                     end
-%                 catch
-%                     set(D.PSD.handles.BUTTONS.slider_step,'string',num2str(mean(xlim0)));
-%                     spm_eeg_review_callbacks('visu','focus_t',0);
-%                 end
+                %                 %% Data navigation using the editable box
+                %             case 'focus_t'
+                %
+                %
+                %                 % Get current plotted data window range and limits
+                %                 xlim0 = get(handles.axes,'xlim');
+                %
+                %                 val = str2num(...
+                %                     get(D.PSD.handles.BUTTONS.slider_step,'string'));
+                %
+                %                 offset = round(val);
+                %
+                %                 try
+                %                     % The IF statement ensures acceptable range
+                %                     if ~isequal(xlim0,[1 D.Nsamples])
+                %
+                %                         % Build limits of the plotted data window
+                %                         length_window = round(xlim0(2)-xlim0(1));
+                %                         if offset < round(0.5*length_window)
+                %                             offset = round(0.5*length_window);
+                %                             set(handles.BUTTONS.slider_step,'value',1);
+                %                         elseif offset > D.Nsamples-round(0.5*length_window)
+                %                             offset = D.Nsamples-round(0.5*length_window)-1;
+                %                             set(handles.BUTTONS.slider_step,'value',get(handles.BUTTONS.slider_step,'max'));
+                %                         else
+                %                             set(handles.BUTTONS.slider_step,'value',offset);
+                %                         end
+                %                         xlim = [offset-round(0.5*length_window) offset+round(0.5*length_window)];
+                %                         xlim(1) = max([xlim(1) 1]);
+                %                         xlim(2) = min([xlim(2) D.Nsamples]);
+                %                         set(gco,'string',num2str(mean(xlim)));
+                %
+                %                         D.PSD.VIZU.xlim = xlim;
+                %                         D.PSD.VIZU.x0 = offset;
+                %
+                %                         updateDisp(D,1)
+                %
+                %                     end
+                %                 catch
+                %                     set(D.PSD.handles.BUTTONS.slider_step,'string',num2str(mean(xlim0)));
+                %                     spm_eeg_review_callbacks('visu','focus_t',0);
+                %                 end
 
 
                 %% Data navigation using the slider
             case 'slider_t'
-                
+
                 offset = get(gco,'value');
                 if ~strcmp(D.PSD.VIZU.modality,'source')
                     offset = round(offset);
@@ -580,7 +575,7 @@ switch varargin{1}
                     end
                 else
                     D.PSD.source.VIZU.x0 = offset;
-                   
+
                     updateDisp(D,1)
                 end
 
@@ -612,7 +607,7 @@ switch varargin{1}
                         xlim(2) = D.Nsamples;
                     end
                     set(handles.BUTTONS.slider_step,'value',mean(xlim));
-%                     set(handles.BUTTONS.focus_temp,'string',round(mean(xlim)));
+                    %                     set(handles.BUTTONS.focus_temp,'string',round(mean(xlim)));
                     D.PSD.VIZU.xlim = xlim;
                     updateDisp(D)
 
@@ -761,8 +756,8 @@ switch varargin{1}
                 here = mean(x(currentEvent,:));
 
                 values = [D.trials.events.value];
-%                 sameValue = find(values==eventValue);
-%                 xm = mean(x(sameValue,:),2);
+                %                 sameValue = find(values==eventValue);
+                %                 xm = mean(x(sameValue,:),2);
                 xm = mean(x(values==eventValue,:),2);
                 if varargin{3} == 0
                     ind = find(xm < here);
@@ -777,9 +772,9 @@ switch varargin{1}
                     else
                         offset = round(min(xm(ind))).*D.Fsample;
                     end
-%                     ud = get(handles.axes,'userdata');
+                    %                     ud = get(handles.axes,'userdata');
 
-%                     ylim = D.PSD.VIZU.ylim;
+                    %                     ylim = D.PSD.VIZU.ylim;
                     xlim0 = get(handles.axes,'xlim');
 
                     if ~isequal(xlim0,[1 D.Nsamples])
@@ -866,7 +861,7 @@ switch varargin{1}
             case 'switch'
 
                 trN = get(gco,'value');
-                if D.PSD.VIZU.type == 2
+                if ~strcmp(D.PSD.VIZU.modality,'source') && D.PSD.VIZU.type == 2
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                 end
@@ -884,7 +879,7 @@ switch varargin{1}
 
 
             case 'bad'
-                
+
                 trN = D.PSD.trials.current;
                 str = get(D.PSD.handles.BUTTONS.badEvent,'string');
                 str1 = 'not bad';
@@ -932,18 +927,18 @@ switch varargin{1}
                 D.PSD.tools.redo.coreg         = 0;
 
                 % Enable tools on selections
-%                 set(handles.SELECT.select_minus,'enable','on');
-%                 set(handles.SELECT.show_select,'enable','on');
-%                 set(handles.SELECT.save_select,'enable','on');
-%                 set(handles.TOOLS.cor_average,'enable','on');
-%                 set(handles.TOOLS.find_peaks,'enable','on');
-%                 set(handles.TOOLS.classify_peaks ,'enable','on');
-%                 set(handles.SELECT.select_nothing,'enable','on');
-%                 set(handles.SELECT.goto_select1,'enable','on');
-%                 set(handles.SELECT.goto_select2,'enable','on');
+                %                 set(handles.SELECT.select_minus,'enable','on');
+                %                 set(handles.SELECT.show_select,'enable','on');
+                %                 set(handles.SELECT.save_select,'enable','on');
+                %                 set(handles.TOOLS.cor_average,'enable','on');
+                %                 set(handles.TOOLS.find_peaks,'enable','on');
+                %                 set(handles.TOOLS.classify_peaks ,'enable','on');
+                %                 set(handles.SELECT.select_nothing,'enable','on');
+                %                 set(handles.SELECT.goto_select1,'enable','on');
+                %                 set(handles.SELECT.goto_select2,'enable','on');
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
-%                 set(handles.TOOLS.spectrum_events,'enable','on');
+                %                 set(handles.TOOLS.spectrum_events,'enable','on');
                 %     set(handles.TOOLS.spectrum_comp,'enable','on');
                 %                 set(handles.EDIT.undo,'enable','on');
                 %                 set(handles.EDIT.redo,'enable','off');
@@ -1043,7 +1038,7 @@ switch varargin{1}
                         xlim(1)         = max([xlim(1) 1]);
                         xlim(2)         = min([xlim(2) D.Nsamples]);
                         D.PSD.VIZU.xlim    = xlim;
-%                         set(handles.BUTTONS.focus_temp,'string',offset);
+                        %                         set(handles.BUTTONS.focus_temp,'string',offset);
                         set(handles.BUTTONS.slider_step,'value',offset);
                         updateDisp(D)
                     end
@@ -1271,9 +1266,9 @@ switch varargin{1}
 
         %% Edit callbacks (from spm_eeg_prep_ui)
     case 'edit'
-        
+
         switch varargin{2}
-            
+
             case 'prep'
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
@@ -1338,9 +1333,9 @@ switch varargin{1}
                 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
                 figure(Finter);
 
-            
+
             case 'sensorPos'
-                
+
                 spm_eeg_prep_ui('LoadEEGSensCB')
                 spm_eeg_prep_ui('HeadshapeCB')
             case 'coregSpos'
@@ -1351,9 +1346,9 @@ switch varargin{1}
                 spm_eeg_prep_ui('EditExistingCoor2DCB')
             case 'project3Dpos'
                 spm_eeg_prep_ui('Project3DCB')
-                
-                
-                
+
+
+
         end
 
         %% Tools callbacks
@@ -1392,11 +1387,11 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
     switch D.PSD.VIZU.type
 
         case 1
-            
+
             % Create intermediary display variables
             ylim                        = VIZU.ylim;
             ylim0                       = VIZU.ylim0;
-            xlim                        = sort(D.PSD.VIZU.xlim);
+            xlim                        = D.PSD.VIZU.xlim;
             nc = size(VIZU.montage.M,1);
             % Get data matrix and events to display
             if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
@@ -1525,12 +1520,12 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
         case 2
 
             if strcmp(D.transform.ID,'time')
-                
+
                 trN = D.PSD.trials.current;
                 Ntrials = length(trN);
                 v_data = zeros(size(VIZU.montage.M,1),...
                     size(D.data.y,2),Ntrials);
-%                 v_data = [];
+                %                 v_data = [];
                 for i=1:Ntrials
                     v_datai                 = full(VIZU.montage.M)*D.data.y(:,:,trN(i));
                     v_datai                 = VIZU.visu_scale*(v_datai);
@@ -1600,17 +1595,18 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
 
             end
     end
-    
-    
+
+
 else  % source space
 
     trN = D.PSD.trials.current(1);
-    invN = D.PSD.invN;
+    isInv = D.PSD.source.VIZU.isInv;
+    invN = isInv(D.PSD.source.VIZU.current);
     model = D.other.inv{invN}.inverse;
 
     J = zeros(model.Nd,size(model.T,1));
     J(model.Is,:) = model.J{trN}*model.T';
-    
+
     time = (model.pst-D.PSD.source.VIZU.x0).^2;
     indTime = find(time==min(time));
     gridTime = model.pst(indTime);
@@ -1725,18 +1721,30 @@ else
     source = 'equivalent current dipoles';
 end
 str{4} = ['Source model: ',source,' (',D.other.inv{invN}.method,')'];
-str{5} = ['Nb of included dipoles: ',...
-    num2str(length(D.other.inv{invN}.inverse.Is)),...
-    ' / ',num2str(D.other.inv{invN}.inverse.Nd)];
-str{6} = ['Inversion method: ',D.other.inv{invN}.inverse.type];
 try
-    str{7} = ['Time window: ',...
-        num2str(floor(D.other.inv{invN}.inverse.woi(1))),...
-        ' to ',num2str(floor(D.other.inv{invN}.inverse.woi(2))),' ms'];
+    str{5} = ['Nb of included dipoles: ',...
+        num2str(length(D.other.inv{invN}.inverse.Is)),...
+        ' / ',num2str(D.other.inv{invN}.inverse.Nd)];
 catch
-    str{7} = ['Time window: ',...
-        num2str(floor(D.other.inv{invN}.inverse.pst(1))),...
-        ' to ',num2str(floor(D.other.inv{invN}.inverse.pst(end))),' ms'];
+    str{5} = 'Nb of included dipoles: undefined';
+end
+try
+    str{6} = ['Inversion method: ',D.other.inv{invN}.inverse.type];
+catch
+    str{6} = 'Inversion method: undefined';
+end
+try
+    try
+        str{7} = ['Time window: ',...
+            num2str(floor(D.other.inv{invN}.inverse.woi(1))),...
+            ' to ',num2str(floor(D.other.inv{invN}.inverse.woi(2))),' ms'];
+    catch
+        str{7} = ['Time window: ',...
+            num2str(floor(D.other.inv{invN}.inverse.pst(1))),...
+            ' to ',num2str(floor(D.other.inv{invN}.inverse.pst(end))),' ms'];
+    end
+catch
+    str{7} = 'Time window: undefined';
 end
 try
     if D.other.inv{invN}.inverse.Han
@@ -1746,20 +1754,36 @@ try
     end
     str{8} = ['Hanning: ',han];
 catch
-    str{8} = ['Hanning: ?'];
+    str{8} = ['Hanning: undefined'];
 end
-if isfield(D.other.inv{invN}.inverse,'lpf')
-    str{9} = ['Band pass filter: ',num2str(D.other.inv{invN}.inverse.lpf),...
-        ' to ',num2str(D.other.inv{invN}.inverse.hpf), 'Hz'];
-else
-    str{9} = ['Band pass filter: default'];
+try
+    if isfield(D.other.inv{invN}.inverse,'lpf')
+        str{9} = ['Band pass filter: ',num2str(D.other.inv{invN}.inverse.lpf),...
+            ' to ',num2str(D.other.inv{invN}.inverse.hpf), 'Hz'];
+    else
+        str{9} = ['Band pass filter: default'];
+    end
+catch
+    str{9} = 'Band pass filter: undefined';
 end
-str{10} = ['Nb of temporal modes: ',...
-    num2str(size(D.other.inv{invN}.inverse.T,2))];
-str{11} = ['Variance accounted for: ',...
-    num2str(D.other.inv{invN}.inverse.R2),' %'];
-str{12} = ['Log model evidence (free energy): ',...
-    num2str(D.other.inv{invN}.inverse.F)];
+try
+    str{10} = ['Nb of temporal modes: ',...
+        num2str(size(D.other.inv{invN}.inverse.T,2))];
+catch
+    str{10} = 'Nb of temporal modes: undefined';
+end
+try
+    str{11} = ['Variance accounted for: ',...
+        num2str(D.other.inv{invN}.inverse.R2),' %'];
+catch
+    str{11} = 'Variance accounted for: undefined';
+end
+try
+    str{12} = ['Log model evidence (free energy): ',...
+        num2str(D.other.inv{invN}.inverse.F)];
+catch
+    str{12} = 'Log model evidence (free energy): undefined';
+end
 
 
 %% Get data info
@@ -1912,34 +1936,59 @@ elseif length(cn) == 3
             D.trials(i).label = table(i,1);
         end
         D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),' (average of ',...
-                num2str(D.trials(i).repl),' events): ',D.trials(i).label];
+            num2str(D.trials(i).repl),' events): ',D.trials(i).label];
     end
-    
+
 elseif length(cn) == 12     % source reconstructions
-    if isfield(D.other,'inv') && ~isempty(D.other.inv)
+
+    if D.PSD.source.VIZU.current ~= 0
+        isInv = D.PSD.source.VIZU.isInv;
         inv = D.other.inv;
         Ninv = length(inv);
         D.other = rmfield(D.other,'inv');
+        oV = D.PSD.source.VIZU;
+        D.PSD.source = rmfield(D.PSD.source,'VIZU');
+        pst = [];
         j = 0;
+        k = 0;
+        l = 0;
         for i=1:Ninv
-            if isempty(table(i,1))&&...
-                    isempty(table(i,2))&&...
-                    isempty(table(i,3))&&...
-                    isempty(table(i,4))&&...
-                    isempty(table(i,5))&&...
-                    isempty(table(i,6))&&...
-                    isempty(table(i,7))&&...
-                    isempty(table(i,8))&&...
-                    isempty(table(i,9))&&...
-                    isempty(table(i,10))&&...
-                    isempty(table(i,11))&&...
-                    isempty(table(i,12))
-                % Row (ie source reconstruction) has been cleared/deleted
-            else
+            if ~ismember(i,isInv)
                 j = j+1;
                 D.other.inv{j} = inv{i};
+            else
+                k = k+1;
+                if isempty(table(k,1))&&...
+                        isempty(table(k,2))&&...
+                        isempty(table(k,3))&&...
+                        isempty(table(k,4))&&...
+                        isempty(table(k,5))&&...
+                        isempty(table(k,6))&&...
+                        isempty(table(k,7))&&...
+                        isempty(table(k,8))&&...
+                        isempty(table(k,9))&&...
+                        isempty(table(k,10))&&...
+                        isempty(table(k,11))&&...
+                        isempty(table(k,12))
+                    % Row (ie source reconstruction) has been cleared/deleted
+                else
+                    j = j+1;
+                    l = l+1;
+                    pst = [pst;inv{isInv(k)}.inverse.pst(:)];
+                    D.other.inv{j} = inv{isInv(k)};
+                    D.PSD.source.VIZU.isInv(l) = j;
+                    D.PSD.source.VIZU.F(l) = oV.F(k);
+                    D.PSD.source.VIZU.labels(l) = oV.labels(k);
+                    D.PSD.source.VIZU.callbacks(l) = oV.callbacks(k);
+                end
             end
         end
+    end
+    if l >= 1
+        D.PSD.source.VIZU.current = 1;
+        D.PSD.source.VIZU.pst = unique(pst);
+    else
+        D.PSD.source.VIZU.current = 0;
     end
 end
 set(D.PSD.handles.hfig,'userdata',D)

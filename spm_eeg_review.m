@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1979 2008-08-05 18:05:05Z jean $
+% $Id: spm_eeg_review.m 1986 2008-08-07 21:46:27Z jean $
 
 dbstop if error
 
@@ -61,7 +61,10 @@ function [D] = PSD_initUD(D)
 % This function initializes the userdata structure.
 
 %-- Initialize time window basic info --%
+% D.PSD.VIZU.gridTime = (1:D.Nsamples).*1e3./D.Fsample + D.timeOnset.*1e3;
+% D.PSD.VIZU.timeInd = [1,min([5e2,D.Nsamples])];
 D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
+D.PSD.VIZU.info = 1;
 
 %-- Initialize trials info --%
 switch D.type
@@ -134,9 +137,55 @@ if ~isempty(D.PSD.other.I)
 end
 
 
-
-
-
+%%-- Initialize inverse field info
+if isfield(D.other,'inv') && ~isempty(D.other.inv) % && isfield(D.other.inv{1},'inverse')
+    isInv = zeros(length(D.other.inv),1);
+    for i=1:length(D.other.inv)
+        if isfield(D.other.inv{i},'inverse') && strcmp(D.other.inv{i}.method,'Imaging')
+            isInv(i) = 1;
+        end
+    end
+    isInv = find(isInv);
+    Ninv = length(isInv);
+    if Ninv>=1
+        labels = cell(Ninv,1);
+        callbacks = cell(Ninv,1);
+        F = zeros(Ninv,1);
+        pst = [];
+        for i=1:Ninv
+            if ~isfield(D.other.inv{isInv(i)},'comment')
+                D.other.inv{isInv(i)}.comment{1} = num2str(i);
+            end
+            if ~isfield(D.other.inv{isInv(i)},'date')
+                D.other.inv{isInv(i)}.date(1,:) = 'unknown';
+                D.other.inv{isInv(i)}.date(2,:) = '       ';
+            end
+            labels{i} = [D.other.inv{isInv(i)}.comment{1}];
+            callbacks{i} = ['spm_eeg_review_callbacks(''visu'',''inv'',',num2str(i),')'];
+            F(i) = D.other.inv{isInv(i)}.inverse.F;
+            pst = [pst;D.other.inv{isInv(i)}.inverse.pst(:)];
+        end
+        pst = unique(pst);
+    end
+else
+    Ninv = 0;
+end
+if Ninv >= 1
+    D.PSD.source.VIZU.x0 = 1;
+    D.PSD.source.VIZU.current = 1;
+    D.PSD.source.VIZU.isInv = isInv;
+    D.PSD.source.VIZU.pst = pst;
+    D.PSD.source.VIZU.F = F;
+    D.PSD.source.VIZU.labels = labels;
+    D.PSD.source.VIZU.callbacks = callbacks;
+else
+    D.PSD.source.VIZU.current = 0;
+    D.PSD.source.VIZU.isInv = [];
+    D.PSD.source.VIZU.pst = [];
+    D.PSD.source.VIZU.F = [];
+    D.PSD.source.VIZU.labels = [];
+    D.PSD.source.VIZU.callbacks = [];
+end
 
 
 

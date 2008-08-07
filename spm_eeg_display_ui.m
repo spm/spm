@@ -16,7 +16,7 @@ function Heeg = spm_eeg_display_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_display_ui.m 1792 2008-06-05 15:43:54Z jean $
+% $Id: spm_eeg_display_ui.m 1986 2008-08-07 21:46:27Z jean $
 
 if nargin == 1
     S = varargin{1};
@@ -26,18 +26,21 @@ if nargin == 1
 end
 if ~exist('D','var')
     D = spm_select(1, '\.mat$', 'Select EEG mat file');
-    try
-        D = spm_eeg_load(D);
-        sD = struct(D); % transform to struct for access to some fields
-    catch
-        error(sprintf('Trouble reading file %s', D));
+    if ~isempty(D)
+        try
+            D = spm_eeg_load(D);
+            sD = struct(D); % transform to struct for access to some fields
+        catch
+            error(sprintf('Trouble reading file %s', D));
+        end
     end
 end
 
 
 %- (JD): not a nice pointer, but easy to reverse !
-spm_eeg_review(D)
-
+if ~isempty(D)
+    spm_eeg_review(D)
+end
 
 
 %     
