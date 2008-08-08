@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 1986 2008-08-07 21:46:27Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 1988 2008-08-08 18:25:14Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -188,17 +188,27 @@ if D.PSD.source.VIZU.current ~= 0
         D.PSD.source.VIZU.callbacks,'plotEEG',find(isInv==invN));
     D.PSD.handles.SubTabs_inv = h;
 
-    model = D.other.inv{invN}.inverse;
-    J = zeros(model.Nd,size(model.T,1));
     trN = D.PSD.trials.current(1);
-    J(model.Is,:) = model.J{trN}*model.T';
+    model = D.other.inv{isInv(1)}.inverse;
+    D.PSD.source.VIZU.J = zeros(model.Nd,size(model.T,1));
+    D.PSD.source.VIZU.J(model.Is,:) = model.J{trN}*model.T';
+    D.PSD.source.VIZU.miJ = min(min(D.PSD.source.VIZU.J));
+    D.PSD.source.VIZU.maJ = max(max(D.PSD.source.VIZU.J));
+
+    J = D.PSD.source.VIZU.J;
+    miJ = D.PSD.source.VIZU.miJ;
+    maJ = D.PSD.source.VIZU.maJ;
+    time = (model.pst-0).^2;
+    indTime = find(time==min(time));
+    gridTime = model.pst(indTime);
 
     % create axes
     object.type = 'axes';
     object.what = 'source';
     object.options.Ninv = Ninv;
-    object.options.miJ = min(min(J));
-    object.options.maJ = max(max(J));
+    object.options.miJ = miJ;
+    object.options.maJ = maJ;
+    object.options.pst = pst;
     D = spm_eeg_review_uis(D,object);
 
     % plot BMC free energies in appropriate axes
@@ -209,7 +219,7 @@ if D.PSD.source.VIZU.current ~= 0
             'tag','plotEEG');
         set(D.PSD.handles.BMCplot,'nextplot','add');
         D.PSD.handles.BMCcurrent = plot(D.PSD.handles.BMCplot,...
-            find(isInv==invN),0,'ro');%,'userdata',isInv);
+            find(isInv==invN),0,'ro');
         set(D.PSD.handles.BMCplot,'xtick',1:Ninv,'xticklabel',...
             D.PSD.source.VIZU.labels,'tag','plotEEG','nextplot','replace',...
             'ygrid','on','xlim',[0,Ninv+1]);
@@ -223,7 +233,7 @@ if D.PSD.source.VIZU.current ~= 0
     % Create mesh and related objects
     mesh.vertices = D.other.inv{invN}.mesh.tess_mni.vert;
     mesh.faces = D.other.inv{invN}.mesh.tess_mni.face;
-    options.texture = J(:,1);
+    options.texture = J(:,indTime);
     options.hfig = D.PSD.handles.hfig;
     options.ParentAxes = D.PSD.handles.axes;
     options.tag = 'plotEEG';
@@ -255,18 +265,36 @@ if D.PSD.source.VIZU.current ~= 0
                 'edgecolor','none','facealpha',0.5,...
                 'tag','dipSpheres');
         end
-%         axis tight
+        axis tight
     end
+    
+    % plot time courses
+    switch D.PSD.source.VIZU.timeCourses
+        case 1
+            D.PSD.source.VIZU.plotTC = plot(D.PSD.handles.axes2,...
+                model.pst,J');
+    end
+    set(D.PSD.handles.axes2,'nextplot','add');
+    D.PSD.source.VIZU.lineTime = line('parent',D.PSD.handles.axes2,...
+        'xdata',[gridTime;gridTime],'ydata',[miJ;maJ]);
+    set(D.PSD.handles.axes2,'nextplot','replace',...
+        'ylim',[miJ;maJ],'tag','plotEEG');
+    grid(D.PSD.handles.axes2,'on')
+    box(D.PSD.handles.axes2,'on')
+    xlabel(D.PSD.handles.axes2,'peri-stimulus time (ms)')
+    ylabel(D.PSD.handles.axes2,'sources intensity')
 
     set(D.PSD.handles.mesh,'visible','on')
-    set(D.PSD.handles.colorbar,'position',[0.8 0.65 0.025 0.2])
     set(D.PSD.handles.colorbar,'visible','on')
+    set(D.PSD.handles.BMCplot,'visible','on')
+    set(D.PSD.handles.axes2,'visible','on')
 
     % create buttons
     object.type = 'buttons';
     object.list = [1;7;8;10];
     object.options.multSelect = 0;
     object.options.pst = pst;
+    object.options.gridTime = gridTime;
     D = spm_eeg_review_uis(D,object);
 
     % create info text

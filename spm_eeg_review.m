@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1986 2008-08-07 21:46:27Z jean $
+% $Id: spm_eeg_review.m 1988 2008-08-08 18:25:14Z jean $
 
 dbstop if error
 
@@ -171,13 +171,13 @@ else
     Ninv = 0;
 end
 if Ninv >= 1
-    D.PSD.source.VIZU.x0 = 1;
     D.PSD.source.VIZU.current = 1;
     D.PSD.source.VIZU.isInv = isInv;
     D.PSD.source.VIZU.pst = pst;
     D.PSD.source.VIZU.F = F;
     D.PSD.source.VIZU.labels = labels;
     D.PSD.source.VIZU.callbacks = callbacks;
+    D.PSD.source.VIZU.timeCourses = 1;
 else
     D.PSD.source.VIZU.current = 0;
     D.PSD.source.VIZU.isInv = [];
@@ -185,6 +185,7 @@ else
     D.PSD.source.VIZU.F = [];
     D.PSD.source.VIZU.labels = [];
     D.PSD.source.VIZU.callbacks = [];
+    D.PSD.source.VIZU.timeCourses = [];
 end
 
 

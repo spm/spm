@@ -28,7 +28,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 1983 2008-08-07 15:06:44Z jean $
+% $Id: spm_eeg_render.m 1988 2008-08-08 18:25:14Z jean $
 
 try
     options;
@@ -350,7 +350,9 @@ drawnow
 % if ~addMesh
     camlight
 % end
-rotate3d on
+
+rotate3d(ParentAxes,'on')
+% rotate3d on
 
 gco;
 
