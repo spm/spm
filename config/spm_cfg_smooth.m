@@ -4,9 +4,9 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_smooth.m 1987 2008-08-08 10:42:23Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 1987 $';
 % ---------------------------------------------------------------------
 % data Images to Smooth
 % ---------------------------------------------------------------------
@@ -36,13 +36,13 @@ dtype.name    = 'Data Type';
 dtype.help    = {'Data-type of output images.  SAME indicates the same datatype as the original images.'};
 dtype.labels = {
                 'SAME'
-                'UINT8  - unsigned char'
-                'INT16 - signed short'
-                'INT32 - signed int'
-                'FLOAT - single prec. float'
-                'DOUBLE - double prec. float'
+                'UINT8   - unsigned char'
+                'INT16   - signed short'
+                'INT32   - signed int'
+                'FLOAT32 - single prec. float'
+                'FLOAT64 - double prec. float'
 }';
-dtype.values = {0 spm_type('uint8') spm_type('int16') spm_type('int32') spm_type('float') spm_type('double')};
+dtype.values = {0 spm_type('uint8') spm_type('int16') spm_type('int32') spm_type('float32') spm_type('float64')};
 dtype.def     = @(val)spm_get_defaults('smooth.dtype', val{:});
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
