@@ -8,6 +8,11 @@ function [msi] = read_bti_m4d(filename);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_bti_m4d.m,v $
+% Revision 1.2  2008/08/12 12:56:08  jansch
+% fixed assignment of msi.grad. in original implementation only the references were
+% stored. in the future this part should be taken care of by bti2grad so that the
+% gradiometer references will be correctly handled in the tra-matrix
+%
 % Revision 1.1  2007/07/03 15:51:46  roboos
 % new implementation, only tested on two datasets
 %
@@ -46,6 +51,10 @@ strlist = {
 numlist = {};
 
 line = '';
+
+msi.grad.label = {};
+msi.grad.pnt   = zeros(0,3);
+msi.grad.ori   = zeros(0,3);
 while ischar(line)
   line = cleanline(fgetl(fid));
   if isempty(line) || (length(line)==1 && all(line==-1))
@@ -102,15 +111,15 @@ while ischar(line)
     num = cell2mat(num);
     % the following is FieldTrip specific
     if size(num,2)==6
-      msi.grad.label = lab(:);
+      msi.grad.label = [msi.grad.label; lab(:)];
       % the numbers represent position and orientation of each magnetometer coil
-      msi.grad.pnt   = num(:,1:3);
-      msi.grad.ori   = num(:,4:6);
+      msi.grad.pnt   = [msi.grad.pnt; num(:,1:3)];
+      msi.grad.ori   = [msi.grad.ori; num(:,4:6)];
     else
       error('unknown gradiometer design')
     end
   end
-
+  
   % the key looks like 'MSI.fieldname.subfieldname'
   fieldname = key(5:end);
 
