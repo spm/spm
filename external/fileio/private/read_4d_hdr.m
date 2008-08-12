@@ -301,7 +301,23 @@ for ch = 1:header.config_data.total_chans
     align_file_pointer(fid)
     name                                       = char(fread(fid, 16, 'uchar'))';
     header.config.channel_data(ch).name        = name(name>0);
-    header.config.channel_data(ch).chan_no     = fread(fid, 1, 'uint16=>uint16');
+    %FIXME this is a very dirty fix to get the reading in of continuous headlocalization
+    %correct. At the moment, the numbering of the hmt related channels seems to start with 1000
+    %which I don't understand, but seems rather nonsensical.
+    chan_no                                    = fread(fid, 1, 'uint16=>uint16');
+    if chan_no > header.config_data.total_chans,
+      
+      %FIXME fix the number in header.channel_data as well
+      sel     = find([header.channel_data.chan_no]== chan_no);
+      if ~isempty(sel),
+        chan_no = ch;
+        header.channel_data(sel).chan_no    = chan_no;
+        header.channel_data(sel).chan_label = header.config.channel_data(ch).name;
+      else
+        %does not matter
+      end
+    end
+    header.config.channel_data(ch).chan_no     = chan_no;
     header.config.channel_data(ch).type        = fread(fid, 1, 'uint16=>uint16');
     header.config.channel_data(ch).sensor_no   = fread(fid, 1, 'int16=>int16');
     fseek(fid, 2, 'cof');
@@ -375,7 +391,7 @@ fclose(fid);
 header.header_data.FileDescriptor = 0; %no obvious field to take this from
 header.header_data.Events         = 1;%no obvious field to take this from
 header.header_data.EventCodes     = 0;%no obvious field to take this from
-
+keyboard
 header.ChannelGain        = double([header.config.channel_data([header.channel_data.chan_no]).gain]');
 header.ChannelUnitsPerBit = double([header.config.channel_data([header.channel_data.chan_no]).units_per_bit]');
 header.Channel            = {header.config.channel_data([header.channel_data.chan_no]).name}';
