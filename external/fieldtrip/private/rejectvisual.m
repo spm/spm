@@ -36,6 +36,15 @@ function [data] = rejectvisual(cfg, data);
 %   cfg.alim        = value that determines the amplitude scaling for the
 %                     channel and trial display, if empty then the amplitude
 %                     scaling is automatic (default = [])
+%   cfg.eegscale    = number, scaling to apply to the EEG channels prior to display
+%   cfg.eogscale    = number, scaling to apply to the EOG channels prior to display
+%   cfg.ecgscale    = number, scaling to apply to the ECG channels prior to display
+%   cfg.megscale    = number, scaling to apply to the MEG channels prior to display
+%
+% The scaling to the EEG, EOG, ECG and MEG channels is optional and can
+% be used to bring the absolute numbers of the different channel types in
+% the same range (e.g. fT and uV). The channel types are determined from
+% the input data using CHANNELSELECTION.
 %
 % Optionally, the raw data is preprocessed (filtering etc.) prior to
 % displaying it or prior to computing the summary metric. The
@@ -97,6 +106,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.21  2008/08/12 16:02:20  roboos
+% added cfg option for scaling eeg, eog, ecg and meg channels prior to display
+%
 % Revision 1.20  2008/05/06 14:03:10  sashae
 % change in trial selection, cfg.trials can be a logical
 %
@@ -172,12 +184,16 @@ function [data] = rejectvisual(cfg, data);
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 if ~isfield(cfg, 'channel'),     cfg.channel = 'all';          end
-if ~isfield(cfg, 'trials'),       cfg.trials = 'all';          end
+if ~isfield(cfg, 'trials'),      cfg.trials = 'all';           end
 if ~isfield(cfg, 'latency'),     cfg.latency = 'maxperlength'; end
 if ~isfield(cfg, 'keepchannel'), cfg.keepchannel = 'no';       end
 if ~isfield(cfg, 'feedback'),    cfg.feedback = 'textbar';     end
 if ~isfield(cfg, 'method'),      cfg.method = 'summary';       end
 if ~isfield(cfg, 'alim'),        cfg.alim = [];                end
+if ~isfield(cfg, 'eegscale'),    cfg.eegscale = [];            end
+if ~isfield(cfg, 'eogscale'),    cfg.eogscale = [];            end
+if ~isfield(cfg, 'ecgscale'),    cfg.ecgscale = [];            end
+if ~isfield(cfg, 'megscale'),    cfg.megscale = [];            end
 
 % for backward compatibility
 if ~isfield(cfg, 'metric') && any(strcmp(cfg.method, {'var', 'min', 'max', 'absmax', 'range'}))
@@ -229,15 +245,61 @@ end
 % ensure that the preproc specific options are located in the cfg.preproc substructure
 cfg = createsubcfg(cfg, 'preproc');
 
+% apply scaling to the selected channel types to equate the absolute numbers (i.e. fT and uV)
+% make a seperate copy to prevent the original data from being scaled
+tmpdata = data;
+scaled  = 0;
+if ~isempty(cfg.eegscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, channelselection('EEG', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.eegscale;
+  end
+end
+if ~isempty(cfg.eogscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, channelselection('EOG', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.eogscale;
+  end
+end
+if ~isempty(cfg.ecgscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, channelselection('ECG', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.ecgscale;
+  end
+end
+if ~isempty(cfg.megscale)
+  scaled = 1;
+  chansel = match_str(tmpdata.label, channelselection('MEG', tmpdata.label));
+  for i=1:length(tmpdata.trial)
+    tmpdata.trial{i}(chansel,:) = tmpdata.trial{i}(chansel,:) .* cfg.megscale;
+  end
+end
+
 if strcmp(cfg.method, 'channel')
-  fprintf('showing the data per channel, all trials at once\n');
-  [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data);
+  if scaled
+    fprintf('showing the scaled data per channel, all trials at once\n');
+  else
+    fprintf('showing the data per channel, all trials at once\n');
+  end
+  [chansel, trlsel, cfg] = rejectvisual_channel(cfg, tmpdata);
 elseif strcmp(cfg.method, 'trial')
-  fprintf('showing the data per trial, all channels at once\n');
-  [chansel, trlsel, cfg] = rejectvisual_trial(cfg, data);
+  if scaled
+    fprintf('showing the scaled per trial, all channels at once\n');
+  else
+    fprintf('showing the data per trial, all channels at once\n');
+  end
+  [chansel, trlsel, cfg] = rejectvisual_trial(cfg, tmpdata);
 elseif strcmp(cfg.method, 'summary')
-  fprintf('showing a summary for all channels and trials\n');
-  [chansel, trlsel, cfg] = rejectvisual_summary(cfg, data);
+  if scaled
+    fprintf('showing a summary of the scaled data for all channels and trials\n');
+  else
+    fprintf('showing a summary of the data for all channels and trials\n');
+  end
+
+  [chansel, trlsel, cfg] = rejectvisual_summary(cfg, tmpdata);
 end
 
 fprintf('%d trials marked as GOOD, %d trials marked as BAD\n', sum(trlsel), sum(~trlsel));
@@ -310,7 +372,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.20 2008/05/06 14:03:10 sashae Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.21 2008/08/12 16:02:20 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
