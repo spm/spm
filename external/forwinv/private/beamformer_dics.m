@@ -33,6 +33,8 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 %  'keepfilter'       = remember the beamformer filter,                can be 'yes' or 'no'
 %  'keepleadfield'    = remember the forward computation,              can be 'yes' or 'no'
 %  'keepcsd'          = remember the estimated cross-spectral density, can be 'yes' or 'no'
+%
+% These options influence the forward computation of the leadfield
 %  'reducerank'       = reduce the leadfield rank, can be 'no' or a number (e.g. 2)
 %  'normalize'        = normalize the leadfield
 %  'normalizeparam'   = parameter for depth normalization (default = 0.5)
@@ -45,6 +47,9 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.8  2008/08/13 13:47:42  roboos
+% updated documentation
+%
 % Revision 1.7  2008/07/02 07:57:33  roboos
 % allow specification of percentage noise in lambda, relative to trace(cov)/nchans
 %
@@ -446,7 +451,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.7 $  $Date: 2008/07/02 07:57:33 $
+%   $Revision: 1.8 $  $Date: 2008/08/13 13:47:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

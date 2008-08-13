@@ -6,9 +6,12 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 % Use and/or distribution of this function outside the F.C. Donders
 % Centre is strictly prohibited!
 %
-% Copyright (C) 2005-2006, Robert Oostenveld & Jan-Mathijs Schoffelen
+% Copyright (C) 2005-2008, Robert Oostenveld & Jan-Mathijs Schoffelen
 
 % $Log: beamformer_pcc.m,v $
+% Revision 1.15  2008/08/13 13:47:42  roboos
+% updated documentation
+%
 % Revision 1.14  2008/07/02 16:03:05  roboos
 % fixed bug in % lambda
 %
@@ -276,7 +279,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 1.14 $  $Date: 2008/07/02 16:03:05 $
+%   $Revision: 1.15 $  $Date: 2008/08/13 13:47:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
