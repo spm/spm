@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_preproc8.m 2004 2008-08-13 17:36:46Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -87,8 +87,15 @@ tiny      = eps*eps;
 MT        = [sk(1) 0 0 (1-sk(1));0 sk(2) 0 (1-sk(2)); 0 0 sk(3) (1-sk(3));0 0 0 1];
 
 lkp       = obj.lkp;
-K         = numel(lkp);
-Kb        = max(obj.lkp);
+if isempty(lkp),
+    K       = 2000;
+    Kb      = numel(tpm.dat);
+    use_mog = false;
+else
+    K       = numel(lkp);
+    Kb      = max(obj.lkp);
+    use_mog = true;
+end
 
 kron = inline('spm_krutil(a,b)','a','b');
 
@@ -149,12 +156,20 @@ if isfield(obj,'msk') && ~isempty(obj.msk),
     VM = spm_vol(obj.msk);
     if sum(sum((VM.mat-V(1).mat).^2)) > 1e-6 || any(VM.dim(1:3) ~= V(1).dim(1:3)),
         error('Mask must have the same dimensions and orientation as the image.');
-    end;
-end;
+    end
+end
 
 % Load the data
 %-----------------------------------------------------------------------
 nm      = 0; % Number of voxels
+
+scrand = zeros(N,1);
+for n=1:N,
+    if spm_type(V(n).dt(1),'intt'),
+        scrand(n) = V(n).pinfo(1);
+        rand('seed',1);
+    end
+end
 for z=1:length(z0),
    % Load only those voxels that are more than 5mm up
    % from the bottom of the tissue probability map.  This
@@ -181,18 +196,25 @@ for z=1:length(z0),
         % Exclude any voxels to be masked out
         msk        = spm_sample_vol(VM,x0,y0,o*z0(z),0);
         buf(z).msk = buf(z).msk & msk;
-    end;
+    end
 
     % Eliminate unwanted voxels
     buf(z).nm  = sum(buf(z).msk(:));
     nm         = nm + buf(z).nm;
     for n=1:N,
-        buf(z).f{n}  = single(fz{n}(buf(z).msk));
+        if scrand(n),
+            % Data is an integer type, so to prevent aliasing in the histogram, small
+            % random values are added.  It's not elegant, but the alternative would be
+            % too slow for practical use.
+            buf(z).f{n}  = single(fz{n}(buf(z).msk)+rand(buf(z).nm,1)*scrand(n)-scrand(n)/2);
+        else
+            buf(z).f{n}  = single(fz{n}(buf(z).msk));
+        end
     end
 
     % Create a buffer for tissue probability info
     buf(z).dat = zeros([buf(z).nm,Kb],'single');
-end;
+end
 
 
 % Create initial bias field
@@ -215,129 +237,224 @@ for n=1:N,
     clear B1 B2 B3 T C
 end
 
-
 spm_chi2_plot('Init','Initialising','Log-likelihood','Iteration');
 for iter=1:20,
 
     % Load the warped prior probability images into the buffer
     %------------------------------------------------------------
     for z=1:length(z0),
-        if ~buf(z).nm, continue; end;
+        if ~buf(z).nm, continue; end
         [x1,y1,z1] = defs(Twarp,z,x0,y0,z0,M,buf(z).msk);
         b          = spm_sample_priors8(tpm,x1,y1,z1);
         for k1=1:Kb,
             buf(z).dat(:,k1) = single(b{k1});
-        end;
-    end;
+        end
+    end
 
-    % Starting estimates for Gaussian parameters
-    %-----------------------------------------------------------------------
     if iter==1,
-        % Begin with moments:
-        K   = Kb;
-        lkp = 1:Kb;
-        mm0 = zeros(Kb,1);
-        mm1 = zeros(N,Kb);
-        mm2 = zeros(N,N,Kb);
-        for z=1:length(z0),
-            cr = zeros(size(buf(z).f{1},1),N);
+        % Starting estimates for intensity distribution parameters
+        %-----------------------------------------------------------------------
+        if use_mog,
+            % Starting estimates for Gaussian parameters
+            %-----------------------------------------------------------------------
+            % Begin with moments:
+            K   = Kb;
+            lkp = 1:Kb;
+            mm0 = zeros(Kb,1);
+            mm1 = zeros(N,Kb);
+            mm2 = zeros(N,N,Kb);
+            for z=1:length(z0),
+                cr = zeros(size(buf(z).f{1},1),N);
+                for n=1:N,
+                    cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
+                end
+                for k1=1:Kb, % Moments
+                    b           = double(buf(z).dat(:,k1));
+                    mm0(k1)     = mm0(k1)     + sum(b);
+                    mm1(:,k1)   = mm1(:,k1)   + (b'*cr)';
+                    mm2(:,:,k1) = mm2(:,:,k1) + (repmat(b,1,N).*cr)'*cr;
+                end
+                clear cr
+            end
+
+            % Use moments to compute means and variances, and then use these
+            % to initialise the Gaussians
+            mn = zeros(N,Kb);
+            vr = zeros(N,N,Kb);
+            vr1 = zeros(N,N);
+            for k1=1:Kb,
+                mn(:,k1)   = mm1(:,k1)/(mm0(k1)+tiny);
+               %vr(:,:,k1) = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
+                vr1 = vr1 + (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1));
+            end
+            vr1 = vr1/(sum(mm0)+tiny);
+            for k1=1:Kb,
+                vr(:,:,k1) = vr1;
+            end
+            mg = ones(Kb,1);
+
+            % Add a little something to the covariance estimates
+            % in order to assure stability
+            vr0 = zeros(N,N);
             for n=1:N,
-                cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
+                if spm_type(V(n).dt(1),'intt'),
+                    vr0(n,n) = 0.083*V(n).pinfo(1,1);
+                else
+                    vr0(n,n) = (max(mn(n,:))-min(mn(n,:)))^2*1e-8;
+                end
             end
-            for k1=1:Kb, % Moments
-                b           = double(buf(z).dat(:,k1));
-                mm0(k1)     = mm0(k1)     + sum(b);
-                mm1(:,k1)   = mm1(:,k1)   + (b'*cr)';
-                mm2(:,:,k1) = mm2(:,:,k1) + (repmat(b,1,N).*cr)'*cr;
-            end
-            clear cr
-        end
-
-        % Use moments to compute means and variances, and then use these
-        % to initialise the Gaussians
-        mn = zeros(N,Kb);
-        vr = zeros(N,N,Kb);
-        vr1 = zeros(N,N);
-        for k1=1:Kb,
-            mn(:,k1)   = mm1(:,k1)/(mm0(k1)+tiny);
-           %vr(:,:,k1) = (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1))/(mm0(k1)+tiny);
-            vr1 = vr1 + (mm2(:,:,k1) - mm1(:,k1)*mm1(:,k1)'/mm0(k1));
-        end
-        vr1 = vr1/(sum(mm0)+tiny);
-        for k1=1:Kb,
-            vr(:,:,k1) = vr1;
-        end
-        mg = ones(Kb,1);
-
-        % Add a little something to the covariance estimates
-        % in order to assure stability
-        vr0 = zeros(N,N);
-        for n=1:N,
-            if spm_type(V(n).dt(1),'intt'),
-                vr0(n,n) = 0.083*V(n).pinfo(1,1);
-            else
-                vr0(n,n) = (max(mn(n,:))-min(mn(n,:)))^2*1e-8;
+        else
+            % Starting estimates for histograms
+            %-----------------------------------------------------------------------
+            cl   = cell(N,1);
+            chan = struct('hist',cl,'lik',cl,'alph',cl,'grad',cl,'lam',cl,'interscal',cl);
+            for n=1:N,
+                maxval = -Inf;
+                minval =  Inf;
+                for z=1:length(z0),
+                    if ~buf(z).nm, continue; end
+                    maxval = max(max(buf(z).f{n}),maxval);
+                    minval = min(min(buf(z).f{n}),minval);
+                end
+                maxval = max(maxval*1.5,-minval*0.05); % Account for bias correction effects
+                minval = min(minval*1.5,-maxval*0.05);
+                chan(n).interscal = [1 minval; 1 maxval]\[1;K];
+                h0     = zeros(K,Kb);
+                for z=1:length(z0),
+                    if ~buf(z).nm, continue; end
+                    cr       = round(buf(z).f{n}.*buf(z).bf{n}*chan(n).interscal(2) + chan(n).interscal(1));
+                    cr       = min(max(cr,1),K);
+                    for k1=1:Kb,
+                        h0(:,k1) = h0(:,k1) + accumarray(cr,buf(z).dat(:,k1),[K,1]);
+                    end
+                end
+                chan(n).hist = h0;
+                chan(n).alph = log(h0+1);
             end
         end
     end
 
-
     for iter1=1:10,
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Estimate cluster parameters
-        %------------------------------------------------------------
-        for subit=1:20,
-            oll  = ll;
-            mom0 = zeros(K,1)+tiny;
-            mom1 = zeros(N,K);
-            mom2 = zeros(N,N,K);
-            ll   = llr+llrb;
-            for z=1:length(z0),
-                if ~buf(z).nm, continue; end;
-                q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
-                for k1=1:Kb,
-                    b = double(buf(z).dat(:,k1));
-                    for k=find(lkp==k1),
-                        q(:,k) = q(:,k).*b;
+        if use_mog,
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Estimate cluster parameters
+            %------------------------------------------------------------
+            for subit=1:20,
+                oll  = ll;
+                mom0 = zeros(K,1)+tiny;
+                mom1 = zeros(N,K);
+                mom2 = zeros(N,N,K);
+                ll   = llr+llrb;
+                for z=1:length(z0),
+                    if ~buf(z).nm, continue; end
+                    q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
+                    for k1=1:Kb,
+                        b = double(buf(z).dat(:,k1));
+                        for k=find(lkp==k1),
+                            q(:,k) = q(:,k).*b;
+                        end
+                        clear b
                     end
-                    clear b
+                    sq = sum(q,2)+tiny;
+                    ll = ll + sum(log(sq + tiny));
+                    cr = zeros(size(q,1),N);
+                    for n=1:N,
+                        cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
+                    end
+                    for k=1:K, % Moments
+                        q(:,k)      = q(:,k)./sq;
+                        mom0(k)     = mom0(k)     + sum(q(:,k));
+                        mom1(:,k)   = mom1(:,k)   + (q(:,k)'*cr)';
+                        mom2(:,:,k) = mom2(:,:,k) + (repmat(q(:,k),1,N).*cr)'*cr;
+                    end
+                    clear cr
                 end
-                sq = sum(q,2)+tiny;
-                ll = ll + sum(log(sq + tiny));
-                cr = zeros(size(q,1),N);
+
+                fprintf('*\t%g\t%g\t%g\n', ll,llr,llrb);
+
+                % Mixing proportions, Means and Variances
+                for k=1:K,
+                    tmp       = mom0(lkp==lkp(k));
+                    mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);
+                    mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);
+                    vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
+                end
+
+                if subit>1 || iter>1,
+                    spm_chi2_plot('Set',ll);
+                end
+                if subit == 1,
+                    ooll = ll;
+                elseif (ll-oll)<tol1*nm,
+                    % Improvement is small, so go to next step
+                    break;
+                end
+            end
+        else
+
+            for n=1:N,
+                x = (1:K)';
+                for k1=1:Kb,
+                    mom0 = sum(chan(n).hist(:,k1));
+                    mom1 = sum(chan(n).hist(:,k1).*x);
+                    chan(n).lam(k1) = sum(chan(n).hist(:,k1).*(x-mom1./mom0).^2+1)/(mom0+1);
+                end
+             end
+
+             for subit=1:8,
+                oll  = ll;
+                ll   = llr+llrb;
                 for n=1:N,
-                    cr(:,n)  = double(buf(z).f{n}.*buf(z).bf{n});
+                    [chan(n).lik,chan(n).alph] = smohist(chan(n).hist,chan(n).alph,chan(n).lam);
+                    chan(n).lik                = chan(n).lik*chan(n).interscal(2);
+                    chan(n).hist               = zeros(K,Kb);
                 end
-                for k=1:K, % Moments
-                    q(:,k)      = q(:,k)./sq;
-                    mom0(k)     = mom0(k)     + sum(q(:,k));
-                    mom1(:,k)   = mom1(:,k)   + (q(:,k)'*cr)';
-                    mom2(:,:,k) = mom2(:,:,k) + (repmat(q(:,k),1,N).*cr)'*cr;
+                h0 = zeros(size(h0));
+                for z=1:length(z0),
+                    q  = double(buf(z).dat);
+                    cr = cell(N,1);
+                    for n=1:N,
+                        tmp     = round(buf(z).f{n}.*buf(z).bf{n}*chan(n).interscal(2) + chan(n).interscal(1));
+                        tmp     = min(max(tmp,1),K);
+                        cr{n}   = tmp;
+                        for k1=1:Kb,
+                            q(:,k1) = q(:,k1).*chan(n).lik(tmp,k1);
+                        end
+                    end
+                    sq = sum(q,2)+eps;
+                    ll = ll + sum(log(sq));
+                    for k1=1:Kb,
+                        q(:,k1) = q(:,k1)./sq;
+                        for n=1:N,
+                            chan(n).hist(:,k1) = chan(n).hist(:,k1) + accumarray(cr{n},q(:,k1),[K,1]);
+                        end
+                    end
                 end
-                clear cr
-            end;
+                for n=1:N,
+                    chan(n).lik   = smohist(chan(n).hist,chan(n).alph,chan(n).lam)*chan(n).interscal(2);
+                end
 
-fprintf('*\t%g\t%g\t%g\n', ll,llr,llrb);
+                fprintf('*\t%g\t%g\t%g\n', ll,llr,llrb);
 
-            % Mixing proportions, Means and Variances
-            for k=1:K,
-                tmp       = mom0(lkp==lkp(k));
-                mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);
-                mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);
-                vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
-            end;
-
-            if subit>1 || iter>1,
-                spm_chi2_plot('Set',ll);
-            end;
-            if subit == 1,
-                ooll = ll;
-            elseif (ll-oll)<tol1*nm,
-                % Improvement is small, so go to next step
-                break;
-            end;
-        end;
+                if subit>1 || iter>1,
+                    spm_chi2_plot('Set',ll);
+                end
+                if subit == 1,
+                    ooll = ll;
+                elseif (ll-oll)<tol1*nm,
+                    % Improvement is small, so go to next step
+                    break;
+                end
+            end
+            for n=1:N,
+                chan(n).grad1 = convn(chan(n).alph,[0.5 0 -0.5]'*chan(n).interscal(2),  'same');
+                chan(n).grad2 = convn(chan(n).alph,[1  -2  1  ]'*chan(n).interscal(2)^2,'same');
+               %chan(n).grad1(end,:) = 0;
+               %chan(n).grad1(1,:)   = 0;
+               %chan(n).grad2(end,:) = 0;
+               %chan(n).grad2(1,:)   = 0;
+            end
+        end
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Estimate bias
@@ -357,35 +474,64 @@ fprintf('*\t%g\t%g\t%g\n', ll,llr,llrb);
                     Beta  = zeros(d3,1);  % First derivatives
                     ll    = llr+llrb;
                     for z=1:length(z0),
-                        if ~buf(z).nm, continue; end;
-                        q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
-                        for k1=1:Kb,
-                            b = double(buf(z).dat(:,k1));
-                            for k=find(lkp==k1),
-                                q(:,k) = q(:,k).*b;
+                        if ~buf(z).nm, continue; end
+                        if use_mog,
+                            q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
+                            for k1=1:Kb,
+                                b = double(buf(z).dat(:,k1));
+                                for k=find(lkp==k1),
+                                    q(:,k) = q(:,k).*b;
+                                end
+                                clear b
                             end
-                            clear b
-                        end
-                        sq = sum(q,2)+tiny;
-                        ll = ll + sum(log(sq + tiny));
+                            sq = sum(q,2)+tiny;
+                            ll = ll + sum(log(sq));
 
-                        cr = double(buf(z).f{n}).*double(buf(z).bf{n});
-                        w1 = zeros(buf(z).nm,1);
-                        w2 = zeros(buf(z).nm,1);
-                        for k=1:K,
-                            tmp = q(:,k)./sq/vr(n,n,k); % Only the diagonal of vr is used
-                            w1  = w1 + tmp.*(mn(n,k) - cr);
-                            w2  = w2 + tmp;
+                            cr = double(buf(z).f{n}).*double(buf(z).bf{n});
+                            w1 = zeros(buf(z).nm,1);
+                            w2 = zeros(buf(z).nm,1);
+                            for k=1:K,
+                                tmp = q(:,k)./sq/vr(n,n,k); % Only the diagonal of vr is used
+                                w1  = w1 + tmp.*(mn(n,k) - cr);
+                                w2  = w2 + tmp;
+                            end
+                            wt1   = zeros(d(1:2));
+                            wt1(buf(z).msk) = -(1 + cr.*w1);
+                            wt2   = zeros(d(1:2));
+                           %wt2(buf(z).msk) = cr.*(cr.*w2 - w1);
+                            wt2(buf(z).msk) = cr.*cr.*w2 + 1;
+                        else
+                            q = double(buf(z).dat);
+                            for n1=1:N,
+                                cr = buf(z).f{n1}.*buf(z).bf{n1}*chan(n1).interscal(2) + chan(n1).interscal(1);
+                                cr = min(max(round(cr),1),K);
+                                for k1=1:Kb,
+                                    tmp     = chan(n1).lik(cr,k1);
+                                    q(:,k1) = q(:,k1).*tmp(:);
+                                end
+                            end
+                            sq  = sum(q,2)+tiny;
+                            ll  = ll + sum(log(sq),1);
+                            cr0 = buf(z).f{n}.*buf(z).bf{n};
+                            cr  = cr0*chan(n).interscal(2) + chan(n).interscal(1);
+                            cr  = min(max(round(cr),1),K);
+                            wt1 = zeros(d(1:2)); wt1(buf(z).msk) = 0;
+                            wt2 = zeros(d(1:2)); wt2(buf(z).msk) = 0;
+                            for k1=1:Kb,
+                                qk = q(:,k1)./sq;
+                                gr1 = chan(n).grad1(:,k1);
+                                gr1 = gr1(cr);
+                                gr2 = chan(n).grad2(:,k1);
+                                gr2 = gr2(cr);
+                                wt1(buf(z).msk) = wt1(buf(z).msk) - qk.*(gr1.*cr0 + 1);
+                                wt2(buf(z).msk) = wt2(buf(z).msk) - qk.*(gr1.*cr0 + gr2.*cr0.^2);
+                            end
+                           %fprintf('%d\t%g\t%g\t| %g\t%g\n', z, min(wt1(:)), max(wt1(:)), min(wt2(:)), max(wt2(:)));
                         end
-                        wt1   = zeros(d(1:2));
-                        wt1(buf(z).msk) = 1 + cr.*w1;
-                        wt2   = zeros(d(1:2));
-                       %wt2(buf(z).msk) = cr.*(cr.*w2 - w1);
-                        wt2(buf(z).msk) = cr.*cr.*w2 + 1;
                         b3    = bias(n).B3(z,:)';
-                        Beta  = Beta  - kron(b3,spm_krutil(wt1,bias(n).B1,bias(n).B2,0));
+                        Beta  = Beta  + kron(b3,spm_krutil(wt1,bias(n).B1,bias(n).B2,0));
                         Alpha = Alpha + kron(b3*b3',spm_krutil(wt2,bias(n).B1,bias(n).B2,1));
-                        clear w1 w2 wt1 wt2 b3
+                        clear wt1 wt2 b3
                     end
 
                     % Accept new solutions
@@ -401,7 +547,7 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
                     % Re-generate bias field, and compute terms of the objective function
                     bias(n).ll = double(-0.5*bias(n).T(:)'*C*bias(n).T(:));
                     for z=1:length(z0),
-                        if ~buf(z).nm, continue; end;
+                        if ~buf(z).nm, continue; end
                         bf           = transf(bias(n).B1,bias(n).B2,bias(n).B3(z,:),bias(n).T);
                         tmp          = bf(buf(z).msk);
                         bias(n).ll   = bias(n).ll + double(sum(tmp));
@@ -418,7 +564,7 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
             end
         end
 
-        if iter==1 && iter1==1,
+        if use_mog && iter==1 && iter1==1,
             % Most of the log-likelihood improvements are in the first iteration.
             % Show only improvements after this, as they are more clearly visible.
             spm_chi2_plot('Clear');
@@ -463,32 +609,50 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
     %------------------------------------------------------------
     ll  = llr+llrb;
 
-    % Compute likelihoods, and save them in buf.dat
-    for z=1:length(z0),
-        if ~buf(z).nm, continue; end;
-        cr = cell(1,N);
-        for n=1:N,
-            cr{n} = double(buf(z).f{n}.*buf(z).bf{n});
-        end
-        q   =  zeros(buf(z).nm,Kb);
-        qt  = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
-        for k1=1:Kb,
-            for k=find(lkp==k1),
-                q(:,k1) = q(:,k1) + qt(:,k);
+    if use_mog,
+        % Compute likelihoods, and save them in buf.dat
+        for z=1:length(z0),
+            if ~buf(z).nm, continue; end
+            cr = cell(1,N);
+            for n=1:N,
+                cr{n} = double(buf(z).f{n}.*buf(z).bf{n});
             end
-            b = double(buf(z).dat(:,k1));
-            buf(z).dat(:,k1) = single(q(:,k1));
-            q(:,k1)          = q(:,k1).*b;
+            q   =  zeros(buf(z).nm,Kb);
+            qt  = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
+            for k1=1:Kb,
+                for k=find(lkp==k1),
+                    q(:,k1) = q(:,k1) + qt(:,k);
+                end
+                b = double(buf(z).dat(:,k1));
+                buf(z).dat(:,k1) = single(q(:,k1));
+                q(:,k1)          = q(:,k1).*b;
+            end
+            ll = ll + sum(log(sum(q,2) + tiny));
         end
-        ll = ll + sum(log(sum(q,2) + tiny));
-    end;
+    else
+        % Compute likelihoods, and save them in buf.dat
+        for z=1:length(z0),
+            if ~buf(z).nm, continue; end
+            q = ones(buf(z).nm,Kb);
+            for n=1:N,
+                cr = buf(z).f{n}.*buf(z).bf{n}*chan(n).interscal(2) + chan(n).interscal(1);
+                cr = min(max(round(cr),1),K);
+                for k1=1:Kb,
+                    q(:,k1) = q(:,k1).*chan(n).lik(cr(:),k1);
+                end
+            end
+            ll         = ll + sum(log(sum(q.*buf(z).dat,2) + tiny),1);
+            buf(z).dat = q;
+        end
+    end
+
     oll = ll;
 
     for subit=1:3,
         Alpha  = zeros([size(x0),numel(z0),6],'single');
         Beta   = zeros([size(x0),numel(z0),3],'single');
         for z=1:length(z0),
-            if ~buf(z).nm, continue; end;
+            if ~buf(z).nm, continue; end
 
             % Deformations from parameters
             [x1,y1,z1]      = defs(Twarp,z,x0,y0,z0,M,buf(z).msk);
@@ -510,7 +674,7 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
                 dp1 = dp1 + pp.*(M(1,1)*db1{k1} + M(2,1)*db2{k1} + M(3,1)*db3{k1});
                 dp2 = dp2 + pp.*(M(1,2)*db1{k1} + M(2,2)*db2{k1} + M(3,2)*db3{k1});
                 dp3 = dp3 + pp.*(M(1,3)*db1{k1} + M(2,3)*db2{k1} + M(3,3)*db3{k1});
-            end;
+            end
             clear b db1 db2 db3
 
             % Compute first and second derivatives of the matching term.  Note that
@@ -520,7 +684,7 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
             tmp(buf(z).msk) = dp2./p; dp2 = tmp;
             tmp(buf(z).msk) = dp3./p; dp3 = tmp;
 
-            Beta(:,:,z,1)   = -dp1; % First derivatives
+            Beta(:,:,z,1)   = -dp1;     % First derivatives
             Beta(:,:,z,2)   = -dp2;
             Beta(:,:,z,3)   = -dp3;
 
@@ -531,19 +695,21 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
             Alpha(:,:,z,5)  = dp1.*dp3;
             Alpha(:,:,z,6)  = dp2.*dp3;
             clear tmp p dp1 dp2 dp3
-        end;
+        end
 
         % Heavy-to-light regularisation
         if ~isfield(obj,'Twarp')
             switch iter
             case 1,
-                prm = [param(1:4) 8*param(5:6) param(7:end)];
+                prm = [param(1:4) 16*param(5:6) param(7:end)];
             case 2,
-                prm = [param(1:4) 4*param(5:6) param(7:end)];
+                prm = [param(1:4)  8*param(5:6) param(7:end)];
             case 3,
-                prm = [param(1:4) 2*param(5:6) param(7:end)];
+                prm = [param(1:4)  4*param(5:6) param(7:end)];
+            case 4,
+                prm = [param(1:4)  2*param(5:6) param(7:end)];
             otherwise
-                prm = [param(1:4)   param(5:6) param(7:end)];
+                prm = [param(1:4)    param(5:6) param(7:end)];
             end
         else
             prm = [param(1:4)   param(5:6) param(7:end)];
@@ -560,7 +726,7 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
             ll1    = llr1+llrb;
 
             for z=1:length(z0),
-                if ~buf(z).nm, continue; end;
+                if ~buf(z).nm, continue; end
                 [x1,y1,z1] = defs(Twarp1,z,x0,y0,z0,M,buf(z).msk);
                 b          = spm_sample_priors8(tpm,x1,y1,z1);
                 clear x1 y1 z1
@@ -568,11 +734,11 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
                 sq = zeros(buf(z).nm,1) + tiny;
                 for k1=1:Kb,
                     sq = sq + double(buf(z).dat(:,k1)).*double(b{k1});
-                end;
+                end
                 clear b
                 ll1 = ll1 + sum(log(sq + tiny));
                 clear sq
-            end;
+            end
 fprintf('#\t%g\t%g\t%g\n', ll1, llr1,llrb);
             if ll1<ll,
                 lam   = lam*8;
@@ -596,7 +762,7 @@ fprintf('#\t%g\t%g\t%g\n', ll1, llr1,llrb);
     if iter>4 && ~((ll-ooll)>tol1*nm),
         break
     end
-end;
+end
 % spm_chi2_plot('Clear');
 
 results.image  = obj.image;
@@ -606,9 +772,16 @@ results.lkp    = lkp;
 results.MT     = MT;
 results.Twarp  = Twarp;
 results.Tbias  = {bias(:).T};
-results.mg     = mg;
-results.mn     = mn;
-results.vr     = vr;
+if use_mog,
+    results.mg     = mg;
+    results.mn     = mn;
+    results.vr     = vr;
+else
+    for n=1:N,
+        results.intensity(n).lik       = chan(:).lik;
+        results.intensity(n).interscal = chan(n).interscal;
+    end
+end
 results.ll     = ll;
 return;
 %=======================================================================
@@ -621,7 +794,7 @@ if ~isempty(T),
     t  = B1*t1*B2';
 else
     t  = zeros(size(B1,1),size(B2,1));
-end;
+end
 return;
 %=======================================================================
 
@@ -634,7 +807,7 @@ if nargin>=7,
     x1a = x1a(msk);
     y1a = y1a(msk);
     z1a = z1a(msk);
-end;
+end
 x1  = M(1,1)*x1a + M(1,2)*y1a + M(1,3)*z1a + M(1,4);
 y1  = M(2,1)*x1a + M(2,2)*y1a + M(2,3)*z1a + M(2,4);
 z1  = M(3,1)*x1a + M(3,2)*y1a + M(3,3)*z1a + M(3,4);
@@ -656,6 +829,66 @@ for k=1:K,
     d      = cr - repmat(mn(:,k)',M,1);
     p(:,k) = amp * exp(-0.5* sum(d.*(d/vr(:,:,k)),2));
 end
+%=======================================================================
+
+%=======================================================================
+function [sig0,alph] = smohist(t0,alph,lam)
+sig0 = zeros(size(t0));
+n  = size(t0,1);
+if nargin<3,
+    if nargin<2,
+        alph = zeros(size(t0));
+    end
+    lam = zeros(size(t0,2),1);
+    x   = (1:n)';
+    for k=1:size(t0,2),
+        t  = t0(:,k);
+        mu = sum(t.*x)./sum(t);
+        vr = sum(t.*(x-mu).^2)/sum(t);
+        lam(k) = vr;
+    end
+end
+
+
+G0 = spdiags(repmat([-1 2 -1],n,1),[-1 0 1],n,n);
+G0(1,1)     = 1;
+G0(end,end) = 1;
+G0          = G0'*G0;
+
+for k=1:size(t0,2),
+    t   = t0(:,k);
+    G   = G0*lam(k);
+    am  = alph(:,k);
+    sig = exp(am);
+    sig = sig/sum(sig);
+    L   = spdiags(ones(n,1)*(sum(t) + lam(k))*1e-8,0,n,n);
+    ll  = Inf;
+    for it=1:60,
+        gr  = sum(t)*sig - t + G*am;
+        W   = spdiags(sig*sum(t),0,n,n);
+        H   = W + G + L;
+        am  = am - H\gr;
+        am  = am - mean(am);
+        am  = max(am,-700);
+        am  = min(am, 700);
+        sig = exp(am);
+        sig = sig/sum(sig);
+
+        if ~rem(it,4)
+            oll = ll;
+            ll  = -sum(log(sig+1e-6).*t) + 0.5*am'*G*am;
+            if oll-ll<n*1e-7, break; end
+        end
+       %if ~rem(it,1), plot(1:n,t/sum(t),'g.',1:n,sig,'k-'); drawnow; end
+       %fprintf('%d\t%g\t%g\n', it, gr'*gr, ll);
+   end
+   alph(:,k) = am;
+   sig0(:,k) = sig;
+end
+
+figure(6);
+plot(alph)
+drawnow
 %=======================================================================
 
 %=======================================================================

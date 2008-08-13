@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_preproc_run.m 2004 2008-08-13 17:36:46Z john $
 
 if nargin==1,
     run_job(job);
@@ -62,9 +62,11 @@ for iter=1:nit,
         obj.biasfwhm = cat(1,job.channel(:).biasfwhm);
         obj.tpm      = tpm;
         obj.lkp      = [];
-        for k=1:numel(job.tissue),
-            obj.lkp = [obj.lkp ones(1,job.tissue(k).ngaus)*k];
-        end;
+        if all(isfinite(cat(1,job.tissue.ngaus))),
+            for k=1:numel(job.tissue),
+                obj.lkp = [obj.lkp ones(1,job.tissue(k).ngaus)*k];
+            end;
+        end
         obj.reg      = job.warp.reg;
         obj.samp     = job.warp.samp;
 
@@ -84,9 +86,11 @@ for iter=1:nit,
             obj.Affine = res.Affine;
             obj.Twarp  = res.Twarp;
             obj.Tbias  = res.Tbias;
-            obj.mg     = res.mg;
-            obj.mn     = res.mn;
-            obj.vr     = res.vr;
+            if ~isempty(obj.lkp),
+                obj.mg     = res.mg;
+                obj.mn     = res.mn;
+                obj.vr     = res.vr;
+            end
         end
 
         res = spm_preproc8(obj);

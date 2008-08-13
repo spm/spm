@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_preproc_write8.m 2004 2008-08-13 17:36:46Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -16,7 +16,7 @@ if isfield(res,'mg'),
     lkp = res.lkp;
     Kb  = max(lkp);
 else
-    Kb  = size(res.intensity,2);
+    Kb  = size(res.intensity(1).lik,2);
 end
 
 N   = numel(res.image);
@@ -158,8 +158,8 @@ for z=1:length(x3),
         if do_cls,
             msk = (f==0) | ~isfinite(f);
 
-            q   = zeros([d(1:2) Kb]);
             if isfield(res,'mg'),
+                q   = zeros([d(1:2) Kb]);
                 q1  = likelihoods(cr,[],res.mg,res.mn,res.vr);
                 q1  = reshape(q1,[d(1:2),numel(res.mg)]);
                 b   = spm_sample_priors8(tpm,t1,t2,t3);
@@ -167,12 +167,13 @@ for z=1:length(x3),
                     q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*b{k1};
                 end
             else
-                b   = spm_sample_priors8(tpm,t1,t2,t3);
-                tmp = round(cr{1}*res.interscal(2) + res.interscal(1));
-                tmp = min(max(tmp,1),size(res.intensity,1));
+                q   = spm_sample_priors8(tpm,t1,t2,t3);
+                q   = cat(3,q{:});
+                tmp = round(cr{1}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
+                tmp = min(max(tmp,1),size(res.intensity(n).lik,1));
                 for k1=1:Kb,
-                    likelihood = res.intensity(:,k1);
-                    q(:,:,k1)  = likelihood(tmp).*b{k1};
+                    likelihood = res.intensity(n).lik(:,k1);
+                    q(:,:,k1)  = q(:,:,k1).*likelihood(tmp);
                 end
             end
 

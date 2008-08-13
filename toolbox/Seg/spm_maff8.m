@@ -1,6 +1,6 @@
 function [M,h] = spm_maff8(varargin)
 % Affine registration to MNI space using mutual information
-% FORMAT M = spm_maff(P,samp,ff,x,tpm,M,regtyp,bg)
+% FORMAT M = spm_maff8(P,samp,ff,x,tpm,M,regtyp,bg)
 % P       - filename or structure handle of image
 % x       - cell array of {x1,x2,x3}, where x1 and x2 are
 %           co-ordinates (from ndgrid), and x3 is a list of
@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_maff8.m 2004 2008-08-13 17:36:46Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -46,31 +46,58 @@ V         = spm_vol(V);
 o         = ones(size(x1));
 d         = [size(x1) length(x3)];
 g         = zeros(d);
-spm_progress_bar('Init',V.dim(3),'Loading volume','Planes loaded');
+spm_progress_bar('Init',d(3),'Loading volume','Planes loaded');
 for i=1:d(3)
     g(:,:,i) = spm_sample_vol(V,x1,x2,o*x3(i),0);
     spm_progress_bar('Set',i);
 end;
 spm_progress_bar('Clear');
-
-% Convert the image to unsigned bytes
-[mn,mx] = spm_minmax(g);
-disp('sort out min/max');
+spm_progress_bar('Init',d(3),'Initial Histogram','Planes complete');
 mn = min(g(:));
 mx = max(g(:));
-for z=1:length(x3),
-    gz         = g(:,:,z);
-    buf(z).msk = isfinite(gz) & gz~=0;
-    buf(z).nm  = sum(buf(z).msk(:));
-    gz         = (double(gz(buf(z).msk))+(1-mn))*(255/(mx-mn+1));
-    buf(z).g   = uint8(max(min(round(gz),255),0));
+sf = [mn 1;mx 1]\[1;4000];
+h  = zeros(4000,1);
+for i=1:d(3)
+    p = g(:,:,i);
+    p = p(isfinite(p) & (p~=0));
+    p = round(p*sf(1)+sf(2));
+    h = h + accumarray(p(:),1,[4000,1]);
+    spm_progress_bar('Set',i);
 end;
+spm_progress_bar('Clear');
+spm_progress_bar('Init',d(3),'Converting to uint8','Planes complete');
+h  = cumsum(h)/sum(h);
+mn = (find(h>(0.0005),1)-sf(2))/sf(1);
+mx = (find(h>(0.9995),1)-sf(2))/sf(1);
+sf = [mn 1;mx 1]\[0;255];
+
+if spm_type(V.dt(1),'intt'),
+    scrand = V.pinfo(1);
+    rand('seed',1);
+else
+    scrand = 0;
+end
+
+cl = cell(1,d(3));
+buf = struct('nm',cl,'msk',cl,'g',cl);
+for i=1:d(3),
+    gz         = g(:,:,i);
+    buf(i).msk = isfinite(gz) & gz~=0;
+    buf(i).nm  = sum(buf(i).msk(:));
+    if scrand, gz = gz + rand(size(gz))*scrand-scrand/2; end
+    gz         = gz(buf(i).msk)*sf(1)+sf(2);
+    buf(i).g   = uint8(max(min(round(gz),255),0));
+    spm_progress_bar('Set',i);
+end;
+spm_progress_bar('Clear');
 MG = V.mat;
 x  = {x1,x2,x3};
 return;
 %_______________________________________________________________________
+
 %_______________________________________________________________________
 function [M,h0] = affreg(buf,MG,x,ff,tpm,M,regtyp)
+% Mutual Information Registration
 
 x1 = x{1};
 x2 = x{2};
@@ -83,8 +110,11 @@ Beta0     = -isig*mu;
 sol  = M2P(M);
 sol1 = sol;
 ll   = -Inf;
+krn  = spm_smoothkern(2,(-256:256)',0);
+
 spm_chi2_plot('Init','Registering','Log-likelihood','Iteration');
 
+h1 = ones(256,numel(tpm.dat));
 for iter=1:200
     penalty = (sol1-mu)'*isig*(sol1-mu);
     T       = tpm.M\P2M(sol1)*MG;
@@ -99,7 +129,7 @@ for iter=1:200
     y1a     = T(1,1)*x1 + T(1,2)*x2 + T(1,4);
     y2a     = T(2,1)*x1 + T(2,2)*x2 + T(2,4);
     y3a     = T(3,1)*x1 + T(3,2)*x2 + T(3,4);
-    h0      = zeros(256,numel(tpm.dat))+eps;
+
     for i=1:length(x3),
         if ~buf(i).nm, continue; end;
         y1    = y1a(buf(i).msk) + T(1,3)*x3(i);
@@ -110,24 +140,47 @@ for iter=1:200
         y1    = y1(msk);
         y2    = y2(msk);
         y3    = y3(msk);
-        gm    = buf(i).g(msk);
         b     = spm_sample_priors8(tpm,y1,y2,y3);
-        for k=1:size(h0,2),
-            h0(:,k) = h0(:,k) + spm_hist(gm,b{k});
-        end;
+        buf(i).b    = b;
+        buf(i).msk1 = msk;
     end;
-    h1    = (h0+eps);
 
-   %figure(9); plot(log(h1+1)); drawnow
+    ll0 = 0;
+    for subit=1:60,
+        h0  = zeros(256,numel(tpm.dat))+eps;
+        ll1 = ll0;
+        ll0 = 0;
+        for i=1:length(x3),
+            if ~buf(i).nm, continue; end;
+            gm    = double(buf(i).g(buf(i).msk1))+1;
+            q     = zeros(numel(gm),size(h0,2));
+            for k=1:size(h0,2),
+                q(:,k) = h1(gm(:),k).*buf(i).b{k};
+            end
+            sq = sum(q,2) + eps;
+            if ~rem(subit,4),
+                ll0 = ll0 + sum(log(sq));
+            end
+            for k=1:size(h0,2),
+                h0(:,k) = h0(:,k) + accumarray(gm,q(:,k)./sq,[256 1]);
+            end
+        end;
+        if ~rem(subit,4) && (ll0-ll1)/sum(h0(:)) < 1e-5, break; end
+        h1 = conv2((h0+eps)/sum(h0(:)),krn,'same');
+       %figure(9); plot(log(h0+1)); drawnow;
 
-    ssh   = sum(h1(:));
-    krn   = spm_smoothkern(2,(-256:256)',0);
-    h1    = conv2(h1,krn,'same');
-    h1    = h1/ssh;
-    h2    = log2(h1./(sum(h1,2)*sum(h1,1)));
-    ll1   = sum(sum(h0.*h2))/ssh - penalty/ssh;
+        h1 = h1./(sum(h1,2)*sum(h1,1));
+    end
+    for i=1:length(x3),
+        buf(i).b    = [];
+        buf(i).msk1 = [];
+    end
+
+    ssh   = sum(h0(:));
+    ll1   = sum(sum(h0.*log2(h1)))/ssh - penalty/ssh;
+   %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
     spm_chi2_plot('Set',ll1);
-    if ll1-ll<1e-8, break; end;
+    if abs(ll1-ll)<1e-3, break; end;
     ll    = ll1;
     sol   = sol1;
     Alpha = zeros(12);
@@ -147,28 +200,35 @@ for iter=1:200
 
         nz    = size(y1,1);
         if nz,
+            mi    = zeros(nz,1) + eps;
             dmi1  = zeros(nz,1);
             dmi2  = zeros(nz,1);
             dmi3  = zeros(nz,1);
             [b, db1, db2, db3] = spm_sample_priors8(tpm,y1,y2,y3);
+
             for k=1:size(h0,2),
-                tmp  = -h2(gi,k);
+                tmp  = h1(gi,k);
+                mi   = mi   + tmp.*b{k};
                 dmi1 = dmi1 + tmp.*db1{k};
                 dmi2 = dmi2 + tmp.*db2{k};
                 dmi3 = dmi3 + tmp.*db3{k};
             end;
-            x1m = x1(buf(i).msk); x1m = x1m(msk);
-            x2m = x2(buf(i).msk); x2m = x2m(msk);
-            x3m = x3(i);
+            dmi1 = dmi1./mi;
+            dmi2 = dmi2./mi;
+            dmi3 = dmi3./mi;
+            x1m  = x1(buf(i).msk); x1m = x1m(msk);
+            x2m  = x2(buf(i).msk); x2m = x2m(msk);
+            x3m  = x3(i);
             A = [dmi1.*x1m dmi2.*x1m dmi3.*x1m...
                  dmi1.*x2m dmi2.*x2m dmi3.*x2m...
                  dmi1 *x3m dmi2 *x3m dmi3 *x3m...
                  dmi1      dmi2      dmi3];
             Alpha = Alpha + A'*A;
-            Beta  = Beta  + sum(A,1)';
+            Beta  = Beta  - sum(A,1)';
         end
     end
     drawnow;
+
     Alpha = R'*Alpha*R;
     Beta  = R'*Beta;
 
@@ -195,6 +255,7 @@ P       = zeros(12,1);
 P(1:3)  = M(1:3,4);
 P(4:6)  = lR([2 3 6]);
 P(7:12) = lV([1 2 3 5 6 9]);
+P       = real(P);
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
