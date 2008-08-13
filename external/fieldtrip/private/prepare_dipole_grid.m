@@ -37,16 +37,19 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 %   cfg.smooth        = 5, smoothing in voxels
 %
 % Other configuration options
+%   cfg.grid.tight   = 'yes' or 'no' (default is automatic)
 %   cfg.inwardshift  = depth of the bounding layer for the source space, relative to the head model surface (default = 0)
-%   cfg.grid.tight        = 'yes' or 'no' (default is automatic)
-%   cfg.headshape         = filename of headshape (optional)
-%   cfg.symmetry          = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
+%   cfg.headshape    = filename of headshape (optional)
+%   cfg.symmetry     = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
 %
 % See also SOURCEANALYSIS, DIPOLEFITTING, PREPARE_LEADFIELD
 
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.45  2008/08/13 12:58:45  roboos
+% iadded backward compatibility support for tightgrid
+%
 % Revision 1.44  2008/08/04 09:40:18  jansch
 % added field tight to cfg.grid to prevent crash
 %
@@ -83,6 +86,12 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % set the defaults
 if ~isfield(cfg, 'symmetry'),         cfg.symmetry    = [];       end
 if ~isfield(cfg, 'grid'),             cfg.grid        = [];       end
+
+% for backward compatibility
+if isfield(cfg, 'tightgrid')
+  cfg.grid.tight = cfg.tightgrid;
+  cfg = rmfield(cfg, 'tightgrid');
+end
 
 if isfield(cfg.grid, 'resolution') && isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid)
   error('You cannot specify cfg.grid.resolution and an explicit cfg.grid.xgrid simultaneously');
@@ -159,7 +168,7 @@ end
 
 % these are mutually exclusive
 if sum([basedonauto basedongrid basedonpos basedonshape basedonmri basedonvol])~=1
-  error('incorrect configuration was specified for constructing a dipole grid');
+  error('incorrect cfg specification for constructing a dipole grid');
 end
 
 % start with an empty grid
