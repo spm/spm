@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 2004 2008-08-13 17:36:46Z john $
+% $Id: spm_preproc8.m 2005 2008-08-13 18:42:48Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -334,7 +334,7 @@ for iter=1:20,
         end
     end
 
-    for iter1=1:10,
+    for iter1=1:8,
         if use_mog,
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Estimate cluster parameters
@@ -463,7 +463,7 @@ for iter=1:20,
         % The aim is to save memory, and maybe make the computations
         % faster.
         %------------------------------------------------------------
-        for subit=1:5,
+        for subit=1:4,
             oll   = ll;
 
             for n=1:N,
@@ -564,38 +564,40 @@ fprintf('%d\t%g\t%g\t%g\n', n, ll, llr,llrb);
             end
         end
 
-        if use_mog && iter==1 && iter1==1,
+        if iter==1 && iter1==1,
             % Most of the log-likelihood improvements are in the first iteration.
             % Show only improvements after this, as they are more clearly visible.
             spm_chi2_plot('Clear');
             spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
 
-            mn1 = mn;
-            vr1 = vr;
-            lkp = obj.lkp;
-            K   = numel(lkp);
+           if use_mog,
+                mn1 = mn;
+                vr1 = vr;
+                lkp = obj.lkp;
+                K   = numel(lkp);
 
-            % Use moments to compute means and variances, and then use these
-            % to initialise the Gaussians
-            rand('state',0); % give same results each time
-            if isfield(obj,'mg'), mg = obj.mg; else mg = ones(K,1)/K;  end
-            if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
-            if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
+                % Use moments to compute means and variances, and then use these
+                % to initialise the Gaussians
+                rand('state',0); % give same results each time
+                if isfield(obj,'mg'), mg = obj.mg; else mg = ones(K,1)/K;  end
+                if isfield(obj,'mn'), mn = obj.mn; else mn = ones(N,K);    end
+                if isfield(obj,'vr'), vr = obj.vr; else vr = zeros(N,N,K); end
 
-            for k1=1:Kb,
-                % A crude heuristic to replace a single Gaussian by a bunch of Gaussians
-                % If there is only one Gaussian, then it should be the same as the
-                % original distribution.
-                kk  = sum(lkp==k1);
-                w   = 1./(1+exp(-(kk-1)*0.25))-0.5;
-                if ~isfield(obj,'mn'),
-                    mn(:,lkp==k1)   = sqrtm(vr1(:,:,k1))*randn(N,kk)*w + repmat(mn1(:,k1),[1,kk]);
-                end
-                if ~isfield(obj,'vr'),
-                    vr(:,:,lkp==k1) = repmat(vr1(:,:,k1)*(1-w),[1,1,kk]);
-                end
-                if ~isfield(obj,'mg'),
-                    mg(lkp==k1)     = 1/kk;
+                for k1=1:Kb,
+                    % A crude heuristic to replace a single Gaussian by a bunch of Gaussians
+                    % If there is only one Gaussian, then it should be the same as the
+                    % original distribution.
+                    kk  = sum(lkp==k1);
+                    w   = 1./(1+exp(-(kk-1)*0.25))-0.5;
+                    if ~isfield(obj,'mn'),
+                        mn(:,lkp==k1)   = sqrtm(vr1(:,:,k1))*randn(N,kk)*w + repmat(mn1(:,k1),[1,kk]);
+                    end
+                    if ~isfield(obj,'vr'),
+                        vr(:,:,lkp==k1) = repmat(vr1(:,:,k1)*(1-w),[1,1,kk]);
+                    end
+                    if ~isfield(obj,'mg'),
+                        mg(lkp==k1)     = 1/kk;
+                    end
                 end
             end
         end
@@ -759,7 +761,7 @@ fprintf('#\t%g\t%g\t%g\n', ll1, llr1,llrb);
         oll = ll;
     end
 
-    if iter>4 && ~((ll-ooll)>tol1*nm),
+    if iter>5 && ~((ll-ooll)>tol1*nm),
         break
     end
 end
@@ -778,7 +780,7 @@ if use_mog,
     results.vr     = vr;
 else
     for n=1:N,
-        results.intensity(n).lik       = chan(:).lik;
+        results.intensity(n).lik       = chan(n).lik;
         results.intensity(n).interscal = chan(n).interscal;
     end
 end

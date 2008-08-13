@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 2004 2008-08-13 17:36:46Z john $
+% $Id: spm_preproc_write8.m 2005 2008-08-13 18:42:48Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -169,11 +169,13 @@ for z=1:length(x3),
             else
                 q   = spm_sample_priors8(tpm,t1,t2,t3);
                 q   = cat(3,q{:});
-                tmp = round(cr{1}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
-                tmp = min(max(tmp,1),size(res.intensity(n).lik,1));
-                for k1=1:Kb,
-                    likelihood = res.intensity(n).lik(:,k1);
-                    q(:,:,k1)  = q(:,:,k1).*likelihood(tmp);
+                for n=1:N,
+                    tmp = round(cr{n}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
+                    tmp = min(max(tmp,1),size(res.intensity(n).lik,1));
+                    for k1=1:Kb,
+                        likelihood = res.intensity(n).lik(:,k1);
+                        q(:,:,k1)  = q(:,:,k1).*likelihood(tmp);
+                    end
                 end
             end
 
