@@ -15,14 +15,17 @@ function [sens] = apply_montage(sens, montage, varargin)
 %   montage.labelorg = Nx1 cell-array
 %
 % Additional options should be specified in key-value pairs and can be
-%   'keepunused'   string, 'yes' or 'no' (default = 'no')
-%   'inverse'      string, 'yes' or 'no' (default = 'no')
+%   'keepunused'    string, 'yes' or 'no' (default = 'no')
+%   'inverse'       string, 'yes' or 'no' (default = 'no')
 %
 % See also READ_SENS, TRANSFORM_SENS
 
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.7  2008/08/13 16:14:46  roboos
+% remove columns and rows for montage channels that are not present in the data
+%
 % Revision 1.6  2008/07/17 14:46:06  roboos
 % check on presence of channels required for montage was incorrect
 %
@@ -45,8 +48,8 @@ function [sens] = apply_montage(sens, montage, varargin)
 %
 
 % get optional input arguments
-keepunused = keyval('keepunused', varargin{:}); if isempty(keepunused), keepunused = 'no'; end
-inverse    = keyval('inverse',    varargin{:}); if isempty(inverse),    inverse    = 'no'; end
+keepunused    = keyval('keepunused',    varargin{:}); if isempty(keepunused),    keepunused    = 'no';  end
+inverse       = keyval('inverse',       varargin{:}); if isempty(inverse),       inverse       = 'no';  end
 
 if strcmp(inverse, 'yes')
   % apply the inverse montage, i.e. undo a previously applied montage
@@ -63,11 +66,25 @@ if ~isfield(sens, 'tra') && ~isfield(sens, 'trial')
 end
 
 % select and discard the columns that are empty
-selnonempty       = find(~all(montage.tra==0, 1));
-montage.tra       = montage.tra(:,selnonempty);
-montage.labelorg  = montage.labelorg(selnonempty);
+selcol           = find(~all(montage.tra==0, 1));
+montage.tra      = montage.tra(:,selcol);
+montage.labelorg = montage.labelorg(selcol);
+clear selcol
 
-% add columns for the channels that are not involved in the montage
+% remove columns and rows for channels that are not present in the data
+remove = setdiff(montage.labelorg, intersect(montage.labelorg, sens.label));
+selcol = match_str(montage.labelorg, remove);
+% we cannot just remove the colums, all rows that depend on it should also be removed
+selrow = false(length(montage.labelnew),1);
+for i=1:length(selcol)
+  selrow = selrow & find(montage.tra(:,selcol(i))~=0);
+end
+montage.labelorg = montage.labelorg(selcol);
+montage.labelnew = montage.labelnew(selrow);
+montage.tra = montage.tra(selrow, selcol);
+clear remove selcol selrow i
+
+% add columns for the channels that are present in the data but not involved in the montage
 add = setdiff(sens.label, montage.labelorg);
 m = size(montage.tra,1);
 n = size(montage.tra,2);
@@ -82,6 +99,7 @@ else
   montage.tra(:,(n+(1:k))) = zeros(m,k);
   montage.labelorg = cat(1, montage.labelorg(:), add(:));
 end
+clear add m n k
 
 % determine whether all channels are unique
 m = size(montage.tra,1);

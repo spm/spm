@@ -20,15 +20,15 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 %   dipin.pos   positions for dipole, e.g. regular grid
 %   dipin.mom   dipole orientation (optional)
 %
-% Optional arguments are specified in pairs of a property name and a
-% property value
+% Additional options should be specified in key-value pairs and can be
 %  'lambda'           = regularisation parameter
 %  'powmethod'        = can be 'trace' or 'lambda1'
 %  'feedback'         = give progress indication, can be 'text', 'gui' or 'none' (default)
+%  'fixedori'         = use fixed or free orientation,                 can be 'yes' or 'no'
 %  'projectnoise'     = project noise estimate through filter,         can be 'yes' or 'no'
+%  'projectmom'       = project the dipole moment timecourse on the direction of maximal power, can be 'yes' or 'no'
 %  'keepfilter'       = remember the beamformer filter,                can be 'yes' or 'no'
 %  'keepleadfield'    = remember the forward computation,              can be 'yes' or 'no'
-%  'projectmom'       = project the dipole moment timecourse on the direction of maximal power, can be 'yes' or 'no'
 %  'keepmom'          = remember the estimated dipole moment,          can be 'yes' or 'no'
 %  'keepcov'          = remember the estimated dipole covariance,      can be 'yes' or 'no'
 %
@@ -42,9 +42,12 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % is specified, its orientation will be used and only the strength will
 % be fitted to the data.
 
-% Copyright (C) 2003-2006, Robert Oostenveld
+% Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.10  2008/08/13 16:13:38  roboos
+% added option fixedori, not yet fully tested
+%
 % Revision 1.9  2008/08/13 13:47:42  roboos
 % updated documentation
 %
@@ -97,6 +100,7 @@ keepmom        = keyval('keepmom',       varargin); if isempty(keepmom),       k
 lambda         = keyval('lambda',        varargin); if isempty(lambda  ),      lambda = 0;                   end
 projectnoise   = keyval('projectnoise',  varargin); if isempty(projectnoise),  projectnoise = 'yes';         end
 projectmom     = keyval('projectmom',    varargin); if isempty(projectmom),    projectmom = 'no';            end
+fixedori       = keyval('fixedori',      varargin); if isempty(fixedori),      fixedori = 'no';              end
 
 % convert the yes/no arguments to the corresponding logical values
 keepfilter     = strcmp(keepfilter,    'yes');
@@ -105,6 +109,7 @@ keepcov        = strcmp(keepcov,       'yes');
 keepmom        = strcmp(keepmom,       'yes');
 projectnoise   = strcmp(projectnoise,  'yes');
 projectmom     = strcmp(projectmom,    'yes');
+fixedori       = strcmp(fixedori,      'yes');
 
 % default is to use the trace of the covariance matrix, see Van Veen 1997
 if isempty(powmethod)
@@ -115,14 +120,18 @@ end
 powtrace   = strcmp(powmethod, 'trace');
 powlambda1 = strcmp(powmethod, 'lambda1');
 
+if isfield(dip, 'mom') && fixedori
+  error('you cannot specify a dipole orientation and fixedmom simultaneously');
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % find the dipole positions that are inside/outside the brain
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isfield(dip, 'inside') & ~isfield(dip, 'outside');
+if ~isfield(dip, 'inside') && ~isfield(dip, 'outside');
   [dip.inside, dip.outside] = find_inside_vol(dip.pos, vol);
-elseif isfield(dip, 'inside') & ~isfield(dip, 'outside');
+elseif isfield(dip, 'inside') && ~isfield(dip, 'outside');
   dip.outside    = setdiff(1:size(dip.pos,1), dip.inside);
-elseif ~isfield(dip, 'inside') & isfield(dip, 'outside');
+elseif ~isfield(dip, 'inside') && isfield(dip, 'outside');
   dip.inside     = setdiff(1:size(dip.pos,1), dip.outside);
 end
 
@@ -150,16 +159,16 @@ dip.inside  = 1:size(dip.pos,1);
 dip.outside = [];
 
 isrankdeficient = (rank(Cy)<size(Cy,1));
-if isrankdeficient & ~isfield(dip, 'filter')
+if isrankdeficient && ~isfield(dip, 'filter')
   warning('covariance matrix is rank deficient')
 end
 
 % it is difficult to give a quantitative estimate of lambda, therefore also
 % support relative (percentage) measure that can be specified as string (e.g. '10%')
 if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
-    ratio = sscanf(lambda, '%f%%');
-    ratio = ratio/100;
-    lambda = ratio * trace(Cy)/size(Cy,1);
+  ratio = sscanf(lambda, '%f%%');
+  ratio = ratio/100;
+  lambda = ratio * trace(Cy)/size(Cy,1);
 end
 
 if projectnoise
@@ -202,6 +211,15 @@ for i=1:size(dip.pos,1)
     % compute the leadfield
     lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
   end
+  if fixedori
+    % compute the leadfield for the optimal dipole orientation
+    % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
+    filt = pinv(lf' * invCy * lf) * lf' * invCy;
+    [u, s, v] = svd(filt * Cy * filt');
+    eta = u(:,1);
+    lf  = lf * eta;
+    dipout.ori{i} = eta;
+  end
   if isfield(dip, 'subspace')
     % do subspace projection of the forward model
     lf = dip.subspace{i} * lf;
@@ -222,9 +240,9 @@ for i=1:size(dip.pos,1)
     filt = pinv(lf' * invCy * lf) * lf' * invCy;              % van Veen eqn. 23, use PINV/SVD to cover rank deficient leadfield
   end
   if projectmom
-     [u, s, v] = svd(filt * Cy * ctranspose(filt));
-     mom = u(:,1);
-     filt = (mom') * filt;
+    [u, s, v] = svd(filt * Cy * ctranspose(filt));
+    mom = u(:,1);
+    filt = (mom') * filt;
   end
   if powlambda1
     % dipout.pow(i) = lambda1(pinv(lf' * invCy * lf));        % this is more efficient if the filters are not present
@@ -280,6 +298,10 @@ if isfield(dipout, 'mom')
   dipout.mom(dipout.inside)  = dipout.mom;
   dipout.mom(dipout.outside) = {[]};
 end
+if isfield(dipout, 'ori')
+  dipout.ori(dipout.inside)  = dipout.ori;
+  dipout.ori(dipout.outside) = {[]};
+end
 if isfield(dipout, 'cov')
   dipout.cov(dipout.inside)  = dipout.cov;
   dipout.cov(dipout.outside) = {[]};
@@ -310,7 +332,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.9 $  $Date: 2008/08/13 13:47:42 $
+%   $Revision: 1.10 $  $Date: 2008/08/13 16:13:38 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

@@ -20,14 +20,14 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 %   dipin.pos   positions for dipole, e.g. regular grid
 %   dipin.mom   dipole orientation (optional)
 %
-% Optional arguments are specified in pairs of a property name and a
-% property value
+% Additional options should be specified in key-value pairs and can be
 %  'Pr'               = power of the external reference channel
 %  'Cr'               = cross spectral density between all data channels and the external reference channel
 %  'refdip'           = location of dipole with which coherence is computed
 %  'lambda'           = regularisation parameter
 %  'powmethod'        = can be 'trace' or 'lambda1'
-%  'feedback'         = give progress indication, can be 'text', 'gui' or 'none' (default)
+%  'feedback'         = give progress indication, can be 'text', 'gui' or 'none'
+%  'fixedori'         = use fixed or free orientation,                 can be 'yes' or 'no'
 %  'projectnoise'     = project noise estimate through filter,         can be 'yes' or 'no'
 %  'realfilter'       = construct a real-valued filter,                can be 'yes' or 'no'
 %  'keepfilter'       = remember the beamformer filter,                can be 'yes' or 'no'
@@ -44,9 +44,12 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % is specified, its orientation will be used and only the strength will
 % be fitted to the data.
 
-% Copyright (C) 2003-2006, Robert Oostenveld
+% Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.9  2008/08/13 16:13:38  roboos
+% added option fixedori, not yet fully tested
+%
 % Revision 1.8  2008/08/13 13:47:42  roboos
 % updated documentation
 %
@@ -98,12 +101,14 @@ keepfilter     = keyval('keepfilter',    varargin); if isempty(keepfilter),    k
 keepleadfield  = keyval('keepleadfield', varargin); if isempty(keepleadfield), keepleadfield = 'no';         end
 lambda         = keyval('lambda',        varargin); if isempty(lambda  ),      lambda = 0;                   end
 projectnoise   = keyval('projectnoise',  varargin); if isempty(projectnoise),  projectnoise = 'yes';         end
+fixedori       = keyval('fixedori',      varargin); if isempty(fixedori),      fixedori = 'no';              end
 
 % convert the yes/no arguments to the corresponding logical values
 keepcsd        = strcmp(keepcsd,       'yes');
 keepfilter     = strcmp(keepfilter,    'yes');
 keepleadfield  = strcmp(keepleadfield, 'yes');
 projectnoise   = strcmp(projectnoise,  'yes');
+fixedori       = strcmp(fixedori,      'yes');
 
 % default is to use the largest singular value of the csd matrix, see Gross 2001
 if isempty(powmethod)
@@ -124,14 +129,18 @@ if ~isempty(Cr)
   Cr = Cr(:);
 end
 
+if isfield(dip, 'mom') && fixedori
+  error('you cannot specify a dipole orientation and fixedmom simultaneously');
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % find the dipole positions that are inside/outside the brain
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isfield(dip, 'inside') & ~isfield(dip, 'outside');
+if ~isfield(dip, 'inside') && ~isfield(dip, 'outside');
   [dip.inside, dip.outside] = find_inside_vol(dip.pos, vol);
-elseif isfield(dip, 'inside') & ~isfield(dip, 'outside');
+elseif isfield(dip, 'inside') && ~isfield(dip, 'outside');
   dip.outside    = setdiff(1:size(dip.pos,1), dip.inside);
-elseif ~isfield(dip, 'inside') & isfield(dip, 'outside');
+elseif ~isfield(dip, 'inside') && isfield(dip, 'outside');
   dip.inside     = setdiff(1:size(dip.pos,1), dip.outside);
 end
 
@@ -160,13 +169,13 @@ dip.outside = [];
 
 % dics has the following sub-methods, which depend on the function input arguments
 % power only, cortico-muscular coherence and cortico-cortical coherence
-if ~isempty(Cr) & ~isempty(Pr) & isempty(refdip)
+if ~isempty(Cr) && ~isempty(Pr) && isempty(refdip)
   % compute cortico-muscular coherence, using reference cross spectral density
   submethod = 'dics_refchan';
-elseif isempty(Cr) & isempty(Pr) & ~isempty(refdip)
+elseif isempty(Cr) && isempty(Pr) && ~isempty(refdip)
   % compute cortico-cortical coherence with a dipole at the reference position
   submethod = 'dics_refdip';
-elseif isempty(Cr) & isempty(Pr) & isempty(refdip)
+elseif isempty(Cr) && isempty(Pr) && isempty(refdip)
   % only compute power of a dipole at the grid positions
   submethod = 'dics_power';
 else
@@ -174,16 +183,16 @@ else
 end
 
 isrankdeficient = (rank(Cf)<size(Cf,1));
-if isrankdeficient & ~isfield(dip, 'filter')
+if isrankdeficient && ~isfield(dip, 'filter')
   warning('cross-spectral density matrix is rank deficient')
 end
 
 % it is difficult to give a quantitative estimate of lambda, therefore also
 % support relative (percentage) measure that can be specified as string (e.g. '10%')
 if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
-    ratio = sscanf(lambda, '%f%%');
-    ratio = ratio/100;
-    lambda = ratio * trace(Cf)/size(Cf,1);
+  ratio = sscanf(lambda, '%f%%');
+  ratio = ratio/100;
+  lambda = ratio * trace(Cf)/size(Cf,1);
 end
 
 if projectnoise
@@ -236,6 +245,15 @@ switch submethod
         % compute the leadfield
         lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
       end
+      if fixedori
+        % compute the leadfield for the optimal dipole orientation
+        % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
+        filt = pinv(lf' * invCf * lf) * lf' * invCf;
+        [u, s, v] = svd(filt * Cf * filt');
+        eta = u(:,1);
+        lf  = lf * eta;
+        dipout.ori{i} = eta;
+      end
       if isfield(dip, 'subspace')
         % do subspace projection of the forward model
         lf = dip.subspace{i} * lf;
@@ -259,7 +277,7 @@ switch submethod
       if keepcsd
         dipout.csd{i} = csd;
       end
-      if projectnoise 
+      if projectnoise
         if powlambda1
           dipout.noise(i) = noise * lambda1(filt * ctranspose(filt));
         elseif powtrace
@@ -290,6 +308,15 @@ switch submethod
       else
         % compute the leadfield
         lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize);
+      end
+      if fixedori
+        % compute the leadfield for the optimal dipole orientation
+        % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
+        filt = pinv(lf' * invCy * lf) * lf' * invCy;
+        [u, s, v] = svd(filt * Cy * filt');
+        eta = u(:,1);
+        lf  = lf * eta;
+        dipout.ori{i} = eta;
       end
       if isfield(dip, 'subspace')
         % do subspace projection of the forward model
@@ -344,6 +371,9 @@ switch submethod
   case 'dics_refdip'
     if isfield(dip, 'subspace')
       error('subspace projections are not supported for beaming cortico-cortical coherence');
+    end
+    if fixedori
+      error('fixed orientations are not supported for beaming cortico-cortical coherence');
     end
     % compute cortio-cortical coherence with a dipole at the reference position
     lf1 = compute_leadfield(refdip, grad, vol, 'reducerank', reducerank, 'normalize', normalize);
@@ -421,6 +451,10 @@ if isfield(dipout, 'filter')
   dipout.filter(dipout.inside)  = dipout.filter;
   dipout.filter(dipout.outside) = {[]};
 end
+if isfield(dipout, 'ori')
+  dipout.ori(dipout.inside)  = dipout.ori;
+  dipout.ori(dipout.outside) = {[]};
+end
 if isfield(dipout, 'pow')
   dipout.pow(dipout.inside)  = dipout.pow;
   dipout.pow(dipout.outside) = nan;
@@ -451,7 +485,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.8 $  $Date: 2008/08/13 13:47:42 $
+%   $Revision: 1.9 $  $Date: 2008/08/13 16:13:38 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
