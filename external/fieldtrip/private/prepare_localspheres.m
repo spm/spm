@@ -29,6 +29,7 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 %   Phys Med Biol. 1999 Feb;44(2):423-40
 
 % TODO cfg.spheremesh  should be renamed consistently with other mesh generation cfgs
+% TODO shape should contain pnt as subfield and not be equal to pnt (for consistency with other use of shape)
 %
 % Undocumented local options:
 % cfg.spheremesh, number of points that is placed on the brain surface (default 4000)
@@ -37,6 +38,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.19  2008/08/13 21:02:20  roboos
+% use general read_headshape instead of specific subfunctions
+%
 % Revision 1.18  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -179,13 +183,10 @@ if nargin>1
     shape = pnt(:,1:3);
   end
   fprintf('placed %d points on the brain surface\n', length(shape));
-elseif ischar(cfg.headshape) && filetype(cfg.headshape, 'ctf_shape')
+elseif ischar(cfg.headshape)
   % read the headshape from file
-  shape = read_ctf_shape(cfg.headshape);
+  shape = read_headshape(cfg.headshape);
   shape = shape.pnt;
-elseif ischar(cfg.headshape) && filetype(cfg.headshape, '4d_hs')
-  % read the headshape from file
-  shape = read_bti_hs(cfg.headshape);
 else
   % use the headshape points that are specified in the configuration
   shape = cfg.headshape;

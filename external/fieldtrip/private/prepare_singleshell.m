@@ -28,10 +28,14 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 %   in realistic volume conductors", Phys Med Biol. 2003 Nov 21;48(22):3637-52.
 
 % TODO the spheremesh option should be renamed consistently with other mesh generation cfgs
+% TODO shape should contain pnt as subfield and not be equal to pnt (for consistency with other use of shape)
 
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.15  2008/08/13 21:02:20  roboos
+% use general read_headshape instead of specific subfunctions
+%
 % Revision 1.14  2008/07/31 16:10:33  roboos
 % corrected documentation for default smooth=5
 %
@@ -155,13 +159,10 @@ if nargin>1
     shape = pnt(:,1:3);
   end
   fprintf('placed %d points on the brain surface\n', length(shape));
-elseif ischar(cfg.headshape) && filetype(cfg.headshape, 'ctf_shape')
+elseif ischar(cfg.headshape)
   % read the headshape from file
-  shape = read_ctf_shape(cfg.headshape);
+  shape = read_headshape(cfg.headshape);
   shape = shape.pnt;
-elseif ischar(cfg.headshape) && filetype(cfg.headshape, '4d_hs')
-  % read the headshape from file
-  shape = read_bti_hs(cfg.headshape);
 else
   % use the headshape points that are specified in the configuration
   shape = cfg.headshape;

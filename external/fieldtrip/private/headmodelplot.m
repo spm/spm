@@ -69,6 +69,9 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.21  2008/08/13 21:02:20  roboos
+% use general read_headshape instead of specific subfunctions
+%
 % Revision 1.20  2008/07/15 19:53:23  roboos
 % use grid subcfg, prevent recreation of grid if already fully specified
 %
@@ -332,13 +335,9 @@ elseif ismeg
     elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
       % use the headshape points specified in the configuration
       headshape.pnt = cfg.headshape;
-    elseif ischar(cfg.headshape) && filetype(cfg.headshape, 'ctf_shape')
+    elseif ischar(cfg.headshape) 
       % read the headshape from file
-      headshape = read_ctf_shape(cfg.headshape);
-    elseif ischar(cfg.headshape) && filetype(cfg.headshape, '4d_hs')
-      % read the headshape from file
-      headshape     = [];
-      headshape.pnt = read_bti_hs(cfg.headshape);
+      headshape = read_headshape(cfg.headshape);
     else
       error('cfg.headshape is not specified correctly')
     end
