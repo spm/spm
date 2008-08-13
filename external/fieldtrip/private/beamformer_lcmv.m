@@ -31,10 +31,11 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 %  'projectmom'       = project the dipole moment timecourse on the direction of maximal power, can be 'yes' or 'no'
 %  'keepmom'          = remember the estimated dipole moment,          can be 'yes' or 'no'
 %  'keepcov'          = remember the estimated dipole covariance,      can be 'yes' or 'no'
+%
+% These options influence the forward computation of the leadfield
 %  'reducerank'       = reduce the leadfield rank, can be 'no' or a number (e.g. 2)
 %  'normalize'        = normalize the leadfield
-%   'normalizeparam'  = parameter for depth normalization (default = 0.5)
-
+%  'normalizeparam'   = parameter for depth normalization (default = 0.5)
 %
 % If the dipole definition only specifies the dipole location, a rotating
 % dipole (regional source) is assumed on each location. If a dipole moment
@@ -44,6 +45,9 @@ function [dipout] = beamformer_lcmv(dip, grad, vol, dat, Cy, varargin)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: beamformer_lcmv.m,v $
+% Revision 1.9  2008/08/13 13:47:42  roboos
+% updated documentation
+%
 % Revision 1.8  2008/07/02 16:02:01  roboos
 % fixed bug in % lambda
 %
@@ -306,7 +310,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.8 $  $Date: 2008/07/02 16:02:01 $
+%   $Revision: 1.9 $  $Date: 2008/08/13 13:47:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
