@@ -1,6 +1,6 @@
 function [F,P,MVB] = spm_mvb_bmc(mvb)
 % multivariate Bayesian model comparison (Baysian decoding of a contrast)
-% FORMAT [F,P,MVB] = spm_mvb_bmc
+% FORMAT [F,P,MVB] = spm_mvb_bmc(mvb)
 %
 % mvb   : models to compare (file names)
 % F     : F ratio relative to null
@@ -10,7 +10,7 @@ function [F,P,MVB] = spm_mvb_bmc(mvb)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_bmc.m 1912 2008-07-11 18:02:03Z guillaume $
+% $Id: spm_mvb_bmc.m 2011 2008-08-20 12:29:00Z christophe $
 
 
 %-Get figure handles and set title

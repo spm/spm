@@ -1,9 +1,9 @@
-function [p,pc,R2] = spm_mvb_cvk(MVB,k);
+function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 % Split-half cross validation of a multivariate Bayesian model
-% FORMAT [p_value,percent,R2] = spm_mvb_cvk(MVB)
+% FORMAT [p_value,percent,R2] = spm_mvb_cvk(MVB,k)
 %
 % MVB - Multivariate Bays structure
-% k   - k-fold cross-validation
+% k   - k-fold cross-validation ('0' implies a leave-one-out scheme)
 %
 % p   - p_value: under a null GLM
 % percent: proportion correct (median threshold)
@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 1984 2008-08-07 16:05:03Z christophe $
+% $Id: spm_mvb_cvk.m 2011 2008-08-20 12:29:00Z christophe $
  
  
 %-partition order
@@ -68,12 +68,12 @@ V     = R'*R;
  
 % leave-one-out
 %--------------------------------------------------------------------------
-Ns    = length(X);
-qX    = zeros(Ns,1);
-qE    = zeros(size(Y,2),Ns);
-P     = zeros(size(Y,2),Ns);
 % if ~k, k = Ns - 1; end
 if ~k, k = Ns; end
+Ns    = length(X);
+qX    = zeros(Ns,1);
+qE    = zeros(size(Y,2),k);
+P     = zeros(size(Y,2),k);
  
 % k-fold cross-validation
 %==========================================================================
@@ -150,6 +150,7 @@ plot([max(abc([1 3])) min(abc([2 4]))],[max(abc([1 3])) min(abc([2 4]))],'k')
 subplot(2,2,3)
 imagesc(corrcoef(qE))
 colorbar
+caxis([0 1])
 xlabel('biparititon (k)')
 title({'correlations among';'k-fold feature weights'})
 axis square

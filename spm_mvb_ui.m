@@ -5,7 +5,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_ui.m 1984 2008-08-07 16:05:03Z christophe $
+% $Id: spm_mvb_ui.m 2011 2008-08-20 12:29:00Z christophe $
 
 
 %-Get figure handles and set title
@@ -16,7 +16,9 @@ spm_clf(Fmvb);
 %-Get contrast
 %--------------------------------------------------------------------------
 contrast = SPM.xCon(xSPM.Ic).name;
-c        = SPM.xCon(xSPM.Ic).c(:,1);
+c        = SPM.xCon(xSPM.Ic).c(:,1); 
+    % keeps only the first line of the contrast!
+    % => no multi-dimensional F contrast possible...
 
 %-Get VOI name
 %--------------------------------------------------------------------------
