@@ -36,6 +36,17 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.49  2008/08/20 19:16:56  jansch
+% removed keyboard-statement. oops
+%
+% Revision 1.48  2008/08/20 19:03:12  jansch
+% experimental fix in get_source_trial. earlier changes caused sourcestatistics
+% to crash (reproduced with grandaverage as an input). this was tracked down to
+% happen in checkdata, which keeps a volumetric representation of the functional
+% data, in the case that the input data contains both a transformation matrix, and
+% a list of dipole positions (isvolume && issource). this fixed, led to a crash
+% in get_source_trial, in which the dimensionality was incorrectly assigned
+%
 % Revision 1.47  2008/07/31 20:26:39  roboos
 % fixed bug in roi/roilabel (thanks to Ingrid)
 %
@@ -466,7 +477,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.47 2008/07/31 20:26:39 roboos Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.49 2008/08/20 19:16:56 jansch Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
@@ -539,6 +550,7 @@ cfg.inside = varargin{1}.inside;
 function [dat, cfg] = get_source_trial(cfg, varargin);
 Nsource = length(varargin);
 Nvoxel  = length(varargin{1}.inside) + length(varargin{1}.outside);
+
 for i=1:Nsource
   Ntrial(i) = length(varargin{i}.trial);
 end
@@ -547,7 +559,8 @@ for i=1:Nsource
   for j=1:Ntrial(i)
     tmp = getsubfield(varargin{i}.trial(j), cfg.parameter);
     if ~iscell(tmp),
-      dim = size(tmp);
+      %dim = size(tmp);
+      dim = [Nvoxel 1];
     else
       dim = [Nvoxel size(tmp{varargin{i}.inside(1)})];
     end
@@ -588,7 +601,7 @@ if isfield(varargin{1}, 'inside')
 end
 % remember the dimension of the source data
 if ~isfield(cfg, 'dim')
-  warning('for clustering on trial-based data you explicitely have to specify cfg.dim');
+  warning('for clustering on trial-based data you explicitly have to specify cfg.dim');
 end
 % remember which voxels are inside the brain
 cfg.inside = varargin{1}.inside;
