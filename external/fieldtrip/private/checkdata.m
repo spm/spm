@@ -33,6 +33,12 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.27  2008/08/20 19:00:23  jansch
+% also enable correct trial-handling in case of isvolume. before this fix,
+% sourcestatistics crashed (reproduced with a grandaverage as input). more
+% specifically, it crashed in setsubfield, because the trials were not handled
+% correctly.
+%
 % Revision 1.26  2008/07/30 07:41:10  roboos
 % when reshaping source parameters, also loop over source.trial(...) structure array and not only source.avg
 %
@@ -392,23 +398,26 @@ if ~isempty(inside)
   end % if okflag
 end
 
-if isvolume
-  % ensure consistent dimensions of the volumetric data
-  % reshape each of the volumes that is found into a 3D array
-  param = parameterselection('all', data);
-  dim   = data.dim;
-  for i=1:length(param)
-    tmp  = getsubfield(data, param{i});
-    tmp  = reshape(tmp, dim);
-    data = setsubfield(data, param{i}, tmp);
-  end
-end
+%if isvolume
+%  % ensure consistent dimensions of the volumetric data
+%  % reshape each of the volumes that is found into a 3D array
+%  param = parameterselection('all', data);
+%  dim   = data.dim;
+%  for i=1:length(param)
+%    tmp  = getsubfield(data, param{i});
+%    tmp  = reshape(tmp, dim);
+%    data = setsubfield(data, param{i}, tmp);
+%  end
+%end
 
-if issource
+if issource || isvolume,
+  param = parameterselection('all', data);
   % ensure consistent dimensions of the source reconstructed data
   % reshape each of the volumes that is found into a linear vector
-  param = parameterselection('all', data);
-  dim   = [size(data.pos, 1) 1];
+  if issource, dim   = [size(data.pos, 1) 1]; end
+  % ensure consistent dimensions of the volumetric data
+  % reshape each of the volumes that is found into a 3D array
+  if isvolume, dim   = data.dim;              end
   for i=1:length(param)
     if any(param{i}=='.')
       % the parameter is nested in a substructure, which can have multiple elements (e.g. source.trial(1).pow, source.trial(2).pow, ...)
