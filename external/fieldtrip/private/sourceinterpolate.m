@@ -34,6 +34,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.46  2008/08/20 11:03:53  ingnie
+% fixed bug in extrapolating to outside, av changed into fv
+%
 % Revision 1.45  2008/08/01 18:32:37  ingnie
 % inside always kept, added extrapolating to outside to optimize interpolation at the edges, all logical volumes (incl inside) are interpolated with method nearest and stay logicals, whole (irregular) outside of functional volumes set to NaN.
 %
@@ -278,10 +281,10 @@ for i=1:length(vol_name)
     % extrapolate the outside of the functional volumes for better interpolation at the edges
     [xi, yi, zi] = ndgrid(1:functional.dim(1), 1:functional.dim(2),1:functional.dim(3));
     X = [xi(functional.inside(:)) yi(functional.inside(:)) zi(functional.inside(:))];
-    Y = av(functional.inside(:));
+    Y = fv(functional.inside(:));
     XI = [xi(~functional.inside(:)) yi(~functional.inside(:)) zi(~functional.inside(:))];
     YI = griddatan(X, Y, XI, 'nearest');
-    av(~functional.inside) = YI;
+    fv(~functional.inside) = YI;
     % interpolate functional onto anatomical grid
     av( sel) = my_interpn(fv, ax(sel), ay(sel), az(sel), cfg.interpmethod, cfg.feedback);
     av(~sel) = nan;
@@ -307,7 +310,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.45 2008/08/01 18:32:37 ingnie Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.46 2008/08/20 11:03:53 ingnie Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end
