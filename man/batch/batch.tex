@@ -483,7 +483,7 @@ subjcon = cellstr(spm_select([1 1],'mat','Multiple conditions'));
 % Run batch, assuming face_single_subject_template.m is in 
 % MATLAB path or working directory.
 % If it is not, then a full path and file name can be used instead.
-spm_jobman('serial', 'face_single_subject_template', '', ...
+spm_jobman('serial', face_single_subject_template, '', ...
            subjdir, subjepi, subjana, subjcon);
 \end{verbatim}
 
@@ -503,19 +503,19 @@ subj2con = cellstr(spm_select([1 1],'mat','Multiple conditions'));
 % MATLAB path or working directory
 % If it is not, then a full path and file name can be used instead.
 spm_jobman('serial', ...
-    {'face_single_subject_template', 'face_single_subject_template'}, ...
+    {face_single_subject_template, face_single_subject_template}, ...
     '', subj1dir, subj1epi, subj1ana, subj1con, ...
     subj2dir, subj2epi, subj2ana, subj2con);
 \end{verbatim}
 
-Here the job argument has been replaced by a cell string listing
+Here the job argument has been replaced by a cell array containing
 the same job twice, and the argument list for the second subject has
 been added.
 
-\subsection{Modifying a harvested job}
+\subsection{Modifying a saved job}
 
 In some cases, instead of using the serial interface it may be more
-appropriate to modify the fields of a harvested job. By default, jobs
+appropriate to modify the fields of a saved or harvested job. By default, jobs
 are saved as MATLAB \verb|.mat| files, but they can also be saved as
 \verb|.m| files. These files contain a number of MATLAB commands,
 which will create a variable \verb|matlabbatch|. The commands can be
@@ -655,9 +655,11 @@ In Matlabbatch, there are different ways to set defaults:
 \end{enumerate}
 Defaults set using option \ref{def:cf} or \ref{def:cd} will only be
 updated at SPM/matlabbatch startup. Defaults set using option
-\ref{def:def} will be set once a new job is started. They refer to
-defaults from \verb|spm_get_defaults|, which accesses
-\verb|spm_defaults|. These defaults take precedence over the other defaults.
+\ref{def:def} will be set once a new job is started. These defaults take
+precedence over the other defaults.
+
+In core SPM, these defaults refer to \verb|spm_get_defaults|, which accesses
+\verb|spm_defaults|. Toolboxes may use their own callback functions.
 
 \subsection{Toolbox Migration}
 
