@@ -23,6 +23,12 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.9  2008/08/21 12:03:37  roboos
+% fixed small typo related to last commit
+%
+% Revision 1.8  2008/08/21 12:01:47  roboos
+% selection of rows and columns to be removed had to be inverted, thanks to Thilo
+%
 % Revision 1.7  2008/08/13 16:14:46  roboos
 % remove columns and rows for montage channels that are not present in the data
 %
@@ -65,13 +71,13 @@ if ~isfield(sens, 'tra') && ~isfield(sens, 'trial')
   sens.tra = sparse(eye(nchan));
 end
 
-% select and discard the columns that are empty
+% select and keep the columns that are non-empty, i.e. remove the empty columns
 selcol           = find(~all(montage.tra==0, 1));
 montage.tra      = montage.tra(:,selcol);
 montage.labelorg = montage.labelorg(selcol);
 clear selcol
 
-% remove columns and rows for channels that are not present in the data
+% select and remove the columns corresponding to channels that are not present in the original data
 remove = setdiff(montage.labelorg, intersect(montage.labelorg, sens.label));
 selcol = match_str(montage.labelorg, remove);
 % we cannot just remove the colums, all rows that depend on it should also be removed
@@ -79,9 +85,12 @@ selrow = false(length(montage.labelnew),1);
 for i=1:length(selcol)
   selrow = selrow & find(montage.tra(:,selcol(i))~=0);
 end
-montage.labelorg = montage.labelorg(selcol);
-montage.labelnew = montage.labelnew(selrow);
-montage.tra = montage.tra(selrow, selcol);
+% convert from indices to logical vector
+selcol = indx2logical(selcol, length(montage.labelorg));
+% remove rows and columns
+montage.labelorg = montage.labelorg(~selcol);
+montage.labelnew = montage.labelnew(~selrow);
+montage.tra = montage.tra(~selrow, ~selcol);
 clear remove selcol selrow i
 
 % add columns for the channels that are present in the data but not involved in the montage
@@ -136,3 +145,12 @@ elseif isfield(sens, 'trial')
 else
   error('unrecognized input');
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HELPER FUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function y = indx2logical(x, n)
+y = false(1,n);
+y(x) = true;
+
+
