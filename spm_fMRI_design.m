@@ -165,10 +165,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_fMRI_design.m 2021 2008-08-27 10:05:32Z volkmar $
 
 
-SCCSid  = '$Rev: 1143 $';
+SCCSid  = '$Rev: 2021 $';
 
 %-GUI setup
 %-----------------------------------------------------------------------
@@ -208,7 +208,7 @@ end
 try
     SPM.nscan;
 catch
-        SPM.nscan = spm_input(['scans per session e.g. 64 64 64'],'+1');
+        SPM.nscan = spm_input('scans per session e.g. 64 64 64','+1');
 end
 
 % time units, dt = time bin {secs}
@@ -224,7 +224,7 @@ end
 % separate specifications for non-replicated sessions
 %-----------------------------------------------------------------------
 rep     = 0;
-if length(SPM.nscan) > 1 & ~any(diff(SPM.nscan)) & ~isfield(SPM,'Sess')
+if length(SPM.nscan) > 1 && ~any(diff(SPM.nscan)) && ~isfield(SPM,'Sess')
     str = 'are sessions replications';
     rep = spm_input(str,'+1','yes|no',[1 0]);
 end
@@ -261,7 +261,7 @@ for s = 1:length(SPM.nscan)
     %---------------------------------------------------------------
     k   = SPM.nscan(s);
 
-    if (s == 1) | ~rep
+    if (s == 1) || ~rep
 
         % create convolved stimulus functions or inputs
         %=======================================================
@@ -277,10 +277,10 @@ for s = 1:length(SPM.nscan)
         % Resample regressors at acquisition times (32 bin offset)
         %-------------------------------------------------------
         try
-            X = X([0:(k - 1)]*fMRI_T + fMRI_T0 + 32,:);
+            X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
         end
 
-        % and orthonalise (within trial type)
+        % and orthogonalise (within trial type)
         %-------------------------------------------------------
         for i = 1:length(Fc)
             X(:,Fc(i).i) = spm_orth(X(:,Fc(i).i));
@@ -300,14 +300,14 @@ for s = 1:length(SPM.nscan)
             spm_input('Other regressors',1,'d',str)
             C     = [];
             c     = spm_input('user specified','+1','w1',0);
-                while size(C,2) < c
-                    str = sprintf('regressor %i',size(C,2) + 1);
-                     C  = [C spm_input(str,2,'e',[],[k Inf])];
+            while size(C,2) < c
+                str = sprintf('regressor %i',size(C,2) + 1);
+                C  = [C spm_input(str,2,'e',[],[k Inf])];
             end
 
             % and their names - Cnames
             %-----------------------------------------------
-            Cname = {};
+            Cname = cell(1,size(C,2));
             for i = 1:size(C,2)
                 str      = sprintf('regressor %i',i);
                 Cname{i} = spm_input('name of','+0','s',str);
@@ -319,7 +319,7 @@ for s = 1:length(SPM.nscan)
         
         % Check dimensions
         reg_rows=size(C,1);
-        if (reg_rows > 0) & ~(reg_rows== k)
+        if (reg_rows > 0) && ~(reg_rows== k)
             str1='Error in spm_fMRI_design.m:';
             str2=sprintf('Session %d has %d scans but regressors have %d entries', s,k,reg_rows);
             str3='These numbers should match';
@@ -332,7 +332,7 @@ for s = 1:length(SPM.nscan)
         % Confounds: Session effects 
         %=======================================================
         B      = ones(k,1);
-        Bn{1}  = sprintf('constant');
+        Bn     = {'constant'};
 
     end
 
@@ -341,8 +341,8 @@ for s = 1:length(SPM.nscan)
     SPM.Sess(s).U      = U;
     SPM.Sess(s).C.C    = C;
     SPM.Sess(s).C.name = Cname;
-    SPM.Sess(s).row    = size(Xx,1) + [1:k];
-    SPM.Sess(s).col    = size(Xx,2) + [1:size(X,2)];
+    SPM.Sess(s).row    = size(Xx,1) + (1:k);
+    SPM.Sess(s).col    = size(Xx,2) + (1:size(X,2));
     SPM.Sess(s).Fc     = Fc;
 
     % Append names
@@ -366,8 +366,8 @@ end %- for s
 %-----------------------------------------------------------------------
 SPM.xX.X      = [Xx Xb];
 SPM.xX.iH     = [];
-SPM.xX.iC     = [1:size(Xx,2)];
-SPM.xX.iB     = [1:size(Xb,2)] + size(Xx,2);
+SPM.xX.iC     = 1:size(Xx,2);
+SPM.xX.iB     = (1:size(Xb,2)) + size(Xx,2);
 SPM.xX.iG     = [];
 SPM.xX.name   = {Xname{:} Bname{:}};
 

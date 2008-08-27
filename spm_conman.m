@@ -587,7 +587,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 1843 2008-06-20 19:41:36Z guillaume $
+% $Id: spm_conman.m 2021 2008-08-27 10:05:32Z volkmar $
 
 
 %=======================================================================
@@ -1817,7 +1817,7 @@ switch lower(varargin{1}), case 'initialise'
             'DefaultUicontrolFontSize',FS(10),...
             'DefaultUicontrolInterruptible','on',...
             'Colormap',gray(64),...
-            'Renderer','painters',...
+            'Renderer',spm_get_defaults('renderer'),...
             'Visible','off');
 
 

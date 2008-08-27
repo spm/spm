@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 1815 2008-06-11 14:08:48Z volkmar $
+% $Id: spm_defaults.m 2021 2008-08-27 10:05:32Z volkmar $
 
 
 global defaults
@@ -23,6 +23,7 @@ global defaults
 %=======================================================================
 defaults.grid     = 0.4;
 defaults.cmdline  = 0;
+defaults.renderer = 'zbuffer';
 
 % File format specific
 %=======================================================================

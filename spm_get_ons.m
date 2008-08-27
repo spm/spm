@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_ons.m 2021 2008-08-27 10:05:32Z volkmar $
 
 
 %-GUI setup
@@ -111,7 +111,7 @@ for i = 1:v
     catch
         ons = [];
     end
-    if ~length(ons)
+    if isempty(ons)
         str      = ['vector of onsets - ' Uname{1}];
         ons      = spm_input(str,4,'r',' ',[Inf 1]);
         U(i).ons = ons(:);
@@ -126,7 +126,7 @@ for i = 1:v
     catch
         dur = [];
     end
-    if ~length(dur)
+    if isempty(dur)
         str = 'duration[s] (events = 0)';
         while 1
             dur = spm_input(str,5,'r',' ',[Inf 1]);

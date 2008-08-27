@@ -8,7 +8,7 @@ function spm_fMRI_design_show(SPM,s,i)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design_show.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_fMRI_design_show.m 2021 2008-08-27 10:05:32Z volkmar $
 
 
 % SPM
@@ -94,7 +94,7 @@ Hz    = [0:(q - 1)]/(q*SPM.xY.RT);
 q     = 2:fix(q/2);
 plot(Hz(q),gX(q,:))
 HPF = SPM.xX.K(s).HParam;
-patch([0 1 1 0]/HPF,[0 0 1 1]*max(max(gX)),[1 1 1]*.9);
+patch([0 1 1 0]/HPF,[0 0 1 1]*max(max(gX)),[1 1 1]*.9,'facealpha',.5);
 xlabel('Frequency (Hz)')
 ylabel('relative spectral density')
 h=title(['Frequency domain',sprintf('\n'), ' {\bf',num2str(HPF),'}', ...

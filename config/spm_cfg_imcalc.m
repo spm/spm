@@ -4,9 +4,9 @@ function imcalc = spm_cfg_imcalc
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 1987 2008-08-08 10:42:23Z volkmar $
+% $Id: spm_cfg_imcalc.m 2021 2008-08-27 10:05:32Z volkmar $
 
-rev = '$Rev: 1987 $';
+rev = '$Rev: 2021 $';
 % ---------------------------------------------------------------------
 % input Input Images
 % ---------------------------------------------------------------------
@@ -157,6 +157,10 @@ imcalc.vout = @vout;
 % ---------------------------------------------------------------------
 function dep = vout(job)
 dep            = cfg_dep;
-dep.sname      = 'Imcalc Computed Image';
+if ~ischar(job.output) || strcmp(job.output, '<UNDEFINED>')
+    dep.sname      = 'Imcalc Computed Image';
+else
+    dep.sname      = sprintf('Imcalc Computed Image: %s', job.output);
+end
 dep.src_output = substruct('.','files');
 dep.tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});

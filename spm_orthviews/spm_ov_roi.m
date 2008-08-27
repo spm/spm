@@ -87,14 +87,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 1815 2008-06-11 14:08:48Z volkmar $
+% $Id: spm_ov_roi.m 2021 2008-08-27 10:05:32Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 1815 $';
+rev = '$Revision: 2021 $';
 
 global st;
 if isempty(st)
@@ -111,7 +111,7 @@ volhandle = varargin{2};
 toset = [];
 toclear = [];
 tochange = [];
-update_roi = 0;
+update_roi = false;
 
 switch cmd
     case 'init'
@@ -124,15 +124,16 @@ switch cmd
                 xyz = [x(roi(:))'; y(roi(:))'; z(roi(:))'];
             case {0,2} % ROI space image or SPM mat
                 Vroi = rmfield(Vroi,'private');
-                roi = zeros(Vroi.dim(1:3));
+                roi = false(Vroi.dim(1:3));
                 Vroi.fname = fileparts(Vroi.fname); % save path
-                Vroi.dt(1) = spm_type('uint8');
                 xyz = varargin{5};
                 if ~isempty(xyz)
                     ind = sub2ind(Vroi.dim(1:3),xyz(1,:),xyz(2,:),xyz(3,:));
-                    roi(ind) = 1;
+                    roi(ind) = true;
                 end;
         end;
+        % reset data type to save disk space
+        Vroi.dt(1) = spm_type('uint8');
         % reset scaling factor of Vroi handle
         Vroi.pinfo(1:2) = Inf;
         clear x y z
@@ -157,6 +158,7 @@ switch cmd
             fxyz  = [];
         end;
         
+        cb = cell(1,3);
         for k=1:3
             cb{k}=get(st.vols{volhandle}.ax{k}.ax,'ButtonDownFcn');
             set(st.vols{volhandle}.ax{k}.ax,...
@@ -427,21 +429,17 @@ switch cmd
         
     case 'invert'
         spm('pointer','watch');
-        toclear = st.vols{volhandle}.roi.xyz;
-        [x y z] = ndgrid(1:st.vols{volhandle}.roi.Vroi.dim(1),...
-                         1:st.vols{volhandle}.roi.Vroi.dim(2),...
-                         1:st.vols{volhandle}.roi.Vroi.dim(3));
-        if ~isempty(toclear)
-            toset = setdiff([x(:)'; y(:)'; z(:)']', toclear', 'rows')';
-        else
-            toset = [x(:)'; y(:)'; z(:)'];
-        end;
+        st.vols{volhandle}.roi.roi = ~st.vols{volhandle}.roi.roi;
+        ind = find(st.vols{volhandle}.roi.roi);
+        st.vols{volhandle}.roi.xyz = zeros(3,numel(ind));
+        [st.vols{volhandle}.roi.xyz(1,:), ...
+            st.vols{volhandle}.roi.xyz(2,:), ...
+            st.vols{volhandle}.roi.xyz(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),ind);
         update_roi = 1;
-        clear x y z;
         
     case 'clear'
         spm('pointer','watch');
-        st.vols{volhandle}.roi.roi = zeros(size(st.vols{volhandle}.roi.roi));
+        st.vols{volhandle}.roi.roi = false(size(st.vols{volhandle}.roi.roi));
         st.vols{volhandle}.roi.xyz=[];
         update_roi = 1;
         
@@ -452,10 +450,12 @@ switch cmd
                          1:st.vols{volhandle}.roi.Vroi.dim(3));
         xyzmm = st.vols{volhandle}.roi.Vroi.mat*[x(:)';y(:)';z(:)'; ...
                             ones(1, prod(st.vols{volhandle}.roi.Vroi.dim(1:3)))];
-        msk = zeros(1,prod(st.vols{volhandle}.roi.Vroi.dim(1:3)));
+        msk = false(1,prod(st.vols{volhandle}.roi.Vroi.dim(1:3)));
         for k = 1:numel(V)
             xyzvx = inv(V(k).mat)*xyzmm;
-            msk = msk | spm_sample_vol(V(k), xyzvx(1,:), xyzvx(2,:), xyzvx(3,:), 0);
+            dat = spm_sample_vol(V(k), xyzvx(1,:), xyzvx(2,:), xyzvx(3,:), 0);
+            dat(~isfinite(dat)) = 0;
+            msk = msk | logical(dat);
         end;
         [tochange(1,:) tochange(2,:) tochange(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),find(msk));
         clear xyzmm xyzvx msk
@@ -467,7 +467,7 @@ switch cmd
             flt = {'*.nii','NIfTI (1 file)';'*.img','NIfTI (2 files)'};
             [name pth idx] = uiputfile(flt, 'Output image');
             if ~ischar(pth)
-                warning('Save cancelled');
+                warning('spm:spm_ov_roi','Save cancelled');
                 return;
             end;
             [p n e v] = spm_fileparts(fullfile(pth,name));
@@ -576,7 +576,6 @@ switch cmd
                 imfname = spm_select(1, 'image', 'Select ROI image');
             case 0,
                 imfname = spm_select(1, 'image', 'Select image defining ROI space');
-                [p n e v] = fileparts(imfname);
             case 2,
                 [SPM, xSPM] = spm_getSPM;
                 xyz = xSPM.XYZ;
@@ -641,17 +640,17 @@ switch cmd
         return;
         
     case 'context_space'
-    spm_orthviews('space', volhandle, ...
+        spm_orthviews('space', volhandle, ...
               st.vols{volhandle}.roi.Vroi.mat, ...
               st.vols{volhandle}.roi.Vroi.dim(1:3));
-    iorient = get(findobj(0,'Label','Orientation'),'children');
-    if iscell(iorient)
-        iorient = cell2mat(iorient);
-        end;
-        set(iorient, 'Checked', 'Off');
-        ioroi = findobj(iorient, 'Label','ROI space');
-        set(ioroi, 'Checked', 'On');
-        return;
+          iorient = get(findobj(0,'Label','Orientation'),'children');
+          if iscell(iorient)
+              iorient = cell2mat(iorient);
+          end;
+          set(iorient, 'Checked', 'Off');
+          ioroi = findobj(iorient, 'Label','ROI space');
+          set(ioroi, 'Checked', 'On');
+          return;
  
     case 'context_thresh'
         Finter = spm_figure('FindWin', 'Interactive');
@@ -693,7 +692,7 @@ if update_roi
     if ~isempty(toclear)
         itoclear = sub2ind(st.vols{volhandle}.roi.Vroi.dim(1:3), ...
                            toclear(1,:), toclear(2,:), toclear(3,:)); 
-        st.vols{volhandle}.roi.roi(itoclear) = 0;
+        st.vols{volhandle}.roi.roi(itoclear) = false;
         if ~isempty(st.vols{volhandle}.roi.xyz)
             st.vols{volhandle}.roi.xyz = setdiff(st.vols{volhandle}.roi.xyz',toclear','rows')';
         else
@@ -706,7 +705,7 @@ if update_roi
         % it is necessary
         itoset = round(sub2ind(st.vols{volhandle}.roi.Vroi.dim(1:3), ...
                                toset(1,:), toset(2,:), toset(3,:))); 
-        st.vols{volhandle}.roi.roi(itoset) = 1;
+        st.vols{volhandle}.roi.roi(itoset) = true;
         if ~isempty(st.vols{volhandle}.roi.xyz)
             st.vols{volhandle}.roi.xyz = union(st.vols{volhandle}.roi.xyz',toset','rows')';
         else

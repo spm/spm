@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 1816 2008-06-11 15:28:51Z guillaume $
+% $Id: spm_orthviews.m 2021 2008-08-27 10:05:32Z volkmar $
 
 
 
@@ -231,7 +231,7 @@ case 'image',
     redraw_all
 
 case 'bb',
-    if length(varargin)> 0 && all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end;
+    if ~isempty(varargin) && all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end;
     bbox;
     redraw_all;
 
@@ -692,7 +692,7 @@ function space(arg1,M,dim)
 global st
 if ~isempty(st.vols{arg1})
     num = arg1;
-        if nargin < 2
+    if nargin < 2
         M = st.vols{num}.mat;
         dim = st.vols{num}.dim(1:3);
     end;
@@ -715,7 +715,6 @@ return;
 function H = specify_image(arg1)
 global st
 H=[];
-ok = true;
 if isstruct(arg1),
     V = arg1(1);
 else
@@ -734,16 +733,10 @@ DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
 V.ax = cell(3,1);
 for i=1:3,
     ax = axes('Visible','off','DrawMode','fast','Parent',st.fig,'DeleteFcn',DeleteFcn,...
-        'YDir','normal','ButtonDownFcn',...
-        ['if strcmp(get(gcf,''SelectionType''),''normal''),spm_orthviews(''Reposition'');',...
-        'elseif strcmp(get(gcf,''SelectionType''),''extend''),spm_orthviews(''Reposition'');',...
-        'spm_orthviews(''context_menu'',''ts'',1);end;']);
+        'YDir','normal','ButtonDownFcn',@repos_start);
     d  = image(0,'Tag','Transverse','Parent',ax,...
         'DeleteFcn',DeleteFcn);
-    set(ax,'Ydir','normal','ButtonDownFcn',...
-        ['if strcmp(get(gcf,''SelectionType''),''normal''),spm_orthviews(''Reposition'');',...
-        'elseif strcmp(get(gcf,''SelectionType''),''extend''),spm_orthviews(''reposition'');',...
-        'spm_orthviews(''context_menu'',''ts'',1);end;']);
+    set(ax,'Ydir','normal','ButtonDownFcn',@repos_start);
 
     lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
     ly = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
@@ -762,10 +755,22 @@ H = ii;
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
+function repos_start(varargin)
+set(gcbf,'windowbuttonmotionfcn',@repos_move, 'windowbuttonupfcn',@repos_end);
+spm_orthviews('reposition');
+%_______________________________________________________________________
+%_______________________________________________________________________
+function repos_move(varargin)
+spm_orthviews('reposition');
+%_______________________________________________________________________
+%_______________________________________________________________________
+function repos_end(varargin)
+set(gcbf,'windowbuttonmotionfcn','', 'windowbuttonupfcn','');
+%_______________________________________________________________________
+%_______________________________________________________________________
 function addcontexts(handles)
-global st
 for ii = valid_handles(handles),
-    cm_handle = addcontext(ii);
+    addcontext(ii);
 end;
 spm_orthviews('reposition',spm_orthviews('pos'));
 return;
@@ -815,8 +820,6 @@ for i=valid_handles(1:24),
         offx = (area(3)-(Dims(1)+Dims(2))*1.02*s)/2 + area(1);
         skx = s*(Dims(1)+Dims(2))*0.02;
     end;
-
-    DeleteFcn = ['spm_orthviews(''Delete'',' num2str(i) ');'];
 
     % Transverse
     set(st.vols{i}.ax{1}.ax,'Units','pixels', ...
@@ -906,10 +909,6 @@ for i = valid_handles(arg1),
             0 0 0 1];
         SM = inv(SM0*(st.Space\M)); SD = Dims([3 2]);
     else
-        SM0 = [ 0  1 0 -bb(1,2)+1
-            0  0 1 -bb(1,3)+1
-            1  0 0 -cent(1)
-            0  0 0 1];
         SM0 = [ 0 -1 0 +bb(2,2)+1
             0  0 1 -bb(1,3)+1
             1  0 0 -cent(1)
@@ -1071,8 +1070,6 @@ for i = valid_handles(arg1),
                 gryc = [gryc; 0 0 0];
                 
                 % get max for blob image
-                vol = st.vols{i}.blobs{1}.vol;
-                mat = st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
                 if isfield(st.vols{i}.blobs{1},'max'),
                     cmx = st.vols{i}.blobs{1}.max;
                 else
@@ -1129,7 +1126,8 @@ for i = valid_handles(arg1),
                 cimgc = zeros(size(imgc));
                 cimgs = zeros(size(imgs));
 
-                for j=1:length(st.vols{i}.blobs), % get colours of all images first
+                colour = zeros(numel(st.vols{i}.blobs),3);
+                for j=1:numel(st.vols{i}.blobs) % get colours of all images first
                     if isfield(st.vols{i}.blobs{j},'colour'),
                         colour(j,:) = reshape(st.vols{i}.blobs{j}.colour, [1 3]);
                     else
@@ -1797,7 +1795,6 @@ case 'remove_c_blobs',
     cm_handles = valid_handles(1:24);
     if varargin{2} == 2, cm_handles = get_current_handle; end;
     colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-    c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
     for i = 1:length(cm_handles),
         if isfield(st.vols{cm_handles(i)},'blobs'),
             for j = 1:length(st.vols{cm_handles(i)}.blobs),
