@@ -28,7 +28,7 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_set_priors.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_set_priors.m 2022 2008-08-27 11:26:29Z lee $
 
 if ~isfield(slice,'verbose')
     slice.verbose=0;
@@ -59,6 +59,11 @@ switch priors.W,
         
     case 'Spatial - LORETAu',
         slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - LORETAu');
+  
+    case 'Spatial - WGL',
+        % spm_vb_spatial_precision called in spm_vb_init_slice 
+        % as Dw requires wk_ols
+        slice.Dw.vxyz = vxyz;
         
     case 'Voxel - Shrinkage',
         slice.Dw=speye(N);

@@ -147,7 +147,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_spm_vb.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_spm_vb.m 2022 2008-08-27 11:26:29Z lee $
 
 
 %-Get SPM.mat if necessary
@@ -612,6 +612,14 @@ for z = 1:zdim
         
         if CrS
             
+            vxyz = spm_vb_neighbors(xyz(:,Cm)');
+            %-Remove isolated nodes - required for 'Spatial - WGL'
+            %----------------------------------------------------------
+            if any(sum(vxyz,2)==0)
+                Cm(Cm) = (sum(vxyz,2)>0);
+                vxyz = spm_vb_neighbors(xyz(:,Cm)');
+            end
+            
             CrS = sum(Cm);
             Y   = Y(:,Cm);                    %-Data within mask
             
@@ -630,7 +638,6 @@ for z = 1:zdim
                 con     = zeros(ncon,CrS);
                 con_var = zeros(ncon,CrS);
             end
-            vxyz = spm_vb_neighbors(xyz(:,Cm)');
             
             %-Get structural info for that slice
             %-----------------------------------------------------------

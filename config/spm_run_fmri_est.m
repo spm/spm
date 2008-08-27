@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 1910 2008-07-11 14:30:19Z volkmar $
+% $Id: spm_run_fmri_est.m 2022 2008-08-27 11:26:29Z lee $
 
 
 global defaults
@@ -159,6 +159,8 @@ switch job.method.Bayesian.signal
         SPM.PPM.priors.W = 'Spatial - GMRF';
     case 'LORETA',
         SPM.PPM.priors.W = 'Spatial - LORETA';
+    case 'WGL',
+        SPM.PPM.priors.W = 'Spatial - WGL';
     case 'Global',
         SPM.PPM.priors.W = 'Voxel - Shrinkage';
     case 'Uninformative',
