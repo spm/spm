@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_orthviews.m 2023 2008-08-27 15:36:21Z volkmar $
 
 
 
@@ -756,8 +756,11 @@ return;
 %_______________________________________________________________________
 %_______________________________________________________________________
 function repos_start(varargin)
-set(gcbf,'windowbuttonmotionfcn',@repos_move, 'windowbuttonupfcn',@repos_end);
-spm_orthviews('reposition');
+% don't use right mouse button to start reposition
+if ~strcmpi(get(gcbf,'SelectionType'),'alt')
+    set(gcbf,'windowbuttonmotionfcn',@repos_move, 'windowbuttonupfcn',@repos_end);
+    spm_orthviews('reposition');
+end
 %_______________________________________________________________________
 %_______________________________________________________________________
 function repos_move(varargin)
