@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 1278 2008-03-28 18:38:11Z stefan $
+% $Id: spm_eeg_downsample.m 2024 2008-08-27 18:24:22Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -48,7 +48,7 @@ spm('Pointer', 'Watch');drawnow;
 % two passes
 
 % 1st: Determine new D.nsamples
-d = double(squeeze(D(:, :, 1)));
+d = double(squeeze(D(1, :, 1)));
 d2 = resample(d', fsample_new, D.fsample)';
 nsamples_new = size(d2, 2);
 
@@ -56,21 +56,37 @@ nsamples_new = size(d2, 2);
 Dnew = clone(D, ['d' fnamedat(D)], [D.nchannels nsamples_new D.ntrials]);
 
 % 2nd: resample all
-spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
-if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
-else Ibar = [1:D.ntrials]; end
+if ~strcmp(D.type, 'continuous')
+    spm_progress_bar('Init', D.ntrials, 'Events downsampled'); drawnow;
+    if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+    else Ibar = [1:D.ntrials]; end
+else
+    spm_progress_bar('Init', D.nchannels, 'Channels downsampled'); drawnow;
+    if D.nchannels > 100, Ibar = floor(linspace(1, D.nchannels,100));
+    else Ibar = [1:D.nchannels]; end
+end
 
 for i = 1:D.ntrials
-    d = double(squeeze(D(:, :, i)));
-    d2 = resample(d', fsample_new, D.fsample)';
-    
-    Dnew(1:Dnew.nchannels, 1:nsamples_new, i) = d2;
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
+    for j = 1:D.nchannels
+        d = double(squeeze(D(j, :, i)));
+        d2 = resample(d', fsample_new, D.fsample)';
+
+        Dnew(j, 1:nsamples_new, i) = d2;
+
+        if strcmp(D.type, 'continuous')
+            if ismember(j, Ibar)
+                spm_progress_bar('Set', j); drawnow;
+            end
+        end
+
+    end
+    if ~strcmp(D.type, 'continuous')
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i); drawnow;
+        end
     end
 
 end
-
 
 spm_progress_bar('Clear');
 
