@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 2005 2008-08-13 18:42:48Z john $
+% $Id: spm_preproc_write8.m 2025 2008-08-28 17:48:19Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -89,11 +89,11 @@ for k1=1:Kb,
     end;
 end
 
-prm  = [3 3 3 0 0 0];
-C    = cell(1,3);
-C{1} = spm_bsplinc(res.Twarp(:,:,:,1),prm);
-C{2} = spm_bsplinc(res.Twarp(:,:,:,2),prm);
-C{3} = spm_bsplinc(res.Twarp(:,:,:,3),prm);
+prm     = [3 3 3 0 0 0];
+Coef    = cell(1,3);
+Coef{1} = spm_bsplinc(res.Twarp(:,:,:,1),prm);
+Coef{2} = spm_bsplinc(res.Twarp(:,:,:,2),prm);
+Coef{3} = spm_bsplinc(res.Twarp(:,:,:,3),prm);
 
 do_defs = any(df);
 do_defs = do_cls | do_defs;
@@ -138,7 +138,7 @@ for z=1:length(x3),
 
 
     if do_defs,
-        [t1,t2,t3] = defs(C,z,res.MT,prm,x1,x2,x3,M);
+        [t1,t2,t3] = defs(Coef,z,res.MT,prm,x1,x2,x3,M);
         if exist('Ndef','var'),
             M1 = tpm.M;
             tmp = M1(1,1)*t1 + M1(1,2)*t2 + M1(1,3)*t3 + M1(1,4);
@@ -285,13 +285,16 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
             c = single(cls{k1})/255;
             if any(tc(:,3)),
                 [c,w]  = dartel3('push',c,y,d1(1:3));
+                vx          = sqrt(sum(M1(1:3,1:3).^2));
+                C(:,:,:,k1) = optimNn(w,c,[1  vx  1e-4 1e-6 0  3 2]);
+                clear w
             else
                 c      = dartel3('push',c,y,d1(1:3));
             end
             if nargout>=1,
                 cls{k1} = c;
             end
-            if tc(k1,3),
+            if tc(k1,4),
                 N      = nifti;
                 N.dat  = file_array(fullfile(pth,['mwc', num2str(k1), nam, ext1]),...
                                     d1,...
@@ -303,22 +306,18 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
                 create(N);
                 N.dat(:,:,:) = c*abs(det(M0(1:3,1:3))/det(M1(1:3,1:3)));
             end
-            if any(tc(:,4)),
-                vx          = sqrt(sum(M1(1:3,1:3).^2));
-                C(:,:,:,k1) = optimNn(w,c,[1  vx  1e-4 1e-6 0  3 2]);
-            end
             spm_progress_bar('set',k1);
         end
     end
     spm_progress_bar('Clear');
 end
 
-if any(tc(:,4)),
+if any(tc(:,3)),
     spm_progress_bar('init',Kb,'Writing Warped Tis Cls','Classes completed');
     C = max(C,eps);
     s = sum(C,4);
     for k1=1:Kb,
-        if tc(k1,4),
+        if tc(k1,3),
             N      = nifti;
             N.dat  = file_array(fullfile(pth,['wc', num2str(k1), nam, ext1]),...
                                 d1,'uint8-be',0,1/255,0);
