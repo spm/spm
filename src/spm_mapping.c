@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 1745 2008-05-28 14:18:33Z guillaume $
+ * $Id: spm_mapping.c 2026 2008-08-29 10:41:22Z john $
  * John Ashburner
  */
 
@@ -358,7 +358,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 		if (mxGetN(tmp) == 1)
 		{
 			off = (int)fabs(pr[2]);
-			if (off+maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*dsize/8 > maps[i].len)
+			if (off+maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*(dsize/8) > maps[i].len)
 			{
 				free_maps(maps,i+1);
 				mexErrMsgTxt("File too small.");
@@ -367,7 +367,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 			{
 				maps[i].scale[j]  = pr[0];
 				maps[i].offset[j] = pr[1];
-				maps[i].data[j]   = maps[i].addr+off+j*maps[i].dim[0]*maps[i].dim[1]*dsize/8;
+				maps[i].data[j]   = maps[i].addr+off+j*maps[i].dim[0]*maps[i].dim[1]*(dsize/8);
 			}
 		}
 		else
@@ -378,7 +378,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 				maps[i].offset[j] = pr[1+j*3];
 				off = (int)fabs(pr[2+j*3]);
 				maps[i].data[j]   = maps[i].addr+off;
-				if (off+maps[i].dim[0]*maps[i].dim[1]*dsize/8 > maps[i].len)
+				if (off+maps[i].dim[0]*maps[i].dim[1]*(dsize/8) > maps[i].len)
 				{
 					free_maps(maps,i+1);
 					mexErrMsgTxt("File too small.");
@@ -388,7 +388,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 	}
 	else
 	{
-		if (maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*dsize/8 > maps[i].len)
+		if (maps[i].dim[0]*maps[i].dim[1]*maps[i].dim[2]*(dsize/8) > maps[i].len)
 		{
 			free_maps(maps,i+1);
 			mexErrMsgTxt("File too small.");
@@ -397,7 +397,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 		{
 			maps[i].scale[j]  = 1.0;
 			maps[i].offset[j] = 0.0;
-			maps[i].data[j]   = maps[i].addr+j*maps[i].dim[0]*maps[i].dim[1]*dsize/8;
+			maps[i].data[j]   = maps[i].addr+j*maps[i].dim[0]*maps[i].dim[1]*(dsize/8);
 		}
 	}
 
