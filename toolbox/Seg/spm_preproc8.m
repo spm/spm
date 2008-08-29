@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 2008 2008-08-18 17:03:19Z john $
+% $Id: spm_preproc8.m 2027 2008-08-29 16:14:46Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -648,8 +648,11 @@ for iter=1:20,
                             % Accept new solution
                             spm_chi2_plot('Set',ll);
                             fprintf('Bias-%d:\t%g\t%g\t%g :o)\n', n, ll, llr,llrb);
-
-                            chan(n).lmreg = chan(n).lmreg*0.5;
+                            if oll-ll<0,
+                                chan(n).lmreg = chan(n).lmreg*0.5;
+                            else
+                                chan(n).lmreg = chan(n).lmreg*4;
+                            end
                             break
                         end
                     end
