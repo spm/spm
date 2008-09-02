@@ -1,4 +1,4 @@
-function [P F] = spm_fmin(fun,P,C,varargin)
+function [P F] = spm_fmin(fun,Q,C,varargin)
 % objective function minimisation
 % FORMAT [P F] = spm_fmin('fun',P,C,varargin)
 %
@@ -24,18 +24,20 @@ function [P F] = spm_fmin(fun,P,C,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmin.m 1961 2008-07-26 09:38:46Z karl $
+% $Id: spm_fmin.m 2031 2008-09-02 18:29:53Z karl $
 
 
 % stochastic search
 %--------------------------------------------------------------------------
-n     = length(spm_vec(P));                   % number of parameters
-N     = 128;                                  % number of samples
+P     = spm_vec(Q);
+pmin  = P;
+n     = length(P);                            % number of parameters
 try
     C;                                        % prior covariance
 catch
     C = speye(n,n);
 end
+C     = C + speye(n,n)*exp(-16);
 
 % Optimise sampling distribution iteratively
 %==========================================================================
@@ -61,16 +63,19 @@ for k = 1:8
 
     % sample objective function using N(P,C)
     %----------------------------------------------------------------------
-    p     = spm_vec(P)*ones(1,N) + spm_sqrtm(C)*randn(n,N);
-    try
-        p(:,1) = pm;
+    if k == 1
+        N = 128;                       % number of samples
+    else
+        N = 16;
     end
-    F     = sparse(N,1);
+    p      = P*ones(1,N) + spm_sqrtm(C)*randn(n,N);
+    p(:,1) = pmin;
+    F      = sparse(N,1);
     for i = 1:N
-        F(i) = feval(fun,spm_unvec(p(:,i),P),varargin{:});
+        F(i) = feval(fun,spm_unvec(p(:,i),Q),varargin{:});
     end
     [m i] = min(F);
-    P     = spm_unvec(p(:,i),P);
+    pmin  = p(:,i);
 
     % supplement with line search along principal eigenvector
     %----------------------------------------------------------------------
@@ -79,12 +84,13 @@ for k = 1:8
     S     = S(1);
     x     = linspace(-3*sqrt(S),3*sqrt(S),16 + 1);
     for i = 1:(16 + 1)
-        p(:,end + 1) = spm_vec(P) + U*x(i);
-        F(end + 1,1) = feval(fun,spm_unvec(p(:,end),P),varargin{:});
+        p(:,end + 1) = pmin + U*x(i);
+        F(end + 1,1) = feval(fun,spm_unvec(p(:,end),Q),varargin{:});
     end
-    [m i] = min(F);
-    pm    = p(:,i);
-    M(k)  = m;
+    [m i]  = min(F);
+    pmin   = p(:,i);
+    M(k)   = m;
+    R(:,k) = pmin;
 
     % plot objective function along eigenvariate and sampled values
     %----------------------------------------------------------------------
@@ -108,12 +114,11 @@ for k = 1:8
     %----------------------------------------------------------------------
     T      = sqrt(2)*std(F);
 
-    % mean (and record in R)
+    % mean (P)
     %----------------------------------------------------------------------
     q      = exp(-(F - mean(F))/T);
     q      = q/sum(q);
     P      = p*q;
-    R(:,k) = P;
 
     % dispersion
     %----------------------------------------------------------------------
@@ -156,15 +161,8 @@ for k = 1:8
     axis square
     drawnow
 
-    % convergence
-    %----------------------------------------------------------------------
-    if k > 1
-        if norm(R(:,k) - R(:,k - 1),1)/norm(R(:,k),1) < exp(-8), break, end
-    end
-
 end
 
 % minimiser
 %---------------------------------=----------------------------------------
-[m i] = min(F);
-P     = spm_unvec(p(:,i),P);
+P     = spm_unvec(pmin,Q);
