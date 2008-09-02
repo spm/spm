@@ -1,7 +1,7 @@
 function [M0,q0,X,x,M1,L] = spm_fp(M,x,u)
 % Fokker-Planck operators and equilibrium density for dynamic systems
 % FORMAT [M0,q0,X,x,M1,L] = spm_fp(M,x,u)
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
 %    M.f   - dx/dt    = f(x,u,P)                {function string or m-file}
@@ -24,39 +24,38 @@ function [M0,q0,X,x,M1,L] = spm_fp(M,x,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp.m 1961 2008-07-26 09:38:46Z karl $
+% $Id: spm_fp.m 2030 2008-09-02 18:28:40Z karl $
  
 % default: first level of hierarchical model
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 M   = M(1);
  
 % default expansion point for inputs
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin < 3
     u0 = zeros(M.m,1);
 else
     u0 = u;
 end
- 
-% event space
-%-------------------------------------------------------------------
-n     = length(M.x);
+
+% event space: get or create X - coordinates of evaluation grid
+%--------------------------------------------------------------------------
+n  = length(M.x);
 if nargin < 2
-    for i = 1:n
-        x{i} = linspace(-1,1,fix(exp(log(1024)/n))) + M.x(i);
+
+    % use M.X
+    %----------------------------------------------------------------------
+    X     = M.X;
+    for i = 1:size(X,2)
+        x{i} = unique(X(:,i));
     end
+else
+    
+    % use x
+    %----------------------------------------------------------------------
+    [X x] = spm_ndgrid(x);
 end
- 
-% create X - coordinates of evaluation grid
-%---------------------------------------------------------------------------
-for i = 1:n
-    q     = 1;
-    for j = 1:n
-        q = spm_kron(x{j}(:).^(i == j),q);
-    end
-    X(:,i) = q;
-end
- 
+
 % f(x,0)
 %--------------------------------------------------------------------------
 N     = length(X);
@@ -116,12 +115,14 @@ end
 % dispersion
 %--------------------------------------------------------------------------
 C     = inv(M.W);
+if length(C) ~= n
+    C = C(1)*speye(n,n);
+end
 for i = 1:n
     for j = 1:n
         if C(i,j)
             J  = J - C(i,j)*DP{i}*DP{j}'/2;
         end
- 
     end
 end
  
@@ -146,12 +147,7 @@ for i = 1:n
     nx{i} = length(x{i});
 end
 q0    = reshape(q,nx{:});
- 
-% analytic solution
-%--------------------------------------------------------------------------
-% q   = length(M0);
-% J   = [M0; ones(1,q)];
-% q0  = sum(inv(J'*J),2);
+
 if nargout < 5,  return,  end
 
 % input induced changes to Jacobian dJ/du - M1
@@ -168,9 +164,16 @@ if nargout < 6,  return,  end
 L     = sparse(M.l,N);
 for i = 1:N
     try
-        L(:,i) = feval(M.g,X(i,:)',u,M.pE);
+        L(:,i) = feval(M.g,X(i,:)',u0,M.pE);
     catch
-        L(:,i) = feval(M.g,X(i,:)',u,[],M.pE);
+        L(:,i) = feval(M.g,X(i,:)',u0,[],M.pE);
     end
 end
 
+return
+
+% NOTES: analytic solution for q0
+%--------------------------------------------------------------------------
+q   = length(M0);
+J   = [M0; ones(1,q)];
+q0  = sum(inv(J'*J),2);
