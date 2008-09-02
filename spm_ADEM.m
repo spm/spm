@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM.m 1961 2008-07-26 09:38:46Z karl $
+% $Id: spm_ADEM.m 2033 2008-09-02 18:32:14Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -456,8 +456,7 @@ for iE = 1:nE
         dVdac = -dE.da'*iS*dE.dc;
         
 
-        
- 
+         
         % D-step update: of causes v{i}, and hidden states x(i)
         %==================================================================
  
@@ -469,22 +468,20 @@ for iE = 1:nE
         
         % gradient
         %------------------------------------------------------------------
-        Ka    = 2/normest(dVdaa + speye(na)*exp(-16));
-        Ku    = 1;
-        dFdu  = [                                    Dp*spm_vec(p); 
-                 spm_vec({Ku*dVdu; dVdc; Ka*dVda}) + Dq*spm_vec(q)];
+        dFdu  = [                              Dp*spm_vec(p); 
+                 spm_vec({dVdu; dVdc; dVda}) + Dq*spm_vec(q)];
  
  
         % Jacobian (variational flow)
         %------------------------------------------------------------------
         dFduu = spm_cat(...
-                {Dgdv     Dgdx Dv  []   []          []       Dgda;
-                 dfdv     dfdx []  dfdw []          []       dfda;
-                 []       []   Dv  []   []          []       [];
-                 []       []   []  Dx   []          []       [];
-                 Ku*dVduv []   []  []   Du+Ku*dVduu Ku*dVduc Ku*dVdua;
-                 []       []   []  []   []          Dc       []
-                 []       []   []  []   Ka*dVdau    Ka*dVdac Ka*dVdaa});
+                {Dgdv  Dgdx Dv   []   []       []    Dgda;
+                 dfdv  dfdx []   dfdw []       []    dfda;
+                 []    []   Dv   []   []       []    [];
+                 []    []   []   Dx   []       []    [];
+                 dVduv []   []   []   Du+dVduu dVduc dVdua;
+                 []    []   []   []   []       Dc    []
+                 []    []   []   []   dVdau    dVdac dVdaa});
  
  
         % update states q = {x,v,z,w} and conditional modes
@@ -682,7 +679,7 @@ for iE = 1:nE
         end
         if length(F) > 2
             subplot(nl,4,4*nl - 1)
-            plot(F(2:end))
+            plot(F - F(1))
             xlabel('updates')
             title('log-evidence')
             axis square, grid on
@@ -692,7 +689,7 @@ for iE = 1:nE
         % report (EM-Steps)
         %------------------------------------------------------------------
         str{1} = sprintf('DEM: %i (%i)',iE,iM);
-        str{2} = sprintf('F:%.6e',full(Fm));
+        str{2} = sprintf('F:%.6e',full(Fm - F(1)));
         str{3} = sprintf('p:%.2e',full(dp'*dp));
         str{4} = sprintf('h:%.2e',full(mh'*mh));
         fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})

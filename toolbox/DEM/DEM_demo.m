@@ -160,15 +160,15 @@ run_demo_Callback(hObject, handles, 'DEM_demo_Gabor')
 
 % --- Executes on button press in pushbutton44.
 function pushbutton44_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'ADEM_demo_visual')
+run_demo_Callback(hObject, handles, 'ADEM_visual')
 
 % --- Executes on button press in pushbutton45.
 function pushbutton45_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'ADEM_demo_motor')
+run_demo_Callback(hObject, handles, 'ADEM_motor')
 
 % --- Executes on button press in pushbutton46.
 function pushbutton46_Callback(hObject, eventdata, handles)
-run_demo_Callback(hObject, handles, 'ADEM_demo_learning')
+run_demo_Callback(hObject, handles, 'ADEM_learning')
 
 
 

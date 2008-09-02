@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: ADEM_motor.m 2033 2008-09-02 18:32:14Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
@@ -24,21 +24,21 @@ M(1).E.d      = 2;                          % smoothness
 %--------------------------------------------------------------------------
 pE.f    = [-1  4   ;                        % the Jacobian for the
            -2 -1]/8;                        % hidden sates
-pE.g    = [spm_dctmtx(4,2)]/4;             % the mixing parameters
+pE.g    = [spm_dctmtx(4,2)]/8;              % the mixing parameters
 pE.h    = [1; 0];                           % input parameter
 M(1).x  = [0; 0];
 M(1).f  = inline('P.f*x + P.h*v','x','v','P');
 M(1).g  = inline('P.g*x','x','v','P');
 M(1).pE = pE;                               % prior expectation
-M(1).V  = speye(4,4)*exp(8);                % error precision
-M(1).W  = speye(2,2)*exp(10);                % error precision
+M(1).V  = exp(8);                           % error precision
+M(1).W  = exp(8);                           % error precision
  
 % level 2: with informative priors on movement
 %--------------------------------------------------------------------------
 M(2).v  = 0;                                % inputs
 M(2).V  = exp(8);
  
-% genertrive model
+% generative model
 %==========================================================================
 G       = M;
 pE.a    = [1; 0];                           % action parameter
@@ -117,7 +117,7 @@ plot([1:N],DEM0.qU.a{2},[1:N],DEM0.qU.v{2},':',[1:N],DEM0.pU.v{2},'-.')
 axis square
 title('action and causes','FontSize',16)
 xlabel('displacement','FontSize',14)
-legend({'action', 'perceived cause', 'exogenous casue'})
+legend({'action', 'perceived cause', 'exogenous cause'})
 axis([1 N -1/2 1])
  
 % late perturbation
@@ -133,7 +133,7 @@ subplot(3,2,4)
 plot([1:N],DEM1.qU.a{2},[1:N],DEM1.qU.v{2},':',[1:N],DEM1.pU.v{2},'-.')
 axis square
 title('action and causes','FontSize',16)
-xlabel('displacement','FontSize',14)
+xlabel('time','FontSize',14)
 axis([1 N -1/2 1])
  
 % change in motor gain
@@ -149,5 +149,5 @@ subplot(3,2,6)
 plot([1:N],DEM2.qU.a{2},[1:N],DEM2.qU.v{2},':',[1:N],DEM2.pU.v{2},'-.')
 axis square
 title('action and causes','FontSize',16)
-xlabel('displacement','FontSize',14)
+xlabel('time','FontSize',14)
 axis([1 N -1/2 1])

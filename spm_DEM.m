@@ -77,7 +77,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 1880 2008-07-02 12:41:41Z karl $
+% $Id: spm_DEM.m 2033 2008-09-02 18:32:14Z karl $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -680,7 +680,7 @@ for iN = 1:nN
         end
         if length(F) > 2
             subplot(nl,4,4*nl - 1)
-            plot(F(2:end))
+            plot(F - F(1))
             xlabel('updates')
             title('log-evidence')
             axis square, grid on
@@ -690,7 +690,7 @@ for iN = 1:nN
         % report (EM-Steps)
         %------------------------------------------------------------------
         str{1} = sprintf('DEM: %i (%i:%i:%i)',iN,iD,iE,iM);
-        str{2} = sprintf('F:%.6e',full(Fm));
+        str{2} = sprintf('F:%.6e',full(Fm - F(1)));
         str{3} = sprintf('p:%.2e',full(mp'*mp));
         str{4} = sprintf('h:%.2e',full(mh'*mh));
         fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
