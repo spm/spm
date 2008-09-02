@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 1704 2008-05-21 14:00:09Z karl $
+% $Id: spm_expm.m 2029 2008-09-02 18:26:23Z karl $
 
 
 % expm(J) use Pade approximation
@@ -75,6 +75,7 @@ else
         % revert to Pade approximation if numerical overflow
         %-----------------------------------------------------------
         if norm(x,1) > 1e16
+            fprintf('Reverting to Pade approximation')
             x = spm_expm(J)*x0;
             return
         end

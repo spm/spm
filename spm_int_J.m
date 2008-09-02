@@ -9,8 +9,11 @@ function [y] = spm_int_J(P,M,U)
 %__________________________________________________________________________
 % Integrates the MIMO system described by
 %
-%    dx/dt = f(x,u,P,M)
-%    y     = g(x,u,P,M)
+%        dx/dt = f(x,u,P,M)
+%        y     = g(x,u,P,M)
+% or
+%        dx/dt = f(x,u,P)
+%        y     = g(x,u,P)
 %
 % using the update scheme:
 %
@@ -58,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 1959 2008-07-26 09:31:58Z karl $
+% $Id: spm_int_J.m 2029 2008-09-02 18:26:23Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -98,6 +101,19 @@ try
 catch
     x   = sparse(0,1);
     M.x = x;
+end
+
+% check function format
+%--------------------------------------------------------------------------
+try
+    f(x,u,P,M);
+catch
+    f = inline(char(f),'x','v','P','M');
+end
+try
+    g(x,u,P,M);
+catch
+    g = inline(char(g),'x','v','P','M');
 end
 
 % check for delay operator

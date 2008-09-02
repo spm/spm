@@ -80,7 +80,7 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_DFP.m 2029 2008-09-02 18:26:23Z karl $
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
@@ -550,7 +550,7 @@ for iN = 1:nN
 
         % convergence (E-Step)
         %------------------------------------------------------------------
-        if (dFdp'*dp < 1e-2) | (norm(dp,1) < TOL), break, end
+        if (dFdp'*dp < 1e-2) || (norm(dp,1) < TOL), break, end
         
     end % E-Step
     

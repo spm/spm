@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 1965 2008-07-28 18:38:57Z vladimir $
+% $Id: spm_eeg_inv_group.m 2029 2008-09-02 18:26:23Z karl $
 
 
 % check if to proceed
@@ -144,9 +144,7 @@ for i = NS
 
     % Forward model
     %----------------------------------------------------------------------
-    
     D{i} = spm_eeg_inv_datareg_ui(D{i}, 1, modality);
-    
     D{i} = spm_eeg_inv_forward_ui(D{i});
     
     % save forward model
@@ -170,7 +168,7 @@ clear D
 
 % Compute conditional expectation of contrast and produce image
 %==========================================================================
-if length(contrast)
+if ~isempty(contrast)
 
     % evaluate contrast and write image
     %----------------------------------------------------------------------

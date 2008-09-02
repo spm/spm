@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 1704 2008-05-21 14:00:09Z karl $
+% $Id: spm_dx.m 2029 2008-09-02 18:26:23Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -86,4 +86,5 @@ else
     end
     dx = spm_unvec(dx(2:end,1),f);
 end
+dx     = real(dx);
 

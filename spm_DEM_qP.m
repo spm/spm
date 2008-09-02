@@ -1,28 +1,22 @@
-function spm_DEM_qP(qP,M)
+function spm_DEM_qP(qP,pP)
 % reports on conditional estimates of parameters
-% FORMAT spm_DEM_qP(qP,[M]);
+% FORMAT spm_DEM_qP(qP,pP)
 %
 % qP.P    - conditional expectations
 % qP.Pi   - conditional expectations - hierarchical form
 % qP.C    - conditional covariance
-%
-% M       - model structure for priors
+% 
+% pP      - optional priors
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qP.m 1143 2008-02-07 19:33:33Z spm $
-
-% unpack
-%--------------------------------------------------------------------------
-try
-    M  = qP.M;
-    qP = qP.qP;
-end
+% $Id: spm_DEM_qP.m 2029 2008-09-02 18:26:23Z karl $
 
 
 % time-series specification
 %--------------------------------------------------------------------------
+clf
 g     = length(qP.P);                                  % depth of hierarchy
 
 % unpack conditional covariances
@@ -33,10 +27,7 @@ p      = [];
 try
     c  = full(sqrt(diag(qP.C)));
 end
-try
-    pC = spm_cat(diag({M.pC}));
-    p  = full(sqrt(diag(pC)));
-end
+
 
 % loop over levels
 %--------------------------------------------------------------------------
@@ -45,13 +36,15 @@ for i = 1:(g - 1)
     % conditional expectations
     %----------------------------------------------------------------------
     qi    = spm_vec(qP.P{i});
+    dk    = 0;
     try
-        pi = spm_vec(M.pE{i});
+        qi = [qi spm_vec(pP.P{i})];
+        dk = -1/8;
     end
     j     = length(qi);
     if j
         subplot(g,1,i)
-        bar(qi,'c')        
+        bar(qi)        
         title(sprintf('parameters - level %i',i));
         grid on
         axis square
@@ -61,20 +54,10 @@ for i = 1:(g - 1)
         %------------------------------------------------------------------
         try
             for k = 1:j
-                line([k k],[-1 1]*ci*c(k) + qi(k),...
-                    'LineWidth',4,'Color',[0 0 0] + 2/8);
+                line([k k] + dk,[-1 1]*ci*c(k) + qi(k),...
+                    'LineWidth',4,'Color','r');
             end
             c(1:j) = [];
-        end
-        
-        % prior covariances
-        %------------------------------------------------------------------
-        try
-            for k = 1:j
-                line([k k] + 1/2,[-1 1]*ci*p(k) + pi(k),...
-                    'LineWidth',8,'Color',[0 0 0] + 6/8);
-            end
-            p(1:j) = [];
         end
     end
 end
@@ -103,3 +86,4 @@ subplot(g,2,g + g)
 imagesc(spm_cov2corr(qP.C))
 title({'conditional correlations','among parameters'})
 axis square
+drawnow

@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 1748 2008-05-28 17:55:25Z guillaume $
+% $Id: spm_nlsi_GN.m 2029 2008-09-02 18:26:23Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -325,6 +325,13 @@ for k = 1:64
         + spm_logdet(ipC*Cp)/2 ...
         + spm_logdet(ihC*Ch)/2;
  
+    % recored increases and reference log-evedince for reproting
+    %----------------------------------------------------------------------
+    try
+        F0; fprintf(' actual: %.3e\n',full(F - C.F))
+    catch
+        F0 = F;
+    end
  
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
@@ -344,7 +351,7 @@ for k = 1:64
         % decrease regularization
         %------------------------------------------------------------------
         v     = min(v + 1,8);
-        str   = 'EM-(+)';
+        str   = 'EM:(+)';
         
     else
 
@@ -356,7 +363,7 @@ for k = 1:64
         % and increase regularization
         %------------------------------------------------------------------
         v   = min(v - 1,0);
-        str = 'EM-(-)';
+        str = 'EM:(-)';
         
     end
  
@@ -387,10 +394,9 @@ for k = 1:64
         end
         
         subplot(2,1,1)
-        plot(x,f),                      hold on
-        plot(x,f + spm_unvec(e,f),':'), hold off
+        plot(x,f,x,f + spm_unvec(e,f),':')
         xlabel(xLab)
-        title(sprintf('%s: %i','E-Step',k))
+        title(sprintf('%s: %i','prediction and response: E-Step',k))
         grid on
  
         % subplot parameters
@@ -407,8 +413,11 @@ for k = 1:64
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i %6s %e %6s %e\n',str,k,'F:',C.F,'dF:',full(dF))
-    if k > 2 && dF < 1e-2, break, end
+    fprintf('%-6s: %i %6s %-6.3e %6s %.3e ',str,k,'F:',full(C.F - F0),'dF predicted:',full(dF))
+    if k > 2 && dF < 1e-2
+        fprintf(' convergence\n')
+        break
+    end
  
 end
  

@@ -19,7 +19,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_diff.m 1186 2008-03-05 12:52:57Z karl $
+% $Id: spm_diff.m 2029 2008-09-02 18:26:23Z karl $
  
 % create inline object
 %--------------------------------------------------------------------------
@@ -47,7 +47,7 @@ for i = 1:length(x)
     catch
         V{i} = [];
     end
-    if ~length(V{i}) && any(n == i);
+    if isempty(V{i}) && any(n == i);
         V{i} = speye(length(spm_vec(x{i})));
     end
 end
@@ -83,12 +83,12 @@ if length(n) == 1
  
     % if there are no arguments to differentiate w.r.t. ...
     %----------------------------------------------------------------------
-    if ~length(xm)
+    if isempty(xm)
         J = sparse(length(f),0);
  
     % or there are no arguments to differentiate
     %----------------------------------------------------------------------
-    elseif ~length(f)
+    elseif isempty(f)
         J = sparse(0,length(xm));
     end
         

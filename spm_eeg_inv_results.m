@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_eeg_inv_results.m 2029 2008-09-02 18:26:23Z karl $
  
 % SPM data structure
 %==========================================================================
@@ -34,7 +34,7 @@ try, type = model.contrast.type; catch, type = 'evoked'; end
  
 % Check contrast woi is within inversion woi
 %--------------------------------------------------------------------------
-if woi(1) < D.inv{D.val}.inverse.woi(1) | woi(2) > D.inv{D.val}.inverse.woi(2)
+if woi(1) < D.inv{D.val}.inverse.woi(1) || woi(2) > D.inv{D.val}.inverse.woi(2)
     error(sprintf('Contrast, %s, must be within inversion time-window, %s',mat2str(woi),mat2str(D.inv{D.val}.inverse.woi)))
 end
 if ~any(foi)
@@ -75,7 +75,7 @@ t    = t/sum(t);
  
 % get frequency space and put PST subspace into contrast (W -> T*T'*W)
 %--------------------------------------------------------------------------
-if length(foi)
+if ~isempty(foi)
     wt = 2*pi*pst(:)/1000;
     W  = [];
     for f = foi(1):foi(end)

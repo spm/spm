@@ -6,12 +6,12 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 1912 2008-07-11 18:02:03Z guillaume $
+% $Id: spm_mvb_display.m 2029 2008-09-02 18:26:23Z karl $
 
 
 % get figure
 %--------------------------------------------------------------------------
-Fmvb = spm_figure('GetWin','MVB');
+Fmvb  = spm_figure('GetWin','MVB');
 spm_clf(Fmvb);
 
 % display specified model
