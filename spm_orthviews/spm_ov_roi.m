@@ -87,14 +87,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_ov_roi.m 2028 2008-09-02 11:58:32Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when switching to MATLAB 6.x and
 % using the 'alpha' property to overlay blobs onto images.
 
-rev = '$Revision: 2021 $';
+rev = '$Revision: 2028 $';
 
 global st;
 if isempty(st)
@@ -163,12 +163,7 @@ switch cmd
             cb{k}=get(st.vols{volhandle}.ax{k}.ax,'ButtonDownFcn');
             set(st.vols{volhandle}.ax{k}.ax,...
                 'ButtonDownFcn',...
-                ['switch get(gcf,''SelectionType'')',...
-                 'case ''normal'', spm_orthviews(''Reposition'');',...
-                 'case ''extend'', spm_orthviews(''roi'',''edit'',', ...
-                 num2str(volhandle), ');',...
-                 'case ''alt'', spm_orthviews(''context_menu'',''ts'',1);',...
-                 'end;']);
+                @(ob,ev)spm_ov_roi('bdfcn',volhandle,ob,ev));
         end;
         
         st.vols{volhandle}.roi = struct('Vroi',Vroi, 'xyz',xyz, 'roi',roi,...
@@ -410,10 +405,11 @@ switch cmd
                 sel = find(numV>st.vols{volhandle}.roi.csize);
         end;
         if ~isempty(sel)
-            ind = [];
+            ind1 = cell(1,numel(sel));
             for k=1:numel(sel)
-                ind = [ind; find(V(:) == sel(k))];
+                ind1{k} = find(V(:) == sel(k));
             end;
+            ind = cat(1,ind1{:});
             conn = zeros(3,numel(ind));
             [conn(1,:) conn(2,:) conn(3,:)] = ...
                 ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),ind);
@@ -675,6 +671,17 @@ switch cmd
         spm_orthviews('redraw');
         return;
         
+    case 'bdfcn'
+        if strcmpi(get(gcf,'SelectionType'), 'extend')
+            spm_orthviews('roi','edit',volhandle);
+        else
+            for k=1:3
+                if isequal(st.vols{volhandle}.ax{k}.ax, gca)
+                    break;
+                end
+            end
+            feval(st.vols{volhandle}.roi.cb{k});
+        end
     otherwise    
         fprintf('spm_orthviews(''roi'', ...): Unknown action %s', cmd);
         return;
