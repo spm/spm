@@ -4,16 +4,16 @@ function out = cfg_run_file_move(job)
 % specified. Special treatment to move .img/.hdr/.mat pairs of files
 % together.
 %
-% This code is part of a batch job configuration system for MATLAB. See 
+% This code is part of a batch job configuration system for MATLAB. See
 %      help matlabbatch
 % for a general overview.
 %_______________________________________________________________________
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_move.m 1764 2008-05-30 13:09:40Z volkmar $
+% $Id: cfg_run_file_move.m 2035 2008-09-03 15:48:30Z volkmar $
 
-rev = '$Rev: 1764 $'; %#ok
+rev = '$Rev: 2035 $'; %#ok
 
 action = fieldnames(job.action);
 action = action{1};
@@ -25,9 +25,9 @@ if strcmp(action, 'delete')
             try
                 delete(fullfile(p,[n '.hdr']));
                 delete(fullfile(p,[n '.mat']));
-            end;
+            end
         end
-    end;
+    end
     out = [];
 else
     % copy or move
@@ -55,6 +55,12 @@ else
     out.files = {};
     for k = 1:numel(job.files)
         [p n e v] = fileparts(job.files{k});
+        if numel(e)>=4 && any(strcmp(e(1:4), {'.nii','.img'}))
+            try
+                [p n e v] = spm_fileparts(job.files{k});
+                v = '';
+            end
+        end
         if any(strcmp(action, {'copyren','moveren'}))
             on = regexprep(n, patrep{1,:}, patrep{2,:});
             if job.action.(action).unique
@@ -62,7 +68,7 @@ else
             end
         else
             on = n;
-        end;
+        end
         nam = {[n e v]};
         onam = {[on e v]};
         if any(strcmp(e, {'.nii','.img'}))
@@ -75,7 +81,7 @@ else
             try
                 feval(cmd, fullfile(p, nam{l}), fullfile(tgt, onam{l}));
                 out.files{end+1} = fullfile(tgt, onam{l});
-            end;
+            end
         end
-    end;
-end;
+    end
+end
