@@ -35,18 +35,12 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 1572 2008-05-08 09:32:51Z vladimir $
+% $Id: spm_eeg_epochs.m 2036 2008-09-03 16:31:31Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
 if nargin == 0
     S =[];
-end
-
-try
-    epochinfo.padding = S.epochinfo.padding;
-catch
-    epochinfo.padding = 0;
 end
 
 try
@@ -66,7 +60,9 @@ if ~strncmpi(D.type, 'cont', 4)
     return
 end
 
-try
+
+% first case: deftrials (default for GUI call)
+if isfield(S, 'trialdef') || isempty(S)
     S_definetrial = [];
     
     if isfield(S, 'pretrig')
@@ -95,37 +91,38 @@ try
     
     S_definetrial.timeonset = D.timeonset;
     
-    [S.epochinfo.trl, S.epochinfo.conditionlabels] = spm_eeg_definetrial(S_definetrial);
-catch
-    try
-        epochinfo.trlfile = S.epochinfo.trlfile;
-    catch
-        epochinfo.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
-    end
-end
+    [epochinfo.trl, epochinfo.conditionlabels] = spm_eeg_definetrial(S_definetrial);
 
-try
-    epochinfo.trl = S.epochinfo.trl;
-catch
+% second case: epochinfo (trlfile and trl)
+else
     try
-        epochinfo.trl = getfield(load(S.epochinfo.trlfile, 'trl'), 'trl');
+        epochinfo.trl = S.epochinfo.trl;
+        epochinfo.conditionlabels = S.epochinfo.conditionlabels;
+
     catch
-        error('Trouble reading trl file.');
+        try
+            epochinfo.trlfile = S.epochinfo.trlfile;
+        catch
+            epochinfo.trlfile = spm_select(1, '\.mat$', 'Select a trial definition file');
+        end
+        try
+            epochinfo.trl = getfield(load(S.epochinfo.trlfile, 'trl'), 'trl');
+            epochinfo.conditionlabels = getfield(load(epochinfo.trlfile, 'conditionlabels'), 'conditionlabels');
+        catch
+            error('Trouble reading trl file.');
+        end
     end
-end
-        
-try
-    epochinfo.conditionlabels = S.epochinfo.conditionlabels;
-catch
-    try
-        epochinfo.conditionlabels = getfield(load(epochinfo.trlfile, 'conditionlabels'), 'conditionlabels');
-    catch
-        error('Trouble reading trl file.');
-    end
+   
 end
 
 trl = epochinfo.trl;
 conditionlabels = epochinfo.conditionlabels;
+
+try
+    epochinfo.padding = S.epochinfo.padding;
+catch
+    epochinfo.padding = 0;
+end
 
 % checks on input
 if size(trl, 2) >= 3

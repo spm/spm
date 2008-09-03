@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2034 2008-09-03 14:45:06Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2036 2008-09-03 16:31:31Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -80,7 +80,7 @@ continuous = cfg_choice;
 continuous.tag = 'continuous';
 continuous.name = 'Reading mode';
 continuous.values = {read trials};
-continuous.val = {1};
+continuous.val = {read};
 continuous.help = {'Select whether you want to convert to continuous or epoched data.'};
 
 chanall = cfg_const;
