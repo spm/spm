@@ -1,4 +1,4 @@
-function spm_eeg_convert(S)
+function D = spm_eeg_convert(S)
 % Main function for converting different M/EEG formats to SPM8 format.
 % FORMAT spm_eeg_convert(S)
 % S - can be string (file name) or struct.
@@ -35,7 +35,7 @@ function spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 1840 2008-06-20 13:37:25Z vladimir $
+% $Id: spm_eeg_convert.m 2034 2008-09-03 14:45:06Z stefan $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
