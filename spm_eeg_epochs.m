@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2037 2008-09-04 09:27:35Z stefan $
+% $Id: spm_eeg_epochs.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -62,7 +62,7 @@ end
 
 
 % first case: deftrials (default for GUI call)
-if isfield(S, 'trialdef') || isempty(S)
+if isfield(S, 'trialdef') || nargin == 0
     S_definetrial = [];
     
     if isfield(S, 'pretrig')
@@ -91,14 +91,13 @@ if isfield(S, 'trialdef') || isempty(S)
     
     S_definetrial.timeonset = D.timeonset;
     
-    [epochinfo.trl, epochinfo.conditionlabels] = spm_eeg_definetrial(S_definetrial);
+    [epochinfo.trl, epochinfo.conditionlabels, S] = spm_eeg_definetrial(S_definetrial);
 
 % second case: epochinfo (trlfile and trl)
 else
     try
         epochinfo.trl = S.epochinfo.trl;
         epochinfo.conditionlabels = S.epochinfo.conditionlabels;
-
     catch
         try
             epochinfo.trlfile = S.epochinfo.trlfile;
@@ -117,18 +116,16 @@ end
 
 trl = epochinfo.trl;
 conditionlabels = epochinfo.conditionlabels;
-
+S.D = fullfile(D.path, D.fname); % history
 
 try
     epochinfo.padding = S.epochinfo.padding;
 catch
     epochinfo.padding = 0;
+    % for history
+    S.epochinfo.padding = epochinfo.padding;
 end
 
-% for history
-S.trl = epochinfo.trl;
-S.conditionlabels = epochinfo.conditionlabels;
-S.epochinfo.padding = epochinfo.padding;
 
 % checks on input
 if size(trl, 2) >= 3

@@ -6,7 +6,8 @@ function D = spm_eeg_weight_epochs(S);
 % (optional) fields of S:
 % D         - filename of EEG mat-file with epoched data
 % c         - contrast matrix, each row computes a contrast of the data
-%
+% WeightAve - flag whether average should be weighted by number of
+%             replications (yes (1), no (0))
 % Output:
 % D         - EEG data struct (also written to files)
 %_______________________________________________________________________
@@ -23,7 +24,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2041 2008-09-04 13:39:40Z jean $
+% $Id: spm_eeg_weight_epochs.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -31,6 +32,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    S.D = D;
 end
 
 P = spm_str_manip(D, 'H');
@@ -45,6 +47,7 @@ try
     c = S.c;
 catch
     c = spm_input('Enter contrasts', '1', 'x', '', inf, eye(D.ntrials));
+    S.c = c;
 end
 
 if ~isempty(D.repl)
@@ -52,6 +55,7 @@ if ~isempty(D.repl)
         WeightAve = S.WeightAve;
     catch
         WeightAve = spm_input('Weight by num replications?', '+1', 'yes|no', [1 0]);
+        S.WeightAve = WeightAve;
     end
 else
     WeightAve = 0;
@@ -125,6 +129,8 @@ end
 try [sD.trials.repl] = deal(newrepl); end
 
 Dnew = meeg(sD);
+
+Dnew = Dnew.history('spm_eeg_weight_epochs', S);
 
 save(Dnew);
 

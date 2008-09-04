@@ -10,7 +10,7 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2024 2008-08-27 18:24:22Z stefan $
+% $Id: spm_eeg_downsample.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -18,6 +18,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, 'mat', 'Select EEG mat file');
+    S.D = D;
 end
 
 P = spm_str_manip(D, 'H');
@@ -41,6 +42,7 @@ catch
         if fsample_new < D.fsample, break, end
         str = sprintf('Sampling rate must be less than original (%d)', round(D.fsample));
     end
+    S.fsample_new = fsample_new;
 end
 
 spm('Pointer', 'Watch');drawnow;
@@ -92,6 +94,8 @@ spm_progress_bar('Clear');
 
 Dnew = putfsample(Dnew, fsample_new);
 Dnew = putnsamples(Dnew, nsamples_new);
+
+Dnew = Dnew.history('spm_eeg_downsample', S);
 
 save(Dnew);
 

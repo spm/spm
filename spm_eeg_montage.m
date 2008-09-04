@@ -28,7 +28,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 1809 2008-06-10 14:30:27Z guillaume $
+% $Id: spm_eeg_montage.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -42,6 +42,7 @@ if isfield(S, 'D')
     D = S.D;
 else
     D = spm_select(1, '\.mat$', 'Select MEEG mat file');
+    S.D = D;
 end
 
 if ~isa(D, 'meeg')
@@ -194,6 +195,8 @@ end
 [ok, Dnew] = check(Dnew, 'basic');
 
 spm_progress_bar('Clear');
+
+Dnew = Dnew.history('spm_eeg_montage', S);
 
 save(Dnew);
 

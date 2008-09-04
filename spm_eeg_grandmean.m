@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2041 2008-09-04 13:39:40Z jean $
+% $Id: spm_eeg_grandmean.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -32,6 +32,7 @@ try
     P = S.P;
 catch
     P = spm_select(inf, '\.mat$', 'Select EEG mat files');
+    S.P = P;
 end
 
 try
@@ -197,6 +198,8 @@ try sD.trials = rmfield(sD.trials, 'onset'); end
 try sD.trials = rmfield(sD.trials, 'blinks'); end
 sD.trials = sD.trials(1:Ntypes);
 D = meeg(sD);
+
+D = D.history('spm_eeg_grandmean', S);
 
 save(D);
 

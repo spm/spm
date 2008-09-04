@@ -1,4 +1,4 @@
-function spm_eeg_convertmat2nifti3D(S)
+function S = spm_eeg_convertmat2nifti3D(S)
 
 % Convert epoched EEG/ERP data from SPM- to analyze format by projecting
 % onto the scalp surface
@@ -6,8 +6,14 @@ function spm_eeg_convertmat2nifti3D(S)
 %
 % S         - optinal input struct
 % (optional) fields of S:
-% Fname     - matrix of EEG mat-files
-% n         - size of quadratic output image (size: n x n x 1)
+% Fname            - matrix of EEG mat-files
+% n                - size of quadratic output image (size: n x n x ?)
+% pixsize          - Voxel size of output image
+% interpolate_bad  - flag (0/1) that indicates whether values for
+%                       bad channels should be interpolated (1) or left
+%                       out (0). 
+% output: 
+% S         - can be used to construct script (as in the history-function)
 %_______________________________________________________________________
 %
 % spm_eeg_convertmat2nifti3D converts EEG/MEG data from the SPM format to the
@@ -21,7 +27,7 @@ function spm_eeg_convertmat2nifti3D(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 1742 2008-05-28 11:58:04Z vladimir $
+% $Id: spm_eeg_convertmat2nifti3D.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -55,12 +61,6 @@ try
 catch
     interpolate_bad = spm_input('Interpolate bad channels or mask out?',...
         '+1', 'b', 'Interpolate|Mask out', [1,0]);
-end
-
-try
-    trialtypes = S.trialtypes;
-catch
-    S.trialtypes = [];
 end
 
 spm('Pointer', 'Watch'); drawnow

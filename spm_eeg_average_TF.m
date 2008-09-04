@@ -4,8 +4,9 @@ function D = spm_eeg_average_TF(S)
 %
 % S         - optional input struct
 % (optional) fields of S:
-% D         - filename of EEG mat-file with epoched data
-%
+% D                 - filename of EEG mat-file with epoched data
+% circularise_phase - flat that indicates whether average is straight (0) or
+%                     vector (1) of phase angles.
 % Output:
 % D         - EEG data struct (also written to files)
 %_______________________________________________________________________
@@ -15,7 +16,7 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_eeg_average_TF.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -23,6 +24,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    S.D = D;
 end
 
 P = spm_str_manip(D, 'H');
@@ -43,6 +45,7 @@ catch
             circularise = spm_input('Straight or vector (eg PLV) average of phase angles?','+1', 'straight|vector',[0 1], 1);
         end
     end
+    S.circularise_phase = circularise_phase;
 end
 
 spm('Pointer', 'Watch'); drawnow;
@@ -124,6 +127,8 @@ for i = 1:D.nconditions
     end
 end
 disp(sprintf(s))
+
+Dnew = Dnew.history('spm_eeg_average_TF', S);
 
 save(Dnew);
 

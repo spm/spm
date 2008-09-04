@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 1855 2008-06-26 11:00:01Z vladimir $
+% $Id: spm_eeg_filter.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -26,6 +26,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    S.D = D;
 end
 
 if ischar(D)
@@ -45,6 +46,7 @@ try
 catch
     filter.type =...
         spm_input('filter type', '+1', 'b', 'butterworth');
+    S.filter.type = filter.type;
 end
 
 if strcmpi(filter.type,'butterworth')
@@ -52,21 +54,24 @@ if strcmpi(filter.type,'butterworth')
         filter.order = S.filter.order;
     catch
         filter.order = 5;
+        S.filter.order = filter.order;
     end
     try
         filter.para = S.filter.para;
     catch
         filter.para = [];
+        S.filter.para = filter.para;
     end
 end
 
 try
-    filter.band  = S.filter.band ;
+    filter.band  = S.filter.band;
 catch
     filter.band = cell2mat(...
         spm_input('filterband', '+1', 'm',...
         'lowpass|highpass|bandpass|stopband',...
          {'low','high','bandpass','stop'}));
+     S.filter.band = filter.band;
 end
 
 
@@ -119,6 +124,7 @@ catch
         end
     end
     filter.PHz = PHz;
+    S.filter.PHz = filter.PHz;
 end
 
 if strcmpi(filter.type, 'butterworth')
@@ -148,7 +154,9 @@ if strcmp(D.type, 'continuous')
 
     % copy channels not to be filtered
     if ~isempty(ind)
-        Dnew(ind,:,1)=D(ind,:,1);
+        for i = 1:length(ind)
+            Dnew(ind(i),:,1)=D(ind(i),:,1);
+        end
     end
     
     spm_progress_bar('Init', length(Fchannels), 'Channels filtered'); drawnow;
@@ -203,6 +211,9 @@ else
 end
 
 spm_progress_bar('Clear');
+
+% history
+Dnew = Dnew.history('spm_eeg_filter', {S});
 
 save(Dnew);
 

@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 1598 2008-05-12 12:06:54Z stefan $
+% $Id: spm_eeg_tf.m 2042 2008-09-04 13:49:29Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -27,6 +27,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, 'mat', 'Select EEG mat file');
+    S.D = D;
 end
 
 P = spm_str_manip(D, 'H');
@@ -49,6 +50,7 @@ try
 catch
     tf.rm_baseline = ...
         spm_input('Removal of baseline', '+1', 'y/n', [1,0], 2);
+    S.tf.rm_baseline = tf.rm_baseline;
 end
 
 if tf.rm_baseline
@@ -57,6 +59,7 @@ if tf.rm_baseline
     catch
         tf.Sbaseline = ...
             spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
+        S.tf.Sbaseline = tf.Sbaseline;
     end
 end
 
@@ -65,6 +68,7 @@ try
 catch
     tf.Mfactor = ...
         spm_input('Which Morlet wavelet factor?', '+1', 'r', '7', 1);
+    S.tf.Mfactor = tf.Mfactor;
 end
 
 try
@@ -72,6 +76,7 @@ try
 catch
     tf.channels = ...
         spm_input('Select channels', '+1', 'i', num2str([1:D.nchannels]));
+    S.tf.channels = tf.channels;
 end
 
 try
@@ -79,12 +84,14 @@ try
 catch
     tf.phase = ...
         spm_input('Compute phase?', '+1', 'y/n', [1,0], 2);
+    S.tf.phase = tf.phase;
 end
 
 try
     tf.pow = S.tf.pow;    % 1 = power, 0 = magnitude
 catch
     tf.pow = 1;
+    S.tf.pow = tf.pow;
 end
 
 if length(tf.channels) > 1
@@ -92,6 +99,7 @@ if length(tf.channels) > 1
         tf.collchans = S.tf.collchans;    % 1 = collapse across channels, 0 = do not
     catch
         tf.collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
+        S.tf.collchans = tf.collchans;
     end
 else
     tf.collchans = 0;
@@ -102,6 +110,7 @@ try S.tf.circularise_phase
     tf.circularise = S.tf.circularise_phase;
 catch
     tf.circularise = 0;
+    S.tf.circularise_phase = tf.circularise_phase;
 end
 
 spm('Pointer', 'Watch'); drawnow;
@@ -224,8 +233,11 @@ if tf.rm_baseline == 1
     Dtf = spm_eeg_bc(Dtf, tf.Sbaseline);
 end
 
+Dtf = Dtf.history('spm_eeg_tf', S);
+
 save(Dtf);
 if tf.phase
+    Dtf2 = Dtf2.history('spm_eeg_tf', S);
     save(Dtf2);
 end
 

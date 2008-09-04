@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_eeg_average.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -23,6 +23,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    S.D = D;
 end
 
 P = spm_str_manip(D, 'H');
@@ -161,6 +162,9 @@ for i = 1:D.nconditions
 end
 disp(sprintf(s))
 
-save(Dnew);
+Dnew = Dnew.history('spm_eeg_average', {S});
+D = Dnew;
+
+save(D);
 
 spm('Pointer', 'Arrow');

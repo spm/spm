@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2039 2008-09-04 11:36:28Z vladimir $
+% $Id: spm_eeg_artefact.m 2042 2008-09-04 13:49:29Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -13,6 +13,7 @@ try
     D = S.D;
 catch
     D = spm_select(1, '.*\.mat$', 'Select EEG mat file');
+    S.D = D;
 end
 
 P = spm_str_manip(D, 'H');
@@ -27,6 +28,7 @@ try
     artefact.External_list = S.artefact.External_list;
 catch
     artefact.External_list = spm_input('Read own artefact list?','+1','yes|no',[1 0]);
+    S.artefact.External_list = artefact.External_list;
 end
 
 MustDoWork = 1; % flag to indicate whether user already specified full artefact list
@@ -37,6 +39,7 @@ if artefact.External_list
     catch
         artefact.out_list = ...
             spm_input('List artefactual trials (0 for none)', '+1', 'w', '', inf);
+        S.artefact.out_list = artefact.out_list;
     end
 
     if artefact.out_list == 0
@@ -48,6 +51,7 @@ if artefact.External_list
     catch
         artefact.in_list = ...
             spm_input('List clean trials (0 for none)', '+1', 'w', '', inf);
+        S.artefact.in_list = artefact.in_list;
     end
 
     if artefact.in_list == 0
@@ -75,6 +79,7 @@ try
     artefact.Weighted = S.artefact.weighted;
 catch
     artefact.Weighted = spm_input('robust average?','+1','yes|no',[1 0]);
+    S.artefact.weighted = artefact.Weighted;
 end
 
 if artefact.Weighted == 1
@@ -82,11 +87,13 @@ if artefact.Weighted == 1
         artefact.Weightingfunction = S.artefact.weightingfunction;
     catch
         artefact.Weightingfunction = spm_input('Offset weighting function by', '+1', 'r', '3', 1);
+        S.artefact.weightingfunction = artefact.weightingfunction;
     end
     try
         artefact.Smoothing = S.artefact.smoothing;
     catch
         artefact.Smoothing = spm_input('FWHM for residual smoothing (ms)', '+1', 'r', '20', 1);
+        S.artefact.smoothing = artefact.smoothing;
     end
     artefact.Smoothing=round(artefact.Smoothing/1000*D.fsample);
 end
@@ -98,6 +105,7 @@ if MustDoWork
         artefact.Check_Threshold = S.artefact.Check_Threshold;
     catch
         artefact.Check_Threshold = spm_input('Threshold channels?','+1','yes|no',[1 0]);
+        S.artefact.Check_Threshold = artefact.Check_Threshold;
     end
 
     if artefact.Check_Threshold
@@ -106,6 +114,7 @@ if MustDoWork
         catch
             artefact.channels_threshold = ...
                 spm_input('Select channels', '+1', 'i', num2str([1:D.nchannels]));
+            S.artefact.channels_threshold = artefact.channels_threshold;
         end
 
         try
@@ -113,6 +122,7 @@ if MustDoWork
             if length(artefact.threshold) == 1
                 artefact.threshold = artefact.threshold * ones(1,  length(artefact.channels_threshold));
             end
+
         catch
             str = 'threshold[s]';
             Ypos = -1;
@@ -130,6 +140,7 @@ if MustDoWork
                 if length(artefact.threshold) == length(artefact.channels_threshold), break, end
                 str = sprintf('enter a scalar or [%d] vector', length(artefact.channels_threshold));
             end
+            S.artefact.threshold = artefact.threshold;
         end
     else
         artefact.channels_threshold = [1: nchannels(D)];
@@ -298,6 +309,9 @@ if artefact.External_list
         D = reject(D, artefact.in_list, 0);
     end
 end
+
+% history
+D = D.history('spm_eeg_artefact', {S});
 
 % Save the data
 copyfile(fullfile(D.path, D.fnamedat), fullfile(D.path, ['a' D.fnamedat]));

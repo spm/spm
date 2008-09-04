@@ -1,40 +1,45 @@
-function D = spm_eeg_convert2images(S)
-% User interface for conversion of EEG-files to SPM's data structure
+function [D, S] = spm_eeg_convert2images(S)
+% User interface for conversion of M/EEG-files to SPM image file format
 % FORMAT D = spm_eeg_convert2images(S)
 %
 % struct S is optional and has the following (optional) fields:
-%    fmt       - string that determines type of input file. Currently, this
-%                string can be 'electrodes' or 'frequency'
-%    Mname     - char matrix of input file name(s)
-%    Fchannels - String containing name of channel template file
+%    D     - matrix of EEG mat-files
+%    images.fmt       - string that determines type of input file. Currently, this
+%                       string can be 'electrodes' or 'frequency'
+%    images.elecs     - electrodes of interest (as vector of indices)
+%    images.freqs     - frequency window of interest (2-vector) [Hz] 
+%    n                - dimension of output images in voxels (scalar because
+%                       output will be square image)
+%    interpolate_bad  - flag (0/1) that indicates whether values for
+%                       bad channels should be interpolated (1) or left
+%                       out (0). 
+% output: 
+% S         - can be used to construct script (as in the history-function)
+
 %_______________________________________________________________________
 % 
-% spm_eeg_convert2images is a user interface to convert EEG-files from their
-% native format to SPM's data format. This function assembles some
-% necessary information before branching to the format-specific conversion
-% routines.
-% The user has to specify, by either using struct S or the GUI, a 'channel
-% template file' that contains information about the (approximate) spatial
-% positions of the channels.
+% spm_eeg_convert2images is a user interface to convert M/EEG-files in SPM
+% format to SPM's image format, using an interpolation on a 2D-plane.
+% This function assembles some necessary information before 
+% branching to the format-specific conversion routines.
+% 
 % 
 % Output: The converted data are written to files. The header
-% structs, but not the data, are returned in D as a cell vector of structs.
-%_______________________________________________________________________
-%
-% Additional formats can be added by (i) extending the code below in a
-% straightforward fashion, (ii) providing a new channel template file and
-% (iii) adding the actual conversion routine to the SPM-code.
+% structs, but not the data, are returned in D as a cell vector of structs,
+% and the struct S is returned to allow for saving the history of function
+% calls.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_eeg_convert2images.m 2042 2008-09-04 13:49:29Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
     D = S.D;
 catch
     D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    S.D = D;
     
 end
 P = spm_str_manip(D, 'H');
@@ -81,6 +86,7 @@ if strcmp(D.transformtype, 'TF');
                         break
                     end
                 end
+                S.images.elecs = images.electrodes_of_interest;
             end
             
             try
@@ -98,7 +104,7 @@ if strcmp(D.transformtype, 'TF');
                     if ~isempty(images.Nregion) break, end
                     str = 'No data';
                 end
-                
+                S.images.region_no = images.Nregion;
             end
             
             cl = D.condlist;
