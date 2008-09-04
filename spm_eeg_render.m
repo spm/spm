@@ -28,18 +28,9 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 1988 2008-08-08 18:25:14Z jean $
+% $Id: spm_eeg_render.m 2040 2008-09-04 13:16:34Z jean $
 
-try
-    options;
-catch
-    options = [];
-end
 
-% disp('Default viewer')
-
-% This line is to be uncommented for spatial referential
-%m.vertices = -m.vertices;
 
 
 %----------------------------------------------------------------------%
@@ -59,6 +50,9 @@ addMesh = 0;
 tag = '';
 visible = 'on';
 ParentAxes = gca;
+
+
+try,options;catch,options = [];end
 
 % Now get options
 if ~isempty(options)
@@ -107,15 +101,6 @@ if ~isempty(options)
             handles.fi = options.hfig;
             addMesh = 1;
         end
-%         hf = findobj('tag','visu_maillage_surf');
-%         if ismember(options.hfig,hf)
-%             
-%             figure(options.hfig)
-%             hold on
-%             
-%         else
-%             options = rmfield(options,'hfig');
-%         end
         try % get number of transparency sliders in current figure...
             hh=get(handles.fi,'children');
             ns=length(findobj(hh,'tag','transpSlider'));
@@ -263,6 +248,7 @@ if ~isequal(clusters,'none')
     colormap(col);
     tex = zeros(length(m.vertices),length(clusters)+1);
     tex(:,1) = texture;
+    string = cell(length(clusters));
     string{1} = 'all clusters';
     for i = 1:length(clusters)
         if isfield(options,'clustersName') == 0
@@ -300,11 +286,10 @@ if ~isequal(clusters,'none')
 end
 
 % Texture thresholding sliders
-if  ~isequal(texture,'none') & isequal(clusters,'none')
+if  ~isequal(texture,'none') && isequal(clusters,'none')
     if subplotBIN
         subplot(2,1,1)
     end
-    level = mean(texture);
     udd.tex0 = texture;
     tmp = colormap;
     udd.col = tmp;
@@ -351,8 +336,8 @@ drawnow
     camlight
 % end
 
-rotate3d(ParentAxes,'on')
-% rotate3d on
+cameratoolbar(handles.fi,'setmode','orbit')
+
 
 gco;
 

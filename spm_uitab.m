@@ -21,7 +21,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 1976 2008-08-04 11:26:15Z jean $
+% $Id: spm_uitab.m 2040 2008-09-04 13:16:34Z jean $
 
 Ntabs = length(labels);
 
@@ -110,7 +110,12 @@ for i =1:min([Ntabs,9])
         'tag',tag);
     set(handles.hh(i),'units','normalized')
 end
-set(handles.hh(active),'visible','on')
+try
+    set(handles.hh(active),'visible','on')
+catch
+    active = 1;
+    set(handles.hh(active),'visible','on')
+end
 others = setdiff(1:min([Ntabs,9]),active);
 set(handles.htab(active),...
     'FontWeight','bold');
@@ -214,7 +219,6 @@ for i = 1:length(ud.in)
             'FontWeight','normal');
     end
 end
-
 ud.who = -1;
 set(ud.h.hs(1),'userdata',ud)
 ud.who = 1;

@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 1988 2008-08-08 18:25:14Z jean $
+% $Id: spm_eeg_review_callbacks.m 2040 2008-09-04 13:16:34Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -73,7 +73,9 @@ switch varargin{1}
                 spm_eeg_review_switchDisplay(D);
             case 'prep'
                 Finter = spm_figure('GetWin','Interactive');
-                D = get(Finter, 'UserData');
+                D = struct(get(Finter, 'UserData'));
+                other = rmfield(D.other,'PSD');
+                D.other = other;
                 spm_eeg_review(D);
                 spm_clf(Finter)
 
@@ -107,13 +109,9 @@ switch varargin{1}
                     case 'scalp'
                         D.PSD.VIZU.type = 2;
                 end
-                try
-                    D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');
-                end
+                try,D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');end
                 [D] = spm_eeg_review_switchDisplay(D);
-                try
-                    updateDisp(D)
-                end
+                try,updateDisp(D);end
 
 
             case 'switch'
@@ -132,9 +130,7 @@ switch varargin{1}
 
             case 'update'
 
-                try
-                    D = varargin{3};
-                end
+                try,D = varargin{3};end
                 updateDisp(D)
 
                 % Scalp interpolation
@@ -207,8 +203,9 @@ switch varargin{1}
                     [out] = spm_eeg_render(m2,options);
                     figure(out.handles.fi)
                     hold on
-                    hp = plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    ht = text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
+                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+%                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
+                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
                     axis tight
                 end
                 try     % MEG
@@ -226,7 +223,8 @@ switch varargin{1}
                     figure(out.handles.fi)
                     hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.MEG.VIZU.montage.clab);
+%                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.MEG.VIZU.montage.clab);
+                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.meg.label);
                     axis tight
                 end
                 try     % other
@@ -244,7 +242,8 @@ switch varargin{1}
                     figure(out.handles.fi)
                     hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
+%                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
+                    ht = text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.other.label);
                     axis tight
                 end
 
@@ -436,10 +435,7 @@ switch varargin{1}
                             case 'other'
                                 VIZU = D.PSD.other.VIZU;
                         end
-
-                        try
-                            axes(D.PSD.handles.scale)
-                        end
+                        try,axes(D.PSD.handles.scale);end
                         [x] = ginput(1);
                         indAxes = get(gco,'userdata');
                         if ~~indAxes
@@ -462,7 +458,7 @@ switch varargin{1}
                                 col = colormap('lines');
                                 col = repmat(col(1:7,:),floor(Ntrials./7)+1,1);
                                 hp = get(handles.axes(indAxes),'children');
-                                pst = (0:1./D.Fsample:(D.Nsamples-1)./D.Fsample) + D.timeOnset;
+                                pst = (0:1/D.Fsample:(D.Nsamples-1)/D.Fsample) + D.timeOnset;
                                 pst = pst*1e3;  % in msec
                                 for i=1:Ntrials
                                     datai = get(hp(Ntrials-i+1),'ydata')./VIZU.visu_scale;
@@ -520,8 +516,6 @@ switch varargin{1}
         tit = ['Current event is selection #',num2str(currentEvent),...
             ' /',num2str(Nevents),' (type= ',eventType,', value=',num2str(eventValue),').'];
 
-        D.PSD.tools.undo.select = D.trials.events;
-
 
         switch varargin{2}
 
@@ -565,17 +559,9 @@ switch varargin{1}
                         D.trials.events(currentEvent).value = eventValue;
                     end
 
-                    D.PSD.tools.redo.select = D.trials.events;
-
-                    try
-                        delete(D.PSD.handles.PLOT.p)
-                    end
-                    try
-                        delete(D.PSD.handles.PLOT.p2)
-                    end
-                    try
-                        delete(D.PSD.handles.PLOT.e)
-                    end
+                    try,delete(D.PSD.handles.PLOT.p);end
+                    try,delete(D.PSD.handles.PLOT.p2);end
+                    try,delete(D.PSD.handles.PLOT.e);end
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                     updateDisp(D)
@@ -629,31 +615,12 @@ switch varargin{1}
             case 'deleteEvent'
 
                 D.trials.events(currentEvent) = [];
-                try
-                    delete(D.PSD.handles.PLOT.p)
-                end
-                try
-                    delete(D.PSD.handles.PLOT.p2)
-                end
-                try
-                    delete(D.PSD.handles.PLOT.e)
-                end
+                try,delete(D.PSD.handles.PLOT.p);end
+                try,delete(D.PSD.handles.PLOT.p2);end
+                try,delete(D.PSD.handles.PLOT.e);end
                 handles = rmfield(D.PSD.handles,'PLOT');
                 D.PSD.handles = handles;
                 updateDisp(D)
-%                 if isempty(D.trials.events)
-%                     set(handles.SELECT.select_minus,'enable','off');
-%                     set(handles.SELECT.show_select,'enable','off');
-%                     set(handles.SELECT.save_select,'enable','off');
-%                     set(handles.TOOLS.cor_average,'enable','off');
-%                     set(handles.TOOLS.find_peaks,'enable','off');
-%                     set(handles.SELECT.select_nothing,'enable','off');
-%                     set(handles.SELECT.goto_select1,'enable','off');
-%                     set(handles.SELECT.goto_select2,'enable','off');
-%                     set(handles.TOOLS.spectrum_events,'enable','off');
-%                     set(handles.TOOLS.spectrum_comp,'enable','off');
-% 
-%                 end
 
         end
 
@@ -669,13 +636,12 @@ switch varargin{1}
 
             %% Switch to another trial
             case 'switch'
-
                 trN = get(gco,'value');
                 if ~strcmp(D.PSD.VIZU.modality,'source') && D.PSD.VIZU.type == 2
                     handles = rmfield(D.PSD.handles,'PLOT');
                     D.PSD.handles = handles;
                 else
-                    cla(D.PSD.handles.axes2,'reset');
+                    try,cla(D.PSD.handles.axes2,'reset');end
                 end
                 D.PSD.trials.current = trN;
                 status = [prod([D.trials(trN).bad])];
@@ -689,9 +655,7 @@ switch varargin{1}
                 end
                 updateDisp(D)
 
-
             case 'bad'
-
                 trN = D.PSD.trials.current;
                 str = get(D.PSD.handles.BUTTONS.badEvent,'string');
                 str1 = 'not bad';
@@ -720,8 +684,7 @@ switch varargin{1}
 
                 %% Add an event to current selection
             case 'add'
-
-                [x] = ginput(2);
+                [x,tmp] = ginput(2);
                 x = round(x);
                 x(1) = min([max([1 x(1)]) D.Nsamples]);
                 x(2) = min([max([1 x(2)]) D.Nsamples]);
@@ -731,21 +694,13 @@ switch varargin{1}
                 D.trials.events(Nevents+1).duration = abs(diff(x))./D.Fsample;
                 D.trials.events(Nevents+1).type = '0';
                 D.trials.events(Nevents+1).value = 0;
-
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
-
                 % Update display
-                try
-                    delete(D.PSD.handles.PLOT.p)
-                end
-                try
-                    delete(D.PSD.handles.PLOT.p2)
-                end
-                try
-                    delete(D.PSD.handles.PLOT.e)
-                end
+                try,delete(D.PSD.handles.PLOT.p),end
+                try,delete(D.PSD.handles.PLOT.p2),end
+                try,delete(D.PSD.handles.PLOT.e),end
                 handles = rmfield(D.PSD.handles,'PLOT');
                 D.PSD.handles = handles;
                 updateDisp(D)
@@ -753,8 +708,6 @@ switch varargin{1}
 
                 %% scroll through data upto next event
             case 'goto'
-
-
                 here                    = get(handles.BUTTONS.slider_step,'value');
                 x                       = [D.trials.events.time]';
                 x(:,2)                  = [D.trials.events.duration]';
@@ -773,7 +726,6 @@ switch varargin{1}
                     end
                     xlim0               = get(handles.axes,'xlim');
                     if ~isequal(xlim0,[1 D.Nsamples])
-
                         length_window   = round(xlim0(2)-xlim0(1));
                         if offset < round(0.5*length_window)
                             offset      = round(0.5*length_window);
@@ -793,224 +745,6 @@ switch varargin{1}
                     end
                 end
 
-
-                %% Build new data matrix from concatenated events
-            case 'show'
-
-                Nevents             = length(D.trials.events);
-                data_show           = [];
-                x                   = [D.trials.events.time]';
-                x(:,2)              = [D.trials.events.duration]';
-                x(:,2)              = sum(x,2);
-                x                   = floor(x.*D.Fsample) +1;
-                for i = 1:Nevents
-                    data_show       = [data_show,D.data.y(:,x(i,1):1:x(i,2))];
-                end
-
-                D2                  = D;
-                D2.trials.events    = [];
-                D2.data.y           = data_show;
-
-                spm_eeg_review(D2)
-
-
-
-
-                %% Save current selection
-            case 'save'
-
-
-                select_data.date                = date;
-                select_data.select              = D.trials.events;
-                Nselect = length(select_data);
-                x                   = [D.trials.events.time]';
-                x(:,2)              = [D.trials.events.duration]';
-                x(:,2)              = sum(x,2);
-                x                   = floor(x.*D.Fsample) +1;
-                for i=1:Nselect
-                    select_data.select(i).data  = D.data.y(:,x(i,1):1:x(i,2));
-                end
-                clear D handles
-
-
-                uisave
-
-
-                %% Load selection
-            case 'load'
-
-
-                button                              = questdlg(...
-                    'This will erase all current selections. Are you sure?');
-
-                if isequal(button,'Yes')
-                    [filename,pathname]             = uigetfile(...
-                        '.mat','Please choose selection file!');
-
-                    if ~isequal(filename,0)
-
-                        filename                    = fullfile(pathname,filename);
-                        s                           = load(filename);
-                        fn                          = fieldnames(s);
-
-                        if ismember('select_data',fn)
-
-                            select_data             = getfield(s,'select_data');
-                            D.trials.events         = select_data.select;
-                            %                 fprintf(1,'Checking selections...')
-                            %                 % check selections format...
-                            %                 Nevents                 = length(D.trials.events);
-                            %                 for i = 1:Nevents
-                            %                     ud.select(i).x    = sort(ud.select(i).x(:)');
-                            %                     if ~isfield(ud.select(i),'eventType') | isempty(ud.select(i).eventType)
-                            %                         ud.select(i).eventType = 1;
-                            %                     end
-                            %                 end
-                            %                 fprintf(1,' OK.')
-                            %                 fprintf(1,'\n')
-
-                            set(handles.SELECT.select_minus,'enable','on');
-                            set(handles.SELECT.show_select,'enable','on');
-                            set(handles.SELECT.save_select,'enable','on');
-                            set(handles.TOOLS.cor_average,'enable','on');
-                            set(handles.TOOLS.find_peaks,'enable','on');
-                            set(handles.TOOLS.classify_peaks,'enable','on');
-                            set(handles.SELECT.select_nothing,'enable','on');
-                            set(handles.SELECT.goto_select1,'enable','on');
-                            set(handles.SELECT.goto_select2,'enable','on');
-                            set(handles.BUTTONS.sb2,'enable','on');
-                            set(handles.BUTTONS.sb3,'enable','on');
-                            set(handles.TOOLS.spectrum_events,'enable','on');
-                            %                 set(handles.TOOLS.spectrum_comp,'enable','on');
-
-                            set(handles.EDIT.undo,'enable','on');
-                            set(handles.EDIT.redo,'enable','off');
-
-                            D.PSD.tools.redo.select    = D.trials.events;
-                            D.PSD.tools.coreg          = 0;
-
-                            try
-                                delete(D.PSD.handles.PLOT.p)
-                            end
-                            try
-                                delete(D.PSD.handles.PLOT.p2)
-                            end
-                            try
-                                delete(D.PSD.handles.PLOT.e)
-                            end
-                            handles = rmfield(D.PSD.handles,'PLOT');
-                            D.PSD.handles = handles;
-                            updateDisp(D)
-
-
-                        else
-
-                            h                       = msgbox(...
-                                ['The file you have provided does not contain any PRESELECTDATA selection file.'],...
-                                'Data import');
-                            uiwait(h);
-
-                        end
-
-                    end
-                end
-
-
-
-                %% Select all data file
-            case 'all'
-
-
-                button                      = questdlg(...
-                    'This will erase all current selections. Are you sure you want to replace your current selections by the whole data window?');
-
-                if isequal(button,'Yes')
-
-                    D.trials.events = [];
-                    D.trials.events(1).time = 1./D.Fsample;
-                    D.trials.events(1).duration = D.Nsamples.*D.Fsample;
-                    D.trials.events(1).type = '0';
-                    D.trials.events(1).value = 0;
-
-
-                    set(handles.SELECT.select_minus,'enable','on');
-                    set(handles.SELECT.show_select,'enable','on');
-                    set(handles.SELECT.save_select,'enable','on');
-                    set(handles.TOOLS.cor_average,'enable','on');
-                    set(handles.TOOLS.find_peaks,'enable','on');
-                    set(handles.SELECT.select_nothing,'enable','on');
-                    set(handles.TOOLS.spectrum_events,'enable','on');
-                    %     set(handles.TOOLS.spectrum_comp,'enable','on');
-                    %         set(handles.SELECT.goto_select,'enable','on');
-
-                    set(handles.EDIT.undo,'enable','on');
-                    set(handles.EDIT.redo,'enable','off');
-
-                    D.PSD.tools.redo.select    = D.trials.events;
-                    D.PSD.tools.coreg          = 0;
-
-                    try
-                        delete(D.PSD.handles.PLOT.p)
-                    end
-                    try
-                        delete(D.PSD.handles.PLOT.p2)
-                    end
-                    try
-                        delete(D.PSD.handles.PLOT.e)
-                    end
-                    handles = rmfield(D.PSD.handles,'PLOT');
-                    D.PSD.handles = handles;
-                    updateDisplay(D)
-
-                end
-
-
-                %% Erase all events in selection
-            case 'nothing'
-
-                button = questdlg('This will erase all current selections. Are you sure?');
-
-                if isequal(button,'Yes')
-
-                    D.trials.events = [];
-
-                    set(handles.SELECT.select_minus,'enable','off');
-                    set(handles.SELECT.show_select,'enable','off');
-                    set(handles.SELECT.save_select,'enable','off');
-                    set(handles.TOOLS.cor_average,'enable','off');
-                    set(handles.TOOLS.find_peaks,'enable','off');
-                    set(handles.TOOLS.classify_peaks,'enable','off');
-                    set(handles.SELECT.select_nothing,'enable','off');
-                    set(handles.SELECT.goto_select1,'enable','off');
-                    set(handles.SELECT.goto_select2,'enable','off');
-                    set(handles.BUTTONS.sb2,'enable','off');
-                    set(handles.BUTTONS.sb3,'enable','off');
-                    set(handles.TOOLS.spectrum_events,'enable','off');
-                    %         set(handles.TOOLS.spectrum_comp,'enable','off');
-
-                    D.PSD.tools.redo.select    = D.trials.events;
-                    D.PSD.tools.redo.coreg     = D.PSD.tools.coreg;
-                    D.PSD.tools.redo.coreg     = 0;
-
-                    set(handles.EDIT.undo,'enable','on');
-                    set(handles.EDIT.redo,'enable','off');
-
-                    try
-                        delete(D.PSD.handles.PLOT.p)
-                    end
-                    try
-                        delete(D.PSD.handles.PLOT.p2)
-                    end
-                    try
-                        delete(D.PSD.handles.PLOT.e)
-                    end
-                    handles = rmfield(D.PSD.handles,'PLOT');
-                    D.PSD.handles = handles;
-                    updateDisplay(D)
-
-                end
-
-                %%
         end
 
         %% Edit callbacks (from spm_eeg_prep_ui)
@@ -1019,6 +753,7 @@ switch varargin{1}
         switch varargin{2}
 
             case 'prep'
+                try,rotate3d off;end
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
                 D = rmfield(D,'PSD');
@@ -1048,7 +783,7 @@ switch varargin{1}
                 if ~isempty(strmatch('EEG', D.chantype, 'exact'))
                     IsEEG = 'on';
                 end
-                if ~isempty(strmatch('MEG', D.chantype, 'exact'));
+                if ~isempty(strmatch('MEG', D.chantype, 'exact'))
                     IsMEG = 'on';
                 end
                 if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
@@ -1081,27 +816,8 @@ switch varargin{1}
                 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
                 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
                 figure(Finter);
-
-
-            case 'sensorPos'
-
-                spm_eeg_prep_ui('LoadEEGSensCB')
-                spm_eeg_prep_ui('HeadshapeCB')
-            case 'coregSpos'
-                spm_eeg_prep_ui('CoregisterCB')
-            case 'volSens'
-                spm_eeg_prep_ui('PrepVolSensCB')
-            case '2Dpos'
-                spm_eeg_prep_ui('EditExistingCoor2DCB')
-            case 'project3Dpos'
-                spm_eeg_prep_ui('Project3DCB')
-
-
-
+                
         end
-
-        %% Tools callbacks
-    case 'tools'
 
 
 end
@@ -1132,7 +848,6 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
         case 'other'
             VIZU = D.PSD.other.VIZU;
     end
-
 
 
     switch D.PSD.VIZU.type
@@ -1365,7 +1080,7 @@ else  % source space
         set(D.PSD.handles.mesh,'facevertexcdata',tex)
         set(D.PSD.handles.BUTTONS.slider_step,'value',gridTime)
 
-    catch % VIZU.plotTC deleted -> switch to another source recon
+    catch % VIZU.lineTime deleted -> switch to another source recon
         % get the inverse model info
         str = getInfo4Inv(D,invN);
         set(D.PSD.handles.infoText,'string',str);
@@ -1384,6 +1099,7 @@ else  % source space
             'Vertices',D.other.inv{invN}.mesh.tess_mni.vert,...
             'Faces',D.other.inv{invN}.mesh.tess_mni.face,...
             'facevertexcdata',tex);
+        try;delete(D.PSD.handles.dipSpheres);end
         if isfield(D.other.inv{invN}.inverse,'dipfit') ||...
                 ~isequal(D.other.inv{invN}.inverse.xyz,zeros(1,3))
             try
@@ -1410,7 +1126,14 @@ else  % source space
             case 1
                 D.PSD.source.VIZU.plotTC = plot(D.PSD.handles.axes2,...
                     model.pst,D.PSD.source.VIZU.J');
+            otherwise
+                % this is meant to be extended for displaying something
+                % else than just J (e.g. J^2, etc...)
         end
+        grid(D.PSD.handles.axes2,'on')
+        box(D.PSD.handles.axes2,'on')
+        xlabel(D.PSD.handles.axes2,'peri-stimulus time (ms)')
+        ylabel(D.PSD.handles.axes2,'sources intensity')
         % add time line repair
         set(D.PSD.handles.axes2,...
             'ylim',[D.PSD.source.VIZU.miJ,D.PSD.source.VIZU.maJ],...
@@ -1611,9 +1334,7 @@ if strcmp(D.type,'continuous')
 else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
-try
-    str{7} = ['Time onset: ',num2str(D.timeOnset)];
-end
+try,str{7} = ['Time onset: ',num2str(D.timeOnset)];end
 
 
 %% extracting data from spm_uitable java object
@@ -1749,7 +1470,7 @@ elseif length(cn) == 3
 
 elseif length(cn) == 12     % source reconstructions
 
-    if D.PSD.source.VIZU.current ~= 0
+    if ~~D.PSD.source.VIZU.current
         isInv = D.PSD.source.VIZU.isInv;
         inv = D.other.inv;
         Ninv = length(inv);
@@ -1757,14 +1478,14 @@ elseif length(cn) == 12     % source reconstructions
         oV = D.PSD.source.VIZU;
         D.PSD.source = rmfield(D.PSD.source,'VIZU');
         pst = [];
-        j = 0;
-        k = 0;
-        l = 0;
+        j = 0;  % counts the total number of final inverse solutions in D
+        k = 0;  % counts the number of original 'imaging' inv sol
+        l = 0;  % counts the number of final 'imaging' inv sol
         for i=1:Ninv
-            if ~ismember(i,isInv)
+            if ~ismember(i,isInv)   % not 'imaging' inverse solutions
                 j = j+1;
                 D.other.inv{j} = inv{i};
-            else
+            else                    % 'imaging' inverse solutions
                 k = k+1;
                 if isempty(table(k,1))&&...
                         isempty(table(k,2))&&...
@@ -1779,23 +1500,28 @@ elseif length(cn) == 12     % source reconstructions
                         isempty(table(k,11))&&...
                         isempty(table(k,12))
                     % Row (ie source reconstruction) has been cleared/deleted
+                    % => erase inverse solution from D struct
                 else
                     j = j+1;
                     l = l+1;
                     pst = [pst;inv{isInv(k)}.inverse.pst(:)];
                     D.other.inv{j} = inv{isInv(k)};
+                    D.other.inv{j}.comment{1} = table(k,1);
                     D.PSD.source.VIZU.isInv(l) = j;
                     D.PSD.source.VIZU.F(l) = oV.F(k);
-                    D.PSD.source.VIZU.labels(l) = oV.labels(k);
+                    D.PSD.source.VIZU.labels{l} = table(k,1);
                     D.PSD.source.VIZU.callbacks(l) = oV.callbacks(k);
                 end
             end
         end
     end
     if l >= 1
+        D.other.val = l;
         D.PSD.source.VIZU.current = 1;
         D.PSD.source.VIZU.pst = unique(pst);
+        D.PSD.source.VIZU.timeCourses = 1;
     else
+        try,D.other = rmfield(D.other,'val');end
         D.PSD.source.VIZU.current = 0;
     end
 end

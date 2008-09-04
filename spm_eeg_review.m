@@ -1,4 +1,4 @@
-function [] = spm_eeg_review(D,flag)
+function [] = spm_eeg_review(D)
 % function for general review (display) of SPM meeg object
 % FORMAT spm_eeg_review(D)
 %
@@ -10,10 +10,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 1988 2008-08-08 18:25:14Z jean $
-
-dbstop if error
-
+% $Id: spm_eeg_review.m 2040 2008-09-04 13:16:34Z jean $
 
 D = struct(D);
 

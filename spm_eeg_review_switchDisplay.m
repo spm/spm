@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 1988 2008-08-08 18:25:14Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2040 2008-09-04 13:16:34Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -32,12 +32,14 @@ else % EEG/MEG/OTHER
         case 1
             delete(findobj('tag','plotEEG'))
             [D] = standardData(D);
-            rotate3d off
+            cameratoolbar('resetcamera')
+            cameratoolbar('close')
 
         case 2
             delete(findobj('tag','plotEEG'))
             [D] = scalpData(D);
-            rotate3d off
+            cameratoolbar('resetcamera')
+            cameratoolbar('close')
 
     end
 
@@ -174,8 +176,9 @@ end
 function [D] = visuRecon(D)
 POS = get(D.PSD.handles.hfig,'position');
 
-if D.PSD.source.VIZU.current ~= 0
+if ~~D.PSD.source.VIZU.current
     
+    D.PSD.source.VIZU.current = 1;
     isInv = D.PSD.source.VIZU.isInv;
     Ninv = length(isInv);
     invN = isInv(D.PSD.source.VIZU.current);
@@ -185,11 +188,11 @@ if D.PSD.source.VIZU.current ~= 0
     % create uitabs for inverse solutions
     hInv = D.PSD.handles.tabs.hp;
     [h] = spm_uitab(hInv,D.PSD.source.VIZU.labels,...
-        D.PSD.source.VIZU.callbacks,'plotEEG',find(isInv==invN));
+        D.PSD.source.VIZU.callbacks,'plotEEG',1);
     D.PSD.handles.SubTabs_inv = h;
 
     trN = D.PSD.trials.current(1);
-    model = D.other.inv{isInv(1)}.inverse;
+    model = D.other.inv{invN}.inverse;
     D.PSD.source.VIZU.J = zeros(model.Nd,size(model.T,1));
     D.PSD.source.VIZU.J(model.Is,:) = model.J{trN}*model.T';
     D.PSD.source.VIZU.miJ = min(min(D.PSD.source.VIZU.J));
@@ -225,7 +228,7 @@ if D.PSD.source.VIZU.current ~= 0
             'ygrid','on','xlim',[0,Ninv+1]);
         set(get(D.PSD.handles.BMCplot,'xlabel'),'string','Inversion models');
         set(get(D.PSD.handles.BMCplot,'ylabel'),'string','Relative (to min) model free energies')
-        set(get(D.PSD.handles.BMCplot,'title'),'string','Variational Bayesian model comparison',...
+        set(get(D.PSD.handles.BMCplot,'title'),'string','Bayesian model comparison',...
             'FontWeight','bold')
         drawnow
     end
