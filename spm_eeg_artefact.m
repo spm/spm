@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2037 2008-09-04 09:27:35Z stefan $
+% $Id: spm_eeg_artefact.m 2039 2008-09-04 11:36:28Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -196,7 +196,7 @@ if MustDoWork
         D = badchannels(D, ind, ones(length(ind), 1));
     end
 
-    cl = unique(conditions(D));
+    cl = condlist(D);
 
     if artefact.Weighted == 1
         % weighted averaging by J Kilner
@@ -291,8 +291,12 @@ end % MustDoWork
 
 % User-specified lists override any artefact classification
 if artefact.External_list
-    D = reject(D, artefact.out_list, 1);
-    D = reject(D, artefact.in_list, 0);
+    if ~isempty(artefact.out_list)
+        D = reject(D, artefact.out_list, 1);
+    end
+    if ~isempty(artefact.in_list)
+        D = reject(D, artefact.in_list, 0);
+    end
 end
 
 % Save the data
