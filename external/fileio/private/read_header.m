@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.67  2008/09/04 15:35:49  vlalit
+% Updates to EGI reading functions thanks to Joseph Dien
+%
 % Revision 1.66  2008/07/24 08:44:20  roboos
 % added initial support for nimh_cortex, not yet complete
 %
@@ -723,7 +726,7 @@ switch headerformat
     % segmented type only
     [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
     [p, f, x]       = fileparts(filename);
-
+  
     hdr.Fs          = header_array(9);
     hdr.nChans      = header_array(10);
     for i = 1:hdr.nChans
