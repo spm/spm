@@ -7,37 +7,47 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 1900 2008-07-09 14:57:34Z guillaume $
+% $Id: spm_dcm_specify.m 2045 2008-09-04 17:18:13Z guillaume $
 
 Finter = spm_figure('GetWin','Interactive');
 WS     = spm('WinScale');
 
-% get design and directory
-%===================================================================
-swd   = spm_str_manip(spm_select(1,'^SPM\.mat$','Select SPM.mat'),'H');
-load(fullfile(swd,'SPM.mat'))
-
-% name
-%===================================================================
+%==========================================================================
+% Get design and directory
+%==========================================================================
+[spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+if ~sts, DCM = []; return; end
+swd = spm_str_manip(spmmatfile,'H');
+try
+    load(fullfile(swd,'SPM.mat'))
+catch
+    error(['Cannot read ' fullfile(swd,'SPM.mat')]);
+end
+    
+%==========================================================================
+% Name
+%==========================================================================
 name  = spm_input('name for DCM_???.mat','+1','s');
 
-% outputs
-%===================================================================
+%==========================================================================
+% Outputs
+%==========================================================================
 
-% get cell array of region structures
-%-------------------------------------------------------------------
-P     = spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'},'',swd);
-m     = size(P,1);
+%-Get cell array of region structures
+%--------------------------------------------------------------------------
+P     = cellstr(spm_select([2 8],'^VOI.*\.mat$',{'select VOIs'},'',swd));
+m     = numel(P);
 for i = 1:m
-    p     = load(deblank(P(i,:)),'xY','-mat');
+    p     = load(P{i},'xY','-mat');
     xY(i) = p.xY;
 end
 
-% inputs
-%===================================================================
+%==========================================================================
+% Inputs
+%==========================================================================
 
-% get 'causes' or inputs U
-%-------------------------------------------------------------------
+%-Get 'causes' or inputs U
+%--------------------------------------------------------------------------
 spm_input('Input specification:...  ',1,'d');
 Sess   = SPM.Sess(xY(1).Sess);
 U.dt   = Sess.U(1).dt;
@@ -54,20 +64,18 @@ for  i = 1:u
     end
 end
 
-
-% graph connections
-%===================================================================
+%==========================================================================
+% Graph connections
+%==========================================================================
 n     = size(U.u,2);
 a     = zeros(m,m);
 c     = zeros(m,n);
 b     = zeros(m,m,n);
-d     = uicontrol(Finter,'String','done',...
-    'Position',[300 100 060 020].*WS);
+d     = uicontrol(Finter,'String','done','Position',[300 100 060 020].*WS);
 dx    = 20;
 
-
-%-intrinsic connections
-%-------------------------------------------------------------------
+%-Intrinsic connections
+%--------------------------------------------------------------------------
 spm_input('Specify intrinsic connections from',1,'d')
 spm_input('to',3,'d')
 
@@ -96,10 +104,10 @@ for i = 1:m
 end
 drawnow
 
-% wait for 'done'
-%-----------------------------------------------------------
-while(1)
-    pause(0.01)
+%-Wait for 'done'
+%--------------------------------------------------------------------------
+while true
+    pause(0.01);
     if strcmp(get(gco,'Type'),'uicontrol')
         if strcmp(get(gco,'String'),'done')
             for i = 1:m
@@ -107,19 +115,18 @@ while(1)
                     a(i,j) = get(h3(i,j),'Value');
                 end
             end
-            delete([h1(:); h2(:); h3(:)])
+            delete([h1(:); h2(:); h3(:)]);
             break
         end
     end
 end
 
-
-%-effects of causes
-%-------------------------------------------------------------------
+%-Effects of causes
+%--------------------------------------------------------------------------
 for k = 1:n
 
-    % buttons and labels
-    %-----------------------------------------------------------
+    %-Buttons and labels
+    %----------------------------------------------------------------------
     str   = sprintf(...
         'Effects of %-12s on regions... and connections',...
         U.name{k});
@@ -147,22 +154,22 @@ for k = 1:n
     end
     drawnow
 
-    % wait for 'done'
-    %-----------------------------------------------------------
+    %-Wait for 'done'
+    %----------------------------------------------------------------------
     set(gcf,'CurrentObject',h2(1))
     while(1)
         pause(0.01)
         if strcmp(get(gco,'Type'),'uicontrol')
             if strcmp(get(gco,'String'),'done')
 
-                % get c
-                %--------------------------------------------------
+                %-Get c
+                %----------------------------------------------------------
                 for i = 1:m
                     c(i,k)   = get(h2(i)  ,'Value');
                 end
 
-                % get b allowing any 2nd order effects
-                %--------------------------------------------------
+                %-Get b allowing any 2nd order effects
+                %----------------------------------------------------------
                 for i = 1:m
                     for j = 1:m
                         if a(i,j)==1
@@ -179,17 +186,19 @@ for k = 1:n
 end
 delete(d)
 
+%==========================================================================
 % slice timing
-%-------------------------------------------------------------------
+%==========================================================================
 delays = spm_input('Slice timings [s]', -1, 'r', SPM.xY.RT*ones(1, m), m, [0 SPM.xY.RT]);
 
+%==========================================================================
 % echo time (TE) of data acquisition
-%-------------------------------------------------------------------
+%==========================================================================
 TE    = 0;
 TE_ok = 0;
 while ~TE_ok
     TE = spm_input('Echo time, TE [s]');
-    if ~TE | (TE < 0) | (TE > 0.1)
+    if ~TE || (TE < 0) || (TE > 0.1)
         str = { 'Extreme value for TE or TE undefined.',...
             'Please re-enter TE (note this value must be in seconds!).'};
         spm_input(str,1,'bd','OK',[1],1);
@@ -198,16 +207,17 @@ while ~TE_ok
     end
 end
 
+
 spm_input('Thank you',1,'d')
 
 
-% confounds (NB: the data have been filtered and whitened)
-%-------------------------------------------------------------------
+%-Confounds (NB: the data have been filtered and whitened)
+%--------------------------------------------------------------------------
 v     = size(xY(1).u,1);
 X0    = xY(1).X0;
 
-% response variables
-%-------------------------------------------------------------------
+%-Response variables
+%--------------------------------------------------------------------------
 n     = length(xY);
 Y.dt  = SPM.xY.RT;
 Y.X0  = X0;
@@ -217,12 +227,12 @@ for i = 1:n
     Y.name{i} = xY(i).name;
 end
 
-% error precision components (one for each region) - i.i.d. (because of W)
-%-------------------------------------------------------------------
+%-Error precision components (one for each region) - i.i.d. (because of W)
+%--------------------------------------------------------------------------
 Y.Q        = spm_Ce(ones(1,n)*v);
 
-% store all variables in DCM structure
-%-------------------------------------------------------------------
+%-Store all variables in DCM structure
+%--------------------------------------------------------------------------
 DCM.a      = a;
 DCM.b      = b;
 DCM.c      = c;
@@ -235,7 +245,7 @@ DCM.delays = delays;
 DCM.TE     = TE;
 
 %-Save
-%-------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if spm_matlab_version_chk('7') >= 0
     save(fullfile(swd,['DCM_' name]),'-V6','DCM');
 else
