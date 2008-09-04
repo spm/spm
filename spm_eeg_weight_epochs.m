@@ -23,7 +23,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_eeg_weight_epochs.m 2041 2008-09-04 13:39:40Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -65,7 +65,8 @@ spm('Pointer', 'Watch'); drawnow;
 Ncontrasts = size(c, 1);
 
 % generate new meeg object with new filenames
-Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples Ncontrasts], dtype(D));
+% Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples Ncontrasts], dtype(D));
+Dnew = clone(D, ['m' fnamedat(D)],[D.nchannels D.nsamples Ncontrasts]);
 
 spm_progress_bar('Init', Ncontrasts, 'Contrasts computed'); drawnow;
 if Ncontrasts > 100, Ibar = floor(linspace(1, Ncontrasts, 100));
@@ -95,8 +96,9 @@ for i = 1:Ncontrasts
         d(j, :) = c(i,:) * squeeze(D(j, :, :))';
     end
 
-    Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, i, d);
-
+%     Dnew = putdata(Dnew, 1:Dnew.nchannels, 1:Dnew.nsamples, i, d);
+    Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
+    
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
     if ismember(i, Ibar)

@@ -13,7 +13,7 @@ function [h_ctx,h_skl,h_slp] = spm_eeg_inv_checkmeshes(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkmeshes.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_checkmeshes.m 2041 2008-09-04 13:39:40Z jean $
 
 
 % initialise
@@ -48,7 +48,7 @@ h_slp   = patch('vertices',Mslp.pnt,'faces',Mslp.tri,'EdgeColor',[1 .7 .55],'Fac
 
 axis image off;
 view(-135,45);
-rotate3d on
+cameratoolbar('setmode','orbit')
 drawnow
 hold off
 

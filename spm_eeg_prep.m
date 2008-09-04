@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 1932 2008-07-18 17:12:02Z christophe $
+% $Id: spm_eeg_prep.m 2041 2008-09-04 13:39:40Z jean $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -179,7 +179,14 @@ switch S.task
             error('Coregistration cannot be performed due to missing data');
         end
         
-        D = spm_eeg_inv_mesh_ui(D, 0, 1, 1);
+        try
+            val = D.val;
+            Msize = D.inv{val}.mesh.Msize;
+        catch
+            val = 0;
+            Msize = 1;
+        end
+        D = spm_eeg_inv_mesh_ui(D, val, 1, Msize);
         D = spm_eeg_inv_datareg_ui(D, 1, S.modality);
         
         if strcmp(S.modality, 'EEG')

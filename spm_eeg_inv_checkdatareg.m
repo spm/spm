@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 2041 2008-09-04 13:39:40Z jean $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -106,7 +106,7 @@ set(h_sens,'MarkerFaceColor','g','MarkerSize', 12,'MarkerEdgeColor','k');
 %--------------------------------------------------------------------------
 axis image off
 view(-135,45)
-rotate3d on
+% cameratoolbar('setmode','orbit')
 hold off
 zoom(5/3)
 
@@ -124,4 +124,4 @@ text(xy(1, :), xy(2, :), label,...
      'FontWeight','bold')
   
 axis equal off
-rotate3d on
+cameratoolbar('setmode','orbit')

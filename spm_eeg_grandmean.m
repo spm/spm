@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 1603 2008-05-12 17:23:01Z stefan $
+% $Id: spm_eeg_grandmean.m 2041 2008-09-04 13:39:40Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -189,8 +189,9 @@ badchannels(Do, find(~any(w')), 1);
 sD = struct(Do);
 for i = 1:Ntypes
     sD.trials(i).code = types{i};
+    sD.trials(i).repl = repl(i);
 end
-[sD.trials.repl] = deal(repl);
+% [sD.trials.repl] = deal(repl);
 try sD.trials = rmfield(sD.trials, 'reject'); end
 try sD.trials = rmfield(sD.trials, 'onset'); end
 try sD.trials = rmfield(sD.trials, 'blinks'); end

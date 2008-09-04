@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2041 2008-09-04 13:39:40Z jean $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -86,7 +86,9 @@ if numel(intersect(upper(meeglbl), upper(mrilbl))) < 3
                     mri = spm_vol(D.inv{val}.mesh.sMRI);
                     spm_orthviews('Reset');
                     spm_orthviews('Image', mri);
-                    rotate3d off;
+                    cameratoolbar('resetcamera')
+                    cameratoolbar('close')
+%                     rotate3d off;
                     if spm_input(['Select ' meeglbl{i} ' position and click'] , 1,'OK|Retry', [1,0], 1)
                         newmrifid.fid.pnt   = [newmrifid.fid.pnt; spm_orthviews('Pos')'];
                         spm_orthviews('Reset');

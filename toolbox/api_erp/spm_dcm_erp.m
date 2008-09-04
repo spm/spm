@@ -26,7 +26,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 1582 2008-05-08 18:03:54Z stefan $
+% $Id: spm_dcm_erp.m 2041 2008-09-04 13:39:40Z jean $
  
 % check options 
 %==========================================================================
@@ -366,7 +366,9 @@ if strcmp(M.dipfit.type,'Imaging')
     
     D.inv{end + 1}      = D.inv{val};
     D.inv{end}.date     = date;
-    D.inv{end}.comment  = {'DCM'};
+    [pathstr,fname]     = fileparts(lo.DCM.name);
+    D.inv{end}.comment  = {fname};
+    D.inv{end}.DCMfile  = DCM.name;
     D.inv{end}.inverse  = inverse;
     D.val               = length(D.inv);
     try

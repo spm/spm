@@ -28,7 +28,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 1179 2008-02-28 15:39:28Z karl $
+% $Id: spm_mvb.m 2041 2008-09-04 13:39:40Z jean $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ for  i = 1:nG
     
     disp('log evidence & hyperparameters:')
     fprintf('% 8.2f',F-F(1)),fprintf('\n')
-    fprintf('% 8.2f',lnh),fprintf('\n\n')
+    fprintf('% 8.2f',full(lnh)),fprintf('\n\n')
     
     
     % eliminate redundant components
