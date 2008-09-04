@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2036 2008-09-03 16:31:31Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2037 2008-09-04 09:27:35Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -119,7 +119,7 @@ outfile.help = {'Choose filename'};
 datatype = cfg_menu;
 datatype.tag = 'datatype';
 datatype.name = 'Data type';
-datatype.labels = {'float32','float64'};
+datatype.labels = {'float32-le','float64-le'};
 datatype.val    = {'float32-le'};
 datatype.values = {'float32-le','float64-le'};
 datatype.help = {'Determine data type to save data in.'};

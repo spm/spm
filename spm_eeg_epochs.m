@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2036 2008-09-03 16:31:31Z stefan $
+% $Id: spm_eeg_epochs.m 2037 2008-09-04 09:27:35Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -118,11 +118,17 @@ end
 trl = epochinfo.trl;
 conditionlabels = epochinfo.conditionlabels;
 
+
 try
     epochinfo.padding = S.epochinfo.padding;
 catch
     epochinfo.padding = 0;
 end
+
+% for history
+S.trl = epochinfo.trl;
+S.conditionlabels = epochinfo.conditionlabels;
+S.epochinfo.padding = epochinfo.padding;
 
 % checks on input
 if size(trl, 2) >= 3
@@ -183,7 +189,11 @@ Dnew = trialonset(Dnew, [], trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
 
-save(Dnew);
+% history
+Dnew = Dnew.history('spm_eeg_epochs', {S});
+D = Dnew;
+
+save(D);
 
 spm_progress_bar('Clear');
 

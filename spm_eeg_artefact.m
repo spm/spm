@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 1672 2008-05-16 11:17:14Z james $
+% $Id: spm_eeg_artefact.m 2037 2008-09-04 09:27:35Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -140,15 +140,16 @@ end % MustDoWork
 
 spm('Pointer', 'Watch'); drawnow
 
-% matrix used for detecting bad channels
-Mbad = zeros(length(artefact.channels_threshold), D.ntrials);
-% flag channels that were already marked as bad
-Mbad(D.badchannels, :) = 1;
-
-% cell vectors of channel-wise indices for thresholded trials
-thresholded = cell(1, length(artefact.channels_threshold));
-index = [];
 if MustDoWork
+
+    % matrix used for detecting bad channels
+    Mbad = zeros(length(artefact.channels_threshold), D.ntrials);
+    % flag channels that were already marked as bad
+    Mbad(D.badchannels, :) = 1;
+
+    % cell vectors of channel-wise indices for thresholded trials
+    thresholded = cell(1, length(artefact.channels_threshold));
+    index = [];
 
     Tchannel = artefact.threshold;
 
