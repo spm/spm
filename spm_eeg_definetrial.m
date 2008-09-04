@@ -1,4 +1,4 @@
-function [trl, conditionlabels] = spm_eeg_definetrial(S)
+function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Function for definition of trials based on events
 % FORMAT S = spm_eeg_definetrial(S)
 % S - existing configuration struct (optional)
@@ -17,11 +17,12 @@ function [trl, conditionlabels] = spm_eeg_definetrial(S)
 % OUTPUT:
 %   trl - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
+%   S - modified configuration structure (for history)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 1965 2008-07-28 18:38:57Z vladimir $
+% $Id: spm_eeg_definetrial.m 2038 2008-09-04 09:28:31Z vladimir $
 
 if nargin == 0
     S = [];
