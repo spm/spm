@@ -133,9 +133,9 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_results_ui.m 2048 2008-09-05 13:33:42Z ferath $
 
-SCCSid = '$Rev: 1790 $';
+SCCSid = '$Rev: 2048 $';
 
 %==========================================================================
 % - FORMAT specifications for embedded CallBack functions
@@ -268,7 +268,7 @@ switch lower(Action), case 'setup'                         %-Set up results
 
     %-Get thresholded xSPM data and parameters of design
     %=======================================================================
-    if (nargin > 1) && isstruct(varargin{2}) % batch mode
+    if (nargin > 1) 
     [SPM,xSPM] = spm_getSPM(varargin{2});
     else
     [SPM,xSPM] = spm_getSPM;

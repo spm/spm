@@ -159,32 +159,26 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_getSPM.m 2048 2008-09-05 13:33:42Z ferath $
 
 
 %-GUI setup
 %-----------------------------------------------------------------------
 spm_help('!ContextHelp',mfilename)
 
-%-Get job structure, if available
-%-----------------------------------------------------------------------
-if (nargin > 0) && isstruct(varargin{1})
-    job = varargin{1};
-    batch = 1;
-else
-    batch = 0;
-end;
-
 %-Select SPM.mat & note SPM results directory
 %-----------------------------------------------------------------------
-if batch
-    spmmatfile = job.spmmat{1};
-    sts = 1;
-else
+if (nargin > 0) 
+    xSPM = varargin{1};
+end
+try
+   swd=xSPM.swd;
+   sts=1;
+catch
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+    swd = spm_str_manip(spmmatfile,'H');
 end;
 if ~sts, SPM = []; xSPM = []; return; end
-swd = spm_str_manip(spmmatfile,'H');
 
 %-Preliminaries...
 %=======================================================================
@@ -197,6 +191,7 @@ catch
     error(['Cannot read ' fullfile(swd,'SPM.mat')]);
 end
 SPM.swd = swd;
+
 
 %-Change directory so that relative filenames are valid
 %----------------------------------------------------------------------
@@ -247,9 +242,13 @@ end
 
 %-Get contrasts
 %-----------------------------------------------------------------------
-if (~batch) || isempty(xCon)
+try
+    Ic = xSPM.Ic;
+catch
     [Ic,xCon] = spm_conman(SPM,'T&F',Inf,...
                '    Select contrasts...',' for conjunction',1);
+end
+if isempty(xCon)
     % figure out whether new contrasts were defined, but not selected
     % do this by comparing length of SPM.xCon to xCon, remember added
     % indices to run spm_contrasts on them as well
@@ -260,7 +259,6 @@ if (~batch) || isempty(xCon)
     end;
     IcAdd = (noxCon+1):numel(xCon);
 else
-    Ic = job.conspec.contrasts;
     IcAdd = [];
 end;
 
@@ -358,30 +356,37 @@ SPM.xCon = xCon;
 
 %-Get contrasts for masking
 %-----------------------------------------------------------------------
-if batch
-    domask = ~isempty(job.conspec.mask);
-else
-    domask = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
-end;
-if domask
-        if batch
-        Im = job.conspec.mask.contrasts;
+try
+    Im = xSPM.Im;
+     if ~isempty(Im) 
+        maskCon=1;
     else
-        [Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
+        maskCon=0;
+     end
+    
+catch
+    maskCon = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
+end;
+if maskCon
+        try
+            Im = xSPM.Im;
+        catch
+             [Im,xCon] = spm_conman(SPM,'T&F',-Inf,...
         'Select contrasts for masking...',' for masking',1);
     end;
+    
     %-Threshold for mask (uncorrected p-value)
     %---------------------------------------------------------------
-    if batch
-        pm = job.conspec.mask.thresh;
-    else
+    try
+        pm = xSPM.pm;
+    catch
         pm = spm_input('uncorrected mask p-value','+1','r',0.05,1,[0,1]);
     end;
     %-Inclusive or exclusive masking
     %---------------------------------------------------------------
-    if batch
-        Ex = job.conspec.mask.mtype;
-    else
+    try
+        Ex = xSPM.Ex;
+    catch
         Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1]);
     end;
 else
@@ -393,12 +398,9 @@ end
 
 %-Create/Get title string for comparison
 %-----------------------------------------------------------------------
-if batch && ~isempty(job.conspec.titlestr);
-    titlestr = job.conspec.titlestr;
-else
-    if nc == 1
+if nc == 1
     str  = xCon(Ic).name;
-    else
+else
     str  = [sprintf('contrasts {%d',Ic(1)),sprintf(',%d',Ic(2:end)),'}'];
     if n==nc
         str = [str ' (global null)'];
@@ -407,26 +409,30 @@ else
     else
         str = [str sprintf(' (Ha: k>=%d)',(nc-n)+1)];
     end
-    end
-    if Ex
+end
+if Ex
     mstr = 'masked [excl.] by';
-    else
+else
     mstr = 'masked [incl.] by';
-    end
-    if length(Im) == 1
+end
+if length(Im) == 1
     str  = sprintf('%s (%s %s at p=%g)',str,mstr,xCon(Im).name,pm);
 
-    elseif ~isempty(Im)
+elseif ~isempty(Im)
     str  = [sprintf('%s (%s {%d',str,mstr,Im(1)),...
         sprintf(',%d',Im(2:end)),...
         sprintf('} at p=%g)',pm)];
+end
+try
+    titlestr=xSPM.title;
+    if isempty(titlestr)
+        titlestr = str;
     end
-    if batch
-    titlestr = str;
-    else
+catch
     titlestr     = spm_input('title for comparison','+1','s',str);
-    end;
 end;
+
+
 
 %-Bayesian or classical Inference?
 %-----------------------------------------------------------------------
@@ -586,20 +592,21 @@ if STAT ~= 'P'
 
     %-Get height threshold
     %-------------------------------------------------------------------
-    if batch
-    thresDesc = job.conspec.threshdesc;
-    u = job.conspec.thresh;
-    else
-    str = 'FWE|FDR|none';
-    % str = 'FWE|none';      % Use this line to disable FDR threshold
-    thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
+    try
+       thresDesc = xSPM.thresDesc;
+    catch
+        str = 'FWE|FDR|none';
+        % str = 'FWE|none';      % Use this line to disable FDR threshold
+        thresDesc = spm_input('p value adjustment to control','+1','b',str,[],1);
     end;
     switch thresDesc
 
 
     case 'FWE' % family-wise false positive rate
         %---------------------------------------------------------------
-    if ~batch
+    try
+       u=xSPM.u;
+    catch
         u  = spm_input('p value (family-wise error)','+0','r',0.05,1,[0,1]);
     end;
     thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
@@ -607,7 +614,9 @@ if STAT ~= 'P'
 
     case 'FDR' % False discovery rate
     %---------------------------------------------------------------    
-    if ~batch
+    try 
+    u=xSPM.u;
+    catch
         u  = spm_input('p value (false discovery rate)','+0','r',0.05,1,[0,1]);
     end;
     thresDesc = ['p<' num2str(u) ' (' thresDesc ')'];
@@ -616,7 +625,9 @@ if STAT ~= 'P'
     otherwise  %-NB: no adjustment
     % p for conjunctions is p of the conjunction SPM
     %---------------------------------------------------------------
-    if ~batch
+    try
+        u=xSPM.u;
+    catch
         u  = spm_input(['threshold {',STAT,' or p value}'],'+0','r',0.001,1);
     end;
     if u <= 1
@@ -657,9 +668,9 @@ if ~isempty(XYZ) & nc == 1
 
     %-Get extent threshold [default = 0]
     %-------------------------------------------------------------------
-    if batch
-    k = job.conspec.extent;
-    else
+    try
+    k = xSPM.k;
+    catch
     k     = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
     end;
     %-Calculate extent threshold filtering
