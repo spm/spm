@@ -6,7 +6,7 @@ function spm_eeg_convert_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 1676 2008-05-17 07:13:19Z vladimir $
+% $Id: spm_eeg_convert_ui.m 2047 2008-09-05 10:57:31Z vladimir $
 if nargin == 0
     S=[];
 end
@@ -76,4 +76,8 @@ if spm_input('Define settings?','+1','yes|just read',[1 0], 0);
     
 end
 
-spm_eeg_convert(S);
+D = spm_eeg_convert(S);
+
+if ~isfield(S, 'review') || S.review
+    spm_eeg_review(D);
+end
