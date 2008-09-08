@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2040 2008-09-04 13:16:34Z jean $
+% $Id: spm_eeg_review_callbacks.m 2051 2008-09-08 13:23:44Z vladimir $
 
 try
     D = get(gcf,'userdata');
@@ -644,7 +644,7 @@ switch varargin{1}
                     try,cla(D.PSD.handles.axes2,'reset');end
                 end
                 D.PSD.trials.current = trN;
-                status = [prod([D.trials(trN).bad])];
+                status = [any([D.trials(trN).bad])];
                 try
                     if status
                         str = ['declare as not bad'];
