@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1963 2008-07-28 15:57:42Z guillaume $
+# $Id: Makefile 2052 2008-09-08 16:30:57Z guillaume $
 #
 ###############################################################################
 #
@@ -49,7 +49,7 @@ SPMMEX =\
 	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_hist.$(SUF)\
 	spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF)
+	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)
 
 SUBDIRS=\
 	toolbox/DARTEL \
@@ -292,6 +292,10 @@ spm_project.$(SUF): spm_project.c
 
 spm_unlink.$(SUF): spm_unlink.c
 	$(MEX) spm_unlink.c $(MEXEND)
+	@ $(CHMODIT) $@
+
+spm_voronoi.$(SUF): spm_voronoi.c
+	$(MEX) spm_voronoi.c $(MEXEND)
 	@ $(CHMODIT) $@
 
 ###############################################################################
