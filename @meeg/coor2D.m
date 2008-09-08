@@ -5,14 +5,11 @@ function [res, plotind] = coor2D(this, ind, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: coor2D.m 1604 2008-05-12 20:34:46Z christophe $
+% $Id: coor2D.m 2055 2008-09-08 17:02:16Z vladimir $
 
 
 megind = strmatch('MEG', chantype(this), 'exact');
 eegind = strmatch('EEG', chantype(this), 'exact');
-eogind = [strmatch('VEOG', chantype(this), 'exact') ...
-          strmatch('HEOG', chantype(this), 'exact') ...
-          strmatch('EOG', chantype(this), 'exact')];
 otherind = setdiff(1:nchannels(this), [megind; eegind]);
 
 if nargin==1 || isempty(ind)
@@ -29,38 +26,17 @@ elseif ischar(ind)
             ind = megind;
         case 'EEG'
             ind = eegind;
-        case 'EOG'
-            ind = eogind;
         otherwise
             ind = otherind;
     end
 end
 
 if nargin < 3
-
     if ~isempty(intersect(ind, megind))
         if ~any(cellfun('isempty', {this.channels(megind).X_plot2D}))
             meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
-
-            switch length(eogind)
-                case 0
-                    eog_xy = [];
-                case 1
-                    eog_xy = [0.05 0.05];
-                case 2
-                    eog_xy = [0.05 0.05; 0.95 0.5];
-                otherwise
-                    error('Only two EOG channels can be displayed in non-grid topoplot');
-            end
-
         elseif all(cellfun('isempty', {this.channels(megind).X_plot2D}))
-            tmp_xy = grid(length(megind)+length(eogind));
-            meg_xy = tmp_xy(:, 1:length(megind));
-            if ~isempty(eogind)
-                eog_xy = tmp_xy(:, (length(megind)+1):end);
-            else
-                eog_xy = [];
-            end
+            meg_xy = grid(length(megind));
         else
             error('Either all or none of MEG channels should have 2D coordinates defined.');
         end
@@ -69,33 +45,15 @@ if nargin < 3
     if ~isempty(intersect(ind, eegind))
         if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
             eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
-
-            switch length(eogind)
-                case 0
-                    eog_xy = [];
-                case 1
-                    eog_xy = [0.05 0.05];
-                case 2
-                    eog_xy = [0.05 0.05; 0.95 0.5];
-                otherwise
-                    error('Only two EOG channels can be displayed in non-grid topoplot');
-            end
-
         elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
-            tmp_xy = grid(length(eegind)+length(eogind));
-            eeg_xy = tmp_xy(:, 1:length(eegind));
-            if ~isempty(eogind)
-                eog_xy = tmp_xy(:, (length(eegind)+1):end);
-            else
-                eog_xy = [];
-            end
+            eeg_xy = grid(length(eegind));
         else
             error('Either all or none of EEG channels should have 2D coordinates defined.');
         end
     end
 
     if ~isempty(intersect(ind, otherind))
-        other_xy = grid(length(eegind));
+        other_xy = grid(length(otherind));
     end
 
     xy = zeros(2, length(ind));
@@ -111,31 +69,20 @@ if nargin < 3
                 xy(:, i) = eeg_xy(:, loc);
                 plotind(i) = 2;
             else
-                [found, loc] = ismember(ind(i), eogind);
+                [found, loc] = ismember(ind(i), otherind);
                 if found
-                    xy(:, i) = eog_xy(:, loc);
-                    plotind(i) = -1;
-                else
-                    [found, loc] = ismember(ind(i), otherind);
-                    if found
-                        xy(:, i) = other_xy(:, loc);
-                        plotind(i) = 3;
-                    end
+                    xy(:, i) = other_xy(:, loc);
+                    plotind(i) = 3;
                 end
             end
         end
-    end
-
-    % To be removed in the future
-    if length(unique(setdiff(plotind, -1))) > 1
-        error('Only one plot type is supported at this stage')
     end
 
     res = xy;
 else
     this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
     this = getset(this, 'channels', 'Y_plot2D', ind, val(2, :));
-
+    
     res = this;
 end
 

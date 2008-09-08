@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_tf.m 2055 2008-09-08 17:02:16Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -110,7 +110,7 @@ try S.tf.circularise_phase
     tf.circularise = S.tf.circularise_phase;
 catch
     tf.circularise = 0;
-    S.tf.circularise_phase = tf.circularise_phase;
+    S.tf.circularise_phase = tf.circularise;
 end
 
 spm('Pointer', 'Watch'); drawnow;
