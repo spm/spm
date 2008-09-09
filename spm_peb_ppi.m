@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 1847 2008-06-24 11:20:48Z guillaume $
+% $Id: spm_peb_ppi.m 2059 2008-09-09 16:04:05Z christophe $
 
 
 % set up the graphical interface
@@ -92,6 +92,7 @@ if ~nargin
     swd   = spm_str_manip(P,'H');
     load(fullfile(swd,'SPM.mat'))
     cd(swd)
+    clear P
 end
 RT     = SPM.xY.RT;
 dt     = SPM.xBF.dt;
@@ -116,7 +117,7 @@ case  'simple deconvolution'
     spm_input('physiological variable:...  ',2,'d');
     voi      = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
     p      = load(deblank(voi(:))','xY');
-    xY(i)  = p.xY;
+    xY(1)  = p.xY;
     Sess   = SPM.Sess(xY(1).Sess);
 
     
