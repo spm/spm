@@ -1,9 +1,83 @@
-function [table, container] = uitable(varargin)
+function [table, container] = spm_uitable(varargin)
 % WARNING: This feature is not supported in MATLAB
 % and the API and functionality may change in a future release.
-% (This code has been hacked from a MATLAB trial function.)
 
-error(javachk('awt'));
+% UITABLE creates a two dimensional graphic uitable component in a figure window.
+%     UITABLE creates a 1x1 uitable object using default property values in
+%     a figure window.
+%
+%     UITABLE(numrows,numcolumns) creates a uitable object with specified
+%     number of rows and columns.
+%
+%     UITABLE(data,columnNames) creates a uitable object with the specified
+%     data and columnNames. Data can be a cell array or a vector and
+%     columnNames should be cell arrays.
+%
+%     UITABLE('PropertyName1',value1,'PropertyName2',value2,...) creates a
+%     uitable object with specified property values. MATLAB uses default
+%     property values for any property not explicitly set. The properties
+%     that user can set are: ColumnNames, Data, GridColor, NumColumns,
+%     NumRows, Position, ColumnWidth and RowHeight.
+%
+%     UITABLE(figurehandle, ...) creates a uitable object in the figure
+%     window specified by the figure handle.
+%
+%     HANDLE = UITABLE(...) creates a uitable object and returns its handle.
+%
+%     Properties:
+%
+%     ColumnNames:  Cell array of strings for column names.
+%     Data:         Cell array of values to be displayed in the table.
+%     GridColor:    string, RGB vector.
+%     NumColumns:   int specifying number of columns.
+%     NumRows:      int specifying number of rows.
+%     Parent:       Handle to figure or uipanel. If not specified, it is gcf.
+%     Position:     4 element vector specifying the position.
+%     ColumnWidth:  int specifying the width of columns.
+%     RowHeight:    int specifying the height of columns.
+%
+%     Enabled:      Boolean specifying if a column is enabled.
+%     Editable:     Boolean specifying if a column is editable.
+%     Units:        String - pixels/normalized/inches/points/centimeters.
+%     Visible:      Boolean specifying if table is visible.
+%     DataChangedCallback - Callback function name or handle.
+%
+%
+%     Examples:
+%
+%     t = uitable(3, 2);
+%
+%     Creates a 3x2 empty uitable object in a figure window.
+%
+%     f = figure;
+%     t = uitable(f, rand(5), {'A', 'B', 'C', 'D', 'E'});
+%
+%     Creates a 5x5 uitable object in a figure window with the specified
+%     data and the column names.
+%
+%     data = rand(3);
+%     colnames = {'X-Data', 'Y-Data', 'Z-Data'};
+%     t = uitable(data, colnames,'Position', [20 20 250 100]);
+%
+%     Creates a uitable object with the specified data and column names and
+%     the specified Position.
+%
+%     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
+
+%   Copyright 2002-2006 The MathWorks, Inc.
+%   $Revision: 2060 $  $Date: 2006/11/29 21:53:13 $
+
+%   Release: R14. This feature will not work in previous versions of MATLAB.
+
+% Setup and P-V parsing
+
+if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.1') <= 0
+    table = [];
+    container = [];
+    %[hc] = uicontrol('style','text',...
+    %    'string',)
+    return;
+end
 error(nargoutchk(0,2,nargout));
 
 parent = [];

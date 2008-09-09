@@ -3,7 +3,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_fixbiosemi.m 1633 2008-05-14 11:23:23Z vladimir $
+% $Id: spm_eeg_fixbiosemi.m 2060 2008-09-09 17:34:21Z guillaume $
 
-cd(fullfile(spm('dir'), 'external\fileio\private\mex'));
-eval(['mex read_24bit.c -outdir ' fullfile(spm('dir'), 'external\fileio\private')]);
+swd = pwd;
+cd(fullfile(spm('dir'),'external','fileio','private','mex'));
+eval(['mex read_24bit.c -outdir ' fullfile(spm('dir'),'external','fileio','private')]);
+cd(swd);

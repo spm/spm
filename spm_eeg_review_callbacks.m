@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2051 2008-09-08 13:23:44Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 2060 2008-09-09 17:34:21Z guillaume $
 
 try
     D = get(gcf,'userdata');
@@ -195,7 +195,7 @@ switch varargin{1}
                     m.faces = D.other.inv{1}.mesh.tess_mni.face;
                     options.figname = 'EEG sensors';
                     [out] = spm_eeg_render(m,options);
-                    lo = load(['D:\MatlabWork\spm8\EEGtemplates',filesep,'wmeshTemplate_scalp']);
+                    lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
                     m2.vertices = lo.vert;
                     m2.faces = lo.face;
                     options.hfig = out.handles.fi;
@@ -214,7 +214,7 @@ switch varargin{1}
                     m.faces = D.other.inv{1}.mesh.tess_mni.face;
                     options.figname = 'MEG sensors';
                     [out] = spm_eeg_render(m,options);
-                    lo = load(['D:\MatlabWork\spm8\EEGtemplates',filesep,'wmeshTemplate_scalp']);
+                    lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
                     m2.vertices = lo.vert;
                     m2.faces = lo.face;
                     options.hfig = out.handles.fi;
@@ -233,7 +233,7 @@ switch varargin{1}
                     m.faces = D.other.inv{1}.mesh.tess_mni.face;
                     options.figname = 'other sensors';
                     [out] = spm_eeg_render(m,options);
-                    lo = load(['D:\MatlabWork\spm8\EEGtemplates',filesep,'wmeshTemplate_scalp']);
+                    lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
                     m2.vertices = lo.vert;
                     m2.faces = lo.face;
                     options.hfig = out.handles.fi;
@@ -412,11 +412,20 @@ switch varargin{1}
 
                     case 1
 
-                        switch get(D.PSD.handles.zoomh,'enable')
-                            case 'on'
-                                set(D.PSD.handles.zoomh,'enable','off')
-                            case 'off'
-                                set(D.PSD.handles.zoomh,'enable','on')
+                        if ~isempty(D.PSD.handles.zoomh)
+                            switch get(D.PSD.handles.zoomh,'enable')
+                                case 'on'
+                                    set(D.PSD.handles.zoomh,'enable','off')
+                                case 'off'
+                                    set(D.PSD.handles.zoomh,'enable','on')
+                            end
+                        else
+                            if get(D.PSD.handles.BUTTONS.vb5,'value')
+                                zoom on;
+                            else
+                                zoom off;
+                            end
+                            %set(D.PSD.handles.BUTTONS.vb5,'value',~val);
                         end
 
                         %                         if varargin{3}
