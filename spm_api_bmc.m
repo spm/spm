@@ -5,16 +5,20 @@ function spm_api_bmc
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_api_bmc.m 2061 2008-09-09 18:04:42Z jean $
 
 % get DCM.mat files
 %--------------------------------------------------------------------------
-[f,p]   = uigetfile('*.mat','please select DCM files',...
-                     'MultiSelect','on');
-if ~iscell(f)
+f = cellstr(spm_select(Inf,'mat','please select DCM files'));
+if length(f) < 2
     msgbox('please select more than one DCM')
     return
+else
+    for i=1:length(f)
+        [p{i},f{i}] = fileparts(f{i});
+    end
 end
+
                  
 % get Free energy approximation to log-evidence
 %--------------------------------------------------------------------------
@@ -22,7 +26,7 @@ F     = [];
 N     = {};
 for i = 1:length(f)
     
-    name = fullfile(p,f{i});
+    name = fullfile(p{i},f{i});
     DCM  = load(name,'-mat');
     DCM  = DCM.DCM;
     try 
@@ -42,9 +46,9 @@ end
 i    = F < (max(F) - 32);
 P    = F;
 P(i) = max(F) - 32;
-P    = P - min(P)
+P    = P - min(P);
 P    = exp(P);
-P    = P/sum(P)
+P    = P/sum(P);
 
    
 % display results
@@ -52,7 +56,8 @@ P    = P/sum(P)
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 
 subplot(2,1,1)
-bar(F)
+bar(1:length(N),F)
+set(gca,'XTick',1:length(N))
 set(gca,'XTickLabel',N)
 ylabel('log-evidence (relative)')
 title('Bayesian model comparison')
@@ -60,8 +65,9 @@ axis square
 grid on
 
 subplot(2,1,2)
-bar(P)
+bar(1:length(N),P)
+set(gca,'XTick',1:length(N))
 set(gca,'XTickLabel',N)
-ylabel('probaility')
+ylabel('probability')
 axis square
 grid on

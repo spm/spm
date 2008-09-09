@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2040 2008-09-04 13:16:34Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2061 2008-09-09 18:04:42Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -289,7 +289,7 @@ if ~~D.PSD.source.VIZU.current
 
     set(D.PSD.handles.mesh,'visible','on')
     set(D.PSD.handles.colorbar,'visible','on')
-    set(D.PSD.handles.BMCplot,'visible','on')
+    try,set(D.PSD.handles.BMCplot,'visible','on');end
     set(D.PSD.handles.axes2,'visible','on')
 
     % create buttons

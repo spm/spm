@@ -29,7 +29,8 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_dcm_erp_data.m 2061 2008-09-09 18:04:42Z jean $
+
 
 % Set defaults and Get D filename
 %--------------------------------------------------------------------------
@@ -65,6 +66,17 @@ catch
         end
     end
 end
+
+% Check whether data type is evoked
+%--------------------------------------------------------------------------
+switch lower(D.type)
+    case {'evoked','grandmean'}
+        % these are the 'evoked' types of data
+    otherwise
+        errordlg('DCM analysis is meant for evoked data!');
+        error('')
+end
+
 
 
 % indices of EEG channel (excluding bad channels) and peristimulus times
@@ -124,7 +136,7 @@ try
     It          = [T1:DT:T2]';
     Ns          = length(It);                % number of samples
     DCM.xY.pst  = DCM.xY.Time(It);           % Down-sampled PST
-    DCM.xY.dt   = DT/D.fsample;                 % sampling in seconds
+    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
     DCM.xY.It   = It;                        % Indices of time bins
 
 catch

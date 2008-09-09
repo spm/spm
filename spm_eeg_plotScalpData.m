@@ -17,7 +17,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 1983 2008-08-07 15:06:44Z jean $
+% $Id: spm_eeg_plotScalpData.m 2061 2008-09-09 18:04:42Z jean $
 
 
 if ~exist('in','var') || isempty(in) == 1
@@ -63,7 +63,7 @@ dy = (ymax-ymin)./100;
 x = xmin:dx:xmax;
 y = ymin:dy:ymax;
 [XI,YI] = meshgrid(x,y);
-ZI = griddata(pos(1,:)',pos(2,:)',double(Z'),XI,YI);
+ZI = griddata(pos(1,:)',pos(2,:)',full(double(Z')),XI,YI);
 
 
 f=figure;
@@ -179,7 +179,7 @@ Z = D.data.y(d.in.ind,v,trN);
 Z = Z(d.goodChannels);
 clear ud;
 % interpolate data
-ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),double(Z),d.interp.XI,d.interp.YI);
+ZI = griddata(d.interp.pos(1,:),d.interp.pos(2,:),full(double(Z)),d.interp.XI,d.interp.YI);
 % update data display
 set(d.hi,'Cdata',flipud(ZI));
 % update time index display
