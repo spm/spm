@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2037 2008-09-04 09:27:35Z stefan $
+% $Id: spm_eeg_convert.m 2073 2008-09-10 10:25:39Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -335,8 +335,6 @@ end
 
 spm_progress_bar('Clear');
 
-spm('Pointer', 'Arrow');drawnow;
-
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
     D.sensors.meg = forwinv_convert_units(hdr.grad, 'mm');
@@ -367,6 +365,15 @@ D = D.history('spm_eeg_convert', {S});
 % Set channel types to default
 D = chantype(D, [], []);
 
+% Assign default EEG sensor positions if possible
+if ~isempty(strmatch('EEG', D.chantype, 'exact')) && isempty(D.sensors('EEG'))
+    S1 = [];
+    S1.task = 'defaulteegsens';
+    S1.D = D;
+    
+    D = spm_eeg_prep(S1);
+end
+
 if S.continuous
     D = type(D, 'continuous');
 else
@@ -374,6 +381,8 @@ else
 end
 
 save(D);
+
+spm('Pointer', 'Arrow');drawnow;
 
 function event = select_events(event, timeseg)
 % Utility function to select events according to time segment

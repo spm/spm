@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2047 2008-09-05 10:57:31Z vladimir $
+% $Id: spm_eeg_grandmean.m 2073 2008-09-10 10:25:39Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -203,8 +203,8 @@ D = D.history('spm_eeg_grandmean', S);
 
 save(D);
 
-spm('Pointer', 'Arrow');
-
 if ~isfield(S, 'review') || S.review
     spm_eeg_review(D);
 end
+
+spm('Pointer', 'Arrow');

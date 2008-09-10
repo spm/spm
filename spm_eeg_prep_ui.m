@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 1983 2008-08-07 15:06:44Z jean $
+% $Id: spm_eeg_prep_ui.m 2073 2008-09-10 10:25:39Z vladimir $
 
 if nargin == 0
 
@@ -70,6 +70,12 @@ if nargin == 0
         'Enable', 'on', ...
         'HandleVisibility','on');
 
+    LoadEEGSensTemplateMenu = uimenu(LoadEEGSensMenu, 'Label', 'Assign default',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''LoadEEGSensTemplateCB'')');
+    
     LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat file',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
@@ -251,6 +257,18 @@ if ~isempty(D)
     end
 end
 
+update_menu;
+
+%-----------------------------------------------------------------------
+
+function LoadEEGSensTemplateCB
+
+S = [];
+S.D = getD;
+S.task = 'defaulteegsens';
+
+D = spm_eeg_prep(S);
+setD(D);
 update_menu;
 
 %-----------------------------------------------------------------------
@@ -539,6 +557,7 @@ HasSensors = 'off';
 HasSensorsEEG = 'off';
 HasSensorsMEG = 'off';
 HasFiducials = 'off';
+HasDefaultLocs = 'off';
 if isa(get(Finter, 'UserData'), 'meeg')
     Dloaded = 'on';
 
@@ -567,6 +586,15 @@ if isa(get(Finter, 'UserData'), 'meeg')
     if  ~isempty(D.fiducials)
         HasFiducials = 'on';
     end
+    
+    template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
+    template_sfp = {template_sfp.name};
+    ind = strmatch(ft_senstype(D.chanlabels), template_sfp);
+
+    if ~isempty(ind)
+        HasDefaultLocs = 'on';
+    end
+
 else
     Dloaded = 'off';
 end
@@ -593,6 +621,7 @@ end
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Assign default'), 'Enable', HasDefaultLocs);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
 
@@ -615,8 +644,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
 
 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
 
-sD = struct(D);
-if isfield(sD.other,'PSD') && sD.other.PSD == 1
+if strcmp(Dloaded, 'on') && isfield(D,'PSD') && D.PSD == 1
     try
         hc = get(Finter,'children');
         hc = findobj(hc,'flat','type','uimenu');

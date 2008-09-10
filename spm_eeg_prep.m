@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_prep.m 2073 2008-09-10 10:25:39Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -68,7 +68,7 @@ switch S.task
 
                 elec = [];
                 elec.pnt = senspos;
-                elec.label = label;                
+                elec.label = label;
             case 'locfile'
                 label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
 
@@ -88,21 +88,70 @@ switch S.task
         end
 
         elec = forwinv_convert_units(elec, 'mm');
-        
+
         D = sensors(D, 'EEG', elec);
-        
+
         fid = [];
         fid.fid = elec;
         fid.pnt = elec.pnt;
-        
+
         D = fiducials(D, fid);
+
+    case 'defaulteegsens'
+
+        template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
+        template_sfp = {template_sfp.name};
+
+        ind = strmatch(ft_senstype(D.chanlabels), template_sfp);
+
+        if ~isempty(ind)
+            elec = fileio_read_sens(fullfile(spm('dir'), 'EEGtemplates', template_sfp{ind}));
+
+            [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(elec.label));
+
+            sens = elec;
+            sens.pnt = sens.pnt(sel2, :);
+            % This takes care of possible case mismatch
+            sens.label = D.chanlabels(sel1);
+
+            D = sensors(D, 'EEG', sens);
+
+            % Assumes that the first 3 points in standard location files
+            % are the 3 fiducials (nas, lpa, rpa)
+            fid = [];
+            fid.pnt = elec.pnt;
+            fid.fid.pnt = elec.pnt(1:3, :);
+            fid.fid.label = elec.label(1:3);
+
+            D = fiducials(D, fid);
+
+            [xy, label] = spm_eeg_project3D(D.sensors('EEG'), 'EEG');
+
+            [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));
+
+            if ~isempty(sel1)
+
+                eegind = strmatch('EEG', chantype(D), 'exact');
+
+                if ~isempty(intersect(eegind, sel1)) && ~isempty(setdiff(eegind, sel1))
+                    warning(['2D locations not found for all EEG channels, changing type of channels ', ...
+                        num2str(setdiff(eegind(:)', sel1(:)')) ' to ''Other''']);
+
+                    D = chantype(D, setdiff(eegind, sel1), 'Other');
+                end
+
+                if any(any(coor2D(D, sel1) - xy(:, sel2)))
+                    D = coor2D(D, sel1, num2cell(xy(:, sel2)));
+                end
+            end
+        end
 
     case 'sens2chan'
         montage = S.montage;
-        
+
         eeglabel = D.chanlabels(strmatch('EEG',D.chantype));
         meglabel = D.chanlabels(strmatch('MEG',D.chantype));
-        
+
         if ~isempty(intersect(eeglabel, montage.labelnew))
             sens = sensors(D, 'EEG');
             if isempty(sens)
@@ -119,8 +168,8 @@ switch S.task
             D = sensors(D, 'MEG', sens);
         else
             error('The montage cannot be applied to the sensors');
-        end         
-        
+        end
+
     case 'headshape'
         switch S.source
             case 'mat'
@@ -149,7 +198,7 @@ switch S.task
                 end
             otherwise
                 shape = fileio_read_headshape(S.headshapefile);
-                
+
                 % In case electrode file is used for fiducials, the
                 % electrodes can be used as headshape
                 if ~isfield(shape, 'pnt') || isempty(shape.pnt) && ...
@@ -162,10 +211,22 @@ switch S.task
 
         fid = D.fiducials;
         if ~isempty(fid) && ~isempty(S.regfid)
-            sel1 = spm_match_str(S.regfid(:, 1), fid.fid.label);
-            sel2 = spm_match_str(S.regfid(:, 2), shape.fid.label);
+            [junk, sel1] = spm_match_str(S.regfid(:, 1), fid.fid.label);
+            [junk, sel2] = spm_match_str(S.regfid(:, 2), shape.fid.label);
 
-            M1 = spm_eeg_inv_rigidreg(fid.fid.pnt(sel1, :)', shape.fid.pnt(sel2, :)');
+            S1 = [];
+            S1.targetfid = fid;
+            S1.targetfid.fid.pnt = S1.targetfid.fid.pnt(sel1, :);
+            S1.targetfid.fid.label = S1.targetfid.fid.label(sel1);
+
+            S1.sourcefid = shape;
+            S1.sourcefid.fid.pnt = S1.sourcefid.fid.pnt(sel2, :);
+            S1.sourcefid.fid.label = S1.sourcefid.fid.label(sel2);
+
+            S1.template = 1;
+            S1.useheadshape = 0;
+
+            M1 = spm_eeg_inv_datareg(S1);
 
             shape = forwinv_transform_headshape(M1, shape);
         end
@@ -178,7 +239,7 @@ switch S.task
         if ~ok
             error('Coregistration cannot be performed due to missing data');
         end
-        
+
         try
             val = D.val;
             Msize = D.inv{val}.mesh.Msize;
@@ -188,22 +249,22 @@ switch S.task
         end
         D = spm_eeg_inv_mesh_ui(D, val, 1, Msize);
         D = spm_eeg_inv_datareg_ui(D, 1, S.modality);
-        
+
         if strcmp(S.modality, 'EEG')
             D = sensors(D, 'EEG', D.inv{1}.datareg.sensors);
             D = fiducials(D, D.inv{1}.datareg.fid_eeg);
         end
 
     case 'prepvolsens'
-        % bookkeeping to ensures that the volume conductor model and the 
-        % sensor array are appropriate. Furthermore it takes care of 
+        % bookkeeping to ensures that the volume conductor model and the
+        % sensor array are appropriate. Furthermore it takes care of
         % pre-computations that can be done efficiently prior to the
         % leadfield calculations.
-%         vol_i = D.inv{D.val}.forward.vol;
-%         sens_i = D.inv{D.val}.sensors;
+        %         vol_i = D.inv{D.val}.forward.vol;
+        %         sens_i = D.inv{D.val}.sensors;
         [D.inv{D.val}.forward.vol, D.inv{D.val}.datareg.sensors] = ...
             forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
-                                     D.inv{D.val}.datareg.sensors);
+            D.inv{D.val}.datareg.sensors);
 
     otherwise
         fprintf('Nothing done ''cos I did not understant the instructions');

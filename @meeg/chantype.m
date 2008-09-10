@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 1840 2008-06-20 13:37:25Z vladimir $
+% $Id: chantype.m 2073 2008-09-10 10:25:39Z vladimir $
 
 
 if length(varargin)>=2
@@ -22,7 +22,7 @@ if length(varargin)>=2
     end
 
     if isempty(type)
-        eeg_types = {'EEG', 'EEG1020', 'EEG1010', 'EEG1005', 'EEGBHAM', 'EEGREF'};
+        eeg_types = {'EEG'};
         other_types = {'MEG', 'EMG', 'EOG'};
 
         for i=1:length(eeg_types)

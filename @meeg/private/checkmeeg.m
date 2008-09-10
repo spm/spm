@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2038 2008-09-04 09:28:31Z vladimir $
+% $Id: checkmeeg.m 2073 2008-09-10 10:25:39Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -348,21 +348,24 @@ if strcmp(option, 'sensfid') || strcmp(option, 'dcm')
     [sel1, nzind] = spm_match_str(nzlbl, lower(meegstruct.fiducials.fid.label));
     if isempty(nzind)
         disp('checkmeeg: could not find the nasion fiducial');
+    else
+        nzind = nzind(1);
     end
-    nzind = nzind(1);
-
+    
     [sel1, leind] = spm_match_str(lelbl, lower(meegstruct.fiducials.fid.label));
     if isempty(leind)
         disp('checkmeeg: could not find the left fiducial');
+    else
+        leind = leind(1);
     end
-    leind = leind(1);
 
     [sel1, reind] = spm_match_str(relbl, lower(meegstruct.fiducials.fid.label));
     if isempty(reind)
         disp('checkmeeg: could not find the right fiducial');
+    else
+        reind = reind(1);
     end
-    reind = reind(1);
-
+    
     restind = setdiff(1:length(meegstruct.fiducials.fid.label), [nzind, leind, reind]);
 
     meegstruct.fiducials.fid.label = meegstruct.fiducials.fid.label([nzind, leind, reind, restind]);
