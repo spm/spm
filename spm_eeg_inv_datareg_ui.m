@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2041 2008-09-04 13:39:40Z jean $
+% $Id: spm_eeg_inv_datareg_ui.m 2074 2008-09-10 10:30:30Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -61,7 +61,7 @@ if numel(meeglbl)> 3
     meeglbl = meeglbl(selection);
 end
 
-if numel(intersect(upper(meeglbl), upper(mrilbl))) < 3
+if numel(intersect(upper(meeglbl), upper(mrilbl))) < 3 || spm_input('Redefine MRI fiducials?' , '+1','yes|no', [1,0], 0);
     if numel(meeglbl)<3
         error('At least 3 M/EEG fiducials are required for coregistration');
     end 
@@ -88,7 +88,7 @@ if numel(intersect(upper(meeglbl), upper(mrilbl))) < 3
                     spm_orthviews('Image', mri);
                     cameratoolbar('resetcamera')
                     cameratoolbar('close')
-%                     rotate3d off;
+                    rotate3d off;
                     if spm_input(['Select ' meeglbl{i} ' position and click'] , 1,'OK|Retry', [1,0], 1)
                         newmrifid.fid.pnt   = [newmrifid.fid.pnt; spm_orthviews('Pos')'];
                         spm_orthviews('Reset');
@@ -116,10 +116,8 @@ end
 % register
 %==========================================================================
 S =[];
-S.sens = D.sensors(modality);
-S.meegfid = meegfid;
-S.vol = D.inv{val}.forward.vol;
-S.mrifid = newmrifid;
+S.sourcefid = meegfid;
+S.targetfid = newmrifid;
 
 if  D.inv{val}.mesh.template
     if strcmp(D.inv{val}.modality, 'MEG')
@@ -131,7 +129,7 @@ else
     S.template = 0;
 end
 
-if ~isempty(S.meegfid.pnt)
+if ~isempty(S.sourcefid.pnt)
     S.useheadshape = spm_input('Use headshape points?' , '+1','yes|no', [1,0], 1);
 else
     S.useheadshape = 0;
@@ -143,17 +141,17 @@ M1 = spm_eeg_inv_datareg(S);
 
 switch D.inv{val}.modality
     case 'EEG'
-        D.inv{val}.datareg.sensors = forwinv_transform_sens(M1, S.sens);
-        D.inv{val}.datareg.fid_eeg = forwinv_transform_headshape(M1, S.meegfid);
-        D.inv{val}.datareg.fid_mri = S.mrifid;
+        D.inv{val}.datareg.sensors = forwinv_transform_sens(M1, D.sensors(modality));
+        D.inv{val}.datareg.fid_eeg = forwinv_transform_headshape(M1, S.sourcefid);
+        D.inv{val}.datareg.fid_mri = S.targetfid;
         D.inv{val}.datareg.fromMNI = inv(D.inv{val}.mesh.Affine);
         D.inv{val}.datareg.toMNI = D.inv{val}.mesh.Affine;
     case 'MEG'
-        D.inv{val}.forward.vol = forwinv_transform_vol(inv(M1), S.vol);
-        D.inv{val}.datareg.fid_mri = forwinv_transform_headshape(inv(M1), S.mrifid);
+        D.inv{val}.forward.vol = forwinv_transform_vol(inv(M1), D.inv{val}.forward.vol);
+        D.inv{val}.datareg.fid_mri = forwinv_transform_headshape(inv(M1), S.targetfid);
         D.inv{val}.mesh = spm_eeg_inv_transform_mesh(inv(M1), D.inv{val}.mesh);
-        D.inv{val}.datareg.sensors = S.sens;
-        D.inv{val}.datareg.fid_eeg = S.meegfid; 
+        D.inv{val}.datareg.sensors = D.sensors(modality);
+        D.inv{val}.datareg.fid_eeg = S.sourcefid; 
         D.inv{val}.datareg.toMNI = D.inv{val}.mesh.Affine*M1;
         D.inv{val}.datareg.fromMNI = inv(D.inv{val}.datareg.toMNI);
         
