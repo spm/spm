@@ -51,6 +51,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.31  2008/09/10 09:11:35  roboos
+% added definition of EEG for neuromag
+%
 % Revision 1.30  2008/09/10 08:39:33  roboos
 % make stronger use of senstype and senslabel helper functions
 % now also supports egi and biosemi systems for EEG (thanks to Vladimir)
@@ -171,7 +174,9 @@ switch senstype(datachannel)
 
   case {'neuromag306', 'neuromag122'}
     % all neuromag MEG channels start with MEG
+    % all neuromag EEG channels start with EEG
     labelmeg = datachannel(strncmp('MEG', datachannel, length('MEG')));
+    labeleeg = datachannel(strncmp('EEG', datachannel, length('EEG')));
 
   case {'biosemi128', 'biosemi256', 'egi64', 'egi128', 'egi256', 'ext1020'}
     % use an external helper function to define the list with EEG channel names
