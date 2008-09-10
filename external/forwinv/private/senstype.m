@@ -57,6 +57,9 @@ function [type] = senstype(sens, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: senstype.m,v $
+% Revision 1.10  2008/09/10 09:12:11  roboos
+% added alternative definition of channel names without a space in the label for neuromag 122 and 306
+%
 % Revision 1.9  2008/09/10 07:53:27  roboos
 % moved definition of channel label sets to seperate function
 %
@@ -113,7 +116,7 @@ else
   if isfield(sens, 'label')
     % probably this is MEG, determine the type of magnetometer/gradiometer system
     % note that the order here is important: first check whether it matches a 275 channel system, then a 151 channel system, since the 151 channels are a subset of the 275
-    if (mean(ismember(senslabel('ctf275'),        sens.label)) > 0.8) || (mean(ismember(senslabel('ctfheadloc'), sens.label)) > 0.8)
+    if (mean(ismember(senslabel('ctf275'),            sens.label)) > 0.8) || (mean(ismember(senslabel('ctfheadloc'), sens.label)) > 0.8)
       type = 'ctf275';
     elseif (mean(ismember(senslabel('ctf151'),        sens.label)) > 0.8)
       type = 'ctf151';
@@ -131,7 +134,11 @@ else
       type = 'bti148_planar';
     elseif (mean(ismember(senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';
+    elseif (mean(ismember(senslabel('neuromag306alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
+      type = 'neuromag306';
     elseif (mean(ismember(senslabel('neuromag122'),   sens.label)) > 0.8)
+      type = 'neuromag122';
+    elseif (mean(ismember(senslabel('neuromag122alt'),sens.label)) > 0.8)  % an alternative set without spaces in the name
       type = 'neuromag122';
     elseif any(ismember(senslabel('btiref'), sens.label))
       type = 'bti'; % it might be 148 or 248 channels
