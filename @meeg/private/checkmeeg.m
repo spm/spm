@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2073 2008-09-10 10:25:39Z vladimir $
+% $Id: checkmeeg.m 2078 2008-09-10 17:33:21Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -273,7 +273,10 @@ if strcmp(option, 'basic')
 end
 
 if strcmp(option, 'dcm')
-    chantypes = getset(meegstruct, 'channels', 'type');    
+    chantypes = getset(meegstruct, 'channels', 'type');   
+    if ~iscell(chantypes)
+        chantypes = {chantypes};
+    end
     if ismember('LFP', chantypes)
         if ismember('EEG', chantypes) || ismember('MEG', chantypes)
             disp('checkmeeg: DCM does not presently support files with both LFP and scalp channels');
