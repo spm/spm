@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.49  2008/09/10 14:11:56  jansch
+% fixed an issue with keeptrials
+%
 % Revision 1.48  2008/05/15 08:18:55  roboos
 % replaced strmatch with strcmp where applicable to fix bug in toilim='all' (thanks to Doug)
 %
@@ -562,37 +565,48 @@ if hastim,
   output.time = freq.time; 
 end
 output.label           = freq.label;
-sizpow                 = size(avgpowspctrm);
-output.powspctrm       = reshape(avgpowspctrm, [sizpow(2:end), 1]);
-if jckflg || varflg,           
-  output.powspctrmsem = powspctrmsem;
-  if bcrflg
-    output.powspctrmbcr = reshape((dofpow.*avgpowspctrm - (dofpow-1).*powspctrmbcr), [sizpow(2:end), 1]);
-  end;
-end
-if hascsd, 
-  output.labelcmb     = freq.labelcmb;
-  sizcrs = size(avgcrsspctrm);
-  if plvflg,
-    % rename to plv
-    output.plvspctrm = reshape(avgcrsspctrm, [sizcrs(2:end), 1]);
+
+if strcmp(cfg.keeptrials, 'no'),
+  sizpow                 = size(avgpowspctrm);
+  output.powspctrm       = reshape(avgpowspctrm, [sizpow(2:end), 1]);
+  if jckflg || varflg,           
+    output.powspctrmsem = powspctrmsem;
+  end
+  if hascsd, 
+    output.labelcmb     = freq.labelcmb;
+    sizcrs = size(avgcrsspctrm);
+    if plvflg,
+      % rename to plv
+      output.plvspctrm = reshape(avgcrsspctrm, [sizcrs(2:end), 1]);
+    else
+      output.cohspctrm = reshape(avgcrsspctrm, [sizcrs(2:end), 1]);
+    end
+    if jckflg && plvflg,
+      % rename to plv
+      output.plvspctrmsem = cohspctrmsem;
+    elseif jckflg
+      output.cohspctrmsem = cohspctrmsem;
+    end
+  end
+  if hascsd, 
+    output.dof = reshape(dofcsd, [sizcrs(2:end), 1]);
   else
-    output.cohspctrm = reshape(avgcrsspctrm, [sizcrs(2:end), 1]);
+    output.dof = reshape(dofpow, [sizpow(2:end), 1]);
   end
-  if jckflg && plvflg,
-    % rename to plv
-    output.plvspctrmsem = cohspctrmsem;
-  elseif jckflg
-    output.cohspctrmsem = cohspctrmsem;
-    if bcrflg
-      output.cohspctrmbcr = reshape((dofcsd.*avgcrsspctrm - (dofcsd-1).*cohspctrmbcr), [sizcrs(2:end), 1]);
-    end;
-  end
-end
-if hascsd, 
-  output.dof = reshape(dofcsd, [sizcrs(2:end), 1]);
 else
-  output.dof = reshape(dofpow, [sizpow(2:end), 1]);
+  output.powspctrm = freq.powspctrm;
+  output.dimord    = ['rpt_',output.dimord];
+  if hascsd,
+    output.crsspctrm = freq.crsspctrm;
+    output.labelcmb  = freq.labelcmb;
+    output.cumtapcnt = freq.cumtapcnt;
+  end
+  if strcmp(cfg.keepfourier, 'yes'),
+    output.fourierspctrm = freq.fourierspctrm;
+    output.dimord        = ['rpttap_',output.dimord(5:end)]; 
+    output.cumtapcnt     = freq.cumtapcnt;
+    output               = rmfield(output, 'powspctrm');
+  end
 end
 try, output.grad       = freq.grad; end
 
@@ -616,7 +630,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.48 2008/05/15 08:18:55 roboos Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.49 2008/09/10 14:11:56 jansch Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details
