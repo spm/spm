@@ -23,6 +23,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.10  2008/09/10 08:42:23  roboos
+% fixed small bug, thanks to Vladimir
+%
 % Revision 1.9  2008/08/21 12:03:37  roboos
 % fixed small typo related to last commit
 %
@@ -83,7 +86,7 @@ selcol = match_str(montage.labelorg, remove);
 % we cannot just remove the colums, all rows that depend on it should also be removed
 selrow = false(length(montage.labelnew),1);
 for i=1:length(selcol)
-  selrow = selrow & find(montage.tra(:,selcol(i))~=0);
+  selrow = selrow & (montage.tra(:,selcol(i))~=0);
 end
 % convert from indices to logical vector
 selcol = indx2logical(selcol, length(montage.labelorg));
