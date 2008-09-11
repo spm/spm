@@ -23,7 +23,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 2083 2008-09-11 16:05:53Z vladimir $
 
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -93,8 +93,8 @@ catch
     DCM.M.dipfit.datareg = D.inv{D.val}.datareg;
 end
 
-[DCM.M.dipfit.vol, DCM.M.dipfit.sens] = forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
-    D.inv{D.val}.datareg.sensors, 'channel', D.inv{D.val}.forward.channels);
+DCM.M.dipfit.vol = D.inv{D.val}.forward.vol;
+DCM.M.dipfit.sens = D.inv{D.val}.datareg.sensors;
 
 switch DCM.options.type
     case 1 %ECD

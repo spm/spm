@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2083 2008-09-11 16:05:53Z vladimir $
 
 if nargin == 0
 
@@ -105,15 +105,7 @@ if nargin == 0
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
-    
-    VolSensMEGMenu = uimenu(Coor3DMenu, 'Label', 'Prepare Vol-Sens',...
-        'Tag','EEGprepUI',...
-        'Enable', 'on', ...
-        'HandleVisibility','on',...
-        'Separator', 'on', ...
-        'Callback', 'spm_eeg_prep_ui(''PrepVolSensCB'')');
-
+        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');    
     
     % ====== 2D projection ===================================
     
@@ -400,23 +392,6 @@ switch get(gcbo, 'Label')
         S.modality = 'MEG';
 end
 
-
-D = spm_eeg_prep(S);
-
-% Bring the menu back
-spm_eeg_prep_ui;
-
-setD(D);
-
-update_menu;
-
-%-----------------------------------------------------------------------
-
-function PrepVolSensCB
-
-S = [];
-S.D = getD;
-S.task = 'prepvolsens';
 
 D = spm_eeg_prep(S);
 
