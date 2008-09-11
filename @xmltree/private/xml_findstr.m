@@ -23,6 +23,10 @@ function k = xml_findstr(s,p,i,n)
 % Copyright (C) 2002-2008  http://www.artefact.tk/
 
 % Guillaume Flandin <guillaume@artefact.tk>
-% $Id: xml_findstr.m 1460 2008-04-21 17:43:18Z guillaume $
+% $Id: xml_findstr.m 2080 2008-09-11 11:39:36Z guillaume $
 
-error(sprintf('Missing MEX-file: %s', mfilename));
+%error(sprintf('Missing MEX-file: %s', mfilename));
+% k = regexp(s(i:end),p,'once') + i - 1;
+j = strfind(s,p);
+k = j(j>=i);
+if ~isempty(k), k = k(1:min(n,length(k))); end

@@ -19,9 +19,9 @@ function savexml(filename, varargin)
 %  See also SAVE, MAT2XML, XMLTREE.
 
 %  Copyright 2003 Guillaume Flandin. 
-%  $Revision: 1131 $  $Date: 2003/07/10 13:50 $
+%  $Revision: 2080 $  $Date: 2003/07/10 13:50 $
 
-%  $Id: savexml.m 1131 2008-02-06 11:17:09Z spm $
+%  $Id: savexml.m 2080 2008-09-11 11:39:36Z guillaume $
 
 if nargin == 0
     filename = 'matlab.xml';
@@ -77,19 +77,21 @@ save(t,filename);
 function t = xml_var2xml(t,v,uid)
 
     switch class(v)
-        case 'double'
-            t = add(t,uid,'chardata',xml_num2str(v));
-        case 'sparse'
-            [i,j,s] = find(v);
-            [t, uid2] = add(t,uid,'element','row');
-            t = attributes(t,'add',uid2,'size',xml_num2str(size(i)));
-            t = add(t,uid2,'chardata',xml_num2str(i));
-            [t, uid2] = add(t,uid,'element','col');
-            t = attributes(t,'add',uid2,'size',xml_num2str(size(j)));
-            t = add(t,uid2,'chardata',xml_num2str(j));
-            [t, uid2] = add(t,uid,'element','val');
-            t = attributes(t,'add',uid2,'size',xml_num2str(size(s)));
-            t = add(t,uid2,'chardata',xml_num2str(s));
+        case {'double','single','logical'}
+            if ~issparse(v)
+                t = add(t,uid,'chardata',xml_num2str(v));
+            else % logical
+                [i,j,s] = find(v);
+                [t, uid2] = add(t,uid,'element','row');
+                t = attributes(t,'add',uid2,'size',xml_num2str(size(i)));
+                t = add(t,uid2,'chardata',xml_num2str(i));
+                [t, uid2] = add(t,uid,'element','col');
+                t = attributes(t,'add',uid2,'size',xml_num2str(size(j)));
+                t = add(t,uid2,'chardata',xml_num2str(j));
+                [t, uid2] = add(t,uid,'element','val');
+                t = attributes(t,'add',uid2,'size',xml_num2str(size(s)));
+                t = add(t,uid2,'chardata',xml_num2str(s));
+            end
         case 'struct'
             names = fieldnames(v);
             for j=1:prod(size(v))

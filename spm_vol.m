@@ -19,7 +19,7 @@ function V = spm_vol(P)
 %                 If the size of pinfo is 3x1, then the volume is assumed
 %                 to be contiguous and each plane has the same scalefactor
 %                 and offset.
-%____________________________________________________________________________
+%__________________________________________________________________________
 %
 % The fields listed above are essential for the mex routines, but other
 % fields can also be incorporated into the structure.
@@ -30,14 +30,11 @@ function V = spm_vol(P)
 % Note that spm_vol can also be applied to the filename(s) of 4-dim
 % volumes. In that case, the elements of V will point to a series of 3-dim
 % images.
-%
-% This is a replacement for the spm_map_vol and spm_unmap_vol stuff of
-% MatLab4 SPMs (SPM94-97), which is now obsolete.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_vol.m 2080 2008-09-11 11:39:36Z guillaume $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -161,6 +158,8 @@ str = {...
     'Please check that it is in the correct format.'};
 spm('alert*',str,mfilename,sqrt(-1));
 return;
+%_______________________________________________________________________
+
 %_______________________________________________________________________
 function existance_error_message(q)
 str = {...

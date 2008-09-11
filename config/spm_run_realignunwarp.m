@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 1886 2008-07-03 19:31:43Z guillaume $
+% $Id: spm_run_realignunwarp.m 2080 2008-09-11 11:39:36Z guillaume $
 
 job = varargin{1};
 
@@ -106,7 +106,7 @@ end
 spm_uw_apply(cat(2,out.sess.ds),uwrflags);
 switch job.uwroptions.uwwhich(1)
     case 0
-    	out.sess.uwrfiles  = {};
+        out.sess.uwrfiles  = {};
     case 2
         for i = 1:numel(P)
             for j=1:size(P{i},2)

@@ -10,7 +10,7 @@ function out = spm_run_fmri_design(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_design.m 1358 2008-04-10 11:20:26Z guillaume $
+% $Id: spm_run_fmri_design.m 2080 2008-09-11 11:39:36Z guillaume $
 
 
 spm('defaults','FMRI');
@@ -295,15 +295,15 @@ SPM.xVi.form = job.cvi;
 SPM = spm_fMRI_design(SPM);
 
 %-Save SPM.mat
-%-----------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPM configuration')   %-#
-if str2num(version('-release'))>=14,
+%-------------------------------------------------------------------------
+fprintf('%-40s: ','Saving SPM configuration')                          %-#
+if spm_matlab_version_chk('7') >= 0
     save('SPM','-V6','SPM');
 else
     save('SPM','SPM');
 end;
 
-fprintf('%30s\n','...SPM.mat saved')                     %-#
+fprintf('%30s\n','...SPM.mat saved')                                   %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
 my_cd(original_dir); % Change back dir

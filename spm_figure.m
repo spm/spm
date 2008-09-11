@@ -73,7 +73,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_figure.m 2080 2008-09-11 11:39:36Z guillaume $
 
 
 %=======================================================================
@@ -107,7 +107,8 @@ function varargout=spm_figure(varargin)
 %
 % FORMAT F = spm_figure('GetWin',Tag)
 % Like spm_figure('FindWin',Tag), except that if no such 'Tag'ged figure
-% is found, one is created. Further, the "got" window is made current.
+% is found and 'Tag' is recognized, one is created. Further, the "got" 
+% window is made current.
 % Tag   - Figure 'Tag' to get, defaults to 'Graphics'
 % F - Figure number (if found/created) or empty (if not).
 %
@@ -263,16 +264,14 @@ if isempty(F)
             F = spm_figure('Create','DEM','Dynamic Expectation Maximisation');
         case 'DFP'
             F = spm_figure('Create','DFP','Variational filtering');
+        case 'FMIN'
+            F = spm_figure('Create','FMIN','Function minimisation');
         case 'MFM'
             F = spm_figure('Create','MFM','Mean-field and neural mass models');
         case 'MVB'
             F = spm_figure('Create','MVB','Multivariate Bayes');
         case 'SI'
             F = spm_figure('Create','SI','System Identification');
-        case 'FMIN'
-            F = spm_figure('Create','FMIN','Function minimisation');
-        case 'MFM'
-            F = spm_figure('Create','MFM','Mean-field and neural mass models');
         case 'Interactive'
             F = spm('CreateIntWin');
         end

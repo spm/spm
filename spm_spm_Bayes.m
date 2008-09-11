@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 1847 2008-06-24 11:20:48Z guillaume $
+% $Id: spm_spm_Bayes.m 2080 2008-09-11 11:39:36Z guillaume $
 
 
 %-Say hello
@@ -133,7 +133,7 @@ catch
     SPM.nscan = nScan;
 end
 
-VHp(1:nHp)        = deal(struct(...
+VHp(1:nHp)    = deal(struct(...
             'fname',    [],...
             'dim',      DIM',...
             'dt',       [spm_type('float64'), spm_platform('bigend')],...
@@ -147,13 +147,13 @@ for i = 1:nHp
 end
 VHp   = spm_create_vol(VHp);
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')        %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised')      %-#
 
 
 %=======================================================================
 % - E M P I R I C A L  B A Y E S  F O R  P R I O R  V A R I A N C E
 %=======================================================================
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimating priors')   %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...estimating priors')%-#
 
 % get row u{i} and column v{i}/v0{i} indices for separable designs
 %----------------------------------------------------------------------
@@ -176,7 +176,7 @@ for i = 1:s
 
     % Get design X and confounds X0
     %---------------------------------------------------------------
-    fprintf('%-30s- %i\n','  ReML Session',i);
+    fprintf('%-30s- %i\n','  ReML Session',i);                   %-#
     X     = xX.X(u{i}, v{i});
     X0    = xX.X(u{i},v0{i});
     [m n] = size(X);
@@ -232,7 +232,6 @@ end
 %-Cycle to avoid memory problems (plane by plane)
 %=======================================================================
 spm_progress_bar('Init',100,'Bayesian estimation','');
-helpdlg('This could take some time');
 spm('Pointer','Watch')
 
 %-maxMem is the maximum amount of data processed at a time (bytes)
@@ -293,10 +292,6 @@ for  z = 1:zdim
     %-------------------------------------------------------------------
     for i = 1:nBeta
     tmp       = sparse(XYZ(1,U),XYZ(2,U),CrBl(i,:),xdim,ydim);
-%     The following line (and the same code on line 306 below) results in
-%     images with all NaN's (in Matlab R14  or greater). It has been
-%     commented out by DRG, and replaced by the line: tmp(~tmp) = NaN;
-%     tmp       = tmp + NaN*(~tmp);
     tmp(~tmp) = NaN;
     Vbeta(i)  = spm_write_plane(Vbeta(i),tmp,z);
     end
@@ -305,8 +300,7 @@ for  z = 1:zdim
     %-------------------------------------------------------------------
     for i = 1:nHp
     tmp       = sparse(XYZ(1,U),XYZ(2,U),CrHp(i,:),xdim,ydim);
-%         tmp       = tmp + NaN*(~tmp);
-        tmp(~tmp) = NaN;
+    tmp(~tmp) = NaN;
     VHp(i)    = spm_write_plane(VHp(i),tmp,z);
     end
 
@@ -326,7 +320,7 @@ spm_progress_bar('Clear')
 
 % Taylor expansion for conditional covariance
 %-----------------------------------------------------------------------
-fprintf('%-40s: %30s\n','Non-sphericity','...REML estimation') %-#
+fprintf('%-40s: %30s\n','Non-sphericity','...REML estimation')       %-#
 
 % expansion point (mean hyperparameters)
 %-----------------------------------------------------------------------
@@ -348,40 +342,19 @@ for i = 1:s
 
     % derivatives of conditional covariance w.r.t. hyperparameters
     %---------------------------------------------------------------
-    if spm_matlab_version_chk('6.5.1') < 0
-        % MATLAB 6.5.0 R13 has a bug in dealing with sparse matrices so revert to full matrices
-        fprintf('%-40s','MATLAB 6.5.0 R13: must use full matrices - this could cause memory problems...');
-        d     = full(P{1}.X'*inv(P{1}.C{1})*P{1}.X);
-        Cby   = full(inv(d/l(i) + inv(P{2}.C)));
-        d     = full(d*Cby);
-        dC    = full(Cby*d/(l(i)^2));
-        ddC   = full(2*(dC/(l(i)^2) - Cby/(l(i)^3))*d);
-    else
-        % all other MATLAB versions: use sparse matrices
-        d     = P{1}.X'*inv(P{1}.C{1})*P{1}.X;
-        Cby   = inv(d/l(i) + inv(P{2}.C));
-        d     = d*Cby;
-        dC    = Cby*d/(l(i)^2);
-        ddC   = 2*(dC/(l(i)^2) - Cby/(l(i)^3))*d;
-    end
+    d     = P{1}.X'*inv(P{1}.C{1})*P{1}.X;
+    Cby   = inv(d/l(i) + inv(P{2}.C));
+    d     = d*Cby;
+    dC    = Cby*d/(l(i)^2);
+    ddC   = 2*(dC/(l(i)^2) - Cby/(l(i)^3))*d;
 
     % place in output structure
     %---------------------------------------------------------------
-    if spm_matlab_version_chk('6.5.1') < 0,
-        % MATLAB 6.5.0 R13: revert to full matrices
-        j               = 1:length(v);
-        PPM.Cb(v,v)     = full(P{2}.C(j,j));
-        PPM.Cby(v,v)    = full(Cby(j,j));
-        PPM.dC{i}(v,v)  = full(dC(j,j));
-        PPM.ddC{i}(v,v) = full(ddC(j,j));
-    else
-        % all other MATLAB versions: use sparse matrices
-        j               = 1:length(v);
-        PPM.Cb(v,v)     = P{2}.C(j,j);
-        PPM.Cby(v,v)    = Cby(j,j);
-        PPM.dC{i}(v,v)  = dC(j,j);
-        PPM.ddC{i}(v,v) = ddC(j,j);        
-    end
+    j               = 1:length(v);
+    PPM.Cb(v,v)     = P{2}.C(j,j);
+    PPM.Cby(v,v)    = Cby(j,j);
+    PPM.dC{i}(v,v)  = dC(j,j);
+    PPM.ddC{i}(v,v) = ddC(j,j);        
     
 end
 
@@ -401,7 +374,7 @@ else
     save('SPM', 'SPM');
 end;
 
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')               %-#
+fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')             %-#
 
 
 %=======================================================================

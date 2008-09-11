@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_get_ons.m 2080 2008-09-11 11:39:36Z guillaume $
 
 
 %-GUI setup
@@ -68,6 +68,10 @@ switch UNITS
     case 'secs'
     %----------------------------------------------------------------
     TR = 1;
+    
+    otherwise
+    %----------------------------------------------------------------
+    error('Unknown unit "%s".',UNITS);
 end
 
 % get inputs and names (try SPM.Sess(s).U first)

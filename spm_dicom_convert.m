@@ -4,22 +4,22 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Inputs:
 % hdr  - a cell array of DICOM headers from spm_dicom_headers
 % opts - options
-%        'all'      - all DICOM files (default)
+%        'all'      - all DICOM files [default]
 %        'mosaic'   - the mosaic images
 %        'standard' - standard DICOM files
 %        'spect'    - SIEMENS Spectroscopy DICOMs (position only)
 %                     This will write out a mask image volume with 1's
 %                     set at the position of spectroscopy voxel(s).
 %        'raw'      - convert raw FIDs (not implemented)
-% root_dir - 'flat' - SPM5 standard, do not produce file tree
+% root_dir - 'flat' - do not produce file tree [default]
 %            With all other options, files will be sorted into
 %            directories according to their sequence/protocol names
-%            'date_time' - Place files under ./<StudyDate-StudyTime>
-%            'patid'         - Place files under ./<PatID>
-%            'patid_date'    - Place files under ./<PatID-StudyDate>
-%            'name'          - Place files under ./<PatName>
+%            'date_time'  - Place files under ./<StudyDate-StudyTime>
+%            'patid'      - Place files under ./<PatID>
+%            'patid_date' - Place files under ./<PatID-StudyDate>
+%            'name'       - Place files under ./<PatName>
 % format - output format
-%          'img' Two file (hdr+img) NIfTI format
+%          'img' Two file (hdr+img) NIfTI format [default]
 %          'nii' Single file NIfTI format
 %                All images will contain a single 3D dataset, 4D images
 %                will not be created.
@@ -31,12 +31,12 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 1982 2008-08-07 13:13:15Z john $
+% $Id: spm_dicom_convert.m 2080 2008-09-11 11:39:36Z guillaume $
 
 
-if nargin<2, opts = 'all'; end;
-if nargin<3, root_dir='flat';end;
-if nargin<4, format='img';end;
+if nargin<2, opts     = 'all'; end
+if nargin<3, root_dir = 'flat';end
+if nargin<4, format   = 'img'; end
 
 [images,other]    = select_tomographic_images(hdr);
 [spect,guff]      = select_spectroscopy_images(other);
@@ -933,7 +933,7 @@ if strncmp(root_dir,'ice',3)
 end;
 
 if strcmp(root_dir, 'flat')
-    % Standard SPM5 file conversion
+    % Standard SPM file conversion
     %-------------------------------------------------------------------
     if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
         if checkfields(hdr,'EchoNumbers')

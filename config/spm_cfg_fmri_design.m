@@ -4,9 +4,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_fmri_design.m 2080 2008-09-11 11:39:36Z guillaume $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2080 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -82,12 +82,12 @@ timing.help    = {
                   'Also, with longs TRs you may want to shift the regressors so that they are aligned to a particular slice.  This is effected by changing the microtime resolution and onset. '
 }';
 % ---------------------------------------------------------------------
-% nscan # Scans
+% nscan Number of scans
 % ---------------------------------------------------------------------
 nscan         = cfg_entry;
 nscan.tag     = 'nscan';
-nscan.name    = '# Scans';
-nscan.help    = {'Specify the number of scans for this session.The actual scans must be specified in a separate batch job ''Specify Data''.'};
+nscan.name    = 'Number of scans';
+nscan.help    = {'Specify the number of scans for this session.The actual scans must be specified in a separate batch job ''fMRI data specification''.'};
 nscan.strtype = 'e';
 nscan.num     = [1 1];
 % ---------------------------------------------------------------------

@@ -28,11 +28,11 @@ function SPM=spm_get_vc(SPM)
 % different number of observations under different levels of a factor.
 %_______________________________________________________________________
 % Copyright (C) 2006 Freiburg Brain Imaging 
-% This code is part of SPM5, which is
+% This code is part of SPM, which is
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_get_vc.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_vc.m 2080 2008-09-11 11:39:36Z guillaume $
 
 Iin = SPM.xVi.I;
 [nscan nfactor] = size(Iin);
