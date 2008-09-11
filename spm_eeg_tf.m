@@ -18,7 +18,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2055 2008-09-08 17:02:16Z vladimir $
+% $Id: spm_eeg_tf.m 2081 2008-09-11 13:04:24Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -132,11 +132,14 @@ Dtf = frequencies(Dtf, tf.frequencies);
 sD = struct(Dtf);
 
 for i = 1:length(tf.channels)
-    sD.channels(i).label = D.chanlabels(tf.channels(i));
+    lbl = D.chanlabels(tf.channels(i));
+    sD.channels(i).label = lbl{1};
+    
     if D.badchannels(tf.channels(i))
         sD.channels(i).bad = 1;
     end
-    sD.channels(i).type = D.chantype(tf.channels(i));
+    ctype = D.chantype(tf.channels(i));
+    sD.channels(i).type = ctype{1};
     Dtf = coor2D(Dtf, i, coor2D(D, tf.channels(i)));
     % units?
 
@@ -152,14 +155,14 @@ if tf.phase == 1
     sD = struct(Dtf2);
 
     for i = 1:length(tf.channels)
-        sD.channels(i).label = D.chanlabels(tf.channels(i));
+        lbl = D.chanlabels(tf.channels(i));
+        sD.channels(i).label = lbl{1};
         if D.badchannels(tf.channels(i))
             sD.channels(i).bad = 1;
         end
-        sD.channels(i).type = D.chantype(tf.channels(i));
+        ctype = D.chantype(tf.channels(i));
+        sD.channels(i).type = ctype{1};
         % units?
-
-
     end
     Dtf2 = meeg(sD);
     Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));

@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2073 2008-09-10 10:25:39Z vladimir $
+% $Id: spm_eeg_convert.m 2081 2008-09-11 13:04:24Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -373,6 +373,19 @@ if ~isempty(strmatch('EEG', D.chantype, 'exact')) && isempty(D.sensors('EEG'))
     
     D = spm_eeg_prep(S1);
 end
+
+% Create 2D positions for MEG (when there are no EEG sensors)
+% by projecting the 3D positions to 2D
+if ~isempty(strmatch('MEG', D.chantype, 'exact')) &&...
+    ~isempty(D.sensors('MEG')) && isempty(D.sensors('EEG'))
+    S1 = [];
+    S1.task = 'project3D';
+    S1.modality = 'MEG';
+    S1.D = D;
+    
+    D = spm_eeg_prep(S1);
+end
+
 
 if S.continuous
     D = type(D, 'continuous');

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 1844 2008-06-20 20:14:05Z guillaume $
+% $Id: spm_api_erp.m 2081 2008-09-11 13:04:24Z vladimir $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -147,14 +147,14 @@ set(handles.data_ok,'enable','on')
 handles.DCM = DCM;
 guidata(hObject, handles);
 
-% data specification
-%--------------------------------------------------------------------------
-try
-    handles = data_ok_Callback(hObject, eventdata, handles);
-    guidata(hObject, handles);
-catch
-    return
-end
+% % data specification
+% %--------------------------------------------------------------------------
+% try
+%     handles = data_ok_Callback(hObject, eventdata, handles);
+%     guidata(hObject, handles);
+% catch
+%     return
+% end
 
 % spatial model specification
 %--------------------------------------------------------------------------
@@ -475,7 +475,7 @@ switch DCM.xY.modality
         set(handles.Slocation, 'String', '');    
      
     otherwise
-        warndlg('Unknown data modlaity')
+        warndlg('Unknown data modality')
         return
         
 
@@ -541,12 +541,9 @@ set(handles.spatial_ok,    'Enable', 'on');
 % assume source and channel names are the same for LPF data
 %--------------------------------------------------------------------------
 if strcmp(handles.DCM.xY.modality,'LFP')
-    Ic = handles.DCM.xY.Ic;
-    if length(cellstr(get(handles.Sname,'String'))) ~= length(Ic);
-        Sname = handles.DCM.xY.name;
-        set(handles.Sname,'String',Sname)
-        handles.DCM.Sname = Sname;
-    end
+    Sname = handles.DCM.xY.name;
+    set(handles.Sname,'String',Sname)
+    handles.DCM.Sname = Sname;
 end
 
 guidata(hObject, handles);

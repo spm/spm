@@ -5,13 +5,13 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 1673 2008-05-16 15:32:22Z vladimir $
+% $Id: getset.m 2081 2008-09-11 13:04:24Z vladimir $
 
 this = struct(this);
 
 if nargin == 3 || isempty(ind)
     try
-        ind = 1:numel(getfield(struct(this), parent));
+        ind = 1:numel(getfield(this, parent));
     catch
         res = [];
         return;
@@ -29,10 +29,10 @@ if nargin <= 4
         res = [res{:}];
     end
 
-    if iscell(res) && (length(res) == 1)
+    if iscell(res) && (numel(res) == 1) && strcmp(this.type, 'continuous')
         res = res{1};
     end
-
+    
     return
 end
 

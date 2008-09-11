@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2061 2008-09-09 18:04:42Z jean $
+% $Id: spm_eeg_review_callbacks.m 2081 2008-09-11 13:04:24Z vladimir $
 
 try
     D = get(gcf,'userdata');
@@ -770,7 +770,7 @@ switch varargin{1}
 %                     D.other = 1;
                     D.other = struct([]);
                 end
-                D.other.PSD = 1;
+                D.other(1).PSD = 1;
                 D = meeg(D);
                 set(Finter, 'UserData', D);
                 hc = get(Finter,'children');

@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2075 2008-09-10 10:36:46Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2081 2008-09-11 13:04:24Z vladimir $
 
 if nargin == 0
 
@@ -232,6 +232,8 @@ if ~isempty(D)
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
         end
+        
+        chanlist{i} = [chanlist{i}{:}];
     end
 
     if strcmpi(type, 'review')
