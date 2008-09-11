@@ -40,6 +40,9 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.40  2008/09/11 13:21:13  jansch
+% included output of ori if cfg.eta = 'yes'
+%
 % Revision 1.39  2008/07/21 11:02:51  roboos
 % removed a try-catch whose purpose was unclear and that caused a problem with nai computation to remain invisible
 %
@@ -365,7 +368,10 @@ if ispccdata
       if ~isempty(supchansel), source.avg.supchannoise    = nan*zeros(Ndipole, 1); end
     end % if isnoise
     if ~isempty(refsel),       source.avg.coh           = nan*zeros(Ndipole, 1); end
-    if strcmp(cfg.eta, 'yes'), source.avg.eta           = nan*zeros(Ndipole, 1); end
+    if strcmp(cfg.eta, 'yes'), 
+      source.avg.eta           = nan*zeros(Ndipole, 1);
+      source.avg.ori           = cell(1, Ndipole);
+    end
 
     for diplop = 1:length(source.inside)
       i = source.inside(diplop);
@@ -412,7 +418,7 @@ if ispccdata
 
       % compute eta
       if strcmp(cfg.eta, 'yes')
-        source.avg.eta(i) = csd2eta(source.avg.csd{i}(dipsel,dipsel));
+        [source.avg.eta(i), source.avg.ori{i}] = csd2eta(source.avg.csd{i}(dipsel,dipsel));
       end
     end % for diplop
 
@@ -809,7 +815,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.39 2008/07/21 11:02:51 roboos Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.40 2008/09/11 13:21:13 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output
@@ -818,9 +824,10 @@ source.cfg = cfg;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute eta from a csd-matrix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [eta] = csd2eta(csd)
-s   = svd(real(csd));
-eta = s(2)./s(1);
+function [eta, u] = csd2eta(csd)
+[u,s,v] = svd(real(csd));
+eta     = s(2,2)./s(1,1);
+u       = u'; %orientation is defined in the rows
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute power
