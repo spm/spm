@@ -10,25 +10,14 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: showdoc.m 2085 2008-09-12 10:26:59Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2085 $'; %#ok
 
-str = showdoc(item.cfg_item, indent);
-str{end+1} = '';
-citems = subsref(item, substruct('.','values'));
-str{end+1} = sprintf('One of the following options must be selected:');
-% Display short listing of cfg_choice value items first
-for k = 1:numel(citems)
-    str{end+1} = sprintf('* %s', subsref(citems{k}, substruct('.','name')));
-end;
-valitem = subsref(item, substruct('.','val'));
-if ~isempty(valitem)
-    str{end+1} = sprintf('Currently selected option:');
-    str{end+1} = sprintf('* "%s"',subsref(valitem{1}, substruct('.','name')));
-end;
+str = showmydoc(item, indent);
 str{end+1} = '';
 % Display detailed help for each cfg_choice value item
+citems = subsref(item, substruct('.','values'));
 for k = 1:numel(citems)
     str1 = showdoc(citems{k}, sprintf('%s%d.', indent, k));
     str = {str{:} str1{:}};

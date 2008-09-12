@@ -11,22 +11,20 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: showdoc.m 2085 2008-09-12 10:26:59Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2085 $'; %#ok
 
-str = {sprintf('%s %s', indent, item.name)};
+if isempty(indent)
+    str{1} = item.name;
+else
+    str = {sprintf('%s %s', indent, item.name)};
+end
 if ~isempty(item.help)
     str = {str{:} item.help{:}};
-end;
+end
 if ~isempty(item.def)
     str{end+1} = sprintf(['This item has a default value, set via a call ' ...
                         'to function']);
-    argstr = sprintf('arg%d,', 1:numel(item.def)-1);
-    str{end+1} = sprintf('   %s(%s)',func2str(item.def{1}),argstr(1:end-1));
-    str{end+1} = 'with arguments';
-    for k = 2:numel(item.def)
-        str1 = gencode(item.def{k},sprintf('   arg%d',k-1));
-        str = {str{:} str1{:}};
-    end;
-end;
+    str{end+1} = func2str(item.def);
+end

@@ -10,20 +10,14 @@ function str = showdoc(item, indent)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdoc.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: showdoc.m 2085 2008-09-12 10:26:59Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2085 $'; %#ok
 
-str = showdoc(item.cfg_item, indent);
-citems = subsref(item, substruct('.','val'));
-str{end+1} = '';
-str{end+1} = sprintf('This branch contains %d items:', numel(citems));
-% Display short listing of branch items first
-for k = 1:numel(citems)
-    str{end+1} = sprintf('* %s', subsref(citems{k}, substruct('.','name')));
-end;
+str = showmydoc(item, indent);
 str{end+1} = '';
 % Display detailed help for each branch item
+citems = subsref(item, substruct('.','val'));
 for k = 1:numel(citems)
     str1 = showdoc(citems{k}, sprintf('%s%d.', indent, k));
     str = {str{:} str1{:}};

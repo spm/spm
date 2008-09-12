@@ -27,7 +27,7 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % If a cell list of fieldnames is given, then the contents of these fields
 % will be returned in the cell array val. If one of the fields does not
 % exist, a cell with an empty entry will be returned.
-% There are four pseudo-fieldnames which allow to obtain information useful
+% There are five pseudo-fieldnames which allow to obtain information useful
 % to build e.g. a user interface for cfg trees:
 % 'class' - returns the class of the current item
 % 'level' - returns the level in the tree. Since data is collected
@@ -39,6 +39,9 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % 'all_set_item' - return all_set_item status of current node (i.e. whether
 %                  all integrity conditions for this node are fulfilled).
 %                  For in-tree nodes this can be different from all_set.
+% 'showdoc' - calls showmydoc to display the help text and option hints for
+%             the current item (without recursive calls for .val/.values
+%             items).
 % This function is identical for all in-tree items.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
@@ -48,32 +51,32 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: list.m 2085 2008-09-12 10:26:59Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2085 $'; %#ok
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};
     tropts.cnt = tropts.cnt + 1;
     stop = false;
     if nargin > 3
-        specialfn = {'class','level','all_set','all_set_item'};
+        val = cell(1,numel(fn));
         for k = 1:numel(fn)
-            if any(strcmp(fn{k}, fieldnames(item)))
-                val{k} = {subsref(item, substruct('.', fn{k}))};
-            elseif any(strcmp(fn{k}, specialfn))
-                switch fn{k}
-                    case 'class'
-                        val{k} = {class(item)};
-                    case 'level'
-                        val{k} = {tropts.clvl};
-                    case 'all_set'
-                        val{k} = {all_set(item)};
-                    case 'all_set_item'
-                        val{k} = {all_set_item(item)};
-                end;
-            else
-                val{k} = {{}};
+            switch fn{k}
+                case 'class'
+                    val{k} = {class(item)};
+                case 'level'
+                    val{k} = {tropts.clvl};
+                case 'all_set'
+                    val{k} = {all_set(item)};
+                case 'all_set_item'
+                    val{k} = {all_set_item(item)};
+                case 'showdoc'
+                    val{k} = {showmydoc(item,'')};
+                case fieldnames(item)
+                    val{k} = {subsref(item, substruct('.', fn{k}))};
+                otherwise
+                    val{k} = {{}};
             end;
         end;
     else
@@ -112,8 +115,8 @@ if (isempty(tropts.stopspec) || ~match(item, tropts.stopspec)) && (tropts.cnt < 
             for l = 1:numel(id1)
                 id = {id{:} [idsubs id1{l}]};
             end;
-        stop = [stop stop1];
-        tropts.cnt = tropts.cnt + numel(id1);
+            stop = [stop stop1];
+            tropts.cnt = tropts.cnt + numel(id1);
             if tropts.cnt >= tropts.mcnt
                 if matched
                     stop(1) = true;
