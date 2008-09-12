@@ -4,9 +4,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_cfg_fmri_design.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 2080 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -49,7 +49,7 @@ fmri_t.tag     = 'fmri_t';
 fmri_t.name    = 'Microtime resolution';
 fmri_t.help    = {
                   'The microtime resolution, t, is the number of time-bins per scan used when building regressors. '
-                  '                                                                                                            '
+                  ''
                   'Do not change this parameter unless you have a long TR and wish to shift regressors so that they are aligned to a particular slice. '
 }';
 fmri_t.strtype = 'e';
@@ -63,7 +63,7 @@ fmri_t0.tag     = 'fmri_t0';
 fmri_t0.name    = 'Microtime onset';
 fmri_t0.help    = {
                    'The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions). '
-                   '                                                                                                            '
+                   ''
                    'Do not change the default setting unless you have a long TR. '
 }';
 fmri_t0.strtype = 'e';
@@ -78,7 +78,7 @@ timing.name    = 'Timing parameters';
 timing.val     = {units RT fmri_t fmri_t0 };
 timing.help    = {
                   'Specify various timing parameters needed to construct the design matrix. This includes the units of the design specification and the interscan interval.'
-                  '                                                                                                            '
+                  ''
                   'Also, with longs TRs you may want to shift the regressors so that they are aligned to a particular slice.  This is effected by changing the microtime resolution and onset. '
 }';
 % ---------------------------------------------------------------------
@@ -221,17 +221,17 @@ multi.name    = 'Multiple conditions';
 multi.val{1} = {''};
 multi.help    = {
                  'Select the *.mat file containing details of your multiple experimental conditions. '
-                 '                                                                                                            '
+                 ''
                  'If you have multiple conditions then entering the details a condition at a time is very inefficient. This option can be used to load all the required information in one go. You will first need to create a *.mat file containing the relevant information. '
-                 '                                                                                                            '
+                 ''
                  'This *.mat file must include the following cell arrays (each 1 x n): names, onsets and durations. eg. names=cell(1,5), onsets=cell(1,5), durations=cell(1,5), then names{2}=''SSent-DSpeak'', onsets{2}=[3 5 19 222], durations{2}=[0 0 0 0], contain the required details of the second condition. These cell arrays may be made available by your stimulus delivery program, eg. COGENT. The duration vectors can contain a single entry if the durations are identical for all events.'
-                 '                                                                                                            '
+                 ''
                  'Time and Parametric effects can also be included. For time modulation include a cell array (1 x n) called tmod. It should have a have a single number in each cell. Unused cells may contain either a 0 or be left empty. The number specifies the order of time modulation from 0 = No Time Modulation to 6 = 6th Order Time Modulation. eg. tmod{3} = 1, modulates the 3rd condition by a linear time effect.'
-                 '                                                                                                            '
+                 ''
                  'For parametric modulation include a structure array, which is up to 1 x n in size, called pmod. n must be less than or equal to the number of cells in the names/onsets/durations cell arrays. The structure array pmod must have the fields: name, param and poly.  Each of these fields is in turn a cell array to allow the inclusion of one or more parametric effects per column of the design. The field name must be a cell array containing strings. The field param is a cell array containing a vector of parameters. Remember each parameter must be the same length as its corresponding onsets vector. The field poly is a cell array (for consistency) with each cell containing a single number specifying the order of the polynomial expansion from 1 to 6.'
-                 '                                                                                                            '
+                 ''
                  'Note that each condition is assigned its corresponding entry in the structure array (condition 1 parametric modulators are in pmod(1), condition 2 parametric modulators are in pmod(2), etc. Within a condition multiple parametric modulators are accessed via each fields cell arrays. So for condition 1, parametric modulator 1 would be defined in  pmod(1).name{1}, pmod(1).param{1}, and pmod(1).poly{1}. A second parametric modulator for condition 1 would be defined as pmod(1).name{2}, pmod(1).param{2} and pmod(1).poly{2}. If there was also a parametric modulator for condition 2, then remember the first modulator for that condition is in cell array 1: pmod(2).name{1}, pmod(2).param{1}, and pmod(2).poly{1}. If some, but not all conditions are parametrically modulated, then the non-modulated indices in the pmod structure can be left blank. For example, if conditions 1 and 3 but not condition 2 are modulated, then specify pmod(1) and pmod(3). Similarly, if conditions 1 and 2 are modulated but there are 3 conditions overall, it is only necessary for pmod to be a 1 x 2 structure array.'
-                 '                                                                                                            '
+                 ''
                  'EXAMPLE:'
                  'Make an empty pmod structure: '
                  '  pmod = struct(''name'',{''''},''param'',{},''poly'',{});'
@@ -246,7 +246,7 @@ multi.help    = {
                  '  pmod(2).name{2}  = ''regressor2-2'';'
                  '  pmod(2).param{2} = [2 4 6 8 10];'
                  '  pmod(2).poly{2}  = 1;'
-                 '                                                                                                            '
+                 ''
                  'The parametric modulator should be mean corrected if appropriate. Unused structure entries should have all fields left empty.'
 }';
 multi.filter = '\.mat$';
@@ -296,9 +296,9 @@ multi_reg.name    = 'Multiple regressors';
 multi_reg.val{1} = {''};
 multi_reg.help    = {
                      'Select the *.mat/*.txt file containing details of your multiple regressors. '
-                     '                                                                                                            '
+                     ''
                      'If you have multiple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. '
-                     '                                                                                                            '
+                     ''
                      'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'
 }';
 multi_reg.filter = 'mat';
@@ -370,11 +370,11 @@ generic1.tag     = 'generic';
 generic1.name    = 'Factorial design';
 generic1.help    = {
                     'If you have a factorial design then SPM can automatically generate the contrasts necessary to test for the main effects and interactions. '
-                    '                                                                                                            '
+                    ''
                     'This includes the F-contrasts necessary to test for these effects at the within-subject level (first level) and the simple contrasts necessary to generate the contrast images for a between-subject (second-level) analysis.'
-                    '                                                                                                            '
+                    ''
                     'To use this option, create as many factors as you need and provide a name and number of levels for each.  SPM assumes that the condition numbers of the first factor change slowest, the second factor next slowest etc. It is best to write down the contingency table for your design to ensure this condition is met. This table relates the levels of each factor to the conditions. '
-                    '                                                                                                            '
+                    ''
                     'For example, if you have 2-by-3 design  your contingency table has two rows and three columns where the the first factor spans the rows, and the second factor the columns. The numbers of the conditions are 1,2,3 for the first row and 4,5,6 for the second. '
 }';
 generic1.values  = {fact };
@@ -556,9 +556,9 @@ cvi.tag     = 'cvi';
 cvi.name    = 'Serial correlations';
 cvi.help    = {
                'Serial correlations in fMRI time series due to aliased biorhythms and unmodelled neuronal activity can be accounted for using an autoregressive AR(1) model during Classical (ReML) parameter estimation.  '
-               '                                                                                                            '
+               ''
                'This estimate assumes the same correlation structure for each voxel, within each session.  ReML estimates are then used to correct for non-sphericity during inference by adjusting the statistics and degrees of freedom appropriately.  The discrepancy between estimated and actual intrinsic (i.e. prior to filtering) correlations are greatest at low frequencies.  Therefore specification of the high-pass filter is particularly important. '
-               '                                                                                                            '
+               ''
                'Serial correlation can be ignored if you choose the ''none'' option. Note that the above options only apply if you later specify that your model will be estimated using the Classical (ReML) approach. If you choose Bayesian estimation these options will be ignored. For Bayesian estimation, the choice of noisemodel (AR model order) is made under the estimation options. '
 }';
 cvi.labels = {

@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_defaults.m 2086 2008-09-12 10:30:21Z volkmar $
 
 
 global defaults
@@ -211,10 +211,17 @@ defaults.imcalc.mask   = 0;                 % Masking
 defaults.imcalc.interp = 1;                 % Interpolation
 defaults.imcalc.dtype  = spm_type('int16'); % Data Type
 
+% Deformation utility defaults
+%=======================================================================
+defaults.defs.vox = [NaN NaN NaN];
+defaults.defs.bb  = [NaN NaN NaN
+                    NaN NaN NaN];
+defaults.defs.K   = 6;
+
 % DICOM Import defaults
 %=======================================================================
 defaults.dicom.root    = 'flat';
-defaults.dicom.format  = 'nii';
+defaults.dicom.format  = 'img';
 defaults.dicom.icedims = 0;
 
 % MINC Import defaults

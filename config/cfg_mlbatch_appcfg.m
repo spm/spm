@@ -5,7 +5,7 @@ function [cfg, def] = cfg_mlbatch_appcfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: cfg_mlbatch_appcfg.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: cfg_mlbatch_appcfg.m 2086 2008-09-12 10:30:21Z volkmar $
 
 cfg = spm_cfg;
-def = spm_def;
+def = [];

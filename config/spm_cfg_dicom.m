@@ -4,9 +4,9 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_dicom.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % data DICOM files
 % ---------------------------------------------------------------------
@@ -54,8 +54,7 @@ root.def    = @(val)spm_get_defaults('dicom.root', val{:});
 outdir         = cfg_files;
 outdir.tag     = 'outdir';
 outdir.name    = 'Output directory';
-outdir.val{1} = {''};
-outdir.help    = {'Select a directory where files are written. Default is current directory.'};
+outdir.help    = {'Select a directory where files are written.'};
 outdir.filter = 'dir';
 outdir.ufilter = '.*';
 outdir.num     = [1 1];

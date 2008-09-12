@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_realignunwarp.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -30,6 +30,7 @@ pmscan.help    = {'Select pre-calculated phase map, or leave empty for no phase 
 pmscan.filter = 'image';
 pmscan.ufilter = '^vdm5_.*';
 pmscan.num     = [0 1];
+pmscan.val     = {''};
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------

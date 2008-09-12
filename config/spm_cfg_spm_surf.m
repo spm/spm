@@ -4,9 +4,9 @@ function spm_surf_node = spm_cfg_spm_surf
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_spm_surf.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_cfg_spm_surf.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1517 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % data Grey+white matter image
 % ---------------------------------------------------------------------
@@ -30,10 +30,7 @@ mode.labels = {
                'Save Rendering and Surface'
                'Save Surface as OBJ format'
 }';
-mode.values{1} = double(1);
-mode.values{2} = double(2);
-mode.values{3} = double(3);
-mode.values{4} = double(4);
+mode.values = {1 2 3 4};
 % ---------------------------------------------------------------------
 % thresh Surface isovalue(s)
 % ---------------------------------------------------------------------

@@ -4,9 +4,9 @@ function results = spm_cfg_results
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_results.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -24,6 +24,7 @@ titlestr         = cfg_entry;
 titlestr.tag     = 'titlestr';
 titlestr.name    = 'Results Title';
 titlestr.help    = {'Heading on results page - determined automatically if left empty'};
+titlestr.val     = {''};
 titlestr.strtype = 's';
 titlestr.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -107,8 +108,7 @@ mtype.labels = {
                 'Inclusive'
                 'Exclusive'
 }';
-mtype.values{1} = double(0);
-mtype.values{2} = double(1);
+mtype.values    = {0 1};
 % ---------------------------------------------------------------------
 % mask Mask definition
 % ---------------------------------------------------------------------

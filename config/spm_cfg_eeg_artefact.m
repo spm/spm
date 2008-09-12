@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_artefact.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: spm_cfg_eeg_artefact.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1560 $';
+rev = '$Rev: 2086 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -17,7 +17,7 @@ D.help = {'Select the EEG mat file.'};
 nothing = cfg_const;
 nothing.tag = 'nothing';
 nothing.name = 'No lists';
-nothing.val{1} = double([]);
+nothing.val  = {1};
 
 out_list = cfg_entry;
 out_list.tag = 'out_list';
@@ -67,7 +67,7 @@ weighted_arg.val = {Weightingfunction Smoothing};
 nothing = cfg_const;
 nothing.tag = 'nothing';
 nothing.name = 'No robust averaging';
-nothing.val{1} = double([]);
+nothing.val  = {1};
 
 weighted         = cfg_choice;
 weighted.tag     = 'weighted';
@@ -79,7 +79,7 @@ weighted.values = {weighted_arg nothing};
 nothing = cfg_const;
 nothing.tag = 'nothing';
 nothing.name = 'No thresholding';
-nothing.val{1} = double([]);
+nothing.val  = {1};
 
 channels_threshold = cfg_entry;
 channels_threshold.tag = 'channels_threshold';

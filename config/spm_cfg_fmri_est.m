@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_fmri_est.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -26,10 +26,10 @@ spmmat.num     = [1 1];
 Classical         = cfg_const;
 Classical.tag     = 'Classical';
 Classical.name    = 'Classical';
-Classical.val{1} = double(1);
+Classical.val     = {1};
 Classical.help    = {
                      'Model parameters are estimated using Restricted Maximum Likelihood (ReML). This assumes the error correlation structure is the same at each voxel. This correlation can be specified using either an AR(1) or an Independent and Identically Distributed (IID) error model. These options are chosen at the model specification stage. ReML estimation should be applied to spatially smoothed functional images.'
-                     '                                                                                                            '
+                     ''
                      'After estimation, specific profiles of parameters are tested using a linear compound or contrast with the T or F statistic. The resulting statistical map constitutes an SPM. The SPM{T}/{F} is then characterised in terms of focal or regional differences by assuming that (under the null hypothesis) the components of the SPM (ie. residual fields) behave as smooth stationary Gaussian fields.'
 }';
 % ---------------------------------------------------------------------
@@ -38,7 +38,7 @@ Classical.help    = {
 Volume         = cfg_const;
 Volume.tag     = 'Volume';
 Volume.name    = 'Volume';
-Volume.val{1} = double(1);
+Volume.val     = {1};
 Volume.help    = {'You have selected the Volume option. SPM will analyse fMRI time series in all slices of each volume.'};
 % ---------------------------------------------------------------------
 % Slices Slices
@@ -66,11 +66,11 @@ signal.tag     = 'signal';
 signal.name    = 'Signal priors';
 signal.help    = {
                   '[GMRF] Gaussian Markov Random Field. This spatial prior is the recommended option. Regression coefficients at a given voxel are (softly) constrained to be similar to those at nearby voxels. The strength of this constraint is determined by a spatial precision parameter that is estimated from the data. Different regression coefficients have different spatial precisions allowing each putative experimental effect to have its own spatial regularity. '
-                  '                                                                                                            '
+                  ''
                   '[LORETA] Low resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standatd choice for EEG source localisation algorithms. It does, however, have undesirable edge effects.'
-                  '                                                                                                            '
+                  ''
                   '[Global] Global Shrinkage prior. This is not a spatial prior in the sense that regression coefficients are constrained to be similar to neighboring voxels. Instead, the average effect over all voxels (global effect) is assumed to be zero and all regression coefficients are shrunk towards this value in proporation to the prior precision. This is the same prior that is used for Bayesian estimation at the second level models, except that here the prior precision is estimated separaetly for each slice. '
-                  '                                                                                                            '
+                  ''
                   '[Uninformative] A flat prior. Essentially, no prior information is used. If you select this option then VB reduces to Maximum Likelihood (ML)estimation. This option is useful if, for example, you do not wish to use a spatial prior but wish to take advantage of the voxel-wise AR(P) modelling of noise processes. In this case, you would apply the algorithm to images that have been spatially smoothed. For P=0, ML estimation in turn reduces to Ordinary Least Squares (OLS) estimates, and for P>0 ML estimation is equivalent to a weighted least squares (WLS) but where the weights are different at each voxel (reflecting the different noise correlation at each voxel). '
 }';
 signal.labels = {
@@ -94,9 +94,9 @@ ARP.tag     = 'ARP';
 ARP.name    = 'AR model order';
 ARP.help    = {
                'An AR model order of 3 is the default. Cardiac and respiratory artifacts are periodic in nature and therefore require an AR order of at least 2. In previous work, voxel-wise selection of the optimal model order showed that a value of 3 was the highest order required. '
-               '                                                                                                            '
+               ''
                'Higher model orders have little effect on the estimation time. If you select a model order of zero this corresponds to the assumption that the errors are IID. This AR specification overrides any choices that were made in the model specification stage.'
-               '                                                                                                            '
+               ''
                'Voxel-wise AR models are fitted separately for each session of data. For each session this therefore produces maps of AR(1), AR(2) etc coefficients in the output directory. '
 }';
 ARP.strtype = 'e';
@@ -108,7 +108,7 @@ ARP.def     = @(val)spm_get_defaults('stats.est.ARP', val{:});
 GMRF         = cfg_const;
 GMRF.tag     = 'GMRF';
 GMRF.name    = 'GMRF';
-GMRF.val{1} = double(1);
+GMRF.val     = {1};
 GMRF.help    = {'[GMRF] Gaussian Markov Random Field. This is the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
 % ---------------------------------------------------------------------
 % LORETA LORETA
@@ -116,7 +116,7 @@ GMRF.help    = {'[GMRF] Gaussian Markov Random Field. This is the default option
 LORETA         = cfg_const;
 LORETA.tag     = 'LORETA';
 LORETA.name    = 'LORETA';
-LORETA.val{1} = double(1);
+LORETA.val     = {1};
 LORETA.help    = {'[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regresion coefficients.'};
 % ---------------------------------------------------------------------
 % tissue_type Tissue-type
@@ -126,7 +126,7 @@ tissue_type.tag     = 'tissue_type';
 tissue_type.name    = 'Tissue-type';
 tissue_type.help    = {
                        '[Tissue-type] AR estimates at each voxel are biased towards typical values for that tissue type (eg. gray, white, CSF). If you select this option you will need to then select files that contain tissue type maps (see below). These are typically chosen to be Grey Matter, White Matter and CSF images derived from segmentation of registered structural scans.'
-                       '                                                                                                            '
+                       ''
                        'Previous work has shown that there is significant variation in AR values with tissue type. However, GMRF priors have previously been favoured by Bayesian model comparison.'
 }';
 tissue_type.filter = 'image';
@@ -138,7 +138,7 @@ tissue_type.num     = [1 Inf];
 Robust         = cfg_const;
 Robust.tag     = 'Robust';
 Robust.name    = 'Robust';
-Robust.val{1} = double(1);
+Robust.val     = {1};
 Robust.help    = {'Robust GLM. Uses Mixture of Gaussians noise model.'};
 % ---------------------------------------------------------------------
 % noise Noise priors
@@ -161,7 +161,7 @@ first.name    = 'First level';
 first.val = {'No'};
 first.help    = {
                  'This is implemented using Bayesian model comparison. For example, to test for the main effect of a factor two models are compared, one where the levels are represented using different regressors and one using the same regressor. This therefore requires explicit fitting of several models at each voxel and is computationally demanding (requiring several hours of computation). The recommended option is therefore NO.'
-                 '                                                                                                            '
+                 ''
                  'To use this option you must have already specified your factorial design during the model specification stage. '
 }';
 first.labels = {
@@ -181,11 +181,11 @@ second.name    = 'Second level';
 second.val = {'Yes'};
 second.help    = {
                   'This option tells SPM to automatically generate the simple contrasts that are necessary to produce the contrast images for a second-level (between-subject) ANOVA. Naturally, these contrasts can also be used to characterise simple effects for each subject. '
-                  '                                                                                                            '
+                  ''
                   'With the Bayesian estimation option it is recommended that contrasts are computed during the parameter estimation stage (see ''simple contrasts'' below). The recommended option here is therefore YES.'
-                  '                                                                                                            '
+                  ''
                   'To use this option you must have already specified your factorial design during the model specification stage. '
-                  '                                                                                                            '
+                  ''
                   'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. '
 }';
 second.labels = {
@@ -238,11 +238,11 @@ generic.tag     = 'generic';
 generic.name    = 'Simple contrasts';
 generic.help    = {
                    '''Simple'' contrasts refers to a contrast that spans one-dimension ie. to assess an effect that is increasing or decreasing.'
-                   '                                                                                                            '
+                   ''
                    'If you have a factoral design then the contrasts needed to generate the contrast images for a 2nd-level ANOVA (or to assess these simple effects within-subject) can be specified automatically using the ANOVA->Second level option.'
-                   '                                                                                                            '
+                   ''
                    'When using the Bayesian estimation option it is computationally more efficient to compute the contrasts when the parameters are estimated. This is because estimated parameter vectors have potentially different posterior covariance matrices at different voxels and these matrices are not stored. If you compute contrasts post-hoc these matrices must be recomputed (an approximate reconstruction based on a Taylor series expansion is used). It is therefore recommended to specify as many contrasts as possible prior to parameter estimation.'
-                   '                                                                                                            '
+                   ''
                    'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. '
 }';
 generic.values  = {gcon };
@@ -256,9 +256,9 @@ Bayesian.name    = 'Bayesian 1st-level';
 Bayesian.val     = {space signal ARP noise anova generic };
 Bayesian.help    = {
                     'Model parameters are estimated using Variational Bayes (VB). This allows you to specify spatial priors for regression coefficients and regularised voxel-wise AR(P) models for fMRI noise processes. The algorithm does not require functional images to be spatially smoothed. Estimation will take about 5 times longer than with the classical approach. This is why VB is not the default estimation option. '
-                    '                                                                                                            '
+                    ''
                     'Model estimation using this option is only efficient if MATLAB can load a whole slice of data into physical memory. With modern PCs this is usually achieved if the within-plane voxel sizes are 3 by 3 mm. This is therefore the minimum recommended voxel size that your spatial normalisation process should produce. Within-plane voxel sizes of 2 by 2 mm usually result in too many voxels per slice and result in estimation times lasting several hours or days. Such a high resolution is therefore to be avoided. '
-                    '                                                                                                            '
+                    ''
                     'After estimation, contrasts are used to find regions with effects larger than a user-specified size eg. 1 per cent of the global mean signal. These effects are assessed statistically using a Posterior Probability Map (PPM).'
 }';
 % ---------------------------------------------------------------------
@@ -267,7 +267,7 @@ Bayesian.help    = {
 Bayesian2         = cfg_const;
 Bayesian2.tag     = 'Bayesian2';
 Bayesian2.name    = 'Bayesian 2nd-level';
-Bayesian2.val{1} = double(1);
+Bayesian2.val     = {1};
 Bayesian2.help    = {'Bayesian estimation of 2nd level models. This option uses the Empirical Bayes algorithm with global shrinkage priors that was previously implemented in SPM2. Use of the global shrinkage prior embodies a prior belief that, on average over all voxels, there is no net experimental effect. Some voxels will respond negatively and some positively with a variability determined by the prior precision. This prior precision can be estimated from the data using Empirical Bayes. '};
 % ---------------------------------------------------------------------
 % method Method
@@ -278,7 +278,7 @@ method.name    = 'Method';
 method.val     = {Classical };
 method.help    = {
                   'There are three possible estimation procedures for fMRI models (1) classical (ReML) estimation of first or second level models, (2) Bayesian estimation of first level models and (3) Bayesian estimation of second level models. Option (2) uses a Variational Bayes (VB) algorithm that is new to SPM5. Option (3) uses the Empirical Bayes algorithm with global shrinkage priors that was also in SPM2. '
-                  '                                                                                                            '
+                  ''
                   'To use option (3) you must have already estimated the model using option (1). That is, for second-level models you must run a ReML estimation before running a Bayesian estimation. This is not necessary for option (2). Bayesian estimation of 1st-level models using VB does not require a prior ReML estimation.'
 }';
 method.values  = {Classical Bayesian Bayesian2 };

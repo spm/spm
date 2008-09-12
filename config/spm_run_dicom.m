@@ -9,14 +9,14 @@ function out = spm_run_dicom(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_dicom.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_dicom.m 2086 2008-09-12 10:30:21Z volkmar $
 
 
 wd = pwd;
 try
-    if ~isempty(job.outdir{:})
-        cd(job.outdir{:});
-        fprintf('   Changing directory to: %s\n', job.outdir{:});
+    if ~isempty(job.outdir{1})
+        cd(job.outdir{1});
+        fprintf('   Changing directory to: %s\n', job.outdir{1});
     end
 catch
     error('Failed to change directory. Aborting DICOM import.');
@@ -31,7 +31,7 @@ end;
 hdr = spm_dicom_headers(strvcat(job.data));
 out = spm_dicom_convert(hdr,'all',root_dir,job.convopts.format);
 
-if ~isempty(job.outdir)
+if ~isempty(job.outdir{1})
     fprintf('   Changing back to directory: %s\n', wd);
     cd(wd);
 end

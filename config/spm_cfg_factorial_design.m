@@ -4,9 +4,9 @@ function factorial_design = spm_cfg_factorial_design
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_factorial_design.m 1815 2008-06-11 14:08:48Z volkmar $
+% $Id: spm_cfg_factorial_design.m 2086 2008-09-12 10:30:21Z volkmar $
 
-rev = '$Rev: 1815 $';
+rev = '$Rev: 2086 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -63,11 +63,11 @@ dept.tag     = 'dept';
 dept.name    = 'Independence';
 dept.help    = {
                 'By default, the measurements are assumed to be independent between levels. '
-                '                                                                                                            '
+                ''
                 'If you change this option to allow for dependencies, this will violate the assumption of sphericity. It would therefore be an example of non-sphericity. One such example would be where you had repeated measurements from the same subjects - it may then be the case that, over subjects, measure 1 is correlated to measure 2. '
-                '                                                                                                            '
+                ''
                 'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                '                                                                                                            '
+                ''
 }';
 dept.labels = {
                'Yes'
@@ -84,13 +84,13 @@ variance.tag     = 'variance';
 variance.name    = 'Variance';
 variance.help    = {
                     'By default, the measurements in each level are assumed to have unequal variance. '
-                    '                                                                                                            '
+                    ''
                     'This violates the assumption of ''sphericity'' and is therefore an example of ''non-sphericity''.'
-                    '                                                                                                            '
+                    ''
                     'This can occur, for example, in a 2nd-level analysis of variance, one contrast may be scaled differently from another.  Another example would be the comparison of qualitatively different dependent variables (e.g. normals vs. patients).  Different variances (heteroscedasticy) induce different error covariance components that are estimated using restricted maximum likelihood (see below).'
-                    '                                                                                                            '
+                    ''
                     'Restricted Maximum Likelihood (REML): The ensuing covariance components will be estimated using ReML in spm_spm (assuming the same for all responsive voxels) and used to adjust the statistics and degrees of freedom during inference. By default spm_spm will use weighted least squares to produce Gauss-Markov or Maximum likelihood estimators using the non-sphericity structure specified at this stage. The components will be found in SPM.xVi and enter the estimation procedure exactly as the serial correlations in fMRI models.'
-                    '                                                                                                            '
+                    ''
 }';
 variance.labels = {
                    'Equal'
@@ -106,11 +106,11 @@ gmsca.tag     = 'gmsca';
 gmsca.name    = 'Grand mean scaling';
 gmsca.help    = {
                  'This option is only used for PET data.'
-                 '                                                                                                            '
+                 ''
                  'Selecting YES will specify ''grand mean scaling by factor'' which could be eg. ''grand mean scaling by subject'' if the factor is ''subject''. '
-                 '                                                                                                            '
+                 ''
                  'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" to obtain a combination of between subject proportional scaling and within subject AnCova. '
-                 '                                                                                                            '
+                 ''
 }';
 gmsca.labels = {
                 'No'
@@ -126,9 +126,9 @@ ancova.tag     = 'ancova';
 ancova.name    = 'ANCOVA';
 ancova.help    = {
                   'This option is only used for PET data.'
-                  '                                                                                                            '
+                  ''
                   'Selecting YES will specify ''ANCOVA-by-factor'' regressors. This includes eg. ''Ancova by subject'' or ''Ancova by effect''. These options allow eg. different subjects to have different relationships between local and global measurements. '
-                  '                                                                                                            '
+                  ''
 }';
 ancova.labels = {
                  'No'
@@ -169,8 +169,8 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Pairs';
 generic.help    = {
-                   '  '
-                   '                                                                                                            '
+                   ''
+                   ''
 }';
 generic.values  = {pair };
 generic.num     = [1 Inf];
@@ -294,7 +294,7 @@ generic.tag     = 'generic';
 generic.name    = 'Factors';
 generic.help    = {
                    'Specify your design a factor at a time. '
-                   '                                                                                                            '
+                   ''
 }';
 generic.values  = {fact };
 generic.num     = [1 Inf];
@@ -306,9 +306,9 @@ levels.tag     = 'levels';
 levels.name    = 'Levels';
 levels.help    = {
                   'Enter a vector or scalar that specifies which cell in the factorial design these images belong to. The length of this vector should correspond to the number of factors in the design'
-                  '                                                                                                            '
+                  ''
                   'For example, length 2 vectors should be used for two-factor designs eg. the vector [2 3] specifies the cell corresponding to the 2nd-level of the first factor and the 3rd level of the 2nd factor.'
-                  '                                                                                                            '
+                  ''
 }';
 levels.strtype = 'e';
 levels.num     = [Inf 1];
@@ -338,7 +338,7 @@ generic1.tag     = 'generic';
 generic1.name    = 'Specify cells';
 generic1.help    = {
                     'Enter the scans a cell at a time'
-                    '                                                                                                            '
+                    ''
 }';
 generic1.values  = {icell };
 generic1.num     = [1 Inf];
@@ -351,11 +351,11 @@ fd.name    = 'Full factorial';
 fd.val     = {generic generic1 };
 fd.help    = {
               'This option is best used when you wish to test for all main effects and interactions in one-way, two-way or three-way ANOVAs. Design specification proceeds in 2 stages. Firstly, by creating new factors and specifying the number of levels and name for each. Nonsphericity, ANOVA-by-factor and scaling options can also be specified at this stage. Secondly, scans are assigned separately to each cell. This accomodates unbalanced designs.'
-              '                                                                                                            '
+              ''
               'For example, if you wish to test for a main effect in the population from which your subjects are drawn and have modelled that effect at the first level using K basis functions (eg. K=3 informed basis functions) you can use a one-way ANOVA with K-levels. Create a single factor with K levels and then assign the data to each cell eg. canonical, temporal derivative and dispersion derivative cells, where each cell is assigned scans from multiple subjects.'
-              '                                                                                                            '
+              ''
               'SPM will also automatically generate the contrasts necessary to test for all main effects and interactions. '
-              '                                                                                                            '
+              ''
 }';
 % ---------------------------------------------------------------------
 % name Name
@@ -375,11 +375,11 @@ fac.name    = 'Factor';
 fac.val     = {name dept variance gmsca ancova };
 fac.help    = {
                'Add a new factor to your design.'
-               '                                                                                                            '
+               ''
                'If you are using the ''Subjects'' option to specify your scans and conditions, you may wish to make use of the following facility. There are two reserved words for the names of factors. These are ''subject'' and ''repl'' (standing for replication). If you use these factor names then SPM can automatically create replication and/or subject factors without you having to type in an extra entry in the condition vector.'
-               '                                                                                                            '
+               ''
                'For example, if you wish to model Subject and Task effects (two factors), under Subjects->Subject->Conditions you can type in simply [1 2 1 2] to specify eg. just the ''Task'' factor level. You do not need to eg. for the 4th subject enter the matrix [1 4; 2 4; 1 4; 2 4]. '
-               '                                                                                                            '
+               ''
 }';
 % ---------------------------------------------------------------------
 % generic Factors
@@ -389,7 +389,7 @@ generic.tag     = 'generic';
 generic.name    = 'Factors';
 generic.help    = {
                    'Specify your design a factor at a time.'
-                   '                                                                                                            '
+                   ''
 }';
 generic.values  = {fac };
 generic.num     = [1 Inf];
@@ -457,9 +457,9 @@ specall.name    = 'Specify all';
 specall.val     = {scans imatrix };
 specall.help    = {
                    'Specify (i) all scans in one go and (ii) all conditions using a factor matrix, I. This option is for ''power users''. The matrix I must have four columns and as as many rows as scans. It has the same format as SPM''s internal variable SPM.xX.I. '
-                   '                                                                                                            '
+                   ''
                    'The first column of I denotes the replication number and entries in the other columns denote the levels of each experimental factor.'
-                   '                                                                                                            '
+                   ''
                    'So, for eg. a two-factor design the first column denotes the replication number and columns two and three have entries like 2 3 denoting the 2nd level of the first factor and 3rd level of the second factor. The 4th column in I would contain all 1s.'
 }';
 % ---------------------------------------------------------------------
@@ -523,15 +523,15 @@ fblock.name    = 'Flexible factorial';
 fblock.val     = {generic fsuball maininters };
 fblock.help    = {
                   'Create a design matrix a block at a time by specifying which main effects and interactions you wish to be included.'
-                  '                                                                                                            '
+                  ''
                   'This option is best used for one-way, two-way or three-way ANOVAs but where you do not wish to test for all possible main effects and interactions. This is perhaps most useful for PET where there is usually not enough data to test for all possible effects. Or for 3-way ANOVAs where you do not wish to test for all of the two-way interactions. A typical example here would be a group-by-drug-by-task analysis where, perhaps, only (i) group-by-drug or (ii) group-by-task interactions are of interest. In this case it is only necessary to have two-blocks in the design matrix - one for each interaction. The three-way interaction can then be tested for using a contrast that computes the difference between (i) and (ii).'
-                  '                                                                                                            '
+                  ''
                   'Design specification then proceeds in 3 stages. Firstly, factors are created and names specified for each. Nonsphericity, ANOVA-by-factor and scaling options can also be specified at this stage.'
-                  '                                                                                                            '
+                  ''
                   'Secondly, a list of scans is produced along with a factor matrix, I. This is an nscan x 4 matrix of factor level indicators (see xX.I below). The first factor must be ''replication'' but the other factors can be anything. Specification of I and the scan list can be achieved in one of two ways (a) the ''Specify All'' option allows I to be typed in at the user interface or (more likely) loaded in from the matlab workspace. All of the scans are then selected in one go. (b) the ''Subjects'' option allows you to enter scans a subject at a time. The corresponding experimental conditions (ie. levels of factors) are entered at the same time. SPM will then create the factor matrix I. This style of interface is similar to that available in SPM2.'
-                  '                                                                                                            '
+                  ''
                   'Thirdly, the design matrix is built up a block at a time. Each block can be a main effect or a (two-way) interaction. '
-                  '                                                                                                            '
+                  ''
 }';
 % ---------------------------------------------------------------------
 % des Design
@@ -568,7 +568,7 @@ iCFI.tag     = 'iCFI';
 iCFI.name    = 'Interactions';
 iCFI.help    = {
                 'For each covariate you have defined, there is an opportunity to create an additional regressor that is the interaction between the covariate and a chosen experimental factor. '
-                '                                                                                                            '
+                ''
 }';
 iCFI.labels = {
                'None'
@@ -586,7 +586,7 @@ iCC.tag     = 'iCC';
 iCC.name    = 'Centering';
 iCC.help    = {
                'The appropriate centering option is usually the one that corresponds to the interaction chosen, and ensures that main effects of the interacting factor aren''t affected by the covariate. You are advised to choose this option, unless you have other modelling considerations. '
-               '                                                                                                            '
+               ''
 }';
 iCC.labels = {
               'Overall mean'
@@ -616,7 +616,7 @@ generic.tag     = 'generic';
 generic.name    = 'Covariates';
 generic.help    = {
                    'This option allows for the specification of covariates and nuisance variables. Unlike SPM94/5/6, where the design was partitioned into effects of interest and nuisance effects for the computation of adjusted data and the F-statistic (which was used to thresh out voxels where there appeared to be no effects of interest), SPM5 does not partition the design in this way. The only remaining distinction between effects of interest (including covariates) and nuisance effects is their location in the design matrix, which we have retained for continuity.  Pre-specified design matrix partitions can be entered. '
-                   '                                                                                                            '
+                   ''
 }';
 generic.values  = {cov };
 generic.num     = [0 Inf];
@@ -626,7 +626,7 @@ generic.num     = [0 Inf];
 tm_none         = cfg_const;
 tm_none.tag     = 'tm_none';
 tm_none.name    = 'None';
-tm_none.val{1} = double([]);
+tm_none.val     = {1};
 tm_none.help    = {'No threshold masking'};
 % ---------------------------------------------------------------------
 % athresh Threshold
@@ -636,7 +636,7 @@ athresh.tag     = 'athresh';
 athresh.name    = 'Threshold';
 athresh.help    = {
                    'Enter the absolute value of the threshold.'
-                   '                                                                                                            '
+                   ''
 }';
 athresh.strtype = 'e';
 athresh.num     = [1 1];
@@ -650,9 +650,9 @@ tma.name    = 'Absolute';
 tma.val     = {athresh };
 tma.help    = {
                'Images are thresholded at a given value and only voxels at which all images exceed the threshold are included. '
-               '                                                                                                            '
+               ''
                'This option allows you to specify the absolute value of the threshold.'
-               '                                                                                                            '
+               ''
 }';
 % ---------------------------------------------------------------------
 % rthresh Threshold
@@ -662,7 +662,7 @@ rthresh.tag     = 'rthresh';
 rthresh.name    = 'Threshold';
 rthresh.help    = {
                    'Enter the threshold as a proportion of the global value'
-                   '                                                                                                            '
+                   ''
 }';
 rthresh.strtype = 'e';
 rthresh.num     = [1 1];
@@ -676,9 +676,9 @@ tmr.name    = 'Relative';
 tmr.val     = {rthresh };
 tmr.help    = {
                'Images are thresholded at a given value and only voxels at which all images exceed the threshold are included. '
-               '                                                                                                            '
+               ''
                'This option allows you to specify the value of the threshold as a proportion of the global value. '
-               '                                                                                                            '
+               ''
 }';
 % ---------------------------------------------------------------------
 % tm Threshold masking
@@ -689,7 +689,7 @@ tm.name    = 'Threshold masking';
 tm.val     = {tm_none };
 tm.help    = {
               'Images are thresholded at a given value and only voxels at which all images exceed the threshold are included. '
-              '                                                                                                            '
+              ''
 }';
 tm.values  = {tm_none tma tmr };
 % ---------------------------------------------------------------------
@@ -700,13 +700,13 @@ im.tag     = 'im';
 im.name    = 'Implicit Mask';
 im.help    = {
               'An "implicit mask" is a mask implied by a particular voxel value. Voxels with this mask value are excluded from the analysis. '
-              '                                                                                                            '
+              ''
               'For image data-types with a representation of NaN (see spm_type.m), NaN''s is the implicit mask value, (and NaN''s are always masked out). '
-              '                                                                                                            '
+              ''
               'For image data-types without a representation of NaN, zero is the mask value, and the user can choose whether zero voxels should be masked out or not.'
-              '                                                                                                            '
+              ''
               'By default, an implicit mask is used. '
-              '                                                                                                            '
+              ''
 }';
 im.labels = {
              'Yes'
@@ -720,14 +720,14 @@ im.def    = @(val)spm_get_defaults('stats.fact.imask', val{:});
 em         = cfg_files;
 em.tag     = 'em';
 em.name    = 'Explicit Mask';
-em.val{1} = {''};
+em.val     = {{''}};
 em.help    = {
               'Explicit masks are other images containing (implicit) masks that are to be applied to the current analysis.'
-              '                                                                                                            '
+              ''
               'All voxels with value NaN (for image data-types with a representation of NaN), or zero (for other data types) are excluded from the analysis. '
-              '                                                                                                            '
+              ''
               'Explicit mask images can have any orientation and voxel/image size. Nearest neighbour interpolation of a mask image is used if the voxel centers of the input images do not coincide with that of the mask image.'
-              '                                                                                                            '
+              ''
 }';
 em.filter = 'image';
 em.ufilter = '.*';
@@ -741,7 +741,7 @@ masking.name    = 'Masking';
 masking.val     = {tm im em };
 masking.help    = {
                    'The mask specifies the voxels within the image volume which are to be assessed. SPM supports three methods of masking (1) Threshold, (2) Implicit and (3) Explicit. The volume analysed is the intersection of all masks.'
-                   '                                                                                                            '
+                   ''
 }';
 % ---------------------------------------------------------------------
 % g_omit Omit
@@ -749,7 +749,7 @@ masking.help    = {
 g_omit         = cfg_const;
 g_omit.tag     = 'g_omit';
 g_omit.name    = 'Omit';
-g_omit.val{1} = double([]);
+g_omit.val     = {1};
 g_omit.help    = {'Omit'};
 % ---------------------------------------------------------------------
 % global_uval Global values
@@ -759,7 +759,7 @@ global_uval.tag     = 'global_uval';
 global_uval.name    = 'Global values';
 global_uval.help    = {
                        'Enter the vector of global values'
-                       '                                                                                                            '
+                       ''
 }';
 global_uval.strtype = 'e';
 global_uval.num     = [Inf 1];
@@ -780,12 +780,12 @@ g_user.help    = {
 g_mean         = cfg_const;
 g_mean.tag     = 'g_mean';
 g_mean.name    = 'Mean';
-g_mean.val{1} = double([]);
+g_mean.val     = {1};
 g_mean.help    = {
                   'SPM standard mean voxel value'
-                  '                                                                                                            '
+                  ''
                   'This defines the global mean via a two-step process. Firstly, the overall mean is computed. Voxels with values less than 1/8 of this value are then deemed extra-cranial and get masked out. The mean is then recomputed on the remaining voxels.'
-                  '                                                                                                            '
+                  ''
 }';
 % ---------------------------------------------------------------------
 % globalc Global calculation
@@ -796,9 +796,9 @@ globalc.name    = 'Global calculation';
 globalc.val     = {g_omit };
 globalc.help    = {
                    'This option is only used for PET data.'
-                   '                                                                                                            '
+                   ''
                    'There are three methods for estimating global effects (1) Omit (assumming no other options requiring the global value chosen) (2) User defined (enter your own vector of global values) (3) Mean: SPM standard mean voxel value (within per image fullmean/8 mask) '
-                   '                                                                                                            '
+                   ''
 }';
 globalc.values  = {g_omit g_user g_mean };
 % ---------------------------------------------------------------------
@@ -807,7 +807,7 @@ globalc.values  = {g_omit g_user g_mean };
 gmsca_no         = cfg_const;
 gmsca_no.tag     = 'gmsca_no';
 gmsca_no.name    = 'No';
-gmsca_no.val{1} = double([]);
+gmsca_no.val     = {1};
 gmsca_no.help    = {'No overall grand mean scaling'};
 % ---------------------------------------------------------------------
 % gmscv Grand mean scaled value
@@ -817,7 +817,7 @@ gmscv.tag     = 'gmscv';
 gmscv.name    = 'Grand mean scaled value';
 gmscv.help    = {
                  'The default value of 50, scales the global flow to a physiologically realistic value of 50ml/dl/min.'
-                 '                                                                                                            '
+                 ''
 }';
 gmscv.strtype = 'e';
 gmscv.num     = [Inf 1];
@@ -831,7 +831,7 @@ gmsca_yes.name    = 'Yes';
 gmsca_yes.val     = {gmscv };
 gmsca_yes.help    = {
                      'Scaling of the overall grand mean simply scales all the data by a common factor such that the mean of all the global values is the value specified. For qualitative data, this puts the data into an intuitively accessible scale without altering the statistics. '
-                     '                                                                                                            '
+                     ''
 }';
 % ---------------------------------------------------------------------
 % gmsca Overall grand mean scaling
@@ -842,11 +842,11 @@ gmsca.name    = 'Overall grand mean scaling';
 gmsca.val     = {gmsca_no };
 gmsca.help    = {
                  'Scaling of the overall grand mean simply scales all the data by a common factor such that the mean of all the global values is the value specified. For qualitative data, this puts the data into an intuitively accessible scale without altering the statistics. '
-                 '                                                                                                            '
+                 ''
                  'When proportional scaling global normalisation is used each image is separately scaled such that it''s global value is that specified (in which case the grand mean is also implicitly scaled to that value). So, to proportionally scale each image so that its global value is eg. 20, select <Yes> then type in 20 for the grand mean scaled value.'
-                 '                                                                                                            '
+                 ''
                  'When using AnCova or no global normalisation, with data from different subjects or sessions, an intermediate situation may be appropriate, and you may be given the option to scale group, session or subject grand means separately. '
-                 '                                                                                                            '
+                 ''
 }';
 gmsca.values  = {gmsca_no gmsca_yes };
 % ---------------------------------------------------------------------
@@ -857,11 +857,11 @@ glonorm.tag     = 'glonorm';
 glonorm.name    = 'Normalisation';
 glonorm.help    = {
                    'Global nuisance effects are usually accounted for either by scaling the images so that they all have the same global value (proportional scaling), or by including the global covariate as a nuisance effect in the general linear model (AnCova). Much has been written on which to use, and when. Basically, since proportional scaling also scales the variance term, it is appropriate for situations where the global measurement predominantly reflects gain or sensitivity. Where variance is constant across the range of global values, linear modelling in an AnCova approach has more flexibility, since the model is not restricted to a simple proportional regression. '
-                   '                                                                                                            '
+                   ''
                    '''Ancova by subject'' or ''Ancova by effect'' options are implemented using the ANCOVA options provided where each experimental factor (eg. subject or effect), is defined. These allow eg. different subjects to have different relationships between local and global measurements. '
-                   '                                                                                                            '
+                   ''
                    'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" (an option also provided where each experimental factor is originally defined) to obtain a combination of between subject proportional scaling and within subject AnCova. '
-                   '                                                                                                            '
+                   ''
 }';
 glonorm.labels = {
                   'None'
@@ -879,13 +879,13 @@ globalm.name    = 'Global normalisation';
 globalm.val     = {gmsca glonorm };
 globalm.help    = {
                    'This option is only used for PET data.'
-                   '                                                                                                            '
+                   ''
                    'Global nuisance effects are usually accounted for either by scaling the images so that they all have the same global value (proportional scaling), or by including the global covariate as a nuisance effect in the general linear model (AnCova). Much has been written on which to use, and when. Basically, since proportional scaling also scales the variance term, it is appropriate for situations where the global measurement predominantly reflects gain or sensitivity. Where variance is constant across the range of global values, linear modelling in an AnCova approach has more flexibility, since the model is not restricted to a simple proportional regression. '
-                   '                                                                                                            '
+                   ''
                    '''Ancova by subject'' or ''Ancova by effect'' options are implemented using the ANCOVA options provided where each experimental factor (eg. subject or effect), is defined. These allow eg. different subjects to have different relationships between local and global measurements. '
-                   '                                                                                                            '
+                   ''
                    'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" (an option also provided where each experimental factor is originally defined) to obtain a combination of between subject proportional scaling and within subject AnCova. '
-                   '                                                                                                            '
+                   ''
 }';
 % ---------------------------------------------------------------------
 % factorial_design Factorial design specification
@@ -896,13 +896,13 @@ factorial_design.name    = 'Factorial design specification';
 factorial_design.val     = {dir des generic masking globalc globalm };
 factorial_design.help    = {
                             'This interface is used for setting up analyses of PET data. It is also used for ''2nd level'' or ''random effects'' analysis which allow one to make a population inference. First level models can be used to produce appropriate summary data, which can then be used as raw data for a second-level analysis. For example, a simple t-test on contrast images from the first-level turns out to be a random-effects analysis with random subject effects, inferring for the population based on a particular sample of subjects.'
-                            '                                                                                                            '
+                            ''
                             'This interface configures the design matrix, describing the general linear model, data specification, and other parameters necessary for the statistical analysis. These parameters are saved in a configuration file (SPM.mat), which can then be passed on to spm_spm.m which estimates the design. This is achieved by pressing the ''Estimate'' button. Inference on these estimated parameters is then handled by the SPM results section. '
-                            '                                                                                                            '
+                            ''
                             'A separate interface handles design configuration for fMRI time series.'
-                            '                                                                                                            '
+                            ''
                             'Various data and parameters need to be supplied to specify the design (1) the image files, (2) indicators of the corresponding condition/subject/group (2) any covariates, nuisance variables, or design matrix partitions (3) the type of global normalisation (if any) (4) grand mean scaling options (5) thresholds and masks defining the image volume to analyse. The interface supports a comprehensive range of options for all these parameters.'
-                            '                                                                                                            '
+                            ''
 }';
 factorial_design.prog = @spm_run_factorial_design;
 factorial_design.vout = @vout_stats;
