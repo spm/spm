@@ -366,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 1897 2008-07-09 11:57:33Z volkmar $
+% $Id: cfg_util.m 2087 2008-09-12 10:32:40Z volkmar $
 
-rev = '$Rev: 1897 $'; %#ok
+rev = '$Rev: 2087 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -801,6 +801,10 @@ function [c0, jobs] = local_addapp(c0, jobs, cfg, varargin)
 %         the defaults branches of the cfg tree.
 %         If def is empty or does not exist, no defaults will be added.
 
+if isempty(cfg)
+    % Gracefully return if there is nothing to do
+    return;
+end
 if subsasgn_check_funhandle(cfg)
     c1 = feval(cfg);
 elseif isa(cfg, 'cfg_item')

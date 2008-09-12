@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 1973 2008-08-01 11:52:41Z volkmar $
+% $Id: cfg_ui.m 2087 2008-09-12 10:32:40Z volkmar $
 
-rev = '$Rev: 1973 $'; %#ok
+rev = '$Rev: 2087 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -346,16 +346,11 @@ if ~isempty(udmodlist.cmod)
                       'all_set','all_set_item'});
     end;
     set(handles.moduleHead,'String',sprintf('Current Module: %s', contents{1}{1}));
-    namestr = {''};
-    datastr = {''};
-    % Cut 1st entry (module name)
-    % ugly workaround - contents should become a struct array
-    for k = 1:numel(contents)
-        contents{k} = contents{k}(2:end);
-    end;
-    id = id(2:end);
-    stop = stop(2:end);
-    for k = 1:numel(contents{1})
+    namestr = cell(1,numel(contents{1}));
+    datastr = cell(1,numel(contents{1}));
+    namestr{1} = sprintf('Help on: %s',contents{1}{1});
+    datastr{1} = '';
+    for k = 2:numel(contents{1})
         indent = repmat('  ', 1, contents{6}{k}-2);
         if contents{8}{k}
             if any(strcmp(contents{5}{k}, {'cfg_menu','cfg_files','cfg_entry'})) && ...
@@ -423,27 +418,21 @@ if ~isempty(udmodlist.cmod)
     str = cfg_textfill(handles.module,namestr,datastr,true);
     udmodule = get(handles.module, 'userdata');
     if isempty(udmodule)
-        citem = 1;
+        citem = min(2,numel(id));
     else
         % try to find old item in new module struct - this may change due
         % to repeat/choice changes
+        % Try to make first input item active, not module head
         oldid = udmodule.id{udmodule.oldvalue};
-        citem = 1;
-        for k = 1:numel(id)
-            if isequal(id{k}, oldid)
-                citem = k;
-                break;
-            end;
-        end;
+        citem = find(cellfun(@(cid)isequal(cid, oldid),id));
+        if isempty(citem)
+            citem = min(2,numel(id));
+        end
     end;
     udmodule.contents = contents;
     udmodule.id = id;
     udmodule.oldvalue = citem;
     set(handles.module, 'String', str, 'Value', citem, 'userdata', udmodule);
-    % set help box to module help
-    [id stop help] = cfg_util('listmod', cid{:}, cfg_findspec, ...
-                              cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
-    set(handles.helpbox, 'String',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
     udmodlist(1).cmod = cmod;
     set(handles.modlist, 'userdata', udmodlist);
     local_showvaledit(obj);
@@ -456,7 +445,7 @@ else
     set(handles.valshow, 'String','', 'Visible','off');
     set(handles.valshowLabel, 'Visible','off');
     % set help box to matlabbatch top node help
-    [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'help'});
+    [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'showdoc'});
     set(handles.helpbox, 'String',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 end;
 
@@ -472,7 +461,6 @@ set(findobj(handles.cfg_ui,'-regexp', 'Tag','^BtnVal.*'), 'Visible','off');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^MenuEditVal.*'), 'Enable','off');
 set(handles.valshow,'String', '','Visible','off','Min',0,'Max',0,'Callback',[]);
 set(handles.valshowLabel, 'String',sprintf('Current Item: %s',udmodule.contents{1}{citem}),'Visible','off');
-udvalshow = struct('en',{{}},'cval',[]);
 switch(udmodule.contents{5}{citem})
     case {'cfg_entry','cfg_files'}
         if ~isempty(udmodule.contents{2}{citem}) && isa(udmodule.contents{2}{citem}{1}, 'cfg_dep')
@@ -553,10 +541,15 @@ switch(udmodule.contents{5}{citem})
         if ~isfield(udmodlist, 'defid')
             indent = '  ';
             % Already selected items
-            str1{1} = sprintf('%sNothing selected', indent);
-            for k = 1:numel(udmodule.contents{2}{citem})
-                str1{k} = sprintf('%s%s', indent, udmodule.contents{2}{citem}{k}.name);
-            end;
+            if isempty(udmodule.contents{2}{citem})
+                str1{1} = sprintf('%sNothing selected', indent);
+            else
+                str1 = cell(1,numel(udmodule.contents{2}{citem}));
+                for k = 1:numel(udmodule.contents{2}{citem})
+                    str1{k} = sprintf('%s%s', indent, udmodule.contents{2}{citem}{k}.name);
+                end;
+            end
+            str2 = cell(1,numel(udmodule.contents{4}{citem}));
             for k = 1:numel(udmodule.contents{4}{citem})
                 str2{k} = sprintf('%s%s', indent, udmodule.contents{4}{citem}{k}.name);
             end;
@@ -581,7 +574,7 @@ else
     cmid = {udmodlist.cjob udmodlist.id{cmod}};
 end;
 [id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{citem}, cfg_findspec, ...
-                          cfg_tropts(cfg_findspec,1,1,1,1,false), {'help'});
+                          cfg_tropts(cfg_findspec,1,1,1,1,false), {'showdoc'});
 set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 drawnow;
 
@@ -614,7 +607,9 @@ else
     cmpsubs =struct('type',{},'subs',{});
 end;
 valsubs = substruct('{}',{1});
-for l = 1:numel(udmodule.contents{4}{value})
+nitem = numel(udmodule.contents{4}{value});
+mrk = cell(1,nitem);
+for l = 1:nitem
     valuesubs = substruct('{}',{l});
     if ~isempty(udmodule.contents{2}{value}) && isequal(subsref(udmodule.contents{2}{value},[valsubs cmpsubs]), subsref(udmodule.contents{4}{value},[valuesubs cmpsubs]))
         mrk{l} = '*';
@@ -624,7 +619,8 @@ for l = 1:numel(udmodule.contents{4}{value})
     end;
 end;
 if strcmp(udmodule.contents{5}{value},'cfg_choice')
-    for k = 1:numel(udmodule.contents{4}{value})
+    str = cell(1,nitem);
+    for k = 1:nitem
         str{k} = udmodule.contents{4}{value}{k}.name;
     end;
 else
@@ -946,8 +942,6 @@ local_setvaledit(hObject, {});
 % --------------------------------------------------------------------
 function local_valedit_AddDep(hObject)
 handles = guidata(hObject);
-udmodlist = get(handles.modlist, 'Userdata');
-cmod = get(handles.modlist, 'Value');
 udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
 sout = local_showvaledit_deps(hObject);
@@ -955,7 +949,7 @@ sout = local_showvaledit_deps(hObject);
 % pixels, not chars. Try to work this out based on the number of
 % characters and a font size of 12.
 str = strvcat(sout.sname);
-szi = min(max(size(strvcat(str)')+1, [10 1]),[140 60])*13;
+szi = min(max(size(str')+1, [10 1]),[140 60])*13;
 [val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str, ...
                     'ListSize',szi);
 if sts
@@ -969,6 +963,7 @@ udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
 if numel(udmodule.contents{4}{citem}) > 1
     % If there is a choice, prepare a selection list
+    str = cell(1,numel(udmodule.contents{4}{citem}));
     for k = 1:numel(udmodule.contents{4}{citem})
         str{k} = udmodule.contents{4}{citem}{k}.name;
     end;
@@ -989,6 +984,7 @@ udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
 if numel(udmodule.contents{2}{citem}) > 1
     % If there is a choice, prepare a selection list
+    str = cell(1,numel(udmodule.contents{2}{citem}));
     for k = 1:numel(udmodule.contents{2}{citem})
         str{k} = sprintf('%s (%d)', udmodule.contents{2}{citem}{k}.name, k);
     end;
@@ -1007,19 +1003,24 @@ function local_valedit_DelItem(hObject)
 handles = guidata(hObject);
 udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
-str = {};
-for k = 1:numel(udmodule.contents{2}{citem})
-    str{k} = udmodule.contents{2}{citem}{k}.name;
-end;
-if ~isempty(str)
-    [val sts] = listdlg('Name', udmodule.contents{1}{citem}, 'ListString', str);
-    if sts
-        % delete from last to first item, otherwise order would be not
-        % preserved
-        val = sort(val, 'descend');
-        for k = 1:numel(val)
-            local_setvaledit(hObject, [Inf val(k)]);
-        end;
+if numel(udmodule.contents{2}{citem}) > 1
+    % If there is a choice, prepare a selection list
+    str = cell(1,numel(udmodule.contents{2}{citem}));
+    for k = 1:numel(udmodule.contents{2}{citem})
+        str{k} = sprintf('%s (%d)', udmodule.contents{2}{citem}{k}.name, k);
+    end;
+    [val sts] = listdlg('Name', udmodule.contents{1}{citem}, 'ListString',str, 'SelectionMode','single');
+else
+    % There is no choice, just delete the only item
+    val = 1;
+    sts = true;
+end
+if sts
+    % delete from last to first item, otherwise order would be not
+    % preserved
+    val = sort(val, 'descend');
+    for k = 1:numel(val)
+        local_setvaledit(hObject, [Inf val(k)]);
     end;
 end;
 
@@ -1149,6 +1150,11 @@ if isnumeric(file) && file == 0
     return;
 end;
 local_pointer('watch');
+[p n e v] = fileparts(file);
+if isempty(e) || ~any(strcmp(e,{'.mat','.m'}))
+    e1 = {'.mat','.m'};
+    file = sprintf('%s%s%s', n, e, e1{idx});
+end
 cfg_util('savejob', udmodlist.cjob, fullfile(path, file));
 udmodlist.modified = false;
 set(handles.modlist,'userdata',udmodlist);
