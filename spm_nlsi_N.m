@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_nlsi_N.m 2090 2008-09-12 19:22:42Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -314,10 +314,14 @@ for ip = 1:64
         for i = 1:np
             dgdp(:,i) = spm_vec(FS(dxdp{i}*G',M));
         end
-        for i = 1:ng
-            dgdg(:,i) = spm_vec(FS(x*dGdg{i}',M));
+        try
+            for i = 1:ng
+                dgdg(:,i) = spm_vec(FS(x*dGdg{i}',M));
+            end
+        catch
+            dgdg = FS(x*dGdg,M);
         end
-        dgdb  = [dgdp dgdg dgdu];  
+        dgdb  = [dgdp dgdg dgdu];
  
         % Optimize F(h): parameters of iS(h)
         %==================================================================
@@ -407,7 +411,14 @@ for ip = 1:64
         - nq*spm_logdet(S)/2 ...
         + spm_logdet(ibC*Cb)/2 ...
         + spm_logdet(ihC*Ch)/2;
-
+    
+    % record increases and reference log-evidence for reporting
+    %----------------------------------------------------------------------
+    try
+        F0; fprintf(' actual: %.3e\n',full(F - C.F))
+    catch
+        F0 = F;
+    end
      
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
@@ -509,8 +520,11 @@ for ip = 1:64
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i (%i,%i) %6s %e %6s %e\n',str,ip,ig,ih,'F:',C.F,'dF:',full(dF))
-    if ip > 2 && dF < 1e-2, break, end
+    fprintf('%-6s: %i (%i,%i) %6s %-6.3e %6s %.3e ',str,ip,ig,ih,'F:',full(C.F - F0),'dF predicted:',full(dF))
+    if ip > 2 && dF < 1e-2
+        fprintf(' convergence\n')
+        break
+    end
  
 end
  

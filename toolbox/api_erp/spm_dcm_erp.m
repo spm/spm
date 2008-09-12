@@ -26,7 +26,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 2041 2008-09-04 13:39:40Z jean $
+% $Id: spm_dcm_erp.m 2090 2008-09-12 19:22:42Z karl $
  
 % check options 
 %==========================================================================
@@ -221,6 +221,9 @@ M.ns  = Ns;
  
 % Spatial modes
 %--------------------------------------------------------------------------
+if Nc < Nm
+    M.E   = speye(Nc);
+end
 if ~isfield(M, 'E')
     dGdg  = spm_diff(M.G,gE,M,1);
     L     = spm_cat(dGdg);
@@ -228,11 +231,12 @@ if ~isfield(M, 'E')
     try
         U = U(:,1:Nm);
     end
-    Nm    = size(U,2);
+    
     M.E   = U;
 else
     U = M.E;
 end
+Nm    = size(U,2);
  
 % EM: inversion
 %==========================================================================

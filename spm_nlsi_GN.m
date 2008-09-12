@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_nlsi_GN.m 2090 2008-09-12 19:22:42Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -175,7 +175,7 @@ catch
 end
 nh    = length(Q);                  % number of precision components
 nt    = length(Q{1});               % number of time bins
-nq    = nr*ns/nt;                   % for compact kronecker form of M-step
+nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
 h     = zeros(nh,1);                % initialise hyperparameters
  
 % prior moments
@@ -229,7 +229,7 @@ Eu    = spm_pinv(dfdu)*spm_vec(y);
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 Cp    = pC;
-
+ 
  
 % EM
 %==========================================================================
@@ -325,7 +325,7 @@ for k = 1:64
         + spm_logdet(ipC*Cp)/2 ...
         + spm_logdet(ihC*Ch)/2;
  
-    % recored increases and reference log-evedince for reproting
+    % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
         F0; fprintf(' actual: %.3e\n',full(F - C.F))
@@ -354,7 +354,7 @@ for k = 1:64
         str   = 'EM:(+)';
         
     else
-
+ 
         % reset expansion point
         %------------------------------------------------------------------
         p     = C.p;
@@ -424,8 +424,7 @@ end
 % outputs
 %--------------------------------------------------------------------------
 warning('on','all');
-
+ 
 Ep     = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 Cp     = V*Cp(ip,ip)*V';
 F      = C.F;
-
