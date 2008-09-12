@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 2023 2008-08-27 15:36:21Z volkmar $
+% $Id: spm_orthviews.m 2084 2008-09-12 10:10:22Z volkmar $
 
 
 
@@ -1724,17 +1724,19 @@ case 'add_blobs',
     if varargin{2} == 2, cm_handles = get_current_handle; end;
     spm_figure('Clear','Interactive');
     [SPM,VOL] = spm_getSPM;
-    for i = 1:length(cm_handles),
-        addblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M);
-        c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
-        set(c_handle,'Visible','on');
-        delete(get(c_handle,'Children'));
-        item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
-        if varargin{2} == 1,
-            item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+    if ~isempty(SPM)
+        for i = 1:length(cm_handles),
+            addblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M);
+            c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+            set(c_handle,'Visible','on');
+            delete(get(c_handle,'Children'));
+            item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
+            if varargin{2} == 1,
+                item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+            end;
         end;
-    end;
-    redraw_all;
+        redraw_all;
+    end
 
 case 'remove_blobs',
     cm_handles = valid_handles(1:24);
@@ -1753,17 +1755,19 @@ case 'add_image',
     if varargin{2} == 2, cm_handles = get_current_handle; end;
     spm_figure('Clear','Interactive');
     fname = spm_select(1,'image','select image');
-    for i = 1:length(cm_handles),
-        addimage(cm_handles(i),fname);
-        c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
-        set(c_handle,'Visible','on');
-        delete(get(c_handle,'Children'));
-        item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
-        if varargin{2} == 1,
-            item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+    if ~isempty(fname)
+        for i = 1:length(cm_handles),
+            addimage(cm_handles(i),fname);
+            c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+            set(c_handle,'Visible','on');
+            delete(get(c_handle,'Children'));
+            item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
+            if varargin{2} == 1,
+                item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
+            end;
         end;
-    end;
-    redraw_all;
+        redraw_all;
+    end
 
 case 'add_c_blobs',
     % Add blobs to the image - in full colour
@@ -1771,29 +1775,30 @@ case 'add_c_blobs',
     if varargin{2} == 2, cm_handles = get_current_handle; end;
     spm_figure('Clear','Interactive');
     [SPM,VOL] = spm_getSPM;
-    c         = spm_input('Colour','+1','m',...
-        'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
-    colours   = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-    c_names   = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+    if ~isempty(SPM)
+        c         = spm_input('Colour','+1','m',...
+            'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+        colours   = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+        c_names   = {'red';'yellow';'green';'cyan';'blue';'magenta'};
         hlabel = sprintf('%s (%s)',VOL.title,c_names{c});
-    for i = 1:length(cm_handles),
-        addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:),VOL.title);
-                addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
-        c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
-        ch_c_handle = get(c_handle,'Children');
-        set(c_handle,'Visible','on');
-        %set(ch_c_handle,'Visible',on');
-        item7_4_1   = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
-            'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);',...
-            'UserData',c);
-        if varargin{2} == 1,
-            item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
-                'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
+        for i = 1:length(cm_handles),
+            addcolouredblobs(cm_handles(i),VOL.XYZ,VOL.Z,VOL.M,colours(c,:),VOL.title);
+            addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
+            c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
+            ch_c_handle = get(c_handle,'Children');
+            set(c_handle,'Visible','on');
+            %set(ch_c_handle,'Visible',on');
+            item7_4_1   = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
+                'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);',...
                 'UserData',c);
+            if varargin{2} == 1,
+                item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
+                    'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
+                    'UserData',c);
+            end;
         end;
-    end;
-    redraw_all;
-
+        redraw_all;
+    end
 case 'remove_c_blobs',
     cm_handles = valid_handles(1:24);
     if varargin{2} == 2, cm_handles = get_current_handle; end;
@@ -1825,26 +1830,28 @@ case 'add_c_image',
     if varargin{2} == 2, cm_handles = get_current_handle;end;
     spm_figure('Clear','Interactive');
     fname   = spm_select(1,'image','select image');
-    c       = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
-    colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-    c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+    if ~isempty(fname)
+        c       = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+        colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+        c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
         hlabel = sprintf('%s (%s)',fname,c_names{c});
-    for i = 1:length(cm_handles),
-        addcolouredimage(cm_handles(i),fname,colours(c,:));
-                addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
-        c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
-        ch_c_handle = get(c_handle,'Children');
-        set(c_handle,'Visible','on');
-        %set(ch_c_handle,'Visible',on');
-        item7_4_1 = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
-            'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);','UserData',c);
-        if varargin{2} == 1
-            item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
-                'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
-                'UserData',c);
+        for i = 1:length(cm_handles),
+            addcolouredimage(cm_handles(i),fname,colours(c,:));
+            addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
+            c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
+            ch_c_handle = get(c_handle,'Children');
+            set(c_handle,'Visible','on');
+            %set(ch_c_handle,'Visible',on');
+            item7_4_1 = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
+                'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);','UserData',c);
+            if varargin{2} == 1
+                item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
+                    'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
+                    'UserData',c);
+            end
         end
+        redraw_all;
     end
-    redraw_all;
 end;
 %_______________________________________________________________________
 %_______________________________________________________________________
