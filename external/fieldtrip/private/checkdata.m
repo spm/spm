@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.28  2008/09/15 13:24:17  roboos
+% add dimord to source data, remove x/y/zgrid for volume and/or source, also if no conversion between the two is done
+%
 % Revision 1.27  2008/08/20 19:00:23  jansch
 % also enable correct trial-handling in case of isvolume. before this fix,
 % sourcestatistics crashed (reproduced with a grandaverage as input). more
@@ -234,7 +237,8 @@ if isfreq || istimelock || iscomp
 end
 
 if issource && isvolume
-  % it should be either one or the other, represent it as volume description (since that is simpler to handle)
+  % it should be either one or the other
+  % the choise here is to represent it as volume description since that is simpler to handle
   % remove the unwanted fields
   if isfield(data, 'pos'),    data = rmfield(data, 'pos');    end
   if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
@@ -438,6 +442,10 @@ if issource || isvolume,
       data = setfield(data, param{i}, tmp);
     end
   end
+  if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
+  if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
+  if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
+  if issource, data.dimord = 'pos'; end
 end
 
 if isequal(hastrials,'yes')
