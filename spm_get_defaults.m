@@ -16,9 +16,12 @@ function varargout = spm_get_defaults(defstr, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_get_defaults.m 1530 2008-04-30 19:28:22Z guillaume $
+% $Id: spm_get_defaults.m 2098 2008-09-15 19:06:23Z karl $
 
 global defaults;
+if ~length(defaults)
+    spm_defaults;
+end
 
 % construct subscript reference struct from dot delimited tag string
 tags = textscan(defstr,'%s', 'delimiter','.');
