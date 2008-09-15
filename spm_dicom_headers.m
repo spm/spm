@@ -1,7 +1,8 @@
-function hdr = spm_dicom_headers(P)
+function hdr = spm_dicom_headers(P, essentials)
 % Read header information from DICOM files
-% FORMAT hdr = spm_dicom_headers(P)
+% FORMAT hdr = spm_dicom_headers(P [,essentials])
 % P   - array of filenames
+% essentials - if true, then only save the essential parts of the header
 % hdr - cell array of headers, one element for each file.
 %
 % Contents of headers are approximately explained in:
@@ -14,8 +15,9 @@ function hdr = spm_dicom_headers(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dicom_headers.m 2094 2008-09-15 16:33:10Z john $
 
+if nargin<2, essentials = false; end
 
 dict = readdict;
 j    = 0;
@@ -24,6 +26,7 @@ if size(P,1)>1, spm_progress_bar('Init',size(P,1),'Reading DICOM headers','Files
 for i=1:size(P,1),
     tmp = readdicomfile(P(i,:),dict);
     if ~isempty(tmp),
+        if essentials, tmp = spm_dicom_essentials(tmp); end
         j      = j + 1;
         hdr{j} = tmp;
     end;

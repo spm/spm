@@ -9,7 +9,7 @@ function out = spm_run_dicom(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_dicom.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_run_dicom.m 2094 2008-09-15 16:33:10Z john $
 
 
 wd = pwd;
@@ -28,7 +28,7 @@ else
     root_dir = job.root;
 end;
 
-hdr = spm_dicom_headers(strvcat(job.data));
+hdr = spm_dicom_headers(strvcat(job.data), true);
 out = spm_dicom_convert(hdr,'all',root_dir,job.convopts.format);
 
 if ~isempty(job.outdir{1})
