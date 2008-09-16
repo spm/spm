@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2083 2008-09-11 16:05:53Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2100 2008-09-16 11:03:35Z vladimir $
 
 if nargin == 0
 
@@ -566,7 +566,7 @@ if isa(get(Finter, 'UserData'), 'meeg')
     
     template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
     template_sfp = {template_sfp.name};
-    ind = strmatch(forwinv_senstype(D.chanlabels), template_sfp);
+    ind = strmatch([forwinv_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
 
     if ~isempty(ind)
         HasDefaultLocs = 'on';
