@@ -11,16 +11,16 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 1896 2008-07-09 08:21:36Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 2101 2008-09-16 13:56:26Z volkmar $
 
-rev = '$Rev: 1896 $'; %#ok
+rev = '$Rev: 2101 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
 % lfont: used in lists, value edit dialogues etc.
 cfg_defaults.cfg_ui.lfont.FontAngle  = 'normal';
 cfg_defaults.cfg_ui.lfont.FontName   = get(0,'FixedWidthFontName');
-cfg_defaults.cfg_ui.lfont.FontSize   = 10;
+cfg_defaults.cfg_ui.lfont.FontSize   = 12;
 cfg_defaults.cfg_ui.lfont.FontUnits  = 'points';
 cfg_defaults.cfg_ui.lfont.FontWeight = 'normal';
 % bfont: used for buttons
@@ -39,7 +39,7 @@ cfg_defaults.cfg_ui.ExpertEdit = 'off';
 % before modules with dependencies will be harvested again. If some modules
 % have side effects (e.g. "Change Directory") that are not encoded as
 % dependency, this may lead to unwanted results. Disabling parallel
-% execution incurs a small overhead during job execution because the job
+% execution incurs an overhead during job execution because the job
 % must be harvested more often.
 cfg_defaults.cfg_util.runparallel = false;
 
@@ -61,43 +61,45 @@ cfg_defaults.msgcfg(2)             = cfg_defaults.msgdef;
 cfg_defaults.msgcfg(2).identifier  = 'matlabbatch:cfg_util:addapp:done';
 cfg_defaults.msgcfg(2).destination = 'none';
 
-cfg_defaults.msgtpl(1)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(1).identifier  = '^matlabbatch:subsasgn';
-cfg_defaults.msgtpl(1).level       = 'error';
-cfg_defaults.msgtpl(2)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(2).identifier  = '^matlabbatch:subsref';
-cfg_defaults.msgtpl(2).level       = 'error';
-cfg_defaults.msgtpl(3)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(3).identifier  = '^matlabbatch:constructor';
-cfg_defaults.msgtpl(3).level       = 'error';
-cfg_defaults.msgtpl(4)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(4).identifier  = '^matlabbatch:deprecated';
-cfg_defaults.msgtpl(4).destination = 'none';
-cfg_defaults.msgtpl(5)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(5).identifier  = '^MATLAB:nargchk';
-cfg_defaults.msgtpl(5).level       = 'error';
-cfg_defaults.msgtpl(6)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(6).identifier  = '^matlabbatch:usage';
-cfg_defaults.msgtpl(6).level       = 'error';
-cfg_defaults.msgtpl(7)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(7).identifier  = '^matlabbatch:setval';
-cfg_defaults.msgtpl(7).destination = 'none';
-cfg_defaults.msgtpl(8)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(8).identifier  = '^matlabbatch:run:nomods';
-cfg_defaults.msgtpl(8).level       = 'info';
-cfg_defaults.msgtpl(9)             = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(9).identifier  = '^matlabbatch:cfg_struct2cfg';
-cfg_defaults.msgtpl(9).destination = 'none';
-cfg_defaults.msgtpl(10)            = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(10).identifier = '^MATLAB:inputdlg';
-cfg_defaults.msgtpl(10).level      = 'error';
-cfg_defaults.msgtpl(11)            = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(11).identifier = '^MATLAB:listdlg';
-cfg_defaults.msgtpl(11).level      = 'error';
-cfg_defaults.msgtpl(12)            = cfg_defaults.msgdef;
-cfg_defaults.msgtpl(12).identifier = '^MATLAB:num2str';
-cfg_defaults.msgtpl(12).level      = 'error';
+cfg_defaults.msgtpl( 1)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 1).identifier  = '^matlabbatch:subsasgn';
+cfg_defaults.msgtpl( 1).level       = 'error';
+cfg_defaults.msgtpl( 2)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 2).identifier  = '^matlabbatch:subsref';
+cfg_defaults.msgtpl( 2).level       = 'error';
+cfg_defaults.msgtpl( 3)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 3).identifier  = '^matlabbatch:constructor';
+cfg_defaults.msgtpl( 3).level       = 'error';
+cfg_defaults.msgtpl( 4)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 4).identifier  = '^matlabbatch:deprecated';
+cfg_defaults.msgtpl( 4).destination = 'none';
+cfg_defaults.msgtpl( 5)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 5).identifier  = '^MATLAB:nargchk';
+cfg_defaults.msgtpl( 5).level       = 'error';
+cfg_defaults.msgtpl( 6)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 6).identifier  = '^matlabbatch:usage';
+cfg_defaults.msgtpl( 6).level       = 'error';
+cfg_defaults.msgtpl( 7)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 7).identifier  = '^matlabbatch:setval';
+cfg_defaults.msgtpl( 7).destination = 'none';
+cfg_defaults.msgtpl( 8)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 8).identifier  = '^matlabbatch:run:nomods';
+cfg_defaults.msgtpl( 8).level       = 'info';
+cfg_defaults.msgtpl( 9)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl( 9).identifier  = '^matlabbatch:cfg_struct2cfg';
+cfg_defaults.msgtpl( 9).destination = 'none';
+cfg_defaults.msgtpl(10)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(10).identifier  = '^MATLAB:inputdlg';
+cfg_defaults.msgtpl(10).level       = 'error';
+cfg_defaults.msgtpl(11)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(11).identifier  = '^MATLAB:listdlg';
+cfg_defaults.msgtpl(11).level       = 'error';
+cfg_defaults.msgtpl(12)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(12).identifier  = '^MATLAB:num2str';
+cfg_defaults.msgtpl(12).level       = 'error';
 cfg_defaults.msgtpl(13)             = cfg_defaults.msgdef;
 cfg_defaults.msgtpl(13).identifier  = '^matlabbatch:ok_subsasgn';
 cfg_defaults.msgtpl(13).destination = 'none';
-
+cfg_defaults.msgtpl(14)             = cfg_defaults.msgdef;
+cfg_defaults.msgtpl(14).identifier  = 'matlabbatch:checkval:numcheck:transposed';
+cfg_defaults.msgtpl(14).destination = 'none';

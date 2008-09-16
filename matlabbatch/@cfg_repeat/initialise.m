@@ -21,11 +21,11 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: initialise.m 2101 2008-09-16 13:56:26Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2101 $'; %#ok
 
-if ischar(val) && strcmp(val,'<DEFAULTS>')
+if strcmp(val,'<DEFAULTS>')
     item = initialise_def(item, val, dflag);
 else
     item = initialise_job(item, val, dflag);
@@ -47,12 +47,19 @@ end;
 function item = initialise_job(item, val, dflag)
 if numel(item.values)==1 && isa(item.values{1},'cfg_branch') ...
         && ~item.forcestruct,
-    if dflag
-        item.values{1} = initialise(item.values{1}, val, dflag);
-    else
-        for k = 1:numel(val)
-            item.cfg_item.val{k} = initialise(item.values{1}, val(k), dflag);
+    if isstruct(val)
+        if dflag
+            item.values{1} = initialise(item.values{1}, val, dflag);
+        else
+            for k = 1:numel(val)
+                item.cfg_item.val{k} = initialise(item.values{1}, val(k), dflag);
+            end;
         end;
+    else
+        cfg_message('matlabbatch:initialise', ...
+                    'Can not initialise %s value(s): job is not a struct.', ...
+                    gettag(item));
+        return;
     end;
 else
     if dflag
@@ -68,11 +75,16 @@ else
                     val1{k} = struct(vtag{k}, val.(vtag{k}));
                 end;
                 val = val1;
-            elseif iscell(val)
+            elseif iscell(val) && all(cellfun(@isstruct,val))
                 vtag = cell(size(val));
                 for k = 1:numel(val)
                     vtag(k) = fieldnames(val{k});
                 end;
+            else
+                cfg_message('matlabbatch:initialise', ...
+                            'Can not initialise %s value(s): job is not a cell array of struct items.', ...
+                            gettag(item));
+                return;
             end;
             for k = 1:numel(item.values)
                 % use first match for defaults initialisation
