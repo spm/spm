@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: spm_api_erp.m 2105 2008-09-17 15:34:09Z vladimir $
 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
 
@@ -457,11 +457,7 @@ switch DCM.xY.modality
 
         % set prior expectations about locations
         %------------------------------------------------------------------
-        DCM.Lpos = Slocation';
-        
-        % forward model (spatial)
-        %--------------------------------------------------------------------------
-        DCM = spm_dcm_erp_dipfit(DCM);
+        DCM.Lpos = Slocation';              
 
     case{'LFP'}
         

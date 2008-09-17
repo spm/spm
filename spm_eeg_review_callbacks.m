@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 2105 2008-09-17 15:34:09Z vladimir $
 
 try
     D = get(gcf,'userdata');
@@ -767,7 +767,6 @@ switch varargin{1}
                 Finter = spm_figure('GetWin','Interactive');
                 D = rmfield(D,'PSD');
                 if isempty(D.other)
-%                     D.other = 1;
                     D.other = struct([]);
                 end
                 D.other(1).PSD = 1;
@@ -783,47 +782,8 @@ switch varargin{1}
                     'BusyAction','cancel',...
                     'Interruptible','off',...
                     'Tag','EEGprepUI');
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
-                IsEEG = 'off';
-                IsMEG = 'off';
-                HasSensors = 'off';
-                HasSensorsEEG = 'off';
-                HasSensorsMEG = 'off';
-                Dloaded = 'on';
-                if ~isempty(strmatch('EEG', D.chantype, 'exact'))
-                    IsEEG = 'on';
-                end
-                if ~isempty(strmatch('MEG', D.chantype, 'exact'))
-                    IsMEG = 'on';
-                end
-                if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
-                    HasSensors = 'on';
-                end
-                if ~isempty(D.sensors('EEG'))
-                    HasSensorsEEG = 'on';
-                end
-                if  ~isempty(D.sensors('MEG'))
-                    HasSensorsMEG = 'on';
-                end
-                IsTemplate = 'off';
-                IsSelected = 'off';
-                IsMoved = 'off';
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensors);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (EEG)'), 'Enable', HasSensorsEEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (MEG)'), 'Enable', HasSensorsMEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', IsEEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', HasSensorsEEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', HasSensorsMEG);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Delete sensor'), 'Enable', IsSelected);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Apply'), 'Enable', IsTemplate);
-                set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
+ 
+                spm_eeg_prep_ui('update_menu')
                 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
                 figure(Finter);
                 

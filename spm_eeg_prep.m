@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2097 2008-09-15 18:29:22Z vladimir $
+% $Id: spm_eeg_prep.m 2105 2008-09-17 15:34:09Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -16,7 +16,7 @@ end
 D = S.D;
 
 switch S.task
-    case 'settype'
+    case 'settype'        
         D = chantype(D, S.ind, S.type);
     case {'loadtemplate', 'setcoor2d', 'project3D'}
         switch S.task

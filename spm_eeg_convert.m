@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: spm_eeg_convert.m 2105 2008-09-17 15:34:09Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -384,6 +384,17 @@ if ~isempty(strmatch('MEG', D.chantype, 'exact')) &&...
     S1.D = D;
     
     D = spm_eeg_prep(S1);
+end
+
+
+% Uses fileio function to get the information about channel types stored in
+% the original header. This is now mainly useful for Neuromag support but might
+% have other functions in the future.
+origchantypes = fileio_chantype(hdr);
+[sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
+origchantypes = origchantypes(sel2);
+if length(strmatch('unknown', origchantypes, 'exact')) ~= numel(origchantypes)
+    D.origchantypes = origchantypes;
 end
 
 

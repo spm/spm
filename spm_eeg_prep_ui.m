@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2100 2008-09-16 11:03:35Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2105 2008-09-17 15:34:09Z vladimir $
 
 if nargin == 0
 
@@ -41,7 +41,7 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on');
 
-    chanTypes = {'EEG', 'MEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
+    chanTypes = {'EEG', 'VEOG', 'HEOG', 'LFP', 'Other'};
 
     for i = 1:length(chanTypes)
         CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
@@ -50,14 +50,38 @@ if nargin == 0
             'HandleVisibility','on',...
             'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
     end
+    
+    CTypesRef2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'MEGREF=>MEG',...
+        'Tag','EEGprepUI',...
+        'Enable', 'off', ...
+        'HandleVisibility','on',...
+        'Separator', 'on',...
+        'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
+
+    CTypesPlanar2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'Planar=>MEG',...
+        'Tag','EEGprepUI',...
+        'Enable', 'off', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
+    
+    CTypesMagnetometer2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'Magnetometer=>MEG',...
+        'Tag','EEGprepUI',...
+        'Enable', 'off', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
+    
+    CTypesDefaultMenu = uimenu(ChanTypeMenu, 'Label', 'Default',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Separator', 'on',...
+        'Callback', 'spm_eeg_prep_ui(''ChanTypeDefaultCB'')');
 
     CTypesReviewMenu = uimenu(ChanTypeMenu, 'Label', 'Review',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Separator', 'on',...
         'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
-
     % ====== Sensors ===================================
     
     Coor3DMenu = uimenu(Finter,'Label','Sensors',...
@@ -182,8 +206,7 @@ if nargin == 0
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');
-
+        'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');   
 else
     eval(callback);
 end
@@ -219,7 +242,7 @@ D = getD;
 if ~isempty(D)
     chanlist ={};
     for i = 1:D.nchannels
-        if 0%  strncmp(D.chantype(i), 'MEG', 3)
+        if strncmp(D.chantype(i), 'MEG', 3)
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i) , ' (nonmodifiable)'];
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
@@ -235,10 +258,8 @@ if ~isempty(D)
 
         [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
-
-        % This is disabled for now. Will be brought back later
-        % Changing the type of MEG channels in GUI is not allowed.
-        % selection(strmatch('MEG', chantype(D, selection))) = [];
+       
+        selection(strmatch('MEG', chantype(D, selection))) = [];
         
         if ok && ~isempty(selection)
             S.task = 'settype';
@@ -251,6 +272,52 @@ if ~isempty(D)
     end
 end
 
+update_menu;
+
+%-----------------------------------------------------------------------
+
+function MEGChanTypeCB
+
+S = [];
+S.D = getD;
+S.task = 'settype';
+
+switch get(gcbo, 'Label')
+    case 'MEGREF=>MEG'
+        S.ind = strmatch('MEGREF', S.D.chantype);
+        S.type = 'MEG';
+        D = spm_eeg_prep(S);
+    case 'Planar=>MEG'   
+        S.type = 'MEG';
+        S.ind = strmatch('planar', S.D.origchantypes, 'exact');       
+        S.D = spm_eeg_prep(S);
+        S.type = 'Other';
+        S.ind = strmatch('magnetometer' , S.D.origchantypes, 'exact');   
+        D = spm_eeg_prep(S);
+    case 'Magnetometer=>MEG'
+        S.type = 'MEG';
+        S.ind = strmatch('magnetometer', S.D.origchantypes, 'exact');       
+        S.D = spm_eeg_prep(S);       
+        S.type = 'Other';
+        S.ind = strmatch('planar', S.D.origchantypes, 'exact');   
+        D = spm_eeg_prep(S);        
+end
+
+setD(D);
+update_menu;
+
+%-----------------------------------------------------------------------
+
+function ChanTypeDefaultCB
+
+S = [];
+S.D = getD;
+S.task = 'settype';
+S.type = [];
+S.ind = 1:S.D.nchannels;
+D = spm_eeg_prep(S);        
+
+setD(D);
 update_menu;
 
 %-----------------------------------------------------------------------
@@ -530,9 +597,11 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 
 IsEEG = 'off';
 IsMEG = 'off';
+IsNeuromag = 'off';
 HasSensors = 'off';
 HasSensorsEEG = 'off';
 HasSensorsMEG = 'off';
+HasChannelsMEGREF = 'off';
 HasFiducials = 'off';
 HasDefaultLocs = 'off';
 if isa(get(Finter, 'UserData'), 'meeg')
@@ -546,6 +615,15 @@ if isa(get(Finter, 'UserData'), 'meeg')
 
     if ~isempty(strmatch('MEG', D.chantype, 'exact'));
         IsMEG = 'on';
+    end    
+
+    if forwinv_senstype(D.chanlabels, 'neuromag') &&...
+            isfield(D, 'origchantypes')
+        IsNeuromag = 'on';
+    end
+    
+    if ~isempty(strmatch('MEGREF', D.chantype, 'exact'));
+        HasChannelsMEGREF = 'on';
     end
 
     if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
@@ -598,10 +676,15 @@ end
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', '2D projection'), 'Enable', Dloaded);
+
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'MEGREF=>MEG'), 'Enable', HasChannelsMEGREF);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Planar=>MEG'), 'Enable', IsNeuromag);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Magnetometer=>MEG'), 'Enable', IsNeuromag);
+
+
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Assign default'), 'Enable', HasDefaultLocs);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
-
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensors);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister (EEG)'), 'Enable', HasSensorsEEG);

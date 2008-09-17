@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 2041 2008-09-04 13:39:40Z jean $
+% $Id: spm_eeg_inv_checkdatareg.m 2105 2008-09-17 15:34:09Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -25,13 +25,15 @@ switch D.inv{val}.modality
         cfg = [];
         cfg.style = '3d';
         cfg.rotate = 0;
-        cfg.grad = D.inv{val}.datareg.sensors;
+        cfg.grad = D.sensors('MEG');
    
         lay = ft_prepare_layout(cfg);
-                
+          
+        [sel1, sel2] = spm_match_str(D.inv{val}.datareg.sensors.label, lay.label);        
+        
         sens = [];
-        sens.label = lay.label(:, 1);
-        sens.pnt = lay.pos;
+        sens.label = lay.label(sel2, 1);
+        sens.pnt = lay.pos(sel2, :);
         sensorig = cfg.grad;
 end
         

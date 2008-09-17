@@ -5,7 +5,7 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: getset.m 2105 2008-09-17 15:34:09Z vladimir $
 
 this = struct(this);
 
@@ -29,7 +29,8 @@ if nargin <= 4
         res = [res{:}];
     end
 
-    if iscell(res) && (numel(res) == 1) && strcmp(this.type, 'continuous')
+    if iscell(res) && (numel(res) == 1) && (numel(getfield(this, parent)) == 1) &&...
+            strcmp(this.type, 'continuous')
         res = res{1};
     end
     

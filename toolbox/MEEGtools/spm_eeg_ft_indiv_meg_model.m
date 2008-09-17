@@ -2,6 +2,8 @@ function  D = spm_eeg_ft_indiv_meg_model(varargin)
 % Function for making an individually fitted MEG head model based on
 % subject's sMRI.
 %
+% FORMAT  D = spm_eeg_ft_indiv_meg_model(D, val, Msize, sMRI, hs_source, vm_source)
+%
 % Disclaimer: this code is provided as an example and is not guaranteed to work
 % with data on which it was not tested. If it does not work for you, feel
 % free to improve it and contribute your improvements to the MEEGtools toolbox
@@ -11,7 +13,7 @@ function  D = spm_eeg_ft_indiv_meg_model(varargin)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Robert Oostenveld, Vladimir Litvak,  
-% $Id: spm_eeg_ft_indiv_meg_model.m 1740 2008-05-27 19:44:24Z vladimir $
+% $Id: spm_eeg_ft_indiv_meg_model.m 2105 2008-09-17 15:34:09Z vladimir $
 
 [Finter] = spm('FnUIsetup','FT based MEG head model',0);
 
@@ -39,8 +41,11 @@ else
     Msize = spm_input('Mesh size (vertices)', '+1','3000|4000|5000|7200', [1 2 3 4]);
 end
 
-sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
-
+if nargin>3
+    sMRI = varargin{4};
+else
+    sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
+end
 
 % Segment structural if necessary
 %======================================================================
@@ -51,7 +56,7 @@ sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
 seg = [];
 for c = 1:5
     mri = ft_read_fcdc_mri(fullfile(p, ['c' num2str(c) f x]));
-    mri.anatomy = flipdim(mri.anatomy,  1);
+    %mri.anatomy = flipdim(mri.anatomy,  1);
     if c == 1
         anatomy =  mri.anatomy;
     else
@@ -72,7 +77,7 @@ end
 mri.anatomy = anatomy;
 
 cfg = [];
-cfg.spheremesh = 4000;
+cfg.spheremesh = 1000;
 ftvol = ft_prepare_singleshell(cfg, seg);
 
 ftvol = forwinv_convert_units(ftvol, 'mm');
@@ -131,14 +136,25 @@ ftfid.fid = spmfid.fid;
 %%
 D.inv{val}.mesh = mesh;
 
-if spm_input('Which head surface?', '+1','SPM|FT', [1 0], 0)
+if nargin>4
+    hs_source = varargin{5};
+else
+    hs_source = spm_input('Which head surface?', '+1','SPM|FT', [1 0], 0);
+end
+
+if hs_source
     D.inv{val}.datareg.fid_mri = spmfid;
 else
     D.inv{val}.datareg.fid_mri = ftfid;
 end
 
+if nargin>4
+    vm_source = varargin{5};
+else
+    vm_source = spm_input('Which volume model?', '+1','SPM|FT', [1 0], 1);
+end
 
-if spm_input('Which volume model?', '+1','SPM|FT', [1 0], 1)
+if vm_source
     D.inv{val}.forward.vol = spmvol;
 else
     D.inv{val}.forward.vol = ftvol;

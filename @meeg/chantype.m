@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: chantype.m 2105 2008-09-17 15:34:09Z vladimir $
 
 
 if length(varargin)>=2
@@ -22,26 +22,23 @@ if length(varargin)>=2
     end
 
     if isempty(type)
-        eeg_types = {'EEG'};
-        other_types = {'MEG', 'EMG', 'EOG'};
+        types = {'EEG', 'MEG', 'MEGREF', 'EMG', 'EOG'};
 
-        for i=1:length(eeg_types)
+        for i=1:length(types)
             if isempty(ind) break; end
             foundind = spm_match_str(chanlabels(this, ind), ...
-                ft_channelselection(eeg_types(i), chanlabels(this, ind)));
+                ft_channelselection(types(i), chanlabels(this, ind)));
             if ~isempty(foundind)
-                this = chantype(this, ind(foundind), 'EEG');
+                this = chantype(this, ind(foundind), types{i});
                 ind = setdiff(ind, ind(foundind));
             end
         end
 
-        for i=1:length(other_types)
-            if isempty(ind) break; end
-            foundind = spm_match_str(chanlabels(this, ind), ...
-                ft_channelselection(other_types(i), chanlabels(this, ind)));
-            if ~isempty(foundind)
-                this = chantype(this, ind(foundind), other_types{i});
-                ind = setdiff(ind, ind(foundind));
+        if isfield(this, 'origchantypes')
+            ind1 = setdiff(ind, strmatch('unknown', this.other.origchantypes, 'exact'));
+            if ~isempty(ind1)
+                this = chantype(this, ind1, upper(this.other.origchantypes(ind1)));
+                ind = setdiff(ind, ind1);
             end
         end
         
