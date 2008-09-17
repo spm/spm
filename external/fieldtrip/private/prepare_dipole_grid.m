@@ -47,6 +47,9 @@ function [grid, cfg] = prepare_dipole_grid(cfg, vol, sens)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_dipole_grid.m,v $
+% Revision 1.46  2008/09/17 14:57:24  roboos
+% removed call to fixvolume, it does not seem necessary any more
+%
 % Revision 1.45  2008/08/13 12:58:45  roboos
 % iadded backward compatibility support for tightgrid
 %
@@ -322,9 +325,6 @@ if basedonmri
   else
     error('cannot determine the format of the segmentation in cfg.mri');
   end
-
-  % for compatibility with old MRI volumes
-  mri = fixvolume(mri);
 
   % apply a smoothing of a certain amount of voxels
   if ~isstr(cfg.smooth) && cfg.smooth>1

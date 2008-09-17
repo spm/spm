@@ -51,6 +51,9 @@ function volumewrite(cfg, volume)
 % Copyright (C) 2003-2006, Robert Oostenveld, Markus Siegel
 %
 % $Log: volumewrite.m,v $
+% Revision 1.14  2008/09/17 14:53:35  roboos
+% removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
+%
 % Revision 1.13  2007/04/03 15:37:07  roboos
 % renamed the checkinput function to checkdata
 %
@@ -154,9 +157,6 @@ if ~isfield(cfg, 'vmpversion') & strcmp(cfg.filetype, 'vmp');
   fprintf('using BrainVoyager version 2 VMP format\n');
   cfg.vmpversion = 2;
 end
-
-% ensure that the structure correctly describes a volume
-volume = fixvolume(volume);
 
 % check if the input data is valid for this function
 volume = checkdata(volume, 'datatype', 'volume', 'feedback', 'yes');

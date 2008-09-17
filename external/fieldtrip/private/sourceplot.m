@@ -90,6 +90,7 @@ function [cfg] = sourceplot(cfg, data)
 %                       'auto', full range of data
 %                       [min max], coordinates of first and last slice in voxels
 %   cfg.slicedim      = dimension to slice 1 (x-axis) 2(y-axis) 3(z-axis) (default = 3)
+%   cfg.title         = string, title of the figure window
 %
 % The folowing parameters apply for surface-plotting
 %   cfg.surffile       = string, file that contains the surface (default = 'single_subj_T1.mat')
@@ -110,16 +111,23 @@ function [cfg] = sourceplot(cfg, data)
 %   cfg.marker        = [Nx3] array defining N marker positions to display (orig: from sliceinterp)
 %   cfg.markersize    = radius of markers (default = 5)
 %   cfg.markercolor   = [1x3] marker color in RGB (default = [1 1 1], i.e. white) (orig: from sliceinterp)
-%   cfg.title         = optional title (default is '') (orig: from sliceinterp)
 %   white background option
 
 % undocumented TODO
 %   slice in all directions
 %   surface also optimal when inside present
+%   come up with a good glass brain projection
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.60  2008/09/17 14:49:40  roboos
+% no need to add identity transform, checkdata takes care of it being a volume
+%
+% Revision 1.59  2008/09/17 14:48:15  jansch
+% included functionality to scroll in the otrho-method, using the keys 'i' 'j'
+% 'k' 'm'
+%
 % Revision 1.58  2008/07/31 16:28:34  roboos
 % reshaping the volumes is not needed any more, thanks to checkdata
 %
@@ -564,7 +572,9 @@ if isequal(cfg.method,'ortho')
   end
 
   %% do the actual plotting %%
-
+  nas = [];
+  lpa = [];
+  rpa = [];
   interactive_flag = 1; % it happens at least once
   while(interactive_flag)
     interactive_flag = strcmp(cfg.interactive, 'yes');
@@ -576,6 +586,7 @@ if isequal(cfg.method,'ortho')
     if interactive_flag
       fprintf('\n');
       fprintf('click with mouse button to reposition the cursor\n');
+      fprintf('press n/l/r on keyboard to record a fiducial position\n');
       fprintf('press q on keyboard to quit interactive mode\n');
     end
 
@@ -619,19 +630,19 @@ if isequal(cfg.method,'ortho')
       error('no anatomy is present and no functional data is selected, please check your cfg.funparameter');
     end
 
-    subplot(2,2,1);
+    h1 = subplot(2,2,1);
     [vols2D] = handle_ortho(vols, [xi yi zi], 2, dim);
     plot2D(vols2D, scales);
     xlabel('i'); ylabel('k'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([xi zi]); end
-
-    subplot(2,2,2);
+    
+    h2 = subplot(2,2,2);
     [vols2D] = handle_ortho(vols, [xi yi zi], 1, dim);
     plot2D(vols2D, scales);
     xlabel('j'); ylabel('k'); axis(cfg.axis);
     if strcmp(cfg.crosshair, 'yes'), crosshair([yi zi]); end
 
-    subplot(2,2,3);
+    h3 = subplot(2,2,3);
     [vols2D] = handle_ortho(vols, [xi yi zi], 3, dim);
     plot2D(vols2D, scales);
     xlabel('i'); ylabel('j'); axis(cfg.axis);
@@ -658,6 +669,27 @@ if isequal(cfg.method,'ortho')
       try, [d1, d2, key] = ginput(1); catch, key='q'; end
       if key=='q'
         break;
+      elseif key=='l'
+        lpa = [xi yi zi];
+      elseif key=='r'
+        rpa = [xi yi zi];
+      elseif key=='n'
+        nas = [xi yi zi];			
+      elseif key=='i' || key=='j' || key=='k' || key=='m'
+        % update the view to a new position
+        if     l1=='i' && l2=='k' && key=='i', zi = zi+1; 
+        elseif l1=='i' && l2=='k' && key=='j', xi = xi-1;
+        elseif l1=='i' && l2=='k' && key=='k', xi = xi+1;
+        elseif l1=='i' && l2=='k' && key=='m', zi = zi-1;
+        elseif l1=='i' && l2=='j' && key=='i', yi = yi+1; 
+        elseif l1=='i' && l2=='j' && key=='j', xi = xi-1;
+        elseif l1=='i' && l2=='j' && key=='k', xi = xi+1;
+        elseif l1=='i' && l2=='j' && key=='m', yi = yi-1;
+        elseif l1=='j' && l2=='k' && key=='i', zi = zi+1; 
+        elseif l1=='j' && l2=='k' && key=='j', yi = yi-1;
+        elseif l1=='j' && l2=='k' && key=='k', yi = yi+1;
+        elseif l1=='j' && l2=='k' && key=='m', zi = zi-1;
+	end;
       else
         % update the view to a new position
         l1 = get(get(gca, 'xlabel'), 'string');
@@ -680,9 +712,48 @@ if isequal(cfg.method,'ortho')
         end
       end
     end % if interactive_flag
-
+    if ~isempty(nas), fprintf('nas = [%f %f %f]\n', nas); cfg.fiducial.nas = nas; else fprintf('nas = undefined\n'); end
+    if ~isempty(lpa), fprintf('lpa = [%f %f %f]\n', lpa); cfg.fiducial.lpa = lpa; else fprintf('lpa = undefined\n'); end
+    if ~isempty(rpa), fprintf('rpa = [%f %f %f]\n', rpa); cfg.fiducial.rpa = rpa; else fprintf('rpa = undefined\n'); end	    
   end % while interactive_flag
 
+elseif isequal(cfg.method,'glassbrain')
+  tmpcfg          = [];
+  tmpcfg.funparameter = cfg.funparameter;
+  tmpcfg.method   = 'ortho';
+  tmpcfg.location = [1 1 1];
+  tmpcfg.funcolorlim = cfg.funcolorlim;
+  tmpcfg.funcolormap = cfg.funcolormap;
+  tmpcfg.opacitylim  = cfg.opacitylim;
+  tmpcfg.locationcoordinates = 'voxel';
+  tmpcfg.maskparameter       = 'inside';
+  tmpcfg.axis                = cfg.axis;
+  if hasfun, 
+    fun = getsubfield(data, cfg.funparameter);
+    fun(1,:,:) = max(fun, [], 1);
+    fun(:,1,:) = max(fun, [], 2);
+    fun(:,:,1) = max(fun, [], 3);
+    data = setsubfield(data, cfg.funparameter, fun);
+  end
+ 
+  if hasana,
+    ana = getsubfield(data, 'anatomy');
+    %ana(1,:,:) = max(ana, [], 1);
+    %ana(:,1,:) = max(ana, [], 2);
+    %ana(:,:,1) = max(ana, [], 3);
+    data = setsubfield(data, 'anatomy', ana);
+  end
+  
+  if hasmsk,
+    msk = getsubfield(data, 'inside');
+    msk(1,:,:) = squeeze(fun(1,:,:))>0 & imfill(abs(squeeze(ana(1,:,:))-1))>0;
+    msk(:,1,:) = squeeze(fun(:,1,:))>0 & imfill(abs(squeeze(ana(:,1,:))-1))>0;
+    msk(:,:,1) = squeeze(fun(:,:,1))>0 & imfill(abs(ana(:,:,1)-1))>0;
+    data = setsubfield(data, 'inside', msk);
+  end
+
+  sourceplot(tmpcfg, data);
+  
 elseif isequal(cfg.method,'surface')
 
   % read the triangulated cortical surface from file
@@ -703,9 +774,6 @@ elseif isequal(cfg.method,'surface')
   end
 
   % these are required
-  if ~isfield(data, 'transform'),
-    data.transform = eye(4);
-  end
   if ~isfield(data, 'inside')
     data.inside = true(dim);
   end
@@ -773,7 +841,7 @@ elseif isequal(cfg.method,'surface')
 
   if strcmp(cfg.colorbar,  'yes'),
     if hasfun
-      % use a normal Matlab coorbar
+      % use a normal Matlab colorbar
       hc = colorbar;
       set(hc, 'YLim', [fcolmin fcolmax]);
     else
@@ -878,6 +946,8 @@ elseif isequal(cfg.method,'slice')
   end
 
 end
+
+if ~isempty(cfg.title), title(cfg.title); end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % handle_ortho makes an overlay of 3D anatomical, functional and probability

@@ -38,6 +38,9 @@ function [normalise] = volumenormalise(cfg, interp)
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen
 %
 % $Log: volumenormalise.m,v $
+% Revision 1.16  2008/09/17 14:53:35  roboos
+% removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
+%
 % Revision 1.15  2007/04/03 15:37:07  roboos
 % renamed the checkinput function to checkdata
 %
@@ -122,9 +125,6 @@ if ischar(interp),
     source_coordinates = 'ctf';
   end
 end
-
-% ensure that the structure correctly describes a volume
-interp = fixvolume(interp);
 
 % check if the input data is valid for this function
 interp = checkdata(interp, 'datatype', 'volume', 'feedback', 'yes');
@@ -286,7 +286,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumenormalise.m,v 1.15 2007/04/03 15:37:07 roboos Exp $';
+cfg.version.id = '$Id: volumenormalise.m,v 1.16 2008/09/17 14:53:35 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

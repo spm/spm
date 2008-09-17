@@ -19,6 +19,10 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: clusterstat.m,v $
+% Revision 1.23  2008/09/17 14:03:51  roboos
+% fixed bug for negative critval (thanks to Vladimir)
+% added error message if tail~=clustertail
+%
 % Revision 1.22  2008/05/26 09:23:56  roboos
 % fixed bug in neg and postailcritval concatenation when one was inf and the other a vector
 %
@@ -47,6 +51,10 @@ if ~isfield(cfg,'minnbchan'),      cfg.minnbchan=0;            end
 % if ~isfield(cfg,'channeighbstructmat'),      cfg.channeighbstructmat=[];               end
 % if ~isfield(cfg,'chancmbneighbstructmat'),   cfg.chancmbneighbstructmat=[];            end
 % if ~isfield(cfg,'chancmbneighbselmat'),      cfg.chancmbneighbselmat=[];               end
+
+if cfg.tail~=cfg.clustertail
+  error('cfg.tail and cfg.clustertail should be identical')
+end
 
 % determine whether the input represents N-D volumetric data or channel-freq-time data
 % and provide the appropriate details
@@ -88,7 +96,7 @@ if strcmp(cfg.clusterthreshold, 'parametric')
   elseif all(siz==1) && cfg.clustertail==1
     % it only specifies one critical value corresponding to the right tail
     postailcritval =  cfg.clustercritval;
-    negtailcritval = +inf * ones(size(postailcritval));
+    negtailcritval = -inf * ones(size(postailcritval));
   elseif siz(1)==Nsample && siz(2)==1 && cfg.clustertail==0
     %  it specifies a single critical value for each sample, assume that the left and right tail are symmetric around zero
     negtailcritval = -cfg.clustercritval;

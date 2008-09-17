@@ -15,6 +15,9 @@ function [down] = volumedownsample(cfg, source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: volumedownsample.m,v $
+% Revision 1.19  2008/09/17 14:53:34  roboos
+% removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
+%
 % Revision 1.18  2007/04/18 10:27:44  roboos
 % no feedback for checkdata
 %
@@ -143,9 +146,6 @@ if strcmp(cfg.keepinside, 'yes')
   end
 end
 
-% ensure that the structure correctly describes a volume
-source = fixvolume(source);
-
 % check if the input data is valid for this function
 source = checkdata(source, 'datatype', 'volume', 'feedback', 'no');
 
@@ -206,7 +206,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumedownsample.m,v 1.18 2007/04/18 10:27:44 roboos Exp $';
+cfg.version.id = '$Id: volumedownsample.m,v 1.19 2008/09/17 14:53:34 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 
