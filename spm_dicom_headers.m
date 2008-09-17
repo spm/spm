@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 2094 2008-09-15 16:33:10Z john $
+% $Id: spm_dicom_headers.m 2107 2008-09-17 16:49:03Z john $
 
 if nargin<2, essentials = false; end
 
@@ -51,6 +51,7 @@ if ~strcmp(dcm,'DICM'),
     tag.group   = fread(fp,1,'ushort');
     tag.element = fread(fp,1,'ushort');
     if isempty(tag.group) || isempty(tag.element),
+        fclose(fp);
         warning('Truncated file "%s"',P);
         return;
     end;

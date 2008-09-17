@@ -3,8 +3,8 @@ function [Phi,DPhi] = spm_dartel_integrate(U,t,K)
 % FORMAT [Phi,DPhi] = spm_dartel_exp(U,t,K)
 %     U    - name of flow field (nx x ny x nz x nt x 3)
 %     t    - [t0 t1] Start and end time (values between 0 and 1)
-%     K    - log2 of the Euler time steps to integrate each
-%            piece of flow field
+%     K    - log2 of the Euler time steps to integrate the
+%            flow field.
 %
 %     Phi  - deformation field (nx x ny x nz x 3)
 %     DPhi - Jacobian determinant field (nx x ny x nz)
@@ -20,7 +20,7 @@ function [Phi,DPhi] = spm_dartel_integrate(U,t,K)
 %  Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_integrate.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_dartel_integrate.m 2107 2008-09-17 16:49:03Z john $
 
 if isa(U,'char'), U = nifti(U); end;
 if isa(U,'nifti'), U = U.dat; end;
@@ -28,6 +28,7 @@ if isa(U,'nifti'), U = U.dat; end;
 % Figure out which bits of flow field to use, the numbers of
 % Euler time steps, and the scales.
 nt  = size(U,4);
+K   = ceil(log2(2^K/nt));
 big = 2^12;
 t   = min(max(t,0),1);
 t0  = t(1);
