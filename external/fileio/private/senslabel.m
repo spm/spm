@@ -40,6 +40,9 @@ function label = senslabel(type)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: senslabel.m,v $
+% Revision 1.4  2008/09/17 19:35:07  roboos
+% ensure that it returns column array
+%
 % Revision 1.3  2008/09/10 09:12:11  roboos
 % added alternative definition of channel names without a space in the label for neuromag 122 and 306
 %
@@ -1821,6 +1824,7 @@ end % if isegi
 % search for the requested definition of channel labels
 if exist(type, 'var')
   label = eval(type);
+  label = label(:);
 else
   error('the requested sensor type is not supported');
 end
