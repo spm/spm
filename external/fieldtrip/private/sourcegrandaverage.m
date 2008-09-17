@@ -40,6 +40,9 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: sourcegrandaverage.m,v $
+% Revision 1.18  2008/09/17 15:02:36  roboos
+% removed call to fixvolume function, checkdata now takes care of it
+%
 % Revision 1.17  2007/07/31 13:02:05  jansch
 % built in option to concatenate sources, e.g. across frequency, with the option
 % cfg.concatenate
@@ -106,11 +109,6 @@ Nsubject = length(varargin);
 Nvoxel   = prod(varargin{1}.dim);
 dat      = zeros(Nvoxel, Nsubject);
 inside   = zeros(Nvoxel, Nsubject);
-
-% ensure that the structure correctly describes a volume
-for i=1:Nsubject
-  varargin{i} = fixvolume(varargin{i});
-end
 
 if isfield(varargin{1}, 'pos')
   % check that the source locations of each input source reconstruction are the same
@@ -280,7 +278,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcegrandaverage.m,v 1.17 2007/07/31 13:02:05 jansch Exp $';
+cfg.version.id = '$Id: sourcegrandaverage.m,v 1.18 2008/09/17 15:02:36 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Nsubject
