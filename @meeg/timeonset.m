@@ -1,11 +1,11 @@
 function res = timeonset(this, value)
-% Method for and setting the time onset
+% Method for reading and setting the time onset
 % FORMAT res = timeonset(this)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: timeonset.m 1254 2008-03-27 18:41:42Z vladimir $
+% $Id: timeonset.m 2116 2008-09-18 14:50:34Z stefan $
 
 if nargin == 1
     res = this.timeOnset;

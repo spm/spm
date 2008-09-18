@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2073 2008-09-10 10:25:39Z vladimir $
+% $Id: spm_eeg_grandmean.m 2116 2008-09-18 14:50:34Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -109,9 +109,9 @@ end
 
 % generate new meeg object with new filenames
 if strcmp(D{1}.transformtype, 'TF')
-    Do = clone(Do, [spm_str_manip(S.Pout, 'tr') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
+    Do = clone(Do, [spm_str_manip(S.Pout, 'r') '.dat'], [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
 else
-    Do = clone(Do, [spm_str_manip(S.Pout, 'tr') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
+    Do = clone(Do, [spm_str_manip(S.Pout, 'r') '.dat'], [Do.nchannels Do.nsamples Ntypes]);
 end
 
 % for determining bad channels of the grandmean
@@ -181,6 +181,7 @@ else
 
     end
 end
+
 spm_progress_bar('Clear');
 
 Do = type(Do, 'grandmean');
@@ -192,6 +193,7 @@ for i = 1:Ntypes
     sD.trials(i).code = types{i};
     sD.trials(i).repl = repl(i);
 end
+
 % [sD.trials.repl] = deal(repl);
 try sD.trials = rmfield(sD.trials, 'reject'); end
 try sD.trials = rmfield(sD.trials, 'onset'); end
