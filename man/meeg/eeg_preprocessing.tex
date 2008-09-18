@@ -580,14 +580,19 @@ condition. This method is usually only used on single trial data.
 \subsubsection{time}
 This method returns the time (ms) of the samples.
 
-
 \subsection{Manipulation of information}
 There are two functions which only manipulate the objects. 
 
 \subsubsection{ftraw}
 This method converts an object to a fieldtrip struct. An additional
 argument can be supplied to indicate whether the data is memory mapped
-(1: default) or loaded into memory (0).
+(1: default) or loaded into memory (0). Note that not all Fieldtrip functions
+can properly handle memory mapped data. In order to avoid corrupting
+the data, ftraw sets a read-only flag on it so in the worst case you might
+encounter errors in Fieldtrip functions. Please report such errors on
+SPM or Fieldtrip mailing list as we are interested in fixing them. ftraw(0) is 
+safer in this respect but inefficient in its memory use. 
+
 
 \subsubsection{save}
 This method saves the object to the mat- and dat-files.
@@ -652,7 +657,7 @@ referred to as artefacts. In SPM, we use two simple automatic
 artefact detection schemes. The first is thresholding the data and the
 second is robust averaging. One can also choose to detect artefacts
 manually by visualizing each trial using the display. Another option
-is to use a more shophisticated artefact detection approach
+is to use a more sophisticated artefact detection approach
 (implemented by some other software) and supply that information to
 SPM. In addition, one could also use a fieldtrip function to do the
 artefact detection/removal, and convert the resulting fieldtrip struct
