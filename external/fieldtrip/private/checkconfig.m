@@ -15,7 +15,7 @@ function [cfg] = checkconfig(cfg, varargin)
 %
 % Optional input arguments should be specified as key-value pairs and can include
 %   renamed           = {'old',  'new'}        % list the old and new option
-%   renamedcont       = {'opt',  'old', 'new'} % list old and new setting
+%   renamedval        = {'opt',  'old', 'new'} % list option and old and new value
 %   required          = {'opt1', 'opt2', etc.} % list the required options
 %   deprecated        = {'opt1', 'opt2', etc.} % list the deprecated options
 %   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options
@@ -25,6 +25,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: checkconfig.m,v $
+% Revision 1.3  2008/09/18 10:01:57  sashae
+% added 'renamedval' which checks/adjusts renamed values
+%
 % Revision 1.2  2008/09/18 08:33:48  sashae
 % new version: checks required, renamed, deprecated and forbidden configuration options,
 % adjusts where possible and gives warning/error messages. to be implemented in all main
@@ -35,7 +38,7 @@ function [cfg] = checkconfig(cfg, varargin)
 %
 
 renamed         = keyval('renamed',     varargin);
-renamedcont     = keyval('renamedcont', varargin);
+renamedval      = keyval('renamedval',  varargin);
 required        = keyval('required',    varargin);
 deprecated      = keyval('deprecated',  varargin);
 forbidden       = keyval('forbidden',   varargin);
@@ -54,12 +57,12 @@ if ~isempty(renamed)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% rename old to new content, give warning
+% rename old to new value, give warning
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isempty(renamedcont)
-  if strcmpi(getfield(cfg, renamedcont{1}), renamedcont(2))
-    cfg = setfield(cfg, renamedcont{1}, renamedcont{3});
-    warning(sprintf('use cfg.%s = %s instead of cfg.%s = %s', renamedcont{1}, renamedcont{3}, renamedcont{1}, renamedcont{2}));
+if ~isempty(renamedval)
+  if strcmpi(getfield(cfg, renamedval{1}), renamedval(2))
+    cfg = setfield(cfg, renamedval{1}, renamedval{3});
+    warning(sprintf('use cfg.%s = %s instead of cfg.%s = %s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
   end
 end
 
