@@ -1,0 +1,95 @@
+function [cfg] = checkconfig(cfg, varargin)
+
+% CHECKCONFIG checks the input cfg of the main FieldTrip functions. It
+% checks whether the cfg contains all the required options, it gives a
+% warning when renamed or deprecated options are used, and it makes sure 
+% no forbidden options are used. If necessary and possible, this function 
+% will adjust the cfg to the input requirements.
+%
+% If the input cfg does NOT correspond to the requirements, this function
+% is supposed to give an elaborate warning message and if applicable point
+% the user to external documentation.
+%
+% Use as
+%   [cfg] = checkconfig(cfg, ...)
+%
+% Optional input arguments should be specified as key-value pairs and can include
+%   renamed           = {'old',  'new'}        % list the old and new option
+%   renamedcont       = {'opt',  'old', 'new'} % list old and new setting
+%   required          = {'opt1', 'opt2', etc.} % list the required options
+%   deprecated        = {'opt1', 'opt2', etc.} % list the deprecated options
+%   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options
+%
+% See also CHECKDATA
+
+% Copyright (C) 2007, Robert Oostenveld
+%
+% $Log: checkconfig.m,v $
+% Revision 1.2  2008/09/18 08:33:48  sashae
+% new version: checks required, renamed, deprecated and forbidden configuration options,
+% adjusts where possible and gives warning/error messages. to be implemented in all main
+% fieldtrip functions, comparable to checkdata
+%
+% Revision 1.1  2008/07/08 15:39:22  roboos
+% initial version for Saskia to work on
+%
+
+renamed         = keyval('renamed',     varargin);
+renamedcont     = keyval('renamedcont', varargin);
+required        = keyval('required',    varargin);
+deprecated      = keyval('deprecated',  varargin);
+forbidden       = keyval('forbidden',   varargin);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% rename old to new options, give warning
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(renamed)
+  fieldsused = fieldnames(cfg);
+  if any(strcmp(renamed(1), fieldsused))
+    cfg = setfield(cfg, renamed{2}, (getfield(cfg, renamed{1})));
+    cfg = rmfield(cfg, renamed{1});
+    warning(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% rename old to new content, give warning
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(renamedcont)
+  if strcmpi(getfield(cfg, renamedcont{1}), renamedcont(2))
+    cfg = setfield(cfg, renamedcont{1}, renamedcont{3});
+    warning(sprintf('use cfg.%s = %s instead of cfg.%s = %s', renamedcont{1}, renamedcont{3}, renamedcont{1}, renamedcont{2}));
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check for required fields, give error when missing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(required)
+  fieldsused = fieldnames(cfg);
+  [c, ia, ib] = setxor(required, fieldsused);
+  if ~isempty(ia)
+    error(sprintf('The field cfg.%s is required\n', required{ia}));
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check for deprecated fields, give warning when present
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(deprecated)
+  fieldsused = fieldnames(cfg);
+  if any(ismember(deprecated, fieldsused))
+    warning(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{[ismember(deprecated, fieldsused)]}));
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check for forbidden fields, give error when present
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(forbidden)
+  fieldsused = fieldnames(cfg);
+  if any(ismember(forbidden, fieldsused))
+    error(sprintf('The field cfg.%s is forbidden\n', forbidden{[ismember(forbidden, fieldsused)]}));
+  end
+end
