@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.10  2008/09/18 10:38:33  vlalit
+% Added 4D formats to be recognized by read_sens
+%
 % Revision 1.9  2008/05/22 14:33:18  vlalit
 % Changes related to generalization of fiducials'  handling in SPM.
 %
@@ -136,7 +139,7 @@ switch fileformat
   % hence uses the standard fieldtrip/fileio read_header function
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  case {'ctf_ds', 'ctf_res4', 'neuromag_fif', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
+  case {'ctf_ds', 'ctf_res4', 'neuromag_fif', '4d', '4d_pdf', '4d_m4d', '4d_xyz', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
     % check the availability of the required low-level toolbox
     % this is required because the read_sens function is also on itself included in the forwinv toolbox
     hastoolbox('fileio');
