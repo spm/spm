@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 2036 2008-09-03 16:31:31Z stefan $
+% $Id: spm_cfg_eeg_epochs.m 2126 2008-09-19 15:55:34Z stefan $
 
-rev = '$Rev: 2036 $';
+rev = '$Rev: 2126 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -80,6 +80,7 @@ trlchoice.name    = 'Choose a way how to define trials';
 trlchoice.help    = {'Choose one of the two options how to define trials'}';
 trlchoice.values = {epochinfo define};
 
+
 S = cfg_exbranch;
 S.tag = 'eeg_epochs';
 S.name = 'M/EEG epoching';
@@ -103,7 +104,12 @@ else
     S.epochinfo.trlfile = S.epochinfo.trlfile{1};
 end
 
+% set review and save options both to 0 to not pop up something
+S.review = 0;
+S.save = 0;
+
 out.D = spm_eeg_epochs(S);
+out.Dfname = {out.D.fname};
 
 function dep = vout_eeg_epochs(job)
 % Output is always in field "D", no matter how job is structured
@@ -114,4 +120,10 @@ dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
 
+dep(2) = cfg_dep;
+dep(2).sname = 'Epoched Datafile';
+% reference field "Dfname" from output
+dep(2).src_output = substruct('.','Dfname');
+% this can be entered into any file selector
+dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 

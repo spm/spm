@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2119 2008-09-19 07:34:56Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2126 2008-09-19 15:55:34Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -229,5 +229,5 @@ dep(2).sname = 'Converted Datafile';
 % reference field "Dfname" from output
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
-dep(2).tgt_spec   = cfg_findspec({{'filter','any'}});
+dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 

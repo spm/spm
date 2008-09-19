@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_downsample
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_eeg_downsample.m 2126 2008-09-19 15:55:34Z stefan $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 2126 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -35,15 +35,24 @@ function out = eeg_downsample(job)
 % construct the S struct
 S.D = job.D{1};
 S.fsample_new = job.fsample_new;
+
 out.D = spm_eeg_downsample(S);
+out.Dfname = {out.D.fname};
 
 function dep = vout_eeg_downsample(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
-dep.sname = 'Downsample Data';
+dep.sname = 'Downsampled data';
 % reference field "D" from output
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
+
+dep(2) = cfg_dep;
+dep(2).sname = 'Downsampled Datafile';
+% reference field "Dfname" from output
+dep(2).src_output = substruct('.','Dfname');
+% this can be entered into any file selector
+dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 
 
