@@ -22,10 +22,10 @@ number of different M/EEG formats available, plus there are literally
 dozens of different analysis strategies that researchers would like to
 use. Clearly, our rather small group doesn't have the resources
 to cover all these different approaches. However, we made SPM for
-M/EEG as open as it possibly can be be to allow researchers to use
+M/EEG as open as it possibly can be to allow researchers to use
 their favourite analysis software for specific processing steps. For
 example, it is possible to convert data to SPM8, then convert the data
-to fieldtrip or EEGlab (using an SPM conversion routine), use a couple
+to Fieldtrip or EEGlab (using an SPM conversion routine), use a couple
 of functions in these packages, convert back to SPM, and do source
 reconstruction or DCM. Any combination of processing steps should be
 possible, and we expect that this 
@@ -33,11 +33,27 @@ software-interoperability among analysis software packages (each with
 its own area of expertise) will lead to a boost of M/EEG researchers
 trying out new ways of analysing their data with a wide range of
 sophisticated methods. We are pleased to say that we have a formal
-collaboration with the excellent fieldtrip package (head developer
+collaboration with the excellent Fieldtrip package (head developer
 Robert Oostenveld) on many analysis issues. For example, SPM and
-fieldtrip share routines for converting data to matlab, and the SPM8
-distribution contains a 'lite' version of fieldtrip so that you can
-apply fieldtrip functions from within SPM.
+Fieldtrip share routines for converting data to matlab, forward modelling 
+for M/EEG source reconstruction and the SPM8 distribution contains
+a version of Fieldtrip so that you can combine Fieldtrip and SPM 
+functions in your custom scripts. SPM and Fieldtrip complement each
+other well as SPM is geared toward very specific analysis tools as 
+will be described below whereas Fieldtrip is a more general repository 
+of different methods that can be put together in flexible ways
+to perform a variety of analyses. This flexibility of Fieldtrip, however, 
+comes at the expense of accessibility to a non-expert user. Fieldtrip does
+not have graphical user interface (GUI) and its functions are used by 
+writing custom Matlab scripts. In combined SPM8-Fieldtrip the
+flexibility of Fieldtrip can be complemented by the SPM GUI 
+tools that allow rapid development of simple GUI's and also SPM8's new
+powerful batching system. Within this framework the power users in a lab
+can easily and rapidly develop specialized analysis tools with GUI that 
+can then  also be used by non-proficient Matlab users. Some examples of such
+tools are available in MEEG toolbox distributed with SPM. We will also be
+glad to include in this toolbox new tools contributed by the users as long
+as they are of general interest and applicability. 
 \\
 \\
 SPM's speciality is, of course, the statistical analysis of voxel-based
@@ -93,11 +109,11 @@ formats
 around and it is quite an undertaking for a small developer team like
 ours to write stable software which can read all formats, some of
 which we have never seen ourselves. This had two consequences. The
-first is that we now collaborate with the developers of fieldtrip
+first is that we now collaborate with the developers of Fieldtrip
 (head developer: Robert Oostenveld, F.C. Donders centre in
 Nijmegen/Netherlands). Robert already had made available a wide range of
 matlab code to convert M/EEG data, and we thought it a good idea to
-let both SPM and fieldtrip use and develop the same code. The second
+let both SPM and Fieldtrip use and develop the same code. The second
 major change is that we changed the internal M/EEG format of SPM in
 many ways to make reading/writing and manipulating M/EEG data more
 robust and straightforward for the user. Effectively, we ripped out
@@ -129,10 +145,10 @@ analysis, many processing steps are repetetive and it is now quite
 straightforward to automize the software to a high degree.
 
 Fourth, it is now possible to convert, in working memory, SPM
-data to fieldtrip or EEGlab, and back. This feature makes it possible to 
-use, within SPM, many fieldtrip and EEGlab functions. For example, it
+data to Fieldtrip or EEGlab, and back. This feature makes it possible to 
+use, within SPM, many Fieldtrip and EEGlab functions. For example, it
 is quite straightforward, using a script, to work within SPM, and use
-fieldtrip functions to do parts of the preprocessing. 
+Fieldtrip functions to do parts of the preprocessing. 
 \\
 \\
 The following chapters will go through all the EEG/MEG related
