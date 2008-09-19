@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2037 2008-09-04 09:27:35Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2119 2008-09-19 07:34:56Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -213,12 +213,21 @@ S = rmfield(S, 'save');
 
 
 out.D = spm_eeg_convert(S);
+out.Dfname = {out.D.fname};
 
 function dep = vout_eeg_convert(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
-dep.sname = 'Converted Data';
+dep.sname = 'Converted M/EEG Data';
 % reference field "D" from output
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'strtype','e'}});
+
+dep(2) = cfg_dep;
+dep(2).sname = 'Converted Datafile';
+% reference field "Dfname" from output
+dep(2).src_output = substruct('.','Dfname');
+% this can be entered into any file selector
+dep(2).tgt_spec   = cfg_findspec({{'filter','any'}});
+
