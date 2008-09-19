@@ -1,4 +1,4 @@
-/* $Id: optimN.c 1128 2008-02-01 12:27:39Z john $ */
+/* $Id: optimN.c 2123 2008-09-19 12:43:38Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -168,7 +168,7 @@ double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float
                     tmp =  (w000* pm[0] + 
                           + w001*(pm[km1] + pm[kp1])
                           + w010*(pm[jm1] + pm[jp1])
-                          + w100*(pm[im1] + pm[ip1]))*scal[m];
+                          + w100*(pm[im1] + pm[ip1]))*scal[m]
                           - pb[m][i];
                     for(n=0; n<dm[3]; n++)
                         tmp += a11[n]*pu[n][i];
