@@ -3,7 +3,7 @@ extern void composition(int dm[], double *A, double *B, double *C);
 extern void composition_jacobian(int dm[],
                                  double *A, double * JA, double *B, double *JB,
                                  double *C, double *JC);
-extern void composition_jacdet(int dm[],
+extern void composition_detjac(int dm[],
                                  double *A, double * dA, double *B, double *dB,
                                  double *C, double *dC);
 extern double samp(int dm[], double f[], double x, double y);

@@ -8,6 +8,7 @@ extern void composition_jacdet(int dm[],
                                float *C, float *JC);
 
 extern double samp(int dm[], float f[], double x, double y, double z);
+extern void sampn(int dm[], float f[], int n, int mm, double x, double y, double z, double v[]);
 extern void expdef(int dm[], int k, double sc, float v[],
                    float t0[], float t1[], float J0[], float J1[]);
 extern void expdefdet(int dm[], int k, double sc, float v[],
