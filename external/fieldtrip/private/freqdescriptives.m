@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.50  2008/09/22 11:30:42  roboos
+% added default keeptrials=no, which appears to have gone missing in the previous commit
+%
 % Revision 1.49  2008/09/10 14:11:56  jansch
 % fixed an issue with keeptrials
 %
@@ -180,6 +183,8 @@ if ~isfield(cfg, 'channel'),           cfg.channel       = 'all';         end
 if ~isfield(cfg, 'partchan'),          cfg.partchan      = {};            end
 if ~isfield(cfg, 'foilim'),            cfg.foilim        = 'all';         end
 if ~isfield(cfg, 'toilim'),            cfg.toilim        = 'all';         end
+if ~isfield(cfg, 'keeptrials'),        cfg.keeptrials    = 'no';          end
+
 if ~isfield(cfg, 'channelcmb'),
   if hascsd
     cfg.channelcmb    = freq.labelcmb;
@@ -630,7 +635,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.49 2008/09/10 14:11:56 jansch Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.50 2008/09/22 11:30:42 roboos Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details
