@@ -72,6 +72,9 @@ function topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.48  2008/09/22 14:24:33  roboos
+% fixed bug that was visible in case of interactive=yes, removed the scaling of the channels to unit sphere, since that is now done in prepare_layout.
+%
 % Revision 1.47  2008/09/22 12:31:58  roboos
 % changed handling of the layout
 %
@@ -397,10 +400,6 @@ topoplot(cfg,chanX,chanY,datavector,chanLabels);
 
 % The remainder of the code is meant to make the figure interactive
 hold on;
-
-% Scale the channel locations between -0.45 and +0.45, which fits with the head outline:
-chanX = 0.9*((chanX-min(chanX))/(max(chanX)-min(chanX))-0.5); %should be the same as in topoplot.m
-chanY = 0.9*((chanY-min(chanY))/(max(chanY)-min(chanY))-0.5);
 
 if strcmp(cfg.interactive, 'yes')
   userData.hFigure = gcf;

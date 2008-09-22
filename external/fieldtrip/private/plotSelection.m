@@ -66,6 +66,9 @@ function plotSelection(userData, buttonState)
 % Copyright (C) 2006, Dennis Pasveer
 %
 % $Log: plotSelection.m,v $
+% Revision 1.19  2008/09/22 14:23:25  roboos
+% fixed some lint warnings, i.e. no functional change, only efficiency
+%
 % Revision 1.18  2007/10/01 07:37:54  roboos
 % copy cfg.rotate along in the new_cfg, for subsequent topoplots (thanks to Vladimir)
 %
@@ -148,7 +151,7 @@ yLim = get(userData.hAxes, 'YLim');
 if ~userData.selecting
    if buttonState==0
       % Mouse pointer becomes normal when outside plot boundaries, or when in selected area (=clickable):
-      if (p(1) < xLim(1)) | (p(1) > xLim(2)) | (p(2) < yLim(1)) | (p(2) > yLim(2)) | inSelection(p, userData.range)
+      if (p(1) < xLim(1)) || (p(1) > xLim(2)) || (p(2) < yLim(1)) || (p(2) > yLim(2)) || inSelection(p, userData.range)
          set(userData.hFigure, 'Pointer', 'default');
       else
          set(userData.hFigure, 'Pointer', 'crosshair');
@@ -162,7 +165,7 @@ end
 % Button down starts a selection:
 if buttonState==1
    % Check cursor coordinates:
-   if (p(1) < xLim(1)) | (p(1) > xLim(2)) | (p(2) < yLim(1)) | (p(2) > yLim(2))
+   if (p(1) < xLim(1)) || (p(1) > xLim(2)) || (p(2) < yLim(1)) || (p(2) > yLim(2))
       return;
    end
 
@@ -223,9 +226,9 @@ elseif userData.selecting
 
    % Launch a new figure if a selected area has been clicked:
    if (buttonState == 2) ...
-         & (userData.selecting == 1) ...
-         & (clicked) ...
-         & (inSelection(p, userData.range))
+         && (userData.selecting == 1) ...
+         && (clicked) ...
+         && (inSelection(p, userData.range))
 
       % Button has been released, so stop selecting:
       userData.selecting = 0;
@@ -237,7 +240,7 @@ elseif userData.selecting
       dimord = getDimord(userData);
       if strcmp(dimord, 'chan_time') || strcmp(dimord, 'chan_freq') || strcmp(dimord, 'subj_chan_time') || strcmp(dimord, 'rpt_chan_time')
          if strcmp(userData.selectAxes, 'z')
-            if length(selChannels) > 0
+            if ~isempty(selChannels)
                % Launch ER singleplot figure:
                new_cfg = [];
                if isfield(userData.cfg, 'layout')
@@ -313,7 +316,7 @@ elseif userData.selecting
          % Check data dimord for TFR data:
       elseif strcmp(dimord, 'chan_freq_time')
          if strcmp(userData.selectAxes, 'z')
-            if length(selChannels) > 0
+            if ~isempty(selChannels)
                % Launch TFR singleplot figure:
                new_cfg      = userData.cfg;
                new_cfg.xlim = userData.cfg.xlim;
@@ -355,7 +358,7 @@ elseif userData.selecting
          end
 
          % Check data dimord for FREQ data:
-      elseif (isfield(userData.cfg, 'xparam') & strcmp(userData.cfg.yparam, 'freq'))
+      elseif (isfield(userData.cfg, 'xparam') && strcmp(userData.cfg.yparam, 'freq'))
 
 
       else
@@ -436,11 +439,10 @@ a = 0;
 for i=1:length(selectionRanges)
    % Look only in complete selections (containing 4 elemens [left top right bottom]):
    if (length(selectionRanges{i}) == 4) ...
-         & (aPoint(1) >= min(selectionRanges{i}([1 3]))) ...
-         & (aPoint(1) <= max(selectionRanges{i}([1 3]))) ...
-         & (aPoint(2) >= min(selectionRanges{i}([2 4]))) ...
-         & (aPoint(2) <= max(selectionRanges{i}([2 4])))
-
+         && (aPoint(:,1) >= min(selectionRanges{i}([1 3]))) ...
+         && (aPoint(:,1) <= max(selectionRanges{i}([1 3]))) ...
+         && (aPoint(:,2) >= min(selectionRanges{i}([2 4]))) ...
+         && (aPoint(:,2) <= max(selectionRanges{i}([2 4])))
       a = i;
       return;
    end
