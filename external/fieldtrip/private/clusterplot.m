@@ -34,6 +34,9 @@ function clusterplot(cfg, stat)
 % Copyright (C) 2007, Ingrid Nieuwenhuis, F.C. Donders Centre
 %
 % $Log: clusterplot.m,v $
+% Revision 1.6  2008/09/22 15:18:53  roboos
+% only prepare the layout once
+%
 % Revision 1.5  2008/06/12 12:22:36  ingnie
 % Now also works for 1D data (= avaraged over time), added some comma's in default setting for readability
 %
@@ -53,6 +56,9 @@ if ~isfield(cfg,'hlcolorpos'),             cfg.hlcolorpos = [0 0 0];            
 if ~isfield(cfg,'hlcolorneg'),             cfg.hlcolorneg = [0 0 0];                     end;
 if ~isfield(cfg,'zparam'),                 cfg.zparam = 'stat';                          end;
 if ~isfield(cfg,'saveaspng'),              cfg.saveaspng = 'no';                         end;
+
+% prepare the layout, this only has to be done once
+cfg.layout = prepare_layout(cfg, stat);
 
 % detect 2D or 1D
 is2D = isfield(stat,'time');

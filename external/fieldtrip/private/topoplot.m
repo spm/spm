@@ -126,6 +126,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.35  2008/09/22 15:12:01  roboos
+% fixed bug with highlights (thanks to Tineke)
+%
 % Revision 1.34  2008/09/22 12:34:10  roboos
 % changed handling of the layout
 % changed inside/outside detection using layout.mask
@@ -375,9 +378,9 @@ if ~OldStyleSyntax
   chanLabels  = cfg.layout.label(:);
 else
   % create layout including channel positions, labels and anatomical mask and outline
-  cfg.layout.pos = [chanX chanY];
+  cfg.layout.pos   = [chanX chanY];
   cfg.layout.label = chanLabels;
-  cfg.layout  = prepare_layout(cfg);
+  cfg.layout       = prepare_layout(cfg);
 end
 clear chanX chanY
 
@@ -533,11 +536,11 @@ end
 
 
 % Plot electrodes:
-if strcmp(cfg.electrodes,'on')||strcmp(cfg.showlabels,'markers')
+if strcmp(cfg.electrodes,'on') || strcmp(cfg.showlabels,'markers')
   if ischar(cfg.highlight) 
     hp2 = plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
   elseif isnumeric(cfg.highlight) 
-    normal = setdiff(1:length(chanX), cfg.highlight);
+    normal = setdiff(1:length(x), cfg.highlight);
     hp2    = plot(y(normal),        x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
                                                                                           'linewidth',  cfg.hllinewidth);
@@ -575,7 +578,7 @@ elseif strcmp(cfg.electrodes,'dotnum')
   if ischar(cfg.highlight) 
     hp2 = plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
   elseif isnumeric(cfg.highlight) 
-    normal = setdiff(1:length(chanX), cfg.highlight);
+    normal = setdiff(1:length(x), cfg.highlight);
     hp2    = plot(y(normal)       , x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
                                                                     'linewidth', cfg.hllinewidth);
