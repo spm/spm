@@ -1,15 +1,18 @@
-function [status] = hastoolbox(toolbox, add_to_path)
+function [status] = hastoolbox(toolbox, autoadd, silent)
 
 % HASTOOLBOX tests whether an external toolbox is installed. Optionally
 % it will try to determine the path to the toolbox and install it
 % automatically.
 % 
 % Use as
-%   [status] = hastoolbox(toolbox, add_to_path);
+%   [status] = hastoolbox(toolbox, autoadd, silent)
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.17  2008/09/22 19:42:09  roboos
+% added option for silent processing
+%
 % Revision 1.16  2008/08/11 16:11:19  roboos
 % also automatically add to path for fieldtrip code and external modules
 %
@@ -114,7 +117,12 @@ url = {
 
 if nargin<2
   % default is not to add the path automatically
-  add_to_path = 0;
+  autoadd = 0;
+end
+
+if nargin<3
+  % default is not to be silent
+  silent = 0;
 end
 
 % determine whether the toolbox is installed
@@ -179,7 +187,7 @@ switch toolbox
   case 'BCI2000'
     status  = exist('load_bcidat');
   otherwise
-    warning(sprintf('cannot determine whether the %s toolbox is present', toolbox));
+    if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
 end
 
@@ -187,36 +195,36 @@ end
 status = (status~=0);
 
 % try to determine the path of the requested toolbox
-if add_to_path && ~status
+if autoadd && ~status
 
   % for core fieldtrip modules
   prefix = fileparts(which('preprocessing'));
   if ~status
-    status = myaddpath(fullfile(prefix, lower(toolbox)));
+    status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
   % for external fieldtrip modules
   prefix = fullfile(fileparts(which('preprocessing')), 'external');
   if ~status
-    status = myaddpath(fullfile(prefix, lower(toolbox)));
+    status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
   % for linux computers in the F.C. Donders Centre
   prefix = '/home/common/matlab';
   if ~status && (strcmp(computer, 'GLNX86') || strcmp(computer, 'GLNXA64'))
-    status = myaddpath(fullfile(prefix, lower(toolbox)));
+    status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
   % for windows computers in the F.C. Donders Centre
   prefix = 'h:\common\matlab';
   if ~status && strcmp(computer, 'PCWIN')
-    status = myaddpath(fullfile(prefix, lower(toolbox)));
+    status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
   % use the matlab subdirectory in your homedirectory, this works on unix and mac
   prefix = [getenv('HOME') '/matlab'];
   if ~status 
-    status = myaddpath(fullfile(prefix, lower(toolbox)));
+    status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
 
  if ~status
@@ -234,9 +242,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function status = myaddpath(toolbox)
+function status = myaddpath(toolbox, silent)
 if exist(toolbox, 'dir')
-  warning(sprintf('adding %s toolbox to your Matlab path', toolbox));
+  if ~silent, warning(sprintf('adding %s toolbox to your Matlab path', toolbox)); end
   addpath(toolbox);
   status = 1;
 else
