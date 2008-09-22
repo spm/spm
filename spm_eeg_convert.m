@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_convert.m 2140 2008-09-22 13:56:51Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -90,6 +90,44 @@ end
 
 try
     event = fileio_read_event(S.dataset, 'detectflank', 'both');
+
+    if ~isempty(strmatch('UPPT001', hdr.label))
+        % This is s somewhat ugly fix to the specific problem with event
+        % coding in FIL CTF. It can also be useful for other CTF systems where the
+        % pulses in the event channel go downwards.
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1);
+        if ~isempty(fil_ctf_events)
+            [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
+            event = cat(1, event(:), fil_ctf_events(:));
+        end
+    end
+
+
+    if ~isempty(strmatch('UPPT002', hdr.label))
+        % This is s somewhat ugly fix to the specific problem with event
+        % coding in FIL CTF. It can also be useful for other CTF systems where the
+        % pulses in the event channel go downwards.
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1);
+        if ~isempty(fil_ctf_events)
+            [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
+            event = cat(1, event(:), fil_ctf_events(:));
+        end
+    end
+
+
+    % This is another FIL-specific fix that will hopefully not affect other sites
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, 'ÿBIOSEMI')
+        ind = strcmp('STATUS', {event(:).type});
+        val = [event(ind).value];
+        if any(val>255)
+            bytes  = dec2bin(val);
+            bytes  = bytes(:, end-7:end);
+            bytes  = flipdim(bytes, 2);
+            val    = num2cell(bin2dec(bytes));
+            [event(ind).value] = deal(val{:});
+        end
+    end
+
 catch
     warning(['Could not read events from file ' S.dataset]);
     event = [];
