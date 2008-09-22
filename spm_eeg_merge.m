@@ -4,18 +4,23 @@ function Dout = spm_eeg_merge(S);
 % S         - optional input struct
 % (optional) fields of S:
 % D         - filename of EEG mat-file with continuous data
-% recode    - a cell vector with one cell for each file. A vector in each cell
-%             codes the new event type. This allows to either recode events
-%             or keep their old codes.
+% recode    - a cell matrix of condition labels (rows: file, column: condition). 
+%             
 % Output:
 % D         - EEG data struct (also written to files)
 %
 % concatenates epoched single trial files
 %_______________________________________________________________________
+% This function can be used to merge M/EEG files to one file. This is
+% useful whenever the data are distributed over multiple files, but one
+% wants to use all information in one file. For example, when displaying
+% data (SPM displays data from only one file at a time), or merging 
+% information that has been measured in multiple sessions.
+%_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+% 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_merge.m 2134 2008-09-22 12:07:35Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 

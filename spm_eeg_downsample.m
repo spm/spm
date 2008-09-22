@@ -8,9 +8,13 @@ function D = spm_eeg_downsample(S)
 % fsample_new  - new sampling rate
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+%_______________________________________________________________________
+% This downsampling function uses 'resample' from the signal processing
+% toolbox. Specify a new sampling rate, which must be lower than the
+% original sampling rate. 
+%_______________________________________________________________________
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_downsample.m 2134 2008-09-22 12:07:35Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 

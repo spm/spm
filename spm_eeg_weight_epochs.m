@@ -17,14 +17,16 @@ function D = spm_eeg_weight_epochs(S);
 % The argument c must have dimensions Ncontrasts X Nepochs, where Ncontrasts is
 % the number of contrasts and Nepochs the number of epochs, i.e. each row of c
 % contains one contrast vector. The output
-% is a MEEG file with Ncontrasts epochs. The typical use is to compute,
+% is a M/EEG file with Ncontrasts epochs. The typical use is to compute,
 % for display purposes, contrasts like the difference or interaction
-% between trial types in channel space.
+% between trial types in channel space. Another possible use is remove
+% trials from the data file, by using a contrast that contains zeros for
+% the to be removed file.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_weight_epochs.m 2134 2008-09-22 12:07:35Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 

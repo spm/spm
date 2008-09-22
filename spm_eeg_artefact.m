@@ -1,10 +1,45 @@
 function D = spm_eeg_artefact(S)
-% simple artefact detection
+% simple artefact detection, optionally with robust averaging
+% FORMAT D = spm_eeg_artefact(S)
+% S  - filename or input struct (optional)
+% (optional) fields of S:
+% S.D         - filename of EEG mat-file with continuous data
+% 
+% S.artefact with entries (all optional):
+%    External_list      - (0: no/1: yes) flag, whether to flag trials as
+%                         artefactual or clean
+%    out_list           - vector of artefactual trial indices (if
+%                         External_list yes)
+%    in_list            - vector of clean trial indices (if
+%                         External_list yes)
+%    Weighted           - (0: no/1: yes) flag, whether to use robust
+%                         averaging
+%    Weightingfunction  - parameter used for robust averaging
+%    Smoothing          - parameter used for robust averaging
+%    Check_Threshold    - (0: no/1: yes) flag, whether to threshold trials
+%    channels_threshold - vector of indices which channels to threshold (if
+%                         Check_Threshold yes)
+%    threshold          - vector of thresholds, with which the absolute
+%                         data values are compared against (if Check_Threshold yes). 
+%                         Vector length must be either number of selected channels, 
+%                         or a single number applied to all channels.
+%
+% Output:
+% D         - EEG data struct (also written to files)
+
 %_______________________________________________________________________
+% spm_eeg_artefact is an artefact detection routine. The user can specify 
+% clean or artefactual trials as vector indices. These trials are not checked by SPM. 
+% The function uses simple thresholding to detect artefactual trials and
+% bad channels. Optionally, 'robust averaging' can be used to estimate how
+% much weight each trial should have in the average to compute the evoked
+% response. 
+%_______________________________________________________________________
+
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2133 2008-09-22 10:21:05Z stefan $
+% $Id: spm_eeg_artefact.m 2134 2008-09-22 12:07:35Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);

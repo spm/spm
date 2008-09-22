@@ -3,12 +3,16 @@ function D = spm_eeg_tf(S)
 % FORMAT D = spm_eeg_tf(S)
 %
 % D     - filename of EEG-data file or EEG data struct
-% stored in struct D.events:
-% fmin          - minimum frequency
-% fmax          - maximum frequency
+% stored in struct D.tf:
+% frequencies   - vector of frequencies (Hz)
 % rm_baseline   - baseline removal (1/0) yes/no
-% Mfactor       - Morlet wavelet factor (can not be accessed by GUI)
-%
+% Sbaseline     - 2-element vector: start and stop of baseline
+%                 (if rm_baseline yes)
+% Mfactor       - Morlet wavelet factor
+% channels      - vector of channel indices for which to compute TF
+% phase         - compute phase (1/0) yes/no
+% collchans     - collapse channels (1/0) yes/no. Will average power over
+%                 channels after power estimation
 % D             - EEG data struct with time-frequency data (also written to files)
 %_______________________________________________________________________
 %
@@ -18,7 +22,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2081 2008-09-11 13:04:24Z vladimir $
+% $Id: spm_eeg_tf.m 2134 2008-09-22 12:07:35Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
