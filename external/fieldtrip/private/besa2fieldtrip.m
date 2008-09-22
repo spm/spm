@@ -31,6 +31,9 @@ function [data] = besa2fieldtrip(filename);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: besa2fieldtrip.m,v $
+% Revision 1.15  2008/09/22 21:23:11  roboos
+% always add besa path (now as external/besa)
+%
 % Revision 1.14  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -79,9 +82,9 @@ fieldtripdefs
 
 % This function can either use the reading functions included in FieldTrip
 % (with contributions from Karsten, Vladimir and Robert), or the official
-% released functions by Karsten Hoechstetter from BESA. If present, the latter
-% ones will have precedence.
-hasbesa = hastoolbox('besa');
+% released functions by Karsten Hoechstetter from BESA. The functions in the
+% official toolbox have precedence.
+hasbesa = hastoolbox('besa',1, 1);
 
 type = filetype(filename);
 
@@ -261,7 +264,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: besa2fieldtrip.m,v 1.14 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: besa2fieldtrip.m,v 1.15 2008/09/22 21:23:11 roboos Exp $';
 data.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
