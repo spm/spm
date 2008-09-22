@@ -23,8 +23,7 @@ function [lay] = prepare_layout(cfg, data);
 %   cfg.gradfile    filename containing gradiometer definition
 %   cfg.output      filename to which the layout will be written (default = [])
 %   cfg.montage     'no' or a montage structure (default = 'no')
-%   cfg.image       filename, use an image to construct a layout (e.g.
-%                   usefull for ECog grids)
+%   cfg.image       filename, use an image to construct a layout (e.g. usefull for ECoG grids)
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -45,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.18  2008/09/22 12:54:22  roboos
+% added default handling for construction of outline and mask and for scaling the electrode positions to fith within unit circle
+%
 % Revision 1.17  2008/07/16 09:27:36  roboos
 % added support for creating a layout based on a figure, including mask and outline for topoplot
 %
@@ -144,6 +146,18 @@ if ~isfield(cfg, 'image'),      cfg.image = [];                 end
 if isstruct(cfg.layout) && all(isfield(cfg.layout, {'pos';'width';'height';'label'}))
   lay = cfg.layout;
 
+elseif isstruct(cfg.layout) && all(isfield(cfg.layout, {'pos';'label'}))
+  lay = cfg.layout;
+  % add width and height for multiplotting
+  d = dist(lay.pos');
+  nchans = length(lay.label);
+  for i=1:nchans
+    d(i,i) = inf; % exclude the diagonal
+  end
+  mindist = min(d(:));
+  lay.width  = ones(nchans,1) * mindist * 0.8;
+  lay.height = ones(nchans,1) * mindist * 0.6;
+
 elseif isequal(cfg.layout, 'ordered')
   nchan = length(data.label);
   ncol = ceil(sqrt(nchan))+1;
@@ -222,15 +236,17 @@ elseif isfield(data, 'grad') && isstruct(data.grad)
   fprintf('creating layout from data.grad\n');
   lay = grad2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
 
-elseif ~isempty(cfg.image)
+elseif ~isempty(cfg.image) && isempty(cfg.layout)
   fprintf('reading background image from %s\n', cfg.image);
   img = imread(cfg.image);
+  img = flipdim(img, 1); % in combination with "axis xy"
 
   figure
   image(img);
   hold on
   axis equal
   axis off
+  axis xy
 
   % get the electrode positions
   pos = zeros(0,2);
@@ -245,7 +261,7 @@ elseif ~isempty(cfg.image)
   while again
     fprintf(electrodehelp)
     disp(round(pos)); % values are integers/pixels
-    [x, y, k] = ginput(1);
+    [x, y, k] = ginput(1)
     switch k
       case 1
         pos = cat(1, pos, [x y]);
@@ -451,8 +467,9 @@ elseif ~isempty(cfg.image)
   lay.pos = pos;
   nchans = size(pos,1);
   for i=1:nchans
-    lay.label{i,1} = sprintf('chan%03d\n', i);
+    lay.label{i,1} = sprintf('chan%03d', i);
   end
+  % add width and height for multiplotting
   d = dist(pos');
   for i=1:nchans
     d(i,i) = inf; % exclude the diagonal
@@ -467,6 +484,44 @@ elseif ~isempty(cfg.image)
 else
   fprintf('reverting to 151 channel CTF default\n');
   lay = readlay('CTF151s.lay');
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check whether outline and mask are available
+% if not, add default "circle with triangle" to resemble the head 
+% in case of "circle with triangle", the electrode positions should also be
+% scaled 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isfield(lay, 'outline') || ~isfield(lay, 'mask')
+  rmax  = 0.5;
+  l     = 0:2*pi/100:2*pi;
+  HeadX = cos(l).*rmax;
+  HeadY = sin(l).*rmax;
+  NoseX = [0.18*rmax 0 -0.18*rmax];
+  NoseY = [rmax-.004 rmax*1.15 rmax-.004];
+  EarX  = [.497 .510 .518 .5299 .5419 .54 .547 .532 .510 .489];
+  EarY  = [.0555 .0775 .0783 .0746 .0555 -.0055 -.0932 -.1313 -.1384 -.1199];
+  % Scale the electrode positions to fit within a unit circle, i.e. electrode radius = 0.45
+  ind_scale = strmatch('SCALE', lay.label);
+  ind_comnt = strmatch('COMNT', lay.label);
+  sel = setdiff(1:length(lay.label), [ind_scale ind_comnt]); % these are excluded for scaling
+  x = lay.pos(sel,1);
+  y = lay.pos(sel,2);
+  xrange = range(x);
+  yrange = range(y);
+  % First scale the width and height of the box for multiplotting
+  lay.width  = lay.width./xrange;
+  lay.height = lay.height./yrange;
+  % Then shift and scale the electrode positions
+  lay.pos(:,1) = 0.9*((lay.pos(:,1)-min(x))/xrange-0.5);
+  lay.pos(:,2) = 0.9*((lay.pos(:,2)-min(y))/yrange-0.5);
+  % Define the outline of the head, ears and nose
+  lay.outline{1} = [HeadX(:) HeadY(:)];
+  lay.outline{2} = [NoseX(:) NoseY(:)];
+  lay.outline{3} = [ EarX(:)  EarY(:)];
+  lay.outline{4} = [-EarX(:)  EarY(:)];
+  % Define the anatomical mask based on a circular head
+  lay.mask{1} = [HeadX(:) HeadY(:)];
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -540,7 +595,6 @@ elseif ~isempty(cfg.output) && strcmpi(cfg.style, '3d')
   % a 3D layout the width and height are currently set to NaN
   error('writing a 3D layout to an output file is not supported');
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

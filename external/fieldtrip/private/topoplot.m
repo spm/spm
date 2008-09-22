@@ -14,7 +14,8 @@ function [handle] = topoplot(varargin)
 %         
 % Inputs can be either:
 %     datavector  = vector of values to be plotted as color
-%     cfg         = configuration structure containing the (optional) parameters
+%     cfg         = configuration structure containing the (optional)
+%     parameters
 %     X           = x-coordinates for channels in datavector
 %     Y           = y-coordinates for channels in datavector
 %     Labels      = labels for channels in datavector
@@ -108,8 +109,7 @@ function [handle] = topoplot(varargin)
 % cfg.mask for opacity masking, e.g. with statistical significance
 
 % Copyright (C) 1996, Andy Spydell, Colin Humphries & Arnaud Delorme, CNL / Salk Institute
-% Copyright (C) 2004-2006, F.C. Donders Centre
-% New implementation by Geerten Kramer, based on versions of Ole Jensen and Jan-Mathijs Schoffelen
+% Copyright (C) 2004-2008, F.C. Donders Centre, New implementation by Geerten Kramer, based on versions of Ole Jensen and Jan-Mathijs Schoffelen
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -126,6 +126,13 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.34  2008/09/22 12:34:10  roboos
+% changed handling of the layout
+% changed inside/outside detection using layout.mask
+% moved the construction of the head outline (i.e. circle, nose and ears) to prepare_layout, using layout.outline
+% moved the responsibility for scaling of the layout to prepare_layout (for backward compatibility with old layout files)
+% give error on obsolete option cfg.outline=miriam/ecog
+%
 % Revision 1.33  2008/05/29 13:45:40  roboos
 % added hack for Miriam, should be finished by ingnie
 %
@@ -179,7 +186,7 @@ if eeglab
 end
 
 % deal with the different types of input syntax that this function can get
-if mod(nargin,2) && isnumeric(varargin{1}) && isstr(varargin{2})
+if mod(nargin,2) && isnumeric(varargin{1}) && ischar(varargin{2})
   % topoplot(data, key, val, ...)
   cfg  = keyval2cfg(varargin(2:end));
   data = varargin{1};
@@ -203,17 +210,17 @@ elseif nargin==2
 elseif nargin==4
   % topoplot(cfg,X,Y,data)
   OldStyleSyntax=1;
-  cfg  = varargin{1};
-  X    = varargin{2};
-  Y    = varargin{3};
-  data = varargin{4};
-  err  = 0;
+  cfg   = varargin{1};
+  chanX = varargin{2};
+  chanY = varargin{3};
+  data  = varargin{4};
+  err   = 0;
   if ~isempty(cfg),
     err  = err + ~isstruct(cfg);
   end
   err  = err + ~isnumeric(data);
-  err  = err + ~isnumeric(X);
-  err  = err + ~isnumeric(Y);
+  err  = err + ~isnumeric(chanX);
+  err  = err + ~isnumeric(chanY);
   if err
     errmsg=['\n'];
     errmsg=[errmsg,'When four input arguments are supplied, the following syntax should be used:\n'];
@@ -224,18 +231,20 @@ elseif nargin==5
   % topoplot(cfg,X,Y,data,labels)
   OldStyleSyntax=1;
   cfg    = varargin{1};
-  X      = varargin{2};
-  Y      = varargin{3};
+  chanX  = varargin{2};
+  chanY  = varargin{3};
   data   = varargin{4};
-  labels = varargin{5};
+  chanLabels = varargin{5};
   err    = 0;
   if ~isempty(cfg), 
     err  = err + ~isstruct(cfg);
   end
   err    = err + ~isnumeric(data);
-  err    = err + ~isnumeric(X);
-  err    = err + ~isnumeric(Y);
-  err    = err + ~iscell(labels);
+  err    = err + ~isnumeric(chanX);
+  err    = err + ~isnumeric(chanY);
+  err    = err + ~iscell(chanLabels);
+  err    = err + numel(chanLabels)~=numel(chanX);
+  err    = err + numel(chanLabels)~=numel(chanY);
   if err
     errmsg=['\n'];
     errmsg=[errmsg,'When five input arguments are supplied, the following syntax should be used:\n'];
@@ -262,14 +271,13 @@ if ~isfield(cfg, 'interpolation') cfg.interpolation = 'v4'; end;
 if ~isfield(cfg, 'fontsize'),     cfg.fontsize = 8;         end;
 if ~isfield(cfg, 'commentpos'),   cfg.commentpos = 'leftbottom';    end;
 if ~isfield(cfg, 'mask'),         cfg.mask = [];            end;
-if ~isfield(cfg, 'outline'),      cfg.outline = 'scalp';    end; % scalp or ecog
 
 if ~isfield(cfg,'layout')
   if ~OldStyleSyntax
     error('Specify at least the field or key "layout".');
   end;
 end;
-if ~isstr(cfg.contcolor)     cfg.contcolor = 'k'; warning('cfg.contcolor must be string, put to ''k''');   end;
+if ~ischar(cfg.contcolor)     cfg.contcolor = 'k'; warning('cfg.contcolor must be string, put to ''k''');   end;
 
 if ~isfield(cfg,'electrodes')   cfg.electrodes = 'on'; end; % on,off,label,numbers or highlights
 if ~isfield(cfg,'showlabels') % for compatibility with OLDSTYLE
@@ -297,7 +305,7 @@ end;
 if isfield(cfg,'headlimits')
   cfg.interplimits = cfg.headlimits;
   cfg              = rmfield(cfg,'headlimits');
-  if ~isstr(cfg.interplimits), error('topoplot(): interplimits value must be a string'); end
+  if ~ischar(cfg.interplimits), error('topoplot(): interplimits value must be a string'); end
   cfg.interplimits = lower(cfg.interplimits);
   if ~strcmp(cfg.interplimits,'electrodes') & ~strcmp(cfg.interplimits,'head'),
     error('topoplot(): Incorrect value for interplimits');
@@ -354,48 +362,54 @@ if isfield(cfg,'zlim')
   cfg           = rmfield(cfg,'zlim');
 end;
 
-[r,c] = size(data);
-if r>1 && c>1 ,
-  error('topoplot(): data should be a single vector\n');
+[numChan,numTime] = size(data);
+if numChan && numTime>1
+  error('topoplot(): data should be a column vector\n');
 end
 
-% create layout from cfg.layout to find matching X and Y coordinates and labels to the datavector
 if ~OldStyleSyntax
-  lay = prepare_layout(cfg);
-  X = lay.pos(:,1);
-  Y = lay.pos(:,2);
-  labels = lay.label;
+  % create layout including channel positions, labels and anatomical mask and outline
+  cfg.layout  = prepare_layout(cfg);
+  chanX       = cfg.layout.pos(:,1);
+  chanY       = cfg.layout.pos(:,2);
+  chanLabels  = cfg.layout.label(:);
+else
+  % create layout including channel positions, labels and anatomical mask and outline
+  cfg.layout.pos = [chanX chanY];
+  cfg.layout.label = chanLabels;
+  cfg.layout  = prepare_layout(cfg);
 end
-if exist('labels', 'var'),
-  ind_SCALE = strmatch('SCALE', labels);
-  ind_COMNT = strmatch('COMNT', labels);
-  if length(ind_SCALE) == 1;
-    X_SCALE           = X(ind_SCALE); 
-    Y_SCALE           = Y(ind_SCALE);
-    X(ind_SCALE)      = [];
-    Y(ind_SCALE)      = [];
-    labels(ind_SCALE) = [];
-  end
-  if length(ind_COMNT) == 1;
-    ind_COMNT         = strmatch('COMNT', labels); %again; may be changed
-    X_COMNT           = X(ind_COMNT);
-    Y_COMNT           = Y(ind_COMNT);
-    X(ind_COMNT)      = [];
-    Y(ind_COMNT)      = [];
-    labels(ind_COMNT) = [];
-  end
-end
-if length(data)~=length(X)
-  error('topoplot(): data vector must be the same size as layout-file')
+clear chanX chanY
+
+% the default head coordinate system is with the x-axis towards the nose
+% to ensure that the nose in the figure points towards the top of the
+% figure, the x and y axis have to be swapped
+y = cfg.layout.pos(:,1);
+x = cfg.layout.pos(:,2);
+
+if isfield(cfg, 'outline')
+  error('the option cfg.outline is not supported any more, please contact Robert for a detailled explanation');
 end
 
-if strcmpi(cfg.outline, 'scalp')
-  % Scale the data to a circle with x-axis and y-axis: -0.45 to 0.45
-  y = 0.9*((X-min(X))/(max(X)-min(X))-0.5); %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
-  x = 0.9*((Y-min(Y))/(max(Y)-min(Y))-0.5);
-elseif strcmpi(cfg.outline, 'ecog') || strcmp(cfg.outline, 'miriam')
-  y = X; %ATTENTION x becomes y and y becomes x, in griddata is also reversed which makes x x and y y again
-  x = Y;
+if exist('chanLabels', 'var'),
+  ind_SCALE = strmatch('SCALE', chanLabels);
+  if length(ind_SCALE)==1
+    % remember the position of  the scale
+    X_SCALE               = cfg.layout.pos(ind_SCALE, 1); 
+    Y_SCALE               = cfg.layout.pos(ind_SCALE, 2);
+    x(ind_SCALE) = [];
+    y(ind_SCALE) = [];
+    chanLabels(ind_SCALE) = [];
+  end
+  ind_COMNT = strmatch('COMNT', chanLabels);
+  if length(ind_COMNT)==1
+    % remember the position of the comment
+    X_COMNT               = cfg.layout.pos(ind_COMNT, 1);
+    Y_COMNT               = cfg.layout.pos(ind_COMNT, 1);
+    x(ind_COMNT) = [];
+    y(ind_COMNT) = [];
+    chanLabels(ind_COMNT) = [];
+  end
 end
 
 % Set coordinates for comment
@@ -434,8 +448,8 @@ elseif isnumeric(cfg.commentpos)
   y_COMNT = cfg.commentpos(2);
   HorAlign = 'left';
   VerAlign = 'middle';
-  x_COMNT = 0.9*((x_COMNT-min(X))/(max(X)-min(X))-0.5);
-  y_COMNT = 0.9*((y_COMNT-min(Y))/(max(Y)-min(Y))-0.5);
+  x_COMNT = 0.9*((x_COMNT-min(x))/(max(x)-min(x))-0.5);
+  y_COMNT = 0.9*((y_COMNT-min(y))/(max(y)-min(y))-0.5);
 end
 
 rmax = .5;
@@ -456,22 +470,11 @@ if ~strcmp(cfg.style,'blank')
 
   xi         = linspace(xmin,xmax,cfg.grid_scale);   % x-axis description (row vector)
   yi         = linspace(ymin,ymax,cfg.grid_scale);   % y-axis description (row vector)
-  [Xi,Yi,Zi] = griddata(y, x, data, yi', xi, cfg.interpolation); % Interpolate data
-  % [Xi,Yi,Zi] = griddata(y,x,data,yi',xi,'invdist'); % Interpolate data
-  
-  if strcmpi(cfg.outline, 'scalp') || strcmp(cfg.outline, 'miriam')
-    % Take data within head
-    mask   = (sqrt(Xi.^2+Yi.^2) <= rmax);
-    ii     = find(mask == 0);
-    Zi(ii) = NaN;
-  elseif strcmpi(cfg.outline, 'ecog')
-    % FIXME masking of ECoG data with the outline of the electrode grid is not yet implemented
-    warning('masking of ECoG data with the outline of the electrode grid is not yet implemented');
-  end
+  [Xi,Yi,Zi] = griddata(y', x, data, yi', xi, cfg.interpolation); % Interpolate the topographic data
 
   % calculate colormap limits
   m = size(colormap,1);
-  if isstr(cfg.maplimits)
+  if ischar(cfg.maplimits)
     if strcmp(cfg.maplimits,'absmax')
       amin = -max(max(abs(Zi)));
       amax = max(max(abs(Zi)));
@@ -485,9 +488,16 @@ if ~strcmp(cfg.style,'blank')
   end
   delta = xi(2)-xi(1); % length of grid entry
 
+  if isfield(cfg.layout, 'mask')
+    % apply anatomical mask to the data, i.e. that determines that the interpolated data outside the circle is not displayed
+    for i=1:length(cfg.layout.mask)
+      Zi(~inside_contour([Xi(:) Yi(:)], cfg.layout.mask{i})) = NaN;
+    end
+  end
+
   if ~isempty(cfg.mask),
-    % create mask, if requested
-    [maskX,maskY,maskZ] = griddata(y, x, double(cfg.mask), yi', xi, cfg.interpolation);
+    % this mask is based on some statistical feature of the data itself, e.g. significance and is not related to the anatomical mask
+    [maskX,maskY,maskZ] = griddata(y', x, double(cfg.mask), yi', xi, cfg.interpolation);
     % mask should be scaled between 0 and 1, clip the values that ly outside that range
     maskZ(isnan(maskZ)) = 0;
     maskZ(isinf(maskZ)) = 0;
@@ -527,7 +537,7 @@ if strcmp(cfg.electrodes,'on')||strcmp(cfg.showlabels,'markers')
   if ischar(cfg.highlight) 
     hp2 = plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
   elseif isnumeric(cfg.highlight) 
-    normal = setdiff(1:length(X), cfg.highlight);
+    normal = setdiff(1:length(chanX), cfg.highlight);
     hp2    = plot(y(normal),        x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
                                                                                           'linewidth',  cfg.hllinewidth);
@@ -548,24 +558,24 @@ elseif any(strcmp(cfg.electrodes,{'highlights','highlight'}))
     error('Unknown highlight type');
   end;
 elseif strcmp(cfg.electrodes,'labels') || strcmp(cfg.showlabels,'yes') 
-  for i = 1:size(labels,1) 
-    text(y(i), x(i), labels(i,:), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
+  for i = 1:numChan 
+    text(y(i), x(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
                                   'Color', cfg.ecolor, 'FontSize', cfg.efsize);
   end
 elseif strcmp(cfg.electrodes,'numbers') || strcmp(cfg.showlabels,'numbers') 
-  for i = 1:size(labels,1)
+  for i = 1:numChan
     text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
                                  'Color', cfg.ecolor, 'FontSize',cfg.efsize);
   end
 elseif strcmp(cfg.electrodes,'dotnum') 
-  for i = 1:size(labels,1)
+  for i = 1:numChan
     text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', ...
                                  'Color', cfg.ecolor, 'FontSize', cfg.efsize);
   end
   if ischar(cfg.highlight) 
     hp2 = plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
   elseif isnumeric(cfg.highlight) 
-    normal = setdiff(1:length(X), cfg.highlight);
+    normal = setdiff(1:length(chanX), cfg.highlight);
     hp2    = plot(y(normal)       , x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
                                                                     'linewidth', cfg.hllinewidth);
@@ -574,21 +584,11 @@ elseif strcmp(cfg.electrodes,'dotnum')
   end;
 end
 
-if strcmp(cfg.outline, 'scalp') || strcmp(cfg.outline, 'miriam')
-  % Define the outline of the head, ears and nose:
-  l     = 0:2*pi/100:2*pi;
-  tip   = rmax*1.15; base = rmax-.004;
-  EarX  = [.497 .510 .518 .5299 .5419 .54 .547 .532 .510 .489];
-  EarY  = [.0555 .0775 .0783 .0746 .0555 -.0055 -.0932 -.1313 -.1384 -.1199];
-  % Plot head, ears, and nose:
-  plot(cos(l).*rmax, sin(l).*rmax, 'color', cfg.hcolor, 'Linestyle', '-', 'LineWidth', cfg.hlinewidth);
-  plot([0.18*rmax;0;-0.18*rmax], [base;tip;base], 'Color', cfg.hcolor, 'LineWidth', cfg.hlinewidth);
-  plot( EarX, EarY, 'color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
-  plot(-EarX, EarY, 'color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
-elseif strcmpi(cfg.outline, 'ecog')
-  % FIXME drawing an outline of the ECoG electrode grid has not been
-  % implemented yet
-  warning('drawing an outline of the ECoG electrode grid has not been implemented yet')
+if isfield(cfg.layout, 'outline')
+  % plot the outline of the head, ears and nose
+  for i=1:length(cfg.layout.outline)
+    plot(cfg.layout.outline{i}(:,1), cfg.layout.outline{i}(:,2), 'Color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
+  end
 end
 
 % Write comment:
@@ -611,9 +611,6 @@ end
 
 hold off
 axis off
-if strcmpi(cfg.outline, 'scalp') || strcmp(cfg.outline, 'miriam')
-  xlim([-.6 .6]);
-  ylim([-.6 .6]);
-elseif strcmpi(cfg.outline, 'ecog')
-  % do not apply any scaling
-end
+axis tight
+axis equal
+

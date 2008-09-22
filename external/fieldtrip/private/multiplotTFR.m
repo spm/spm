@@ -32,6 +32,7 @@ function multiplotTFR(cfg, data)
 % cfg.comment          = string of text (default = date + zlimits)
 %                        Add 'comment' to graph (according to COMNT in the layout)
 % cfg.showlabels       = 'yes', 'no' (default = 'no')
+% cfg.showoutline      = 'yes', 'no' (default = 'no')
 % cfg.fontsize         = font size of comment and labels (if present) (default = 8)
 % cfg.interactive      = Interactive plot 'yes' or 'no' (default = 'no')
 %                        In a interactive plot you can select areas and produce a new
@@ -72,6 +73,15 @@ function multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.39  2008/09/22 12:53:27  roboos
+% ensure equal and tight axes
+%
+% Revision 1.38  2008/09/22 12:44:08  roboos
+% added option cfg.showoutline, default is no
+%
+% Revision 1.37  2008/09/22 12:30:59  roboos
+% position the subplots with the box centered on the electrode position
+%
 % Revision 1.36  2008/01/29 19:43:33  sashae
 % added option for trial selection; plot functions now also accept data with
 % repetitions (either trials or subjects), the avg is computed and plotted
@@ -192,6 +202,7 @@ if ~isfield(cfg,'zlim'),            cfg.zlim = 'maxmin';               end
 if ~isfield(cfg,'colorbar'),        cfg.colorbar = 'no';               end
 if ~isfield(cfg,'comment'),         cfg.comment = date;                end
 if ~isfield(cfg,'showlabels'),      cfg.showlabels = 'no';             end
+if ~isfield(cfg,'showoutline'),     cfg.showoutline = 'no';            end
 if ~isfield(cfg,'channel'),         cfg.channel = 'all';               end
 if ~isfield(cfg,'fontsize'),        cfg.fontsize = 8;                  end
 if ~isfield(cfg,'interactive'),     cfg.interactive = 'no';            end
@@ -313,6 +324,18 @@ end
 
 hold on;
 
+if isfield(lay, 'outline') && strcmp(cfg.showoutline, 'yes')
+  for i=1:length(lay.outline)
+    if ~isempty(lay.outline{i})
+      tmpX = lay.outline{i}(:,1);
+      tmpY = lay.outline{i}(:,2);
+      h = line(tmpX, tmpY);
+      set(h, 'color', 'k');
+      set(h, 'linewidth', 2);
+    end
+  end
+end
+
 % Plot channels:
 for k=1:length(seldat)
   % Get cdata:
@@ -322,8 +345,8 @@ for k=1:length(seldat)
   end
   
   % Get axes for this panel
-  xas = chanX(k) + linspace(0,1,size(cdata,2))*chanWidth(k);
-  yas = chanY(k) + linspace(0,1,size(cdata,1))*chanHeight(k);
+  xas = (chanX(k) + linspace(0,1,size(cdata,2))*chanWidth(k)) - chanWidth(k)/2;
+  yas = (chanY(k) + linspace(0,1,size(cdata,1))*chanHeight(k)) - chanHeight(k)/2;
   
   % Draw plot:
   h = imagesc(xas, yas, cdata, [zmin zmax]);
@@ -359,12 +382,8 @@ for k=1:length(seldat)
 
   % Draw channel labels:
   if strcmp(cfg.showlabels,'yes')
-    text(chanX(k), chanY(k)+chanHeight(k), sprintf(' %0s\n ', chanLabels{k}), 'Fontsize', cfg.fontsize);
+    text(chanX(k)-chanWidth(k)/2, chanY(k)+chanHeight(k)/2, sprintf(' %0s\n ', chanLabels{k}), 'Fontsize', cfg.fontsize);
   end
-  
-  % Convert channel coordinates to the center of each channel plot:
-  chanX(k) = chanX(k) + 0.5 * chanWidth(k);
-  chanY(k) = chanY(k) + 0.5 * chanHeight(k);
 end
 
 % write comment:
@@ -375,7 +394,6 @@ if ~isempty(k)
   comment = sprintf('%0s\nylim=[%.3g %.3g]', comment, ymin, ymax);
   comment = sprintf('%0s\nzlim=[%.3g %.3g]', comment, zmin, zmax);
   text(lay.pos(k,1), lay.pos(k,2), sprintf(comment), 'Fontsize', cfg.fontsize);
-  axis off;
 end
 
 % plot scale:
@@ -385,8 +403,8 @@ if ~isempty(k)
   cdata = squeeze(mean(datavector, 1));
   
   % Get axes for this panel:
-  xas = lay.pos(k,1) + linspace(0,1,size(cdata,2))*lay.width(k);
-  yas = lay.pos(k,2) + linspace(0,1,size(cdata,1))*lay.height(k);
+  xas = (lay.pos(k,1) + linspace(0,1,size(cdata,2))*lay.width(k));
+  yas = (lay.pos(k,2) + linspace(0,1,size(cdata,1))*lay.height(k));
   
   % Draw plot:
   imagesc(xas, yas, cdata, [zmin zmax]);
@@ -438,13 +456,15 @@ if strcmp(cfg.interactive, 'yes')
   set(gcf, 'WindowButtonUpFcn', ['plotSelection(get(findobj(''Tag'', ''' tag '''), ''UserData''), 2);']);
 end
 
-axis tight;
+axis equal
+axis tight
+axis off
 if strcmp(cfg.box, 'yes')
   abc = axis;
   axis(abc + [-1 +1 -1 +1]*mean(abs(abc))/10)
 end
-orient landscape;
-hold off;
+orient landscape
+hold off
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

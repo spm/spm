@@ -32,6 +32,7 @@ function multiplotER(cfg, varargin)
 % cfg.comment       = string of text (default = date + colors)
 %                     Add 'comment' to graph (according to COMNT in the layout)
 % cfg.showlabels    = 'yes', 'no' (default = 'no')
+% cfg.showoutline   = 'yes', 'no' (default = 'no')
 % cfg.fontsize      = font size of comment and labels (if present) (default = 8)
 % cfg.interactive   = Interactive plot 'yes' or 'no' (default = 'no')
 %                     In a interactive plot you can select areas and produce a new
@@ -76,6 +77,12 @@ function multiplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotER.m,v $
+% Revision 1.40  2008/09/22 12:53:27  roboos
+% ensure equal and tight axes
+%
+% Revision 1.39  2008/09/22 12:44:08  roboos
+% added option cfg.showoutline, default is no
+%
 % Revision 1.38  2008/01/29 19:43:33  sashae
 % added option for trial selection; plot functions now also accept data with
 % repetitions (either trials or subjects), the avg is computed and plotted
@@ -226,6 +233,7 @@ if ~isfield(cfg,'ylim'),        cfg.ylim        = 'maxmin';                    e
 if ~isfield(cfg,'comment'),     cfg.comment     = strcat([date '\n']);         end
 if ~isfield(cfg,'axes'),        cfg.axes        = 'yes';                       end
 if ~isfield(cfg,'showlabels'),  cfg.showlabels  = 'no';                        end
+if ~isfield(cfg,'showoutline'), cfg.showoutline = 'no';                        end
 if ~isfield(cfg,'box'),         cfg.box         = 'no';                        end
 if ~isfield(cfg,'fontsize'),    cfg.fontsize    = 8;                           end
 if ~isfield(cfg,'graphcolor')   cfg.graphcolor  = ['brgkywrgbkywrgbkywrgbkyw'];end
@@ -364,6 +372,18 @@ chanLabels = cell(1,length(Lbl));
 hold on;
 colorLabels = [];
 
+if isfield(lay, 'outline') && strcmp(cfg.showoutline, 'yes')
+  for i=1:length(lay.outline)
+    if ~isempty(lay.outline{i})
+      tmpX = lay.outline{i}(:,1);
+      tmpY = lay.outline{i}(:,2);
+      h = line(tmpX, tmpY);
+      set(h, 'color', 'k');
+      set(h, 'linewidth', 2);
+    end
+  end
+end
+
 % Plot each data set:
 for k=1:length(varargin)
   P          = getsubfield(varargin{k}, cfg.zparam);
@@ -450,6 +470,7 @@ if strcmp(cfg.interactive, 'yes')
   set(gcf, 'WindowButtonUpFcn', ['plotSelection(get(findobj(''Tag'', ''' tag '''), ''UserData''), 2);']);
 end
 
+axis equal
 axis tight
 axis off
 if strcmp(cfg.box, 'yes')

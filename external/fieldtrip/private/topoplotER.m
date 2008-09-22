@@ -72,6 +72,9 @@ function topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.47  2008/09/22 12:31:58  roboos
+% changed handling of the layout
+%
 % Revision 1.46  2008/04/09 07:36:09  marvger
 % regular update
 %
@@ -322,19 +325,18 @@ end
 dat = dat(:);
 
 % Read or create the layout that will be used for plotting
-lay = prepare_layout(cfg, data);
+cfg.layout = prepare_layout(cfg, data);
 
 % Select the channels in the data that match with the layout:
-[seldat, sellay] = match_str(data.label, lay.label);
+[seldat, sellay] = match_str(data.label, cfg.layout.label);
 if isempty(seldat)
   error('labels in data and labels in layout do not match'); 
 end
-
 datavector = dat(seldat);
 % Select x and y coordinates and labels of the channels in the data
-chanX = lay.pos(sellay,1);
-chanY = lay.pos(sellay,2);
-chanLabels = lay.label(sellay);
+chanX = cfg.layout.pos(sellay,1);
+chanY = cfg.layout.pos(sellay,2);
+chanLabels = cfg.layout.label(sellay);
 
 % Get physical min/max range of z:
 if strcmp(cfg.zlim,'maxmin')
@@ -351,9 +353,9 @@ end
 % specify the x and y coordinates of the comment as stated in the layout
 if strcmp(cfg.commentpos,'layout') 
   cfg.commentpos = [];
-  ind_COMNT = strmatch('COMNT', lay.label);
-  cfg.commentpos(1) = lay.pos(ind_COMNT,1);
-  cfg.commentpos(2) = lay.pos(ind_COMNT,2);
+  ind_COMNT = strmatch('COMNT', cfg.layout.label);
+  cfg.commentpos(1) = cfg.layout.pos(ind_COMNT,1);
+  cfg.commentpos(2) = cfg.layout.pos(ind_COMNT,2);
 end
 
 % make cfg.comment for topoplot.m
@@ -391,12 +393,7 @@ elseif ~isstr(cfg.comment)
 end
 
 % Draw topoplot:
-if ~isfield(cfg, 'layout')
-   tmpcfg = cfg;
-else
-   tmpcfg = rmfield(cfg,'layout');
-end
-topoplot(tmpcfg,chanX,chanY,datavector,chanLabels);
+topoplot(cfg,chanX,chanY,datavector,chanLabels);
 
 % The remainder of the code is meant to make the figure interactive
 hold on;
