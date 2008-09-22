@@ -88,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 1816 2008-06-11 15:28:51Z guillaume $
+% $Id: spm_jobman.m 2132 2008-09-22 10:04:20Z volkmar $
 
 
 if nargin==0
@@ -139,7 +139,15 @@ else
                 addpath(fullfile(spm('Dir'),'config'));
             end
             cfg_util('initcfg'); % This must be the first call to cfg_util
-
+            f = cfg_ui('Visible','off'); % Create invisible batch ui
+            f0 = findobj(f, 'Tag','MenuFile'); % Add entries to file menu
+            f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
+                        'HandleVisibility','off', 'tag','jobs', ...
+                        'Separator','on');
+            f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', ...
+                        'Callback',@conv_jobs, ...
+                        'HandleVisibility','off', 'tag','jobs');
+            
         case 'interactive',
             if exist('mljob', 'var')
                 cjob = cfg_util('initjob', mljob);
@@ -156,7 +164,7 @@ else
             else
                 cjob = cfg_util('initjob');
             end;
-            cfg_ui('local_showjob', cfg_ui, cjob);
+            cfg_ui('local_showjob', findobj(0,'tag','cfg_ui'), cjob);
             if nargout > 0
                 varargout{1} = cjob;
             end;
@@ -259,6 +267,7 @@ end;
 function conv_jobs(varargin)
 % Select a list of jobs, canonicalise each of it and save as a .m file
 % using gencode.
+spm('pointer','watch');
 if nargin == 0 || ~iscellstr(varargin{1})
     [fname sts] = spm_select([1 Inf], 'batch', 'Select job file(s)');
     fname = cellstr(fname);
@@ -280,6 +289,7 @@ for k = 1:numel(fname)
         cfg_util('deljob', cjob);
     end;
 end;
+spm('pointer','arrow');
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
@@ -288,10 +298,12 @@ function load_job(varargin)
 [fname sts] = spm_select([1 Inf], 'batch', 'Select job file');
 if ~sts, return; end;
 
+spm('pointer','watch');
 joblist = load_jobs(fname);
 if ~isempty(joblist{1})
     spm_jobman('interactive',joblist{1});
 end;
+spm('pointer','arrow');
 return;
 %------------------------------------------------------------------------
 
@@ -375,10 +387,6 @@ f0 = uimenu(fg,'Label','TASKS', ...
             'HandleVisibility','off', 'tag','jobs');
 f1 = uimenu(f0,'Label','BATCH', 'Callback',@cfg_ui, ...
             'HandleVisibility','off', 'tag','jobs');
-f2 = uimenu(f0,'Label','Load SPM5 job', 'Callback',@load_job, ...
-            'HandleVisibility','off', 'tag','jobs', 'Separator','on');
-f3 = uimenu(f0,'Label','Bulk Convert SPM5 job(s)', 'Callback',@conv_jobs, ...
-            'HandleVisibility','off', 'tag','jobs');
 f4 = uimenu(f0,'Label','SPM (interactive)', ...
             'HandleVisibility','off', 'tag','jobs', 'Separator','on');
 cfg_ui('local_setmenu', f4, cfg_util('tag2cfg_id', 'spmjobs'), ...
@@ -394,7 +402,7 @@ function local_init_interactive(varargin)
 cjob = cfg_util('initjob');
 mod_cfg_id = get(gcbo,'userdata');
 cfg_util('addtojob', cjob, mod_cfg_id);
-cfg_ui('local_showjob', cfg_ui, cjob);
+cfg_ui('local_showjob', findobj(0,'tag','cfg_ui'), cjob);
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------

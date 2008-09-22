@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2131 2008-09-22 06:04:53Z volkmar $
+% $Id: cfg_ui.m 2132 2008-09-22 10:04:20Z volkmar $
 
-rev = '$Rev: 2131 $'; %#ok
+rev = '$Rev: 2132 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1543,7 +1543,9 @@ switch lower(cmd)
         if ~isempty(udmodlist.cjob)
             cfg_util('deljob', udmodlist.cjob);
         end;
-        delete(hObject);
+        set(hObject,'Visible','off');
+        udmodlist = [];
+        set(handles.modlist,'userdata',udmodlist);
     case 'hide'
         set(hObject,'Visible','off');
 end;
@@ -1602,4 +1604,5 @@ function local_pointer(ptr)
 shh = get(0,'showhiddenhandles');
 set(0,'showhiddenhandles','on');
 set(get(0,'Children'),'Pointer',ptr);
+drawnow;
 set(0,'showhiddenhandles',shh);
