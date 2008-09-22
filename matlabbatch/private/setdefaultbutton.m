@@ -33,7 +33,12 @@ function setdefaultbutton(figHandle, btnHandle)
 if nargin<1, error('MATLAB:setdefaultbutton:InvalidNumberOfArguments','Too few arguments for setdefaultbutton'); end
 if nargin>2, error('MATLAB:setdefaultbutton:InvalidNumberOfArguments','Too many arguments for setdefaultbutton'); end
 
-if (feature('javafigures') == 1) && (usejava('awt') == 1)
+try
+    ujava = feature('javafigures');
+catch
+    ujava = true;
+end
+if ujava && (usejava('awt') == 1)
     % We are running with Java Figures
     useJavaDefaultButton(figHandle, btnHandle)
 else
