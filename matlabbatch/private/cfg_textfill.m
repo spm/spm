@@ -12,9 +12,9 @@ function str = cfg_textfill(obj, left, right, tflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_textfill.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_textfill.m 2135 2008-09-22 12:07:52Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2135 $'; %#ok
 
 if ~ishandle(obj)
     cfg_message('matlabbatch:usage',...
@@ -54,16 +54,16 @@ TempObj=copyobj(obj,get(obj,'Parent'));
 set(TempObj,'Visible','off','Max',100);
 
 % Find max extent of left string
-lext = maxextent(TempObj, left);
+lext = cfg_maxextent(TempObj, left);
 mlext = max(lext);
 
 % Find max extent of right string
-rext = maxextent(TempObj, right);
+rext = cfg_maxextent(TempObj, right);
 mrext = max(rext);
 
 % Find extent of single space
 % Work around MATLAB inaccuracy by measuring 100 spaces and dividing by 100
-spext = maxextent(TempObj, {repmat(' ',1,100)})/100;
+spext = cfg_maxextent(TempObj, {repmat(' ',1,100)})/100;
 
 % try to work out slider size
 pos = get(TempObj,'Position');
@@ -100,11 +100,4 @@ for k = 1:numel(left)
     fillstr{k} = repmat(' ',1,floor((width-(lext(k)+rext(k)))/spext));
 end;
 str = strcat(left, fillstr, right);
-
-function ext = maxextent(obj, str)
-ext = zeros(size(str));
-for k = 1:numel(str)
-    set(obj,'String',str{k});
-    next = get(obj, 'Extent');
-    ext(k) = next(3);
-end;
+delete(TempObj);
