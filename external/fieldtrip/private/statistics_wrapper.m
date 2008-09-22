@@ -36,6 +36,9 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.50  2008/09/22 19:44:11  roboos
+% update documentation
+%
 % Revision 1.49  2008/08/20 19:16:56  jansch
 % removed keyboard-statement. oops
 %
@@ -259,6 +262,7 @@ if issource
     end % for each roi
 
     % note that avgoverroi=yes is implemented differently at a later stage
+    % avgoverroi=no is implemented using the inside/outside mask
     if strcmp(cfg.avgoverroi, 'no')
       for i=2:length(roimask)
         % combine them all in the first mask
@@ -477,7 +481,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.49 2008/08/20 19:16:56 jansch Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.50 2008/09/22 19:44:11 roboos Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
