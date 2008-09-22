@@ -15,6 +15,9 @@ function [source] = source2sparse(source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: source2sparse.m,v $
+% Revision 1.10  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.9  2006/03/30 12:24:33  roboos
 % Implemented private/fixinside, which facilitates consistent
 % handling of source/volume data. Improved documentation. Fixed some
@@ -48,6 +51,8 @@ function [source] = source2sparse(source);
 % Revision 1.1  2004/08/03 09:06:19  roboos
 % initial implementation of these helper functions for beamformer sourceanalysis
 %
+
+fieldtripdefs
 
 if ~isfield(source, 'inside')
   warning('no gridpoints defined inside the brain');
@@ -137,7 +142,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: source2sparse.m,v 1.9 2006/03/30 12:24:33 roboos Exp $';
+cfg.version.id = '$Id: source2sparse.m,v 1.10 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

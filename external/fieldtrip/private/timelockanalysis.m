@@ -72,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.53  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.52  2008/07/11 13:18:40  roboos
 % removed all lnfilter references, added error to preprocessing and preproc
 %
@@ -247,6 +250,8 @@ function [timelock] = timelockanalysis(cfg, data);
 % Revision 1.1.1.1  2003/04/17 12:35:19  roberto
 % initial version under CVS control
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
@@ -656,7 +661,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.52 2008/07/11 13:18:40 roboos Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.53 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

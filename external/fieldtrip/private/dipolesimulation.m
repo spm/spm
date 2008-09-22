@@ -59,6 +59,9 @@ function [simulated] = dipolesimulation(cfg)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: dipolesimulation.m,v $
+% Revision 1.22  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.21  2008/04/10 08:03:11  roboos
 % renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
 %
@@ -90,6 +93,8 @@ function [simulated] = dipolesimulation(cfg)
 % Revision 1.12  2005/11/10 10:02:14  roboos
 % minor change in whitespace and help
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'dip'),        cfg.dip = [];             end
@@ -239,7 +244,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: dipolesimulation.m,v 1.21 2008/04/10 08:03:11 roboos Exp $';
+cfg.version.id   = '$Id: dipolesimulation.m,v 1.22 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

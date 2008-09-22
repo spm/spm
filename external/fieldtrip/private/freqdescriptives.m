@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.51  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.50  2008/09/22 11:30:42  roboos
 % added default keeptrials=no, which appears to have gone missing in the previous commit
 %
@@ -154,6 +157,8 @@ function [output] = freqdescriptives(cfg, freq)
 % Revision 1.21  2005/08/16 11:19:04  jansch
 % moved some stuff in 'ro's implementation to a separate function
 % fourier2crsspctrm to facilitate re-use
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 % freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes', 'hascumtapcnt', 'no');
@@ -635,7 +640,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.50 2008/09/22 11:30:42 roboos Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.51 2008/09/22 20:17:43 roboos Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

@@ -83,6 +83,9 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_leadfield.m,v $
+% Revision 1.25  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.24  2008/07/15 19:56:44  roboos
 % moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
 %
@@ -186,6 +189,8 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % initial version, this replaces the leadfield precomputation in sourceanalysis with some extra options
 %
 
+fieldtripdefs
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin<2
@@ -275,7 +280,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: prepare_leadfield.m,v 1.24 2008/07/15 19:56:44 roboos Exp $';
+cfg.version.id = '$Id: prepare_leadfield.m,v 1.25 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

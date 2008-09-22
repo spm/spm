@@ -84,6 +84,9 @@ function [outim]=sliceinterp(cfg, ininterp)
 % Copyright (C) 2004, Markus Siegel, markus.siegel@fcdonders.kun.nl
 %
 % $Log: sliceinterp.m,v $
+% Revision 1.15  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.14  2007/04/03 15:37:07  roboos
 % renamed the checkinput function to checkdata
 %
@@ -128,6 +131,9 @@ function [outim]=sliceinterp(cfg, ininterp)
 % - bugfix for cfg.colormap
 % - reformatted help
 %
+
+fieldtripdefs
+
 % check if the input data is valid for this function
 ininterp = checkdata(ininterp, 'datatype', 'volume', 'feedback', 'yes');
 

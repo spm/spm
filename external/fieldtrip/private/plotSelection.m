@@ -66,6 +66,9 @@ function plotSelection(userData, buttonState)
 % Copyright (C) 2006, Dennis Pasveer
 %
 % $Log: plotSelection.m,v $
+% Revision 1.20  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.19  2008/09/22 14:23:25  roboos
 % fixed some lint warnings, i.e. no functional change, only efficiency
 %
@@ -138,6 +141,8 @@ function plotSelection(userData, buttonState)
 % Revision 1.1  2006/02/27 15:03:47  denpas
 % new function, is used as callback function for interactive plotting in multi-, single- and topoplot
 %
+
+fieldtripdefs
 
 % Get cursor coordinates [x y]:
 p = get(userData.hAxes, 'CurrentPoint');

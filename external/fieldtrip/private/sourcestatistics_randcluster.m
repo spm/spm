@@ -68,6 +68,9 @@ function [stat] = sourcestatistics_randcluster(cfg,source)
 % Copyright (C) 2004, Jan-Mathijs Schoffelen
 %
 % $Log: sourcestatistics_randcluster.m,v $
+% Revision 1.15  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.14  2007/05/30 07:04:05  roboos
 % use the checkdata function to avlidate the input and to convert the inside vector to indices
 %
@@ -117,6 +120,8 @@ function [stat] = sourcestatistics_randcluster(cfg,source)
 % Revision 1.2  2004/09/08 13:31:56  jansch
 % changed some code. added version information
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 source = checkdata(source, 'datatype', {'source', 'volume'}, 'feedback', 'no', 'inside', 'index');
@@ -294,7 +299,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcestatistics_randcluster.m,v 1.14 2007/05/30 07:04:05 roboos Exp $';
+cfg.version.id = '$Id: sourcestatistics_randcluster.m,v 1.15 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg ; end
 % remember the exact configuration details in the output 

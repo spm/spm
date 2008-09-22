@@ -25,6 +25,9 @@ function [data] = appenddata(cfg, varargin);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: appenddata.m,v $
+% Revision 1.16  2008/09/22 20:17:42  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.15  2007/11/13 15:25:07  roboos
 % removed handling of spike data, since that can be done in appendspike
 %
@@ -74,6 +77,8 @@ function [data] = appenddata(cfg, varargin);
 % Revision 1.1  2005/01/17 14:39:43  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -158,7 +163,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: appenddata.m,v 1.15 2007/11/13 15:25:07 roboos Exp $';
+cfg.version.id = '$Id: appenddata.m,v 1.16 2008/09/22 20:17:42 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Ndata

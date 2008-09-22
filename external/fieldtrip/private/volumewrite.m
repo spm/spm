@@ -51,6 +51,9 @@ function volumewrite(cfg, volume)
 % Copyright (C) 2003-2006, Robert Oostenveld, Markus Siegel
 %
 % $Log: volumewrite.m,v $
+% Revision 1.15  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.14  2008/09/17 14:53:35  roboos
 % removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
 %
@@ -124,6 +127,8 @@ function volumewrite(cfg, volume)
 % Revision 1.1  2003/07/23 09:11:15  roberto
 % fixed bug in integer scaling
 %
+
+fieldtripdefs
 
 %% checkdata see below!!! %%
 

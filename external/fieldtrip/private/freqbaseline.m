@@ -15,6 +15,9 @@ function [freq] = freqbaseline(cfg, freq);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: freqbaseline.m,v $
+% Revision 1.21  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.20  2007/04/03 15:37:07  roboos
 % renamed the checkinput function to checkdata
 %
@@ -80,6 +83,8 @@ function [freq] = freqbaseline(cfg, freq);
 % Revision 1.1  2005/04/04 16:13:39  olejen
 % old implementation by Marcel and Ole put into fieldtrip like function
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
@@ -174,7 +179,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqbaseline.m,v 1.20 2007/04/03 15:37:07 roboos Exp $';
+cfg.version.id = '$Id: freqbaseline.m,v 1.21 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
 % remember the exact configuration details in the output 

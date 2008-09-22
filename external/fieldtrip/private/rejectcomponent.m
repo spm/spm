@@ -33,6 +33,9 @@ function [data] = rejectcomponent(cfg, comp, data)
 % Copyright (C) 2005, Robert Oostenveld
 % 
 % $Log: rejectcomponent.m,v $
+% Revision 1.7  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.6  2007/03/04 14:45:28  chrhes
 % fixed a small bug by adding the third input argument 'data' to the function
 % interface (declaration) in the first line of the file. Also added an error
@@ -57,6 +60,8 @@ function [data] = rejectcomponent(cfg, comp, data)
 % Revision 1.1  2005/09/29 16:23:24  jansch
 % first implementation
 %
+
+fieldtripdefs
 
 if ~isfield(cfg, 'component'), cfg.component = []; end
 
@@ -110,7 +115,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectcomponent.m,v 1.6 2007/03/04 14:45:28 chrhes Exp $';
+cfg.version.id = '$Id: rejectcomponent.m,v 1.7 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data 
 try, cfg.previous = comp.cfg; end
 % keep the configuration in the output

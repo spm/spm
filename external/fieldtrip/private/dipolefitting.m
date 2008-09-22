@@ -123,6 +123,9 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %   
 % $Log: dipolefitting.m,v $
+% Revision 1.50  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.49  2008/07/15 19:56:44  roboos
 % moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
 %
@@ -302,6 +305,8 @@ function [source] = dipolefitting(cfg, data)
 % initial version, not tested
 % support for single dipole scanning, fitting and symmetric dipole pair
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -696,7 +701,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.49 2008/07/15 19:56:44 roboos Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.50 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

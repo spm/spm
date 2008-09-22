@@ -60,6 +60,9 @@ function [cfg, artifact] = artifact_threshold(cfg)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.20  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.19  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -116,6 +119,8 @@ function [cfg, artifact] = artifact_threshold(cfg)
 % Revision 1.3  2003/11/28 21:02:04  roberto
 % added revision logging
 %
+
+fieldtripdefs
 
 if ~isfield(cfg.artfctdef, 'threshold'), cfg.artfctdef.threshold = []; end
 
@@ -198,5 +203,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.19 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.20 2008/09/22 20:17:43 roboos Exp $';
 

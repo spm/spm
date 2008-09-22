@@ -40,6 +40,9 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: sourcegrandaverage.m,v $
+% Revision 1.19  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.18  2008/09/17 15:02:36  roboos
 % removed call to fixvolume function, checkdata now takes care of it
 %
@@ -86,6 +89,8 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 % explicitely set voxels that are outside of the brain volume to nan for each subject prior to averaging
 % added copyrights and cvs log statement
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -278,7 +283,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcegrandaverage.m,v 1.18 2008/09/17 15:02:36 roboos Exp $';
+cfg.version.id = '$Id: sourcegrandaverage.m,v 1.19 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Nsubject

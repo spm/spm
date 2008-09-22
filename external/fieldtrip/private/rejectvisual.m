@@ -106,6 +106,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.22  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.21  2008/08/12 16:02:20  roboos
 % added cfg option for scaling eeg, eog, ecg and meg channels prior to display
 %
@@ -179,6 +182,8 @@ function [data] = rejectvisual(cfg, data);
 % Revision 1.1  2005/11/11 14:39:28  roboos
 % new implementation based on old code from Markus
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
@@ -372,7 +377,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.21 2008/08/12 16:02:20 roboos Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.22 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

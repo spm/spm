@@ -33,6 +33,9 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Copyright (C) 2006-2007, Robert Oostenveld
 %
 % $Log: prepare_singleshell.m,v $
+% Revision 1.16  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.15  2008/08/13 21:02:20  roboos
 % use general read_headshape instead of specific subfunctions
 %
@@ -80,6 +83,8 @@ function [vol, cfg] = prepare_singleshell(cfg, mri);
 % Revision 1.1  2006/03/21 09:41:46  roboos
 % new implementation, mainly copy and paste from prepare_localspheres
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'smooth');        cfg.smooth = 5;          end % in voxels

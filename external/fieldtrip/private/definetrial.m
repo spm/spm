@@ -64,6 +64,9 @@ function [cfg] = definetrial(cfg);
 % Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: definetrial.m,v $
+% Revision 1.52  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.51  2007/07/27 12:36:24  roboos
 % updated a comment in the code
 %
@@ -111,6 +114,8 @@ function [cfg] = definetrial(cfg);
 % removed unclear warning about old v.s. new style of configuration
 % improved fprintf feedback on number of events and trials
 %
+
+fieldtripdefs
 
 % if neccessary convert dataset into headerfile and data file
 cfg = dataset2files(cfg);

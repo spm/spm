@@ -53,6 +53,9 @@ function [cfg, artifact] = artifact_clip(cfg);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.11  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.10  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -84,6 +87,8 @@ function [cfg, artifact] = artifact_clip(cfg);
 % added pretim and psttim option for extending the detected artifacts
 % added copyright and log
 %
+
+fieldtripdefs
 
 % set default rejection parameters for clip artifacts if necessary.
 if ~isfield(cfg,'artfctdef'),               cfg.artfctdef               = [];              end;
@@ -171,4 +176,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_clip.m,v 1.10 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.11 2008/09/22 20:17:43 roboos Exp $';

@@ -28,6 +28,9 @@ function [data] = combineplanar(cfg, data)
 % Copyright (C) 2004, Ole Jensen, Robert Oostenveld
 %
 % $Log: combineplanar.m,v $
+% Revision 1.39  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.38  2008/07/16 10:20:42  jansch
 % added support for bti248_planar data
 %
@@ -154,6 +157,8 @@ function [data] = combineplanar(cfg, data)
 % took over this function from Ole, improved compatibility with framework,
 % added help and built in some checks for invalid input data
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 % TODO this is not yet consistent with the code that is approx. 15 lines below
@@ -354,7 +359,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: combineplanar.m,v 1.38 2008/07/16 10:20:42 jansch Exp $';
+cfg.version.id  = '$Id: combineplanar.m,v 1.39 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

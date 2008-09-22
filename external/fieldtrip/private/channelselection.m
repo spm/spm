@@ -51,6 +51,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.32  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.31  2008/09/10 09:11:35  roboos
 % added definition of EEG for neuromag
 %
@@ -83,6 +86,8 @@ function [channel] = channelselection(channel, datachannel)
 % detect and correct this situation in favour of the isbti flag.
 % [thanks to Gavin]
 %
+
+fieldtripdefs
 
 if any(size(channel) == 0)
   % there is nothing to do if it is empty

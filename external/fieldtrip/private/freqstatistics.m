@@ -39,6 +39,9 @@ function [stat] = freqstatistics(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: freqstatistics.m,v $
+% Revision 1.21  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.20  2007/07/16 16:02:13  roboos
 % fixed small bug for cfg.parameter
 %
@@ -86,6 +89,8 @@ function [stat] = freqstatistics(cfg, varargin)
 %
 % Revision 1.5  2006/06/13 14:48:09  ingnie
 % updated documentation
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)

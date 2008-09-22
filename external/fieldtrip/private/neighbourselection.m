@@ -40,6 +40,9 @@ function neighbours = neighbourselection(cfg,data)
 % Copyright (C) 2006-2008, Eric Maris, Robert Oostenveld
 %
 % $Log: neighbourselection.m,v $
+% Revision 1.11  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.10  2008/03/05 10:46:36  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -72,6 +75,8 @@ function neighbours = neighbourselection(cfg,data)
 % Revision 1.1  2006/04/11 16:15:24  roboos
 % created seperate implementation for the construction of the neighbourhood structure, slightly comparable to channelselection
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'neighbourdist'), cfg.neighbourdist = 4; end;

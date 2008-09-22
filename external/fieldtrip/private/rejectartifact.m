@@ -44,6 +44,9 @@ function [cfg] = rejectartifact(cfg);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.38  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.37  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -85,6 +88,8 @@ function [cfg] = rejectartifact(cfg);
 % get the detected artifacts from the configuration structure instead of from the artifact_xxx function
 % implemented graphical feedback using two plots (using cfg.artfctdef.feedback)
 %
+
+fieldtripdefs
 
 if 0
   % this code snippet ensures that these functions are included in the
@@ -388,5 +393,5 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.version.name = st(i);
 end
-cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.37 2008/05/13 15:37:24 roboos Exp $';
+cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.38 2008/09/22 20:17:44 roboos Exp $';
 

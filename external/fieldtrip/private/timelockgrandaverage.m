@@ -21,6 +21,9 @@ function [grandavg] = timelockgrandaverage(cfg, varargin)
 % Copyright (C) 2003-2006, Jens Schwarzbach
 %
 % $Log: timelockgrandaverage.m,v $
+% Revision 1.18  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.17  2007/12/12 07:54:00  roboos
 % give warning if discarding grad or elec
 %
@@ -81,6 +84,8 @@ function [grandavg] = timelockgrandaverage(cfg, varargin)
 % added CVS Log feature
 % fixed bug in latency selection for cfg.latency=all
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -189,7 +194,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockgrandaverage.m,v 1.17 2007/12/12 07:54:00 roboos Exp $';
+cfg.version.id = '$Id: timelockgrandaverage.m,v 1.18 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

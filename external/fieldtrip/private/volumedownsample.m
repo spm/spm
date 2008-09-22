@@ -15,6 +15,9 @@ function [down] = volumedownsample(cfg, source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: volumedownsample.m,v $
+% Revision 1.20  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.19  2008/09/17 14:53:34  roboos
 % removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
 %
@@ -125,6 +128,8 @@ function [down] = volumedownsample(cfg, source);
 % new implementation, to be used by different sourceXXX functions
 %
 
+fieldtripdefs
+
 %% checkdata see below!!! %%
 
 if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
@@ -206,7 +211,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumedownsample.m,v 1.19 2008/09/17 14:53:34 roboos Exp $';
+cfg.version.id = '$Id: volumedownsample.m,v 1.20 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

@@ -22,6 +22,9 @@ function [grandavg] = freqgrandaverage(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: freqgrandaverage.m,v $
+% Revision 1.13  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.12  2007/09/24 10:26:48  roboos
 % implemented averaging of PLV, thanks to Joachim Gross
 %
@@ -63,6 +66,8 @@ function [grandavg] = freqgrandaverage(cfg, varargin);
 % Revision 1.1  2005/01/03 12:23:17  roboos
 % initial implementation
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -259,7 +264,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqgrandaverage.m,v 1.12 2007/09/24 10:26:48 roboos Exp $';
+cfg.version.id = '$Id: freqgrandaverage.m,v 1.13 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

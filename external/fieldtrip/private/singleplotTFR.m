@@ -47,6 +47,9 @@ function cfg = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.25  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.24  2008/01/29 19:43:33  sashae
 % added option for trial selection; plot functions now also accept data with
 % repetitions (either trials or subjects), the avg is computed and plotted
@@ -112,6 +115,8 @@ function cfg = singleplotTFR(cfg, data)
 % Revision 1.5  2006/03/14 08:09:22  roboos
 % added copyrigth and cvs log statement
 % 
+
+fieldtripdefs
 
 cla
 

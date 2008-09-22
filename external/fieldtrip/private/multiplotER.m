@@ -77,6 +77,9 @@ function multiplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotER.m,v $
+% Revision 1.41  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.40  2008/09/22 12:53:27  roboos
 % ensure equal and tight axes
 %
@@ -217,6 +220,8 @@ function multiplotER(cfg, varargin)
 % added copyright statements to all filed
 % added cfg.version to all functions that give configuration in their output
 % added cfg.previous to all functions with input data containing configuration details
+
+fieldtripdefs
 
 clf
 

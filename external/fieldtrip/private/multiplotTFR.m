@@ -73,6 +73,9 @@ function multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.40  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.39  2008/09/22 12:53:27  roboos
 % ensure equal and tight axes
 %
@@ -186,6 +189,8 @@ function multiplotTFR(cfg, data)
 % Revision 1.3  2004/09/01 18:02:23  roboos
 % added copyright statements, removed cfg as output argument
 %
+
+fieldtripdefs
 
 clf
 

@@ -54,6 +54,9 @@ function [freq] = freqanalysis_mtmwelch(cfg, data);
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmwelch.m,v $
+% Revision 1.12  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.11  2008/01/18 13:14:50  sashae
 % added option for trial selection, updated documentation
 %
@@ -75,6 +78,8 @@ function [freq] = freqanalysis_mtmwelch(cfg, data);
 % Revision 1.5  2006/03/14 08:09:22  roboos
 % added copyrigth and cvs log statement
 % 
+
+fieldtripdefs
 
 % ensure that this function is started as a subfunction of the FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')

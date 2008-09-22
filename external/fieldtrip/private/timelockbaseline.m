@@ -19,6 +19,9 @@ function [timelock] = timelockbaseline(cfg, timelock);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: timelockbaseline.m,v $
+% Revision 1.11  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.10  2008/06/10 16:45:05  sashae
 % replaced call to blc function with preproc_baselinecorrect
 %
@@ -49,6 +52,8 @@ function [timelock] = timelockbaseline(cfg, timelock);
 % Revision 1.1  2006/03/09 10:34:17  roboos
 % ne wimplementation, used for plotting functions (c.f. freqbaseline)
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 timelock = checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
@@ -150,7 +155,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockbaseline.m,v 1.10 2008/06/10 16:45:05 sashae Exp $';
+cfg.version.id = '$Id: timelockbaseline.m,v 1.11 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = timelock.cfg; end
 % remember the exact configuration details in the output 

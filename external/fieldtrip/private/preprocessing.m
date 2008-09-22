@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.98  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.97  2008/07/30 07:44:14  roboos
 % changed some whitespace and comments
 %
@@ -312,6 +315,8 @@ function [data] = preprocessing(cfg, data);
 %
 % Revision 1.39  2004/05/27 15:48:56  roberto
 % added cfg.removeeog and added handle for functino that should be implemented by Ali
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'channel'),      cfg.channel = {'all'};        end
@@ -615,7 +620,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.97 2008/07/30 07:44:14 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.98 2008/09/22 20:17:43 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

@@ -54,6 +54,9 @@ function singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.31  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.30  2008/01/29 19:43:33  sashae
 % added option for trial selection; plot functions now also accept data with
 % repetitions (either trials or subjects), the avg is computed and plotted
@@ -170,6 +173,8 @@ function singleplotER(cfg, varargin)
 % added cfg.version to all functions that give configuration in their output
 % added cfg.previous to all functions with input data containing configuration details
 %
+
+fieldtripdefs
 
 cla
 

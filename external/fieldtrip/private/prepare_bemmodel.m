@@ -30,6 +30,9 @@ function [vol] = prepare_bemmodel(cfg, mri);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: prepare_bemmodel.m,v $
+% Revision 1.10  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.9  2008/03/25 10:56:39  roboos
 % use standalone function ama2vol
 %
@@ -58,6 +61,8 @@ function [vol] = prepare_bemmodel(cfg, mri);
 % Revision 1.1  2005/11/03 11:15:45  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 if ~isfield(cfg, 'tissue'),         cfg.tissue = [8 12 14];                  end
 if ~isfield(cfg, 'numvertices'),    cfg.numvertices = [1 2 3] * 500;         end

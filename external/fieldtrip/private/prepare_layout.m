@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.19  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.18  2008/09/22 12:54:22  roboos
 % added default handling for construction of outline and mask and for scaling the electrode positions to fith within unit circle
 %
@@ -112,6 +115,8 @@ function [lay] = prepare_layout(cfg, data);
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
+
+fieldtripdefs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % basic check/initialization of input arguments

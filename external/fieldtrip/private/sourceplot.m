@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.61  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.60  2008/09/17 14:49:40  roboos
 % no need to add identity transform, checkdata takes care of it being a volume
 %
@@ -191,6 +194,8 @@ function [cfg] = sourceplot(cfg, data)
 % Revision 1.39  2007/02/08 16:47:50  ingnie
 % Whole new implementation; combining sliceinterp, surfaceplot and sourceplot_old
 %
+
+fieldtripdefs
 
 %%% checkdata see below!!! %%%
 

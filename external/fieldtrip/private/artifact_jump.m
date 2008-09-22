@@ -47,6 +47,9 @@ function [cfg, artifact] = artifact_jump(cfg)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.16  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.15  2006/11/29 09:06:36  roboos
 % renamed all cfg options with "sgn" into "channel", added backward compatibility when required
 % updated documentation, mainly in the artifact detection routines
@@ -69,6 +72,8 @@ function [cfg, artifact] = artifact_jump(cfg)
 % the functions do not have any explicit support any more for non-continuous data
 % the old artifact_xxx functions from JM have been renamed to xxx_old
 %
+
+fieldtripdefs
 
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                      cfg.artfctdef                 = [];              end

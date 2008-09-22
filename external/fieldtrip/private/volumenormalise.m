@@ -38,6 +38,9 @@ function [normalise] = volumenormalise(cfg, interp)
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen
 %
 % $Log: volumenormalise.m,v $
+% Revision 1.17  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.16  2008/09/17 14:53:35  roboos
 % removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
 %
@@ -61,6 +64,8 @@ function [normalise] = volumenormalise(cfg, interp)
 %
 % Revision 1.11  2006/07/19 12:22:52  jansch
 % implemented smoothing for functional volumes
+
+fieldtripdefs
 
 %% checkdata see below!!! %%
 
@@ -286,7 +291,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumenormalise.m,v 1.16 2008/09/17 14:53:35 roboos Exp $';
+cfg.version.id = '$Id: volumenormalise.m,v 1.17 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

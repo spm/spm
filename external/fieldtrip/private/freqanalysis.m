@@ -40,6 +40,9 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.41  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.40  2008/05/06 15:43:46  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -144,6 +147,8 @@ function [freq] = freqanalysis(cfg, data);
 % multitaperanalysis.m, wltanalysis.m and waveletanalysis.m for the corresponding
 % methods
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hasoffset', 'yes');

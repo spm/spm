@@ -54,6 +54,9 @@ function [segment] = volumesegment(cfg, mri)
 %   cfg.segment          = 'yes' or 'no'
 
 % $Log: volumesegment.m,v $
+% Revision 1.11  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.10  2008/09/17 14:53:35  roboos
 % removed fixvolume (and underlying grid2transform), not needed any more because checkdata has the possibility of converting a pos to a transform
 %
@@ -129,6 +132,8 @@ function [segment] = volumesegment(cfg, mri)
 % Revision 1.1  2004/09/17 11:23:59  jansch
 % first implementation
 %
+
+fieldtripdefs
 
 %% checkdata see below!!! %%
 
@@ -315,7 +320,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: volumesegment.m,v 1.10 2008/09/17 14:53:35 roboos Exp $';
+cfg.version.id = '$Id: volumesegment.m,v 1.11 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = mri.cfg; end
 % remember the exact configuration details in the output 

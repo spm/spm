@@ -38,6 +38,9 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.20  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.19  2008/08/13 21:02:20  roboos
 % use general read_headshape instead of specific subfunctions
 %
@@ -99,6 +102,8 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Revision 1.1  2005/11/03 11:15:45  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'radius'),        cfg.radius = 8.5;        end

@@ -38,6 +38,9 @@ function [cfg] = surfaceplot(cfg, vol, surf)
 
 % Copyright (C) 2006, Jan-Mathijs Schoffelen
 % $Log: surfaceplot.m,v $
+% Revision 1.7  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.6  2006/07/13 08:48:46  ingnie
 % fixed typo's in documentation
 %
@@ -56,6 +59,8 @@ function [cfg] = surfaceplot(cfg, vol, surf)
 % Revision 1.1  2006/01/27 15:41:24  jansch
 % first implementation
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'funparameter'),   error('cfg.funparameter should be specified'); end

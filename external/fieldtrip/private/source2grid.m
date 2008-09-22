@@ -14,6 +14,9 @@ function [grid] = source2grid(source)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: source2grid.m,v $
+% Revision 1.5  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.4  2008/07/25 07:03:15  roboos
 % xgrid/ygrid/zgrid and dim do not always have to be present, hence made them optional
 %
@@ -28,6 +31,8 @@ function [grid] = source2grid(source)
 % Revision 1.1  2004/08/03 09:06:19  roboos
 % initial implementation of these helper functions for beamformer sourceanalysis
 %
+
+fieldtripdefs
 
 % these are always supposed to be present
 grid.pos     = source.pos;

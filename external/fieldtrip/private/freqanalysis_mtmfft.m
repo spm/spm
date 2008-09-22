@@ -50,6 +50,9 @@ function [freq] = freqanalysis_mtmfft(cfg, data);
 % Copyright (c) 2003-2006, Pascal Fries, F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmfft.m,v $
+% Revision 1.41  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.40  2008/05/13 15:36:09  roboos
 % fixed potential bug in assessing the number of trials (when data.trial was column instead of row vector)a, now use numel instead of size
 %
@@ -209,6 +212,8 @@ function [freq] = freqanalysis_mtmfft(cfg, data);
 % - improved performance by vectorization of loops
 % - output of 'mtmfft' is correctly dimensioned for single frequency output
 %
+
+fieldtripdefs
 
 % ensure that this function is started as a subfunction of the FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')
@@ -565,7 +570,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.40 2008/05/13 15:36:09 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.41 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

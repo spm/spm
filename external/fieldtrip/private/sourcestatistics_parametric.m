@@ -47,6 +47,9 @@ function [stat] = sourcestatistics_parametric(cfg, varargin)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: sourcestatistics_parametric.m,v $
+% Revision 1.18  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.17  2008/02/20 14:25:16  roboos
 % fixed prob for tscores, thanks to Nathan
 %
@@ -111,6 +114,8 @@ function [stat] = sourcestatistics_parametric(cfg, varargin)
 % new implementation based on code that was coppied out of sourecstatistics.m
 % some cosmetic and structure changes, no differences in actual computation
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -321,7 +326,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcestatistics_parametric.m,v 1.17 2008/02/20 14:25:16 roboos Exp $';
+cfg.version.id = '$Id: sourcestatistics_parametric.m,v 1.18 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

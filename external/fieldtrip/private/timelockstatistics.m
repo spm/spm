@@ -35,6 +35,9 @@ function [stat] = timelockstatistics(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: timelockstatistics.m,v $
+% Revision 1.24  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.23  2007/05/10 10:18:39  ingnie
 % disabled checkinput for the time being, since timelock data can contain stat/zvalue/tvalue instead of an avg
 %
@@ -64,6 +67,8 @@ function [stat] = timelockstatistics(cfg, varargin)
 %
 % Revision 1.14  2006/06/13 14:48:12  ingnie
 % updated documentation
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 for i=1:length(varargin)

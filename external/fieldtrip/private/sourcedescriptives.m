@@ -40,6 +40,9 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.41  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.40  2008/09/11 13:21:13  jansch
 % included output of ori if cfg.eta = 'yes'
 %
@@ -79,6 +82,8 @@ function [source] = sourcedescriptives(cfg, source)
 % Revision 1.29  2006/07/04 16:04:50  roboos
 % renamed option 'jacknife' into 'jackknife' for consistency, maintain backward compatibility with cfgs and old data
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 source = checkdata(source, 'datatype', 'source', 'feedback', 'yes');
@@ -815,7 +820,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.40 2008/09/11 13:21:13 jansch Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.41 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

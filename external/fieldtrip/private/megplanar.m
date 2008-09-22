@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.33  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.32  2008/07/15 19:56:44  roboos
 % moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
 %
@@ -166,6 +169,8 @@ function [interp] = megplanar(cfg, data);
 % Revision 1.1  2004/04/06 20:01:49  roberto
 % created new implementation by moving all functionality from meginterpolate to this function
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data  = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti248'});
@@ -543,7 +548,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.32 2008/07/15 19:56:44 roboos Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.33 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.128  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.127  2008/07/15 19:56:44  roboos
 % moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
 %
@@ -486,6 +489,8 @@ function [source] = sourceanalysis(cfg, data, baseline);
 %
 % Revision 1.40  2004/01/08 09:14:49  roberto
 % added option keepmom to save memory, default is 'yes'
+
+fieldtripdefs
 
 % set a timer to determine how long the sourceanalysis takes in total
 tic;
@@ -1247,7 +1252,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.127 2008/07/15 19:56:44 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.128 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

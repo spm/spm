@@ -212,6 +212,9 @@ function [clusrand] = clusterrandanalysis(cfg,varargin);
 % Copyright (C) 2005-2006, Eric Maris, NICI, University Nijmegen
 %
 % $Log: clusterrandanalysis.m,v $
+% Revision 1.26  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.25  2008/03/05 10:46:35  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -277,6 +280,8 @@ function [clusrand] = clusterrandanalysis(cfg,varargin);
 % Revision 1.8  2005/04/22 07:44:41  roboos
 % added/corrected copyrights, added a Log tag for CVS, converted to unix ascii
 %
+
+fieldtripdefs
 
 warning off;
 pack;

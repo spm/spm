@@ -131,6 +131,9 @@ function [data] = freqsimulation(cfg)
 % Copyright (C) 2007-2008, Ingrid Nieuwenhuis & Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: freqsimulation.m,v $
+% Revision 1.14  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.13  2008/07/10 08:39:36  roboos
 % updated documentation
 %
@@ -174,6 +177,8 @@ function [data] = freqsimulation(cfg)
 % Revision 1.1  2007/08/07 10:45:33  ingnie
 % first implementation
 %
+
+fieldtripdefs
 
 % set defaults
 if ~isfield(cfg, 'method'),        cfg.method = 'phalow_amphigh';         end
@@ -540,7 +545,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: freqsimulation.m,v 1.13 2008/07/10 08:39:36 roboos Exp $';
+cfg.version.id   = '$Id: freqsimulation.m,v 1.14 2008/09/22 20:17:43 roboos Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

@@ -69,6 +69,9 @@ function [association] = nonlinearassociation(cfg, data)
 % Copyright (C) 2007, Inge Westmijse
 %
 % $Log: nonlinearassociation.m,v $
+% Revision 1.11  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.10  2008/05/13 15:36:09  roboos
 % fixed potential bug in assessing the number of trials (when data.trial was column instead of row vector)a, now use numel instead of size
 %
@@ -96,6 +99,7 @@ function [association] = nonlinearassociation(cfg, data)
 % renamed function and moved to fieldtrip main, added normal data handling
 % and selection
 
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'trials'),        cfg.trials  = 'all';             end
@@ -240,7 +244,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: nonlinearassociation.m,v 1.10 2008/05/13 15:36:09 roboos Exp $';
+cfg.version.id   = '$Id: nonlinearassociation.m,v 1.11 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

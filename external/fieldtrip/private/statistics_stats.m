@@ -26,6 +26,9 @@ function [stat, cfg] = statistics_stats(cfg, dat, design);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: statistics_stats.m,v $
+% Revision 1.8  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.7  2006/06/07 12:59:09  roboos
 % fixed a bug in determining the size of the design matrix
 %
@@ -44,6 +47,8 @@ function [stat, cfg] = statistics_stats(cfg, dat, design);
 % Revision 1.3  2005/12/08 16:58:20  ingnie
 % fixed bug paired ttest, added log
 %
+
+fieldtripdefs
 
 % test for the presence of the statistics toolbox
 hasstats = (exist('ttest') & exist('ttest2'));

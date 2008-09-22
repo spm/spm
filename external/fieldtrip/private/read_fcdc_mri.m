@@ -16,6 +16,9 @@ function [mri] = read_fcdc_mri(filename);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: read_fcdc_mri.m,v $
+% Revision 1.17  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.16  2007/05/06 09:09:18  roboos
 % added support for nifti, requires SPM5
 %
@@ -69,6 +72,8 @@ function [mri] = read_fcdc_mri(filename);
 % Revision 1.1  2004/08/24 13:52:50  roboos
 % new implementation, currently implemented are CTF, ASA and Analyze (with mri-toolbox)
 %
+
+fieldtripdefs
 
 % test for the presence of some external functions from other toolboxes
 hasmri  = hastoolbox('mri');     % from Darren Weber, see http://eeg.sourceforge.net/

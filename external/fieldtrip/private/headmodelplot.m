@@ -69,6 +69,9 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.22  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.21  2008/08/13 21:02:20  roboos
 % use general read_headshape instead of specific subfunctions
 %
@@ -138,6 +141,8 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Revision 1.1  2004/08/06 08:55:23  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 % these are suitable RGB colors
 skin   = [255 213 119]/255;

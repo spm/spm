@@ -15,6 +15,9 @@ function [data] = denoise_synthetic(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: denoise_synthetic.m,v $
+% Revision 1.7  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.6  2008/06/26 16:09:15  roboos
 % added trial selection
 % added check on ctf input
@@ -35,6 +38,8 @@ function [data] = denoise_synthetic(cfg, data);
 % Revision 1.1  2008/05/15 09:52:05  roboos
 % renamed function syntheticgradient to denoise_synthetic
 %
+
+fieldtripdefs
 
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
@@ -131,7 +136,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: denoise_synthetic.m,v 1.6 2008/06/26 16:09:15 roboos Exp $';
+cfg.version.id = '$Id: denoise_synthetic.m,v 1.7 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -57,6 +57,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.15  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.14  2008/06/17 15:43:09  sashae
 % now using preproc_modules
 %
@@ -94,6 +97,8 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Revision 1.4  2005/09/29 14:56:32  jansch
 % first implementation
 %
+
+fieldtripdefs
 
 % set default rejection parameters for eog artifacts if necessary.
 if ~isfield(cfg,'artfctdef'),            cfg.artfctdef               = [];            end
@@ -293,5 +298,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.14 2008/06/17 15:43:09 sashae Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.15 2008/09/22 20:17:43 roboos Exp $';
 

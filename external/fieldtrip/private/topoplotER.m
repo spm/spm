@@ -72,6 +72,9 @@ function topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.49  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.48  2008/09/22 14:24:33  roboos
 % fixed bug that was visible in case of interactive=yes, removed the scaling of the channels to unit sphere, since that is now done in prepare_layout.
 %
@@ -160,6 +163,8 @@ function topoplotER(cfg, varargin)
 % Revision 1.24  2006/03/14 08:09:22  roboos
 % added copyrigth and cvs log statement
 %
+
+fieldtripdefs
 
 cla
 

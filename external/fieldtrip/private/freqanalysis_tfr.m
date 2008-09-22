@@ -27,6 +27,9 @@ function [freq] = freqanalysis_tfr(cfg, data);
 % Copyright (C) 2003, Ole Jensen, FCDC
 %
 % $Log: freqanalysis_tfr.m,v $
+% Revision 1.21  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.20  2008/01/18 13:14:50  sashae
 % added option for trial selection, updated documentation
 %
@@ -107,6 +110,8 @@ function [freq] = freqanalysis_tfr(cfg, data);
 % (note: the previous change from revision 1.1 to 1.2 only affected
 % documentation and comments, and also did not include any change to
 % the functionality of the code)
+
+fieldtripdefs
 
 % ensure that this function is started as a subfunction of the FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')
@@ -244,7 +249,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqanalysis_tfr.m,v 1.20 2008/01/18 13:14:50 sashae Exp $';
+cfg.version.id = '$Id: freqanalysis_tfr.m,v 1.21 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

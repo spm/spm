@@ -42,6 +42,9 @@ function lrp = lateralizedpotential(cfg, avgL, avgR);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: lateralizedpotential.m,v $
+% Revision 1.6  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.5  2005/06/29 12:46:29  roboos
 % the following changes were done on a large number of files at the same time, not all of them may apply to this specific file
 % - added try-catch around the inclusion of input data configuration
@@ -62,6 +65,8 @@ function lrp = lateralizedpotential(cfg, avgL, avgR);
 % Revision 1.1  2004/12/16 11:19:05  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 if ~isfield(cfg, 'channelcmb'), 
   cfg.channelcmb = {
@@ -113,7 +118,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: lateralizedpotential.m,v 1.5 2005/06/29 12:46:29 roboos Exp $';
+cfg.version.id = '$Id: lateralizedpotential.m,v 1.6 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = avgL.cfg; end

@@ -34,6 +34,9 @@ function clusterplot(cfg, stat)
 % Copyright (C) 2007, Ingrid Nieuwenhuis, F.C. Donders Centre
 %
 % $Log: clusterplot.m,v $
+% Revision 1.7  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.6  2008/09/22 15:18:53  roboos
 % only prepare the layout once
 %
@@ -46,6 +49,8 @@ function clusterplot(cfg, stat)
 % Revision 1.3  2007/11/07 12:52:46  ingnie
 % add cvs log
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg,'alpha'),                  cfg.alpha = 0.05;                             end;

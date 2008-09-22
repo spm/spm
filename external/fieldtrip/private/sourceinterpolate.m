@@ -34,6 +34,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.47  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.46  2008/08/20 11:03:53  ingnie
 % fixed bug in extrapolating to outside, av changed into fv
 %
@@ -150,6 +153,8 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Revision 1.16  2004/09/20 09:32:15  roboos
 % changed implementation of downsampling to use the external downsamplevolume function
 %
+
+fieldtripdefs
 
 %% checkdata see below!!! %%
 
@@ -310,7 +315,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.46 2008/08/20 11:03:53 ingnie Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.47 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end

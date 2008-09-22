@@ -50,6 +50,9 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: scalpcurrentdensity.m,v $
+% Revision 1.24  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.23  2008/07/21 13:19:05  roboos
 % implemented Hjorth filtering, using neighbourselection and apply_warp
 % changed finite method to use apply_warp
@@ -131,6 +134,8 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % Revision 1.1  2004/03/22 15:35:08  roberto
 % first version
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'no');
@@ -280,7 +285,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.23 2008/07/21 13:19:05 roboos Exp $';
+cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.24 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

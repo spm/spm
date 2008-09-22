@@ -14,6 +14,9 @@ function [cfg, artifact] = artifact_jump_old(cfg);
 % Copyright (C) 2004, F.C. Donders Centre
 %
 % $Log: artifact_jump_old.m,v $
+% Revision 1.5  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.4  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -22,6 +25,8 @@ function [cfg, artifact] = artifact_jump_old(cfg);
 % contains a comment that the function is deprecated and has been
 % replaced by a new one
 %
+
+fieldtripdefs
 
 % set default rejection parameters for jump artifacts if necessary.          
 if ~isfield(cfg,'artfctdef'),               cfg.artfctdef               = [];              end;
@@ -158,5 +163,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_jump_old.m,v 1.4 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id = '$Id: artifact_jump_old.m,v 1.5 2008/09/22 20:17:43 roboos Exp $';
 

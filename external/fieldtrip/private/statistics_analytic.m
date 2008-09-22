@@ -41,6 +41,9 @@ function [stat, cfg] = statistics_analytic(cfg, dat, design);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: statistics_analytic.m,v $
+% Revision 1.8  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.7  2007/03/27 15:36:37  erimar
 % Updated help (replaced p-value by significance probability).
 %
@@ -62,6 +65,8 @@ function [stat, cfg] = statistics_analytic(cfg, dat, design);
 % Revision 1.1  2006/05/31 13:04:31  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 % set the defaults
 if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end

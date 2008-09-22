@@ -26,6 +26,9 @@ function [collect] = channelcombination(channelcmb, datachannel)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: channelcombination.m,v $
+% Revision 1.15  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.14  2006/06/06 16:57:51  ingnie
 % updated documentation
 %
@@ -69,6 +72,8 @@ function [collect] = channelcombination(channelcmb, datachannel)
 % Revision 1.1  2003/10/27 16:02:13  roberto
 % new implementation after an idea by JM
 %
+
+fieldtripdefs
 
 if ischar(channelcmb) && strcmp(channelcmb, 'all')
   % make all possible combinations of all channels

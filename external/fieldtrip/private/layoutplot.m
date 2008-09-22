@@ -46,6 +46,9 @@ function layoutplot(cfg, data);
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: layoutplot.m,v $
+% Revision 1.9  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.8  2008/09/22 12:44:46  roboos
 % added support for cfg.image, some small changes to documentation and to plotting style
 %
@@ -74,6 +77,7 @@ function layoutplot(cfg, data);
 % new implementation
 %
 
+fieldtripdefs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % basic check/initialization of input arguments

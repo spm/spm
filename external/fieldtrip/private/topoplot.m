@@ -126,6 +126,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.36  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.35  2008/09/22 15:12:01  roboos
 % fixed bug with highlights (thanks to Tineke)
 %
@@ -162,6 +165,8 @@ function [handle] = topoplot(varargin)
 %
 % Revision 1.25  2007/03/14 08:43:12  roboos
 % replaced call to createlayout to prepare_layout, made some small changes to the lay structure
+
+fieldtripdefs
 
 % Try to detect EEGLAB-style input and give an informative error
 % message. The EEGLAB documentation describes the usage as 

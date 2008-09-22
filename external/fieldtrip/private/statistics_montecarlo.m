@@ -75,6 +75,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.24  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.23  2008/06/25 06:38:31  roboos
 % removed backward compatibility cfg option rename anova->fstat
 %
@@ -160,6 +163,8 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Revision 1.1  2006/05/31 13:04:31  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 % set the defaults for the main function
 if ~isfield(cfg, 'alpha'),               cfg.alpha = 0.05;               end

@@ -80,6 +80,9 @@ function [norm] = electroderealign(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: electroderealign.m,v $
+% Revision 1.9  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.8  2008/06/23 08:17:23  roboos
 % allow method=interactive with both template and headshape (for Vladimir)
 % repositioned global variable fb
@@ -146,6 +149,8 @@ function [norm] = electroderealign(cfg);
 % Revision 1.1  2005/01/17 14:56:06  roboos
 % new implementation
 %
+
+fieldtripdefs
 
 % this is used for feedback of the lower-level functions
 global fb
@@ -501,7 +506,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: electroderealign.m,v 1.8 2008/06/23 08:17:23 roboos Exp $';
+cfg.version.id = '$Id: electroderealign.m,v 1.9 2008/09/22 20:17:43 roboos Exp $';
 
 % remember the configuration
 norm.cfg = cfg;

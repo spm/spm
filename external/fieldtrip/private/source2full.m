@@ -14,6 +14,9 @@ function [source] = source2full(source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: source2full.m,v $
+% Revision 1.18  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.17  2008/07/21 20:09:23  roboos
 % use islogical and iscell
 %
@@ -70,6 +73,8 @@ function [source] = source2full(source);
 % Revision 1.1  2004/08/03 09:06:19  roboos
 % initial implementation of these helper functions for beamformer sourceanalysis
 %
+
+fieldtripdefs
 
 if ~isfield(source, 'inside')  || ...
    ~isfield(source, 'outside') || ...
@@ -237,7 +242,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: source2full.m,v 1.17 2008/07/21 20:09:23 roboos Exp $';
+cfg.version.id = '$Id: source2full.m,v 1.18 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

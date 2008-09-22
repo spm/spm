@@ -34,6 +34,9 @@ function sourceplot(cfg, interp)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: sourceplot_old.m,v $
+% Revision 1.2  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.1  2007/02/08 12:34:26  roboos
 % this is a copy of the sourcelot function just prior to Ingrid rewriting it
 %
@@ -137,6 +140,8 @@ function sourceplot(cfg, interp)
 % Revision 1.7  2004/08/26 10:48:25  roboos
 % modified to make it consistent again with the new volume (source+mri) structure
 % removed dependency on warp3d, implemented homogenous transform directly
+
+fieldtripdefs
 
 % sometimes it is desirable to specify the cfg as a cell array
 if iscell(cfg)

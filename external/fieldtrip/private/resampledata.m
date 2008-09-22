@@ -37,6 +37,9 @@ function [data] = resampledata(cfg, data);
 % Copyright (C) 2004-2008, FC Donders Centre, Robert Oostenveld
 %
 % $Log: resampledata.m,v $
+% Revision 1.16  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.15  2008/06/10 18:20:17  sashae
 % replaced blc and detrend with preproc modules
 %
@@ -88,6 +91,8 @@ function [data] = resampledata(cfg, data);
 % initial CVS release
 % included linear detrending (default)
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
@@ -165,7 +170,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: resampledata.m,v 1.15 2008/06/10 18:20:17 sashae Exp $';
+cfg.version.id = '$Id: resampledata.m,v 1.16 2008/09/22 20:17:44 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

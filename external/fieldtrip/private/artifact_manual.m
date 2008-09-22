@@ -72,6 +72,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % version 23-11-2004
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.17  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.16  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -130,6 +133,8 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Revision 1.1  2004/12/20 08:47:50  roboos
 % initial implementation, based on Geertens version of 23 November 2004
 %
+
+fieldtripdefs
 
 % set default parameters if necessary.
 if ~isfield(cfg, 'artfctdef'),                          cfg.artfctdef                            = [];       end
@@ -351,7 +356,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.16 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.17 2008/09/22 20:17:43 roboos Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

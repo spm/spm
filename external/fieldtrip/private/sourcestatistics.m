@@ -47,6 +47,9 @@ function [stat] = sourcestatistics(cfg, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: sourcestatistics.m,v $
+% Revision 1.41  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.40  2008/07/31 16:22:52  roboos
 % added documentation pertaining to atlas ROIs and added check on input in case of ROI
 %
@@ -101,6 +104,8 @@ function [stat] = sourcestatistics(cfg, varargin)
 % Revision 1.24  2005/04/06 14:29:41  roboos
 % added copyrights and a log message placeholder
 %
+
+fieldtripdefs
 
 % this wrapper should be compatible with the already existing statistical
 % functions that only work for source input data

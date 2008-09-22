@@ -31,6 +31,9 @@ function [data] = besa2fieldtrip(filename);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: besa2fieldtrip.m,v $
+% Revision 1.14  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.13  2007/04/24 09:45:56  roboos
 % added support for besa simple binary, requires besa toolbox
 %
@@ -71,6 +74,8 @@ function [data] = besa2fieldtrip(filename);
 % Revision 1.1  2005/07/28 15:08:58  roboos
 % new implementation, see documentation on website
 %
+
+fieldtripdefs
 
 % This function can either use the reading functions included in FieldTrip
 % (with contributions from Karsten, Vladimir and Robert), or the official
@@ -256,7 +261,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: besa2fieldtrip.m,v 1.13 2007/04/24 09:45:56 roboos Exp $';
+cfg.version.id = '$Id: besa2fieldtrip.m,v 1.14 2008/09/22 20:17:43 roboos Exp $';
 data.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

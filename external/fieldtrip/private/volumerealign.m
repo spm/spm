@@ -39,6 +39,9 @@ function [mri] = volumerealign(cfg, mri);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: volumerealign.m,v $
+% Revision 1.7  2008/09/22 20:17:44  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.6  2007/05/02 15:22:37  roboos
 % cfg.parameter should never be a cell
 %
@@ -57,6 +60,8 @@ function [mri] = volumerealign(cfg, mri);
 % Revision 1.1  2006/10/10 10:25:59  roboos
 % new impementation
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 mri = checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
@@ -167,7 +172,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumerealign.m,v 1.6 2007/05/02 15:22:37 roboos Exp $';
+cfg.version.id = '$Id: volumerealign.m,v 1.7 2008/09/22 20:17:44 roboos Exp $';
 
 % remember the configuration
 mri.cfg = cfg;

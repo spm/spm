@@ -13,6 +13,9 @@ function [cfg, artifact] = artifact_file(cfg);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.12  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.11  2008/05/13 15:37:24  roboos
 % switched to using read_data/header instead of the read_fcdc_data/header wrapper functions
 %
@@ -52,6 +55,8 @@ function [cfg, artifact] = artifact_file(cfg);
 % initial version, according to pluggable artifact rejection
 %
 
+fieldtripdefs
+
 if isfield(cfg, 'rejectfile') && ~strcmp(cfg.rejectfile, 'no')
   cfg = dataset2files(cfg);
   hdr = read_header(cfg.headerfile);
@@ -85,5 +90,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.11 2008/05/13 15:37:24 roboos Exp $';
+cfg.version.id = '$Id: artifact_file.m,v 1.12 2008/09/22 20:17:43 roboos Exp $';
 

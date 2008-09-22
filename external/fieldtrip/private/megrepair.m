@@ -21,6 +21,9 @@ function [interp] = megrepair(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: megrepair.m,v $
+% Revision 1.18  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.17  2008/05/06 16:30:26  sashae
 % change in trial selection, cfg.trials can be logical
 %
@@ -81,6 +84,8 @@ function [interp] = megrepair(cfg, data);
 % Revision 1.1  2004/04/06 20:01:49  roberto
 % created new implementation by moving all functionality from meginterpolate to this function
 %
+
+fieldtripdefs
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
@@ -181,7 +186,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrepair.m,v 1.17 2008/05/06 16:30:26 sashae Exp $';
+cfg.version.id   = '$Id: megrepair.m,v 1.18 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

@@ -44,6 +44,9 @@ function [freq] = freqanalysis_wltconvol(cfg, data);
 % Copyright (C) 2003-2007, Markus Siegel, F.C. Donders Centre
 %
 % $Log: freqanalysis_wltconvol.m,v $
+% Revision 1.21  2008/09/22 20:17:43  roboos
+% added call to fieldtripdefs to the begin of the function
+%
 % Revision 1.20  2008/05/13 15:36:09  roboos
 % fixed potential bug in assessing the number of trials (when data.trial was column instead of row vector)a, now use numel instead of size
 %
@@ -118,6 +121,8 @@ function [freq] = freqanalysis_wltconvol(cfg, data);
 % Revision 1.1  2004/08/25 19:18:43  marsie
 % initial release
 %
+
+fieldtripdefs
 
 % ensure that this function is started as a subfunction of the FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')
@@ -355,7 +360,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_wltconvol.m,v 1.20 2008/05/13 15:36:09 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_wltconvol.m,v 1.21 2008/09/22 20:17:43 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
