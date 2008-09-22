@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2132 2008-09-22 10:04:20Z volkmar $
+% $Id: cfg_ui.m 2143 2008-09-22 16:59:37Z volkmar $
 
-rev = '$Rev: 2132 $'; %#ok
+rev = '$Rev: 2143 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1086,7 +1086,7 @@ function MenuFileNew_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 udmodlist = get(handles.modlist, 'userdata');
-if udmodlist.modified
+if isfield(udmodlist, 'modified') && udmodlist.modified
         cmd = questdlg(['The current batch contains unsaved changes. '...
             'Do you want to replace it with another batch?'], ...
             'Unsaved Changes', 'Continue','Cancel', 'Continue');
