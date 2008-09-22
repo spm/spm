@@ -4,7 +4,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_artefact.m 2133 2008-09-22 10:21:05Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -76,24 +76,24 @@ if artefact.External_list
 end
 
 try
-    artefact.Weighted = S.artefact.weighted;
+    artefact.Weighted = S.artefact.Weighted;
 catch
     artefact.Weighted = spm_input('robust average?','+1','yes|no',[1 0]);
-    S.artefact.weighted = artefact.Weighted;
+    S.artefact.Weighted = artefact.Weighted;
 end
 
 if artefact.Weighted == 1
     try
-        artefact.Weightingfunction = S.artefact.weightingfunction;
+        artefact.Weightingfunction = S.artefact.Weightingfunction;
     catch
         artefact.Weightingfunction = spm_input('Offset weighting function by', '+1', 'r', '3', 1);
-        S.artefact.weightingfunction = artefact.weightingfunction;
+        S.artefact.Weightingfunction = artefact.Weightingfunction;
     end
     try
-        artefact.Smoothing = S.artefact.smoothing;
+        artefact.Smoothing = S.artefact.Smoothing;
     catch
         artefact.Smoothing = spm_input('FWHM for residual smoothing (ms)', '+1', 'r', '20', 1);
-        S.artefact.smoothing = artefact.smoothing;
+        S.artefact.Smoothing = artefact.Smoothing;
     end
     artefact.Smoothing=round(artefact.Smoothing/1000*D.fsample);
 end

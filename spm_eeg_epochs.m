@@ -7,7 +7,7 @@ function D = spm_eeg_epochs(S)
 % S.D         - filename of EEG mat-file with continuous data
 % 
 % Either (to use a ready-made trial definition): 
-% S.epochinfo.trl - Nx2 or Nx3 matrix (N - number of chantype) [start end offset]
+% S.epochinfo.trl - Nx2 or Nx3 matrix (N - number of trials) [start end offset]
 % S.epochinfo.conditionlabels - one label or cell array of N labels 
 % S.epochinfo.padding - in sec - the additional time period around each trial
 %               for which the events are saved with the trial (to let the
@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_epochs.m 2133 2008-09-22 10:21:05Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
