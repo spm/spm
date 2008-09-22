@@ -12,9 +12,9 @@ function str = cfg_textfill(obj, left, right, tflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_textfill.m 2135 2008-09-22 12:07:52Z volkmar $
+% $Id: cfg_textfill.m 2138 2008-09-22 13:27:44Z volkmar $
 
-rev = '$Rev: 2135 $'; %#ok
+rev = '$Rev: 2138 $'; %#ok
 
 if ~ishandle(obj)
     cfg_message('matlabbatch:usage',...
@@ -92,7 +92,10 @@ if tflag && mlext+mrext > pos(3)-swidth
         right{trind(k)} = ['...' tright];
         rext(trind(k)) = ext(3);
     end;
-    width = mlext+newrext;
+    % Re-estimate max extent of trimmed right string
+    rext = cfg_maxextent(TempObj, right);
+    mrext = max(rext);
+    width = mlext+mrext;
 end;
 
 fillstr = cell(size(left));
