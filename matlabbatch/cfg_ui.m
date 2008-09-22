@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2087 2008-09-12 10:32:40Z volkmar $
+% $Id: cfg_ui.m 2131 2008-09-22 06:04:53Z volkmar $
 
-rev = '$Rev: 2087 $'; %#ok
+rev = '$Rev: 2131 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -195,7 +195,9 @@ function local_addtojob(varargin)
 id  = get(gcbo, 'userdata');
 handles = guidata(gcbo);
 udmodlist = get(handles.modlist, 'userdata');
-cfg_util('addtojob', udmodlist.cjob, id);
+% add module to job, harvest to initialise its virtual outputs
+mod_job_id = cfg_util('addtojob', udmodlist.cjob, id);
+cfg_util('harvest', udmodlist.cjob, mod_job_id);
 udmodlist.modified = true;
 set(handles.modlist,'userdata',udmodlist);
 local_showjob(gcbo);
@@ -945,13 +947,8 @@ handles = guidata(hObject);
 udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
 sout = local_showvaledit_deps(hObject);
-% for some reason, MATLAB wants to have the list size to be specified in
-% pixels, not chars. Try to work this out based on the number of
-% characters and a font size of 12.
-str = strvcat(sout.sname);
-szi = min(max(size(str')+1, [10 1]),[140 60])*13;
-[val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str, ...
-                    'ListSize',szi);
+str = {sout.sname};
+[val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str);
 if sts
     local_setvaledit(hObject, sout(val));
 end;

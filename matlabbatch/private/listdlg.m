@@ -18,8 +18,9 @@ function [selection,value] = listdlg(varargin)
 %   'ListString'    cell array of strings for the list box.
 %   'SelectionMode' string; can be 'single' or 'multiple'; defaults to
 %                   'multiple'.
-%   'ListSize'      [width height] of listbox in pixels; defaults
-%                   to [160 300].
+%   'ListSize'      minimum [width height] of listbox in pixels; defaults
+%                   to [160 300]. The maximum [width height] is fixed to
+%                   [800 600].
 %   'InitialValue'  vector of indices of which items of the list box
 %                   are initially selected; defaults to the first item.
 %   'Name'          String for the figure's title; defaults to ''.
@@ -41,7 +42,7 @@ function [selection,value] = listdlg(varargin)
 %    MSGBOX, QUESTDLG, WARNDLG.
 
 %   Copyright 1984-2005 The MathWorks, Inc.
-%   $Revision: 1915 $  $Date: 2005/10/28 15:54:55 $
+%   $Revision: 2131 $  $Date: 2005/10/28 15:54:55 $
 
 %   'uh'            uicontrol button height, in pixels; default = 22.
 %   'fus'           frame/uicontrol spacing, in pixels; default = 8.
@@ -115,7 +116,18 @@ if isempty(liststring)
     cfg_message('MATLAB:listdlg:NeedParameter', 'ListString parameter is required.')
 end
 
-ex = get(0,'defaultuicontrolfontsize')*1.7;  % height extent per line of uicontrol text (approx)
+liststring=cellstr(liststring);
+lfont = cfg_get_defaults('cfg_ui.lfont');
+bfont = cfg_get_defaults('cfg_ui.bfont');
+tmpObj = uicontrol('style','listbox',...
+    'max',100,...
+    'Visible','off',...
+    lfont);
+lext = cfg_maxextent(tmpObj, liststring);
+ex = get(tmpObj,'Extent');
+ex = ex(4);
+delete(tmpObj);
+listsize = min([800 600],max(listsize, [max(lext)+16, ex*numel(liststring)]));
 
 fp = get(0,'defaultfigureposition');
 w = 2*(fus+ffs)+listsize(1);
@@ -135,8 +147,6 @@ fig_props = { ...
     'closerequestfcn'        'delete(gcbf)' ...
             };
 
-liststring=cellstr(liststring);
-
 fig = figure(fig_props{:});
 
 if ~isempty(promptstring)
@@ -148,11 +158,6 @@ end
 
 btn_wid = (fp(3)-2*(ffs+fus)-fus)/2;
 
-lfont = cfg_get_defaults('cfg_ui.lfont');
-fn    = fieldnames(lfont);
-fs    = struct2cell(lfont);
-lfont = [fn'; fs'];
-
 listbox = uicontrol('style','listbox',...
                     'position',[ffs+fus ffs+uh+4*fus+(smode==2)*(fus+uh) listsize],...
                     'string',liststring,...
@@ -161,17 +166,19 @@ listbox = uicontrol('style','listbox',...
                     'tag','listbox',...
                     'value',initialvalue, ...
                     'callback', {@doListboxClick}, ...
-                    lfont{:});
+                    lfont);
 
 ok_btn = uicontrol('style','pushbutton',...
                    'string',okstring,...
                    'position',[ffs+fus ffs+fus btn_wid uh],...
-                   'callback',{@doOK,listbox});
+                   'callback',{@doOK,listbox},...
+                   bfont);
 
 cancel_btn = uicontrol('style','pushbutton',...
                        'string',cancelstring,...
                        'position',[ffs+2*fus+btn_wid ffs+fus btn_wid uh],...
-                       'callback',{@doCancel,listbox});
+                       'callback',{@doCancel,listbox},...
+                       bfont);
 
 if smode == 2
     selectall_btn = uicontrol('style','pushbutton',...

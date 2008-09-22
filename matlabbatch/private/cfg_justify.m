@@ -3,8 +3,9 @@ function out = cfg_justify(varargin)
 %    OUT = CFG_JUSTIFY(N,TXT) justifies text string TXT to
 %    the length specified by N.
 %
-%    OUT = CFG_JUSTIFY(OBJ,TXT) justifies text string to
-%    the width of the OBJ in characters - 1.
+%    OUT = CFG_JUSTIFY(OBJ,TXT), where OBJ is a handle to a 'listbox' style
+%    uicontrol, justifies text string TXT to the width of the OBJ in
+%    characters - 1.
 %
 %    If TXT is a cell array, then each element is treated
 %    as a paragraph and justified, otherwise the string is
@@ -28,7 +29,7 @@ function out = cfg_justify(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: cfg_justify.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_justify.m 2131 2008-09-22 06:04:53Z volkmar $
 
 out = {};
 
@@ -36,19 +37,41 @@ if nargin < 2
     cfg_message('matlabbatch:usage','Incorrect usage of cfg_justify.')
 end
 n = varargin{1};
+if ishandle(n)
+    % estimate extent of a space char and scrollbar width
+    TempObj=copyobj(n,get(n,'Parent'));
+    set(TempObj,'Visible','off','Max',100);
+    spext = cfg_maxextent(TempObj,{repmat(' ',1,100)})/100;
+    % try to work out slider size
+    pos = get(TempObj,'Position');
+    oldun = get(TempObj,'units');
+    set(TempObj,'units','points');
+    ppos = get(TempObj,'Position');
+    set(TempObj,'units',oldun);
+    sc = pos(3)/ppos(3);
+    % assume slider width of 15 points
+    swidth=15*sc;
+else
+    % dummy constants
+    spext = 1;
+    swidth = 0;
+    TempObj = n;
+end
 for i=2:nargin,
     if iscell(varargin{i}),
         for j=1:numel(varargin{i}),
-            para = justify_paragraph(n,varargin{i}{j});
+            para = justify_paragraph(TempObj,spext,swidth,varargin{i}{j});
             out  = {out{:},para{:}};
-        end;
+        end
     else
-        para = justify_paragraph(n,varargin{i});
+        para = justify_paragraph(TempObj,spext,swidth,varargin{i});
         out = {out{:},para{:}};
-    end;
-end;
-
-function out = justify_paragraph(n,txt)
+    end
+end
+if ishandle(TempObj)
+    delete(TempObj);
+end
+function out = justify_paragraph(n,spext,swidth,txt)
 if numel(txt)>1 && txt(1)=='%',
     txt = txt(2:end);
 end;
@@ -80,7 +103,8 @@ if isempty(off),
     out{1} = txt;
 else
     off  = off(1);
-    para = justify_para(n,off,txt(off:end));
+    para = justify_para(n,off,spext,swidth,txt(off:end));
+    out = cell(numel(para),1);
     if numel(para)>1,
         out{1} = [txt(1:(off-1)) para{1}];
         for j=2:numel(para),
@@ -92,7 +116,7 @@ else
 end;
 return;
 
-function out = justify_para(n,off,varargin)
+function out = justify_para(n,off,spext,swidth,varargin)
 % Collect varargs into a single string
 str = varargin{1};
 for i=2:length(varargin),
@@ -100,28 +124,21 @@ for i=2:length(varargin),
 end;
 if isempty(str), out = {''}; return; end;
 if ishandle(n)
-    TempObj=copyobj(n,get(n,'Parent'));
-    set(TempObj,'Visible','off','Max',100);
-    spext = maxextent(TempObj,{repmat(' ',1,100)})/100;
-    % try to work out slider size
-    pos = get(TempObj,'Position');
-    oldun = get(TempObj,'units');
-    set(TempObj,'units','points');
-    ppos = get(TempObj,'Position');
-    set(TempObj,'units',oldun);
-    sc = pos(3)/ppos(3);
-    % assume slider width of 15 points
-    swidth=15*sc;
     % new size: at least 20 spaces wide, max widget width less offset
     % space and scrollbar width
-    pos = get(TempObj,'position');
+    pos = get(n,'position');
+    opos = pos;
     pos(3) = max(pos(3)-off*spext-swidth,20*spext);
-    set(TempObj,'position',pos);
-    out = textwrap(TempObj,{str});
-    cext = maxextent(TempObj,out);
+    set(n,'position',pos);
+    % wrap text
+    out = textwrap(n,{str});
+    cext = cfg_maxextent(n,out);
+    % fill with spaces to produce (roughly) block output
     for k = 1:numel(out)-1
         out{k} = justify_line(out{k}, pos(3), cext(k), spext);
     end;
+    % reset position
+    set(n,'Position',opos);
 else
     cols = max(n-off,20);
     out = textwrap({str},cols);
@@ -146,11 +163,3 @@ else
     end;
     out = str;
 end; 
-
-function ext = maxextent(obj, str)
-ext = zeros(size(str));
-for k = 1:numel(str)
-    set(obj,'String',str{k});
-    next = get(obj, 'Extent');
-    ext(k) = next(3);
-end;
