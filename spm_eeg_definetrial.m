@@ -22,7 +22,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2038 2008-09-04 09:28:31Z vladimir $
+% $Id: spm_eeg_definetrial.m 2139 2008-09-22 13:35:37Z vladimir $
 
 if nargin == 0
     S = [];
@@ -53,6 +53,19 @@ if ~isfield(S, 'event') || ~isfield(S, 'fsample')
             event = cat(1, event(:), fil_ctf_events(:));
         end
     end
+    
+    
+    if ~isempty(strmatch('UPPT002', hdr.label))
+        % This is s somewhat ugly fix to the specific problem with event
+        % coding in FIL CTF. It can also be useful for other CTF systems where the
+        % pulses in the event channel go downwards.
+        fil_ctf_events = fileio_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1);
+        if ~isempty(fil_ctf_events)
+            [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
+            event = cat(1, event(:), fil_ctf_events(:));
+        end
+    end
+
 
     % This is another FIL-specific fix that will hopefully not affect other sites
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && strcmp(hdr.orig.VERSION, 'ÿBIOSEMI')
