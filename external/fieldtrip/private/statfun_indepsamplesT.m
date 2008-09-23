@@ -33,6 +33,9 @@ function [s,cfg] = statfun_indepsamplesT(cfg, dat, design);
 % Copyright (C) 2006, Eric Maris
 %
 % $Log: statfun_indepsamplesT.m,v $
+% Revision 1.1  2008/09/23 07:31:15  roboos
+% Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
+%
 % Revision 1.10  2007/01/10 08:55:01  jansch
 % fixed bug on line 97 and added a comment on why nreplc should be vectors
 %

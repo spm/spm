@@ -44,6 +44,9 @@ function [s,cfg] = statfun_actvsblT(cfg, dat, design);
 % Copyright (C) 2006, Eric Maris
 %
 % $Log: statfun_actvsblT.m,v $
+% Revision 1.1  2008/09/23 07:31:14  roboos
+% Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
+%
 % Revision 1.7  2007/04/02 20:40:32  erimar
 % Corrected an error in the calculation of the time-average of the data.
 % Updated help.

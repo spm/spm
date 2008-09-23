@@ -43,6 +43,9 @@ function [s,cfg] = statfun_depsamplesF(cfg, dat, design);
 % Copyright (C) 2006, Eric Maris
 %
 % $Log: statfun_depsamplesF.m,v $
+% Revision 1.1  2008/09/23 07:31:15  roboos
+% Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
+%
 % Revision 1.5  2006/09/12 12:13:07  roboos
 % removed default values for cfg.ivar and uvar, defaults should be specified elsewhere
 %

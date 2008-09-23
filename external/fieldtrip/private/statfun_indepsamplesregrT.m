@@ -32,6 +32,9 @@ function [s,cfg] = statfun_indepsamplesregrT(cfg, dat, design);
 % Copyright (C) 2006, Eric Maris
 %
 % $Log: statfun_indepsamplesregrT.m,v $
+% Revision 1.1  2008/09/23 07:31:15  roboos
+% Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
+%
 % Revision 1.6  2007/07/30 21:52:58  erimar
 % Changed calculations such that control variables (specified in cfg.cvar)
 % are also taken into account.

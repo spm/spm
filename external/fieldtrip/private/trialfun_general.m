@@ -21,6 +21,9 @@ function [trl, event] = trialfun_general(cfg);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: trialfun_general.m,v $
+% Revision 1.1  2008/09/23 07:31:15  roboos
+% Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
+%
 % Revision 1.6  2007/02/07 16:30:12  roboos
 % do something with trials that overlap with teh beginning of the file (in case of gui)
 %

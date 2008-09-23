@@ -36,6 +36,9 @@ function [s,cfg] = statfun_depsamplesregrT(cfg, dat, design);
 % Copyright (C) 2006, Eric Maris
 %
 % $Log: statfun_depsamplesregrT.m,v $
+% Revision 1.1  2008/09/23 07:31:15  roboos
+% Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
+%
 % Revision 1.10  2007/08/24 10:40:28  erimar
 % Correct a bug (omission of a unit selection variable), detected by
 % Vladimir Litvak,
