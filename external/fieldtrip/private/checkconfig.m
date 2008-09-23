@@ -25,6 +25,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: checkconfig.m,v $
+% Revision 1.4  2008/09/23 12:05:33  sashae
+% some small changes; checkconfig can now handle empty cfgs
+%
 % Revision 1.3  2008/09/18 10:01:57  sashae
 % added 'renamedval' which checks/adjusts renamed values
 %
@@ -48,8 +51,8 @@ forbidden       = keyval('forbidden',   varargin);
 % rename old to new options, give warning
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(renamed)
-  fieldsused = fieldnames(cfg);
-  if any(strcmp(renamed(1), fieldsused))
+  try fieldsused = fieldnames(cfg); catch fieldsused={}; end
+  if any(strcmp(renamed{1}, fieldsused))
     cfg = setfield(cfg, renamed{2}, (getfield(cfg, renamed{1})));
     cfg = rmfield(cfg, renamed{1});
     warning(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
@@ -59,8 +62,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % rename old to new value, give warning
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isempty(renamedval)
-  if strcmpi(getfield(cfg, renamedval{1}), renamedval(2))
+if ~isempty(renamedval) && isfield(cfg, renamedval{1})
+  if strcmpi(getfield(cfg, renamedval{1}), renamedval{2})
     cfg = setfield(cfg, renamedval{1}, renamedval{3});
     warning(sprintf('use cfg.%s = %s instead of cfg.%s = %s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
   end
@@ -70,7 +73,7 @@ end
 % check for required fields, give error when missing
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(required)
-  fieldsused = fieldnames(cfg);
+  try fieldsused = fieldnames(cfg); catch fieldsused={}; end
   [c, ia, ib] = setxor(required, fieldsused);
   if ~isempty(ia)
     error(sprintf('The field cfg.%s is required\n', required{ia}));
@@ -81,7 +84,7 @@ end
 % check for deprecated fields, give warning when present
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(deprecated)
-  fieldsused = fieldnames(cfg);
+  try fieldsused = fieldnames(cfg); catch fieldsused={}; end
   if any(ismember(deprecated, fieldsused))
     warning(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{[ismember(deprecated, fieldsused)]}));
   end
@@ -91,7 +94,7 @@ end
 % check for forbidden fields, give error when present
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(forbidden)
-  fieldsused = fieldnames(cfg);
+  try fieldsused = fieldnames(cfg); catch fieldsused={}; end
   if any(ismember(forbidden, fieldsused))
     error(sprintf('The field cfg.%s is forbidden\n', forbidden{[ismember(forbidden, fieldsused)]}));
   end
