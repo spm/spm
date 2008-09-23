@@ -79,7 +79,7 @@ function [data] = preprocessing(cfg, data);
 %   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros (default = [])
 %   cfg.montage       = 'no' or a montage structure (default = 'no')
 %
-% Preprocessing options that you should only use when you are calling PREPROCESSING with 
+% Preprocessing options that you should only use when you are calling PREPROCESSING with
 % also the second input argument "data" are
 %   cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
 
@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.99  2008/09/23 14:12:22  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.98  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -360,19 +363,13 @@ if nargin>1
   % the input data must be raw
   data = checkdata(data, 'dataformat', 'raw', 'hasoffset', 'yes');
 
-  
+  % check if the input cfg is valid for this function
+  cfg = checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});
+
   if cfg.padding>0
     error('cfg.padding should be zero, since filter padding is only possible while reading the data from file');
-  elseif isfield(cfg, 'trl')
-    error('cfg.trl should not be present, since no data will be read');
-  elseif isfield(cfg, 'dataset')
-    error('cfg.dataset should not be present, since no data will be read');
-  elseif isfield(cfg, 'datafile')
-    error('cfg.datafile should not be present, since no data will be read');
-  elseif isfield(cfg, 'headerfile')
-    error('cfg.headerfile should not be present, since no data will be read');
   end
-  
+
   % set the defaults
   if ~isfield(cfg, 'trials'), cfg.trials = 'all'; end
 
@@ -417,10 +414,10 @@ if nargin>1
       cfg.trl=trl(cfg.trials,:);
     end
   end
-  
+
   % remember the configuration details of the input data
   if isfield(data, 'cfg'); cfg.previous = data.cfg; end
-  
+
   % take along relevant fields of input data to output data
   if isfield(data, 'hdr');      dataout.hdr     = data.hdr;         end
   if isfield(data, 'fsample');  dataout.fsample = data.fsample;     end
@@ -438,7 +435,7 @@ else
   if isfield(cfg, 'trialdef') && ~isfield(cfg, 'trl')
     error('you must call DEFINETRIAL prior to PREPROCESSING');
   end
-  
+
   % if neccessary convert dataset into headerfile and datafile
   cfg = dataset2files(cfg);
 
@@ -620,7 +617,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.98 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.99 2008/09/23 14:12:22 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
