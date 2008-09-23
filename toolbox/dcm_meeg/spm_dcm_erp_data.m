@@ -29,7 +29,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 2061 2008-09-09 18:04:42Z jean $
+% $Id: spm_dcm_erp_data.m 2162 2008-09-23 18:24:37Z cc $
 
 
 % Set defaults and Get D filename
@@ -73,8 +73,7 @@ switch lower(D.type)
     case {'evoked','grandmean'}
         % these are the 'evoked' types of data
     otherwise
-        errordlg('DCM analysis is meant for evoked data!');
-        error('')
+        warndlg('These are the epoched data for DCM of induced responses!');
 end
 
 
