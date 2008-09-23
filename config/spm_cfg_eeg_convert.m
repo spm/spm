@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2126 2008-09-19 15:55:34Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2161 2008-09-23 18:00:26Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -210,7 +210,7 @@ S.save = 0;
 
 S = spm_eeg_channelselection(S);
 S = rmfield(S, 'save');
-
+S = rmfield(S, 'review');
 
 out.D = spm_eeg_convert(S);
 out.Dfname = {out.D.fname};
