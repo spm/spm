@@ -40,6 +40,9 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.42  2008/09/23 12:30:33  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.41  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -153,30 +156,14 @@ fieldtripdefs
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hasoffset', 'yes');
 
-% for backward compatibility: the old configuration used sgn/sgncomb or
-% label/labelcmb, the new configuration uses channel/channelcmb
-if (isfield(cfg, 'sgn') || isfield(cfg, 'label')) && ~isfield(cfg, 'channel')
-  % clean up the configuration
-  try, cfg.channel = cfg.label;     end
-  try, cfg = rmfield(cfg, 'label'); end
-  try, cfg.channel = cfg.sgn;       end
-  try, cfg = rmfield(cfg, 'sgn');   end
-end
-if (isfield(cfg, 'sgncmb') || isfield(cfg, 'labelcmb')) && ~isfield(cfg, 'channelcmb')
-  % clean up the configuration
-  try, cfg.channelcmb = cfg.labelcmb;  end
-  try, cfg = rmfield(cfg, 'labelcmb'); end
-  try, cfg.channelcmb = cfg.sgncmb;    end
-  try, cfg = rmfield(cfg, 'sgncmb');   end
-end
-
-% support 'fft' and 'convol' as methods for backward compatibility
-if strcmp(lower(cfg.method),'fft')
-  cfg.method = 'mtmfft';
-end
-if strcmp(lower(cfg.method),'convol')
-  cfg.method = 'mtmconvol';
-end
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'label', 'channel'});
+cfg = checkconfig(cfg, 'renamed',     {'sgn',   'channel'});
+cfg = checkconfig(cfg, 'renamed',     {'labelcmb', 'channelcmb'});
+cfg = checkconfig(cfg, 'renamed',     {'sgncmb',   'channelcmb'});
+cfg = checkconfig(cfg, 'required',    {'method'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'fft',    'mtmfft'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'convol', 'mtmconvol'});
 
 % select trials of interest
 if ~isfield(cfg, 'trials'),   cfg.trials = 'all';  end % set the default
