@@ -7,13 +7,18 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2164 2008-09-24 11:48:57Z stefan $
+% $Id: spm_eeg_prep.m 2170 2008-09-24 15:24:16Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
     return
 end
+
 D = S.D;
+
+if isa(D, 'char')
+    D = spm_eeg_load(D);
+end
 
 switch S.task
     case 'settype'        
@@ -259,5 +264,9 @@ switch S.task
         fprintf('Nothing done ''cos I did not understand the instructions');
 end
 
-D = D.history('spm_eeg_prep', S);
+% When prep is called from other functions with history, history should be
+% disabled
+if ~isfield(S, 'updatehistory') || S.updatehistory
+    D = D.history('spm_eeg_prep', S);
+end
 
