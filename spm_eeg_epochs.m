@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2133 2008-09-22 10:21:05Z stefan $
+% $Id: spm_eeg_epochs.m 2164 2008-09-24 11:48:57Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -186,8 +186,12 @@ Dnew = trialonset(Dnew, [], trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
 
-% history
-Dnew = Dnew.history('spm_eeg_epochs', {S});
+% history (remove first some redundant stuff potentially put in by
+% spm_eeg_definetrial)
+if isfield(S, 'event')
+    S = rmfield(S, 'event');
+end
+Dnew = Dnew.history('spm_eeg_epochs', S);
 D = Dnew;
 
 save(D);

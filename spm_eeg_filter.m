@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_filter.m 2164 2008-09-24 11:48:57Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -213,7 +213,7 @@ end
 spm_progress_bar('Clear');
 
 % history
-Dnew = Dnew.history('spm_eeg_filter', {S});
+Dnew = Dnew.history('spm_eeg_filter', S);
 
 save(Dnew);
 

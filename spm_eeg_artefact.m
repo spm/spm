@@ -39,7 +39,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2134 2008-09-22 12:07:35Z stefan $
+% $Id: spm_eeg_artefact.m 2164 2008-09-24 11:48:57Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -346,7 +346,7 @@ if artefact.External_list
 end
 
 % history
-D = D.history('spm_eeg_artefact', {S});
+D = D.history('spm_eeg_artefact', S);
 
 % Save the data
 copyfile(fullfile(D.path, D.fnamedat), fullfile(D.path, ['a' D.fnamedat]));

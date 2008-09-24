@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2140 2008-09-22 13:56:51Z vladimir $
+% $Id: spm_eeg_convert.m 2164 2008-09-24 11:48:57Z stefan $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -398,7 +398,7 @@ D.fname = [S.outfile '.mat'];
 D = meeg(D);
 
 % history
-D = D.history('spm_eeg_convert', {S});
+D = D.history('spm_eeg_convert', S);
 
 % Set channel types to default
 D = chantype(D, [], []);

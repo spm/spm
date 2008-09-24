@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_prep.m 2164 2008-09-24 11:48:57Z stefan $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -256,7 +256,7 @@ switch S.task
         end
 
     otherwise
-        fprintf('Nothing done ''cos I did not understant the instructions');
+        fprintf('Nothing done ''cos I did not understand the instructions');
 end
 
 D = D.history('spm_eeg_prep', S);

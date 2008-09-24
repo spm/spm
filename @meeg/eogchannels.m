@@ -5,9 +5,9 @@ function ind = eogchannels(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: eogchannels.m 1565 2008-05-07 18:15:11Z stefan $
+% $Id: eogchannels.m 2164 2008-09-24 11:48:57Z stefan $
 
 type = chantype(this);
-ind = union(find(strcmpi('HEOG', type)), find(strcmpi('VEOG', type)));
+ind = union(find(strcmpi('EOG', type)), find(strcmpi('HEOG', type)), find(strcmpi('VEOG', type)));
 ind = ind(:)'; % must be row to allow to use it as loop indices
 

@@ -22,7 +22,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2134 2008-09-22 12:07:35Z stefan $
+% $Id: spm_eeg_tf.m 2164 2008-09-24 11:48:57Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -235,17 +235,20 @@ end
 
 spm_progress_bar('Clear');
 
-% Remove baseline over frequencies and trials (do later)
+% Remove baseline over frequencies and trials
 if tf.rm_baseline == 1
     Dtf = spm_eeg_bc(Dtf, tf.Sbaseline);
+    save(Dtf);
 end
 
 Dtf = Dtf.history('spm_eeg_tf', S);
-
 save(Dtf);
 if tf.phase
     Dtf2 = Dtf2.history('spm_eeg_tf', S);
     save(Dtf2);
 end
+
+
+
 
 spm('Pointer', 'Arrow');
