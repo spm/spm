@@ -30,6 +30,11 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.58  2008/09/24 16:26:17  roboos
+% swiched from old fcdc import routines for CTF to the p-files supplied by CTF
+% these new reading routines support synthetic gradients
+% the format 'ctf_new' is not supported any more, because that is now the default
+%
 % Revision 1.57  2008/09/24 07:01:49  roboos
 % fixed begsample for neuralynx_ncs (thanks to Martin)
 %
@@ -271,7 +276,7 @@ switch dataformat
     datafile   = fullfile(path, [file,ext]);
     headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
-  case {'ctf_ds', 'ctf_new'}
+  case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
@@ -551,14 +556,14 @@ switch dataformat
   case  'combined_ds'
     dat = read_combined_ds(filename, hdr, begsample, endsample, chanindx);
 
-  case  'ctf_new'
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4'}
     % check that the required low-level toolbox is available
     hastoolbox('ctf', 1);
     % this returns SQUIDs in T, EEGs in V, ADC's and DACS in V, HLC channels in m, clock channels in s.
     dat    = getCTFdata(hdr.orig, [begtrial, endtrial], chanindx, 'T', 'double');
     dimord = 'samples_chans_trials';
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_meg4'}  
+  case  {'ctf_old', 'read_ctf_meg4'}
     % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
     dat = read_ctf_meg4(datafile, hdr.orig, begsample, endsample, chanindx);
 

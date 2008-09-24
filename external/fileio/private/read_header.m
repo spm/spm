@@ -55,6 +55,11 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.68  2008/09/24 16:26:17  roboos
+% swiched from old fcdc import routines for CTF to the p-files supplied by CTF
+% these new reading routines support synthetic gradients
+% the format 'ctf_new' is not supported any more, because that is now the default
+%
 % Revision 1.67  2008/09/04 15:35:49  vlalit
 % Updates to EGI reading functions thanks to Joseph Dien
 %
@@ -310,7 +315,7 @@ switch headerformat
     datafile   = fullfile(path, [file,ext]);
     headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
-  case {'ctf_ds', 'ctf_new'}
+  case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(filename, [file '.res4']);
@@ -523,7 +528,7 @@ switch headerformat
   case  'combined_ds'
     hdr = read_combined_ds(filename);
 
-  case {'ctf_new'} % this is an experimental implementation using the CTF p-files
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4'}
     % check the presence of the required low-level toolbox
     hastoolbox('ctf', 1);
     orig             = readCTFds(filename);
@@ -566,7 +571,7 @@ switch headerformat
     % add the original header details
     hdr.orig = orig;
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_res4'} % the default reader for CTF is read_ctf_res4
+  case {'ctf_old', 'read_ctf_res4'}
     % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
     orig             = read_ctf_res4(headerfile);
     hdr.Fs           = orig.Fs;
