@@ -9,7 +9,7 @@ function [slice] = spm_vb_init_slice (Y,slice)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_init_slice.m 2022 2008-08-27 11:26:29Z lee $
+% $Id: spm_vb_init_slice.m 2175 2008-09-24 16:26:22Z lee $
 
 k=slice.k;
 p=slice.p;
@@ -107,7 +107,7 @@ slice.wk_mean      = reshape(slice.w_mean,k,N);
 slice.wk_ols      = reshape(slice.w_ols,k,N);
 % Initialize WGL
 if isfield(slice.Dw,'vxyz')
-    slice.Dw = spm_vb_spatial_precision (slice,'Spatial - WGL');
+    slice.Dw = spm_vb_spatial_precision ('Spatial - WGL',slice.Dw.vxyz,slice.wk_ols);
 end
 % Initialise AR coefficient posterior
 if slice.verbose

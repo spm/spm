@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2022 2008-08-27 11:26:29Z lee $
+% $Id: spm_run_fmri_est.m 2175 2008-09-24 16:26:22Z lee $
 
 
 global defaults
@@ -145,13 +145,22 @@ end
 
 %-Analyse specific slices or whole volume
 %-----------------------------------------------------------------------
-if isfield(job.method.Bayesian.space,'Slices')
-    SPM.PPM.space_type = 'Slices';
-    SPM.PPM.AN_slices  = job.method.Bayesian.space.Slices;
-else
-    SPM.PPM.space_type = 'Volume';
+switch char(fieldnames(job.method.Bayesian.space))
+  case 'volume'
+      SPM.PPM.space_type = 'volume';
+      SPM.PPM.blocks = job.method.Bayesian.space.volume.blocks;
+  case 'slices'
+      SPM.PPM.space_type = 'slices';
+      SPM.PPM.AN_slices  = job.method.Bayesian.space.slices.numbers;
+      SPM.PPM.blocks = job.method.Bayesian.space.slices.blocks;
+  case 'clusters'
+      SPM.PPM.space_type = 'clusters';
+      SPM.PPM.clustermask  = job.method.Bayesian.space.clusters.mask;
+      SPM.PPM.blocks = job.method.Bayesian.space.clusters.blocks;
+  otherwise
+      SPM.PPM.space_type = 'volume';
+      SPM.PPM.blocks = 'slices';
 end
-
 %-Regression coefficient priors
 %-----------------------------------------------------------------------
 switch job.method.Bayesian.signal
@@ -161,6 +170,8 @@ switch job.method.Bayesian.signal
         SPM.PPM.priors.W = 'Spatial - LORETA';
     case 'WGL',
         SPM.PPM.priors.W = 'Spatial - WGL';
+    case 'UGL',
+        SPM.PPM.priors.W = 'Spatial - UGL';
     case 'Global',
         SPM.PPM.priors.W = 'Voxel - Shrinkage';
     case 'Uninformative',
@@ -237,6 +248,13 @@ if strcmp(job.method.Bayesian.anova.second,'Yes')
             end
         end
     end
+end
+
+%-Compute F 
+%-----------------------------------------------------------------------
+if strcmp(job.method.Bayesian.LogEv,'Yes')
+    SPM.PPM.update_F      = 1;
+    SPM.PPM.compute_det_D = 1;
 end
 
 %-Set up user-specified simple contrasts

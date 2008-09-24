@@ -10,7 +10,7 @@ function [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_x2.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_x2.m 2175 2008-09-24 16:26:22Z lee $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
@@ -62,9 +62,14 @@ D       = repmat(NaN,reshape(SPM.xVol.DIM(1:3),1,[]));
 spm_progress_bar('Init',100,'Estimating posterior contrast variance','');
 
 for v=1:Nvoxels,
-    %-Which slice are we in ?
+    %-Which slice [partition] are we in ?
     %-------------------------------------------------------------------
-    slice_index = XYZ(3,v);
+    switch lower(SPM.PPM.blocks)
+        case 'slices'
+            slice_index = XYZ(3,v);
+        case 'partitions'
+            slice_index = SPM.xVol.labels(1,v);
+    end
     
     V = zeros(kc,kc);
     m = zeros(kc,1);

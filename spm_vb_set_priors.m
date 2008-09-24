@@ -27,8 +27,8 @@ function [slice] = spm_vb_set_priors (slice,priors,vxyz)
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny 
-% $Id: spm_vb_set_priors.m 2022 2008-08-27 11:26:29Z lee $
+% Will Penny and Lee Harrison
+% $Id: spm_vb_set_priors.m 2175 2008-09-24 16:26:22Z lee $
 
 if ~isfield(slice,'verbose')
     slice.verbose=0;
@@ -52,18 +52,21 @@ slice.mean_lambda=ones(N,1);
 
 switch priors.W,
     case 'Spatial - GMRF',
-        slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - GMRF');
+        slice.Dw=spm_vb_spatial_precision ('Spatial - GMRF',vxyz);
         
     case 'Spatial - LORETA',
-        slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        slice.Dw=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
         
     case 'Spatial - LORETAu',
-        slice.Dw=spm_vb_spatial_precision (vxyz,'Spatial - LORETAu');
+        slice.Dw=spm_vb_spatial_precision ('Spatial - LORETAu',vxyz);
   
     case 'Spatial - WGL',
         % spm_vb_spatial_precision called in spm_vb_init_slice 
         % as Dw requires wk_ols
         slice.Dw.vxyz = vxyz;
+        
+    case 'Spatial - UGL',
+        slice.Dw=spm_vb_spatial_precision ('Spatial - UGL',vxyz);      
         
     case 'Voxel - Shrinkage',
         slice.Dw=speye(N);
@@ -87,13 +90,13 @@ end
 switch priors.A,
     
     case 'Spatial - GMRF',
-        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - GMRF');
+        slice.Da=spm_vb_spatial_precision ('Spatial - GMRF',vxyz);
         
     case 'Spatial - LORETA',
-        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        slice.Da=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
         
     case 'Spatial - LORETAu',
-        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETAu');
+        slice.Da=spm_vb_spatial_precision ('Spatial - LORETAu',vxyz);
         
     case 'Voxel - Shrinkage',
         slice.Da=speye(N);
@@ -107,14 +110,14 @@ switch priors.A,
     case 'Voxel - Limiting',
         % Very low (fixed) spatial precision ensures spatial prior is 
         % effectively ignored
-        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        slice.Da=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
         slice.update_beta=0;
         slice.mean_beta=1e-4*ones(p,1);
         
     case 'Slice - Limiting',
         % Very high (fixed) spatial precision ensures AR coefficients are
         % (nearly) identical over the slice
-        slice.Da=spm_vb_spatial_precision (vxyz,'Spatial - LORETA');
+        slice.Da=spm_vb_spatial_precision ('Spatial - LORETA',vxyz);
         slice.update_beta=0;
         slice.mean_beta=1e4*ones(p,1);
     

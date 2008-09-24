@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_cfg_fmri_est.m 2175 2008-09-24 16:26:22Z lee $
 
-rev = '$Rev: 2086 $';
+rev = '$Rev: 2175 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -35,29 +35,79 @@ Classical.help    = {
 % ---------------------------------------------------------------------
 % Volume Volume
 % ---------------------------------------------------------------------
-Volume         = cfg_const;
-Volume.tag     = 'Volume';
+Volume         = cfg_menu;
+Volume.tag     = 'volume';
 Volume.name    = 'Volume';
-Volume.val     = {1};
-Volume.help    = {'You have selected the Volume option. SPM will analyse fMRI time series in all slices of each volume.'};
+Volume.val     = {'Slices'};
+Volume.help    = {'A volume of data can be analysed one slice or 3D segment at a time, where the extent of each segment is determined using a graph partitioning algorithm'}';
+Volume.labels = {'Slices', 'Partitions'}';
+Volume.values = {'Slices', 'Partitions'}';
 % ---------------------------------------------------------------------
 % Slices Slices
 % ---------------------------------------------------------------------
-Slices         = cfg_entry;
-Slices.tag     = 'Slices';
+SliceNs         = cfg_entry;
+SliceNs.tag     = 'numbers';
+SliceNs.name    = 'Slice numbers';
+SliceNs.help    = {' '};
+SliceNs.strtype = 'e';
+SliceNs.num     = [Inf 1];
+
+sBlocks         = cfg_menu;
+sBlocks.tag     = 'blocks';
+sBlocks.name    = 'Blocks';
+sBlocks.val     = {'Slices'};
+sBlocks.help    = {}';
+sBlocks.labels = {'Slices', 'Partitions'}';
+sBlocks.values = {'Slices', 'Partitions'}';
+
+Slices         = cfg_branch;
+Slices.tag     = 'slices';
 Slices.name    = 'Slices';
+Slices.val     = {SliceNs sBlocks};
 Slices.help    = {'Enter Slice Numbers. This can be a single slice or multiple slices. If you select a single slice or only a few slices you must be aware of the interpolation options when, after estimation, displaying the estimated images eg. images of contrasts or AR maps. The default interpolation option may need to be changed to nearest neighbour (NN) (see bottom right hand of graphics window) for you slice maps to be visible.'};
-Slices.strtype = 'e';
-Slices.num     = [Inf 1];
+% ---------------------------------------------------------------------
+% Clusters 
+% ---------------------------------------------------------------------
+Clustermask = cfg_files;
+Clustermask.tag     = 'mask';
+Clustermask.name    = 'Cluster mask';
+Clustermask.help    = {'Select cluster image'}';
+Clustermask.filter = 'image';
+Clustermask.ufilter = '.*';
+Clustermask.num     = [0 1];
+
+Blocks         = cfg_menu;
+Blocks.tag     = 'blocks';
+Blocks.name    = 'Blocks';
+Blocks.val     = {'Slices'};
+Blocks.help    = {}';
+Blocks.labels = {'Slices', 'Partitions'}';
+Blocks.values = {'Slices', 'Partitions'}';
+
+Clusters         = cfg_branch;
+Clusters.tag     = 'clusters';
+Clusters.name    = 'Clusters';
+Clusters.val     = {Clustermask Blocks};
+Clusters.help    = {'Because estimation can be time consuming an option is provided to analyse selected clusters rather than the whole volume.'};
 % ---------------------------------------------------------------------
 % space Analysis Space
 % ---------------------------------------------------------------------
 space         = cfg_choice;
 space.tag     = 'space';
 space.name    = 'Analysis Space';
-space.val     = {Volume };
-space.help    = {'Because estimation can be time consuming an option is provided to analyse selected slices rather than the whole volume.'};
-space.values  = {Volume Slices };
+space.val     = {Volume};
+space.help    = {'Because estimation can be time consuming options are provided to analyse selected slices or clusters rather than the whole volume.'};
+space.values  = {Volume Slices Clusters};
+% ---------------------------------------------------------------------
+% LogEv - Compute F 
+% ---------------------------------------------------------------------
+LogEv         = cfg_menu;
+LogEv.tag     = 'LogEv';
+LogEv.name    = 'Log evidence map';
+LogEv.val     = {'No'};
+LogEv.help    = {'Computes the log evidence for each voxel'};
+LogEv.labels  = {'No','Yes'}';
+LogEv.values  = {'No','Yes'}';
 % ---------------------------------------------------------------------
 % signal Signal priors
 % ---------------------------------------------------------------------
@@ -253,7 +303,7 @@ generic.num     = [0 Inf];
 Bayesian         = cfg_branch;
 Bayesian.tag     = 'Bayesian';
 Bayesian.name    = 'Bayesian 1st-level';
-Bayesian.val     = {space signal ARP noise anova generic };
+Bayesian.val     = {space signal ARP noise LogEv anova generic };
 Bayesian.help    = {
                     'Model parameters are estimated using Variational Bayes (VB). This allows you to specify spatial priors for regression coefficients and regularised voxel-wise AR(P) models for fMRI noise processes. The algorithm does not require functional images to be spatially smoothed. Estimation will take about 5 times longer than with the classical approach. This is why VB is not the default estimation option. '
                     ''

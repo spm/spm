@@ -1,8 +1,9 @@
-function [vxyz] = spm_vb_neighbors (xyz,vol)
+function vxyz = spm_vb_neighbors(xyz,DIM,vol)
 % Create list of neighbors of voxels to be analysed
-% FORMAT [vxyz] = spm_vb_neighbors (xyz,vol)
+% FORMAT [vxyz] = spm_vb_neighbors (xyz,DIM,vol)
 %
 % xyz      [Nvoxels x 3] list of voxel positions which are to be analysed
+% DIM      dimensions of data
 % vol      vol=1 for volumetric neighbors, vol=0 for within-slice neighbors 
 %          (default vol=0)
 %
@@ -16,36 +17,64 @@ function [vxyz] = spm_vb_neighbors (xyz,vol)
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_neighbors.m 1143 2008-02-07 19:33:33Z spm $
+% Will Penny, Nelson Trujillo-Barreto and Lee Harrison
+% $Id: spm_vb_neighbors.m 2175 2008-09-24 16:26:22Z lee $
 
-if nargin<2
+if nargin<3
     vol=0;
 end
 
-[voxels,Ndims]=size(xyz);
-
-if vol
-    vxyz=zeros(voxels,6);
-else
-    vxyz=zeros(voxels,4);
-end    
-
-for i=1:voxels,
-    Ni=0;
-    for j=1:voxels,
-        dx=abs(xyz(i,1)-xyz(j,1));
-        dy=abs(xyz(i,2)-xyz(j,2));
-        if vol
-            dz=abs(xyz(i,3)-xyz(j,3));
-        else
-            dz=0;
-        end
-        if (dx+dy+dz==1)
-            % j is a neighbor of i
-            Ni=Ni+1;
-            vxyz(i,Ni)=j;
-        end
+nearestneighbor = 1;
+N               = size(xyz,1);
+if vol,
+    I               = sub2ind([DIM(1),DIM(2),DIM(3)],xyz(:,1),xyz(:,2),xyz(:,3));
+    is              = zeros(DIM(1),DIM(2),DIM(3));
+    is(I)           = 1:N; % index voxels in cluster
+    [mm,nn,oo]      = deal(DIM(1)+2,DIM(2)+2,DIM(3)+2); % pad is
+    iS              = zeros(mm,nn,oo);
+    for i = 1:DIM(3),
+        iS(2:DIM(1)+1,2:DIM(2)+1,i+1) = ones(DIM(1),DIM(2));
     end
+    Ip          = find(iS);
+    iS(Ip)      = is; % padded is
+    [xx,yy,zz]  = ndgrid(-1:1,-1:1,-1:1);
+    du          = [xx(:) yy(:) zz(:)];
+    d           = [mm, 1, mm*nn]';
+    vxyz        = zeros(N,6);
+else
+    I           = sub2ind([DIM(1),DIM(2)],xyz(:,1),xyz(:,2));
+    is          = zeros(DIM(1),DIM(2));
+    is(I)       = 1:N; % index voxels in cluster
+    [mm,nn]     = deal(DIM(1)+2,DIM(2)+2);
+    iS          = zeros(mm,nn);
+    iS(2:DIM(1)+1,2:DIM(2)+1) = ones(DIM(1),DIM(2));
+    Ip          = find(iS);
+    iS(Ip)      = is; % padded is
+    [xx,yy]     = ndgrid(-1:1,-1:1);
+    du          = [xx(:) yy(:)];
+    d           = [1, mm]';
+    vxyz        = zeros(N,4);
 end
     
+% Indices of interior points
+p           = find(iS);
+
+% stencil
+ind         =   find(sum(abs(du),2)~=0); % remove (0,0,0)
+du          =   du(ind,:);
+if nearestneighbor
+    ind     =   find(sum(abs(du),2)==1); % remove off-diagonals
+    du      =   du(ind,:);
+end
+Nq          =   size(du,1);
+
+% edge set, from node k to node n
+for j = 1:Nq,
+    duj         = du(j,:)'; % vector of displacement on graph
+    in          = d'*duj; % displacemnet index
+    Q           = iS(p+in); % neighbouring nodes, zero if no neighbour
+    q           = find(Q); % location of neighbours 
+    kj          = iS(p(q)); % all nodes in p with neighbours
+    nj          = Q(q); % all neighbours of p in direction duj
+    vxyz(kj,j)  = nj;
+end
