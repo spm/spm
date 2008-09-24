@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.57  2008/09/24 07:01:49  roboos
+% fixed begsample for neuralynx_ncs (thanks to Martin)
+%
 % Revision 1.56  2008/07/24 08:44:20  roboos
 % added initial support for nimh_cortex, not yet complete
 %
@@ -668,7 +671,7 @@ switch dataformat
 
   case 'neuralynx_ncs'
     NRecords  = hdr.nSamples/512;
-    begrecord = floor(begsample/512)+1;
+    begrecord = ceil(begsample/512);
     endrecord = ceil(endsample/512);
     % read the records that contain the desired samples
     ncs = read_neuralynx_ncs(filename, begrecord, endrecord);
