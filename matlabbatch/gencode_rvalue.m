@@ -1,4 +1,31 @@
 function [str, sts] = gencode_rvalue(item)
+% function [str, sts] = gencode_rvalue(item)
+% Generate the right hand side for a valid MATLAB variable assignment.
+%
+% Input argument:
+% item - value to generate code for
+%
+% Output arguments:
+% str - cellstr with generated code, line per line
+% sts - true, if successful, false if code could not be generated
+%
+% This function is a helper to GENCODE, but can be used on its own to
+% generate a code for the following types of variables:
+% * scalar, 1D or 2D numeric, logical or char arrays
+% * scalar or 1D cell arrays, where each item can be one of the supported
+%   array types (i.e. nested cells are allowed)
+%
+% This code is part of a batch job configuration system for MATLAB. See 
+%      help matlabbatch
+% for a general overview.
+%_______________________________________________________________________
+% Copyright (C) 2007 Freiburg Brain Imaging
+
+% Volkmar Glauche
+% $Id: gencode_rvalue.m 2165 2008-09-24 14:01:06Z volkmar $
+
+rev = '$Rev: 2165 $'; %#ok
+
 str = {};
 sts = true;
 switch class(item)

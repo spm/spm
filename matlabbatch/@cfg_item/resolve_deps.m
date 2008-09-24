@@ -18,9 +18,9 @@ function [val, sts] = resolve_deps(item, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: resolve_deps.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: resolve_deps.m 2165 2008-09-24 14:01:06Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2165 $'; %#ok
 
 val1 = cell(size(item.val{1}));
 for k = 1:numel(item.val{1})
@@ -92,7 +92,7 @@ else
 end
 
 function dstr = disp_deps(item, val1) %#ok
-dstr = cell(numel(item.val{1}+1,1));
+dstr = cell(numel(item.val{1})+1,1);
 dstr{1} = sprintf('In item %s:', subsref(item, substruct('.','name')));
 for k = 1:numel(item.val{1})
     substr = gencode_substruct(item.val{1}(k).src_output);

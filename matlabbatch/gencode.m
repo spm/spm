@@ -2,22 +2,39 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 
 % function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Generate code to recreate any MATLAB struct/cell variable. Classes need
-% to implement their class specific equivalent of gencode.
+% to implement their class specific equivalent of gencode with the same
+% calling syntax.
 %
-% Traversal options
-% struct with fields
-% stopspec - match spec to stop code generation (not used here)
-% dflag    - (not used here)
-% clvl     - current level in tree - level is increased if fields of
-%            structures or cell items are traversed
-% mlvl     - maximum level to generate - range 1 (top level only) to
-%            Inf (all levels)
-% cnt      - item count - not used outside cfg_item objects
-% mcnt     - (not evaluated here)
-% 
-% To generate code for numerical arrays, MATLABs mat2str function is used
-% with precision 18. This should be sufficient to recreate most numerical
-% arrays without precision loss, however there may be rounding errors.
+% Input arguments:
+% item - MATLAB variable to generate code for (the variable itself, not its
+%        name)
+% tag  - optional: name of the variable, i.e. what will be displayed left
+%        of the '=' sign. This can also be a valid struct/cell array
+%        reference, like 'x(2).y'. If not provided, inputname(1) will be
+%        used.
+% stoptag - optional: tag which is used if struct/cell traversal stopped
+%        due to tropts limitations. If not provided, tag will be used.
+% tropts  - optional: traversal options - struct with fields
+% .stopspec - (only used for matlabbatch objects)
+% .dflag    - (only used for matlabbatch objects)
+% .clvl     - current level in variable - level is increased if fields of
+%             structures or cell items are traversed
+% .mlvl     - maximum level to generate code for - range 1 (top level only)
+%             to Inf (all levels)
+% .cnt      - (only used for matlabbatch objects)
+% .mcnt     - (only used for matlabbatch objects)
+%
+% Output arguments:
+% str  - cellstr containing code lines to reproduce 
+% tag  - name of the generated variable (equal to input tag)
+% cind - index into str to the line where the variable assignment is coded
+%        (usually 1st line for non-object variables)
+% ccnt - item count (outside matlabbatch objects always 1)
+%
+% For scalar, 1D or 2D char, numeric or cell arrays whose contents can be
+% written as a MATLAB array, the helper function GENCODE_RVALUE will be
+% called. This function can also be used on its own. It will produce code
+% to generate the array, but without a left hand side assignment.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -26,9 +43,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: gencode.m 2165 2008-09-24 14:01:06Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2165 $'; %#ok
 
 if nargin < 2
     tag = inputname(1);
