@@ -7,6 +7,9 @@ function [val] = filetype_check_header(filename, head, offset)
 % Copyright (C) 2003-2006 Robert Oostenveld
 %
 % $Log: filetype_check_header.m,v $
+% Revision 1.7  2008/09/24 15:54:09  roboos
+% use uint8 instead of char (required on leopard)
+%
 % Revision 1.6  2008/01/15 07:57:35  roboos
 % fixed problem with fclose, which could happen twice
 %
@@ -51,7 +54,7 @@ else
       for i=1:length(head)
         len(i) = length(head{i});
       end
-      [str, siz] = fread(fid, max(len), 'char=>char');
+      [str, siz] = fread(fid, max(len), 'uint8=>uint8');
       fclose(fid);
       for i=1:length(head)
         val = strncmp(str, head{i}, len(i));
@@ -60,7 +63,7 @@ else
         end
       end
     else
-      [str, siz] = fread(fid, length(head), 'char=>char');
+      [str, siz] = fread(fid, length(head), 'uint8=>uint8');
       fclose(fid);
       if siz~=length(head)
         error('could not read the header from the file');
