@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.18  2008/09/24 15:43:00  roboos
+% added read_data and read_sens for fileio, should solve problem for MEEGfileio in spm5
+%
 % Revision 1.17  2008/09/22 19:42:09  roboos
 % added option for silent processing
 %
@@ -177,7 +180,7 @@ switch toolbox
   case 'BRAINSTORM'
     status  = exist('bem_xfer');
   case 'FILEIO'
-    status  = (exist('read_header') && exist('read_header') && exist('read_event'));
+    status  = (exist('read_header') && exist('read_data') && exist('read_event') && exist('read_sens'));
   case 'FORWINV'
     status  = (exist('compute_leadfield') && exist('prepare_vol_sens'));
   case 'DENOISE'
