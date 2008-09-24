@@ -5,7 +5,7 @@ function labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 % File Exchange. See also Grady, L. Schwartz, E. L. (2006) "Isoperimetric 
 % graph partitioning for image segmentation",
 % IEEE Trans Pattern Anal Mach Intell, 28(3),pp469-75
-%
+% 
 % FORMAT labels = spm_vb_graphcut(labels,index,I,W,depth,grnd_type,CUTOFF,DIM)
 %
 % labels     each voxel is lableled depending on whihc segment is belongs

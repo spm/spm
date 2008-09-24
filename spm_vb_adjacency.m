@@ -11,7 +11,7 @@ function W = spm_vb_adjacency(edges,weights,N)
 %
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Lee Harrison
 
 % Number of edges

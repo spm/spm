@@ -1,7 +1,7 @@
 function A = spm_vb_incidence(edges,N)
 % Edge-node incidence matrix of a graph
 % FORMAT W = spm_vb_incidence(edges,N)
-%
+% 
 % edges    [Ne x 2] list of neighboring voxel indices
 % N        number of nodes (cardinality of node set)
 %

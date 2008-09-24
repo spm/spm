@@ -1,7 +1,7 @@
 function [edges,weights] = spm_vb_edgeweights(vxyz,img)
 % Computes edge set and edge weights of a graph
 % FORMAT [edges,weights]= spm_vb_edgeweights(vxyz,img)
-%
+% 
 % vxyz     list of neighbouring voxels (see spm_vb_neighbors)
 % img      image defined on the node set, e.g. wk_ols. The edge weights 
 %          are uniform if this is not given, otherwise they are a function
