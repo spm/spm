@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2188 2008-09-25 12:06:54Z vladimir $
+% $Id: spm_eeg_prep.m 2190 2008-09-25 12:11:33Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -274,6 +274,5 @@ if ~isfield(S, 'updatehistory') || S.updatehistory
 end
 
 if isfield(S, 'save') && S.save
-    disp('prep saving*********************************');
     save(D);
 end
