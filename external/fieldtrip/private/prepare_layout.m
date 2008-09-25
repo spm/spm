@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.21  2008/09/25 15:22:46  roboos
+% fixed bug due to overlapping use of cfg.style, thanks to Tineke
+%
 % Revision 1.20  2008/09/25 12:55:52  roboos
 % prevent x and y from being scaled in case of 3d layout, also don't add width, height, mask and outline for 3d
 %
@@ -494,7 +497,8 @@ else
   lay = readlay('CTF151s.lay');
 end
 
-if strcmp(cfg.style, '2d')
+% FIXME there is a conflict between the use of cfg.style here and in topoplot
+if ~strcmp(cfg.style, '3d')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % check whether outline and mask are available
   % if not, add default "circle with triangle" to resemble the head
