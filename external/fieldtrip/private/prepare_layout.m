@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.20  2008/09/25 12:55:52  roboos
+% prevent x and y from being scaled in case of 3d layout, also don't add width, height, mask and outline for 3d
+%
 % Revision 1.19  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -491,42 +494,44 @@ else
   lay = readlay('CTF151s.lay');
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% check whether outline and mask are available
-% if not, add default "circle with triangle" to resemble the head 
-% in case of "circle with triangle", the electrode positions should also be
-% scaled 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isfield(lay, 'outline') || ~isfield(lay, 'mask')
-  rmax  = 0.5;
-  l     = 0:2*pi/100:2*pi;
-  HeadX = cos(l).*rmax;
-  HeadY = sin(l).*rmax;
-  NoseX = [0.18*rmax 0 -0.18*rmax];
-  NoseY = [rmax-.004 rmax*1.15 rmax-.004];
-  EarX  = [.497 .510 .518 .5299 .5419 .54 .547 .532 .510 .489];
-  EarY  = [.0555 .0775 .0783 .0746 .0555 -.0055 -.0932 -.1313 -.1384 -.1199];
-  % Scale the electrode positions to fit within a unit circle, i.e. electrode radius = 0.45
-  ind_scale = strmatch('SCALE', lay.label);
-  ind_comnt = strmatch('COMNT', lay.label);
-  sel = setdiff(1:length(lay.label), [ind_scale ind_comnt]); % these are excluded for scaling
-  x = lay.pos(sel,1);
-  y = lay.pos(sel,2);
-  xrange = range(x);
-  yrange = range(y);
-  % First scale the width and height of the box for multiplotting
-  lay.width  = lay.width./xrange;
-  lay.height = lay.height./yrange;
-  % Then shift and scale the electrode positions
-  lay.pos(:,1) = 0.9*((lay.pos(:,1)-min(x))/xrange-0.5);
-  lay.pos(:,2) = 0.9*((lay.pos(:,2)-min(y))/yrange-0.5);
-  % Define the outline of the head, ears and nose
-  lay.outline{1} = [HeadX(:) HeadY(:)];
-  lay.outline{2} = [NoseX(:) NoseY(:)];
-  lay.outline{3} = [ EarX(:)  EarY(:)];
-  lay.outline{4} = [-EarX(:)  EarY(:)];
-  % Define the anatomical mask based on a circular head
-  lay.mask{1} = [HeadX(:) HeadY(:)];
+if strcmp(cfg.style, '2d')
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % check whether outline and mask are available
+  % if not, add default "circle with triangle" to resemble the head
+  % in case of "circle with triangle", the electrode positions should also be
+  % scaled
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if ~isfield(lay, 'outline') || ~isfield(lay, 'mask')
+    rmax  = 0.5;
+    l     = 0:2*pi/100:2*pi;
+    HeadX = cos(l).*rmax;
+    HeadY = sin(l).*rmax;
+    NoseX = [0.18*rmax 0 -0.18*rmax];
+    NoseY = [rmax-.004 rmax*1.15 rmax-.004];
+    EarX  = [.497 .510 .518 .5299 .5419 .54 .547 .532 .510 .489];
+    EarY  = [.0555 .0775 .0783 .0746 .0555 -.0055 -.0932 -.1313 -.1384 -.1199];
+    % Scale the electrode positions to fit within a unit circle, i.e. electrode radius = 0.45
+    ind_scale = strmatch('SCALE', lay.label);
+    ind_comnt = strmatch('COMNT', lay.label);
+    sel = setdiff(1:length(lay.label), [ind_scale ind_comnt]); % these are excluded for scaling
+    x = lay.pos(sel,1);
+    y = lay.pos(sel,2);
+    xrange = range(x);
+    yrange = range(y);
+    % First scale the width and height of the box for multiplotting
+    lay.width  = lay.width./xrange;
+    lay.height = lay.height./yrange;
+    % Then shift and scale the electrode positions
+    lay.pos(:,1) = 0.9*((lay.pos(:,1)-min(x))/xrange-0.5);
+    lay.pos(:,2) = 0.9*((lay.pos(:,2)-min(y))/yrange-0.5);
+    % Define the outline of the head, ears and nose
+    lay.outline{1} = [HeadX(:) HeadY(:)];
+    lay.outline{2} = [NoseX(:) NoseY(:)];
+    lay.outline{3} = [ EarX(:)  EarY(:)];
+    lay.outline{4} = [-EarX(:)  EarY(:)];
+    % Define the anatomical mask based on a circular head
+    lay.mask{1} = [HeadX(:) HeadY(:)];
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -951,8 +956,7 @@ end % switch senstype
 
 lay.pos    = pnt;
 lay.label  = lab;
-lay.width  = nan*ones(numel(lab),1);
-lay.height = nan*ones(numel(lab),1);
+
 % this is to fix the neuromag planar layouts, which cannot be plotted anyway
 n         = size(lab,2);
 lay.label = lay.label(:);
