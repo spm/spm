@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2194 2008-09-25 15:06:59Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -86,6 +86,7 @@ if numel(intersect(upper(meeglbl), upper(mrilbl))) < 3 || spm_input('Redefine MR
                     mri = spm_vol(D.inv{val}.mesh.sMRI);
                     spm_orthviews('Reset');
                     spm_orthviews('Image', mri);
+                    colormap('gray');
                     cameratoolbar('resetcamera')
                     cameratoolbar('close')
                     rotate3d off;
