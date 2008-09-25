@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.70  2008/09/25 12:02:22  roboos
+% fixed FIL type of events for the new ctf reader (thanks to Vladimir)
+%
 % Revision 1.69  2008/07/24 08:44:20  roboos
 % added initial support for nimh_cortex, not yet complete
 %
@@ -610,8 +613,17 @@ switch eventformat
 
     % determine the trigger channels from the header
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
+      origSensType = hdr.orig.sensType;
+    elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'res4')
+      origSensType =  [hdr.orig.res4.senres.sensorTypeIndex];
+    else
+      origSensType = [];
+    end
+    % meg channels are 5, refmag 0, refgrad 1, adcs 18, trigger 11, eeg 9
+    trigchanindx = find(origSensType==11);
+    if ~isempty(trigchanindx)
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', find(hdr.orig.sensType==11), 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
       event   = appendevent(event, trigger);
     end
 
