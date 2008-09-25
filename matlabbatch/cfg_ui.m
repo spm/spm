@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2181 2008-09-25 08:21:34Z volkmar $
+% $Id: cfg_ui.m 2184 2008-09-25 11:09:23Z volkmar $
 
-rev = '$Rev: 2181 $'; %#ok
+rev = '$Rev: 2184 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -837,6 +837,7 @@ end
 function local_valedit_list(hObject,varargin)
 handles = guidata(hObject);
 udvalshow = get(handles.valshow, 'Userdata');
+val = get(handles.valshow, 'Value');
 if ((isempty(udvalshow.key) || ...
         strcmpi(udvalshow.key.Key,'return')) && ...
         isequal(hObject, handles.valshow)) || ...
