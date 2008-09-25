@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_artefact.m 2126 2008-09-19 15:55:34Z stefan $
+% $Id: spm_cfg_eeg_artefact.m 2197 2008-09-25 17:01:55Z stefan $
 
-rev = '$Rev: 2126 $';
+rev = '$Rev: 2197 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -137,11 +137,11 @@ else
 end
 
 if isfield(S.artefact.weighted, 'nothing')
-    S.artefact.weighted = 0;
+    S.artefact.Weighted = 0;
 else
-    S.artefact.weighted = 1;
-    S.artefact.Weightingfunction = job.artefact.weighted.Weightingfunction;
-    S.artefact.Smoothing = job.artefact.weighted.Smoothing;
+    S.artefact.Weighted = 1;
+    S.artefact.Weightingfunction = job.artefact.weighted.weighted_arg.Weightingfunction;
+    S.artefact.Smoothing = job.artefact.weighted.weighted_arg.Smoothing;
 
 end
 
