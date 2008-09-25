@@ -28,7 +28,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_montage.m 2195 2008-09-25 16:05:11Z stefan $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -196,8 +196,8 @@ end
 
 spm_progress_bar('Clear');
 
-Dnew = Dnew.history('spm_eeg_montage', S);
-
-save(Dnew);
+D = Dnew;
+D = D.history('spm_eeg_montage', S);
+save(D);
 
 spm('Pointer', 'Arrow');

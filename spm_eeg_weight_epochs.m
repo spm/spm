@@ -26,7 +26,7 @@ function D = spm_eeg_weight_epochs(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2134 2008-09-22 12:07:35Z stefan $
+% $Id: spm_eeg_weight_epochs.m 2195 2008-09-25 16:05:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -132,8 +132,9 @@ try [sD.trials.repl] = deal(newrepl); end
 
 Dnew = meeg(sD);
 
-Dnew = Dnew.history('spm_eeg_weight_epochs', S);
+D = Dnew;
+D = D.history('spm_eeg_weight_epochs', S);
 
-save(Dnew);
+save(D);
 
 spm('Pointer', 'Arrow');

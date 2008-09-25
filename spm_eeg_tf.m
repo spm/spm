@@ -1,4 +1,4 @@
-function D = spm_eeg_tf(S)
+function [Dtf, Dtf2] = spm_eeg_tf(S)
 % compute instantaneous power and phase in peri-stimulus time and frequency
 % FORMAT D = spm_eeg_tf(S)
 %
@@ -22,7 +22,7 @@ function D = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2164 2008-09-24 11:48:57Z stefan $
+% $Id: spm_eeg_tf.m 2195 2008-09-25 16:05:11Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -170,6 +170,8 @@ if tf.phase == 1
     end
     Dtf2 = meeg(sD);
     Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));
+else
+    Dtf2 = [];
 end
 
 

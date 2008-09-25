@@ -1,6 +1,6 @@
 function spm_eeg_hist2script(S)
 % function that generates a script from the history of an SPM for M/EEG
-% file. % FORMAT D = spm_eeg_epochs(S)
+% file. % FORMAT D = spm_eeg_hist2script(S)
 %
 % S  - filename or input struct (optional)
 % (optional) fields of S:
@@ -20,7 +20,7 @@ function spm_eeg_hist2script(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_hist2script.m 2164 2008-09-24 11:48:57Z stefan $
+% $Id: spm_eeg_hist2script.m 2195 2008-09-25 16:05:11Z stefan $
 
 if nargin == 0
     S =[];

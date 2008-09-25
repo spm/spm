@@ -14,7 +14,7 @@ function D = spm_eeg_downsample(S)
 % original sampling rate. 
 %_______________________________________________________________________
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2134 2008-09-22 12:07:35Z stefan $
+% $Id: spm_eeg_downsample.m 2195 2008-09-25 16:05:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -99,8 +99,8 @@ spm_progress_bar('Clear');
 Dnew = putfsample(Dnew, fsample_new);
 Dnew = putnsamples(Dnew, nsamples_new);
 
-Dnew = Dnew.history('spm_eeg_downsample', S);
-
-save(Dnew);
+D = Dnew;
+D = D.history('spm_eeg_downsample', S);
+save(D);
 
 spm('Pointer', 'Arrow');

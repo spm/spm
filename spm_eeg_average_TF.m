@@ -16,7 +16,7 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_average_TF.m 2195 2008-09-25 16:05:11Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -128,8 +128,9 @@ for i = 1:D.nconditions
 end
 disp(sprintf(s))
 
-Dnew = Dnew.history('spm_eeg_average_TF', S);
+D = Dnew;
+D = D.history('spm_eeg_average_TF', S);
 
-save(Dnew);
+save(D);
 
 spm('Pointer', 'Arrow');
