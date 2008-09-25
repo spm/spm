@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2143 2008-09-22 16:59:37Z volkmar $
+% $Id: cfg_ui.m 2181 2008-09-25 08:21:34Z volkmar $
 
-rev = '$Rev: 2143 $'; %#ok
+rev = '$Rev: 2181 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 23-Apr-2008 23:15:30
+% Last Modified by GUIDE v2.5 24-Sep-2008 09:40:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -461,8 +461,10 @@ udmodule = get(handles.module, 'userdata');
 citem = get(handles.module, 'value');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^BtnVal.*'), 'Visible','off');
 set(findobj(handles.cfg_ui,'-regexp', 'Tag','^MenuEditVal.*'), 'Enable','off');
-set(handles.valshow,'String', '','Visible','off','Min',0,'Max',0,'Callback',[]);
-set(handles.valshowLabel, 'String',sprintf('Current Item: %s',udmodule.contents{1}{citem}),'Visible','off');
+delete(findobj(handles.cfg_ui,'-regexp', 'Tag','^MenuEditVal.*Dyn$'))
+set(findobj(handles.cfg_ui,'-regexp', 'Tag','^valshow.*'), 'Visible','off');
+set(handles.valshow,'String', '','Min',0,'Max',0,'Callback',[]);
+set(handles.valshowLabel, 'String',sprintf('Current Item: %s',udmodule.contents{1}{citem}));
 switch(udmodule.contents{5}{citem})
     case {'cfg_entry','cfg_files'}
         if ~isempty(udmodule.contents{2}{citem}) && isa(udmodule.contents{2}{citem}{1}, 'cfg_dep')
@@ -506,32 +508,44 @@ switch(udmodule.contents{5}{citem})
         end
         set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
             'Visible','on', 'Enable','on');
-    case 'cfg_menu'
-        [str cval] = local_showvaledit_list(obj);
-        udvalshow = local_init_udvalshow;
-        udvalshow.cval = cval;
-        if cval == -1
-            cval = 1;
-        end;
-        set(handles.valshow,'String',str, 'Visible','on', 'Value',cval, ...
-                          'Callback',@local_valedit_list, ...
-                          'Keypressfcn',@local_valedit_list_key, ...
-                          'Userdata',udvalshow);
-        set(handles.valshowLabel, 'Visible','on');
-        set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), 'Visible','on', 'Enable','on');
-        set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
-            'Visible','on', 'Enable','on');
-    case 'cfg_choice'
-        if ~isfield(udmodlist, 'defid')
-            [str cval] = local_showvaledit_list(obj);
+    case {'cfg_menu','cfg_choice'}
+        if strcmp(udmodule.contents{5}{citem},'cfg_menu') || ~isfield(udmodlist, 'defid')
+            cval = -1;
+            if strcmp(udmodule.contents{5}{citem},'cfg_choice')
+                % compare tag, not filled entries
+                cmpsubs = substruct('.','tag');
+            else
+                cmpsubs = struct('type',{},'subs',{});
+            end;
+            valsubs = substruct('{}',{1});
+            nitem = numel(udmodule.contents{4}{citem});
+            mrk = cell(1,nitem);
+            for l = 1:nitem
+                valuesubs = substruct('{}',{l});
+                if ~isempty(udmodule.contents{2}{citem}) && isequal(subsref(udmodule.contents{2}{citem},[valsubs cmpsubs]), subsref(udmodule.contents{4}{citem},[valuesubs cmpsubs]))
+                    mrk{l} = '*';
+                    cval = l;
+                else
+                    mrk{l} = ' ';
+                end;
+            end;
+            if strcmp(udmodule.contents{5}{citem},'cfg_choice')
+                str = cell(1,nitem);
+                for k = 1:nitem
+                    str{k} = udmodule.contents{4}{citem}{k}.name;
+                end;
+            else
+                str = udmodule.contents{3}{citem};
+            end;
+            str = strcat(mrk(:), str(:));
             udvalshow = local_init_udvalshow;
             udvalshow.cval = cval;
             if cval == -1
                 cval = 1;
             end;
-            set(handles.valshow,'String',str, 'Visible','on', 'Value',cval, ...
+            set(handles.valshow, 'String',str, 'Visible','on', 'Value',cval, ...
                               'Callback',@local_valedit_list, ...
-                              'Keypressfcn',@local_valedit_list_key, ...
+                              'Keypressfcn',@local_valedit_key, ...
                               'Userdata',udvalshow);
             set(handles.valshowLabel, 'Visible','on');
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*EditVal$'), ...
@@ -541,29 +555,57 @@ switch(udmodule.contents{5}{citem})
         end;
     case {'cfg_repeat'}
         if ~isfield(udmodlist, 'defid')
-            indent = '  ';
-            % Already selected items
-            if isempty(udmodule.contents{2}{citem})
-                str1{1} = sprintf('%sNothing selected', indent);
-            else
-                str1 = cell(1,numel(udmodule.contents{2}{citem}));
-                for k = 1:numel(udmodule.contents{2}{citem})
-                    str1{k} = sprintf('%s%s', indent, udmodule.contents{2}{citem}{k}.name);
-                end;
-            end
-            str2 = cell(1,numel(udmodule.contents{4}{citem}));
-            for k = 1:numel(udmodule.contents{4}{citem})
-                str2{k} = sprintf('%s%s', indent, udmodule.contents{4}{citem}{k}.name);
+            udvalshow = local_init_udvalshow;
+            udvalshow.cval = 1;
+            % Available items
+            naitems = numel(udmodule.contents{4}{citem});
+            str1 = cell(naitems,1);
+            cmd1 = cell(naitems,1);
+            for k = 1:naitems
+                str1{k} = sprintf('New: %s', udmodule.contents{4}{citem}{k}.name);
+                cmd1{k} = [k Inf];
+                uimenu(handles.MenuEditValAddItem, ...
+                    'Label',udmodule.contents{4}{citem}{k}.name, ...
+                    'Callback',@(ob,ev)local_setvaledit(ob,cmd1{k},ev), ...
+                    'Tag','MenuEditValAddItemDyn');
             end;
-            str = {'Selected Items:', str1{:}, 'Available Items:', str2{:}};
-            set(handles.valshow,'String', str, 'Visible','on', 'Value', 1);
+            % Already selected items
+            ncitems = numel(udmodule.contents{2}{citem});
+            str2 = cell(2*ncitems,1);
+            cmd2 = cell(2*ncitems,1);
+            for k = 1:ncitems
+                str2{k} = sprintf('Replicate: %s (%d)',...
+                    udmodule.contents{2}{citem}{k}.name, k);
+                cmd2{k} = [-1 k];
+                uimenu(handles.MenuEditValReplItem, ...
+                    'Label',sprintf('%s (%d)', ...
+                    udmodule.contents{2}{citem}{k}.name, k), ...
+                    'Callback',@(ob,ev)local_setvaledit(ob,cmd2{k},ev), ...
+                    'Tag','MenuEditValReplItemDyn');
+                str2{k+ncitems} = sprintf('DELETE: %s (%d)',...
+                    udmodule.contents{2}{citem}{k}.name, k);
+                cmd2{k+ncitems} = [Inf k];
+                uimenu(handles.MenuEditValDelItem, ...
+                    'Label',sprintf('%s (%d)', ...
+                    udmodule.contents{2}{citem}{k}.name, k), ...
+                    'Callback',@(ob,ev)local_setvaledit(ob,cmd2{k+ncitems},ev), ...
+                    'Tag','MenuEditValDelItemDyn');
+            end
+            str = [str1(:); str2(:)];
+            udvalshow.cmd = [cmd1(:); cmd2(:)];
+            set(handles.valshow,'String', str, 'Visible','on', 'Value',1, ...
+                'Callback',@local_valedit_repeat, ...
+                'KeyPressFcn', @local_valedit_key, ...
+                'Userdata',udvalshow);
             set(handles.valshowLabel, 'Visible','on');
-            set(findobj(handles.cfg_ui,'-regexp','Tag','.*AddItem$'), ...
+            set(findobj(handles.cfg_ui,'-regexp','Tag','^Btn.*EditVal$'), ...
                 'Visible','on', 'Enable','on');
-            if ~isempty(udmodule.contents{2}{citem})
-                set(findobj(handles.cfg_ui,'-regexp','Tag','.*ReplItem$'), ...
+            set(findobj(handles.cfg_ui,'-regexp','Tag','^Menu.*AddItem$'), ...
+                'Visible','on', 'Enable','on');
+            if ncitems > 0
+                set(findobj(handles.cfg_ui,'-regexp','Tag','^Menu.*ReplItem$'), ...
                     'Visible','on', 'Enable','on');
-                set(findobj(handles.cfg_ui,'-regexp','Tag','.*DelItem$'), ...
+                set(findobj(handles.cfg_ui,'-regexp','Tag','^Menu.*DelItem$'), ...
                     'Visible','on', 'Enable','on');
             end;
             set(findobj(handles.cfg_ui,'-regexp','Tag','.*ClearVal$'), ...
@@ -580,7 +622,7 @@ end;
 set(handles.helpbox, 'string',cfg_justify(handles.helpbox, help{1}{1}), 'Value',1);
 drawnow;
 
-% Get matching dependencies
+%% List matching dependencies
 % --------------------------------------------------------------------
 function sout = local_showvaledit_deps(obj)
 handles = guidata(obj);
@@ -596,41 +638,7 @@ for k = 1:numel(sout)
 end;
 sout = sout(smatch);
 
-% --------------------------------------------------------------------
-function [str, cval] = local_showvaledit_list(hObject)
-handles = guidata(hObject);
-value = get(handles.module, 'Value');
-udmodule = get(handles.module, 'Userdata');
-cval = -1;
-if strcmp(udmodule.contents{5}{value},'cfg_choice')
-    % compare tag, not filled entries
-    cmpsubs = substruct('.','tag');
-else
-    cmpsubs =struct('type',{},'subs',{});
-end;
-valsubs = substruct('{}',{1});
-nitem = numel(udmodule.contents{4}{value});
-mrk = cell(1,nitem);
-for l = 1:nitem
-    valuesubs = substruct('{}',{l});
-    if ~isempty(udmodule.contents{2}{value}) && isequal(subsref(udmodule.contents{2}{value},[valsubs cmpsubs]), subsref(udmodule.contents{4}{value},[valuesubs cmpsubs]))
-        mrk{l} = '*';
-        cval = l;
-    else
-        mrk{l} = ' ';
-    end;
-end;
-if strcmp(udmodule.contents{5}{value},'cfg_choice')
-    str = cell(1,nitem);
-    for k = 1:nitem
-        str{k} = udmodule.contents{4}{value}{k}.name;
-    end;
-else
-    str = udmodule.contents{3}{value};
-end;
-str = strcat(mrk(:), str(:));
-
-%% Value edit dialogues
+%% Value edit dialogue
 % --------------------------------------------------------------------
 
 function local_valedit_edit(hObject)
@@ -638,10 +646,6 @@ function local_valedit_edit(hObject)
 % input. If input has ndims > 2, isn't numeric or char, proceed with
 % expert dialogue.
 handles = guidata(hObject);
-if strcmp(cfg_get_defaults([mfilename '.ExpertEdit']), 'on')
-    local_valedit_expert_edit(hObject);
-    return;
-end;
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
 cmod = get(handles.modlist, 'Value');
@@ -662,39 +666,65 @@ if isempty(val) || isa(val{1}, 'cfg_dep')
         val = {[]};
     end;
 end;
-% If we can't handle this, use expert mode
-if ndims(val{1}) > 2 || ~(ischar(val{1}) || isnumeric(val{1}) || islogical(val{1}))
-    local_valedit_expert_edit(hObject);
-    return;
-end
-if strtype{1}{1} == 's'
-    instr = val;
-    encl  = '''''';
+% If requested or we can't handle this, use expert mode
+expmode = strcmp(cfg_get_defaults([mfilename '.ExpertEdit']), 'on') ||...
+    ndims(val{1}) > 2 || ~(ischar(val{1}) || isnumeric(val{1}) || islogical(val{1}));
+% Generate code for current value, if not empty
+% Set dialog texts
+if expmode
+    if ~isequal(val, {''})
+        instr = gencode(val{1},'val');
+        % remove comments and put in 1-cell multiline char array
+        nc = cellfun(@isempty,regexp(instr,'^\s*%'));
+        instr = {char(instr(nc))};
+    else
+        instr = {''};
+    end
+    hlptxt = strvcat('Enter a valid MATLAB expression.', ...
+        ' ', ...
+        ['Strings must be enclosed in single quotes ' ...
+        '(''A''), multiline arrays in brackets ([ ]).'], ...
+        ' ', ...
+        'To clear a value, enter an empty cell ''{}''.', ...
+        ' ', ...
+        ['Accept input with CTRL-RETURN, cancel with ' ...
+        'ESC.']);
+    failtxt = {'Input could not be evaluated. Possible reasons are:',...
+        '1) Input should be a vector or matrix, but is not enclosed in ''['' and '']'' brackets.',...
+        '2) Input should be a character or string, but is not enclosed in '' single quotes.',...
+        '3) Input should be a MATLAB variable, but is misspelled.',...
+        '4) Input should be a MATLAB expression, but has syntax errors.'};
 else
-    try
-        instr = {num2str(val{1})};
+    if strtype{1}{1} == 's'
+        instr = val;
+        encl  = '''''';
+    else
+        try
+            instr = {num2str(val{1})};
+        catch
+            instr = {''};
+        end;
         encl  = '[]';
-    catch
-        local_valedit_expert_edit(hObject);
-        return;
     end;
-end;
+    hlptxt = strvcat('Enter a value.', ...
+        ' ', ...
+        'To clear a value, clear the input field and accept.', ...
+        ' ', ...
+        ['Accept input with CTRL-RETURN, cancel with ' ...
+        'ESC.']);
+    failtxt = {'Input could not be evaluated.'};
+end
 sts = false;
 while ~sts
     % estimate size of input field based on instr
-    % Maximum widthxheight 140x20, minium 60x2
+    % Maximum widthxheight 140x20, minimum 60x2
     szi = size(instr{1});
     mxwidth = 140;
     rdup = ceil(szi(2)/mxwidth)+3;
     szi = max(min([szi(1)*rdup szi(2)],[20 140]),[2,60]);
-    str = inputdlg(strvcat('Enter a value.', ...
-                           ' ', ...
-                           'To clear a value, clear the input field and accept.', ...
-                           ' ', ...
-                           ['Accept input with CTRL-RETURN, cancel with ' ...
-                        'ESC.']), ...
-                   udmodule.contents{1}{value}, ...
-                   szi,instr);
+    str = inputdlg(hlptxt, ...
+        udmodule.contents{1}{value}, ...
+        szi,instr);
     if iscell(str) && isempty(str)
         % User has hit cancel button
         return;
@@ -709,169 +739,121 @@ while ~sts
     str = strcat(cstr, {char(10)});
     str = cat(2, str{:});
     % Evaluation is encapsulated to avoid users compromising this function
-    % context
+    % context - graphics handles are made invisible to avoid accidental
+    % damage
+    hv = local_disable(handles.cfg_ui,'HandleVisibility');
     [val sts] = local_eval_valedit(str);
+    local_enable(handles.cfg_ui,'HandleVisibility',hv);
     % for strtype 's', val must be a string
     sts = sts && (~strcmp(strtype{1}{1},'s') || ischar(val));
     if ~sts
-        % try with matching value enclosure
-        if strtype{1}{1} == 's'
-            str = strcat({encl(1)}, cstr, {encl(2)}, {char(10)});
-        else
-            cestr = {encl(1) cstr{:} encl(2)};
-            str = strcat(cestr, {char(10)});
+        if ~expmode
+            % try with matching value enclosure
+            if strtype{1}{1} == 's'
+                if ishandle(val) % delete accidentally created objects
+                    delete(val);
+                end
+                str = strcat({encl(1)}, cstr, {encl(2)}, {char(10)});
+            else
+                cestr = {encl(1) cstr{:} encl(2)};
+                str = strcat(cestr, {char(10)});
+            end;
+            str = cat(2, str{:});
+            % Evaluation is encapsulated to avoid users compromising this function
+            % context - graphics handles are made invisible to avoid accidental
+            % damage
+            hv = local_disable(handles.cfg_ui,'HandleVisibility');
+            [val sts] = local_eval_valedit(str);
+            local_enable(handles.cfg_ui,'HandleVisibility',hv);
         end;
-        str = cat(2, str{:});
-        % Evaluation is encapsulated to avoid users compromising this function
-        % context
-        [val sts] = local_eval_valedit(str);
-        if ~sts
-            uiwait(msgbox(sprintf('Input could not be evaluated.'),'Evaluation error','modal'));
+        if ~sts % (Still) no valid input
+            uiwait(msgbox(failtxt,'Evaluation error','modal'));
         end;
     end;
-end;
+end
 % This code will only be reached if a new value has been set
 local_setvaledit(hObject, val);
 
 % --------------------------------------------------------------------
-function local_valedit_expert_edit(hObject)
-% Expert mode, use full flexibility of evaluated expressions.
+function en = local_disable(hObject, property)
+% disable property in all ui objects, returning their previous state in
+% cell list en
 handles = guidata(hObject);
-value = get(handles.module, 'Value');
-udmodule = get(handles.module, 'Userdata');
-val = udmodule.contents{2}{value};
-sts = false;
-if isempty(val) || isa(val{1}, 'cfg_dep')
-    % silently clear cfg_deps
-    instr = {''};
-else
-    instr = gencode(val{1},'val');
-end;
-while ~sts
-    % estimate size of input field based on instr
-    % Maximum widthxheight 140x20, minium 60x2
-    szi = size(instr{1});
-    mxwidth = 140;
-    rdup = ceil(szi(2)/mxwidth)+3;
-    szi = max(min([szi(1)*rdup szi(2)],[20 140]),[2,60]);
-    str = inputdlg(strvcat('Enter a valid MATLAB expression.', ...
-                           ' ', ...
-                           ['Strings must be enclosed in single quotes ' ...
-                        '(''A''), multiline arrays in brackets ([ ]).'], ...
-                           ' ', ...
-                           'To clear a value, enter an empty cell ''{}''.', ...
-                           ' ', ...
-                           ['Accept input with CTRL-RETURN, cancel with ' ...
-                        'ESC.']), ...
-                   udmodule.contents{1}{value}, ...
-                   szi,instr);
-    if iscell(str) && isempty(str)
-        % User has hit cancel button
-        return;
-    end;
-    % save instr in case of evaluation error
-    instr = str;
-    % str{1} is a multiline char array
-    % 1) cellify it
-    % 2) add newline to each string
-    % 3) concatenate into one string
-    str = strcat(cellstr(str{1}), {char(10)});
-    str = cat(2, str{:});
-    % Evaluation is encapsulated to avoid users compromising this function
-    % context
-    [val sts] = local_eval_valedit(str);
-    if ~sts
-        uiwait(msgbox(sprintf('Input could not be evaluated. Possible reasons are:\n1) Input should be a vector or matrix, but is not enclosed in ''['' and '']'' brackets.\n2) Input should be a character or string, but is not enclosed in '' single quotes.\n3) Input should be a MATLAB variable, but is misspelled.\n4) Input should be a MATLAB expression, but has syntax errors.'),'Evaluation error','modal'));
-    end;
-end;
-% This code will only be reached if a new value has been set
-local_setvaledit(hObject, val);
-
-% --------------------------------------------------------------------
-function en = local_disable(hObject)
-% disable all ui objects, returning their previous state in cell list en
-handles = guidata(hObject);
-c = allchild(handles.cfg_ui);
+c = findall(handles.cfg_ui);
 en = cell(size(c));
-for k = 1:numel(c)
-    x = get(c(k));
-    if isfield(x, 'Enable')
-        en{k} = x.Enable;
-        set(c(k),'Enable','off');
-    end;
-end;
+sel = isprop(c,property);
+en(sel) = get(c(sel),property);
+set(c(sel),property,'off');
 
 % --------------------------------------------------------------------
-function local_enable(hObject, en)
-% reset original enable status. if en is empty, return without changing
+function local_enable(hObject, property, en)
+% reset original property status. if en is empty, return without changing
 % anything. 
-handles = guidata(hObject);
-c = allchild(handles.cfg_ui);
-for k = 1:numel(en)
-    if ~isempty(en{k})
-        set(c(k),'Enable',en{k});
-    end;
-end;
+if ~isempty(en)
+    handles = guidata(hObject);
+    c = findall(handles.cfg_ui);
+    sel = isprop(c,property);
+    set(c(sel),{property},en(sel));
+end
 
+%% Value choice dialogue
 % --------------------------------------------------------------------
-function local_valedit_list_accept(hObject)
+function local_valedit_accept(hObject,val)
 handles = guidata(hObject);
 udvalshow = get(handles.valshow, 'Userdata');
-local_enable(hObject, udvalshow.en);
+local_enable(hObject, 'Enable', udvalshow.en);
 uiresume(handles.cfg_ui);
 set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
     'Visible','off', 'Callback',[]);
-val = get(handles.valshow, 'Value');
-if val ~= udvalshow.cval
-    local_setvaledit(hObject,val);
-else
-    uicontrol(handles.module);
-end;
+if nargin == 1
+    val = get(handles.valshow, 'Value');
+end
+local_setvaledit(hObject,val);
 
 % --------------------------------------------------------------------
-function local_valedit_list_cancel(hObject)
+function local_valedit_cancel(hObject)
 handles = guidata(hObject);
 udvalshow = get(handles.valshow, 'Userdata');
-local_enable(hObject, udvalshow.en);
+local_enable(hObject, 'Enable', udvalshow.en);
 uiresume(handles.cfg_ui);
 set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
     'Visible','off', 'Callback',[]);
 uicontrol(handles.module);
 
 % --------------------------------------------------------------------
-function local_valedit_list_key(hObject, data, varargin)
-% collect key info for evaluation in local_valedit_list
-if strcmpi(data.Key,'return') && ~isempty(data.Modifier) && ...
-        any(strcmpi(data.Modifier, 'Control'))
-    local_valedit_list_accept(hObject);
-elseif  strcmpi(data.Key,'escape')
-    local_valedit_list_cancel(hObject);
+function local_valedit_key(hObject, data, varargin)
+if strcmpi(data.Key,'escape')
+    % ESC must be checked here
+    local_valedit_cancel(hObject);
 else
-    % record key
+    % collect key info for evaluation in local_valedit_list
     handles = guidata(hObject);
     udvalshow = get(handles.valshow, 'Userdata');
     udvalshow.key = data;
     set(handles.valshow, 'Userdata',udvalshow);
-end;
+end
 
 % --------------------------------------------------------------------
 function local_valedit_list(hObject,varargin)
 handles = guidata(hObject);
 udvalshow = get(handles.valshow, 'Userdata');
-if (isempty(udvalshow.key) && hObject == handles.valshow) || ...
-        any(hObject == findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'))
+if ((isempty(udvalshow.key) || ...
+        strcmpi(udvalshow.key.Key,'return')) && ...
+        isequal(hObject, handles.valshow)) || ...
+        isequal(hObject, handles.valshowBtnAccept)
     % callback called from handles.valshow, finish editing and set value
-    if hObject == handles.valshow || ...
-            hObject == handles.valshowBtnAccept
-        % Mouse selection: no key in udvalshow.key
-        % Button selection: Accept button press
-        local_valedit_list_accept(hObject);
-    elseif hObject == handles.valshowBtnCancel
-        local_valedit_list_cancel(hObject);
+    if val ~= udvalshow.cval
+        local_valedit_accept(hObject);
+    else
+        local_valedit_cancel(hObject);
     end;
-elseif hObject ~= handles.valshow
+elseif  (~isempty(udvalshow.key) && strcmpi(udvalshow.key.Key,'escape') && ...
+        isequal(hObject, handles.valshow)) || ...
+        isequal(hObject, handles.valshowBtnCancel)
+    local_valedit_cancel(hObject);
+elseif ~isequal(hObject, handles.valshow)
     % callback called from elsewhere (module, menu, button) - init editing
-    udvalshow.en = local_disable(hObject);
+    udvalshow.en = local_disable(hObject,'Enable');
     udvalshow.key = [];
     figure(handles.cfg_ui);
     set(handles.valshow,'enable','on','Userdata',udvalshow, 'Min',0, ...
@@ -880,11 +862,53 @@ elseif hObject ~= handles.valshow
         'Enable','on', 'Visible','on', 'Callback',@local_valedit_list);
     uicontrol(handles.valshow);
     uiwait(handles.cfg_ui);
+else
+    udvalshow.key = [];
+    set(handles.valshow, 'Userdata',udvalshow);
+end;
+
+%% Repeat edit dialogue
+% --------------------------------------------------------------------
+function local_valedit_repeat(hObject,varargin)
+handles = guidata(hObject);
+udvalshow = get(handles.valshow, 'Userdata');
+if ((isempty(udvalshow.key) || ...
+        strcmpi(udvalshow.key.Key,'return')) && ...
+        isequal(hObject, handles.valshow)) || ...
+        isequal(hObject, handles.valshowBtnAccept)
+    % Mouse selection - no key
+    % Keyboard selection - return key
+    ccmd = get(hObject,'Value');
+    local_valedit_accept(hObject,udvalshow.cmd{ccmd});
+elseif (~isempty(udvalshow.key) && strcmpi(udvalshow.key.Key,'escape') && ...
+        isequal(hObject, handles.valshow)) || ...
+        isequal(hObject, handles.valshowBtnCancel)
+    % callback called from handles.valshow, finish editing
+    local_valedit_cancel(hObject);
+elseif ~isequal(hObject, handles.valshow)
+    % callback called from elsewhere (module, menu, button)
+    % if there is just one action, do it, else init editing
+    if numel(udvalshow.cmd) == 1
+        local_valedit_accept(hObject,udvalshow.cmd{1});
+    else
+        udvalshow.en = local_disable(hObject,'Enable');
+        udvalshow.key = [];
+        figure(handles.cfg_ui);
+        set(handles.valshow,'enable','on','Userdata',udvalshow, 'Min',0, ...
+            'Max',1);
+        set(findobj(handles.cfg_ui, '-regexp', 'Tag','^valshowBtn.*'), ...
+            'Enable','on', 'Visible','on', 'Callback',@local_valedit_repeat);
+        uicontrol(handles.valshow);
+        uiwait(handles.cfg_ui);
+    end
+else
+    udvalshow.key = [];
+    set(handles.valshow, 'Userdata',udvalshow);
 end;
 
 %% Set changed values
 % --------------------------------------------------------------------
-function local_setvaledit(obj, val)
+function local_setvaledit(obj, val,varargin)
 handles = guidata(obj);
 udmodlist = get(handles.modlist, 'Userdata');
 cmod = get(handles.modlist, 'Value');
@@ -931,10 +955,13 @@ function local_valedit_EditValue(hObject)
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
-if any(strcmp(udmodule.contents{5}{value},{'cfg_choice','cfg_menu'}))
-    local_valedit_list(hObject);
-else
-    local_valedit_edit(hObject);
+switch udmodule.contents{5}{value}
+    case {'cfg_choice','cfg_menu'}
+        local_valedit_list(hObject);
+    case 'cfg_repeat'
+        local_valedit_repeat(hObject);
+    otherwise
+        local_valedit_edit(hObject);
 end;
 
 % --------------------------------------------------------------------
@@ -951,74 +978,6 @@ str = {sout.sname};
 [val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str);
 if sts
     local_setvaledit(hObject, sout(val));
-end;
-
-% --------------------------------------------------------------------
-function local_valedit_AddItem(hObject)
-handles = guidata(hObject);
-udmodule = get(handles.module, 'Userdata');
-citem = get(handles.module, 'Value');
-if numel(udmodule.contents{4}{citem}) > 1
-    % If there is a choice, prepare a selection list
-    str = cell(1,numel(udmodule.contents{4}{citem}));
-    for k = 1:numel(udmodule.contents{4}{citem})
-        str{k} = udmodule.contents{4}{citem}{k}.name;
-    end;
-    [val sts] = listdlg('Name', udmodule.contents{1}{citem}, 'ListString',str, 'SelectionMode','single');
-else
-    % There is no choice, just add the only item
-    val = 1;
-    sts = true;
-end
-if sts
-    local_setvaledit(hObject,[val inf]);
-end;
-
-% --------------------------------------------------------------------
-function local_valedit_ReplItem(hObject)
-handles = guidata(hObject);
-udmodule = get(handles.module, 'Userdata');
-citem = get(handles.module, 'Value');
-if numel(udmodule.contents{2}{citem}) > 1
-    % If there is a choice, prepare a selection list
-    str = cell(1,numel(udmodule.contents{2}{citem}));
-    for k = 1:numel(udmodule.contents{2}{citem})
-        str{k} = sprintf('%s (%d)', udmodule.contents{2}{citem}{k}.name, k);
-    end;
-    [val sts] = listdlg('Name', udmodule.contents{1}{citem}, 'ListString',str, 'SelectionMode','single');
-else
-    % There is no choice, just replicate the only item
-    val = 1;
-    sts = true;
-end
-if sts
-    local_setvaledit(hObject,[-1 val]);
-end;
-
-% --------------------------------------------------------------------
-function local_valedit_DelItem(hObject)
-handles = guidata(hObject);
-udmodule = get(handles.module, 'Userdata');
-citem = get(handles.module, 'Value');
-if numel(udmodule.contents{2}{citem}) > 1
-    % If there is a choice, prepare a selection list
-    str = cell(1,numel(udmodule.contents{2}{citem}));
-    for k = 1:numel(udmodule.contents{2}{citem})
-        str{k} = sprintf('%s (%d)', udmodule.contents{2}{citem}{k}.name, k);
-    end;
-    [val sts] = listdlg('Name', udmodule.contents{1}{citem}, 'ListString',str, 'SelectionMode','single');
-else
-    % There is no choice, just delete the only item
-    val = 1;
-    sts = true;
-end
-if sts
-    % delete from last to first item, otherwise order would be not
-    % preserved
-    val = sort(val, 'descend');
-    for k = 1:numel(val)
-        local_setvaledit(hObject, [Inf val(k)]);
-    end;
 end;
 
 %% Automatic Callbacks
@@ -1261,30 +1220,6 @@ function MenuEditDelMod_Callback(hObject, eventdata, handles)
 local_DelMod(hObject);
 
 % --------------------------------------------------------------------
-function MenuEditValAddItem_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditValAddItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_AddItem(hObject);
-
-% --------------------------------------------------------------------
-function MenuEditValReplItem_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditValReplItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_ReplItem(hObject);
-
-% --------------------------------------------------------------------
-function MenuEditValDelItem_Callback(hObject, eventdata, handles)
-% hObject    handle to MenuEditValDelItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_DelItem(hObject);
-
-% --------------------------------------------------------------------
 function MenuEditValEditVal_Callback(hObject, eventdata, handles)
 % hObject    handle to MenuEditValEditVal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1421,7 +1356,7 @@ if strcmp(get(handles.cfg_ui,'SelectionType'),'open')
         case {'cfg_choice', 'cfg_menu'},
             local_valedit_list(hObject);
         case {'cfg_repeat'},
-            local_valedit_AddItem(hObject);
+            local_valedit_repeat(hObject);
     end;
 end;
 
@@ -1483,32 +1418,6 @@ function BtnValAddDep_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 local_valedit_AddDep(hObject);
-
-% --- Executes on button press in BtnValAddItem.
-function BtnValAddItem_Callback(hObject, eventdata, handles)
-% hObject    handle to BtnValAddItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_AddItem(hObject);
-
-% --- Executes on button press in BtnValDelItem.
-function BtnValDelItem_Callback(hObject, eventdata, handles)
-% hObject    handle to BtnValDelItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_DelItem(hObject);
-
-
-% --- Executes on button press in BtnValReplItem.
-function BtnValReplItem_Callback(hObject, eventdata, handles)
-% hObject    handle to BtnValReplItem (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-local_valedit_ReplItem(hObject);
-
 
 % --------------------------------------------------------------------
 function udmodlist = local_init_udmodlist
