@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2171 2008-09-24 15:27:53Z vladimir $
+% $Id: spm_eeg_convert.m 2183 2008-09-25 11:04:36Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -407,7 +407,7 @@ D = chantype(D, [], []);
 if ~isempty(strmatch('EEG', D.chantype, 'exact')) && isempty(D.sensors('EEG'))
     S1 = [];
     S1.task = 'defaulteegsens';
-    S.updatehistory = 0;
+    S1.updatehistory = 0;
     S1.D = D;
     
     D = spm_eeg_prep(S1);
@@ -420,7 +420,7 @@ if ~isempty(strmatch('MEG', D.chantype, 'exact')) &&...
     S1 = [];
     S1.task = 'project3D';
     S1.modality = 'MEG';
-    S.updatehistory = 0;
+    S1.updatehistory = 0;
     S1.D = D;
     
     D = spm_eeg_prep(S1);

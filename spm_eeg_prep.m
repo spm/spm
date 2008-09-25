@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2170 2008-09-24 15:24:16Z vladimir $
+% $Id: spm_eeg_prep.m 2183 2008-09-25 11:04:36Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -267,6 +267,12 @@ end
 % When prep is called from other functions with history, history should be
 % disabled
 if ~isfield(S, 'updatehistory') || S.updatehistory
-    D = D.history('spm_eeg_prep', S);
+    Stemp = S;
+    Stemp.save = 1;
+    D = D.history('spm_eeg_prep', Stemp);
 end
 
+if isfield(S, 'save') && S.save
+    disp('prep saving*********************************');
+    save(D);
+end
