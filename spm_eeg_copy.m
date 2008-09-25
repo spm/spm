@@ -10,7 +10,7 @@ function newD = spm_eeg_copy(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copy.m 2179 2008-09-24 17:55:58Z vladimir $
+% $Id: spm_eeg_copy.m 2198 2008-09-25 17:54:45Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEEG copy',0);
 
@@ -34,8 +34,9 @@ end
 
 if ~isfield(S, 'newname')
     S.newname = spm_input('New file name:', '+1', 's');
-    S.newname = [spm_str_manip(S.newname, 'rt') '.dat'];
 end
+
+S.newname = [spm_str_manip(S.newname, 'rt') '.dat'];
 
 newD = clone(D, S.newname);
 
