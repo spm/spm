@@ -9,7 +9,7 @@ function out = spm_run_coreg_estimate(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_estimate.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_coreg_estimate.m 2187 2008-09-25 11:50:50Z volkmar $
 
 job = varargin{1};
 %disp(job);
@@ -25,5 +25,5 @@ end;
 for j=1:size(PO,1),
     spm_get_space(deblank(PO(j,:)), M*MM(:,:,j));
 end;
-out.cfiles = cellstr(strvcat(job.source{:}, job.other{:}));
+out.cfiles = cellstr(PO);
 return;
