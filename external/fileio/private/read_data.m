@@ -30,6 +30,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.59  2008/09/25 11:53:48  roboos
+% more efficient handling for CTF in real continuous datasets (i.e. one long trial) and in case all samples are within the same trial
+% detected and fixed a bug that would case faulure of the code when reading a data segment that extends over more than two trials
+%
 % Revision 1.58  2008/09/24 16:26:17  roboos
 % swiched from old fcdc import routines for CTF to the p-files supplied by CTF
 % these new reading routines support synthetic gradients
@@ -560,8 +564,15 @@ switch dataformat
     % check that the required low-level toolbox is available
     hastoolbox('ctf', 1);
     % this returns SQUIDs in T, EEGs in V, ADC's and DACS in V, HLC channels in m, clock channels in s.
-    dat    = getCTFdata(hdr.orig, [begtrial, endtrial], chanindx, 'T', 'double');
-    dimord = 'samples_chans_trials';
+    if begtrial==endtrial
+      % specify selection as 3x1 vector
+      dat = getCTFdata(hdr.orig, [begsample; endsample; begtrial], chanindx, 'T', 'double');
+      dimord = 'samples_chans';
+    else
+      % specify selection as 1xN vector
+      dat = getCTFdata(hdr.orig, [begtrial:endtrial], chanindx, 'T', 'double');
+      dimord = 'samples_chans_trials';
+    end
 
   case  {'ctf_old', 'read_ctf_meg4'}
     % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
