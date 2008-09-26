@@ -5,7 +5,7 @@ function spm_api_bmc
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 2061 2008-09-09 18:04:42Z jean $
+% $Id: spm_api_bmc.m 2209 2008-09-26 18:58:41Z karl $
 
 % get DCM.mat files
 %--------------------------------------------------------------------------
@@ -43,6 +43,7 @@ end
 
 % compute conditional probability of DCMs under flat priors.
 %--------------------------------------------------------------------------
+F    = F - min(F);
 i    = F < (max(F) - 32);
 P    = F;
 P(i) = max(F) - 32;

@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2090 2008-09-12 19:22:42Z karl $
+% $Id: spm_nlsi_N.m 2209 2008-09-26 18:58:41Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -272,10 +272,18 @@ for ip = 1:64
     %----------------------------------------------------------------------
     [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
     
+    % check for dissipative dynamics
+    %----------------------------------------------------------------------
+    if all(isfinite(spm_vec(x)))
+        gi   = 8;
+    else
+        gi   = 0;
+    end
+    
        
     % Optimize g: parameters of G(g)
     %======================================================================
-    for ig = 1:8
+    for ig = 1:gi
         
         % prediction yp = G(g)*x
         %------------------------------------------------------------------
@@ -316,10 +324,10 @@ for ip = 1:64
         end
         try
             for i = 1:ng
-                dgdg(:,i) = spm_vec(FS(x*dGdg{i}',M));
+                dgdg(:,i) = spm_vec(FS((x - x0)*dGdg{i}',M));
             end
         catch
-            dgdg = FS(x*dGdg,M);
+            dgdg = FS((x - x0)*dGdg,M);
         end
         dgdb  = [dgdp dgdg dgdu];
  
@@ -395,7 +403,7 @@ for ip = 1:64
         % convergence
         %------------------------------------------------------------------
         dG    = dFdg'*dg;
-        if dG < 1e-1, break, end
+        if ig > 1 && dG < 1e-1, break, end
         
     end
     
@@ -436,8 +444,8 @@ for ip = 1:64
  
         % accept current estimates
         %------------------------------------------------------------------
-        C.Cb  = Cb;
-        C.Ep  = Ep;
+        C.Cb  = Cb;                               % conditional covaraince
+        C.Ep  = Ep;                               % and expectations
         C.Eg  = Eg;
         C.Eu  = Eu;
         C.h   = h;
@@ -447,8 +455,8 @@ for ip = 1:64
  
         % reset expansion point
         %------------------------------------------------------------------
-        Cb    = C.Cb;
-        Ep    = C.Ep;
+        Cb    = C.Cb;                             % conditional covaraince
+        Ep    = C.Ep;                             % and expectations
         Eg    = C.Eg;
         Eu    = C.Eu;
         h     = C.h;
@@ -520,12 +528,12 @@ for ip = 1:64
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
-    fprintf('%-6s: %i (%i,%i) %6s %-6.3e %6s %.3e ',str,ip,ig,ih,'F:',full(C.F - F0),'dF predicted:',full(dF))
+    ig  = max([0 ig]);
+    fprintf('%-6s: %-2i (%i,%i) %4s %-6.3e %6s %6.3e ',str,ip,ig,ih,'F:',full(C.F - F0),'dF predicted:',full(dF))
     if ip > 2 && dF < 1e-2
         fprintf(' convergence\n')
         break
     end
- 
 end
  
 % outputs

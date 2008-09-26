@@ -102,13 +102,13 @@ function D = meeg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 1531 2008-05-01 14:17:54Z vladimir $
+% $Id: meeg.m 2209 2008-09-26 18:58:41Z karl $
 
-if nargin==1
+if nargin == 1
     if isstruct(varargin{1})
         [OK D] = checkmeeg(varargin{1}, 'basic');
         if OK
-            D = class(D, 'meeg');
+            D  = class(D, 'meeg');
         else
             error('Struct not fit for conversion to meeg');
         end
@@ -119,7 +119,7 @@ if nargin==1
     end;
 end;
 
-D=[];
+D          = [];
 D.Nsamples = 0;
-[res D] = checkmeeg(D);
-D = class(D, 'meeg');
+[res D]    = checkmeeg(D);
+D          = class(D, 'meeg');

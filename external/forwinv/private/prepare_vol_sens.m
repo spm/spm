@@ -1,6 +1,6 @@
 function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 
-% PREPARE_VOL_SENS does some bookkeeping to ensures that the volume
+% PREPARE_VOL_SENS does some bookkeeping to ensure that the volume
 % conductor model and the sensor array are appropriate. Furthermore it
 % takes care of pre-computations that can be done efficiently prior to the
 % leadfield calculations.
@@ -21,7 +21,7 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 %
 % The vol structure represents a volume conductor model, its contents
 % depend on the type of model. The sens structure represents a sensor
-% arary, i.e. EEG electrodes or MEG gradiometers.
+% array, i.e. EEG electrodes or MEG gradiometers.
 %
 % Additional options should be specified in key-value pairs and can be
 %   'channel'    cell-array with strings (default = 'all')
@@ -196,7 +196,7 @@ elseif iseeg
       end
       distance = sqrt(sum(pnt.^2,2)); % to the center of the sphere
       if any((abs(distance-radius)/radius)>0.005)
-        warning('electrodes do not ly on skin surface -> using radial projection')
+        warning('electrodes do not lie on skin surface -> using radial projection')
       end
       pnt = pnt * radius ./ [distance distance distance];
       if isfield(vol, 'o')
