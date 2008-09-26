@@ -6,10 +6,10 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2105 2008-09-17 15:34:09Z vladimir $
-
+% $Id: spm_api_erp.m 2208 2008-09-26 18:57:39Z karl $
+ 
 if nargin == 0 || nargin == 1  % LAUNCH GUI
-
+ 
     fig     = openfig(mfilename,'reuse');
     S0      = spm('WinSize','0',1);
     set(fig,'units','pixels'); Fdim = get(fig,'position');
@@ -17,7 +17,7 @@ if nargin == 0 || nargin == 1  % LAUNCH GUI
     Fgraph  = spm_figure('GetWin','Graphics');
     % Use system color scheme for figure:
     set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
-
+ 
     % Generate a structure of handles to pass to callbacks, and store it.
     handles  = guihandles(fig);
     handles.Fgraph = Fgraph;
@@ -26,13 +26,13 @@ if nargin == 0 || nargin == 1  % LAUNCH GUI
     if nargin == 1
         load_Callback(fig, [], handles, varargin{1})
     end
-
+ 
     if nargout > 0
         varargout{1} = fig;
     end
-
+ 
 elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
-
+ 
     try
         if (nargout)
             [varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
@@ -43,19 +43,11 @@ elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
         disp(lasterr);
     end
 end
-
-
-% Callbacks
-%==========================================================================
-% --- Executes during object creation, after setting all properties.
-function data_ok_CreateFcn(hObject, eventdata, handles)
-
-set(hObject, 'enable', 'off');
-
-
+ 
+ 
 %-DCM files and directories: Load and save
 %==========================================================================
-
+ 
 % --- Executes on button press in load.
 % -------------------------------------------------------------------------
 function varargout = load_Callback(hObject, eventdata, handles, varargin)
@@ -72,42 +64,77 @@ catch
     handles.DCM = DCM;
     guidata(hObject,handles);
 end
-
-
-% Type of model
+ 
+% Type of analysis
 %--------------------------------------------------------------------------
-% 'ERP'    - (linear NMM slow)
-% 'SEP'    - (linear NMM fast)
-% 'NMM'    - (bilinear NMM)
-% 'MFM'    - (bilinear MFM)
-% 'SSR'    - (linear NMM for steady-state responses)
-% 'IND'    - (linear NMM for induced responses)
-
+% 'ERP'    - Event related responses
+% 'SSR'    - Steady-state responses
+% 'IND'    - Induced responses
+ 
 try
-    model = DCM.options.model;
+    model = DCM.options.analysis;
 catch
     model = get(handles.ERP,'String');
     model = model{get(handles.ERP,'Value')};
+    DCM.options.analysis = model;
 end
 switch model
-    case{'ERP'},     set(handles.ERP,'Value',1);
-    case{'SEP'},     set(handles.ERP,'Value',2);
-    case{'NMM'},     set(handles.ERP,'Value',3);
-    case{'MFM'},     set(handles.ERP,'Value',4);
-    case{'SSR'},     set(handles.ERP,'Value',5);
-    case{'IND'},     set(handles.ERP,'Value',6);
+    case{'ERP'}, set(handles.ERP,'Value',1);
+    case{'SSR'}, set(handles.ERP,'Value',2);
+    case{'IND'}, set(handles.ERP,'Value',3);
     otherwise
 end
 handles = ERP_Callback(hObject, eventdata, handles);
-
+ 
+ 
+% Type of model (neuronal)
+%--------------------------------------------------------------------------
+% 'ERP'    - (linear second order NMM slow)
+% 'SEP'    - (linear second order NMM fast)
+% 'NMM'    - (nonlinear second order NMM first-order moments)
+% 'MFM'    - (nonlinear second order NMM second-order moments)
+try
+    model = DCM.options.model;
+catch
+    model = get(handles.model,'String');
+    model = model{get(handles.model,'Value')};
+    DCM.options.model = model;
+end
+switch model
+    case{'ERP'}, set(handles.model,'Value',1);
+    case{'SEP'}, set(handles.model,'Value',2);
+    case{'NMM'}, set(handles.model,'Value',3);
+    case{'MFM'}, set(handles.model,'Value',4);
+    otherwise
+end
+ 
+% Type of model (spatial)
+%--------------------------------------------------------------------------
+% 'ECD'    - Equivalent current dipole
+% 'IMG'    - Imaging
+% 'LFP'    - Local field potentials
+try
+    model = DCM.options.spatial;
+catch
+    model = get(handles.Spatial,'String');
+    model = model{get(handles.Spatial,'Value')};
+    DCM.options.spatial = model;
+end
+switch model
+    case{'IMG'}, set(handles.Spatial,'Value',1);
+    case{'ECD'}, set(handles.Spatial,'Value',2);
+    case{'LFP'}, set(handles.Spatial,'Value',3);
+    otherwise
+end
+ 
 % Filename
 %--------------------------------------------------------------------------
 try, set(handles.name,'String',f);  end
-
+ 
 % Source locations
 %--------------------------------------------------------------------------
 try, DCM.Lpos = DCM.M.dipfit.Lpos; end
-
+ 
 % enter options from saved options and execute data_ok and spatial_ok
 %--------------------------------------------------------------------------
 try, set(handles.Y1, 'String', num2str(DCM.options.trials,'%7.0f')); end
@@ -116,46 +143,33 @@ try, set(handles.T2, 'String', num2str(DCM.options.Tdcm(2)));        end
 try, set(handles.Hz1,'String', num2str(DCM.options.Fdcm(1)));        end
 try, set(handles.Hz2,'String', num2str(DCM.options.Fdcm(2)));        end
 try, set(handles.Rft,'String', num2str(DCM.options.Rft));            end
-try, set(handles.Spatial_type,'Value', DCM.options.type);            end
 try, set(handles.Nmodes,      'Value', DCM.options.Nmodes);          end
 try, set(handles.h,           'Value', DCM.options.h);               end
 try, set(handles.han,         'Value', DCM.options.han);             end
 try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
+try, set(handles.loop,        'Value', DCM.options.loop);            end
 try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
 try, set(handles.Uname,       'String',DCM.xU.name);                 end
 try, set(handles.Sname,       'String',DCM.Sname);                   end
 try, set(handles.onset,       'String',num2str(DCM.options.onset));  end
 try, set(handles.Slocation,   'String',num2str(DCM.Lpos','%4.0f'));  end
-
-
-% catch for backwards compatibility
+ 
+% Imaging
 %--------------------------------------------------------------------------
-if get(handles.Spatial_type,'Value') > length(get(handles.Spatial_type,'String'))
-    set(handles.Spatial_type,'Value',1);
+switch DCM.options.spatial
+    case{'IMG'}
+        set(handles.render, 'Enable','on' )
+        set(handles.Imaging,'Enable','on' )
+    otherwise
+        set(handles.render, 'Enable','off' )
+        set(handles.Imaging,'Enable','off' )
 end
-
-if get(handles.Spatial_type,'Value') == 2
-    set(handles.render, 'Enable','on' )
-    set(handles.Imaging,'Enable','on' )
-else
-    set(handles.render, 'Enable','off' )
-    set(handles.Imaging,'Enable','off' )
-end
-set(handles.data_ok,'enable','on')
-
+ 
 handles.DCM = DCM;
 guidata(hObject, handles);
-
-% % data specification
-% %--------------------------------------------------------------------------
-% try
-%     handles = data_ok_Callback(hObject, eventdata, handles);
-%     guidata(hObject, handles);
-% catch
-%     return
-% end
-
+ 
+ 
 % spatial model specification
 %--------------------------------------------------------------------------
 try
@@ -164,7 +178,7 @@ try
 catch
     return
 end
-
+ 
 % connections specification
 %--------------------------------------------------------------------------
 try
@@ -175,59 +189,62 @@ try
 catch
     return
 end
-
+ 
 % estimation and results
 %--------------------------------------------------------------------------
 try
     handles.DCM.F;
     set(handles.results,    'Enable','on');
-    if handles.DCM.options.type == 2
-        set(handles.render, 'Enable','on');
-        set(handles.Imaging,'Enable','on');
-
+    switch handles.DCM.options.spatial
+        case{'IMG'}
+            set(handles.render, 'Enable','on');
+            set(handles.Imaging,'Enable','on');
+        otherwise
+            set(handles.render, 'Enable','off');
+            set(handles.Imaging,'Enable','off');
     end
 catch
     set(handles.results,    'Enable','off');
 end
-
+ 
 guidata(hObject, handles);
-
+ 
 % --- Executes on button press in save.
 % -------------------------------------------------------------------------
 function handles = save_Callback(hObject, eventdata, handles)
-
+ 
 handles = reset_Callback(hObject, eventdata, handles);
 try
-   [p,f]  = fileparts(handles.DCM.name);
+   [p,file]  = fileparts(handles.DCM.name);
 catch
     try
-        [p,f] = fileparts(handles.DCM.xY.Dfile);
-        f = ['DCM_' f];
+        [p,file] = fileparts(handles.DCM.xY.Dfile);
+        file     = ['DCM_' file];
     catch
-        f = ['DCM' date];
+        file     = ['DCM' date];
     end
 end
-[f,p]     = uiputfile(['DCM*.mat'],'DCM file to save',f);
-
-if p
-    handles.DCM.name = fullfile(p,f);
-    set(handles.name,'String',f);
+[file,fpath]     = uiputfile(['DCM*.mat'],'DCM file to save',file);
+ 
+if fpath
+    handles.DCM.name = fullfile(fpath,file);
+    set(handles.name,'String',file);
     DCM              = handles.DCM;
     save(DCM.name,'DCM')
     set(handles.estimate,   'Enable', 'on')
     set(handles.initialise, 'Enable', 'on');
-    cd(p)
+    cd(fpath)
 end
-
+ 
 % assign in base
 %--------------------------------------------------------------------------
 assignin('base','DCM',handles.DCM)
 guidata(hObject,handles);
-
+ 
 % store selections in DCM
 % -------------------------------------------------------------------------
 function handles = reset_Callback(hObject, eventdata, handles)
-
+ 
 handles.DCM.options.trials   = str2num(get(handles.Y1,    'String'));
 handles.DCM.options.Tdcm(1)  = str2num(get(handles.T1,    'String'));
 handles.DCM.options.Tdcm(2)  = str2num(get(handles.T2,    'String'));
@@ -239,46 +256,39 @@ handles.DCM.options.Nmodes   = get(handles.Nmodes,        'Value');
 handles.DCM.options.h        = get(handles.h,             'Value');
 handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
-handles.DCM.options.type     = get(handles.Spatial_type,  'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
-
-
-% Check model type
+handles.DCM.options.loop     = get(handles.loop,          'Value');
+ 
+% analysis type
 %--------------------------------------------------------------------------
-model = get(handles.ERP,     'String');
-model = model{get(handles.ERP,'Value')};
-handles.DCM.options.model  = model;
-
-% Check data modality
+model = get(handles.ERP,           'String');
+model = model{get(handles.ERP,     'Value')};
+handles.DCM.options.analysis  = model;
+ 
+% model type
 %--------------------------------------------------------------------------
-try
-    switch handles.DCM.xY.modality
-
-        case {'EEG','MEG'}
-            set(handles.Slocation,     'Visable', 'on');
-            set(handles.plot_dipoles,  'Enable',  'on');
-
-        otherwise
-            set(handles.Slocation,     'Visable', 'off');
-            set(handles.plot_dipoles,  'Enable',  'off');
-    end
-end
-
+model = get(handles.model,         'String');
+model = model{get(handles.model,   'Value')};
+handles.DCM.options.model     = model;
+ 
+% spatial type
+%--------------------------------------------------------------------------
+model = get(handles.Spatial,       'String');
+model = model{get(handles.Spatial, 'Value')};
+handles.DCM.options.spatial   = model;
+ 
 guidata(hObject,handles);
-
-
+ 
+ 
 % Data selection and design
 %==========================================================================
-
+ 
 % --- Executes on button press in Datafile.
 %--------------------------------------------------------------------------
 function Datafile_Callback(hObject, eventdata, handles)
-Y1_Callback(hObject, eventdata, handles);
-
-
+ 
 %-Get trials and data
 %--------------------------------------------------------------------------
-function Y1_Callback(hObject, eventdata, handles)
 try
     trials = str2num(get(handles.Y1,'String'));
     handles.DCM.options.trials = trials;
@@ -288,36 +298,28 @@ catch
     m  = 1;
     set(handles.Y1,'String','1')
 end
-
+ 
 if isempty(m) || m == 0
     m  = 1;
     set(handles.Y1,'String','1');
 end
-
+ 
 handles = Xdefault(hObject,handles,m);
-
+ 
 %-Get new trial data from file
 %--------------------------------------------------------------------------
-try
-    D = spm_eeg_load(handles.DCM.xY.Dfile);
-catch
-    [f,p] = uigetfile({'*.mat'}, 'please select data file');
-
-    if f == 0
-        return;
-    end
-
-    handles.DCM.xY.Dfile = fullfile(p,f);
-    
-    D = spm_eeg_load(handles.DCM.xY.Dfile);    
-end
-
-[ok, D] = check(D, 'dcm');
-
+[f,p] = uigetfile({'*.mat'}, 'please select data file');
+if f  == 0, return; end
+ 
+handles.DCM.xY.Dfile = fullfile(p,f);
+D = spm_eeg_load(handles.DCM.xY.Dfile);
+ 
+[ok, D] = check(D,'dcm');
+ 
 if ~ok
     if check(D, 'basic')
         warndlg(['The requested file is not ready for DCM.'...
-            'Use prep to specify sensors and fiducials or LFP channels.']);
+                 'Use prep to specify sensors and fiducials or LFP channels.']);
     else
         warndlg('The meeg file is corrupt or incomplete');
     end
@@ -327,41 +329,44 @@ if ~ok
     guidata(hObject,handles);    
     return
 end
-
+ 
 set(handles.data_ok, 'enable', 'on');
-
+ 
 % Assemble and display data
 %--------------------------------------------------------------------------
-handles     = reset_Callback(hObject, eventdata, handles);
-handles.DCM = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
-
+Y_Callback(hObject, eventdata, handles);
+ 
 set(handles.design,'enable', 'on')
 set(handles.Uname, 'enable', 'on')
 set(handles.Y,     'enable', 'on')
-
-handles     = reset_Callback(hObject, eventdata, handles);
+ 
 guidata(hObject,handles);
-
-
+ 
+ 
 % --- Executes on button press in Y to display data
 %--------------------------------------------------------------------------
-function Y_Callback(hObject, eventdata, handles)
-handles  = reset_Callback(hObject, eventdata, handles);
+function ok = Y_Callback(hObject, eventdata, handles)
+handles = reset_Callback(hObject, eventdata, handles);
 try
-    handles.DCM = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
+    handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
     spm_dcm_erp_results(handles.DCM,'Data');
     set(handles.dt, 'String',sprintf('bins: %.1fms',handles.DCM.xY.dt*1000))
     set(handles.dt, 'Visible','on')
+    ok = 1;
 catch
-    warndlg('please specify data and trials');
+    errordlg('please ensure trial selection and data are consistent');
+    ok = 0;
 end
 guidata(hObject,handles);
-
+ 
+ 
+ 
 % --- Executes on button press in Uname.
 %--------------------------------------------------------------------------
-function Uname_Callback(hObject, eventdata, handles)
+function  Uname_Callback(hObject, eventdata, handles)
+handles = reset_Callback(hObject, eventdata, handles);
 try
-    m = length(handles.DCM.options.trials);
+    m   = length(handles.DCM.options.trials);
 catch
     warndlg('please select trials')
     handles = Xdefault(hObject,handles,1);
@@ -379,19 +384,22 @@ end
 set(handles.Uname,'string',Uname)
 handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
-
+ 
+ 
+ 
 % --- Executes on button press in design.
 %--------------------------------------------------------------------------
 function design_Callback(hObject, eventdata, handles)
+handles = reset_Callback(hObject, eventdata, handles);
 try
-    m  = length(handles.DCM.options.trials);
+    m   = length(handles.DCM.options.trials);
 catch
     handles = Xdefault(hObject,handles,1);
     warndlg('please select trials')
     return
 end
 try
-    X  = str2num(get(handles.design,'String'))';
+    X = str2num(get(handles.design,'String'))';
     handles.DCM.xU.X = X(1:m,:);
     set(handles.design, 'String',num2str(handles.DCM.xU.X','%7.2f'));
 catch
@@ -409,111 +417,21 @@ end
 set(handles.Uname,'string',Uname)
 handles.DCM.xU.name = Uname;
 guidata(hObject,handles);
-
-
-% Spatial model specification
-%==========================================================================
-function handles = spatial_ok_Callback(hObject, eventdata, handles)
-handles = reset_Callback(hObject, eventdata, handles);
-
-% spatial model - source names
-%--------------------------------------------------------------------------
-Sname     = cellstr(get(handles.Sname,'String'));
-Nareas    = length(Sname);
-Nmodes    = get(handles.Nmodes,'Value');
-
-
-% switch for spatial forward model (for EEG or MEG)
-%--------------------------------------------------------------------------
-DCM       = handles.DCM;
-DCM.Sname = Sname;
-DCM.options.type = get(handles.Spatial_type,'Value');
-switch DCM.xY.modality
-    
-    case {'EEG','MEG'}
-
-        % read location coordinates
-        %------------------------------------------------------------------
-        Slocation = zeros(Nareas, 3);
-        tmp       = get(handles.Slocation, 'String');
-        if ~isempty(tmp) & size(tmp,1) == Nareas
-            for i = 1:Nareas
-                tmp2 = str2num(tmp(i, :));
-                if length(tmp2) ~= 3
-                    errordlg(sprintf('coordinates of area %d not valid',i));
-                    return;
-                else
-                    Slocation(i, :) = tmp2;
-                end
-            end
-            if size(Slocation, 1) ~= Nareas
-                errordlg('Number of source names and locations must correspond');
-                return;
-            end
-        else
-            errordlg(sprintf('Please specify %d source locations.', Nareas));
-            return
-        end
-
-        % set prior expectations about locations
-        %------------------------------------------------------------------
-        DCM.Lpos = Slocation';              
-
-    case{'LFP'}
-        
-        % for LFP
-        %------------------------------------------------------------------
-        if length(DCM.xY.Ic) ~= Nareas
-            errordlg('Number of source names and channels must correspond');
-            return;
-        end
-        DCM.Lpos = zeros(3,0);
-        set(handles.Slocation, 'String', '');    
-     
-    otherwise
-        warndlg('Unknown data modality')
-        return
-        
-
-end
-
-handles.DCM = DCM;
-set(handles.Spatial_type,     'Enable', 'off');
-set(handles.spatial_ok,       'Enable', 'off');
-set(handles.onset,            'Enable', 'off');
-set(handles.Sname,            'Enable', 'off');
-set(handles.Slocation,        'Enable', 'off');
-set(handles.spatial_back,     'Enable', 'off');
-
-set(handles.con_reset,        'Enable', 'on');
-set(handles.connectivity_back,'Enable', 'on');
-set(handles.Hz1,              'Enable', 'on');
-set(handles.Hz2,              'Enable', 'on');
-set(handles.Rft,              'Enable', 'on');
-
-
-% [re]-set connections
-%--------------------------------------------------------------------------
-handles = connections_Callback(hObject, eventdata, handles);
-guidata(hObject,handles);
-
-% --- Executes on button press in pos.
-%--------------------------------------------------------------------------
-function pos_Callback(hObject, eventdata, handles)
-[f,p]     = uigetfile('*.mat','source (n x 3) location file');
-Slocation = load(fullfile(p,f));
-name      = fieldnames(Slocation);
-Slocation = getfield(Slocation, name{1});
-set(handles.Slocation,'String',num2str(Slocation,'%4.0f'));
-
-
+ 
+ 
+ 
 %-Executes on button press in data_ok.
 %--------------------------------------------------------------------------
 function handles = data_ok_Callback(hObject, eventdata, handles)
-handles      = reset_Callback(hObject, eventdata, handles);
-handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
-
-
+ 
+%-assemble and display trials.
+%--------------------------------------------------------------------------
+if ~Y_Callback(hObject, eventdata, handles), return, end
+ 
+%-check trial-specific effects
+%--------------------------------------------------------------------------
+design_Callback(hObject, eventdata, handles)
+ 
 % enable next stage, disable data specification
 %--------------------------------------------------------------------------
 set(handles.Y1,            'Enable', 'off');
@@ -525,37 +443,125 @@ set(handles.D,             'Enable', 'off');
 set(handles.design,        'Enable', 'off');
 set(handles.Uname,         'Enable', 'off');
 set(handles.data_ok,       'Enable', 'off');
-
-set(handles.Spatial_type,  'Enable', 'on');
+ 
+set(handles.Spatial,       'Enable', 'on');
 set(handles.plot_dipoles,  'Enable', 'on');
 set(handles.onset,         'Enable', 'on');
 set(handles.Sname,         'Enable', 'on');
 set(handles.Slocation,     'Enable', 'on');
 set(handles.spatial_back,  'Enable', 'on');
 set(handles.spatial_ok,    'Enable', 'on');
-
-% assume source and channel names are the same for LPF data
-%--------------------------------------------------------------------------
-if strcmp(handles.DCM.xY.modality,'LFP')
-    Sname = handles.DCM.xY.name;
-    set(handles.Sname,'String',Sname)
-    handles.DCM.Sname = Sname;
-end
-
+ 
 guidata(hObject, handles);
-
-
+ 
+% spatial model specification
+%==========================================================================
+function handles = spatial_ok_Callback(hObject, eventdata, handles)
+handles = reset_Callback(hObject, eventdata, handles);
+ 
+% spatial model - source names
+%--------------------------------------------------------------------------
+Sname     = cellstr(get(handles.Sname,'String'));
+Nareas    = length(Sname);
+Nmodes    = get(handles.Nmodes,'Value');
+Nchannels = length(handles.DCM.xY.Ic);
+ 
+ 
+% switch for spatial forward model (for EEG or MEG)
+%--------------------------------------------------------------------------
+DCM       = handles.DCM;
+DCM.Sname = Sname;
+switch DCM.options.spatial
+    
+    case {'ECD','IMG'}
+ 
+        % read location coordinates
+        %------------------------------------------------------------------
+        Slocation = zeros(Nareas, 3);
+        tmp       = get(handles.Slocation, 'String');
+        if ~isempty(tmp) & size(tmp,1) == Nareas
+            for i = 1:Nareas
+                tmp2 = str2num(tmp(i, :));
+                if length(tmp2) ~= 3
+                    errordlg(sprintf('coordinates of source %d invalid',i));
+                    return;
+                else
+                    Slocation(i, :) = tmp2;
+                end
+            end
+            if size(Slocation, 1) ~= Nareas
+                errordlg('Number of sources and locations must correspond');
+                return;
+            end
+        else
+            errordlg(sprintf('Please specify %d source locations.', Nareas));
+            return
+        end
+ 
+        % set prior expectations on locations
+        %------------------------------------------------------------------
+        DCM.Lpos = Slocation';
+        
+        % forward model (spatial)
+        %--------------------------------------------------------------------------
+        DCM = spm_dcm_erp_dipfit(DCM);
+        set(handles.plot_dipoles,'enable','on')
+ 
+    case{'LFP'}
+        
+        % for LFP
+        %------------------------------------------------------------------
+        DCM.Lpos = zeros(3,0);
+        set(handles.Slocation, 'String', {'assuming LFP in'; Sname{1:Nchannels}});  
+        set(handles.plot_dipoles,'enable','off')
+     
+    otherwise
+        warndlg('Unknown data modality')
+        return
+        
+end
+ 
+handles.DCM = DCM;
+set(handles.Spatial,          'Enable', 'off');
+set(handles.spatial_ok,       'Enable', 'off');
+set(handles.onset,            'Enable', 'off');
+set(handles.Sname,            'Enable', 'off');
+set(handles.Slocation,        'Enable', 'off');
+set(handles.spatial_back,     'Enable', 'off');
+ 
+set(handles.con_reset,        'Enable', 'on');
+set(handles.connectivity_back,'Enable', 'on');
+set(handles.Hz1,              'Enable', 'on');
+set(handles.Hz2,              'Enable', 'on');
+set(handles.Rft,              'Enable', 'on');
+ 
+ 
+% [re]-set connections
+%--------------------------------------------------------------------------
+handles = connections_Callback(hObject, eventdata, handles);
+guidata(hObject,handles);
+ 
+% --- Executes on button press in pos.
+%--------------------------------------------------------------------------
+function pos_Callback(hObject, eventdata, handles)
+[f,p]     = uigetfile('*.mat','source (n x 3) location file');
+Slocation = load(fullfile(p,f));
+name      = fieldnames(Slocation);
+Slocation = getfield(Slocation, name{1});
+set(handles.Slocation,'String',num2str(Slocation,'%4.0f'));
+ 
+ 
 % --- Executes on button press in spatial_back.
 %----------------------------------------------------------------------
 function spatial_back_Callback(hObject, eventdata, handles)
-
-set(handles.Spatial_type, 'Enable', 'off');
+ 
+set(handles.Spatial,      'Enable', 'off');
 set(handles.spatial_ok,   'Enable', 'off');
 set(handles.onset,        'Enable', 'off');
 set(handles.Sname,        'Enable', 'off');
 set(handles.Slocation,    'Enable', 'off');
 set(handles.spatial_back, 'Enable', 'off');
-
+ 
 set(handles.Y,            'Enable', 'on');
 set(handles.Y1,           'Enable', 'on');
 set(handles.T1,           'Enable', 'on');
@@ -566,15 +572,15 @@ set(handles.D,            'Enable', 'on');
 set(handles.design,       'Enable', 'on');
 set(handles.Uname,        'Enable', 'on');
 set(handles.data_ok,      'Enable', 'on');
-
+ 
 guidata(hObject, handles);
-
+ 
 % --- Executes on button press in plot_dipoles.
 %--------------------------------------------------------------------------
 function plot_dipoles_Callback(hObject, eventdata, handles)
-
+ 
 % read location coordinates
-tmp = get(handles.Slocation, 'String');
+tmp       = get(handles.Slocation, 'String');
 Slocation = [];
 if ~isempty(tmp) 
     for i = 1:size(tmp, 1)
@@ -584,7 +590,7 @@ if ~isempty(tmp)
         end
     end
 end
-
+ 
 Nlocations   = size(Slocation, 2);
 sdip.n_seeds = 1;
 sdip.n_dip   = Nlocations;
@@ -592,10 +598,10 @@ sdip.Mtb     = 1;
 sdip.j{1}    = zeros(3*Nlocations, 1);
 sdip.loc{1}  = Slocation;
 spm_eeg_inv_ecd_DrawDip('Init', sdip)
-
+ 
 %-Connectivity
 %==========================================================================
-
+ 
 % Draw buttons
 %--------------------------------------------------------------------------
 function handles = connections_Callback(hObject, eventdata, handles)
@@ -604,7 +610,7 @@ DCM     = handles.DCM;
 n       = length(DCM.Sname);           % number of sources
 m       = size(DCM.xU.X,2);            % number of experimental inputs
 l       = length(DCM.options.onset);   % number of peristimulus inputs
-
+ 
 % remove previous objects
 %--------------------------------------------------------------------------
 h = get(handles.SPM,'Children');
@@ -613,12 +619,12 @@ for i = 1:length(h)
         delete(h(i));
     end
 end
-
-
+ 
+ 
 % no changes in coupling
 %--------------------------------------------------------------------------
 if ~m, B = {}; DCM.B = {}; end
-
+ 
 % check DCM.A, DCM.B, ...
 %--------------------------------------------------------------------------
 try, if length(DCM.A{1}) ~= n, DCM = rmfield(DCM,'A'); end, end
@@ -626,7 +632,7 @@ try, if length(DCM.B{1}) ~= n, DCM = rmfield(DCM,'B'); end, end
 try, if length(DCM.B)    ~= m, DCM = rmfield(DCM,'B'); end, end
 try, if size(DCM.C,1)    ~= n, DCM = rmfield(DCM,'C'); end, end
 try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
-
+ 
 % connection buttons
 %--------------------------------------------------------------------------
 set(handles.con_reset,'Units','Normalized')
@@ -657,7 +663,7 @@ for i = 1:n
             
             % allow nonlinear self-connections (induced responses)
             %--------------------------------------------------------------
-            if get(handles.ERP,'value') == 6 && k == 2
+            if get(handles.ERP,'value') == 3 && k == 2
                 set(A{k}(i,j),'Enable','on')
             end
             try
@@ -710,13 +716,16 @@ for i = 1:n
         end
     end
 end
-
+ 
 % string labels
 %--------------------------------------------------------------------------
-if get(handles.ERP,'Value') ~= 6
-    constr = {'A forward' 'A backward' 'A lateral' 'C input'};
-else
-    constr = {'A linear' 'A nonlinear' '(not used)' 'C input'};
+switch DCM.options.model
+    case{'NMM','MFM'}
+        constr = {'Excit.' 'Inhib.' 'Mixed' 'input'};
+    case{'IND'}
+        constr = {'linear' 'nonlinear' '(not used)' 'input'};
+    otherwise
+        constr = {'forward' 'backward' 'lateral' 'input'};
 end
 nsx            = (n + 1)*sx;
 nsy            = 2*sy;
@@ -752,16 +761,16 @@ handles.A   = A;
 handles.B   = B;
 handles.C   = C;
 handles.DCM = DCM;
-
+ 
 set(handles.estimate,   'Enable','on');
 set(handles.initialise, 'Enable','on');
-
+ 
 guidata(hObject,handles)
-
+ 
 % remove existing buttons and set DCM.A,.. to zero
 %--------------------------------------------------------------------------
 function con_reset_Callback(hObject, eventdata, handles)
-
+ 
 h = get(handles.SPM,'Children');
 for i = 1:length(h)
     if strcmp(get(h(i),'Tag'),'tmp')
@@ -779,24 +788,24 @@ try
 end
 handles = connections_Callback(hObject, eventdata, handles);
 guidata(hObject,handles)
-
+ 
 % --- Executes on button press in connectivity_back.
 %--------------------------------------------------------------------------
 function connectivity_back_Callback(hObject, eventdata, handles)
-
+ 
 set(handles.con_reset,         'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
 set(handles.Hz1,               'Enable', 'off');
 set(handles.Hz2,               'Enable', 'off');
 set(handles.Rft,               'Enable', 'off');
-
-set(handles.Spatial_type,      'Enable', 'on');
+ 
+set(handles.Spatial,           'Enable', 'on');
 set(handles.spatial_ok,        'Enable', 'on');
 set(handles.onset,             'Enable', 'on');
 set(handles.Sname,             'Enable', 'on');
 set(handles.Slocation,         'Enable', 'on');
 set(handles.spatial_back,      'Enable', 'on');
-
+ 
 % connection buttons
 %--------------------------------------------------------------------------
 try
@@ -818,16 +827,16 @@ try
         set(handles.C(i), 'Enable', 'off');
     end
 end
-
-%-Estimate, initalise and review
+ 
+%-Estimate, initialise and review
 %==========================================================================
-
+ 
 % --- Executes on button press in estimate.
 % -------------------------------------------------------------------------
 function varargout = estimate_Callback(hObject, eventdata, handles, varargin)
 set(handles.estimate,'String','Estimating','Foregroundcolor',[1 0 0])
 handles = reset_Callback(hObject, eventdata, handles);
-
+ 
 % initialise if required
 % -------------------------------------------------------------------------
 try
@@ -841,99 +850,98 @@ try
         return
     end
 end
-
+ 
 % invert and save
 %--------------------------------------------------------------------------
-switch handles.DCM.options.model
-
+switch handles.DCM.options.analysis
+ 
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
-    case{'ERP','SEP','NMM','MFM'}
+    case{'ERP'}
         handles.DCM = spm_dcm_erp(handles.DCM);
-
-    % Cross-spectral density model (steady-state responses)
+ 
+    % cross-spectral density model (steady-state responses)
     %----------------------------------------------------------------------
     case{'SSR'}
         handles.DCM = spm_dcm_ssr(handles.DCM);
-
-    % Induced responses
+ 
+    % induced responses
     %----------------------------------------------------------------------
     case{'IND'}
         handles.DCM = spm_dcm_ind(handles.DCM);
-
+ 
     otherwise
-        warndlg('unknown model type')
+        warndlg('unknown analysis type')
         return
 end
-
-handles = ERP_Callback(hObject, eventdata, handles);
-
+ 
 set(handles.results,    'Enable','on' )
 set(handles.save,       'Enable','on')
 set(handles.estimate,   'String','Estimated','Foregroundcolor',[0 0 0])
-if get(handles.Spatial_type,'Value') == 2
+if get(handles.Spatial, 'Value') == 1
     set(handles.render, 'Enable','on' )
     set(handles.Imaging,'Enable','on' )
 end
-
+ 
 guidata(hObject, handles);
-
-
+ 
+ 
 % --- Executes on button press in results.
 % -------------------------------------------------------------------------
 function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
-
-switch handles.DCM.options.model
-
+ 
+switch handles.DCM.options.analysis
+ 
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
-    case{'ERP','SEP','NMM','MFM'}
+    case{'ERP'}
         spm_dcm_erp_results(handles.DCM, Action);
-
+ 
     % Cross-spectral density model (steady-state responses)
     %----------------------------------------------------------------------
     case{'SSR'}
         spm_dcm_ssr_results(handles.DCM, Action);
-
+ 
     % Induced responses
     %----------------------------------------------------------------------
     case{'IND'}
         spm_dcm_ind_results(handles.DCM, Action);
-
+ 
     otherwise
-        warndlg('unknown model type')
+        warndlg('unknown analysis type')
         return
 end
-
-
+ 
+ 
 % --- Executes on button press in initialise.
 % -------------------------------------------------------------------------
 function initialise_Callback(hObject, eventdata, handles)
-
+ 
 [f,p]           = uigetfile('DCM*.mat','please select estimated DCM');
 DCM             = load(fullfile(p,f), '-mat');
 handles.DCM.M.P = DCM.DCM.Ep;
 guidata(hObject, handles);
-
+ 
 % --- Executes on button press in render.
 % -------------------------------------------------------------------------
 function render_Callback(hObject, eventdata, handles)
-
+ 
 spm_eeg_inv_visu3D_api(handles.DCM.xY.Dfile)
-
+ 
 % --- Executes on button press in Imaging.
 % -------------------------------------------------------------------------
 function Imaging_Callback(hObject, eventdata, handles)
-
+ 
 spm_eeg_inv_imag_api(handles.DCM.xY.Dfile)
-
-
+ 
+ 
+% default design matrix
 %==========================================================================
 function handles = Xdefault(hObject,handles,m)
-% default design matix
 % m - number of trials
+ 
 X       = eye(m);
 X(:,1)  = [];
 name    = {};
@@ -945,24 +953,26 @@ handles.DCM.xU.name = name;
 set(handles.design,'String',num2str(handles.DCM.xU.X','%7.2f'));
 set(handles.Uname, 'String',handles.DCM.xU.name);
 return
-
+ 
+ 
 % --- Executes on button press in BMC.
 %--------------------------------------------------------------------------
 function BMC_Callback(hObject, eventdata, handles)
 spm_api_bmc
-
+ 
+ 
 % --- Executes on selection change in ERP.
 %--------------------------------------------------------------------------
 function handles = ERP_Callback(hObject, eventdata, handles)
-
-% get model type
+ 
+% get analysis type
 %--------------------------------------------------------------------------
 handles = reset_Callback(hObject, eventdata, handles);
-switch handles.DCM.options.model
-
+switch handles.DCM.options.analysis
+ 
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
-    case{'ERP','SEP','NMM','MFM'}
+    case{'ERP'}
         Action = {
             'ERPs (mode)',
             'ERPs (sources)',
@@ -973,16 +983,17 @@ switch handles.DCM.options.model
             'Input',
             'Response',
             'Response (image)',
-            'Dipoles',
-            'Spatial overview'};
+            'Dipoles'};
         try
             set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
         catch
             set(handles.Nmodes, 'Value', 8);
         end
-        set(handles.Spatial_type, 'String', {'ECD','Imaging'});
-        set(handles.Wavelet,      'Enable','off','String','-');
-
+        set(handles.model,      'Enable','on');
+        set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
+        set(handles.Wavelet,    'Enable','off','String','-');
+        set(handles.loop,       'Enable','on');
+ 
     % Cross-spectral density model (steady-state responses)
     %----------------------------------------------------------------------
     case{'SSR'}
@@ -996,15 +1007,17 @@ switch handles.DCM.options.model
             'Cross-spectral density',
             'Dipoles'};
         try
-            set(handles.Nmodes,   'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes,   'Value', 4);
+            set(handles.Nmodes, 'Value', 4);
         end
-        set(handles.Spatial_type, 'Value', 1);
-        set(handles.Spatial_type, 'String', {'ECD'});
-        set(handles.Wavelet,      'Enable','on','String','Spectral density');
-
-    % Induced responses
+        set(handles.model,      'Enable','on');
+        set(handles.Spatial,    'Value', 1);
+        set(handles.Spatial,    'String',{'ECD','LFP'});
+        set(handles.Wavelet,    'Enable','on','String','Spectral density');
+        set(handles.loop,       'Enable','off');
+        
+    % induced responses
     %----------------------------------------------------------------------
     case{'IND'}
         Action = {
@@ -1019,58 +1032,61 @@ switch handles.DCM.options.model
             'Input (u - ms)'
             'Dipoles'};
         try
-            set(handles.Nmodes,   'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes,   'Value', 4);
+            set(handles.Nmodes, 'Value', 4);
         end
-        set(handles.Spatial_type, 'Value', 1);
-        set(handles.Spatial_type, 'String', {'ECD'});
-        set(handles.Wavelet,      'Enable','on','String','Wavelet transform');
-
+        set(handles.model,      'Enable','off');
+        set(handles.Spatial,    'Value', 1);
+        set(handles.Spatial,    'String',{'ECD','LFP'});
+        set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
+        set(handles.loop,       'Enable','off');
+        set(handles.render,     'Enable','off' )
+        set(handles.Imaging,    'Enable','off' )
+ 
     otherwise
-        warndlg('unknown model type')
+        warndlg('unknown analysis type')
         return
 end
-
+ 
 set(handles.results,'Value',1);
 set(handles.results,'String',Action);
 handles = reset_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
-
+ 
+ 
+ 
 % --- Executes on button press in Wavelet.
 function Wavelet_Callback(hObject, eventdata, handles)
-
+ 
 % get transform
 %--------------------------------------------------------------------------
-handles     = reset_Callback(hObject, eventdata, handles);
-
-switch handles.DCM.options.model
-
+handles = reset_Callback(hObject, eventdata, handles);
+ 
+switch handles.DCM.options.analysis
+ 
     case{'SSR'}
         
-        % cross-spectral density (if DCM.M.U (eigenspace) exists
+        % cross-spectral density (if DCM.M.U (eigen-space) exists
         %------------------------------------------------------------------
         try
             handles.DCM = spm_dcm_ssr_data(handles.DCM);
         end
-
+ 
         % and display
         %------------------------------------------------------------------
         spm_dcm_ssr_results(handles.DCM,'Data');
-
-
+ 
+ 
     case{'IND'}
         
         % wavelet tranform
         %------------------------------------------------------------------
         handles.DCM = spm_dcm_ind_data(handles.DCM);
-
+ 
         % and display
         %------------------------------------------------------------------
         spm_dcm_ind_results(handles.DCM,'Wavelet');
-
+ 
 end
 guidata(hObject,handles);
-
-
-

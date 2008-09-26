@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_dcm_ind_data.m 2208 2008-09-26 18:57:39Z karl $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -216,6 +216,7 @@ end
 
 % parameterised lead field ECD given positions (or LFP data)
 %--------------------------------------------------------------------------
+clear spm_erp_L
 switch DCM.xY.modality
 
     case{'EEG', 'MEG'}

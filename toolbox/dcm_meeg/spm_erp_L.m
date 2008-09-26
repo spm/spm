@@ -11,45 +11,40 @@ function [L] = spm_erp_L(P,M)
 % models P.Lpos and P.L encode the position and moments of the ECD. The
 % field M.dipfit.type:
 %
-%    'ECD'
-%    'Imaging'
-%    'LFP'
+%    'ECD', 'LFP' or 'IMG'
 %
 % determines whether the model is ECD or not. For imaging reconstructions
 % the paramters P.L are a (m x n) matrix of coefficients that scale the
 % contrition of n sources to m = M.dipfit.Nm modes encoded in M.dipfit.G.
 %
-% For LFP models (the default) P.L (1 x n) vector simply encodes the
-% electrode gain for each of n sources.
+% For LFP models (the default) P.L simply encodes the electrode gain for 
+% each source contributing a LFP.
 %
 % see; Kiebel et al. (2006) NeuroImage
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 1580 2008-05-08 15:08:46Z vladimir $
+% $Id: spm_erp_L.m 2208 2008-09-26 18:57:39Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
 persistent LastLpos LastL
 
-% output
-%==========================================================================
-
-% number of sources - n
-%--------------------------------------------------------------------------
-n  = size(P.L,2);
 
 % type of spatial model and modality
-%--------------------------------------------------------------------------
-try, type     = M.dipfit.type;     catch, type     = 'LFP'; end
-try, modality = M.dipfit.modality; catch, modality = 'LFP'; end
+%==========================================================================
+try,   type = M.dipfit.type;  catch, type = 'LFP'; end
 
 switch type
 
     % parameterised lead field - ECD
     %----------------------------------------------------------------------
     case{'ECD'}
+        
+        % number of sources - n
+        %------------------------------------------------------------------
+        n  = size(P.L,2);
 
         % re-compute lead field only if any dipoles changed
         %----------------------------------------------------------
@@ -62,19 +57,22 @@ switch type
         % record new spatial parameters
         %----------------------------------------------------------
         LastLpos = P.Lpos;
-
-        for i = Id
+        for i  = Id
             Lf = forwinv_compute_leadfield(transform_points(M.dipfit.datareg.fromMNI, P.Lpos(:,i)'), M.dipfit.sens, M.dipfit.vol);
             LastL(:,:,i) = Lf;
         end
-        G    = spm_cond_units(LastL);
+        G     = spm_cond_units(LastL);
         for i = 1:n
             L(:,i) = G(:,:,i)*P.L(:,i);
         end
               
-        % Imaging solution {specified in M.dipfit.G}
-        %----------------------------------------------------------------------
-    case{'Imaging'}
+    % Imaging solution {specified in M.dipfit.G}
+    %----------------------------------------------------------------------
+    case{'IMG'}
+        
+        % number of sources - n
+        %------------------------------------------------------------------
+        n  = size(P.L,2);
 
         % re-compute lead field only if any coeficients have changed
         %------------------------------------------------------------------
@@ -92,21 +90,20 @@ switch type
         LastLpos = P.L;
         L        = LastL;
 
-        % LFP or sources - no lead field required
-        %----------------------------------------------------------------------
+    % LFP electrode gain
+    %----------------------------------------------------------------------
     case{'LFP'}
-
-        L = sparse(diag(P.L));
+        
+        n = M.dipfit.Ns;
+        m = length(P.L);
+        L = sparse(1:m,1:m,P.L,m,n);
 
     otherwise
-        warndlg('unknown type of model')
+        warndlg('unknown spatial model')
 end
 
-% ----------------------------------------------------------------
-
-
+% -------------------------------------------------------------------------
 function new = transform_points(M, old)
-
 old(:,4) = 1;
 new = old * M';
 new = new(:,1:3);

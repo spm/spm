@@ -28,7 +28,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_dcm_erp_results.m 2208 2008-09-26 18:57:39Z karl $
 
 
 % get figure handle
@@ -106,9 +106,7 @@ end
 nu  = length(DCM.B);          % Nr inputs
 nc  = size(DCM.H{1},2);       % Nr modes
 ns  = size(DCM.A{1},2);       % Nr of sources
-np  = size(DCM.K{1},2);       % Nr of population per source
-np  = np/ns;
-
+np  = size(DCM.K{1},2)/ns;    % Nr of population per source
 
 % switch
 %--------------------------------------------------------------------------
@@ -449,32 +447,35 @@ case{lower('Dipoles')}
     
     % return if LFP
     % ---------------------------------------------------------------------
-    if strcmp(lower(DCM.xY.modality),'lfp')
+    if strcmpi(DCM.xY.modality,'lfp')
         warndlg('There are no ECDs for these LFP data')
         return
     end
     
     % plot dipoles
     % ---------------------------------------------------------------------
-    try
-        P            = DCM.Eg;
-        P.L          = spm_cat(P.L);
-        np           = size(P.L,2)/size(P.Lpos,2);
-        sdip.n_seeds = 1;
-        sdip.n_dip   = np*ns;
-        sdip.Mtb     = 1;
-        sdip.j{1}    = full(P.L);
-        sdip.j{1}    = sdip.j{1}(:);
-        sdip.loc{1}  = kron(ones(1,np),full(P.Lpos));
-        spm_eeg_inv_ecd_DrawDip('Init', sdip)
-        
-    catch
-        warndlg('use the render API button to view results')
-        return
+    switch DCM.options.spatial
+
+        case{'ECD'}
+            P            = DCM.Eg;
+            P.L          = spm_cat(P.L);
+            np           = size(P.L,2)/size(P.Lpos,2);
+            sdip.n_seeds = 1;
+            sdip.n_dip   = np*ns;
+            sdip.Mtb     = 1;
+            sdip.j{1}    = full(P.L);
+            sdip.j{1}    = sdip.j{1}(:);
+            sdip.loc{1}  = kron(ones(1,np),full(P.Lpos));
+            spm_eeg_inv_ecd_DrawDip('Init', sdip)
+
+        case{'LFP'}
+            warndlg('This is a LFP spatial model')
+
+        case{'IMG'}
+            warndlg('use the render API button to see reconstruction')
+
+        otherwise
+            return
     end
     
-case{lower('Spatial overview')}
-    try
-        spm_dcm_erp_viewspatial(DCM)
-    end
 end

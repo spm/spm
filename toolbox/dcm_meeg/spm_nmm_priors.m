@@ -11,11 +11,11 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 %
 % spatial parameters
 %--------------------------------------------------------------------------
-%    gE.Lpos - position                   - ECD
+%    gE.Lpos - position                    - ECD
 %    gE.L    - orientation
 %
-% or gE.L    - coefficients of local modes - Imaging
-%    gE.L    - gain of electrodes         - LFP
+% or gE.L    - coefficients of local modes - IMG
+%    gE.L    - gain of electrodes          - LFP
 %
 % source contribution to ECD
 %--------------------------------------------------------------------------
@@ -35,6 +35,7 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 % stimulus and noise parameters
 %--------------------------------------------------------------------------
 %    pE.R    - onset and dispersion
+%    pE.D    - delays
 %
 % pC - prior covariances: cov(spm_vec(pE))
 %
@@ -51,7 +52,7 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_nmm_priors.m 2208 2008-09-26 18:57:39Z karl $
  
  
 % disable log zero warning
@@ -69,10 +70,10 @@ catch
     [G,U] = spm_L_priors(n);
 end
 
-% contribution of states to ECD (first 3 populations)
+% contribution of states to ECD; first (voltage) states over 3 populations
 %--------------------------------------------------------------------------
-G.J   = [0.1 0.1 1];
-U     = spm_cat(diag({U, diag([1/128 1/512 0])}));
+G.J   = sparse(1,[1,2,3],[0.1 0.1 1],1,9);
+U     = spm_cat(diag({ U, sparse([1,2],[1,2],[1/128 1/512],9,9) }));
  
 
 
@@ -112,6 +113,12 @@ V.C   = C;
 % set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
 E.R   = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
+
+% and delays (intrinsic and extrinsic)
+%--------------------------------------------------------------------------
+E.D   = [0 0];        V.D  = [1 1]/128;
+
+
 warning('on','MATLAB:log:logOfZero');
  
  

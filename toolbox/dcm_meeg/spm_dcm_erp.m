@@ -19,18 +19,19 @@ function DCM = spm_dcm_erp(DCM)
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.Nmodes       - number of spatial models to invert
-%   options.model        - 'ERP', 'SEP' or 'NMM'
+%   options.analysis     - 'ERP', 'SSR' or 'IND'
+%   options.model        - 'ERP', 'SEP', NMM or 'MFM'
+%   options.spatial      - 'ERP', 'LFP' or 'IMG'
 %   options.onset        - stimulus onset (ms)
-%   options.type         - 'ECD' or 'Imaging'
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 2090 2008-09-12 19:22:42Z karl $
+% $Id: spm_dcm_erp.m 2208 2008-09-26 18:57:39Z karl $
  
 % check options 
 %==========================================================================
-clear spm_erp_L
+clear spm_erp_L spm_gen_erp
  
 % Filename and options
 %--------------------------------------------------------------------------
@@ -38,8 +39,9 @@ try, DCM.name;                   catch, DCM.name  = 'DCM_ERP'; end
 try, h     = DCM.options.h;      catch, h         = 1;         end
 try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;         end
 try, onset = DCM.options.onset;  catch, onset     = 60;        end
-try, model = DCM.options.model;  catch, model     = 'ERP';     end
+try, model = DCM.options.model;  catch, model     = 'NMM';     end
 try, lock  = DCM.options.lock;   catch, lock      = 0;         end
+try, loop  = DCM.options.loop;   catch, loop      = 0;         end
  
  
  
@@ -50,6 +52,7 @@ DCM    = spm_dcm_erp_dipfit(DCM);
 xY     = DCM.xY;
 xU     = DCM.xU;
 M      = DCM.M;
+M.loop = loop;
  
 % dimensions
 %--------------------------------------------------------------------------
@@ -66,11 +69,10 @@ Nm     = max(Nm,Nr);
  
 % confounds - DCT: (force a parameter per channel = activity under x = 0)
 %--------------------------------------------------------------------------
-% X0     = spm_dctmtx(Ns,1);
 if h == 0
     X0 = zeros(Ns, h);
 else
-    X0     = spm_dctmtx(Ns, h);
+    X0 = spm_dctmtx(Ns, h);
 end
 T0     = speye(Ns) - X0*inv(X0'*X0)*X0';
 xY.X0  = X0;
@@ -120,20 +122,6 @@ switch lower(model)
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_erp';
  
-   % linear David et al model (linear in states), can employ symmetrypriors
-   %=======================================================================
-    case{'erpsymm'}
- 
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_erpsymm_priors(DCM.A,DCM.B,DCM.C,M.dipfit,M.pC,M.gC);
- 
-        % inital states and equations of motion
-        %-------------------------------------------------------------------
-        M.x  =  spm_x_erp(pE);
-        M.f  = 'spm_fx_erp';
-        M.G  = 'spm_lx_erp';
- 
  
     % linear David et al model (linear in states) - fast version for SEPs
     %======================================================================
@@ -145,7 +133,7 @@ switch lower(model)
  
         % inital states
         %------------------------------------------------------------------
-        M.x  = spm_x_erp(pE);
+        M.x  =  spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
         M.G  = 'spm_lx_sep';
         
@@ -231,7 +219,6 @@ if ~isfield(M, 'E')
     try
         U = U(:,1:Nm);
     end
-    
     M.E   = U;
 else
     U = M.E;
@@ -255,18 +242,22 @@ warning('on','SPM:negativeVariance');
 
 % expansion point for states
 %--------------------------------------------------------------------------
+x0  = ones(Ns,1)*spm_vec(M.x)';
 L   = feval(M.G, Qg,M);                 % get gain matrix
 x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
+
  
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
+j     = find(kron(gE.J,ones(1,Nr)));    % Indices of contributing states
 for i = 1:Nt
+    x{i}  = x{i} - x0;                  % centre on expansion point
     y{i}  = T0*x{i}*L'*M.E;             % prediction (sensor space)
     r{i}  = T0*(xY.y{i}*M.E - y{i});    % residuals  (sensor space)
-    x{i}  = x{i}(:,find(any(L)));       % sources contributing to y
+    x{i}  = x{i}(:,j);                  % Depolarization in sources
 end
  
- 
+
 % store estimates in DCM
 %--------------------------------------------------------------------------
 DCM.M  = M;                    % model specification
@@ -287,10 +278,11 @@ DCM.options.Nmodes = Nm;
 DCM.options.onset  = onset;
 DCM.options.model  = model;
 DCM.options.lock   = lock;
+DCM.options.loop   = loop;
  
 % store estimates in D
 %--------------------------------------------------------------------------
-if strcmp(M.dipfit.type,'Imaging')
+if strcmp(M.dipfit.type,'IMG')
     
     % Assess accuracy; signal to noise (over sources), SSE and log-evidence
     %----------------------------------------------------------------------
@@ -370,7 +362,7 @@ if strcmp(M.dipfit.type,'Imaging')
     
     D.inv{end + 1}      = D.inv{val};
     D.inv{end}.date     = date;
-    [pathstr,fname]     = fileparts(lo.DCM.name);
+    [pathstr,fname]     = fileparts(DCM.name);
     D.inv{end}.comment  = {fname};
     D.inv{end}.DCMfile  = DCM.name;
     D.inv{end}.inverse  = inverse;

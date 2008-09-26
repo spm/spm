@@ -4,11 +4,12 @@ function [pE,pC] = spm_L_priors(dipfit)
 %
 % dipfit    - forward model structure:
 %
-%    dipfit.type - 'ECD', 'Imaging' or 'LFP'
+%    dipfit.type - 'ECD', 'LFP' or 'IMG'
 %    dipfit.symm - distance (mm) for symmetry constraints (ECD)
 %    dipfit.Lpos - x,y,z source positions (mm)            (ECD)
-%    dipfit.Nm   - number of mode                         (Imaging)
-%    dipfit.Ns   - number of sources           
+%    dipfit.Nm   - number of modes                        (IMG)
+%    dipfit.Ns   - number of sources
+%    dipfit.Nc   - number of channels           
 %
 % pE - prior expectation
 % pC - prior covariance
@@ -28,29 +29,22 @@ function [pE,pC] = spm_L_priors(dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_L_priors.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_L_priors.m 2208 2008-09-26 18:57:39Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
 try, type = dipfit.type; catch, type = 'LFP'; end
-try, symm = dipfit.symm; catch, symm = 0;    end
+try, symm = dipfit.symm; catch, symm = 0;     end
 
 % number of sources
 %--------------------------------------------------------------------------
 try
-    n = size(dipfit.Lpos,2);
+    n = dipfit.Ns;
+    m = dipfit.Nc;
 catch
-    try
-        n = dipfit.Ns;
-    catch
-        try
-            n = dipfit;
-        catch
-            n = 1;
-        end
-    end
+    n = dipfit;
+    m = n;
 end
-
  
 % parameters for electromagnetic forward model
 %==========================================================================
@@ -61,7 +55,7 @@ switch type
         pE.Lpos = dipfit.Lpos;   Lpos = 0*eye(3*n);     % positions
         pE.L    = sparse(3,n);   L    =   eye(3*n);     % orientations
  
-    case{'Imaging'}
+    case{'IMG'}
         %------------------------------------------------------------------
         m       = dipfit.Nm;                            % number of modes
         pE.Lpos = sparse(3,0);   Lpos =   eye(0,0);     % positions
@@ -70,7 +64,7 @@ switch type
     case{'LFP'}
         %------------------------------------------------------------------
         pE.Lpos = sparse(3,0);   Lpos =   eye(0,0);     % positions
-        pE.L    = ones(1,n);     L    =   eye(n,n);     % gains
+        pE.L    = ones(1,m);     L    =   eye(m,m);     % gains
         
     otherwise
         warndlg('Unknown spatial model')

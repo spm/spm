@@ -45,7 +45,7 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 2208 2008-09-26 18:57:39Z karl $
 
 global st
 global defaults
@@ -296,6 +296,7 @@ for ii = 1:length(i_seed)
         Mn_j = max([Mn_j sqrt(sum(sdip.j{ii}(jj*3+l3,sdip.Mtb).^2))]);
     end
 end
+Mn_j = Mn_j + eps;
 st.vols{1}.sdip.tabl_seed_dip = tabl_seed_dip;
 
 % Display all dipoles, the 1st one + the ones close enough.

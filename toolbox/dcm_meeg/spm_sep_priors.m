@@ -57,7 +57,7 @@ function [varargout] = spm_sep_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sep_priors.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_sep_priors.m 2208 2008-09-26 18:57:39Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ for i = 1:3
             G.Lpos = dipfit.Lpos;    U.Lpos =      0*ones(3,n); % position
             G.L{i} = sparse(3,n);    U.L{i} = exp(8)*ones(3,n); % moments
  
-        case{'Imaging'}
+        case{'IMG'}
             %--------------------------------------------------------------
             m      = dipfit.Nm;
             G.L{i} = sparse(m,n);    U.L{i} = exp(8)*ones(m,n); % modes
@@ -168,7 +168,7 @@ else
             E.L     = G.L   ;
             C       = diag(sparse(spm_vec(V,U)));
  
-        case{'Imaging','LFP'}
+        case{'IMG','LFP'}
             %--------------------------------------------------------------
             E.L     = G.L;
             C       = diag(sparse(spm_vec(V,U)));

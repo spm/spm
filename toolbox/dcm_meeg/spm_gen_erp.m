@@ -6,18 +6,21 @@ function [y] = spm_gen_erp(P,M,U)
 % M - neural-mass model structure
 % U - trial-specific effects
 %
-% y - {[ns,nc],...} - predictions for nc channels {trials}
-%                   - for ns samples (time bins)
+% y - {[ns,nx],...} - predictions for nx states {trials}
+%                   - for ns samples
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_gen_erp.m 2208 2008-09-26 18:57:39Z karl $
 
 
 % within-trial inputs
 %==========================================================================
+persistent x
+try, M.loop; catch, M.loop = 0; end
+A   = 1/2;
 
 % check input u = f(t,P,M)
 %--------------------------------------------------------------------------
@@ -41,19 +44,19 @@ try, X = U.X; catch, X = sparse(1,0); end
 % cycle over trials
 %--------------------------------------------------------------------------
 for  c = 1:size(X,1)
-    
+
     % baseline parameters
     %----------------------------------------------------------------------
     Q  = P;
 
-    % trial-specific inputs
+    % trial-specific effects
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-        
+
         Q.A{1}  = Q.A{1} + X(c,i)*P.B{i};         % forward   connections
         Q.A{2}  = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
         Q.A{3}  = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
-        
+
         try
             Q.H = Q.H + X(c,i)*diag(P.B{i});      % intrinsic connections
         catch
@@ -61,9 +64,29 @@ for  c = 1:size(X,1)
         end
     end
 
+
     % integrate DCM for this trial
     %----------------------------------------------------------------------
-    y{c,1}     = spm_int_L(Q,M,U);
+    for i = 1:4
+
+        % trial-specific intial states
+        %------------------------------------------------------------------
+        try, M.x = x{c}; end
+
+        % integrate
+        %------------------------------------------------------------------
+        y{c,1}   = spm_int_L(Q,M,U);
+
+        % save the final state vector
+        %------------------------------------------------------------------
+        if M.loop
+            x{c} = A*spm_vec(y{c}(end,:)) + (1 - A)*spm_vec(M.x);
+            x{c} = spm_unvec(x{c},M.x);
+        else
+            x{c} = M.x; break
+        end
+
+    end
 
 end
 

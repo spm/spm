@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_data.m 1794 2008-06-05 16:17:39Z vladimir $
+% $Id: spm_dcm_ssr_data.m 2208 2008-09-26 18:57:39Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -34,6 +34,15 @@ try
     Dfile = DCM.xY.Dfile;
 catch
     errordlg('Please specify data and trials');
+    error('')
+end
+
+% ensure spatial modes have been computed (see spm_dcm_ssr)
+%-------------------------------------------------------------------------
+try
+    DCM.M.U;
+catch
+    errordlg('Please estimate this model first');
     error('')
 end
 
@@ -72,11 +81,10 @@ channels = D.chanlabels;
 if ~isfield(DCM.xY, 'Ic')
     Ic = strmatch(modality, D.chantype);
     Ic = setdiff(Ic, D.badchannels);
-    DCM.xY.Ic       = Ic;
+    DCM.xY.Ic = Ic;
 end
 
-Ic = DCM.xY.Ic;
-
+Ic        = DCM.xY.Ic;
 Nc        = length(Ic);
 Nm        = size(DCM.M.U,2);
 DCM.xY.Ic = Ic;
@@ -187,17 +195,16 @@ for i = 1:Ne;
         mar = spm_mar_spectra(mar,DCM.xY.Hz,1/DCM.xY.dt);
         P   = P + abs(mar.P);
     end
-       P   = P/Nt;
   
     % store
     %----------------------------------------------------------------------
-    DCM.xY.csd{i} = P;
+    DCM.xY.csd{i} = P/Nt;
    
     
 end
  
 % place cross-spectral density in xY.y
 %==========================================================================
-DCM.xY.y    =spm_cond_units(DCM.xY.csd); 
+DCM.xY.y    = spm_cond_units(DCM.xY.csd); 
 DCM.xY.U    = DCM.M.U;
 DCM.xY.code = condlabels(trial);

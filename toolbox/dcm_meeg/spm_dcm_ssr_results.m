@@ -27,7 +27,7 @@ function [DCM] = spm_dcm_ssr_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_results.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_dcm_ssr_results.m 2208 2008-09-26 18:57:39Z karl $
  
  
 % get figure handle
@@ -322,7 +322,7 @@ case{lower('Cross-spectral density')}
         end
     end
    
-    title('spectral density over modes')
+    title({'Spectral density over modes';'(in channel-space)'},'FontSize',16)
     xlabel('Frequency (Hz)')
     ylabel('root CSD')
     axis square

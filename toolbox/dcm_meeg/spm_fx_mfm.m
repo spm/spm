@@ -1,11 +1,11 @@
-function [f] = spm_fx_mfm(x,u,P,M)
+function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % state equations for neural-mass and mean-field models
-% FORMAT [f] = spm_fx_mfm(x,u,P,M)
+% FORMAT [f,J,Q] = spm_fx_mfm(x,u,P,M)
 %
 % x - states and covariances
 %
 % x{1}(i,j,k)   - k-th state of j-th population on i-th source
-% x{2}(i,j,k,l) - covariance of l-th and k-th state
+% x{2}(:,:,i,j) - covariance among k states
 %
 %   population: 1 - excitatory spiny stellate cells (input cells)
 %               2 - inhibitory interneurons
@@ -44,10 +44,11 @@ function [f] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_fx_mfm.m 2208 2008-09-26 18:57:39Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
+xin     = x;
 if iscell(x)
     mfm = 1;                                    % mean-field model
 else
@@ -73,7 +74,7 @@ C    = exp(P.C);                              % subcortical
 %--------------------------------------------------------------------------
 SA   = sparse([1 0 1;
                0 1 1;
-               0 1 1]);
+               0 0 0]);
             
 % intrinsic connection strengths
 %==========================================================================
@@ -121,10 +122,16 @@ fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
 %==========================================================================
 if mfm
     
-    Vx  = shiftdim(x{2}(1,1,:,:));           % population variance (mV^2)
-    Vx  = reshape(Vx,ns,np);                 % of voltage
- 
-    D   = sparse(diag([1/32 1 1]));          % diffusion
+    % covariance among states (mV^2)
+    %----------------------------------------------------------------------    
+    for i = 1:ns
+        for j = 1:np
+            Cx{i,j} = x{2}(:,:,i,j);
+            Vx(i,j) = Cx{i,j}(1,1);          % population variance
+        end
+    end
+
+    D   = sparse(diag([1/16 1 1]));          % diffusion
     D   = exp(P.S)*D;
     
 else
@@ -178,7 +185,7 @@ for i = 1:ns
                       x{1}(i,j,2)*(VE - x{1}(i,j,1)) + ...
                       x{1}(i,j,3)*(VI - x{1}(i,j,1)) )/CV;
                   
-        % Exogenous input (U/)
+        % Exogenous input (U)
         %------------------------------------------------------------------
         if j == 1
             f{1}(i,j,1) = f{1}(i,j,1) + U(i)/CV;
@@ -193,10 +200,10 @@ for i = 1:ns
         % 2nd moments - covariances
         %==================================================================
         if mfm
-            
+
             % add curvature-dependent dispersion to flow
             %--------------------------------------------------------------
-            f{1}(i,j,1) = f{1}(i,j,1) + tr(x{2}(:,:,i,j),fxx)/2;
+            f{1}(i,j,1) = f{1}(i,j,1) + tr(Cx{i,j},fxx)/2;
             
             % df/dx
             %--------------------------------------------------------------
@@ -207,10 +214,11 @@ for i = 1:ns
         
             % dCdt
             %--------------------------------------------------------------
-            St            = fx*x{2}(:,:,i,j) + D;
+            St            = fx*Cx{i,j} + D;
             f{2}(:,:,i,j) = St + St';
-            
+
         else
+            
             % fixed covariance (Cx)
             %--------------------------------------------------------------
             f{1}(i,j,1) = f{1}(i,j,1) + tr(Cx,fxx)/2;
@@ -220,12 +228,48 @@ for i = 1:ns
     end
 end
  
-% vectorise
-%--------------------------------------------------------------------------
+% vectorise equations of motion
+%==========================================================================
 f = spm_vec(f);
  
-return
- 
+if nargout < 2, return, end
+
+% Jacobian
+%==========================================================================
+J = spm_cat(spm_diff('spm_fx_mfm',xin,u,P,M,1));
+
+if nargout < 3, return, end
+
+% Delays
+%==========================================================================
+% Delay differential equations can be integrated efficiently (but 
+% approximately) by absorbing the delay operator into the Jacobian
+%
+%    dx(t)/dt     = f(x(t - d))
+%                 = Q(d)f(x(t))
+%
+%    J(d)         = Q(d)df/dx
+%--------------------------------------------------------------------------
+D  = -[2 32].*exp(P.D)/1000;
+nk = 3;                                              % number of states
+Sp = kron(ones(nk,nk),kron(eye(np,np),eye(ns,ns)));  % states: same pop.
+Ss = kron(kron(ones(nk,nk),ones(np,np)),eye(ns,ns)); % states: same source
+
+Dp = ~Ss;                            % states: different sources
+Ds = ~Sp & Ss;                       % states: same source different pop.
+D  = D(1)*Dp + D(2)*Ds;
+
+% disable for mean field models (temporarily)
+%--------------------------------------------------------------------------
+if mfm; D = 0; end
+
+
+% Implement: dx(t)/dt = f(x(t - d)) = inv(1 - D.*dfdx)*f(x(t))
+%                     = Q*f = Q*J*x(t)
+%--------------------------------------------------------------------------
+Q  = inv(speye(length(J)) - D.*J);
+
+
 % trace(a*b)
 %--------------------------------------------------------------------------
 function x = tr(a,b);
