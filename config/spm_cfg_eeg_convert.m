@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2200 2008-09-26 10:09:45Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2203 2008-09-26 11:40:23Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -112,7 +112,7 @@ channels.values = {chanall,chanmeg,chaneeg,chanfile};
 channels.val = {chanall};
 
 outfile = cfg_entry;
-outfile.tag = 'Pout';
+outfile.tag = 'outfile';
 outfile.name = 'Output filename';
 outfile.strtype = 's';
 outfile.num = [1 inf];
@@ -169,7 +169,7 @@ function out = eeg_convert(job)
 S.dataset = job.dataset{1};
 S.continuous = job.continuous;
 S.channels = job.channels;
-S.Pout = job.Pout;
+S.outfile = job.outfile;
 S.datatype = job.datatype;
 S.eventpadding = job.eventpadding;
 S.blocksize = job.blocksize;
