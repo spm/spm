@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_artefact.m 2197 2008-09-25 17:01:55Z stefan $
+% $Id: spm_cfg_eeg_artefact.m 2200 2008-09-26 10:09:45Z stefan $
 
-rev = '$Rev: 2197 $';
+rev = '$Rev: 2200 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -50,6 +50,7 @@ Weightingfunction.tag = 'Weightingfunction';
 Weightingfunction.name = 'Weightingfunction';
 Weightingfunction.strtype = 'r';
 Weightingfunction.num = [1 1];
+Weightingfunction.val = {3};
 Weightingfunction.help = {'Input offset of weighting function'};
 
 Smoothing = cfg_entry;
@@ -57,6 +58,7 @@ Smoothing.tag = 'Smoothing';
 Smoothing.name = 'Smoothing';
 Smoothing.strtype = 'r';
 Smoothing.num = [1 1];
+Smoothing.val = {20};
 Smoothing.help = {'FWHM for residual smoothing (ms)'};
 
 weighted_arg = cfg_branch;
@@ -94,6 +96,7 @@ thresholdval.name = 'Thresholds';
 thresholdval.strtype = 'r';
 thresholdval.num = [1 inf];
 thresholdval.help = {'Channel-wise thresholds. Use single threshold to apply the same threshold to all channels'};
+thresholdval.val = {80};
 
 threshold = cfg_branch;
 threshold.tag = 'threshold';

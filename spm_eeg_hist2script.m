@@ -20,7 +20,7 @@ function spm_eeg_hist2script(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_hist2script.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_hist2script.m 2200 2008-09-26 10:09:45Z stefan $
 
 if nargin == 0
     S =[];
@@ -52,13 +52,15 @@ Nh = length(h);
 fp = fopen(S.fname, 'w');
 
 for i = 1:Nh
-    s = gencode(h(i).args(1));
+    s = gencode(h(i).args(1), 'S');
     for j = 1:length(s)
         fprintf(fp, '%s\n', s{j});
     end
-    fprintf(fp, '%s\n\n\n', ['D = ' eval('h(i).fun') '(val_0001);']);
+    fprintf(fp, '%s\n\n\n', ['D = ' eval('h(i).fun') '(S);']);
     
-    
+    if i < Nh
+        fprintf(fp, 'S = [];\n');
+    end
 end
 fclose(fp);
 

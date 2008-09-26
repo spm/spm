@@ -1,5 +1,9 @@
 % analyse some ERP data
-% This is an example batch script to analyse a single ERP.
+% This is an example batch script to analyse two evoked responses with an
+% assumed 5 sources.
+% To try this out on your data (the date of this example don't exist in your SPM8 distribution), 
+% you have to change 'Pbase' to your own analysis-directory, and choose a name ('DCM.xY.Dfile') 
+% of an existing SPM for M/EEG-file with at least two evoked responses. 
 
 % Please replace filenames etc. by your own.
 %-------------------------------------------------------
@@ -8,38 +12,41 @@ spm('defaults','EEG');
 
 % paths to data, etc.
 %-------------------------------------------------------
-Pbase     = 'D:\DCM';             % supraordinate directory 
+Pbase     = 'D:\spm8data';             % supraordinate directory 
 Pdata     = fullfile(Pbase, '.'); % data directory in Pbase
 Panalysis = fullfile(Pbase, '.'); % analysis directory in Pbase
 
 % the data (ERP SPM-matfile
-DCM.xY.Dfile = 'cmafwde_nervestim.mat';
+DCM.xY.Dfile = 'mafdeMspm8_example';
 
-% a sensor location file
-DCM.M.dipfit.sensorfile = fullfile(Pbase, 'olivier_09_03_2004.pol');
 
 % Parameters and options used for setting up model.
 %-------------------------------------------------------
 DCM.options.type    = 1;      % spatial model is ECD (2: imaging)
 DCM.options.trials  = [1 2];  % index of ERPs within ERP/ERF file
-DCM.options.Tdcm(1) = 5;      % start of peri-stimulus time to be modelled
-DCM.options.Tdcm(2) = 150;    % end of peri-stimulus time to be modelled
-DCM.options.Nmodes  = 3;      % nr of modes for data selection
-DCM.options.h       = 0;      % nr of DCT components
+DCM.options.Tdcm(1) = 0;      % start of peri-stimulus time to be modelled
+DCM.options.Tdcm(2) = 200;    % end of peri-stimulus time to be modelled
+DCM.options.Nmodes  = 8;      % nr of modes for data selection
+DCM.options.h       = 1;      % nr of DCT components
 DCM.options.onset   = 60;     % selection of onset (prior mean)
-
+DCM.options.D       = 1;      % downsampling
 
 %----------------------------------------------------------
 % data and spatial model
 %----------------------------------------------------------
 DCM  = spm_dcm_erp_data(DCM);
-DCM  = spm_dcm_erp_dipfit(DCM);
 
 % location priors for dipoles
 %----------------------------------------------------------
-DCM.M.dipfit.Lpos  = [[-45; -25; 35] [-50; -20; 5] [50; -20; 5]];
-DCM.Sname = {'left SI', 'left SII', 'right SII'};
-Nareas    = size(DCM.M.dipfit.Lpos,2);
+DCM.Lpos = [[-42; -22; 7] [46; -14; 8] [-61; -32; 8] [59; -25; 8] [46; 20; 8]];
+        DCM.Sname = {'left AI', 'right A1', 'left STG', 'right STG', 'right IFG'};
+Nareas    = size(DCM.Lpos,2);
+
+
+%----------------------------------------------------------
+% spatial model
+%----------------------------------------------------------
+DCM = spm_dcm_erp_dipfit(DCM);
 
 %----------------------------------------------------------
 % specify connectivity model
@@ -47,28 +54,35 @@ Nareas    = size(DCM.M.dipfit.Lpos,2);
 cd(Panalysis)
 
 DCM.A{1} = zeros(Nareas,Nareas);
-DCM.A{1}(2, 1) = 1;
+DCM.A{1} = zeros(Nareas, Nareas);
+DCM.A{1}(3,1) = 1;
+DCM.A{1}(4,2) = 1;
+DCM.A{1}(5,4) = 1;
 
 DCM.A{2} = zeros(Nareas,Nareas);
-DCM.A{2}(1, 2) = 1;
+DCM.A{2}(1,3) = 1;
+DCM.A{2}(2,4) = 1;
+DCM.A{2}(4,5) = 1;
 
 DCM.A{3} = zeros(Nareas,Nareas);
-DCM.A{3}(2,3) = 1;
-DCM.A{3}(3,2) = 1;
+DCM.A{3}(4,3) = 1;
+DCM.A{3}(3,4) = 1;
 
-DCM.B{1} = zeros(Nareas,Nareas);
+DCM.B{1} = DCM.A{1} + DCM.A{2};
+DCM.B{1}(1,1) = 1;
+DCM.B{1}(2,2) = 1;
 
-DCM.C    = [1; 0; 0];
+DCM.C = [1; 1; 0; 0; 0];
 
 %----------------------------------------------------------
 % between trial effects
 %----------------------------------------------------------
-DCM.xU.X = [1];
-DCM.xU.name = {'left'};
+DCM.xU.X = [0; 1];
+DCM.xU.name = {'rare'};
 
 %invert
 %----------------------------------------------------------
-DCM.name = '3areas_3comp_batch';
+DCM.name = 'example';
 
 DCM      = spm_dcm_erp(DCM);
 

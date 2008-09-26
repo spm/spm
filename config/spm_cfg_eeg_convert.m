@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convert
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_cfg_eeg_convert.m 2200 2008-09-26 10:09:45Z stefan $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -29,6 +29,7 @@ read = cfg_choice;
 read.tag = 'read';
 read.name = 'Continuous';
 read.values = {timewindow, readall};
+read.val = {readall};
 
 usetrials = cfg_const;
 usetrials.tag = 'usetrials';
@@ -108,7 +109,8 @@ channels = cfg_choice;
 channels.tag = 'channels';
 channels.name = 'Channel selection';
 channels.values = {chanall,chanmeg,chaneeg,chanfile};
- 
+channels.val = {chanall};
+
 outfile = cfg_entry;
 outfile.tag = 'Pout';
 outfile.name = 'Output filename';

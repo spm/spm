@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 2126 2008-09-19 15:55:34Z stefan $
+% $Id: spm_cfg_eeg_filter.m 2200 2008-09-26 10:09:45Z stefan $
 
-rev = '$Rev: 2126 $';
+rev = '$Rev: 2200 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -25,7 +25,7 @@ typ.help = {'Select the filter type.'};
 band = cfg_menu;
 band.tag = 'band';
 band.name = 'Filter band';
-band.labels = {'lowpass', 'highpass', 'bandpass', 'stopband'};
+band.labels = {'Lowpass', 'Highpass', 'Bandpass', 'Stopband'};
 band.values = {'low' 'high' 'bandpass' 'stop'};
 band.val = {'low'};
 band.help = {'Select the filter band.'};
