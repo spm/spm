@@ -36,6 +36,9 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.51  2008/09/26 15:27:14  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.50  2008/09/22 19:44:11  roboos
 % update documentation
 %
@@ -141,6 +144,11 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Revision 1.21  2006/06/07 12:56:26  roboos
 % ensure that the design is horizontal, i.e. Nvar X Nrepl
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'approach',   'method'});
+cfg = checkconfig(cfg, 'required',    {'method'});
+cfg = checkconfig(cfg, 'forbidden',   {'transform'});
+
 % set the defaults
 if ~isfield(cfg, 'channel'),              cfg.channel = 'all';                     end
 if ~isfield(cfg, 'latency'),              cfg.latency = 'all';                     end
@@ -175,18 +183,6 @@ end
 
 if (istimelock+isfreq+issource)~=1
   error('Could not determine the type of the input data');
-end
-
-% for backward compatibility
-if isfield(cfg, 'approach')
-  warning('you should use cfg.method instead of cfg.approach');
-  cfg.method = cfg.approach;
-  cfg = rmfield(cfg, 'approach');
-end
-
-% this is not backward compatible
-if isfield(cfg, 'transform') && ~isempty(cfg.transform)
-  error('cfg.transform is not supported any more, you should transform your data manually')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -481,7 +477,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.50 2008/09/22 19:44:11 roboos Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.51 2008/09/26 15:27:14 sashae Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];

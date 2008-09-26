@@ -75,6 +75,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.25  2008/09/26 15:27:14  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.24  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -166,6 +169,14 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 
 fieldtripdefs
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
+cfg = checkconfig(cfg, 'renamed',     {'unitfactor',       'uvar'});
+cfg = checkconfig(cfg, 'renamed',     {'repeatedmeasures', 'uvar'});
+cfg = checkconfig(cfg, 'renamedval',  {'clusterthreshold', 'nonparametric', 'nonparametric_individual'});
+cfg = checkconfig(cfg, 'required',    {'statistic'});
+cfg = checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'randomfactor'});
+
 % set the defaults for the main function
 if ~isfield(cfg, 'alpha'),               cfg.alpha = 0.05;               end
 if ~isfield(cfg, 'tail'),                cfg.tail = 0;                   end
@@ -203,25 +214,8 @@ else
 end
 
 % for backward compatibility
-if isfield(cfg, 'clusterthreshold') && strcmp(cfg.clusterthreshold, 'nonparametric')
-  cfg.clusterthreshold = 'nonparametric_individual';
-end
-
 if size(design,2)~=size(dat,2)
   design = transpose(design);
-end
-
-if isfield(cfg, 'factor')
-  cfg.ivar = cfg.factor;
-  cfg = rmfield(cfg, 'factor');
-end
-
-if isfield(cfg, 'unitfactor')
-  cfg.uvar = cfg.unitfactor;
-  cfg = rmfield(cfg, 'unitfactor');
-elseif isfield(cfg, 'repeatedmeasures')
-  cfg.uvar = cfg.repeatedmeasures;
-  cfg = rmfield(cfg, 'repeatedmeasures');
 end
 
 if ischar(cfg.ivar) && strcmp(cfg.ivar, 'all')
@@ -250,17 +244,6 @@ elseif isfield(cfg, 'voxelthreshold') && ~strcmp(cfg.voxelstatistic, 'prob')
   cfg.clustercritval   = cfg.voxelthreshold;
   cfg = rmfield(cfg, 'voxelthreshold');
   cfg = rmfield(cfg, 'voxelstatistic');
-end
-
-% the backward compatibility is broken here
-if isfield(cfg, 'ztransform')
-  error('cfg.ztransform is not supported any more');
-end
-if isfield(cfg, 'removemarginalmeans')
-  error('cfg.removemarginalmeans is not supported any more');
-end
-if isfield(cfg, 'randomfactor'),
-  error('cfg.randomfactor is not supported any more');
 end
 
 % determine the function handle to the low-level statistics function
