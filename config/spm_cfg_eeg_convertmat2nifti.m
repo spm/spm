@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_convertmat2nifti
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convertmat2nifti.m 2161 2008-09-23 18:00:26Z stefan $
+% $Id: spm_cfg_eeg_convertmat2nifti.m 2201 2008-09-26 10:14:50Z stefan $
 
 Fname = cfg_files;
 Fname.tag = 'Fname';
@@ -18,6 +18,7 @@ n.tag = 'n';
 n.name = 'Output dimension';
 n.strtype = 'r';
 n.num = [1 1];
+n.val = {64};
 n.help = {'Enter the Output image dimension'};
 
 yes = cfg_const;
