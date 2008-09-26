@@ -1,10 +1,10 @@
-function spm_sextract(job)
+function out = spm_sextract(job)
 % Surface extraction
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sextract.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_sextract.m 2210 2008-09-26 20:14:13Z john $
 
 images = job.images;
 Vi     = spm_vol(strvcat(images));
@@ -26,9 +26,9 @@ for k=1:numel(job.surface),
             M     = inv(B*inv(Vi(1).mat)*Vi(i).mat);
             im{i} = spm_slice_vol(Vi(i),M,Vi(1).dim(1:2),[0,NaN]);
         end
-        try,
+        try
             y(:,:,p) = real(single(efun(im,expression)));
-        catch,
+        catch
             error(['Can not evaluate "' expression '".']);
         end
         spm_progress_bar('Set',p);
@@ -40,12 +40,11 @@ for k=1:numel(job.surface),
     % wierd and wonderful reason.
     Mat      = Vi(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
     vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
-    matname  = fullfile(pth,sprintf('surf_%s_%.3d.mat',nam,k));
-    if spm_matlab_version_chk('7.0') >=0,
-        save(matname,'-V6','faces','vertices','expression','thresh','images');
-    else
-        save(matname,'faces','vertices','expression','thresh','images');
-    end;
+    %matname  = fullfile(pth,sprintf('surf_%s_%.3d.mat',nam,k));
+    %save(matname,'-V6','faces','vertices','expression','thresh','images');
+    matname  = fullfile(pth,sprintf('surf_%s_%.3d.gii',nam,k));
+    save(gifti(struct('faces',faces,'vertices',vertices)),matname);
+    out.SurfaceFile{k} = matname;
     spm_progress_bar('Clear');
 end
 return

@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 1745 2008-05-28 14:18:33Z guillaume $
+ * $Id: file2mat.c 2210 2008-09-26 20:14:13Z john $
  * John Ashburner
  */
 
@@ -447,7 +447,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             0);
         (void)CloseHandle(hMapping);
         if (map->addr == NULL)
-            mexErrMsgTxt("Cant map view of file.  It may be locked by another program.");
+            mexErrMsgTxt("Cant map view of file.  It may be locked by another program or there may not be enough memory.");
 #else
         map->addr = mmap(
             (caddr_t)0,

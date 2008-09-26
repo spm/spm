@@ -20,7 +20,7 @@ function spm_dartel_kernel(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_kernel.m 1780 2008-06-02 16:58:56Z john $
+% $Id: spm_dartel_kernel.m 2210 2008-09-26 20:14:13Z john $
 
 
 P      = strvcat(job.flowfields);
@@ -37,10 +37,10 @@ n   = numel(N);
 Phi = zeros(n,n);
 spm_progress_bar('Init',n*n,'Generating kernel','Elements done');
 for i=1:n,
-    x1 = single(squeeze(N(i).dat(:,:,:,:,:)));
+    x1 = single(squeeze(N(i).dat(:,:,:,end,:)));
     x1 = dartel3('vel2mom',x1,prm);
     for j=i:n,
-        x2       =squeeze(N(j).dat(:,:,:,:,:,:));
+        x2       =squeeze(N(j).dat(:,:,:,end,:,:));
         d        = x1(:)'*x2(:);
         Phi(i,j) = d;
         Phi(j,i) = d;

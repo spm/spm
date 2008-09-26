@@ -6,7 +6,7 @@ function spm_srender(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_srender.m 1426 2008-04-15 21:03:56Z Darren $
+% $Id: spm_srender.m 2210 2008-09-26 20:14:13Z john $
 
 
 fg  = spm_figure('GetWin','Graphics');
@@ -18,7 +18,7 @@ ax = axes('Parent',fg,'DeleteFcn',['rotate3d off; set(gcf,''Renderer'',''' ren '
 for i=1:numel(job.Object),
      obj = job.Object(i);
      for j=1:numel(obj.SurfaceFile),
-         FVo = load(obj.SurfaceFile{j});
+         FVo = struct(gifti(obj.SurfaceFile{j}));
          FV  = struct('faces',FVo.faces,'vertices',FVo.vertices);
          p  = patch(FV, 'Parent',ax,...
              'FaceColor', [obj.Color.Red,obj.Color.Green, obj.Color.Blue],...
