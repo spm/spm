@@ -3,12 +3,12 @@
 % Script function to 
 % - load data
 % - fill in all the necessary bits for the VB-ECD inversion routine
-% - launch the VB_ECD routine
+% - launch the VB_ECD routine, aka. spm_eeg_inv_vbecd
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2059 2008-09-09 16:04:05Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2207 2008-09-26 17:08:59Z christophe $
 
 %%
 % Load data
@@ -16,7 +16,7 @@
 D = spm_eeg_load;
 
 %%
-% Check if the forward model was prepared
+% Check if the forward model was prepared & handle the other info bits
 %========================================
 if ~isfield(D,'inv')
     error('Data must have been prepared for inversion procedure...')
@@ -29,6 +29,32 @@ else
         D.val = val;
     end
 end
+
+% Use val to defince which is the "current" inv{} to use
+% If no inverse solution already calculated (field 'inverse' doesn't exist) 
+% use that inv{}. Otherwise create a new one by copying the previous 
+% inv{} structure
+if isfield(D.inv{val},'inverse')
+    % create an extra inv{}
+    Ninv = length(D.inv);
+    D.inv{Ninv+1} = D.inv{val};
+    val = Ninv+1;
+    D.val = val;
+end
+
+% Set time , date, comments & modality
+clck = fix(clock);
+if clck(5) < 10
+    clck = [num2str(clck(4)) ':0' num2str(clck(5))];
+else
+    clck = [num2str(clck(4)) ':' num2str(clck(5))];
+end
+D.inv{D.val}.date    = strvcat(date,clck);
+if ~isfield(D.inv{D.val},'comment'), D.inv{D.val}.comment=''; end
+D.inv{D.val}.comment = inputdlg('Comment/Label for this analysis:','', ...
+                    1,{D.inv{D.val}.comment});
+D.inv{val}.method = 'vbecd';
+
 
 if isfield(D.inv{val},'forward')
     if isfield(D.inv{val}.forward,'vol')
@@ -100,8 +126,8 @@ P.threshold_dF = 1e-4; % /
 %%  
 % Deal with dipoles number and priors
 %====================================
-dip_q = 0;
-dip_c = 0;
+dip_q = 0; % number of dipole 'elements' added (single or pair)
+dip_c = 0; % total number of dipoles in the model
 adding_dips = 1;
 clear dip_pr
 
@@ -265,3 +291,25 @@ P.priors = priors;
 %===================
 P = spm_eeg_inv_vbecd(P);
 
+% Get the results out.
+inverse = struct( ...
+    'F',P.F, ... % free energy
+    'pst',D.time, ... % all time points in data epoch
+    'tb',tb, ... % time window/bin used
+    'ltb',ltb, ... % list of time points used
+    'n_seeds',1, ... % 1 as long as I'm not using multiple random init
+    'n_dip',dip_c, ... % number of dipoles used
+    'loc',{{reshape(P.post.mu_s,3,dip_c)}}, ... % loc of dip (3 x n_dip)
+    'j',{{P.post.mu_w}}, ... % dipole(s) orient/ampl, in 1 column
+    'cov_loc',{{P.post.S_s}}, ... % cov matrix of source location
+    'cov_j',{{P.post.S_w}}, ...   % cov matrix of source orient/ampl
+    'Mtb',1, ... % ind of max EEG power in time series, 1 as only 1 tb.
+    'exitflag',P.ok, ... % Converged (1) or not (0)
+    'P',P);             % save all kaboodle too.
+D.inv{val}.inverse = inverse;
+
+%%
+% Save results and display
+%-------------------------
+save(fullfile(D.path,D.fname),'D')
+spm_eeg_inv_vbecd_disp('init',D)

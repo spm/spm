@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 2207 2008-09-26 17:08:59Z christophe $
 
 try
     D = get(gcf,'userdata');
@@ -1054,7 +1054,7 @@ else  % source space
         % get the inverse model info
         str = getInfo4Inv(D,invN);
         set(D.PSD.handles.infoText,'string',str);
-        set(D.PSD.handles.BMCcurrent,'XData',invN);
+        try, set(D.PSD.handles.BMCcurrent,'XData',invN); end;
         % get model/trial time series
         trN = D.PSD.trials.current(1);
         D.PSD.source.VIZU.J = zeros(model.Nd,size(model.T,1));
@@ -1069,7 +1069,7 @@ else  % source space
             'Vertices',D.other.inv{invN}.mesh.tess_mni.vert,...
             'Faces',D.other.inv{invN}.mesh.tess_mni.face,...
             'facevertexcdata',tex);
-        try;delete(D.PSD.handles.dipSpheres);end
+        try; delete(D.PSD.handles.dipSpheres);end
         if isfield(D.other.inv{invN}.inverse,'dipfit') ||...
                 ~isequal(D.other.inv{invN}.inverse.xyz,zeros(1,3))
             try
