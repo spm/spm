@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.129  2008/09/26 12:42:18  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.128  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -501,8 +504,15 @@ if nargin>2
   baseline = checkdata(baseline, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
 end
 
-% for backward compatibility with misspelled configuration option
-if isfield(cfg, 'jacknife'), cfg.jackknife = cfg.jacknife; cfg = rmfield(cfg, 'jacknife'); end
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
+cfg = checkconfig(cfg, 'renamed',     {'refchannel', 'refchan'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'power',           'dics'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'coh_refchan',     'dics'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'coh_refdip',      'dics'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefchan', 'dics'});
+cfg = checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefdip',  'dics'});
+cfg = checkconfig(cfg, 'forbidden',   {'parallel'});
 
 % determine the type of input data
 if isfield(data, 'freq')
@@ -572,28 +582,8 @@ if ~istimelock && (strcmp(cfg.method, 'mne') || strcmp(cfg.method, 'loreta') || 
   iscomp     = 0;
 end
 
-% for backwards compatibility
-if isfield(cfg, 'refchannel')
-  cfg.refchan = cfg.refchannel;
-  cfg = rmfield(cfg, 'refchannel');
-end
-
 % select only those channels that are present in the data
 cfg.channel = channelselection(cfg.channel, data.label); 
-
-% for backwards compatibility, these are all submethods for dics
-% the appropriate submethod will be selected, depending on the other cfg settings
-if strcmp(cfg.method, 'power')
-  cfg.method = 'dics';
-elseif strcmp(cfg.method, 'coh_refchan')
-  cfg.method = 'dics';
-elseif strcmp(cfg.method, 'coh_refdip')
-  cfg.method = 'dics';
-elseif strcmp(cfg.method, 'dics_cohrefchan')
-  cfg.method = 'dics';
-elseif strcmp(cfg.method, 'dics_cohrefdip')
-  cfg.method = 'dics';
-end
 
 if nargin>2 && (strcmp(cfg.randomization, 'no') && strcmp(cfg.permutation, 'no'))
   error('input of two conditions only makes sense if you want to randomize or permute');
@@ -618,11 +608,6 @@ if isfreq
       ~strcmp(data.dimord, 'rpttap_chan_freq_time')
     error('dimord of input frequency data is not recognized');
   end
-end
-
-% check cfg.parallel for backward compatibility with old scripts
-if isfield(cfg, 'parallel') && ~strcmp(cfg.parallel, 'no')
-  error('parallellization is not supported any more');
 end
 
 % collect and preprocess the electrodes/gradiometer and head model
@@ -1252,7 +1237,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.128 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.129 2008/09/26 12:42:18 sashae Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

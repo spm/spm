@@ -72,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.54  2008/09/26 12:42:18  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.53  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -256,6 +259,9 @@ fieldtripdefs
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
+
 % set the defaults
 if ~isfield(cfg, 'channel'),            cfg.channel = 'all';                     end
 if ~isfield(cfg, 'trials'),             cfg.trials = 'all';                      end
@@ -268,14 +274,6 @@ if ~isfield(cfg, 'blcovariancewindow'), cfg.blcovariancewindow = 'prestim';     
 if ~isfield(cfg, 'removemean'),         cfg.removemean = 'yes';                  end
 if ~isfield(cfg, 'vartrllength'),       cfg.vartrllength = 0;                    end
 if ~isfield(cfg, 'feedback'),           cfg.feedback = 'text';                   end
-
-if isfield(cfg, 'normalizecov')
-  warning('cfg.normalizecov is not used any more');
-end
-
-if isfield(cfg, 'normalizevar')
-  warning('cfg.normalizevar is not used any more');
-end
 
 % convert average to raw data for convenience, the output will be an average again
 % the purpose of this is to allow for repeated baseline correction, filtering and other preproc options that timelockanalysis supports
@@ -661,7 +659,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.53 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.54 2008/09/26 12:42:18 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
