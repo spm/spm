@@ -1,6 +1,8 @@
 function render = tbx_cfg_render
 % MATLABBATCH Configuration file for toolbox 'Rendering'
-% This code has been automatically generated.
+
+addpath(fullfile(spm('dir'),'toolbox','SRender'));
+
 % ---------------------------------------------------------------------
 % images Input Images
 % ---------------------------------------------------------------------
@@ -77,7 +79,7 @@ SurfaceFile         = cfg_files;
 SurfaceFile.tag     = 'SurfaceFile';
 SurfaceFile.name    = 'Surface File';
 SurfaceFile.help    = {'Filename of the surf_*.gii file containing the rendering information. This can be generated via the surface extraction routine in SPM. Normally, a surface is extracted from grey and white matter tissue class images, but it is also possible to threshold e.g. an spmT image so that activations can be displayed.'};
-SurfaceFile.filter = 'mat';
+SurfaceFile.filter = 'any';
 SurfaceFile.ufilter = '^surf_.*\.gii$';
 SurfaceFile.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -436,6 +438,7 @@ for k=1:numel(job.surface),
     dep(k)            = cfg_dep;
     dep(k).sname      = ['Surface File ' num2str(k)];
     dep(k).src_output = substruct('.','SurfaceFile','()',{k});
-    dep(k).tgt_spec   = cfg_findspec({{'filter','.*\.gii$'}});
+%   dep(k).tgt_spec   = cfg_findspec({{'filter','.*\.gii$'}});
+    dep(k).tgt_spec   = cfg_findspec({{'filter','any'}});
 end
 
