@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2226 2008-09-29 12:55:00Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2232 2008-09-29 15:22:00Z christophe $
 
 %%
 % Load data, if necessary
@@ -54,6 +54,10 @@ if isfield(D.inv{val},'inverse')
     % create an extra inv{}
     Ninv = length(D.inv);
     D.inv{Ninv+1} = D.inv{val};
+    if isfield(D.inv{Ninv+1},'contrast')
+        % no contrast field used here !
+        D.inv{Ninv+1} = rmfield(D.inv{Ninv+1},'contrast');
+    end
     val = Ninv+1;
     D.val = val;
 end
@@ -85,7 +89,10 @@ if isfield(D.inv{val},'forward')
     if isfield(D.inv{val}.forward,'sens')
         P.forward.sens = D.inv{val}.forward.sens;
     else
-        P.forward.sens = D.sensors('eeg');
+        % create the sens structure and try to make sure it contains all
+        % the necessary bits !
+        [P.forward.vol, P.forward.sens] = ...
+                  forwinv_prepare_vol_sens(P.forward.vol,D.sensors('eeg'));
     end
 else
     error('Forward model needs to be ready in FT format.!')
@@ -98,8 +105,8 @@ end
 P.Bad = D.badchannels;
 
 % time bin or time window
-msg_tb = ['time_bin or time_win [',num2str(min(D.time)*1000), ...
-            ' ',num2str(max(D.time)*1000),'] ms'];
+msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1000)), ...
+            ' ',num2str(round(max(D.time)*1000)),'] ms'];
 ask_tb = 1;
 while ask_tb
     tb = spm_input(msg_tb,1,'r')/1000;
@@ -128,7 +135,7 @@ if D.ntrials>1
     tr_q = 1;
 else
     tr_q = 0;
-    ltr=1;
+    ltr = 1;
 end
 
 % data, averaged over time window considered
@@ -158,8 +165,9 @@ corr = .999;
 
 while adding_dips
     msg_dip =['Add dipoles to ',num2str(dip_c),'  or stop?'];
+    if dip_q>0, def_opt=3; else def_opt=1; end
     a_dip = ...
-        spm_input(msg_dip,2+tr_q+dip_q,'b','Single|Pair|Stop',[1,2,0],1);
+        spm_input(msg_dip,2+tr_q+dip_q,'b','Single|Pair|Stop',[1,2,0],def_opt);
     if a_dip == 0
         adding_dips = 0;
     elseif a_dip == 1
@@ -330,7 +338,7 @@ D.inv{val}.inverse = inverse;
 %%
 % Save results and display
 %-------------------------
-save(fullfile(D.path,D.fname),'D')
+save(D)
 spm_eeg_inv_vbecd_disp('init',D)
 
 return

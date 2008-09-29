@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2226 2008-09-29 12:55:00Z christophe $
+% $Id: spm_eeg_inv_vbecd.m 2232 2008-09-29 15:22:00Z christophe $
 
 % unpack model, priors, data
 vol = P.forward.vol;
@@ -62,6 +62,7 @@ Vw = full(spm_svd(Tw));
 Vs = full(spm_svd(Ts));
 
 y = P.y;
+y(P.Bad) = [];
 
 dv = 10^-2; % used to compute step-size for gradients
 %---------------
