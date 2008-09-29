@@ -1,5 +1,7 @@
 function P = spm_eeg_inv_vbecd(P)
-% Model inversion routine for ECDs using variational Bayes
+% Model inversion routine for ECDs using "variational Bayes"
+%
+% FORMAT P = spm_eeg_inv_vbecd(P)
 %
 % Input:
 % structure P with fields:
@@ -10,7 +12,8 @@ function P = spm_eeg_inv_vbecd(P)
 %  Nc           -
 %  Niter        - maximum number of iterations
 %  threshold_dF - threshold on free energy improvement to stop iterating
-%  priors       - priors on parameters, hard and soft.
+%  priors       - priors on parameters, hard and soft, as filled in (and 
+%                 described) in spm_eeg_inv_vbecd_gui.m.
 %
 % Output:
 % same structure with extra fields
@@ -20,28 +23,19 @@ function P = spm_eeg_inv_vbecd(P)
 %  post         - posterior value of estimated parameters and ther variance
 %  Fi           - successive values of F
 %  F            - Free energy final value.
+% 
+% Reference:
+% Kiebel et al., Variational Bayesian inversion of the equivalent current
+% dipole model in EEG/MEG., NeuroImage, 39:728-741, 2008
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2059 2008-09-09 16:04:05Z christophe $
+% $Id: spm_eeg_inv_vbecd.m 2226 2008-09-29 12:55:00Z christophe $
 
 % unpack model, priors, data
 vol = P.forward.vol;
 sens = P.forward.sens;
-
-% Which kind of head model are we dealing with ? BEM [1] or sphere [2]?
-% fl_model = 0;
-% if isfield(vol,'bnd')
-%     fl_model = 1;
-% elseif isfield(vol,'r')
-%     fl_model = 2;
-%     % sort the spheres from the smallest to the largest
-%     [vol.r, indx] = sort(vol.r);
-%     vol.c = vol.c(indx);
-% else
-%     error('Unfortunately, case not covered yet')
-% end
 
 a10 = P.priors.a10; b10 = P.priors.b10;
 a20 = P.priors.a20; b20 = P.priors.b20;

@@ -1,25 +1,41 @@
-% spm_eeg_inv_vbecd_gui
+function D = spm_eeg_inv_vbecd_gui(D,val)
 %
-% Script function to 
-% - load data
-% - fill in all the necessary bits for the VB-ECD inversion routine
+% GUI function for the VB-ECD inversion
+% - load the necessary data, if not provided
+% - fill in all the necessary bits for the VB-ECD inversion routine,
+%   especially the priors
 % - launch the VB_ECD routine, aka. spm_eeg_inv_vbecd
+% - displays the results.
+% See the comments in the function and the article for further details
+% 
+% Reference:
+% Kiebel et al., Variational Bayesian inversion of the equivalent current
+% dipole model in EEG/MEG., NeuroImage, 39:728-741, 2008
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2224 2008-09-29 12:18:54Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2226 2008-09-29 12:55:00Z christophe $
 
 %%
-% Load data
+% Load data, if necessary
 %==========
-D = spm_eeg_load;
+if nargin<1
+    D = spm_eeg_load;
+end
 
 %%
 % Check if the forward model was prepared & handle the other info bits
 %========================================
 if ~isfield(D,'inv')
     error('Data must have been prepared for inversion procedure...')
+end
+if nargin==2
+    % check index provided
+    if val>length(D.inv)
+        val = length(D.inv);
+        D.val = val;
+    end
 else
     if isfield(D,'val')
         val = D.val;
@@ -49,8 +65,11 @@ if clck(5) < 10
 else
     clck = [num2str(clck(4)) ':' num2str(clck(5))];
 end
-D.inv{val}.date    = strvcat(date,clck);
-if ~isfield(D.inv{val},'comment'), D.inv{val}.comment={''}; end
+D.inv{val}.date = strvcat(date,clck);
+if ~isfield(D.inv{val},'comment'), 
+    D.inv{val}.comment={''}; end
+if ~iscell(D.inv{val}.comment), 
+    D.inv{val}.comment = {D.inv{val}.comment}; end
 D.inv{val}.comment = inputdlg('Comment/Label for this analysis:','', ...
                     1,D.inv{val}.comment);
 D.inv{val}.method = 'vbecd';
@@ -313,3 +332,5 @@ D.inv{val}.inverse = inverse;
 %-------------------------
 save(fullfile(D.path,D.fname),'D')
 spm_eeg_inv_vbecd_disp('init',D)
+
+return

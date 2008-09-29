@@ -1,11 +1,22 @@
 function spm_eeg_inv_vbecd_disp(action,varargin)
+
 % Function to display the dipoles as obtained from the VB-ECD routine.
 %
+% Use 
+%   spm_eeg_inv_vbecd_disp('init',D)
+% to display the latest vb-ecd solution saved in the .inv{} field of the
+% data structure D.
+% If no data are passed, you're simply asked to load one and the routine
+% will work as previously explained
+% If and index is passed :
+%   spm_eeg_inv_vbecd_disp('init',D, ind)
+% then the routine will try to display the ind^th .inv{} cell element, if
+% it is actually a vb-ecd solution.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2207 2008-09-26 17:08:59Z christophe $
+% $Id: spm_eeg_inv_vbecd_disp.m 2226 2008-09-29 12:55:00Z christophe $
 
 global st
 % global defaults
