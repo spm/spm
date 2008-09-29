@@ -30,6 +30,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.60  2008/09/29 08:37:44  roboos
+% fixed bug when reading short segments of CTF data (errors were given on screen, so the bug was apparent)
+%
 % Revision 1.59  2008/09/25 11:53:48  roboos
 % more efficient handling for CTF in real continuous datasets (i.e. one long trial) and in case all samples are within the same trial
 % detected and fixed a bug that would case faulure of the code when reading a data segment that extends over more than two trials
@@ -565,8 +568,10 @@ switch dataformat
     hastoolbox('ctf', 1);
     % this returns SQUIDs in T, EEGs in V, ADC's and DACS in V, HLC channels in m, clock channels in s.
     if begtrial==endtrial
-      % specify selection as 3x1 vector
-      dat = getCTFdata(hdr.orig, [begsample; endsample; begtrial], chanindx, 'T', 'double');
+      % specify selection as 3x1 vector 
+      trlbegsample = begsample - hdr.nSamples*(begtrial-1); % within the trial
+      trlendsample = endsample - hdr.nSamples*(begtrial-1); % within the trial
+      dat = getCTFdata(hdr.orig, [trlbegsample; trlendsample; begtrial], chanindx, 'T', 'double');
       dimord = 'samples_chans';
     else
       % specify selection as 1xN vector
