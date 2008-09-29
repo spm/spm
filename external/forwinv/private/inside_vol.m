@@ -19,6 +19,9 @@ function [inside] = inside_vol(pos, vol)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: inside_vol.m,v $
+% Revision 1.2  2008/09/29 12:04:41  roboos
+% use logical (built-in) instead of boolean (simulink)
+%
 % Revision 1.1  2008/09/20 13:41:35  roboos
 % moved content of find_inside_vol to new inside_vol function with slightly different interface
 % added wrapper for spm
@@ -123,4 +126,4 @@ switch voltype(vol)
 end
 
 % ensure that these are column vectors
-inside  = boolean(inside(:));
+inside  = logical(inside(:));
