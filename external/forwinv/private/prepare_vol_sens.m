@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.8  2008/09/29 09:56:04  release
+% some spelling fixes, thanks to Karl
+%
 % Revision 1.7  2008/07/22 10:17:15  roboos
 % replaced identical with strcmp
 %
