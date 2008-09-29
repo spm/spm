@@ -17,7 +17,7 @@ function [U,ll,f1] = spm_dartel_variable(U,f,g,param)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_dartel_variable.m 2231 2008-09-29 15:01:05Z guillaume $
  
 dm         = size(U);
 k1         = dm(4);

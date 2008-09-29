@@ -17,7 +17,7 @@ function [sig0,alph] = spm_smohist(t0,lam)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_smohist.m 2231 2008-09-29 15:01:05Z guillaume $
 
 sig0 = zeros(size(t0));
 n  = size(t0,1);

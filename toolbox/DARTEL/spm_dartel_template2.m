@@ -7,7 +7,7 @@ function out = spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_dartel_template2.m 2231 2008-09-29 15:01:05Z guillaume $
 
 Ntime = 4;
 
