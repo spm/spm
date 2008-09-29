@@ -10,6 +10,10 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.19  2008/09/29 09:00:19  roboos
+% implemented smart handling of previously seen toolboxes using a persistent variable
+% this should speed up fieldtrip and fileio (e.g. read_data checks the presence of ctf for every trial)
+%
 % Revision 1.18  2008/09/24 15:43:00  roboos
 % added read_data and read_sens for fileio, should solve problem for MEEGfileio in spm5
 %
@@ -85,6 +89,16 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Revision 1.2  2006/01/06 11:39:23  roboos
 % added copyrigth and cvs logging, changed some comments
 %
+
+% this function is called many times in FieldTrip and associated toolboxes
+% use efficient handling if the same toolbox has been investigated before
+persistent previous
+if isempty(previous)
+  previous = struct;
+elseif isfield(previous, lower(toolbox)) 
+  status = previous.(lower(toolbox));
+  return
+end
 
 % this points the user to the website where he/she can download the toolbox
 url = {
@@ -241,6 +255,10 @@ if autoadd && ~status
     error(msg);
   end
 end
+
+% this function is called many times in FieldTrip and associated toolboxes
+% use efficient handling if the same toolbox has been investigated before
+previous.(lower(toolbox)) = status;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

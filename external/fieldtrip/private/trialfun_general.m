@@ -2,7 +2,7 @@ function [trl, event] = trialfun_general(cfg);
 
 % TRIALFUN_GENERAL  determines trials/segments in the data that are
 % interesting for analysis, using the general event structure returned
-% by read_fcdc_event. This function is independent of the dataformat
+% by read_event. This function is independent of the dataformat
 %
 % The trialdef structure can contain the following specifications
 %   cfg.trialdef.eventtype  = 'string'
@@ -18,9 +18,12 @@ function [trl, event] = trialfun_general(cfg);
 %   cfg.trialdef.eventtype  = '?'
 % a list with the events in your datafile will be displayed on screen.
 
-% Copyright (C) 2005-2007, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: trialfun_general.m,v $
+% Revision 1.2  2008/09/29 08:39:38  roboos
+% replaced read_fcdc_xxx with the new function names
+%
 % Revision 1.1  2008/09/23 07:31:15  roboos
 % Moved all statfuns and trialfuns to their own directories, where they will be easier to find for the end-user. Also updated fieldtripdefs accordingly.
 %
@@ -57,9 +60,9 @@ if isfield(cfg.trialdef, 'triallength')
 end
 
 % read the header and event information
-hdr = read_fcdc_header(cfg.headerfile);
+hdr = read_header(cfg.headerfile);
 try
-  event = read_fcdc_event(cfg.headerfile);
+  event = read_event(cfg.headerfile);
 catch
   event = [];
 end
