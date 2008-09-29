@@ -878,9 +878,8 @@ pre-multiplies the data. This is a general approach which
 allows one to re-reference to the average over channels, to single
 channels, or any linear combination of channels, e.g. the average over
 a pair of channels. The prepended output letter is 'M'. Note that re-referencing
-should only affect the analysis you do at the channel level and should have no effect
-on 3D source reconstruction and DCM. If you find a counterexample please report
-it as an error.
+should mainly affect the analysis you do at the channel level and should have little
+effect on 3D source reconstruction and DCM as long as it is not too noisy.
 
 When you call the function, you will first be asked whether you want 
 to use a GUI or information read from a file to specify the montage. 
