@@ -20,7 +20,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2134 2008-09-22 12:07:35Z stefan $
+% $Id: spm_eeg_merge.m 2239 2008-09-29 19:53:42Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -147,7 +147,7 @@ for i = 1:Nfiles
 
 end
 
-Dout = Dout.history('spm_eeg_merge', S);
+Dout = Dout.history('spm_eeg_merge', S, 'reset');
 
 save(Dout);
 spm_progress_bar('Clear');
