@@ -12,11 +12,15 @@ spm('defaults','EEG');
 
 % paths to data, etc.
 %-------------------------------------------------------
-Pbase     = 'D:\spm8data';             % supraordinate directory 
+
+% PLEASE CHANGE THIS DIRECTORY BEFORE RUNNING SCRIPT
+Pbase     = 'D:\spm8data';        % directory with your data, CHANGE
+
+
 Pdata     = fullfile(Pbase, '.'); % data directory in Pbase
 Panalysis = fullfile(Pbase, '.'); % analysis directory in Pbase
 
-% the data (ERP SPM-matfile
+% the data (mismatch negativity ERP SPM file from SPM-webpages)
 DCM.xY.Dfile = 'mafdeMspm8_example';
 
 

@@ -125,14 +125,14 @@ otherwise. At any time, you can switch forth and back from one part to
 the next. Also, within each part, you can specify information in any
 order you like.  
 
-\section{load, save, switch DCMs}
+\section{load, save, select model type}
 At the top of the GUI, you can load an existing DCMs or save the one
 you are currently working on. In general, you can \textit{save} and
 \textit{load} during model specification at any time. You can also
-switch between different DCM types. The default is 'ERP' which is DCM
-for evoked responses. Among the other types are steady-state responses
-(SSR) and induced responses (IND); both are described in this
-manual. 
+switch between different DCM analyses (the left menu). The default is 'ERP' which is DCM
+for evoked responses described here. Currently, the other two typs are are steady-state responses
+(SSR) and induced responses (IND); both are also described in this
+manual. The menu on the right-hand side lets you choose the neuronal model. Currently, there are four model types. The first is 'ERP', which is the standard model described in most of our papers, e.g.~\cite{od_dcm_erp}. The second is 'SEP', which uses a variant of this model, however, the dynamics tend to be faster \cite{andre_sigmoid}. The third is 'NMM', which is a nonlinear neural mass model based on a first-order approximation, and the fourth is 'MFM', which is also nonlinear and is based on a second-order approximation. The latter two options haven't been described in the literatue yet, but are under review.
 
 \section{Data and design}
 In this part, you select the data and model between-trial
@@ -186,13 +186,13 @@ the next stage \textit{electromagnetic model}. From this part, you can
 press the red $<$ button to get back to the data and design part.
 
 \section{Electromagnetic model}
-With the present version of DCM, you have two options how to spatially
+With the present version of DCM, you have three options how to spatially
 model your evoked responses. Either you use a single equivalent
 current dipole (ECD) for each source, or you use a patch on the
-cortical surface as source model (Imaging). The latter option is not
+cortical surface as source model (IMG), or you don't use a spatial model at all (local field potentials (LFP)). The second option is not
 described in the peer-reviewed literature yet (Daunizeau et al., in
-preparation). In both cases, you have to enter the source names (one
-name in one row), and their prior locations (in mm in MNI
+preparation). In all three cases, you have to enter the source names (one
+name in one row). For ECD and IMG, you have to specify the prior source locations (in mm in MNI
 coordinates). Note that DCM uses by default uninformative priors on  
 dipole orientations, but tight priors on locations. One reason for the
 tight priors on locations is to ensure that each dipole stays in its
@@ -264,7 +264,8 @@ named 'DCM\_ERP.mat'. You can save to a different name, for example
 because you want to estimate multiple models, by pressing 'save' at
 the top of the GUI and write to a different name. 
 
-\section{Results} After estimation finished, you can assess the results
+\section{Results} 
+After estimation finished, you can assess the results
 by choosing from the pull-down menu at the bottom (middle). 
 
 With \textit{ERPs (mode)} you can plot, for each mode, the data for
@@ -322,3 +323,32 @@ will see the probability, for each model, that it produced the
 data. By convention, a model can be said to be the best among a
 selection of other models, with strong evidence, if its log-model
 evidence exceeds all other log-model evidences by at least 3. 
+
+
+\section{Steady-State Responses}
+
+\subsection{Model specification}
+The data must first be prepared using the temporal pre-processing option; 'other', then 'prep'. Here you specify the data type (MEG, EEG or LFP), and select the channels for a DCM analysis. In general you select all MEG/EEG channels and all or a subgroup of LFP channels from the areas you are interested in modelling as a network.
+
+The top panel of the DCM for ERP window allows you to toggle through available analysis methods. On the top left drop-down menu, select 'SSR'. The second drop-down menu in the right of the top-panel allows you to specify whether the analysis should be performed using a Wilson-Cowan like model which is linear in the states, for this you can choose NMM. Alternatively you may use a conductance based model, which is non-linear in the states by choosing 'MFM' (see \cite{andre_sigmoid} for a description of their differences).
+ 
+The steady state (frequency) response is generated automatically from the time domain recordings. The time duration of the frequency response is entered in the second panel in the time-window.  The options for detrending have no effect in an SSR analysis. In the subsampling option you may choose to downsample the data before constructing the frequency response. The number of modes specifies how many components are likely present in channel data. The between trial effects and design matrix entry follow as above in the case of ERPs.
+
+\subsection{The Lead-Field}
+The cross-spectral density is a description of the dependencies among the observed outputs of these neuronal sources. To achieve this frequency domain description we must first specify the likely sources and their location. If LFP data are used then only source names are required. This information is added in the third panel. The leadfield, which specifies the mixture of neuronal source activity in channel space, is estimated during model inversion.
+
+\subsection{Connections}
+The bottom panel then allows you to specify the connections between sources and whether these sources can change from trial type to trial type. 
+
+On the first row, three connection types may be specified between the areas. These may be Excitatory, Inhibitory or Mixed excitatory and inhibitory connections. To specify a connection, switch on the particular connection matrix entry. For example to specify an Inhibitory connection from source 3 to source 1, turn on the 'Inhib' entry at position (3,1).
+
+On this row the inputs are also specified. These are where external experimental inputs enter the network.
+
+The matrix on the next row allows the user to select which of the connections specified above can change across trial types. For example in a network of two sources with two mixed connections (1,2) and (2,1), you may wish to allow only one of these to change depending on experimental context. In this case, if you wanted the mixed connection from source 2 to source 2 to change depending on trial type, then select entry (2,1) in this final connection matrix.
+
+\subsection{Cross Spectral Densities}
+The final selection concerns what frequencies you wish to model. These could be part of a broad frequency range e.g. like the default 4 - 48 Hz, or you could enter a narrow band e.g. 8 and 12 Hz, will model from 8 to 12 Hz in 1Hz increments.
+
+Once you hit the 'invert DCM' option the cross spectral densities are computed automatically (using the spectral-toolbox). The data for inversion includes the auto-spectra and cross-spetra between channels or between channel modes. This is computed using a multivariate autoregressive model, which can accurately measure periodicities in the time-domain data. Overall the spectra are then presented as an upper-triangular, s x s matrix, with auto-spectra on the main diagonal and cross-spectra in the off-diagonal terms.
+
+\subsection{Output: Intrinsic and Extrinsic Connection Measures}

@@ -3,11 +3,11 @@
 
 In this chapter we will describe the function and syntax of all 
 SPM/MEEG preprocessing and display functions. This will be the most
-detailed description of the functions  in this
+detailed description of the functions in this
 manual. Our goal is to provide a comprehensive description of how the
 software can be used to preprocess M/EEG data up to the point where
 one would use one the source reconstruction techniques or statistical
-analysis of M/EEG channel data.
+analysis of M/EEG channel data. 
 
 These functions can be called either from SPM's graphical user
 interface (GUI), from the matlab command line, or via the batch input
@@ -30,8 +30,11 @@ missing argument. When using the GUI, a function is called without any
 input argument, i.e. SPM will ask for all input arguments. If using
 the command line (e.g., with a script), you can specify all arguments
 in advance and effectively use SPM/MEEG functions in batch mode. We
-provided some sample batch script (\textit{meeg\_preprocess}) in the
-\textit{man/example\_scripts/} folder of the distribution.
+provide some sample batch script (\textit{histexample.m}) in the
+\textit{man/example\_scripts/} folder of the SPM8-distribution.
+\\
+\\
+In the following we will go through the conversion of the data, specifics of the M/EEG format in SPM8, how to properly enter additional information about the channels, how to call fieldtrip-functions from SPM, a complete reference of all methods and functions, how to use the display, and finally how to script and batch the preprocessing.
 
 \section{Conversion of data}
 The first step of any analysis is the conversion of data from its
@@ -130,33 +133,6 @@ name of the raw data file if the data is read as continuous and
 SPM will now convert the data. This may take some time depending on
 file size and a red bar will inform you about the progress.
 
-\section{Integration of SPM and Fieldtrip}
-The SPM8 distribution includes the latest version of 'Fieldtrip' toolbox
-(http://www2.ru.nl/fcdonders/fieldtrip/). FieldTrip is a Matlab
-toolbox for MEG and EEG analysis that is being developed at the
-F.C. Donders Centre (FCDC) together with collaborating
-institutes. Fieldtrip functions can be used for many kinds of analysis
-which are not supported in SPM proper. However, Fieldtrip
-does not have extensive graphical user interface and its functionality
-should be accessed by writing scripts. Full reference documentation
-for Fieldtrip including example scripts is available at the Fieldtrip
-website (http://www.ru.nl/neuroimaging/fieldtrip/). The SPM
-distribution also contains some documentation, contained as help
-comments in Fieldtrip functions. These can be found in the directory 
-external/fieldtrip/private. Note that in order to prevent function
-name clashes SPM calls its Fieldtrip functions via 
-
-intermediate or 'wrapper' functions whose name always starts with
-'ft\_'. This has the advantage that even if there is a different Fieldtrip
-version in Matlab path from the one used by SPM, SPM will only use its own
-version and incompatibilities will be avoided. To adapt a standard
-Fieldtrip script for use with SPM you must add the prefix 'ft\_' 
-to all Fieldtrip function names in the script.
-
-Fieldtrip data structures can be converted to SPM EEG files using
-the \textit{spm\_eeg\_ft2spm} function.  SPM M/EEG data, once loaded
-with the function \textit{spm\_eeg\_load} can be converted to Fieldtrip
-format using the method 'ftraw' (with syntax D.ftraw or ftraw(D)).
 
 \section{The M/EEG SPM format}
 The M/EEG format has changed from SPM5 to SPM8. There were many
@@ -317,7 +293,7 @@ also be recognized by SPM. The struct should be called 'shape' and it should con
 shape.pnt - a $K \times 3$ matrix (possibly empty) with headshape points i.e. some points that are on the surface of the head
 and have no labels, shape.fid.pnt - $M \times 3$ matrix with fiducial points i.e. points that have labels,
 shape.fid.label - $M \times 1$ cell array of strings with the labels of the points in shape.fid.pnt. As mentioned
-before $M should be at least 3 for the coregistration to work. 
+before $M$ should be at least 3 for the coregistration to work. 
 
 If you did not use default 3D positions, after loading the sensor
 positions you can perform coregistration of your sensors with SPM's
@@ -402,6 +378,34 @@ to export the processing steps or a subset of them to a Matlab script and use th
 for a repeating the same analysis or doing a different one. Note that if you only export a subset
 of steps the resulting script is not guaranteed to work or produce the same result.
 
+\section{Integration of SPM and Fieldtrip}
+The SPM8 distribution includes the latest version of 'Fieldtrip' toolbox
+(http://www2.ru.nl/fcdonders/fieldtrip/). FieldTrip is a Matlab
+toolbox for MEG and EEG analysis that is being developed at the
+F.C. Donders Centre (FCDC) together with collaborating
+institutes. Fieldtrip functions can be used for many kinds of analysis
+which are not supported in SPM proper. However, Fieldtrip
+does not have extensive graphical user interface and its functionality
+should be accessed by writing scripts. Full reference documentation
+for Fieldtrip including example scripts is available at the Fieldtrip
+website (http://www.ru.nl/neuroimaging/fieldtrip/). The SPM
+distribution also contains some documentation, contained as help
+comments in Fieldtrip functions. These can be found in the directory 
+external/fieldtrip/private. Note that in order to prevent function
+name clashes SPM calls its Fieldtrip functions via 
+
+intermediate or 'wrapper' functions whose name always starts with
+'ft\_'. This has the advantage that even if there is a different Fieldtrip
+version in Matlab path from the one used by SPM, SPM will only use its own
+version and incompatibilities will be avoided. To adapt a standard
+Fieldtrip script for use with SPM you must add the prefix 'ft\_' 
+to all Fieldtrip function names in the script.
+
+Fieldtrip data structures can be converted to SPM EEG files using
+the \textit{spm\_eeg\_ft2spm} function.  SPM M/EEG data, once loaded
+with the function \textit{spm\_eeg\_load} can be converted to Fieldtrip
+format using the method 'ftraw' (with syntax D.ftraw or ftraw(D)).
+
 \section{Reading of data}
 \label{sec:load}
 If you use the GUI only, there is no need to read this
@@ -464,9 +468,6 @@ channel, second time-point, and third trial to 1.
 
 
 \section{Methods for the M/EEG object}
-
-\\
-\\
 M/EEG methods are functions that operate on an M/EEG object, loaded
 with \textit{spm\_eeg\_load}. These methods should not be used, if you just
 want to analyze your data using the GUI or simple scripts. However, if
