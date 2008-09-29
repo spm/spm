@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2206 2008-09-26 16:27:04Z vladimir $
+% $Id: checkmeeg.m 2220 2008-09-29 10:40:27Z stefan $
 
 if nargin==1
     option = 'basic';
@@ -96,7 +96,7 @@ catch
     disp('checkmeeg: transform type missing, assigning default');
 end
 
-if strcmp(meegstruct.transform.ID, 'TF')
+if strncmp(meegstruct.transform.ID, 'TF', 2) % TF and TFphase
     try
         Nfrequencies = length(meegstruct.transform.frequencies);
     catch
@@ -178,13 +178,14 @@ else
             else
                 expected_size = [Nchannels Nsamples];
             end
-        case 'TF'
+        case {'TF', 'TFphase'}
             if Ntrials>1
                 expected_size = [Nchannels Nfrequencies Nsamples Ntrials];
             else
                 expected_size = [Nchannels Nfrequencies Nsamples];
             end
 
+            
         otherwise
             error('Unknown transform type');
     end

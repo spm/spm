@@ -835,18 +835,26 @@ change. The prepended output letter is 'a'.
 When you call the function, you are first asked whether you want
 to read your own artefact list. This gives you the opportunity to 
 tell SPM which of your trials are artefactual, and which are clean. 
-The two lists of trial numbers don't need to be complete, i.e., you can specify a
-few trials as artefactual or clean but SPM will still check for artefacts in the remaining trials.
+The two lists of trial numbers don't need to be complete, i.e., you
+can specify a few trials as artefactual or clean but SPM will still
+check for artefacts in the remaining trials. 
 The next question is whether you want to use robust averaging for your data.
 This approach estimates weights, lying between 0 and 1, that indicate how much 
 artefactual a trial is. Later on, when averaging to produce evoked responses, 
 each trial is weighted by this number. For example, if the weight of 
 a trial is close to zero, it doesn't have much influence in the average, 
-and is effectively treated like an artefactual trial. If you choose robust 
-averaging, you first have to choose an offset for the weighting function
-(JAMES), and then the width of a smoothing kernel of the residuals (JAMES).
+and is effectively treated like an artefactual trial.If you choose
+robust averaging, you first have to choose an offset for the weighting
+function. This value, default value 3, defines the weighting function
+used for averaging the data. The value 3 will roughly preserve 95\% of
+data points drawn randomly from a Gaussian distribution. Next, one has
+to specifiy the width of a smoothing kernel of the residuals. As
+robust averaging treats each data point as independent it is necessary
+to smooth the data after averaging. The value is specified in
+milliseconds and its default is 20.
 
-SPM will next ask whether you want to threshold your channels. If you choose yes,
+SPM will next ask whether you want to threshold your channels. If you
+choose yes, 
 you can then enter a list of channels, for which you want to check whether 
 the absolute values of a trial surpass this threshold. Next, the threshold
 itself can be either a vector of thresholds, i.e., one for each channel, 

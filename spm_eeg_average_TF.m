@@ -5,7 +5,7 @@ function D = spm_eeg_average_TF(S)
 % S         - optional input struct
 % (optional) fields of S:
 % D                 - filename of EEG mat-file with epoched data
-% circularise_phase - flat that indicates whether average is straight (0) or
+% circularise       - flat that indicates whether average is straight (0) or
 %                     vector (1) of phase angles.
 % Output:
 % D         - EEG data struct (also written to files)
@@ -16,7 +16,7 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_average_TF.m 2220 2008-09-29 10:40:27Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -36,16 +36,16 @@ catch
 end
 
 try
-    circularise = S.circularise_phase;
+    circularise = S.circularise;
 catch
     circularise = 0;
     try
-        phs = D.phs;
-        if phs
+        
+        if strcmp(D.transformtype, 'TFphase')
             circularise = spm_input('Straight or vector (eg PLV) average of phase angles?','+1', 'straight|vector',[0 1], 1);
         end
     end
-    S.circularise_phase = circularise_phase;
+    S.circularise = circularise;
 end
 
 spm('Pointer', 'Watch'); drawnow;
@@ -53,7 +53,7 @@ spm('Pointer', 'Watch'); drawnow;
 if ~strcmp(D.type, 'single')
     error('This function can only be applied to single trial data');
 else
-    if strcmp(D.transformtype, 'TF')
+    if strcmp(D.transformtype, 'TF', 2) % TF and TFphase
 
         % generate new meeg object with new filenames
         Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);

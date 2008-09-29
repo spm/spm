@@ -22,7 +22,7 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_tf.m 2220 2008-09-29 10:40:27Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -154,7 +154,8 @@ Dtf = coor2D(Dtf,[1:length(tf.channels)], coor2D(D,tf.channels));
 if tf.phase == 1
     Dtf2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
     Dtf2 = frequencies(Dtf2, tf.frequencies);
-
+    Dtf2 = transformtype(Dtf2, 'TFphase');
+    
     % fix all channels
     sD = struct(Dtf2);
 
