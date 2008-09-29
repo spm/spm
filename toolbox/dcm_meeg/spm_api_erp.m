@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_api_erp.m 2221 2008-09-29 10:50:13Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -428,10 +428,14 @@ function handles = data_ok_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 if ~Y_Callback(hObject, eventdata, handles), return, end
  
+handles = guidata(hObject);
+
 %-check trial-specific effects
 %--------------------------------------------------------------------------
 design_Callback(hObject, eventdata, handles)
  
+handles = guidata(hObject);
+
 % enable next stage, disable data specification
 %--------------------------------------------------------------------------
 set(handles.Y1,            'Enable', 'off');
