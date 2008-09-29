@@ -19,7 +19,7 @@ function spm_eeg_convertmat2nifti(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti.m 2161 2008-09-23 18:00:26Z stefan $
+% $Id: spm_eeg_convertmat2nifti.m 2215 2008-09-29 09:43:35Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -66,6 +66,11 @@ for k = 1:Nsub
     % generate data directory into which converted data goes
     [P, F] = fileparts(spm_str_manip(Fname(k, :), 'r'));
     [m, sta] = mkdir(P, spm_str_manip(Fname(k, :), 'tr'));
+    if m ~= 1
+        error(sta);
+        return
+    end
+    
     cd(fullfile(P, spm_str_manip(Fname(k, :), 'tr')));
     
     d = (D{k}(Cind, :,:));
