@@ -145,6 +145,7 @@ distribution also contains some documentation, contained as help
 comments in Fieldtrip functions. These can be found in the directory 
 external/fieldtrip/private. Note that in order to prevent function
 name clashes SPM calls its Fieldtrip functions via 
+
 intermediate or 'wrapper' functions whose name always starts with
 'ft\_'. This has the advantage that even if there is a different Fieldtrip
 version in Matlab path from the one used by SPM, SPM will only use its own
@@ -215,7 +216,7 @@ Also the channel labels do not always correctly describe the actual electrode
 locations in an experiment. In these case some information needs 
 to be supplied by the user. Reading and linking this additional information with the data is the
 purpose of the 'prep' interface. This interface is accessed by
-selecting 'prep' from the 'Other' drop-down menu in the GUI.  A menu
+selecting 'Prepare' from the 'Other' drop-down menu in the GUI.  A menu
 (easily overlooked) will appear at the top of SPM's interactive 
 window. The same functionality can also be accessed by pressing 'Prepare SPM file' in
 the SPM M/EEG reviewing tool.
@@ -393,6 +394,13 @@ labels than your data file. SPM searches, for each channel in the
 data, through the labels in the channel template file. If the labels
 match, the coordinate is used. 
 
+\subsection{History}
+This menu allows you to review all the pre-processing steps that have been applied
+to a particular data file by functions that support the history functionality (see below).
+This is useful when you are not sure how a particular file was processed. It is also possible
+to export the processing steps or a subset of them to a Matlab script and use them as a template
+for a repeating the same analysis or doing a different one. Note that if you only export a subset
+of steps the resulting script is not guaranteed to work or produce the same result.
 
 \section{Reading of data}
 \label{sec:load}
@@ -689,10 +697,18 @@ encounter errors in Fieldtrip functions. Please report such errors on
 SPM or Fieldtrip mailing list as we are interested in fixing them. ftraw(0) is 
 safer in this respect but inefficient in its memory use. 
 
-
 \subsubsection{save}
 This method saves the object to the mat- and dat-files.
 
+\subsection{struct-like interface}
+In addition to pre-defined internal fields that should only be manipulated
+using methods, meeg object also allows storing additional information in it
+as long as the names of additional fields do not clash with the names of existing methods.
+This functionality is used by some SPM functions. For instance, the results of 3D source
+reconstructions are stored in D.inv field for which no methods are necessary
+to access and modify it. You can use this functionality in your scripts (try commands like 
+D.myfield = 'hellow world'; disp(D.myfield);). The methods rmfield and isfield work for these
+extra-fields as they would if meeg object was a struct.
 
 \section{SPM functions}
 In this section we will describe the high-level SPM functions which

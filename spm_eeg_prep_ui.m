@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2216 2008-09-29 09:53:06Z vladimir $
 
 if nargin == 0
 
@@ -35,7 +35,7 @@ if nargin == 0
         'Callback', 'spm_eeg_prep_ui(''FileSaveCB'')');
 
     % ====== Channel types ===============================
-    
+
     ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
@@ -50,7 +50,7 @@ if nargin == 0
             'HandleVisibility','on',...
             'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
     end
-    
+
     CTypesRef2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'MEGREF=>MEG',...
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
@@ -63,13 +63,13 @@ if nargin == 0
         'Enable', 'off', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
-    
+
     CTypesMagnetometer2MEGMenu = uimenu(ChanTypeMenu, 'Label', 'Magnetometer=>MEG',...
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''MEGChanTypeCB'')');
-    
+
     CTypesDefaultMenu = uimenu(ChanTypeMenu, 'Label', 'Default',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
@@ -83,7 +83,7 @@ if nargin == 0
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''ChanTypeCB'')');
     % ====== Sensors ===================================
-    
+
     Coor3DMenu = uimenu(Finter,'Label','Sensors',...
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
@@ -99,13 +99,13 @@ if nargin == 0
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''LoadEEGSensTemplateCB'')');
-    
+
     LoadEEGSensMatMenu = uimenu(LoadEEGSensMenu, 'Label', 'From *.mat file',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
         'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
-    
+
     LoadEEGSensOtherMenu = uimenu(LoadEEGSensMenu, 'Label', 'Convert locations file',...
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
@@ -129,10 +129,10 @@ if nargin == 0
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');    
-    
+        'Callback', 'spm_eeg_prep_ui(''CoregisterCB'')');
+
     % ====== 2D projection ===================================
-    
+
     Coor2DMenu = uimenu(Finter, 'Label','2D projection',...
         'Tag','EEGprepUI',...
         'Enable', 'off', ...
@@ -206,7 +206,26 @@ if nargin == 0
         'Tag','EEGprepUI',...
         'Enable', 'on', ...
         'HandleVisibility','on',...
-        'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');   
+        'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');
+
+    % ====== History ===================================
+
+    HistoryMenu = uimenu(Finter, 'Label','History',...
+        'Tag','EEGprepUI',...
+        'Enable', 'off', ...
+        'HandleVisibility','on');
+
+    HistoryReviewMenu = uimenu(HistoryMenu, 'Label','Review history',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
+
+    History2ScriptMenu = uimenu(HistoryMenu, 'Label','Save as script',...
+        'Tag','EEGprepUI',...
+        'Enable', 'on', ...
+        'HandleVisibility','on',...
+        'Callback', 'spm_eeg_prep_ui(''HistoryCB'')');
 else
     eval(callback);
 end
@@ -247,7 +266,7 @@ if ~isempty(D)
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
         end
-        
+
         chanlist{i} = [chanlist{i}{:}];
     end
 
@@ -258,9 +277,9 @@ if ~isempty(D)
 
         [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
-       
+
         selection(strmatch('MEG', chantype(D, selection))) = [];
-        
+
         if ok && ~isempty(selection)
             S.task = 'settype';
             S.D = D;
@@ -287,20 +306,20 @@ switch get(gcbo, 'Label')
         S.ind = strmatch('MEGREF', S.D.chantype);
         S.type = 'MEG';
         D = spm_eeg_prep(S);
-    case 'Planar=>MEG'   
+    case 'Planar=>MEG'
         S.type = 'MEG';
-        S.ind = strmatch('planar', S.D.origchantypes, 'exact');       
+        S.ind = strmatch('planar', S.D.origchantypes, 'exact');
         S.D = spm_eeg_prep(S);
         S.type = 'Other';
-        S.ind = strmatch('magnetometer' , S.D.origchantypes, 'exact');   
+        S.ind = strmatch('magnetometer' , S.D.origchantypes, 'exact');
         D = spm_eeg_prep(S);
     case 'Magnetometer=>MEG'
         S.type = 'MEG';
-        S.ind = strmatch('magnetometer', S.D.origchantypes, 'exact');       
-        S.D = spm_eeg_prep(S);       
+        S.ind = strmatch('magnetometer', S.D.origchantypes, 'exact');
+        S.D = spm_eeg_prep(S);
         S.type = 'Other';
-        S.ind = strmatch('planar', S.D.origchantypes, 'exact');   
-        D = spm_eeg_prep(S);        
+        S.ind = strmatch('planar', S.D.origchantypes, 'exact');
+        D = spm_eeg_prep(S);
 end
 
 setD(D);
@@ -315,7 +334,7 @@ S.D = getD;
 S.task = 'settype';
 S.type = [];
 S.ind = 1:S.D.nchannels;
-D = spm_eeg_prep(S);        
+D = spm_eeg_prep(S);
 
 setD(D);
 update_menu;
@@ -354,22 +373,22 @@ D = spm_eeg_prep(S);
 % ====== This is for the future ==================================
 % sens = D.sensors('EEG');
 % label = D.chanlabels(strmatch('EEG',D.chantype));
-% 
+%
 % [sel1, sel2] = spm_match_str(label, sens.label);
-% 
+%
 % montage = [];
 % montage.labelorg = sens.label;
 % montage.labelnew = label;
 % montage.tra = sparse(zeros(numel(label), numel(sens.label)));
 % montage.tra(sub2ind(size(montage.tra), sel1, sel2)) = 1;
-% 
+%
 % montage = spm_eeg_montage_ui(montage);
-% 
+%
 % S = [];
 % S.D = D;
 % S.task = 'sens2chan';
 % S.montage = montage;
-% 
+%
 % D = spm_eeg_prep(S);
 
 % ============= Assign the fiducials using a mat file or the sensors file
@@ -422,10 +441,10 @@ if numel(intersect(upper(lblshape), upper(lblfid))) < 3
             if ~ok
                 continue
             end
-            
+
             S.regfid = [S.regfid; [lblfid(i) lblshape(selection)]];
         end
-        
+
         if size(S.regfid, 1) < 3
             warndlg('3 fiducials are required to load headshape');
             return;
@@ -437,7 +456,7 @@ else
     lblshape = lblshape(sel2);
     S.regfid = [lblfid(:) lblshape(:)];
 end
-    
+
 D = spm_eeg_prep(S);
 
 setD(D);
@@ -604,6 +623,7 @@ HasSensorsMEG = 'off';
 HasChannelsMEGREF = 'off';
 HasFiducials = 'off';
 HasDefaultLocs = 'off';
+HasHistory = 'off';
 if isa(get(Finter, 'UserData'), 'meeg')
     Dloaded = 'on';
 
@@ -615,13 +635,13 @@ if isa(get(Finter, 'UserData'), 'meeg')
 
     if ~isempty(strmatch('MEG', D.chantype, 'exact'));
         IsMEG = 'on';
-    end    
+    end
 
     if forwinv_senstype(D.chanlabels, 'neuromag') &&...
             isfield(D, 'origchantypes')
         IsNeuromag = 'on';
     end
-    
+
     if ~isempty(strmatch('MEGREF', D.chantype, 'exact'));
         HasChannelsMEGREF = 'on';
     end
@@ -637,17 +657,21 @@ if isa(get(Finter, 'UserData'), 'meeg')
     if  ~isempty(D.sensors('MEG'))
         HasSensorsMEG = 'on';
     end
-    
+
     if  ~isempty(D.fiducials)
         HasFiducials = 'on';
     end
-    
+
     template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
     template_sfp = {template_sfp.name};
     ind = strmatch([forwinv_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
 
     if ~isempty(ind)
         HasDefaultLocs = 'on';
+    end
+
+    if  ~isempty(D.history)
+        HasHistory = 'on';
     end
 
 else
@@ -694,13 +718,15 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', I
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing MEG'), 'Enable', IsMEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (EEG)'), 'Enable', HasSensorsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', HasSensorsMEG); 
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Project 3D (MEG)'), 'Enable', HasSensorsMEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Delete sensor'), 'Enable', IsSelected);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Undo move'), 'Enable', IsMoved);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Apply'), 'Enable', IsTemplate);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Clear'), 'Enable', IsTemplate);
+
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'History'), 'Enable', HasHistory);
 
 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
 
@@ -712,12 +738,12 @@ if strcmp(Dloaded, 'on') && isfield(D,'PSD') && D.PSD == 1
         delete(hc)
     end
     uicontrol(Finter,...
-                    'style','pushbutton','string','OK',...
-                    'callback','spm_eeg_review_callbacks(''get'',''prep'')',...
-                    'tooltipstring','Update data informations in ''SPM Graphics'' window',...
-                    'BusyAction','cancel',...
-                    'Interruptible','off',...
-                    'Tag','EEGprepUI');
+        'style','pushbutton','string','OK',...
+        'callback','spm_eeg_review_callbacks(''get'',''prep'')',...
+        'tooltipstring','Update data informations in ''SPM Graphics'' window',...
+        'BusyAction','cancel',...
+        'Interruptible','off',...
+        'Tag','EEGprepUI');
 end
 
 
@@ -766,8 +792,8 @@ if ~isempty(xy)
     if size(xy, 1) ~= 2
         xy = xy';
     end
-    
-    
+
+
     xy(xy < 0.05) = 0.05;
     xy(xy > 0.95) = 0.95;
 
@@ -942,4 +968,82 @@ function Clear2DCB
 plot_sensors2D([], {});
 
 update_menu;
+
+% ====== History ===============================
+
+function HistoryCB
+
+D = getD;
+
+h = D.history;
+
+histlist ={};
+for i = 1:numel(h)
+    switch h(i).fun
+        case 'spm_eeg_convert'
+            histlist{i} = 'Convert';
+        case 'spm_eeg_epochs'
+            histlist{i} = 'Epoch';
+        case 'spm_eeg_filter'
+            histlist{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
+                ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
+        case 'spm_eeg_downsample'
+            histlist{i}  = ['Downsample to ' num2str(h(i).args.fsample_new) ' Hz'];
+        case 'spm_eeg_montage'
+            histlist{i} = 'Change montage';
+        case 'spm_eeg_artefact'
+            histlist{i} = 'Detect artefacts';
+        case 'spm_eeg_average'
+            histlist{i} = 'Average';
+        case 'spm_eeg_average_TF'
+            histlist{i} = 'Average time-frequency';
+        case 'spm_eeg_average'
+            histlist{i} = 'Average';
+        case 'spm_eeg_grandmean'
+            histlist{i} = 'Grand mean';
+        case 'spm_eeg_merge'
+            histlist{i} = 'Merge';
+        case 'spm_eeg_tf'
+            histlist{i} = 'Compute time-frequency';
+        case 'spm_eeg_weight_epochs'
+            histlist{i} = 'Compute contrast';
+        case 'spm_eeg_prep'
+            switch h(i).args.task
+                case 'settype'
+                    histlist{i} = 'Set channel type';
+                case {'loadtemplate', 'setcoor2d', 'project3D'}
+                    histlist{i} = 'Set 2D coordinates';
+                case 'loadeegsens'
+                    histlist{i} = 'Load EEG sensor locations';
+                case 'defaulteegsens'
+                    histlist{i} = 'Set EEG sensor locations to default';
+                case 'sens2chan'
+                    histlist{i} = 'Specify initial montage';
+                case 'headshape'
+                    histlist{i} = 'Load fiducials/headshape';
+                case 'coregister'
+                    histlist{i} = 'Coregister';
+                otherwise
+                    histlist{i} = ['Prepare: ' h(i).args.task];
+            end
+        otherwise
+            histlist{i} = h(i).fun;
+    end
+end
+
+switch get(gcbo, 'Label')
+    case 'Review history'
+        listdlg('ListString', histlist, 'SelectionMode', 'single', 'Name', 'Review history', 'ListSize', [400 300]);
+        return
+    case 'Save as script'
+        [selection ok]= listdlg('ListString', histlist, 'SelectionMode', 'multiple',...
+            'InitialValue', 1:numel(histlist) ,'Name', 'Select history entries', 'ListSize', [400 300]);
+        if ok
+            S = [];
+            S.history = h(selection);
+
+            spm_eeg_hist2script(S);
+        end
+end
+
 
