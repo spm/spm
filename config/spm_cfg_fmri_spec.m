@@ -4,9 +4,9 @@ function fmri_spec = spm_cfg_fmri_spec
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_cfg_fmri_spec.m 2222 2008-09-29 11:08:47Z volkmar $
 
-rev = '$Rev: 2086 $';
+rev = '$Rev: 2222 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -250,7 +250,7 @@ multi.help    = {
                  ''
                  'The parametric modulator should be mean corrected if appropriate. Unused structure entries should have all fields left empty.'
 }';
-multi.filter = '\.mat$';
+multi.filter = 'mat';
 multi.ufilter = '.*';
 multi.num     = [0 1];
 % ---------------------------------------------------------------------

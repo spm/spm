@@ -4,9 +4,9 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_cfg_dicom.m 2222 2008-09-29 11:08:47Z volkmar $
 
-rev = '$Rev: 2086 $';
+rev = '$Rev: 2222 $';
 % ---------------------------------------------------------------------
 % data DICOM files
 % ---------------------------------------------------------------------
@@ -14,7 +14,7 @@ data         = cfg_files;
 data.tag     = 'data';
 data.name    = 'DICOM files';
 data.help    = {'Select the DICOM files to convert.'};
-data.filter = '.*';
+data.filter = 'any';
 data.ufilter = '.*';
 data.num     = [1 Inf];
 % ---------------------------------------------------------------------

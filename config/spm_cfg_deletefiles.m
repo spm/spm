@@ -4,9 +4,9 @@ function deletefiles = spm_cfg_deletefiles
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_deletefiles.m 1295 2008-04-02 14:31:24Z volkmar $
+% $Id: spm_cfg_deletefiles.m 2222 2008-09-29 11:08:47Z volkmar $
 
-rev = '$Rev: 1295 $';
+rev = '$Rev: 2222 $';
 % ---------------------------------------------------------------------
 % deletefiles Files to delete
 % ---------------------------------------------------------------------
@@ -14,7 +14,7 @@ deletefiles1         = cfg_files;
 deletefiles1.tag     = 'deletefiles';
 deletefiles1.name    = 'Files to delete';
 deletefiles1.help    = {'Select files to delete.'};
-deletefiles1.filter = '.*';
+deletefiles1.filter = 'any';
 deletefiles1.ufilter = '.*';
 deletefiles1.num     = [0 Inf];
 % ---------------------------------------------------------------------
