@@ -9,7 +9,7 @@ function ok = write_hdr_raw(fname,hdr,be)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: write_hdr_raw.m 2237 2008-09-29 17:39:53Z guillaume $
 
 
 [pth,nam,ext] = fileparts(fname);
@@ -38,7 +38,7 @@ else       mach = 'native';
 end;
 
 ok = true;
-if exist(hname,'file'),
+if spm_existfile(hname),
     fp = fopen(hname,'r+',mach);
 else
     fp = fopen(hname,'w+',mach);

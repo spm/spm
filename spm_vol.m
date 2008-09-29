@@ -34,7 +34,7 @@ function V = spm_vol(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_vol.m 2237 2008-09-29 17:39:53Z guillaume $
 
 if nargin==0,
     V   = struct('fname', {},...
@@ -106,7 +106,7 @@ function V = subfunc(p)
 [pth,nam,ext,n1] = spm_fileparts(deblank(p));
 p = fullfile(pth,[nam ext]);
 n = str2num(n1);
-if ~exist(p,'file'),
+if ~spm_existfile(p),
     %existance_error_message(p);
     error('File "%s" does not exist.', p);
 end
@@ -115,7 +115,7 @@ switch ext,
         % Do nothing
 
     case {'.img','.IMG'},
-        if ~exist(fullfile(pth,[nam '.hdr']),'file') && ~exist(fullfile(pth,[nam '.HDR']),'file'),
+        if ~spm_existfile(fullfile(pth,[nam '.hdr'])) && ~spm_existfile(fullfile(pth,[nam '.HDR'])),
             %existance_error_message(fullfile(pth,[nam '.hdr'])),
             error('File "%s" does not exist.', fullfile(pth,[nam '.hdr']));
         end
@@ -123,7 +123,7 @@ switch ext,
     case {'.hdr','.HDR'},
         ext = '.img';
         p   = fullfile(pth,[nam ext]);
-        if ~exist(p,'file'),
+        if ~spm_existfile(p),
             %existance_error_message(p),
             error('File "%s" does not exist.', p);
         end

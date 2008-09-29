@@ -12,7 +12,7 @@ function [Y] = spm_get_data(V,XYZ)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_data.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_get_data.m 2237 2008-09-29 17:39:53Z guillaume $
 
 
 % ensure V is an array of handle structures
@@ -31,7 +31,7 @@ for i = 1:length(V)
     
         % check files exists, if not try pwd
     %----------------------------------------------------------------------
-    if exist(V(i).fname,'file') ~=2
+    if ~spm_existfile(V(i).fname)
         [p,n,e]    = fileparts(V(i).fname);
         V(i).fname = [n e];
     end
