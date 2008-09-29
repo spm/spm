@@ -328,27 +328,32 @@ evidence exceeds all other log-model evidences by at least 3.
 \section{Steady-State Responses}
 
 \subsection{Model specification}
-The data must first be prepared using the temporal pre-processing option; 'other', then 'prep'. Here you specify the data type (MEG, EEG or LFP), and select the channels for a DCM analysis. In general you select all MEG/EEG channels and all or a subgroup of LFP channels from the areas you are interested in modelling as a network.
+DCM for steady state responses can be applied to M/EEG or intracranial data. 
 
-The top panel of the DCM for ERP window allows you to toggle through available analysis methods. On the top left drop-down menu, select 'SSR'. The second drop-down menu in the right of the top-panel allows you to specify whether the analysis should be performed using a Wilson-Cowan like model which is linear in the states, for this you can choose NMM. Alternatively you may use a conductance based model, which is non-linear in the states by choosing 'MFM' (see \cite{andre_sigmoid} for a description of their differences).
+The data must first be prepared using the temporal pre-processing option; 'other', then 'prep'. Here you specify the data type (MEG, EEG or LFP), and select the channels for a DCM analysis. In general you select all MEG/EEG channels and all or a subgroup of LFP channels from the areas you are interested in modelling as a network. A sample script to convert raw txt data, called textit{spm\_lfp\_txt2mat} can be found in the toolbox folder.
+
+The top panel of the DCM for ERP window allows you to toggle through available analysis methods. On the top left drop-down menu, select 'SSR'. The second drop-down menu in the right of the top-panel allows you to specify whether the analysis should be performed using a model which is linear in the states, for this you can choose ERP. Alternatively you may use a conductance based model, which is non-linear in the states by choosing, 'NMM' or 'MFM'. (see \cite{andre_sigmoid} for a description of their differences).
  
-The steady state (frequency) response is generated automatically from the time domain recordings. The time duration of the frequency response is entered in the second panel in the time-window.  The options for detrending have no effect in an SSR analysis. In the subsampling option you may choose to downsample the data before constructing the frequency response. The number of modes specifies how many components are likely present in channel data. The between trial effects and design matrix entry follow as above in the case of ERPs.
+The steady state (frequency) response is generated automatically from the time domain recordings. The time duration of the frequency response is entered in the second panel in the time-window.  The options for detrending remove either 1st, 2nd, 3rd or 4th order polynomial drifts from channels data. In the subsampling option you may choose to downsample the data before constructing the frequency response. The number of modes specifies how many components are from the leadfield are present in channel data. The between trial effects and design matrix entry follow as above in the case of ERPs.
 
 \subsection{The Lead-Field}
-The cross-spectral density is a description of the dependencies among the observed outputs of these neuronal sources. To achieve this frequency domain description we must first specify the likely sources and their location. If LFP data are used then only source names are required. This information is added in the third panel. The leadfield, which specifies the mixture of neuronal source activity in channel space, is estimated during model inversion.
+The cross-spectral density is a description of the dependencies among the observed outputs of these neuronal sources. To achieve this frequency domain description we must first specify the likely sources and their location. If LFP data are used then only source names are required. This information is added in the third panel by selecting 'LFP'. Alternatively, x,y,z coordinates are specified for ECD or IMG solutions. 
+
 
 \subsection{Connections}
 The bottom panel then allows you to specify the connections between sources and whether these sources can change from trial type to trial type. 
 
-On the first row, three connection types may be specified between the areas. These may be Excitatory, Inhibitory or Mixed excitatory and inhibitory connections. To specify a connection, switch on the particular connection matrix entry. For example to specify an Inhibitory connection from source 3 to source 1, turn on the 'Inhib' entry at position (3,1).
+On the first row, three connection types may be specified between the areas. For NMM and MFM options these are Excitatory, Inhibitory or Mixed excitatory and inhibitory connections When using the ERP option the user will specify if connections are 'Forward', 'Backward' or 'Lateral' To specify a connection, switch on the particular connection matrix entry. For example to specify an Inhibitory connection from source 3 to source 1, turn on the 'Inhib' entry at position (3,1).
 
 On this row the inputs are also specified. These are where external experimental inputs enter the network.
 
 The matrix on the next row allows the user to select which of the connections specified above can change across trial types. For example in a network of two sources with two mixed connections (1,2) and (2,1), you may wish to allow only one of these to change depending on experimental context. In this case, if you wanted the mixed connection from source 2 to source 2 to change depending on trial type, then select entry (2,1) in this final connection matrix.
 
+
 \subsection{Cross Spectral Densities}
-The final selection concerns what frequencies you wish to model. These could be part of a broad frequency range e.g. like the default 4 - 48 Hz, or you could enter a narrow band e.g. 8 and 12 Hz, will model from 8 to 12 Hz in 1Hz increments.
+The final selection concerns what frequencies you wish to model. These could be part of a broad frequency range e.g. like the default 4 - 48 Hz, or you could enter a narrow band e.g. 8 and 12 Hz, will model the alpha band in 1Hz increments.
 
 Once you hit the 'invert DCM' option the cross spectral densities are computed automatically (using the spectral-toolbox). The data for inversion includes the auto-spectra and cross-spetra between channels or between channel modes. This is computed using a multivariate autoregressive model, which can accurately measure periodicities in the time-domain data. Overall the spectra are then presented as an upper-triangular, s x s matrix, with auto-spectra on the main diagonal and cross-spectra in the off-diagonal terms.
 
-\subsection{Output: Intrinsic and Extrinsic Connection Measures}
+\subsection{Output and Results}
+The results menu provides several data estimates. By examining the 'data', you will be able to see observed spectra in the matrix format mentioned above. Selecting 'Cross-spectral density' gives both observed and predicted responses. To examine the connectivity estimates you can select the 'coupling (A)' results option, or for the modulatory parameters, the 'coupling (B)' option. Also you can examine the input strength at each source by selecting the 'coupling (C)' option, as in DCM for ERPs. The option 'trial-specific effects' shows the change in connectivity parameter estimates (from B) from trial to trial relative to the baseline connection (from A). To examine the spectral input to these sources choose the 'Input' option; this should look like a mixture of white and pink noise. Finally the 'dipoles' option allows visualisation of the a posteriori position and orientation of all dipoles in your model. 
