@@ -12,11 +12,15 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 %   spm_eeg_inv_vbecd_disp('init',D, ind)
 % then the routine will try to display the ind^th .inv{} cell element, if
 % it is actually a vb-ecd solution.
+%
+% Note:
+% unfortunately I cannot see how to ensure that when zooming in the image
+% the dipole location stays in place...
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2226 2008-09-29 12:55:00Z christophe $
+% $Id: spm_eeg_inv_vbecd_disp.m 2241 2008-09-29 22:10:48Z christophe $
 
 global st
 % global defaults
@@ -78,7 +82,7 @@ try
 catch
     Pimg = spm_vol(fullfile(spm('dir'),'EEGtemplates','smri.nii'));
 end
-% Pimg = spm_vol(Pimg); 
+
 spm_orthviews('Reset');
 spm_orthviews('Image', Pimg, [0.0 0.45 1 0.55]);
 spm_orthviews('MaxBB');
@@ -475,6 +479,32 @@ else
 end
 st.vols{1}.sdip = sdip;
 
+%%
+%________________________________________________________________________
+case 'redrawdip'
+%------------------------------------------------------------------------
+% spm_eeg_inv_vbecd_disp('RedrawDip')
+% redraw everything, useful when zooming into image
+
+% spm_eeg_inv_vbecd_disp('ClearDip')
+% spm_eeg_inv_vbecd_disp('ChgDip')
+
+% disp('Change dipole')
+sdip = st.vols{1}.sdip;
+
+i_dip = get(sdip.hdl.hdip,'Value');
+if isfield(sdip,'tabl_seed_dip')
+    i_seed = p_seed(sdip.tabl_seed_dip);
+else
+    i_seed = [];
+end
+
+if ~isempty(i_seed)
+    spm_eeg_inv_vbecd_disp('ClearDip')
+    spm_eeg_inv_vbecd_disp('DrawDip',i_seed,i_dip);
+end
+% 
+%%
 %________________________________________________________________________
 otherwise,
     warning('Unknown action string') %#ok<WNTAG>
@@ -493,7 +523,7 @@ return
 %________________________________________________________________________
 %________________________________________________________________________
 function dh = add1dip(loc,js,vloc,mark,col,ax,Fig,bb)
-% Plots the dipoles on the 3 views, with an error ellipse
+% Plots the dipoles on the 3 views, with an error ellipse for location
 % Then returns the handle to the plots
 
 loc(1,:) = loc(1,:) - bb(1,1)+1;

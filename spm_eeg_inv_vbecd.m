@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2232 2008-09-29 15:22:00Z christophe $
+% $Id: spm_eeg_inv_vbecd.m 2241 2008-09-29 22:10:48Z christophe $
 
 % unpack model, priors, data
 vol = P.forward.vol;
@@ -81,7 +81,7 @@ end
 mu_s = mu_sn(:);
 
 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                    dv.*ones(1, length(mu_w0)), P.Bad);
+                                    dv.*ones(1, length(mu_w0))); %, P.Bad);
 % Initialize mu_w with best estimate given random locations rather than at
 % random
 % mu_w = randn(size(mu_w0,1), 1);
@@ -158,7 +158,7 @@ for i = 1:P.Niter
 
     % update leadfield and its partials
     [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                dv.*sqrt(diag(S_s)), P.Bad);
+                dv.*sqrt(diag(S_s)));% , P.Bad);
     
     mu_sn = reshape(mu_s, 3, Np/3);
     old_mu_sn = reshape(old_mu_s, 3, Np/3);
@@ -185,7 +185,7 @@ for i = 1:P.Niter
         mu_s = mu_sn(:);
         % update leadfield and its partials
         [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                            dv.*sqrt(diag(S_s)), P.Bad);
+                                            dv.*sqrt(diag(S_s))); %, P.Bad);
     else
         for j = 1:16
             % compute neg free energy
@@ -204,14 +204,14 @@ for i = 1:P.Niter
                 mu_s = mu_sn(:);
                 % update leadfield and its partials
                 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                            dv.*sqrt(diag(S_s)), P.Bad);
+                                            dv.*sqrt(diag(S_s))); %, P.Bad);
             else
                 if F(i) < F(i-1)
                     mu_sn = (old_mu_sn + mu_sn)/2;
                     mu_s = mu_sn(:);
                     % update leadfield and its partials
                     [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                                dv.*sqrt(diag(S_s)), P.Bad);
+                                                dv.*sqrt(diag(S_s))); %, P.Bad);
                     mu_sn = reshape(mu_s, 3, Np/3);
 
                 else

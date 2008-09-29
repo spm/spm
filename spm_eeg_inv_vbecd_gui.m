@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2232 2008-09-29 15:22:00Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2241 2008-09-29 22:10:48Z christophe $
 
 %%
 % Load data, if necessary
@@ -69,7 +69,7 @@ if clck(5) < 10
 else
     clck = [num2str(clck(4)) ':' num2str(clck(5))];
 end
-D.inv{val}.date = strvcat(date,clck);
+D.inv{val}.date = strvcat(date,clck); %#ok<VCAT>
 if ~isfield(D.inv{val},'comment'), 
     D.inv{val}.comment={''}; end
 if ~iscell(D.inv{val}.comment), 
@@ -79,6 +79,7 @@ D.inv{val}.comment = inputdlg('Comment/Label for this analysis:','', ...
 D.inv{val}.method = 'vbecd';
 
 
+P.Bad = D.badchannels;
 if isfield(D.inv{val},'forward')
     if isfield(D.inv{val}.forward,'vol')
         P.forward = struct('vol',D.inv{val}.forward.vol, ...
@@ -91,8 +92,12 @@ if isfield(D.inv{val},'forward')
     else
         % create the sens structure and try to make sure it contains all
         % the necessary bits !
-        [P.forward.vol, P.forward.sens] = ...
-                  forwinv_prepare_vol_sens(P.forward.vol,D.sensors('eeg'));
+%         [P.forward.vol, P.forward.sens] = ...
+%                   forwinv_prepare_vol_sens(P.forward.vol,D.sensors('eeg'));
+        sens = D.sensors('eeg');
+        if ~isempty(P.Bad)
+            P.forward.sens = remove_bad_chan(sens,P.Bad);
+        end
     end
 else
     error('Forward model needs to be ready in FT format.!')
@@ -102,7 +107,6 @@ end
 %% 
 % Deal with data
 %===============
-P.Bad = D.badchannels;
 
 % time bin or time window
 msg_tb = ['time_bin or time_win [',num2str(round(min(D.time)*1000)), ...
@@ -342,3 +346,13 @@ save(D)
 spm_eeg_inv_vbecd_disp('init',D)
 
 return
+
+function sens = remove_bad_chan(sens,Bad)
+% remove the bad channels from the sensor structure
+% Nchan = length(sens.label);
+tmp = strvcat(sens.label{:}); %#ok<VCAT>
+tmp(Bad,:) = [];
+sens.label = cellstr(tmp)';
+sens.pnt(Bad,:) = [];
+return
+
