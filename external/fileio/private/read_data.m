@@ -16,6 +16,7 @@ function [dat] = read_data(filename, varargin);
 %   'endtrial'       last trial to read, mutually exclusive with begsample+endsample
 %   'chanindx'       list with channel indices to read
 %   'checkboundary'  boolean, whether to check for reading segments over a trial boundary
+%   'cache'          boolean, whether to use caching for multiple reads
 %   'dataformat'     string
 %   'headerformat'   string
 %   'fallback'       can be empty or 'biosig' (default = [])
@@ -30,6 +31,10 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.61  2008/09/29 21:46:02  roboos
+% Implemented data caching in a data-format independent manner, using fetch_data and a persistent variable.
+% Not yet suitable for inclusion in fileio release, hence the default is not to use caching.
+%
 % Revision 1.60  2008/09/29 08:37:44  roboos
 % fixed bug when reading short segments of CTF data (errors were given on screen, so the bug was apparent)
 %
@@ -228,7 +233,9 @@ function [dat] = read_data(filename, varargin);
 % changed compared to the read_fcdc_xxx versions.
 %
 
+persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
+
 if isempty(db_blob)
   db_blob = 0;
 end
@@ -252,7 +259,7 @@ elseif nargin==6 && isstruct(varargin{1})
   varargin = {'header', varargin{1}, 'begsample', varargin{2}, 'endsample', varargin{3}, 'chanindx', varargin{4}, 'checkboundary', checkboundary};
 end
 
-% get the options
+% get the optional input arguments
 hdr           = keyval('header',        varargin);
 begsample     = keyval('begsample',     varargin);
 endsample     = keyval('endsample',     varargin);
@@ -263,6 +270,7 @@ checkboundary = keyval('checkboundary', varargin);
 dataformat    = keyval('dataformat',    varargin);
 headerformat  = keyval('headerformat',  varargin);
 fallback      = keyval('fallback',      varargin);
+cache         = keyval('cache',         varargin); if isempty(cache), cache = 0; end
 
 % determine the filetype
 if isempty(dataformat)
@@ -377,6 +385,10 @@ end
 requesttrials  = isempty(begsample) && isempty(endsample);
 requestsamples = isempty(begtrial)  && isempty(endtrial);
 
+if cache && requesttrials
+  error('caching is not supported when reading trials')
+end
+
 if isempty(begsample) && isempty(endsample) && isempty(begtrial) && isempty(endtrial)
   % neither samples nor trials are specified, set the defaults to read the complete data trial-wise (also works for continuous)
   requestsamples = 0;
@@ -414,6 +426,26 @@ end
 if checkboundary && hdr.nTrials>1
   if begtrial~=endtrial
     error('requested data segment extends over a discontinuous trial boundary');
+  end
+end
+
+% implement the caching in a data-format independent way
+if cache && isempty(cachedata)
+  % create a new FieldTrip raw data structure that will hold the data
+  cachedata.label = hdr.label(chanindx);
+  cachedata.fsample = hdr.Fs;
+  cachedata.time    = {};
+  cachedata.trial   = {};
+  cachedata.cfg     = [];
+  cachedata.cfg.trl = zeros(0,3);
+elseif cache && ~isempty(cachedata)
+  % try to fetch the requested segment from the cache
+  try
+    dat = fetch_data(cachedata, 'begsample', begsample', 'endsample', endsample);
+    % fprintf('caching succeeded\n');
+    return
+  catch
+    % fprintf('caching failed\n');
   end
 end
 
@@ -972,3 +1004,13 @@ elseif requestsamples && strcmp(dimord, 'chans_samples_trials')
   endselection2 = endsample - begselection + 1;
   dat = dat(:,begselection2:endselection2);
 end
+
+if cache && requestsamples
+  % add the new segment to the cache
+  % FIMXE the cache size should be limited
+  cachedata.cfg.trl(end+1,:) = [begsample endsample 0];
+  cachedata.trial{end+1} = dat;
+  cachedata.time{end+1} = (1:size(dat,2))/cachedata.fsample;
+  % fprintf('added segment to cache\n');
+end
+
