@@ -4,9 +4,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_con.m 2223 2008-09-29 11:31:16Z volkmar $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2223 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -102,7 +102,7 @@ generic.tag     = 'generic';
 generic.name    = 'Contrast vectors';
 generic.help    = {'F contrasts are defined by a series of vectors.'};
 generic.values  = {convec };
-generic.num     = [0 Inf];
+generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % sessrep Replicate over sessions
 % ---------------------------------------------------------------------
@@ -112,17 +112,19 @@ sessrep.name    = 'Replicate over sessions';
 sessrep.val = {'none'};
 sessrep.help    = {
                    'If there are multiple sessions with identical conditions, one might want to specify contrasts which are identical over sessions. This can be done automatically based on the contrast spec for one session.'
-                   'Contrasts can be either replicated (thus testing average effects over sessions) or created per session. In both cases, zero padding up to the length of each session and the block effects is done automatically.'
+                   'Contrasts can be either replicated (either testing average effects over sessions or per-session/condition effects) or created per session. In both cases, zero padding up to the length of each session and the block effects is done automatically.'
 }';
 sessrep.labels = {
                   'Don''t replicate'
-                  'Replicate'
+                  'Replicate (average over sessions)'
+                  'Replicate (no averaging)'
                   'Create per session'
-                  'Both'
+                  'Both - ''Per session'' and ''Replicate (average over sessions)'''
 }';
 sessrep.values = {
                   'none'
                   'repl'
+                  'replna'
                   'sess'
                   'both'
 }';

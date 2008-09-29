@@ -9,7 +9,7 @@ function out = spm_run_con(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 1517 2008-04-29 15:46:08Z volkmar $
+% $Id: spm_run_con.m 2223 2008-09-29 11:31:16Z volkmar $
 
 
 wd  = pwd;
@@ -154,9 +154,7 @@ for i = 1:length(job.consess)
   
     if isfield(SPM,'Sess') && ~strcmp(sessrep,'none')
         % assume identical sessions, no check!
-        nc = numel(SPM.Sess(1).U);
         nsessions=numel(SPM.Sess);
-        rcon = zeros(size(con,1),nc);
         switch sessrep
             case 'repl',
                 % within-session zero padding, replication over sessions
@@ -164,6 +162,14 @@ for i = 1:length(job.consess)
                 for sess=1:nsessions
                     sfirst=SPM.Sess(sess).col(1);
                     cons{1}(:,sfirst:sfirst+size(con,2)-1)=con;
+                end
+                names{1} = sprintf('%s - All Sessions', name);
+            case 'replna',
+                % within-session zero padding, new rows per session
+                cons{1}= zeros(nsessions*size(con,1),size(SPM.xX.X,2));
+                for sess=1:nsessions
+                    sfirst=SPM.Sess(sess).col(1);
+                    cons{1}((sess-1)*nsessions+(1:size(con,1)),sfirst:sfirst+size(con,2)-1)=con;
                 end
                 names{1} = sprintf('%s - All Sessions', name);
             case 'sess',
