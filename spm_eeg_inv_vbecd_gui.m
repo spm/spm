@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2220 2008-09-29 10:40:27Z stefan $
+% $Id: spm_eeg_inv_vbecd_gui.m 2224 2008-09-29 12:18:54Z christophe $
 
 %%
 % Load data
@@ -49,10 +49,10 @@ if clck(5) < 10
 else
     clck = [num2str(clck(4)) ':' num2str(clck(5))];
 end
-D.inv{D.val}.date    = strvcat(date,clck);
-if ~isfield(D.inv{D.val},'comment'), D.inv{D.val}.comment=''; end
-D.inv{D.val}.comment = inputdlg('Comment/Label for this analysis:','', ...
-                    1,D.inv{D.val}.comment);
+D.inv{val}.date    = strvcat(date,clck);
+if ~isfield(D.inv{val},'comment'), D.inv{val}.comment={''}; end
+D.inv{val}.comment = inputdlg('Comment/Label for this analysis:','', ...
+                    1,D.inv{val}.comment);
 D.inv{val}.method = 'vbecd';
 
 
