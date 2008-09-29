@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 2060 2008-09-09 17:34:21Z guillaume $
+% $Id: spm_eeg_review_uis.m 2229 2008-09-29 13:49:55Z jean $
 
 POS = get(D.PSD.handles.hfig,'position');
 
@@ -169,14 +169,14 @@ switch objects.type
                     'min',1,'max',length(D.PSD.trials.TrLabels)+1,...
                     'value',trN,...
                     'Position',...
-                    [0.55 0.834 0.25 0.13].*repmat(POS(3:4),1,2));
+                    [0.55 0.834 0.38 0.13].*repmat(POS(3:4),1,2));
             else
                 trN = trN(1);
                 set(D.PSD.handles.BUTTONS.pop1,...
                     'max',1,'min',length(D.PSD.trials.TrLabels)+1,...
                     'value',trN,...
                     'Position',...
-                    [0.55 0.893 0.25 0.07] .*repmat(POS(3:4),1,2));
+                    [0.55 0.922 0.38 0.043] .*repmat(POS(3:4),1,2));%0.55 0.893 0.25 0.07
             end
             set(D.PSD.handles.BUTTONS.pop1,'units','normalized');
         end

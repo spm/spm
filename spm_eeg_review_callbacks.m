@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2207 2008-09-26 17:08:59Z christophe $
+% $Id: spm_eeg_review_callbacks.m 2229 2008-09-29 13:49:55Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -54,8 +54,8 @@ switch varargin{1}
                     VIZU.montage.clab       = {D.channels(visuSensors).label};
                 else
                     visuSensors             = varargin{3};
-                    %                     VIZU.visuSensors     = visuSensors;
-                    VIZU.montage.clab    = {D.channels(visuSensors).label};
+                    VIZU.visuSensors        = visuSensors;
+                    VIZU.montage.clab       = {D.channels(visuSensors).label};
                 end
                 varargout{1} = VIZU;
                 return
@@ -428,14 +428,9 @@ switch varargin{1}
                             %set(D.PSD.handles.BUTTONS.vb5,'value',~val);
                         end
 
-                        %                         if varargin{3}
-                        %                             zoom
-                        %                         else % reset zoom and rebuild normal plotted data window
-                        %                             updateDisp(D)
-                        %                         end
-
                     case 2
 
+                        set(D.PSD.handles.BUTTONS.vb5,'value',1)
                         switch D.PSD.VIZU.modality
                             case 'eeg'
                                 VIZU = D.PSD.EEG.VIZU;
@@ -455,7 +450,6 @@ switch varargin{1}
                             end
                             set(hf,'name',['channel ',chanLabel])
                             ha2 = axes('parent',hf,...
-                                'ylim',get(D.PSD.handles.axes(indAxes),'ylim'),...
                                 'nextplot','add',...
                                 'XGrid','on','YGrid','on');
                             trN = D.PSD.trials.current(:);
@@ -475,7 +469,8 @@ switch varargin{1}
                                     leg{i} = D.PSD.trials.TrLabels{trN(i)};
                                 end
                                 legend(leg)
-                                set(ha2,'xlim',[min(pst),max(pst)])
+                                set(ha2,'xlim',[min(pst),max(pst)],...
+                                    'ylim',get(D.PSD.handles.axes(indAxes),'ylim'))
                                 xlabel(ha2,'time (in ms after time onset)')
                                 title(ha2,['channel ',chanLabel,...
                                     ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
@@ -483,23 +478,26 @@ switch varargin{1}
                             else % time-frequency data
 
                                 datai = squeeze(D.data.y(indAxes,:,:,trN(1)));
-                                hp2 = imagesc(datai);
+                                hp2 = image(datai,'CDataMapping','scaled');
                                 set(hp2,'parent',ha2);
                                 colormap('jet')
                                 colorbar
-                                xg = 0:D.Fsample/10:D.Nsamples;
-                                set(gca,'xtick',xg,'xticklabel',xg./D.Fsample*1e3+D.timeOnset*1e3);
+                                pst = (0:1/D.Fsample:(D.Nsamples-1)/D.Fsample) + D.timeOnset;
+                                pst = pst*1e3;  % in msec
+                                set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
+                                    'xlim',[1 length(pst)],...
+                                    'ytick',1:length(D.transform.frequencies),...
+                                    'yticklabel',D.transform.frequencies);
                                 xlabel(ha2,'time (in ms after time onset)')
-                                ytick = get(ha2,'ytick');
-                                set(ha2,'yticklabel',D.transform.frequencies(ytick))
                                 ylabel(ha2,'frequency (in Hz)')
                                 title(ha2,['channel ',chanLabel,...
-                                    ' (',D.channels(D.PSD.VIZU.visuSensors(indAxes)).type,')'])
+                                    ' (',D.channels(VIZU.visuSensors(indAxes)).type,')'])
 
                             end
 
                             axes(ha2)
                         end
+                        set(D.PSD.handles.BUTTONS.vb5,'value',0)
                 end
 
 
@@ -1015,16 +1013,17 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     datai = squeeze(D.data.y(i,:,:,trN(1)));
                     miY = min([min(datai(:)),miY]);
                     maY = max([max(datai(:)),maY]);
-                    D.PSD.handles.PLOT.im(i) = imagesc(datai);
-                    set(D.PSD.handles.PLOT.im(i),'tag',plotEEG');
+                    D.PSD.handles.PLOT.im(i) = image(datai,'CDataMapping','scaled');
+                    set(D.PSD.handles.PLOT.im(i),'tag','plotEEG');
                     set(D.PSD.handles.PLOT.im(i),...
                         'parent',handles.axes(i),...
                         'userdata',i);
                 end
-                for i=1:length(VIZU.visuSensors)
-                    caxis(handles.axes(i),[miY maY]);
-                    colormap('jet')
-                end
+                % This for normalized colorbars:
+%                 for i=1:length(VIZU.visuSensors)
+%                     caxis(handles.axes(i),[miY maY]);
+%                     colormap('jet')
+%                 end
                 set(handles.hfig,'userdata',D);
 
             end
@@ -1107,6 +1106,7 @@ else  % source space
         % add time line repair
         set(D.PSD.handles.axes2,...
             'ylim',[D.PSD.source.VIZU.miJ,D.PSD.source.VIZU.maJ],...
+            'xlim',[D.PSD.source.VIZU.pst(1),D.PSD.source.VIZU.pst(end)],...
             'nextplot','add');
         D.PSD.source.VIZU.lineTime = line('parent',D.PSD.handles.axes2,...
             'xdata',[gridTime;gridTime],...

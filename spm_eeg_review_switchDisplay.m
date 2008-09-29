@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2207 2008-09-26 17:08:59Z christophe $
+% $Id: spm_eeg_review_switchDisplay.m 2229 2008-09-29 13:49:55Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -313,7 +313,7 @@ if ~~D.PSD.source.VIZU.current
     object.type = 'text';
     object.what = 'source';
     D = spm_eeg_review_uis(D,object);
-
+    
     set(D.PSD.handles.hfig,'userdata',D)
 
 
