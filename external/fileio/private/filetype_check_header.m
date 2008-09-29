@@ -7,6 +7,9 @@ function [val] = filetype_check_header(filename, head, offset)
 % Copyright (C) 2003-2006 Robert Oostenveld
 %
 % $Log: filetype_check_header.m,v $
+% Revision 1.8  2008/09/29 09:49:41  roboos
+% fixed bug: convert uint8 into char, do not keep as uint8 (thanks to Conrado)
+%
 % Revision 1.7  2008/09/24 15:54:09  roboos
 % use uint8 instead of char (required on leopard)
 %
@@ -54,7 +57,7 @@ else
       for i=1:length(head)
         len(i) = length(head{i});
       end
-      [str, siz] = fread(fid, max(len), 'uint8=>uint8');
+      [str, siz] = fread(fid, max(len), 'uint8=>char');
       fclose(fid);
       for i=1:length(head)
         val = strncmp(str, head{i}, len(i));
@@ -63,7 +66,7 @@ else
         end
       end
     else
-      [str, siz] = fread(fid, length(head), 'uint8=>uint8');
+      [str, siz] = fread(fid, length(head), 'uint8=>char');
       fclose(fid);
       if siz~=length(head)
         error('could not read the header from the file');
