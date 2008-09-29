@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_montage
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_montage.m 2197 2008-09-25 17:01:55Z stefan $
+% $Id: spm_cfg_eeg_montage.m 2225 2008-09-29 12:25:27Z stefan $
 
 D = cfg_files;
 D.tag = 'D';
@@ -39,7 +39,7 @@ keepothers.help = {'Specify whether you want to keep channels that are not contr
 
 S = cfg_exbranch;
 S.tag = 'eeg_montage';
-S.name = 'M/EEG montage';
+S.name = 'M/EEG Montage';
 S.val = {D montage keepothers};
 S.help = {'Apply a montage (linear transformation) to EEG/MEG data.'};
 S.prog = @eeg_montage;

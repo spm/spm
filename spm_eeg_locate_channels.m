@@ -7,10 +7,29 @@ function [Cel, Cind, x, y] = spm_eeg_locate_channels(D, n, interpolate_bad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_locate_channels.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_eeg_locate_channels.m 2225 2008-09-29 12:25:27Z stefan $
 
-% find channel positions on 2D plane
-Cel = D.coor2D(D.meegchannels);
+% put into nXn grid
+Cel = scale_coor(D.coor2D(D.meegchannels), n);
+Cel_nobad = scale_coor(D.coor2D(setdiff(D.meegchannels, D.badchannels)), n);
+
+Cind = setdiff(D.meegchannels, D.badchannels);
+
+[x, y] = meshgrid(1:n, 1:n);
+
+if interpolate_bad
+    % keep bad electrode positions in
+    ch = convhull(Cel(:, 1), Cel(:, 2));
+    Ic = find(inpolygon(x, y, Cel(ch, 1), Cel(ch, 2)));
+else
+    % or don't
+    ch = convhull(Cel_nobad(:, 1), Cel_nobad(:, 2));
+    Ic = find(inpolygon(x, y, Cel_nobad(:, 1), Cel_nobad(:, 2)));
+end
+
+x = x(Ic); y = y(Ic);
+
+function Cel = scale_coor(Cel, n)
 
 % check limits and stretch, if possible
 dx = max(Cel(1,:)) - min(Cel(1,:));
@@ -30,24 +49,5 @@ dy = n+0.5 -n*eps - max(Cel(2,:));
 Cel(1,:) = Cel(1,:) + dx/2;
 Cel(2,:) = Cel(2,:) + dy/2;
 
+% 2D coordinates in voxel-space (incl. badchannels)
 Cel = round(Cel)';
-
-Cind = setdiff(D.meegchannels, D.badchannels);
-
-[x, y] = meshgrid(1:n, 1:n);
-
-if interpolate_bad
-    % keep bad electrode positions in
-    ch = convhull(Cel(:, 1), Cel(:, 2));
-    Ic = find(inpolygon(x, y, Cel(ch, 1), Cel(ch, 2)));
-else
-    % or don't
-    ch = convhull(Cel(Cind, 1), Cel(Cind, 2));
-    Ic = find(inpolygon(x, y, Cel(Cind(ch), 1), Cel(Cind(ch), 2)));
-end
-
-Cel = Cel(Cind, :);
-
-x = x(Ic); y = y(Ic);
-
-

@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_artefact
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_artefact.m 2200 2008-09-26 10:09:45Z stefan $
+% $Id: spm_cfg_eeg_artefact.m 2225 2008-09-29 12:25:27Z stefan $
 
-rev = '$Rev: 2200 $';
+rev = '$Rev: 2225 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -117,7 +117,7 @@ artefact.val = {External_list weighted Check_Threshold};
 
 S = cfg_exbranch;
 S.tag = 'eeg_artefact';
-S.name = 'M/EEG artefact detection';
+S.name = 'M/EEG Artefact detection';
 S.val = {D artefact};
 S.help = {'Detect artefacts in epoched M/EEG data.'};
 S.prog = @eeg_artefact;

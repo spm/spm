@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_grandmean
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 2126 2008-09-19 15:55:34Z stefan $
+% $Id: spm_cfg_eeg_grandmean.m 2225 2008-09-29 12:25:27Z stefan $
 
-rev = '$Rev: 2126 $';
+rev = '$Rev: 2225 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -23,7 +23,7 @@ Pout.help = {'Choose filename'};
 
 S = cfg_exbranch;
 S.tag = 'eeg_grandmean';
-S.name = 'M/EEG grandmean';
+S.name = 'M/EEG Grandmean';
 S.val = {D Pout};
 S.help = {'Average multiple evoked responses'};
 S.prog = @eeg_grandmean;

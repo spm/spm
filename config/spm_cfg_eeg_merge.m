@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_merge
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 2134 2008-09-22 12:07:35Z stefan $
+% $Id: spm_cfg_eeg_merge.m 2225 2008-09-29 12:25:27Z stefan $
 
-rev = '$Rev: 2134 $';
+rev = '$Rev: 2225 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -38,7 +38,7 @@ files.values = {file};
 
 S = cfg_exbranch;
 S.tag = 'eeg_merge';
-S.name = 'M/EEG merging';
+S.name = 'M/EEG Merging';
 S.val = {files};
 S.help = {'Merge EEG/MEG data.'};
 S.prog = @eeg_merge;

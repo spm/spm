@@ -22,7 +22,9 @@ DCM.xY.Dfile = 'mafdeMspm8_example';
 
 % Parameters and options used for setting up model.
 %-------------------------------------------------------
-DCM.options.type    = 1;      % spatial model is ECD (2: imaging)
+DCM.options.analysis = 'ERP'; % analyze evoked responses
+DCM.options.model = 'ERP'; % ERP model
+DCM.options.spatial = 'IMG'; % spatial model
 DCM.options.trials  = [1 2];  % index of ERPs within ERP/ERF file
 DCM.options.Tdcm(1) = 0;      % start of peri-stimulus time to be modelled
 DCM.options.Tdcm(2) = 200;    % end of peri-stimulus time to be modelled

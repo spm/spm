@@ -5,7 +5,7 @@ function S = spm_cfg_eeg_convertmat2nifti3D
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convertmat2nifti3D.m 2201 2008-09-26 10:14:50Z stefan $
+% $Id: spm_cfg_eeg_convertmat2nifti3D.m 2225 2008-09-29 12:25:27Z stefan $
 
 Fname = cfg_files;
 Fname.tag = 'Fname';
@@ -49,7 +49,7 @@ Interpolate.help = {'Interpolate bad channels'};
 
 S = cfg_exbranch;
 S.tag = 'eeg_convertmat2nifti3D';
-S.name = 'M/EEG convert2nifti3D';
+S.name = 'M/EEG Convert2nifti3D';
 S.val = {Fname n pixsize Interpolate};
 S.help = {'Convert SPM M/EEG data to voxel-based images, as a time-series of 2D images'};
 S.prog = @eeg_convertmat2nifti3D;

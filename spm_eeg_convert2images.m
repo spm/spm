@@ -32,7 +32,7 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 2042 2008-09-04 13:49:29Z stefan $
+% $Id: spm_eeg_convert2images.m 2225 2008-09-29 12:25:27Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -68,7 +68,7 @@ if strcmp(D.transformtype, 'TF');
     end
     
     switch images.fmt
-        case {'electrodes'}
+        case {'channels'}
             try
                 images.electrodes_of_interest = S.images.elecs;
             catch 

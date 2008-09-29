@@ -16,7 +16,7 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 2220 2008-09-29 10:40:27Z stefan $
+% $Id: spm_eeg_average_TF.m 2225 2008-09-29 12:25:27Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -53,7 +53,7 @@ spm('Pointer', 'Watch'); drawnow;
 if ~strcmp(D.type, 'single')
     error('This function can only be applied to single trial data');
 else
-    if strcmp(D.transformtype, 'TF', 2) % TF and TFphase
+    if strncmp(D.transformtype, 'TF', 2) % TF and TFphase
 
         % generate new meeg object with new filenames
         Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
