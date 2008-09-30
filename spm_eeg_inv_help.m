@@ -12,10 +12,9 @@
 % assume that EEG data is being analysed (this simplifies the registration
 % step below.
 %--------------------------------------------------------------------------
-D                 = spm_eeg_ldata( '??????????.mat');
+D                 = spm_eeg_load('??????????.mat');
 val               = 1;
 D.val             = val;
-D.modality        = 'EEG';
 D.inv{val}.method = 'Imaging';
 
 % Compute a head model
@@ -28,69 +27,31 @@ D.inv{val}.method = 'Imaging';
  
 % specify cortical mesh size (1 tp 4; 1 = 3004, 4 = 7204 dipoles)
 %--------------------------------------------------------------------------
-D.inv{val}.mesh.Msize  = 2;
+Msize  = 2;
  
-% spatial normalization into a MNI template
+% Use a template head model and associated meshes
 %--------------------------------------------------------------------------
-% D.inv{val}.mesh.sMRI = '??????????.img'
-% D                    = spm_eeg_inv_spatnorm(D);
+D =  spm_eeg_inv_mesh_ui(D, 1, Msize, 1);
  
-% and compute meshes
+% Determine the modality of the data (EEG or MEG)
 %--------------------------------------------------------------------------
-% D = spm_eeg_inv_meshing(D);
- 
-% or, use a template head model and associated meshes
-%--------------------------------------------------------------------------
-D = spm_eeg_inv_template(D);
- 
- 
+modality = spm_eeg_modality_ui(D, 1);
+
 % Compute a head model
 %==========================================================================
 % Next, we need to register the sensor locations to the head model meshes. 
-% This requires one to specify mat files describing the location of the sensors 
-% and supplementary information about the cortical surface, which is in the 
-% same frame of reference.  The simplest way to do this is to use a Polhemus 
-% file that contains both the locations of the fiducials and sensor locations.
-% To keep things simple, we will assume that we are analysing EEG.  In this 
-% case, the sensor locations also define the scalp surface and can be uses in 
-% the registration to the head model.
+% This assumes that sensor positions and fiducials are already correctly
+% specified in the dataset. This step will usually be interactive
 %--------------------------------------------------------------------------
+D = spm_eeg_inv_datareg_ui(D, 1, modality);
 
-
-% get fiducials and head shape
-%--------------------------------------------------------------------------
-pol_file            = 'C:\home\spm\Grandmean\standard_09_03_2004.pol';
-pol_skip            = 2;
-[fid_eeg,headshape] = spm_eeg_inv_ReadPolhemus(pol_file,pol_skip);
-
-% get sensor locations
-%--------------------------------------------------------------------------
-if strcmp(D.modality,'EEG')
-    sensors = headshape;
-else
-    sensors = '?????????.mat';
-    name    = fieldnames(sensors);
-    sensors = getfield(sensors,name{1});
-end
-D.inv{val}.datareg.sensors   = sensors;
-D.inv{val}.datareg.fid_eeg   = fid_eeg;
-D.inv{val}.datareg.headshape = headshape;
-D.inv{val}.datareg.megorient = sparse(0,3);
-
-% register data
-%--------------------------------------------------------------------------
-D = spm_eeg_inv_datareg(D);
- 
- 
 % Compute a forward model
 %==========================================================================
 % Next, using the geometry of the head model and the location of registered 
 % sensors, we can now compute a forward model for each dipole and save it in a 
 % lead-field or gain matrix.  This is the basis of our likelihood model.
 %--------------------------------------------------------------------------
-D.inv{val}.forward.method = 'eeg_3sphereBerg';
-D = spm_eeg_inv_BSTfwdsol(D);
- 
+D = spm_eeg_inv_forward_ui(D);
  
 % Invert the forward model
 %==========================================================================
@@ -99,7 +60,7 @@ D = spm_eeg_inv_BSTfwdsol(D);
 % of its priors, through the fields below.
  
 %--------------------------------------------------------------------------
-D.inv{val}.inverse.trials = [1 2];      % Trials
+D.inv{val}.inverse.trials = D.condlist; % Trials
 D.inv{val}.inverse.type   = 'MSP';      % Priors on sources MSP, LOR or IID
 D.inv{val}.inverse.smooth = 0.4;        % Smoothness of source priors (mm)
 D.inv{val}.inverse.Np     = 64;         % Number of sparse priors (x 1/2)

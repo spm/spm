@@ -12,7 +12,7 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 1892 2008-07-08 09:32:27Z rik $
+% $Id: spm_eeg_invert_display.m 2255 2008-09-30 15:36:59Z vladimir $
  
 % Number of dipoles to display
 %==========================================================================
@@ -21,7 +21,11 @@ try, Ndip, catch, Ndip = 512; end
  
 % get condition
 %--------------------------------------------------------------------------
-try, con = D.con;  catch, con = 1;  end
+if ~isfield(D, 'con') || D.con == 0
+    con = 1;
+else
+    con = D.con;
+end
  
 % D - SPM data structure
 %==========================================================================

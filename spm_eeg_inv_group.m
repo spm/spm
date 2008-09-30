@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_eeg_inv_group.m 2255 2008-09-30 15:36:59Z vladimir $
 
 
 % check if to proceed
@@ -161,7 +161,7 @@ if ~iscell(D), D = {D}; end
 % Save
 %==========================================================================
 for i = 1:Ns
-    save(D{i})
+    save(D{i});
 end
 clear D
 

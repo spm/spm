@@ -34,7 +34,10 @@ provide some sample batch script (\textit{histexample.m}) in the
 \textit{man/example\_scripts/} folder of the SPM8-distribution.
 \\
 \\
-In the following we will go through the conversion of the data, specifics of the M/EEG format in SPM8, how to properly enter additional information about the channels, how to call fieldtrip-functions from SPM, a complete reference of all methods and functions, how to use the display, and finally how to script and batch the preprocessing.
+In the following we will go through the conversion of the data, specifics of the M/EEG format 
+in SPM8, how to properly enter additional information about the channels, how to call 
+fieldtrip-functions from SPM, a complete reference of all methods and functions, 
+how to use the display, and finally how to script and batch the preprocessing.
 
 \section{Conversion of data}
 The first step of any analysis is the conversion of data from its
@@ -57,8 +60,8 @@ is that you may see error messages from Biosig or mentioning Biosig if your data
 format is not presently supported. In such a case you can extend the fileio toolbox 
 and contribute your code to us. See fileio page for details.
 
-In the following, we will first describe the GUI-version for
-conversion, and then how one would convert data using the batch or a
+In the following we will describe the GUI-version for conversion.
+One could also convert data using the batch or a
 script. After clicking on the Convert button of the M/EEG GUI you will
 be asked to select the file to be converted. As a rule of thumb, if the
 dataset consists of several files, the file containing the data (which
@@ -133,6 +136,36 @@ name of the raw data file if the data is read as continuous and
 SPM will now convert the data. This may take some time depending on
 file size and a red bar will inform you about the progress.
 
+
+\section{Converting arbitrary data}
+It might be the case that your data is not in any standard format
+but is only available as an ASCII or Excel file or as a variable
+in Matlab workspace. Then you have two options depending on whether
+you would be willing to use a Matlab script or want to only use GUI.
+If you want to only use GUI, we suggest that you assemble your dataset
+in EEGLAB (http://sccn.ucsd.edu/eeglab/) and then then save it and convert
+to SPM as any other format. The developers of EEGLAB have invested a lot of efforts
+into making it possible to build a dataset from scratch without using the command line
+or scripts and we see no reason for reproducing the same functionality in SPM. 
+
+If you are willing to write a simple Matlab script, the most straightforward way 
+to convert your data would be to create a quite simple Fieldtrip raw data struct 
+and then use SPM's  \textit{spm\_eeg\_ft2spm} function to convert this struct to SPM dataset.
+Missing information can then be supplemented using meeg methods and SPM functions.
+
+Fieldtrip raw struct must contain the following fields:
+
+\begin{itemize}
+\item .fsample - sampling rate (Hz)
+\item .trial - cell array of matrices with identical dimensions channels x time
+\item .time - cell array of time vectors (in sec), the same length as the
+        second dimension of the data. For SPM the time vectors must be identical.
+\item .label - cell array of strings, list of channel labels. Same length as
+        the first dimension of the data. 
+\end{itemize}
+
+An example script for converting LFP data can be found under
+\toolbox\Neural_Models\spm_lfp_txt2mat.m
 
 \section{The M/EEG SPM format}
 The M/EEG format has changed from SPM5 to SPM8. There were many
