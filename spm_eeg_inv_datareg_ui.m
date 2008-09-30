@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2194 2008-09-25 15:06:59Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2260 2008-09-30 17:02:16Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -61,57 +61,50 @@ if numel(meeglbl)> 3
     meeglbl = meeglbl(selection);
 end
 
-if numel(intersect(upper(meeglbl), upper(mrilbl))) < 3 || spm_input('Redefine MRI fiducials?' , '+1','yes|no', [1,0], 0);
-    if numel(meeglbl)<3
-        error('At least 3 M/EEG fiducials are required for coregistration');
-    end 
- 
-    for i = 1:length(meeglbl)
-        switch spm_input(['How to specify ' meeglbl{i} ' position?'] , 1, 'select|type|click|skip')
-            case 'select'
-                [selection ok]= listdlg('ListString', mrilbl, 'SelectionMode', 'single',...
-                    'InitialValue', strmatch(upper(meeglbl{i}), upper(mrilbl)), ...
-                    'Name', ['Select matching MRI fiducial for ' meeglbl{i}], 'ListSize', [400 300]);
-                if ~ok
-                    continue
-                end
+if numel(meeglbl)<3
+    error('At least 3 M/EEG fiducials are required for coregistration');
+end
 
-                newmrifid.fid.pnt   = [newmrifid.fid.pnt; mrifid.fid.pnt(selection, :)];                
-            case 'type'
-                pnt = spm_input('Input MNI coordinates', '+1', 'r', '', 3);
-                newmrifid.fid.pnt   = [newmrifid.fid.pnt; pnt(:)'];
-            case 'click' 
-                while 1
-                    figure(Fgraph); clf;
-                    mri = spm_vol(D.inv{val}.mesh.sMRI);
+for i = 1:length(meeglbl)
+    switch spm_input(['How to specify ' meeglbl{i} ' position?'] , 1, 'select|type|click|skip')
+        case 'select'
+            [selection ok]= listdlg('ListString', mrilbl, 'SelectionMode', 'single',...
+                'InitialValue', strmatch(upper(meeglbl{i}), upper(mrilbl)), ...
+                'Name', ['Select matching MRI fiducial for ' meeglbl{i}], 'ListSize', [400 300]);
+            if ~ok
+                continue
+            end
+
+            newmrifid.fid.pnt   = [newmrifid.fid.pnt; mrifid.fid.pnt(selection, :)];
+        case 'type'
+            pnt = spm_input('Input MNI coordinates', '+1', 'r', '', 3);
+            newmrifid.fid.pnt   = [newmrifid.fid.pnt; pnt(:)'];
+        case 'click'
+            while 1
+                figure(Fgraph); clf;
+                mri = spm_vol(D.inv{val}.mesh.sMRI);
+                spm_orthviews('Reset');
+                spm_orthviews('Image', mri);
+                colormap('gray');
+                cameratoolbar('resetcamera')
+                cameratoolbar('close')
+                rotate3d off;
+                if spm_input(['Select ' meeglbl{i} ' position and click'] , 1,'OK|Retry', [1,0], 1)
+                    newmrifid.fid.pnt   = [newmrifid.fid.pnt; spm_orthviews('Pos')'];
                     spm_orthviews('Reset');
-                    spm_orthviews('Image', mri);
-                    colormap('gray');
-                    cameratoolbar('resetcamera')
-                    cameratoolbar('close')
-                    rotate3d off;
-                    if spm_input(['Select ' meeglbl{i} ' position and click'] , 1,'OK|Retry', [1,0], 1)
-                        newmrifid.fid.pnt   = [newmrifid.fid.pnt; spm_orthviews('Pos')'];
-                        spm_orthviews('Reset');
-                        break;
-                    end
+                    break;
                 end
-            case 'skip'
-                meegfid.fid.pnt(i, :) = [];
-                meegfid.fid.label(i)  = [];
-                continue;       
-        end
-        newmrifid.fid.label = [newmrifid.fid.label  meeglbl{i}];
+            end
+        case 'skip'
+            meegfid.fid.pnt(i, :) = [];
+            meegfid.fid.label(i)  = [];
+            continue;
     end
-                
-    if size(newmrifid.fid.label) < 3
-        error('At least 3 M/EEG fiducials are required for coregistration');
-    end
-else
-    [sel1, sel2] = spm_match_str(upper(meeglbl), upper(mrilbl));
-    newmrifid = mrifid;
-    newmrifid.fid.pnt = newmrifid.fid.pnt(sel2, :);
-    newmrifid.fid.label = newmrifid.fid.label(sel2);
+    newmrifid.fid.label = [newmrifid.fid.label  meeglbl{i}];
+end
+
+if size(newmrifid.fid.label) < 3
+    error('At least 3 M/EEG fiducials are required for coregistration');
 end
 
 % register
@@ -152,10 +145,10 @@ switch D.inv{val}.modality
         D.inv{val}.datareg.fid_mri = forwinv_transform_headshape(inv(M1), S.targetfid);
         D.inv{val}.mesh = spm_eeg_inv_transform_mesh(inv(M1), D.inv{val}.mesh);
         D.inv{val}.datareg.sensors = D.sensors(modality);
-        D.inv{val}.datareg.fid_eeg = S.sourcefid; 
+        D.inv{val}.datareg.fid_eeg = S.sourcefid;
         D.inv{val}.datareg.toMNI = D.inv{val}.mesh.Affine*M1;
         D.inv{val}.datareg.fromMNI = inv(D.inv{val}.datareg.toMNI);
-        
+
 end
 
 
