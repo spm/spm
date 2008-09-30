@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.52  2008/09/30 16:45:55  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.51  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -164,8 +167,8 @@ fieldtripdefs
 % freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes', 'hascumtapcnt', 'no');
 freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
 
-% for backward compatibility with misspelled configuration option
-if isfield(cfg, 'jacknife'), cfg.jackknife = cfg.jacknife; cfg = rmfield(cfg, 'jacknife'); end
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
 
 % determine some specific details of the input data
 hascsd   = isfield(freq, 'crsspctrm');
@@ -640,7 +643,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.51 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.52 2008/09/30 16:45:55 sashae Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

@@ -75,6 +75,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.52  2008/09/30 16:45:55  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.51  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -246,6 +249,11 @@ fieldtripdefs
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'yes');
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'plot3d',      'feedback'});
+cfg = checkconfig(cfg, 'renamedval',  {'headshape',   'headmodel', []});
+cfg = checkconfig(cfg, 'required',    {'inwardshift', 'template'});
+
 % set the default configuration 
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];            end
 if ~isfield(cfg, 'pruneratio'),    cfg.pruneratio = 1e-3;         end
@@ -258,26 +266,6 @@ if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = createsubcfg(cfg, 'grid');
-
-if ~isfield(cfg, 'inwardshift'),
-  % it depends on the volume model and/or headshape that is used for constructing the dipole sheet
-  error('you should specify cfg.inwardshift');
-end
-
-if isfield(cfg, 'plot3d')
-  cfg.feedback = cfg.plot3d;
-  cfg = rmfield(cfg, 'plot3d');
-  warning('cfg.plot3d is deprecated, see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:deprecated for more details.');
-end
-
-% for backward compatibility
-if ischar(cfg.headshape) && strcmp(cfg.headshape, 'headmodel')
-  cfg.headshape = [];
-end
-
-if ~isfield(cfg, 'template'), 
-  error('you must specify one or more template CTF datasets in cfg.template');
-end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -583,7 +571,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.51 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.52 2008/09/30 16:45:55 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
