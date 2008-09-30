@@ -4,7 +4,7 @@ function d = getdict
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: getdict.m 2076 2008-09-10 12:34:08Z guillaume $
+% $Id: getdict.m 2271 2008-09-30 21:19:47Z guillaume $
 
 persistent dict;
 if ~isempty(dict)
@@ -13,9 +13,9 @@ if ~isempty(dict)
 end
 
 table = {...
-	'NIFTI_TYPE_UINT8',   'uint8',   '%d', @uint8, 'uint8'
-	'NIFTI_TYPE_INT32',   'int32',   '%d', @int32, 'int32' 
-	'NIFTI_TYPE_FLOAT32', 'float32', '%f', @single, 'single'};
+    'NIFTI_TYPE_UINT8',   'uint8',   '%d', @uint8, 'uint8'
+    'NIFTI_TYPE_INT32',   'int32',   '%d', @int32, 'int32' 
+    'NIFTI_TYPE_FLOAT32', 'float32', '%f', @single, 'single'};
 
 for i=1:size(table,1)
     dict.(table{i,1}) = cell2struct({table{i,2:end}},...

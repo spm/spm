@@ -7,7 +7,7 @@ function [x] = spm_interp(x,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_interp.m 1961 2008-07-26 09:38:46Z karl $
+% $Id: spm_interp.m 2271 2008-09-30 21:19:47Z guillaume $
 
 % interpolate
 %---------------------------------------------------------------------------
@@ -16,12 +16,12 @@ X     = zeros(r*n,m);
 L     = floor((n - 1)/2);
 L     = min([L 4]);
 for i = 1:m
-	X(:,i) = interp(x(:,i),r,L);
+    X(:,i) = interp(x(:,i),r,L);
 end
 L     = floor((m - 1)/2);
 L     = min([L 4]);
 x     = zeros(r*n,r*m);
 for i = 1:r*n
-	x(i,:) = interp(X(i,:),r,L);
+    x(i,:) = interp(X(i,:),r,L);
 end
 
