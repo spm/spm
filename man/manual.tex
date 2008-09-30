@@ -40,17 +40,20 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 {\noindent\rule[-1ex]{\textwidth}{5pt}\\[2.5ex]}
 \hfill{{\huge The FIL Methods Group} \\ {\LARGE (and honorary members)}\\}
 \vspace{20mm}
-\hfill{John Ashburner (Chapters 1-7,19-27,35) \\
-Guillaume Flandin (LaTeX/Subversion) \\
-Rik Henson (Chapters 29-31,34) \\
-Stefan Kiebel (Chapters 11-12,16-18) \\
-James Kilner (Chapter 13) \\
-Jeremie Mattout (Chapters 14-15) \\
-Will Penny (Chapters 8-10,29-32) \\
-Klaas Stephan (Chapter 33} \\
-Chloe Hutton (Chapter 28) \\
-Volkmar Glauche (Chapter 36) \\
-Christophe Phillips (Chapter)
+\hfill{John Ashburner \\
+CC Chen \\
+Guillaume Flandin \\
+Rik Henson \\
+Stefan Kiebel \\
+James Kilner \\
+Vladimir Litvak \\
+Rosalyn Moran \\
+Will Penny \\
+Klaas Stephan \\
+Chloe Hutton \\
+Volkmar Glauche \\
+J\'er\'emie Mattout \\
+Christophe Phillips}
 \end{minipage}}
 
 \vspace{\stretch{2}}
@@ -69,12 +72,22 @@ Institute of Neurology, UCL\\
 
 \newpage
 
+%%%%%% INTRODUCTION %%%%%%
+
+%\part{Introduction}
+
+%\include{intro}
+
+%%%%%% TEMPORAL PROCESSING %%%%%%
+
 \part{Temporal processing}
 
 \include{st}
-%\include{eeg_filter}
+
+%%%%%% SPATIAL PROCESSING %%%%%%
 
 \part{Spatial processing}
+
 \include{realign}
 \include{realignunwarp}
 \include{coreg}
@@ -93,6 +106,7 @@ Institute of Neurology, UCL\\
 
 %%%%%% M/EEG %%%%%%
 \part{EEG/MEG}
+
 \include{meeg/eeg_overview}
 \include{meeg/eeg_preprocessing_tutorial}
 \include{meeg/eeg_preprocessing}
@@ -121,6 +135,7 @@ Institute of Neurology, UCL\\
 %%%%%% TOOLS %%%%%%
 
 \part{Tools}
+
 \include{hdw}
 \include{dartel}
 \include{FieldMap/fieldmap}
@@ -141,11 +156,13 @@ Institute of Neurology, UCL\\
 
 %%%%%% Appendix %%%%%%%
 
-\part{Batching and User Interface}
+\part{Batch Interface}
 
 \include{batch/batch}
 
 %%%%%% BIBLIOGRAPHY %%%%%%
+
+\part{Bibliography}
 
 \bibliography{biblio/methods_macros,biblio/methods_group,biblio/external}
 
