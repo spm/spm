@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 2084 2008-09-12 10:10:22Z volkmar $
+% $Id: spm_orthviews.m 2246 2008-09-30 09:31:05Z christophe $
 
 
 
@@ -1913,5 +1913,9 @@ for i = 1:length(cm_handles)
     z_handle = get(findobj(cm_handles(i),'label','Zoom'),'Children');
     set(z_handle,'Checked','off');
     set(z_handle(op),'Checked','on');
+end
+
+if isfield(st.vols{1},'sdip')
+    spm_eeg_inv_vbecd_disp('RedrawDip');
 end
 return;

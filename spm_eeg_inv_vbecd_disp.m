@@ -20,7 +20,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2241 2008-09-29 22:10:48Z christophe $
+% $Id: spm_eeg_inv_vbecd_disp.m 2246 2008-09-30 09:31:05Z christophe $
 
 global st
 % global defaults
@@ -526,14 +526,23 @@ function dh = add1dip(loc,js,vloc,mark,col,ax,Fig,bb)
 % Plots the dipoles on the 3 views, with an error ellipse for location
 % Then returns the handle to the plots
 
+global st
+is = inv(st.Space);
+loc = is(1:3,1:3)*loc(:) + is(1:3,4);
+% taking into account the zooming/scaling only for the location
+% NOT for the dipole's amplitude.
+% Amplitude plotting is quite arbitrary anyway and up to some scaling
+% defined for better viewing...
+
 loc(1,:) = loc(1,:) - bb(1,1)+1;
 loc(2,:) = loc(2,:) - bb(1,2)+1;
 loc(3,:) = loc(3,:) - bb(1,3)+1;
 % +1 added to be like John's orthview code
 
 % prepare error ellipse
+vloc = is(1:3,1:3)*vloc*is(1:3,1:3);
 [V,E] = eig(vloc);
-VE = V*E;
+VE = V*diag(sqrt(diag(E)));
 
 dh = zeros(9,1);
 figure(Fig)
