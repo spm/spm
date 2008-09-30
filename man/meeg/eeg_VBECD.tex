@@ -1,7 +1,7 @@
 \chapter{Localization of Equivalent Current Dipoles \label{Chap:eeg:VBECD}}
 
 This chapter describes the source reconstruction based on ``Variational Bayes Equivalent Current Dipole'' (VB-ECD).
-For more details about the implementation, please refer to the help bit of and comments in the routines themselves, as well as the founding paper by \citep(stefan_vb_ecd).
+For more details about the implementation, please refer to the help bit of and comments in the routines themselves, as well as the founding paper by \cite{stefan_vb_ecd}.
 
 \section{Introduction}
 3D imaging (or distributed) reconstruction method considers all possible source location at once, allowing for large and widely spread clusters of activity. On the contrary “Equivalent Current Dipole” (ECD) approach relies on two different hypotheses:
@@ -32,7 +32,7 @@ This section aims at describing how to use the VB-ECD approach in SPM8.
 The engine calculating the projection of the dipolar sources on the scalp electrode comes from Fieldtrip and is the same for the 3D imaging or VB-ECD reconstructions. The head model should thus be prepared the same way, as described in the chapter \ref{Chap:eeg:imaging}.
 
 \subsection{VB-ECD reconstruction}
-To get started press the 'Invert' button\footnote{The GUI for VB-ECD can also be launched directly from Matlab command line with the instruction: \textit{D = spm_eeg_inv_vbecd_gui}.}. The first choice you will see is between 'Classical', 'VB-ECD' and 'DCM'. The ‘Classical’ reconstruction corresponds to imaging solution, as described in chapter \ref{Chap:eeg:imaging}, and 'DCM' is described in chapter ???.
+To get started press the 'Invert' button\footnote{The GUI for VB-ECD can also be launched directly from Matlab command line with the instruction: \textit{D = spm\_eeg\_inv\_vbecd\_gui}.}. The first choice you will see is between 'Classical', 'VB-ECD' and 'DCM'. The ‘Classical’ reconstruction corresponds to imaging solution, as described in chapter \ref{Chap:eeg:imaging}, and 'DCM' is described in chapter \ref{Chap:eeg:DCM}.
 Then you are invited to fill in some information about the ECD model and click on a few buttons in the following order:
 \begin{enumerate} 
 \item fill in comments about the current reconstruction.
@@ -49,7 +49,7 @@ The routine then proceeds with the VB optimization scheme.
 Results are finally saved into the data structure \textit{D} in the field \textit{.inv{D.val}.inverse} and displayed in the graphic window.
 
 \subsection{Result display}
-The latest VB-ECD results can be displayed again through the function \textit{D = spm_eeg_inv_vbecd_disp}. If a specific reconstruction should be displayed, then use: \textit{spm_eeg_inv_vbecd_disp('Init',D, ind)}.
+The latest VB-ECD results can be displayed again through the function \textit{D = spm\_eeg\_inv\_vbecd\_disp}. If a specific reconstruction should be displayed, then use: \textit{spm\_eeg\_inv\_vbecd\_disp('Init',D, ind)}.
 
 
 In the upper part, the 3 main figures display the 3 orthogonal views of the brain with the dipole location and orientation superimposed. The location confidence interval is described by the dotted ellipse around the dipole location on the 3 views. It is not possible to click through the image, as the display is automatically centred on the dipole displayed. It is possible though to zoom into the image, using the right-click context menu.
