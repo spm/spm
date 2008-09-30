@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2221 2008-09-29 10:50:13Z vladimir $
+% $Id: spm_api_erp.m 2250 2008-09-30 13:04:12Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -330,12 +330,10 @@ if ~ok
     return
 end
  
-set(handles.data_ok, 'enable', 'on');
- 
 % Assemble and display data
 %--------------------------------------------------------------------------
 Y_Callback(hObject, eventdata, handles);
- 
+
 set(handles.design,'enable', 'on')
 set(handles.Uname, 'enable', 'on')
 set(handles.Y,     'enable', 'on')
@@ -345,19 +343,21 @@ guidata(hObject,handles);
  
 % --- Executes on button press in Y to display data
 %--------------------------------------------------------------------------
-function ok = Y_Callback(hObject, eventdata, handles)
+function Y_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 try
     handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
     spm_dcm_erp_results(handles.DCM,'Data');
     set(handles.dt, 'String',sprintf('bins: %.1fms',handles.DCM.xY.dt*1000))
     set(handles.dt, 'Visible','on')
-    ok = 1;
+    set(handles.data_ok, 'enable', 'on'); 
+    guidata(hObject,handles);
 catch
-    errordlg('please ensure trial selection and data are consistent');
-    ok = 0;
+    errordlg({'please ensure trial selection and data are consistent';
+             'data have not been changed'});
+    set(handles.data_ok, 'enable', 'off'); 
 end
-guidata(hObject,handles);
+
  
  
  
@@ -426,14 +426,16 @@ function handles = data_ok_Callback(hObject, eventdata, handles)
  
 %-assemble and display trials.
 %--------------------------------------------------------------------------
-if ~Y_Callback(hObject, eventdata, handles), return, end
- 
+Y_Callback(hObject, eventdata, handles);
 handles = guidata(hObject);
+switch get(handles.data_ok,'enable')
+    case{'off'}
+        return
+end
 
 %-check trial-specific effects
 %--------------------------------------------------------------------------
 design_Callback(hObject, eventdata, handles)
- 
 handles = guidata(hObject);
 
 % enable next stage, disable data specification
@@ -527,6 +529,7 @@ end
  
 handles.DCM = DCM;
 set(handles.Spatial,          'Enable', 'off');
+set(handles.data_ok,          'Enable', 'off');
 set(handles.spatial_ok,       'Enable', 'off');
 set(handles.onset,            'Enable', 'off');
 set(handles.Sname,            'Enable', 'off');
@@ -878,7 +881,9 @@ switch handles.DCM.options.analysis
         warndlg('unknown analysis type')
         return
 end
- 
+
+handles = ERP_Callback(hObject, eventdata, handles);
+
 set(handles.results,    'Enable','on' )
 set(handles.save,       'Enable','on')
 set(handles.estimate,   'String','Estimated','Foregroundcolor',[0 0 0])

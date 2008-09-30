@@ -44,7 +44,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_fx_mfm.m 2250 2008-09-30 13:04:12Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ C    = exp(P.C);                              % subcortical
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
 SA   = sparse([1 0 1;
-               0 1 1;
+               0 1 1/8;
                0 0 0]);
             
 % intrinsic connection strengths

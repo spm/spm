@@ -13,7 +13,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % accommodates nonlinearities in the state equation by using a functional of
 % f(x) = dx/dt.  This uses the equality
 %
-%             expm([0   0     ]) = expm(t*dfdx) - I)*inv(dfdx)*f
+%             expm([0   0     ]) = (expm(t*dfdx) - I)*inv(dfdx)*f
 %                  [t*f t*dfdx]
 %
 % When t -> Inf this reduces to
@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_dx.m 2250 2008-09-30 13:04:12Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
