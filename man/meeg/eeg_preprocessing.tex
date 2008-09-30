@@ -1004,9 +1004,80 @@ by the number of measurements within each trial type. As compared
 to an average, where you implicitly first form the averages within 
 trial type, and then average with equal weighting.
 
-\section{Displaying data}
-JEAN
+\section{Displaying data with SPM EEG REVIEW}
+Call from main SPM gui:    Display $\rightarrow$ M/EEG
 
+SPM EEG REVIEW is meant to provide the user with basic visualization (data and source reconstruction) and reviewing (e.g. trial and sensor good/bad status) tools.
+
+When called, SPM EEG REVIEW displays in the SPM graphics window information about the SPM data file which is displayed (only for matlab versions $>$ 7.1).
+
+SPM EEG REVIEW uses tabs to easily access different fields in the SPM data file structure (see relevant SPM manual section for SPM EEG data format).
+The main tabs system, at the top of the graphics windows, offers the following alternatives:
+
+\begin{itemize}
+
+\item{\textbf{EEG}}
+displays EEG type data (if any). These are the data associated with 'EEG' sensors. This tab is described bellow, as well as the 'MEG' and 'OTHER' tabs (1- data visualization).
+\item{\textbf{MEG}}
+displays MEG type data (if any).
+
+\item{\textbf{OTHER}}
+displays any other type of data (e.g. HEOG, VEOG, etc…).
+
+\item{\textbf{info}}
+(active tab by default): displays basic information about the data file. This tab contains three further sub-tabs\footnote{User can also check sensor coregistration when clicking on 'sensor positions'.}: 'channels', 'trials' and 'inv' (the latter shows source reconstructions parameters, if any). Some of these infos can be changed by the user (e.g. sensor/trial\footnote{Sensor/trial status (good/bad) can also be changed under the EEG/MEG/OTHER tabs, when visualizing trials (sensor: right-click uicontextmenu ; trials: button 10).}  type, label and status, etc…) by editing the table. The changes become effective when clicking on 'update'. They are actually saved in the data file when clicking on 'SAVE'.
+
+\item{\textbf{source}}
+display source reconstructions (if any). See bellow (2- source reconstructions visualization).
+\end{itemize}
+
+In addition, the user can call the SPM EEG file preparation routine \footnote{This is part of the SPM EEG preprocessing tools. It mainly concerns the coregistration of the sensors onto the normalized SPM space. See relevant section in the SPM manual.} or save any modification in the data file suing the top-right buttons 'prepare SPM file' and 'SAVE'.
+
+
+\subsection{Data visualization}
+The graphics window of SPM EEG REVIEW offers two modes of data visualization: 'scalp' and 'standard' (default).
+For continuous (non epoched) data, only 'standard' mode is enabled.
+For time-frequency data, only 'scalp' mode is enabled.
+For any other type of data, the user can switch to any of these modes using the standard/scalp radio button.
+These two modes are described below:
+
+\begin{itemize}
+\item{\textbf{standard}}
+channels are displayed vertically, within the same axes. A channel uicontextmenu can be accessed by right clicking on any time series (e.g. for changing the channel good/bad status). 
+An additional axes (bottom right) provides the user with the temporal and horizontal scale of the displayed data).
+The size of the plotted time window can be changed using the top left buttons 1 and 2. User can scroll through the data using the temporal slider, at the bottom of the graphics window. A global display scaling factor can be changed using the top buttons 3 and 4. Zooming within the data is done by clicking on button 5. Clicking on button 6 displays a 2D scalp projection of the data.
+
+When displaying epoched data, the user can select the trial within the list of accessible trials (top right of the window). It is also possible to switch the status of trials (good/bad) by clicking on button 10.
+
+When displaying continuous data, SPM EEG REVIEW allows the user to manage events and selections. After having clicked on button 7, the user is asked to add a new event in the data file, by specifying its temporal bounds (two mouse clicks within the display axes). Basic properties of any events can be accessed either in the 'info' table, or by right-clicking on the event marker (vertical line or patch superimposed on the displayed data). This gives access to the event uicontextmenu (e.g. for changing the event label).
+Using buttons 8 and 9 allows the user to scroll through the data from marker to marker (backward and forward in time).
+
+\item{\textbf{scalp}}
+channels are displayed vertically, within the same axes. A channel uicontextmenu can be accessed by right clicking on any time series (e.g. for changing the channel good/bad status). 
+An additional axes (bottom right) provides the user with the temporal and horizontal scale of the displayed data).
+The size of the plotted time window can be changed using the top left buttons 1 and 2. User can scroll through the data using the temporal slider, at the bottom of the graphics window. A global display scaling factor can be changed using the top buttons 3 and 4. Zooming within the data is done by clicking on button 5. Clicking on button 6 displays a 2D scalp projection of the data.
+
+When displaying epoched data, the user can select the trial within the list of accessible trials (top right of the window). It is also possible to switch the status of trials (good/bad) by clicking on button 10.
+
+When displaying continuous data, SPM EEG REVIEW allows the user to manage events and selections. After having clicked on button 7, the user is asked to add a new event in the data file, by specifying its temporal bounds (two mouse clicks within the display axes). Basic properties of any events can be accessed either in the 'info' table, or by right-clicking on the event marker (vertical line or patch superimposed on the displayed data). This gives access to the event uicontextmenu (e.g. for changing the event label).
+Using buttons 8 and 9 allows the user to scroll through the data from marker to marker (backward and forward in time).
+\end{itemize}
+
+\subsection{Source reconstructions visualization}
+SPM EEG REVIEW makes use of sub tabs for any source reconstruction that has been stored in the data file\footnote{This concerns any distributed source reconstruction, i.e. also includes imaging DCM analyses, but not ECD reconstructions (so far).}. Since these reconstructions are associated with epoched data, the user can choose the trial he wants to display using the list of accessible events (top of the main tab).
+Each sub tab has a label given by the corresponding source reconstruction comment which is asked to the user when source reconstructing the data (see relevant section in the SPM manual).
+The bottom-left part of each sub tab displays basic infos about the source reconstruction (date, number of included dipoles, number of temporal modes, etc…).
+The top part of the window displays a rendering of the reconstruction on the cortical surface that has been used. User can scroll through peri-stimulus time by using the temporal slider bellow the rendered surface. Other sliders allow the user to (i) change the transparence of the surface (left slider) and (ii) threshold the colormap (right sliders).
+At the center is displayed a butterfly plot of the reconstructed intensity of cortical sources activity over peri-stimulus time.
+If the data file contains more than one source reconstruction, the bottom-right part of the window displays a bar graph of the model evidences of each source reconstruction. This provides user with a -visual- Bayesian model comparison tool\footnote{Remember that model evidences p(y|m) can only be compared for the same data. Therefore, if the source reconstructions have different time windows, filters, number of temporal modes, etc., the comparison does not hold. This is why basic information (bottom-left part of the window) have to be recalled when comparing models.}.
+SPM EEG REVIEW allows switching quickly and easily between different models and trials, for a visual comparison of the cortical source activities.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=100mm]{meeg/jeandisplay}
+\end{center}
+\caption{\em SPM EEG REVIEW buttons legend 1-2: increase/decrease width of plotted time window, 3-4: increase/decrease global scaling display factor, 5: zoom in, 7: add event, 8-9: scroll backward/forward data from marker to marker, 10: declare event as good/bad} 
+\end{figure}
 
 \section{Batching and scripts}
 Although all functions can be called by the GUI, the sole use 
