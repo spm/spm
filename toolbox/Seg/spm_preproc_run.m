@@ -21,14 +21,16 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 2008 2008-08-18 17:03:19Z john $
+% $Id: spm_preproc_run.m 2264 2008-09-30 18:48:59Z john $
 
 if nargin==1,
-    run_job(job);
+    varargout{:} = run_job(job);
 elseif strcmpi(arg,'check'),
     varargout{:} = check_job(job);
 elseif strcmpi(arg,'vfiles'),
     varargout{:} = vfiles_job(job);
+elseif strcmpi(arg,'vout'),
+    varargout{:} = vout_job(job);
 else
     error('Unknown argument ("%s").', arg);
 end
@@ -36,8 +38,9 @@ return
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function run_job(job)
+function vout = run_job(job)
 
+vout   = vout_job(job);
 tpm    = strvcat(cat(1,job.tissue(:).tpm));
 tpm    = spm_load_priors8(tpm);
 
@@ -142,16 +145,21 @@ return
 %_______________________________________________________________________
 function msg = check_job(job)
 msg = {};
+if numel(job.channel) >1,
+    k = numel(job.channel(1).vols);
+    for i=2:numel(job.channel),
+        if numel(job.channel(i).vols)~=k,
+            msg = {['Incompatible number of images in channel ' num2str(i)]};
+            break
+        end
+    end
+elseif numel(job.channel)==0,
+    msg = {'No data'};
+end
 return
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function vf = vfiles_job(job)
-vf = {};
-return
-%------------------------------------------------------------------------
-
-%------------------------------------------------------------------------
 function savefields(fnam,p)
 if length(p)>1, error('Can''t save fields.'); end;
 fn = fieldnames(p);
@@ -166,36 +174,109 @@ else
 end;
 
 return;
-%------------------------------------------------------------------------
+%_______________________________________________________________________
 
-%------------------------------------------------------------------------
-function vf = vfiles(job)
-opts  = job.output;
-sopts = [opts.GM;opts.WM;opts.CSF];
-vf    = cell(numel(job.data),2);
-for i=1:numel(job.data),
-    [pth,nam,ext,num] = spm_fileparts(job.data{i});
-    vf{i,1} = fullfile(pth,[nam '_seg_sn.mat']);
-    vf{i,2} = fullfile(pth,[nam '_seg_inv_sn.mat']);
-    j       = 3;
-    if opts.biascor,
-        vf{i,j} = fullfile(pth,['m' nam ext ',1']);
-        j       = j + 1;
-    end;
-    for k1=1:3,
-        if sopts(k1,3),
-            vf{i,j} = fullfile(pth,[  'c', num2str(k1), nam, ext, ',1']);
-            j       = j + 1;
-        end;
-        if sopts(k1,2),
-            vf{i,j} = fullfile(pth,[ 'wc', num2str(k1), nam, ext, ',1']);
-            j       = j + 1;
-        end;
-        if sopts(k1,1),
-            vf{i,j} = fullfile(pth,['mwc', num2str(k1), nam, ext, ',1']);
-            j       = j + 1;
-        end;
-    end;
-end;
-vf = vf(:);
+%_______________________________________________________________________
+function vout = vout_job(job)
+
+n     = numel(job.channel(1).vols);
+parts = cell(n,4);
+
+channel = struct('biasfield',{},'biascorr',{});
+for i=1:numel(job.channel),
+    for j=1:n,
+        [parts{j,:}] = spm_fileparts(job.channel(i).vols{j});
+    end
+    if job.channel(i).write(1),
+        channel(i).biasfield = cell(n,1);
+        for j=1:n
+            channel(i).biasfield{j} = fullfile(parts{j,1},['BiasField_',parts{j,2},'.nii']);
+        end
+    end
+    if job.channel(i).write(2),
+        channel(i).biascorr = cell(n,1);
+        for j=1:n
+            channel(i).biascorr{j} = fullfile(parts{j,1},['m',parts{j,2},'.nii']);
+        end
+    end
+end
+
+for j=1:n,
+    [parts{j,:}] = spm_fileparts(job.channel(1).vols{j});
+end
+param = cell(n,1);
+for j=1:n
+    param{j} = fullfile(parts{j,1},[parts{j,2},'_seg8.mat']);
+end
+
+tiss = struct('c',{},'rc',{},'wc',{},'mwc',{});
+for i=1:numel(job.tissue),
+    if job.tissue(i).native(1),
+        tiss(i).c = cell(n,1);
+        for j=1:n
+            tiss(i).c{j} = fullfile(parts{j,1},['c',parts{j,2},'.nii']);
+        end
+    end
+    if job.tissue(i).native(2),
+        tiss(i).rc = cell(n,1);
+        for j=1:n
+            tiss(i).rc{j} = fullfile(parts{j,1},['rc',parts{j,2},'.nii']);
+        end
+    end
+    if job.tissue(i).warped(1),
+        tiss(i).wc = cell(n,1);
+        for j=1:n
+            tiss(i).wc{j} = fullfile(parts{j,1},['wc',parts{j,2},'.nii']);
+        end
+    end
+    if job.tissue(i).warped(2),
+        tiss(i).mwc = cell(n,1);
+        for j=1:n
+            tiss(i).mwc{j} = fullfile(parts{j,1},['mwc',parts{j,2},'.nii']);
+        end
+    end
+end
+
+if job.warp.write(1),
+    invdef = cell(n,1);
+    for j=1:n
+        invdef{j} = fullfile(parts{j,1},['iy_',parts{j,2},'.nii']);
+    end
+else
+    invdef = {};
+end
+
+if job.warp.write(2),
+    fordef = cell(n,1);
+    for j=1:n
+        fordef{j} = fullfile(parts{j,1},['y_',parts{j,2},'.nii']);
+    end
+else
+    fordef = {};
+end
+
+vout  = struct('channel',channel,'tiss',tiss,'param',{param},'invdef',{invdef},'fordef',{fordef});
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function vf = vfiles_job(job)
+vout = vout_job(job);
+vf   = vout.param;
+if ~isempty(vout.invdef), vf = {vf{:}, vout.invdef{:}}; end
+if ~isempty(vout.fordef), vf = {vf{:}, vout.fordef{:}}; end
+for i=1:numel(vout.channel),
+    if ~isempty(vout.channel(i).biasfield), vf = {vf{:}, vout.channel(i).biasfield{:}}; end
+    if ~isempty(vout.channel(i).biascorr),  vf = {vf{:}, vout.channel(i).biascorr{:}};  end
+end
+
+for i=1:numel(vout.tiss)
+    if ~isempty(vout.tiss(i).c),   vf = {vf{:}, vout.tiss(i).c{:}};   end
+    if ~isempty(vout.tiss(i).rc),  vf = {vf{:}, vout.tiss(i).rc{:}};  end
+    if ~isempty(vout.tiss(i).wc),  vf = {vf{:}, vout.tiss(i).wc{:}};  end
+    if ~isempty(vout.tiss(i).mwc), vf = {vf{:}, vout.tiss(i).mwc{:}}; end
+end
+vf = reshape(vf,numel(vf),1);
+%_______________________________________________________________________
+
+%_______________________________________________________________________
 

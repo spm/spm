@@ -4,7 +4,7 @@ function job = spm_config_preproc8
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_config_preproc8.m 2025 2008-08-28 17:48:19Z john $
+% $Id: spm_config_preproc8.m 2264 2008-09-30 18:48:59Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','Seg'));
 %_______________________________________________________________________
@@ -29,7 +29,6 @@ repeat = inline(['struct(''type'',''repeat'',''name'',name,'...
         '''tag'',tag,''values'',{values})'],...
         'name','tag','values');
 
-addpath(fullfile(spm('dir'),'toolbox','Seg'));
 %_______________________________________________________________________
 
 vols = files('Volumes','vols','image',[1 Inf]);
@@ -399,7 +398,7 @@ cleanup.val    = {0};
 
 %------------------------------------------------------------------------
 
-job        = branch('Segment','preproc8',{data,tissues,warping});
+job        = branch('New Segment','preproc8',{data,tissues,warping});
 job.prog   = @execute;
 %job.vfiles = @vfiles;
 %job.check  = @check;
