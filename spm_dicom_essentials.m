@@ -12,7 +12,7 @@ function hdr1 = spm_dicom_essentials(hdr0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: spm_dicom_essentials.m 2268 2008-09-30 21:15:32Z guillaume $
 
 used_fields = {...
     'AcquisitionDate',...

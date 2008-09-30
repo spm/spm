@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_cfg_defs.m 2268 2008-09-30 21:15:32Z guillaume $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
