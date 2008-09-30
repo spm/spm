@@ -1,8 +1,8 @@
 
-% Welcome to SPM8
+% Welcome to SPM8b
 %_______________________________________________________________________
 %
-% Please refer to this version as "SPM8" in papers and communications.
+% Please refer to this version as "SPM8b" in papers and communications.
 %
 %                           ----------------
 %
@@ -12,13 +12,13 @@
 %
 %                           ----------------
 %
-% Although SPM8 will read image files from previous versions of SPM,
+% Although SPM8b will read image files from previous versions of SPM,
 % there are differences in the algorithms, templates and models used.
 % Therefore, we recommend you use a single SPM version for any given
 % project.
 %
-% Please take time to review the help, in particular the "About SPM" 
-% topic (spm.man), which lists new features of SPM8.
+% The SPM8b Release Notes can be found online: 
+% http://www.fil.ion.ucl.ac.uk/spm/software/spm8b/SPM8b_Release_Notes.pdf
 %
 % Further information may be found at the SPMweb site:
 %            http://www.fil.ion.ucl.ac.uk/spm/
@@ -38,4 +38,4 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm_motd.man 1257 2008-03-27 20:45:08Z guillaume $
+% $Id: spm_motd.man 2269 2008-09-30 21:16:53Z guillaume $

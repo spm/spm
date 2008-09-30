@@ -1,5 +1,5 @@
 
-% Random effects analyses for SPM'99 using a multi-level approach
+% Random effects analyses for SPM using a multi-level approach
 %_______________________________________________________________________
 %
 % This SPM manual page attepts to give an overview of the issues and
@@ -334,4 +334,4 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_RandFX.man 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_RandFX.man 2269 2008-09-30 21:16:53Z guillaume $
