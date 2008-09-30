@@ -10,7 +10,7 @@ function [] = spm_eeg_review(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2040 2008-09-04 13:16:34Z jean $
+% $Id: spm_eeg_review.m 2263 2008-09-30 18:41:26Z jean $
 
 D = struct(D);
 
@@ -44,6 +44,7 @@ D.PSD.handles.tabs = h;
 
 %-- Initilize display on 'info'
 D.PSD.VIZU.modality = 'info';
+D.PSD.VIZU.info = 4;
 [D] = spm_eeg_review_switchDisplay(D);
 
 %-- Attach userdata to SPM graphics window

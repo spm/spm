@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2258 2008-09-30 16:50:29Z jean $
+% $Id: spm_eeg_review_callbacks.m 2263 2008-09-30 18:41:26Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -67,6 +67,10 @@ switch varargin{1}
             case 'dataInfo'
                 str = getInfo4Data(D);
                 varargout{1} = str;
+                return
+            case 'history'
+                table = getHistory(D);
+                varargout{1} = table;
                 return
             case 'uitable'
                 D = getUItable(D);
@@ -204,7 +208,7 @@ switch varargin{1}
                     figure(out.handles.fi)
                     hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-%                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
+                    %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
                     axis tight
                 end
@@ -223,7 +227,7 @@ switch varargin{1}
                     figure(out.handles.fi)
                     hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-%                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.MEG.VIZU.montage.clab);
+                    %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.MEG.VIZU.montage.clab);
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.meg.label);
                     axis tight
                 end
@@ -242,7 +246,7 @@ switch varargin{1}
                     figure(out.handles.fi)
                     hold on
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-%                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
+                    %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
                     ht = text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.other.label);
                     axis tight
                 end
@@ -694,32 +698,32 @@ switch varargin{1}
                 try
                     uicontrol(D.PSD.handles.BUTTONS.pop1)
                 end
-                
-                
-%                 str = get(D.PSD.handles.BUTTONS.badEvent,'string');
-%                 str1 = 'not bad';
-%                 str2 = 'bad';
-%                 if strcmp(str,['declare as ',str2])
-%                     bad = 1;
-%                     lab = [' (',str2,')'];
-%                     str = ['declare as ',str1];
-%                 else
-%                     bad = 0;
-%                     lab = [' (',str1,')'];
-%                     str = ['declare as ',str2];
-%                 end
-%                 nt = length(trN);
-%                 for i=1:nt
-%                     D.trials(trN(i)).bad = bad;
-%                     D.PSD.trials.TrLabels{trN(i)} = ['Trial ',num2str(trN(i)),...
-%                         ': ',D.trials(trN(i)).label,lab];
-%                 end
-%                 set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
-%                 set(D.PSD.handles.BUTTONS.badEvent,'string',str)
-%                 set(D.PSD.handles.hfig,'userdata',D)
-%                 try
-%                     uicontrol(D.PSD.handles.BUTTONS.pop1)
-%                 end
+
+
+                %                 str = get(D.PSD.handles.BUTTONS.badEvent,'string');
+                %                 str1 = 'not bad';
+                %                 str2 = 'bad';
+                %                 if strcmp(str,['declare as ',str2])
+                %                     bad = 1;
+                %                     lab = [' (',str2,')'];
+                %                     str = ['declare as ',str1];
+                %                 else
+                %                     bad = 0;
+                %                     lab = [' (',str1,')'];
+                %                     str = ['declare as ',str2];
+                %                 end
+                %                 nt = length(trN);
+                %                 for i=1:nt
+                %                     D.trials(trN(i)).bad = bad;
+                %                     D.PSD.trials.TrLabels{trN(i)} = ['Trial ',num2str(trN(i)),...
+                %                         ': ',D.trials(trN(i)).label,lab];
+                %                 end
+                %                 set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
+                %                 set(D.PSD.handles.BUTTONS.badEvent,'string',str)
+                %                 set(D.PSD.handles.hfig,'userdata',D)
+                %                 try
+                %                     uicontrol(D.PSD.handles.BUTTONS.pop1)
+                %                 end
 
                 %% Add an event to current selection
             case 'add'
@@ -812,11 +816,11 @@ switch varargin{1}
                     'BusyAction','cancel',...
                     'Interruptible','off',...
                     'Tag','EEGprepUI');
- 
+
                 spm_eeg_prep_ui('update_menu')
                 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
                 figure(Finter);
-                
+
         end
 
 
@@ -1045,10 +1049,10 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     cmenu = uicontextmenu;
                     uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
                     uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
-%                     uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
-%                         'callback',@switchBC,'userdata',i,...
-%                         'BusyAction','cancel',...
-%                         'Interruptible','off');
+                    %                     uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
+                    %                         'callback',@switchBC,'userdata',i,...
+                    %                         'BusyAction','cancel',...
+                    %                         'Interruptible','off');
                     status = D.channels(VIZU.visuSensors(i)).bad;
                     if ~status
                         color = [1 1 1];
@@ -1064,14 +1068,14 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                         'parent',handles.axes(i),...
                         'userdata',i,...
                         'hittest','off');
-                     set(handles.fra(i),'uicontextmenu',cmenu);
+                    set(handles.fra(i),'uicontextmenu',cmenu);
                 end
                 colormap(jet)
                 % This for normalized colorbars:
-%                 for i=1:length(VIZU.visuSensors)
-%                     caxis(handles.axes(i),[miY maY]);
-%                     colormap('jet')
-%                 end
+                %                 for i=1:length(VIZU.visuSensors)
+                %                     caxis(handles.axes(i),[miY maY]);
+                %                     colormap('jet')
+                %                 end
                 set(handles.hfig,'userdata',D);
 
             end
@@ -1354,6 +1358,53 @@ else
 end
 try,str{7} = ['Time onset: ',num2str(D.timeOnset)];end
 
+
+%% Get history info
+function table = getHistory(D)
+try
+    history = D.history;
+    nf = length(history);
+    table = cell(nf,3);
+    for i=1:nf
+        table{i,1} = history(i).fun;
+        switch history(i).fun
+            case 'spm_eeg_convert'
+                table{i,2} = D.history(i).args.dataset;
+                [path,fn] = fileparts(table{i,2});
+                if i<nf
+                    table{i,3} = fullfile(path,D.history(i).args.outfile);
+                else
+                    table{i,3} = '[this file]';
+                end
+            case 'spm_eeg_prep'
+                table{i,1} = [table{i,1},' (',D.history(i).args.task,')'];
+                try
+                    [path,fn] = fileparts(table{i-1,3});
+                catch
+                    path = [];
+                end
+                table{i,2} = fullfile(path,D.history(i).args.D);
+                if i<nf
+                    table{i,3} = fullfile(path,D.history(i).args.D);
+                else
+                    table{i,3} = '[this file]';
+                end
+            otherwise
+                table{i,2} = D.history(i).args.D;
+                if i<nf
+                    try
+                        table{i,3} = D.history(i+1).args.D;
+                    catch
+                        table{i,3} = '?';
+                    end
+                else
+                    table{i,3} = '[this file]';
+                end
+        end
+    end
+catch
+    history = [];
+end
 
 %% extracting data from spm_uitable java object
 function [D] = getUItable(D)

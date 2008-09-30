@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2229 2008-09-29 13:49:55Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2263 2008-09-30 18:41:26Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -345,14 +345,15 @@ D = spm_eeg_review_uis(D,object);
 try
     D.PSD.VIZU.info;
 catch
-    D.PSD.VIZU.info = 1;
+    D.PSD.VIZU.info = 4;
 end
 
 % Create uitabs for channels and trials
-labels = {'channels','trials','inv'};
+labels = {'channels','trials','inv','history'};
 callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''info'',1)',...,...
     'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'...
-    'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)'};
+    'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)',...
+    'spm_eeg_review_callbacks(''visu'',''main'',''info'',4)'};
 [h] = spm_uitab(D.PSD.handles.tabs.hp,labels,callbacks,'plotEEG',D.PSD.VIZU.info,0.9);
 D.PSD.handles.infoTabs = h;
 
@@ -532,6 +533,26 @@ switch D.PSD.VIZU.info
 
         end
         
+        
+    case 4 % history info
+        
+        table = spm_eeg_review_callbacks('get','history');
+        if ~isempty(table)
+            colnames = {'function called','input file','output file'};
+            [ht,hc] = spm_uitable(table,colnames);
+            set(ht,'units','normalized','editable',0);
+            set(hc,'position',[0.1 0.05 0.8 0.7],...
+                'tag','plotEEG');
+            D.PSD.handles.infoUItable = ht;
+        else
+            POS = get(D.PSD.handles.infoTabs.hp,'position');
+            uicontrol('style','text','units','normalized',...
+                'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+            'string','The history of this file is not available !',...
+            'BackgroundColor',0.95*[1 1 1],...
+            'tag','plotEEG')
+        end
+
 end
 
 
