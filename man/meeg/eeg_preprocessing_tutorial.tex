@@ -1,0 +1,62 @@
+\chapter{EEG/MEG preprocessing --- Brief Tutorial}
+\label{ch:eeg_tutorial}
+This tutorial will give a users guide to the pre-processing sections
+of SPM M/EEG. We will use a single-subject example data set collected on a 128 active
+electrode Biosemi EEG system, acquired in a mismatch negativity study \cite{mg_dcm_repro}. This data set is available from the SPM website (http://www.fil.ion.ucl.ac.uk/spm/data). The data were recorded continuously and had two event types, 480 trials with a standard, and 120 trials with a rare response.
+
+In the following we will go through each step that is needed to compute the evoked responses. There is also an example script under \textit{man\\example\_scripts\\histexample.m} which repeats the preprocessing route we take here.
+
+This brief tutorial only describes how you would use the GUI buttons to do the preprocessing. Alternatively, you can also use the new batch system to do the same (not described here).
+
+\section{The data}
+Please first copy the single-subject mismatch negativity data set from the SPM webpage. The file size is roughly 200 Megabytes, which is the reason why we don't add the example data set to the SPM8-distribution. When you downloaded the data set called \textit{example.bdf}, call matlab, and change directories to its location.
+
+\section{Convert}
+Convert reads the EEG data file and writes the data in a format that
+is used for SPM analysis. The SPM format has two file components: a *.mat
+and *.dat file. The *.mat file contains information about the data, stored in an object, and the *.dat file contains the M/EEG data.\\
+
+After clicking on Convert you will be asked to select the data file \textit{example.bdf}. The next question is whether you would like to 'just read' the data set, or play around with all the options for reading the data. Our recommendation is to always try first the 'just read' button to see how it goes. This is what you do now. A red bar will appear and after a couple of seconds (depending on your machine) the file will be converted. The graphics window will pop up and allow you to display the file. Please see the chapter \ref{Chap:eeg:preprocessing} for how the display works. You should now also see two new files in your directory: spm8\_example.mat and spm8\_example.dat.
+
+\section{Montage}
+In this step, we will properly identify the VEOG and HEOG channels, and also remove several channels that don't carry EEG data and are of no importance in the following. We generally recommend to remove all data channels that are no longer needed because this can bring down the total file size. For doing this, we use the montage-function in SPM, which is a general approach to pre-multiply the data matrix (channels $\times$ time) by some matrix, which will linearly weight all channel data. This sounds geeky, and it is. However, this approach turns out to be a powerful approach to do all kinds of data transformation which are often used in M/EEG analysis. The difficulty is to come up with the appropriate montage-matrix. In our case, we'd like to only keep channels 1 to 128. In addition, there were three EOG channels (129, 130, 131), where the HEOG is computed as the difference between channels 131 and 130, and the VEOG by the difference between channels 130 and 129. This matrix can be put into SPM by either a graphical user interface, or by supplying the matrix saved in a file. We will do the latter. The script to generate this file can be found in the example\_scripts-folder: \textit{montage\_example.m}. You have to put the script in the folder of the data, and run it. This will generate a file named MONT\_EXP.mat. 
+\\
+\\
+You know call the montage by choosing 'Montage' in the 'Other' drop-down menu. First, you select the M/EEG-file spm8\_example.mat. Then you answer 'file'. You then select the generated MONT\_EXP.mat file, and answer the question 'Keep the other channels?' with 'No'. This will remove the uninteresting channels from the data. The red bar appears and SPM will generate two new files Mspm8\_example.mat and Mspm8\_example.dat.
+
+\section{Prep}
+We now provide information about the sensor location to SPM. This information is not contained in the original *.bdf file. It is usually in the responsibility of the user to link the data to sensors which are located in a coordinate system. In our experience, this is actually a critical step. In SPM, we have chosen the strategy to provide tools for linking data and location information, but leave it in the responsibility of the user to check whether this process went alright. 
+\\
+\\
+Choose 'Prep' from the 'Other' drop-down menu. This will make several Menus available in the lower left SPM window. Choose 'Open' from the 'File' menu. Select the Mspm8\_example.mat file. Select 'Assign default, from the 'Load EEG sensors' menu from the 'Sensors' menu. This will tell SPM to take some default locations for the biosemi-channels. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the other options to use digitized sensor location data. Then select the 'save' option from the File menu. Note that if you leave out the 'save' step, no information will be written to the mat-file and you won't be able, later on, to display the data properly.
+
+
+\section{Epoch}
+To epoch the data click on epoching. Select the Mspm8\_example.mat file. Choose the peri-stimulus time window, first the start -100, then the end 400 ms. Choose 2 conditions. You can call the first condition 'standard'. A GUI pops up which gives you a complete list of all events in the EEG-file. The standard trials had 480 trials, so select the type with value 1 and press ok. The second condition can be called 'rare'. The rare stimulus was given 120 times and has value 3 in the list. Select this trial type and press ok. Answer two times 'no' to the questions to 'review individual trials', and 'save trial definitions'. The red bar will appear and the data are saved to files eMspm8\_example.mat and eMspm8\_example.dat.
+
+\section{Downsample}
+Here, we will downsample the data in time. This is useful when the data were acquired like ours with a high sampling rate of 512 Hz. This is an unnessarily high sampling rate for a simple evoked response analysis, and we will now decreease the sampling rate to 200 Hz, thereby reducing the the file size by more than half. Select 'Downsample' from the 'Other' menu and select the eMspm8\_example.mat file. Choose a new sampling rate of 200 (Hz). The red bar will appear and the resulting data are saved to files deMspm8\_example.mat and deMspm8\_example.dat. This will take a while.
+
+
+\section{Filter}
+Filtering the data in time removes or suppresses certain frequency bands from the data. Usually, for evoked response analysis, the low frequencies are kept, while the high frequencies are assumed to carry noise. Here, we will use a bandpass filter to remove ultra-low frequencies close to DC, and remove high frequencies at the same time. Click on 'Filter' and select the deMspm8\_example.mat-file. Choose as 'filterband' the 'bandpass' filter. As band, enter 0.5 30. The red bar will appear and save the resulting data to files fdeMspm8\_example.mat and fdeMspm8\_example.dat.
+
+\section{Artefacts}
+Two different methods of artefact removal are implemented in SPM8. One
+is a simple thresholding method. The other uses a robust averaging
+methodology to weight each time point by a function of the residuals. 
+
+Here, we will use the simple thresholding method. However, before we do so, we will look at the data in the display. Choose 'M/EEG' from the Display dropdown menu, and select the fdeMspm8\_example.mat file. Click on 'EEG'. Click on the 'scalp' radio button. The time-series for the first trial appear, ordered in a topographical layout. When you take a glance at the data, you will see that one of the central channels has much larger variability over time than the other channels. Right-click on the channel; this tells you that this channel is 'C21'. You will also see as an entry in this menu 'bad: 0'. Select this entry, and click the left button. This will make the menu disappear, but the channel has now a grey background. You marked this channel as bad. Click on 'save' in the top-right corner. 
+\\
+\\
+Next, click in the top-left SPM-GUI on 'Artefacts', and select the fdeMspm8\_example.mat file. Anser 'no' to 'Read own artefact list?'. Answer 'no' to 'robust average?'. Answer 'yes' to 'Threshold channels?'. Press return to choose the default of which channels you want to threshold, i.e., all 130 channels (128 EEG, 2 EOG). Choose as threshold 80 (microV). The red bar will appear and save the resulting data to files afdeMspm8\_example.mat and afdeMspm8\_example.dat.
+
+\section{Averaging}
+To produce a mean ERP click on averaging and select the afdeMspm8\_example.mat. The red bar will appear and save the resulting data to files mafdeMspm8\_example.mat and mafdeMspm8\_example.dat. The graphics window will pop up and allow you to look at the averaged data.
+
+
+\section{And now?}
+We showed you how to preprocess some EEG data to produce evoked responses. In SPM8, you can now proceed to either source reconstruct these data (see Chapter \ref{Chap:eeg:imaging}), do a DCM analysis (see Chapter \ref{Chap:eeg:DCM}), or proceed with a scalp analysis (see Chapter \ref{Chap:eeg:sensoranalysis}). In the \textit{example\_scripts} folder, we also provide an example script that will run a DCM analysis on the data you produced in this tutorial. 
+\\
+\\
+Also note that the evoked response file contains a history-entry which stored all the above preprocessing steps. You can take this history and produce a script that will re-run the same analysis which you entered using the GUI. This is useful for a couple of reasons. Please see chapter \ref{Chap:eeg:preprocessing} for more details on this.
