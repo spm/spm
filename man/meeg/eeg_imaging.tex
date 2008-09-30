@@ -212,18 +212,19 @@ with default settings which are using the multiple sparse priors (MSP) algorithm
 If you want to fine-tune the parameters of the inversion, choose the 'Custom' option.
 Then you will have the possibility to choose between several types of inversions differing by their hyperprior models (IID - equivalent to classical
 minimum norm, COH - smoothness prior similar to methods such as LORETA) or optimization scheme for the MSP method (GS - greedy search, ARD - automatic
-relevance determination). You can the choose the time window that will be available for inversion. Generally, it is not recommended to limit the time segment you use for inversion just to what you are interested in, unless there are stimulus artefacts
+relevance determination). You can the choose the time window that will be available for inversion. Generally, it is not recommended to limit the time
+segment you use for inversion just to what you are interested in, unless there are stimulus artefacts
 that need to be excluded. It is better to let the algorithm model all the brain sources generating the response and then to focus on the sources
 of interest using the appropriate contrast (see below). There is also option to apply hanning taper to the channel time series in order to downweight
-the possible baseline noise at the beginning and end of the trial and pre-filter the data. Finally you can restrict the solutions to particular
-brain areas by loading a *.mat file with a $K \times 3$ matrix containing MNI coordinates of the areas of interest. This option looks strange at the first
+the possible baseline noise at the beginning and end of the trial and an option to pre-filter the data. Finally you can restrict the solutions to particular
+brain areas by loading a *.mat file with a $K \times 3$ matrix containing MNI coordinates of the areas of interest. This option seems strange at the first
 sight as it looks like providing the source reconstructions with the answers you expect to get from it. The idea is that in the Bayesian inversion
 framework you have the possibility to compare inversions with different settings applied to the same data using Bayesian model comparison. By limiting
 the solutions to particular brain areas you greatly simplify your model and if that simplification really captures the sources generating the response
 the restricted model will have much higher model evidence than the unrestricted one. If, however, the sources you suggested cannot account for the data,
 the restriction will result in worse model fit and depending on how much worse it is, the unrestricted model might be better in the comparison. So using
 this option with subsequent model comparison is a way, for instance, to integrate prior knowledge from the literature of from fMRI/PET/DTI into your
-inversion and also compare between alternative prior models. Note that for a model comparison to be valid all the settings that affect the input data,
+inversion and also compare between alternative prior models. Note that for model comparison to be valid all the settings that affect the input data,
 like time window, conditions used and filtering should be the same.
 
 Once the inversion is completed you will see in the graphics window at the top plot the time course of the region with the highest activity and
@@ -235,12 +236,50 @@ of the 3D GUI. That allow focusing on a particular time, brain area and conditio
 \section{Summarizing the results of inverse reconstruction as an image}
 If you want to do more than eyeball your results in silent appreciation, SPM offers the possibility to proceed by summarizing some aspects
 as of the inversion results as 3D NIfTI images and proceeding with GLM-based statistical analysis using random field theory based thesholding similar
-to the 2nd level analysis in fMRI to make inferences about region and trial specific effects (at the between subject level).
+to the 2nd level analysis in fMRI to make inferences about region and trial-specific effects (at the between subject level).
 This entails summarizing the trial and subject specific response with a single 3-D 
 image in source space. Critically this involves prompting for a time-frequency contrast window to create each contrast image.
 This is a flexible and generic way of specifying the data feature you want to make an inference about (e.g., gamma activity around 300 
-ms or average response between 80 and 120 ms). This kind of contrasts is specified by pressing the 'Image' button. 
+ms or average response between 80 and 120 ms). This kind of contrasts is specified by pressing the 'Window' button. You will then be asked about
+the time window of interest (in ms, peri-stimulus time). It is possible to specify either a single time value or a time segment. The next question is about the frequency band.
+If you just want to average the source timecourse leave that at the default, zero. In this case the window will
+be weighted by a gaussian. In case of single time point this will be a gaussian with 8 ms full width half maximum (FWHM). 
+If you specify a particular frequency or a frequency band, then a series of Morlet wavelet projectors
+will be generated summarizing the energy in the time window and the band of interest. There is a difference between specifying frequency band of intereste as zero as opposed
+to specifying a wide band that covers the whole frequency range of your data. In the former case the time course of each dipole will be averaged weighted by a gaussian. Therefore,
+if within your time window this time course changes polarity, the activity can average out and in an ideal case even a strong response can produce a value of zero. In the latter case
+the power is integrated over the whole spectrum ignoring phase, and this would be equivalent to computing the sum of squared amplitudes in the time domain. 
+Finally, you will have a choice between 'evoked' and 'induced'. Here comes into play
+the possibility we only briefly mentioned before to load an epoched rather than averaged filed for the inversion. If you have multiple trials for a certain conditions
+the projectors generated at the previous step can either be applied to each trial and the results averaged (induced) or applied to the averaged trials (evoked). Thus it is
+possible to perform localization of induced activity that has no phase-locking to the stimulus. It is also possible to focus on frequency content of the ERP using the 'evoked'
+option but clearly the results will not be the same. The projectors you specified (bottom plot) and the resulting MIP (top plot) will be displayed when the operation is completed.
 
+At this stage you have the possibility to export your image as NIfTI by pressing the 'Image' button. You will be asked to specify the amount of smoothing. An unsmoothed image will
+be exported in any case. Smoothing can help to get better results in an accross subject statistical test. However, it compromizes your spatial resolution. You should try different options
+to see what works for your data. When you use the group inversion (see below). You might not need smoothing at all. 
+
+Note that when a file contains several conditions the images are normalized so that sum of power across all conditions is 1. Thus you might get differently scaled images if you invert each
+condition alone as opposed to inverting them together. It is recommended to put all the conditions you intend to compare in the same inversion. 
+
+\section{Rendering interface}
+By pressing the 'render' button you can open a new GUI window which will show you a rendering of the inversion results on the brain surface. You can rotate the brain, focus on different
+time points, run a movie and compare the predicted and observed scalp topographies and time series. A useful option is 'virtual electrode' which allows you to extraxt the time course from any
+point on the mesh and the MIP at the time of maximal activation at this point. Just press the button and click anywhere in the brain.\\
+An additional tool for reviewing the results of SPM source reconstructions is available in the SPM M/EEG reviewing function.
+
+\section{Group inversion}
+One problem that we encountered with MSP inversion is that sometimes it was 'too good' producing solutions that were so focal in each subject that the spatial overlap between the activated
+areas accross subjects was not sufficient to yield a significant result in across-subjects contrast. This could be improved by smoothing, but smoothing compromises the spatial resolution
+and thus subverts the main advantage of using an inversion method that can produce focal solutions. To circumvent this problem we proposed a modification of the MSP method ~/cite{vl_group}
+that effectively restricts the activated sources to be the same in all subjects with only the degree of activation allowed to vary. We showed that this modification makes it possible to 
+obtain significance levels close to those of non-focal methods such as minimum norm while preserving accurate spatial localization. The group inversion can yield much better results
+than individual inversions because it introduces an additional constraint for the ill-posed inverse problem, namely that the responses in all subjects should be explained 
+by the same set of sources. Thus it should be your method of choice when analyzing an entire study with subsequent GLM analysis of the images. Group inversion works very similarly to
+what was described above. You can start it by pressing the 'Group inversion' button right after opening the 3D GUI. You will be asked to specify a list of M/EEG datasets to invert together.
+Then the routine will ask you to perform coregistration for each of the files and specify all the inversion parameters in advance. It is also possible to specify the contrast parameters in advance.
+Then the inversion will proceed by computing the inverse solution for all the files and writing out the output images. The results for each subject will also be saved in the header 
+of the corresponding input file and it is possible to load this file into the 3D GUI after the inversion and explore the results as described above. 
 
 \section{Appendix: Data structure}
 The Matlab object describing a given EEG/MEG dataset in SPM is denoted as \textit{D}. 
