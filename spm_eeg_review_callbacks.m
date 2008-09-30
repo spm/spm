@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2229 2008-09-29 13:49:55Z jean $
+% $Id: spm_eeg_review_callbacks.m 2258 2008-09-30 16:50:29Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -658,24 +658,28 @@ switch varargin{1}
                     else
                         str = ['declare as bad'];
                     end
-                    set(D.PSD.handles.BUTTONS.badEvent,'string',str);
+                    ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
+                    set(D.PSD.handles.BUTTONS.badEvent,...
+                        'tooltipstring',str,...
+                        'cdata',ud.img{2-status},'userdata',ud)
                 end
                 updateDisp(D)
 
             case 'bad'
                 trN = D.PSD.trials.current;
-                str = get(D.PSD.handles.BUTTONS.badEvent,'string');
+                ud = get(D.PSD.handles.BUTTONS.badEvent,'userdata');
                 str1 = 'not bad';
                 str2 = 'bad';
-                if strcmp(str,['declare as ',str2])
-                    bad = 1;
-                    lab = [' (',str2,')'];
-                    str = ['declare as ',str1];
-                else
+                if ud.val
                     bad = 0;
                     lab = [' (',str1,')'];
                     str = ['declare as ',str2];
+                else
+                    bad = 1;
+                    lab = [' (',str2,')'];
+                    str = ['declare as ',str1];
                 end
+                ud.val = bad;
                 nt = length(trN);
                 for i=1:nt
                     D.trials(trN(i)).bad = bad;
@@ -683,11 +687,39 @@ switch varargin{1}
                         ': ',D.trials(trN(i)).label,lab];
                 end
                 set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
-                set(D.PSD.handles.BUTTONS.badEvent,'string',str)
+                set(D.PSD.handles.BUTTONS.badEvent,...
+                    'tooltipstring',str,...
+                    'cdata',ud.img{2-bad},'userdata',ud)
                 set(D.PSD.handles.hfig,'userdata',D)
                 try
                     uicontrol(D.PSD.handles.BUTTONS.pop1)
                 end
+                
+                
+%                 str = get(D.PSD.handles.BUTTONS.badEvent,'string');
+%                 str1 = 'not bad';
+%                 str2 = 'bad';
+%                 if strcmp(str,['declare as ',str2])
+%                     bad = 1;
+%                     lab = [' (',str2,')'];
+%                     str = ['declare as ',str1];
+%                 else
+%                     bad = 0;
+%                     lab = [' (',str1,')'];
+%                     str = ['declare as ',str2];
+%                 end
+%                 nt = length(trN);
+%                 for i=1:nt
+%                     D.trials(trN(i)).bad = bad;
+%                     D.PSD.trials.TrLabels{trN(i)} = ['Trial ',num2str(trN(i)),...
+%                         ': ',D.trials(trN(i)).label,lab];
+%                 end
+%                 set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
+%                 set(D.PSD.handles.BUTTONS.badEvent,'string',str)
+%                 set(D.PSD.handles.hfig,'userdata',D)
+%                 try
+%                     uicontrol(D.PSD.handles.BUTTONS.pop1)
+%                 end
 
                 %% Add an event to current selection
             case 'add'
@@ -1010,15 +1042,31 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 miY = 0;
                 maY = 0;
                 for i=1:length(VIZU.visuSensors)
+                    cmenu = uicontextmenu;
+                    uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
+                    uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
+%                     uimenu(cmenu,'Label',['bad: ',num2str(D.channels(VIZU.visuSensors(i)).bad)],...
+%                         'callback',@switchBC,'userdata',i,...
+%                         'BusyAction','cancel',...
+%                         'Interruptible','off');
+                    status = D.channels(VIZU.visuSensors(i)).bad;
+                    if ~status
+                        color = [1 1 1];
+                    else
+                        color = 0.75*[1 1 1];
+                    end
                     datai = squeeze(D.data.y(i,:,:,trN(1)));
                     miY = min([min(datai(:)),miY]);
                     maY = max([max(datai(:)),maY]);
                     D.PSD.handles.PLOT.im(i) = image(datai,'CDataMapping','scaled');
-                    set(D.PSD.handles.PLOT.im(i),'tag','plotEEG');
                     set(D.PSD.handles.PLOT.im(i),...
+                        'tag','plotEEG',...
                         'parent',handles.axes(i),...
-                        'userdata',i);
+                        'userdata',i,...
+                        'hittest','off');
+                     set(handles.fra(i),'uicontextmenu',cmenu);
                 end
+                colormap(jet)
                 % This for normalized colorbars:
 %                 for i=1:length(VIZU.visuSensors)
 %                     caxis(handles.axes(i),[miY maY]);

@@ -3,7 +3,7 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 1809 2008-06-10 14:30:27Z guillaume $
+% $Id: spm_eeg_montage_ui.m 2258 2008-09-30 16:50:29Z jean $
 
 %% creates GUI from spm_uitable
 fig = figure;
@@ -42,7 +42,7 @@ set(0,'userdata',ud);
 %% gets the montage from the GUI
 uiwait(fig)
 
-ud = get(0,'userdata')
+ud = get(0,'userdata');
 if isfield(ud,'b4MontageEditing')
     montage = ud.montage;
     set(0,'userdata',ud.b4MontageEditing);
@@ -115,6 +115,10 @@ uisave('montage','SPMeeg_montage.mat');
 function [] = doOK(o1,o2)
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
+% delete row if empty:
+ind = find(sum(M,2)==0);
+M(ind,:) = [];
+newLabels = {newLabels{setdiff(1:length(newLabels),ind)}};
 montage.tra = M;
 montage.labelorg = ud.montage.labelorg(:);
 montage.labelnew = newLabels(:);
