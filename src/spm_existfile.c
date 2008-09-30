@@ -1,7 +1,9 @@
 /*
- * $Id: spm_existfile.c 1800 2008-06-09 18:56:42Z guillaume $
+ * $Id: spm_existfile.c 2267 2008-09-30 21:13:55Z guillaume $
  * Guillaume Flandin
  */
+ 
+#define _FILE_OFFSET_BITS 64
 
 #include "mex.h"
 
