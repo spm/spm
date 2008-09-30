@@ -13,8 +13,8 @@ spm('defaults','EEG');
 % paths to data, etc.
 %-------------------------------------------------------
 
-% PLEASE CHANGE THIS DIRECTORY BEFORE RUNNING SCRIPT
-Pbase     = 'D:\spm8data';        % directory with your data, CHANGE
+% 
+Pbase     = '.';        % directory with your data, 
 
 
 Pdata     = fullfile(Pbase, '.'); % data directory in Pbase
@@ -88,7 +88,7 @@ DCM.xU.name = {'rare'};
 
 %invert
 %----------------------------------------------------------
-DCM.name = 'example';
+DCM.name = 'DCMexample';
 
 DCM      = spm_dcm_erp(DCM);
 
