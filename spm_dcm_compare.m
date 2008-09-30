@@ -7,7 +7,7 @@ function spm_dcm_compare(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan
-% $Id: spm_dcm_compare.m 1900 2008-07-09 14:57:34Z guillaume $
+% $Id: spm_dcm_compare.m 2254 2008-09-30 15:22:45Z rosalyn $
 
 
 % Get DCM filenames
@@ -20,6 +20,7 @@ num_models = numel(P);
 
 % Load anc check all models and compute their evidence
 %--------------------------------------------------------------------------
+name = {};
 for model_index=1:num_models
     
     try
@@ -56,124 +57,60 @@ for model_index=1:num_models
     
     % Compute Model Evidence
     %----------------------------------------------------------------------
-    evidence(model_index) = spm_dcm_evidence(DCM);
-    aic(model_index)      = evidence(model_index).aic_overall;
-    bic(model_index)      = evidence(model_index).bic_overall;
+    [p,filename]           = fileparts(P{model_index});
+    name{end + 1}          = filename;
+    evidence(model_index)  = DCM.F;
     
 end
 
 
-% Get and plot posterior probabilities of models assuming each model has 
-% equal probability a-priori
+% compute conditional probability of DCMs under flat priors.
 %--------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
-figure(Fgraph);
-spm_clf(Fgraph);
+F    = evidence - min(evidence);
+i    = F < (max(F) - 32);
+P    = F;
+P(i) = max(F) - 32;
+P    = P - min(P);
+P    = exp(P);
+P    = P/sum(P);
 
-% Posterior probabilities of models from AIC
-%--------------------------------------------------------------------------
-maic = aic - mean(aic);
-pm   = exp(maic) / sum(exp(maic));
+   
+% display results
+%--------------------------------------------------------------------------   
+Fgraph = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 
-subplot(2,1,1);
-bar(pm);
-Vscale = axis;
-Vscale(4) = 1;
-axis(Vscale);
-set(gca,'FontSize',18);
-ylabel('p(y|m)');  % given the flat prior p(m), p(y|m)=p(m|y)
-xlabel('m');
-title('Posterior probabilities of models from AIC');
+subplot(2,1,1)
+n      = length(name);
+barh(1:n,F), hold on
+plot([1 1]*(max(F) - 3),[0 n],'LineWidth',4,'Color','r'), hold off
+set(gca,'YTick',1:n)
+set(gca,'YTickLabel',name)
+xlabel('log-evidence (relative)')
+title('Bayesian model comparison','FontSize',16)
+axis square
+grid on
 
-% Posterior probabilities of models from BIC
-%--------------------------------------------------------------------------
-mbic = bic - mean(bic);
-pm   = exp(mbic) / sum(exp(mbic));
+subplot(2,1,2)
+barh(1:n,P)
+set(gca,'YTick',1:n)
+set(gca,'YTickLabel',name)
+title({'conditional model probability';'under uniform model priors'})
+xlabel('psoterior probability')
+axis square
+grid on
 
-subplot(2,1,2);
-bar(pm);
-Vscale = axis;
-Vscale(4) = 1;
-axis(Vscale);
-set(gca,'FontSize',18);
-ylabel('p(y|m)');  % given the flat prior p(m), p(y|m)=p(m|y)
-xlabel('m');
-title('Posterior probabilities of models from BIC');
 
 % Output model comparison details to MATLAB command window
 %--------------------------------------------------------------------------
-for ii=1:num_models
-    for jj=1:num_models
-        if jj ~= ii
+assignin('base','DCM_cond_prob',P)
+assignin('base','DCM_log_ev',F)
 
-            disp(repmat('-',1,72));
-            disp(sprintf('Model %d: %s',ii,P{ii}));
-            disp('          versus ');
-            disp(sprintf('Model %d: %s',jj,P{jj}));
-            diff = 1;
-            disp(' ');
-            disp('All costs are in units of binary bits.');
-            disp(' ');
-            for k=1:size(DCM.A,1),
-                nats = -(evidence(ii).region_cost(k) - evidence(jj).region_cost(k));
-                bits = nats / log(2);
-                disp(sprintf('Region %s: relative cost  = %1.4g, BF= %1.4g',DCM.Y.name{k},bits,2^(-bits)));
-            end
-            % AIC penalty
-            %--------------------------------------------------------------
-            nats = evidence(ii).aic_penalty - evidence(jj).aic_penalty;
-            bits = nats / log(2);
-            disp(sprintf('AIC Penalty = %1.4f, BF = %1.4g',bits,2^(-bits)));
-
-            % BIC penalty
-            %--------------------------------------------------------------
-            nats = evidence(ii).bic_penalty - evidence(jj).bic_penalty;
-            bits = nats / log(2);
-            disp(sprintf('BIC Penalty = %1.4f, BF = %1.4g',bits,2^(-bits)));
-
-            % AIC overall
-            %--------------------------------------------------------------
-            nats = -diff * (aic(ii)-aic(jj));
-            bits = nats / log(2);
-            bf_aic = 2^(-bits);
-            disp(sprintf('AIC Overall = %1.4f, BF = %1.4g',bits,bf_aic));
-
-            % BIC overall
-            %--------------------------------------------------------------
-            nats = -diff * (bic(ii)-bic(jj));
-            bits = nats / log(2);
-            bf_bic = 2^(-bits);
-            disp(sprintf('BIC Overall = %1.4f, BF = %1.4g',bits,bf_bic));
-            disp(' ');
-
-            % Evaluate results
-            %--------------------------------------------------------------
-            if ((bf_bic > 1) && (bf_aic < 1)) || ((bf_bic < 1) && (bf_aic > 1))
-                % AIC and BIC do not concur
-                disp('AIC and BIC disagree about which model is superior - no decision can be made.');
-            else
-                % AIC and BIC do concur - assign statement according to Raftery classification
-                raftery_labels = {'Weak','Positive','Strong','Very strong'};
-                raftery_thresh = [  3         20      150         inf];
-                if bf_aic > 1
-                    minBF          = min(bf_aic,bf_bic);
-                    posBF          = find(sort([raftery_thresh minBF])==minBF);
-                    m              = ii;
-                else
-                    raftery_thresh = fliplr(1./raftery_thresh);
-                    minBF          = max(bf_aic,bf_bic);
-                    posBF          = find(sort(-1*[raftery_thresh minBF])==-minBF);
-                    m              = jj;
-                end
-                label          = raftery_labels{posBF};
-                disp(sprintf([label ' evidence in favour of model %d'],m));
-                disp(sprintf('Bayes factor >= %1.4g', minBF));
-                disp(' ');
-                disp(repmat('-',1,72));
-            end
-
-        end
-    end
+fprintf('\n\n DCM Model Comparison \n\n Relative Log Model Evidences:')
+for i = 1:length(F)
+    fprintf( '\n %s:  %-6.2f ',name{i},F(i));
 end
-
-spm_input('Model comparison details in MATLAB command window',1,'d');
+fprintf('\n\n Conditional Model Probabilities under flat priors:')
+for i = 1:length(F)
+    fprintf( '\n %s:  %-6.2f',name{i},P(i));
+end
+fprintf('\n\n These have been stored in the workspace as ''DCM_log_ev '' and ''DCM_cond_prob''\n')
