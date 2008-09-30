@@ -21,6 +21,10 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 %--------------------------------------------------------------------------
 %    gE.J    - contribution
 %
+% population variance
+%--------------------------------------------------------------------------
+%     E.S    - variance
+%
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T    - synaptic time constants
@@ -52,7 +56,7 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_nmm_priors.m 2265 2008-09-30 19:22:48Z karl $
  
  
 % disable log zero warning

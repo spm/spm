@@ -13,7 +13,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_gen_erp.m 2265 2008-09-30 19:22:48Z karl $
 
 
 % within-trial inputs
@@ -24,21 +24,18 @@ A   = 1/2;
 
 % check input u = f(t,P,M)
 %--------------------------------------------------------------------------
-try
-    fu  = M.fu;
-catch
-    fu  = 'spm_erp_u';
-end
+try, fu  = M.fu; catch,  fu  = 'spm_erp_u'; end
+try, ns  = M.ns; catch,  ns  = 128;         end
+try, dt  = U.dt; catch,  dt  = 0.004;       end
 
 % peri-stimulus time inputs
 %--------------------------------------------------------------------------
-t   = [1:M.ns]*U.dt;
-U.u = feval(fu,t,P,M);
+U.u = feval(fu,[1:ns]*dt,P,M);
 
 
 % between-trial inputs
 %==========================================================================
-try, X = U.X; catch, X = sparse(1,0); end
+try, X   = U.X; catch,   X   = sparse(1,0); end
 
 
 % cycle over trials
@@ -85,8 +82,6 @@ for  c = 1:size(X,1)
         else
             x{c} = M.x; break
         end
-
     end
-
 end
 

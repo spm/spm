@@ -44,7 +44,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2250 2008-09-30 13:04:12Z karl $
+% $Id: spm_fx_mfm.m 2265 2008-09-30 19:22:48Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -250,7 +250,7 @@ if nargout < 3, return, end
 %
 %    J(d)         = Q(d)df/dx
 %--------------------------------------------------------------------------
-D  = -[2 32].*exp(P.D)/1000;
+D  = -[2 16].*exp(P.D)/1000;
 nk = 3;                                              % number of states
 Sp = kron(ones(nk,nk),kron(eye(np,np),eye(ns,ns)));  % states: same pop.
 Ss = kron(kron(ones(nk,nk),ones(np,np)),eye(ns,ns)); % states: same source
