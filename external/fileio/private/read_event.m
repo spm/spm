@@ -59,6 +59,16 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.71  2008/09/30 08:01:04  roboos
+% replaced all fread(char=>char) into uint8=>char to ensure that the
+% chars are read as 8 bits and not as extended 16 bit characters. The
+% 16 bit handling causes problems on some internationalized OS/Matlab
+% combinations.
+%
+% the help of fread specifies "If the precision is 'char' or 'char*1', MATLAB
+% reads characters using the encoding scheme associated with the file.
+% See FOPEN for more information".
+%
 % Revision 1.70  2008/09/25 12:02:22  roboos
 % fixed FIL type of events for the new ctf reader (thanks to Vladimir)
 %
@@ -865,7 +875,7 @@ switch eventformat
   case 'fcdc_fifo'
     fifo = filetype_check_uri(filename);
     fid = fopen(fifo, 'r');
-    msg = fread(fid, inf, 'char=>char');
+    msg = fread(fid, inf, 'uint8=>char');
     event = msg2struct(msg);
     % convert the message into event structure
     fclose(fid);

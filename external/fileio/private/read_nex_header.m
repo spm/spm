@@ -10,21 +10,21 @@ function [hdr] = read_nex_header(filename)
 fid = fopen(filename, 'r', 'ieee-le');
 
 % reading the file header
-filheader.magicnumber     = fread(fid,4,'char=>char')';
+filheader.magicnumber     = fread(fid,4,'uint8=>char')';
 filheader.version         = fread(fid,1,'int32');
-filheader.comment         = fread(fid,256,'char=>char')';
+filheader.comment         = fread(fid,256,'uint8=>char')';
 filheader.frequency       = fread(fid,1,'double');
 filheader.begvar          = fread(fid,1,'int32');
 filheader.endvar          = fread(fid,1,'int32');
 filheader.numvar          = fread(fid,1,'int32');
 filheader.nextfileheader  = fread(fid,1,'int32');
-filheader.padding         = fread(fid,256,'char=>char')';
+filheader.padding         = fread(fid,256,'uint8=>char')';
 
 % reading the variable headers
 for varlop=1:filheader.numvar
   varheader(varlop).typ        = fread(fid,1,'int32');
   varheader(varlop).version    = fread(fid,1,'int32');
-  varheader(varlop).nam        = fread(fid,64,'char=>char')';
+  varheader(varlop).nam        = fread(fid,64,'uint8=>char')';
   varheader(varlop).offset     = fread(fid,1,'int32');
   varheader(varlop).cnt        = fread(fid,1,'int32');
   varheader(varlop).wirenumber = fread(fid,1,'int32');
@@ -38,7 +38,7 @@ for varlop=1:filheader.numvar
   varheader(varlop).numsmp     = fread(fid,1,'int32');
   varheader(varlop).nummrk     = fread(fid,1,'int32');
   varheader(varlop).mrklen     = fread(fid,1,'int32');
-  padding                      = fread(fid,68,'char=>char')';
+  padding                      = fread(fid,68,'uint8=>char')';
 end
 
 status = fclose(fid);

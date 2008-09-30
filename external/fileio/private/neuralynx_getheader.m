@@ -5,7 +5,7 @@ function [hdr] = neuralynx_getheader(filename);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fid     = fopen(filename, 'rb', 'ieee-le');
-buf     = fread(fid, 16*1024, 'char=>char');
+buf     = fread(fid, 16*1024, 'uint8=>char');
 fclose(fid);
 
 buf     = buf(:)';

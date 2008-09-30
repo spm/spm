@@ -23,6 +23,16 @@ function [varargout] = read_plexon_nex(filename, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_plexon_nex.m,v $
+% Revision 1.8  2008/09/30 08:01:04  roboos
+% replaced all fread(char=>char) into uint8=>char to ensure that the
+% chars are read as 8 bits and not as extended 16 bit characters. The
+% 16 bit handling causes problems on some internationalized OS/Matlab
+% combinations.
+%
+% the help of fread specifies "If the precision is 'char' or 'char*1', MATLAB
+% reads characters using the encoding scheme associated with the file.
+% See FOPEN for more information".
+%
 % Revision 1.7  2007/10/08 12:59:51  roboos
 % give error if no channels present
 %
@@ -143,9 +153,9 @@ for i=1:length(channel)
       % Markers
       ts = fread(fid, [1 vh.Count], 'int32=>int32');
       for j=1:vh.NMarkers
-        buf.MarkerNames{j,1} = fread(fid, [1 64], 'char=>char');
+        buf.MarkerNames{j,1} = fread(fid, [1 64], 'uint8=>char');
         for k=1:vh.Count
-          buf.MarkerValues{j,k} = fread(fid, [1 vh.MarkerLength], 'char=>char');
+          buf.MarkerValues{j,k} = fread(fid, [1 vh.MarkerLength], 'uint8=>char');
         end
       end
 
@@ -165,22 +175,22 @@ return
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function hdr = NexFileHeader(fid);
-hdr.NexFileHeader  = fread(fid,4,'char=>char')';    % string NEX1
+hdr.NexFileHeader  = fread(fid,4,'uint8=>char')';    % string NEX1
 hdr.Version        = fread(fid,1,'int32');
-hdr.Comment        = fread(fid,256,'char=>char')';
+hdr.Comment        = fread(fid,256,'uint8=>char')';
 hdr.Frequency      = fread(fid,1,'double');         % timestamped freq. - tics per second
 hdr.Beg            = fread(fid,1,'int32');          % usually 0
 hdr.End            = fread(fid,1,'int32');          % maximum timestamp + 1
 hdr.NumVars        = fread(fid,1,'int32');          % number of variables in the first batch
 hdr.NextFileHeader = fread(fid,1,'int32');          % position of the next file header in the file, not implemented yet
-Padding = fread(fid,256,'char=>char')';             % future expansion
+Padding = fread(fid,256,'uint8=>char')';             % future expansion
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function hdr = NexVarHeader(fid, numvar);
 for varlop=1:numvar
   hdr(varlop).Type         = fread(fid,1,'int32');        % 0 - neuron, 1 event, 2- interval, 3 - waveform, 4 - pop. vector, 5 - continuously recorded
   hdr(varlop).Version      = fread(fid,1,'int32');        % 100
-  hdr(varlop).Name         = fread(fid,64,'char=>char')'; % variable name
+  hdr(varlop).Name         = fread(fid,64,'uint8=>char')'; % variable name
   hdr(varlop).DataOffset   = fread(fid,1,'int32');        % where the data array for this variable is located in the file
   hdr(varlop).Count        = fread(fid,1,'int32');        % number of events, intervals, waveforms or weights
   hdr(varlop).WireNumber   = fread(fid,1,'int32');        % neuron only, not used now
@@ -194,5 +204,5 @@ for varlop=1:numvar
   hdr(varlop).NPointsWave  = fread(fid,1,'int32');        % waveform only, number of points in each wave
   hdr(varlop).NMarkers     = fread(fid,1,'int32');        % how many values are associated with each marker
   hdr(varlop).MarkerLength = fread(fid,1,'int32');        % how many characters are in each marker value
-  Padding = fread(fid,68,'char=>char')';
+  Padding = fread(fid,68,'uint8=>char')';
 end

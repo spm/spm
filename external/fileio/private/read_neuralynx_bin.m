@@ -28,6 +28,16 @@ function [dat] = read_neuralynx_bin(filename, begsample, endsample);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_bin.m,v $
+% Revision 1.5  2008/09/30 08:01:04  roboos
+% replaced all fread(char=>char) into uint8=>char to ensure that the
+% chars are read as 8 bits and not as extended 16 bit characters. The
+% 16 bit handling causes problems on some internationalized OS/Matlab
+% combinations.
+%
+% the help of fread specifies "If the precision is 'char' or 'char*1', MATLAB
+% reads characters using the encoding scheme associated with the file.
+% See FOPEN for more information".
+%
 % Revision 1.4  2008/07/01 13:00:58  roboos
 % optionally read the 16384 byte ascii header instead of hard-coded defaults
 %
@@ -53,7 +63,7 @@ oldformat = false;
 
 % the first 8 bytes contain the header
 fid    = fopen(filename, 'rb', 'ieee-le');
-magic  = fread(fid, 8, 'char=>char')';
+magic  = fread(fid, 8, 'uint8=>char')';
 
 % the header describes the format of the subsequent samples
 subtype = [];
