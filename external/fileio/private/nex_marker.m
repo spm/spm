@@ -23,6 +23,9 @@ function [n, nm, nl, ts, names, m] = nex_marker(filename, varname)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_marker.m,v $
+% Revision 1.3  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.2  2008/07/24 11:57:57  roboos
 % converted end of line into unix style
 %
@@ -87,7 +90,7 @@ for i=1:nvar
 	nm = fread(fid, 1, 'int32');
 	nl = fread(fid, 1, 'int32');
 	dummy = fread(fid, 68, 'char');
-	name = setstr(name);
+	name = char(name);
 	name = deblank(name);
 	k = strcmp(name, deblank(varname));
 	if(k == 1)
@@ -115,8 +118,8 @@ fclose(fid);
 if found == 0
 	disp('did not find variable in the file');
 else
-	names = setstr(names);
-	m = setstr(m);
+	names = char(names);
+	m = char(m);
 	ts = ts/freq;
 	disp(strcat('number of markers = ', num2str(n)));
 end

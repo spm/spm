@@ -16,6 +16,9 @@ function [nvar, names, types] = nex_info(filename)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_info.m,v $
+% Revision 1.3  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.2  2008/07/24 12:03:23  roboos
 % changed end of line to unix style
 %
@@ -59,5 +62,5 @@ for i=1:nvar
 	names(i, :) = fread(fid, [1 64], 'char');
 	dummy = fread(fid, 128+8, 'char');
 end
-names = setstr(names);
+names = char(names);
 fclose(fid);

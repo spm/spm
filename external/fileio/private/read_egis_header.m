@@ -19,6 +19,9 @@ function [fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename)
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_header.m,v $
+% Revision 1.2  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.1  2007/07/04 13:22:06  roboos
 % initial implementation by Joseph Dien with some corrections by Robert
 %
@@ -84,7 +87,7 @@ end
 %Read experiment name
 status=fseek(fh,12,'bof');
 tempstr=fread(fh,80,'char');
-ename=setstr(tempstr);
+ename=char(tempstr);
 
 %Read cellnames
 status=fseek(fh,(130+(2*fhdr(18))+(4*fhdr(19))),'bof');

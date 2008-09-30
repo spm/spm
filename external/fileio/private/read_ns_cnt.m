@@ -54,6 +54,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_ns_cnt.m,v $
+% Revision 1.8  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.7  2007/10/31 16:46:13  roboos
 % revert to short format as default
 %
@@ -141,7 +144,7 @@ end
 
 % channel parameters
 chandat=freadat(f, 900, [75 r.nchannels], 'char');
-r.chan.names=setstr(chandat(1:9,:))';
+r.chan.names=char(chandat(1:9,:))';
 r.chan.reference=chandat(11,:);
 r.chan.gain=chandat(1+63,:);
 r.chan.baseline=freadat(f, 900+47, [1 r.nchannels], 'short', 75);
@@ -325,6 +328,6 @@ if ~strcmp(prec, 'text')
    %y2=fread(f, siz, 'uint8', skip);
    %y = y1 + 256*y2;
 else
-   y=setstr(fread(f, siz, 'char', skip)');
+   y=char(fread(f, siz, 'char', skip)');
 end
 

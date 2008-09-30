@@ -21,6 +21,9 @@ function [adfreq, n, ts, fn, d] = nex_cont(filename, varname)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_cont.m,v $
+% Revision 1.3  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.2  2008/07/24 12:03:23  roboos
 % changed end of line to unix style
 %
@@ -80,7 +83,7 @@ for i=1:nvar
 	adfreq = fread(fid, 1, 'double');
 	adtomv = fread(fid, 1, 'double');
 	n = fread(fid, 1, 'int32');
-	name = setstr(name);
+	name = char(name);
 	name = deblank(name);
 	k = strcmp(name, deblank(varname));
 	if(k == 1)

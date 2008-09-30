@@ -28,6 +28,9 @@ function [meg] = read_ctf_meg4(fname, hdr, begsample, endsample, chanindx)
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_meg4.m,v $
+% Revision 1.16  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.15  2007/09/11 12:18:23  jansch
 % new clean implementation to account for very big datasets > 4GB
 %
@@ -93,7 +96,7 @@ if fid == -1,
 end
 
 %check whether it is ctf-format
-CTFformat = setstr(fread(fid,8,'char'))';
+CTFformat = char(fread(fid,8,'char'))';
 if (strcmp(CTFformat(1,1:7),'MEG41CP')==0),
   error('datafile is not in CTF MEG4 format')
 end 

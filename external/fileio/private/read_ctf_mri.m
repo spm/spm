@@ -9,6 +9,9 @@ function [mri, hdr] = read_ctf_mri(filename);
 % Copyright (C) 2003 Robert Oostenveld
 %
 % $Log: read_ctf_mri.m,v $
+% Revision 1.4  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.3  2005/08/26 13:49:03  roboos
 % changed warp3d into warp_apply
 %
@@ -31,7 +34,7 @@ end
 
 warning off
 % general header information
-hdr.identifierString = setstr(fread(fid,32,'char'))'; % CTF_MRI_FORMAT VER 2.2
+hdr.identifierString = char(fread(fid,32,'char'))'; % CTF_MRI_FORMAT VER 2.2
 hdr.imageSize = fread(fid,1,'int16'); % always = 256
 hdr.dataSize = fread(fid,1,'int16'); % 1 or 2(bytes)
 hdr.clippingRange = fread(fid,1,'int16'); % max.integer value of data
@@ -58,13 +61,13 @@ hdr.HeadModel.defaultSphereRadius = fread(fid,1,'float'); % default sphere radiu
 
 % Image_Info specific header items
 hdr.Image.modality = fread(fid,1,'int16'); % 0 = MRI, 1 = CT, 2 = PET, 3 = SPECT, 4 = OTHER
-hdr.Image.manufacturerName = setstr(fread(fid,64,'char'))';
-hdr.Image.instituteName = setstr(fread(fid,64,'char'))';
-hdr.Image.patientID = setstr(fread(fid,32,'char'))';
-hdr.Image.dateAndTime = setstr(fread(fid,32,'char'))';
-hdr.Image.scanType = setstr(fread(fid,32,'char'))';
-hdr.Image.contrastAgent = setstr(fread(fid,32,'char'))';
-hdr.Image.imagedNucleus = setstr(fread(fid,32,'char'))';
+hdr.Image.manufacturerName = char(fread(fid,64,'char'))';
+hdr.Image.instituteName = char(fread(fid,64,'char'))';
+hdr.Image.patientID = char(fread(fid,32,'char'))';
+hdr.Image.dateAndTime = char(fread(fid,32,'char'))';
+hdr.Image.scanType = char(fread(fid,32,'char'))';
+hdr.Image.contrastAgent = char(fread(fid,32,'char'))';
+hdr.Image.imagedNucleus = char(fread(fid,32,'char'))';
 fread(fid,2,'char'); % padding to 4 byte boundary
 hdr.Image.Frequency = fread(fid,1,'float');
 hdr.Image.FieldStrength = fread(fid,1,'float');
@@ -74,8 +77,8 @@ hdr.Image.InversionTime = fread(fid,1,'float');
 hdr.Image.FlipAngle = fread(fid,1,'float');
 hdr.Image.NoExcitations = fread(fid,1,'int16');
 hdr.Image.NoAcquisitions = fread(fid,1,'int16');
-hdr.Image.commentString = setstr(fread(fid,256,'char'))';
-hdr.Image.forFutureUse = setstr(fread(fid,64,'char'))';
+hdr.Image.commentString = char(fread(fid,256,'char'))';
+hdr.Image.forFutureUse = char(fread(fid,64,'char'))';
 
 % continuation general header
 hdr.headOrigin_sagittal = fread(fid,1,'float'); % voxel location of head origin
