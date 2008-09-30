@@ -105,12 +105,12 @@ end
 for channel = 1:header.header_data.TotalChannels
     align_file_pointer(fid)
 
-    chan_label                                 = (fread(fid, 16, 'uchar=>char'))';
+    chan_label                                 = (fread(fid, 16, 'uint8=>char'))';
     header.channel_data(channel).chan_label    = chan_label(chan_label>0);
     header.channel_data(channel).chan_no       = fread(fid, 1, 'uint16=>uint16');
     header.channel_data(channel).attributes    = fread(fid, 1, 'uint16=>uint16');
     header.channel_data(channel).scale         = fread(fid, 1, 'float32=>float32');
-    yaxis_label                                = char(fread(fid, 16, 'uchar=>char'))';
+    yaxis_label                                = char(fread(fid, 16, 'uint8=>char'))';
     header.channel_data(channel).yaxis_label   = yaxis_label(yaxis_label>0);
     header.channel_data(channel).valid_min_max = fread(fid, 1, 'uint16=>uint16');
     fseek(fid, 6, 'cof');
@@ -118,8 +118,8 @@ for channel = 1:header.header_data.TotalChannels
     header.channel_data(channel).ymax          = fread(fid, 1,  'float64');
     header.channel_data(channel).index         = fread(fid, 1,  'uint32=>uint32');
     header.channel_data(channel).checksum      = fread(fid, 1,  'int32=>int32');
-    header.channel_data(channel).whatisit      = char(fread(fid, 4, 'uchar=>char'))';
-    header.channel_data(channel).reserved      = fread(fid, 28, 'uchar')';
+    header.channel_data(channel).whatisit      = char(fread(fid, 4, 'uint8=>char'))';
+    header.channel_data(channel).reserved      = fread(fid, 28, 'uint8')';
 end
 
 %read event data

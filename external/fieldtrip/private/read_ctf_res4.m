@@ -20,6 +20,9 @@ function [hdr] = read_ctf_res4(fname)
 % modifications Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_res4.m,v $
+% Revision 1.17  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.16  2008/07/24 08:51:43  roboos
 % added the function declaration to the top, which was accidentaly removed by the previous commit
 %
@@ -85,7 +88,7 @@ end
 
 % First 8 bytes contain filetype, check is fileformat is correct.
 % This function was written for MEG41RS, but also seems to work for MEG42RS.
-r_head=setstr(fread(fid,8,'uint8'))';
+r_head=char(fread(fid,8,'uint8'))';
 if ~strcmp(r_head(1,1:7),'MEG41RS') & ~strcmp(r_head(1,1:7),'MEG42RS')
   fclose(fid)
   errMsg = sprintf('Resource file format (%s) is not supported for file %s', r_head(1,1:7), fname);
@@ -93,12 +96,12 @@ if ~strcmp(r_head(1,1:7),'MEG41RS') & ~strcmp(r_head(1,1:7),'MEG42RS')
 end %if
 
 % Read the initial parameters
-appName       = setstr(fread(fid,256,'uint8'))' ;
-dataOrigin    = setstr(fread(fid,256,'uint8'))' ;
-dataDescrip   = setstr(fread(fid,256,'uint8'))' ;
+appName       = char(fread(fid,256,'uint8'))' ;
+dataOrigin    = char(fread(fid,256,'uint8'))' ;
+dataDescrip   = char(fread(fid,256,'uint8'))' ;
 no_trial_avgd = fread(fid,1,'int16')          ;
-data_time     = setstr(fread(fid,255,'uint8'))';
-data_date     = setstr(fread(fid,255,'uint8'))';
+data_time     = char(fread(fid,255,'uint8'))';
+data_date     = char(fread(fid,255,'uint8'))';
 
 fseek(fid,1288,'bof');
 % Read the general recording parameters
@@ -113,13 +116,13 @@ preTrigpts=fread(fid,1,'int32');
 
 fseek(fid,1360,'bof');
 % read in the meg4Filesetup structure
-run_name     = setstr(fread(fid,32,'uint8')');
-run_title    = setstr(fread(fid,256,'uint8')');
-instruments  = setstr(fread(fid,32,'uint8')');
-coll_desc    = setstr(fread(fid,32,'uint8')');
-subj_id      = setstr(fread(fid,32,'uint8')');
-operator     = setstr(fread(fid,32,'uint8')') ;
-sensFilename = setstr(fread(fid,60,'uint8')') ;
+run_name     = char(fread(fid,32,'uint8')');
+run_title    = char(fread(fid,256,'uint8')');
+instruments  = char(fread(fid,32,'uint8')');
+coll_desc    = char(fread(fid,32,'uint8')');
+subj_id      = char(fread(fid,32,'uint8')');
+operator     = char(fread(fid,32,'uint8')') ;
+sensFilename = char(fread(fid,60,'uint8')') ;
 
 % not nececssary to seek, the file pointer is already at the desired location
 % fseek(fid,1836,'bof');
@@ -128,7 +131,7 @@ sensFilename = setstr(fread(fid,60,'uint8')') ;
 rd_len=fread(fid,1,'uint32');
 % Go to the run description and read it in
 fseek(fid,1844,'bof');
-run_desc=setstr(fread(fid,rd_len,'uint8')');
+run_desc=char(fread(fid,rd_len,'uint8')');
 
 % read in the filter information
 num_filt=fread(fid,1,'uint16');

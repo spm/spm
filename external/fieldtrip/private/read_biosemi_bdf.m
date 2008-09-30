@@ -30,6 +30,9 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_biosemi_bdf.m,v $
+% Revision 1.5  2008/09/30 07:47:04  roboos
+% replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
+%
 % Revision 1.4  2007/10/01 13:44:21  roboos
 % changed a detail in the calibration (in case of one channel the output would remain sparse)
 %
@@ -53,7 +56,7 @@ if nargin==1
 
   % defines Seperator for Subdirectories
   SLASH='/';
-  BSLASH=setstr(92);
+  BSLASH=char(92);
 
   cname=computer;
   if cname(1:2)=='PC' SLASH=BSLASH; end;
@@ -79,7 +82,7 @@ if nargin==1
   end;
   EDF.FileName = [EDF.FILE.Path SLASH EDF.FILE.Name '.' EDF.FILE.Ext];
 
-  H1=setstr(fread(EDF.FILE.FID,256,'char')');     %
+  H1=char(fread(EDF.FILE.FID,256,'char')');     %
   EDF.VERSION=H1(1:8);                          % 8 Byte  Versionsnummer
   %if 0 fprintf(2,'LOADEDF: WARNING  Version EDF Format %i',ver); end;
   EDF.PID = deblank(H1(9:88));                  % 80 Byte local patient identification
@@ -105,14 +108,14 @@ if nargin==1
   EDF.Dur = str2num(H1(245:252));      % 8 Byte  # duration of data record in sec
   EDF.NS = str2num(H1(253:256));       % 8 Byte  # of signals
 
-  EDF.Label = setstr(fread(EDF.FILE.FID,[16,EDF.NS],'char')');
-  EDF.Transducer = setstr(fread(EDF.FILE.FID,[80,EDF.NS],'char')');
-  EDF.PhysDim = setstr(fread(EDF.FILE.FID,[8,EDF.NS],'char')');
+  EDF.Label = char(fread(EDF.FILE.FID,[16,EDF.NS],'char')');
+  EDF.Transducer = char(fread(EDF.FILE.FID,[80,EDF.NS],'char')');
+  EDF.PhysDim = char(fread(EDF.FILE.FID,[8,EDF.NS],'char')');
 
-  EDF.PhysMin= str2num(setstr(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
-  EDF.PhysMax= str2num(setstr(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
-  EDF.DigMin = str2num(setstr(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
-  EDF.DigMax = str2num(setstr(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
+  EDF.PhysMin= str2num(char(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
+  EDF.PhysMax= str2num(char(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
+  EDF.DigMin = str2num(char(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
+  EDF.DigMax = str2num(char(fread(EDF.FILE.FID,[8,EDF.NS],'char')'));
 
   % check validity of DigMin and DigMax
   if (length(EDF.DigMin) ~= EDF.NS)
@@ -140,9 +143,9 @@ if nargin==1
     EDF.PhysMin = EDF.DigMin;
     EDF.PhysMax = EDF.DigMax;
   end
-  EDF.PreFilt= setstr(fread(EDF.FILE.FID,[80,EDF.NS],'char')');	%
+  EDF.PreFilt= char(fread(EDF.FILE.FID,[80,EDF.NS],'char')');	%
   tmp = fread(EDF.FILE.FID,[8,EDF.NS],'char')';	%	samples per data record
-  EDF.SPR = str2num(setstr(tmp));               %	samples per data record
+  EDF.SPR = str2num(char(tmp));               %	samples per data record
 
   fseek(EDF.FILE.FID,32*EDF.NS,0);
 
