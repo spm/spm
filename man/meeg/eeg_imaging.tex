@@ -13,8 +13,7 @@ the unknown variables being the source amplitudes or power.\\
 Given epoched and preprocessed data (see chapter \ref{Chap:eeg:preprocessing}), the evoked and/or induced
 activity for each dipolar source can be estimated, for a single time-sample or a 
 wider peristimulus time window.\\
-The obtained reconstructed activity is in 3D voxel space can be further analyzed using mass-univariate
-analysis in SPM.
+The obtained reconstructed activity is in 3D voxel space and can be further analyzed using mass-univariate analysis in SPM.
 
 Contrary to PET/fMRI data reconstruction, EEG/MEG source reconstruction 
 is a non trivial operation. Often compared to estimating a body shape from 
@@ -71,16 +70,16 @@ Datasets with both EEG and MEG sensors will be supported in the future, but not 
 If, for instance, you have a MEG dataset with some EEG channels, change their type to 'Other' before trying to load it.
 MEG datasets converted by SPM from their raw formats will always contain
 sensor and fiducial descriptions. In case of EEG for some supported channel setups (such as extended 1020 or Biosemi)
-SPM will provide default channel locations and fiducials that you migh or might not want to use for your reconstruction.
-Sensor and fiducial descriptions can be modified using the 'Prepare' interface (\textit{spm\_eeg\_prep}) and in this
+SPM will provide default channel locations and fiducials that you might or might not want to use for your reconstruction.
+Sensor and fiducial descriptions can be modified using the 'Prepare' interface (\texttt{spm\_eeg\_prep}) and in this
 interface you can also verify that these descriptions are sensible by performing a coregistration (see chapter \ref{Chap:eeg:preprocessing} and also below for more details about coregistration). 
 
 When you successfully load a dataset you are asked to give a name to the present analysis cell. In SPM it is possible to
 perform multiple reconstructions of the same dataset with different parameters. The results of these reconstructions
 will be stored with the dataset if you press the 'Save' button. They can be loaded an reviewed again using
 the 3D GUI and also with the SPM EEG reviewing tool. From the command line you can access source reconstruction
-results via the D.inv field of the meeg object. This field (if present) is a cell array of structs and does not require
-methods to access and modify it. Each cell contains the results of a different reconstruction. In GUI you
+results via the \texttt{D.inv} field of the meeg object. This field (if present) is a cell array of structures and does not require
+methods to access and modify it. Each cell contains the results of a different reconstruction. In the GUI you
 can navigate between these cells using the buttons in the second row. You can also create, delete and clear cells.
 The label you input at the beginning will be attached to the cell for you to identify it.
 
@@ -99,7 +98,7 @@ in progress and it is advised to examine the resulting
 model to see that the boundaries of the scalp and the inner-skull compartment look sensible. 
 
 Presently we advise to use the 'Template' button for both EEG and MEG. This button will use SPM's template head
-model based on MNI brain. The corresponding structural image can be found under EEGtemplates\\smri.nii in SPM
+model based on MNI brain. The corresponding structural image can be found under \texttt{EEGtemplates\\smri.nii} in SPM
 directory. When you use the template different things will happen depending on whether your data is EEG or MEG.
 For EEG your electrode positions will be transformed to match the template head. So even if your subject's head
 is quite different from the template, you should be able to get good results. For MEG the template head will
@@ -109,7 +108,7 @@ perspective the two options will look quite similar.
 
 No matter whether 'MRI' or 'Template' button was used the cortical mesh, which describes the locations of
 possible sources of EEG and MEG signal is obtained from a template mesh.
-In case of EEG the mesh is used as is and in case of MEG it is transformed with the head model. 
+In case of EEG the mesh is used as is, and in case of MEG it is transformed with the head model. 
 Four mesh sizes are available (3004, 4004, 5004 and 7204 vertices) and you need to choose the size
 you want to work with. It is advised to work with the highest resolution mesh if possible. The inversion
 process might be slightly slower with higher resolution mesh, but the solution quality is much better.
@@ -121,7 +120,7 @@ interpretation of the results of source reconstruction, it should link the coord
 system in which sensor positions are originally represented to the coordinate system of
 a structural MRI image (MNI coordinates). In general to link between two coordinate
 systems you will need a set of at least 3 points whose coordinates are known in both systems.
-This is a kind of 'Rosetta stone'  that can be used to convert a position of any point from one system
+This is a kind of 'Rosetta stone' that can be used to convert a position of any point from one system
 to the other. These points are called 'fiducials' and the process of providing SPM with all the necessary
 information to create the 'Rosetta stone' for your data is called 'coregistration'.  \\
 
@@ -157,7 +156,7 @@ you will be asked to specify the corresponding position in sMRI image in one of 
 
 \begin{itemize}
 \item 'select' - locations of some points such as the commonly used nasion and preauricular points and also
-CTF recommended fiducials for MEG used at FIL are hard-coded in SPM. If your fiducial corresponds to one of these
+CTF recommended fiducials for MEG (as used at the FIL) are hard-coded in SPM. If your fiducial corresponds to one of these
 points you can select this option and then select the correct point from a list.
 \item 'type' - here you can enter the MNI coordinates for your fiducial ($1 \times 3$ vector). If your fiducial is not
 on SPM's hard-coded list, it is advised to carefully find the right point on either the template image or
@@ -181,7 +180,7 @@ carefully before proceeding. In the top plot you will see the scalp, the inner s
 with the sensors and the fiducials. For EEG make sure that the sensors are on the scalp surface. For MEG check
 that the head positon in relation to the sensors makes sense and the head does not for instance stick outside
 the sensor array. In the bottom plot the sensor labels will be shown in topographical array. Check that the top
-labels correspond to anterior sensors, buttom to posterior, left to left and right to right and also that the labels
+labels correspond to anterior sensors, bottom to posterior, left to left and right to right and also that the labels
 are where you would expect them to be topographically.   
 
 \section{Forward computation (\textit{forward})}
@@ -191,7 +190,7 @@ at a previous step). This matrix can be quite big and it is, therefore, not stor
 'SPMgainmatrix' in its name and is written in the same directory with the dataset. Each column in this matrix is a so called 'lead field'
 corresponding to one mesh vertex. The lead fields are computed using the 'forwinv' toolbox developed by Robert Oostenveld, which 
 SPM shares with Fieldtrip. This computation is based on physics theory and it needs some assumptions about the physical properties of the head.
-There are different ways to specify these assumptions which are knows as 'forward models'. forwinv toolbox can support different kinds of forward 
+There are different ways to specify these assumptions which are known as 'forward models'. 'forwinv' toolbox can support different kinds of forward 
 models. In SPM8 beta we only use a one-shell boundary element model (BEM) for MEG and 3-shell BEM for EEG. In the future we will introduce additional
 options. So in SPM8 beta when you press 'Forward Model' button (which should be enabled after successful coregistration), you will not be asked
 any additional questions. The lead field matrix will be computed and saved. This is a time-consuming step and it takes longer for high-resolution
@@ -200,8 +199,8 @@ meshes.
 
 \section{Inverse reconstruction}
 To get started press the 'Invert' button. The first
-choice you will see is between 'Classical' and 'DCM'. DCM which is explained in detail elsewhere can also be seen as an 
-informed source reconstruction approach. It can, therefore be invoked at this point. We will not go into furter details here as you
+choice you will see is between 'Classical', 'VB-ECD' and 'DCM'. DCM which is explained in detail elsewhere can also be seen as an 
+informed source reconstruction approach. It can, therefore be invoked at this point. We will not go into further details here as you
 can find them in chapter \ref{Chap:eeg:DCM}. For reconstruction based on an empirical Bayesian approach to localize either the evoked response, 
 the evoked power or the induced power, as measured by EEG or MEG press the 'Classical' button. If you have trials belonging to more than one condition
 in your dataset then the next choice you will have is whether to invert all the conditions together or choose a subset. It is recommended to invert
@@ -234,7 +233,7 @@ of the 3D GUI. That allow focusing on a particular time, brain area and conditio
 
 \section{Summarizing the results of inverse reconstruction as an image}
 If you want to do more than eyeball your results in silent appreciation, SPM offers the possibility to proceed by summarizing some aspects
-as of the inversion results as 3D NIfTI images and proceeding with GLM-based statistical analysis using random field theory based thesholding similar
+as of the inversion results as 3D NIfTI images and proceeding with GLM-based statistical analysis using random field theory based thresholding similar
 to the 2nd level analysis in fMRI to make inferences about region and trial-specific effects (at the between subject level).
 This entails summarizing the trial and subject specific response with a single 3-D 
 image in source space. Critically this involves prompting for a time-frequency contrast window to create each contrast image.

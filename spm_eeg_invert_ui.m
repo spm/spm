@@ -16,7 +16,7 @@ function [D] = spm_eeg_invert_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_ui.m 2139 2008-09-22 13:35:37Z vladimir $
+% $Id: spm_eeg_invert_ui.m 2257 2008-09-30 16:31:14Z christophe $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -25,10 +25,11 @@ function [D] = spm_eeg_invert_ui(varargin)
 
 % check whether to use conventional or DCM temporal priors
 %--------------------------------------------------------------------------
-if spm_input('Reconstruction','+1','b',{'Classical|DCM'},[0 1],1)
-    
+q_rec = spm_input('Reconstruction','+1','b',{'Imaging|VB-ECD|DCM'},[0 1 2],1);
+switch q_rec
+    case 2
         % record type in D and DCM structures
-        %------------------------------------------------------------------
+        %==================================================================
         inverse.type = 'DCM';
 
         % exchange filenames
@@ -44,35 +45,39 @@ if spm_input('Reconstruction','+1','b',{'Classical|DCM'},[0 1],1)
         %------------------------------------------------------------------
         spm_api_erp(DCM);
         D.inv{val}.inverse = inverse;
-        return
-end
-
-% Conventional reconstruction: get conditions or trials
-%==========================================================================
-if D.nconditions > 1
-    if spm_input('All conditions or trials','+1','b',{'yes|no'},[1 0],1)
-        trials = D.condlist;
-    else
-        trials = {};
-        condlabels = D.condlist;
-        for  i = 1:D.nconditions
-            str = sprintf('invert %s', condlabels{i})
-            if spm_input(str,'+1','b',{'yes|no'},[1 0],1);
-                trials{end + 1} = condlabels{i};
+    case 1
+        % Use Variational Bayes Equivalent Current Dipole reconstruction
+        %==================================================================
+        D = spm_eeg_inv_vbecd_gui(D,val);
+        
+    case 0
+        % Conventional imaging reconstruction: get conditions or trials
+        %==================================================================
+        if D.nconditions > 1
+            if spm_input('All conditions or trials','+1','b',{'yes|no'},[1 0],1)
+                trials = D.condlist;
+            else
+                trials = {};
+                condlabels = D.condlist;
+                for  i = 1:D.nconditions
+                    str = sprintf('invert %s', condlabels{i})
+                    if spm_input(str,'+1','b',{'yes|no'},[1 0],1);
+                        trials{end + 1} = condlabels{i};
+                    end
+                end
             end
+        else
+            trials = D.condlist;
         end
-    end
-else
-    trials = D.condlist;
+
+        % Inversion parameters
+        %------------------------------------------------------------------
+        inverse        = spm_eeg_inv_custom_ui(D);
+        inverse.trials = trials;
+
+        % invert
+        %==================================================================
+        D.con               = 1;
+        D.inv{val}.inverse  = inverse;
+        D                   = spm_eeg_invert(D);
 end
-
-% Inversion parameters
-%--------------------------------------------------------------------------
-inverse        = spm_eeg_inv_custom_ui(D);
-inverse.trials = trials;
-
-% invert
-%==========================================================================
-D.con               = 1;
-D.inv{val}.inverse  = inverse;
-D                   = spm_eeg_invert(D);

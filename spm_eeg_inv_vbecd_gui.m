@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2241 2008-09-29 22:10:48Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2257 2008-09-30 16:31:14Z christophe $
 
 %%
 % Load data, if necessary
@@ -46,7 +46,7 @@ else
     end
 end
 
-% Use val to defince which is the "current" inv{} to use
+% Use val to define which is the "current" inv{} to use
 % If no inverse solution already calculated (field 'inverse' doesn't exist) 
 % use that inv{}. Otherwise create a new one by copying the previous 
 % inv{} structure
@@ -135,7 +135,7 @@ end
 % trial type
 if D.ntrials>1
     msg_tr = ['Trial type number [1 ',num2str(D.ntrials),']'];
-    ltr = spm_input(msg_tr,2,'i','1');
+    ltr = spm_input(msg_tr,2,'i',num2str(1:D.ntrials));
     tr_q = 1;
 else
     tr_q = 0;
@@ -143,7 +143,7 @@ else
 end
 
 % data, averaged over time window considered
-P.y = mean(squeeze(D(meegchannels(D),ltb,ltr)),2);
+dat_y = squeeze(mean(D(meegchannels(D),ltb,ltr),2));
 
 %%
 % Other bits of the P structure, apart for priors and #dipoles
@@ -168,10 +168,18 @@ def_ab_info    = [3 1e-12];
 corr = .999;
 
 while adding_dips
-    msg_dip =['Add dipoles to ',num2str(dip_c),'  or stop?'];
-    if dip_q>0, def_opt=3; else def_opt=1; end
-    a_dip = ...
-        spm_input(msg_dip,2+tr_q+dip_q,'b','Single|Pair|Stop',[1,2,0],def_opt);
+    if dip_q>0, 
+        msg_dip =['Add dipoles to ',num2str(dip_c),' or stop?'];
+        dip_ch = 'Single|Pair|Stop';
+        dip_val = [1,2,0];
+        def_opt=3;
+    else
+        msg_dip =['Add dipoles to model'];
+        def_opt=1;
+        dip_ch = 'Single|Pair';
+        dip_val = [1,2];
+    end
+    a_dip = spm_input(msg_dip,2+tr_q+dip_q,'b',dip_ch,dip_val,def_opt);
     if a_dip == 0
         adding_dips = 0;
     elseif a_dip == 1
@@ -320,23 +328,37 @@ P.priors = priors;
 %%
 % Launch inversion !
 %===================
-P = spm_eeg_inv_vbecd(P);
 
-% Get the results out.
+% Initialise inverse field
 inverse = struct( ...
-    'F',P.F, ... % free energy
+    'F',[], ... % free energy
     'pst',D.time, ... % all time points in data epoch
     'tb',tb, ... % time window/bin used
     'ltb',ltb, ... % list of time points used
-    'n_seeds',1, ... % 1 as long as I'm not using multiple random init
+    'ltr',ltr, ... % list of trial types used
+    'n_seeds',length(ltr), ... % using this field for multiple reconstruction
     'n_dip',dip_c, ... % number of dipoles used
-    'loc',{{reshape(P.post.mu_s,3,dip_c)}}, ... % loc of dip (3 x n_dip)
-    'j',{{P.post.mu_w}}, ... % dipole(s) orient/ampl, in 1 column
-    'cov_loc',{{P.post.S_s}}, ... % cov matrix of source location
-    'cov_j',{{P.post.S_w}}, ...   % cov matrix of source orient/ampl
+    'loc',[], ... % loc of dip (3 x n_dip)
+    'j',[], ... % dipole(s) orient/ampl, in 1 column
+    'cov_loc',[], ... % cov matrix of source location
+    'cov_j',[], ...   % cov matrix of source orient/ampl
     'Mtb',1, ... % ind of max EEG power in time series, 1 as only 1 tb.
-    'exitflag',P.ok, ... % Converged (1) or not (0)
-    'P',P);             % save all kaboodle too.
+    'exitflag',[], ... % Converged (1) or not (0)
+    'P',[]);             % save all kaboodle too.
+
+for ii=1:length(ltr)
+    P.y = dat_y(:,ii);
+    P = spm_eeg_inv_vbecd(P);
+
+    % Get the results out.
+    inverse.F(ii) = P.F; % free energy
+    inverse.loc{ii} = reshape(P.post.mu_s,3,dip_c); % loc of dip (3 x n_dip)
+    inverse.j{ii} = P.post.mu_w; % dipole(s) orient/ampl, in 1 column
+    inverse.cov_loc{ii} = P.post.S_s; % cov matrix of source location
+    inverse.cov_j{ii} = P.post.S_w; % cov matrix of source orient/ampl
+    inverse.exitflag(ii) = P.ok; % Converged (1) or not (0)
+    inverse.P{ii} = P; % save all kaboodle too.
+end
 D.inv{val}.inverse = inverse;
 
 %%
