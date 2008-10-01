@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.69  2008/10/01 19:23:44  roboos
+% fixed problem with old bci2000 dat files, changed fake channel names (no zero-prefix)
+%
 % Revision 1.68  2008/09/24 16:26:17  roboos
 % swiched from old fcdc import routines for CTF to the p-files supplied by CTF
 % these new reading routines support synthetic gradients
@@ -413,12 +416,12 @@ switch headerformat
     hdr.nSamples    = total_samples;
     hdr.nSamplesPre = 0;  % it is continuous
     hdr.nTrials     = 1;  % it is continuous
-    if ~isempty(orig.ChannelNames.Value)
+    if isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Values') && ~isempty(orig.ChannelNames.Value)
       hdr.label       = orig.ChannelNames.Value;
     else
       warning('creating fake channel names for bci2000_dat');
       for i=1:hdr.nChans
-        hdr.label{i} = sprintf('%03d', i);
+        hdr.label{i} = sprintf('%d', i);
       end
     end
     % remember original header details
