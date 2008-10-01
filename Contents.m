@@ -1,5 +1,5 @@
 % Statistical Parametric Mapping
-% Version alpha (SPM8) 11-Jun-2008
+% Version beta (SPM8b) 01-Oct-2008
 %__________________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -11,7 +11,7 @@
 %
 % SPM8 is written for MATLAB 7.1 (R14SP3) onwards under Windows and Unix.
 % ( Compiled binaries of external C-MEX functions are provided for:       )
-% (                 Windows, Linux, Mac and Solaris                       )
+% (                      Windows, Linux and Mac                           )
 %
 % See spm.man for details of this release.
 % See README.txt for information on installation and getting started.
@@ -42,7 +42,7 @@
 %__________________________________________________________________________
 % Copyright (C) 1991,1994-2003,2005-2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 1818 2008-06-12 14:53:59Z guillaume $
+% $Id: Contents.m 2280 2008-10-01 12:39:21Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:

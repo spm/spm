@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 2270 2008-09-30 21:18:33Z guillaume $
+% $Id: spm_defaults.m 2280 2008-10-01 12:39:21Z guillaume $
 
 
 global defaults
@@ -237,7 +237,7 @@ defaults.ecat.ext      = '.img';
 %=======================================================================
 defaults.ui.print   = struct('opt',{{'-dpsc2','-append'}},'append',true,'ext','.ps');
 defaults.ui.colour1 = [0.8 0.8 1.0];
-defaults.ui.colour2 = [0.3 0.5 0.75];
+defaults.ui.colour2 = [0.73 0.78 0.96];
 defaults.ui.colour3 = [0.0 0.0 0.0];
 defaults.ui.fs      = 14;
 

@@ -18,7 +18,7 @@
 % project.
 %
 % The SPM8b Release Notes can be found online: 
-% http://www.fil.ion.ucl.ac.uk/spm/software/spm8b/SPM8b_Release_Notes.pdf
+%            http://www.fil.ion.ucl.ac.uk/spm/software/spm8b/
 %
 % Further information may be found at the SPMweb site:
 %            http://www.fil.ion.ucl.ac.uk/spm/
@@ -38,4 +38,4 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm_motd.man 2269 2008-09-30 21:16:53Z guillaume $
+% $Id: spm_motd.man 2280 2008-10-01 12:39:21Z guillaume $

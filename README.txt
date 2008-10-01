@@ -18,9 +18,14 @@ ________________________________________________________________________
                                                                      SPM
 
    Statistical Parametric Mapping refers to the construction and
-   assessment of spatially extended statistical process used to test
-   hypotheses about [neuro]imaging data from SPECT/PET & fMRI. These
-   ideas have been instantiated in software that is called SPM.
+   assessment of spatially extended statistical process used to
+   test hypotheses about functional imaging data. These ideas have
+   been instantiated in software that is called SPM.
+   The SPM software package has been designed for the analysis of 
+   brain imaging data sequences. The sequences can be a series of 
+   images from different cohorts, or time-series from the same 
+   subject. The current release is designed for the analysis of
+   fMRI, PET, SPECT, EEG and MEG.
 
 ________________________________________________________________________
                                                             Installation
@@ -32,33 +37,27 @@ mathematics package, is required to use SPM. MATLAB is produced by The
 MathWorks, Inc.  Natick, MA, USA. http://www.mathworks.com/
 eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 special toolboxes are required).
-
-SPM5 is written for Matlab versions 6.5.1 and 7.0.1 under UNIX. (SPM5
-will not work with versions of Matlab prior to 6.5.
-Binaries of the external C-mex routines are provided for Solaris, Linux 
-and Windows, users of other UNIX platforms need an ANSI C compiler to 
+ 
+SPM8 is written for MATLAB version 7.1 onwards under Windows and UNIX.
+(SPM8 will not work with versions of MATLAB prior to 7.1 (R14SP3)).
+Binaries of the external C-mex routines are provided for Windows, Linux 
+and Mac. Users of other UNIX platforms need an ANSI C compiler to 
 compile the supplied C source (Makefile provided). 
-See http://www.fil.ion.ucl.ac.uk/spm/software/spm5/ for details.
+See http://www.fil.ion.ucl.ac.uk/spm/software/spm8b/ for details.
 
-( Whilst the majority of the code is implemented as MatLab functions    )
-( & scripts containing standard MatLab commands, a number of features   )
-( specific to the UNIX version have been used. SPM also uses external   )
-( C programs, linked to MatLab as C-mex files, to perform some of the   )
-( more computationally intensive operations.  Some of these latter C    )
-( programs use UNIX system calls to implement SPMs "memory mapping",    )
-( mapping disk resident image volumes into memory. (Specifically, the   )
-( calls are mmap (mman.h) in spm_map_vol.c; munmap (mman.h) in          )
-( spm_unmap_vol.c; & readdir (dirent.h) in spm_list_files.c. Not all    )
-( UNIX flavours support mman.h.                                         )
+Later versions of MATLAB (released after SPM8), will probably
+need additional patches in order to run.  Once developed, these will 
+be made available from:
+     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm8b_updates/ 
 
 With the compiled c-mex files in place, simply prepend the SPM
-directory to your MatLab path to complete the installation. (Type `help
-path` in matlab for information on the MatLab path.)
+directory to your MATLAB path to complete the installation. (Type `help
+path` in matlab for information on the MATLAB path.)
 
 ________________________________________________________________________
                                                          Getting started
                                                          
-SPM is invoked with the command `spm` at the MatLab prompt. We
+SPM is invoked with the command `spm` at the MATLAB prompt. We
 recommend you start by reviewing the help system, by selecting "About
 SPM" from the splash screen. This initially displays the "spm.man"
 topic, detailing this release. Press the "Menu" button to display a
@@ -72,7 +71,7 @@ as a research tool. You should begin with the SPMweb pages,
 particularly the "Documentation" page. Of the resources listed there
 perhaps the most useful starting point are the SPM course notes, which
 explain the concepts and theories implemented in SPM at a lower level
-than the articles in the peer reviewed literature. There is no manual.
+than the articles in the peer reviewed literature.
 
 Note that SPM uses NIFTI-1 format images as standard.  See
 http://nifti.nimh.nih.gov/dfwg/ for more information on this.
@@ -91,7 +90,7 @@ methodological and practical issues of Statistical Parametric Mapping
 and SPM. The SPMweb site has further details:
                  http://www.fil.ion.ucl.ac.uk/spm/support/
 
-Please report bugs to the authors at <spm-authors@fil.ion.ucl.ac.uk>.
+Please report bugs to the authors at <spm@fil.ion.ucl.ac.uk>.
 Peculiarities may actually be features, and should be raised on the SPM
 eMail discussion list, <spm@jiscmail.ac.uk>.
 
@@ -108,6 +107,6 @@ as is.  No formal support or maintenance is provided or implied.
 
 ________________________________________________________________________
 SPM is developed by members and collaborators of the
-                              Wellcome Department of Cognitive Neurology
+                                  Wellcome Trust Centre for Neuroimaging
 
-$Id: README.txt 127 2005-05-09 10:13:35Z guillaume $
+$Id: README.txt 2280 2008-10-01 12:39:21Z guillaume $
