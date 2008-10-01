@@ -2,6 +2,9 @@
 % contains some defaults and path settings
 %
 % $Log: fieldtripdefs.m,v $
+% Revision 1.6  2008/10/01 08:22:40  roboos
+% added specest module
+%
 % Revision 1.5  2008/09/23 07:54:09  roboos
 % added template directory, moved all layouts and cortical meshes there
 %
@@ -52,5 +55,11 @@ end
 try
   % numerous functions depend on this module
   hastoolbox('preproc', 1, 1);
+end
+
+try
+  % only very few functions depent on this module
+  % it is not yet included in the FTP release version
+  hastoolbox('specest', 1, 1);
 end
 
