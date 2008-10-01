@@ -21,6 +21,9 @@ function [trl, event] = trialfun_general(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: trialfun_general.m,v $
+% Revision 1.3  2008/10/01 11:00:06  ingnie
+% fixed bug in gui part which appeared when eventvalue is list
+%
 % Revision 1.2  2008/09/29 08:39:38  roboos
 % replaced read_fcdc_xxx with the new function names
 %
@@ -98,7 +101,7 @@ if strcmp(cfg.trialdef.eventtype, '?')
   return
 end
 
-if strcmp(cfg.trialdef.eventtype, 'gui') || (isfield(cfg.trialdef, 'eventvalue') && strcmp(cfg.trialdef.eventvalue, 'gui'))
+if strcmp(cfg.trialdef.eventtype, 'gui') || (isfield(cfg.trialdef, 'eventvalue') && length(cfg.trialdef.eventvalue)==1 && strcmp(cfg.trialdef.eventvalue, 'gui'))
   cfg.trialdef = select_event(event, cfg.trialdef);
   usegui = 1;
 else

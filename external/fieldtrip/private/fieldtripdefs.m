@@ -1,7 +1,15 @@
+function fieldtripdefs
+
 % FIELDTRIPDEFS is called at the begin of all FieldTrip functions and
 % contains some defaults and path settings
 %
+% Note that this should be a function and not a script, otherwise the
+% hastoolbox function appears not be found in fieldtrip/private.
+
 % $Log: fieldtripdefs.m,v $
+% Revision 1.7  2008/10/01 10:18:30  roboos
+% changed from script into function to fix private path
+%
 % Revision 1.6  2008/10/01 08:22:40  roboos
 % added specest module
 %
