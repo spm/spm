@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 1775 2008-06-02 09:18:18Z volkmar $
+% $Id: spm_cfg_realign.m 2283 2008-10-01 14:25:09Z john $
 
-rev = '$Rev: 1775 $';
+rev = '$Rev: 2283 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -311,12 +311,12 @@ estwrite.vout = @vout_estwrite;
 % ---------------------------------------------------------------------
 % realign Realign
 % ---------------------------------------------------------------------
-realign         = cfg_repeat;
+realign         = cfg_choice;
 realign.tag     = 'realign';
 realign.name    = 'Realign';
 realign.help    = {'Within-subject registration of image time series.'};
 realign.values  = {estimate write estwrite };
-realign.num     = [1 Inf];
+%realign.num     = [1 Inf];
 
 %------------------------------------------------------------------------
  

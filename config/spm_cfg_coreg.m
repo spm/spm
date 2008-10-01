@@ -4,9 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 1934 2008-07-21 10:21:41Z volkmar $
+% $Id: spm_cfg_coreg.m 2283 2008-10-01 14:25:09Z john $
 
-rev = '$Rev: 1934 $';
+rev = '$Rev: 2283 $';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -235,7 +235,7 @@ estwrite.vout = @vout_estwrite;
 % ---------------------------------------------------------------------
 % coreg Coreg
 % ---------------------------------------------------------------------
-coreg         = cfg_repeat;
+coreg         = cfg_choice;
 coreg.tag     = 'coreg';
 coreg.name    = 'Coreg';
 coreg.help    = {
@@ -244,7 +244,7 @@ coreg.help    = {
                  'You get the options of estimating the transformation, reslicing images according to some rigid-body transformations, or estimating and applying rigid-body transformations.'
 }';
 coreg.values  = {estimate write estwrite };
-coreg.num     = [1 Inf];
+%coreg.num     = [1 Inf];
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 function dartel = tbx_cfg_dartel
 % MATLABBATCH Configuration file for toolbox 'DARTEL Tools'
 
-% $Id: tbx_cfg_dartel.m 1419 2008-04-15 19:49:38Z spm $
+% $Id: tbx_cfg_dartel.m 2283 2008-10-01 14:25:09Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 
@@ -1131,7 +1131,7 @@ kernfun.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % dartel DARTEL Tools
 % ---------------------------------------------------------------------
-dartel         = cfg_repeat;
+dartel         = cfg_choice;
 dartel.tag     = 'dartel';
 dartel.name    = 'DARTEL Tools';
 dartel.help    = {
@@ -1143,7 +1143,7 @@ dartel.help    = {
                   'This toolbox is not yet seamlessly integrated into the SPM package. Eventually, the plan is to use many of the ideas here as the default strategy for spatial normalisation. The toolbox may change with future updates.  There will also be a number of other (as yet unspecified) extensions, which may include a variable velocity version (related to LDDMM). Note that the Fast Diffeomorphism paper only describes a sum of squares objective function. The multinomial objective function is an extension, based on a more appropriate model for aligning binary data to a template.'
 }';
 dartel.values  = {initial warp warp1 crt_warped jacdet crt_iwarped kernfun };
-dartel.num     = [0 Inf];
+%dartel.num     = [0 Inf];
 
 %_______________________________________________________________________
 %

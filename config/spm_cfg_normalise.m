@@ -4,9 +4,9 @@ function normalise = spm_cfg_normalise
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 1972 2008-08-01 11:40:38Z volkmar $
+% $Id: spm_cfg_normalise.m 2283 2008-10-01 14:25:09Z john $
 
-rev = '$Rev: 1972 $';
+rev = '$Rev: 2283 $';
 % ---------------------------------------------------------------------
 % source Source Image
 % ---------------------------------------------------------------------
@@ -368,7 +368,7 @@ estwrite.vout = @vout_estwrite;
 % ---------------------------------------------------------------------
 % normalise Normalise
 % ---------------------------------------------------------------------
-normalise         = cfg_repeat;
+normalise         = cfg_choice;
 normalise.tag     = 'normalise';
 normalise.name    = 'Normalise';
 normalise.help    = {
@@ -385,7 +385,7 @@ normalise.help    = {
                      'All normalised *.img scans are written to the same subdirectory as the original *.img, prefixed with a ''w'' (i.e. w*.img).  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
 }';
 normalise.values  = {est write estwrite };
-normalise.num     = [1 Inf];
+%normalise.num     = [1 Inf];
 %------------------------------------------------------------------------
  
 %------------------------------------------------------------------------

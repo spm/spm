@@ -88,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 2132 2008-09-22 10:04:20Z volkmar $
+% $Id: spm_jobman.m 2283 2008-10-01 14:25:09Z john $
 
 
 if nargin==0
@@ -113,7 +113,8 @@ else
             [mljob comp] = canonicalise_job(jobs);
         elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
             % Node spec only allowed for 'interactive', 'serial'
-            mod_cfg_id = cfg_util('tag2mod_cfg_id',varargin{3});
+            arg3       = regexprep(varargin{3},'^spmjobs\.','spm.');
+            mod_cfg_id = cfg_util('tag2mod_cfg_id',arg3);
         else
             error('spm:spm_jobman:WrongUI', ...
                 'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
@@ -122,9 +123,9 @@ else
     switch cmd
         case 'help'
             if (nargin < 2) || isempty(varargin{2})
-                node = 'spmjobs';
+                node = 'spm';
             else
-                node = varargin{2};
+                node = regexprep(varargin{2},'^spmjobs\.','spm.');
             end;
             if nargin < 3
                 width = 60;
@@ -153,9 +154,10 @@ else
                 cjob = cfg_util('initjob', mljob);
             elseif exist('mod_cfg_id', 'var')
                 if isempty(mod_cfg_id)
+                    arg3 = regexprep(varargin{3},'^spmjobs\.','spm.');
                     warning('spm:spm_jobman:NodeNotFound', ...
                         ['Can not find executable node ''%s'' - running '...
-                        'matlabbatch without default node.'], varargin{3});
+                        'matlabbatch without default node.'], arg3);
                     cjob = cfg_util('initjob');
                 else
                     cjob = cfg_util('initjob');
@@ -175,7 +177,8 @@ else
             else
                 cjob = cfg_util('initjob');
                 if nargin > 2
-                    [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', lower(varargin{3}));
+                    arg3 = regexprep(varargin{3},'^spmjobs\.','spm.');
+                    [mod_cfg_id, item_mod_id] = cfg_util('tag2cfg_id', lower(arg3));
                     cfg_util('addtojob', cjob, mod_cfg_id);
                 end;
             end;
@@ -242,7 +245,7 @@ function [mljob, comp] = canonicalise_job(job)
 % Check whether job is a SPM5 or matlabbatch job. In the first case, all
 % items in job{:} should have a fieldname of either 'temporal', 'spatial',
 % 'stats', 'tools' or 'util'. If this is the case, then job will be
-% assigned to mljob{1}.spmjobs, which is the tag of the SPM root
+% assigned to mljob{1}.spm, which is the tag of the SPM root
 % configuration item.
 
 comp = true(size(job));
@@ -256,7 +259,7 @@ for cj = 1:numel(job)
         end;
     end;
     if comp(cj)
-        mljob{cj}{1}.spmjobs = job{cj};
+        mljob{cj}{1}.spm = job{cj};
     else
         mljob{cj} = job{cj};
     end;
@@ -389,11 +392,11 @@ f1 = uimenu(f0,'Label','BATCH', 'Callback',@cfg_ui, ...
             'HandleVisibility','off', 'tag','jobs');
 f4 = uimenu(f0,'Label','SPM (interactive)', ...
             'HandleVisibility','off', 'tag','jobs', 'Separator','on');
-cfg_ui('local_setmenu', f4, cfg_util('tag2cfg_id', 'spmjobs'), ...
+cfg_ui('local_setmenu', f4, cfg_util('tag2cfg_id', 'spm'), ...
        @local_init_interactive, false);
 f5 = uimenu(f0,'Label','SPM (serial)', ...
             'HandleVisibility','off', 'tag','jobs');
-cfg_ui('local_setmenu', f5, cfg_util('tag2cfg_id', 'spmjobs'), ...
+cfg_ui('local_setmenu', f5, cfg_util('tag2cfg_id', 'spm'), ...
        @local_init_serial, false);
 %------------------------------------------------------------------------
 

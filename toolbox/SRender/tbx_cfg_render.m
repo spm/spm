@@ -440,12 +440,12 @@ SRender.prog = @spm_srender;
 % ---------------------------------------------------------------------
 % render Rendering
 % ---------------------------------------------------------------------
-render         = cfg_repeat;
+render         = cfg_choice;
 render.tag     = 'render';
 render.name    = 'Rendering';
 render.help    = {'This is a toolbox that provides a limited range of surface rendering options. The idea is to first extract surfaces from image data, which are saved in rend_*.mat files. These can then be loaded and displayed as surfaces. Note that OpenGL rendering is used, which can be problematic on some computers. The tools are limited - and they do what they do.'};
 render.values  = {SExtract SRender };
-render.num     = [0 Inf];
+%render.num     = [0 Inf];
 
 function dep = vout_sextract(job)
 dep = cfg_dep;
