@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 2027 2008-08-29 16:14:46Z john $
+% $Id: spm_preproc8.m 2281 2008-10-01 12:52:50Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -400,7 +400,7 @@ for iter=1:20,
                     clear cr
                 end
 
-                fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
+               %fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 % Priors
                 nmom = struct('mom0',mom0,'mom1',mom1,'mom2',mom2);
@@ -483,7 +483,7 @@ for iter=1:20,
                     chan(n).lik   = spm_smohist(chan(n).hist,chan(n).lam)*chan(n).interscal(2);
                 end
 
-                fprintf('Hist:\t%g\t%g\t%g\n', ll,llr,llrb);
+               %fprintf('Hist:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 if subit>1 || iter>1,
                     spm_chi2_plot('Set',ll);
@@ -631,7 +631,7 @@ for iter=1:20,
 
                         if oll-ll>tol1*nm,
                             % Worse solution, so revert back to old bias field
-                            fprintf('Bias-%d:\t%g\t%g\t%g :o(\n', n, ll, llr,llrb);
+                           %fprintf('Bias-%d:\t%g\t%g\t%g :o(\n', n, ll, llr,llrb);
 
                             chan(n).lmreg = chan(n).lmreg*8;
                             chan(n).T     = T;
@@ -647,7 +647,7 @@ for iter=1:20,
                         else
                             % Accept new solution
                             spm_chi2_plot('Set',ll);
-                            fprintf('Bias-%d:\t%g\t%g\t%g :o)\n', n, ll, llr,llrb);
+                           %fprintf('Bias-%d:\t%g\t%g\t%g :o)\n', n, ll, llr,llrb);
                             if oll-ll<0,
                                 chan(n).lmreg = chan(n).lmreg*0.5;
                             else
@@ -836,14 +836,14 @@ for iter=1:20,
             end
             if ll1<ll,
                 lam   = lam*8;
-                fprintf('Warp:\t%g\t%g\t%g :o(\n', ll1, llr1,llrb);
+               %fprintf('Warp:\t%g\t%g\t%g :o(\n', ll1, llr1,llrb);
             else
                 spm_chi2_plot('Set',ll1);
                 lam   = lam*0.5;
                 ll    = ll1;
                 llr   = llr1;
                 Twarp = Twarp1;
-                fprintf('Warp:\t%g\t%g\t%g :o)\n', ll1, llr1,llrb);
+               %fprintf('Warp:\t%g\t%g\t%g :o)\n', ll1, llr1,llrb);
                 break
             end
         end

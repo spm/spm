@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 2004 2008-08-13 17:36:46Z john $
+% $Id: spm_maff8.m 2281 2008-10-01 12:52:50Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -105,7 +105,6 @@ x3 = x{3};
 [mu,isig] = priors(regtyp);
 isig      =  isig*ff;
 Alpha0    =  isig;
-Beta0     = -isig*mu;
 
 sol  = M2P(M);
 sol1 = sol;
@@ -116,10 +115,10 @@ spm_chi2_plot('Init','Registering','Log-likelihood','Iteration');
 
 h1 = ones(256,numel(tpm.dat));
 for iter=1:200
-    penalty = (sol1-mu)'*isig*(sol1-mu);
+    penalty = 0.5*(sol1-mu)'*isig*(sol1-mu);
     T       = tpm.M\P2M(sol1)*MG;
 
-   %fprintf('%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n', sol1);
+   %fprintf('%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g | %g\n', sol1,penalty);
    %global st
    %st.vols{1}.premul = P2M(sol1);
    %spm_orthviews('Redraw')
@@ -180,7 +179,7 @@ for iter=1:200
     ll1   = sum(sum(h0.*log2(h1)))/ssh - penalty/ssh;
    %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
     spm_chi2_plot('Set',ll1);
-    if abs(ll1-ll)<1e-3, break; end;
+    if (ll1-ll)<1e-4, break; end;
     ll    = ll1;
     sol   = sol1;
     Alpha = zeros(12);
@@ -233,7 +232,7 @@ for iter=1:200
     Beta  = R'*Beta;
 
     % Gauss-Newton update
-    sol1  = (Alpha+Alpha0)\(Alpha*sol - Beta - Beta0);
+    sol1  = sol - (Alpha+Alpha0)\(Beta+isig*(sol-mu));
 end;
 
 spm_chi2_plot('Clear');

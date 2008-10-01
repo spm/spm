@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 2264 2008-09-30 18:48:59Z john $
+% $Id: spm_preproc_run.m 2281 2008-10-01 12:52:50Z john $
 
 if nargin==1,
     varargout{:} = run_job(job);
@@ -214,25 +214,25 @@ for i=1:numel(job.tissue),
     if job.tissue(i).native(1),
         tiss(i).c = cell(n,1);
         for j=1:n
-            tiss(i).c{j} = fullfile(parts{j,1},['c',parts{j,2},'.nii']);
+            tiss(i).c{j} = fullfile(parts{j,1},['c',num2str(i),parts{j,2},'.nii']);
         end
     end
     if job.tissue(i).native(2),
         tiss(i).rc = cell(n,1);
         for j=1:n
-            tiss(i).rc{j} = fullfile(parts{j,1},['rc',parts{j,2},'.nii']);
+            tiss(i).rc{j} = fullfile(parts{j,1},['rc',num2str(i),parts{j,2},'.nii']);
         end
     end
     if job.tissue(i).warped(1),
         tiss(i).wc = cell(n,1);
         for j=1:n
-            tiss(i).wc{j} = fullfile(parts{j,1},['wc',parts{j,2},'.nii']);
+            tiss(i).wc{j} = fullfile(parts{j,1},['wc',num2str(i),parts{j,2},'.nii']);
         end
     end
     if job.tissue(i).warped(2),
         tiss(i).mwc = cell(n,1);
         for j=1:n
-            tiss(i).mwc{j} = fullfile(parts{j,1},['mwc',parts{j,2},'.nii']);
+            tiss(i).mwc{j} = fullfile(parts{j,1},['mwc',num2str(i),parts{j,2},'.nii']);
         end
     end
 end
