@@ -88,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 2283 2008-10-01 14:25:09Z john $
+% $Id: spm_jobman.m 2285 2008-10-01 16:30:21Z john $
 
 
 if nargin==0
@@ -366,6 +366,10 @@ for cf = 1:numel(filenames)
             warning('Unknown extension: ''%s''', filenames{cf});
     end;
     if exist('jobs','var')
+       try
+           jobs     = convert_jobs(jobs);
+        catch
+        end
         newjobs = {newjobs{:} jobs};
         clear jobs;
     elseif exist('matlabbatch','var')
@@ -376,7 +380,34 @@ for cf = 1:numel(filenames)
     end;
 end;
 return;
+%------------------------------------------------------------------------
 
+%------------------------------------------------------------------------
+function njobs = convert_jobs(jobs)
+decel    = struct('spatial',struct('realign',[],'coreg',[],'normalise',[]),...
+                 'temporal',[],...
+                 'stats',[],...
+                 'meeg',[],...
+                 'util',[],...
+                 'tools',struct('dartel',[]));
+njobs  = {};
+for i0 = 1:numel(jobs),
+    tmp0  = fieldnames(jobs{i0});
+    tmp0  = tmp0{1};
+    if any(strcmp(tmp0,fieldnames(decel))),
+        for i1=1:numel(jobs{i0}.(tmp0)),
+            tmp1  = fieldnames(jobs{i0}.(tmp0){i1});
+            tmp1  = tmp1{1};
+            if any(strcmp(tmp1,fieldnames(decel.(tmp0)))),
+                njobs{end+1} = struct(tmp0,struct(tmp1,jobs{i0}.(tmp0){i1}.(tmp1)));
+            else
+                njobs{end+1} = struct(tmp0,S.jobs{i0}.(tmp0){i1});
+            end
+        end
+    else
+        njobs{end+1} = jobs{i0};
+    end
+end
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------
