@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 2258 2008-09-30 16:50:29Z jean $
+% $Id: spm_eeg_review_uis.m 2282 2008-10-01 13:10:48Z jean $
 
 POS = get(D.PSD.handles.hfig,'position');
 
@@ -340,7 +340,7 @@ switch objects.type
                 % create standard axes
                 xg = 0:D.Fsample:D.Nsamples;
                 xgl = xg./D.Fsample - D.timeOnset;
-                D.PSD.handles.axes = axes('position',[0.08 0.08 0.86 0.8],...
+                D.PSD.handles.axes = axes('position',[0.08 0.11 0.86 0.79],...
                     'parent',D.PSD.handles.hfig,'tag','plotEEG',...
                     'box','on','xtick',xg,'xticklabel',xgl);
                 % create global scale axes
@@ -348,7 +348,10 @@ switch objects.type
                     'xtick',1,'ytick',1,'color',0.95*[1 1 1],...
                     'tag','plotEEG');
                 set(D.PSD.handles.scale,'units','normalized');
-
+                % create global view axes
+                D.PSD.handles.GV.axes = axes('position',[0.082 0.05 0.7 0.025],...
+                    'parent',D.PSD.handles.hfig,'tag','plotEEG',...
+                    'box','on','xtick',[],'ytick',[]);
 
 
             case 'scalp'

@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2263 2008-09-30 18:41:26Z jean $
+% $Id: spm_eeg_review_callbacks.m 2282 2008-10-01 13:10:48Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -34,7 +34,11 @@ switch varargin{1}
                     visuSensors             = varargin{3};
                     M                       = sparse(length(visuSensors),length(D.channels));
                     M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
-                    decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./1e4),1]);
+                    if isequal(D.type,'continuous')
+                        decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./2e2),1]);
+                    else
+                        decim = 1;
+                    end
                     data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
                     sd                      = std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*sd/2;
@@ -52,6 +56,8 @@ switch varargin{1}
                     VIZU.figname            = 'main visualization window';
                     VIZU.montage.M          = M;
                     VIZU.montage.clab       = {D.channels(visuSensors).label};
+                    VIZU.y2                 = permute(sum(data.^2,1),[2 3 1]);
+                    VIZU.sci                = size(VIZU.y2,1)./D.Nsamples;
                 else
                     visuSensors             = varargin{3};
                     VIZU.visuSensors        = visuSensors;
@@ -272,7 +278,7 @@ switch varargin{1}
                 if D.PSD.VIZU.type==1
                     D.PSD.VIZU.xlim = get(D.PSD.handles.axes(1),'xlim');
                 end
-                updateDisp(D);
+                updateDisp(D,1);
 
 
                 % Resize plotted data window
@@ -367,11 +373,11 @@ switch varargin{1}
                         %                         set(handles.BUTTONS.focus
                         %                         _temp,'string',round(mean(xlim)));
                         D.PSD.VIZU.xlim = xlim;
-                        updateDisp(D,1)
+                        updateDisp(D)
                     end
 
                 else
-                    updateDisp(D,1)
+                    updateDisp(D)
 
                 end
 
@@ -951,9 +957,31 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 end
                 % Update axes limits and channel names
                 hold off
-                D.PSD.handles = handles;
                 set(handles.axes,'xlim',xlim,'ylim',ylim,'ytick',VIZU.offset,...
                     'yticklabel',VIZU.montage.clab,'fontsize',VIZU.FontSize);
+                % Update scale axes
+                pos0 = get(handles.axes,'position');
+                pos1 = get(handles.scale,'position');
+                dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
+                dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./VIZU.visu_scale;
+                set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
+                    'yticklabel',num2str(dz));
+                % Display global data squared power
+                handles.GV.y2 = plot(handles.GV.axes,VIZU.y2(:,trN));
+                xlim2 = VIZU.sci.*[xlim(1) xlim(2)];
+                if abs(diff(xlim2)) <= 1
+                    xlim2(2) = xlim2(1) +1;
+                end
+                set(handles.GV.axes,'xlim',[1 size(VIZU.y2,1)],...
+                    'ylim',[min(VIZU.y2(:,trN)) max(VIZU.y2(:,trN))],...
+                    'xtick',[],'xticklabel',[],'ytick',[],'yticklabel',[],...
+                    'tag','plotEEG','box','on');
+                handles.GV.p   = patch([xlim2(1) xlim2(1) xlim2(2) xlim2(2)],...
+                    [min(VIZU.y2(:,trN)) max(VIZU.y2(:,trN)) max(VIZU.y2(:,trN)) min(VIZU.y2(:,trN))],...
+                    [0.5 0.5 0.5],'parent',handles.GV.axes);
+                set(handles.GV.p,'edgecolor','none','facealpha',0.8,...
+                    'tag','plotEEG');
+                D.PSD.handles = handles;
                 set(handles.hfig,'userdata',D);
             else
                 v_data = v_data +repmat(VIZU.offset,1,size(v_data,2));
@@ -971,20 +999,26 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     set(handles.PLOT.e(LookEvents),'visible','on')
                 end
                 % Update axes limits and channel names
+                % And update scale axes
                 set(handles.axes,'xlim',xlim)
-                if ~flag
+                if flag
                     set(handles.axes,'ylim',ylim,'ytick',VIZU.offset,...
                         'yticklabel',VIZU.montage.clab,'fontsize',VIZU.FontSize);
                     set(handles.hfig,'userdata',D);
+                    pos0 = get(handles.axes,'position');
+                    pos1 = get(handles.scale,'position');
+                    dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
+                    dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./VIZU.visu_scale;
+                    set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
+                        'yticklabel',num2str(dz));
                 end
+                % Update position of global power patch
+                xlim2 = VIZU.sci.*[xlim(1) xlim(2)];
+                if abs(diff(xlim2)) <= 1
+                    xlim2(2) = xlim2(1) +1;
+                end
+                set(handles.GV.p,'xdata',[xlim2(1) xlim2(1) xlim2(2) xlim2(2)])
             end
-            % Update scale axes
-            pos0 = get(handles.axes,'position');
-            pos1 = get(handles.scale,'position');
-            dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
-            dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./VIZU.visu_scale;
-            set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
-                'yticklabel',num2str(dz));
 
 
         case 2
