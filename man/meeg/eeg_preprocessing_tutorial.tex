@@ -24,11 +24,11 @@ In this step, we will properly identify the VEOG and HEOG channels, and also rem
 \\
 You know call the montage by choosing 'Montage' in the 'Other' drop-down menu. First, you select the M/EEG-file spm8\_example.mat. Then you answer 'file'. You then select the generated MONT\_EXP.mat file, and answer the question 'Keep the other channels?' with 'No'. This will remove the uninteresting channels from the data. The red bar appears and SPM will generate two new files Mspm8\_example.mat and Mspm8\_example.dat.
 
-\section{Prep}
+\section{Prepare}
 We now provide information about the sensor location to SPM. This information is not contained in the original *.bdf file. It is usually in the responsibility of the user to link the data to sensors which are located in a coordinate system. In our experience, this is actually a critical step. In SPM, we have chosen the strategy to provide tools for linking data and location information, but leave it in the responsibility of the user to check whether this process went alright. 
 \\
 \\
-Choose 'Prep' from the 'Other' drop-down menu. This will make several Menus available in the lower left SPM window. Choose 'Open' from the 'File' menu. Select the Mspm8\_example.mat file. Select 'Assign default, from the 'Load EEG sensors' menu from the 'Sensors' menu. This will tell SPM to take some default locations for the biosemi-channels. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the other options to use digitized sensor location data. Then select the 'save' option from the File menu. Note that if you leave out the 'save' step, no information will be written to the mat-file and you won't be able, later on, to display the data properly.
+Choose 'Prepare' from the 'Other' drop-down menu. This will make several Menus available in the lower left SPM window. Choose 'Open' from the 'File' menu. Select the Mspm8\_example.mat file. Select 'Assign default, from the 'Load EEG sensors' menu from the 'Sensors' menu. This will tell SPM to take some default locations for the biosemi-channels. Chapter \ref{Chap:eeg:preprocessing} describes in detail how you can use the other options to use digitized sensor location data. Then select the 'save' option from the File menu. Note that if you leave out the 'save' step, no information will be written to the mat-file and you won't be able, later on, to display the data properly.
 
 
 \section{Epoch}
