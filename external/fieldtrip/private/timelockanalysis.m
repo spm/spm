@@ -72,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.55  2008/10/01 15:51:26  sashae
+% call to checkconfig instead of createsubcfg
+%
 % Revision 1.54  2008/09/26 12:42:18  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -304,7 +307,7 @@ end
 ntrial = length(data.trial);
 
 % ensure that the preproc specific options are located in the cfg.preproc substructure
-cfg = createsubcfg(cfg, 'preproc');
+cfg = checkconfig(cfg, 'createsubcfg',  {'preproc'});
 
 % preprocess the data, i.e. apply filtering, baselinecorrection, etc.
 fprintf('applying preprocessing options\n');
@@ -659,7 +662,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.54 2008/09/26 12:42:18 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.55 2008/10/01 15:51:26 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 
