@@ -3,7 +3,7 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 2258 2008-09-30 16:50:29Z jean $
+% $Id: spm_eeg_montage_ui.m 2284 2008-10-01 15:54:05Z jean $
 
 %% creates GUI from spm_uitable
 fig = figure;
@@ -116,7 +116,7 @@ function [] = doOK(o1,o2)
 ud = get(0,'userdata');
 [M,newLabels] = getM(ud.ht);
 % delete row if empty:
-ind = find(sum(M,2)==0);
+ind = find(sum(abs(M),2)==0);
 M(ind,:) = [];
 newLabels = {newLabels{setdiff(1:length(newLabels),ind)}};
 montage.tra = M;

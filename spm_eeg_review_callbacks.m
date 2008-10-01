@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2282 2008-10-01 13:10:48Z jean $
+% $Id: spm_eeg_review_callbacks.m 2284 2008-10-01 15:54:05Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -672,6 +672,19 @@ switch varargin{1}
                     set(D.PSD.handles.BUTTONS.badEvent,...
                         'tooltipstring',str,...
                         'cdata',ud.img{2-status},'userdata',ud)
+                    switch D.PSD.VIZU.modality
+                        case 'eeg'
+                            VIZU = D.PSD.EEG.VIZU;
+                        case 'meg'
+                            VIZU = D.PSD.MEG.VIZU;
+                        case 'other'
+                            VIZU = D.PSD.other.VIZU;
+                    end
+                    set(handles.GV.y2,'ydata',VIZU.y2(:,trN));
+                    set(handles.GV.axes,'ylim',[min(VIZU.y2(:,trN))...
+                        max(VIZU.y2(:,trN))]);
+                    set(handles.GV.p,'ydata',[min(VIZU.y2(:,trN)) ...
+                        max(VIZU.y2(:,trN)) max(VIZU.y2(:,trN)) min(VIZU.y2(:,trN))]);
                 end
                 updateDisp(D)
 

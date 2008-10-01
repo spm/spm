@@ -1,16 +1,15 @@
-function [] = spm_eeg_review(D)
+function [] = spm_eeg_review(D,flag)
 % function for general review (display) of SPM meeg object
 % FORMAT spm_eeg_review(D)
 %
 % IN:
 %   - D: meeg object
-%   - flag: (optional) switch to any of the displaying ('standardData',
-%   'scalpData' or 'visuRecon' -> default is 'standardData').
+%   - flag: (optional) switch to any of the displays.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2263 2008-09-30 18:41:26Z jean $
+% $Id: spm_eeg_review.m 2284 2008-10-01 15:54:05Z jean $
 
 D = struct(D);
 
@@ -39,16 +38,36 @@ callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''eeg'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''other'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''info'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''source'')'};
-[h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],4);
+try
+    [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],flag);
+catch
+    clear flag
+    [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],4);
+end
 D.PSD.handles.tabs = h;
 
-%-- Initilize display on 'info'
+% %-- Initilize display on 'info'
 D.PSD.VIZU.modality = 'info';
 D.PSD.VIZU.info = 4;
 [D] = spm_eeg_review_switchDisplay(D);
 
+    
 %-- Attach userdata to SPM graphics window
 set(D.PSD.handles.hfig,'color',[1 1 1],'userdata',D);
+
+
+if exist('flag','var')
+    switch flag
+        case 1
+            spm_eeg_review_callbacks('visu','main','eeg')
+        case 2
+            spm_eeg_review_callbacks('visu','main','meg')
+        case 3
+            spm_eeg_review_callbacks('visu','main','other')
+        case 5
+            spm_eeg_review_callbacks('visu','main','source')
+    end
+end
 
 
 
