@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2184 2008-09-25 11:09:23Z volkmar $
+% $Id: cfg_ui.m 2277 2008-10-01 11:08:33Z guillaume $
 
-rev = '$Rev: 2184 $'; %#ok
+rev = '$Rev: 2277 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1199,11 +1199,13 @@ function MenuEditUpdateView_Callback(hObject, eventdata, handles)
 if ~isempty(handles) 
     local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
     udmodlist = get(handles.modlist,'Userdata');
-    if isfield(udmodlist,'defid')
-        local_showmod(hObject);
-    else
-        local_showjob(hObject);
-    end;
+    if isstruct(udmodlist)
+        if isfield(udmodlist,'defid')
+            local_showmod(hObject);
+        else
+            local_showjob(hObject);
+        end;
+    end
 end;
 % --------------------------------------------------------------------
 function MenuEditReplMod_Callback(hObject, eventdata, handles)

@@ -11,15 +11,15 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 2101 2008-09-16 13:56:26Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 2277 2008-10-01 11:08:33Z guillaume $
 
-rev = '$Rev: 2101 $'; %#ok
+rev = '$Rev: 2277 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
 % lfont: used in lists, value edit dialogues etc.
 cfg_defaults.cfg_ui.lfont.FontAngle  = 'normal';
-cfg_defaults.cfg_ui.lfont.FontName   = get(0,'FixedWidthFontName');
+cfg_defaults.cfg_ui.lfont.FontName   = get(0,'factoryTextFontName');
 cfg_defaults.cfg_ui.lfont.FontSize   = 12;
 cfg_defaults.cfg_ui.lfont.FontUnits  = 'points';
 cfg_defaults.cfg_ui.lfont.FontWeight = 'normal';

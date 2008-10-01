@@ -366,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 2087 2008-09-12 10:32:40Z volkmar $
+% $Id: cfg_util.m 2277 2008-10-01 11:08:33Z guillaume $
 
-rev = '$Rev: 2087 $'; %#ok
+rev = '$Rev: 2277 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -829,6 +829,7 @@ end;
 c0.values{end+1} = c1;
 for k = 1:numel(jobs)
     jobs(k).cj.values{end+1} = c1;
+    jobs(k).c0.values{end+1} = c1;
     % clear run configuration
     jobs(k).cjrun = [];
 end;
