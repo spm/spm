@@ -9,9 +9,9 @@ about interesting parameters like connection strength between sources,
 or the modulation of connection strengths by task. For M/EEG data, DCM
 is a powerful technique for inferring about parameters that one
 doesn't observe with M/EEG directly. Instead of asking 'How does the
-source strength of the source in left superior temporal gyrus change
-between condition A and B?', one can ask questions like 'How does the feedback
-connection from this left STF source to left primary auditory cortex
+source strength of the source in left superior temporal gyrus (STG) change
+between condition A and B?', one can ask questions like 'How does the backward
+connection from this left STG source to left primary auditory cortex
 change between condition A and B?'. In other words, one isn't limited
 to questions about source strength as estimated using a source
 reconstruction approach, but can test hypotheses about what is
@@ -205,7 +205,7 @@ press 'dipoles'. The onset-parameter determines when the stimulus,
 presented at 0ms peri-stimulus time, is assumed to cause an
 impulse. In DCM, we usually do not model the quite small responses of
 early potentials, but start modelling at the first large
-deflection. Because the propagation of the stimulus impulse throught
+deflection. Because the propagation of the stimulus impulse through
 the input nodes causes a delay, we found that the default value of 60
 ms onset time is a good value for many evoked responses where the
 first large deflection is seen around 100 ms. However, this value is a
@@ -327,11 +327,11 @@ evidence exceeds all other log-model evidences by at least 3.
 \subsection{Model specification}
 DCM for steady state responses can be applied to M/EEG or intracranial data. 
 
-The data must first be prepared using the temporal pre-processing option; 'other', then 'prep'. Here you specify the data type (MEG, EEG or LFP), and select the channels for a DCM analysis. In general you select all MEG/EEG channels and all or a subgroup of LFP channels from the areas you are interested in modelling as a network. A sample script to convert raw txt data, called textit{spm\_lfp\_txt2mat} can be found in the toolbox folder.
+The data must first be prepared using the temporal pre-processing option; 'other', then 'prep'. Here you specify the data type (MEG, EEG or LFP), and select the channels for a DCM analysis. In general you select all MEG/EEG channels and all or a subgroup of LFP channels from the areas you are interested in modelling as a network. A sample script to convert raw txt data, called textit{spm\_lfp\_txt2mat} can be found in the folder toolbox$\backslash$Neural\_Models.
 
 The top panel of the DCM for ERP window allows you to toggle through available analysis methods. On the top left drop-down menu, select 'SSR'. The second drop-down menu in the right of the top-panel allows you to specify whether the analysis should be performed using a model which is linear in the states, for this you can choose ERP. Alternatively you may use a conductance based model, which is non-linear in the states by choosing, 'NMM' or 'MFM'. (see \cite{andre_sigmoid} for a description of their differences).
  
-The steady state (frequency) response is generated automatically from the time domain recordings. The time duration of the frequency response is entered in the second panel in the time-window.  The options for detrending remove either 1st, 2nd, 3rd or 4th order polynomial drifts from channels data. In the subsampling option you may choose to downsample the data before constructing the frequency response. The number of modes specifies how many components are from the leadfield are present in channel data. The between trial effects and design matrix entry follow as above in the case of ERPs.
+The steady state (frequency) response is generated automatically from the time domain recordings. The time duration of the frequency response is entered in the second panel in the time-window.  The options for detrending allow you to remove remove either 1st, 2nd, 3rd or 4th order polynomial drifts from channels data. In the subsampling option you may choose to downsample the data before constructing the frequency response. The number of modes specifies how many components from the leadfield are present in channel data. The between trial effects and design matrix entry follow as above in the case of ERPs.
 
 \subsection{The Lead-Field}
 The cross-spectral density is a description of the dependencies among the observed outputs of these neuronal sources. To achieve this frequency domain description we must first specify the likely sources and their location. If LFP data are used then only source names are required. This information is added in the third panel by selecting 'LFP'. Alternatively, x,y,z coordinates are specified for ECD or IMG solutions. 
