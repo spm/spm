@@ -1,4 +1,4 @@
-function Dout = spm_eeg_merge(S);
+function Dout = spm_eeg_merge(S)
 % FORMAT D = spm_eeg_merge(S)
 %
 % S         - optional input struct
@@ -20,7 +20,7 @@ function Dout = spm_eeg_merge(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2239 2008-09-29 19:53:42Z vladimir $
+% $Id: spm_eeg_merge.m 2291 2008-10-02 16:40:32Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 

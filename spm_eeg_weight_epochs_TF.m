@@ -1,5 +1,5 @@
-function D = spm_eeg_weight_epochs(S);
-% computes contrasts over trials or trial types.
+function D = spm_eeg_weight_epochs_TF(S)
+% computes contrasts over trials or trial types, for time-frequency data.
 % FORMAT D = spm_eeg_weight_epochs(S)
 %
 % S         - optional input struct
@@ -12,7 +12,7 @@ function D = spm_eeg_weight_epochs(S);
 % D         - EEG data struct (also written to files)
 %_______________________________________________________________________
 %
-% spm_eeg_weight_epochs computes contrasts of data, over epochs of data. The
+% spm_eeg_weight_epochs computes contrasts of data, over epochs of data, for time-frequency data. The
 % input is a single MEEG file.
 % The argument c must have dimensions Ncontrasts X Nepochs, where Ncontrasts is
 % the number of contrasts and Nepochs the number of epochs, i.e. each row of c
@@ -25,8 +25,8 @@ function D = spm_eeg_weight_epochs(S);
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_weight_epochs.m 2291 2008-10-02 16:40:32Z stefan $
+% Stefan Kiebel
+% $Id: spm_eeg_weight_epochs_TF.m 2291 2008-10-02 16:40:32Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -43,6 +43,10 @@ try
     D = spm_eeg_load(D);
 catch
     error('Trouble reading file %s', D);
+end
+
+if ~strncmp(D.transformtype, 'TF', 2)
+    error('Use this function for time-frequency data only');
 end
 
 try
@@ -68,17 +72,10 @@ end
 
 spm('Pointer', 'Watch'); drawnow;
 
-if strncmp(D.transformtype, 'TF', 2)
-    % branch off to TF-function
-    D = spm_eeg_weight_epochs_TF(S);
-    return
-end
-
 Ncontrasts = size(c, 1);
 
 % generate new meeg object with new filenames
-% Dnew = newdata(D, ['m' fnamedat(D)], [D.nchannels D.nsamples Ncontrasts], dtype(D));
-Dnew = clone(D, ['m' fnamedat(D)],[D.nchannels D.nsamples Ncontrasts]);
+Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples Ncontrasts]);
 
 spm_progress_bar('Init', Ncontrasts, 'Contrasts computed'); drawnow;
 if Ncontrasts > 100, Ibar = floor(linspace(1, Ncontrasts, 100));
@@ -102,13 +99,15 @@ for i = 1:Ncontrasts
 
     disp(['Contrast ', mat2str(i),': ', mat2str(c(i,:),3)])
 
-    d = zeros(D.nchannels, D.nsamples);
+    d = zeros(D.nchannels, D.nfrequencies, D.nsamples);
 
     for j = 1:D.nchannels
-        d(j, :) = c(i,:) * squeeze(D(j, :, :))';
+        for f = 1:D.nfrequencies
+            d(j, f, :) = c(i,:) * squeeze(D(j, f, :, :))';
+        end
     end
 
-    Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
+    Dnew(1:Dnew.nchannels, 1:D.nfrequencies, 1:Dnew.nsamples, i) = d;
     
     newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
@@ -138,7 +137,7 @@ try [sD.trials.repl] = deal(newrepl); end
 Dnew = meeg(sD);
 
 D = Dnew;
-D = D.history('spm_eeg_weight_epochs', S);
+D = D.history('spm_eeg_weight_epochs_TF', S);
 
 save(D);
 
