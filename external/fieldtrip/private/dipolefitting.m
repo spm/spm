@@ -123,6 +123,9 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %   
 % $Log: dipolefitting.m,v $
+% Revision 1.51  2008/10/02 15:32:20  sashae
+% replaced call to createsubcfg with checkconfig
+%
 % Revision 1.50  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -322,7 +325,7 @@ if ~isfield(cfg, 'nonlinear'),   cfg.nonlinear = 'yes';      end
 if ~isfield(cfg, 'symmetry'),    cfg.symmetry = [];          end
 
 % put the low-level options pertaining to the dipole grid (used for initial scanning) in their own field
-cfg = createsubcfg(cfg, 'grid');
+cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 % the default for this depends on the data type
 if ~isfield(cfg, 'model'),
@@ -701,7 +704,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.50 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.51 2008/10/02 15:32:20 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

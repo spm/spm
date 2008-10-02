@@ -7,6 +7,9 @@ function fieldtripdefs
 % hastoolbox function appears not be found in fieldtrip/private.
 
 % $Log: fieldtripdefs.m,v $
+% Revision 1.8  2008/10/02 14:04:17  roboos
+% added global ft_default, see also checkconfig
+%
 % Revision 1.7  2008/10/01 10:18:30  roboos
 % changed from script into function to fix private path
 %
@@ -28,6 +31,12 @@ function fieldtripdefs
 % Revision 1.1  2008/09/22 20:02:50  roboos
 % initial version, contains fixpath
 %
+
+
+% set the global defaults, the checkconfig function will copy these into the local configurations
+global ft_default
+if ~isfield(ft_default, 'trackconfig'), ft_default.trackconfig = 'off';   end % on, report, off
+if ~isfield(ft_default, 'checkconfig'), ft_default.checkconfig = 'loose'; end % pedantic, loose, silent
 
 try
   % this is to help in converting the directory layout while at the same time maintainiong backward compatibility

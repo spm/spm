@@ -15,6 +15,9 @@ function [down] = volumedownsample(cfg, source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: volumedownsample.m,v $
+% Revision 1.21  2008/10/02 14:40:36  sashae
+% checkconfig: checks if the input cfg is valid for this function
+%
 % Revision 1.20  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -132,15 +135,13 @@ fieldtripdefs
 
 %% checkdata see below!!! %%
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'unused',  {'voxelcoord'});
+
 if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
 if ~isfield(cfg, 'keepinside'), cfg.keepinside = 'yes'; end
 if ~isfield(cfg, 'parameter'),  cfg.parameter = 'all';  end
-if ~isfield(cfg,'smooth'),      cfg.smooth = 'no';      end
-
-if isfield(cfg, 'voxelcoord')
-  warning('cfg.voxelcoord is not supported any more');
-  cfg = rmfield(cfg, 'voxelcoord');
-end
+if ~isfield(cfg, 'smooth'),     cfg.smooth = 'no';      end
 
 if strcmp(cfg.keepinside, 'yes')
   % add inside to the list of parameters
@@ -211,7 +212,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumedownsample.m,v 1.20 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: volumedownsample.m,v 1.21 2008/10/02 14:40:36 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

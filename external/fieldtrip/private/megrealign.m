@@ -75,6 +75,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.53  2008/10/02 15:32:21  sashae
+% replaced call to createsubcfg with checkconfig
+%
 % Revision 1.52  2008/09/30 16:45:55  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -265,7 +268,7 @@ if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';           end
 if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
 
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = createsubcfg(cfg, 'grid');
+cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -571,7 +574,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.52 2008/09/30 16:45:55 sashae Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.53 2008/10/02 15:32:21 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

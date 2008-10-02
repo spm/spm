@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.130  2008/10/02 15:32:21  sashae
+% replaced call to createsubcfg with checkconfig
+%
 % Revision 1.129  2008/09/26 12:42:18  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -561,10 +564,8 @@ if ~isfield(cfg, 'normalize'),        cfg.normalize = 'no';       end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';      end  % the default for this depends on EEG/MEG and is set below
 
 % put the low-level options pertaining to the source reconstruction method in their own field
-cfg = createsubcfg(cfg, cfg.method);
-
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = createsubcfg(cfg, 'grid');
+cfg = checkconfig(cfg, 'createsubcfg',  {cfg.method, 'grid'});
 
 convertfreq = 0;
 convertcomp = 0;
@@ -1237,7 +1238,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.129 2008/09/26 12:42:18 sashae Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.130 2008/10/02 15:32:21 sashae Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

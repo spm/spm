@@ -39,7 +39,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 %
 % To include the channel dimension for clustering, you should specify
 %   cfg.neighbours       = structure with the neighbours of each channel, see NEIGHBOURHOODSELECTION
-% If the neighbourhood structure is empty, clustering will only be done
+% If you specify an empty neighbourhood structure, clustering will only be done
 % in frequency and time (if available) and not over neighbouring channels.
 %
 % The statistic that is computed for each sample in each random reshuffling 
@@ -75,6 +75,10 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.26  2008/10/02 12:37:33  roboos
+% removed some old backward compatibility code, errors will be given in case the old cfg options are used
+% use the "unused" option in checkconfig in case of correctm~=cluster to remove the cluster options
+%
 % Revision 1.25  2008/09/26 15:27:14  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -174,8 +178,10 @@ cfg = checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
 cfg = checkconfig(cfg, 'renamed',     {'unitfactor',       'uvar'});
 cfg = checkconfig(cfg, 'renamed',     {'repeatedmeasures', 'uvar'});
 cfg = checkconfig(cfg, 'renamedval',  {'clusterthreshold', 'nonparametric', 'nonparametric_individual'});
+cfg = checkconfig(cfg, 'renamedval',  {'correctm', 'yes', 'max'});
 cfg = checkconfig(cfg, 'required',    {'statistic'});
 cfg = checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'randomfactor'});
+cfg = checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
 
 % set the defaults for the main function
 if ~isfield(cfg, 'alpha'),               cfg.alpha = 0.05;               end
@@ -189,28 +195,16 @@ if ~isfield(cfg, 'cvar'),                cfg.cvar = [];                  end
 if ~isfield(cfg, 'wvar'),                cfg.wvar = [];                  end
 if ~isfield(cfg, 'correctp'),            cfg.correctp = 'no';            end % for the number of tails in a two-sided test
 
-% for backward compatibility with old cfgs
-if isfield(cfg, 'clusterstatistic') && ~isempty(cfg.clusterstatistic) && ~strcmp(cfg.clusterstatistic, 'no')
-  warning('using cluster-based statistic for multiple comparison correction');
-  cfg.correctm = 'cluster';
-elseif strcmp(cfg.correctm, 'yes')
-  warning('using maximum statistic for multiple comparison correction');
-  cfg.correctm = 'max';
-end
-
-% set the defaults for clustering
 if strcmp(cfg.correctm, 'cluster')
+  % set the defaults for clustering
   if ~isfield(cfg, 'clusterstatistic'),    cfg.clusterstatistic = 'maxsum';     end  % no, max, maxsize, maxsum, wcm
   if ~isfield(cfg, 'clusterthreshold'),    cfg.clusterthreshold = 'parametric'; end  % parametric, nonparametric_individual, nonparametric_common
   if ~isfield(cfg, 'clusteralpha'),        cfg.clusteralpha = 0.05;             end
   if ~isfield(cfg, 'clustercritval'),      cfg.clustercritval = [];             end
   if ~isfield(cfg, 'clustertail'),         cfg.clustertail = cfg.tail;          end
 else
-  try, cfg = rmfield(cfg, 'clusterstatistic'); end
-  try, cfg = rmfield(cfg, 'clusteralpha');     end
-  try, cfg = rmfield(cfg, 'clustercritval');   end
-  try, cfg = rmfield(cfg, 'clusterthreshold'); end
-  try, cfg = rmfield(cfg, 'clustertail');      end
+  % these options only apply to clustering, to ensure appropriate configs they are forbidden when _not_ clustering
+  cfg = checkconfig(cfg, 'unused', {'clusterstatistic', 'clusteralpha', 'clustercritval', 'clusterthreshold', 'clustertail', 'neighbours'});
 end
 
 % for backward compatibility
@@ -220,30 +214,6 @@ end
 
 if ischar(cfg.ivar) && strcmp(cfg.ivar, 'all')
   cfg.ivar = 1:size(design,1);
-end
-
-% for backward compatibility in some older statfuns
-cfg.factor     = cfg.ivar;
-cfg.unitfactor = cfg.uvar;
-
-% for backward compatibility with some low-level statfuns
-if strcmp(cfg.statistic, 'corrcoef'),      cfg.statistic='pearson';      end
-if strcmp(cfg.statistic, 'difference'),    cfg.statistic='diff';         end
-if strcmp(cfg.statistic, 'paired-tstat'),  cfg.statistic='paired_tstat'; end
-
-% for backward compatibility in clustering
-if isfield(cfg, 'voxelthreshold') && strcmp(cfg.voxelstatistic, 'prob')
-  cfg.clusteralpha     = cfg.voxelthreshold;
-  cfg.clusterthreshold = 'nonparametric_individual';
-  cfg.clustercritval   = [];
-  cfg = rmfield(cfg, 'voxelthreshold');
-  cfg = rmfield(cfg, 'voxelstatistic');
-elseif isfield(cfg, 'voxelthreshold') && ~strcmp(cfg.voxelstatistic, 'prob')
-  cfg.clusteralpha     = [];
-  cfg.clusterthreshold = 'parametric';
-  cfg.clustercritval   = cfg.voxelthreshold;
-  cfg = rmfield(cfg, 'voxelthreshold');
-  cfg = rmfield(cfg, 'voxelstatistic');
 end
 
 % determine the function handle to the low-level statistics function

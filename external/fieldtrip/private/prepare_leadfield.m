@@ -83,6 +83,9 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_leadfield.m,v $
+% Revision 1.26  2008/10/02 15:32:21  sashae
+% replaced call to createsubcfg with checkconfig
+%
 % Revision 1.25  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -208,7 +211,7 @@ if ~isfield(cfg, 'patchsvd'),         cfg.patchsvd   = 'no';          end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
 
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = createsubcfg(cfg, 'grid');
+cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 if strcmp(cfg.sel50p, 'yes') && strcmp(cfg.lbex, 'yes')
   error('subspace projection with either lbex or sel50p is mutually exclusive');
@@ -280,7 +283,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: prepare_leadfield.m,v 1.25 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: prepare_leadfield.m,v 1.26 2008/10/02 15:32:21 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

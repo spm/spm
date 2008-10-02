@@ -106,6 +106,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.23  2008/10/02 15:32:21  sashae
+% replaced call to createsubcfg with checkconfig
+%
 % Revision 1.22  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -248,7 +251,7 @@ elseif (strcmp(cfg.latency, 'poststim'))
 end
 
 % ensure that the preproc specific options are located in the cfg.preproc substructure
-cfg = createsubcfg(cfg, 'preproc');
+cfg = checkconfig(cfg, 'createsubcfg',  {'preproc'});
 
 % apply scaling to the selected channel types to equate the absolute numbers (i.e. fT and uV)
 % make a seperate copy to prevent the original data from being scaled
@@ -377,7 +380,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.22 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.23 2008/10/02 15:32:21 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

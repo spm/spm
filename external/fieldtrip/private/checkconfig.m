@@ -26,15 +26,23 @@ function [cfg] = checkconfig(cfg, varargin)
 %   renamedval        = {'opt',  'old', 'new'} % list option and old and new value
 %   required          = {'opt1', 'opt2', etc.} % list the required options
 %   deprecated        = {'opt1', 'opt2', etc.} % list the deprecated options
-%   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options
+%   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options, these result in an error
+%   forbidden         = {'opt1', 'opt2', etc.} % list the unused options, these will be removed and a warning is issued
 %   createsubcfg      = {'subname', etc.}      % list the names of the subcfg
-%   tracking          = 'on', 'off' or 'report'
+%   configtracking          = 'on', 'off' or 'report'
 %
 % See also CHECKDATA
 
-% Copyright (C) 2007-2008, Robert Oostenveld
+% Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.8  2008/10/02 14:06:21  roboos
+% get the fields from ft_default and add them to the cfg structure
+% implemented cfg.checkconfig=silent/loose/pedantic (default is in ft_default, i.e. fieldtripdefs function)
+%
+% Revision 1.7  2008/10/02 12:35:14  roboos
+% added option "unused", renamed tracking to configtracking
+%
 % Revision 1.6  2008/10/01 15:45:29  sashae
 % incorporated createsubcfg
 %
@@ -56,17 +64,37 @@ function [cfg] = checkconfig(cfg, varargin)
 % initial version for Saskia to work on
 %
 
-renamed         = keyval('renamed',      varargin);
-renamedval      = keyval('renamedval',   varargin);
-required        = keyval('required',     varargin);
-deprecated      = keyval('deprecated',   varargin);
-forbidden       = keyval('forbidden',    varargin);
-createsubcfg    = keyval('createsubcfg', varargin);
-tracking        = keyval('tracking',     varargin); if isempty(tracking), tracking = 'no'; end
-
 if isempty(cfg)
-  cfg=struct; % ensure that it is an empty struct, not empty double
+  cfg = struct; % ensure that it is an empty struct, not empty double
 end
+
+global ft_default
+fieldsused = fieldnames(ft_default);
+for i=1:length(fieldsused)
+  fn = fieldsused{i};
+  if ~isfield(cfg, fn),
+    cfg.(fn) = ft_default.(fn);
+  end
+end
+
+renamed         = keyval('renamed',         varargin);
+renamedval      = keyval('renamedval',      varargin);
+required        = keyval('required',        varargin);
+deprecated      = keyval('deprecated',      varargin);
+forbidden       = keyval('forbidden',       varargin);
+unused          = keyval('unused',          varargin);
+createsubcfg    = keyval('createsubcfg',    varargin);
+configtracking  = keyval('configtracking',  varargin); if isempty(configtracking), configtracking = 'no'; end
+
+% these should be cell arrays and not strings
+if ischar(required),   required   = {required};   end
+if ischar(deprecated), deprecated = {deprecated}; end
+if ischar(forbidden),  forbidden  = {forbidden};  end
+if ischar(unused),     unused     = {unused};     end
+
+silent   = strcmp(cfg.checkconfig, 'silent');
+loose    = strcmp(cfg.checkconfig, 'loose');
+pedantic = strcmp(cfg.checkconfig, 'pedantic');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % rename old to new options, give warning
@@ -107,7 +135,13 @@ end
 if ~isempty(deprecated)
   fieldsused = fieldnames(cfg);
   if any(ismember(deprecated, fieldsused))
-    warning(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{[ismember(deprecated, fieldsused)]}));
+    if silent
+      % don't mention it
+    elseif loose
+      warning(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+    else
+      error(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+    end
   end
 end
 
@@ -117,21 +151,45 @@ end
 if ~isempty(forbidden)
   fieldsused = fieldnames(cfg);
   if any(ismember(forbidden, fieldsused))
-    error(sprintf('The field cfg.%s is forbidden\n', forbidden{[ismember(forbidden, fieldsused)]}));
+    if silent
+      % don't mention it
+      cfg = rmfield(cfg, forbidden(ismember(forbidden, fieldsused)));
+    elseif loose
+      warning(sprintf('The field cfg.%s is forbidden, it will be removed from your configuration\n', forbidden{ismember(forbidden, fieldsused)}));
+      cfg = rmfield(cfg, forbidden(ismember(forbidden, fieldsused)));
+    else
+      error(sprintf('The field cfg.%s is forbidden\n', forbidden{ismember(forbidden, fieldsused)}));
+    end
   end
 end
 
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check for unused fields, give warning when present and remove them
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(unused)
+  fieldsused = fieldnames(cfg);
+  if any(ismember(unused, fieldsused))
+    if silent
+      % don't mention it
+      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
+    elseif loose
+      warning(sprintf('\nThe field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)}));
+      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
+    else
+      error(sprintf('\nThe field cfg.%s is unused\n', unused{ismember(unused, fieldsused)}));
+    end
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create subcfg
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% CREATESUBCFG collects the optional arguments for some of the low-level
+%
+% this collects the optional arguments for some of the low-level
 % functions and puts them in a separate substructure This function is to
 % ensure backward compatibility of end-user scripts, fieldtrip functions
 % and documentation that do not use the nested detailled configuration
 % but that use a flat configuration.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ~isempty(createsubcfg)
   for j = 1:length(createsubcfg)
@@ -276,7 +334,7 @@ end
 % FIXME dit is slechts een eerste versie "voor de leuk"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 try
-  switch tracking
+  switch configtracking
     case 'on'
       if isa(cfg, 'struct')
         cfg = configuration(cfg);

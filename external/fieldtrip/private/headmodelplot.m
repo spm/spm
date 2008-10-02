@@ -69,6 +69,9 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.23  2008/10/02 15:32:20  sashae
+% replaced call to createsubcfg with checkconfig
+%
 % Revision 1.22  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -155,7 +158,7 @@ if ~isfield(cfg, 'surface_edgecolor'), cfg.surface_edgecolor = 'none'; end
 if ~isfield(cfg, 'surface_facealpha'), cfg.surface_facealpha = 0.7;    end
 
 % put the low-level options pertaining to the dipole grid in their own field
-cfg = createsubcfg(cfg, 'grid');
+cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 if ~isfield(cfg, 'vol') && ~isfield(cfg, 'hdmfile')
   cfg.vol = [];  % FIXME why is this empty setting neccessary?
