@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2257 2008-09-30 16:31:14Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2294 2008-10-03 15:24:26Z christophe $
 
 %%
 % Load data, if necessary
@@ -97,6 +97,8 @@ if isfield(D.inv{val},'forward')
         sens = D.sensors('eeg');
         if ~isempty(P.Bad)
             P.forward.sens = remove_bad_chan(sens,P.Bad);
+        else
+            P.forward.sens = sens;
         end
     end
 else
