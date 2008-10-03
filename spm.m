@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 2202 2008-09-26 10:33:14Z guillaume $
+% $Id: spm.m 2293 2008-10-03 13:52:24Z guillaume $
 
 
 %=======================================================================
@@ -403,15 +403,6 @@ else
 end
 set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
 
-%-Addpath (temporary solution)
-%-----------------------------------------------------------------------
-if strcmpi(Modality,'EEG') && ~isdeployed
-    addpath(fullfile(spm('Dir'),'external','fieldtrip'));
-    addpath(fullfile(spm('Dir'),'external','fileio'));
-    addpath(fullfile(spm('Dir'),'external','forwinv'));
-    addpath(fullfile(spm('Dir'),'external','ctf'));
-    addpath(fullfile(spm('Dir'),'toolbox', 'dcm_meeg'));
-end
 
 %=======================================================================
 case 'defaults'                 %-Set SPM defaults (as global variables)
@@ -441,6 +432,16 @@ elseif strcmpi(defaults.modality,'eeg')
 elseif strcmpi(defaults.modality,'unknown')
 else
     error('Illegal Modality');
+end
+
+%-Addpath (temporary solution)
+%-----------------------------------------------------------------------
+if strcmpi(defaults.modality,'EEG') && ~isdeployed
+    addpath(fullfile(spm('Dir'),'external','fieldtrip'));
+    addpath(fullfile(spm('Dir'),'external','fileio'));
+    addpath(fullfile(spm('Dir'),'external','forwinv'));
+    addpath(fullfile(spm('Dir'),'external','ctf'));
+    addpath(fullfile(spm('Dir'),'toolbox', 'dcm_meeg'));
 end
 
 
