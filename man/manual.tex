@@ -26,7 +26,15 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 \newcommand{\bi}{\begin{itemize}}
 \newcommand{\ei}{\end{itemize}}
 
+\newcommand{\matlab}{\textsc{Matlab}}
+
 \begin{document}
+
+\let\oldlabel=\label
+\renewcommand{\label}[1]{
+{\pdfdest name {#1} fit}
+\oldlabel{#1}
+}
 
 \newlength{\centeroffset}
 \setlength{\centeroffset}{-0.5\oddsidemargin}

@@ -1,166 +1,37 @@
 \chapter{SPM for MEG/EEG overview \label{Chap:eeg:overview}}
 
 \section{Welcome to SPM for M/EEG}
-With SPM8 you can analyze all kind of MEG
-and EEG data. Our group has been highly productive in the recent years
-in publishing peer-reviewed papers about M/EEG analysis, in particular
-about source reconstruction and Dynamic Causal Modelling (DCM), which
-is a spatiotemporal network model to estimate effective connectivity
-in a network of sources. All these new methods, mostly based on the
-Bayesian approach, have been coded up and put into SPM8. We
-provide for the full analysis flow, i.e., you can take your raw data
-from the MEG or EEG machine, and put it through SPM, starting from the
-conversion of the data through to a statistical analysis of source
-reconstructed multi-subject data or Dynamic Causal Modelling.
-\\
-\\
-Our overall goal is to provide an academic M/EEG analysis software
-package that can be used by everyone to use the most recent and
-sophisticated methods available for the analysis of M/EEG data. As you
-may guess, this goal is quite ambitious because there is a large
-number of different M/EEG formats available, plus there are literally
-dozens of different analysis strategies that researchers would like to
-use. Clearly, our rather small group doesn't have the resources
-to cover all these different approaches. However, we made SPM for
-M/EEG as open as it possibly can be to allow researchers to use
-their favourite analysis software for specific processing steps. For
-example, it is possible to convert data to SPM8, then convert the data
-to Fieldtrip or EEGlab (using an SPM conversion routine), use a couple
-of functions in these packages, convert back to SPM, and do source
-reconstruction or DCM. Any combination of processing steps should be
-possible, and we expect that this 
-software-interoperability among analysis software packages (each with
-its own area of expertise) will lead to a boost of M/EEG researchers
-trying out new ways of analysing their data with a wide range of
-sophisticated methods. We are pleased to say that we have a formal
-collaboration with the excellent Fieldtrip package (head developer
-Robert Oostenveld) on many analysis issues. For example, SPM and
-Fieldtrip share routines for converting data to matlab, forward modelling 
-for M/EEG source reconstruction and the SPM8 distribution contains
-a version of Fieldtrip so that you can combine Fieldtrip and SPM 
-functions in your custom scripts. SPM and Fieldtrip complement each
-other well as SPM is geared toward very specific analysis tools as 
-will be described below whereas Fieldtrip is a more general repository 
-of different methods that can be put together in flexible ways
-to perform a variety of analyses. This flexibility of Fieldtrip, however, 
-comes at the expense of accessibility to a non-expert user. Fieldtrip does
-not have graphical user interface (GUI) and its functions are used by 
-writing custom Matlab scripts. In combined SPM8-Fieldtrip the
-flexibility of Fieldtrip can be complemented by the SPM GUI 
-tools that allow rapid development of simple GUI's and also SPM8's new
-powerful batching system. Within this framework the power users in a lab
-can easily and rapidly develop specialized analysis tools with GUI that 
-can then  also be used by non-proficient Matlab users. Some examples of such
-tools are available in MEEG toolbox distributed with SPM. We will also be
-glad to include in this toolbox new tools contributed by the users as long
-as they are of general interest and applicability. 
-\\
-\\
-SPM's speciality is, of course, the statistical analysis of voxel-based
-images. For the statistics, we use exactly the same routines as SPM
-for fMRI users would do. These are well-tried and trusted functions
-based on the general linear model and Gaussian random field theory.
-These routines have been developed and used in the fMRI field over
-many years and are equally applicable to multi- (or single-) subject
-M/EEG studies.
-\\
-\\
-Furthermore, our group has invested heavily in establishing Bayesian
-approaches to the source reconstruction of M/EEG data. Good source
-reconstruction techniques are vital for the M/EEG field, otherwise it
-would be very difficult to relate sensor data to neuroanatomy or
-findings from other modalities like fMRI. Our belief is that source
-reconstruction should be done in a Bayesian way to allow for a
-principled way of incorporating prior beliefs about how the data were
-generated, and to enable proper model comparison. With the use of
-priors and Bayesian model comparison, M/EEG source reconstruction is a
-very potent neuroimaging tool, which has a unique macroscopic view on
-neuronal dynamics.
 
-In addition, we have taken the idea of Dynamic Causal Modelling (DCM)
-from the fMRI domain, and put it to some good use in the M/EEG field. For
-M/EEG, DCM is a powerful technique, because the data are highly
-resolved in time and make the identifiability of neurobiologically
-inspired network models feasible. This means that DCM can make
-inference about temporal precedence of sources and quantify
-feedforward, backward and lateral connectivity among sources on a
-neuronal time-scale of milliseonds. Note that DCM/fMRI won't do this
-for you; DCM/fRMI (or any other connectivity analysis in fMRI)
-look at the rather slow expression of a modulation of connectivity by
-task. These happen on a time-scale of seconds. With M/EEG, you make
-inference about dynamics at a time-scale of milli-seconds, which seems
-a bit more exciting.
+With SPM8 you can analyze all kind of MEG and EEG data. Our group has been highly productive in the recent years in publishing peer-reviewed papers about M/EEG analysis, in particular about Source Reconstruction\footnote{Source Reconstruction: \url{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/Keyword/EEG.html}} and Dynamic Causal Modelling\footnote{Dynamic Causal Modelling: \url{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/Keyword/DCM.html}} (DCM), which is a spatio-temporal network model to estimate effective connectivity in a network of sources. All these new methods, mostly based on the Bayesian approach, have been implemented in SPM8. We provide a range of tools for the full analysis pipeline, i.e., you can take your raw data from the MEG or EEG machine, and put it through SPM, starting from the conversion of the data through to a statistical analysis of source reconstructed multi-subject data or Dynamic Causal Modelling.
+\\
+\\
+Our overall goal is to provide an academic M/EEG analysis software package that can be used by everyone to apply the most recent and sophisticated methods available for the analysis of M/EEG data. As you may guess, this goal is quite ambitious because there is a large number of different M/EEG formats available, plus there are literally dozens of different analysis strategies that researchers would like to use. Clearly, our rather small group doesn't have the resources to cover all these different approaches. However, we made SPM for M/EEG as open as it possibly can be to allow researchers to use their favourite analysis software for specific processing steps. For example, it is possible to convert raw data to SPM8, then convert them to FieldTrip\footnote{FieldTrip: \url{http://www.ru.nl/neuroimaging/fieldtrip/}} or EEGLAB\footnote{EEGLAB: \url{http://sccn.ucsd.edu/eeglab/}} (using an SPM conversion routine), use a couple of functions in these packages, convert back to SPM, and do source reconstruction or DCM. Any combination of processing steps should be possible, and we expect that this software-interoperability among analysis software packages (each with its own area of expertise) will lead to a boost of M/EEG researchers trying out new ways of analysing their data with a wide range of sophisticated methods. We are pleased to say that we have a formal collaboration with the excellent FieldTrip package (head developer: Robert Oostenveld) on many analysis issues. For example, SPM and FieldTrip share routines for converting data to \matlab, forward modelling for M/EEG source reconstruction and the SPM8 distribution contains a version of FieldTrip so that you can combine FieldTrip and SPM functions in your custom scripts. SPM and FieldTrip complement each other well as SPM is geared toward very specific analysis tools as will be described below whereas FieldTrip is a more general repository of different methods that can be put together in flexible ways to perform a variety of analyses. This flexibility of FieldTrip, however, comes at the expense of accessibility to a non-expert user. FieldTrip does not have graphical user interface (GUI) and its functions are used by writing custom \matlab\ scripts. In combined SPM8-FieldTrip the flexibility of FieldTrip can be complemented by the SPM GUI tools that allow rapid development of simple GUI's and also SPM8 powerful batching system. Within this framework, power users can easily and rapidly develop specialized analysis tools with GUI that can then  also be used by non-proficient \matlab\ users. Some examples of such tools are available in the MEEG toolbox distributed with SPM. We will also be glad to include in this toolbox new tools contributed by the users as long as they are of general interest and applicability.
+\\
+\\
+SPM speciality is, of course, the statistical analysis of voxel-based images. For the statistics, we use exactly the same routines as SPM for fMRI users would do. These are robust and validated functions based on the General Linear Model\footnote{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/Keyword/GLM.html} (GLM) and Gaussian Random Field Theory\footnote{http://www.fil.ion.ucl.ac.uk/spm/doc/biblio/Keyword/RFT.html} (RFT). These routines have been developed and used in the fMRI field over many years and are equally applicable to multi- (or single-) subject M/EEG studies.
+\\
+\\
+Furthermore, our group has invested heavily in establishing Bayesian approaches to the source reconstruction of M/EEG data. Good source reconstruction techniques are vital for the M/EEG field, otherwise it would be very difficult to relate sensor data to neuroanatomy or findings from other modalities like fMRI. Our belief is that source reconstruction should be done in a Bayesian way to allow for a principled way of incorporating prior beliefs about how the data were generated, and to enable proper model comparison. With the use of priors and Bayesian model comparison, M/EEG source reconstruction is a very powerful neuroimaging tool, which has a unique macroscopic view on neuronal dynamics.
+
+In addition, we have taken the idea of Dynamic Causal Modelling (DCM) from the fMRI domain, and put it to some good use in the M/EEG field. For M/EEG, DCM is a powerful technique, because the data are highly resolved in time and make the identifiability of neurobiologically inspired network models feasible. This means that DCM can make inference about temporal precedence of sources and quantify feedforward, backward and lateral connectivity among sources on a neuronal time-scale of milliseonds. Note that DCM/fMRI won't do this for you; DCM/fRMI (or any other connectivity analysis in fMRI) look at the rather slow expression of a modulation of connectivity by task. These happen on a time-scale of seconds. With M/EEG, you make inference about dynamics at a time-scale of milli-seconds, which seems a bit more exciting.
 
 \section{Changes from SPM5 to SPM8}
-Like the previous SPM5 version, SPM8 provides for the analysis of EEG
-and MEG data. The SPM8 software is much more robust than the previous
-version, in many aspects like conversion of data, source
-reconstruction, and dynamic causal modelling.
-\\
-\\
-For three years, we have collected valuable experience
-for the analysis of M/EEG data, and received a lot of valuable
-feedback from both FIL and external collaborators and users. We had
-plenty of opportunity to see which things worked well and what can be
-improved. One of our major insights was that writing a general routine
-for conversion of M/EEG data from their native to our SPM-format is a
-major effort. This is simply because there are so many different
-formats 
-around and it is quite an undertaking for a small developer team like
-ours to write stable software which can read all formats, some of
-which we have never seen ourselves. This had two consequences. The
-first is that we now collaborate with the developers of Fieldtrip
-(head developer: Robert Oostenveld, F.C. Donders centre in
-Nijmegen/Netherlands). Robert already had made available a wide range of
-matlab code to convert M/EEG data, and we thought it a good idea to
-let both SPM and Fieldtrip use and develop the same code. The second
-major change is that we changed the internal M/EEG format of SPM in
-many ways to make reading/writing and manipulating M/EEG data more
-robust and straightforward for the user. Effectively, we invested a
-lot of effort into rebuilding the SPM for M/EEG machinery almost from 
-scratch. 
-\\
-\\
-There are a couple of other major changes from SPM5 to SPM8. 
 
-First, based on our work about source reconstruction, we have
-implemented a number of new routines which provide for a robust and
-efficient source reconstruction, using Bayesian approaches. The
-resulting, voxel-based source reconstructions can then be analysed, at
-the group level, with the same well-tested routines which one uses for
-fMRI data.
-
-Second, Dynamic Causal Modelling, a network analysis for spatiotemporal
-M/EEG data, has been developed further over the past three years. The
-DCM routines for modelling evoked responses or 
-fields have been significantly improved both in functionality and
-speed. There are now various exciting extensions to DCM for M/EEG,
-e.g. we now provide for models of induced responses and local field
-potentials. 
-
-Third, there are now three ways of how one can control the
-SPM for M/EEG software. There are the graphical user interface, and two
-different possibilities of using scripts to batch jobs. These batch
-facilities come in handy for multi-subject studies. Like in fMRI
-analysis, many processing steps are repetetive and it is now quite
-straightforward to automize the software to a high degree.
-
-Fourth, it is now possible to convert, in working memory, SPM
-data to Fieldtrip or EEGlab, and back. This feature makes it possible to 
-use, within SPM, many Fieldtrip and EEGlab functions. For example, it
-is quite straightforward, using a script, to work within SPM, and use
-Fieldtrip functions to do parts of the preprocessing. 
+Like the previous SPM5 version, SPM8 provides tools for the analysis of EEG and MEG data. However, the SPM8 release is much more robust than the previous version, in many aspects like conversion of data, source reconstruction, and dynamic causal modelling.
 \\
 \\
-The following chapters will go through all the EEG/MEG related
-functionality of SPM8. All users will probably find the tutorial
-useful for a quick start. A further detailed description of the
-conversion, preprocessing functions, and the display is given in chapter
-\ref{Chap:eeg:preprocessing}. The 3D-source reconstruction routines,
-including few-dipole models (aka. Equivalent current dipoles), are described in chapter
-\ref{Chap:eeg:imaging}. In chapter \ref{Chap:eeg:sensoranalysis}, we
-explain how one would use the SPM's statistical machinery to analyse
-M/EEG data. Finally, in chapter \ref{Chap:eeg:DCM}, we describe the
-graphical user interface for dynamical causal modelling, for evoked  
-responses, induced responses, and local field potentials.
+For three years, we have collected valuable experience for the analysis of M/EEG data, and received a lot of valuablefeedback from both FIL and external collaborators and users. We had plenty of opportunity to see which things worked well and what can be improved. One of our major insights was that writing a general routine for conversion of M/EEG data from their native to our SPM-format is a major effort. This is simply because there are so many different formats around and it is quite an undertaking for a small developer team like ours to write stable software which can read all formats, some of which we have never seen ourselves. This had two consequences. The first is that we now collaborate with the developers of FieldTrip (head developer: Robert Oostenveld, F.C. Donders centre in Nijmegen/Netherlands). Robert already had made available a wide range of \matlab\ code to convert M/EEG data, and we thought it a good idea to let both SPM and FieldTrip use and develop the same library. The second major difference is that we changed the internal M/EEG format of SPM in many ways to make reading/writing and manipulating M/EEG data more robust and straightforward for the user. Effectively, we invested a lot of effort into rebuilding the SPM for M/EEG machinery almost from scratch.
+\\
+\\
+There are a couple of other major changes from SPM5 to SPM8.
 
+First, based on our work about source reconstruction, we have implemented a number of new routines which provide for a robust and efficient source reconstruction, using Bayesian approaches. The resulting, voxel-based source reconstructions can then be analysed, at the group level, with the same well-tested routines used for fMRI data.
+
+Second, Dynamic Causal Modelling, a network analysis for spatiotemporal M/EEG data, has been developed further over the past three years. The DCM routines for modelling evoked responses or fields have been significantly improved both in functionality and speed. There are now various exciting extensions to DCM for M/EEG, e.g. we now provide for models of induced responses and local field potentials.
+
+Third, there are now three ways of implementing M/EEG analyses in SPM. These are the graphical user interface, and two different scripting methods (batch analysis). These batch facilities come in handy for multi-subject studies. As in fMRI analysis, many processing steps are repetetive and it is now quite straightforward to automatize the software to a high degree.
+
+Fourth, it is now possible to convert, in working memory, SPM data to FieldTrip or EEBLAB, and back. This feature makes it possible to use, within SPM, many FieldTrip and EEBLAB functions. For example, it is quite straightforward, using a script, to work within SPM, and use FieldTrip functions to do parts of the preprocessing.
+\\
+\\
+The following chapters will go through all the EEG/MEG related functionality of SPM8. Most users will probably find the tutorial (chapter \ref{ch:eeg:tutorial}) useful for a quick start. A further detailed description of the conversion, preprocessing functions, and the display is given in chapter \ref{Chap:eeg:preprocessing}. In chapter \ref{Chap:eeg:sensoranalysis}, we explain how one would use the SPM's statistical machinery to analyse M/EEG data. The 3D-source reconstruction routines, including few-dipole models (aka. Equivalent current dipoles), are described in chapter \ref{Chap:eeg:imaging}. Finally, in chapter \ref{Chap:eeg:DCM}, we describe the graphical user interface for dynamical causal modelling, for evoked responses, induced responses, and local field potentials.
