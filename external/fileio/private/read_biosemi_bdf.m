@@ -30,6 +30,9 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_biosemi_bdf.m,v $
+% Revision 1.6  2008/10/03 12:20:57  roboos
+% use matlab reading instead of mex file in case file >2GB, thanks to Philip
+%
 % Revision 1.5  2008/09/30 07:47:04  roboos
 % replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
 %
@@ -237,13 +240,11 @@ else
     if length(chanindx)==1
       % this is more efficient if only one channel has to be read, e.g. the status channel
       offset = offset + (chanindx-1)*epochlength*3;
-      buf = read_24bit(filename, offset, epochlength);
+      buf = readLowLevel(filename, offset, epochlength); % see below in subfunction
       dat(:,((i-begepoch)*epochlength+1):((i-begepoch+1)*epochlength)) = buf;
     else
       % read the data from all channels and then select the desired channels
-      buf = read_24bit(filename, offset, epochlength*nchans);
-      % this would be the only difference between the bdf and edf implementation
-      % buf = read_16bit(filename, offset, epochlength*nchans);
+      buf = readLowLevel(filename, offset, epochlength*nchans); % see below in subfunction
       buf = reshape(buf, epochlength, nchans);
       dat(:,((i-begepoch)*epochlength+1):((i-begepoch+1)*epochlength)) = buf(:,chanindx)';
     end
@@ -265,3 +266,27 @@ else
     dat   = calib * dat;
   end
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION for reading the 24 bit values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function buf = readLowLevel(filename, offset, numwords);
+if offset < 2*1024^3
+  % use the external mex file, only works for <2GB
+  buf = read_24bit(filename, offset, numwords);
+  % this would be the only difference between the bdf and edf implementation
+  % buf = read_16bit(filename, offset, numwords);
+else
+  % use plain matlab, thanks to Philip van der Broek
+  p = fopen(filename,'r','ieee-le');
+  status = fseek(fp, offset, 'bof');
+  if status
+    error(['failed seeking ' filename]);
+  end
+  [buf,num] = fread(fp,numwords,'bit24=>double');
+  fclose(fp);
+  if (num<numwords)
+    error(['failed opening ' filename]);
+  return
+end
+
