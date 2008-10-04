@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2294 2008-10-03 15:24:26Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2298 2008-10-04 15:47:55Z christophe $
 
 %%
 % Load data, if necessary
@@ -87,12 +87,12 @@ if isfield(D.inv{val},'forward')
     else
         error('Forward model needs to be ready in FT format.!')
     end
-    if isfield(D.inv{val}.forward,'sens')
-        P.forward.sens = D.inv{val}.forward.sens;
+    if isfield(D.inv{val}.datareg,'sensors')
+        P.forward.sens = D.inv{val}.datareg.sensors;
     else
         % create the sens structure and try to make sure it contains all
         % the necessary bits !
-%         [P.forward.vol, P.forward.sens] = ...
+%         [P.forward.vol, P.datareg.sensors] = ...
 %                   forwinv_prepare_vol_sens(P.forward.vol,D.sensors('eeg'));
         sens = D.sensors('eeg');
         if ~isempty(P.Bad)
@@ -100,6 +100,7 @@ if isfield(D.inv{val},'forward')
         else
             P.forward.sens = sens;
         end
+        warning('Can''t find sensors information, still proceeding though.');
     end
 else
     error('Forward model needs to be ready in FT format.!')

@@ -4,59 +4,60 @@ This chapter describes the source reconstruction based on ``Variational Bayes Eq
 For more details about the implementation, please refer to the help bit of and comments in the routines themselves, as well as the founding paper by \cite{stefan_vb_ecd}.
 
 \section{Introduction}
-3D imaging (or distributed) reconstruction method considers all possible source location at once, allowing for large and widely spread clusters of activity. On the contrary “Equivalent Current Dipole” (ECD) approach relies on two different hypotheses:
+3D imaging (or distributed) reconstruction method considers all possible source location at once, allowing for large and widely spread clusters of activity. On the contrary ``Equivalent Current Dipole´´ (ECD) approaches rely on two different hypotheses:
 \begin{itemize}
 \item only a few (say less than~5) sources are active simultaneously, and
 \item those sources are very focal.
 \end{itemize}
 This leads to the ECD model where the observed scalp potential will be explained by a handful of discrete current sources, i.e. dipoles, located inside the brain volume.
-In contrast to the 3D imaging reconstruction, the number of ECD’s considered in the model should be defined a priori! This is a crucial step, as the number of sources considered defines the ECD model, but also a difficult one, as this choice should be based on empirical knowledge of the brain activity observed or any other source of information.
-In general, each dipole is described by 6 parameters: 3 for its location, 2 for its orientation and 1 for the amplitude. Once the number of ECD’s is fixed, a non-linear optimisation algorithm is used to adjust the dipoles parameters (6 times the number of dipoles) to the observed potential.
-
+In contrast to the 3D imaging reconstruction, the number of ECDs considered in the model, i.e. the number of ``active spots´´, should be defined a priori! This is a crucial step, as the number of sources considered defines the ECD model, but also a difficult one, as this choice should be based on empirical knowledge of the brain activity observed or any other source of information (for example by looking at the scalp distribution of potential).
+In general, each dipole is described by 6 parameters: 3 for its location, 2 for its orientation and 1 for the amplitude. Once the number of ECDs is fixed, a non-linear optimisation algorithm is used to adjust the dipoles parameters (6 times the number of dipoles) to the observed potential.
+\\
 Classical ECD approaches use a simple best fitting optimisation using “least square error” criteria. This leads to relatively simple algorithms but presents a few drawbacks:
 \begin{itemize}
 \item constraints on the dipoles are difficult to include in the framework;
-\item the noise cannot be properly taken into account;
+\item the noise cannot be properly taken into account, as its variance should be estimated alongside the dipole parameters;
 \item it is difficult to define confidence interval on the estimated parameters, which could lead to over-confident interpretation of the results;
 \item models with different number of dipoles cannot be compared but through their goodness-of-fit, which can be misleading.
 \end{itemize}
+The last point is particularly annoying as, by definition, adding dipoles to a model will necessarily improve its overall goodness of fit. One could erroneously be tempted to usse as many ECDs as possible and to perfectly fit the observed signal
+\\
 Though, using Bayesian techniques, it is possible to lift the limitations of the classical approach. 
-
 In a few words, a probabilistic generative model is built providing a likelihood model for the data. The model is completed by a set of priors on the various parameters, leading to a Bayesian model, allowing the inclusion of user-specified prior constraints. We also assumed a statistical distribution for the error (or noise) term\footnote{for ease of use we specified an independent an identically distributed (i.i.d.) normal distribution but other distributions could be specified}. 
-A “variational Bayes” (VB) scheme is then employed to estimate the posterior distribution of the parameters through an iterative procedure. The confidence interval of the estimated parameters is therefore directly available through the estimated posterior variance of the parameters.
-Critically, in a Bayesian context, different models can be compared using their evidence or marginal likelihood. This model comparison is superior to classical goodness-of-fit measures, because it takes into account the complexity of the models (e.g., the number of dipoles) and, implicitly, uncertainty about the model parameters. VB-ECD could thus provide an objective and accurate answer to the question: Would this data set be better modelled by 2 or 3 ECD’s?
+A ``variational Bayes´´ (VB) scheme is then employed to estimate the posterior distribution of the parameters through an iterative procedure. The confidence interval of the estimated parameters is therefore directly available through the estimated posterior variance of the parameters.
+Critically, in a Bayesian context, different models can be compared using their evidence or marginal likelihood. This model comparison is superior to classical goodness-of-fit measures, because it takes into account the complexity of the models (e.g., the number of dipoles) and, implicitly, uncertainty about the model parameters. VB-ECD could thus provide an objective and accurate answer to the question: Would this data set be better modelled by 2 or 3 ECDs?
+
 \section{Procedure in SPM8}
 This section aims at describing how to use the VB-ECD approach in SPM8.
 
 \subsection{Head and forward model}
-The engine calculating the projection of the dipolar sources on the scalp electrode comes from Fieldtrip and is the same for the 3D imaging or VB-ECD reconstructions. The head model should thus be prepared the same way, as described in the chapter \ref{Chap:eeg:imaging}.
+The engine calculating the projection of the dipolar sources on the scalp electrode comes from Fieldtrip and is the same for the 3D imaging or VB-ECD reconstructions. The head model should thus be prepared the same way, as described in the chapter \ref{Chap:eeg:imaging}. For the same data set, differences  between the VB-ECD and imaging reconstructions would therefore be due to the reconstruction approach only.
 
 \subsection{VB-ECD reconstruction}
-To get started press the 'Invert' button\footnote{The GUI for VB-ECD can also be launched directly from Matlab command line with the instruction: \textit{D = spm\_eeg\_inv\_vbecd\_gui}.}. The first choice you will see is between 'Classical', 'VB-ECD' and 'DCM'. The ‘Classical’ reconstruction corresponds to imaging solution, as described in chapter \ref{Chap:eeg:imaging}, and 'DCM' is described in chapter \ref{Chap:eeg:DCM}.
+To get started, after loading and preparing the head model, press the 'Invert' button\footnote{The GUI for VB-ECD can also be launched directly from Matlab command line with the instruction: \textit{D = spm\_eeg\_inv\_vbecd\_gui}.}. The first choice you will see is between 'Classical', 'VB-ECD' and 'DCM'. The 'Classical' reconstruction corresponds to imaging solution, as described in chapter \ref{Chap:eeg:imaging}, and 'DCM' is described in chapter \ref{Chap:eeg:DCM}.
 Then you are invited to fill in some information about the ECD model and click on a few buttons in the following order:
 \begin{enumerate} 
 \item fill in comments about the current reconstruction.
-\item indicate time bin or time window for the reconstruction, within the epoch length. Note that the data will be averaged over the time window! 
+\item indicate the time bin or time window for the reconstruction, within the epoch length. Note that the data will be averaged over the selected time window! VB-ECD will thus always be calculated for a single time bin.
 \item enter the trial type(s) to be reconstructed. Each trial type will be reconstructed separately.
-\item \label{add_dip} add a single (i.e. individual) dipole or a pair of symmetric dipoles to the model. Each “element” (single or pair) is added individually to the model.
-\item use “informative” or “non-informative” location priors. “Non-informative” means flat priors over the brain volume. But “Informative”, you can enter the a priori location of the source\footnote{For pair of dipoles, only the right dipole coordinates are required}.
-\item use “informative” or “non-informative” moment priors. “Non-informative” means flat priors over all possible direction and amplitude. But “Informative”, you can enter the a priori moment of the source\footnote{For pair of dipoles, only the right dipole moment is required}.
-\item if a pair of dipoles was added, can chose between “soft” or “hard” symmetric priors. “Hard” priors enforce perfectly symmetric dipoles, i.e. there is a parameter reduction. “Soft” priors impose some (strong) correlation between the dipoles but let them differ a bit in location and moment.
-\item get to step \ref{add_dip} and add some more dipole(s) to the model or stop.
+\item \label{add_dip} add a single (i.e. individual) dipole or a pair of symmetric dipoles to the model. Each ``element´´ (single or pair) is added individually to the model.
+\item use ``Informative´´ or `Non-informative´´ location priors. ``Non-informative´´ means flat priors over the brain volume. With ``Informative´´, you can enter the a priori location of the source\footnote{For pair of dipoles, only the right dipole coordinates are required.}.
+\item use ``Informative´´ or `Non-informative´´ moment priors. ``Non-informative´´ means flat priors over all possible directions and amplitude. With ``Informative´´, you can enter the a priori moment of the source\footnote{For pair of dipoles, only the right dipole moment is required.}.
+\item if a pair of dipoles was added, you can then chose between ``soft´´ or ``hard´´ symmetric priors. A ``hard´´ prior enforces perfectly symmetric dipoles, i.e. there is a parameter reduction. A ``soft´´ prior imposes some (strong) correlation between the dipoles but let them differ a bit in location and moment.
+\item get back to step \ref{add_dip} and add some more dipole(s) to the model, or stop adding dipoles.
 \end{enumerate} 
-The routine then proceeds with the VB optimization scheme.
-
-Results are finally saved into the data structure \textit{D} in the field \textit{.inv{D.val}.inverse} and displayed in the graphic window.
+The routine then proceeds with the VB optimization scheme to estimate the model parameters.
+\\
+Results are finally saved into the data structure \textit{D} in the field \textit{.inv\{D.val\}.inverse} and displayed in the graphic window.
 
 \subsection{Result display}
 The latest VB-ECD results can be displayed again through the function \textit{D = spm\_eeg\_inv\_vbecd\_disp}. If a specific reconstruction should be displayed, then use: \textit{spm\_eeg\_inv\_vbecd\_disp('Init',D, ind)}.
-
-
+\\
 In the upper part, the 3 main figures display the 3 orthogonal views of the brain with the dipole location and orientation superimposed. The location confidence interval is described by the dotted ellipse around the dipole location on the 3 views. It is not possible to click through the image, as the display is automatically centred on the dipole displayed. It is possible though to zoom into the image, using the right-click context menu.
 
 The lower left table displays the current dipole location, orientation (Cartesian or polar coordinates) and amplitude in various formats.
 
-The lower right table allows the selection of trial types reconstructions, push buttons, and dipoles within the model, pull down menu. Reconstruction from multiple trial types and multiple dipoles is possible, though the display can get a bit messy. The display will center itself on the average location of the dipoles to display.
+The lower right table allows the selection of trial types reconstructions, push buttons, and dipoles within the model, pull down menu. Display of multiple trial types and multiple dipoles is possible, though the display can get a bit messy. The display will center itself on the average location of the dipoles to display.
 
 
 
