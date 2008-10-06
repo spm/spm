@@ -21,6 +21,10 @@ function [trl, event] = trialfun_general(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: trialfun_general.m,v $
+% Revision 1.4  2008/10/06 08:42:12  jansch
+% included check for specifying trials across the boundaries of the datafile.
+% Thanks to Joachim Gross.
+%
 % Revision 1.3  2008/10/01 11:00:06  ingnie
 % fixed bug in gui part which appeared when eventvalue is list
 %
@@ -175,7 +179,10 @@ for i=sel
   end
   trlend = trlbeg + trldur;
   % add the beginsample, endsample and offset of this trial to the list
-  trl = [trl; [trlbeg trlend trloff]];
+  % if all samples are in the dataset
+  if trlbeg>0 && trlend<=hdr.nSamples.*hdr.nTrials,
+    trl = [trl; [trlbeg trlend trloff]];
+  end
 end
 
 if usegui
