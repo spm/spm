@@ -1,4 +1,10 @@
+  /* _LARGEFILE_SOURCE takes care that the offset is represented as 64 bit on supported platforms
+   * it should be defined prior to including the system header files
+   */
+#define _LARGEFILE_SOURCE
+
 #include <math.h>
+#include <stdint.h>
 #include "mex.h"
 #include "matrix.h"
 
@@ -22,6 +28,10 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.5  2008/10/06 09:25:24  roboos
+ * changed from long int to off_t and included stdint for uint32_t and uint64_t
+ * this should allow the mex file also to work on large filed (>2GB) on supported platforms
+ *
  * Revision 1.4  2008/04/09 10:10:20  roboos
  * corrected the text of an error message
  *
@@ -34,6 +44,7 @@
  *
  */
 
+
 void
 mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
 {
@@ -41,7 +52,12 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   mxArray *dat;
   double *dat_p;
   char *filename, *buf;
-  long int offset, numwords, fnlen, i, j, num, b1, b2, b3;
+  int32_t fnlen, b1, b2, b3;
+  
+  /* these have to be able to handle large files (>2GB) on supported platforms */
+  int64_t count, indx;
+  size_t  num, numwords;
+  off_t   offset;
   
   if (nrhs != 3)
     mexErrMsgTxt ("Invalid number of input arguments");
@@ -52,20 +68,20 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
     mexErrMsgTxt ("Invalid dimension for input argument 3");
   
   /* get the filename */
-  fnlen    = mxGetN      (prhs[0]);
+  fnlen    = mxGetN(prhs[0]);
   filename = mxCalloc(fnlen+1, sizeof(char));
   mxGetString(prhs[0], filename, fnlen+1);
   
   /* get values and typecast to integer */
-  offset   = (long int)(mxGetScalar (prhs[1]));
-  numwords = (long int)(mxGetScalar (prhs[2]));
-
+  offset   = (off_t)(mxGetScalar (prhs[1]));
+  numwords = (off_t)(mxGetScalar (prhs[2]));
+  
   /*
   printf("filename = %s\n", filename);
   printf("fnlen    = %d\n", fnlen);
   printf("offset   = %d\n", offset);
   printf("numwords = %d\n", numwords);
-  */
+   */
   
   /* open the file and read the desired bytes */
   fp = fopen(filename, "rb");
@@ -75,10 +91,10 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
     return;
   }
   fseek(fp, offset, SEEK_SET);
-
-  buf = mxCalloc(3*numwords, sizeof(char));
-  num = fread(buf, sizeof(char), 3*numwords, fp);
-  if (num<3*numwords)
+  
+  buf   = mxCalloc(3*numwords, sizeof(char));
+  count = fread(buf, sizeof(char), 3*numwords, fp);
+  if (count<3*numwords)
   {
     printf("error reading from %s\n", filename);
     fclose(fp);
@@ -88,20 +104,20 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   {
     fclose(fp);
   }
-
+  
   /* convert every thee bytes into one word */
   dat   = mxCreateDoubleMatrix (1, numwords, mxREAL);
   dat_p = mxGetData (dat);
-
-  for (i=0; i<numwords; i++)
+  
+  for (count=0; count<numwords; count++)
   {
-    j = i*3;
-    b1 = (0x000000FF & ((long int)buf[j]));
-    b2 = (0x000000FF & ((long int)buf[j+1]));
-    b3 = (0x000000FF & ((long int)buf[j+2]));
-    dat_p[i] = ((long int) ((b3 << 24) | (b2 << 16) | (b1 << 8)))/256;
+    indx = count*3;
+    b1 = (0x000000FF & ((int32_t)buf[indx  ]));
+    b2 = (0x000000FF & ((int32_t)buf[indx+1]));
+    b3 = (0x000000FF & ((int32_t)buf[indx+2]));
+    dat_p[count] = ((int32_t) ((b3 << 24) | (b2 << 16) | (b1 << 8)))/256;
   }
-
+  
   /* assign the output parameters */
   plhs[0] = dat;
   return;

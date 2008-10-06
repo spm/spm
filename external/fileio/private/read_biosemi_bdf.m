@@ -30,6 +30,9 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_biosemi_bdf.m,v $
+% Revision 1.7  2008/10/06 08:42:17  roboos
+% added missing "end" in subfunction
+%
 % Revision 1.6  2008/10/03 12:20:57  roboos
 % use matlab reading instead of mex file in case file >2GB, thanks to Philip
 %
@@ -219,14 +222,14 @@ else
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % retrieve the original header
   EDF = hdr.orig;
-  
+
   % determine the trial containing the begin and end sample
   epochlength = EDF.Dur * EDF.SampleRate(1);
   begepoch    = floor((begsample-1)/epochlength) + 1;
   endepoch    = floor((endsample-1)/epochlength) + 1;
   nepochs     = endepoch - begepoch + 1;
   nchans      = EDF.NS;
-  
+
   if nargin<5
     chanindx = 1:nchans;
   end
@@ -287,6 +290,7 @@ else
   fclose(fp);
   if (num<numwords)
     error(['failed opening ' filename]);
-  return
+    return
+  end
 end
 
