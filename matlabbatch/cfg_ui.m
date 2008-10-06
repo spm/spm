@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 2277 2008-10-01 11:08:33Z guillaume $
+% $Id: cfg_ui.m 2308 2008-10-06 16:05:26Z volkmar $
 
-rev = '$Rev: 2277 $'; %#ok
+rev = '$Rev: 2308 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -281,6 +281,7 @@ else
     % set cjob, if supplied
     udmodlist = local_init_udmodlist;
     udmodlist(1).cjob = cjob;
+    set(obj,'Visible','on');
 end;
 [id str sts dep sout] = cfg_util('showjob',cjob);
 if isempty(str)

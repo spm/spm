@@ -88,7 +88,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 2286 2008-10-01 18:17:33Z john $
+% $Id: spm_jobman.m 2308 2008-10-06 16:05:26Z volkmar $
 
 
 if nargin==0
@@ -96,29 +96,31 @@ if nargin==0
 else
     cmd = lower(varargin{1});
     if any(strcmp(cmd, {'serial','interactive','run','run_nogui'}))
-        % sort out job/node arguments for interactive, serial, run cmds
-        if nargin>=2 && ~isempty(varargin{2})
-            % do not consider node if job is given
-            if ischar(varargin{2}) || iscellstr(varargin{2})
-                jobs = load_jobs(varargin{2});
-            elseif iscell(varargin{2})
-                if iscell(varargin{2}{1})
-                    % assume varargin{2} is a cell of jobs
-                    jobs = varargin{2};
-                else
-                    % assume varargin{2} is a single job
-                    jobs{1} = varargin{2};
+        if nargin > 1
+            % sort out job/node arguments for interactive, serial, run cmds
+            if nargin>=2 && ~isempty(varargin{2})
+                % do not consider node if job is given
+                if ischar(varargin{2}) || iscellstr(varargin{2})
+                    jobs = load_jobs(varargin{2});
+                elseif iscell(varargin{2})
+                    if iscell(varargin{2}{1})
+                        % assume varargin{2} is a cell of jobs
+                        jobs = varargin{2};
+                    else
+                        % assume varargin{2} is a single job
+                        jobs{1} = varargin{2};
+                    end;
                 end;
+                [mljob comp] = canonicalise_job(jobs);
+            elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
+                % Node spec only allowed for 'interactive', 'serial'
+                arg3       = regexprep(varargin{3},'^spmjobs\.','spm.');
+                mod_cfg_id = cfg_util('tag2mod_cfg_id',arg3);
+            else
+                error('spm:spm_jobman:WrongUI', ...
+                    'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
             end;
-            [mljob comp] = canonicalise_job(jobs);
-        elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
-            % Node spec only allowed for 'interactive', 'serial'
-            arg3       = regexprep(varargin{3},'^spmjobs\.','spm.');
-            mod_cfg_id = cfg_util('tag2mod_cfg_id',arg3);
-        else
-            error('spm:spm_jobman:WrongUI', ...
-                'Don''t know how to handle this ''%s'' call.', lower(varargin{1}));
-        end;
+        end
     end;
     switch cmd
         case 'help'
