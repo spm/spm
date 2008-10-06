@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_filter.m 2301 2008-10-06 12:41:51Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -31,16 +31,16 @@ end
 
 if ischar(D)
     P = spm_str_manip(D, 'H');
+    try
+        D = spm_eeg_load(D);
+    catch
+        error(sprintf('Trouble reading file %s', D));
+    end
 else
     P = D.path;
 end
 
-try
-    D = spm_eeg_load(D);
-catch    
-    error(sprintf('Trouble reading file %s', D));
-end
-    
+
 try
     filter.type = S.filter.type;
 catch
