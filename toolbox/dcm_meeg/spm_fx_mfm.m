@@ -44,7 +44,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2265 2008-09-30 19:22:48Z karl $
+% $Id: spm_fx_mfm.m 2310 2008-10-06 19:20:45Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ C    = exp(P.C);                              % subcortical
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
 SA   = sparse([1 0 1;
-               0 1 1/8;
+               0 1 1;
                0 0 0]);
             
 % intrinsic connection strengths
@@ -102,7 +102,7 @@ catch
 end
                 
  
-% rate constants (ns x np) (excitatory 8ms, inhibitory 16ms)
+% rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
 KE   = exp(-P.T)*1000/4;                     % excitatory time constants
 KI   = 1000/16;                              % inhibitory time constants
@@ -118,7 +118,7 @@ CV   = 8/1000;                               % membrane capacitance
 GL   = 1;                                    % leak conductance
 fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
  
-% mean-field effects
+% mean-field effects: the paramters of the sigmoid activation function
 %==========================================================================
 if mfm
     
@@ -160,6 +160,14 @@ end
 % Exogenous input (to first population x{:,1})
 %--------------------------------------------------------------------------
 U     = C*u;
+
+% Exogenous input (to excitatory populations)
+%--------------------------------------------------------------------------
+try
+    B = exp(P.X)/6;
+catch
+    B = 0;
+end
  
 % flow and dispersion over every (ns x np) subpopulation
 %==========================================================================
@@ -175,9 +183,9 @@ for i = 1:ns
         E = G(i)*GE(j,:)*m(i,:)';
         I =      GI(j,:)*m(i,:)';
         
-        % extrinsic coupling (excitatory only)
+        % extrinsic coupling (excitatory only) and background activity
         %------------------------------------------------------------------
-        E =  E + SA(j,:)*a(i,:)';
+        E =  E + SA(j,:)*a(i,:)' + B;
  
         % Voltage
         %------------------------------------------------------------------

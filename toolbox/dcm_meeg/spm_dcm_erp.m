@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_dcm_erp.m 2310 2008-10-06 19:20:45Z karl $
  
 % check options 
 %==========================================================================
@@ -211,8 +211,7 @@ M.ns  = Ns;
 %--------------------------------------------------------------------------
 if Nc < Nm
     M.E   = speye(Nc);
-end
-if ~isfield(M, 'E')
+else
     dGdg  = spm_diff(M.G,gE,M,1);
     L     = spm_cat(dGdg);
     U     = spm_svd(L*L',exp(-8));
@@ -220,8 +219,6 @@ if ~isfield(M, 'E')
         U = U(:,1:Nm);
     end
     M.E   = U;
-else
-    U = M.E;
 end
 Nm    = size(U,2);
  
@@ -249,12 +246,17 @@ x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
  
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
-j     = find(kron(gE.J,ones(1,Nr)));    % Indices of contributing states
+try
+    j = gE.J;
+catch
+    j = sparse(1,[1 7 9],1);
+end
+j     = find(kron(j,ones(1,Nr)));       % Indices of contributing states
 for i = 1:Nt
-    x{i}  = x{i} - x0;                  % centre on expansion point
-    y{i}  = T0*x{i}*L'*M.E;             % prediction (sensor space)
-    r{i}  = T0*(xY.y{i}*M.E - y{i});    % residuals  (sensor space)
-    x{i}  = x{i}(:,j);                  % Depolarization in sources
+    x{i} = x{i} - x0;                   % centre on expansion point
+    y{i} = x{i}*L'*M.E;                 % prediction (sensor space)
+    r{i} = T0*(xY.y{i}*M.E - y{i});     % residuals  (sensor space)
+    x{i} = x{i}(:,j);                   % Depolarization in sources
 end
  
 

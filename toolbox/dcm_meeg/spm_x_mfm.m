@@ -25,7 +25,7 @@ function [x,M] = spm_x_mfm(P,GE,GI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 1228 2008-03-18 21:28:04Z karl $
+% $Id: spm_x_mfm.m 2310 2008-10-06 19:20:45Z karl $
  
  
 % intrinsic connections (specifying the number of populations per source)
@@ -81,7 +81,7 @@ M.GI  = GI;
 % solve for fixed point 
 %--------------------------------------------------------------------------
 U.u   = sparse(16,1);
-U.dt  = 8/1000;
+U.dt  = 16/1000;
 x     = spm_int_ode(P,M,U);
 x     = spm_unvec(x(end,:),M.x);
 M.x   = x;

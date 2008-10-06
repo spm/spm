@@ -22,7 +22,7 @@ function varargout = spm_api_nmm(varargin)
 
 % Edit the above text to modify the response to help spm_api_nmm
 
-% Last Modified by GUIDE v2.5 30-Sep-2008 19:01:37
+% Last Modified by GUIDE v2.5 01-Oct-2008 19:46:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -88,20 +88,9 @@ DCM.name    = name;
 handles.DCM = DCM;
 set(handles.name,'String',f);
 
-% clear previous objects
+% display priors
 %--------------------------------------------------------------------------
-h = get(gcf,'Children');
-for i = 1:length(h)
-    if strcmp(get(h(i),'Tag'),'tmp')
-        delete(h(i));
-    end
-end
-
-
-% and create new ones
-%--------------------------------------------------------------------------
-handles    = unpack_Callback(hObject, eventdata, handles);
-
+unpack_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
 
 
@@ -137,10 +126,15 @@ guidata(hObject,handles);
 % --- Executes on button press in kernels.
 %--------------------------------------------------------------------------
 function kernels_Callback(hObject, eventdata, handles)
-DCM = handles.DCM;
-M   = DCM.M;
-pst = str2num(get(handles.pst,'String'));
-Hz  = str2num(get(handles.Hz, 'String'));
+DCM   = handles.DCM;
+M     = DCM.M;
+pst   = str2num(get(handles.pst,'String'));
+Hz    = str2num(get(handles.Hz, 'String'));
+
+% initalise states
+%--------------------------------------------------------------------------
+M     = DCM.M;
+M.x   = spm_x_nmm(M.pE);
 
 % Volterra Kernels
 %==========================================================================
@@ -187,13 +181,10 @@ DCM   = handles.DCM;
 pst   = str2num(get(handles.pst,'String'));
 Hz    = str2num(get(handles.Hz, 'String'));
 
-
-% initalise states and model
+% initalise states
 %--------------------------------------------------------------------------
-[x M] = spm_x_nmm(DCM.M.pE);
-M.x   = M.x;
-M.GE  = M.GE;
-M.GI  = M.GI;
+M     = DCM.M;
+M.x   = spm_x_nmm(M.pE);
 
 U.dt  = 4/1000;
 M.ns  = pst/U.dt/1000;
@@ -230,8 +221,28 @@ ylabel('spectral density')
 
 % unpack priors and display
 %==========================================================================
-function handles = unpack_Callback(hObject, eventdata, handles);
+function unpack_Callback(hObject, eventdata, handles);
+
+% clear previous objects
+%--------------------------------------------------------------------------
+h = get(gcf,'Children');
+for i = 1:length(h)
+    if strcmp(get(h(i),'Tag'),'tmp')
+        delete(h(i));
+    end
+end
+
+% get priors
+%--------------------------------------------------------------------------
+try
+    handles.DCM.M.pE;
+catch
+    handles = reset_Callback(hObject, eventdata, handles);
+end
 pE = handles.DCM.M.pE;
+try
+    pE = rmfield(pE,'B');
+end
 
 x0    = 1/8;
 y0    = 1 - 1/8;
@@ -324,6 +335,17 @@ for f = 1:length(F)
 end
 
 
+% --- Executes on button press in reset.
+%--------------------------------------------------------------------------
+function handles = reset_Callback(hObject, eventdata, handles)
+
+% prior moments on parameters
+%--------------------------------------------------------------------------
+DCM              = handles.DCM;
+[pE,gE,pC,gC]    = spm_nmm_priors(DCM.A,DCM.B,DCM.C,DCM.M.dipfit);
+handles.DCM.M.pE = pE;
+guidata(hObject,handles);
+unpack_Callback(hObject, eventdata, handles);
 
 
 

@@ -57,7 +57,7 @@ function [varargout] = spm_sep_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sep_priors.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_sep_priors.m 2310 2008-10-06 19:20:45Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -101,7 +101,6 @@ for i = 1:3
             
     end
 end
- 
  
 % parameters for neural-mass forward model
 %==========================================================================

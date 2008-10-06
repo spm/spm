@@ -40,6 +40,7 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 %--------------------------------------------------------------------------
 %    pE.R    - onset and dispersion
 %    pE.D    - delays
+%    pE.X    - exogenous background activity
 %
 % pC - prior covariances: cov(spm_vec(pE))
 %
@@ -56,7 +57,7 @@ function [varargout] = spm_nmm_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 2265 2008-09-30 19:22:48Z karl $
+% $Id: spm_nmm_priors.m 2310 2008-10-06 19:20:45Z karl $
  
  
 % disable log zero warning
@@ -77,7 +78,7 @@ end
 % contribution of states to ECD; first (voltage) states over 3 populations
 %--------------------------------------------------------------------------
 G.J   = sparse(1,[1,2,3],[0.1 0.1 1],1,9);
-U     = spm_cat(diag({ U, sparse([1,2],[1,2],[1/128 1/512],9,9) }));
+U     = spm_cat(diag({ U, sparse([1,2],[1,2],[1/128 1/128],9,9) }));
  
 
 
@@ -116,11 +117,15 @@ V.C   = C;
  
 % set stimulus parameters: onset and dispersion
 %--------------------------------------------------------------------------
-E.R   = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
+E.R   = sparse(u,2);  V.R  = ones(u,1)*[1/16 1/16];
 
 % and delays (intrinsic and extrinsic)
 %--------------------------------------------------------------------------
 E.D   = [0 0];        V.D  = [1 1]/128;
+
+% Exogenous background activity
+%--------------------------------------------------------------------------
+E.X   = 0;            V.X  = 1/128;
 
 
 warning('on','MATLAB:log:logOfZero');
