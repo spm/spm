@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2255 2008-09-30 15:36:59Z vladimir $
+% $Id: spm_eeg_inv_group.m 2309 2008-10-06 19:19:56Z karl $
 
 
 % check if to proceed
@@ -46,6 +46,8 @@ val   = 1;
 % Load data and set method
 %==========================================================================
 for i = 1:Ns
+    
+    fprintf('%s: subject %i\n','checking for previous inversions',i)
     D{i}                 = spm_eeg_load(deblank(S(i,:)));
     D{i}.val             = 1;
     D{i}.inv{1}.method = 'Imaging';
@@ -69,18 +71,22 @@ end
 % Check for existing forward models and consistent Gain matrices
 %--------------------------------------------------------------------------
 for i = 1:Ns
+    fprintf('%s: subject %i\n','checking for foward models',i)
     try
         L     = spm_eeg_lgainmat(D{i});
-        Nd(i) = size(L,2);                             % number of dipoles
+        Nd(i) = size(L,2);               % number of dipoles
     catch
         Nd(i) = 0;
     end
 end
 
-
 % use template head model where necessary
 %==========================================================================
-NS    = find(Nd ~= 7204);               % subjects to compute forward model
+if max(Nd > 1024);
+    NS = find(Nd ~= max(Nd));            % subjects requiring forward model
+else
+    NS = 1:Ns;
+end
 for i = NS
 
     cd(D{i}.path)

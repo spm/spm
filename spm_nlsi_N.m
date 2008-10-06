@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2209 2008-09-26 18:58:41Z karl $
+% $Id: spm_nlsi_N.m 2309 2008-10-06 19:19:56Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -430,7 +430,7 @@ for ip = 1:64
      
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
-    if F > C.F            
+    if F > C.F
         
         % update gradients and curvature
         %------------------------------------------------------------------

@@ -40,7 +40,7 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_reml_sc.m 2309 2008-10-06 19:19:56Z karl $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ try, N; catch, N  = 1;  end
  
 % default number of iterations
 %--------------------------------------------------------------------------
-try, K; catch, K  = 32; end
+try, K; catch, K  = 64; end
  
 % initialise h
 %--------------------------------------------------------------------------
