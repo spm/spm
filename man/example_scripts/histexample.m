@@ -1,3 +1,5 @@
+spm('defaults','eeg');
+
 S = [];
 S.dataset = 'D:\spm8data\example.bdf';
 S.outfile = 'spm8_example';
