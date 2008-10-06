@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 2080 2008-09-11 11:39:36Z guillaume $
+% $Id: spm_get_ons.m 2306 2008-10-06 15:25:39Z guillaume $
 
 
 %-GUI setup
@@ -246,12 +246,12 @@ for i = 1:v
     ton       = max(ton,1);
     tof       = max(tof,1);
     for j = 1:length(ton)
-        if numel(sf)>ton(j),
+        if size(sf,1) > ton(j)
             sf(ton(j),:) = sf(ton(j),:) + u(j,:);
-        end;
-        if numel(sf)>tof(j),
+        end
+        if size(sf,1) > tof(j)
             sf(tof(j),:) = sf(tof(j),:) - u(j,:);
-        end;
+        end
     end
     sf        = cumsum(sf);                 % integrate
     sf        = sf(1:(k*T + 32),:);             % stimulus
