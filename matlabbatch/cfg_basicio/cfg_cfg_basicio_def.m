@@ -5,7 +5,7 @@ function cfg_basicio_def = cfg_cfg_basicio_def
 % menu items and provides a full documentation of all fields that may
 % be present in a job variable for this application.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-05-29 00:44:54.
+% Created at 2008-10-06 15:14:45.
 cfg_basicio_def.file_move.files = '<UNDEFINED>';
 cfg_basicio_def.file_move.action.moveto = '<UNDEFINED>';
 cfg_basicio_def.file_move.action.copyto = '<UNDEFINED>';

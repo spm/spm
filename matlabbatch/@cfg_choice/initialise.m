@@ -21,14 +21,16 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 2101 2008-09-16 13:56:26Z volkmar $
+% $Id: initialise.m 2305 2008-10-06 13:38:49Z volkmar $
 
-rev = '$Rev: 2101 $'; %#ok
+rev = '$Rev: 2305 $'; %#ok
 
 if strcmp(val,'<DEFAULTS>')
     item = initialise_def(item, val, dflag);
 elseif isstruct(val)
     item = initialise_job(item, val, dflag);
+elseif iscell(val) && numel(val) == 1 && isstruct(val{1})
+    item = initialise_job(item, val{1}, dflag);
 else
     cfg_message('matlabbatch:initialise', ...
                 'Can not initialise %s: job is not a struct.', ...

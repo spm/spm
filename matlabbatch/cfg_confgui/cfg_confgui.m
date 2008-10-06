@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 1913 2008-07-14 14:35:43Z volkmar $
+% $Id: cfg_confgui.m 2305 2008-10-06 13:38:49Z volkmar $
 
-rev = '$Rev: 1913 $'; %#ok
+rev = '$Rev: 2305 $'; %#ok
 
 %% Declaration of fields
 
@@ -692,7 +692,7 @@ if islogical(varargin{1}.gencode_opts.gencode_o_def) && varargin{1}.gencode_opts
 end
 if islogical(varargin{1}.gencode_opts.gencode_o_mlb) && varargin{1}.gencode_opts.gencode_o_mlb
     vout(end+1)            = cfg_dep;
-    vout(end+1).sname      = 'Generated Initialisation File';
-    vout(end+1).src_output = substruct('.', 'mlb_file');
-    vout(end+1).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
+    vout(end).sname      = 'Generated Initialisation File';
+    vout(end).src_output = substruct('.', 'mlb_file');
+    vout(end).tgt_spec   = cfg_findspec({{'class','cfg_files','strtype','e'}});
 end

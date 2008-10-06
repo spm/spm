@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2008-05-29 00:44:53.
+% Created at 2008-10-06 15:14:45.
 % ---------------------------------------------------------------------
 % files Files to move/copy/delete
 % ---------------------------------------------------------------------
@@ -76,7 +76,7 @@ patrep.val     = {pattern repl };
 patreplist         = cfg_repeat;
 patreplist.tag     = 'patreplist';
 patreplist.name    = 'Pattern/Replacement List';
-patreplist.help    = {'Regexprep supports a list of multiple patterns and corresponding replacements. These will be applied to the filenames one after another. E.g., if your filename is ''testimage.nii'', and you replace ''test'' with ''xyz'' and ''xyzim'' with ''newtestim'', the final filename will be ''newtestimage.nii''.'};
+patreplist.help    = {'Regexprep supports a list of multiple patterns and corresponding replacements. These will be applied to the filename portion (without path, without extension) one after another. E.g., if your filename is ''testimage(.nii)'', and you replace ''test'' with ''xyz'' and ''xyzim'' with ''newtestim'', the final filename will be ''newtestimage.nii''.'};
 patreplist.values  = {patrep };
 patreplist.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -88,13 +88,15 @@ unique.name    = 'Unique Filenames';
 unique.help    = {
                   'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
                   'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
-}';
+                  }';
 unique.labels = {
                  'Don''t Care'
                  'Append Index Number'
-}';
-unique.values{1} = false;
-unique.values{2} = true;
+                 }';
+unique.values = {
+                 false
+                 true
+                 }';
 % ---------------------------------------------------------------------
 % moveren Move and Rename
 % ---------------------------------------------------------------------
@@ -102,7 +104,7 @@ moveren         = cfg_branch;
 moveren.tag     = 'moveren';
 moveren.name    = 'Move and Rename';
 moveren.val     = {moveto1 patreplist unique };
-moveren.help    = {'The input files will be moved to the specified target folder. In addition, their filenames will be changed by replacing regular expression patterns using MATLABs regexprep function. Please consult MATLAB help and HTML documentation for how to specify regular expressions.'};
+moveren.help    = {'The input files will be moved to the specified target folder. In addition, their filenames (not paths, not extensions) will be changed by replacing regular expression patterns using MATLABs regexprep function. Please consult MATLAB help and HTML documentation for how to specify regular expressions.'};
 % ---------------------------------------------------------------------
 % copyto Copy to
 % ---------------------------------------------------------------------
@@ -144,7 +146,7 @@ patrep.val     = {pattern repl };
 patreplist         = cfg_repeat;
 patreplist.tag     = 'patreplist';
 patreplist.name    = 'Pattern/Replacement List';
-patreplist.help    = {'Regexprep supports a list of multiple patterns and corresponding replacements. These will be applied to the filenames one after another. E.g., if your filename is ''testimage.nii'', and you replace ''test'' with ''xyz'' and ''xyzim'' with ''newtestim'', the final filename will be ''newtestimage.nii''.'};
+patreplist.help    = {'Regexprep supports a list of multiple patterns and corresponding replacements. These will be applied to the filename portion (without path, without extension) one after another. E.g., if your filename is ''testimage(.nii)'', and you replace ''test'' with ''xyz'' and ''xyzim'' with ''newtestim'', the final filename will be ''newtestimage.nii''.'};
 patreplist.values  = {patrep };
 patreplist.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -156,13 +158,15 @@ unique.name    = 'Unique Filenames';
 unique.help    = {
                   'If the regexprep operation results in identical output filenames for two or more input files, these can not be written/renamed to their new location without loosing data. If you are sure that your regexprep patterns produce unique filenames, you do not need to care about this.'
                   'If you choose to append a running number, it will be zero-padded to make sure alphabetical sort of filenames returns them in the same order as the input files are.'
-}';
+                  }';
 unique.labels = {
                  'Don''t Care'
                  'Append Index Number'
-}';
-unique.values{1} = false;
-unique.values{2} = true;
+                 }';
+unique.values = {
+                 false
+                 true
+                 }';
 % ---------------------------------------------------------------------
 % copyren Copy and Rename
 % ---------------------------------------------------------------------
@@ -170,7 +174,7 @@ copyren         = cfg_branch;
 copyren.tag     = 'copyren';
 copyren.name    = 'Copy and Rename';
 copyren.val     = {copyto1 patreplist unique };
-copyren.help    = {'The input files will be copied to the specified target folder. In addition, their filenames will be changed by replacing regular expression patterns using MATLABs regexprep function. Please consult MATLAB help and HTML documentation for how to specify regular expressions.'};
+copyren.help    = {'The input files will be copied to the specified target folder. In addition, their filenames (not paths, not extensions) will be changed by replacing regular expression patterns using MATLABs regexprep function. Please consult MATLAB help and HTML documentation for how to specify regular expressions.'};
 % ---------------------------------------------------------------------
 % delete Delete
 % ---------------------------------------------------------------------
@@ -319,7 +323,7 @@ cfg_named_file.val     = {name files };
 cfg_named_file.help    = {
                           'Named File Selector allows to select sets of files that can be referenced as common input by other modules.'
                           'In addition to file outputs, an index vector is provided that can be used to separate the files again using ''File Set Split'' module. This can be useful if the same sets of files have to be processed separately in one module and as a single set in another.'
-}';
+                          }';
 cfg_named_file.prog = @cfg_run_named_file;
 cfg_named_file.vout = @cfg_vout_named_file;
 % ---------------------------------------------------------------------
@@ -426,7 +430,7 @@ index.name    = 'Selection Index';
 index.help    = {
                  'Enter the index vector of files belonging to this set. E.g. to select files 1 to 10 from the input file set, enter [1:10].'
                  'To split the combined list of all files selected by a "Named File Selector", enter the index vectors here as dependency.'
-}';
+                 }';
 index.strtype = 'n';
 index.num     = [1  Inf];
 % ---------------------------------------------------------------------
@@ -448,7 +452,7 @@ cfg_file_split.val     = {name files filesets };
 cfg_file_split.help    = {
                           'Split a list of files into multiple parts.'
                           'With this utility, a list of files can be split into parts based on index vectors. Each index vector is a list of numbers where number N selects the Nth file from the input list. Index vectors may overlap, so files may belong to more than one part. Files not matching any index will be returned in a separate list. If an index is larger than the number of files passed it will be ignored.'
-}';
+                          }';
 cfg_file_split.prog = @cfg_run_file_split;
 cfg_file_split.vout = @cfg_vout_file_split;
 % ---------------------------------------------------------------------
@@ -544,9 +548,11 @@ saveasstruct.help    = {'Variables can be saved into the file individually or as
 saveasstruct.labels = {
                        'Individual Variables'
                        'Struct Variable'
-}';
-saveasstruct.values{1} = false;
-saveasstruct.values{2} = true;
+                       }';
+saveasstruct.values = {
+                       false
+                       true
+                       }';
 % ---------------------------------------------------------------------
 % cfg_save_vars Save Variables
 % ---------------------------------------------------------------------
@@ -586,7 +592,7 @@ cfg_assignin.val     = {name output };
 cfg_assignin.help    = {
                         'Assign a computation result to a workspace variable.'
                         'The value entered into "Output Item" will be assigned to a MATLAB workspace variable whose name is specified in "Output Variable Name". This can be useful to assess the results of computations with other MATLAB routines or for debugging.'
-}';
+                        }';
 cfg_assignin.prog = @cfg_run_assignin;
 % ---------------------------------------------------------------------
 % jobs Job File(s)
@@ -726,11 +732,11 @@ missing.help    = {'Jobs with missing inputs (e.g. because of wrong input conten
 missing.labels = {
                   'Skip jobs with missing inputs, run filled jobs'
                   'Don''t run any jobs if missing inputs'
-}';
+                  }';
 missing.values = {
                   'skip'
                   'error'
-}';
+                  }';
 % ---------------------------------------------------------------------
 % runjobs Run Batch Jobs
 % ---------------------------------------------------------------------
@@ -744,10 +750,12 @@ runjobs.vout = @cfg_vout_runjobs;
 % ---------------------------------------------------------------------
 % cfg_basicio BasicIO
 % ---------------------------------------------------------------------
-cfg_basicio         = cfg_repeat;
+cfg_basicio         = cfg_choice;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
 cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input cfg_save_vars cfg_assignin runjobs };
-cfg_basicio.num     = [0 Inf];
-cfg_basicio.forcestruct = true;
+% ---------------------------------------------------------------------
+% add path to this mfile
+% ---------------------------------------------------------------------
+addpath(fileparts(mfilename('fullpath')));
