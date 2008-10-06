@@ -9,7 +9,7 @@ function out = spm_run_normalise_estwrite(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_normalise_estwrite.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_normalise_estwrite.m 2299 2008-10-06 08:11:02Z christophe $
 
 job    = varargin{1};
 o      = job.eoptions;
@@ -34,7 +34,7 @@ for i=1:length(job.subj),
     out(i).params{1}  = fullfile(pth,[nam,'_sn.mat']);
     spm_normalise(strvcat(job.eoptions.template{:}),...
         strvcat(job.subj(i).source{:}), out(i).params{1},...
-        strvcat(job.eoptions.weight{:}), strvcat(job.subj(i).wtsrc{:}), eflags);
+        strvcat(job.eoptions.weight), strvcat(job.subj(i).wtsrc), eflags);
     spm_write_sn(strvcat(job.subj(i).resample{:}), out(i).params{1}, rflags);
     for j=1:length(job.subj(i).resample),
         [pth,nam,ext,num] = spm_fileparts(job.subj(i).resample{j});
