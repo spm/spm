@@ -28,6 +28,9 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.6  2008/10/07 07:53:05  roboos
+ * replaced fseek with fseeko, which I had forgotten to fix yesterday
+ *
  * Revision 1.5  2008/10/06 09:25:24  roboos
  * changed from long int to off_t and included stdint for uint32_t and uint64_t
  * this should allow the mex file also to work on large filed (>2GB) on supported platforms
@@ -90,7 +93,7 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
     printf("error opening file: %s\n", filename);
     return;
   }
-  fseek(fp, offset, SEEK_SET);
+  fseeko(fp, offset, SEEK_SET);
   
   buf   = mxCalloc(3*numwords, sizeof(char));
   count = fread(buf, sizeof(char), 3*numwords, fp);
