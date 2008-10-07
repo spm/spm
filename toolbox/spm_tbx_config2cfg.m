@@ -10,11 +10,9 @@ function spm_tbx_config2cfg(c0)
 %
 % Both files should be placed in the root directory of the toolbox
 % instead of the old config file. They will be picked up during spm
-% initialisation by spm_cfg.m/spm_def.m.
+% initialisation by spm_cfg.m.
 % The full subscript reference path will become 
-% spmjobs{}.tools{}.<toolboxtag> in the configuration tree and
-% spmjobs.tools.<toolboxtag> in the internal defaults structure used to
-% initialise the configuration.
+% spm.tools.<toolboxtag> in the configuration tree.
 %
 % CAVE: No code is generated for subfunctions that are present in the old
 % config file. This code has to be transferred manually. A transition
@@ -24,40 +22,75 @@ function spm_tbx_config2cfg(c0)
 %   multiple results)
 % - a .vout callback to describe subscript references into this output
 %   variable for each individual output.
+%
+% Note that it is no longer possible to open a non-cfg_exbranch node in the
+% GUI. In SPM5, a call like
+% spm_jobman('interactive','','tools.vgtbx_Volumes')
+% would have opened the top level choice for the Volumes toolbox. In SPM8,
+% this call will generate a warning and open the GUI with an empty job.
+% Users then have to select the tools from the "SPM->Tools" menu.
+% If one wants to open a dummy job consisting of more than one module in
+% a toolbox, one could use code like this
+%
+% % Generate dummy job with default settings for estimate/write
+% % The struct([]) is necessary to avoid a warning during initialisation 
+% j{1}.spm.spatial.realign.estimate = struct([]);
+% j{2}.spm.spatial.realign.write = struct([]);
+% % Load this job into spm_jobman
+% spm_jobman('interactive',j)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_tbx_config2cfg.m 1374 2008-04-11 14:36:35Z volkmar $
+% $Id: spm_tbx_config2cfg.m 2311 2008-10-07 11:02:00Z volkmar $
 
 % Convert to cfg_ tree. This will produce warnings if some elements could
 % not be converted properly.
 c = cfg_struct2cfg(c0);
+tag = gettag(c);
+cfgname = sprintf('tbx_cfg_%s', tag);
+defname = sprintf('tbx_def_%s', tag);
+[c defaults] = val2def(c, [], defname, '');
 
 % generate code for configuration
-[cstr tag] = gencode(c,'',{},'',cfg_tropts(cfg_findspec, 0, Inf, 0, Inf, true));
-cfgname = sprintf('tbx_cfg_%s', tag);
+cstr = gencode(c,'',{},'',cfg_tropts(cfg_findspec, 0, Inf, 0, Inf, true));
 fid = fopen(sprintf('%s.m', cfgname),'w');
 fprintf(fid, 'function %s = %s\n', tag, cfgname);
 fprintf(fid, ...
         '%% MATLABBATCH Configuration file for toolbox ''%s''\n', c.name);
 fprintf(fid, ...
-        '%% This code has been automatically generated.\n', c.name);
+        '%% This code has been automatically generated.\n');
 fprintf(fid, '%s\n', cstr{:});
 fclose(fid);
 
-% harvest defaults
-[u1 d] = harvest(c,c,true,false);
 % generate code for defaults
-dstr = gencode(d, tag);
-defname = sprintf('tbx_def_%s', tag);
+
+dstr = gencode(defaults);
 fid = fopen(sprintf('%s.m', defname),'w');
-fprintf(fid, 'function varargout = %s\n', defname);
+% function head
+fprintf(fid, 'function varargout = %s(defstr, defval)\n', defname);
 fprintf(fid, ...
-        '%% MATLABBATCH Defaults file for toolbox ''%s''\n', c.name);
+    '%% MATLABBATCH Defaults file for toolbox ''%s''\n', c.name);
 fprintf(fid, ...
-        '%% This code has been automatically generated.\n', c.name);
-fprintf(fid, '%s\n', dstr{:});
-fprintf(fid, 'varargout{1} = %s;\n', tag);
-fprintf(fid, 'varargout{2} = ''%s'';\n', tag);
+    '%% This code has been automatically generated.\n\n');
+% declaration of defaults variable
+fprintf(fid, ...
+    'persistent defaults;\n');
+fprintf(fid, ...
+    'if isempty(defaults)\n');
+fprintf(fid, ...
+    '    %s\n', dstr{:});
+fprintf(fid, ...
+    'end\n');
+% code to get/set defaults
+fprintf(fid, ...
+    'if nargin == 1\n');
+fprintf(fid, ...
+    '    [un varargout{1}] = evalc([''defaults.'' defstr '';'']);\n');
+fprintf(fid, ...
+    'else\n');
+fprintf(fid, ...
+    '    evalc([''defaults.'' defstr '' = defval;'']);\n');
+fprintf(fid, ...
+    'end\n');
 fclose(fid);
