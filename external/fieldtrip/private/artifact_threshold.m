@@ -1,9 +1,14 @@
-function [cfg, artifact] = artifact_threshold(cfg)
+function [cfg, artifact] = artifact_threshold(cfg,data)
 
 % ARTIFACT_THRESHOLD scans for trials in which the range, i.e. the minimum,
 % the maximum or the range (min-max difference) of the signal in any
-% channel exceeds a specified threshold. 
-% 
+% channel exceeds a specified threshold.
+%
+% use as:
+%   [cfg, artifact] = artifact_threshold(cfg)
+% or
+%   [cfg, artifact] = artifact_threshold(cfg, data)
+%
 % The following configuration options can be specified
 %   cfg.artfctdef.threshold.channel	  = cell-array with channel labels
 %   cfg.artfctdef.threshold.bpfilter  = 'no' or 'yes'
@@ -22,44 +27,15 @@ function [cfg, artifact] = artifact_threshold(cfg)
 %
 % See also REJECTARTIFACT
 
-% Undocumented local options
-% cfg.trl
-%
-% This function depends on PREPROC which has the following options:
-% cfg.absdiff
-% cfg.blc
-% cfg.blcwindow
-% cfg.boxcar
-% cfg.bpfilter in ARTIFACT_THRESHOLD as cfg.artfctdef.threshold.bpfilter default = 'yes', documented
-% cfg.bpfiltord in ARTIFACT_THRESHOLD as cfg.artfctdef.threshold.bpfiltord default = 4, documented
-% cfg.bpfilttype
-% cfg.bpfreq in ARTIFACT_THRESHOLD as cfg.artfctdef.threshold.bpfreq default = [0.3 30], documented
-% cfg.derivative
-% cfg.detrend
-% cfg.dftfilter
-% cfg.dftfreq
-% cfg.hilbert
-% cfg.hpfilter
-% cfg.hpfiltord
-% cfg.hpfilttype
-% cfg.hpfreq
-% cfg.implicitref
-% cfg.lnfilter
-% cfg.lnfiltord
-% cfg.lnfreq
-% cfg.lpfilter
-% cfg.lpfiltord
-% cfg.lpfilttype
-% cfg.lpfreq
-% cfg.medianfilter
-% cfg.medianfiltord
-% cfg.rectify
-% cfg.refchannel
-% cfg.reref
-
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.22  2008/10/07 16:15:30  estmee
+% Added data as second intput argument to artifact_threshold and changed trllop in trlop several times.
+%
+% Revision 1.21  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.20  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -158,7 +134,13 @@ end
 
 % read the header
 cfg = dataset2files(cfg);
-hdr = read_header(cfg.headerfile);
+if nargin == 1
+  isfetch = 0;
+  hdr = read_header(cfg.headerfile);
+elseif nargin == 2
+  isfetch = 1;
+  hdr = fetch_header(data)
+end
 
 % get the remaining settings
 numtrl      = size(cfg.trl,1);
@@ -166,25 +148,29 @@ channel     = channelselection(artfctdef.channel, hdr.label);
 channelindx = match_str(hdr.label,channel);
 artifact    = [];
 
-for trllop = 1:numtrl
-  dat = read_data(cfg.datafile, hdr, cfg.trl(trllop,1), cfg.trl(trllop,2), channelindx, iscontinuous);
-  dat = preproc(dat, channel, hdr.Fs, artfctdef, cfg.trl(trllop,3));
+for trlop = 1:numtrl
+  if isfetch
+    dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', ~iscontinuous);
+  else
+    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', ~iscontinuous);
+  end
+  dat = preproc(dat, channel, hdr.Fs, artfctdef, cfg.trl(trlop,3));
   % compute the min, max and range over all channels and samples
   minval   = min(dat(:));
   maxval   = max(dat(:));
   rangeval = maxval-minval;
   % test the min, max and range against the specified thresholds
   if ~isempty(artfctdef.min) && minval<artfctdef.min
-    fprintf('threshold artifact scanning: trial %d from %d exceeds min-threshold\n', trllop, numtrl);
-    artifact(end+1,1:2) = cfg.trl(trllop,1:2);
+    fprintf('threshold artifact scanning: trial %d from %d exceeds min-threshold\n', trlop, numtrl);
+    artifact(end+1,1:2) = cfg.trl(trlop,1:2);
   elseif ~isempty(artfctdef.max) && maxval>artfctdef.max
-    fprintf('threshold artifact scanning: trial %d from %d exceeds max-threshold\n', trllop, numtrl);    
-    artifact(end+1,1:2) = cfg.trl(trllop,1:2);
+    fprintf('threshold artifact scanning: trial %d from %d exceeds max-threshold\n', trlop, numtrl);
+    artifact(end+1,1:2) = cfg.trl(trlop,1:2);
   elseif ~isempty(artfctdef.range) && rangeval>artfctdef.range
-    fprintf('threshold artifact scanning: trial %d from %d exceeds range-threshold\n', trllop, numtrl);    
-    artifact(end+1,1:2) = cfg.trl(trllop,1:2);
+    fprintf('threshold artifact scanning: trial %d from %d exceeds range-threshold\n', trlop, numtrl);
+    artifact(end+1,1:2) = cfg.trl(trlop,1:2);
   else
-    fprintf('threshold artifact scanning: trial %d from %d is ok\n', trllop, numtrl);  
+    fprintf('threshold artifact scanning: trial %d from %d is ok\n', trlop, numtrl);
   end
 end
 
@@ -203,5 +189,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.20 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.22 2008/10/07 16:15:30 estmee Exp $';
 

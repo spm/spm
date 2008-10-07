@@ -1,18 +1,29 @@
-function [cfg, artifact] = artifact_muscle(cfg)
+function [cfg, artifact] = artifact_muscle(cfg,data)
 
 % ARTIFACT_MUSCLE reads the data segments of interest from file and
 % identifies muscle artifacts.
 %
 % Use as
 %   [cfg, artifact] = artifact_muscle(cfg)
-% where the configuration structure should contain
-%   cfg.trl = structure that defines the data segments of interest. See DEFINETRIAL
+% or
+%   [cfg, artifact] = artifact_muscle(cfg, data)
+%
+% % If you are calling ARTIFACT_MUSCLE with only the configuration as first
+% input argument and the data still has to be read from file, you should
+% specify:
 %   cfg.dataset    = string, name of the dataset
 % or, instead of cfg.dataset
 %   cfg.datafile   = string
 %   cfg.headerfile = string
 %
-% The raw data is preprocessed with the following configuration parameters,
+% If you are calling ARTIFACT_MUSCLE with also the second input argument
+% "data", then that should contain data that was already read from file in
+% a call to PREPROCESSING.
+%
+% Always specify:
+%   cfg.trl        = structure that defines the data segments of interest. See DEFINETRIAL
+%
+% The data is preprocessed (again) with the following configuration parameters,
 % which are optimal for identifying muscle artifacts:
 %   cfg.artfctdef.muscle.bpfilter    = 'yes'
 %   cfg.artfctdef.muscle.bpfreq      = [110 140]
@@ -35,23 +46,20 @@ function [cfg, artifact] = artifact_muscle(cfg)
 % endsamples of the artifactperiods.
 %
 % See also ARTIFACT_ZVALUE, REJECTARTIFACT
-  
+
 % Undocumented local options:
 % cfg.datatype
 % cfg.method
-%
-% This function depends on ARTIFACT_ZVALUE which has the following options:
-% cfg.artfctdef.zvalue.channel in ARTIFACT_MUSCLE as cfg.artfctdef.muscle.channel default = 'MEG', documented
-% cfg.artfctdef.zvalue.cutoff in ARTIFACT_MUSCLE as cfg.artfctdef.muscle.cutoff default = 4, documented
-% cfg.artfctdef.zvalue.trlpadding in ARTIFACT_MUSCLE as cfg.artfctdef.muscle.trlpadding default = 0.1, documented
-% cfg.artfctdef.zvalue.fltpadding in ARTIFACT_MUSCLE as cfg.artfctdef.muscle.fltpadding default = 0.1, documented
-% cfg.artfctdef.zvalue.artpadding in ARTIFACT_MUSCLE as cfg.artfctdef.muscle.artpadding default = 0.1, documented
-% cfg.artfctdef.zvalue.feedback
-
 
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.24  2008/10/07 16:12:31  estmee
+% Added data as second input argument to artifact_muscle itself and to the way is calls artifact_zvalue.
+%
+% Revision 1.23  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.22  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -145,7 +153,7 @@ if strcmp(cfg.artfctdef.muscle.method, 'zvalue')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
-  [tmpcfg, artifact]  = artifact_zvalue(tmpcfg);
+  [tmpcfg, artifact]  = artifact_zvalue(tmpcfg,data);
   cfg.artfctdef.muscle = tmpcfg.artfctdef.zvalue;
 else
   error(sprintf('muscle artifact detection only works with cfg.method=''zvalue'''));

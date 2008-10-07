@@ -1,18 +1,18 @@
 function [cfg, artifact] = artifact_file(cfg);
 
 % ARTIFACT_FILE reads rejection marks from a file
-% 
+%
+% Use as
+%   [cfg, artifact] = arifact_file(cfg)
+%
 % See also REJECTARTIFACT
-
-% Undocumented local options:
-% cfg.artfctdef
-% cfg.headerfile
-% cfg.rejectfile
-% cfg.trl
 
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.13  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.12  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -90,5 +90,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.12 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: artifact_file.m,v 1.13 2008/10/07 08:58:51 roboos Exp $';
 

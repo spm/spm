@@ -1,18 +1,29 @@
-function [cfg, artifact] = artifact_eog(cfg)
+function [cfg, artifact] = artifact_eog(cfg,data)
 
 % ARTIFACT_EOG reads the data segments of interest from file and
 % identifies EOG artifacts.
 %
 % Use as
 %   [cfg, artifact] = artifact_eog(cfg)
-% where the configuration structure should contain
-%   cfg.trl        = structure that defines the data segments of interest. See DEFINETRIAL
+% or
+%   [cfg, artifact] = artifact_eog(cfg, data)
+%
+% If you are calling ARTIFACT_EOG with only the configuration as first
+% input argument and the data still has to be read from file, you should
+% specify:
 %   cfg.dataset    = string, name of the dataset
 % or, instead of cfg.dataset
 %   cfg.datafile   = string
 %   cfg.headerfile = string
 %
-% The raw data is preprocessed with the following configuration parameters,
+% If you are calling ARTIFACT_EOG with also the second input argument
+% "data", then that should contain data that was already read from file in
+% a call to PREPROCESSING.
+%
+% Always specify:
+%   cfg.trl        = structure that defines the data segments of interest. See DEFINETRIAL
+%
+% The data is preprocessed (again) with the following configuration parameters,
 % which are optimal for identifying EOG artifacts:
 %   cfg.artfctdef.eog.bpfilter   = 'yes'
 %   cfg.artfctdef.eog.bpfilttype = 'but'
@@ -31,25 +42,23 @@ function [cfg, artifact] = artifact_eog(cfg)
 % The output argument "artifact" is a Nx2 matrix comparable to the
 % "trl" matrix of DEFINETRIAL. The first column of which specifying the
 % beginsamples of an artifact period, the second column contains the
-% endsamples of the artifactperiods. 
+% endsamples of the artifactperiods.
 %
 % See also ARTIFACT_ZVALUE, REJECTARTIFACT
 
 % Undocumented local options
 % cfg.datatype
 % cfg.method
-%
-% This function depends on ARTIFACT_ZVALUE which has the following options:
-% cfg.artfctdef.zvalue.channel in ARTIFACT_EOG as cfg.artfctdef.eog.channel default = 'EOG', documented
-% cfg.artfctdef.zvalue.cutoff in ARTIFACT_EOG as cfg.artfctdef.eog.cutoff default = 4, documented
-% cfg.artfctdef.zvalue.trlpadding in ARTIFACT_EOG as cfg.artfctdef.eog.trlpadding default = 0.1, documented
-% cfg.artfctdef.zvalue.fltpadding in ARTIFACT_EOG as cfg.artfctdef.eog.fltpadding default = 0.1, documented
-% cfg.artfctdef.zvalue.artpadding in ARTIFACT_EOG as cfg.artfctdef.eog.artpadding default = 0.1, documented
-% cfg.artfctdef.zvalue.feedback
 
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_eog.m,v $
+% Revision 1.28  2008/10/07 16:11:08  estmee
+% Added data as second input argument to artifact_eog itself and to the way it calls artifact_zvalue.
+%
+% Revision 1.27  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.26  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -115,7 +124,7 @@ if strcmp(cfg.artfctdef.eog.method, 'zvalue')
     cfg.artfctdef.eog.trlpadding   = cfg.artfctdef.eog.padding;
     cfg.artfctdef.eog = rmfield(cfg.artfctdef.eog,'padding');
   end
-  % settings for preprocessing                                                           
+  % settings for preprocessing
   if ~isfield(cfg.artfctdef.eog,'bpfilter'),   cfg.artfctdef.eog.bpfilter   = 'yes';     end
   if ~isfield(cfg.artfctdef.eog,'bpfilttype'), cfg.artfctdef.eog.bpfilttype = 'but';     end
   if ~isfield(cfg.artfctdef.eog,'bpfreq'),     cfg.artfctdef.eog.bpfreq     = [1 15];    end
@@ -138,7 +147,7 @@ if strcmp(cfg.artfctdef.eog.method, 'zvalue')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
-  [tmpcfg, artifact] = artifact_zvalue(tmpcfg);
+  [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);
   cfg.artfctdef.eog  = tmpcfg.artfctdef.zvalue;
 else
   error(sprintf('EOG artifact detection only works with cfg.method=''zvalue'''));

@@ -41,6 +41,12 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.19  2008/10/07 16:08:11  estmee
+% Changed the way fetch_data is called.
+%
+% Revision 1.18  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.17  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -229,62 +235,20 @@ elseif ~isempty(cfg.trl)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % select new trials from the existing data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  dataold=data;
+  clear data        % this line is very important! without this line artifacts are not removed from the data but you don't get a warning!
 
-  dataold = data;
-  trl     = cfg.trl;
+  % make header
+  hdr=fetch_header(dataold);
 
-  numtrlold    = size(trlold,1);
-  numtrlnew    = size(   trl,1);
-  maxsampleold = max(trlold(:,2));
-  maxsamplenew = max(   trl(:,1));
-
-  % these are for bookkeeping
-  count     = zeros(1, maxsampleold);
-  trialnum  = NaN(1, maxsampleold);
-  samplenum = NaN(1, maxsampleold);
-
-  for i=1:numtrlold
-    % make vector with 0= no sample of old data, 1= one sample of old data, 2= two samples of old data, etc
-    count(trlold(i,1):trlold(i,2)) = count(trlold(i,1):trlold(i,2))+1;
-
-    % make vector with 1's if samples belong to trial 1, 2's if samples belong to trial 2 etc. overlap/ no data --> Nan
-    trialnum(trlold(i,1):trlold(i,2))=i;
-
-    % make samplenum vector with samplenrs for each sample in the old trials
-    trllength = trlold(i,2) - trlold(i,1) + 1;
-    samplenum(trlold(i,1):trlold(i,2)) = 1:trllength;
+  % make new data structure
+  for iTrl=1:length(cfg.trl(:,1))
+    dat= fetch_data(dataold, 'hdr',hdr,'begsample', cfg.trl(iTrl,1),'endsample', cfg.trl(iTrl,2),'chanindx', 1:hdr.nChans);
+    data.trial{iTrl}=dat;
+    trllength=cfg.trl(iTrl,2)-cfg.trl(iTrl,1);
+    data.time{iTrl}=offset2time(cfg.trl(iTrl,3), dataold.fsample, trllength);
   end
-
-  % overlap is not supported
-  trialnum(count>1)  = NaN;
-  samplenum(count>1) = NaN;
-
-  % in the available vector 1 means that sample is available and 0 means that sample is not available
-  available = (samplenum>=1);
-
-  if length(available)<maxsamplenew
-    error('the requested data extends beyond the end of the available preprocessed data')
-  end
-
-  for i=1:numtrlnew
-    % check if all samples in trl are present, are not present, or are present twice or more
-    if ~all(available(trl(i,1):trl(i,2)))
-      error('not all samples present/ samples are twice or more times present in preprocessed data');
-    end
-
-    trllength         = trl(i,2) - trl(i,1) + 1; % aantal samples in de trl
-    data.trial{i}  = zeros(length(dataold.label), trllength);
-    data.time{i}   = offset2time(trl(i,3), dataold.fsample, trllength);
-
-    % fill in the new data
-    a = 1;
-    for b=trl(i,1):trl(i,2);
-      data.trial{i}(:,a) = dataold.trial{trialnum(b)}(:,samplenum(b));
-      a = a + 1;
-    end
-  end
-
-  % add the remaining fields to the data structure
+  data.hdr=hdr;
   data.label     = dataold.label;
   if isfield(dataold, 'grad')
     data.grad      = dataold.grad;
@@ -292,7 +256,6 @@ elseif ~isempty(cfg.trl)
   if isfield(dataold, 'elec')
     data.elec      = dataold.elec;
   end
-
 end % processing the realignment or data selection
 
 if ~isempty(cfg.minlength)
@@ -328,7 +291,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.17 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.19 2008/10/07 16:08:11 estmee Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

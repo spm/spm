@@ -1,18 +1,29 @@
-function [cfg, artifact] = artifact_jump(cfg)
+function [cfg, artifact] = artifact_jump(cfg,data)
 
-% ARTIFACT_JUMP reads the data segments of interest from file and
-% identifies SQUID jump artifacts.
+% ARTIFACT_JUMP reads the data segments of interest from file and identifies 
+% SQUID jump artifacts.
 %
 % Use as
 %   [cfg, artifact] = artifact_jump(cfg)
-% where the configuration structure should contain
-%   cfg.trl = structure that defines the data segments of interest. See DEFINETRIAL
+% or
+%   [cfg, artifact] = artifact_jump(cfg, data)
+%
+% If you are calling ARTIFACT_JUMP with only the configuration as first
+% input argument and the data still has to be read from file, you should
+% specify:
 %   cfg.dataset    = string, name of the dataset
 % or, instead of cfg.dataset
 %   cfg.datafile   = string
 %   cfg.headerfile = string
 %
-% The raw data is preprocessed with the following configuration parameters,
+% If you are calling ARTIFACT_JUMP with also the second input argument
+% "data", then that should contain data that was already read from file in
+% a call to PREPROCESSING.
+%
+% Always specify:
+%   cfg.trl        = structure that defines the data segments of interest. See DEFINETRIAL
+%
+% The data is preprocessed (again) with the following configuration parameters,
 % which are optimal for identifying jump artifacts:
 %   cfg.artfctdef.jump.medianfilter  = 'yes'
 %   cfg.artfctdef.jump.medianfiltord = 9
@@ -35,18 +46,16 @@ function [cfg, artifact] = artifact_jump(cfg)
 % Undocumented local options:
 % cfg.datatype
 % cfg.method
-%
-% This function depends on ARTIFACT_ZVALUE which has the following options:
-% cfg.artfctdef.zvalue.sgn in ARTIFACT_JUMP as cfg.artfctdef.jump.sgn default = 'MEG', documented
-% cfg.artfctdef.zvalue.cutoff in ARTIFACT_JUMP as cfg.artfctdef.jump.cutoff default = 20, documented
-% cfg.artfctdef.zvalue.trlpadding in ARTIFACT_JUMP as cfg.artfctdef.jump.trlpadding automatically determined based on the filter padding (cfg.padding), documented
-% cfg.artfctdef.zvalue.fltpadding in ARTIFACT_JUMP as cfg.artfctdef.jump.fltpadding default = 0
-% cfg.artfctdef.zvalue.artpadding in ARTIFACT_JUMP as cfg.artfctdef.jump.artpadding automatically determined based on the filter padding (cfg.padding), documented
-% cfg.artfctdef.zvalue.feedback
 
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.18  2008/10/07 16:13:44  estmee
+% Added data as second intput argument to artifact_jump itself and the way it calls artifact_zvalue.
+%
+% Revision 1.17  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.16  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -86,7 +95,7 @@ if isfield(cfg.artfctdef.jump,'sgn')
   cfg.artfctdef.jump         = rmfield(cfg.artfctdef.jump, 'sgn');
 end
 
-if isfield(cfg.artfctdef.jump, 'artifact') 
+if isfield(cfg.artfctdef.jump, 'artifact')
   fprintf('jump artifact detection has already been done, retaining artifacts\n');
   artifact = cfg.artfctdef.jump.artifact;
   return
@@ -118,13 +127,13 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
   if ~isfield(cfg.artfctdef.jump,'cutoff'),        cfg.artfctdef.jump.cutoff     = 20;              end
   if ~isfield(cfg.artfctdef.jump,'channel'),       cfg.artfctdef.jump.channel    = 'MEG';           end
   if isfield(cfg, 'padding') && cfg.padding~=0
-     if ~isfield(cfg.artfctdef.jump,'trlpadding'), cfg.artfctdef.jump.trlpadding = 0.5*cfg.padding; end
-     if ~isfield(cfg.artfctdef.jump,'artpadding'), cfg.artfctdef.jump.artpadding = 0.5*cfg.padding; end
-     if ~isfield(cfg.artfctdef.jump,'fltpadding'), cfg.artfctdef.jump.fltpadding = 0;               end
+    if ~isfield(cfg.artfctdef.jump,'trlpadding'), cfg.artfctdef.jump.trlpadding = 0.5*cfg.padding; end
+    if ~isfield(cfg.artfctdef.jump,'artpadding'), cfg.artfctdef.jump.artpadding = 0.5*cfg.padding; end
+    if ~isfield(cfg.artfctdef.jump,'fltpadding'), cfg.artfctdef.jump.fltpadding = 0;               end
   else
-     if ~isfield(cfg.artfctdef.jump,'trlpadding'), cfg.artfctdef.jump.trlpadding = 0;               end
-     if ~isfield(cfg.artfctdef.jump,'artpadding'), cfg.artfctdef.jump.artpadding = 0;               end
-     if ~isfield(cfg.artfctdef.jump,'fltpadding'), cfg.artfctdef.jump.fltpadding = 0;               end
+    if ~isfield(cfg.artfctdef.jump,'trlpadding'), cfg.artfctdef.jump.trlpadding = 0;               end
+    if ~isfield(cfg.artfctdef.jump,'artpadding'), cfg.artfctdef.jump.artpadding = 0;               end
+    if ~isfield(cfg.artfctdef.jump,'fltpadding'), cfg.artfctdef.jump.fltpadding = 0;               end
   end
   % construct a temporary configuration that can be passed onto artifact_zvalue
   tmpcfg                  = [];
@@ -137,7 +146,7 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
-  [tmpcfg, artifact] = artifact_zvalue(tmpcfg);
+  [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);
   cfg.artfctdef.jump = tmpcfg.artfctdef.zvalue;
 else
   error(sprintf('jump artifact detection only works with cfg.method=''zvalue'''));

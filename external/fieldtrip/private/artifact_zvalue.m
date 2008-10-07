@@ -1,4 +1,4 @@
-function [cfg, artifact] = artifact_zvalue(cfg)
+function [cfg, artifact] = artifact_zvalue(cfg,data)
 
 % ARTIFACT_ZVALUE reads the interesting segments of data from file and
 % identifies artifacts by means of thresholding the z-transformed value
@@ -8,17 +8,27 @@ function [cfg, artifact] = artifact_zvalue(cfg)
 %
 % Use as
 %   [cfg, artifact] = artifact_zvalue(cfg)
+% or
+%   [cfg, artifact] = artifact_zvalue(cfg, data)
 %
-% The output argument "artifact" is a Nx2 matrix ocmparable to the
+% The output argument "artifact" is a Nx2 matrix comparable to the
 % "trl" matrix of DEFINETRIAL. The first column of which specifying the
 % beginsamples of an artifact period, the second column contains the
 % endsamples of the artifactperiods.
 %
-% The required configuration settings are
+% If you are calling ARTIFACT_ZVALUE with only the configuration as first
+% input argument and the data still has to be read from file, you should
+% specify:
 %   cfg.headerfile
 %   cfg.headerfile
 %   cfg.datafile
 %   cfg.datatype
+%
+% If you are calling ARTIFACT_ZVALUE with also the second input argument
+% "data", then that should contain data that was already read from file in
+% a call to PREPROCESSING.
+%
+% The required configuration settings are:
 %   cfg.trl
 %   cfg.artfctdef.zvalue.channel
 %   cfg.artfctdef.zvalue.cutoff
@@ -53,41 +63,15 @@ function [cfg, artifact] = artifact_zvalue(cfg)
 %
 % See also REJECTARTIFACT
 
-% This function depends on PREPROC which has the following options:
-% cfg.absdiff
-% cfg.blc, documented
-% cfg.blcwindow, documented
-% cfg.boxcar
-% cfg.bpfilter, documented
-% cfg.bpfiltord, documented
-% cfg.bpfilttype, documented
-% cfg.bpfreq, documented
-% cfg.derivative
-% cfg.detrend, documented
-% cfg.dftfilter, documented
-% cfg.dftfreq
-% cfg.hilbert, documented
-% cfg.hpfilter, documented
-% cfg.hpfiltord, documented
-% cfg.hpfilttype, documented
-% cfg.hpfreq, documented
-% cfg.implicitref
-% cfg.lnfilter, documented
-% cfg.lnfiltord, documented
-% cfg.lnfreq, documented
-% cfg.lpfilter, documented
-% cfg.lpfiltord, documented
-% cfg.lpfilttype, documented
-% cfg.lpfreq, documented
-% cfg.medianfilter, documented
-% cfg.medianfiltord, documented
-% cfg.rectify, documented
-% cfg.refchannel
-% cfg.reref
-
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.15  2008/10/07 16:20:15  estmee
+% Added data as second input argument to artifact_zvalue, changed the output of preproc from data in dat and changed data in dat in the rest of the function.
+%
+% Revision 1.14  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.13  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -145,7 +129,7 @@ if isfield(cfg.artfctdef.zvalue,'sgn')
   cfg.artfctdef.zvalue         = rmfield(cfg.artfctdef.zvalue, 'sgn');
 end
 
-if isfield(cfg.artfctdef.zvalue, 'artifact') 
+if isfield(cfg.artfctdef.zvalue, 'artifact')
   fprintf('zvalue artifact detection has already been done, retaining artifacts\n');
   artifact = cfg.artfctdef.zvalue.artifact;
   return
@@ -157,8 +141,16 @@ if ~isfield(cfg.artfctdef.zvalue,'artpadding'), cfg.artfctdef.zvalue.artpadding 
 if ~isfield(cfg.artfctdef.zvalue,'fltpadding'), cfg.artfctdef.zvalue.fltpadding  = 0;        end
 if ~isfield(cfg.artfctdef.zvalue,'feedback'),   cfg.artfctdef.zvalue.feedback    = 'no';     end
 
-cfg = dataset2files(cfg);
-hdr = read_header(cfg.headerfile);
+if nargin > 1
+  % data given as input
+  isfetch = 1;
+  hdr = fetch_header(data);
+elseif nargin == 1
+  % only cfg given
+  isfetch = 0;
+  cfg = dataset2files(cfg);
+  hdr = read_header(cfg.headerfile);
+end
 
 % determine whether it is continuous data
 if ~isfield(cfg, 'datatype')
@@ -204,31 +196,35 @@ for sgnlop=1:numsgn
   fprintf('searching channel %s ', cfg.artfctdef.zvalue.channel{sgnlop});
   for trlop = 1:numtrl
     fprintf('.');
-    data{trlop} = read_data(cfg.datafile, hdr, trl(trlop,1)-fltpadding, trl(trlop,2)+fltpadding, sgnind(sgnlop), iscontinuous);
-    data{trlop} = preproc(data{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);;
+    if isfetch
+      dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', ~iscontinuous);
+    else
+      dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', ~iscontinuous);
+    end
+    dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);;
     % accumulate the sum and the sum-of-squares
-    sumval = sumval + sum(data{trlop},2);
-    sumsqr = sumsqr + sum(data{trlop}.^2,2);
-    numsmp = numsmp + size(data{trlop},2);
+    sumval = sumval + sum(dat{trlop},2);
+    sumsqr = sumsqr + sum(dat{trlop}.^2,2);
+    numsmp = numsmp + size(dat{trlop},2);
   end
   % compute the average and the standard deviation
   datavg = sumval./numsmp;
   datstd = sqrt(sumsqr./numsmp - (sumval./numsmp).^2);
   for trlop = 1:numtrl
     if sgnlop==1
-      zdata{trlop} = zeros(size(data{trlop}));
-      zmax{trlop}  = -inf + zeros(size(data{trlop}));
-      zsum{trlop}  = zeros(size(data{trlop}));
-      zindx{trlop} = zeros(size(data{trlop}));
+      zdata{trlop} = zeros(size(dat{trlop}));
+      zmax{trlop}  = -inf + zeros(size(dat{trlop}));
+      zsum{trlop}  = zeros(size(dat{trlop}));
+      zindx{trlop} = zeros(size(dat{trlop}));
     end
     % convert the filtered data to z-values
-    zdata{trlop} = (data{trlop} - datavg)./datstd;
+    zdata{trlop} = (dat{trlop} - datavg)./datstd;
     % accumulate the z-values over channels
     zsum{trlop} = zsum{trlop} + zdata{trlop};
     % find the maximum z-value and remember the channel with the largest z-value
     zmax{trlop} = max(zmax{trlop}, zdata{trlop});
     zindx{trlop}(zmax{trlop}==zdata{trlop}) = sgnind(sgnlop);
-    
+
     % This alternative code does the same, but it is much slower
     %   for i=1:size(zmax{trlop},2)
     %       if zdata{trlop}(i)>zmax{trlop}(i)
@@ -330,5 +326,5 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.13 2008/09/22 20:17:43 roboos Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.15 2008/10/07 16:20:15 estmee Exp $';
 

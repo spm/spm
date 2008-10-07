@@ -1,4 +1,4 @@
-function artifact_viewer(cfg, artcfg, zval, artval, zindx);
+function artifact_viewer(cfg, artcfg, zval, artval, zindx, inputdata);
 
 % ARTIFACT_VIEWER is a subfunction that reads a segment of data
 % (one channel only) and displays it together with the cummulated
@@ -7,16 +7,29 @@ function artifact_viewer(cfg, artcfg, zval, artval, zindx);
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_viewer.m,v $
+% Revision 1.11  2008/10/07 16:22:12  estmee
+% Changed the output of fetch_data and read_data from dat to data.
+%
+% Revision 1.10  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.9  2006/08/28 08:10:24  jansch
 % fixed small bug in number of padding-samples when non-integer, thanks to Jasper
 %
 % Revision 1.8  2006/01/12 14:20:08  roboos
 % new implementation that belongs to artifact_zvalue
-% 
+%
 
 dat.cfg     = cfg;
 dat.artcfg  = artcfg;
-dat.hdr     = read_fcdc_header(cfg.headerfile);
+if nargin == 5
+  % no data is given
+  dat.hdr          = read_fcdc_header(cfg.headerfile);
+elseif nargin == 6
+  % data is given
+  dat.hdr          = fetch_header(inputdata); % used name inputdata iso data, because data is already used later in this function
+  dat.inputdata    = inputdata; % to be able to get inputdata into h (by guidata)
+end
 dat.trlop   = 1;
 dat.zval    = zval;
 dat.artval  = artval;
@@ -72,7 +85,11 @@ trlpadsmp = round(artcfg.trlpadding*hdr.Fs);
 [dum, indx] = max(zval);
 sgnind = zindx(indx);
 iscontinuous = 1;
-data = read_fcdc_data(cfg.datafile,hdr,trl(trlop,1), trl(trlop,2), sgnind, iscontinuous);
+if isfield(dat, 'inputdata')
+  data = fetch_data(dat.inputdata, 'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnind, 'checkboundary', false);
+else
+  data = read_data(cfg.datafile,   'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnind, 'checkboundary', false);
+end
 % data = preproc(data, channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
 str = sprintf('trial %3d, channel %s', dat.trlop, hdr.label{sgnind});
 fprintf('showing %s\n', str);

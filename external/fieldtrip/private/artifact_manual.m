@@ -1,5 +1,7 @@
 function [cfg, artifact] = artifact_manual(cfg);
 
+% THIS FUNCTION IS DEPRECIATED, USE REJECTVISUAL INSTEAD
+%
 % ARTIFACT_MANUAL allows the user to detect artifacts manually using visual
 % inspection.
 %
@@ -29,49 +31,17 @@ function [cfg, artifact] = artifact_manual(cfg);
 %   cfg.artfctdef.manual.bpfreq    = [0.3 30] in Hz
 %   cfg.artfctdef.manual.bpfiltord = 2
 %
-% See also REJECTARTIFACT
+% See also REJECTARTIFACT, REJECTVISUAL
 
 % Undocumented local options:
-% cfg.trl
-% cfg.version
 % cfg.artfctdef.manual.maxnumberofchannels = 20 (default)
-%
-% This function depends on PREPROC which has the following options:
-% cfg.absdiff
-% cfg.blc in ARTIFACT_MANUAL as cfg.artfctdef.manual.blc, documented
-% cfg.blcwindow
-% cfg.boxcar
-% cfg.bpfilter in ARTIFACT_MANUAL as cfg.artfctdef.manual.bpfilter, documented
-% cfg.bpfiltord in ARTIFACT_MANUAL as cfg.artfctdef.manual.bpfiltord, documented
-% cfg.bpfilttype
-% cfg.bpfreq in ARTIFACT_MANUAL as cfg.artfctdef.manual.bpfreq, documented
-% cfg.derivative
-% cfg.detrend
-% cfg.dftfilter
-% cfg.dftfreq
-% cfg.hilbert
-% cfg.hpfilter
-% cfg.hpfiltord
-% cfg.hpfilttype
-% cfg.hpfreq
-% cfg.implicitref
-% cfg.lnfilter
-% cfg.lnfiltord
-% cfg.lnfreq
-% cfg.lpfilter
-% cfg.lpfiltord
-% cfg.lpfilttype
-% cfg.lpfreq
-% cfg.medianfilter
-% cfg.medianfiltord
-% cfg.rectify
-% cfg.refchannel
-% cfg.reref
 
 % Copyright (C) 2004, Geerten Kramer, FCDC
-% version 23-11-2004
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.18  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.17  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -173,15 +143,15 @@ hdr = read_header(cfg.headerfile);
 cfg.artfctdef.manual.channel=channelselection(cfg.artfctdef.manual.channel, hdr.label);
 cfg.artfctdef.manual.trl=cfg.trl;
 if(isempty(cfg.artfctdef.manual.channel))
-	error(sprintf('\nNo channels selected for artifact_manual!\nSelect at least one channel in cfg.artfctdef.manual.channel'));
+  error(sprintf('\nNo channels selected for artifact_manual!\nSelect at least one channel in cfg.artfctdef.manual.channel'));
 end;
 channelindx=match_str(hdr.label, cfg.artfctdef.manual.channel);
 ntrial=size(cfg.trl, 1);
 nch=length(channelindx);
 if(nch<1)
-	error(sprintf('\nNo channels selected for artifact_manual!\nSelect at least one channel in cfg.artfctdef.manual.channel'));
+  error(sprintf('\nNo channels selected for artifact_manual!\nSelect at least one channel in cfg.artfctdef.manual.channel'));
 elseif(nch>cfg.artfctdef.manual.maxnumberofchannels)
-	error(sprintf('\nMore than %i channels selected in cfg.artfctdef.manual.channel',cfg.artfctdef.manual.maxnumberofchannels));
+  error(sprintf('\nMore than %i channels selected in cfg.artfctdef.manual.channel',cfg.artfctdef.manual.maxnumberofchannels));
 end
 
 show=read_data(cfg.datafile, hdr, 1, hdr.nTrials*hdr.nSamples, channelindx, iscontinuous);
@@ -356,7 +326,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.17 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.18 2008/10/07 08:58:51 roboos Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks
@@ -507,7 +477,7 @@ if  key
         dat.RejCount=dat.RejCount-1;
         dat.RejMarkList(dat.trln)=0;
         fprintf('Accepted trial %i\n',dat.trln);
-      end 
+      end
       if(dat.trln < dat.numtrl)
         dat.trln=dat.trln + 1;
       else

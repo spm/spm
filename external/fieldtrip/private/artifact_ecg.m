@@ -3,7 +3,7 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % ARTIFACT_ECG performs a peak-detection on the ECG-channel. The
 % heart activity can be seen in the MEG data as an MCG artifact and
 % can be removed using independent component analysis.
-% 
+%
 % Use as
 %   [cfg, artifact] = artifact_ecg(cfg)
 % where the configuration should contain
@@ -13,50 +13,20 @@ function [cfg, artifact] = artifact_ecg(cfg)
 %   cfg.artfctdef.ecg.method  = 'zvalue'; peak-detection method
 %   cfg.artfctdef.ecg.cutoff  = 3; peak-threshold
 %
-% The output artifact variable is an Nx2-matrix, containing the 
+% The output artifact variable is an Nx2-matrix, containing the
 % begin and end samples of the QRST-complexes in the ECG.
 %
 % See also REJECTARTIFACT
 
 % Undocumented local options:
 % cfg.datatype
-% cfg.trl
-% cfg.version
-% This function depends on PREPROC which has the following options:
-% cfg.absdiff
-% cfg.blc
-% cfg.blcwindow
-% cfg.boxcar
-% cfg.bpfilter
-% cfg.bpfiltord
-% cfg.bpfilttype
-% cfg.bpfreq
-% cfg.derivative
-% cfg.detrend
-% cfg.dftfilter
-% cfg.dftfreq
-% cfg.hilbert
-% cfg.hpfilter
-% cfg.hpfiltord
-% cfg.hpfilttype
-% cfg.hpfreq
-% cfg.implicitref
-% cfg.lnfilter
-% cfg.lnfiltord
-% cfg.lnfreq
-% cfg.lpfilter
-% cfg.lpfiltord
-% cfg.lpfilttype
-% cfg.lpfreq
-% cfg.medianfilter
-% cfg.medianfiltord
-% cfg.rectify
-% cfg.refchannel
-% cfg.reref
 
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.16  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.15  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -155,7 +125,7 @@ for j = 1:ntrl
   ecg{j} = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
   ecg{j} = preproc(ecg{j}, artfctdef.channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
   ecg{j} = ecg{j}.^2;
-end 
+end
 
 tmp   = cell2mat(ecg);
 stmp  =  std(tmp, 0, 2);
@@ -170,9 +140,9 @@ end
 
 accept = 0;
 while accept == 0,
-  h = figure;  
+  h = figure;
   plot(trace);
-  hold on; 
+  hold on;
   plot([1 Nsmp], [artfctdef.cutoff artfctdef.cutoff], 'r:');
   hold off;
   xlabel('samples');
@@ -181,13 +151,13 @@ while accept == 0,
   fprintf(['\ncurrent  ',artfctdef.method,' threshold = %1.3f'], artfctdef.cutoff);
   response = input('\nkeep the current value (y/n) ?\n','s');
   switch response
-  case 'n'
+    case 'n'
       oldcutoff = artfctdef.cutoff;
       artfctdef.cutoff = input('\nenter new value \n');
-  case 'y'
+    case 'y'
       oldcutoff = artfctdef.cutoff;
       accept = 1;
-  otherwise
+    otherwise
       warning('unrecognised response, assuming no');
       oldcutoff = artfctdef.cutoff;
       artfctdef.cutoff = input('\nenter new value \n');
@@ -227,7 +197,7 @@ if ~isempty(sgnind)
     fprintf('reading and preprocessing trial %d of %d\n', j, ntrl);
     dum = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
     dat = dat + preproc_baselinecorrect(dum);
-  end 
+  end
 end
 
 dat  = dat./ntrl;
@@ -248,33 +218,33 @@ while acceptpre == 0 || acceptpst == 0,
   height = 2.1*mdat;
   rectangle('Position', [xpos ypos width height], 'FaceColor', 'r');
   hold on; plot(time, dat(1:end-1, :), 'b');
-  
-  if acceptpre == 0, 
+
+  if acceptpre == 0,
     fprintf(['\ncurrent pre-peak interval = %1.3f'], artfctdef.pretim);
     response = input('\nkeep the current value (y/n) ?\n','s');
     switch response
-    case 'n'
+      case 'n'
         oldpretim = artfctdef.pretim;
         artfctdef.pretim = input('\nenter new value \n');
-    case 'y'
+      case 'y'
         oldpretim = artfctdef.pretim;
         acceptpre = 1;
-    otherwise
+      otherwise
         warning('unrecognised response, assuming no');
         oldpretim = artfctdef.pretim;
-    end     
+    end
   end
   if acceptpst == 0 && acceptpre == 1,
     fprintf(['\ncurrent post-peak interval = %1.3f'], artfctdef.psttim);
     response = input('\nkeep the current value (y/n) ?\n','s');
     switch response
-    case 'n'
+      case 'n'
         oldpsttim = artfctdef.psttim;
         artfctdef.psttim = input('\nenter new value \n');
-    case 'y'
+      case 'y'
         oldpsttim = artfctdef.psttim;
         acceptpst = 1;
-    otherwise
+      otherwise
         warning('unrecognised response, assuming no');
         oldpsttim = artfctdef.psttim;
     end
@@ -298,5 +268,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.15 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.16 2008/10/07 08:58:51 roboos Exp $';
 

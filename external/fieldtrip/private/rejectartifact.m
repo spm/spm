@@ -1,4 +1,4 @@
-function [cfg] = rejectartifact(cfg);
+function [cfg] = rejectartifact(cfg,data)
 
 % REJECTARTIFACT removes data segments containing artifacts. It returns a
 % configuration structure with a modified trial definition which can be
@@ -44,6 +44,12 @@ function [cfg] = rejectartifact(cfg);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.40  2008/10/07 16:06:27  estmee
+% added error when "no trials left"
+%
+% Revision 1.39  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.38  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -213,7 +219,7 @@ sel = [];
 artifact = {};
 for i=1:length(dum)
   sel(i) = issubfield(cfg.artfctdef, dum{i}) && issubfield(cfg.artfctdef, [dum{i} '.artifact']);
-  if sel(i) 
+  if sel(i)
     artifact{end+1} = getsubfield(cfg.artfctdef, [dum{i} '.artifact']);
     num = size(artifact{end}, 1);
     if isempty(num)
@@ -393,5 +399,20 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.version.name = st(i);
 end
-cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.38 2008/09/22 20:17:44 roboos Exp $';
+cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.40 2008/10/07 16:06:27 estmee Exp $';
+
+% apply the updated trial definition on the data
+if nargin>1
+    if isempty(cfg.trl)
+        error('No trials left after artifact rejection.')
+    else
+        tmpcfg     = [];
+        tmpcfg.trl = cfg.trl;
+        data       = redefinetrial(tmpcfg,data);
+        % remember the configuration details, this overwrites the stored configuration of redefinetrial
+        data.cfg = cfg;
+        % return the data instead of the cfg
+        cfg = data;
+    end
+end
 

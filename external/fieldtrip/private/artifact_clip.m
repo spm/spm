@@ -1,4 +1,4 @@
-function [cfg, artifact] = artifact_clip(cfg);
+function [cfg, artifact] = artifact_clip(cfg,data)
 
 % ARTIFACT_CLIP scans the data segments of interest for channels that
 % clip. A clipping artifact is detected by the signal being completely
@@ -6,6 +6,9 @@ function [cfg, artifact] = artifact_clip(cfg);
 %
 % Use as
 %   [cfg, artifact] = artifact_clip(cfg)
+% or
+%   [cfg, artifact] = artifact_clip(cfg, data)
+%
 % where the configuration should contain
 %   cfg.artfctdef.clip.channel  = Nx1 cell-array with selection of channels, see CHANNELSELECTION for details
 %   cfg.artfctdef.clip.pretim   = 0.000;  pre-artifact rejection-interval in seconds
@@ -14,45 +17,15 @@ function [cfg, artifact] = artifact_clip(cfg);
 %
 % See also REJECTARTIFACT
 
-% Undocumented local options:
-% cfg.trl
-% cfg.version
-%
-% This function depends on PREPROC which has the following options:
-% cfg.absdiff
-% cfg.blc
-% cfg.blcwindow
-% cfg.boxcar
-% cfg.bpfilter
-% cfg.bpfiltord
-% cfg.bpfilttype
-% cfg.bpfreq
-% cfg.derivative
-% cfg.detrend
-% cfg.dftfilter
-% cfg.dftfreq
-% cfg.hilbert
-% cfg.hpfilter
-% cfg.hpfiltord
-% cfg.hpfilttype
-% cfg.hpfreq
-% cfg.implicitref
-% cfg.lnfilter
-% cfg.lnfiltord
-% cfg.lnfreq
-% cfg.lpfilter
-% cfg.lpfiltord
-% cfg.lpfilttype
-% cfg.lpfreq
-% cfg.medianfilter
-% cfg.medianfiltord
-% cfg.rectify
-% cfg.refchannel
-% cfg.reref
-
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.13  2008/10/07 16:16:31  estmee
+% Added data as second input argument to artifact_clip.
+%
+% Revision 1.12  2008/10/07 08:58:51  roboos
+% committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
+%
 % Revision 1.11  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -109,7 +82,13 @@ artifact = [];
 
 % read the header
 cfg = dataset2files(cfg);
-hdr = read_header(cfg.headerfile);
+if nargin == 1
+  isfetch = 0;
+  hdr = read_header(cfg.headerfile);
+elseif nargin == 2
+  isfetch = 1;
+  hdr = fetch_header(data);
+end
 
 % find the channel labels present in the data and their indices
 label = channelselection(cfg.artfctdef.clip.channel, hdr.label);
@@ -123,7 +102,11 @@ nsgn = length(sgnindx);
 for trlop=1:ntrl
   fprintf('searching for clipping artifacts in trial %d\n', trlop);
   % read the data of this trial
-  dat = read_data(cfg.datafile, hdr, cfg.trl(trlop,1), cfg.trl(trlop,2), sgnindx);
+  if isfetch
+    dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
+  else
+    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
+  end
   % apply filtering etc to the data
   datflt = preproc(dat, label, hdr.Fs, artfctdef, cfg.trl(trlop,3));
   % detect all samples that have the same value as the previous sample
@@ -176,4 +159,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_clip.m,v 1.11 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.13 2008/10/07 16:16:31 estmee Exp $';
