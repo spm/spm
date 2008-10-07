@@ -9,7 +9,7 @@ function out = spm_run_coreg_estwrite(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_estwrite.m 1934 2008-07-21 10:21:41Z volkmar $
+% $Id: spm_run_coreg_estwrite.m 2312 2008-10-07 17:02:46Z volkmar $
 
 job = varargin{1};
 if isempty(job.other{1})
@@ -38,6 +38,7 @@ flags.prefix = job.roptions.prefix;
 spm_reslice(P,flags);
 
 out.cfiles = {job.source{:} job.other{:}};
+out.rfiles = cell(size(out.cfiles));
 for i=1:numel(out.cfiles),
     [pth,nam,ext,num] = spm_fileparts(out.cfiles{i});
     out.rfiles{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);

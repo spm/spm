@@ -9,7 +9,7 @@ function out = spm_run_con(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 2223 2008-09-29 11:31:16Z volkmar $
+% $Id: spm_run_con.m 2312 2008-10-07 17:02:46Z volkmar $
 
 
 wd  = pwd;
@@ -169,7 +169,7 @@ for i = 1:length(job.consess)
                 cons{1}= zeros(nsessions*size(con,1),size(SPM.xX.X,2));
                 for sess=1:nsessions
                     sfirst=SPM.Sess(sess).col(1);
-                    cons{1}((sess-1)*nsessions+(1:size(con,1)),sfirst:sfirst+size(con,2)-1)=con;
+                    cons{1}((sess-1)*size(con,1)+(1:size(con,1)),sfirst-1+(1:size(con,2)))=con;
                 end
                 names{1} = sprintf('%s - All Sessions', name);
             case 'sess',

@@ -9,7 +9,7 @@ function out = spm_run_st(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_st.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_st.m 2312 2008-10-07 17:02:46Z volkmar $
 
 job = varargin{1};
 Seq = job.so;
@@ -23,6 +23,7 @@ timing(1) = TA / (nslices -1);
 for i = 1:length(job.scans)
     P   = strvcat(job.scans{i});
     spm_slice_timing(P,Seq,refslice,timing,job.prefix);
+    out(i).files = cell(size(job.scans{i}));
     for k = 1:numel(job.scans{i})
         [p n e v] = spm_fileparts(job.scans{i}{k});
         out(i).files{k} = fullfile(p, sprintf('%s%s%s%s', job.prefix, n, ...

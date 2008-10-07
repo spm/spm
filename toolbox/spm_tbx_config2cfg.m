@@ -1,4 +1,4 @@
-function spm_tbx_config2cfg(c0)
+function [cfgname, defname] = spm_tbx_config2cfg(c0)
 % Convert SPM5 toolbox configuration to Matlabbatch
 % FORMAT spm_tbx_config2cfg(c)
 % Input:
@@ -42,7 +42,7 @@ function spm_tbx_config2cfg(c0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_tbx_config2cfg.m 2311 2008-10-07 11:02:00Z volkmar $
+% $Id: spm_tbx_config2cfg.m 2312 2008-10-07 17:02:46Z volkmar $
 
 % Convert to cfg_ tree. This will produce warnings if some elements could
 % not be converted properly.

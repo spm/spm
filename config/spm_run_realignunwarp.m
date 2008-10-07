@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 2086 2008-09-12 10:30:21Z volkmar $
+% $Id: spm_run_realignunwarp.m 2312 2008-10-07 17:02:46Z volkmar $
 
 job = varargin{1};
 
@@ -109,7 +109,8 @@ switch job.uwroptions.uwwhich(1)
         out.sess.uwrfiles  = {};
     case 2
         for i = 1:numel(P)
-            for j=1:size(P{i},2)
+            out.sess(i).uwrfiles = cell(size(P{i},1),1);
+            for j=1:size(P{i},1)
                 [pth,nam,ext,num] = spm_fileparts(deblank(P{i}(j,:)));
                 out.sess(i).uwrfiles{j} = fullfile(pth,[job.uwroptions.prefix, ...
                     nam, ext, num]);
@@ -117,7 +118,7 @@ switch job.uwroptions.uwwhich(1)
         end
 end
 if job.uwroptions.uwwhich(2)
-    [pth,nam,ext,num] = spm_fileparts(deblank(P{1}(j,:)));
+    [pth,nam,ext,num] = spm_fileparts(deblank(P{1}(1,:)));
     out.meanuwr{1} = fullfile(pth,['mean', job.uwroptions.prefix, nam, ext, num]);
 end
 

@@ -9,8 +9,9 @@ function out = convert_minc(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_minc.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_minc.m 2312 2008-10-07 17:02:46Z volkmar $
 
+out.files = cell(size(job.data));
 for i=1:length(job.data),
     spm_mnc2nifti(job.data{i},job.opts);
     [pth,nam,ext,num] = spm_fileparts(job.data{i});

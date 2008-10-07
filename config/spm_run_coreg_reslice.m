@@ -9,7 +9,7 @@ function out = spm_run_coreg_reslice(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_reslice.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_coreg_reslice.m 2312 2008-10-07 17:02:46Z volkmar $
 
 job = varargin{1};
 
@@ -22,6 +22,7 @@ flags.wrap   = job.roptions.wrap;
 flags.prefix = job.roptions.prefix;
 
 spm_reslice(P,flags);
+out.rfiles = cell(size(job.source));
 for i=1:numel(job.source),
     [pth,nam,ext,num] = spm_fileparts(job.source{i});
     out.rfiles{i} = fullfile(pth,[job.roptions.prefix, nam, ext, num]);

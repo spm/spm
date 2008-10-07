@@ -9,7 +9,7 @@ function out = spm_run_normalise_estimate(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_normalise_estimate.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_run_normalise_estimate.m 2312 2008-10-07 17:02:46Z volkmar $
 
 job    = varargin{1};
 o      = job.eoptions;
@@ -21,7 +21,7 @@ eflags = struct(...
     'nits',   o.nits,...
     'reg',    o.reg);
 
-for i=1:length(job.subj),
+for i=1:numel(job.subj),
     [pth,nam,ext,ind] = spm_fileparts(strvcat(job.subj(i).source{:}));
     out(i).params{1}  = fullfile(pth,[nam,'_sn.mat']);
     spm_normalise(strvcat(job.eoptions.template{:}),...

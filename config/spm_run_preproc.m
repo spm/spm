@@ -9,7 +9,7 @@ function out = spm_run_preproc(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_preproc.m 1387 2008-04-14 14:34:15Z john $
+% $Id: spm_run_preproc.m 2312 2008-10-07 17:02:46Z volkmar $
 
 job.opts.tpm = strvcat(job.opts.tpm{:});
 if isfield(job.opts,'msk'),
@@ -31,20 +31,20 @@ sopts = [opts.GM;opts.WM;opts.CSF];
 for i=1:numel(job.data)
     [pth,nam,ext,num] = spm_fileparts(job.data{i});
     if opts.biascor,
-        out(1).biascorr{i} = ...
+        out(1).biascorr{i,1} = ...
             fullfile(pth, sprintf('m%s%s', nam, ext));
     end;
     for k1=1:3,
         if sopts(k1,3),
-            out(1).(sprintf('c%d',k1)){i} = ...
+            out(1).(sprintf('c%d',k1)){i,1} = ...
                 fullfile(pth, sprintf('c%d%s%s', k1, nam, ext));
         end;
         if sopts(k1,2),
-            out(1).(sprintf('wc%d',k1)){i} = ...
+            out(1).(sprintf('wc%d',k1)){i,1} = ...
                 fullfile(pth, sprintf('wc%d%s%s', k1, nam, ext));
         end;
         if sopts(k1,1),
-            out(1).(sprintf('mwc%d',k1)){i} = ...
+            out(1).(sprintf('mwc%d',k1)){i,1} = ...
                 fullfile(pth, sprintf('mwc%d%s%s', k1, nam, ext));
         end;
     end;
