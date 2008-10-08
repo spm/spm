@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.71  2008/10/08 16:09:14  jansch
+% changed allocation of hdr.label for 4d data. in the original implementation this
+% only worked correctly for 248-channel systems, and not for the 148-channel system
+%
 % Revision 1.70  2008/10/07 16:21:39  roboos
 % implemented caching, usefull when simulating BCI while reading from file
 %
@@ -406,7 +410,8 @@ switch headerformat
     hdr.nSamples    = orig.header_data.SlicesPerEpoch;
     hdr.nSamplesPre = round(orig.header_data.FirstLatency*orig.header_data.SampleFrequency);
     hdr.nTrials     = orig.header_data.TotalEpochs;
-    hdr.label       = {orig.channel_data(:).chan_label}';
+    %hdr.label       = {orig.channel_data(:).chan_label}';
+    hdr.label       = orig.Channel;
     hdr.grad        = bti2grad(orig);
     % remember original header details
     hdr.orig        = orig;

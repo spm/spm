@@ -6,6 +6,9 @@ function [hdr] = read_shm_header(filename)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_header.m,v $
+% Revision 1.2  2008/10/08 10:08:06  roboos
+% detect trigger channels also when header is read using ctf_new
+%
 % Revision 1.1  2007/08/01 12:12:06  roboos
 % moved the actual code from the normal functions into these helper functions
 % fixed some bugs related to reading the header from a user-specified res4 file and setting the trigger detection
@@ -47,8 +50,14 @@ else
 end
 
 if ~isempty(buf)
+  % meg channels are 5, refmag 0, refgrad 1, adcs 18, trigger 11, eeg 9
+  if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
+    origSensType = hdr.orig.sensType;
+  elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'res4')
+    origSensType =  [hdr.orig.res4.senres.sensorTypeIndex];
+  end
   % do online detection of triggers inside AcqBuffer
-  trgchan = find(hdr.orig.sensType(:)'==11);
+  trgchan = find(origSensType(:)'==11);
   if length(trgchan)>10
     error('online detection of triggers in AcqBuffer only works with up to 10 trigger channels');
   end
