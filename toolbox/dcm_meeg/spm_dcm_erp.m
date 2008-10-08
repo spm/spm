@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 2310 2008-10-06 19:20:45Z karl $
+% $Id: spm_dcm_erp.m 2315 2008-10-08 14:43:18Z jean $
  
 % check options 
 %==========================================================================
@@ -221,29 +221,38 @@ else
     M.E   = U;
 end
 Nm    = size(U,2);
- 
+
 % EM: inversion
 %==========================================================================
-[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
- 
- 
-% Bayesian inference {threshold = prior; for A,B  and C this is exp(0) = 1)
-%--------------------------------------------------------------------------
-warning('off','SPM:negativeVariance');
-dp  = spm_vec(Qp) - spm_vec(pE);
-Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-warning('on','SPM:negativeVariance');
- 
-% neuronal and sensor responses (x and y)
-%==========================================================================
+if isfield(M,'fastEM') && M.fastEM  % fast nonlinear system identification
+    % Nonlinear system identification
+    [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_Nf(M,xU,xY);
+    % Bayesian inference
+    % (threshold = prior; for A,B  and C this is exp(0) = 1)
+    warning('off','SPM:negativeVariance');
+    dp  = spm_vec(Qp) - spm_vec(pE);
+    Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
+    warning('on','SPM:negativeVariance');
+    % neuronal and sensor responses (x and y)
+    x0  = ones(Ns,1)*spm_vec(M.x)';
+    L   = feval(M.G, Qg,M);
+    M.fastEM = 0;
+    x   = feval(M.IS,Qp,M,xU);
+    M.fastEM = 1;
+else                                % usual nonlinear system identification
+    [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
+    % Bayesian inference
+    sw = warning('off','SPM:negativeVariance');
+    dp  = spm_vec(Qp) - spm_vec(pE);
+    Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
+    warning(sw);
+    % neuronal and sensor responses (x and y)
+    x0  = ones(Ns,1)*spm_vec(M.x)';     % expansion point for states
+    L   = feval(M.G, Qg,M);             % get gain matrix
+    x   = feval(M.IS,Qp,M,xU);          % prediction (source space)
+end
 
-% expansion point for states
-%--------------------------------------------------------------------------
-x0  = ones(Ns,1)*spm_vec(M.x)';
-L   = feval(M.G, Qg,M);                 % get gain matrix
-x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 
- 
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 try

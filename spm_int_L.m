@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 2265 2008-09-30 19:22:48Z karl $
+% $Id: spm_int_L.m 2315 2008-10-08 14:43:18Z jean $
  
  
 % convert U to U.u if necessary
@@ -112,11 +112,11 @@ catch
     end
     D = 1;
 end
-dfdx  = full(D*dfdx);
+dfdx  = full(dfdx);
 p     = max(abs(real(eig(dfdx))));
 N     = ceil(max(1,dt*p*2));
 n     = length(spm_vec(x));
-Q     = (spm_expm(dt*dfdx/N) - speye(n,n))*pinv(dfdx);
+Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*pinv(dfdx);
  
 % integrate
 %==========================================================================

@@ -3,13 +3,16 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2284 2008-10-01 15:54:05Z jean $
+% $Id: spm_eeg_review_callbacks.m 2315 2008-10-08 14:43:18Z jean $
 
 try
     D = get(gcf,'userdata');
     handles = D.PSD.handles;
 end
 
+spm('pointer','watch');
+drawnow
+ 
 switch varargin{1}
 
 
@@ -17,12 +20,10 @@ switch varargin{1}
     case 'file'
         switch varargin{2}
             case 'save'
-                spm('pointer','watch');
                 drawnow
                 D = rmfield(D,'PSD');
                 D = meeg(D);
                 D.save;
-                spm('pointer','arrow');
         end
 
 
@@ -121,7 +122,13 @@ switch varargin{1}
                 end
                 try,D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');end
                 [D] = spm_eeg_review_switchDisplay(D);
-                try,updateDisp(D);end
+                try
+                    updateDisp(D,1);
+                catch
+                    try
+                        disp(lasterr)
+                    end
+                end
 
 
             case 'switch'
@@ -263,6 +270,78 @@ switch varargin{1}
                 D.PSD.source.VIZU.current = varargin{3};
                 updateDisp(D);
 
+            case 'checkXlim'
+                
+                xlim = varargin{3};
+                ud = get(D.PSD.handles.gpa,'userdata');
+                xm = mean(xlim);
+                sw = abs(diff(xlim));
+                if sw <= ud.v.minSizeWindow
+                    sw = ud.v.minSizeWindow;
+                elseif sw >= ud.v.nt
+                    sw = ud.v.maxSizeWindow;
+                elseif sw >= ud.v.maxSizeWindow
+                    sw = ud.v.maxSizeWindow;
+                end
+                if xlim(1) <= 1 && xlim(end) >= ud.v.nt
+                    xlim = [1,ud.v.nt];
+                elseif xlim(1) <= 1
+                    xlim = [1,sw];
+                elseif xlim(end) >= ud.v.nt
+                    xlim = [ud.v.nt-sw+1,ud.v.nt];
+                end
+                
+                % Restrain buttons usage:
+                if isequal(xlim,[1,ud.v.nt])
+                    set(D.PSD.handles.BUTTONS.vb3,'enable','off')
+                    set(handles.BUTTONS.slider_step,'visible','off')
+                    set(D.PSD.handles.BUTTONS.goPlusOne,'visible','off');
+                    set(D.PSD.handles.BUTTONS.goMinusOne,'visible','off');
+                else
+                    set(handles.BUTTONS.slider_step,...
+                        'min',sw/2,'max',ud.v.nt-sw/2,...
+                        'value',mean(xlim),...
+                        'sliderstep',.1*[sw/(ud.v.nt-1) 4*sw/(ud.v.nt-1)],...
+                        'visible','on');
+                    set(D.PSD.handles.BUTTONS.goPlusOne,'visible','on');
+                    set(D.PSD.handles.BUTTONS.goMinusOne,'visible','on');
+                    if isequal(sw,ud.v.maxSizeWindow)
+                        set(D.PSD.handles.BUTTONS.vb3,'enable','off')
+                        set(D.PSD.handles.BUTTONS.vb4,'enable','on')
+                    elseif isequal(sw,ud.v.minSizeWindow)
+                        set(D.PSD.handles.BUTTONS.vb4,'enable','off')
+                        set(D.PSD.handles.BUTTONS.vb3,'enable','on')
+                    else
+                        set(D.PSD.handles.BUTTONS.vb4,'enable','on')
+                        set(D.PSD.handles.BUTTONS.vb3,'enable','on')
+                    end
+                    if xlim(1) == 1
+                        set(D.PSD.handles.BUTTONS.goMinusOne,...
+                            'visible','on','enable','off');
+                        set(D.PSD.handles.BUTTONS.goPlusOne,...
+                            'visible','on','enable','on');
+                    elseif xlim(2) == ud.v.nt
+                        set(D.PSD.handles.BUTTONS.goPlusOne,...
+                            'visible','on','enable','off');
+                        set(D.PSD.handles.BUTTONS.goMinusOne,...
+                            'visible','on','enable','on');
+                    else
+                        set(D.PSD.handles.BUTTONS.goPlusOne,...
+                            'visible','on','enable','on');
+                        set(D.PSD.handles.BUTTONS.goMinusOne,...
+                            'visible','on','enable','on');
+                    end
+                end
+                if nargout >= 1
+                    varargout{1} = xlim;
+                else
+                    D.PSD.VIZU.xlim = xlim;
+                    set(D.PSD.handles.hfig,'userdata',D)
+                end
+                
+                    
+                
+                
 
                 % Contrast/intensity rescaling
             case 'iten_sc'
@@ -275,10 +354,7 @@ switch varargin{1}
                     case 'other'
                         D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
                 end
-                if D.PSD.VIZU.type==1
-                    D.PSD.VIZU.xlim = get(D.PSD.handles.axes(1),'xlim');
-                end
-                updateDisp(D,1);
+                updateDisp(D,3);
 
 
                 % Resize plotted data window
@@ -286,134 +362,35 @@ switch varargin{1}
 
                 % Get current plotted data window range and limits
                 xlim = get(handles.axes(1),'xlim');
-                %                 ylim = get(handles.axes(1),'ylim');
-                length_window = max([varargin{3}*round(xlim(2)-xlim(1)),1]);
+                
+                sw = varargin{3}*diff(xlim);
                 xm = mean(xlim);
-
-                % Change limits of plotted data window
-                xlim = round([xm-length_window./2 , xm+length_window./2]);
-                xlim(1) = max([xlim(1) 1]);
-                if length_window >= D.Nsamples-1
-                    xlim = [1 D.Nsamples];
-                else
-                    if xlim(2) >=D.Nsamples
-                        dx = xlim(2) - D.Nsamples;
-                        xlim(2) = D.Nsamples;
-                        xlim(1) = xlim(1) - dx -1;
-                        xlim(1) = max([xlim(1) 1]);
-                    end
-                end
+                xlim = xm + 0.5*[-sw,sw];
+                
+                xlim = spm_eeg_review_callbacks('visu','checkXlim',xlim);
                 D.PSD.VIZU.xlim = xlim;
 
-                % This part avoids limiting displaying conditions
-                if length_window >= D.Nsamples-1
-                    set(handles.BUTTONS.vb3,'enable','off')
-                elseif length_window < 20
-                    set(handles.BUTTONS.vb4,'enable','off')
-                end
-
-                % This part fixes the boundaries exceptions
-                length_window = xlim(2)-xlim(1);
-                ratio = length_window/200;
-                maxi = D.Nsamples-length_window+1;
-                val = get(handles.BUTTONS.slider_step,'value');
-                if val > maxi;
-                    set(handles.BUTTONS.slider_step,'value',maxi);
-                end
-                if varargin{3} > 1
-                    set(handles.BUTTONS.slider_step,'visible','on');
-                end
-                if ~isequal(xlim,[1 D.Nsamples])
-                    set(handles.BUTTONS.slider_step,...
-                        'sliderstep',[ratio*10/(D.Nsamples-1) ratio*20/(D.Nsamples-1)],...
-                        'visible','on');
-                    set(D.PSD.handles.BUTTONS.goPlusOne,'visible','on');
-                    set(D.PSD.handles.BUTTONS.goMinusOne,'visible','on');
-                else
-                    set(handles.BUTTONS.slider_step,'visible','off');
-                    set(D.PSD.handles.BUTTONS.goPlusOne,'visible','off');
-                    set(D.PSD.handles.BUTTONS.goMinusOne,'visible','off');
-                end
-
-                if varargin{3} > 1
-                    set(handles.BUTTONS.vb4,'enable','on');
-                else
-                    set(handles.BUTTONS.vb3,'enable','on');
-                end
-
-                updateDisp(D,1)
+                updateDisp(D,4)
 
 
                 %% Data navigation using the slider
             case 'slider_t'
 
                 offset = get(gco,'value');
-                if ~strcmp(D.PSD.VIZU.modality,'source')
-                    offset = round(offset);
-                    % Get current plotted data window range and limits
-                    xlim0 = get(handles.axes(1),'xlim');
-                    % The IF statement ensures acceptable range
-                    if ~isequal(xlim0,[1 D.Nsamples])
-                        % deal w/ boundaries of the dataset window
-                        length_window = xlim0(2)-xlim0(1);
-                        xlim = round([offset-length_window/2 offset+length_window/2]);
-                        if xlim(1) < 1 && xlim(2) <= D.Nsamples
-                            xlim(1) = 1;
-                            xlim(2) = round(1 + length_window);
-                            set(handles.BUTTONS.slider_step,'value',mean(xlim));
-                        elseif xlim(1) >= 1 && xlim(2) > D.Nsamples
-                            xlim(2) = D.Nsamples;
-                            xlim(1) = round(D.Nsamples - length_window);
-                            set(handles.BUTTONS.slider_step,'value',mean(xlim));
-                        elseif xlim(1) < 1 && xlim(2) > D.Nsamples
-                            xlim(1) = 1;
-                            xlim(2) = D.Nsamples;
-                            set(handles.BUTTONS.slider_step,'value',mean(xlim));
-                        end
-                        %                         set(handles.BUTTONS.focus
-                        %                         _temp,'string',round(mean(xlim)));
-                        D.PSD.VIZU.xlim = xlim;
-                        updateDisp(D)
-                    end
+                updateDisp(D)
 
-                else
-                    updateDisp(D)
-
-                end
 
                 %% Scroll page by page (button)
             case 'goOne'
 
                 % Get current plotted data window range and limits
-                xlim0 = get(handles.axes(1),'xlim');
-                xm = mean(xlim0);
-                length_window = abs(diff(xlim0));
-                if varargin{3} == 0
-                    offset = xm - length_window;
-                else
-                    offset = xm + length_window;
-                end
-                % The IF statement ensures acceptable range
-                if isequal(xlim0,[1 D.Nsamples]) == 0
+                xlim = get(handles.axes(1),'xlim');
+                sw = diff(xlim);
+                xlim = xlim +varargin{3}*sw;
+                xlim = spm_eeg_review_callbacks('visu','checkXlim',xlim);
+                D.PSD.VIZU.xlim = xlim;
+                updateDisp(D,4)
 
-                    % deal w/ boundaries of the dataset window
-                    xlim = round([offset-length_window/2 offset+length_window/2]);
-                    if xlim(1) < 1 && xlim(2) <= D.Nsamples
-                        xlim(1) = 1;
-                        xlim(2) = round(1 + length_window);
-                    elseif xlim(1) >= 1 && xlim(2) > D.Nsamples
-                        xlim(2) = D.Nsamples;
-                        xlim(1) = round(D.Nsamples - length_window);
-                    elseif xlim(1) < 1 && xlim(2) > D.Nsamples
-                        xlim(1) = 1;
-                        xlim(2) = D.Nsamples;
-                    end
-                    set(handles.BUTTONS.slider_step,'value',mean(xlim));
-                    %                     set(handles.BUTTONS.focus_temp,'string',round(mean(xlim)));
-                    D.PSD.VIZU.xlim = xlim;
-                    updateDisp(D)
-
-                end
 
                 % Zoom (box in)
             case 'zoom'
@@ -576,12 +553,7 @@ switch varargin{1}
                         D.trials.events(currentEvent).value = eventValue;
                     end
 
-                    try,delete(D.PSD.handles.PLOT.p);end
-                    try,delete(D.PSD.handles.PLOT.p2);end
-                    try,delete(D.PSD.handles.PLOT.e);end
-                    handles = rmfield(D.PSD.handles,'PLOT');
-                    D.PSD.handles = handles;
-                    updateDisp(D)
+                    updateDisp(D,2)
 
                 end
 
@@ -621,8 +593,7 @@ switch varargin{1}
                         xlim(1) = max([xlim(1) 1]);
                         xlim(2) = min([xlim(2) D.Nsamples]);
                         D.PSD.VIZU.xlim = xlim;
-                        updateDisp(D)
-                        set(handles.BUTTONS.slider_step,'value',offset);
+                        updateDisp(D,4)
                     end
                 end
 
@@ -632,12 +603,7 @@ switch varargin{1}
             case 'deleteEvent'
 
                 D.trials.events(currentEvent) = [];
-                try,delete(D.PSD.handles.PLOT.p);end
-                try,delete(D.PSD.handles.PLOT.p2);end
-                try,delete(D.PSD.handles.PLOT.e);end
-                handles = rmfield(D.PSD.handles,'PLOT');
-                D.PSD.handles = handles;
-                updateDisp(D)
+                updateDisp(D,2)
 
         end
 
@@ -680,13 +646,8 @@ switch varargin{1}
                         case 'other'
                             VIZU = D.PSD.other.VIZU;
                     end
-                    set(handles.GV.y2,'ydata',VIZU.y2(:,trN));
-                    set(handles.GV.axes,'ylim',[min(VIZU.y2(:,trN))...
-                        max(VIZU.y2(:,trN))]);
-                    set(handles.GV.p,'ydata',[min(VIZU.y2(:,trN)) ...
-                        max(VIZU.y2(:,trN)) max(VIZU.y2(:,trN)) min(VIZU.y2(:,trN))]);
                 end
-                updateDisp(D)
+                updateDisp(D,1)
 
             case 'bad'
                 trN = D.PSD.trials.current;
@@ -719,62 +680,28 @@ switch varargin{1}
                 end
 
 
-                %                 str = get(D.PSD.handles.BUTTONS.badEvent,'string');
-                %                 str1 = 'not bad';
-                %                 str2 = 'bad';
-                %                 if strcmp(str,['declare as ',str2])
-                %                     bad = 1;
-                %                     lab = [' (',str2,')'];
-                %                     str = ['declare as ',str1];
-                %                 else
-                %                     bad = 0;
-                %                     lab = [' (',str1,')'];
-                %                     str = ['declare as ',str2];
-                %                 end
-                %                 nt = length(trN);
-                %                 for i=1:nt
-                %                     D.trials(trN(i)).bad = bad;
-                %                     D.PSD.trials.TrLabels{trN(i)} = ['Trial ',num2str(trN(i)),...
-                %                         ': ',D.trials(trN(i)).label,lab];
-                %                 end
-                %                 set(D.PSD.handles.BUTTONS.pop1,'string',D.PSD.trials.TrLabels);
-                %                 set(D.PSD.handles.BUTTONS.badEvent,'string',str)
-                %                 set(D.PSD.handles.hfig,'userdata',D)
-                %                 try
-                %                     uicontrol(D.PSD.handles.BUTTONS.pop1)
-                %                 end
-
                 %% Add an event to current selection
             case 'add'
-                [x,tmp] = ginput(2);
+                [x,tmp] = ginput(1);
                 x = round(x);
                 x(1) = min([max([1 x(1)]) D.Nsamples]);
-                x(2) = min([max([1 x(2)]) D.Nsamples]);
-                x = sort(x(:)');
                 Nevents = length(D.trials.events);
-                D.trials.events(Nevents+1).time = min(x)./D.Fsample;
-                D.trials.events(Nevents+1).duration = abs(diff(x))./D.Fsample;
+                D.trials.events(Nevents+1).time = x./D.Fsample;
+                D.trials.events(Nevents+1).duration = 0;
                 D.trials.events(Nevents+1).type = '0';
                 D.trials.events(Nevents+1).value = 0;
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
                 % Update display
-                try,delete(D.PSD.handles.PLOT.p),end
-                try,delete(D.PSD.handles.PLOT.p2),end
-                try,delete(D.PSD.handles.PLOT.e),end
-                handles = rmfield(D.PSD.handles,'PLOT');
-                D.PSD.handles = handles;
-                updateDisp(D)
+                updateDisp(D,2)
 
 
                 %% scroll through data upto next event
             case 'goto'
                 here                    = get(handles.BUTTONS.slider_step,'value');
                 x                       = [D.trials.events.time]';
-                x(:,2)                  = [D.trials.events.duration]';
-                x(:,2)                  = sum(x,2);
-                xm = mean(x,2).*D.Fsample;
+                xm                      = x.*D.Fsample;
                 if varargin{3} == 0
                     ind = find(xm > here+1);
                 else
@@ -803,7 +730,7 @@ switch varargin{1}
                         xlim(2)         = min([xlim(2) D.Nsamples]);
                         D.PSD.VIZU.xlim    = xlim;
                         set(handles.BUTTONS.slider_step,'value',offset);
-                        updateDisp(D)
+                        updateDisp(D,4)
                     end
                 end
 
@@ -844,12 +771,15 @@ switch varargin{1}
 
 
 end
-
+spm('pointer','arrow');
 
 
 %% Main update display
-function [] = updateDisp(D,flag)
+function [] = updateDisp(D,flags)
 % This function updates the display of the data and events.
+
+spm('pointer','watch');
+drawnow
 
 if ~exist('flag','var')
     flag = 0;
@@ -861,6 +791,14 @@ handles = D.PSD.handles;
 % Create intermediary display variables : events
 figure(handles.hfig)
 
+
+% Get current event
+try
+    trN = D.PSD.trials.current;
+catch
+    trN = 1;
+end
+
 if ~strcmp(D.PSD.VIZU.modality,'source')
 
     switch D.PSD.VIZU.modality
@@ -870,6 +808,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
             VIZU = D.PSD.MEG.VIZU;
         case 'other'
             VIZU = D.PSD.other.VIZU;
+        case 'info'
+            return
     end
 
 
@@ -877,43 +817,84 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
 
         case 1
 
-            % Create intermediary display variables
-            ylim                        = VIZU.ylim;
-            ylim0                       = VIZU.ylim0;
-            xlim                        = D.PSD.VIZU.xlim;
-            nc = size(VIZU.montage.M,1);
-            % Get data matrix and events to display
-            if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
-                trN = 1;
-                Nevents                 = length(D.trials.events);
-                x                       = [D.trials.events.time]';
-                x(:,2)                  = [D.trials.events.duration]';
-                x(:,2)                  = sum(x,2);
-                x                       = x*D.Fsample;
-                LookEvents              = find((x(:,1) <= xlim(2) & x(:,1) >= xlim(1))...
-                    | (x(:,2) <= xlim(2) & x(:,2) >= xlim(1))...
-                    | (x(:,1) <= xlim(2) & x(:,2) >= xlim(2)) );
-                BlindEvents             = setdiff(1:Nevents,LookEvents);
-            elseif strcmp(D.PSD.type,'epoched')
-                trN = D.PSD.trials.current(1);
-                Nevents = 0;
-            elseif isempty(D.trials.events)
-                trN = 1;
-                Nevents   = 0;
-            end
-            v_data                  = full(VIZU.montage.M)*D.data.y(:,xlim(1):xlim(2),trN);
-            v_data                  = VIZU.visu_scale*(v_data);
-
-            % Create graphical objects if absent
-            if ~isfield(handles,'PLOT')
-                set(handles.axes,'xlim',xlim,'nextplot','add');
-                % create uicontextmnu on channel time series
-                % plot data on visualization window and add colour repairs on
-                % window
-                v_data = v_data +repmat(VIZU.offset,1,size(v_data,2));
-                col = colormap('lines');
-                col = repmat(col(1:7,:),floor(nc./7)+1,1);
-                for i=1:nc
+            % Create new data to display
+            %   - switch from scalp to standard displays
+            %   - switch from EEG/MEG/OTHER/info/inv
+            if ismember(1,flags)
+                % delete previous axes...
+                try
+                    delete(D.PSD.handles.axes)
+                    delete(D.PSD.handles.gpa)
+                    delete(D.PSD.handles.BUTTONS.slider_step)
+                end 
+                % gather infor for core display function
+                options.hp = handles.hfig;
+                options.Fsample = D.Fsample;
+                options.M = VIZU.visu_scale*full(VIZU.montage.M);
+                options.bad = [D.channels(VIZU.visuSensors(:)).bad];
+                if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
+                    trN = 1;
+                    Nevents = length(D.trials.events);
+                    options.events = rmfield(D.trials.events,{'duration','type'});
+                    for i=1:length(options.events)
+                        options.events(i).time = options.events(i).time.*D.Fsample +1;
+                        options.events(i).type = D.trials.events(i).value;
+                        if isempty(options.events(i).type)
+                            options.events(i).type = 0;
+                        end
+                    end
+                end
+                if strcmp(D.PSD.type,'continuous')
+                    options.minSizeWindow = 200;
+                    try
+                        options.itw = round(D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
+                    end
+                elseif strcmp(D.PSD.type,'epoched')
+                    options.minSizeWindow = 20;
+                    try
+                        options.itw = round(D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
+                    catch
+                        options.itw = 1:D.Nsamples;
+                    end
+                else
+                    try
+                        options.itw = round(D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
+                    catch
+                        options.itw = 1:D.Nsamples;
+                    end
+                    options.minSizeWindow = 20;                   
+                end
+                options.minY = min(VIZU.ylim);
+                options.maxY = max(VIZU.ylim);
+                options.ds = 5e2;
+                options.pos1 = [0.08 0.11 0.86 0.79];
+                options.pos2 = [0.08 0.07 0.86 0.025];
+                options.pos3 = [0.08 0.02 0.86 0.02];
+                options.maxSizeWindow = 1e5;
+                options.tag = 'plotEEG';
+                options.offset = VIZU.offset;
+                options.ytick = VIZU.offset;
+                options.yticklabel = VIZU.montage.clab;
+                options.callback = ['spm_eeg_review_callbacks(''visu'',''checkXlim''',...
+                    ',get(ud.v.handles.axes,''xlim''))'];
+                ud = spm_DisplayTimeSeries(D.data.y(:,:,trN(1))',options);
+                % update D
+                D.PSD.handles.axes = ud.v.handles.axes;
+                D.PSD.handles.gpa = ud.v.handles.gpa;
+                D.PSD.handles.BUTTONS.slider_step = ud.v.handles.hslider;
+                D.PSD.handles.PLOT.p = ud.v.handles.hp;
+                % Create uicontextmenu for events (if any)
+                if isfield(options,'events')
+                    D.PSD.handles.PLOT.e = [ud.v.et(:).hp];
+                    for i=1:length(options.events)
+                        sc.currentEvent = i;
+                        sc.eventType    = D.trials(trN(1)).events(i).type;
+                        sc.eventValue   = D.trials(trN(1)).events(i).value;
+                        sc.N_select     = Nevents;
+                        psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
+                    end
+                end
+                for i=1:length(D.PSD.handles.PLOT.p)
                     cmenu = uicontextmenu;
                     uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
                     uimenu(cmenu,'Label',['type: ',D.channels(VIZU.visuSensors(i)).type]);
@@ -921,124 +902,82 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                         'callback',@switchBC,'userdata',i,...
                         'BusyAction','cancel',...
                         'Interruptible','off');
-                    status = D.channels(VIZU.visuSensors(i)).bad;
-                    if ~status
-                        lineStyle = '-';
-                    else
-                        lineStyle = ':';
-                    end
-                    handles.PLOT.p(i) = plot(handles.axes,xlim(1):xlim(2),v_data(i,:)',...
-                        'uicontextmenu',cmenu,'lineStyle',lineStyle,...
-                        'color',col(i,:),'tag','plotEEG');
-                    handles.PLOT.p2(i) = plot(handles.axes,xlim(1),VIZU.offset(i),'s',...
-                        'markersize',2,'linewidth',4,...
-                        'uicontextmenu',cmenu,...
-                        'color',col(i,:),'tag','plotEEG');
+                    set(D.PSD.handles.PLOT.p(i),'uicontextmenu',cmenu);
                 end
-                % Add on patches/lines for visualization of events
-                if Nevents > 0
-                    col                     = colormap(lines);
-                    col                     = col(1:7,:);
-                    values                  = [D.trials(trN).events.value];
-                    values                  = mod(values,7);
-                    values(values==0)       = 7;
-                    handles.PLOT.e          = zeros(Nevents,1);
-                    for i = 1:Nevents
-                        if abs(diff(x(i,:))) >0 % create patch rectangle...
-                            handles.PLOT.e(i)   = patch([x(i,1) x(i,1) x(i,2) x(i,2)],...
-                                [ylim0(1) ylim0(2) ylim0(2) ylim0(1)],col(values(i),:),...
-                                'parent',handles.axes);
-                            set(handles.PLOT.e(i),'edgecolor','none','facealpha',0.30,...
-                                'userdata',i,'ButtonDownFcn','set(gco,''selected'',''on'')',...
-                                'tag','plotEEG');
-                        else  % ... as well as left line marker (onset)
-                            handles.PLOT.e(i)   = plot(handles.axes,[x(i,1) x(i,1)],...
-                                [ylim0(1) ylim0(2)]);
-                            set(handles.PLOT.e(i),'color',col(values(i),:),...
-                                'userdata',i,'ButtonDownFcn','set(gco,''selected'',''on'')',...
-                                'tag','plotEEG');
-                        end
-                        sc.currentEvent = i;
-                        sc.eventType    = D.trials(trN).events(i).type;
-                        sc.eventValue   = D.trials(trN).events(i).value;
-                        sc.N_select     = Nevents;
-                        psd_defineMenuEvent(handles.PLOT.e(i),sc);
-                        if ismember(i,BlindEvents)
-                            set(handles.PLOT.e(i),'visible','off')
-                        end
-                    end
-                end
-                % Update axes limits and channel names
-                hold off
-                set(handles.axes,'xlim',xlim,'ylim',ylim,'ytick',VIZU.offset,...
-                    'yticklabel',VIZU.montage.clab,'fontsize',VIZU.FontSize);
-                % Update scale axes
-                pos0 = get(handles.axes,'position');
-                pos1 = get(handles.scale,'position');
-                dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
-                dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./VIZU.visu_scale;
-                set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
-                    'yticklabel',num2str(dz));
-                % Display global data squared power
-                handles.GV.y2 = plot(handles.GV.axes,VIZU.y2(:,trN));
-                xlim2 = VIZU.sci.*[xlim(1) xlim(2)];
-                if abs(diff(xlim2)) <= 1
-                    xlim2(2) = xlim2(1) +1;
-                end
-                set(handles.GV.axes,'xlim',[1 size(VIZU.y2,1)],...
-                    'ylim',[min(VIZU.y2(:,trN)) max(VIZU.y2(:,trN))],...
-                    'xtick',[],'xticklabel',[],'ytick',[],'yticklabel',[],...
-                    'tag','plotEEG','box','on');
-                handles.GV.p   = patch([xlim2(1) xlim2(1) xlim2(2) xlim2(2)],...
-                    [min(VIZU.y2(:,trN)) max(VIZU.y2(:,trN)) max(VIZU.y2(:,trN)) min(VIZU.y2(:,trN))],...
-                    [0.5 0.5 0.5],'parent',handles.GV.axes);
-                set(handles.GV.p,'edgecolor','none','facealpha',0.8,...
-                    'tag','plotEEG');
-                D.PSD.handles = handles;
-                set(handles.hfig,'userdata',D);
-            else
-                v_data = v_data +repmat(VIZU.offset,1,size(v_data,2));
-                % scroll through data
-                for i=1:length(VIZU.visuSensors)
-                    set(handles.PLOT.p(i),...
-                        'xdata',xlim(1):xlim(2),...
-                        'ydata',v_data(i,:));
-                    set(handles.PLOT.p2(i),...
-                        'xdata',xlim(1));
-                end
-                % Add on patches for visualization of selected events
-                if Nevents >0
-                    set(handles.PLOT.e(BlindEvents),'visible','off')
-                    set(handles.PLOT.e(LookEvents),'visible','on')
-                end
-                % Update axes limits and channel names
-                % And update scale axes
-                set(handles.axes,'xlim',xlim)
-                if flag
-                    set(handles.axes,'ylim',ylim,'ytick',VIZU.offset,...
-                        'yticklabel',VIZU.montage.clab,'fontsize',VIZU.FontSize);
-                    set(handles.hfig,'userdata',D);
-                    pos0 = get(handles.axes,'position');
-                    pos1 = get(handles.scale,'position');
-                    dt = (abs(diff(get(handles.axes,'xlim')))./D.Fsample).*(pos1(3)./pos0(3));
-                    dz = (abs(diff(get(handles.axes,'ylim')))).*(pos1(4)./pos0(4))./VIZU.visu_scale;
-                    set(handles.scale,'xticklabel',[num2str(dt.*1e3),' ms'],...
-                        'yticklabel',num2str(dz));
-                end
-                % Update position of global power patch
-                xlim2 = VIZU.sci.*[xlim(1) xlim(2)];
-                if abs(diff(xlim2)) <= 1
-                    xlim2(2) = xlim2(1) +1;
-                end
-                set(handles.GV.p,'xdata',[xlim2(1) xlim2(1) xlim2(2) xlim2(2)])
+                set(D.PSD.handles.hfig,'userdata',D);
+                spm_eeg_review_callbacks('visu','checkXlim',...
+                    get(D.PSD.handles.axes,'xlim'))
             end
-
+            
+            % modify events properties (delete,add,time,...)
+            if ismember(2,flags)
+                try,delete(D.PSD.handles.PLOT.e),end
+                Nevents = length(D.trials.events);
+                col = colormap(lines);
+                col = col(1:7,:);
+                for i=1:Nevents
+                    events(i).time = D.trials.events(i).time.*D.Fsample +1;
+                    events(i).type = D.trials.events(i).value;
+                    if isempty(events(i).type)
+                        events(i).type = 0;
+                    end
+                    events(i).col = mod(events(i).type+7,7)+1;
+                    D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,events(i).time.*[1 1],...
+                        VIZU.ylim,'color',col(events(i).col,:));
+                    set(D.PSD.handles.PLOT.e(i),'userdata',i,...
+                        'ButtonDownFcn','set(gco,''selected'',''on'')',...
+                        'Clipping','on');
+                    % Add events uicontextmenu
+                    sc.currentEvent = i;
+                    sc.eventType    = D.trials(trN(1)).events(i).type;
+                    sc.eventValue   = D.trials(trN(1)).events(i).value;
+                    sc.N_select     = Nevents;
+                    psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
+                end
+                set(handles.hfig,'userdata',D);
+                spm_eeg_review_callbacks('visu','checkXlim',...
+                    get(D.PSD.handles.axes,'xlim'))
+                
+            end
+            
+            % modify scaling factor
+            if ismember(3,flags)
+                ud = get(D.PSD.handles.gpa,'userdata');
+                ud.v.M = VIZU.visu_scale*full(VIZU.montage.M);
+                xw = round(get(ud.v.handles.axes,'xlim'));
+                My = ud.v.M*ud.y(xw(1):1:xw(2),:)';
+                for i=1:ud.v.nc
+                    set(ud.v.handles.hp(i),'xdata',xw(1):1:xw(2),'ydata',My(i,:)+ud.v.offset(i))
+                end
+                set(ud.v.handles.axes,'ylim',[ud.v.mi ud.v.ma],'xlim',xw);
+                set(D.PSD.handles.gpa,'userdata',ud);
+                set(handles.hfig,'userdata',D);
+            end
+            
+            % modify plotted time window (goto, 
+            if ismember(4,flags)
+                ud = get(D.PSD.handles.gpa,'userdata');
+                xw = round(D.PSD.VIZU.xlim);
+                My = ud.v.M*ud.y(xw(1):1:xw(2),:)';
+                for i=1:ud.v.nc
+                    set(ud.v.handles.hp(i),'xdata',xw(1):1:xw(2),'ydata',My(i,:)+ud.v.offset(i))
+                end
+                set(ud.v.handles.axes,'ylim',[ud.v.mi ud.v.ma],'xlim',xw);
+                set(ud.v.handles.pa,'xdata',[xw,fliplr(xw)]);
+                set(ud.v.handles.lb,'xdata',[xw(1) xw(1)]);
+                set(ud.v.handles.rb,'xdata',[xw(2) xw(2)]);
+                sw = diff(xw);
+                set(ud.v.handles.hslider,'value',mean(xw),...
+                    'min',1+sw/2,'max',ud.v.nt-sw/2,...
+                    'sliderstep',.1*[sw/(ud.v.nt-1) 4*sw/(ud.v.nt-1)]);
+                set(handles.hfig,'userdata',D);
+            end
+            
 
         case 2
 
             if strcmp(D.transform.ID,'time')
 
-                trN = D.PSD.trials.current;
                 Ntrials = length(trN);
                 v_data = zeros(size(VIZU.montage.M,1),...
                     size(D.data.y,2),Ntrials);
@@ -1089,7 +1028,6 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
 
             else %---- Time-frequency data !! ----%
 
-                trN = D.PSD.trials.current;
                 miY = 0;
                 maY = 0;
                 for i=1:length(VIZU.visuSensors)
@@ -1154,9 +1092,8 @@ else  % source space
         set(D.PSD.handles.infoText,'string',str);
         try, set(D.PSD.handles.BMCcurrent,'XData',invN); end;
         % get model/trial time series
-        trN = D.PSD.trials.current(1);
         D.PSD.source.VIZU.J = zeros(model.Nd,size(model.T,1));
-        D.PSD.source.VIZU.J(model.Is,:) = model.J{trN}*model.T';
+        D.PSD.source.VIZU.J(model.Is,:) = model.J{trN(1)}*model.T';
         D.PSD.source.VIZU.miJ = min(min(D.PSD.source.VIZU.J));
         D.PSD.source.VIZU.maJ = max(max(D.PSD.source.VIZU.J));
         % modify mesh/texture and add spheres...
@@ -1192,8 +1129,11 @@ else  % source space
         % modify time series plot itself
         switch D.PSD.source.VIZU.timeCourses
             case 1
+                Jp(1,:) = min(D.PSD.source.VIZU.J,[],1);
+                Jp(2,:) = max(D.PSD.source.VIZU.J,[],1);
                 D.PSD.source.VIZU.plotTC = plot(D.PSD.handles.axes2,...
-                    model.pst,D.PSD.source.VIZU.J');
+                    model.pst,Jp','color',0.5*[1 1 1]);
+                set(D.PSD.handles.axes2,'hittest','off')
             otherwise
                 % this is meant to be extended for displaying something
                 % else than just J (e.g. J^2, etc...)
@@ -1222,11 +1162,14 @@ else  % source space
 
 end
 
+spm('pointer','arrow');
 
 
 
 %% Switch 'bad channel' status
 function [] = switchBC(varargin)
+spm('pointer','watch');
+drawnow
 ind = get(gcbo,'userdata');
 D = get(gcf,'userdata');
 switch D.PSD.VIZU.modality
@@ -1263,14 +1206,16 @@ switch D.PSD.VIZU.type
     case 1
         set(D.PSD.handles.PLOT.p(ind),'uicontextmenu',cmenu,...
             'lineStyle',lineStyle);
-        set(D.PSD.handles.PLOT.p2(ind),'uicontextmenu',cmenu);
+%         ud = get(D.PSD.handles.axes);
+%         ud.v.bad(ind) = status;
+%         set(D.PSD.handles.axes,'userdata',ud);
     case 2
         set(D.PSD.handles.axes(ind),'Color',color);
         set(D.PSD.handles.fra(ind),'uicontextmenu',cmenu);
         set(D.PSD.handles.PLOT.p(:,ind),'uicontextmenu',cmenu);
         axes(D.PSD.handles.scale)
 end
-
+spm('pointer','arrow');
 
 
 %% Define menu event
@@ -1278,7 +1223,8 @@ function [] = psd_defineMenuEvent(re,sc)
 % This funcion defines the uicontextmenu associated to the selected events.
 % All the actions which are accessible using the right mouse click on the
 % selected events are a priori defined here.
-
+spm('pointer','watch');
+drawnow
 % Highlighting the selection
 set(re,'buttondownfcn','spm_eeg_review_callbacks(''menuEvent'',''click'',0)');
 cmenu = uicontextmenu;
@@ -1304,10 +1250,12 @@ uimenu(hc,'label','backward','callback','spm_eeg_review_callbacks(''menuEvent'',
 uimenu(cmenu,'label','Delete event','callback','spm_eeg_review_callbacks(''menuEvent'',''deleteEvent'',0)',...
     'BusyAction','cancel',...
     'Interruptible','off');
-
+spm('pointer','arrow');
 
 %% Get info about source reconstruction
 function str = getInfo4Inv(D,invN)
+spm('pointer','watch');
+drawnow
 str{1} = ['Label: ',D.other.inv{invN}.comment{1}];
 try
     str{2} = ['Date: ',D.other.inv{invN}.date(1,:),', ',D.other.inv{invN}.date(2,:)];
@@ -1384,10 +1332,12 @@ try
 catch
     str{12} = 'Log model evidence (free energy): undefined';
 end
-
+spm('pointer','arrow');
 
 %% Get data info
 function str = getInfo4Data(D)
+spm('pointer','watch');
+drawnow
 str{1} = ['File name: ',D.path,filesep,D.fname];
 str{2} = ['Type: ',D.type];
 if ~strcmp(D.transform.ID,'time')
@@ -1404,10 +1354,12 @@ else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
 try,str{7} = ['Time onset: ',num2str(D.timeOnset)];end
-
+spm('pointer','arrow');
 
 %% Get history info
 function table = getHistory(D)
+spm('pointer','watch');
+drawnow
 try
     history = D.history;
     nf = length(history);
@@ -1452,6 +1404,8 @@ try
 catch
     history = [];
 end
+spm('pointer','arrow');
+
 
 %% extracting data from spm_uitable java object
 function [D] = getUItable(D)

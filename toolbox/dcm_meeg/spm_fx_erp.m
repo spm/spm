@@ -7,7 +7,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 %   x(:,1) - voltage (spiny stellate cells)
 %   x(:,2) - voltage (pyramidal cells) +ve
 %   x(:,3) - voltage (pyramidal cells) -ve
-%   x(:,4) - current (spiny stellate cells)    depolarizing 
+%   x(:,4) - current (spiny stellate cells)    depolarizing
 %   x(:,5) - current (pyramidal cells)         depolarizing
 %   x(:,6) - current (pyramidal cells)         hyperpolarizing
 %   x(:,7) - voltage (inhibitory interneurons)
@@ -33,9 +33,11 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % neuronal dynamics. NeuroImage 20: 1743-1755
 %___________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_fx_erp.m 1174 2008-02-27 20:22:30Z karl $
+% $Id: spm_fx_erp.m 2315 2008-10-08 14:43:18Z jean $
+
+
 
 
 % get dimensions and configure state variables
@@ -45,12 +47,22 @@ x  = reshape(x,n,9);             % neuronal states
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [32 16 4];           % extrinsic rates (forward, backward, lateral)
-G  = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
-D  = [2 32];              % propogation delays (intrinsic, extrinsic)
-H  = [4 32];              % receptor densities (excitatory, inhibitory)
-T  = [8 16];              % synaptic constants (excitatory, inhibitory)
-R  = [2 1]/3;             % parameters of static nonlinearity
+try
+    E  = M.pF.E;                % extrinsic rates (forward, backward, lateral)
+    G  = M.pF.G;                % intrinsic rates (g1, g2 g3, g4)
+    D  = M.pF.D;                % propogation delays (intrinsic, extrinsic)
+    H  = M.pF.H;                % receptor densities (excitatory, inhibitory)
+    T  = M.pF.T;                % synaptic constants (excitatory, inhibitory)
+    R  = M.pF.R;                % parameters of static nonlinearity
+catch
+    E = [32 16 4];              % extrinsic rates (forward, backward, lateral)
+    G = [1 4/5 1/4 1/4]*128;    % intrinsic rates (g1, g2 g3, g4)
+    D = [2 32];                 % propogation delays (intrinsic, extrinsic)
+    H = [4 32];                 % receptor densities (excitatory, inhibitory)
+    T = [8 16];                 % synaptic constants (excitatory, inhibitory)
+    R = [2 1]/3;                % parameters of static nonlinearity
+end
+
 
 % test for free parameters on intrinsic connections
 %--------------------------------------------------------------------------
@@ -116,6 +128,7 @@ f      = f(:);
 if nargout == 1; return, end
 
 
+
 % Jacobian: J = df(x)/dx
 %===========================================================================
 I  = speye(n,n);
@@ -145,7 +158,7 @@ E  = (A{1} + A{3})*diag(dSdx(:,9)) + diag(G(:,1).*dSdx(:,9));
 E  = diag(He./Te)*E;
 S  = sparse(4,9,1,9,9); J = J + kron(S,E);
 
-% Infraranular layer (pyramidal cells)
+% Infra-granular layer (pyramidal cells)
 %--------------------------------------------------------------------------
 E  = (A{2} + A{3})*diag(dSdx(:,9));
 E  = diag(He./Te)*E;
@@ -164,9 +177,11 @@ S  = sparse(6,7,1,9,9); J = J + kron(S,E);
 if nargout == 2; return, end
 
 
+
+
 % delays
 %==========================================================================
-% Delay differential equations can be integrated efficiently (but 
+% Delay differential equations can be integrated efficiently (but
 % approximately) by absorbing the delay operator into the Jacobian
 %
 %    dx(t)/dt     = f(x(t - d))
@@ -174,21 +189,20 @@ if nargout == 2; return, end
 %
 %    J(d)         = Q(d)df/dx
 %--------------------------------------------------------------------------
+
+
 De = D(2).*exp(P.D)/1000;
 Di = D(1)/1000;
-De = (speye(n,n) - 1).*De;
-Di = (speye(9,9) - 1)*Di;
+De = (1 - speye(n,n)).*De;
+Di = (1 - speye(9,9)).*Di;
 De = kron(ones(9,9),De);
 Di = kron(Di,speye(n,n));
 D  = Di + De;
 
-
-% Implement: dx(t)/dt = f(x(t - d)) = inv(1 - D.*dfdx)*f(x(t))
+% Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-Q  = inv(speye(length(J)) - D.*J);
-
-
+Q  = inv(speye(length(J)) + D.*J);
 
 
 

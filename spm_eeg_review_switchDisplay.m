@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2263 2008-09-30 18:41:26Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2315 2008-10-08 14:43:18Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -85,10 +85,10 @@ else
 
         D.PSD.VIZU.type = 1;
 
-        % add axes
-        object.type = 'axes';
-        object.what = 'standard';
-        D = spm_eeg_review_uis(D,object);
+%         % add axes
+%         object.type = 'axes';
+%         object.what = 'standard';
+%         D = spm_eeg_review_uis(D,object);
 
         % add buttons
         object.type = 'buttons';
@@ -283,8 +283,22 @@ if ~~D.PSD.source.VIZU.current
     % plot time courses
     switch D.PSD.source.VIZU.timeCourses
         case 1
+            Jp(1,:) = min(J,[],1);
+            Jp(2,:) = max(J,[],1);
             D.PSD.source.VIZU.plotTC = plot(D.PSD.handles.axes2,...
-                model.pst,J');
+                model.pst,Jp','color',0.5*[1 1 1]);
+            % Add virtual electrode
+            try
+                Jve = J(D.PSD.source.VIZU.ve,:);
+            catch
+                D.PSD.source.VIZU.ve =1;
+                Jve = J(D.PSD.source.VIZU.ve,:);
+            end
+            set(D.PSD.handles.axes2,'nextplot','add')
+            D.PSD.source.VIZU.pve = plot(D.PSD.handles.axes2,...
+                model.pst,Jve,'color','b');
+            set(D.PSD.handles.axes2,'nextplot','replace')
+                
     end
     set(D.PSD.handles.axes2,'nextplot','add');
     D.PSD.source.VIZU.lineTime = line('parent',D.PSD.handles.axes2,...
@@ -294,7 +308,7 @@ if ~~D.PSD.source.VIZU.current
     grid(D.PSD.handles.axes2,'on')
     box(D.PSD.handles.axes2,'on')
     xlabel(D.PSD.handles.axes2,'peri-stimulus time (ms)')
-    ylabel(D.PSD.handles.axes2,'sources intensity')
+    ylabel(D.PSD.handles.axes2,'source activity (bounds)')
 
     set(D.PSD.handles.mesh,'visible','on')
     set(D.PSD.handles.colorbar,'visible','on')
