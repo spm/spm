@@ -7,6 +7,9 @@ function fieldtripdefs
 % hastoolbox function appears not be found in fieldtrip/private.
 
 % $Log: fieldtripdefs.m,v $
+% Revision 1.9  2008/10/08 10:21:57  roboos
+% added realtime module for addpath
+%
 % Revision 1.8  2008/10/02 14:04:17  roboos
 % added global ft_default, see also checkconfig
 %
@@ -78,5 +81,10 @@ try
   % only very few functions depent on this module
   % it is not yet included in the FTP release version
   hastoolbox('specest', 1, 1);
+end
+
+try
+  % this contains some examples for realtime processing
+  hastoolbox('realtime', 1, 1);
 end
 
