@@ -74,13 +74,15 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 2059 2008-09-09 16:04:05Z christophe $
+% $Id: spm_peb_ppi.m 2317 2008-10-08 17:31:06Z Darren $
 
 
 % set up the graphical interface
 %----------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
+spm_clf(Finter)
 Fgraph = spm_figure;
+spm_clf(Fgraph)
 header = get(Finter,'Name');
 
 
