@@ -33,7 +33,7 @@ function M1 = spm_eeg_inv_datareg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_datareg.m 2074 2008-09-10 10:30:30Z vladimir $
+% $Id: spm_eeg_inv_datareg.m 2320 2008-10-09 10:01:22Z vladimir $
 
 
 if nargin == 0 || ~isstruct(S)
@@ -44,15 +44,18 @@ if ~isfield(S, 'targetfid')
     error('Target fiducials are missing');
 else
     targetfid = forwinv_convert_units(S.targetfid, 'mm');
-    nfid = size(targetfid.fid.pnt, 1);
 end
 
 if ~isfield(S, 'sourcefid')
     error('Source are missing');
 else
     sourcefid = forwinv_convert_units(S.sourcefid, 'mm');
-    sourcefid.fid.pnt = sourcefid.fid.pnt(1:nfid, :);
-    sourcefid.fid.label = sourcefid.fid.label(1:nfid);
+    [sel1, sel2] = spm_match_str(targetfid.fid.label, sourcefid.fid.label);
+    sourcefid.fid.pnt = sourcefid.fid.pnt(sel2, :);
+    sourcefid.fid.label = sourcefid.fid.label(sel2);
+
+    targetfid.fid.pnt = targetfid.fid.pnt(sel1, :);
+    targetfid.fid.label = targetfid.fid.label(sel1);
 end
 
 if ~isfield(S, 'template')

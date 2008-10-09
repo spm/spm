@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_eeg_load.m 2320 2008-10-09 10:01:22Z vladimir $
 
 
 % get filename
@@ -52,11 +52,4 @@ catch
     D.type = 'other';
 end
 
-% check modality
-%--------------------------------------------------------------------------
-switch D.type
-    case{'continuous', 'single', 'evoked','grandmean'}
-        D = meeg(D);
-    otherwise
-end
-
+D = meeg(D);
