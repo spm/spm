@@ -75,6 +75,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.27  2008/10/09 12:48:51  roboos
+% added contrastcoefs to tmpcfg for determining critvals
+%
 % Revision 1.26  2008/10/02 12:37:33  roboos
 % removed some old backward compatibility code, errors will be given in case the old cfg options are used
 % use the "unused" option in checkconfig in case of correctm~=cluster to remove the cluster options
@@ -251,6 +254,7 @@ if strcmp(cfg.correctm, 'cluster')
     tmpcfg.uvar           = cfg.uvar;
     tmpcfg.cvar           = cfg.cvar;
     tmpcfg.wvar           = cfg.wvar;
+    if isfield(cfg, 'contrastcoefs'), tmpcfg.contrastcoefs = cfg.contrastcoefs; end % needed for Erics F-test statfun
     tmpcfg.computecritval = 'yes';  % explicitly request the computation of the crtitical value
     tmpcfg.computestat    = 'no';   % skip the computation of the statistic
     try
