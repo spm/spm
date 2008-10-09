@@ -59,6 +59,11 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.72  2008/10/09 14:09:52  roboos
+% added try-catch around old read_ctf_trigger code, Saskia & Ivar had a
+% recording in which none of the "old" trigger channels was present and
+% that would crash read_event.
+%
 % Revision 1.71  2008/09/30 08:01:04  roboos
 % replaced all fread(char=>char) into uint8=>char to ensure that the
 % chars are read as 8 bits and not as extended 16 bit characters. The
@@ -606,19 +611,21 @@ switch eventformat
       hdr = read_header(headerfile);
     end
 
-    % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
-    % this splits the trigger channel into the lowers and highest 16 bits,
-    % corresponding with the front and back panel of the electronics cabinet at the Donders Centre
-    [backpanel, frontpanel] = read_ctf_trigger(filename);
-    for i=find(backpanel(:)')
-      event(end+1).type   = 'backpanel trigger';
-      event(end  ).sample = i;
-      event(end  ).value  = backpanel(i);
-    end
-    for i=find(frontpanel(:)')
-      event(end+1).type   = 'frontpanel trigger';
-      event(end  ).sample = i;
-      event(end  ).value  = frontpanel(i);
+    try,
+      % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
+      % this splits the trigger channel into the lowers and highest 16 bits,
+      % corresponding with the front and back panel of the electronics cabinet at the Donders Centre
+      [backpanel, frontpanel] = read_ctf_trigger(filename);
+      for i=find(backpanel(:)')
+        event(end+1).type   = 'backpanel trigger';
+        event(end  ).sample = i;
+        event(end  ).value  = backpanel(i);
+      end
+      for i=find(frontpanel(:)')
+        event(end+1).type   = 'frontpanel trigger';
+        event(end  ).sample = i;
+        event(end  ).value  = frontpanel(i);
+      end
     end
 
     % determine the trigger channels from the header
