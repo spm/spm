@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2250 2008-09-30 13:04:12Z karl $
+% $Id: spm_api_erp.m 2321 2008-10-09 14:21:59Z rosalyn $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -518,7 +518,7 @@ switch DCM.options.spatial
         % for LFP
         %------------------------------------------------------------------
         DCM.Lpos = zeros(3,0);
-        set(handles.Slocation, 'String', {'assuming LFP in'; Sname{1:Nchannels}});  
+        set(handles.Slocation, 'String', {'assuming LFP in', Sname{1:Nchannels}});  
         set(handles.plot_dipoles,'enable','off')
      
     otherwise
