@@ -9,7 +9,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2284 2008-10-01 15:54:05Z jean $
+% $Id: spm_eeg_review.m 2322 2008-10-09 14:54:22Z jean $
 
 D = struct(D);
 
@@ -49,6 +49,7 @@ D.PSD.handles.tabs = h;
 % %-- Initilize display on 'info'
 D.PSD.VIZU.modality = 'info';
 D.PSD.VIZU.info = 4;
+D.PSD.VIZU.fromTab = [];
 [D] = spm_eeg_review_switchDisplay(D);
 
     

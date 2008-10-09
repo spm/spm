@@ -72,7 +72,7 @@ function [y,dydP] = spm_int_df(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_int_df.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_int_df.m 2322 2008-10-09 14:54:22Z jean $
 
 
 % convert U to U.u if necessary
@@ -169,10 +169,10 @@ fQ                              = @(M,P,x,u,dt,N)...
 indB                            = spm_getvec(P,'B');
 indR                            = spm_getvec(P,'R');
 M.Vp(:,sum(M.Vp([indB;indR],:))==1) = [];
-M.Vp([indB;indR],:)             = [];
+M.Vp([indB;indR],:)               = [];
 P0                              = rmfield(P,{'B','R'});
 [dQdp]                          = spm_diff(fQ,M,P0,x,u,dt,N,2,{[],M.Vp});
-dQdP                            = zeros(n^2,length(dQdp));
+dQdP                            = zeros(n^2,np-length(indR));
 for i=1:size(M.Vp,2)
     dQdP(:,M.Vp(:,i)~=0)        = dQdp{i}(:);
 end
@@ -183,7 +183,9 @@ for i=1:length(dQdu)
     dQdU(:,i)                   = dQdu{i}(:);
 end
 % 4- Get derivatives w.r.t. input parameters
-dQdP                            = getDfDPu([dQdP,dQdU],U,1);
+dQdR                            = getDfDPu(dQdU,U,1);
+% 5- Concatenate drivatives wrt ODE params and wrt input params
+dQdP                            = [dQdP,dQdR];
 
 
 % integrate

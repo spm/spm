@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_eeg_review_callbacks.m 2322 2008-10-09 14:54:22Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -35,11 +35,13 @@ switch varargin{1}
                     visuSensors             = varargin{3};
                     M                       = sparse(length(visuSensors),length(D.channels));
                     M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
-                    if isequal(D.type,'continuous')
-                        decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./2e2),1]);
-                    else
-                        decim = 1;
-                    end
+                    nts                     = min([2e2,D.Nsamples]);
+%                     if isequal(D.type,'continuous')
+%                         decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./nts),1]);
+                        decim                   = max([floor(D.Nsamples./nts),1]);
+%                     else
+%                         decim = 1;
+%                     end
                     data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
                     sd                      = std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*sd/2;
@@ -100,7 +102,13 @@ switch varargin{1}
         switch varargin{2}
 
             case 'main'
-
+                
+                try
+                    D.PSD.VIZU.fromTab = D.PSD.VIZU.modality;
+                catch
+                    D.PSD.VIZU.fromTab = [];
+                end
+                
                 switch varargin{3}
                     case 'eeg'
                         D.PSD.VIZU.modality = 'eeg';
@@ -125,6 +133,8 @@ switch varargin{1}
                 try
                     updateDisp(D,1);
                 catch
+                    set(D.PSD.handles.hfig,'userdata',D);
+                    spm('pointer','arrow');
                     try
                         disp(lasterr)
                     end
@@ -208,8 +218,14 @@ switch varargin{1}
                 % get 3D positions
                 try     % EEG
                     pos3d = [D.sensors.eeg.pnt];
-                    m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
-                    m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    try
+                        m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
+                        m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    catch
+                        lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_3004d'));
+                        m.vertices = lo.vert;
+                        m.faces = lo.face;
+                    end
                     options.figname = 'EEG sensors';
                     [out] = spm_eeg_render(m,options);
                     lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
@@ -227,8 +243,14 @@ switch varargin{1}
                 end
                 try     % MEG
                     pos3d = [D.sensors.meg.pnt];
-                    m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
-                    m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    try
+                        m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
+                        m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    catch
+                        lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_3004d'));
+                        m.vertices = lo.vert;
+                        m.faces = lo.face;
+                    end
                     options.figname = 'MEG sensors';
                     [out] = spm_eeg_render(m,options);
                     lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
@@ -246,8 +268,14 @@ switch varargin{1}
                 end
                 try     % other
                     pos3d = [D.sensors.other.pnt];
-                    m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
-                    m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    try
+                        m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
+                        m.faces = D.other.inv{1}.mesh.tess_mni.face;
+                    catch
+                        lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_3004d'));
+                        m.vertices = lo.vert;
+                        m.faces = lo.face;
+                    end
                     options.figname = 'other sensors';
                     [out] = spm_eeg_render(m,options);
                     lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
@@ -742,6 +770,7 @@ switch varargin{1}
         switch varargin{2}
 
             case 'prep'
+                
                 try,rotate3d off;end
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
@@ -877,7 +906,13 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 options.yticklabel = VIZU.montage.clab;
                 options.callback = ['spm_eeg_review_callbacks(''visu'',''checkXlim''',...
                     ',get(ud.v.handles.axes,''xlim''))'];
-                ud = spm_DisplayTimeSeries(D.data.y(:,:,trN(1))',options);
+                % Use file_array for 'continuous' data.
+                if strcmp(D.PSD.type,'continuous')
+                    options.transpose = 1;
+                    ud = spm_DisplayTimeSeries(D.data.y,options);
+                else
+                    ud = spm_DisplayTimeSeries(D.data.y(:,:,trN(1))',options);
+                end
                 % update D
                 D.PSD.handles.axes = ud.v.handles.axes;
                 D.PSD.handles.gpa = ud.v.handles.gpa;
@@ -954,7 +989,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 set(handles.hfig,'userdata',D);
             end
             
-            % modify plotted time window (goto, 
+            % modify plotted time window (goto, ...)
             if ismember(4,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
                 xw = round(D.PSD.VIZU.xlim);
@@ -1343,8 +1378,9 @@ str{2} = ['Type: ',D.type];
 if ~strcmp(D.transform.ID,'time')
     str{2} = [str{2},' (time-frequency data)'];
 end
-str{3} = ['Number of samples: ',num2str(D.Nsamples)];
-str{4} = ['Sampling frequency: ',num2str(D.Fsample)];
+delta_t = D.Nsamples./D.Fsample;
+str{3} = ['Number of samples: ',num2str(D.Nsamples),' (',num2str(delta_t),' sec)'];
+str{4} = ['Sampling frequency: ',num2str(D.Fsample),' Hz'];
 nb = length(find([D.channels.bad]));
 str{5} = ['Number of channels: ',num2str(length(D.channels)),' (',num2str(nb),' bad channels)'];
 nb = length(find([D.trials.bad]));
@@ -1353,7 +1389,7 @@ if strcmp(D.type,'continuous')
 else
     str{6} = ['Number of trials: ',num2str(length(D.trials)),' (',num2str(nb),' bad trials)'];
 end
-try,str{7} = ['Time onset: ',num2str(D.timeOnset)];end
+try,str{7} = ['Time onset: ',num2str(D.timeOnset),' sec'];end
 spm('pointer','arrow');
 
 %% Get history info

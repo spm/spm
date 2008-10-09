@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2322 2008-10-09 14:54:22Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -16,7 +16,7 @@ if strcmp(D.PSD.VIZU.modality,'source')
     [D] = visuRecon(D);
 
 elseif strcmp(D.PSD.VIZU.modality,'info')
-    delete(findobj('tag','plotEEG'));
+    
     [D] = DataInfo(D);
     set(D.PSD.handles.hfig,'userdata',D)
 
@@ -58,10 +58,13 @@ POS = get(D.PSD.handles.hfig,'position');
 switch D.PSD.VIZU.modality
     case 'eeg'
         I = D.PSD.EEG.I;
+        scb  =6;
     case 'meg'
         I = D.PSD.MEG.I;
+        scb  =6;
     case 'other'
         I = D.PSD.other.I;
+        scb = [];  % no scalp interpolation button
 end
 
 if isempty(I)
@@ -93,7 +96,7 @@ else
         % add buttons
         object.type = 'buttons';
         object.options.multSelect = 0;
-        object.list = [1;2;3;4;5;6];
+        object.list = [1;2;3;4;5;scb];
         switch D.PSD.type
             case 'continuous'
                 object.list = [object.list;9];
@@ -351,25 +354,42 @@ end
 
 %% GET DATA INFO
 function [D] = DataInfo(D)
-% create info text
-object.type = 'text';
-object.what = 'data';
-D = spm_eeg_review_uis(D,object);
 
-try
-    D.PSD.VIZU.info;
-catch
-    D.PSD.VIZU.info = 4;
+if isempty(D.PSD.VIZU.fromTab) || ~isequal(D.PSD.VIZU.fromTab,'info')
+    % delete graphical objects from other main tabs
+    delete(findobj('tag','plotEEG'));
+    % create info text
+    object.type = 'text';
+    object.what = 'data';
+    D = spm_eeg_review_uis(D,object);
+    % Create uitabs for channels and trials
+    try
+        D.PSD.VIZU.info;
+    catch
+        D.PSD.VIZU.info = 4;
+    end
+    labels = {'channels','trials','inv','history'};
+    callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''info'',1)',...,...
+        'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'...
+        'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)',...
+        'spm_eeg_review_callbacks(''visu'',''main'',''info'',4)'};
+    [h] = spm_uitab(D.PSD.handles.tabs.hp,labels,callbacks,'plotEEG',D.PSD.VIZU.info,0.9);
+    D.PSD.handles.infoTabs = h;
+    
+else
+    % delete prepare/save buttons
+    try
+        delete(D.PSD.handles.BUTTONS.prep)
+        delete(D.PSD.handles.BUTTONS.pop1)
+    end
+    % delete info table (id any)
+    try;delete(D.PSD.handles.infoUItable);end
+    % delete info message (if any)
+    try;delete(D.PSD.handles.message);end
+    % delete buttons if any
+    try;delete(D.PSD.handles.BUTTONS.OKinfo);end
+    try;delete(D.PSD.handles.BUTTONS.showSensors);end
 end
-
-% Create uitabs for channels and trials
-labels = {'channels','trials','inv','history'};
-callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''info'',1)',...,...
-    'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'...
-    'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)',...
-    'spm_eeg_review_callbacks(''visu'',''main'',''info'',4)'};
-[h] = spm_uitab(D.PSD.handles.tabs.hp,labels,callbacks,'plotEEG',D.PSD.VIZU.info,0.9);
-D.PSD.handles.infoTabs = h;
 
 % add table and buttons
 object.type = 'buttons';
@@ -539,11 +559,11 @@ switch D.PSD.VIZU.info
             D = spm_eeg_review_uis(D,object); % this adds the buttons
         else
             POS = get(D.PSD.handles.infoTabs.hp,'position');
-            uicontrol('style','text','units','normalized',...
+            D.PSD.handles.message = uicontrol('style','text','units','normalized',...
                 'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
             'string','There is no inverse source reconstruction in this data file !',...
             'BackgroundColor',0.95*[1 1 1],...
-            'tag','plotEEG')
+            'tag','plotEEG');
 
         end
         
@@ -560,7 +580,7 @@ switch D.PSD.VIZU.info
             D.PSD.handles.infoUItable = ht;
         else
             POS = get(D.PSD.handles.infoTabs.hp,'position');
-            uicontrol('style','text','units','normalized',...
+            D.PSD.handles.message = uicontrol('style','text','units','normalized',...
                 'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
             'string','The history of this file is not available !',...
             'BackgroundColor',0.95*[1 1 1],...

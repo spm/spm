@@ -17,6 +17,9 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 %       1).
 %       .bad a px1 binary vector containing the good/bad status of the
 %       channels. Default is zeros(p,1).
+%       .transpose: a binary variable that transposes the data (useful for
+%       file_array display). Using options.transpose = 1 is similar to do
+%       something similar to plot(y'). Default is 0.
 %       .minY: the min value of the plotted data (used to define the main
 %       axes limit). Default is calculated according to the offset.
 %       .maxY: the max value of the plotted data (used to define the main
@@ -54,7 +57,7 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_DisplayTimeSeries.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_DisplayTimeSeries.m 2322 2008-10-09 14:54:22Z jean $
 
 
 if ~exist('options','var')
@@ -82,12 +85,27 @@ else
     events = [];
 end
 
+if ~isempty(options) && isfield(options,'transpose')
+    transpose = options.transpose;
+else
+    transpose = 0;
+end
+
 if ~isempty(options) && isfield(options,'M')
     M = options.M;
     nc = size(M,1);
+    if ~transpose
+        nt = size(y,1);
+    else
+        nt = size(y,2);
+    end
 else
     M = 1;
-    nc = size(y,2);
+    if ~transpose
+        [nt,nc] = size(y);
+    else
+        [nc,nt] = size(y);
+    end
 end
 
 if ~isempty(options) && isfield(options,'bad')
@@ -101,14 +119,14 @@ if ~isempty(options) && isfield(options,'minSizeWindow')
 else
     minSizeWindow = 200;
 end
-minSizeWindow = min([minSizeWindow .5*size(y,1)]);
+minSizeWindow = min([minSizeWindow,.5*nt]);
 
 if ~isempty(options) && isfield(options,'maxSizeWindow')
     maxSizeWindow = options.maxSizeWindow;
 else
     maxSizeWindow = 5000;
 end
-maxSizeWindow = min([maxSizeWindow size(y,1)]);
+maxSizeWindow = min([maxSizeWindow,nt]);
 
 if ~isempty(options) && isfield(options,'ds')
     ds = options.ds;
@@ -167,13 +185,13 @@ end
 if ~isempty(options) && isfield(options,'offset')
     offset = options.offset(:);
 else
-    offset = zeros(size(y,2),1);
+    offset = zeros(nc,1);
 end
 
 if ~isempty(options) && isfield(options,'minY')
     minY = options.minY;
 else
-    yo = y + repmat(offset',size(y,1),1);
+    yo = y + repmat(offset',nt,1);
     minY = min(yo(:));
 end
 
@@ -183,7 +201,7 @@ else
     try
         maxY = max(yo(:));
     catch
-        yo = y + repmat(offset',size(y,1),1);
+        yo = y + repmat(offset',nt,1);
         maxY = max(yo(:));
     end
 
@@ -197,8 +215,9 @@ end
 % Get basic info about data
 ud.y    = y;
 ud.v.bad = bad;
+ud.v.transpose = transpose;
 ud.v.nc = nc;
-ud.v.nt = size(y,1);
+ud.v.nt = nt;
 ud.v.ds = ds;
 ud.v.M = M;
 ud.v.mi = minY;
@@ -211,9 +230,13 @@ ud.v.handles.hp = hp;
 ud.callback = callback;
 
 % Get downsampled global power
-decim = max([1,round(size(y,1)./1000)]);
-ud.v.ind = 1:decim:size(y,1);
-ud.v.y2 = sum(y(ud.v.ind,:).^2,2);
+decim = max([1,round(nt./1000)]);
+ud.v.ind = 1:decim:nt;
+if ~ud.v.transpose
+    ud.v.y2 = sum(y(ud.v.ind,:).^2,2);
+else
+    ud.v.y2 = sum(y(:,ud.v.ind).^2,1)';
+end
 mi = min(ud.v.y2);
 ma = max(ud.v.y2);
 
@@ -231,7 +254,11 @@ ud.v.handles.gpa  = axes('parent',hp,'position',pos2,...
 col = colormap(lines);
 col = col(1:7,:);
 ud.v.handles.hp = zeros(nc,1);
-My = ud.v.M*y(itw,:)';
+if ~ud.v.transpose
+    My = ud.v.M*y(itw,:)';
+else
+    My = ud.v.M*y(:,itw);
+end
 for i=1:ud.v.nc
     ii = mod(i+7,7)+1;
     ud.v.handles.hp(i) = plot(ud.v.handles.axes,itw,My(i,:)+offset(i),...
@@ -265,8 +292,8 @@ ud.v.handles.rb = plot(ud.v.handles.gpa,[itw(end) itw(end)],[mi ma],'k',...
     'buttondownfcn',@doRb,'interruptible','off');
 
 % Adapt axes properties to display
-tgrid = 0:1/Fsample:size(y,1)/Fsample;
-set(ud.v.handles.gpa,'ylim',[mi ma],'xlim',[1 size(y,1)]);
+tgrid = 0:1/Fsample:nt/Fsample;
+set(ud.v.handles.gpa,'ylim',[mi ma],'xlim',[1 nt]);
 xtick = floor(get(ud.v.handles.gpa,'xtick'));
 xtick(xtick==0) = 1;
 for i=1:length(xtick)
@@ -307,7 +334,11 @@ sw = diff(get(ud.v.handles.axes,'xlim'));
 xl = xm + [-sw./2,+sw./2];
 if xl(1) >= 1 && xl(2) <= ud.v.nt
     xl = round(xl);
-    My = ud.v.M*ud.y(xl(1):xl(2),:)';
+    if ~ud.v.transpose
+        My = ud.v.M*ud.y(xl(1):xl(2),:)';
+    else
+        My = ud.v.M*ud.y(:,xl(1):xl(2));
+    end
     doPlot(My,xl,ud.v,1)
 end
 if ~isempty(ud.callback)
@@ -345,7 +376,11 @@ set(hf,'WindowButtonMotionFcn',[],...
     'Pointer','arrow')
 ud = get(ha,'userdata');
 xw = get(ud.v.handles.axes,'xlim');
-My = ud.v.M*ud.y(xw(1):xw(2),:)';
+if ~ud.v.transpose
+    My = ud.v.M*ud.y(xw(1):xw(2),:)';
+else
+    My = ud.v.M*ud.y(:,xw(1):xw(2));
+end
 doPlot(My,xw,ud.v,1);
 if ~isempty(ud.callback)
     try,eval(ud.callback);end
@@ -362,7 +397,11 @@ xl = xm + [-sw./2,+sw./2];
 if xl(1) >= 1 && xl(2) <= ud.v.nt
     xl = round(xl);
     decim = max([1,round(sw./ud.v.ds)]);
-    My = ud.v.M*ud.y(xl(1):decim:xl(2),:)';
+    if ~ud.v.transpose
+        My = ud.v.M*ud.y(xl(1):decim:xl(2),:)';
+    else
+        My = ud.v.M*ud.y(:,xl(1):decim:xl(2));
+    end
     doPlot(My,xl,ud.v,decim)
 end
 
@@ -377,7 +416,11 @@ if cp(1) <= xw(2) - ud.v.minSizeWindow ...
     cp = [round(cp(1)) xw(2)];
     sw = diff(cp);
     decim = max([1,round(sw./ud.v.ds)]);
-    My = ud.v.M*ud.y(cp(1):decim:cp(2),:)';
+    if ~ud.v.transpose
+        My = ud.v.M*ud.y(cp(1):decim:cp(2),:)';
+    else
+        My = ud.v.M*ud.y(:,cp(1):decim:cp(2));
+    end
     doPlot(My,cp,ud.v,decim)
 end
 
@@ -392,7 +435,11 @@ if xw(1) <= cp(1) - ud.v.minSizeWindow ...
     cp = [xw(1) round(cp(1))];
     sw = diff(cp);
     decim = max([1,round(sw./ud.v.ds)]);
-    My = ud.v.M*ud.y(cp(1):decim:cp(2),:)';
+    if ~ud.v.transpose
+        My = ud.v.M*ud.y(cp(1):decim:cp(2),:)';
+    else
+        My = ud.v.M*ud.y(:,cp(1):decim:cp(2));
+    end
     doPlot(My,cp,ud.v,decim)
 end
 
