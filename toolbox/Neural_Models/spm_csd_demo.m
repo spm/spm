@@ -48,7 +48,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 1212 2008-03-14 19:08:47Z karl $
+% $Id: spm_csd_demo.m 2330 2008-10-10 18:23:42Z karl $
  
 clear global
 clear
@@ -107,7 +107,11 @@ LFP  = spm_int_L(P,M,U);
  
 % and estimate spectral features under a MAR model
 %--------------------------------------------------------------------------
-mar  = spm_mar(LFP,8);
+try
+    mar = spm_mar(LFP,8);
+catch
+    warndlg('please include spectral toolbax in Matlab path')
+end
 mar  = spm_mar_spectra(mar,M.Hz,1/U.dt);
 CSD  = abs(mar.P);
  

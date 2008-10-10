@@ -55,7 +55,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_erp_priors.m 2330 2008-10-10 18:23:42Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ end
 % contribution of states to ECD
 %--------------------------------------------------------------------------
 G.J   = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);
-U     = spm_cat( diag({U, diag(G.J/128)}) );
+U     = spm_cat( diag({U, diag(G.J/64)}) );
 
  
 % parameters for neural-mass forward model

@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2321 2008-10-09 14:21:59Z rosalyn $
+% $Id: spm_api_erp.m 2330 2008-10-10 18:23:42Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -537,6 +537,7 @@ set(handles.Slocation,        'Enable', 'off');
 set(handles.spatial_back,     'Enable', 'off');
  
 set(handles.con_reset,        'Enable', 'on');
+set(handles.priors,           'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
 set(handles.Hz1,              'Enable', 'on');
 set(handles.Hz2,              'Enable', 'on');
@@ -620,7 +621,7 @@ l       = length(DCM.options.onset);   % number of peristimulus inputs
  
 % remove previous objects
 %--------------------------------------------------------------------------
-h = get(handles.SPM,'Children');
+h     = get(handles.SPM,'Children');
 for i = 1:length(h)
     if strcmp(get(h(i),'Tag'),'tmp')
         delete(h(i));
@@ -644,10 +645,10 @@ try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
 %--------------------------------------------------------------------------
 set(handles.con_reset,'Units','Normalized')
 p  = get(handles.con_reset,'Position');
-x0 = p(1);
-y0 = p(2);
-sx = 1/32;
-sy = 1/64;
+x0 = 0.1;
+y0 = 0.425;
+sx = 1/36;
+sy = 1/72;
 for i = 1:n
     for j = 1:n
         for k = 1:3
@@ -729,16 +730,19 @@ end
 switch DCM.options.model
     case{'NMM','MFM'}
         constr = {'Excit.' 'Inhib.' 'Mixed' 'input'};
+    otherwise
+        constr = {'forward' 'backward' 'lateral' 'input'};
+end
+switch DCM.options.analysis
     case{'IND'}
         constr = {'linear' 'nonlinear' '(not used)' 'input'};
     otherwise
-        constr = {'forward' 'backward' 'lateral' 'input'};
 end
 nsx            = (n + 1)*sx;
 nsy            = 2*sy;
 for k = 1:4
     x          = x0 + (k - 1)*nsx;
-    y          = y0 - 3*sy;
+    y          = y0 - 4*sy;
     str        = constr{k};
     S(k)       = uicontrol(handles.SPM,...
         'Units','Normalized',...
@@ -1099,3 +1103,16 @@ switch handles.DCM.options.analysis
  
 end
 guidata(hObject,handles);
+
+% --- Executes on button press in priors.
+function priors_Callback(hObject, eventdata, handles);
+handles = reset_Callback(hObject, eventdata, handles);
+switch(handles.DCM.options.model)
+    case{'NMM'}
+        spm_api_nmm(handles.DCM)
+    otherwise
+        warndlg('This is only available for neral mass models (NMM)')
+        return
+end
+
+

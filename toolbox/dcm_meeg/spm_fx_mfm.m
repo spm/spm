@@ -44,7 +44,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2310 2008-10-06 19:20:45Z karl $
+% $Id: spm_fx_mfm.m 2330 2008-10-10 18:23:42Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -72,9 +72,13 @@ C    = exp(P.C);                              % subcortical
  
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
-SA   = sparse([1 0 1;
-               0 1 1;
-               0 0 0]);
+try
+    SA   = M.SA;
+catch
+    SA   = sparse([1 0 1;
+                   0 1 1;
+                   0 0 0]);
+end
             
 % intrinsic connection strengths
 %==========================================================================
@@ -92,13 +96,13 @@ catch
     %----------------------------------------------------------------------
     GE   = [0   0   1/2;
             0   0   1;
-            1   0   0  ];
+            1/2 0   0  ];
 
     % intrinsic connections (np x np) - inhibitory
     %----------------------------------------------------------------------
-    GI   = [0   1/2 0;
+    GI   = [0   1/4 0;
             0   0   0;
-            0   2   0];
+            0   1   0];
 end
                 
  
@@ -164,7 +168,7 @@ U     = C*u;
 % Exogenous input (to excitatory populations)
 %--------------------------------------------------------------------------
 try
-    B = exp(P.X)/6;
+    B = exp(P.X)/8;
 catch
     B = 0;
 end

@@ -1,10 +1,9 @@
-function [x,M] = spm_x_mfm(P,GE,GI)
+function [x,M] = spm_x_mfm(P,M)
 % initialises a state structure for a mean field model
-% FORMAT [x,M] = spm_x_mfm(P,GE,GI)
+% FORMAT [x,M] = spm_x_mfm(P,M)
 %
 % P  - parameter structure (encoding extrinsic connections)
-% GE - extrinsic connections (excitatory)
-% GI - extrinsic connections (inhibitory)
+% M  - model     structure
 %
 %
 % x - states and covariances
@@ -25,33 +24,13 @@ function [x,M] = spm_x_mfm(P,GE,GI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 2310 2008-10-06 19:20:45Z karl $
- 
- 
-% intrinsic connections (specifying the number of populations per source)
-%==========================================================================
-try, GE; catch
- 
-    % intrinsic connections (np x np) - excitatory
-    %----------------------------------------------------------------------
-    GE   = [0   0   1/2;
-            0   0   1;
-            1   0   0  ];
-end
-try, GI; catch
- 
-    % intrinsic connections (np x np) - inhibitory
-    %----------------------------------------------------------------------
-    GI   = [0   1/2 0;
-            0   0   0;
-            0   2   0];
-end
- 
+% $Id: spm_x_mfm.m 2330 2008-10-10 18:23:42Z karl $
+
  
 % dimensions
 %--------------------------------------------------------------------------
 ns   = size(P.A{1},1);                           % number of sources
-np   = size(GE,1);                               % number of populations
+np   = 3;                                        % number of populations
  
 % create (initialise voltage at -70mV)
 %--------------------------------------------------------------------------
@@ -66,7 +45,7 @@ end
  
 % steady-state solution 
 %==========================================================================
- 
+
 % create MFM model
 %--------------------------------------------------------------------------
 M.f   = 'spm_fx_mfm';
@@ -75,8 +54,7 @@ M.pE  = P;
 M.n   = length(spm_vec(x));
 M.m   = size(P.C,2);
 M.l   = size(P.C,1);
-M.GE  = GE;
-M.GI  = GI;
+
  
 % solve for fixed point 
 %--------------------------------------------------------------------------

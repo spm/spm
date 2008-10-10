@@ -25,7 +25,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_erp_L.m 2330 2008-10-10 18:23:42Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -93,10 +93,13 @@ switch type
     % LFP electrode gain
     %----------------------------------------------------------------------
     case{'LFP'}
-        
-        n = M.dipfit.Ns;
-        m = length(P.L);
-        L = sparse(1:m,1:m,P.L,m,n);
+        m     = length(P.L);
+        try
+            n = M.dipfit.Ns;
+        catch
+            n = m;
+        end
+        L     = sparse(1:m,1:m,P.L,m,n);
 
     otherwise
         warndlg('unknown spatial model')

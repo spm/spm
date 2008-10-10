@@ -1,10 +1,9 @@
-function [x,M] = spm_x_nmm(P,GE,GI)
+function [x,M] = spm_x_nmm(P,M)
 % initialises a state structure for a mean field model
-% FORMAT [x,M] = spm_x_nmm(P,GE,GI)
+% FORMAT [x,M] = spm_x_nmm(P,M)
 %
 % P - parameter structure
-% GE - extrinsic connections (excitatory)
-% GI - extrinsic connections (inhibitory)
+% M - model     structure
 %
 % x        - array of states
 % x(i,j,k) - k-th state of j-th population on i-th source
@@ -24,30 +23,16 @@ function [x,M] = spm_x_nmm(P,GE,GI)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_nmm.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_x_nmm.m 2330 2008-10-10 18:23:42Z karl $
  
-% intrinsic connections (specifying the number of populations per source)
-%==========================================================================
-try, GE; catch
- 
-    % intrinsic connections (np x np) - excitatory
-    %----------------------------------------------------------------------
-    GE   = [0   0   1/2;
-            0   0   1;
-            1   0   0];
-end
-try, GI; catch
- 
-    % intrinsic connections (np x np) - inhibitory
-    %----------------------------------------------------------------------
-    GI   = [0   1/2 0;
-            0   0   0;
-            0   2   0];
-end
- 
+
 % get initialisation from full mean-field model
-%--------------------------------------------------------------------------
-[x M] = spm_x_mfm(P,GE,GI);
+%==========================================================================
+try
+    [x M] = spm_x_mfm(P,M);
+catch
+    [x M] = spm_x_mfm(P);
+end
  
 % remove dispersion and fix the covariance of the states (Cx)
 %--------------------------------------------------------------------------

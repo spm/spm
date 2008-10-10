@@ -53,7 +53,7 @@ function [y] = spm_int_ode(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 1188 2008-03-05 17:14:43Z karl $
+% $Id: spm_int_ode.m 2330 2008-10-10 18:23:42Z karl $
 
 
 % convert U to U.u if necessary
@@ -67,9 +67,9 @@ catch
     dt = 1;
 end
 try
-    ns = M.ns;
-catch
     ns = length(U.u);
+catch
+    ns = M.ns;
 end
  
 % sample times

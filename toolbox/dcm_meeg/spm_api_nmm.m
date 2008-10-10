@@ -19,11 +19,11 @@ function varargout = spm_api_nmm(varargin)
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
-
+ 
 % Edit the above text to modify the response to help spm_api_nmm
-
-% Last Modified by GUIDE v2.5 01-Oct-2008 19:46:25
-
+ 
+% Last Modified by GUIDE v2.5 07-Oct-2008 19:17:36
+ 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -35,51 +35,52 @@ gui_State = struct('gui_Name',       mfilename, ...
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
-
+ 
 if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
 else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
-
+ 
+ 
 % --- Executes just before spm_api_nmm is made visible.
+%--------------------------------------------------------------------------
 function spm_api_nmm_OpeningFcn(hObject, eventdata, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to spm_api_nmm (see VARARGIN)
-
+set(gcf,'name','Neural mass modelling: review of priors');
+try
+    handles.DCM = varargin{1};
+    unpack_Callback(hObject, eventdata, handles);
+end
+ 
 % Choose default command line output for spm_api_nmm
 handles.output = hObject;
-
+ 
 % Update handles structure
 guidata(hObject, handles);
-
+ 
 % UIWAIT makes spm_api_nmm wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
-
-
+ 
+ 
 % --- Outputs from this function are returned to the command line.
 function varargout = spm_api_nmm_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+ 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
-
-
+ 
+ 
 %==========================================================================
-
-
+ 
+ 
 % --- Executes on button press in load.
 %--------------------------------------------------------------------------
 function load_Callback(hObject, eventdata, handles)
-
+ 
 [f,p]       = uigetfile('*.mat','please select DCM file'); cd(p)
 name        = fullfile(p,f);
 DCM         = load(name,'-mat');
@@ -87,13 +88,13 @@ DCM         = DCM.DCM;
 DCM.name    = name;
 handles.DCM = DCM;
 set(handles.name,'String',f);
-
+ 
 % display priors
 %--------------------------------------------------------------------------
 unpack_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
-
-
+ 
+ 
 % --- Executes on button press in save.
 %--------------------------------------------------------------------------
 function save_Callback(hObject, eventdata, handles)
@@ -108,7 +109,7 @@ catch
     end
 end
 [file,fpath]     = uiputfile(['DCM*.mat'],'DCM file to save',file);
-
+ 
 if fpath
     handles.DCM.name = fullfile(fpath,file);
     set(handles.name,'String',file);
@@ -116,47 +117,47 @@ if fpath
     save(DCM.name,'DCM')
     cd(fpath)
 end
-
+ 
 % assign in base
 %--------------------------------------------------------------------------
 assignin('base','DCM',handles.DCM)
 guidata(hObject,handles);
-
-
+ 
+ 
 % --- Executes on button press in kernels.
 %--------------------------------------------------------------------------
 function kernels_Callback(hObject, eventdata, handles)
+clear spm_erp_L spm_gen_erp
 DCM   = handles.DCM;
-M     = DCM.M;
 pst   = str2num(get(handles.pst,'String'));
 Hz    = str2num(get(handles.Hz, 'String'));
-
-% initalise states
+ 
+% initialise states
 %--------------------------------------------------------------------------
 M     = DCM.M;
-M.x   = spm_x_nmm(M.pE);
-
+M.x   = spm_x_nmm(M.pE,M);
+ 
 % Volterra Kernels
 %==========================================================================
-
+ 
 % augment and bi-linearise
 %--------------------------------------------------------------------------
 [M0,M1,L1,L2] = spm_bireduce(M,M.pE);
-
+ 
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
-U.dt    = 4/1000;
-M.ns    = pst/U.dt/1000;
+M.ns    = 128;
+U.dt    = pst/M.ns/1000;
 t       = [1:M.ns]*U.dt*1000;
 [K0,K1] = spm_kernels(M0,M1,L1,L2,M.ns,U.dt);
-
+ 
 axes(handles.kernel)
 plot(t,K1)
 set(gca,'XLim',[min(t) max(t)])
 ylabel('1st-order Volterra kernel')
 xlabel('time (ms)')
-
-% Transfer function (source space)
+ 
+% transfer function (source space)
 %--------------------------------------------------------------------------
 for i = 1:size(K1,2)
     g(:,i) = fft(K1(:,i));
@@ -165,45 +166,27 @@ end
 i   = [1:M.ns/2];
 g   = g(i + 1,:);
 w   = i/(M.ns*U.dt);
-
+ 
 axes(handles.transfer)
 plot(w,g)
 set(gca,'XLim',[1 Hz])
 xlabel('frequency time (Hz)')
 ylabel('spectral density')
-
-
-% --- Executes on button press in response.
-%--------------------------------------------------------------------------
-function response_Callback(hObject, eventdata, handles)
-clear spm_erp_L spm_gen_erp
-DCM   = handles.DCM;
-pst   = str2num(get(handles.pst,'String'));
-Hz    = str2num(get(handles.Hz, 'String'));
-
-% initalise states
-%--------------------------------------------------------------------------
-M     = DCM.M;
-M.x   = spm_x_nmm(M.pE);
-
-U.dt  = 4/1000;
-M.ns  = pst/U.dt/1000;
-M.ons = 32;
-t     = [1:M.ns]*U.dt*1000 - M.ons;
-
+ 
 % prediction (source space)
 %--------------------------------------------------------------------------
 x     = spm_gen_erp(M.pE,M,U);
 x     = x{1};
-
+ 
 axes(handles.erp)
 plot(t,x)
 set(gca,'XLim',[min(t) max(t)])
 xlabel('peristimulus time (ms)')
 ylabel('voltage and conductance')
-
+ 
 % fft (source space)
 %--------------------------------------------------------------------------
+clear g
 for i = 1:size(x,2)
     g(:,i) = fft(x(:,i));
     g(:,i) = abs(g(:,i).*conj(g(:,i)));
@@ -211,18 +194,18 @@ end
 i   = [1:M.ns/2];
 g   = g(i + 1,:);
 w   = i/(M.ns*U.dt);
-
+ 
 axes(handles.fft)
 plot(w,g)
 set(gca,'XLim',[1 Hz])
 xlabel('frequency time (Hz)')
 ylabel('spectral density')
-
-
+ 
+ 
 % unpack priors and display
 %==========================================================================
 function unpack_Callback(hObject, eventdata, handles);
-
+ 
 % clear previous objects
 %--------------------------------------------------------------------------
 h = get(gcf,'Children');
@@ -231,19 +214,33 @@ for i = 1:length(h)
         delete(h(i));
     end
 end
-
+ 
 % get priors
 %--------------------------------------------------------------------------
 try
     handles.DCM.M.pE;
+    handles.DCM.M.pC;
+    handles.DCM.M.GE;
+    handles.DCM.M.GI;
+    handles.DCM.M.SA;
 catch
     handles = reset_Callback(hObject, eventdata, handles);
 end
 pE = handles.DCM.M.pE;
+pC = handles.DCM.M.pC;
+GE = handles.DCM.M.GE;
+GI = handles.DCM.M.GI;
+SA = handles.DCM.M.SA;
 try
     pE = rmfield(pE,'B');
 end
-
+ 
+% get prior variance
+%--------------------------------------------------------------------------
+pC    = spm_unvec(diag(pC),pE);
+color = {[1 1 1],get(handles.name,'BackgroundColor')};
+ 
+ 
 x0    = 1/8;
 y0    = 1 - 1/8;
 sx    = 1/24;
@@ -254,9 +251,9 @@ F     = fieldnames(pE);
 for f = 1:length(F)
     
     P = getfield(pE,F{f});
-
+ 
     if iscell(P)
-
+ 
         % cell
         %------------------------------------------------------------------
         for k = 1:length(P)
@@ -266,19 +263,20 @@ for f = 1:length(F)
                     y   = y0 - (i - 1)*dy;
                     str = sprintf('handles.DCM.M.pE.%s{%i}(%i,%i)',F{f},k,i,j);
                     str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
-                    uicontrol(gcf,...
+                    h = uicontrol(gcf,...
                         'Units','Normalized',...
                         'Position',[x y sx sy],...
                         'Style','edit',...
-                        'String',sprintf('%-4.0f',P{k}(i,j)),...
+                        'String',sprintf('%-4.2f',P{k}(i,j)),...
                         'enable','on',...
                         'Tag','tmp',...
+                        'BackgroundColor',color{1 + ~eval(sprintf('pC.%s{%i}(%i,%i)',F{f},k,i,j))},...
                         'Callback',str);
                 end
             end
         end
-
-
+ 
+ 
     elseif isvector(P)
         
         % vector
@@ -292,9 +290,10 @@ for f = 1:length(F)
                 'Units','Normalized',...
                 'Position',[x y sx sy],...
                 'Style','edit',...
-                'String',sprintf('%-4.0f',P(i)),...
+                'String',sprintf('%-4.2f',P(i)),...
                 'enable','on',...
                 'Tag','tmp',...
+                'BackgroundColor',color{1 + ~eval(sprintf('pC.%s(%i)',F{f},i))},...
                 'Callback',str);
         end
     else
@@ -311,41 +310,161 @@ for f = 1:length(F)
                     'Units','Normalized',...
                     'Position',[x y sx sy],...
                     'Style','edit',...
-                    'String',sprintf('%-4.0f',P(i,j)),...
+                    'String',sprintf('%-4.2f',P(i,j)),...
                     'enable','on',...
                     'Tag','tmp',...
+                    'BackgroundColor',color{1 + ~eval(sprintf('pC.%s(%i,%i)',F{f},i,j))},...
                     'Callback',str);
             end
         end
     end
-
+ 
     % label
     %----------------------------------------------------------------------
     uicontrol(gcf,...
         'Units','Normalized',...
-        'Position',[x0 - 2*dx y0 2*sx sy],...
+        'Position',[x0 - dx y0 2*sx sy],...
         'Style','text',...
-        'String',sprintf('Prior: %s',F{f}),...
+        'String',sprintf('pE.%s',F{f}),...
         'ForegroundColor',[1 0 0],...
         'HorizontalAlignment','left',...
-        'FontSize',14,...
+        'FontSize',12,...
         'Tag','tmp');
     y0 = y - dy - dy/2;
-
+    
 end
-
-
+ 
+% connectivity matrices
+%==========================================================================
+ 
+% SA matrix
+%--------------------------------------------------------------------------
+x0    = 0.7;
+y0    = 0.3;
+for i = 1:size(SA,1);
+    for j   = 1:size(SA,2)
+        x   = x0 + j*dx;
+        y   = y0 - (i - 1)*dy;
+        str = sprintf('handles.DCM.M.SA(%i,%i)',i,j);
+        str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
+        uicontrol(gcf,...
+            'Units','Normalized',...
+            'Position',[x y sx sy],...
+            'Style','edit',...
+            'String',sprintf('%-4.2f',SA(i,j)),...
+            'enable','on',...
+            'Tag','tmp',...
+            'Callback',str);
+    end
+end
+ 
+% GE matrix
+%--------------------------------------------------------------------------
+x0    = 0.7;
+y0    = 0.2;
+for i = 1:size(GE,1);
+    for j   = 1:size(GE,2)
+        x   = x0 + j*dx;
+        y   = y0 - (i - 1)*dy;
+        str = sprintf('handles.DCM.M.GE(%i,%i)',i,j);
+        str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
+        uicontrol(gcf,...
+            'Units','Normalized',...
+            'Position',[x y sx sy],...
+            'Style','edit',...
+            'String',sprintf('%-4.2f',GE(i,j)),...
+            'enable','on',...
+            'Tag','tmp',...
+            'Callback',str);
+    end
+end
+ 
+% GI matrix
+%--------------------------------------------------------------------------
+x0    = 0.7;
+y0    = 0.1;
+for i = 1:size(GI,1);
+    for j   = 1:size(GI,2)
+        x   = x0 + j*dx;
+        y   = y0 - (i - 1)*dy;
+        str = sprintf('handles.DCM.M.GI(%i,%i)',i,j);
+        str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
+        uicontrol(gcf,...
+            'Units','Normalized',...
+            'Position',[x y sx sy],...
+            'Style','edit',...
+            'String',sprintf('%-4.2f',GI(i,j)),...
+            'enable','on',...
+            'Tag','tmp',...
+            'Callback',str);
+    end
+end
+ 
+% onset time
+%==========================================================================
+try
+    ons  = handles.DCM.M.ons;
+catch
+    ons  = 32;
+    handles.DCM.M.SA = ons;
+end 
+str = 'handles.DCM.M.ons';
+str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
+uicontrol(gcf,...
+    'Units','Normalized',...
+    'Position',[0.848 0.341 0.071 0.022],...
+    'Style','edit',...
+    'String',sprintf('%-4.0f',ons),...
+    'enable','on',...
+    'Tag','tmp',...
+    'Callback',str);
+ 
+guidata(hObject,handles);
+ 
+ 
 % --- Executes on button press in reset.
 %--------------------------------------------------------------------------
 function handles = reset_Callback(hObject, eventdata, handles)
-
-% prior moments on parameters
+ 
+% extrinsic connections
 %--------------------------------------------------------------------------
+SA   = [1   0   1;
+        0   1   1;
+        0   0   0];
+ 
+% intrinsic connections (np x np) - excitatory
+%--------------------------------------------------------------------------
+GE   = [0   0   1/2;
+        0   0   1;
+        1/2 0   0];
+ 
+% intrinsic connections (np x np) - inhibitory
+%--------------------------------------------------------------------------
+GI   = [0   1/4 0;
+        0   0   0;
+        0   1   0];
+ 
 DCM              = handles.DCM;
 [pE,gE,pC,gC]    = spm_nmm_priors(DCM.A,DCM.B,DCM.C,DCM.M.dipfit);
 handles.DCM.M.pE = pE;
+handles.DCM.M.pC = pC;
+handles.DCM.M.GE = GE;
+handles.DCM.M.GI = GI;
+handles.DCM.M.SA = SA;
+ 
 guidata(hObject,handles);
 unpack_Callback(hObject, eventdata, handles);
-
-
-
+ 
+% --- Executes on button press in conditional.
+%--------------------------------------------------------------------------
+function conditional_Callback(hObject, eventdata, handles)
+ 
+% conditional moments on parameters
+%--------------------------------------------------------------------------
+try
+    handles.DCM.M.pE = handles.DCM.Ep;
+    guidata(hObject,handles);
+    unpack_Callback(hObject, eventdata, handles);
+catch
+    warndlg('please invert DCM to obtain conditional estimates')
+end

@@ -27,7 +27,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_dcm_erp.m 2330 2008-10-10 18:23:42Z karl $
  
 % check options 
 %==========================================================================
@@ -120,8 +120,7 @@ switch lower(model)
         %------------------------------------------------------------------
         M.x  =  spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
-        M.G  = 'spm_lx_erp';
- 
+
  
     % linear David et al model (linear in states) - fast version for SEPs
     %======================================================================
@@ -129,13 +128,15 @@ switch lower(model)
  
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_sep_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
+        [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
+        pE.T          = pE.T - 1;
+        pE.R(:,2)     = pE.R(:,2) - 2;
  
         % inital states
         %------------------------------------------------------------------
         M.x  =  spm_x_erp(pE);
         M.f  = 'spm_fx_erp';
-        M.G  = 'spm_lx_sep';
+
         
     % Neural mass model (nonlinear in states)
     %======================================================================
@@ -144,18 +145,23 @@ switch lower(model)
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
- 
-        % inital states
-        %------------------------------------------------------------------
-        [x N] = spm_x_nmm(pE);
-        M.x   = x;
-        M.GE  = N.GE;
-        M.GI  = N.GI;
-        M.Cx  = N.Cx;
-        M.f   = 'spm_fx_mfm';
-        M.G   = 'spm_lx_erp';
         
-            % Neural mass model (nonlinear in states)
+        
+        % check consistency of previous priors
+        %------------------------------------------------------------------
+        try
+            spm_vec(pE) - spm_vec(M.pE);
+            spm_vec(pC) - spm_vec(M.pC);
+            pE = M.pE;
+            pC = M.pC;
+        end
+
+        % inital states and model
+        %------------------------------------------------------------------
+        [x M] = spm_x_nmm(pE,M);
+
+        
+    % Neural mass model (nonlinear in states)
     %======================================================================
     case{'mfm'}
  
@@ -163,14 +169,9 @@ switch lower(model)
         %------------------------------------------------------------------
         [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
  
-        % inital states
+        % inital states and model
         %------------------------------------------------------------------
-        [x N] = spm_x_mfm(pE);
-        M.x   = x;
-        M.GE  = N.GE;
-        M.GI  = N.GI;
-        M.f   = 'spm_fx_mfm';
-        M.G   = 'spm_lx_erp'; 
+        [x M] = spm_x_mfm(pE,M);
         
         
     otherwise
@@ -195,6 +196,7 @@ end
 %--------------------------------------------------------------------------
 M.FS  = 'spm_fy_erp';
 M.IS  = 'spm_gen_erp';
+M.G   = 'spm_lx_erp';
 M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;
@@ -210,7 +212,8 @@ M.ns  = Ns;
 % Spatial modes
 %--------------------------------------------------------------------------
 if Nc < Nm
-    M.E   = speye(Nc);
+    U     = speye(Nc);
+    M.E   = U;
 else
     dGdg  = spm_diff(M.G,gE,M,1);
     L     = spm_cat(dGdg);
@@ -255,12 +258,7 @@ end
 
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
-try
-    j = gE.J;
-catch
-    j = sparse(1,[1 7 9],1);
-end
-j     = find(kron(j,ones(1,Nr)));       % Indices of contributing states
+j     = find(kron(gE.J,ones(1,Nr)));    % Indices of contributing states
 for i = 1:Nt
     x{i} = x{i} - x0;                   % centre on expansion point
     y{i} = x{i}*L'*M.E;                 % prediction (sensor space)
