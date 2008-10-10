@@ -9,7 +9,7 @@ function new = clone(this, fnamedat, dim)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 2327 2008-10-10 15:24:53Z jean $
+% $Id: clone.m 2328 2008-10-10 15:39:57Z jean $
 
 if nargin < 3
     dim = [nchannels(this), nsamples(this), ntrials(this)];
@@ -18,11 +18,11 @@ end
 new = this;
 
 % check file path first
-[path,fname,ext] = fileparts(fnamedat);
+[pth,fname,ext] = fileparts(fnamedat);
 if isempty(path)
-    path = this.path;
+    pth = this.path;
 end
-newFileName = [fullfile(path,fname),ext];
+newFileName = [fullfile(pth,fname),ext];
 % initialise new file_array
 d = file_array(newFileName, dim, dtype(this));
 
@@ -45,7 +45,7 @@ new.data.y = d;
 % change filenames
 new.data.fnamedat = newFileName;
 new.fname = [fname,'.mat'];
-new.path = path;
+new.path = pth;
 
 % ensure consistency 
 if dim(1) ~= nchannels(this)
