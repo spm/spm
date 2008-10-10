@@ -9,6 +9,10 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld & Jan-Mathijs Schoffelen
 
 % $Log: beamformer_pcc.m,v $
+% Revision 1.16  2008/10/10 13:01:18  release
+% fixed bug: switched order of lambda processing (i.e. as "10%") and filter computation (thanks to Joachim).
+% removed double warning for rank deficient.
+%
 % Revision 1.15  2008/08/13 13:47:42  roboos
 % updated documentation
 %
@@ -142,19 +146,6 @@ Nmegchan = length(megchan);
 Nchan    = size(Cf,1);            % should equal Nmegchan + Nrefchan + Nsupchan
 Cmeg     = Cf(megchan,megchan);   %  the filter uses the csd between all MEG channels
 
-if rank(Cmeg)<size(Cmeg,1) & ~isfield(dip, 'filter')
-  warning('cross-spectral density matrix is rank deficient')
-end
-
-if realfilter
-  % construct the filter only on the real part of the CSD matrix, i.e. filter is real
-  invCmeg = pinv(real(Cmeg) + lambda*eye(Nmegchan));
-else
-  % construct the filter on the complex CSD matrix, i.e. filter contains imaginary component as well
-  % this results in a phase rotation of the channel data if the filter is applied to the data
-  invCmeg = pinv(Cmeg + lambda*eye(Nmegchan));
-end
-
 isrankdeficient = (rank(Cmeg)<size(Cmeg,1));
 if isrankdeficient & ~isfield(dip, 'filter')
   warning('cross-spectral density matrix is rank deficient')
@@ -180,6 +171,15 @@ if projectnoise
     % estimated noise floor is equal to or higher than lambda
     noise = max(noise, lambda);
   end
+end
+
+if realfilter
+  % construct the filter only on the real part of the CSD matrix, i.e. filter is real
+  invCmeg = pinv(real(Cmeg) + lambda*eye(Nmegchan));
+else
+  % construct the filter on the complex CSD matrix, i.e. filter contains imaginary component as well
+  % this results in a phase rotation of the channel data if the filter is applied to the data
+  invCmeg = pinv(Cmeg + lambda*eye(Nmegchan));
 end
 
 % start the scanning with the proper metric
@@ -279,7 +279,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 1.15 $  $Date: 2008/08/13 13:47:42 $
+%   $Revision: 1.16 $  $Date: 2008/10/10 13:01:18 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
