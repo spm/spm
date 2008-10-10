@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2322 2008-10-09 14:54:22Z jean $
+% $Id: spm_eeg_review_callbacks.m 2329 2008-10-10 16:47:55Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -11,7 +11,7 @@ try
 end
 
 spm('pointer','watch');
-drawnow
+% drawnow
  
 switch varargin{1}
 
@@ -979,8 +979,13 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
             if ismember(3,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
                 ud.v.M = VIZU.visu_scale*full(VIZU.montage.M);
-                xw = round(get(ud.v.handles.axes,'xlim'));
-                My = ud.v.M*ud.y(xw(1):1:xw(2),:)';
+                xw = floor(get(ud.v.handles.axes,'xlim'));
+                xw(1) = max([1,xw(1)]);
+                if ~ud.v.transpose
+                    My = ud.v.M*ud.y(xw(1):1:xw(2),:)';
+                else
+                    My = ud.v.M*ud.y(:,xw(1):1:xw(2));
+                end
                 for i=1:ud.v.nc
                     set(ud.v.handles.hp(i),'xdata',xw(1):1:xw(2),'ydata',My(i,:)+ud.v.offset(i))
                 end
@@ -992,8 +997,13 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
             % modify plotted time window (goto, ...)
             if ismember(4,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
-                xw = round(D.PSD.VIZU.xlim);
-                My = ud.v.M*ud.y(xw(1):1:xw(2),:)';
+                xw = floor(D.PSD.VIZU.xlim);
+                xw(1) = max([1,xw(1)]);
+                if ~ud.v.transpose
+                    My = ud.v.M*ud.y(xw(1):1:xw(2),:)';
+                else
+                    My = ud.v.M*ud.y(:,xw(1):1:xw(2));
+                end
                 for i=1:ud.v.nc
                     set(ud.v.handles.hp(i),'xdata',xw(1):1:xw(2),'ydata',My(i,:)+ud.v.offset(i))
                 end
