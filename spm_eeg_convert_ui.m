@@ -1,12 +1,12 @@
 function spm_eeg_convert_ui(S)
 % User interface for M/EEG conversion function
-% FORMAT spm_eeg_convert(S)
+% FORMAT spm_eeg_convert_ui(S)
 % S - existing configuration struct (optional)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert_ui.m 2047 2008-09-05 10:57:31Z vladimir $
+% $Id: spm_eeg_convert_ui.m 2326 2008-10-10 11:19:12Z guillaume $
 if nargin == 0
     S=[];
 end
