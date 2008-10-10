@@ -2,11 +2,14 @@ function new = clone(this, fnamedat, dim)
 % Creates a copy of the object with a new, empty data file,
 % possibly changing dimensions
 % FORMAT new = clone(this, fnamedat, dim)
+% Note that when fnamedat comes with a path, the cloned meeg object uses
+% it. Otherwise, its path is by definition that of the meeg object to be
+% cloned.
 % _________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 1560 2008-05-07 12:18:58Z stefan $
+% $Id: clone.m 2327 2008-10-10 15:24:53Z jean $
 
 if nargin < 3
     dim = [nchannels(this), nsamples(this), ntrials(this)];
@@ -14,8 +17,14 @@ end
 
 new = this;
 
+% check file path first
+[path,fname,ext] = fileparts(fnamedat);
+if isempty(path)
+    path = this.path;
+end
+newFileName = [fullfile(path,fname),ext];
 % initialise new file_array
-d = file_array(fullfile(this.path,fnamedat), dim, dtype(this));
+d = file_array(newFileName, dim, dtype(this));
 
 % physically initialise file
 if length(dim) == 3
@@ -34,8 +43,9 @@ end
 new.data.y = d;
 
 % change filenames
-new.fname = [spm_str_manip(fnamedat, 'rt') '.mat'];
-new.data.fnamedat = fnamedat;
+new.data.fnamedat = newFileName;
+new.fname = [fname,'.mat'];
+new.path = path;
 
 % ensure consistency 
 if dim(1) ~= nchannels(this)

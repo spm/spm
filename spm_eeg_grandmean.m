@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_grandmean.m 2327 2008-10-10 15:24:53Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -53,29 +53,122 @@ end
 
 Nfiles = length(D);
 
-% check input
+
+%% Check dimension of the data files
+% This applies to # of channels, # of samples, # of conditions, sampling
+% rate, and # of frequencies (if time-frequency data).
+nc = zeros(Nfiles,1);
+ns = zeros(Nfiles,1);
+fs = zeros(Nfiles,1);
+ne = zeros(Nfiles,1);
+if strcmp(D{1}.transformtype, 'TF')
+    nf = zeros(Nfiles,1);
+end
+
 for i = 1:Nfiles
-    % ascertain same number of channels, Nsamples and fsample
-    if D{1}.nchannels ~= D{i}.nchannels
-        error('Data don''t have the same number of channels.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
-    end
-
-    if D{1}.nsamples ~= D{i}.nsamples
-        error('Data don''t have the same number of time points.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
-    end
-
-    if D{1}.fsample ~= D{i}.fsample
-        error('Data don''t have the same sampling rate.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
-    end
-
+    nc(i) = D{i}.nchannels;
+    ns(i) = D{i}.nsamples;
+    fs(i) = D{i}.fsample;
+    ne(i) = D{i}.nconditions;
     if strcmp(D{1}.transformtype, 'TF')
-        if D{1}.nfrequencies ~= D{i}.nfrequencies
-            error('Data don''t have the same number of frequencies.\nThere is a difference between files %s and %s.', D{1}.fname, D{i}.fname);
-        end
-
+        nf(i) = D{i}.nfrequencies;
     end
 end
 
+estr = [];
+unc = unique(nc);
+if length(unc)~=1
+    ind = zeros(Nfiles,1);
+    fna = cell(length(unc),1);
+    for i=1:Nfiles
+        ind(i) = find(unc==nc(i));
+        fna{ind(i)} = [fna{ind(i)},'-',D{i}.fname,'\n'];
+    end
+    fprintf('\n')
+    for i=1:length(unc)
+        fprintf(['\nThose files have ',num2str(unc(i)),' channels:\n',...
+            fna{i}])
+    end
+    estr = [estr,'Data don''t have the same number of channels.\n'];
+end
+
+uns = unique(ns);
+if length(uns)~=1
+    ind = zeros(Nfiles,1);
+    fna = cell(length(uns),1);
+    for i=1:Nfiles
+        ind(i) = find(uns==ns(i));
+        fna{ind(i)} = [fna{ind(i)},'-',D{i}.fname,'\n'];
+    end
+    fprintf('\n')
+    for i=1:length(uns)
+        fprintf(['\nThose files have ',num2str(uns(i)),' time points:\n',...
+            fna{i}])
+    end
+    estr = [estr,'Data don''t have the same number of time points.\n'];
+end
+
+ufs = unique(fs);
+if length(ufs)~=1
+    ind = zeros(Nfiles,1);
+    fna = cell(length(ufs),1);
+    for i=1:Nfiles
+        ind(i) = find(ufs==fs(i));
+        fna{ind(i)} = [fna{ind(i)},'-',D{i}.fname,'\n'];
+    end
+    fprintf('\n')
+    for i=1:length(ufs)
+        fprintf(['\nThose files have a sampling rate of ',num2str(ufs(i)),' Hz:\n',...
+            fna{i}])
+    end
+    estr = [estr,'Data don''t have the same sampling rate.\n'];
+end
+
+une = unique(ne);
+if length(une)~=1
+    ind = zeros(Nfiles,1);
+    fna = cell(length(une),1);
+    for i=1:Nfiles
+        ind(i) = find(une==ne(i));
+        fna{ind(i)} = [fna{ind(i)},'-',D{i}.fname,'\n'];
+    end
+    fprintf('\n')
+    for i=1:length(unc)
+        fprintf(['\nThose files have ',num2str(une(i)),' conditions:\n',...
+            fna{i}])
+    end
+    estr = [estr,'Data don''t have the same number of conditions.\n'];
+end
+
+if strcmp(D{1}.transformtype, 'TF')
+    unf = unique(nf);
+    if length(unf)~=1
+        ind = zeros(Nfiles,1);
+        fna = cell(length(unf),1);
+        for i=1:Nfiles
+            ind(i) = find(unf==nf(i));
+            fna{ind(i)} = [fna{ind(i)},'-',D{i}.fname,'\n'];
+        end
+        fprintf('\n')
+        for i=1:length(unf)
+            fprintf(['\nThose files have ',num2str(unf(i)),' frequency bins:\n',...
+                fna{i}])
+        end
+        estr = [estr,'Data don''t have the same number of frequency bins.\n'];
+    end
+end
+
+% send message error (if any)
+if ~isempty(estr)
+    error(estr)
+    return
+else
+    fprintf('All data files have the same dimensions.\n')
+end
+
+
+
+%% Initialization
 % output
 Do = D{1};
 
@@ -117,6 +210,8 @@ end
 % for determining bad channels of the grandmean
 w = zeros(Do.nchannels, Ntypes);
 
+
+%% Do the averaging
 spm_progress_bar('Init', Ntypes, 'responses averaged'); drawnow;
 if Ntypes > 100, Ibar = floor(linspace(1, Ntypes, 100));
 else Ibar = [1:Ntypes]; end
@@ -186,7 +281,12 @@ spm_progress_bar('Clear');
 
 Do = type(Do, 'grandmean');
 
-Do = badchannels(Do, find(~any(w')), 1);
+bads = find(~any(w'));
+if ~isempty(bads)
+    Do = badchannels(Do, bads, 1);
+else
+    Do = badchannels(Do, 1:Do.nchannels, 0);
+end
 
 % jump to struct to make a few changes
 sD = struct(Do);

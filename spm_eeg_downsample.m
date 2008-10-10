@@ -14,7 +14,7 @@ function D = spm_eeg_downsample(S)
 % original sampling rate. 
 %_______________________________________________________________________
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_downsample.m 2327 2008-10-10 15:24:53Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -72,6 +72,8 @@ else
     else Ibar = [1:D.nchannels]; end
 end
 
+now = clock;
+
 for i = 1:D.ntrials
     for j = 1:D.nchannels
         d = double(squeeze(D(j, :, i)));
@@ -93,6 +95,9 @@ for i = 1:D.ntrials
     end
 
 end
+
+elapsedTime = etime(clock,now);
+fprintf(['Downsampling took ',num2str(elapsedTime),' sec\n'])
 
 spm_progress_bar('Clear');
 

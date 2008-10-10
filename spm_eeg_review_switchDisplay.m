@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2322 2008-10-09 14:54:22Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2327 2008-10-10 15:24:53Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -587,6 +587,12 @@ switch D.PSD.VIZU.info
             'tag','plotEEG')
         end
 
+end
+
+% update data info if action called from 'info' tab...
+if ~isempty(D.PSD.VIZU.fromTab) && isequal(D.PSD.VIZU.fromTab,'info')
+    [str] = spm_eeg_review_callbacks('get','dataInfo');
+    set(D.PSD.handles.infoText,'string',str)
 end
 
 

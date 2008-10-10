@@ -6,7 +6,9 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2216 2008-09-29 09:53:06Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2327 2008-10-10 15:24:53Z jean $
+
+spm('pointer','watch')
 
 if nargin == 0
 
@@ -229,6 +231,9 @@ if nargin == 0
 else
     eval(callback);
 end
+
+
+spm('pointer','arrow')
 
 %-----------------------------------------------------------------------
 
