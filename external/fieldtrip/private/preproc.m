@@ -96,6 +96,11 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: preproc.m,v $
+% Revision 1.33  2008/10/10 09:54:53  jansch
+% added (undocumented) option dftinvert which results in the dftfilter being
+% a very sharp bandpass instead of a notch filter. added (undocumented) option
+% conv. fixed small bug in derivative
+%
 % Revision 1.32  2008/07/08 08:05:44  sashae
 % fixed small bug in derivative
 %
@@ -275,7 +280,9 @@ if ~isfield(cfg, 'rectify'),      cfg.rectify = 'no';           end
 if ~isfield(cfg, 'boxcar'),       cfg.boxcar = 'no';            end
 if ~isfield(cfg, 'absdiff'),      cfg.absdiff = 'no';           end
 if ~isfield(cfg, 'precision'),    cfg.precision = [];           end
+if ~isfield(cfg, 'conv'),         cfg.conv = 'no';              end
 if ~isfield(cfg, 'montage'),      cfg.montage = 'no';           end
+if ~isfield(cfg, 'dftinvert'),    cfg.dftinvert = 'no';         end
 
 % test whether the Matlab signal processing toolbox is available
 if strcmp(cfg.medianfilter, 'yes') && ~hastoolbox('signal')
@@ -360,9 +367,13 @@ if strcmp(cfg.bsfilter, 'yes')
   end
 end
 if strcmp(cfg.dftfilter, 'yes')
+  datorig = dat;
   for i=1:length(cfg.dftfreq)
     % filter out the 50Hz noise, optionally also the 100 and 150 Hz harmonics
     dat = preproc_dftfilter(dat, fsample, cfg.dftfreq(i));
+  end
+  if strcmp(cfg.dftinvert, 'yes'),
+    dat = datorig - dat;
   end
 end
 if strcmp(cfg.polyremoval, 'yes')
@@ -421,12 +432,19 @@ if isnumeric(cfg.boxcar)
   %end
   dat = convn(dat, kernel, 'same');
 end
+if isnumeric(cfg.conv)
+  kernel = [cfg.conv(:)'./sum(cfg.conv)];
+  if ~rem(length(kernel),2)
+    kernel = [kernel 0];
+  end
+  dat = convn(dat, kernel, 'same');
+end
 if strcmp(cfg.derivative, 'yes'),
   dat = preproc_derivative(dat, 1, 'end');
 end
 if strcmp(cfg.absdiff, 'yes'),
   % this implements abs(diff(data), which is required for jump detection
-  dat = abs([diff(dat, 1, 2) 0]);
+  dat = abs([diff(dat, 1, 2) zeros(size(dat,1),1)]);
 end
 if ~isempty(cfg.precision)
   % convert the data to another numeric precision, i.e. double, single or int32

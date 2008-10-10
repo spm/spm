@@ -26,16 +26,23 @@ function [cfg] = checkconfig(cfg, varargin)
 %   renamedval        = {'opt',  'old', 'new'} % list option and old and new value
 %   required          = {'opt1', 'opt2', etc.} % list the required options
 %   deprecated        = {'opt1', 'opt2', etc.} % list the deprecated options
+%   unused            = {'opt1', 'opt2', etc.} % list the unused options, these will be removed and a warning is issued
 %   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options, these result in an error
-%   forbidden         = {'opt1', 'opt2', etc.} % list the unused options, these will be removed and a warning is issued
 %   createsubcfg      = {'subname', etc.}      % list the names of the subcfg
-%   configtracking          = 'on', 'off' or 'report'
+%   dataset2files     = 'yes', 'no'            % converts dataset into headerfile and datafile
+%   configtracking    = 'on', 'off' or 'report'
 %
 % See also CHECKDATA
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.10  2008/10/10 12:33:04  sashae
+% incorporated dataset2files
+%
+% Revision 1.9  2008/10/10 10:50:34  sashae
+% updated documentation
+%
 % Revision 1.8  2008/10/02 14:06:21  roboos
 % get the fields from ft_default and add them to the cfg structure
 % implemented cfg.checkconfig=silent/loose/pedantic (default is in ft_default, i.e. fieldtripdefs function)
@@ -81,9 +88,10 @@ renamed         = keyval('renamed',         varargin);
 renamedval      = keyval('renamedval',      varargin);
 required        = keyval('required',        varargin);
 deprecated      = keyval('deprecated',      varargin);
-forbidden       = keyval('forbidden',       varargin);
 unused          = keyval('unused',          varargin);
+forbidden       = keyval('forbidden',       varargin);
 createsubcfg    = keyval('createsubcfg',    varargin);
+dataset2files   = keyval('dataset2files',   varargin);
 configtracking  = keyval('configtracking',  varargin); if isempty(configtracking), configtracking = 'no'; end
 
 % these should be cell arrays and not strings
@@ -138,9 +146,27 @@ if ~isempty(deprecated)
     if silent
       % don't mention it
     elseif loose
-      warning(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+      warning(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
     else
-      error(sprintf('the option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+      error(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+    end
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check for unused fields, give warning when present and remove them
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(unused)
+  fieldsused = fieldnames(cfg);
+  if any(ismember(unused, fieldsused))
+    if silent
+      % don't mention it
+      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
+    elseif loose
+      warning(sprintf('The field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)}));
+      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
+    else
+      error(sprintf('The field cfg.%s is unused\n', unused{ismember(unused, fieldsused)}));
     end
   end
 end
@@ -163,36 +189,18 @@ if ~isempty(forbidden)
   end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% check for unused fields, give warning when present and remove them
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isempty(unused)
-  fieldsused = fieldnames(cfg);
-  if any(ismember(unused, fieldsused))
-    if silent
-      % don't mention it
-      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
-    elseif loose
-      warning(sprintf('\nThe field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)}));
-      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
-    else
-      error(sprintf('\nThe field cfg.%s is unused\n', unused{ismember(unused, fieldsused)}));
-    end
-  end
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% create subcfg
+% createsubcfg
 %
-% this collects the optional arguments for some of the low-level
-% functions and puts them in a separate substructure This function is to
+% This collects the optional arguments for some of the low-level
+% functions and puts them in a separate substructure. This function is to
 % ensure backward compatibility of end-user scripts, fieldtrip functions
 % and documentation that do not use the nested detailled configuration
 % but that use a flat configuration.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 if ~isempty(createsubcfg)
-  for j = 1:length(createsubcfg)
+  for j=1:length(createsubcfg)
     subname = createsubcfg{j};
 
     if isfield(cfg, subname)
@@ -329,7 +337,79 @@ if ~isempty(createsubcfg)
   end
 end
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% dataset2files
+%
+% Converts cfg.dataset into cfg.headerfile and cfg.datafile if neccessary.
+% This is used in PREPROCESSING and DEFINETRIAL.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
+
+  % start with empty fields if they are not present
+  if ~isfield(cfg, 'dataset')
+    cfg.dataset = [];
+  end
+  if ~isfield(cfg, 'datafile')
+    cfg.datafile = [];
+  end
+  if ~isfield(cfg, 'headerfile')
+    cfg.headerfile = [];
+  end
+
+  if ~isempty(cfg.dataset)
+    if strcmp(cfg.dataset, 'gui');
+      d = uigetdir;
+      if d==0
+        [f, p] = uigetfile;
+        if f==0
+          error('You should select a dataset file or directory');
+        else
+          d = fullfile(p, f);
+        end
+      end
+      cfg.dataset = d;
+    end
+
+    switch filetype(cfg.dataset)
+      case 'ctf_ds'
+        % convert CTF dataset into filenames
+        [path, file, ext] = fileparts(cfg.dataset);
+        cfg.headerfile = fullfile(cfg.dataset, [file '.res4']);
+        cfg.datafile   = fullfile(cfg.dataset, [file '.meg4']);
+      case 'brainvision_vhdr'
+        [path, file, ext] = fileparts(cfg.dataset);
+        cfg.headerfile = fullfile(path, [file '.vhdr']);
+        if exist(fullfile(path, [file '.eeg']))
+          cfg.datafile   = fullfile(path, [file '.eeg']);
+        elseif exist(fullfile(path, [file '.seg']))
+          cfg.datafile   = fullfile(path, [file '.seg']);
+        end
+      case 'brainvision_eeg'
+        [path, file, ext] = fileparts(cfg.dataset);
+        cfg.headerfile = fullfile(path, [file '.vhdr']);
+        cfg.datafile   = fullfile(path, [file '.eeg']);
+      case 'brainvision_seg'
+        [path, file, ext] = fileparts(cfg.dataset);
+        cfg.headerfile = fullfile(path, [file '.vhdr']);
+        cfg.datafile   = fullfile(path, [file '.seg']);
+      otherwise
+        % convert dataset into filenames, assume that the header and data are the same
+        cfg.datafile   = cfg.dataset;
+        cfg.headerfile = cfg.dataset;
+    end
+  elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile);
+    % assume that  the datafile also contains the header
+    cfg.headerfile = cfg.datafile;
+  elseif isempty(cfg.datafile) && ~isempty(cfg.headerfile);
+    % assume that  the headerfile also contains the data
+    cfg.datafile = cfg.headerfile;
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% configtracking
+%
 % switch configuration tracking on/off
 % FIXME dit is slechts een eerste versie "voor de leuk"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

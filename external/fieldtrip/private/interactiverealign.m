@@ -26,6 +26,9 @@ function cfg = interactiverealign(cfg)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: interactiverealign.m,v $
+% Revision 1.5  2008/10/10 14:43:58  sashae
+% added call to checkconfig
+%
 % Revision 1.4  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -41,9 +44,8 @@ function cfg = interactiverealign(cfg)
 
 fieldtripdefs
 
-if ~isfield(cfg, 'individual') || ~isfield(cfg, 'template')
-  error('individual and template fields are required');
-end
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'required',    {'individual', 'template'});
 
 if ~isfield(cfg.individual, 'vol'),              cfg.individual.vol = [];                   end
 if ~isfield(cfg.individual, 'elec'),             cfg.individual.elec = [];                  end
@@ -106,7 +108,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: interactiverealign.m,v 1.4 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: interactiverealign.m,v 1.5 2008/10/10 14:43:58 sashae Exp $';
 
 % remember the transform
 cfg.m = norm.m;

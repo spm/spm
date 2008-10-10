@@ -54,6 +54,9 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.25  2008/10/10 15:02:07  estmee
+% Repaired determining artifacts with cfg as only input argument.
+%
 % Revision 1.24  2008/10/07 16:12:31  estmee
 % Added data as second input argument to artifact_muscle itself and to the way is calls artifact_zvalue.
 %
@@ -153,7 +156,11 @@ if strcmp(cfg.artfctdef.muscle.method, 'zvalue')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
-  [tmpcfg, artifact]  = artifact_zvalue(tmpcfg,data);
+  if nargin ==1
+    [tmpcfg, artifact]  = artifact_zvalue(tmpcfg);
+  elseif nargin ==2
+    [tmpcfg, artifact]  = artifact_zvalue(tmpcfg,data);
+  end
   cfg.artfctdef.muscle = tmpcfg.artfctdef.zvalue;
 else
   error(sprintf('muscle artifact detection only works with cfg.method=''zvalue'''));

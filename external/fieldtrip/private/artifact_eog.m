@@ -53,6 +53,9 @@ function [cfg, artifact] = artifact_eog(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_eog.m,v $
+% Revision 1.29  2008/10/10 15:00:10  estmee
+% Repaired determining artifacts with cfg as only input argument.
+%
 % Revision 1.28  2008/10/07 16:11:08  estmee
 % Added data as second input argument to artifact_eog itself and to the way it calls artifact_zvalue.
 %
@@ -147,8 +150,12 @@ if strcmp(cfg.artfctdef.eog.method, 'zvalue')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
-  [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);
-  cfg.artfctdef.eog  = tmpcfg.artfctdef.zvalue;
+  if nargin ==1
+    [tmpcfg, artifact] = artifact_zvalue(tmpcfg);  
+  elseif nargin ==2
+    [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);      
+  end
+cfg.artfctdef.eog  = tmpcfg.artfctdef.zvalue;
 else
   error(sprintf('EOG artifact detection only works with cfg.method=''zvalue'''));
 end

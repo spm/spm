@@ -64,6 +64,9 @@ function [cfg] = definetrial(cfg);
 % Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: definetrial.m,v $
+% Revision 1.53  2008/10/10 14:41:22  sashae
+% replaced call to dataset2files with checkconfig
+%
 % Revision 1.52  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -118,7 +121,7 @@ function [cfg] = definetrial(cfg);
 fieldtripdefs
 
 % if neccessary convert dataset into headerfile and data file
-cfg = dataset2files(cfg);
+cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
 if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
   % try to determine a standard trial function for the various data formats

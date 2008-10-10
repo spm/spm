@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.100  2008/10/10 14:41:22  sashae
+% replaced call to dataset2files with checkconfig
+%
 % Revision 1.99  2008/09/23 14:12:22  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -437,7 +440,7 @@ else
   end
 
   % if neccessary convert dataset into headerfile and datafile
-  cfg = dataset2files(cfg);
+  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
   % check whether the data and header file are given
   if ~isfield(cfg, 'datafile') || ~isfield(cfg, 'headerfile')
@@ -617,7 +620,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.99 2008/09/23 14:12:22 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.100 2008/10/10 14:41:22 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

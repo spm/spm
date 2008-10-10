@@ -26,7 +26,6 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % See also SOURCEANALYSIS, SOURCESTATISTICS, READ_FCDC_MRI
 
 % Undocumented options
-%   cfg.keepinside = 'yes' (default) or 'no'
 %   cfg.voxelcoord = 'yes' (default) or 'no' determines whether the
 %   downsampled output anatomical MRI will have the x/y/zgrid converted or
 %   the homogenous transformation matrix
@@ -34,6 +33,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.48  2008/10/10 15:45:41  sashae
+% added call to checkconfig
+%
 % Revision 1.47  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -158,6 +160,9 @@ fieldtripdefs
 
 %% checkdata see below!!! %%
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'unused',  {'keepinside'});
+
 % set the defaults
 if ~isfield(cfg, 'parameter'),    cfg.parameter    = 'all';     end
 if ~isfield(cfg, 'interpmethod'); cfg.interpmethod = 'linear';  end
@@ -166,10 +171,6 @@ if ~isfield(cfg, 'sourceunits');  cfg.sourceunits  = 'cm';      end
 if ~isfield(cfg, 'mriunits');     cfg.mriunits     = 'mm';      end
 if ~isfield(cfg, 'voxelcoord'),   cfg.voxelcoord   = 'yes';     end
 if ~isfield(cfg, 'feedback'),     cfg.feedback     = 'text';    end
-
-if isfield(cfg, 'keepinside')
-  warning('cfg.keepinside is not supported anymore, inside is always kept')
-end
 
 if ischar(anatomical)
   % read the anatomical MRI data from file
@@ -315,7 +316,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.47 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.48 2008/10/10 15:45:41 sashae Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end

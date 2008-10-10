@@ -50,6 +50,9 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.19  2008/10/10 15:01:13  estmee
+% Repaired determining artifacts with only cfg as input argument.
+%
 % Revision 1.18  2008/10/07 16:13:44  estmee
 % Added data as second intput argument to artifact_jump itself and the way it calls artifact_zvalue.
 %
@@ -146,7 +149,11 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
-  [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);
+  if nargin ==1
+    [tmpcfg, artifact] = artifact_zvalue(tmpcfg);
+  elseif nargin ==2  
+    [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);
+  end
   cfg.artfctdef.jump = tmpcfg.artfctdef.zvalue;
 else
   error(sprintf('jump artifact detection only works with cfg.method=''zvalue'''));
