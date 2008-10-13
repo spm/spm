@@ -30,6 +30,9 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.23  2008/10/13 11:39:34  sashae
+% added call to checkconfig (as discussed with estmee)
+%
 % Revision 1.22  2008/10/07 16:15:30  estmee
 % Added data as second intput argument to artifact_threshold and changed trllop in trlop several times.
 %
@@ -133,13 +136,15 @@ else
 end
 
 % read the header
-cfg = dataset2files(cfg);
 if nargin == 1
   isfetch = 0;
+  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   hdr = read_header(cfg.headerfile);
 elseif nargin == 2
   isfetch = 1;
-  hdr = fetch_header(data)
+  cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+  hdr = fetch_header(data);
 end
 
 % get the remaining settings
@@ -189,5 +194,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.22 2008/10/07 16:15:30 estmee Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.23 2008/10/13 11:39:34 sashae Exp $';
 

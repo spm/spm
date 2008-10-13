@@ -37,6 +37,14 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.12  2008/10/13 13:38:59  sashae
+% change in dataset2files code: empty dataset/headerfile/datafile fields are removed
+%
+% Revision 1.11  2008/10/13 12:41:33  jansch
+% added projectmom for lcmv (in contrast to pcc the projection is done within
+% beamformer_lcmv, instead of in sourcedescriptives). Probably this should
+% change back when a clean version of sourcedescriptives is implemented.
+%
 % Revision 1.10  2008/10/10 12:33:04  sashae
 % incorporated dataset2files
 %
@@ -290,6 +298,7 @@ if ~isempty(createsubcfg)
           'normalize'
           'powmethod'
           'projectnoise'
+          'projectmom'
           'reducerank'
           'keepcov'
           };
@@ -399,12 +408,16 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
         cfg.headerfile = cfg.dataset;
     end
   elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile);
-    % assume that  the datafile also contains the header
+    % assume that the datafile also contains the header
     cfg.headerfile = cfg.datafile;
   elseif isempty(cfg.datafile) && ~isempty(cfg.headerfile);
-    % assume that  the headerfile also contains the data
+    % assume that the headerfile also contains the data
     cfg.datafile = cfg.headerfile;
   end
+  % remove empty fields (otherwise a subsequent check on required fields doesn't make any sense)
+  if isempty(cfg.dataset),    cfg=rmfield(cfg, 'dataset');    end
+  if isempty(cfg.headerfile), cfg=rmfield(cfg, 'headerfile'); end
+  if isempty(cfg.datafile),   cfg=rmfield(cfg, 'datafile');   end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

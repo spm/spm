@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.101  2008/10/13 13:42:02  sashae
+% added call to checkconfig
+%
 % Revision 1.100  2008/10/10 14:41:22  sashae
 % replaced call to dataset2files with checkconfig
 %
@@ -439,14 +442,10 @@ else
     error('you must call DEFINETRIAL prior to PREPROCESSING');
   end
 
-  % if neccessary convert dataset into headerfile and datafile
+  % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
-
-  % check whether the data and header file are given
-  if ~isfield(cfg, 'datafile') || ~isfield(cfg, 'headerfile')
-    error('the datafile and/or headerfile is not correctly specified');
-  end
-
+  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  
   % read the header
   hdr = read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
 
@@ -620,7 +619,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.100 2008/10/10 14:41:22 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.101 2008/10/13 13:42:02 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

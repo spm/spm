@@ -10,6 +10,9 @@ function [cfg, artifact] = artifact_file(cfg);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.14  2008/10/13 10:40:47  sashae
+% added call to checkconfig
+%
 % Revision 1.13  2008/10/07 08:58:51  roboos
 % committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
 %
@@ -58,7 +61,8 @@ function [cfg, artifact] = artifact_file(cfg);
 fieldtripdefs
 
 if isfield(cfg, 'rejectfile') && ~strcmp(cfg.rejectfile, 'no')
-  cfg = dataset2files(cfg);
+  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = checkconfig(cfg, 'required', {'headerfile'});
   hdr = read_header(cfg.headerfile);
   if filetype(cfg.rejectfile, 'eep_rej')
     artifact = read_eep_rej(cfg.rejectfile);
@@ -90,5 +94,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.13 2008/10/07 08:58:51 roboos Exp $';
+cfg.version.id = '$Id: artifact_file.m,v 1.14 2008/10/13 10:40:47 sashae Exp $';
 

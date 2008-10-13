@@ -39,6 +39,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Copyright (C) 2004, Geerten Kramer, FCDC
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.19  2008/10/13 10:40:47  sashae
+% added call to checkconfig
+%
 % Revision 1.18  2008/10/07 08:58:51  roboos
 % committed the changes that Esther made recently, related to the support of data as input argument to the artifact detection functions. I hope that this does not break the functions too seriously.
 %
@@ -138,7 +141,8 @@ end
 
 % read the header and do some preprocessing on the configuration
 fprintf('Reading raw data...');
-cfg = dataset2files(cfg);
+cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
 hdr = read_header(cfg.headerfile);
 cfg.artfctdef.manual.channel=channelselection(cfg.artfctdef.manual.channel, hdr.label);
 cfg.artfctdef.manual.trl=cfg.trl;
@@ -326,7 +330,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.18 2008/10/07 08:58:51 roboos Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.19 2008/10/13 10:40:47 sashae Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

@@ -66,6 +66,9 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.16  2008/10/13 13:03:11  sashae
+% added call to checkconfig (as discussed with estmee)
+%
 % Revision 1.15  2008/10/07 16:20:15  estmee
 % Added data as second input argument to artifact_zvalue, changed the output of preproc from data in dat and changed data in dat in the rest of the function.
 %
@@ -148,7 +151,6 @@ if nargin > 1
 elseif nargin == 1
   % only cfg given
   isfetch = 0;
-  cfg = dataset2files(cfg);
   hdr = read_header(cfg.headerfile);
 end
 
@@ -201,7 +203,7 @@ for sgnlop=1:numsgn
     else
       dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', ~iscontinuous);
     end
-    dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);;
+    dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
     % accumulate the sum and the sum-of-squares
     sumval = sumval + sum(dat{trlop},2);
     sumsqr = sumsqr + sum(dat{trlop}.^2,2);
@@ -326,5 +328,5 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.15 2008/10/07 16:20:15 estmee Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.16 2008/10/13 13:03:11 sashae Exp $';
 

@@ -20,6 +20,15 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.16  2008/10/13 14:37:46  estmee
+% Changed the checkboundary again when calling read_data.
+%
+% Revision 1.15  2008/10/13 13:57:23  estmee
+% Added checkboundary as input argument read_data.
+%
+% Revision 1.14  2008/10/13 11:39:34  sashae
+% added call to checkconfig (as discussed with estmee)
+%
 % Revision 1.13  2008/10/07 16:16:31  estmee
 % Added data as second input argument to artifact_clip.
 %
@@ -81,12 +90,14 @@ end
 artifact = [];
 
 % read the header
-cfg = dataset2files(cfg);
 if nargin == 1
   isfetch = 0;
+  cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+  cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   hdr = read_header(cfg.headerfile);
 elseif nargin == 2
   isfetch = 1;
+  cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
   hdr = fetch_header(data);
 end
 
@@ -105,7 +116,7 @@ for trlop=1:ntrl
   if isfetch
     dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
   else
-    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
+    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
   end
   % apply filtering etc to the data
   datflt = preproc(dat, label, hdr.Fs, artfctdef, cfg.trl(trlop,3));
@@ -159,4 +170,6 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_clip.m,v 1.13 2008/10/07 16:16:31 estmee Exp $';
+
+cfg.version.id = '$Id: artifact_clip.m,v 1.16 2008/10/13 14:37:46 estmee Exp $';
+

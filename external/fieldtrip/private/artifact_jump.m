@@ -50,6 +50,9 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.20  2008/10/13 13:03:11  sashae
+% added call to checkconfig (as discussed with estmee)
+%
 % Revision 1.19  2008/10/10 15:01:13  estmee
 % Repaired determining artifacts with only cfg as input argument.
 %
@@ -141,18 +144,20 @@ if strcmp(cfg.artfctdef.jump.method, 'zvalue')
   % construct a temporary configuration that can be passed onto artifact_zvalue
   tmpcfg                  = [];
   tmpcfg.trl              = cfg.trl;
-  try, tmpcfg.dataset     = cfg.dataset; end
-  try, tmpcfg.datafile    = cfg.datafile; end
-  try, tmpcfg.headerfile  = cfg.headerfile; end
   tmpcfg.artfctdef.zvalue = cfg.artfctdef.jump;
   if isfield(cfg, 'datatype')
     tmpcfg.datatype = cfg.datatype;
   end
   % call the zvalue artifact detection function
   if nargin ==1
+    cfg = checkconfig(cfg, 'dataset2files', {'yes'});
+    cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});  
+    tmpcfg.datafile    = cfg.datafile;
+    tmpcfg.headerfile  = cfg.headerfile;
     [tmpcfg, artifact] = artifact_zvalue(tmpcfg);
-  elseif nargin ==2  
-    [tmpcfg, artifact] = artifact_zvalue(tmpcfg,data);
+  elseif nargin ==2
+    cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
+    [tmpcfg, artifact] = artifact_zvalue(tmpcfg, data);
   end
   cfg.artfctdef.jump = tmpcfg.artfctdef.zvalue;
 else

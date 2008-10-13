@@ -51,6 +51,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.33  2008/10/13 12:29:07  jansch
+% added plain 'bti' to known 4D senstypes
+%
 % Revision 1.32  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -170,7 +173,7 @@ switch senstype(datachannel)
     labelmzo  = datachannel(strncmp('MZO', datachannel, length('MZO')));
     labelmzp  = datachannel(strncmp('MZP', datachannel, length('MZP')));
 
-  case {'bti248', 'bti148', 'bti248_planar', 'bti148_planar'}
+  case {'bti', 'bti248', 'bti148', 'bti248_planar', 'bti148_planar'}
     % all 4D-BTi MEG channels start with "A"
     % all 4D-BTi reference channels start with M or G
     labelmeg = datachannel(strncmp('A'  , datachannel, 1));

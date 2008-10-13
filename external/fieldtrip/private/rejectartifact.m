@@ -11,8 +11,10 @@ function [cfg] = rejectartifact(cfg,data)
 %
 % Use as
 %   cfg = rejectartifact(cfg)
+% or as
+%   data = rejectartifact(cfg,data)
 %
-% The following configuration options are supported
+% The following configuration options are supported for both:
 %   cfg.artfctdef.reject        = 'none', 'partial' or 'complete' (default = 'complete')
 %   cfg.artfctdef.minaccepttim  = length in seconds (default = 0.1)
 %   cfg.artfctdef.feedback      = 'yes' or 'no' (default = 'no')
@@ -24,6 +26,11 @@ function [cfg] = rejectartifact(cfg,data)
 % which case they will only be marked in the appropriate output
 % configuration section. This is usefull for manual inspection of the
 % artifacts.
+%
+% Output:
+% - If cfg is used as the only inputparameter, a cfg with a new trl is the output.
+% - If cfg and data are both inputparameters, data without trials containing 
+%   artifacts is the output.
 %
 % See also ARTIFACT_EOG, ARTIFACT_MUSCLE, ARTIFACT_JUMP, ARTIFACT_MANUAL,
 % ARTIFACT_THRESHOLD, ARTIFACT_CLIP, ARTIFACT_ECG
@@ -44,6 +51,12 @@ function [cfg] = rejectartifact(cfg,data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.42  2008/10/13 13:54:38  estmee
+% Documentation is updated and added fetch_header (used when there are 2 input arguments).
+%
+% Revision 1.41  2008/10/13 13:05:07  sashae
+% replaced call to dataset2files with checkconfig
+%
 % Revision 1.40  2008/10/07 16:06:27  estmee
 % added error when "no trials left"
 %
@@ -109,7 +122,7 @@ if 0
   try, dum = artifact_threshold; end
 end
 
-cfg = dataset2files(cfg);
+cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
 % set the defaults
 if ~isfield(cfg, 'artfctdef'),              cfg.artfctdef        = [];         end
@@ -253,8 +266,12 @@ elseif length(trialall)<length(rejectall)
   trialall(length(rejectall)) = 0;
 end
 
-% read the header of the dataset, needed only for sampling frequency
-hdr = read_header(cfg.headerfile);
+% make header, needed only for sampling frequency
+if nargin ==1
+    hdr = read_header(cfg.headerfile);
+elseif nargin ==2
+    hdr = fetch_header(data);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % give visual feedback on the trial definition and the artifacts
@@ -399,7 +416,7 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.version.name = st(i);
 end
-cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.40 2008/10/07 16:06:27 estmee Exp $';
+cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.42 2008/10/13 13:54:38 estmee Exp $';
 
 % apply the updated trial definition on the data
 if nargin>1
