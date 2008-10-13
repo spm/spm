@@ -5,7 +5,7 @@ function varargout=subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 1491 2008-04-28 16:46:35Z vladimir $
+% $Id: subsref.m 2333 2008-10-13 13:19:22Z vladimir $
 
 if isempty(subs)
     return;
@@ -21,14 +21,7 @@ switch subs(1).type
         varargout = {double(subsref(this.data.y, subs))};
     case '{}'
     case '.'
-        if isfield(this.other, subs(1).subs)
-            field = getfield(this.other, subs(1).subs);
-            if numel(subs)==1
-                varargout = {field};
-            else
-                varargout ={subsref(field, subs(2:end))};
-            end
-        elseif ismethod(this, subs(1).subs)
+        if ismethod(this, subs(1).subs)
             switch numel(subs)
                 case 1
                     varargout = {feval(subs(1).subs, this)};
@@ -36,6 +29,13 @@ switch subs(1).type
                     varargout = {feval(subs(1).subs, this, subs(2).subs{:})};
                 otherwise
                     error('Expression too complicated');
+            end
+        elseif isfield(this.other, subs(1).subs)
+            field = getfield(this.other, subs(1).subs);
+            if numel(subs)==1
+                varargout = {field};
+            else
+                varargout ={subsref(field, subs(2:end))};
             end
         else
             error('Reference to non-existent or private meeg method or field.');

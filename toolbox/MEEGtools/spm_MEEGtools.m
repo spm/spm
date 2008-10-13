@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_MEEGtools.m 2333 2008-10-13 13:19:22Z vladimir $
 
 
 funlist = {
@@ -15,6 +15,7 @@ funlist = {
     'Fieldtrip dipole fitting', 'spm_eeg_ft_dipolefitting';
     'Vector-AR connectivity measures', 'spm_eeg_var_measures';
     'Fieldtrip-SPM MEG head modelling' , 'spm_eeg_ft_indiv_meg_model'
+    'Define spatial confounds' , 'spm_eeg_spatial_confounds'
     };
 
 str = sprintf('%s|', funlist{:, 1});

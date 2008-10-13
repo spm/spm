@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 2333 2008-10-13 13:19:22Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -49,7 +49,17 @@ catch
     datareg = D.inv{D.val}.datareg;
 end
 
-[vol, sens] = forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, D.inv{D.val}.datareg.sensors, 'channel', D.inv{D.val}.forward.channels);
+vol = D.inv{D.val}.forward.vol;
+sens = D.inv{D.val}.datareg.sensors;
+
+M1 = D.inv{D.val}.datareg.toMNI;
+[U, L, V] = svd(M1(1:3, 1:3));
+M1(1:3,1:3) =U*V';
+
+vol = forwinv_transform_vol(M1, vol);
+sens = forwinv_transform_sens(M1, sens);
+
+[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.inv{D.val}.forward.channels);
 
 
 %% ============ Select the data and convert to Fieldtrip struct
@@ -85,12 +95,8 @@ cfg.latency  = 1e-3*spm_input('Time ([start end] in ms):', '+1', 'r', '', 2);
 
 if spm_input('What to fit?','+1', 'm', 'dipole|pair', [0 1])
     cfg.numdipoles = 2;
-    if strcmp('EEG', modality)
-        cfg.symmetry = 'x';
-    else
-        cfg.symmetry = 'y';
-    end
-end   
+    cfg.symmetry = 'x';
+end
 
 source = ft_dipolefitting(cfg, data);
 
@@ -124,7 +130,7 @@ title('Model');
 %% =========== Convert dipole position to MNI coordinates
 Slocation = source.dip.pos;
 Slocation(:,4) = 1;
-Slocation = Slocation * datareg.toMNI';
+Slocation = Slocation * (datareg.toMNI * inv(M1))';
 Slocation = Slocation(:,1:3);
 
 
