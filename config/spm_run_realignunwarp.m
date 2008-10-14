@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_run_realignunwarp.m 2337 2008-10-14 14:16:54Z volkmar $
 
 job = varargin{1};
 
@@ -68,7 +68,7 @@ end
 P = {};
 for i = 1:numel(job.data)
     P{i} = strvcat(job.data(i).scans{:});
-    if ~isempty(job.data(i).pmscan{1})
+    if ~isempty(job.data(i).pmscan)
         sfP{i} = job.data(i).pmscan{1};
     else
         sfP{i} = [];
