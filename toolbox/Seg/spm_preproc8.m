@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 2281 2008-10-01 12:52:50Z john $
+% $Id: spm_preproc8.m 2338 2008-10-14 14:33:03Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -92,7 +92,7 @@ if isempty(lkp),
     Kb      = numel(tpm.dat);
     use_mog = false;
 else
-    K       = numel(lkp);
+    K       = numel(obj.lkp);
     Kb      = max(obj.lkp);
     use_mog = true;
 end
@@ -671,11 +671,12 @@ for iter=1:20,
             spm_chi2_plot('Clear');
             spm_chi2_plot('Init','Processing','Log-likelihood','Iteration');
 
-           if use_mog && numel(nmom.mom0) ~= numel(mg),
+           if use_mog && numel(obj.lkp) ~= numel(lkp),
                 mn1 = mn;
                 vr1 = vr;
                 lkp = obj.lkp;
                 K   = numel(lkp);
+                Kb  = max(lkp);
 
                 % Use moments to compute means and variances, and then use these
                 % to initialise the Gaussians
@@ -697,7 +698,6 @@ for iter=1:20,
             end
         end
     end
-
  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Estimate deformations
