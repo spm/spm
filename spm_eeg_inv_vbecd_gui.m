@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2298 2008-10-04 15:47:55Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2339 2008-10-14 18:39:21Z vladimir $
 
 %%
 % Load data, if necessary
@@ -106,6 +106,7 @@ else
     error('Forward model needs to be ready in FT format.!')
 end
 
+[P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens(P.forward.vol, P.forward.sens);
 
 %% 
 % Deal with data

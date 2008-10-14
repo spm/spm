@@ -11,7 +11,7 @@ function D = spm_eeg_invert_fuse_ui(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_fuse_ui.m 1507 2008-04-29 10:44:36Z vladimir $
+% $Id: spm_eeg_invert_fuse_ui.m 2339 2008-10-14 18:39:21Z vladimir $
 
 % Load data
 %==========================================================================
@@ -39,22 +39,12 @@ end
 for i = 1:Ns
     cd(D{i}.path)
     try
-        gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
-        try
-            G     = load(gainmat);
-        catch
-            [p f] = fileparts(gainmat);
-            G     = load(f);
-            D{i}.inv{D{i}.val}.forward.gainmat = fullfile(pwd,f);
-        end
-        name   = fieldnames(G);
-        L      = sparse(getfield(G, name{1}));
+        [L, D{i}]  = spm_eeg_lgainmat(D{i});
         Nd(i)  = size(L,2);                             % number of dipoles
     catch
         Nd(i)  = 0;
     end
 end
-
 
 % use template head model where necessary
 %======================================================================

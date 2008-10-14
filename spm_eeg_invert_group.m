@@ -44,7 +44,7 @@ function [D] = spm_eeg_invert_group(D)
  % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_group.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_invert_group.m 2339 2008-10-14 18:39:21Z vladimir $
 
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -74,16 +74,8 @@ try, woi   = inverse.woi;    catch, woi   = [];                end
 % Load Gain or Lead field matrix
 %--------------------------------------------------------------------------
 for i = 1:Nl
-    gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
-    try
-        G     = load(gainmat);
-    catch
-        [p f] = fileparts(gainmat);
-        G     = load(f);
-    end
-    name   = fieldnames(G);
-    L{i}   = sparse(getfield(G, name{1}));
-    Nc(i)  = size(L{i},1);                         % number of channels
+    [L{i}, D{i}] = spm_eeg_lgainmat(D{i});
+    Nc(i)  = size(L{i}, 1);                         % number of channels
 end
  
 % Time-window of interest

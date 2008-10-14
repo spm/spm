@@ -61,7 +61,7 @@ function [D] = spm_eeg_invert_fuse(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_fuse.m 1790 2008-06-05 11:27:02Z spm $
+% $Id: spm_eeg_invert_fuse.m 2339 2008-10-14 18:39:21Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -102,19 +102,7 @@ end
 % Load Gain or Lead-field matrices
 %--------------------------------------------------------------------------
 for i = 1:Nl
-    gainmat   = D{i}.inv{D{i}.val}.forward.gainmat;
-    try
-        G     = load(gainmat);
-    catch
-        [p f] = fileparts(gainmat);
-        try
-            G = load(fullfile(D{i}.path,f));
-        catch
-            G = load(f);
-        end
-    end
-    name   = fieldnames(G);
-    L{i}   = sparse(getfield(G, name{1}));
+    [L{i}, D{i}] = spm_eeg_lgainmat(D{i});
     Nc(i)  = size(L{i},1);                         % number of channels
     Nd(i)  = size(L{i},2);                         % number of dipoles
 end

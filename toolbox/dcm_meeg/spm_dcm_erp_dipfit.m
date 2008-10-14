@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_dcm_erp_dipfit.m 2339 2008-10-14 18:39:21Z vladimir $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -102,12 +102,18 @@ catch
     save(D);
 end
  
-% ***** temporary code for backwards compatibility *****
+% channels
 %--------------------------------------------------------------------------
+chanind = strmatch(DCM.xY.modality, D.chantype, 'exact');
+chanind = setdiff(chanind, D.badchannels);
+if ~isempty(chanind)
+    channels = D.chanlabels(chanind);
+else
+    error(['No good ' DCM.xY.modality ' channels were found.']);
+end
+
 [DCM.M.dipfit.vol, DCM.M.dipfit.sens] = forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
-    D.inv{D.val}.datareg.sensors, 'channel', D.inv{D.val}.forward.channels);
-
-
+    D.inv{D.val}.datareg.sensors, 'channel', channels);
 
 switch DCM.options.spatial
  
@@ -118,26 +124,11 @@ switch DCM.options.spatial
         % Load Gain or Lead field matrix
         %------------------------------------------------------------------
         DCM.val     = D.val;
-        try
-            gainmat = D.inv{D.val}.forward.gainmat;
-        catch
-            fprintf('\ncomputing gain matrix\n')
-            spm_figure('GetWin','Interactive');
-            D       = spm_eeg_inv_forward_ui(D, D.val);
-            gainmat = D.inv{D.val}.forward.gainmat;
-        end
-        try
-            L       = load(gainmat);
-        catch
-            [p,f]   = fileparts(gainmat);
-            L       = load(f);
-            gainmat = fullfile(pwd,f);
-        end
- 
-        name    = fieldnames(L);
-        L       = sparse(getfield(L, name{1}));
-        L       = spm_cond_units(L);
- 
+        
+        [L, D] = spm_eeg_lgainmat(D);
+        
+        save(D);
+        
         % centers
         %------------------------------------------------------------------
         xyz = DCM.M.dipfit.Lpos;
@@ -181,10 +172,10 @@ switch DCM.options.spatial
  
         % Save results
         %==================================================================
-        DCM.M.dipfit.radius  = rad;                  % VOI (XYZ, Radius)
-        DCM.M.dipfit.Nm      = Nm;                   % modes per region
-        DCM.M.dipfit.Nd      = length(vert);         % number of dipoles
-        DCM.M.dipfit.gainmat = gainmat;              % Lead field filename
+        DCM.M.dipfit.radius  = rad;                           % VOI (XYZ, Radius)
+        DCM.M.dipfit.Nm      = Nm;                            % modes per region
+        DCM.M.dipfit.Nd      = length(vert);                  % number of dipoles
+        DCM.M.dipfit.gainmat = D.inv{D.val}.forward.gainmat;  % Lead field filename
  
         save(D);
  

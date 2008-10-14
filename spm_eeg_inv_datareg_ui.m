@@ -10,7 +10,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 2260 2008-09-30 17:02:16Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 2339 2008-10-14 18:39:21Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -31,11 +31,6 @@ else
 end
 
 D.inv{val}.modality = modality;
-
-channels = D.chanlabels;
-chanind = strmatch(modality, D.chantype, 'exact');
-chanind = setdiff(chanind, D.badchannels);
-D.inv{val}.forward.channels = channels(chanind);
 
 meegfid = D.fiducials;
 mrifid = D.inv{val}.datareg.fid_mri;
@@ -150,12 +145,6 @@ switch D.inv{val}.modality
         D.inv{val}.datareg.fromMNI = inv(D.inv{val}.datareg.toMNI);
 
 end
-
-
-% Prepare volume and sensors for forward computation
-%--------------------------------------------------------------------------
-[D.inv{val}.forward.vol, D.inv{val}.datareg.sensors] =...
-    forwinv_prepare_vol_sens(D.inv{val}.forward.vol, D.inv{val}.datareg.sensors, 'channel', D.inv{val}.forward.channels);
 
 % check and display registration
 %--------------------------------------------------------------------------

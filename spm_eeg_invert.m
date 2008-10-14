@@ -46,7 +46,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 1704 2008-05-21 14:00:09Z karl $
+% $Id: spm_eeg_invert.m 2339 2008-10-14 18:39:21Z vladimir $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -85,7 +85,7 @@ try, woi   = inverse.woi;    catch, woi   = [];                end
 % Check gain or lead-field matrices
 %--------------------------------------------------------------------------
 for i = 1:Nl
-    L     = spm_eeg_lgainmat(D{i});
+    [L, D{i}] = spm_eeg_lgainmat(D{i});
     Nc(i) = size(L,1);                             % number of channels
     Nd(i) = size(L,2);                             % number of dipoles
 end
@@ -146,13 +146,13 @@ Ns    = length(Is);
 %--------------------------------------------------------------------------
 TOL   = 16;
 Nmax  = Nm;
-L     = spm_eeg_lgainmat(D{1},Is);
+[L, D{1}]  = spm_eeg_lgainmat(D{1},Is);
 U{1}  = spm_svd(L*L',exp(-TOL));
 Nm    = min(size(U{1},2),Nmax);
 U{1}  = U{1}(:,1:Nm);
 UL{1} = U{1}'*L;
 for i = 2:Nl
-    L     = spm_eeg_lgainmat(D{i},Is);
+    [L, D{i}] = spm_eeg_lgainmat(D{i},Is);
     U{i}  = spm_svd(L*L',exp(-TOL));
     Nm(i) = min(size(U{i},2),Nmax);
     U{i}  = U{i}(:,1:Nm(i));
@@ -413,7 +413,7 @@ for i = 1:Nl
  
     % using spatial priors from group analysis
     %----------------------------------------------------------------------
-    L     = spm_eeg_lgainmat(D{i},Is);
+    [L, D{i}] = spm_eeg_lgainmat(D{i}, Is);
     Qe    = {speye(Nc(i),Nc(i))};
     Ne    = length(Qe);
     Np    = length(QP);

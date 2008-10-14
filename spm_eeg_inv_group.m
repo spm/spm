@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2309 2008-10-06 19:19:56Z karl $
+% $Id: spm_eeg_inv_group.m 2339 2008-10-14 18:39:21Z vladimir $
 
 
 % check if to proceed
@@ -73,7 +73,7 @@ end
 for i = 1:Ns
     fprintf('%s: subject %i\n','checking for foward models',i)
     try
-        L     = spm_eeg_lgainmat(D{i});
+        [L, D{i}] = spm_eeg_lgainmat(D{i});
         Nd(i) = size(L,2);               % number of dipoles
     catch
         Nd(i) = 0;

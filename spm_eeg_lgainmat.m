@@ -1,4 +1,4 @@
-function [L] = spm_eeg_lgainmat(D,Is)
+function [L, D] = spm_eeg_lgainmat(D,Is)
 % loads (memory maps) a gain matrix
 % FORMAT [L] = spm_eeg_lgainmat(D,Is)
 % D    - Data strcucture
@@ -7,31 +7,51 @@ function [L] = spm_eeg_lgainmat(D,Is)
 % L    - Lead-field or gain matrix L(:,Is)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_eeg_lgainmat.m 2339 2008-10-14 18:39:21Z vladimir $
 
 % get matrix
 %--------------------------------------------------------------------------
-fname = D.inv{D.val}.forward.gainmat;
 try
-    G = load(fname);
-catch
-    [p f] = fileparts(fname);
+    fname = D.inv{D.val}.forward.gainmat;
     try
-        fname = fullfile(D.path,f);
-        G     = load(fname);
+        G = load(fname); % Absolute path
     catch
-        fname = fullfile(pwd,f);
-        G     = load(fname);
+        try
+            G = load(fullfile(D.path, fname)); % Relative path
+        catch
+            [p f x] = fileparts(fname);
+            try
+                fname = fullfile(D.path, [f x]); % Try in the same directory where D is
+                G     = load(fname);
+            catch
+                try
+                    fname = fullfile(pwd, [f x]); % Try in the current directory
+                    G     = load(fname);
+                end
+            end
+        end
     end
+    modality = spm_eeg_modality_ui(D, 1);
+    chanind = strmatch(modality, D.chantype, 'exact');
+    chanind = setdiff(chanind, D.badchannels);
+    Gname = fieldnames(G);
+    L  = sparse(getfield(G, Gname{1}));
+    if length(chanind)~=size(L, 1)
+        error('Improper gain matrix');
+    end
+catch
+    % That might be an overkill, but lets try
+    D = spm_eeg_inv_forward(D, D.val);
+    fname = D.inv{D.val}.forward.gainmat;
+    G = load(fullfile(D.path, fname)); 
+    Gname = fieldnames(G);
+    L     = sparse(getfield(G, Gname{1}));
 end
-Gname = fieldnames(G);
 
-% condition units and subsample
-%--------------------------------------------------------------------------
-L     = sparse(getfield(G, Gname{1}));
 L     = spm_cond_units(L);
-try
+
+if nargin>1
     L = L(:,Is);
 end

@@ -13,16 +13,14 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2083 2008-09-11 16:05:53Z vladimir $
+% $Id: spm_eeg_inv_forward.m 2339 2008-10-14 18:39:21Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-
 % Head Geometry (create tesselation file)
 %--------------------------------------------------------------------------
-[path,nam,ext]             = fileparts(D.inv{val}.mesh.sMRI);
 vert = D.inv{val}.mesh.tess_ctx.vert;
 face = D.inv{val}.mesh.tess_ctx.face;
 
@@ -32,6 +30,20 @@ norm = spm_eeg_inv_normals(vert,face);
 
 vol = D.inv{val}.forward.vol;
 sens = D.inv{val}.datareg.sensors;
+
+% channels
+%--------------------------------------------------------------------------
+chanind = strmatch(D.inv{val}.modality, D.chantype, 'exact');
+chanind = setdiff(chanind, D.badchannels);
+if ~isempty(chanind)
+    D.inv{val}.forward.channels = D.chanlabels(chanind);
+else
+    error(['No good ' D.inv{val}.modality ' channels were found.']);
+end
+
+% Forward computation
+%--------------------------------------------------------------------------
+[vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.inv{val}.forward.channels);
 
 nvert = size(vert, 1);
 
@@ -72,9 +84,5 @@ spm('Pointer', 'Arrow');drawnow;
 
 % Save
 %--------------------------------------------------------------------------
-D.inv{val}.forward.gainmat = fullfile(D.path,[nam '_SPMgainmatrix_' num2str(val) '.mat']);
-%D.inv{val}.forward.gainxyz = fullfile(D.path,[nam '_SPMgainmatxyz_' num2str(val) '.mat']);
-
-save(D.inv{val}.forward.gainmat,'G');
-%save(D.inv{val}.forward.gainxyz,'Gxyz');
-
+D.inv{val}.forward.gainmat = [spm_str_manip(D.fname, 'tr') '_SPMgainmatrix_' num2str(val) '.mat'];
+save(fullfile(D.path, D.inv{val}.forward.gainmat), 'G');

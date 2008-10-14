@@ -43,7 +43,7 @@ function [D] = spm_eeg_invert_single(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert_single.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_eeg_invert_single.m 2339 2008-10-14 18:39:21Z vladimir $
 
 % D - SPM data structure
 %==========================================================================
@@ -67,14 +67,7 @@ try, woi   = model.inverse.woi;    catch, woi   = [];             end
 
 % Load Gain or Lead field matrix
 %--------------------------------------------------------------------------
-try
-    L     = load(model.forward.gainmat);
-catch
-    [p f] = fileparts(model.forward.gainmat);
-    L     = load(f);
-end
-name  = fieldnames(L);
-L     = sparse(getfield(L, name{1}));
+[L, D] = spm_eeg_lgainmat(D);
 
 % Time-window of interest
 %--------------------------------------------------------------------------
