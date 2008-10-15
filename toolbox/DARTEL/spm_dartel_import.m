@@ -15,7 +15,7 @@ function out = spm_dartel_import(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 1387 2008-04-14 14:34:15Z john $
+% $Id: spm_dartel_import.m 2340 2008-10-15 10:17:27Z john $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
@@ -101,7 +101,11 @@ for z=1:length(x3),
     % Bias corrected image
     f          = spm_sample_vol(p.VF,x1,x2,o*x3(z),0);
     msk        = (f==0) | ~isfinite(f);
-    cr         = exp(transf(bB1,bB2,bB3(z,:),bsol)).*f;
+    if ~isempty(bsol),
+        cr     = exp(transf(bB1,bB2,bB3(z,:),bsol)).*f;
+    else
+        cr     = f;
+    end
 
     if iopt,
         if bitand(iopt,2),
