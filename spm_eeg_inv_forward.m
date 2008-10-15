@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2339 2008-10-14 18:39:21Z vladimir $
+% $Id: spm_eeg_inv_forward.m 2343 2008-10-15 12:14:34Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -84,5 +84,5 @@ spm('Pointer', 'Arrow');drawnow;
 
 % Save
 %--------------------------------------------------------------------------
-D.inv{val}.forward.gainmat = [spm_str_manip(D.fname, 'tr') '_SPMgainmatrix_' num2str(val) '.mat'];
+D.inv{val}.forward.gainmat = ['SPMgainmatrix_' spm_str_manip(D.fname, 'tr') '_' num2str(val) '.mat'];
 save(fullfile(D.path, D.inv{val}.forward.gainmat), 'G');
