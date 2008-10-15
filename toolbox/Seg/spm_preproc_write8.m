@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 2341 2008-10-15 10:37:59Z john $
+% $Id: spm_preproc_write8.m 2344 2008-10-15 16:51:48Z john $
 
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
@@ -431,7 +431,12 @@ end
 
 %=======================================================================
 function x = rgrid(d)
-[x1,x2,x3] = ndgrid(single(1:d(1)),single(1:d(2)),single(1:d(3)));
-x = cat(4,single(x1),single(x2),single(x3));
+x = zeros([d(1:3) 3],'single');
+[x1,x2] = ndgrid(single(1:d(1)),single(1:d(2)));
+for i=1:d(3),
+    x(:,:,i,1) = x1;
+    x(:,:,i,2) = x2;
+    x(:,:,i,3) = single(i);
+end
 %=======================================================================
 
