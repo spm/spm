@@ -4,9 +4,9 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 2283 2008-10-01 14:25:09Z john $
+% $Id: spm_cfg_coreg.m 2342 2008-10-15 11:41:13Z volkmar $
 
-rev = '$Rev: 2283 $';
+rev = '$Rev: 2342 $';
 % ---------------------------------------------------------------------
 % ref Reference Image
 % ---------------------------------------------------------------------
@@ -33,7 +33,7 @@ source.num     = [1 1];
 other         = cfg_files;
 other.tag     = 'other';
 other.name    = 'Other Images';
-other.val     = {''};
+other.val     = {{''}};
 other.help    = {'These are any images that need to remain in alignment with the source image.'};
 other.filter = 'image';
 other.ufilter = '.*';
