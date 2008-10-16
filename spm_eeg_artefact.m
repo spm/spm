@@ -39,7 +39,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2164 2008-09-24 11:48:57Z stefan $
+% $Id: spm_eeg_artefact.m 2348 2008-10-16 16:51:25Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -51,12 +51,12 @@ catch
     S.D = D;
 end
 
-P = spm_str_manip(D, 'H');
-
-try
-    D = spm_eeg_load(D);
-catch
-    error(sprintf('Trouble reading file %s', D));
+if ~isa(D, 'meeg')
+    try
+        D = spm_eeg_load(D);
+    catch
+        error(sprintf('Trouble reading file %s', D));
+    end
 end
 
 try
