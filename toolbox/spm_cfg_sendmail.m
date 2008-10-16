@@ -3,7 +3,7 @@ function sendmail = spm_cfg_sendmail
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_sendmail.m 1820 2008-06-12 17:11:49Z guillaume $
+% $Id: spm_cfg_sendmail.m 2345 2008-10-16 11:31:35Z guillaume $
 
 % ---------------------------------------------------------------------
 % Recipient
@@ -13,7 +13,7 @@ recipient.tag     = 'recipient';
 recipient.name    = 'Recipient';
 recipient.help    = {'User to receive mail.'};
 recipient.strtype = 's';
-recipient.num     = [1 1];
+recipient.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % Subject
 % ---------------------------------------------------------------------
@@ -23,7 +23,7 @@ subject.name    = 'Subject';
 subject.val     = {['[SPM] [%DATE%] On behalf of ' spm('Ver')]};
 subject.help    = {'The subject line of the message. %DATE% will be replaced by a string containing the time and date when the email is sent.'};
 subject.strtype = 's';
-subject.num     = [1 1];
+subject.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % Message
 % ---------------------------------------------------------------------
@@ -33,7 +33,7 @@ message.name    = 'Message';
 message.val     = {'Hello from SPM!'};
 message.help    = {'A string containing the message to send.'};
 message.strtype = 's';
-message.num     = [1 1];
+message.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % Attachments
 % ---------------------------------------------------------------------
@@ -53,7 +53,10 @@ smtp.tag     = 'smtp';
 smtp.name    = 'SMTP Server';
 smtp.help    = {'Your SMTP server. If not specified, look for sendmail help.'};
 smtp.strtype = 's';
-smtp.num     = [1 1];
+try
+	smtp.val = {getpref('Internet','SMTP_Server')};
+end
+smtp.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % E-mail
 % ---------------------------------------------------------------------
@@ -62,7 +65,10 @@ email.tag     = 'email';
 email.name    = 'E-mail';
 email.help    = {'Your e-mail address. Look in sendmail help how to store it.'};
 email.strtype = 's';
-email.num     = [1 1];
+try
+	email.val = {getpref('Internet','E_mail')};
+end
+email.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % Zip attachments
 % ---------------------------------------------------------------------

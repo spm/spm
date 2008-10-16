@@ -1,10 +1,10 @@
 function spm_smooth(P,Q,s,dtype)
 % 3 dimensional convolution of an image
 % FORMAT spm_smooth(P,Q,S,dtype)
-% P  - image to be smoothed
-% Q  - filename for smoothed image
-% S  - [sx sy sz] Guassian filter width {FWHM} in mm
-% dtype - datatype
+% P     - image to be smoothed
+% Q     - filename for smoothed image
+% S     - [sx sy sz] Gaussian filter width {FWHM} in mm
+% dtype - datatype [default: 0 == same datatype as P]
 %____________________________________________________________________________
 %
 % spm_smooth is used to smooth or convolve images in a file (maybe).
@@ -23,7 +23,7 @@ function spm_smooth(P,Q,s,dtype)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Tom Nichols
-% $Id: spm_smooth.m 1439 2008-04-17 15:42:17Z john $
+% $Id: spm_smooth.m 2345 2008-10-16 11:31:35Z guillaume $
 
 
 %-----------------------------------------------------------------------
