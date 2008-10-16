@@ -9,25 +9,27 @@ function S = spm_eeg_convertmat2nifti3D(S)
 % Fname            - matrix of EEG mat-files
 % n                - size of quadratic output image (size: n x n x ?)
 % pixsize          - Voxel size of output image
-% interpolate_bad  - flag (0/1) that indicates whether values for
-%                       bad channels should be interpolated (1) or left
-%                       out (0). 
+% interpolate_bad  - flag (0/1) whether channels should be used for 
+%                    interpolation if they lie at the border of the setup
+%                    (0: mask out). 
 % output: 
 % S         - can be used to construct script (as in the history-function)
 %_______________________________________________________________________
 %
 % spm_eeg_convertmat2nifti3D converts EEG/MEG data from the SPM format to the
-% scalp format. The channel data is interpolated to voxel-space using a
-% spline interpolation. The electrodes' locations are specified by the
-% channel template file. Each channel's data will be found in an individual
+% scalp format. The data will be in 3D format, i.e., peri-stimulus time is the third dimension.
+% The channel data is interpolated to voxel-space using a
+% linear interpolation. Each channel's data will be found in an individual
 % voxel given that n is big enough. The data is written to 3-dim nifti
-% images, i.e. the data of each single trial or ERP is contained in one
-% image file.
+% images, i.e. the data of each single trial or evoked response is contained in one
+% image file. The mask out option interpolate_bad=0 will only have an
+% effect if the bad channels are located at the edge of the setup, where it
+% is assumed that there is not enough data for interpolation.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti3D.m 2215 2008-09-29 09:43:35Z stefan $
+% $Id: spm_eeg_convertmat2nifti3D.m 2346 2008-10-16 12:05:34Z stefan $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -92,7 +94,7 @@ for k = 1:Nsub
 
     for i = 1 : D{k}.nconditions
         
-        Itrials = intersect(pickconditions(D{k}, cl(i)), find(~D{k}.reject))';
+        Itrials = intersect(pickconditions(D{k}, cl(i)), find(~D{k}.reject));
 
         dname = sprintf('type_%s', cl{i});
         [m, sta] = mkdir(dname);

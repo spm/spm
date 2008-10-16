@@ -4,7 +4,10 @@ function Dout = spm_eeg_merge(S)
 % S         - optional input struct
 % (optional) fields of S:
 % D         - filename of EEG mat-file with continuous data
-% recode    - a cell matrix of condition labels (rows: file, column: condition). 
+% recode    - a matrix of cells where each cell contains a condition label. The 
+%             ordering of these labels must be such that each row in the cell 
+%             matrix specifies the conditionlabels for one of
+%             the selected files. 
 %             
 % Output:
 % D         - EEG data struct (also written to files)
@@ -20,7 +23,7 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2291 2008-10-02 16:40:32Z stefan $
+% $Id: spm_eeg_merge.m 2346 2008-10-16 12:05:34Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 

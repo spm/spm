@@ -9,17 +9,21 @@ function spm_eeg_convertmat2nifti(S)
 % n         - size of quadratic output image (size: n x n x 1)
 %_______________________________________________________________________
 %
-% spm_eeg_convertmat2ana converts EEG/MEG data from the SPM M/EEG format to
-% nifti format. The channel data are interpolated to voxel-space using a
-% trilinear interpolation. The electrodes' locations are specified by the
-% channel template file. Each channel's data will be found in an individual
-% voxel given that n is big enough. The data is written to 4-dim nifti
-% images.
+% spm_eeg_convertmat2nifti converts EEG/MEG data from the SPM format to the
+% scalp format. The data will be written to 4D-format, where the first two 
+% dimensions are spatial coordinates, the third is set to one, and the fourth is 
+% peri-stimulus time. The channel data is interpolated to voxel-space using a
+% linear interpolation. Each channel's data will be found in an individual
+% voxel given that n is big enough. The data is written to 3-dim nifti
+% images, i.e. the data of each single trial or evoked response is contained in one
+% image file. The mask out option interpolate_bad=0 will only have an
+% effect if the bad channels are located at the edge of the setup, where it
+% is assumed that there is not enough data for interpolation.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti.m 2215 2008-09-29 09:43:35Z stefan $
+% $Id: spm_eeg_convertmat2nifti.m 2346 2008-10-16 12:05:34Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
