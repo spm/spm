@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_nlsi_N.m 2353 2008-10-17 11:56:15Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -266,18 +266,34 @@ x0     = ones(size(y,1),1)*spm_vec(M.x)';
 %==========================================================================
 for ip = 1:64
  
-    now = clock;
+    % time
+    %----------------------------------------------------------------------  
+    now      = clock;
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
-    [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
+    try
+        
+        [x dxdp] = feval(IS,Ep,M,U);
+        
+        % project derivatives onto Vp
+        %------------------------------------------------------------------
+        for i = 1:length(dxdp), dxdp{i} = dxdp{i}*Vp; end
+        
+    catch
+        
+        % or evalate nunmerically
+        %------------------------------------------------------------------
+        [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
+        
+    end
     
     % check for dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
-        gi   = 8;
+        gi = 8;
     else
-        gi   = 0;
+        gi = 0;
     end
     
        
@@ -423,16 +439,15 @@ for ip = 1:64
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        F0; fprintf(' actual: %.3e',full(F - C.F))
         elapsedTime = etime(clock,now);
-        fprintf(['  (took ',num2str(elapsedTime),' sec)\n'])
+        F0; fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),elapsedTime)
     catch
         F0 = F;
     end
      
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
-    if F > C.F
+    if F > C.F || ip < 3
         
         % update gradients and curvature
         %------------------------------------------------------------------

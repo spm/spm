@@ -2,13 +2,13 @@ function [y,dydP] = spm_int_df(P,M,U)
 % integrates a MIMO nonlinear system using the matrix exponential method,
 % and calculates the gradient of the trajectories w.r.t. to system's
 % parameters
-% FORMAT [y] = spm_int_L(P,M,U)
+% FORMAT [x,dydP] = spm_int_df(P,M,U)
 % P    - model parameters
 % M    - model structure
 % U    - input structure or matrix
 %
-% y    - (v x l)  response y = g(x,u,P)
-% dxdP - partial derivatives of y wrt P
+% y    - (v x l) response y = g(x,u,P)
+% dydP - partial derivatives of y wrt P
 %__________________________________________________________________________
 % Integrates the MIMO system described by
 %
@@ -70,18 +70,18 @@ function [y,dydP] = spm_int_df(P,M,U)
 % used primarily for integrating fMRI models
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Jean Daunizeau
-% $Id: spm_int_df.m 2322 2008-10-09 14:54:22Z jean $
-
-
+% $Id: spm_int_df.m 2353 2008-10-17 11:56:15Z karl $
+ 
+ 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U), u.u = U; U = u; end
 try, dt = U.dt; catch, dt = 1; end
 try, ns = M.ns; catch, ns = length(U.u); end
-
-
+ 
+ 
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
 try
@@ -92,25 +92,23 @@ catch
     M.x                         = sparse(0,0);
 end
 M.nx                            = size(M.x,2);
-
+ 
 % and output nonlinearity
 %--------------------------------------------------------------------------
 try
     g                           = fcnchk(M.g,'x','u','P','M');
     % Get expansion point (system's steady state)
-    Mog = rmfield(M,'g');
+    Mog  = rmfield(M,'g');
     [x0] = spm_int_L(P,Mog,U);
-    x0 = x0(:,end);
-    clea Mog
+    x0   = x0(:,end);
+    clear Mog
     % Get derivative of observation function wrt to states at x0
     y0                          = spm_vec(feval(M.g,x0,u,P));
     dgdx0                       = spm_cat(spm_diff(g,x0,u,P,M,1));
 catch
     g                           = [];
 end
-
-
-
+ 
 % Initial states and inputs
 %--------------------------------------------------------------------------
 try
@@ -124,7 +122,7 @@ catch
     x                           = sparse(0,1);
     M.x                         = x;
 end
-
+ 
 % check for evolution function output
 %--------------------------------------------------------------------------
 try
@@ -136,16 +134,15 @@ catch
         'system''s parameters (df/dP)!']);
     return
 end
-
+ 
 % get partial derivatives wrt input parameters:
 % df/dP_u = (df/du)*(du/dP_u)
 dfdP                            = getDfDPu(dfdP,U,1);
 % Get projector from Jacobian
 [Q,N]                           = getProjector(dfdx,P,M,dt);
-
+ 
 n                               = numel(x);
 np                              = size(dfdP,2);
-
 dxdP                            = zeros(n*(ns+1),np);
 if ~isempty(g)
     ny                          = size(y0,1);
@@ -153,14 +150,14 @@ if ~isempty(g)
 end
 In                              = speye(n);
 QJ                              = In+Q*dfdx;
-
-
+ 
+ 
 % Get derivatives of the projector w.r.t. parameters (dQ/dP)
 %==========================================================================
 % 1- Build an inline function (fQ) that evaluates the projector (Q) from
 % the Jacobian (J) that is specified for a given set of parameters
-fQ                              = @(M,P,x,u,dt,N)...
-                          getProjector(feval(M.df,x,u,P,M,'dfdx'),P,M,dt,N);
+fQ  = @(M,P,x,u,dt,N) getProjector(feval(M.df,x,u,P,M,'dfdx'),P,M,dt,N);
+ 
 % 2- Evaluate numerical derivatives of Q w.r.t. parameters
 % !! Get rid of trial effect (B) and input param (R) derivatives, since
 % these should be computed outside the ODE integrator (trial effect B is
@@ -168,13 +165,11 @@ fQ                              = @(M,P,x,u,dt,N)...
 % function call).
 indB                            = spm_getvec(P,'B');
 indR                            = spm_getvec(P,'R');
-M.Vp(:,sum(M.Vp([indB;indR],:))==1) = [];
-M.Vp([indB;indR],:)               = [];
 P0                              = rmfield(P,{'B','R'});
-[dQdp]                          = spm_diff(fQ,M,P0,x,u,dt,N,2,{[],M.Vp});
+dQdp                            = spm_diff(fQ,M,P0,x,u,dt,N,2);
 dQdP                            = zeros(n^2,np-length(indR));
-for i=1:size(M.Vp,2)
-    dQdP(:,M.Vp(:,i)~=0)        = dQdp{i}(:);
+for i=1:length(dQdP)
+    dQdP(:,i)        = spm_vec(dQdp{i});
 end
 % 3- Evaluate numerical derivatives of Q w.r.t. first input
 [dQdu]                          = spm_diff(fQ,M,P,x,u,dt,N,4);
@@ -184,47 +179,46 @@ for i=1:length(dQdu)
 end
 % 4- Get derivatives w.r.t. input parameters
 dQdR                            = getDfDPu(dQdU,U,1);
-% 5- Concatenate drivatives wrt ODE params and wrt input params
+% 5- Concatenate derivatives wrt ODE params and wrt input params
 dQdP                            = [dQdP,dQdR];
-
-
+ 
+ 
 % integrate
 %==========================================================================
 for i = 1:ns
-
+ 
     % input
     %----------------------------------------------------------------------
     try
-        u                       = U.u(i,:);
+        u  = U.u(i,:);
     end
-
+ 
     % update x(t+dt) = x(t) + dt*f(x(t))
     %----------------------------------------------------------------------
-    dxdP(i*n+1:(i+1)*n,:)       = dxdP((i-1)*n+1:i*n,:);
+    dxdP(i*n+1:(i+1)*n,:)     = dxdP((i-1)*n+1:i*n,:);
     for j = 1:N
-        [fx]                    = feval(M.f,x,u,P);
-        dfdP                    = feval(M.df,x,u,P,M,'dfdP');
-        dfdP                    = full(getDfDPu(dfdP,U,i));
-        kf                      = kron(fx',In);
-        x                       = spm_vec(x) + Q*fx;
-        x                       = spm_unvec(x,M.x);
-        dxdP(i*n+1:(i+1)*n,:)   = Q*dfdP + QJ*dxdP(i*n+1:(i+1)*n,:) ...
-            + kf*dQdP;
+        fx                    = feval(M.f,x,u,P);
+        dfdP                  = feval(M.df,x,u,P,M,'dfdP');
+        dfdP                  = full(getDfDPu(dfdP,U,i));
+        kf                    = kron(fx',In);
+        x                     = spm_vec(x) + Q*fx;
+        x                     = spm_unvec(x,M.x);
+        dxdP(i*n+1:(i+1)*n,:) = Q*dfdP + QJ*dxdP(i*n+1:(i+1)*n,:) + kf*dQdP;
     end
-
-
-
+ 
+ 
+ 
     % output - implement g(x)
     %----------------------------------------------------------------------
     if ~isempty(g)
-        y(:,i)                  = spm_vec(g(x,u,P,M));
-        dydP(i*n+1:(i+1)*n,:)   = dgdx0*dxdP(i*n+1:(i+1)*n,:);
+        y(:,i)                = spm_vec(g(x,u,P,M));
+        dydP(i*n+1:(i+1)*n,:) = dgdx0*dxdP(i*n+1:(i+1)*n,:);
     else
-        y(:,i)                  = spm_vec(x);
+        y(:,i)                = spm_vec(x);
     end
-
+ 
 end
-
+ 
 % transpose
 %--------------------------------------------------------------------------
 y                               = real(y');
@@ -234,23 +228,23 @@ if ~isempty(g)
 else
     dydP                        = dxdP;
 end
-
-
-% Subfunctions
+ 
+ 
+% Sub-functions
 %==========================================================================
-
+ 
 function dfdP = getDfDPu(dfdP,U,t)
 % This function gets the partial derivatives w.r.t. the input parameters
-% from the paratial derivatives w.r.t. inputs time series itself
+% from the partial derivatives w.r.t. inputs time series itself
 nu                              = size(U.u,2);
 dudP_u                          = permute(U.dudP(t,:,:),[2 3 1]);
 dfdu                            = dfdP(:,end-nu+1:end);
 dfdP_u                          = dfdu*dudP_u;
 dfdP(:,end-nu+1:end)            = [];
 dfdP                            = [dfdP,dfdP_u];
-
-
-
+ 
+ 
+ 
 function [Q,N] = getProjector(J,P,M,dt,N)
 % This function evaluates the projectors required for ODE integration, from
 % the Jacobian (J), the parameters (P, which is required for delays) and
