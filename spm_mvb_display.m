@@ -1,13 +1,16 @@
 function spm_mvb_display(MVB)
 % model display for MVB
 % FORMAT spm_mvb_display(MVB)
-% MVB  - multivariate Bayes structure
+% MVB  - multivariate Bayes structure, select one if not provided
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_mvb_display.m 2356 2008-10-17 15:08:19Z christophe $
 
+if nargin<1
+    load(spm_select(1,'^MVB.*\.mat','Select MVB to display'))
+end
 
 % get figure
 %--------------------------------------------------------------------------

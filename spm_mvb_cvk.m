@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 2011 2008-08-20 12:29:00Z christophe $
+% $Id: spm_mvb_cvk.m 2356 2008-10-17 15:08:19Z christophe $
  
  
 %-partition order
@@ -68,8 +68,7 @@ V     = R'*R;
  
 % leave-one-out
 %--------------------------------------------------------------------------
-% if ~k, k = Ns - 1; end
-if ~k, k = Ns; end
+if ~k, k = length(X); end
 Ns    = length(X);
 qX    = zeros(Ns,1);
 qE    = zeros(size(Y,2),k);
@@ -82,11 +81,11 @@ for i = 1:k
     % specify indices of training and test data
     %----------------------------------------------------------------------
     ns     = floor(Ns/k);
-    test   = [1:ns] + (i - 1)*ns;
+    test   = 1:ns + (i - 1)*ns;
  
     % orthogonalise test and training partition
     %----------------------------------------------------------------------
-    tran       = [1:Ns];
+    tran       = 1:Ns;
     tran(test) = [];
  
     % Training
@@ -169,5 +168,7 @@ MVB.percent = pc;
 MVB.R2      = R2;
 MVB.cvk     = struct('qX',qX,'qE',qE,'P',P);
 
- 
+% save results
+%--------------------------------------------------------------------------
+save(MVB.name,'MVB')
 assignin('base','MVB',MVB)
