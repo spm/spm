@@ -3,11 +3,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_copygrad.m 1634 2008-05-14 13:15:15Z vladimir $
+% $Id: spm_eeg_copygrad.m 2350 2008-10-17 11:45:42Z vladimir $
 
 spmfile = spm_select(1, '\.mat$', 'Select an SPM8 EEG file');
 
-ctffile = spm_select(1, '\.meg4$', 'Select a CTF meg4 file');
+ctffile = spm_select(1, '\.*', 'Select a raw MEG data file');
 
 
 hdr = fileio_read_header(ctffile);
