@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2343 2008-10-15 12:14:34Z vladimir $
+% $Id: spm_eeg_inv_forward.m 2352 2008-10-17 11:53:53Z karl $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -28,7 +28,7 @@ face = D.inv{val}.mesh.tess_ctx.face;
 %--------------------------------------------------------------------------
 norm = spm_eeg_inv_normals(vert,face);
 
-vol = D.inv{val}.forward.vol;
+vol  = D.inv{val}.forward.vol;
 sens = D.inv{val}.datareg.sensors;
 
 % channels
@@ -64,7 +64,6 @@ for i = 1:nvert
 end
 
 spm_progress_bar('Clear');
-%%
 spm_progress_bar('Init', nvert, 'Orienting leadfields'); drawnow;
 
 G = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);

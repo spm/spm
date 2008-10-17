@@ -46,7 +46,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 2339 2008-10-14 18:39:21Z vladimir $
+% $Id: spm_eeg_invert.m 2352 2008-10-17 11:53:53Z karl $
  
 % check whether this is a group inversion
 %--------------------------------------------------------------------------
@@ -85,9 +85,9 @@ try, woi   = inverse.woi;    catch, woi   = [];                end
 % Check gain or lead-field matrices
 %--------------------------------------------------------------------------
 for i = 1:Nl
-    [L, D{i}] = spm_eeg_lgainmat(D{i});
-    Nc(i) = size(L,1);                             % number of channels
-    Nd(i) = size(L,2);                             % number of dipoles
+    [L D{i}] = spm_eeg_lgainmat(D{i});
+    Nc(i)    = size(L,1);                             % number of channels
+    Nd(i)    = size(L,2);                             % number of dipoles
 end
 if any(diff(Nd))
     warndlg('please ensure the number of dipoles is the same')
@@ -140,19 +140,29 @@ Is    = find(Is);
 vert  = vert(Is,:);
 QG    = QG(Is,Is);
 Ns    = length(Is);
+
+% Check for null space over sensors and remove it
+%--------------------------------------------------------------------------
+for i = 1:Nl
+    try
+        SX   = D{i}.sconfounds;
+        R{i} = speye(Nc(i),Nc(i)) - SX*pinv(SX);
+    catch
+        R{i} = speye(Nc(i),Nc(i));
+    end
+end
  
- 
-% Project to channel modes (U)
+% Project to channel modes (U); Checking for null space over sensors
 %--------------------------------------------------------------------------
 TOL   = 16;
 Nmax  = Nm;
-[L, D{1}]  = spm_eeg_lgainmat(D{1},Is);
+L     = R{1}*spm_eeg_lgainmat(D{1},Is);
 U{1}  = spm_svd(L*L',exp(-TOL));
 Nm    = min(size(U{1},2),Nmax);
 U{1}  = U{1}(:,1:Nm);
 UL{1} = U{1}'*L;
 for i = 2:Nl
-    [L, D{i}] = spm_eeg_lgainmat(D{i},Is);
+    L     = R{i}*spm_eeg_lgainmat(D{i},Is);
     U{i}  = spm_svd(L*L',exp(-TOL));
     Nm(i) = min(size(U{i},2),Nmax);
     U{i}  = U{i}(:,1:Nm(i));
@@ -225,7 +235,7 @@ for i = 1:Nl
         c = D{i}.pickconditions{trial{j}};
         Ne    = length(c);
         for k = 1:Ne
-            Y{i,j} = Y{i,j} + squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne;
+            Y{i,j} = Y{i,j} + R{i}*squeeze(D{i}(Ic{i},It{i},c(k)))*T/Ne;
         end
     end
  
@@ -361,11 +371,9 @@ switch(type)
         % Spatial priors (QP); eliminating minor patterns
         %------------------------------------------------------------------
         cp    = diag(MVB.cp);
-        for i = 1:8
-            j = find(cp > 2^i*(max(cp)/256));
-            if length(j) < 128
-                break
-            end
+        [i j] = sort(-diag(MVB.cp));
+        try
+            j = j(1:256);
         end
         qp    = Q(:,j)*MVB.cp(j,j)*Q(:,j)';
  
@@ -413,8 +421,8 @@ for i = 1:Nl
  
     % using spatial priors from group analysis
     %----------------------------------------------------------------------
-    [L, D{i}] = spm_eeg_lgainmat(D{i}, Is);
-    Qe    = {speye(Nc(i),Nc(i))};
+    L     = R{i}*spm_eeg_lgainmat(D{i}, Is);
+    Qe    = R(i);
     Ne    = length(Qe);
     Np    = length(QP);
     LQpL  = {};
