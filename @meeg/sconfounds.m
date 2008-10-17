@@ -5,7 +5,7 @@ function res = sconfounds(this, newsconfounds)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sconfounds.m 2333 2008-10-13 13:19:22Z vladimir $
+% $Id: sconfounds.m 2355 2008-10-17 13:38:02Z vladimir $
 
 if nargin == 2
     [sel1, sel2] = spm_match_str(chanlabels(this), newsconfounds.label);
@@ -14,7 +14,7 @@ if nargin == 2
         error('The spatial confounds do not match the MEEG channels.');
     end
     
-    if any(newsconfounds.bad(sel2)) && ~all(badchannels(this, find(newsconfounds.bad(sel2))))
+    if any(newsconfounds.bad(sel2)) && ~all(badchannels(this, sel1(find(newsconfounds.bad(sel2)))))
         warning('Setting additional channels to bad to match spatial confounds.');
         this = badchannels(this, find(newsconfounds.bad(sel2)), 1);
     end
