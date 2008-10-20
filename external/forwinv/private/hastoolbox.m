@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.20  2008/10/20 16:31:15  roboos
+% fixed problem in case with dash "-" in the directory
+%
 % Revision 1.19  2008/09/29 09:00:19  roboos
 % implemented smart handling of previously seen toolboxes using a persistent variable
 % this should speed up fieldtrip and fileio (e.g. read_data checks the presence of ctf for every trial)
@@ -95,8 +98,8 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 persistent previous
 if isempty(previous)
   previous = struct;
-elseif isfield(previous, lower(toolbox)) 
-  status = previous.(lower(toolbox));
+elseif isfield(previous, fixname(toolbox)) 
+  status = previous.(fixname(toolbox));
   return
 end
 
@@ -258,7 +261,7 @@ end
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
-previous.(lower(toolbox)) = status;
+previous.(fixname(toolbox)) = status;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function
@@ -271,4 +274,11 @@ if exist(toolbox, 'dir')
 else
   status = 0;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% helper function
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function out = fixname(toolbox)
+out = lower(toolbox);
+out(out=='-') = '_';
 
