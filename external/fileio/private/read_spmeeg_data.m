@@ -82,7 +82,7 @@ if ~isempty(chanindx)
     dat = dat(chanindx,:);
 end
 
-if ~isempty(scale) && ~ismember(datatype, {'float32', 'float64'})
+if ~isempty(scale) && ~ismember(strtok(datatype, '-'), {'float32', 'float64'})
     
     % This is a somewhat complicated mechanism to figure out which scaling
     % coefficients go with which data points in a generic way
