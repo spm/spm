@@ -10,6 +10,9 @@ function type = chantype(hdr)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.3  2008/10/20 15:14:06  roboos
+% added missing semicolon
+%
 % Revision 1.2  2008/09/10 10:06:07  roboos
 % added ctf headloc
 %
@@ -36,7 +39,7 @@ if senstype(hdr, 'neuromag')
       type{sel} = 'trigger';
     end
     % determinge the MEG channel subtype
-    selmeg=find(hdr.orig.channames.KI(:)==1)'
+    selmeg=find(hdr.orig.channames.KI(:)==1)';
     for i=1:length(selmeg)
       if hdr.orig.chaninfo.TY(i)==0
         type{selmeg(i)} = 'magnetometer';
