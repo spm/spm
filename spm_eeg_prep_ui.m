@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2327 2008-10-10 15:24:53Z jean $
+% $Id: spm_eeg_prep_ui.m 2357 2008-10-20 12:03:20Z vladimir $
 
 spm('pointer','watch')
 
@@ -239,10 +239,9 @@ spm('pointer','arrow')
 
 function FileOpenCB()
 
-try
-    D = spm_eeg_load(spm_select(1, 'mat', 'Select M/EEG mat file'));
-    setD(D);
-end
+D = spm_eeg_load;
+setD(D);
+
 update_menu;
 
 %-----------------------------------------------------------------------
@@ -311,19 +310,30 @@ switch get(gcbo, 'Label')
         S.ind = strmatch('MEGREF', S.D.chantype);
         S.type = 'MEG';
         D = spm_eeg_prep(S);
-    case 'Planar=>MEG'
+    case 'Planar=>MEG'              
         S.type = 'MEG';
-        S.ind = strmatch('planar', S.D.origchantypes, 'exact');
+        
+        ind = strmatch('planar', S.D.origchantypes.type, 'exact');
+        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
         S.D = spm_eeg_prep(S);
+        
         S.type = 'Other';
-        S.ind = strmatch('magnetometer' , S.D.origchantypes, 'exact');
+        
+        ind = strmatch('magnetometer', S.D.origchantypes.type, 'exact');
+        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
         D = spm_eeg_prep(S);
-    case 'Magnetometer=>MEG'
+    case 'Magnetometer=>MEG'   
         S.type = 'MEG';
-        S.ind = strmatch('magnetometer', S.D.origchantypes, 'exact');
+        
+        ind = strmatch('magnetometer', S.D.origchantypes.type, 'exact');
+        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
+        
         S.D = spm_eeg_prep(S);
+        
         S.type = 'Other';
-        S.ind = strmatch('planar', S.D.origchantypes, 'exact');
+        
+        ind = strmatch('planar', S.D.origchantypes.type, 'exact');
+        S.ind = spm_match_str(S.D.chanlabels, S.D.origchantypes.label(ind));
         D = spm_eeg_prep(S);
 end
 

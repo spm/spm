@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2320 2008-10-09 10:01:22Z vladimir $
+% $Id: checkmeeg.m 2357 2008-10-20 12:03:20Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -240,6 +240,21 @@ end
 
 if ~isfield(meegstruct, 'other')
     meegstruct.other = struct([]);
+else
+    if isfield(meegstruct.other, 'origchantypes')
+        % This is for backward compatibility
+        % Can be removed after a while
+        if iscell(meegstruct.other.origchantypes)
+            if numel(meegstruct.other.origchantypes) == Nchannels
+                origchantypes = meegstruct.other.origchantypes;
+                meegstruct.other.origchantypes = struct([]);
+                meegstruct.other.origchantypes(1).type = origchantypes;
+                meegstruct.other.origchantypes(1).label = {meegstruct.channels(:).label}';
+            else
+                meegstruct.other = rmfield(meegstruct.other, 'origchantypes');
+            end
+        end
+    end
 end
 
 if ~isfield(meegstruct, 'history')

@@ -36,7 +36,7 @@ if senstype(hdr, 'neuromag')
       type{sel} = 'trigger';
     end
     % determinge the MEG channel subtype
-    selmeg=find(hdr.orig.channames.KI(:)==1)'
+    selmeg=find(hdr.orig.channames.KI(:)==1)';
     for i=1:length(selmeg)
       if hdr.orig.chaninfo.TY(i)==0
         type{selmeg(i)} = 'magnetometer';

@@ -35,7 +35,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2320 2008-10-09 10:01:22Z vladimir $
+% $Id: spm_eeg_convert.m 2357 2008-10-20 12:03:20Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -433,7 +433,9 @@ origchantypes = fileio_chantype(hdr);
 [sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
 origchantypes = origchantypes(sel2);
 if length(strmatch('unknown', origchantypes, 'exact')) ~= numel(origchantypes)
-    D.origchantypes = origchantypes;
+    D.origchantypes = struct([]);
+    D.origchantypes(1).label = hdr.label(sel2);
+    D.origchantypes(1).type = origchantypes;
 end
 
 save(D);

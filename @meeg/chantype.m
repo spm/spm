@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: chantype.m 2357 2008-10-20 12:03:20Z vladimir $
 
 
 if length(varargin)>=2
@@ -35,10 +35,14 @@ if length(varargin)>=2
         end
 
         if isfield(this, 'origchantypes')
-            ind1 = setdiff(ind, strmatch('unknown', this.other.origchantypes, 'exact'));
-            if ~isempty(ind1)
-                this = chantype(this, ind1, upper(this.other.origchantypes(ind1)));
-                ind = setdiff(ind, ind1);
+            ind1 = setdiff(1:numel(this.other.origchantypes.label),...
+                strmatch('unknown', this.other.origchantypes.type, 'exact'));
+            
+            [sel1, sel2] = spm_match_str(chanlabels(this, ind), this.other.origchantypes.label(ind1));
+            
+            if ~isempty(sel1)
+                this = chantype(this, ind(sel1), upper(this.other.origchantypes.label(ind1(sel2))));
+                ind(sel1) = [];
             end
         end
         
