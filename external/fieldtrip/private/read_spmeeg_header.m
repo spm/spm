@@ -51,11 +51,11 @@ elseif all(isfield(D, {'type', 'Nsamples', 'Fsample', 'timeOnset'})) % SPM8
     header.nTrials     = numel(D.trials);
     header.label       = {D.channels.label}';
     
-    if isfield(D.sensors, 'eeg')
+    if isfield(D.sensors, 'eeg') && ~isempty(D.sensors.eeg)
         header.elec = D.sensors.eeg;
     end
     
-    if isfield(D.sensors, 'meg')
+    if isfield(D.sensors, 'meg') && ~isempty(D.sensors.meg)
         header.grad = D.sensors.meg;
     end
     
