@@ -156,12 +156,15 @@ Fieldtrip raw struct must contain the following fields:
 
 \begin{itemize}
 \item .fsample - sampling rate (Hz)
-\item .trial - cell array of matrices with identical dimensions channels x time
-\item .time - cell array of time vectors (in sec), the same length as the
+\item .trial - cell array of trials containing matrices with identical dimensions (channels x time). 
+\item .time - cell array of time vectors (in sec) - one cell per trial, containing a time vector the same length as the
         second dimension of the data. For SPM the time vectors must be identical.
 \item .label - cell array of strings, list of channel labels. Same length as
         the first dimension of the data.
 \end{itemize}
+
+If your data only has one trial (e.g. it is already an average or it is raw continuous data) 
+you should only have one cell in .trial and .time fields of the raw struct.
 
 An example script for converting LFP data can be found under
 toolbox$\backslash$Neural\_Models$\backslash$ spm\_lfp\_txt2mat.m.
@@ -790,7 +793,7 @@ information available in the raw data (e.g. when you have an external stimuli fi
 you should use the first.
 \\
 For the first method, you specify a $N \times 2$ so-called \textit{trl}-matrix, where
-each row contains the start and end of a trial. Optionally, there can be a third column
+each row contains the start and end of a trial (in samples). Optionally, there can be a third column
 containing the offset of the trigger with respect to the trial. An offset of 0 (default)
 means that the first sample of the trial corresponds to the trigger. A positive offset indicates
 that the first sample is later than the trigger, a negative offset indicates that the trial begins before the trigger.
