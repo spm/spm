@@ -18,6 +18,10 @@ function [grad] = bti2grad(hdr);
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.8  2008/10/20 15:16:16  jansch
+% removed the explicit sorting of the channels, this could cause problems
+% later on. however, the sensors and references are block-wise sorted still
+%
 % Revision 1.7  2008/05/15 13:20:36  roboos
 % updated documentation
 %
@@ -75,12 +79,12 @@ numREF = length(selREF);
 for k = 1:length(selMEG)
   n(k) = str2num(name{selMEG(k)}(2:end));
 end
-[srt, ind] = sort(n);
-selMEG     = selMEG(ind);
+%[srt, ind] = sort(n);
+%selMEG     = selMEG(ind);
 
 %sortrows does work here
-[srt, ind] = sortrows(char(name{selREF}));
-selREF     = selREF(ind);
+%[srt, ind] = sortrows(char(name{selREF}));
+%selREF     = selREF(ind);
 %first gradiometer refs, then magnetometer refs, alphabetical sorting
 
 selALL = [selMEG selREF];
