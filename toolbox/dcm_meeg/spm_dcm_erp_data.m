@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_dcm_erp_data.m 2372 2008-10-21 18:26:04Z cc $
  
  
 % Set defaults and Get D filename
@@ -87,7 +87,7 @@ modality = DCM.xY.modality;
 channels = D.chanlabels;
  
 if ~isfield(DCM.xY, 'Ic')
-    Ic        = strmatch(modality, D.chantype);
+    Ic        = strmatch(modality, D.chantype,'exact');
     Ic        = setdiff(Ic, D.badchannels);
     DCM.xY.Ic = Ic;
 end
