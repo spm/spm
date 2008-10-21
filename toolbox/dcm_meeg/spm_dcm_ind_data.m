@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_dcm_ind_data.m 2370 2008-10-21 17:31:34Z cc $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -66,7 +66,7 @@ modality = DCM.xY.modality;
 channels = D.chanlabels;
 
 if ~isfield(DCM.xY, 'Ic')
-    Ic = strmatch(modality, D.chantype);
+    Ic = strmatch(modality, {D.channels.type},'exact');
     Ic = setdiff(Ic, D.badchannels);
     DCM.xY.Ic       = Ic;
 end
@@ -233,8 +233,9 @@ switch DCM.xY.modality
         G.L    = kron(ones(1,Nr),speye(Ng,Ng));
         G.Lpos = kron(pos,ones(1,Ng));
         L      = spm_erp_L(G,DCM.M);
-        MAP    = pinv(L);
-
+        MAP    = pinv(L); 
+        
+       
         % add (spatial filtering) re-referencing to MAP projector
         %--------------------------------------------------------------------------
         R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
