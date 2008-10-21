@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.21  2008/10/20 21:50:56  roboos
+% added NlxNetCom
+%
 % Revision 1.20  2008/10/20 16:31:15  roboos
 % fixed problem in case with dash "-" in the directory
 %
@@ -133,6 +136,7 @@ url = {
   'FORWINV'    'see http://www2.ru.nl/fcdonders/fieldtrip/doku.php?id=fieldtrip:development:forwinv'
   'DENOISE'    'see http://lumiere.ens.fr/Audition/adc/meg, or contact Alain de Cheveigne'
   'BCI2000'    'see http://bci2000.org'
+  'NLXNETCOM'  'see http://www.neuralynx.com'
 };
 
 if nargin<2
@@ -206,6 +210,8 @@ switch toolbox
     status  = (exist('getCTFBalanceCoefs') && exist('getCTFdata'));
   case 'BCI2000'
     status  = exist('load_bcidat');
+  case 'NLXNETCOM'
+    status  = (exist('MatlabNetComClient') && exist('NlxConnectToServer') && exist('NlxGetNewCSCData'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
