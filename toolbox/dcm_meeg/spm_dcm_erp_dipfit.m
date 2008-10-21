@@ -1,6 +1,11 @@
-function DCM = spm_dcm_erp_dipfit(DCM)
+function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % prepares structures for ECD forward model (EEG, MEG and LFP)
-% FORMAT DCM = spm_dcm_erp_dipfit(DCM)
+% FORMAT DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
+% save_vol_sens - optional argument indicating whether to perform
+%                 the time consuming step required for actually using
+%                 the forward model to compute lead fields (1, default)
+%                 or skip it if the function is only called for
+%                 verification of the input (0).
 % requires:
 %
 % needs:
@@ -28,7 +33,7 @@ function DCM = spm_dcm_erp_dipfit(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 2339 2008-10-14 18:39:21Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 2369 2008-10-21 13:37:07Z vladimir $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -40,6 +45,11 @@ catch
     error('')
 end
  
+if nargin == 1
+  save_vol_sens = 1;
+end
+    
+
 % D - SPM data structure
 %--------------------------------------------------------------------------
 D    = spm_eeg_load(DCM.xY.Dfile);
@@ -112,8 +122,10 @@ else
     error(['No good ' DCM.xY.modality ' channels were found.']);
 end
 
-[DCM.M.dipfit.vol, DCM.M.dipfit.sens] = forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
-    D.inv{D.val}.datareg.sensors, 'channel', channels);
+if save_vol_sens
+    [DCM.M.dipfit.vol, DCM.M.dipfit.sens] = forwinv_prepare_vol_sens(D.inv{D.val}.forward.vol, ...
+        D.inv{D.val}.datareg.sensors, 'channel', channels);
+end
 
 switch DCM.options.spatial
  
