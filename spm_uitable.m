@@ -65,19 +65,32 @@ function [table, container] = spm_uitable(varargin)
 %     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
 
 %   Copyright 2002-2006 The MathWorks, Inc.
-%   $Revision: 2345 $  $Date: 2006/11/29 21:53:13 $
+%   $Revision: 2367 $  $Date: 2006/11/29 21:53:13 $
 
 %   Release: R14. This feature will not work in previous versions of MATLAB.
 
-% $Id: spm_uitable.m 2345 2008-10-16 11:31:35Z guillaume $
+% $Id: spm_uitable.m 2367 2008-10-21 11:00:48Z jean $
 
 % Setup and P-V parsing
+
+if isempty(varargin)
+    if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.2') <= 0
+        table = 'off';
+        container = [];
+    else
+        table = 'on';
+        container = [];
+    end
+    return
+end
 
 if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.2') <= 0
     table = [];
     container = [];
     return;
 end
+
+
 error(nargoutchk(0,2,nargout));
 
 parent = [];
@@ -244,7 +257,7 @@ end
 if isempty(parent)
     parent = gcf; % Get the current figure. Create one if not available
 end
-    
+
 if ( columnstatus && datastatus )
     if(size(data,2) ~= size(coln,2))
         error('MATLAB:NeedSameNumberColumns', 'Number of columns in both Data and ColumnNames should match');

@@ -12,7 +12,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
 %   - tag: a string which is the tags associated with the tabs (useful for
 %   finding them in a window...)
 %   - active: the index of the active tab when creating the uitabs (default
-%   = 1).
+%   = 1, ie the first tab is active).
 %   - height: the relative height of the tabs within its parent spatial
 %   extent (default = 1);
 % OUT:
@@ -21,7 +21,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 2040 2008-09-04 13:16:34Z jean $
+% $Id: spm_uitab.m 2367 2008-10-21 11:00:48Z jean $
 
 Ntabs = length(labels);
 

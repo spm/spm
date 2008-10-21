@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2329 2008-10-10 16:47:55Z jean $
+% $Id: spm_eeg_review_callbacks.m 2367 2008-10-21 11:00:48Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -135,9 +135,9 @@ switch varargin{1}
                 catch
                     set(D.PSD.handles.hfig,'userdata',D);
                     spm('pointer','arrow');
-                    try
-                        disp(lasterr)
-                    end
+%                     try
+%                         disp(lasterr)
+%                     end
                 end
 
 
@@ -327,7 +327,7 @@ switch varargin{1}
                     set(D.PSD.handles.BUTTONS.goMinusOne,'visible','off');
                 else
                     set(handles.BUTTONS.slider_step,...
-                        'min',sw/2,'max',ud.v.nt-sw/2,...
+                        'min',sw/2,'max',ud.v.nt-sw/2+1,...
                         'value',mean(xlim),...
                         'sliderstep',.1*[sw/(ud.v.nt-1) 4*sw/(ud.v.nt-1)],...
                         'visible','on');
@@ -631,6 +631,8 @@ switch varargin{1}
             case 'deleteEvent'
 
                 D.trials.events(currentEvent) = [];
+%                 delete(D.PSD.handles.PLOT.e(currentEvent));
+%                 set(D.PSD.handles.hfig,'userdata',D);
                 updateDisp(D,2)
 
         end
@@ -716,7 +718,7 @@ switch varargin{1}
                 Nevents = length(D.trials.events);
                 D.trials.events(Nevents+1).time = x./D.Fsample;
                 D.trials.events(Nevents+1).duration = 0;
-                D.trials.events(Nevents+1).type = '0';
+                D.trials.events(Nevents+1).type = 'Manual';
                 D.trials.events(Nevents+1).value = 0;
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
@@ -864,13 +866,24 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
                     trN = 1;
                     Nevents = length(D.trials.events);
-                    options.events = rmfield(D.trials.events,{'duration','type'});
+                    x1 = {D.trials.events(:).type}';
+                    x2 = {D.trials.events(:).value}';
+                    if ~iscellstr(x1)
+                        [y1,i1,j1] = unique(cell2mat(x1));
+                    else
+                        [y1,i1,j1] = unique(x1);
+                    end
+                    if ~iscellstr(x2)
+                        [y2,i2,j2] = unique(cell2mat(x2));
+                    else
+                        [y2,i2,j2] = unique(x2);
+                    end
+                    A = [j1(:),j2(:)];
+                    [ya,ia,ja] = unique(A,'rows');
+                    options.events = rmfield(D.trials.events,{'duration','value'});
                     for i=1:length(options.events)
                         options.events(i).time = options.events(i).time.*D.Fsample +1;
-                        options.events(i).type = D.trials.events(i).value;
-                        if isempty(options.events(i).type)
-                            options.events(i).type = 0;
-                        end
+                        options.events(i).type = ja(i);
                     end
                 end
                 if strcmp(D.PSD.type,'continuous')
@@ -950,12 +963,24 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 Nevents = length(D.trials.events);
                 col = colormap(lines);
                 col = col(1:7,:);
+                x1 = {D.trials.events(:).type}';
+                x2 = {D.trials.events(:).value}';
+                if ~iscellstr(x1)
+                    [y1,i1,j1] = unique(cell2mat(x1));
+                else
+                    [y1,i1,j1] = unique(x1);
+                end
+                if ~iscellstr(x2)
+                    [y2,i2,j2] = unique(cell2mat(x2));
+                else
+                    [y2,i2,j2] = unique(x2);
+                end
+                A = [j1(:),j2(:)];
+                [ya,ia,ja] = unique(A,'rows');
+                events = rmfield(D.trials.events,{'duration','value'});
                 for i=1:Nevents
                     events(i).time = D.trials.events(i).time.*D.Fsample +1;
-                    events(i).type = D.trials.events(i).value;
-                    if isempty(events(i).type)
-                        events(i).type = 0;
-                    end
+                    events(i).type = ya(i);
                     events(i).col = mod(events(i).type+7,7)+1;
                     D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,events(i).time.*[1 1],...
                         VIZU.ylim,'color',col(events(i).col,:));
@@ -970,9 +995,6 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                 end
                 set(handles.hfig,'userdata',D);
-                spm_eeg_review_callbacks('visu','checkXlim',...
-                    get(D.PSD.handles.axes,'xlim'))
-                
             end
             
             % modify scaling factor
@@ -1179,6 +1201,24 @@ else  % source space
                 D.PSD.source.VIZU.plotTC = plot(D.PSD.handles.axes2,...
                     model.pst,Jp','color',0.5*[1 1 1]);
                 set(D.PSD.handles.axes2,'hittest','off')
+                % Add virtual electrode
+%                 try
+%                     ve = D.PSD.source.VIZU.ve;
+%                 catch
+                    [mj ve] = max(max(abs(D.PSD.source.VIZU.J),[],2));
+                    D.PSD.source.VIZU.ve =ve;
+%                 end
+                Jve = D.PSD.source.VIZU.J(D.PSD.source.VIZU.ve,:);
+                set(D.PSD.handles.axes2,'nextplot','add')
+                try
+                    qC  = model.qC(ve).*diag(model.qV)';
+                    ci  = 1.64*sqrt(qC);
+                    D.PSD.source.VIZU.pve2 = plot(D.PSD.handles.axes2,...
+                        model.pst,Jve +ci,'b:',model.pst,Jve -ci,'b:');
+                end
+                D.PSD.source.VIZU.pve = plot(D.PSD.handles.axes2,...
+                    model.pst,Jve,'color','b');
+                set(D.PSD.handles.axes2,'nextplot','replace')
             otherwise
                 % this is meant to be extended for displaying something
                 % else than just J (e.g. J^2, etc...)

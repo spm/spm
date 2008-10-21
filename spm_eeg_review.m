@@ -9,7 +9,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2322 2008-10-09 14:54:22Z jean $
+% $Id: spm_eeg_review.m 2367 2008-10-21 11:00:48Z jean $
 
 D = struct(D);
 
@@ -78,9 +78,10 @@ function [D] = PSD_initUD(D)
 % function D = PSD_initUD(D)
 % This function initializes the userdata structure.
 
+%-- Check spm_uitable capability (JAVA compatibility) --%
+D.PSD.VIZU.uitable = spm_uitable;
+
 %-- Initialize time window basic info --%
-% D.PSD.VIZU.gridTime = (1:D.Nsamples).*1e3./D.Fsample + D.timeOnset.*1e3;
-% D.PSD.VIZU.timeInd = [1,min([5e2,D.Nsamples])];
 D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
 D.PSD.VIZU.info = 1;
 
@@ -140,18 +141,24 @@ if ~isempty(D.PSD.EEG.I)
     set(D.PSD.handles.hfig,'userdata',D);
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
     D.PSD.EEG.VIZU = out;
+else
+    D.PSD.EEG.VIZU = [];
 end
 if ~isempty(D.PSD.MEG.I)
     figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEG.I);
     D.PSD.MEG.VIZU = out;
+else
+    D.PSD.MEG.VIZU = [];
 end
 if ~isempty(D.PSD.other.I)
     figure(D.PSD.handles.hfig)
     set(D.PSD.handles.hfig,'userdata',D);
     [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);
     D.PSD.other.VIZU = out;
+else
+    D.PSD.other.VIZU = [];
 end
 
 

@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2327 2008-10-10 15:24:53Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2367 2008-10-21 11:00:48Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -16,7 +16,7 @@ if strcmp(D.PSD.VIZU.modality,'source')
     [D] = visuRecon(D);
 
 elseif strcmp(D.PSD.VIZU.modality,'info')
-    
+
     [D] = DataInfo(D);
     set(D.PSD.handles.hfig,'userdata',D)
 
@@ -26,7 +26,7 @@ else % EEG/MEG/OTHER
         y = D.data.y(:,D.PSD.VIZU.xlim(1):D.PSD.VIZU.xlim(2));
     catch
         D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
-    end   
+    end
     switch  D.PSD.VIZU.type
 
         case 1
@@ -70,7 +70,7 @@ end
 if isempty(I)
 
     uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
-        'string','No channel of this type in the data !',...
+        'string','No channel of this type in the SPM data file !',...
         'BackgroundColor',0.95*[1 1 1],...
         'tag','plotEEG')
 
@@ -84,14 +84,14 @@ else
             'tag','plotEEG')
 
     else
-        
+
 
         D.PSD.VIZU.type = 1;
 
-%         % add axes
-%         object.type = 'axes';
-%         object.what = 'standard';
-%         D = spm_eeg_review_uis(D,object);
+        %         % add axes
+        %         object.type = 'axes';
+        %         object.what = 'standard';
+        %         D = spm_eeg_review_uis(D,object);
 
         % add buttons
         object.type = 'buttons';
@@ -108,7 +108,7 @@ else
         end
         D = spm_eeg_review_uis(D,object);
 
-        
+
     end
 
 end
@@ -133,7 +133,7 @@ end
 if isempty(I)
 
     uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
-        'string','No channel of this type in the data !',...
+        'string','No channel of this type in the SPM data file !',...
         'BackgroundColor',0.95*[1 1 1],...
         'tag','plotEEG')
 
@@ -147,7 +147,7 @@ else
             'tag','plotEEG')
 
     else
-        
+
         D.PSD.VIZU.type = 2;
         % add buttons
         object.type = 'buttons';
@@ -189,14 +189,14 @@ function [D] = visuRecon(D)
 POS = get(D.PSD.handles.hfig,'position');
 
 if ~~D.PSD.source.VIZU.current
-    
+
     D.PSD.source.VIZU.current = 1;
     isInv = D.PSD.source.VIZU.isInv;
     Ninv = length(isInv);
     invN = isInv(D.PSD.source.VIZU.current);
     pst = D.PSD.source.VIZU.pst;
     F = D.PSD.source.VIZU.F;
-    
+
     % create uitabs for inverse solutions
     hInv = D.PSD.handles.tabs.hp;
     [h] = spm_uitab(hInv,D.PSD.source.VIZU.labels,...
@@ -282,7 +282,7 @@ if ~~D.PSD.source.VIZU.current
         end
         axis tight
     end
-    
+
     % plot time courses
     switch D.PSD.source.VIZU.timeCourses
         case 1
@@ -292,16 +292,26 @@ if ~~D.PSD.source.VIZU.current
                 model.pst,Jp','color',0.5*[1 1 1]);
             % Add virtual electrode
             try
-                Jve = J(D.PSD.source.VIZU.ve,:);
+                ve = D.PSD.source.VIZU.ve;
             catch
-                D.PSD.source.VIZU.ve =1;
-                Jve = J(D.PSD.source.VIZU.ve,:);
+                [mj ve] = max(max(abs(J),[],2));
+                D.PSD.source.VIZU.ve =ve;
             end
+            Jve = J(D.PSD.source.VIZU.ve,:);
             set(D.PSD.handles.axes2,'nextplot','add')
+            try
+                qC  = model.qC(ve).*diag(model.qV)';
+                ci  = 1.64*sqrt(qC);
+                D.PSD.source.VIZU.pve2 = plot(D.PSD.handles.axes2,...
+                    model.pst,Jve +ci,'b:',model.pst,Jve -ci,'b:');
+            end
             D.PSD.source.VIZU.pve = plot(D.PSD.handles.axes2,...
                 model.pst,Jve,'color','b');
             set(D.PSD.handles.axes2,'nextplot','replace')
-                
+        otherwise
+            % this is meant to be extended for displaying something
+            % else than just J (e.g. J^2, etc...)
+
     end
     set(D.PSD.handles.axes2,'nextplot','add');
     D.PSD.source.VIZU.lineTime = line('parent',D.PSD.handles.axes2,...
@@ -330,7 +340,7 @@ if ~~D.PSD.source.VIZU.current
     object.type = 'text';
     object.what = 'source';
     D = spm_eeg_review_uis(D,object);
-    
+
     set(D.PSD.handles.hfig,'userdata',D)
 
 
@@ -355,244 +365,289 @@ end
 %% GET DATA INFO
 function [D] = DataInfo(D)
 
-if isempty(D.PSD.VIZU.fromTab) || ~isequal(D.PSD.VIZU.fromTab,'info')
-    % delete graphical objects from other main tabs
-    delete(findobj('tag','plotEEG'));
-    % create info text
-    object.type = 'text';
-    object.what = 'data';
-    D = spm_eeg_review_uis(D,object);
-    % Create uitabs for channels and trials
-    try
-        D.PSD.VIZU.info;
-    catch
-        D.PSD.VIZU.info = 4;
-    end
-    labels = {'channels','trials','inv','history'};
-    callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''info'',1)',...,...
-        'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'...
-        'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)',...
-        'spm_eeg_review_callbacks(''visu'',''main'',''info'',4)'};
-    [h] = spm_uitab(D.PSD.handles.tabs.hp,labels,callbacks,'plotEEG',D.PSD.VIZU.info,0.9);
-    D.PSD.handles.infoTabs = h;
-    
-else
-    % delete prepare/save buttons
-    try
-        delete(D.PSD.handles.BUTTONS.prep)
-        delete(D.PSD.handles.BUTTONS.pop1)
-    end
-    % delete info table (id any)
-    try;delete(D.PSD.handles.infoUItable);end
-    % delete info message (if any)
-    try;delete(D.PSD.handles.message);end
-    % delete buttons if any
-    try;delete(D.PSD.handles.BUTTONS.OKinfo);end
-    try;delete(D.PSD.handles.BUTTONS.showSensors);end
-end
 
-% add table and buttons
-object.type = 'buttons';
-object.list = 1;
+switch D.PSD.VIZU.uitable
 
-switch D.PSD.VIZU.info
+    case 'off'
 
-    case 1 % channels info
-        object.list = [object.list;12;14];
-        nc = length(D.channels);
-        table = cell(nc,5);
-        for i=1:nc
-            table{i,1} = D.channels(i).label;
-            table{i,2} = D.channels(i).type;
-            if D.channels(i).bad
-                table{i,3} = 'yes';
-            else
-                table{i,3} = 'no';
-            end
-            if ~isempty(D.channels(i).X_plot2D)
-                table{i,4} = 'yes';
-            else
-                table{i,4} = 'no';
-            end
-            table{i,5} = D.channels(i).units;
-        end
-        colnames = {'label','type','bad','position','units'};
-        [ht,hc] = spm_uitable(table,colnames);
-        set(ht,'units','normalized');
-        set(hc,'position',[0.1 0.05 0.55 0.7],...
-            'tag','plotEEG');
-        D.PSD.handles.infoUItable = ht;
-        D = spm_eeg_review_uis(D,object); % this adds the buttons
-
-    case 2 % trials info
+        % delete graphical objects from other main tabs
+        delete(findobj('tag','plotEEG'));
+        % create info text
+        object.type = 'text';
+        object.what = 'data';
+        D = spm_eeg_review_uis(D,object);
         
-        object.list = [object.list;12];
-        if strcmp(D.type,'continuous')
-            ne = length(D.trials(1).events);
-            table = cell(ne,3);
-            for i=1:ne
-                table{i,1} = D.trials(1).label;
-                table{i,2} = D.trials(1).events(i).type;
-                table{i,3} = num2str(D.trials(1).events(i).value);
-                if ~isempty(D.trials(1).events(i).duration)
-                    table{i,4} = num2str(D.trials(1).events(i).duration);
-                else
-                    table{i,4} = [];
-                end
-                table{i,5} = num2str(D.trials(1).events(i).time);
-                table{i,6} = 'Undefined';
-                table{i,7} = num2str(D.trials(1).onset);
-            end
-            colnames = {'label','type','value','duration','time','bad','onset'};
-            [ht,hc] = spm_uitable(table,colnames);
-            set(ht,'units','normalized');
-            set(hc,'position',[0.1 0.05 0.74 0.7],...
-                'tag','plotEEG');
-        else
-            nt = length(D.trials);
-            table = cell(nt,3);
-            if strcmp(D.type,'single')
-                for i=1:nt
-                    table{i,1} = D.trials(i).label;
-                    ne = length(D.trials(i).events);
-                    if ne == 0
-                        table{i,2} = 'no events';
-                        table{i,3} = 'no events';
-                        table{i,4} = 'no events';
-                        table{i,5} = 'no events';                        
-                    elseif ne >1
-                        table{i,2} = 'multiple events';
-                        table{i,3} = 'multiple events';
-                        table{i,4} = 'multiple events';
-                        table{i,5} = 'multiple events';
-                    else
-                        table{i,2} = D.trials(i).events.type;
-                        table{i,3} = num2str(D.trials(i).events.value);
-                        if ~isempty(D.trials(i).events.duration)
-                            table{i,4} = num2str(D.trials(i).events.duration);
-                        else
-                            table{i,4} = 'Undefined';
-                        end
-                        table{i,5} = num2str(D.trials(i).events.time);
-                    end
-                    if D.trials(i).bad
-                        table{i,6} = 'yes';
-                    else
-                        table{i,6} = 'no';
-                    end
-                    table{i,7} = num2str(D.trials(i).onset);
-                end
-                colnames = {'label','type','value','duration','time','bad','onset'};
-                [ht,hc] = spm_uitable(table,colnames);
-                set(ht,'units','normalized');
-                set(hc,'position',[0.1 0.05 0.74 0.7],...
-                    'tag','plotEEG');
+        
+        % add buttons
+        object.type = 'buttons';
+        object.list = [1,14];
+        D = spm_eeg_review_uis(D,object);
+        set(D.PSD.handles.BUTTONS.showSensors,'position',...
+            [0.7 0.9 0.25 0.02]);
+        
 
-            else
-                for i=1:nt
-                    table{i,1} = D.trials(i).label;
-                    table{i,2} = num2str(D.trials(i).repl);
-                    if D.trials(i).bad
+    case 'on'
+
+
+
+        if isempty(D.PSD.VIZU.fromTab) || ~isequal(D.PSD.VIZU.fromTab,'info')
+            % delete graphical objects from other main tabs
+            delete(findobj('tag','plotEEG'));
+            % create info text
+            object.type = 'text';
+            object.what = 'data';
+            D = spm_eeg_review_uis(D,object);
+            % Create uitabs for channels and trials
+            try
+                D.PSD.VIZU.info;
+            catch
+                D.PSD.VIZU.info = 4;
+            end
+            labels = {'channels','trials','inv','history'};
+            callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''info'',1)',...,...
+                'spm_eeg_review_callbacks(''visu'',''main'',''info'',2)'...
+                'spm_eeg_review_callbacks(''visu'',''main'',''info'',3)',...
+                'spm_eeg_review_callbacks(''visu'',''main'',''info'',4)'};
+            [h] = spm_uitab(D.PSD.handles.tabs.hp,labels,callbacks,'plotEEG',D.PSD.VIZU.info,0.9);
+            D.PSD.handles.infoTabs = h;
+
+        else
+            % delete prepare/save buttons
+            try
+                delete(D.PSD.handles.BUTTONS.prep)
+                delete(D.PSD.handles.BUTTONS.pop1)
+            end
+            % delete info table (id any)
+            try;delete(D.PSD.handles.infoUItable);end
+            % delete info message (if any)
+            try;delete(D.PSD.handles.message);end
+            % delete buttons if any
+            try;delete(D.PSD.handles.BUTTONS.OKinfo);end
+            try;delete(D.PSD.handles.BUTTONS.showSensors);end
+        end
+
+        % add table and buttons
+        object.type = 'buttons';
+        object.list = 1;
+
+        switch D.PSD.VIZU.info
+
+            case 1 % channels info
+                object.list = [object.list;12;14];
+                nc = length(D.channels);
+                table = cell(nc,5);
+                for i=1:nc
+                    table{i,1} = D.channels(i).label;
+                    table{i,2} = D.channels(i).type;
+                    if D.channels(i).bad
                         table{i,3} = 'yes';
                     else
                         table{i,3} = 'no';
                     end
+                    if ~isempty(D.channels(i).X_plot2D)
+                        table{i,4} = 'yes';
+                    else
+                        table{i,4} = 'no';
+                    end
+                    table{i,5} = D.channels(i).units;
                 end
-                colnames = {'label','nb of repl','bad'};
+                colnames = {'label','type','bad','position','units'};
                 [ht,hc] = spm_uitable(table,colnames);
                 set(ht,'units','normalized');
-                set(hc,'position',[0.1 0.05 0.32 0.7],...
+                set(hc,'position',[0.1 0.05 0.55 0.7],...
                     'tag','plotEEG');
-            end
-        end
-        D.PSD.handles.infoUItable = ht;
-        D = spm_eeg_review_uis(D,object); % this adds the buttons
-        
-    case 3 % inv info
-        
-        object.list = [object.list;12];
-        if D.PSD.source.VIZU.current ~= 0  
-            isInv = D.PSD.source.VIZU.isInv;
-            Ninv = length(isInv);
-            table = cell(Ninv,12);
-            for i=1:Ninv
-                table{i,1} = [D.other.inv{isInv(i)}.comment{1}];
-                table{i,2} = [D.other.inv{isInv(i)}.date(1,:)];
-                table{i,3} = [D.other.inv{isInv(i)}.modality];
-                table{i,4} = [D.other.inv{isInv(i)}.method];
-                table{i,5} = [num2str(length(D.other.inv{isInv(i)}.inverse.Is))];
-                table{i,6} = [D.other.inv{isInv(i)}.inverse.type];
-                try
-                    table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.woi(1))),...
-                        ' to ',num2str(floor(D.other.inv{isInv(i)}.inverse.woi(2))),' ms'];
-                catch
-                    table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.pst(1))),...
-                        ' to ',num2str(floor(D.other.inv{isInv(i)}.inverse.pst(end))),' ms'];
-                end
-                try
-                    if D.other.inv{isInv(i)}.inverse.Han
-                        han = 'yes';
-                    else
-                        han = 'no';
+                D.PSD.handles.infoUItable = ht;
+                D = spm_eeg_review_uis(D,object); % this adds the buttons
+
+            case 2 % trials info
+
+                object.list = [object.list;12];
+                if strcmp(D.type,'continuous')
+                    ne = length(D.trials(1).events);
+                    table = cell(ne,3);
+                    for i=1:ne
+                        table{i,1} = D.trials(1).label;
+                        table{i,2} = D.trials(1).events(i).type;
+                        table{i,3} = num2str(D.trials(1).events(i).value);
+                        if ~isempty(D.trials(1).events(i).duration)
+                            table{i,4} = num2str(D.trials(1).events(i).duration);
+                        else
+                            table{i,4} = [];
+                        end
+                        table{i,5} = num2str(D.trials(1).events(i).time);
+                        table{i,6} = 'Undefined';
+                        table{i,7} = num2str(D.trials(1).onset);
                     end
-                    table{i,8} = [han];
-                catch
-                    table{i,8} = ['?'];
-                end
-                if isfield(D.other.inv{isInv(i)}.inverse,'lpf')
-                    table{i,9} = [num2str(D.other.inv{isInv(i)}.inverse.lpf),...
-                        ' to ',num2str(D.other.inv{isInv(i)}.inverse.hpf), 'Hz'];
+                    colnames = {'label','type','value','duration','time','bad','onset'};
+                    [ht,hc] = spm_uitable(table,colnames);
+                    set(ht,'units','normalized');
+                    set(hc,'position',[0.1 0.05 0.74 0.7],...
+                        'tag','plotEEG');
                 else
-                    table{i,9} = ['default'];
+                    nt = length(D.trials);
+                    table = cell(nt,3);
+                    if strcmp(D.type,'single')
+                        for i=1:nt
+                            table{i,1} = D.trials(i).label;
+                            ne = length(D.trials(i).events);
+                            if ne == 0
+                                table{i,2} = 'no events';
+                                table{i,3} = 'no events';
+                                table{i,4} = 'no events';
+                                table{i,5} = 'no events';
+                            elseif ne >1
+                                table{i,2} = 'multiple events';
+                                table{i,3} = 'multiple events';
+                                table{i,4} = 'multiple events';
+                                table{i,5} = 'multiple events';
+                            else
+                                table{i,2} = D.trials(i).events.type;
+                                table{i,3} = num2str(D.trials(i).events.value);
+                                if ~isempty(D.trials(i).events.duration)
+                                    table{i,4} = num2str(D.trials(i).events.duration);
+                                else
+                                    table{i,4} = 'Undefined';
+                                end
+                                table{i,5} = num2str(D.trials(i).events.time);
+                            end
+                            if D.trials(i).bad
+                                table{i,6} = 'yes';
+                            else
+                                table{i,6} = 'no';
+                            end
+                            table{i,7} = num2str(D.trials(i).onset);
+                        end
+                        colnames = {'label','type','value','duration','time','bad','onset'};
+                        [ht,hc] = spm_uitable(table,colnames);
+                        set(ht,'units','normalized');
+                        set(hc,'position',[0.1 0.05 0.74 0.7],...
+                            'tag','plotEEG');
+
+                    else
+                        for i=1:nt
+                            table{i,1} = D.trials(i).label;
+                            table{i,2} = num2str(D.trials(i).repl);
+                            if D.trials(i).bad
+                                table{i,3} = 'yes';
+                            else
+                                table{i,3} = 'no';
+                            end
+                        end
+                        colnames = {'label','nb of repl','bad'};
+                        [ht,hc] = spm_uitable(table,colnames);
+                        set(ht,'units','normalized');
+                        set(hc,'position',[0.1 0.05 0.32 0.7],...
+                            'tag','plotEEG');
+                    end
                 end
-                table{i,10} = [num2str(size(D.other.inv{isInv(i)}.inverse.T,2))];
-                table{i,11} = [num2str(D.other.inv{isInv(i)}.inverse.R2)];
-                table{i,12} = [num2str(D.other.inv{isInv(i)}.inverse.F)];
-            end
-            colnames = {'label','date','modality','model','#dipoles','method',...
-                'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
-            [ht,hc] = spm_uitable(table,colnames);
-            set(ht,'units','normalized');
-            set(hc,'position',[0.1 0.05 0.8 0.7],...
-                'tag','plotEEG');
-            D.PSD.handles.infoUItable = ht;
-            D = spm_eeg_review_uis(D,object); % this adds the buttons
-        else
-            POS = get(D.PSD.handles.infoTabs.hp,'position');
-            D.PSD.handles.message = uicontrol('style','text','units','normalized',...
-                'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
-            'string','There is no inverse source reconstruction in this data file !',...
-            'BackgroundColor',0.95*[1 1 1],...
-            'tag','plotEEG');
+                D.PSD.handles.infoUItable = ht;
+                D = spm_eeg_review_uis(D,object); % this adds the buttons
+
+            case 3 % inv info
+
+                object.list = [object.list;12];
+                if D.PSD.source.VIZU.current ~= 0
+                    isInv = D.PSD.source.VIZU.isInv;
+                    Ninv = length(isInv);
+                    table = cell(Ninv,12);
+                    for i=1:Ninv
+                        table{i,1} = [D.other.inv{isInv(i)}.comment{1}];
+                        table{i,2} = [D.other.inv{isInv(i)}.date(1,:)];
+                        table{i,3} = [D.other.inv{isInv(i)}.modality];
+                        table{i,4} = [D.other.inv{isInv(i)}.method];
+                        try
+                            table{i,5} = [num2str(length(D.other.inv{isInv(i)}.inverse.Is))];
+                        catch
+                            try
+                                table{i,5} = [num2str(D.other.inv{isInv(i)}.inverse.n_dip)];
+                            catch
+                                table{i,5} = '';
+                            end
+                        end
+                        try
+                            table{i,6} = [D.other.inv{isInv(i)}.inverse.type];
+                        catch
+                            table{i,6} = '';
+                        end
+                        try
+                            table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.woi(1))),...
+                                ' to ',num2str(floor(D.other.inv{isInv(i)}.inverse.woi(2))),' ms'];
+                        catch
+                            table{i,7} = [num2str(floor(D.other.inv{isInv(i)}.inverse.pst(1))),...
+                                ' to ',num2str(floor(D.other.inv{isInv(i)}.inverse.pst(end))),' ms'];
+                        end
+                        try
+                            if D.other.inv{isInv(i)}.inverse.Han
+                                han = 'yes';
+                            else
+                                han = 'no';
+                            end
+                            table{i,8} = [han];
+                        catch
+                            table{i,8} = ['?'];
+                        end
+                        if isfield(D.other.inv{isInv(i)}.inverse,'lpf')
+                            table{i,9} = [num2str(D.other.inv{isInv(i)}.inverse.lpf),...
+                                ' to ',num2str(D.other.inv{isInv(i)}.inverse.hpf), 'Hz'];
+                        else
+                            table{i,9} = ['default'];
+                        end
+                        try
+                            table{i,10} = [num2str(size(D.other.inv{isInv(i)}.inverse.T,2))];
+                        catch
+                            table{i,10} = '';
+                        end
+                        try
+                            table{i,11} = [num2str(D.other.inv{isInv(i)}.inverse.R2)];
+                        catch
+                            table{i,11} = '';
+                        end
+                        table{i,12} = [num2str(max(D.other.inv{isInv(i)}.inverse.F))];
+                    end
+                    colnames = {'label','date','modality','model','#dipoles','method',...
+                        'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
+                    [ht,hc] = spm_uitable(table,colnames);
+                    set(ht,'units','normalized');
+                    set(hc,'position',[0.1 0.05 0.8 0.7],...
+                        'tag','plotEEG');
+                    D.PSD.handles.infoUItable = ht;
+                    D = spm_eeg_review_uis(D,object); % this adds the buttons
+                else
+                    POS = get(D.PSD.handles.infoTabs.hp,'position');
+                    D.PSD.handles.message = uicontrol('style','text','units','normalized',...
+                        'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+                        'string','There is no inverse source reconstruction in this data file !',...
+                        'BackgroundColor',0.95*[1 1 1],...
+                        'tag','plotEEG');
+
+                end
+
+
+            case 4 % history info
+
+                table = spm_eeg_review_callbacks('get','history');
+                if ~isempty(table)
+                    colnames = {'function called','input file','output file'};
+                    [ht,hc] = spm_uitable(table,colnames);
+                    set(ht,'units','normalized','editable',0);
+                    set(hc,'position',[0.1 0.05 0.8 0.7],...
+                        'tag','plotEEG');
+                    D.PSD.handles.infoUItable = ht;
+                else
+                    POS = get(D.PSD.handles.infoTabs.hp,'position');
+                    D.PSD.handles.message = uicontrol('style','text','units','normalized',...
+                        'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+                        'string','The history of this file is not available !',...
+                        'BackgroundColor',0.95*[1 1 1],...
+                        'tag','plotEEG');
+                end
 
         end
-        
-        
-    case 4 % history info
-        
-        table = spm_eeg_review_callbacks('get','history');
-        if ~isempty(table)
-            colnames = {'function called','input file','output file'};
-            [ht,hc] = spm_uitable(table,colnames);
-            set(ht,'units','normalized','editable',0);
-            set(hc,'position',[0.1 0.05 0.8 0.7],...
-                'tag','plotEEG');
-            D.PSD.handles.infoUItable = ht;
-        else
-            POS = get(D.PSD.handles.infoTabs.hp,'position');
-            D.PSD.handles.message = uicontrol('style','text','units','normalized',...
-                'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
-            'string','The history of this file is not available !',...
-            'BackgroundColor',0.95*[1 1 1],...
-            'tag','plotEEG')
+
+        % update data info if action called from 'info' tab...
+        if ~isempty(D.PSD.VIZU.fromTab) && isequal(D.PSD.VIZU.fromTab,'info')
+            [str] = spm_eeg_review_callbacks('get','dataInfo');
+            set(D.PSD.handles.infoText,'string',str)
         end
 
 end
-
-% update data info if action called from 'info' tab...
-if ~isempty(D.PSD.VIZU.fromTab) && isequal(D.PSD.VIZU.fromTab,'info')
-    [str] = spm_eeg_review_callbacks('get','dataInfo');
-    set(D.PSD.handles.infoText,'string',str)
-end
-
-
