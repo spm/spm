@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2090 2008-09-12 19:22:42Z karl $
+% $Id: spm_nlsi_GN.m 2373 2008-10-21 18:50:15Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -152,6 +152,7 @@ end
 %--------------------------------------------------------------------------
 try
     spm_vec(M.P) - spm_vec(M.pE);
+    fprintf('\nParameter initialisation successful\n')
 catch
     M.P = M.pE;
 end

@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2353 2008-10-17 11:56:15Z karl $
+% $Id: spm_nlsi_N.m 2373 2008-10-21 18:50:15Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -159,11 +159,7 @@ end
 % initial parameters
 %--------------------------------------------------------------------------
 try
-    iP    = spm_vec(M.P);
-    pE    = spm_vec(M.pE);
-    i     = find(diag(M.pC));
-    pE(i) = iP(i);
-    M.P   = spm_unvec(pE,M.pE);
+    spm_vec(M.P) - spm_vec(M.pE);
     fprintf('\nParameter initialisation successful\n')
 catch
     M.P = M.pE;

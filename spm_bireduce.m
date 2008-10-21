@@ -34,25 +34,31 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 1206 2008-03-13 20:56:00Z karl $
+% $Id: spm_bireduce.m 2373 2008-10-21 18:50:15Z karl $
 
 
 % set up
 %==========================================================================
 
-% add [0] states if not specified
+% create inline functions
 %--------------------------------------------------------------------------
-if ~isfield(M,'f')
-    M.f = inline('sparse(0,1)','x','u','P','M');
-    M.n = 0;
-    M.x = sparse(0,0);
+try
+    funx = fcnchk(M.f,'x','u','P','M');
+catch
+    M.f  = inline('sparse(0,1)','x','u','P','M');
+    M.n  = 0;
+    M.x  = sparse(0,0);
+    funx = fcnchk(M.f,'x','u','P','M');
 end
 
 % add observer if not specified
 %--------------------------------------------------------------------------
-if ~isfield(M,'g')
-    M.g = inline('spm_vec(x)','x','u','P','M');
-    M.l = M.n;
+try
+    funl = fcnchk(M.g,'x','u','P','M');
+catch
+    M.g  = inline('spm_vec(x)','x','u','P','M');
+    M.l  = M.n;
+    funl = fcnchk(M.g,'x','u','P','M');
 end
 
 % expansion pointt
@@ -63,12 +69,6 @@ try
 catch
     u = sparse(M.m,1);
 end
-
-% create inline functions
-%--------------------------------------------------------------------------
-funx  = fcnchk(M.f,'x','u','P','M');
-funl  = fcnchk(M.g,'x','u','P','M');
-
 
 % f(x(0),0) and l(x(0),0)
 %--------------------------------------------------------------------------
