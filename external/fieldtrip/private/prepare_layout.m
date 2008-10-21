@@ -44,6 +44,11 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.22  2008/10/21 20:36:21  roboos
+% (in grad2lay for ctf) prune the gradiometers to only contain meg
+% channels and corresponding meg coils: this will not work for balanced
+% gradiometers.
+%
 % Revision 1.21  2008/09/25 15:22:46  roboos
 % fixed bug due to overlapping use of cfg.style, thanks to Tineke
 %
@@ -666,6 +671,8 @@ return % function elec2lay
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lay = grad2lay(grad, rz, method, style)
 fprintf('creating layout for %s system\n', senstype(grad));
+
+% apply rotation
 if isempty(rz)
   switch senstype(grad)
     case {'ctf151', 'ctf275', 'bti148', 'bti248', 'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar'}
@@ -677,6 +684,20 @@ if isempty(rz)
   end
 end
 grad.pnt = warp_apply(rotate([0 0 rz]), grad.pnt, 'homogenous');
+
+% select only the MEG channels, not the reference channels
+if senstype(grad, 'ctf')
+  sel = chantype(grad, 'meg');
+  % remove the non-MEG channels altogether
+  grad.label = grad.label(sel);
+  grad.tra   = grad.tra(sel,:);
+  % subsequently remove the unused coils
+  used = any(grad.tra~=0,1);
+  grad.pnt = grad.pnt(used,:);
+  grad.ori = grad.ori(used,:);
+  grad.tra = grad.tra(:,used);
+end
+
 if strcmpi(style, '3d')
   % use helper function for 3D layout
   lay = layout3d(grad);
