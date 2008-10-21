@@ -15,7 +15,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_demo.m 1207 2008-03-13 20:57:56Z karl $ 
+% $Id: spm_lfp_demo.m 2374 2008-10-21 18:52:29Z karl $ 
  
 
 % Model specification
@@ -40,7 +40,9 @@ C     = sparse(1,1,1,n,1);
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(A,B,C);
+[pE,pC] = spm_lfp_priors(A,B,C);           % neuronal priors
+[pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
+[pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
  
 % create LFP model
 %--------------------------------------------------------------------------

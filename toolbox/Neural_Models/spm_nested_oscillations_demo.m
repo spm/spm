@@ -34,7 +34,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nested_oscillations_demo.m 1328 2008-04-09 13:21:31Z karl $
+% $Id: spm_nested_oscillations_demo.m 2374 2008-10-21 18:52:29Z karl $
  
  
 % number of regions in coupled map lattice
@@ -57,7 +57,8 @@ C     = sparse(1,1,1,n,1);
  
 % get connectivity and other priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_nmm_priors(A,B,C);
+[pE,pC] = spm_nmm_priors(A,B,C);           % neuronal priors
+[pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
  
 % initialise states and models (mean-field and neural mass)
 %--------------------------------------------------------------------------

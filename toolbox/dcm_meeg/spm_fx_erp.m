@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_fx_erp.m 2374 2008-10-21 18:52:29Z karl $
 
 
 
@@ -43,7 +43,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
 n  = length(P.A{1});             % number of sources
-x  = reshape(x,n,9);             % neuronal states
+x  = spm_unvec(x,M.x);           % neuronal states
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------

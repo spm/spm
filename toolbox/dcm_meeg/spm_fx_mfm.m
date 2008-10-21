@@ -44,11 +44,13 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2330 2008-10-10 18:23:42Z karl $
+% $Id: spm_fx_mfm.m 2374 2008-10-21 18:52:29Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-xin     = x;
+try, x = spm_unvec(x,M.x); end
+
+xin = x;
 if iscell(x)
     mfm = 1;                                    % mean-field model
 else
@@ -73,7 +75,7 @@ C    = exp(P.C);                              % subcortical
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
 try
-    SA   = M.SA;
+    SA   = P.SA;
 catch
     SA   = sparse([1 0 1;
                    0 1 1;
@@ -85,10 +87,10 @@ end
 G    = exp(P.G);
 try
     
-    % get intrinsic connections from model structure
+    % get intrinsic connections
     %----------------------------------------------------------------------
-    GE = M.GE;
-    GI = M.GI;
+    GE = P.GE;
+    GI = P.GI;
     
 catch
 
@@ -163,7 +165,7 @@ end
  
 % Exogenous input (to first population x{:,1})
 %--------------------------------------------------------------------------
-U     = C*u;
+U     = C*u(:);
 
 % Exogenous input (to excitatory populations)
 %--------------------------------------------------------------------------

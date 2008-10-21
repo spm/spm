@@ -22,7 +22,7 @@ function varargout = spm_api_nmm(varargin)
  
 % Edit the above text to modify the response to help spm_api_nmm
  
-% Last Modified by GUIDE v2.5 07-Oct-2008 19:17:36
+% Last Modified by GUIDE v2.5 17-Oct-2008 16:14:27
  
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -135,7 +135,14 @@ Hz    = str2num(get(handles.Hz, 'String'));
 % initialise states
 %--------------------------------------------------------------------------
 M     = DCM.M;
-M.x   = spm_x_nmm(M.pE,M);
+model = DCM.options.model;
+[x f] = spm_dcm_x_neural(M.pE,model);
+M.x   = x;
+M.f   = f;
+M.m   = size(M.pE.C,2);
+M.g   = {};
+
+try, M.ons; catch M.ons = 32; end
  
 % Volterra Kernels
 %==========================================================================
@@ -152,7 +159,7 @@ t       = [1:M.ns]*U.dt*1000;
 [K0,K1] = spm_kernels(M0,M1,L1,L2,M.ns,U.dt);
  
 axes(handles.kernel)
-plot(t,K1)
+plot(t,K1(:,:,1))
 set(gca,'XLim',[min(t) max(t)])
 ylabel('1st-order Volterra kernel')
 xlabel('time (ms)')
@@ -214,32 +221,57 @@ for i = 1:length(h)
         delete(h(i));
     end
 end
- 
+
+% Type of model (neuronal)
+%--------------------------------------------------------------------------
+% 'ERP'    - (linear second order NMM slow)
+% 'SEP'    - (linear second order NMM fast)
+% 'LFP'    - (linear second order NMM self-inhibition)
+% 'NMM'    - (nonlinear second order NMM first-order moments)
+% 'MFM'    - (nonlinear second order NMM second-order moments)
+try
+    model = handles.DCM.options.model;
+catch
+    model = get(handles.model,'String');
+    model = model{get(handles.model,'Value')};
+    DCM.options.model = model;
+end
+switch model
+    case{'ERP'}, set(handles.model,'Value',1);
+    case{'SEP'}, set(handles.model,'Value',2);
+    case{'LFP'}, set(handles.model,'Value',3);
+    case{'NMM'}, set(handles.model,'Value',4);
+    case{'MFM'}, set(handles.model,'Value',5);
+    otherwise
+end
+
 % get priors
 %--------------------------------------------------------------------------
 try
     handles.DCM.M.pE;
-    handles.DCM.M.pC;
-    handles.DCM.M.GE;
-    handles.DCM.M.GI;
-    handles.DCM.M.SA;
 catch
     handles = reset_Callback(hObject, eventdata, handles);
 end
 pE = handles.DCM.M.pE;
 pC = handles.DCM.M.pC;
-GE = handles.DCM.M.GE;
-GI = handles.DCM.M.GI;
-SA = handles.DCM.M.SA;
-try
-    pE = rmfield(pE,'B');
-end
- 
-% get prior variance
+pC = spm_unvec(diag(pC),pE);
+
+% display connection switches later
 %--------------------------------------------------------------------------
-pC    = spm_unvec(diag(pC),pE);
-color = {[1 1 1],get(handles.name,'BackgroundColor')};
+try, pE = rmfield(pE,'B');,  end
+try, pE = rmfield(pE,'SA');, end
+try, pE = rmfield(pE,'GE');, end
+try, pE = rmfield(pE,'GI');, end
+
+% do not display spatial and spectral priors
+%--------------------------------------------------------------------------
+try, pE = rmfield(pE,{'Lpos','L','J'});,      end
+try, pE = rmfield(pE,{'a','b','c','d'});, end
+
  
+% display fields
+%--------------------------------------------------------------------------
+color = {[1 1 1],get(handles.name,'BackgroundColor')};
  
 x0    = 1/8;
 y0    = 1 - 1/8;
@@ -336,7 +368,11 @@ end
  
 % connectivity matrices
 %==========================================================================
- 
+pE      = handles.DCM.M.pE;
+try, SA = pE.SA; catch SA = []; end
+try, GE = pE.GE; catch GE = []; end
+try, GI = pE.GI; catch GI = []; end
+
 % SA matrix
 %--------------------------------------------------------------------------
 x0    = 0.7;
@@ -345,7 +381,7 @@ for i = 1:size(SA,1);
     for j   = 1:size(SA,2)
         x   = x0 + j*dx;
         y   = y0 - (i - 1)*dy;
-        str = sprintf('handles.DCM.M.SA(%i,%i)',i,j);
+        str = sprintf('handles.DCM.M.pE.SA(%i,%i)',i,j);
         str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
         uicontrol(gcf,...
             'Units','Normalized',...
@@ -366,7 +402,7 @@ for i = 1:size(GE,1);
     for j   = 1:size(GE,2)
         x   = x0 + j*dx;
         y   = y0 - (i - 1)*dy;
-        str = sprintf('handles.DCM.M.GE(%i,%i)',i,j);
+        str = sprintf('handles.DCM.M.pE.GE(%i,%i)',i,j);
         str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
         uicontrol(gcf,...
             'Units','Normalized',...
@@ -387,7 +423,7 @@ for i = 1:size(GI,1);
     for j   = 1:size(GI,2)
         x   = x0 + j*dx;
         y   = y0 - (i - 1)*dy;
-        str = sprintf('handles.DCM.M.GI(%i,%i)',i,j);
+        str = sprintf('handles.DCM.M.pE.GI(%i,%i)',i,j);
         str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
         uicontrol(gcf,...
             'Units','Normalized',...
@@ -406,7 +442,7 @@ try
     ons  = handles.DCM.M.ons;
 catch
     ons  = 32;
-    handles.DCM.M.SA = ons;
+    handles.DCM.M.ons = ons;
 end 
 str = 'handles.DCM.M.ons';
 str = ['handles=guidata(gcbo);' str '=str2num(get(gcbo,''String''));guidata(gcbo,handles);'];
@@ -425,33 +461,17 @@ guidata(hObject,handles);
 % --- Executes on button press in reset.
 %--------------------------------------------------------------------------
 function handles = reset_Callback(hObject, eventdata, handles)
- 
-% extrinsic connections
-%--------------------------------------------------------------------------
-SA   = [1   0   1;
-        0   1   1;
-        0   0   0];
- 
-% intrinsic connections (np x np) - excitatory
-%--------------------------------------------------------------------------
-GE   = [0   0   1/2;
-        0   0   1;
-        1/2 0   0];
- 
-% intrinsic connections (np x np) - inhibitory
-%--------------------------------------------------------------------------
-GI   = [0   1/4 0;
-        0   0   0;
-        0   1   0];
- 
-DCM              = handles.DCM;
-[pE,gE,pC,gC]    = spm_nmm_priors(DCM.A,DCM.B,DCM.C,DCM.M.dipfit);
+
+try
+    DCM          = handles.DCM;
+catch
+    load_Callback(hObject, eventdata, handles)
+    return
+end
+model            = DCM.options.model;
+[pE,pC]          = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 handles.DCM.M.pE = pE;
 handles.DCM.M.pC = pC;
-handles.DCM.M.GE = GE;
-handles.DCM.M.GI = GI;
-handles.DCM.M.SA = SA;
- 
 guidata(hObject,handles);
 unpack_Callback(hObject, eventdata, handles);
  
@@ -463,8 +483,25 @@ function conditional_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 try
     handles.DCM.M.pE = handles.DCM.Ep;
-    guidata(hObject,handles);
     unpack_Callback(hObject, eventdata, handles);
 catch
-    warndlg('please invert DCM to obtain conditional estimates')
+    warndlg('please invert and load a DCM to obtain conditional estimates')
 end
+
+% --- Executes on selection change in model.
+function model_Callback(hObject, eventdata, handles)
+
+% model type
+%--------------------------------------------------------------------------
+model = get(handles.model,       'String');
+model = model{get(handles.model, 'Value')};
+handles.DCM.options.model = model;
+try
+    reset_Callback(hObject, eventdata, handles);
+catch
+    load_Callback(hObject, eventdata, handles)
+    return
+end
+
+
+

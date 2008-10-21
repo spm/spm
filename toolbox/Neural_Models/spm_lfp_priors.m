@@ -1,12 +1,8 @@
-function [varargout] = spm_lfp_priors(A,B,C,L,J)
+function [pE,pC] = spm_lfp_priors(A,B,C)
 % prior moments for a neural mass model of ERPs
-% FORMAT [pE,pC] = spm_lfp_priors(A,B,C,L,J)
-% FORMAT [M]     = spm_lfp_priors(A,B,C,L,J)
-% FORMAT           spm_lfp_priors(A,B,C,L,J)
+% FORMAT [pE,pC] = spm_lfp_priors(A,B,C)
 %
 % A{3},B{m},C    - binary constraints on extrinsic connectivity
-% L              - lead field structure or number of sources
-% J              - contributing sources
 %
 % pE - prior expectation
 %
@@ -16,12 +12,6 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 %    pE.H - synaptic densities
 %    pE.R - activation function parameters
 %
-% spatial parameters
-%--------------------------------------------------------------------------
-%    pE.Lpos - position
-%    pE.L    - moment (orientation), mode or gain parameters:
-%    pE.J    - contributing states
-%
 % connectivity parameters
 %--------------------------------------------------------------------------
 %    pE.A - extrinsic - coupling
@@ -30,13 +20,6 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 %    pE.G - intrinsic
 %    pE.D - extrinsic delays
 %    pE.I - intrinsic delays
-%
-% input and noise parameters
-%--------------------------------------------------------------------------
-%    pE.a - amplitude of AR  component
-%    pE.b - amplitude of IID component
-%    pE.c - amplitude of AR  noise (channel specific and non-specific)
-%    pE.d - amplitude of IID noise (channel specific and non-specific)
 %
 %--------------------------------------------------------------------------
 %
@@ -55,7 +38,7 @@ function [varargout] = spm_lfp_priors(A,B,C,L,J)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_lfp_priors.m 2374 2008-10-21 18:52:29Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -65,27 +48,10 @@ if nargin < 3                                       % a single source model
     C   = 1;
 end
 n   = size(C,1);                                    % number of sources
-if nargin < 4
-    L   = n;
-end
  
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning('off','MATLAB:log:logOfZero');
- 
- 
-% parameters for electromagnetic forward model
-%==========================================================================
-[E pC] = spm_L_priors(L);
- 
-% source-specific contribution to LFP
-%--------------------------------------------------------------------------
-try, J; catch, J  = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13); end
- 
-% source-specific contribution to LFP
-%--------------------------------------------------------------------------
-E.J   = J;                 V.J = J/64;               % contributing states
- 
  
 % parameters for neural-mass forward model
 %==========================================================================
@@ -124,14 +90,6 @@ C      = ~~C;
 E.C    = C*32 - 32;                                % where inputs enter
 V.C    = C/32;
  
-% set endogenous inputs (neuronal) and noise
-%--------------------------------------------------------------------------
-E.a    = 0;               V.a = 1/16;              % amplitude input AR
-E.b    = 0;               V.b = 0;                 % amplitude input IID
-E.c    = [0 0];           V.c = [1/16 1/16];       % amplitude noise AR
-E.d    = [0 0];           V.d = [1/16 1/16];       % amplitude noise IID
-                                                   % specific and common
- 
 % set delay
 %--------------------------------------------------------------------------
 E.D    = sparse(n,n);     V.D = Q/16;              % extrinsic delays
@@ -140,40 +98,13 @@ E.I    = 0;               V.I = 1/32;              % intrinsic delays
 % prior covariances
 %--------------------------------------------------------------------------
 pE     = E;
-pV     = spm_vec(V);
-pV     = diag(sparse(pV));
-pC     = spm_cat(diag({pC,pV}));
+pC     = diag(sparse(spm_vec(V)));
  
 % prior moments if two arguments
 %--------------------------------------------------------------------------
 warning('on','MATLAB:log:logOfZero');
 
-if nargout == 2, varargout{1} = pE; varargout{2} = pC; return, end
- 
- 
-% Model specification
-%==========================================================================
-M.f      = 'spm_fx_lfp';
-M.g      = 'spm_gx_erp';
-M.x      = sparse(n,13);
-M.pE     = pE;
-M.pC     = pC;
-M.m      = length(B);
-M.n      = n*13;
-M.l      = size(pE.L,1);
-M.IS     = 'spm_int_L';
- 
-if nargout == 1, varargout{1} = M; return, end
- 
-% compute impulse response
-%--------------------------------------------------------------------------
-N       = 128;
-U.dt    = 2/1000;
-U.u     = sparse(1,1,1/U.dt,N,M.m);
-y       = feval(M.IS,M.pE,M,U);
-plot([1:N]*U.dt*1000,y)
- 
- 
+
 return
  
 % demo for log-normal pdf

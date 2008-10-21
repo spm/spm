@@ -1,33 +1,16 @@
-function [varargout] = spm_erp_priors(A,B,C,dipfit)
+function [pE,pC] = spm_erp_priors(A,B,C)
 % prior moments for a neural-mass model of ERPs
-% FORMAT [pE,gE,pC,gC] = spm_erp_priors(A,B,C,dipfit)
-% FORMAT [pE,pC] = spm_erp_priors(A,B,C,dipfit)
-% FORMAT [M]     = spm_erp_priors(A,B,C,dipfit)
-% FORMAT           spm_erp_priors(A,B,C,dipfit)
+% FORMAT [pE,pC] = spm_erp_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
-% dipfit       - prior forward model structure
 %
 % pE - prior expectation - f(x,u,P,M)
-% gE - prior expectation - g(x,u,G,M)
 %
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T - syaptic time constants
 %    pE.H - syaptic densities
 %    pE.S - activation function parameters
-%
-% spatial parameters
-%--------------------------------------------------------------------------
-%    gE.Lpos - position                   - ECD
-%    gE.L    - orientation
-%
-% or gE.L    - coefficients of local modes - Imaging
-%    gE.L    - gain of electrodes         - LFP
-%
-% source contribution to ECD
-%--------------------------------------------------------------------------
-%    gE.J    - contribution
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -55,7 +38,7 @@ function [varargout] = spm_erp_priors(A,B,C,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 2330 2008-10-10 18:23:42Z karl $
+% $Id: spm_erp_priors.m 2374 2008-10-21 18:52:29Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -68,23 +51,9 @@ end
 % disable log zero warning
 %--------------------------------------------------------------------------
 warning('off','MATLAB:log:logOfZero');
-n     = size(C,1);                                   % number of sources
-u     = size(C,2);                                   % number of inputs
+n     = size(C,1);                                 % number of sources
+u     = size(C,2);                                 % number of inputs
 
-% parameters for electromagnetic forward model
-%==========================================================================
-try
-    [G,U] = spm_L_priors(dipfit);
-catch
-    [G,U] = spm_L_priors(n);
-end
- 
-% contribution of states to ECD
-%--------------------------------------------------------------------------
-G.J   = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);
-U     = spm_cat( diag({U, diag(G.J/64)}) );
-
- 
 % parameters for neural-mass forward model
 %==========================================================================
 n1    = ones(n,1);
@@ -132,59 +101,10 @@ warning('on','MATLAB:log:logOfZero');
  
 % covariance of neural parameters
 %==========================================================================
-V     = diag(sparse(spm_vec(V)));
+pE    = E;
+pC    = diag(sparse(spm_vec(V)));
 
-% format output arguments
-%--------------------------------------------------------------------------
-if nargout == 4
-    
-    varargout{1} = E;
-    varargout{2} = G;
-    varargout{3} = V;
-    varargout{4} = U;
-    return
- 
-elseif nargout == 2
- 
-    % transcribe spatial parameters
-    %----------------------------------------------------------------------
-    E.Lpos  = G.Lpos;
-    E.L     = G.L;
-    E.J     = G.J;
- 
-    varargout{1} = E;
-    varargout{2} = spm_cat(diag({V,U}));
-    return
-    
-end
- 
- 
-% Model specification
-%==========================================================================
-M.IS          = 'spm_int_L';
-M.f           = 'spm_fx_erp';
-M.g           = 'spm_gx_erp';
-M.x           = sparse(n,9);
-M.pE          = E;
-M.pC          = C;
-M.m           = length(B);
-M.n           = n*9;
-M.l           = n;
-M.ns          = 128;
-M.ons         = 80;
-M.dipfit.type = 'LFP';
- 
-if nargout == 1, varargout{1} = M; return, end
- 
-% compute impulse response
-%--------------------------------------------------------------------------
-clear U
-U.dt    = 2/1000;
-U.u     = sparse(1,1,1/U.dt,M.ns,1);
-y       = feval(M.IS,M.pE,M,U);
-plot([1:M.ns]*U.dt*1000,y)
- 
- 
+
 return
  
 % demo for log-normal pdf

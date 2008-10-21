@@ -1,4 +1,4 @@
-function [u,dudP] = spm_erp_u(t,P,M)
+function [u] = spm_erp_u(t,P,M)
 % returns the [scalar] input for EEG models (Gaussian function)
 % FORMAT [u] = spm_erp_u(t,P,M)
 %
@@ -18,7 +18,7 @@ function [u,dudP] = spm_erp_u(t,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_u.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_erp_u.m 2374 2008-10-21 18:52:29Z karl $
 
 
 % stimulus - subcortical impulse
@@ -26,19 +26,9 @@ function [u,dudP] = spm_erp_u(t,P,M)
 nu    = length(M.ons);
 u     = sparse(length(t),nu);
 t     = t*1000;
-dudP = zeros(length(t),nu,nu*2);
 for i = 1:nu
    delay  = M.ons(i) + P.R(i,1)*128;
    scale  = exp(P.R(i,2))*64;
    u(:,i) = exp(-(t - delay).^2/scale)*32;
-   
-   if isfield(M,'fastEM') && M.fastEM
-       dudP(:,i,i) = 128*(t-M.ons(i)-P.R(i,1)*128)./exp(P.R(i,2))...
-           .*exp(-1/64*(t-M.ons(i)-P.R(i,1)*128).^2./exp(P.R(i,2)));
-       dudP(:,i,nu+i) = 1/2*(t-M.ons(i)-P.R(i,1)*128).^2./exp(P.R(i,2))...
-           .*exp(-1/64*(t-M.ons(i)-P.R(i,1)*128).^2./exp(P.R(i,2)));
-   else
-       dudP = [];
-   end
 end
 

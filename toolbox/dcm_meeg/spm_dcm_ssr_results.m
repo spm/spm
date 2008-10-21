@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_ssr_results(DCM,Action)
 % Results for ERP Dynamic Causal Modeling (DCM)
-% FORMAT spm_dcm_erp_results(DCM,'Data');
+% FORMAT spm_dcm_erp_results(DCM,'spectral data');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (A)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (B)');
 % FORMAT spm_dcm_erp_results(DCM,'Coupling (C)');
@@ -27,7 +27,7 @@ function [DCM] = spm_dcm_ssr_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ssr_results.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_dcm_ssr_results.m 2374 2008-10-21 18:52:29Z karl $
  
  
 % get figure handle
@@ -37,10 +37,12 @@ colormap(gray)
 figure(Fgraph)
 clf
 
+% placespectral features in xY.y
+%--------------------------------------------------------------------------
+DCM.xY.y  = spm_cond_units(DCM.xY.csd);
 
 % trial data
 %--------------------------------------------------------------------------
-DCM = spm_dcm_ssr_data(DCM);
 xY  = DCM.xY;                   % data
 nt  = length(xY.y);             % Nr trial types
 nf  = size(xY.y{1},1);          % Nr frequency bins
@@ -51,7 +53,7 @@ Hz  = xY.Hz;                    % PST
 %--------------------------------------------------------------------------
 switch(lower(Action))    
     
-case{lower('Data')}
+case{lower('spectral data')}
     
     % spm_dcm_ssr_results(DCM,'Data');
     %----------------------------------------------------------------------

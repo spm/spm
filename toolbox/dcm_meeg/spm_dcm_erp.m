@@ -1,8 +1,8 @@
-function DCM = spm_dcm_erp(DCM)   
+function DCM = spm_dcm_erp(DCM)
 % Estimate parameters of a DCM model (Newton's methods)
-% FORMAT DCM = spm_dcm_erp(DCM)   
+% FORMAT DCM = spm_dcm_erp(DCM)
 %
-% DCM     
+% DCM
 %    name: name string
 %       Lpos:  Source locations
 %       xY:    data   [1x1 struct]
@@ -25,26 +25,28 @@ function DCM = spm_dcm_erp(DCM)
 %   options.onset        - stimulus onset (ms)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_erp.m 2330 2008-10-10 18:23:42Z karl $
- 
-% check options 
+% $Id: spm_dcm_erp.m 2374 2008-10-21 18:52:29Z karl $
+
+% check options
 %==========================================================================
+drawnow
 clear spm_erp_L spm_gen_erp
- 
+name = sprintf('DCM_%s',date);
+
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                   catch, DCM.name  = 'DCM_ERP'; end
+try, DCM.name;                   catch, DCM.name  = name;      end
 try, h     = DCM.options.h;      catch, h         = 1;         end
 try, Nm    = DCM.options.Nmodes; catch, Nm        = 8;         end
 try, onset = DCM.options.onset;  catch, onset     = 60;        end
 try, model = DCM.options.model;  catch, model     = 'NMM';     end
 try, lock  = DCM.options.lock;   catch, lock      = 0;         end
 try, loop  = DCM.options.loop;   catch, loop      = 0;         end
- 
- 
- 
+
+
+
 % Data and spatial model (use h only for de-trending data)
 %==========================================================================
 DCM    = spm_dcm_erp_data(DCM,h);
@@ -53,7 +55,7 @@ xY     = DCM.xY;
 xU     = DCM.xU;
 M      = DCM.M;
 M.loop = loop;
- 
+
 % dimensions
 %--------------------------------------------------------------------------
 Nt     = length(xY.xy);                 % number of trials
@@ -62,11 +64,11 @@ Nu     = size(DCM.C,2);                 % number of exogenous inputs
 Ns     = size(xY.xy{1},1);              % number of time bins
 Nc     = size(xY.xy{1},2);              % number of channels
 Nx     = size(xU.X,2);                  % number of trial-specific effects
- 
+
 % check the number of modes is greater or equal to the number of sources
 %--------------------------------------------------------------------------
 Nm     = max(Nm,Nr);
- 
+
 % confounds - DCT: (force a parameter per channel = activity under x = 0)
 %--------------------------------------------------------------------------
 if h == 0
@@ -76,15 +78,15 @@ else
 end
 T0     = speye(Ns) - X0*inv(X0'*X0)*X0';
 xY.X0  = X0;
- 
+
 % Serial correlations (precision components) AR(1/4) model
 %--------------------------------------------------------------------------
 xY.Q   = {spm_Q(1/4,Ns,1)};
- 
- 
+
+
 %-Inputs
 %==========================================================================
- 
+
 % between-trial effects
 %--------------------------------------------------------------------------
 try
@@ -95,108 +97,59 @@ try
 catch
     DCM.B = {};
 end
- 
+
 % within-trial effects: adjust onset relative to PST
 %--------------------------------------------------------------------------
 M.ons  = onset - xY.pst(1);
 xU.dt  = xY.dt;
- 
- 
+
+
 %-Model specification and nonlinear system identification
 %==========================================================================
 try, M = rmfield(M,'g'); end
- 
-switch lower(model)
-    
-    % linear David et al model (linear in states)
-    %======================================================================
-    case{'erp'}
- 
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
- 
-        % inital states and equations of motion
-        %------------------------------------------------------------------
-        M.x  =  spm_x_erp(pE);
-        M.f  = 'spm_fx_erp';
 
- 
-    % linear David et al model (linear in states) - fast version for SEPs
-    %======================================================================
-    case{'sep'}
- 
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_erp_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
-        pE.T          = pE.T - 1;
-        pE.R(:,2)     = pE.R(:,2) - 2;
- 
-        % inital states
-        %------------------------------------------------------------------
-        M.x  =  spm_x_erp(pE);
-        M.f  = 'spm_fx_erp';
+% prior moments on parameters
+%--------------------------------------------------------------------------
+[pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 
-        
-    % Neural mass model (nonlinear in states)
-    %======================================================================
-    case{'nmm'}
- 
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
-        
-        
-        % check consistency of previous priors
-        %------------------------------------------------------------------
-        try
-            spm_vec(pE) - spm_vec(M.pE);
-            spm_vec(pC) - spm_vec(M.pC);
-            pE = M.pE;
-            pC = M.pC;
-        end
-
-        % inital states and model
-        %------------------------------------------------------------------
-        [x M] = spm_x_nmm(pE,M);
-
-        
-    % Neural mass model (nonlinear in states)
-    %======================================================================
-    case{'mfm'}
- 
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,gE,pC,gC] = spm_nmm_priors(DCM.A,DCM.B,DCM.C,M.dipfit);
- 
-        % inital states and model
-        %------------------------------------------------------------------
-        [x M] = spm_x_mfm(pE,M);
-        
-        
-    otherwise
-        warndlg('Unknown model')
+try
+    pE  = M.pE;
+    pC  = M.pC;
+    fprintf('Using existing priors\n')
 end
- 
+
 % lock experimental effects by introducing prior correlations
 %--------------------------------------------------------------------------
 if lock
     pV    = spm_unvec(diag(pC),pE);
     for i = 1:Nx
-       pB      = pV;
-       pB.B{i} = pB.B{i} - pB.B{i};
-       pB      = spm_vec(pV)  - spm_vec(pB);
-       pB      = sqrt(pB*pB') - diag(pB);
-       pC      = pC + pB;
+        pB      = pV;
+        pB.B{i} = pB.B{i} - pB.B{i};
+        pB      = spm_vec(pV)  - spm_vec(pB);
+        pB      = sqrt(pB*pB') - diag(pB);
+        pC      = pC + pB;
     end
 end
- 
- 
+
+% priors on spatial model
+%--------------------------------------------------------------------------
+DCM.M.dipfit.model = model;
+[gE,gC] = spm_L_priors(DCM.M.dipfit);
+
+
+% intial states and equations of motion
+%--------------------------------------------------------------------------
+[x,f] = spm_dcm_x_neural(pE,model);
+
+
 % likelihood model
 %--------------------------------------------------------------------------
-M.FS  = 'spm_fy_erp';
+M.IS  = 'spm_gen_erp_dfdp';                            % for fast inversion
 M.IS  = 'spm_gen_erp';
+M.FS  = 'spm_fy_erp';
 M.G   = 'spm_lx_erp';
+M.f   = f;
+M.x   = x;
 M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;
@@ -205,10 +158,10 @@ M.m   = Nu;
 M.n   = length(spm_vec(M.x));
 M.l   = Nc;
 M.ns  = Ns;
- 
+
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
- 
+
 % Spatial modes
 %--------------------------------------------------------------------------
 if Nc < Nm
@@ -225,35 +178,25 @@ else
 end
 Nm    = size(U,2);
 
+
 % EM: inversion
 %==========================================================================
-if isfield(M,'fastEM') && M.fastEM  % fast nonlinear system identification
-    % Nonlinear system identification
-    [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_Nf(M,xU,xY);
-    % Bayesian inference
-    % (threshold = prior; for A,B  and C this is exp(0) = 1)
-    warning('off','SPM:negativeVariance');
-    dp  = spm_vec(Qp) - spm_vec(pE);
-    Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-    warning('on','SPM:negativeVariance');
-    % neuronal and sensor responses (x and y)
-    x0  = ones(Ns,1)*spm_vec(M.x)';
-    L   = feval(M.G, Qg,M);
-    M.fastEM = 0;
-    x   = feval(M.IS,Qp,M,xU);
-    M.fastEM = 1;
-else                                % usual nonlinear system identification
-    [Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
-    % Bayesian inference
-    sw = warning('off','SPM:negativeVariance');
-    dp  = spm_vec(Qp) - spm_vec(pE);
-    Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
-    warning(sw);
-    % neuronal and sensor responses (x and y)
-    x0  = ones(Ns,1)*spm_vec(M.x)';     % expansion point for states
-    L   = feval(M.G, Qg,M);             % get gain matrix
-    x   = feval(M.IS,Qp,M,xU);          % prediction (source space)
-end
+[Qp,Qg,Cp,Cg,Ce,F] = spm_nlsi_N(M,xU,xY);
+
+
+% Bayesian inference
+%--------------------------------------------------------------------------
+sw  = warning('off','SPM:negativeVariance');
+dp  = spm_vec(Qp) - spm_vec(pE);
+Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
+warning(sw);
+
+
+% neuronal and sensor responses (x and y)
+%--------------------------------------------------------------------------
+x0  = ones(Ns,1)*spm_vec(M.x)';         % expansion point for states
+L   = feval(M.G, Qg,M);                 % get gain matrix
+x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 
 
 % trial-specific responses (in mode, channel and source space)
@@ -265,7 +208,7 @@ for i = 1:Nt
     r{i} = T0*(xY.y{i}*M.E - y{i});     % residuals  (sensor space)
     x{i} = x{i}(:,j);                   % Depolarization in sources
 end
- 
+
 
 % store estimates in DCM
 %--------------------------------------------------------------------------
@@ -281,18 +224,18 @@ DCM.H  = y;                    % conditional responses (y), projected space
 DCM.K  = x;                    % conditional responses (x)
 DCM.R  = r;                    % conditional residuals (y)
 DCM.F  = F;                    % Laplace log evidence
- 
+
 DCM.options.h      = h;
 DCM.options.Nmodes = Nm;
 DCM.options.onset  = onset;
 DCM.options.model  = model;
 DCM.options.lock   = lock;
 DCM.options.loop   = loop;
- 
+
 % store estimates in D
 %--------------------------------------------------------------------------
 if strcmp(M.dipfit.type,'IMG')
-    
+
     % Assess accuracy; signal to noise (over sources), SSE and log-evidence
     %----------------------------------------------------------------------
     for i = 1:Nt
@@ -300,13 +243,13 @@ if strcmp(M.dipfit.type,'IMG')
         SST(i) = sum(var(y{i} + r{i}));
     end
     R2    = 100*(sum(SST - SSR))/sum(SST);
-    
-    
+
+
     % reconstruct sources in dipole space
     %----------------------------------------------------------------------
     Nd    = M.dipfit.Nd;
     G     = sparse(Nd,0);
-    
+
     % one dipole per subpopulation (p)
     %----------------------------------------------------------------------
     if iscell(Qg.L)
@@ -316,8 +259,8 @@ if strcmp(M.dipfit.type,'IMG')
             end
         end
 
-    % one dipole per source (i)
-    %----------------------------------------------------------------------
+        % one dipole per source (i)
+        %----------------------------------------------------------------------
     else
         for i = 1:Nr
             G(M.dipfit.Ip{i},end + 1) = M.dipfit.U{i}*Qg.L(:,i);
@@ -331,23 +274,23 @@ if strcmp(M.dipfit.type,'IMG')
         J{i} = G*x{i}';
     end
 
-    % get dipole space lead field
+    % get D and dipole space lead field
     %----------------------------------------------------------------------
-    L     = load(M.dipfit.gainmat);
-    name  = fieldnames(L);
-    L     = sparse(getfield(L, name{1}));
-    L     = spm_cond_units(L);
-    L     = U'*L(:,Is);
-    
+    try, val = DCM.val;  catch, val = 1; end
+    D     = spm_eeg_load(DCM.xY.Dfile);
+    L     = spm_eeg_lgainmat(D,Is);
+    L     = U'*L;
+
     % reduced data (for each trial
     %----------------------------------------------------------------------
     for i = 1:Nt
         Y{i} = U'*xY.y{i}'*T0;
     end
- 
+
+    % fill in fields of inverse structure
+    %----------------------------------------------------------------------
     inverse.trials = DCM.options.trials;   % trial or condition
     inverse.type   = 'DCM';                % inverse model
- 
     inverse.J      = J;                    % Conditional expectation
     inverse.L      = L;                    % Lead field (reduced)
     inverse.R      = speye(Nc,Nc);         % Re-referencing matrix
@@ -363,12 +306,9 @@ if strcmp(M.dipfit.type,'IMG')
     inverse.F      = DCM.F;                % log-evidence
     inverse.R2     = R2;                   % variance accounted for (%)
     inverse.dipfit = M.dipfit;             % forward model for DCM
- 
+
     % append DCM results and save in structure
     %----------------------------------------------------------------------
-    try, val = DCM.val;  catch, val = 1; end
-    D        = spm_eeg_load(DCM.xY.Dfile);
-    
     D.inv{end + 1}      = D.inv{val};
     D.inv{end}.date     = date;
     [pathstr,fname]     = fileparts(DCM.name);
@@ -381,7 +321,7 @@ if strcmp(M.dipfit.type,'IMG')
     end
     save(D);
 end
- 
+
 % and save
 %--------------------------------------------------------------------------
 if spm_matlab_version_chk('7.1') >= 0

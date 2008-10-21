@@ -1,9 +1,8 @@
-function [x,M] = spm_x_nmm(P,M)
+function [x] = spm_x_nmm(P)
 % initialises a state structure for a mean field model
-% FORMAT [x,M] = spm_x_nmm(P,M)
+% FORMAT [x] = spm_x_nmm(P)
 %
 % P - parameter structure
-% M - model     structure
 %
 % x        - array of states
 % x(i,j,k) - k-th state of j-th population on i-th source
@@ -23,16 +22,12 @@ function [x,M] = spm_x_nmm(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_nmm.m 2330 2008-10-10 18:23:42Z karl $
+% $Id: spm_x_nmm.m 2374 2008-10-21 18:52:29Z karl $
  
 
 % get initialisation from full mean-field model
 %==========================================================================
-try
-    [x M] = spm_x_mfm(P,M);
-catch
-    [x M] = spm_x_mfm(P);
-end
+[x M] = spm_x_mfm(P);
  
 % remove dispersion and fix the covariance of the states (Cx)
 %--------------------------------------------------------------------------

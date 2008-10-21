@@ -1,25 +1,27 @@
-function [pE,pC] = spm_L_priors(dipfit)
+function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % prior moments for the lead-field parameters of ERP models
 % FORMAT [pE,pC] = spm_L_priors(dipfit)
 %
 % dipfit    - forward model structure:
 %
-%    dipfit.type - 'ECD', 'LFP' or 'IMG'
-%    dipfit.symm - distance (mm) for symmetry constraints (ECD)
-%    dipfit.Lpos - x,y,z source positions (mm)            (ECD)
-%    dipfit.Nm   - number of modes                        (IMG)
-%    dipfit.Ns   - number of sources
-%    dipfit.Nc   - number of channels           
+%    dipfit.type     - 'ECD', 'LFP' or 'IMG'
+%    dipfit.symmetry - distance (mm) for symmetry constraints (ECD)
+%    dipfit.location - allow changes in source location       (ECD)
+%    dipfit.Lpos     - x,y,z source positions (mm)            (ECD)
+%    dipfit.Nm       - number of modes                        (IMG)
+%    dipfit.Ns       - number of sources
+%    dipfit.Nc       - number of channels           
 %
 % pE - prior expectation
 % pC - prior covariance
 %
-% spatial parameters
+% adds spatial parameters
 %--------------------------------------------------------------------------
 %    pE.Lpos - position                    - ECD
 %    pE.L    - orientation                 - ECD
 %              coefficients of local modes - Imaging
 %              gain of electrodes          - LFP
+%    pE.J    - contributing states (length(J) = number of states per source
 %
 %__________________________________________________________________________
 %
@@ -29,12 +31,16 @@ function [pE,pC] = spm_L_priors(dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_L_priors.m 2208 2008-09-26 18:57:39Z karl $
+% $Id: spm_L_priors.m 2374 2008-10-21 18:52:29Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
-try, type = dipfit.type; catch, type = 'LFP'; end
-try, symm = dipfit.symm; catch, symm = 0;     end
+try, model    = dipfit.model;    catch, model    = 'LFP'; end
+try, type     = dipfit.type;     catch, type     = 'LFP'; end
+try, location = dipfit.location; catch, location = 0;     end
+try, symmetry = dipfit.symmetry; catch, symmetry = 0;     end
+try, pC;                         catch, pC       = [];    end
+ 
 
 % number of sources
 %--------------------------------------------------------------------------
@@ -45,6 +51,10 @@ catch
     n = dipfit;
     m = n;
 end
+
+% location priors (8 mm)
+%--------------------------------------------------------------------------
+if location, V = 8^2; else, V = 0; end
  
 % parameters for electromagnetic forward model
 %==========================================================================
@@ -52,7 +62,7 @@ switch type
  
     case{'ECD'}
         %------------------------------------------------------------------
-        pE.Lpos = dipfit.Lpos;   Lpos = 0*eye(3*n);     % positions
+        pE.Lpos = dipfit.Lpos;   Lpos = V*eye(3*n);     % positions
         pE.L    = sparse(3,n);   L    =   eye(3*n);     % orientations
  
     case{'IMG'}
@@ -71,12 +81,46 @@ switch type
  
 end
  
+% contributing states (encoded in J)
+%==========================================================================
+switch model
+ 
+    case{'ERP','SEP'}
+        %------------------------------------------------------------------
+        pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);       % 9 states
+        J    = diag(pE.J/64);
+ 
+    case{'LFP'}
+        %------------------------------------------------------------------
+        pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13);      % 13 states
+        J    = diag(pE.J/64); 
+ 
+    case{'NMM'}
+        %------------------------------------------------------------------
+        pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,9);          % 9 states
+        J    = sparse([1,2],[1,2],[1/128 1/128],9,9);
+        
+    case{'MFM'}
+        %------------------------------------------------------------------
+        pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,36);         % 9 states
+        J    = sparse([1,2],[1,2],[1/128 1/128],36,36);    % 27 covariances
+        
+    otherwise
+        warndlg('Unknown neural model')
+ 
+end
+ 
+
+% Distance between homolgous sources (16mm)
+%--------------------------------------------------------------------------
+if symmetry, V = 16; else, V = 0; end
+
 % symmetry constraints (based on Euclidean distance from mirror image)
 %==========================================================================
 switch type
-
+ 
     case{'ECD'}
-
+ 
         % correlation
         %------------------------------------------------------------------
         Mpos  = [-pE.Lpos(1,:); pE.Lpos(2,:); pE.Lpos(3,:)];
@@ -86,11 +130,11 @@ switch type
             end
         end
         D     = (D + D')/2;
-        D     = D < symm;
+        D     = D < V;
         D     = D - diag(diag(D));
         L     = L - kron(D,diag([1 0 0])) + kron(D,diag([0 1 1]));
 end
-
+ 
 % prior covariance
 %--------------------------------------------------------------------------
-pC  = spm_cat(diag({Lpos, exp(8)*L}));
+pC  = spm_cat(diag({pC, Lpos, exp(8)*L, J}));

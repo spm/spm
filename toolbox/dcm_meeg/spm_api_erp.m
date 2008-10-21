@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2369 2008-10-21 13:37:07Z vladimir $
+% $Id: spm_api_erp.m 2374 2008-10-21 18:52:29Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -91,6 +91,7 @@ handles = ERP_Callback(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 % 'ERP'    - (linear second order NMM slow)
 % 'SEP'    - (linear second order NMM fast)
+% 'LFP'    - (linear second order NMM self-inhibition)
 % 'NMM'    - (nonlinear second order NMM first-order moments)
 % 'MFM'    - (nonlinear second order NMM second-order moments)
 try
@@ -103,8 +104,9 @@ end
 switch model
     case{'ERP'}, set(handles.model,'Value',1);
     case{'SEP'}, set(handles.model,'Value',2);
-    case{'NMM'}, set(handles.model,'Value',3);
-    case{'MFM'}, set(handles.model,'Value',4);
+    case{'LFP'}, set(handles.model,'Value',3);
+    case{'NMM'}, set(handles.model,'Value',4);
+    case{'MFM'}, set(handles.model,'Value',5);
     otherwise
 end
  
@@ -131,7 +133,7 @@ end
 %--------------------------------------------------------------------------
 try, set(handles.name,'String',f);  end
  
-% Source locations
+% Source location
 %--------------------------------------------------------------------------
 try, DCM.Lpos = DCM.M.dipfit.Lpos; end
  
@@ -149,6 +151,8 @@ try, set(handles.han,         'Value', DCM.options.han);             end
 try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
 try, set(handles.loop,        'Value', DCM.options.loop);            end
+try, set(handles.location,    'Value', DCM.options.location);        end
+try, set(handles.symmetry,    'Value', DCM.options.symmetry);        end
 try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
 try, set(handles.Uname,       'String',DCM.xU.name);                 end
 try, set(handles.Sname,       'String',DCM.Sname);                   end
@@ -258,6 +262,8 @@ handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
 handles.DCM.options.loop     = get(handles.loop,          'Value');
+handles.DCM.options.location = get(handles.location,      'Value');
+handles.DCM.options.symmetry = get(handles.symmetry,      'Value');
  
 % analysis type
 %--------------------------------------------------------------------------
@@ -504,7 +510,7 @@ switch DCM.options.spatial
             return
         end
  
-        % set prior expectations on locations
+        % set prior expectations on location
         %------------------------------------------------------------------
         DCM.Lpos = Slocation';
         
@@ -518,8 +524,13 @@ switch DCM.options.spatial
         % for LFP
         %------------------------------------------------------------------
         DCM.Lpos = zeros(3,0);
-        set(handles.Slocation, 'String', {'assuming LFP in', Sname{1:Nchannels}});  
-        set(handles.plot_dipoles,'enable','off')
+        try
+            set(handles.Slocation, 'String', {'assuming LFP in', Sname{1:Nchannels}});  
+            set(handles.plot_dipoles,'enable','off')
+        catch
+            warndlg('There are more LFP channels than sources')
+            return
+        end
      
     otherwise
         warndlg('Unknown data modality')
@@ -731,7 +742,7 @@ switch DCM.options.model
     case{'NMM','MFM'}
         constr = {'Excit.' 'Inhib.' 'Mixed' 'input'};
     otherwise
-        constr = {'forward' 'backward' 'lateral' 'input'};
+        constr = {'forward' 'back' 'lateral' 'input'};
 end
 switch DCM.options.analysis
     case{'IND'}
@@ -848,11 +859,11 @@ function varargout = estimate_Callback(hObject, eventdata, handles, varargin)
 set(handles.estimate,'String','Estimating','Foregroundcolor',[1 0 0])
 handles = reset_Callback(hObject, eventdata, handles);
  
-% initialise if required
+% initialise with posteriors if required
 % -------------------------------------------------------------------------
 try
     Ep  = handles.DCM.Ep;
-    Str = questdlg('initialize with previous estimates');
+    Str = questdlg('use previous posteriors');
     if strcmp(Str,'Yes')
         handles.DCM.M.P = Ep;
     elseif strcmp(Str,'No')
@@ -861,6 +872,19 @@ try
         return
     end
 end
+
+% initialise with posteriors if required
+% -------------------------------------------------------------------------
+try
+    handles.DCM.M.pE;
+    Str = questdlg('use previous priors');
+    if strcmp(Str,'No')
+        handles.DCM.M = rmfield(handles.DCM.M,{'pE','pC'});
+    elseif strcmp(Str,'Cancel')
+        return
+    end
+end
+ 
  
 % invert and save
 %--------------------------------------------------------------------------
@@ -1011,7 +1035,7 @@ switch handles.DCM.options.analysis
     %----------------------------------------------------------------------
     case{'SSR'}
         Action = {
-            'Data',
+            'spectral data',
             'coupling (A)',
             'coupling (B)',
             'coupling (C)',
@@ -1026,7 +1050,7 @@ switch handles.DCM.options.analysis
         end
         set(handles.model,      'Enable','on');
         set(handles.Spatial,    'Value', 1);
-        set(handles.Spatial,    'String',{'ECD','LFP'});
+        set(handles.Spatial,    'String',{'ECD','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Spectral density');
         set(handles.loop,       'Enable','off');
         
@@ -1051,7 +1075,7 @@ switch handles.DCM.options.analysis
         end
         set(handles.model,      'Enable','off');
         set(handles.Spatial,    'Value', 1);
-        set(handles.Spatial,    'String',{'ECD','LFP'});
+        set(handles.Spatial,    'String',{'ECD','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
         set(handles.loop,       'Enable','off');
         set(handles.render,     'Enable','off' )
@@ -1107,12 +1131,6 @@ guidata(hObject,handles);
 % --- Executes on button press in priors.
 function priors_Callback(hObject, eventdata, handles);
 handles = reset_Callback(hObject, eventdata, handles);
-switch(handles.DCM.options.model)
-    case{'NMM'}
-        spm_api_nmm(handles.DCM)
-    otherwise
-        warndlg('This is only available for neral mass models (NMM)')
-        return
-end
+spm_api_nmm(handles.DCM)
 
 

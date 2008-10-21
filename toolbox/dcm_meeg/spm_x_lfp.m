@@ -1,6 +1,6 @@
-function [x] = spm_x_erp(P)
+function [x] = spm_x_lfp(P)
 % returns the initial state of a neural mass model of erps
-% FORMAT [x] = spm_x_erp(P)
+% FORMAT [x] = spm_x_lfp(P)
 % P - parameters
 %
 % x        - x(0)
@@ -11,11 +11,11 @@ function [x] = spm_x_erp(P)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_erp.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_x_lfp.m 2374 2008-10-21 18:52:29Z karl $
 
 % array of states
 %--------------------------------------------------------------------------
 n  = length(P.A{1});                          % number of sources
-m  = 9;                                       % number of states
+m  = 13;                                      % number of states
 x  = sparse(n,m);
 

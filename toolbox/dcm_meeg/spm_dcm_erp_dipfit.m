@@ -19,6 +19,8 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 %
 %       DCM.M.dipfit
 %
+%    dipfit.location - 0 or 1 for source location priors
+%    dipfit.symmetry - 0 or 1 for symmetry constraints on sources
 %    dipfit.modality - 'EEG', 'MEG' or 'LFP'
 %    dipfit.type     - 'ECD', 'LFP' or 'IMG''
 %    dipfit.symm     - distance (mm) for symmetry constraints (ECD)
@@ -33,7 +35,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 2369 2008-10-21 13:37:07Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 2374 2008-10-21 18:52:29Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -55,10 +57,18 @@ end
 D    = spm_eeg_load(DCM.xY.Dfile);
  
  
-% set spatial model in dipfit
+% set options in dipfit
 %--------------------------------------------------------------------------
-DCM.M.dipfit.type = DCM.options.spatial;
- 
+try, spatial  = DCM.options.spatial;  catch, spatial  = 'IMG'; end
+try, model    = DCM.options.model;    catch, model    = 'NMM'; end
+try, location = DCM.options.location; catch, location = 0;     end
+try, symmetry = DCM.options.symmetry; catch, symmetry = 0;     end
+
+DCM.M.dipfit.type     = spatial;
+DCM.M.dipfit.model    = model;
+DCM.M.dipfit.location = location;
+DCM.M.dipfit.symmetry = symmetry;
+
  
 % Get source locations if MEG or EEG
 %--------------------------------------------------------------------------
@@ -135,11 +145,8 @@ switch DCM.options.spatial
  
         % Load Gain or Lead field matrix
         %------------------------------------------------------------------
-        DCM.val     = D.val;
-        
-        [L, D] = spm_eeg_lgainmat(D);
-        
-        save(D);
+        DCM.val = D.val;
+        [L D]   = spm_eeg_lgainmat(D);
         
         % centers
         %------------------------------------------------------------------
@@ -188,8 +195,6 @@ switch DCM.options.spatial
         DCM.M.dipfit.Nm      = Nm;                            % modes per region
         DCM.M.dipfit.Nd      = length(vert);                  % number of dipoles
         DCM.M.dipfit.gainmat = D.inv{D.val}.forward.gainmat;  % Lead field filename
- 
-        save(D);
  
     otherwise
  

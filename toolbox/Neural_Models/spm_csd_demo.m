@@ -48,7 +48,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 2330 2008-10-10 18:23:42Z karl $
+% $Id: spm_csd_demo.m 2374 2008-10-21 18:52:29Z karl $
  
 clear global
 clear
@@ -71,7 +71,9 @@ C     = speye(n,n);                        % sources receiving innovations
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(A,B,C);
+[pE,pC] = spm_lfp_priors(A,B,C);           % neuronal priors
+[pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
+[pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
  
 % create LFP model
 %--------------------------------------------------------------------------
