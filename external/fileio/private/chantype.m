@@ -1,4 +1,4 @@
-function type = chantype(hdr)
+function type = chantype(input, desired)
 
 % CHANTYPE determines for each channel what type it is, e.g. planar/axial gradiometer or magnetometer
 %
@@ -6,10 +6,18 @@ function type = chantype(hdr)
 %   type = chantype(hdr)
 %   type = chantype(sens)
 %   type = chantype(label)
+% or as
+%   type = chantype(hdr, desired)
+%   type = chantype(sens, desired)
+%   type = chantype(label, desired)
 
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.4  2008/10/21 20:32:47  roboos
+% added second input argument (desired type)
+% besides hdr, also allow grad and label input (ctf only sofar)
+%
 % Revision 1.3  2008/10/20 15:14:06  roboos
 % added missing semicolon
 %
@@ -20,12 +28,31 @@ function type = chantype(hdr)
 % new function
 %
 
-type = cell(size(hdr.label));
+% determine the type of input
+
+isheader = isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'Fs');
+isgrad   = isa(input, 'struct') && isfield(input, 'pnt') && isfield(input, 'ori');
+islabel  = isa(input, 'cell')   && isa(input{1}, 'char');
+
+hdr   = input;
+grad  = input;
+label = input;
+
+if isheader
+  numchan = length(hdr.label);
+elseif isgrad
+  numchan = length(grad.label);
+elseif islabel
+  numchan = length(label);
+end
+
+% start with unknown type
+type = cell(numchan,1);
 for i=1:length(type)
   type{i} = 'unknown';
 end
 
-if senstype(hdr, 'neuromag')
+if senstype(input, 'neuromag')
   % channames-KI is the channel kind, 1=meg, 202=eog, 2=eeg, 3=trigger (I am nut sure, but have inferred this from a single test file)
   % chaninfo-TY is the Coil type (0=magnetometer, 1=planar gradiometer)
   if isfield(hdr, 'orig') && isfield(hdr.orig, 'channames')
@@ -49,7 +76,24 @@ if senstype(hdr, 'neuromag')
     end
   end
 
-elseif senstype(hdr, 'ctf')
+elseif senstype(input, 'ctf') && islabel
+  % the channels have to be identified based on their name alone
+  selmeg = strncmp('MZ', label, 2);
+  selmeg = strncmp('ML', label, 2) | selmeg;
+  selmeg = strncmp('MR', label, 2) | selmeg;
+  % the others could also be hardcoded here
+  type(selmeg) = {'meg'};
+
+elseif senstype(input, 'ctf') && isgrad
+  % in principle it is possible to look at the number of coils, but here 
+  % the channels are identified based on their name
+  selmeg = strncmp('MZ', grad.label, 2);
+  selmeg = strncmp('ML', grad.label, 2) | selmeg;
+  selmeg = strncmp('MR', grad.label, 2) | selmeg;
+  % the others could also be hardcoded here
+  type(selmeg) = {'meg'};
+
+elseif senstype(input, 'ctf') && isheader
   % meg channels are 5, refmag 0, refgrad 1, adcs 18, trigger 11, eeg 9
   if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
     origSensType = hdr.orig.sensType;
@@ -80,4 +124,9 @@ elseif senstype(hdr, 'ctf')
   end
 
 end % senstype
+
+if nargin>1
+  % return a boolean vector
+  type = strcmp(desired, type);
+end
 
