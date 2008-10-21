@@ -10,6 +10,9 @@ function type = chantype(hdr)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.3  2008/10/20 15:14:06  roboos
+% added missing semicolon
+%
 % Revision 1.2  2008/09/10 10:06:07  roboos
 % added ctf headloc
 %

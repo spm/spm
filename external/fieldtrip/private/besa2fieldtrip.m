@@ -31,6 +31,9 @@ function [data] = besa2fieldtrip(filename);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: besa2fieldtrip.m,v $
+% Revision 1.16  2008/10/21 09:34:12  roboos
+% fixed sampling frequency (factor 1000 wrgon), thanks to Stephan Moratti
+%
 % Revision 1.15  2008/09/22 21:23:11  roboos
 % always add besa path (now as external/besa)
 %
@@ -142,7 +145,7 @@ elseif strcmp(type, 'besa_sb')
   for i=1:size(buf,1)
     data.label{i,1} = sprintf('chan%03d', i);
   end
-  data.fsample = 1000/(time(2)-time(1));    % convert from ms to sec
+  data.fsample = 1/(time(2)-time(1));  % time is already in seconds
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(type, 'besa_tfc') && hasbesa
@@ -264,7 +267,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: besa2fieldtrip.m,v 1.15 2008/09/22 21:23:11 roboos Exp $';
+cfg.version.id = '$Id: besa2fieldtrip.m,v 1.16 2008/10/21 09:34:12 roboos Exp $';
 data.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

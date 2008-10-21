@@ -21,6 +21,11 @@ function [grandavg] = timelockgrandaverage(cfg, varargin)
 % Copyright (C) 2003-2006, Jens Schwarzbach
 %
 % $Log: timelockgrandaverage.m,v $
+% Revision 1.19  2008/10/21 09:40:05  roboos
+% reset min/max latency for variable trial length over subjects
+% shift start and end index in case of flipped time axis, potentially introduced for response time locked data
+% thanks to Christian & Ines
+%
 % Revision 1.18  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -114,15 +119,25 @@ if ischar(cfg.latency) && strcmp(cfg.latency, 'all')
   cfg.latency(1) = min(varargin{1}.time);
   cfg.latency(2) = max(varargin{1}.time);
   for s=2:Nsubj
-    cfg.latency(1) = min([varargin{s}.time cfg.latency(1)]);
-    cfg.latency(2) = max([varargin{s}.time cfg.latency(2)]);
+    % reset min/max latency (for variable trial length over subjects)
+    if min(varargin{s}.time) > cfg.latency(1)
+      cfg.latency(1) = min(varargin{s}.time);
+    end
+    if max(varargin{s}.time) < cfg.latency(2)
+      cfg.latency(2) = max(varargin{s}.time);
+    end
   end
 end
 
 %SELECT TIME WINDOW
 idxs = nearest(varargin{1}.time, min(cfg.latency));
 idxe = nearest(varargin{1}.time, max(cfg.latency));
-ResultsTimeSelectCases = idxs:idxe;
+% shift start and end index in case of flipped time axis (potentially introduced for response time locked data)
+if idxe < idxs
+  ResultsTimeSelectCases = idxe:idxs;
+else
+  ResultsTimeSelectCases = idxs:idxe;
+end
 ResultsNTimePoints = length(ResultsTimeSelectCases);
 ResultsTime = varargin{1}.time(ResultsTimeSelectCases);
 
@@ -194,12 +209,12 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockgrandaverage.m,v 1.18 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: timelockgrandaverage.m,v 1.19 2008/10/21 09:40:05 roboos Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)
   try, cfg.previous{i} = varargin{i}.cfg; end
 end
-% remember the exact configuration details in the output 
+% remember the exact configuration details in the output
 grandavg.cfg = cfg;
 
