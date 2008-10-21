@@ -35,58 +35,34 @@ return;
 
 
 function out=crossproduct(x,y)
-% usage: out=testprog(x,y)
-% testprog calculates the cross-product of vector x and y
 [n,m,k]=size(x);
-
 out=zeros(3,m,k);
-
 out(1,:,:)=x(2,:,:).*y(3,:,:)-x(3,:,:).*y(2,:,:);
 out(2,:,:)=x(3,:,:).*y(1,:,:)-x(1,:,:).*y(3,:,:);
 out(3,:,:)=x(1,:,:).*y(2,:,:)-x(2,:,:).*y(1,:,:);
-
 return; 
 
 
-
 function out=dotproduct(x,y)
-% usage: out=dotproduct(x,y)
-% testprog calculates the dotproduct of vector x and y
 [n,m,k]=size(x);
-
-
 outb=x(1,:,:).*y(1,:,:)+x(2,:,:).*y(2,:,:)+x(3,:,:).*y(3,:,:);
 out=reshape(outb,m,k);
 return; 
 
 
-function result=norms(x);
-
+function result=norms(x)
 [n,m,k]=size(x);
-
 resultb=sqrt(x(1,:,:).^2+x(2,:,:).^2+x(3,:,:).^2);
 result=reshape(resultb,m,k);
-
 return; 
 
 
 function result=scal2vec(x)
-
 [m,k]=size(x);
-
-result=zeros(3,m,k);
-for i=1:3
-    result(i,:,:)=x;
-end
-
+% result=zeros(3,m,k);
+% for i=1:3
+%     result(i,:,:)=x;
+% end
+result=reshape(repmat(x(:)', [3 1]), [3 m k]);
 return
-
-
-
-
-
-
-
-
-
 
