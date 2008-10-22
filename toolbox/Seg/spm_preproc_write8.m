@@ -5,12 +5,18 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 2344 2008-10-15 16:51:48Z john $
+% $Id: spm_preproc_write8.m 2385 2008-10-22 12:52:11Z john $
 
+% Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
 if ~isstruct(tpm) || ~isfield(tpm, 'bg'),
     tpm = spm_load_priors8(tpm);
 end
+d1        = size(tpm.dat{1});
+d1        = d1(1:3);
+M1        = tpm.M;
+[bb1,vx1] = bbvox_from_V(tpm.V(1));
+
 
 if isfield(res,'mg'),
     lkp = res.lkp;
@@ -116,7 +122,7 @@ if do_defs,
 end
 
 spm_progress_bar('init',length(x3),['Working on ' nam],'Planes completed');
-M = tpm.M\res.Affine*res.image(1).mat;
+M = M1\res.Affine*res.image(1).mat;
 
 for z=1:length(x3),
 
@@ -140,7 +146,6 @@ for z=1:length(x3),
     if do_defs,
         [t1,t2,t3] = defs(Coef,z,res.MT,prm,x1,x2,x3,M);
         if exist('Ndef','var'),
-            M1 = tpm.M;
             tmp = M1(1,1)*t1 + M1(1,2)*t2 + M1(1,3)*t3 + M1(1,4);
             Ndef.dat(:,:,z,1,1) = tmp;
             tmp = M1(2,1)*t1 + M1(2,2)*t2 + M1(2,3)*t3 + M1(2,4);
@@ -197,6 +202,7 @@ for z=1:length(x3),
 end
 spm_progress_bar('clear');
 
+clear tpm
 M0 = res.image(1).mat;
 
 if any(tc(:,2)),
@@ -204,7 +210,6 @@ if any(tc(:,2)),
     bb = nan(2,3);
     vx = 1.5;
     % Sort out bounding box etc
-    [bb1,vx1]         = bbvox_from_V(tpm.V(1));
     bb(~isfinite(bb)) = bb1(~isfinite(bb));
     if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
     bb(1,:) = vx*ceil(bb(1,:)/vx);
@@ -221,9 +226,9 @@ if any(tc(:,2)),
         bb(1,1) bb(2,2) bb(2,3)
         bb(2,1) bb(2,2) bb(2,3)]'; ones(1,8)];
 
-    vx2  = tpm.M\mm;
+    vx2  = M1\mm;
     odim = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
-    vx1  = [[
+    vx3  = [[
         1       1       1
         odim(1) 1       1
         1       odim(2) 1
@@ -234,14 +239,14 @@ if any(tc(:,2)),
         odim(1) odim(2) odim(3)]'; ones(1,8)];
 
     x      = affind(rgrid(d),M0);
-    y1     = affind(y,tpm.M);
+    y1     = affind(y,M1);
     ind    = find(tc(:,2));
     [M,R]  = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
     clear x y1
 
-    M      = M0\inv(R)*tpm.M*vx2/vx1;
-    mat0   =    inv(R)*tpm.M*vx2/vx1;
-    mat    = mm/vx1;
+    M      = M0\inv(R)*M1*vx2/vx3;
+    mat0   =    inv(R)*M1*vx2/vx3;
+    mat    = mm/vx3;
 
     fwhm = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);
     for k1=1:size(tc,1),
@@ -269,10 +274,6 @@ if any(tc(:,2)),
         end
     end
 end
-
-
-d1 = size(tpm.dat{1}); d1 = d1(1:3);
-M1 = tpm.M;
 
 if any(tc(:,3)),
     C = zeros([d1,Kb],'single');
