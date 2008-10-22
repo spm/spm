@@ -31,11 +31,13 @@ function D = spm_eeg_convert(S)
 % S.checkboundary - 1 - check if there are breaks in the file and do not read
 %                       across those breaks (default).
 %                   0 - ignore breaks (not recommended).
+% S.saveorigheader - 1 - save original data header with the dataset
+%                    0 - do not keep the original header (default)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2357 2008-10-20 12:03:20Z vladimir $
+% $Id: spm_eeg_convert.m 2384 2008-10-22 11:05:11Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -59,7 +61,9 @@ if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                         
 if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                         end
 if ~isfield(S, 'datatype'),        S.datatype = 'float32-le';                                  end
 if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                      end
+if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                    end
 if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                         end
+
 
 if ~iscell(S.conditionlabel)
     S.conditionlabel = {S.conditionlabel};
@@ -426,16 +430,22 @@ if ~isempty(strmatch('MEG', D.chantype, 'exact')) &&...
     D = spm_eeg_prep(S1);
 end
 
-% Uses fileio function to get the information about channel types stored in
-% the original header. This is now mainly useful for Neuromag support but might
-% have other functions in the future.
-origchantypes = fileio_chantype(hdr);
-[sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
-origchantypes = origchantypes(sel2);
-if length(strmatch('unknown', origchantypes, 'exact')) ~= numel(origchantypes)
-    D.origchantypes = struct([]);
-    D.origchantypes(1).label = hdr.label(sel2);
-    D.origchantypes(1).type = origchantypes;
+if isfield(hdr, 'orig')
+    if S.saveorigheader
+        D.origheader = hdr.orig;
+    end
+    
+    % Uses fileio function to get the information about channel types stored in
+    % the original header. This is now mainly useful for Neuromag support but might
+    % have other functions in the future.
+    origchantypes = fileio_chantype(hdr);
+    [sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
+    origchantypes = origchantypes(sel2);
+    if length(strmatch('unknown', origchantypes, 'exact')) ~= numel(origchantypes)
+        D.origchantypes = struct([]);
+        D.origchantypes(1).label = hdr.label(sel2);
+        D.origchantypes(1).type = origchantypes;
+    end
 end
 
 save(D);
