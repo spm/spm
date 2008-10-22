@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 2333 2008-10-13 13:19:22Z vladimir $
+% $Id: spm_MEEGtools.m 2387 2008-10-22 16:23:19Z vladimir $
 
 
 funlist = {
@@ -16,6 +16,8 @@ funlist = {
     'Vector-AR connectivity measures', 'spm_eeg_var_measures';
     'Fieldtrip-SPM MEG head modelling' , 'spm_eeg_ft_indiv_meg_model'
     'Define spatial confounds' , 'spm_eeg_spatial_confounds'
+    'Use CTF head localization' , 'spm_eeg_megheadloc'
+    'Fieldtrip beamformer source extraction' , 'spm_eeg_ft_beamformer_source'
     };
 
 str = sprintf('%s|', funlist{:, 1});

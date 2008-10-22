@@ -39,7 +39,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld  
-% $Id: spm_eeg_megheadloc.m 2384 2008-10-22 11:05:11Z vladimir $
+% $Id: spm_eeg_megheadloc.m 2387 2008-10-22 16:23:19Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -55,12 +55,14 @@ catch
     S.D = D;
 end
 
+iswork = 1;
 if ~isa(D, 'meeg')
     try
         for i = 1:size(D, 1)
             F{i} = spm_eeg_load(deblank(D(i, :)));
             if ~forwinv_senstype(chanlabels(F{i}), 'ctf')
-                error('Only CTF MEG files are supported at this stage')
+                warning('Head localization is not supported for this data')
+                iswork =0;
             end
         end
         D = F;
@@ -69,6 +71,9 @@ if ~isa(D, 'meeg')
     end
 else
     D = {D};
+end
+if ~iswork
+    return;
 end
 
 if ~isfield(S, 'rejectbetween')
@@ -118,7 +123,7 @@ if S.toplot
 end
 
 for f=1:numel(D)
-    hlc_chan_ind = spm_match_str(chanlabels(D{i}), hlc_chan_label);
+    hlc_chan_ind = spm_match_str(chanlabels(D{f}), hlc_chan_label);
 
     Ntrl = D{f}.ntrials;
     Ntrls=Ntrls+Ntrl;
@@ -280,9 +285,11 @@ if S.rejectbetween && length(trlind)>1
     for f = 1:numel(D)
         origreject = reject(D{f});
         D{f} = reject(D{f}, [], 1);
-        if ismember(f, ufileind)
+        if ismember(f, ufileind) && any(captured & (fileind == f))
             D{f} = reject(D{f}, find(captured & (fileind == f)), 0);
-            D{f} = reject(D{f}, find(origreject), 1);
+            if any(origreject)
+                D{f} = reject(D{f}, find(origreject), 1);
+            end
         end
     end
 else
@@ -347,8 +354,8 @@ if S.correctsens
     newfid = forwinv_transform_headshape(M*inv(M1), fiducials(D{1}));
 
     for f = 1:numel(D)
-        D{i} = sensors(D{i}, 'MEG', newgrad);
-        D{i} = fiducials(D{i}, newfid);
+        D{f} = sensors(D{f}, 'MEG', newgrad);
+        D{f} = fiducials(D{f}, newfid);
     end
 end
 
