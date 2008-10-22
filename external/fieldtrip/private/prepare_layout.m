@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.23  2008/10/22 07:25:01  roboos
+% undo the balancing of ctf meg channels prior to removing the unused coils
+%
 % Revision 1.22  2008/10/21 20:36:21  roboos
 % (in grad2lay for ctf) prune the gradiometers to only contain meg
 % channels and corresponding meg coils: this will not work for balanced
@@ -687,12 +690,20 @@ grad.pnt = warp_apply(rotate([0 0 rz]), grad.pnt, 'homogenous');
 
 % select only the MEG channels, not the reference channels
 if senstype(grad, 'ctf')
-  sel = chantype(grad, 'meg');
+  % ensure that it is not balanced
+  if isfield(grad, 'balance') && ~strcmp(grad.balance.current, 'none')
+    % undo the balancing
+    fprintf('undoing the %s balancing\n', grad.balance.current);
+    grad = apply_montage(grad, getfield(grad.balance, grad.balance.current), 'inverse', 'yes');
+  end
+
   % remove the non-MEG channels altogether
+  sel = chantype(grad, 'meg');
   grad.label = grad.label(sel);
   grad.tra   = grad.tra(sel,:);
+
   % subsequently remove the unused coils
-  used = any(grad.tra~=0,1);
+  used = any(abs(grad.tra)<10*eps, 1);  % allow a little bit of rounding-off error
   grad.pnt = grad.pnt(used,:);
   grad.ori = grad.ori(used,:);
   grad.tra = grad.tra(:,used);

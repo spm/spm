@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.5  2008/10/22 07:22:46  roboos
+% also detect refmag and refgrad from ctf labels, use regexp and local subfunction
+%
 % Revision 1.4  2008/10/21 20:32:47  roboos
 % added second input argument (desired type)
 % besides hdr, also allow grad and label input (ctf only sofar)
@@ -78,21 +81,22 @@ if senstype(input, 'neuromag')
 
 elseif senstype(input, 'ctf') && islabel
   % the channels have to be identified based on their name alone
-  selmeg = strncmp('MZ', label, 2);
-  selmeg = strncmp('ML', label, 2) | selmeg;
-  selmeg = strncmp('MR', label, 2) | selmeg;
-  % the others could also be hardcoded here
-  type(selmeg) = {'meg'};
+  sel = myregexp('^M[ZLR][A-Z][0-9][0-9]$', label);
+  type(sel) = {'meg'};                % normal gradiometer channels
+  sel = myregexp('^B[GPR][0-9]$', label);
+  type(sel) = {'refmag'};             % reference magnetometers
+  sel = myregexp('^[GPQR][0-9][0-9]$', label);
+  type(sel) = {'refgrad'};            % reference gradiometers
 
 elseif senstype(input, 'ctf') && isgrad
-  % in principle it is possible to look at the number of coils, but here 
-  % the channels are identified based on their name
-  selmeg = strncmp('MZ', grad.label, 2);
-  selmeg = strncmp('ML', grad.label, 2) | selmeg;
-  selmeg = strncmp('MR', grad.label, 2) | selmeg;
-  % the others could also be hardcoded here
-  type(selmeg) = {'meg'};
-
+  % in principle it is possible to look at the number of coils, but here the channels are identified based on their name
+  sel = myregexp('^M[ZLR][A-Z][0-9][0-9]$', grad.label);
+  type(sel) = {'meg'};                % normal gradiometer channels
+  sel = myregexp('^B[GPR][0-9]$', grad.label);
+  type(sel) = {'refmag'};             % reference magnetometers
+  sel = myregexp('^[GPQR][0-9][0-9]$', grad.label);
+  type(sel) = {'refgrad'};            % reference gradiometers
+ 
 elseif senstype(input, 'ctf') && isheader
   % meg channels are 5, refmag 0, refgrad 1, adcs 18, trigger 11, eeg 9
   if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
@@ -129,4 +133,15 @@ if nargin>1
   % return a boolean vector
   type = strcmp(desired, type);
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% helper function
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function match = myregexp(pat, list)
+match = false(size(list));
+for i=1:numel(list)
+  match(i) = ~isempty(regexp(list{i}, pat, 'once'));
+end
+  
 
