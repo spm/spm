@@ -10,7 +10,6 @@ function [D, montage] = spm_eeg_montage(S)
 %   montage.tra      = MxN matrix
 %   montage.labelnew = Mx1 cell-array - new labels
 %   montage.labelorg = Nx1 cell-array - original labels
-
 % S.keepothers = 'yes' - keep the channels not involved in the montage (default)
 %                        'no' - discard the channels not involved in the montage 
 % S.blocksize - size of blocks used internally to split large continuous files
@@ -28,7 +27,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_montage.m 2383 2008-10-22 10:18:35Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
