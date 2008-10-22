@@ -366,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 2277 2008-10-01 11:08:33Z guillaume $
+% $Id: cfg_util.m 2379 2008-10-22 06:55:32Z volkmar $
 
-rev = '$Rev: 2277 $'; %#ok
+rev = '$Rev: 2379 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -1345,7 +1345,7 @@ else
     str = cell(numel(cjid2subsfailed)+1,1);
     str{1} = 'The following modules did not run:';
     for k = 1:numel(cjid2subsfailed)
-        str{k+1} = subsref(job.cj, [cjid2subsfailed{k} substruct('.','name')]);
+        str{k+1} = subsref(job.cjrun, [cjid2subsfailed{k} substruct('.','name')]);
     end;
     cfg_message('matlabbatch:run:jobfailed', '%s\n', str{:});
     est.identifier = 'matlabbatch:run:jobfailederr';

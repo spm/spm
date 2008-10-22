@@ -1,5 +1,5 @@
 %-----------------------------------------------------------------------
-% Job configuration created by cfg_util (rev $Rev: 1775 $)
+% Job configuration created by cfg_util (rev $Rev: 2379 $)
 %-----------------------------------------------------------------------
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.type = 'cfg_files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.name = 'Files to move/copy/delete';
@@ -7,7 +7,7 @@ matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.tag = 'files';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.filter = 'any';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.ufilter = '.*';
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.dir = '';
-matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.num = [1 Inf];
+matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.num = [0 Inf];
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.check = [];
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.help = {'These files will be moved, copied or deleted.'};
 matlabbatch{1}.menu_cfg{1}.menu_entry{1}.conf_files.def = [];

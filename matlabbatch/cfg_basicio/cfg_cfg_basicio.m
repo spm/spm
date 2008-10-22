@@ -14,7 +14,7 @@ files.name    = 'Files to move/copy/delete';
 files.help    = {'These files will be moved, copied or deleted.'};
 files.filter = 'any';
 files.ufilter = '.*';
-files.num     = [1 Inf];
+files.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % moveto Move to
 % ---------------------------------------------------------------------
