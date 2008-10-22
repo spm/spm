@@ -9,10 +9,10 @@ function write_data(filename, dat, varargin)
 % but that is not required since it will be added automatically.
 %
 % Additional options should be specified in key-value pairs and can be
-%   'header'         header structure, see READ_FCDC_HEADER
+%   'header'         header structure, see READ_HEADER
 %   'dataformat'     string, see below
+%   'append'         boolean, not supported for all formats
 %   'chanindx'       1xN array
-%   'subformat'      string, for the fcdc_ftc format
 %
 % The supported dataformats are
 %   brainvision_eeg
@@ -20,6 +20,7 @@ function write_data(filename, dat, varargin)
 %   riff_wave
 %   fcdc_matbin
 %   fcdc_mysql
+%   fcdc_buffer
 %   plexon_nex
 %   neuralynx_ncs
 %   ctf_meg4       (partial and incomplete)
@@ -29,6 +30,11 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.11  2008/10/22 10:43:41  roboos
+% removed obsolete option subformat
+% added option append and implemented for format=matlab (i.e. read, append, write)
+% completed the implementation for fcdc_buffer
+%
 % Revision 1.10  2008/06/19 20:50:35  roboos
 % added initial support for fcdc_buffer, sofar only for the header
 %
@@ -71,7 +77,7 @@ end
 
 % get the options
 dataformat    = keyval('dataformat',    varargin); if isempty(dataformat), dataformat = filetype(filename); end
-subformat     = keyval('subformat',     varargin); % for fcdc_ftc
+append        = keyval('append',        varargin); if isempty(append), append = false; end
 nbits         = keyval('nbits',         varargin); % for riff_wave
 chanindx      = keyval('chanindx',      varargin);
 hdr           = keyval('header',        varargin);
@@ -81,10 +87,13 @@ hdr           = keyval('header',        varargin);
 
 switch dataformat
   case 'fcdc_buffer'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % network transparent buffer
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     [host, port] = filetype_check_uri(filename);
-    
-       type = {
+
+    type = {
       'char'
       'uint8'
       'uint16'
@@ -97,27 +106,47 @@ switch dataformat
       'single'
       'double'
       };
+    
+    wordsize = {
+      1 % 'char'
+      1 % 'uint8'
+      2 % 'uint16'
+      4 % 'uint32'
+      8 % 'uint64'
+      1 % 'int8'
+      2 % 'int16'
+      4 % 'int32'
+      8 % 'int64'
+      4 % 'single'
+      8 % 'double'
+      };
 
-    if ~isempty(hdr)
+    % this should only be done the first time
+    if ~append && ~isempty(hdr)
       % reformat the header into a buffer-compatible format
-      H.fsample   = hdr.Fs;
-      H.nchans    = hdr.nChans;
-      H.nsamples  = 0;
-      H.nevents   = 0;
-      H.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
-      buffer('put_hdr', H, host, port);
-    end    
-    if ~isempty(dat)
-      error('not yet implemented'); 
-      % FIXME reformat the data into a buffer-compatible format
-      buffer('put_dat', dat, host, port);
-    end    
+      packet.fsample   = hdr.Fs;
+      packet.nchans    = hdr.nChans;
+      packet.nsamples  = 0;
+      packet.nevents   = 0;
+      packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+      buffer('put_hdr', packet, host, port);
+    end
 
-    case 'ctf_meg4'  % wat als ctf_ds??
+    if ~isempty(dat)
+      % reformat the data into a buffer-compatible format
+      packet.nchans    = size(dat,1);
+      packet.nsamples  = size(dat,2);
+      packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+      packet.bufsize   = numel(dat) * wordsize{find(strcmp(type, class(dat)))};
+      packet.buf       = dat;
+      buffer('put_dat', packet, host, port);
+    end
+
+  case 'ctf_meg4'  % wat als ctf_ds??
     % this is a skeleton implementation only and a lot of details still
     % need to be filled in. The implementation has not been tested yet.
     warning('this implementation has not yet been tested');
-    
+
     if length(size(dat))<3
       dat = reshape(dat, [1 size(dat)]);
     end
@@ -150,7 +179,7 @@ switch dataformat
     % wat als numbytes>1GB ?
 
     for i=1:ntrials
-      datorig = zeros(nchanorig,nsamples)
+      datorig = zeros(nchanorig,nsamples);
       if i<=ntrldat
         datorig(chanindx,:) = dat(i,:,:); % padden met 0 als nsmpdat~=nsmporig? of continue maken en dan uitknippen?
         % wat als data>intmax?
@@ -171,6 +200,10 @@ switch dataformat
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % combination of *.eeg and *.vhdr file
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+
     if nchans~=hdr.nChans && length(chanindx)==nchans
       % assume that the header corresponds to the original multichannel
       % file and that the data represents a subset of channels
@@ -183,37 +216,15 @@ switch dataformat
     %   hdr.Fs
     write_brainvision_eeg(filename, hdr, dat);
 
-  case 'matlab'
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % plain matlab file
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    [path, file, ext] = fileparts(filename);
-    filename = fullfile(path, [file '.mat']);
-    save(filename, 'dat', 'hdr');
-
-  case 'riff_wave'
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %     This writes data Y to a Windows WAVE file specified by the file name
-    %     WAVEFILE, with a sample rate of FS Hz and with NBITS number of bits.
-    %     NBITS must be 8, 16, 24, or 32.  For NBITS < 32, amplitude values
-    %     outside the range [-1,+1] are clipped
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if nchans~=hdr.nChans && length(chanindx)==nchans
-      % assume that the header corresponds to the original multichannel
-      % file and that the data represents a subset of channels
-      hdr.label  = hdr.label(chanindx);
-      hdr.nChans = length(chanindx);
-    end
-    if nchans~=1
-      error('this format only supports single channel continuous data');
-    end
-    wavwrite(dat, hdr.Fs, nbits, filename);
-    
   case 'fcdc_matbin'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % multiplexed data in a *.bin file (ieee-le, 64 bit floating point values),
     % accompanied by a matlab V6 file containing the header
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+
     [path, file, ext] = fileparts(filename);
     headerfile = fullfile(path, [file '.mat']);
     datafile   = fullfile(path, [file '.bin']);
@@ -229,7 +240,7 @@ switch dataformat
     [fid,message] = fopen(datafile,'wb','ieee-le');
     fwrite(fid, dat, 'double');
     fclose(fid);
-    
+
   case 'fcdc_mysql'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % write to a MySQL server listening somewhere else on the network
@@ -258,40 +269,83 @@ switch dataformat
       end
 
     elseif isempty(hdr) && ~isempty(dat)
-        dim = size(dat);
-        if numel(dim)==2
-          % ensure that the data dimensions correspond to ntrials X nchans X samples
-          dim = [1 dim];
-          dat = reshape(dat, dim);
-        end
-        ntrials = dim(1);
-        for i=1:ntrials
-          if db_blob
-            % insert the data into the database table as a binary blob
-            db_insert_blob('fieldtrip.data', 'msg', reshape(dat(i,:,:), dim(2:end)));
-          else
-            % create a structure with the same fields as the database table
-            s = struct;
-            s.nChans   = dim(2);
-            s.nSamples = dim(3);
-            try
-              s.data = serialize(reshape(dat(i,:,:), dim(2:end)));
-            catch
-              warning(lasterr);
-            end
-            % insert the structure into the database
-            db_insert('fieldtrip.data', s);
+      dim = size(dat);
+      if numel(dim)==2
+        % ensure that the data dimensions correspond to ntrials X nchans X samples
+        dim = [1 dim];
+        dat = reshape(dat, dim);
+      end
+      ntrials = dim(1);
+      for i=1:ntrials
+        if db_blob
+          % insert the data into the database table as a binary blob
+          db_insert_blob('fieldtrip.data', 'msg', reshape(dat(i,:,:), dim(2:end)));
+        else
+          % create a structure with the same fields as the database table
+          s = struct;
+          s.nChans   = dim(2);
+          s.nSamples = dim(3);
+          try
+            s.data = serialize(reshape(dat(i,:,:), dim(2:end)));
+          catch
+            warning(lasterr);
           end
+          % insert the structure into the database
+          db_insert('fieldtrip.data', s);
         end
-      
+      end
+
     else
       error('you should specify either the header or the data when writing to a MySQL database');
     end
+
+  case 'matlab'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % plain matlab file
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    [path, file, ext] = fileparts(filename);
+    filename = fullfile(path, [file '.mat']);
+    if append && exist(filename, 'file')
+      prev = load(filename);
+      if ~isequal(hdr, prev.hdr);
+        error('inconsistent header');
+      else
+        % append the new data to that from the matlab file
+        dat = cat(2, prev.dat, dat);
+      end
+    end
+    save(filename, 'dat', 'hdr');
+
+  case 'riff_wave'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %     This writes data Y to a Windows WAVE file specified by the file name
+    %     WAVEFILE, with a sample rate of FS Hz and with NBITS number of bits.
+    %     NBITS must be 8, 16, 24, or 32.  For NBITS < 32, amplitude values
+    %     outside the range [-1,+1] are clipped
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+
+    if nchans~=hdr.nChans && length(chanindx)==nchans
+      % assume that the header corresponds to the original multichannel
+      % file and that the data represents a subset of channels
+      hdr.label  = hdr.label(chanindx);
+      hdr.nChans = length(chanindx);
+    end
+    if nchans~=1
+      error('this format only supports single channel continuous data');
+    end
+    wavwrite(dat, hdr.Fs, nbits, filename);
 
   case 'plexon_nex'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % single or mulitple channel Plexon NEX file
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file, '.nex']);
     if nchans~=1
@@ -324,11 +378,16 @@ switch dataformat
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % single channel Neuralynx NCS file
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    [path, file, ext] = fileparts(filename);
-    filename = fullfile(path, [file, '.ncs']);
+    if append
+      error('appending data is not yet supported for this data format');
+    end
+
     if nchans>1
       error('only supported for single-channel data');
     end
+
+    [path, file, ext] = fileparts(filename);
+    filename = fullfile(path, [file, '.ncs']);
 
     if nchans~=hdr.nChans && length(chanindx)==nchans
       % assume that the header corresponds to the original multichannel
