@@ -1,6 +1,6 @@
-function [M0,M1,L1,L2] = spm_bireduce(M,P)
+function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % reduction of a fully nonlinear MIMO system to Bilinear form
-% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P);
+% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P,D);
 %
 % M   - model specification structure
 % Required fields:
@@ -13,6 +13,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 %   M.x   - (n x 1) = x(0) = expansion point
 %
 % P   - model parameters
+% D   - delay matrix (default D = 1)
 %
 % A Bilinear approximation is returned where the states are
 %
@@ -34,11 +35,16 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 2373 2008-10-21 18:50:15Z karl $
+% $Id: spm_bireduce.m 2392 2008-10-23 14:57:31Z karl $
 
 
 % set up
 %==========================================================================
+try
+    Q;
+catch
+    Q = 1;
+end
 
 % create inline functions
 %--------------------------------------------------------------------------
@@ -70,19 +76,27 @@ catch
     u = sparse(M.m,1);
 end
 
-% f(x(0),0) and l(x(0),0)
-%--------------------------------------------------------------------------
-f0    = spm_vec(feval(funx,x,u,P,M));
-l0    = spm_vec(feval(funl,x,u,P,M));
 
 % Partial derivatives for 1st order Bilinear operators
 %==========================================================================
 
-% derivatives
+% l(x(0),0)
 %--------------------------------------------------------------------------
-dfdx  = spm_diff(funx,x,u,P,M,1);
-dfdxu = spm_diff(funx,x,u,P,M,[1 2]);
-dfdu  = spm_diff(funx,x,u,P,M,2);
+l0    = spm_vec(feval(funl,x,u,P,M));
+
+% f(x(0),0) and derivatives
+%--------------------------------------------------------------------------
+[dfdxu dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
+[dfdu  f0]   = spm_diff(funx,x,u,P,M,2);
+
+% delay operator
+%--------------------------------------------------------------------------
+f0    = Q*f0;
+dfdx  = Q*dfdx;
+dfdu  = Q*dfdu;
+for i = length(dfdxu)
+    dfdxu{i} = Q*dfdxu{i};
+end
 
 m     = length(dfdxu);          % m inputs
 n     = length(f0);             % n states
@@ -100,7 +114,7 @@ M0    = spm_cat({0                     []    ;
 % Bilinear operator - M1 = dM0/du
 %--------------------------------------------------------------------------
 for i = 1:m
-    M1{i} = spm_cat({0,                               []         ;
+    M1{i} = spm_cat({0,                                []        ;
                     (dfdu(:,i) - dfdxu{i}*spm_vec(x)), dfdxu{i}});
 end
 

@@ -77,7 +77,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2373 2008-10-21 18:50:15Z karl $
+% $Id: spm_nlsi_GN.m 2392 2008-10-23 14:57:31Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -239,7 +239,10 @@ v     = 0;                                      % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 for k = 1:64
- 
+    
+    % time
+    %----------------------------------------------------------------------  
+    Ti    = clock;
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %======================================================================
@@ -247,6 +250,7 @@ for k = 1:64
     % prediction f, and gradients; dfdp
     %----------------------------------------------------------------------
     [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+    
        
     % prediction error and full gradients
     %----------------------------------------------------------------------
@@ -329,7 +333,8 @@ for k = 1:64
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        F0; fprintf(' actual: %.3e\n',full(F - C.F))
+        F0; 
+        fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),etime(clock,Ti))
     catch
         F0 = F;
     end
@@ -351,7 +356,7 @@ for k = 1:64
         
         % decrease regularization
         %------------------------------------------------------------------
-        v     = min(v + 1,8);
+        v     = min(v + 1/2,8);
         str   = 'EM:(+)';
         
     else

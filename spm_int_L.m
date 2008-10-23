@@ -58,14 +58,14 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 2315 2008-10-08 14:43:18Z jean $
+% $Id: spm_int_L.m 2392 2008-10-23 14:57:31Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U), u.u = U; U = u; end
-try, dt = U.dt; catch, dt = 1; end
-try, ns = M.ns; catch, ns = length(U.u); end
+if ~isstruct(U), u.u = U; U = u;         end
+try, dt = U.dt;        catch, dt = 1;    end
+try, ns = size(U.u,1); catch, ns = M.ns; end
  
  
 % state equation; add [0] states if not specified

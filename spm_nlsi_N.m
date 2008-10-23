@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2373 2008-10-21 18:50:15Z karl $
+% $Id: spm_nlsi_N.m 2392 2008-10-23 14:57:31Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -264,7 +264,7 @@ for ip = 1:64
  
     % time
     %----------------------------------------------------------------------  
-    now      = clock;
+    Ti = clock;
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
@@ -435,8 +435,8 @@ for ip = 1:64
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        elapsedTime = etime(clock,now);
-        F0; fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),elapsedTime)
+        F0; 
+        fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),etime(clock,Ti))
     catch
         F0 = F;
     end
