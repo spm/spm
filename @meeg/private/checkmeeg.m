@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2357 2008-10-20 12:03:20Z vladimir $
+% $Id: checkmeeg.m 2390 2008-10-23 12:04:43Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -143,7 +143,8 @@ else
         end
     end
 
-    if ~isa(meegstruct.data.y, 'file_array')
+    if ~isa(meegstruct.data.y, 'file_array') || isempty(fileparts(meegstruct.data.y.fname)) ...
+            || ~exist(meegstruct.data.y.fname, 'file')
         if isfield(meegstruct, 'path')
             filepath = meegstruct.path;
         else
