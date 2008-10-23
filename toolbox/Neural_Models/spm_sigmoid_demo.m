@@ -28,7 +28,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sigmoid_demo.m 1207 2008-03-13 20:57:56Z karl $ 
+% $Id: spm_sigmoid_demo.m 2393 2008-10-23 14:58:50Z karl $ 
  
 clear
  
@@ -75,6 +75,8 @@ C     = sparse(1,1,1,n,1);
 % get priors
 %--------------------------------------------------------------------------
 [pE,pC] = spm_lfp_priors(A,B,C);
+[pE,pC] = spm_L_priors(n,pE,pC);
+[pE,pC] = spm_ssr_priors(pE,pC);
  
 % create LFP model
 %--------------------------------------------------------------------------
@@ -167,7 +169,7 @@ m     = length(r);
 for i = 1:m
  
     pE.R(1) = log(r(i));
-    LFP     = spm_int_B(pE,M,U);
+    LFP     = spm_int_L(pE,M,U);
  
     % LFP
     %----------------------------------------------------------------------

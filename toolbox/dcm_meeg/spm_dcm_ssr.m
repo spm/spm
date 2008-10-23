@@ -24,13 +24,13 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_dcm_ssr.m 2393 2008-10-23 14:58:50Z karl $
 
 
 % check options
 %==========================================================================
 drawnow
-clear spm_erp_L spm_gen_erp
+clear spm_erp_L
 name = sprintf('DCM_%s',date);
 
 % Filename and options
@@ -54,7 +54,7 @@ DCM.M.dipfit.model = model;
 
 % prior moments on parameters
 %--------------------------------------------------------------------------
-[pE,pC]  = spm_dcm_neural_priors(DCM.A,DCM.B,diag(sum(DCM.C,2)),model);
+[pE,pC]  = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 
 try
     pE   = DCM.M.pE;

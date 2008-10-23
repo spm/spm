@@ -11,22 +11,19 @@ function [y] = spm_gen_erp(P,M,U)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_gen_erp.m 2374 2008-10-21 18:52:29Z karl $
- 
+% $Id: spm_gen_erp.m 2393 2008-10-23 14:58:50Z karl $
+
 % within-trial inputs
 %==========================================================================
-persistent x
-try, M.loop; catch, M.loop = 0; end
-A   = 1/2;
- 
+
 % check input u = f(t,P,M)
 %--------------------------------------------------------------------------
 try, fu  = M.fu; catch,  fu  = 'spm_erp_u'; end
 try, ns  = M.ns; catch,  ns  = 128;         end
 try, dt  = U.dt; catch,  dt  = 0.004;       end
- 
+
 % peri-stimulus time inputs
 %--------------------------------------------------------------------------
 U.u = feval(fu,[1:ns]*U.dt,P,M);
@@ -38,54 +35,52 @@ try
 catch
     X = sparse(1,0);
 end
- 
- 
+
+% solve for fixed point (i.e., 64 ms burn in)
+%--------------------------------------------------------------------------
+switch M.dipfit.model
+    
+    case{'NMM','MFM'}
+        
+        S     = M;
+        S.g   = {};
+        V.u   = sparse(8,1);
+        V.dt  = 8/1000;
+        x     = spm_int_L(P,S,V);
+        x     = spm_unvec(x(end,:),S.x);
+        M.x   = x;
+        
+    otherwise
+        
+end
+
 % cycle over trials
 %--------------------------------------------------------------------------
 y      = cell(size(X,1),1);
 for  c = 1:size(X,1)
- 
- 
+
     % baseline parameters
     %----------------------------------------------------------------------
     Q  = P;
- 
+
     % trial-specific effects
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
- 
+
         Q.A{1}  = Q.A{1} + X(c,i)*P.B{i};         % forward   connections
         Q.A{2}  = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
         Q.A{3}  = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
- 
+
         try
             Q.H = Q.H + X(c,i)*diag(P.B{i});      % intrinsic connections
         catch
             Q.G = Q.G + X(c,i)*diag(P.B{i});
         end
     end
- 
- 
+
     % integrate DCM for this trial
     %----------------------------------------------------------------------
-    for i = 1:4
- 
-        % trial-specific initial states
-        %------------------------------------------------------------------
-        try, M.x = x{c}; end
- 
-        % integrate
-        %------------------------------------------------------------------
-        y{c}      = spm_int_L(Q,M,U);
- 
-        % save the final state vector
-        %------------------------------------------------------------------
-        if M.loop
-            x{c} = A*spm_vec(y{c}(end,:)) + (1 - A)*spm_vec(M.x);
-            x{c} = spm_unvec(x{c},M.x);
-        else
-            x{c} = M.x; break
-        end
-    end
+    y{c}      = spm_int_L(Q,M,U);
+
 end
 

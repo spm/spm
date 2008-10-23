@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_api_erp.m 2393 2008-10-23 14:58:50Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -150,7 +150,6 @@ try, set(handles.h,           'Value', DCM.options.h);               end
 try, set(handles.han,         'Value', DCM.options.han);             end
 try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
-try, set(handles.loop,        'Value', DCM.options.loop);            end
 try, set(handles.location,    'Value', DCM.options.location);        end
 try, set(handles.symmetry,    'Value', DCM.options.symmetry);        end
 try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
@@ -261,7 +260,6 @@ handles.DCM.options.h        = get(handles.h,             'Value');
 handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
-handles.DCM.options.loop     = get(handles.loop,          'Value');
 handles.DCM.options.location = get(handles.location,      'Value');
 handles.DCM.options.symmetry = get(handles.symmetry,      'Value');
  
@@ -628,7 +626,13 @@ handles = reset_Callback(hObject, eventdata, handles);
 DCM     = handles.DCM;
 n       = length(DCM.Sname);           % number of sources
 m       = size(DCM.xU.X,2);            % number of experimental inputs
-l       = length(DCM.options.onset);   % number of peristimulus inputs
+switch DCM.options.analysis
+    case{'SSR'}
+        l = n;                         % number of endogenous inputs
+    otherwise
+        l = length(DCM.options.onset); % number of peristimulus inputs
+end
+
  
 % remove previous objects
 %--------------------------------------------------------------------------
@@ -1029,7 +1033,7 @@ switch handles.DCM.options.analysis
         set(handles.model,      'Enable','on');
         set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
         set(handles.Wavelet,    'Enable','off','String','-');
-        set(handles.loop,       'Enable','on');
+
  
     % Cross-spectral density model (steady-state responses)
     %----------------------------------------------------------------------
@@ -1050,9 +1054,9 @@ switch handles.DCM.options.analysis
         end
         set(handles.model,      'Enable','on');
         set(handles.Spatial,    'Value', 1);
-        set(handles.Spatial,    'String',{'ECD','ECD','LFP'});
+        set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Spectral density');
-        set(handles.loop,       'Enable','off');
+
         
     % induced responses
     %----------------------------------------------------------------------
@@ -1077,7 +1081,6 @@ switch handles.DCM.options.analysis
         set(handles.Spatial,    'Value', 1);
         set(handles.Spatial,    'String',{'ECD','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
-        set(handles.loop,       'Enable','off');
         set(handles.render,     'Enable','off' )
         set(handles.Imaging,    'Enable','off' )
  

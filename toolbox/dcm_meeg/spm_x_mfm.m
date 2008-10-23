@@ -2,7 +2,8 @@ function [x,M] = spm_x_mfm(P)
 % initialises a state structure for a mean field model
 % FORMAT [x,M] = spm_x_mfm(P)
 %
-% P  - parameter structure (encoding extrinsic connections)
+% P - parameter structure (encoding extrinsic connections)
+% M - model structure
 %
 % x - states and covariances
 % M - model structure
@@ -22,7 +23,7 @@ function [x,M] = spm_x_mfm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_x_mfm.m 2393 2008-10-23 14:58:50Z karl $
 
  
 % dimensions
@@ -55,7 +56,6 @@ M.m   = size(P.C,2);
 M.l   = size(P.C,1);
 
 
- 
 % solve for fixed point 
 %--------------------------------------------------------------------------
 U.u   = sparse(16,1);

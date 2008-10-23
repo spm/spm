@@ -2,17 +2,7 @@ function [y] = spm_gx_erp(x,u,P,M)
 % observer for a neural mass model of erps
 % FORMAT [y] = spm_gx_erp(x,u,P,M)
 % x      - state vector
-%   x(:,1) - voltage (spiny stellate cells)
-%   x(:,2) - voltage (pyramidal cells) +ve
-%   x(:,3) - voltage (pyramidal cells) -ve
-%   x(:,4) - current (spiny stellate cells)    depolarizing
-%   x(:,5) - current (pyramidal cells)         depolarizing
-%   x(:,6) - current (pyramidal cells)         hyerpolarizing
-%   x(:,7) - voltage (inhibitory interneurons)
-%   x(:,8) - current (inhibitory interneurons) depolarizing
-%   x(:,9) - voltage (pyramidal cells)
-%
-% y        - measured voltage
+% y      - measured voltage y = L*x(:)
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -21,7 +11,7 @@ function [y] = spm_gx_erp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_erp.m 1189 2008-03-05 17:19:26Z karl $
+% $Id: spm_gx_erp.m 2393 2008-10-23 14:58:50Z karl $
 
 % parameterised lead field times [perturbations] of states
 %--------------------------------------------------------------------------

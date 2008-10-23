@@ -27,12 +27,12 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_dcm_erp.m 2393 2008-10-23 14:58:50Z karl $
 
 % check options
 %==========================================================================
 drawnow
-clear spm_erp_L spm_gen_erp
+clear spm_erp_L
 name = sprintf('DCM_%s',date);
 
 % Filename and options
