@@ -20,7 +20,7 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_vbecd_disp.m 2257 2008-09-30 16:31:14Z christophe $
+% $Id: spm_eeg_inv_vbecd_disp.m 2391 2008-10-23 14:20:15Z christophe $
 
 global st
 % global defaults
@@ -542,7 +542,8 @@ loc(3,:) = loc(3,:) - bb(1,3)+1;
 % prepare error ellipse
 vloc = is(1:3,1:3)*vloc*is(1:3,1:3);
 [V,E] = eig(vloc);
-VE = V*diag(sqrt(diag(E)));
+VE = V*diag(sqrt(diag(E))); % use std
+% VE = V*E;   % or use variance ???
 
 dh = zeros(9,1);
 figure(Fig)
