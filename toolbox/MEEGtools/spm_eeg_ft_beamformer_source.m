@@ -32,7 +32,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 2387 2008-10-22 16:23:19Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 2389 2008-10-23 11:15:23Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -238,6 +238,8 @@ end
 Dsource = spm_eeg_ft2spm(sourcedata, S.outfile);
 
 Dsource = chantype(Dsource, 1:length(S.sources.label), 'LFP');
+
+Dsource = conditions(Dsource, D.conditions(trialind));
 
 Dsource = history(Dsource, 'spm_eeg_ft_beamformer_source', S);
 

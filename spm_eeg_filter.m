@@ -18,7 +18,7 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 2301 2008-10-06 12:41:51Z vladimir $
+% $Id: spm_eeg_filter.m 2389 2008-10-23 11:15:23Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG filter setup',0);
 
@@ -146,7 +146,7 @@ spm('Pointer', 'Watch');drawnow;
 Dnew = clone(D, ['f' fnamedat(D)], [D.nchannels D.nsamples D.ntrials]);
 
 % determine channels for filtering
-Fchannels = unique([D.meegchannels, D.eogchannels]);
+Fchannels = unique([D.meegchannels, D.eogchannels, strmatch('LFP', D.chantype, 'exact')]);
 
 ind = setdiff(1:D.nchannels, Fchannels);
 

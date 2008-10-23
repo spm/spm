@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 2387 2008-10-22 16:23:19Z vladimir $
+% $Id: spm_MEEGtools.m 2389 2008-10-23 11:15:23Z vladimir $
 
 
 funlist = {
@@ -18,6 +18,8 @@ funlist = {
     'Define spatial confounds' , 'spm_eeg_spatial_confounds'
     'Use CTF head localization' , 'spm_eeg_megheadloc'
     'Fieldtrip beamformer source extraction' , 'spm_eeg_ft_beamformer_source'
+    'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'
+    'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
     };
 
 str = sprintf('%s|', funlist{:, 1});
