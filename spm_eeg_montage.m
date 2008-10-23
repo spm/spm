@@ -27,7 +27,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2383 2008-10-22 10:18:35Z vladimir $
+% $Id: spm_eeg_montage.m 2394 2008-10-23 15:38:38Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -118,7 +118,7 @@ if length(unique(montage.labelorg))~=n
 end
 
 % determine whether all channels that have to be rereferenced are available
-if length(intersect(D.chanlabels, montage.labelorg)) ~= D.nchannels
+if length(intersect(D.chanlabels, montage.labelorg)) ~= n
   error('not all channels that are used in the montage are available');
 end
 

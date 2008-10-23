@@ -13,7 +13,6 @@ function D = spm_eeg_convert(S)
 % S.outfile - name base for the output files (default - the same as input)
 % S.channels - 'all' - convert all channels
 %               cell array of labels
-% S.chanfile - name of the channel selection file
 % S.usetrials - 1 - take the trials as defined in the data (default)
 %               0 - use trial definition file even though the data is
 %                   already epoched.
@@ -37,7 +36,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2384 2008-10-22 11:05:11Z vladimir $
+% $Id: spm_eeg_convert.m 2394 2008-10-23 15:38:38Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 

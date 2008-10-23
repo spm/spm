@@ -39,7 +39,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld  
-% $Id: spm_eeg_megheadloc.m 2387 2008-10-22 16:23:19Z vladimir $
+% $Id: spm_eeg_megheadloc.m 2394 2008-10-23 15:38:38Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -206,7 +206,7 @@ end
 
 disp(['Accepted ' num2str(length(trlind)) '/' num2str(Ntrls) ' trials.']);
 
-if S.rejectbetween && length(trlind)>1
+if S.rejectbetween && length(trlind)>1 && length(hlc_chan_ind) == 9
 
     %%
     % Here the idea is to put a 'sphere' or 'hypercylinder' in the space of trial location whose
@@ -299,7 +299,7 @@ end
 
 %%
 % This generates the corrected grad structure
-if S.correctsens
+if S.correctsens && (length(hlc_chan_ind) == 9)
 
     if ~isfield(D{f}, 'origheader') || length(hlc_chan_ind)<9
         error('Original header and headloc channels are required for this functionality.');

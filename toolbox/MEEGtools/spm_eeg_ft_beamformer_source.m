@@ -32,7 +32,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 2389 2008-10-23 11:15:23Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 2394 2008-10-23 15:38:38Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -110,20 +110,21 @@ if isempty(trialind)
 end
 
 %%
-if ~isfield(S, 'appendchannels') && spm_input('Append other channels?','+1','yes|no',[1 0])
-    selection = listdlg('ListString', D.chanlabels, 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
-    if ~isempty(selection)
-        S.appendchannels = D.chanlabels(selection);
+if ~isfield(S, 'appendchannels')
+    if spm_input('Append other channels?','+1','yes|no',[1 0])
+        selection = listdlg('ListString', D.chanlabels, 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
+        if ~isempty(selection)
+            S.appendchannels = D.chanlabels(selection);
+        else
+            S.appendchannels = {};
+        end
     else
         S.appendchannels = {};
     end
-else
-    S.appendchannels = {};
 end
 %% ============ Select trials and correct sensors
 
 S.D = D;
-S.correctsens = 1;
 S.save = 0;
 D = spm_eeg_megheadloc(S);
 
@@ -239,7 +240,7 @@ Dsource = spm_eeg_ft2spm(sourcedata, S.outfile);
 
 Dsource = chantype(Dsource, 1:length(S.sources.label), 'LFP');
 
-Dsource = conditions(Dsource, D.conditions(trialind));
+Dsource = conditions(Dsource, [], D.conditions(trialind));
 
 Dsource = history(Dsource, 'spm_eeg_ft_beamformer_source', S);
 

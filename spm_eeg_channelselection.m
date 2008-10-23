@@ -13,7 +13,7 @@ function S = spm_eeg_channelselection(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_channelselection.m 1507 2008-04-29 10:44:36Z vladimir $
+% $Id: spm_eeg_channelselection.m 2394 2008-10-23 15:38:38Z vladimir $
 
 if nargin == 0
     S = [];
@@ -35,13 +35,14 @@ hdr = fileio_read_header(S.dataset, 'fallback', 'biosig');
 if strcmp(S.channels, 'file')
     if ~isfield(S, 'chanfile')
         S.chanfile = spm_select(1, '\.mat', 'Select channel selection file');
-        label = load(S.chanfile, 'label');
-        if ~isfield(label, 'label')
-            error('Channel selection file does not contain labels.');
-        else
-            S.channels = label.label;
-        end
     end
+    label = load(S.chanfile, 'label');
+    if ~isfield(label, 'label')
+        error('Channel selection file does not contain labels.');
+    else
+        S.channels = label.label;
+    end
+    S.save = 0;
 else
     switch S.channels
         case 'eeg'

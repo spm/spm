@@ -6,8 +6,8 @@ function res = save(this)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Latvik
-% $Id: save.m 1507 2008-04-29 10:44:36Z vladimir $
+% Vladimir Litvak
+% $Id: save.m 2394 2008-10-23 15:38:38Z vladimir $
 
 
 D = struct(this);
