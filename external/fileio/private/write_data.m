@@ -30,6 +30,10 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.12  2008/10/23 09:09:55  roboos
+% improved appending for format=matlab
+% added fcdc_global for debugging (consistent with write_event)
+%
 % Revision 1.11  2008/10/22 10:43:41  roboos
 % removed obsolete option subformat
 % added option append and implemented for format=matlab (i.e. read, append, write)
@@ -69,8 +73,9 @@ function write_data(filename, dat, varargin)
 % updated the help
 %
 
-% for fcdc_mysql
-global db_blob
+global data_queue    % for fcdc_global
+global header_queue  % for fcdc_global
+global db_blob       % for fcdc_mysql
 if isempty(db_blob)
   db_blob = 0;
 end
@@ -86,6 +91,19 @@ hdr           = keyval('header',        varargin);
 [nchans, nsamples] = size(dat);
 
 switch dataformat
+  case 'fcdc_global'
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % store it in a global variable, this is only for debugging
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ~isempty(hdr)
+      header_queue = hdr;
+    end
+    if isempty(data_queue) || ~append
+      data_queue = dat;
+    else
+      data_queue = cat(2, data_queue, dat);
+    end
+
   case 'fcdc_buffer'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % network transparent buffer
@@ -106,7 +124,7 @@ switch dataformat
       'single'
       'double'
       };
-    
+
     wordsize = {
       1 % 'char'
       1 % 'uint8'
@@ -305,14 +323,22 @@ switch dataformat
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file '.mat']);
-    if append && exist(filename, 'file')
+    if      append &&  exist(filename, 'file')
+      % read the previous header and data from matlab file
       prev = load(filename);
-      if ~isequal(hdr, prev.hdr);
+      if ~isempty(hdr) && ~isequal(hdr, prev.hdr)
         error('inconsistent header');
       else
         % append the new data to that from the matlab file
         dat = cat(2, prev.dat, dat);
       end
+    elseif  append && ~exist(filename, 'file')
+      % file does not yet exist, which is not a problem
+    elseif ~append &&  exist(filename, 'file')
+      warning(sprintf('deleting existing file ''%s''', filename));
+      delete(filename);
+    elseif ~append && ~exist(filename, 'file')
+      % file does not yet exist, which is not a problem
     end
     save(filename, 'dat', 'hdr');
 
