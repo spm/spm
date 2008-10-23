@@ -13,7 +13,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 2393 2008-10-23 14:58:50Z karl $
+% $Id: spm_gen_erp.m 2395 2008-10-23 18:28:16Z karl $
 
 % within-trial inputs
 %==========================================================================
@@ -38,21 +38,13 @@ end
 
 % solve for fixed point (i.e., 64 ms burn in)
 %--------------------------------------------------------------------------
-switch M.dipfit.model
-    
-    case{'NMM','MFM'}
-        
-        S     = M;
-        S.g   = {};
-        V.u   = sparse(8,1);
-        V.dt  = 8/1000;
-        x     = spm_int_L(P,S,V);
-        x     = spm_unvec(x(end,:),S.x);
-        M.x   = x;
-        
-    otherwise
-        
-end
+S     = M;
+S.g   = {};
+V.u   = sparse(8,S.m);
+V.dt  = 8/1000;
+x     = spm_int_L(P,S,V);
+x     = spm_unvec(x(end,:),S.x);
+M.x   = x;
 
 % cycle over trials
 %--------------------------------------------------------------------------

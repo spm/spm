@@ -5,7 +5,9 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % x - states and covariances
 %
 % x{1}(i,j,k)   - k-th state of j-th population on i-th source
+%                 i.e., running over sources, pop. and states
 % x{2}(:,:,i,j) - covariance among k states
+%                 i.e., running over states x states, sources and pop.
 %
 %   population: 1 - excitatory spiny stellate cells (input cells)
 %               2 - inhibitory interneurons
@@ -44,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_fx_mfm.m 2395 2008-10-23 18:28:16Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -264,18 +266,32 @@ if nargout < 3, return, end
 %
 %    J(d)         = Q(d)df/dx
 %--------------------------------------------------------------------------
-D  = -[2 16].*exp(P.D)/1000;
-nk = 3;                                              % number of states
-Sp = kron(ones(nk,nk),kron(eye(np,np),eye(ns,ns)));  % states: same pop.
-Ss = kron(kron(ones(nk,nk),ones(np,np)),eye(ns,ns)); % states: same source
+d  = -[2 16].*exp(P.D)/1000;
+nk = 3;                                               % number of states
+Sp = kron(ones(nk,nk),kron( eye(np,np),eye(ns,ns)));  % states: same pop.
+Ss = kron(ones(nk,nk),kron(ones(np,np),eye(ns,ns)));  % states: same source
 
 Dp = ~Ss;                            % states: different sources
 Ds = ~Sp & Ss;                       % states: same source different pop.
-D  = D(1)*Dp + D(2)*Ds;
+D  = d(2)*Dp + d(1)*Ds;
 
 % disable for mean field models (temporarily)
 %--------------------------------------------------------------------------
-if mfm; D = 0; end
+if mfm
+
+    Cp = kron(ones(nk,1),kron(kron(eye(np,np) ,eye(ns,ns)),ones(1,nk*nk)));
+    Cs = kron(ones(nk,1),kron(kron(ones(np,np),eye(ns,ns)),ones(1,nk*nk)));
+    Dp = kron(kron( eye(np,np),eye(ns,ns)),kron(ones(nk,nk),ones(nk,nk)));
+    Ds = kron(kron(ones(np,np),eye(ns,ns)),kron(ones(nk,nk),ones(nk,nk)));
+
+    Sp = spm_cat({Sp Cp; Cp' Dp});
+    Ss = spm_cat({Ss Cs; Cs' Ds});
+
+    Dp = ~Ss;                        % states: different sources
+    Ds = ~Sp & Ss;                   % states: same source different pop.
+
+    D  = d(2)*Dp + d(1)*Ds;
+end
 
 
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 - D.*dfdx)*f(x(t))

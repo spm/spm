@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2393 2008-10-23 14:58:50Z karl $
+% $Id: spm_api_erp.m 2395 2008-10-23 18:28:16Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -456,11 +456,18 @@ set(handles.data_ok,       'Enable', 'off');
  
 set(handles.Spatial,       'Enable', 'on');
 set(handles.plot_dipoles,  'Enable', 'on');
-set(handles.onset,         'Enable', 'on');
 set(handles.Sname,         'Enable', 'on');
 set(handles.Slocation,     'Enable', 'on');
 set(handles.spatial_back,  'Enable', 'on');
 set(handles.spatial_ok,    'Enable', 'on');
+
+switch handles.DCM.options.analysis
+    case{'SSR'}
+        set(handles.onset, 'Enable', 'off');
+    otherwise
+        set(handles.onset, 'Enable', 'on');
+end
+
  
 guidata(hObject, handles);
  
@@ -831,6 +838,13 @@ set(handles.onset,             'Enable', 'on');
 set(handles.Sname,             'Enable', 'on');
 set(handles.Slocation,         'Enable', 'on');
 set(handles.spatial_back,      'Enable', 'on');
+
+switch handles.DCM.options.analysis
+    case{'SSR'}
+        set(handles.onset,     'Enable', 'off');
+    otherwise
+        set(handles.onset,     'Enable', 'on');
+end
  
 % connection buttons
 %--------------------------------------------------------------------------
@@ -1033,6 +1047,7 @@ switch handles.DCM.options.analysis
         set(handles.model,      'Enable','on');
         set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
         set(handles.Wavelet,    'Enable','off','String','-');
+        set(handles.onset,      'Enable','on');
 
  
     % Cross-spectral density model (steady-state responses)
@@ -1056,7 +1071,7 @@ switch handles.DCM.options.analysis
         set(handles.Spatial,    'Value', 1);
         set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
         set(handles.Wavelet,    'Enable','on','String','Spectral density');
-
+        set(handles.onset,      'Enable','off');
         
     % induced responses
     %----------------------------------------------------------------------
@@ -1083,7 +1098,8 @@ switch handles.DCM.options.analysis
         set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
         set(handles.render,     'Enable','off' )
         set(handles.Imaging,    'Enable','off' )
- 
+        set(handles.onset,      'Enable','on');
+        
     otherwise
         warndlg('unknown analysis type')
         return
