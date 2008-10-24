@@ -1,3 +1,5 @@
+function [varargout] = buffer(varargin)
+
 % BUFFER manages and accesses the realtime data acquisition buffer
 % This function is implented as mex file.
 %
@@ -44,6 +46,9 @@
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: buffer.m,v $
+% Revision 1.5  2008/10/24 07:32:05  roboos
+% should be a function, not a script
+%
 % Revision 1.4  2008/07/08 20:31:34  roboos
 % extended the list of acquisition threads in the mex file, also added all of them to thread stopping
 %
@@ -57,5 +62,6 @@
 % new function, only placeholder for the documentation since the actual implementation is in a mex file
 %
 
-error('could not locate MEX file');
+error(sprintf('could not locate MEX file for %s', mfilename))
+
 
