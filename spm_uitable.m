@@ -65,16 +65,16 @@ function [table, container] = spm_uitable(varargin)
 %     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
 
 %   Copyright 2002-2006 The MathWorks, Inc.
-%   $Revision: 2367 $  $Date: 2006/11/29 21:53:13 $
+%   $Revision: 2397 $  $Date: 2006/11/29 21:53:13 $
 
 %   Release: R14. This feature will not work in previous versions of MATLAB.
 
-% $Id: spm_uitable.m 2367 2008-10-21 11:00:48Z jean $
+% $Id: spm_uitable.m 2397 2008-10-24 08:24:13Z guillaume $
 
 % Setup and P-V parsing
 
 if isempty(varargin)
-    if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.2') <= 0
+    if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.3') <= 0
         table = 'off';
         container = [];
     else
@@ -84,7 +84,7 @@ if isempty(varargin)
     return
 end
 
-if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.2') <= 0
+if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.3') <= 0
     table = [];
     container = [];
     return;
