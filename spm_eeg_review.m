@@ -9,7 +9,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2367 2008-10-21 11:00:48Z jean $
+% $Id: spm_eeg_review.m 2399 2008-10-24 11:31:51Z stefan $
 
 D = struct(D);
 
@@ -166,8 +166,12 @@ end
 if isfield(D.other,'inv') && ~isempty(D.other.inv) % && isfield(D.other.inv{1},'inverse')
     isInv = zeros(length(D.other.inv),1);
     for i=1:length(D.other.inv)
-        if isfield(D.other.inv{i},'inverse') && strcmp(D.other.inv{i}.method,'Imaging')
-            isInv(i) = 1;
+        if isfield(D.other.inv{i},'inverse') 
+            if isfield(D.other.inv{i}, 'method')
+                if strcmp(D.other.inv{i}.method,'Imaging')
+                    isInv(i) = 1;
+                end
+            end
         end
     end
     isInv = find(isInv);
