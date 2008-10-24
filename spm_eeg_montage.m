@@ -27,7 +27,7 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: spm_eeg_montage.m 2398 2008-10-24 10:32:34Z vladimir $
 
 [Finter, Fgraph, CmdLine] = spm('FnUIsetup','EEG montage',0);
 
@@ -174,7 +174,7 @@ Dnew = chanlabels(Dnew, 1:Dnew.nchannels, montage.labelnew);
 % Set channel types to default
 Dnew = chantype(Dnew, [], []);
 
-sensortypes = {'EEG', 'MEG'};
+sensortypes = {'MEG'}; % EEG disabled for now
 % apply montage to sensors
 for i = 1:length(sensortypes)
     sens = D.sensors(sensortypes{i});
@@ -189,6 +189,29 @@ for i = 1:length(sensortypes)
         sens = forwinv_apply_montage(sens, montage, 'keepunused', S.keepothers);
     end
     Dnew = sensors(Dnew, sensortypes{i}, sens);
+end
+
+% Assign default EEG sensor positions if possible
+if ~isempty(strmatch('EEG', Dnew.chantype, 'exact')) && isempty(Dnew.sensors('EEG'))
+    S1 = [];
+    S1.task = 'defaulteegsens';
+    S1.updatehistory = 0;
+    S1.D = Dnew;
+    
+    Dnew = spm_eeg_prep(S1);
+end
+
+% Create 2D positions for MEG (when there are no EEG sensors)
+% by projecting the 3D positions to 2D
+if ~isempty(strmatch('MEG', Dnew.chantype, 'exact')) &&...
+    ~isempty(Dnew.sensors('MEG')) && isempty(Dnew.sensors('EEG'))
+    S1 = [];
+    S1.task = 'project3D';
+    S1.modality = 'MEG';
+    S1.updatehistory = 0;
+    S1.D = Dnew;
+    
+    Dnew = spm_eeg_prep(S1);
 end
 
 [ok, Dnew] = check(Dnew, 'basic');
