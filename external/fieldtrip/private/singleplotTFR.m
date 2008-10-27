@@ -47,6 +47,16 @@ function cfg = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.28  2008/10/27 12:00:02  ingnie
+% change imagesc back to uimagesc, plotting with non linearly spaced axis possible now.
+%
+% Revision 1.27  2008/10/27 10:56:39  ingnie
+% temporarily changed back uimagesc to imagesc, because adding of uimage files did not work
+%
+% Revision 1.26  2008/10/27 10:01:50  ingnie
+% switched from using matlabs IMAGESC to UIMAGESC. Now also non linear spaced axis possible.
+% Also simplified masking code, which made local variable -masking- unnecessary.
+%
 % Revision 1.25  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -185,10 +195,8 @@ end
 
 % cfg.maskparameter only possible for single channel
 if length(chansel) > 1 && ~isempty(cfg.maskparameter)
-  warning('no masking possible for average over multiple channels')
-  masking = 0;
-elseif length(chansel) == 1 && ~isempty(cfg.maskparameter)
-  masking = 1;
+  warning('no masking possible for average over multiple channels -> cfg.maskparameter cleared')
+  cfg.maskparameter = [];
 end
 
 % Apply baseline correction:
@@ -248,22 +256,40 @@ else
   zmax = cfg.zlim(2);
 end
 
+% test if X and Y are linearly spaced (to within 10^-12): % FROM UIMAGE
+x = data.time(xidc);
+y = data.freq(yidc);
+dx = min(diff(x));  % smallest interval for X
+dy = min(diff(y));  % smallest interval for Y
+evenx = all(abs(diff(x)/dx-1)<1e-12);     % true if X is linearly spaced
+eveny = all(abs(diff(y)/dy-1)<1e-12);     % true if Y is linearly spaced
+
+% masking only possible for evenly spaced axis
+if strcmp(cfg.masknans, 'yes') && (~evenx || ~eveny)
+  warning('(one of the) axis are not evenly spaced -> nans cannot be masked out ->  cfg.masknans is set to ''no'';')
+  cfg.masknans = 'no';
+end
+if ~isempty(cfg.maskparameter) && (~evenx || ~eveny)
+  warning('(one of the) axis are not evenly spaced -> no masking possible -> cfg.maskparameter cleared')
+  cfg.maskparameter = [];
+end
+
 % Draw plot:
 hold on;
-h = imagesc(data.time(xidc), data.freq(yidc), TFR, [zmin,zmax]);
+h = uimagesc(data.time(xidc), data.freq(yidc), TFR, [zmin,zmax]);
 % Mask Nan's and maskfield
-if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter) || ~masking
+if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
   mask = ~isnan(TFR);
   mask = double(mask);
   set(h,'AlphaData',mask, 'AlphaDataMapping', 'scaled');
   alim([0 1]);
-elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter) && masking
+elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter)
   mask = ~isnan(TFR);
   mask = mask .* mdata;
   mask = double(mask);
   set(h,'AlphaData',mask, 'AlphaDataMapping', 'scaled');
   alim([0 1]);
-elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter) && masking
+elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter)
   mask = mdata;
   mask = double(mask);
   set(h,'AlphaData',mask, 'AlphaDataMapping', 'scaled');
