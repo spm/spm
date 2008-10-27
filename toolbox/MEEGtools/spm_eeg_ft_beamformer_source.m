@@ -16,8 +16,6 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % S.appendchannels - cell array of strings - labels of channels from the
 %             input dataset to be appended to the source data
 %
-% Also the parameters of spm_eeg_megheadloc can be specified
-%
 % Output:
 % Dsource   - MEEG object containing the source data and (optionally)
 %             appended channel data.
@@ -32,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 2401 2008-10-27 09:19:01Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -122,15 +120,7 @@ if ~isfield(S, 'appendchannels')
         S.appendchannels = {};
     end
 end
-%% ============ Select trials and correct sensors
-
-S.D = D;
-S.save = 0;
-D = spm_eeg_megheadloc(S);
-
-% This is to also save megheadloc parameters in history
-h = D.history;
-S = h(end).args;
+%%
 
 sens = sensors(D, modality);
 %% ============ Find or prepare head model
