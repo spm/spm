@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_run_fmri_est.m 2403 2008-10-27 16:55:02Z guillaume $
 
 
 global defaults
@@ -148,7 +148,7 @@ end
 switch char(fieldnames(job.method.Bayesian.space))
   case 'volume'
       SPM.PPM.space_type = 'volume';
-      SPM.PPM.blocks = job.method.Bayesian.space.volume.blocks;
+      SPM.PPM.blocks = job.method.Bayesian.space.volume;
   case 'slices'
       SPM.PPM.space_type = 'slices';
       SPM.PPM.AN_slices  = job.method.Bayesian.space.slices.numbers;
