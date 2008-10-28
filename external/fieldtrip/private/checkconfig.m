@@ -30,13 +30,17 @@ function [cfg] = checkconfig(cfg, varargin)
 %   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options, these result in an error
 %   createsubcfg      = {'subname', etc.}      % list the names of the subcfg
 %   dataset2files     = 'yes', 'no'            % converts dataset into headerfile and datafile
-%   configtracking    = 'on', 'off' or 'report'
+%   trackconfig       = 'on', 'off'            % turn config tracking on/off
 %
 % See also CHECKDATA
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.13  2008/10/28 19:20:18  sashae
+% configtracking can be turned on/off with trackconfig.
+% user can request report on unused options with cfg.trackconfig='report', or get cleaned cfg with cfg.trackconfig='cleanup'.
+%
 % Revision 1.12  2008/10/13 13:38:59  sashae
 % change in dataset2files code: empty dataset/headerfile/datafile fields are removed
 %
@@ -100,13 +104,20 @@ unused          = keyval('unused',          varargin);
 forbidden       = keyval('forbidden',       varargin);
 createsubcfg    = keyval('createsubcfg',    varargin);
 dataset2files   = keyval('dataset2files',   varargin);
-configtracking  = keyval('configtracking',  varargin); if isempty(configtracking), configtracking = 'no'; end
+trackconfig     = keyval('trackconfig',     varargin);
+if isempty(trackconfig)
+  if strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')
+    trackconfig = 'on'; % turn on configtracking if user requests report/cleanup
+  else
+    trackconfig = 'no';
+  end
+end
 
 % these should be cell arrays and not strings
 if ischar(required),   required   = {required};   end
 if ischar(deprecated), deprecated = {deprecated}; end
-if ischar(forbidden),  forbidden  = {forbidden};  end
 if ischar(unused),     unused     = {unused};     end
+if ischar(forbidden),  forbidden  = {forbidden};  end
 
 silent   = strcmp(cfg.checkconfig, 'silent');
 loose    = strcmp(cfg.checkconfig, 'loose');
@@ -155,7 +166,7 @@ if ~isempty(deprecated)
       % don't mention it
     elseif loose
       warning(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
-    else
+    elseif pedantic
       error(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
     end
   end
@@ -173,7 +184,7 @@ if ~isempty(unused)
     elseif loose
       warning(sprintf('The field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)}));
       cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
-    else
+    elseif pedantic
       error(sprintf('The field cfg.%s is unused\n', unused{ismember(unused, fieldsused)}));
     end
   end
@@ -191,7 +202,7 @@ if ~isempty(forbidden)
     elseif loose
       warning(sprintf('The field cfg.%s is forbidden, it will be removed from your configuration\n', forbidden{ismember(forbidden, fieldsused)}));
       cfg = rmfield(cfg, forbidden(ismember(forbidden, fieldsused)));
-    else
+    elseif pedantic
       error(sprintf('The field cfg.%s is forbidden\n', forbidden{ismember(forbidden, fieldsused)}));
     end
   end
@@ -351,7 +362,6 @@ end
 % dataset2files
 %
 % Converts cfg.dataset into cfg.headerfile and cfg.datafile if neccessary.
-% This is used in PREPROCESSING and DEFINETRIAL.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
 
@@ -427,19 +437,26 @@ end
 % FIXME dit is slechts een eerste versie "voor de leuk"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 try
-  switch configtracking
-    case 'on'
+  switch trackconfig
+    case 'on' % turn on configtracking
       if isa(cfg, 'struct')
         cfg = configuration(cfg);
+      elseif isa(cfg, 'configuration')
+        % configtracking is already turned on, do nothing
       else
         warning('cannot convert "%s" to a configuration object for tracking', class(cfg));
       end
 
-    case 'report'
-      access(cfg);
+    case 'off' % turn off configtracking
+      if strcmp(cfg.trackconfig, 'report') % give feedback if requested
+        access(cfg);
+      end
 
-    case 'off'
-      cfg = struct(cfg);
+      if strcmp(cfg.trackconfig, 'cleanup') % clean up cfg if requested
+        cfg=cleancfg(cfg);
+      end
+
+      cfg = struct(cfg); % convert back to struct
 
     otherwise
       % do nothing
