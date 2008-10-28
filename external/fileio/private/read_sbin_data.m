@@ -23,7 +23,27 @@ if fh==-1
   error('wrong filename')
 end
 
-version		= hdr.orig.header_array(1);
+version	= fread(fh,1,'int32');
+
+%check byteorder
+[str,maxsize,cEndian]=computer;
+if version < 7
+  if cEndian == 'B'
+    endian = 'ieee-be';
+  elseif cEndian == 'L'
+    endian = 'ieee-le';
+  end;
+elseif (version > 6) && ~bitand(version,6)
+  if cEndian == 'B'
+    endian = 'ieee-le';
+  elseif cEndian == 'L'
+    endian = 'ieee-be';
+  end;
+  version = swapbytes(uint32(version)); %hdr.orig.header_array is already byte-swapped
+else
+    error('ERROR:  This is not a simple binary file.  Note that NetStation does not successfully directly convert EGIS files to simple binary format.\n');
+end;
+
 precision = bitand(version,6);
 Nevents=hdr.orig.header_array(17);
 
@@ -39,14 +59,14 @@ switch precision
         dataType='double';
 end
 
-fseek(fh, 40+length(hdr.orig.CatLengths)+sum(hdr.orig.CatLengths)+Nevents*4, 'cof'); %skip over header
+fseek(fh, 40+length(hdr.orig.CatLengths)+sum(hdr.orig.CatLengths)+Nevents*4, 'bof'); %skip over header
 fseek(fh, (begtrial-1)*trialLength, 'cof'); %skip over initial segments
 
 trialData=zeros(hdr.nChans,hdr.nSamples,endtrial-begtrial+1);
 
 for segment=1:(endtrial-begtrial+1)
     fseek(fh, 6, 'cof'); %skip over segment info
-    temp = fread(fh, [(hdr.nChans+Nevents), hdr.nSamples],dataType);
+    temp = fread(fh, [(hdr.nChans+Nevents), hdr.nSamples],dataType,endian);
     trialData(:,:,segment) = temp(1:hdr.nChans,:);
 end
 trialData=trialData(chanindx, :,:);
