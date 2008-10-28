@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.85  2008/10/28 16:08:14  roboos
+% additional check on yokogawa raw (first 4 bytes should be zero)
+%
 % Revision 1.84  2008/07/24 08:43:40  roboos
 % added nimh_cortex
 %
@@ -341,7 +344,7 @@ elseif filetype_check_extension(filename, '.con')
   ftype = 'yokogawa_con';
   manufacturer = 'Yokogawa';
   content = 'continuous MEG data';
-elseif filetype_check_extension(filename, '.raw')
+elseif filetype_check_extension(filename, '.raw') && filetype_check_header(filename, [char(0) char(0) char(0) char(0)])
   ftype = 'yokogawa_raw';
   manufacturer = 'Yokogawa';
   content = 'evoked/trialbased MEG data';
