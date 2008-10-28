@@ -73,6 +73,9 @@ function multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.41  2008/10/28 14:30:51  ingnie
+% linearity of axis is tested, warning given in case of nonlinear axis
+%
 % Revision 1.40  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -295,6 +298,18 @@ yidc = find(data.(cfg.yparam) >= ymin & data.(cfg.yparam) <= ymax);
 % Align physical y-axis range to the array bins:
 ymin = data.(cfg.yparam)(yidc(1));
 ymax = data.(cfg.yparam)(yidc(end));
+
+% test if X and Y are linearly spaced (to within 10^-12): % FROM UIMAGE
+x = data.(cfg.xparam)(xidc);
+y = data.(cfg.yparam)(yidc);
+dx = min(diff(x));  % smallest interval for X
+dy = min(diff(y));  % smallest interval for Y
+evenx = all(abs(diff(x)/dx-1)<1e-12);     % true if X is linearly spaced
+eveny = all(abs(diff(y)/dy-1)<1e-12);     % true if Y is linearly spaced
+
+if ~evenx || ~eveny
+  warning('(one of the) axis is/are not evenly spaced, but plots are made as if axis are linear')
+end
 
 % Read or create the layout that will be used for plotting:
 lay = prepare_layout(cfg, data);

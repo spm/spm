@@ -47,6 +47,9 @@ function cfg = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.29  2008/10/28 14:24:05  ingnie
+% fixed bug: data.time/freq should be data.(cfg.xparam/yparam)
+%
 % Revision 1.28  2008/10/27 12:00:02  ingnie
 % change imagesc back to uimagesc, plotting with non linearly spaced axis possible now.
 %
@@ -257,8 +260,8 @@ else
 end
 
 % test if X and Y are linearly spaced (to within 10^-12): % FROM UIMAGE
-x = data.time(xidc);
-y = data.freq(yidc);
+x = data.(cfg.xparam)(xidc);
+y = data.(cfg.yparam)(yidc);
 dx = min(diff(x));  % smallest interval for X
 dy = min(diff(y));  % smallest interval for Y
 evenx = all(abs(diff(x)/dx-1)<1e-12);     % true if X is linearly spaced
@@ -276,7 +279,7 @@ end
 
 % Draw plot:
 hold on;
-h = uimagesc(data.time(xidc), data.freq(yidc), TFR, [zmin,zmax]);
+h = uimagesc(data.(cfg.xparam)(xidc), data.(cfg.yparam)(yidc), TFR, [zmin,zmax]);
 % Mask Nan's and maskfield
 if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
   mask = ~isnan(TFR);
