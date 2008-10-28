@@ -22,9 +22,9 @@ function [str, sts] = gencode_rvalue(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 2165 2008-09-24 14:01:06Z volkmar $
+% $Id: gencode_rvalue.m 2407 2008-10-28 14:04:13Z volkmar $
 
-rev = '$Rev: 2165 $'; %#ok
+rev = '$Rev: 2407 $'; %#ok
 
 str = {};
 sts = true;
@@ -102,10 +102,13 @@ switch class(item)
             else
                 % Use mat2str with standard precision 15
                 if any(strcmp(clsitem, {'double', 'logical'}))
-                    str1 = textscan(mat2str(item), '%s', 'delimiter', ';');
+                    sitem = mat2str(item);
+                    bsz   = numel(sitem);
                 else
-                    str1 = textscan(mat2str(item,'class'), '%s', 'delimiter', ';');
+                    sitem = mat2str(item,'class');
+                    bsz   = numel(sitem);
                 end
+                str1 = textscan(sitem, '%s', 'delimiter',';', 'bufsize',bsz+2); % bsz needs to be larger than string length
                 if numel(str1{1}) > 1
                     str = str1{1};
                 else
