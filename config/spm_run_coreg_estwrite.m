@@ -9,7 +9,7 @@ function out = spm_run_coreg_estwrite(varargin)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg_estwrite.m 2312 2008-10-07 17:02:46Z volkmar $
+% $Id: spm_run_coreg_estwrite.m 2412 2008-10-29 09:43:28Z guillaume $
 
 job = varargin{1};
 if isempty(job.other{1})
@@ -23,7 +23,7 @@ MM = zeros(4,4,numel(PO));
 for j=1:numel(PO),
         MM(:,:,j) = spm_get_space(PO{j});
 end;
-for j=1:size(PO,1),
+for j=1:numel(PO),
         spm_get_space(PO{j}, M*MM(:,:,j));
 end;
 
