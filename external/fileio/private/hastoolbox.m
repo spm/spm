@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.22  2008/10/29 15:45:12  roboos
+% fix dashes and spaces in directory names for caching
+%
 % Revision 1.21  2008/10/20 21:50:56  roboos
 % added NlxNetCom
 %
@@ -286,5 +289,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = fixname(toolbox)
 out = lower(toolbox);
-out(out=='-') = '_';
+out(out=='-') = '_'; % fix dashes
+out(out==' ') = '_'; % fix spaces
+
 
