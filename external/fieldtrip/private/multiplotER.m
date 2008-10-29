@@ -77,6 +77,9 @@ function multiplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotER.m,v $
+% Revision 1.42  2008/10/29 12:40:58  roboos
+% removed "axis equal"
+%
 % Revision 1.41  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -475,7 +478,6 @@ if strcmp(cfg.interactive, 'yes')
   set(gcf, 'WindowButtonUpFcn', ['plotSelection(get(findobj(''Tag'', ''' tag '''), ''UserData''), 2);']);
 end
 
-axis equal
 axis tight
 axis off
 if strcmp(cfg.box, 'yes')

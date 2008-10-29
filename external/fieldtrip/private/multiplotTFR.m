@@ -73,6 +73,9 @@ function multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.42  2008/10/29 12:40:58  roboos
+% removed "axis equal"
+%
 % Revision 1.41  2008/10/28 14:30:51  ingnie
 % linearity of axis is tested, warning given in case of nonlinear axis
 %
@@ -476,7 +479,6 @@ if strcmp(cfg.interactive, 'yes')
   set(gcf, 'WindowButtonUpFcn', ['plotSelection(get(findobj(''Tag'', ''' tag '''), ''UserData''), 2);']);
 end
 
-axis equal
 axis tight
 axis off
 if strcmp(cfg.box, 'yes')

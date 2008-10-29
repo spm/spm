@@ -1,7 +1,7 @@
 function [comp] = componentanalysis(cfg, data);
 
 % COMPONENTANALYSIS principal or independent component analysis
-% computes the topography and timecourses of the ICA/PCA components 
+% computes the topography and timecourses of the ICA/PCA components
 % in the EEG/MEG data.
 %
 % Use as
@@ -9,7 +9,7 @@ function [comp] = componentanalysis(cfg, data);
 %
 % where the data comes from PREPROCESING or TIMELOCKANALYSIS and the
 % configuration structure can contain
-%   cfg.method       = 'runica', 'binica', 'pca', 'jader', 'varimax', 'dss', 'cca' (default = 'runica')
+%   cfg.method       = 'runica', 'fastica', 'binica', 'pca', 'jader', 'varimax', 'dss', 'cca' (default = 'runica')
 %   cfg.channel      = cell-array with channel selection (default = 'all'), see CHANNELSELECTION for details
 %   cfg.trials       = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.numcomponent = 'all' or number (default = 'all')
@@ -19,13 +19,13 @@ function [comp] = componentanalysis(cfg, data);
 %   cfg.binica       = substructure with additional low-level options for this method
 %   cfg.dss          = substructure with additional low-level options for this method
 %   cfg.fastica      = substructure with additional low-level options for this method
-% 
+%
 % Instead of specifying a component analysis method, you can also specify
 % a previously computed mixing matrix, which will be used to estimate the
 % component timecourses in this data. This requires
 %   cfg.topo         = NxN matrix with a component topography in each column
 %   cfg.topolabel    = Nx1 cell-array with the channel labels
-% 
+%
 % See also FASTICA, RUNICA, SVD, JADER, VARIMAX, DSS, CCA
 
 % NOTE parafac is also implemented, but that does not fit into the
@@ -35,6 +35,12 @@ function [comp] = componentanalysis(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.37  2008/10/29 15:54:50  roboos
+% give hopefylly meaningfull error message if fastica fails due to memory error (thanks to Kai)
+%
+% Revision 1.36  2008/10/29 15:24:58  roboos
+% unmixing based on previous weights now also works with non-square matrices, thanks to kaigoe
+%
 % Revision 1.35  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -70,8 +76,8 @@ function [comp] = componentanalysis(cfg, data);
 % and avoids the risk of memory related errors in matlab.
 %
 % Revision 1.27  2007/03/04 13:45:12  chrhes
-% changes to how the code calls fastica: the responsibility for providing the 
-% correct optional arguments through cfg.fastica lies entriely with the user 
+% changes to how the code calls fastica: the responsibility for providing the
+% correct optional arguments through cfg.fastica lies entriely with the user
 % (as for the runica option)
 %
 % Revision 1.26  2007/02/27 09:54:22  roboos
@@ -93,8 +99,8 @@ function [comp] = componentanalysis(cfg, data);
 % updated documentation
 %
 % Revision 1.20  2006/08/16 10:46:53  roboos
-% added support for unmixing data using a previously determined (un)mixing 
-% matrix (options cfg.topo and cfg.topolabel) channels such as ECG can be 
+% added support for unmixing data using a previously determined (un)mixing
+% matrix (options cfg.topo and cfg.topolabel) channels such as ECG can be
 % excluded from teh unmixing, but will remain in the output data
 %
 % Revision 1.19  2006/06/07 09:34:19  roboos
@@ -108,7 +114,7 @@ function [comp] = componentanalysis(cfg, data);
 %
 % Revision 1.16  2006/01/06 11:37:13  roboos
 % switched to the checktoolbox() subfunction for toolbox dependency checking
-% implemented canonical correlation analysis (CCA) using a function from Magnus 
+% implemented canonical correlation analysis (CCA) using a function from Magnus
 % Borga changed the DSS implementation from version 0.6 beta to version 1.0
 % fixed some small bugs related to the number of components
 %
@@ -116,7 +122,7 @@ function [comp] = componentanalysis(cfg, data);
 % updated the documentation to include dss
 %
 % Revision 1.14  2005/11/04 17:14:41  roboos
-% implemented support for denoising source separation (dss), requires external 
+% implemented support for denoising source separation (dss), requires external
 % toolbox
 %
 % Revision 1.13  2005/11/04 10:26:03  roboos
@@ -131,7 +137,7 @@ function [comp] = componentanalysis(cfg, data);
 % removed the obsolete data.offset
 %
 % Revision 1.10  2005/06/29 12:46:29  roboos
-% the following changes were done on a large number of files at the same time, 
+% the following changes were done on a large number of files at the same time,
 % not all of them may apply to this specific file
 % - added try-catch around the inclusion of input data configuration
 % - moved cfg.version, cfg.previous and the assignment of the output cfg to the end
@@ -178,24 +184,26 @@ tic;
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'detrend'});
+
 % set the defaults
 if ~isfield(cfg, 'method'),        cfg.method  = 'runica';     end
 if ~isfield(cfg, 'blc'),           cfg.blc     = 'yes';        end
-if ~isfield(cfg, 'detrend'),       cfg.detrend = 'no';         end
 if ~isfield(cfg, 'trials'),        cfg.trials  = 'all';        end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';        end
 if ~isfield(cfg, 'numcomponent'),  cfg.numcomponent = 'all';   end
 
 if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   % use the previously determined unmixing matrix on this dataset
-  % remove all cfg settings  that do not apply 
+  % remove all cfg settings  that do not apply
   tmpcfg = [];
   tmpcfg.blc       = cfg.blc;
   tmpcfg.detrend   = cfg.detrend;
   tmpcfg.trials    = cfg.trials;
-  tmpcfg.channel   = cfg.channel;
-  tmpcfg.topo      = cfg.topo;
-  tmpcfg.topolabel = cfg.topolabel;
+  tmpcfg.topo      = cfg.topo;        % the MxN mixing matrix (M channels, N components)
+  tmpcfg.topolabel = cfg.topolabel;   % the Mx1 labels of the data that was used in determining the mixing matrix
+  tmpcfg.channel   = cfg.channel;     % the Mx1 labels of the data that is presented now to this function
   tmpcfg.numcomponent = 'all';
   tmpcfg.method    = 'predetermined mixing matrix';
   cfg = tmpcfg;
@@ -220,14 +228,14 @@ if ~isfield(cfg.dss.denf, 'params'),      cfg.dss.denf.params   = [];           
 
 % check whether the required low-level toolboxes are installed
 switch cfg.method
-   case 'fastica'
-      hastoolbox('fastica', 1);       % see http://www.cis.hut.fi/projects/ica/fastica
-   case {'runica', 'jader', 'varimax', 'binica'}
-      hastoolbox('eeglab', 1);        % see http://www.sccn.ucsd.edu/eeglab
-   case 'parafac'
-      hastoolbox('nway', 1);          % see http://www.models.kvl.dk/source/nwaytoolbox
-   case 'dss'
-      hastoolbox('dss', 1);           % see http://www.cis.hut.fi/projects/dss
+  case 'fastica'
+    hastoolbox('fastica', 1);       % see http://www.cis.hut.fi/projects/ica/fastica
+  case {'runica', 'jader', 'varimax', 'binica'}
+    hastoolbox('eeglab', 1);        % see http://www.sccn.ucsd.edu/eeglab
+  case 'parafac'
+    hastoolbox('nway', 1);          % see http://www.models.kvl.dk/source/nwaytoolbox
+  case 'dss'
+    hastoolbox('dss', 1);           % see http://www.cis.hut.fi/projects/dss
 end % cfg.method
 
 % default is to compute just as many components as there are channels in the data
@@ -255,6 +263,7 @@ data.label = data.label(chansel);
 Nchans     = length(chansel);
 
 % determine the size of each trial, they can be variable length
+Nsamples = zeros(1,Ntrials);
 for trial=1:Ntrials
   Nsamples(trial) = size(data.trial{trial},2);
 end
@@ -265,7 +274,7 @@ if strcmp(cfg.detrend, 'yes')
   for trial=1:Ntrials
     data.trial{trial} = preproc_detrend(data.trial{trial});
   end
-elseif strcmp(cfg.blc, 'yes') 
+elseif strcmp(cfg.blc, 'yes')
   % optionally perform baseline correction on each trial
   fprintf('baseline correcting data \n');
   for trial=1:Ntrials
@@ -307,94 +316,139 @@ end
 fprintf('starting decomposition using %s\n', cfg.method);
 switch cfg.method
 
-   case 'fastica'
-      % construct key-value pairs for the optional arguments
-      optarg = cfg2keyval(cfg.fastica);
-      [A, W] = fastica(dat, optarg{:});
-      weights = W;
-      sphere = eye(size(W,2));
+  case 'fastica'
 
-   case 'runica'
-      % construct key-value pairs for the optional arguments
-      optarg = cfg2keyval(cfg.runica);
-      [weights, sphere] = runica(dat, optarg{:});
-
-   case 'binica'
-      % construct key-value pairs for the optional arguments
-      optarg = cfg2keyval(cfg.binica);
-      [weights, sphere] = binica(dat, optarg{:});
-
-   case 'jader'
-      weights = jader(dat);
-      sphere  = eye(size(weights, 2));
-
-   case 'varimax'
-      weights = varimax(dat);
-      sphere  = eye(size(weights, 2));
-
-   case 'cca'
-      [y, w] = ccabss(dat);
-      weights = w';
-      sphere  = eye(size(weights, 2));
-
-   case 'pca'
-      % compute data cross-covariance matrix
-      C = (dat*dat')./(size(dat,2)-1);
-      % eigenvalue decomposition (EVD)
-      [E,D] = eig(C);
-      % sort eigenvectors in descending order of eigenvalues 
-      d = cat(2,[1:1:Nchans]',diag(D));
-      d = sortrows(d,[-2]);
-      % return the desired number of principal components
-      weights = E(:,d(1:cfg.numcomponent,1))';
-      sphere = eye(size(weights,2));
-      clear C D E d
+   try
+    % construct key-value pairs for the optional arguments
+    optarg = cfg2keyval(cfg.fastica);
+    [A, W] = fastica(dat, optarg{:});
+    weights = W;
+    sphere = eye(size(W,2));
+   catch
+     % give a hopefully instructive error message
+     fprintf(['If you get an out-of-memory in fastica here, and you use fastica 2.5, change fastica.m, line 482: \n' ...
+              'from\n' ...
+              '  if ~isempty(W)                  %% ORIGINAL VERSION\n' ...
+              'to\n' ...
+              '  if ~isempty(W) && nargout ~= 2  %% if nargout == 2, we return [A, W], and NOT ICASIG\n']);
+     % forward original error
+     rethrow(lasterr)
+   end
     
-   case 'svd'
-      if cfg.numcomponent<Nchans
-         % compute only the first components
-         [u, s, v] = svds(dat, cfg.numcomponent);
-         u(Nchans, Nchans) = 0;
-      else
-         % compute all components
-         [u, s, v] = svd(dat, 0);
-      end
-      weights = u';
-      sphere  = eye(size(weights, 2));
+  case 'runica'
+    % construct key-value pairs for the optional arguments
+    optarg = cfg2keyval(cfg.runica);
+    [weights, sphere] = runica(dat, optarg{:});
 
-   case 'parafac'
-      f = parafac(dat, cfg.numcomponent);
+  case 'binica'
+    % construct key-value pairs for the optional arguments
+    optarg = cfg2keyval(cfg.binica);
+    [weights, sphere] = binica(dat, optarg{:});
 
-   case 'dss'
-      params         = cfg.dss;
-      params.denf.h  = str2func(cfg.dss.denf.function);
-      if ~ischar(cfg.numcomponent)
-         params.sdim = cfg.numcomponent;
-      end
-      % create the state
-      state   = dss_create_state(dat, params);
-      % increase the amount of information that is displayed on screen
-      state.verbose = 3;
-      % start the decomposition
-      % state   = dss(state);  % this is for the DSS toolbox version 0.6 beta
-      state   = denss(state);  % this is for the DSS toolbox version 1.0
-      weights = state.W;
-      sphere  = state.V;
-      % remember the updated configuration details
-      cfg.dss.denf      = state.denf;
-      cfg.numcomponent  = state.sdim;
+  case 'jader'
+    weights = jader(dat);
+    sphere  = eye(size(weights, 2));
 
-   case 'predetermined mixing matrix'
-      [compsel, datsel] = match_str(cfg.topolabel, data.label);
-      cfg.numcomponent = length(compsel);
-      Nchan   = length(data.label);
-      notsel  = setdiff(1:Nchan, datsel);
-      sphere  = eye(Nchan,Nchan);
-      weights = eye(Nchan,Nchan);
-      weights(datsel,datsel) = inv(cfg.topo(compsel,compsel));
+  case 'varimax'
+    weights = varimax(dat);
+    sphere  = eye(size(weights, 2));
 
-   otherwise
-      error('unknown method for component analysis');
+  case 'cca'
+    [y, w] = ccabss(dat);
+    weights = w';
+    sphere  = eye(size(weights, 2));
+
+  case 'pca'
+    % compute data cross-covariance matrix
+    C = (dat*dat')./(size(dat,2)-1);
+    % eigenvalue decomposition (EVD)
+    [E,D] = eig(C);
+    % sort eigenvectors in descending order of eigenvalues
+    d = cat(2,[1:1:Nchans]',diag(D));
+    d = sortrows(d,[-2]);
+    % return the desired number of principal components
+    weights = E(:,d(1:cfg.numcomponent,1))';
+    sphere = eye(size(weights,2));
+    clear C D E d
+
+  case 'svd'
+    if cfg.numcomponent<Nchans
+      % compute only the first components
+      [u, s, v] = svds(dat, cfg.numcomponent);
+      u(Nchans, Nchans) = 0;
+    else
+      % compute all components
+      [u, s, v] = svd(dat, 0);
+    end
+    weights = u';
+    sphere  = eye(size(weights, 2));
+
+  case 'parafac'
+    f = parafac(dat, cfg.numcomponent);
+
+  case 'dss'
+    params         = cfg.dss;
+    params.denf.h  = str2func(cfg.dss.denf.function);
+    if ~ischar(cfg.numcomponent)
+      params.sdim = cfg.numcomponent;
+    end
+    % create the state
+    state   = dss_create_state(dat, params);
+    % increase the amount of information that is displayed on screen
+    state.verbose = 3;
+    % start the decomposition
+    % state   = dss(state);  % this is for the DSS toolbox version 0.6 beta
+    state   = denss(state);  % this is for the DSS toolbox version 1.0
+    weights = state.W;
+    sphere  = state.V;
+    % remember the updated configuration details
+    cfg.dss.denf      = state.denf;
+    cfg.numcomponent  = state.sdim;
+
+  case 'predetermined mixing matrix'
+    % check which labels from the cfg are identical to those of the data
+    % this gives us the rows of cfg.topo (the channels) and of
+    % data.trial (also channels) that we are going to use later
+    [datsel, chansel] = match_str(data.label, cfg.topolabel);
+
+    % ensure 1:1 corresponcence between cfg.topolabel & data.label
+    % otherwise we cannot compute the components (if source channels are
+    % missing) or will have a problem when projecting it back (because we
+    % dont have a marker to say that there are channels in data.label
+    % which we did not use and thus can't recover from source-space)
+
+    if length(cfg.topolabel)<length(chansel)
+      error('COMPONENTANALYSIS:LABELMISSMATCH:topolabel', 'cfg.topolabels do not uniquely correspond to data.label, please check')
+    end
+    if length(data.label)<length(datsel)
+      error('COMPONENTANALYSIS:LABELMISSMATCH:topolabel', 'cfg.topolabels do not uniquely correspond to data.label, please check')
+    end
+
+    % reorder the mixing matrix so that the channel order matches the order in the data
+    cfg.topo      = cfg.topo(chansel,:);
+    cfg.topolabel = cfg.topolabel(chansel);
+
+    % get the number of channels we are using from the data
+    Nchan   = size(cfg.topo, 1);
+    % get the number of components in which the data was decomposed
+    Ncomp   = size(cfg.topo, 2);
+    cfg.numcomponent = Ncomp;
+
+    % initialize sphere and weights
+    sphere  = eye(Nchan,Nchan);
+
+    % cfg.topo is a Channel x Component matrix (the mixing matrix, A)
+    % lets get the unmixing matrix (weights, W)
+
+    % now, the weights matrix is simply given by its (pseudo)-inverse
+    if (Nchan==Ncomp)
+      weights = inv(cfg.topo);
+    else
+      weights = pinv(cfg.topo);
+    end
+
+  otherwise
+    error('unknown method for component analysis');
 end % switch method
 
 
@@ -435,11 +489,11 @@ if strcmp(cfg.method, 'parafac')
   comp.f2 = f{2};                          % FIXME, this is not properly supported yet
   comp.f3 = f{3};                          % FIXME, this is not properly supported yet
 else
-   if (size(weights,1)==size(weights,2))
-      comp.topo = inv(weights * sphere);      % topography of each component
-   else
-      comp.topo = pinv(weights * sphere);     % fix to allow fewer sources than sensors
-   end
+  if (size(weights,1)==size(weights,2))
+    comp.topo = inv(weights * sphere);      % topography of each component
+  else
+    comp.topo = pinv(weights * sphere);     % fix to allow fewer sources than sensors
+  end
 end
 
 % add the version details of this function call to the configuration
@@ -451,10 +505,10 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.35 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.37 2008/10/29 15:54:50 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
-% remember the exact configuration details in the output 
+% remember the exact configuration details in the output
 comp.cfg = cfg;
 
 fprintf('total time in componentanalysis %.1f seconds\n', toc);
