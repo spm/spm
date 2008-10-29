@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2390 2008-10-23 12:04:43Z vladimir $
+% $Id: checkmeeg.m 2413 2008-10-29 17:15:01Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -157,7 +157,7 @@ else
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
                     [Nchannels Nsamples Ntrials], meegstruct.data.datatype);
 
-            case 'TF'
+            case {'TF', 'TFphase'}
                 meegstruct.data.y = file_array(fullfile(filepath, meegstruct.data.fnamedat), ...
                     [Nchannels Nfrequencies Nsamples Ntrials], meegstruct.data.datatype);
                 if Ntrials>1
