@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2367 2008-10-21 11:00:48Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2423 2008-10-30 23:50:04Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -53,7 +53,7 @@ return
 %% Standard EEG/MEG data plot
 function [D] = standardData(D)
 
-POS = get(D.PSD.handles.hfig,'position');
+% POS = get(D.PSD.handles.hfig,'position');
 
 switch D.PSD.VIZU.modality
     case 'eeg'
@@ -69,7 +69,8 @@ end
 
 if isempty(I)
 
-    uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+    uicontrol('style','text',...
+        'units','normalized','Position',[0.14 0.84 0.7 0.04],...
         'string','No channel of this type in the SPM data file !',...
         'BackgroundColor',0.95*[1 1 1],...
         'tag','plotEEG')
@@ -78,7 +79,8 @@ else
 
     if ~strcmp(D.transform.ID,'time')
 
-        uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+        uicontrol('style','text',...
+            'units','normalized','Position',[0.14 0.84 0.7 0.04],...
             'string','Not for time-frequency data !',...
             'BackgroundColor',0.95*[1 1 1],...
             'tag','plotEEG')
@@ -132,7 +134,8 @@ end
 
 if isempty(I)
 
-    uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+    uicontrol('style','text',...
+        'units','normalized','Position',[0.14 0.84 0.7 0.04],...
         'string','No channel of this type in the SPM data file !',...
         'BackgroundColor',0.95*[1 1 1],...
         'tag','plotEEG')
@@ -141,7 +144,8 @@ else
 
     if strcmp(D.PSD.type,'continuous')
 
-        uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+        uicontrol('style','text',...
+            'units','normalized','Position',[0.14 0.84 0.7 0.04],...
             'string','Only for epoched data !',...
             'BackgroundColor',0.95*[1 1 1],...
             'tag','plotEEG')
@@ -189,10 +193,12 @@ function [D] = visuRecon(D)
 POS = get(D.PSD.handles.hfig,'position');
 
 if ~~D.PSD.source.VIZU.current
-
-    D.PSD.source.VIZU.current = 1;
+    
     isInv = D.PSD.source.VIZU.isInv;
     Ninv = length(isInv);
+    if D.PSD.source.VIZU.current > Ninv
+        D.PSD.source.VIZU.current = 1;
+    end
     invN = isInv(D.PSD.source.VIZU.current);
     pst = D.PSD.source.VIZU.pst;
     F = D.PSD.source.VIZU.F;
@@ -200,7 +206,8 @@ if ~~D.PSD.source.VIZU.current
     % create uitabs for inverse solutions
     hInv = D.PSD.handles.tabs.hp;
     [h] = spm_uitab(hInv,D.PSD.source.VIZU.labels,...
-        D.PSD.source.VIZU.callbacks,'plotEEG',1);
+        D.PSD.source.VIZU.callbacks,'plotEEG',...
+        D.PSD.source.VIZU.current);
     D.PSD.handles.SubTabs_inv = h;
 
     trN = D.PSD.trials.current(1);
@@ -260,14 +267,14 @@ if ~~D.PSD.source.VIZU.current
     D.PSD.handles.BUTTONS.ct1 = out.handles.s1;
     D.PSD.handles.BUTTONS.ct2 = out.handles.s2;
     % add spheres if constrained inverse solution
-    if isfield(D.other.inv{invN}.inverse,'dipfit')...
-            || ~isequal(D.other.inv{invN}.inverse.xyz,zeros(1,3))
+    if isfield(model,'dipfit')...
+            || ~isequal(model.xyz,zeros(1,3))
         try
-            xyz = D.other.inv{invN}.inverse.dipfit.Lpos;
-            radius = D.other.inv{invN}.inverse.dipfit.radius;
+            spheres.xyz = model.dipfit.Lpos;
+            spheres.radius = model.dipfit.radius;
         catch
-            xyz = D.other.inv{invN}.inverse.xyz';
-            radius = D.other.inv{invN}.inverse.rad(1);
+            spheres.xyz = model.xyz';
+            spheres.radius = model.rad(1);
         end
         Np  = size(xyz,2);
         [x,y,z] = sphere(20);
@@ -325,8 +332,9 @@ if ~~D.PSD.source.VIZU.current
 
     set(D.PSD.handles.mesh,'visible','on')
     set(D.PSD.handles.colorbar,'visible','on')
-    try,set(D.PSD.handles.BMCplot,'visible','on');end
     set(D.PSD.handles.axes2,'visible','on')
+    try,set(D.PSD.handles.BMCplot,'visible','on');end
+    
 
     % create buttons
     object.type = 'buttons';
@@ -347,7 +355,8 @@ if ~~D.PSD.source.VIZU.current
 
 else
 
-    uicontrol('style','text','Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+    uicontrol('style','text',...
+        'units','normalized','Position',[0.14 0.84 0.7 0.04],...
         'string','There is no (imaging) inverse source reconstruction in this data file !',...
         'BackgroundColor',0.95*[1 1 1],...
         'tag','plotEEG')

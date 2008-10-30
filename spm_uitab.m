@@ -21,7 +21,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 2367 2008-10-21 11:00:48Z jean $
+% $Id: spm_uitab.m 2423 2008-10-30 23:50:04Z jean $
 
 Ntabs = length(labels);
 
@@ -151,7 +151,7 @@ end
 
 
 function doChoose(o1,o2)
-ud = get(gco,'userdata');
+ud = get(o1,'userdata');
 % Do nothing if called tab is current (active) tab
 if ~strcmp(get(ud.handles.htab(ud.ind),'FontWeight'),'bold')
     spm('pointer','watch');
@@ -181,7 +181,7 @@ if ~strcmp(get(ud.handles.htab(ud.ind),'FontWeight'),'bold')
 end
 
 function doScroll(o1,o2)
-ud = get(gco,'userdata');
+ud = get(o1,'userdata');
 % active = ud.in(ud.active);
 ud.in = ud.in + ud.who;
 if min(ud.in) ==1

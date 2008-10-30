@@ -32,7 +32,7 @@ function [D, S] = spm_eeg_convert2images(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner, Stefan Kiebel 
-% $Id: spm_eeg_convert2images.m 2225 2008-09-29 12:25:27Z stefan $
+% $Id: spm_eeg_convert2images.m 2423 2008-10-30 23:50:04Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','TF',0);
 try
@@ -117,7 +117,7 @@ if strcmp(D.transformtype, 'TF');
                 [m, sta] = mkdir(dname);
                 cd(dname);
                 
-                for l = Itrials
+                for l = Itrials(:)'
 
                     % if single trial data make new directory for single trials,
                     % otherwise just write images to trialtype directory

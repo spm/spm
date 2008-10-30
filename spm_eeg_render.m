@@ -12,6 +12,8 @@ function  [out] = spm_eeg_render(m,options)
 %       vertex indices of each cluster) 
 %       .clustersName = name of the clusters
 %       .figname = name to be given to the window
+%       .ParentAxes = handle of the axes within which the mesh should be
+%       displayed
 %       .hfig = handle of existing figure. If this option is provided, then
 %       visu_maillage_surf adds the (textured) mesh to the figure hfig, and
 %       a control for its transparancy.
@@ -28,7 +30,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2040 2008-09-04 13:16:34Z jean $
+% $Id: spm_eeg_render.m 2423 2008-10-30 23:50:04Z jean $
 
 
 
@@ -51,7 +53,6 @@ tag = '';
 visible = 'on';
 ParentAxes = gca;
 
-
 try,options;catch,options = [];end
 
 % Now get options
@@ -62,7 +63,7 @@ if ~isempty(options)
         texture = options.texture;
     end
     
-    if isfield(options,'ParentAxes')
+    if isfield(options,'ParentAxes') && ~isempty(options.ParentAxes)
         ParentAxes = options.ParentAxes;
     end
     
@@ -96,6 +97,7 @@ if ~isempty(options)
     if isfield(options,'hfig')
         try
             figure(options.hfig)
+            ParentAxes = gca;
             hold on
             close(handles.fi);
             handles.fi = options.hfig;
@@ -116,10 +118,12 @@ if ~isempty(options)
     end
     
 else
-    
-    
+   
     
 end
+
+oldRenderer = get(handles.fi,'renderer');
+set(handles.fi,'renderer','OpenGL');
 
 
 % Plot mesh and texture/clusters
@@ -128,6 +132,7 @@ if isequal(texture,'none') == 1
     handles.p = patch(m);
     set(handles.p, 'facecolor', [.5 .5 .5], 'EdgeColor', 'none',...
         'parent',ParentAxes,...
+        'userdata',oldRenderer,...
         'visible',visible,'tag',tag);
 else
     texture = texture(:);
@@ -136,6 +141,7 @@ else
         handles.p = patch(m,'facevertexcdata',texture,...
             'facecolor','interp','EdgeColor', 'none',...
             'parent',ParentAxes,...
+            'userdata',oldRenderer,...
             'visible',visible,'tag',tag);
         colormap(jet(256));
         udd.tex = texture;
@@ -145,9 +151,14 @@ else
         disp('Warning: size of texture does not match number of vertices!')
         handles.p = patch(m,'facecolor', [.5 .5 .5], 'EdgeColor', 'none',...
             'parent',ParentAxes,...
+            'userdata',oldRenderer,...
             'visible',visible,'tag',tag);
     end
 end
+
+set(handles.p,'deleteFcn',@doDelMesh)
+
+
 figure(handles.fi)  % avoid user confusion with the open windows
 daspect([1 1 1]);
 view(142.5,30);
@@ -347,10 +358,14 @@ out.handles = handles;
 
 %--------- subfunctions : BUTTONS CALLBACKS ------------%
 
+function doDelMesh(btn,evd)
+renderer=get(btn,'userdata');
+set(gcf,'renderer',renderer);
+
 function doTransp(btn,evd)
 v00=get(btn,'value');
 p00=get(btn,'userdata');
-set(p00,'facealpha',v00)
+set(p00,'facealpha',v00);
 
 
 function doThresh(btn,evd)

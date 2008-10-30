@@ -57,7 +57,7 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_DisplayTimeSeries.m 2367 2008-10-21 11:00:48Z jean $
+% $Id: spm_DisplayTimeSeries.m 2423 2008-10-30 23:50:04Z jean $
 
 
 if ~exist('options','var')
@@ -233,12 +233,16 @@ ud.callback = callback;
 decim = max([1,round(nt./1000)]);
 ud.v.ind = 1:decim:nt;
 if ~ud.v.transpose
-    ud.v.y2 = sum(y(ud.v.ind,:).^2,2);
+    My = ud.v.M*y(ud.v.ind,:)';
+    ud.v.y2 = sum(My.^2,1);
 else
-    ud.v.y2 = sum(y(:,ud.v.ind).^2,1)';
+    My = ud.v.M*y(:,ud.v.ind);
+    ud.v.y2 = sum(My.^2,1);
 end
 mi = min(ud.v.y2);
 ma = max(ud.v.y2);
+mi = mi - mi.*1e-3;
+ma = ma + ma.*1e-3;
 
 % Create axes
 ud.v.handles.axes = axes('parent',hp,'position',pos1,...

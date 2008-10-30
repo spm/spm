@@ -1,4 +1,4 @@
-function [] = spm_eeg_review(D,flag)
+function [] = spm_eeg_review(D,flag,inv)
 % function for general review (display) of SPM meeg object
 % FORMAT spm_eeg_review(D)
 %
@@ -9,7 +9,7 @@ function [] = spm_eeg_review(D,flag)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2399 2008-10-24 11:31:51Z stefan $
+% $Id: spm_eeg_review.m 2423 2008-10-30 23:50:04Z jean $
 
 D = struct(D);
 
@@ -24,6 +24,11 @@ end
 set(D.PSD.handles.hfig,'renderer','OpenGL');
 
 %-- Create default userdata structure
+if exist('inv','var')
+    try
+        D.PSD.source.VIZU.current = inv;
+    end
+end
 [D] = PSD_initUD(D);
 if ~strcmp(D.transform.ID,'time')
     D.PSD.type = 'epoched';
@@ -72,7 +77,6 @@ end
 
 
 
-
 %% initialization of the userdata structure
 function [D] = PSD_initUD(D)
 % function D = PSD_initUD(D)
@@ -84,6 +88,7 @@ D.PSD.VIZU.uitable = spm_uitable;
 %-- Initialize time window basic info --%
 D.PSD.VIZU.xlim = [1,min([5e2,D.Nsamples])];
 D.PSD.VIZU.info = 1;
+
 
 %-- Initialize trials info --%
 switch D.type
@@ -200,7 +205,12 @@ else
     Ninv = 0;
 end
 if Ninv >= 1
-    D.PSD.source.VIZU.current = 1;
+    try
+        if D.PSD.source.VIZU.current > Ninv
+            D.PSD.source.VIZU.current = 1;
+        end
+    end
+%     D.PSD.source.VIZU.current = 1;
     D.PSD.source.VIZU.isInv = isInv;
     D.PSD.source.VIZU.pst = pst;
     D.PSD.source.VIZU.F = F;

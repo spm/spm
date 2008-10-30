@@ -1,4 +1,4 @@
-function [table, container] = spm_uitable(varargin)
+function [varargout] = spm_uitable(varargin)
 % WARNING: This feature is not supported in MATLAB
 % and the API and functionality may change in a future release.
 
@@ -65,31 +65,60 @@ function [table, container] = spm_uitable(varargin)
 %     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
 
 %   Copyright 2002-2006 The MathWorks, Inc.
-%   $Revision: 2397 $  $Date: 2006/11/29 21:53:13 $
+%   $Revision: 2423 $  $Date: 2006/11/29 21:53:13 $
 
 %   Release: R14. This feature will not work in previous versions of MATLAB.
 
-% $Id: spm_uitable.m 2397 2008-10-24 08:24:13Z guillaume $
+% $Id: spm_uitable.m 2423 2008-10-30 23:50:04Z jean $
 
 % Setup and P-V parsing
 
 if isempty(varargin)
     if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.3') <= 0
-        table = 'off';
-        container = [];
+        varargout{1} = 'off';
     else
-        table = 'on';
-        container = [];
+        varargout{1} = 'on';
     end
     return
 end
 
 if ~isempty(javachk('awt')) || spm_matlab_version_chk('7.3') <= 0
-    table = [];
-    container = [];
+    varargout{1} = [];
+    varargout{2} = [];
     return;
 end
 
+if ischar(varargin{1})
+    switch varargin{1}
+        case 'set'
+            data = varargin{2};
+            columnNames = varargin{3};
+            [htable,hcontainer] = UiTable(data,columnNames);
+            varargout{1} = htable;
+            varargout{2} = hcontainer;
+        case 'get'
+            htable = varargin{2};
+            columnNames = get(htable,'columnNames');
+            data = get(htable,'data');
+            varargout{1} = data;
+            varargout{2} = columnNames;
+    end
+else
+%     argin = varargin;
+%     nargs = length(argin);
+%     str = ['UiTable('];
+%     for i=1:nargs
+%         str = [str,'argin{',num2str(i),'},'];
+%     end
+%     str(end) = ')';
+%     [htable,hcontainer] = eval(str);
+    [htable,hcontainer] = UiTable(varargin{:});
+    varargout{1} = htable;
+    varargout{2} = hcontainer;
+end
+
+
+function [table,container] = UiTable(varargin)
 
 error(nargoutchk(0,2,nargout));
 
@@ -323,6 +352,9 @@ end;
 
 % % Add a predestroy listener so we can call cleanup on the table.
 % addlistener(table, 'ObjectBeingDestroyed', {@componentDelete});
+
+varargout{1} = table;
+varargout{2} = container;
 
 function componentDelete(src, evd)                                     %#ok
 % Clean up the table here so it disengages all its internal listeners.

@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2398 2008-10-24 10:32:34Z vladimir $
+% $Id: spm_eeg_average.m 2423 2008-10-30 23:50:04Z jean $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -36,6 +36,15 @@ end
 
 
 spm('Pointer', 'Watch'); drawnow;
+
+try
+    if D.nfrequencies > 1
+        D = spm_eeg_average_TF(S);
+        return
+    end
+end
+
+
 
 % generate new meeg object with new filenames
 Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions]);

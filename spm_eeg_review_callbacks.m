@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2367 2008-10-21 11:00:48Z jean $
+% $Id: spm_eeg_review_callbacks.m 2423 2008-10-30 23:50:04Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -202,7 +202,6 @@ switch varargin{1}
                         in.min = min(y(:));
                         in.max = max(y(:));
                         in.ind = I;
-                        in.type = 'EEG';
                         y = y(:,x);
                         spm_eeg_plotScalpData(y,pos,labels,in);
                     catch
@@ -1452,33 +1451,43 @@ try
     table = cell(nf,3);
     for i=1:nf
         table{i,1} = history(i).fun;
+        args = D.history(i).args;
+        try,args = args{1};end
         switch history(i).fun
             case 'spm_eeg_convert'
-                table{i,2} = D.history(i).args.dataset;
+                table{i,2} = args.dataset;
                 [path,fn] = fileparts(table{i,2});
                 if i<nf
-                    table{i,3} = fullfile(path,D.history(i).args.outfile);
+                    table{i,3} = fullfile(path,args.outfile);
                 else
                     table{i,3} = '[this file]';
                 end
             case 'spm_eeg_prep'
-                table{i,1} = [table{i,1},' (',D.history(i).args.task,')'];
+                        Df = args.D;
+                        try,Df = args.D.fname;end
+                table{i,1} = [table{i,1},' (',args.task,')'];
                 try
                     [path,fn] = fileparts(table{i-1,3});
                 catch
                     path = [];
                 end
-                table{i,2} = fullfile(path,D.history(i).args.D);
+                table{i,2} = fullfile(path,Df);
                 if i<nf
-                    table{i,3} = fullfile(path,D.history(i).args.D);
+                    table{i,3} = fullfile(path,Df);
                 else
                     table{i,3} = '[this file]';
                 end
             otherwise
-                table{i,2} = D.history(i).args.D;
+                Df = args.D;
+                try,Df = args.D.fname;end
+                table{i,2} = Df;
                 if i<nf
                     try
-                        table{i,3} = D.history(i+1).args.D;
+                        args2 = D.history(i+1).args;
+                        try,args2 = args2{1};end
+                        Df2 = args2.D;
+                        try,Df2 = args2.D.fname;end
+                        table{i,3} = Df2;
                     catch
                         table{i,3} = '?';
                     end
