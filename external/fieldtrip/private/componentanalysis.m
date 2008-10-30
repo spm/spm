@@ -1,4 +1,4 @@
-function [comp] = componentanalysis(cfg, data);
+function [comp] = componentanalysis(cfg, data)
 
 % COMPONENTANALYSIS principal or independent component analysis
 % computes the topography and timecourses of the ICA/PCA components
@@ -35,6 +35,9 @@ function [comp] = componentanalysis(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.38  2008/10/30 09:57:38  roboos
+% fixed some small bugs that were introduced with the last change, thanks to Kai
+%
 % Revision 1.37  2008/10/29 15:54:50  roboos
 % give hopefylly meaningfull error message if fastica fails due to memory error (thanks to Kai)
 %
@@ -185,6 +188,7 @@ tic;
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % check if the input cfg is valid for this function
+
 cfg = checkconfig(cfg, 'forbidden', {'detrend'});
 
 % set the defaults
@@ -199,7 +203,6 @@ if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   % remove all cfg settings  that do not apply
   tmpcfg = [];
   tmpcfg.blc       = cfg.blc;
-  tmpcfg.detrend   = cfg.detrend;
   tmpcfg.trials    = cfg.trials;
   tmpcfg.topo      = cfg.topo;        % the MxN mixing matrix (M channels, N components)
   tmpcfg.topolabel = cfg.topolabel;   % the Mx1 labels of the data that was used in determining the mixing matrix
@@ -268,13 +271,7 @@ for trial=1:Ntrials
   Nsamples(trial) = size(data.trial{trial},2);
 end
 
-if strcmp(cfg.detrend, 'yes')
-  % optionally perform detrending on each trial
-  fprintf('detrending data \n');
-  for trial=1:Ntrials
-    data.trial{trial} = preproc_detrend(data.trial{trial});
-  end
-elseif strcmp(cfg.blc, 'yes')
+if strcmp(cfg.blc, 'yes')
   % optionally perform baseline correction on each trial
   fprintf('baseline correcting data \n');
   for trial=1:Ntrials
@@ -324,7 +321,7 @@ switch cfg.method
     [A, W] = fastica(dat, optarg{:});
     weights = W;
     sphere = eye(size(W,2));
-   catch
+   catch ME
      % give a hopefully instructive error message
      fprintf(['If you get an out-of-memory in fastica here, and you use fastica 2.5, change fastica.m, line 482: \n' ...
               'from\n' ...
@@ -332,7 +329,7 @@ switch cfg.method
               'to\n' ...
               '  if ~isempty(W) && nargout ~= 2  %% if nargout == 2, we return [A, W], and NOT ICASIG\n']);
      % forward original error
-     rethrow(lasterr)
+     rethrow(ME);
    end
     
   case 'runica'
@@ -431,6 +428,7 @@ switch cfg.method
     % get the number of channels we are using from the data
     Nchan   = size(cfg.topo, 1);
     % get the number of components in which the data was decomposed
+    
     Ncomp   = size(cfg.topo, 2);
     cfg.numcomponent = Ncomp;
 
@@ -468,10 +466,8 @@ for trial=1:Ntrials
 end
 
 if strcmp(cfg.method, 'predetermined mixing matrix')
-  % the output may consist of both unmixed components and of original channels
-  comp.label = data.label;
   for i=1:cfg.numcomponent
-    comp.label{datsel(i)} = sprintf('component%03d', i);
+    comp.label{i} = sprintf('component%03d', i);
   end
 else
   % the output only contains unmixed components
@@ -505,7 +501,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.37 2008/10/29 15:54:50 roboos Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.38 2008/10/30 09:57:38 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
