@@ -30,6 +30,13 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.14  2008/10/30 10:45:46  roboos
+% added format=disp for debugging
+% try to initialize a tcpserver if first write to socket fails
+%
+% Revision 1.13  2008/10/30 10:43:29  roboos
+% allow chanindx for buffer
+%
 % Revision 1.12  2008/10/23 09:09:55  roboos
 % improved appending for format=matlab
 % added fcdc_global for debugging (consistent with write_event)
@@ -91,6 +98,10 @@ hdr           = keyval('header',        varargin);
 [nchans, nsamples] = size(dat);
 
 switch dataformat
+  case 'disp'
+    % display it on screen, this is only for debugging
+    disp('new data arived');
+
   case 'fcdc_global'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % store it in a global variable, this is only for debugging
@@ -108,6 +119,13 @@ switch dataformat
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % network transparent buffer
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    if ~isempty(chanindx)
+      % assume that the header corresponds to the original multichannel
+      % file and that the data represents a subset of channels
+      hdr.label  = hdr.label(chanindx);
+      hdr.nChans = length(chanindx);
+    end
 
     [host, port] = filetype_check_uri(filename);
 
@@ -147,7 +165,68 @@ switch dataformat
       packet.nsamples  = 0;
       packet.nevents   = 0;
       packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
-      buffer('put_hdr', packet, host, port);
+      try
+        buffer('put_hdr', packet, host, port);
+      catch
+        % it might be that the buffer is not running yet
+        a = lasterr;
+        a = double(a(:));
+        b =   [69
+          114
+          114
+          111
+          114
+          32
+          117
+          115
+          105
+          110
+          103
+          32
+          61
+          61
+          62
+          32
+          98
+          117
+          102
+          102
+          101
+          114
+          10
+          102
+          97
+          105
+          108
+          101
+          100
+          32
+          116
+          111
+          32
+          99
+          114
+          101
+          97
+          116
+          101
+          32
+          115
+          111
+          99
+          107
+          101
+          116
+          10];
+        [name, port] = filetype_check_uri(filename);
+        if isequal(a,b) && strcmp(name, 'localhost')
+          % try starting a local buffer
+          buffer('tcpserver', 'init', name, port);
+          % try writing the packet again
+          buffer('put_hdr', packet, host, port);
+        end
+      end % catch
+
     end
 
     if ~isempty(dat)
