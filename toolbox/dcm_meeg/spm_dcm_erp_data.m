@@ -30,7 +30,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 2372 2008-10-21 18:26:04Z cc $
+% $Id: spm_dcm_erp_data.m 2419 2008-10-30 19:40:32Z vladimir $
  
  
 % Set defaults and Get D filename
@@ -79,18 +79,18 @@ end
  
 % indices of EEG channel (excluding bad channels) and peristimulus times
 %--------------------------------------------------------------------------
-if ~isfield(DCM.xY, 'modality')
-    DCM.xY.modality = spm_eeg_modality_ui(D);
-end
+
+DCM.xY.modality = spm_eeg_modality_ui(D);
+
  
 modality = DCM.xY.modality;
 channels = D.chanlabels;
  
-if ~isfield(DCM.xY, 'Ic')
-    Ic        = strmatch(modality, D.chantype,'exact');
-    Ic        = setdiff(Ic, D.badchannels);
-    DCM.xY.Ic = Ic;
-end
+
+Ic        = strmatch(modality, D.chantype,'exact');
+Ic        = setdiff(Ic, D.badchannels);
+DCM.xY.Ic = Ic;
+
  
 Ic            = DCM.xY.Ic;
 Nc            = length(Ic);

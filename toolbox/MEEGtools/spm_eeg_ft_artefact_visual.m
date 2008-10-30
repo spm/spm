@@ -1,4 +1,5 @@
-% Demo script for interactive artefact rejection using Fieldtrip
+function D = spm_eeg_ft_artefact_visual(S)
+% Function for interactive artefact rejection using Fieldtrip
 %
 % Disclaimer: this code is provided as an example and is not guaranteed to work
 % with data on which it was not tested. If it does not work for you, feel
@@ -9,9 +10,29 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 1981 2008-08-07 12:46:34Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 2419 2008-10-30 19:40:32Z vladimir $
 
-D = spm_eeg_load;
+[Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
+
+if nargin == 0
+    S = [];
+end
+
+try
+    D = S.D;
+catch
+    D = spm_select(1, '\.mat$', 'Select EEG mat file');
+    S.D = D;
+end
+
+if ischar(D)
+    try
+        D = spm_eeg_load(D);
+    catch
+        error(sprintf('Trouble reading file %s', D));
+    end
+end
+
 
 data = D.ftraw(0);
 
@@ -19,13 +40,27 @@ trlind = 1:length(data.trial);
 data.cfg.trl(:, 4) = trlind;
 
 cfg=[];
-cfg.method =  spm_input('What method?','+1', 'm', 'summary|channel|trial', strvcat('summary', 'channel', 'trial'));
-cfg.latency = 1e-3*spm_input('PST ([start end] in ms):', '+1', 'r', num2str(1e3*[data.time{1}(1) data.time{1}(end)]), 2);
+
+if isfield(S, 'method')
+    cfg.methods = S.method;
+else
+    cfg.method =  spm_input('What method?','+1', 'm', 'summary|channel|trial', strvcat('summary', 'channel', 'trial'));
+end
+
+if isfield(S, 'latency')
+    cfg.methods = S.latency;
+else
+    cfg.latency = 1e-3*spm_input('PST ([start end] in ms):', '+1', 'r', num2str(1e3*[data.time{1}(1) data.time{1}(end)]), 2);
+end
+
 cfg.keepchannel = 'no';
 
-chanind = strmatch(spm_eeg_modality_ui(D), D.chantype);
-
-cfg.channel = data.label(chanind);
+if isfield(S, 'channel')
+    cfg.channel = S.channel;
+else
+    chanind = strmatch(spm_eeg_modality_ui(D), D.chantype);
+    cfg.channel = data.label(chanind);
+end
 
 data = ft_rejectvisual(cfg, data);
 
@@ -41,4 +76,6 @@ if ~isempty(badchan)
     D = badchannels(D, badchanind, 1);
 end
 
-save(D);
+if ~isfield(S, 'save') || S.save
+    save(D);
+end

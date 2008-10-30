@@ -39,7 +39,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld  
-% $Id: spm_eeg_megheadloc.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: spm_eeg_megheadloc.m 2419 2008-10-30 19:40:32Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -131,12 +131,12 @@ for f=1:numel(D)
     if length(hlc_chan_ind) == 9
 
         if isfield(S, 'trlind') && ~isempty(S.trlind)
-            trlind = S.trlind;
+            trlsel = S.trlind;
         else
-            trlind = 1:Ntrl;
+            trlsel = 1:Ntrl;
         end
 
-        for k = trlind
+        for k = trlsel
             tmpdat  = D{f}(hlc_chan_ind, :, k);
 
             utmpdat = unique(tmpdat', 'rows')';
@@ -286,7 +286,7 @@ if S.rejectbetween && length(trlind)>1 && length(hlc_chan_ind) == 9
         origreject = reject(D{f});
         D{f} = reject(D{f}, [], 1);
         if ismember(f, ufileind) && any(captured & (fileind == f))
-            D{f} = reject(D{f}, find(captured & (fileind == f)), 0);
+            D{f} = reject(D{f}, trlind(captured & (fileind == f)), 0);
             if any(origreject)
                 D{f} = reject(D{f}, find(origreject), 1);
             end

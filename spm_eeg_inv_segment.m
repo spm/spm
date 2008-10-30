@@ -12,7 +12,7 @@ function [mesh] = spm_eeg_inv_segment(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Vladimir Litvak
-% $Id: spm_eeg_inv_segment.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_segment.m 2419 2008-10-30 19:40:32Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -24,11 +24,11 @@ catch
 end
 
 %--------------------------------------------------------------------------
-[pth, nam, ext] = spm_fileparts(sMRI);
+[pth, nam] = spm_fileparts(sMRI);
 
 try
     for i = 1:5
-        v = spm_vol(fullfile(pth, ['c' num2str(i) nam ext]));
+        v = spm_vol(fullfile(pth, ['c' num2str(i) nam '.nii']));
     end
     load(fullfile(pth, [nam '_seg8.mat']));
 catch

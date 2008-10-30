@@ -19,7 +19,7 @@ function mesh = spm_eeg_inv_getmasks(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_getmasks.m 1727 2008-05-26 17:49:22Z vladimir $
+% $Id: spm_eeg_inv_getmasks.m 2419 2008-10-30 19:40:32Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ end
 
 % flags and filenames
 %--------------------------------------------------------------------------
-[pth, nam, ext] = spm_fileparts(mesh.sMRI);
+[pth, nam] = spm_fileparts(mesh.sMRI); ext = '.nii';
 fl_ic   = {[],[],'uint8',[]}; % writing option for ImCalc
 
 % Use GM+WM to produce the cortical surface and write *_cortex.img

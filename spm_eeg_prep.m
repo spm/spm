@@ -7,7 +7,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 2190 2008-09-25 12:11:33Z vladimir $
+% $Id: spm_eeg_prep.m 2419 2008-10-30 19:40:32Z vladimir $
 
 if nargin==0;
     spm_eeg_prep_ui;
@@ -221,13 +221,14 @@ switch S.task
 
             S1 = [];
             S1.targetfid = fid;
-            S1.targetfid.fid.pnt = S1.targetfid.fid.pnt(sel1, :);
-            S1.targetfid.fid.label = S1.targetfid.fid.label(sel1);
+            S1.targetfid.fid.pnt = S1.targetfid.fid.pnt(sel1, :);            
 
             S1.sourcefid = shape;
             S1.sourcefid.fid.pnt = S1.sourcefid.fid.pnt(sel2, :);
             S1.sourcefid.fid.label = S1.sourcefid.fid.label(sel2);
 
+            S1.targetfid.fid.label = S1.sourcefid.fid.label;
+            
             S1.template = 1;
             S1.useheadshape = 0;
 

@@ -13,7 +13,7 @@ function  D = spm_eeg_ft_indiv_meg_model(varargin)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Robert Oostenveld, Vladimir Litvak,  
-% $Id: spm_eeg_ft_indiv_meg_model.m 2105 2008-09-17 15:34:09Z vladimir $
+% $Id: spm_eeg_ft_indiv_meg_model.m 2419 2008-10-30 19:40:32Z vladimir $
 
 [Finter] = spm('FnUIsetup','FT based MEG head model',0);
 
@@ -51,7 +51,7 @@ end
 %======================================================================
 [spmvol, spmfid, mesh] = spm_eeg_inv_meshing(sMRI, Msize, 'MEG');
 %%
-[p f x] = fileparts(strtok(mesh.sMRI, ','));
+[p f] = fileparts(strtok(mesh.sMRI, ',')); x = '.nii';
 
 seg = [];
 for c = 1:5

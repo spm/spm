@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 2371 2008-10-21 18:25:06Z cc $
+% $Id: spm_dcm_ind_data.m 2419 2008-10-30 19:40:32Z vladimir $
 
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -258,7 +258,7 @@ for i = 1:Ne;
     
     % trial indices
     %----------------------------------------------------------------------
-    c = D.pickconditions(condlabels{i});
+    c = D.pickconditions(condlabels{trial(i)});
     
     % use only the first 512 trials
     %----------------------------------------------------------------------
