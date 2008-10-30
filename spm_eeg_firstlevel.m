@@ -5,7 +5,7 @@ function spm_eeg_firstlevel(S)
 %
 % S         - optional input struct
 % (optional) fields of S:
-% D         - filename of EEG mat-file with continuous data
+% D         - filename of EEG mat-file defining the M/EEG parameters
 % contrast1st   - struct with various entries:
 %    images     - list of file names containing M/EEG data in voxel-space
 %    window     - start and end of a window in peri-stimulus time [ms]
@@ -16,7 +16,7 @@ function spm_eeg_firstlevel(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 1462 2008-04-21 18:34:38Z guillaume $
+% $Id: spm_eeg_firstlevel.m 2418 2008-10-30 10:33:39Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','M/EEG 1st level contrast setup',0);
 
@@ -44,7 +44,7 @@ end
 try
     contrast1st.fnames = S.contrast1st.fnames;
 catch
-    contrast1st.fnames = spm_select(inf, 'image', 'Select M/EEG files');
+    contrast1st.fnames = spm_select(inf, 'image', 'Select M/EEG images (in voxel-space)');
 end
 
 try
@@ -82,8 +82,8 @@ defaults.analyze.flip = 0;
 C = zeros(D.nsamples, Nc);
 
 for i = 1:Nc
-    tsample(i, 1) = indsample(D, w(i, 1));
-    tsample(i, 2) = indsample(D, w(i, 2));
+    tsample(i, 1) = indsample(D, w(i, 1)/1000);
+    tsample(i, 2) = indsample(D, w(i, 2)/1000);
     C(tsample(1):tsample(2), i) = 1./(tsample(i, 2) - tsample(i, 1) + 1);
 end
 
@@ -125,7 +125,7 @@ for j = 1:length(fnames) % over files
 
         d = zeros(Vbeta.dat.dim(1:2));
         for k = 1:Vbeta.dat.dim(3)
-            d = d + Vbeta.dat(:,:,k)*C(k,i);
+            d = d + Vbeta.dat(:, : ,k)*C(k,i);
         end
 
         Dcon(:,:) = d;
