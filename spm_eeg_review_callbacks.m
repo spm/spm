@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_eeg_review_callbacks.m 2424 2008-10-31 17:07:08Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -716,9 +716,9 @@ switch varargin{1}
                 x(1) = min([max([1 x(1)]) D.Nsamples]);
                 Nevents = length(D.trials.events);
                 D.trials.events(Nevents+1).time = x./D.Fsample;
-                D.trials.events(Nevents+1).duration = 0;
+                D.trials.events(Nevents+1).duration = '0';
                 D.trials.events(Nevents+1).type = 'Manual';
-                D.trials.events(Nevents+1).value = 0;
+                D.trials.events(Nevents+1).value = '0';
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
@@ -979,7 +979,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 events = rmfield(D.trials.events,{'duration','value'});
                 for i=1:Nevents
                     events(i).time = D.trials.events(i).time.*D.Fsample +1;
-                    events(i).type = ya(i);
+                    events(i).type = ja(i);
                     events(i).col = mod(events(i).type+7,7)+1;
                     D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,events(i).time.*[1 1],...
                         VIZU.ylim,'color',col(events(i).col,:));

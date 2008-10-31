@@ -9,7 +9,7 @@ function [] = spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_eeg_review.m 2424 2008-10-31 17:07:08Z jean $
 
 D = struct(D);
 
@@ -102,8 +102,16 @@ switch D.type
                     D.trials.events(i).duration = 0;
                 end
                 if isempty(D.trials.events(i).value)
-                    D.trials.events(i).value = 0;
+                    D.trials.events(i).value = '0';
+                end
+                if isempty(D.trials.events(i).type)
                     D.trials.events(i).type = '0';
+                end
+                if ~ischar(D.trials.events(i).value)
+                    D.trials.events(i).value = num2str(D.trials.events(i).value);
+                end
+                if ~ischar(D.trials.events(i).type)
+                    D.trials.events(i).type = num2str(D.trials.events(i).type);
                 end
             end
         end
@@ -209,8 +217,9 @@ if Ninv >= 1
         if D.PSD.source.VIZU.current > Ninv
             D.PSD.source.VIZU.current = 1;
         end
+    catch
+        D.PSD.source.VIZU.current = 1;
     end
-%     D.PSD.source.VIZU.current = 1;
     D.PSD.source.VIZU.isInv = isInv;
     D.PSD.source.VIZU.pst = pst;
     D.PSD.source.VIZU.F = F;
