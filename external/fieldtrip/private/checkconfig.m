@@ -37,6 +37,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.14  2008/11/02 10:56:34  roboos
+% explicit sharing of code for dataset2files with fileio read_header/data
+%
 % Revision 1.13  2008/10/28 19:20:18  sashae
 % configtracking can be turned on/off with trackconfig.
 % user can request report on unused options with cfg.trackconfig='report', or get cleaned cfg with cfg.trackconfig='cleanup'.
@@ -88,6 +91,9 @@ if isempty(cfg)
 end
 
 global ft_default
+if isempty(ft_default)
+  ft_default = struct;
+end
 fieldsused = fieldnames(ft_default);
 for i=1:length(fieldsused)
   fn = fieldsused{i};
@@ -119,9 +125,15 @@ if ischar(deprecated), deprecated = {deprecated}; end
 if ischar(unused),     unused     = {unused};     end
 if ischar(forbidden),  forbidden  = {forbidden};  end
 
-silent   = strcmp(cfg.checkconfig, 'silent');
-loose    = strcmp(cfg.checkconfig, 'loose');
-pedantic = strcmp(cfg.checkconfig, 'pedantic');
+if isfield(cfg, 'checkconfig')
+  silent   = strcmp(cfg.checkconfig, 'silent');
+  loose    = strcmp(cfg.checkconfig, 'loose');
+  pedantic = strcmp(cfg.checkconfig, 'pedantic');
+else
+  silent   = false;
+  loose    = true;
+  pedantic = false;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % rename old to new options, give warning
@@ -390,33 +402,95 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
       cfg.dataset = d;
     end
 
-    switch filetype(cfg.dataset)
-      case 'ctf_ds'
-        % convert CTF dataset into filenames
-        [path, file, ext] = fileparts(cfg.dataset);
-        cfg.headerfile = fullfile(cfg.dataset, [file '.res4']);
-        cfg.datafile   = fullfile(cfg.dataset, [file '.meg4']);
+    % the following code is shared with fileio read_header/read_data
+    % therefore the three local variables are used outside of the cfg
+    filename   = cfg.dataset;
+    datafile   = [];
+    headerfile = [];
+    switch filetype(filename)
+      case '4d_pdf'
+        datafile   = filename;
+        headerfile = [datafile '.m4d'];
+        sensorfile = [datafile '.xyz'];
+      case {'4d_m4d', '4d_xyz'}
+        datafile   = filename(1:(end-4)); % remove the extension
+        headerfile = [datafile '.m4d'];
+        sensorfile = [datafile '.xyz'];
+      case '4d'
+        [path, file, ext] = fileparts(filename);
+        datafile   = fullfile(path, [file,ext]);
+        headerfile = fullfile(path, [file,ext]);
+        configfile = fullfile(path, 'config');
+      case {'ctf_ds', 'ctf_old'}
+        % convert CTF filename into filenames
+        [path, file, ext] = fileparts(filename);
+        if isempty(path) && isempty(file)
+          % this means that the dataset was specified as the present working directory, i.e. only with '.'
+          filename = pwd;
+          [path, file, ext] = fileparts(filename);
+        end
+        headerfile = fullfile(filename, [file '.res4']);
+        datafile   = fullfile(filename, [file '.meg4']);
+        if length(path)>3 && strcmp(path(end-2:end), '.ds')
+          filename = path; % this is the *.ds directory
+        end
+      case 'ctf_meg4'
+        [path, file, ext] = fileparts(filename);
+        if isempty(path)
+          path = pwd;
+        end
+        headerfile = fullfile(path, [file '.res4']);
+        datafile   = fullfile(path, [file '.meg4']);
+        if length(path)>3 && strcmp(path(end-2:end), '.ds')
+          filename = path; % this is the *.ds directory
+        end
+      case 'ctf_res4'
+        [path, file, ext] = fileparts(filename);
+        if isempty(path)
+          path = pwd;
+        end
+        headerfile = fullfile(path, [file '.res4']);
+        datafile   = fullfile(path, [file '.meg4']);
+        if length(path)>3 && strcmp(path(end-2:end), '.ds')
+          filename = path; % this is the *.ds directory
+        end
       case 'brainvision_vhdr'
-        [path, file, ext] = fileparts(cfg.dataset);
-        cfg.headerfile = fullfile(path, [file '.vhdr']);
+        [path, file, ext] = fileparts(filename);
+        headerfile = fullfile(path, [file '.vhdr']);
         if exist(fullfile(path, [file '.eeg']))
-          cfg.datafile   = fullfile(path, [file '.eeg']);
+          datafile   = fullfile(path, [file '.eeg']);
         elseif exist(fullfile(path, [file '.seg']))
-          cfg.datafile   = fullfile(path, [file '.seg']);
+          datafile   = fullfile(path, [file '.seg']);
+        elseif exist(fullfile(path, [file '.dat']))
+          datafile   = fullfile(path, [file '.dat']);
         end
       case 'brainvision_eeg'
-        [path, file, ext] = fileparts(cfg.dataset);
-        cfg.headerfile = fullfile(path, [file '.vhdr']);
-        cfg.datafile   = fullfile(path, [file '.eeg']);
+        [path, file, ext] = fileparts(filename);
+        headerfile = fullfile(path, [file '.vhdr']);
+        datafile   = fullfile(path, [file '.eeg']);
       case 'brainvision_seg'
-        [path, file, ext] = fileparts(cfg.dataset);
-        cfg.headerfile = fullfile(path, [file '.vhdr']);
-        cfg.datafile   = fullfile(path, [file '.seg']);
+        [path, file, ext] = fileparts(filename);
+        headerfile = fullfile(path, [file '.vhdr']);
+        datafile   = fullfile(path, [file '.seg']);
+      case 'brainvision_dat'
+        [path, file, ext] = fileparts(filename);
+        headerfile = fullfile(path, [file '.vhdr']);
+        datafile   = fullfile(path, [file '.dat']);
+      case 'fcdc_matbin'
+        [path, file, ext] = fileparts(filename);
+        headerfile = fullfile(path, [file '.mat']);
+        datafile   = fullfile(path, [file '.bin']);
       otherwise
-        % convert dataset into filenames, assume that the header and data are the same
-        cfg.datafile   = cfg.dataset;
-        cfg.headerfile = cfg.dataset;
+        % convert filename into filenames, assume that the header and data are the same
+        datafile   = filename;
+        headerfile = filename;
     end
+    % end sharing with fileio read_header/read_data
+    % put everything back into the cfg
+    cfg.dataset    = filename;
+    cfg.datafile   = datafile;
+    cfg.headerfile = headerfile;
+
   elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile);
     % assume that the datafile also contains the header
     cfg.headerfile = cfg.datafile;
