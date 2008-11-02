@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.86  2008/11/02 10:38:44  roboos
+% added another check for ctf_ds (to deal with '.')
+%
 % Revision 1.85  2008/10/28 16:08:14  roboos
 % additional check on yokogawa raw (first 4 bytes should be zero)
 %
@@ -281,6 +284,10 @@ elseif filetype_check_uri(filename, 'shm')
 
   % known CTF file types
 elseif isdir(filename) && filetype_check_extension(filename, '.ds') && exist(fullfile(filename, [f '.res4']))
+  ftype = 'ctf_ds';
+  manufacturer = 'CTF';
+  content = 'MEG dataset';
+elseif isdir(filename) && ~isempty(dir(fullfile(filename, '*.res4'))) && ~isempty(dir(fullfile(filename, '*.meg4')))
   ftype = 'ctf_ds';
   manufacturer = 'CTF';
   content = 'MEG dataset';

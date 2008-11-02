@@ -31,6 +31,12 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.63  2008/11/02 10:59:41  roboos
+% some more changes for ctf_ds in case of empty path
+%
+% Revision 1.62  2008/11/02 10:42:25  roboos
+% improved handling of empty path in case of ctf dataset
+%
 % Revision 1.61  2008/09/29 21:46:02  roboos
 % Implemented data caching in a data-format independent manner, using fetch_data and a persistent variable.
 % Not yet suitable for inclusion in fileio release, hence the default is not to use caching.
@@ -294,24 +300,35 @@ switch dataformat
   case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
+    if isempty(path) && isempty(file)
+      % this means that the dataset was specified as the present working directory, i.e. only with '.'
+      filename = pwd;
+      [path, file, ext] = fileparts(filename);
+    end
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);

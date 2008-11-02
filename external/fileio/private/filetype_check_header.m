@@ -7,6 +7,9 @@ function [val] = filetype_check_header(filename, head, offset)
 % Copyright (C) 2003-2006 Robert Oostenveld
 %
 % $Log: filetype_check_header.m,v $
+% Revision 1.9  2008/11/02 10:38:14  roboos
+% give warning instead of error if file has zero length
+%
 % Revision 1.8  2008/09/29 09:49:41  roboos
 % fixed bug: convert uint8 into char, do not keep as uint8 (thanks to Conrado)
 %
@@ -69,9 +72,11 @@ else
       [str, siz] = fread(fid, length(head), 'uint8=>char');
       fclose(fid);
       if siz~=length(head)
-        error('could not read the header from the file');
+        warning(sprintf('could not read the header from %s', filename));
+        val = 0;
+      else
+        val = all(str(:)==head(:));
       end
-      val = all(str(:)==head(:));
     end
   end
 end

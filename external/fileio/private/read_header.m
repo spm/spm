@@ -55,6 +55,12 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.73  2008/11/02 10:59:41  roboos
+% some more changes for ctf_ds in case of empty path
+%
+% Revision 1.72  2008/11/02 10:37:43  roboos
+% improved handling of empty path in case of ctf dataset
+%
 % Revision 1.71  2008/10/08 16:09:14  jansch
 % changed allocation of hdr.label for 4d data. in the original implementation this
 % only worked correctly for 248-channel systems, and not for the 148-channel system
@@ -331,24 +337,35 @@ switch headerformat
   case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
+    if isempty(path) && isempty(file)
+      % this means that the dataset was specified as the present working directory, i.e. only with '.'
+      filename = pwd;
+      [path, file, ext] = fileparts(filename);
+    end
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);
