@@ -30,9 +30,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: harvest.m 2427 2008-11-03 08:46:17Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2427 $'; %#ok
 
 typ = class(item);
 tag = gettag(item);
@@ -56,6 +56,10 @@ for k = 1:numel(citems)
     end;
     chk = chk && cchk;
 end;
+if ~dflag && isempty(val)
+    val = '<UNDEFINED>';
+    chk = false;
+end
 if chk 
     chk = docheck(item, val);
 end;

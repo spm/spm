@@ -366,9 +366,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 2379 2008-10-22 06:55:32Z volkmar $
+% $Id: cfg_util.m 2427 2008-11-03 08:46:17Z volkmar $
 
-rev = '$Rev: 2379 $'; %#ok
+rev = '$Rev: 2427 $'; %#ok
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -894,9 +894,9 @@ job = ojob;
 job.cj.val = {};
 job.cjid2subs = {};
 
-oid = {};
+oid = cell(size(ojob.cjid2subs));
+n2oid = NaN*ones(size(ojob.cjid2subs));
 nid = 1;
-n2oid = [];
 for k = 1:numel(ojob.cjid2subs)
     if ~isempty(ojob.cjid2subs{k})
         cjsubs = ojob.cjid2subs{k};
@@ -913,6 +913,8 @@ for k = 1:numel(ojob.cjid2subs)
         nid = nid + 1;
     end;
 end;
+oid = oid(1:(nid-1));
+n2oid = n2oid(1:(nid-1));
 % update changed ids in job (where n2oid ~= 1:numel(n2oid))
 cid = n2oid ~= 1:numel(n2oid);
 if any(cid)
@@ -1363,11 +1365,11 @@ end;
 %-----------------------------------------------------------------------
 function [id, str, sts, dep, sout] = local_showjob(cj, cjid2subs)
 % Return name, all_set status and id of internal job representation
-id  = {};
-str = {};
-sts = logical([]);
-dep = logical([]);
-sout = {};
+id  = cell(size(cjid2subs));
+str = cell(size(cjid2subs));
+sts = logical(size(cjid2subs));
+dep = logical(size(cjid2subs));
+sout = cell(size(cjid2subs));
 cmod = 1; % current module count
 for k = 1:numel(cjid2subs)
     if ~isempty(cjid2subs{k})
@@ -1380,6 +1382,11 @@ for k = 1:numel(cjid2subs)
         cmod = cmod + 1;
     end;
 end;
+id   = id(1:(cmod-1));
+str  = str(1:(cmod-1));
+sts  = sts(1:(cmod-1));
+dep  = dep(1:(cmod-1));
+sout = sout(1:(cmod-1));
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------

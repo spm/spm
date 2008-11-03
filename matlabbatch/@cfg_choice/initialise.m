@@ -21,21 +21,23 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 2305 2008-10-06 13:38:49Z volkmar $
+% $Id: initialise.m 2427 2008-11-03 08:46:17Z volkmar $
 
-rev = '$Rev: 2305 $'; %#ok
+rev = '$Rev: 2427 $'; %#ok
 
-if strcmp(val,'<DEFAULTS>')
-    item = initialise_def(item, val, dflag);
-elseif isstruct(val)
-    item = initialise_job(item, val, dflag);
-elseif iscell(val) && numel(val) == 1 && isstruct(val{1})
-    item = initialise_job(item, val{1}, dflag);
-else
-    cfg_message('matlabbatch:initialise', ...
-                'Can not initialise %s: job is not a struct.', ...
-                gettag(item));
-end;
+if ~(isempty(val) || strcmp(val,'<UNDEFINED>'))
+    if strcmp(val,'<DEFAULTS>')
+        item = initialise_def(item, val, dflag);
+    elseif isstruct(val)
+        item = initialise_job(item, val, dflag);
+    elseif iscell(val) && numel(val) == 1 && isstruct(val{1})
+        item = initialise_job(item, val{1}, dflag);
+    else
+        cfg_message('matlabbatch:initialise', ...
+                    'Can not initialise %s: job is not a struct.', ...
+                    gettag(item));
+    end;
+end
 
 function item = initialise_def(item, val, dflag)
 if ~dflag
@@ -58,7 +60,7 @@ if dflag % set defaults
         vi = strcmp(gettag(item.values{k}), vtags);
         if any(vi) % field names are unique, so there will be at most one match
             item.values{k} = initialise(item.values{k}, ...
-                val.(vtags{vi}), dflag);
+                                        val.(vtags{vi}), dflag);
         end;
     end;
 else
@@ -67,7 +69,7 @@ else
     for k = 1:numel(item.values)
         if strcmp(gettag(item.values{k}), vtags{1})
             item.cfg_item.val{1} = initialise(item.values{k}, ...
-                val.(vtags{1}), dflag);
+                                              val.(vtags{1}), dflag);
             break;
         end;
     end;
