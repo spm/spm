@@ -14,6 +14,10 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.6  2008/11/03 11:36:09  roboos
+% added work-around for unusual/spm5 ctf headers -> give warning and keep all at unknown
+% give error for weird input
+%
 % Revision 1.5  2008/10/22 07:22:46  roboos
 % also detect refmag and refgrad from ctf labels, use regexp and local subfunction
 %
@@ -47,6 +51,8 @@ elseif isgrad
   numchan = length(grad.label);
 elseif islabel
   numchan = length(label);
+else
+  error('the input that was provided to this function cannot be deciphered');
 end
 
 % start with unknown type
@@ -103,6 +109,9 @@ elseif senstype(input, 'ctf') && isheader
     origSensType = hdr.orig.sensType;
   elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'res4')
     origSensType =  [hdr.orig.res4.senres.sensorTypeIndex];
+  else
+    warning('could not determine channel type from the CTF header');
+    origSensType = [];
   end
 
   for sel=find(origSensType(:)==5)'
