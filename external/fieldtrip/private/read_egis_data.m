@@ -22,6 +22,13 @@ function dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_data.m,v $
+% Revision 1.5  2008/11/03 20:27:00  roboos
+% Workaround for fileheader size field overflow for large files, thanks to Joseph Dien
+%
+%
+% Revision 1.5  2008/11/03 10:51:00  jdien
+% Workaround for fileheader size field overflow for large files
+%
 % Revision 1.4  2008/04/21 11:44:58  roboos
 % preallocate space for the data (thanks to Joseph)
 %
@@ -34,7 +41,6 @@ function dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
 % Revision 1.1  2007/07/04 13:22:06  roboos
 % initial implementation by Joseph Dien with some corrections by Robert
 %
-
 
 fh=fopen([filename],'r');
 if fh==-1
@@ -72,7 +78,8 @@ end;
 
 dat=zeros(hdr.nChans,hdr.nSamples,endtrial-begtrial+1);
 
-fseek(fh, fhdr(3)+((begtrial-1)*hdr.nChans*hdr.nSamples*2), 'bof');
+[fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename); %read to end of file header
+fseek(fh, ((begtrial-1)*hdr.nChans*hdr.nSamples*2), 'cof');
 for segment=1:(endtrial-begtrial+1)
     dat(:,:,segment) = fread(fh, [hdr.nChans, hdr.nSamples],'int16',endian);
 end
