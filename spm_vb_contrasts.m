@@ -10,7 +10,7 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_vb_contrasts.m 2432 2008-11-03 12:58:04Z will $
 
 
 % Get approximate posterior covariance for ic
@@ -58,7 +58,7 @@ for v=1:Nvoxels,
     %-------------------------------------------------------------------
     switch lower(SPM.PPM.blocks)
         case 'slices'
-            slice_index = XYZ(3,v);
+            slice_index = find(unique(XYZ(3,:))==XYZ(3,v));
         case 'partitions'
             slice_index = SPM.xVol.labels(1,v);
     end

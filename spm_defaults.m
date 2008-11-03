@@ -14,7 +14,7 @@ function spm_defaults
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_defaults.m 2280 2008-10-01 12:39:21Z guillaume $
+% $Id: spm_defaults.m 2432 2008-11-03 12:58:04Z will $
 
 
 global defaults
@@ -69,7 +69,7 @@ defaults.stats.fact.mreg_int = 1;
 
 % Model estimation defaults
 %=======================================================================
-defaults.stats.est.signal = 'GMRF';
+defaults.stats.est.signal = 'UGL';
 defaults.stats.est.ARP    = 3;
 
 % Contrast manager batch defaults

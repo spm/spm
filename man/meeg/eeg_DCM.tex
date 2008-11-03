@@ -6,7 +6,7 @@ data: The measured data are explained by a network model consisting of
 a few sources, which are interacting dynamically. This network model
 is inverted using a Bayesian approach, and one can make inferences
 about connections between sources,
-or the modulation of connections by task. 
+or the modulation of connections by task.
 
 For M/EEG data, DCM
 is a powerful technique for inferring about parameters that one
@@ -17,12 +17,12 @@ connection from this left STG source to left primary auditory cortex
 change between condition A and B?'. In other words, one isn't limited
 to questions about source strength as estimated using a source
 reconstruction approach, but can test hypotheses about what is
-happening between sources, in a network. 
+happening between sources, in a network.
 
 As M/EEG data is highly resolved
 in time, as compared to fMRI, the inferences are about more neurobiologically plausible
 parameters. These relate more directly to the causes of the underlying
-neuronal dynamics. 
+neuronal dynamics.
 
 The key DCM for M/EEG methods paper appeared in 2006, and the
 first DCM studies about mismatch negativity came out
@@ -196,7 +196,7 @@ that the prior location doesn't need to be overly exact, because the
 spatial resolution of M/EEG is on a scale of several millimeters.
 You can also load the prior locations from a file
 ('load'). You can visualize the locations of all sources when you
-press 'dipoles'. 
+press 'dipoles'.
 
 The onset-parameter determines when the stimulus,
 presented at 0ms peri-stimulus time, is assumed to cause an
@@ -290,7 +290,7 @@ probabilities.
 
 
 The option \textit{Input} shows you the estimated input function. As
-described by \cite{od_dcm_erp}, this is a gamma function with the 
+described by \cite{od_dcm_erp}, this is a gamma function with the
 addition of low-frequency terms.
 
 With \textit{Response}, you can plot the selected data, i.e.~the data,
@@ -349,7 +349,6 @@ Once you hit the 'invert DCM' option the cross spectral densities are computed a
 
 \subsection{Output and Results}
 The results menu provides several data estimates. By examining the 'data', you will be able to see observed spectra in the matrix format described above. Selecting 'Cross-spectral density' gives both observed and predicted responses. To examine the connectivity estimates you can select the 'coupling (A)' results option, or for the modulatory parameters, the 'coupling (B)' option. Also you can examine the input strength at each source by selecting the 'coupling (C)' option, as in DCM for ERPs. The option 'trial-specific effects' shows the change in connectivity parameter estimates (from B) from trial to trial relative to the baseline connection (from A). To examine the spectral input to these sources choose the 'Input' option; this should look like a mixture of white and pink noise. Finally the 'dipoles' option allows visualisation of the a posteriori position and orientation of all dipoles in your model.
-
 
 \section{Induced responses}
 DCM for induced responses aims to model coupling within and between frequencies that are associated with linear and non-linear mechanisms respectively. The procedure to do this is similar to that for DCM for ERP/ERF. In the following, we will just point out the differences in how to specify models in the GUI. Before using the technique, we recommend reading about the principles behind DCM for induced responses \cite{cc_induced}.

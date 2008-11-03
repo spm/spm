@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_cfg_fmri_est.m 2432 2008-11-03 12:58:04Z will $
 
-rev = '$Rev: 2175 $';
+rev = '$Rev: 2432 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -115,23 +115,31 @@ signal         = cfg_menu;
 signal.tag     = 'signal';
 signal.name    = 'Signal priors';
 signal.help    = {
-                  '[GMRF] Gaussian Markov Random Field. This spatial prior is the recommended option. Regression coefficients at a given voxel are (softly) constrained to be similar to those at nearby voxels. The strength of this constraint is determined by a spatial precision parameter that is estimated from the data. Different regression coefficients have different spatial precisions allowing each putative experimental effect to have its own spatial regularity. '
+                  '[UGL] Unweighted Graph Laplacian. This spatial prior is the recommended option.  '
+                  ''
+                  '[GMRF] Gaussian Markov Random Field.  Regression coefficients at a given voxel are (softly) constrained to be similar to those at nearby voxels. The strength of this constraint is determined by a spatial precision parameter that is estimated from the data. Different regression coefficients have different spatial precisions allowing each putative experimental effect to have its own spatial regularity. '
                   ''
                   '[LORETA] Low resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standatd choice for EEG source localisation algorithms. It does, however, have undesirable edge effects.'
+                  ''
+                  '[WGL] Weighted Graph Laplacian. '
                   ''
                   '[Global] Global Shrinkage prior. This is not a spatial prior in the sense that regression coefficients are constrained to be similar to neighboring voxels. Instead, the average effect over all voxels (global effect) is assumed to be zero and all regression coefficients are shrunk towards this value in proporation to the prior precision. This is the same prior that is used for Bayesian estimation at the second level models, except that here the prior precision is estimated separaetly for each slice. '
                   ''
                   '[Uninformative] A flat prior. Essentially, no prior information is used. If you select this option then VB reduces to Maximum Likelihood (ML)estimation. This option is useful if, for example, you do not wish to use a spatial prior but wish to take advantage of the voxel-wise AR(P) modelling of noise processes. In this case, you would apply the algorithm to images that have been spatially smoothed. For P=0, ML estimation in turn reduces to Ordinary Least Squares (OLS) estimates, and for P>0 ML estimation is equivalent to a weighted least squares (WLS) but where the weights are different at each voxel (reflecting the different noise correlation at each voxel). '
 }';
 signal.labels = {
+                 'UGL'
                  'GMRF'
                  'LORETA'
+                 'WGL'
                  'Global'
                  'Uninformative'
 }';
 signal.values = {
+                 'UGL'
                  'GMRF'
                  'LORETA'
+                 'WGL'
                  'Global'
                  'Uninformative'
 }';
