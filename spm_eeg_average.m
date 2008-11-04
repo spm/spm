@@ -15,7 +15,7 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_eeg_average.m 2438 2008-11-04 11:21:19Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG averaging setup',0);
 
@@ -70,10 +70,10 @@ if isfield(artefact, 'weights');
                 ts = (j == thresholded{ti});
 
             end
-            w = intersect(pickconditions(D, cl{i}), find(~reject(D)))';
+            w = pickconditions(D, cl{i}, 1)';
             ni(i) = length(w);
             if isempty(ts)
-                ind = pickconditions(D, cl{i});
+                ind = pickconditions(D, cl{i}, 1);
                 data = squeeze(D(j, :, ind))';
                 for nl = ind'
                     tempwf = [tempwf, weights(j, (nl-1)*D.nsamples+1:nl*D.nsamples)];
@@ -110,7 +110,7 @@ else
 
     for i = 1:D.nconditions
 
-        w = intersect(pickconditions(D, deblank(cl{i})), find(~D.reject))';
+        w = pickconditions(D, deblank(cl{i}), 1)';
         c = zeros(1, D.ntrials);
         c(w) = 1;
         

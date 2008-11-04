@@ -39,7 +39,7 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson & James Kilner
-% $Id: spm_eeg_artefact.m 2348 2008-10-16 16:51:25Z vladimir $
+% $Id: spm_eeg_artefact.m 2438 2008-11-04 11:21:19Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'EEG artefact setup',0);
@@ -256,7 +256,7 @@ if MustDoWork
             if nbars > 100, Ibar = floor(linspace(1, nbars,100));
             else Ibar = [1:nbars]; end
 
-            trials = pickconditions(D, deblank(cl{i}));
+            trials = pickconditions(D, deblank(cl{i}), 0);
 
             for j = tloops %loop across electrodes
                 if ismember((i-1)*length(tloops)+j, Ibar)

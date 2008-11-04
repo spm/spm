@@ -23,7 +23,7 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Stefan Kiebel, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 2346 2008-10-16 12:05:34Z stefan $
+% $Id: spm_eeg_merge.m 2438 2008-11-04 11:21:19Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG merge',0);
 
@@ -105,7 +105,7 @@ for i = 1:Nfiles
     % recode labels
     code_new = {};
     for j = 1:Dtmp.nconditions
-        [code_new{pickconditions(Dtmp, cl{j})}] = deal(S.recode{i}{j});
+        [code_new{pickconditions(Dtmp, cl{j}, 0)}] = deal(S.recode{i}{j});
     end
 
     [sDtmp.trials.label] = deal(code_new{:});

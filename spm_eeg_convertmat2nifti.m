@@ -23,7 +23,7 @@ function spm_eeg_convertmat2nifti(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_convertmat2nifti.m 2402 2008-10-27 16:08:56Z stefan $
+% $Id: spm_eeg_convertmat2nifti.m 2438 2008-11-04 11:21:19Z stefan $
 
 % [Finter, Fgraph, CmdLine] = spm('FnUIsetup', 'EEG conversion setup',0);
 
@@ -83,13 +83,13 @@ for k = 1:Nsub
     
     for i = 1 : D{k}.nconditions
         
-        Itrials = intersect(pickconditions(D{k}, cl(i)), find(~D{k}.reject))';
+        Itrials = pickconditions(D{k}, cl(i), 1)';
         
         dname = sprintf('type_%s', cl{i});
         [m, sta] = mkdir(dname);
         cd(dname);
         
-        for l = Itrials
+        for l = Itrials(:)
             % single trial data
             if l < 10
                 tmp = '000';
