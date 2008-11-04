@@ -33,6 +33,9 @@ function [data] = rejectcomponent(cfg, comp, data)
 % Copyright (C) 2005, Robert Oostenveld
 % 
 % $Log: rejectcomponent.m,v $
+% Revision 1.8  2008/11/04 20:20:34  roboos
+% added optional baseline correction
+%
 % Revision 1.7  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -64,6 +67,7 @@ function [data] = rejectcomponent(cfg, comp, data)
 fieldtripdefs
 
 if ~isfield(cfg, 'component'), cfg.component = []; end
+if ~isfield(cfg, 'blc'),           cfg.blc     = 'yes';        end
 
 ntrials = length(comp.trial);
 ncomps  = length(comp.label);
@@ -74,6 +78,16 @@ end
 
 if max(cfg.component)>ncomps
   error('you cannot remove components that are not present in the data');
+end
+
+if nargin>2
+  % optionally perform baseline correction on each trial
+  if strcmp(cfg.blc, 'yes')
+    fprintf('baseline correcting data \n');
+    for trial=1:Ntrials
+      data.trial{trial} = preproc_baselinecorrect(data.trial{trial});
+    end
+  end
 end
 
 % determine the number of channels and the number of components
@@ -115,7 +129,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectcomponent.m,v 1.7 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: rejectcomponent.m,v 1.8 2008/11/04 20:20:34 roboos Exp $';
 % remember the configuration details of the input data 
 try, cfg.previous = comp.cfg; end
 % keep the configuration in the output

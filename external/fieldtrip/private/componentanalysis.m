@@ -35,6 +35,9 @@ function [comp] = componentanalysis(cfg, data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.39  2008/11/04 16:51:59  roboos
+% ensure that all channels that are required for unmixing using previous matrix are present in the data
+%
 % Revision 1.38  2008/10/30 09:57:38  roboos
 % fixed some small bugs that were introduced with the last change, thanks to Kai
 %
@@ -198,6 +201,9 @@ if ~isfield(cfg, 'trials'),        cfg.trials  = 'all';        end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';        end
 if ~isfield(cfg, 'numcomponent'),  cfg.numcomponent = 'all';   end
 
+% select channels, has to be done prior to handling of previous (un)mixing matrix
+cfg.channel = channelselection(cfg.channel, data.label);
+
 if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   % use the previously determined unmixing matrix on this dataset
   % remove all cfg settings  that do not apply
@@ -209,6 +215,13 @@ if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   tmpcfg.channel   = cfg.channel;     % the Mx1 labels of the data that is presented now to this function
   tmpcfg.numcomponent = 'all';
   tmpcfg.method    = 'predetermined mixing matrix';
+ 
+  % test whether all required channels are present in the data
+  [datsel, toposel] = match_str(cfg.channel, cfg.topolabel);
+  if length(datsel)~=length(cfg.topolabel)
+    error('not all channels that are required for the unmixing are present in the data');
+  end
+ 
   cfg = tmpcfg;
 end
 
@@ -256,7 +269,6 @@ end
 Ntrials  = length(data.trial);
 
 % select channels of interest
-cfg.channel = channelselection(cfg.channel, data.label);
 chansel = match_str(data.label, cfg.channel);
 fprintf('selecting %d channels\n', length(chansel));
 for trial=1:Ntrials
@@ -501,7 +513,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.38 2008/10/30 09:57:38 roboos Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.39 2008/11/04 16:51:59 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

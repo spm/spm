@@ -19,6 +19,12 @@ function [fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename)
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_header.m,v $
+% Revision 1.3  2008/11/04 08:16:11  roboos
+% previous fix did not work, this one should work, thanks to Joe
+%
+% Revision 1.3  2008/11/03 21:31:00  jdien
+% Workaround for fileheader size field overflow for large files
+%
 % Revision 1.2  2008/09/30 07:47:04  roboos
 % replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
 %
@@ -101,13 +107,13 @@ for loop=1:fhdr(18)
 end
 
 %Read comment
-status=fseek(fh,fhdr(3),'bof');
-status=fseek(fh,-(fhdr(22)+fhdr(21)+fhdr(20)),'cof');
+%status=fseek(fh,fhdr(3),'bof');
+%status=fseek(fh,-(fhdr(22)+fhdr(21)+fhdr(20)),'cof');
 fcom=fread(fh,fhdr(20),'char');
 
 %Read text
-status=fseek(fh,fhdr(3),'bof');
-status=fseek(fh,-(fhdr(22)+fhdr(21)),'cof');
+%status=fseek(fh,fhdr(3),'bof');
+%status=fseek(fh,-(fhdr(22)+fhdr(21)),'cof');
 ftext=fread(fh,fhdr(21),'char');
 
 fclose(fh);

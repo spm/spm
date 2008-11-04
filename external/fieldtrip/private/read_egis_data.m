@@ -22,9 +22,12 @@ function dat = read_egis_data(filename, hdr, begtrial, endtrial, chanindx);
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_data.m,v $
-% Revision 1.5  2008/11/03 20:27:00  roboos
-% Workaround for fileheader size field overflow for large files, thanks to Joseph Dien
+% Revision 1.6  2008/11/04 08:16:11  roboos
+% previous fix did not work, this one should work, thanks to Joe
 %
+%
+% Revision 1.6  2008/11/03 23:28:00  jdien
+% Fixed bug in workaround
 %
 % Revision 1.5  2008/11/03 10:51:00  jdien
 % Workaround for fileheader size field overflow for large files
@@ -78,8 +81,24 @@ end;
 
 dat=zeros(hdr.nChans,hdr.nSamples,endtrial-begtrial+1);
 
-[fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename); %read to end of file header
+%read to end of file header
+status=fseek(fh,(130+(2*fhdr(18))+(4*fhdr(19))),'bof');
+status=fseek(fh,2,'cof');
+for loop=1:fhdr(18)
+  temp=fread(fh,80,'char');
+  theName=strtok(temp);
+  theName=strtok(theName,char(0));
+  cnames{loop}=deblank(char(theName))';
+  status=fseek(fh,fhdr(24+(loop-1))-80,'cof');
+end
+fcom=fread(fh,fhdr(20),'char');
+ftext=fread(fh,fhdr(21),'char');
+fpad=fread(fh,fhdr(22),'char');
+status=fseek(fh,-2,'cof');
+
+%read to start of desired data
 fseek(fh, ((begtrial-1)*hdr.nChans*hdr.nSamples*2), 'cof');
+
 for segment=1:(endtrial-begtrial+1)
     dat(:,:,segment) = fread(fh, [hdr.nChans, hdr.nSamples],'int16',endian);
 end
