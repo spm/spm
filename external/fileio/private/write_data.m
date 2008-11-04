@@ -30,6 +30,9 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.15  2008/11/03 21:34:11  roboos
+% split large segments into multiple smaller ones prior to calling the buffer mex file
+%
 % Revision 1.14  2008/10/30 10:45:46  roboos
 % added format=disp for debugging
 % try to initialize a tcpserver if first write to socket fails
@@ -226,17 +229,31 @@ switch dataformat
           buffer('put_hdr', packet, host, port);
         end
       end % catch
-
-    end
+    end % writing header
 
     if ~isempty(dat)
-      % reformat the data into a buffer-compatible format
-      packet.nchans    = size(dat,1);
-      packet.nsamples  = size(dat,2);
-      packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
-      packet.bufsize   = numel(dat) * wordsize{find(strcmp(type, class(dat)))};
-      packet.buf       = dat;
-      buffer('put_dat', packet, host, port);
+      max_nsamples = 32556;
+      if size(dat,2)>max_nsamples
+        % FIXME this is a hack to split large writes into multiple smaller writes
+        % this is to work around a problem observed in the neuralynx proxy
+        % when sampling 32 channels at 32KHz
+        begsample = 1;
+        while begsample<=size(dat,2)
+          endsample = begsample - 1 + max_nsamples;
+          endsample = min(endsample, size(dat,2));
+          write_data(filename, dat(:,begsample:endsample), varargin{:}, 'append', false);
+          begsample = endsample + 1;
+        end
+      else
+        % FIXME this is the normal code, which will also be used recursively
+        % reformat the data into a buffer-compatible format
+        packet.nchans    = size(dat,1);
+        packet.nsamples  = size(dat,2);
+        packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+        packet.bufsize   = numel(dat) * wordsize{find(strcmp(type, class(dat)))};
+        packet.buf       = dat;
+        buffer('put_dat', packet, host, port);
+      end % if data larger than chuncksize
     end
 
   case 'ctf_meg4'  % wat als ctf_ds??
