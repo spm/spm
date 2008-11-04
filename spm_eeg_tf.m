@@ -12,7 +12,8 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % channels      - vector of channel indices for which to compute TF
 % phase         - compute phase (1/0) yes/no
 % collchans     - collapse channels (1/0) yes/no. Will average power over
-%                 channels after power estimation
+%                 channels after power estimation. THIS OPTION HAS BEEN
+%                 TEMPORARILY SWITCHED OFF.
 % D             - EEG data struct with time-frequency data (also written to files)
 %_______________________________________________________________________
 %
@@ -22,7 +23,7 @@ function [Dtf, Dtf2] = spm_eeg_tf(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_tf.m 2220 2008-09-29 10:40:27Z stefan $
+% $Id: spm_eeg_tf.m 2439 2008-11-04 15:41:33Z stefan $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG time-frequency setup',0);
@@ -98,17 +99,17 @@ catch
     S.tf.pow = tf.pow;
 end
 
-if length(tf.channels) > 1
-    try
-        tf.collchans = S.tf.collchans;    % 1 = collapse across channels, 0 = do not
-    catch
-        tf.collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
-        S.tf.collchans = tf.collchans;
-    end
-else
-    tf.collchans = 0;
-end
-
+% if length(tf.channels) > 1
+%     try
+%         tf.collchans = S.tf.collchans;    % 1 = collapse across channels, 0 = do not
+%     catch
+%         tf.collchans = spm_input('Collapse channels?', '+1', 'y/n', [1,0], 2);
+%         S.tf.collchans = tf.collchans;
+%     end
+% else
+%     tf.collchans = 0;
+% end
+% 
 % ?
 try S.tf.circularise_phase
     tf.circularise = S.tf.circularise_phase;
@@ -121,11 +122,11 @@ spm('Pointer', 'Watch'); drawnow;
 
 M = spm_eeg_morlet(tf.Mfactor, 1000/D.fsample, tf.frequencies);
 
-if tf.collchans
-    Nchannels = 1;
-else
+% if tf.collchans
+%     Nchannels = 1;
+% else
     Nchannels = length(tf.channels);
-end
+% end
 
 Nfrequencies = length(tf.frequencies);
 
@@ -144,12 +145,12 @@ for i = 1:length(tf.channels)
     end
     ctype = D.chantype(tf.channels(i));
     sD.channels(i).type = ctype{1};
-    Dtf = coor2D(Dtf, i, coor2D(D, tf.channels(i)));
+%     Dtf = coor2D(Dtf, tf.channels(i), coor2D(D, tf.channels(i)));
     % units?
 
 end
 Dtf = meeg(sD);
-Dtf = coor2D(Dtf,[1:length(tf.channels)], coor2D(D,tf.channels));
+Dtf = coor2D(Dtf, [1:length(tf.channels)], coor2D(D,tf.channels));
 
 if tf.phase == 1
     Dtf2 = clone(D, ['tf2_' D.fnamedat], [Nchannels Nfrequencies D.nsamples D.ntrials]);
@@ -170,7 +171,8 @@ if tf.phase == 1
         % units?
     end
     Dtf2 = meeg(sD);
-    Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));
+    %     Dtf2 = coor2D(Dtf2,[1:length(tf.channels)], coor2D(D,tf.channels));
+    Dtf2 = coor2D(Dtf2, [1:length(tf.channels)], coor2D(D,tf.channels));
 else
     Dtf2 = [];
 end
@@ -210,18 +212,18 @@ for k = 1:D.ntrials
         end
     end
 
-    if tf.collchans
-        d = mean(d, 1);
-
-        if tf.phase
-            if tf.circularise
-                tmp = cos(d2) + sqrt(-1)*sin(d2);
-                d2 = double(abs(mean(tmp,1))./mean(abs(tmp),1));
-            else
-                d2 = mean(d2,1);
-            end
-        end
-    end
+%     if tf.collchans
+%         d = mean(d, 1);
+% 
+%         if tf.phase
+%             if tf.circularise
+%                 tmp = cos(d2) + sqrt(-1)*sin(d2);
+%                 d2 = double(abs(mean(tmp,1))./mean(abs(tmp),1));
+%             else
+%                 d2 = mean(d2,1);
+%             end
+%         end
+%     end
 
     Dtf(:, :, :, k) = d;
 
