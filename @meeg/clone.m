@@ -9,7 +9,7 @@ function new = clone(this, fnamedat, dim)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 2348 2008-10-16 16:51:25Z vladimir $
+% $Id: clone.m 2436 2008-11-04 10:46:27Z stefan $
 
 if nargin < 3
     if ~strcmp(transformtype(this), 'TF')
@@ -47,7 +47,7 @@ end
 new.data.y = d;
 
 % change filenames
-new.data.fnamedat = newFileName;
+new.data.fnamedat = [fname,'.dat'];
 new.fname = [fname,'.mat'];
 new.path = pth;
 

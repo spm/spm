@@ -24,7 +24,7 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 2327 2008-10-10 15:24:53Z jean $
+% $Id: spm_eeg_grandmean.m 2436 2008-11-04 10:46:27Z stefan $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG grandmean setup', 0);
 
@@ -163,7 +163,7 @@ if ~isempty(estr)
     error(estr)
     return
 else
-    fprintf('All data files have the same dimensions.\n')
+    fprintf('Ok: All data files have the same dimensions.\n')
 end
 
 
