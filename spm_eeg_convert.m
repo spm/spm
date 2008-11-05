@@ -36,7 +36,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2443 2008-11-05 13:29:34Z vladimir $
+% $Id: spm_eeg_convert.m 2446 2008-11-05 16:05:14Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -450,6 +450,11 @@ if isfield(hdr, 'orig')
         D.origchantypes(1).label = hdr.label(sel2);
         D.origchantypes(1).type = origchantypes;
     end
+end
+
+% The conditions will later be sorted in the original order they were defined.
+if isfield(S, 'trialdef')
+    D = condlist(D, {S.trialdef(:).conditionlabel});
 end
 
 save(D);

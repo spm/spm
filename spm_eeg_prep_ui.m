@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 2357 2008-10-20 12:03:20Z vladimir $
+% $Id: spm_eeg_prep_ui.m 2446 2008-11-05 16:05:14Z vladimir $
 
 spm('pointer','watch')
 
@@ -1022,6 +1022,8 @@ for i = 1:numel(h)
             histlist{i} = 'Compute time-frequency';
         case 'spm_eeg_weight_epochs'
             histlist{i} = 'Compute contrast';
+        case 'spm_eeg_sort_conditions'
+            histlist{i} = 'Sort conditions';
         case 'spm_eeg_prep'
             switch h(i).args.task
                 case 'settype'
