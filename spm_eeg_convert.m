@@ -36,7 +36,7 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 2394 2008-10-23 15:38:38Z vladimir $
+% $Id: spm_eeg_convert.m 2443 2008-11-05 13:29:34Z vladimir $
 
 [Finter] = spm('FnUIsetup','MEEG data conversion ',0);
 
@@ -192,6 +192,11 @@ if S.continuous
         event = rmfield(event, {'offset', 'sample'});
         event = select_events(event, ...
             [S.timewindow(1)-S.eventpadding S.timewindow(2)+S.eventpadding]);
+        if hdr.nSamplesPre>0
+            for i = 1:numel(event)
+                event(i).time = event(i).time - (hdr.nSamplesPre+1)./hdr.Fs;
+            end
+        end
     end
 
     D.trials.label = S.conditionlabel{1};

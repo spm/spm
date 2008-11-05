@@ -35,7 +35,7 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 2195 2008-09-25 16:05:11Z stefan $
+% $Id: spm_eeg_epochs.m 2443 2008-11-05 13:29:34Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG epoching setup',0);
 
@@ -149,6 +149,7 @@ spm('Pointer', 'Watch'); drawnow;
 inbounds = (trl(:,1)>1 & trl(:, 2)<=D.nsamples);
 
 rejected = find(~inbounds);
+rejected = rejected(:)';
 
 if ~isempty(rejected)
     trl = trl(find(inbounds), :);
@@ -179,12 +180,12 @@ for i = 1:ntrial
     end
 end
 
-Dnew = spm_eeg_bc(Dnew, [time(D, 1, 'ms') 0]);
-
 Dnew = conditions(Dnew, [], conditionlabels);
 Dnew = trialonset(Dnew, [], trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
+
+Dnew = spm_eeg_bc(Dnew, [time(Dnew, 1, 'ms') 0]);
 
 % history (remove first some redundant stuff potentially put in by
 % spm_eeg_definetrial)

@@ -22,7 +22,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 2139 2008-09-22 13:35:37Z vladimir $
+% $Id: spm_eeg_definetrial.m 2443 2008-11-05 13:29:34Z vladimir $
 
 if nargin == 0
     S = [];
@@ -84,16 +84,21 @@ else
     event = S.event;
 end
 
+if ~isfield(S, 'timeonset')
+    S.timeonset = 0;
+end
+
 if ~isfield(event, 'time')
     for i = 1:numel(event)
-        event(i).time = event(i).sample./S.fsample;
+        if S.timeonset == 0
+            event(i).time = event(i).sample./S.fsample;
+        else
+            event(i).time = (event(i).sample - 1)./S.fsample + S.timeonset;
+        end
     end
 end
 
 if ~isfield(event, 'sample')
-    if ~isfield(S, 'timeonset')
-        S.timeonset = 0;
-    end
 
     for i = 1:numel(event)
         if S.timeonset == 0
@@ -101,6 +106,8 @@ if ~isfield(event, 'sample')
         else
             event(i).sample = (event(i).time-S.timeonset)*S.fsample+1;
         end
+        
+        event(i).sample = round(event(i).sample);
     end
 end
 
