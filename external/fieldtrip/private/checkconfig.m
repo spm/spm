@@ -37,6 +37,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.15  2008/11/06 15:19:23  sashae
+% several updates in configuration tracking
+%
 % Revision 1.14  2008/11/02 10:56:34  roboos
 % explicit sharing of code for dataset2files with fileio read_header/data
 %
@@ -514,20 +517,68 @@ try
   switch trackconfig
     case 'on' % turn on configtracking
       if isa(cfg, 'struct')
-        cfg = configuration(cfg);
-      elseif isa(cfg, 'configuration')
+        cfg = config(cfg);
+      elseif isa(cfg, 'config')
         % configtracking is already turned on, do nothing
       else
         warning('cannot convert "%s" to a configuration object for tracking', class(cfg));
       end
 
     case 'off' % turn off configtracking
-      if strcmp(cfg.trackconfig, 'report') % give feedback if requested
-        access(cfg);
+      if (strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')) && isa(cfg, 'config') % give feedback if requested
+        r = access(cfg, 'reference');
+        o = access(cfg, 'original');
+
+        key      = fieldnames(cfg); key = key(:)';
+        used     = zeros(size(key));
+        original = zeros(size(key));
+
+        for i=1:length(key)
+          used(i)     = (r.(key{i})>0);
+          original(i) = (o.(key{i})>0);
+        end
+
+        fprintf('\nThe following config fields were specified by YOU and were USED\n');
+        sel = find(used & original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
+
+        fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
+        sel = find(~used & original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
+
+        fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
+        sel = find(used & ~original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
+
+        fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
+        sel = find(~used & ~original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
       end
 
-      if strcmp(cfg.trackconfig, 'cleanup') % clean up cfg if requested
-        cfg=cleancfg(cfg);
+      if strcmp(cfg.trackconfig, 'cleanup') && isa(cfg, 'config') % clean up cfg if requested
+        v = access(cfg, 'value');
+        usedkey = key(find(used));
+        usedval = {};
+        for i=1:length(usedkey)
+          usedval{i} = v.(usedkey{i});
+        end
+        cfg = cell2struct(usedval, usedkey, 2);
       end
 
       cfg = struct(cfg); % convert back to struct
