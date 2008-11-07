@@ -39,7 +39,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld  
-% $Id: spm_eeg_megheadloc.m 2419 2008-10-30 19:40:32Z vladimir $
+% $Id: spm_eeg_megheadloc.m 2448 2008-11-07 16:56:07Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -227,7 +227,7 @@ if S.rejectbetween && length(trlind)>1 && length(hlc_chan_ind) == 9
         %%
         hcubesize=[];
         for d=1:dim
-            gridres=(boundU(d)-boundL(d))./(2.^nextpow2((boundU(d)-boundL(d))/threshold));
+            gridres=(boundU(d)-boundL(d))./(2.^nextpow2((boundU(d)-boundL(d))/S.threshold));
             edges{d} = boundL(d):gridres:boundU(d);
             edges{d}(1)=edges{d}(1)-eps;
             edges{d}(end)=edges{d}(end)+eps;
@@ -299,7 +299,7 @@ end
 
 %%
 % This generates the corrected grad structure
-if S.correctsens && (length(hlc_chan_ind) == 9)
+if S.correctsens && (length(hlc_chan_ind) == 9) && length(trlind)>0
 
     if ~isfield(D{f}, 'origheader') || length(hlc_chan_ind)<9
         error('Original header and headloc channels are required for this functionality.');

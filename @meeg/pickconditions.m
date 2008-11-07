@@ -1,23 +1,23 @@
-function res = pickconditions(this, label, bad)
+function res = pickconditions(this, label, rejectbad)
 % Method for returning indices of trials of a certain trial type.
-% If input argument bad == 1, the function will also return trial 
+% If input argument rejectbad == 0, the function will also return trial 
 % indices which are set to bad (i.e. rejected). If bad is omitted, 
-% the default is to not include rejected trials.
+% the default is not to include rejected trials.
 % FORMAT res = pickconditions(this)
 % _______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: pickconditions.m 2438 2008-11-04 11:21:19Z stefan $
+% $Id: pickconditions.m 2448 2008-11-07 16:56:07Z vladimir $
 
-if ~exist('bad', 'var')
-    bad = 1;
+if nargin<3
+    rejectbad = 1;
 end
 
 c = conditions(this);
 
-res = strmatch(label, c, 'exact');
+res = strmatch(deblank(label), deblank(c), 'exact');
     
-if bad & ~isempty(res)
+if rejectbad && ~isempty(res)
     res = res(~reject(this, res));
 end

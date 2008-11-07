@@ -10,7 +10,7 @@ function D = spm_eeg_ft_artefact_visual(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_artefact_visual.m 2419 2008-10-30 19:40:32Z vladimir $
+% $Id: spm_eeg_ft_artefact_visual.m 2448 2008-11-07 16:56:07Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Fieldtrip visual artefact rejection',0);
 
@@ -42,7 +42,7 @@ data.cfg.trl(:, 4) = trlind;
 cfg=[];
 
 if isfield(S, 'method')
-    cfg.methods = S.method;
+    cfg.method = S.method;
 else
     cfg.method =  spm_input('What method?','+1', 'm', 'summary|channel|trial', strvcat('summary', 'channel', 'trial'));
 end
