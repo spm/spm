@@ -12,7 +12,7 @@ function D = spm_eeg_inv_mesh_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_mesh_ui.m 1726 2008-05-26 16:45:55Z vladimir $
+% $Id: spm_eeg_inv_mesh_ui.m 2452 2008-11-10 18:45:32Z vladimir $
 
 
 % initialise
@@ -53,8 +53,13 @@ end
 if template
     [vol, fid, mesh] = spm_eeg_inv_template(Msize, D.inv{val}.modality);
 else
-    sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
-    [vol, fid, mesh] = spm_eeg_inv_meshing(sMRI, Msize, D.inv{val}.modality);
+    if strcmp(D.inv{val}(1).modality, 'MEG')
+        sMRI =  spm_select(1,'image', 'Select the subject''s structural image');
+        [vol, fid, mesh] = spm_eeg_inv_meshing(sMRI, Msize, D.inv{val}.modality);
+    else
+        warndlg('MRI-based head models are not supported for EEG')
+        return;
+    end
 end
 
 D.inv{val}.mesh = mesh;
