@@ -41,6 +41,19 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.23  2008/11/10 10:48:55  jansch
+% removed typo
+%
+% Revision 1.22  2008/11/10 10:47:16  jansch
+% added 1 to recomputed time-axes if cfg.trl. before, the time-axis was one
+% sample too short
+%
+% Revision 1.21  2008/11/10 10:01:58  jansch
+% ensured correct trial-definition in output data.cfg.trl if cfg.trl
+%
+% Revision 1.20  2008/11/10 09:41:21  jansch
+% added sampling-frequency to output if cfg.trl is specified
+%
 % Revision 1.19  2008/10/07 16:08:11  estmee
 % Changed the way fetch_data is called.
 %
@@ -235,7 +248,8 @@ elseif ~isempty(cfg.trl)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % select new trials from the existing data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  dataold=data;
+  dataold = data;
+  trl     = cfg.trl;
   clear data        % this line is very important! without this line artifacts are not removed from the data but you don't get a warning!
 
   % make header
@@ -244,12 +258,13 @@ elseif ~isempty(cfg.trl)
   % make new data structure
   for iTrl=1:length(cfg.trl(:,1))
     dat= fetch_data(dataold, 'hdr',hdr,'begsample', cfg.trl(iTrl,1),'endsample', cfg.trl(iTrl,2),'chanindx', 1:hdr.nChans);
-    data.trial{iTrl}=dat;
-    trllength=cfg.trl(iTrl,2)-cfg.trl(iTrl,1);
-    data.time{iTrl}=offset2time(cfg.trl(iTrl,3), dataold.fsample, trllength);
+    data.trial{iTrl} = dat;
+    trllength        = cfg.trl(iTrl,2) - cfg.trl(iTrl,1) + 1;
+    data.time{iTrl}  = offset2time(cfg.trl(iTrl,3), dataold.fsample, trllength);
   end
   data.hdr=hdr;
   data.label     = dataold.label;
+  data.fsample   = dataold.fsample;
   if isfield(dataold, 'grad')
     data.grad      = dataold.grad;
   end
@@ -291,7 +306,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.19 2008/10/07 16:08:11 estmee Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.23 2008/11/10 10:48:55 jansch Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

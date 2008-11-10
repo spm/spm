@@ -21,6 +21,9 @@ function [trl, event] = trialfun_general(cfg);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: trialfun_general.m,v $
+% Revision 1.6  2008/11/10 20:32:00  roboos
+% reinserted trialfun that I accidentally removed
+%
 % Revision 1.4  2008/10/06 08:42:12  jansch
 % included check for specifying trials across the boundaries of the datafile.
 % Thanks to Joachim Gross.

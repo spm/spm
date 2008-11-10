@@ -30,13 +30,16 @@ function [cfg] = checkconfig(cfg, varargin)
 %   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options, these result in an error
 %   createsubcfg      = {'subname', etc.}      % list the names of the subcfg
 %   dataset2files     = 'yes', 'no'            % converts dataset into headerfile and datafile
-%   trackconfig       = 'on', 'off'            % turn config tracking on/off
+%   trackconfig       = 'on', 'off'
 %
 % See also CHECKDATA
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.16  2008/11/10 12:16:12  roboos
+% clarified the handling of the configuration tracking options
+%
 % Revision 1.15  2008/11/06 15:19:23  sashae
 % several updates in configuration tracking
 %
@@ -114,11 +117,13 @@ forbidden       = keyval('forbidden',       varargin);
 createsubcfg    = keyval('createsubcfg',    varargin);
 dataset2files   = keyval('dataset2files',   varargin);
 trackconfig     = keyval('trackconfig',     varargin);
+
 if isempty(trackconfig)
-  if strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')
+  % infer from the user configuration whether tracking should be enabled
+  if isfield(cfg, 'trackconfig') && (strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup'))
     trackconfig = 'on'; % turn on configtracking if user requests report/cleanup
   else
-    trackconfig = 'no';
+    trackconfig = 'off';
   end
 end
 
@@ -514,78 +519,76 @@ end
 % FIXME dit is slechts een eerste versie "voor de leuk"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 try
-  switch trackconfig
-    case 'on' % turn on configtracking
-      if isa(cfg, 'struct')
-        cfg = config(cfg);
-      elseif isa(cfg, 'config')
-        % configtracking is already turned on, do nothing
-      else
-        warning('cannot convert "%s" to a configuration object for tracking', class(cfg));
-      end
-
-    case 'off' % turn off configtracking
-      if (strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')) && isa(cfg, 'config') % give feedback if requested
-        r = access(cfg, 'reference');
-        o = access(cfg, 'original');
-
-        key      = fieldnames(cfg); key = key(:)';
-        used     = zeros(size(key));
-        original = zeros(size(key));
-
-        for i=1:length(key)
-          used(i)     = (r.(key{i})>0);
-          original(i) = (o.(key{i})>0);
-        end
-
-        fprintf('\nThe following config fields were specified by YOU and were USED\n');
-        sel = find(used & original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-
-        fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
-        sel = find(~used & original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-
-        fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
-        sel = find(used & ~original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-
-        fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
-        sel = find(~used & ~original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-      end
-
-      if strcmp(cfg.trackconfig, 'cleanup') && isa(cfg, 'config') % clean up cfg if requested
-        v = access(cfg, 'value');
-        usedkey = key(find(used));
-        usedval = {};
-        for i=1:length(usedkey)
-          usedval{i} = v.(usedkey{i});
-        end
-        cfg = cell2struct(usedval, usedkey, 2);
-      end
-
-      cfg = struct(cfg); % convert back to struct
-
-    otherwise
-      % do nothing
+  if strcmp(trackconfig, 'on') && isa(cfg, 'struct')
+    % turn on configuration tracking
+    cfg = config(cfg);
   end
+
+  if strcmp(trackconfig, 'off') && isa(cfg, 'config')
+    % turn off configuration tracking, optionally give report and/or cleanup
+
+    if strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')
+      % give information about the tracked results to the user
+      r = access(cfg, 'reference');
+      o = access(cfg, 'original');
+
+      key      = fieldnames(cfg); key = key(:)';
+      used     = zeros(size(key));
+      original = zeros(size(key));
+
+      for i=1:length(key)
+        used(i)     = (r.(key{i})>0);
+        original(i) = (o.(key{i})>0);
+      end
+
+      fprintf('\nThe following config fields were specified by YOU and were USED\n');
+      sel = find(used & original);
+      if numel(sel)
+        fprintf('  cfg.%s\n', key{sel});
+      else
+        fprintf('  <none>\n');
+      end
+
+      fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
+      sel = find(~used & original);
+      if numel(sel)
+        fprintf('  cfg.%s\n', key{sel});
+      else
+        fprintf('  <none>\n');
+      end
+
+      fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
+      sel = find(used & ~original);
+      if numel(sel)
+        fprintf('  cfg.%s\n', key{sel});
+      else
+        fprintf('  <none>\n');
+      end
+
+      fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
+      sel = find(~used & ~original);
+      if numel(sel)
+        fprintf('  cfg.%s\n', key{sel});
+      else
+        fprintf('  <none>\n');
+      end
+    end % report or cleanup
+
+    if strcmp(cfg.trackconfig, 'cleanup')
+      % remove the unused options from the configuration
+      v = access(cfg, 'value');
+      usedkey = key(find(used));
+      usedval = {};
+      for i=1:length(usedkey)
+        usedval{i} = v.(usedkey{i});
+      end
+      cfg = cell2struct(usedval, usedkey, 2);
+    end
+
+    % convert the configuration back to a struct
+    cfg = struct(cfg);
+  end
+
 catch
   disp(lasterr);
 end

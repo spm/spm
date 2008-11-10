@@ -51,6 +51,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.34  2008/11/10 15:16:22  roboos
+% added snippet of code to speed up the channel selection if there is a perfect match, no need to look for channel groups and immediately bail out
+%
 % Revision 1.33  2008/10/13 12:29:07  jansch
 % added plain 'bti' to known 4D senstypes
 %
@@ -117,6 +120,14 @@ datachannel = datachannel(:);
 % undo the sorting, make the order identical to that of the data channels
 [dum, indx] = sort(indx);
 channel = channel(indx);
+
+[dataindx, chanindx] = match_str(datachannel, channel);
+if length(chanindx)==length(channel)
+  % there is a perfect match between the channels and the datachannels, only some reordering is needed
+  channel = channel(chanindx);
+  % no need to look at channel groups
+  return
+end
 
 % define the known groups with channel labels
 labelall  = datachannel;

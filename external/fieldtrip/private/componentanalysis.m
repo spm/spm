@@ -35,6 +35,9 @@ function [comp] = componentanalysis(cfg, data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.40  2008/11/10 12:55:01  roboos
+% improved channel selection for re-applying an unmixing matrix
+%
 % Revision 1.39  2008/11/04 16:51:59  roboos
 % ensure that all channels that are required for unmixing using previous matrix are present in the data
 %
@@ -206,23 +209,26 @@ cfg.channel = channelselection(cfg.channel, data.label);
 
 if isfield(cfg, 'topo') && isfield(cfg, 'topolabel')
   % use the previously determined unmixing matrix on this dataset
-  % remove all cfg settings  that do not apply
-  tmpcfg = [];
-  tmpcfg.blc       = cfg.blc;
-  tmpcfg.trials    = cfg.trials;
-  tmpcfg.topo      = cfg.topo;        % the MxN mixing matrix (M channels, N components)
-  tmpcfg.topolabel = cfg.topolabel;   % the Mx1 labels of the data that was used in determining the mixing matrix
-  tmpcfg.channel   = cfg.channel;     % the Mx1 labels of the data that is presented now to this function
-  tmpcfg.numcomponent = 'all';
-  tmpcfg.method    = 'predetermined mixing matrix';
- 
+
   % test whether all required channels are present in the data
   [datsel, toposel] = match_str(cfg.channel, cfg.topolabel);
-  if length(datsel)~=length(cfg.topolabel)
+  if length(toposel)~=length(cfg.topolabel)
     error('not all channels that are required for the unmixing are present in the data');
   end
- 
-  cfg = tmpcfg;
+
+  % ensure that all data channels not used in the unmixing should be removed from the channel selection
+  cfg.channel = intersect(cfg.channel, cfg.topolabel);
+
+  % remove all cfg settings  that do not apply
+  tmpcfg              = [];
+  tmpcfg.blc          = cfg.blc;
+  tmpcfg.trials       = cfg.trials;
+  tmpcfg.topo         = cfg.topo;        % the MxN mixing matrix (M channels, N components)
+  tmpcfg.topolabel    = cfg.topolabel;   % the Mx1 labels of the data that was used in determining the mixing matrix
+  tmpcfg.channel      = cfg.channel;     % the Mx1 labels of the data that is presented now to this function
+  tmpcfg.numcomponent = 'all';
+  tmpcfg.method       = 'predetermined mixing matrix';
+  cfg                 = tmpcfg;
 end
 
 % additional options, see FASTICA for details
@@ -327,23 +333,23 @@ switch cfg.method
 
   case 'fastica'
 
-   try
-    % construct key-value pairs for the optional arguments
-    optarg = cfg2keyval(cfg.fastica);
-    [A, W] = fastica(dat, optarg{:});
-    weights = W;
-    sphere = eye(size(W,2));
-   catch ME
-     % give a hopefully instructive error message
-     fprintf(['If you get an out-of-memory in fastica here, and you use fastica 2.5, change fastica.m, line 482: \n' ...
-              'from\n' ...
-              '  if ~isempty(W)                  %% ORIGINAL VERSION\n' ...
-              'to\n' ...
-              '  if ~isempty(W) && nargout ~= 2  %% if nargout == 2, we return [A, W], and NOT ICASIG\n']);
-     % forward original error
-     rethrow(ME);
-   end
-    
+    try
+      % construct key-value pairs for the optional arguments
+      optarg = cfg2keyval(cfg.fastica);
+      [A, W] = fastica(dat, optarg{:});
+      weights = W;
+      sphere = eye(size(W,2));
+    catch ME
+      % give a hopefully instructive error message
+      fprintf(['If you get an out-of-memory in fastica here, and you use fastica 2.5, change fastica.m, line 482: \n' ...
+        'from\n' ...
+        '  if ~isempty(W)                  %% ORIGINAL VERSION\n' ...
+        'to\n' ...
+        '  if ~isempty(W) && nargout ~= 2  %% if nargout == 2, we return [A, W], and NOT ICASIG\n']);
+      % forward original error
+      rethrow(ME);
+    end
+
   case 'runica'
     % construct key-value pairs for the optional arguments
     optarg = cfg2keyval(cfg.runica);
@@ -440,7 +446,7 @@ switch cfg.method
     % get the number of channels we are using from the data
     Nchan   = size(cfg.topo, 1);
     % get the number of components in which the data was decomposed
-    
+
     Ncomp   = size(cfg.topo, 2);
     cfg.numcomponent = Ncomp;
 
@@ -513,11 +519,10 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.39 2008/11/04 16:51:59 roboos Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.40 2008/11/10 12:55:01 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
 comp.cfg = cfg;
 
 fprintf('total time in componentanalysis %.1f seconds\n', toc);
-
