@@ -28,9 +28,9 @@
 %            Statistical Graphics [CDROM], Alexandria, VA: American 
 %            Statistical Association.  
 %
-% The space to be analysed is a 'Volume' or 'Slices'.
+% The space to be analysed is a 'Volume', 'Slices' or 'Clusters'.
 % For 'Slices' the numbers of the slices to be analysed are then entered.
-%
+% For 'Clusters' a mask specifying the volume to be analysed is entered.
 % ______________________________________________________________________ 
 %
 % Required fields of SPM:
@@ -83,13 +83,16 @@
 %
 %                .Gamma, default effect size threshold (used in spm_getSPM)
 %
+%                   info is stored for each "block", where a block
+%                   is either a slice or subvolume, computed using a 
+%                   graph-partitioning algorithm. This is stored in
+%                       .Sess(s).block(z), further info about GLM-AR 
+%                                  model at block z eg. block(z).F is
+%                                  evidence for block z (if computed)
+%                                  where s is the session number
 %                   The following parameters are set if the space to be
 %                   analysed chosen as 'Slices'
 %                       .AN_slices, numbers of slices analysed
-%                       .Sess(s).slice(z), further info about GLM-AR 
-%                                  model at slice z eg. slice(z).F is
-%                                  evidence for slice z (if computed)
-%                                  where s is the session number
 %
 % For each session the following fields are also specified:
 %
@@ -120,6 +123,12 @@
 % Note mask.img is only written if the selected space is 'Volume' or 
 % 'Masked Volume' (ie not 'Slices')
 %
+% labels.{img,hdr}                                - block labels
+% 8-bit (uint8) image of zero-s & integers from 1 to max no. of blocks, 
+% e.g. slices or subvoumes, indicating which block a voxel belongs. 
+% This info is also stored in SPM.xVol.labels (same order as XYZ matrix),  
+% for all analysis space options.
+%
 % Cbeta_????.{img,hdr}  
 % These are 16-bit (float) images of the parameter posteriors. The image
 % files are numbered according to the corresponding column of the
@@ -147,7 +156,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_spm_vb.m 2451 2008-11-10 16:20:32Z lee $
 
 
 %-Get SPM.mat if necessary
@@ -425,7 +434,7 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...initialised');        %-#
 try
     SPM.PPM.priors.W;
 catch
-    SPM.PPM.priors.W = 'Spatial - GMRF';
+    SPM.PPM.priors.W = 'Spatial - UGL';
 end
 
 %-Specify type of prior for AR coefficients
@@ -433,7 +442,7 @@ end
 try
     SPM.PPM.priors.A;
 catch
-    SPM.PPM.priors.A = 'Spatial - GMRF'
+    SPM.PPM.priors.A = 'Spatial - UGL'
 end
 
 %-Get structural info if necessary
@@ -451,7 +460,7 @@ if strcmp(SPM.PPM.priors.A,'Discrete')
     end
 end
 
-%-Analysis space (volume/slices)
+%-Analysis space (volume/slices/clusters)
 %-----------------------------------------------------------------------
 try 
     SPM.PPM.space_type;
@@ -477,7 +486,7 @@ switch lower(SPM.PPM.space_type)
         error('Unknown analysis space.');
 end
 
-%-Intialise image containing labels of each block (slice or partition) 
+%-Intialise image containing labels of each block (slice or subvolume) 
 %-----------------------------------------------------------------------
 VLabel = struct(...
     'fname',    'labels.img',...
@@ -494,16 +503,16 @@ yords = yords(:)';  % plane Y coordinates
 S     = 0;          % Number of in-mask voxels
 s     = 0;          % Volume (voxels > UF)
 
-%-Initialise aspects of slice variables common to all slices
+%-Initialise aspects of block variables common to all blocks
 %-----------------------------------------------------------------------
 if nsess > 1
     for s=1:nsess
         X = SPM.xX.X(SPM.Sess(s).row,SPM.Sess(s).col);
         X = [X ones(length(SPM.Sess(s).row),1)]; % Add on constant 
-        slice_template(s) = spm_vb_init_volume(X,SPM.PPM.AR_P);
+        block_template(s) = spm_vb_init_volume(X,SPM.PPM.AR_P);
     end
 else
-    slice_template(1) = spm_vb_init_volume(SPM.xX.X,SPM.PPM.AR_P);
+    block_template(1) = spm_vb_init_volume(SPM.xX.X,SPM.PPM.AR_P);
 end
 
 %-Get matrices that will remove low-frequency drifts 
@@ -519,7 +528,7 @@ for s=1:nsess
     end    
 end
 
-%-Set maximum number of VB iterations per slice
+%-Set maximum number of VB iterations per block
 %-----------------------------------------------------------------------
 try
     SPM.PPM.maxits;
@@ -537,15 +546,14 @@ catch
     SPM.PPM.compute_det_D=0;
 end
 
-% will change "slice" to more generic name "block"
 for s=1:nsess
-    slice_template(s).maxits        = SPM.PPM.maxits;
-    slice_template(s).tol           = SPM.PPM.tol;
-    slice_template(s).compute_det_D = SPM.PPM.compute_det_D;
-    slice_template(s).verbose       = 1;
-    slice_template(s).update_w      = 1;
-    slice_template(s).update_lambda = 1;
-    slice_template(s).update_F      = SPM.PPM.update_F;
+    block_template(s).maxits        = SPM.PPM.maxits;
+    block_template(s).tol           = SPM.PPM.tol;
+    block_template(s).compute_det_D = SPM.PPM.compute_det_D;
+    block_template(s).verbose       = 1;
+    block_template(s).update_w      = 1;
+    block_template(s).update_lambda = 1;
+    block_template(s).update_F      = SPM.PPM.update_F;
 end
 
 %-Compute mask volume - before analysis
@@ -625,7 +633,7 @@ for z = 1:zdim
         
         if CrS,
             %-Remove isolated nodes (mask is then the same for slice 
-            % and partition-wise analyses)
+            % and graph-partitioned analyses)
             %-----------------------------------------------------------
             vxyz = spm_vb_neighbors(xyz(:,Cm)',DIM,0);
             if any(sum(vxyz,2)==0)
@@ -667,9 +675,9 @@ end
 %-----------------------------------------------------------------------
 nLb = 0;
 Lb = zeros(size(Cl));
-if strcmp(SPM.PPM.blocks,'partitions') % using graph partitioning
+if strcmp(SPM.PPM.block_type,'subvolumes') % using graph partitioning
     vol     = 1;
-    CUTOFF  = 1000; % minimal number of voxels in a segment
+    CUTOFF  = 1000; % minimal number of voxels in a block
     for num = 1:nCl
         I = find(Cl==num);
         if ncl(num) > CUTOFF
@@ -719,13 +727,13 @@ if SPM.PPM.window
     spm('Pointer','Watch')
 end
 
-%-Block-wise analysis (a block is either a slice or partition segment)
+%-Block-wise analysis (a block is either a slice or sub-volume)
 %-----------------------------------------------------------------------
 for z = 1:nLb
 
     %-Print progress information in command window
     %-------------------------------------------------------------------
-    str   = sprintf('Partition %3d/%-3d',z,nLb);
+    str   = sprintf('Block %3d/%-3d',z,nLb);
     fprintf('\r%-40s: %30s',str,' ')                                %-#
 
     %-Construct list of voxels
@@ -764,7 +772,7 @@ for z = 1:nLb
         con_var = zeros(ncon,nVox);
     end
 
-    %-Get structural info for that slice
+    %-Get structural info for that block
     %-------------------------------------------------------------------
     if strcmp(SPM.PPM.priors.A,'Discrete')
         sxyz = xDiscrete(1).mat\M*[xyz;ones(1,nVox)];
@@ -809,8 +817,8 @@ for z = 1:nLb
     for s = 1:nsess
 
         fprintf('Session %d',s);                                %-#
-        slice = slice_template(s);
-        slice = spm_vb_set_priors(slice,SPM.PPM.priors,vxyz);
+        block = block_template(s);
+        block = spm_vb_set_priors(block,SPM.PPM.priors,vxyz);
 
         %-Filter data to remove low frequencies
         %---------------------------------------------------------------
@@ -821,27 +829,27 @@ for z = 1:nLb
         switch SPM.PPM.priors.A
             case 'Robust',
                 %k=SPM.PPM.priors.k;
-                slice = spm_vb_robust(R0Y,slice);
+                block = spm_vb_robust(R0Y,block);
             otherwise
-                slice = spm_vb_glmar(R0Y,slice);
+                block = spm_vb_glmar(R0Y,block);
         end
 
         %-Report AR values
         %---------------------------------------------------------------
         if SPM.PPM.AR_P > 0
             % session specific
-            Sess(s).AR(1:SPM.PPM.AR_P,:) = slice.ap_mean;
+            Sess(s).AR(1:SPM.PPM.AR_P,:) = block.ap_mean;
         end
 
         if SPM.PPM.update_F
             switch SPM.PPM.priors.A
                 case 'Robust',
-                    Fn=slice.F;
-                    SPM.PPM.Sess(s).slice(z).F=sum(Fn);
+                    Fn=block.F;
+                    SPM.PPM.Sess(s).block(z).F=sum(Fn);
                 otherwise
-                    SPM.PPM.Sess(s).slice(z).F = slice.F;
+                    SPM.PPM.Sess(s).block(z).F = block.F;
                     % Contribution map sums over sessions
-                    Fn = spm_vb_Fn(R0Y,slice);
+                    Fn = spm_vb_Fn(R0Y,block);
             end
             LogEv = LogEv+Fn;
         end
@@ -849,23 +857,23 @@ for z = 1:nLb
         %-Update regression coefficients
         %---------------------------------------------------------------
         ncols=length(SPM.Sess(s).col);
-        beta(SPM.Sess(s).col,:) = slice.wk_mean(1:ncols,:);
+        beta(SPM.Sess(s).col,:) = block.wk_mean(1:ncols,:);
         if ncols==0
             % Design matrix empty except for constant
             mean_col_index=s;
         else
             mean_col_index=SPM.Sess(nsess).col(end)+s;
         end
-        beta(mean_col_index,:) = slice.wk_mean(ncols+1,:); % Session mean
+        beta(mean_col_index,:) = block.wk_mean(ncols+1,:); % Session mean
 
         %-Report session-specific noise variances
         %---------------------------------------------------------------
-        Sess(s).Hp(1,:)        = sqrt(1./slice.mean_lambda');
+        Sess(s).Hp(1,:)        = sqrt(1./block.mean_lambda');
 
         %-Store regression coefficient posterior standard deviations
         %---------------------------------------------------------------
-        Psd (SPM.Sess(s).col,:) = slice.w_dev(1:ncols,:);
-        Psd (mean_col_index,:) = slice.w_dev(ncols+1,:);
+        Psd (SPM.Sess(s).col,:) = block.w_dev(1:ncols,:);
+        Psd (mean_col_index,:) = block.w_dev(ncols+1,:);
 
         %-Update contrast variance
         %---------------------------------------------------------------
@@ -875,7 +883,7 @@ for z = 1:nLb
                 % Get relevant columns of contrast
                 CC=[CC(SPM.Sess(s).col) ; 0];
                 for i=1:nVox,
-                    con_var(ic,i)=con_var(ic,i)+CC'*slice.w_cov{i}*CC;
+                    con_var(ic,i)=con_var(ic,i)+CC'*block.w_cov{i}*CC;
                 end
             end
         end
@@ -886,41 +894,41 @@ for z = 1:nLb
                 outlier_voxels=find(Fn>0);
                 N_outliers=length(outlier_voxels);
                 Y_out=R0Y(:,outlier_voxels);
-                gamma_out=slice.gamma(:,outlier_voxels);
+                gamma_out=block.gamma(:,outlier_voxels);
                 analysed_xyz=xyz;
                 outlier_xyz=analysed_xyz(:,outlier_voxels);
 
-                SPM.PPM.Sess(s).slice(z).outlier_voxels=outlier_voxels;
-                SPM.PPM.Sess(s).slice(z).N_outliers=N_outliers;
-                SPM.PPM.Sess(s).slice(z).Y_out=Y_out;
-                SPM.PPM.Sess(s).slice(z).gamma_out=gamma_out;
-                SPM.PPM.Sess(s).slice(z).outlier_xyz=outlier_xyz;
+                SPM.PPM.Sess(s).block(z).outlier_voxels=outlier_voxels;
+                SPM.PPM.Sess(s).block(z).N_outliers=N_outliers;
+                SPM.PPM.Sess(s).block(z).Y_out=Y_out;
+                SPM.PPM.Sess(s).block(z).gamma_out=gamma_out;
+                SPM.PPM.Sess(s).block(z).outlier_xyz=outlier_xyz;
 
-                slice = spm_vb_taylor_R(R0Y,slice);
-                SPM.PPM.Sess(s).slice(z).mean=slice.mean;
-                SPM.PPM.Sess(s).slice(z).N=slice.N;
+                block = spm_vb_taylor_R(R0Y,block);
+                SPM.PPM.Sess(s).block(z).mean=block.mean;
+                SPM.PPM.Sess(s).block(z).N=block.N;
 
             otherwise
-                %-Get slice-wise Taylor approximation to posterior correlation
+                %-Get block-wise Taylor approximation to posterior correlation
                 %-------------------------------------------------------
-                slice = spm_vb_taylor_R(R0Y,slice);
-                SPM.PPM.Sess(s).slice(z).mean=slice.mean;
-                SPM.PPM.Sess(s).slice(z).elapsed_seconds=slice.elapsed_seconds;
+                block = spm_vb_taylor_R(R0Y,block);
+                SPM.PPM.Sess(s).block(z).mean=block.mean;
+                SPM.PPM.Sess(s).block(z).elapsed_seconds=block.elapsed_seconds;
 
                 %-Save Coefficient RESELS and number of voxels
                 %-------------------------------------------------------
-                SPM.PPM.Sess(s).slice(z).gamma_tot=slice.gamma_tot;
-                SPM.PPM.Sess(s).slice(z).N=slice.N;
+                SPM.PPM.Sess(s).block(z).gamma_tot=block.gamma_tot;
+                SPM.PPM.Sess(s).block(z).N=block.N;
         end
 
         %-Save typical structure-specific AR coeffs
         %---------------------------------------------------------------
         if strcmp(SPM.PPM.priors.A,'Discrete')
-            SPM.PPM.Sess(s).slice(z).as_mean=slice.as;
-            SPM.PPM.Sess(s).slice(z).as_dev=sqrt(1./slice.mean_beta);
+            SPM.PPM.Sess(s).block(z).as_mean=block.as;
+            SPM.PPM.Sess(s).block(z).as_dev=sqrt(1./block.mean_beta);
         end
 
-        clear slice;
+        clear block;
     end % loop over sessions
 
     %-Get contrasts
@@ -944,7 +952,8 @@ for z = 1:nLb
     for i = 1:nBeta
         if z > 1, j = spm_read_vols(spm_vol(Vbeta(i))); end
         j(Q) = beta(i,:);
-        Vbeta(i)  = spm_write_plane(Vbeta(i),j,':'); % this is slow, saves volumes instead of slices
+        Vbeta(i)  = spm_write_plane(Vbeta(i),j,':'); % this is slow.
+        % faster to find and save relevant slices instead of whole volume
     end
 
 

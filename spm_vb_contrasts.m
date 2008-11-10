@@ -10,7 +10,7 @@ function [SPM]= spm_vb_contrasts(SPM,XYZ,xCon,ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_contrasts.m 2432 2008-11-03 12:58:04Z will $
+% $Id: spm_vb_contrasts.m 2451 2008-11-10 16:20:32Z lee $
 
 
 % Get approximate posterior covariance for ic
@@ -54,26 +54,21 @@ Y       = repmat(NaN,reshape(SPM.xVol.DIM(1:3),1,[]));
 spm_progress_bar('Init',100,'Estimating posterior contrast variance','');
 
 for v=1:Nvoxels,
-    %-Which slice [partition] are we in ?
+    %-Which block are we in ?
     %-------------------------------------------------------------------
-    switch lower(SPM.PPM.blocks)
-        case 'slices'
-            slice_index = find(unique(XYZ(3,:))==XYZ(3,v));
-        case 'partitions'
-            slice_index = SPM.xVol.labels(1,v);
-    end
+    block_index = SPM.xVol.labels(1,v);
     
     y = 0;
     for s=1:nsess
         
         %-Reconstruct approximation to voxel wise correlation matrix
         %---------------------------------------------------------------
-        R = SPM.PPM.Sess(s).slice(slice_index).mean.R;
+        R = SPM.PPM.Sess(s).block(block_index).mean.R;
         if SPM.PPM.AR_P > 0
-            dh = Sess(s).a(:,v)'-SPM.PPM.Sess(s).slice(slice_index).mean.a;
-            dh = [dh Sess(s).lambda(v)-SPM.PPM.Sess(s).slice(slice_index).mean.lambda];
+            dh = Sess(s).a(:,v)'-SPM.PPM.Sess(s).block(block_index).mean.a;
+            dh = [dh Sess(s).lambda(v)-SPM.PPM.Sess(s).block(block_index).mean.lambda];
             for i=1:length(dh),
-                R = R + SPM.PPM.Sess(s).slice(slice_index).mean.dR(:,:,i) * dh(i);
+                R = R + SPM.PPM.Sess(s).block(block_index).mean.dR(:,:,i) * dh(i);
             end 
         end
         %-Get indexes of regressors specific to this session
@@ -85,7 +80,7 @@ for v=1:Nvoxels,
         % Revert from voxel-specific to splice-specific R if Taylor-series
         % approximation produces invalid R
         if max(max(abs(R))) > 1
-            R=SPM.PPM.Sess(s).slice(slice_index).mean.R;
+            R=SPM.PPM.Sess(s).block(block_index).mean.R;
         end
         
         %-Reconstruct approximation to voxel wise covariance matrix

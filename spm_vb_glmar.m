@@ -1,10 +1,10 @@
-function [slice] = spm_vb_glmar (Y,slice)
-% Variational Bayes for GLM-AR modelling in a slice of fMRI
-% FORMAT [slice] = spm_vb_glmar (Y,slice)
+function [block] = spm_vb_glmar (Y,block)
+% Variational Bayes for GLM-AR modelling in a block of fMRI
+% FORMAT [block] = spm_vb_glmar (Y,block)
 %
 % Y     -  [T x N] time series with T time points, N voxels
 %
-% slice -  data structure containing the following fields:
+% block -  data structure containing the following fields:
 %
 %          .X              [T x k] the design matrix       
 %          .p              order of AR model               
@@ -75,7 +75,7 @@ function [slice] = spm_vb_glmar (Y,slice)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 1821 2008-06-12 18:12:15Z guillaume $
+% $Id: spm_vb_glmar.m 2451 2008-11-10 16:20:32Z lee $
 
 
 t0 = clock;
@@ -87,11 +87,11 @@ error(nargchk(2,2,nargin));
 %-Set defaults
 %-----------------------------------------------------------------------
 [T N]   = size(Y);
-slice.T = T;
-slice.N = N;
+block.T = T;
+block.N = N;
 
 try
-    X = slice.X;
+    X = block.X;
 catch
     error('Mandatory field X missing.');
 end
@@ -101,59 +101,59 @@ if tmp ~= T
    error('X is not of compatible size to Y.');
 end
 
-slice.k = k;
-p = slice.p;
+block.k = k;
+p = block.p;
 
-if ~isfield(slice,'Dw')
+if ~isfield(block,'Dw')
     disp('Error in spm_vb_glmar: mandatory field Dw missing');
     return
 end
 
-%-Initialise slice
+%-Initialise block
 %-----------------------------------------------------------------------
 F      = 0;
 last_F = 0;
-slice = spm_vb_init_slice(Y,slice);
+block = spm_vb_init_block(Y,block);
 
 %-Run Variational Bayes
 %-----------------------------------------------------------------------
-if slice.verbose
+if block.verbose
     disp(' ');
-    disp('Starting VB-GLM-AR-SLICE');
+    disp('Starting VB-GLM-AR-BLOCK');
 end
 
-for it = 1:slice.maxits, % Loop over iterations
+for it = 1:block.maxits, % Loop over iterations
     
-    if slice.update_w
-        slice = spm_vb_w (Y,slice);
+    if block.update_w
+        block = spm_vb_w (Y,block);
     end
-    if (slice.p>0) & (slice.update_a)
-        slice = spm_vb_a (Y,slice);
+    if (block.p>0) & (block.update_a)
+        block = spm_vb_a (Y,block);
     end
-    if slice.update_lambda
-        slice = spm_vb_lambda (Y,slice);
+    if block.update_lambda
+        block = spm_vb_lambda (Y,block);
     end
-    if slice.update_alpha
-        slice = spm_vb_alpha (Y,slice);
+    if block.update_alpha
+        block = spm_vb_alpha (Y,block);
     end
-    if (slice.p>0) & (slice.update_beta)
-        slice = spm_vb_beta (Y,slice);
+    if (block.p>0) & (block.update_beta)
+        block = spm_vb_beta (Y,block);
     end
-    if slice.update_F
-        [F, Lav, KL] = spm_vb_F (Y,slice);
+    if block.update_F
+        [F, Lav, KL] = spm_vb_F (Y,block);
     end
-    if slice.verbose
+    if block.verbose
         disp(sprintf('Iteration %d, F=%1.2f',it,F));
     end
     
-    if slice.update_F
-        slice.F_record(it)=F;
+    if block.update_F
+        block.F_record(it)=F;
         delta_F=F-last_F;
         if it > 2
             if delta_F < 0
                 disp(sprintf('********** Warning: decrease in F of %1.4f per cent *************',100*(delta_F/F)));
                 break;
-            elseif abs(delta_F/F) < slice.tol,
+            elseif abs(delta_F/F) < block.tol,
                 break;
             end;     
         end
@@ -161,13 +161,13 @@ for it = 1:slice.maxits, % Loop over iterations
     end
 end
 
-if slice.update_F
-    slice.F   = F;
-    slice.Lav = Lav;
-    slice.KL  = KL;
+if block.update_F
+    block.F   = F;
+    block.Lav = Lav;
+    block.KL  = KL;
 end
     
-slice = spm_vb_gamma(Y,slice);
+block = spm_vb_gamma(Y,block);
 
-slice.elapsed_seconds = etime(clock,t0);
+block.elapsed_seconds = etime(clock,t0);
 

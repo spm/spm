@@ -27,7 +27,7 @@ if nargin < 2,
     weights = ones(size(edges,1),1);
     return
 else
-    ka  = 1;
+    ka  = 16;
     M   = mean(img,2)*ones(1,N);
     C   = (1/N)*(img-M)*(img-M)';
     Hf  = inv(C);

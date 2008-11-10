@@ -2,25 +2,26 @@ function [S] = spm_vb_spatial_precision (prior_type,vxyz,img)
 % Compute spatial precision matrix appropriate to prior
 % FORMAT [S] = spm_vb_spatial_precision (vxyz,prior_type)
 %
-% vyyz          List of voxels
+% vxyz          List of voxels
 % prior_type    Type of prior
+% img           used to construct weights of WGL
 %
 % S             Spatial precision matrix
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_spatial_precision.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_vb_spatial_precision.m 2451 2008-11-10 16:20:32Z lee $
 
 switch prior_type,
     
     case 'Spatial - UGL',
-        % (un-normalized) Unweighted Graph Laplacian (UGL) or combinatorial
-        % graph-Laplacian. 
-        % L = A'*A, where A has dimensions (no. edges,no.nodes). A and A' 
-        % are the discrete analogues of grad and div operators.
+        % (un-normalized) Unweighted Graph Laplacian (UGL). 
+        % L = A'*A, where A is the "incidence" matrix that has dimensions
+        % (no. edges,no.nodes). A and A' are the discrete analogues of 
+        % grad and div operators.
         % This is equaivalent to L = D - W, where W is the
-        % adjacency matrix and D = diag(sum(W,2)). Note that in general W 
+        % "adjacency" matrix and D = diag(sum(W,2)). Note that in general W 
         % contains weighted edges (see WGL), but for UGL these are unity  
         N   = size(vxyz,1);
         [edges,weights] = spm_vb_edgeweights(vxyz); % weights equal to unity
@@ -54,24 +55,12 @@ switch prior_type,
         A   = spm_vb_incidence(edges,N);
         L   = A'*A; % UGL
         S   = L'*L; % bi-Laplacian
-        
-    case 'Spatial - LORETAu',
-        % This produces the
-        % Laplacian used in LORETA, with biased boundary conditions
-        % - see discussion in section 2 of paper VB2
-        voxels=size(vxyz,1);
-        max_neighbors=size(vxyz,2);
-        L=max_neighbors*speye(voxels);
-        for j=1:voxels,
-            L(j,nonzeros(vxyz(j,:)))=-1;
-        end
-        D=L'*L;
 
     case 'Spatial - WGL',
         % Weighted graph-Laplacian, L. see Chung 1997 "Spectral graph theory"
         % and Strang 2007 "Computational Science and Engineering"
         % L = A'*C*A
-        % where A and C are the edge-node incidence and "constitutive"
+        % where A and C are the edge-node "incidence" and "constitutive"
         % matrices resp. C is diagonal and contains edge weights, which here are
         % a function of the OLS estimates of regressors. See Eqn.8 in
         % Harrison et al 2008 NeuroImage 41 pp 408-423, but note that here

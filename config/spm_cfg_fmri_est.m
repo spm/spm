@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 2432 2008-11-03 12:58:04Z will $
+% $Id: spm_cfg_fmri_est.m 2451 2008-11-10 16:20:32Z lee $
 
-rev = '$Rev: 2432 $';
+rev = '$Rev: 2451 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -35,13 +35,27 @@ Classical.help    = {
 % ---------------------------------------------------------------------
 % Volume Volume
 % ---------------------------------------------------------------------
-Volume         = cfg_menu;
+% Volume         = cfg_menu;
+% Volume.tag     = 'volume';
+% Volume.name    = 'Volume';
+% Volume.val     = {'Slices'};
+% Volume.help    = {'A volume of data is analysed in "blocks", which can be a slice or 3D subvolume, where the extent of each subvolume is determined using a graph partitioning algorithm. Enter the block type, i.e. "Slices" or "Subvolumes".'}';
+% Volume.labels = {'Slices', 'Subvolumes'}';
+% Volume.values = {'Slices', 'Subvolumes'}';
+
+volBlocktype         = cfg_menu;
+volBlocktype.tag     = 'block_type';
+volBlocktype.name    = 'Block type';
+volBlocktype.val     = {'Slices'};
+volBlocktype.help    = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
+volBlocktype.labels  = {'Slices', 'Subvolumes'}';
+volBlocktype.values = {'Slices', 'Subvolumes'}';
+
+Volume         = cfg_branch;
 Volume.tag     = 'volume';
 Volume.name    = 'Volume';
-Volume.val     = {'Slices'};
-Volume.help    = {'A volume of data can be analysed one slice or 3D segment at a time, where the extent of each segment is determined using a graph partitioning algorithm'}';
-Volume.labels = {'Slices', 'Partitions'}';
-Volume.values = {'Slices', 'Partitions'}';
+Volume.val     = {volBlocktype};
+Volume.help    = {'A volume of data is analysed in "blocks", which can be a slice or 3D subvolume, where the extent of each subvolume is determined using a graph partitioning algorithm. Enter the block type, i.e. "Slices" or "Subvolumes".'};
 % ---------------------------------------------------------------------
 % Slices Slices
 % ---------------------------------------------------------------------
@@ -52,42 +66,42 @@ SliceNs.help    = {' '};
 SliceNs.strtype = 'e';
 SliceNs.num     = [Inf 1];
 
-sBlocks         = cfg_menu;
-sBlocks.tag     = 'blocks';
-sBlocks.name    = 'Blocks';
-sBlocks.val     = {'Slices'};
-sBlocks.help    = {}';
-sBlocks.labels = {'Slices', 'Partitions'}';
-sBlocks.values = {'Slices', 'Partitions'}';
+slBlocktype         = cfg_menu;
+slBlocktype.tag     = 'block_type';
+slBlocktype.name    = 'Block type';
+slBlocktype.val     = {'Slices'};
+slBlocktype.help    = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
+slBlocktype.labels  = {'Slices', 'Subvolumes'}';
+slBlocktype.values = {'Slices', 'Subvolumes'}';
 
 Slices         = cfg_branch;
 Slices.tag     = 'slices';
 Slices.name    = 'Slices';
-Slices.val     = {SliceNs sBlocks};
+Slices.val     = {SliceNs slBlocktype};
 Slices.help    = {'Enter Slice Numbers. This can be a single slice or multiple slices. If you select a single slice or only a few slices you must be aware of the interpolation options when, after estimation, displaying the estimated images eg. images of contrasts or AR maps. The default interpolation option may need to be changed to nearest neighbour (NN) (see bottom right hand of graphics window) for you slice maps to be visible.'};
 % ---------------------------------------------------------------------
 % Clusters 
 % ---------------------------------------------------------------------
-Clustermask = cfg_files;
+Clustermask         = cfg_files;
 Clustermask.tag     = 'mask';
 Clustermask.name    = 'Cluster mask';
 Clustermask.help    = {'Select cluster image'}';
-Clustermask.filter = 'image';
+Clustermask.filter  = 'image';
 Clustermask.ufilter = '.*';
 Clustermask.num     = [0 1];
 
-Blocks         = cfg_menu;
-Blocks.tag     = 'blocks';
-Blocks.name    = 'Blocks';
-Blocks.val     = {'Slices'};
-Blocks.help    = {}';
-Blocks.labels = {'Slices', 'Partitions'}';
-Blocks.values = {'Slices', 'Partitions'}';
+clBlocktype         = cfg_menu;
+clBlocktype.tag     = 'block_type';
+clBlocktype.name    = 'Block type';
+clBlocktype.val     = {'Slices'};
+clBlocktype.help    = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
+clBlocktype.labels  = {'Slices', 'Subvolumes'}';
+clBlocktype.values  = {'Slices', 'Subvolumes'}';
 
 Clusters         = cfg_branch;
 Clusters.tag     = 'clusters';
 Clusters.name    = 'Clusters';
-Clusters.val     = {Clustermask Blocks};
+Clusters.val     = {Clustermask clBlocktype};
 Clusters.help    = {'Because estimation can be time consuming an option is provided to analyse selected clusters rather than the whole volume.'};
 % ---------------------------------------------------------------------
 % space Analysis Space
@@ -115,13 +129,13 @@ signal         = cfg_menu;
 signal.tag     = 'signal';
 signal.name    = 'Signal priors';
 signal.help    = {
-                  '[UGL] Unweighted Graph Laplacian. This spatial prior is the recommended option.  '
+                  '[UGL] Unweighted Graph Laplacian. This spatial prior is the recommended option. Regression coefficients at a given voxel are (softly) constrained to be similar to those at nearby voxels. The strength of this constraint is determined by a spatial precision parameter that is estimated from the data. Different regression coefficients have different spatial precisions allowing each putative experimental effect to have its own spatial regularity. '
                   ''
-                  '[GMRF] Gaussian Markov Random Field.  Regression coefficients at a given voxel are (softly) constrained to be similar to those at nearby voxels. The strength of this constraint is determined by a spatial precision parameter that is estimated from the data. Different regression coefficients have different spatial precisions allowing each putative experimental effect to have its own spatial regularity. '
+                  '[GMRF] Gaussian Markov Random Field. This is equivalent to a normalized UGL. '
                   ''
-                  '[LORETA] Low resolution Tomography Prior. This spatial prior is very similar to the GMRF prior and is a standatd choice for EEG source localisation algorithms. It does, however, have undesirable edge effects.'
+                  '[LORETA] Low resolution Tomography Prior. This is equivalent to UGL squared. It is a standatd choice for EEG source localisation algorithms. '
                   ''
-                  '[WGL] Weighted Graph Laplacian. '
+                  '[WGL] Weighted Graph Laplacian. This is a generalization of the UGL, where weights can be used to preserve "edges" of functional responses.'
                   ''
                   '[Global] Global Shrinkage prior. This is not a spatial prior in the sense that regression coefficients are constrained to be similar to neighboring voxels. Instead, the average effect over all voxels (global effect) is assumed to be zero and all regression coefficients are shrunk towards this value in proporation to the prior precision. This is the same prior that is used for Bayesian estimation at the second level models, except that here the prior precision is estimated separaetly for each slice. '
                   ''

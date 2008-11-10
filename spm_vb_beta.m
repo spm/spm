@@ -1,45 +1,45 @@
-function [slice] = spm_vb_beta (Y,slice)
-% Variational Bayes for GLM-AR modelling in a slice - Update beta 
-% FORMAT [slice] = spm_vb_beta (Y,slice)
+function [block] = spm_vb_beta (Y,block)
+% Variational Bayes for GLM-AR modelling in a block - Update beta 
+% FORMAT [block] = spm_vb_beta (Y,block)
 %
 % Y             [T x N] time series 
-% slice         data structure 
+% block         data structure 
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_beta.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_beta.m 2451 2008-11-10 16:20:32Z lee $
 
-if slice.verbose
+if block.verbose
     disp('Updating beta');
 end
 
-N=slice.N;
-p=slice.p;
+N=block.N;
+p=block.p;
   
 % Convert from V_n to V_p
 for n=1:N,
     for j = 1:p,
-        a_cov_p(n,j) = slice.a_cov{n}(j,j);
+        a_cov_p(n,j) = block.a_cov{n}(j,j);
     end
 end
     
-switch slice.priors.A,
+switch block.priors.A,
     case 'Discrete',
         for j = 1:p,
-            for s=1:slice.priors.S,
-                sj=(slice.priors.voxel(s).i-1)*p+j;
-                H=sum((slice.a_mean(sj)-slice.as(j,s)).^2+a_cov_p(slice.priors.voxel(s).i,j));
-                slice.b_beta(j,s)=1/(H/2+1./slice.b_beta_prior(j,s));
-                slice.mean_beta(j,s) = slice.c_beta(j,s)*slice.b_beta(j,s);
+            for s=1:block.priors.S,
+                sj=(block.priors.voxel(s).i-1)*p+j;
+                H=sum((block.a_mean(sj)-block.as(j,s)).^2+a_cov_p(block.priors.voxel(s).i,j));
+                block.b_beta(j,s)=1/(H/2+1./block.b_beta_prior(j,s));
+                block.mean_beta(j,s) = block.c_beta(j,s)*block.b_beta(j,s);
             end
         end
     otherwise
         for j = 1:p,
-            block_p = j:p:N*p;
-            H  = sum(spdiags(slice.Da,0).*a_cov_p(:,j)) + slice.a_mean(block_p)'*slice.Da*slice.a_mean(block_p);
+            subblock_p = j:p:N*p;
+            H  = sum(spdiags(block.Da,0).*a_cov_p(:,j)) + block.a_mean(subblock_p)'*block.Da*block.a_mean(subblock_p);
             % Equation 16 in paper VB4
-            slice.b_beta(j)    = 1./(H./2 + 1./slice.b_beta_prior(j));
-            slice.mean_beta(j) = slice.c_beta(j)*slice.b_beta(j);
+            block.b_beta(j)    = 1./(H./2 + 1./block.b_beta_prior(j));
+            block.mean_beta(j) = block.c_beta(j)*block.b_beta(j);
         end
 end

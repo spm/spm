@@ -1,30 +1,33 @@
-function [slice] = spm_vb_lambda (Y,slice)
+function [block] = spm_vb_lambda (Y,block)
 % Variational Bayes for GLM-AR models - Update lambda
-% FORMAT [slice] = spm_vb_lambda (Y,slice)
+% FORMAT [block] = spm_vb_lambda (Y,block)
 %
 % Y             [T x N] time series 
-% slice         data structure containing the following fields:
+% block         data structure containing the following fields:
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_lambda.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_lambda.m 2451 2008-11-10 16:20:32Z lee $
 
-if slice.verbose
+if block.verbose
     disp('Updating lambda');
 end
 
-for n=1:slice.N,
-    if slice.p > 0
+p=block.p;
+k=block.k;
+N=block.N;
+
+for n=1:N,
+    if p > 0
         % Equation 77 in paper VB1
-        Gn = spm_vb_get_Gn (Y,slice,n);
+        Gn          = spm_vb_get_Gn (Y,block,n);
     else
-        block_n           = [(n-1)*slice.k+1:n*slice.k];
-        en=(Y(:,n)-slice.X*slice.w_mean(block_n,1));
-        Gn=trace(slice.w_cov{n}*slice.XTX)+en'*en;
+        subblock_n  = [(n-1)*k+1:n*k];
+        en          = Y(:,n) - block.X*block.w_mean(subblock_n,1);
+        Gn          = trace(block.w_cov{n}*block.XTX) + en'*en;
     end
     % Equation 75 in paper VB1
-    slice.b_lambda(n,1)    = 1./(Gn./2 + 1./slice.b_lambda_prior(n));
-    slice.mean_lambda(n,1) = slice.c_lambda(n)*slice.b_lambda(n);
+    block.b_lambda(n,1)    = 1./(Gn./2 + 1./block.b_lambda_prior(n));
+    block.mean_lambda(n,1) = block.c_lambda(n)*block.b_lambda(n);
 end
-

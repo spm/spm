@@ -10,7 +10,7 @@ function [xCon,SPM]= spm_vb_x2(SPM,XYZ,xCon,ic)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_x2.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_vb_x2.m 2451 2008-11-10 16:20:32Z lee $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
@@ -62,14 +62,9 @@ D       = repmat(NaN,reshape(SPM.xVol.DIM(1:3),1,[]));
 spm_progress_bar('Init',100,'Estimating posterior contrast variance','');
 
 for v=1:Nvoxels,
-    %-Which slice [partition] are we in ?
+    %-Which block are we in ?
     %-------------------------------------------------------------------
-    switch lower(SPM.PPM.blocks)
-        case 'slices'
-            slice_index = XYZ(3,v);
-        case 'partitions'
-            slice_index = SPM.xVol.labels(1,v);
-    end
+    block_index = SPM.xVol.labels(1,v);
     
     V = zeros(kc,kc);
     m = zeros(kc,1);
@@ -78,12 +73,12 @@ for v=1:Nvoxels,
         
         %-Reconstruct approximation to voxel wise correlation matrix
         %---------------------------------------------------------------
-        R = SPM.PPM.Sess(s).slice(slice_index).mean.R;
+        R = SPM.PPM.Sess(s).block(block_index).mean.R;
         if SPM.PPM.AR_P > 0
-            dh = Sess(s).a(:,v)'-SPM.PPM.Sess(s).slice(slice_index).mean.a;
-            dh = [dh Sess(s).lambda(v)-SPM.PPM.Sess(s).slice(slice_index).mean.lambda];
+            dh = Sess(s).a(:,v)'-SPM.PPM.Sess(s).block(block_index).mean.a;
+            dh = [dh Sess(s).lambda(v)-SPM.PPM.Sess(s).block(block_index).mean.lambda];
             for i=1:length(dh),
-                R = R + SPM.PPM.Sess(s).slice(slice_index).mean.dR(:,:,i) * dh(i);
+                R = R + SPM.PPM.Sess(s).block(block_index).mean.dR(:,:,i) * dh(i);
             end 
         end
         %-Get indexes of regressors specific to this session

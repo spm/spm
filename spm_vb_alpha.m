@@ -1,35 +1,35 @@
-function [slice] = spm_vb_alpha (Y,slice)
+function [block] = spm_vb_alpha (Y,block)
 % Variational Bayes for GLM-AR models - Update alpha 
-% FORMAT [slice] = spm_vb_alpha (Y,slice)
+% FORMAT [block] = spm_vb_alpha (Y,block)
 %
 % Y             [T x N] time series 
-% slice         data structure 
+% block         data structure 
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_alpha.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_alpha.m 2451 2008-11-10 16:20:32Z lee $
 
-if slice.verbose
+if block.verbose
     disp('Updating alpha');
 end
 
-N=slice.N;
-k=slice.k;
+N=block.N;
+k=block.k;
   
 % Convert from Sigma_n to Sigma_k
 for n=1:N,
     for j = 1:k,
-        w_cov_k(n,j) = slice.w_cov{n}(j,j);
+        w_cov_k(n,j) = block.w_cov{n}(j,j);
     end
 end
     
 for j = 1:k,
-    block_k = j:k:N*k;
-    H  = sum(spdiags(slice.Dw,0).*w_cov_k(:,j)) + slice.w_mean(block_k)'*slice.Dw*slice.w_mean(block_k);
+    subblock_k = j:k:N*k;
+    H  = sum(spdiags(block.Dw,0).*w_cov_k(:,j)) + block.w_mean(subblock_k)'*block.Dw*block.w_mean(subblock_k);
     % Equation 15 in paper VB4
-    slice.b_alpha(j)    = 1./(H./2 + 1./slice.b_alpha_prior(j));
-    slice.mean_alpha(j) = slice.c_alpha(j)*slice.b_alpha(j);
+    block.b_alpha(j)    = 1./(H./2 + 1./block.b_alpha_prior(j));
+    block.mean_alpha(j) = block.c_alpha(j)*block.b_alpha(j);
 end
          
     

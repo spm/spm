@@ -1,51 +1,51 @@
-function [slice] = spm_vb_w (Y,slice)
-% Variational Bayes for GLM-AR modelling in a slice - update w
-% FORMAT [slice] = spm_vb_w (Y,slice)
+function [block] = spm_vb_w (Y,block)
+% Variational Bayes for GLM-AR modelling in a block - update w
+% FORMAT [block] = spm_vb_w (Y,block)
 %
 % Y             [T x N] time series 
-% slice         data structure 
+% block         data structure 
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_w.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_w.m 2451 2008-11-10 16:20:32Z lee $
 
-if slice.verbose
+if block.verbose
     disp('Updating w');
 end
 
-X = slice.X;
-T = slice.T;
-p = slice.p;
-N = slice.N;
-k = slice.k;
-Bk = kron(diag(slice.mean_alpha),slice.Dw);
-B = slice.Hw*Bk*slice.Hw';
+X = block.X;
+T = block.T;
+p = block.p;
+N = block.N;
+k = block.k;
+Bk = kron(diag(block.mean_alpha),block.Dw);
+B = block.Hw*Bk*block.Hw';
 
 if p > 0
-    voxel=spm_vb_get_Ab (Y,slice);
+    voxel = spm_vb_get_Ab (Y,block);
 end
 
-for n=1:N,
-    block_n           = [(n-1)*k+1:n*k];
-    block_ni          = [1:N*k];
-    block_ni(block_n) = [];
-    Bnn               = B(block_n,block_n);
-    Bni               = B(block_n,block_ni);
+for n = 1:N,
+    subblock_n              = [(n-1)*k+1:n*k];
+    subblock_ni             = [1:N*k];
+    subblock_ni(subblock_n) = [];
+    Bnn                     = B(subblock_n,subblock_n);
+    Bni                     = B(subblock_n,subblock_ni);
         
     if p > 0
-        slice.w_cov{n}        = inv(slice.mean_lambda(n)*voxel(n).A + Bnn);
-        w_mean = slice.w_cov{n} * (slice.mean_lambda(n)*voxel(n).b-Bni*slice.w_mean(block_ni,1));
+        block.w_cov{n}  = inv(block.mean_lambda(n)*voxel(n).A + Bnn);
+        w_mean = block.w_cov{n} * (block.mean_lambda(n)*voxel(n).b-Bni*block.w_mean(subblock_ni,1));
     else
-        slice.w_cov{n}        = inv(slice.mean_lambda(n)*slice.XTX + Bnn);
-        w_mean = slice.w_cov{n} * (slice.mean_lambda(n)*slice.XTY(:,n)-Bni*slice.w_mean(block_ni,1));
+        block.w_cov{n}  = inv(block.mean_lambda(n)*block.XTX + Bnn);
+        w_mean = block.w_cov{n} * (block.mean_lambda(n)*block.XTY(:,n)-Bni*block.w_mean(subblock_ni,1));
     end
-    slice.w_mean(block_n,1)=w_mean;
-    slice.w2{n}=w_mean*w_mean'+slice.w_cov{n};
+    block.w_mean(subblock_n,1) = w_mean;
+    block.w2{n} = w_mean*w_mean' + block.w_cov{n};
     
     % Update intermediate quantities
-    if p>0
-        slice.I.W_tilde(:,:,n)=reshape(slice.I.D(:,:,n)'*w_mean,p,p);
+    if p > 0
+        block.I.W_tilde(:,:,n) = reshape(block.I.D(:,:,n)'*w_mean,p,p);
     end
 end
-    
+

@@ -1,39 +1,39 @@
-function [slice] = spm_vb_gamma (Y,slice)
+function [block] = spm_vb_gamma (Y,block)
 % Variational Bayes for GLMAR model - Update gamma
 % and get w_dev, wk_mean
-% FORMAT [slice] = spm_vb_gamma (Y,slice)
+% FORMAT [block] = spm_vb_gamma (Y,block)
 %
 % Y             [T x N] time series 
-% slice         data structure containing the following fields:
+% block         data structure containing the following fields:
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_gamma.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_vb_gamma.m 2451 2008-11-10 16:20:32Z lee $
 
-if slice.verbose
+if block.verbose
     disp('Updating gamma');
 end
 
-N = slice.N;
-k = slice.k;
-k = slice.k;
+N = block.N;
+k = block.k;
+k = block.k;
 
-Bk = kron(diag(slice.mean_alpha),slice.Dw);
-B = slice.Hw*Bk*slice.Hw';
+Bk = kron(diag(block.mean_alpha),block.Dw);
+B = block.Hw*Bk*block.Hw';
 
 for n=1:N,
     % Block matrices Bnn [k x k] and Bni [k x k*(N-1)]
-    block_n           = [(n-1)*k+1:n*k];
-    Bnn               = B(block_n,block_n);
+    subblock_n           = [(n-1)*k+1:n*k];
+    Bnn               = B(subblock_n,subblock_n);
     % Equation 17 in paper VB2
     for j=1:k,
-        slice.gamma(j,n)= 1-slice.w_cov{n}(j,j)*Bnn(j,j);
-        slice.b(j,n)=Bnn(j,j);
+        block.gamma(j,n)= 1-block.w_cov{n}(j,j)*Bnn(j,j);
+        block.b(j,n)=Bnn(j,j);
     end
     % Record Standard Deviation of parameter estimates
     % to be used in Taylor series approximation to posterior
-    slice.w_dev(:,n) = sqrt(diag(slice.w_cov{n}));
+    block.w_dev(:,n) = sqrt(diag(block.w_cov{n}));
 end
-slice.gamma_tot=sum(slice.gamma,2);
-slice.wk_mean      = reshape(slice.w_mean,k,N); 
+block.gamma_tot=sum(block.gamma,2);
+block.wk_mean      = reshape(block.w_mean,k,N); 

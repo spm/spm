@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2450 2008-11-10 13:01:43Z will $
+% $Id: spm_run_fmri_est.m 2451 2008-11-10 16:20:32Z lee $
 
 
 global defaults
@@ -148,30 +148,30 @@ end
 switch char(fieldnames(job.method.Bayesian.space))
   case 'volume'
       SPM.PPM.space_type = 'volume';
-      SPM.PPM.blocks = job.method.Bayesian.space.volume;
+      SPM.PPM.block_type = job.method.Bayesian.space.volume.block_type;
   case 'slices'
       SPM.PPM.space_type = 'slices';
       SPM.PPM.AN_slices  = job.method.Bayesian.space.slices.numbers;
-      SPM.PPM.blocks = job.method.Bayesian.space.slices.blocks;
+      SPM.PPM.block_type = job.method.Bayesian.space.slices.block_type;
   case 'clusters'
       SPM.PPM.space_type = 'clusters';
       SPM.PPM.clustermask  = job.method.Bayesian.space.clusters.mask;
-      SPM.PPM.blocks = job.method.Bayesian.space.clusters.blocks;
+      SPM.PPM.block_type = job.method.Bayesian.space.clusters.block_type;
   otherwise
       SPM.PPM.space_type = 'volume';
-      SPM.PPM.blocks = 'slices';
+      SPM.PPM.block_type = 'slices';
 end
 %-Regression coefficient priors
 %-----------------------------------------------------------------------
 switch job.method.Bayesian.signal
+    case 'UGL',
+        SPM.PPM.priors.W = 'Spatial - UGL';
     case 'GMRF',
         SPM.PPM.priors.W = 'Spatial - GMRF';
     case 'LORETA',
         SPM.PPM.priors.W = 'Spatial - LORETA';
     case 'WGL',
         SPM.PPM.priors.W = 'Spatial - WGL';
-    case 'UGL',
-        SPM.PPM.priors.W = 'Spatial - UGL';
     case 'Global',
         SPM.PPM.priors.W = 'Voxel - Shrinkage';
     case 'Uninformative',
