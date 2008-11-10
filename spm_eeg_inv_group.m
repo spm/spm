@@ -23,7 +23,7 @@ function spm_eeg_inv_group(S);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_group.m 2339 2008-10-14 18:39:21Z vladimir $
+% $Id: spm_eeg_inv_group.m 2449 2008-11-10 12:36:14Z vladimir $
 
 
 % check if to proceed
@@ -97,7 +97,7 @@ for i = NS
 
     % use a template head model and associated meshes
     %======================================================================
-    D{i} = spm_eeg_inv_mesh_ui(D{i}, 1, Msize, 1);
+    D{i} = spm_eeg_inv_mesh_ui(D{i}, 1, 1, Msize);
 
     % save forward model parameters
     %----------------------------------------------------------------------
