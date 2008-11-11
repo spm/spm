@@ -72,6 +72,9 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.56  2008/11/11 18:59:26  sashae
+% added call to checkconfig at end of function (trackconfig and checksize)
+%
 % Revision 1.55  2008/10/01 15:51:26  sashae
 % call to checkconfig instead of createsubcfg
 %
@@ -653,6 +656,9 @@ if isfield(data, 'elec')
   timelock.elec = data.elec;
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -662,7 +668,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.55 2008/10/01 15:51:26 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.56 2008/11/11 18:59:26 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

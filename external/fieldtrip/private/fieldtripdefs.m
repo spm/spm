@@ -7,6 +7,12 @@ function fieldtripdefs
 % hastoolbox function appears not be found in fieldtrip/private.
 
 % $Log: fieldtripdefs.m,v $
+% Revision 1.11  2008/11/11 13:13:44  roboos
+% added/improved size checking
+%
+% Revision 1.10  2008/11/10 21:17:28  roboos
+% added public subdirectory
+%
 % Revision 1.9  2008/10/08 10:21:57  roboos
 % added realtime module for addpath
 %
@@ -40,11 +46,17 @@ function fieldtripdefs
 global ft_default
 if ~isfield(ft_default, 'trackconfig'), ft_default.trackconfig = 'off';   end % on, report, off
 if ~isfield(ft_default, 'checkconfig'), ft_default.checkconfig = 'loose'; end % pedantic, loose, silent
+if ~isfield(ft_default, 'checksize'),   ft_default.checksize   = 1e5;     end % number in bytes, can be inf
 
 try
   % this is to help in converting the directory layout while at the same time maintainiong backward compatibility
   % NOTE THAT THIS ONE SHOULD BE ADDED THE FIRST TO ENSURE THAT IT IS THE LOWEST ON THE PATH
   hastoolbox('fixpath', 1, 1);
+end
+
+try
+  % this contains general usefull functions, that do not have to be private
+  hastoolbox('public', 1, 1);
 end
 
 try

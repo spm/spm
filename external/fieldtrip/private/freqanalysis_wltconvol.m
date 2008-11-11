@@ -44,6 +44,9 @@ function [freq] = freqanalysis_wltconvol(cfg, data);
 % Copyright (C) 2003-2007, Markus Siegel, F.C. Donders Centre
 %
 % $Log: freqanalysis_wltconvol.m,v $
+% Revision 1.22  2008/11/11 18:59:26  sashae
+% added call to checkconfig at end of function (trackconfig and checksize)
+%
 % Revision 1.21  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -351,6 +354,9 @@ end
 try, freq.grad = data.grad; end   % remember the gradiometer array
 try, freq.elec = data.elec; end   % remember the electrode array
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add information about the version of this function to the configuration
 try
   % get the full name of the function
@@ -360,7 +366,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_wltconvol.m,v 1.21 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_wltconvol.m,v 1.22 2008/11/11 18:59:26 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

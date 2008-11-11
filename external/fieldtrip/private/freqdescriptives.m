@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.53  2008/11/11 18:59:26  sashae
+% added call to checkconfig at end of function (trackconfig and checksize)
+%
 % Revision 1.52  2008/09/30 16:45:55  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -634,6 +637,9 @@ try, output.grad       = freq.grad; end
 %    output.pseudo.cohspctrm = repmat(Nrpt.*coh, [Nrpt 1 1 1]) - (Nrpt-1).*jckcoh;
 %  end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -643,7 +649,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.52 2008/09/30 16:45:55 sashae Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.53 2008/11/11 18:59:26 sashae Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

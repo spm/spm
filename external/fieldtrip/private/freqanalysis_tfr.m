@@ -27,6 +27,9 @@ function [freq] = freqanalysis_tfr(cfg, data);
 % Copyright (C) 2003, Ole Jensen, FCDC
 %
 % $Log: freqanalysis_tfr.m,v $
+% Revision 1.22  2008/11/11 18:59:26  sashae
+% added call to checkconfig at end of function (trackconfig and checksize)
+%
 % Revision 1.21  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -240,6 +243,9 @@ freq.label     = cfg.channel;
 freq.freq      = cfg.foi;
 freq.time      = indicvect(1:cfg.downsample:end);
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -249,7 +255,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqanalysis_tfr.m,v 1.21 2008/09/22 20:17:43 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_tfr.m,v 1.22 2008/11/11 18:59:26 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

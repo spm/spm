@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.102  2008/11/11 18:59:25  sashae
+% added call to checkconfig at end of function (trackconfig and checksize)
+%
 % Revision 1.101  2008/10/13 13:42:02  sashae
 % added call to checkconfig
 %
@@ -327,6 +330,8 @@ function [data] = preprocessing(cfg, data);
 
 fieldtripdefs
 
+cfg = checkconfig(cfg);
+
 % set the defaults
 if ~isfield(cfg, 'channel'),      cfg.channel = {'all'};        end
 if ~isfield(cfg, 'removemcg'),    cfg.removemcg = 'no';         end
@@ -420,6 +425,9 @@ if nargin>1
       cfg.trl=trl(cfg.trials,:);
     end
   end
+  
+  % get the output cfg
+  cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
   % remember the configuration details of the input data
   if isfield(data, 'cfg'); cfg.previous = data.cfg; end
@@ -607,6 +615,9 @@ else
   if isfield(hdr, 'grad')
     data.grad             = hdr.grad;             % gradiometer system in head coordinates
   end
+  
+  % get the output cfg
+  cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
 end % if nargin>1
 
@@ -619,7 +630,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.101 2008/10/13 13:42:02 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.102 2008/11/11 18:59:25 sashae Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;
