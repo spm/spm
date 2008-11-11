@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 2389 2008-10-23 11:15:23Z vladimir $
+% $Id: spm_MEEGtools.m 2454 2008-11-11 15:44:31Z vladimir $
 
 
 funlist = {
@@ -20,6 +20,7 @@ funlist = {
     'Fieldtrip beamformer source extraction' , 'spm_eeg_ft_beamformer_source'
     'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'
     'Remove spikes from EEG' , 'spm_eeg_remove_spikes'
+    'Save DCM-IR results as images' , 'spm_dcm_ind_save_images'
     };
 
 str = sprintf('%s|', funlist{:, 1});
