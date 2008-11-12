@@ -14,7 +14,7 @@ function D = spm_eeg_downsample(S)
 % original sampling rate. 
 %_______________________________________________________________________
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 2327 2008-10-10 15:24:53Z jean $
+% $Id: spm_eeg_downsample.m 2459 2008-11-12 11:27:23Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','EEG downsample setup',0);
 
@@ -49,13 +49,17 @@ catch
     S.fsample_new = fsample_new;
 end
 
+% This is to handle non-integer sampling rates up to a reasonable precision
+P = round(10*fsample_new);
+Q = round(10*D.fsample);
+
 spm('Pointer', 'Watch');drawnow;
 
 % two passes
 
 % 1st: Determine new D.nsamples
 d = double(squeeze(D(1, :, 1)));
-d2 = resample(d', fsample_new, D.fsample)';
+d2 = resample(d', P, Q)';
 nsamples_new = size(d2, 2);
 
 % generate new meeg object with new filenames
@@ -77,7 +81,7 @@ now = clock;
 for i = 1:D.ntrials
     for j = 1:D.nchannels
         d = double(squeeze(D(j, :, i)));
-        d2 = resample(d', fsample_new, D.fsample)';
+        d2 = resample(d', P, Q)';
 
         Dnew(j, 1:nsamples_new, i) = d2;
 
