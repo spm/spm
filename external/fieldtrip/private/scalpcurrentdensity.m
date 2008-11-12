@@ -16,6 +16,7 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % The configuration can contain
 %   cfg.method       = 'finite' for finite-difference method or
 %                      'spline' for spherical spline method
+%                      'hjorth' for Hjorth approximation method
 %   cfg.elecfile     = string, file containing the electrode definition
 %   cfg.elec         = structure with electrode definition
 %   cfg.conductivity = conductivity of the skin (default = 0.33 S/m)
@@ -50,6 +51,9 @@ function [scd] = scalpcurrentdensity(cfg, data);
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: scalpcurrentdensity.m,v $
+% Revision 1.25  2008/11/12 19:26:17  roboos
+% documented hjorth, added support for layout in constructing of hjorth
+%
 % Revision 1.24  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -176,6 +180,15 @@ elseif isfield(cfg, 'elec')
 elseif isfield(data, 'elec')
   fprintf('using electrodes specified in the data\n');
   elec = data.elec;
+elseif isfield(cfg, 'layout')
+  fprintf('using the 2-D layout to determine the neighbours\n');
+  cfg.layout = prepare_layout(cfg);
+  cfg.neighbours = neighbourselection(cfg, data);
+  % create a dummy electrode structure, this is needed for channel selection
+  elec = [];
+  elec.label  = cfg.layout.label;
+  elec.pnt    = cfg.layout.pos;
+  elec.pnt(:,3) = 0;
 else
   error('electrode positions were not specified');
 end
@@ -222,7 +235,7 @@ elseif strcmp(cfg.method, 'finite')
 elseif strcmp(cfg.method, 'hjorth')
   % the Hjorth filter requires a specification of the neighbours
   if ~isfield(cfg, 'neighbours')
-    tmpcfg      = cfg;
+    tmpcfg      = [];
     tmpcfg.elec = elec;
     cfg.neighbours = neighbourselection(tmpcfg, data);
   end
@@ -285,7 +298,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.24 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id   = '$Id: scalpcurrentdensity.m,v 1.25 2008/11/12 19:26:17 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

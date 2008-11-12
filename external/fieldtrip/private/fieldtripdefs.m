@@ -7,6 +7,9 @@ function fieldtripdefs
 % hastoolbox function appears not be found in fieldtrip/private.
 
 % $Log: fieldtripdefs.m,v $
+% Revision 1.12  2008/11/12 11:41:54  sashae
+% changed trackconfig options
+%
 % Revision 1.11  2008/11/11 13:13:44  roboos
 % added/improved size checking
 %
@@ -44,7 +47,7 @@ function fieldtripdefs
 
 % set the global defaults, the checkconfig function will copy these into the local configurations
 global ft_default
-if ~isfield(ft_default, 'trackconfig'), ft_default.trackconfig = 'off';   end % on, report, off
+if ~isfield(ft_default, 'trackconfig'), ft_default.trackconfig = 'off';   end % cleanup, report, off
 if ~isfield(ft_default, 'checkconfig'), ft_default.checkconfig = 'loose'; end % pedantic, loose, silent
 if ~isfield(ft_default, 'checksize'),   ft_default.checksize   = 1e5;     end % number in bytes, can be inf
 

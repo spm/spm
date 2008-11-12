@@ -14,29 +14,51 @@ function [cfg] = checkconfig(cfg, varargin)
 % required format.
 %
 % 3: It controls the output cfg (data.cfg) such that it only contains
-% relevant and used fields. This part of the functionality is still under
-% construction!
-%
+% relevant and used fields. The size of fields in the output cfg is also
+% controlled: fields exceeding a certain maximum size are emptied.
+% This part of the functionality is still under construction!
 %
 % Use as
 %   [cfg] = checkconfig(cfg, ...)
 %
-% Optional input arguments should be specified as key-value pairs and can include
-%   renamed           = {'old',  'new'}        % list the old and new option
-%   renamedval        = {'opt',  'old', 'new'} % list option and old and new value
-%   required          = {'opt1', 'opt2', etc.} % list the required options
-%   deprecated        = {'opt1', 'opt2', etc.} % list the deprecated options
-%   unused            = {'opt1', 'opt2', etc.} % list the unused options, these will be removed and a warning is issued
-%   forbidden         = {'opt1', 'opt2', etc.} % list the forbidden options, these result in an error
-%   createsubcfg      = {'subname', etc.}      % list the names of the subcfg
-%   dataset2files     = 'yes', 'no'            % converts dataset into headerfile and datafile
-%   trackconfig       = 'on', 'off'
+% The behaviour of checkconfig can be controlled by the following cfg options,
+% which can be set as global fieldtrip defaults (see FIELDTRIPDEFS):
+%   cfg.checkconfig = 'pedantic', 'loose' or 'silent' (control the feedback behaviour of checkconfig)
+%   cfg.trackconfig = 'cleanup', 'report' or 'off'
+%   cfg.checksize   = number in bytes, can be inf (set max size allowed for output cfg fields)
 %
-% See also CHECKDATA
+% Optional input arguments should be specified as key-value pairs and can include
+%   renamed         = {'old',  'new'}        % list the old and new option
+%   renamedval      = {'opt',  'old', 'new'} % list option and old and new value
+%   required        = {'opt1', 'opt2', etc.} % list the required options
+%   deprecated      = {'opt1', 'opt2', etc.} % list the deprecated options
+%   unused          = {'opt1', 'opt2', etc.} % list the unused options, these will be removed and a warning is issued
+%   forbidden       = {'opt1', 'opt2', etc.} % list the forbidden options, these result in an error
+%   createsubcfg    = {'subname', etc.}      % list the names of the subcfg
+%   dataset2files   = 'yes', 'no'            % converts dataset into headerfile and datafile
+%   checksize       = 'yes', 'no'            % remove large fields from the cfg
+%   trackconfig     = 'on', 'off'
+%
+% See also CHECKDATA, FIELDTRIPDEFS
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.21  2008/11/12 11:20:52  sashae
+% change in configtracking: now ignores cfg.checksize
+%
+% Revision 1.20  2008/11/11 18:29:45  sashae
+% some changes in configtracking
+%
+% Revision 1.19  2008/11/11 15:24:16  sashae
+% updated documentation, improved checksize
+%
+% Revision 1.18  2008/11/11 13:12:59  roboos
+% added/improved size checking
+%
+% Revision 1.17  2008/11/11 10:40:59  sashae
+% first implementation of checksize: checks for large fields in the cfg and removes them
+%
 % Revision 1.16  2008/11/10 12:16:12  roboos
 % clarified the handling of the configuration tracking options
 %
@@ -116,6 +138,7 @@ unused          = keyval('unused',          varargin);
 forbidden       = keyval('forbidden',       varargin);
 createsubcfg    = keyval('createsubcfg',    varargin);
 dataset2files   = keyval('dataset2files',   varargin);
+checksize       = keyval('checksize',       varargin); if isempty(checksize), checksize = 'off';  end
 trackconfig     = keyval('trackconfig',     varargin);
 
 if isempty(trackconfig)
@@ -512,6 +535,7 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
   if isempty(cfg.datafile),   cfg=rmfield(cfg, 'datafile');   end
 end
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % configtracking
 %
@@ -533,6 +557,11 @@ try
       o = access(cfg, 'original');
 
       key      = fieldnames(cfg); key = key(:)';
+      
+      ignorefields = {'checksize'}; % this field should not be removed!
+      skipsel      = match_str(key, ignorefields);
+      key(skipsel) = [];
+      
       used     = zeros(size(key));
       original = zeros(size(key));
 
@@ -576,13 +605,10 @@ try
 
     if strcmp(cfg.trackconfig, 'cleanup')
       % remove the unused options from the configuration
-      v = access(cfg, 'value');
-      usedkey = key(find(used));
-      usedval = {};
-      for i=1:length(usedkey)
-        usedval{i} = v.(usedkey{i});
+      unusedkey = key(~used);
+      for i=1:length(unusedkey)
+        cfg = rmfield(cfg, unusedkey{i});
       end
-      cfg = cell2struct(usedval, usedkey, 2);
     end
 
     % convert the configuration back to a struct
@@ -591,4 +617,41 @@ try
 
 catch
   disp(lasterr);
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check the size of fields in the cfg, remove large fields
+% the max allowed size should be specified in cfg.checksize (this can be
+% set with fieldtripdefs)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if strcmp(checksize, 'yes') && ~isinf(cfg.checksize)
+  cfg = checksizefun(cfg, cfg.checksize);
+end
+
+function [cfg] = checksizefun(cfg, max_size)
+
+ignorefields = {'trl', 'trlold', 'event', 'artifact', 'previous'};
+
+fieldsorig = fieldnames(cfg);
+for i=1:numel(fieldsorig)
+  for k=1:numel(cfg)
+    if ~isstruct(cfg(k).(fieldsorig{i})) && ~any(strcmp(fieldsorig{i}, ignorefields))
+      % find large fields and remove them from the cfg, skip fields that should be ignored
+      temp = cfg(k).(fieldsorig{i});
+      s = whos('temp');
+      if s.bytes>max_size
+        cfg(k).(fieldsorig{i}) = 'empty - this was cleared by checkconfig';
+      end
+      %%% cfg(k).(fieldsorig{i})=s.bytes; % remember the size of each field for debugging purposes
+    elseif isstruct(cfg(k).(fieldsorig{i}));
+      % run recursively on subfields that are structs
+      cfg(k).(fieldsorig{i}) = checksizefun(cfg(k).(fieldsorig{i}), max_size);
+    elseif iscell(cfg(k).(fieldsorig{i})) && strcmp(fieldsorig{i}, 'previous')
+      % run recursively on 'previous' fields that are cells
+      for j=1:numel(cfg(k).(fieldsorig{i}))
+        cfg(k).(fieldsorig{i}){j} = checksizefun(cfg(k).(fieldsorig{i}){j}, max_size);
+      end
+    end
+  end
 end

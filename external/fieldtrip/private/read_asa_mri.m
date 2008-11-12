@@ -16,6 +16,9 @@ function [mri, seg, hdr] = read_asa_mri(fn);
 % Copyright (C) 2002, Robert Oostenveld
 % 
 % $Log: read_asa_mri.m,v $
+% Revision 1.6  2008/11/12 17:02:03  roboos
+% explicitely specify ieee-le in fopen()
+%
 % Revision 1.5  2005/11/16 13:46:32  roboos
 % added segmentatino to output, changed from warpo3d to warp_apply
 %
@@ -58,7 +61,7 @@ seg = [];
 if ~isempty(hdr.mrifile)
   mrifile = fullfile(path, hdr.mrifile);
   mri = zeros(dim);
-  fid = fopen(mrifile, 'rb');
+  fid = fopen(mrifile, 'rb', 'ieee-le');
   mri(:) = fread(fid, prod(dim), 'uint8');
   mri = uint8(mri);
   fclose(fid);
@@ -68,7 +71,7 @@ end
 if ~isempty(hdr.segfile)
   segfile = fullfile(path, hdr.segfile);
   seg = zeros(dim);
-  fid = fopen(segfile, 'rb');
+  fid = fopen(segfile, 'rb', 'ieee-le');
   seg(:) = fread(fid, prod(dim), 'uint8');
   seg = uint8(seg);
   fclose(fid);

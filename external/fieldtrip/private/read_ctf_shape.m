@@ -10,6 +10,9 @@ function [shape] = read_ctf_shape(filename);
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_shape.m,v $
+% Revision 1.2  2008/11/12 16:59:51  roboos
+% open explicitely as text using fopen 'rt'
+%
 % Revision 1.1  2003/10/08 15:28:03  roberto
 % *** empty log message ***
 %
@@ -20,7 +23,7 @@ if ~strcmp(shape.MRI_Info.COORDINATES, 'HEAD')
   warning('points on head shape are NOT in headcoordinates')
 end
 
-fid = fopen(filename, 'rb');
+fid = fopen(filename, 'rt');
 num = fscanf(fid, '%d', 1);
 shape.pnt = fscanf(fid, '%f', inf);
 shape.pnt = reshape(shape.pnt, [3 num])';

@@ -1,11 +1,12 @@
 function neighbours = neighbourselection(cfg,data)
 
 % NEIGHBOURSELECTION finds the neighbours of the channels on the basis of a
-% minimum neighbourhood distance (in cfg.neighbourdist). The positions of the 
-% channel are specified in a gradiometer or electrode configuration. This configuration
-% can be passed in three ways: (1) in a configuration field, (2) in a file whose name 
-% is passed in a configuration field, and that can be imported using
-% READ_FCDC_ELEC, or (3) in a data field. 
+% minimum neighbourhood distance (in cfg.neighbourdist). The positions of
+% the channel are specified in a gradiometer or electrode configuration.
+% This configuration can be passed in three ways: 
+%  (1) in a configuration field, 
+%  (2) in a file whose name is passed in a configuration field, and that can be imported using READ_SENS, or 
+%  (3) in a data field. 
 %
 % Use as
 %   neighbours = neighbourselection(cfg, data)
@@ -16,6 +17,8 @@ function neighbours = neighbourselection(cfg,data)
 %   cfg.grad          = structure with MEG gradiometer positions
 %   cfg.elecfile      = filename containing EEG electrode positions
 %   cfg.gradfile      = filename containing MEG gradiometer positions
+%   cfg.layout        = filename of the layout, see PREPARE_LAYOUT
+%   cfg.feedback      = ?yes? or ?no? (default = ?no?)
 %
 % The following data fields may also be used by NEIGHBOURSELECTION:
 %   data.elec     = structure with EEG electrode positions
@@ -32,14 +35,13 @@ function neighbours = neighbourselection(cfg,data)
 %        neighbours{3}.neighblabel = {'Cz', 'P4', 'P4P', 'Oz', 'P3P', 'P3'};
 %        etc.
 %        (Note that a channel is not considered to be a neighbour of itself.)
-%
-
-% Undocumented options
-%   cfg.layout    layout file, see PREPARE_LAYOUT
 
 % Copyright (C) 2006-2008, Eric Maris, Robert Oostenveld
 %
 % $Log: neighbourselection.m,v $
+% Revision 1.12  2008/11/12 19:22:38  roboos
+% documented cfg.layout, added cfg.feedback
+%
 % Revision 1.11  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -79,7 +81,8 @@ function neighbours = neighbourselection(cfg,data)
 fieldtripdefs
 
 % set the defaults
-if ~isfield(cfg, 'neighbourdist'), cfg.neighbourdist = 4; end;
+if ~isfield(cfg, 'neighbourdist'),  cfg.neighbourdist = 4; end
+if ~isfield(cfg, 'feedback'),       cfg.feedback = 'no';   end
 
 % get the the grad or elec if not present in the data
 if isfield(cfg, 'grad')
@@ -120,13 +123,44 @@ for i=1:length(neighbours)
 end
 fprintf('there are on average %.1f neighbours per channel\n', k/length(neighbours));
 
+if strcmp(cfg.feedback, 'yes')
+  % give some graphical feedback 
+  if all(sens.pnt(:,3)==0)
+    % the sensor positions are already projected on a 2D plane
+    proj = sens.pnt(:,1:2);
+  else
+    % project the 3D positions onto a 2D plane
+    proj = elproj(sens.pnt);
+  end
+  figure
+  for i=1:length(neighbours)
+    cla
+    this = neighbours{i};
+    sel1 = match_str(sens.label, this.label);
+    sel2 = match_str(sens.label, this.neighblabel);
+    plot(proj(:,1), proj(:,2), 'k.');
+    axis equal
+    title(this.label);
+    axis off
+    for j=1:length(this.neighblabel)
+      x1 = proj(sel1,1);
+      y1 = proj(sel1,2);
+      x2 = proj(sel2(j),1);
+      y2 = proj(sel2(j),2);
+      X = [x1 x2];
+      Y = [y1 y2];
+      line(X, Y, 'color', 'r');
+    end
+    drawnow
+    pause(0.1);
+  end
+end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% BEGIN SUBFUNCTION COMPNEIGHBSTRUCTFROMGRADELEC
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [neighbours]=compneighbstructfromgradelec(sens,neighbourdist);
-
-% compute the neighbourhood geometry from the gradiometer/electrode positions provided in the data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION that compute the neighbourhood geometry from the
+% gradiometer/electrode positions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [neighbours]=compneighbstructfromgradelec(sens,neighbourdist)
 
 nsensors = length(sens.label);
 
@@ -136,12 +170,12 @@ for i=1:nsensors
   dist(i,:) = sqrt(sum((sens.pnt(1:nsensors,:) - repmat(sens.pnt(i,:), nsensors, 1)).^2,2))';
 end;
 
-% find the neighbouring electrodes based on distance, later we have to restrict the neighbouring
-% electrodes to those actually selected in the dataset
+% find the neighbouring electrodes based on distance
+% later we have to restrict the neighbouring electrodes to those actually selected in the dataset
 channeighbstructmat = (dist<neighbourdist);
 
 % electrode istelf is not a neighbour
-channeighbstructmat=channeighbstructmat.*~eye(nsensors);
+channeighbstructmat = (channeighbstructmat .* ~eye(nsensors));
 
 % construct a structured cell array with all neighbours
 neighbours=cell(1,nsensors);

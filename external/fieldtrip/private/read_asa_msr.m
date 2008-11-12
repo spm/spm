@@ -6,6 +6,9 @@ function data = read_asa_msr(fn);
 % Copyright (C) 2002, Robert Oostenveld
 % 
 % $Log: read_asa_msr.m,v $
+% Revision 1.3  2008/11/12 17:02:03  roboos
+% explicitely specify ieee-le in fopen()
+%
 % Revision 1.2  2003/03/11 15:24:51  roberto
 % updated help and copyrights
 %
@@ -22,7 +25,7 @@ val = read_asa(fn, 'Values', '%f');
 if any(size(val)~=[Npnt,Ntime])
   msm_file = read_asa(fn, 'Values', '%s');
   [path, name, ext] = fileparts(fn);
-  fid = fopen(fullfile(path, msm_file), 'rb');
+  fid = fopen(fullfile(path, msm_file), 'rb', 'ieee-le');
   val = fread(fid, [Ntime, Npnt], 'float32')';
   fclose(fid);
 end

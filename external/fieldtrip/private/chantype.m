@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.7  2008/11/12 20:32:31  roboos
+% refined ctf headloc channels
+%
 % Revision 1.6  2008/11/03 11:36:09  roboos
 % added work-around for unusual/spm5 ctf headers -> give warning and keep all at unknown
 % give error for weird input
@@ -133,8 +136,17 @@ elseif senstype(input, 'ctf') && isheader
     type{sel} = 'eeg';
   end
   for sel=find(origSensType(:)==29)'
-    type{sel} = 'headloc';
+    type{sel} = 'reserved'; % these are "reserved for future use", but relate to head localization
   end
+  for sel=find(origSensType(:)==13)'
+    type{sel} = 'headloc'; % these represent the x, y, z position of the head coils
+  end
+  for sel=find(origSensType(:)==28)'
+    type{sel} = 'headloc_gof'; % these represent the goodness of fit for the head coils
+  end
+  % for sel=find(origSensType(:)==23)'
+  %   type{sel} = 'SPLxxxx'; % I have no idea what these are
+  % end
 
 end % senstype
 

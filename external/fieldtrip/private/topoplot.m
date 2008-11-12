@@ -2,7 +2,7 @@ function [handle] = topoplot(varargin)
 
 % TOPOPLOT plots a topographic map of an EEG or MEG field as a 2-D
 % circular view (looking down at the top of the head) using interpolation
-% on a fine cartesian grid. 
+% on a fine cartesian grid.
 %
 % This function is called by topoplotER or topoplotTFR
 %
@@ -11,7 +11,7 @@ function [handle] = topoplot(varargin)
 %         topoplot(cfg, X, Y, datavector)
 %         topoplot(cfg, X, Y, datavector, Labels)
 %         topoplot(datavector,'Key1','Value1','Key2','Value2',...)
-%         
+%
 % Inputs can be either:
 %     datavector  = vector of values to be plotted as color
 %     cfg         = configuration structure containing the (optional)
@@ -19,15 +19,15 @@ function [handle] = topoplot(varargin)
 %     X           = x-coordinates for channels in datavector
 %     Y           = y-coordinates for channels in datavector
 %     Labels      = labels for channels in datavector
-% or the inputs can be key-value pairs containing the (optional) parameters. 
+% or the inputs can be key-value pairs containing the (optional) parameters.
 % Every cfg field can be specified using the fieldname as a key in the
 % key-value pairs.
 %
 % if X, Y and Labels are given, cfg.layout is NOT used. If X, Y, and Labels
 % are not given, cfg.layout must be given and it is assumed that the
-% channels in the datavector exactly mach the channels in the layout. 
+% channels in the datavector exactly mach the channels in the layout.
 %
-% The layout defines how the channels will be arranged in the 2-D plane. 
+% The layout defines how the channels will be arranged in the 2-D plane.
 % You can specify the layout in a variety of ways:
 %  - you can give the name of an ascii layout file with extension *.lay
 %  - you can give the name of an electrode file
@@ -36,9 +36,9 @@ function [handle] = topoplot(varargin)
 % If you do not specify any of these, and if the data structure contains an
 % electrode or gradiometer structure, that will be used for creating a
 % layout.
-% 
+%
 % Optional Parameters and Values
-% 
+%
 % cfg.colormap        = any sized colormap, see COLORMAP
 % cfg.colorbar        = 'yes'
 %                       'no' (default)
@@ -54,7 +54,7 @@ function [handle] = topoplot(varargin)
 %                       'electrodes' to furthest electrode
 %                       'head' to edge of head
 % cfg.gridscale       = scaling grid size (default = 67)
-%                       determines resolution of figure   
+%                       determines resolution of figure
 % cfg.maplimits       = 'absmax' +/- the absolute-max (default = 'absmax')
 %                       'maxmin' scale to data range
 %                       [clim1, clim2] user-defined lo/hi
@@ -68,30 +68,30 @@ function [handle] = topoplot(varargin)
 % cfg.shading         = 'flat' 'interp' (default = 'flat')
 % cfg.interpolation   = 'linear','cubic','nearest','v4' (default = 'v4') see GRIDDATA
 % cfg.headcolor       = Color of head cartoon (default = [0,0,0])
-% cfg.hlinewidth      = number, Linewidth of the drawn head, nose and ears (default = 2) 		
-% cfg.contcolor       = Contourline color (default = [0 0 0])	
+% cfg.hlinewidth      = number, Linewidth of the drawn head, nose and ears (default = 2)
+% cfg.contcolor       = Contourline color (default = [0 0 0])
 % cfg.electrodes      = 'on','off','labels','numbers','highlights' or 'dotnum' (default = 'on')
-% cfg.emarker         = Marker symbol (default = 'o')		
+% cfg.emarker         = Marker symbol (default = 'o')
 % cfg.ecolor          = Marker color (default = [0 0 0] (black))
-% cfg.emarkersize     = Marker size (default = 2)	
+% cfg.emarkersize     = Marker size (default = 2)
 % cfg.efontsize       = Font size of electrode labels/numbers (default = 8 pt)
 %                       when cfg.electrodes = 'numbers' or 'labels'
-% cfg.comment         =  string of text 
+% cfg.comment         =  string of text
 % cfg.commentpos      = position of comment (default = 'leftbottom')
 %                       'lefttop' 'leftbottom' 'middletop' 'middlebottom' 'righttop' 'rightbottom'
-%                       or [x y] coordinates 
-%                       or 'title' to place comment as title 
+%                       or [x y] coordinates
+%                       or 'title' to place comment as title
 % cfg.fontsize        = Font size of comment (default = 8 pt)
 % cfg.highlight       = 'off' or the channel numbers you want to highlight (default = 'off').
 %                       These numbers should correspond with the channels in the data, not in
 %                       the layout file.
-% cfg.hlmarker        = Highlight marker symbol (default = 'o')  
-% cfg.hlcolor         = Highlight marker color (default = [0 0 0] (black)) 
-% cfg.hlmarkersize    = Highlight marker size (default = 6) 
-% cfg.hllinewidth     = Highlight marker linewidth (default = 3) 
+% cfg.hlmarker        = Highlight marker symbol (default = 'o')
+% cfg.hlcolor         = Highlight marker color (default = [0 0 0] (black))
+% cfg.hlmarkersize    = Highlight marker size (default = 6)
+% cfg.hllinewidth     = Highlight marker linewidth (default = 3)
 % cfg.outline         = 'scalp' or 'ECog' (default = 'scalp')
-% 
-% Note: topoplot() only works when map limits are >= the max and min 
+%
+% Note: topoplot() only works when map limits are >= the max and min
 %                             interpolated data values.
 
 % Undocumented local options:
@@ -126,6 +126,9 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.37  2008/11/12 19:24:03  roboos
+% added some code to speed up realtime plotting/updating
+%
 % Revision 1.36  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -169,7 +172,7 @@ function [handle] = topoplot(varargin)
 fieldtripdefs
 
 % Try to detect EEGLAB-style input and give an informative error
-% message. The EEGLAB documentation describes the usage as 
+% message. The EEGLAB documentation describes the usage as
 %        >>  topoplot(datavector, EEG.chanlocs);   % plot a map using an EEG chanlocs structure
 %        >>  topoplot(datavector, 'my_chan.locs'); % read a channel locations file and plot a map
 %        >>  topoplot('example');                  % give an example of an electrode location file
@@ -244,7 +247,7 @@ elseif nargin==5
   data   = varargin{4};
   chanLabels = varargin{5};
   err    = 0;
-  if ~isempty(cfg), 
+  if ~isempty(cfg),
     err  = err + ~isstruct(cfg);
   end
   err    = err + ~isnumeric(data);
@@ -280,11 +283,34 @@ if ~isfield(cfg, 'fontsize'),     cfg.fontsize = 8;         end;
 if ~isfield(cfg, 'commentpos'),   cfg.commentpos = 'leftbottom';    end;
 if ~isfield(cfg, 'mask'),         cfg.mask = [];            end;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% try to update the existing figure, this is to speed up realtime plotting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if isfield(cfg, 'update') && strcmp(cfg.update, 'yes')
+  update = guidata(gcf);
+  if ~isempty(update)
+    Xi = update.Xi;
+    Yi = update.Yi;
+    x  = update.x;
+    y  = update.y;
+    xi = update.xi;
+    yi = update.yi;
+    % Interpolate the topographic data
+    Zi = griddata(y', x, data, yi', xi, cfg.interpolation);
+    % keep the same NaNs
+    Zi(isnan(update.Zi)) = NaN;
+    delta = xi(2)-xi(1); % length of grid entry
+    surface(Xi-delta/2,Yi-delta/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
+    return
+  end
+end
+
 if ~isfield(cfg,'layout')
   if ~OldStyleSyntax
     error('Specify at least the field or key "layout".');
   end;
 end;
+
 if ~ischar(cfg.contcolor)     cfg.contcolor = 'k'; warning('cfg.contcolor must be string, put to ''k''');   end;
 
 if ~isfield(cfg,'electrodes')   cfg.electrodes = 'on'; end; % on,off,label,numbers or highlights
@@ -292,7 +318,7 @@ if ~isfield(cfg,'showlabels') % for compatibility with OLDSTYLE
   cfg.showlabels = '';
 else
   cfg.electrodes = '';
-end; 
+end;
 
 if ~isfield(cfg,'emarker')      cfg.emarker = 'o';     end;
 if ~isfield(cfg,'ecolor')       cfg.ecolor = [0 0 0];  end;
@@ -319,7 +345,7 @@ if isfield(cfg,'headlimits')
     error('topoplot(): Incorrect value for interplimits');
   end
 end;
-	
+
 if isfield(cfg,'gridscale')
   cfg.grid_scale = cfg.gridscale;
   cfg            = rmfield(cfg,'gridscale');
@@ -336,8 +362,8 @@ if isfield(cfg,'numcontour')
 end;
 
 if isfield(cfg,'electrod')
-	cfg.electrodes = lower(cfg.electrod);
-	cfg            = rmfield(cfg,'electrod');
+  cfg.electrodes = lower(cfg.electrod);
+  cfg            = rmfield(cfg,'electrod');
 end;
 
 if isfield(cfg,'headcolor')
@@ -355,7 +381,7 @@ if isfield(cfg,'emsize')
   cfg             = rmfield(cfg,'emsize');
 end;
 
-if isfield(cfg,'efontsize') 
+if isfield(cfg,'efontsize')
   cfg.efsize = cfg.efontsize;
   cfg        = rmfield(cfg,'efontsize');
 end;
@@ -365,7 +391,7 @@ if isfield(cfg,'shading')
   if ~any(strcmp(cfg.shading,{'flat','interp'})), error('Invalid Shading Parameter'); end
 end
 
-if isfield(cfg,'zlim') 
+if isfield(cfg,'zlim')
   cfg.maplimits = cfg.zlim;
   cfg           = rmfield(cfg,'zlim');
 end;
@@ -403,7 +429,7 @@ if exist('chanLabels', 'var'),
   ind_SCALE = strmatch('SCALE', chanLabels);
   if length(ind_SCALE)==1
     % remember the position of  the scale
-    X_SCALE               = cfg.layout.pos(ind_SCALE, 1); 
+    X_SCALE               = cfg.layout.pos(ind_SCALE, 1);
     Y_SCALE               = cfg.layout.pos(ind_SCALE, 2);
     x(ind_SCALE) = [];
     y(ind_SCALE) = [];
@@ -421,33 +447,33 @@ if exist('chanLabels', 'var'),
 end
 
 % Set coordinates for comment
-if strcmp(cfg.commentpos,'lefttop') 
-  x_COMNT = -0.7; 
+if strcmp(cfg.commentpos,'lefttop')
+  x_COMNT = -0.7;
   y_COMNT =  0.6;
   HorAlign = 'left';
   VerAlign = 'top';
-elseif strcmp(cfg.commentpos,'leftbottom') 
-  x_COMNT = -0.6; 
+elseif strcmp(cfg.commentpos,'leftbottom')
+  x_COMNT = -0.6;
   y_COMNT = -0.6;
   HorAlign = 'left';
   VerAlign = 'bottom';
-elseif strcmp(cfg.commentpos,'middletop') 
-  x_COMNT =  0; 
+elseif strcmp(cfg.commentpos,'middletop')
+  x_COMNT =  0;
   y_COMNT =  0.75;
   HorAlign = 'center';
   VerAlign = 'top';
-elseif strcmp(cfg.commentpos,'middlebottom') 
-  x_COMNT =  0; 
+elseif strcmp(cfg.commentpos,'middlebottom')
+  x_COMNT =  0;
   y_COMNT = -0.7;
   HorAlign = 'center';
   VerAlign = 'bottom';
-elseif strcmp(cfg.commentpos,'righttop') 
-  x_COMNT =  0.65; 
+elseif strcmp(cfg.commentpos,'righttop')
+  x_COMNT =  0.65;
   y_COMNT =  0.6;
   HorAlign = 'right';
   VerAlign = 'top';
-elseif strcmp(cfg.commentpos,'rightbottom') 
-  x_COMNT =  0.6; 
+elseif strcmp(cfg.commentpos,'rightbottom')
+  x_COMNT =  0.6;
   y_COMNT = -0.6;
   HorAlign = 'right';
   VerAlign = 'bottom';
@@ -511,7 +537,7 @@ if ~strcmp(cfg.style,'blank')
     maskZ(isinf(maskZ)) = 0;
     maskZ(maskZ<0) = 0;
     maskZ(maskZ>1) = 1;
-  end 
+  end
 
   % Draw topoplot on head
   if strcmp(cfg.style,'contour')
@@ -536,57 +562,57 @@ if ~strcmp(cfg.style,'blank')
   else
     error('Invalid style')
   end
-  caxis([amin amax]) % set coloraxis
+  caxis([amin amax]); % set coloraxis
 end
 
 
 % Plot electrodes:
 if strcmp(cfg.electrodes,'on') || strcmp(cfg.showlabels,'markers')
-  if ischar(cfg.highlight) 
+  if ischar(cfg.highlight)
     hp2 = plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
-  elseif isnumeric(cfg.highlight) 
+  elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
     hp2    = plot(y(normal),        x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
-                                                                                          'linewidth',  cfg.hllinewidth);
+      'linewidth',  cfg.hllinewidth);
   elseif iscell(cfg.highlight)
     hp2 = plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
     for iCell = 1:length(cfg.highlight)
-    hp2    = plot(y(cfg.highlight{iCell}), x(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell},...
-                                             'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
-    end    
+      hp2    = plot(y(cfg.highlight{iCell}), x(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell},...
+        'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
+    end
   else
     error('Unknown highlight type');
   end;
 elseif any(strcmp(cfg.electrodes,{'highlights','highlight'}))
-  if isnumeric(cfg.highlight) 
+  if isnumeric(cfg.highlight)
     hp2 = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
-                                                                                       'linewidth',cfg.hllinewidth);
+      'linewidth',cfg.hllinewidth);
   else
     error('Unknown highlight type');
   end;
-elseif strcmp(cfg.electrodes,'labels') || strcmp(cfg.showlabels,'yes') 
-  for i = 1:numChan 
+elseif strcmp(cfg.electrodes,'labels') || strcmp(cfg.showlabels,'yes')
+  for i = 1:numChan
     text(y(i), x(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-                                  'Color', cfg.ecolor, 'FontSize', cfg.efsize);
+      'Color', cfg.ecolor, 'FontSize', cfg.efsize);
   end
-elseif strcmp(cfg.electrodes,'numbers') || strcmp(cfg.showlabels,'numbers') 
+elseif strcmp(cfg.electrodes,'numbers') || strcmp(cfg.showlabels,'numbers')
   for i = 1:numChan
     text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-                                 'Color', cfg.ecolor, 'FontSize',cfg.efsize);
+      'Color', cfg.ecolor, 'FontSize',cfg.efsize);
   end
-elseif strcmp(cfg.electrodes,'dotnum') 
+elseif strcmp(cfg.electrodes,'dotnum')
   for i = 1:numChan
     text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', ...
-                                 'Color', cfg.ecolor, 'FontSize', cfg.efsize);
+      'Color', cfg.ecolor, 'FontSize', cfg.efsize);
   end
-  if ischar(cfg.highlight) 
+  if ischar(cfg.highlight)
     hp2 = plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
-  elseif isnumeric(cfg.highlight) 
+  elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
     hp2    = plot(y(normal)       , x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
     hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
-                                                                    'linewidth', cfg.hllinewidth);
+      'linewidth', cfg.hllinewidth);
   else
     error('Unknown highlight type');
   end;
@@ -600,7 +626,7 @@ if isfield(cfg.layout, 'outline')
 end
 
 % Write comment:
-if isfield(cfg, 'comment') 
+if isfield(cfg, 'comment')
   if strcmp(cfg.commentpos, 'title')
     title(cfg.comment, 'Fontsize', cfg.fontsize);
   else
@@ -610,11 +636,11 @@ end
 
 % plot colorbar:
 if isfield(cfg, 'colorbar') && ~all(data == data(1))
-    if strcmp(cfg.colorbar, 'yes')
-        colorbar;
-    elseif ~strcmp(cfg.colorbar, 'no')
-        colorbar(cfg.colorbar);
-    end
+  if strcmp(cfg.colorbar, 'yes')
+    colorbar;
+  elseif ~strcmp(cfg.colorbar, 'no')
+    colorbar(cfg.colorbar);
+  end
 end
 
 hold off
@@ -622,3 +648,17 @@ axis off
 axis tight
 axis equal
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% this allows to update the existing figure, this is to speed up realtime
+% plotting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if isfield(cfg, 'update') && strcmp(cfg.update, 'yes')
+  update.Xi = Xi;
+  update.Yi = Yi;
+  update.Zi = Zi;
+  update.xi = xi;
+  update.yi = yi;
+  update.x  = x;
+  update.y  = y;
+  guidata(gcf, update);
+end
