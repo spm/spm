@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1288 2008-04-01 16:05:52Z guillaume $
+# $Id: Makefile 2457 2008-11-12 09:24:30Z guillaume $
 
 include ../../src/Makefile.var
 
@@ -25,20 +25,15 @@ tarball: all
 
 dartel2.$(SUF): dartel2.c optimizer2d.c diffeo2d.c
 	$(MEX) dartel2.c optimizer2d.c diffeo2d.c $(MEXEND)
-	@ $(CHMODIT) $@
 
 dartel3.$(SUF): dartel3.c optimizer3d.c diffeo3d.c
 	$(MEX) dartel3.c optimizer3d.c diffeo3d.c $(MEXEND)
-	@ $(CHMODIT) $@
 
 optim1.$(SUF): optim1.c optim1_mex.c 
 	$(MEX) optim1.c optim1_mex.c $(MEXEND)
-	@ $(CHMODIT) $@
 
 optimN.$(SUF): optimN.c optimN_mex.c 
 	$(MEX) optimN.c optimN_mex.c $(MEXEND)
-	@ $(CHMODIT) $@
 
 optimNn.$(SUF): optimN.c optimN_mex.c
 	$(MEX) optimN.c optimN_mex.c -DNEUMANN -output optimNn $(MEXEND)
-	@ $(CHMODIT) $@

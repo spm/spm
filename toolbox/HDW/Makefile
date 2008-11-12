@@ -3,12 +3,11 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1288 2008-04-01 16:05:52Z guillaume $
+# $Id: Makefile 2457 2008-11-12 09:24:30Z guillaume $
 
 include ../../src/Makefile.var
 
-SPMMEX =\
-	spm_affdef.$(SUF) spm_def2det.$(SUF) spm_warp.$(SUF)
+SPMMEX = spm_affdef.$(SUF) spm_def2det.$(SUF) spm_warp.$(SUF)
 
 all: $(SPMMEX)
 
@@ -24,4 +23,3 @@ tarball: all
 
 %.$(SUF) : %.c
 	$(MEX) $< $(MEXEND)
-	@ $(CHMODIT) $@

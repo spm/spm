@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 1317 2008-04-08 16:16:38Z chloe $
+# $Id: Makefile 2457 2008-11-12 09:24:30Z guillaume $
 
 include ../../src/Makefile.var
 
@@ -27,4 +27,3 @@ tarball: all
 
 %.$(SUF) : %.c
 	$(MEX) $< $(MEXEND)
-	@ $(CHMODIT) $@

@@ -2,12 +2,12 @@
 #
 # Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 1963 2008-07-28 15:57:42Z guillaume $
+# $Id: Makefile.var 2457 2008-11-12 09:24:30Z guillaume $
 #
 ###############################################################################
 #
 # This file defines variables used in Makefile and has been tested under 
-# Linux, Windows, MacOS and SunOS.
+# Linux, Windows and MacOS.
 # 
 # If you have to tweak this file to compile the SPM mex-files for your 
 # platform, please send the details to <spm@fil.ion.ucl.ac.uk> so they can be 
@@ -22,8 +22,6 @@
 #      http://en.wikibooks.org/wiki/SPM-Installation_on_64bit_Windows
 #      MinGW: http://www.mingw.org/
 #      Gnumex: http://gnumex.sourceforge.net/
-#  * SunOS:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_SunOS
 #  * MacOS:
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
@@ -35,10 +33,7 @@ MAKE           = make
 MEXBIN         = mex
 MEXOPTS        = -O
 MEXEND         = 
-CC             = gcc
-CFLAGS         = -O3
 MOSUF          = o # mex output object suffix
-CHMODIT        = chmod 644
 UNAME          = uname
 ISAINFO        = isainfo # SunOS only
 AR             = ar rcs
@@ -57,18 +52,12 @@ ifndef SUF
     HARDWARE   = $(shell $(UNAME) -m)
     ifeq (i386,$(HARDWARE))
       SUF      = mexglx
-      CFLAGS   = -O3 -funroll-loops -fPIC -fexceptions
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
     endif
     ifeq (i686,$(HARDWARE))
       SUF      = mexglx
-      CFLAGS   = -O3 -funroll-loops -fPIC -fexceptions
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -fexceptions'
     endif
     ifeq (x86_64,$(HARDWARE))
       SUF      = mexa64
-      CFLAGS   = -O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -fPIC -march=x86-64 -mfpmath=sse'
     endif
     ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
@@ -76,22 +65,20 @@ ifndef SUF
   endif
   ##### MacOS #####
   ifeq (Darwin,$(PLATFORM))
-    HARDWARE    = $(shell $(UNAME) -p)
+    HARDWARE   = $(shell $(UNAME) -p)
     ifeq (i386,$(HARDWARE))
       ifeq (1,$(MACI64))
-        SUF     = mexmaci64
-        CFLAGS  = -O3 -funroll-loops -fPIC -m64
-        MEXOPTS = COPTIMFLAGS='-O3 -funroll-loops -fPIC -m64'
+        SUF    = mexmaci64
       else
-        SUF     = mexmaci
-        CFLAGS  = -O3 
-        MEXOPTS = -O
+        SUF    = mexmaci
       endif
     endif
     ifeq (powerpc,$(HARDWARE))
-      SUF       = mexmac
-      CFLAGS    = -O3 -DSPM_BIGENDIAN
-      MEXOPTS   = -O -DSPM_BIGENDIAN
+      SUF      = mexmac
+      MEXOPTS  = -O -DSPM_BIGENDIAN
+    endif
+    ifndef SUF
+      $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
     endif
   endif
   ##### Windows #####
@@ -100,25 +87,29 @@ ifndef SUF
   endif
   ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
     SUF        = mexw32
-    CFLAGS     = -O3 -funroll-loops -DSPM_WIN32
     MEXBIN     = cmd /c "mex.bat
     MEXOPTS    = -O -DSPM_WIN32
     MEXEND     = "
     MOSUF      = obj
-    CHMODIT    = chmod 755
+  endif
+  ifeq (win64,$(PLATFORM))
+    SUF        = mexw64
+    MEXBIN     = cmd /c "mex.bat
+    MEXOPTS    = -O -DSPM_WIN32
+    MEXEND     = "
+    MOSUF      = obj
+    AR         = lib.exe /out:
   endif
   ##### SunOS #####
   ifeq (SunOS,$(PLATFORM))
     SUNBIT     = $(shell $(ISAINFO) -b)
     ifeq (32,$(SUNBIT))
       SUF      = mexsol
-      CFLAGS   = -O3 -funroll-loops -DSPM_BIGENDIAN -fPIC
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DSPM_BIGENDIAN'
+      MEXOPTS  = -O -DSPM_BIGENDIAN
     endif
     ifeq (64,$(SUNBIT))
       SUF      = mexs64
-      CFLAGS   = -m64 -O3 -funroll-loops -DSPM_BIGENDIAN -fPIC
-      MEXOPTS  = COPTIMFLAGS='-O3 -funroll-loops -DSPM_BIGENDIAN'
+      MEXOPTS  = -O -DSPM_BIGENDIAN
     endif
     ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(SUNBIT))
