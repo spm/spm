@@ -19,6 +19,9 @@ function [rej] = read_eep_rej(filename);
 % Copyright (C) 2002, Robert Oostenveld
 %
 % $Log: read_eep_rej.m,v $
+% Revision 1.7  2008/11/12 16:59:09  roboos
+% open explicitely as text using fopen 'rt'
+%
 % Revision 1.6  2004/05/27 09:30:27  roberto
 % fixed bug in naming of variable
 %
@@ -37,7 +40,7 @@ function [rej] = read_eep_rej(filename);
 
 rej = [];
 
-fid = fopen(filename, 'rb');
+fid = fopen(filename, 'rt');
 if fid<0
    return 
 end

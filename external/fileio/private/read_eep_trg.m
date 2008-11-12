@@ -24,6 +24,9 @@ function [trg] = read_eep_trg(filename);
 % Copyright (C) 2002, Robert Oostenveld
 %
 % $Log: read_eep_trg.m,v $
+% Revision 1.5  2008/11/12 16:59:09  roboos
+% open explicitely as text using fopen 'rt'
+%
 % Revision 1.4  2004/03/29 15:18:52  roberto
 % minor changes to the naming of input arguments
 %
@@ -36,7 +39,7 @@ function [trg] = read_eep_trg(filename);
 
 trg = [];
 
-fid = fopen(filename, 'rb');
+fid = fopen(filename, 'rt');
 if fid<0
    return
 end

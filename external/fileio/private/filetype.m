@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.87  2008/11/12 16:50:26  roboos
+% improved detection for BCI2000
+%
 % Revision 1.86  2008/11/02 10:38:44  roboos
 % added another check for ctf_ds (to deal with '.')
 %
@@ -439,7 +442,7 @@ elseif filetype_check_extension(filename, '.iso')
   content = 'MRI image data';
 
   % known BCI2000 file types
-elseif filetype_check_extension(filename, '.dat') && filetype_check_header(filename, 'HeaderLen=')
+elseif filetype_check_extension(filename, '.dat') && (filetype_check_header(filename, 'BCI2000') || filetype_check_header(filename, 'HeaderLen='))
   ftype = 'bci2000_dat';
   manufacturer = 'BCI2000';
   content = 'continuous EEG';

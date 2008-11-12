@@ -11,11 +11,14 @@ function [ama] = loadama(filename);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: loadama.m,v $
+% Revision 1.2  2008/11/12 17:02:03  roboos
+% explicitely specify ieee-le in fopen()
+%
 % Revision 1.1  2005/11/16 13:50:51  roboos
 % new implementation
 %
 
-fid = fopen(filename, 'rb');
+fid = fopen(filename, 'rb', 'ieee-le');
 
 version = fread(fid, 1, 'int');
 if version~=10
