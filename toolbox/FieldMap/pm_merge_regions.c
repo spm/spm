@@ -4,6 +4,7 @@
 #include <math.h>
 #include <limits.h>
 #include <string.h>
+#include <float.h>
 
 #ifndef PI
 #define PI 3.14159265358979
