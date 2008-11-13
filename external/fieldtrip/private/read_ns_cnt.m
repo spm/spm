@@ -54,6 +54,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_ns_cnt.m,v $
+% Revision 1.9  2008/11/13 21:20:08  roboos
+% read chars as uint8, this solves problem with i18n (2-byte unicode) and recent matlab versions
+%
 % Revision 1.8  2008/09/30 07:47:04  roboos
 % replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
 %
@@ -323,11 +326,14 @@ if ~isempty(byte)
 end;
 
 if ~strcmp(prec, 'text')
-   y=fread(f, siz, prec, skip);
-   %y1=fread(f, siz, 'uint8', skip);
-   %y2=fread(f, siz, 'uint8', skip);
-   %y = y1 + 256*y2;
+  if ismember(prec,{'char','uchar','schar'})
+    prec = 'uint8';
+  end
+  y=fread(f, siz, prec, skip);
+  %y1=fread(f, siz, 'uint8', skip);
+  %y2=fread(f, siz, 'uint8', skip);
+  %y = y1 + 256*y2;
 else
-   y=char(fread(f, siz, 'char', skip)');
+  y=char(fread(f, siz, 'uint8', skip)');
 end
 
