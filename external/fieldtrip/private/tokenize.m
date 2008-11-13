@@ -16,6 +16,9 @@ function [tok] = tokenize(str, sep, rep)
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: tokenize.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.5  2006/05/10 07:15:22  roboos
 % allow for squeezing multiple separators into one
 %

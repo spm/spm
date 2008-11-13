@@ -7,6 +7,9 @@ function [i] = nearest(array, val)
 % Copyright (C) 2002, Robert Oostenveld
 %
 % $Log: nearest.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.3  2004/12/06 12:55:57  roboos
 % added support for -inf and inf, respectively returning the first and last occurence of the nearest element
 %

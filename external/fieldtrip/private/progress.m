@@ -9,6 +9,7 @@ function progress(varargin)
 % Prior to the for-loop, you should call either
 %   progress('init', 'none',    'Please wait...')
 %   progress('init', 'gui',     'Please wait...')
+%   progress('init', 'etf',     'Please wait...')      % estimated time to finish
 %   progress('init', 'dial',    'Please wait...')      % rotating dial
 %   progress('init', 'textbar', 'Please wait...')      % ascii progress bar
 %   progress('init', 'text',    'Please wait...')
@@ -21,10 +22,21 @@ function progress(varargin)
 %
 % After finishing the for-loop, you should call
 %   progress('close')
+%
+% Here is an example for the use of a progress indicator
+%    progress('init', 'etf',     'Please wait...');
+%    for i=1:42
+%      progress(i/42, 'Processing event %d from %d', i, 42);
+%      pause(0.1);
+%    end
+%    progress('close')
 
-% Copyright (C) 2004, Robert Oostenveld
+% Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: progress.m,v $
+% Revision 1.2  2008/11/13 10:59:19  roboos
+% added estimated time to finish (etf) and example
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -56,12 +68,14 @@ function progress(varargin)
 % and in other fieldtrip functions
 %
 
-persistent p		% the previous value of the progress
-persistent t		% type of feedback, string with none, gui, text, textcr, textnl
-persistent h		% the handle of the dialog (in case of type=gui)
-persistent a		% the angle in degrees, for dial or textbar
-persistent s		% the string containing the title
-persistent c            % counter for the number of updatres that is done
+persistent p        % the previous value of the progress
+persistent c        % counter for the number of updates that is done
+persistent t0       % initial time, required for ETF
+persistent p0       % initial percentage, required for ETF
+persistent t        % type of feedback, string with none, gui, text, textcr, textnl
+persistent h        % the handle of the dialog (in case of type=gui)
+persistent a        % the angle in degrees, for dial or textbar
+persistent s        % the string containing the title
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
@@ -103,11 +117,14 @@ elseif nargin==1 && ischar(varargin{1}) && strcmp(varargin{1}, 'close')
     fprintf('\n');
   end
   % reset these to the defaults
-  a = 0;
-  h = 0;
-  p = 0;
-  t = 'none';
-  s = '';
+  a  = 0;
+  h  = 0;
+  p  = 0;
+  t  = 'none';
+  s  = '';
+  t0 = [];
+  p0 = [];
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
@@ -118,6 +135,9 @@ else
     % display should not be updated it the difference is less than one percent
     return;
   elseif (varargin{1}-p)<0.01 && strcmp(t, 'textbar')
+    % display should not be updated it the difference is less than one percent
+    return;
+  elseif (varargin{1}-p)<0.01 && strcmp(t, 'etf')
     % display should not be updated it the difference is less than one percent
     return;
   end
@@ -132,6 +152,22 @@ else
   case 'gui'
     % update the the length of the bar in the waitbar dialog
     waitbar(varargin{1}, h);
+
+  case 'etf'
+    % compute the estimated time that the computation still needs to finish
+    if isempty(t0) || isempty(p0)
+      t0 = clock;
+      p0 = p;
+    end
+    elapsed = etime(clock, t0);
+    if nargin>1 && ~isempty(varargin{2})
+      % include the specified string
+      fprintf(varargin{2:end});
+      fprintf(' - estimated time to finish is %d seconds\n', round(elapsed*(1-p)/(p-p0)));
+    else
+      % only print the estimated time to finish
+      fprintf(' - estimated time to finish is %d seconds\n', round(elapsed*(1-p)/(p-p0)));
+    end
 
   case 'dial'
     dial = '|/-\|/-\';
