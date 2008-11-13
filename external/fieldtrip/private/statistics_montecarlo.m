@@ -71,10 +71,16 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 %   cfg.computeprob      yes|no, for the statfun
 %   cfg.voxelstatistic   deprecated
 %   cfg.voxelthreshold   deprecated
+%   cfg.precondition     before|after|[], for the statfun
 
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.28  2008/11/13 10:05:04  jansch
+% included undocumented option to precondition the data. The preconditioning
+% will be done within the statfun, and can be applied before, or after the
+% computation of the observed statistic.
+%
 % Revision 1.27  2008/10/09 12:48:51  roboos
 % added contrastcoefs to tmpcfg for determining critvals
 %
@@ -187,16 +193,17 @@ cfg = checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'ran
 cfg = checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
 
 % set the defaults for the main function
-if ~isfield(cfg, 'alpha'),               cfg.alpha = 0.05;               end
-if ~isfield(cfg, 'tail'),                cfg.tail = 0;                   end
+if ~isfield(cfg, 'alpha'),               cfg.alpha    = 0.05;            end
+if ~isfield(cfg, 'tail'),                cfg.tail     = 0;               end
 if ~isfield(cfg, 'correctm'),            cfg.correctm = 'no';            end % no, max, cluster, bonferoni, fdr
 if ~isfield(cfg, 'resampling'),          cfg.resampling = 'permutation'; end % permutation, bootstrap
 if ~isfield(cfg, 'feedback'),            cfg.feedback = 'text';          end
-if ~isfield(cfg, 'ivar'),                cfg.ivar = 'all';               end
-if ~isfield(cfg, 'uvar'),                cfg.uvar = [];                  end
-if ~isfield(cfg, 'cvar'),                cfg.cvar = [];                  end
-if ~isfield(cfg, 'wvar'),                cfg.wvar = [];                  end
+if ~isfield(cfg, 'ivar'),                cfg.ivar     = 'all';           end
+if ~isfield(cfg, 'uvar'),                cfg.uvar     = [];              end
+if ~isfield(cfg, 'cvar'),                cfg.cvar     = [];              end
+if ~isfield(cfg, 'wvar'),                cfg.wvar     = [];              end
 if ~isfield(cfg, 'correctp'),            cfg.correctp = 'no';            end % for the number of tails in a two-sided test
+if ~isfield(cfg, 'precondition'),        cfg.precondition = [];          end
 
 if strcmp(cfg.correctm, 'cluster')
   % set the defaults for clustering
@@ -280,12 +287,17 @@ try
 catch
   num = 1;
 end
-if num>1
+if num==1,
+  % only the statistic is returned
+  [statobs] = statfun(cfg, dat, design);
+elseif num==2,
   % both the statistic and the (updated) configuration are returned
   [statobs, cfg] = statfun(cfg, dat, design);
-else
-  % only the statistic is returned
-  statobs = statfun(cfg, dat, design);
+elseif num==3,
+  % both the statistic and the (updated) configuration and the (updated) data are returned
+  tmpcfg = cfg;
+  if strcmp(cfg. precondition, 'before'), tmpcfg.preconditionflag = 1; end 
+  [statobs, tmpcfg, dat]  = statfun(tmpcfg, dat, design);
 end
 
 if isstruct(statobs)
@@ -300,11 +312,18 @@ time_eval = cputime - time_pre;
 fprintf('estimated time per randomization is %d seconds\n', round(time_eval));
 
 % pre-allocate some memory
+%if strcmp(cfg.correctm, 'cluster')
 if strcmp(cfg.correctm, 'cluster')
   statrand = zeros(size(statobs,1), size(resample,1));
 else
   prb_pos   = zeros(size(statobs));
   prb_neg   = zeros(size(statobs));
+end
+
+if strcmp(cfg.precondition, 'after'),
+  tmpcfg = cfg;
+  tmpcfg.preconditionflag = 1;
+  [tmpstat, tmpcfg, dat]     = statfun(tmpcfg, dat, design);  
 end
 
 % compute the statistic for the randomized data and count the outliers
@@ -426,6 +445,10 @@ end
 % return the observed statistic
 if ~isfield(stat, 'stat')
   stat.stat = statobs;
+end
+
+if exist('statrand', 'var'),
+  stat.ref = mean(statrand,2);
 end
 
 % return optional other details that were returned by the statfun

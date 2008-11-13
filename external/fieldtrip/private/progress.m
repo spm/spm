@@ -25,6 +25,9 @@ function progress(varargin)
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: progress.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.8  2007/05/08 20:55:03  roboos
 % replaced all single & by double &&, hopefully resulting in a small speedup
 %

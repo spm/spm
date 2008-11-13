@@ -11,8 +11,8 @@ function [val] = keyval(key, varargin);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: keyval.m,v $
-% Revision 1.3  2008/11/03 21:35:42  roboos
-% in case of multiple occurences of an input argument, select the value of the last one (instead of an error) and give a warning
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
 % Revision 1.2  2007/07/18 12:43:53  roboos
 % test for an even number of optional input arguments
@@ -40,7 +40,6 @@ elseif length(hit)==1
   % the requested key was  found
   val = vals{hit};
 else
-  warning('multiple input arguments with the same name, using the last one');
-  val = vals{hit(end)};
+  error('multiple input arguments with the same name');
 end
 

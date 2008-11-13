@@ -13,6 +13,9 @@ function val = bigendian;
 % Copyrigth (C) 2007, Robert Oostenveld
 %
 % $Log: bigendian.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.1  2007/01/04 12:10:42  roboos
 % new implementation
 %

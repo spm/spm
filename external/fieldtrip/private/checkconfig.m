@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.21  2008/11/12 11:20:52  sashae
 % change in configtracking: now ignores cfg.checksize
 %

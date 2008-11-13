@@ -44,6 +44,9 @@ function h = uimage(varargin)
 % 2006/06/14: v1.03, minor bug fixed; works in ML6.
 %
 %$Log: uimage.m,v $
+%Revision 1.1  2008/11/13 09:55:36  roboos
+%moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 %Revision 1.1  2008/10/27 09:26:53  ingnie
 %file from matlabcentral. addon to matlab IMAGE function, also works with unevenly spaced
 %axis (fi log). If axis are evenly spaced it just calles IMAGE

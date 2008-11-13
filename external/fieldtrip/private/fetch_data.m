@@ -11,6 +11,9 @@ function [dat] = fetch_data(data, varargin)
 % Copyright (C) 2008, Esther Meeuwissen
 %
 % $Log: fetch_data.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.2  2008/09/29 21:12:39  roboos
 % cleaned up the code from Esther, added copyrights, updated documentation
 %

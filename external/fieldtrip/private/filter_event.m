@@ -27,6 +27,9 @@ function event = filter_event(event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: filter_event.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.6  2007/12/20 19:04:12  roboos
 % added filtering for minnumber and maxnumber (in line with read_neuralyns_nev)
 %

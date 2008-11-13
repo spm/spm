@@ -17,6 +17,9 @@ function [r] = issubfield(s, f);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: issubfield.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.1  2005/02/08 09:30:18  roboos
 % new implementations to make it easier to work with nested structures
 %

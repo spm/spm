@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.28  2008/09/15 13:24:17  roboos
 % add dimord to source data, remove x/y/zgrid for volume and/or source, also if no conversion between the two is done
 %
