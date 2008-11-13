@@ -12,6 +12,9 @@ function [sel1, sel2] = match_str(a, b);
 % Copyright (C) 2000, Robert Oostenveld
 %
 % $Log: match_str.m,v $
+% Revision 1.1  2008/11/13 09:55:36  roboos
+% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
+%
 % Revision 1.7  2008/07/17 10:26:11  roboos
 % cleaned up the code a little bit, no functional change
 %
