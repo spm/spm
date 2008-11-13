@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.64  2008/11/13 21:20:58  roboos
+% use dataformat=ns_cnt16/32 to specify 16/32 bit format for reading neuroscan cnt files
+%
 % Revision 1.63  2008/11/02 10:59:41  roboos
 % some more changes for ctf_ds in case of empty path
 %
@@ -796,7 +799,7 @@ switch dataformat
     orig = read_ns_avg(filename);
     dat  = orig.data(chanindx, begsample:endsample);
 
-  case 'ns_cnt'
+  case {'ns_cnt' 'ns_cnt16', 'ns_cnt32'}
     % Neuroscan continuous data
     sample1    = begsample-1;
     ldnsamples = endsample-begsample+1; % number of samples to read
@@ -805,13 +808,21 @@ switch dataformat
     if sample1<0
       error('begin sample cannot be for the beginning of the file');
     end
+    % the hdr.nsdf was the initial fieldtrip hack to get 32 bit support, now it is realized using a extended dataformat string
+    if     isfield(hdr, 'nsdf') && hdr.nsdf==16
+      dataformat = 'ns_cnt16';
+    elseif isfield(hdr, 'nsdf') && hdr.nsdf==32
+      dataformat = 'ns_cnt32';
+    end
     % read_ns_cnt originates from the EEGLAB package (loadcnt.m) but is
     % an old version since the new version is not compatible any more
     % all data is read, and only the relevant data is kept.
-    if ~isfield(hdr, 'nsdf')
+    if strcmp(dataformat, 'ns_cnt')
       tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1);
-    else
-      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', hdr.nsdf);
+    elseif strcmp(dataformat, 'ns_cnt16')
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', 16);
+    elseif strcmp(dataformat, 'ns_cnt32')
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', 32);
     end
     dat = tmp.dat(chanoi,:);
 
