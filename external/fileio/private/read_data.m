@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.65  2008/11/13 21:50:11  roboos
+% also read 4d data in case ChannelUnitsPerBit is missing from header (give warning and set calibration to 1)
+%
 % Revision 1.64  2008/11/13 21:20:58  roboos
 % use dataformat=ns_cnt16/32 to specify 16/32 bit format for reading neuroscan cnt files
 %
@@ -494,7 +497,12 @@ switch dataformat
     offset     = (begsample-1)*samplesize*hdr.nChans;
     numsamples = endsample-begsample+1;
     gain       = hdr.orig.ChannelGain;
-    upb        = hdr.orig.ChannelUnitsPerBit;
+    if isfield(hdr.orig, 'ChannelUnitsPerBit')
+      upb = hdr.orig.ChannelUnitsPerBit;
+    else
+      warning('cannot determine ChannelUnitsPerBit');
+      upb = 1;
+    end
     % jump to the desired data
     fseek(fid, offset, 'cof');
     % read the desired data

@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.73  2008/11/14 07:36:24  roboos
+% use strcmpi instead of strcmp(lower())
+%
 % Revision 1.72  2008/10/09 14:09:52  roboos
 % added try-catch around old read_ctf_trigger code, Saskia & Ivar had a
 % recording in which none of the "old" trigger channels was present and
@@ -906,7 +909,7 @@ switch eventformat
     temp = instrfind;
     if isa(temp,'instrument')
       % find all serial ports
-      i1 = strcmp(lower({temp(:).Type}),'serial');
+      i1 = strcmpi({temp(:).Type},'serial');
       if any(i1)
         % find all serial ports whose name matches that of the specified port
         i2 = strmatch(lower(port),lower({temp(find(i1)).Name}));

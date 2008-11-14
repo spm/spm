@@ -51,6 +51,9 @@ function [out] = read_ced_son(datafile,varargin);
 % Gijs van Elswijk - 2005 (v0.1)
 
 % $Log: read_ced_son.m,v $
+% Revision 1.4  2008/11/14 07:36:24  roboos
+% use strcmpi instead of strcmp(lower())
+%
 % Revision 1.3  2006/12/04 13:56:02  roboos
 % incorporated modifications by Gijs van Elswijk:
 % evt.type will be set to event channel label (was always 'trigger')
@@ -166,7 +169,7 @@ try,
         % routines provide information about the continuity of the 
         % read segment. If a discontinuity is detected a warning will
         % be given in the command window.
-        if strcmp(lower(MODE),'continuous')
+        if strcmpi(MODE,'continuous')
             out.header(cnt).label        = einfo.EntityLabel;
             out.header(cnt).nsamples     = einfo.ItemCount;
             out.header(cnt).index        = cnt;
@@ -175,7 +178,7 @@ try,
             out.header(cnt).samplerate   = ainfo.SampleRate;
             out.header(cnt).units        = ainfo.Units;
             out.header(cnt).mode         = 'continuous';
-        elseif strcmp(lower(MODE),'triggered'),
+        elseif strcmpi(MODE,'triggered'),
             warning(['Triggered channel mode not implemented yet']);
             out = [];
             return

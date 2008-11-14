@@ -8,6 +8,9 @@ function [dat] = read_besa_mul(filename)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_besa_mul.m,v $
+% Revision 1.2  2008/11/14 07:42:13  roboos
+% use general tokenize function instead of local copy, removed tokenize as subfunction
+%
 % Revision 1.1  2005/07/29 13:32:38  roboos
 % new implementation
 %
@@ -17,20 +20,20 @@ fid = fopen(filename, 'rt');
 
 % According to the BESA documentation, the ASCII Multiplexed Format is as
 % follows:
-% 
+%
 % The first of two header lines contains similar information to that of the
 % BESA ASCII file:
-% 
+%
 % TimePoints= 200 Channels= 27 BeginSweep[ms]= -500.00
 % SamplingInterval[ms]= 5.000 Bins/uV= 1.000 SegmentName=Condition1
-% 
+%
 % Note that the item 'SegmentName' is missing if no segment comment is
 % specified when writing a segment to file.
-% 
+%
 % If an epoch of a continuous EEG is exported in ASCII multiplexed format,
 % the first header line contains the additional item 'Time', which
 % indicates the daytime of the first sample in the exported segment:
-% 
+%
 % TimePoints= 200 Channels= 27 BeginSweep[ms]= 0.00 SamplingInterval[ms]=
 % 5.000 Bins/uV= 1.000 Time=22:02:53 SegmentName=Segment1
 
@@ -85,16 +88,3 @@ dat.data = reshape(dat.data, [dat.Channels dat.TimePoints]);
 
 fclose(fid);
 return
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION to cut a string into pieces at the spaces
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function t = tokenize(rem, sep)
-t = {};
-while ~isempty(rem)
-  [t{end+1}, rem] = strtok(rem, sep);
-end
-if length(t)>0 & isempty(t{end})
-  t = t(1:(end-1));
-end
-t = t(:);

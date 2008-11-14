@@ -1,21 +1,29 @@
 function [tok] = tokenize(str, sep, rep)
 
-% TOKENIZE cuts a string into pieces, returning a cell array
+% TOKENIZE cuts a string into pieces, returning the pieces in a cell array
 %
 % Use as
+%   t = tokenize(str)
 %   t = tokenize(str, sep)
 %   t = tokenize(str, sep, rep)
-% where str is a string and sep is the separator at which you want
-% to cut it into pieces.
+% where
+%   str    = the string that you want to cut into pieces
+%   sep    = the separator at which to cut (default is whitespace)
+%   rep    = whether to treat repeating seperator characters as one (default is false)
 %
-% Using the optional boolean flag rep you can specify whether repeated
+% With the optional boolean flag "rep" you can specify whether repeated
 % seperator characters should be squeezed together (e.g. multiple
 % spaces between two words). The default is rep=1, i.e. repeated
 % seperators are treated as one.
+%
+% See also STRTOK, TEXTSCAN
 
-% Copyright (C) 2003-2006, Robert Oostenveld
+% Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: tokenize.m,v $
+% Revision 1.2  2008/11/14 07:37:05  roboos
+% use whitespace if no seperator is specified
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -36,8 +44,12 @@ function [tok] = tokenize(str, sep, rep)
 % old implementation, new addition to CVS for fieldtrip release
 %
 
+if (nargin == 1)
+  sep = [9:13 32]; % White space characters
+end
+
 tok = {};
-f = find(str==sep);
+f = find(ismember(str, sep));
 f = [0, f, length(str)+1];
 for i=1:(length(f)-1)
   tok{i} = str((f(i)+1):(f(i+1)-1));
@@ -45,6 +57,6 @@ end
 
 if nargin<3 || rep
   % remove empty cells, which occur if the separator is repeated (e.g. multiple spaces)
-  tok(find(cellfun('isempty', tok)))=[];
+  tok(cellfun('isempty', tok))=[];
 end
 
