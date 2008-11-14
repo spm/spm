@@ -9,6 +9,9 @@ function vol = read_asa_vol(fn);
 % Copyright (C) 2002, Robert Oostenveld
 % 
 % $Log: read_asa_vol.m,v $
+% Revision 1.4  2008/11/14 07:36:24  roboos
+% use strcmpi instead of strcmp(lower())
+%
 % Revision 1.3  2003/12/16 10:24:31  roberto
 % added ieee-le to binary reading of mat file to fix problem on Mac
 %
@@ -29,13 +32,13 @@ bnd4  = read_asa(fn, 'Boundary4', '%s');
 
 if ~isempty(radii) | ~isempty(pos)
   % this appears to be a spherical volume conductor
-  if strcmp(lower(UnitP),'mm')
+  if strcmpi(UnitP,'mm')
     radii = 1*radii;
     pos   = 1*pos;
-  elseif strcmp(lower(UnitP),'cm')
+  elseif strcmpi(UnitP,'cm')
     radii = 100*radii;
     pos   = 100*pos;
-  elseif strcmp(lower(UnitP),'m')
+  elseif strcmpi(UnitP,'m')
     radii = 1000*radii;
     pos   = 1000*pos;
   else
@@ -43,11 +46,11 @@ if ~isempty(radii) | ~isempty(pos)
   end
 end
 
-if strcmp(lower(UnitC),'s/m')
+if strcmpi(UnitC,'s/m')
   cond = cond/1;
-elseif strcmp(lower(UnitC),'s/cm')
+elseif strcmpi(UnitC,'s/cm')
   cond = cond/100;
-elseif strcmp(lower(UnitC),'s/mm')
+elseif strcmpi(UnitC,'s/mm')
   cond = cond/1000;
 else
   error(sprintf('Unknown unit of conductivity for volume (%s)', UnitC));

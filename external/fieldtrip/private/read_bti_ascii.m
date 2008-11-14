@@ -13,6 +13,9 @@ function [file] = read_bti_ascii(filename);
 % Copyright (C) 2004, Robert Oostenveld
 % 
 % $Log: read_bti_ascii.m,v $
+% Revision 1.2  2008/11/14 07:49:19  roboos
+% use standard matlab strtrim function instead of deblank2
+%
 % Revision 1.1  2005/04/18 13:47:05  roboos
 % added some old and infrequently used functions to the cvs repository
 %
@@ -37,8 +40,8 @@ while ischar(line)
   if findstr(line, ':')~=length(line)
     [item, value] = strtok(line, ':');
     value(1) = ' ';			% remove the :
-    value  = deblank2(value);
-    item   = deblank2(item);
+    value  = strtrim(value);
+    item   = strtrim(item);
     item(findstr(item, '.')) = '_';
     item(findstr(item, ' ')) = '_';
     if ischar(item)
@@ -62,5 +65,5 @@ comment = findstr(line, '//');
 if ~isempty(comment)
   line(min(comment):end) = ' ';
 end
-line = deblank2(line);
+line = strtrim(line);
 

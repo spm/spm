@@ -8,6 +8,9 @@ function [msi] = read_bti_m4d(filename);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_bti_m4d.m,v $
+% Revision 1.3  2008/11/14 07:49:19  roboos
+% use standard matlab strtrim function instead of deblank2
+%
 % Revision 1.2  2008/08/12 12:56:08  jansch
 % fixed assignment of msi.grad. in original implementation only the references were
 % stored. in the future this part should be taken care of by bti2grad so that the
@@ -124,7 +127,7 @@ while ischar(line)
   fieldname = key(5:end);
 
   % remove spaces from the begin and end of the string
-  val = deblank2(val);
+  val = strtrim(val);
 
   % try to convert the value string into something more usefull
   if ~iscell(val)
@@ -162,4 +165,4 @@ comment = findstr(line, '//');
 if ~isempty(comment)
   line(min(comment):end) = ' ';
 end
-line = deblank2(line);
+line = strtrim(line);

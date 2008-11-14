@@ -1,11 +1,14 @@
-function bnd = read_asa_bnd(fn);
+/function bnd = read_asa_bnd(fn);
 
 % READ_ASA_BND reads an ASA boundary triangulation file
 % converting the units of the vertices to mm
 
 % Copyright (C) 2002, Robert Oostenveld
-% 
+%
 % $Log: read_asa_bnd.m,v $
+% Revision 1.5  2008/11/14 07:36:24  roboos
+% use strcmpi instead of strcmp(lower())
+%
 % Revision 1.4  2004/03/29 15:16:08  roberto
 % added semicolum (;) to end of line
 %
@@ -38,11 +41,11 @@ if any(size(dhk)~=[Ndhk,3])
   fclose(fid);
 end
 
-if strcmp(lower(Unit),'mm')
+if strcmpi(Unit,'mm')
   pnt   = 1*pnt;
-elseif strcmp(lower(Unit),'cm')
+elseif strcmpi(Unit,'cm')
   pnt   = 100*pnt;
-elseif strcmp(lower(Unit),'m')
+elseif strcmpi(Unit,'m')
   pnt   = 1000*pnt;
 else
   error(sprintf('Unknown unit of distance for triangulated boundary (%s)', Unit));

@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.35  2008/11/13 21:53:57  roboos
+% ensure that grad.unit is specified, also support bti148
+%
 % Revision 1.34  2008/10/02 15:32:20  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -176,7 +179,7 @@ function [interp] = megplanar(cfg, data);
 fieldtripdefs
 
 % check if the input data is valid for this function
-data  = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti248'});
+data  = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248'});
 
 % set the default configuration 
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';             end
@@ -230,6 +233,8 @@ dataindx = dataindx(:)';
 
 % make a copy for convenience
 grad = data.grad;
+% ensure that the units are specified
+grad = convert_units(grad);
 % remove the gradiometers that have no channel in the data
 % we only need the bottom coil for the position of the channel
 grad.label = grad.label(gradindx);
@@ -243,6 +248,7 @@ for i=1:Ngrad
     distance(j,i) = distance(i,j);
   end
 end
+
 fprintf('minimum distance between gradiometers is %6.2f %s\n', min(distance(find(distance~=0))), grad.unit);
 fprintf('maximum distance between gradiometers is %6.2f %s\n', max(distance(find(distance~=0))), grad.unit);
 
@@ -551,7 +557,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.34 2008/10/02 15:32:20 sashae Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.35 2008/11/13 21:53:57 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

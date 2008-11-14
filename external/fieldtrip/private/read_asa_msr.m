@@ -6,6 +6,12 @@ function data = read_asa_msr(fn);
 % Copyright (C) 2002, Robert Oostenveld
 % 
 % $Log: read_asa_msr.m,v $
+% Revision 1.5  2008/11/14 07:41:17  roboos
+% only whitespace, no functional change
+%
+% Revision 1.4  2008/11/14 07:36:24  roboos
+% use strcmpi instead of strcmp(lower())
+%
 % Revision 1.3  2008/11/12 17:02:03  roboos
 % explicitely specify ieee-le in fopen()
 %
@@ -13,13 +19,12 @@ function data = read_asa_msr(fn);
 % updated help and copyrights
 %
 
-Npnt = read_asa(fn, 'NumberPositions=', '%d');
-Ntime = read_asa(fn, 'NumberTimesteps=', '%d');
-UnitT = read_asa(fn, 'UnitTime', '%s');
-UnitM = read_asa(fn, 'UnitMeas', '%s');
+Npnt      = read_asa(fn, 'NumberPositions=', '%d');
+Ntime     = read_asa(fn, 'NumberTimesteps=', '%d');
+UnitT     = read_asa(fn, 'UnitTime', '%s');
+UnitM     = read_asa(fn, 'UnitMeas', '%s');
 Timesteps = read_asa(fn, 'Timesteps', '%s');
-lab  = read_asa(fn, 'Labels', '%s', Npnt);
-
+lab       = read_asa(fn, 'Labels', '%s', Npnt);
 
 val = read_asa(fn, 'Values', '%f');
 if any(size(val)~=[Npnt,Ntime])
@@ -33,25 +38,25 @@ end
 tmp = sscanf(Timesteps, '%f(%f)%f');
 time = linspace(tmp(1), tmp(3), Ntime);
 
-if strcmp(lower(UnitT),'ms')
+if strcmpi(UnitT,'ms')
   time = 1*time;
-elseif strcmp(lower(UnitT),'s')
+elseif strcmpi(UnitT,'s')
   time = 1000*time;
 elseif ~isempty(UnitT)
   error(sprintf('Unknown unit of time (%s)', UnitT));
 end
 
-if strcmp(lower(UnitM),'uv')
+if strcmpi(UnitM,'uv')
   val = 1*val;
-elseif strcmp(lower(UnitM),'µv')
+elseif strcmpi(UnitM,'?v')
   val = 1*val;
-elseif strcmp(lower(UnitM),'mv')
+elseif strcmpi(UnitM,'mv')
   val = 1000*val;
-elseif strcmp(lower(UnitM),'v')
+elseif strcmpi(UnitM,'v')
   val = 1000000*val;
-elseif strcmp(lower(UnitM),'ft')
+elseif strcmpi(UnitM,'ft')
   val = 1*val;
-elseif strcmp(lower(UnitM),'pt')
+elseif strcmpi(UnitM,'pt')
   val = 1000*val;
 elseif ~isempty(UnitM)
   error(sprintf('Unknown unit of measurement (%s)', UnitM));
@@ -65,16 +70,4 @@ data.time  = time;
 data.data  = val;
 data.label = lab;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [element] = tokenize(line);
-count = 0;
-while ~isempty(line)
-  [tok, line] = strtok(line);
-  if ~isempty(tok)
-    count = count+1;
-    element{count} = tok;
-  else
-    break;
-  end
-end
 

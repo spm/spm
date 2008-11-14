@@ -21,6 +21,9 @@ function [file] = read_ctf_ascii(filename);
 % Copyright (C) 2003, Robert Oostenveld
 % 
 % $Log: read_ctf_ascii.m,v $
+% Revision 1.10  2008/11/14 07:49:19  roboos
+% use standard matlab strtrim function instead of deblank2
+%
 % Revision 1.9  2006/08/29 11:08:41  roboos
 % close file after reading from it
 %
@@ -68,8 +71,8 @@ while ischar(line)
     if ~isempty(subline)
       [item, value] = strtok(subline, ':');
       value(1) = ' ';			% remove the :
-      value  = deblank2(value);
-      item   = deblank2(item);
+      value  = strtrim(value);
+      item   = strtrim(item);
       warning off
       
       % the item name should be a real string, otherwise I cannot put it into the structure
@@ -103,5 +106,5 @@ function line = cleanline(line)
   if ~isempty(comment)
     line(min(comment):end) = ' ';
   end
-  line = deblank2(line);
+  line = strtrim(line);
 

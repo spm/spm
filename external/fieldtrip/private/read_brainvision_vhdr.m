@@ -4,13 +4,16 @@ function [hdr] = read_brainvision_vhdr(filename);
 % header file and returns them in a structure
 %
 % Use as
-%   hdr = read_brainvision_vhdr(filename) 
+%   hdr = read_brainvision_vhdr(filename)
 %
 % See also READ_BRAINVISION_EEG, READ_BRAINVISION_VMRK
 
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_brainvision_vhdr.m,v $
+% Revision 1.7  2008/11/14 07:42:13  roboos
+% use general tokenize function instead of local copy, removed tokenize as subfunction
+%
 % Revision 1.6  2008/07/10 07:15:30  roboos
 % also determine data file size if on another directory, thanks to Paul
 %
@@ -91,16 +94,3 @@ hdr.nSamplesPre = 0;
 hdr.label      = hdr.label(:);
 hdr.reference  = hdr.reference(:);
 hdr.resolution = hdr.resolution(:);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% subfunction TOKENIZE cuts a string into pieces, returning a cell array
-function t = tokenize(str, sep)
-t = {};
-f = find(str==sep);
-if ~isempty(f)
-  t{end+1} = str(1:(f(1)-1));
-  for i=1:(length(f)-1)
-    t{end+1} = str((f(i)+1):(f(i+1)-1));
-  end
-  t{end+1} = str((f(end)+1):end);
-end

@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.2  2008/11/14 10:45:47  jansch
+% extended the fixcsd subfunction
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -525,20 +528,206 @@ keyboard
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the cross-spectral-density matrix in a particular manner
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function data = fixcsd(data, desired)
-if isfield(data, 'crsspctrm') && ~isfield(data, 'labelcmb')
+function data = fixcsd(data, desired, channelcmb)
+if isfield(data, 'powspctrm')
+  current = 'sparsewithpow';
+elseif isfield(data, 'crsspctrm') && ~isfield(data, 'labelcmb')
   current = 'full';
 elseif isfield(data, 'crsspctrm') && isfield(data, 'labelcmb')
   current = 'sparse';
+elseif isfield(data, 'fourierspctrm') && ~isfield(data, 'labelcmb')
+  current = 'fourier';
 else
   error('Could not determine the current representation of the cross-spectrum matrix');
 end
 if isequal(current, desired)
   % nothing to do
-elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
-  % FIXME should be implemented
+elseif (strcmp(current, 'full')    && strcmp(desired, 'sparsewithpow')) || ...
+       (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
+
+elseif (strcmp(current, 'sparse')  && strcmp(desired, 'sparsewithpow'))
+  % convert back to crsspctrm/powspctrm representation: useful for plotting functions etc
+
+
+elseif (strcmp(current, 'full')          && strcmp(desired, 'fourier')) || ...
+ (strcmp(current, 'sparse')        && strcmp(desired, 'fourier')) || ...
+ (strcmp(current, 'sparsewithpow') && strcmp(desired, 'fourier'))
+  % this is not possible
+
+elseif strcmp(current, 'full')          && strcmp(desired, 'sparse')
+  % why would you want this? FIXME give explicit error
+elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
+
+  if isempty(channelcmb), error('no channel combinations are specified'); end
+  % this is what freqdescriptives currently does as an intermediate step
+  dimtok = tokenize(data.dimord, '_');
+  if ~isempty(strmatch('rpttap',   dimtok)), 
+    nrpt = length(data.cumtapcnt);
+    flag = 0;
+  else 
+    nrpt = 1;
+    flag = 1;
+  end 
+  if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
+  if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
+  ncmb      = size(channelcmb,1);
+  cmbindx   = zeros(ncmb,2);
+  labelcmb  = cell(ncmb,2);
+  for k = 1:ncmb
+    ch1 = find(strcmp(data.label, channelcmb(k,1)));    
+    ch2 = find(strcmp(data.label, channelcmb(k,2)));
+    if ~isempty(ch1) && ~isempty(ch2),
+      cmbindx(k,:)  = [ch1 ch2];
+      labelcmb(k,:) = data.label([ch1 ch2])';
+    end    
+  end
+  
+  crsspctrm = zeros(nrpt,ncmb,nfrq,ntim)+i.*zeros(nrpt,ncmb,nfrq,ntim);
+  sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
+  for k = 1:ntim
+    for m = 1:nfrq
+      for p = 1:nrpt
+        indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+        tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
+        tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
+	crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+      end
+    end
+  end
+  data.crsspctrm = crsspctrm;
+  data.labelcmb  = labelcmb;
+  data           = rmfield(data, 'fourierspctrm');
+  if nrpt>1, 
+    if ntim>1,
+      data.dimord = 'rpt_chan_freq_time';
+    else  
+      data.dimord = 'rpt_chan_freq';
+    end
+  else
+    if ntim>1,
+      data.dimord = 'chan_freq_time';
+    else
+      data.dimord = 'chan_freq';
+    end
+  end
+  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
+  
+
+elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'sparse')
+
+  % this is what freqdescriptives currently does as an intermediate step,
+  % and will be the new default representation for sparse data i.e. autospectra 
+  % as {'A' 'A'} in labelcmb
+  if isfield(data, 'crsspctrm'),
+    dimtok         = tokenize(data.dimord, '_');
+    catdim         = match_str(dimtok, {'chan' 'chancmb'});
+    data.crsspctrm = cat(catdim, data.powspctrm, data.crsspctrm);
+    data.labelcmb  = [data.label(:) data.label(:); data.labelcmb];
+    data           = rmfield(data, 'powspctrm');
+  else
+    data.crsspctrm = data.powspctrm;
+    data.labelcmb  = [data.label(:) data.label(:)];
+    data           = rmfield(data, 'powspctrm');
+  end
+
+elseif strcmp(current, 'fourier') && strcmp(desired, 'full')
+
+  % this is how it is currently and the desired functionality of prepare_freq_matrices
+  dimtok = tokenize(data.dimord, '_');
+  if ~isempty(strmatch('rpttap',   dimtok)), 
+    nrpt = length(data.cumtapcnt);
+    flag = 0;
+  else 
+    nrpt = 1;
+    flag = 1;
+  end
+  if ~isempty(strmatch('rpttap',dimtok)), nrpt=length(data.cumtapcnt); else nrpt = 1; end
+  if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
+  if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
+  nchan     = length(data.label);
+  crsspctrm = zeros(nrpt,nchan,nchan,nfrq,ntim)+i.*zeros(nrpt,nchan,nchan,nfrq,ntim);
+  sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
+  for k = 1:ntim
+    for m = 1:nfrq
+      for p = 1:nrpt
+        indx   = (sumtapcnt(p)+1):sumtapcnt(p+1);
+        tmpdat = transpose(data.fourierspctrm(indx,:,m,k));
+	crsspctrm(p,:,:,m,k) = (tmpdat*tmpdat')./data.cumtapcnt(p);
+      end
+    end
+  end
+  data.crsspctrm = crsspctrm;
+  data           = rmfield(data, 'fourierspctrm');
+  if nrpt>1, 
+    if ntim>1,
+      data.dimord = 'rpt_chan_chan_freq_time';
+    else  
+      data.dimord = 'rpt_chan_chan_freq';
+    end
+  else
+    if ntim>1,
+      data.dimord = 'chan_chan_freq_time';
+    else
+      data.dimord = 'chan_chan_freq';
+    end
+  end
+  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
+
 elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
-  % FIXME should be implemented
+
+  dimtok = tokenize(data.dimord, '_');
+  if ~isempty(strmatch('rpt',   dimtok)), 
+    nrpt = size(data.crsspctrm,1);
+    flag = 0;
+  else 
+    nrpt = 1;
+    data.crsspctrm = reshape(data.crsspctrm, [1 size(data.crsspctrm)]);
+    flag = 1;
+  end 
+  if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
+  if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
+  nchan     = length(data.label);
+  cmbindx   = zeros(nchan);
+  for k = 1:size(data.labelcmb,1)
+    ch1 = find(strcmp(data.label, data.labelcmb(k,1)));    
+    ch2 = find(strcmp(data.label, data.labelcmb(k,2)));
+    if ~isempty(ch1) && ~isempty(ch2), cmbindx(ch1,ch2) = k; end
+  end
+  crsspctrm = zeros(nrpt,nchan,nchan,nfrq,ntim)+i.*zeros(nrpt,nchan,nchan,nfrq,ntim);
+  for k = 1:ntim
+    for m = 1:nfrq
+      for p = 1:nrpt
+        tmpdat = nan+zeros(nchan);
+        tmpdat(find(cmbindx)) = data.crsspctrm(p,cmbindx(find(cmbindx)),m,k);
+	tmpdat                = ctranspose(tmpdat);
+	tmpdat(find(cmbindx)) = data.crsspctrm(p,cmbindx(find(cmbindx)),m,k);
+	crsspctrm(p,:,:,m,k)  = tmpdat;
+      end
+    end
+  end
+  data.crsspctrm = crsspctrm;
+  data           = rmfield(data, 'labelcmb');
+  if nrpt>1, 
+    if ntim>1,
+      data.dimord = 'rpt_chan_chan_freq_time';
+    else  
+      data.dimord = 'rpt_chan_chan_freq';
+    end
+  else
+    if ntim>1,
+      data.dimord = 'chan_chan_freq_time';
+    else
+      data.dimord = 'chan_chan_freq';
+    end
+  end
+  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
+  
+elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'full')
+  
+  % this is how is currently done in prepare_freq_matrices
+  data = checkdata(data, 'cmbrepresentation', 'sparse');
+  data = checkdata(data, 'cmbrepresentation', 'full');
+
 end
 keyboard
 
