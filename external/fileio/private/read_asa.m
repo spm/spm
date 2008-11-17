@@ -25,6 +25,9 @@ function [val] = read_asa(filename, elem, format, number, token)
 % Copyright (C) 2002, Robert Oostenveld
 %
 % $Log: read_asa.m,v $
+% Revision 1.7  2008/11/17 17:38:43  roboos
+% replaced line==-1 with isequal, to work around && bug
+%
 % Revision 1.6  2008/11/14 07:49:19  roboos
 % use standard matlab strtrim function instead of deblank2
 %
@@ -66,7 +69,7 @@ elem = strtrim(lower(elem));
 
 while (1)
   line = fgetl(fid);
-  if ~isempty(line) && line==-1
+  if ~isempty(line) && isequal(line, -1)
     % prematurely reached end of file
     fclose(fid);
     return
@@ -81,7 +84,7 @@ end
 
 while isempty(data)
   line = fgetl(fid);
-  if line==-1
+  if isequal(line, -1)
     % prematurely reached end of file
     fclose(fid);
     return
@@ -102,7 +105,7 @@ if strcmp(format, '%s')
   % read the remaining strings
   while count<number
     line = fgetl(fid);
-    if ~isempty(line) && line==-1
+    if ~isempty(line) && isequal(line, -1)
       fclose(fid);
       return
     end
@@ -129,7 +132,7 @@ else
   % read remaining numeric data
   while count<number
     line = fgetl(fid);
-    if ~isempty(line) && line==-1
+    if ~isempty(line) && isequal(line, -1)
       fclose(fid);
       return
     end
