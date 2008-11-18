@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2424 2008-10-31 17:07:08Z jean $
+% $Id: spm_eeg_review_callbacks.m 2477 2008-11-18 15:25:22Z vladimir $
 
 try
     D = get(gcf,'userdata');
@@ -215,82 +215,22 @@ switch varargin{1}
             case 'sensorPos'
 
                 % get 3D positions
-                try     % EEG
-                    pos3d = [D.sensors.eeg.pnt];
-                    try
-                        m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
-                        m.faces = D.other.inv{1}.mesh.tess_mni.face;
-                    catch
-                        lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_3004d'));
-                        m.vertices = lo.vert;
-                        m.faces = lo.face;
-                    end
-                    options.figname = 'EEG sensors';
-                    [out] = spm_eeg_render(m,options);
-                    lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
-                    m2.vertices = lo.vert;
-                    m2.faces = lo.face;
-                    options.hfig = out.handles.fi;
-                    options.ParentAxes = gca;
-                    [out] = spm_eeg_render(m2,options);
-                    figure(out.handles.fi)
-                    hold on
+                try     % EEG                    
+                    pos3d = [D.sensors.eeg.pnt];                 
+                    figure;                    
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
+                    hold on
                     %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
-                    axis tight
+                    axis equal tight off
                 end
-                try     % MEG
-                    pos3d = [D.sensors.meg.pnt];
-                    try
-                        m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
-                        m.faces = D.other.inv{1}.mesh.tess_mni.face;
-                    catch
-                        lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_3004d'));
-                        m.vertices = lo.vert;
-                        m.faces = lo.face;
-                    end
-                    options.figname = 'MEG sensors';
-                    [out] = spm_eeg_render(m,options);
-                    lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
-                    m2.vertices = lo.vert;
-                    m2.faces = lo.face;
-                    options.hfig = out.handles.fi;
-                    options.ParentAxes = gca;
-                    [out] = spm_eeg_render(m2,options);
-                    figure(out.handles.fi)
-                    hold on
-                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.MEG.VIZU.montage.clab);
-                    text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.meg.label);
-                    axis tight
+                try     % MEG   
+                    pos3d = [D.sensors.meg.pnt];     
+                    figure;     
+                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');             
+                    axis equal tight off
                 end
-                try     % other
-                    pos3d = [D.sensors.other.pnt];
-                    try
-                        m.vertices = D.other.inv{1}.mesh.tess_mni.vert;
-                        m.faces = D.other.inv{1}.mesh.tess_mni.face;
-                    catch
-                        lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_3004d'));
-                        m.vertices = lo.vert;
-                        m.faces = lo.face;
-                    end
-                    options.figname = 'other sensors';
-                    [out] = spm_eeg_render(m,options);
-                    lo = load(fullfile(spm('Dir'),'EEGtemplates','wmeshTemplate_scalp'));
-                    m2.vertices = lo.vert;
-                    m2.faces = lo.face;
-                    options.hfig = out.handles.fi;
-                    options.ParentAxes = gca;
-                    [out] = spm_eeg_render(m2,options);
-                    figure(out.handles.fi)
-                    hold on
-                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
-                    %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.other.VIZU.montage.clab);
-                    ht = text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.other.label);
-                    axis tight
-                end
-
+                
             case 'inv'
 
                 cla(D.PSD.handles.axes2,'reset')
