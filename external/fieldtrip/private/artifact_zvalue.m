@@ -35,6 +35,7 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 %   cfg.artfctdef.zvalue.trlpadding
 %   cfg.artfctdef.zvalue.fltpadding
 %   cfg.artfctdef.zvalue.artpadding
+%   cfg.continuous
 %
 % Configuration settings related to the preprocessing of the data are
 %   cfg.artfctdef.zvalue.lpfilter      = 'no' or 'yes'  lowpass filter
@@ -66,6 +67,9 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.17  2008/11/18 16:16:49  estmee
+% Added cfg.continuous
+%
 % Revision 1.16  2008/10/13 13:03:11  sashae
 % added call to checkconfig (as discussed with estmee)
 %
@@ -154,22 +158,6 @@ elseif nargin == 1
   hdr = read_header(cfg.headerfile);
 end
 
-% determine whether it is continuous data
-if ~isfield(cfg, 'datatype')
-  if hdr.nTrials==1
-    cfg.datatype = 'continuous';
-  else
-    cfg.datatype = 'epoched';
-  end
-end
-
-if ~strcmp(cfg.datatype, 'continuous')
-  iscontinuous = 0;
-  error('artifact detection is only possible on continuous data');
-else
-  iscontinuous = 1;
-end
-
 trl           = cfg.trl;
 trlpadding    = round(cfg.artfctdef.zvalue.trlpadding*hdr.Fs);
 fltpadding    = round(cfg.artfctdef.zvalue.fltpadding*hdr.Fs);
@@ -199,9 +187,9 @@ for sgnlop=1:numsgn
   for trlop = 1:numtrl
     fprintf('.');
     if isfetch
-      dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', ~iscontinuous);
+      dat{trlop} = fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
     else
-      dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', ~iscontinuous);
+      dat{trlop} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind(sgnlop), 'checkboundary', strcmp(cfg.continuous,'no'));
     end
     dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel(sgnlop), hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
     % accumulate the sum and the sum-of-squares
@@ -328,5 +316,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.16 2008/10/13 13:03:11 sashae Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.17 2008/11/18 16:16:49 estmee Exp $';
+
 

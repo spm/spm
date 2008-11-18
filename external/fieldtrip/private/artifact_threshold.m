@@ -9,6 +9,9 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 % or
 %   [cfg, artifact] = artifact_threshold(cfg, data)
 %
+% The following configuration option must be specified
+%   cfg.continuous                    = 'yes' or 'no' whether the file contains continuous data
+%
 % The following configuration options can be specified
 %   cfg.artfctdef.threshold.channel	  = cell-array with channel labels
 %   cfg.artfctdef.threshold.bpfilter  = 'no' or 'yes'
@@ -30,6 +33,9 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.24  2008/11/18 16:15:36  estmee
+% Added cfg.continuous
+%
 % Revision 1.23  2008/10/13 11:39:34  sashae
 % added call to checkconfig (as discussed with estmee)
 %
@@ -127,14 +133,6 @@ if ~isfield(artfctdef, 'range'),    artfctdef.range = inf;           end
 if ~isfield(artfctdef, 'min'),      artfctdef.min =  -inf;           end
 if ~isfield(artfctdef, 'max'),      artfctdef.max =   inf;           end
 
-if ~isfield(cfg, 'datatype') || ~strcmp(cfg.datatype, 'continuous')
-  % datatype is unknown or not continuous, perform epoch boundary check
-  iscontinuous = 0;
-else
-  % do not perform epoch boundary check, usefull for pseudo-continuous data
-  iscontinuous = strcmp(cfg.datatype, 'continuous');
-end
-
 % read the header
 if nargin == 1
   isfetch = 0;
@@ -155,9 +153,9 @@ artifact    = [];
 
 for trlop = 1:numtrl
   if isfetch
-    dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', ~iscontinuous);
+    dat = fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
   else
-    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', ~iscontinuous);
+    dat = read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
   end
   dat = preproc(dat, channel, hdr.Fs, artfctdef, cfg.trl(trlop,3));
   % compute the min, max and range over all channels and samples
@@ -194,5 +192,6 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.23 2008/10/13 11:39:34 sashae Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.24 2008/11/18 16:15:36 estmee Exp $';
+
 

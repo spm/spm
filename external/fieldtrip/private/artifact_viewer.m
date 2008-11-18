@@ -7,6 +7,9 @@ function artifact_viewer(cfg, artcfg, zval, artval, zindx, inputdata);
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_viewer.m,v $
+% Revision 1.12  2008/11/18 16:22:42  estmee
+% Added cfg.continuous
+%
 % Revision 1.11  2008/10/07 16:22:12  estmee
 % Changed the output of fetch_data and read_data from dat to data.
 %
@@ -86,9 +89,9 @@ trlpadsmp = round(artcfg.trlpadding*hdr.Fs);
 sgnind = zindx(indx);
 iscontinuous = 1;
 if isfield(dat, 'inputdata')
-  data = fetch_data(dat.inputdata, 'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnind, 'checkboundary', false);
+  data = fetch_data(dat.inputdata, 'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'));
 else
-  data = read_data(cfg.datafile,   'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnind, 'checkboundary', false);
+  data = read_data(cfg.datafile,   'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'));
 end
 % data = preproc(data, channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
 str = sprintf('trial %3d, channel %s', dat.trlop, hdr.label{sgnind});

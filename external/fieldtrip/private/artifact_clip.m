@@ -14,12 +14,16 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 %   cfg.artfctdef.clip.pretim   = 0.000;  pre-artifact rejection-interval in seconds
 %   cfg.artfctdef.clip.psttim   = 0.000;  post-artifact rejection-interval in seconds
 %   cfg.artfctdef.clip.thresh   = 0.010;  minimum duration in seconds of a datasegment with consecutive identical samples to be considered as 'clipped'
-%
+%   cfg.continuous              = 'yes' or 'no' whether the file contains continuous data
+%   
 % See also REJECTARTIFACT
 
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.17  2008/11/18 16:11:42  estmee
+% Added cfg.continuous option to documentation.
+%
 % Revision 1.16  2008/10/13 14:37:46  estmee
 % Changed the checkboundary again when calling read_data.
 %
@@ -171,5 +175,5 @@ catch
   cfg.version.name = st(i);
 end
 
-cfg.version.id = '$Id: artifact_clip.m,v 1.16 2008/10/13 14:37:46 estmee Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.17 2008/11/18 16:11:42 estmee Exp $';
 

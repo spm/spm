@@ -5,11 +5,11 @@ function [cfg, artifact] = artifact_manual(cfg);
 % ARTIFACT_MANUAL allows the user to detect artifacts manually using visual
 % inspection.
 %
-% You must specify the channels that should be displayed:
+% You must specify the following configuration options:
 %
 %   cfg.artfctdef.manual.channel        = cell-array with channels to be displayed.
-% Be careful not to specify to much channels
-% because the function then will be very slow.
+%   (Be careful not to specify to much channels because the function then will be very slow.)
+%   cfg.continuous                      = 'yes' or 'no' whether the file contains continuous data
 %
 % You can specify the following configuration options:
 %
@@ -39,6 +39,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Copyright (C) 2004, Geerten Kramer, FCDC
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.20  2008/11/18 16:14:47  estmee
+% Added cfg.continuous
+%
 % Revision 1.19  2008/10/13 10:40:47  sashae
 % added call to checkconfig
 %
@@ -131,14 +134,6 @@ if ~isfield(cfg.artfctdef.manual,'channel'),
   cfg.artfctdef.manual.channel = [];
 end
 
-if ~isfield(cfg, 'datatype') || ~strcmp(cfg.datatype, 'continuous')
-  % datatype is unknown or not continuous, perform epoch boundary check
-  iscontinuous = 0;
-else
-  % do not perform epoch boundary check, usefull for pseudo-continuous data
-  iscontinuous = strcmp(cfg.datatype, 'continuous');
-end
-
 % read the header and do some preprocessing on the configuration
 fprintf('Reading raw data...');
 cfg = checkconfig(cfg, 'dataset2files', {'yes'});
@@ -158,7 +153,7 @@ elseif(nch>cfg.artfctdef.manual.maxnumberofchannels)
   error(sprintf('\nMore than %i channels selected in cfg.artfctdef.manual.channel',cfg.artfctdef.manual.maxnumberofchannels));
 end
 
-show=read_data(cfg.datafile, hdr, 1, hdr.nTrials*hdr.nSamples, channelindx, iscontinuous);
+show=read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', hdr.nTrials*hdr.nSamples, 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
 show=show';
 
 N=length(show);
@@ -330,7 +325,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.19 2008/10/13 10:40:47 sashae Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.20 2008/11/18 16:14:47 estmee Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

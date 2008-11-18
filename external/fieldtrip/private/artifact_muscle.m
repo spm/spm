@@ -22,6 +22,7 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 %
 % Always specify:
 %   cfg.trl        = structure that defines the data segments of interest. See DEFINETRIAL
+%   cfg.continuous = 'yes' or 'no' whether the file contains continuous data
 %
 % The data is preprocessed (again) with the following configuration parameters,
 % which are optimal for identifying muscle artifacts:
@@ -54,6 +55,9 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.27  2008/11/18 16:21:28  estmee
+% Added cfg.continuous
+%
 % Revision 1.26  2008/10/13 13:03:11  sashae
 % added call to checkconfig (as discussed with estmee)
 %
@@ -152,9 +156,7 @@ if strcmp(cfg.artfctdef.muscle.method, 'zvalue')
   tmpcfg                  = [];
   tmpcfg.trl              = cfg.trl;
   tmpcfg.artfctdef.zvalue = cfg.artfctdef.muscle;
-  if isfield(cfg, 'datatype')
-    tmpcfg.datatype = cfg.datatype;
-  end
+  tmpcfg.continuous       = cfg.continuous;
   % call the zvalue artifact detection function
   if nargin ==1
     cfg = checkconfig(cfg, 'dataset2files', {'yes'});

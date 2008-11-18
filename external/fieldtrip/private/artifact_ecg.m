@@ -12,6 +12,7 @@ function [cfg, artifact] = artifact_ecg(cfg)
 %   cfg.artfctdef.ecg.psttim  = 0.3;  post-artifact rejection-interval in seconds
 %   cfg.artfctdef.ecg.method  = 'zvalue'; peak-detection method
 %   cfg.artfctdef.ecg.cutoff  = 3; peak-threshold
+%   cfg.continuous            = 'yes' or 'no' whether the file contains continuous data
 %
 % The output artifact variable is an Nx2-matrix, containing the
 % begin and end samples of the QRST-complexes in the ECG.
@@ -24,6 +25,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.18  2008/11/18 16:13:49  estmee
+% Added cfg.continuous
+%
 % Revision 1.17  2008/10/13 10:40:47  sashae
 % added call to checkconfig
 %
@@ -95,15 +99,6 @@ if ~strcmp(cfg.artfctdef.ecg.method, 'zvalue'),
   error('this method is not applicable');
 end
 
-if ~isfield(cfg, 'datatype') || ~strcmp(cfg.datatype, 'continuous')
-  % datatype is unknown or not continuous, perform epoch boundary check
-  iscontinuous = 0;
-  error('not implemented yet for discontinuous data');
-else
-  % do not perform epoch boundary check, usefull for pseudo-continuous data
-  iscontinuous = strcmp(cfg.datatype, 'continuous');
-end
-
 artfctdef     = cfg.artfctdef.ecg;
 cfg           = checkconfig(cfg, 'dataset2files', {'yes'});
 cfg           = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
@@ -126,7 +121,7 @@ end
 
 % read in the ecg-channel and do blc and squaring
 for j = 1:ntrl
-  ecg{j} = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
+  ecg{j} = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
   ecg{j} = preproc(ecg{j}, artfctdef.channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
   ecg{j} = ecg{j}.^2;
 end
@@ -199,7 +194,7 @@ ntrl   = size(trl,1);
 if ~isempty(sgnind)
   for j = 1:ntrl
     fprintf('reading and preprocessing trial %d of %d\n', j, ntrl);
-    dum = read_data(cfg.datafile, hdr, trl(j,1), trl(j,2), sgnind, iscontinuous);
+    dum = read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'));
     dat = dat + preproc_baselinecorrect(dum);
   end
 end
@@ -272,5 +267,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.17 2008/10/13 10:40:47 sashae Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.18 2008/11/18 16:13:49 estmee Exp $';
 
