@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_graph.m 2475 2008-11-18 09:53:26Z lee $
 
 
 
@@ -246,20 +246,22 @@ else
             Sess(ss).lambda = spm_get_data(SPM.PPM.Sess(ss).VHp,XYZ);
         end
 
-        % Which slice are we in ?
-        slice_index=XYZ(3,1);
+        % Which block are we in ?
+        % this needs updating s.t xSPM contains labels of selected voxels
+        v = find((SPM.xVol.XYZ(1,:)==XYZ(1))&(SPM.xVol.XYZ(2,:)==XYZ(2))&(SPM.xVol.XYZ(3,:)==XYZ(3)));
+        block_index = SPM.xVol.labels(v);
         Bcov=zeros(Nk,Nk);
         for ss=1:nsess,
             % Reconstuct approximation to voxel wise correlation matrix
-            post_R=SPM.PPM.Sess(ss).slice(slice_index).mean.R;
+            post_R=SPM.PPM.Sess(ss).block(block_index).mean.R;
             if SPM.PPM.AR_P > 0
-                dh=Sess(ss).a(:,1)'-SPM.PPM.Sess(ss).slice(slice_index).mean.a;
+                dh=Sess(ss).a(:,1)'-SPM.PPM.Sess(ss).block(block_index).mean.a;
             else
                 dh=[];
             end
-            dh=[dh Sess(ss).lambda(1)-SPM.PPM.Sess(ss).slice(slice_index).mean.lambda];
+            dh=[dh Sess(ss).lambda(1)-SPM.PPM.Sess(ss).block(block_index).mean.lambda];
             for i=1:length(dh),
-                post_R=post_R+SPM.PPM.Sess(ss).slice(slice_index).mean.dR(:,:,i)*dh(i);
+                post_R=post_R+SPM.PPM.Sess(ss).block(block_index).mean.dR(:,:,i)*dh(i);
             end
             % Get indexes of regressors specific to this session
             scol=SPM.Sess(ss).col;
