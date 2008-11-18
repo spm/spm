@@ -9,7 +9,7 @@ function new = clone(this, fnamedat, dim)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 2436 2008-11-04 10:46:27Z stefan $
+% $Id: clone.m 2476 2008-11-18 12:58:57Z christophe $
 
 if nargin < 3
     if ~strcmp(transformtype(this), 'TF')
@@ -23,7 +23,7 @@ new = this;
 
 % check file path first
 [pth,fname,ext] = fileparts(fnamedat);
-if isempty(path)
+if isempty(pth)
     pth = this.path;
 end
 newFileName = [fullfile(pth,fname),ext];
