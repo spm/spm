@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 2210 2008-09-26 20:14:13Z john $
+ * $Id: file2mat.c 2479 2008-11-19 16:16:51Z guillaume $
  * John Ashburner
  */
 
@@ -8,22 +8,52 @@ Memory mapping is used by this module. For more information on this, see:
 http://www.mathworks.com/company/newsletters/digest/mar04/memory_map.html
 */
 
+#define _FILE_OFFSET_BITS 64
+
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <string.h>
 #include "mex.h"
 
 #ifdef SPM_WIN32
 #include <windows.h>
 #include <memory.h>
+#include <io.h>
 HANDLE hFile, hMapping;
 typedef char *caddr_t;
+#if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
+#define stat _stati64
+#define fstat _fstati64
+#define open _open
+#define close _close
+#endif
 #else
 #include <sys/mman.h>
 #include <unistd.h>
+#include <errno.h>
 #endif
+
+/*
+http://en.wikipedia.org/wiki/Page_(computing)#Determining_the_page_size_in_a_program
+*/
+int page_size()
+{
+int size = 0;
+
+#if defined (_WIN32) || defined (_WIN64)
+    SYSTEM_INFO info;
+    GetSystemInfo (&info);
+    size = (int)info.dwPageSize;
+#else
+    size = sysconf(_SC_PAGESIZE);
+#endif 
+
+return size;
+}
+
 
 #define MXDIMS 256
 
@@ -273,16 +303,50 @@ typedef struct mtype {
     void   *data;
 } MTYPE;
 
+#ifdef SPM_WIN32
+void werror(char *where, DWORD last_error)
+{
+    char buf[512];
+    char s[1024];
+    int i;
+    i = FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM,
+                       NULL,
+                       last_error,
+                       0,
+                       buf,
+                       512/sizeof(TCHAR),
+                       NULL );
+    buf[i-2] =  '\0'; /* remove \r\n */
+    (void)sprintf(s,"%s: %s", where, buf);
+    mexErrMsgTxt(s);
+    return;
+}
+#else
+void werror(char *where, int last_error)
+{
+    char s[1024];
+    
+    (void)sprintf(s,"%s: %s", where, strerror(last_error));
+    mexErrMsgTxt(s);
+    return;
+}
+#endif
+
 void do_unmap_file(MTYPE *map)
 {
+    int sts;
     if (map->addr)
     {
 #ifdef SPM_WIN32
-        (void)UnmapViewOfFile((LPVOID)(map->addr));
+        sts = UnmapViewOfFile((LPVOID)(map->addr));
+        if (sts == 0)
+            werror("Memory Map (UnmapViewOfFile)",GetLastError());
 #else
-        (void)munmap(map->addr, map->len);
+        sts = munmap(map->addr, map->len);
+        if (sts == -1)
+            werror("Memory Map (munmap)",errno);
 #endif
-        map->addr=0;
+        map->addr = NULL;
     }
 }
 
@@ -332,6 +396,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
 {
     int n;
     int i, dtype;
+    off_t offset = 0;
     const double *pr;
     mxArray *arr;
     unsigned int siz;
@@ -398,14 +463,14 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             mxFree(buf);
             mexErrMsgTxt("Cant get file size.");
         }
-        map->len = stbuf.st_size;
-        if (map->len < siz + map->off)
+        if (stbuf.st_size < siz + map->off)
         {
             (void)close(fd);
             mxFree(buf);
             mexErrMsgTxt("File is smaller than the dimensions say it should be.");
         }
-
+        offset = map->off % page_size();
+        map->len = siz + offset;
 #ifdef SPM_WIN32
         (void)close(fd);
 
@@ -421,7 +486,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             NULL);
         mxFree(buf);
         if (hFile == NULL)
-            mexErrMsgTxt("Cant open file.  It may be locked by another program.");
+            werror("Memory Map (CreateFile)",GetLastError());
 
         /* http://msdn.microsoft.com/library/default.asp?
                url=/library/en-us/fileio/base/createfilemapping.asp */
@@ -434,7 +499,7 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             NULL);
         (void)CloseHandle(hFile);
         if (hMapping == NULL)
-            mexErrMsgTxt("Cant create file mapping.  It may be locked by another program.");
+            werror("Memory Map (CreateFileMapping)",GetLastError());
 
         /* http://msdn.microsoft.com/library/default.asp?
                url=/library/en-us/fileio/base/mapviewoffile.asp */
@@ -442,12 +507,12 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             hMapping,
             FILE_MAP_READ,
             0,
-            0,
+            (map->off - offset),
             map->len,
             0);
         (void)CloseHandle(hMapping);
         if (map->addr == NULL)
-            mexErrMsgTxt("Cant map view of file.  It may be locked by another program or there may not be enough memory.");
+            werror("Memory Map (MapViewOfFileEx)",GetLastError());
 #else
         map->addr = mmap(
             (caddr_t)0,
@@ -455,17 +520,14 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
             PROT_READ,
             MAP_SHARED,
             fd,
-            (off_t)0);
+            (off_t)(map->off - offset));
         (void)close(fd);
         mxFree(buf);
-        if (map->addr == (caddr_t)-1)
-        {
-            (void)perror("Memory Map");
-            mexErrMsgTxt("Cant map image file.");
-        }
+        if (map->addr == (void *)-1)
+            werror("Memory Map (mmap)",errno);
 #endif
     }
-    map->data = (void *)((char *)map->addr + map->off);
+    map->data = (void *)((char *)map->addr + offset);
 }
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
