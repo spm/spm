@@ -1,5 +1,5 @@
 /*
- * $Id: spm_warp.c 1140 2008-02-06 19:24:05Z spm $
+ * $Id: spm_warp.c 2480 2008-11-19 17:47:49Z john $
  * John Ashburner
  */
 
@@ -89,10 +89,10 @@ static float resample_d(unsigned char vol[], float x1, float x2, float x3, int d
     return(out);
 }
 
-#ifdef ZEROMASK
+#ifndef NOZEROMASK
 #define known(x) (((x)!=0) && mxIsFinite(x))
 #endif
-#ifndef ZEROMASK
+#ifdef NOZEROMASK
 #define known(x) mxIsFinite(x)
 #endif
 
@@ -678,7 +678,7 @@ static float get_scale(unsigned char g[], unsigned char f[], float y0[], float y
                 o = x0 + dim_g[0]*(x1 + x2*dim_g[1]);
                 gpix = g[o];
                 fpix = resample(f, y0[o], y1[o], y2[o], dim_f);
-                if (known(fpix))
+                if (known(fpix) && known(gpix))
                 {
                     sumg += gpix;
                     sumf += fpix;
@@ -703,7 +703,7 @@ static float get_sumsq(unsigned char g[], unsigned char f[], float y0[], float y
                 o = x0 + dim_g[0]*(x1 + x2*dim_g[1]);
                 gpix = g[o];
                 fpix = resample(f, y0[o], y1[o], y2[o], dim_f);
-                if (known(fpix))
+                if (known(fpix) && known(gpix))
                 {
                     tmp     = gpix-fpix*scale;
                     sigma2 += tmp*tmp;
