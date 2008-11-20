@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.74  2008/11/20 12:59:37  roboos
+% added ns_cnt16 and ns_cnt32 as possible header formats, consistent with read_data
+%
 % Revision 1.73  2008/11/02 10:59:41  roboos
 % some more changes for ctf_ds in case of empty path
 %
@@ -950,10 +953,16 @@ switch headerformat
     % remember the original header details
     hdr.orig = orig;
 
-  case 'ns_cnt'
+  case {'ns_cnt' 'ns_cnt16', 'ns_cnt32'}
     % read_ns_cnt originates from the EEGLAB package (loadcnt.m) but is
     % an old version since the new version is not compatible any more
-    orig = read_ns_cnt(filename, 'ldheaderonly', 1);
+    if strcmp(headerformat, 'ns_cnt')
+      orig = read_ns_cnt(filename, 'ldheaderonly', 1);
+    elseif strcmp(headerformat, 'ns_cnt16')
+      orig = read_ns_cnt(filename, 'ldheaderonly', 1, 'format', 16);
+    elseif strcmp(headerformat, 'ns_cnt32')
+      orig = read_ns_cnt(filename, 'ldheaderonly', 1, 'format', 32);
+    end
     % do some reformatting/renaming of the header items
     hdr.Fs          = orig.rate;
     hdr.nChans      = orig.nchannels;

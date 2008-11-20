@@ -6,6 +6,10 @@ function [hdr] = read_shm_header(filename)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_header.m,v $
+% Revision 1.3  2008/11/20 13:58:11  roboos
+% fixed hdr.nTrials and nSamples (ensure that it is read as blocks)
+% use caching when reading header from file
+%
 % Revision 1.2  2008/10/08 10:08:06  roboos
 % detect trigger channels also when header is read using ctf_new
 %
@@ -25,7 +29,7 @@ headerfile = filetype_check_uri(filename);
 
 if ~isempty(headerfile)
   % the headerfile has been specified by the user
-  hdr = read_header(headerfile);
+  hdr = read_header(headerfile, 'cache', true);
   buf = [];
   [msgType msgId sampleNumber numSamples numChannels] = read_ctf_shm;
   sel = find(msgType==0);
@@ -43,7 +47,7 @@ else
     str = char(typecast(buf, 'uint8'));
     pad = find(str==0);
     headerfile = char(str(1:(pad(1)-1)));
-    hdr = read_header(headerfile);
+    hdr = read_header(headerfile, 'cache', true);
   else
     error('could not determine header file location from shared memory');
   end
@@ -76,8 +80,10 @@ else
   warning('no setup in shared memory, could not enable trigger detection');
 end
 
-% the following information is either specified in shared memory, or does not apply to real-time acquisition
-hdr.nSamples    = double(max(numSamples));
+% the following information is either specified in shared memory, or does
+% not apply to real-time acquisition
+hdr.nTrials     = double(max(sampleNumber))/double(max(numSamples));
+hdr.nSamples    = double(max(numSamples);
 hdr.nSamplesPre = 0;
-hdr.nTrials     = Inf;
+
 

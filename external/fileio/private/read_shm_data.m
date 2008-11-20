@@ -6,6 +6,9 @@ function [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_data.m,v $
+% Revision 1.2  2008/11/20 13:56:11  roboos
+% fixed gain when header is read using ctf p-files
+%
 % Revision 1.1  2007/08/01 12:12:06  roboos
 % moved the actual code from the normal functions into these helper functions
 % fixed some bugs related to reading the header from a user-specified res4 file and setting the trigger detection
@@ -42,8 +45,12 @@ dat = nan(length(chanindx), hdr.nSamples, endtrial-begtrial+1);
 sel = find((trlNum>=begtrial) & (trlNum<=endtrial));
 
 % this is for calibrating the integer values to physical values
-gain = sparse(diag(hdr.orig.gainV(chanindx)));
-
+if isfield(hdr, 'orig') && isfield(hdr.orig, 'gainV')
+  gain = sparse(diag(hdr.orig.gainV(chanindx)));
+elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'res4')
+  gain = sparse(diag([hdr.orig.res4.senres(chanindx).gain]));
+end
+  
 for i=1:length(sel)
   % nchan = numChannels(i);
   % nsmp  = numSamples(i);
@@ -79,4 +86,3 @@ end
 % end
 
 dimord = 'chans_samples_trials';
-
