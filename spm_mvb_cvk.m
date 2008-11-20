@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 2356 2008-10-17 15:08:19Z christophe $
+% $Id: spm_mvb_cvk.m 2482 2008-11-20 10:01:19Z christophe $
  
  
 %-partition order
@@ -81,7 +81,7 @@ for i = 1:k
     % specify indices of training and test data
     %----------------------------------------------------------------------
     ns     = floor(Ns/k);
-    test   = 1:ns + (i - 1)*ns;
+    test   = (1:ns) + (i - 1)*ns;
  
     % orthogonalise test and training partition
     %----------------------------------------------------------------------
