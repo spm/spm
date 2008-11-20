@@ -18,6 +18,9 @@ function offset = time2offset(time, fsample);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: time2offset.m,v $
+% Revision 1.1  2008/11/20 13:48:47  roboos
+% moved from private to public
+%
 % Revision 1.2  2005/08/05 09:18:21  roboos
 % round the offset to the nearest integer
 % added copyright and cvs log

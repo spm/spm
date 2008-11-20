@@ -18,6 +18,9 @@ function time = offset2time(offset, fsample, nsamples);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: offset2time.m,v $
+% Revision 1.1  2008/11/20 13:48:47  roboos
+% moved from private to public
+%
 % Revision 1.2  2005/08/05 09:19:00  roboos
 % added copyright and cvs log
 %

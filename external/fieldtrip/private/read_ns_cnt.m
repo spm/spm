@@ -54,6 +54,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: read_ns_cnt.m,v $
+% Revision 1.10  2008/11/20 12:59:01  roboos
+% correct the number of samples in case of 32 bit file
+%
 % Revision 1.9  2008/11/13 21:20:08  roboos
 % read chars as uint8, this solves problem with i18n (2-byte unicode) and recent matlab versions
 %
@@ -125,6 +128,16 @@ numsamples=freadat(f, 864, 1, 'long');  % not accurate, see calculation below
 samplespos=900 + 75*r.nchannels;
 event.tablepos=freadat(f, 886, 1, 'long');
 r.nsamples=(event.tablepos - samplespos)/(2*r.nchannels);
+
+%%%%NEW CHANGE TO READ 32 BIT
+if     isfield(r, 'format') && r.format == 32
+  r.nsamples = r.nsamples / 2;
+elseif isfield(r, 'format') && r.format == 16
+  r.nsamples = r.nsamples / 1;
+else
+  r.nsamples = r.nsamples / 1;
+end
+
 r.rate=freadat(f, 376, 1, 'ushort');
 r.channeloffset=freadat(f, 932, 1, 'long');
 r.dt=1/r.rate;

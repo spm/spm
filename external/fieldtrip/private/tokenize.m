@@ -21,6 +21,9 @@ function [tok] = tokenize(str, sep, rep)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: tokenize.m,v $
+% Revision 1.3  2008/11/20 15:46:04  roboos
+% fixed bug in the default for the 3rd argument (whether repeated seperators should be treated as one). This bug caused some trouble with reading brainvision header files over the last two weeks.
+%
 % Revision 1.2  2008/11/14 07:37:05  roboos
 % use whitespace if no seperator is specified
 %
@@ -44,8 +47,12 @@ function [tok] = tokenize(str, sep, rep)
 % old implementation, new addition to CVS for fieldtrip release
 %
 
-if (nargin == 1)
+if nargin<2
   sep = [9:13 32]; % White space characters
+end
+
+if nargin<3
+  rep = false;
 end
 
 tok = {};
@@ -55,7 +62,7 @@ for i=1:(length(f)-1)
   tok{i} = str((f(i)+1):(f(i+1)-1));
 end
 
-if nargin<3 || rep
+if rep
   % remove empty cells, which occur if the separator is repeated (e.g. multiple spaces)
   tok(cellfun('isempty', tok))=[];
 end
