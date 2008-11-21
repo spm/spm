@@ -33,6 +33,9 @@ function [interp] = sourceinterpolate(cfg, functional, anatomical);
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: sourceinterpolate.m,v $
+% Revision 1.49  2008/11/21 13:56:12  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.48  2008/10/10 15:45:41  sashae
 % added call to checkconfig
 %
@@ -307,6 +310,9 @@ if ~any(strcmp(cfg.parameter, 'anatomy'))
   interp.anatomy   = anatomical.anatomy;
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -316,7 +322,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceinterpolate.m,v 1.48 2008/10/10 15:45:41 sashae Exp $';
+cfg.version.id = '$Id: sourceinterpolate.m,v 1.49 2008/11/21 13:56:12 sashae Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 try, cfg.previous{1} = functional.cfg; end

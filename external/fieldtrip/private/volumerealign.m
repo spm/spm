@@ -39,6 +39,9 @@ function [mri] = volumerealign(cfg, mri);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: volumerealign.m,v $
+% Revision 1.8  2008/11/21 13:56:12  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.7  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -62,6 +65,8 @@ function [mri] = volumerealign(cfg, mri);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 mri = checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
@@ -163,6 +168,9 @@ else
   mri.transform = vox2head;
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -172,7 +180,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumerealign.m,v 1.7 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: volumerealign.m,v 1.8 2008/11/21 13:56:12 sashae Exp $';
 
 % remember the configuration
 mri.cfg = cfg;

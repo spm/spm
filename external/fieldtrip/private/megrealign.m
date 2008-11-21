@@ -75,6 +75,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.54  2008/11/21 12:48:17  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.53  2008/10/02 15:32:21  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -248,6 +251,8 @@ function [interp] = megrealign(cfg, data);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'yes');
@@ -565,6 +570,9 @@ if ~isempty(rest.label)
   interp.label = [interp.label; rest.label];
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % store the configuration of this function call, including that of the previous function call
 try
   % get the full name of the function
@@ -574,7 +582,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.53 2008/10/02 15:32:21 sashae Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.54 2008/11/21 12:48:17 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

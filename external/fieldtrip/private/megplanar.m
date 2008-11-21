@@ -55,6 +55,9 @@ function [interp] = megplanar(cfg, data);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: megplanar.m,v $
+% Revision 1.36  2008/11/21 12:48:17  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.35  2008/11/13 21:53:57  roboos
 % ensure that grad.unit is specified, also support bti148
 %
@@ -177,6 +180,8 @@ function [interp] = megplanar(cfg, data);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 data  = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248'});
@@ -548,6 +553,9 @@ end % nearest neighbours methods
 interp.fsample = data.fsample;
 interp.time    = data.time;
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % store the configuration of this function call, including that of the previous function call
 try
   % get the full name of the function
@@ -557,7 +565,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megplanar.m,v 1.35 2008/11/13 21:53:57 roboos Exp $';
+cfg.version.id   = '$Id: megplanar.m,v 1.36 2008/11/21 12:48:17 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

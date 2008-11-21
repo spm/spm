@@ -40,6 +40,9 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.42  2008/11/21 13:21:35  sashae
+% added call to checkconfig at start and end of fucntion
+%
 % Revision 1.41  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -84,6 +87,8 @@ function [source] = sourcedescriptives(cfg, source)
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 source = checkdata(source, 'datatype', 'source', 'feedback', 'yes');
@@ -811,6 +816,9 @@ if strcmp(cfg.resolutionmatrix, 'yes')
   source.resolution(source.inside, source.inside) = allfilter*allleadfield;
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -820,7 +828,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.41 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.42 2008/11/21 13:21:35 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output

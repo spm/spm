@@ -38,6 +38,9 @@ function [normalise] = volumenormalise(cfg, interp)
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen
 %
 % $Log: volumenormalise.m,v $
+% Revision 1.18  2008/11/21 13:56:12  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.17  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -66,6 +69,8 @@ function [normalise] = volumenormalise(cfg, interp)
 % implemented smoothing for functional volumes
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 %% checkdata see below!!! %%
 
@@ -227,11 +232,6 @@ files     = {};
 % determine the affine source->template coordinate transformation
 final = VG.mat * inv(params.Affine) * inv(VF.mat) * initial;
 
-% remember the normalisation parameters in the configuration
-cfg.spmparams = params;
-cfg.initial   = initial;
-cfg.final     = final;
-
 % apply the normalisation parameters to each of the volumes
 for parlop=1:length(cfg.parameter)
   fprintf('creating normalised analyze-file for %s\n', cfg.parameter{parlop});
@@ -282,6 +282,14 @@ if strcmp(cfg.keepintermediate,'no')
   end
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
+% remember the normalisation parameters in the configuration
+cfg.spmparams = params;
+cfg.initial   = initial;
+cfg.final     = final;
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -291,7 +299,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumenormalise.m,v 1.17 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: volumenormalise.m,v 1.18 2008/11/21 13:56:12 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

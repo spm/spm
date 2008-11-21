@@ -54,6 +54,9 @@ function [segment] = volumesegment(cfg, mri)
 %   cfg.segment          = 'yes' or 'no'
 
 % $Log: volumesegment.m,v $
+% Revision 1.12  2008/11/21 13:56:12  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.11  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -134,6 +137,8 @@ function [segment] = volumesegment(cfg, mri)
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 %% checkdata see below!!! %%
 
@@ -311,6 +316,9 @@ segment.gray      = V(1).dat;
 if length(V)>1, segment.white     = V(2).dat; end
 if length(V)>2, segment.csf       = V(3).dat; end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -320,7 +328,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i).name;
 end
-cfg.version.id = '$Id: volumesegment.m,v 1.11 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: volumesegment.m,v 1.12 2008/11/21 13:56:12 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = mri.cfg; end
 % remember the exact configuration details in the output 

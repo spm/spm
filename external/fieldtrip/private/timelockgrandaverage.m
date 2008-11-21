@@ -21,6 +21,9 @@ function [grandavg] = timelockgrandaverage(cfg, varargin)
 % Copyright (C) 2003-2006, Jens Schwarzbach
 %
 % $Log: timelockgrandaverage.m,v $
+% Revision 1.20  2008/11/21 12:48:17  sashae
+% added call to checkconfig at start and end of function
+%
 % Revision 1.19  2008/10/21 09:40:05  roboos
 % reset min/max latency for variable trial length over subjects
 % shift start and end index in case of flipped time axis, potentially introduced for response time locked data
@@ -91,6 +94,8 @@ function [grandavg] = timelockgrandaverage(cfg, varargin)
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -200,6 +205,9 @@ else
   grandavg.dimord = 'chan_time';
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -209,7 +217,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockgrandaverage.m,v 1.19 2008/10/21 09:40:05 roboos Exp $';
+cfg.version.id = '$Id: timelockgrandaverage.m,v 1.20 2008/11/21 12:48:17 sashae Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:length(varargin)

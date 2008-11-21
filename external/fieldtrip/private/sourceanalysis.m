@@ -166,6 +166,9 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.131  2008/11/21 13:21:35  sashae
+% added call to checkconfig at start and end of fucntion
+%
 % Revision 1.130  2008/10/02 15:32:21  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -500,6 +503,8 @@ fieldtripdefs
 
 % set a timer to determine how long the sourceanalysis takes in total
 tic;
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -1229,6 +1234,9 @@ if (strcmp(cfg.jackknife, 'yes') || strcmp(cfg.bootstrap, 'yes') || strcmp(cfg.p
   source.trial	= dip;
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -1238,7 +1246,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.130 2008/10/02 15:32:21 sashae Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.131 2008/11/21 13:21:35 sashae Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

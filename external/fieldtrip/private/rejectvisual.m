@@ -106,6 +106,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.24  2008/11/21 10:39:10  sashae
+% added call to checkconfig
+%
 % Revision 1.23  2008/10/02 15:32:21  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -187,6 +190,8 @@ function [data] = rejectvisual(cfg, data);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
@@ -371,6 +376,9 @@ if ~all(chansel)
   end
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -380,7 +388,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.23 2008/10/02 15:32:21 sashae Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.24 2008/11/21 10:39:10 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

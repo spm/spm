@@ -44,6 +44,12 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.3  2008/11/21 13:16:10  jansch
+% added fixedori to be passed on in the case of lcmv (thanks to Joachim).
+%
+% Revision 1.2  2008/11/21 10:14:30  sashae
+% added list of fields that should be ignored by trackconfig and checksize
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -349,6 +355,7 @@ if ~isempty(createsubcfg)
       case 'lcmv'
         fieldname = {
           'feedback'
+	  'fixedori'
           'keepfilter'
           'keepmom'
           'lambda'
@@ -561,7 +568,7 @@ try
 
       key      = fieldnames(cfg); key = key(:)';
       
-      ignorefields = {'checksize'}; % this field should not be removed!
+      ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'previous'}; % these fields should never be removed!
       skipsel      = match_str(key, ignorefields);
       key(skipsel) = [];
       
@@ -634,7 +641,7 @@ end
 
 function [cfg] = checksizefun(cfg, max_size)
 
-ignorefields = {'trl', 'trlold', 'event', 'artifact', 'previous'};
+ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'previous'}; % these fields should never be removed!
 
 fieldsorig = fieldnames(cfg);
 for i=1:numel(fieldsorig)

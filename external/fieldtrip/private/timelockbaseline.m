@@ -19,6 +19,9 @@ function [timelock] = timelockbaseline(cfg, timelock);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: timelockbaseline.m,v $
+% Revision 1.12  2008/11/21 10:39:10  sashae
+% added call to checkconfig
+%
 % Revision 1.11  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -54,6 +57,8 @@ function [timelock] = timelockbaseline(cfg, timelock);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 timelock = checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
@@ -146,6 +151,9 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
 
 end % ~strcmp(cfg.baseline, 'no')
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -155,7 +163,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockbaseline.m,v 1.11 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: timelockbaseline.m,v 1.12 2008/11/21 10:39:10 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = timelock.cfg; end
 % remember the exact configuration details in the output 

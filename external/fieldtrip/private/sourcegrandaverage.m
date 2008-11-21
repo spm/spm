@@ -40,6 +40,9 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: sourcegrandaverage.m,v $
+% Revision 1.20  2008/11/21 13:21:35  sashae
+% added call to checkconfig at start and end of fucntion
+%
 % Revision 1.19  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -91,6 +94,8 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -274,6 +279,9 @@ else
   grandavg.outside = setdiff([1:prod(size(dat))]', grandavg.inside); 
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -283,7 +291,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcegrandaverage.m,v 1.19 2008/09/22 20:17:44 roboos Exp $';
+cfg.version.id = '$Id: sourcegrandaverage.m,v 1.20 2008/11/21 13:21:35 sashae Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Nsubject
