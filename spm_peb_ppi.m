@@ -74,7 +74,7 @@ function PPI = spm_peb_ppi(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 2317 2008-10-08 17:31:06Z Darren $
+% $Id: spm_peb_ppi.m 2489 2008-11-23 23:17:08Z Darren $
 
 
 % set up the graphical interface
@@ -376,7 +376,10 @@ case  'psychophysiologic interaction'
     legend('BOLD','neuronal')
     
     subplot(2,2,3)
-    plot(t,PPI.P,T,PSY,'--')
+    plot(T,PSY,'LineStyle','--','Color',[0 .65 0]);
+    hold on
+    plot(t,PPI.P,'LineStyle','-','LineWidth',1.5,'Color','b');
+    hold off
     title('[convolved] psych. variable')
     xlabel('time (secs)')
     axis tight square
