@@ -4,9 +4,9 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_cfg_fmri_est.m 2490 2008-11-25 08:09:33Z lee $
 
-rev = '$Rev: 2451 $';
+rev = '$Rev: 2490 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -177,11 +177,19 @@ ARP.def     = @(val)spm_get_defaults('stats.est.ARP', val{:});
 % ---------------------------------------------------------------------
 % GMRF GMRF
 % ---------------------------------------------------------------------
+UGL         = cfg_const;
+UGL.tag     = 'UGL';
+UGL.name    = 'UGL';
+UGL.val     = {1};
+UGL.help    = {'[UGL] Unweighted graph-Laplacian. This (will be) the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
+% ---------------------------------------------------------------------
+% GMRF GMRF
+% ---------------------------------------------------------------------
 GMRF         = cfg_const;
 GMRF.tag     = 'GMRF';
 GMRF.name    = 'GMRF';
 GMRF.val     = {1};
-GMRF.help    = {'[GMRF] Gaussian Markov Random Field. This is the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
+GMRF.help    = {'[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regresion coefficients. '};
 % ---------------------------------------------------------------------
 % LORETA LORETA
 % ---------------------------------------------------------------------
@@ -218,12 +226,12 @@ Robust.help    = {'Robust GLM. Uses Mixture of Gaussians noise model.'};
 noise         = cfg_choice;
 noise.tag     = 'noise';
 noise.name    = 'Noise priors';
-noise.val     = {GMRF };
+noise.val     = {UGL };
 noise.help    = {
                  'There are four noise prior options here (1) GMRF, (2) LORETA '
                  '(3) Tissue-type and (4) Robust'
 }';
-noise.values  = {GMRF LORETA tissue_type Robust };
+noise.values  = {UGL GMRF LORETA tissue_type Robust };
 % ---------------------------------------------------------------------
 % first First level
 % ---------------------------------------------------------------------

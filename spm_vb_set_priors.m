@@ -14,7 +14,8 @@ function [block] = spm_vb_set_priors (block,priors,vxyz)
 %
 %           For AR coefficients:
 %
-%           .A= 'Spatial - GMRF' : coeffs that are spatially regularised
+%           .A= 'Spatial - UGL' : coeffs that are spatially regularised
+%               'Spatial - GMRF' : as above but different spatial prior
 %               'Spatial - LORETA' : as above but different spatial prior
 %               'Voxel - Shrinkage' : that are shrunk voxel-wise
 %               'Voxel - Uninformative' : coeffs without prior
@@ -30,7 +31,7 @@ function [block] = spm_vb_set_priors (block,priors,vxyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Lee Harrison
-% $Id: spm_vb_set_priors.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_set_priors.m 2490 2008-11-25 08:09:33Z lee $
 
 if ~isfield(block,'verbose')
     block.verbose=0;
@@ -87,6 +88,9 @@ if block.p > 0
 end
 
 switch priors.A,
+    
+    case 'Spatial - UGL',
+        block.Da=spm_vb_spatial_precision ('Spatial - UGL',vxyz); 
     
     case 'Spatial - GMRF',
         block.Da=spm_vb_spatial_precision ('Spatial - GMRF',vxyz);

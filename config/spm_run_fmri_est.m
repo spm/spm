@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_run_fmri_est.m 2490 2008-11-25 08:09:33Z lee $
 
 
 global defaults
@@ -55,7 +55,7 @@ cd(fileparts(job.spmmat{:}));
 % B A Y E S I A N   2nd   L E V E L   E S T I M A T I O N
 %=======================================================================
 if isfield(job.method,'Bayesian2')
-    SPM=spm_spm_Bayes(SPM);
+    %out.spmvar = spm_spm_Bayes(SPM);
     cd(original_dir); % Change back
     fprintf('Done\n');
     return
@@ -186,7 +186,9 @@ SPM.PPM.AR_P = job.method.Bayesian.ARP;
 
 %-AR coefficient priors
 %-----------------------------------------------------------------------
-if isfield(job.method.Bayesian.noise,'GMRF')
+if isfield(job.method.Bayesian.noise,'UGL')
+    SPM.PPM.priors.A  = 'Spatial - UGL';
+elseif isfield(job.method.Bayesian.noise,'GMRF')
     SPM.PPM.priors.A  = 'Spatial - GMRF';
 elseif isfield(job.method.Bayesian.noise,'LORETA')
     SPM.PPM.priors.A  = 'Spatial - LORETA';
