@@ -7,6 +7,8 @@ function [interp] = megrealign(cfg, data);
 %
 % Use as
 %   [interp] = megrealign(cfg, data)
+%   Required configuration options:
+%   cfg.template, cfg.inwardshift
 %
 % The new gradiometer definition is obtained from a template dataset,
 % or can be constructed by averaging the gradiometer positions over
@@ -75,6 +77,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.55  2008/11/25 14:56:52  estmee
+% Documentation update
+%
 % Revision 1.54  2008/11/21 12:48:17  sashae
 % added call to checkconfig at start and end of function
 %
@@ -582,7 +587,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.54 2008/11/21 12:48:17 sashae Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.55 2008/11/25 14:56:52 estmee Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

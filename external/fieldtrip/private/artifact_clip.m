@@ -6,10 +6,14 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 %
 % Use as
 %   [cfg, artifact] = artifact_clip(cfg)
+%   required configuration options:
+%   cfg.dataset or both cfg.headerfile and cfg.datafile
 % or
 %   [cfg, artifact] = artifact_clip(cfg, data)
+%   forbidden configuration options: 
+%   cfg.dataset, cfg.headerfile and cfg.datafile
 %
-% where the configuration should contain
+% In both cases the configuration should also contain:
 %   cfg.artfctdef.clip.channel  = Nx1 cell-array with selection of channels, see CHANNELSELECTION for details
 %   cfg.artfctdef.clip.pretim   = 0.000;  pre-artifact rejection-interval in seconds
 %   cfg.artfctdef.clip.psttim   = 0.000;  post-artifact rejection-interval in seconds
@@ -21,6 +25,9 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.18  2008/11/25 13:12:48  estmee
+% Documentation update
+%
 % Revision 1.17  2008/11/18 16:11:42  estmee
 % Added cfg.continuous option to documentation.
 %
@@ -175,5 +182,5 @@ catch
   cfg.version.name = st(i);
 end
 
-cfg.version.id = '$Id: artifact_clip.m,v 1.17 2008/11/18 16:11:42 estmee Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.18 2008/11/25 13:12:48 estmee Exp $';
 

@@ -5,14 +5,17 @@ function [cfg, artifact] = artifact_manual(cfg);
 % ARTIFACT_MANUAL allows the user to detect artifacts manually using visual
 % inspection.
 %
-% You must specify the following configuration options:
+% Use as:
+%   [cfg, artifact] = artifact_manual(cfg)
+%   required configuration options: 
+%   cfg.dataset or both cfg.headerfile and cfg.datafile
 %
+% The configuration should also contain:
 %   cfg.artfctdef.manual.channel        = cell-array with channels to be displayed.
 %   (Be careful not to specify to much channels because the function then will be very slow.)
 %   cfg.continuous                      = 'yes' or 'no' whether the file contains continuous data
 %
-% You can specify the following configuration options:
-%
+% You can specify:
 %   cfg.artfctdef.manual.pretrialtime   = time shown before trialstart (default 0)
 %   cfg.artfctdef.manual.posttrialtime  = time shown after trialend    (default 0)
 %   cfg.artfctdef.manual.fft	        = 'no' (default) or 'yes' turns on FFT window
@@ -39,6 +42,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Copyright (C) 2004, Geerten Kramer, FCDC
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.21  2008/11/25 13:17:16  estmee
+% Documentation update
+%
 % Revision 1.20  2008/11/18 16:14:47  estmee
 % Added cfg.continuous
 %
@@ -325,7 +331,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.20 2008/11/18 16:14:47 estmee Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.21 2008/11/25 13:17:16 estmee Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

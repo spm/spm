@@ -14,11 +14,12 @@ function [comp] = componentanalysis(cfg, data)
 %   cfg.trials       = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.numcomponent = 'all' or number (default = 'all')
 %   cfg.blc          = 'no' or 'yes' (default = 'yes')
-%   cfg.detrend      = 'no' or 'yes' (default = 'no')
 %   cfg.runica       = substructure with additional low-level options for this method
 %   cfg.binica       = substructure with additional low-level options for this method
 %   cfg.dss          = substructure with additional low-level options for this method
 %   cfg.fastica      = substructure with additional low-level options for this method
+% 
+% forbidden configuration option: cfg.detrend
 %
 % Instead of specifying a component analysis method, you can also specify
 % a previously computed mixing matrix, which will be used to estimate the
@@ -35,6 +36,9 @@ function [comp] = componentanalysis(cfg, data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.41  2008/11/25 15:03:05  estmee
+% Documentation update
+%
 % Revision 1.40  2008/11/10 12:55:01  roboos
 % improved channel selection for re-applying an unmixing matrix
 %
@@ -519,7 +523,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.40 2008/11/10 12:55:01 roboos Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.41 2008/11/25 15:03:05 estmee Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -7,25 +7,29 @@ function cfg = interactiverealign(cfg)
 % Use as
 %   [cfg] = interactiverealign(cfg)
 %
-% cfg.individual.vol
-% cfg.individual.elec
-% cfg.individual.grad
-% cfg.individual.headshape
-% cfg.individual.headshapestyle = 'vertex'  (default), 'surface' or 'both'
-% cfg.individual.volstyle       = 'edge'    (default), 'surface' or 'both'
+% Required configuration options: 
+%  cfg.individual.vol
+%  cfg.individual.elec
+%  cfg.individual.grad
+%  cfg.individual.headshape
+%  cfg.individual.headshapestyle = 'vertex'  (default), 'surface' or 'both'
+%  cfg.individual.volstyle       = 'edge'    (default), 'surface' or 'both'
 %
-% cfg.template.vol
-% cfg.template.elec
-% cfg.template.grad
-% cfg.template.headshape
-% cfg.template.headshapestyle   = 'surface' (default), 'vertex' or 'both'
-% cfg.individual.volstyle       = 'surface' (default), 'edge'   or 'both'
+%  cfg.template.vol
+%  cfg.template.elec
+%  cfg.template.grad
+%  cfg.template.headshape
+%  cfg.template.headshapestyle   = 'surface' (default), 'vertex' or 'both'
+%  cfg.individual.volstyle       = 'surface' (default), 'edge'   or 'both'
 %
 % See also VOLUMEREALIGN, ELECTRODEREALIGN, READ_SENS, READ_VOL, READ_HEADSHAPE
 
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: interactiverealign.m,v $
+% Revision 1.6  2008/11/25 14:35:04  estmee
+% Documentation update
+%
 % Revision 1.5  2008/10/10 14:43:58  sashae
 % added call to checkconfig
 %
@@ -108,7 +112,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: interactiverealign.m,v 1.5 2008/10/10 14:43:58 sashae Exp $';
+cfg.version.id = '$Id: interactiverealign.m,v 1.6 2008/11/25 14:35:04 estmee Exp $';
 
 % remember the transform
 cfg.m = norm.m;

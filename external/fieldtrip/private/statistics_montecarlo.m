@@ -10,12 +10,16 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 %   stat = timelockstatistics(cfg, data1, data2, data3, ...)
 %   stat = freqstatistics    (cfg, data1, data2, data3, ...)
 %   stat = sourcestatistics  (cfg, data1, data2, data3, ...)
-% where the data is obtained from TIMELOCKANALYSIS, FREQANALYSIS
+%
+% Where the data is obtained from TIMELOCKANALYSIS, FREQANALYSIS
 % or SOURCEANALYSIS respectively, or from TIMELOCKGRANDAVERAGE,
 % FREQGRANDAVERAGE or SOURCEGRANDAVERAGE respectively.
 %
-% The configuration can contain
-%   cfg.statistic        = string, statistic to compute for each sample or voxel (see below)
+% Required configuration option: cfg.statstic (see below)
+% Forbidden configuration options: cfg.ztransform, cfg.removemarginalmeans,
+% cfg.randomfactor, cfg.voxelthreshold, cfg.voxelstatistic
+%
+% Configuration options that can be specified:
 %   cfg.design           = design matrix
 %   cfg.numrandomization = number of randomizations, can be 'all'
 %   cfg.correctm         = apply multiple-comparison correction, 'no', 'max', cluster', 'bonferoni', 'holms', 'fdr' (default = 'no')
@@ -76,6 +80,9 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design)
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: statistics_montecarlo.m,v $
+% Revision 1.29  2008/11/25 13:52:10  estmee
+% Documentation update
+%
 % Revision 1.28  2008/11/13 10:05:04  jansch
 % included undocumented option to precondition the data. The preconditioning
 % will be done within the statfun, and can be applied before, or after the

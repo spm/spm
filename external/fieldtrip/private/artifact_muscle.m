@@ -5,22 +5,14 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 %
 % Use as
 %   [cfg, artifact] = artifact_muscle(cfg)
+%   required configuration options: 
+%   cfg.dataset or both cfg.headerfile and cfg.datafile
 % or
 %   [cfg, artifact] = artifact_muscle(cfg, data)
+%   forbidden configuration options: 
+%   cfg.dataset, cfg.headerfile and cfg.datafile
 %
-% % If you are calling ARTIFACT_MUSCLE with only the configuration as first
-% input argument and the data still has to be read from file, you should
-% specify:
-%   cfg.dataset    = string, name of the dataset
-% or, instead of cfg.dataset
-%   cfg.datafile   = string
-%   cfg.headerfile = string
-%
-% If you are calling ARTIFACT_MUSCLE with also the second input argument
-% "data", then that should contain data that was already read from file in
-% a call to PREPROCESSING.
-%
-% Always specify:
+% In both cases the configuration should also contain:
 %   cfg.trl        = structure that defines the data segments of interest. See DEFINETRIAL
 %   cfg.continuous = 'yes' or 'no' whether the file contains continuous data
 %
@@ -49,12 +41,14 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 % See also ARTIFACT_ZVALUE, REJECTARTIFACT
 
 % Undocumented local options:
-% cfg.datatype
 % cfg.method
 
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.28  2008/11/25 13:17:56  estmee
+% Documentation update
+%
 % Revision 1.27  2008/11/18 16:21:28  estmee
 % Added cfg.continuous
 %

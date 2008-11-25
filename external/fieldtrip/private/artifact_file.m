@@ -4,12 +4,17 @@ function [cfg, artifact] = artifact_file(cfg);
 %
 % Use as
 %   [cfg, artifact] = arifact_file(cfg)
+%   required configuration options: 
+%   cfg.dataset or cfg.headerfile
 %
 % See also REJECTARTIFACT
 
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.15  2008/11/25 13:15:42  estmee
+% Documentation update
+%
 % Revision 1.14  2008/10/13 10:40:47  sashae
 % added call to checkconfig
 %
@@ -94,5 +99,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.14 2008/10/13 10:40:47 sashae Exp $';
+cfg.version.id = '$Id: artifact_file.m,v 1.15 2008/11/25 13:15:42 estmee Exp $';
 

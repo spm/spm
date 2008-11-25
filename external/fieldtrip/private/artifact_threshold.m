@@ -6,10 +6,14 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 %
 % use as:
 %   [cfg, artifact] = artifact_threshold(cfg)
+%   required configuration options: 
+%   cfg.dataset or both cfg.headerfile and cfg.datafile
 % or
 %   [cfg, artifact] = artifact_threshold(cfg, data)
+%   forbidden configuration options: 
+%   cfg.dataset, cfg.headerfile and cfg.datafile
 %
-% The following configuration option must be specified
+% In both cases the configuration should also contain:
 %   cfg.continuous                    = 'yes' or 'no' whether the file contains continuous data
 %
 % The following configuration options can be specified
@@ -33,6 +37,9 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.25  2008/11/25 13:55:31  estmee
+% Documentation update
+%
 % Revision 1.24  2008/11/18 16:15:36  estmee
 % Added cfg.continuous
 %
@@ -192,6 +199,6 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.24 2008/11/18 16:15:36 estmee Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.25 2008/11/25 13:55:31 estmee Exp $';
 
 

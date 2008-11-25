@@ -6,7 +6,10 @@ function [cfg, artifact] = artifact_ecg(cfg)
 %
 % Use as
 %   [cfg, artifact] = artifact_ecg(cfg)
-% where the configuration should contain
+%   required configuration options:
+%   cfg.dataset or both cfg.headerfile and cfg.datafile
+%
+% In both cases the configuration should also contain:
 %   cfg.artfctdef.ecg.channel = Nx1 cell-array with selection of channels, see CHANNELSELECTION for details
 %   cfg.artfctdef.ecg.pretim  = 0.05; pre-artifact rejection-interval in seconds
 %   cfg.artfctdef.ecg.psttim  = 0.3;  post-artifact rejection-interval in seconds
@@ -25,6 +28,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.19  2008/11/25 13:13:47  estmee
+% Documentation update
+%
 % Revision 1.18  2008/11/18 16:13:49  estmee
 % Added cfg.continuous
 %
@@ -267,5 +273,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.18 2008/11/18 16:13:49 estmee Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.19 2008/11/25 13:13:47 estmee Exp $';
 
