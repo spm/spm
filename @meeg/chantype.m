@@ -10,7 +10,7 @@ function res = chantype(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chantype.m 2404 2008-10-27 17:34:07Z vladimir $
+% $Id: chantype.m 2492 2008-11-26 17:59:14Z vladimir $
 
 
 if length(varargin)>=2
@@ -26,8 +26,13 @@ if length(varargin)>=2
 
         for i=1:length(types)
             if isempty(ind) break; end
-            foundind = spm_match_str(chanlabels(this, ind), ...
-                ft_channelselection(types(i), chanlabels(this, ind)));
+            if length(ind) ==1
+                foundind = spm_match_str({chanlabels(this, ind)}, ...
+                    ft_channelselection(types(i), {chanlabels(this, ind)}));
+            else
+                foundind = spm_match_str(chanlabels(this, ind), ...
+                    ft_channelselection(types(i), chanlabels(this, ind)));
+            end
             if ~isempty(foundind)
                 this = chantype(this, ind(foundind), types{i});
                 ind = setdiff(ind, ind(foundind));
