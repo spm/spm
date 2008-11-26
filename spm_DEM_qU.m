@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_qU.m 1887 2008-07-04 17:48:42Z karl $
+% $Id: spm_DEM_qU.m 2494 2008-11-26 20:08:15Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -180,10 +180,10 @@ end
 %--------------------------------------------------------------------------
 try
     subplot(g,2,2*g)
-    plot(qU.a{2});
+    plot(t,qU.a{2});
     try
         hold on
-        plot(pU.v{2},':'); hold off
+        plot(t,pU.v{2},':b','Linewidth',2); hold off
     end
     xlabel('time','Fontsize',14)
     title('perturbation and action','Fontsize',16)

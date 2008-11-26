@@ -10,7 +10,7 @@ function f = spm_fp_display_nullclines(M,x)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fp_display_nullclines.m 2030 2008-09-02 18:28:40Z karl $
+% $Id: spm_fp_display_nullclines.m 2494 2008-11-26 20:08:15Z karl $
 
 % evaluation points and equilibria
 %--------------------------------------------------------------------------
@@ -22,7 +22,11 @@ X     = spm_ndgrid(x);
 % flow fields
 %--------------------------------------------------------------------------
 for i = 1:size(X,1)
-    f(i,:) = feval(M(1).f,X(i,:)',0,M(1).pE)';
+    try
+        f(i,:) = feval(M(1).f,X(i,:)',0,M(1).pE)';
+    catch
+        f(i,:) = feval(M(1).f,X(i,:)',0,[],M(1).pE)';
+    end
 end
 
 % exemplar trajectory; from M(1).x

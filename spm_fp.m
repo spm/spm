@@ -1,10 +1,10 @@
-function [M0,q0,X,x,M1,L] = spm_fp(M,x,u)
+function [M0,q0,X,x,f,M1,L] = spm_fp(M,x,u)
 % Fokker-Planck operators and equilibrium density for dynamic systems
-% FORMAT [M0,q0,X,x,M1,L] = spm_fp(M,x,u)
+% FORMAT [M0,q0,X,x,f,M1,L] = spm_fp(M,x,u)
 %--------------------------------------------------------------------------
 % M   - model specification structure
 % Required fields:
-%    M.f   - dx/dt    = f(x,u,P)                {function string or m-file}
+%    M.f   - dx/dt    = f(x,u,P) or f(x,u,a,P)  {function string or m-file}
 %    M.g   - y(t)     = g(x,u,P)                {function string or m-file}
 %    M.m   - m inputs
 %    M.n   - n states
@@ -18,13 +18,14 @@ function [M0,q0,X,x,M1,L] = spm_fp(M,x,u)
 % q0   - stable or equilibrium mode: M0*q0 = 0
 % X    - evaluation points of state space
 % x    - cell array of vectors specifying evaluation grid
+% f    - flow
 % M1   - 2nd order FP operator
 % L    - output matrix                 <y> = L*q;
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp.m 2030 2008-09-02 18:28:40Z karl $
+% $Id: spm_fp.m 2494 2008-11-26 20:08:15Z karl $
  
 % default: first level of hierarchical model
 %--------------------------------------------------------------------------
@@ -60,10 +61,17 @@ end
 %--------------------------------------------------------------------------
 N     = length(X);
 f     = sparse(n,N);
-for i = 1:N
-    f(:,i) = feval(M.f,X(i,:)',u0,M.pE);
+try
+    for i = 1:N
+        f(:,i) = feval(M.f,X(i,:)',u0,M.pE);
+    end
+catch
+    for i = 1:N
+        f(:,i) = feval(M.f,X(i,:)',u0,[],M.pE);
+    end
 end
- 
+
+
 % Fokker-Planck operator; i.e., Jacobian J - M0
 %==========================================================================
 for i = 1:n
@@ -148,7 +156,7 @@ for i = 1:n
 end
 q0    = reshape(q,nx{:});
 
-if nargout < 5,  return,  end
+if nargout < 6,  return,  end
 
 % input induced changes to Jacobian dJ/du - M1
 %==========================================================================

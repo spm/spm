@@ -216,9 +216,10 @@ A(1).pE.d = 1;
  
 % make the recognition model confident about its predictions
 %--------------------------------------------------------------------------
-M(1).W    = exp(16);
-A(1).W    = exp(16);
- 
+M(1).W    = exp(32);
+A(1).W    = exp(32);
+A(1).V    = exp(16);
+
 % create DEM structure
 %--------------------------------------------------------------------------
 clear DEM
@@ -235,9 +236,13 @@ DEM     = spm_ADEM(DEM);
 spm_figure('GetWin','DEM');
 spm_DEM_qU(DEM.qU,DEM.pU)
  
-spm_figure('GetWin','Graphics');
-subplot(3,2,6), hold on
-plot(DEM.pU.v{1}(1,:),DEM.pU.v{1}(2,:),':r'), hold off
+subplot(2,2,3)
+spm_fp_display_nullclines(M,x);hold on
+plot(DEM.pU.v{1}(1,:),DEM.pU.v{1}(2,:),'b'), hold off
+xlabel('position','Fontsize',12)
+ylabel('velocity','Fontsize',12)
+title('learnt','Fontsize',16)
+
 
 spm_figure('GetWin','FMIN');
 clf, subplot(3,1,2)

@@ -2,8 +2,8 @@ function [DEM] = spm_ADEM(DEM)
 % Dynamic expectation maximisation:  Active inversion
 % FORMAT DEM   = spm_ADEM(DEM)
 %
-% DEM.G  - generative  model
-% DEM.M  - recognition model
+% DEM.G  - generative process
+% DEM.M  - recognition  model
 % DEM.C  - causes
 % DEM.U  - prior expectation of causes
 %__________________________________________________________________________
@@ -13,13 +13,13 @@ function [DEM] = spm_ADEM(DEM)
 % the same apart from the fact that confounds are not accommodated
 % explicitly.  The generative model is specified by DEM.G and the veridical
 % causes by DEM.C; these may or may not be used as priors on the causes for
-% the inversion model DEM.M (i..e, DEM.U = DEM.C).  Clearly, DEM.G does not
+% the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly, DEM.G does not
 % require any priors or precision components; it will use the values of the
 % parameters specified in the prior expectation fields.
 %
 % This routine is not used for model inversion per se but to simulate the
 % dynamical inversion of models.  Critically, it includes action 
-% variables a that coupling the model back to the generative process 
+% variables a that couple the model back to the generative process 
 % This enables active inverse (c.f., action-perception; see also spm_GDEM)
 %
 % hierarchical models G(i) and M(i)
@@ -55,7 +55,7 @@ function [DEM] = spm_ADEM(DEM)
 %--------------------------------------------------------------------------
 %   pP.P    = parameters for each level
 %
-% hyper-parameters (log-transformed) - h,g
+% hyper-parameters (log-transformed) - h, g
 %--------------------------------------------------------------------------
 %   pH.h    = cause noise
 %   pH.g    = state noise
@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM.m 2033 2008-09-02 18:32:14Z karl $
+% $Id: spm_ADEM.m 2494 2008-11-26 20:08:15Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -149,8 +149,8 @@ nx   = sum(spm_vec(M.n));              % number of x (hidden states)
 ny   = M(1).l;                         % number of y (inputs)
 nc   = M(end).l;                       % number of c (prior causes)
 nu   = nv*d + nx*n;                    % number of generalised states q(u)
-
-% number of states and parameters - genertive model
+ 
+% number of states and parameters - generative model
 %--------------------------------------------------------------------------
 gl   = size(M,2);                      % number of levels
 gr   = sum(spm_vec(G.l));              % number of v (outputs)
@@ -166,12 +166,12 @@ na   = ga;
 %--------------------------------------------------------------------------
 try nE = M(1).E.nE; catch nE = 16; end
 try nM = M(1).E.nM; catch nM = 8;  end
-
+ 
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
 td = 1;                               % integration time for D-Step
-te = exp(32);                         % integration time for E-Step
+te = 2;                               % integration time for E-Step (log)
  
  
 % precision (R) and covariance of generalised errors
@@ -213,9 +213,9 @@ nh    = length(Q);                         % number of hyperparameters
  
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
-Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(0));
-Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-4));
-Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-4));
+Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8));
+Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
+Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-8));
 Pu    = spm_cat(diag({Px Pv}));
  
 % hyperpriors
@@ -324,7 +324,7 @@ W      = spm_cat(w(:));
  
 % Iterate DEM
 %==========================================================================
-Fm     = -exp(64);
+F      = -Inf;
 for iE = 1:nE
  
     % E-Step: (with embedded D-Step)
@@ -374,8 +374,8 @@ for iE = 1:nE
         % evaluate generative model
         %------------------------------------------------------------------
         [pu dg df] = spm_ADEM_diff(G,pu);
-
-        % tensor products for Jabobian
+ 
+        % tensor products for Jacobian
         %------------------------------------------------------------------
         Dgda = kron(spm_speye(n,1,1),dg.da);
         Dgdv = kron(spm_speye(n,n,1),dg.dv);
@@ -393,7 +393,7 @@ for iE = 1:nE
             y       = spm_unvec(pu.v{i},{G.v});
             qu.y{i} = y{1};
         end
-
+ 
         % evaluate recognition model
         %------------------------------------------------------------------       
         [E dE] = spm_DEM_eval(M,qu,qp);
@@ -455,7 +455,7 @@ for iE = 1:nE
         dVdau = -dE.da'*iS*dE.du;
         dVdac = -dE.da'*iS*dE.dc;
         
-
+ 
          
         % D-step update: of causes v{i}, and hidden states x(i)
         %==================================================================
@@ -605,15 +605,12 @@ for iE = 1:nE
         - spm_logdet(ph.c)/2  ...            % entropy - prior h
         + spm_logdet(iS)*nY/2 ...            % entropy - error
         - n*ny*nY*log(2*pi)/2;
- 
- 
-    % if F is increasing, save expansion point and dervatives
+    
+    
+    % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
-    if L > (Fm + 1e-2)
- 
-        Fm    = L;
-        F(iE) = Fm;
- 
+    if L > F(end)
+   
         % save model-states (for each time point)
         %==================================================================
         for t = 1:length(qU)
@@ -651,7 +648,7 @@ for iE = 1:nE
             end
             QU.v{1}(:,t)         = spm_vec(qU(t).y{1} - z{1});
             QU.z{nl}(:,t)        = spm_vec(z{nl});
-
+ 
             % and conditional covariances
             %--------------------------------------------------------------
             i       = [1:nx];
@@ -660,54 +657,66 @@ for iE = 1:nE
             QU.C{t} = qC{t}(i,i);
         end
  
-        % save condotional densities
+        % save conditional densities
         %------------------------------------------------------------------
-        B.QU   = QU;
-        B.PU   = PU;
-        B.qp   = qp;
-        B.qh   = qh;
+        B.QU  = QU;
+        B.PU  = PU;
+        B.qp  = qp;
+        B.qh  = qh;
  
-        % report and break if convergence
+        % decrease regularisation
         %------------------------------------------------------------------
-        figure(Fdem)
-        spm_DEM_qU(QU)
-        if np
-            subplot(nl,4,4*nl)
-            bar(full(Up*qp.e))
-            xlabel({'parameters';'{minus prior}'})
-            axis square, grid on
-        end
-        if length(F) > 2
-            subplot(nl,4,4*nl - 1)
-            plot(F - F(1))
-            xlabel('updates')
-            title('log-evidence')
-            axis square, grid on
-        end
-        drawnow
- 
-        % report (EM-Steps)
-        %------------------------------------------------------------------
-        str{1} = sprintf('DEM: %i (%i)',iE,iM);
-        str{2} = sprintf('F:%.6e',full(Fm - F(1)));
-        str{3} = sprintf('p:%.2e',full(dp'*dp));
-        str{4} = sprintf('h:%.2e',full(mh'*mh));
-        fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
+        F(iE) = L;
+        te    = min(te + 1,8);
  
     else
  
         % otherwise, return to previous expansion point and break
         %------------------------------------------------------------------
-        QU   = B.QU;
-        PU   = B.PU;
-        qp   = B.qp;
-        qh   = B.qh;
-        break
+        QU    = B.QU;
+        PU    = B.PU;
+        qp    = B.qp;
+        qh    = B.qh;
  
+        % increase regularisation
+        %------------------------------------------------------------------
+        F(iE) = F(end);
+        te    = min(te - 1,0);
+        
     end
+ 
+    % report and break if convergence
+    %======================================================================
+    figure(Fdem)
+    spm_DEM_qU(QU)
+    if np
+        subplot(nl,4,4*nl)
+        bar(full(Up*qp.e))
+        xlabel({'parameters';'{minus prior}'})
+        axis square, grid on
+    end
+    if length(F) > 2
+        subplot(nl,4,4*nl - 1)
+        plot(F - F(1))
+        xlabel('updates')
+        title('log-evidence')
+        axis square, grid on
+    end
+    drawnow
+ 
+    % report (EM-Steps)
+    %----------------------------------------------------------------------
+    str{1} = sprintf('ADEM: %i (%i)',iE,iM);
+    str{2} = sprintf('F:%.4e',full(L - F(1)));
+    str{3} = sprintf('p:%.2e',full(dp'*dp));
+    str{4} = sprintf('h:%.2e',full(mh'*mh));
+    fprintf('%-16s%-24s%-16s%-16s\n',str{1:4})
+    
+    if (norm(dp,1) < exp(-8)) && (norm(dh,1) < exp(-8)), break, end
+ 
 end
  
-% Assemble output arguments
+% assemble output arguments
 %==========================================================================
  
 % Fill in DEM with response and its causes
