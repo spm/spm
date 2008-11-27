@@ -54,6 +54,15 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.87  2008/11/12 16:50:26  roboos
+% improved detection for BCI2000
+%
+% Revision 1.86  2008/11/02 10:38:44  roboos
+% added another check for ctf_ds (to deal with '.')
+%
+% Revision 1.85  2008/10/28 16:08:14  roboos
+% additional check on yokogawa raw (first 4 bytes should be zero)
+%
 % Revision 1.84  2008/07/24 08:43:40  roboos
 % added nimh_cortex
 %
@@ -281,6 +290,10 @@ elseif isdir(filename) && filetype_check_extension(filename, '.ds') && exist(ful
   ftype = 'ctf_ds';
   manufacturer = 'CTF';
   content = 'MEG dataset';
+elseif isdir(filename) && ~isempty(dir(fullfile(filename, '*.res4'))) && ~isempty(dir(fullfile(filename, '*.meg4')))
+  ftype = 'ctf_ds';
+  manufacturer = 'CTF';
+  content = 'MEG dataset';
 elseif filetype_check_extension(filename, '.res4') && (filetype_check_header(filename, 'MEG41RS') || filetype_check_header(filename, 'MEG42RS') || filetype_check_header(filename, 'MEG4RES'))
   ftype = 'ctf_res4';
   manufacturer = 'CTF';
@@ -341,7 +354,7 @@ elseif filetype_check_extension(filename, '.con')
   ftype = 'yokogawa_con';
   manufacturer = 'Yokogawa';
   content = 'continuous MEG data';
-elseif filetype_check_extension(filename, '.raw')
+elseif filetype_check_extension(filename, '.raw') && filetype_check_header(filename, [char(0) char(0) char(0) char(0)])
   ftype = 'yokogawa_raw';
   manufacturer = 'Yokogawa';
   content = 'evoked/trialbased MEG data';
@@ -429,7 +442,7 @@ elseif filetype_check_extension(filename, '.iso')
   content = 'MRI image data';
 
   % known BCI2000 file types
-elseif filetype_check_extension(filename, '.dat') && filetype_check_header(filename, 'HeaderLen=')
+elseif filetype_check_extension(filename, '.dat') && (filetype_check_header(filename, 'BCI2000') || filetype_check_header(filename, 'HeaderLen='))
   ftype = 'bci2000_dat';
   manufacturer = 'BCI2000';
   content = 'continuous EEG';

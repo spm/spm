@@ -59,6 +59,27 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.73  2008/11/14 07:36:24  roboos
+% use strcmpi instead of strcmp(lower())
+%
+% Revision 1.72  2008/10/09 14:09:52  roboos
+% added try-catch around old read_ctf_trigger code, Saskia & Ivar had a
+% recording in which none of the "old" trigger channels was present and
+% that would crash read_event.
+%
+% Revision 1.71  2008/09/30 08:01:04  roboos
+% replaced all fread(char=>char) into uint8=>char to ensure that the
+% chars are read as 8 bits and not as extended 16 bit characters. The
+% 16 bit handling causes problems on some internationalized OS/Matlab
+% combinations.
+%
+% the help of fread specifies "If the precision is 'char' or 'char*1', MATLAB
+% reads characters using the encoding scheme associated with the file.
+% See FOPEN for more information".
+%
+% Revision 1.70  2008/09/25 12:02:22  roboos
+% fixed FIL type of events for the new ctf reader (thanks to Vladimir)
+%
 % Revision 1.69  2008/07/24 08:44:20  roboos
 % added initial support for nimh_cortex, not yet complete
 %
@@ -593,25 +614,36 @@ switch eventformat
       hdr = read_header(headerfile);
     end
 
-    % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
-    % this splits the trigger channel into the lowers and highest 16 bits,
-    % corresponding with the front and back panel of the electronics cabinet at the Donders Centre
-    [backpanel, frontpanel] = read_ctf_trigger(filename);
-    for i=find(backpanel(:)')
-      event(end+1).type   = 'backpanel trigger';
-      event(end  ).sample = i;
-      event(end  ).value  = backpanel(i);
-    end
-    for i=find(frontpanel(:)')
-      event(end+1).type   = 'frontpanel trigger';
-      event(end  ).sample = i;
-      event(end  ).value  = frontpanel(i);
+    try,
+      % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
+      % this splits the trigger channel into the lowers and highest 16 bits,
+      % corresponding with the front and back panel of the electronics cabinet at the Donders Centre
+      [backpanel, frontpanel] = read_ctf_trigger(filename);
+      for i=find(backpanel(:)')
+        event(end+1).type   = 'backpanel trigger';
+        event(end  ).sample = i;
+        event(end  ).value  = backpanel(i);
+      end
+      for i=find(frontpanel(:)')
+        event(end+1).type   = 'frontpanel trigger';
+        event(end  ).sample = i;
+        event(end  ).value  = frontpanel(i);
+      end
     end
 
     % determine the trigger channels from the header
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'sensType')
+      origSensType = hdr.orig.sensType;
+    elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'res4')
+      origSensType =  [hdr.orig.res4.senres.sensorTypeIndex];
+    else
+      origSensType = [];
+    end
+    % meg channels are 5, refmag 0, refgrad 1, adcs 18, trigger 11, eeg 9
+    trigchanindx = find(origSensType==11);
+    if ~isempty(trigchanindx)
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', find(hdr.orig.sensType==11), 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
       event   = appendevent(event, trigger);
     end
 
@@ -853,7 +885,7 @@ switch eventformat
   case 'fcdc_fifo'
     fifo = filetype_check_uri(filename);
     fid = fopen(fifo, 'r');
-    msg = fread(fid, inf, 'char=>char');
+    msg = fread(fid, inf, 'uint8=>char');
     event = msg2struct(msg);
     % convert the message into event structure
     fclose(fid);
@@ -877,7 +909,7 @@ switch eventformat
     temp = instrfind;
     if isa(temp,'instrument')
       % find all serial ports
-      i1 = strcmp(lower({temp(:).Type}),'serial');
+      i1 = strcmpi({temp(:).Type},'serial');
       if any(i1)
         % find all serial ports whose name matches that of the specified port
         i2 = strmatch(lower(port),lower({temp(find(i1)).Name}));

@@ -1,4 +1,4 @@
-function [stat] = statistics_wrapper(cfg, varargin);
+function [stat] = statistics_wrapper(cfg, varargin)
 
 % STATISTICS_WRAPPER performs the selection of the biological data for
 % timelock, frequency or source data and sets up the design vector or
@@ -36,6 +36,10 @@ function [stat] = statistics_wrapper(cfg, varargin);
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.52  2008/11/27 09:02:33  kaigoe
+% also allow output data to be dimord chancmb_xxx
+% changed some prod(size) into numel
+%
 % Revision 1.51  2008/09/26 15:27:14  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -220,12 +224,12 @@ if issource
     roilabel = {};
     for i=1:length(cfg.roi)
       tmp = atlas_mask(atlas, varargin{1}, cfg.roi{i}, 'inputcoord', cfg.inputcoord);
-      
+
       if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
         % no reason to deal with seperated left/right hemispheres
         cfg.hemisphere = 'combined';
       end
-      
+
       if     strcmp(cfg.hemisphere, 'left')
         tmp(x>=0)    = 0;  % exclude the right hemisphere
         roimask{end+1}  = tmp;
@@ -245,12 +249,12 @@ if issource
         roilabel{end+1} = ['Left '  cfg.roi{i}];
         roilabel{end+1} = ['Right ' cfg.roi{i}];
         clear tmpL tmpR
-        
+
       elseif strcmp(cfg.hemisphere, 'combined')
         % all voxels of the ROI can be combined
         roimask{end+1}  = tmp;
         roilabel{end+1} = cfg.roi{i};
-      
+
       else
         error('incorrect specification of cfg.hemisphere');
       end
@@ -284,7 +288,7 @@ if issource
     [dat, cfg] = get_source_avg(cfg, varargin{:});
   end
   cfg.dimord = 'voxel';
-  
+
   % note that avgoverroi=no is implemented differently at an earlier stage
   if strcmp(cfg.avgoverroi, 'yes')
     tmp = zeros(length(roimask), size(dat,2));
@@ -317,7 +321,7 @@ elseif isfreq || istimelock
     dim(4)=1;
   end
   cfg.dimord = 'chan_freq_time';
-  
+
   % the dimension of the original data (excluding the replication dimension) has to be known for clustering
   cfg.dim = dim(2:end);
   % all dimensions have to be concatenated except the replication dimension and the data has to be transposed
@@ -325,12 +329,12 @@ elseif isfreq || istimelock
 
   % remove to save some memory
   data.biol = [];
-  
+
   % add gradiometer/electrode information to the configuration
   if ~isfield(cfg,'neighbours') && isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
     cfg.neighbours = neighbourselection(cfg,varargin{1});
   end
-  
+
 end
 
 % get the design from the information in cfg and data.
@@ -406,7 +410,7 @@ if issource
   end
   for i=1:length(statfield)
     tmp = getsubfield(stat, statfield{i});
-    if isfield(varargin{1}, 'inside') && prod(size(tmp))==length(varargin{1}.inside)
+    if isfield(varargin{1}, 'inside') && numel(tmp)==length(varargin{1}.inside)
       % the statistic was only computed on voxels that are inside the brain
       % sort the inside and outside voxels back into their original place
       if islogical(tmp)
@@ -417,35 +421,45 @@ if issource
         tmp(varargin{1}.outside) = nan;
       end
     end
-    if prod(size(tmp))==prod(varargin{1}.dim)
+    if numel(tmp)==prod(varargin{1}.dim)
       % reshape the statistical volumes into the original format
       stat = setsubfield(stat, statfield{i}, reshape(tmp, varargin{1}.dim));
     end
   end
 else
-  haschan = 1; % this one remains relevant, even after averaging over channels
+  haschan    = isfield(data, 'label');    % this one remains relevant, even after averaging over channels
+  haschancmb = isfield(data, 'labelcmb'); % this one remains relevant, even after averaging over channels
   hasfreq = strcmp(cfg.avgoverfreq, 'no') && ~any(isnan(data.freq));
   hastime = strcmp(cfg.avgovertime, 'no') && ~any(isnan(data.time));
   stat.dimord = '';
+
   if haschan
     stat.dimord = [stat.dimord 'chan_'];
     stat.label  = data.label;
     chandim = dim(2);
+  elseif haschancmb
+    stat.dimord   = [stat.dimord 'chancmb_'];
+    stat.labelcmb = data.labelcmb;
+    chandim = dim(2);
   end
+
   if hasfreq
     stat.dimord = [stat.dimord 'freq_'];
     stat.freq   = data.freq;
     freqdim = dim(3);
   end
+  
   if hastime
     stat.dimord = [stat.dimord 'time_'];
     stat.time   = data.time;
     timedim = dim(4);
   end
-  if length(stat.dimord)>0
+
+  if ~isempty(stat.dimord)
     % remove the last '_'
     stat.dimord = stat.dimord(1:(end-1));
   end
+  
   for i=1:length(statfield)
     try
       % reshape the fields that have the same dimension as the input data
@@ -456,6 +470,12 @@ else
       elseif strcmp(stat.dimord, 'chan_freq')
         stat = setfield(stat, statfield{i}, reshape(getfield(stat, statfield{i}), [chandim freqdim]));
       elseif strcmp(stat.dimord, 'chan_freq_time')
+        stat = setfield(stat, statfield{i}, reshape(getfield(stat, statfield{i}), [chandim freqdim timedim]));
+      elseif strcmp(stat.dimord, 'chancmb_time')
+        stat = setfield(stat, statfield{i}, reshape(getfield(stat, statfield{i}), [chandim timedim]));
+      elseif strcmp(stat.dimord, 'chancmb_freq')
+        stat = setfield(stat, statfield{i}, reshape(getfield(stat, statfield{i}), [chandim freqdim]));
+      elseif strcmp(stat.dimord, 'chancmb_freq_time')
         stat = setfield(stat, statfield{i}, reshape(getfield(stat, statfield{i}), [chandim freqdim timedim]));
       elseif strcmp(stat.dimord, 'time')
         stat = setfield(stat, statfield{i}, reshape(getfield(stat, statfield{i}), [1 timedim]));
@@ -477,7 +497,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.51 2008/09/26 15:27:14 sashae Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.52 2008/11/27 09:02:33 kaigoe Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
@@ -576,12 +596,12 @@ for i=1:Nsource
     if ~iscell(tmp),
       dat(:,k) = tmp(:);
     else
-      Ninside   = length(varargin{i}.inside); 
+      Ninside   = length(varargin{i}.inside);
       %tmpvec    = (varargin{i}.inside-1)*prod(size(tmp{varargin{i}.inside(1)}));
       tmpvec    = varargin{i}.inside;
       insidevec = [];
       for m = 1:prod(size(tmp{varargin{i}.inside(1)}))
-        insidevec = [insidevec; tmpvec(:)+(m-1)*Nvoxel]; 
+        insidevec = [insidevec; tmpvec(:)+(m-1)*Nvoxel];
       end
       insidevec = insidevec(:)';
       tmpdat  = reshape(permute(cat(3,tmp{varargin{1}.inside}), [3 1 2]), [Ninside prod(size(tmp{varargin{1}.inside(1)}))]);

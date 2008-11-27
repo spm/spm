@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.6  2008/10/07 16:22:32  roboos
+% added option to specify coordinates to be obtained from ctf hc file
+%
 % Revision 1.5  2008/05/22 14:33:18  vlalit
 % Changes related to generalization of fiducials'  handling in SPM.
 %
@@ -36,6 +39,7 @@ end
 
 % get the options
 fileformat = keyval('fileformat',  varargin);
+coordinates = keyval('coordinates',  varargin); if isempty(coordinates), coordinates = 'head'; end
 
 if isempty(fileformat)
     fileformat = filetype(filename);
@@ -59,7 +63,14 @@ switch fileformat
         end
 
         orig = read_ctf_hc(filename);
-        shape.fid.pnt = cell2mat(struct2cell(orig.head));
+        switch coordinates
+          case 'head'
+            shape.fid.pnt = cell2mat(struct2cell(orig.head));
+          case 'dewar'
+            shape.fid.pnt = cell2mat(struct2cell(orig.dewar));
+          otherwise
+            error('incorrect coordinates specified');
+        end
         shape.fid.label = fieldnames(orig.head);
 
     case 'ctf_shape'

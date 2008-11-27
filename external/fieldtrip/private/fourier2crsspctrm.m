@@ -20,6 +20,9 @@ function output = fourier2crsspctrm(cfg, freq)
 %
 
 %$Log: fourier2crsspctrm.m,v $
+%Revision 1.14  2008/11/27 09:04:48  kaigoe
+%added default cfg.feedback=text
+%
 %Revision 1.13  2007/08/31 07:12:57  jansch
 %added feedback to be specified by cfg.feedback instead of hardcoded textbar
 %
@@ -62,10 +65,11 @@ function output = fourier2crsspctrm(cfg, freq)
 %other stuff
 %
 
-if ~isfield(cfg, 'channel'),     cfg.channel     = {'all'};                      end
-if ~isfield(cfg, 'channelcmb'),  cfg.channelcmb  = {};                           end
+if ~isfield(cfg, 'channel'),     cfg.channel     = {'all'};                       end
+if ~isfield(cfg, 'channelcmb'),  cfg.channelcmb  = {};                            end
 if ~isfield(cfg, 'foilim'),      cfg.foilim      = [freq.freq(1) freq.freq(end)]; end
 if ~isfield(cfg, 'keepfourier'), cfg.keepfourier = 'no';                          end
+if ~isfield(cfg, 'feedback'),    cfg.feedback    = 'text';                        end
 
 %select the channels on which the power-spectra will be computed
 chn     = channelselection(cfg.channel,freq.label);
@@ -149,7 +153,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: fourier2crsspctrm.m,v 1.13 2007/08/31 07:12:57 jansch Exp $';
+cfg.version.id = '$Id: fourier2crsspctrm.m,v 1.14 2008/11/27 09:04:48 kaigoe Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end
 % remember the exact configuration details in the output 

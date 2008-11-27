@@ -16,6 +16,7 @@ function [dat] = read_data(filename, varargin);
 %   'endtrial'       last trial to read, mutually exclusive with begsample+endsample
 %   'chanindx'       list with channel indices to read
 %   'checkboundary'  boolean, whether to check for reading segments over a trial boundary
+%   'cache'          boolean, whether to use caching for multiple reads
 %   'dataformat'     string
 %   'headerformat'   string
 %   'fallback'       can be empty or 'biosig' (default = [])
@@ -30,6 +31,37 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.65  2008/11/13 21:50:11  roboos
+% also read 4d data in case ChannelUnitsPerBit is missing from header (give warning and set calibration to 1)
+%
+% Revision 1.64  2008/11/13 21:20:58  roboos
+% use dataformat=ns_cnt16/32 to specify 16/32 bit format for reading neuroscan cnt files
+%
+% Revision 1.63  2008/11/02 10:59:41  roboos
+% some more changes for ctf_ds in case of empty path
+%
+% Revision 1.62  2008/11/02 10:42:25  roboos
+% improved handling of empty path in case of ctf dataset
+%
+% Revision 1.61  2008/09/29 21:46:02  roboos
+% Implemented data caching in a data-format independent manner, using fetch_data and a persistent variable.
+% Not yet suitable for inclusion in fileio release, hence the default is not to use caching.
+%
+% Revision 1.60  2008/09/29 08:37:44  roboos
+% fixed bug when reading short segments of CTF data (errors were given on screen, so the bug was apparent)
+%
+% Revision 1.59  2008/09/25 11:53:48  roboos
+% more efficient handling for CTF in real continuous datasets (i.e. one long trial) and in case all samples are within the same trial
+% detected and fixed a bug that would case faulure of the code when reading a data segment that extends over more than two trials
+%
+% Revision 1.58  2008/09/24 16:26:17  roboos
+% swiched from old fcdc import routines for CTF to the p-files supplied by CTF
+% these new reading routines support synthetic gradients
+% the format 'ctf_new' is not supported any more, because that is now the default
+%
+% Revision 1.57  2008/09/24 07:01:49  roboos
+% fixed begsample for neuralynx_ncs (thanks to Martin)
+%
 % Revision 1.56  2008/07/24 08:44:20  roboos
 % added initial support for nimh_cortex, not yet complete
 %
@@ -213,7 +245,9 @@ function [dat] = read_data(filename, varargin);
 % changed compared to the read_fcdc_xxx versions.
 %
 
+persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
+
 if isempty(db_blob)
   db_blob = 0;
 end
@@ -237,7 +271,7 @@ elseif nargin==6 && isstruct(varargin{1})
   varargin = {'header', varargin{1}, 'begsample', varargin{2}, 'endsample', varargin{3}, 'chanindx', varargin{4}, 'checkboundary', checkboundary};
 end
 
-% get the options
+% get the optional input arguments
 hdr           = keyval('header',        varargin);
 begsample     = keyval('begsample',     varargin);
 endsample     = keyval('endsample',     varargin);
@@ -248,6 +282,7 @@ checkboundary = keyval('checkboundary', varargin);
 dataformat    = keyval('dataformat',    varargin);
 headerformat  = keyval('headerformat',  varargin);
 fallback      = keyval('fallback',      varargin);
+cache         = keyval('cache',         varargin); if isempty(cache), cache = 0; end
 
 % determine the filetype
 if isempty(dataformat)
@@ -268,27 +303,38 @@ switch dataformat
     datafile   = fullfile(path, [file,ext]);
     headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
-  case {'ctf_ds', 'ctf_new'}
+  case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
+    if isempty(path) && isempty(file)
+      % this means that the dataset was specified as the present working directory, i.e. only with '.'
+      filename = pwd;
+      [path, file, ext] = fileparts(filename);
+    end
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);
@@ -362,6 +408,10 @@ end
 requesttrials  = isempty(begsample) && isempty(endsample);
 requestsamples = isempty(begtrial)  && isempty(endtrial);
 
+if cache && requesttrials
+  error('caching is not supported when reading trials')
+end
+
 if isempty(begsample) && isempty(endsample) && isempty(begtrial) && isempty(endtrial)
   % neither samples nor trials are specified, set the defaults to read the complete data trial-wise (also works for continuous)
   requestsamples = 0;
@@ -402,6 +452,26 @@ if checkboundary && hdr.nTrials>1
   end
 end
 
+% implement the caching in a data-format independent way
+if cache && isempty(cachedata)
+  % create a new FieldTrip raw data structure that will hold the data
+  cachedata.label = hdr.label(chanindx);
+  cachedata.fsample = hdr.Fs;
+  cachedata.time    = {};
+  cachedata.trial   = {};
+  cachedata.cfg     = [];
+  cachedata.cfg.trl = zeros(0,3);
+elseif cache && ~isempty(cachedata)
+  % try to fetch the requested segment from the cache
+  try
+    dat = fetch_data(cachedata, 'begsample', begsample', 'endsample', endsample);
+    % fprintf('caching succeeded\n');
+    return
+  catch
+    % fprintf('caching failed\n');
+  end
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % read the data with the low-level reading function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -427,7 +497,12 @@ switch dataformat
     offset     = (begsample-1)*samplesize*hdr.nChans;
     numsamples = endsample-begsample+1;
     gain       = hdr.orig.ChannelGain;
-    upb        = hdr.orig.ChannelUnitsPerBit;
+    if isfield(hdr.orig, 'ChannelUnitsPerBit')
+      upb = hdr.orig.ChannelUnitsPerBit;
+    else
+      warning('cannot determine ChannelUnitsPerBit');
+      upb = 1;
+    end
     % jump to the desired data
     fseek(fid, offset, 'cof');
     % read the desired data
@@ -548,14 +623,23 @@ switch dataformat
   case  'combined_ds'
     dat = read_combined_ds(filename, hdr, begsample, endsample, chanindx);
 
-  case  'ctf_new'
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4'}
     % check that the required low-level toolbox is available
     hastoolbox('ctf', 1);
     % this returns SQUIDs in T, EEGs in V, ADC's and DACS in V, HLC channels in m, clock channels in s.
-    dat    = getCTFdata(hdr.orig, [begtrial, endtrial], chanindx, 'T', 'double');
-    dimord = 'samples_chans_trials';
+    if begtrial==endtrial
+      % specify selection as 3x1 vector 
+      trlbegsample = begsample - hdr.nSamples*(begtrial-1); % within the trial
+      trlendsample = endsample - hdr.nSamples*(begtrial-1); % within the trial
+      dat = getCTFdata(hdr.orig, [trlbegsample; trlendsample; begtrial], chanindx, 'T', 'double');
+      dimord = 'samples_chans';
+    else
+      % specify selection as 1xN vector
+      dat = getCTFdata(hdr.orig, [begtrial:endtrial], chanindx, 'T', 'double');
+      dimord = 'samples_chans_trials';
+    end
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_meg4'}  
+  case  {'ctf_old', 'read_ctf_meg4'}
     % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
     dat = read_ctf_meg4(datafile, hdr.orig, begsample, endsample, chanindx);
 
@@ -668,7 +752,7 @@ switch dataformat
 
   case 'neuralynx_ncs'
     NRecords  = hdr.nSamples/512;
-    begrecord = floor(begsample/512)+1;
+    begrecord = ceil(begsample/512);
     endrecord = ceil(endsample/512);
     % read the records that contain the desired samples
     ncs = read_neuralynx_ncs(filename, begrecord, endrecord);
@@ -723,7 +807,7 @@ switch dataformat
     orig = read_ns_avg(filename);
     dat  = orig.data(chanindx, begsample:endsample);
 
-  case 'ns_cnt'
+  case {'ns_cnt' 'ns_cnt16', 'ns_cnt32'}
     % Neuroscan continuous data
     sample1    = begsample-1;
     ldnsamples = endsample-begsample+1; % number of samples to read
@@ -732,13 +816,21 @@ switch dataformat
     if sample1<0
       error('begin sample cannot be for the beginning of the file');
     end
+    % the hdr.nsdf was the initial fieldtrip hack to get 32 bit support, now it is realized using a extended dataformat string
+    if     isfield(hdr, 'nsdf') && hdr.nsdf==16
+      dataformat = 'ns_cnt16';
+    elseif isfield(hdr, 'nsdf') && hdr.nsdf==32
+      dataformat = 'ns_cnt32';
+    end
     % read_ns_cnt originates from the EEGLAB package (loadcnt.m) but is
     % an old version since the new version is not compatible any more
     % all data is read, and only the relevant data is kept.
-    if ~isfield(hdr, 'nsdf')
+    if strcmp(dataformat, 'ns_cnt')
       tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1);
-    else
-      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', hdr.nsdf);
+    elseif strcmp(dataformat, 'ns_cnt16')
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', 16);
+    elseif strcmp(dataformat, 'ns_cnt32')
+      tmp = read_ns_cnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'ldchan', ldchan, 'blockread', 1, 'format', 32);
     end
     dat = tmp.dat(chanoi,:);
 
@@ -948,3 +1040,13 @@ elseif requestsamples && strcmp(dimord, 'chans_samples_trials')
   endselection2 = endsample - begselection + 1;
   dat = dat(:,begselection2:endselection2);
 end
+
+if cache && requestsamples
+  % add the new segment to the cache
+  % FIMXE the cache size should be limited
+  cachedata.cfg.trl(end+1,:) = [begsample endsample 0];
+  cachedata.trial{end+1} = dat;
+  cachedata.time{end+1} = (1:size(dat,2))/cachedata.fsample;
+  % fprintf('added segment to cache\n');
+end
+

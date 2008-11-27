@@ -1,6 +1,6 @@
 function [hdr] = read_header(filename, varargin)
 
-% READ_HEADER reads header information from a variety of EEG, MEG and LFP 
+% READ_HEADER reads header information from a variety of EEG, MEG and LFP
 % filesi and represents the header information in a common data-indepentend
 % format. The supported formats are listed below.
 %
@@ -31,7 +31,7 @@ function [hdr] = read_header(filename, varargin)
 %   Neuromag - Elektra (*.m4d, *.pdf, *.xyz)
 %   BTi - 4D Neuroimaging (*.m4d, *.pdf, *.xyz)
 %   Yokogawa (*.ave, *.con, *.raw)
-% 
+%
 % The following EEG dataformats are supported
 %   ANT - Advanced Neuro Technology, EEProbe (*.avr, *.eeg, *.cnt)
 %   Biosemi (*.bdf)
@@ -41,7 +41,7 @@ function [hdr] = read_header(filename, varargin)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
 %   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
-% 
+%
 % The following spike and LFP dataformats are supported (with some limitations)
 %   Plextor (*.nex, *.plx, *.ddt)
 %   Neuralynx (*.ncs, *.nse, *.nts, *.nev, DMA log files)
@@ -55,6 +55,30 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.74  2008/11/20 12:59:37  roboos
+% added ns_cnt16 and ns_cnt32 as possible header formats, consistent with read_data
+%
+% Revision 1.73  2008/11/02 10:59:41  roboos
+% some more changes for ctf_ds in case of empty path
+%
+% Revision 1.72  2008/11/02 10:37:43  roboos
+% improved handling of empty path in case of ctf dataset
+%
+% Revision 1.71  2008/10/08 16:09:14  jansch
+% changed allocation of hdr.label for 4d data. in the original implementation this
+% only worked correctly for 248-channel systems, and not for the 148-channel system
+%
+% Revision 1.70  2008/10/07 16:21:39  roboos
+% implemented caching, usefull when simulating BCI while reading from file
+%
+% Revision 1.69  2008/10/01 19:23:44  roboos
+% fixed problem with old bci2000 dat files, changed fake channel names (no zero-prefix)
+%
+% Revision 1.68  2008/09/24 16:26:17  roboos
+% swiched from old fcdc import routines for CTF to the p-files supplied by CTF
+% these new reading routines support synthetic gradients
+% the format 'ctf_new' is not supported any more, because that is now the default
+%
 % Revision 1.67  2008/09/04 15:35:49  vlalit
 % Updates to EGI reading functions thanks to Joseph Dien
 %
@@ -274,7 +298,9 @@ function [hdr] = read_header(filename, varargin)
 % changed compared to the read_fcdc_xxx versions.
 %
 
+persistent cacheheader   % for caching
 persistent db_blob       % for fcdc_mysql
+
 if isempty(db_blob)
   db_blob = 0;
 end
@@ -287,6 +313,7 @@ end
 % get the options
 headerformat = keyval('headerformat', varargin);
 fallback     = keyval('fallback',     varargin);
+cache        = keyval('cache',        varargin); if isempty(cache), cache = false; end
 
 % determine the filetype
 if isempty(headerformat)
@@ -310,27 +337,38 @@ switch headerformat
     datafile   = fullfile(path, [file,ext]);
     headerfile = fullfile(path, [file,ext]);
     configfile = fullfile(path, 'config');
-  case {'ctf_ds', 'ctf_new'}
+  case {'ctf_ds', 'ctf_old'}
     % convert CTF filename into filenames
     [path, file, ext] = fileparts(filename);
+    if isempty(path) && isempty(file)
+      % this means that the dataset was specified as the present working directory, i.e. only with '.'
+      filename = pwd;
+      [path, file, ext] = fileparts(filename);
+    end
     headerfile = fullfile(filename, [file '.res4']);
     datafile   = fullfile(filename, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_meg4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'ctf_res4'
     [path, file, ext] = fileparts(filename);
+    if isempty(path)
+      path = pwd;
+    end
     headerfile = fullfile(path, [file '.res4']);
     datafile   = fullfile(path, [file '.meg4']);
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename   = path; % this is the *.ds directory
+      filename = path; % this is the *.ds directory
     end
   case 'brainvision_vhdr'
     [path, file, ext] = fileparts(filename);
@@ -369,6 +407,18 @@ if ~strcmp(filename, headerfile) && ~filetype(filename, 'ctf_ds')
   headerformat = filetype(filename);        % update the filetype
 end
 
+if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
+  % try to get the header from cache
+  details = dir(headerfile);
+  if isequal(details, cacheheader.details)
+    % the header file has not been updated, fetch it from the cache
+    % fprintf('got header from cache\n');
+    hdr = rmfield(cacheheader, 'details');
+    return;
+  end
+end
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % read the data with the low-level reading function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -380,7 +430,8 @@ switch headerformat
     hdr.nSamples    = orig.header_data.SlicesPerEpoch;
     hdr.nSamplesPre = round(orig.header_data.FirstLatency*orig.header_data.SampleFrequency);
     hdr.nTrials     = orig.header_data.TotalEpochs;
-    hdr.label       = {orig.channel_data(:).chan_label}';
+    %hdr.label       = {orig.channel_data(:).chan_label}';
+    hdr.label       = orig.Channel;
     hdr.grad        = bti2grad(orig);
     % remember original header details
     hdr.orig        = orig;
@@ -408,12 +459,12 @@ switch headerformat
     hdr.nSamples    = total_samples;
     hdr.nSamplesPre = 0;  % it is continuous
     hdr.nTrials     = 1;  % it is continuous
-    if ~isempty(orig.ChannelNames.Value)
+    if isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Values') && ~isempty(orig.ChannelNames.Value)
       hdr.label       = orig.ChannelNames.Value;
     else
       warning('creating fake channel names for bci2000_dat');
       for i=1:hdr.nChans
-        hdr.label{i} = sprintf('%03d', i);
+        hdr.label{i} = sprintf('%d', i);
       end
     end
     % remember original header details
@@ -523,7 +574,7 @@ switch headerformat
   case  'combined_ds'
     hdr = read_combined_ds(filename);
 
-  case {'ctf_new'} % this is an experimental implementation using the CTF p-files
+  case {'ctf_ds', 'ctf_meg4', 'ctf_res4'}
     % check the presence of the required low-level toolbox
     hastoolbox('ctf', 1);
     orig             = readCTFds(filename);
@@ -566,7 +617,7 @@ switch headerformat
     % add the original header details
     hdr.orig = orig;
 
-  case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'read_ctf_res4'} % the default reader for CTF is read_ctf_res4
+  case {'ctf_old', 'read_ctf_res4'}
     % read it using the open-source matlab code that originates from CTF and that was modified by the FCDC
     orig             = read_ctf_res4(headerfile);
     hdr.Fs           = orig.Fs;
@@ -636,13 +687,13 @@ switch headerformat
 
   case 'eeglab_set'
     hdr = read_eeglabheader(filename);
-    
+
   case  'spmeeg_mat'
     hdr = read_spmeeg_header(filename);
-    
+
   case  'ced_spike6mat'
     hdr = read_spike6mat_header(filename);
-    
+
   case 'eep_cnt'
     % check that the required low-level toolbox is available
     hastoolbox('eeprobe', 1);
@@ -726,17 +777,17 @@ switch headerformat
     % segmented type only
     [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
     [p, f, x]       = fileparts(filename);
-  
+
     hdr.Fs          = header_array(9);
     hdr.nChans      = header_array(10);
     for i = 1:hdr.nChans
-        hdr.label{i}  = ['e' num2str(i)];
+      hdr.label{i}  = ['e' num2str(i)];
     end;
     hdr.nTrials     = header_array(15);
     hdr.nSamplesPre = preBaseline;
 
     if hdr.nSamplesPre == 0
-        hdr.nSamplesPre = 1; % If baseline was left as zero, then change to "1" to avoid possible issues with software expecting a non-zero baseline.
+      hdr.nSamplesPre = 1; % If baseline was left as zero, then change to "1" to avoid possible issues with software expecting a non-zero baseline.
     end;
 
     hdr.nSamples    = header_array(16); % making assumption that number of samples is same for all cells
@@ -902,10 +953,16 @@ switch headerformat
     % remember the original header details
     hdr.orig = orig;
 
-  case 'ns_cnt'
+  case {'ns_cnt' 'ns_cnt16', 'ns_cnt32'}
     % read_ns_cnt originates from the EEGLAB package (loadcnt.m) but is
     % an old version since the new version is not compatible any more
-    orig = read_ns_cnt(filename, 'ldheaderonly', 1);
+    if strcmp(headerformat, 'ns_cnt')
+      orig = read_ns_cnt(filename, 'ldheaderonly', 1);
+    elseif strcmp(headerformat, 'ns_cnt16')
+      orig = read_ns_cnt(filename, 'ldheaderonly', 1, 'format', 16);
+    elseif strcmp(headerformat, 'ns_cnt32')
+      orig = read_ns_cnt(filename, 'ldheaderonly', 1, 'format', 32);
+    end
     % do some reformatting/renaming of the header items
     hdr.Fs          = orig.rate;
     hdr.nChans      = orig.nchannels;
@@ -1055,6 +1112,14 @@ switch headerformat
     end
 end
 
+if cache && exist(headerfile, 'file')
+  % put the header in the cache
+  cacheheader = hdr;
+  % update the header details (including time stampp, size and name)
+  cacheheader.details = dir(headerfile);
+  % fprintf('added header to cache\n');
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION to determine the file size in bytes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1111,3 +1176,4 @@ for i=1:length(hdr)
   end
 end
 hdr = tmp;
+

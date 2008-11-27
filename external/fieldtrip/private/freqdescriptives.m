@@ -20,10 +20,10 @@ function [output] = freqdescriptives(cfg, freq)
 %                        are projected on the direction in which the average power over trials is maximal
 %   cfg.variance      = 'yes' or 'no', estimate standard error in the standard way (default = 'no)
 %                       works only for power
-%   cfg.jackknife     = 'yes' or 'no', estimate standard error by means of the jack-knife (default = 'yes') 
-%                       for power and coherence          
+%   cfg.jackknife     = 'yes' or 'no', estimate standard error by means of the jack-knife (default = 'yes')
+%                       for power and coherence
 %   cfg.biascorrect   = 'yes' or 'no', calculate jackknife bias-corrected power and coherence (default = 'no')
-%                       this option can only chosen if cfg.jackknife = 'yes' 
+%                       this option can only chosen if cfg.jackknife = 'yes'
 %   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
 %                       see CHANNELSELECTION for details
 %   cfg.channelcmb    = Mx2 cell-array with selection of channel pairs (default = {'all' 'all'}),
@@ -65,8 +65,10 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
-% Revision 1.53  2008/11/11 18:59:26  sashae
-% added call to checkconfig at end of function (trackconfig and checksize)
+% Revision 1.54  2008/11/27 08:48:39  kaigoe
+% Speedup by removing for-loops. Added some comments regarding coherence.
+% Further speedup possible, if SEM Jackknife estimation should not be
+% computed (3x).
 %
 % Revision 1.52  2008/09/30 16:45:55  sashae
 % checkconfig: checks if the input cfg is valid for this function
@@ -225,7 +227,7 @@ bcrflg   = strcmp(cfg.biascorrect, 'yes');
 if sum([jckflg psdflg varflg]>1)
   error('you should specify only one of cfg.jackknife, cfg.pseudovalue or cfg.variance');
 end
- 
+
 if ~hasrpt && (jckflg || psdflg || varflg),
   error('a variance-estimate or pseudovalue-estimate without repeated observations in the input is not possible');
 end
@@ -305,7 +307,7 @@ if ~hastim,
   tbin   = 1;
 elseif hastim && strcmp(cfg.toilim, 'all'),
   tbin   = [1:length(freq.time)];
-else 
+else
   tbin   = [nearest(freq.time, cfg.latency(1)):nearest(freq.time, cfg.latency(2))];
 end
 hastim  = length(tbin)>1;
@@ -321,7 +323,7 @@ if hasdft,
     end
     % inputlabel2outputlabel will check whether combinechan = 'planar' and act accordingly
     tmpcfg = [];
-    tmpcfg.combinechan = cfg.combinechan; 
+    tmpcfg.combinechan = cfg.combinechan;
     [outputlabel, outputindex] = inputlabel2outputlabel(tmpcfg, freq);
     fourier = zeros(Nrpttap, length(outputindex), Nfrq, Ntim);
     progress('init', cfg.feedback, 'computing svdfft for combined channels');
@@ -361,17 +363,17 @@ end
 %channels should be specified as channels in the desired output
 cfg.channel    = channelselection(cfg.channel,      freq.label);
 cfg.partchan   = channelselection(cfg.partchan,     freq.label);
-cfg.channelcmb = channelcombination(cfg.channelcmb, freq.label);
 
+cfg.channelcmb = channelcombination(cfg.channelcmb, freq.label);
 %further preprocessing of fourierspectra, not needed to consider planar combinations anymore
 if hasdft,
   %convert to cross-spectra
-  partindx = match_str(freq.label, cfg.partchan); 
-  chnindx  = match_str(freq.label, cfg.channel); 
+  partindx = match_str(freq.label, cfg.partchan);
+  chnindx  = match_str(freq.label, cfg.channel);
   %check which channels are needed
   chancmb  = cfg.channelcmb;
-  for j = 1:length(cfg.partchan), 
-    chancmb       = [cfg.channel repmat(cfg.partchan(j), [length(cfg.channel) 1]); chancmb];  
+  for j = 1:length(cfg.partchan),
+    chancmb       = [cfg.channel repmat(cfg.partchan(j), [length(cfg.channel) 1]); chancmb];
   end
   chnindx = unique([chnindx; partindx]);
   tmpcfg = [];
@@ -382,7 +384,7 @@ if hasdft,
   freq   = fourier2crsspctrm(tmpcfg, freq);
   hascsd = isfield(freq, 'crsspctrm');
   haspow = isfield(freq, 'powspctrm');
-end 
+end
 
 %concatenate cross-spectra and power-spectra
 if hascsd && haspow,
@@ -410,19 +412,22 @@ if jckflg || psdflg || varflg
   dof(find(dof<3)) = nan;
 end
 
-sumcrsspctrm = complex(zeros(1,Ncmb,Nfrq,Ntim), ...
-                       zeros(1,Ncmb,Nfrq,Ntim));
-for j = 1:Ncmb
-  sumcrsspctrm(1,j,:,:) = nansum(freq.crsspctrm(:,j,:,:),1);
-end
+% new efficient version
+sumcrsspctrm(1,:,:,:) = nansum(freq.crsspctrm,1);
+% does the same as the old inefficient version
+% sumcrsspctrm = complex(zeros(1,Ncmb,Nfrq,Ntim), ...
+%                        zeros(1,Ncmb,Nfrq,Ntim));
+% for j = 1:Ncmb
+%   sumcrsspctrm(1,j,:,:) = nansum(freq.crsspctrm(:,j,:,:),1);
+% end
 avgcrsspctrm = sumcrsspctrm./dof;
 
 %compute leave-one-out averages
-if jckflg || psdflg, 
+if jckflg || psdflg,
   progress('init', cfg.feedback, 'computing the leave-one-out averages');
   for j = 1:Nrpt
     progress(j/Nrpt);
-    freq.crsspctrm(j,:,:,:) = (sumcrsspctrm - freq.crsspctrm(j,:,:,:))./(dof-double(ind(j,:,:,:)));  
+    freq.crsspctrm(j,:,:,:) = (sumcrsspctrm - freq.crsspctrm(j,:,:,:))./(dof-double(ind(j,:,:,:)));
   end
   progress('close');
 elseif varflg,
@@ -487,24 +492,43 @@ if hascsd,
     % sgncmbindx(k,1) = strmatch(cfg.channelcmb(k,1), data.label, 'exact');
     % sgncmbindx(k,2) = strmatch(cfg.channelcmb(k,2), data.label, 'exact');
   end
- 
-  for j = 1 %average consists of 1 repetition
-    for k = 1:Nfrq
-      for m = 1:Ntim
-        avgcrsspctrm(j, :, k, m) = avgcrsspctrm(j, :, k, m)./sqrt( avgpowspctrm(j, cmbindx(:,1), k, m) .* avgpowspctrm(j, cmbindx(:,2), k, m) );       
-      end
-    end
-  end
-  
-  progress('init', cfg.feedback, 'computing the coherence');
-  for j = 1:Nrpt
-    progress(j/Nrpt);
-    for k = 1:Nfrq
-      for m = 1:Ntim
-        freq.crsspctrm(j, :, k, m) = freq.crsspctrm(j, :, k, m)./sqrt( freq.powspctrm(j, cmbindx(:,1), k, m) .* freq.powspctrm(j, cmbindx(:,2), k, m) );            end
-    end
-  end
-  progress('close');
+
+  % TODO: THIS is the COHERENCE
+  % AT LEAST THIS IS WHAT LINE
+  %  621: output.cohspctrm = reshape(avgcrsspctrm, [sizcrs(2:end), 1]);
+  % says
+
+  fprintf('computing the coherence\n');
+  % new efficient version
+  avgcrsspctrm = avgcrsspctrm./sqrt( avgpowspctrm(:, cmbindx(:,1), :, :) .* avgpowspctrm(:, cmbindx(:,2), :, :) );
+  % does the same as the old, unefficient version:
+  %   for j = 1 %average consists of 1 repetition
+  %     for k = 1:Nfrq
+  %       for m = 1:Ntim
+  %         avgcrsspctrm(j, :, k, m) = avgcrsspctrm(j, :, k, m)./sqrt( avgpowspctrm(j, cmbindx(:,1), k, m) .* avgpowspctrm(j, cmbindx(:,2), k, m) );
+  %       end
+  %     end
+  %   end
+
+  % TODO: If I see this correctly, thats not the coherence. Instead, the
+  % avgcrsspctrm computed above seems to be the coherence...
+  % TODO: It this is true, than avoid computing it, if we do not need it
+  % (takes quite long)
+
+  fprintf('computing the coherence for SEM\n');
+  % new efficient version
+  freq.crsspctrm = freq.crsspctrm ./sqrt( freq.powspctrm(:, cmbindx(:,1), :, :) .* freq.powspctrm(:, cmbindx(:,2), :, :) );
+  % performs the same operation as the old but inefficient version
+  % (for larger datassets, >50x faster - Order: O(>n))
+  %   for j = 1:Nrpt
+  %     progress(j/Nrpt);
+  %     for k = 1:Nfrq
+  %       for m = 1:Ntim
+  %         freq.crsspctrm(j, :, k, m) = freq.crsspctrm(j, :, k, m)./sqrt( freq.powspctrm(j, cmbindx(:,1), k, m) .* freq.powspctrm(j, cmbindx(:,2), k, m) );
+  %       end
+  %     end
+  %   end
+
 
   %put output coherence in correct format
   switch cfg.complex
@@ -541,18 +565,18 @@ if haspow,
     powspctrmbcr = zeros(1,size(freq.powspctrm,2),Nfrq,Ntim);
   end
   if jckflg,
-    for j = 1:Ntim 
-      powspctrmsem(:,:,j) = squeeze(nanstd(freq.powspctrm(:, :, :, j), 1, 1).*sqrt(dofpow(:,:,:,j)-1)); %cf Efron p.141    
+    for j = 1:Ntim
+      powspctrmsem(:,:,j) = squeeze(nanstd(freq.powspctrm(:, :, :, j), 1, 1).*sqrt(dofpow(:,:,:,j)-1)); %cf Efron p.141
       if bcrflg
-      % temporarily store the average over the jackknife samples in powspctrmbcr
+        % temporarily store the average over the jackknife samples in powspctrmbcr
         powspctrmbcr(:,:,:,j) = nanmean(freq.powspctrm(:, :, :, j), 1);
       end;
     end
   elseif varflg,
     for j = 1:Ntim
       powspctrmsem(:,:,j) = squeeze(nanstd(freq.powspctrm(:, :, :, j), 0, 1)./sqrt(dofpow(:,:,:,j)));
-    end 
-  end         
+    end
+  end
 end
 
 if hascsd,
@@ -564,7 +588,7 @@ if hascsd,
     for j = 1:Ntim
       cohspctrmsem(:,:,j) = squeeze(nanstd(freq.crsspctrm(:, :, :, j), 1, 1).*sqrt(dofcsd(:,:,:,j)-1));
       if bcrflg
-      % temporarily store the average over the jackknife samples in cohspctrmbcr
+        % temporarily store the average over the jackknife samples in cohspctrmbcr
         cohspctrmbcr(:,:,:,j) = nanmean(freq.crsspctrm(:, :, :, j), 1);
       end;
     end
@@ -577,18 +601,18 @@ end
 output                 = [];
 output.dimord          = newdimord;
 output.freq            = freq.freq;
-if hastim, 
-  output.time = freq.time; 
+if hastim,
+  output.time = freq.time;
 end
 output.label           = freq.label;
 
 if strcmp(cfg.keeptrials, 'no'),
   sizpow                 = size(avgpowspctrm);
   output.powspctrm       = reshape(avgpowspctrm, [sizpow(2:end), 1]);
-  if jckflg || varflg,           
+  if jckflg || varflg,
     output.powspctrmsem = powspctrmsem;
   end
-  if hascsd, 
+  if hascsd,
     output.labelcmb     = freq.labelcmb;
     sizcrs = size(avgcrsspctrm);
     if plvflg,
@@ -604,7 +628,7 @@ if strcmp(cfg.keeptrials, 'no'),
       output.cohspctrmsem = cohspctrmsem;
     end
   end
-  if hascsd, 
+  if hascsd,
     output.dof = reshape(dofcsd, [sizcrs(2:end), 1]);
   else
     output.dof = reshape(dofpow, [sizpow(2:end), 1]);
@@ -619,7 +643,7 @@ else
   end
   if strcmp(cfg.keepfourier, 'yes'),
     output.fourierspctrm = freq.fourierspctrm;
-    output.dimord        = ['rpttap_',output.dimord(5:end)]; 
+    output.dimord        = ['rpttap_',output.dimord(5:end)];
     output.cumtapcnt     = freq.cumtapcnt;
     output               = rmfield(output, 'powspctrm');
   end
@@ -637,9 +661,6 @@ try, output.grad       = freq.grad; end
 %    output.pseudo.cohspctrm = repmat(Nrpt.*coh, [Nrpt 1 1 1]) - (Nrpt-1).*jckcoh;
 %  end
 
-% get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
 % add version information to the configuration
 try
   % get the full name of the function
@@ -649,7 +670,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.53 2008/11/11 18:59:26 sashae Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.54 2008/11/27 08:48:39 kaigoe Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details
@@ -668,7 +689,7 @@ Ntim      = size(crsspctrm,4);
 %create signalcombination-matrix, each non-nan entry corresponding
 %with the index of the signalcombination in the cross-spectrum
 %negative entries should be conjugated before further processing.
-%the underlying idea is to temporarily convert the cross-spectra into 
+%the underlying idea is to temporarily convert the cross-spectra into
 %a matrix-shape, so that the partialisation can take place efficiently
 %this mainly involves a lot of careful book-keeping
 fprintf('indexing the channels and channel combinations\n');
@@ -699,8 +720,8 @@ sgnindx     = setdiff(sgnindx, prtindx);
 prtsgnmat   = sgncmbmat(prtindx,prtindx);
 rstsgnmat   = sgncmbmat(sgnindx,sgnindx);
 Nprtsgn     = length(prtindx);
-Nrstsgn     = length(sgnindx);  
-prtsgnlabel = freq.label(prtindx); 
+Nrstsgn     = length(sgnindx);
+prtsgnlabel = freq.label(prtindx);
 label       = freq.label(sgnindx);
 
 %the reformatting of the cross-spectral densities leads to a re-ordering of the signal-combinations
@@ -735,16 +756,16 @@ for m = 1:size(crsspctrm,1)
   progress(m/size(crsspctrm,1));
   %a bit of hocus-pocus with the cross-spectral densities
   csdrr(find(~isnan(rstsgnmat)),:,:)  = squeeze(crsspctrm(m,abs(rstsgnmat(find(~isnan(rstsgnmat)))),:,:));
-  csdpp(:) = squeeze(crsspctrm(m,abs(prtsgnmat),:,:));  
+  csdpp(:) = squeeze(crsspctrm(m,abs(prtsgnmat),:,:));
   csdrp(:) = squeeze(crsspctrm(m,abs(rstprtsgnmat),:,:));
   csdpr(:) = squeeze(crsspctrm(m,abs(prtrstsgnmat),:,:));
-  
+
   %take care of the conjugates
   csdrr(find(rstsgnmat<0),:,:)     = conj(csdrr(find(rstsgnmat<0),:,:));
   csdpp(find(prtsgnmat<0),:,:)     = conj(csdpp(find(prtsgnmat<0),:,:));
   csdrp(find(rstprtsgnmat<0),:,:)  = conj(csdrp(find(rstprtsgnmat<0),:,:));
   csdpr(find(prtrstsgnmat<0),:,:)  = conj(csdpr(find(prtrstsgnmat<0),:,:));
-  
+
   %perform the partialisation
   for j = 1:Nfrq
     for k = 1:Ntim
@@ -752,7 +773,7 @@ for m = 1:size(crsspctrm,1)
       rp  = reshape(squeeze(csdrp(:,j,k)),[Nrstsgn Nprtsgn]);
       pp  = reshape(squeeze(csdpp(:,j,k)),[Nprtsgn Nprtsgn]);
       pr  = reshape(squeeze(csdpr(:,j,k)),[Nprtsgn Nrstsgn]);
-      rrp = rr - rp*pinv(pp)*pr;    
+      rrp = rr - rp*pinv(pp)*pr;
       csdp(m,:,j,k) = rrp(find(~isnan(rrp)));
     end
   end
