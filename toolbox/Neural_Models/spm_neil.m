@@ -6,7 +6,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_neil.m 2493 2008-11-26 20:07:24Z karl $ 
+% $Id: spm_neil.m 2495 2008-11-27 12:18:33Z karl $ 
  
 
 % Model specification
@@ -21,7 +21,7 @@ hE(end) = 1;
 % model
 %--------------------------------------------------------------------------
 clear H
-H.f     = 'spm_fx_hdm';
+H.f     = 'spm_fx_hdm_neil';
 H.g     = 'spm_gx_hdm';
 H.x     = [0 0 0 0]';
 H.pE    = hE;    
