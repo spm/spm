@@ -69,7 +69,7 @@ function [Y,y,beta,Bcov] = spm_graph(xSPM,SPM,hReg)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 2475 2008-11-18 09:53:26Z lee $
+% $Id: spm_graph.m 2496 2008-11-27 13:40:32Z karl $
 
 
 
@@ -361,9 +361,9 @@ switch Cplot
 
         % get ordinates
         %------------------------------------------------------------------
-        Xplot = {   'an explanatory variable',...
-            'scan or time',...
-            'a user specified ordinate'};
+        Xplot = {'an explanatory variable',...
+                 'scan or time',...
+                 'a user specified ordinate'};
         Cx    = spm_input('plot against','!+1','m',Xplot);
 
         % an explanatory variable
@@ -517,8 +517,6 @@ switch Cplot
         switch TITLE
 
             case 'fitted response and PSTH'
-
-                PSTH
                 %----------------------------------------------------------
                 errorbar(PST,PSTH,PCI)
                 plot(PST,PSTH,'LineWidth',4,'Color',Col(2,:))

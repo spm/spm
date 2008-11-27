@@ -3,7 +3,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % FORMAT [SPM] = spm_fMRI_design(SPM)
 %
 % 1st level
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % SPM.
 %
 %       xY: [1x1 struct] - data structure
@@ -14,7 +14,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %
 %
 %    2nd level
-%    -----------------------------------------------------------------------
+%    ----------------------------------------------------------------------
 %    SPM.xY
 %           RT: - repetition time {seconds)
 %
@@ -27,7 +27,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %         name: - name of basis set
 %       length: - support of basis set {seconds}
 %        order: - order of basis set
-%           bf: - basis set matrix 
+%           bf: - basis set matrix
 %
 %    SPM.Sess(s)
 %            U: - Input structure array
@@ -46,7 +46,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %
 %
 %        3rd level
-%        -------------------------------------------------------------------
+%        ------------------------------------------------------------------
 %        SPM.Sess(s).U
 %               dt: - time bin length {seconds}
 %             name: - {1 x j} cell of names for each input or cause
@@ -57,30 +57,30 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %              pst: - (1 x k) peristimulus times (seconds)
 %
 %
-%        SPM.Sess(s).C     
-% 
+%        SPM.Sess(s).C
+%
 %                C: - [kx1 double] of user specified regressors
 %             name: - {1xk} cellstr of regressor names
 %
 %
-%        SPM.Sess(s).Fc     
+%        SPM.Sess(s).Fc
 %
 %                i: - F Contrast colums for input-specific effects
 %             name: - F Contrast names  for input-specific effects
 %
 %
 %            4th level
-%            ---------------------------------------------------------------
+%            --------------------------------------------------------------
 %            SPM.Sess(s).U(i).P(p)
 %
 %                 name: - parameter name
 %                    P: - (q x 1) parameter matrix
 %                    h: - order of polynomial expansion (0 = none)
 %                    i: - sub-indices of U(i).u for plotting
-%  
+%
 %
 % saves SPM.mat if save_SPM==1 (this is the default)
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_fMRI_design allows you to build design matrices with separable
 % session-specific partitions.  Each partition may be the same (in which
@@ -91,13 +91,13 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % of responses to instantaneous events.  Mathematically they are both
 % modelled by convolving a series of delta (stick) or box-car functions,
 % encoding the input or stimulus function. with a set of hemodynamic
-% basis functions.  
+% basis functions.
 %
 % spm_fMRI_design allows you to combine both event- and epoch-related
 % responses in the same model and/or regressor. You specify the number
-% of trial (event or epoch) types.  Epoch and event-related 
+% of trial (event or epoch) types.  Epoch and event-related
 % responses are modeled in exactly the same way by first specifying their
-% onsets [in terms of onset times] and then their durations.  Events are 
+% onsets [in terms of onset times] and then their durations.  Events are
 % specified with a duration of 0.  If you enter a single number for the
 % durations it will be assumed that all trials conform to this duration.
 %
@@ -119,14 +119,14 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % fields.  These interactions can be characterized later, in results, in
 % terms of the corresponding second order Volterra Kernels.
 %
-% The design matrix is assembled on a much finer time scale (xBF.dt) than the 
+% The design matrix is assembled on a much finer time scale (xBF.dt) than the
 % TR and is then sub-sampled at the acquisition times.  After down-sampling
-% the regressors for each input are othogonalised.  This ensures that 
+% the regressors for each input are othogonalised.  This ensures that
 % components due to the canonical hrf are not explained away by other basis
 % functions or parametric modulators.
 %
 % Sess(s).ons(u) contains onset times in seconds or scans relative to the
-% timing of the first scan 
+% timing of the first scan
 %
 % Notes on spm_get_ons, spm_get_bf and spm_Volterra are included below
 % for convenience.
@@ -161,34 +161,34 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % assemble the second order kernel in spm_graph.m.  Second order effects
 % are computed for only the first column of U(u).u.
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 2021 2008-08-27 10:05:32Z volkmar $
+% $Id: spm_fMRI_design.m 2496 2008-11-27 13:40:32Z karl $
 
 
-SCCSid  = '$Rev: 2021 $';
+SCCSid  = '$Rev: 2496 $';
 
 %-GUI setup
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPMid = spm('SFnBanner',mfilename,SCCSid);
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','fMRI stats model setup',0);
 spm_help('!ContextHelp',mfilename)
 
-if nargin==1
-    save_SPM=1;
+if nargin == 1
+    save_SPM = 1;
 end
 
 
 % construct Design matrix {X} - cycle over sessions
-%=======================================================================
+%==========================================================================
 
 % global parameters
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
-    fMRI_T     = SPM.xBF.T;
-    fMRI_T0    = SPM.xBF.T0;
+    fMRI_T  = SPM.xBF.T;
+    fMRI_T0 = SPM.xBF.T0;
 catch
     fMRI_T  = 16;
     fMRI_T0 = 1;
@@ -198,7 +198,7 @@ end
 
 
 % get nscan and RT if not in SPM
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     SPM.xY.RT;
 catch
@@ -208,21 +208,21 @@ end
 try
     SPM.nscan;
 catch
-        SPM.nscan = spm_input('scans per session e.g. 64 64 64','+1');
+    SPM.nscan = spm_input('scans per session e.g. 64 64 64','+1');
 end
 
 % time units, dt = time bin {secs}
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xBF.dt = SPM.xY.RT/SPM.xBF.T;
 try
     SPM.xBF.UNITS;
-catch   
+catch
     str           = 'specify design in';
     SPM.xBF.UNITS = spm_input(str,'+1','scans|secs');
 end
 
 % separate specifications for non-replicated sessions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 rep     = 0;
 if length(SPM.nscan) > 1 && ~any(diff(SPM.nscan)) && ~isfield(SPM,'Sess')
     str = 'are sessions replications';
@@ -230,7 +230,7 @@ if length(SPM.nscan) > 1 && ~any(diff(SPM.nscan)) && ~isfield(SPM,'Sess')
 end
 
 % Get basis functions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     bf      = SPM.xBF.bf;
 catch
@@ -239,7 +239,7 @@ catch
 end
 
 % 1st or 2nd order Volterra expansion?
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try
     V   = SPM.xBF.Volterra;
 catch
@@ -250,7 +250,7 @@ end
 
 
 % get session specific design parameters
-%=======================================================================
+%==========================================================================
 Xx    = [];
 Xb    = [];
 Xname = {};
@@ -258,44 +258,44 @@ Bname = {};
 for s = 1:length(SPM.nscan)
 
     % number of scans for this session
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     k   = SPM.nscan(s);
 
     if (s == 1) || ~rep
 
         % create convolved stimulus functions or inputs
-        %=======================================================
+        %==================================================================
 
         % Get inputs, neuronal causes or stimulus functions U
-        %-------------------------------------------------------
-            U = spm_get_ons(SPM,s);
+        %------------------------------------------------------------------
+        U = spm_get_ons(SPM,s);
 
         % Convolve stimulus functions with basis functions
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         [X,Xn,Fc] = spm_Volterra(U,bf,V);
 
         % Resample regressors at acquisition times (32 bin offset)
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         try
             X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
         end
 
         % and orthogonalise (within trial type)
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         for i = 1:length(Fc)
             X(:,Fc(i).i) = spm_orth(X(:,Fc(i).i));
         end
 
 
         % get user specified regressors
-        %=======================================================
-        try 
+        %==================================================================
+        try
             C     = SPM.Sess(s).C.C;
             Cname = SPM.Sess(s).C.name;
         catch
 
             % covariates - C
-            %-----------------------------------------------
+            %--------------------------------------------------------------
             str   = sprintf('Session %d',s);
             spm_input('Other regressors',1,'d',str)
             C     = [];
@@ -306,7 +306,7 @@ for s = 1:length(SPM.nscan)
             end
 
             % and their names - Cnames
-            %-----------------------------------------------
+            %-------------------------------------------------------------- 
             Cname = cell(1,size(C,2));
             for i = 1:size(C,2)
                 str      = sprintf('regressor %i',i);
@@ -315,10 +315,8 @@ for s = 1:length(SPM.nscan)
         end
 
         % append mean-corrected regressors and names
-        %-------------------------------------------------------
-        
-        % Check dimensions
-        reg_rows=size(C,1);
+        %------------------------------------------------------------------
+        reg_rows = size(C,1);
         if (reg_rows > 0) && ~(reg_rows== k)
             str1='Error in spm_fMRI_design.m:';
             str2=sprintf('Session %d has %d scans but regressors have %d entries', s,k,reg_rows);
@@ -329,15 +327,15 @@ for s = 1:length(SPM.nscan)
         X      = [X spm_detrend(C)];
         Xn     = {Xn{:}   Cname{:}};
 
-        % Confounds: Session effects 
-        %=======================================================
+        % Confounds: Session effects
+        %==================================================================
         B      = ones(k,1);
         Bn     = {'constant'};
 
     end
 
     % Session structure array
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     SPM.Sess(s).U      = U;
     SPM.Sess(s).C.C    = C;
     SPM.Sess(s).C.name = Cname;
@@ -346,16 +344,16 @@ for s = 1:length(SPM.nscan)
     SPM.Sess(s).Fc     = Fc;
 
     % Append names
-    %---------------------------------------------------------------
-    for i = 1:length(Xn) 
+    %----------------------------------------------------------------------
+    for i = 1:length(Xn)
         Xname{end + 1} = [sprintf('Sn(%i) ',s) Xn{i}];
     end
-    for i = 1:length(Bn) 
+    for i = 1:length(Bn)
         Bname{end + 1} = [sprintf('Sn(%i) ',s) Bn{i}];
     end
 
     % append into Xx and Xb
-    %===============================================================
+    %======================================================================
     Xx    = blkdiag(Xx,X);
     Xb    = blkdiag(Xb,B);
 
@@ -363,7 +361,7 @@ end %- for s
 
 
 % finished
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SPM.xX.X      = [Xx Xb];
 SPM.xX.iH     = [];
 SPM.xX.iC     = 1:size(Xx,2);
@@ -373,8 +371,8 @@ SPM.xX.name   = {Xname{:} Bname{:}};
 
 if save_SPM
     %-End: Save SPM.mat
-    %-----------------------------------------------------------------------
-    fprintf('\t%-32s:\n ','Saving fMRI design')                            %-#
+    %----------------------------------------------------------------------
+    fprintf('\t%-32s:\n ','Saving fMRI design')                         %-#
     if spm_matlab_version_chk('7') >= 0,
         save('SPM', 'SPM', '-V6');
     else
