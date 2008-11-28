@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_eeg_review_switchDisplay.m 2499 2008-11-28 12:19:48Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -33,13 +33,13 @@ else % EEG/MEG/OTHER
             delete(findobj('tag','plotEEG'))
             [D] = standardData(D);
             cameratoolbar('resetcamera')
-            cameratoolbar('close')
+            try, cameratoolbar('close'); end
 
         case 2
             delete(findobj('tag','plotEEG'))
             [D] = scalpData(D);
             cameratoolbar('resetcamera')
-            cameratoolbar('close')
+            try, cameratoolbar('close'); end
 
     end
 

@@ -9,7 +9,7 @@ function [block] = spm_vb_init_block (Y,block)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_init_block.m 2175 2008-09-24 16:26:22Z lee $
+% $Id: spm_vb_init_block.m 2499 2008-11-28 12:19:48Z guillaume $
 
 k=block.k;
 p=block.p;

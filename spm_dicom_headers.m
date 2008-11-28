@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 2107 2008-09-17 16:49:03Z john $
+% $Id: spm_dicom_headers.m 2499 2008-11-28 12:19:48Z guillaume $
 
 if nargin<2, essentials = false; end
 
@@ -438,7 +438,7 @@ return;
 %_______________________________________________________________________
 function t = decode_csa1(fp,lim)
 n   = fread(fp,1,'uint32');
-if isempty(n) || n>128 || n < 0,
+if isempty(n) || n>128 || n <= 0,
     fseek(fp,lim-4,'cof');
     t = struct('name','JUNK: Don''t know how to read this damned file format');
     return;
