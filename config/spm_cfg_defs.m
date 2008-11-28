@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_defs.m 2338 2008-10-14 14:33:03Z john $
+% $Id: spm_cfg_defs.m 2500 2008-11-28 16:11:15Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -169,7 +169,8 @@ comp         = repeat('Composition','comp',{other{:},iv2,comp2});
 comp.num     = [1 Inf];
 comp.help    = hcomp;
 
-saveas       = entry('Save as','ofname','s',[1 Inf]);
+saveas       = entry('Save as','ofname','s',[0 Inf]);
+saveas.val   = {''};
 saveas.help  = himgw;
 
 applyto      = files('Apply to','fnames','image',[0 Inf]);
