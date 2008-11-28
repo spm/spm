@@ -73,6 +73,9 @@ function multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.44  2008/11/28 14:30:30  sashae
+% averaging over rpt/subj skipped if zparam='cohspctrm'
+%
 % Revision 1.43  2008/11/27 14:48:27  roboos
 % allow averaging over rpt or subj also for other fieldz than zparam=powspctrm (thanks to Jurrian)
 %
@@ -237,12 +240,14 @@ if strcmp(data.dimord, 'chan_freq_time')
   if ~isfield(cfg, 'yparam'),      cfg.yparam='freq';                  end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';             end
 elseif strcmp(data.dimord, 'subj_chan_freq_time') || strcmp(data.dimord, 'rpt_chan_freq_time')
-  if isfield(data, 'crsspctrm'),   data = rmfield(data, 'crsspctrm');  end % on the fly computation of coherence spectrum is not supported
+  if isfield(data, 'crsspctrm'),  data = rmfield(data, 'crsspctrm');  end % on the fly computation of coherence spectrum is not supported
   tmpcfg = [];
   tmpcfg.trials = cfg.trials;
   tmpcfg.jackknife = 'no';
-  if ~strcmp(cfg.zparam,'powspctrm')
-    % freqdesctiptives will only work on the powspctrm field, hence a temprorary copy of the data is needed
+  if isfield(cfg, 'zparam') && strcmp(cfg.zparam,'cohspctrm')
+    % on the fly computation of coherence spectrum is not supported
+  elseif isfield(cfg, 'zparam') && ~strcmp(cfg.zparam,'powspctrm')
+    % freqdesctiptives will only work on the powspctrm field, hence a temporary copy of the data is needed
     tempdata.dimord    = data.dimord;
     tempdata.freq      = data.freq;
     tempdata.time      = data.time;

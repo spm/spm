@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.55  2008/11/28 17:33:19  sashae
+% fixed bug in calculating sumcrsspctrm when input data has no time dim
+%
 % Revision 1.54  2008/11/27 08:48:39  kaigoe
 % Speedup by removing for-loops. Added some comments regarding coherence.
 % Further speedup possible, if SEM Jackknife estimation should not be
@@ -413,7 +416,7 @@ if jckflg || psdflg || varflg
 end
 
 % new efficient version
-sumcrsspctrm(1,:,:,:) = nansum(freq.crsspctrm,1);
+sumcrsspctrm(1,1:Ncmb,1:Nfrq,1:Ntim) = nansum(freq.crsspctrm,1);
 % does the same as the old inefficient version
 % sumcrsspctrm = complex(zeros(1,Ncmb,Nfrq,Ntim), ...
 %                        zeros(1,Ncmb,Nfrq,Ntim));
@@ -670,7 +673,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.54 2008/11/27 08:48:39 kaigoe Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.55 2008/11/28 17:33:19 sashae Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

@@ -47,6 +47,9 @@ function cfg = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.30  2008/11/28 16:33:58  sashae
+% allow averaging over rpt/subj also for other fields than zparam=powspctrm (thanks to Jurrian)
+%
 % Revision 1.29  2008/10/28 14:24:05  ingnie
 % fixed bug: data.time/freq should be data.(cfg.xparam/yparam)
 %
@@ -156,11 +159,26 @@ if strcmp(data.dimord, 'chan_freq_time')
   if ~isfield(cfg, 'yparam'),      cfg.yparam='freq';                  end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';             end
 elseif strcmp(data.dimord, 'subj_chan_freq_time') || strcmp(data.dimord, 'rpt_chan_freq_time')
-  if isfield(data, 'crsspctrm'),   data = rmfield(data, 'crsspctrm');  end % on the fly computation of coherence spectrum is not supported
+  if isfield(data, 'crsspctrm'),  data = rmfield(data, 'crsspctrm');  end % on the fly computation of coherence spectrum is not supported
   tmpcfg = [];
   tmpcfg.trials = cfg.trials;
   tmpcfg.jackknife = 'no';
-  data = freqdescriptives(tmpcfg, data);
+  if isfield(cfg, 'zparam') && strcmp(cfg.zparam,'cohspctrm')
+    % on the fly computation of coherence spectrum is not supported
+  elseif isfield(cfg, 'zparam') && ~strcmp(cfg.zparam,'powspctrm')
+    % freqdesctiptives will only work on the powspctrm field, hence a temporary copy of the data is needed
+    tempdata.dimord    = data.dimord;
+    tempdata.freq      = data.freq;
+    tempdata.time      = data.time;
+    tempdata.label     = data.label;
+    tempdata.powspctrm = data.(cfg.zparam);
+    tempdata.cfg       = data.cfg;
+    tempdata           = freqdescriptives(tmpcfg, tempdata);
+    data.(cfg.zparam)  = tempdata.powspctrm;
+    clear tempdata
+  else
+    data = freqdescriptives(tmpcfg, data);
+  end
   if ~isfield(cfg, 'xparam'),      cfg.xparam='time';                  end
   if ~isfield(cfg, 'yparam'),      cfg.yparam='freq';                  end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';             end

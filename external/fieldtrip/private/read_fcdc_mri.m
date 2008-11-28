@@ -16,6 +16,9 @@ function [mri] = read_fcdc_mri(filename);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: read_fcdc_mri.m,v $
+% Revision 1.18  2008/11/28 10:25:51  roboos
+% added ctf_mri4, thanks to Ivar
+%
 % Revision 1.17  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -90,6 +93,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if filetype(filename, 'ctf_mri')
   [img, hdr] = read_ctf_mri(filename);
+  transform = hdr.transformMRI2Head;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+elseif filetype(filename, 'ctf_mri4')
+  [img, hdr] = read_ctf_mri4(filename);
   transform = hdr.transformMRI2Head;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
