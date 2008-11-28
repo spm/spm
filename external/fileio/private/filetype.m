@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.88  2008/11/28 10:24:24  roboos
+% added ctf mri version 4, thanks to Ivar
+%
 % Revision 1.87  2008/11/12 16:50:26  roboos
 % improved detection for BCI2000
 %
@@ -308,6 +311,10 @@ elseif filetype_check_extension(filename, '.mrk') && filetype_check_header(filen
   content = 'marker file';
 elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, 'CTF_MRI_FORMAT VER 2.2')
   ftype = 'ctf_mri';
+  manufacturer = 'CTF';
+  content = 'MRI';
+elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, 'CTF_MRI_FORMAT VER 4', 31)
+  ftype = 'ctf_mri4';
   manufacturer = 'CTF';
   content = 'MRI';
 elseif filetype_check_extension(filename, '.hdm')
