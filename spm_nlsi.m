@@ -5,18 +5,19 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % Model specification
 %--------------------------------------------------------------------------
-% M.f   - dx/dt = f(x,u,P,M)  {function string or m-file}
-% M.g   - y     = g(x,u,P,M)  {function string or m-file}
+% M.nlDCM - 0 = bilinear DCM; 1 = nonlinear DCM
+% M.f     - dx/dt = f(x,u,P,M)  {function string or m-file}
+% M.g     - y     = g(x,u,P,M)  {function string or m-file}
 %
-% M.pE  - (p x 1)   Prior expectation of p model parameters
-% M.pC  - (p x p)   Prior covariance for p model parameters
+% M.pE    - (p x 1)   Prior expectation of p model parameters
+% M.pC    - (p x p)   Prior covariance for p model parameters
 %
-% M.x   - (n x 1)   intial state x(0)
-% M.m   - m         number of inputs
-% M.n   - n         number of states
-% M.l   - l         number of outputs
-% M.N   -           kernel depth
-% M.dt  -           kernel resolution {secs}
+% M.x     - (n x 1)   intial state x(0)
+% M.m     - m         number of inputs
+% M.n     - n         number of states
+% M.l     - l         number of outputs
+% M.N     -           kernel depth
+% M.dt    -           kernel resolution {secs}
 %
 % System inputs
 %--------------------------------------------------------------------------
@@ -81,7 +82,7 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % see also
 % spm_nlsi_GN:   Bayesian parameter estimation using an EM/Gauss-Newton method
-% spm_bireduce: Reduction of a fully nonlinear MIMO system to Bilinear form
+% spm_bireduce:  Reduction of a fully nonlinear MIMO system to Bilinear form
 % spm_kernels:   Returns global Volterra kernels for a MIMO Bilinear system
 %
 % SEE NOTES AT THE END OF THIS SCRIPT FOR EXAMPLES
@@ -90,14 +91,18 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_nlsi.m 2504 2008-11-29 15:53:11Z klaas $
 
 % check integrator
 %--------------------------------------------------------------------------
 try
     M.IS;
 catch
-    M.IS = 'spm_int';
+    if ~M.nlDCM
+        M.IS = 'spm_int';
+    else
+        M.IS = 'spm_int_J';
+    end
 end
 
 % Expansion point (in parameter space) for Bilinear-kernel representations
@@ -176,6 +181,7 @@ end
 
 
 return
+
 
 % NOTES ON USE
 %==========================================================================

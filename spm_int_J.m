@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 2029 2008-09-02 18:26:23Z karl $
+% $Id: spm_int_J.m 2504 2008-11-29 15:53:11Z klaas $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -125,39 +125,118 @@ catch
 end
 
 
-% integrate
-%==========================================================================
-for i = 1:ns
+if ~M.nlDCM
 
-    % input
-    %----------------------------------------------------------------------
-    try
-        u  = U.u(i,:);
+    % integrate (any other model than nonlinear DCM for fMRI)
+    %======================================================================
+    for i = 1:ns
+
+        % input
+        %------------------------------------------------------------------
+        try
+            u  = U.u(i,:);
+        end
+
+        % dx(t)/dt and Jacobian df/dx
+        %------------------------------------------------------------------
+        try
+            [fx dfdx] = f(x,u,P,M);
+        catch
+            fx        = f(x,u,P,M);
+            dfdx      = spm_diff(f,x,u,P,M,1);
+        end
+
+        % update dx = (expm(dt*J) - I)*inv(J)*fx
+        %------------------------------------------------------------------
+        x  = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
+
+        % output - implement g(x)
+        %------------------------------------------------------------------
+        if length(g)
+            y(:,i) = spm_vec(g(x,u,P,M));
+        else
+            y(:,i) = spm_vec(x);
+        end
     end
 
-    % dx(t)/dt and Jacobian df/dx
-    %----------------------------------------------------------------------
-    try
-        [fx dfdx] = f(x,u,P,M);
-    catch
-        fx        = f(x,u,P,M);
-        dfdx      = spm_diff(f,x,u,P,M,1);
-    end
+else
 
-    % update dx = (expm(dt*J) - I)*inv(J)*fx
-    %----------------------------------------------------------------------
-    x  = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
+    % integrate (nonlinear DCM for fMRI)
+    %======================================================================
 
-    % output - implement g(x)
+    % Determine sampling time points
     %----------------------------------------------------------------------
-    if length(g)
-        y(:,i) = spm_vec(g(x,u,P,M));
+    nt = size(U.u,1); % no. of time bins
+    sample = 0;
+
+    if isfield(M, 'delays')
+        % if slice timing delays specified, transform delays to time bins
+        %------------------------------------------------------------------
+        delays = max(1, round(M.delays/U.dt));
+        s  = [];
+        for j = 1:M.l
+            s = [s ceil([0:ns-1]*nt/ns) + delays(j)];
+        end
+        s  = unique(s);
+        % index vector from oversampled time to scans
+        s_ind(s) = [1:length(s)];
+        Nu = length(s);
     else
-        y(:,i) = spm_vec(x);
+        % no slice timing delays specified: keep 'original' output times
+        % i.e. last time bin (NB: 32 bin offset has already been corrected
+        % by spm_dcm_ui/spm_dcm_create)
+        s  = ceil([1:ns]*nt/ns);
+    end
+
+    for i = 1:nt
+
+        % input
+        %----------------------------------------------------------------------
+        try
+            u  = U.u(i,:);
+        end
+
+        % dx(t)/dt and Jacobian df/dx
+        %----------------------------------------------------------------------
+        try
+            [fx dfdx] = f(x,u,P,M);
+        catch
+            fx        = f(x,u,P,M);
+            dfdx      = spm_diff(f,x,u,P,M,1);
+        end
+
+        % update dx = (expm(dt*J) - I)*inv(J)*fx
+        %------------------------------------------------------------------
+        x  = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
+
+        % output - implement g(x)
+        %----------------------------------------------------------------------
+        % check whether response is sampled at present time
+        if find(s==i)
+            sample = sample + 1;
+
+%             if length(g)
+%                 y(:,sample) = spm_vec(spm_gx_dcm(x,u,P,M));
+%             else
+%                 y(:,sample) = spm_vec(x);
+%             end
+
+            if length(g)
+                y(:,sample) = spm_vec(g(x,u,P,M));
+            else
+                y(:,sample) = spm_vec(x);
+            end
+            
+        end
+
     end
 
 end
 
+
 % transpose
 %--------------------------------------------------------------------------
 y      = real(y');
+
+return
+

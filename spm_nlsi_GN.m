@@ -4,6 +4,8 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
 %__________________________________________________________________________
+% M.nlDCM - 0 = bilinear DCM; 1 = nonlinear DCM
+%
 % M.IS - function name f(P,M,U) - generative model
 %        This function specifies the nonlinear model: 
 %        y = Y.y = IS(P,M,U) + X0*P0 + e
@@ -77,7 +79,7 @@ function [Ep,Cp,S,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 2392 2008-10-23 14:57:31Z karl $
+% $Id: spm_nlsi_GN.m 2504 2008-11-29 15:53:11Z klaas $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -93,7 +95,11 @@ end
 try
     M.IS;
 catch
-    M.IS = 'spm_int_L';
+    if ~M.nlDCM
+        M.IS = 'spm_int';
+    else
+        M.IS = 'spm_int_J';
+    end
 end
  
 % composition of feature selection and prediction (usually an integrator)
@@ -164,7 +170,6 @@ try
 catch
     Y.dt = 1;
 end
- 
  
 % precision components Q
 %--------------------------------------------------------------------------
