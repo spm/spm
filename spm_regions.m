@@ -37,7 +37,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % the null space of a selected contrast, or can be omitted.
 %
 % For a VOI of radius 0, the [adjusted] voxel time-series is
-% returned, and scaled to have a 2-norm or 1. The actual [adjusted]
+% returned, and scaled to have a 2-norm of 1. The actual [adjusted]
 % voxel time series can be extracted from xY.y, and will be
 % the same as the [adjusted] data returned by the plotting routine
 % (spm_graph.m) for the same contrast.
@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 1265 2008-03-28 11:45:04Z john $
+% $Id: spm_regions.m 2503 2008-11-29 11:38:15Z klaas $
 
 
 
@@ -105,7 +105,7 @@ if ~isfield(xY,'Ic')
     xY.Ic = q(i);
 end
 
-%-if fMRI data get sessions and filtering options
+%-if fMRI data then ask user to select session
 %-----------------------------------------------------------------------
 if isfield(SPM,'Sess')
 

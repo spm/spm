@@ -7,18 +7,14 @@ function [y] = spm_gx_dcm(x,u,P,M)
 % P    - Parameter vector (see spm_fx_dcm)
 %__________________________________________________________________________
 %
-% References: 
-% 1. Obata T, Liu TT, Miller KL, Luh WM, Wong EC, Frank LR, Buxton RB.
-%    Discrepancies between BOLD and flow dynamics in primary and 
-%    supplementary motor areas: application of the balloon model to the 
-%    interpretation of BOLD transients. NeuroImage 21:144-153 (2004). 
-% 2. Stephan KE, Weiskopf N, Drysdale PM, Robinson PA, Friston KJ.
-%    Comparing hemodynamic models with DCM. NeuroImage (in press)
+% Reference: 
+% Stephan KE, Weiskopf N, Drysdale PM, Robinson PA, Friston KJ (2007)
+% Comparing hemodynamic models with DCM. NeuroImage 38: 387-401.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_dcm.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_gx_dcm.m 2503 2008-11-29 11:38:15Z klaas $
 
 
 % Biophysical constants for 1.5 T (see Obata et al. 2004)
