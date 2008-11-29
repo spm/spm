@@ -51,7 +51,6 @@ function topoplotER(cfg, varargin)
 %   topoplot, topoplotTFR, singleplotER, multiplotER, prepare_layout
 
 % Undocumented local options:
-% cfg.cohtargetchannel
 % cfg.layoutname
 % The following additional cfg parameters are used when plotting 3-dimensional
 % data (i.e. when topoplotTFR calls topoplotER):
@@ -72,6 +71,10 @@ function topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.50  2008/11/28 21:43:27  sashae
+% allow averaging over rpt/subj also for other fields than zparam=powspctrm (thanks to Jurrian)
+% added call to checkconfig
+%
 % Revision 1.49  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -222,7 +225,21 @@ elseif strcmp(data.dimord, 'subj_chan_freq') || strcmp(data.dimord, 'rpt_chan_fr
   tmpcfg = [];
   tmpcfg.trials = cfg.trials;
   tmpcfg.jackknife = 'no';
-  data = freqdescriptives(tmpcfg, data);
+  if isfield(cfg, 'zparam') && strcmp(cfg.zparam,'cohspctrm')
+    % on the fly computation of coherence spectrum is not supported
+  elseif isfield(cfg, 'zparam') && ~strcmp(cfg.zparam,'powspctrm')
+    % freqdesctiptives will only work on the powspctrm field, hence a temporary copy of the data is needed
+    tempdata.dimord    = data.dimord;
+    tempdata.freq      = data.freq;
+    tempdata.label     = data.label;
+    tempdata.powspctrm = data.(cfg.zparam);
+    tempdata.cfg       = data.cfg;
+    tempdata           = freqdescriptives(tmpcfg, tempdata);
+    data.(cfg.zparam)  = tempdata.powspctrm;
+    clear tempdata
+  else
+    data = freqdescriptives(tmpcfg, data);
+  end
   if ~isfield(cfg, 'xparam'),      cfg.xparam='freq';         end
   if ~isfield(cfg, 'yparam'),      cfg.yparam='';             end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';    end
@@ -235,7 +252,22 @@ elseif strcmp(data.dimord, 'subj_chan_freq_time') || strcmp(data.dimord, 'rpt_ch
   tmpcfg = [];
   tmpcfg.trials = cfg.trials;
   tmpcfg.jackknife = 'no';
-  data = freqdescriptives(tmpcfg, data);
+  if isfield(cfg, 'zparam') && strcmp(cfg.zparam,'cohspctrm')
+    % on the fly computation of coherence spectrum is not supported
+  elseif isfield(cfg, 'zparam') && ~strcmp(cfg.zparam,'powspctrm')
+    % freqdesctiptives will only work on the powspctrm field, hence a temporary copy of the data is needed
+    tempdata.dimord    = data.dimord;
+    tempdata.freq      = data.freq;
+    tempdata.time      = data.time;
+    tempdata.label     = data.label;
+    tempdata.powspctrm = data.(cfg.zparam);
+    tempdata.cfg       = data.cfg;
+    tempdata           = freqdescriptives(tmpcfg, tempdata);
+    data.(cfg.zparam)  = tempdata.powspctrm;
+    clear tempdata
+  else
+    data = freqdescriptives(tmpcfg, data);
+  end
   if ~isfield(cfg, 'xparam'),      cfg.xparam='time';         end
   if ~isfield(cfg, 'yparam'),      cfg.yparam='freq';         end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';    end
@@ -250,9 +282,7 @@ elseif strcmp(data.dimord, 'chan_comp')
 end
 
 % Old style coherence plotting with cohtargetchannel is no longer supported:
-if isfield(cfg,'cohtargetchannel'),
-  error('cfg.cohtargetchannel is obsolete, check the documentation for help about coherence plotting.');
-end
+cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 % Create time-series of small topoplots:
 if ~ischar(cfg.xlim) & length(cfg.xlim)>2

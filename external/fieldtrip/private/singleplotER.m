@@ -54,6 +54,9 @@ function singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.32  2008/11/28 22:08:19  sashae
+% allow averaging over rpt/subj also for other fields than zparam=powspctrm (thanks to Jurrian)
+%
 % Revision 1.31  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -223,9 +226,25 @@ elseif strcmp(varargin{1}.dimord, 'subj_chan_freq') || strcmp(varargin{1}.dimord
   tmpcfg = [];
   tmpcfg.trials = cfg.trials;
   tmpcfg.jackknife = 'no';
-  for i=1:(nargin-1)
-    if isfield(varargin{i}, 'crsspctrm'), varargin{i} = rmfield(varargin{i}, 'crsspctrm'); end % on the fly computation of coherence spectrum is not supported
-    varargin{i} = freqdescriptives(tmpcfg, varargin{i});
+  if isfield(cfg, 'zparam') && strcmp(cfg.zparam,'cohspctrm')
+    % on the fly computation of coherence spectrum is not supported
+  elseif isfield(cfg, 'zparam') && ~strcmp(cfg.zparam,'powspctrm')
+    % freqdesctiptives will only work on the powspctrm field, hence a temporary copy of the data is needed
+    for i=1:(nargin-1)
+      tempdata.dimord    = varargin{i}.dimord;
+      tempdata.freq      = varargin{i}.freq;
+      tempdata.label     = varargin{i}.label;
+      tempdata.powspctrm = varargin{i}.(cfg.zparam);
+      tempdata.cfg       = varargin{i}.cfg;
+      tempdata           = freqdescriptives(tmpcfg, tempdata);
+      varargin{i}.(cfg.zparam)  = tempdata.powspctrm;
+      clear tempdata
+    end
+  else
+    for i=1:(nargin-1)
+      if isfield(varargin{i}, 'crsspctrm'), varargin{i} = rmfield(varargin{i}, 'crsspctrm'); end % on the fly computation of coherence spectrum is not supported
+      varargin{i} = freqdescriptives(tmpcfg, varargin{i});
+    end
   end
   if ~isfield(cfg, 'xparam'),      cfg.xparam='freq';                  end
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';             end
@@ -239,9 +258,7 @@ elseif (~isfield(cfg, 'yparam')) & (isfield(cfg, 'zparam'))
 end
 
 % Old style coherence plotting with cohtargetchannel is no longer supported:
-if isfield(cfg,'cohtargetchannel'), 
-  error('cfg.cohtargetchannel is obsolete, check the documentation for help about coherence plotting.');
-end
+cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 for k=1:length(varargin)
   % Check for unconverted coherence spectrum data:
