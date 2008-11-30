@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 2045 2008-09-04 17:18:13Z guillaume $
+% $Id: spm_dcm_specify.m 2510 2008-11-30 16:54:19Z klaas $
 
 Finter = spm_figure('GetWin','Interactive');
 WS     = spm('WinScale');
@@ -71,10 +71,10 @@ n     = size(U.u,2);
 a     = zeros(m,m);
 c     = zeros(m,n);
 b     = zeros(m,m,n);
-d     = uicontrol(Finter,'String','done','Position',[300 100 060 020].*WS);
+q     = uicontrol(Finter,'String','done','Position',[300 100 060 020].*WS);
 dx    = 20;
 
-%-Intrinsic connections
+%-Intrinsic connections (A matrix)
 %--------------------------------------------------------------------------
 spm_input('Specify intrinsic connections from',1,'d')
 spm_input('to',3,'d')
@@ -121,7 +121,7 @@ while true
     end
 end
 
-%-Effects of causes
+%-Effects of causes (B and C matrices)
 %--------------------------------------------------------------------------
 for k = 1:n
 
@@ -184,12 +184,72 @@ for k = 1:n
         end
     end
 end
-delete(d)
+delete(q)
 
+
+%-Effects of nonlinear modulations (D matrices)
+%--------------------------------------------------------------------------
+str   = ['Nonlinear DCM ?'];
+if spm_input(str,2,'y/n',[1 0])
+    nlDCM = 1;
+    q     = uicontrol(Finter,'String','done','Position',[300 100 060 020].*WS);
+    for k = 1:m
+
+        %-Buttons and labels
+        %----------------------------------------------------------------------
+        str   = sprintf(...
+            'Effects of %-12s activity on connections',...
+            xY(k).name);
+        spm_input(str,1,'d');
+
+        dx    = 20;
+        for i = 1:m
+            for j = 1:m
+                if a(i,j)==1
+                    % If there is an intrinsic connection
+                    % allow it to be modulated
+                    h4(i,j) = uicontrol(Finter,...
+                        'Position',[220+dx*j 360-dx*i 020 020].*WS,...
+                        'Style','radiobutton');
+                end
+            end
+        end
+        drawnow
+
+        %-Wait for 'done'
+        %----------------------------------------------------------------------
+        set(gcf,'CurrentObject',h4(1))
+        while(1)
+            pause(0.01)
+            if strcmp(get(gco,'Type'),'uicontrol')
+                if strcmp(get(gco,'String'),'done')
+
+                    %-Get d allowing any 2nd order effects
+                    %----------------------------------------------------------
+                    for i = 1:m
+                        for j = 1:m
+                            if a(i,j)==1
+                                d(i,j,k) = get(h4(i,j),'Value');
+                            end
+                        end
+                    end
+                    delete([h4(find(a==1))])
+                    break
+
+                end
+            end
+        end
+    end
+    delete(q)
+
+end
+            
+            
 %==========================================================================
 % slice timing
 %==========================================================================
 delays = spm_input('Slice timings [s]', -1, 'r', SPM.xY.RT*ones(1, m), m, [0 SPM.xY.RT]);
+
 
 %==========================================================================
 % echo time (TE) of data acquisition
@@ -236,6 +296,9 @@ Y.Q        = spm_Ce(ones(1,n)*v);
 DCM.a      = a;
 DCM.b      = b;
 DCM.c      = c;
+if nlDCM
+    DCM.d  = d;
+end
 DCM.U      = U;
 DCM.Y      = Y;
 DCM.xY     = xY;
