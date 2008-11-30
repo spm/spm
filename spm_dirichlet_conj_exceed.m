@@ -1,5 +1,8 @@
 function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
-% Return p(x1>x2 & x1>x3 & ... & x1>xk) for p(x)=dirichlet(alpha)
+% Computes exceedance probabilities, i.e. for any given model k1, the 
+% probability that it is more likely than any other model k2.  
+% More formally, for k1=1..Nk and for all k2~=k1, it returns p(x_k1>x_k2) 
+% given that p(x)=dirichlet(alpha).
 % 
 % FORMAT [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 % 
@@ -16,8 +19,8 @@ function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny
-% $Id: spm_dirichlet_conj_exceed.m 2508 2008-11-30 15:22:00Z klaas $
+% Will Penny & Klaas Enno Stephan
+% $Id: spm_dirichlet_conj_exceed.m 2509 2008-11-30 15:31:01Z klaas $
 
 
 if nargin < 2 | isempty(Nsamp)
