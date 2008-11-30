@@ -1,5 +1,5 @@
 function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
-% 2nd level Bayesian model comparison
+% Bayesian model selection for group studies
 % 
 % FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling)
 % 
@@ -24,7 +24,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2507 2008-11-30 14:45:22Z klaas $
+% $Id: spm_BMS.m 2508 2008-11-30 15:22:00Z klaas $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -116,8 +116,8 @@ else
 end
 
 
-% graphics output (currently for 2 models only)
-%============================================
+% Graphics output (currently for 2 models only)
+%==============================================
 if do_plot & Nk == 2
     % plot Dirichlet pdf
     %-------------------
@@ -143,32 +143,39 @@ if do_plot & Nk == 2
 end
 
 
-% sampling approach (if requested):
+% Sampling approach ((currently implemented for 2 models only):
 % plot F as a function of alpha_1
-%============================================
+%==============================================================
 if sampling
-    alpha_max = size(lme,1) + Nk*alpha0(1);
-    dx        = 0.1;
-    a         = [1:dx:alpha_max];
-    Na        = length(a);
-    for i=1:Na,
-        alpha_s                = [a(i),alpha_max-a(i)];
-        [F_samp(i),F_bound(i)] = spm_BMS_F(alpha_s,lme,alpha0);
+    if Nk == 2
+        % Compute lower bound on F by sampling
+        %-------------------------------------
+        alpha_max = size(lme,1) + Nk*alpha0(1);
+        dx        = 0.1;
+        a         = [1:dx:alpha_max];
+        Na        = length(a);
+        for i=1:Na,
+            alpha_s                = [a(i),alpha_max-a(i)];
+            [F_samp(i),F_bound(i)] = spm_BMS_F(alpha_s,lme,alpha0);
+        end
+        % graphical display
+        %-------------------------------------
+        fig2 = figure;
+        axes2 = axes('Parent',fig2,'FontSize',14);
+        plot(a,F_samp,'Parent',axes2,'LineStyle','-','DisplayName','Sampling Approach',...
+            'Color',[0 0 0]);
+        hold on;
+        yy = ylim;
+        plot([alpha(1),alpha(1)],[yy(1),yy(2)],'Parent',axes2,'LineStyle','--',...
+            'DisplayName','Variational Bayes','Color',[0 0 0]);
+        legend2 = legend(axes2,'show');
+        set(legend2,'Position',[0.15 0.8 0.2 0.1],'FontSize',14);
+        xlabel('\alpha_1','FontSize',18);
+        ylabel('F','FontSize',18);
+    else
+        fprintf('\n%s\n','Verification of alpha estimates by sampling not available.')
+        fprintf('%s\n','This approach is currently only implemented for comparison of 2 models.');
     end
-
-    fig2 = figure;
-    axes2 = axes('Parent',fig2,'FontSize',14);
-    plot(a,F_samp,'Parent',axes2,'LineStyle','-','DisplayName','Sampling Approach',...
-         'Color',[0 0 0]);
-    hold on;
-    yy = ylim;
-    plot([alpha(1),alpha(1)],[yy(1),yy(2)],'Parent',axes2,'LineStyle','--',...
-          'DisplayName','Variational Bayes','Color',[0 0 0]);
-    legend2 = legend(axes2,'show');
-    set(legend2,'Position',[0.15 0.8 0.2 0.1],'FontSize',14);
-    xlabel('\alpha_1','FontSize',18);
-    ylabel('F','FontSize',18);
 end
-
 
 return

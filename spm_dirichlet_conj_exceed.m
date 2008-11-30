@@ -1,5 +1,5 @@
 function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
-% Return p(x1>x2 & x1>x3 & ... & x1 > xk) for p(x)=dirichlet(alpha)
+% Return p(x1>x2 & x1>x3 & ... & x1>xk) for p(x)=dirichlet(alpha)
 % 
 % FORMAT [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 % 
@@ -17,7 +17,7 @@ function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dirichlet_conj_exceed.m 2507 2008-11-30 14:45:22Z klaas $
+% $Id: spm_dirichlet_conj_exceed.m 2508 2008-11-30 15:22:00Z klaas $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -27,6 +27,7 @@ end
 % Sample from univariate gamma densities then normalise
 % (see Dirichlet entry in Wikipedia or Ferguson (1973) Ann. Stat. 1,
 % 209-230)
+%==========================================================================
 Nk=length(alpha);
 for k=1:Nk,
     r(:,k)=gamrnd(alpha(k),1,Nsamp,1);
@@ -36,18 +37,29 @@ for k=1:Nk,
     r(:,k)=r(:,k)./sr;
 end
 
-eval_str=['length(find('];
-logic_str=[];
-for k=2:Nk,
-    add_str=['r(:,1)>r(:,',int2str(k),')'];
-    if k<Nk
-        and_str=[' & '];
-    else
-        and_str=[''];
+
+% Exceedance probabilities:
+% For any given model k1, compute the probability that it is more likely
+% than any other model k2
+%==========================================================================
+xp = [];
+for k1 = 1:Nk,
+    eval_str  = ['length(find('];
+    logic_str = [];
+    ind       = setdiff([1:Nk],[k1]);
+    for k2 = ind,
+        add_str = ['r(:,' int2str(k1) ')>r(:,' int2str(k2),')'];
+        if (k2 < Nk) & ~((k1 == Nk) & (k2 == Nk-1))
+            and_str = [' & '];
+        else
+            and_str = [''];
+        end
+        logic_str   = [logic_str,add_str,and_str];
     end
-    logic_str=[logic_str,add_str,and_str];
+    eval_str = [eval_str,logic_str,'))/Nsamp'];
+    xp(k1)   = eval(eval_str);
 end
-eval_str=[eval_str,logic_str,'))/Nsamp'];
-xp=eval(eval_str);
-            
+xp = xp';
+
+
 return
