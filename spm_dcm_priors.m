@@ -17,7 +17,7 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_priors.m 2504 2008-11-29 15:53:11Z klaas $
+% $Id: spm_dcm_priors.m 2506 2008-11-30 12:52:41Z klaas $
  
 
 % nonlinear DCM?
@@ -25,6 +25,8 @@ function [pE,pC,qE,qC] = spm_dcm_priors(A,B,C,varargin)
 if nargin > 3
     nlDCM = 1;
     D     = varargin{1};
+else
+    nlDCM = 0;
 end
 
 % number of regions

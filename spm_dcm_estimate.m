@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2504 2008-11-29 15:53:11Z klaas $
+% $Id: spm_dcm_estimate.m 2506 2008-11-30 12:52:41Z klaas $
 
  
 % load DCM structure
@@ -46,6 +46,12 @@ if isfield(DCM,'d')
     if any(any(DCM.d(:)))
         nlDCM = 1;
         d     = DCM.d;                  % switch on nonlinear modulations
+        fprintf('\n%s %s\n','Nonlinear DCM:',P);
+        fprintf('%s\n\n','---------------------------------------------:');        
+        fprintf('%s\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
+        fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
+        fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
+        fprintf('%s %1.3f.\n\n','We would recommend time bins of approx. 0.2 s; you are currently using microtimebins of',DCM.U.dt);
     else
         nlDCM = 0;
     end
@@ -59,7 +65,8 @@ n  = DCM.n;
 v  = DCM.v;
 
 
-% check whether TE of acquisition has been defined (default to 40 ms)
+% check whether TE of acquisition has been defined 
+% (if not, default to 0.04 s)
 %--------------------------------------------------------------------------
 if ~isfield(DCM,'TE')
     DCM.TE = 0.04;
@@ -67,6 +74,7 @@ else
     if (DCM.TE < 0) || (DCM.TE > 0.1)
         disp('spm_dcm_estimate: Extreme TE value found.')
         disp('Please check and adjust DCM.TE - note this value must be in seconds!')
+        return
     end
 end
 TE = DCM.TE;
@@ -74,8 +82,6 @@ TE = DCM.TE;
 
 % priors - expectations
 %--------------------------------------------------------------------------
-% NB: order of parameter vector is: 
-% bilinear neural params -> hemodynamic params -> nonlinear neural params
 if ~nlDCM
     % bilinear DCM
     [pE,pC,qE,qC] = spm_dcm_priors(a,b,c);
@@ -151,6 +157,8 @@ if ~nlDCM
     [pA pB pC] = spm_dcm_reshape(pp,M.m,n,1);
 else
     % nonlinear DCM
+       % NB: order of parameter vector is: 
+       % bilinear neural params -> hemodynamic params -> nonlinear neural params
     [ A  B  C  H  D] = spm_dcm_reshape(Ep,M.m,n,1);
     [pA pB pC pH pD] = spm_dcm_reshape(pp,M.m,n,1);
 end
