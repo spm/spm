@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 2490 2008-11-25 08:09:33Z lee $
+% $Id: spm_run_fmri_est.m 2511 2008-12-01 13:14:58Z volkmar $
 
 
 global defaults
@@ -194,7 +194,7 @@ elseif isfield(job.method.Bayesian.noise,'LORETA')
     SPM.PPM.priors.A  = 'Spatial - LORETA';
 elseif isfield(job.method.Bayesian.noise,'tissue_type')
     SPM.PPM.priors.A  = 'Discrete';
-    SPM.PPM.priors.SY = job.method.Bayesian.noise.tissue_type;
+    SPM.PPM.priors.SY = char(job.method.Bayesian.noise.tissue_type);
 elseif isfield(job.method.Bayesian.noise,'Robust')
     SPM.PPM.priors.A  = 'Robust';
     SPM.PPM.AR_P=0;

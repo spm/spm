@@ -156,7 +156,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 2490 2008-11-25 08:09:33Z lee $
+% $Id: spm_spm_vb.m 2511 2008-12-01 13:14:58Z volkmar $
 
 
 %-Get SPM.mat if necessary
@@ -454,7 +454,7 @@ if strcmp(SPM.PPM.priors.A,'Discrete')
         SPM.PPM.priors.SY = spm_select([1 Inf],'image',...
             'Select structural images eg. brain or grey/white/CSF'); 
     end
-    SPM.PPM.priors.Sin = length(SPM.PPM.priors.SY,1);
+    SPM.PPM.priors.Sin = size(SPM.PPM.priors.SY,1);
     for j=1:SPM.PPM.priors.Sin
         xDiscrete(j)  = spm_vol(deblank(SPM.PPM.priors.SY(j,:)));
     end
