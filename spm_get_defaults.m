@@ -16,10 +16,10 @@ function varargout = spm_get_defaults(defstr, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_get_defaults.m 2098 2008-09-15 19:06:23Z karl $
+% $Id: spm_get_defaults.m 2513 2008-12-01 13:23:50Z volkmar $
 
 global defaults;
-if ~length(defaults)
+if isempty(defaults)
     spm_defaults;
 end
 
