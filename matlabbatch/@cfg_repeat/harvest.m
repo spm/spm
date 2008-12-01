@@ -24,14 +24,14 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: harvest.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 typ = class(item);
 tag = gettag(item);
-dep = cfg_dep;    % placeholder for dependencies
-dep = dep(false); % make dep an empty dependency array
+dep = []; % Placeholder for dependencies. Will be classified during
+          % first call to dep_add.
 chk = ~dflag && rflag;
 
 tname = treepart(item, dflag);
@@ -39,10 +39,11 @@ ntgt_input = substruct('.', tname, '{}', {});
 citems = subsref(item, ntgt_input(1));
 if numel(item.values)==1 && isa(item.values{1},'cfg_branch') && ~item.forcestruct,
     if numel(citems) == 0
-        % initialise to empty struct
-        cargs = {};
+        % return empty struct
+        cargs = cell(2*numel(item.values{1}.val),1);
         for i=1:numel(item.values{1}.val),
-            cargs = {cargs{:},gettag(item.values{1}.val{i}),{}};
+            cargs{2*i-1} = gettag(item.values{1}.val{i});
+            cargs{2*i}   = {};
         end;
         val = struct(cargs{:});
     end;
@@ -50,7 +51,7 @@ if numel(item.values)==1 && isa(item.values{1},'cfg_branch') && ~item.forcestruc
         njtsubs(1).type = '()';
     end;
 else
-    val = {};
+    val = cell(size(citems));
     if ~dflag
         njtsubs(1).type = '{}';
     end;
@@ -58,6 +59,8 @@ end;
 for i=1:numel(citems),
     [ctag cval unused cdep cchk cj] = harvest(citems{i}, cj, dflag, rflag);
     if numel(item.values)==1 && isa(item.values{1},'cfg_branch') && ~item.forcestruct,
+        % FIXME: don't know how to best preinit this without raising
+        % warnings about incompatible assignments ...
         val(i) = cval;
     else
         if numel(item.values)>1 || item.forcestruct,
@@ -81,14 +84,14 @@ for i=1:numel(citems),
                 val = {cval};
             end;
         else
-            val = {val{:}, cval};
+            val{i} = cval;
         end;
     end;
-    if ~dflag
+    if ~dflag && ~isempty(cdep)
+        % augment cdep tsubs references
         ntgt_input(2).subs = {i};
         njtsubs(1).subs = {i};
-        % augment cdep tsubs references
-        dep = dep_add(dep, cdep, ntgt_input, njtsubs);
+        dep = dep_add(cdep, dep, ntgt_input, njtsubs);
     end;
     chk = chk && cchk;
 end;

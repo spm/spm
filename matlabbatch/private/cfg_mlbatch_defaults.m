@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 2277 2008-10-01 11:08:33Z guillaume $
+% $Id: cfg_mlbatch_defaults.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 2277 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 % Font definition for cfg_ui user interface
 % cfg_defaults.cfg_ui.Xfont is a font struct as returned by uisetfont
@@ -103,3 +103,9 @@ cfg_defaults.msgtpl(13).destination = 'none';
 cfg_defaults.msgtpl(14)             = cfg_defaults.msgdef;
 cfg_defaults.msgtpl(14).identifier  = 'matlabbatch:checkval:numcheck:transposed';
 cfg_defaults.msgtpl(14).destination = 'none';
+
+% value check for cfg_branch/choice/repeat items - set to false after
+% configuration has been initialised to speed up job
+% initialisation/harvest/run - set this to true if you want to debug some
+% configuration or the batch system itself
+cfg_defaults.cfg_item.checkval = false;

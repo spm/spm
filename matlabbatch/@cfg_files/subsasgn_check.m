@@ -12,9 +12,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsasgn_check.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -28,30 +28,45 @@ switch subs(1).subs
             cfg_message('matlabbatch:checkval', ...
                     '%s: Value must be either empty, a cellstr or a cfg_dep object.', subsasgn_checkstr(item,subs));
         end
-        if ~isempty(val) && iscellstr(val{1})
-            % do filtering and .num checks
-            % this is already done in interactive mode, but not in batch
-            % mode (e.g. after resolve_deps).
-            if strcmpi(item.filter,'image') || strcmpi(item.filter,'nifti')
-                typ = 'extimage';
-            else
-                typ = item.filter;
-            end;
-            % don't filter for item.ufilter - this may have been
-            % overridden by user interface
-            [val{1} sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
-            if numel(val{1}) < item.num(1)
-                sts = false;
-                cfg_message('matlabbatch:checkval', ...
-                        ['%s: Number of matching files (%d) less than ' ...
-                         'required (%d).'], ...
-                        subsasgn_checkstr(item,subs), numel(val{1}), item.num(1));
-            elseif numel(val{1}) > item.num(2)
-                cfg_message('matlabbatch:checkval', ...
-                        ['%s: Number of matching files larger than ' ...
-                         'max allowed, keeping %d/%d files.'], ...
-                        subsasgn_checkstr(item,subs), item.num(2), numel(val{1}));
-                val{1} = val{1}(1:item.num(2));
+        if sts && ~isempty(val) 
+            if iscellstr(val{1})
+                % do filtering and .num checks
+                % this is already done in interactive mode, but not in batch
+                % mode (e.g. after resolve_deps).
+                if strcmpi(item.filter,'image') || strcmpi(item.filter,'nifti')
+                    typ = 'extimage';
+                else
+                    typ = item.filter;
+                end;
+                % don't filter for item.ufilter - this may have been
+                % overridden by user interface
+                [val1 sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
+                if numel(val1) < item.num(1)
+                    sts = false;
+                    cfg_message('matlabbatch:checkval', ...
+                                ['%s: Number of matching files (%d) less than ' ...
+                                 'required (%d).'], ...
+                                subsasgn_checkstr(item,subs), numel(val{1}), item.num(1));
+                elseif numel(val1) > item.num(2)
+                    cfg_message('matlabbatch:checkval', ...
+                                ['%s: Number of matching files larger than ' ...
+                                 'max allowed, keeping %d/%d files.'], ...
+                                subsasgn_checkstr(item,subs), item.num(2), numel(val{1}));
+                    val1 = val1(1:item.num(2));
+                end
+                val = {val1};
+            elseif isa(val{1}, 'cfg_dep')
+                % Check dependency match
+                sts2 = false(size(val{1}));
+                for k = 1:numel(val{1})
+                    sts2(k) = match(item, val{1}(k).tgt_spec);
+                    if ~sts2(k)
+                        cfg_message('matlabbatch:checkval', ...
+                                    '%s: Dependency does not match.', subsasgn_checkstr(item,subs));
+                    end
+                end
+                val{1} = val{1}(sts2);
+                sts = any(sts2);
             end
         end
 end

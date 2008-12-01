@@ -23,9 +23,9 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1973 2008-08-01 11:52:41Z volkmar $
+% $Id: subsref.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1973 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 persistent local_mysubs_fields;
 persistent par_class;
@@ -55,9 +55,9 @@ switch subs(1).type,
         end;
         switch subs(1).subs
             case local_mysubs_fields,
-                val{1} = item.(subs(1).subs);
+                val = {item.(subs(1).subs)};
             case par_fields,
-                val{1} = item.(par_class).(subs(1).subs);
+                val = {item.(par_class).(subs(1).subs)};
             otherwise
                 cfg_message('matlabbatch:subsref:unknownfield', ...
                       ['Reference to unknown field ''%s''.\nTo reference ' ...
@@ -67,11 +67,11 @@ switch subs(1).type,
         if numel(subs) > 1 
             % in this case, val has only one element, and
             % subs(2:end) are indices into val{1} 
-            %    val{1} = builtin('subsref', val{1}, subs(2:end));
+            %    val = {builtin('subsref', val{1}, subs(2:end))};
             % The line above does not seem to work, as MATLAB is
             % not able to figure out which subsref to call and when.
             for k = 2:numel(subs)
-                val{1} = subsref(val{1}, subs(k));
+                val = {subsref(val{1}, subs(k))};
             end;
         end;
     case {'()','{}'},

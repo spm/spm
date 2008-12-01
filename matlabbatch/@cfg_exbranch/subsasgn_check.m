@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsasgn_check.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -26,6 +26,10 @@ switch subs(1).subs
         end
     case {'sdeps', 'tdeps', 'sout'}
         sts = isempty(val) || isa(val, 'cfg_dep');
+        if isempty(val)
+            val = cfg_dep;
+            val = val([]);
+        end
         if ~sts
             cfg_message('matlabbatch:check:dep', ...
                     '%s: Value must be a cfg_dep dependency object.', subsasgn_checkstr(item,subs));

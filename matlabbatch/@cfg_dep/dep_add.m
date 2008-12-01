@@ -1,4 +1,4 @@
-function dep = cfg_dep_add(dep, cdep, ntgt_input, njtsubs)
+function dep = dep_add(cdep, dep, ntgt_input, njtsubs)
 
 % augment cdep tsubs references, and add them to dependency list
 %
@@ -9,13 +9,10 @@ function dep = cfg_dep_add(dep, cdep, ntgt_input, njtsubs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: dep_add.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: dep_add.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
-if isempty(cdep)
-    return;
-end;
 for k = 1:numel(cdep)
     cdep(k).tgt_input = [ntgt_input cdep(k).tgt_input];
     cdep(k).jtsubs = [njtsubs cdep(k).jtsubs];

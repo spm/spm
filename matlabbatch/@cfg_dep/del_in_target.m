@@ -13,9 +13,9 @@ function cj = del_in_target(sdeps, cj)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: del_in_target.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: del_in_target.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 % first, delete all immediate dependencies
 for k = 1:numel(sdeps)
@@ -28,7 +28,7 @@ for k = 1:numel(sdeps)
         dind(l) = ~isequalsource(sdeps(k),ditem.val{1}(l));
     end;
     if any(dind)
-        ditem.val{1} = ditem.val{1}(dind); % Keep other dependencies
+        ditem.val = {ditem.val{1}(dind)}; % Keep other dependencies
     else
         ditem.val = {}; % nothing left
     end;

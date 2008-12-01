@@ -9,17 +9,17 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: subsasgn_check.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 sts = true;
 switch subs(1).subs
     case {'num'}
         sts = subsasgn_check_num(val);
     case {'values'}
-        sts = subsasgn_check_valcfg(subs,val,[0 Inf]);
+        sts = ~cfg_get_defaults('cfg_item.checkval') || subsasgn_check_valcfg(subs,val,[0 Inf]);
     case {'val'}
         % Check maximum number of elements - don't limit minimum number
-        sts = subsasgn_check_valcfg(subs,val,[0 item.num(2)]);
+        sts = ~cfg_get_defaults('cfg_item.checkval') || subsasgn_check_valcfg(subs,val,[0 item.num(2)]);
         % Could also check whether added element is one from 'values' list
 end;

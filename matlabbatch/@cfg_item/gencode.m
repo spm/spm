@@ -29,9 +29,9 @@ function [str, tag, cind, ccnt] = gencode(item, tag, tagctx, stoptag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 1783 2008-06-03 10:48:24Z volkmar $
+% $Id: gencode.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1783 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 %% Class of item
 % if there are function handles in .check or .def, add their names to
@@ -116,13 +116,7 @@ if numel(item.val) > 0 && isa(item.val{1}, 'cfg_item')
 elseif numel(item.val) > 0 && ~isa(item.val{1}, 'cfg_item')
     % Check .def field. Generate code for .val only, if no defaults
     % defined or value is different from defaults.
-    if ~isempty(item.def)
-        dval = feval(item.def{:});
-        doit = ~isequalwithequalnans(dval, item.val{1});
-    else
-        doit = false;
-    end;
-    if doit
+    if isempty(item.def) || ~isequalwithequalnans(feval(item.def), item.val{1})
         str1 = gencode(item.val, sprintf('%s.val', tag), stoptag, tropts);
         str = {str{:} str1{:}};
     end;

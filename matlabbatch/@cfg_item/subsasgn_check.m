@@ -24,9 +24,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsasgn_check.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 sts = true;
 switch class(item)
@@ -38,15 +38,8 @@ switch class(item)
                     cfg_message('matlabbatch:check:tagname', '%s: Value must be a string.', subsasgn_checkstr(item,subs));
                     sts = false;
                 end
-            case {'val'},
-                % Check match of a dependency. Other item-specific checks
-                % are performed in an item's subsasgn_check.
-                if isa(val, 'cfg_dep')
-                    sts = match(item, cfg_dep.tgt_spec);
-                    if ~sts
-                        cfg_message('matlabbatch:checkval', '%s: Dependency does not match.', subsasgn_checkstr(item,subs));
-                    end
-                end
+                %case {'val'},
+                % No checks. All checks must be run in derived classes.
             case {'check'},
                 if ~subsasgn_check_funhandle(val)
                     cfg_message('matlabbatch:check:funhandle', ...

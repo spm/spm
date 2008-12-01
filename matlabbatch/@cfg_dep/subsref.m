@@ -20,9 +20,9 @@ function varargout = subsref(dep, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: subsref.m 2512 2008-12-01 13:21:29Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 2512 $'; %#ok
 
 switch subs(1).type,
     case {'.'},
@@ -31,6 +31,7 @@ switch subs(1).type,
         end;
         switch subs(1).subs
             case subs_fields(dep),
+                val = cell(size(dep));
                 for k = 1:numel(dep)
                     val{k} = dep(k).(subs(1).subs);
                 end;
@@ -48,14 +49,14 @@ switch subs(1).type,
                 subs(1).subs{k} = 1:szi(k);
             end;
         end;        
-        val{1} = dep(subs(1).subs{:});
+        val = {dep(subs(1).subs{:})};
     case {'{}'}
         cfg_message('matlabbatch:subsref:notcell', 'Cell content reference from non cell-array object.');
     otherwise
         cfg_message('matlabbatch:subsref:unknowntype', 'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end
 if numel(subs) > 1 % in this case, val has only one element, and subs(2:end) are indices into val{1}
-    val{1} = builtin('subsref', val{1}, subs(2:end));
+    val = {builtin('subsref', val{1}, subs(2:end))};
 end;
 
 varargout = val;
