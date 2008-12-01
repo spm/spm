@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.66  2008/12/01 14:49:59  roboos
+% ensure that input arguments are double precision and not integers, otherwise the subsequent computations will be messed up (learned this in Lyon)
+%
 % Revision 1.65  2008/11/13 21:50:11  roboos
 % also read 4d data in case ChannelUnitsPerBit is missing from header (give warning and set calibration to 1)
 %
@@ -283,6 +286,12 @@ dataformat    = keyval('dataformat',    varargin);
 headerformat  = keyval('headerformat',  varargin);
 fallback      = keyval('fallback',      varargin);
 cache         = keyval('cache',         varargin); if isempty(cache), cache = 0; end
+
+% ensure that these are double precision and not integers, otherwise the subsequent computations will be messed up
+begsample = double(begsample);
+endsample = double(endsample);
+begtrial  = double(begtrial);
+endtrial  = double(endtrial);
 
 % determine the filetype
 if isempty(dataformat)

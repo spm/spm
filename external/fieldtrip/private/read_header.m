@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.75  2008/12/01 14:50:42  roboos
+% ensure that header elements are double precision and not integers, otherwise
+% subsequent computations that depend on these might be messed up (learned in Lyon)
+%
 % Revision 1.74  2008/11/20 12:59:37  roboos
 % added ns_cnt16 and ns_cnt32 as possible header formats, consistent with read_data
 %
@@ -1111,6 +1115,14 @@ switch headerformat
       error('unsupported header format');
     end
 end
+
+% ensure that these are double precision and not integers, otherwise 
+% subsequent computations that depend on these might be messed up
+hdr.Fs          = double(hdr.Fs);
+hdr.nSamples    = double(hdr.nSamples);
+hdr.nSamplesPre = double(hdr.nSamplesPre);
+hdr.nTrials     = double(hdr.nTrials);
+hdr.nChans      = double(hdr.nChans);
 
 if cache && exist(headerfile, 'file')
   % put the header in the cache
