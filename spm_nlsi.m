@@ -5,7 +5,6 @@ function varargout = spm_nlsi(M,U,Y)
 %
 % Model specification
 %--------------------------------------------------------------------------
-% M.nlDCM - 0 = bilinear DCM; 1 = nonlinear DCM
 % M.f     - dx/dt = f(x,u,P,M)  {function string or m-file}
 % M.g     - y     = g(x,u,P,M)  {function string or m-file}
 %
@@ -91,18 +90,14 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 2517 2008-12-02 10:36:11Z klaas $
+% $Id: spm_nlsi.m 2522 2008-12-02 19:51:10Z karl $
 
 % check integrator
 %--------------------------------------------------------------------------
 try
     M.IS;
 catch
-    if ~M.nlDCM
-        M.IS = 'spm_int';
-    else
-        M.IS = 'spm_int_B_nlDCM_fMRI';
-    end
+    M.IS = 'spm_int';
 end
 
 % Expansion point (in parameter space) for Bilinear-kernel representations
