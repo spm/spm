@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2517 2008-12-02 10:36:11Z klaas $
+% $Id: spm_dcm_estimate.m 2518 2008-12-02 11:44:52Z klaas $
 
  
 % load DCM structure
@@ -46,7 +46,7 @@ if isfield(DCM,'d')
     if any(any(DCM.d(:)))
         nlDCM = 1;
         d     = DCM.d;                  % switch on nonlinear modulations
-        fprintf('\n%s %s\n\n','Nonlinear DCM:',P);
+        fprintf('\n%s %s\n','Nonlinear DCM:',P);
         fprintf('%s\n\n','---------------------------------------------:');        
         fprintf('%s\n\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
         fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
