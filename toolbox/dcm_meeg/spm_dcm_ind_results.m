@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 2520 2008-12-02 19:07:31Z cc $
+% $Id: spm_dcm_ind_results.m 2523 2008-12-02 19:52:33Z cc $
 
 
 % get figure handle
@@ -87,7 +87,7 @@ switch(lower(Action))
             ylabel('frequency')
             title(sprintf('trial %i: %s ',i,DCM.Sname{j}));
             
-            if (DCM.saveInd=='TFR')
+            if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'TFR')
                 V.dt=[spm_type('float64') 0];
                 V.mat = eye(4);
                 V.pinfo = [1 0 0]';
@@ -200,7 +200,7 @@ case{lower('Coupling (A - Hz)')}
             if i == 1, ylabel({'to';  DCM.Sname{j}}), end
             
               
-            if (DCM.saveInd=='Amatrix')
+            if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Amatrix')
                 V.dt=[spm_type('float64') 0];
                 V.mat = eye(4);
                 V.pinfo = [1 0 0]';
@@ -251,7 +251,7 @@ case{lower('Coupling (B - Hz)')}
             if j == 1, title({'from'; DCM.Sname{i}}), end
             if i == 1, ylabel({'to';  DCM.Sname{j}}), end
             
-            if (DCM.saveInd=='Bmatrix')
+            if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Bmatrix')
                V.dt=[spm_type('float64') 0];
                V.mat = eye(4);
                V.pinfo = [1 0 0]';
