@@ -69,7 +69,7 @@ function [Ep,Eg,Cp,Cg,S,F] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 2392 2008-10-23 14:57:31Z karl $
+% $Id: spm_nlsi_N.m 2519 2008-12-02 14:37:02Z cc $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -516,7 +516,7 @@ for ip = 1:64
         plot(yt,yp + spm_unvec(ey,yp),':'), hold off
         xlabel('time (ms)')
         set(gca,'XLim',[yt(1) yt(end)])
-        title('E-Step: response amd prediction')
+        title('E-Step: response and prediction')
         grid on
  
         % subplot parameters - f(P)
