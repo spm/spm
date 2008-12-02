@@ -6,6 +6,9 @@ function [hdr] = read_shm_header(filename)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_header.m,v $
+% Revision 1.4  2008/12/02 08:28:40  roboos
+% fixed typo, missing )
+%
 % Revision 1.3  2008/11/20 13:58:11  roboos
 % fixed hdr.nTrials and nSamples (ensure that it is read as blocks)
 % use caching when reading header from file
@@ -83,7 +86,7 @@ end
 % the following information is either specified in shared memory, or does
 % not apply to real-time acquisition
 hdr.nTrials     = double(max(sampleNumber))/double(max(numSamples));
-hdr.nSamples    = double(max(numSamples);
+hdr.nSamples    = double(max(numSamples));
 hdr.nSamplesPre = 0;
 
 
