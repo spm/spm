@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 1286 2008-04-01 12:34:47Z vladimir $
+% $Id: spm_dcm_ind_results.m 2520 2008-12-02 19:07:31Z cc $
 
 
 % get figure handle
@@ -79,12 +79,22 @@ switch(lower(Action))
     colormap(jet)
     for i = 1:nt
         for j = 1:nr
+           
             subplot(2*nt,nr,(i - 1)*nr + j)
             imagesc(pst,Hz,TF{i,j}')
             axis xy
             xlabel('pst (ms)')
             ylabel('frequency')
             title(sprintf('trial %i: %s ',i,DCM.Sname{j}));
+            
+            if (DCM.saveInd=='TFR')
+                V.dt=[spm_type('float64') 0];
+                V.mat = eye(4);
+                V.pinfo = [1 0 0]';
+                V.dim = [length(Hz) length(pst)  1 ];
+                V.fname =sprintf('%s_TFR%d%d.img',DCM.name(1:end-4),i,j);
+                spm_write_vol(V, TF{i,j}');
+            end
         end
     end
 
@@ -188,6 +198,19 @@ case{lower('Coupling (A - Hz)')}
             %--------------------------------------------------------------
             if j == 1, title({'from'; DCM.Sname{i}}), end
             if i == 1, ylabel({'to';  DCM.Sname{j}}), end
+            
+              
+            if (DCM.saveInd=='Amatrix')
+                V.dt=[spm_type('float64') 0];
+                V.mat = eye(4);
+                V.pinfo = [1 0 0]';
+                V.dim = [length(Hz) length(Hz)  1 ];
+                V.fname =sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
+                spm_write_vol(V, A);
+            end
+            
+            
+            
 
         end
     end
@@ -217,6 +240,9 @@ case{lower('Coupling (B - Hz)')}
             ii = [1:nf]*nr - nr + i;
             jj = [1:nf]*nr - nr + j; 
             B  = xY.U*DCM.Ep.B{k}(ii,jj)*xY.U';
+            
+           
+                
             imagesc(Hz,Hz,B)
             axis image
             
@@ -224,7 +250,16 @@ case{lower('Coupling (B - Hz)')}
             %--------------------------------------------------------------
             if j == 1, title({'from'; DCM.Sname{i}}), end
             if i == 1, ylabel({'to';  DCM.Sname{j}}), end
-
+            
+            if (DCM.saveInd=='Bmatrix')
+               V.dt=[spm_type('float64') 0];
+               V.mat = eye(4);
+               V.pinfo = [1 0 0]';
+               V.dim = [length(Hz) length(Hz)  1 ];
+               V.fname =sprintf('%s_B%d%d.img',DCM.name(1:end-4),i,j);
+               spm_write_vol(V,B);
+            end
+                
         end
     end
     title({'changes in coupling (B)';DCM.xU.name{k}})
@@ -364,6 +399,22 @@ case{lower('Dipoles')}
         sdip.loc{1} = full(DCM.M.dipfit.Lpos);
         spm_eeg_inv_ecd_DrawDip('Init', sdip)
         
+
+case{lower('Saveimg')}
+
+fprintf('Saving the Time-frequency representation at sources\n');
+DCM.saveInd='TFR';
+spm_dcm_ind_results(DCM,'Wavelet');
+
+fprintf('Saving the coupling matrix A\n');
+DCM.saveInd='Amatrix';
+spm_dcm_ind_results(DCM,'Coupling (A - Hz)');
+ 
+fprintf('Saving the coupling matrix B\n');
+DCM.saveInd='Bmatrix';
+spm_dcm_ind_results(DCM,'Coupling (B - Hz)');
+DCM=rmfield(DCM,'saveInd');
+
 end
 drawnow
 

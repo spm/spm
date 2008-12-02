@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2431 2008-11-03 12:27:31Z vladimir $
+% $Id: spm_api_erp.m 2520 2008-12-02 19:07:31Z cc $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1183,3 +1183,15 @@ function Y1_Callback(hObject, eventdata, handles)
 % sets the tooltip string to a list of condition labels
 
 Y_Callback(hObject, eventdata, handles);
+
+
+% --- Executes on button press in pushbutton36.
+function saveIND_Callback(hObject, eventdata, handles)
+
+if handles.DCM.options.analysis~='IND'
+   errordlg('This is only for DCM of induced responses');
+    error('')
+end
+Action='Saveimg';
+spm_dcm_ind_results(handles.DCM, Action);
+
