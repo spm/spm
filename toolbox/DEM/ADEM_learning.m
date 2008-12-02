@@ -24,7 +24,7 @@
 %==========================================================================
 clear
 DEMO     = 0;                          % switch for demo
-G(1).E.s = 1/2;                        % smoothness
+G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
 G(1).E.d = 2;                          % smoothness
  
@@ -216,19 +216,22 @@ A(1).pE.d = 1;
  
 % make the recognition model confident about its predictions
 %--------------------------------------------------------------------------
-M(1).W    = exp(32);
-A(1).W    = exp(32);
+M(1).W    = exp(16);
+M(1).V    = exp(8);
+M(2).V    = exp(16);
+A(1).W    = exp(16);
 A(1).V    = exp(16);
 
 % create DEM structure
 %--------------------------------------------------------------------------
 clear DEM
 N       = 128;
-C       = sparse(1,N);
+U       = sparse(1,N);
+C       = spm_conv(randn(1,N),8);
 DEM.G   = A;
 DEM.M   = M;
-DEM.C   = C;
-DEM.U   = C;
+DEM.C   = U;
+DEM.U   = U;
 DEM     = spm_ADEM(DEM);
  
 % overlay true values

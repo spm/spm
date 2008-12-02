@@ -111,7 +111,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM.m 2494 2008-11-26 20:08:15Z karl $
+% $Id: spm_ADEM.m 2521 2008-12-02 19:49:39Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -384,8 +384,8 @@ for iE = 1:nE
         dfdv = kron(spm_speye(n,n,0),df.dv);
         dfdx = kron(spm_speye(n,n,0),df.dx);
         
-        dgda = kron(spm_speye(n,1, 0),dg.da);
-        dgdx = kron(spm_speye(n,n, 0),dg.dx);
+        dgda = kron(spm_speye(n,1,0),dg.da);
+        dgdx = kron(spm_speye(n,n,0),dg.dx);
         
         % and pass response to qu.y
         %------------------------------------------------------------------
@@ -452,8 +452,10 @@ for iE = 1:nE
         dVduv = -dE.du'*iS*dE.dv;
         dVduc = -dE.du'*iS*dE.dc;
         dVdua = -dE.du'*iS*dE.da;
+        dVdav = -dE.da'*iS*dE.dv;
         dVdau = -dE.da'*iS*dE.du;
         dVdac = -dE.da'*iS*dE.dc;
+
         
  
          
@@ -481,7 +483,7 @@ for iE = 1:nE
                  []    []   []   Dx   []       []    [];
                  dVduv []   []   []   Du+dVduu dVduc dVdua;
                  []    []   []   []   []       Dc    []
-                 []    []   []   []   dVdau    dVdac dVdaa});
+                 dVdav []   []   []   dVdau    dVdac dVdaa});
  
  
         % update states q = {x,v,z,w} and conditional modes
@@ -609,7 +611,7 @@ for iE = 1:nE
     
     % if F is increasing, save expansion point and derivatives
     %----------------------------------------------------------------------
-    if L > F(end)
+    if L > F(end) || iE < 2
    
         % save model-states (for each time point)
         %==================================================================

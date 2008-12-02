@@ -22,7 +22,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 2033 2008-09-02 18:32:14Z karl $
+% $Id: spm_fx_mountaincar.m 2521 2008-12-02 19:49:39Z karl $
  
  
 % determine controlled forces (a)
@@ -33,7 +33,6 @@ function f = spm_fx_mountaincar(x,v,varargin)
 if length(varargin) == 1
     
     a    = 0;
-    amax = 1;
     P    = varargin{1};
     
 else
@@ -43,7 +42,6 @@ else
         varargin{2}.f;
         varargin{2}.g;
         a    = 0;
-        amax = 1;
         P    = varargin{1};
  
     % spm_fx_mountaincar(x,v,a,P) - generative model (action)
@@ -51,14 +49,13 @@ else
     catch
         a    = varargin{1};
         P    = varargin{2};
-        amax = 1;
     end
 end
  
  
 % acceleration = force:
 %--------------------------------------------------------------------------
-a      = amax*(2*spm_phi(P.a + P.b*x + P.c*kron(x,x) + P.d*a) - 1)*(1/2);
+a     = P.d*a + (2*spm_phi(P.a + P.b*x + P.c*kron(x,x)) - 1)*(1/2);
  
 % f(x)
 %--------------------------------------------------------------------------

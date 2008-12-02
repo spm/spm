@@ -12,13 +12,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 2033 2008-09-02 18:32:14Z karl $
+% $Id: ADEM_visual.m 2521 2008-12-02 19:49:39Z karl $
  
  
 % recognition model (M)
 %==========================================================================
 clear
-M(1).E.s      = 1/8;                        % smoothness
+M(1).E.s      = 1/4;                        % smoothness
 M(1).E.n      = 6;                          % smoothness
 M(1).E.d      = 2;                          % smoothness
  
@@ -33,7 +33,7 @@ M(1).x  = [0; 0];
 M(1).f  = inline('P.f*x + P.h*v','x','v','P');
 M(1).g  = inline('ADEM_plaid(x)','x','v','P');
 M(1).pE = pE;                               % prior expectation
-M(1).V  = exp(2);                           % error precision
+M(1).V  = exp(4);                           % error precision
 M(1).W  = exp(8);                           % error precision
  
 % level 2:
@@ -52,8 +52,8 @@ pE.a    = [1; 0];                           % action parameter
 G(1).f  = inline('P.f*x + P.h*v + P.a*a','x','v','a','P');
 G(1).g  = inline('ADEM_plaid(x)','x','v','a','P');
 G(1).pE = pE;                               % prior expectation
-G(1).V  = exp(8);                           % error precision
-G(1).W  = exp(16);                          % error precision
+G(1).V  = exp(16);                          % error precision
+G(1).W  = exp(8);                           % error precision
  
 % second level
 %--------------------------------------------------------------------------
@@ -77,8 +77,8 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % repeat with informative priors
 %--------------------------------------------------------------------------
-DEM.M(1).V  = exp(8);
-DEM.M(1).V  = exp(8);
+DEM.M(1).V  = exp(4);
+DEM.M(1).W  = exp(8);
 DEM.M(2).V  = exp(16);
 ADEM        = spm_ADEM(DEM);
 spm_DEM_qU(ADEM.qU,ADEM.pU)

@@ -10,14 +10,14 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 2033 2008-09-02 18:32:14Z karl $
+% $Id: ADEM_motor.m 2521 2008-12-02 19:49:39Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
 clear
 M(1).E.linear = 1;                          % linear model
 M(1).E.s      = 1/2;                        % smoothness
-M(1).E.n      = 8;                          % smoothness
+M(1).E.n      = 6;                          % smoothness
 M(1).E.d      = 2;                          % smoothness
  
 % level 1: Displacement dynamics and mapping to sensory/proprioception
@@ -30,13 +30,13 @@ M(1).x  = [0; 0];
 M(1).f  = inline('P.f*x + P.h*v','x','v','P');
 M(1).g  = inline('P.g*x','x','v','P');
 M(1).pE = pE;                               % prior expectation
-M(1).V  = exp(8);                           % error precision
+M(1).V  = exp(4);                           % error precision
 M(1).W  = exp(8);                           % error precision
  
 % level 2: with informative priors on movement
 %--------------------------------------------------------------------------
 M(2).v  = 0;                                % inputs
-M(2).V  = exp(8);
+M(2).V  = exp(16);
  
 % generative model
 %==========================================================================
@@ -48,6 +48,8 @@ pE.a    = [1; 0];                           % action parameter
 G(1).f  = inline('P.f*x + P.h*v + P.a*a','x','v','a','P');
 G(1).g  = inline('P.g*x','x','v','a','P');
 G(1).pE = pE;                               % prior expectation
+G(1).V  = exp(16);                           % error precision
+G(1).W  = exp(16);                           % error precision
  
 % second level
 %--------------------------------------------------------------------------

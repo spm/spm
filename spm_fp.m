@@ -25,7 +25,7 @@ function [M0,q0,X,x,f,M1,L] = spm_fp(M,x,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp.m 2494 2008-11-26 20:08:15Z karl $
+% $Id: spm_fp.m 2521 2008-12-02 19:49:39Z karl $
  
 % default: first level of hierarchical model
 %--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ try
     end
 catch
     for i = 1:N
-        f(:,i) = feval(M.f,X(i,:)',u0,[],M.pE);
+        f(:,i) = feval(M.f,X(i,:)',u0,0,M.pE);
     end
 end
 

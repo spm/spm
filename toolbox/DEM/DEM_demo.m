@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 02-Jul-2008 13:17:34
+% Last Modified by GUIDE v2.5 02-Dec-2008 18:59:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -170,5 +170,9 @@ run_demo_Callback(hObject, handles, 'ADEM_motor')
 function pushbutton46_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'ADEM_learning')
 
+% --- Executes on button press in pushbutton47.
+function pushbutton47_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton47 (see GCBO)
+run_demo_Callback(hObject, handles, 'ADEM_lorenz')
 
 
