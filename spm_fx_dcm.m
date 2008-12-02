@@ -13,18 +13,19 @@ function [y] = spm_fx_dcm(x,u,P,M)
 %
 % References for hemodynamic & neuronal state equations:
 % 1. Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
-% changes during brain activation: The Balloon model. MRM 39:855-864, 1998.
+%    changes during brain activation: The Balloon model. MRM 39:855-864, 
+%    1998.
 % 2. Friston KJ, Mechelli A, Turner R, Price CJ. Nonlinear responses in 
-% fMRI: the Balloon model, Volterra kernels, and other hemodynamics. 
-% Neuroimage 12:466-477, 2000.
-% Stephan KE, Kasper L, Harrison LM, Daunizeau J, den Ouden HE, Breakspear 
-% M, Friston KJ. Nonlinear dynamic causal models for fMRI. Neuroimage 42:
-% 649-662, 2008. 
+%    fMRI: the Balloon model, Volterra kernels, and other hemodynamics. 
+%    Neuroimage 12:466-477, 2000.
+% 3. Stephan KE, Kasper L, Harrison LM, Daunizeau J, den Ouden HE,  
+%    Breakspear M, Friston KJ. Nonlinear dynamic causal models for fMRI. 
+%    Neuroimage 42:649-662, 2008. 
 %___________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_dcm.m 2504 2008-11-29 15:53:11Z klaas $
+% $Id: spm_fx_dcm.m 2517 2008-12-02 10:36:11Z klaas $
 
 
 % hemodynamic parameters

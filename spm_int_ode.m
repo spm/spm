@@ -33,12 +33,30 @@ function [y] = spm_int_ode(P,M,U)
 % respectively.  They can be used for any ODEs, where the Jacobian is
 % unknown or difficult to compute; however, they may be slow.
 %
-% spm_int_J: uses an explicit Jacobian based update scheme that preserves
-% linearities in the ODE: dx = (expm(dt*J) - I)*inv(J)*f.  If the
+% spm_int_J: uses an explicit Jacobian-based update scheme that preserves
+% nonlinearities in the ODE: dx = (expm(dt*J) - I)*inv(J)*f.  If the
 % equations of motion return J = df/dx, it will be used; otherwise it is
 % evaluated numerically, using spm_diff at each time point.  This scheme is
-% infallible but potentially slow if the Jacobian is not available (calls
+% infallible but potentially slow, if the Jacobian is not available (calls
 % spm_dx).
+%
+% spm_int_E: As for spm_int_J but uses the eigensystem of J(x(0)) to eschew
+% matrix exponentials and inversion during the integration. It is probably
+% the best compromise, if the Jacobian is not available explicitly.
+%
+% spm_int_J_nlDCM_fMRI: Identical to spm_int_J, except that it samples
+% predicted responses only at specified time points (i.e. every TR,
+% accounting for slice-timing).  It is an alternative integrator for 
+% nonlinear DCM for fMRI (marginally more accurate, but considerably slower 
+% than spm_int_B_nlDCM_fMRI).
+%
+% spm_int_B: As for spm_int_J but uses a first-order approximation to J
+% based on J(x(t)) = J(x(0)) + dJdx*x(t).
+%
+% spm_int_B_nlDCM_fMRI: Identical to spm_int_B, except that it samples
+% predicted responses only at specified time points (i.e. every TR,
+% accounting for slice-timing).  It is the default integrator for nonlinear
+% DCM for fMRI.
 %
 % spm_int_U: like spm_int_J but only evaluates J when the input changes.
 % This can be useful if input changes are sparse (e.g., boxcar functions).
@@ -53,7 +71,7 @@ function [y] = spm_int_ode(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 2330 2008-10-10 18:23:42Z karl $
+% $Id: spm_int_ode.m 2517 2008-12-02 10:36:11Z klaas $
 
 
 % convert U to U.u if necessary

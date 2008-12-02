@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2506 2008-11-30 12:52:41Z klaas $
+% $Id: spm_dcm_estimate.m 2517 2008-12-02 10:36:11Z klaas $
 
  
 % load DCM structure
@@ -46,12 +46,12 @@ if isfield(DCM,'d')
     if any(any(DCM.d(:)))
         nlDCM = 1;
         d     = DCM.d;                  % switch on nonlinear modulations
-        fprintf('\n%s %s\n','Nonlinear DCM:',P);
+        fprintf('\n%s %s\n\n','Nonlinear DCM:',P);
         fprintf('%s\n\n','---------------------------------------------:');        
-        fprintf('%s\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
+        fprintf('%s\n\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
         fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
         fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
-        fprintf('%s %1.3f.\n\n','We would recommend time bins of approx. 0.2 s; you are currently using microtimebins of',DCM.U.dt);
+        fprintf('%s %1.3f.\n\n','We found microtime bins of 0.2 s to give stable results; longer time bins may still work, but you would need to check.  You are currently using microtimebins of',DCM.U.dt);
     else
         nlDCM = 0;
     end
@@ -99,7 +99,7 @@ if ~nlDCM
     M.nlDCM = 0;
 else
     % nonlinear DCM
-    M.IS    = 'spm_int_J';
+    M.IS    = 'spm_int_B_nlDCM_fMRI';
     M.nlDCM = 1;
 end
 M.f   = 'spm_fx_dcm';

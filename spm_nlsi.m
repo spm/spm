@@ -91,7 +91,7 @@ function varargout = spm_nlsi(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi.m 2504 2008-11-29 15:53:11Z klaas $
+% $Id: spm_nlsi.m 2517 2008-12-02 10:36:11Z klaas $
 
 % check integrator
 %--------------------------------------------------------------------------
@@ -101,7 +101,7 @@ catch
     if ~M.nlDCM
         M.IS = 'spm_int';
     else
-        M.IS = 'spm_int_J';
+        M.IS = 'spm_int_B_nlDCM_fMRI';
     end
 end
 
