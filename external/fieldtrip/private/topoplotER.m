@@ -71,6 +71,10 @@ function topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.51  2008/12/02 16:09:04  sashae
+% replaced backward compatibility code by call to checkconfig,
+% renamed cfg options in code to make them consistent with documentation
+%
 % Revision 1.50  2008/11/28 21:43:27  sashae
 % allow averaging over rpt/subj also for other fields than zparam=powspctrm (thanks to Jurrian)
 % added call to checkconfig
@@ -197,7 +201,7 @@ if ~isfield(cfg, 'ecolor'),        cfg.ecolor = [0 0 0];          end
 if ~isfield(cfg, 'emarker'),       cfg.emarker = 'o';             end
 if ~isfield(cfg, 'emarkersize'),   cfg.emarkersize = 2;           end
 if ~isfield(cfg, 'fontsize'),      cfg.fontsize = 8;              end
-if ~isfield(cfg, 'hcolor'),        cfg.hcolor = [0 0 0];          end
+if ~isfield(cfg, 'headcolor'),     cfg.headcolor = [0 0 0];       end
 if ~isfield(cfg, 'hlinewidth'),    cfg.hlinewidth = 2;            end
 if ~isfield(cfg, 'baseline'),      cfg.baseline = 'no';           end   %to avoid warning in timelock/freqbaseline
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
@@ -285,7 +289,7 @@ end
 cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 % Create time-series of small topoplots:
-if ~ischar(cfg.xlim) & length(cfg.xlim)>2
+if ~ischar(cfg.xlim) && length(cfg.xlim)>2
   % Switch off interactive mode:
   cfg.interactive = 'no';
   xlims = cfg.xlim;

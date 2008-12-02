@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.103  2008/12/02 15:28:49  estmee
+% Changes to make cfg.datatype deprecated.
+%
 % Revision 1.102  2008/11/11 18:59:25  sashae
 % added call to checkconfig at end of function (trackconfig and checksize)
 %
@@ -453,15 +456,14 @@ else
   % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
+  cfg = checkconfig(cfg, 'forbidden', {'datatype'});
   
   % read the header
   hdr = read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
 
   % this option relates to reading over trial boundaries in a pseudo-continuous dataset
   if ~isfield(cfg, 'continuous')
-    if isfield(cfg, 'datatype') && strcmp(cfg.datatype, 'continuous')
-      cfg.continuous = 'yes';
-    elseif hdr.nTrials==1
+    if hdr.nTrials==1
       cfg.continuous = 'yes';
     else
       cfg.continuous = 'no';
@@ -630,7 +632,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.102 2008/11/11 18:59:25 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.103 2008/12/02 15:28:49 estmee Exp $';
 
 % remember the exact configuration details in the output
 data.cfg = cfg;

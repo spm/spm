@@ -46,6 +46,9 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.29  2008/12/02 16:36:10  estmee
+% Checkconfig cfg.datatype = forbidden
+%
 % Revision 1.28  2008/11/25 13:17:56  estmee
 % Documentation update
 %
@@ -96,6 +99,9 @@ fieldtripdefs
 if ~isfield(cfg,'artfctdef'),                     cfg.artfctdef                    = [];        end
 if ~isfield(cfg.artfctdef,'muscle'),              cfg.artfctdef.muscle             = [];        end
 if ~isfield(cfg.artfctdef.muscle,'method'),       cfg.artfctdef.muscle.method      = 'zvalue';  end
+
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.muscle,'sgn')

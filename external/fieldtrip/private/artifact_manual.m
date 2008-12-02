@@ -42,6 +42,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Copyright (C) 2004, Geerten Kramer, FCDC
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.22  2008/12/02 16:31:49  estmee
+% Set default cfg.continuous/ checkconfig cfg.datatype = forbidden
+%
 % Revision 1.21  2008/11/25 13:17:16  estmee
 % Documentation update
 %
@@ -129,6 +132,9 @@ if ~isfield(cfg.artfctdef.manual,'posttrialtime'),      cfg.artfctdef.manual.pos
 if ~isfield(cfg.artfctdef.manual,'timeaxrelative'),     cfg.artfctdef.manual.timeaxrelative      = 'yes';    end
 if ~isfield(cfg.artfctdef.manual,'maxnumberofchannels'),cfg.artfctdef.manual.maxnumberofchannels = 20;       end
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'datatype'});
+
 % for backward compatibility
 if isfield(cfg.artfctdef.manual,'sgn')
   cfg.artfctdef.manual.channel = cfg.artfctdef.manual.sgn;
@@ -157,6 +163,15 @@ if(nch<1)
   error(sprintf('\nNo channels selected for artifact_manual!\nSelect at least one channel in cfg.artfctdef.manual.channel'));
 elseif(nch>cfg.artfctdef.manual.maxnumberofchannels)
   error(sprintf('\nMore than %i channels selected in cfg.artfctdef.manual.channel',cfg.artfctdef.manual.maxnumberofchannels));
+end
+
+% set default cfg.continuous
+if ~isfield(cfg, 'continuous')
+    if hdr.nTrials==1
+      cfg.continuous = 'yes';
+    else
+      cfg.continuous = 'no';
+    end
 end
 
 show=read_data(cfg.datafile, 'header', hdr, 'begsample', 1, 'endsample', hdr.nTrials*hdr.nSamples, 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
@@ -331,7 +346,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.21 2008/11/25 13:17:16 estmee Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.22 2008/12/02 16:31:49 estmee Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start taht implement the gui callbacks

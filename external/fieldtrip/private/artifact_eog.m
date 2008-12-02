@@ -45,6 +45,9 @@ function [cfg, artifact] = artifact_eog(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_eog.m,v $
+% Revision 1.33  2008/12/02 16:35:01  estmee
+% Checkconfig cfg.datatype = forbidden
+%
 % Revision 1.32  2008/11/25 13:14:28  estmee
 % Documentation update
 %
@@ -92,6 +95,9 @@ fieldtripdefs
 if ~isfield(cfg,'artfctdef'),                  cfg.artfctdef                 = [];       end
 if ~isfield(cfg.artfctdef,'eog'),              cfg.artfctdef.eog             = [];       end
 if ~isfield(cfg.artfctdef.eog,'method'),       cfg.artfctdef.eog.method      = 'zvalue'; end
+
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.eog,'sgn')

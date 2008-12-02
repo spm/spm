@@ -25,6 +25,9 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.19  2008/12/02 16:29:42  estmee
+% Set default cfg.continuous/ checkconfig cfg.datatype = forbidden
+%
 % Revision 1.18  2008/11/25 13:12:48  estmee
 % Documentation update
 %
@@ -91,6 +94,9 @@ if ~isfield(cfg.artfctdef.clip,'thresh'),   cfg.artfctdef.clip.thresh   = 0.010;
 if ~isfield(cfg.artfctdef.clip,'pretim'),   cfg.artfctdef.clip.pretim   = 0.000;           end;
 if ~isfield(cfg.artfctdef.clip,'psttim'),   cfg.artfctdef.clip.psttim   = 0.000;           end;
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'datatype'});
+
 % for backward compatibility
 if isfield(cfg.artfctdef.clip,'sgn')
   cfg.artfctdef.clip.channel = cfg.artfctdef.clip.sgn;
@@ -110,6 +116,15 @@ elseif nargin == 2
   isfetch = 1;
   cfg = checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
   hdr = fetch_header(data);
+end
+
+% set default cfg.continuous
+if ~isfield(cfg, 'continuous')
+    if hdr.nTrials==1
+      cfg.continuous = 'yes';
+    else
+      cfg.continuous = 'no';
+    end
 end
 
 % find the channel labels present in the data and their indices
@@ -182,5 +197,5 @@ catch
   cfg.version.name = st(i);
 end
 
-cfg.version.id = '$Id: artifact_clip.m,v 1.18 2008/11/25 13:12:48 estmee Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.19 2008/12/02 16:29:42 estmee Exp $';
 

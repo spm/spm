@@ -28,6 +28,9 @@ function [cfg, artifact] = artifact_ecg(cfg)
 % Copyright (c) 2005, Jan-Mathijs Schoffelen
 %
 % $Log: artifact_ecg.m,v $
+% Revision 1.20  2008/12/02 16:30:45  estmee
+% Set default cfg.continuous/ checkconfig cfg.datatype = forbidden
+%
 % Revision 1.19  2008/11/25 13:13:47  estmee
 % Documentation update
 %
@@ -95,6 +98,9 @@ if ~isfield(cfg.artfctdef.ecg,'pretim'), cfg.artfctdef.ecg.pretim    = 0.05;    
 if ~isfield(cfg.artfctdef.ecg,'psttim'), cfg.artfctdef.ecg.psttim    = 0.3;           end
 if ~isfield(cfg.artfctdef.ecg,'mindist'), cfg.artfctdef.ecg.mindist  = 0.5;           end
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'datatype'});
+
 % for backward compatibility
 if isfield(cfg.artfctdef.ecg,'sgn')
   cfg.artfctdef.ecg.channel = cfg.artfctdef.ecg.sgn;
@@ -123,6 +129,15 @@ if numecgsgn<1
   error('no ECG channels selected');
 elseif numecgsgn>1
   error('only one ECG channel can be selected');
+end
+
+% set default cfg.continuous
+if ~isfield(cfg, 'continuous')
+    if hdr.nTrials==1
+      cfg.continuous = 'yes';
+    else
+      cfg.continuous = 'no';
+    end
 end
 
 % read in the ecg-channel and do blc and squaring
@@ -273,5 +288,5 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_ecg.m,v 1.19 2008/11/25 13:13:47 estmee Exp $';
+cfg.version.id = '$Id: artifact_ecg.m,v 1.20 2008/12/02 16:30:45 estmee Exp $';
 

@@ -67,6 +67,9 @@ function [cfg, artifact] = artifact_zvalue(cfg,data)
 % Copyright (c) 2003-2005, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % $Log: artifact_zvalue.m,v $
+% Revision 1.18  2008/12/02 16:34:20  estmee
+% Set default cfg.continuous (hdr needed)
+%
 % Revision 1.17  2008/11/18 16:16:49  estmee
 % Added cfg.continuous
 %
@@ -156,6 +159,15 @@ elseif nargin == 1
   % only cfg given
   isfetch = 0;
   hdr = read_header(cfg.headerfile);
+end
+
+% set default cfg.continuous
+if ~isfield(cfg, 'continuous')
+    if hdr.nTrials==1
+      cfg.continuous = 'yes';
+    else
+      cfg.continuous = 'no';
+    end
 end
 
 trl           = cfg.trl;
@@ -316,6 +328,6 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.zvalue.version.name = st(i);
 end
-cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.17 2008/11/18 16:16:49 estmee Exp $';
+cfg.artfctdef.zvalue.version.id = '$Id: artifact_zvalue.m,v 1.18 2008/12/02 16:34:20 estmee Exp $';
 
 

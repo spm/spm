@@ -77,6 +77,9 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.56  2008/12/02 12:22:00  roboos
+% allow data to be realigned AND simultaneously interpolated to another MEG sensor type, e.g. from ctf151 to ctf275
+%
 % Revision 1.55  2008/11/25 14:56:52  estmee
 % Documentation update
 %
@@ -94,166 +97,6 @@ function [interp] = megrealign(cfg, data);
 %
 % Revision 1.50  2008/07/15 19:56:44  roboos
 % moved cfg details for dipole grid to subcfg (cfg.grid)subcfg (cfg.grid.xxx)
-%
-% Revision 1.49  2008/05/06 15:43:46  sashae
-% change in trial selection, cfg.trials can be logical
-%
-% Revision 1.48  2008/04/10 08:03:11  roboos
-% renamed the fieldtrip/private/prepare_vol_sens function into prepare_headmodel
-%
-% Revision 1.47  2008/03/05 10:46:36  roboos
-% moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
-%
-% Revision 1.46  2008/01/31 17:20:17  sashae
-% added option for trial selection
-%
-% Revision 1.45  2007/10/15 10:53:21  roboos
-% fixed bug in realignment when single-shell (a.k.a. "Nolte") headmodel
-% was used. In the previous version, the data would not be realigned to
-% the new template helmet, but would only be a little bit spatial noise
-% filtered (i.e. slightly different).
-%
-% Revision 1.44  2007/05/30 13:23:55  roboos
-% added cfg.channel default to ensure that only MEG channels (and not reference channels) are used for realignment. All other channels are not realigned.
-%
-% Revision 1.43  2007/05/29 16:10:24  ingnie
-% use read_fcdc_elec iso read_fcdc_header to read gradiometer positions (with roboos)
-%
-% Revision 1.42  2007/05/29 12:51:31  roboos
-% added new options for checkdata
-%
-% Revision 1.41  2007/05/16 12:22:04  roboos
-% fixed some small bugs
-%
-% Revision 1.40  2007/05/16 11:46:20  roboos
-% switched to using prepare_dipole_grid subfunction for source layer generation
-% changed the plotting, an  additional figure is made with the geometry of the volume conductor, teh sources and the old+new sensor locations
-% changed default cfg.feedback to yes (i.e. default is to show the figures)
-%
-% Revision 1.39  2007/05/02 15:59:13  roboos
-% be more strict on the input and output data: It is now the task of
-% the private/checkdata function to convert the input data to raw
-% data (i.e. as if it were coming straight from preprocessing).
-% Furthermore, the output data is NOT converted back any more to the
-% input data, i.e. the output data is the same as what it would be
-% on raw data as input, regardless of the actual input.
-%
-% Revision 1.38  2007/04/03 15:37:07  roboos
-% renamed the checkinput function to checkdata
-%
-% Revision 1.37  2007/03/30 17:05:40  ingnie
-% checkinput; only proceed when input data is allowed datatype
-%
-% Revision 1.36  2007/03/27 11:05:19  ingnie
-% changed call to fixdimord in call to checkinput
-%
-% Revision 1.35  2007/02/13 16:02:28  roboos
-% removed default for cfg.inwardshift, fxed bug in underlying headsurface function, added dipole layer as black points to the 3D figure when cfg.feedback=yes
-%
-% Revision 1.34  2007/02/13 15:12:51  roboos
-% removed cfg.plot3d option
-%
-% Revision 1.33  2006/10/12 07:23:52  roboos
-% changed cfg.headshape='headmodel' into cfg.headshape=[], default behaviour for empty is ok
-%
-% Revision 1.32  2006/10/09 15:22:28  roboos
-% added support for bti148
-%
-% Revision 1.31  2006/10/03 13:00:50  roboos
-% construct dipole grid from inward shifted brain (based on volume model), option 'cortex' is not yet supported by headsurface
-%
-% Revision 1.30  2006/09/19 16:10:43  roboos
-% updated documentation
-%
-% Revision 1.29  2006/07/24 07:59:16  roboos
-% updated documentation
-%
-% Revision 1.28  2006/07/24 07:51:30  roboos
-% improved ducumentation, added two hidden options
-% improved memory efficiency in case verify=yes (which is the default)
-%
-% Revision 1.27  2006/06/14 11:51:06  roboos
-% changed a fprintf to be more human-readible
-%
-% Revision 1.26  2006/04/20 09:58:34  roboos
-% updated documentation
-%
-% Revision 1.25  2006/04/10 16:33:46  ingnie
-% updated documentation
-%
-% Revision 1.24  2006/04/06 16:17:10  ingnie
-% updated documentation
-%
-% Revision 1.23  2006/02/24 16:37:56  roboos
-% only change in whitespace
-%
-% Revision 1.22  2006/02/23 10:28:16  roboos
-% changed dimord strings for consistency, changed toi and foi into time and freq, added fixdimord where neccessary
-%
-% Revision 1.21  2006/01/30 14:34:59  roboos
-% added two comments as a reminder that prepare_dipole_grid should be used in the future
-%
-% Revision 1.20  2006/01/30 14:09:04  roboos
-% replaced ctf specific code by call to read_fcdc_header
-%
-% Revision 1.19  2005/12/14 14:16:38  roboos
-% switched from prepare_brain_surface to headsurface subfunction
-%
-% Revision 1.18  2005/06/29 12:46:29  roboos
-% the following changes were done on a large number of files at the same time, not all of them may apply to this specific file
-% - added try-catch around the inclusion of input data configuration
-% - moved cfg.version, cfg.previous and the assignment of the output cfg to the end
-% - changed help comments around the configuration handling
-% - some changes in whitespace
-%
-% Revision 1.17  2005/06/08 13:40:33  roboos
-% replaced the specific call to either meg_leadfield or eeg_leadfield to the generic compute_leadfield
-%
-% Revision 1.16  2005/06/07 13:03:55  roboos
-% fixed bug due to change in read_ctf_res4 and ctf2grad
-%
-% Revision 1.15  2005/06/02 12:18:41  roboos
-% changed handling of input data: All input data that contains averages is converted to raw trials (like the output from preprocessing) prior to further processing. The output data is converted back into a format similar to the original input data using RAW2MEG.
-%
-% Revision 1.14  2005/05/23 09:31:49  roboos
-% now gives error if no template is specified
-%
-% Revision 1.13  2005/05/17 17:50:37  roboos
-% changed all "if" occurences of & and | into && and ||
-% this makes the code more compatible with Octave and also seems to be in closer correspondence with Matlab documentation on shortcircuited evaluation of sequential boolean constructs
-%
-% Revision 1.12  2005/01/17 14:40:38  roboos
-% small change in documentation
-%
-% Revision 1.11  2004/08/20 14:30:27  roboos
-% added literatire reference to knosche2002
-%
-% Revision 1.10  2004/05/05 13:55:20  roberto
-% fixed bug that occured when average data was made with keeptrials=yes
-%
-% Revision 1.9  2004/04/27 13:49:31  roberto
-% fixed bug that occurred when template set contained mixture of 150 and 151 channel helmets
-%
-% Revision 1.8  2004/04/26 09:36:26  roberto
-% interp.time was not returned correctly
-%
-% Revision 1.7  2004/04/22 12:51:19  roberto
-% fixed bug that occurred if no rest-channels are present (variable remained undefined)
-%
-% Revision 1.6  2004/04/13 16:31:09  roberto
-% fixed bug in dbstack selection of function filename for Matlab 6.1
-%
-% Revision 1.5  2004/04/13 14:25:24  roberto
-% wrapped code-snippet around mfilename to make it compatible with Matlab 6.1
-%
-% Revision 1.4  2004/04/08 16:05:19  roberto
-% fixed bug in plot3d section where 151 channels were hardcoded
-%
-% Revision 1.3  2004/04/08 15:45:53  roberto
-% added support for datasets with less than 151 MEG channels,
-% removed most of the channel selection and now using prepare_vol_sens,
-% moved the construction of the brain dipole surface to new function prepare_brain_surface
-%
 
 fieldtripdefs
 
@@ -326,6 +169,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Ntemplate = length(cfg.template);
 for i=1:Ntemplate
+  fprintf('reading template helmet position from %s\n', cfg.template{i});
   template(i) = read_sens(cfg.template{i});
 end
 
@@ -342,6 +186,10 @@ case {'ctf151_planar' 'ctf275_planar'}
   labL = 'MLC21_dH';
   labR = 'MRC21_dH';
 case {'bti148' 'bti248'}
+  labC = 'A14';
+  labF = 'A2';
+  labL = 'A15';
+case {'bti148_planar' 'bti248_planar'}
   labC = 'A14';
   labF = 'A2';
   labL = 'A15';
@@ -394,36 +242,40 @@ if isempty(indxC) | isempty(indxF) | isempty(indxL) | isempty(indxR)
 end
 
 % construct two direction vectors that define the helmet orientation
-orig.dirCF = data.grad.pnt(indxF,:) - data.grad.pnt(indxC,:);
-orig.dirRL = data.grad.pnt(indxL,:) - data.grad.pnt(indxR,:);
+orig.dirCF = template(1).pnt(indxF,:) - template(1).pnt(indxC,:);
+orig.dirRL = template(1).pnt(indxL,:) - template(1).pnt(indxR,:);
 % construct three orthonormal direction vectors
 orig.dirX = normalize(orig.dirCF);
 orig.dirY = normalize(orig.dirRL - dot(orig.dirRL, orig.dirX) * orig.dirX);
 orig.dirZ = cross(orig.dirX, orig.dirY);
-orig.tra = fixedbody(data.grad.pnt(indxC,:), orig.dirX, orig.dirY, orig.dirZ);
+orig.tra = fixedbody(template(1).pnt(indxC,:), orig.dirX, orig.dirY, orig.dirZ);
 
 % compute the homogenous transformation matrix and transform the positions
 tra = inv(templ.tra) * orig.tra;
-pnt = data.grad.pnt;
+pnt = template(1).pnt;
 pnt(:,4) = 1;
 pnt = (tra * pnt')';
 pnt = pnt(:,1:3);
 
 % remove the translation from the transformation matrix and rotate the orientations
 tra(:,4) = [0 0 0 1]';
-ori = data.grad.ori;
+ori = template(1).ori;
 ori(:,4) = 1;
 ori = (tra * ori')';
 ori = ori(:,1:3);
+
+tmp_label = template(1).label;
+tmp_tra   = template(1).tra;
+tmp_unit  = template(1).unit;
 
 % construct the final template gradiometer definition
 template = [];
 template.grad.pnt = pnt;
 template.grad.ori = ori;
 % keep the same labels and the linear weights of the coils
-template.grad.label = data.grad.label;
-template.grad.tra   = data.grad.tra;
-template.grad.unit  = data.grad.unit;
+template.grad.label = tmp_label;
+template.grad.tra   = tmp_tra;
+template.grad.unit  = tmp_unit;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PREPARE_VOL_SENS will match the data labels, the gradiometer labels and the 
@@ -431,28 +283,31 @@ template.grad.unit  = data.grad.unit;
 % definition that only contains the gradiometers that are present in the data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-tmpdat = [];
-tmpdat.label = data.label;
 tmpcfg = [];
 if isfield(cfg, 'hdmfile')
   tmpcfg.hdmfile = cfg.hdmfile;
 elseif isfield(cfg, 'vol') 
   tmpcfg.vol = cfg.vol;
 end
-% note that in the following it is neccessary to keep the two volume
-% conduction models seperate, since the single-shell Nolte model contains
-% gradiometer specific precomputed parameters
-tmpdat.grad  = data.grad;
-[volold, data.grad] = prepare_headmodel(tmpcfg, tmpdat);
-tmpdat.grad = template.grad;
-[volnew, template.grad] = prepare_headmodel(tmpcfg, tmpdat);
+tmpcfg.grad    = data.grad;
+tmpcfg.channel = data.label; % this might be a subset of the MEG channels
+[volold, data.grad] = prepare_headmodel(tmpcfg);
 
-% Continue to work with the volume conduction model that matches the
-% original data and gradiometer definition. For the template gradiometer
-% definition it would not be possible to construct a multi-sphere model.
-% For a single sphere model it does not make a difference.
+% note that it is neccessary to keep the two volume conduction models
+% seperate, since the single-shell Nolte model contains gradiometer specific
+% precomputed parameters. Note that this is not guaranteed to result in a
+% good projection for local sphere models. 
+tmpcfg.grad    = template.grad;
+tmpcfg.channel = 'MEG'; % include all MEG channels
+[volnew, template.grad] = prepare_headmodel(tmpcfg);
 
-fprintf('mean distance towards template gradiometers is %.2f %s\n', mean(sum((data.grad.pnt-template.grad.pnt).^2, 2).^0.5), template.grad.unit);
+if strcmp(senstype(data.grad), senstype(template.grad))
+  fprintf('mean distance towards template gradiometers is %.2f %s\n', mean(sum((data.grad.pnt-template.grad.pnt).^2, 2).^0.5), template.grad.unit);
+else
+  % the projection is from one MEG system to another MEG system, which makes a comparison of the data difficult
+  cfg.feedback = 'no';
+  cfg.verify = 'no';
+end
 
 % create the dipole grid on which the data will be projected
 grid = prepare_dipole_grid(cfg, volold, data.grad);
@@ -484,10 +339,10 @@ end
 for i=1:Ntrials
   fprintf('realigning trial %d\n', i);
   data.realign{i} = realign * data.trial{i};
-  % also compute the residual variance when interpolating
-  rvrealign = rv(data.trial{i}, data.realign{i});
-  fprintf('original -> template             RV %.2f %%\n', 100 * mean(rvrealign));
   if strcmp(cfg.verify, 'yes')
+    % also compute the residual variance when interpolating
+    rvrealign = rv(data.trial{i}, data.realign{i});
+    fprintf('original -> template             RV %.2f %%\n', 100 * mean(rvrealign));
     datnoalign = noalign * data.trial{i};
     datbkalign = bkalign * data.trial{i};
     rvnoalign = rv(data.trial{i}, datnoalign);
@@ -517,7 +372,7 @@ if strcmp(cfg.feedback, 'yes')
     otherwise
       error('unsupported cfg.topoparam');
   end
-  
+
   X = [pnt1(:,1) pnt2(:,1)]';
   Y = [pnt1(:,2) pnt2(:,2)]';
   Z = [pnt1(:,3) pnt2(:,3)]';
@@ -546,7 +401,7 @@ if strcmp(cfg.feedback, 'yes')
   triplot(pnt1, tri1, p1);
   title('RMS, before realignment')
   view(-90, 90)
-  
+ 
   % show figure with data on new helmet location
   figure
   hold on
@@ -568,7 +423,9 @@ interp.time    = data.time;
 
 % add the rest channels back to the data, these were not interpolated
 if ~isempty(rest.label)
-  fprintf('adding %d non-MEG channels back to the data\n', length(rest.label));
+  fprintf('adding %d non-MEG channels back to the data (', length(rest.label));
+  fprintf('%s, ', rest.label{1:end-1});
+  fprintf('%s)\n', rest.label{end});
   for trial=1:length(rest.trial)
     interp.trial{trial} = [interp.trial{trial}; rest.trial{trial}];
   end
@@ -587,7 +444,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.55 2008/11/25 14:56:52 estmee Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.56 2008/12/02 12:22:00 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

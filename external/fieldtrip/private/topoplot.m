@@ -95,14 +95,7 @@ function [handle] = topoplot(varargin)
 %                             interpolated data values.
 
 % Undocumented local options:
-% cfg.efsize
-% cfg.electcolor
-% cfg.electrod
-% cfg.emsize
 % cfg.grid
-% cfg.hcolor
-% cfg.headlimits
-% cfg.interpolate
 % cfg.maxchans
 % cfg.showlabels
 % cfg.zlim
@@ -126,6 +119,16 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.40  2008/12/02 16:09:04  sashae
+% replaced backward compatibility code by call to checkconfig,
+% renamed cfg options in code to make them consistent with documentation
+%
+% Revision 1.39  2008/12/02 15:34:37  jansch
+% added support for configurations of the class config
+%
+% Revision 1.38  2008/12/02 15:33:36  jansch
+% *** empty log message ***
+%
 % Revision 1.37  2008/11/12 19:24:03  roboos
 % added some code to speed up realtime plotting/updating
 %
@@ -209,7 +212,7 @@ elseif nargin==2
   data = varargin{2};
   err  = 0;
   if ~isempty(cfg),
-    err  = err + ~isstruct(cfg);
+    err  = err + double(~isstruct(cfg) && ~strcmp(class(cfg), 'config'));
   end
   err  = err + ~isnumeric(data);
   if err
@@ -227,7 +230,7 @@ elseif nargin==4
   data  = varargin{4};
   err   = 0;
   if ~isempty(cfg),
-    err  = err + ~isstruct(cfg);
+    err  = err + double(~isstruct(cfg) && ~strcmp(class(cfg), 'config'));
   end
   err  = err + ~isnumeric(data);
   err  = err + ~isnumeric(chanX);
@@ -248,7 +251,7 @@ elseif nargin==5
   chanLabels = varargin{5};
   err    = 0;
   if ~isempty(cfg),
-    err  = err + ~isstruct(cfg);
+    err  = err + double(~isstruct(cfg) && ~strcmp(class(cfg), 'config'));
   end
   err    = err + ~isnumeric(data);
   err    = err + ~isnumeric(chanX);
@@ -270,11 +273,11 @@ end
 if ~isfield(cfg, 'maxchans')      cfg.maxchans = 256;       end;
 if ~isfield(cfg, 'maplimits')     cfg.maplimits = 'absmax'; end; % absmax, maxmin, [values]
 if ~isfield(cfg, 'interplimits')  cfg.interplimits ='head'; end; % head, electrodes
-if ~isfield(cfg, 'grid_scale')    cfg.grid_scale = 67;      end; % 67 in original
+if ~isfield(cfg, 'gridscale')     cfg.gridscale = 67;       end; % 67 in original
 if ~isfield(cfg, 'contournum')    cfg.contournum = 6;       end;
 if ~isfield(cfg, 'colorbar')      cfg.colorbar = 'no';      end;
 if ~isfield(cfg, 'style')         cfg.style = 'both';       end; % both,straight,fill,contour,blank
-if ~isfield(cfg, 'hcolor')        cfg.hcolor = [0 0 0];     end;
+if ~isfield(cfg, 'headcolor')     cfg.headcolor = [0 0 0];  end;
 if ~isfield(cfg, 'contcolor')     cfg.contcolor = 'k';      end;
 if ~isfield(cfg, 'hlinewidth')    cfg.hlinewidth = 2;       end;
 if ~isfield(cfg, 'shading')       cfg.shading = 'flat';     end; % flat or interp
@@ -323,7 +326,7 @@ end;
 if ~isfield(cfg,'emarker')      cfg.emarker = 'o';     end;
 if ~isfield(cfg,'ecolor')       cfg.ecolor = [0 0 0];  end;
 if ~isfield(cfg,'emarkersize')  cfg.emarkersize = 2;   end;
-if ~isfield(cfg,'efsize')       cfg.efsize = get(0,'DefaultAxesFontSize');end;
+if ~isfield(cfg,'efontsize')    cfg.efontsize = get(0,'DefaultAxesFontSize');end;
 
 if ~isfield(cfg,'highlight')    cfg.highlight = 'off'; end; % 'off' or the electrodenumbers.
 if ~isfield(cfg,'hlmarker')     cfg.hlmarker = 'o';    end;
@@ -336,54 +339,23 @@ if isfield(cfg,'colormap')
   colormap(cfg.colormap);
 end;
 
-if isfield(cfg,'headlimits')
-  cfg.interplimits = cfg.headlimits;
-  cfg              = rmfield(cfg,'headlimits');
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'renamed',     {'grid_scale',  'gridscale'});
+cfg = checkconfig(cfg, 'renamed',     {'interpolate', 'interpolation'});
+cfg = checkconfig(cfg, 'renamed',     {'numcontour',  'contournum'});
+cfg = checkconfig(cfg, 'renamed',     {'electrod',    'electrodes'});
+cfg = checkconfig(cfg, 'renamed',     {'hcolor',      'headcolor'});
+cfg = checkconfig(cfg, 'renamed',     {'electcolor',  'ecolor'});
+cfg = checkconfig(cfg, 'renamed',     {'emsize',      'emarkersize'});
+cfg = checkconfig(cfg, 'renamed',     {'efsize',      'efontsize'});
+cfg = checkconfig(cfg, 'renamed',     {'headlimits',  'interplimits'});
+
+if isfield(cfg,'interplimits')
   if ~ischar(cfg.interplimits), error('topoplot(): interplimits value must be a string'); end
   cfg.interplimits = lower(cfg.interplimits);
-  if ~strcmp(cfg.interplimits,'electrodes') & ~strcmp(cfg.interplimits,'head'),
+  if ~strcmp(cfg.interplimits,'electrodes') && ~strcmp(cfg.interplimits,'head'),
     error('topoplot(): Incorrect value for interplimits');
   end
-end;
-
-if isfield(cfg,'gridscale')
-  cfg.grid_scale = cfg.gridscale;
-  cfg            = rmfield(cfg,'gridscale');
-end;
-
-if isfield(cfg,'interpolate')
-  cfg.interpolation = lower(cfg.interpolate);
-  cfg               = rmfield(cfg,'interpolate');
-end;
-
-if isfield(cfg,'numcontour')
-  cfg.contournum = cfg.numcontour;
-  cfg            = rmfield(cfg,'numcontour');
-end;
-
-if isfield(cfg,'electrod')
-  cfg.electrodes = lower(cfg.electrod);
-  cfg            = rmfield(cfg,'electrod');
-end;
-
-if isfield(cfg,'headcolor')
-  cfg.hcolor = cfg.headcolor;
-  cfg        = rmfield(cfg,'headcolor');
-end;
-
-if isfield(cfg,'electcolor')
-  cfg.ecolor = cfg.electcolor;
-  cfg        = rmfield(cfg,'electcolor');
-end;
-
-if isfield(cfg,'emsize')
-  cfg.emarkersize = cfg.emsize;
-  cfg             = rmfield(cfg,'emsize');
-end;
-
-if isfield(cfg,'efontsize')
-  cfg.efsize = cfg.efontsize;
-  cfg        = rmfield(cfg,'efontsize');
 end;
 
 if isfield(cfg,'shading')
@@ -391,6 +363,7 @@ if isfield(cfg,'shading')
   if ~any(strcmp(cfg.shading,{'flat','interp'})), error('Invalid Shading Parameter'); end
 end
 
+% for compatibility with topoplotXXX functions
 if isfield(cfg,'zlim')
   cfg.maplimits = cfg.zlim;
   cfg           = rmfield(cfg,'zlim');
@@ -502,8 +475,8 @@ if ~strcmp(cfg.style,'blank')
     ymin = max(-.5,min(y)); ymax = min(0.5,max(y));
   end
 
-  xi         = linspace(xmin,xmax,cfg.grid_scale);   % x-axis description (row vector)
-  yi         = linspace(ymin,ymax,cfg.grid_scale);   % y-axis description (row vector)
+  xi         = linspace(xmin,xmax,cfg.gridscale);   % x-axis description (row vector)
+  yi         = linspace(ymin,ymax,cfg.gridscale);   % y-axis description (row vector)
   [Xi,Yi,Zi] = griddata(y', x, data, yi', xi, cfg.interpolation); % Interpolate the topographic data
 
   % calculate colormap limits
@@ -594,17 +567,17 @@ elseif any(strcmp(cfg.electrodes,{'highlights','highlight'}))
 elseif strcmp(cfg.electrodes,'labels') || strcmp(cfg.showlabels,'yes')
   for i = 1:numChan
     text(y(i), x(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-      'Color', cfg.ecolor, 'FontSize', cfg.efsize);
+      'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
   end
 elseif strcmp(cfg.electrodes,'numbers') || strcmp(cfg.showlabels,'numbers')
   for i = 1:numChan
     text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-      'Color', cfg.ecolor, 'FontSize',cfg.efsize);
+      'Color', cfg.ecolor, 'FontSize',cfg.efontsize);
   end
 elseif strcmp(cfg.electrodes,'dotnum')
   for i = 1:numChan
     text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', ...
-      'Color', cfg.ecolor, 'FontSize', cfg.efsize);
+      'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
   end
   if ischar(cfg.highlight)
     hp2 = plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
@@ -621,7 +594,7 @@ end
 if isfield(cfg.layout, 'outline')
   % plot the outline of the head, ears and nose
   for i=1:length(cfg.layout.outline)
-    plot(cfg.layout.outline{i}(:,1), cfg.layout.outline{i}(:,2), 'Color', cfg.hcolor, 'LineWidth', cfg.hlinewidth)
+    plot(cfg.layout.outline{i}(:,1), cfg.layout.outline{i}(:,2), 'Color', cfg.headcolor, 'LineWidth', cfg.hlinewidth)
   end
 end
 

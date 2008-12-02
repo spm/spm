@@ -42,6 +42,9 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.23  2008/12/02 16:35:32  estmee
+% Checkconfig cfg.datatype= forbidden
+%
 % Revision 1.22  2008/11/25 13:16:24  estmee
 % Documentation update
 %
@@ -92,6 +95,9 @@ fieldtripdefs
 if ~isfield(cfg,'artfctdef'),                      cfg.artfctdef                 = [];              end
 if ~isfield(cfg.artfctdef,'jump'),                 cfg.artfctdef.jump            = [];              end
 if ~isfield(cfg.artfctdef.jump,'method'),          cfg.artfctdef.jump.method     = 'zvalue';        end
+
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.jump,'sgn')
