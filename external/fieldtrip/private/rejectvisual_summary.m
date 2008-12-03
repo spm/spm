@@ -43,6 +43,8 @@ for i=1:ntrl
       level(:,i) = max(abs(dat), [], 2);
     case 'range'
       level(:,i) = max(dat, [], 2) - min(dat, [], 2);
+    case 'kurtosis'
+      level(:,i) = kurtosis(dat, [], 2);
     otherwise
       error('unsupported method');
   end

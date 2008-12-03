@@ -50,6 +50,9 @@ function [freq] = freqanalysis_mtmfft(cfg, data);
 % Copyright (c) 2003-2006, Pascal Fries, F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmfft.m,v $
+% Revision 1.43  2008/12/03 14:04:31  roboos
+% only give warning about 1 taper for dpss
+%
 % Revision 1.42  2008/11/11 18:59:26  sashae
 % added call to checkconfig at end of function (trackconfig and checksize)
 %
@@ -471,7 +474,7 @@ for perlop = 1:numper
       error(sprintf(...
         'datalength to short for specified smoothing\ndatalength: %.3f s, smoothing: %.3f Hz, minimum smoothing: %.3f Hz',...
         numdatbns/data.fsample, cfg.tapsmofrq, data.fsample/numdatbns));
-    elseif (numtap < 2)
+    elseif (numtap < 2) && strcmp(cfg.taper, 'dpss')
       fprintf('WARNING: using only one taper for specified smoothing\n');
     end
     pad = zeros(1,numsmp - numdatbns);
@@ -576,7 +579,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.42 2008/11/11 18:59:26 sashae Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.43 2008/12/03 14:04:31 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

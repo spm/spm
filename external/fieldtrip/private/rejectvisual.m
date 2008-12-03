@@ -28,11 +28,12 @@ function [data] = rejectvisual(cfg, data);
 %                     'nan'    fill the channels that are unselected with NaNs
 %   cfg.metric      = string, describes the metric that should be computed in summary mode
 %                     for each channel in each trial, can be
-%                     'var'    variance within each channel (default)
-%                     'min'    minimum value in each channel
-%                     'max'    maximum value each channel
-%                     'absmax' maximum absolute value in each channel
-%                     'range'  range from min to max in each channel
+%                     'var'       variance within each channel (default)
+%                     'min'       minimum value in each channel
+%                     'max'       maximum value each channel
+%                     'absmax'    maximum absolute value in each channel
+%                     'range'     range from min to max in each channel
+%                     'kurtosis'  kurtosis, i.e. measure of peakedness of the amplitude distribution
 %   cfg.alim        = value that determines the amplitude scaling for the
 %                     channel and trial display, if empty then the amplitude
 %                     scaling is automatic (default = [])
@@ -106,6 +107,9 @@ function [data] = rejectvisual(cfg, data);
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
 % $Log: rejectvisual.m,v $
+% Revision 1.25  2008/12/03 14:06:50  roboos
+% added kurtosis as cfg.measure for summary
+%
 % Revision 1.24  2008/11/21 10:39:10  sashae
 % added call to checkconfig
 %
@@ -388,7 +392,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectvisual.m,v 1.24 2008/11/21 10:39:10 sashae Exp $';
+cfg.version.id = '$Id: rejectvisual.m,v 1.25 2008/12/03 14:06:50 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
