@@ -33,6 +33,9 @@ function [data] = checkdata(data, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: checkdata.m,v $
+% Revision 1.3  2008/12/04 08:23:34  jansch
+% added the option to toggle between fourier and sparsewithpow in fixcsd
+%
 % Revision 1.2  2008/11/14 10:45:47  jansch
 % extended the fixcsd subfunction
 %
@@ -194,6 +197,9 @@ hasoffset     = keyval('hasoffset',     varargin); if isempty(hasoffset), hasoff
 hascumtapcnt  = keyval('hascumtapcnt',  varargin);
 hasdof        = keyval('hasdof',        varargin); if isempty(hasdof), hasdof = 'no'; end
 cmbrepresentation = keyval('cmbrepresentation',  varargin);
+channelcmb    = keyval('channelcmb',   varargin);
+sourcedimord  = keyval('sourcedimord', varargin);
+keepoutside   = keyval('keepoutside',  varargin);
 
 % determine the type of input data
 % this can be raw, freq, timelock, comp, spike, source, volume, dip
@@ -451,7 +457,7 @@ if issource || isvolume,
   if isfield(data, 'xgrid'),  data = rmfield(data, 'xgrid');  end
   if isfield(data, 'ygrid'),  data = rmfield(data, 'ygrid');  end
   if isfield(data, 'zgrid'),  data = rmfield(data, 'zgrid');  end
-  if issource, data.dimord = 'pos'; end
+  if issource && ~isfield(data, 'dimord'), data.dimord = 'pos'; end
 end
 
 if isequal(hastrials,'yes')
@@ -499,11 +505,29 @@ if ~isempty(cmbrepresentation)
   if istimelock
     data = fixcov(data, cmbrepresentation);
   elseif isfreq
-    data = fixcsd(data, cmbrepresentation);
+    data = fixcsd(data, cmbrepresentation, channelcmb);
   else
     error('This function requires data with a covariance or cross-spectrum');
   end
 end % cmbrepresentation
+
+if issource && strcmp(keepoutside, 'no'),
+  data = source2sparse(data); %FIXME does this still exist
+end
+
+if ~isempty(sourcedimord)
+  if issource
+    data = fixsource(data, sourcedimord);
+  else
+    error(['This function requires source data with ',sourcedimord,' as dimord']);
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% represent the source structure in a particular manner
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%function source = fixsource(source, desired)
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the covariance matrix in a particular manner
@@ -523,7 +547,6 @@ elseif strcmp(current, 'full') && strcmp(desired, 'sparse')
 elseif strcmp(current, 'sparse') && strcmp(desired, 'full')
   % FIXME should be implemented
 end
-keyboard
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the cross-spectral-density matrix in a particular manner
@@ -542,8 +565,83 @@ else
 end
 if isequal(current, desired)
   % nothing to do
-elseif (strcmp(current, 'full')    && strcmp(desired, 'sparsewithpow')) || ...
-       (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
+elseif (strcmp(current, 'full')    && strcmp(desired, 'sparsewithpow'))
+
+elseif (strcmp(current, 'fourier') && strcmp(desired, 'sparsewithpow'))
+
+  % this is what freqdescriptives currently does as an intermediate step
+  dimtok = tokenize(data.dimord, '_');
+  if ~isempty(strmatch('rpttap',   dimtok)), 
+    nrpt = length(data.cumtapcnt);
+    flag = 0;
+  else 
+    nrpt = 1;
+    flag = 1;
+  end 
+  if ~isempty(strmatch('freq',  dimtok)), nfrq=length(data.freq);      else nfrq = 1; end
+  if ~isempty(strmatch('time',  dimtok)), ntim=length(data.time);      else ntim = 1; end
+
+  %create auto-spectra
+  nchan     = length(data.label);
+  powspctrm = zeros(nrpt,nchan,nfrq,ntim)+i.*zeros(nrpt,nchan,nfrq,ntim);
+  sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
+  for p = 1:nrpt
+    indx   = (sumtapcnt(p)+1):sumtapcnt(p+1);
+    tmpdat = data.fourierspctrm(indx,:,:,:);
+    powspctrm(p,:,:,:) = (sum(tmpdat.*conj(tmpdat),1))./data.cumtapcnt(p);
+  end
+
+  %create cross-spectra
+  if ~isempty(channelcmb),
+    ncmb      = size(channelcmb,1);
+    cmbindx   = zeros(ncmb,2);
+    labelcmb  = cell(ncmb,2);
+    for k = 1:ncmb
+      ch1 = find(strcmp(data.label, channelcmb(k,1)));    
+      ch2 = find(strcmp(data.label, channelcmb(k,2)));
+      if ~isempty(ch1) && ~isempty(ch2),
+        cmbindx(k,:)  = [ch1 ch2];
+        labelcmb(k,:) = data.label([ch1 ch2])';
+      end    
+    end
+    
+    crsspctrm = zeros(nrpt,ncmb,nfrq,ntim)+i.*zeros(nrpt,ncmb,nfrq,ntim);
+    for p = 1:nrpt
+      indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+      tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),:,:);
+      tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),:,:);
+      crsspctrm(p,:,:,:) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+    end
+%    for k = 1:ntim
+%      for m = 1:nfrq
+%        for p = 1:nrpt
+%          indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+%          tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
+%          tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
+%          crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+%        end
+%      end
+%    end
+    data.crsspctrm = crsspctrm;
+    data.labelcmb  = labelcmb;
+  end
+  data.powspctrm = powspctrm;
+  data           = rmfield(data, 'fourierspctrm');
+  if nrpt>1, 
+    if ntim>1,
+      data.dimord = 'rpt_chan_freq_time';
+    else  
+      data.dimord = 'rpt_chan_freq';
+    end
+  else
+    if ntim>1,
+      data.dimord = 'chan_freq_time';
+    else
+      data.dimord = 'chan_freq';
+    end
+  end
+  if flag, siz = size(data.crsspctrm); data.crsspctrm = reshape(data.crsspctrm, siz(2:end)); end
+  
 
 elseif (strcmp(current, 'sparse')  && strcmp(desired, 'sparsewithpow'))
   % convert back to crsspctrm/powspctrm representation: useful for plotting functions etc
@@ -584,16 +682,22 @@ elseif strcmp(current, 'fourier')       && strcmp(desired, 'sparse')
   
   crsspctrm = zeros(nrpt,ncmb,nfrq,ntim)+i.*zeros(nrpt,ncmb,nfrq,ntim);
   sumtapcnt = [0;cumsum(data.cumtapcnt(:))];
-  for k = 1:ntim
-    for m = 1:nfrq
+  %for k = 1:ntim
+  %  for m = 1:nfrq
+      %for p = 1:nrpt
+      %  indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
+      %  tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
+      %  tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
+      %  crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+      %end
       for p = 1:nrpt
         indx    = (sumtapcnt(p)+1):sumtapcnt(p+1);
-        tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),m,k);
-        tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),m,k);
-	crsspctrm(p,:,m,k) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
+        tmpdat1 = data.fourierspctrm(indx,cmbindx(:,1),:,:);
+        tmpdat2 = data.fourierspctrm(indx,cmbindx(:,2),:,:);
+	crsspctrm(p,:,:,:) = (sum(tmpdat1.*conj(tmpdat2),1))./data.cumtapcnt(p);
       end
-    end
-  end
+  %  end
+  %end
   data.crsspctrm = crsspctrm;
   data.labelcmb  = labelcmb;
   data           = rmfield(data, 'fourierspctrm');
@@ -729,7 +833,6 @@ elseif strcmp(current, 'sparsewithpow') && strcmp(desired, 'full')
   data = checkdata(data, 'cmbrepresentation', 'full');
 
 end
-keyboard
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes

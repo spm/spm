@@ -44,6 +44,12 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.6  2008/12/04 19:11:11  sashae
+% added silent/loose/pedantic feedback for 'renamed' and 'renamedval'
+%
+% Revision 1.5  2008/12/04 11:47:03  jansch
+% added fixedori when beamformer_dics
+%
 % Revision 1.4  2008/12/02 17:51:28  sashae
 % added artfctdef to 'ignorefields'
 %
@@ -186,7 +192,13 @@ if ~isempty(renamed)
   if any(strcmp(renamed{1}, fieldsused))
     cfg = setfield(cfg, renamed{2}, (getfield(cfg, renamed{1})));
     cfg = rmfield(cfg, renamed{1});
-    warning(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
+    if silent
+      % don't mention it
+    elseif loose
+      warning(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
+    elseif pedantic
+      error(sprintf('use cfg.%s instead of cfg.%s', renamed{2}, renamed{1}));
+    end
   end
 end
 
@@ -196,7 +208,13 @@ end
 if ~isempty(renamedval) && isfield(cfg, renamedval{1})
   if strcmpi(getfield(cfg, renamedval{1}), renamedval{2})
     cfg = setfield(cfg, renamedval{1}, renamedval{3});
-    warning(sprintf('use cfg.%s = %s instead of cfg.%s = %s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
+    if silent
+      % don't mention it
+    elseif loose
+      warning(sprintf('use cfg.%s=%s instead of cfg.%s=%s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
+    elseif pedantic
+      error(sprintf('use cfg.%s=%s instead of cfg.%s=%s', renamedval{1}, renamedval{3}, renamedval{1}, renamedval{2}));
+    end
   end
 end
 
@@ -233,12 +251,11 @@ end
 if ~isempty(unused)
   fieldsused = fieldnames(cfg);
   if any(ismember(unused, fieldsused))
+    cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
     if silent
       % don't mention it
-      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
     elseif loose
       warning(sprintf('The field cfg.%s is unused, it will be removed from your configuration\n', unused{ismember(unused, fieldsused)}));
-      cfg = rmfield(cfg, unused(ismember(unused, fieldsused)));
     elseif pedantic
       error(sprintf('The field cfg.%s is unused\n', unused{ismember(unused, fieldsused)}));
     end
@@ -251,12 +268,11 @@ end
 if ~isempty(forbidden)
   fieldsused = fieldnames(cfg);
   if any(ismember(forbidden, fieldsused))
+    cfg = rmfield(cfg, forbidden(ismember(forbidden, fieldsused)));
     if silent
       % don't mention it
-      cfg = rmfield(cfg, forbidden(ismember(forbidden, fieldsused)));
     elseif loose
       warning(sprintf('The field cfg.%s is forbidden, it will be removed from your configuration\n', forbidden{ismember(forbidden, fieldsused)}));
-      cfg = rmfield(cfg, forbidden(ismember(forbidden, fieldsused)));
     elseif pedantic
       error(sprintf('The field cfg.%s is forbidden\n', forbidden{ismember(forbidden, fieldsused)}));
     end
@@ -344,6 +360,7 @@ if ~isempty(createsubcfg)
       case 'dics'
         fieldname = {
           'feedback'
+          'fixedori'
           'keepfilter'
           'keepmom'
           'lambda'
