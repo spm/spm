@@ -47,6 +47,12 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.11  2008/12/04 16:44:29  jansch
+% fixed typo in line 260 (thanks to Jurrian)
+%
+% Revision 1.10  2008/12/04 11:45:13  jansch
+% fixed bug in fixedori
+%
 % Revision 1.9  2008/08/13 16:13:38  roboos
 % added option fixedori, not yet fully tested
 %
@@ -249,7 +255,7 @@ switch submethod
         % compute the leadfield for the optimal dipole orientation
         % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
         filt = pinv(lf' * invCf * lf) * lf' * invCf;
-        [u, s, v] = svd(filt * Cf * filt');
+        [u, s, v] = svd(real(filt * Cf * ctranspose(filt)));
         eta = u(:,1);
         lf  = lf * eta;
         dipout.ori{i} = eta;
@@ -312,8 +318,8 @@ switch submethod
       if fixedori
         % compute the leadfield for the optimal dipole orientation
         % subsequently the leadfield for only that dipole orientation will be used for the final filter computation
-        filt = pinv(lf' * invCy * lf) * lf' * invCy;
-        [u, s, v] = svd(filt * Cy * filt');
+        filt = pinv(lf' * invCf * lf) * lf' * invCf;
+        [u, s, v] = svd(real(filt * Cf * ctranspose(filt)));
         eta = u(:,1);
         lf  = lf * eta;
         dipout.ori{i} = eta;
@@ -485,7 +491,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.9 $  $Date: 2008/08/13 16:13:38 $
+%   $Revision: 1.11 $  $Date: 2008/12/04 16:44:29 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
