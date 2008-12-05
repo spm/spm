@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.24  2008/12/05 10:58:17  roboos
+% fixed bug due to non-aligned vectors Rem and Lbl in subfunction readlay (thanks to pawel)
+%
 % Revision 1.23  2008/10/22 07:25:01  roboos
 % undo the balancing of ctf meg channels prior to removing the unused coils
 %
@@ -627,11 +630,16 @@ if ~exist(filename, 'file')
   error(sprintf('could not open layout file: %s', filename));
 end
 [chNum,X,Y,Width,Height,Lbl,Rem] = textread(filename,'%f %f %f %f %f %q %q');
+
+if length(Rem)<length(Lbl)
+    Rem{length(Lbl)} = [];
+end
+
 for i=1:length(Lbl)
-  if ~isempty(Rem{i})
-    % this ensures that channel names with a space in them are also supported (i.e. Neuromag)
-    Lbl{i} = [Lbl{i} ' ' Rem{i}];
-  end
+    if ~isempty(Rem{i})
+        % this ensures that channel names with a space in them are also supported (i.e. Neuromag)
+        Lbl{i} = [Lbl{i} ' ' Rem{i}];
+    end
 end
 lay.pos    = [X Y];
 lay.width  = Width;

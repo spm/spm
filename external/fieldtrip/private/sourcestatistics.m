@@ -26,7 +26,7 @@ function [stat] = sourcestatistics(cfg, varargin)
 % You can restrict the statistical analysis to regions of interest (ROIs)
 % or to the average value inside ROIs using the following options:
 %   cfg.atlas        = filename of the atlas
-%   cfg.roi          = cell-array with labels according to the atlas
+%   cfg.roi          = string or cell of strings, region(s) of interest from anatomical atlas
 %   cfg.avgoverroi   = 'yes' or 'no' (default = 'no')
 %   cfg.hemisphere   = 'left', 'right', 'both', 'combined', specifying this is
 %                      required when averaging over regions
@@ -47,6 +47,9 @@ function [stat] = sourcestatistics(cfg, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: sourcestatistics.m,v $
+% Revision 1.42  2008/12/05 14:47:05  ingnie
+% updated help on cfg.roi
+%
 % Revision 1.41  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %

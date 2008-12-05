@@ -30,8 +30,9 @@ function [cfg] = sourceplot(cfg, data)
 %
 % The following parameters can be used in all methods:
 %   cfg.downsample    = downsampling for resolution reduction, integer value (default = 1) (orig: from surface)
-%   cfg.atlas         = string, filename of atlas to use (default = []) SEE ATLAS_INIT
+%   cfg.atlas         = string, filename of atlas to use (default = []) SEE PREPARE_ATLAS
 %                        for ROI masking (see "masking" below) or in interactive mode (see "ortho-plotting" below)
+%   cfg.inputcoord    = 'mni' or 'tal', coordinate system of data used to lookup the label from the atlas
 %
 % The following parameters can be used for the functional data:
 %   cfg.funcolormap   = colormap for functional data, see COLORMAP (default = 'auto')
@@ -81,8 +82,7 @@ function [cfg] = sourceplot(cfg, data)
 %   cfg.interactive   = 'yes' or 'no' (default = 'no')
 %                        in interactive mode cursor click determines location of cut
 %   cfg.queryrange    = number, in atlas voxels (default 3)
-%   cfg.inputcoord    = 'mni' or 'tal', coordinate system of data (default = [])
-%                        used to lookup the label from the atlas
+%
 %
 % The folowing parameters apply for slice-plotting
 %   cfg.nslices       = number of slices, (default = 20)
@@ -106,7 +106,7 @@ function [cfg] = sourceplot(cfg, data)
 %   cfg.camlight       = 'yes' or 'no' (default = 'yes')
 %   cfg.renderer       = 'painters', 'zbuffer',' opengl' or 'none' (default = 'opengl')
 %                        When using opacity the OpenGL renderer is required. 
-%
+
 % TODO have to be built in:
 %   cfg.marker        = [Nx3] array defining N marker positions to display (orig: from sliceinterp)
 %   cfg.markersize    = radius of markers (default = 5)
@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.62  2008/12/05 13:49:20  ingnie
+% Replaced atlas_init by prepare_atlas. Replaced atlas_mask by volume_lookup. Updated help
+%
 % Revision 1.61  2008/09/22 20:17:44  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -297,7 +300,7 @@ if ~isempty(cfg.atlas)
   hasatlas = 1;
   [p, f, x] = fileparts(cfg.atlas);
   fprintf(['reading ', f,' atlas coordinates and labels\n']);
-  atlas = atlas_init(cfg.atlas);
+  atlas = prepare_atlas(cfg.atlas);
 end
 
 hasroi = 0;
@@ -307,7 +310,10 @@ if ~isempty(cfg.roi)
   else
     % get mask
     hasroi = 1;
-    roi = atlas_mask(atlas, data, cfg.roi, 'inputcoord', cfg.inputcoord);
+    tmpcfg.roi = cfg.roi;
+    tmpcfg.atlas = cfg.atlas;
+    tmpcfg.inputcoord = cfg.inputcoord;    
+    roi = volumelookup(tmpcfg,data);
   end
 end
   

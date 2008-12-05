@@ -36,6 +36,9 @@ function [stat] = statistics_wrapper(cfg, varargin)
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
 % $Log: statistics_wrapper.m,v $
+% Revision 1.53  2008/12/05 14:48:26  ingnie
+% replaced atlas_mask with volumelookup, atlas_init not necessary anymore
+%
 % Revision 1.52  2008/11/27 09:02:33  kaigoe
 % also allow output data to be dimord chancmb_xxx
 % changed some prod(size) into numel
@@ -218,13 +221,14 @@ if issource
     % the source representation should specify the position of each voxel in MNI coordinates
     x = varargin{1}.pos(:,1);  % this is from left (negative) to right (positive)
     % determine the mask to restrict the subsequent analysis
-    atlas = atlas_init(cfg.atlas);
     % process each of the ROIs, and optionally also left and/or right seperately
     roimask  = {};
     roilabel = {};
     for i=1:length(cfg.roi)
-      tmp = atlas_mask(atlas, varargin{1}, cfg.roi{i}, 'inputcoord', cfg.inputcoord);
-
+      tmpcfg.roi = cfg.roi{i};
+      tmpcfg.inputcoord = cfg.inputcoord;
+      tmpcfg.atlas = cfg.atlas; 
+      tmp = volumelookup(tmpcfg, varargin{1});
       if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
         % no reason to deal with seperated left/right hemispheres
         cfg.hemisphere = 'combined';
@@ -497,7 +501,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: statistics_wrapper.m,v 1.52 2008/11/27 09:02:33 kaigoe Exp $';
+cfg.version.id = '$Id: statistics_wrapper.m,v 1.53 2008/12/05 14:48:26 ingnie Exp $';
 
 % remember the configuration of the input data
 cfg.previous = [];
