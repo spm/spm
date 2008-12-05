@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 2385 2008-10-22 12:52:11Z john $
+% $Id: spm_preproc_write8.m 2531 2008-12-05 18:59:26Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -212,8 +212,8 @@ if any(tc(:,2)),
     % Sort out bounding box etc
     bb(~isfinite(bb)) = bb1(~isfinite(bb));
     if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
-    bb(1,:) = vx*ceil(bb(1,:)/vx);
-    bb(2,:) = vx*floor(bb(2,:)/vx);
+    bb(1,:) = vx*round(bb(1,:)/vx);
+    bb(2,:) = vx*round(bb(2,:)/vx);
 
     % Figure out the mapping from the volumes to create to the original
     mm = [[
