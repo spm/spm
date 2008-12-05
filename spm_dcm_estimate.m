@@ -7,7 +7,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_estimate.m 2518 2008-12-02 11:44:52Z klaas $
+% $Id: spm_dcm_estimate.m 2530 2008-12-05 13:28:58Z guillaume $
 
  
 % load DCM structure
@@ -42,19 +42,17 @@ b  = DCM.b;                             % switch on bilinear modulations
 c  = DCM.c;                             % switch on exogenous connections
 
 % nonlinear DCM?
-if isfield(DCM,'d')
-    if any(any(DCM.d(:)))
-        nlDCM = 1;
-        d     = DCM.d;                  % switch on nonlinear modulations
-        fprintf('\n%s %s\n','Nonlinear DCM:',P);
-        fprintf('%s\n\n','---------------------------------------------:');        
-        fprintf('%s\n\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
-        fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
-        fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
-        fprintf('%s %1.3f.\n\n','We found microtime bins of 0.2 s to give stable results; longer time bins may still work, but you would need to check.  You are currently using microtimebins of',DCM.U.dt);
-    else
-        nlDCM = 0;
-    end
+if isfield(DCM,'d') && any(any(DCM.d(:)))
+    nlDCM = 1;
+    d     = DCM.d;                      % switch on nonlinear modulations
+    fprintf('\n%s %s\n','Nonlinear DCM:',P);
+    fprintf('%s\n\n','---------------------------------------------:');
+    fprintf('%s\n\n','Please note that this computation takes an order of magnitude longer than a bilinear DCM.');
+    fprintf('%s\n','If you want to speed up computation, you can use fewer microtime bins per TR when defining your design matrix');
+    fprintf('%s\n','(the size of a microtime bin defines the dt for integration of the DCM state equations).');
+    fprintf('%s %1.3f.\n\n','We found microtime bins of 0.2 s to give stable results; longer time bins may still work, but you would need to check.  You are currently using microtimebins of',DCM.U.dt);
+else
+    nlDCM = 0;
 end
 
 U  = DCM.U;                             % exogenous inpurs 
