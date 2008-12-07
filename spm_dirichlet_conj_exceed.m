@@ -20,7 +20,7 @@ function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dirichlet_conj_exceed.m 2509 2008-11-30 15:31:01Z klaas $
+% $Id: spm_dirichlet_conj_exceed.m 2533 2008-12-07 20:43:53Z klaas $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -31,13 +31,13 @@ end
 % (see Dirichlet entry in Wikipedia or Ferguson (1973) Ann. Stat. 1,
 % 209-230)
 %==========================================================================
-Nk=length(alpha);
-for k=1:Nk,
-    r(:,k)=gamrnd(alpha(k),1,Nsamp,1);
+Nk = length(alpha);
+for k = 1:Nk,
+    r(:,k) = gamrnd(alpha(k),1,Nsamp,1);
 end
-sr=sum(r,2);
-for k=1:Nk,
-    r(:,k)=r(:,k)./sr;
+sr = sum(r,2);
+for k = 1:Nk,
+    r(:,k) = r(:,k)./sr;
 end
 
 

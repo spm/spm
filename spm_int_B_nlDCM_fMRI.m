@@ -12,7 +12,8 @@ function [y] = spm_int_B_nlDCM_fMRI(P,M,U)
 % for nonlinear DCM for fMRI. As in spm_int_B, the Jacobian is recomputed
 % at every time bin (as defined by U.dt); however, it samples predicted
 % responses only at specified time points (i.e. every TR, accounting for
-% slice-timing).
+% slice-timing). This function is the default integrator for nonlinear
+% DCMs for fMRI.
 %
 % This function integrates the MIMO system described by
 %
@@ -60,7 +61,9 @@ function [y] = spm_int_B_nlDCM_fMRI(P,M,U)
 % spm_int_B_nlDCM_fMRI: Identical to spm_int_B, except that it samples
 % predicted responses only at specified time points (i.e. every TR,
 % accounting for slice-timing).  It is the default integrator for nonlinear
-% DCM for fMRI.% spm_int_ode:  uses ode45 (or ode113) which are one and multi-step solvers
+% DCM for fMRI.
+% 
+% spm_int_ode:  uses ode45 (or ode113) which are one and multi-step solvers
 % respectively.  They can be used for any ODEs, where the Jacobian is
 % unknown or difficult to compute; however, they may be slow.
 %
