@@ -31,9 +31,10 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd.m 2241 2008-09-29 22:10:48Z christophe $
+% $Id: spm_eeg_inv_vbecd.m 2534 2008-12-08 10:16:46Z christophe $
 
 % unpack model, priors, data
+%---------------------------
 vol = P.forward.vol;
 sens = P.forward.sens;
 
@@ -68,20 +69,29 @@ dv = 10^-2; % used to compute step-size for gradients
 %---------------
 % initialization
 %---------------
-
 % use some random initialization for parameters, 
 % but ensure the starting points are inside the volume !!!
 Nd = length(mu_s0)/3;
 inside = zeros(Nd,1);
+try 
+    orig = vol.forwpar.center*ones(1,Nd); 
+catch
+    orig = zeros(3,Nd); 
+end
 mu_sn = zeros(3,Nd);
 while ~all(inside)
-    mu_sn(:,~inside) = 30*randn(3,length(find(~inside)));
+    mu_sn(:,~inside) = 20*randn(3,length(find(~inside)))+orig;
     [inside] = forwinv_inside_vol(mu_sn',vol);
 end
 mu_s = mu_sn(:);
 
 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
                                     dv.*ones(1, length(mu_w0))); %, P.Bad);
+[Nc, Np] = size(gmn);
+% ensure data have apropriate scale
+sc_y = norm(y)*10/Nc;
+y = y/sc_y;
+
 % Initialize mu_w with best estimate given random locations rather than at
 % random
 % mu_w = randn(size(mu_w0,1), 1);
@@ -89,8 +99,6 @@ mu_w = pinv(gmn)*y;
 
 P.init.mu_s = mu_s;
 P.init.mu_w = mu_w;
-
-[Nc, Np] = size(gmn);
 
 res = y - gmn*mu_w;
 a1 = Nc/2;
@@ -108,10 +116,6 @@ S_s = b3/a3*pinv(iS_s0);
 %---------------
 % iterate update rules
 %---------------
-
-% mu_w_old = mu_w;
-% mu_s_old = mu_s;
-
 % these don't change
 a1 = Nc/2 + a10;
 a2 = size(Vw,2)/2 + a20;
@@ -119,9 +123,7 @@ a3 = size(Vs,2)/2 + a30;
 
 % fprintf('Iterations:\n')
 P.ok = 1;
-
 for i = 1:P.Niter
-
     % orientation parameters w
     SD = zeros(Np, Np);
     Dm = dgm*S_s*dgm';
@@ -166,6 +168,18 @@ for i = 1:P.Niter
     outside = ~forwinv_inside_vol(mu_sn',vol);
    
     if i == 1
+        % make sure that first update of mu_s doesn't jump outside sphere
+        q_out = ~all(~outside);
+        while q_out
+            mu_sn(:, outside) = (mu_sn(:, outside)+old_mu_sn(:,outside))/2;
+            old_mu_sn = mu_sn;
+            outside = ~forwinv_inside_vol(mu_sn',vol);
+            q_out = ~all(~outside);
+        end
+        % update leadfield and its partials
+        [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
+                                            dv.*sqrt(diag(S_s))); %, P.Bad);
+
         F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
             -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
             -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
@@ -173,23 +187,11 @@ for i = 1:P.Niter
             -spm_kl_gamma(1/b1,a1,1/b10,a10)...
             -spm_kl_gamma(1/b2,a2,1/b20,a20)...
             -spm_kl_gamma(1/b3,a3,1/b30,a30);
-
-        % make sure that first update of mu_s doesn't jump outside sphere
-        q_out = ~all(~outside);
-        while q_out
-            mu_sn(:, outside) = mu_sn(:, outside)/2;
-            outside = ~forwinv_inside_vol(mu_sn',vol);
-
-            q_out = ~all(~outside);
-        end
-        mu_s = mu_sn(:);
-        % update leadfield and its partials
-        [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
-                                            dv.*sqrt(diag(S_s))); %, P.Bad);
     else
         for j = 1:16
+        % Deals with cases where sources have jumped outside the brain
+        % volume, or if the neg free energy is decreasing...
             % compute neg free energy
-            mu_s = mu_sn(:);
             F(i) = -Nc/2*log(2*pi) + Nc/2*(psi(a1) - log(b1))...
                 -a1/(2*b1)*(y'*y - 2*mu_w'*gmn'*y + gm'*DE*gm + trace(S_s*dgm'*DE*dgm))...
                 -spm_kl_normal(Vw'*mu_w, Vw'*S_w*Vw, Vw'*mu_w0, Vw'*b2/a2*inv(iS_w0)*Vw)...
@@ -200,11 +202,12 @@ for i = 1:P.Niter
             % check dF
             if ~all(~outside)
                 % decrease change in violating dipoles only
-                mu_sn(:, outside) = (old_mu_sn(:, outside) + mu_sn(:, outside))/2;
+                mu_sn(:,outside)=(old_mu_sn(:,outside)+mu_sn(:,outside))/2;
                 mu_s = mu_sn(:);
                 % update leadfield and its partials
                 [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
                                             dv.*sqrt(diag(S_s))); %, P.Bad);
+%                 mu_w = pinv(gmn)*y; % Re-update as best as I can the source
             else
                 if F(i) < F(i-1)
                     mu_sn = (old_mu_sn + mu_sn)/2;
@@ -212,8 +215,7 @@ for i = 1:P.Niter
                     % update leadfield and its partials
                     [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(mu_s, sens, vol, ...
                                                 dv.*sqrt(diag(S_s))); %, P.Bad);
-                    mu_sn = reshape(mu_s, 3, Np/3);
-
+%                 mu_w = pinv(gmn)*y; % Re-update as best as I can the source
                 else
                     break;
                 end
@@ -261,11 +263,13 @@ for i = 1:P.Niter
         end
     end
     P.dF(i) = dF;
-%     mu_w_old = mu_w;
-%     mu_s_old = mu_s;
     str = sprintf('%3d/%d, F: %f\t dFr: %f', i, P.Niter, F(i), dF);
     fprintf('%s\n', str)
 end
+
+% rescale back to original units
+mu_w = mu_w*sc_y;
+S_w = S_w*sc_y^2;
 
 % save results 
 post.mu_w = mu_w;

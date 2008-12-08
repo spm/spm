@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 2352 2008-10-17 11:53:53Z karl $
+% $Id: spm_eeg_inv_forward.m 2534 2008-12-08 10:16:46Z christophe $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -44,7 +44,7 @@ end
 % Forward computation
 %--------------------------------------------------------------------------
 [vol, sens] = forwinv_prepare_vol_sens(vol, sens, 'channel', D.inv{val}.forward.channels);
-
+D.inv{val}.forward.vol = vol; D.inv{val}.datareg.sensors = sens;
 nvert = size(vert, 1);
 
 spm('Pointer', 'Watch');drawnow;

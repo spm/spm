@@ -2,7 +2,7 @@ function [mesh] = spm_eeg_inv_segment(mesh)
 % Spatial Normalization (using SPM8's segment toolbox) segments the
 % individual sMRI (if necessary) 
 %
-% FORMAT mesh = spm_eeg_inv_spatnorm(mesh)
+% FORMAT mesh = spm_eeg_inv_segment(mesh)
 % Input:
 % mesh     - input mesh data struct (optional)
 % Output:
@@ -12,7 +12,7 @@ function [mesh] = spm_eeg_inv_segment(mesh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout, Vladimir Litvak
-% $Id: spm_eeg_inv_segment.m 2419 2008-10-30 19:40:32Z vladimir $
+% $Id: spm_eeg_inv_segment.m 2534 2008-12-08 10:16:46Z christophe $
 
 % initialise
 %--------------------------------------------------------------------------

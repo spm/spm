@@ -18,12 +18,15 @@ function [gmn, gm, dgm] = spm_eeg_inv_vbecd_getLF(s, sens, vol, step) %, Bad)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: spm_eeg_inv_vbecd_getLF.m 2241 2008-09-29 22:10:48Z christophe $
+% $Id: spm_eeg_inv_vbecd_getLF.m 2534 2008-12-08 10:16:46Z christophe $
  
 gm = [];
 for i = 1:length(s)/3
     [tmp] = forwinv_compute_leadfield(s(1+(i-1)*3:i*3)', sens, vol);
-    tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
+    % mean correction of LF, only for EEG data.
+    if forwinv_senstype(sens, 'eeg')
+        tmp = tmp - repmat(mean(tmp), size(tmp,1), 1);
+    end
 %     tmp(Bad, :) = [];
     gm = [gm tmp];
 end

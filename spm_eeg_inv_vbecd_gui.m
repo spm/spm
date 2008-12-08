@@ -15,7 +15,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_gui.m 2391 2008-10-23 14:20:15Z christophe $
+% $Id: spm_eeg_inv_vbecd_gui.m 2534 2008-12-08 10:16:46Z christophe $
 
 %%
 % Load data, if necessary
@@ -111,7 +111,8 @@ else
     error('Forward model needs to be ready in FT format.!')
 end
 
-[P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens(P.forward.vol, P.forward.sens);
+[P.forward.vol, P.forward.sens] =  forwinv_prepare_vol_sens( ...
+    P.forward.vol, P.forward.sens, 'channel', D.inv{val}.forward.channels);
 
 %% 
 % Deal with data
@@ -357,6 +358,8 @@ inverse = struct( ...
 
 for ii=1:length(ltr)
     P.y = dat_y(:,ii);
+    
+    fprintf('\nLocalising source nr %d.\n',ii)
     P = spm_eeg_inv_vbecd(P);
 
     % Get the results out.

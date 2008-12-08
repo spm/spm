@@ -62,7 +62,7 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 1954 2008-07-24 17:02:21Z john $
+% $Id: spm_write_sn.m 2534 2008-12-08 10:16:46Z christophe $
 
 
 if isempty(V), return; end;
@@ -136,7 +136,7 @@ function VO = affine_transform(V,prm,x,y,z,mat,flags,msk)
 [X,Y] = ndgrid(x,y);
 d     = [flags.interp*[1 1 1]' flags.wrap(:)];
 
-spm_progress_bar('Init',numel(V),'Resampling','volumes completed');
+spm_progress_bar('Init',numel(V),'Resampling','volumes/slices completed');
 for i=1:numel(V),
     VO     = make_hdr_struct(V(i),x,y,z,mat, flags.prefix);
     if flags.preserve

@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_display.m 2356 2008-10-17 15:08:19Z christophe $
+% $Id: spm_mvb_display.m 2534 2008-12-08 10:16:46Z christophe $
 
 if nargin<1
     load(spm_select(1,'^MVB.*\.mat','Select MVB to display'))
@@ -103,6 +103,6 @@ subplot(3,2,6)
 plot(R*X,R*Y*M.qE,'r.')
 xlabel('contrast')
 ylabel('prediction')
-title('obeserved and predicted contrast')
+title('observed and predicted contrast')
 axis square, grid on
 
