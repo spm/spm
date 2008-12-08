@@ -18,6 +18,11 @@ function [trialData] = read_sbin_data(filename, hdr, begtrial, endtrial, chanind
 % Modified from EGI's readEGLY.m with permission 2008-03-31 Joseph Dien
 %
 
+% $Log: read_sbin_data.m,v $
+% Revision 1.4  2008/12/08 09:36:49  roboos
+% added cvs log to the matlab files
+%
+
 fh=fopen([filename],'r');
 if fh==-1
   error('wrong filename')

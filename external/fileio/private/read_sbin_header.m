@@ -21,6 +21,11 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 % Modified from EGI's readEGLY.m with permission 2008-03-31 Joseph Dien
 %
 
+% $Log: read_sbin_header.m,v $
+% Revision 1.4  2008/12/08 09:36:49  roboos
+% added cvs log to the matlab files
+%
+
 fid=fopen([filename],'r');
 if fid==-1
     error('wrong filename')
