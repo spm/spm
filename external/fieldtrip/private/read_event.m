@@ -59,6 +59,13 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.74  2008/12/08 03:04:27  josdie
+% *** empty log message ***
+%
+% Revision 1.74  2008/11/20 19:26:00  jdien
+% Fixed some bugs in the EGI simple binary event code that made it issue errors
+% Also, punctate events are now given the value "trigger" and a duration of zero.
+%
 % Revision 1.73  2008/11/14 07:36:24  roboos
 % use strcmpi instead of strcmp(lower())
 %
@@ -787,30 +794,38 @@ switch eventformat
     end
 
   case 'egi_sbin'
-    if isempty(segHdr)
+    if ~exist('segHdr','var')
       [EventCodes, segHdr, eventData] = read_sbin_events(filename);
     end
-    if isempty(header_array)
+    if ~exist('header_array','var')
       [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
     end
+    if isempty(hdr)
+      hdr = read_header(filename);
+    end
+
     eventCount=0;
-    for event=1:size(eventData,1)
-      for segment=1:size(eventData,2)
+    for theEvent=1:size(eventData,1)
+      for segment=1:hdr.nTrials
         eventCount=eventCount+1;
-        event(eventCount).type     = 'trial';
         event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
         event(eventCount).offset   = -hdr.nSamplesPre;
-        event(eventCount).duration =  length(find(eventData(event,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0));
-        event(eventCount).value    =  EventCodes(event,:);
+        event(eventCount).duration =  length(find(eventData(theEvent,((segment-1)*hdr.nSamples +1):segment*hdr.nSamples )>0))-1;
+        if event(eventCount).duration == 0
+                event(eventCount).type     = 'trigger';
+        else
+                event(eventCount).type     = 'trial';
+        end;
+        event(eventCount).value    =  char(EventCodes(theEvent,:));
       end
     end
-    for segment=1:size(eventData,2)  % cell information
+    for segment=1:hdr.nTrials  % cell information
         eventCount=eventCount+1;
         event(eventCount).type     = 'trial';
         event(eventCount).sample   = (segment-1)*hdr.nSamples + 1;
         event(eventCount).offset   = -hdr.nSamplesPre;
         event(eventCount).duration =  hdr.nSamples;
-        event(eventCount).value    =  ['S' num2str(subject) CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))];
+        event(eventCount).value    =  char([CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))]);
     end
 
   case 'fcdc_buffer'
