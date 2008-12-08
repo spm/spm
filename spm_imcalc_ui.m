@@ -73,16 +73,19 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 %       ... pre-specifies the output filename as 'test.img' in the current
 % working directory, and sets the interpolation hold to tri-linear.
 %
-% Further, additional variables for use in the computation can be
-% passed at the end of the argument list. These should be referred to
-% by the names of the arguments passed in the expression to be
-% avaluated. E.g. if c is a 1xn vector of weights, then for n images,
-% using the (dmtx) data-matrix version, the weighted sum can be
-% computed using:
-%       Q = spm_imcalc_ui({},'test','c*X',{1},c)
-% Here we've pre-specified the output filename, expression and passed
-% the vector c as an additional variable (you'll be prompted to select
-% the n images).
+% Further, if calling spm_imcalc directly, additional variables for use in
+% the computation can be passed at the end of the argument list. These
+% should be referred to by the names of the arguments passed in the
+% expression to be evaluated. E.g. if c is a 1xn vector of weights, then
+% for n images, using the (dmtx) data-matrix version, the weighted sum can
+% be computed using:
+%       Vi= spm_vol(spm_select(inf,'image'));
+%       Vo= Vi(1);
+%       Vo.fname = 'output.img';
+%       Vo.pinfo(1:2) = Inf;
+%       Q = spm_imcalc(Vi,Vo,'c*X',{1},c)
+% Here we've pre-specified the expression and passed the vector c as an
+% additional variable (you'll be prompted to select the n images).
 %
 % FORMAT out = spm_imcalc_ui(job)
 % Input:
@@ -93,7 +96,7 @@ function [Q,Vo] = spm_imcalc_ui(P,Q,f,flags,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc_ui.m 1185 2008-03-04 16:31:21Z volkmar $
+% $Id: spm_imcalc_ui.m 2535 2008-12-08 14:12:20Z volkmar $
 
 %-Decompose job structure and run with arguments
 %-----------------------------------------------------------------------
@@ -121,7 +124,7 @@ end;
 
 %-GUI setup
 %-----------------------------------------------------------------------
-SCCSid = '$Rev: 1185 $';
+SCCSid = '$Rev: 2535 $';
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','ImCalc',0);
 spm('FnBanner',mfilename,SCCSid);
 spm_help('!ContextHelp',[mfilename,'.m'])
