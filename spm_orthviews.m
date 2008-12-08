@@ -116,7 +116,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Matthew Brett, Tom Nichols and Volkmar Glauche
-% $Id: spm_orthviews.m 2246 2008-09-30 09:31:05Z christophe $
+% $Id: spm_orthviews.m 2536 2008-12-08 14:14:20Z volkmar $
 
 
 
@@ -183,8 +183,10 @@ function varargout = spm_orthviews(action,varargin)
 % The plugin concept has been developed to extend the display capabilities
 % of spm_orthviews without the need to rewrite parts of it. Interaction
 % between spm_orthviews and plugins takes place
-% a) at startup: The subfunction 'reset_st' looks for files with a name
-%                spm_ov_PLUGINNAME.m in the directory 'SWD/spm_orthviews'.
+% a) at startup: The subfunction 'reset_st' looks for folders
+%                'spm_orthviews' in spm('Dir') and each toolbox
+%                folder. Files with a name spm_ov_PLUGINNAME.m in any of
+%                these folders will be treated as plugins.
 %                For each such file, PLUGINNAME will be added to the list
 %                st.plugins{:}.
 %                The subfunction 'add_context' calls each plugin with
@@ -1315,19 +1317,27 @@ function reset_st
 global st
 fig     = spm_figure('FindWin','Graphics');
 bb      = []; %[ [-78 78]' [-112 76]' [-50 85]' ];
-st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1,'plugins',[],'snap',[]);
+st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1,'plugins',{{}},'snap',[]);
 st.vols = cell(24,1);
 
-pluginpath = fullfile(spm('Dir'),'spm_orthviews');
-if isdir(pluginpath)
-    pluginfiles = dir(fullfile(pluginpath,'spm_ov_*.m'));
-    if ~isempty(pluginfiles)
-        if ~isdeployed, addpath(pluginpath); end
-        % fprintf('spm_orthviews: Using Plugins in %s\n', pluginpath);
-        for k = 1:length(pluginfiles)
-            [p, pluginname, e, v] = fileparts(pluginfiles(k).name);
-            st.plugins{k} = strrep(pluginname, 'spm_ov_','');
-            % fprintf('%s\n',st.plugins{k});
+xTB = spm('TBs');
+if ~isempty(xTB)
+    pluginbase = {spm('Dir') xTB.dir};
+else
+    pluginbase = {spm('Dir')};
+end
+for k = 1:numel(pluginbase)
+    pluginpath = fullfile(pluginbase{k},'spm_orthviews');
+    if isdir(pluginpath)
+        pluginfiles = dir(fullfile(pluginpath,'spm_ov_*.m'));
+        if ~isempty(pluginfiles)
+            if ~isdeployed, addpath(pluginpath); end
+            % fprintf('spm_orthviews: Using Plugins in %s\n', pluginpath);
+            for l = 1:length(pluginfiles)
+                [p, pluginname, e, v] = fileparts(pluginfiles(l).name);
+                st.plugins{end+1} = strrep(pluginname, 'spm_ov_','');
+                % fprintf('%s\n',st.plugins{k});
+            end;
         end;
     end;
 end;

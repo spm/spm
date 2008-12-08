@@ -11,13 +11,13 @@ function ret = spm_ov_movie(varargin)
 % will be created. Movie resolution is given by the displayed image size,
 % frame rate is MATLAB standard.
 %
-% This routine is a plugin to spm_orthviews for SPM5. For general help about
+% This routine is a plugin to spm_orthviews for SPM8. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_movie.m 1987 2008-08-08 10:42:23Z volkmar $
+% @(#) $Id: spm_ov_movie.m 2536 2008-12-08 14:14:20Z volkmar $
 
 global st;
 if isempty(st)
@@ -41,7 +41,7 @@ switch cmd
             sprintf('%s(''context_init'', %d);', mfilename, volhandle), ...
             'Tag', ['MOVIE_0_', num2str(volhandle)]);
         item1 = uimenu(item0, 'Label', 'Help', 'Callback', ...
-            sprintf('spm_help('' %s '');', mfilename));
+            sprintf('spm_help(''%s'');', mfilename));
         
     case 'context_init'
         Finter = spm_figure('FindWin', 'Interactive');

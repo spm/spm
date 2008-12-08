@@ -9,14 +9,14 @@ function ret = spm_ov_reorient(varargin)
 % reorient images while comparing their position to reference images
 % simultaneously.
 %
-% This routine is a plugin to spm_orthviews for SPM5. For general help about
+% This routine is a plugin to spm_orthviews for SPM8. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 2131 2008-09-22 06:04:53Z volkmar $
+% $Id: spm_ov_reorient.m 2536 2008-12-08 14:14:20Z volkmar $
 
-rev = '$Revision: 2131 $';
+rev = '$Revision: 2536 $';
 
 global st;
 if isempty(st)

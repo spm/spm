@@ -5,15 +5,15 @@ function ret = spm_ov_rgb(varargin)
 % are optionally masked and multiplied with a scaling image. The displayed
 % overlay images are the absolute value of the given overlays.
 %
-% This routine is a plugin to spm_orthviews for SPM5. For general help about
+% This routine is a plugin to spm_orthviews for SPM8. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
 % at the matlab prompt.
 %_______________________________________________________________________
 %
-% @(#) $Id: spm_ov_rgb.m 1137 2008-02-06 15:58:21Z spm $
+% @(#) $Id: spm_ov_rgb.m 2536 2008-12-08 14:14:20Z volkmar $
 
-rev = '$Revision: 1137 $';
+rev = '$Revision: 2536 $';
 
 global st;
 if isempty(st)

@@ -1,4 +1,27 @@
 function spm_ovhelper_3Dreg(cmd, varargin)
+% Helper function to register spm_orthviews plugins via spm_XYZreg
+% FORMAT spm_ovhelper_3Dreg('register', h, V)
+% Register a (3D) graphics with the main spm_orthviews display. This will
+% draw 3D crosshairs at the current spm_orthviews position and update
+% them whenever the spm_orthviews cursor moves.
+% h - a graphics handle or a tag of graphics handle to register
+% V - a volume handle (or equivalent) containing dimensions and
+%     voxel-to-world mapping information
+% FORMAT spm_ovhelper_3Dreg('unregister', h)
+% h - a graphics handle or a tag of graphics handle to unregister
+% FORMAT spm_ovhelper_3Dreg('setcoords', xyz, h)
+% Update position of crosshairs in 3D display
+% xyz - new crosshair coordinates (in mm)
+% h - a graphics handle or a tag of graphics handle to update
+% FORMAT spm_ovhelper_3Dreg('xhairson', h)
+% FORMAT spm_ovhelper_3Dreg('xhairsoff', h)
+% Toggle display of crosshairs in 3D display.
+% h - a graphics handle or a tag of graphics handle 
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+
+% Volkmar Glauche
+% $Id: spm_ovhelper_3Dreg.m 2536 2008-12-08 14:14:20Z volkmar $
 
 if ishandle(varargin{1})
   h = varargin{1};
