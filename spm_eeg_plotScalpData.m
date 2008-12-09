@@ -17,7 +17,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 2061 2008-09-09 18:04:42Z jean $
+% $Id: spm_eeg_plotScalpData.m 2543 2008-12-09 19:44:24Z jean $
 
 
 if ~exist('in','var') || isempty(in) == 1
@@ -68,10 +68,12 @@ ZI = griddata(pos(1,:)',pos(2,:)',full(double(Z')),XI,YI);
 
 f=figure;
 set(f,'name',figName,'deleteFcn',@dFcn);
-hi = imagesc(flipud(ZI));
+hi = image(flipud(ZI),'CDataMapping','scaled');
 hold on
-[C,hc] = contour(flipud(ZI));
-set(hc,'linecolor',0.5.*ones(3,1))
+try
+    [C,hc] = contour(flipud(ZI));
+    set(hc,'linecolor',0.5.*ones(3,1))
+end
 hold off
 caxis(clim);
 col = colormap;
@@ -191,8 +193,10 @@ try;set(d.in.hl,'xdata',[v;v]);end
 hf=findobj(gca,'type','hggroup');
 delete(hf)
 hold on
-[C,hc] = contour(flipud(ZI));
-set(hc,'linecolor',[0.5.*ones(3,1)])
+try
+    [C,hc] = contour(flipud(ZI));
+    set(hc,'linecolor',[0.5.*ones(3,1)])
+end
 hold off
 drawnow
 axis image

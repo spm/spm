@@ -3,7 +3,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 2477 2008-11-18 15:25:22Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 2543 2008-12-09 19:44:24Z jean $
 
 try
     D = get(gcf,'userdata');
@@ -12,7 +12,7 @@ end
 
 spm('pointer','watch');
 % drawnow
- 
+
 switch varargin{1}
 
 
@@ -36,12 +36,12 @@ switch varargin{1}
                     M                       = sparse(length(visuSensors),length(D.channels));
                     M(sub2ind(size(M),1:length(visuSensors),visuSensors(:)')) = 1;
                     nts                     = min([2e2,D.Nsamples]);
-%                     if isequal(D.type,'continuous')
-%                         decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./nts),1]);
-                        decim                   = max([floor(D.Nsamples./nts),1]);
-%                     else
-%                         decim = 1;
-%                     end
+                    %                     if isequal(D.type,'continuous')
+                    %                         decim                   = max([floor((D.Nsamples.*size(D.data.y,3))./nts),1]);
+                    decim                   = max([floor(D.Nsamples./nts),1]);
+                    %                     else
+                    %                         decim = 1;
+                    %                     end
                     data                    = D.data.y(visuSensors,1:decim:D.Nsamples,:);
                     sd                      = std(data(:));
                     offset                  = (0:1:length(visuSensors)-1)'*sd/2;
@@ -102,13 +102,13 @@ switch varargin{1}
         switch varargin{2}
 
             case 'main'
-                
+
                 try
                     D.PSD.VIZU.fromTab = D.PSD.VIZU.modality;
                 catch
                     D.PSD.VIZU.fromTab = [];
                 end
-                
+
                 switch varargin{3}
                     case 'eeg'
                         D.PSD.VIZU.modality = 'eeg';
@@ -135,9 +135,9 @@ switch varargin{1}
                 catch
                     set(D.PSD.handles.hfig,'userdata',D);
                     spm('pointer','arrow');
-%                     try
-%                         disp(lasterr)
-%                     end
+                    %                     try
+                    %                         disp(lasterr)
+                    %                     end
                 end
 
 
@@ -215,22 +215,22 @@ switch varargin{1}
             case 'sensorPos'
 
                 % get 3D positions
-                try     % EEG                    
-                    pos3d = [D.sensors.eeg.pnt];                 
-                    figure;                    
+                try     % EEG
+                    pos3d = [D.sensors.eeg.pnt];
+                    figure;
                     plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
                     hold on
                     %                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.PSD.EEG.VIZU.montage.clab);
                     text(pos3d(:,1),pos3d(:,2),pos3d(:,3),D.sensors.eeg.label);
                     axis equal tight off
                 end
-                try     % MEG   
-                    pos3d = [D.sensors.meg.pnt];     
-                    figure;     
-                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');             
+                try     % MEG
+                    pos3d = [D.sensors.meg.pnt];
+                    figure;
+                    plot3(pos3d(:,1),pos3d(:,2),pos3d(:,3),'.');
                     axis equal tight off
                 end
-                
+
             case 'inv'
 
                 cla(D.PSD.handles.axes2,'reset')
@@ -238,7 +238,7 @@ switch varargin{1}
                 updateDisp(D);
 
             case 'checkXlim'
-                
+
                 xlim = varargin{3};
                 ud = get(D.PSD.handles.gpa,'userdata');
                 xm = mean(xlim);
@@ -257,7 +257,7 @@ switch varargin{1}
                 elseif xlim(end) >= ud.v.nt
                     xlim = [ud.v.nt-sw+1,ud.v.nt];
                 end
-                
+
                 % Restrain buttons usage:
                 if isequal(xlim,[1,ud.v.nt])
                     set(D.PSD.handles.BUTTONS.vb3,'enable','off')
@@ -305,10 +305,10 @@ switch varargin{1}
                     D.PSD.VIZU.xlim = xlim;
                     set(D.PSD.handles.hfig,'userdata',D)
                 end
-                
-                    
-                
-                
+
+
+
+
 
                 % Contrast/intensity rescaling
             case 'iten_sc'
@@ -329,11 +329,11 @@ switch varargin{1}
 
                 % Get current plotted data window range and limits
                 xlim = get(handles.axes(1),'xlim');
-                
+
                 sw = varargin{3}*diff(xlim);
                 xm = mean(xlim);
                 xlim = xm + 0.5*[-sw,sw];
-                
+
                 xlim = spm_eeg_review_callbacks('visu','checkXlim',xlim);
                 D.PSD.VIZU.xlim = xlim;
 
@@ -520,7 +520,7 @@ switch varargin{1}
                         D.trials.events(currentEvent).value = eventValue;
                     end
 
-                    updateDisp(D,2)
+                    updateDisp(D,2,currentEvent)
 
                 end
 
@@ -570,8 +570,8 @@ switch varargin{1}
             case 'deleteEvent'
 
                 D.trials.events(currentEvent) = [];
-%                 delete(D.PSD.handles.PLOT.e(currentEvent));
-%                 set(D.PSD.handles.hfig,'userdata',D);
+                %                 delete(D.PSD.handles.PLOT.e(currentEvent));
+                %                 set(D.PSD.handles.hfig,'userdata',D);
                 updateDisp(D,2)
 
         end
@@ -656,14 +656,14 @@ switch varargin{1}
                 x(1) = min([max([1 x(1)]) D.Nsamples]);
                 Nevents = length(D.trials.events);
                 D.trials.events(Nevents+1).time = x./D.Fsample;
-                D.trials.events(Nevents+1).duration = '0';
+                D.trials.events(Nevents+1).duration = 0;
                 D.trials.events(Nevents+1).type = 'Manual';
-                D.trials.events(Nevents+1).value = '0';
+                D.trials.events(Nevents+1).value = 0;
                 % Enable tools on selections
                 set(handles.BUTTONS.sb2,'enable','on');
                 set(handles.BUTTONS.sb3,'enable','on');
                 % Update display
-                updateDisp(D,2)
+                updateDisp(D,2,Nevents+1)
 
 
                 %% scroll through data upto next event
@@ -711,7 +711,7 @@ switch varargin{1}
         switch varargin{2}
 
             case 'prep'
-                
+
                 try,rotate3d off;end
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
@@ -745,7 +745,7 @@ spm('pointer','arrow');
 
 
 %% Main update display
-function [] = updateDisp(D,flags)
+function [] = updateDisp(D,flags,in)
 % This function updates the display of the data and events.
 
 spm('pointer','watch');
@@ -753,6 +753,9 @@ drawnow
 
 if ~exist('flag','var')
     flag = 0;
+end
+if ~exist('in','var')
+    in = [];
 end
 handles = D.PSD.handles;
 
@@ -796,10 +799,11 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     delete(D.PSD.handles.axes)
                     delete(D.PSD.handles.gpa)
                     delete(D.PSD.handles.BUTTONS.slider_step)
-                end 
+                end
                 % gather infor for core display function
                 options.hp = handles.hfig;
                 options.Fsample = D.Fsample;
+                options.timeOnset = D.timeOnset;
                 options.M = VIZU.visu_scale*full(VIZU.montage.M);
                 options.bad = [D.channels(VIZU.visuSensors(:)).bad];
                 if strcmp(D.PSD.type,'continuous') && ~isempty(D.trials.events)
@@ -821,7 +825,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     [ya,ia,ja] = unique(A,'rows');
                     options.events = rmfield(D.trials.events,{'duration','value'});
                     for i=1:length(options.events)
-                        options.events(i).time = options.events(i).time.*D.Fsample +1;
+                        options.events(i).time = options.events(i).time.*D.Fsample;% +1;
                         options.events(i).type = ja(i);
                     end
                 end
@@ -843,7 +847,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     catch
                         options.itw = 1:D.Nsamples;
                     end
-                    options.minSizeWindow = 20;                   
+                    options.minSizeWindow = 20;
                 end
                 options.minY = min(VIZU.ylim);
                 options.maxY = max(VIZU.ylim);
@@ -873,13 +877,19 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 % Create uicontextmenu for events (if any)
                 if isfield(options,'events')
                     D.PSD.handles.PLOT.e = [ud.v.et(:).hp];
+                    if length(options.events) >= 1
+                        hw = waitbar(0,'Adding events: please wait...');
+                    end
+                    axes(D.PSD.handles.axes)
                     for i=1:length(options.events)
+                        waitbar(i/length(options.events),hw)
                         sc.currentEvent = i;
                         sc.eventType    = D.trials(trN(1)).events(i).type;
                         sc.eventValue   = D.trials(trN(1)).events(i).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
                     end
+                    try, close(hw); end
                 end
                 for i=1:length(D.PSD.handles.PLOT.p)
                     cmenu = uicontextmenu;
@@ -895,11 +905,16 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 spm_eeg_review_callbacks('visu','checkXlim',...
                     get(D.PSD.handles.axes,'xlim'))
             end
-            
+
             % modify events properties (delete,add,time,...)
             if ismember(2,flags)
-                try,delete(D.PSD.handles.PLOT.e),end
                 Nevents = length(D.trials.events);
+                if Nevents < length(D.PSD.handles.PLOT.e)
+                    action = 'delete';
+                    try,delete(D.PSD.handles.PLOT.e),end
+                else
+                    action = 'modify';
+                end
                 col = colormap(lines);
                 col = col(1:7,:);
                 x1 = {D.trials.events(:).type}';
@@ -917,25 +932,47 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 A = [j1(:),j2(:)];
                 [ya,ia,ja] = unique(A,'rows');
                 events = rmfield(D.trials.events,{'duration','value'});
-                for i=1:Nevents
-                    events(i).time = D.trials.events(i).time.*D.Fsample +1;
-                    events(i).type = ja(i);
-                    events(i).col = mod(events(i).type+7,7)+1;
-                    D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,events(i).time.*[1 1],...
-                        VIZU.ylim,'color',col(events(i).col,:));
-                    set(D.PSD.handles.PLOT.e(i),'userdata',i,...
-                        'ButtonDownFcn','set(gco,''selected'',''on'')',...
-                        'Clipping','on');
-                    % Add events uicontextmenu
-                    sc.currentEvent = i;
-                    sc.eventType    = D.trials(trN(1)).events(i).type;
-                    sc.eventValue   = D.trials(trN(1)).events(i).value;
-                    sc.N_select     = Nevents;
-                    psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
-                end
+                switch action
+                    case 'delete'
+                        hw = waitbar(0,'Replacing events: please wait...');
+                        axes(D.PSD.handles.axes)
+                        for i=1:Nevents
+                            events(i).time = D.trials.events(i).time.*D.Fsample;% +1;
+                            events(i).type = ja(i);
+                            events(i).col = mod(events(i).type+7,7)+1;
+                            D.PSD.handles.PLOT.e(i) = plot(D.PSD.handles.axes,events(i).time.*[1 1],...
+                                VIZU.ylim,'color',col(events(i).col,:));
+                            set(D.PSD.handles.PLOT.e(i),'userdata',i,...
+                                'ButtonDownFcn','set(gco,''selected'',''on'')',...
+                                'Clipping','on');
+                            % Add events uicontextmenu
+                            sc.currentEvent = i;
+                            sc.eventType    = D.trials(trN(1)).events(i).type;
+                            sc.eventValue   = D.trials(trN(1)).events(i).value;
+                            sc.N_select     = Nevents;
+                            psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
+                            waitbar(i/Nevents,hw)
+                        end
+                        try, close(hw); end
+                    case 'modify'
+                        events(in).time = D.trials.events(in).time.*D.Fsample;% +1;
+                        events(in).type = ja(in);
+                        events(in).col = mod(events(in).type+7,7)+1;
+                        D.PSD.handles.PLOT.e(in) = plot(D.PSD.handles.axes,events(in).time.*[1 1],...
+                            VIZU.ylim,'color',col(events(in).col,:));
+                        set(D.PSD.handles.PLOT.e(in),'userdata',in,...
+                            'ButtonDownFcn','set(gco,''selected'',''on'')',...
+                            'Clipping','on');
+                        % Add events uicontextmenu
+                        sc.currentEvent = in;
+                        sc.eventType    = D.trials(trN(1)).events(in).type;
+                        sc.eventValue   = D.trials(trN(1)).events(in).value;
+                        sc.N_select     = Nevents;
+                        psd_defineMenuEvent(D.PSD.handles.PLOT.e(in),sc);
+                end     
                 set(handles.hfig,'userdata',D);
             end
-            
+
             % modify scaling factor
             if ismember(3,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
@@ -954,7 +991,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 set(D.PSD.handles.gpa,'userdata',ud);
                 set(handles.hfig,'userdata',D);
             end
-            
+
             % modify plotted time window (goto, ...)
             if ismember(4,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
@@ -978,7 +1015,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     'sliderstep',.1*[sw/(ud.v.nt-1) 4*sw/(ud.v.nt-1)]);
                 set(handles.hfig,'userdata',D);
             end
-            
+
 
         case 2
 
@@ -1141,12 +1178,12 @@ else  % source space
                     model.pst,Jp','color',0.5*[1 1 1]);
                 set(D.PSD.handles.axes2,'hittest','off')
                 % Add virtual electrode
-%                 try
-%                     ve = D.PSD.source.VIZU.ve;
-%                 catch
-                    [mj ve] = max(max(abs(D.PSD.source.VIZU.J),[],2));
-                    D.PSD.source.VIZU.ve =ve;
-%                 end
+                %                 try
+                %                     ve = D.PSD.source.VIZU.ve;
+                %                 catch
+                [mj ve] = max(max(abs(D.PSD.source.VIZU.J),[],2));
+                D.PSD.source.VIZU.ve =ve;
+                %                 end
                 Jve = D.PSD.source.VIZU.J(D.PSD.source.VIZU.ve,:);
                 set(D.PSD.handles.axes2,'nextplot','add')
                 try
@@ -1230,9 +1267,9 @@ switch D.PSD.VIZU.type
     case 1
         set(D.PSD.handles.PLOT.p(ind),'uicontextmenu',cmenu,...
             'lineStyle',lineStyle);
-%         ud = get(D.PSD.handles.axes);
-%         ud.v.bad(ind) = status;
-%         set(D.PSD.handles.axes,'userdata',ud);
+        %         ud = get(D.PSD.handles.axes);
+        %         ud.v.bad(ind) = status;
+        %         set(D.PSD.handles.axes,'userdata',ud);
     case 2
         set(D.PSD.handles.axes(ind),'Color',color);
         set(D.PSD.handles.fra(ind),'uicontextmenu',cmenu);
@@ -1403,8 +1440,8 @@ try
                     table{i,3} = '[this file]';
                 end
             case 'spm_eeg_prep'
-                        Df = args.D;
-                        try,Df = args.D.fname;end
+                Df = args.D;
+                try,Df = args.D.fname;end
                 table{i,1} = [table{i,1},' (',args.task,')'];
                 try
                     [path,fn] = fileparts(table{i-1,3});
@@ -1449,189 +1486,225 @@ drawnow
 ht = D.PSD.handles.infoUItable;
 cn = get(ht,'columnNames');
 table = get(ht,'data');
+% !! there is some redundancy here --> to be optimized...
+table2 = spm_uitable('get',ht);
+emptyTable = 0;
+try
+    emptyTable = isempty(cell2mat(table2));
+end
+
+
 if length(cn) == 5  % channel info
-    nc = length(D.channels);
-    for i=1:nc
-        if ~isempty(table(i,1))
-            D.channels(i).label = table(i,1);
-        end
-        if ~isempty(table(i,2))
-            switch lower(table(i,2))
-                case 'eeg'
-                    D.channels(i).type = 'EEG';
-                case 'meg'
-                    D.channels(i).type = 'MEG';
-                case 'lfp'
-                    D.channels(i).type = 'LFP';
-                case 'veog'
-                    D.channels(i).type = 'VEOG';
-                case 'heog'
-                    D.channels(i).type = 'HEOG';
-                case 'other'
-                    D.channels(i).type = 'Other';
-                otherwise
-                    D.channels(i).type = 'Other';
+    if ~emptyTable
+        nc = length(D.channels);
+        for i=1:nc
+            if ~isempty(table(i,1))
+                D.channels(i).label = table(i,1);
+            end
+            if ~isempty(table(i,2))
+                switch lower(table(i,2))
+                    case 'eeg'
+                        D.channels(i).type = 'EEG';
+                    case 'meg'
+                        D.channels(i).type = 'MEG';
+                    case 'lfp'
+                        D.channels(i).type = 'LFP';
+                    case 'veog'
+                        D.channels(i).type = 'VEOG';
+                    case 'heog'
+                        D.channels(i).type = 'HEOG';
+                    case 'other'
+                        D.channels(i).type = 'Other';
+                    otherwise
+                        D.channels(i).type = 'Other';
+                end
+            end
+            if ~isempty(table(i,3))
+                switch lower(table(i,3))
+                    case 'yes'
+                        D.channels(i).bad = 1;
+                    otherwise
+                        D.channels(i).bad = 0;
+                end
+            end
+            if ~isempty(table(i,5))
+                D.channels(i).units = table(i,5);
             end
         end
-        if ~isempty(table(i,3))
-            switch lower(table(i,3))
-                case 'yes'
-                    D.channels(i).bad = 1;
-                otherwise
-                    D.channels(i).bad = 0;
-            end
+        % Find indices of channel types (these might have been changed)
+        D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
+        D.PSD.MEG.I  = find(strcmp('MEG',{D.channels.type}));
+        D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
+        if ~isempty(D.PSD.EEG.I)
+            [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
+            D.PSD.EEG.VIZU = out;
+        else
+            D.PSD.EEG.VIZU = [];
         end
-        if ~isempty(table(i,5))
-            D.channels(i).units = table(i,5);
+        if ~isempty(D.PSD.MEG.I)
+            [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEG.I);
+            D.PSD.MEG.VIZU = out;
+        else
+            D.PSD.MEG.VIZU = [];
         end
-    end
-    % Find indices of channel types (these might have been changed)
-    D.PSD.EEG.I  = find(strcmp('EEG',{D.channels.type}));
-    D.PSD.MEG.I  = find(strcmp('MEG',{D.channels.type}));
-    D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
-    if ~isempty(D.PSD.EEG.I)
-        [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
-        D.PSD.EEG.VIZU = out;
-    end
-    if ~isempty(D.PSD.MEG.I)
-        [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEG.I);
-        D.PSD.MEG.VIZU = out;
-    end
-    if ~isempty(D.PSD.other.I)
-        [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);
-        D.PSD.other.VIZU = out;
+        if ~isempty(D.PSD.other.I)
+            [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);
+            D.PSD.other.VIZU = out;
+        else
+            D.PSD.other.VIZU = [];
+        end
+    else
+
     end
 elseif length(cn) == 7
     if strcmp(D.type,'continuous')
-        ne = length(D.trials(1).events);
-        D.trials = rmfield(D.trials,'events');
-        j = 0;
-        for i=1:ne
-            if isempty(table(i,1))&&...
-                    isempty(table(i,2))&&...
-                    isempty(table(i,3))&&...
-                    isempty(table(i,4))&&...
-                    isempty(table(i,5))&&...
-                    isempty(table(i,6))&&...
-                    isempty(table(i,7))
-                % Row (ie event) has been cleared/deleted
-            else
-                j = j+1;
-                if ~isempty(table(i,2))
-                    D.trials(1).events(j).type = table(i,2);
-                end
-                if ~isempty(table(i,3))
-                    D.trials(1).events(j).value = str2double(table(i,3));
-                end
-                if ~isempty(table(i,4))
-                    D.trials(1).events(j).duration = str2double(table(i,4));
-                end
-                if ~isempty(table(i,5))
-                    D.trials(1).events(j).time = str2double(table(i,5));
+        if ~emptyTable
+            ne = length(D.trials(1).events);
+            D.trials = rmfield(D.trials,'events');
+            j = 0;
+            for i=1:ne
+                if isempty(table(i,1))&&...
+                        isempty(table(i,2))&&...
+                        isempty(table(i,3))&&...
+                        isempty(table(i,4))&&...
+                        isempty(table(i,5))&&...
+                        isempty(table(i,6))&&...
+                        isempty(table(i,7))
+                    % Row (ie event) has been cleared/deleted
+                else
+                    j = j+1;
+                    if ~isempty(table(i,2))
+                        D.trials(1).events(j).type = table(i,2);
+                    end
+                    if ~isempty(table(i,3))
+                        D.trials(1).events(j).value = str2double(table(i,3));
+                    end
+                    if ~isempty(table(i,4))
+                        D.trials(1).events(j).duration = str2double(table(i,4));
+                    end
+                    if ~isempty(table(i,5))
+                        D.trials(1).events(j).time = str2double(table(i,5));
+                    end
                 end
             end
+        else
+            D.trials(1).events = [];
+            delete(ht);
         end
     else
+        if ~emptyTable
+            nt = length(D.trials);
+            for i=1:nt
+                if ~isempty(table(i,1))
+                    D.trials(i).label = table(i,1);
+                end
+                ne = length(D.trials(i).events);
+                if ne<2
+                    if ~isempty(table(i,2))
+                        D.trials(i).events.type = table(i,2);
+                    end
+                    if ~isempty(table(i,3))
+                        D.trials(i).events.value = table(i,3);%str2double(table(i,3));
+                    end
+                end
+                if ~isempty(table(i,6))
+                    switch lower(table(i,6))
+                        case 'yes'
+                            D.trials(i).bad = 1;
+                        otherwise
+                            D.trials(i).bad = 0;
+                    end
+                end
+                if D.trials(i).bad
+                    str = ' (bad)';
+                else
+                    str = ' (not bad)';
+                end
+                D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label,str];
+            end
+        else
+        end
+    end
+
+elseif length(cn) == 3
+    if ~emptyTable
         nt = length(D.trials);
         for i=1:nt
             if ~isempty(table(i,1))
                 D.trials(i).label = table(i,1);
             end
-            ne = length(D.trials(i).events);
-            if ne<2
-                if ~isempty(table(i,2))
-                    D.trials(i).events.type = table(i,2);
-                end
-                if ~isempty(table(i,3))
-                    D.trials(i).events.value = str2double(table(i,3));
-                end
-            end
-            if ~isempty(table(i,6))
-                switch lower(table(i,6))
-                    case 'yes'
-                        D.trials(i).bad = 1;
-                    otherwise
-                        D.trials(i).bad = 0;
-                end
-            end
-            if D.trials(i).bad
-                str = ' (bad)';
-            else
-                str = ' (not bad)';
-            end
-            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ',D.trials(i).label,str];
+            D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),' (average of ',...
+                num2str(D.trials(i).repl),' events): ',D.trials(i).label];
         end
-    end
-
-elseif length(cn) == 3
-    nt = length(D.trials);
-    for i=1:nt
-        if ~isempty(table(i,1))
-            D.trials(i).label = table(i,1);
-        end
-        D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),' (average of ',...
-            num2str(D.trials(i).repl),' events): ',D.trials(i).label];
+    else
     end
 
 elseif length(cn) == 12     % source reconstructions
 
-    if ~~D.PSD.source.VIZU.current
-        isInv = D.PSD.source.VIZU.isInv;
-        inv = D.other.inv;
-        Ninv = length(inv);
-        D.other = rmfield(D.other,'inv');
-        oV = D.PSD.source.VIZU;
-        D.PSD.source = rmfield(D.PSD.source,'VIZU');
-        pst = [];
-        j = 0;  % counts the total number of final inverse solutions in D
-        k = 0;  % counts the number of original 'imaging' inv sol
-        l = 0;  % counts the number of final 'imaging' inv sol
-        for i=1:Ninv
-            if ~ismember(i,isInv)   % not 'imaging' inverse solutions
-                j = j+1;
-                D.other.inv{j} = inv{i};
-            else                    % 'imaging' inverse solutions
-                k = k+1;
-                if isempty(table(k,1))&&...
-                        isempty(table(k,2))&&...
-                        isempty(table(k,3))&&...
-                        isempty(table(k,4))&&...
-                        isempty(table(k,5))&&...
-                        isempty(table(k,6))&&...
-                        isempty(table(k,7))&&...
-                        isempty(table(k,8))&&...
-                        isempty(table(k,9))&&...
-                        isempty(table(k,10))&&...
-                        isempty(table(k,11))&&...
-                        isempty(table(k,12))
-                    % Row (ie source reconstruction) has been cleared/deleted
-                    % => erase inverse solution from D struct
-                else
+    if ~emptyTable
+        if ~~D.PSD.source.VIZU.current
+            isInv = D.PSD.source.VIZU.isInv;
+            inv = D.other.inv;
+            Ninv = length(inv);
+            D.other = rmfield(D.other,'inv');
+            oV = D.PSD.source.VIZU;
+            D.PSD.source = rmfield(D.PSD.source,'VIZU');
+            pst = [];
+            j = 0;  % counts the total number of final inverse solutions in D
+            k = 0;  % counts the number of original 'imaging' inv sol
+            l = 0;  % counts the number of final 'imaging' inv sol
+            for i=1:Ninv
+                if ~ismember(i,isInv)   % not 'imaging' inverse solutions
                     j = j+1;
-                    l = l+1;
-                    pst = [pst;inv{isInv(k)}.inverse.pst(:)];
-                    D.other.inv{j} = inv{isInv(k)};
-                    D.other.inv{j}.comment{1} = table(k,1);
-                    D.PSD.source.VIZU.isInv(l) = j;
-                    D.PSD.source.VIZU.F(l) = oV.F(k);
-                    D.PSD.source.VIZU.labels{l} = table(k,1);
-                    D.PSD.source.VIZU.callbacks(l) = oV.callbacks(k);
+                    D.other.inv{j} = inv{i};
+                else                    % 'imaging' inverse solutions
+                    k = k+1;
+                    if isempty(table(k,1))&&...
+                            isempty(table(k,2))&&...
+                            isempty(table(k,3))&&...
+                            isempty(table(k,4))&&...
+                            isempty(table(k,5))&&...
+                            isempty(table(k,6))&&...
+                            isempty(table(k,7))&&...
+                            isempty(table(k,8))&&...
+                            isempty(table(k,9))&&...
+                            isempty(table(k,10))&&...
+                            isempty(table(k,11))&&...
+                            isempty(table(k,12))
+                        % Row (ie source reconstruction) has been cleared/deleted
+                        % => erase inverse solution from D struct
+                    else
+                        j = j+1;
+                        l = l+1;
+                        pst = [pst;inv{isInv(k)}.inverse.pst(:)];
+                        D.other.inv{j} = inv{isInv(k)};
+                        D.other.inv{j}.comment{1} = table(k,1);
+                        D.PSD.source.VIZU.isInv(l) = j;
+                        D.PSD.source.VIZU.F(l) = oV.F(k);
+                        D.PSD.source.VIZU.labels{l} = table(k,1);
+                        D.PSD.source.VIZU.callbacks(l) = oV.callbacks(k);
+                    end
                 end
             end
         end
-    end
-    if l >= 1
-        D.other.val = l;
-        D.PSD.source.VIZU.current = 1;
-        D.PSD.source.VIZU.pst = unique(pst);
-        D.PSD.source.VIZU.timeCourses = 1;
+        if l >= 1
+            D.other.val = l;
+            D.PSD.source.VIZU.current = 1;
+            D.PSD.source.VIZU.pst = unique(pst);
+            D.PSD.source.VIZU.timeCourses = 1;
+        else
+            try,D.other = rmfield(D.other,'val');end
+            D.PSD.source.VIZU.current = 0;
+        end
     else
         try,D.other = rmfield(D.other,'val');end
+        try,D.other = rmfield(D.other,'inv');end
         D.PSD.source.VIZU.current = 0;
+        delete(ht)
+        drawnow
     end
 end
 set(D.PSD.handles.hfig,'userdata',D)
 spm_eeg_review_callbacks('visu','main','info',D.PSD.VIZU.info)
 drawnow
 spm('pointer','arrow');
-

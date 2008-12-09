@@ -57,7 +57,7 @@ function [ud] = spm_DisplayTimeSeries(y,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_DisplayTimeSeries.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_DisplayTimeSeries.m 2543 2008-12-09 19:44:24Z jean $
 
 
 if ~exist('options','var')
@@ -77,6 +77,12 @@ if ~isempty(options) && isfield(options,'Fsample')
     Fsample = options.Fsample;
 else
     Fsample = 1;
+end
+
+if ~isempty(options) && isfield(options,'timeOnset')
+    timeOnset = options.timeOnset;
+else
+    timeOnset = 0;
 end
 
 if ~isempty(options) && isfield(options,'events')
@@ -296,7 +302,8 @@ ud.v.handles.rb = plot(ud.v.handles.gpa,[itw(end) itw(end)],[mi ma],'k',...
     'buttondownfcn',@doRb,'interruptible','off');
 
 % Adapt axes properties to display
-tgrid = 0:1/Fsample:nt/Fsample;
+tgrid = (0:(nt-1))./Fsample + timeOnset;
+% tgrid = 0:1/Fsample:nt/Fsample;
 set(ud.v.handles.gpa,'ylim',[mi ma],'xlim',[1 nt]);
 xtick = floor(get(ud.v.handles.gpa,'xtick'));
 xtick(xtick==0) = 1;
@@ -400,6 +407,24 @@ sw = diff(get(ud.v.handles.axes,'xlim'));
 xl = xm + [-sw./2,+sw./2];
 if xl(1) >= 1 && xl(2) <= ud.v.nt
     xl = round(xl);
+    decim = max([1,round(sw./ud.v.ds)]);
+    if ~ud.v.transpose
+        My = ud.v.M*ud.y(xl(1):decim:xl(2),:)';
+    else
+        My = ud.v.M*ud.y(:,xl(1):decim:xl(2));
+    end
+    doPlot(My,xl,ud.v,decim)
+elseif xl(2) > ud.v.nt
+    xl = [ud.v.nt-sw,ud.v.nt];
+    decim = max([1,round(sw./ud.v.ds)]);
+    if ~ud.v.transpose
+        My = ud.v.M*ud.y(xl(1):decim:xl(2),:)';
+    else
+        My = ud.v.M*ud.y(:,xl(1):decim:xl(2));
+    end
+    doPlot(My,xl,ud.v,decim)
+elseif xl(1) < 1
+    xl = [1,sw+1];
     decim = max([1,round(sw./ud.v.ds)]);
     if ~ud.v.transpose
         My = ud.v.M*ud.y(xl(1):decim:xl(2),:)';

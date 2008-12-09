@@ -3,7 +3,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 2499 2008-11-28 12:19:48Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 2543 2008-12-09 19:44:24Z jean $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -469,29 +469,46 @@ switch D.PSD.VIZU.uitable
                 D = spm_eeg_review_uis(D,object); % this adds the buttons
 
             case 2 % trials info
-
                 object.list = [object.list;12];
+                ok = 1;
                 if strcmp(D.type,'continuous')
-                    ne = length(D.trials(1).events);
-                    table = cell(ne,3);
-                    for i=1:ne
-                        table{i,1} = D.trials(1).label;
-                        table{i,2} = D.trials(1).events(i).type;
-                        table{i,3} = num2str(D.trials(1).events(i).value);
-                        if ~isempty(D.trials(1).events(i).duration)
-                            table{i,4} = num2str(D.trials(1).events(i).duration);
-                        else
-                            table{i,4} = [];
+                    try
+                        ne = length(D.trials(1).events);
+                        if ne == 0
+                            ok = 0;
                         end
-                        table{i,5} = num2str(D.trials(1).events(i).time);
-                        table{i,6} = 'Undefined';
-                        table{i,7} = num2str(D.trials(1).onset);
+                    catch
+                        ne = 0;
+                        ok = 0;
                     end
-                    colnames = {'label','type','value','duration','time','bad','onset'};
-                    [ht,hc] = spm_uitable(table,colnames);
-                    set(ht,'units','normalized');
-                    set(hc,'position',[0.1 0.05 0.74 0.7],...
-                        'tag','plotEEG');
+                    if ne > 0
+                        table = cell(ne,3);
+                        for i=1:ne
+                            table{i,1} = D.trials(1).label;
+                            table{i,2} = D.trials(1).events(i).type;
+                            table{i,3} = num2str(D.trials(1).events(i).value);
+                            if ~isempty(D.trials(1).events(i).duration)
+                                table{i,4} = num2str(D.trials(1).events(i).duration);
+                            else
+                                table{i,4} = [];
+                            end
+                            table{i,5} = num2str(D.trials(1).events(i).time);
+                            table{i,6} = 'Undefined';
+                            table{i,7} = num2str(D.trials(1).onset);
+                        end
+                        colnames = {'label','type','value','duration','time','bad','onset'};
+                        [ht,hc] = spm_uitable(table,colnames);
+                        set(ht,'units','normalized');
+                        set(hc,'position',[0.1 0.05 0.74 0.7],...
+                            'tag','plotEEG');
+                    else
+                        POS = get(D.PSD.handles.infoTabs.hp,'position');
+                        D.PSD.handles.message = uicontrol('style','text','units','normalized',...
+                            'Position',[0.14 0.84 0.7 0.04].*repmat(POS(3:4),1,2),...
+                            'string','There is no event in this data file !',...
+                            'BackgroundColor',0.95*[1 1 1],...
+                            'tag','plotEEG');
+                    end
                 else
                     nt = length(D.trials);
                     table = cell(nt,3);
@@ -531,7 +548,6 @@ switch D.PSD.VIZU.uitable
                         set(ht,'units','normalized');
                         set(hc,'position',[0.1 0.05 0.74 0.7],...
                             'tag','plotEEG');
-
                     else
                         for i=1:nt
                             table{i,1} = D.trials(i).label;
@@ -549,8 +565,11 @@ switch D.PSD.VIZU.uitable
                             'tag','plotEEG');
                     end
                 end
-                D.PSD.handles.infoUItable = ht;
-                D = spm_eeg_review_uis(D,object); % this adds the buttons
+                if ok
+                    D.PSD.handles.infoUItable = ht;
+                    D.PSD.handles.infoUItable2 = hc;
+                    D = spm_eeg_review_uis(D,object); % this adds the buttons
+                end
 
             case 3 % inv info
 

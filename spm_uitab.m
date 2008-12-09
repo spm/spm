@@ -25,7 +25,7 @@ function [handles] = spm_uitab(hparent,labels,callbacks,...
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 2541 2008-12-09 17:15:05Z jean $
+% $Id: spm_uitab.m 2543 2008-12-09 19:44:24Z jean $
 
 Ntabs = length(labels);
 
@@ -44,18 +44,18 @@ if  ~exist('height','var') || isempty(height)
     height = 1;
 end
 if  ~exist('tab_height','var') || isempty(tab_height)
-    tab_height = 0.04;
+    tab_height = 0.025;
 end
 if ~isequal(get(hparent,'type'),'figure')
     set(hparent,'units','normalized')
     POS = get(hparent,'position');
 %     pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-0.06];
-    pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-(tab_height+0.02)];
+    pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-(tab_height+0.035)];
     dx = 0.1*(POS(3)-0.04)./0.98;
     dx2 = [0.04,0.93]*(POS(3)-0.04)./0.98;
 else
 %     pos1 = [0.01 0.005 0.98 0.965];
-    pos1 = [0.01 0.005 0.98 1-(tab_height+0.02)];
+    pos1 = [0.01 0.005 0.98 1-(tab_height+0.01)];
     dx = 0.1;
     dx2 = [0.04,0.93];
 end
