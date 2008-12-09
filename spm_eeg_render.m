@@ -30,7 +30,7 @@ function  [out] = spm_eeg_render(m,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_render.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_eeg_render.m 2540 2008-12-09 17:14:25Z jean $
 
 
 
@@ -105,7 +105,7 @@ if ~isempty(options)
         end
         try % get number of transparency sliders in current figure...
             hh=get(handles.fi,'children');
-            ns=length(findobj(hh,'tag','transpSlider'));
+            ns=length(findobj(hh,'userdata','tag_UIC_transparency'));
         catch
             ns=1;
         end
@@ -202,14 +202,25 @@ udd.p = handles.p;
 % Transparancy sliders
 pos = [20 100 20 245];
 pos(1) = pos(1) + ns.*25;
-handles.transp = uicontrol('style','slider','position',pos,...
-    'min',0,'max',1,'value',1,'sliderstep',[0.01 0.05],...
-    'userdata',handles.p,'tooltipstring',...
-    ['mesh #',num2str(ns+1),' transparency control'],...
+handles.transp = uicontrol(...
+    'style','slider',...
+    'position',pos,...
+    'min',0,...
+    'max',1,...
+    'value',1,...
+    'sliderstep',[0.01 0.05],...
+    'userdata',handles.p,...
+    'tooltipstring',['mesh #',num2str(ns+1),' transparency control'],...
     'callback',{@doTransp},...
     'BusyAction','cancel',...
     'Interruptible','off',...
-    'visible',visible,'tag',tag);
+    'visible',visible,...
+    'tag',tag);
+handles.tag = uicontrol(...
+    'style','text',...
+    'visible','off',...
+    'tag',tag,...
+    'userdata','tag_UIC_transparency');
 set(handles.transp,'units','normalized')
 udd.transp = handles.transp;
 % 
@@ -259,10 +270,10 @@ if ~isequal(clusters,'none')
     colormap(col);
     tex = zeros(length(m.vertices),length(clusters)+1);
     tex(:,1) = texture;
-    string = cell(length(clusters));
+    string = cell(length(clusters)+1,1);
     string{1} = 'all clusters';
     for i = 1:length(clusters)
-        if isfield(options,'clustersName') == 0
+        if ~isfield(options,'clustersName')
             string{i+1} = ['cluster ',num2str(i)];
         else
             string{i+1} = options.clustersName{i};
@@ -292,8 +303,8 @@ if ~isequal(clusters,'none')
     set(handles.sli,'units','normalized')
     udd.pop = handles.pop;
     udd.sli = handles.sli;
-    set(pop,'userdata',udd);
-    set(sli,'userdata',udd);
+    set(handles.pop,'userdata',udd);
+    set(handles.sli,'userdata',udd);
 end
 
 % Texture thresholding sliders
@@ -397,8 +408,8 @@ else
     colormap(col00);
 end
 udd00.cax = caxis;
-set(udd00.sb1,'userdata',udd00);
-set(udd00.sb2,'userdata',udd00);
+% set(udd00.sb1,'userdata',udd00);
+% set(udd00.sb2,'userdata',udd00);
 
 
 function doSwitch2nextCluster(btn,evd)
@@ -411,10 +422,10 @@ if ind00 == 1
     colormap(udd00.col);
 else
     col00 = colormap(jet);
-    col00(1:end/2,:)=0.5*ones(size(col00(1:end/2,:)));
+    col00(1:end/2,:)=0.5;%*ones(size(col00(1:end/2,:)));
     colormap(col00);
 end
 udd00.cax = caxis;
-set(udd00.sb1,'userdata',udd00);
-set(udd00.sb2,'userdata',udd00);
+% set(udd00.sb1,'userdata',udd00);
+% set(udd00.sb2,'userdata',udd00);
 
