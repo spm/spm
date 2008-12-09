@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.89  2008/12/09 16:50:41  roboos
+% disabled detection of ced_spike6mat, because it contains an error. The error should be fixed by Vladimir.
+%
 % Revision 1.88  2008/11/28 10:24:24  roboos
 % added ctf mri version 4, thanks to Ivar
 %
@@ -858,10 +861,10 @@ elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && 
     ftype = 'spmeeg_mat';
     manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
     content = 'electrophysiological data';
-elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && all(1 == strmatch('struct', unique(subsref(struct2cell(whos('-file', filename)), substruct('()', {4, ':'}))), 'exact')) && 10 == numel(intersect(fieldnames(subsref(struct2cell(load(filename, getfield(whos('-file', filename), {1}, 'name'))), substruct('{}', {1}))), {'title', 'comment', 'interval', 'scale', 'offset', 'units', 'start', 'length', 'values' 'times'}))
-    ftype = 'ced_spike6mat';
-    manufacturer = 'Cambridge Electronic Design Limited';
-    content = 'electrophysiological data';        
+% elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && all(1 == strmatch('struct', unique(subsref(struct2cell(whos('-file', filename)), substruct('()', {4, ':'}))), 'exact')) && 10 == numel(intersect(fieldnames(subsref(struct2cell(load(filename, getfield(whos('-file', filename), {1}, 'name'))), substruct('{}', {1}))), {'title', 'comment', 'interval', 'scale', 'offset', 'units', 'start', 'length', 'values' 'times'}))
+%     ftype = 'ced_spike6mat';
+%     manufacturer = 'Cambridge Electronic Design Limited';
+%     content = 'electrophysiological data';        
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
   ftype = 'matlab';
   manufacturer = 'Matlab';
