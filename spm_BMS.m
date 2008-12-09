@@ -24,7 +24,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2508 2008-11-30 15:22:00Z klaas $
+% $Id: spm_BMS.m 2545 2008-12-09 20:14:43Z guillaume $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -123,7 +123,7 @@ if do_plot & Nk == 2
     %-------------------
     x1  = [0:0.0001:1];
     for i = 1:length(x1),
-        p(i)   = spm_dirichlet([x1(i) 1-x1(i)],alpha);
+        p(i)   = spm_Dpdf([x1(i) 1-x1(i)],alpha);
     end
     fig1 = figure;
     axes1 = axes('Parent',fig1,'FontSize',14);
