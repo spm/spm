@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2520 2008-12-02 19:07:31Z cc $
+% $Id: spm_api_erp.m 2548 2008-12-09 22:11:04Z cc $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -158,13 +158,6 @@ try, set(handles.Sname,       'String',DCM.Sname);                   end
 try, set(handles.onset,       'String',num2str(DCM.options.onset));  end
 try, set(handles.Slocation,   'String',num2str(DCM.Lpos','%4.0f'));  end
  
-% sets the tooltip string to a list of condition labels
-try
-    set(handles.Y1,  'TooltipString', sprintf('%s ', handles.DCM.xY.code{:}));
-catch
-    set(handles.Y1,  'TooltipString', 'Specify the trials you want to analyse and then select the data file');
-end
-
 % Imaging
 %--------------------------------------------------------------------------
 switch DCM.options.spatial
@@ -287,7 +280,7 @@ handles.DCM.options.model     = model;
 model = get(handles.Spatial,       'String');
 model = model{get(handles.Spatial, 'Value')};
 handles.DCM.options.spatial   = model;
-
+ 
 guidata(hObject,handles);
  
  
@@ -359,17 +352,9 @@ handles = reset_Callback(hObject, eventdata, handles);
 try
     handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
     spm_dcm_erp_results(handles.DCM,'Data');
-    set(handles.dt, 'String', sprintf('bins: %.1fms', handles.DCM.xY.dt*1000))
-    set(handles.dt, 'Visible', 'on')
+    set(handles.dt, 'String',sprintf('bins: %.1fms',handles.DCM.xY.dt*1000))
+    set(handles.dt, 'Visible','on')
     set(handles.data_ok, 'enable', 'on'); 
-    
-    % sets the tooltip string to a list of condition labels
-    try
-        set(handles.Y1,  'TooltipString', sprintf('%s ', handles.DCM.xY.code{:}));
-    catch
-        set(handles.Y1,  'TooltipString', 'Specify the trials you want to analyse and then select the data file');
-    end
-    
     guidata(hObject,handles);
 catch
     errordlg({'please ensure trial selection and data are consistent';
@@ -540,7 +525,8 @@ switch DCM.options.spatial
         set(handles.plot_dipoles,'enable','on')
  
     case{'LFP'}
-        
+          
+        addpath(fullfile(spm('Dir'),'toolbox','Neural_Models'));
         % for LFP
         %------------------------------------------------------------------
         DCM.Lpos = zeros(3,0);
@@ -1029,6 +1015,7 @@ return
 %--------------------------------------------------------------------------
 function BMC_Callback(hObject, eventdata, handles)
 spm_api_bmc
+%spm_jobman('Interactive','','spm.stats.bms.bms_pbar')
  
  
 % --- Executes on selection change in ERP.
@@ -1134,8 +1121,6 @@ function Wavelet_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 handles = reset_Callback(hObject, eventdata, handles);
  
-handles.DCM    = spm_dcm_erp_dipfit(handles.DCM);
-
 switch handles.DCM.options.analysis
  
     case{'SSR'}
@@ -1170,28 +1155,13 @@ handles = reset_Callback(hObject, eventdata, handles);
 spm_api_nmm(handles.DCM)
 
 
-function Y1_Callback(hObject, eventdata, handles)
-% hObject    handle to Y1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Y1 as text
-%        str2double(get(hObject,'String')) returns contents of Y1 as a double
 
 
-% sets the tooltip string to a list of condition labels
-% sets the tooltip string to a list of condition labels
-
-Y_Callback(hObject, eventdata, handles);
-
-
-% --- Executes on button press in pushbutton36.
-function saveIND_Callback(hObject, eventdata, handles)
-
+% --- Executes on button press in SaveInd.
+function SaveInd_Callback(hObject, eventdata, handles)
 if handles.DCM.options.analysis~='IND'
    errordlg('This is only for DCM of induced responses');
-    error('')
+   error('')
 end
 Action='Saveimg';
 spm_dcm_ind_results(handles.DCM, Action);
-
