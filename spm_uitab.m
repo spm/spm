@@ -1,5 +1,7 @@
-function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
-% function [handles] = spm_uitab(hfig,labels,callbacks)
+function [handles] = spm_uitab(hparent,labels,callbacks,...
+    tag,active,height,tab_height)
+% function [handles] = spm_uitab(hfig,labels,callbacks,...
+%    tag,active,height,tab_height)
 % This functiuon creates tabs in the SPM graphics window.
 % These tabs may be associated with different sets of axes and uicontrol,
 % through the use of callback functions linked to the tabs.
@@ -8,20 +10,22 @@ function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height)
 %   windows, or the handle of the uipanel of a former spm_uitab...)
 %   - labels: a cell array of string containing the labels of the tabs
 %   - callbacks: a cell array of strings which will be evaluated using the
-%   'eval' function when clicking on a tab.
+%   'eval' function when clicking on a tab
 %   - tag: a string which is the tags associated with the tabs (useful for
 %   finding them in a window...)
 %   - active: the index of the active tab when creating the uitabs (default
-%   = 1, ie the first tab is active).
-%   - height: the relative height of the tabs within its parent spatial
-%   extent (default = 1);
+%   = 1, ie the first tab is active)
+%   - height: the relative height of the tab panels within its parent
+%   spatial extent (default = 1)
+%   - tab_height: the relative height of the tabs within its parent spatial
+%   extent (default = 1)
 % OUT:
 %   - handles: a structure of handles for the differents tab objects.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 2423 2008-10-30 23:50:04Z jean $
+% $Id: spm_uitab.m 2541 2008-12-09 17:15:05Z jean $
 
 Ntabs = length(labels);
 
@@ -39,15 +43,19 @@ end
 if  ~exist('height','var') || isempty(height)
     height = 1;
 end
-
+if  ~exist('tab_height','var') || isempty(tab_height)
+    tab_height = 0.04;
+end
 if ~isequal(get(hparent,'type'),'figure')
     set(hparent,'units','normalized')
     POS = get(hparent,'position');
-    pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-0.06];
+%     pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-0.06];
+    pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-(tab_height+0.02)];
     dx = 0.1*(POS(3)-0.04)./0.98;
     dx2 = [0.04,0.93]*(POS(3)-0.04)./0.98;
 else
-    pos1 = [0.01 0.005 0.98 0.965];
+%     pos1 = [0.01 0.005 0.98 0.965];
+    pos1 = [0.01 0.005 0.98 1-(tab_height+0.02)];
     dx = 0.1;
     dx2 = [0.04,0.93];
 end
@@ -64,7 +72,7 @@ xl = pos1(1);
 yu = pos1(2) +pos1(4);
 ddx = 0.0025;
 ddy = 0.005;
-dy = 0.025;
+dy = tab_height;%0.025
 
 if Ntabs > 9
     handles.hs(1) = uicontrol('style','pushbutton',...
@@ -174,7 +182,11 @@ if ~strcmp(get(ud.handles.htab(ud.ind),'FontWeight'),'bold')
     end
     drawnow
     if ~isempty(ud.callback)
-        eval(ud.callback);
+        try
+            eval(ud.callback);
+        catch
+            feval(ud.callback);
+        end
     end
     drawnow
     spm('pointer','arrow');
