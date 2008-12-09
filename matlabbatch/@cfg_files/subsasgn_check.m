@@ -12,9 +12,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: subsasgn_check.m 2539 2008-12-09 11:19:55Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 2539 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -33,20 +33,26 @@ switch subs(1).subs
                 % do filtering and .num checks
                 % this is already done in interactive mode, but not in batch
                 % mode (e.g. after resolve_deps).
-                if strcmpi(item.filter,'image') || strcmpi(item.filter,'nifti')
-                    typ = 'extimage';
+                if strcmpi(item.filter, 'dir')
+                    % don't filter dirs - they would be filtered by
+                    % item.ufilter only, which is ignored here
+                    val1 = val{1};
                 else
-                    typ = item.filter;
-                end;
-                % don't filter for item.ufilter - this may have been
-                % overridden by user interface
-                [val1 sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
+                    if strcmpi(item.filter,'image') || strcmpi(item.filter,'nifti')
+                        typ = 'extimage';
+                    else
+                        typ = item.filter;
+                    end;
+                    % don't filter for item.ufilter - this may have been
+                    % overridden by user interface
+                    [val1 sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
+                end
                 if numel(val1) < item.num(1)
                     sts = false;
                     cfg_message('matlabbatch:checkval', ...
                                 ['%s: Number of matching files (%d) less than ' ...
                                  'required (%d).'], ...
-                                subsasgn_checkstr(item,subs), numel(val{1}), item.num(1));
+                                subsasgn_checkstr(item,subs), numel(val1), item.num(1));
                 elseif numel(val1) > item.num(2)
                     cfg_message('matlabbatch:checkval', ...
                                 ['%s: Number of matching files larger than ' ...

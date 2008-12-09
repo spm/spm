@@ -32,10 +32,11 @@ function [t,sts] = cfg_getfile(varargin)
 % FORMAT [t,ind] = cfg_getfile('Filter',files,typ,filt,frames)
 % filter the list of files (cell array) in the same way as the
 % GUI would do. There is an additional typ 'extimage' which will match
-% images with frame specifications, too. Also, there is a typ 'extdir',
-% which will match canonicalised directory names. The 'frames' argument
+% images with frame specifications, too. The 'frames' argument
 % is currently ignored, i.e. image files will not be filtered out if
 % their frame numbers do not match.
+% When filtering directory names, the filt argument will be applied to the
+% last directory in a path only.
 % t returns the filtered list (cell array), ind an index array, such that 
 % t = files(ind).
 %
@@ -76,7 +77,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 2277 2008-10-01 11:08:33Z guillaume $
+% $Id: cfg_getfile.m 2539 2008-12-09 11:19:55Z volkmar $
 
 t = {};
 sts = false;
@@ -97,9 +98,32 @@ if nargin > 0 && ischar(varargin{1})
                 sts = 1;
                 return;
             end;
-            [t,sts1] = do_filter(t,filt.ext);
-            [t,sts2] = do_filter(t,filt.filt);
+            t1 = cell(size(t));
+            if any(strcmpi(varargin{3},{'dir','extdir'}))
+                % only filter last directory in path
+                for k = 1:numel(t)
+                    if t{k}(end) == filesep
+                        [p n] = fileparts(t{k}(1:end-1));
+                    else
+                        [p n] = fileparts(t{k});
+                    end
+                    if strcmpi(varargin{3},'extdir')
+                        t1{k} = [n filesep];
+                    else
+                        t1{k} = n;
+                    end
+                end
+            else
+                % only filter filenames, not paths
+                for k = 1:numel(t)
+                    [p n e v] = fileparts(t{k});
+                    t1{k} = [n e v];
+                end
+            end
+            [t1,sts1] = do_filter(t1,filt.ext);
+            [t1,sts2] = do_filter(t1,filt.filt);
             sts = sts1(sts2);
+            t = t(sts);
         case {'list', 'fplist', 'extlist', 'extfplist'}
             if nargin > 3
                 frames = varargin{4};
@@ -947,10 +971,18 @@ for i=2:numel(f),
 end;
 f        = f(msk);
 if filt.code==1,
+    % Combine filename and frame number(s)
     ii       = ii(msk);
-    c        = cell(size(f));
-    for i=1:numel(f),
-        c{i} = [repmat([f{i} ','],numel(ii{i}),1) num2str(ii{i}(:)) ];
+    nii      = cellfun(@numel, ii);
+    c        = cell(sum(nii),1);
+    fi       = cell(numel(f),1);
+    for k = 1:numel(fi)
+        fi{k} = k*ones(1,nii(k));
+    end
+    ii = [ii{:}];
+    fi = [fi{:}];
+    for i=1:numel(c),
+        c{i} = sprintf('%s,%d', f{fi(i)}, ii(i));
     end;
     f        = c;
 elseif filt.code==-1,
@@ -960,9 +992,7 @@ elseif filt.code==-1,
     end;
 end;
 f        = f(:);
-
 d        = unique(d(:));
-
 msg(ob,omsg);
 return;
 %=======================================================================
