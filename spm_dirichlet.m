@@ -1,5 +1,5 @@
 function [p] = spm_dirichlet(x,alpha);
-% Dirichlet distribution
+% Dirichlet distribution - deprecated
 % 
 % FORMAT [p] = dirichlet(x,alpha)
 % 
@@ -9,12 +9,12 @@ function [p] = spm_dirichlet(x,alpha);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
 % Will Penny
-% $Id: spm_dirichlet.m 2507 2008-11-30 14:45:22Z klaas $
+% $Id: spm_dirichlet.m 2544 2008-12-09 20:01:58Z guillaume $
 
-alpha = alpha(:);
-x     = x(:);
+persistent runonce
+if isempty(runonce)
+    warning('spm_dirichlet is deprecated. Use spm_Dpdf instead.');
+    runonce = 1;
+end
 
-logp  = gammaln(sum(alpha))+sum((alpha-1).*log(x+eps))-sum(gammaln(alpha));
-p     = exp(logp);
-
-return
+p = spm_Dpdf(x,alpha);
