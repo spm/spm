@@ -62,7 +62,7 @@ function x = spm_invNcdf(F,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_invNcdf.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_invNcdf.m 2550 2008-12-10 13:07:04Z john $
 
 
 
@@ -100,4 +100,4 @@ if xa(2), Qu=Q; else Qu=1; end
 if xa(3), Qv=Q; else Qv=1; end
 
 %-Compute
-x(Q) = ( sqrt(2)*erfinv(2*F(QF)-1) .* v(Qv) ) + u(Qu);
+x(Q) = ( sqrt(2)*erfinv(2*F(QF)-1) .* sqrt(v(Qv)) ) + u(Qu);
