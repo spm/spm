@@ -50,6 +50,9 @@ function [freq] = freqanalysis_mtmfft(cfg, data);
 % Copyright (c) 2003-2006, Pascal Fries, F.C. Donders Centre
 %
 % $Log: freqanalysis_mtmfft.m,v $
+% Revision 1.44  2008/12/11 15:52:45  roboos
+% fixed bug in normalisation of non-dpss tapers in case of non-rectangular data (i.e. data in which the length of the data is different over trials)
+%
 % Revision 1.43  2008/12/03 14:04:31  roboos
 % only give warning about 1 taper for dpss
 %
@@ -325,10 +328,8 @@ numper = numel(data.trial);
 rectan = 1;
 for perlop = 1:numper
   numdatbnsarr(perlop,1) = size(data.trial{perlop},2);
-  if numdatbnsarr(perlop,1) ~= numdatbnsarr(1,1)
-    rectan = 0;
-  end
 end
+rectan = all(numdatbnsarr==numdatbnsarr(1));
 
 % if cfg.pad is 'maxperlen', this is realized here:
 if ischar(cfg.pad)
@@ -367,8 +368,6 @@ elseif keep == 2
   if powflg, powspctrm     = zeros(numper,numsgn,numboi);             end
   if csdflg, crsspctrm     = complex(zeros(numper,numsgncmb,numboi)); end
   if fftflg, fourierspctrm = complex(zeros(numper,numsgn,numboi));    end
-  cumsumcnt = zeros(numper,1);
-  cumtapcnt = zeros(numper,1);
   dimord    = 'rpt_chan_freq';
 elseif keep == 4
   if rectan == 1, % compute the amount of memory needed to collect the results
@@ -402,15 +401,13 @@ elseif keep == 4
   if powflg, powspctrm     = zeros(numrpt,numsgn,numboi);             end
   if csdflg, crsspctrm     = complex(zeros(numrpt,numsgncmb,numboi)); end
   if fftflg, fourierspctrm = complex(zeros(numrpt,numsgn,numboi));    end
-  cumsumcnt = zeros(numper,1);
-  cumtapcnt = zeros(numper,1);
   cnt = 0;
   dimord    = 'rpttap_chan_freq';
 end
 
-if calcdof && ~exist('cumtapcnt')
-  cumtapcnt = zeros(numper,1);
-end;
+% these count the number of tapers
+cumsumcnt = zeros(numper,1);
+cumtapcnt = zeros(numper,1);
 
 if rectan == 1
   % trials are of equal length, compute the set of tapers only once
@@ -462,6 +459,7 @@ for perlop = 1:numper
       % create a single taper according to the window specification as a
       % replacement for the DPSS (Slepian) sequence
       tap = window(cfg.taper, numdatbns)';
+      tap = tap./norm(tap);
       % freqanalysis_mtmfft always throws away the last taper of the Slepian sequence, so add a dummy taper
       tap(2,:) = nan;
     end
@@ -579,7 +577,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.43 2008/12/03 14:04:31 roboos Exp $';
+cfg.version.id = '$Id: freqanalysis_mtmfft.m,v 1.44 2008/12/11 15:52:45 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output
