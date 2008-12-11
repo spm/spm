@@ -1,12 +1,3 @@
-  /* _LARGEFILE_SOURCE takes care that the offset is represented as 64 bit on supported platforms
-   * it should be defined prior to including the system header files
-   */
-#define _LARGEFILE_SOURCE
-
-#include <math.h>
-#include <stdint.h>
-#include "mex.h"
-#include "matrix.h"
 
 /*
  * Copyright (C) 2006, Robert Oostenveld, F.C. Donders Ccentre for Cognitive Neuroimaging
@@ -28,6 +19,9 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.7  2008/12/11 17:32:33  roboos
+ * added conditional include and define for win32 & 64, thanks to Guillaume
+ *
  * Revision 1.6  2008/10/07 07:53:05  roboos
  * replaced fseek with fseeko, which I had forgotten to fix yesterday
  *
@@ -47,6 +41,25 @@
  *
  */
 
+/*
+ * _LARGEFILE_SOURCE takes care that the offset is represented as 64 bit on supported platforms
+ * it should be defined prior to including the system header files
+ */
+
+#define _LARGEFILE_SOURCE
+
+#include <math.h>
+#include "mex.h"
+#include "matrix.h"
+
+#ifdef _WIN32 || _WIN64
+#include <sys/types.h>
+#define int32_t INT32_T
+#define int64_t INT64_T
+#define fseeko fseek
+#else
+#include <stdint.h>
+#endif
 
 void
 mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])

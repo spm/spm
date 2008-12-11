@@ -13,7 +13,7 @@
 #include "matrix.h"
 #include <math.h>
 
-#ifdef __WIN32__
+#ifdef _WIN32 || _WIN64
 #include <limits.h>
 #else
 #include <stdint.h>
