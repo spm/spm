@@ -33,7 +33,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 1960 2008-07-26 09:33:47Z karl $
+% $Id: spm_reml.m 2559 2008-12-12 17:10:23Z karl $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -132,7 +132,7 @@ for k = 1:K
  
     % Fisher scoring: update dh = -inv(ddF/dhh)*dF/dh
     %----------------------------------------------------------------------
-    dh    = spm_dx(dFdhh,dFdh)/log(k + 2);
+    dh    = spm_dx(dFdhh,dFdh,{4});
     h     = h + dh;
  
     % Convergence (1% change in log-evidence)

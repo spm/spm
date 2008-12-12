@@ -23,7 +23,7 @@ function model = spm_mvb_G(X,L,X0,G,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_G.m 1984 2008-08-07 16:05:03Z christophe $
+% $Id: spm_mvb_G.m 2559 2008-12-12 17:10:23Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -62,23 +62,32 @@ Qp    = {};
 LQpL  = {};
 for i = 1:Np
     j       = find(G(:,i));
-    Qp{i}   = sparse(j,j,1,Nk,Nk); %#ok<AGROW>
-    LQpL{i} = L*Qp{i}*L'; %#ok<AGROW>
+    Qp{i}   = sparse(j,j,1,Nk,Nk);
+    LQpL{i} = L*Qp{i}*L';
 end
  
 % inverse solution
 %==========================================================================
  
-% ReML
+% Covariance components (with the first error Qe{1} fixed at -4)
 %--------------------------------------------------------------------------
 if size(L,2)
-    Q  = {Qe{:} LQpL{:}};
+    Q = {Qe{1} Qe{:} LQpL{:}};
 else
-    Q  = Qe;
+    Q = {Qe{1} Qe{:}};
 end
-hE = ones(length(Q),1)*(-32); %hE(1)=0;    \_ to change hyperprior on noise
-hC = ones(length(Q),1)*256; %hC(1) = 32^2; /
+m     = length(Q);
+hE    = -32*ones(m,1);
+hC    = 256*speye(m,m);
+hE(1) = -4;
+hC(1) = 0;
+ 
+% ReML
+%--------------------------------------------------------------------------
 [Cy,h,P,F] = spm_reml_sc(X*X',[],Q,size(X,2),hE,hC);
+ 
+h(2)  = h(2) + h(1);
+h     = h(2:end);
  
 % prior covariance: source space
 %--------------------------------------------------------------------------

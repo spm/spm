@@ -1,8 +1,8 @@
-function [p,pc,R2] = spm_mvb_cvk(MVB,k)
-% K-fold cross validation of a multivariate Bayesian model
+function [p,pc,R2] = spm_mvb_cvk2(MVB,k)
+% k-fold cross validation of a multivariate Bayesian model
 % FORMAT [p_value,percent,R2] = spm_mvb_cvk(MVB,k)
 %
-% MVB - Multivariate Bayes structure
+% MVB - Multivariate Bays structure
 % k   - k-fold cross-validation ('0' implies a leave-one-out scheme)
 %
 % p   - p-value: under a null GLM
@@ -11,12 +11,13 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 %
 % spm_mvb_cvk performs a k-fold cross-validation by trying to predict
 % the target variable using training and test partitions on orthogonal 
-% mixtures of data (from null space of confounds)
+% mixtures of data (from null space of confounds).
+% This version uses the optimised covariance model from spm_mvb.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 2559 2008-12-12 17:10:23Z karl $
+% $Id: spm_mvb_cvk2.m 2559 2008-12-12 17:10:23Z karl $
  
  
 %-partition order
@@ -43,69 +44,37 @@ catch
     MVB  = MVB.MVB;
 end
  
-% check under null hypothesis
-%--------------------------------------------------------------------------
-% MVB.Y = randn(size(MVB.Y));
- 
+
 % whiten target and predictor (X) variables (Y) (i.e., remove correlations)
 %--------------------------------------------------------------------------
-K     = MVB.K;
-X     = K*MVB.X;
-Y     = K*MVB.Y;
-X0    = K*MVB.X0;
-U     = MVB.M.U;
-Ni    = length(MVB.M.F) - 1;
+X     = MVB.X;
+X0    = MVB.X0;
+V     = MVB.V;
  
- 
-% create orthonormal projection to remove confounds
+% residual forming matrix
 %--------------------------------------------------------------------------
 Ns    = length(X);
-X0    = spm_svd(X0);
-R     = speye(Ns) - X0*X0';
-R     = spm_svd(R);
-X     = R'*X;
-Y     = R'*Y;
-V     = R'*R;
+R     = speye(Ns) - X0*pinv(X0);
  
 % leave-one-out
 %--------------------------------------------------------------------------
-if ~k, k = length(X); end
-Ns    = length(X);
+if ~k
+    k = Ns;
+end
+pX    = zeros(Ns,1);
 qX    = zeros(Ns,1);
-qE    = zeros(size(Y,2),k);
-P     = zeros(size(Y,2),k);
+qE    = zeros(size(MVB.Y,2),k);
+ 
  
 % k-fold cross-validation
 %==========================================================================
 for i = 1:k
- 
-    % specify indices of training and test data
-    %----------------------------------------------------------------------
-    ns     = floor(Ns/k);
-    test   = (1:ns) + (i - 1)*ns;
- 
-    % orthogonalise test and training partition
-    %----------------------------------------------------------------------
-    tran       = 1:Ns;
-    tran(test) = [];
- 
-    % Training
-    %======================================================================
-    M        = spm_mvb(X(tran,:),Y(tran,:),[],U,[],Ni,MVB.sg);
- 
-    % Test
-    %======================================================================
-    qX(test) = qX(test) + Y(test,:)*M.qE;
-    
-    % record feature weights
-    %----------------------------------------------------------------------
-    qE(:,i)  = M.qE;
-    
-    % and posterior probabilities
-    %----------------------------------------------------------------------
-    P(:,i)   = 1 - spm_Ncdf(0,abs(M.qE),M.qC);
- 
+    [px qx qe] = mvb_cv(MVB,i,k);
+    pX         = pX + px;
+    qX         = qX + qx;
+    qE(:,i)    = qe;
 end
+ 
  
 % parametric inference
 %==========================================================================
@@ -136,14 +105,12 @@ title('cross-validation')
 axis square
  
 subplot(2,2,2)
-plot(pX,qX,'.')
+plot(pX,qX,'.',[min(pX) max(pX)],[min(pX) max(pX)],'-.')
 xlabel('true')
 ylabel('predicted')
-title(sprintf('p-value (parametric) = %.5f',p))
+title(sprintf('p-value (parametric) = %.3e',p))
 axis square
-abc = axis;
-hold on
-plot([max(abc([1 3])) min(abc([2 4]))],[max(abc([1 3])) min(abc([2 4]))],'k')
+ 
  
 % plot feature weights
 %--------------------------------------------------------------------------
@@ -151,13 +118,15 @@ subplot(2,2,3)
 imagesc(corrcoef(qE))
 colorbar
 caxis([0 1])
-xlabel('biparititon (k)')
+xlabel('bipartition (k)')
 title({'correlations among';'k-fold feature weights'})
 axis square
  
 subplot(2,2,4)
-spm_mip(prod(P,2),MVB.XYZ(1:3,:),MVB.VOX)
-title({[MVB.name ' (' MVB.contrast ')'];'prod( P(|weights| > 0) )'})
+qe   = mean(qE,2);
+qe   = qe.*(qe > 0);
+spm_mip(qe,MVB.XYZ(1:3,:),MVB.VOX)
+title({[MVB.name ' (' MVB.contrast ')'];'mean (positive) weights'})
 axis square
  
  
@@ -167,9 +136,72 @@ fprintf('\np-value = %.4f; classification: %.1f%s; R-squared %.1f%s\n',p,pc,'%',
 MVB.p_value = p;
 MVB.percent = pc;
 MVB.R2      = R2;
-MVB.cvk     = struct('qX',qX,'qE',qE,'P',P);
+MVB.cvk     = struct('qX',qX,'qE',qE);
  
 % save results
 %--------------------------------------------------------------------------
 save(MVB.name,'MVB')
 assignin('base','MVB',MVB)
+ 
+ 
+ 
+ 
+return
+ 
+%==========================================================================
+function [X,qX,qE] = mvb_cv(MVB,n,k)
+%==========================================================================
+% MVB - multivariate structure
+% n   - subset
+% k   - partition
+ 
+% Unpack MVB and create test subspace
+%--------------------------------------------------------------------------
+V     = MVB.V;
+U     = MVB.M.U;
+X     = MVB.X;
+Y     = MVB.Y;
+X0    = MVB.X0;
+h     = MVB.M.h;
+Cp    = MVB.M.Cp;
+ 
+% Specify indices of training and test data
+%--------------------------------------------------------------------------
+Ns    = length(X);
+ns    = floor(Ns/k);
+test  = [1:ns] + (n - 1)*ns;
+tran  = [1:Ns];
+tran(test) = [];
+ 
+test  = full(sparse(test,test,1,Ns,Ns));
+tran  = full(sparse(tran,tran,1,Ns,Ns)); 
+ 
+% Training - add test space to confounds
+%==========================================================================
+R     = speye(Ns) - [X0 test]*pinv([X0 test]);
+R     = spm_svd(R);
+L     = R'*Y*U;
+ 
+% get error covariance
+%--------------------------------------------------------------------------
+Ce    = sparse(Ns,Ns);
+if isstruct(V)
+    for i = 1:length(V)
+        Ce = Ce + h(i)*V{i};
+    end
+else
+    Ce = V*h(1);
+end
+Ce     = R'*Ce*R;
+ 
+% MAP estimates of pattern weights from training data
+%----------------------------------------------------------------------
+MAP    = Cp*L'*inv(Ce + L*Cp*L');
+qE     = MAP*R'*X;
+ 
+% Test - add training space to confounds and get predicted X
+%==========================================================================
+R      = speye(Ns) - [X0 tran]*pinv([X0 tran]);
+X      = R*X;                                              % test data
+qE     = U*qE;                                             % weights
+qX     = R*Y*qE;                                           % prediction

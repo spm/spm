@@ -9,7 +9,7 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 %
 % hE  - hyperprior expectation in log-space [default = -32]
 % hC  - hyperprior covariance  in log-space [default = 256]
-% A   - proportional hyperpriors [default = 0, yes]
+% A   - proportional hyperpriors [default = 1, yes]
 % K   - number of iterations [default = 32]
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
@@ -40,11 +40,11 @@ function [C,h,Ph,F,Fa,Fc,k] = spm_reml_sc(YY,X,Q,N,hE,hC,A,K)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 2309 2008-10-06 19:19:56Z karl $
+% $Id: spm_reml_sc.m 2559 2008-12-12 17:10:23Z karl $
 
 % assume proportional hyperpriors not specified
 %--------------------------------------------------------------------------
-try, A; catch, A  = 0;  end
+try, A; catch, A  = 1;  end
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -76,28 +76,36 @@ end
  
 % initialise and specify hyperpriors
 %==========================================================================
- 
-% scale YY
+
+% scale Q and YY
 %--------------------------------------------------------------------------
-sY = n*trace(YY)/N;
-YY = YY/sY;
- 
-% scale Q
-%--------------------------------------------------------------------------
-for i = 1:m, sh(i,1) = n*trace(R*Q{i});    end
-if  A,       sh      = ones(m,1)*mean(sh); end
-for i = 1:m, Q{i}    = Q{i}/sh(i);         end
+if A
+    sY = trace(R*YY)/N/n;
+    YY = YY/sY;
+    for i = 1:m
+        sh(i,1) = trace(R*Q{i})/n;
+        Q{i}    = Q{i}/sh(i);
+    end
+else
+    sY = 1;
+    sh = 1;
+end
 
 % hyperpriors
 %--------------------------------------------------------------------------
-try, hE = hE(:);   catch, hE = -32;        end
-try, hP = inv(hC); catch, hP = 1/256;      end
+try, hE = hE(:);                               catch, hE = -32;   end
+try, hP = inv(hC + speye(length(hC))/exp(16)); catch, hP = 1/256; end
  
 % check sise
 %--------------------------------------------------------------------------
 if length(hE) < m, hE = hE(1)*ones(m,1);   end
 if length(hP) < m, hP = hP(1)*speye(m,m);  end
 
+% intialise h: so that sum(exp(h)) = 1
+%--------------------------------------------------------------------------
+if any(diag(hP) >  exp(16))
+    h = hE;
+end
  
 % ReML (EM/VB)
 %--------------------------------------------------------------------------

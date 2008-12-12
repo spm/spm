@@ -2,20 +2,21 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Constructs patterns U for Multivariate Bayesian inversion of a linear model
 % FORMAT U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Y      - date filature matrix
-% priors - 'null'
-%        - 'sparse'
-%        - 'smooth'
-%        - 'singular'
-%        - 'support'
+% priors - 'null'      % no patterns
+%        - 'compact'   % reduced (ns/2); using SVD on local copact support
+%        - 'sparse'    % a pattern is a voxel
+%        - 'smooth'    % patterns are local Gaussian kernels
+%        - 'singular'  % patterns are global singular vectors
+%        - 'support'   % the patterns are the images
 %
 % X0     - confounds
-% xyz    - location in mm for coherent priors
-% vox    - voxel size for coherent priors
+% xyz    - location in mm
+% vox    - voxel size
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_mvb_U.m 1438 2008-04-17 12:14:36Z christophe $
+% $Id: spm_mvb_U.m 2559 2008-12-12 17:10:23Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -54,8 +55,8 @@ switch priors
         xyz   = xyz';
         nlim  = 256;                          % voxel limit
         Vvx   = prod(vox);                    % volume of a voxel
-        Vlr   = 4/3*pi*dlim^(3/2);            % voi around a voxel
-        Nlr   = round(Vlr/Vvx*.85);  % estim of # of voxel in voi, keep 85% 
+        Vlr   = 4/3*pi*dlim^(3/2);            % VOI around a voxel
+        Nlr   = round(Vlr/Vvx*.85);           % # of voxel in VOI; keep 85% 
         U     = spalloc(nv,nv,nv*Nlr);        % pre-allocate memory
         fprintf('Creating smooth patterns - please wait\n')
         kk    = floor(nv/4);
@@ -81,8 +82,8 @@ switch priors
  
         % get kernel (singular vectors)
         %------------------------------------------------------------------
-        R       = speye(size(X0,1)) - X0*pinv(X0);
-        [u s v] = spm_svd((R*Y),1/4);              % c.f., Kaiser criterion
+        Y       = Y - X0*(pinv(X0)*Y);         % remove confounds
+        [u s v] = spm_svd(Y,1/4);              % c.f., Kaiser criterion
         U       = v/s;
  
     case 'support'
@@ -96,6 +97,44 @@ switch priors
             U  = speye(nv,nv);
         end
  
+    case 'compact'
+ 
+        % get kernel (compact vectors)
+        %------------------------------------------------------------------
+        nu    = ceil(ns/2);                  % number of patterns
+        nc    = fix(nv/nu);                  % voxels in compact support
+        Y     = Y - X0*(pinv(X0)*Y);         % remove confounds
+        C     = var(Y);
+        U     = zeros(nv,nu);
+        J     = 1:nv;
+        for i = 1:nu
+            
+            % find maximum variance voxel
+            %--------------------------------------------------------------
+            [v j] = max(C);
+            d     = 0;
+            for k = 1:size(xyz,1)
+               d  = d + (xyz(k,:) - xyz(k,j)).^2;
+            end
+            [d j] = sort(d);
+            try
+                j = j(1:nc);
+            end
+            
+            % save principal eigenvector
+            %--------------------------------------------------------------
+            k        = J(j);
+            u        = spm_svd(Y(:,k)');
+            U(k,i)   = u(:,1);
+            
+            % remove compact support voxels and start again
+            %--------------------------------------------------------------
+            J(j)     = [];
+            C(j)     = [];
+            xyz(:,j) = [];
+ 
+        end
+        
     otherwise
         disp('unknown prior')
         return
