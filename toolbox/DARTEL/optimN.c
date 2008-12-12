@@ -1,4 +1,4 @@
-/* $Id: optimN.c 2123 2008-09-19 12:43:38Z john $ */
+/* $Id: optimN.c 2558 2008-12-12 16:13:03Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -34,9 +34,14 @@ void choldc(int n, float a[], float p[])
 {
     int i, j, k;
     double sm, sm0;
+
+    sm0 = 1e-3;
+    for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
+    sm0*=1e-8;
+    for(i=0; i<n; i++) a[i*n+i] += sm0;
+
     for(i=0; i<n; i++)
     {
-        sm0 = a[i*n+i]*1e-6 + 1e-9;
         for(j=i; j<n; j++)
         {
             sm = a[i*n+j];
@@ -112,7 +117,7 @@ void get_a(int dm3, int i, float *pa[],  float a[])
     for(m=0; m<dm3; m++)
     {
         a[m+dm3*m] = pa[m][i];
-        for(n=0; n<m; n++,o++)
+        for(n=m+1; n<dm3; n++,o++)
             a[n+dm3*m] = a[m+dm3*n] = pa[o][i];
     }
 }
@@ -521,8 +526,8 @@ static void relax_be(int dm[], float a[], float b[], double s[], double scal[], 
        exceed the sum of the magnitudes of the off diagonal elements of each column or row
        (see e.g. http://www.mathpages.com/home/kmath175/kmath175.htm).
        This is an attempt to stabilise the relaxation. */
-    reg = 1.0001*(2.0*(w200+w020+w002)-2.0*(w100+w010+w001)+4.0*(w110+w011+w101)) - w000;
-    if (reg<0.0) reg = w000*0.00001;
+    reg = 1.00001*(2.0*(w200+w020+w002)-2.0*(w100+w010+w001)+4.0*(w110+w011+w101)) - w000;
+    if (reg<0.0) reg = w000*0.000001;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -941,10 +946,10 @@ void fmg(int n0[], float *a0, float *b0, int rtype, double param0[], double scal
 
     res    = scratch;
     rbuf   = scratch + n0[3]*m[0];
-    bo[1]  = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1];
-    b[1]   = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + n0[3]*bs;
-    u[1]   = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + n0[3]*bs*2;
-    a[1]   = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n[0][0]*n[0][1] + n0[3]*bs*3;
+    bo[1]  = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n0[0]*n0[1];
+    b[1]   = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n0[0]*n0[1] + n0[3]*bs;
+    u[1]   = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n0[0]*n0[1] + n0[3]*bs*2;
+    a[1]   = scratch + n0[3]*m[0] + n[0][0]*n[1][1]+3*n0[0]*n0[1] + n0[3]*bs*3;
 
     for(j=2; j<ng; j++)
     {
