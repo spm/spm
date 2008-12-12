@@ -216,7 +216,7 @@ A(1).pE.d = 1;
  
 % make the recognition model confident about its predictions
 %--------------------------------------------------------------------------
-M(1).W    = exp(16);
+M(1).W    = exp(8);
 M(1).V    = exp(8);
 M(2).V    = exp(16);
 A(1).W    = exp(16);
@@ -227,7 +227,7 @@ A(1).V    = exp(16);
 clear DEM
 N       = 128;
 U       = sparse(1,N);
-C       = spm_conv(randn(1,N),8);
+C       = spm_conv(randn(1,N),8)/4;
 DEM.G   = A;
 DEM.M   = M;
 DEM.C   = U;
