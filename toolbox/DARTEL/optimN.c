@@ -1,4 +1,4 @@
-/* $Id: optimN.c 2558 2008-12-12 16:13:03Z john $ */
+/* $Id: optimN.c 2561 2008-12-12 17:17:32Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -526,8 +526,8 @@ static void relax_be(int dm[], float a[], float b[], double s[], double scal[], 
        exceed the sum of the magnitudes of the off diagonal elements of each column or row
        (see e.g. http://www.mathpages.com/home/kmath175/kmath175.htm).
        This is an attempt to stabilise the relaxation. */
-    reg = 1.00001*(2.0*(w200+w020+w002)-2.0*(w100+w010+w001)+4.0*(w110+w011+w101)) - w000;
-    if (reg<0.0) reg = w000*0.000001;
+    reg = 1.0001*(2.0*(w200+w020+w002)-2.0*(w100+w010+w001)+4.0*(w110+w011+w101)) - w000;
+    if (reg<0.0) reg = w000*0.00001;
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
@@ -671,7 +671,7 @@ static void solveNN(int n, float a0[], float b[], double t, double scal[], float
     for(i=0; i<n; i++)
     {
          a[i+n*i] = a0[i] + t*scal[i];
-         for(j=0; j<i; j++,o++)
+         for(j=i+1; j<n; j++,o++)
              a[j+i*n] = a[i+j*n] = a0[o];
     }
     choldc(n,a,p);
