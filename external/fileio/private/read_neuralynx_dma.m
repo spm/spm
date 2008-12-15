@@ -10,10 +10,17 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel);
 % The channel specification can be a vector with indices, or a single string with the value
 %    'all', 'stx', 'pid', 'siz', 'tsh', 'tsl',
 %    'cpu', 'ttl', 'x01',  ...,  'x10'
+%
+% This function returns the electrophysiological data in AD units
+% and not in uV. You should look up the details of the headstage and
+% the Neuralynx amplifier and scale the values accordingly.
 
-% Copyright (C) 2005-2006, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_dma.m,v $
+% Revision 1.21  2008/12/15 09:40:33  roboos
+% added comment in help about scaling in AD values
+%
 % Revision 1.20  2008/06/13 12:47:23  roboos
 % added check on STX to detect discontinuous recordings (and give error)
 %

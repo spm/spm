@@ -1,6 +1,7 @@
 function write_data(filename, dat, varargin)
 
-% WRITE_DATA exports electrophysiological data to a file
+% WRITE_DATA exports electrophysiological data to a file. The input data is
+% assumed to be scaled in microVolt.
 %
 % Use as
 %   write_data(filename, dat, ...)
@@ -23,13 +24,16 @@ function write_data(filename, dat, varargin)
 %   fcdc_buffer
 %   plexon_nex
 %   neuralynx_ncs
-%   ctf_meg4       (partial and incomplete)
 %
 % See also READ_HEADER, READ_DATA, READ_EVEN, WRITE_EVENT
 
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.16  2008/12/15 14:52:57  roboos
+% updated help: be explicit about the function expecting uV input data (also for plexon)
+% removed the obsolete code for writing to ctf meg4 files
+%
 % Revision 1.15  2008/11/03 21:34:11  roboos
 % split large segments into multiple smaller ones prior to calling the buffer mex file
 %
@@ -254,60 +258,6 @@ switch dataformat
         packet.buf       = dat;
         buffer('put_dat', packet, host, port);
       end % if data larger than chuncksize
-    end
-
-  case 'ctf_meg4'  % wat als ctf_ds??
-    % this is a skeleton implementation only and a lot of details still
-    % need to be filled in. The implementation has not been tested yet.
-    warning('this implementation has not yet been tested');
-
-    if length(size(dat))<3
-      dat = reshape(dat, [1 size(dat)]);
-    end
-
-    ntrldat   = size(dat,1);
-    nsmpdat   = size(dat,3);
-    nchandat  = size(dat,2);
-    ntrlorig  = hdr.nTrials;
-    nchanorig = hdr.nChans;
-    nsmporig = hdr.nSamples;
-
-    fid = fopen(filename, 'wb', 'ieee-be');
-    buf = [77 69 71 52 49 67 80 0]; % 'MEG41CP', null-terminated
-    fwrite(fid, buf, 'char');
-
-    if ntrldat>ntrlorig
-      error('');
-    elseif nchandat>nchanorig
-      error('');
-    elseif ncsmpdat>nsmporig
-      error('');
-    end
-
-    if isempty(chanindx) && length(hdr.label)==nchandat
-      % vgl label met orig.label
-      chanindx = 1:nchandat;
-      % wat als nchandat~=nchanorig?
-    end
-
-    % wat als numbytes>1GB ?
-
-    for i=1:ntrials
-      datorig = zeros(nchanorig,nsamples);
-      if i<=ntrldat
-        datorig(chanindx,:) = dat(i,:,:); % padden met 0 als nsmpdat~=nsmporig? of continue maken en dan uitknippen?
-        % wat als data>intmax?
-        datorig = transpose(sparse(diag(1./hdr.orig.gainV)) * datorig);
-        if any(datorig(:)>intmax('int32')) || any(datorig(:)<intmin('int32'))
-          warning('data values were clipped to fit into 32 bit integer values');
-          datorig(datorig>intmax('int32')) = intmax('int32');
-          datorig(datorig<intmin('int32')) = intmin('int32');
-        end
-        datorig = int32(datorig);
-      else
-        datorig = int32(transpose(datorig));
-      end
-      fwrite(fid, datorig, 'int32');
     end
 
   case 'brainvision_eeg'

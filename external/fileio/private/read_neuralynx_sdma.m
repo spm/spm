@@ -14,10 +14,17 @@ function [dat] = read_neuralynx_sdma(dataset, begsample, endsample, chanindx);
 % int16 or other numeric representations. The 8-byte header specifies the
 % numeric representation and the bitshift that should be applied (in case
 % of integer representations).
+%
+% This function returns the electrophysiological data in AD units
+% and not in uV. You should look up the details of the headstage and
+% the Neuralynx amplifier and scale the values accordingly.
 
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_sdma.m,v $
+% Revision 1.10  2008/12/15 15:07:04  roboos
+% updated documentation
+%
 % Revision 1.9  2008/07/01 13:36:41  roboos
 % only whitespace
 %
