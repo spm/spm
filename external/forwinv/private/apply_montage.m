@@ -23,6 +23,9 @@ function [sens] = apply_montage(sens, montage, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: apply_montage.m,v $
+% Revision 1.11  2008/12/15 12:58:56  roboos
+% convert from sparse to full when data is single precision
+%
 % Revision 1.10  2008/09/10 08:42:23  roboos
 % fixed small bug, thanks to Vladimir
 %
@@ -142,7 +145,12 @@ elseif isfield(sens, 'trial')
   Ntrials = numel(sens.trial);
   for i=1:Ntrials
     fprintf('processing trial %d from %d\n', i, Ntrials);
-    sens.trial{i}   = montage.tra * sens.trial{i};
+    if isa(sens.trial{i}, 'single')
+      % sparse matrices and single precision do not match
+      sens.trial{i}   = full(montage.tra) * sens.trial{i};
+    else
+      sens.trial{i}   = montage.tra * sens.trial{i};
+    end
   end
   sens.label = montage.labelnew;
 else
