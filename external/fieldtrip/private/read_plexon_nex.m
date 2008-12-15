@@ -5,6 +5,9 @@ function [varargout] = read_plexon_nex(filename, varargin)
 % (spike channels), event timestamps (event channels), and continuous
 % variable data (continuous A/D channels).
 %
+% LFP and spike waveform data that is returned by this function is 
+% expressed in microVolt.
+%
 % Use as
 %   [hdr] = read_plexon_nex(filename)
 %   [dat] = read_plexon_nex(filename, ...)
@@ -23,6 +26,9 @@ function [varargout] = read_plexon_nex(filename, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_plexon_nex.m,v $
+% Revision 1.9  2008/12/15 14:48:22  roboos
+% read and write the data in uV/microvolt instead of in mV/milivolt
+%
 % Revision 1.8  2008/09/30 08:01:04  roboos
 % replaced all fread(char=>char) into uint8=>char to ensure that the
 % chars are read as 8 bits and not as extended 16 bit characters. The
@@ -126,8 +132,8 @@ for i=1:length(channel)
       buf.ts = fread(fid, [1 vh.Count], 'int32=>int32');
       if ~tsonly
         buf.dat = fread(fid, [vh.NPointsWave vh.Count], 'int16');
-        % convert the AD values to uV
-        buf.dat = buf.dat * vh.ADtoMV;
+        % convert the AD values to miliVolt, subsequently convert from miliVolt to microVolt
+        buf.dat = buf.dat * (vh.ADtoMV * 1000);
       end
 
     case 4
@@ -145,8 +151,8 @@ for i=1:length(channel)
         numsample = min(endsample - begsample + 1, vh.NPointsWave);
         fseek(fid, (begsample-1)*2, 'cof');
         buf.dat  = fread(fid, [1 numsample], 'int16');
-        % convert the AD values to uV
-        buf.dat = buf.dat * vh.ADtoMV;
+        % convert the AD values to miliVolt, subsequently convert from miliVolt to microVolt
+        buf.dat = buf.dat * (vh.ADtoMV * 1000);
       end
 
     case 6

@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.67  2008/12/15 13:10:38  roboos
+% fixed bug in biosig fallback, header would be read instead of data
+%
 % Revision 1.66  2008/12/01 14:49:59  roboos
 % ensure that input arguments are double precision and not integers, otherwise the subsequent computations will be messed up (learned this in Lyon)
 %
@@ -992,9 +995,9 @@ switch dataformat
 
   otherwise
     if strcmp(fallback, 'biosig') && hastoolbox('BIOSIG', 1)
-      hdr = read_biosig_header(filename);
+      dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
     else
-      error('unsupported header format');
+      error('unsupported data format');
     end
 
 end

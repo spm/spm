@@ -38,6 +38,9 @@ function [normalise] = volumenormalise(cfg, interp)
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen
 %
 % $Log: volumenormalise.m,v $
+% Revision 1.19  2008/12/15 15:08:34  roboos
+% fixed bug in case of parameterselection with anatomy for config object
+%
 % Revision 1.18  2008/11/21 13:56:12  sashae
 % added call to checkconfig at start and end of function
 %
@@ -143,8 +146,13 @@ interp = checkdata(interp, 'datatype', 'volume', 'feedback', 'yes');
 cfg.parameter = parameterselection(cfg.parameter, interp);
 
 % the anatomy should always be normalised as the first volume
-cfg.parameter(strcmp(cfg.parameter, 'anatomy')) = [];
-cfg.parameter = {'anatomy' cfg.parameter{:}};
+sel = strcmp(cfg.parameter, 'anatomy');
+if ~any(sel)
+  cfg.parameter = {'anatomy' cfg.parameter{:}};
+else
+  [dum, indx] = sort(sel);
+  cfg.parameter = cfg.parameter(fliplr(indx));
+end
 
 % downsample the volume
 tmpcfg            = [];
@@ -299,7 +307,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumenormalise.m,v 1.18 2008/11/21 13:56:12 sashae Exp $';
+cfg.version.id = '$Id: volumenormalise.m,v 1.19 2008/12/15 15:08:34 roboos Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output
