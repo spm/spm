@@ -121,6 +121,9 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.63  2008/12/16 15:02:46  sashae
+% added checkconfig to start and end of function, configtracking possible
+%
 % Revision 1.62  2008/12/05 13:49:20  ingnie
 % Replaced atlas_init by prepare_atlas. Replaced atlas_mask by volume_lookup. Updated help
 %
@@ -199,6 +202,8 @@ function [cfg] = sourceplot(cfg, data)
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 %%% checkdata see below!!! %%%
 
@@ -959,6 +964,9 @@ elseif isequal(cfg.method,'slice')
 end
 
 if ~isempty(cfg.title), title(cfg.title); end
+
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % handle_ortho makes an overlay of 3D anatomical, functional and probability

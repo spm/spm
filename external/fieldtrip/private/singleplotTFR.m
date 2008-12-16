@@ -1,4 +1,4 @@
-function cfg = singleplotTFR(cfg, data)
+function [cfg] = singleplotTFR(cfg, data)
 
 % singleplotTFR plots the time-frequency representations of power of a
 % single channel or the average over multiple channels.
@@ -36,10 +36,6 @@ function cfg = singleplotTFR(cfg, data)
 % See also:
 %   singleplotER, multiplotER, multiplotTFR, topoplotER, topoplotTFR.
 
-% Undocumented local options:
-% cfg.channelname
-% cfg.channelindex
-%
 % This function depends on FREQBASELINE which has the following options:
 % cfg.baseline, documented
 % cfg.baselinetype, documented
@@ -47,6 +43,14 @@ function cfg = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.32  2008/12/16 14:59:12  sashae
+% plot functions can now give cfg as output
+% added checkconfig to start and end of function, configtracking possible
+%
+% Revision 1.31  2008/12/16 13:17:06  sashae
+% replaced backward compatibility code by call to checkconfig
+% removed obsolete subfunction pwrspctm2cohspctrm
+%
 % Revision 1.30  2008/11/28 16:33:58  sashae
 % allow averaging over rpt/subj also for other fields than zparam=powspctrm (thanks to Jurrian)
 %
@@ -134,6 +138,8 @@ function cfg = singleplotTFR(cfg, data)
 
 fieldtripdefs
 
+cfg = checkconfig(cfg);
+
 cla
 
 % For backward compatibility with old data structures:
@@ -184,27 +190,13 @@ elseif strcmp(data.dimord, 'subj_chan_freq_time') || strcmp(data.dimord, 'rpt_ch
   if ~isfield(cfg, 'zparam'),      cfg.zparam='powspctrm';             end
 end
 
-%Pick the channel(s)
-if ~isfield(cfg,'channel') % for backward compatibility
-  if isfield(cfg,'channelindex') && isfield(cfg,'channelname') 
-    warning('cfg.channelindex is old, please use cfg.channel instead');
-    warning('cfg.channelname is old, please use cfg.channel instead');
-    warning('cfg.channelname is used');
-    cfg.channel = cfg.channelname;
-    cfg = rmfield(cfg,'channelindex');
-    cfg = rmfield(cfg,'channelname');
-  elseif isfield(cfg,'channelindex') 
-    warning('cfg.channelindex is old, please use cfg.channel instead')
-    cfg.channel = cfg.channelindex;
-    cfg = rmfield(cfg,'channelindex');
-  elseif isfield(cfg,'channelname')
-    warning('cfg.channelname is old, please use cfg.channel instead')
-    cfg.channel = cfg.channelname;
-    cfg = rmfield(cfg,'channelname');
-  else
-    % set the default
-    cfg.channel = 'all';
-  end
+% Pick the channel(s)
+if ~isfield(cfg,'channel')
+  % set the default
+  cfg.channel = 'all';
+  % for backward compatibility
+  cfg = checkconfig(cfg, 'renamed', {'channelindex',  'channel'});
+  cfg = checkconfig(cfg, 'renamed', {'channelname',   'channel'});
 end
 
 cfg.channel = channelselection(cfg.channel, data.label);
@@ -371,6 +363,9 @@ end
 
 axis tight;
 hold off;
+
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

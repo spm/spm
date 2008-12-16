@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.7  2008/12/16 15:37:23  sashae
+% if cfg.checkconfig='silent' do not display report for trackconfig
+%
 % Revision 1.6  2008/12/04 19:11:11  sashae
 % added silent/loose/pedantic feedback for 'renamed' and 'renamedval'
 %
@@ -586,7 +589,8 @@ try
       r = access(cfg, 'reference');
       o = access(cfg, 'original');
 
-      key      = fieldnames(cfg); key = key(:)';
+      key = fieldnames(cfg);
+      key = key(:)';
 
       ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'artfctdef', 'previous'}; % these fields should never be removed!
       skipsel      = match_str(key, ignorefields);
@@ -600,36 +604,39 @@ try
         original(i) = (o.(key{i})>0);
       end
 
-      fprintf('\nThe following config fields were specified by YOU and were USED\n');
-      sel = find(used & original);
-      if numel(sel)
-        fprintf('  cfg.%s\n', key{sel});
-      else
-        fprintf('  <none>\n');
-      end
+      if ~silent
+        % give report on screen
+        fprintf('\nThe following config fields were specified by YOU and were USED\n');
+        sel = find(used & original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
 
-      fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
-      sel = find(~used & original);
-      if numel(sel)
-        fprintf('  cfg.%s\n', key{sel});
-      else
-        fprintf('  <none>\n');
-      end
+        fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
+        sel = find(~used & original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
 
-      fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
-      sel = find(used & ~original);
-      if numel(sel)
-        fprintf('  cfg.%s\n', key{sel});
-      else
-        fprintf('  <none>\n');
-      end
+        fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
+        sel = find(used & ~original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
 
-      fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
-      sel = find(~used & ~original);
-      if numel(sel)
-        fprintf('  cfg.%s\n', key{sel});
-      else
-        fprintf('  <none>\n');
+        fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
+        sel = find(~used & ~original);
+        if numel(sel)
+          fprintf('  cfg.%s\n', key{sel});
+        else
+          fprintf('  <none>\n');
+        end
       end
     end % report or cleanup
 

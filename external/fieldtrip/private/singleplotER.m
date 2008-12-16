@@ -1,4 +1,4 @@
-function singleplotER(cfg, varargin)
+function [cfg] = singleplotER(cfg, varargin)
 
 % singleplotER plots the event-related fields or potentials of a single channel
 % or the average over multiple channels. Multiple datasets can be overlayed.
@@ -54,6 +54,14 @@ function singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.34  2008/12/16 14:59:12  sashae
+% plot functions can now give cfg as output
+% added checkconfig to start and end of function, configtracking possible
+%
+% Revision 1.33  2008/12/16 13:17:05  sashae
+% replaced backward compatibility code by call to checkconfig
+% removed obsolete subfunction pwrspctm2cohspctrm
+%
 % Revision 1.32  2008/11/28 22:08:19  sashae
 % allow averaging over rpt/subj also for other fields than zparam=powspctrm (thanks to Jurrian)
 %
@@ -179,19 +187,13 @@ function singleplotER(cfg, varargin)
 
 fieldtripdefs
 
+cfg = checkconfig(cfg);
+
 cla
 
 % for backward compatibility with old data structures
 for i=1:length(varargin)
   varargin{i} = checkdata(varargin{i});
-end
-
-if isfield(cfg,'cohtargetchannel'),
-  % replace the powspctrm field with the respective coherence
-  % implemented by doudav
-  for i=1:length(varargin)
-    varargin{i} = pwrspctm2cohspctrm(cfg, varargin{i});
-  end
 end
 
 % set the defaults:
@@ -251,9 +253,9 @@ elseif strcmp(varargin{1}.dimord, 'subj_chan_freq') || strcmp(varargin{1}.dimord
 end
 
 % Make sure cfg.yparam and cfg.zparam become equivalent if only one is defined:
-if (isfield(cfg, 'yparam')) & (~isfield(cfg, 'zparam'))
+if (isfield(cfg, 'yparam')) && (~isfield(cfg, 'zparam'))
   cfg.zparam = cfg.yparam;
-elseif (~isfield(cfg, 'yparam')) & (isfield(cfg, 'zparam'))
+elseif (~isfield(cfg, 'yparam')) && (isfield(cfg, 'zparam'))
   cfg.yparam = cfg.zparam;
 end
 
@@ -262,7 +264,7 @@ cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 for k=1:length(varargin)
   % Check for unconverted coherence spectrum data:
-  if (strcmp(cfg.zparam,'cohspctrm')) & (isfield(varargin{k}, 'labelcmb'))
+  if (strcmp(cfg.zparam,'cohspctrm')) && (isfield(varargin{k}, 'labelcmb'))
     % A reference channel is required:
     if ~isfield(cfg,'cohrefchannel'),
       error('no reference channel specified');
@@ -303,27 +305,13 @@ else
   xmax = cfg.xlim(2);
 end
 
-%Pick the channel(s)
-if ~isfield(cfg,'channel') % for backward compatibility
-  if isfield(cfg,'channelindex') && isfield(cfg,'channelname') 
-    warning('cfg.channelindex is old, please use cfg.channel instead');
-    warning('cfg.channelname is old, please use cfg.channel instead');
-    warning('cfg.channelname is used');
-    cfg.channel = cfg.channelname;
-    cfg = rmfield(cfg,'channelindex');
-    cfg = rmfield(cfg,'channelname');
-  elseif isfield(cfg,'channelindex') 
-    warning('cfg.channelindex is old, please use cfg.channel instead')
-    cfg.channel = cfg.channelindex;
-    cfg = rmfield(cfg,'channelindex');
-  elseif isfield(cfg,'channelname')
-    warning('cfg.channelname is old, please use cfg.channel instead')
-    cfg.channel = cfg.channelname;
-    cfg = rmfield(cfg,'channelname');
-  else
-    % set the default
-    cfg.channel = 'all';
-  end
+% Pick the channel(s)
+if ~isfield(cfg,'channel')
+  % set the default
+  cfg.channel = 'all';
+  % for backward compatibility
+  cfg = checkconfig(cfg, 'renamed', {'channelindex',  'channel'});
+  cfg = checkconfig(cfg, 'renamed', {'channelname',   'channel'});
 end
 
 % Convert the layout to Ole's style of variable names:
@@ -465,6 +453,9 @@ end
 
 h=title(t,'fontsize', cfg.fontsize);
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -489,31 +480,3 @@ for k=1:length(strlist)
     l = [l k];
   end
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function z = pwrspctm2cohspctrm(cfg, freq)
-% This creates a copy of freq with new entries in the freq.pwrspctrm. The
-% TFR corresponding to cfg.cohtargetchannel is set to ones, but all other
-% channels are replaced with the coherence TFRs from freq.cohspctrm.
-%
-% [z] = pwrspctrm2cohspctrm(cfg, freq);
-%
-% freq should be organised in a structure as obtained from
-% the freqdescriptives function.
-%
-% doudav; 24.09.04
-z = freq;
-[a a1] = match_str( cfg.cohtargetchannel, z.label);
-[a b1] = match_str( cfg.cohtargetchannel, z.labelcmb(:,1));
-[a b2] = match_str( cfg.cohtargetchannel, z.labelcmb(:,2));
-[a c1] = match_str( z.labelcmb(b1,2), z.label);
-[a c2] = match_str( z.labelcmb(b2,1), z.label);
-targets  = [c1; c2];
-targets2 = [b1; b2];
-z.powspctrm(a1,:,:) = ones(size(z.powspctrm(a1,:,:)));
-for i=1:size(targets,1),
-  z.powspctrm(targets(i),:,:) = squeeze(z.cohspctrm(targets2(i),:,:));
-end
-clear a a1 b1 b2 c1 c2;

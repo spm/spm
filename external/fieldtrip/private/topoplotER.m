@@ -1,4 +1,4 @@
-function topoplotER(cfg, varargin)
+function [cfg] = topoplotER(cfg, varargin)
 
 % TOPOPLOTER plots the topographic distribution of 2-Dimensional datatypes as
 % event-related fields (ERF), potentials (ERP), the powerspectrum or coherence spectum 
@@ -71,6 +71,10 @@ function topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.52  2008/12/16 15:31:42  sashae
+% plot functions can now give cfg as output
+% added checkconfig to start and end of function, configtracking possible
+%
 % Revision 1.51  2008/12/02 16:09:04  sashae
 % replaced backward compatibility code by call to checkconfig,
 % renamed cfg options in code to make them consistent with documentation
@@ -172,6 +176,8 @@ function topoplotER(cfg, varargin)
 %
 
 fieldtripdefs
+
+cfg = checkconfig(cfg);
 
 cla
 
@@ -477,3 +483,6 @@ end
 
 axis off;
 hold off;
+
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

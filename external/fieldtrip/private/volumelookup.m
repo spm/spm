@@ -33,6 +33,9 @@ function [mask] = volumelookup(cfg, mri)
 % Copyright (C) 2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: volumelookup.m,v $
+% Revision 1.2  2008/12/16 20:42:33  roboos
+% converted from dos to unix text file
+%
 % Revision 1.1  2008/12/05 13:39:38  ingnie
 % new implementation based om atlas_mask, added possibility to make spherical and box masks.
 %
@@ -156,7 +159,9 @@ end
 mask = reshape(mask, dim);
 fprintf('%i voxels in mask, which is %.3f %% of total volume\n', sum(mask(:)), 100*mean(mask(:)));
 
-%% subfunction point of interest to voxel of interest
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION point of interest to voxel of interest
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function voi = poi2voi(poi, xyz)
 xmin = min(abs(xyz(1,:) - poi(1))); xcl = round(abs(xyz(1,:) - poi(1))) == round(xmin);
 ymin = min(abs(xyz(2,:) - poi(2))); ycl = round(abs(xyz(2,:) - poi(2))) == round(ymin);
@@ -171,3 +176,4 @@ if sum(ind_voi) > 1;
 end
 voi = xyz(1:3,ind_voi);
 fprintf('coordinates of voi: %.1f  %.1f %.1f\n', voi(1), voi(2), voi(3));
+

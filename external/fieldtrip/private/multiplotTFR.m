@@ -1,4 +1,4 @@
-function multiplotTFR(cfg, data)
+function [cfg] = multiplotTFR(cfg, data)
 
 % multiplotTFR plots time-frequency representations of power or coherence in a 
 % topographical layout. The plots of the indivual sensors are arranged according 
@@ -73,6 +73,14 @@ function multiplotTFR(cfg, data)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotTFR.m,v $
+% Revision 1.46  2008/12/16 14:59:13  sashae
+% plot functions can now give cfg as output
+% added checkconfig to start and end of function, configtracking possible
+%
+% Revision 1.45  2008/12/16 13:17:06  sashae
+% replaced backward compatibility code by call to checkconfig
+% removed obsolete subfunction pwrspctm2cohspctrm
+%
 % Revision 1.44  2008/11/28 14:30:30  sashae
 % averaging over rpt/subj skipped if zparam='cohspctrm'
 %
@@ -204,6 +212,8 @@ function multiplotTFR(cfg, data)
 
 fieldtripdefs
 
+cfg = checkconfig(cfg);
+
 clf
 
 % for backward compatibility with old data structures
@@ -266,9 +276,7 @@ elseif strcmp(data.dimord, 'subj_chan_freq_time') || strcmp(data.dimord, 'rpt_ch
 end
 
 % Old style coherence plotting with cohtargetchannel is no longer supported:
-if isfield(cfg,'cohtargetchannel'), 
-  error('cfg.cohtargetchannel is obsolete. Check the fieldtrip documentation for help about coherence plotting.');
-end
+cfg = checkconfig(cfg, 'unused',  {'cohtargetchannel'});
 
 % Check for unconverted coherence spectrum data:
 if (strcmp(cfg.zparam,'cohspctrm')),
@@ -509,6 +517,9 @@ end
 orient landscape
 hold off
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -519,31 +530,3 @@ for k=1:length(strlist)
     l = [l k];
   end
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function z = pwrspctm2cohspctrm(cfg, freq)
-% This creates a copy of freq with new entries in the freq.pwrspctrm. The
-% TFR corresponding to cfg.cohtargetchannel is set to ones, but all other
-% channels are replaced with the coherence TFRs from freq.cohspctrm.
-%
-% [z] = pwrspctrm2cohspctrm(cfg, freq);
-%
-% freq should be organised in a structure as obtained from
-% the freqdescriptives function.
-%
-% doudav; 24.09.04
-z = freq;
-[a a1] = match_str( cfg.cohtargetchannel, z.label);
-[a b1] = match_str( cfg.cohtargetchannel, z.labelcmb(:,1));
-[a b2] = match_str( cfg.cohtargetchannel, z.labelcmb(:,2));
-[a c1] = match_str( z.labelcmb(b1,2), z.label);
-[a c2] = match_str( z.labelcmb(b2,1), z.label);
-targets  = [c1; c2];
-targets2 = [b1; b2];
-z.powspctrm(a1,:,:) = ones(size(z.powspctrm(a1,:,:)));
-for i=1:size(targets,1),
-  z.powspctrm(targets(i),:,:) = squeeze(z.cohspctrm(targets2(i),:,:));
-end
-clear a a1 b1 b2 c1 c2;

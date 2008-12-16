@@ -1,4 +1,4 @@
-function topoplotTFR(cfg, varargin)
+function [cfg] = topoplotTFR(cfg, varargin)
 
 % TOPOPLOTTFR plots the topographic distribution of 3-Dimensional datatypes as 
 % the time-frequency representation of power or coherence that was computed
@@ -57,6 +57,10 @@ function topoplotTFR(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotTFR.m,v $
+% Revision 1.20  2008/12/16 15:31:42  sashae
+% plot functions can now give cfg as output
+% added checkconfig to start and end of function, configtracking possible
+%
 % Revision 1.19  2008/01/29 19:43:33  sashae
 % added option for trial selection; plot functions now also accept data with
 % repetitions (either trials or subjects), the avg is computed and plotted
@@ -88,4 +92,4 @@ function topoplotTFR(cfg, varargin)
 % added copyrigth and cvs log statement
 % 
 
-topoplotER(cfg, varargin{:});
+cfg=topoplotER(cfg, varargin{:});
