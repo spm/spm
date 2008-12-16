@@ -30,6 +30,9 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.17  2008/12/16 15:36:34  roboos
+% prevent append to be used twice in the key-value list for fcdc_buffer
+%
 % Revision 1.16  2008/12/15 14:52:57  roboos
 % updated help: be explicit about the function expecting uV input data (also for plexon)
 % removed the obsolete code for writing to ctf meg4 files
@@ -245,6 +248,12 @@ switch dataformat
         while begsample<=size(dat,2)
           endsample = begsample - 1 + max_nsamples;
           endsample = min(endsample, size(dat,2));
+          % if append is already one of the arguments, remove it from varargin
+          indx = find(strcmp(varargin, 'append')); % find the "append" key
+          if ~isempty(indx)
+            indx = [indx indx+1];                  % remove the key and the value
+            varargin(indx) = [];
+          end
           write_data(filename, dat(:,begsample:endsample), varargin{:}, 'append', false);
           begsample = endsample + 1;
         end
