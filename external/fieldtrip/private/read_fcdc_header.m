@@ -1,14 +1,11 @@
-function [hdr] = read_fcdc_header(varargin);
+function [hdr] = read_fcdc_header(varargin)
 
 % READ_FCDC_HEADER is a wrapper around different EEG/MEG file importers
 % directly supported formats are CTF, Neuromag, EEP, BrainVision,
 % Neuroscan and Neuralynx.
 %
 % Use as
-%   hdr = read_fcdc_header(filename, ...)
-%
-% Additional options should be specified in key-value pairs and can be
-%   'headerformat'   string
+%   hdr = read_fcdc_header(filename)
 %
 % This returns a header structure with the following elements
 %   hdr.Fs           sampling frequency
@@ -28,6 +25,9 @@ function [hdr] = read_fcdc_header(varargin);
 % Copyright (C) 2003-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_header.m,v $
+% Revision 1.46  2008/12/16 21:21:49  roboos
+% reverted to the original interface, i.e. not with variable keyval input but with a fixed list
+%
 % Revision 1.45  2006/06/19 10:33:57  roboos
 % replaced all functional code by a call to the new low-level "fileio" function, it is now only an empty wrapper
 % updated the documentation

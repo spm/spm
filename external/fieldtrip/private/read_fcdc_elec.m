@@ -29,6 +29,9 @@ function [sens] = read_fcdc_elec(varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_fcdc_elec.m,v $
+% Revision 1.9  2008/12/16 21:22:23  roboos
+% changed some comments and documentation
+%
 % Revision 1.8  2008/03/05 10:46:36  roboos
 % moved electrode reading functionality from read_fcdc_elec to read_sens, switched to the use of the new function
 %
@@ -37,3 +40,4 @@ function [sens] = read_fcdc_elec(varargin)
 
 % use the low-level reading function
 [sens] = read_sens(varargin{:});
+

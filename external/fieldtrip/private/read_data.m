@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.68  2008/12/16 21:25:57  roboos
+% removed the backward compatibility handling of the read_fcdc_data input arguments, these are now done in read_fcdc_data (i.e. keep it clean)
+%
 % Revision 1.67  2008/12/15 13:10:38  roboos
 % fixed bug in biosig fallback, header would be read instead of data
 %
@@ -261,20 +264,6 @@ end
 % test whether the file or directory exists
 if ~exist(filename, 'file') && ~strcmp(filetype(filename), 'ctf_shm') && ~strcmp(filetype(filename), 'fcdc_mysql') && ~strcmp(filetype(filename), 'fcdc_buffer')
   error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
-end
-
-% for backward compatibility support with read_fcdc_data
-if nargin==4 && isstruct(varargin{1})
-  % input appears to be filename, hdr, begsample, endsample
-  varargin = {'header', varargin{1}, 'begsample', varargin{2}, 'endsample', varargin{3}};
-elseif nargin==5 && isstruct(varargin{1})
-  % input appears to be filename, hdr, begsample, endsample, chanindx
-  varargin = {'header', varargin{1}, 'begsample', varargin{2}, 'endsample', varargin{3}, 'chanindx', varargin{4}};
-elseif nargin==6 && isstruct(varargin{1})
-  % input appears to be filename, hdr, begsample, endsample, chanindx, continuous
-  continuous    = varargin{5};
-  checkboundary = (continuous==0);  % the default is to check in case the file is _not_ continuous
-  varargin = {'header', varargin{1}, 'begsample', varargin{2}, 'endsample', varargin{3}, 'chanindx', varargin{4}, 'checkboundary', checkboundary};
 end
 
 % get the optional input arguments

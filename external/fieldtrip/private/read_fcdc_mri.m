@@ -1,4 +1,4 @@
-function [mri] = read_fcdc_mri(filename);
+function [mri] = read_fcdc_mri(filename)
 
 % READ_FCDC_MRI reads anatomical and functional MRI data from different
 % file formats. The output data is structured in such a way that it is
@@ -16,6 +16,9 @@ function [mri] = read_fcdc_mri(filename);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: read_fcdc_mri.m,v $
+% Revision 1.19  2008/12/16 21:22:23  roboos
+% changed some comments and documentation
+%
 % Revision 1.18  2008/11/28 10:25:51  roboos
 % added ctf_mri4, thanks to Ivar
 %

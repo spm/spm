@@ -6,10 +6,7 @@ function [event] = read_fcdc_event(varargin)
 % EEP, BrainVision, Neuroscan and Neuralynx.
 %
 % Use as
-%   [event] = read_fcdc_event(filename, ...)
-%
-% Additional options should be specified in key-value pairs and can be
-%   'eventformat'   string
+%   [event] = read_fcdc_event(filename)
 %
 % This function returns a structure with the following fields
 %   event.type     = string
@@ -42,6 +39,9 @@ function [event] = read_fcdc_event(varargin)
 % Copyright (C) 2004-2006, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_fcdc_event.m,v $
+% Revision 1.47  2008/12/16 21:22:23  roboos
+% changed some comments and documentation
+%
 % Revision 1.46  2006/06/19 10:33:57  roboos
 % replaced all functional code by a call to the new low-level "fileio" function, it is now only an empty wrapper
 % updated the documentation

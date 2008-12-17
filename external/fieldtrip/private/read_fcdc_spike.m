@@ -1,4 +1,4 @@
-function [spike] = read_fcdc_spike(varargin);
+function [spike] = read_fcdc_spike(varargin)
 
 % READ_FCDC_SPIKE reads spike information (timestamps and optionally also
 % waveforms) from a file.
@@ -22,9 +22,13 @@ function [spike] = read_fcdc_spike(varargin);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_fcdc_spike.m,v $
+% Revision 1.2  2008/12/16 21:22:23  roboos
+% changed some comments and documentation
+%
 % Revision 1.1  2007/02/27 09:57:35  roboos
 % new implementation, wrapper around private/read_spike
 %
 
 % use the low-level reading function
 [spike] = read_spike(varargin{:});
+
