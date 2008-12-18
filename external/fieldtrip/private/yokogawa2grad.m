@@ -1,4 +1,4 @@
-function grad = yokogawa2grad(hdr);
+function grad = yokogawa2grad(hdr)
 
 % YOKOGAWA2GRAD converts the position and weights of all coils that
 % compromise a gradiometer system into a structure that can be used
@@ -6,9 +6,15 @@ function grad = yokogawa2grad(hdr);
 %
 % See also READ_HEADER, CTF2GRAD, BTI2GRAD, FIF2GRAD
 
-% Copyright (C) 2005, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: yokogawa2grad.m,v $
+% Revision 1.4  2008/12/18 11:53:20  roboos
+% changed some comments and some slight cleanups, no functional change
+%
+% Revision 1.3  2008/12/18 08:31:23  roboos
+% incorporated gradiometer, thanks to Kaoru Amano
+%
 % Revision 1.2  2008/05/15 13:20:36  roboos
 % updated documentation
 %
@@ -17,19 +23,71 @@ function grad = yokogawa2grad(hdr);
 %
 % Revision 1.1  2005/09/06 08:54:30  roboos
 % new implementations for the Yokogawa 160 channel MEG system
-%
+
 
 if isfield(hdr, 'orig')
   hdr = hdr.orig; % use the original header, not the FieldTrip header
 end
 
-handles    = definehandles;
-isgrad     = (hdr.channel_info(:,2)==handles.AxialGradioMeter);
-grad.pnt   = hdr.channel_info(find(isgrad),3:5);
+% The "channel_info" contains
+% 1  channel number, zero offset
+% 2  channel type, type of gradiometer
+% 3  position x
+% 4  position y
+% 5  position z
+% 6  orientation of first coil
+% 7  orientation of first coil
+% 8  orientation from the 1st to 2nd coil for gradiometer
+% 9  orientation from the 1st to 2nd coil for gradiometer
+% 10
+% 11
 
-warning('The implementation of the gradiometer definition is incomplete')
-grad.ori   = []; % FIXME
-grad.label = []; % FIXME
+handles    = definehandles;
+isgrad     = (hdr.channel_info(:,2)==handles.AxialGradioMeter | hdr.channel_info(:,2)==handles.PlannerGradioMeter);
+grad.pnt   = hdr.channel_info(isgrad,3:5)*100;    % cm
+
+% Get orientation of the 1st coil
+ori_1st   = hdr.channel_info(find(isgrad),6:7);
+% polar to x,y,z coordinates
+ori_1st = ...
+  [sin(ori_1st(:,1)/180*pi).*cos(ori_1st(:,2)/180*pi) ...
+   sin(ori_1st(:,1)/180*pi).*sin(ori_1st(:,2)/180*pi) ...
+   cos(ori_1st(:,1)/180*pi)];
+grad.ori = ori_1st;
+
+% Get orientation from the 1st to 2nd coil for gradiometer
+ori_1st_to_2nd   = hdr.channel_info(find(isgrad),8:9);
+% polar to x,y,z coordinates
+ori_1st_to_2nd = ...
+  [sin(ori_1st_to_2nd(:,1)/180*pi).*cos(ori_1st_to_2nd(:,2)/180*pi) ...
+   sin(ori_1st_to_2nd(:,1)/180*pi).*sin(ori_1st_to_2nd(:,2)/180*pi) ...
+   cos(ori_1st_to_2nd(:,1)/180*pi)];
+% Get baseline
+baseline = hdr.channel_info(isgrad,size(hdr.channel_info,2));
+
+% Define the location and orientation of 2nd coil
+for i=1:sum(isgrad)
+  if hdr.channel_info(i,2) == handles.AxialGradioMeter
+    grad.pnt(i+sum(isgrad),:) = [grad.pnt(i,:)+ori_1st(i,:)*baseline(i)*100];
+    grad.ori(i+sum(isgrad),:) = -ori_1st(i,:);
+  elseif hdr.channel_info(i,2) == handles.PlannerGradioMeter
+    grad.pnt(i+sum(isgrad),:) = [grad.pnt(i,:)+ori_1st_to_2nd(i,:)*baseline(i)*100];
+    grad.ori(i+sum(isgrad),:) = ori_1st(i,:);
+  end
+end
+
+% Define the pair of 1st and 2nd coils for each gradiometer
+grad.tra = repmat(diag(ones(1,size(grad.pnt,1)/2),0),1,2);
+
+% Make the matrix sparse to speed up the multiplication in the forward
+% computation with the coil-leadfield matrix to get the channel leadfield
+grad.tra = sparse(grad.tra);
+
+tmp = hdr.channel_info(isgrad,1);
+for i=1:size(tmp,1)
+  grad.label{i,1} = num2str(tmp(i)+1);
+end
+grad.unit='cm';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % this defines some usefull constants
@@ -51,9 +109,9 @@ handles.EegChannel          = -2;
 handles.EcgChannel          = -3;
 handles.EtcChannel          = -4;
 handles.NonMegChannelNameLength = 32;
-handles.DefaultMagnetometerSize       = (4.0/1000.0);		% ˆê•Ó4.0mm‚Ì?³•ûŒ`
-handles.DefaultAxialGradioMeterSize   = (15.5/1000.0);		% ’¼Œa15.5mm‚Ì‰~ŠÂ
-handles.DefaultPlannerGradioMeterSize = (12.0/1000.0);		% ˆê•Ó12.0mm‚Ì?³•ûŒ`
+handles.DefaultMagnetometerSize       = (4.0/1000.0);		% ????4.0mm???????`
+handles.DefaultAxialGradioMeterSize   = (15.5/1000.0);		% ???a15.5mm???~??
+handles.DefaultPlannerGradioMeterSize = (12.0/1000.0);		% ????12.0mm???????`
 handles.AcqTypeContinuousRaw = 1;
 handles.AcqTypeEvokedAve     = 2;
 handles.AcqTypeEvokedRaw     = 3;

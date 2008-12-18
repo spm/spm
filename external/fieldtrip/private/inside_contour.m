@@ -10,11 +10,11 @@ miny = min(y);
 maxx = max(x);
 maxy = max(y);
 
-bool = ones(npos,1);
-bool(x<minx) = 0;
-bool(y<miny) = 0;
-bool(x>maxx) = 0;
-bool(y>maxy) = 0;
+bool = true(npos,1);
+bool(x<minx) = false;
+bool(y<miny) = false;
+bool(x>maxx) = false;
+bool(y>maxy) = false;
 
 % the summed angle over the contour is zero if the point is outside, and 2*pi if the point is inside the contour
 % leave some room for inaccurate f

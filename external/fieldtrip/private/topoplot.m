@@ -119,6 +119,10 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.41  2008/12/18 13:49:29  roboos
+% fixed problem with interplimits, should not be based on circle with radius 0.5 but on layout.mask
+% fixed problem with masking in case of multiple masks
+%
 % Revision 1.40  2008/12/02 16:09:04  sashae
 % replaced backward compatibility code by call to checkconfig,
 % renamed cfg options in code to make them consistent with documentation
@@ -459,8 +463,6 @@ elseif isnumeric(cfg.commentpos)
   y_COMNT = 0.9*((y_COMNT-min(y))/(max(y)-min(y))-0.5);
 end
 
-rmax = .5;
-
 ha = gca;
 cla
 hold on
@@ -468,11 +470,21 @@ hold on
 if ~strcmp(cfg.style,'blank')
   % find limits for interpolation:
   if strcmp(cfg.interplimits,'head')
-    xmin = min(-.5,min(x)); xmax = max(0.5,max(x));
-    ymin = min(-.5,min(y)); ymax = max(0.5,max(y));
+    xmin = +inf;
+    xmax = -inf;
+    ymin = +inf;
+    ymax = -inf;
+    for i=1:length(cfg.layout.mask)
+      xmin = min([xmin; cfg.layout.mask{i}(:,1)]);
+      xmax = max([xmax; cfg.layout.mask{i}(:,1)]);
+      ymin = min([ymin; cfg.layout.mask{i}(:,2)]);
+      ymax = max([ymax; cfg.layout.mask{i}(:,2)]);
+    end
   else
-    xmin = max(-.5,min(x)); xmax = min(0.5,max(x));
-    ymin = max(-.5,min(y)); ymax = min(0.5,max(y));
+    xmin = min(cfg.layout.pos(:,1));
+    xmax = max(cfg.layout.pos(:,1));
+    ymin = min(cfg.layout.pos(:,2));
+    ymax = max(cfg.layout.pos(:,2));
   end
 
   xi         = linspace(xmin,xmax,cfg.gridscale);   % x-axis description (row vector)
@@ -497,9 +509,12 @@ if ~strcmp(cfg.style,'blank')
 
   if isfield(cfg.layout, 'mask')
     % apply anatomical mask to the data, i.e. that determines that the interpolated data outside the circle is not displayed
+    maskA = false(size(Zi));
     for i=1:length(cfg.layout.mask)
-      Zi(~inside_contour([Xi(:) Yi(:)], cfg.layout.mask{i})) = NaN;
+      cfg.layout.mask{i}(end+1,:) = cfg.layout.mask{i}(1,:); % force them to be closed
+      maskA(inside_contour([Xi(:) Yi(:)], cfg.layout.mask{i})) = true;
     end
+    Zi(~maskA) = NaN;
   end
 
   if ~isempty(cfg.mask),
