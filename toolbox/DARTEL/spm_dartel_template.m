@@ -7,7 +7,7 @@ function out = spm_dartel_template(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_template.m 1412 2008-04-15 15:15:19Z john $
+% $Id: spm_dartel_template.m 2576 2008-12-18 16:31:52Z john $
 
 code = 2;
 st = job.settings;
@@ -142,7 +142,7 @@ for it=1:numel(st.param),
              st.optim.cyc, st.optim.its, param.K, code];
     drawnow
 
-    for j=1:param.its,
+    for it1=1:param.its,
         it0 = it0 + 1;
         t   = zeros([dm n1+1],'single');
 
