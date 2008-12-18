@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.90  2008/12/18 11:24:30  vlalit
+% Fixed detection of spike6 matlab file
+%
 % Revision 1.89  2008/12/09 16:50:41  roboos
 % disabled detection of ced_spike6mat, because it contains an error. The error should be fixed by Vladimir.
 %
@@ -861,10 +864,10 @@ elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && 
     ftype = 'spmeeg_mat';
     manufacturer = 'Wellcome Trust Centre for Neuroimaging, UCL, UK';
     content = 'electrophysiological data';
-% elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && all(1 == strmatch('struct', unique(subsref(struct2cell(whos('-file', filename)), substruct('()', {4, ':'}))), 'exact')) && 10 == numel(intersect(fieldnames(subsref(struct2cell(load(filename, getfield(whos('-file', filename), {1}, 'name'))), substruct('{}', {1}))), {'title', 'comment', 'interval', 'scale', 'offset', 'units', 'start', 'length', 'values' 'times'}))
-%     ftype = 'ced_spike6mat';
-%     manufacturer = 'Cambridge Electronic Design Limited';
-%     content = 'electrophysiological data';        
+elseif filetype_check_extension(filename, '.mat') && exist(filename, 'file') && filetype_check_ced_spike6mat(filename)
+    ftype = 'ced_spike6mat';
+    manufacturer = 'Cambridge Electronic Design Limited';
+    content = 'electrophysiological data';     
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
   ftype = 'matlab';
   manufacturer = 'Matlab';
@@ -923,3 +926,32 @@ y = sum(x==0)<ceil(length(x)/2);
 % SUBFUNCTION that always returns a true value
 function y = filetype_true(varargin);
 y = 1;
+
+% SUBFUNCTION that checks for CED spike6 mat file
+function res = filetype_check_ced_spike6mat(filename)
+res = 1;
+var = whos('-file', filename);
+
+% Check whether all the variables in the file are structs (representing channels)
+if ~all(strcmp('struct', unique({var(:).class})) == 1)
+    res = 0;
+    return;
+end
+
+var = load(filename, var(1).name); 
+var = struct2cell(var);
+
+% Check whether the fields of the first struct have some particular names
+fnames = {
+    'title'
+    'comment'
+    'interval'
+    'scale'
+    'offset'
+    'units'
+    'start'
+    'length'
+    'values'
+    'times'};
+
+res = (numel(intersect(fieldnames(var{1}), fnames)) == 10);
