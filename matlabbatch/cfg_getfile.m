@@ -77,7 +77,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 2539 2008-12-09 11:19:55Z volkmar $
+% $Id: cfg_getfile.m 2579 2008-12-19 13:50:36Z volkmar $
 
 t = {};
 sts = false;
@@ -197,6 +197,9 @@ if nargin<5 || isempty(wd) || ~ischar(wd)
         wd      = pwd;
     else
         wd = fileparts(already{1});
+        if isempty(wd)
+            wd = pwd;
+        end
     end;
 end
 
