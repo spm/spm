@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.91  2008/12/19 14:39:25  marvger
+% added support for udp, tcp and fifo
+%
 % Revision 1.90  2008/12/18 11:24:30  vlalit
 % Fixed detection of spike6 matlab file
 %
@@ -275,6 +278,14 @@ elseif filetype_check_uri(filename, 'buffer')
   content      = 'stream';
 elseif filetype_check_uri(filename, 'mysql')
   ftype        = 'fcdc_mysql';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
+elseif filetype_check_uri(filename, 'tcp')
+  ftype        = 'fcdc_tcp';
+  manufacturer = 'F.C. Donders Centre';
+  content      = 'stream';
+elseif filetype_check_uri(filename, 'udp')
+  ftype        = 'fcdc_udp';
   manufacturer = 'F.C. Donders Centre';
   content      = 'stream';
 elseif filetype_check_uri(filename, 'rfb')

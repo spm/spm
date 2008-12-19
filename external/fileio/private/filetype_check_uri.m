@@ -6,6 +6,8 @@ function varargout = filetype_check_uri(filename, ftyp)
 %   shm://<filename>
 %   fifo://<filename>
 %   buffer://<host>:<port>
+%   tcp://<host>:<port>
+%   udp://<host>:<port>
 %   mysql://<user>:<password>@<host>:<port>
 %   rfb://<password>@<host>:<port>
 %   serial:<port>?key1=value1&key2=value2&...
@@ -19,6 +21,9 @@ function varargout = filetype_check_uri(filename, ftyp)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: filetype_check_uri.m,v $
+% Revision 1.7  2008/12/19 14:40:23  marvger
+% added support for udp, tcp and fifo
+%
 % Revision 1.6  2008/02/19 10:07:34  roboos
 % replaced tcpsocket with buffer
 %
@@ -68,6 +73,18 @@ else
     case 'buffer'
       % buffer://<host>:<port>
       tok = tokenize(filename(10:end), ':');
+      varargout{1} = tok{1};
+      varargout{2} = str2num(tok{2});
+
+    case 'tcp'
+      % tcp://<host>:<port>
+      tok = tokenize(filename(7:end), ':');
+      varargout{1} = tok{1};
+      varargout{2} = str2num(tok{2});
+
+    case 'udp'
+      % udp://<host>:<port>
+      tok = tokenize(filename(7:end), ':');
       varargout{1} = tok{1};
       varargout{2} = str2num(tok{2});
 
