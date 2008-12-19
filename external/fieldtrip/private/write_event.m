@@ -1,4 +1,4 @@
-function write_event(filename, event, varargin);
+function write_event(filename, event, varargin)
 
 % WRITE_EVENT writes an event structure to a file, a message daemon
 % listening on a network socked, or to another computer connected through
@@ -21,8 +21,10 @@ function write_event(filename, event, varargin);
 %
 % Events can also be written to special communication streams
 % by specifying the target as URI instead of a filename. Supported are
+%   buffer://<host>:<port>
 %   fifo://<filename>
-%   tcpsocket://<host>:<port>
+%   tcp://<host>:<port>
+%   udp://<host>:<port>
 %   mysql://<user>:<password>@<host>:<port>
 %   rfb://<password>@<host>:<port>
 %   serial:<port>?key1=value1&key2=value2&...
@@ -33,6 +35,9 @@ function write_event(filename, event, varargin);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.28  2008/12/19 14:39:25  marvger
+% added support for udp, tcp and fifo
+%
 % Revision 1.27  2008/06/19 19:31:44  roboos
 % made fcdc_buffer more robust
 %
@@ -126,6 +131,8 @@ function write_event(filename, event, varargin);
 % Revision 1.1  2007/05/31 09:14:34  roboos
 % initial implementation, sofar only tcpsocket
 %
+
+persistent con       % for fcdc_tcp
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql
@@ -333,72 +340,110 @@ switch eventformat
       end
     end
 
-  case 'fcdc_fifo'
-    % these are opened in blocking mode, i.e. reading/writing will block until boths sides are connected
-    fifo = filetype_check_uri(filename);
-    if ~exist(fifo)
-      error(sprintf('the FIFO %s does not exist', fifo));
-    end
-    fid = fopen(fifo, 'w');
-    for i=1:length(event)
-      % convert the event into a network message
-      msg = struct2msg(event(i));
-      num = fwrite(fid, msg);
-      if num~=length(msg)
-        error(sprintf('problem writing to FIFO %s', fifo));
+   case 'fcdc_fifo'
+    
+      % these are opened in blocking mode, i.e. reading/writing will block until boths sides are connected
+      fifo = filetype_check_uri(filename);
+      
+      if ~exist(fifo,'file')
+          error('the FIFO %s does not exist', fifo);
       end
-    end
-    fclose(fid);
 
-  case 'fcdc_tcpsocket'
-    % TCP network socket
-    [host, port] = filetype_check_uri(filename);
-    con = pnet('tcpconnect', host, port);
-    if con<0
-      error('problem opening network connection');
-    end
-    for i=1:length(event)
-      % convert the event into a network message
-      msg = struct2msg(event(i));
-      % tell the message daemon that a message will be sent, and send it
-      pnet(con,'write', 'c', swapping);
-      pnet(con,'write', uint8(0), swapping);                    % type
-      pnet(con,'write', uint8(0), swapping);                    % subtype
-      pnet(con,'write', uint16(length(msg)), swapping);         % size
-      pnet(con,'write', char(msg), swapping);                   % message data
-    end
-    pnet(con,'close')
+      fid = fopen(fifo, 'w');
+      for i=1:length(event)
 
-  otherwise
-    % assume that it is a file. Since the file probably does not yet
-    % exist, determine its type by only looking at the extension
-    if filetype_check_extension(filename, '.mat')
-      % write the events to a matlab file
-      if exist(filename) && strcmp(append, 'yes')
-        try
-          tmp = load(filename, 'event');
-          event = cat(1, tmp.event(:), event(:));
-        catch
-          event = event(:);
-        end
-        % optionally restric the length of the event queue to flush old events
-        if isfinite(maxqlength) && isreal(maxqlength) && (maxqlength>0) && (length(event)>maxqlength)
-          event = event(end-maxqlength+1:end);
-          % NOTE: this could be done using the filter event function, but
-          % then this is just a temporary solution that will probably be
-          % removed in a future versions of the code
-        end
-        save(filename, 'event', '-append', '-v6');
-        % NOTE: the -append option in this call to the save function does
-        % not actually do anything useful w.r.t. the event variable since the
-        % events are being appended in the code above and the the save function
-        % will just overwrite the existing event variable in the file.
-        % However, if there are other variables in the file (whatever) then the
-        % append option preservs them
-      else
-        save(filename, 'event', '-v6');
+          % convert the event into a network message
+          msg = mxSerialize(event(i));
+          num = fwrite(fid, msg, 'uint8');
+
+          if num~=length(msg)
+              error('problem writing to FIFO %s', fifo);
+          end
       end
-    else
-      error('unsupported file type')
-    end
+      fclose(fid);
+      
+    case 'fcdc_tcp'
+
+        % TCP network socket
+
+        [host, port] = filetype_check_uri(filename);
+        if isempty(con)
+            con=pnet('tcpconnect',host,port);
+        end
+
+        if con~=-1,
+
+            try % Failsafe
+
+                for i=1:length(event)
+
+                    % convert the event into a network message
+                    msg = mxSerialize(event(i));
+
+                    % tell the message daemon that a message will be sent, and send it
+                    pnet(con,'printf',num2str(msg));
+                    pnet(con,'printf','\n');
+                end
+
+            end
+            %         pnet(con,'close');
+        end
+
+    case 'fcdc_udp'
+
+        % UDP network socket
+
+        [host, port] = filetype_check_uri(filename);
+        udp=pnet('udpsocket',1111);
+
+        if udp~=-1,
+            try % Failsafe
+
+                for i=1:length(event)
+
+                    % convert the event into a network message
+                    msg = mxSerialize(event(i));
+
+                    % tell the message daemon that a message will be sent, and send it
+                    pnet(udp,'write',uint8(msg),1000);
+                    pnet(udp,'writepacket',host,port);   % Send buffer as UDP packet to host
+                end
+
+            end
+            pnet(udp,'close');
+        end
+
+
+    otherwise
+        % assume that it is a file. Since the file probably does not yet
+        % exist, determine its type by only looking at the extension
+        if filetype_check_extension(filename, '.mat')
+            % write the events to a matlab file
+            if exist(filename,'file') && strcmp(append, 'yes')
+                try
+                    tmp = load(filename, 'event');
+                    event = cat(1, tmp.event(:), event(:));
+                catch
+                    event = event(:);
+                end
+                % optionally restric the length of the event queue to flush old events
+                if isfinite(maxqlength) && isreal(maxqlength) && (maxqlength>0) && (length(event)>maxqlength)
+                    event = event(end-maxqlength+1:end);
+                    % NOTE: this could be done using the filter event function, but
+                    % then this is just a temporary solution that will probably be
+                    % removed in a future versions of the code
+                end
+                save(filename, 'event', '-append', '-v6');
+                % NOTE: the -append option in this call to the save function does
+                % not actually do anything useful w.r.t. the event variable since the
+                % events are being appended in the code above and the the save function
+                % will just overwrite the existing event variable in the file.
+                % However, if there are other variables in the file (whatever) then the
+                % append option preservs them
+            else
+                save(filename, 'event', '-v6');
+            end
+        else
+            error('unsupported file type')
+        end
 end
