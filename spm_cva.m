@@ -1,299 +1,307 @@
-function [Y,xY] = spm_cva(xSPM,SPM,hReg,xY)
-% VOI time-series extraction of adjusted data and CVA
-% FORMAT [Y xY] = spm_cva(xSPM,SPM,hReg,[xY]);
+function [CVA] = spm_cva(xSPM,SPM,hReg)
+% VOI extraction of adjusted data and CVA
+% FORMAT [CVA] = spm_cva(xSPM,SPM,hReg);
 %
-% xSPM   - structure containing specific SPM, distribution & filtering details
+% xSPM   - structure containing specific SPM details
 % SPM    - structure containing generic analysis details
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
-% Y      - first scaled eigenvariate of VOI {i.e. weighted mean}
-% xY     - VOI structure
-%       xY.xyz          - centre of VOI {mm}
-%       xY.name         - name of VOI
-%       xY.Ic           - contrast used to adjust data (0 - no adjustment)
-%       xY.Sess         - session index
-%       xY.def          - VOI definition
-%       xY.spec         - VOI definition parameters
-%       xY.XYZmm        - Co-ordinates of VOI voxels {mm}
-%       xY.y            - [whitened and filtered] voxel-wise data
-%       xY.u            - first eigenvariate {scaled - c.f. mean response}
-%       xY.v            - first eigenimage
-%       xY.s            - eigenvalues
-%       xY.X0           - [whitened] confounds (including drift terms)
+% CVA.contrast =  contrast name
+% CVA.name     =  CVA name
+% CVA.c        =  contrast weights
+% CVA.X        =  contrast subspace
+% CVA.Y        =  whitened and adjusted data
+% CVA.X0       =  null space of contrast
+% 
+% CVA.XYZ      =  locations of voxels (mm)
+% CVA.xyz      =  seed voxel location (mm)
+% 
+% CVA.V        =  canonical vectors  (data)
+% CVA.v        =  canonical variates (data)
+% CVA.W        =  canonical vectors  (design)
+% CVA.w        =  canonical variates (design)
+% 
+% CVA.chi      =  Chi-squared statistics testing D >= i
+% CVA.df       =  d.f.
+% CVA.p        =  p-values
 %
-% Y and xY are also saved in VOI_*.mat in the SPM working directory
+% also saved in CVA_*.mat in the SPM working directory
 %
-% (See spm_getSPM for details on the SPM,VOL, xX & xSDM structures.)
+%__________________________________________________________________________
+% 
+% This routine allows one to make inferences about effects that are
+% distributed in a multivariate fashion or pattern over voxels. It uses
+% conventional canonical variates (CVA) analysis (also know as canonical
+% correlation analysis, ManCova and linear discriminant analysis).  CVA is
+% a complement to MVB, in that the predictor variables remain the design
+% matrix and the response variable is the imaging data in the usual way.
+% However, the multivariate aspect of this model allows one to test for
+% designed effects that are distributed over voxels and thereby increase
+% the sensitivity of the analysis.
+% 
+% Because there is only one test, there is no multiple comparison problem.
+% The results are shown in term of the maximum intensity projection of the
+% (positive) canonical image or vector and the canonical variates based on
+% (maximally) correlated mixtures of the explanatory variables and data.
+% 
+% CVA uses the generalised eigenvalue solution to the treatment and
+% residual sum of squares and products of a general linear model. The
+% eigenvalues (i.e., canonical values), after transformation, have a
+% chi-squared distribution and allow one to test the null hypothesis that
+% the mapping is D or more dimensional. This inference is shown as a bar
+% plot of p-values.  The first p-value is formally identical to that
+% obtained using Wilk’s Lambda and tests for the significance of any
+% mapping.
+% 
+% This routine uses the current contrast to define the subspace of interest
+% and treats the remaining design as uninteresting. Conventional results
+% for the canonical values are used after the data (and design matrix) have
+% been whitened; using the appropriate ReML estimate of non-sphericity.
+% 
+% CVA can be used to for decoding because the model employed by CVA design
+% not care about the direction of the mapping (hence canonical correlation
+% analysis). However, one cannot test for mappings between nonlinear
+% mixtures of regional activity and some experimental variable (this is
+% what the MVB was introduced for).
+% 
+% References:
+% 
+% Characterizing dynamic brain responses with fMRI: a multivariate
+% approach. Friston KJ, Frith CD, Frackowiak RS, Turner R. NeuroImage. 1995
+% Jun;2(2):166-72.
 %
-%_______________________________________________________________________
-%
-% spm_regions extracts a representative time course from voxel data 
-% in terms of the first eigenvariate of the filtered and adjusted
-% response in all suprathreshold voxels within a specified VOI
-% centered on the current MIP cursor location.
-%
-% If temporal filtering has been specified, then the data will be
-% filtered.  Similarly for whitening. Adjustment is with respect to
-% the null space of a selected contrast, or can be omitted.
-%
-% For a VOI of radius 0, the [adjusted] voxel time-series is
-% returned, and scaled to have a 2-norm or 1. The actual [adjusted]
-% voxel time series can be extracted from xY.y, and will be
-% the same as the [adjusted] data returned by the plotting routine
-% (spm_graph.m) for the same contrast.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+% A multivariate analysis of evoked responses in EEG and MEG data. Friston
+% KJ, Stephan KM, Heather JD, Frith CD, Ioannides AA, Liu LC, Rugg MD,
+% Vieth J, Keber H, Hunter K, Frackowiak RS. NeuroImage. 1996 Jun;3(3 Pt
+% 1):167-74.
+%__________________________________________________________________________
+% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
+ 
 % Karl Friston
-% $Id: spm_cva.m 1265 2008-03-28 11:45:04Z john $
-
-
-
+% $Id: spm_cva.m 2583 2008-12-20 12:00:03Z karl $
+ 
+ 
 % get figure handles
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+Fcva   = spm_figure('GetWin','MVB');
 Finter = spm_figure('GetWin','Interactive');
-Fgraph = spm_figure('GetWin','Graphics');
 header = get(Finter,'Name');
-set(Finter,'Name','VOI time-series extraction')
-try
-    xY;
-catch
-    xY = {};
+set(Finter,'Name','Canonical Variates analysis')
+ 
+ 
+% contrast and VOI specification
+%==========================================================================
+ 
+%-Get contrast
+%--------------------------------------------------------------------------
+con    = SPM.xCon(xSPM.Ic).name;
+c      = SPM.xCon(xSPM.Ic).c;
+c      = full(c);
+ 
+%-Get VOI name
+%--------------------------------------------------------------------------
+name   = ['CVA_' spm_input('name','-8','s',con)];
+ 
+%-Get current location {mm}
+%--------------------------------------------------------------------------
+xyzmm  = spm_results_ui('GetCoords');
+ 
+%-Specify search volume
+%--------------------------------------------------------------------------
+str    = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
+SPACE  = spm_input('Search volume...','!+1','m',...
+                 {['Sphere', str],['Box', str],'Image'},['S','B','I']);
+Q      = ones(1,size(SPM.xVol.XYZ, 2));
+XYZmm  = SPM.xVol.M*[SPM.xVol.XYZ; Q];
+XYZmm  = XYZmm(1:3,:);
+ 
+switch SPACE
+ 
+    case 'S' %-Sphere
+    %----------------------------------------------------------------------
+    D     = spm_input('radius of VOI {mm}','!+1');
+    str   = sprintf('%0.1fmm sphere',D);
+    j     = find(sum((XYZmm - xyzmm*Q).^2) <= D^2);
+ 
+    case 'B' %-Box
+    %----------------------------------------------------------------------
+    D     = spm_input('box dimensions [k l m] {mm}','!+1');
+    if length(D) < 3
+        D = D(1)*[1 1 1];
+    end
+    str   = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
+    j     = find(all(abs(XYZmm - xyzmm*Q) <= D(:)*Q/2));
+ 
+    case 'I' %-Mask Image
+    %----------------------------------------------------------------------
+    Msk   = spm_select(1,'image','Image defining search volume');
+    D     = spm_vol(Msk);
+    str   = sprintf('image mask: %s',spm_str_manip(Msk,'a30'));
+    XYZ   = D.mat \ [XYZmm; Q];
+    j     = find(spm_sample_vol(D, XYZ(1,:), XYZ(2,:), XYZ(3,:),0) > 0);
+ 
 end
-
-%-Find nearest voxel [Euclidean distance] in point list in Y.mad
-%-----------------------------------------------------------------------
-if ~length(xSPM.XYZmm)
-    spm('alert!','No suprathreshold voxels!',mfilename,0);
-    Y = []; xY = [];
+ 
+ 
+% voxels defined
+%--------------------------------------------------------------------------
+spm('Pointer','Watch')
+ 
+%-Extract required data from results files
+%==========================================================================
+ 
+% get explanatory variables (data)
+%--------------------------------------------------------------------------
+XYZ  = XYZmm(:,j);
+Y    = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
+ 
+if isempty(Y)
+    warndlg({'No voxels in this VOI';'Please use a larger volume'})
     return
 end
-try
-    xyz     = xY.xyz;
-catch
-    [xyz,i] = spm_XYZreg('NearestXYZ',...
-              spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
-    xY.xyz  = xyz;
-end
-
-posstr = sprintf('at [%3.0f %3.0f %3.0f]',xyz);
-
-% and update GUI location
-%-----------------------------------------------------------------------
-spm_XYZreg('SetCoords',xyz,hReg);
-
-
-%-Get adjustment options and VOI name
-%-----------------------------------------------------------------------
-spm_input(sprintf('at [%3.0f %3.0f %3.0f]',xY.xyz),1,'d',...
-    'VOI time-series extraction')
-
-if ~isfield(xY,'name')
-    xY.name = spm_input('name of region','!+1','s','VOI');
-end
-
-if ~isfield(xY,'Ic')
-    q     = 0;
-    Con   = {'<don''t adjust>'};
-    for i = 1:length(SPM.xCon)
-        if strcmp(SPM.xCon(i).STAT,'F')
-              q(end + 1) = i;
-            Con{end + 1} = SPM.xCon(i).name;
-        end
-    end
-    i     = spm_input('adjust data for (select contrast)','!+1','m',Con);
-    xY.Ic = q(i);
-end
-
-%-if fMRI data get sessions and filtering options
-%-----------------------------------------------------------------------
-if isfield(SPM,'Sess')
-
-    if ~isfield(xY,'Sess')
-        s         = length(SPM.Sess);
-        if s > 1
-            s = spm_input('which session','!+1','n1',s,s);
-        end
-        xY.Sess   = s;
-    end
-end
-
-
-%-Specify VOI
-%-----------------------------------------------------------------------
-if ~isfield(xY,'def')
-    xY.def    = spm_input('VOI definition...','!+1','b',...
-            {'sphere','box','cluster','mask'});
-end
-Q       = ones(1,size(xSPM.XYZmm,2));
-
-
-switch xY.def
-
-    case 'sphere'
-    %---------------------------------------------------------------
-    if ~isfield(xY,'spec')
-        xY.spec = spm_input('VOI radius (mm)','!+0','r',0,1,[0,Inf]);
-    end
-    d     = [xSPM.XYZmm(1,:) - xyz(1);
-             xSPM.XYZmm(2,:) - xyz(2);
-             xSPM.XYZmm(3,:) - xyz(3)];
-    Q     = find(sum(d.^2) <= xY.spec^2);
-
-    case 'box'
-    %---------------------------------------------------------------
-    if ~isfield(xY,'spec')
-        xY.spec = spm_input('box dimensions [x y z] {mm}',...
-            '!+0','r','0 0 0',3);
-    end
-    Q     = find(all(abs(xSPM.XYZmm - xyz*Q) <= xY.spec(:)*Q/2));
-    
-    case 'mask'
-    %---------------------------------------------------------------
-    if ~isfield(xY,'spec')
-        xY.spec = spm_vol(spm_select(1,'image','Specify Mask'));
-    else
-      if ~isstruct(xY.spec)
-        xY.spec = spm_vol(xY.spec);
-      end;
-    end;
-    mXYZ   = inv(xY.spec.mat)*[xSPM.XYZmm;ones(1,size(xSPM.XYZmm,2))];
-    tmpQ   = spm_sample_vol(xY.spec,mXYZ(1,:),mXYZ(2,:),mXYZ(3,:),0);
-    tmpQ(~isfinite(tmpQ)) = 0;
-    Q      = find(tmpQ);
-    posstr = sprintf('in mask %s', xY.spec.fname);
-        
-    case 'cluster'
-    %---------------------------------------------------------------
-    [x i] = spm_XYZreg('NearestXYZ',xyz,xSPM.XYZmm);
-    A     = spm_clusters(xSPM.XYZ);
-    Q     = find(A == A(i));
-end
-
-% voxels defined
-%-----------------------------------------------------------------------
-spm('Pointer','Watch')
-
-%-Extract required data from results files
-%=======================================================================
-
-%-Get raw data, whiten and filter 
-%-----------------------------------------------------------------------
-y        = spm_get_data(SPM.xY.VY,xSPM.XYZ(:,Q));
-y        = spm_filter(SPM.xX.K,SPM.xX.W*y);
-xY.XYZmm = xSPM.XYZmm(:,Q);
-
-
-%-Computation
-%=======================================================================
-
+ 
+% remove serial correlations and get design (note X := W*X)
+%--------------------------------------------------------------------------
+Y   = SPM.xX.W*Y;
+X   = SPM.xX.xKXs.X;
+ 
+% and get null-space of contrast
+%--------------------------------------------------------------------------
+X0  = X - X*c*pinv(c);
+try,  X0 = [X0 SPM.xX.K.X0]; end          % add drift terms
+try,  X0 = [X0 SPM.xGX.gSF]; end          % add global estimate
+X   = full(X*c);
+X0  = spm_svd(X0);
+ 
+ 
+%-Dimension reduction (if necessary)
+%==========================================================================
+U   = spm_mvb_U(Y,'compact',X0,XYZ);
+U   = spm_svd(U);
+Y   = Y*U;
+ 
+%-Canonical Variates Analysis
+%==========================================================================
+ 
+% degrees of freedom
+%--------------------------------------------------------------------------
+[n,b] = size(X);                       
+[n,m] = size(Y);
+f     = n - b - size(X0,2);
+ 
 % remove null space of contrast
-%-----------------------------------------------------------------------
-if xY.Ic
-
-    %-Parameter estimates: beta = xX.pKX*xX.K*y
-    %---------------------------------------------------------------
-    beta  = spm_get_data(SPM.Vbeta,xSPM.XYZ(:,Q));
-
-    %-subtract Y0 = XO*beta,  Y = Yc + Y0 + e
-    %---------------------------------------------------------------
-    y     = y - spm_FcUtil('Y0',SPM.xCon(xY.Ic),SPM.xX.xKXs,beta);
-
+%--------------------------------------------------------------------------
+Y     = Y - X0*(X0'*Y);
+X     = X - X0*(X0'*X);
+ 
+ 
+% generalised eigensolution for treatment and residual sum of squares
+%--------------------------------------------------------------------------
+T     = X*(pinv(X)*Y);
+SST   = T'*T;
+SSR   = Y - T;
+SSR   = SSR'*SSR;
+[v,d] = eig(SSR\SST);
+[q,r] = sort(-real(diag(d)));
+r     = r(1:b);
+d     = real(d(r,r));
+v     = real(v(:,r));
+V     = U*v;                          % canonical vectors  (data)
+v     = Y*v;                          % canonical variates (data)
+W     = pinv(X)*v;                    % canonical vectors  (design)
+w     = X*W;                          % canonical variates (design)
+C     = c*W;                          % canonical contrast (design)
+ 
+% inference on dimensionality - p(i) test of D >= i; Wilk’s Lambda := p(1)
+%--------------------------------------------------------------------------
+cval  = log(diag(d) + 1);
+for i = 1:b
+  chi(i) = (f - (m - b + 1)/2)*sum(cval(i:b));
+  df(i)  = (m - i + 1)*(b - i + 1);
+  p(i)   = 1 - spm_Xcdf(chi(i),df(i));
 end
+ 
+ 
+% show results
+%==========================================================================
+spm_figure('GetWin','MVB');
+ 
+% maximum intensity projection (first canonical image)
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+VOX      = xSPM.VOX;
+spm_mip(V(:,1).*(V(:,1) > 0),XYZ(1:3,:),diag(VOX))
+axis image
+title({'(Principal) canonical image',[name ':' con]})
+ 
+% inference and canonical variates
+%--------------------------------------------------------------------------
+Xstr{1} = 'Dimensionality';
+Xstr{2} = ['Chi-squared: ' sprintf('%6.1f ',chi)];
+Xstr{3} = ['           df: ' sprintf('%6.0f ',df)];
 
-% confounds
-%-----------------------------------------------------------------------
-xY.X0     = SPM.xX.xKXs.X(:,[SPM.xX.iB SPM.xX.iG]);
-
-% extract session-specific rows from data and confounds
-%-----------------------------------------------------------------------
-try
-    i     = SPM.Sess(xY.Sess).row;
-    y     = y(i,:);
-    xY.X0 = xY.X0(i,:);
-end
-
-% and add session-specific filter confounds
-%-----------------------------------------------------------------------
-try
-    xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).X0];
-end
-
-% Remove null space of X0
-%-----------------------------------------------------------------------
-xY.X0   = xY.X0(:,~~any(xY.X0));
-
-
-% compute regional response in terms of first eigenvariate
-%-----------------------------------------------------------------------
-[m n]   = size(y);
-if m > n
-    [v s v] = svd(y'*y);
-    s       = diag(s);
-    v       = v(:,1);
-    u       = y*v/sqrt(s(1));
-else
-    [u s u] = svd(y*y');
-    s       = diag(s);
-    u       = u(:,1);
-    v       = y'*u/sqrt(s(1));
-end
-d       = sign(sum(v));
-u       = u*d;
-v       = v*d;
-Y       = u*sqrt(s(1)/n);
-
-% set in structure
-%-----------------------------------------------------------------------
-xY.y    = y;
-xY.u    = Y;
-xY.v    = v;
-xY.s    = s;
-
-%-Display VOI weighting and eigenvariate
-%========================================================================
-
-% show position
-%------------------------------------------------------------------------
-spm_results_ui('Clear',Fgraph);
-figure(Fgraph);
+subplot(2,2,2)
+bar(log(p)); hold on
+plot([0 (b + 1)],log(0.05)*[1 1],'r:','LineWidth',4), hold off
+xlabel(Xstr)
+ylabel('log p-value')
+axis square
+title({'Test of dimensionality';sprintf('minimum p = %.2e',min(p))})
+ 
 subplot(2,2,3)
-spm_dcm_display(xY,[],[],[[1 0 0];[0 1 0]]',64)
+plot(w,v,'.')
+xlabel('prediction')
+ylabel('response')
+axis square
+title('Canonical variates')
 
 
-% show dynamics
-%------------------------------------------------------------------------
-subplot(2,2,4)
-try
-    plot(SPM.xY.RT*[1:length(xY.u)],Y)
-    str = 'time (seconds}';
-catch
-    plot(Y)
-    str = 'scan';
+% canonical contrast
+%--------------------------------------------------------------------------
+i     = find(p < 0.05);
+if isempty(i)
+    i = 1;
 end
-title(['1st eigenvariate: ' xY.name],'FontSize',10)
-str = { str;' ';sprintf(...
-        '%d voxels in VOI %s',...
-        length(Q),posstr);sprintf('Variance: %0.2f%%',s(1)*100/sum(s))};
-xlabel(str)
-axis tight square
-
-
+subplot(2,2,4)
+bar(C(:,i))
+xlabel('Parameter')
+axis square
+title('Significant canonical contrasts')
+ 
+ 
+% save results
+%==========================================================================
+ 
+% assemble results
+%--------------------------------------------------------------------------
+CVA.contrast = con;          % contrast name
+CVA.name     = name;         % CVA name
+CVA.c        = c;            % contrast weights
+CVA.X        = X;            % contrast subspace
+CVA.Y        = Y;            % whitened and adjusted data
+CVA.X0       = X0;           % null space of contrast
+ 
+CVA.XYZ      = XYZ;          % locations of voxels (mm)
+CVA.xyz      = xyzmm;        % seed voxel location (mm)
+CVA.VOX      = VOX;          % locations of voxels (mm)
+ 
+CVA.V        = V;            % canonical vectors  (data)
+CVA.v        = v;            % canonical variates (data)
+CVA.W        = W;            % canonical vectors  (design)
+CVA.w        = w;            % canonical variates (design)
+CVA.C        = C;            % canonical contrast (design)
+ 
+CVA.chi      = chi;          % Chi-squared statistics testing D >= i
+CVA.df       = df;           % d.f.
+CVA.p        = p;            % p-values
+ 
+ 
 % save
 %-----------------------------------------------------------------------
-str     = ['VOI_' xY.name];
-if isfield(xY,'Sess')
-    if length(xY.Sess) == 1
-        str = sprintf('VOI_%s_%i',xY.name,xY.Sess);
-    end
-end
-if spm_matlab_version_chk('7') >= 0
-    save(fullfile(SPM.swd,str),'-V6','Y','xY')
-else
-    save(fullfile(SPM.swd,str),'Y','xY')
-end
-
+save(fullfile(SPM.swd,name),'CVA')
+assignin('base','CVA',CVA)
+ 
 %-Reset title
 %-----------------------------------------------------------------------
-spm('FigName',header);
+set(Finter,'Name',header)
 spm('Pointer','Arrow')

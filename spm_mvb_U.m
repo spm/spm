@@ -16,7 +16,7 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_U.m 2559 2008-12-12 17:10:23Z karl $
+% $Id: spm_mvb_U.m 2583 2008-12-20 12:00:03Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -101,11 +101,12 @@ switch priors
  
         % get kernel (compact vectors)
         %------------------------------------------------------------------
-        nu    = ceil(ns/2);                  % number of patterns
-        nc    = fix(nv/nu);                  % voxels in compact support
-        Y     = Y - X0*(pinv(X0)*Y);         % remove confounds
+        nu    = min(ceil(ns/2),nv);          % number of patterns
+        nc    = max(fix(nv/nu),1);           % voxels in compact support
+        X0    = spm_svd(X0);
+        Y     = Y - X0*(X0'*Y);              % remove confounds
         C     = var(Y);
-        U     = zeros(nv,nu);
+        U     = spalloc(nv,nu,nc*nu);
         J     = 1:nv;
         for i = 1:nu
             
