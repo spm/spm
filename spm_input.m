@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 1816 2008-06-11 15:28:51Z guillaume $
+% $Id: spm_input.m 2582 2008-12-20 11:59:12Z karl $
 
 
 %=======================================================================
@@ -615,7 +615,6 @@ function varargout = spm_input(varargin)
 
 %-Parameters
 %=======================================================================
-COLOUR   = get(0,'defaultUicontrolBackgroundColor');
 PJump    = 1;       %-Jumping of pointer to question?
 TTips    = 1;       %-Use ToolTipStrings? (which can be annoying!)
 ConCrash = 1;       %-Add "crash out" option to 'Interactive'fig.ContextMenu
@@ -638,6 +637,7 @@ else            %-Should be an input request: get Type & YPos
     if ~CmdLine %-Setup for GUI use
         %-Locate (or create) figure to work in
         Finter = spm_input('!GetWin');
+        COLOUR = get(Finter,'Color');
     
         %-Find out which Y-position to use, setup for use
         YPos = spm_input('!SetNextPos',YPos,Finter,CmdLine);

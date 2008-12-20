@@ -279,9 +279,9 @@ function [SPM] = spm_spm(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 1237 2008-03-21 14:54:07Z stefan $
+% $Id: spm_spm.m 2582 2008-12-20 11:59:12Z karl $
 
-SCCSid   = '$Rev: 1237 $';
+SCCSid   = '$Rev: 2582 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -312,8 +312,7 @@ end
 try
     SPM.xY.VY;
 catch
-    helpdlg({'Please assign data to this design',...
-             'Use fMRI under model specification'});
+    helpdlg('Please assign data to this design');
     spm('FigName','Stats: done',Finter); spm('Pointer','Arrow')
     return
 end
@@ -440,7 +439,7 @@ xX.xKXs   = spm_sp('Set',spm_filter(xX.K,W*xX.X));              % KWX
 xX.xKXs.X = full(xX.xKXs.X);
 xX.pKX    = spm_sp('x-',xX.xKXs);                               % projector
 
-global     defaults
+global defaults
 
 %-If xVi.V is not defined compute Hsqr and F-threshold under i.i.d.
 %--------------------------------------------------------------------------

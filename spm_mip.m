@@ -34,13 +34,14 @@ function spm_mip(Z,XYZ,M,units)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston et al.
-% $Id: spm_mip.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_mip.m 2582 2008-12-20 11:59:12Z karl $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
 global defaults
 try, Grid = defaults.grid; catch, Grid = 0.4;               end
 try, units;                catch, units = {'mm' 'mm' 'mm'}; end
+try, M;                    catch, M = 1; end
 
 % transpose locations if necessary
 %--------------------------------------------------------------------------
