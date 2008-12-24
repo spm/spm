@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.23  2008/12/24 09:10:46  roboos
+% added dipoli
+%
 % Revision 1.22  2008/10/29 15:45:12  roboos
 % fix dashes and spaces in directory names for caching
 %
@@ -140,6 +143,7 @@ url = {
   'DENOISE'    'see http://lumiere.ens.fr/Audition/adc/meg, or contact Alain de Cheveigne'
   'BCI2000'    'see http://bci2000.org'
   'NLXNETCOM'  'see http://www.neuralynx.com'
+  'DIPOLI'     'see ftp://ftp.fcdonders.nl/pub/fieldtrip/external'
 };
 
 if nargin<2
@@ -215,6 +219,8 @@ switch toolbox
     status  = exist('load_bcidat');
   case 'NLXNETCOM'
     status  = (exist('MatlabNetComClient') && exist('NlxConnectToServer') && exist('NlxGetNewCSCData'));
+  case 'DIPOLI'
+    status  = exist('dipoli.m', 'file');
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
