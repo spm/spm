@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.92  2008/12/24 10:33:48  roboos
+% fixed header for mbfys_ama
+%
 % Revision 1.91  2008/12/19 14:39:25  marvger
 % added support for udp, tcp and fifo
 %
@@ -823,7 +826,7 @@ elseif filetype_check_extension(filename, '.tri')
   ftype = 'mbfys_tri';
   manufacturer = 'MBFYS';
   content = 'triangulated surface';
-elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filename, [0 0 0 10])
+elseif filetype_check_extension(filename, '.ama') && filetype_check_header(filename, [10 0 0 0])
   ftype = 'mbfys_ama';
   manufacturer = 'MBFYS';
   content = 'BEM volume conduction model';

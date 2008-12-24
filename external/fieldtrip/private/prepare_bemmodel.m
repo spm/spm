@@ -19,17 +19,20 @@ function [vol] = prepare_bemmodel(cfg, mri);
 % Although the example configuration uses 3 compartments, you can use
 % an arbitrary number of compartments.
 %
-% This function implements 
+% This function implements
 %   Oostendorp TF, van Oosterom A.
 %   Source parameter estimation in inhomogeneous volume conductors of arbitrary shape
-%   IEEE Trans Biomed Eng. 1989 Mar;36(3):382-91. 
+%   IEEE Trans Biomed Eng. 1989 Mar;36(3):382-91.
 
 % Undocumented local options:
 % cfg.dipoli
 
-% Copyright (C) 2005, Robert Oostenveld
+% Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: prepare_bemmodel.m,v $
+% Revision 1.11  2008/12/24 10:47:13  roboos
+% moved the dipoli code to seperate helper function
+%
 % Revision 1.10  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -71,36 +74,19 @@ if ~isfield(cfg, 'hdmfile'),        cfg.hdmfile = [];                        end
 if ~isfield(cfg, 'isolatedsource'), cfg.isolatedsource = [];                 end
 if ~isfield(cfg, 'method'),         cfg.method = 'dipoli';                   end
 
-% determine the command-line DIPOLI executable that should be called 
-hasdipoli = 0;
-if strcmp(cfg.method, 'dipoli') && ~isfield(cfg, 'dipoli')
-  target1 = '/Users/roberto/src/thom/bin/dipoli';
-  target2 = '/home/coherence/roboos/src/thom/bin/dipoli';
-  target3 = '/home/coherence/roboos/bin.linux/dipoli';
-  if exist(target1)
-    cfg.dipoli = target1;
-    hasdipoli = 1;
-  elseif exist(target2)
-    cfg.dipoli = target2;
-    hasdipoli = 1;
-  elseif exist(target3)
-    cfg.dipoli = target3;
-    hasdipoli = 1;
-  else
-    warning('could not locate dipoli executable');
-    hasdipoli = 0;
-  end
-end
-
 % there are two types of input possible
-hasmri = isfield(mri, 'transform');
+hasmri = isfield(mri, 'transform');1.0
 hasvol = isfield(mri, 'bnd');
 
-if hasvol
+if hasvol && ~hasmri
+  % rename the second input argument
   vol = mri;
   clear mri;
-else
+elseif hasmri && ~hasvol
+  % start with an empty volume conductor
   vol = [];
+else
+  error('invalid input arguments');
 end
 
 if ~isfield(vol, 'cond')
@@ -133,75 +119,32 @@ else
   fprintf('using the pre-specified triangulated boundaries\n');
 end
 
-vol.brain = find_innermost_boundary(vol.bnd);
+vol.source = find_innermost_boundary(vol.bnd);
 vol.skin  = find_outermost_boundary(vol.bnd);
+fprintf('determining skin compartment (%d)\n', vol.skin);
+fprintf('determining source compartment (%d)\n', vol.source);
 
 if isempty(cfg.isolatedsource) && Ncompartment>1
-  % the isolated source compartment is by default the most innerone
-  cfg.isolatedsource = vol.brain;
+  % the isolated source compartment is by default the most inner one
+  cfg.isolatedsource = true;
 elseif isempty(cfg.isolatedsource) && Ncompartment==1
   % the isolated source interface should be contained within at least one other interface
-  cfg.isolatedsource = 0;
+  cfg.isolatedsource = false;
+elseif ~isempty(cfg.isolatedsource) && ~islogical(cfg.isolatedsource)
+  error('cfg.isolatedsource should be true or false');
 end
 
 if cfg.isolatedsource
-  fprintf('using compartment %d for the isolated source approach\n', cfg.isolatedsource);
+  fprintf('using compartment %d for the isolated source approach\n', vol.source);
 else
   fprintf('not using the isolated source approach\n');
 end
 
 if strcmp(cfg.method, 'dipoli')
-  for i=1:Ncompartment
-    bndfile{i} = tempname;
-    write_tri(bndfile{i}, vol.bnd(i).pnt, vol.bnd(i).tri);
-  end
-
-  if ~isempty(cfg.hdmfile)
-    amafile = cfg.hdmfile;
-  else
-    amafile = tempname;
-  end
-
-  exefile = tempname;
-  fid = fopen(exefile, 'w');
-  fprintf(fid, '#!/bin/sh\n');
-  fprintf(fid, '\n');
-  fprintf(fid, '%s -i %s << EOF\n', cfg.dipoli, amafile);
-  for i=1:Ncompartment
-    if i==cfg.isolatedsource
-      % the isolated potential approach should be applied using this compartment
-      fprintf(fid, '!%s\n', bndfile{i});
-    else
-      fprintf(fid, '%s\n', bndfile{i});
-    end
-    fprintf(fid, '%g\n', vol.cond(i));
-  end
-  fprintf(fid, '\n');
-  fprintf(fid, '\n');
-  fprintf(fid, 'EOF\n');
-  fclose(fid);
-  dos(sprintf('chmod +x %s', exefile));
-
-  try
-    % execute dipoli and read the resulting file
-    system(exefile);
-    ama = loadama(amafile);
-    vol = ama2vol(ama);
-  catch
-    warning('an error ocurred while running dipoli');
-    disp(lasterr);
-  end
-
-  % delete the temporary files
-  for i=1:Ncompartment
-    delete(bndfile{i})
-  end
-  delete(exefile);
-
-  % delete the model file, since the user did not make explicit that it should be kept
-  if isempty(cfg.hdmfile)
-    delete(amafile);
-  end
+  % determine whether the command-line DIPOLI executable is available
+  hastoolbox('dipoli', 1);
+  % use the dipoli wrapper function
+  vol = dipoli(vol, cfg.isolatedsource);
 
 elseif strcmp(cfg.method, 'brainstorm')
 
@@ -221,7 +164,7 @@ elseif strcmp(cfg.method, 'brainstorm')
   mode      = 1;                        % compute EEG only
   basis_opt = 1;                        % linear
   test_opt  = 0;                        % collocation
-  ISA       = (cfg.isolatedsource~=0);  % apply ISA
+  ISA       = cfg.isolatedsource;       % apply ISA
   fn_eeg    = [tempname '.mat'];
   fn_meg    = [tempname '.mat'];
   NVertMax  = [];

@@ -5,7 +5,7 @@ function [lf, vol] = eeg_leadfield4(R, elc, vol)
 % [lf] = eeg_leadfield4(R, elc, vol)
 %
 % with input arguments
-%   R	       position of the dipole
+%   R	         position of the dipole
 %   elc	       position of the electrodes
 % and vol being a structure with the elements
 %   vol.r      radius of the 4 spheres 
@@ -23,6 +23,9 @@ function [lf, vol] = eeg_leadfield4(R, elc, vol)
 %  Cuffin BN, Cohen D. Comparison of the magnetoencephalogram and electroencephalogram. Electroencephalogr Clin Neurophysiol. 1979 Aug;47(2):132-46. 
 %
 % $Log: eeg_leadfield4.m,v $
+% Revision 1.8  2008/12/24 13:33:27  roboos
+% changed some & and | into && and ||
+%
 % Revision 1.7  2006/05/01 08:13:51  roboos
 % fixed literature reference
 %
@@ -82,7 +85,7 @@ if R(1)~=0 | R(2)~=0
   rot(3,:) = R ./ val1;
   % rotate the electrodes
   elc = elc*rot';
-elseif R(1)==0 & R(2)==0 & R(3)<0
+elseif R(1)==0 && R(2)==0 && R(3)<0
   % dipole on negative z-axis, rotation is very simple: around x-axis
   elc(2,:) = -elc(2,:);
   elc(3,:) = -elc(3,:);
@@ -135,9 +138,9 @@ for i=1:Nchans
 end
 
 % apply the inverse rotation to the leadfield matrix
-if R(1)~=0 | R(2)~=0
+if R(1)~=0 || R(2)~=0
   lf = lf*rot;
-elseif R(1)==0 & R(2)==0 & R(3)<0
+elseif R(1)==0 && R(2)==0 && R(3)<0
   lf(2,:) = -lf(2,:);
   lf(3,:) = -lf(3,:);
 end

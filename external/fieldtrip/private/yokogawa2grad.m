@@ -9,6 +9,9 @@ function grad = yokogawa2grad(hdr)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: yokogawa2grad.m,v $
+% Revision 1.5  2008/12/24 13:49:25  roboos
+% added suggested changes by Kaoru Amano, see email 19 Dec 2008
+%
 % Revision 1.4  2008/12/18 11:53:20  roboos
 % changed some comments and some slight cleanups, no functional change
 %
@@ -32,36 +35,36 @@ end
 % The "channel_info" contains
 % 1  channel number, zero offset
 % 2  channel type, type of gradiometer
-% 3  position x
-% 4  position y
-% 5  position z
-% 6  orientation of first coil
-% 7  orientation of first coil
-% 8  orientation from the 1st to 2nd coil for gradiometer
-% 9  orientation from the 1st to 2nd coil for gradiometer
-% 10
-% 11
+% 3  position x (in m)
+% 4  position y (in m)
+% 5  position z (in m)
+% 6  orientation of first coil (theta in deg)
+% 7  orientation from the 1st to 2nd coil for gradiometer (theta in deg)
+% 8  orientation of first coil (phi in deg)
+% 9  orientation from the 1st to 2nd coil for gradiometer (phi in deg)
+% 10 coil size (in m)
+% 11 baseline (in m)
 
 handles    = definehandles;
 isgrad     = (hdr.channel_info(:,2)==handles.AxialGradioMeter | hdr.channel_info(:,2)==handles.PlannerGradioMeter);
 grad.pnt   = hdr.channel_info(isgrad,3:5)*100;    % cm
 
 % Get orientation of the 1st coil
-ori_1st   = hdr.channel_info(find(isgrad),6:7);
+ori_1st   = hdr.channel_info(find(isgrad),[6 8]);
 % polar to x,y,z coordinates
 ori_1st = ...
   [sin(ori_1st(:,1)/180*pi).*cos(ori_1st(:,2)/180*pi) ...
-   sin(ori_1st(:,1)/180*pi).*sin(ori_1st(:,2)/180*pi) ...
-   cos(ori_1st(:,1)/180*pi)];
+  sin(ori_1st(:,1)/180*pi).*sin(ori_1st(:,2)/180*pi) ...
+  cos(ori_1st(:,1)/180*pi)];
 grad.ori = ori_1st;
 
 % Get orientation from the 1st to 2nd coil for gradiometer
-ori_1st_to_2nd   = hdr.channel_info(find(isgrad),8:9);
+ori_1st_to_2nd   = hdr.channel_info(find(isgrad),[7 9]);
 % polar to x,y,z coordinates
 ori_1st_to_2nd = ...
   [sin(ori_1st_to_2nd(:,1)/180*pi).*cos(ori_1st_to_2nd(:,2)/180*pi) ...
-   sin(ori_1st_to_2nd(:,1)/180*pi).*sin(ori_1st_to_2nd(:,2)/180*pi) ...
-   cos(ori_1st_to_2nd(:,1)/180*pi)];
+  sin(ori_1st_to_2nd(:,1)/180*pi).*sin(ori_1st_to_2nd(:,2)/180*pi) ...
+  cos(ori_1st_to_2nd(:,1)/180*pi)];
 % Get baseline
 baseline = hdr.channel_info(isgrad,size(hdr.channel_info,2));
 
@@ -134,3 +137,4 @@ handles.sqd.matching_info   = [];
 handles.sqd.source_info     = [];
 handles.sqd.mri_info        = [];
 handles.mri                 = [];
+

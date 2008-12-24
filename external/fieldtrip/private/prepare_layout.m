@@ -44,6 +44,9 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.25  2008/12/24 13:34:19  roboos
+% fixed bug in  hte closing of masking polygons
+%
 % Revision 1.24  2008/12/05 10:58:17  roboos
 % fixed bug due to non-aligned vectors Rem and Lbl in subfunction readlay (thanks to pawel)
 %
@@ -369,9 +372,11 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
 
       case 'c'
         if size(polygon{thispolygon},1)>0
+          % close the polygon
+          polygon{thispolygon}(end+1,:) = polygon{thispolygon}(1,:);
           % close the polygon in the figure
-          x = polygon{i}([1 end],1);
-          y = polygon{i}([1 end],2);
+          x = polygon{i}([end-1 end],1);
+          y = polygon{i}([end-1 end],2);
           plot(x, y, 'g.-');
           % switch to the next polygon
           thispolygon = thispolygon + 1;
@@ -380,9 +385,11 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
 
       case 'q'
         if size(polygon{thispolygon},1)>0
+          % close the polygon
+          polygon{thispolygon}(end+1,:) = polygon{thispolygon}(1,:);
           % close the polygon in the figure
-          x = polygon{i}([1 end],1);
-          y = polygon{i}([1 end],2);
+          x = polygon{i}([end-1 end],1);
+          y = polygon{i}([end-1 end],2);
           plot(x, y, 'g.-');
         end
         again = 0;
