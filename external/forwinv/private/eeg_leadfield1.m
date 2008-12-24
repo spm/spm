@@ -1,6 +1,6 @@
 function [lf, lforig] = eeg_leadfield1(R, elc, vol);
 
-% EEG_LEADFIELD1 electric leadfield for a dipole in a single spheres
+% EEG_LEADFIELD1 electric leadfield for a dipole in a single sphere
 %
 % [lf] = eeg_leadfield1(R, elc, vol)
 %
@@ -19,6 +19,9 @@ function [lf, lforig] = eeg_leadfield1(R, elc, vol);
 %   R. Kavanagh, T. M. Darccey, D. Lehmann, and D. H. Fender. Evaluation of methods for three-dimensional localization of electric sources in the human brain. IEEE Trans Biomed Eng, 25:421-429, 1978.
 %
 % $Log: eeg_leadfield1.m,v $
+% Revision 1.11  2008/12/24 13:33:45  roboos
+% fixed typo in documentation
+%
 % Revision 1.10  2006/02/09 08:30:28  roboos
 % scale with conductivity in case of dipole in the origin (thanks to Denise van Barneveld)
 %
@@ -108,11 +111,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fast cross product
-function [c] = cross(a,b);
+function [c] = cross(a,b)
 c = [a(2)*b(3)-a(3)*b(2) a(3)*b(1)-a(1)*b(3) a(1)*b(2)-a(2)*b(1)];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fast dot product
-function [c] = dot(a,b);
+function [c] = dot(a,b)
 c = sum(a.*b);
 

@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.9  2008/12/24 10:34:15  roboos
+% added two fprintf statements
+%
 % Revision 1.8  2008/09/29 09:56:04  release
 % some spelling fixes, thanks to Karl
 %
@@ -221,9 +224,11 @@ elseif iseeg
         % determine boundary corresponding with skin and brain
         if ~isfield(vol, 'skin')
           vol.skin   = find_outermost_boundary(vol.bnd);
+          fprintf('determining skin compartment (%d)\n', vol.skin);
         end
         if ~isfield(vol, 'source')
           vol.source  = find_innermost_boundary(vol.bnd);
+          fprintf('determining source compartment (%d)\n', vol.source);
         end
         if size(vol.mat,1)~=size(vol.mat,2) && size(vol.mat,1)==length(sens.pnt)
           fprintf('electrode transfer and system matrix were already combined\n');
