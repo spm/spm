@@ -8,7 +8,7 @@ function s = export(this,target)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 2574 2008-12-18 12:56:04Z guillaume $
+% $Id: export.m 2587 2009-01-05 12:11:39Z vladimir $
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end
 
@@ -21,10 +21,19 @@ switch lower(target)
     case {'fieldtrip', 'ft'}
         s = struct('tri',[], 'pnt',[]);
         if isfield(this,'vertices')
-            s.pnt = subsref(this, substruct('.', 'vertices'));
+            s.pnt = double(subsref(this, substruct('.', 'vertices')));
+        end
+        if  isfield(this,'faces')  
+            s.tri = double(subsref(this, substruct('.', 'faces')));
+        end
+        
+    case {'spm'}    
+        s = struct('face',[], 'vert',[]);
+        if isfield(this,'vertices')
+            s.vert = double(subsref(this, substruct('.', 'vertices')));
         end
         if   isfield(this,'faces')  
-            s.tri = subsref(this, substruct('.', 'faces'));
+            s.face = uint16(subsref(this, substruct('.', 'faces')));
         end
         
     otherwise
