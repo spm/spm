@@ -9,6 +9,9 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld & Jan-Mathijs Schoffelen
 
 % $Log: beamformer_pcc.m,v $
+% Revision 1.17  2009/01/06 10:25:50  roboos
+% changed & into &&
+%
 % Revision 1.16  2008/10/10 13:01:18  release
 % fixed bug: switched order of lambda processing (i.e. as "10%") and filter computation (thanks to Joachim).
 % removed double warning for rank deficient.
@@ -147,7 +150,7 @@ Nchan    = size(Cf,1);            % should equal Nmegchan + Nrefchan + Nsupchan
 Cmeg     = Cf(megchan,megchan);   %  the filter uses the csd between all MEG channels
 
 isrankdeficient = (rank(Cmeg)<size(Cmeg,1));
-if isrankdeficient & ~isfield(dip, 'filter')
+if isrankdeficient && ~isfield(dip, 'filter')
   warning('cross-spectral density matrix is rank deficient')
 end
 
@@ -279,7 +282,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 1.16 $  $Date: 2008/10/10 13:01:18 $
+%   $Revision: 1.17 $  $Date: 2009/01/06 10:25:50 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

@@ -47,6 +47,11 @@ function [dipout] = beamformer_dics(dip, grad, vol, dat, Cf, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: beamformer_dics.m,v $
+% Revision 1.12  2009/01/06 10:25:32  roboos
+% fixed a bug for leadfield computation in case a pre-specified dipole
+% orientation is present. The bug would have caused a crash in case
+% the particular combination of options would have been used.
+%
 % Revision 1.11  2008/12/04 16:44:29  jansch
 % fixed typo in line 260 (thanks to Jurrian)
 %
@@ -396,7 +401,7 @@ switch submethod
         lf2 = dip.leadfield{i};
       elseif isfield(dip, 'mom')
         % compute the leadfield for a fixed dipole orientation
-        lf = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize) .* dip.mom(i,:)';
+        lf2 = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize) .* dip.mom(i,:)';
       else
         % compute the leadfield
         lf2 = compute_leadfield(dip.pos(i,:), grad, vol, 'reducerank', reducerank, 'normalize', normalize);
@@ -491,7 +496,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 1.11 $  $Date: 2008/12/04 16:44:29 $
+%   $Revision: 1.12 $  $Date: 2009/01/06 10:25:32 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)
