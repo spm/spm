@@ -6,6 +6,9 @@ function [event] = read_shm_event(filename, varargin);
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_event.m,v $
+% Revision 1.2  2009/01/06 09:11:45  roboos
+% use new function call API for read_data
+%
 % Revision 1.1  2007/08/01 12:12:06  roboos
 % moved the actual code from the normal functions into these helper functions
 % fixed some bugs related to reading the header from a user-specified res4 file and setting the trigger detection
@@ -83,7 +86,7 @@ else
     end
     for i=trgchan(:)'
       % read this trigger channel as raw data, can safely assume that it is continuous
-      trig = read_data(filename, hdr, begsample, endsample, i, 1);
+      trig = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', i, 'checkboundary', false);
       % correct for reading it as signed integer, whereas it should be an unsigned int
       trig(find(trig<0)) = trig(find(trig<0)) + 2^32;
       % TODO apply some event filters
