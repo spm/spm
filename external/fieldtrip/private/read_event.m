@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.76  2009/01/06 09:11:45  roboos
+% use new function call API for read_data
+%
 % Revision 1.75  2008/12/19 14:39:25  marvger
 % added support for udp, tcp and fifo
 %
@@ -508,7 +511,7 @@ switch eventformat
     
     % find the STATUS channel and read the values from it
     schan = find(strcmpi(hdr.label,'STATUS'));
-    sdata = read_data(filename, hdr, begsample, endsample, schan);
+    sdata = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', schan);
 
     % find indices of negative numbers
     bit24i = find(sdata < 0);

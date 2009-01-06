@@ -11,6 +11,9 @@ function [val] = keyval(key, varargin);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: keyval.m,v $
+% Revision 1.2  2009/01/06 09:05:26  roboos
+% added additional check on optional input arguments: the 1st, 3rd, etc. should be strings (keys)
+%
 % Revision 1.1  2008/11/13 09:55:36  roboos
 % moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
 %
@@ -29,11 +32,18 @@ if mod(length(varargin),2)
   error('optional input arguments should come in key-value pairs, i.e. there should be an even number');
 end
 
+for i=1:2:length(varargin)
+  if ~ischar(varargin{i})
+    % the 1st, 3rd, etc. contain the keys, the 2nd, 4th, etc. contain the values
+    error('optional input arguments should come in key-value pairs, the optional input argument %d is invalid (should be a string)', i);
+  end
+end
+
 keys = varargin(1:2:end);
 vals = varargin(2:2:end);
 
 hit = find(strcmp(key, keys));
-if length(hit)==0
+if isempty(hit)
   % the requested key was not found
   val = [];
 elseif length(hit)==1  

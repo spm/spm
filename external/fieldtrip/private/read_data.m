@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.69  2009/01/06 09:12:03  roboos
+% use true/false instead of 1/0
+%
 % Revision 1.68  2008/12/16 21:25:57  roboos
 % removed the backward compatibility handling of the read_fcdc_data input arguments, these are now done in read_fcdc_data (i.e. keep it clean)
 %
@@ -423,9 +426,9 @@ end
 
 % set the default, which is to assume that it is should check for boundaries when samples are requested
 if isempty(checkboundary) && requesttrials
-  checkboundary = 0;
+  checkboundary = false;
 elseif isempty(checkboundary) && requestsamples
-  checkboundary = 1;
+  checkboundary = true;
 end
 
 if requesttrials && requestsamples
