@@ -17,6 +17,9 @@ function [dat, ref] = preproc_rereference(dat, refchan)
 % Copyright (C) 1998-2008, Robert Oostenveld
 %
 % $Log: preproc_rereference.m,v $
+% Revision 1.3  2009/01/07 12:44:18  roboos
+% also allow refchan='all'
+%
 % Revision 1.2  2008/05/23 09:13:58  roboos
 % cleaned up code and documentation, ensure that all functions are consistent, added proper implementation to the scratch functions
 %
@@ -32,7 +35,7 @@ function [dat, ref] = preproc_rereference(dat, refchan)
 [Nchans, Nsamples] = size(dat);
 
 % determine the new reference channels
-if nargin<2 || isempty(refchan)
+if nargin<2 || isempty(refchan) || (ischar(refchan) && strcmp(refchan, 'all'))
   refchan = 1:Nchans;
 end
 

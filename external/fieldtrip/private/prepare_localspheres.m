@@ -38,6 +38,10 @@ function [vol, cfg] = prepare_localspheres(cfg, mri);
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: prepare_localspheres.m,v $
+% Revision 1.21  2009/01/07 14:28:51  roboos
+% do not open new figure but start with "clf"
+% removed typicalx from optimization
+%
 % Revision 1.20  2008/09/22 20:17:43  roboos
 % added call to fieldtripdefs to the begin of the function
 %
@@ -216,7 +220,7 @@ Nchan  = size(grad.tra, 1);
 
 % set up an empty figure
 if strcmp(cfg.feedback, 'yes')
-  figure
+  clf
   hold on
   axis equal
   axis vis3d
@@ -319,8 +323,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [center, radius] = fit_sphere(pnt, initial);
 % start the dipole fitting with default options
-options = optimset('TolFun',1e-10,...
-  'TypicalX',norm(range(pnt))/100,...
+options = optimset('TolFun',1e-10, ...
   'Display','none');
 warning off
 center = fminunc(@fit_sphere_error, initial, options, pnt);

@@ -1,4 +1,4 @@
-function [vol, sens] = headmodelplot(cfg, data);
+function [vol, sens] = headmodelplot(cfg, data)
 
 % HEADMODELPLOT makes a 3D visualisation of the volume conductor model
 % and optionally of the gradiometer positions and headshape. It can
@@ -41,6 +41,7 @@ function [vol, sens] = headmodelplot(cfg, data);
 %   cfg.headshape        = name of CTF *.shape file
 %   cfg.spheremesh       = number of vertices for spheres, either 42, 162 or 642
 %   cfg.plotheadsurface  = 'yes' or 'no', is constructed from head model
+%   cfg.plotbnd          = 'yes' or 'no'
 %   cfg.plotheadshape    = 'yes' or 'no'
 %   cfg.plotspheres      = 'yes' or 'no'
 %   cfg.plotspherecenter = 'yes' or 'no'
@@ -50,6 +51,7 @@ function [vol, sens] = headmodelplot(cfg, data);
 %   cfg.plotsensors      = 'yes' or 'no' plot electrodes or gradiometers
 %   cfg.plotcoil         = 'yes' or 'no' plot all gradiometer coils
 %   cfg.plotlines        = 'yes' or 'no' plot lines from sensor to head surface
+%   cfg.surftype         = 'edges'or 'faces'
 
 % Undocumented local options:
 % cfg.surface_facecolor
@@ -69,6 +71,9 @@ function [vol, sens] = headmodelplot(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: headmodelplot.m,v $
+% Revision 1.24  2009/01/07 14:19:26  roboos
+% incorporated some suggestions from vladimir
+%
 % Revision 1.23  2008/10/02 15:32:20  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -149,6 +154,7 @@ fieldtripdefs
 
 % these are suitable RGB colors
 skin   = [255 213 119]/255;
+skull  = [140  85  85]/255;
 brain  = [202 100 100]/255;
 cortex = [255 213 119]/255;
 
@@ -156,6 +162,7 @@ cortex = [255 213 119]/255;
 if ~isfield(cfg, 'surface_facecolor'), cfg.surface_facecolor = skin;   end
 if ~isfield(cfg, 'surface_edgecolor'), cfg.surface_edgecolor = 'none'; end
 if ~isfield(cfg, 'surface_facealpha'), cfg.surface_facealpha = 0.7;    end
+if ~isfield(cfg, 'surftype'),          cfg.surftype = 'faces';         end
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = checkconfig(cfg, 'createsubcfg',  {'grid'});
@@ -176,6 +183,7 @@ if ~isfield(cfg, 'plotgrid'),         cfg.plotgrid = 'yes';          end
 if ~isfield(cfg, 'plotinside'),       cfg.plotinside = 'yes';        end
 if ~isfield(cfg, 'plotoutside'),      cfg.plotoutside = 'no';        end
 if ~isfield(cfg, 'plotheadshape'),    cfg.plotheadshape = 'yes';     end
+if ~isfield(cfg, 'plotbnd'),          cfg.plotbnd = 'no';            end
 
 % extract/read the gradiometer and volume conductor
 [vol, sens, cfg] = prepare_headmodel(cfg, data);
@@ -205,6 +213,7 @@ isbem          = isfield(vol, 'bnd');
 issphere       = isfield(vol, 'r');
 ismultisphere  = isfield(vol, 'r') && length(vol.r)>4;
 issinglesphere = isfield(vol, 'r') && length(vol.r)==1;
+isconcentric   = isfield(vol, 'r') && length(vol.r)<=4 && ~issinglesphere;
 
 if ismeg
   % sensors describe MEG data, set the corresponding defaults
@@ -272,11 +281,67 @@ if iseeg
 
   if strcmp(cfg.plotheadsurface, 'yes')  && ~isempty(vol)
     [pnt, tri] = headsurface(vol, sens);
-    h = patch('Faces', tri, 'Vertices', pnt);
-    set(h, 'facecolor', cfg.surface_facecolor);
+    h = triplot(pnt, tri, [], cfg.surftype);
     set(h, 'edgecolor', cfg.surface_edgecolor);
-    set(h, 'facealpha', cfg.surface_facealpha);
+    if strcmp(cfg.surftype, 'faces')
+      set(h, 'facecolor', cfg.surface_facecolor);
+      set(h, 'facealpha', cfg.surface_facealpha);
+    end
   end % plotheadsurface
+
+  if  strcmp(cfg.plotspheres, 'yes') && ~isempty(vol) && issphere
+    % create a triangulated unit sphere
+    if cfg.spheremesh==42
+      [pnt0, tri] = icosahedron42;
+    elseif cfg.spheremesh==162
+      [pnt0, tri] = icosahedron162;
+    elseif cfg.spheremesh==642
+      [pnt0, tri] = icosahedron642;
+    end
+    Nvertices = size(pnt0,1);
+
+    colors = {cortex, brain, skull, skin};
+
+    for i=1:Nspheres
+      % scale and shift the unit sphere to the proper location
+      pnt = pnt0*vol.r(i) + repmat(vol.o, Nvertices,1);
+
+      h = triplot(pnt, tri, [], cfg.surftype);
+      % set(h, 'FaceVertexCData', 0.5*ones(length(distance),30));
+      % set(h, 'FaceVertexCData', [0 0 1]);
+      set(h, 'edgecolor', colors{i})
+      % set(h, 'edgealpha', 1)
+      if strcmp(cfg.surftype, 'faces')
+        % set(h, 'AlphaDataMapping', 'direct');
+        set(h, 'facealpha', 'interp')
+        % set(h, 'facealpha', 0)
+        set(h, 'facecolor', 'none');
+        % set(h, 'linestyle', 'none');
+      end
+    end
+  end % plotspheres
+
+  if  strcmp(cfg.plotbnd, 'yes') && ~isempty(vol) && isbem
+
+    Nbnd = numel(vol.bnd);
+
+    colors = {skin, skull, brain};
+
+    for i=1:Nbnd
+      h = triplot(vol.bnd(i).pnt, vol.bnd(i).tri, [], cfg.surftype);
+      % set(h, 'FaceVertexCData', 0.5*ones(length(distance),30));
+      % set(h, 'FaceVertexCData', [0 0 1]);
+      set(h, 'edgecolor', colors{i})
+      % set(h, 'edgealpha', 1)
+      if strcmp(cfg.surftype, 'faces')
+        % set(h, 'AlphaDataMapping', 'direct');
+        set(h, 'facealpha', 'interp')
+        % set(h, 'facealpha', 0)
+        set(h, 'facecolor', 'none');
+        % set(h, 'linestyle', 'none');
+      end
+    end
+  end % plotbnd
 
   if strcmp(cfg.plotlines, 'yes') && ~isempty(vol)
     if isbem
@@ -343,7 +408,7 @@ elseif ismeg
     elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
       % use the headshape points specified in the configuration
       headshape.pnt = cfg.headshape;
-    elseif ischar(cfg.headshape) 
+    elseif ischar(cfg.headshape)
       % read the headshape from file
       headshape = read_headshape(cfg.headshape);
     else
@@ -352,7 +417,7 @@ elseif ismeg
     plot3(headshape.pnt(:,1), headshape.pnt(:,2), headshape.pnt(:,3), 'r.');
   end % plotheadshape
 
-  if strcmp(cfg.plotspheres, 'yes') && ~isempty(vol)
+  if strcmp(cfg.plotspheres, 'yes') && ~isempty(vol) && issphere
     % create a triangulated unit sphere
     if cfg.spheremesh==42
       [pnt0, tri] = icosahedron42;
@@ -371,31 +436,52 @@ elseif ismeg
       else
         distance = zeros(Nvertices, 1);
       end
-      h = patch('Faces', tri, 'Vertices', pnt);
+      h = triplot(pnt, tri, [], cfg.surftype);
       % set(h, 'FaceVertexCData', 0.5*ones(length(distance),30));
       % set(h, 'FaceVertexCData', [0 0 1]);
-      set(h, 'FaceVertexAlphaData', (1-distance).*(distance<0.1));
+      if strcmp(cfg.surftype, 'faces')
+        set(h, 'edgealpha', 'interp')
+        % set(h, 'edgealpha', 1)
+        set(h, 'FaceVertexAlphaData', (1-distance).*(distance<0.1));
+        % set(h, 'AlphaDataMapping', 'direct');
+        set(h, 'facealpha', 'interp')
+        % set(h, 'facealpha', 0)
+        set(h, 'facecolor', 'none');
+        % set(h, 'linestyle', 'none');
+      end
+    end
+  end % plotspheres
+
+  if  strcmp(cfg.plotbnd, 'yes') && ~isempty(vol) && isbem
+
+    h = triplot(vol.bnd.pnt, vol.bnd.tri, [], cfg.surftype);
+    % set(h, 'FaceVertexCData', 0.5*ones(length(distance),30));
+    % set(h, 'FaceVertexCData', [0 0 1]);
+    set(h, 'edgecolor', brain)
+    % set(h, 'edgealpha', 1)
+    if strcmp(cfg.surftype, 'faces')
       % set(h, 'AlphaDataMapping', 'direct');
-      set(h, 'edgealpha', 'interp')
-      % set(h, 'edgealpha', 1)
       set(h, 'facealpha', 'interp')
       % set(h, 'facealpha', 0)
       set(h, 'facecolor', 'none');
       % set(h, 'linestyle', 'none');
     end
-  end % plotspheres
 
-  if strcmp(cfg.plotspherecenter, 'yes') && ~isempty(vol)
+  end % plotbnd
+
+  if strcmp(cfg.plotspherecenter, 'yes') && ~isempty(vol) && issphere
     plot3(vol.o(:,1), vol.o(:,2), vol.o(:,3), 'k.');
   end % plotspherecenter
 
   if strcmp(cfg.plotheadsurface, 'yes') && ~isempty(vol)
     % estimate the head surface from the spheres and gradiometers
     [pnt, tri] = headsurface(vol, sens);
-    h = patch('Faces', tri, 'Vertices', pnt);
-    set(h, 'facecolor', cfg.surface_facecolor);
+    h = triplot(pnt, tri, [], cfg.surftype);
     set(h, 'edgecolor', cfg.surface_edgecolor);
-    set(h, 'facealpha', cfg.surface_facealpha);
+    if strcmp(cfg.surftype, 'faces')
+      set(h, 'facecolor', cfg.surface_facecolor);
+      set(h, 'facealpha', cfg.surface_facealpha);
+    end
   end % plotheadsurface
 
   if strcmp(cfg.plotlines, 'yes') && ismultisphere
