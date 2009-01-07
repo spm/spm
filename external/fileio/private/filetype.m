@@ -54,6 +54,9 @@ function [ftype, detail] = filetype(filename, desired, varargin);
 % Copyright (C) 2003-2007 Robert Oostenveld
 %
 % $Log: filetype.m,v $
+% Revision 1.93  2009/01/07 10:37:55  roboos
+% changed description for neuralynx_sdma, should not have any functional consequences
+%
 % Revision 1.92  2008/12/24 10:33:48  roboos
 % fixed header for mbfys_ama
 %
@@ -650,7 +653,7 @@ elseif isdir(filename) && any(filetype_check_extension({ls.name}, '.ttl')) && an
   % a directory containing the split channels from a DMA logfile
   ftype = 'neuralynx_sdma';
   manufacturer = 'F.C. Donders Centre';
-  content = 'dataset';
+  content = 'split DMA log file';
 elseif isdir(filename) && filetype_check_extension(filename, '.sdma')
   % a directory containing the split channels from a DMA logfile
   ftype = 'neuralynx_sdma';
