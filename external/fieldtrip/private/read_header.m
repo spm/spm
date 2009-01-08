@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.76  2009/01/08 16:53:34  roboos
+% alternatively use orig.ChannelNames for bci2000 channel count and channel names
+%
 % Revision 1.75  2008/12/01 14:50:42  roboos
 % ensure that header elements are double precision and not integers, otherwise
 % subsequent computations that depend on these might be messed up (learned in Lyon)
@@ -458,19 +461,32 @@ switch headerformat
     % this is inefficient, since it reads the complete data
     [signal, states, parameters, total_samples] = load_bcidat(filename);
     orig = parameters;
-    hdr.Fs          = orig.SamplingRate.NumericValue;
-    hdr.nChans      = orig.SourceCh.NumericValue;
     hdr.nSamples    = total_samples;
     hdr.nSamplesPre = 0;  % it is continuous
     hdr.nTrials     = 1;  % it is continuous
-    if isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Values') && ~isempty(orig.ChannelNames.Value)
+    hdr.Fs          = orig.SamplingRate.NumericValue;
+    
+    % there are some differences in the fields that are present in the
+    % *.dat files, probably due to different BCI2000 versions
+    if isfield(orig, 'SourceCh') && isfield(orig.SourceCh, 'NumericValue')
+      hdr.nChans      = orig.SourceCh.NumericValue;
+    elseif isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Value')
+      hdr.nChans      = length(orig.ChannelNames.Value);
+    else
+      error('cannot determine the number of channels from the original BCI2000 header');
+    end
+
+    if isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Value') && ~isempty(orig.ChannelNames.Value)
       hdr.label       = orig.ChannelNames.Value;
+    elseif isfield(orig, 'ChannelNames') && isfield(orig.ChannelNames, 'Values') && ~isempty(orig.ChannelNames.Values)
+      hdr.label       = orig.ChannelNames.Values;
     else
       warning('creating fake channel names for bci2000_dat');
       for i=1:hdr.nChans
         hdr.label{i} = sprintf('%d', i);
       end
     end
+
     % remember original header details
     hdr.orig        = orig;
 
@@ -570,7 +586,7 @@ switch headerformat
     % only continuous data supported
     if sum(strcmpi({orig.mode},'continuous')) < hdr.nChans,
       error('not all channels contain continuous data');
-    else,
+    else
       hdr.nTrials = 1;
     end;
     hdr.label = {orig.label};

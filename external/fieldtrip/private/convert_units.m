@@ -23,6 +23,10 @@ function [obj] = convert_units(obj, target);
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: convert_units.m,v $
+% Revision 1.5  2009/01/08 17:18:45  roboos
+% fixed bug mom->pos for source structures
+% added unit detection for volumes with a transform and a dim
+%
 % Revision 1.4  2008/07/21 20:29:22  roboos
 % small change in output on screen
 %
@@ -97,7 +101,34 @@ else
     % do some magic based on the size
     unit  = {'m', 'dm', 'cm', 'mm'};
     unit  = unit{round(log10(size)+2-0.2)};
+    
+  elseif isfield(obj, 'pos') && ~isempty(obj.pos)
+    size = norm(range(obj.pos));
+    % do some magic based on the size
+    unit  = {'m', 'dm', 'cm', 'mm'};
+    unit  = unit{round(log10(size)+2-0.2)};
 
+  elseif isfield(obj, 'transform') && ~isempty(obj.transform)
+    % construct the corner points of the voxel grid in head coordinates
+    xi = 1:obj.dim(1);
+    yi = 1:obj.dim(2);
+    zi = 1:obj.dim(3);
+    pos = [
+      xi(  1) yi(  1) zi(  1)
+      xi(  1) yi(  1) zi(end)
+      xi(  1) yi(end) zi(  1)
+      xi(  1) yi(end) zi(end)
+      xi(end) yi(  1) zi(  1)
+      xi(end) yi(  1) zi(end)
+      xi(end) yi(end) zi(  1)
+      xi(end) yi(end) zi(end)
+      ];
+    pos = warp_apply(obj.transform, pos);
+    size = norm(range(pos));
+    % do some magic based on the size
+    unit  = {'m', 'dm', 'cm', 'mm'};
+    unit  = unit{round(log10(size)+2-0.2)};
+    
   elseif isfield(obj, 'fid') && isfield(obj.fid, 'pnt') && ~isempty(obj.fid.pnt)
     size = norm(range(obj.fid.pnt));
     % do some magic based on the size
@@ -164,7 +195,7 @@ if isfield(obj, 'pnt'), obj.pnt = scale * obj.pnt; end
 if isfield(obj, 'fid') && isfield(obj.fid, 'pnt'), obj.fid.pnt = scale * obj.fid.pnt; end
 
 % dipole grid
-if isfield(obj, 'mom'), obj.mom = scale * obj.mom; end
+if isfield(obj, 'pos'), obj.pos = scale * obj.pos; end
 
 % anatomical MRI or functional volume
 if isfield(obj, 'transform'),
