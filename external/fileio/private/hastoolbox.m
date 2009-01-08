@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.24  2009/01/08 17:00:02  roboos
+% improved caching in case the toolbox is not present
+%
 % Revision 1.23  2008/12/24 09:10:46  roboos
 % added dipoli
 %
@@ -276,7 +279,9 @@ end
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
-previous.(fixname(toolbox)) = status;
+if status
+  previous.(fixname(toolbox)) = status;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function
