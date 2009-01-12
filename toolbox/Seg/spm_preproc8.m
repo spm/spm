@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 2338 2008-10-14 14:33:03Z john $
+% $Id: spm_preproc8.m 2600 2009-01-12 13:14:02Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -470,7 +470,7 @@ for iter=1:20,
                     end
                 end
 
-                nmom = struct('hist',chan(:).hist);
+                nmom = struct('hist',{chan(:).hist});
                 if exist('omom','var'),
                     for n=1:N,
                        if isfield(omom(n),'hist') && all(size(omom(n).hist) == size(chan(n).hist)),

@@ -1,4 +1,4 @@
-/* $Id: optimN.c 2561 2008-12-12 17:17:32Z john $ */
+/* $Id: optimN.c 2600 2009-01-12 13:14:02Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>
@@ -10,7 +10,7 @@ extern double log(double x);
 
 #ifdef NEUMANN
     /* Neumann boundary condition */
-    static int neumann(int i, int m)
+    static int neumann(int i,  int m)
     {
         if (m==1)
             return(0);
@@ -30,14 +30,14 @@ extern double log(double x);
 #   define BOUND(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
 #endif
 
-void choldc(int n, float a[], float p[])
+static void choldc(int n, double a[], double p[])
 {
     int i, j, k;
     double sm, sm0;
 
-    sm0 = 1e-3;
+    sm0  = 1e-16;
     for(i=0; i<n; i++) sm0 = sm0 + a[i*n+i];
-    sm0*=1e-8;
+    sm0 *= 1e-4;
     for(i=0; i<n; i++) a[i*n+i] += sm0;
 
     for(i=0; i<n; i++)
@@ -49,7 +49,7 @@ void choldc(int n, float a[], float p[])
                sm -= a[i*n+k] * a[j*n+k];
             if(i==j)
             {
-                if(sm <= sm0) sm = sm0;
+                if(sm <= sm0) {printf("\n ** %g %g  **\n", sm, sm0); sm = sm0;}
                 p[i] = sqrt(sm);
             }
             else
@@ -58,7 +58,7 @@ void choldc(int n, float a[], float p[])
     }
 }
 
-void cholls(int n, float a[], float p[], float b[], float x[])
+static void cholls(int n, double a[], double p[], double b[], double x[])
 {
     int i, k;
     double sm;
@@ -74,7 +74,7 @@ void cholls(int n, float a[], float p[], float b[], float x[])
     {
         sm = x[i];
         for(k=i+1; k<n; k++)
-            sm -= a[k*n+i] * x[k];
+            sm -= a[k*n+i]*x[k];
         x[i] = sm/p[i];
     }
 }
@@ -100,9 +100,9 @@ static void Atimesp1(int dm[], float A[], float p[], float Ap[])
         o = dm[3];
         for(i=0; i<dm[3]; i++)
         {
-             for(k=0; k<i; k++,o++)
+             for(k=i+1; k<dm[3]; k++,o++)
              {
-                 float ao = pA[o][j];
+                 double  ao = pA[o][j];
                  pap[i][j] += ao*pp[k][j];
                  pap[k][j] += ao*pp[i][j];
              }
@@ -110,7 +110,7 @@ static void Atimesp1(int dm[], float A[], float p[], float Ap[])
     }
 }
 
-void get_a(int dm3, int i, float *pa[],  float a[])
+static void get_a(int dm3, int i, float *pa[],  double a[])
 {
     int m, n;
     int o = dm3;
@@ -122,7 +122,7 @@ void get_a(int dm3, int i, float *pa[],  float a[])
     }
 }
 
-double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float u[])
+static double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float u[])
 {
     double w000, w001, w010, w100;
     double ss = 0.0;
@@ -141,7 +141,8 @@ double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float
 
         for(j=0; j<dm[1]; j++)
         {
-            float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2], a1[MAXD3*MAXD3];
+            float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
+            double a1[MAXD3*MAXD3];
             int jm1,jp1,im1,ip1;
 
             for(m=0; m<dm[3]; m++)
@@ -159,7 +160,6 @@ double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float
             {
                 float *p[MAXD3];
                 double tmp;
-                int o;
 
                 im1 = BOUND(i-1,dm[0])-i;
                 ip1 = BOUND(i+1,dm[0])-i;
@@ -169,12 +169,13 @@ double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float
                 for(m=0; m<dm[3]; m++)
                 {
                     int n;
-                    float *pm = &pu[m][i], *a11 = a1 + dm[3]*m;
-                    tmp =  (w000* pm[0] + 
-                          + w001*(pm[km1] + pm[kp1])
-                          + w010*(pm[jm1] + pm[jp1])
-                          + w100*(pm[im1] + pm[ip1]))*scal[m]
-                          - pb[m][i];
+                    float *pm = &pu[m][i];
+                    double *a11 = a1 + dm[3]*m;
+                    tmp = (w000* pm[0] + 
+                         + w001*(pm[km1] + pm[kp1])
+                         + w010*(pm[jm1] + pm[jp1])
+                         + w100*(pm[im1] + pm[ip1]))*scal[m]
+                         - pb[m][i];
                     for(n=0; n<dm[3]; n++)
                         tmp += a11[n]*pu[n][i];
                     ss += tmp*tmp;
@@ -187,8 +188,8 @@ double sumsq_me(int dm[], float a[], float b[], double s[], double scal[], float
 
 void LtLf_me(int dm[], float f[], double s[], double scal[], float g[])
 {
-    int i, j, k, m, km1,kp1, jm1,jp1, im1,ip1;
     double w000,w001,w010,w100;
+    int k;
 
     w000 = s[3]*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + s[5];
     w001 = s[3]*(-s[2]*s[2]);
@@ -197,13 +198,14 @@ void LtLf_me(int dm[], float f[], double s[], double scal[], float g[])
 
     for(k=0; k<dm[2]; k++)
     {
+        int km1, kp1, j;
         km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
         kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
             float *pf[MAXD3], *pg[MAXD3];
-            int jm1,jp1,im1,ip1;
+            int jm1,jp1,im1,ip1, m;
 
             for(m=0; m<dm[3]; m++)
             {
@@ -216,6 +218,7 @@ void LtLf_me(int dm[], float f[], double s[], double scal[], float g[])
 
             for(m=0; m<dm[3]; m++)
             {
+                int i;
                 float *pf1 = pf[m], *pg1 = pg[m];
                 for(i=0; i<dm[0]; i++)
                 {
@@ -266,7 +269,7 @@ static void relax_me(int dm[], float a[], float b[], double s[], double scal[], 
             for(j=0; j<dm[1]; j++)
             {
                 float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
-                float a1[MAXD3*MAXD3], su[MAXD3], cp[MAXD3];
+                double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
                 int jm1,jp1,im1,ip1;
 
                 for(m=0; m<dm[3]; m++)
@@ -312,7 +315,7 @@ static void Atimesp_me(int dm[], float A[], double param[], double scal[], float
     Atimesp1(dm, A, p, Ap);
 }
 
-double sumsq_be(int dm[], float a[], float b[], double s[], double scal[], float u[])
+static double sumsq_be(int dm[], float a[], float b[], double s[], double scal[], float u[])
 {
     double w000,w100,w200,
            w010,w110,
@@ -346,9 +349,9 @@ double sumsq_be(int dm[], float a[], float b[], double s[], double scal[], float
 
         for(j=0; j<dm[1]; j++)
         {
-            float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *payy, *pazz, *paxy, *paxz, *payz;
             int i,m, jm2,jm1,jp1,jp2;
-            float *p[MAXD3], *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2], a1[MAXD3*MAXD3];
+            float *p[MAXD3], *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
+            double a1[MAXD3*MAXD3];
 
             for(m=0; m<dm[3]; m++)
             {
@@ -378,7 +381,8 @@ double sumsq_be(int dm[], float a[], float b[], double s[], double scal[], float
                 for(m=0; m<dm[3]; m++)
                 {
                     int n;
-                    float *pm = p[m], *a11 = a1 + dm[3]*m;
+                    float *pm = p[m];
+                    double *a11 = a1 + dm[3]*m;
                     tmp =  (w000* pm[0] +
                           + w010*(pm[    jm1    ] + pm[    jp1    ])
                           + w020*(pm[    jm2    ] + pm[    jp2    ])
@@ -532,6 +536,7 @@ static void relax_be(int dm[], float a[], float b[], double s[], double scal[], 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
         printf("%dx%dx%d (%g): ", dm[0],dm[1],dm[2],reg);
+        printf(" %g", sumsq_be(dm, a, b, s, scal, u));
 #   endif
 
     for(it=0; it<8*nit; it++)
@@ -589,7 +594,7 @@ static void relax_be(int dm[], float a[], float b[], double s[], double scal[], 
             for(j=jstart; j!=jend; j+=jskip)
             {
                 float *pu[MAXD3], *pb[MAXD3], *pa[(MAXD3*(MAXD3+1))/2];
-                float a1[MAXD3*MAXD3], su[MAXD3], cp[MAXD3];
+                double a1[MAXD3*MAXD3], cp[MAXD3], su[MAXD3];
                 int m, jm2,jm1,jp1,jp2;
 
                 for(m=0; m<dm[3]; m++)
@@ -657,43 +662,6 @@ static void Atimesp_be(int dm[], float A[], double param[], double scal[], float
     Atimesp1(dm, A, p, Ap);
 }
 
-/*
-syms a0 a1 a2 a3 a4 a5 b0 b1 b2
-A = [a0 a3 a4; a3 a1 a5; a4 a5 a2];
-b = [b0 b1 b2].';
-A\b
-*/
-static void solveNN(int n, float a0[], float b[], double t, double scal[], float u[])
-{
-    int i, j, o;
-    float a[MAXD3*MAXD3], p[MAXD3];
-    o = n;
-    for(i=0; i<n; i++)
-    {
-         a[i+n*i] = a0[i] + t*scal[i];
-         for(j=i+1; j<n; j++,o++)
-             a[j+i*n] = a[i+j*n] = a0[o];
-    }
-    choldc(n,a,p);
-    cholls(n,a,p,b,u);
-}
-
-static double dotprod(int m, float a[], float b[])
-{
-    int i;
-    double dp = 0.0;
-    for(i=0; i<m; i++)
-        dp += a[i]*b[i];
-    return(dp);
-}
-
-static void addscaled(int m, float a[], float b[], double s)
-{
-    int i;
-    for(i=0; i<m; i++)
-        a[i] += s*b[i];
-}
-
 float norm(int m, float a[])
 {
     int i;
@@ -720,7 +688,7 @@ static double wt2(double x)
         return(0.0);
 }
 
-static void resized_plane(int na[], float *a, int nc[], float *c, float *b)
+static void resized_plane(int na[], float *a,  int nc[], float *c, float *b)
 {
     int i, j, o,om,op;
     double loc, s, w, wm, wp;
@@ -759,7 +727,7 @@ static void resized_plane(int na[], float *a, int nc[], float *c, float *b)
     }
 }
 
-void resize(int na[], float *a, int nc[], float *c, float *b)
+void resize(int na[], float *a,  int nc[], float *c, float *b)
 {
     int j, k, o=-999999,om,op, m, oo;
     double loc, s, w, wm, wp;
@@ -817,14 +785,7 @@ void resize(int na[], float *a, int nc[], float *c, float *b)
     }
 }
 
-static void rescale(int n, float *a, double s)
-{
-    int i;
-    for(i=0; i<n; i++)
-        a[i] *= s;
-}
-
-static void restrict(int n, int na[], float *a, int nc[], float *c, float *b)
+static void restrict(int n,  int na[], float *a,  int nc[], float *c, float *b)
 {
     int i;
     for(i=0; i<n; i++)
@@ -833,7 +794,7 @@ static void restrict(int n, int na[], float *a, int nc[], float *c, float *b)
     }
 }
 
-static void prolong(int n, int na[], float *a, int nc[], float *c, float *b)
+static void prolong(int n,  int na[], float *a,  int nc[], float *c, float *b)
 {
     int i;
     for(i=0; i<n; i++)
@@ -890,7 +851,7 @@ void fmg(int n0[], float *a0, float *b0, int rtype, double param0[], double scal
           float *u0, float *scratch)
 {
     int i, j, ng, bs;
-    int    n[32][4], m[32];
+     int n[32][4], m[32];
     float *bo[32], *a[32], *b[32], *u[32], *res, *rbuf;
     double param[32][6];
     void (*relax)(), (*Atimesp)();
@@ -970,7 +931,8 @@ void fmg(int n0[], float *a0, float *b0, int rtype, double param0[], double scal
         param[j][4] = param[0][4];
         param[j][5] = param[0][5];
     }
-    solveNN(n0[3], a[ng-1], bo[ng-1], param0[5], scal, u[ng-1]);
+    relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], scal, nit, u[ng-1]);
+
     for(j=ng-2; j>=0; j--)
     {
         int jc;
@@ -985,10 +947,12 @@ void fmg(int n0[], float *a0, float *b0, int rtype, double param0[], double scal
                 Atimesp(n[jj], a[jj], param[jj], scal, u[jj], res);
                 for(i=0; i<n0[3]*m[jj]; i++)
                     res[i] = b[jj][i] - res[i];
+
                 restrict(n0[3],n[jj],res,n[jj+1],b[jj+1],rbuf);
                 zeros(n0[3]*m[jj+1],u[jj+1]);
             }
-            solveNN(n0[3], a[ng-1], b[ng-1], param0[5], scal, u[ng-1]);
+            relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], scal, nit, u[ng-1]);
+
             for(jj=ng-2; jj>=j; jj--)
             {
                 prolong(n0[3],n[jj+1],u[jj+1],n[jj],res,rbuf);
