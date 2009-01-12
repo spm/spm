@@ -65,6 +65,9 @@ function [output] = freqdescriptives(cfg, freq)
 % Copyright (C) 2004-2006, Pascal Fries & Jan-Mathijs Schoffelen, F.C. Donders Centre
 %
 % $Log: freqdescriptives.m,v $
+% Revision 1.56  2009/01/12 13:05:20  sashae
+% small change in call to checkconfig
+%
 % Revision 1.55  2008/11/28 17:33:19  sashae
 % fixed bug in calculating sumcrsspctrm when input data has no time dim
 %
@@ -176,6 +179,7 @@ fieldtripdefs
 freq = checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
 
 % check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
 cfg = checkconfig(cfg, 'renamed',     {'jacknife',   'jackknife'});
 
 % determine some specific details of the input data
@@ -664,6 +668,9 @@ try, output.grad       = freq.grad; end
 %    output.pseudo.cohspctrm = repmat(Nrpt.*coh, [Nrpt 1 1 1]) - (Nrpt-1).*jckcoh;
 %  end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -673,7 +680,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: freqdescriptives.m,v 1.55 2008/11/28 17:33:19 sashae Exp $';
+cfg.version.id = '$Id: freqdescriptives.m,v 1.56 2009/01/12 13:05:20 sashae Exp $';
 try, cfg.previous = freq.cfg; end
 
 % remember the configuration details

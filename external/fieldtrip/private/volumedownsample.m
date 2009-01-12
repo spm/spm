@@ -15,6 +15,9 @@ function [down] = volumedownsample(cfg, source);
 % Copyright (C) 2004, Robert Oostenveld
 %
 % $Log: volumedownsample.m,v $
+% Revision 1.23  2009/01/12 13:05:20  sashae
+% small change in call to checkconfig
+%
 % Revision 1.22  2008/11/21 13:56:12  sashae
 % added call to checkconfig at start and end of function
 %
@@ -139,6 +142,7 @@ fieldtripdefs
 %% checkdata see below!!! %%
 
 % check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
 cfg = checkconfig(cfg, 'unused',  {'voxelcoord'});
 
 if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
@@ -218,7 +222,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumedownsample.m,v 1.22 2008/11/21 13:56:12 sashae Exp $';
+cfg.version.id = '$Id: volumedownsample.m,v 1.23 2009/01/12 13:05:20 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

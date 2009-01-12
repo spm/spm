@@ -40,6 +40,9 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.43  2009/01/12 13:05:20  sashae
+% small change in call to checkconfig
+%
 % Revision 1.42  2008/09/23 12:30:33  sashae
 % checkconfig: checks if the input cfg is valid for this function
 %
@@ -157,6 +160,7 @@ fieldtripdefs
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
 cfg = checkconfig(cfg, 'renamed',     {'label', 'channel'});
 cfg = checkconfig(cfg, 'renamed',     {'sgn',   'channel'});
 cfg = checkconfig(cfg, 'renamed',     {'labelcmb', 'channelcmb'});

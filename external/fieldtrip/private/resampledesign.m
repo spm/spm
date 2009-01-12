@@ -21,6 +21,9 @@ function [resample] = resampedesign(cfg, design);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: resampledesign.m,v $
+% Revision 1.4  2009/01/12 15:16:47  jansch
+% enabled  bootstrap-resampling for repeated measures
+%
 % Revision 1.3  2007/07/18 15:07:54  roboos
 % changed output, now also reindexing matrix for permutation (just like in case of bootstrap) instead of the permuted design itself
 % implemented control variable for constraining the resampling within blocks
@@ -207,9 +210,30 @@ elseif length(cfg.uvar)>0 && strcmp(cfg.resampling, 'permutation')
     end
   end
   
-elseif length(cfg.uvar)>0 && strcmp(cfg.resampling, 'bootstrap')
-  error('Bootstrap resampling is not yet supported for this design.');
+elseif length(cfg.uvar)==1 && strcmp(cfg.resampling, 'bootstrap') && length(cfg.cvar)==0,
+  % randomly draw with replacement, keeping the number of elements the same in each class
+  % only the test under the null-hypothesis (h0) is explicitely implemented here
+  % but the h1 test can be achieved using a control variable
+ 
+  % FIXME allow for length(cfg.uvar)>1, does it make sense in the first place
+  % bootstrap the units of observation 
+  units = design(cfg.uvar,:);
+  for k = 1:length(unique(units))
+    sel = find(units==k);
+    indx(:,k) = sel;
+    Nrep(k)   = length(sel);
+  end
+  resample = zeros(cfg.numrandomization, Nrepl);
+  
+  %sanity check on number of repetitions
+  if any(Nrep~=Nrep(1)), error('all units of observation should have an equal number of repetitions'); end
 
+  for i=1:cfg.numrandomization
+    tmp           = randsample(1:Nrepl/Nrep(1), Nrepl/Nrep(1));
+    for k=1:size(indx,1)
+      resample(i,indx(k,:)) = indx(k,tmp);
+    end
+  end
 else
   error('Unsupported configuration for resampling.');
 end
@@ -225,4 +249,3 @@ if length(cfg.wvar)>0
   end
   resample = expand;
 end
-
