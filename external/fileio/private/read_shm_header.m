@@ -6,6 +6,9 @@ function [hdr] = read_shm_header(filename)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_header.m,v $
+% Revision 1.5  2009/01/12 12:01:55  roboos
+% determine number of samples and trials from only the data blocks, not all blocks. It seems that memcpy has changed, which now sometimes seems to cause a block to be "corupt" for a small amount of time.
+%
 % Revision 1.4  2008/12/02 08:28:40  roboos
 % fixed typo, missing )
 %
@@ -83,10 +86,10 @@ else
   warning('no setup in shared memory, could not enable trigger detection');
 end
 
-% the following information is either specified in shared memory, or does
-% not apply to real-time acquisition
-hdr.nTrials     = double(max(sampleNumber))/double(max(numSamples));
-hdr.nSamples    = double(max(numSamples));
+% the following information is determined from shared memory
+sel = find(msgType==1);  % these are the data packets
+hdr.nTrials     = double(max(sampleNumber(sel)))/double(max(numSamples(sel)));
+hdr.nSamples    = double(max(numSamples(sel)));
 hdr.nSamplesPre = 0;
 
 

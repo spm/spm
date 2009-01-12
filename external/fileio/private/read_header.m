@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.77  2009/01/12 13:47:50  roboos
+% adedd suggestion from Doug to fix number of samples on specific configuation of OS/matlab and mex rawdata mex file
+%
 % Revision 1.76  2009/01/08 16:53:34  roboos
 % alternatively use orig.ChannelNames for bci2000 channel count and channel names
 %
@@ -925,6 +928,19 @@ switch headerformat
     % read a single trial to determine the data size
     [buf, status] = rawdata('next');
     rawdata('close');
+
+    % This is to solve a problem reported by Doug Davidson: The problem
+    % is that rawdata('samples') is not returning the number of samples
+    % correctly. It appears that the example script rawchannels in meg-pd
+    % might work, however, so I want to use rawchannels to read in one
+    % channel of data in order to get the number of samples in the file:
+    if orig.rawdata.samples<0
+      tmpchannel = 1;
+      tmpvar = rawchannels(filename,tmpchannel);
+      [orig.rawdata.samples] = size(tmpvar,2);
+      clear tmpvar tmpchannel;
+    end
+
     % convert to fieldtrip format header
     hdr.label       = orig.channames.NA;
     hdr.Fs          = orig.rawdata.sf;
