@@ -51,6 +51,11 @@ function [cfg] = rejectartifact(cfg,data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.43  2009/01/13 10:14:58  sashae
+% changed handling of the output cfg: now the cfg also has cfg.previous fields,
+% similar to data.cfg.previous. this way the output of definetrial and the
+% artifact functions is kept separately from subsequent preprocessing steps
+%
 % Revision 1.42  2008/10/13 13:54:38  estmee
 % Documentation is updated and added fetch_header (used when there are 2 input arguments).
 %
@@ -122,6 +127,8 @@ if 0
   try, dum = artifact_threshold; end
 end
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
 cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
 % set the defaults
@@ -407,6 +414,9 @@ else
   fprintf('not rejecting any data, only marking the artifacts\n');
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the artfctdef substructure
 try
   % get the full name of the function
@@ -416,7 +426,17 @@ catch
   [st, i] = dbstack;
   cfg.artfctdef.version.name = st(i);
 end
-cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.42 2008/10/13 13:54:38 estmee Exp $';
+cfg.artfctdef.version.id = '$Id: rejectartifact.m,v 1.43 2009/01/13 10:14:58 sashae Exp $';
+
+% remember the exact configuration details in the output
+cfgtmp = cfg;
+cfg = [];
+try cfg.trl        = cfgtmp.trl;        end
+try cfg.dataset    = cfgtmp.dataset;    end
+try cfg.datafile   = cfgtmp.datafile;   end
+try cfg.headerfile = cfgtmp.headerfile; end
+try cfg.continuous = cfgtmp.continuous; end
+cfg.previous = cfgtmp;
 
 % apply the updated trial definition on the data
 if nargin>1

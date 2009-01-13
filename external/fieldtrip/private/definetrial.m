@@ -64,6 +64,11 @@ function [cfg] = definetrial(cfg);
 % Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: definetrial.m,v $
+% Revision 1.54  2009/01/13 10:14:58  sashae
+% changed handling of the output cfg: now the cfg also has cfg.previous fields,
+% similar to data.cfg.previous. this way the output of definetrial and the
+% artifact functions is kept separately from subsequent preprocessing steps
+%
 % Revision 1.53  2008/10/10 14:41:22  sashae
 % replaced call to dataset2files with checkconfig
 %
@@ -120,7 +125,8 @@ function [cfg] = definetrial(cfg);
 
 fieldtripdefs
 
-% if neccessary convert dataset into headerfile and data file
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
 cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
 if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
@@ -207,3 +213,25 @@ cfg.event = event;
 fprintf('created %d trials\n', size(trl,1));
 cfg.trl = trl;
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
+% add information about the version of this function to the configuration
+try
+  % get the full name of the function
+  cfg.version.name = mfilename('fullpath');
+catch
+  % required for compatibility with Matlab versions prior to release 13 (6.5)
+  [st, i1] = dbstack;
+  cfg.version.name = st(i1);
+end
+cfg.version.id = '$Id: definetrial.m,v 1.54 2009/01/13 10:14:58 sashae Exp $';
+
+% remember the exact configuration details in the output
+cfgtmp = cfg;
+cfg = [];
+try cfg.trl        = cfgtmp.trl;        end
+try cfg.dataset    = cfgtmp.dataset;    end
+try cfg.datafile   = cfgtmp.datafile;   end
+try cfg.headerfile = cfgtmp.headerfile; end
+cfg.previous = cfgtmp;
