@@ -14,6 +14,9 @@ function [n, ts] = nex_ts(filename, varname)
 % modifications by Robert Oostenveld
 %
 % $Log: nex_ts.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.3  2008/09/30 07:47:04  roboos
 % replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
 %

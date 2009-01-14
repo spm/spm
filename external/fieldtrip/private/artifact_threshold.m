@@ -37,6 +37,10 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.27  2009/01/14 11:47:07  sashae
+% changed handling of cfg.datatype
+% added call to checkconfig at start and end of function
+%
 % Revision 1.26  2008/12/02 16:33:00  estmee
 % Set default cfg.continuous/ checkconfig cfg.datatype= forbidden
 %
@@ -117,10 +121,12 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 
 fieldtripdefs
 
-if ~isfield(cfg.artfctdef, 'threshold'), cfg.artfctdef.threshold = []; end
-
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'forbidden', {'datatype'});
+cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
+if ~isfield(cfg.artfctdef, 'threshold'), cfg.artfctdef.threshold = []; end
 
 % copy the specific configuration for this function out of the master cfg
 artfctdef = cfg.artfctdef.threshold;
@@ -214,6 +220,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.26 2008/12/02 16:33:00 estmee Exp $';
+cfg.version.id = '$Id: artifact_threshold.m,v 1.27 2009/01/14 11:47:07 sashae Exp $';
 
-
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

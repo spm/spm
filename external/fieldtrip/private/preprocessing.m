@@ -125,6 +125,9 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.104  2009/01/14 11:31:57  sashae
+% changed handling of cfg.datatype
+%
 % Revision 1.103  2008/12/02 15:28:49  estmee
 % Changes to make cfg.datatype deprecated.
 %
@@ -456,8 +459,9 @@ else
   % check if the input cfg is valid for this function
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = checkconfig(cfg, 'required', {'headerfile', 'datafile'});
-  cfg = checkconfig(cfg, 'forbidden', {'datatype'});
-  
+  cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+  cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
   % read the header
   hdr = read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
 
@@ -632,8 +636,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.103 2008/12/02 15:28:49 estmee Exp $';
-
+cfg.version.id   = '$Id: preprocessing.m,v 1.104 2009/01/14 11:31:57 sashae Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

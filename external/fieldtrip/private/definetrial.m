@@ -64,6 +64,9 @@ function [cfg] = definetrial(cfg);
 % Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: definetrial.m,v $
+% Revision 1.55  2009/01/14 11:29:55  sashae
+% temporarily disabled previous revision
+%
 % Revision 1.54  2009/01/13 10:14:58  sashae
 % changed handling of the output cfg: now the cfg also has cfg.previous fields,
 % similar to data.cfg.previous. this way the output of definetrial and the
@@ -225,13 +228,13 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: definetrial.m,v 1.54 2009/01/13 10:14:58 sashae Exp $';
+cfg.version.id = '$Id: definetrial.m,v 1.55 2009/01/14 11:29:55 sashae Exp $';
 
-% remember the exact configuration details in the output
-cfgtmp = cfg;
-cfg = [];
-try cfg.trl        = cfgtmp.trl;        end
-try cfg.dataset    = cfgtmp.dataset;    end
-try cfg.datafile   = cfgtmp.datafile;   end
-try cfg.headerfile = cfgtmp.headerfile; end
-cfg.previous = cfgtmp;
+% % remember the exact configuration details in the output
+% cfgtmp = cfg;
+% cfg = [];
+% try cfg.trl        = cfgtmp.trl;        end
+% try cfg.dataset    = cfgtmp.dataset;    end
+% try cfg.datafile   = cfgtmp.datafile;   end
+% try cfg.headerfile = cfgtmp.headerfile; end
+% cfg.previous = cfgtmp;

@@ -22,6 +22,9 @@ function [ChannelLabels, Time, Frequency, Data, Info] = read_besa_tfc(FILENAME)
 % Copyright (C) 2005, Vladimir Litvak
 %
 % $Log: read_besa_tfc.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.3  2006/04/05 15:36:13  roboos
 % documented bug that was reported for matlab72, not yet fixed
 %

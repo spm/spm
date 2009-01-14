@@ -29,8 +29,8 @@ function [data] = redefinetrial(cfg, data)
 %   cfg.toilim    = [tmin tmax] to specify a latency window in seconds
 %
 % Alternatively you can specify the begin and end sample in each trial
-%   cfg.begsample = single number or Nx1 vector, expressed in samples relative to current t=0
-%   cfg.endsample = single number or Nx1 vector, expressed in samples relative to current t=0
+%   cfg.begsample = single number or Nx1 vector, expressed in samples relative to the start of the input trial
+%   cfg.endsample = single number or Nx1 vector, expressed in samples relative to the start of the input trial
 %
 % Alternatively you can specify a new trial definition, expressed in
 % samples relative to the original recording
@@ -41,6 +41,11 @@ function [data] = redefinetrial(cfg, data)
 % Copyright (C) 2006-2008, Robert Oostenveld
 %
 % $Log: redefinetrial.m,v $
+% Revision 1.24  2009/01/14 15:11:22  roboos
+% corrected documentation for cfg.begsample/endsample
+% fixed bug in output data.cfg.trl (one sample too long at the end) for input cfg.toilim and input cfg.begsample/endsample
+% cleaned up the code for cfg.trl (use default variable names)
+%
 % Revision 1.23  2008/11/10 10:48:55  jansch
 % removed typo
 %
@@ -193,7 +198,7 @@ if ~isempty(cfg.toilim)
   % also correct the trial definition
   if ~isempty(trl)
     trl(:,1) = trl(:,1) + begsample - 1;
-    trl(:,2) = trl(:,1) + (endsample-begsample+1);
+    trl(:,2) = trl(:,1) + endsample - begsample;
     trl(:,3) = trl(:,3) + begsample - 1;
   end
 
@@ -240,7 +245,7 @@ elseif ~isempty(cfg.begsample) || ~isempty(cfg.endsample)
   % also correct the trial definition
   if ~isempty(trl)
     trl(:,1) = trl(:,1) + begsample - 1;
-    trl(:,2) = trl(:,1) + (endsample-begsample+1);
+    trl(:,2) = trl(:,1) + endsample - begsample;
     trl(:,3) = trl(:,3) + begsample - 1;
   end
 
@@ -248,21 +253,23 @@ elseif ~isempty(cfg.trl)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % select new trials from the existing data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  dataold = data;
-  trl     = cfg.trl;
-  clear data        % this line is very important! without this line artifacts are not removed from the data but you don't get a warning!
+  dataold = data;   % make a copy of the old data
+  clear data        % this line is very important, we want to completely reconstruct the data from the old data!
 
   % make header
-  hdr=fetch_header(dataold);
+  hdr = fetch_header(dataold);
 
   % make new data structure
-  for iTrl=1:length(cfg.trl(:,1))
-    dat= fetch_data(dataold, 'hdr',hdr,'begsample', cfg.trl(iTrl,1),'endsample', cfg.trl(iTrl,2),'chanindx', 1:hdr.nChans);
-    data.trial{iTrl} = dat;
-    trllength        = cfg.trl(iTrl,2) - cfg.trl(iTrl,1) + 1;
-    data.time{iTrl}  = offset2time(cfg.trl(iTrl,3), dataold.fsample, trllength);
+  trl = cfg.trl;
+  for iTrl=1:length(trl(:,1))
+    begsample = trl(iTrl,1);
+    endsample = trl(iTrl,2);
+    offset    = trl(iTrl,3);
+    trllength        = endsample - begsample + 1;
+    data.trial{iTrl} = fetch_data(dataold, 'hdr', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', 1:hdr.nChans);
+    data.time{iTrl}  = offset2time(offset, dataold.fsample, trllength);
   end
-  data.hdr=hdr;
+  data.hdr       = hdr;
   data.label     = dataold.label;
   data.fsample   = dataold.fsample;
   if isfield(dataold, 'grad')
@@ -306,9 +313,10 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: redefinetrial.m,v 1.23 2008/11/10 10:48:55 jansch Exp $';
+cfg.version.id = '$Id: redefinetrial.m,v 1.24 2009/01/14 15:11:22 roboos Exp $';
 % remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
+try, cfg.previous = data.cfg;    end
+try, cfg.previous = dataold.cfg; end % in case of ~isempty(cfg.trl)
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

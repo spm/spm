@@ -11,6 +11,9 @@ function [src] = read_besa_src(filename);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_besa_src.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.2  2005/10/05 06:32:08  roboos
 % removed forced reading of (incorrect) condition label
 %

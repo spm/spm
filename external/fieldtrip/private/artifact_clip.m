@@ -25,6 +25,10 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.20  2009/01/14 11:47:07  sashae
+% changed handling of cfg.datatype
+% added call to checkconfig at start and end of function
+%
 % Revision 1.19  2008/12/02 16:29:42  estmee
 % Set default cfg.continuous/ checkconfig cfg.datatype = forbidden
 %
@@ -86,6 +90,11 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 
 fieldtripdefs
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
 % set default rejection parameters for clip artifacts if necessary.
 if ~isfield(cfg,'artfctdef'),               cfg.artfctdef               = [];              end;
 if ~isfield(cfg.artfctdef,'clip'),          cfg.artfctdef.clip          = [];              end;
@@ -93,9 +102,6 @@ if ~isfield(cfg.artfctdef.clip,'channel'),  cfg.artfctdef.clip.channel  = 'all';
 if ~isfield(cfg.artfctdef.clip,'thresh'),   cfg.artfctdef.clip.thresh   = 0.010;           end;
 if ~isfield(cfg.artfctdef.clip,'pretim'),   cfg.artfctdef.clip.pretim   = 0.000;           end;
 if ~isfield(cfg.artfctdef.clip,'psttim'),   cfg.artfctdef.clip.psttim   = 0.000;           end;
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.clip,'sgn')
@@ -196,6 +202,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
+cfg.version.id = '$Id: artifact_clip.m,v 1.20 2009/01/14 11:47:07 sashae Exp $';
 
-cfg.version.id = '$Id: artifact_clip.m,v 1.19 2008/12/02 16:29:42 estmee Exp $';
-
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

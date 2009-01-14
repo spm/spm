@@ -9,6 +9,9 @@ function [ntt] = read_neuralynx_ntt(filename, begrecord, endrecord)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_neuralynx_ntt.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.7  2008/04/29 07:52:31  roboos
 % fixed windows related bug
 % be consistent with begin and end timestamp in header

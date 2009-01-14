@@ -17,6 +17,14 @@ function [backpanel, frontpanel] = read_ctf_trigger(dataset)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: read_ctf_trigger.m,v $
+% Revision 1.1  2009/01/14 09:12:15  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.8  2006/02/06 09:02:35  roboos
 % added support for triggers in UPPT001, USPT001, UTRG001 (thanks to Tom)
 %

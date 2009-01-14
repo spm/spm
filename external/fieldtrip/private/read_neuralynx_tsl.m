@@ -12,6 +12,9 @@ function [dat] = read_neuralynx_tsh(filename, begsample, endsample);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: read_neuralynx_tsl.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.3  2006/12/12 11:32:22  roboos
 % read the data as uint32 instead of signed integers
 %

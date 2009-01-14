@@ -11,6 +11,14 @@ function write_neuralynx_ncs(filename, ncs);
 % Copyright (C) 2005-2007, Robert Oostenveld
 %
 % $Log: write_neuralynx_ncs.m,v $
+% Revision 1.1  2009/01/14 09:12:16  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.7  2007/03/21 12:51:20  roboos
 % included the scaling to int16 AD values into this function, i.e. the input data should be uV (double)
 %

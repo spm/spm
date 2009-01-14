@@ -11,6 +11,9 @@ function [rej] = read_brainvision_marker(fn);
 % Copyright (C) 2004, Robert Oostenveld & Doug Davidson
 %
 % $Log: read_brainvision_marker.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.2  2004/09/24 15:57:20  roboos
 % implemented suggested change by Doug Davidson: get sampling rate from file instead of having it hard coded
 %

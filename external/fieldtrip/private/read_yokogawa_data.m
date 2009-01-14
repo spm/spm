@@ -17,6 +17,14 @@ function [dat] = read_yokogawa_data(filename, hdr, begsample, endsample, chanind
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_yokogawa_data.m,v $
+% Revision 1.1  2009/01/14 09:12:16  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.6  2008/04/21 14:19:38  roboos
 % move teh channel selection to _after_ the calibration, otherwise calibration fails (thanks to Vladimir)
 %

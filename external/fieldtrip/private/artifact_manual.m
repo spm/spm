@@ -42,6 +42,10 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Copyright (C) 2004, Geerten Kramer, FCDC
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.23  2009/01/14 11:47:07  sashae
+% changed handling of cfg.datatype
+% added call to checkconfig at start and end of function
+%
 % Revision 1.22  2008/12/02 16:31:49  estmee
 % Set default cfg.continuous/ checkconfig cfg.datatype = forbidden
 %
@@ -121,6 +125,11 @@ function [cfg, artifact] = artifact_manual(cfg);
 
 fieldtripdefs
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
 % set default parameters if necessary.
 if ~isfield(cfg, 'artfctdef'),                          cfg.artfctdef                            = [];       end
 if ~isfield(cfg.artfctdef,'manual'),                    cfg.artfctdef.manual                     = [];       end
@@ -131,9 +140,6 @@ if ~isfield(cfg.artfctdef.manual,'pretrialtime'),       cfg.artfctdef.manual.pre
 if ~isfield(cfg.artfctdef.manual,'posttrialtime'),      cfg.artfctdef.manual.posttrialtime       = 0;        end
 if ~isfield(cfg.artfctdef.manual,'timeaxrelative'),     cfg.artfctdef.manual.timeaxrelative      = 'yes';    end
 if ~isfield(cfg.artfctdef.manual,'maxnumberofchannels'),cfg.artfctdef.manual.maxnumberofchannels = 20;       end
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.manual,'sgn')
@@ -346,10 +352,13 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.22 2008/12/02 16:31:49 estmee Exp $';
+cfg.version.id = '$Id: artifact_manual.m,v 1.23 2009/01/14 11:47:07 sashae Exp $';
+
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% here the SUBFUNCTIONS start taht implement the gui callbacks
+% here the SUBFUNCTIONS start that implement the gui callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function varargout=nexttrial(h, eventdata, handles, varargin)

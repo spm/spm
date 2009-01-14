@@ -6,6 +6,9 @@ function data = read_asa_msr(fn);
 % Copyright (C) 2002, Robert Oostenveld
 % 
 % $Log: read_asa_msr.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.5  2008/11/14 07:41:17  roboos
 % only whitespace, no functional change
 %

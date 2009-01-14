@@ -13,6 +13,9 @@ function [event] = read_yokogawa_event(filename);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_yokogawa_event.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.3  2005/11/16 13:48:59  roboos
 % updated the handles subfunction, no functional change
 %

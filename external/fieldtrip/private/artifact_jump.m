@@ -42,6 +42,10 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_jump.m,v $
+% Revision 1.24  2009/01/14 11:47:07  sashae
+% changed handling of cfg.datatype
+% added call to checkconfig at start and end of function
+%
 % Revision 1.23  2008/12/02 16:35:32  estmee
 % Checkconfig cfg.datatype= forbidden
 %
@@ -91,13 +95,15 @@ function [cfg, artifact] = artifact_jump(cfg,data)
 
 fieldtripdefs
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                      cfg.artfctdef                 = [];              end
 if ~isfield(cfg.artfctdef,'jump'),                 cfg.artfctdef.jump            = [];              end
 if ~isfield(cfg.artfctdef.jump,'method'),          cfg.artfctdef.jump.method     = 'zvalue';        end
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.jump,'sgn')
@@ -166,3 +172,5 @@ else
   error(sprintf('jump artifact detection only works with cfg.method=''zvalue'''));
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

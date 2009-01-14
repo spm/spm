@@ -46,6 +46,10 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.30  2009/01/14 11:47:07  sashae
+% changed handling of cfg.datatype
+% added call to checkconfig at start and end of function
+%
 % Revision 1.29  2008/12/02 16:36:10  estmee
 % Checkconfig cfg.datatype = forbidden
 %
@@ -95,13 +99,15 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 
 fieldtripdefs
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                     cfg.artfctdef                    = [];        end
 if ~isfield(cfg.artfctdef,'muscle'),              cfg.artfctdef.muscle             = [];        end
 if ~isfield(cfg.artfctdef.muscle,'method'),       cfg.artfctdef.muscle.method      = 'zvalue';  end
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.muscle,'sgn')
@@ -173,3 +179,5 @@ else
   error(sprintf('muscle artifact detection only works with cfg.method=''zvalue'''));
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 

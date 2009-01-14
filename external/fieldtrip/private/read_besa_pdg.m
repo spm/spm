@@ -12,6 +12,9 @@ function [bad_flags, epochs, rejected, trial_pos_ms, trial_cond_ind, scanned_ran
 % Copyright (C) 2005, Vladimir Litvak 6/4/05
 %
 % $Log: read_besa_pdg.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.2  2005/07/28 14:08:06  roboos
 % converted from partially dos/unix into pure unix (i.e. removed CRs)
 %

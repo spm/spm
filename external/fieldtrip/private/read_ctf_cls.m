@@ -5,6 +5,14 @@ function [condNumbers,condLabels] = read_ctf_cls(fname)
 % Copyright (C) 2003, Ole Jensen
 %
 % $Log: read_ctf_cls.m,v $
+% Revision 1.1  2009/01/14 09:12:15  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.2  2006/04/20 12:07:31  roboos
 % fixed bug when a class had no trials associated to it, changed output format for condNumbers from cell-array with cells into a cell-array with numeric arrays
 %

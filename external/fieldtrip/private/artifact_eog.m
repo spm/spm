@@ -45,6 +45,10 @@ function [cfg, artifact] = artifact_eog(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_eog.m,v $
+% Revision 1.34  2009/01/14 11:47:07  sashae
+% changed handling of cfg.datatype
+% added call to checkconfig at start and end of function
+%
 % Revision 1.33  2008/12/02 16:35:01  estmee
 % Checkconfig cfg.datatype = forbidden
 %
@@ -91,13 +95,15 @@ function [cfg, artifact] = artifact_eog(cfg,data)
 
 fieldtripdefs
 
+% check if the input cfg is valid for this function
+cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
+
 % set default rejection parameters
 if ~isfield(cfg,'artfctdef'),                  cfg.artfctdef                 = [];       end
 if ~isfield(cfg.artfctdef,'eog'),              cfg.artfctdef.eog             = [];       end
 if ~isfield(cfg.artfctdef.eog,'method'),       cfg.artfctdef.eog.method      = 'zvalue'; end
-
-% check if the input cfg is valid for this function
-cfg = checkconfig(cfg, 'forbidden', {'datatype'});
 
 % for backward compatibility
 if isfield(cfg.artfctdef.eog,'sgn')
@@ -167,3 +173,5 @@ else
   error(sprintf('EOG artifact detection only works with cfg.method=''zvalue'''));
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');

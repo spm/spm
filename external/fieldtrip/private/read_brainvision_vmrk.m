@@ -15,6 +15,9 @@ function [stimulus, response, segment, timezero] = read_brainvision_vmrk(filenam
 % modifications R. Oostenveld 14.08.2003
 %
 % $Log: read_brainvision_vmrk.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.3  2008/07/24 12:05:12  roboos
 % changed end ot line to unix style
 %

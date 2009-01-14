@@ -8,6 +8,9 @@ function [dat] = read_besa_mul(filename)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: read_besa_mul.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.2  2008/11/14 07:42:13  roboos
 % use general tokenize function instead of local copy, removed tokenize as subfunction
 %

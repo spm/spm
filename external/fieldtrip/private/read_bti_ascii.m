@@ -13,6 +13,9 @@ function [file] = read_bti_ascii(filename);
 % Copyright (C) 2004, Robert Oostenveld
 % 
 % $Log: read_bti_ascii.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.2  2008/11/14 07:49:19  roboos
 % use standard matlab strtrim function instead of deblank2
 %

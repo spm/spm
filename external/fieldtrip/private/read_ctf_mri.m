@@ -9,6 +9,9 @@ function [mri, hdr] = read_ctf_mri(filename);
 % Copyright (C) 2003 Robert Oostenveld
 %
 % $Log: read_ctf_mri.m,v $
+% Revision 1.1  2009/01/14 09:24:45  roboos
+% moved even more files from fileio to fileio/privtae, see previous log entry
+%
 % Revision 1.4  2008/09/30 07:47:04  roboos
 % replaced all occurences of setstr() with char(), because setstr is deprecated by Matlab
 %
