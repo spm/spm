@@ -28,6 +28,14 @@ function [dat] = read_neuralynx_bin(filename, begsample, endsample);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: read_neuralynx_bin.m,v $
+% Revision 1.1  2009/01/14 09:12:15  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.5  2008/09/30 08:01:04  roboos
 % replaced all fread(char=>char) into uint8=>char to ensure that the
 % chars are read as 8 bits and not as extended 16 bit characters. The

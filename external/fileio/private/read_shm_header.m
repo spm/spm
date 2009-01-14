@@ -6,6 +6,14 @@ function [hdr] = read_shm_header(filename)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: read_shm_header.m,v $
+% Revision 1.1  2009/01/14 09:12:15  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.5  2009/01/12 12:01:55  roboos
 % determine number of samples and trials from only the data blocks, not all blocks. It seems that memcpy has changed, which now sometimes seems to cause a block to be "corupt" for a small amount of time.
 %

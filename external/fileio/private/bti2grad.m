@@ -18,6 +18,14 @@ function [grad] = bti2grad(hdr);
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.1  2009/01/14 09:12:15  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.8  2008/10/20 15:16:16  jansch
 % removed the explicit sorting of the channels, this could cause problems
 % later on. however, the sensors and references are block-wise sorted still

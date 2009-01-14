@@ -7,6 +7,14 @@ function [val] = filetype_check_header(filename, head, offset)
 % Copyright (C) 2003-2006 Robert Oostenveld
 %
 % $Log: filetype_check_header.m,v $
+% Revision 1.1  2009/01/14 09:12:15  roboos
+% The directory layout of fileio in cvs sofar did not include a
+% private directory, but for the release of fileio all the low-level
+% functions were moved to the private directory to make the distinction
+% between the public API and the private low level functions. To fix
+% this, I have created a private directory and moved all appropriate
+% files from fileio to fileio/private.
+%
 % Revision 1.9  2008/11/02 10:38:14  roboos
 % give warning instead of error if file has zero length
 %

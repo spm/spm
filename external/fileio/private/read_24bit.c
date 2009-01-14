@@ -19,6 +19,10 @@
  *
  *
  * $Log: read_24bit.c,v $
+ * Revision 1.1  2009/01/14 09:43:37  roboos
+ * moved source code for mex file from fileio/mex to file/private
+ * compiling the source code from within Matlab now ensures that the mex file will be located immediately at the right position
+ *
  * Revision 1.7  2008/12/11 17:32:33  roboos
  * added conditional include and define for win32 & 64, thanks to Guillaume
  *
