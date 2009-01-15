@@ -36,6 +36,9 @@ function [comp] = componentanalysis(cfg, data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.42  2009/01/14 21:16:51  marvger
+% changes related to realtime processing
+%
 % Revision 1.41  2008/11/25 15:03:05  estmee
 % Documentation update
 %
@@ -319,6 +322,7 @@ elseif strcmp(cfg.method, 'parafac')
 else
   % concatenate all the data into a 2D matrix
   fprintf('concatenating data');
+
   dat = zeros(Nchans, sum(Nsamples));
   for trial=1:Ntrials
     fprintf('.');
@@ -523,7 +527,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.41 2008/11/25 15:03:05 estmee Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.42 2009/01/14 21:16:51 marvger Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

@@ -30,6 +30,9 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.18  2009/01/14 21:16:52  marvger
+% changes related to realtime processing
+%
 % Revision 1.17  2008/12/16 15:36:34  roboos
 % prevent append to be used twice in the key-value list for fcdc_buffer
 %
@@ -175,67 +178,39 @@ switch dataformat
       packet.nsamples  = 0;
       packet.nevents   = 0;
       packet.data_type = find(strcmp(type, class(dat))) - 1; % zero-offset
+
+      % try to put_hdr and initialize if necessary
       try
-        buffer('put_hdr', packet, host, port);
-      catch
-        % it might be that the buffer is not running yet
-        a = lasterr;
-        a = double(a(:));
-        b =   [69
-          114
-          114
-          111
-          114
-          32
-          117
-          115
-          105
-          110
-          103
-          32
-          61
-          61
-          62
-          32
-          98
-          117
-          102
-          102
-          101
-          114
-          10
-          102
-          97
-          105
-          108
-          101
-          100
-          32
-          116
-          111
-          32
-          99
-          114
-          101
-          97
-          116
-          101
-          32
-          115
-          111
-          99
-          107
-          101
-          116
-          10];
-        [name, port] = filetype_check_uri(filename);
-        if isequal(a,b) && strcmp(name, 'localhost')
-          % try starting a local buffer
-          buffer('tcpserver', 'init', name, port);
-          % try writing the packet again
+          % try writing the packet
           buffer('put_hdr', packet, host, port);
-        end
-      end % catch
+      catch
+          % assuming tcpsocket is not yet initialized
+          
+          if strcmp(host,'localhost')
+
+              % FIXME: check error type
+              
+              warning('starting fieldtrip buffer on localhost');
+              
+              % try starting a local buffer
+              buffer('tcpserver', 'init', host, port);
+              pause(1);
+
+              % write packet until succeed
+              bhdr = false;
+              while ~bhdr
+                  try
+                      bhdr = true;
+                      % try writing the packet again
+                      buffer('put_hdr', packet, host, port);
+                  catch
+                      bhdr = false;
+                  end
+              end
+          end
+
+      end
+          
     end % writing header
 
     if ~isempty(dat)

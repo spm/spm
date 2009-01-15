@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.77  2009/01/14 21:16:51  marvger
+% changes related to realtime processing
+%
 % Revision 1.76  2009/01/06 09:11:45  roboos
 % use new function call API for read_data
 %
@@ -629,7 +632,7 @@ switch eventformat
       hdr = read_header(headerfile);
     end
 
-    try,
+    try
       % read the trigger codes from the STIM channel, usefull for (pseudo) continuous data
       % this splits the trigger channel into the lowers and highest 16 bits,
       % corresponding with the front and back panel of the electronics cabinet at the Donders Centre
@@ -686,7 +689,7 @@ switch eventformat
       end
     end
 
-    if exist(markerfile)
+    if exist(markerfile,'file')
       % read the marker file and make an event for each marker
       % this depends on the readmarkerfile function that I got from Tom Holroyd
       % I have not tested this myself extensively, since at the FCDC we
@@ -836,11 +839,12 @@ switch eventformat
         event(eventCount).value    =  char([CateNames(segHdr(segment,1),1:CatLengths(segHdr(segment,1)))]);
     end
 
-  case 'fcdc_buffer'
-    % read from a networked buffer for realtime analysis
+  case 'fcdc_buffer'      
+    % read from a networked buffer for realtime analysis    
     [host, port] = filetype_check_uri(filename);
+    
     evt = buffer('get_evt', [], host, port);  % indices should be zero-offset
-    % FIMXE it should be possible to specify event numbers
+    % FIXME it should be possible to specify event numbers
 
     type = {
       'char'
