@@ -55,6 +55,15 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.80  2009/01/15 12:06:46  marvger
+% removed keyboard command
+%
+% Revision 1.79  2009/01/15 09:42:05  marvger
+% determining meg4 filesize based on all files conforming to REGEXP *.*meg4
+%
+% Revision 1.78  2009/01/14 21:16:52  marvger
+% changes related to realtime processing
+%
 % Revision 1.77  2009/01/12 13:47:50  roboos
 % adedd suggestion from Doug to fix number of samples on specific configuation of OS/matlab and mex rawdata mex file
 %
@@ -424,6 +433,21 @@ if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
     % the header file has not been updated, fetch it from the cache
     % fprintf('got header from cache\n');
     hdr = rmfield(cacheheader, 'details');
+
+    % update the number of samples from the datasets themselves
+    switch filetype(datafile)
+
+      case 'ctf_meg4'
+
+        sz = 0;
+        files = dir([filename '/*.*meg4']);
+        for j=1:numel(files)
+          sz = sz + files(j).bytes;
+        end
+        hdr.nTrials = floor((sz - 8) / (hdr.nChans*4) / hdr.nSamples);
+
+    end
+
     return;
   end
 end
@@ -603,7 +627,7 @@ switch headerformat
     orig             = readCTFds(filename);
     hdr.Fs           = orig.res4.sample_rate;
     hdr.nChans       = orig.res4.no_channels;
-    hdr.nSamples     = orig.res4.no_samples;
+    hdr.nSamples     = orig.res4.no_samples;       
     hdr.nSamplesPre  = orig.res4.preTrigPts;
     hdr.nTrials      = orig.res4.no_trials;
     hdr.label        = cellstr(orig.res4.chanNames);
@@ -637,6 +661,18 @@ switch headerformat
       disp(tmp.message);
       warning('could not construct gradiometer definition from the header');
     end
+ 
+    % for realtime analysis eof chasing the res4 does not correctly
+    % estimate the number of samples so we compute it on the fly from the
+    % meg4 file sizes.
+    sz = 0;
+    files = dir([filename '/*.*meg4']);
+    for j=1:numel(files)
+      sz = sz + files(j).bytes;
+    end
+
+    hdr.nTrials = floor((sz - 8) / (hdr.nChans*4) / hdr.nSamples);
+    
     % add the original header details
     hdr.orig = orig;
 
@@ -1162,6 +1198,7 @@ if cache && exist(headerfile, 'file')
   % update the header details (including time stampp, size and name)
   cacheheader.details = dir(headerfile);
   % fprintf('added header to cache\n');
+  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

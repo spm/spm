@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.29  2009/01/14 21:16:52  marvger
+% changes related to realtime processing
+%
 % Revision 1.28  2008/12/19 14:39:25  marvger
 % added support for udp, tcp and fifo
 %
@@ -253,11 +256,52 @@ switch eventformat
       evt.offset   = int32(event(i).offset);
       evt.duration = int32(event(i).duration);
 
-      evt.buf     = uint8(buf);
       evt.bufsize = bufsize;
-      buffer('put_evt', evt, host, port);  % indices should be zero-offset
-    end
+      evt.buf     = uint8(buf);
+      
+      % check if buffer is open and keep trying to fill it...
+      try
+        
+        if strcmp(append,'no')        
+          buffer('flush_evt', [], host, port);  % flush event
+        end
 
+        buffer('put_evt', evt, host, port);  % indices should be zero-offset
+        
+      catch
+
+          % FIXME: check error type
+           if strcmp(host,'localhost')
+
+              warning('starting fieldtrip buffer on localhost');
+              
+              % try starting a local buffer
+              buffer('tcpserver', 'init', host, port);
+              pause(1);
+
+              % write packet until succeed
+              bhdr = false;
+              while ~bhdr
+                  try
+                      bhdr = true;
+       
+                      % try writing a dummy header
+                      dumhdr.fsample   = 0;
+                      dumhdr.nchans    = 0;
+                      dumhdr.nsamples  = 0;
+                      dumhdr.nevents   = 0;
+                      dumhdr.data_type = 0;
+                      
+                      buffer('put_hdr', dumhdr, host, port);
+                      buffer('put_evt', evt, host, port);  % indices should be zero-offset       
+                      
+                  catch
+                      bhdr = false;
+                  end
+              end
+          end
+      end
+    end
 
   case 'fcdc_serial'
     % serial port on windows or linux platform
@@ -394,7 +438,7 @@ switch eventformat
         % UDP network socket
 
         [host, port] = filetype_check_uri(filename);
-        udp=pnet('udpsocket',1111);
+        udp=pnet('udpsocket',1111); % ???
 
         if udp~=-1,
             try % Failsafe
