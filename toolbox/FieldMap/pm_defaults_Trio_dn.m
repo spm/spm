@@ -1,22 +1,20 @@
-% SPM5 UPDATE 17/12/06
-% UPDATE 27/01/05
+% SPM5 UPDATE 23/11/07
 % Sets the default values for the FieldMap toolbox
 %
-% FORMAT pm_defaults_Allegra_eFoV
+% FORMAT pm_defaults_Trio_dn
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% on the Allegra scanner at the FIL and the new EPI sequence with
-% extended  FOV, and PE blips=-1:
-% nw_mepi_v3d_efov, nw_mepi_v3d_Amy,
-% nw_mepi_v3d_Hippoc, nw_mepi_v3d_OFC_Amy.
+% on the Trio scanner at the AMRIG/FIL and the EPI sequences with
+% PE blips = +1;
+% nw_mepi_v1b_OFC 
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra_eFoV.m 2613 2009-01-16 19:38:14Z chloe $
+% $Id: pm_defaults_Trio_dn.m 2613 2009-01-16 19:38:14Z chloe $
 
-global pm_def;
+global pm_def
 
 % Defaults for creating field map. (See pm_make_fieldmap.m and 
 %                                   FieldMap.man for more info.)
@@ -26,8 +24,8 @@ pm_def.INPUT_DATA_FORMAT = 'PM';      % 'RI' = load two real and
                                       % 'PM' = load one or two
                                       % phase and magnitude image
                                       % pairs.
-pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Allegra
-pm_def.LONG_ECHO_TIME = 12.46;        % Long echo time in ms for Allegra
+pm_def.SHORT_ECHO_TIME = 10.0;        % Short echo time in ms for Trio
+pm_def.LONG_ECHO_TIME = 12.46;        % Long echo time in ms for Trio
 pm_def.MASKBRAIN = 1;                 % Do brain masking (1 or 0,
                       % 0 for EPI fieldmaps)
 
@@ -55,8 +53,8 @@ pm_def.MFLAGS.GRAPHICS = 0; % A larger value helps segmentation to converge
 % Defaults for converting field map to voxel displacement map.
 %=======================================================================
 pm_def.EPI_BASED_FIELDMAPS = 0;         % EPI=1, other=0.
-pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = -1; % +ve k-space = 1, -ve = -1.
-pm_def.TOTAL_EPI_READOUT_TIME = 23.76;   % Allegra EPI RO time (330E-6*72)
+pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = +1; % +ve k-space = 1, -ve = -1.
+pm_def.TOTAL_EPI_READOUT_TIME = 32.0;   % Trio EPI RO time (500E-6*64)
 
 % Defaults for Unwarping.
 %=======================================================================

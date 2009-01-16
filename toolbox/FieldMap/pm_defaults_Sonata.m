@@ -6,12 +6,13 @@
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% on the Sonata scanner at the FIL.
+% on the Sonata scanner at the FIL with the being phased out sequence
+% ralf_epi_tbr and nw_mepi_silent_v1a.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Sonata.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_defaults_Sonata.m 2613 2009-01-16 19:38:14Z chloe $
 
 global pm_def
 

@@ -5,12 +5,14 @@
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% on the Trio scanner at the AMRIG/FIL.
+% on the Trio scanner at the AMRIG/FIL and the most standard EPI sequences
+% with PE blips = -1:
+% nw_mepi_standard, nw_mepi_v1b_Amy, nw_mepi_v1b_Hippoc, nw_mepi_v1b_OFC_Amy 
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Trio.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_defaults_Trio.m 2613 2009-01-16 19:38:14Z chloe $
 
 global pm_def
 

@@ -22,7 +22,7 @@ function [VDM IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton 
-% $Id: FieldMap_create.m 1753 2008-05-29 13:54:30Z chloe $
+% $Id: FieldMap_create.m 2613 2009-01-16 19:38:14Z chloe $
 %_______________________________________________________________________
 
   
@@ -231,7 +231,7 @@ else
          session_vdm = spm_vol(IP.vdmP.fname);
          vol=spm_read_vols(session_vdm);
          vdm_info=sprintf('Voxel Displacement Map:echo time difference=%2.2fms, EPI readout time=%2.2fms',IP.uflags.etd, IP.tert);    
-         newname=sprintf('%s_%s%d.img',spm_str_manip(IP.vdmP.fname,'r'),sessname,sessnum);
+         newname=sprintf('%s_%s%d.%s',spm_str_manip(IP.vdmP.fname,'r'),sessname,sessnum,spm_str_manip(IP.vdmP.fname,'e'));
          Ovdm=struct('fname',newname,'mat',session_vdm.mat,'dim',session_vdm.dim,'dt',session_vdm.dt,'descrip',vdm_info);
          spm_write_vol(Ovdm,vol);
       end

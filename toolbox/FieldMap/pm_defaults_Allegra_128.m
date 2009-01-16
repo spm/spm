@@ -6,12 +6,14 @@
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% and the 128 EPI sequence on the Allegra scanner at the FIL.
+% and the 128 EPI sequence on the Allegra scanner at the FIL with
+% PE blips = -1:
+% nw_mepi_128_v3d.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra_128.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_defaults_Allegra_128.m 2613 2009-01-16 19:38:14Z chloe $
 
 global pm_def
 

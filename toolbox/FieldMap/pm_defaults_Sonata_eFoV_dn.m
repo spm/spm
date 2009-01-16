@@ -6,12 +6,13 @@
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% on the Sonata scanner at the FIL.
+% on the Sonata scanner at the FIL, with the eFoV sequence and PE blips=+1:
+% nw_mepi_v3d_OFC
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Sonata_eFoV_dn.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_defaults_Sonata_eFoV_dn.m 2613 2009-01-16 19:38:14Z chloe $
 
 global pm_def
 

@@ -7,13 +7,13 @@
 %
 % This file is intended for use with the Siemens fieldmap sequence
 % on the Allegra scanner at the FIL and the new EPI sequence with
-% extended FOV and optimised for imaging the orbital frontal cortex.
-% nw_mepi_v3d_OFC
+% extended FOV and optimised for imaging the orbital frontal cortex -
+% nw_mepi_v3d_OFC_HiRes_RO.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra_OFC.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_defaults_Allegra_OFC.m 2613 2009-01-16 19:38:14Z chloe $
 
 
 global pm_def

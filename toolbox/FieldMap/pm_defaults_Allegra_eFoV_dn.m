@@ -2,19 +2,18 @@
 % UPDATE 27/01/05
 % Sets the default values for the FieldMap toolbox
 %
-% FORMAT pm_defaults_Allegra_eFoV
+% FORMAT pm_defaults_Allegra_eFoV_dn
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
 % on the Allegra scanner at the FIL and the new EPI sequence with
-% extended  FOV, and PE blips=-1:
-% nw_mepi_v3d_efov, nw_mepi_v3d_Amy,
-% nw_mepi_v3d_Hippoc, nw_mepi_v3d_OFC_Amy.
+% extended field FOV with PE blips = +1:
+% nw_mepi_v3d_OFC
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra_eFoV.m 2613 2009-01-16 19:38:14Z chloe $
+% $Id: pm_defaults_Allegra_eFoV_dn.m 2613 2009-01-16 19:38:14Z chloe $
 
 global pm_def;
 
@@ -55,7 +54,7 @@ pm_def.MFLAGS.GRAPHICS = 0; % A larger value helps segmentation to converge
 % Defaults for converting field map to voxel displacement map.
 %=======================================================================
 pm_def.EPI_BASED_FIELDMAPS = 0;         % EPI=1, other=0.
-pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = -1; % +ve k-space = 1, -ve = -1.
+pm_def.K_SPACE_TRAVERSAL_BLIP_DIR = +1; % +ve k-space = 1, -ve = -1.
 pm_def.TOTAL_EPI_READOUT_TIME = 23.76;   % Allegra EPI RO time (330E-6*72)
 
 % Defaults for Unwarping.

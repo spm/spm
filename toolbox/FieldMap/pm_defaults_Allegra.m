@@ -1,3 +1,4 @@
+
 % SPM5 UPDATE 17/12/06
 % UPDATE 27/01/05
 % Sets the default values for the FieldMap toolbox
@@ -6,12 +7,13 @@
 %_______________________________________________________________________
 %
 % This file is intended for use with the Siemens fieldmap sequence
-% on the Allegra scanner at the FIL.
+% on the Allegra scanner at the FIL and the old default sequence
+% ralf_epi_tbrff.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra.m 1533 2008-05-01 14:29:03Z spm $
+% $Id: pm_defaults_Allegra.m 2613 2009-01-16 19:38:14Z chloe $
 
 
 global pm_def

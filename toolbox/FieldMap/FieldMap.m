@@ -1,6 +1,6 @@
 function varargout=FieldMap(varargin)
 %
-% FieldMap is an SPM2 Toolbox for creating field maps and unwarping EPI.
+% FieldMap is an SPM8 Toolbox for creating field maps and unwarping EPI.
 % A full description of the toolbox and a usage manual can be found in 
 % FieldMap.man. This can launched by the toolbox help button or using 
 % spm_help FieldMap.man.The theoretical and practical principles behind 
@@ -114,7 +114,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 1844 2008-06-20 20:14:05Z guillaume $
+% $Id: FieldMap.m 2613 2009-01-16 19:38:14Z chloe $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants
@@ -1821,6 +1821,68 @@ switch lower(Action)
 
       IP.uepiP.dat=uepi.*msk;
       varargout{1}=IP.uepiP;
+      
+%=======================================================================
+%
+% Create unwarped epi - NO gui ***FOR XY***
+%
+%=======================================================================
+
+   case 'unwarpepixy'
+      %
+      % Update unwarped EPI
+      %
+      IP=varargin{2};
+      IP.uepiP = struct('fname',   'Image in memory',...
+                        'dim',     IP.epiP.dim,...
+                        'dt',[64 spm_platform('bigend')],...
+                        'pinfo',   IP.epiP.pinfo(1:2),...
+                        'mat',     IP.epiP.mat);
+
+      % Need to sample EPI and voxel shift map in space of EPI...
+      [x,y,z] = ndgrid(1:IP.epiP.dim(1),1:IP.epiP.dim(2),1:IP.epiP.dim(3));
+      xyz = [x(:) y(:) z(:)];
+
+      % Space of EPI is IP.epiP{1}.mat and space of 
+      % voxel shift map is IP.vdmP{1}.mat 
+      tM = inv(IP.epiP.mat\IP.vdmP.mat);
+
+      x2 = tM(1,1)*x + tM(1,2)*y + tM(1,3)*z + tM(1,4);
+      y2 = tM(2,1)*x + tM(2,2)*y + tM(2,3)*z + tM(2,4);
+      z2 = tM(3,1)*x + tM(3,2)*y + tM(3,3)*z + tM(3,4);
+      xyz2 = [x2(:) y2(:) z2(:)];
+
+      %
+      % Make mask since it is only meaningful to calculate undistorted
+      % image in areas where we have information about distortions.
+      %
+      msk = reshape(double(xyz2(:,1)>=1 & xyz2(:,1)<=IP.vdmP.dim(1) &...
+		           xyz2(:,2)>=1 & xyz2(:,2)<=IP.vdmP.dim(2) &...
+		           xyz2(:,3)>=1 & xyz2(:,3)<=IP.vdmP.dim(3)),IP.epiP.dim(1:3));
+	          
+      % Read in voxel displacement map in correct space
+      tvdm = reshape(spm_sample_vol(spm_vol(IP.vdmP.fname),xyz2(:,1),...
+                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
+
+      % Voxel shift map must be added to the x-coordinates. 
+      uepi = reshape(spm_sample_vol(IP.epiP,xyz(:,1)+tvdm(:),...
+                      xyz(:,2),xyz(:,3),1),IP.epiP.dim(1:3));% TEMP CHANGE
+      
+      % Sample Jacobian in correct space and apply if required 
+      if IP.ajm==1
+         if IP.epifm==1 % If EPI, use inverted jacobian
+
+            IP.jim = reshape(spm_sample_vol(IP.vdm.ijac,xyz2(:,1),...
+                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
+         else
+            IP.jim = reshape(spm_sample_vol(IP.vdm.jac,xyz2(:,1),...
+                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));
+         end  
+         uepi = uepi.*(1+IP.jim);
+      end
+
+      IP.uepiP.dat=uepi.*msk;
+      varargout{1}=IP.uepiP;
 
 %=======================================================================
 %
@@ -1918,7 +1980,104 @@ switch lower(Action)
       spm_get_space(deblank(IP.vdmP.fname),M*MM); 
 
       varargout{1} = IP.vdmP; 
+      
+%=======================================================================
+%
+% Coregister fieldmap magnitude image to EPI to do unwarpxy
+%
+%=======================================================================
 
+   case 'matchvdmxy'
+   
+      IP=varargin{2};
+
+      % 
+      % Need a fieldmap magnitude image
+      %
+
+      if isempty(IP.pP) & ~isempty(IP.P{1})
+
+         IP.fmagP=struct('dim',  IP.P{1}.dim,...
+	              'dt',IP.P{1}.dt,...
+                      'pinfo',   IP.P{1}.pinfo,...
+                      'mat',     IP.P{1}.mat);
+         IP.fmagP.fname=fullfile(spm_str_manip(IP.P{1}.fname, 'h'),['mag_' deblank(spm_str_manip(IP.P{1}.fname,'t'))]);
+
+      
+         % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
+         % If using phase and magnitude, use magnitude image.
+         if IP.uflags.iformat=='RI' 
+            IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
+         else
+            IP.fmagP = IP.P{2};
+         end
+      elseif ~isempty(IP.pP) & ~isempty(IP.fmagP)
+          msg=sprintf('Using %s for matching\n',IP.fmagP.fname);
+          disp(msg);
+      else
+         %IP.fmagP = spm_vol(spm_get(1,'*.img','Select field map magnitude image'));
+         % SPM5 Update
+         IP.fmagP = spm_vol(spm_select(1,'image','Select field map magnitude image'));
+      end
+
+      % Now we have field map magnitude image, we want to coregister it to the 
+      % EPI to be unwarped. 
+      % If using an EPI field map:
+      % 1) Coregister magnitude image to EPI.
+      % 2) Apply resulting transformation matrix to voxel shift map
+      % If using a non-EPI field map:
+      % 1) Forward warp magnitude image
+      % 2) Coregister warped magnitude image to EPI.
+      % 3) Apply resulting transformation matrix to voxel shift map
+    
+      if IP.epifm==1
+         [mi,M] = FieldMap('Coregister',IP.epiP,IP.fmagP);
+         MM = IP.fmagP.mat;
+      else
+         % Need to sample magnitude image in space of EPI to be unwarped...
+         [x,y,z] = ndgrid(1:IP.epiP.dim(1),1:IP.epiP.dim(2),1:IP.epiP.dim(3));
+          xyz = [x(:) y(:) z(:)];
+
+         % Space of EPI is IP.epiP{1}.mat and space of fmagP is IP.fmagP.mat 
+         tM = inv(IP.epiP.mat\IP.fmagP.mat);
+         x2 = tM(1,1)*x + tM(1,2)*y + tM(1,3)*z + tM(1,4);
+         y2 = tM(2,1)*x + tM(2,2)*y + tM(2,3)*z + tM(2,4);
+         z2 = tM(3,1)*x + tM(3,2)*y + tM(3,3)*z + tM(3,4);
+         xyz2 = [x2(:) y2(:) z2(:)];
+         wfmag = reshape(spm_sample_vol(IP.fmagP,xyz2(:,1),...
+                      xyz2(:,2),xyz2(:,3),1),IP.epiP.dim(1:3));     
+
+         % Need to sample voxel shift map in space of EPI to be unwarped
+         tvdm = reshape(spm_sample_vol(IP.vdm.vdm,xyz2(:,1),...
+                      xyz2(:,2),xyz2(:,3),0),IP.epiP.dim(1:3));            
+                      
+         % Now apply warps to resampled forward warped magnitude image...
+         wfmag = reshape(spm_sample_vol(wfmag,xyz(:,1)-tvdm(:),xyz(:,2),...
+                       xyz(:,3),1),IP.epiP.dim(1:3));
+              
+         % Write out forward warped magnitude image
+         IP.wfmagP = struct('dim',  IP.epiP.dim,...
+                         'dt',[64 spm_platform('bigend')],...
+                         'pinfo',   IP.epiP.pinfo,...
+                         'mat',     IP.epiP.mat);
+         IP.wfmagP = FieldMap('Write',IP.epiP,wfmag,'wfmag_',4,'Voxel shift map');
+
+         % Now coregister warped magnitude field map to EPI
+         [mi,M] = FieldMap('Coregister',IP.epiP,IP.wfmagP);
+
+         % Update the .mat file of the forward warped mag image 
+         spm_get_space(deblank(IP.wfmagP.fname),M*IP.wfmagP.mat);
+
+         % Get the original space of the fmap magnitude      
+         MM = IP.fmagP.mat;
+      end
+
+      % Update .mat file for voxel displacement map
+      IP.vdmP.mat=M*MM;       
+      spm_get_space(deblank(IP.vdmP.fname),M*MM); 
+
+      varargout{1} = IP.vdmP; 
+     
 %=======================================================================
 %
 % Invert voxel displacement map

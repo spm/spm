@@ -67,7 +67,7 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton 
-% $Id: FieldMap_preprocess.m 1753 2008-05-29 13:54:30Z chloe $
+% $Id: FieldMap_preprocess.m 2613 2009-01-16 19:38:14Z chloe $
 %_______________________________________________________________________
 
  
@@ -139,13 +139,13 @@ end
 if iscell(epi_dir)
    nsessions = size(epi_dir,2);
    for sessnum=1:nsessions
-      epi_all = spm_select('List',epi_dir{sessnum},'^f.*\.img$');
+      epi_all = strvcat(spm_select('List',epi_dir{sessnum},'^f.*\.nii$'),spm_select('List',epi_dir{sessnum},'^f.*\.img$'));
       epi_img{sessnum}=fullfile(epi_dir{sessnum},epi_all(1,:));
    end
 elseif isstr(epi_dir)
    nsessions=1;
    sessnum=1;
-   epi_all = spm_select('List',epi_dir,'^f.*\.img$');
+   epi_all = strvcat(spm_select('List',epi_dir,'^f.*\.nii$'),spm_select('List',epi_dir,'^f.*\.img$'));
    epi_img{sessnum}=fullfile(epi_dir,epi_all(1,:));
 end
 
@@ -153,7 +153,7 @@ end
 % Load field map data from fieldmap directory
 %----------------------------------------------------------------------
 if pm_def.INPUT_DATA_FORMAT=='PM'
-   fm_imgs = spm_select('List',fm_dir,'^s.*\.img$');
+   fm_imgs = strvcat(spm_select('List',fm_dir,'^s.*\.nii$'),spm_select('List',fm_dir,'^s.*\.img$'));
    if ~isempty(fm_imgs)
       nfiles=size(fm_imgs,1);
       % Added the next few lines so the scaled fieldmap files aren't picked
@@ -195,7 +195,7 @@ elseif pm_def.INPUT_DATA_FORMAT=='RI'
    % This expects to find six EPI field map files: 
    % 3 short (real, imag and mag) and 3 long (real, imag and mag).
 
-   all_fm_imgs = spm_select('List',fm_dir,'^f.*\.img$');
+   all_fm_imgs = strvcat(spm_select('List',fm_dir,'^f.*\.nii$'), spm_select('List',fm_dir,'^f.*\.img$'));
    nfiles=size(all_fm_imgs,1);
    if nfiles~=6
          msg=sprintf('Wrong number of field map (f*.img) images! There should be 6!');

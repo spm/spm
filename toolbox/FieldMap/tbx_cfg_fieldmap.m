@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 1813 2008-06-10 18:08:21Z chloe $
+% $Id: tbx_cfg_fieldmap.m 2613 2009-01-16 19:38:14Z chloe $
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
 
@@ -593,17 +593,25 @@ fieldmap.help    = {
 fieldmap.values  = {presubphasemag realimag phasemag precalcfieldmap };
 
 %------------------------------------------------------------------------
-function fieldmap_presubphasemag(fieldmap)
-FieldMap_Run(fieldmap.subj);
+function fieldmap_presubphasemag(job)
+for i=1:numel(job.subj),
+   FieldMap_Run(job.subj(i));
+end
 %------------------------------------------------------------------------
-function fieldmap_realimag(fieldmap)
-FieldMap_Run(fieldmap.subj);
+function fieldmap_realimag(job)
+for i=1:numel(job.subj),
+   FieldMap_Run(job.subj(i));
+end
 %------------------------------------------------------------------------
-function fieldmap_phasemag(fieldmap)
-Fieldmap_Run(fieldmap.subj);
+function fieldmap_phasemag(job)
+for i=1:numel(job.subj),
+   FieldMap_Run(job.subj(i));
+end
 %------------------------------------------------------------------------
-function fieldmap_precalcfieldmap(fieldmap)
-FieldMap_Run(fieldmap.subj);
+function fieldmap_precalcfieldmap(job)
+for i=1:numel(job.subj),
+   FieldMap_Run(job.subj(i));
+end
 %------------------------------------------------------------------------
 
         
