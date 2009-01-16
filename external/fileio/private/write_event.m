@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.30  2009/01/16 11:38:51  marvger
+% update tcp/udp
+%
 % Revision 1.29  2009/01/14 21:16:52  marvger
 % changes related to realtime processing
 %
@@ -134,8 +137,6 @@ function write_event(filename, event, varargin)
 % Revision 1.1  2007/05/31 09:14:34  roboos
 % initial implementation, sofar only tcpsocket
 %
-
-persistent con       % for fcdc_tcp
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql
@@ -409,11 +410,11 @@ switch eventformat
     case 'fcdc_tcp'
 
         % TCP network socket
-
         [host, port] = filetype_check_uri(filename);
-        if isempty(con)
-            con=pnet('tcpconnect',host,port);
-        end
+
+        con=pnet('tcpconnect',host,port);
+
+        pnet(con,'setwritetimeout',1);
 
         if con~=-1,
 
@@ -428,17 +429,20 @@ switch eventformat
                     pnet(con,'printf',num2str(msg));
                     pnet(con,'printf','\n');
                 end
-
-            end
-            %         pnet(con,'close');
+            catch me              
+                disp(me.message);
+            end            
         end
+        
+        pnet(con,'close');
+        
 
     case 'fcdc_udp'
 
         % UDP network socket
-
+        
         [host, port] = filetype_check_uri(filename);
-        udp=pnet('udpsocket',1111); % ???
+        udp=pnet('udpsocket',port);
 
         if udp~=-1,
             try % Failsafe
