@@ -4,7 +4,7 @@ function job = spm_config_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_config_dartel.m 2210 2008-09-26 20:14:13Z john $
+% $Id: spm_config_dartel.m 2611 2009-01-16 19:11:27Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 %_______________________________________________________________________
@@ -762,10 +762,10 @@ vf = {};
 PU = job.flowfields;
 PI = job.images;
 jactransf = job.jactransf;
-
 for i=1:numel(PU),
+    [pth,nam] = spm_fileparts(PU{i});
     for m=1:numel(PI),
-        [pth,nam,ext,num] = spm_fileparts(PI{m}{i});
+        [pth1,nam,ext,num] = spm_fileparts(PI{m}{i});
         if jactransf,
             fname = fullfile(pth,['mw' nam ext ',1']);
         else
