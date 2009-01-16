@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.78  2009/01/16 11:38:38  marvger
+% update tcp/udp
+%
 % Revision 1.77  2009/01/14 21:16:51  marvger
 % changes related to realtime processing
 %
@@ -337,7 +340,7 @@ function [event] = read_event(filename, varargin)
 % changed compared to the read_fcdc_xxx versions.
 %
 
-persistent con       % for fcdc_tcp
+persistent sock       % for fcdc_tcp
 
 global event_queue        % for fcdc_global
 persistent db_blob        % for fcdc_mysql
@@ -922,30 +925,31 @@ switch eventformat
 
         % requires tcp/udp/ip-toolbox
         [host, port] = filetype_check_uri(filename);
-        if isempty(con)
-            sock=pnet('tcpsocket',port);
-            con = pnet(sock, 'tcplisten');
+
+        if isempty(sock)
+          sock=pnet('tcpsocket',port);
         end
 
+        con = pnet(sock, 'tcplisten');
+        
         if con~=-1
             try
 
-                % check whether the receiver has the specified hostname
-                [t,h] = system('hostname');
-                [t,d] = system('dnsdomainname');
-                assert(isequal(host,strcat(h,d)) || isequal(host,'localhost'));
-
-                % read packet
-                msg=pnet(con,'readline'); %,1000,'uint8','network');
-
-                if ~isempty(msg)
-                    event = mxDeserialize(uint8(str2double(msg)));
-                end
+              pnet(con,'setreadtimeout',1);
+              
+              % read packet
+              msg=pnet(con,'readline'); %,1000,'uint8','network');
+              
+              if ~isempty(msg)
+                event = mxDeserialize(uint8(str2num(msg)));
+              end
+            catch me
+              disp(me.message);
             end
-
-            % On break or error close connection
-            %        pnet(con,'close');
         end
+
+        pnet(con,'close');
+        con = [];
 
     case 'fcdc_udp'
 
@@ -953,14 +957,11 @@ switch eventformat
 
         % UDP network socket
         [host, port] = filetype_check_uri(filename);
-        udp=pnet('udpsocket',port);
 
         try
+          % read from localhost
 
-            % check whether the receiver has the specified hostname
-            [t,h] = system('hostname');
-            [t,d] = system('dnsdomainname');
-            assert(isequal(host,strcat(h,d)) || isequal(host,'localhost'));
+            udp=pnet('udpsocket',port);
 
             % Wait/Read udp packet to read buffer
             len=pnet(udp,'readpacket');

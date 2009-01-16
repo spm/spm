@@ -36,6 +36,9 @@ function [comp] = componentanalysis(cfg, data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: componentanalysis.m,v $
+% Revision 1.43  2009/01/16 17:21:20  sashae
+% added config tracking
+%
 % Revision 1.42  2009/01/14 21:16:51  marvger
 % changes related to realtime processing
 %
@@ -201,7 +204,7 @@ tic;
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
 
 % check if the input cfg is valid for this function
-
+cfg = checkconfig(cfg);
 cfg = checkconfig(cfg, 'forbidden', {'detrend'});
 
 % set the defaults
@@ -518,6 +521,9 @@ else
   end
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add the version details of this function call to the configuration
 try
   % get the full name of the function
@@ -527,7 +533,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: componentanalysis.m,v 1.42 2009/01/14 21:16:51 marvger Exp $';
+cfg.version.id   = '$Id: componentanalysis.m,v 1.43 2009/01/16 17:21:20 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

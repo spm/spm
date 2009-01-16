@@ -25,6 +25,9 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.21  2009/01/16 18:19:41  sashae
+% moved some lines of code, no functional change
+%
 % Revision 1.20  2009/01/14 11:47:07  sashae
 % changed handling of cfg.datatype
 % added call to checkconfig at start and end of function
@@ -193,6 +196,9 @@ cfg.artfctdef.clip.label    = label;
 cfg.artfctdef.clip.trl      = cfg.trl;
 cfg.artfctdef.clip.artifact = artifact;
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -202,7 +208,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_clip.m,v 1.20 2009/01/14 11:47:07 sashae Exp $';
-
-% get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg.version.id = '$Id: artifact_clip.m,v 1.21 2009/01/16 18:19:41 sashae Exp $';

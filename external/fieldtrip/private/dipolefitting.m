@@ -123,6 +123,9 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %   
 % $Log: dipolefitting.m,v $
+% Revision 1.52  2009/01/16 17:21:20  sashae
+% added config tracking
+%
 % Revision 1.51  2008/10/02 15:32:20  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -310,6 +313,7 @@ function [source] = dipolefitting(cfg, data)
 %
 
 fieldtripdefs
+cfg = checkconfig(cfg);
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -695,6 +699,9 @@ if isfield(data, 'elec')
   source.elec = data.elec;
 end
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add the version details of this function call to the configuration
 try
   % get the full name of the function
@@ -704,7 +711,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.51 2008/10/02 15:32:20 sashae Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.52 2009/01/16 17:21:20 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

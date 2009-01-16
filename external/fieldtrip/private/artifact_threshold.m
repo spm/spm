@@ -37,6 +37,9 @@ function [cfg, artifact] = artifact_threshold(cfg,data)
 % Copyright (c) 2003, Robert Oostenveld, SMI, FCDC
 %
 % $Log: artifact_threshold.m,v $
+% Revision 1.28  2009/01/16 18:19:41  sashae
+% moved some lines of code, no functional change
+%
 % Revision 1.27  2009/01/14 11:47:07  sashae
 % changed handling of cfg.datatype
 % added call to checkconfig at start and end of function
@@ -211,6 +214,9 @@ cfg.artfctdef.threshold.trl      = cfg.trl;         % trialdefinition prior to r
 cfg.artfctdef.threshold.channel  = channel;         % exact channels used for detection
 cfg.artfctdef.threshold.artifact = artifact;        % detected artifacts
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -220,7 +226,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_threshold.m,v 1.27 2009/01/14 11:47:07 sashae Exp $';
-
-% get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg.version.id = '$Id: artifact_threshold.m,v 1.28 2009/01/16 18:19:41 sashae Exp $';

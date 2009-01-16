@@ -83,6 +83,9 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %
 % $Log: prepare_leadfield.m,v $
+% Revision 1.27  2009/01/16 17:21:20  sashae
+% added config tracking
+%
 % Revision 1.26  2008/10/02 15:32:21  sashae
 % replaced call to createsubcfg with checkconfig
 %
@@ -193,6 +196,7 @@ function [grid, cfg] = prepare_leadfield(cfg, data)
 %
 
 fieldtripdefs
+cfg = checkconfig(cfg);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -274,6 +278,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -283,7 +290,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: prepare_leadfield.m,v 1.26 2008/10/02 15:32:21 sashae Exp $';
+cfg.version.id = '$Id: prepare_leadfield.m,v 1.27 2009/01/16 17:21:20 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

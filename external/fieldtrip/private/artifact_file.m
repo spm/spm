@@ -12,6 +12,9 @@ function [cfg, artifact] = artifact_file(cfg);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.16  2009/01/16 17:21:20  sashae
+% added config tracking
+%
 % Revision 1.15  2008/11/25 13:15:42  estmee
 % Documentation update
 %
@@ -64,6 +67,7 @@ function [cfg, artifact] = artifact_file(cfg);
 %
 
 fieldtripdefs
+cfg = checkconfig(cfg);
 
 if isfield(cfg, 'rejectfile') && ~strcmp(cfg.rejectfile, 'no')
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
@@ -90,6 +94,9 @@ end
 cfg.artfctdef.file.trl      = cfg.trl;
 cfg.artfctdef.file.artifact = artifact;
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -99,5 +106,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.15 2008/11/25 13:15:42 estmee Exp $';
-
+cfg.version.id = '$Id: artifact_file.m,v 1.16 2009/01/16 17:21:20 sashae Exp $';

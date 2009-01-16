@@ -42,6 +42,9 @@ function [cfg, artifact] = artifact_manual(cfg);
 % Copyright (C) 2004, Geerten Kramer, FCDC
 %
 % $Log: artifact_manual.m,v $
+% Revision 1.24  2009/01/16 18:19:41  sashae
+% moved some lines of code, no functional change
+%
 % Revision 1.23  2009/01/14 11:47:07  sashae
 % changed handling of cfg.datatype
 % added call to checkconfig at start and end of function
@@ -343,6 +346,9 @@ artifact=cfg.trl(find((dat.RejMarkList)),[1,2]);
 % remember the details that were used here
 cfg.artfctdef.manual.artifact = artifact;
 
+% get the output cfg
+cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+
 % add version information to the configuration
 try
   % get the full name of the function
@@ -352,10 +358,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_manual.m,v 1.23 2009/01/14 11:47:07 sashae Exp $';
-
-% get the output cfg
-cfg = checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+cfg.version.id = '$Id: artifact_manual.m,v 1.24 2009/01/16 18:19:41 sashae Exp $';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the SUBFUNCTIONS start that implement the gui callbacks
