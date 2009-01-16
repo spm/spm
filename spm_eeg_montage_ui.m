@@ -1,61 +1,78 @@
 function montage = spm_eeg_montage_ui(montage)
-%_______________________________________________________________________
+% GUI for EEG montage (rereference EEG data to new reference channel(s))
+% FORMAT montage = spm_eeg_montage_ui(montage)
+%
+% montage     - structure with fields:
+%   tra       - MxN matrix
+%   labelnew  - Mx1 cell-array - new labels
+%   labelorg  - Nx1 cell-array - original labels
+%
+% Output is empty if the GUI is closed.
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 2284 2008-10-01 15:54:05Z jean $
+% $Id: spm_eeg_montage_ui.m 2612 2009-01-16 19:37:44Z guillaume $
 
-%% creates GUI from spm_uitable
-fig = figure;
-pos = get(fig,'position');
-pos2 = [40 70 pos(3)-60 pos(4) - 100];
-pos = [pos(1) pos(2) 1.8*pos(3) pos(4)];
-set(gcf,'menubar','none','position',pos,...
-    'numbertitle','off','name','Montage edition');
+error(nargchk(1,1,nargin));
 
-ha = gca;
-set(ha,'position',pos2);
+% Create the figure
+%--------------------------------------------------------------------------
+fig  = figure('visible','off');
+S0   = spm('WinSize','0',1);
+pos  = get(fig,'position');
+pos2 = [40 70 pos(3)-60 pos(4)-100];
+pos  = [S0(1) S0(2) 0 0] + [pos(1) pos(2) 1.8*pos(3) pos(4)];
+set(gcf,...
+    'menubar',     'none',...
+    'position',    pos,...
+    'numbertitle', 'off',...
+    'name',        'Montage edition');
 
-addButtons;
+addButtons(fig);
 
-table = cat(2,montage.labelnew(:),num2cell(montage.tra));
+% Display the uitable component
+%--------------------------------------------------------------------------
+table    = cat(2,montage.labelnew(:),num2cell(montage.tra));
 colnames = cat(2,'channel labels',montage.labelorg(:)');
 
-[ht,hc] = spm_uitable(table,colnames);
-set(ht,'position',pos2,...
-    'units','normalized');
+[ht,hc]  = spm_uitable(table,colnames);
+set(ht,'position',pos2, 'units','normalized');
 
-ud.hi = imagesc(montage.tra);
-set(ha,'position',[0.6 0.18 0.4 0.77])
-axis image
-colormap('bone')
-zoom
+% Display the matrix representation of the montage 
+%--------------------------------------------------------------------------
+ax = axes('position',[0.6 0.18 0.4 0.77]);
+hi = imagesc(montage.tra,'parent',ax);
+axis('image');
+colormap('bone');
+zoom(fig,'on');
 
-ud.b4MontageEditing = get(0,'userdata');
-ud.ht = ht;
-ud.fig = fig;
+% Store info in figure's userdata and wait for user interaction
+%--------------------------------------------------------------------------
+ud.hi      = hi;
+ud.ht      = ht;
 ud.montage = montage;
-set(0,'userdata',ud);
+set(fig,'userdata',ud);
 
+set(fig,'visible','on');
+uiwait(fig);
 
-
-%% gets the montage from the GUI
-uiwait(fig)
-
-ud = get(0,'userdata');
-if isfield(ud,'b4MontageEditing')
+% Get the montage from the GUI
+%--------------------------------------------------------------------------
+try
+    ud = get(fig,'userdata');
     montage = ud.montage;
-    set(0,'userdata',ud.b4MontageEditing);
-else % GUI was closed without 'OK' button
+    close(fig);
+catch % GUI was closed without 'OK' button
     montage = [];
 end
 
 
-
-
-%% 'add row' button subfunction
-function [ha] = doAddRow(o1,o2)
-ud = get(0,'userdata');
+%==========================================================================
+function doAddRow(obj,evd,h)
+%==========================================================================
+% 'add row' button subfunction
+ud = get(h,'userdata');
 [M,newLabels] = getM(ud.ht);
 M = [M;zeros(1,size(M,2))];
 newLabels = cat(1,newLabels(:),num2str(size(M,1)));
@@ -69,79 +86,88 @@ ht = spm_uitable(table,colnames);
 set(ht,'position',pos,...
     'units','normalized');
 ud.ht = ht;
-set(0,'userdata',ud);
-doCheck
+set(h,'userdata',ud);
+doCheck(obj,evd,h);
 
-%% 'load' button subfunction
-function [ha] = doLoad(o1,o2)
-[FileName,PathName] = uigetfile('*.mat','Load montage file');
-if ~isempty(FileName) || ~isequal(FileName,0)
-    montage = load(fullfile(PathName,FileName));
-    name = fieldnames(montage);
+%==========================================================================
+function doLoad(obj,evd,h)
+%==========================================================================
+% 'load' button subfunction
+[t,sts] = spm_select(1,'mat','Load montage file');
+if sts
+    montage = load(t);
+    name    = fieldnames(montage);
     if isequal(name{1},'montage')
-        montage = getfield(montage, name{1});
-        ud = get(0,'userdata');
+        montage    = getfield(montage, name{1});
+        ud         = get(h,'userdata');
         set(ud.ht,'units','pixels');
-        pos = get(ud.ht,'Position');
+        pos        = get(ud.ht,'Position');
         delete(ud.ht);
-        table = cat(2,montage.labelnew(:),num2cell(montage.tra));
-        colnames = cat(2,'channel labels',montage.labelorg(:)');
+        table      = cat(2,montage.labelnew(:),num2cell(montage.tra));
+        colnames   = cat(2,'channel labels',montage.labelorg(:)');
         pause(1) % This is weird, but fixes java troubles.
-        ht = spm_uitable(table,colnames);
+        ht         = spm_uitable(table,colnames);
         set(ht,'position',pos,...
             'units','normalized');
-        ud.ht = ht;
+        ud.ht      = ht;
         ud.montage = montage;
-        set(0,'userdata',ud);
+        set(h,'userdata',ud);
         pause(1)
-        doCheck
+        doCheck(obj,evd,h);
     else
-        warndlg('File did not contain any montage!')
+        spm('alert!','File did not contain any montage!','Montage edition');
     end
 end
 
-
-%% 'save as' button subfunction
-function [ha] = doSave(o1,o2)
-ud = get(0,'userdata');
+%==========================================================================
+function doSave(obj,evd,h)
+%==========================================================================
+% 'save as' button subfunction
+doCheck(obj,evd,h);
+ud = get(h,'userdata');
 [M,newLabels] = getM(ud.ht);
 montage.tra = M;
 montage.labelorg = ud.montage.labelorg;
 montage.labelnew = newLabels;
 uisave('montage','SPMeeg_montage.mat');
 
-
-%% 'OK' button subfunction
-function [] = doOK(o1,o2)
-ud = get(0,'userdata');
-[M,newLabels] = getM(ud.ht);
+%==========================================================================
+function doOK(obj,evd,h)
+%==========================================================================
+% 'OK' button subfunction
+doCheck(obj,evd,h);
+ud               = get(h,'userdata');
+[M, newLabels]   = getM(ud.ht);
 % delete row if empty:
-ind = find(sum(abs(M),2)==0);
-M(ind,:) = [];
-newLabels = {newLabels{setdiff(1:length(newLabels),ind)}};
-montage.tra = M;
+ind              = ~any(M,2);
+M(ind,:)         = [];
+newLabels(ind)   = [];
+montage.tra      = M;
 montage.labelorg = ud.montage.labelorg(:);
 montage.labelnew = newLabels(:);
 ud.montage = montage;
-set(0,'userdata',ud);
-pause(1)
-close(gcf)
+set(h,'userdata',ud);
+uiresume(h);
 
+%==========================================================================
+function doCheck(obj,evd,h)
+%==========================================================================
+% Update the montage display
+ud = get(h,'userdata');
+M  = getM(ud.ht);
+set(ud.hi,'cdata',M);
+set(gca,'xlim',[0.5 size(M,1)]);
+set(gca,'ylim',[0.5 size(M,2)]);
+axis('image');
+drawnow;
 
-function [] = doCheck(o1,o2)
-ud = get(0,'userdata');
-[M,newLabels] = getM(ud.ht);
-set(ud.hi,'cdata',M)
-set(gca,'xlim',[0.5 size(M,1)])
-set(gca,'ylim',[0.5 size(M,2)])
-axis image
-
-
-%% extracting montage from java object
+%==========================================================================
 function [M,newLabels] = getM(ht)
+%==========================================================================
+% extracting montage from java object
 nnew = get(ht,'NumRows');
 nold = get(ht,'NumColumns')-1;
-M = zeros(nnew,nold);
+M    = zeros(nnew,nold);
 data = get(ht,'data');
 for i =1:nnew
     if ~isempty(data(i,1))
@@ -151,10 +177,10 @@ for i =1:nnew
     end
     for j =1:nold
         if ~isempty(data(i,j+1))
-            if ~isstr(data(i,j+1))
+            if ~ischar(data(i,j+1))
                 M(i,j) = data(i,j+1);
             else
-                M0 = str2num(data(i,j+1));
+                M0 = str2double(data(i,j+1));
                 if ~isempty(M0)
                     M(i,j) = M0;
                 else
@@ -167,27 +193,27 @@ for i =1:nnew
     end
 end
 
-
-%% adding buttons to the montage GUI
-function [] = addButtons(ha)
+%==========================================================================
+function addButtons(h)
+%==========================================================================
+% adding buttons to the montage GUI
 hAdd = uicontrol('style','pushbutton',...
-    'string','Add row','callback',{@doAddRow},...
+    'string','Add row','callback',{@doAddRow,h},...
     'position',[60 20 80 20]);
-set(hAdd,'units','normalized')
+set(hAdd,'units','normalized');
 hLoad = uicontrol('style','pushbutton',...
-    'string','load file','callback',{@doLoad},...
+    'string','Load file','callback',{@doLoad,h},...
     'position',[180 20 80 20]);
-set(hLoad,'units','normalized')
+set(hLoad,'units','normalized');
 hSave = uicontrol('style','pushbutton',...
-    'string','save as','callback',{@doSave},...
+    'string','Save as','callback',{@doSave,h},...
     'position',[280 20 80 20]);
-set(hSave,'units','normalized')
+set(hSave,'units','normalized');
 hOK = uicontrol('style','pushbutton',...
-    'string',' OK ','callback',{@doOK},...
+    'string',' OK ','callback',{@doOK,h},...
     'position',[400 20 80 20]);
-set(hOK,'units','normalized')
+set(hOK,'units','normalized');
 hCheck = uicontrol('style','pushbutton',...
-    'string',' Check montage ','callback',{@doCheck},...
+    'string',' Refresh display ','callback',{@doCheck,h},...
     'position',[760 20 120 20]);
-set(hCheck,'units','normalized')
-
+set(hCheck,'units','normalized');

@@ -28,7 +28,7 @@ function varargout = spm_eeg_select_channels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_select_channels.m 1598 2008-05-12 12:06:54Z stefan $
+% $Id: spm_eeg_select_channels.m 2612 2009-01-16 19:37:44Z guillaume $
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -38,7 +38,7 @@ gui_State = struct('gui_Name',       mfilename, ...
                    'gui_OutputFcn',  @spm_eeg_select_channels_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
-if nargin & isstr(varargin{1})
+if nargin & ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
 end
 
