@@ -32,6 +32,9 @@ function [vol, sens] = prepare_vol_sens(vol, sens, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_vol_sens.m,v $
+% Revision 1.10  2009/01/19 12:13:49  roboos
+% added code at the end to determine the brain and the skin compartment
+%
 % Revision 1.9  2008/12/24 10:34:15  roboos
 % added two fprintf statements
 %
@@ -269,6 +272,24 @@ elseif iseeg
   % end
 
 end % if iseeg or ismeg
+
+% determine the skin compartment
+if ~isfield(vol, 'skin')
+  if isfield(vol, 'bnd')
+    vol.skin   = find_outermost_boundary(vol.bnd);
+  elseif isfield(vol, 'r') && length(vol.r)<=4
+    [dum, vol.skin] = max(vol.r);
+  end
+end
+
+% determine the brain compartment
+if ~isfield(vol, 'brain')
+  if isfield(vol, 'bnd')
+    vol.brain  = find_innermost_boundary(vol.bnd);
+  elseif isfield(vol, 'r') && length(vol.r)<=4
+    [dum, vol.brain] = min(vol.r);
+  end
+end
 
 % this makes them easier to recognise
 sens.type = senstype(sens);
