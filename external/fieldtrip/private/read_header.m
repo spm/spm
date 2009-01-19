@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.81  2009/01/19 15:05:47  roboos
+% added skeleton support for reading fif files using mne functions
+%
 % Revision 1.80  2009/01/15 12:06:46  marvger
 % removed keyboard command
 %
@@ -946,6 +949,42 @@ switch headerformat
 
   case 'nexstim_nxe'
     hdr = read_nexstim_nxe(filename);
+    
+  case 'neuromag_mne'
+    % check that the required low-level toolbox is available
+    hastoolbox('mne', 1);
+    orig = fiff_read_meas_info(filename);
+    % convert to fieldtrip format header
+    hdr.label       = orig.ch_names(:);
+    hdr.nChans      = orig.nchan;
+    hdr.Fs          = orig.sfreq;
+
+    % FIXME don't know how to determine this, but probably the subsequent
+    % data size detection depends on this
+    isaverage     = 0;
+    isepoched     = 0;
+    iscontinuous  = 1;
+
+    if iscontinuous
+      raw = fiff_setup_read_raw(filename);
+      hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
+      hdr.nSamplesPre = 0;
+      hdr.nTrials     = 1;
+      % remember the complete dataset details
+      orig.raw = raw;
+    elseif isepoched
+      error('not yet implemented');
+    elseif isaverage
+      error('not yet implemented');
+    end
+    % add a gradiometer structure for forward and inverse modelling
+    try
+      hdr.grad = mne2grad(filename);
+    catch
+      disp(lasterr);
+    end
+    % remember the original header details
+    hdr.orig = orig;
 
   case 'neuromag_fif'
     % check that the required low-level toolbox is available

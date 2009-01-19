@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.70  2009/01/19 15:05:47  roboos
+% added skeleton support for reading fif files using mne functions
+%
 % Revision 1.69  2009/01/06 09:12:03  roboos
 % use true/false instead of 1/0
 %
@@ -845,6 +848,12 @@ switch dataformat
     dat       = reshape(tmp.data, siz); % ensure 3-D array
     dat       = dat(:,chanindx,:);      % select channels
     dimord    = 'trials_chans_samples'; % selection using begsample and endsample will be done later
+
+  case 'neuromag_mne'
+    % check that the required low-level toolbox is available
+    hastoolbox('mne', 1);
+    orig = hdr.orig;
+    error('not yet implemented');
 
   case 'neuromag_fif'
     % check that the required low-level toolbox is available

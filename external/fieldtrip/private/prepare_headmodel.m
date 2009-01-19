@@ -30,6 +30,9 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_headmodel.m,v $
+% Revision 1.4  2009/01/19 12:09:00  roboos
+% fixed typo in 4-sphere eeg code (thanks to John Iversen)
+%
 % Revision 1.3  2008/07/07 12:36:09  roboos
 % fixed bug in skin-compartment determination for 4-sphere
 %
@@ -220,7 +223,7 @@ end
 if ~isfield(vol, 'brain')
   if isfield(vol, 'bnd')
     vol.brain  = find_innermost_boundary(vol.bnd);
-  elseif isfield(vol, 'r') && length(vol.r<=4)
+  elseif isfield(vol, 'r') && length(vol.r)<=4
     [dum, vol.brain] = min(vol.r);
   end
 end

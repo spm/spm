@@ -166,6 +166,10 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.132  2009/01/19 12:29:51  roboos
+% preallocate the fake covariance matrix in case it is absent in the data
+% ensure that length(size(cov))==2 in case of Ntrials==1 (i.e. when keeptrials=yes and only one trial in the data)
+%
 % Revision 1.131  2008/11/21 13:21:35  sashae
 % added call to checkconfig at start and end of fucntion
 %
@@ -895,6 +899,7 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
     if Ntrials==1
       data.cov = eye(Nchans);
     else
+      data.cov = zeros(Ntrials,Nchans,Nchans);
       for i=1:Ntrials
         data.cov(i,:,:) = eye(Nchans);
       end
@@ -949,7 +954,11 @@ elseif istimelock && (strcmp(cfg.method, 'lcmv') || strcmp(cfg.method, 'mne') ||
     % select the channels of interest
     [dum, datchanindx] = match_str(cfg.channel, data.label);
     if Ntrials==1
+      % It is in principle possible to have timelockanalysis with
+      % keeptrial=yes and only a single trial in the raw data.
+      % In that case the covariance should be represented as Nchan*Nchan
       data.avg = data.avg(datchanindx,:);
+      data.cov = reshape(data.cov, length(datchanindx), length(datchanindx));
       data.cov = data.cov(datchanindx,datchanindx);
     else
       data.avg   = data.avg(datchanindx,:);
@@ -1246,7 +1255,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.131 2008/11/21 13:21:35 sashae Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.132 2009/01/19 12:29:51 roboos Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

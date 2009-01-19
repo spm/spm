@@ -28,6 +28,10 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: dipole_fit.m,v $
+% Revision 1.12  2009/01/19 12:07:42  roboos
+% fixed bug for symmetry constrained dipole fitting in case of multiple dipoles (thanks to John Iversen)
+% added some checks on the input dipole position and moment
+%
 % Revision 1.11  2008/04/30 13:48:57  roboos
 % finished implementation of MLE fitting, renamed cov into weight (inverse should be done outside this function)
 %
@@ -177,9 +181,31 @@ elseif iseeg
   dat = avgref(dat);
 end
 
-% reformat the position parameters in case of multiple dipoles
-param = dip.pos(:)';
-numdip = numel(param)/3;
+% check the input dipole position specification
+[m, n] = size(dip.pos);
+if n~=3 && m~=1
+  error('input dipole positions should be specified as Nx3 matrix');
+else
+  warning('input dipole positions should be specified as Nx3 matrix');
+  dip.pos = dip.pos';
+end
+if isfield(dip, 'mom')
+  % check the input dipole moment specification
+  [m, n] = size(dip.pos);
+  if m~=3 && n~=1
+    error('input dipole moments should be specified as 3xN matrix');
+  else
+    warning('input dipole moments should be specified as 3xN matrix');
+    dip.mom = dip.mom';
+  end
+end
+
+% reformat the position parameters in case of multiple dipoles, this
+% should result in the matrix changing from [x1 y1 z1; x2 y2 z2] to
+% [x1 y1 z1 x2 y2 z2] for the constraints to work
+param = dip.pos';
+param = param(:)';
+numdip = size(dip.pos, 1);
 
 % add the orientation to the nonlinear parameters
 if isfield(constr, 'fixedori') && constr.fixedori

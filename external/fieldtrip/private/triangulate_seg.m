@@ -13,6 +13,9 @@ function [pnt, tri] = triangulate_seg(seg, npnt, ori);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: triangulate_seg.m,v $
+% Revision 1.4  2009/01/19 12:20:04  roboos
+% incorporated suggestion by Jon Iversen to fix bug in case sel=[]
+%
 % Revision 1.3  2006/07/26 11:05:58  roboos
 % use find('last') for matlab 7 and higher, and regular find for older matlab versions
 %
@@ -62,7 +65,12 @@ for i=1:npnt
     sel = find(int);
     sel = sel(end);
   end
-  pnt(i,:) = lin(sel,:);
+  % this is a problem if sel is empty.  If so, use the edge of the volume
+  if ~isempty(sel),
+      pnt(i,:) = lin(sel,:);
+  else
+      pnt(i,:) = lin(end,:);
+  end
 end
 
 % undo the shift of the origin from where the projection is done

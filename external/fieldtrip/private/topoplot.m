@@ -102,7 +102,7 @@ function [handle] = topoplot(varargin)
 % cfg.mask for opacity masking, e.g. with statistical significance
 
 % Copyright (C) 1996, Andy Spydell, Colin Humphries & Arnaud Delorme, CNL / Salk Institute
-% Copyright (C) 2004-2008, F.C. Donders Centre, New implementation by Geerten Kramer, based on versions of Ole Jensen and Jan-Mathijs Schoffelen
+% Copyright (C) 2004-2009, F.C. Donders Centre, New implementation by Geerten Kramer, based on versions of Ole Jensen and Jan-Mathijs Schoffelen
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -119,6 +119,10 @@ function [handle] = topoplot(varargin)
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 % $Log: topoplot.m,v $
+% Revision 1.42  2009/01/19 11:56:24  roboos
+% moved the command to plot the contour line to after the one to plot the surface, to ensure that the contour lines remain on top also when you export with painters rendering (thanks to Paolo Toffanin)
+% some small cleanups
+%
 % Revision 1.41  2008/12/18 13:49:29  roboos
 % fixed problem with interplimits, should not be based on circle with radius 0.5 but on layout.mask
 % fixed problem with masking in case of multiple masks
@@ -531,13 +535,14 @@ if ~strcmp(cfg.style,'blank')
   if strcmp(cfg.style,'contour')
     contour(Xi,Yi,Zi,cfg.contournum,cfg.contcolor);
   elseif strcmp(cfg.style,'both')
-    contour(Xi,Yi,Zi,cfg.contournum,cfg.contcolor);
+    % first draw the surface, then the contour, to ensure that after exporting the contour lines are "on top"
     h = surface(Xi-delta/2,Yi-delta/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
     if exist('maskZ','var'),
       set(h, 'AlphaData', maskZ);
       alim([0 1]);
       set(h, 'FaceAlpha', 'interp');
     end
+    contour(Xi,Yi,Zi,cfg.contournum,cfg.contcolor);
   elseif strcmp(cfg.style,'straight')
     h = surface(Xi-delta/2,Yi-delta/2,zeros(size(Zi)),Zi,'EdgeColor','none', 'FaceColor',cfg.shading);
     if exist('maskZ','var'),
@@ -557,50 +562,43 @@ end
 % Plot electrodes:
 if strcmp(cfg.electrodes,'on') || strcmp(cfg.showlabels,'markers')
   if ischar(cfg.highlight)
-    hp2 = plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
+    plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
   elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
-    hp2    = plot(y(normal),        x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
-    hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
-      'linewidth',  cfg.hllinewidth);
+    plot(y(normal),        x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
+    plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',  cfg.hllinewidth);
   elseif iscell(cfg.highlight)
-    hp2 = plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
+    plot(y,x,cfg.emarker,'Color',cfg.ecolor,'markersize',cfg.emarkersize);
     for iCell = 1:length(cfg.highlight)
-      hp2    = plot(y(cfg.highlight{iCell}), x(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell},...
-        'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
+      plot(y(cfg.highlight{iCell}), x(cfg.highlight{iCell}), cfg.hlmarker{iCell}, 'Color', cfg.hlcolor{iCell}, 'markersize', cfg.hlmarkersize{iCell},'linewidth',  cfg.hllinewidth{iCell});
     end
   else
     error('Unknown highlight type');
   end;
 elseif any(strcmp(cfg.electrodes,{'highlights','highlight'}))
   if isnumeric(cfg.highlight)
-    hp2 = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
-      'linewidth',cfg.hllinewidth);
+    plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth',cfg.hllinewidth);
   else
     error('Unknown highlight type');
   end;
 elseif strcmp(cfg.electrodes,'labels') || strcmp(cfg.showlabels,'yes')
   for i = 1:numChan
-    text(y(i), x(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-      'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
+    text(y(i), x(i), chanLabels{i}, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
   end
 elseif strcmp(cfg.electrodes,'numbers') || strcmp(cfg.showlabels,'numbers')
   for i = 1:numChan
-    text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', ...
-      'Color', cfg.ecolor, 'FontSize',cfg.efontsize);
+    text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle', 'Color', cfg.ecolor, 'FontSize',cfg.efontsize);
   end
 elseif strcmp(cfg.electrodes,'dotnum')
   for i = 1:numChan
-    text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', ...
-      'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
+    text(y(i), x(i), int2str(i), 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom', 'Color', cfg.ecolor, 'FontSize', cfg.efontsize);
   end
   if ischar(cfg.highlight)
-    hp2 = plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
+    plot(y, x, cfg.emarker, 'Color', cfg.ecolor, 'markersize', cfg.emarkersize);
   elseif isnumeric(cfg.highlight)
     normal = setdiff(1:length(x), cfg.highlight);
-    hp2    = plot(y(normal)       , x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
-    hp2    = plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, ...
-      'linewidth', cfg.hllinewidth);
+    plot(y(normal)       , x(normal),        cfg.emarker,  'Color', cfg.ecolor,  'markersize', cfg.emarkersize);
+    plot(y(cfg.highlight), x(cfg.highlight), cfg.hlmarker, 'Color', cfg.hlcolor, 'markersize', cfg.hlmarkersize, 'linewidth', cfg.hllinewidth);
   else
     error('Unknown highlight type');
   end;

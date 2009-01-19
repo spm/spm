@@ -10,6 +10,9 @@ function [status] = hastoolbox(toolbox, autoadd, silent)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: hastoolbox.m,v $
+% Revision 1.25  2009/01/19 15:02:21  roboos
+% added mne for fiff access
+%
 % Revision 1.24  2009/01/08 17:00:02  roboos
 % improved caching in case the toolbox is not present
 %
@@ -147,6 +150,7 @@ url = {
   'BCI2000'    'see http://bci2000.org'
   'NLXNETCOM'  'see http://www.neuralynx.com'
   'DIPOLI'     'see ftp://ftp.fcdonders.nl/pub/fieldtrip/external'
+  'MNE'        'see http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php'
 };
 
 if nargin<2
@@ -224,6 +228,8 @@ switch toolbox
     status  = (exist('MatlabNetComClient') && exist('NlxConnectToServer') && exist('NlxGetNewCSCData'));
   case 'DIPOLI'
     status  = exist('dipoli.m', 'file');
+  case 'MNE'
+    status  = (exist('fiff_read_meas_info', 'file') && exist('fiff_setup_read_raw', 'file'));
   otherwise
     if ~silent, warning(sprintf('cannot determine whether the %s toolbox is present', toolbox)); end
     status = 0;
