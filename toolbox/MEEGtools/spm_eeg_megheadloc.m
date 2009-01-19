@@ -39,7 +39,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld  
-% $Id: spm_eeg_megheadloc.m 2448 2008-11-07 16:56:07Z vladimir $
+% $Id: spm_eeg_megheadloc.m 2617 2009-01-19 18:49:16Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -130,8 +130,8 @@ for f=1:numel(D)
 
     if length(hlc_chan_ind) == 9
 
-        if isfield(S, 'trlind') && ~isempty(S.trlind)
-            trlsel = S.trlind;
+        if isfield(S, 'trialind') && ~isempty(S.trialind)
+            trlsel = S.trialind;
         else
             trlsel = 1:Ntrl;
         end

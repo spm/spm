@@ -22,7 +22,7 @@ function spm_dcm_ind_save_images(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, based on spm_dcm_ind_results
-% $Id: spm_dcm_ind_save_images.m 2454 2008-11-11 15:44:31Z vladimir $
+% $Id: spm_dcm_ind_save_images.m 2617 2009-01-19 18:49:16Z vladimir $
 
 
 if nargin == 0
@@ -64,7 +64,7 @@ V.dt=[spm_type('float64') 0];
 V.mat = eye(4);
 V.pinfo = [1 0 0]';
 
-if S.couplingA || S.couplingB
+if S.predictedTF || S.observedTF
     V.dim = [length(Hz) length(pst)  1 ];
 
     % reconstitute time-frequency and get principle model over channels

@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 2452 2008-11-10 18:45:32Z vladimir $
+% $Id: checkmeeg.m 2617 2009-01-19 18:49:16Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -153,7 +153,7 @@ else
         if isfield(meegstruct, 'path')
             filepath = meegstruct.path;
         else
-            filepath = '';
+            filepath = pwd;
         end
         switch(meegstruct.transform.ID)
             % note: scale no longer used, must insure data is in some float
@@ -202,8 +202,9 @@ else
     end
 end
 
-if ~isfield(meegstruct, 'type')
-    disp('checkmeeg: data type is missing, assigning default');
+if ~isfield(meegstruct, 'type') ||...
+        (strcmp(meegstruct.type, 'continuous') && Ntrials>1)
+    disp('checkmeeg: data type is missing or incorrect, assigning default');
     % rule of thumb - 10 sec
     if Nsamples == 0
         meegstruct.type = 'continuous';
@@ -221,11 +222,12 @@ if ~isfield(meegstruct, 'type')
 end
 
 if ~isfield(meegstruct, 'fname')
-    meegstruct.fname = '';
+    [p, f] = fileparts(meegstruct.data.y.fname);
+    meegstruct.fname = [f '.mat'];
 end
 
 if ~isfield(meegstruct, 'path')
-    meegstruct.path = '';
+    meegstruct.path = fileparts(meegstruct.data.y.fname);
 end
 
 if ~isfield(meegstruct, 'sensors')

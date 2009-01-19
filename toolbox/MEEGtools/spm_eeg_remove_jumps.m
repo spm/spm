@@ -29,7 +29,7 @@ function [D, alljumps] = spm_eeg_remove_jumps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach 
-% $Id: spm_eeg_remove_jumps.m 2610 2009-01-16 14:54:13Z guillaume $
+% $Id: spm_eeg_remove_jumps.m 2617 2009-01-19 18:49:16Z vladimir $
 
 % Input parameters
 %==========================================================================

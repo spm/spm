@@ -30,7 +30,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 2401 2008-10-27 09:19:01Z vladimir $
+% $Id: spm_eeg_ft_beamformer_source.m 2617 2009-01-19 18:49:16Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -162,18 +162,20 @@ pos = spm_eeg_inv_transform_points(fromMNI, S.sources.pos);
 spm('Pointer', 'Watch');drawnow;
 %%
 
-data = D.ftraw;
+data = D.ftraw(0);
 data.trial = data.trial(~D.reject);
 data.time = data.time(~D.reject);
 
 cfg = [];
 cfg.channel = modality;
-cfg.keeptrials = 'yes';
 cfg.covariance = 'yes';
-timelock = ft_timelockanalysis(cfg, data);
+cfg.keeptrials = 'no';
+timelock1 = ft_timelockanalysis(cfg, data);
+cfg.keeptrials = 'yes';
+timelock2 = ft_timelockanalysis(cfg, data);
 %%
 sourcedata=[];
-sourcedata.trial=zeros(size(timelock.trial, 1), size(pos, 1), length(timelock.time));
+sourcedata.trial=zeros(size(timelock2.trial, 1), size(pos, 1), length(timelock2.time));
 
 for s = 1:size(pos, 1)
 
@@ -186,24 +188,20 @@ for s = 1:size(pos, 1)
     cfg.vol = vol;
     cfg.channel = modality;
     cfg.method = 'lcmv';
+    cfg.lcmv.fixedori = 'yes';
     cfg.keepfilter = 'yes';
     cfg.lambda =  S.lambda;
-    source1 = ft_sourceanalysis(cfg, timelock);
+    source1 = ft_sourceanalysis(cfg, timelock1);
 
     cfg = [];
     cfg.inwardshift = -10;
     cfg.vol = vol;
     cfg.grad = sens;
     cfg.grid = ft_source2grid(source1);
-    cfg.rawtrial = 'yes';
     cfg.channel = modality;
     cfg.lambda =  S.lambda;
-    source2 = ft_sourceanalysis(cfg, timelock);
-
-    cfg = [];
-    cfg.projectmom = 'yes';
-    cfg.keeptrials = 'yes';
-    source2 = ft_sourcedescriptives(cfg, source2);
+    cfg.rawtrial = 'yes';
+    source2 = ft_sourceanalysis(cfg, timelock2);
 
 
     for i=1:length(source2.trial)
@@ -211,10 +209,10 @@ for s = 1:size(pos, 1)
     end
 end
 
-sourcedata.time = timelock.time;
+sourcedata.time = timelock2.time;
 sourcedata.dimord = 'rpt_chan_time';
 sourcedata.label = S.sources.label;
-sourcedata.fsample = timelock.fsample;
+sourcedata.fsample = timelock2.fsample;
 sourcedata.avg = [];
 %%
 if ~isempty(S.appendchannels)
