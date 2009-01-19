@@ -28,13 +28,13 @@ function bmask = pm_brain_mask(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_brain_mask.m 1806 2008-06-10 11:33:23Z chloe $
+% $Id: pm_brain_mask.m 2616 2009-01-19 16:49:42Z chloe $
 
 if nargin < 2 | isempty(flags)
    flags.template=fullfile(spm('Dir'),'templates','T1.nii');
    flags.fwhm=5;
-   flags.nerode=1;
-   flags.ndilate=2;
+   flags.nerode=2;
+   flags.ndilate=4;
    flags.thresh=0.5;
    flags.reg = 0.02;
    flags.graphics=0;
@@ -47,6 +47,8 @@ seg_flags.graphics = flags.graphics;
 % Updated to use renamed version of spm_segment
 VO=pm_segment(P.fname,flags.template,seg_flags);
 bmask=double(VO(1).dat)+double(VO(2).dat)+double(VO(3).dat)>0;
+
+%bmask=open_it(bmask,flags.nerode,flags.ndilate); % Do opening to get rid of scalp
 
 bmask=open_it(bmask,flags.nerode,flags.ndilate); % Do opening to get rid of scalp
 
@@ -63,28 +65,24 @@ OP.descrip=sprintf('Mask:erode=%d,dilate=%d,fwhm=%d,thresh=%1.1f',flags.nerode,f
 spm_write_vol(OP,bmask);
 
 %__________________________________________________________________________
-
-%__________________________________________________________________________
 function ovol=open_it(vol,ne,nd)
 % Do a morphological opening. This consists of an erosion, followed by 
 % finding the largest connected component, followed by a dilation.
 
-for i=1:ne
 % Do an erosion then a connected components then a dilation 
 % to get rid of stuff outside brain.
-
-   evol=spm_erode(double(vol));
-   evol=connect_it(evol);
-   vol=spm_dilate(double(evol));
+for i=1:ne
+   nvol=spm_erode(double(vol));
+   vol=nvol;
 end
-
-% Do some dilations to extend the mask outside the brain
+nvol=connect_it(vol);
+vol=nvol;
 for i=1:nd
-   vol=spm_dilate(double(vol));
+   nvol=spm_dilate(double(vol));
+   vol=nvol;
 end
 
-ovol=vol;
-
+ovol=nvol;
 %__________________________________________________________________________
 
 %__________________________________________________________________________

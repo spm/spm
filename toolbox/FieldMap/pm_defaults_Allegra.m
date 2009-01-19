@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults_Allegra.m 2613 2009-01-16 19:38:14Z chloe $
+% $Id: pm_defaults_Allegra.m 2616 2009-01-19 16:49:42Z chloe $
 
 
 global pm_def
@@ -46,8 +46,8 @@ pm_def.WS = 1;                        % Weighted or normal smoothing.
 %=======================================================================
 pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'templates','T1.nii');
 pm_def.MFLAGS.FWHM = 5;     % In mm
-pm_def.MFLAGS.NERODE = 1;   % In voxels
-pm_def.MFLAGS.NDILATE = 2;  % In voxels
+pm_def.MFLAGS.NERODE = 2;   % In voxels
+pm_def.MFLAGS.NDILATE = 4;  % In voxels
 pm_def.MFLAGS.THRESH = 0.5;
 pm_def.MFLAGS.REG = 0.02;   % A larger value helps segmentation to converge
 pm_def.MFLAGS.GRAPHICS = 0; % A larger value helps segmentation to converge
