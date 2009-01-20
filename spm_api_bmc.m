@@ -3,15 +3,18 @@ function out=spm_api_bmc(F,N,alpha,exp_r,xp)
 % FORMAT out=spm_api_bmc(F,N,alpha,exp_r,xp)
 %
 %INPUT :
-% F     - Matrix/Vector of log model evidnces
+% F       - Matrix/Vector of log model evidnces
+% N       - vector of model names
+% alpha   - vector of model probabilities
+% exp_r   - expectation of the posterior p(r|y)
+% xp      - exceedance probabilities
 %
-%
-%__________________________________________________________________________
-% 
+% OUTPUT:
+% out   - conditional probability of DCMs (when using fixed effect method)
 %Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 2628 2009-01-20 16:32:17Z maria $
+% $Id: spm_api_bmc.m 2629 2009-01-20 16:42:49Z cc $
 
 if nargin < 3
     inf_method='FFX';
