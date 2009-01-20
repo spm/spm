@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.31  2009/01/20 08:56:51  marvger
+% fixed catch me bug (illegal syntax in older matlab versions)
+%
 % Revision 1.30  2009/01/16 11:38:51  marvger
 % update tcp/udp
 %
@@ -429,8 +432,8 @@ switch eventformat
                     pnet(con,'printf',num2str(msg));
                     pnet(con,'printf','\n');
                 end
-            catch me              
-                disp(me.message);
+            catch             
+                error('unable to serialize event');
             end            
         end
         
