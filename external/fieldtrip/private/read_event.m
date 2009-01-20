@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.81  2009/01/20 10:03:25  marvger
+% fixed catch me bug; also dealt with cvs problem during commit
+%
 % Revision 1.80  2009/01/19 15:05:47  roboos
 % added skeleton support for reading fif files using mne functions
 %
@@ -933,7 +936,7 @@ switch eventformat
     fclose(fid);
     event = mxDeserialize(uint8(msg));
 
-  case 'fcdc_tcp'
+  case 'fcdc_tcp'    
 
     % requires tcp/udp/ip-toolbox
     [host, port] = filetype_check_uri(filename);
@@ -955,13 +958,14 @@ switch eventformat
         if ~isempty(msg)
           event = mxDeserialize(uint8(str2num(msg)));
         end
-      catch me
-        disp(me.message);
+      catch
+        error('cannot deserialize');
       end
     end
 
     pnet(con,'close');
     con = [];
+
 
   case 'fcdc_udp'
 
