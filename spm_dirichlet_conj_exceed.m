@@ -20,7 +20,7 @@ function [xp] = spm_dirichlet_conj_exceed (alpha,Nsamp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dirichlet_conj_exceed.m 2533 2008-12-07 20:43:53Z klaas $
+% $Id: spm_dirichlet_conj_exceed.m 2627 2009-01-20 16:30:33Z maria $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -33,7 +33,7 @@ end
 %==========================================================================
 Nk = length(alpha);
 for k = 1:Nk,
-    r(:,k) = gamrnd(alpha(k),1,Nsamp,1);
+    r(:,k) = spm_gamrnd(alpha(k),1,Nsamp,1);
 end
 sr = sum(r,2);
 for k = 1:Nk,
