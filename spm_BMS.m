@@ -24,7 +24,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 2545 2008-12-09 20:14:43Z guillaume $
+% $Id: spm_BMS.m 2626 2009-01-20 16:30:08Z maria $
 
 
 if nargin < 2 | isempty(Nsamp)
@@ -121,14 +121,21 @@ end
 if do_plot & Nk == 2
     % plot Dirichlet pdf
     %-------------------
+    if alpha(1)<=alpha(2)
+       alpha_now =sort(alpha,1,'descend');
+       winner_inx=2;
+    else
+        alpha_now =alpha;
+       winner_inx=1;
+    end
+    
     x1  = [0:0.0001:1];
     for i = 1:length(x1),
-        p(i)   = spm_Dpdf([x1(i) 1-x1(i)],alpha);
+        p(i)   = spm_Dpdf([x1(i) 1-x1(i)],alpha_now);
     end
     fig1 = figure;
     axes1 = axes('Parent',fig1,'FontSize',14);
     plot(x1,p,'k','LineWidth',1);
-
     % cumulative probability: p(r1>r2)
     i  = find(x1 >= 0.5);
     hold on
@@ -136,9 +143,9 @@ if do_plot & Nk == 2
     v = axis;
     plot([0.5 0.5],[v(3) v(4)],'k--','LineWidth',1.5);
     xlim([0 1.05]);
-    xlabel('r_1','FontSize',18);
-    ylabel('p(r_1|y)','FontSize',18);
-    title(sprintf('p(r_1>%1.1f | y) = %1.3f',0.5,xp(1)),'FontSize',18);
+    xlabel(sprintf('r_%d',winner_inx),'FontSize',18);
+    ylabel(sprintf('p(r_%d|y)',winner_inx),'FontSize',18);
+    title(sprintf('p(r_%d>%1.1f | y) = %1.3f',winner_inx,0.5,xp(winner_inx)),'FontSize',18);
     legend off
 end
 

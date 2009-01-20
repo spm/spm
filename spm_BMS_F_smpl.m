@@ -11,7 +11,7 @@ function [s_samp,s_bound] = spm_BMS_F_smpl (alpha,lme,alpha0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_F_smpl.m 2507 2008-11-30 14:45:22Z klaas $
+% $Id: spm_BMS_F_smpl.m 2626 2009-01-20 16:30:08Z maria $
 
 
 % prevent numerical problems 
@@ -31,7 +31,7 @@ Nsamp = 1e3;
 % 209-230)
 Nk = length(alpha);
 for k = 1:Nk,
-    alpha_samp(:,k) = gamrnd(alpha(k),1,Nsamp,1);
+    alpha_samp(:,k) = spm_gamrnd(alpha(k),1,Nsamp,1);
 end
 
 Ni = size(lme,1);
