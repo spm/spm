@@ -38,6 +38,11 @@ function [normalise] = volumenormalise(cfg, interp)
 % Copyright (C) 2004-2006, Jan-Mathijs Schoffelen
 %
 % $Log: volumenormalise.m,v $
+% Revision 1.20  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.19  2008/12/15 15:08:34  roboos
 % fixed bug in case of parameterselection with anatomy for config object
 %
@@ -73,7 +78,7 @@ function [normalise] = volumenormalise(cfg, interp)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 %% checkdata see below!!! %%
 
@@ -307,7 +312,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumenormalise.m,v 1.19 2008/12/15 15:08:34 roboos Exp $';
+cfg.version.id = '$Id: volumenormalise.m,v 1.20 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = interp.cfg; end
 % remember the exact configuration details in the output

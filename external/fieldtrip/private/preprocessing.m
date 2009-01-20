@@ -125,6 +125,11 @@ function [data] = preprocessing(cfg, data);
 % Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
 %
 % $Log: preprocessing.m,v $
+% Revision 1.105  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.104  2009/01/14 11:31:57  sashae
 % changed handling of cfg.datatype
 %
@@ -336,7 +341,7 @@ function [data] = preprocessing(cfg, data);
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % set the defaults
 if ~isfield(cfg, 'channel'),      cfg.channel = {'all'};        end
@@ -636,7 +641,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: preprocessing.m,v 1.104 2009/01/14 11:31:57 sashae Exp $';
+cfg.version.id   = '$Id: preprocessing.m,v 1.105 2009/01/20 13:01:31 sashae Exp $';
 % remember the exact configuration details in the output
 data.cfg = cfg;
 

@@ -40,6 +40,11 @@ function [freq] = freqanalysis(cfg, data);
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
 %
 % $Log: freqanalysis.m,v $
+% Revision 1.44  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.43  2009/01/12 13:05:20  sashae
 % small change in call to checkconfig
 %
@@ -160,7 +165,7 @@ fieldtripdefs
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'renamed',     {'label', 'channel'});
 cfg = checkconfig(cfg, 'renamed',     {'sgn',   'channel'});
 cfg = checkconfig(cfg, 'renamed',     {'labelcmb', 'channelcmb'});

@@ -46,6 +46,11 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 % Copyright (c) 2003-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
 % $Log: artifact_muscle.m,v $
+% Revision 1.31  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.30  2009/01/14 11:47:07  sashae
 % changed handling of cfg.datatype
 % added call to checkconfig at start and end of function
@@ -100,7 +105,7 @@ function [cfg, artifact] = artifact_muscle(cfg,data)
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
 cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 

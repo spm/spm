@@ -121,6 +121,11 @@ function [cfg] = sourceplot(cfg, data)
 % Copyright (C) 2007-2008, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % $Log: sourceplot.m,v $
+% Revision 1.64  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.63  2008/12/16 15:02:46  sashae
 % added checkconfig to start and end of function, configtracking possible
 %
@@ -203,7 +208,7 @@ function [cfg] = sourceplot(cfg, data)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 %%% checkdata see below!!! %%%
 

@@ -7,5 +7,22 @@ function [varargout] = increment(varargin)
 %  increment(a);
 %  disp(a);
 
-error('Could not locate mex file.');
+% remember the original working directory
+pwdir = pwd;
+
+% determine the name and full path of this function
+fname  = mfilename('fullpath');
+mexsrc = [fname '.c'];
+[mexdir, mexname] = fileparts(fname);
+
+try
+  warning('trying to compile MEX file from %s', mexsrc);
+  cd(mexdir);
+  mex(mexsrc);
+  cd(pwdir);
+catch
+  disp(lasterr);
+  error('could not locate MEX file for %s', mexname);
+  cd(pwdir);
+end
 

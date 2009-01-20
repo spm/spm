@@ -123,6 +123,11 @@ function [source] = dipolefitting(cfg, data)
 % Copyright (C) 2004-2006, Robert Oostenveld
 %   
 % $Log: dipolefitting.m,v $
+% Revision 1.53  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.52  2009/01/16 17:21:20  sashae
 % added config tracking
 %
@@ -313,7 +318,7 @@ function [source] = dipolefitting(cfg, data)
 %
 
 fieldtripdefs
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -711,7 +716,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: dipolefitting.m,v 1.52 2009/01/16 17:21:20 sashae Exp $';
+cfg.version.id = '$Id: dipolefitting.m,v 1.53 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output

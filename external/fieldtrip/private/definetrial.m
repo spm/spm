@@ -64,6 +64,11 @@ function [cfg] = definetrial(cfg);
 % Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: definetrial.m,v $
+% Revision 1.56  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.55  2009/01/14 11:29:55  sashae
 % temporarily disabled previous revision
 %
@@ -129,7 +134,7 @@ function [cfg] = definetrial(cfg);
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
 if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
@@ -228,7 +233,7 @@ catch
   [st, i1] = dbstack;
   cfg.version.name = st(i1);
 end
-cfg.version.id = '$Id: definetrial.m,v 1.55 2009/01/14 11:29:55 sashae Exp $';
+cfg.version.id = '$Id: definetrial.m,v 1.56 2009/01/20 13:01:31 sashae Exp $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

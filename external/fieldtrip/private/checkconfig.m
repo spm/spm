@@ -37,13 +37,23 @@ function [cfg] = checkconfig(cfg, varargin)
 %   createsubcfg    = {'subname', etc.}      % list the names of the subcfg
 %   dataset2files   = 'yes', 'no'            % converts dataset into headerfile and datafile
 %   checksize       = 'yes', 'no'            % remove large fields from the cfg
-%   trackconfig     = 'on', 'off'
+%   trackconfig     = 'on', 'off'            % start/end config tracking
 %
 % See also CHECKDATA, FIELDTRIPDEFS
 
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.9  2009/01/20 15:55:54  sashae
+% cfg.trkcfgcount keeps track of number of times that trackconfig has been turned on/off,
+% to prevent that nested functions turn off configtracking (i.e. only at end of the main function
+% report/cleanup should be given)
+%
+% Revision 1.8  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.7  2008/12/16 15:37:23  sashae
 % if cfg.checkconfig='silent' do not display report for trackconfig
 %
@@ -162,12 +172,12 @@ dataset2files   = keyval('dataset2files',   varargin);
 checksize       = keyval('checksize',       varargin); if isempty(checksize), checksize = 'off';  end
 trackconfig     = keyval('trackconfig',     varargin);
 
-if isempty(trackconfig)
+if ~isempty(trackconfig) && strcmp(trackconfig, 'on')
   % infer from the user configuration whether tracking should be enabled
   if isfield(cfg, 'trackconfig') && (strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup'))
     trackconfig = 'on'; % turn on configtracking if user requests report/cleanup
   else
-    trackconfig = 'off';
+    trackconfig = []; % disable configtracking if user doesn't request report/cleanup
   end
 end
 
@@ -573,89 +583,99 @@ end
 % configtracking
 %
 % switch configuration tracking on/off
-% FIXME dit is slechts een eerste versie "voor de leuk"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-try
-  if strcmp(trackconfig, 'on') && isa(cfg, 'struct')
-    % turn on configuration tracking
-    cfg = config(cfg);
-  end
-
-  if strcmp(trackconfig, 'off') && isa(cfg, 'config')
-    % turn off configuration tracking, optionally give report and/or cleanup
-
-    if strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')
-      % give information about the tracked results to the user
-      r = access(cfg, 'reference');
-      o = access(cfg, 'original');
-
-      key = fieldnames(cfg);
-      key = key(:)';
-
-      ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'artfctdef', 'previous'}; % these fields should never be removed!
-      skipsel      = match_str(key, ignorefields);
-      key(skipsel) = [];
-
-      used     = zeros(size(key));
-      original = zeros(size(key));
-
-      for i=1:length(key)
-        used(i)     = (r.(key{i})>0);
-        original(i) = (o.(key{i})>0);
-      end
-
-      if ~silent
-        % give report on screen
-        fprintf('\nThe following config fields were specified by YOU and were USED\n');
-        sel = find(used & original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-
-        fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
-        sel = find(~used & original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-
-        fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
-        sel = find(used & ~original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-
-        fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
-        sel = find(~used & ~original);
-        if numel(sel)
-          fprintf('  cfg.%s\n', key{sel});
-        else
-          fprintf('  <none>\n');
-        end
-      end
-    end % report or cleanup
-
-    if strcmp(cfg.trackconfig, 'cleanup')
-      % remove the unused options from the configuration
-      unusedkey = key(~used);
-      for i=1:length(unusedkey)
-        cfg = rmfield(cfg, unusedkey{i});
-      end
+if ~isempty(trackconfig)
+  try
+    if strcmp(trackconfig, 'on') && isa(cfg, 'struct')
+      % turn ON configuration tracking
+      cfg = config(cfg);
+      % remember that configtracking has been turned on
+      cfg.trkcfgcount = 1;
+    elseif strcmp(trackconfig, 'on') && isa(cfg, 'config')
+      % remember how many times configtracking has been turned on
+      cfg.trkcfgcount = cfg.trkcfgcount+1; % count the 'ONs'
     end
 
-    % convert the configuration back to a struct
-    cfg = struct(cfg);
+    if strcmp(trackconfig, 'off') && isa(cfg, 'config')
+      % turn OFF configuration tracking, optionally give report and/or cleanup
+      cfg.trkcfgcount=cfg.trkcfgcount-1; % count(down) the 'OFFs'
+
+      if cfg.trkcfgcount==0 % only proceed when number of 'ONs' matches number of 'OFFs'
+        cfg=rmfield(cfg, 'trkcfgcount');
+
+        if strcmp(cfg.trackconfig, 'report') || strcmp(cfg.trackconfig, 'cleanup')
+          % gather information about the tracked results
+          r = access(cfg, 'reference');
+          o = access(cfg, 'original');
+
+          key = fieldnames(cfg);
+          key = key(:)';
+
+          ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'artfctdef', 'previous'}; % these fields should never be removed!
+          skipsel      = match_str(key, ignorefields);
+          key(skipsel) = [];
+
+          used     = zeros(size(key));
+          original = zeros(size(key));
+
+          for i=1:length(key)
+            used(i)     = (r.(key{i})>0);
+            original(i) = (o.(key{i})>0);
+          end
+
+          if ~silent
+            % give report on screen
+            fprintf('\nThe following config fields were specified by YOU and were USED\n');
+            sel = find(used & original);
+            if numel(sel)
+              fprintf('  cfg.%s\n', key{sel});
+            else
+              fprintf('  <none>\n');
+            end
+
+            fprintf('\nThe following config fields were specified by YOU and were NOT USED\n');
+            sel = find(~used & original);
+            if numel(sel)
+              fprintf('  cfg.%s\n', key{sel});
+            else
+              fprintf('  <none>\n');
+            end
+
+            fprintf('\nThe following config fields were set to DEFAULTS and were USED\n');
+            sel = find(used & ~original);
+            if numel(sel)
+              fprintf('  cfg.%s\n', key{sel});
+            else
+              fprintf('  <none>\n');
+            end
+
+            fprintf('\nThe following config fields were set to DEFAULTS and were NOT USED\n');
+            sel = find(~used & ~original);
+            if numel(sel)
+              fprintf('  cfg.%s\n', key{sel});
+            else
+              fprintf('  <none>\n');
+            end
+          end % report
+        end % report/cleanup
+
+        if strcmp(cfg.trackconfig, 'cleanup')
+          % remove the unused options from the configuration
+          unusedkey = key(~used);
+          for i=1:length(unusedkey)
+            cfg = rmfield(cfg, unusedkey{i});
+          end
+        end
+
+        % convert the configuration back to a struct
+        cfg = struct(cfg);
+      end
+    end % off
+
+  catch
+    disp(lasterr);
   end
-
-catch
-  disp(lasterr);
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check the size of fields in the cfg, remove large fields

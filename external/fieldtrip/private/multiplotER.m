@@ -77,6 +77,11 @@ function [cfg] = multiplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: multiplotER.m,v $
+% Revision 1.47  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.46  2008/12/16 14:59:13  sashae
 % plot functions can now give cfg as output
 % added checkconfig to start and end of function, configtracking possible
@@ -240,7 +245,7 @@ function [cfg] = multiplotER(cfg, varargin)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 clf
 

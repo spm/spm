@@ -51,6 +51,11 @@ function [cfg] = rejectartifact(cfg,data)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: rejectartifact.m,v $
+% Revision 1.45  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.44  2009/01/14 11:29:55  sashae
 % temporarily disabled previous revision
 %
@@ -131,7 +136,7 @@ if 0
 end
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'dataset2files', {'yes'});
 
 % set the defaults
@@ -429,7 +434,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: rejectartifact.m,v 1.44 2009/01/14 11:29:55 sashae Exp $';
+cfg.version.id = '$Id: rejectartifact.m,v 1.45 2009/01/20 13:01:31 sashae Exp $';
 
 % % remember the exact configuration details in the output
 % cfgtmp = cfg;

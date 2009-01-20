@@ -21,6 +21,11 @@ function [interp] = megrepair(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: megrepair.m,v $
+% Revision 1.20  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.19  2008/11/21 12:48:17  sashae
 % added call to checkconfig at start and end of function
 %
@@ -90,7 +95,7 @@ function [interp] = megrepair(cfg, data);
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
@@ -194,7 +199,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrepair.m,v 1.19 2008/11/21 12:48:17 sashae Exp $';
+cfg.version.id   = '$Id: megrepair.m,v 1.20 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

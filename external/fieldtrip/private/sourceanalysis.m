@@ -166,6 +166,11 @@ function [source] = sourceanalysis(cfg, data, baseline);
 % Copyright (c) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: sourceanalysis.m,v $
+% Revision 1.133  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.132  2009/01/19 12:29:51  roboos
 % preallocate the fake covariance matrix in case it is absent in the data
 % ensure that length(size(cov))==2 in case of Ntrials==1 (i.e. when keeptrials=yes and only one trial in the data)
@@ -508,7 +513,7 @@ fieldtripdefs
 % set a timer to determine how long the sourceanalysis takes in total
 tic;
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -1255,7 +1260,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourceanalysis.m,v 1.132 2009/01/19 12:29:51 roboos Exp $';
+cfg.version.id = '$Id: sourceanalysis.m,v 1.133 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 if nargin==2
   try, cfg.previous    = data.cfg;     end

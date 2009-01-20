@@ -12,6 +12,11 @@ function [cfg, artifact] = artifact_file(cfg);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: artifact_file.m,v $
+% Revision 1.17  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.16  2009/01/16 17:21:20  sashae
 % added config tracking
 %
@@ -67,7 +72,7 @@ function [cfg, artifact] = artifact_file(cfg);
 %
 
 fieldtripdefs
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 if isfield(cfg, 'rejectfile') && ~strcmp(cfg.rejectfile, 'no')
   cfg = checkconfig(cfg, 'dataset2files', {'yes'});
@@ -106,4 +111,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_file.m,v 1.16 2009/01/16 17:21:20 sashae Exp $';
+cfg.version.id = '$Id: artifact_file.m,v 1.17 2009/01/20 13:01:31 sashae Exp $';

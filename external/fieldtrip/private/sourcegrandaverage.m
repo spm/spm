@@ -40,6 +40,11 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: sourcegrandaverage.m,v $
+% Revision 1.21  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.20  2008/11/21 13:21:35  sashae
 % added call to checkconfig at start and end of fucntion
 %
@@ -95,7 +100,7 @@ function [grandavg] = sourcegrandaverage(cfg, varargin);
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
@@ -291,7 +296,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcegrandaverage.m,v 1.20 2008/11/21 13:21:35 sashae Exp $';
+cfg.version.id = '$Id: sourcegrandaverage.m,v 1.21 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 cfg.previous = [];
 for i=1:Nsubject

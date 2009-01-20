@@ -44,6 +44,11 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.26  2009/01/20 14:27:24  jansch
+% fixed bug in the case that the cfg.layout is a config-object leading to the
+% generation of a 'default' CTF151 layout. this was problematic in the
+% interactive mode of the plotting routines, toggling back and forth
+%
 % Revision 1.25  2008/12/24 13:34:19  roboos
 % fixed bug in  hte closing of masking polygons
 %
@@ -511,8 +516,16 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   lay.outline = outline;
 
 else
-  fprintf('reverting to 151 channel CTF default\n');
-  lay = readlay('CTF151s.lay');
+  %when cfg has been converted to a config object isstruct does not work,
+  %so the first conditional if (l 171) is not executed (but it should). FIXME
+  try,
+    if all(isfield(cfg.layout, {'pos';'width';'height';'label'}))
+      lay = cfg.layout;
+    end
+  catch
+    fprintf('reverting to 151 channel CTF default\n');
+    lay = readlay('CTF151s.lay');
+  end
 end
 
 % FIXME there is a conflict between the use of cfg.style here and in topoplot

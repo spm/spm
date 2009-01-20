@@ -43,6 +43,11 @@ function [cfg] = singleplotTFR(cfg, data)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: singleplotTFR.m,v $
+% Revision 1.33  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.32  2008/12/16 14:59:12  sashae
 % plot functions can now give cfg as output
 % added checkconfig to start and end of function, configtracking possible
@@ -138,7 +143,7 @@ function [cfg] = singleplotTFR(cfg, data)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 cla
 

@@ -77,6 +77,11 @@ function [interp] = megrealign(cfg, data);
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
 % $Log: megrealign.m,v $
+% Revision 1.57  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.56  2008/12/02 12:22:00  roboos
 % allow data to be realigned AND simultaneously interpolated to another MEG sensor type, e.g. from ctf151 to ctf275
 %
@@ -100,7 +105,7 @@ function [interp] = megrealign(cfg, data);
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 data = checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'yes');
@@ -444,7 +449,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id   = '$Id: megrealign.m,v 1.56 2008/12/02 12:22:00 roboos Exp $';
+cfg.version.id   = '$Id: megrealign.m,v 1.57 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

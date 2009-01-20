@@ -39,6 +39,11 @@ function [mri] = volumerealign(cfg, mri);
 % Copyright (C) 2006, Robert Oostenveld
 %
 % $Log: volumerealign.m,v $
+% Revision 1.9  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.8  2008/11/21 13:56:12  sashae
 % added call to checkconfig at start and end of function
 %
@@ -66,7 +71,7 @@ function [mri] = volumerealign(cfg, mri);
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 mri = checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
@@ -180,7 +185,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: volumerealign.m,v 1.8 2008/11/21 13:56:12 sashae Exp $';
+cfg.version.id = '$Id: volumerealign.m,v 1.9 2009/01/20 13:01:31 sashae Exp $';
 
 % remember the configuration
 mri.cfg = cfg;

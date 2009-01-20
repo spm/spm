@@ -72,6 +72,11 @@ function [timelock] = timelockanalysis(cfg, data);
 % Copyright (C) 2003-2006, Robert Oostenveld
 %
 % $Log: timelockanalysis.m,v $
+% Revision 1.58  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.57  2009/01/12 13:05:20  sashae
 % small change in call to checkconfig
 %
@@ -269,7 +274,7 @@ fieldtripdefs
 data = checkdata(data, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
 
 % set the defaults
@@ -672,7 +677,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: timelockanalysis.m,v 1.57 2009/01/12 13:05:20 sashae Exp $';
+cfg.version.id = '$Id: timelockanalysis.m,v 1.58 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

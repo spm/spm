@@ -71,6 +71,11 @@ function [cfg] = topoplotER(cfg, varargin)
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % $Log: topoplotER.m,v $
+% Revision 1.53  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.52  2008/12/16 15:31:42  sashae
 % plot functions can now give cfg as output
 % added checkconfig to start and end of function, configtracking possible
@@ -177,7 +182,7 @@ function [cfg] = topoplotER(cfg, varargin)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 cla
 

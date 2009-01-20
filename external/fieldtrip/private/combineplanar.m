@@ -28,6 +28,11 @@ function [data] = combineplanar(cfg, data)
 % Copyright (C) 2004, Ole Jensen, Robert Oostenveld
 %
 % $Log: combineplanar.m,v $
+% Revision 1.41  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.40  2008/11/21 12:48:17  sashae
 % added call to checkconfig at start and end of function
 %
@@ -163,7 +168,7 @@ function [data] = combineplanar(cfg, data)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 % TODO this is not yet consistent with the code that is approx. 15 lines below
@@ -367,7 +372,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id  = '$Id: combineplanar.m,v 1.40 2008/11/21 12:48:17 sashae Exp $';
+cfg.version.id  = '$Id: combineplanar.m,v 1.41 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
 % remember the exact configuration details in the output 

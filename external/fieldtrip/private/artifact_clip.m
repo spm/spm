@@ -25,6 +25,11 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 % Copyright (C) 2005, Robert Oostenveld
 %
 % $Log: artifact_clip.m,v $
+% Revision 1.22  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.21  2009/01/16 18:19:41  sashae
 % moved some lines of code, no functional change
 %
@@ -94,7 +99,7 @@ function [cfg, artifact] = artifact_clip(cfg,data)
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
 cfg = checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
@@ -208,4 +213,4 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: artifact_clip.m,v 1.21 2009/01/16 18:19:41 sashae Exp $';
+cfg.version.id = '$Id: artifact_clip.m,v 1.22 2009/01/20 13:01:31 sashae Exp $';

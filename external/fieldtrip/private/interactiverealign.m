@@ -27,6 +27,11 @@ function cfg = interactiverealign(cfg)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: interactiverealign.m,v $
+% Revision 1.8  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.7  2009/01/16 17:21:20  sashae
 % added config tracking
 %
@@ -52,7 +57,7 @@ function cfg = interactiverealign(cfg)
 fieldtripdefs
 
 % check if the input cfg is valid for this function
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 cfg = checkconfig(cfg, 'required',    {'individual', 'template'});
 
 if ~isfield(cfg.individual, 'vol'),              cfg.individual.vol = [];                   end
@@ -119,7 +124,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: interactiverealign.m,v 1.7 2009/01/16 17:21:20 sashae Exp $';
+cfg.version.id = '$Id: interactiverealign.m,v 1.8 2009/01/20 13:01:31 sashae Exp $';
 
 % remember the transform
 cfg.m = norm.m;

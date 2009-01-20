@@ -54,6 +54,11 @@ function [cfg] = singleplotER(cfg, varargin)
 % Copyright (C) 2003-2006, Ole Jensen
 %
 % $Log: singleplotER.m,v $
+% Revision 1.35  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.34  2008/12/16 14:59:12  sashae
 % plot functions can now give cfg as output
 % added checkconfig to start and end of function, configtracking possible
@@ -187,7 +192,7 @@ function [cfg] = singleplotER(cfg, varargin)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 cla
 

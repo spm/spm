@@ -40,6 +40,11 @@ function [source] = sourcedescriptives(cfg, source)
 % Copyright (C) 2004-2007, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % $Log: sourcedescriptives.m,v $
+% Revision 1.43  2009/01/20 13:01:31  sashae
+% changed configtracking such that it is only enabled when BOTH explicitly allowed at start
+% of the fieldtrip function AND requested by the user
+% in all other cases configtracking is disabled
+%
 % Revision 1.42  2008/11/21 13:21:35  sashae
 % added call to checkconfig at start and end of fucntion
 %
@@ -88,7 +93,7 @@ function [source] = sourcedescriptives(cfg, source)
 
 fieldtripdefs
 
-cfg = checkconfig(cfg);
+cfg = checkconfig(cfg, 'trackconfig', 'on');
 
 % check if the input data is valid for this function
 source = checkdata(source, 'datatype', 'source', 'feedback', 'yes');
@@ -828,7 +833,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: sourcedescriptives.m,v 1.42 2008/11/21 13:21:35 sashae Exp $';
+cfg.version.id = '$Id: sourcedescriptives.m,v 1.43 2009/01/20 13:01:31 sashae Exp $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output
