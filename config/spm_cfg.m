@@ -4,7 +4,7 @@ function spmjobs = spm_cfg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 2283 2008-10-01 14:25:09Z john $
+% $Id: spm_cfg.m 2625 2009-01-20 16:28:20Z maria $
 
 %_______________________________________________________________________
 % temporal Temporal
@@ -29,7 +29,7 @@ stats         = cfg_choice;
 stats.tag     = 'stats';
 stats.name    = 'Stats';
 stats.help    = {'Various analysis utilities.'};
-stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results};
+stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_bms spm_cfg_results};
 % ---------------------------------------------------------------------
 % meeg Meeg
 % ---------------------------------------------------------------------
