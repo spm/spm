@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 2548 2008-12-09 22:11:04Z cc $
+% $Id: spm_api_erp.m 2631 2009-01-20 17:12:47Z cc $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -1013,9 +1013,9 @@ return
  
 % --- Executes on button press in BMC.
 %--------------------------------------------------------------------------
-function BMC_Callback(hObject, eventdata, handles)
-spm_api_bmc
-%spm_jobman('Interactive','','spm.stats.bms.bms_pbar')
+function BMS_Callback(hObject, eventdata, handles)
+%spm_api_bmc
+spm_jobman('Interactive','','spm.stats.bms.bms_dcm')
  
  
 % --- Executes on selection change in ERP.
@@ -1088,7 +1088,8 @@ switch handles.DCM.options.analysis
             'Coupling (B - modes)'
             'Input (C - Hz)'
             'Input (u - ms)'
-            'Dipoles'};
+            'Dipoles'
+            'Save results as img'};
         try
             set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
         catch
@@ -1155,13 +1156,3 @@ handles = reset_Callback(hObject, eventdata, handles);
 spm_api_nmm(handles.DCM)
 
 
-
-
-% --- Executes on button press in SaveInd.
-function SaveInd_Callback(hObject, eventdata, handles)
-if handles.DCM.options.analysis~='IND'
-   errordlg('This is only for DCM of induced responses');
-   error('')
-end
-Action='Saveimg';
-spm_dcm_ind_results(handles.DCM, Action);

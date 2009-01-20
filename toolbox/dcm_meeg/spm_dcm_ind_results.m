@@ -12,7 +12,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 %     'Input (C - Hz)'
 %     'Input (u - ms)'
 %     'Dipoles'
-%                
+%     'Saveimg'           
 %___________________________________________________________________________
 %
 % DCM is a causal modelling procedure for dynamical systems in which
@@ -31,7 +31,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 2523 2008-12-02 19:52:33Z cc $
+% $Id: spm_dcm_ind_results.m 2631 2009-01-20 17:12:47Z cc $
 
 
 % get figure handle
@@ -199,7 +199,7 @@ case{lower('Coupling (A - Hz)')}
             if j == 1, title({'from'; DCM.Sname{i}}), end
             if i == 1, ylabel({'to';  DCM.Sname{j}}), end
             
-              
+            
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'Amatrix')
                 V.dt=[spm_type('float64') 0];
                 V.mat = eye(4);
@@ -355,7 +355,7 @@ case{lower('Coupling (B - modes)')}
         axis square
         
     end
-    
+
 
 case{lower('Input (C - Hz)')}
    
@@ -392,28 +392,28 @@ case{lower('Input (u - ms)')}
     
 case{lower('Dipoles')}
     
-        sdip.n_seeds = 1;
-        sdip.n_dip  = nr;
-        sdip.Mtb    = 1;
-        sdip.j{1}   = zeros(3*nr, 1);
-        sdip.loc{1} = full(DCM.M.dipfit.Lpos);
-        spm_eeg_inv_ecd_DrawDip('Init', sdip)
+    sdip.n_seeds = 1;
+    sdip.n_dip  = nr;
+    sdip.Mtb    = 1;
+    sdip.j{1}   = zeros(3*nr, 1);
+    sdip.loc{1} = full(DCM.M.dipfit.Lpos);
+    spm_eeg_inv_ecd_DrawDip('Init', sdip)
         
 
-case{lower('Saveimg')}
+case{lower('Save results as img')}
 
-fprintf('Saving the Time-frequency representation at sources\n');
-DCM.saveInd='TFR';
-spm_dcm_ind_results(DCM,'Wavelet');
+    fprintf('Saving the Time-frequency representation at sources\n');
+    DCM.saveInd='TFR';
+    spm_dcm_ind_results(DCM,'Wavelet');
 
-fprintf('Saving the coupling matrix A\n');
-DCM.saveInd='Amatrix';
-spm_dcm_ind_results(DCM,'Coupling (A - Hz)');
- 
-fprintf('Saving the coupling matrix B\n');
-DCM.saveInd='Bmatrix';
-spm_dcm_ind_results(DCM,'Coupling (B - Hz)');
-DCM=rmfield(DCM,'saveInd');
+    fprintf('Saving the coupling matrix A\n');
+    DCM.saveInd='Amatrix';
+    spm_dcm_ind_results(DCM,'Coupling (A - Hz)');
+
+    fprintf('Saving the coupling matrix B\n');
+    DCM.saveInd='Bmatrix';
+    spm_dcm_ind_results(DCM,'Coupling (B - Hz)');
+    DCM=rmfield(DCM,'saveInd');
 
 end
 drawnow
