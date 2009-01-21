@@ -59,6 +59,10 @@ function r = spm_gamrnd(a,b,varargin)
 %  6.   randraw('gamma');
 %
 % END gamma HELP END gama HELP
+%_______________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%
+% $Id: spm_gamrnd.m 2635 2009-01-21 09:43:47Z maria $
 
 % Method:
 %

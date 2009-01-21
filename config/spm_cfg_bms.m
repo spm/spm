@@ -1,10 +1,10 @@
 function bms = spm_cfg_bms
-% Configuration file for deformation jobs.
+% Configuration file for BMS interface.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 2634 2009-01-21 09:30:44Z maria $
+% $Id: spm_cfg_bms.m 2635 2009-01-21 09:43:47Z maria $
 
 % ---------------------------------------------------------------------
 % dir Directory
