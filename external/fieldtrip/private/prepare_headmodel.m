@@ -30,6 +30,9 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data);
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: prepare_headmodel.m,v $
+% Revision 1.5  2009/01/21 12:47:46  sashae
+% ensure vol is always a struct
+%
 % Revision 1.4  2009/01/19 12:09:00  roboos
 % fixed typo in 4-sphere eeg code (thanks to John Iversen)
 %
@@ -410,6 +413,8 @@ elseif exist('grad', 'var')
 else
   error('cannot find electrodes or gradiometers'); 
 end
+
+vol = struct(vol); % make sure vol is a struct
 
 % update the configuration, so that the calling function exactly knows wat was selected
 % the channel ordering in the sensor array remains consistent

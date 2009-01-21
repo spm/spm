@@ -23,6 +23,9 @@ function [lf, vol] = eeg_leadfield4(R, elc, vol)
 %  Cuffin BN, Cohen D. Comparison of the magnetoencephalogram and electroencephalogram. Electroencephalogr Clin Neurophysiol. 1979 Aug;47(2):132-46. 
 %
 % $Log: eeg_leadfield4.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.8  2008/12/24 13:33:27  roboos
 % changed some & and | into && and ||
 %

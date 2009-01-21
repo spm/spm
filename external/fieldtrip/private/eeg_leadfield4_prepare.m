@@ -21,6 +21,9 @@ function [lut_t, cuf_t] = eeg_leadfield4_prepare(vol, Nmax);
 %   B. N. Cuffin and D. Cohen. Comparion of the Magnetoencephalogram and the Electroencephalogram. Electroencephalogr Clin Neurophysiol, 47:131-146, 1979.
 %
 % $Log: eeg_leadfield4_prepare.m,v $
+% Revision 1.1  2009/01/21 10:46:10  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.4  2003/07/29 16:02:07  roberto
 % minor cosmetic change in the constants
 %

@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.71  2009/01/20 21:50:20  roboos
+% use mxDeserialize instead of eval(string) in mysql
+%
 % Revision 1.70  2009/01/19 15:05:47  roboos
 % added skeleton support for reading fif files using mne functions
 %
@@ -730,7 +733,7 @@ switch dataformat
     else
       for i=begtrial:endtrial
         s = db_select('fieldtrip.data', {'nChans', 'nSamples', 'data'}, i);
-        dum{i-begtrial+1} = eval(s.data); % FIXME this is not generic
+        dum{i-begtrial+1} = mxDeserialize(s.data);
       end
       dat = zeros(length(chanindx), s.nSamples, endtrial-begtrial+1);
       for i=begtrial:endtrial

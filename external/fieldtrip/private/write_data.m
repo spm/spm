@@ -30,6 +30,12 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.20  2009/01/21 11:34:23  marvger
+% update in hostname detection for fcdc_buffer
+%
+% Revision 1.19  2009/01/20 21:46:24  roboos
+% use mxSerialize instead of serialize in mysql
+%
 % Revision 1.18  2009/01/14 21:16:52  marvger
 % changes related to realtime processing
 %
@@ -184,9 +190,20 @@ switch dataformat
           % try writing the packet
           buffer('put_hdr', packet, host, port);
       catch
+        
           % assuming tcpsocket is not yet initialized
-          
-          if strcmp(host,'localhost')
+        
+          % retrieve hostname
+          [ret, hname] = system('hostname');
+          if ret ~= 0,
+            if ispc
+              hname = getenv('COMPUTERNAME');
+            else
+              hname = getenv('HOSTNAME');
+            end
+          end
+
+          if strcmpi(host,'localhost') || strcmpi(host,hname)
 
               % FIXME: check error type
               
@@ -307,9 +324,9 @@ switch dataformat
         s.nSamples    = hdr.nSamples;     % number of samples per trial
         s.nSamplesPre = hdr.nSamplesPre;  % number of pre-trigger samples in each trial
         s.nTrials     = hdr.nTrials;      % number of trials
-        s.label       = serialize(hdr.label); % FIXME this is not generic
+        s.label       = mxSerialize(hdr.label);
         try
-          s.msg = serialize(hdr); % FIXME this is not generic
+          s.msg = mxSerialize(hdr);
         catch
           warning(lasterr);
         end
@@ -334,7 +351,7 @@ switch dataformat
           s.nChans   = dim(2);
           s.nSamples = dim(3);
           try
-            s.data = serialize(reshape(dat(i,:,:), dim(2:end)));
+            s.data = mxSerialize(reshape(dat(i,:,:), dim(2:end)));
           catch
             warning(lasterr);
           end

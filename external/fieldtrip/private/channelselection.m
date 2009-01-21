@@ -51,6 +51,9 @@ function [channel] = channelselection(channel, datachannel)
 % Copyright (C) 2003-2008, Robert Oostenveld
 %
 % $Log: channelselection.m,v $
+% Revision 1.35  2009/01/21 16:59:08  jansch
+% added possibility to select (sets of) references for 4D data
+%
 % Revision 1.34  2008/11/10 15:16:22  roboos
 % added snippet of code to speed up the channel selection if there is a perfect match, no need to look for channel groups and immediately bail out
 %
@@ -190,7 +193,11 @@ switch senstype(datachannel)
     labelmeg = datachannel(strncmp('A'  , datachannel, 1));
     labelmref = [datachannel(strncmp('M'  , datachannel, 1));
       datachannel(strncmp('G'  , datachannel, 1))];
-
+    labelmrefa = datachannel(~cellfun(@isempty,strfind(datachannel, 'a')));
+    labelmrefc = datachannel(strncmp('MC', datachannel, 2));
+    labelmrefg = datachannel(strncmp('G', datachannel,  1));
+    labelmrefl = datachannel(strncmp('ML', datachannel, 2));
+    labelmrefr = datachannel(strncmp('MR', datachannel, 2));
   case {'neuromag306', 'neuromag122'}
     % all neuromag MEG channels start with MEG
     % all neuromag EEG channels start with EEG
@@ -226,6 +233,11 @@ findeegchwilla = find(strcmp(channel, 'EEGCHWILLA'));
 findeegbham    = find(strcmp(channel, 'EEGBHAM'));
 findeegref     = find(strcmp(channel, 'EEGREF'));
 findmegref     = find(strcmp(channel, 'MEGREF'));
+findmegrefa    = find(strcmp(channel, 'MEGREFA'));
+findmegrefc    = find(strcmp(channel, 'MEGREFC'));
+findmegrefg    = find(strcmp(channel, 'MEGREFG'));
+findmegrefl    = find(strcmp(channel, 'MEGREFL'));
+findmegrefr    = find(strcmp(channel, 'MEGREFR'));
 findeog        = find(strcmp(channel, 'EOG'));
 findmz         = find(strcmp(channel, 'MZ' ));
 findml         = find(strcmp(channel, 'ML' ));
@@ -298,6 +310,11 @@ if findeegchwilla, channel = [channel; labelchwilla]; end
 if findeegbham,    channel = [channel; labelbham]; end
 if findeegref,     channel = [channel; labelref]; end
 if findmegref,     channel = [channel; labelmref]; end
+if findmegrefa,    channel = [channel; labelmrefa]; end
+if findmegrefc,    channel = [channel; labelmrefc]; end
+if findmegrefg,    channel = [channel; labelmrefg]; end
+if findmegrefl,    channel = [channel; labelmrefl]; end
+if findmegrefr,    channel = [channel; labelmrefr]; end
 if findeog,        channel = [channel; labeleog]; end
 if findmz ,        channel = [channel; labelmz ]; end
 if findml ,        channel = [channel; labelml ]; end

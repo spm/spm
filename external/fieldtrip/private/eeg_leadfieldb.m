@@ -23,6 +23,9 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 % Copyright (C) 2003, Robert Oostenveld
 %
 % $Log: eeg_leadfieldb.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.3  2008/04/14 20:54:35  roboos
 % be more explicit about BEM type
 %

@@ -44,6 +44,9 @@ function [cfg] = checkconfig(cfg, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld, Saskia Haegens
 %
 % $Log: checkconfig.m,v $
+% Revision 1.10  2009/01/21 11:27:02  marvger
+% automatically set dataformat and headerformat if unspecified
+%
 % Revision 1.9  2009/01/20 15:55:54  sashae
 % cfg.trkcfgcount keeps track of number of times that trackconfig has been turned on/off,
 % to prevent that nested functions turn off configtracking (i.e. only at end of the main function
@@ -565,6 +568,16 @@ if ~isempty(dataset2files) && strcmp(dataset2files, 'yes')
     cfg.datafile   = datafile;
     cfg.headerfile = headerfile;
 
+    % fill dataformat if unspecified
+    if ~isfield(cfg,'dataformat') || isempty(cfg.dataformat)
+      cfg.dataformat = filetype(filename);
+    end
+
+    % fill dataformat if unspecified
+    if ~isfield(cfg,'headerformat') || isempty(cfg.headerformat)
+      cfg.headerformat = filetype(filename);
+    end
+    
   elseif ~isempty(cfg.datafile) && isempty(cfg.headerfile);
     % assume that the datafile also contains the header
     cfg.headerfile = cfg.datafile;

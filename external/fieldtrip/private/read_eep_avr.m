@@ -1,20 +1,41 @@
-function [dat] = read_eep_avr(fn);
+function [varargout] = funname(varargin)
 
 % READ_EEP_AVR reads averaged EEG data from an EEProbe *.avr file
 % and returns a structure containing the header and data information.
 %
-% eeg = read_eep_avr(filename)
+% Use as
+%   eeg = read_eep_avr(filename)
 %
 % See also READ_EEP_CNT, READ_EEP_TRG, READ_EEP_REJ
 
-% Copyright (C) 2002, Robert Oostenveld
-%
-% $Log: read_eep_avr.m,v $
-% Revision 1.3  2003/03/13 14:25:45  roberto
-% converted from DOS to UNIX
-%
-% Revision 1.2  2003/03/11 15:24:51  roberto
-% updated help and copyrights
-%
+% remember the original working directory
+pwdir = pwd;
 
-error('could not locate mex file');
+% determine the name and full path of this function
+funname = mfilename('fullpath');
+mexsrc  = [funname '.c'];
+[mexdir, mexname] = fileparts(funname);
+
+try
+  % try to compile the mex file on the fly
+  warning('trying to compile MEX file from %s', mexsrc);
+  cd(mexdir);
+  mex(mexsrc);
+  cd(pwdir);
+  success = true;
+
+catch
+  % compilation failed
+  disp(lasterr);
+  error('could not locate MEX file for %s', mexname);
+  cd(pwdir);
+  success = false;
+end
+
+if success
+  % execute the mex file that was juist created
+  funname   = mfilename;
+  funhandle = str2func(funname);
+  [varargout{1:nargout}] = funhandle(varargin{:});
+end
+

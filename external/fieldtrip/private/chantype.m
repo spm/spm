@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.2  2009/01/21 16:42:41  vlalit
+% Added support for EEG systems.
+%
 % Revision 1.7  2008/11/12 20:32:31  roboos
 % refined ctf headloc channels
 %
@@ -148,6 +151,14 @@ elseif senstype(input, 'ctf') && isheader
   %   type{sel} = 'SPLxxxx'; % I have no idea what these are
   % end
 
+elseif  senstype(input, 'eeg') && islabel
+    % use an external helper function to define the list with EEG channel names
+    [type{match_str(label, senslabel(senstype(label)))}] = 'eeg';
+    
+elseif  senstype(input, 'eeg') && isheader
+    % use an external helper function to define the list with EEG channel names
+    [type{match_str(hdr.label, senslabel(senstype(hdr)))}] = deal('eeg');    
+ 
 end % senstype
 
 if nargin>1

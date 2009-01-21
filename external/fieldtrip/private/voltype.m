@@ -13,6 +13,9 @@ function [type] = voltype(vol, desired)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: voltype.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.7  2008/04/30 13:40:34  roboos
 % improved detection concentric eeg
 %

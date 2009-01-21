@@ -19,6 +19,12 @@ function [inside] = inside_vol(pos, vol)
 % Copyright (C) 2003-2007, Robert Oostenveld
 %
 % $Log: inside_vol.m,v $
+% Revision 1.4  2009/01/21 11:15:57  roboos
+% moved function back from forwinv/private into public section, because it is part of the public API
+%
+% Revision 1.1  2009/01/21 10:46:10  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.2  2008/09/29 12:04:41  roboos
 % use logical (built-in) instead of boolean (simulink)
 %

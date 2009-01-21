@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.32  2009/01/21 11:34:44  marvger
+% update in hostname detection for fcdc_buffer
+%
 % Revision 1.31  2009/01/20 08:56:51  marvger
 % fixed catch me bug (illegal syntax in older matlab versions)
 %
@@ -273,37 +276,46 @@ switch eventformat
         buffer('put_evt', evt, host, port);  % indices should be zero-offset
         
       catch
-
-          % FIXME: check error type
-           if strcmp(host,'localhost')
-
-              warning('starting fieldtrip buffer on localhost');
-              
-              % try starting a local buffer
-              buffer('tcpserver', 'init', host, port);
-              pause(1);
-
-              % write packet until succeed
-              bhdr = false;
-              while ~bhdr
-                  try
-                      bhdr = true;
-       
-                      % try writing a dummy header
-                      dumhdr.fsample   = 0;
-                      dumhdr.nchans    = 0;
-                      dumhdr.nsamples  = 0;
-                      dumhdr.nevents   = 0;
-                      dumhdr.data_type = 0;
-                      
-                      buffer('put_hdr', dumhdr, host, port);
-                      buffer('put_evt', evt, host, port);  % indices should be zero-offset       
-                      
-                  catch
-                      bhdr = false;
-                  end
-              end
+        
+        % retrieve hostname
+        [ret, hname] = system('hostname');
+        if ret ~= 0,
+          if ispc
+            hname = getenv('COMPUTERNAME');
+          else
+            hname = getenv('HOSTNAME');
           end
+        end
+
+        if strcmpi(host,'localhost') || strcmpi(host,hname)
+          
+          warning('starting fieldtrip buffer on localhost');
+
+          % try starting a local buffer
+          buffer('tcpserver', 'init', host, port);
+          pause(1);
+
+          % write packet until succeed
+          bhdr = false;
+          while ~bhdr
+            try
+              bhdr = true;
+
+              % try writing a dummy header
+              dumhdr.fsample   = 0;
+              dumhdr.nchans    = 0;
+              dumhdr.nsamples  = 0;
+              dumhdr.nevents   = 0;
+              dumhdr.data_type = 0;
+
+              buffer('put_hdr', dumhdr, host, port);
+              buffer('put_evt', evt, host, port);  % indices should be zero-offset
+
+            catch
+              bhdr = false;
+            end
+          end
+        end
       end
     end
 

@@ -21,6 +21,9 @@ function [lf] = meg_leadfield1(R, Rm, Um);
 % Copyright (C) 2002-2008, Robert Oostenveld
 %
 % $Log: meg_leadfield1.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.8  2008/07/21 20:32:27  roboos
 % updated documentation
 %

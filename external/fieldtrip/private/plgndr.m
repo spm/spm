@@ -13,6 +13,9 @@ function [y] = plgndr(n,k,x)
 % Copyright (C) 2002, Robert Oostenveld
 %
 % $Log: plgndr.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.3  2008/03/05 16:26:18  roboos
 % updated documentation
 %

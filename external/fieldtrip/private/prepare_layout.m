@@ -44,6 +44,10 @@ function [lay] = prepare_layout(cfg, data);
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: prepare_layout.m,v $
+% Revision 1.27  2009/01/21 10:02:58  roboos
+% explicit handling of config->struct in case configuration tracking is used
+% changed default handling, don't use try-catch any more (thanks to Ivar)
+%
 % Revision 1.26  2009/01/20 14:27:24  jansch
 % fixed bug in the case that the cfg.layout is a config-object leading to the
 % generation of a 'default' CTF151 layout. this was problematic in the
@@ -149,7 +153,6 @@ fieldtripdefs
 if (nargin<1) || (nargin>2), error('incorrect number of input arguments'); end;
 if (nargin<2), data = []; end;
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % set default configuration options
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -169,6 +172,11 @@ if ~isfield(cfg, 'image'),      cfg.image = [];                 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+if isa(cfg.layout, 'config')
+  % convert the nested config-object back into a normal structure
+  cfg.layout = struct(cfg.layout);
+end
 
 % check whether cfg.layout already contains a valid layout structure (this can
 % happen when higher level plotting functions are called with cfg.layout set to
@@ -516,16 +524,8 @@ elseif ~isempty(cfg.image) && isempty(cfg.layout)
   lay.outline = outline;
 
 else
-  %when cfg has been converted to a config object isstruct does not work,
-  %so the first conditional if (l 171) is not executed (but it should). FIXME
-  try,
-    if all(isfield(cfg.layout, {'pos';'width';'height';'label'}))
-      lay = cfg.layout;
-    end
-  catch
-    fprintf('reverting to 151 channel CTF default\n');
-    lay = readlay('CTF151s.lay');
-  end
+  fprintf('reverting to 151 channel CTF default\n');
+  lay = readlay('CTF151.lay');
 end
 
 % FIXME there is a conflict between the use of cfg.style here and in topoplot
@@ -652,14 +652,14 @@ end
 [chNum,X,Y,Width,Height,Lbl,Rem] = textread(filename,'%f %f %f %f %f %q %q');
 
 if length(Rem)<length(Lbl)
-    Rem{length(Lbl)} = [];
+  Rem{length(Lbl)} = [];
 end
 
 for i=1:length(Lbl)
-    if ~isempty(Rem{i})
-        % this ensures that channel names with a space in them are also supported (i.e. Neuromag)
-        Lbl{i} = [Lbl{i} ' ' Rem{i}];
-    end
+  if ~isempty(Rem{i})
+    % this ensures that channel names with a space in them are also supported (i.e. Neuromag)
+    Lbl{i} = [Lbl{i} ' ' Rem{i}];
+  end
 end
 lay.pos    = [X Y];
 lay.width  = Width;

@@ -20,6 +20,9 @@ function [lap, edge] = lapcal(pnt, tri)
 % Copyright (C) 2001, Robert Oostenveld
 %
 % $Log: lapcal.m,v $
+% Revision 1.1  2009/01/21 10:46:10  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.2  2003/03/11 14:45:36  roberto
 % updated help and copyrights
 %

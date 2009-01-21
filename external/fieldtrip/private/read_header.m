@@ -1,7 +1,7 @@
 function [hdr] = read_header(filename, varargin)
 
 % READ_HEADER reads header information from a variety of EEG, MEG and LFP
-% filesi and represents the header information in a common data-indepentend
+% files and represents the header information in a common data-indepentend
 % format. The supported formats are listed below.
 %
 % Use as
@@ -55,6 +55,15 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.84  2009/01/21 20:22:42  roboos
+% implemented retry for fcdc_buffer
+%
+% Revision 1.83  2009/01/20 21:50:20  roboos
+% use mxDeserialize instead of eval(string) in mysql
+%
+% Revision 1.82  2009/01/20 21:20:04  roboos
+% typo
+%
 % Revision 1.81  2009/01/19 15:05:47  roboos
 % added skeleton support for reading fif files using mne functions
 %
@@ -336,6 +345,7 @@ end
 headerformat = keyval('headerformat', varargin);
 fallback     = keyval('fallback',     varargin);
 cache        = keyval('cache',        varargin); if isempty(cache), cache = false; end
+retry        = keyval('retry',        varargin); if isempty(retry), retry = false; end % for fcdc_buffer
 
 % determine the filetype
 if isempty(headerformat)
@@ -862,7 +872,21 @@ switch headerformat
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);
-    orig = buffer('get_hdr', [], host, port);
+    if retry
+      orig = [];
+      while isempty(orig)
+        try
+          % try reading the header, catch the error and retry
+          orig = buffer('get_hdr', [], host, port);
+        catch
+          warning('could not read header from %s, retrying in 1 second', filename);
+          pause(1);
+        end
+      end % while
+    else
+      % try reading the header only once, give error if it fails
+      orig = buffer('get_hdr', [], host, port);
+    end % if retry
     hdr.Fs          = orig.fsample;
     hdr.nChans      = orig.nchans;
     hdr.nSamples    = orig.nsamples;
@@ -887,7 +911,7 @@ switch headerformat
       hdr = db_select_blob('fieldtrip.header', 'msg', 1);
     else
       hdr = db_select('fieldtrip.header', {'nChans', 'nSamples', 'nSamplesPre', 'Fs', 'label'}, 1);
-      hdr.label = eval(hdr.label);  % FIXME this is not generic
+      hdr.label = mxDeserialize(hdr.label);
     end
 
   case {'mpi_ds', 'mpi_dap'}
