@@ -40,6 +40,9 @@ function label = senslabel(type)
 % Copyright (C) 2008, Vladimir Litvak
 %
 % $Log: senslabel.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.4  2008/09/17 19:35:07  roboos
 % ensure that it returns column array
 %

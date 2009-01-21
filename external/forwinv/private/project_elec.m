@@ -12,6 +12,9 @@ function [el] = project_elec(elc, pnt, tri)
 % Copyright (C) 1999-2002, Robert Oostenveld
 %
 % $Log: project_elec.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.2  2003/03/11 14:45:37  roberto
 % updated help and copyrights
 %

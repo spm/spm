@@ -8,6 +8,9 @@ function [lf] = inf_medium_leadfield(rd, pnt, cond);
 % Copyright (C) 1998, Robert Oostenveld
 %
 % $Log: inf_medium_leadfield.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.5  2005/02/23 14:31:19  roboos
 % changed the detection of Ndipoles, added reshaping of Nx3 input
 %

@@ -19,6 +19,9 @@ function [lf, lforig] = eeg_leadfield1(R, elc, vol);
 %   R. Kavanagh, T. M. Darccey, D. Lehmann, and D. H. Fender. Evaluation of methods for three-dimensional localization of electric sources in the human brain. IEEE Trans Biomed Eng, 25:421-429, 1978.
 %
 % $Log: eeg_leadfield1.m,v $
+% Revision 1.1  2009/01/21 10:32:38  roboos
+% moved from forwinv/* and forwinv/mex/* directory to forwinv/private/* to make the CVS layout consistent with the release version
+%
 % Revision 1.11  2008/12/24 13:33:45  roboos
 % fixed typo in documentation
 %
