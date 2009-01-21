@@ -1,4 +1,4 @@
-function [dat] = read_24bit(filename, offset, numwords)
+function [varargout] = funname(varargin)
 
 % READ_24BIT read a stream of 24 bit values and converts them to doubles
 % This function is designed for Biosemi BDF files and is implemented as mex
@@ -7,37 +7,36 @@ function [dat] = read_24bit(filename, offset, numwords)
 % Use as
 %   [dat] = read_24bit(filename, offset, numwords);
 %
-% See also READ_16BIT, READ_BIOSEMI_BDF
+% See also READ_16BIT
 
-% Copyright (C) 2006, Robert Oostenveld
-% F.C. Donders Ccentre for Cognitive Neuroimaging
-% http://oase.uci.ru.nl/~roberto/
-%
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
-%
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
-%
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% remember the original working directory
+pwdir = pwd;
 
-% $Log: read_24bit.m,v $
-% Revision 1.1  2009/01/14 09:12:15  roboos
-% The directory layout of fileio in cvs sofar did not include a
-% private directory, but for the release of fileio all the low-level
-% functions were moved to the private directory to make the distinction
-% between the public API and the private low level functions. To fix
-% this, I have created a private directory and moved all appropriate
-% files from fileio to fileio/private.
-%
-% Revision 1.1  2006/02/01 08:34:10  roboos
-% wrappers as placeholder for the help, the functionality is implemented as mex file
-%
+% determine the name and full path of this function
+funname = mfilename('fullpath');
+mexsrc  = [funname '.c'];
+[mexdir, mexname] = fileparts(funname);
 
-error('this function is implemented as mex file and is not available for this platform');
+try
+  % try to compile the mex file on the fly
+  warning('trying to compile MEX file from %s', mexsrc);
+  cd(mexdir);
+  mex(mexsrc);
+  cd(pwdir);
+  success = true;
+
+catch
+  % compilation failed
+  disp(lasterr);
+  error('could not locate MEX file for %s', mexname);
+  cd(pwdir);
+  success = false;
+end
+
+if success
+  % execute the mex file that was juist created
+  funname   = mfilename;
+  funhandle = str2func(funname);
+  [varargout{1:nargout}] = funhandle(varargin{:});
+end
+

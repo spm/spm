@@ -1,13 +1,6 @@
 function [varargout] = funname(varargin)
 
-% WRITE_CTF_SHM writes metainformation and data as a packet to shared memory.
-% This function can be used for real-time processing of data while it is
-% being acquired.
-%
-% Use as
-%   write_ctf_shm(msgType, msgId, sampleNumber, numSamples, numChannels, data);
-%
-% See also READ_CTF_SHM
+% FUNNAME compile the missing mex file on the fly
 
 % remember the original working directory
 pwdir = pwd;

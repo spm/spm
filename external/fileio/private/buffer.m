@@ -46,6 +46,9 @@ function [varargout] = buffer(varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: buffer.m,v $
+% Revision 1.7  2009/01/21 19:58:07  roboos
+% also call the function after compilation
+%
 % Revision 1.6  2009/01/20 15:38:37  roboos
 % try to compile the mex file on the fly
 %
@@ -68,10 +71,13 @@ function [varargout] = buffer(varargin)
 % remember the original working directory
 pwdir = pwd;
 
+% determine the name and full path of this function
+funname = mfilename('fullpath');
+mexsrc  = [funname '.c'];
+[mexdir, mexname] = fileparts(funname);
+
 try
-  warning('trying to compile MEX file for %s', mfilename);
-  fname = mfilename('fullpath');
-  [mexdir, mexname] = fileparts(fname);
+  warning('trying to compile MEX file from %s', mexsrc);
   cd(mexdir);
 
   % the following is specific for this particular mex file
@@ -102,10 +108,20 @@ try
     mex -I../src -L../src buffer.c event.o sinewave.o buffer_gethdr.o buffer_getdat.o buffer_getevt.o buffer_getprp.o buffer_flushhdr.o buffer_flushdat.o buffer_flushevt.o buffer_puthdr.o buffer_putdat.o buffer_putevt.o buffer_putprp.o -lbuffer
   end
 
+  cd(pwdir);
+  success = true;
+
 catch
+  % compilation failed
   disp(lasterr);
-  error('could not locate MEX file for %s', mfilename);
+  error('could not locate MEX file for %s', mexname);
+  cd(pwdir);
+  success = false;
 end
 
-% return to the original working directory
-cd(pwdir);
+if success
+  % execute the mex file that was juist created
+  funname   = mfilename;
+  funhandle = str2func(funname);
+  [varargout{1:nargout}] = funhandle(varargin{:});
+end
