@@ -20,9 +20,9 @@ function f = spm_Dpdf(x,a)
 % the gamma function (gammaln).
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-% 
+
 % Will Penny
-% $Id: spm_Dpdf.m 2544 2008-12-09 20:01:58Z guillaume $
+% $Id: spm_Dpdf.m 2636 2009-01-21 09:57:20Z guillaume $
 
 %-Check enough arguments
 %--------------------------------------------------------------------------

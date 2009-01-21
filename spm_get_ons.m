@@ -20,7 +20,7 @@ function [U] = spm_get_ons(SPM,s)
 %__________________________________________________________________________
 %
 %
-% SLICE TIMIING
+% SLICE TIMING
 %
 % With longs TRs you may want to shift the regressors so that they are
 % aligned to a particular slice.  This is effected by resetting the
@@ -42,7 +42,7 @@ function [U] = spm_get_ons(SPM,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 2496 2008-11-27 13:40:32Z karl $
+% $Id: spm_get_ons.m 2636 2009-01-21 09:57:20Z guillaume $
 
 
 %-GUI setup
