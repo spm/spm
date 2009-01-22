@@ -59,6 +59,9 @@ function [event] = read_event(filename, varargin)
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
 % $Log: read_event.m,v $
+% Revision 1.82  2009/01/22 15:31:43  marvger
+% updated catch handling
+%
 % Revision 1.81  2009/01/20 10:03:25  marvger
 % fixed catch me bug; also dealt with cvs problem during commit
 %
@@ -934,8 +937,12 @@ switch eventformat
     fid = fopen(fifo, 'r');
     msg = fread(fid, inf, 'uint8');
     fclose(fid);
-    event = mxDeserialize(uint8(msg));
-
+    try
+      event = mxDeserialize(uint8(msg));
+    catch
+      warning(lasterr);
+    end
+    
   case 'fcdc_tcp'    
 
     % requires tcp/udp/ip-toolbox
@@ -959,7 +966,7 @@ switch eventformat
           event = mxDeserialize(uint8(str2num(msg)));
         end
       catch
-        error('cannot deserialize');
+        warning(lasterr);
       end
     end
 
@@ -990,11 +997,12 @@ switch eventformat
           event = mxDeserialize(uint8(msg));
         end
       end
+    catch
+      warning(lasterr);
     end
 
     % On break or error close connection
     pnet(udp,'close');
-
 
   case 'fcdc_serial'
     % serial port on windows or linux platform

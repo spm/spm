@@ -30,6 +30,9 @@ function write_data(filename, dat, varargin)
 % Copyright (C) 2007-2008, Robert Oostenveld
 %
 % $Log: write_data.m,v $
+% Revision 1.21  2009/01/21 21:20:01  roboos
+% improved check to detect missing ft buffer, only start if certain about socket error and if localhost or 127.0.0.1
+%
 % Revision 1.20  2009/01/21 11:34:23  marvger
 % update in hostname detection for fcdc_buffer
 %
@@ -187,47 +190,33 @@ switch dataformat
 
       % try to put_hdr and initialize if necessary
       try
-          % try writing the packet
-          buffer('put_hdr', packet, host, port);
+        % try writing the packet
+        buffer('put_hdr', packet, host, port);
+
       catch
-        
-          % assuming tcpsocket is not yet initialized
-        
-          % retrieve hostname
-          [ret, hname] = system('hostname');
-          if ret ~= 0,
-            if ispc
-              hname = getenv('COMPUTERNAME');
-            else
-              hname = getenv('HOSTNAME');
+        if strfind(lasterr, 'failed to create socket') && (strcmp(host, 'localhost') || strcmp(host, '127.0.0.1'))
+
+          % start a local instance of the TCP server
+          warning('starting fieldtrip buffer on %s:%d', host, port);
+          buffer('tcpserver', 'init', host, port);
+          pause(1);
+
+          % rewrite the packet until success
+          success = false;
+          while ~success
+            try
+              % it may take some time before the TCP server is fully initialized
+              % try writing the packet again
+              buffer('put_hdr', packet, host, port);
+              success = true;
+            catch
+              success = false;
             end
           end
+        end % if strfind...
 
-          if strcmpi(host,'localhost') || strcmpi(host,hname)
+      end % try
 
-              % FIXME: check error type
-              
-              warning('starting fieldtrip buffer on localhost');
-              
-              % try starting a local buffer
-              buffer('tcpserver', 'init', host, port);
-              pause(1);
-
-              % write packet until succeed
-              bhdr = false;
-              while ~bhdr
-                  try
-                      bhdr = true;
-                      % try writing the packet again
-                      buffer('put_hdr', packet, host, port);
-                  catch
-                      bhdr = false;
-                  end
-              end
-          end
-
-      end
-          
     end % writing header
 
     if ~isempty(dat)
