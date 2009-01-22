@@ -19,6 +19,9 @@ function [fhdr,chdr,ename,cnames,fcom,ftext] = read_egis_header(filename)
 % Modified from EGI's EGI Toolbox with permission 2007-06-28 Joseph Dien
 
 % $Log: read_egis_header.m,v $
+% Revision 1.2  2009/01/22 19:54:32  josdie
+% Cell names were being truncated if they contained a space.  Fixed.
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -108,8 +111,7 @@ status=fseek(fh,(130+(2*fhdr(18))+(4*fhdr(19))),'bof');
 status=fseek(fh,2,'cof');
 for loop=1:fhdr(18)
   temp=fread(fh,80,'char');
-  theName=strtok(temp);
-  theName=strtok(theName,char(0));
+  theName=strtok(temp,0);
   cnames{loop}=deblank(char(theName))';
   status=fseek(fh,fhdr(24+(loop-1))-80,'cof');
 end

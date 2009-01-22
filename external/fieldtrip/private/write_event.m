@@ -35,6 +35,9 @@ function write_event(filename, event, varargin)
 % Copyright (C) 2007, Robert Oostenveld
 %
 % $Log: write_event.m,v $
+% Revision 1.33  2009/01/22 15:31:59  marvger
+% updated catch handling
+%
 % Revision 1.32  2009/01/21 11:34:44  marvger
 % update in hostname detection for fcdc_buffer
 %
@@ -412,13 +415,17 @@ switch eventformat
       fid = fopen(fifo, 'w');
       for i=1:length(event)
 
+        try
           % convert the event into a network message
           msg = mxSerialize(event(i));
           num = fwrite(fid, msg, 'uint8');
+        catch
+          warning(lasterr);
+        end
 
-          if num~=length(msg)
-              error('problem writing to FIFO %s', fifo);
-          end
+        if num~=length(msg)
+          error('problem writing to FIFO %s', fifo);
+        end
       end
       fclose(fid);
       
@@ -445,7 +452,7 @@ switch eventformat
                     pnet(con,'printf','\n');
                 end
             catch             
-                error('unable to serialize event');
+                warning(lasterr);
             end            
         end
         
@@ -472,6 +479,8 @@ switch eventformat
                     pnet(udp,'writepacket',host,port);   % Send buffer as UDP packet to host
                 end
 
+            catch
+              warning(lasterr);
             end
             pnet(udp,'close');
         end
