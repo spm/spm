@@ -27,10 +27,12 @@ function out = spm_run_bms_map (job)
 %       Posterior Probability Maps (*ppm.img).
 %
 % BMS contains:
-%     BMS.map.group.ffx.ppm 
-%     BMS.map.group.rfx.ppm
-%     BMS.map.group.rfx.epm
-%     BMS.map.group.rfx.alpha
+%     BMS.fname
+%     BMS.map.ffx(rfx).data
+%     BMS.map.ffx(rfx).ppm 
+%     BMS.map.ffx(rfx).xppm     - only for RFX
+%     BMS.map.ffx(rfx).epm      - only for RFX
+%     BMS.map.ffx(rfx).alpha    - only for RFX
 %
 % [1] Stephan et al., (under review), Bayesian Model Selection for Group 
 % Studies, NeuroImage.
@@ -39,11 +41,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 2625 2009-01-20 16:28:20Z maria $
-
-% Say hello
-%--------------------------------------------------------------------------
-% BMSid    = spm('FnBanner','BMS: Maps',SCCSid);
+% $Id: spm_run_bms_map.m 2649 2009-01-23 19:41:21Z maria $
 
 % Input
 % -------------------------------------------------------------------------
@@ -96,7 +94,7 @@ switch method
         % Check if BMS.mat exists
         if exist(fullfile(job.dir{1},'BMS.mat'),'file')
            load(fname);
-           if  isfield(BMS,'map') && isfield(BMS.map.group,'ffx')
+           if  isfield(BMS,'map') && isfield(BMS.map,'ffx')
                str = { 'Warning: existing BMS.mat file has been over-written!'};
                msgbox(str)
            end
@@ -119,7 +117,7 @@ switch method
         for i = 1:nmodels,
             model_ppm(i).fname   = sprintf('%smodel%d_ppm.img',direct,i);
             model_ppm(i).descrip = sprintf('PPM: model %d',i);
-            BMS.map.group.ffx.ppm{i} = model_ppm(i).fname;
+            BMS.map.ffx.ppm{i} = model_ppm(i).fname;
             
             for s = 1:nsubjs,
                 for se = 1:nsess,
@@ -144,7 +142,9 @@ switch method
         model_ppm = spm_create_vol(model_ppm);
         BMS.fname = fname;
         
-        % Save SPM
+        % Save data and BMS
+        BMS.fname = fname;
+        BMS.map.ffx.data = job.sess_map;
         save(out.files{1},'BMS');
 
     case 'RFX',  % Random Effects
@@ -152,7 +152,7 @@ switch method
         % Check if BMS.mat exists
         if exist(fullfile(job.dir{1},'BMS.mat'),'file')
            load(fname);
-           if  isfield(BMS,'map') && isfield(BMS.map.group,'rfx')
+           if  isfield(BMS,'map') && isfield(BMS.map,'rfx')
                str = { 'Warning: existing BMS.mat file has been over-written!'};
                msgbox(str)
            end
@@ -195,13 +195,13 @@ switch method
         for i = 1:nmodels,
             model_alpha(i).fname   = sprintf('%smodel%d_alpha.img',direct,i);
             model_alpha(i).descrip = sprintf('Alpha: model %d',i);
-            BMS.map.group.rfx.alpha{i} = model_alpha(i).fname;
+            BMS.map.rfx.alpha{i} = model_alpha(i).fname;
             model_exp_r(i).fname   = sprintf('%smodel%d_xppm.img',direct,i);
             model_exp_r(i).descrip = sprintf('Exp_r: model %d',i);
-            BMS.map.group.rfx.ppm{i}   = model_exp_r(i).fname;
+            BMS.map.rfx.ppm{i}   = model_exp_r(i).fname;
             model_xp(i).fname      = sprintf('%smodel%d_epm.img',direct,i);
             model_xp(i).descrip    = sprintf('XP: model %d',i);
-            BMS.map.group.rfx.epm{i}   = model_xp(i).fname;
+            BMS.map.rfx.epm{i}   = model_xp(i).fname;
             for s = 1:nsubjs,
                 for se = 1:nsess,
                     nsessi      = size(job.sess_map{s},2);
@@ -226,8 +226,9 @@ switch method
         model_exp_r   = spm_create_vol(model_exp_r);
         model_xp      = spm_create_vol(model_xp);
         
-        % Save SPM
+        % Save data and BMS
         BMS.fname = fname;
+        BMS.map.ffx.data = job.sess_map;
         save(out.files{1},'BMS'); 
     
 end

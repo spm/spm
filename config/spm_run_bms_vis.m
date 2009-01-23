@@ -13,12 +13,12 @@ function [] = spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 2625 2009-01-20 16:28:20Z maria $
+% $Id: spm_run_bms_vis.m 2649 2009-01-23 19:41:21Z maria $
 
 % Input
 % -------------------------------------------------------------------------
 if isempty(varargin)
-   job.file{1}=''; job.img{1}=''; job.thres = ''; job.scale = '';
+   job.file{1}=''; job.img{1}=''; job.thres = []; job.scale = [];
 else
    job = varargin{1};
 end

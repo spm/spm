@@ -8,7 +8,7 @@ function spm_bms_display_vox(BMS,xyz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_vox.m 2626 2009-01-20 16:30:08Z maria $
+% $Id: spm_bms_display_vox.m 2649 2009-01-23 19:41:21Z maria $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -24,15 +24,15 @@ switch method
     % ---------------------------------------------------------------------
     case 'FFX'
         
-            if  isfield(BMS.map.group,'ffx')
+            if  isfield(BMS.map,'ffx')
                 
-                nmodels = size(BMS.map.group.ffx.ppm,2);
+                nmodels = size(BMS.map.ffx.ppm,2);
                 models  = [];
                 ppm_vox = zeros(nmodels,1);
         
                 % Get values
                 for i = 1:nmodels,
-                    tmp_ppm_vox   = spm_vol(BMS.map.group.ffx.ppm{i});
+                    tmp_ppm_vox   = spm_vol(BMS.map.ffx.ppm{i});
                     ppm_vox(i,:)  = spm_get_data(tmp_ppm_vox,xyz);
                     models        = [models; sprintf('model %d',i)];
                 end
@@ -69,18 +69,18 @@ switch method
     % ---------------------------------------------------------------------
     case 'RFX'
         
-        if  isfield(BMS.map.group,'rfx')
+        if  isfield(BMS.map,'rfx')
 
-            nmodels = size(BMS.map.group.rfx.alpha,2);      
+            nmodels = size(BMS.map.rfx.alpha,2);      
             models  = [];
             exp_r_vox = zeros(nmodels,1);
             xp_vox    = zeros(nmodels,1);
         
             % Get values
             for i = 1:nmodels,
-                tmp_exp_r_vox   = spm_vol(BMS.map.group.rfx.ppm{i});
+                tmp_exp_r_vox   = spm_vol(BMS.map.rfx.ppm{i});
                 exp_r_vox(i,:)  = spm_get_data(tmp_exp_r_vox,xyz);
-                tmp_xp_vox      = spm_vol(BMS.map.group.rfx.epm{i});
+                tmp_xp_vox      = spm_vol(BMS.map.rfx.epm{i});
                 xp_vox(i,:)     = spm_get_data(tmp_xp_vox,xyz);
                 models          = [models; sprintf('model %d',i)];
             end

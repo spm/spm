@@ -10,7 +10,7 @@ function [] = spm_bms_display(BMS,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 2626 2009-01-20 16:30:08Z maria $
+% $Id: spm_bms_display.m 2649 2009-01-23 19:41:21Z maria $
 
 % Main options (action)
 % =========================================================================
@@ -388,12 +388,12 @@ switch action
         
     case 'change_data'
         
-        fig       = gcf;
-        user_data = get(fig,'UserData');
-        job.img{1}= '';
+        fig         = gcf;
+        user_data   = get(fig,'UserData');
+        job.img{1}  = '';
         job.file{1} = user_data.BMS.fname;
-        job.thres = user_data.thres;
-        job.scale = user_data.scale;
+        job.thres   = user_data.thres;
+        job.scale   = user_data.scale;
         spm_run_bms_vis(job);
         
     case 'change_thres'
@@ -401,18 +401,18 @@ switch action
         fig         = gcf;
         user_data   = get(fig,'UserData');
         job.img{1}  = user_data.vols;
-        job.thres   = '';
+        job.thres   = [];
         job.file{1} = user_data.BMS.fname;
         job.scale   = user_data.scale;
         spm_run_bms_vis(job);
         
     case 'change_scale'
         
-        fig       = gcf;
-        user_data = get(fig,'UserData');
-        job.img{1}= user_data.vols;
-        job.thres = user_data.thres;
-        job.scale = '';
+        fig         = gcf;
+        user_data   = get(fig,'UserData');
+        job.img{1}  = user_data.vols;
+        job.thres   = user_data.thres;
+        job.scale   = [];
         job.file{1} = user_data.BMS.fname;
         spm_run_bms_vis(job);
 
