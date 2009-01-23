@@ -55,6 +55,9 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.85  2009/01/23 10:32:55  vlalit
+% New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
+%
 % Revision 1.84  2009/01/21 20:22:42  roboos
 % implemented retry for fcdc_buffer
 %
@@ -977,11 +980,34 @@ switch headerformat
   case 'neuromag_mne'
     % check that the required low-level toolbox is available
     hastoolbox('mne', 1);
+    
     orig = fiff_read_meas_info(filename);
     % convert to fieldtrip format header
     hdr.label       = orig.ch_names(:);
     hdr.nChans      = orig.nchan;
     hdr.Fs          = orig.sfreq;
+    % add a gradiometer structure for forward and inverse modelling
+    try
+      [hdr.grad,hdr.elec] = mne2grad(filename,orig);
+    catch
+      disp(lasterr);
+    end
+
+    
+    for i = 1:hdr.nChans %make a cell array of units for each channel
+        switch orig.chs(i).unit
+            case 201 %defined as constants by MNE, see p. 217 of MNE manual
+                hdr.unit{i} = 'T/m';
+            case 112
+                hdr.unit{i}='T';
+            case 107
+                hdr.unit{i}='V';
+            case 202
+                hdr.unit{i}='Am';
+            otherwise
+                hdr.unit{i}=[];
+        end
+    end
 
     % FIXME don't know how to determine this, but probably the subsequent
     % data size detection depends on this
@@ -992,21 +1018,18 @@ switch headerformat
     if iscontinuous
       raw = fiff_setup_read_raw(filename);
       hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
-      hdr.nSamplesPre = 0;
+      hdr.nSamplesPre = raw.first_samp;
       hdr.nTrials     = 1;
       % remember the complete dataset details
       orig.raw = raw;
+
+
     elseif isepoched
       error('not yet implemented');
     elseif isaverage
       error('not yet implemented');
     end
-    % add a gradiometer structure for forward and inverse modelling
-    try
-      hdr.grad = mne2grad(filename);
-    catch
-      disp(lasterr);
-    end
+
     % remember the original header details
     hdr.orig = orig;
 

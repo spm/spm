@@ -18,6 +18,9 @@ function [event] = read_trigger(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_trigger.m,v $
+% Revision 1.2  2009/01/23 10:32:55  vlalit
+% New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
+%
 % Revision 1.1  2009/01/14 09:12:16  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level
@@ -49,6 +52,7 @@ event = [];
 
 % get the optional input arguments
 hdr         = keyval('header',      varargin);
+dataformat  = keyval('dataformat',  varargin);
 begsample   = keyval('begsample',   varargin);
 endsample   = keyval('endsample',   varargin);
 chanindx    = keyval('chanindx',    varargin);
@@ -68,7 +72,7 @@ if isempty(endsample)
 end
 
 % read the trigger channel as raw data, can safely assume that it is continuous
-dat = read_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
+dat = read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', 0);
 
 if fixctf
   % correct for reading the data as signed 32-bit integer, whereas it should be interpreted as an unsigned int

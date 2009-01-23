@@ -32,6 +32,9 @@ function [sens] = read_sens(filename, varargin)
 % Copyright (C) 2005-2008, Robert Oostenveld
 %
 % $Log: read_sens.m,v $
+% Revision 1.11  2009/01/23 10:32:55  vlalit
+% New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
+%
 % Revision 1.10  2008/09/18 10:38:33  vlalit
 % Added 4D formats to be recognized by read_sens
 %
@@ -134,6 +137,11 @@ switch fileformat
     sens.label = tmp.textdata;
     sens.pnt   = tmp.data;
 
+  case 'neuromag_mne'
+    hastoolbox('fileio');
+    hdr = read_header(filename,'headerformat','neuromag_mne');
+    sens = hdr.elec;    
+    
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % gradiometer information is always stored in the header of the MEG dataset
   % hence uses the standard fieldtrip/fileio read_header function
@@ -144,6 +152,12 @@ switch fileformat
     % this is required because the read_sens function is also on itself included in the forwinv toolbox
     hastoolbox('fileio');
     hdr = read_header(filename);
+    sens = hdr.grad;
+    
+    
+  case 'neuromag_mne_grad'
+    hastoolbox('fileio');
+    hdr = read_header(filename,'headerformat','neuromag_mne');
     sens = hdr.grad;
     
     

@@ -14,6 +14,9 @@ function type = chantype(input, desired)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: chantype.m,v $
+% Revision 1.3  2009/01/23 10:32:55  vlalit
+% New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
+%
 % Revision 1.2  2009/01/21 16:42:41  vlalit
 % Added support for EEG systems.
 %
@@ -89,8 +92,44 @@ if senstype(input, 'neuromag')
         type{selmeg(i)} = 'planar';
       end
     end
+  elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'chs') && isfield(hdr.orig.chs, 'coil_type')
+      %all the chs.kinds and chs.coil_types are obtained from the MNE
+      %manual, p.210-211
+    for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3012)' %planar gradiometers
+        [type{sel}] = deal('planar');
+    end
+    for sel=find([hdr.orig.chs.kind]==1 & [hdr.orig.chs.coil_type]==3022)' %magnetometers
+        [type{sel}] = deal('magnetometer');
+    end
+    for sel=find([hdr.orig.chs.kind]==301)' %MEG reference channel, located far from head
+        [type{sel}] = deal('meg_ref');
+    end
+    for sel=find([hdr.orig.chs.kind]==2)' %EEG channels
+        [type{sel}] = deal('eeg');
+    end
+    for sel=find([hdr.orig.chs.kind]==201)' %MCG channels
+        [type{sel}] = deal('mcg');
+    end
+    for sel=find([hdr.orig.chs.kind]==3)' %Stim channels
+        [type{sel}] = deal('trigger');
+    end
+    for sel=find([hdr.orig.chs.kind]==202)' %EOG
+        [type{sel}] = deal('eog');
+    end
+    for sel=find([hdr.orig.chs.kind]==302)' %EMG
+        [type{sel}] = deal('emg');
+    end
+    for sel=find([hdr.orig.chs.kind]==402)' %ECG
+        [type{sel}] = deal('ecg');
+    end
+    for sel=find([hdr.orig.chs.kind]==502)' %MISC
+        [type{sel}] = deal('misc');
+    end
+    for sel=find([hdr.orig.chs.kind]==602)' %Resp
+        [type{sel}] = deal('respiration');
+    end
   end
-
+        
 elseif senstype(input, 'ctf') && islabel
   % the channels have to be identified based on their name alone
   sel = myregexp('^M[ZLR][A-Z][0-9][0-9]$', label);
