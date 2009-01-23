@@ -12,6 +12,9 @@ function [shape] = read_headshape(filename, varargin)
 % Copyright (C) 2008, Robert Oostenveld
 %
 % $Log: read_headshape.m,v $
+% Revision 1.7  2009/01/23 10:32:55  vlalit
+% New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
+%
 % Revision 1.6  2008/10/07 16:22:32  roboos
 % added option to specify coordinates to be obtained from ctf hc file
 %
@@ -111,7 +114,60 @@ switch fileformat
 
         shape.fid.pnt = fid([NZ L R], :);
         shape.fid.label = {'NZ', 'L', 'R'};
-
+        
+    case 'neuromag_mne'
+        hdr = read_header(filename,'headerformat','neuromag_mne');
+        nFid = size(hdr.orig.dig,2); %work out number of fiducials
+        switch coordinates
+            case 'head' % digitiser points should be stored in head coordinates by default
+                
+                fidN=1;
+                pntN=1;
+                for i=1:nFid %loop over fiducials
+                    %check this point is in head coordinates:
+                    if hdr.orig.dig(i).coord_frame~=4 % 4 is MNE constant for head coordinates
+                        error(['Digitiser point (' num2str(i) ') not stored in head coordinates!']);
+                    end
+                    
+                    
+                    switch hdr.orig.dig(i).kind % constants defined in MNE - see p.215 of MNE manual
+                        case 1 % Cardinal point (nasion, LPA or RPA)
+                            %get location of fiducial:
+                            shape.fid.pnt(fidN,1:3) = hdr.orig.dig(i).r*100; %multiply by 100 to convert to cm
+                            switch hdr.orig.dig(i).ident
+                                case 1 % LPA
+                                    shape.fid.label{fidN} = 'LPA';
+                                case 2 % nasion
+                                    shape.fid.label{fidN} = 'Nasion';
+                                case 3 % RPA
+                                    shape.fid.label{fidN} = 'RPA';
+                                otherwise
+                                    error('Unidentified cardinal point in file!');                                        
+                            end
+                            fidN = fidN + 1;
+                                
+                        case 2 % HPI coil
+                            shape.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+                            pntN = pntN + 1;
+                        case 3 % EEG electrode location (or ECG)
+                            shape.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+                            pntN = pntN + 1;
+                        case 4 % Additional head point
+                            shape.pnt(pntN,1:3) = hdr.orig.dig(i).r*100;
+                            pntN = pntN + 1;
+                        otherwise
+                            warning('Unidentified digitiser point in file!');
+                    end
+                        
+                end
+                shape.fid.label=shape.fid.label';
+                
+            case 'dewar'
+                error('Dewar coordinates not supported for headshape yet (MNE toolbox)');
+            otherwise
+                error('Incorrect coordinates specified');
+        end
+        
     case 'polhemus_fil'
         [shape.fid.pnt, shape.pnt, shape.fid.label] = read_polhemus_fil(filename, 0);
         

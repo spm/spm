@@ -31,6 +31,9 @@ function [dat] = read_data(filename, varargin);
 % Copyright (C) 2003-2007, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_data.m,v $
+% Revision 1.72  2009/01/23 10:32:55  vlalit
+% New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
+%
 % Revision 1.71  2009/01/20 21:50:20  roboos
 % use mxDeserialize instead of eval(string) in mysql
 %
@@ -856,7 +859,12 @@ switch dataformat
     % check that the required low-level toolbox is available
     hastoolbox('mne', 1);
     orig = hdr.orig;
-    error('not yet implemented');
+        
+    %if isempty(hdr)
+    %  hdr=read_header(filename, 'headerformat','neuromag_mne');
+    %end
+    
+    dat=fiff_read_raw_segment(hdr.orig.raw,begsample+hdr.nSamplesPre-1,endsample+hdr.nSamplesPre-1,chanindx);
 
   case 'neuromag_fif'
     % check that the required low-level toolbox is available
