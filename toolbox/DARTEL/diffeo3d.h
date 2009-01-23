@@ -21,4 +21,7 @@ extern void iteration(int dm[], int k, float v[], float g[], float f[], float jd
 extern void bracket(int dm[], float *A, float *B, float *C);
 extern void push(int dm[], int m, int n, float def[], float pf[], float po[], float so[]);
 extern void pushc(int dm[], int m, int n, float def[], float pf[], float po[], float so[]);
+extern void pushc_grads(int dm[], int m, float def[], float J[], float pf[], float po[]);
+extern void determinant(int dm[], float J0[], float d[]);
+extern void minmax_div(int dm[], float v0[], double mnmx[]);
 
