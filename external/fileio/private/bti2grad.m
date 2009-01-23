@@ -1,4 +1,4 @@
-function [grad] = bti2grad(hdr);
+function [grad] = bti2grad(hdr)
 
 % 4D2GRAD converts a CTF header to a gradiometer structure that can be
 % understood by FieldTrip and Robert Oostenveld's low-level forward and
@@ -18,6 +18,9 @@ function [grad] = bti2grad(hdr);
 % Copyright (C) 2008, Jan-Mathijs Schoffelen 
 %
 % $Log: bti2grad.m,v $
+% Revision 1.2  2009/01/23 16:15:31  roboos
+% removed ; after function declaration
+%
 % Revision 1.1  2009/01/14 09:12:15  roboos
 % The directory layout of fileio in cvs sofar did not include a
 % private directory, but for the release of fileio all the low-level

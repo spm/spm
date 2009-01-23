@@ -55,6 +55,10 @@ function [hdr] = read_header(filename, varargin)
 % Copyright (C) 2003-2008, Robert Oostenveld, F.C. Donders Centre
 %
 % $Log: read_header.m,v $
+% Revision 1.86  2009/01/23 16:22:44  roboos
+% changed indentation and whitespace
+% changed input arguments to mne2grad
+%
 % Revision 1.85  2009/01/23 10:32:55  vlalit
 % New reader for Neuromag fif format using the MNE toolbox (http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php)  implemented by Laurence Hunt.
 %
@@ -508,7 +512,7 @@ switch headerformat
     hdr.nSamplesPre = 0;  % it is continuous
     hdr.nTrials     = 1;  % it is continuous
     hdr.Fs          = orig.SamplingRate.NumericValue;
-    
+
     % there are some differences in the fields that are present in the
     % *.dat files, probably due to different BCI2000 versions
     if isfield(orig, 'SourceCh') && isfield(orig.SourceCh, 'NumericValue')
@@ -643,7 +647,7 @@ switch headerformat
     orig             = readCTFds(filename);
     hdr.Fs           = orig.res4.sample_rate;
     hdr.nChans       = orig.res4.no_channels;
-    hdr.nSamples     = orig.res4.no_samples;       
+    hdr.nSamples     = orig.res4.no_samples;
     hdr.nSamplesPre  = orig.res4.preTrigPts;
     hdr.nTrials      = orig.res4.no_trials;
     hdr.label        = cellstr(orig.res4.chanNames);
@@ -677,7 +681,7 @@ switch headerformat
       disp(tmp.message);
       warning('could not construct gradiometer definition from the header');
     end
- 
+
     % for realtime analysis eof chasing the res4 does not correctly
     % estimate the number of samples so we compute it on the fly from the
     % meg4 file sizes.
@@ -688,7 +692,7 @@ switch headerformat
     end
 
     hdr.nTrials = floor((sz - 8) / (hdr.nChans*4) / hdr.nSamples);
-    
+
     % add the original header details
     hdr.orig = orig;
 
@@ -976,11 +980,11 @@ switch headerformat
 
   case 'nexstim_nxe'
     hdr = read_nexstim_nxe(filename);
-    
+
   case 'neuromag_mne'
     % check that the required low-level toolbox is available
     hastoolbox('mne', 1);
-    
+
     orig = fiff_read_meas_info(filename);
     % convert to fieldtrip format header
     hdr.label       = orig.ch_names(:);
@@ -988,25 +992,24 @@ switch headerformat
     hdr.Fs          = orig.sfreq;
     % add a gradiometer structure for forward and inverse modelling
     try
-      [hdr.grad,hdr.elec] = mne2grad(filename,orig);
+      [hdr.grad, hdr.elec] = mne2grad(orig);
     catch
       disp(lasterr);
     end
 
-    
-    for i = 1:hdr.nChans %make a cell array of units for each channel
-        switch orig.chs(i).unit
-            case 201 %defined as constants by MNE, see p. 217 of MNE manual
-                hdr.unit{i} = 'T/m';
-            case 112
-                hdr.unit{i}='T';
-            case 107
-                hdr.unit{i}='V';
-            case 202
-                hdr.unit{i}='Am';
-            otherwise
-                hdr.unit{i}=[];
-        end
+    for i = 1:hdr.nChans % make a cell array of units for each channel
+      switch orig.chs(i).unit
+        case 201 % defined as constants by MNE, see p. 217 of MNE manual
+          hdr.unit{i} = 'T/m';
+        case 112
+          hdr.unit{i}='T';
+        case 107
+          hdr.unit{i}='V';
+        case 202
+          hdr.unit{i}='Am';
+        otherwise
+          hdr.unit{i}=[];
+      end
     end
 
     % FIXME don't know how to determine this, but probably the subsequent
@@ -1022,8 +1025,6 @@ switch headerformat
       hdr.nTrials     = 1;
       % remember the complete dataset details
       orig.raw = raw;
-
-
     elseif isepoched
       error('not yet implemented');
     elseif isaverage
@@ -1270,7 +1271,7 @@ switch headerformat
     end
 end
 
-% ensure that these are double precision and not integers, otherwise 
+% ensure that these are double precision and not integers, otherwise
 % subsequent computations that depend on these might be messed up
 hdr.Fs          = double(hdr.Fs);
 hdr.nSamples    = double(hdr.nSamples);
@@ -1284,7 +1285,7 @@ if cache && exist(headerfile, 'file')
   % update the header details (including time stampp, size and name)
   cacheheader.details = dir(headerfile);
   % fprintf('added header to cache\n');
-  
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
