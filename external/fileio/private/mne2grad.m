@@ -10,6 +10,9 @@ function [grad,elec] = mne2grad(hdr)
 % Laurence Hunt 03/12/2008 (with thanks to Joachim Gross's original script based on fiff_access). lhunt@fmrib.ox.ac.uk
 % 
 % $Log: mne2grad.m,v $
+% Revision 1.5  2009/01/23 18:56:54  vlalit
+% Another bug fix
+%
 % Revision 1.3  2009/01/23 16:29:40  roboos
 % convert label to column
 %
@@ -57,7 +60,7 @@ for i = 1:orig.nchan;
 end
 
 %how many sensors in total?
-nSensors = nPlaGrad + nMag + nEEG;
+nSensors = nPlaGrad + nMag;
 
 %how many coils in total?
 nCoils = nPlaGrad*2 + nMag;
@@ -115,7 +118,7 @@ end
 elec = [];
 elec.pnt = zeros(nEEG,3);
 elec.unit = 'cm';
-grad.label = cell(nEEG,1);
+elec.label = cell(nEEG,1);
 
 k=1;
 for n=1:orig.nchan
